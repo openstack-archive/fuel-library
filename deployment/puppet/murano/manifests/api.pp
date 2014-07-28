@@ -137,7 +137,7 @@ class murano::api (
     $murano_manage = '/usr/bin/murano-db-manage'
     exec { 'murano_manage_db_sync':
       path    => [ '/usr/bin' ],
-      command => "$murano_manage --config-file=/etc/murano/murano.conf upgrade",
+      command => "$murano_manage --config-file=/etc/murano/murano.conf db-sync",
       user    => $murano_user,
       group   => $murano_user,
       onlyif  => "test -f $murano_manage",
