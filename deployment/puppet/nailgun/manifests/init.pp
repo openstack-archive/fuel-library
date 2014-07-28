@@ -163,6 +163,8 @@ class nailgun(
     mco_connector => $mco_connector,
 
     puppet_master_hostname => $puppet_master_hostname,
+
+    domain                 => $dns_domain,
   }
 
   class {"nailgun::astute":
