@@ -169,6 +169,8 @@ class nailgun(
 
     keystone_admin_token => $::fuel_settings['keystone']['admin_token'],
     keystone_host        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+
+    domain               => $dns_domain,
   }
 
   class {"nailgun::astute":
