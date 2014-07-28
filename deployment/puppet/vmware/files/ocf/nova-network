@@ -266,8 +266,7 @@ nova_network_cleanup() {
 
             # Flush IP address assigned to 'flat_network_bridge' (usually called 'br100')
             flat_network_bridge=$(egrep -e '^flat_network_bridge' $OCF_RESKEY_config | sed -e 's/$regexp/\1/')
-            tries=3 # Make 3 tries to flush IP addresses, instead of 10 (which is default)
-            ocf_run ip -loops $tries addr flush dev $flat_network_bridge
+            ocf_run ip addr flush dev $flat_network_bridge
         ;;
         nova.network.manager.VlanManager)
             # TODO: nova-network (VLAN manager) with vCenter is not supported
