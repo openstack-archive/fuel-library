@@ -205,7 +205,7 @@ nova_network_validate() {
 }
 
 nova_network_cleanup() {
-    network_manager_nlines=`egrep -e '^network_manager' $OCF_RESKEY_config | wc -l`
+    network_manager_nlines=`egrep -c -e '^network_manager' $OCF_RESKEY_config`
 
     if [ $network_manager_nlines -eq 0 ];then
         echo "You must specify 'network_manager' in $OCF_RESKEY_config"
@@ -263,7 +263,7 @@ nova_network_cleanup() {
                 ;;
             esac
 
-            flat_network_bridge_nlines=`egrep -e '^flat_network_bridge' $OCF_RESKEY_config`
+            flat_network_bridge_nlines=`egrep -c -e '^flat_network_bridge' $OCF_RESKEY_config`
             if [ $flat_network_bridge_nlines -ne 1 ]; then
                 echo "Specifying more than one 'flat_network_bridge' in $OCF_RESKEY_config is not supported"
                 return OCF_ERR_CONFIGURED
