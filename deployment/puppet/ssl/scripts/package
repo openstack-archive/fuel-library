@@ -1,0 +1,5 @@
+#!/bin/sh
+
+rm -rf pkg vendor Gemfile Gemfile.lock spec/fixtures
+puppet module build ./
+git checkout -- .

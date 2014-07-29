@@ -1,0 +1,35 @@
+[ req ]
+default_bits            = 2048
+default_md              = sha1
+distinguished_name      = req_distinguished_name
+prompt = no
+<% if @alt_names_real.count > 1 -%>
+x509_extensions = v3_ca # The extentions to add to the self signed cert
+req_extensions = v3_req # The extensions to add to a certificate request
+<% end -%>
+
+[ req_distinguished_name ]
+C=<%= @country %>
+ST=<%= @state %>
+L=<%= @city %>
+O=<%= @org %>
+OU=<%= @org_unit %>
+CN=<%= @cn %>
+
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+
+[ v3_ca ]
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer:always
+basicConstraints = CA:true
+subjectAltName = @alt_names
+
+[ alt_names ]
+<% idx=0 -%>
+<% @alt_names_real.each do |alt| -%>
+DNS.<%= idx %> = <%= alt %>
+<% idx+=1 -%>
+<% end -%>

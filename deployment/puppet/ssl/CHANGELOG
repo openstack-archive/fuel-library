@@ -1,0 +1,20 @@
+2014-03-19 Aaron Russo <arusso@berkeley.edu> - 1.0.3
+* issue #5 - fixed unneccessary polling of incommon in ssl::incommon
+
+2013-10-28 Aaron Russo <arusso@berkeley.edu> - 1.0.2
+* issue #4 - typo in url for incommon intermediate cert
+
+2013-09-16 Aaron Russo <arusso@berkeley.edu> - 1.0.1
+* Archlinux support (aboe76)
+
+2013-09-11 Aaron Russo <arusso@berkeley.edu> - 1.0.0
+* Debian/Ubuntu support (erasche)
+
+2013-06-02 Aaron Russo <arusso@berkeley.edu> - 0.0.3
+* updating docs for acct rename
+
+2013-04-29 Aaron Russo <arusso@berkeley.edu> - 0.0.2
+* Adding README
+
+2013-04-29 Aaron Russo <arusso@berkeley.edu> - 0.0.1
+* Initial release
