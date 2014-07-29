@@ -1,0 +1,46 @@
+server {
+    listen     <%= @listen_https_ip_address %>:<%= @listen_https_port %>;
+    server_name FuelMaster;
+    ssl         on;
+    ssl_protocols       SSLv3 TLSv1;
+    ssl_certificate      <%= @ssl_certificate %>;
+    ssl_certificate_key  <%= @ssl_key %>;
+    access_log /var/log/nginx/access_nailgun_ssl.log;
+    error_log /var/log/nginx/error_nailgun_ssl.log debug;
+
+    charset utf-8;
+    client_max_body_size 10M;
+
+    location = /favicon.ico {
+        log_not_found off;
+        access_log off;
+    }
+
+    gzip on;
+    gzip_min_length 1000;
+    gzip_types text/plain application/json;
+
+    location /static {
+        autoindex on;
+        alias /usr/share/nailgun/static;
+    }
+
+    location /dump {
+        alias /var/www/nailgun/dump;
+    }
+
+    location ~ ^/ostf/(.*) {
+        proxy_pass http://<%= @ostf_host %>:<%= @ostf_port %>/v1/$1;
+        proxy_buffering off;
+    }
+
+    location / {
+        root /usr/share/nailgun/static;
+    }
+
+    location /api {
+        include uwsgi_params;
+        uwsgi_pass <%= @nailgun_host %>:<%= @nailgun_port %>;
+        client_max_body_size 100m;
+    }
+}
