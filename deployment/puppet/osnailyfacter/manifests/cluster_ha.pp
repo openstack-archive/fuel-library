@@ -369,11 +369,18 @@ class osnailyfacter::cluster_ha {
   case $::fuel_settings['role'] {
     /controller/ : {
       include osnailyfacter::test_controller
-
+      $expected_quorum_votes = size($controllers)
+      if $expected_quorum_votes <= 2 {
+        $no_quorum_policy      = 'ignore'
+      } else {
+        # NOTE(bogdando) use 'suicide' if fencing enabled and configured
+        $no_quorum_policy      = 'stop'
+      }
       class { '::cluster':
-        stage             => 'corosync_setup',
-        internal_address  => $::internal_address,
-        unicast_addresses => $::osnailyfacter::cluster_ha::controller_internal_addresses,
+        stage                 => 'corosync_setup',
+        internal_address      => $::internal_address,
+        unicast_addresses     => $::osnailyfacter::cluster_ha::controller_internal_addresses,
+        no_quorum_policy      => $no_quorum_policy,
       }
 
       Class['::cluster']->
