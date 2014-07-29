@@ -216,11 +216,11 @@ nova_network_cleanup() {
     regexp='.*=\s*\(\w\+\)'
 
     # Grab last network segmentation type (FlatDHCP or VLAN) from config file
-    network_manager=$(egrep -e '^network_manager' $OCF_RESKEY_config | sed -e 's/$regexp/\1/' | tail -n 1)
+    network_manager=$(egrep -e '^network_manager' $OCF_RESKEY_config | sed -e "s/$regexp/\1/" | tail -n 1)
 
     case $network_manager in
         nova.network.manager.FlatDHCPManager)
-            use_ipv6=$(egrep -e '^use_ipv6' $OCF_RESKEY_config | sed -e 's/$regexp/\1/')
+            use_ipv6=$(egrep -e '^use_ipv6' $OCF_RESKEY_config | sed -e "s/$regexp/\1/")
 
             # Consider IPv4 if 'use_ipv6' was not explicitly defined
             if [ -z $use_ipv6 ];then
@@ -270,7 +270,7 @@ nova_network_cleanup() {
             fi
 
             # Flush IP address assigned to 'flat_network_bridge' (usually called 'br100')
-            flat_network_bridge=$(egrep -e '^flat_network_bridge' $OCF_RESKEY_config | sed -e 's/$regexp/\1/')
+            flat_network_bridge=$(egrep -e '^flat_network_bridge' $OCF_RESKEY_config | sed -e "s/$regexp/\1/")
             tries=3 # Make 3 tries to flush IP addresses, instead of 10 (which is default)
             ocf_run ip -loops $tries addr flush dev $flat_network_bridge
         ;;
