@@ -3,21 +3,29 @@
 # Module for configuring cluster resources.
 #
 class cluster (
-    $internal_address = "127.0.0.1",
-    $unicast_addresses = undef,
+    $internal_address      = "127.0.0.1",
+    $unicast_addresses     = undef,
+    $expected_quorum_votes = false,
+    $no_quorum_policy      = false,
 )
 {
+    validate_string($no_quorum_policy,$expected_quorum_votes)
+
     #todo: move half of openstack::corosync to this module, another half -- to Neutron
     if defined(Stage['corosync_setup']) {
       class {'openstack::corosync':
-        bind_address      => $internal_address,
-        unicast_addresses => $unicast_addresses,
-        stage             => 'corosync_setup'
+        bind_address          => $internal_address,
+        unicast_addresses     => $unicast_addresses,
+        expected_quorum_votes => $expected_quorum_votes,
+        no_quorum_policy      => $no_quorum_policy,
+        stage                 => 'corosync_setup',
       }
     } else {
       class {'openstack::corosync':
-        bind_address      => $internal_address,
-        unicast_addresses => $unicast_addresses
+        bind_address          => $internal_address,
+        unicast_addresses     => $unicast_addresses,
+        expected_quorum_votes => $expected_quorum_votes,
+        no_quorum_policy      => $no_quorum_policy,
       }
     }
     file {'ocf-mirantis-path':

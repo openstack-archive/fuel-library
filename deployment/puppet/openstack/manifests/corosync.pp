@@ -5,8 +5,8 @@ class openstack::corosync (
   $multicast_address = '239.1.1.2',
   $secauth = 'off',
   $stonith = 'false',
-  $quorum_policy = 'ignore',
-  $expected_quorum_votes = "2",
+  $no_quorum_policy = 'ignore',
+  $expected_quorum_votes = '3',
   $unicast_addresses = undef
 ) {
 
@@ -59,7 +59,7 @@ class { '::corosync':
 
 cs_property { 'no-quorum-policy':
   ensure => present,
-  value  => $quorum_policy,
+  value  => $no_quorum_policy,
   retries => 5
 } -> Anchor['corosync-done']
 
