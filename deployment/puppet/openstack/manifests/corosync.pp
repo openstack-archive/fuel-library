@@ -6,7 +6,7 @@ class openstack::corosync (
   $secauth = 'off',
   $stonith = 'false',
   $quorum_policy = 'ignore',
-  $expected_quorum_votes = "2",
+  $expected_quorum_votes = '2',
   $unicast_addresses = undef
 ) {
 
