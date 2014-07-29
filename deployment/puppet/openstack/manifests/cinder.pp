@@ -144,7 +144,7 @@ class openstack::cinder(
         class { 'cinder::volume::iscsi':
           iscsi_ip_address => $iscsi_bind_host,
           volume_group     => $volume_group,
-        } ->
+        }
         class { 'mellanox_openstack::cinder':
           iser => $iser
         }
