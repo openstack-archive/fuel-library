@@ -116,7 +116,6 @@ class { "nailgun::venv":
 
   keystone_admin_token => $::fuel_settings['keystone']['admin_token'],
   keystone_host        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-  dns_domain => $::fuel_settings['DNS_DOMAIN'],
 }
 class { 'nailgun::uwsgi':
 }
