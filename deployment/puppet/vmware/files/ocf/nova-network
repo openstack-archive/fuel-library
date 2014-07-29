@@ -238,7 +238,7 @@ nova_network_cleanup() {
                                    $prefix-OUTPUT $prefix-local"
                     for filter_chain in $filter_chains
                     do
-                            ocf_run iptables --flush -t filter $filter_chain
+                            ocf_run iptables -t filter -F $filter_chain
                     done
 
                     nat_chains="$prefix-OUTPUT $prefix-PREROUTING $prefix-POSTROUTING \
@@ -246,10 +246,10 @@ nova_network_cleanup() {
                                 nova-postrouting-bottom"
                     for nat_chain in $nat_chains
                     do
-                            ocf_run iptables --flush -t nat $nat_chain
+                            ocf_run iptables -t nat -F $nat_chain
                     done
 
-                    ocf_run iptables --flush -t mangle $prefix-POSTROUTING
+                    ocf_run iptables -t mangle -F $prefix-POSTROUTING
                 ;;
                 # IPv6
                 true)
@@ -258,7 +258,7 @@ nova_network_cleanup() {
 
                     for chain in $filter_chains
                     do
-                         ocf_run ip6tables --flush -t filter $chain
+                         ocf_run ip6tables -t filter -F $chain
                     done
                 ;;
             esac
