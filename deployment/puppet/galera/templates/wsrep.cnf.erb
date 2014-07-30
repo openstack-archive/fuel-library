@@ -47,7 +47,7 @@ wsrep_cluster_address="gcomm://<%= @node_addresses.first %>:<%= @gcomm_port.to_s
 wsrep_provider=<%= @libgalera_prefix %>/galera/libgalera_smm.so
 wsrep_cluster_name="<%= @cluster_name -%>"
 
-wsrep_slave_threads=<%= [[@processorcount.to_i*2, 4].max, 12].min -%>
+wsrep_slave_threads=<%= [[@processorcount.to_i*2, 4].max, 12].min %>
 wsrep_sst_method=mysqldump
 wsrep_sst_auth=<%= @mysql_user %>:<%= @mysql_password %>
 wsrep_node_address=<%= @node_address %>
