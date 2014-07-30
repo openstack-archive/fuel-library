@@ -50,6 +50,13 @@ class plugin_neutronnsx::alter_neutron_server (
     mode    => '0755',
   }
 
+  if ! defined(File['/etc/neutron/plugins']) {
+    file {'/etc/neutron/plugins':
+      ensure  => directory,
+      mode    => '0755',
+    } -> File <| title == '/etc/neutron/plugins/vmware' |>
+  }
+
   File <| title == '/etc/neutron/plugin.ini' |> {
     ensure  => link,
     target  => '/etc/neutron/plugins/vmware/nsx.ini',
