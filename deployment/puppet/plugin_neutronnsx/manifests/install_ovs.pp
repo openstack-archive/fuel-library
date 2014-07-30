@@ -4,42 +4,54 @@ class plugin_neutronnsx::install_ovs
   include $::neutron::params
   case $::osfamily {
     /(?i)debian/: {
+      Package<| title=="openvswitch-common" |> {
+        name       => "openvswitch-common",
+        source  => $packages_url,
+        provider   => 'rdpkg',
+      }
+      Package<| title=="openvswitch-datapath" |> {
+        name       => "openvswitch-datapath-dkms",
+        source  => $packages_url,
+        provider   => 'rdpkg',
+      }
+
       package { 'dkms':
         ensure => present,
-      } ->
-      package { 'openvswitch-common':
-        provider => 'rdpkg',
-        source  => $packages_url,
-      } ->
-      package { 'openvswitch-datapath-dkms':
-        provider => 'rdpkg',
-        source  => $packages_url,
-        notify  => Service['openvswitch-service'],
-      } ->
+      }
       package { 'openvswitch-switch':
         provider => 'rdpkg',
         source  => $packages_url,
-        notify  => Service['openvswitch-service'],
-      } ->
+      }
       package { 'nicira-ovs-hypervisor-node':
         provider => 'rdpkg',
         source  => $packages_url,
-      } -> Service['nicira-ovs-hypervisor-node']
+      }
+
+      Package['dkms'] -> Package['openvswitch-datapath']
+
+      Package['openvswitch-common'] -> Package['openvswitch-switch'] ->
+      Package['nicira-ovs-hypervisor-node'] -> Service['nicira-ovs-hypervisor-node']
     }
     /(?i)redhat/: {
-      package { 'kmod-openvswitch':
-        provider => 'rrpm',
-        source => $packages_url,
-      } ->
-      package { 'openvswitch':
-        provider => 'rrpm',
-        source => $packages_url,
-        notify => Service['openvswitch-service'],
-      } ->
+      Package<| title=="openvswitch-common" |> {
+        name       => "openvswitch",
+        source  => $packages_url,
+        provider   => 'rrpm',
+      }
+      Package<| title=="openvswitch-datapath" |> {
+        name       => "kmod-openvswitch",
+        source  => $packages_url,
+        provider   => 'rrpm',
+      }
+
       package { 'nicira-ovs-hypervisor-node':
         provider => 'rrpm',
         source => $packages_url,
-      } -> Service['nicira-ovs-hypervisor-node']
+      }
+
+      Package['openvswitch-common'] ->
+      Package['nicira-ovs-hypervisor-node'] ->
+      Service['nicira-ovs-hypervisor-node']
     }
     default: {
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
@@ -52,12 +64,5 @@ class plugin_neutronnsx::install_ovs
     hasstatus => true,
   }
 
-  service { 'openvswitch-service':
-    ensure    => running,
-    name      => $::l23network::params::ovs_service_name,
-    enable    => true,
-    hasstatus => true,
-    status    => $::l23network::params::ovs_status_cmd,
-    require   => Package['nicira-ovs-hypervisor-node'],
-  }
+  Service['nicira-ovs-hypervisor-node'] -> Service['openvswitch-service']
 }
