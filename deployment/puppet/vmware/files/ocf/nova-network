@@ -208,7 +208,7 @@ nova_network_cleanup() {
     network_manager_nlines=`egrep -c -e '^network_manager' $OCF_RESKEY_config`
 
     if [ $network_manager_nlines -eq 0 ];then
-        echo "You must specify 'network_manager' in $OCF_RESKEY_config"
+        ocf_log err "You must specify 'network_manager' in $OCF_RESKEY_config"
         return OCF_ERR_CONFIGURED
     fi
 
@@ -265,7 +265,7 @@ nova_network_cleanup() {
 
             flat_network_bridge_nlines=`egrep -c -e '^flat_network_bridge' $OCF_RESKEY_config`
             if [ $flat_network_bridge_nlines -ne 1 ]; then
-                echo "Specifying more than one 'flat_network_bridge' in $OCF_RESKEY_config is not supported"
+                ocf_log err "Specifying more than one 'flat_network_bridge' in $OCF_RESKEY_config is not supported"
                 return OCF_ERR_CONFIGURED
             fi
 
@@ -275,11 +275,11 @@ nova_network_cleanup() {
         ;;
         nova.network.manager.VlanManager)
             # TODO: nova-network (VLAN manager) with vCenter is not supported
-            echo "Unsupported network manager $NETWORK_MANAGER"
+            ocf_log err "Unsupported network manager $NETWORK_MANAGER"
             return OCF_ERR_GENERIC
         ;;
         *)
-            echo "Unsupported network manager $NETWORK_MANAGER"
+            ocf_log err "Unsupported network manager $NETWORK_MANAGER"
             return OCF_ERR_GENERIC
         ;;
     esac
