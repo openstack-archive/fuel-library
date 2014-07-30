@@ -231,6 +231,8 @@ class openstack::firewall (
  }
 
   firewall { '999 drop all other requests':
+    proto  => 'all',
+    chain  => 'INPUT',
     action => 'drop',
   }
 }
