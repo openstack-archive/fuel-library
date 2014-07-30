@@ -6,20 +6,13 @@ class ceph::conf {
       command   => "ceph-deploy new ${::hostname}:${::internal_address}",
       cwd       => '/etc/ceph',
       logoutput => true,
-      creates   => ['/etc/ceph/ceph.conf'],
+      creates   => '/etc/ceph/ceph.conf',
     }
 
     # link is necessary to work around http://tracker.ceph.com/issues/6281
     file {'/root/ceph.conf':
       ensure => link,
       target => '/etc/ceph/ceph.conf',
-    }
-
-    # New in ceph-deploy >1.3 it uses ~/.cephdeploy.conf instead of
-    # $(pwd)/ceph.conf
-    file {'/root/.cephdeploy.conf':
-      ensure  => link,
-      target  => '/etc/ceph/ceph.conf'
     }
 
     file {'/root/ceph.mon.keyring':
@@ -40,14 +33,20 @@ class ceph::conf {
     }
 
     Exec['ceph-deploy new'] ->
-    File['/root/ceph.conf', '/root/.cephdeploy.conf'] -> File['/root/ceph.mon.keyring'] ->
+    File['/root/ceph.conf'] -> File['/root/ceph.mon.keyring'] ->
     Ceph_conf <||>
 
   } else {
 
     exec {'ceph-deploy config pull':
       command => "ceph-deploy --overwrite-conf config pull ${::ceph::primary_mon}",
-      creates => '/root/ceph.conf',
+      cwd     => '/etc/ceph',
+      creates => '/etc/ceph/ceph.conf',
+    }
+
+    file {'/root/ceph.conf':
+      ensure => link,
+      target => '/etc/ceph/ceph.conf',
     }
 
     exec {'ceph-deploy gatherkeys remote':
@@ -72,9 +71,10 @@ class ceph::conf {
       creates => '/etc/ceph/ceph.conf',
     }
 
-    Exec['ceph-deploy config pull']       ->
-    Exec['ceph-deploy gatherkeys remote'] ->
-    File['/etc/ceph/ceph.client.admin.keyring'] ->
-    Exec['ceph-deploy init config']
+    Exec['ceph-deploy config pull'] ->
+      File['/root/ceph.conf'] ->
+        Exec['ceph-deploy gatherkeys remote'] ->
+          File['/etc/ceph/ceph.client.admin.keyring'] ->
+            Exec['ceph-deploy init config']
   }
 }
