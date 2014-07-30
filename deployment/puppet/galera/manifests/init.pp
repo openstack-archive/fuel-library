@@ -232,6 +232,7 @@ class galera (
       require => [File['/etc/mysql/conf.d'], File['/etc/mysql']],
     }
     File['/etc/mysql/conf.d/wsrep.cnf'] -> Package['MySQL-server']
+    File['/etc/mysql/conf.d/wsrep.cnf'] ~> Service["${service_name}-service"]
   }
 
 # This file contains initial sql requests for creating replication users.
