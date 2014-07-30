@@ -163,7 +163,7 @@ module Puppet
       # @return <String,Symbol>
       def should
         value = super
-        return value unless [:installed,:present].include? @should.first
+        return value unless [:latest,:installed,:present].include? @should.first
         version = lookup_version
         if version
           @should[0] = version
