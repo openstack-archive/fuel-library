@@ -1027,6 +1027,8 @@ action_promote() {
                 rc=$?
                 if [[ $rc == 0 ]] ; then
                     try_to_start_rmq_app
+                    ocf_log info "${LH} Setting HA policy for all queues"
+                    rabbitmqctl set_policy ha-all "." '{"ha-mode":"all", "ha-sync-mode":"automatic"}'
                     # create timestamp file
                     ocf_log info "${LH} Updating start timestamp"
                     ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --update $(now)
