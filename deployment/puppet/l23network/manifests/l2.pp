@@ -10,37 +10,38 @@ class l23network::l2 (
   include ::l23network::params
 
   if $use_ovs {
-    #include ::l23network::l2::use_ovs
-    #FIXME(adanin) Move this 'if' to the better place.
-    if has_key($::fuel_settings,'nsx_plugin') and $::fuel_settings['nsx_plugin']['metadata']['enabled'] {
-      class { 'plugin_neutronnsx::install_ovs': }
-    } else {
-      if $::operatingsystem == 'Ubuntu' {
-        package { 'openvswitch-datapath-lts-saucy-dkms': } ->
-        Package[$::l23network::params::ovs_packages]
+    case $::osfamily {
+      /(?i)debian/: {
+        package { 'openvswitch-datapath':
+          name => 'openvswitch-datapath-lts-saucy-dkms'
+        }
+        package { 'openvswitch-common':
+          name => 'openvswitch-switch'
+        }
       }
-      if $::operatingsystem == 'Centos' {
-        package { 'kmod-openvswitch': } ->
-        Package[$::l23network::params::ovs_packages]
+      /(?i)redhat/: {
+        package { 'openvswitch-datapath':
+          name => 'kmod-openvswitch'
+        }
+        package { 'openvswitch-common':
+          name => 'openvswitch'
+        }
       }
-      package {$::l23network::params::ovs_packages: } ->
-      service {'openvswitch-service':
-        ensure    => running,
-        name      => $::l23network::params::ovs_service_name,
-        enable    => true,
-        hasstatus => true,
-        status    => $::l23network::params::ovs_status_cmd,
+      default: {
+        fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
       }
-      Service['openvswitch-service'] -> L23network::L3::Ifconfig<||>
-      #FIXME(bogdando) assume ovs_packages has only 1 element, fix for many
-      Package<|title == 'openvswitch-datapath-lts-raring-dkms' or
-        title == $::l23network::params::ovs_packages[0] or
-        title == 'kmod-openvswitch'|> ~>
-      Service<| title == 'openvswitch-service'|>
     }
+    Package['openvswitch-datapath'] -> Package['openvswitch-common'] ~> Service['openvswitch-service']
+    service {'openvswitch-service':
+      ensure    => running,
+      name      => $::l23network::params::ovs_service_name,
+      enable    => true,
+      hasstatus => true,
+      status    => $::l23network::params::ovs_status_cmd,
+    }
+    Service['openvswitch-service'] -> L23network::L3::Ifconfig<||>
     if !defined(Service['openvswitch-service']) {
-      notify{ "Module ${module_name} cannot notify service openvswitch-service\
- on packages update": }
+      notify{ "Module ${module_name} cannot notify service openvswitch-service on packages update": }
     }
   }
 
