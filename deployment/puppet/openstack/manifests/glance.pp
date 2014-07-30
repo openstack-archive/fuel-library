@@ -187,13 +187,13 @@ class openstack::glance (
   # syslog additional settings default/use_syslog_rfc_format = true
   if $use_syslog {
     glance_api_config {
-      'default/use_syslog_rfc_format': value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
     }
     glance_cache_config {
-      'default/use_syslog_rfc_format': value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
     }
     glance_registry_config {
-      'default/use_syslog_rfc_format': value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
     }
   }
 
