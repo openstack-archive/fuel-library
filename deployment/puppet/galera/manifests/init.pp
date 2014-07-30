@@ -226,14 +226,15 @@ class galera (
       $innodb_log_file_size_real = $::mysql_log_file_size_real
     }
 
-    file { '/etc/mysql/conf.d/wsrep.cnf':
-      ensure  => present,
-      content => template('galera/wsrep.cnf.erb'),
-      require => [File['/etc/mysql/conf.d'], File['/etc/mysql']],
-    }
-    File['/etc/mysql/conf.d/wsrep.cnf'] -> Package['MySQL-server']
+ }
+  file { '/etc/mysql/conf.d/wsrep.cnf':
+    ensure  => present,
+    content => template('galera/wsrep.cnf.erb'),
+    require => [File['/etc/mysql/conf.d'], File['/etc/mysql']],
   }
 
+  File['/etc/mysql/conf.d/wsrep.cnf'] -> Package['MySQL-server']
+  File['/etc/mysql/conf.d/wsrep.cnf'] ~> Service["${service_name}-service"]
 # This file contains initial sql requests for creating replication users.
 
   file { '/tmp/wsrep-init-file':
