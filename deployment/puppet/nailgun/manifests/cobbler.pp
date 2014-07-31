@@ -10,7 +10,7 @@ class nailgun::cobbler(
   $name_server = $::ipaddress,
   $next_server = $::ipaddress,
   $dns_upstream = '8.8.8.8',
-  $domain_name = 'domain.tld',
+  $dns_domain = 'domain.tld',
   $dns_search = 'domain.tld',
 
   $mco_user = 'mcollective',
@@ -43,6 +43,7 @@ class nailgun::cobbler(
 
     domain_name         => $domain_name,
     dns_upstream        => $dns_upstream,
+    dns_domain          => $dns_domain,
     dns_search          => $dns_search,
     name_server         => $name_server,
     next_server         => $next_server,

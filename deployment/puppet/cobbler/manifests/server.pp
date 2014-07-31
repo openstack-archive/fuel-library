@@ -17,6 +17,7 @@ class cobbler::server (
   $production = 'prod',
   $domain_name = 'local',
   $dns_search = 'local',
+  $dns_domain = 'local',
   $dns_upstream = '8.8.8.8',
 ) {
   include cobbler::packages
