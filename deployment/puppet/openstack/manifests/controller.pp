@@ -400,6 +400,8 @@ class openstack::controller (
     rabbitmq_bind_port          => $rabbitmq_bind_port,
     rabbitmq_cluster_nodes      => $rabbitmq_cluster_nodes,
     rabbit_cluster              => $rabbit_cluster,
+    cache_server_ip             => $cache_server_ip,
+    cache_server_port           => $cache_server_port,
     # Glance
     glance_api_servers          => $glance_api_servers,
     # General
@@ -414,6 +416,7 @@ class openstack::controller (
     use_syslog                  => $use_syslog,
     syslog_log_facility         => $syslog_log_facility_nova,
     syslog_log_facility_neutron => $syslog_log_facility_neutron,
+    syslog_log_level            => $syslog_log_level,
     nova_rate_limits            => $nova_rate_limits,
     nova_report_interval        => $nova_report_interval,
     nova_service_down_time      => $nova_service_down_time,
