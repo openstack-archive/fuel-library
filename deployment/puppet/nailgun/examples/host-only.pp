@@ -23,10 +23,13 @@ Class['nailgun::supervisor']
 class { 'nailgun::packages': }
 
 class { 'nailgun::host':
-  production => $production,
-  cobbler_host => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+  production    => $production,
+  cobbler_host  => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   nailgun_group => $nailgun_group,
-  nailgun_user => $nailgun_user,
+  nailgun_user  => $nailgun_user,
+  dns_domain    => $::fuel_settings['DNS_DOMAIN'],
+  dns_search    => $::fuel_settings['DNS_SEARCH'],
+
 }
 
 class { "openstack::clocksync":
