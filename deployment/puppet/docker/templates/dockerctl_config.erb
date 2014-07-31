@@ -14,6 +14,15 @@ LOCAL_IP="127.0.0.1"
 
 #Version of Fuel to deploy
 VERSION=$(awk '/release/{gsub(/"/, "");print $2}' /etc/fuel/version.yaml || echo <%= @release %>)
+
+#Use container or host Puppet manifests
+. /root/.testmode
+if [ "$testmode" == "yes" ]; then
+  HOST_PUPPET=1
+else
+  HOST_PUPPET=0
+fi
+
 IMAGE_PREFIX="fuel"
 # busybox image for storage containers
 BUSYBOX_IMAGE="busybox.tar.gz"
@@ -124,7 +133,11 @@ declare -A REQS
 REQS["${HOST_VOL['astuteyaml']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
 REQS["${HOST_VOL['repo']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog keystone mcollective"
 #Most containers work from local integrated puppet
-REQS["$PUPPET_VOL"]="rsync"
+if [ "$HOST_PUPPET == "1" ];then
+  REQS["$PUPPET_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
+else
+  REQS["$PUPPET_VOL"]="rsync"
+fi
 #REQS["$PUPPET_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
 REQS["$LOG_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
 REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective ostf"
