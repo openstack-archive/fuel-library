@@ -15,7 +15,8 @@ class cluster::haproxy (
     global_options   => merge($::haproxy::params::global_options,
                               {
                                 'log'     => '/dev/log local0',
-                                'maxconn' => $haproxy_maxconn
+                                'maxconn' => $haproxy_maxconn,
+                                'chroot'  => false,
                               }),
     defaults_options => merge($::haproxy::params::defaults_options,
                               {'mode' => 'http'}),

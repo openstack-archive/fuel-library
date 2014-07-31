@@ -9,7 +9,6 @@ class haproxy::params {
     Redhat: {
       $global_options   = {
         'log'     => "${::ipaddress} local0",
-        'chroot'  => '/var/lib/haproxy',
         'pidfile' => '/var/run/haproxy.pid',
         'maxconn' => '4000',
         'user'    => 'haproxy',
@@ -38,7 +37,6 @@ class haproxy::params {
     Debian: {
       $global_options   = {
         'log'     => "${::ipaddress} local0",
-        'chroot'  => '/var/lib/haproxy',
         'pidfile' => '/var/run/haproxy.pid',
         'maxconn' => '4000',
         'user'    => 'haproxy',
