@@ -400,6 +400,8 @@ class openstack::controller (
     rabbitmq_bind_port          => $rabbitmq_bind_port,
     rabbitmq_cluster_nodes      => $rabbitmq_cluster_nodes,
     rabbit_cluster              => $rabbit_cluster,
+    cache_server_ip             => $cache_server_ip,
+    cache_server_port           => $cache_server_port,
     # Glance
     glance_api_servers          => $glance_api_servers,
     # General
