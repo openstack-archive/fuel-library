@@ -11,12 +11,22 @@ class cluster::haproxy (
 
   package { 'haproxy': }
 
+  #NOTE(bogdando) we want defaults w/o chroot
+  #  and this override looks the only possible if
+  #  upstream manifests must be kept intact
+  $global_options   = {
+    'log'     => '/dev/log local0',
+    'pidfile' => '/var/run/haproxy.pid',
+    'maxconn' => '4000',
+    'user'    => 'haproxy',
+    'group'   => 'haproxy',
+    'daemon'  => '',
+    'stats'   => 'socket /var/lib/haproxy/stats',
+    'maxconn' => $haproxy_maxconn,
+  }
+
   class { 'haproxy::base':
-    global_options   => merge($::haproxy::params::global_options,
-                              {
-                                'log'     => '/dev/log local0',
-                                'maxconn' => $haproxy_maxconn
-                              }),
+    global_options   => $global_options,
     defaults_options => merge($::haproxy::params::defaults_options,
                               {'mode' => 'http'}),
     use_include      => true,
