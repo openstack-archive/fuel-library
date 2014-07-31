@@ -2,6 +2,7 @@ class nailgun::host(
 $production,
 $cobbler_host = '127.0.0.1',
 $dns_search = "domain.tld",
+$dns_domain = "domain.tld",
 $nailgun_group = "nailgun",
 $nailgun_user = "nailgun",
 $gem_source = "http://localhost/gems/",

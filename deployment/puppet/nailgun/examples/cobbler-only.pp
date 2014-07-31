@@ -36,6 +36,8 @@ node default {
     $cobbler_host     = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
   }
   $dns_upstream       = $::fuel_settings['DNS_UPSTREAM']
+  $dns_domain         = $::fuel_settings['DNS_DOMAIN']
+  $dns_search         = $::fuel_settings['DNS_SEARCH']
   $dhcp_start_address = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start']
   $dhcp_end_address   = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end']
   $dhcp_netmask       = $::fuel_settings['ADMIN_NETWORK']['netmask']
@@ -77,6 +79,8 @@ node default {
     mco_pass           => $mco_password,
 
     dns_upstream       => $dns_upstream,
+    dns_domain         => $dns_domain,
+    dns_search         => $dns_search,
     dhcp_start_address => $dhcp_start_address,
     dhcp_end_address   => $dhcp_end_address,
     dhcp_netmask       => $dhcp_netmask,
