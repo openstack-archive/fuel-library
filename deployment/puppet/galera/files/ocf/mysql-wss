@@ -250,14 +250,19 @@ get_galera_gtid() {
 
     rc=$?
 
-    if [ $rc -ne $OCF_SUCCESS ]; then
-      GTID=$(${OCF_RESKEY_binary} --wsrep-recover --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
-    else
+    if [ $rc -eq $OCF_SUCCESS ]; then
       CLUSTER_ID=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
           -e "SHOW STATUS LIKE 'wsrep_local_state_uuid'" | awk '{print $NF}')
       COMMIT_ID=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
           -e "SHOW STATUS LIKE 'wsrep_last_committed'" | awk '{print $NF}')
       GTID=$CLUSTER_ID:$COMMIT_ID
+    else
+      GTID=$(cat ${OCF_RESKEY_datadir}/grastate.dat | awk '/uuid/ { uuid = $NF} /seqno/ { seqno = $NF} END {print uuid":"seqno}')
+    fi
+
+    #Final try to recover
+    if [ -z ${GTID} ]; then
+      GTID=$(${OCF_RESKEY_binary} --wsrep-recover --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
     fi
 
     validate_gtid $GTID
@@ -277,7 +282,7 @@ update_node_gtid() {
     GTID=$(get_galera_gtid)
 
     if [ "$GTID" != 0 ]; then
-      crm_attribute --node $HOSTNAME --lifetime forever --name gtid --update $GTID
+      crm_attribute --node $HOSTNAME --lifetime reboot --name gtid --update $GTID
     else
       ocf_log err "Wrong GTID, not updating gtid attribute"
     fi
@@ -301,7 +306,7 @@ get_node_gtid() {
     local rc
     local GTID
 
-    GTID=$(crm_attribute --quiet --node $1 --lifetime forever --query --name gtid 2> /dev/null)
+    GTID=$(crm_attribute --quiet --node $1 --lifetime reboot --query --name gtid 2> /dev/null)
     rc=$?
 
     if [ $rc -ne 0 -o -z "$GTID" ]; then
@@ -493,7 +498,7 @@ mysql_monitor() {
     local rc
     local status_loglevel="err"
     local WSREP_CONNECTED
-    local WSREP_LOCAL_STATE
+    local WSREP_LOCAL_STATE_COMMENT
     local WSREP_READY
 
     # Set loglevel to info during probe
@@ -519,19 +524,21 @@ mysql_monitor() {
       return $OCF_ERR_GENERIC
     fi
 
-    WSREP_LOCAL_STATE=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
-      -e "SHOW STATUS LIKE 'wsrep_local_state'" | awk '{print $NF}')
+    WSREP_LOCAL_STATE_COMMENT=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
+      -e "SHOW STATUS LIKE 'wsrep_local_state_comment'" | awk '{print $NF}')
     rc=$?
 
-    #Synced
-    if [ $rc -eq 0 -a "$WSREP_LOCAL_STATE" == 4 ]; then
-      WSREP_READY=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
-        -e "SHOW STATUS LIKE 'wsrep_ready'" | awk '{print $NF}')
-      rc=$?
+    #Synced|Donor|Desync
+    if [ $rc -eq 0 ]; then
+      if [[ "$WSREP_LOCAL_STATE_COMMENT" =~ 'Synced'|'Donor'|'Desync' ]]; then
+        WSREP_READY=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
+          -e "SHOW STATUS LIKE 'wsrep_ready'" | awk '{print $NF}')
+        rc=$?
 
-      #Synced but wsrep not ready
-      if [ $rc -ne 0 -o "$WSREP_READY" != "ON" ]; then
-        return $OCF_ERR_GENERIC
+        #Synced but wsrep not ready
+        if [ $rc -ne 0 -o "$WSREP_READY" != "ON" ]; then
+          return $OCF_ERR_GENERIC
+        fi
       fi
     fi
 

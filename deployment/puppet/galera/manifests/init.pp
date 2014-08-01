@@ -153,8 +153,8 @@ class galera (
       },
       operations      => {
         'monitor' => {
-          'interval' => '60',
-          'timeout'  => '55'
+          'interval' => '120',
+          'timeout'  => '115'
         },
         'start'   => {
           'timeout' => '475'
