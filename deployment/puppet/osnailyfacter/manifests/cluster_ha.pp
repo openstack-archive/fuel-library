@@ -743,6 +743,7 @@ class osnailyfacter::cluster_ha {
         auth_host            => $::fuel_settings['management_vip'],
         iscsi_bind_host      => $::storage_address,
         cinder_user_password => $cinder_hash[user_password],
+        cinder_backends      => $::fuel_settings['cinder_backends'],
         syslog_log_facility  => $::syslog_log_facility_cinder,
         debug                => $::debug,
         verbose              => $::verbose,

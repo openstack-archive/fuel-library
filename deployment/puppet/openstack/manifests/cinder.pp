@@ -15,6 +15,7 @@ class openstack::cinder(
   $volume_group           = 'cinder-volumes',
   $physical_volume        = undef,
   $manage_volumes         = false,
+  $cinder_backends        = {},
   $iser                   = false,
   $enabled                = true,
   $purge_cinder_config    = true,
@@ -127,44 +128,70 @@ class openstack::cinder(
     }
   }
 
-  if $manage_volumes {
+  if keys($cinder_backends) == [] {
+  # old way; only one cinder backend
+  
+    if $manage_volumes {
+	class { 'cinder::volume':
+	  package_ensure => $::openstack_version['cinder'],
+	  enabled        => true,
+	}
+	case $manage_volumes {
+	  true, 'iscsi': {
+	    if ($physical_volume) {
+	      class { 'lvm':
+	        vg     => $volume_group,
+	        pv     => $physical_volume,
+	        before => Service['cinder-volume'],
+	      }
+	    }
+	    class { 'cinder::volume::iscsi':
+	      iscsi_ip_address => $iscsi_bind_host,
+	      volume_group     => $volume_group,
+	    } ->
+	    class { 'mellanox_openstack::cinder':
+	      iser => $iser
+	    }
+	  }
+	  'vmdk': {
+	    class {'cinder::volume::vmdk':
+	      host_ip         => $::openstack::cinder::vmware_host_ip,
+	      host_username   => $::openstack::cinder::vmware_host_username,
+	      host_password   => $::openstack::cinder::vmware_host_password,
+	    }
+	  }
+	  'ceph': {
+	    class {'cinder::volume::rbd':
+	      rbd_pool        => $::ceph::cinder_pool,
+	      rbd_user        => $::ceph::cinder_user,
+	      rbd_secret_uuid => $::ceph::rbd_secret_uuid,
+	    }
+	  }
+	}
+    }
+  } else {
+    #new way; it implies cinder_backends structure in yaml file
     class { 'cinder::volume':
       package_ensure => $::openstack_version['cinder'],
       enabled        => true,
     }
-    case $manage_volumes {
-      true, 'iscsi': {
-        if ($physical_volume) {
-          class { 'lvm':
-            vg     => $volume_group,
-            pv     => $physical_volume,
-            before => Service['cinder-volume'],
-          }
-        }
-        class { 'cinder::volume::iscsi':
-          iscsi_ip_address => $iscsi_bind_host,
-          volume_group     => $volume_group,
-        }
-        class { 'mellanox_openstack::cinder':
-          iser => $iser
-        }
-      }
-      'vmdk': {
-        class {'cinder::volume::vmdk':
-          host_ip         => $::openstack::cinder::vmware_host_ip,
-          host_username   => $::openstack::cinder::vmware_host_username,
-          host_password   => $::openstack::cinder::vmware_host_password,
-        }
-      }
-      'ceph': {
-        class {'cinder::volume::rbd':
-          rbd_pool        => $::ceph::cinder_pool,
-          rbd_user        => $::ceph::cinder_user,
-          rbd_secret_uuid => $::ceph::rbd_secret_uuid,
-        }
-      }
+
+    if has_key($cinder_backends, 'iscsi') {
+           if ($physical_volume) {
+              class { 'lvm':
+                vg     => $volume_group,
+                pv     => $physical_volume,
+                before => Service['cinder-volume'],
+              }
+            }
+    }    
+
+    class { 'cinder::backends':
+      enabled_backends => create_cinder_backends($cinder_backends)
     }
+
   }
+
 
   if $use_syslog {
     cinder_config {

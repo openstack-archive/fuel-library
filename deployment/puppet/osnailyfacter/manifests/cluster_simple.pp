@@ -544,6 +544,7 @@ class osnailyfacter::cluster_simple {
         bind_host            => $bind_host,
         volume_group         => 'cinder',
         manage_volumes       => $manage_volumes,
+        cinder_backends      => $::fuel_settings['cinder_backends'],
         iser                 => $storage_hash['iser'],
         enabled              => true,
         auth_host            => $controller_node_address,
