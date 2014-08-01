@@ -9,6 +9,7 @@ class zabbix::db::mysql {
       'bind_address'  => '0.0.0.0',
     },
     enabled    => true,
+    package_name => 'MySQL-server-wsrep',
   }
   anchor { 'mysql_server_start': } -> Class['mysql::server'] -> anchor { 'mysql_server_end': }
 
