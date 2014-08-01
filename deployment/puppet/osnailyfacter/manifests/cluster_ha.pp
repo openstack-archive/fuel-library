@@ -429,6 +429,30 @@ class osnailyfacter::cluster_ha {
             tries     => 60,
             require   => Package['socat'],
           }
+          exec { 'wait-for-haproxy-keystone-backend':
+            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-1,BACKEND,.*,UP,'",
+            path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+            try_sleep => 5,
+            tries     => 60,
+            require   => Package['socat'],
+          }
+          nova_floating_range { $floating_ips_range:
+            ensure          => 'present',
+            pool            => 'nova',
+            username        => $access_hash[user],
+            api_key         => $access_hash[password],
+            auth_method     => 'password',
+            auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
+            authtenant_name => $access_hash[tenant],
+            api_retries     => 10,
+          }
+          Class['nova::api', 'openstack::ha::nova', 'nova::keystone::auth'] ->
+          Exec<| title=='wait-for-haproxy-nova-backend' |> ->
+          Nova_floating_range <| |>
+
+          Exec<| title=='wait-for-haproxy-keystone-backend' |> ->
+          Nova_floating_range <| |>
+
         }
         nova_floating_range { $floating_ips_range:
           ensure          => 'present',
