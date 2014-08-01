@@ -115,12 +115,6 @@ class neutron::agents::ml2_agent (
     $service_provider = undef
   }
 
-  if $controller {
-    $firewall_driver = 'neutron.agent.firewall.NoopFirewallDriver'
-  } else {
-    $firewall_driver = undef
-  }
-
   class {'neutron::agents::ml2::ovs':
     service_name          => $service_name,
     service_provider      => $service_provider,
