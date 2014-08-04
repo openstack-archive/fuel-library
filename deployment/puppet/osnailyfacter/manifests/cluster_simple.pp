@@ -64,7 +64,7 @@ class osnailyfacter::cluster_simple {
   }
 
   if $::fuel_settings['role'] == 'controller' {
-    if $::use_mellanox_plugin {
+    if ($::mellanox_mode == 'ethernet') {
       $test_vm_pkg = 'cirros-testvm-mellanox'
     } else {
       $test_vm_pkg = 'cirros-testvm'
@@ -162,6 +162,12 @@ class osnailyfacter::cluster_simple {
       swift_endpoint_port    => '6780'
     }
   }
+
+  if ($::mellanox_mode != 'disabled') {
+    class { 'mellanox_openstack::openibd' : }
+  }
+
+
 
   case $::fuel_settings['role'] {
     "controller" : {
@@ -406,7 +412,7 @@ class osnailyfacter::cluster_simple {
         }
       }
 
-      if $::use_mellanox_plugin {
+      if ($::mellanox_mode == 'ethernet') {
         $ml2_eswitch = $::fuel_settings['neutron_mellanox']['ml2_eswitch']
         class { 'mellanox_openstack::controller':
           eswitch_vnic_type            => $ml2_eswitch['vnic_type'],
@@ -420,7 +426,7 @@ class osnailyfacter::cluster_simple {
     "compute" : {
       include osnailyfacter::test_compute
 
-      if $::use_mellanox_plugin {
+      if ($::mellanox_mode == 'ethernet') {
         $net04_physnet = $quantum_config['predefined_networks']['net04']['L2']['physnet']
         class { 'mellanox_openstack::compute':
           physnet => $net04_physnet,
