@@ -26,7 +26,8 @@ class openstack::ha::mysqld (
 
   if $is_primary_controller {
     exec { 'wait-for-haproxy-mysql-backend':
-      command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^mysqld,BACKEND,.*,UP,'",
+      command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats\
+ stdio 2>/dev/null | grep -q '^mysqld,BACKEND,.*,UP,'",
       path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
       try_sleep => 5,
       tries     => 60,
