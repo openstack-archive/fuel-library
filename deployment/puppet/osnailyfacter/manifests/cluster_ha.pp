@@ -419,6 +419,9 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images':            value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
+      if ($::debug) {
+        nova_config { 'DEFAULT/default_log_levels':      value => 'oslo.messaging=DEBUG' }
+      }
 
       if ! $::use_quantum {
        if $::fuel_settings['role'] == 'primary-controller' {
