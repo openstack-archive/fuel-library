@@ -750,6 +750,7 @@ class osnailyfacter::cluster_ha {
         rabbit_ha_queues     => $rabbit_ha_queues,
         volume_group         => 'cinder',
         manage_volumes       => $manage_volumes,
+        iser                 => $storage_hash['iser'],
         enabled              => true,
         auth_host            => $::fuel_settings['management_vip'],
         iscsi_bind_host      => $::storage_address,
