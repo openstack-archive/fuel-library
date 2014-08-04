@@ -107,11 +107,15 @@ class ceph (
         keyring_owner => 'glance',
       }
 
+      Ceph::Pool[$glance_pool] -> Class<| title == 'glance::backend::rbd' |>
+
       ceph::pool {$cinder_pool:
         user          => $cinder_user,
         acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}'",
         keyring_owner => 'cinder',
       }
+
+      Ceph::Pool[$cinder_pool] -> Class<| title == 'cinder::volume::rbd' |>
 
       Class['ceph::conf'] -> Class['ceph::mon'] ->
       Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] ->
