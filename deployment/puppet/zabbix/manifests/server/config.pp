@@ -246,11 +246,6 @@ class zabbix::server::config {
     xml_file => '/etc/zabbix/import/Template_App_OpenStack_Neutron_DHCP_Agent.xml',
     api => $zabbix::params::api_hash,
   }
-  zabbix_configuration_import { 'Template_App_OpenStack_Neutron_API.xml Import':
-    ensure   => present,
-    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Neutron_API.xml',
-    api => $zabbix::params::api_hash,
-  }
   zabbix_configuration_import { 'Template_App_OpenStack_Neutron_API_check.xml Import':
     ensure   => present,
     xml_file => '/etc/zabbix/import/Template_App_OpenStack_Neutron_API_check.xml',
