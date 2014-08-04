@@ -2,6 +2,11 @@ class zabbix::db::mysql {
 
   include zabbix::params
 
+  $mysql_package = $::osfamily ? {
+    'Redhat'  => "MySQL-server-wsrep",
+    'Debian' => "mysql-server-wsrep",
+  }
+
   class { 'mysql::server':
     config_hash => {
       # Setting root pw breaks everything on puppet 3
@@ -9,6 +14,7 @@ class zabbix::db::mysql {
       'bind_address'  => '0.0.0.0',
     },
     enabled    => true,
+    package_name => $mysql_package,
   }
   anchor { 'mysql_server_start': } -> Class['mysql::server'] -> anchor { 'mysql_server_end': }
 
