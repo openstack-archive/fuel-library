@@ -253,9 +253,21 @@ function start_container {
 
 }
 
+function shutdown_container {
+  echo "Stopping $1..."
+  kill $2
+  ${DOCKER} stop $1
+  exit 0
+}
+
 function attach_container {
   echo "Attaching to container $container_name..."
-  ${DOCKER} attach $1
+  ${DOCKER} attach $1 &
+  APID=$!
+  trap "shutdown_container $1 $APID" INT TERM
+  while test -d "/proc/$APID/fd" ; do
+    sleep 10 & wait $!
+  done
 }
 
 function shell_container {
