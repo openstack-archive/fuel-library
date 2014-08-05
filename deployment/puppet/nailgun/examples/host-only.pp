@@ -58,10 +58,10 @@ class { "nailgun::client":
 }
 
 class { "nailgun::supervisor":
-  nailgun_env => false,
-  ostf_env    => false,
-  require     => File["/etc/supervisord.d/current", "/etc/supervisord.d/${::fuel_version['VERSION']['release']}"],
-  conf_file   => "nailgun/supervisord.conf.base.erb",
+  nailgun_env     => false,
+  ostf_env        => false,
+  require         => File["/etc/supervisord.d/current", "/etc/supervisord.d/${::fuel_version['VERSION']['release']}"],
+  conf_file       => "nailgun/supervisord.conf.base.erb",
 }
 
 file { "/etc/supervisord.d":
