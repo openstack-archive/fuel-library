@@ -25,6 +25,7 @@ query_cache_type=0
 
 innodb_file_format=Barracuda
 innodb_file_per_table=1
+innodb_flush_method=O_DIRECT
 <% if @mysql_buffer_pool_size -%>
 innodb_buffer_pool_size=<%= @mysql_buffer_pool_size %>
 <% end -%>
@@ -45,6 +46,7 @@ wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + @gco
 wsrep_cluster_address="gcomm://<%= @node_addresses.first %>:<%= @gcomm_port.to_s %>?pc.wait_prim=no"
 <% end -%>
 wsrep_provider=<%= @libgalera_prefix %>/galera/libgalera_smm.so
+wsrep_provider_options="pc.ignore_quorum=true"
 wsrep_cluster_name="<%= @cluster_name -%>"
 
 wsrep_slave_threads=<%= [[@processorcount.to_i*2, 4].max, 12].min %>
