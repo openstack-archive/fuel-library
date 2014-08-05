@@ -216,6 +216,12 @@ class openstack::firewall (
     action => 'accept',
   }
 
+  firewall {'120 libvirt migration':
+    port   => '49152-49215',
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
   firewall { '333 accept gre':
     chain   => 'PREROUTING',
     table   => 'raw',
