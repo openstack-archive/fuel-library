@@ -53,7 +53,6 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
                   Service[$docker_service],
                   Exec['wait for docker-to-become-ready'],
                   ],
-    before    => Service['supervisord'],
     unless    => 'docker ps -a | grep -q fuel',
   }
 }
