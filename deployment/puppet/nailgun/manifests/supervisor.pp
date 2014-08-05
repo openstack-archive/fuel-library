@@ -37,6 +37,8 @@ class nailgun::supervisor(
     require => [
                 Package["supervisor"],
                 ],
+    hasrestart => true,
+    restart => "/usr/bin/supervisorctl stop all; /etc/init.d/supervisord restart",
   }
   Package<| title == 'supervisor' or title == 'nginx' or
     title == 'python-fuelclient'|> ~> Service<| title == 'supervisord'|>
