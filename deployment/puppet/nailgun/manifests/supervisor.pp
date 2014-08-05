@@ -37,6 +37,8 @@ class nailgun::supervisor(
     require => [
                 Package["supervisor"],
                 ],
+    hasrestart => true,
+    restart => "/bin/true",
   }
   Package<| title == 'supervisor' or title == 'nginx' or
     title == 'python-fuelclient'|> ~> Service<| title == 'supervisord'|>
