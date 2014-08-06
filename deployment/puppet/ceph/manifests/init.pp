@@ -107,7 +107,9 @@ class ceph (
         keyring_owner => 'glance',
       }
 
-      Ceph::Pool[$glance_pool] -> Class<| title == 'glance::backend::rbd' |>
+      if defined(Class['glance::backend::rbd']) {
+        Ceph::Pool[$glance_pool] -> Class['glance::backend::rbd']
+      }
 
       ceph::pool {$cinder_pool:
         user          => $cinder_user,
@@ -115,7 +117,9 @@ class ceph (
         keyring_owner => 'cinder',
       }
 
-      Ceph::Pool[$cinder_pool] -> Class<| title == 'cinder::volume::rbd' |>
+      if defined(Class['cinder::volume::rbd']) {
+        Ceph::Pool[$cinder_pool] -> Class['cinder::volume::rbd']
+      }
 
       Class['ceph::conf'] -> Class['ceph::mon'] ->
       Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] ->
