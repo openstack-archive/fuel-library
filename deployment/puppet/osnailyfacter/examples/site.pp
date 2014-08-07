@@ -81,10 +81,10 @@ if $::fuel_settings['nodes'] {
   }
 }
 
-if ($::fuel_settings['neutron_mellanox']) and ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
-  $use_mellanox_plugin = true
+if ($::fuel_settings['neutron_mellanox']) {
+  $mellanox_mode = $::fuel_settings['neutron_mellanox']['plugin']
 } else {
-  $use_mellanox_plugin = false
+  $mellanox_mode = 'disabled'
 }
 
 # This parameter specifies the verbosity level of log messages
