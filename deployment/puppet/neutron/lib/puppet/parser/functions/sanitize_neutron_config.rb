@@ -398,8 +398,8 @@ class MrntNeutron
   def self.get_ml2_plugin_config(l2)
     rv = Marshal.load(Marshal.dump(l2))
     rv[:mechanism_drivers] ||= 'openvswitch'
-    rv[:type_drivers] ||= "local,flat,#{l2[:segmentation_type]}"
-    rv[:tenant_network_types] ||= "local,flat,#{l2[:segmentation_type]}"
+    rv[:type_drivers] ||= "#{l2[:segmentation_type]},local,flat"
+    rv[:tenant_network_types] ||= "#{l2[:segmentation_type]},local,flat"
     rv[:flat_networks] ||= '*'
     if l2[:enable_tunneling]
       rv[:tunnel_types] ||= l2[:segmentation_type]
