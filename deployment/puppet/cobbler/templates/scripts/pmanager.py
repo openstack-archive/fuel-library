@@ -761,6 +761,7 @@ class PreseedPManager(object):
         ceph_journals = self.num_ceph_journals()
 
         self._umount_target()
+        cephjournal_guid_commands = []
         for disk in self.iterdisks():
             for part in self.non_boot_partitions(disk["volumes"]):
 
@@ -807,14 +808,27 @@ class PreseedPManager(object):
                         pcount = self.pcount(self._disk_dev(disk), 1)
                         part["pcount"] = pcount
 
-                        self.late("parted -a none -s {0} "
-                                 "unit {4} mkpart {1} {2} {3}".format(
-                                     self._disk_dev(disk),
-                                     self._parttype(pcount),
-                                     self.psize(self._disk_dev(disk)),
-                                     self.psize(self._disk_dev(disk),
-                                                size * self.factor),
-                                     self.unit))
+                        self.late(
+                            "parted -a none -s {0} "
+                            "unit {4} mkpart {1} {2} {3}".format(
+                                self._disk_dev(disk),
+                                self._parttype(pcount),
+                                self.psize(self._disk_dev(disk)),
+                                self.psize(self._disk_dev(disk),
+                                           size * self.factor),
+                                self.unit)
+                        )
+                        # We don't want to append late command right here because
+                        # we need sgdisk to be run in-target so the target must be mounted.
+                        # Istead of additional mounting and unmounting we just
+                        # collect all those commands and them run them all at once.
+                        cephjournal_guid_commands.append(
+                            "sgdisk --typecode={0}:{1} {2}".format(
+                                pcount,
+                                part["partition_guid"],
+                                self._disk_dev(disk)
+                            )
+                        )
                         self.late("parted -s {0} print free".format(self._disk_dev(disk)))
                     continue
 
@@ -855,13 +869,18 @@ class PreseedPManager(object):
                                         pcount, disk_label))
         self._mount_target()
 
-        # partition guids must be set in-target, which requires target to be mounted
+        # Partition guids must be set in-target, which requires target to be mounted.
+        # But for cephjournal we have a separate collection of late commands.
         for disk in self.iterdisks():
             for part in self.non_boot_partitions(disk["volumes"]):
-                if part.get("partition_guid"):
+                if part.get("partition_guid") and part.get("name") != "cephjournal":
                     self.late("sgdisk --typecode={0}:{1} {2}"
                               "".format(part["pcount"], part["partition_guid"],
                                         self._disk_dev(disk)), True)
+
+        # This loop appends commands which set cephjournal guids.
+        for command in cephjournal_guid_commands:
+            self.late(command, True)
 
         for disk in self.iterdisks():
             for part in filter(lambda p: p["type"] == "partition" and
