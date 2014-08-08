@@ -282,6 +282,12 @@ class openstack::compute (
     'DEFAULT/live_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
   }
 
+  if $use_syslog {
+    nova_config {
+      'DEFAULT/use_syslog_rfc_format':  value => true;
+    }
+  }
+
   # From legacy libvirt.pp
   if !($vncproxy_host) {
     warning("VNC is enabled and \$vncproxy_host must be specified nova::compute assumes that it can\
