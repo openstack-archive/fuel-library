@@ -72,19 +72,20 @@ class keystone(
   $cache_dir            = '/var/cache/keystone',
   $memcache_servers     = false,
   $memcache_server_port = false,
+  $memcached_backend    = 'pylibmc',
   $enabled              = true,
   $sql_connection       = 'sqlite:////var/lib/keystone/keystone.db',
   $idle_timeout         = '200',
   $rabbit_host          = 'localhost',
   $rabbit_hosts         = false,
-  $rabbit_password = 'guest',
-  $rabbit_port = '5672',
-  $rabbit_userid = 'guest',
-  $rabbit_virtual_host = '/',
-  $rabbit_use_ssl = false,
-  $notification_driver = false,
-  $notification_topics = false,
-  $control_exchange = false,
+  $rabbit_password      = 'guest',
+  $rabbit_port          = '5672',
+  $rabbit_userid        = 'guest',
+  $rabbit_virtual_host  = '/',
+  $rabbit_use_ssl       = false,
+  $notification_driver  = false,
+  $notification_topics  = false,
+  $control_exchange     = false,
   $max_pool_size        = '10',
   $max_overflow         = '30',
   $max_retries          = '-1',
@@ -119,8 +120,8 @@ class keystone(
   include 'keystone::params'
 
   package { 'keystone':
-    name   => $::keystone::params::package_name,
     ensure => $package_ensure,
+    name   => $::keystone::params::package_name,
   }
 
   group { 'keystone':
@@ -221,13 +222,21 @@ class keystone(
   if $memcache_servers {
     validate_array($memcache_servers)
     Service<| title == 'memcached' |> -> Service['keystone']
+    validate_re($memcached_backend, 'memcached|pylibmc')
+    if $memcached_backend == 'pylibmc' {
+      package { 'python-pylibmc':
+        ensure => 'present',
+        before => Service['keystone'],
+      }
+    }
     keystone_config {
-      'token/driver': value => 'keystone.token.backends.memcache.Token';
-      'token/caching': value => 'true';
-      'cache/enabled': value => 'true';
-      'cache/backend': value => 'dogpile.cache.memcached';
-      'cache/backend_argument': value => inline_template("url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
-      'memcache/servers': value => inline_template("<%= @memcache_servers.collect{|ip| ip + ':' + @memcache_server_port }.join ',' %>")
+      'token/driver': value            => 'keystone.token.backends.memcache.Token';
+      'token/caching': value           => 'true';
+      'cache/enabled': value           => 'true';
+      'cache/backend': value           => "dogpile.cache.${memcached_backend}";
+      'cache/backend_argument': value  => inline_template("url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
+      'cache/backend_arguments': value => "{"behaviors": {"receive_timeout": 100000}}";
+      'memcache/servers': value        => inline_template("<%= @memcache_servers.collect{|ip| ip + ':' + @memcache_server_port }.join ',' %>")
      }
   } else {
     keystone_config {
@@ -283,7 +292,7 @@ class keystone(
   if($token_format  == 'PKI') {
     file { $cache_dir:
       ensure => directory,
-      notify  => Service['keystone'],
+      notify => Service['keystone'],
     }
 
     # keystone-manage pki_setup Should be run as the same system user that will be running the Keystone service to ensure
