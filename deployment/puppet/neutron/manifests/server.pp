@@ -54,8 +54,8 @@ class neutron::server (
       }
     }
   }
-  Package[$server_package] -> Neutron_config<||>
-  Package[$server_package] -> Neutron_api_config<||>
+  Package[$server_package] ~> Neutron_config<||>
+  Package[$server_package] ~> Neutron_api_config<||>
 
   if defined(Anchor['neutron-plugin-ovs']) {
     Package["$server_package"] -> Anchor['neutron-plugin-ovs']
@@ -128,13 +128,29 @@ class neutron::server (
 
   anchor {'neutron-api-up':}
 
-  exec {'upgrade_neutron_head':
-         path    => ['/bin','/sbin','/usr/bin','/usr/sbin'],
-         command => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+  if $primary_controller {
+    if $::neutron_db_migration_stamp == undef or $::neutron_db_migration_stamp == 'nil' {
+      # patching
+      exec {'upgrade_neutron_stamp_head':
+        path    => ['/bin','/sbin','/usr/bin','/usr/sbin'],
+        command => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini stamp head',
+        refreshonly => true
+      }
+      Package[$server_package] ~> Exec['upgrade_neutron_stamp_head']
+      Exec['upgrade_neutron_stamp_head'] ~> Exec['upgrade_neutron_head']
+      Neutron_config<||> -> Exec['upgrade_neutron_stamp_head']
+    } else {
+      # pramary deployment process
+      Package[$server_package] ~> Exec['upgrade_neutron_head']
+      Neutron_config<||> -> Exec['upgrade_neutron_head']
+    }
+    exec {'upgrade_neutron_head':
+      path    => ['/bin','/sbin','/usr/bin','/usr/sbin'],
+      command => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+      refreshonly => true
+    }
+    Exec['upgrade_neutron_head'] -> Service['neutron-server']
   }
-
-  Exec<| title=='upgrade_neutron_head' |> -> Service['neutron-server']
-
   Anchor['neutron-server'] ->
     Neutron_config<||> ->
       Neutron_api_config<||> ->
