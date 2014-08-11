@@ -64,35 +64,46 @@ class neutron::server (
       }
     }
   }
-  Package[$server_package] -> Neutron_config<||>
-  Package[$server_package] -> Neutron_api_config<||>
+  Package[$server_package] ~> Neutron_config<||>
+  Package[$server_package] ~> Neutron_api_config<||>
 
   if defined(Anchor['neutron-plugin-ovs']) {
     Package["$server_package"] -> Anchor['neutron-plugin-ovs']
   }
 
-  Neutron_config<||> ~> Service['neutron-server']
+  Neutron_config<||>     ~> Service['neutron-server']
   Neutron_api_config<||> ~> Service['neutron-server']
+  Neutron_plugin_ovs<||> ~> Service['neutron-server']
+  Neutron_plugin_ml2<||> ~> Service['neutron-server']
   Service <| title == 'mysql' |> -> Service['neutron-server']
   Service <| title == 'haproxy' |> -> Service['neutron-server']
 
-  if $sync_db {
-    if ($::neutron::params::server_package) {
-      # Debian platforms
-      Package<| title == 'neutron-server' |> ~> Exec['neutron-db-sync']
+  if $sync_db and $primary_controller {
+    if $::neutron_db_migration_stamp and $::neutron_db_migration_stamp != 'nil' {
+      # patching
+      exec {'neutron-db-sync-stamp-head':
+        command => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini stamp head',
+        path    => ['/bin','/sbin','/usr/bin','/usr/sbin'],
+        refreshonly => true
+      }
+      Package[$server_package] ~> Exec['neutron-db-sync-stamp-head']
+      Exec['neutron-db-sync-stamp-head'] ~> Exec['neutron-db-sync']
+      Neutron_config<||>       -> Exec['neutron-db-sync-stamp-head']
+      Neutron_plugin_ovs<||>   -> Exec['neutron-db-sync-stamp-head']
+      Neutron_plugin_ml2<||>   -> Exec['neutron-db-sync-stamp-head']
     } else {
-      # RH platforms
-      Package<| title == 'neutron' |> ~> Exec['neutron-db-sync']
+      # pramary deployment process
+      Package[$server_package] ~> Exec['neutron-db-sync']
+      Neutron_config<||>       -> Exec['neutron-db-sync']
+      Neutron_plugin_ovs<||>   -> Exec['neutron-db-sync']
+      Neutron_plugin_ml2<||>   -> Exec['neutron-db-sync']
     }
     exec { 'neutron-db-sync':
       command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
-      path        => '/usr/bin',
+      path        => ['/bin','/sbin','/usr/bin','/usr/sbin'],
       refreshonly => true,
     }
-    Exec<| title=='neutron-db-sync' |> -> Service['neutron-server']
-    Neutron_config<||>      ~> Exec['neutron-db-sync']
-    Neutron_plugin_ovs<||>  -> Exec['neutron-db-sync']
-    Neutron_plugin_ml2<||>  -> Exec['neutron-db-sync']
+    Exec['neutron-db-sync'] -> Service['neutron-server']
   }
 
   if $neutron_config['server']['api_workers'] {
