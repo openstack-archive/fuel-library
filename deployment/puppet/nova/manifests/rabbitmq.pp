@@ -191,12 +191,7 @@ class nova::rabbitmq(
             Service["$service_name"]
       }
 
-      exec { 'waiting for start rabbitmq-master':
-         command => '/bin/sleep 120'
-      }
-
       Service["$service_name"] ->
-        Exec['waiting for start rabbitmq-master'] ->
           Rabbitmq_user <||>
     }
   } else {
