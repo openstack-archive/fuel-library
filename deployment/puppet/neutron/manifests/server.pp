@@ -54,8 +54,8 @@ class neutron::server (
       }
     }
   }
-  Package[$server_package] -> Neutron_config<||>
-  Package[$server_package] -> Neutron_api_config<||>
+  Package[$server_package] ~> Neutron_config<||>
+  Package[$server_package] ~> Neutron_api_config<||>
 
   if defined(Anchor['neutron-plugin-ovs']) {
     Package["$server_package"] -> Anchor['neutron-plugin-ovs']
@@ -132,6 +132,9 @@ class neutron::server (
          path    => ['/bin','/sbin','/usr/bin','/usr/sbin'],
          command => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
   }
+
+  Package[$server_package] ~> Exec<| title=='upgrade_neutron_head' |>
+  Neutron_config<||> -> Exec<| title=='upgrade_neutron_head' |>
 
   Exec<| title=='upgrade_neutron_head' |> -> Service['neutron-server']
 
