@@ -1,48 +1,49 @@
 Puppet::Type.type(:mongodb_user).provide(:mongodb) do
-
+  require File.join(File.dirname(__FILE__), '..', 'common.rb')
   desc "Manage users for a MongoDB database."
-
   defaultfor :kernel => 'Linux'
-
-  commands :mongo => 'mongo'
-
-  def block_until_mongodb(tries = 10)
-    begin
-      mongo('--quiet', '--eval', 'db.getMongo()')
-    rescue
-      debug('MongoDB server not ready, retrying')
-      sleep 2
-      retry unless (tries -= 1) <= 0
-    end
-  end
+  include MongoCommon
 
   def create
-    mongo(@resource[:database], '--eval', "db.system.users.insert({user:\"#{@resource[:name]}\", pwd:\"#{@resource[:password_hash]}\", roles: #{@resource[:roles].inspect}})")
+    Puppet.debug "mongodb_user: #{@resource[:name]} database '#{@resource[:database]}' create"
+    mongo("db.getMongo().getDB('#{@resource[:database]}').system.users.insert({user:'#{@resource[:name]}', pwd:'#{@resource[:password_hash]}', roles: #{@resource[:roles].inspect}})")
   end
 
   def destroy
-    mongo(@resource[:database], '--quiet', '--eval', "db.removeUser(\"#{@resource[:name]}\")")
+    Puppet.debug "mongodb_user: #{@resource[:name]} database '#{@resource[:database]}' destroy"
+    mongo("db.getMongo().getDB('#{@resource[:database]}').removeUser('#{@resource[:name]}')")
   end
 
   def exists?
+    Puppet.debug "mongodb_user: '#{@resource[:name]}' database '#{@resource[:database]}' exists?"
     block_until_mongodb(@resource[:tries])
-    mongo(@resource[:database], '--quiet', '--eval', "db.system.users.find({user:\"#{@resource[:name]}\"}).count()").strip.eql?('1')
+    exists = mongo("db.getMongo().getDB('#{@resource[:database]}').system.users.find({user:'#{@resource[:name]}'}).count()").strip.to_i > 0
+    Puppet.debug "mongodb_user: '#{@resource[:name]}' database '#{@resource[:database]}' exists? #{exists}"
+    exists
   end
 
   def password_hash
-    mongo(@resource[:database], '--quiet', '--eval', "db.system.users.findOne({user:\"#{@resource[:name]}\"})[\"pwd\"]").strip
+    Puppet.debug "mongodb_user: '#{@resource[:name]}' database '#{@resource[:database]}' password_hash get"
+    hash = mongo("db.getMongo().getDB('#{@resource[:database]}').system.users.findOne({user:'#{@resource[:name]}'})['pwd']").strip
+    Puppet.debug "mongodb_user: '#{@resource[:name]}' database '#{@resource[:database]}' password_hash: #{hash}"
+    hash
   end
 
   def password_hash=(value)
-    mongo(@resource[:database], '--quiet', '--eval', "db.system.users.update({user:\"#{@resource[:name]}\"}, { $set: {pwd:\"#{value}\"}})")
+    Puppet.debug "mongodb_user: '#{@resource[:name]}' database '#{@resource[:database]}' password_hash set #{value.inspect}"
+    mongo("db.getMongo().getDB('#{@resource[:database]}').system.users.update({user:'#{@resource[:name]}'}, { $set: {pwd:'#{value}'}})")
   end
 
   def roles
-    mongo(@resource[:database], '--quiet', '--eval', "db.system.users.findOne({user:\"#{@resource[:name]}\"})[\"roles\"]").strip.split(",").sort
+    Puppet.debug "mongodb_user: '#{@resource[:name]}' database '#{@resource[:database]}' roles get"
+    roles = mongo("db.getMongo().getDB('#{@resource[:database]}').system.users.findOne({user:'#{@resource[:name]}'})['roles']").strip.split(',').sort
+    Puppet.debug "mongodb_user: '#{@resource[:name]}' roles: #{roles.inspect}"
+    roles
   end
 
   def roles=(value)
-    mongo(@resource[:database], '--quiet', '--eval', "db.system.users.update({user:\"#{@resource[:name]}\"}, { $set: {roles: #{@resource[:roles].inspect}}})")
+    Puppet.debug "mongodb_user: '#{@resource[:name]}' database '#{@resource[:database]}' roles set #{value.inspect}"
+    mongo("db.getMongo().getDB('#{@resource[:database]}').system.users.update({user:'#{@resource[:name]}'}, { $set: {roles: #{@resource[:roles].inspect}}})")
   end
 
 end

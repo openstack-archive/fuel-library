@@ -1,32 +1,26 @@
 Puppet::Type.type(:mongodb_database).provide(:mongodb) do
-
+  require File.join(File.dirname(__FILE__), '..', 'common.rb')
   desc "Manages MongoDB database."
-
   defaultfor :kernel => 'Linux'
-
-  commands :mongo => 'mongo'
-
-  def block_until_mongodb(tries = 10)
-    begin
-      mongo('--quiet', '--eval', 'db.getMongo()')
-    rescue
-      debug('MongoDB server not ready, retrying')
-      sleep 2
-      retry unless (tries -= 1) <= 0
-    end
-  end
+  include MongoCommon
 
   def create
-    mongo(@resource[:name], '--quiet', '--eval', "db.dummyData.insert({\"created_by_puppet\": 1})")
+    Puppet.debug "mongo_database: #{@resource[:name]} create"
+    mongo('db.dummyData.insert({"created_by_puppet": 1})', @resource[:name])
   end
 
   def destroy
-    mongo(@resource[:name], '--quiet', '--eval', 'db.dropDatabase()')
+    Puppet.debug "mongo_database: #{@resource[:name]} destroy"
+    mongo('db.dropDatabase()', @resource[:name])
   end
 
   def exists?
+    Puppet.debug "mongo_database: '#{@resource[:name]}' exists?"
     block_until_mongodb(@resource[:tries])
-    mongo("--quiet", "--eval", 'db.getMongo().getDBNames()').split(",").include?(@resource[:name])
+    current_databases = mongo('db.getMongo().getDBNames()').strip.split(',')
+    exists = current_databases.include?(@resource[:name])
+    Puppet.debug "mongo_database: '#{@resource[:name]}' all: #{current_databases.inspect} '#{@resource[:name]}' exists? #{exists}"
+    exists
   end
 
 end
