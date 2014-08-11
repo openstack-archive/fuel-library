@@ -137,10 +137,11 @@ module Puppet
       # @return <String,NilClass>
       def lookup_version
         package_name = @resource.name.to_s
-
+        module_path = Puppet.settings[:modulepath]
+        manifests_dir = File.join(File.dirname(module_path), 'manifests')
         versions_file = case  @resource.provider.class.name
-          when :apt then '/etc/puppet/manifests/ubuntu-versions.yaml'
-          when :yum then '/etc/puppet/manifests/centos-versions.yaml'
+          when :apt then File.join(manifests_dir, 'ubuntu-versions.yaml')
+          when :yum then File.join(manifests_dir, 'centos-versions.yaml')
           else return
         end
 
