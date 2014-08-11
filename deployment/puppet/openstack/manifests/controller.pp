@@ -457,6 +457,7 @@ class openstack::controller (
         max_pool_size        => $max_pool_size,
         max_overflow         => $max_overflow,
         idle_timeout         => $idle_timeout,
+        ceilometer           => $ceilometer,
       } # end class
     } else { # defined
       if $manage_volumes {
