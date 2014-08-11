@@ -51,7 +51,7 @@ class neutron::db::mysql (
   }
 
   if $sync_db {
-    Mysql::Db[$dbname] -> Exec['neutron-db-sync']
+    Mysql::Db[$dbname] -> Exec<| title == 'neutron-db-sync' |>
   }
 
   if $real_allowed_hosts {
@@ -62,7 +62,7 @@ class neutron::db::mysql (
       mysql_module  => $mysql_module,
     }
     if $sync_db {
-      Neutron::Db::Mysql::Host_access[$real_allowed_hosts] -> Exec['neutron-db-sync']
+      Neutron::Db::Mysql::Host_access[$real_allowed_hosts] -> Exec<| title == 'neutron-db-sync' |>
     }
   }
 }
