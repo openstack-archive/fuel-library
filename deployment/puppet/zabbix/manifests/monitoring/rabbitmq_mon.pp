@@ -10,30 +10,33 @@ class zabbix::monitoring::rabbitmq_mon {
 
   #RabbitMQ server
   if defined(Class['rabbitmq::server']) {
-    zabbix_template_link { "$zabbix::params::host_name Template App OpenStack RabbitMQ":
-      host => $zabbix::params::host_name,
-      template => $template,
-      api => $zabbix::params::api_hash,
-    }
-    Class['nova::rabbitmq'] ->
-    exec { 'enable rabbitmq management plugin':
 
-      command => 'rabbitmq-plugins enable rabbitmq_management',
-      path    => ['/usr/sbin', '/usr/bin', '/sbin', '/bin' ],
-      unless  => 'rabbitmq-plugins list -m -E rabbitmq_management | grep -q rabbitmq_management',
-      notify  => Exec['restart rabbitmq'],
-      environment => "HOME=/root"
+    zabbix_template_link { "$zabbix::params::host_name Template App OpenStack RabbitMQ":
+      host     => $zabbix::params::host_name,
+      template => $template,
+      api      => $zabbix::params::api_hash,
     }
-    exec { 'restart rabbitmq':
-      command     => 'service rabbitmq-server restart',
+
+    Package['rabbitmq-server'] ->
+    Exec['enable rabbitmq management plugin'] ->
+    Service[$nova::rabbitmq::service_name]
+
+    exec { 'enable rabbitmq management plugin':
+      command     => 'rabbitmq-plugins enable rabbitmq_management',
       path        => ['/usr/sbin', '/usr/bin', '/sbin', '/bin' ],
-      refreshonly => true,
+      unless      => 'rabbitmq-plugins list -m -E rabbitmq_management | grep -q rabbitmq_management',
+      environment => "HOME=/root",
+      notify      => Service[$nova::rabbitmq::service_name]
     }
+
     firewall {'992 rabbitmq management':
       port   => 55672,
       proto  => 'tcp',
       action => 'accept',
     }
+
+    sysctl::value { 'sys.net.ipv4.ip_local_reserved_ports': value => '55672' }
+
     zabbix::agent::userparameter {
       'rabbitmq.queue.items':
         command => "/etc/zabbix/scripts/check_rabbit.py queues-items";
