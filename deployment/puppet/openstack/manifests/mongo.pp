@@ -12,9 +12,6 @@ class openstack::mongo (
   $use_syslog                   = true,
 ) {
 
-#  notify {"MongoDB params: $ceilometer_user $ceilometer_database $ceilometer_db_password": }
-
-
   class {'::mongodb::client':
   } ->
 
@@ -30,14 +27,6 @@ class openstack::mongo (
     user          => $ceilometer_user,
     password      => $ceilometer_db_password,
     roles         => ['readWrite', 'dbAdmin', 'dbOwner'],
-  } ->
-
-  mongodb::db { 'admin':
-    user         => 'admin',
-    password     => $ceilometer_db_password,
-    roles        => ['userAdmin','readWrite', 'dbAdmin', 'dbAdminAnyDatabase', 'readAnyDatabase', 'readWriteAnyDatabase', 'userAdminAnyDatabase', 'clusterAdmin', 'clusterManager', 'clusterMonitor', 'hostManager', 'root' ],
   }
-
- #notify {"mongo: $ceilometer_db_password": }
 
 }

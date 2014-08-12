@@ -55,25 +55,6 @@ class openstack::mongo_primary (
     ],
   } ->
 
-  mongodb::db { 'admin':
-    user         => 'admin',
-    password     => $ceilometer_db_password,
-    roles        => [
-      'userAdmin',
-      'readWrite',
-      'dbAdmin',
-      'dbAdminAnyDatabase',
-      'readAnyDatabase',
-      'readWriteAnyDatabase',
-      'userAdminAnyDatabase',
-      'clusterAdmin',
-      'clusterManager',
-      'clusterMonitor',
-      'hostManager',
-      'root'
-    ],
-  } ->
-
   notify {"mongodb primary finished": }
 
 }
