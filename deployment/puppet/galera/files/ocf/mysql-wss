@@ -539,6 +539,9 @@ mysql_monitor() {
         if [ $rc -ne 0 -o "$WSREP_READY" != "ON" ]; then
           return $OCF_ERR_GENERIC
         fi
+      elif [[ "$WSREP_LOCAL_STATE_COMMENT" == 'Initialized' ]]; then
+        ocf_log err 'MySQL lost quorum or uninitialized'
+        return $OCF_ERR_GENERIC
       fi
     fi
 
