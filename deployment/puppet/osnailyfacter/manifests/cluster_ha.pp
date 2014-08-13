@@ -487,7 +487,8 @@ class osnailyfacter::cluster_ha {
           Exec<| title=='wait-for-haproxy-nova-backend' |> ->
           Nova_floating_range <| |>
 
-          Class['keystone']-> Exec<| title=='wait-for-haproxy-keystone-backend' |> ->
+          Class['keystone', 'openstack::ha::keystone']->
+          Exec<| title=='wait-for-haproxy-keystone-backend' |> ->
           Nova_floating_range <| |>
 
         }
