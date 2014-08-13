@@ -48,7 +48,10 @@ d-i mirror/suite string precise
 d-i mirror/udeb/suite string precise
 # Components to use for loading installer components (optional).
 d-i mirror/udeb/components multiselect main, restricted
-
+# Retry failed repo 
+d-i apt-setup/mirror/error select Retry
+# Downloading a file failed
+# d-i apt-setup/use_mirror select Retry
 
 d-i apt-setup/restricted boolean true
 d-i apt-setup/universe boolean true
