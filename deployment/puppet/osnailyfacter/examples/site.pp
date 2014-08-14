@@ -59,12 +59,17 @@ if $::fuel_settings['nodes'] {
 
   if $use_quantum {
     prepare_network_config($::fuel_settings['network_scheme'])
-    $public_int   = get_network_role_property('ex', 'interface')
-    $internal_int = get_network_role_property('management', 'interface')
+    #
+    $internal_int     = get_network_role_property('management', 'interface')
     $internal_address = get_network_role_property('management', 'ipaddr')
     $internal_netmask = get_network_role_property('management', 'netmask')
-    $public_address = get_network_role_property('ex', 'ipaddr')
-    $public_netmask = get_network_role_property('ex', 'netmask')
+    #
+    $public_int = get_network_role_property('ex', 'interface')
+    if $public_int {
+      $public_address = get_network_role_property('ex', 'ipaddr')
+      $public_netmask = get_network_role_property('ex', 'netmask')
+    }
+    #
     $storage_address = get_network_role_property('storage', 'ipaddr')
     $storage_netmask = get_network_role_property('storage', 'netmask')
   } else {

@@ -64,7 +64,8 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
   # get endpoint configuration hash for interface
   ep = cfg[:endpoints][interface.to_sym()]
   if !ep
-      raise(Puppet::ParseError, "get_network_role_property(...): Can't find interface '#{interface}' in endpoints for network_role '#{network_role}'.")
+      Puppet::debug("get_network_role_property(...): Can't find interface '#{interface}' in endpoints for network_role '#{network_role}'.")
+      return nil
   end
 
   if mode == 'INTERFACE'
@@ -75,14 +76,11 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
     when "Array"
       ipaddr_cidr = ep[:IP][0] ? ep[:IP][0] : nil
     when "String"
-      #raise(Puppet::ParseError, "get_network_role_property(cfg_hash, role_name): Can't determine dynamic or empty IP address for endpoint '#{interface}' (#{ep[:IP]}).")
-      ipaddr_cidr = nil
+      Puppet::debug("get_network_role_property(...): Can't determine dynamic or empty IP address for endpoint '#{interface}' (#{ep[:IP]}).")
+      return nil
     else
-      raise(Puppet::ParseError, "get_network_role_property(...): invalid IP address for endpoint '#{interface}'.")
-  end
-
-  if ipaddr_cidr == nil
-    return nil
+      Puppet::debug("get_network_role_property(...): invalid IP address for endpoint '#{interface}'.")
+      return nil
   end
 
   rv = nil
