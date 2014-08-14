@@ -94,7 +94,7 @@ case "$1" in
         RETVAL=$?
         ;;
     status)
-        /usr/bin/supervisorctl status
+        /usr/bin/supervisorctl status && kill -s 0 `cat /var/run/supervisord.pid` 2>/dev/null
         RETVAL=$?
         ;;
     *)
