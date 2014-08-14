@@ -114,19 +114,6 @@ class osnailyfacter::cluster_ha {
   }
 
   $vips = { # Do not convert to ARRAY, It can't work in 2.7
-    public_old => {
-      namespace            => 'haproxy',
-      nic                  => $::public_int,
-      base_veth            => "${::public_int}-hapr",
-      ns_veth              => "hapr-p",
-      ip                   => $::fuel_settings['public_vip'],
-      cidr_netmask         => netmask_to_cidr($::fuel_settings['nodes'][0]['public_netmask']),
-      gateway              => 'link',
-      gateway_metric       => '10',
-      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
-      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
-      iptables_comment     => "masquerade-for-public-net",
-    },
     management_old   => {
       namespace            => 'haproxy',
       nic                  => $::internal_int,
@@ -142,6 +129,21 @@ class osnailyfacter::cluster_ha {
     },
   }
 
+  if $::public_int {
+    $vips[public_old] = {
+      namespace            => 'haproxy',
+      nic                  => $::public_int,
+      base_veth            => "${::public_int}-hapr",
+      ns_veth              => "hapr-p",
+      ip                   => $::fuel_settings['public_vip'],
+      cidr_netmask         => netmask_to_cidr($::fuel_settings['nodes'][0]['public_netmask']),
+      gateway              => 'link',
+      gateway_metric       => '10',
+      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
+      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
+      iptables_comment     => "masquerade-for-public-net",
+    }
+  }
   $vip_keys = keys($vips)
 
   ##REFACTORING NEEDED
@@ -649,7 +651,7 @@ class osnailyfacter::cluster_ha {
       }
 
       class { 'openstack::compute':
-        public_interface            => $::public_int,
+        public_interface            => $::public_int ? { undef=>'', default=>$::public_int },
         private_interface           => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
         internal_address            => $::internal_address,
         libvirt_type                => $::fuel_settings['libvirt_type'],
