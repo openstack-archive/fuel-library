@@ -593,6 +593,18 @@ start_beam_process() {
     return $rc
 }
 
+load_modules() {
+  local rc
+  ${OCF_RESKEY_ctl} eval 'Plugins = rabbit_plugins:setup(), ToBeLoaded = Plugins, ok = app_utils:load_applications(ToBeLoaded), StartupApps = app_utils:app_dependency_order(ToBeLoaded,false), app_utils:start_applications(StartupApps).'
+  rc=$?
+  return $rc
+}
+
+list_active_modules() {
+  local LIST="${OCF_RESKEY_ctl} eval 'rabbit_plugins:active().'"
+  echo "${LIST}"
+}
+
 try_to_start_rmq_app() {
     local startup_log="$1"
     local rc
@@ -611,6 +623,16 @@ try_to_start_rmq_app() {
         ocf_log info "${LH} waiting for start to finish."
         ocf_run ${OCF_RESKEY_ctl} wait ${OCF_RESKEY_pid_file}
         rc=$OCF_SUCCESS
+        # Loading enabled modules
+        ocf_log info "${LH} start plugins."
+        load_modules
+        local mrc=$?
+        if [[ $mrc == 0 ]] ; then
+          local MLIST=`list_active_modules`
+          ocf_log info "${LH} Starting plugins: $MLIST"
+        else
+          ocf_log info "${LH} Starting plugins: failed."
+        fi
     else
         ocf_log info "${LH} start_app failed."
         rc=$OCF_ERR_GENERIC
