@@ -3,8 +3,14 @@ require 'open-uri'
 
 Puppet::Type.type(:package).provide :rdpkg, :parent => :dpkg, :source => :dpkg do
   desc "Remote .deb packages management"
+  
+  # add '/' to end of str if it not present
+  def sanity(str)
+    str.chomp('/')+'/'
+  end
 
   def get_packages(url)
+    url = sanity(url)
     list = Net::HTTP.get(URI(url)).scan(/\S*\.deb\"\>/)
     return list.map { |x| x.gsub(/.*\"(.*)../, '\1') }
   end
@@ -17,7 +23,7 @@ Puppet::Type.type(:package).provide :rdpkg, :parent => :dpkg, :source => :dpkg d
         return package
       end
     end
-    Puppet.warning "RDPKG: package '#{name}' not found by URL '#{url}'"
+    Puppet.error "RDPKG: package '#{name}' not found by URL '#{url}'"
     nil
   end
 
