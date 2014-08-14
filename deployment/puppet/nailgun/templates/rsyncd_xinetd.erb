@@ -6,5 +6,8 @@ service rsync
 	user            = root
 	server          = /usr/bin/rsync
 	server_args     = --daemon
+    cps = 512 10
+    flags = IPv4
+    per_source = UNLIMITED
 	log_on_failure  += USERID
 }
