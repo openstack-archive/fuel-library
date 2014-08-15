@@ -593,14 +593,26 @@ start_beam_process() {
     return $rc
 }
 
-load_modules() {
-  local rc
-  ${OCF_RESKEY_ctl} eval 'ToBeLoaded = rabbit_plugins:setup(), ok = app_utils:load_applications(ToBeLoaded), StartupApps = app_utils:app_dependency_order(ToBeLoaded,false), app_utils:start_applications(StartupApps).'
-  rc=$?
-  return $rc
+check_plugins() {
+  # Check if it's safe to load plugins and if we need to do so logic is:
+  #    if (EnabledPlugins > 0) and (ActivePlugins == 0) ; then it's safe to load
+  # If we have at least one active plugin, then it's not safe to re-load them
+  # because plugins:setup() would remove existing dependency plugins in plugins_expand_dir.
+  ${OCF_RESKEY_ctl} eval '{ok, EnabledFile} = application:get_env(rabbit, enabled_plugins_file), EnabledPlugins = rabbit_plugins:read_enabled(EnabledFile), ActivePlugins = rabbit_plugins:active(), if length(EnabledPlugins)>0 -> if length(ActivePlugins)==0 -> erlang:errpr("need_to_load_plugins"); true -> false end; true -> false end.'
+  return $?
 }
 
-list_active_modules() {
+load_plugins() {
+  check_plugins
+  if [[ $? == 0 ]] ; then
+    return 0
+  else
+    ${OCF_RESKEY_ctl} eval 'ToBeLoaded = rabbit_plugins:setup(), ok = app_utils:load_applications(ToBeLoaded), StartupApps = app_utils:app_dependency_order(ToBeLoaded,false), app_utils:start_applications(StartupApps).'
+    return $?
+  fi
+}
+
+list_active_plugins() {
   local LIST=`${OCF_RESKEY_ctl} eval 'rabbit_plugins:active().'`
   echo "${LIST}"
 }
@@ -625,10 +637,10 @@ try_to_start_rmq_app() {
         rc=$OCF_SUCCESS
         # Loading enabled modules
         ocf_log info "${LH} start plugins."
-        load_modules
+        load_plugins
         local mrc=$?
         if [[ $mrc == 0 ]] ; then
-          local MLIST=`list_active_modules`
+          local MLIST=`list_active_plugins`
           ocf_log info "${LH} Starting plugins: $MLIST"
         else
           ocf_log info "${LH} Starting plugins: failed."
