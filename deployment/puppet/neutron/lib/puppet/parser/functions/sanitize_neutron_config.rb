@@ -236,8 +236,8 @@ class MrntNeutron
         :tenant => get_tenant(),
         :L2 => {
           :router_ext   => true,
-          :network_type => 'flat',
-          :physnet      => 'physnet1',
+          :network_type => 'local',
+          :physnet      => nil,
           :segment_id   => nil,
         },
         :L3 => {
