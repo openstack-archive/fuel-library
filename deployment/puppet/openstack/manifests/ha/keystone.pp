@@ -5,13 +5,12 @@ class openstack::ha::keystone {
     order           => '020',
     listen_port     => 5000,
     public          => true,
-    require_service => 'keystone',
   }
 
   openstack::ha::haproxy_service { 'keystone-2':
     order           => '030',
     listen_port     => 35357,
     public          => true,
-    require_service => 'keystone',
   }
+  Openstack::Ha::Haproxy_service['keystone-1', 'keystone-2']->Service<| title=='keystone' |>
 }
