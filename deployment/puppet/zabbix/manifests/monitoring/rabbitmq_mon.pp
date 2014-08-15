@@ -35,7 +35,7 @@ class zabbix::monitoring::rabbitmq_mon {
       action => 'accept',
     }
 
-    sysctl::value { 'sys.net.ipv4.ip_local_reserved_ports': value => '55672' }
+    sysctl::value { 'net.ipv4.ip_local_reserved_ports': value => '55672' }
 
     zabbix::agent::userparameter {
       'rabbitmq.queue.items':
