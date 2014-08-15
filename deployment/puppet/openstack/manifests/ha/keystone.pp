@@ -14,4 +14,5 @@ class openstack::ha::keystone {
     public          => true,
     require_service => 'keystone',
   }
+  Openstack::Ha::Haproxy_service['keystone-1', 'keystone-2']->Service['keystone']
 }
