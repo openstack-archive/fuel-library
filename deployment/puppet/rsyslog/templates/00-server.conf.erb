@@ -32,6 +32,12 @@ $WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
 $ActionQueueFileName acsdbq
 $ActionQueueMaxDiskSpace 1g
 $ActionQueueSaveOnShutdown on
+$ActionQueueLowWaterMark 2000
+$ActionQueueHighWaterMark 8000
+$ActionQueueSize 1000000       # Reserve 500Mb memory, each queue element is 512b
+$ActionQueueDiscardMark 950000 # If the queue looks like filling, start discarding to not block ssh/login/etc.
+$ActionQueueDiscardSeverity 0  # When in discarding mode discard everything.
+$ActionQueueTimeoutEnqueue 0   # When in discarding mode do not enable throttling.
 $ActionQueueDequeueSlowdown 1000
 $ActionQueueWorkerThreads 2
 $ActionQueueDequeueBatchSize 128
@@ -67,7 +73,7 @@ $Template dynDebug,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>debug"
 $Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>messages"
 
 # Rules
-# Skip duplicates - all common debug, info, notice, warn go to 
+# Skip duplicates - all common debug, info, notice, warn go to
 # debug & messages files respectively; others should go to syslog
 auth,authpriv.*         ?dynAuthLog
 *.error;auth,authpriv.none,mail.none,cron.none      -?dynSyslog

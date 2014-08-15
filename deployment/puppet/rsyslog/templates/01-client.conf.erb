@@ -15,13 +15,4 @@ $MainMsgQueueSaveOnShutdown on
 $MainMsgQueueDequeueSlowdown 1000
 $MainMsgQueueWorkerThreads 2
 $MainMsgQueueDequeueBatchSize 128
-$ActionQueueType LinkedList
-$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
-$ActionQueueFileName acsdbq
-$ActionQueueMaxDiskSpace 1g
-$ActionQueueSaveOnShutdown on
-$ActionQueueDequeueSlowdown 1000
-$ActionQueueWorkerThreads 2
-$ActionQueueDequeueBatchSize 128
-$ActionResumeRetryCount -1
 $SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
