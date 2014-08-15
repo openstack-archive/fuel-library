@@ -223,11 +223,18 @@ class openstack::firewall (
     action => 'accept',
   }
 
-  firewall { '333 accept gre':
+  firewall { '333 notrack gre':
     chain   => 'PREROUTING',
     table   => 'raw',
     proto   => 'gre',
     jump  => 'NOTRACK',
+ }
+
+  firewall { '334 accept gre':
+    chain   => 'INPUT',
+    table   => 'filter',
+    proto   => 'gre',
+    action  => 'accept',
  }
 
   firewall { '999 drop all other requests':
