@@ -39,6 +39,7 @@ class ceilometer(
   $debug               = false,
   $log_dir             = '/var/log/ceilometer',
   $use_syslog          = false,
+  $swift_rados_backend = false,
   $syslog_log_facility = 'LOG_LOCAL0',
   $queue_provider      = 'rabbitmq',
   $amqp_hosts          = '127.0.0.1',
@@ -117,6 +118,7 @@ class ceilometer(
 
   ceilometer_config {
     'publisher_rpc/metering_secret'  : value => $metering_secret;
+    'DEFAULT/swift_rados_backend'    : value => $swift_rados_backend;
     'DEFAULT/debug'                  : value => $debug;
     'DEFAULT/verbose'                : value => $verbose;
   }

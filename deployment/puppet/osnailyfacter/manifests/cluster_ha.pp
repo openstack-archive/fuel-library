@@ -331,6 +331,7 @@ class osnailyfacter::cluster_ha {
       ceilometer_metering_secret     => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
       ceilometer_db_type             => 'mongodb',
       ceilometer_db_host             => mongo_hosts($nodes_hash),
+      swift_rados_backend            => $::osnailyfacter::cluster_ha::storage_hash['objects_ceph'],
       galera_nodes                   => $::osnailyfacter::cluster_ha::controller_nodes,
       novnc_address                  => $::internal_address,
       sahara                         => $::osnailyfacter::cluster_ha::sahara_hash[enabled],

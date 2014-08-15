@@ -99,6 +99,7 @@ class openstack::controller (
   $ceilometer_metering_secret     = 'ceilometer',
   $ceilometer_db_type             = 'mongodb',
   $ceilometer_db_host             = '127.0.0.1',
+  $swift_rados_backend            = false,
   # Required Horizon
   $secret_key                     = 'dummy_secret_key',
   # not sure if this works correctly
@@ -492,6 +493,7 @@ class openstack::controller (
       db_user              => $ceilometer_db_user,
       db_password          => $ceilometer_db_password,
       db_dbname            => $ceilometer_db_dbname,
+      swift_rados_backend  => $swift_rados_backend,
       metering_secret      => $ceilometer_metering_secret,
       queue_provider       => $queue_provider,
       amqp_hosts           => $amqp_hosts,
