@@ -92,8 +92,12 @@ class MrntNeutronNR
       network_config = get_default_network_config()
       network_config[:net][:name] = net.to_s
       network_config[:net][:tenant] =  get_tenant()
-      network_config[:net][:network_type] = ncfg[:L2][:network_type]
       network_config[:net][:router_ext] = ncfg[:L2][:router_ext]
+      if network_config[:net][:router_ext]
+        network_config[:net][:network_type] = 'local'
+      else
+        network_config[:net][:network_type] = ncfg[:L2][:network_type]
+      end
       network_config[:net][:shared] = ncfg[:shared]
       network_config[:subnet][:name] = "#{net.to_s}__subnet"
       network_config[:subnet][:network] = network_config[:net][:name]
@@ -116,6 +120,9 @@ class MrntNeutronNR
         network_config[:net][:segment_id] = ncfg[:L2][:segment_id]  ?  ncfg[:L2][:segment_id]  :  segment_id
         segment_id += 1
         network_config[:net][:physnet] = nil # do not pass this parameter in this segmentation type
+      elsif network_config[:net][:network_type].downcase == 'local'
+        network_config[:net][:physnet] = nil
+        network_config[:net][:segment_id] = nil
       elsif network_config[:net][:network_type].downcase == 'vlan' && ncfg[:L2][:physnet]
         # Calculate segment_id for VLAN mode from personal physnet settings
         _physnet = ncfg[:L2][:physnet].to_sym
