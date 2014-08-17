@@ -34,7 +34,8 @@ describe 'openstack::compute' do
         :enabled                        => true,
         :vnc_enabled                    => true,
         :vncserver_proxyclient_address  => '0.0.0.0',
-        :vncproxy_host                  => false
+        :vncproxy_host                  => false,
+        :cinder_catalog_info            => 'volume:cinder:internalURL'
       )
       should contain_class('nova::compute::libvirt').with(
         :libvirt_type     => 'kvm',
@@ -96,7 +97,8 @@ describe 'openstack::compute' do
         :enabled                        => true,
         :vnc_enabled                    => false,
         :vncserver_proxyclient_address  => '127.0.0.1',
-        :vncproxy_host                  => '127.0.0.2'
+        :vncproxy_host                  => '127.0.0.2',
+        :cinder_catalog_info            => 'volume:cinder:internalURL'
       )
       should contain_class('nova::compute::libvirt').with(
         :libvirt_type     => 'qemu',

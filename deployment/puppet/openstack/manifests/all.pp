@@ -451,6 +451,7 @@ class openstack::all (
     vnc_enabled                   => $vnc_enabled,
     vncserver_proxyclient_address => $internal_address,
     vncproxy_host                 => $public_address,
+    cinder_catalog_info           => 'volume:cinder:internalURL'
   }
 
   # Configure libvirt for nova-compute

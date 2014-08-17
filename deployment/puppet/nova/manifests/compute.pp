@@ -65,6 +65,13 @@
 #   Time period must be hour, day, month or year
 #   Defaults to 'month'
 #
+# [*cinder_catalog_info*]
+#   (optional) Override default search criteria for cinder
+#   endpoint.  Set to volume:cinder:internalURL to force
+#   use of the internalURL.
+#   Defaults to undef
+#
+
 class nova::compute (
   $enabled                       = false,
   $manage_service                = true,
@@ -80,7 +87,8 @@ class nova::compute (
   $neutron_enabled               = true,
   $network_device_mtu            = undef,
   $instance_usage_audit          = false,
-  $instance_usage_audit_period   = 'month'
+  $instance_usage_audit_period   = 'month',
+  $cinder_catalog_info           = undef
 ) {
 
   include nova::params
@@ -137,6 +145,17 @@ class nova::compute (
       'DEFAULT/network_device_mtu':   ensure => absent;
     }
   }
+
+  if $cinder_catalog_info {
+    nova_config {
+      'DEFAULT/cinder_catalog_info':   value => $cinder_catalog_info;
+    }
+  } else {
+    nova_config {
+      'DEFAULT/cinder_catalog_info':   ensure => absent;
+    }
+  }
+
 
   if $instance_usage_audit and $instance_usage_audit_period in ['hour', 'day', 'month', 'year'] {
     nova_config {

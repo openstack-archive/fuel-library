@@ -23,6 +23,9 @@ describe 'nova::compute' do
       end
 
       it { should contain_nova_config('DEFAULT/network_device_mtu').with(:ensure => 'absent') }
+
+      it { should contain_nova_config('DEFAULT/cinder_catalog_info').with_ensure('absent') }
+
       it { should_not contain_nova_config('DEFAULT/novncproxy_base_url') }
 
       it { should_not contain_package('bridge-utils').with(
@@ -67,6 +70,15 @@ describe 'nova::compute' do
           'http://127.0.0.1:6080/vnc_auto.html'
         )
       end
+    end
+
+    describe 'with cinder_catalog_info set' do
+        let :params do
+          {:cinder_catalog_info => 'volume:cinder:internalURL'}
+        end
+        it { should contain_nova_config('DEFAULT/cinder_catalog_info').with_value(
+          params[:cinder_catalog_info]
+        ) }
     end
 
     context 'with neutron_enabled set to false' do
