@@ -1,5 +1,7 @@
 # HA configuration for OpenStack Glance
-class openstack::ha::glance {
+class openstack::ha::glance (
+    $ssl_certificate = undef,
+) {
 
   openstack::ha::haproxy_service { 'glance-api':
     # before neutron
@@ -7,6 +9,7 @@ class openstack::ha::glance {
     listen_port     => 9292,
     public          => true,
     require_service => 'glance-api',
+    ssl_certificate => $ssl_certificate,
   }
 
   openstack::ha::haproxy_service { 'glance-registry':
