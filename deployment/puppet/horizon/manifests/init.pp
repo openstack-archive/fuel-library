@@ -20,6 +20,7 @@
 # $django_verbose       True/False. enable/disables verbose logging (info level). defaults to false
 # $log_level            Syslog level would be used for logging. If Verbose -> INFO, Debug -> DEBUG, otherwise -> the value given
 # $api_result_limit     max number of Swift containers/objects to display on a single page
+# $endpoint_type        specifies the endpoint type to use for the endpoints in the Keystone service catalog.
 # $use_syslog           Redirect all apache logging to syslog. Required for FUEL-UI. Defaults to false.
 #
 class horizon(
@@ -42,6 +43,7 @@ class horizon(
   $https_port            = 443,
   $use_ssl               = false,
   $log_level             = 'WARNING',
+  $endpoint_type         = 'internalURL',
   $use_syslog            = false,
 ) {
 

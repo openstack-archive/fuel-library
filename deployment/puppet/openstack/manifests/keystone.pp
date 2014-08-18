@@ -231,6 +231,7 @@ class openstack::keystone (
     # Setup the Keystone Identity Endpoint
     class { 'keystone::endpoint':
       public_address   => $public_address,
+      public_protocol  => 'https',
       admin_address    => $admin_real,
       internal_address => $internal_real,
     }
