@@ -7,6 +7,7 @@ class openstack::ha::glance {
     listen_port     => 9292,
     public          => true,
     require_service => 'glance-api',
+    bind_options    => 'ssl crt /etc/haproxy/haproxy_ca.pem',
   }
 
   openstack::ha::haproxy_service { 'glance-registry':

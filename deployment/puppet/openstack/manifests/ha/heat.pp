@@ -6,6 +6,7 @@ class openstack::ha::heat {
     listen_port     => 8004,
     public          => true,
     require_service => 'heat-api',
+    bind_options    => 'ssl crt /etc/haproxy/haproxy_ca.pem',
   }
 
   openstack::ha::haproxy_service { 'heat-api-cfn':
