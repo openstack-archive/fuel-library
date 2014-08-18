@@ -442,7 +442,7 @@ class MrntNeutron
 
     @neutron_config[:amqp] ||= MrntNeutron.get_amqp_config(@neutron_config[:amqp])
     # calculate tunneling value from segm.type
-    if [:gre, :vxlan, :lisp].include? @neutron_config[:L2][:segmentation_type].downcase.to_sym
+    if [:gre, :vxlan].include? @neutron_config[:L2][:segmentation_type].downcase.to_sym
       @neutron_config[:L2][:enable_tunneling] = true
     else
       @neutron_config[:L2][:enable_tunneling] = false
