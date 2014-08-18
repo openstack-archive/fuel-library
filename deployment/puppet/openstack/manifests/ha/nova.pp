@@ -13,12 +13,14 @@ class openstack::ha::nova {
     listen_port     => 8774,
     public          => true,
     require_service => 'nova-api',
+    bind_options    => 'ssl crt /etc/haproxy/haproxy_ca.pem',
   }
 
   openstack::ha::haproxy_service { 'nova-metadata-api':
     order           => '060',
     listen_port     => 8775,
     require_service => 'nova-api',
+    bind_options    => 'ssl crt /etc/haproxy/haproxy_ca.pem',
   }
   
   openstack::ha::haproxy_service { 'nova-novncproxy':
@@ -27,6 +29,7 @@ class openstack::ha::nova {
     public          => true,
     internal        => false,
     require_service => 'nova-vncproxy',
+    bind_options    => 'ssl crt /etc/haproxy/haproxy_ca.pem',
   }
 
 
