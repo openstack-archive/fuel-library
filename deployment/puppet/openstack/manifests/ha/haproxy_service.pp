@@ -9,6 +9,7 @@ define openstack::ha::haproxy_service (
 
   $mode                   = undef,
   $haproxy_config_options = { 'option' => ['httplog'], 'balance' => 'roundrobin' },
+  $haproxy_bind_options   = '',
   $balancermember_options = 'check',
   $balancermember_port    = $listen_port,
   $define_cookies         = false,
@@ -38,11 +39,12 @@ define openstack::ha::haproxy_service (
   }
 
   haproxy::listen { $name:
-    order     => $order,
-    ipaddress => $virtual_ips,
-    ports     => $listen_port,
-    options   => $haproxy_config_options,
-    mode      => $mode,
+    order        => $order,
+    ipaddress    => $virtual_ips,
+    ports        => $listen_port,
+    options      => $haproxy_config_options,
+    bind_options => $haproxy_bind_options,
+    mode         => $mode,
   }
 
   haproxy::balancermember { $name:
