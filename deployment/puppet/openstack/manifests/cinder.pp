@@ -157,6 +157,7 @@ class openstack::cinder(
         }
       }
       'ceph': {
+        Ceph::Pool<| $::ceph::cinder_pool |> ->
         class {'cinder::volume::rbd':
           rbd_pool        => $::ceph::cinder_pool,
           rbd_user        => $::ceph::cinder_user,
