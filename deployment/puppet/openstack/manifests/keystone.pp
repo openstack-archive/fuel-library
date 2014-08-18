@@ -30,16 +30,18 @@
 # [use_syslog] Rather or not service should log to syslog. Optional. Default to false.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [ssl_for_public_endpoint] Enable SSL for public endpoint
 #
 # === Example
 #
 # class { 'openstack::keystone':
-#   db_host               => '127.0.0.1',
-#   keystone_db_password  => 'changeme',
-#   keystone_admin_token  => '12345',
-#   admin_email           => 'root@localhost',
-#   admin_password        => 'changeme',
-#   public_address        => '192.168.1.1',
+#   db_host                 => '127.0.0.1',
+#   keystone_db_password    => 'changeme',
+#   keystone_admin_token    => '12345',
+#   admin_email             => 'root@localhost',
+#   admin_password          => 'changeme',
+#   public_address          => '192.168.1.1',
+#   ssl_for_public_endpoint => true,
 #  }
 
 class openstack::keystone (
@@ -98,6 +100,7 @@ class openstack::keystone (
   $max_pool_size               = '10',
   $max_overflow                = '30',
   $max_retries                 = '-1',
+  $ssl_for_public_endpoint     = false,
 ) {
 
   # Install and configure Keystone
@@ -229,8 +232,15 @@ class openstack::keystone (
     Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::roles::admin']
 
     # Setup the Keystone Identity Endpoint
+    if $ssl_for_public_endpoint {
+      public_protocol  => "https",
+    } else {
+      public_protocol  => "http",
+    }
+
     class { 'keystone::endpoint':
       public_address   => $public_address,
+      public_protocol  => $public_protocol,
       admin_address    => $admin_real,
       internal_address => $internal_real,
     }
