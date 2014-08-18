@@ -56,4 +56,18 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
     before    => Service['supervisord'],
     unless    => 'docker ps -a | grep -q fuel',
   }
+  exec {'restart docker containers':
+    command     => 'dockerctl start all',
+    path        => '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin',
+    timeout     => 7200,
+    logoutput   => true,
+    refreshonly => true,
+    require     => [
+                    File[$dependent_dirs],
+                    Service[$docker_service],
+                    Exec['wait for docker-to-become-ready'],
+                    ],
+    before      => Service['supervisord'],
+    subscribe   => Service['docker'],
+  }
 }

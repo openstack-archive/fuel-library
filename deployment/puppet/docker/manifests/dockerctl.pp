@@ -49,4 +49,5 @@ class docker::dockerctl (
     mode    => 0644,
     content => template("docker/dockerctl_config.erb")
   }
+
 }
