@@ -30,6 +30,7 @@
 # [use_syslog] Rather or not service should log to syslog. Optional. Default to false.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [ssl_public_endpoint] Enable SSL for public endpoint
 #
 # === Example
 #
@@ -40,6 +41,7 @@
 #   admin_email           => 'root@localhost',
 #   admin_password        => 'changeme',
 #   public_address        => '192.168.1.1',
+#   ssl_public_endpoint   => true,
 #  }
 
 class openstack::keystone (
@@ -98,6 +100,7 @@ class openstack::keystone (
   $max_pool_size               = '10',
   $max_overflow                = '30',
   $max_retries                 = '-1',
+  $ssl_public_endpoint         = false,
 ) {
 
   # Install and configure Keystone
@@ -231,6 +234,9 @@ class openstack::keystone (
     # Setup the Keystone Identity Endpoint
     class { 'keystone::endpoint':
       public_address   => $public_address,
+      if $ssl_public_endpoint {
+        public_protocol  => 'https',
+      }
       admin_address    => $admin_real,
       internal_address => $internal_real,
     }

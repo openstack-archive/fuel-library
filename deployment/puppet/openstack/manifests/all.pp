@@ -42,6 +42,7 @@
 #  [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 #  [syslog_log_level] logging level for non verbose and non debug mode. Optional.
+#  [ssl_public_endpoint] Enable SSL for public endpoint
 #
 # === Examples
 #
@@ -154,7 +155,8 @@ class openstack::all (
   $syslog_log_facility_neutron  = 'LOG_LOCAL4',
   $syslog_log_facility_nova     = 'LOG_LOCAL6',
   $syslog_log_facility_keystone = 'LOG_LOCAL7',
-  $nova_rate_limits        = undef,
+  $nova_rate_limits             = undef,
+  $ssl_public_endpoint          = false,
 ) {
 
   # Ensure things are run in order
@@ -226,6 +228,7 @@ class openstack::all (
     use_syslog                => $use_syslog,
     syslog_log_facility       => $syslog_log_facility_keystone,
     syslog_log_level          => $syslog_log_level,
+    ssl_public_endpoint       => $ssl_public_endpoint,
   }
 
   ######## GLANCE ##########
