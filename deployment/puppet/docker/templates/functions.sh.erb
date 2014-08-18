@@ -241,6 +241,9 @@ function start_container {
         echo "$container_name is already running."
       fi
     else
+      # Clean up broken mounts if needed
+      id=$(get_container_id $container_name)
+      umount -l $(grep "$id" /proc/mounts | awk '{print $2}' | sort -r) 2>/dev/null
       ${DOCKER} start $container_name
     fi
     post_start_hooks $1
@@ -415,7 +418,7 @@ function remangle_port {
 }
 function purge_stale_iptables_rules {
   container=$1
-  containername=${CONTAINER_NAMES[container]}
+  containername=${CONTAINER_NAMES[$container]}
   ports=$(docker inspect --format='{{ range $key, $value := .NetworkSettings.Ports }}{{ $key }} {{ end }}' $containername)
   containerip=$(docker inspect --format='{{.NetworkSettings.IPAddress}}' $containername)
 
