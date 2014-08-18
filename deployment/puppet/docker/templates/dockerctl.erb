@@ -59,10 +59,14 @@ if [ "$1" == "build" ]; then
   fi
 elif [ "$1" == "start" ]; then
   if [ "$container" = "all" ];then
-
+    #Warn that storage containers are not created
+    #and exit successfully.
+    if ! docker ps -a | grep -q $PUPPET_CNT; then
+      echo "Not starting all. Build storage containers first."
+      exit 0
+    fi
     for service in $container_seq; do
       start_container $service
-      #supervisorctl start $service
       check_ready $service
       sleep 4
     done
