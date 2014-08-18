@@ -9,5 +9,6 @@ class openstack::ha::swift (
     server_names => filter_hash($servers, 'name'),
     ipaddresses  => filter_hash($servers, 'storage_address'),
     public       => true,
+    bind_options => 'ssl crt /etc/haproxy/haproxy_ca.pem',
   }
 }
