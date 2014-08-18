@@ -89,6 +89,9 @@ class openstack::db::mysql (
     custom_setup_class      => $custom_setup_class,
     mysql_skip_name_resolve => $mysql_skip_name_resolve,
     use_syslog              => $use_syslog,
+    config_hash             => {
+      'config_file' => '/etc/my.cnf'
+    },
   }
 
   # This removes default users and guest access
