@@ -85,7 +85,17 @@ class MrntNeutronNR
     res__neutron_router = 'neutron_router'
     res__neutron_router_type = Puppet::Type.type(res__neutron_router.downcase.to_sym)
     previous = nil
-    segment_id = @neutron_config[:L2][:enable_tunneling]  ?  @neutron_config[:L2][:tunnel_id_ranges].split(':')[0].to_i  :  0
+    if @neutron_config[:L2][:enable_tunneling]
+      if @neutron_config[:L2][:segmentation_type].downcase == 'gre'
+        segment_id = @neutron_config[:L2][:tunnel_id_ranges].split(':')[0].to_i
+      elsif @neutron_config[:L2][:segmentation_type].downcase == 'vxlan'
+        segment_id = @neutron_config[:L2][:vni_ranges].split(':')[0].to_i
+      else
+        segment_id = 0
+      end
+    else
+      segment_id = 0
+    end
     @neutron_config[:predefined_networks].each do |net, ncfg|
       Puppet::debug("-*- processing net '#{net}': #{ncfg.to_yaml()}")
       # config network resources parameters
@@ -111,8 +121,8 @@ class MrntNeutronNR
         network_config[:subnet][:enable_dhcp] = "False"
       end
       network_config[:net][:physnet] = ncfg[:L2][:physnet]
-      if network_config[:net][:network_type].downcase == 'gre'
-        # Get first free segment_id for GRE
+      if ['gre', 'vxlan'].include? network_config[:net][:network_type].downcase
+        # Get first free segment_id for GRE/VXLAN if segment_id not given from astute.yaml
         network_config[:net][:segment_id] = ncfg[:L2][:segment_id]  ?  ncfg[:L2][:segment_id]  :  segment_id
         segment_id += 1
         network_config[:net][:physnet] = nil # do not pass this parameter in this segmentation type
