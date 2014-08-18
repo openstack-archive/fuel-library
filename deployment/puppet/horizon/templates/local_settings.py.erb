@@ -205,6 +205,7 @@ OPENSTACK_NEUTRON_NETWORK = {
 # in the Keystone service catalog. Use this setting when Horizon is running
 # external to the OpenStack environment. The default is 'publicURL'.
 #OPENSTACK_ENDPOINT_TYPE = "publicURL"
+OPENSTACK_ENDPOINT_TYPE = <%= @endpoint_type %>
 
 # SECONDARY_ENDPOINT_TYPE specifies the fallback endpoint type to use in the
 # case that OPENSTACK_ENDPOINT_TYPE is not present in the endpoints
