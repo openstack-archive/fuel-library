@@ -48,11 +48,10 @@ class openstack::mongo_primary (
   mongodb::db { $ceilometer_database:
     user          => $ceilometer_user,
     password      => $ceilometer_db_password,
-    roles         => [
-      'readWrite',
-      'dbAdmin',
-      'dbOwner'
-    ],
+    roles         => [ 'readWrite', 'dbAdmin', 'dbOwner' ],
+    admin_username => 'admin',
+    admin_password => $ceilometer_db_password,
+    admin_database => 'admin',
   } ->
 
   mongodb::db { 'admin':
@@ -70,8 +69,12 @@ class openstack::mongo_primary (
       'clusterManager',
       'clusterMonitor',
       'hostManager',
-      'root'
+      'root',
+      'restore',
     ],
+    admin_username => 'admin',
+    admin_password => $ceilometer_db_password,
+    admin_database => 'admin',
   } ->
 
   notify {"mongodb primary finished": }
