@@ -5,7 +5,7 @@ class murano::dashboard (
   $murano_log_file                = '/var/log/murano/murano-dashboard.log',
   $murano_url_string              = $::murano::params::default_url_string,
   $local_settings                 = $::murano::params::local_settings_path,
-) {
+) inherits murano::params {
 
   include murano::params
 
@@ -32,14 +32,17 @@ class murano::dashboard (
     mode   => '0755',
     owner  => 'root',
     group  => 'root',
+    source => 'puppet:///modules/murano/modify-horizon-config.sh',
   }
 
   exec { 'clean_horizon_config':
-    command => "${modify_config} uninstall",
+    command   => "/bin/bash '${modify_config}' uninstall",
+    onlyif    => "/bin/grep -q 'MURANO_CONFIG' '${settings_py}'",
+    logoutput => "on_failure",
   }
 
   exec { 'fix_horizon_config':
-    command     => "${modify_config} install",
+    command     => "/bin/bash '${modify_config}' install",
     environment => [
       "HORIZON_CONFIG=${settings_py}",
       "MURANO_SSL_ENABLED=False",
@@ -48,6 +51,8 @@ class murano::dashboard (
       "APACHE_USER=${apache_user}",
       "APACHE_GROUP=${apache_user}",
     ],
+    unless     => "/bin/grep -q 'MURANO_CONFIG' '${settings_py}'",
+    logoutput  => "on_failure",
   }
 
   file { $murano_log_file :
