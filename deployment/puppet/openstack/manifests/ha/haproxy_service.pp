@@ -9,6 +9,7 @@ define openstack::ha::haproxy_service (
 
   $mode                   = undef,
   $haproxy_config_options = { 'option' => ['httplog'], 'balance' => 'roundrobin' },
+  $ssl_certificate        = undef,
   $balancermember_options = 'check',
   $balancermember_port    = $listen_port,
   $define_cookies         = false,
@@ -37,12 +38,19 @@ define openstack::ha::haproxy_service (
     $virtual_ips = [$public_virtual_ip]
   }
 
+  if $ssl_certificate {
+    $bind_options = "ssl crt ${ssl_certificate}"
+  } else {
+    $bind_options = ""
+  }
+
   haproxy::listen { $name:
-    order     => $order,
-    ipaddress => $virtual_ips,
-    ports     => $listen_port,
-    options   => $haproxy_config_options,
-    mode      => $mode,
+    order        => $order,
+    ipaddress    => $virtual_ips,
+    ports        => $listen_port,
+    options      => $haproxy_config_options,
+    bind_options => $bind_options,
+    mode         => $mode,
   }
 
   haproxy::balancermember { $name:

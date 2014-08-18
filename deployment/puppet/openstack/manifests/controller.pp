@@ -52,6 +52,7 @@
 # [max_pool_size] QueuePool setting for Sqlalchemy db backend. Defaults 10.
 # [max_overflow] QueuePool setting for Sqlalchemy db backend. Defaults 30.
 # [idle_timeout] QueuePool setting for Sqlalchemy db backend. Defaults 3600.
+# [ssl_for_public_endpoint] Enable SSL for public endpoint
 #
 # === Examples
 #
@@ -214,6 +215,7 @@ class openstack::controller (
   $max_pool_size                  = '50',
   $max_overflow                   = '30',
   $idle_timeout                   = '3600',
+  $ssl_for_public_endpoint        = false,
 ) {
 
   # Ensure things are run in order
@@ -312,6 +314,7 @@ class openstack::controller (
     rabbit_hosts              => split($amqp_hosts, ','),
     rabbit_virtual_host       => $rabbit_virtual_host,
     idle_timeout              => $idle_timeout,
+    ssl_for_public_endpoint   => $ssl_for_public_endpoint,
   }
 
 
