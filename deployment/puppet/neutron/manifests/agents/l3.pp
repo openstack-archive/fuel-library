@@ -109,6 +109,12 @@ class neutron::agents::l3 (
         primitive_class => 'ocf',
         provided_by     => 'mirantis',
         primitive_type  => 'neutron-agent-l3',
+        multistate_hash => {
+          'type' => 'clone',
+        },
+        ms_metadata     => {
+          'interleave' => 'true',
+        },
         parameters      => {
           'debug'       => $debug,
           'syslog'      => $::use_syslog,
