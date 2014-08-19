@@ -6,6 +6,10 @@ class plugin_neutronnsx (
   $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
 
   if member($roles, 'controller') {
+    class { 'plugin_neutronnsx::install_ovs':
+      packages_url           => $neutron_nsx_config['packages_url'],
+      stage                  => 'netconfig',
+    }
     class { 'plugin_neutronnsx::bridges':
       neutron_nsx_config     => $neutron_nsx_config,
       ip_address             => get_connector_address($::fuel_settings),
@@ -18,6 +22,10 @@ class plugin_neutronnsx (
   }
 
   if member($roles, 'compute') {
+    class { 'plugin_neutronnsx::install_ovs':
+      packages_url           => $neutron_nsx_config['packages_url'],
+      stage                  => 'netconfig',
+    }
     class { 'plugin_neutronnsx::bridges':
       neutron_nsx_config     => $neutron_nsx_config,
       ip_address             => get_connector_address($::fuel_settings),

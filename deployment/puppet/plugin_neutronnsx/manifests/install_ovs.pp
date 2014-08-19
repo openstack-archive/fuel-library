@@ -1,6 +1,6 @@
-class plugin_neutronnsx::install_ovs
-{
-  $packages_url = $::fuel_settings['nsx_plugin']['packages_url']
+class plugin_neutronnsx::install_ovs (
+  $packages_url,
+) {
   include $::neutron::params
   case $::osfamily {
     /(?i)debian/: {

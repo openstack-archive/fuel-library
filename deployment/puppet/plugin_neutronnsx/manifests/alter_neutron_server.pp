@@ -33,7 +33,7 @@ class plugin_neutronnsx::alter_neutron_server (
 
   if $::osfamily =~ /(?i)debian/ {
     exec { 'enable_plugin':
-      command => "/bin/sed -i 's/^NEUTRON_PLUGIN_CONFIG.*/NEUTRON_PLUGIN_CONFIG=\/etc\/neutron\/plugin.ini/g' /etc/default/neutron-server",
+      command => '/bin/sed -i \'s/^NEUTRON_PLUGIN_CONFIG.*/NEUTRON_PLUGIN_CONFIG=\/etc\/neutron\/plugin.ini/g\' /etc/default/neutron-server',
     }
     Package<| title == $::neutron::params::server_package |> -> Exec['enable_plugin'] ~> Service<| title == 'neutron-server' |>
   }

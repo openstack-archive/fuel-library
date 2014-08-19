@@ -466,6 +466,12 @@ class MrntNeutron
     if @neutron_config[:L2][:provider].downcase.to_sym == :ovs
       #todo (sv): rename to shot form 'ovs', after https://bugs.launchpad.net/neutron/+bug/1286052
       @neutron_config[:server][:core_plugin] = 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2'
+    elsif @neutron_config[:L2][:provider].downcase.to_sym == :nsx
+      @neutron_config[:server][:core_plugin] = 'neutron.plugins.vmware.plugin.NsxPlugin'
+      # TODO (adanin) Service plugins should be like below but don't work.
+      #@neutron_config[:server][:service_plugins] = 'neutron.plugins.vmware.plugin.NsxServicePlugin'
+      @neutron_config[:server][:service_plugins] = ' '
+
     else
       #todo (sv): rename to shot form 'ml2', after https://bugs.launchpad.net/neutron/+bug/1286052
       @neutron_config[:server][:core_plugin] = 'neutron.plugins.ml2.plugin.Ml2Plugin'
