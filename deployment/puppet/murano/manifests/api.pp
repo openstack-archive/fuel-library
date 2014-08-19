@@ -130,13 +130,13 @@ class murano::api (
   Package['murano'] -> Murano_config<||>
 
   if $primary_controller {
-    $murano_manage = '/usr/bin/murano-manage'
+    $murano_db_manage = '/usr/bin/murano-db-manage'
     exec { 'murano_manage_db_sync':
       path    => [ '/usr/bin' ],
-      command => "$murano_manage --config-file=/etc/murano/murano.conf db-sync",
+      command => "$murano_db_manage --config-file=/etc/murano/murano.conf upgrade",
       user    => $murano_user,
       group   => $murano_user,
-      onlyif  => "test -f $murano_manage",
+      onlyif  => "test -f $murano_db_manage",
     }
 
     Murano_config<||> -> Exec['murano_manage_db_sync']
