@@ -1,5 +1,9 @@
 [DEFAULT]
-ignoreip = <%= scope.lookupvar('fail2ban::ignoreip') %>
+<% if ignoreip.length > 1 -%>
+ignoreip = <%= ignoreip.join(" ") %>
+<% else -%>
+ignoreip = <%= ignoreip %>
+<% end -%>
 bantime = <%= scope.lookupvar('fail2ban::bantime') %>
 findtime = <%= scope.lookupvar('fail2ban::findtime') %>
 maxretry = <%= scope.lookupvar('fail2ban::maxretry') %>

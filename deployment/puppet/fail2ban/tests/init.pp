@@ -9,4 +9,7 @@
 # Learn more about module testing here:
 # http://docs.puppetlabs.com/guides/tests_smoke.html
 #
-include fail2ban
+class { 'fail2ban':
+    jails  => ['ssh'],
+    mailto => 'mmaxur@mirantiscom',
+    }

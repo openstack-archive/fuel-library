@@ -33,7 +33,7 @@ class fail2ban (
         owner   => root,
         group   => root,
         mode    => 644,
-        content => template('fail2ban/fail2ban.local.erb'),
+        content => template('fail2ban/fail2ban.erb'),
         require => Package[$fail2ban::params::package],
         notify  => Service[$fail2ban::params::service]
     }
@@ -41,7 +41,7 @@ class fail2ban (
         owner   => root,
         group   => root,
         mode    => 644,
-        content => template('fail2ban/jail.local.erb'),
+        content => template('fail2ban/jail.erb'),
         require => Package[$fail2ban::params::package],
         notify  => Service[$fail2ban::params::service]
     }
