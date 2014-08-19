@@ -76,22 +76,32 @@ class openstack::db::mysql (
     $use_syslog              = false,
 ) {
 
+  if $custom_setup_class {
+    file { '/etc/mysql/my.cnf':
+      ensure    => absent,
+      require   => Class['mysql::server']
+    }
+    $config_hash_real = {
+      'config_file' => '/etc/my.cnf'
+    }
+  } else {
+    $config_hash_real = {}
+  }
+
   class { "mysql::server" :
     bind_address            => '0.0.0.0',
     etc_root_password       => true,
     root_password           => $mysql_root_password,
     old_root_password       => '',
-    galera_cluster_name	    => $galera_cluster_name,
+    galera_cluster_name     => $galera_cluster_name,
     primary_controller      => $primary_controller,
-    galera_node_address	    => $galera_node_address,
+    galera_node_address     => $galera_node_address,
     galera_nodes            => $galera_nodes,
     enabled                 => $enabled,
     custom_setup_class      => $custom_setup_class,
     mysql_skip_name_resolve => $mysql_skip_name_resolve,
     use_syslog              => $use_syslog,
-    config_hash             => {
-      'config_file' => '/etc/my.cnf'
-    },
+    config_hash             => $config_hash_real,
   }
 
   # This removes default users and guest access
