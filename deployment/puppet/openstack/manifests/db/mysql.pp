@@ -94,6 +94,15 @@ class openstack::db::mysql (
     },
   }
 
+  exec { 'rm-my-cnf-conflict':
+    command   => 'rm -f /etc/mysql/my.cnf || true',
+    onlyif    => 'test -f /etc/mysql/my.cnf',
+    path      => ['/usr/bin','/usr/sbin','/bin','/sbin','/usr/local/bin'],
+    provider  => 'shell',
+    logoutput => true,
+    require   => Class['mysql::server']
+  }
+
   # This removes default users and guest access
   if $mysql_account_security and $custom_setup_class == undef {
     class { 'mysql::server::account_security': }
