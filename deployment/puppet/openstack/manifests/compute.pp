@@ -282,6 +282,10 @@ class openstack::compute (
     'DEFAULT/live_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
   }
 
+  nova_config {
+    'DEFAULT/cinder_catalog_info': value => 'volume:cinder:internalURL'
+  }
+
   if $use_syslog {
     nova_config {
       'DEFAULT/use_syslog_rfc_format':  value => true;

@@ -42,6 +42,7 @@ describe 'openstack::compute' do
       )
       should contain_nova_config('multi_host').with( :value => 'False' )
       should contain_nova_config('send_arp_for_ha').with( :value => 'False' )
+      should contain_nova_config('cinder_catalog_info').with( :value => 'volume:cinder:internalURL')
       should_not contain_class('nova::api')
       should_not contain_class('nova::volume')
       should_not contain_class('nova::volume::iscsi')
@@ -104,6 +105,7 @@ describe 'openstack::compute' do
       )
       should contain_nova_config('multi_host').with( :value => 'False' )
       should contain_nova_config('send_arp_for_ha').with( :value => 'False' )
+      should contain_nova_config('cinder_catalog_info').with( :value => 'volume:cinder:internalURL')
       should_not contain_class('nova::api')
       should_not contain_class('nova::volume')
       should_not contain_class('nova::volume::iscsi')
@@ -128,6 +130,7 @@ describe 'openstack::compute' do
 
     it do
       should contain_nova_config('multi_host').with({ 'value' => 'False'})
+      should contain_nova_config('cinder_catalog_info').with( :value => 'volume:cinder:internalURL')
       should_not contain_class('nova::api')
       should contain_class('nova::volume').with(:enabled => true)
       should contain_class('nova::network').with({
@@ -168,6 +171,7 @@ describe 'openstack::compute' do
       should contain_class('keystone::python')
       should contain_nova_config('multi_host').with({ 'value' => 'True'})
       should contain_nova_config('send_arp_for_ha').with(:value => 'True')
+      should contain_nova_config('cinder_catalog_info').with( :value => 'volume:cinder:internalURL')
       should_not contain_class('nova::volume')
       should_not contain_class('nova::volume::iscsi')
       should contain_class('nova::network').with({
@@ -220,6 +224,7 @@ describe 'openstack::compute' do
 
     it {
       should contain_nova_config('multi_host').with({ 'value' => 'True'})
+      should contain_nova_config('cinder_catalog_info').with( :value => 'volume:cinder:internalURL')
       should contain_class('nova::api')
       should contain_class('nova::volume')
       should contain_class('nova::volume::iscsi')
