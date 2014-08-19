@@ -94,6 +94,11 @@ class openstack::db::mysql (
     },
   }
 
+  file { '/etc/mysql/my.cnf':
+    ensure    => absent,
+    require   => Class['mysql::server']
+  }
+
   # This removes default users and guest access
   if $mysql_account_security and $custom_setup_class == undef {
     class { 'mysql::server::account_security': }
