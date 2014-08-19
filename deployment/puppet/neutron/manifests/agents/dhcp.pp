@@ -109,6 +109,12 @@ class neutron::agents::dhcp (
         primitive_class => 'ocf',
         provided_by     => 'mirantis',
         primitive_type  => 'neutron-agent-dhcp',
+        multistate_hash => {
+          'type' => 'clone',
+        },
+        ms_metadata     => {
+          'interleave' => 'false',
+        },
         parameters      => {
           'os_auth_url' => $neutron_config['keystone']['auth_url'],
           'tenant'      => $neutron_config['keystone']['admin_tenant_name'],
