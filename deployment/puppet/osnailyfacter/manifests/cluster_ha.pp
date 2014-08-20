@@ -253,7 +253,7 @@ class osnailyfacter::cluster_ha {
   ) {
 
     class {'osnailyfacter::apache_api_proxy':}
-
+    class {'osnailyfacter::osnailyfacter::remove_swift_object':}
     class { 'openstack::controller_ha':
       controllers                   => $::osnailyfacter::cluster_ha::controllers,
       controller_public_addresses   => $::osnailyfacter::cluster_ha::controller_public_addresses,

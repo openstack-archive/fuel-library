@@ -155,6 +155,7 @@ class osnailyfacter::cluster_simple {
       include osnailyfacter::test_controller
 
       class {'osnailyfacter::apache_api_proxy':}
+      class {'osnailyfacter::osnailyfacter::remove_swift_object':}
       class { 'openstack::controller':
         admin_address           => $controller_node_address,
         public_address          => $controller_node_public,
