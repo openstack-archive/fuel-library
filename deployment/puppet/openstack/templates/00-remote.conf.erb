@@ -26,10 +26,6 @@ $ActionQueueDequeueSlowdown 1000
 $ActionQueueWorkerThreads 2
 $ActionQueueDequeueBatchSize 128
 $ActionResumeRetryCount -1
-$ActionQueueDequeueSlowdown 1000
-$ActionQueueWorkerThreads 2
-$ActionQueueDequeueBatchSize 128
-$ActionResumeRetryCount -1
 <% if rserver['remote_type'] == 'tcp' -%>
 # Send messages we receive to master node via tcp
 # Use an octet-counted framing (understood for rsyslog only) to ensure correct multiline messages delivery
