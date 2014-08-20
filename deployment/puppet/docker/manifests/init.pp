@@ -22,6 +22,9 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
     enable => true,
     ensure => running,
     require => Package[$docker_package],
+    hasrestart => true,
+    restart => "/etc/init.d/docker restart;/usr/bin/dockerctl start all",
+    start => "/etc/init.d/docker start;/usr/bin/dockerctl start all",
   }
   file { "/etc/sysconfig/docker":
     content => template("docker/settings.erb"),
