@@ -40,16 +40,24 @@ class mysql::server (
   $use_syslog              = true,
 ) inherits mysql::params {
 
+  if ($config_hash['config_file']) {
+    $config_file_real = $config_hash['config_file']
+  } else {
+    $config_file_real = $mysql::params::config_file
+  }
+
   class { 'mysql::password' :
     root_password     => $root_password,
     old_root_password => $old_root_password,
     etc_root_password => $etc_root_password,
+    config_file       => $config_file_real,
   }
 
   class { 'mysql::config' :
     bind_address       => $bind_address,
     use_syslog         => $use_syslog,
     custom_setup_class => $custom_setup_class,
+    config_file        => $config_file_real,
   }
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
