@@ -80,8 +80,11 @@ define cinder::backend::vmdk (
       "${name}/vmware_wsdl_location":               value => $wsdl_location;
     }
   }
-
-  package { 'python-suds':
-    ensure   => present
+  
+  if ! defined(Package['python-suds']) {
+    package { 'python-suds':
+      ensure   => present
+      }
   }
+
 }
