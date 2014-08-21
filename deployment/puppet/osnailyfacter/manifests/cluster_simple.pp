@@ -153,6 +153,7 @@ class osnailyfacter::cluster_simple {
   case $::fuel_settings['role'] {
     "controller" : {
       include osnailyfacter::test_controller
+      class { 'osnailyfacter::package_ensure' :}
 
       class {'osnailyfacter::apache_api_proxy':}
       class { 'openstack::controller':
@@ -392,6 +393,7 @@ class osnailyfacter::cluster_simple {
 
     "compute" : {
       include osnailyfacter::test_compute
+      class { 'osnailyfacter::package_ensure' :}
 
       class { 'openstack::compute':
         public_interface       => $::public_int,
