@@ -224,6 +224,7 @@ class openstack::compute (
   $memcached_addresses =  suffix($cache_server_ip, inline_template(":<%= @cache_server_port %>"))
   $notify_on_state_change = 'vm_and_task_state'
 
+  class { 'openstack::oslo::messaging': } ->
   class { 'nova':
       install_utilities      => false,
       ensure_package         => $::openstack_version['nova'],
@@ -277,6 +278,7 @@ class openstack::compute (
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
   }
+  Class['openstack::oslo::messaging'] -> Class['::nova::compute']
 
   nova_config {
     'DEFAULT/live_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
@@ -345,6 +347,14 @@ class openstack::compute (
       }
     }
   }
+
+  ########## Notify Openstack services on Oslo packages #########
+  #NOTE(bogdando) assume NOT all service could run at compute node,
+  #  assume all services might support Oslo messaging now or later
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'nova-compute'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'nova-network'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'cinder-volume'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'ceilometer-agent-compute'|>
 
   Service<| title == 'libvirt'|> ~> Service<| title == 'nova-compute'|>
   Package<| title == "nova-compute-${libvirt_type}"|> ~>
@@ -427,6 +437,7 @@ on packages update": }
       on_compute                     => true,
       metering_secret                => $ceilometer_metering_secret,
     }
+    Class['openstack::oslo::messaging'] -> Class['openstack::ceilometer']
   }
 
   # if the compute node should be configured as a multi-host
@@ -444,6 +455,7 @@ on packages update": }
       auth_host            => $service_endpoint,
       ratelimits           => $nova_rate_limits,
     }
+    Class['openstack::oslo::messaging'] -> Class['nova::api']
 
     if ! $fixed_range {
       fail('Must specify the fixed range when using nova-networks')
@@ -499,6 +511,7 @@ on packages update": }
       enabled           => $enable_network_service,
       install_service   => $enable_network_service,
     }
+    Class['openstack::oslo::messaging'] -> Class['nova::network']
 
     # From legacy network.pp
     # I don't think this is applicable to Folsom...
@@ -521,6 +534,7 @@ on packages update": }
       use_syslog          => $use_syslog,
       syslog_log_facility => $syslog_log_facility_neutron,
     }
+    Class['openstack::oslo::messaging'] -> Class['::neutron']
 
     if $quantum_config[L2][provider] == 'ml2' {
       class { 'neutron::plugins::ml2_plugin':
