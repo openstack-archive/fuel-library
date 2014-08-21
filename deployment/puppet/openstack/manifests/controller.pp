@@ -203,23 +203,39 @@ class openstack::controller (
 ) {
 
   # Ensure things are run in order
-  Class['openstack::db::mysql'] -> Class['openstack::keystone']
+  Class['openstack::db::mysql'] ->
+  Class['openstack::oslo::messaging'] ->
+  Class['openstack::keystone']
+
   if ($ceilometer) {
-    Class['openstack::db::mysql'] -> Class['openstack::ceilometer']
+    Class['openstack::db::mysql'] ->
+    Class['openstack::oslo::messaging'] ->
+    Class['openstack::ceilometer']
   }
-  Class['openstack::db::mysql'] -> Class['openstack::glance']
-  Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
+
+  Class['openstack::db::mysql'] ->
+  Class['openstack::oslo::messaging'] ->
+  Class['openstack::glance']
+
+  Class['openstack::db::mysql'] ->
+  Class['openstack::oslo::messaging'] ->
+  Class['openstack::nova::controller']
+
   Class['openstack::db::mysql'] -> Cinder_config <||>
 
   Class["${queue_provider}::server"] -> Nova_config <||>
   Class["${queue_provider}::server"] -> Cinder_config <||>
   Class["${queue_provider}::server"] -> Neutron_config <||>
 
+  class { 'openstack::oslo::messaging': }
+
   ####### DATABASE SETUP ######
   # set up mysql server
   if ($db_type == 'mysql') {
     if ($enabled) {
-      Class['glance::db::mysql'] -> Class['glance::registry']
+      Class['glance::db::mysql'] ->
+      Class['openstack::oslo::messaging'] ->
+      Class['glance::registry']
     }
     class { 'openstack::db::mysql':
       mysql_root_password     => $mysql_root_password,
@@ -459,6 +475,7 @@ class openstack::controller (
         idle_timeout         => $idle_timeout,
         ceilometer           => $ceilometer,
       } # end class
+      Class['openstack::oslo::messaging'] -> Class['openstack::cinder']
     } else { # defined
       if $manage_volumes {
       # Set up nova-volume
@@ -466,6 +483,7 @@ class openstack::controller (
           ensure_package => $::openstack_version['nova'],
           enabled        => true,
         }
+        Class['openstack::oslo::messaging'] -> Class['nova::volume']
         class { 'nova::volume::iscsi':
           iscsi_ip_address => $api_bind_address,
           physical_volume  => $nv_physical_volume,
@@ -607,5 +625,32 @@ class openstack::controller (
       package_name => 'nova-cells',
     }
   }
+
+  ########## Notify Openstack services on Oslo packages #########
+  #NOTE(bogdando) assume all service could run at controller node as well,
+  #  assume all services might support Oslo messaging now or later
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'murano_api'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'murano_engine'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'neutron-server'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'sahara-api'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'keystone'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'glance-api'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'glance-registry'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'heat-engine_service'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'heat-api'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'heat-api-cfn'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'heat-api-cloudwatch'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'cinder-volume'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'cinder-api'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'cinder-backup'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'cinder-scheduler'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'ceilometer-alarm-notifier'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'ceilometer-alarm-evaluator'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'ceilometer-collector'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'ceilometer-agent-notification'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'ceilometer-api'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'ceilometer-agent-central'|>
+  Class['openstack::oslo::messaging'] ~> Service<| title == 'ceilometer-agent-compute'|>
+  Class['openstack::oslo::messaging'] ~> Nova::Generic_service<||>
 }
 
