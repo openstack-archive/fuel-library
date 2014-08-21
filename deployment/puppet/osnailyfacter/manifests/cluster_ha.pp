@@ -373,6 +373,7 @@ class osnailyfacter::cluster_ha {
   case $::fuel_settings['role'] {
     /controller/ : {
       include osnailyfacter::test_controller
+      class { 'osnailyfacter::package_ensure' :}
 
       class { '::cluster':
         stage             => 'corosync_setup',
@@ -637,6 +638,7 @@ class osnailyfacter::cluster_ha {
 
     "compute" : {
       include osnailyfacter::test_compute
+      class { 'osnailyfacter::package_ensure' :}
 
       if ($::mellanox_mode == 'ethernet') {
         $net04_physnet = $quantum_config['predefined_networks']['net04']['L2']['physnet']
