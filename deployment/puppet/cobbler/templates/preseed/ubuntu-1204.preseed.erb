@@ -125,7 +125,7 @@ echo 'deb http://@@server@@:8080/ubuntu/fuelweb/x86_64 precise main' > /target/e
 $SNIPPET('ubuntu_authorized_keys')
 sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication\ .*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
 echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
-in-target apt-get -y install linux-image-3.11 linux-headers-3.11 && \
+in-target apt-get -y install linux-image-3.12.24-rt38+ linux-headers-3.12.24-rt38+ && \
 $SNIPPET('ubuntu_blacklist_i2c_piix4')
 $SNIPPET('ubuntu_static_net')
 # Rsyslogd should send all messages to master node
