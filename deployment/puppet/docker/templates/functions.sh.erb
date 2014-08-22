@@ -408,6 +408,8 @@ function post_start_hooks {
   case $1 in
     cobbler)   setup_dhcrelay_for_cobbler
                ;;
+    nginx)     remangle_nginx
+               ;;
     *)         ;;
   esac
 }
@@ -423,6 +425,7 @@ function remangle_port {
   #purge old rule
   purge_iptables_rule "$container-$proto-$port-accept"
   purge_iptables_rule "$container-$proto-$port-unmasquerade"
+  service iptables reload &>/dev/null
 
   iptables -t nat -I POSTROUTING 1 -s "$NETWORK/$PREFIX" -p $proto -m $proto --dport $port -m comment --comment "$container-$proto-$port-unmasquerade" -j ACCEPT
   iptables -A FORWARD -i $admin_interface -o docker0 -m state --state NEW -p $proto  -m $proto --dport $port -m comment --comment "$container-$proto-$port-accept" -j ACCEPT
