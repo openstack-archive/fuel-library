@@ -408,6 +408,10 @@ function post_start_hooks {
   case $1 in
     cobbler)   setup_dhcrelay_for_cobbler
                ;;
+    nginx)     remangle_nginx
+               ;;
+    rsyslog)   remangle_syslog
+               ;;
     *)         ;;
   esac
 }
@@ -426,7 +430,7 @@ function remangle_port {
 
   iptables -t nat -I POSTROUTING 1 -s "$NETWORK/$PREFIX" -p $proto -m $proto --dport $port -m comment --comment "$container-$proto-$port-unmasquerade" -j ACCEPT
   iptables -A FORWARD -i $admin_interface -o docker0 -m state --state NEW -p $proto  -m $proto --dport $port -m comment --comment "$container-$proto-$port-accept" -j ACCEPT
-  service iptables save
+  service iptables save &>/dev/null
 }
 function purge_stale_iptables_rules {
   container=$1
@@ -443,7 +447,7 @@ function purge_stale_iptables_rules {
            #Match first IP from the rule
         ruleip=$(echo $rule | grep -oE '((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])' | head -1)
         if [[ "$containerip" != "$ruleip" ]]; then
-          iptables-save | grep -v $rule | iptables-restore
+          iptables-save | grep -v -- "$rule" | iptables-restore
         fi
       done < <(iptables-save | grep -- "-m $proto --dport $port")
   done
@@ -464,19 +468,20 @@ function purge_iptables_rule {
     for chain in INPUT FORWARD; do
       while read lineno _; do
         iptables -D $chain $lineno
-        service iptables save
-      done < <(iptables -t filter --line-numbers -L $chain | grep "/\* ${comment} \*/")
+        service iptables save &>/dev/null
+      done < <(iptables -t filter --line-numbers -L $chain | grep -- "/\* ${comment} \*/")
     done
 
     #Purge rules in nat table
     for chain in POSTROUTING; do
       while read lineno _; do
         iptables -D $chain $lineno
-        service iptables save
-      done < <(iptables -t nat --line-numbers -L $chain | grep "/\* ${comment} \*/")
+        service iptables save &>/dev/null
+      done < <(iptables -t nat --line-numbers -L $chain | grep -- "/\* ${comment} \*/")
     done
   elif [[ "$method" == "savegreprestore" ]]; then
-    iptables-save | grep -v $comment | iptables-restore
+    iptables-save | grep -v -- "$comment" | iptables-restore
+    service iptables save &>/dev/null
   fi
 }
 
