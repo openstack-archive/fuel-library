@@ -4,7 +4,7 @@ class nailgun::packages(
 
   define nailgun_safe_package(){
     if ! defined(Package[$name]){
-      @package { $name : ensure => latest; }
+      package { $name : ensure => latest; }
     }
   }
 
