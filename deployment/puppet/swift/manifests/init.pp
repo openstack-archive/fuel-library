@@ -39,6 +39,7 @@ class swift(
       ensure => $package_ensure,
       name   => $::swift::params::package_name,
     }
+    Package['swift'] -> Swift::Ringsync <||>
   }
 
   File { owner => 'swift', group => 'swift', require => Package['swift'] }
@@ -71,7 +72,6 @@ class swift(
     group  => 'swift'
   }
 
-
   file { '/var/run/swift':
     ensure => directory,
   }
@@ -81,22 +81,4 @@ class swift(
     mode    => '0660',
     content => template('swift/swift.conf.erb'),
   }
-
-#  file { "/tmp/swift-utils.patch":
-#    ensure => present,
-#    source => 'puppet:///modules/swift/swift-utils.patch'
-#  }
-#
-#  if !defined(Package['patch']) {
-#    package {'patch': ensure => present }
-#  }
-#
-#  exec { 'patch-swift-utils':
-#    path    => ["/usr/bin", "/usr/sbin"],
-#    command => "/usr/bin/patch -p1 -N -r - -d \
-#                /usr/lib/${::swift::params::python_path}/swift/common/ \
-#                </tmp/swift-utils.patch",
-#    returns => [0, 1],
-#    require => [ [File['/tmp/swift-utils.patch']],[Package['patch', 'swift']]],
-#  }
 }
