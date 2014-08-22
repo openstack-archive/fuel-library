@@ -41,6 +41,7 @@ define swift::storage::generic(
   if !defined(Service["swift-${name}-replicator"]) {
     notify{ "Module ${module_name} cannot notify service swift-${name}-replicator on package update": }
   }
+  Package["swift-${name}"] -> Swift::Ringsync <||>
 
   file { "/etc/swift/${name}-server/":
     ensure => directory,
