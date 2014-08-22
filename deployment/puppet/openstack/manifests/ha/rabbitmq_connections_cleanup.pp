@@ -6,10 +6,11 @@ class openstack::ha::rabbitmq_connections_cleanup (
 ) {
 
   exec {'rabbitmq-plugins enable rabbitmq_management':
-    path        => '/sbin:/bin:/usr/sbin:/usr/bin',
+    path        => [ '/usr/sbin', '/usr/bin', '/sbin', '/bin' ],
     environment => 'HOME=/root',
     require     => Package[$::rabbitmq::server::package_name],
     notify      => Service[$::rabbitmq::service::service_name],
+    unless      => 'rabbitmq-plugins list -m -E rabbitmq_management | grep -q rabbitmq_management',
   }
 
   package {'python-rabbit': }
@@ -33,7 +34,7 @@ class openstack::ha::rabbitmq_connections_cleanup (
     user    => 'root',
     minute  => '*/1',
     require => [File['rabbitmq-connections-cleanup',
-                     'rabbitmq-connections-cleanup.conf'],
+                      'rabbitmq-connections-cleanup.conf'],
                 Exec['rabbitmq-plugins enable rabbitmq_management'],
                 Service[$::rabbitmq::service::service_name]],
   }
