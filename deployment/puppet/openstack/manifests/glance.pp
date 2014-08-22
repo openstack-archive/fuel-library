@@ -166,6 +166,7 @@ class openstack::glance (
       }
     }
     Package["swift"] ~> Service['glance-api']
+    Package['swift'] -> Swift::Ringsync <||>
     Package<| title == 'swift'|> ~> Service<| title == 'glance-api'|>
     if !defined(Service['glance-api']) {
       notify{ "Module ${module_name} cannot notify service glance-api on package swift update": }
