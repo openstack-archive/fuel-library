@@ -11,12 +11,6 @@ class zabbix::monitoring::neutron_mon {
       api => $zabbix::params::api_hash,
     }
 
-    zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Neutron API":
-      host => $zabbix::params::host_name,
-      template => 'Template App OpenStack Neutron API',
-      api => $zabbix::params::api_hash,
-    }
-
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Neutron API check":
       host    => $zabbix::params::host_name,
       template => 'Template App OpenStack Neutron API check',
