@@ -4,6 +4,7 @@ define swift::ringsync(
   if ! defined (Anchor['swift_ringsync_start']) {
     anchor{'swift_ringsync_start':}
   }
+  File <| title == '/etc/swift' |>->
   Anchor['swift_ringsync_start']->
   rsync::get { "/etc/swift/${name}.ring.gz":
     source  => "rsync://${ring_server}/swift_server/${name}.ring.gz",
