@@ -23,10 +23,10 @@ class galera::params {
   #TODO(bogdando) remove code duplication for galera and mysql manifests to openstack::db in 'I' release
   #limit buffer size to 10G
   $buffer_size             =
-    inline_template("<%= [(${::memorysize_mb} * 0.3 + 0).floor, 10000].min %>")
+    inline_template("<%= [(${::memorysize_mb} * 0.2 + 0).floor, 10000].min %>")
   $mysql_buffer_pool_size  =  "${buffer_size}M"
   $mysql_log_file_size     =
-    inline_template("<%= [(${buffer_size} * 0.25 + 0).floor, 2047].min %>M")
+    inline_template("<%= [(${buffer_size} * 0.2 + 0).floor, 2047].min %>M")
   $wait_timeout            = '1800'
   $myisam_sort_buffer_size = '64M'
   $key_buffer_size         = '64M'
@@ -36,14 +36,12 @@ class galera::params {
 
   case $::osfamily {
     'RedHat': {
-      $libssl_package       = 'openssl098e'
       $libaio_package       = 'libaio'
       $mysql_server_name    = 'MySQL-server-wsrep'
       $mysql_client_name    = 'MySQL-client-wsrep'
       $libgalera_prefix     = '/usr/lib64'
     }
     'Debian': {
-      $libssl_package       = 'libssl0.9.8'
       $libaio_package       = 'libaio1'
       $mysql_server_name    = 'mysql-server-wsrep-5.6'
       $mysql_client_name    = 'mysql-client-5.6'
