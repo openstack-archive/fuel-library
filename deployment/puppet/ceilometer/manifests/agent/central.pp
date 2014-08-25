@@ -86,7 +86,7 @@ class ceilometer::agent::central (
     }
 
     if $primary_controller {
-      cs_resource { $res_name:
+      corosync::resource { $res_name:
         ensure          => present,
         primitive_class => 'ocf',
         provided_by     => 'mirantis',

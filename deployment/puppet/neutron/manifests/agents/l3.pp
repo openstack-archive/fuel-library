@@ -104,7 +104,7 @@ class neutron::agents::l3 (
     Package[$l3_agent_package] -> File['neutron-l3-agent-ocf']
 
     if $primary_controller {
-      cs_resource { "p_${::neutron::params::l3_agent_service}":
+      corosync::resource { "p_${::neutron::params::l3_agent_service}":
         ensure          => present,
         primitive_class => 'ocf',
         provided_by     => 'mirantis',

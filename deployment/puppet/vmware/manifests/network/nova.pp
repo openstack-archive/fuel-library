@@ -43,7 +43,7 @@ class vmware::network::nova (
 
     Nova_config <| title == 'DEFAULT/multi_host' |> { value => 'False' }
 
-    cs_resource { 'p_vcenter_nova_network':
+    corosync::resource { 'p_vcenter_nova_network':
       ensure          => present,
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
