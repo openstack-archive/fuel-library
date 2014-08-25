@@ -91,6 +91,12 @@ class cobbler::snippets {
         group => root,
         mode => 0644,
       }
+      file { "/usr/lib/post-base-installer.d/01mount_target_proc.sh" :
+        content => template("cobbler/scripts/mount_target_proc.sh"),
+        owner => root,
+        group => root,
+        mode => 0755,
+      }
     }
     /(?i)(centos|redhat)/:  {
       file { "/usr/lib/python2.6/site-packages/cobbler/late_command.py" :
