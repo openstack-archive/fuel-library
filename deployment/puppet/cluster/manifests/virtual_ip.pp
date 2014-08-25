@@ -22,7 +22,7 @@ define cluster::virtual_ip (
 
   File['ns-ipaddr2-ocf'] -> Cs_resource["${vip_name}"]
 
-  cs_resource { $vip_name:
+  corosync::resource { $vip_name:
     ensure          => present,
     primitive_class => 'ocf',
     provided_by     => 'mirantis',
