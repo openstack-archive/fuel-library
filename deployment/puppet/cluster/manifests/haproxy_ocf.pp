@@ -20,7 +20,7 @@ class cluster::haproxy_ocf (
   File<| title == 'ocf-mirantis-path' |> -> File['haproxy-ocf']
 
   if $primary_controller {
-    cs_resource { $service_name:
+    corosync::resource { $service_name:
       ensure          => present,
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
