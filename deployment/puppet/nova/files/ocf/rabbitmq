@@ -38,9 +38,9 @@ OCF_RESKEY_node_port_default=5672
 
 #######################################################################
 
-OCF_RESKEY_shutdown_time_default=$(( $OCF_RESKEY_CRM_meta_timeout / 1000 - 10 ))
+OCF_RESKEY_shutdown_time_default=$((OCF_RESKEY_CRM_meta_timeout / 1000 - 10))
 : ${OCF_RESKEY_shutdown_time=${OCF_RESKEY_shutdown_time_default}}
-OCF_RESKEY_start_time_default=$(( ${OCF_RESKEY_CRM_meta_timeout} / 1000 - 10 ))
+OCF_RESKEY_start_time_default=$((OCF_RESKEY_CRM_meta_timeout / 1000 - 10))
 : ${OCF_RESKEY_start_time=${OCF_RESKEY_start_time_default}}
 
 #######################################################################
