@@ -171,7 +171,7 @@ class mysql::server (
     ### end hacks
 
     cs_shadow { 'mysql': cib => 'mysql' } ->
-    cs_resource { "p_${service_name}":
+    corosync::resource { "p_${service_name}":
       ensure          => present,
       primitive_class => 'ocf',
       provided_by     => 'heartbeat',

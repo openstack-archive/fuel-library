@@ -57,7 +57,7 @@ class vmware::controller (
       before         => Exec['networking-refresh']
     }
 
-    cs_resource { 'p_vcenter_nova_compute':
+    corosync::resource { 'p_vcenter_nova_compute':
       ensure          => present,
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
