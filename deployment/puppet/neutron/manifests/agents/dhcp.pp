@@ -104,7 +104,7 @@ class neutron::agents::dhcp (
 
     if $primary_controller {
       Anchor['neutron-dhcp-agent'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
-      cs_resource { "p_${::neutron::params::dhcp_agent_service}":
+      corosync::resource { "p_${::neutron::params::dhcp_agent_service}":
         ensure          => present,
         primitive_class => 'ocf',
         provided_by     => 'mirantis',
