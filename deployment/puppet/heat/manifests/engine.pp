@@ -103,7 +103,7 @@ class heat::engine (
     }
 
     if $primary_controller {
-      cs_resource { $pacemaker_service_name :
+      corosync::resource { $pacemaker_service_name :
         ensure          => present,
         primitive_class => 'ocf',
         provided_by     => $ocf_scripts_provider,
