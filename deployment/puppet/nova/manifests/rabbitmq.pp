@@ -133,7 +133,7 @@ class nova::rabbitmq(
           File['rabbitmq-ocf'] ->
             Service["$service_name"]
       if ($primary_controller) {
-        cs_resource {"$service_name":
+        corosync::resource {"$service_name":
           ensure          => present,
           #cib             => 'rabbitmq',
           primitive_class => 'ocf',

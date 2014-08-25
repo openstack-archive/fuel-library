@@ -137,7 +137,7 @@ class galera (
       'RedHat' => '/var/lib/mysql/mysql.sock',
       'Debian' => '/var/run/mysqld/mysqld.sock',
     }
-    cs_resource { "p_${service_name}":
+    corosync::resource { "p_${service_name}":
       ensure          => present,
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
