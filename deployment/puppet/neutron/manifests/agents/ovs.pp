@@ -78,7 +78,7 @@ class neutron::agents::ovs (
     Neutron_plugin_ovs <| |> -> File['neutron-ovs-agent-ocf']
 
     if $primary_controller {
-      cs_resource { $res_name:
+      corosync::resource { $res_name:
         ensure          => present,
         primitive_class => 'ocf',
         provided_by     => 'mirantis',
