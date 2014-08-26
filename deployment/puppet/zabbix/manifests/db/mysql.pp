@@ -2,11 +2,6 @@ class zabbix::db::mysql {
 
   include zabbix::params
 
-  $mysql_package = $::osfamily ? {
-    'Redhat'  => "MySQL-server-wsrep",
-    'Debian' => "mysql-server-wsrep",
-  }
-
   class { 'mysql::server':
     config_hash => {
       # Setting root pw breaks everything on puppet 3
@@ -14,7 +9,6 @@ class zabbix::db::mysql {
       'bind_address'  => '0.0.0.0',
     },
     enabled    => true,
-    package_name => $mysql_package,
   }
   anchor { 'mysql_server_start': } -> Class['mysql::server'] -> anchor { 'mysql_server_end': }
 
@@ -44,14 +38,14 @@ class zabbix::db::mysql {
     creates => '/tmp/zabbix/schema.sql',
     path    => ['/usr/sbin', '/usr/bin', '/sbin', '/bin'],
     require => File['/tmp/zabbix'],
-    notify  => Exec['prepare-schema-2']
+    notify  => Exec['prepare-schema-2'],
   }
 
   exec { 'prepare-schema-2':
     command     => 'cat /tmp/zabbix/parts/*.sql >> /tmp/zabbix/schema.sql',
     path        => ['/usr/sbin', '/usr/bin', '/sbin', '/bin'],
     refreshonly => true,
-    require     => File['/tmp/zabbix/parts/data_clean.sql']
+    require     => File['/tmp/zabbix/parts/data_clean.sql'],
   }
 
   mysql::db { $zabbix::params::db_name:
@@ -59,6 +53,7 @@ class zabbix::db::mysql {
     password      => $zabbix::params::db_password,
     host          => $zabbix::params::db_host,
     sql           => '/tmp/zabbix/schema.sql',
+    #enforce_sql   => true,
     require       => [Class['mysql::server'], Exec['prepare-schema-2']],
   }
 }
