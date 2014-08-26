@@ -165,10 +165,11 @@ class murano (
   class { 'murano::cirros':
   }
 
-  class { 'murano::keystone':
-    tenant   => $murano_keystone_tenant,
-    user     => $murano_keystone_user,
-    password => $murano_keystone_password,
+  if $primary_controller {
+    class { 'murano::keystone':
+      tenant   => $murano_keystone_tenant,
+      user     => $murano_keystone_user,
+      password => $murano_keystone_password,
+    }
   }
-
 }

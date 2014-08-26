@@ -1,4 +1,5 @@
 class sahara (
+  $primary_controller                  = true,
   $sahara_enabled                      = true,
   $sahara_api_port                     = '8386',
   $sahara_api_host                     = '127.0.0.1',
@@ -59,18 +60,19 @@ class sahara (
     syslog_log_facility_sahara          => $syslog_log_facility_sahara,
   }
 
-  class { 'sahara::keystone::auth' :
-    password                       => $sahara_keystone_password,
-    auth_name                      => $sahara_keystone_user,
-    public_address                 => $sahara_api_host,
-    admin_address                  => $sahara_keystone_host,
-    internal_address               => $sahara_keystone_host,
-    sahara_port                    => $sahara_api_port,
-    region                         => 'RegionOne',
-    tenant                         => $sahara_keystone_tenant,
-    email                          => 'sahara-team@mirantis.com',
+  if $primary_controller {
+    class { 'sahara::keystone::auth' :
+      password                       => $sahara_keystone_password,
+      auth_name                      => $sahara_keystone_user,
+      public_address                 => $sahara_api_host,
+      admin_address                  => $sahara_keystone_host,
+      internal_address               => $sahara_keystone_host,
+      sahara_port                    => $sahara_api_port,
+      region                         => 'RegionOne',
+      tenant                         => $sahara_keystone_tenant,
+      email                          => 'sahara-team@mirantis.com',
+    }
   }
-
   firewall { $sahara_firewall_rule :
     dport   => $sahara_api_port,
     proto   => 'tcp',
