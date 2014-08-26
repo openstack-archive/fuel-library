@@ -261,6 +261,7 @@ class openstack::controller (
   }
   ####### KEYSTONE ###########
   class { 'openstack::keystone':
+    primary_controller        => $primary_controller,
     verbose                   => $verbose,
     debug                     => $debug,
     db_type                   => $db_type,

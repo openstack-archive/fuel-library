@@ -143,9 +143,11 @@ class neutron::server (
   Neutron_config<||> -> Exec['get_service_tenant_ID']
   File['/root/openrc'] -> Exec['get_service_tenant_ID']
 
-  Keystone_tenant["${nova_admin_tenant_name}"] -> Exec['get_service_tenant_ID']
-  Keystone_user_role["${neutron_config['keystone']['admin_user']}@${nova_admin_tenant_name}"] -> Exec['get_service_tenant_ID']
-  Keystone_endpoint<| title == "${neutron_config['keystone']['admin_user']}" |> -> Exec['get_service_tenant_ID']
+  Keystone_tenant<| title == "${nova_admin_tenant_name}" |> -> Exec['get_service_tenant_ID']
+  Keystone_user_role<| title == "${neutron_config['keystone']['admin_user']}@${nova_admin_tenant_name}" |> ->
+      Exec['get_service_tenant_ID']
+  Keystone_endpoint<| title == "${neutron_config['keystone']['admin_user']}" |> ->
+    Exec['get_service_tenant_ID']
 
   Openstack::Ha::Haproxy_service<| title == 'keystone-1' |> -> Exec['get_service_tenant_ID']
   Openstack::Ha::Haproxy_service<| title == 'keystone-2' |> -> Exec['get_service_tenant_ID']
