@@ -42,6 +42,9 @@ class neutron::agents::ovs (
     }
   }
 
+  $ovs_server_package = $::neutron::params::ovs_server_package
+  Package['neutron'] -> Package["$ovs_server_package"]
+
   if !defined(Anchor['neutron-server-done']) {
     # if defined -- this depends already defined
     Package[$ovs_agent_package] -> Neutron_plugin_ovs <| |>
