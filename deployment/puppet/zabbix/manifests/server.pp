@@ -24,7 +24,9 @@ class zabbix::server {
   }
 
   if $zabbix::params::frontend {
-    class { 'zabbix::frontend': }
+    class { 'zabbix::frontend': 
+      require => Service[$zabbix::params::server_service],
+    }
     anchor { 'zabbix_frontend_start': } -> Class['zabbix::frontend'] -> anchor { 'zabbix_frontend_end': }
   }
 
