@@ -42,7 +42,7 @@ class openstack::ha::mysqld (
 
   Class['cluster::haproxy_ocf'] -> Exec['wait-for-haproxy-mysql-backend']
   Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
-
+  Openstack::Ha::Haproxy_service<| title == 'mysqld' |> -> Exec['wait-for-haproxy-mysql-backend']
   Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
   Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
   Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
