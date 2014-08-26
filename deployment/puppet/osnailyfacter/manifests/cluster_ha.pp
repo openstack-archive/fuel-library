@@ -57,6 +57,8 @@ class osnailyfacter::cluster_ha {
 
   if $::fuel_settings['libvirt_type'] == 'vcenter' {
     $vcenter_hash = $::fuel_settings['vcenter']
+  } else {
+    $vcenter_hash = {}
   }
 
   if $::fuel_settings['role'] == 'primary-controller' {
