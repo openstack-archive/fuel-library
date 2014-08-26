@@ -14,6 +14,7 @@ OCF_RESKEY_base_veth_default=""       # should be defined
 OCF_RESKEY_ns_veth_default=""         # should be defined
 OCF_RESKEY_gateway_default=""         # can be "", "link", IPaddr
 OCF_RESKEY_gateway_metric_default=0   # can be "", or metric value
+OCF_RESKEY_enable_forwarding_default=true
 
 : ${OCF_RESKEY_cidr_netmask=${OCF_RESKEY_cidr_netmask_default}}
 : ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
@@ -21,6 +22,7 @@ OCF_RESKEY_gateway_metric_default=0   # can be "", or metric value
 : ${OCF_RESKEY_ns_veth=${OCF_RESKEY_ns_veth_default}}
 : ${OCF_RESKEY_gateway=${OCF_RESKEY_gateway_default}}
 : ${OCF_RESKEY_gateway_metric=${OCF_RESKEY_gateway_metric_default}}
+: ${OCF_RESKEY_enable_forwarding=${OCF_RESKEY_enable_forwarding_default}}
 
 FAMILY='inet'
 RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
@@ -148,6 +150,14 @@ Can be "", "link" or IP address.
 <content type="string" default="$OCF_RESKEY_gateway_metric_default"/>
 </parameter>
 
+<parameter name="setup_forwarding">
+<longdesc lang="en">
+Setup forwarding on base system.
+</longdesc>
+<shortdesc lang="en">Setup forwarding.</shortdesc>
+<content type="string" default="$OCF_RESKEY_setup_forwarding_default"/>
+</parameter>
+
 <parameter name="iptables_start_rules">
 <longdesc lang="en">
 Iptables rules that should be started along with IP.\n
@@ -270,6 +280,20 @@ find_interface_in_ns() {
     local rc=$?
     echo "$iface"
     return $rc
+}
+
+setup_forwarding() {
+  local forwarding
+  local rc=$OCF_SUCCESS
+  ocf_is_true ${OCF_RESKEY_enable_forwarding}
+  if [[ $? == 0 ]] ; then
+    forwarding=$(cat /proc/sys/net/ipv4/ip_forward)
+    if [[ "${forwarding}" != "1" ]] ; then
+      ocf_run sysctl -w net.ipv4.ip_forward=1
+      rc=$?
+    fi
+  fi
+  return $rc
 }
 
 get_first_ip_mask_for_if() {
@@ -412,6 +436,7 @@ iptables_stop() {
 }
 
 ip_start() {
+  setup_forwarding
   ip_prepare
   rc=$?
   if [[ $rc != $OCF_SUCCESS ]] ; then
@@ -484,6 +509,7 @@ ip_monitor() {
   [[ -z $ipaddr ]] && return $OCF_NOT_RUNNING
 
   ocf_run $RUN_IN_NS ping -n -c3 -q $ipaddr 2>&1 >>/dev/null || return $OCF_NOT_RUNNING
+  setup_forwarding
   return $OCF_SUCCESS
 }
 
