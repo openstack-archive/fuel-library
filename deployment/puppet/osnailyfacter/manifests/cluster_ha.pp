@@ -429,20 +429,20 @@ class osnailyfacter::cluster_ha {
             tries     => 60,
             require   => Package['socat'],
           }
+          nova_floating_range { $floating_ips_range:
+            ensure          => 'present',
+            pool            => 'nova',
+            username        => $access_hash[user],
+            api_key         => $access_hash[password],
+            auth_method     => 'password',
+            auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
+            authtenant_name => $access_hash[tenant],
+            api_retries     => 10,
+          }
+          Class['nova::api', 'openstack::ha::nova'] ->
+          Exec<| title=='wait-for-haproxy-nova-backend' |> ->
+          Nova_floating_range <| |>
         }
-        nova_floating_range { $floating_ips_range:
-          ensure          => 'present',
-          pool            => 'nova',
-          username        => $access_hash[user],
-          api_key         => $access_hash[password],
-          auth_method     => 'password',
-          auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
-          authtenant_name => $access_hash[tenant],
-          api_retries     => 10,
-        }
-        Class['nova::api', 'openstack::ha::nova'] ->
-        Exec<| title=='wait-for-haproxy-nova-backend' |> ->
-        Nova_floating_range <| |>
       }
       if ($::use_ceph){
         Class['openstack::controller'] -> Class['ceph']
