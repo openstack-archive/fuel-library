@@ -393,6 +393,7 @@ function pre_start_hooks {
 }
 
 function post_setup_hooks {
+  purge_stale_iptables_rules $1
   case $1 in
     cobbler)   setup_dhcrelay_for_cobbler
                ;;
