@@ -4,14 +4,25 @@ require 'open-uri'
 Puppet::Type.type(:package).provide :rdpkg, :parent => :dpkg, :source => :dpkg do
   desc "Remote .deb packages management"
   
-  # add '/' to end of str if it not present
+  # make normal url from str
   def sanity(str)
-    str.chomp('/')+'/'
+    str = str.chomp('/')+'/'
+    begin
+      URI(str).request_uri
+    rescue
+      str = "http://" + str
+    end
+    return str
   end
 
   def get_packages(url)
-    url = sanity(url)
-    list = Net::HTTP.get(URI(url)).scan(/\S*\.deb\"\>/)
+    uri = URI(sanity(url))
+    http = Net::HTTP.new(uri.host, uri.port)
+    if uri.scheme == "https" then
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
+    list = http.get(uri.request_uri).body.scan(/\S*\.deb\"\>/)
     return list.map { |x| x.gsub(/.*\"(.*)../, '\1') }
   end
 
