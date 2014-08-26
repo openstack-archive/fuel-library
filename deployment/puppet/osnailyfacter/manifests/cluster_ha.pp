@@ -446,11 +446,13 @@ class osnailyfacter::cluster_ha {
           debug                   => $::debug,
           verbose                 => $::verbose,
         }
-        class { 'swift::keystone::auth':
-          password         => $swift_hash[user_password],
-          public_address   => $::fuel_settings['public_vip'],
-          internal_address => $::fuel_settings['management_vip'],
-          admin_address    => $::fuel_settings['management_vip'],
+        if $primary_controller {
+          class { 'swift::keystone::auth':
+            password         => $swift_hash[user_password],
+            public_address   => $::fuel_settings['public_vip'],
+            internal_address => $::fuel_settings['management_vip'],
+            admin_address    => $::fuel_settings['management_vip'],
+          }
         }
       }
       #TODO: PUT this configuration stanza into nova class
@@ -509,6 +511,7 @@ class osnailyfacter::cluster_ha {
 
       if $sahara_hash['enabled'] {
         class { 'sahara' :
+          primary_controller         => $primary_controller,
           sahara_api_host            => $::fuel_settings['public_vip'],
 
           sahara_db_password         => $sahara_hash['db_password'],
