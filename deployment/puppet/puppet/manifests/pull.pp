@@ -1,7 +1,8 @@
 class puppet::pull (
-  $master_ip = '10.20.0.2',
   $script    = '/usr/local/bin/puppet-pull',
   $template  = 'puppet/puppet-pull.sh.erb',
+  $modules_source   = 'rsync://10.20.0.2/puppet/modules',
+  $manifests_source = 'rsync://10.20.0.2/puppet/manifests',
 ) {
 
   file { $script :
