@@ -67,7 +67,10 @@ class murano (
   $murano_repo_url_string                = undef,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::dashboard']
+  Class['mysql::server'] -> Class['murano::db::mysql'] ->
+  Class['murano::murano_rabbitmq'] ->
+  Class['murano::python_muranoclient'] -> Class['murano::api'] ->
+  Class['murano::dashboard']
 
   User['murano'] -> Class['murano::api'] -> File <| title == $murano_log_dir |>
 
@@ -175,14 +178,19 @@ class murano (
   }
 
 
-  class { 'murano::keystone':
-    tenant           => $murano_keystone_tenant,
-    user             => $murano_keystone_user,
-    password         => $murano_keystone_password,
-    admin_address    => $admin_address,
-    public_address   => $public_address,
-    internal_address => $internal_address,
-    murano_api_port  => $murano_bind_port,
+  if ($primary_controller) {
+    class { 'murano::keystone':
+      tenant           => $murano_keystone_tenant,
+      user             => $murano_keystone_user,
+      password         => $murano_keystone_password,
+      admin_address    => $admin_address,
+      public_address   => $public_address,
+      internal_address => $internal_address,
+      murano_api_port  => $murano_bind_port,
+    }
+    Class['murano::murano_rabbitmq'] ->
+    Class['murano::keystone'] ->
+    Class['murano::python_muranoclient']
   }
 
 }
