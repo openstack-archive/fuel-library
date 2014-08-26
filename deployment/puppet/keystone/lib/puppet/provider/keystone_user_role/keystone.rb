@@ -57,12 +57,20 @@ Puppet::Type.type(:keystone_user_role).provide(
 
   def destroy
     user_role_hash[resource[:name]][:role_ids].each do |role_id|
-      auth_keystone(
-       'user-role-remove',
-       '--user-id', user_role_hash[resource[:name]][:user_id],
-       '--tenant-id', user_role_hash[resource[:name]][:tenant_id],
-       '--role-id', role_id
-      )
+      begin
+        auth_keystone(
+          'user-role-remove',
+          '--user-id', user_role_hash[resource[:name]][:user_id],
+          '--tenant-id', user_role_hash[resource[:name]][:tenant_id],
+          '--role-id', role_id
+        )
+      rescue Exception => e
+        if e.message =~ /(\(HTTP\s+404\))/
+          notice("Role has been already deleted. Nothing to do")
+        else
+          raise(e)
+        end
+      end
     end
   end
 
