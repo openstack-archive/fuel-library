@@ -55,6 +55,7 @@ $backend_timeout          = '10'
 ###############################################################################
 
 class { 'openstack::db::mysql':
+  primary_controller      => $primary_controller,
   mysql_root_password     => $mysql_root_password,
   mysql_bind_address      => $mysql_bind_address,
   mysql_account_security  => $mysql_account_security,

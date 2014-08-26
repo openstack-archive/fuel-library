@@ -71,6 +71,7 @@ if has_key($murano_settings_hash, 'murano_repo_url') {
 
 ####### KEYSTONE ###########
 class { 'openstack::keystone':
+  primary_controller        => $primary_controller,
   verbose                   => $verbose,
   debug                     => $debug,
   db_type                   => $db_type,
@@ -109,11 +110,16 @@ class { 'openstack::keystone':
 
 ###############################################################################
 
-class { 'keystone::roles::admin':
-  admin        => $admin_user,
-  password     => $admin_password,
-  email        => $admin_email,
-  admin_tenant => $admin_tenant,
+if $(primary_controller) {
+  class { 'keystone::roles::admin':
+    admin        => $admin_user,
+    password     => $admin_password,
+    email        => $admin_email,
+    admin_tenant => $admin_tenant,
+  }
+  Exec <| title == 'keystone-manage db_sync' |> ->
+  Class['keystone::roles::admin'] ->
+  Class['openstack::workloads_collector']
 }
 
 class { 'openstack::auth_file':
@@ -133,11 +139,7 @@ class { 'openstack::workloads_collector':
 
 
 Exec <| title == 'keystone-manage db_sync' |> ->
-Class['keystone::roles::admin'] ->
 Class['openstack::auth_file']
-
-Class['keystone::roles::admin'] ->
-Class['openstack::workloads_collector']
 
 $haproxy_stats_url = "http://${management_vip}:10000/;csv"
 

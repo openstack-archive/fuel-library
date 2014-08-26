@@ -127,40 +127,41 @@ class openstack::heat (
   }
 
   # Auth
-  class { 'heat::keystone::auth' :
-    password                       => $keystone_password,
-    auth_name                      => $keystone_user,
-    public_address                 => $external_ip,
-    admin_address                  => $keystone_host,
-    internal_address               => $keystone_host,
-    port                           => '8004',
-    version                        => 'v1',
-    region                         => 'RegionOne',
-    tenant                         => 'services',
-    email                          => "${keystone_user}@localhost",
-    public_protocol                => 'http',
-    admin_protocol                 => 'http',
-    internal_protocol              => 'http',
-    configure_endpoint             => true,
+  if $primary_controller {
+    class { 'heat::keystone::auth' :
+      password                       => $keystone_password,
+      auth_name                      => $keystone_user,
+      public_address                 => $external_ip,
+      admin_address                  => $keystone_host,
+      internal_address               => $keystone_host,
+      port                           => '8004',
+      version                        => 'v1',
+      region                         => 'RegionOne',
+      tenant                         => 'services',
+      email                          => "${keystone_user}@localhost",
+      public_protocol                => 'http',
+      admin_protocol                 => 'http',
+      internal_protocol              => 'http',
+      configure_endpoint             => true,
+    }
 
-  }
-  #TODO(bogdando) clarify this new to Fuel Heat auth cfn patterns
-  class { 'heat::keystone::auth_cfn' :
-    password                       => $keystone_password,
-    auth_name                      => "${keystone_user}-cfn",
-    service_type                   => 'cloudformation',
-    public_address                 => $external_ip,
-    admin_address                  => $keystone_host,
-    internal_address               => $keystone_host,
-    port                           => '8000',
-    version                        => 'v1',
-    region                         => 'RegionOne',
-    tenant                         => 'services',
-    email                          => "${keystone_user}-cfn@localhost",
-    public_protocol                => 'http',
-    admin_protocol                 => 'http',
-    internal_protocol              => 'http',
-    configure_endpoint             => true,
+    class { 'heat::keystone::auth_cfn' :
+      password                       => $keystone_password,
+      auth_name                      => "${keystone_user}-cfn",
+      service_type                   => 'cloudformation',
+      public_address                 => $external_ip,
+      admin_address                  => $keystone_host,
+      internal_address               => $keystone_host,
+      port                           => '8000',
+      version                        => 'v1',
+      region                         => 'RegionOne',
+      tenant                         => 'services',
+      email                          => "${keystone_user}-cfn@localhost",
+      public_protocol                => 'http',
+      admin_protocol                 => 'http',
+      internal_protocol              => 'http',
+      configure_endpoint             => true,
+    }
   }
 
   # Common configuration, logging and RPC

@@ -31,6 +31,8 @@
 # [max_pool_size] SQLAlchemy backend related. Default 10.
 # [max_overflow] SQLAlchemy backend related.  Default 30.
 # [max_retries] SQLAlchemy backend related. Default -1.
+# [primary_controller] Controlles keystone entities creation. If set to False will create them
+#   only for primary controller role, otherwise for do the same for all controllers. Default False.
 #
 # === Example
 #
@@ -44,6 +46,7 @@
 #  }
 
 class openstack::keystone (
+  $primary_controller          = true,
   $db_host,
   $db_password,
   $admin_token,
@@ -307,65 +310,66 @@ class openstack::keystone (
 
   if ($enabled) {
     # Setup the admin user
+    if $primary_controller {
 
-    # Setup the Keystone Identity Endpoint
-    class { 'keystone::endpoint':
-      public_address   => $public_address,
-      admin_address    => $admin_real,
-      internal_address => $internal_real,
-    }
-    Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
+      # Setup the Keystone Identity Endpoint
+      class { 'keystone::endpoint':
+        public_address   => $public_address,
+        admin_address    => $admin_real,
+        internal_address => $internal_real,
+      }
+      Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
 
-    # Configure Glance endpoint in Keystone
-    if $glance {
-      class { 'glance::keystone::auth':
-        password         => $glance_user_password,
-        public_address   => $glance_public_real,
-        admin_address    => $glance_admin_real,
-        internal_address => $glance_internal_real,
+      # Configure Glance endpoint in Keystone
+      if $glance {
+        class { 'glance::keystone::auth':
+          password         => $glance_user_password,
+          public_address   => $glance_public_real,
+          admin_address    => $glance_admin_real,
+          internal_address => $glance_internal_real,
+        }
+        Exec <| title == 'keystone-manage db_sync' |> -> Class['glance::keystone::auth']
       }
-      Exec <| title == 'keystone-manage db_sync' |> -> Class['glance::keystone::auth']
-    }
 
-    # Configure Nova endpoint in Keystone
-    if $nova {
-      class { 'nova::keystone::auth':
-        password         => $nova_user_password,
-        public_address   => $nova_public_real,
-        admin_address    => $nova_admin_real,
-        internal_address => $nova_internal_real,
+      # Configure Nova endpoint in Keystone
+      if $nova {
+        class { 'nova::keystone::auth':
+          password         => $nova_user_password,
+          public_address   => $nova_public_real,
+          admin_address    => $nova_admin_real,
+          internal_address => $nova_internal_real,
+        }
+        Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
       }
-      Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
-    }
 
-    # Configure Cinder endpoint in Keystone
-    if $cinder {
-      class { 'cinder::keystone::auth':
-        password         => $cinder_user_password,
-        public_address   => $cinder_public_real,
-        admin_address    => $cinder_admin_real,
-        internal_address => $cinder_internal_real,
+      # Configure Cinder endpoint in Keystone
+      if $cinder {
+        class { 'cinder::keystone::auth':
+          password         => $cinder_user_password,
+          public_address   => $cinder_public_real,
+          admin_address    => $cinder_admin_real,
+          internal_address => $cinder_internal_real,
+        }
+        Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
       }
-     Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
-    }
-    if $neutron {
-      class { 'neutron::keystone::auth':
-        password         => $neutron_user_password,
-        public_address   => $neutron_public_real,
-        admin_address    => $neutron_admin_real,
-        internal_address => $neutron_internal_real,
+      if $neutron {
+        class { 'neutron::keystone::auth':
+          password         => $neutron_user_password,
+          public_address   => $neutron_public_real,
+          admin_address    => $neutron_admin_real,
+          internal_address => $neutron_internal_real,
+        }
+        Exec <| title == 'keystone-manage db_sync' |> -> Class['neutron::keystone::auth']
       }
-      Exec <| title == 'keystone-manage db_sync' |> -> Class['neutron::keystone::auth']
-    }
-    if $ceilometer {
-      class { 'ceilometer::keystone::auth':
-        password         => $ceilometer_user_password,
-        public_address   => $ceilometer_public_real,
-        admin_address    => $ceilometer_admin_real,
-        internal_address => $ceilometer_internal_real,
+      if $ceilometer {
+        class { 'ceilometer::keystone::auth':
+          password         => $ceilometer_user_password,
+          public_address   => $ceilometer_public_real,
+          admin_address    => $ceilometer_admin_real,
+          internal_address => $ceilometer_internal_real,
+        }
+        Exec <| title == 'keystone-manage db_sync' |> -> Class['ceilometer::keystone::auth']
       }
-      Exec <| title == 'keystone-manage db_sync' |> -> Class['ceilometer::keystone::auth']
-    }
-  }
-
+    } # END primary
+  } # END enabled
 }
