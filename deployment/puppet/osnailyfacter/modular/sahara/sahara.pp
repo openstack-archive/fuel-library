@@ -16,6 +16,7 @@ $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $deployment_mode            = hiera('deployment_mode')
+$primary_controller         = hiera('primary_controller')
 
 #################################################################
 
@@ -29,6 +30,7 @@ if $sahara_hash['enabled'] {
   }
 
   class { 'sahara' :
+    configure_keystone_auth    => $primary_controller,
     api_host                   => $public_ip,
     db_password                => $sahara_hash['db_password'],
     db_host                    => $management_ip,

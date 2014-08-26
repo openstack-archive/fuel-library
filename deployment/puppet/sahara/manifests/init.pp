@@ -1,4 +1,6 @@
 class sahara (
+  $configure_keystone_auth      = true,
+
   $enabled                      = true,
   $api_port                     = '8386',
   $api_host                     = '127.0.0.1',
@@ -64,16 +66,18 @@ class sahara (
     syslog_log_facility          => $syslog_log_facility,
   }
 
-  class { 'sahara::keystone::auth' :
-    password                     => $keystone_password,
-    auth_name                    => $keystone_user,
-    public_address               => $api_host,
-    admin_address                => $keystone_host,
-    internal_address             => $keystone_host,
-    sahara_port                  => $api_port,
-    region                       => 'RegionOne',
-    tenant                       => $keystone_tenant,
-    email                        => 'sahara-team@localhost',
+  if ($configure_keystone_auth) {
+    class { 'sahara::keystone::auth' :
+      password                       => $keystone_password,
+      auth_name                      => $keystone_user,
+      public_address                 => $api_host,
+      admin_address                  => $keystone_host,
+      internal_address               => $keystone_host,
+      sahara_port                    => $api_port,
+      region                         => 'RegionOne',
+      tenant                         => $keystone_tenant,
+      email                          => 'sahara-team@localhost',
+    }
   }
 
   if $enable_notifications {
