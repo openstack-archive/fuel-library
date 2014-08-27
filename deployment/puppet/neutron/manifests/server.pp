@@ -90,7 +90,7 @@ class neutron::server (
       refreshonly => true,
     }
     Exec<| title=='neutron-db-sync' |> -> Service['neutron-server']
-    Neutron_config<||>      ~> Exec['neutron-db-sync']
+    Neutron_config<||>      -> Exec['neutron-db-sync']
     Neutron_plugin_ovs<||>  -> Exec['neutron-db-sync']
     Neutron_plugin_ml2<||>  -> Exec['neutron-db-sync']
   }

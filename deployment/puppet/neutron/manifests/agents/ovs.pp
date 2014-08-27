@@ -19,12 +19,14 @@ class neutron::agents::ovs (
   # Package install
   if $::neutron::params::ovs_agent_package {
     $ovs_agent_package = 'neutron-plugin-ovs-agent'
-    Package['neutron'] -> Package["$ovs_agent_package"]
     package {"${ovs_agent_package}":
       name   => $::neutron::params::ovs_agent_package,
     }
+    Package['neutron'] -> Package["$ovs_server_package"]
+     -> Package["$ovs_agent_package"]
   } else {
     $ovs_agent_package = $::neutron::params::ovs_server_package
+    Package['neutron'] -> Package["$ovs_server_package"]
   }
 
   if $::operatingsystem == 'Ubuntu' {
