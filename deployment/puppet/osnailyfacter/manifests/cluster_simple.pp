@@ -247,6 +247,7 @@ class osnailyfacter::cluster_simple {
         idle_timeout                   => $idle_timeout,
         nova_report_interval           => $::nova_report_interval,
         nova_service_down_time         => $::nova_service_down_time,
+        cache_server_ip                => [$internal_address],
       }
 
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
