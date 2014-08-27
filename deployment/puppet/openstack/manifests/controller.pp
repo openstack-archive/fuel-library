@@ -195,6 +195,7 @@ class openstack::controller (
   $cinder_rate_limits             = undef,
   $ha_mode                        = false,
   $nameservers                    = undef,
+  $memcached_bind_address         = undef,
   #
   $max_retries                    = '-1',
   $max_pool_size                  = '50',
@@ -475,7 +476,7 @@ class openstack::controller (
   } #end cinder
   if !defined(Class['memcached']){
     class { 'memcached':
-      #listen_ip => $api_bind_address,
+      listen_ip => $memcached_bind_address,
     }
   }
 

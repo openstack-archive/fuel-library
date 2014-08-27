@@ -318,6 +318,7 @@ class osnailyfacter::cluster_ha {
       rabbitmq_bind_port             => $::osnailyfacter::cluster_ha::rabbitmq_bind_port,
       rabbitmq_cluster_nodes         => $::osnailyfacter::cluster_ha::rabbitmq_cluster_nodes,
       memcached_servers              => $::osnailyfacter::cluster_ha::controller_nodes,
+      memcached_bind_address         => $::osnailyfacter::cluster_ha::internal_address,
       export_resources               => false,
       glance_backend                 => $::osnailyfacter::cluster_ha::glance_backend,
       swift_proxies                  => $::osnailyfacter::cluster_ha::swift_proxies,
