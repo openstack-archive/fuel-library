@@ -440,7 +440,7 @@ class osnailyfacter::cluster_simple {
       }
 
       class { 'openstack::compute':
-        public_interface               => $::public_int,
+        public_interface               => $::public_int ? { undef=>'', default=>$::public_int },
         private_interface              => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
         internal_address               => $::internal_address,
         libvirt_type                   => $::fuel_settings['libvirt_type'],
