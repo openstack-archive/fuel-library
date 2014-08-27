@@ -475,7 +475,7 @@ class openstack::controller (
   } #end cinder
   if !defined(Class['memcached']){
     class { 'memcached':
-      #listen_ip => $api_bind_address,
+      listen_ip => $::osnailyfacter::cluster_ha::internal_address,
     }
   }
 
