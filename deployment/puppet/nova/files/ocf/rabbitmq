@@ -792,7 +792,7 @@ get_monitor() {
                 then
                     rc=$OCF_ERR_GENERIC
                     ocf_log info "${LH} rabbit app is running. master is $node"
-                    if get_nodes | grep -q $(rabbit_node_name $node)
+                    if get_running_nodes | grep -q $(rabbit_node_name $node)
                     then
                         ocf_log info "${LH} rabbit app is running and is member of healthy cluster"
                         rc=$prev_rc
