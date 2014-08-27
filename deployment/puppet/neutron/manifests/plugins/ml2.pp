@@ -115,6 +115,7 @@ class neutron::plugins::ml2 (
       ensure => present,
       name   => $::neutron::params::ml2_server_package,
     }
+    Package['neutron'] -> Package['neutron-plugin-ml2']
     Package['neutron-plugin-ml2'] -> Neutron_plugin_ml2<||>
     file {'/etc/neutron/plugin.ini':
       ensure  => link,

@@ -210,6 +210,8 @@ class neutron::agents::ml2::ovs (
     }
   }
 
+  Package['neutron'] -> Package['neutron-ovs-agent']
+
   if $enabled {
     $service_ensure = 'running'
   } else {
