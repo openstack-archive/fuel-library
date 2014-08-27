@@ -20,6 +20,13 @@ case $production {
       sql_connection => "postgresql://${::fuel_settings['postgres']['keystone_user']}:${::fuel_settings['postgres']['keystone_password']}@${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/${::fuel_settings['postgres']['keystone_dbname']}",
     }
 
+    #FIXME(mattymo): We should enable db_sync on every run inside keystone,
+    #but this is related to a larger scope fix for concurrent deployment of
+    #secondary controllers.
+    Exec <| title == 'keystone-manage db_sync' |> {
+      refreshonly => false,
+    }
+
     keystone_tenant { 'admin' :
       enabled => 'True',
       ensure  => present
