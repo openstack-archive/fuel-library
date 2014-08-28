@@ -27,6 +27,8 @@ class begin_deployment ()
 
 class {'begin_deployment': stage => 'zero' }
 
+class {'osnailyfacter::patching_classes': stage => 'zero'}
+
 stage {'glance-image':
   require => Stage['main'],
 }
