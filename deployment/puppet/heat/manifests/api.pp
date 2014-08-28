@@ -6,15 +6,21 @@ class heat::api (
 
   include heat::params
 
-  package { 'python-routes':
-    ensure => installed,
-    name   => $::heat::params::deps_routes_package_name,
-  }
+  # TODO(aglarendil): refurbish routes
+  # installation lp/1362977 and lp/1359705.
+  # routes are now installed in zero stage
+  #  package { 'python-routes':
+  #  ensure => installed,
+  #  name   => $::heat::params::deps_routes_package_name,
+  #}
 
   package { 'heat-api':
     ensure  => installed,
     name    => $::heat::params::api_package_name,
-    require => Package['python-routes'],
+    #TODO(aglarendil): refurbish this part of
+    #manifests as routes will be installed
+    #by lp/1359705 fix
+    #require => Package['python-routes'],
   }
 
   service { 'heat-api':
