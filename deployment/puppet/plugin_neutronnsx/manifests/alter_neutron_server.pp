@@ -62,6 +62,10 @@ class plugin_neutronnsx::alter_neutron_server (
     target  => '/etc/neutron/plugins/vmware/nsx.ini',
   }
 
+  Neutron_config <| title == 'DEFAULT/service_plugins' |> {
+    ensure => absent,
+  }
+
   neutron_plugin_vmware {
     'DATABASE/sql_connection':            value => $neutron_config['database']['url'];
     'DATABASE/sql_max_retries':           value => $neutron_config['database']['reconnects'];
