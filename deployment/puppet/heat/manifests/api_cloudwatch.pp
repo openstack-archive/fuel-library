@@ -13,7 +13,7 @@ class heat::api_cloudwatch (
   Heat_config<||> ~> Service['heat-api-cloudwatch']
 
   Package['heat-api-cloudwatch'] -> Heat_config<||>
-  Package['heat-api-cloudwatch'] -> Service['heat-api-cloudwatch']
+  Package['heat-api-cloudwatch'] ~> Service['heat-api-cloudwatch']
   package { 'heat-api-cloudwatch':
     ensure => installed,
     name   => $::heat::params::api_cloudwatch_package_name,

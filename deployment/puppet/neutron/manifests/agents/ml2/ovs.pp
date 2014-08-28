@@ -200,7 +200,6 @@ class neutron::agents::ml2::ovs (
     # neutron plugin ovs agent package. The configuration file for
     # the ovs agent is provided by the neutron ovs plugin package.
     Package['neutron-ovs-agent'] -> Neutron_plugin_ml2<||>
-    Package['neutron-ovs-agent'] -> Service['ovs-cleanup-service']
 
     if ! defined(Package['neutron-ovs-agent']) {
       package { 'neutron-ovs-agent':
@@ -223,6 +222,7 @@ class neutron::agents::ml2::ovs (
     require  => Class['neutron'],
     provider => $service_provider
   }
+  Package <| title == 'neutron-ovs-agent' |> ~> Service['neutron-ovs-agent-service']
 
   if $::neutron::params::ovs_cleanup_service {
     service {'ovs-cleanup-service':
@@ -230,5 +230,6 @@ class neutron::agents::ml2::ovs (
       name   => $::neutron::params::ovs_cleanup_service,
       enable => $enabled,
     }
+    Package <| title == 'neutron-ovs-agent' |> ~> Service['ovs-cleanup-service']
   }
 }

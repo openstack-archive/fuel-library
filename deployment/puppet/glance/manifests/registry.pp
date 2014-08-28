@@ -139,6 +139,7 @@ class glance::registry(
 
   Package[$glance::params::registry_package_name] -> File['/etc/glance/']
   Package[$glance::params::registry_package_name] -> Glance_registry_config<||>
+  Package[$glance::params::registry_package_name] ~> Service['glance-registry']
 
   Glance_registry_config<||> ~> Exec<| title == 'glance-manage db_sync' |>
   Glance_registry_config<||> ~> Service['glance-registry']

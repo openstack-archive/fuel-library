@@ -15,7 +15,8 @@ class cinder::volume (
     Package['cinder-volume'] -> Cinder_config<||>
     Package['cinder-volume'] -> Cinder_api_paste_ini<||>
     Package['cinder']        -> Package['cinder-volume']
-    Package['cinder-volume'] -> Service['cinder-volume']
+    Package['cinder-volume'] ~> Service['cinder-volume']
+    Package['cinder']        ~> Service['cinder-volume']
     package { 'cinder-volume':
       ensure => $package_ensure,
       name   => $::cinder::params::volume_package,
@@ -35,6 +36,5 @@ class cinder::volume (
     name      => $::cinder::params::volume_service,
     enable    => $enabled,
     hasstatus => true,
-    require   => Package['cinder'],
   }
 }

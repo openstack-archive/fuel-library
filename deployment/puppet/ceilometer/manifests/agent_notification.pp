@@ -31,7 +31,7 @@ class ceilometer::agent_notification (
     }
   }
 
-  Package['ceilometer-agent-notification'] -> Service['ceilometer-agent-notification']
+  Package['ceilometer-agent-notification'] ~> Service['ceilometer-agent-notification']
 
   if $swift {
       class { 'swift::notify::ceilometer':

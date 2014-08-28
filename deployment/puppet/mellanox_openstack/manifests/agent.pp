@@ -54,4 +54,7 @@ class mellanox_openstack::agent (
     Mellanox_agent_config <||> ~>
     Service[$agent]
 
+    Package[$package] ~>
+    Service[$agent]
+
 }

@@ -30,7 +30,7 @@ class plugin_neutronnsx::install_ovs (
       Package['dkms'] -> Package['openvswitch-datapath']
 
       Package['openvswitch-common'] -> Package['openvswitch-switch'] ->
-      Package['nicira-ovs-hypervisor-node'] -> Service['nicira-ovs-hypervisor-node']
+      Package['nicira-ovs-hypervisor-node'] ~> Service['nicira-ovs-hypervisor-node']
     }
     /(?i)redhat/: {
       Package<| title=="openvswitch-common" |> {
@@ -50,7 +50,7 @@ class plugin_neutronnsx::install_ovs (
       }
 
       Package['openvswitch-common'] ->
-      Package['nicira-ovs-hypervisor-node'] ->
+      Package['nicira-ovs-hypervisor-node'] ~>
       Service['nicira-ovs-hypervisor-node']
     }
     default: {

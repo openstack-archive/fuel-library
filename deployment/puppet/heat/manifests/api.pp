@@ -13,7 +13,7 @@ class heat::api (
   Heat_config<||> ~> Service['heat-api']
 
   Package['heat-api'] -> Heat_config<||>
-  Package['heat-api'] -> Service['heat-api']
+  Package['heat-api'] ~> Service['heat-api']
 
   package { 'heat-api':
     ensure => installed,
