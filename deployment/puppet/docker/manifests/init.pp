@@ -58,4 +58,17 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
                   ],
     unless    => 'docker ps -a | grep -q fuel',
   }
+  #FIXME(mattymo): Reapply iptables rules just in case they did not apply
+  #during setup. Refer to https://bugs.launchpad.net/fuel/+bug/1362159
+  exec {'reapply start hooks':
+    command     => 'dockerctl post_start_hooks all',
+    path        => '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin',
+    timeout     => 300,
+    logoutput   => true,
+    require     => [
+                    File[$dependent_dirs],
+                    Service[$docker_service],
+                    Exec['wait for docker-to-become-ready'],
+                    ],
+    refreshonly => true,
 }
