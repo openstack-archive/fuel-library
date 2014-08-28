@@ -203,8 +203,6 @@ class openstack::controller_ha (
       idle_timeout                   => $idle_timeout,
     }
 
-    class {'openstack::ha::rabbitmq_connections_cleanup': }
-
     if $quantum and $quantum_network_node {
       class { '::openstack::neutron_router':
         #service_endpoint      => $internal_virtual_ip,
