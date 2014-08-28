@@ -25,26 +25,24 @@
 RETVAL=0
 
 start() {
-    echo "Starting supervisord: "
-	if [ -e $PIDFILE ]; then 
-		echo "ALREADY STARTED"
-		return 1
-	fi
+  echo "Starting supervisord: "
+  if [ -e $PIDFILE ] && supervisor_status; then
+  echo "ALREADY STARTED"
+    return 1
+  fi
 
-	# start supervisord with options from sysconfig (stuff like -c)
-    /usr/bin/supervisord $OPTIONS
-	
-	# show initial startup status
-	/usr/bin/supervisorctl $OPTIONS status
-	
-	# only create the subsyslock if we created the PIDFILE
-    [ -e $PIDFILE ] && touch /var/lock/subsys/supervisord
+  # start supervisord with options from sysconfig (stuff like -c)
+  /usr/bin/supervisord $OPTIONS
+  # show initial startup status
+  /usr/bin/supervisorctl $OPTIONS status
+  # only create the subsyslock if we created the PIDFILE
+  [ -e $PIDFILE ] && touch /var/lock/subsys/supervisord
 }
 
 stop() {
     echo -n "Stopping supervisord: "
     /usr/bin/supervisorctl $OPTIONS shutdown
-	if [ -n "$WAIT_FOR_SUBPROCESSES" ]; then 
+        if [ -n "$WAIT_FOR_SUBPROCESSES" ]; then
         echo "Waiting roughly 60 seconds for $PIDFILE to be removed after child processes exit"
         for sleep in  2 2 2 2 4 4 4 4 8 8 8 8 last; do
             if [ ! -e $PIDFILE ] ; then
@@ -72,6 +70,10 @@ restart() {
         start
 }
 
+supervisor_status() {
+        /usr/bin/supervisorctl status && kill -s 0 `cat /var/run/supervisord.pid` 2>/dev/null
+        return $?
+}
 case "$1" in
     start)
         start
@@ -94,7 +96,7 @@ case "$1" in
         RETVAL=$?
         ;;
     status)
-        /usr/bin/supervisorctl status && kill -s 0 `cat /var/run/supervisord.pid` 2>/dev/null
+        supervisor_status
         RETVAL=$?
         ;;
     *)
