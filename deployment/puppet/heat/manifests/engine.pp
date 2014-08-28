@@ -55,7 +55,7 @@ class heat::engine (
   Heat_config<||> ~> Service['heat-engine_service']
 
   Package['heat-engine'] -> Heat_config<||>
-  Package['heat-engine'] -> Service['heat-engine_service']
+  Package['heat-engine'] ~> Service['heat-engine_service']
   package { 'heat-engine':
     ensure => installed,
     name   => $package_name,

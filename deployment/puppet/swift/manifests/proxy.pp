@@ -123,4 +123,5 @@ class swift::proxy(
     require   => [Concat['/etc/swift/proxy-server.conf']],
     subscribe => [Concat['/etc/swift/proxy-server.conf']],
   }
+  Package['swift-proxy'] ~> Service['swift-proxy']
 }

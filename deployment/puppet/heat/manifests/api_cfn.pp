@@ -13,7 +13,7 @@ class heat::api_cfn (
   Heat_config<||> ~> Service['heat-api-cfn']
 
   Package['heat-api-cfn'] -> Heat_config<||>
-  Package['heat-api-cfn'] -> Service['heat-api-cfn']
+  Package['heat-api-cfn'] ~> Service['heat-api-cfn']
   package { 'heat-api-cfn':
     ensure => installed,
     name   => $::heat::params::api_cfn_package_name,

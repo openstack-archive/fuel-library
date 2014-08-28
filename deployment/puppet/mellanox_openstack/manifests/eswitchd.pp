@@ -25,4 +25,7 @@ class mellanox_openstack::eswitchd (
     Mellanox_eswitchd_config <||> ~>
     Service['eswitchd']
 
+    Package[$package] ~>
+    Service['eswitchd']
+
 }
