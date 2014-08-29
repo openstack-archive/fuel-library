@@ -38,14 +38,14 @@ class zabbix::db::mysql {
     creates => '/tmp/zabbix/schema.sql',
     path    => ['/usr/sbin', '/usr/bin', '/sbin', '/bin'],
     require => File['/tmp/zabbix'],
-    notify  => Exec['prepare-schema-2']
+    notify  => Exec['prepare-schema-2'],
   }
 
   exec { 'prepare-schema-2':
     command     => 'cat /tmp/zabbix/parts/*.sql >> /tmp/zabbix/schema.sql',
     path        => ['/usr/sbin', '/usr/bin', '/sbin', '/bin'],
     refreshonly => true,
-    require     => File['/tmp/zabbix/parts/data_clean.sql']
+    require     => File['/tmp/zabbix/parts/data_clean.sql'],
   }
 
   mysql::db { $zabbix::params::db_name:
