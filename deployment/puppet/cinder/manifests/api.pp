@@ -28,6 +28,7 @@ if $cinder_rate_limits {
   class{'::cinder::limits': limits => $cinder_rate_limits}
 }
   Cinder_config<||> ~> Service['cinder-api']
+  Package[$api_package] ~> Service['cinder-api']
   Cinder_config<||> ~> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> ~> Service['cinder-api']
   Exec['cinder-manage db_sync'] -> Service['cinder-api']

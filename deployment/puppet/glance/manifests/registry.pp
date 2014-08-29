@@ -153,7 +153,7 @@ if $use_syslog and !$debug { #syslog and nondebug case
  	 ensure => $package_ensure
  }
   File['/etc/glance/glance-registry.conf'] -> Glance_registry_config<||>
-  Package['glance-registry']->Service['glance-registry']
+  Package['glance-registry'] ~> Service['glance-registry']
   Package<| title == 'glance-registry'|> ~> Service<| title == 'glance-registry'|>
   if !defined(Service['glance-registry']) {
     notify{ "Module ${module_name} cannot notify service glance-registry\

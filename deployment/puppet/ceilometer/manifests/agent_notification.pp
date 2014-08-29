@@ -31,7 +31,7 @@ class ceilometer::agent_notification (
     }
   }
 
-  Package['ceilometer-agent-notification'] -> Service['ceilometer-agent-notification']
+  Package['ceilometer-agent-notification'] ~> Service['ceilometer-agent-notification']
 
   ###FIXME(aglarendil): remove this stupid cross-class dependency 
   ###move notification driver configuration into particular
