@@ -200,7 +200,7 @@ class neutron::agents::dhcp (
       enable     => true,
       ensure     => running,
       hasstatus  => true,
-      hasrestart => false,
+      hasrestart => true,
       provider   => $service_provider,
       require    => [Package[$dhcp_agent_package], Class['neutron'], Service['neutron-ovs-agent-service']],
     }

@@ -35,6 +35,7 @@ class cinder::volume (
     ensure    => $ensure,
     name      => $::cinder::params::volume_service,
     enable    => $enabled,
-    hasstatus => true,
+    hasstatus  => true,
+    hasrestart => true,
   }
 }

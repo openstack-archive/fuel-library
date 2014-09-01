@@ -71,7 +71,8 @@ class cinder::backup (
     ensure    => $ensure,
     name      => $::cinder::params::backup_service,
     enable    => $enabled,
-    hasstatus => true,
+    hasstatus  => true,
+    hasrestart => true,
   }
 
   cinder_config {

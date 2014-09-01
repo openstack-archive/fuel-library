@@ -67,7 +67,8 @@ class plugin_neutronnsx::install_ovs (
   service { 'nicira-ovs-hypervisor-node':
     ensure => running,
     enable => true,
-    hasstatus => true,
+    hasstatus  => true,
+    hasrestart => true,
   }
 
   Service['nicira-ovs-hypervisor-node'] -> Service['openvswitch-service']
