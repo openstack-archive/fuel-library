@@ -61,6 +61,8 @@ class neutron::agents::metadata (
       name    => $::neutron::params::metadata_agent_service,
       enable  => true,
       ensure  => running,
+      hasstatus  => true,
+      hasrestart => true,
     }
 
     Anchor['neutron-metadata-agent'] ->
@@ -153,4 +155,3 @@ class neutron::agents::metadata (
     notify{ "Module ${module_name} cannot notify service neutron-metadata-agent on package update": }
   }
 }
-
