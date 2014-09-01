@@ -18,10 +18,16 @@ class plugin_neutronnsx::install_ovs (
       package { 'dkms':
         ensure => present,
       }
-      package { 'openvswitch-switch':
+
+      package { 'openvswitch-nsx-switch':
+        name => 'CHANGEME',
         provider => 'rdpkg',
         source  => $packages_url,
       }
+      Package<| title == 'openvswitch-nsx-switch' |> {
+        name => 'openvswitch-switch',
+      }
+
       package { 'nicira-ovs-hypervisor-node':
         provider => 'rdpkg',
         source  => $packages_url,
@@ -29,7 +35,7 @@ class plugin_neutronnsx::install_ovs (
 
       Package['dkms'] -> Package['openvswitch-datapath']
 
-      Package['openvswitch-common'] -> Package['openvswitch-switch'] ->
+      Package['openvswitch-common'] -> Package['openvswitch-nsx-switch'] ->
       Package['nicira-ovs-hypervisor-node'] ~> Service['nicira-ovs-hypervisor-node']
     }
     /(?i)redhat/: {
