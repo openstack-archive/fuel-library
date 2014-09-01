@@ -529,6 +529,9 @@ on packages update": }
       class { '::neutron::agents::ml2_agent':
         neutron_config  => $quantum_config
       }
+    } elsif $quantum_config[L2][provider] == 'nsx' {
+      # do nothing because nsx has its own neutron's agent
+      # which will be installed in module plugin_neutronnsx
     } else {
       #todo: Quantum plugin and database connection not need on compute.
       class { 'neutron::plugins::ovs':
