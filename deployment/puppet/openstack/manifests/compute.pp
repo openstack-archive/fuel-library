@@ -529,6 +529,7 @@ on packages update": }
       class { '::neutron::agents::ml2_agent':
         neutron_config  => $quantum_config
       }
+    } elsif $quantum_config[L2][provider] == 'nsx' {
     } else {
       #todo: Quantum plugin and database connection not need on compute.
       class { 'neutron::plugins::ovs':
