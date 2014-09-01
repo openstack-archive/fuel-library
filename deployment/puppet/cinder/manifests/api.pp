@@ -134,7 +134,9 @@ class cinder::api (
     ensure    => $ensure,
     name      => $::cinder::params::api_service,
     enable    => $enabled,
-    hasstatus => true,
+    hasstatus  => true,
+    hasrestart => true,
+    require   => Package['cinder'],
   }
 
   cinder_config {

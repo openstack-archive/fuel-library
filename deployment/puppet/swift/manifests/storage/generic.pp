@@ -53,7 +53,8 @@ define swift::storage::generic(
     name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_service_name') %>"),
     ensure    => running,
     enable    => true,
-    hasstatus => true,
+    hasstatus  => true,
+    hasrestart => true,
     provider  => $service_provider,
     subscribe => Package["swift-${name}"],
   }

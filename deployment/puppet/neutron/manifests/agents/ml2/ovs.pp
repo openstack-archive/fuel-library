@@ -222,7 +222,9 @@ class neutron::agents::ml2::ovs (
     name     => $service_name,
     enable   => $enabled,
     require  => Class['neutron'],
-    provider => $service_provider
+    provider => $service_provider,
+    hasstatus  => true,
+    hasrestart => true,
   }
   Package <| title == 'neutron-ovs-agent' |> ~> Service['neutron-ovs-agent-service']
 
@@ -231,6 +233,8 @@ class neutron::agents::ml2::ovs (
       ensure => $service_ensure,
       name   => $::neutron::params::ovs_cleanup_service,
       enable => $enabled,
+      hasstatus  => true,
+      hasrestart => true,
     }
     Package <| title == 'neutron-ovs-agent' |> ~> Service['ovs-cleanup-service']
   }

@@ -119,6 +119,8 @@ class swift::proxy(
     name      => $::swift::params::proxy_service_name,
     ensure    => running,
     enable    => true,
+    hasstatus  => true,
+    hasrestart => true,
     provider  => $::swift::params::service_provider,
     require   => [Concat['/etc/swift/proxy-server.conf']],
     subscribe => [Concat['/etc/swift/proxy-server.conf']],
