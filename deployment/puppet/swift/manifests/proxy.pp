@@ -88,6 +88,7 @@ class swift::proxy(
     ensure => $package_ensure,
   }
   Package['swift-proxy'] -> Swift::Ringsync <||>
+  Package['swift-proxy'] ~> Service['swift-proxy']
 
   concat { '/etc/swift/proxy-server.conf':
     owner   => 'swift',

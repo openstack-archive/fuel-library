@@ -249,7 +249,7 @@ class glance::api(
     File['/etc/glance/glance-cache.conf']->Glance_cache_config<| |>
     Glance_cache_config<| |> -> Package['glance-api']
     Package['glance-api'] -> Service['glance-api']
-    Package<| title == 'glance-api'|> -> Service<| title == 'glance-api'|>
+    Package<| title == 'glance-api'|> ~> Service<| title == 'glance-api'|>
     if !defined(Service['glance-api']) {
       notify{ "Module ${module_name} cannot notify service glance-api\
  on package update": }
