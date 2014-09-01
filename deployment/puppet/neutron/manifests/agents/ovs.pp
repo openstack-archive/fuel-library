@@ -19,14 +19,12 @@ class neutron::agents::ovs (
   # Package install
   if $::neutron::params::ovs_agent_package {
     $ovs_agent_package = 'neutron-plugin-ovs-agent'
+    Package['neutron'] -> Package["$ovs_agent_package"]
     package {"${ovs_agent_package}":
       name   => $::neutron::params::ovs_agent_package,
     }
-    Package['neutron'] -> Package["$ovs_server_package"]
-     -> Package["$ovs_agent_package"]
   } else {
     $ovs_agent_package = $::neutron::params::ovs_server_package
-    Package['neutron'] -> Package["$ovs_agent_package"]
   }
 
   if $::operatingsystem == 'Ubuntu' {
@@ -50,8 +48,6 @@ class neutron::agents::ovs (
     Package[$ovs_agent_package] -> Neutron_plugin_ovs <| |>
   }
 
-  ###
-
   neutron::agents::utils::bridges { $neutron_config['L2']['integration_bridge']: }
   if $neutron_config['L2']['enable_tunneling'] {
     neutron::agents::utils::bridges { $neutron_config['L2']['tunnel_bridge']: }
@@ -59,7 +55,6 @@ class neutron::agents::ovs (
   } else {
     neutron::agents::utils::bridges { $neutron_config['L2']['phys_bridges']: }
   }
-  L23network::L2::Bridge<| |> -> Package[$ovs_agent_package]
 
   if $service_provider == 'pacemaker' {
     # OCF script for pacemaker
