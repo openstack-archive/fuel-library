@@ -259,7 +259,7 @@ class nova::api(
   # Added arg and if statement prevents this from being run
   # where db is not active i.e. the compute
   if $sync_db {
-    Package<| title == 'nova-api' |> -> Exec['nova-db-sync']
+    Package<| title == 'nova-api' |> <- Exec['nova-db-sync']
     exec { 'nova-db-sync':
       command     => '/usr/bin/nova-manage db sync',
       refreshonly => true,
