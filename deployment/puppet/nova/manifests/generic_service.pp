@@ -59,6 +59,8 @@ define nova::generic_service(
       name    => $service_name,
       ensure  => $service_ensure,
       enable  => $enabled,
+      hasstatus  => true,
+      hasrestart => true,
     }
     Package<| title == 'nova-common' |> -> Service[$nova_title]
   }

@@ -45,6 +45,8 @@ class cinder::volume (
     name      => $::cinder::params::volume_service,
     enable    => $enabled,
     ensure    => $ensure,
+    hasstatus  => true,
+    hasrestart => true,
     require   => Package[$volume_package],
     subscribe => File[$::cinder::params::cinder_conf],
   }
