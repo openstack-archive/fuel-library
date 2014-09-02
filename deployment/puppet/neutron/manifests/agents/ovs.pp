@@ -19,7 +19,6 @@ class neutron::agents::ovs (
   # Package install
   if $::neutron::params::ovs_agent_package {
     $ovs_agent_package = 'neutron-plugin-ovs-agent'
-
     $ovs_server_package = $::neutron::params::ovs_server_package
     package {"${ovs_agent_package}":
       name   => $::neutron::params::ovs_agent_package,
