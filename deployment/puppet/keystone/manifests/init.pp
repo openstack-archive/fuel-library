@@ -223,10 +223,9 @@ class keystone(
     Service<| title == 'memcached' |> -> Service['keystone']
     keystone_config {
       'token/driver': value => 'keystone.token.backends.memcache.Token';
-      'token/caching': value => 'true';
       'cache/enabled': value => 'true';
-      'cache/backend': value => 'dogpile.cache.memcached';
-      'cache/backend_argument': value => inline_template("url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
+      'cache/backend': value => 'keystone.cache.memcache_pool';
+      'cache/backend_argument': value => inline_template("backend_argument=pool_maxsize:100\nurl:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
       'memcache/servers': value => inline_template("<%= @memcache_servers.collect{|ip| ip + ':' + @memcache_server_port }.join ',' %>")
      }
   } else {
