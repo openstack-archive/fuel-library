@@ -223,12 +223,27 @@ class keystone(
     Service<| title == 'memcached' |> -> Service['keystone']
     keystone_config {
       'token/driver': value => 'keystone.token.backends.memcache.Token';
-      'token/caching': value => 'true';
       'cache/enabled': value => 'true';
-      'cache/backend': value => 'dogpile.cache.memcached';
-      'cache/backend_argument': value => inline_template("url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
-      'memcache/servers': value => inline_template("<%= @memcache_servers.collect{|ip| ip + ':' + @memcache_server_port }.join ',' %>")
-     }
+      'cache/backend': value => 'keystone.cache.memcache_pool';
+      'memcache/servers': value => inline_template("<%= @memcache_servers.collect{|ip| ip + ':' + @memcache_server_port }.join ',' %>");
+    }
+    # work-arounding multi-line inifile limitations with file_line resource
+    file_line { 'backend_argument_pool':
+      line    => 'backend_argument=pool_maxsize:100',
+      match   => '^\s*backend_argument\s*=\s*pool_maxsize:',
+      path    => '/etc/keystone/keystone.conf',
+      after   => '^\s*\[cache\]',
+      require => Keystone_config['cache/backend'],
+      notify  => Service['keystone'],
+    }
+    file_line { 'backend_argument_url':
+      line    => inline_template("backend_argument=url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>"),
+      match   => '^\s*backend_argument\s*=\s*url:',
+      path    => '/etc/keystone/keystone.conf',
+      after   => '^\s*\[cache\]',
+      require => Keystone_config['cache/backend'],
+      notify  => Service['keystone'],
+    }
   } else {
     keystone_config {
       'token/driver': value => 'keystone.token.backends.sql.Token';
