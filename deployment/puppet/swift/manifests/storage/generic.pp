@@ -53,31 +53,31 @@ define swift::storage::generic(
     name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_service_name') %>"),
     ensure    => running,
     enable    => true,
-    hasstatus => true,
+    hasstatus  => true,
+    hasrestart => true,
     provider  => $service_provider,
     subscribe => Package["swift-${name}"],
   }
 
   if $::osfamily == "RedHat" {
-    service { "swift-${name}-replicator":
-      start    => "/usr/bin/swift-init ${name}-replicator start",
-      ensure    => running,
-      enable    => true,
-      hasstatus => true,
-      provider  => base,
-      subscribe => Package["swift-${name}"],
-    }
+    $service_name = "openstack-swift-${name}-replicator"
+  } else {
+    $service_name = "swift-${name}-replicator"
   }
 
-else
-{
+  exec { "swift-init-kill-${name}-replicator" :
+    command => "/usr/bin/swift-init kill ${name}-replicator",
+  }
+
   service { "swift-${name}-replicator":
-    name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_replicator_service_name') %>"),
+    name      => $service_name,
     ensure    => running,
     enable    => true,
-    hasstatus => true,
-    provider  => $service_provider,
-    subscribe => Package["swift-${name}"],
+    hasstatus  => true,
+    hasrestart => true,
   }
-}
+
+  Package["swift-${name}"] ~> Service["swift-${name}-replicator"]
+  Exec["swift-init-kill-${name}-replicator"] ~> Service["swift-${name}-replicator"]
+
 }
