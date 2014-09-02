@@ -41,6 +41,7 @@ class cinder::scheduler (
     ensure    => $ensure,
     name      => $::cinder::params::scheduler_service,
     enable    => $enabled,
-    hasstatus => true,
+    hasstatus  => true,
+    hasrestart => true,
   }
 }

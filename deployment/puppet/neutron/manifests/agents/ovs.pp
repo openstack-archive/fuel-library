@@ -157,7 +157,7 @@ class neutron::agents::ovs (
       enable     => true,
       ensure     => running,
       hasstatus  => true,
-      hasrestart => false,
+      hasrestart => true,
       provider   => $service_provider,
     }
 
