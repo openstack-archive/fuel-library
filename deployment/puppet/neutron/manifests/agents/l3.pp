@@ -230,7 +230,7 @@ class neutron::agents::l3 (
       enable     => true,
       ensure     => running,
       hasstatus  => true,
-      hasrestart => false,
+      hasrestart => true,
       provider   => "pacemaker",
     }
 
