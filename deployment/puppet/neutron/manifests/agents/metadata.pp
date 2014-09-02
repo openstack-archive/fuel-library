@@ -57,6 +57,8 @@ class neutron::agents::metadata (
       name    => $::neutron::params::metadata_agent_service,
       enable  => true,
       ensure  => running,
+      hasstatus  => true,
+      hasrestart => true,
     }
 
     Anchor['neutron-metadata-agent'] ->

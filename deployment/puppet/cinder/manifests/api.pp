@@ -58,6 +58,8 @@ if $cinder_rate_limits {
     name      => $::cinder::params::api_service,
     enable    => $enabled,
     ensure    => $ensure,
+    hasstatus  => true,
+    hasrestart => true,
     require   => Package[$api_package, 'python-keystone'],
   }
   Package<| title == $api_package|> ~> Service<| title == 'cinder-api'|>
