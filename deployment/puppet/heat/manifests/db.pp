@@ -31,8 +31,8 @@ class heat::db (
   }
 
   heat_config {
-    'DEFAULT/sql_connection': value => $sql_connection;
-    'DEFAULT/max_retries': value => '-1';
+    'database/connection':  value => $sql_connection;
+    'database/max_retries': value => '-1';
   }
 
   file { 'db_sync_script' :
