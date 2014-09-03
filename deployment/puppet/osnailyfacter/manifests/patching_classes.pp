@@ -8,7 +8,13 @@ class osnailyfacter::patching_classes ()
         'python-routes',
         'python-sqlalchemy-ext',
         'python-sqlalchemy',
-        'python-testtools'
+        'python-testtools',
+        'python-oslo.messaging',
+        'python-keystoneclient',
+        'python-neutronclient',
+        'python-novaclient',
+        'python-swiftclient',
+        'python-troveclient'
       ]
     }
     'RedHat': {
@@ -17,7 +23,12 @@ class osnailyfacter::patching_classes ()
         'python-paste-deploy',
         'python-routes',
         'python-six',
-        'python-sqlalchemy'
+        'python-sqlalchemy',
+        'python-keystoneclient',
+        'python-neutronclient',
+        'python-novaclient',
+        'python-swiftclient',
+        'python-troveclient'
       ]
     }
   }
