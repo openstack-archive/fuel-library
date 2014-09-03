@@ -240,6 +240,7 @@ class horizon(
       #todo: may be need fix
       Package['dashboard'] -> Exec['horizon_compress_styles']
       Package['dashboard'] ~> Exec['horizon_compress_styles']
+      File[$::horizon::params::local_settings_path] -> Exec['horizon_compress_styles']
       Package[$::horizon::params::horizon_additional_packages] -> Exec['horizon_compress_styles']
       exec { 'horizon_compress_styles':
         path    => '/bin:/usr/bin:/sbin:/usr/sbin',
