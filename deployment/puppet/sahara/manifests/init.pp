@@ -68,7 +68,7 @@ class sahara (
     sahara_port                    => $sahara_api_port,
     region                         => 'RegionOne',
     tenant                         => $sahara_keystone_tenant,
-    email                          => 'sahara-team@mirantis.com',
+    email                          => 'sahara-team@example.com',
   }
 
   firewall { $sahara_firewall_rule :
