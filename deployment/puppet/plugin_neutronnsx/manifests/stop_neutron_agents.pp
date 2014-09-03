@@ -1,6 +1,6 @@
 class plugin_neutronnsx::stop_neutron_agents {
 
-  Service <| title == 'neutron-ovs-agent' |> {
+  Service <| title == 'neutron-ovs-agent-service' |> {
     ensure => stopped,
   }
 
