@@ -35,6 +35,13 @@ class nailgun::nginx(
                ],
   }
 
+  file { "/etc/nginx/nginx.conf":
+    ensure  => present,
+    content => template("nailgun/nginx.ui.conf.erb"),
+    require => Package["nginx"],
+    notify  => Service["nginx"],
+  }
+
   class { "nailgun::nginx-repo":
     repo_root => $repo_root,
     notify => Service["nginx"],
