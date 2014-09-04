@@ -35,6 +35,13 @@ class nailgun::nginx(
                ],
   }
 
+  file { "/etc/nginx/nginx.conf":
+    ensure  => present,
+    source  => "puppet:///modules/nailgun/nginx.conf",
+    require => Package["nginx"],
+    notify  => Service["nginx"],
+  }
+
   class { "nailgun::nginx-repo":
     repo_root => $repo_root,
     notify => Service["nginx"],
