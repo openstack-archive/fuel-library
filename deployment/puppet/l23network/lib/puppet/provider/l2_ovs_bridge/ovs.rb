@@ -23,7 +23,7 @@ Puppet::Type.type(:l2_ovs_bridge).provide(:ovs) do
     end
     vsctl('add-br', @resource[:bridge])
     notice("bridge '#{@resource[:bridge]}' created.")
-    external_ids = @resource[:external_ids] if @resource[:external_ids]
+    self.external_ids=(@resource[:external_ids]) if @resource[:external_ids]
   end
 
   def destroy
