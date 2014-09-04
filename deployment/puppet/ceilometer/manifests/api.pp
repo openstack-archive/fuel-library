@@ -85,6 +85,10 @@ class ceilometer::api (
   }
 
   ceilometer_config {
+    'DEFAULT/api_paste_config' : value => '/etc/ceilometer/api_paste.ini';
+  }
+
+  ceilometer_config {
     'keystone_authtoken/auth_host'         : value => $keystone_host;
     'keystone_authtoken/auth_port'         : value => $keystone_port;
     'keystone_authtoken/auth_protocol'     : value => $keystone_protocol;
