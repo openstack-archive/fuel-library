@@ -23,7 +23,10 @@ Puppet::Type.type(:l2_ovs_bridge).provide(:ovs) do
     end
     vsctl('add-br', @resource[:bridge])
     notice("bridge '#{@resource[:bridge]}' created.")
-    external_ids = @resource[:external_ids] if @resource[:external_ids]
+    # We do self.attr_setter=(value) instead of attr=value because this doesn't
+    # work in Puppet (our guess).
+    # TODO (adanin): Fix other places like this one. See bug #1366009
+    self.external_ids=(@resource[:external_ids]) if @resource[:external_ids]
   end
 
   def destroy
