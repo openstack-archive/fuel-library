@@ -1,0 +1,14 @@
+fixtures:
+  repositories:
+    "stdlib": "git://github.com/puppetlabs/puppetlabs-stdlib.git"
+    "inifile": "git://github.com/puppetlabs/puppetlabs-inifile"
+    "keystone": "git://github.com/stackforge/puppet-keystone.git"
+    "mysql":
+      repo: "git://github.com/puppetlabs/puppetlabs-mysql.git"
+      ref:  'origin/2.2.x'
+    "nova": "git://github.com/stackforge/puppet-nova.git"
+    "openstacklib": "git://github.com/stackforge/puppet-openstacklib.git"
+    "vswitch": "git://github.com/stackforge/puppet-vswitch"
+    'sysctl': 'git://github.com/duritong/puppet-sysctl.git'
+  symlinks:
+    "neutron": "#{source_dir}"

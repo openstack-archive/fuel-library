@@ -1,0 +1,7 @@
+*.swp
+spec/fixtures/modules/*
+spec/fixtures/manifests/site.pp
+Gemfile.lock
+.vendor
+.bundle/
+vendor/
