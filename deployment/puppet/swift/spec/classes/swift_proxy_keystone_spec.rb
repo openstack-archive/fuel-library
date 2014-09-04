@@ -23,7 +23,7 @@ describe 'swift::proxy::keystone' do
 
   it { should contain_file(fragment_file).with_content(/[filter:keystone]/) }
 
-  it { should contain_file(fragment_file).with_content(/paste.filter_factory = keystone.middleware.swift_auth:filter_factory/) }
+  it { should contain_file(fragment_file).with_content(/paste.filter_factory = keystoneclient.middleware.swift_auth:filter_factory/) }
 
   describe 'with defaults' do
 
