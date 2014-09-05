@@ -6,8 +6,8 @@ Puppet::Type.type(:l2_nsx_bridge).provide(
 
   def create
     super()
-    in_band = @resource[:in_band] if @resource[:in_band]
-    fail_mode = @resource[:fail_mode] if @resource[:fail_mode]
+    self.in_band = @resource[:in_band] if @resource[:in_band]
+    self.fail_mode = @resource[:fail_mode] if @resource[:fail_mode]
   end
 
   def in_band
