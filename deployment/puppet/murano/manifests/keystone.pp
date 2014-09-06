@@ -2,7 +2,7 @@ class murano::keystone (
   $user     = 'murano',
   $password = 'swordfish',
   $tenant   = 'services',
-  $email    = 'murano@example.com'
+  $email    = 'murano@localhost'
 ) {
 
   keystone_user { $user:
