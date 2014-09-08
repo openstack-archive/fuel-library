@@ -8,6 +8,7 @@ class heat::engine (
 
   $service_name = $::heat::params::engine_service_name
   $package_name = $::heat::params::engine_package_name
+  $pacemaker_service_name = "p_${service_name}"
 
   package { 'heat-engine' :
     ensure => installed,
@@ -18,7 +19,7 @@ class heat::engine (
 
     # standard service mode
 
-    service { 'heat-engine':
+    service { 'heat-engine_service':
       ensure     => 'running',
       name       => $service_name,
       enable     => true,
@@ -45,26 +46,32 @@ class heat::engine (
       content => template("heat/${ocf_script_template}"),
     }
 
-    service { 'heat-engine':
+    service { 'heat-engine_service' :
       ensure     => 'running',
-      name       => $service_name,
+      name       => $pacemaker_service_name,
       enable     => true,
       hasstatus  => true,
       hasrestart => true,
       provider   => 'pacemaker',
     }
 
-    cs_shadow { $service_name :
-      cib => $service_name,
+    service { 'heat-engine_stopped' :
+      name   => $service_name,
+      ensure => 'stopped',
+      enable => false,
     }
 
-    cs_commit { $service_name :
-      cib => $service_name,
+    cs_shadow { $pacemaker_service_name :
+      cib => $pacemaker_service_name,
     }
 
-    cs_resource { $service_name :
+    cs_commit { $pacemaker_service_name :
+      cib => $pacemaker_service_name,
+    }
+
+    cs_resource { $pacemaker_service_name :
       ensure          => present,
-      cib             => $service_name,
+      cib             => $pacemaker_service_name,
       primitive_class => 'ocf',
       provided_by     => $ocf_scripts_provider,
       primitive_type  => $service_name,
@@ -76,7 +83,22 @@ class heat::engine (
       },
     }
 
-    Heat_config<||> -> File['heat-engine-ocf'] -> Cs_shadow[$service_name] -> Cs_resource[$service_name] -> Cs_commit[$service_name] -> Service['heat-engine']
+    # remove old service from 5.0 release
+    $wrong_service_name = $service_name
+
+    cs_resource { $wrong_service_name :
+      ensure => 'absent',
+      cib    => $pacemaker_service_name,
+    }
+
+    Heat_config<||> ->
+    File['heat-engine-ocf'] ->
+    Cs_shadow[$pacemaker_service_name] ->
+    Cs_resource[$service_name] ->
+    Cs_resource[$pacemaker_service_name] ->
+    Cs_commit[$pacemaker_service_name] ->
+    Service['heat-engine_stopped'] ->
+    Service['heat-engine_service']
 
   }
 
@@ -86,13 +108,13 @@ class heat::engine (
     onlyif  => 'grep -c ENCRYPTION_KEY /etc/heat/heat.conf',
   }
 
-  Package['heat-common'] -> Package['heat-engine'] -> File['/etc/heat/heat.conf'] -> Heat_config<||> ~> Service['heat-engine']
-  File['/etc/heat/heat.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine']
-  File['/etc/heat/heat.conf'] ~> Service['heat-engine']
-  Class['heat::db'] -> Service['heat-engine']
-  Heat_config<||> -> Exec['heat_db_sync'] -> Service['heat-engine']
-  Package<| title == 'heat-engine'|> ~> Service<| title == 'heat-engine'|>
-  if !defined(Service['heat-engine']) {
+  Package['heat-common'] -> Package['heat-engine'] -> File['/etc/heat/heat.conf'] -> Heat_config<||> ~> Service['heat-engine_service']
+  File['/etc/heat/heat.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine_service']
+  File['/etc/heat/heat.conf'] ~> Service['heat-engine_service']
+  Class['heat::db'] -> Service['heat-engine_service']
+  Heat_config<||> -> Exec['heat_db_sync'] ~> Service['heat-engine_service']
+  Package<| title == 'heat-engine'|> ~> Service<| title == 'heat-engine_service'|>
+  if !defined(Service['heat-engine_service']) {
     notify{ "Module ${module_name} cannot notify service heat-engine on package update": }
   }
 }
