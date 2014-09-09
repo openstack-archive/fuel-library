@@ -123,6 +123,8 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
   # to "stop" the primitive before we are able to remove it.
   def destroy
     debug('Stopping primitive before removing it')
+    crm('resource', 'cleanup', @resource[:name])
+    crm('resource', 'manage', @resource[:name])
     crm('resource', 'stop', @resource[:name])
     debug('Removing primitive')
     try_command("delete",@resource[:name])
