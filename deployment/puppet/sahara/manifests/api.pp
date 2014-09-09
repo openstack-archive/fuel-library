@@ -2,18 +2,15 @@
 
 class sahara::api (
   $enabled                     = true,
-  $keystone_host               = '127.0.0.1',
-  $keystone_port               = '35357',
-  $keystone_protocol           = 'http',
+  $sahara_auth_uri             = 'http://127.0.0.1:5000/v2.0/',
+  $sahara_identity_uri         = 'http://127.0.0.1:35357/',
   $keystone_user               = 'sahara',
   $keystone_tenant             = 'services',
   $keystone_password           = 'sahara',
   $bind_port                   = '8386',
   $node_domain                 = 'novalocal',
-  $plugins                     = 'vanilla,hdp',
   $sql_connection              = 'mysql://sahara:sahara@localhost/sahara',
   $use_neutron                 = false,
-  $use_floating_ips            = true,
   $debug                       = false,
   $verbose                     = false,
   $use_syslog                  = false,
@@ -41,12 +38,6 @@ class sahara::api (
     $use_neutron_value = false
   }
 
-  if $use_floating_ips {
-    $use_floating_ips_value = true
-  } else {
-    $use_floating_ips_value = false
-  }
-
   exec { 'sahara-db-manage':
     command    => "/usr/bin/sahara-db-manage --config-file /etc/sahara/sahara.conf upgrade head"
   }
@@ -60,21 +51,42 @@ class sahara::api (
   }
 
   sahara_config {
-    'DEFAULT/os_admin_tenant_name'         : value => $keystone_tenant;
-    'DEFAULT/os_admin_username'            : value => $keystone_user;
-    'DEFAULT/os_admin_password'            : value => $keystone_password;
-    'DEFAULT/os_auth_host'                 : value => $keystone_host;
-    'DEFAULT/os_auth_port'                 : value => $keystone_port;
-    'DEFAULT/use_floating_ips'             : value => $use_floating_ips_value;
     'DEFAULT/use_neutron'                  : value => $use_neutron_value;
     'DEFAULT/node_domain'                  : value => $node_domain;
-    'DEFAULT/plugins'                      : value => $plugins;
     'database/connection'                  : value => $sql_connection;
     'database/max_retries'                 : value => '-1';
     'DEFAULT/verbose'                      : value => $verbose;
     'DEFAULT/debug'                        : value => $debug;
   }
 
+  #NOTE(mattymo): Backward compatibility for Icehouse
+  case $::fuel_settings['openstack_version'] {
+    /2014.1*-6/: {
+      $use_floating_ips = $::fuel_settings['auto_assign_floating_ip']
+      $plugins = "vanilla,hdp"
+      #parse keystone_host for backward compatibility
+      $keystone_host = inline_template("<%= @sahara_auth_uri.split('(http|https)://')[1].split('/')[0].split(':')[0] %>")
+      $keystone_port  = inline_template("<%= @sahara_auth_uri.split(':')[2].split('/')[0] %>")
+      sahara_config {
+        'DEFAULT/os_admin_tenant_name' : value => $keystone_tenant;
+        'DEFAULT/os_admin_username' : value => $keystone_user;
+        'DEFAULT/os_admin_password' : value => $keystone_password;
+        'DEFAULT/os_auth_host' : value => $keystone_host;
+        'DEFAULT/os_auth_port' : value => $keystone_port;
+        'DEFAULT/use_floating_ips' : value => $use_floating_ips;
+        'DEFAULT/plugins' : value => $plugins;
+      }
+    }
+    /2014.2*-6/: {
+      sahara_config {
+        'keystone_authtoken/admin_tenant_name' : value => $keystone_tenant;
+        'keystone_authtoken/admin_user'        : value => $keystone_user;
+        'keystone_authtoken/admin_password'    : value => $keystone_password;
+        'keystone_authtoken/auth_uri'          : value => $sahara_auth_uri;
+        'keystone_authtoken/identity_uri'      : value => $sahara_identity_uri;
+      }
+    }
+  }
   # Log configuration
   if $log_dir {
     sahara_config {

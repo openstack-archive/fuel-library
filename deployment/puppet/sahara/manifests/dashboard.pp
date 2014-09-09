@@ -1,5 +1,6 @@
 # Installs & configure the sahara API service
-
+# NOTE(mattmyo): This manifest is deprecated. It is available for Icehouse
+# compatibility.
 class sahara::dashboard (
   $enabled            = true,
   $settings_py        = $sahara::params::settings_path,
@@ -44,13 +45,13 @@ class sahara::dashboard (
 
   file_line{ 'sahara' :
     path    => $settings_py,
-    line    => "HORIZON_CONFIG['dashboards']+=('sahara',)",  # don't use .append(), target may be a tuple
+    line    => "HORIZON_CONFIG['dashboards']+=('sahara',)",  # don't use.append(), target may be a tuple
     require => File[$settings_py],
   }
 
   file_line{ 'sahara_dashboard' :
     path    => $settings_py,
-    line    => "INSTALLED_APPS+=('saharadashboard',)",  # don't use .append(), target may be a tuple
+    line    => "INSTALLED_APPS+=('saharadashboard',)",  # don't use .append(),target may be a tuple
     require => File[$settings_py],
   }
 
