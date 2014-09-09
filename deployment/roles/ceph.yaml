@@ -1,0 +1,4 @@
+---
+ceph-osd:
+  - name: legacy
+    priority: 1
