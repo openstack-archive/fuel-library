@@ -1,0 +1,4 @@
+*.swp
+spec/fixtures/
+pkg
+Gemfile.lock

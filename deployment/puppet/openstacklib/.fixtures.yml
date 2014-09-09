@@ -1,0 +1,6 @@
+fixtures:
+  repositories:
+    mysql: git://github.com/puppetlabs/puppetlabs-mysql.git
+    stdlib: git://github.com/puppetlabs/puppetlabs-stdlib.git
+  symlinks:
+    'openstacklib': "#{source_dir}"
