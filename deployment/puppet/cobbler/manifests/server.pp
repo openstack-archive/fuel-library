@@ -123,7 +123,7 @@ class cobbler::server (
 
   exec { "cobbler_sync":
     command     => "cobbler sync",
-    refreshonly => true,
+    refreshonly => false,
     require     => [
       Service[$cobbler_web_service],
       Exec['wait_for_web_service'],
