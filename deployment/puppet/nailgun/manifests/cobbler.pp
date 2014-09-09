@@ -197,7 +197,7 @@ class nailgun::cobbler(
 
       Exec["cobbler_system_add_default"] ~> Exec["nailgun_cobbler_sync"]
       Exec["cobbler_system_edit_default"] ~> Exec["nailgun_cobbler_sync"]
-
+      Cobbler_profile<| |> ~> Exec["nailgun_cobbler_sync"]
       #TODO(mattymo): refactor this into cobbler module and use OS-dependent
       #directories
       file { ['/etc/httpd', '/etc/httpd/conf.d/']:
