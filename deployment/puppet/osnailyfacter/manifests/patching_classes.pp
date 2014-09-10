@@ -3,6 +3,7 @@ class osnailyfacter::patching_classes ()
   case $::osfamily {
     'Debian': {
       $packages=[
+        'python-eventlet',
         'python-oslo.messaging',
         'python-pastedeploy',
         'python-routes',
@@ -13,6 +14,7 @@ class osnailyfacter::patching_classes ()
     }
     'RedHat': {
       $packages=[
+        'python-eventlet',
         'python-oslo-messaging',
         'python-paste-deploy',
         'python-routes',
