@@ -252,11 +252,14 @@ class horizon(
     'Debian': {
       A2mod {
         ensure  => present,
-        require => Package['dashboard'],
+        require => Package[$::horizon::params::http_service],
+        before  => Package['dashboard'],
         notify  => Service['httpd'],
       }
 
-      a2mod { 'wsgi': }
+      a2mod { 'wsgi':
+        require => Package[$::horizon::params::http_modwsgi]
+      }
 
       if $use_ssl =~ /^(default|exist|custom)$/ {
         a2mod { ['rewrite', 'ssl']: }
