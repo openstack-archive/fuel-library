@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -e
+
 #TODO: Run these in parallel - we have 4 cores.
 #TODO: Control the environment (through the config dir?).
 #      We want to parse for all environments.
