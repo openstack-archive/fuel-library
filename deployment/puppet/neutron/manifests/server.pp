@@ -139,7 +139,7 @@
 # [*mysql_module*]
 #   (optional) Mysql puppet module version to use. Tested versions
 #   include 0.9 and 2.2
-#   Defaults to: '2.2'
+#   Defaults to: '0.9'
 #
 class neutron::server (
   $package_ensure          = 'present',
@@ -163,7 +163,7 @@ class neutron::server (
   $rpc_workers             = '0',
   $agent_down_time         = '75',
   $router_scheduler_driver = 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
-  $mysql_module            = '2.2',
+  $mysql_module            = '0.9',
   # DEPRECATED PARAMETERS
   $sql_connection          = undef,
   $connection              = undef,

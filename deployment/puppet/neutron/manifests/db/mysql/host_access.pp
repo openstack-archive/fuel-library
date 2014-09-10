@@ -1,7 +1,7 @@
 #
 # Used to grant access to the neutron mysql DB
 #
-define neutron::db::mysql::host_access ($user, $password, $database, $mysql_module = '2.2')  {
+define neutron::db::mysql::host_access ($user, $password, $database, $mysql_module = '0.9')  {
   if ($mysql_module >= 2.2) {
     mysql_user { "${user}@${name}":
       password_hash => mysql_password($password),
