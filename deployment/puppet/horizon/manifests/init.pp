@@ -252,7 +252,8 @@ class horizon(
     'Debian': {
       A2mod {
         ensure  => present,
-        require => Package['dashboard'],
+        require => Package[$::horizon::params::http_service],
+        before  => Package['dashboard'],
         notify  => Service['httpd'],
       }
 
