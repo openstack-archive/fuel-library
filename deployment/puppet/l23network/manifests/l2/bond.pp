@@ -33,6 +33,7 @@ define l23network::l2::bond (
   $tag           = 0,
   $trunks        = [],
   $provider      = 'ovs',
+  $lacp_time     = 'fast',
   $ensure        = present,
   $skip_existing = false
 ) {

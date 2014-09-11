@@ -83,6 +83,16 @@ Puppet::Type.newtype(:l2_ovs_bond) do
       end
     end
 
+    newparam(:lacp_time) do
+      defaultto("fast")
+      desc "lacp time"
+      validate do |val|
+        if ! (val == 'fast' or val == 'slow' or (val.is_a?(Integer) and val > 0))
+          fail("Wrong LACP time value. Should be 'fast, 'slow', or positive integer.")
+        end
+      end
+    end
+
     autorequire(:l2_ovs_bridge) do
       [self[:bridge]]
     end
