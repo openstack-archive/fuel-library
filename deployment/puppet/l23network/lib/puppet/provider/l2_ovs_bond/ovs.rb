@@ -39,6 +39,10 @@ Puppet::Type.type(:l2_ovs_bond).provide(:ovs) do
     if ! bond_properties.empty?
       bond_create_cmd += bond_properties
     end
+    if bond_properties.index{|x| x=~/^lacp\s*=\s*active\s*$/}
+      # setup lacp-time bond property
+      bond_create_cmd += ['--', 'set', 'Port', @resource[:bond], "other_config:lacp-time=#{@resource[:lacp_time]}"]
+    end
     begin
       vsctl(bond_create_cmd)
     rescue Puppet::ExecutionFailure => error
