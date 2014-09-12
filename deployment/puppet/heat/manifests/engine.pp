@@ -8,7 +8,7 @@ class heat::engine (
 
   $service_name = $::heat::params::engine_service_name
   $package_name = $::heat::params::engine_package_name
-  $pacemaker_service_name = "p_${service_name}"
+  $pacemaker_service_name = "${service_name}"
 
   package { 'heat-engine' :
     ensure => installed,
@@ -55,10 +55,10 @@ class heat::engine (
       provider   => 'pacemaker',
     }
 
-    service { 'heat-engine_stopped' :
-      name   => $service_name,
-      ensure => 'stopped',
-      enable => false,
+    exec { 'heat-engine-service-stopped' :
+      path     => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+      command  => "service ${service_name} stop; chkconfig ${service_name} off; update-rc.d ${service_name} disable; echo 'manual' > /etc/init/${service_name}.override; true",
+      provider => 'shell',
     }
 
     cs_shadow { $pacemaker_service_name :
@@ -83,21 +83,12 @@ class heat::engine (
       },
     }
 
-    # remove old service from 5.0 release
-    $wrong_service_name = $service_name
-
-    cs_resource { $wrong_service_name :
-      ensure => 'absent',
-      cib    => $pacemaker_service_name,
-    }
-
     Heat_config<||> ->
     File['heat-engine-ocf'] ->
     Cs_shadow[$pacemaker_service_name] ->
-    Cs_resource[$service_name] ->
     Cs_resource[$pacemaker_service_name] ->
     Cs_commit[$pacemaker_service_name] ->
-    Service['heat-engine_stopped'] ->
+    Exec['heat-engine-service-stopped'] ->
     Service['heat-engine_service']
 
   }
