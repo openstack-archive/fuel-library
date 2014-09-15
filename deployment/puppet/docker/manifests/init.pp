@@ -3,6 +3,7 @@ $admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 $limit = "102400",
 $docker_package = "docker-io",
 $docker_service = "docker",
+$docker_engine = "native",
 $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   "/var/log/docker-logs/audit", "/var/log/docker-logs/cobbler",
   "/var/log/docker-logs/ConsoleKit", "/var/log/docker-logs/coredump",
@@ -42,7 +43,7 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
     try_sleep => 3,
     command   => 'docker ps 1>/dev/null',
     path      => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin",
-    require   => [Service[$docker_service]]
+    require   => Service[$docker_service],
   }
   exec {'build docker containers':
     command   => 'dockerctl build all',
