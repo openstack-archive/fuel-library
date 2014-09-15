@@ -43,7 +43,7 @@ class { "docker::dockerctl":
 }
 
 class { "docker":
-  docker_engine => 'lxc',
+  docker_engine => 'native',
   release => $::fuel_version['VERSION']['release'],
 }
 
