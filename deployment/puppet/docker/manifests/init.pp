@@ -48,7 +48,7 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
     try_sleep => 3,
     command   => 'docker ps 1>/dev/null',
     path      => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin",
-    require   => [Service[$docker_service]]
+    require   => Service[$docker_service],
   }
   exec {'build docker containers':
     command   => 'dockerctl build all',
