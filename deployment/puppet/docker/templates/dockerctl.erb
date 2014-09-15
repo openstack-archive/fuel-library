@@ -36,9 +36,6 @@ if [ "$1" == "build" ]; then
     #Step 2: import app images
     import_images ${SOURCE_IMAGES[@]}
 
-    #Prepare iptables just in case ICC is broken
-    allow_all_docker_traffic
-
     #Step 3: Launch all in order
     for service in $container_seq; do
       start_container $service
