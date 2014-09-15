@@ -1,6 +1,6 @@
-class zabbix::db::mysql {
-
-  include zabbix::params
+class zabbix::db::mysql(
+    $mysql_server_pkg = $zabbix::mysql_server_pkg,
+  ) inherits zabbix {
 
   class { 'mysql::server':
     config_hash => {
@@ -8,6 +8,7 @@ class zabbix::db::mysql {
       #'root_password' => $zabbix::params::db_root_password,
       'bind_address'  => '0.0.0.0',
     },
+    package_name => $mysql_server_pkg,
     enabled    => true,
   }
   anchor { 'mysql_server_start': } -> Class['mysql::server'] -> anchor { 'mysql_server_end': }

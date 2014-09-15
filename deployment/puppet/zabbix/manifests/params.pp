@@ -1,5 +1,8 @@
 class zabbix::params {
 
+  $enabled  = ! empty(get_server_by_role($::fuel_settings['nodes'], 'zabbix-server'))
+  if $enabled {
+
   include zabbix::params::openstack
 
   # $enabled = $::fuel_settings['zabbix']['enabled']
@@ -24,6 +27,8 @@ class zabbix::params {
       $prepare_schema_cmd = 'cat /usr/share/zabbix-server-mysql/schema.sql /usr/share/zabbix-server-mysql/images.sql > /tmp/zabbix/schema.sql'
 
       $frontend_service = 'apache2'
+      $mysql_server_pkg = 'mysql-server-wsrep-5.6'
+
     }
     'CentOS', 'RedHat': {
 
@@ -43,6 +48,8 @@ class zabbix::params {
       $prepare_schema_cmd = 'cat /usr/share/doc/zabbix-server-mysql-`zabbix_server -V | awk \'/v[0-9].[0-9].[0-9]/{print substr($3, 2)}\'`/create/schema.sql /usr/share/doc/zabbix-server-mysql-`zabbix_server -V | awk \'/v[0-9].[0-9].[0-9]/{print substr($3, 2)}\'`/create/images.sql > /tmp/zabbix/schema.sql'
 
       $frontend_service = 'httpd'
+      $mysql_server_pkg = "MySQL-server-wsrep"
+
     }
   }
 
@@ -109,4 +116,5 @@ class zabbix::params {
   $host_name          = $::fqdn
   $host_ip            = $::internal_address
   $host_groups        = ['ManagedByPuppet']
+  }
 }
