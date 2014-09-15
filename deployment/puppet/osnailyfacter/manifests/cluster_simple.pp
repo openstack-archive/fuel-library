@@ -671,8 +671,11 @@ class osnailyfacter::cluster_simple {
 
   } # ROLE CASE ENDS
 
-  class { 'zabbix': }
   # TODO(bogdando) add monit zabbix services monitoring, if required
+  include galera::params
+  class { 'zabbix':
+    mysql_server_pkg => $::galera::params::mysql_server_name,
+  }
 
 } # CLUSTER_SIMPLE ENDS
 # vim: set ts=2 sw=2 et :
