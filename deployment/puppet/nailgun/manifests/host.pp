@@ -81,4 +81,11 @@ $gem_source = 'http://localhost/gems/',
   sysctl::value{'net.ipv4.neigh.default.gc_thresh2': value => '1024'}
   sysctl::value{'net.ipv4.neigh.default.gc_thresh3': value => '2048'}
 
+  #Deprecated dhcrelay config, but keep package installed
+  package {'dhcrelay':
+    ensure => installed,
+  }
+  service {'dhcrelay':
+    ensure => stopped,
+  }
 }
