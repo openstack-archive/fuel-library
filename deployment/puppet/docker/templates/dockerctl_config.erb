@@ -60,7 +60,7 @@ CONTAINER_NAMES['keystone']="${prefix}keystone"
 
 # app container options
 declare -A CONTAINER_OPTIONS
-base_opts="-t"
+base_opts="-t --net=host"
 FOREGROUND="-i"
 BACKGROUND="-d"
 BIND_ALL=""

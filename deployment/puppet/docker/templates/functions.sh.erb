@@ -311,7 +311,7 @@ function destroy_container {
         #This happens because devicemapper glitched
         #Try to unmount all devicemapper mounts manually and try again
         echo "Destruction of container $container failed. Trying workaround..."
-        id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$container]})
+        id=$(${DOCKER} inspect -f='{{.Id}}' ${CONTAINER_NAMES[$container]})
         if [ -z $id ]; then
           echo "Could not get docker ID for $container" 1>&2
           return 1
@@ -343,10 +343,10 @@ function container_lookup {
 
 function get_container_id {
   #Try to get ID from container short name first
-  id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$1]} 2>/dev/null)
+  id=$(${DOCKER} inspect -f='{{.Id}}' ${CONTAINER_NAMES[$1]} 2>/dev/null)
   if [ -z "$id" ]; then
      #Try to get ID short ID, long ID, or container name
-     id=$(${DOCKER} inspect -f='{{.ID}}' "$1")
+     id=$(${DOCKER} inspect -f='{{.Id}}' "$1")
      if [ -z "$id" ]; then
        echo "Could not get docker ID for container $1. Is it running?" 1>&2
        return 1
@@ -393,135 +393,18 @@ function pre_start_hooks {
 }
 
 function post_setup_hooks {
-  purge_stale_iptables_rules $1
   case $1 in
-    cobbler)   setup_dhcrelay_for_cobbler
-               ;;
-    rsyslog)   remangle_syslog
-               ;;
-    nginx)     remangle_nginx
-               ;;
     *)         ;;
   esac
 }
 function post_start_hooks {
-  purge_stale_iptables_rules $1
   case $1 in
-    cobbler)   setup_dhcrelay_for_cobbler
-               ;;
-    nginx)     remangle_nginx
-               ;;
-    rsyslog)   remangle_syslog
-               ;;
     *)         ;;
   esac
 }
-function remangle_port {
-  container=$1
-  proto=$2
-  port=$3
-  admin_interface=$(grep interface: $ASTUTE_YAML | cut -d':' -f2 | tr -d ' ')
-  #Use facter and ipcalc to get admin network CIDR
-  admin_net_ip=$(facter "ipaddress_${admin_interface}")
-  admin_net_netmask=$(facter "netmask_$admin_interface")
-  eval $(ipcalc -np "$admin_net_ip" "$admin_net_netmask")
-  #purge old rule
-  purge_iptables_rule "$container-$proto-$port-accept"
-  purge_iptables_rule "$container-$proto-$port-unmasquerade"
-
-  iptables -t nat -I POSTROUTING 1 -s "$NETWORK/$PREFIX" -p $proto -m $proto --dport $port -m comment --comment "$container-$proto-$port-unmasquerade" -j ACCEPT
-  iptables -A FORWARD -i $admin_interface -o docker0 -m state --state NEW -p $proto  -m $proto --dport $port -m comment --comment "$container-$proto-$port-accept" -j ACCEPT
-  service iptables save &>/dev/null
-}
-function purge_stale_iptables_rules {
-  container=$1
-  containername=${CONTAINER_NAMES[$container]}
-  ports=$(docker inspect --format='{{ range $key, $value := .NetworkSettings.Ports }}{{ $key }} {{ end }}' $containername)
-  containerip=$(docker inspect --format='{{.NetworkSettings.IPAddress}}' $containername)
-
-  for portproto in $ports; do
-    port=$(echo $portproto | cut -d'/' -f1)
-    proto=$(echo $portproto | cut -d'/' -f2)
-      while read rule; do
-        #if rule ips do not contain $containerip, drop it
-        ruleips=$(echo $rule | grep -oE '((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])')
-        if ! [[ "$ruleips" =~ "$containerip" ]]; then
-          iptables-save | grep -v -- "$rule" | iptables-restore
-        fi
-      done < <(iptables-save | grep -- "-m $proto --dport $port")
-  done
-}
-
-function purge_iptables_rule {
-  comment="$1"
-  #method="deleteandsave"
-  method="savegreprestore"
-
-  if [ -z "$1" ]; then
-    echo "Error: No rule to match!" 1>&2
-    exit 1
-  fi
-
-  if [[ "$method" == "deleteandsave" ]];then
-    #Purge rules in filter table
-    for chain in INPUT FORWARD; do
-      while read lineno _; do
-        iptables -D $chain $lineno
-        service iptables save &>/dev/null
-      done < <(iptables -t filter --line-numbers -L $chain | grep -- "/\* ${comment} \*/")
-    done
-
-    #Purge rules in nat table
-    for chain in POSTROUTING; do
-      while read lineno _; do
-        iptables -D $chain $lineno
-        service iptables save &>/dev/null
-      done < <(iptables -t nat --line-numbers -L $chain | grep -- "/\* ${comment} \*/")
-    done
-  elif [[ "$method" == "savegreprestore" ]]; then
-    iptables-save | grep -v -- "$comment" | iptables-restore
-    service iptables save &>/dev/null
-  fi
-}
-
-function remangle_nginx {
-  #Necessary to forward packets to rsyslog with correct src ip
-  remangle_port nginx tcp 8000
-  remangle_port nginx tcp 8080
-}
-
-function remangle_syslog {
-  #Necessary to forward packets to rsyslog with correct src ip
-  remangle_port rsyslog tcp 514
-  remangle_port rsyslog udp 514
-}
-
-function setup_dhcrelay_for_cobbler {
-  if ! is_running "cobbler"; then
-    echo "ERROR: Cobbler container isn't running." 1>&2
-    exit 1
-  fi
-  cobbler_ip=$(${DOCKER} inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_NAMES["cobbler"]})
-  admin_interface=$(grep interface: $ASTUTE_YAML | cut -d':' -f2 | tr -d ' ')
-  cat > /etc/sysconfig/dhcrelay << EOF
-# Command line options here
-DHCRELAYARGS=""
-# DHCPv4 only
-INTERFACES="$admin_interface docker0"
-# DHCPv4 only
-DHCPSERVERS="$cobbler_ip"
-EOF
-  rpm -q dhcp 2>&1 > /dev/null || yum --quiet -y install dhcp
-  chkconfig dhcrelay on
-  service dhcrelay restart
-}
-
-function allow_all_docker_traffic {
-  iptables -A POSTROUTING -t nat  -o docker0  -j MASQUERADE
-}
 
 function container_root {
-  id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$1]})
+  id=$(${DOCKER} inspect -f='{{.Id}}' ${CONTAINER_NAMES[$1]})
   if [ -n "$id" ]; then
     echo "/var/lib/docker/devicemapper/mnt/${id}/rootfs"
     return 0
