@@ -43,7 +43,7 @@ CONTAINER_NAMES['keystone']="${prefix}keystone"
 
 # app container options
 declare -A CONTAINER_OPTIONS
-base_opts="-t"
+base_opts="-t --net=host"
 FOREGROUND="-i"
 BACKGROUND="-d"
 BIND_ALL=""
@@ -54,7 +54,7 @@ CONTAINER_OPTIONS["postgres"]="-p ${BIND_ADMIN}5432:5432 -p ${BIND_LOCAL}5432:54
 CONTAINER_OPTIONS["rabbitmq"]="-p ${BIND_ADMIN}5672:5672 -p ${BIND_LOCAL}5672:5672 -p ${BIND_ADMIN}4369:4369 -p ${BIND_LOCAL}4369:4369 -p ${BIND_ADMIN}15672:15672 -p ${BIND_LOCAL}15672:15672 -p ${BIND_ADMIN}61613:61613 -p ${BIND_LOCAL}61613:61613 $base_opts"
 CONTAINER_OPTIONS["rsync"]="-p ${BIND_ADMIN}873:873 -p ${BIND_LOCAL}873:873 $base_opts"
 CONTAINER_OPTIONS["astute"]="$base_opts"
-CONTAINER_OPTIONS["nailgun"]="--privileged -v /etc/nailgun -p ${BIND_ADMIN}8001:8001 -p ${BIND_LOCAL}8001:8001 $base_opts"
+CONTAINER_OPTIONS["nailgun"]="--privileged -p ${BIND_ADMIN}8001:8001 -p ${BIND_LOCAL}8001:8001 $base_opts"
 CONTAINER_OPTIONS["ostf"]="-p ${BIND_ADMIN}8777:8777 -p ${BIND_LOCAL}8777:8777 $base_opts"
 CONTAINER_OPTIONS["nginx"]="-p ${BIND_ALL}8000:8000 -p ${BIND_ALL}8080:8080 $base_opts"
 CONTAINER_OPTIONS["rsyslog"]="--privileged -p ${BIND_ADMIN}514:514 -p ${BIND_LOCAL}514:514 -p ${BIND_ADMIN}514:514/udp -p ${BIND_LOCAL}514:514/udp -p ${BIND_ADMIN}25150:25150 -p ${BIND_LOCAL}25150:25150 $base_opts"
@@ -97,7 +97,7 @@ ASTUTE_VOL="--volumes-from ${CONTAINER_NAMES['astute']}"
 ###puppet: rsync
 ###sshkey: nailgun cobbler astute mcollective ostf
 ###repo: nginx mcollective
-###nailgun: nginx mcollective
+###nailgun: nginx
 ###cobbler: mcollective
 ###astute: mcollective
 declare -A REQS
@@ -113,7 +113,7 @@ REQS["${HOST_VOL['astute_data']}"]="astute"
 REQS["${HOST_VOL['cobbler_data']}"]="cobbler"
 REQS["${HOST_VOL['postgres_data']}"]="postgres"
 REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective ostf"
-REQS["$NAILGUN_VOL"]="nginx mcollective"
+REQS["$NAILGUN_VOL"]="nginx"
 REQS["$COBBLER_VOL"]="mcollective"
 REQS["$ASTUTE_VOL"]="mcollective"
 
