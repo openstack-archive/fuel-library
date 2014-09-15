@@ -47,7 +47,7 @@ class { "docker::dockerctl":
 }
 
 class { "docker":
-  docker_engine => 'lxc',
+  docker_engine => 'native',
 }
 
 class {'openstack::logrotate':
