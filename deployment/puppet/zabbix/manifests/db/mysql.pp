@@ -8,6 +8,7 @@ class zabbix::db::mysql {
       #'root_password' => $zabbix::params::db_root_password,
       'bind_address'  => '0.0.0.0',
     },
+    package_name => $zabbix::params::mysql_server_pkg,
     enabled    => true,
   }
   anchor { 'mysql_server_start': } -> Class['mysql::server'] -> anchor { 'mysql_server_end': }

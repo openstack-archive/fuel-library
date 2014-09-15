@@ -1,10 +1,13 @@
 class zabbix::params {
 
   include zabbix::params::openstack
+  include galera::params
 
   # $enabled = $::fuel_settings['zabbix']['enabled']
   $server  = ($::fuel_settings['role'] == 'zabbix-server')
   $frontend = true
+
+  $mysql_server_pkg = $galera::params::mysql_server_name
 
   case $::operatingsystem {
     'Ubuntu', 'Debian': {
@@ -24,6 +27,7 @@ class zabbix::params {
       $prepare_schema_cmd = 'cat /usr/share/zabbix-server-mysql/schema.sql /usr/share/zabbix-server-mysql/images.sql > /tmp/zabbix/schema.sql'
 
       $frontend_service = 'apache2'
+
     }
     'CentOS', 'RedHat': {
 
@@ -43,6 +47,7 @@ class zabbix::params {
       $prepare_schema_cmd = 'cat /usr/share/doc/zabbix-server-mysql-`zabbix_server -V | awk \'/v[0-9].[0-9].[0-9]/{print substr($3, 2)}\'`/create/schema.sql /usr/share/doc/zabbix-server-mysql-`zabbix_server -V | awk \'/v[0-9].[0-9].[0-9]/{print substr($3, 2)}\'`/create/images.sql > /tmp/zabbix/schema.sql'
 
       $frontend_service = 'httpd'
+
     }
   }
 
