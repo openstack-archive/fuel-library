@@ -25,18 +25,6 @@ class docker::dockerctl (
     group   => 'root',
     mode    => '0755',
   }
-  file { "/usr/local/bin/dhcrelay_monitor":
-    mode    => 0755,
-    owner   => 'root',
-    group   => 'root',
-    content => template("docker/dhcrelay_monitor.erb")
-  }
-  file { "/etc/supervisord.d/dhcrelay.conf":
-    mode    => 0755,
-    owner   => 'root',
-    group   => 'root',
-    content => template("docker/dhcrelay.conf.erb")
-  }
   file { "$bin_dir/get_service_credentials.py":
     mode    => 0755,
     content => template("docker/get_service_credentials.py.erb")
