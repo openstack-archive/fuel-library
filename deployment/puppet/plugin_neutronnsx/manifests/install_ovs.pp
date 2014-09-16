@@ -33,10 +33,18 @@ class plugin_neutronnsx::install_ovs (
         source  => $packages_url,
       }
 
+      # Delete this file, because it uses bash-syntax for functions defenitions
+      # but specified interpreter is /bin/sh and in Ubuntu /bin/sh->/bin/dash
+      file{ 'nsx-alias.sh_profile_hack':
+        path => '/etc/profile.d/nsx-alias.sh',
+        ensure => absent,
+      }	
+
       Package['dkms'] -> Package['openvswitch-datapath']
 
       Package['openvswitch-common'] -> Package['openvswitch-nsx-switch'] ->
-      Package['nicira-ovs-hypervisor-node'] ~> Service['nicira-ovs-hypervisor-node']
+      Package['nicira-ovs-hypervisor-node'] -> file['nsx-alias.sh_profile_hack'] ~>
+      Service['nicira-ovs-hypervisor-node']
     }
     /(?i)redhat/: {
       Package<| title=="openvswitch-common" |> {
