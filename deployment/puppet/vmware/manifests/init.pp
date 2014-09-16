@@ -20,9 +20,9 @@
 # vcenter_host_ip - contents IP address of the vCenter host
 # vcenter_cluster - contents vCenter cluster name (multi-cluster is not supported yet)
 # use_quantum - shows if neutron enabled
+# ha_mode - flag that shows what deployment mode we are running
 
 class vmware (
-
   $vcenter_user = 'user',
   $vcenter_password = 'password',
   $vcenter_host_ip = '10.10.10.10',
@@ -30,16 +30,13 @@ class vmware (
   $use_quantum = false,
   $ha_mode = false,
 )
-
-{ # begin of class
-
+{
   class { 'vmware::controller':
-    vcenter_user => $vcenter_user,
+    vcenter_user     => $vcenter_user,
     vcenter_password => $vcenter_password,
-    vcenter_host_ip => $vcenter_host_ip,
-    vcenter_cluster => $vcenter_cluster,
-    use_quantum => $use_quantum,
-    ha_mode => $ha_mode,
+    vcenter_host_ip  => $vcenter_host_ip,
+    vcenter_cluster  => $vcenter_cluster,
+    use_quantum      => $use_quantum,
+    ha_mode          => $ha_mode,
   }
-
-} # end of class
+}
