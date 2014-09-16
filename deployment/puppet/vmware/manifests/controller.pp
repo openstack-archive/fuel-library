@@ -140,6 +140,8 @@ class vmware::controller (
     } # close RedHat
   } # close case
 
+  # Enable metadata service on Controller node
+  Nova_config <| title == 'DEFAULT/enabled_apis' |> { value => 'ec2,osapi_compute,metadata' }
   # install cirros vmdk package
 
   package { 'cirros-testvmware':
