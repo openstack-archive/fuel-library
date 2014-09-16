@@ -1,0 +1,7 @@
+fixtures:
+  symlinks:
+    corosync: "#{source_dir}/../corosync"
+    inifile: "#{source_dir}/../inifile"
+    nova: "#{source_dir}/../nova"
+    stdlib: "#{source_dir}/../stdlib"
+    vmware: "#{source_dir}"

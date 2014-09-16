@@ -21,6 +21,8 @@ class vmware::network::nova (
   $nova_network_config = '/etc/nova/nova.conf'
 )
 {
+  include nova::params
+
   if ! $ha_mode {
     nova::generic_service { 'network':
       enabled        => true,
@@ -32,7 +34,6 @@ class vmware::network::nova (
       before         => Exec['networking-refresh']
     }
   } else {
-    # Note that nova-compute is disabled in vmware::controller
     nova::generic_service { 'network':
       enabled        => false,
       package_name   => $::nova::params::network_package_name,
@@ -40,8 +41,6 @@ class vmware::network::nova (
       ensure_package => present,
       before         => Exec['networking-refresh']
     }
-
-    Nova_config <| title == 'DEFAULT/multi_host' |> { value => 'False' }
 
     cs_resource { 'p_vcenter_nova_network':
       ensure          => present,
@@ -86,9 +85,6 @@ class vmware::network::nova (
     anchor { 'vcenter-nova-network-start': }
     anchor { 'vcenter-nova-network-end': }
 
-    Anchor <| title == 'nailgun::rabbitmq end' |>->
-    Anchor['vcenter-nova-network-start']
-
     Anchor['vcenter-nova-network-start']->
     Nova::Generic_service['network']->
     File['vcenter-nova-network-ocf']->
@@ -97,4 +93,5 @@ class vmware::network::nova (
     Anchor['vcenter-nova-network-end']
   }
 
+  Nova_config <| title == 'DEFAULT/multi_host' |> { value => 'False' }
 }
