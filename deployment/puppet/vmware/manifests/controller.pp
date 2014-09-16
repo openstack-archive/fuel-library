@@ -14,148 +14,90 @@
 
 # modules needed: nova
 # limitations:
-# - only one vmware cluster supported
+# - only one vcenter supported
 
 class vmware::controller (
-
-  $vcenter_user = 'user',
-  $vcenter_password = 'password',
-  $vcenter_host_ip = '10.10.10.10',
-  $vcenter_cluster = 'cluster',
-  $vlan_interface = undef,
-  $use_quantum = false,
+  $api_retry_count = 5,
+  $datastore_regex = undef,
+  $amqp_port = '5673',
+  $compute_driver = 'vmwareapi.VMwareVCDriver',
   $ensure_package = 'present',
   $ha_mode = false,
-  $amqp_port = '5673',
-  $nova_compute_config = '/etc/nova/nova.conf',
-  $nova_compute_vmware_config = '/etc/nova/nova-compute.conf',
-  $api_retry_count = 5,
   $maximum_objects = 100,
+  $nova_conf = '/etc/nova/nova.conf',
   $task_poll_interval = 5.0,
-  $use_linked_clone = true,
-  $wsdl_location = undef,
-  $datastore_regex = undef,
-  $compute_driver = 'vmwareapi.VMwareVCDriver',
+  $vcenter_cluster = 'cluster',
+  $vcenter_host_ip = '10.10.10.10',
+  $vcenter_user = 'user',
+  $vcenter_password = 'password',
+  $vlan_interface = undef,
   $vnc_address = '0.0.0.0',
+  $use_linked_clone = true,
+  $use_quantum = false,
+  $wsdl_location = undef
 )
+{
+  include nova
 
-{ # begin of class
+  # Split provided string with cluster names and enumerate items.
+  # Index is used to form file names on host system, e.g.
+  # /etc/sysconfig/nova-compute-vmware-0
+  $vsphere_clusters = vmware_index($vcenter_cluster)
 
-  if ! $ha_mode {
-    # installing the nova-compute service
-    nova::generic_service { 'compute':
-      enabled        => true,
-      package_name   => $::nova::params::compute_package_name,
-      service_name   => $::nova::params::compute_service_name,
-      ensure_package => $ensure_package,
-      before         => Exec['networking-refresh']
-    }
-  } else {
-    nova::generic_service { 'compute':
-      enabled        => false,
-      package_name   => $::nova::params::compute_package_name,
-      service_name   => $::nova::params::compute_service_name,
-      ensure_package => $ensure_package,
-      before         => Exec['networking-refresh']
-    }
-
-    cs_resource { 'p_vcenter_nova_compute':
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'mirantis',
-      primitive_type  => 'nova-compute',
-      metadata        => {
-        'resource-stickiness' => '1'
-      },
-      parameters      => {
-        'amqp_server_port' => $amqp_port,
-        'config' => $nova_compute_config,
-        'additional_parameters' => "--config-file=${nova_compute_vmware_config}",
-      },
-      operations      => {
-        'monitor'  => {
-          'interval' => '20',
-          'timeout'  => '10',
-        },
-          'start'  => {
-          'timeout' => '30',
-        },
-          'stop'   => {
-          'timeout' => '30',
-        }
-      }
-    }
-
-    file { 'vcenter-nova-compute-ocf':
-      path  => '/usr/lib/ocf/resource.d/mirantis/nova-compute',
-      source => 'puppet:///modules/vmware/ocf/nova-compute',
-      owner => 'root',
-      group => 'root',
-      mode => '0755',
-    }
-
-    service { 'p_vcenter_nova_compute':
-      ensure => 'running',
-      enable => true,
-      provider => 'pacemaker',
-    }
-
-    anchor { 'vcenter-nova-compute-start': }
-    anchor { 'vcenter-nova-compute-end': }
-
-    Anchor <| title == 'nailgun::rabbitmq end' |>->
-    Anchor['vcenter-nova-compute-start']
-
-    Anchor['vcenter-nova-compute-start']->
-    Nova::Generic_service['compute']->
-    File['/etc/nova/nova-compute.conf']->
-    File['vcenter-nova-compute-ocf']->
-    Cs_resource['p_vcenter_nova_compute']->
-    Service['p_vcenter_nova_compute']->
-    Anchor['vcenter-nova-compute-end']
-
+  # install the nova-compute service
+  nova::generic_service { 'compute':
+	  enabled        => false,
+	  package_name   => $::nova::params::compute_package_name,
+	  service_name   => $::nova::params::compute_service_name,
+	  ensure_package => $ensure_package,
+	  before         => Exec['networking-refresh']
   }
 
+  if ! $ha_mode {
+    create_resources(vmware::compute::simple, $vsphere_clusters)
+
+    Nova::Generic_service['compute']->
+    Vmware::Compute::Simple<| |>
+  } else {
+
+    file { 'vcenter-nova-compute-ocf':
+      path   => '/usr/lib/ocf/resource.d/mirantis/nova-compute',
+      source => 'puppet:///modules/vmware/ocf/nova-compute',
+      owner  => 'root',
+      group  => 'root',
+      mode   => '0755',
+    }
+
+    # Create nova-compute per vsphere cluster
+    create_resources(vmware::compute::ha, $vsphere_clusters)
+
+    Nova::Generic_service['compute']->
+    anchor { 'vmware-nova-compute-start': }->
+    File['vcenter-nova-compute-ocf']->
+    Vmware::Compute::Ha<||>->
+    anchor { 'vmware-nova-compute-end': }
+  }
 
   # network configuration
   class { 'vmware::network':
     use_quantum => $use_quantum,
-    ha_mode => $ha_mode
+    ha_mode     => $ha_mode
   }
-  file { "/etc/nova/nova-compute.conf":
-    content => template ("vmware/nova-compute.conf.erb"),
-    mode => 0644,
-    owner => root,
-    group => root,
-    ensure => present,
-  }
-  # workaround for Ubuntu additional package for hypervisor
-  case $::osfamily { # open case
-    'RedHat': { # open RedHat
-      # nova-compute service configuration
-      file { '/etc/sysconfig/openstack-nova-compute':
-        ensure => present,
-      } ->
-      file_line { 'nova-compute env':
-        path => '/etc/sysconfig/openstack-nova-compute',
-        line => "OPTIONS='--config-file=/etc/nova/nova.conf --config-file=/etc/nova/nova-compute.conf'",
-      }
-    } # close RedHat
-  } # close case
 
   # Enable metadata service on Controller node
-  Nova_config <| title == 'DEFAULT/enabled_apis' |> { value => 'ec2,osapi_compute,metadata' }
+  Nova_config <| title == 'DEFAULT/enabled_apis' |> {
+    value => 'ec2,osapi_compute,metadata'
+  }
   # Set correct parameter for vnc access
   nova_config {
-    'DEFAULT/novncproxy_base_url': value => "http://${$vnc_address}:6080/vnc_auto.html"
+    'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html"
   }
-  # install cirros vmdk package
 
+  # install cirros vmdk package
   package { 'cirros-testvmware':
-    ensure => "present"
+    ensure => present
   }
   package { 'python-suds':
-    ensure   => present
+    ensure => present
   }
-
-} # end of class
+}
