@@ -3,6 +3,7 @@ class nailgun::venv(
   $venv_opts = "",
   $package,
   $version,
+  $diag_mode = false,
   $pip_opts = "",
 
   $production,

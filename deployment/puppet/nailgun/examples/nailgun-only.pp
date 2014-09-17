@@ -1,5 +1,6 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
 $fuel_version = parseyaml($fuel_version_yaml)
+$diag_mode = pick($::fuel_settings['DEBUG'], false)
 
 if is_hash($::fuel_version) and $::fuel_version['VERSION'] and $::fuel_version['VERSION']['production'] {
     $production = $::fuel_version['VERSION']['production']
@@ -73,6 +74,7 @@ class { "nailgun::venv":
   venv_opts => "--system-site-packages",
   package => $package,
   version => $version,
+  diag_mode => $diag_mode,
   pip_opts => "${pip_index} ${pip_find_links}",
   production => $production,
   nailgun_user => $nailgun_user,

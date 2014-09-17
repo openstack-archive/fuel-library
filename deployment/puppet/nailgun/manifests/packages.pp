@@ -19,5 +19,11 @@ class nailgun::packages(
   nailgun_safe_package { "fence-agents": }
   nailgun_safe_package { "nailgun-redhat-license": }
   nailgun_safe_package { "python-fuelclient": }
-
+  if $::fuel_settings['DEBUG'] {
+    nailgun_safe_package { "nmap": }
+    nailgun_safe_package { "tcptraceroute": }
+    nailgun_safe_package { "iperf": }
+    nailgun_safe_package { "pssh": }
+    nailgun_safe_package { "tmux": }
+  }
 }

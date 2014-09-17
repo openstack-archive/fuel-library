@@ -6,12 +6,16 @@ AUTH:
   # - none - authentication is disabled
   # - fake - no keystone required, credentials: admin/admin
   # - keystone - authentication enabled.
+<% if @diag_mode -%>
+  AUTHENTICATION_METHOD: "none"
+<% else -%>
   AUTHENTICATION_METHOD: "keystone"
   # use only if AUTHENTICATION_METHOD is set to "keystone"
   admin_token: "<%= @keystone_admin_token %>"
   auth_host: "<%= @keystone_host %>"
   auth_protocol: "http"
   auth_version: "v2.0"
+<% end -%>
 
 DATABASE:
   engine: "<%= @database_engine %>"
@@ -81,3 +85,5 @@ PUPPET_VERSION: "2.7.19"
 DNS_DOMAIN: "<%= @dns_domain %>"
 DNS_SERVERS: "<%= @cobbler_host %>"
 DNS_SEARCH: "<%= @dns_domain.gsub(/,/, ' ') %>"
+
+DIAG_MODE: "<%= @diag_mode %>"
