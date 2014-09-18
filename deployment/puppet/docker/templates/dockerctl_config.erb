@@ -58,6 +58,33 @@ CONTAINER_NAMES['rsyslog']="${prefix}rsyslog"
 CONTAINER_NAMES['mcollective']="${prefix}mcollective"
 CONTAINER_NAMES['keystone']="${prefix}keystone"
 
+# container weights
+CPU_WEIGHT['cobbler']=<%= @cpu_weights['cobbler'] || @default_cpu_weight %>
+CPU_WEIGHT['postgres']=<%= @cpu_weights['postgres'] || @default_cpu_weight %>
+CPU_WEIGHT['rabbitmq']=<%= @cpu_weights['rabbitmq'] || @default_cpu_weight %>
+CPU_WEIGHT['astute']=<%= @cpu_weights['astute'] || @default_cpu_weight %>
+CPU_WEIGHT['rsync']=<%= @cpu_weights['rsync'] || @default_cpu_weight %>
+CPU_WEIGHT['nailgun']=<%= @cpu_weights['nailgun'] || @default_cpu_weight %>
+CPU_WEIGHT['ostf']=<%= @cpu_weights['ostf'] || @default_cpu_weight %>
+CPU_WEIGHT['nginx']=<%= @cpu_weights['nginx'] || @default_cpu_weight %>
+CPU_WEIGHT['rsyslog']=<%= @cpu_weights['rsyslog'] || @default_cpu_weight %>
+CPU_WEIGHT['mcollective']=<%= @cpu_weights['mcollective'] || @default_cpu_weight %>
+CPU_WEIGHT['keystone']=<%= @cpu_weights['keystone'] || @default_cpu_weight %>
+
+MEMORY_LIMIT['cobbler']=<%= @memory_limits['cobbler'] || @default_memory_limit %>
+MEMORY_LIMIT['postgres']=<%= @memory_limits['postgres'] || @default_memory_limit %>
+MEMORY_LIMIT['rabbitmq']=<%= @memory_limits['rabbitmq'] || @default_memory_limit %>
+MEMORY_LIMIT['astute']=<%= @memory_limits['astute'] || @default_memory_limit %>
+MEMORY_LIMIT['rsync']=<%= @memory_limits['rsync'] || @default_memory_limit %>
+MEMORY_LIMIT['nailgun']=<%= @memory_limits['nailgun'] || @default_memory_limit %>
+MEMORY_LIMIT['ostf']=<%= @memory_limits['ostf'] || @default_memory_limit %>
+MEMORY_LIMIT['nginx']=<%= @memory_limits['nginx'] || @default_memory_limit %>
+MEMORY_LIMIT['rsyslog']=<%= @memory_limits['rsyslog'] || @default_memory_limit %>
+MEMORY_LIMIT['mcollective']=<%= @memory_limits['mcollective'] || @default_memory_limit %>
+MEMORY_LIMIT['keystone']=<%= @memory_limits['keystone'] || @default_memory_limit %>
+
+
+
 # app container options
 declare -A CONTAINER_OPTIONS
 base_opts="-t"
@@ -77,10 +104,6 @@ CONTAINER_OPTIONS["nginx"]="-p ${BIND_ALL}8000:8000 -p ${BIND_ALL}8080:8080 $bas
 CONTAINER_OPTIONS["rsyslog"]="--privileged -p ${BIND_ADMIN}514:514 -p ${BIND_LOCAL}514:514 -p ${BIND_ADMIN}514:514/udp -p ${BIND_LOCAL}514:514/udp -p ${BIND_ADMIN}25150:25150 -p ${BIND_LOCAL}25150:25150 $base_opts"
 CONTAINER_OPTIONS["mcollective"]="--privileged $base_opts"
 CONTAINER_OPTIONS["keystone"]="-p ${BIND_ALL}5000:5000 -p ${BIND_ALL}35357:35357 $base_opts"
-
-######
-#DRAFT: Dependency of volumes for deployment
-#####
 
 #Host volumes
 declare -A HOST_VOL

@@ -12,6 +12,9 @@ else {
 $ntp_servers = [$::fuel_settings['NTP1'], $::fuel_settings['NTP2'],
                 $::fuel_settings['NTP3']]
 
+#Docker < 0.10 requires "lxc" and 1.1 and greater requires "native"
+$docker_engine = "lxc"
+
 Class['nailgun::packages'] ->
 Class['nailgun::client'] ->
 Class['nailgun::host'] ->
@@ -40,9 +43,12 @@ class { "openstack::clocksync":
 class { "docker::dockerctl":
   release         => $::fuel_version['VERSION']['release'],
   production      => $production,
+  docker_engine   => $docker_engine,
   admin_ipaddress => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 }
-class { "docker": }
+class { "docker":
+  docker_engine   => $docker_engine,
+}
 
 class {'openstack::logrotate':
   role           => 'server',

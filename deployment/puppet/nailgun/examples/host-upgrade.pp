@@ -39,9 +39,12 @@ class { "openstack::clocksync":
 class { "docker::dockerctl":
   release         => $::fuel_version['VERSION']['release'],
   production      => $production,
+  docker_engine   => $docker_engine,
   admin_ipaddress => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 }
-class { "docker": }
+class { "docker":
+  docker_engine   => $docker_engine,
+}
 
 class {'openstack::logrotate':
   role           => 'server',
