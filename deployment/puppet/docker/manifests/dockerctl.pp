@@ -7,6 +7,7 @@ class docker::dockerctl (
   $release,
   $production,
 ) {
+  include docker::params
 
   # Make sure we have needed directories
   file { [$bin_dir, $share_dir, $config_dir, $profile_dir]:
