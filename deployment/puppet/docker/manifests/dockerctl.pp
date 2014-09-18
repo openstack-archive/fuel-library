@@ -4,9 +4,11 @@ class docker::dockerctl (
   $config_dir      = '/etc/dockerctl',
   $profile_dir     = '/etc/profile.d',
   $admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+  $docker_engine = 'lxc',
   $release,
   $production,
-) {
+) inherits docker::params
+{
 
   # Make sure we have needed directories
   file { [$bin_dir, $share_dir, $config_dir, $profile_dir]:
