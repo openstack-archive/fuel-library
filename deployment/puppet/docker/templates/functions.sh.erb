@@ -371,9 +371,18 @@ function first_run_container {
   opts="${CONTAINER_OPTIONS[$1]} ${CONTAINER_VOLUMES[$1]}"
   container_name="${CONTAINER_NAMES[$1]}"
   image="$IMAGE_PREFIX/$1_$VERSION"
+<% if @docker_engine == "lxc" -%>
+  cpu_weight="--lxc-conf=lxc.cgroup.cpu.shares=${CPU_WEIGHT[$1]}"
+  mem_weight="--lxc-conf=lxc.cgroup.memory.limit_in_bytes=${MEMORY_WEIGHT[$1]}"
+<% end -%>
+<% if @docker_engine == "native" -%>
+  cpu_weight="-c='${CPU_WEIGHT[$1]}'"
+  mem_weight="-m='${MEMORY_WEIGHT[$1]}'"
+<% end -%>
+
   if ! is_running $container_name; then
       pre_setup_hooks $1
-      ${DOCKER} run $opts $BACKGROUND --name=$container_name $image
+      ${DOCKER} run "$cpu_weight" "$mem_weight" $opts $BACKGROUND --name=$container_name $image
       post_setup_hooks $1
   else
       echo "$container_name is already running."
