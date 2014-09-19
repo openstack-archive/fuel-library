@@ -67,7 +67,46 @@ define cluster::virtual_ip (
   }
 
   Cs_resource[$vip_name] -> Service[$vip_name]
-
+  if $vip[tie_with_ping] {
+    # Tie vip with ping
+    cs_resource { "ping_${vip_name}":
+      ensure          => present,
+      primitive_class => 'ocf',
+      provided_by     => 'pacemaker',
+      primitive_type  => 'ping',
+      parameters      => {
+        'host_list'  => $vip[ping_host_list],
+        'multiplier' => '1000',
+        'dampen'     => '30s',
+        'timeout'    => '3s',
+      },
+      operations  => {
+        'monitor' => { 'interval' => '20', 'timeout'  => '30' },
+      },
+      multistate_hash => {
+        'type' => 'clone',
+      },
+    } ->
+    service { "ping_${vip_name}":
+      ensure   => 'running',
+      enable   => true,
+      provider => 'pacemaker',
+    }
+    cs_location { "loc_ping_${vip_name}":
+      primitive => $vip_name,
+      cib       => "ping_${vip_name}",
+      rules     => [
+        {
+          'score'   => 'INFINITY',
+          'boolean' => '',
+          'expressions' => [
+            {'attribute'=>"not_defined",'operation'=>'pingd','value'=>'or'},
+            {'attribute'=>"pingd",'operation'=>'lte','value'=>'0'},
+          ],
+        },
+      ],
+    }
+  }
 }
 
 Class['corosync'] -> Cluster::Virtual_ip <||>
