@@ -148,6 +148,44 @@ class osnailyfacter::cluster_ha {
       iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
       iptables_comment     => "masquerade-for-public-net",
     }
+    # Tie public vip with ping of public gw
+    cs_resource { 'p_ping_pub_gw':
+      ensure          => present,
+      primitive_class => 'ocf',
+      provided_by     => 'pacemaker',
+      primitive_type  => 'ping',
+      parameters      => {
+        'host_list'  => $::fuel_settings[$::fuel_settings['public_interface']]['gateway'],
+        'multiplier' => '1000',
+        'dampen'     => '30s',
+        'timeout'    => '3s',
+      },
+      operations  => {
+        'monitor' => { 'interval' => '20', 'timeout'  => '30' },
+      },
+      multistate_hash => {
+        'type' => 'clone',
+      },
+    } ->
+    service { 'p_ping_pub_gw':
+      ensure   => 'running',
+      enable   => true,
+      provider => 'pacemaker',
+    }
+    cs_location { 'loc_ping_pub_gw':
+      primitive => 'vip__public_old',
+      cib       => 'p_ping_pub_gw',
+      rules     => [
+        {
+          'score'   => 'INFINITY',
+          'boolean' => '',
+          'expressions' => [
+            {'attribute'=>"not_defined",'operation'=>'pingd','value'=>'or'},
+            {'attribute'=>"pingd",'operation'=>'lte','value'=>'0'},
+          ],
+        },
+      ],
+    }
   }
   $vip_keys = keys($vips)
 
