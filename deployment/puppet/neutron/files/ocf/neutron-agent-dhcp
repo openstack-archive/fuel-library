@@ -234,6 +234,21 @@ neutron_dhcp_agent_validate() {
     true
 }
 
+setup_auth() {
+    # setup token-based authentication if it possible
+    AUTH_TOKEN=""
+
+    if [[ -f $OCF_RESKEY_keystone_config ]] ; then
+        AUTH_TOKEN=$(grep -v '#' $OCF_RESKEY_keystone_config | grep -i 'admin_token\s*=\s*' | awk -F'=' '{print $2}')
+    fi
+
+    AUTH_TAIL=""
+    if [[ -n "$AUTH_TOKEN" ]] ; then
+        AUTH_TAIL="--admin-auth-url=${OCF_RESKEY_os_auth_url} --auth-token=${AUTH_TOKEN}"
+    fi
+
+    true
+}
 
 neutron_dhcp_agent_status() {
     local pid
@@ -296,7 +311,7 @@ clean_up() {
     count=3  # we will try kill process 3 times
     while [ $count -gt 0 ]; do
         # we can't use ps, because ps can't select processes for given network namespace
-        inside_ns_pids=`get_pid_list_for_ns_list $ns_list`
+        inside_ns_pids=`get_pid_list_for_ns_list "$ns_list"`
         if [ -z "$inside_ns_pids" ] ; then
             break
         fi
@@ -308,7 +323,7 @@ clean_up() {
     done
 
     # kill all remaining proceses, that not died by simple kill
-    inside_ns_pids=`get_pid_list_for_ns_list $ns_list`
+    inside_ns_pids=`get_pid_list_for_ns_list "$ns_list"`
     if [ ! -z "$inside_ns_pids" ] ; then
         for ns_pid in $inside_ns_pids ; do
           ocf_run kill -9 $ns_pid
@@ -439,6 +454,8 @@ neutron_dhcp_agent_stop() {
     clean_up
     sleep 1
     clean_up_namespaces
+    q-agent-cleanup.py --agent=dhcp --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
+    sleep 3
 
     return $OCF_SUCCESS
 }
