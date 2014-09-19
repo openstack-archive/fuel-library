@@ -11,6 +11,7 @@ import logging
 import logging.handlers
 import subprocess
 import StringIO
+import socket
 from neutronclient.neutron import client as q_client
 from keystoneclient.v2_0 import client as ks_client
 from keystoneclient.apiclient.exceptions import NotFound as ks_NotFound
@@ -212,8 +213,14 @@ class NeutronCleaner(object):
             ret_count -= 1
         return rv
 
-    def _get_agents(self, use_cache=True):
+    def _get_agents(self,use_cache=True):
         return self._neutron_API_call(self.client.list_agents)['agents']
+
+    def _get_routers(self, use_cache=True):
+        return self._neutron_API_call(self.client.list_routers)['routers']
+
+    def _get_networks(self, use_cache=True):
+        return self._neutron_API_call(self.client.list_networks)['networks']
 
     def _list_networks_on_dhcp_agent(self, agent_id):
         return self._neutron_API_call(self.client.list_networks_on_dhcp_agent, agent_id)['networks']
@@ -221,9 +228,34 @@ class NeutronCleaner(object):
     def _list_routers_on_l3_agent(self, agent_id):
         return self._neutron_API_call(self.client.list_routers_on_l3_agent, agent_id)['routers']
 
+    def _list_l3_agents_on_router(self, router_id):
+        return self._neutron_API_call(self.client.list_l3_agent_hosting_routers, router_id)['agents']
+
+    def _list_dhcp_agents_on_network(self, network_id):
+        return self._neutron_API_call(self.client.list_dhcp_agent_hosting_networks, network_id)['agents']
+
+    def _list_orphaned_networks(self):
+        networks = self._get_networks()
+        self.log.debug("_list_orphaned_networks:, got list of networks {0}".format(json.dumps(networks,indent=4)))
+        orphaned_networks = []
+        for network in networks:
+            if len(self._list_dhcp_agents_on_network(network['id'])) == 0:
+                orphaned_networks.append(network['id'])
+        self.log.debug("_list_orphaned_networks:, got list of orphaned networks {0}".format(orphaned_networks))
+        return orphaned_networks
+
+    def _list_orphaned_routers(self):
+        routers = self._get_routers()
+        self.log.debug("_list_orphaned_routers:, got list of routers {0}".format(json.dumps(routers,indent=4)))
+        orphaned_routers = []
+        for router in routers:
+            if len(self._list_l3_agents_on_router(router['id'])) == 0:
+                orphaned_routers.append(router['id'])
+        self.log.debug("_list_orphaned_routers:, got list of orphaned routers {0}".format(orphaned_routers))
+        return orphaned_routers
+
     def _add_network_to_dhcp_agent(self, agent_id, net_id):
         return self._neutron_API_call(self.client.add_network_to_dhcp_agent, agent_id, {"network_id": net_id})
-
     def _add_router_to_l3_agent(self, agent_id, router_id):
         return self._neutron_API_call(self.client.add_router_to_l3_agent, agent_id, {"router_id": router_id})
 
@@ -369,6 +401,14 @@ class NeutronCleaner(object):
                     self.log.info("remove dead DHCP agent: {0}".format(agent['id']))
                     if not self.options.get('noop'):
                         self._neutron_API_call(self.client.delete_agent, agent['id'])
+        orphaned_networks=self._list_orphaned_networks()
+        self.log.info("_reschedule_agent_dhcp: rescheduling orphaned networks")
+        if orphaned_networks and agents['alive']:
+            for network in orphaned_networks:
+                self.log.info("_reschedule_agent_dhcp: rescheduling {0} to {1}".format(network,agents['alive'][0]['id']))
+                if not self.options.get('noop'):
+                    self._add_network_to_dhcp_agent(agents['alive'][0]['id'], network)
+        self.log.info("_reschedule_agent_dhcp: ended rescheduling of orphaned networks")
         self.log.debug("_reschedule_agent_dhcp: end.")
 
     def _reschedule_agent_l3(self, agent_type):
@@ -393,6 +433,8 @@ class NeutronCleaner(object):
                 )
         self.log.debug("L3 agents in cluster: {ags}".format(ags=json.dumps(agents, indent=4)))
         self.log.debug("Routers, attached to dead L3 agents: {rr}".format(rr=json.dumps(dead_routers, indent=4)))
+
+
         if dead_routers and agents['alive']:
             # get router-ID list of already attached to alive agent routerss
             lucky_ids = set()
@@ -421,8 +463,26 @@ class NeutronCleaner(object):
                 ))
                 if not self.options.get('noop'):
                     self._add_router_to_l3_agent(agents['alive'][0]['id'], rou[0]['id'])
-                    #todo: if error:
+
+        orphaned_routers=self._list_orphaned_routers()
+        self.log.info("_reschedule_agent_l3: rescheduling orphaned routers")
+        if orphaned_routers and agents['alive']:
+            for router in orphaned_routers:
+                self.log.info("_reschedule_agent_l3: rescheduling {0} to {1}".format(router,agents['alive'][0]['id']))
+                if not self.options.get('noop'):
+                    self._add_router_to_l3_agent(agents['alive'][0]['id'], router)
+        self.log.info("_reschedule_agent_l3: ended rescheduling of orphaned routers")
         self.log.debug("_reschedule_agent_l3: end.")
+
+    def _remove_self(self,agent_type):
+        self.log.debug("_remove_self: start.")
+        for agent in self._get_agents_by_type(agent_type):
+            if agent['host'] == socket.gethostname():
+               self.log.info("_remove_self: deleting our own agent {0} of type {1}".format(agent['id'],agent_type))
+               if not self.options.get('noop'):
+                   self._neutron_API_call(self.client.delete_agent, agent['id'])
+        self.log.debug("_remove_self: end.")
+
 
     def _reschedule_agent(self, agent):
         self.log.debug("_reschedule_agents: start.")
@@ -436,6 +496,8 @@ class NeutronCleaner(object):
             self._cleanup_ports(agent)
         if self.options.get('reschedule'):
             self._reschedule_agent(agent)
+        if self.options.get('remove-self'):
+            self._remove_self(agent)
         # if self.options.get('remove-agent'):
         #     self._cleanup_agents(agent)
 
@@ -473,6 +535,8 @@ if __name__ == '__main__':
                       help="specyfy agents for cleaning", required=True)
     parser.add_argument("--cleanup-ports", dest="cleanup-ports", action="store_true", default=False,
                       help="cleanup ports for given agents on this node")
+    parser.add_argument("--remove-self", dest="remove-self", action="store_true", default=False,
+                      help="remove ourselves from agent list")
     parser.add_argument("--activeonly", dest="activeonly", action="store_true", default=False,
                       help="cleanup only active ports")
     parser.add_argument("--reschedule", dest="reschedule", action="store_true", default=False,
