@@ -464,6 +464,7 @@ neutron_dhcp_agent_stop() {
     clean_up
     sleep 1
     clean_up_namespaces
+    q-agent-cleanup.py --agent=dhcp  --remove-self ${AUTH_TAIL} 2>&1
 
     return $OCF_SUCCESS
 }
