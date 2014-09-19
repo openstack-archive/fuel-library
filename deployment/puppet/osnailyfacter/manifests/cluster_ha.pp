@@ -131,6 +131,8 @@ class osnailyfacter::cluster_ha {
       iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
       iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
       iptables_comment     => "masquerade-for-management-net",
+      tie_with_ping        => false,
+      ping_host_list       => "",
     },
   }
 
@@ -147,6 +149,8 @@ class osnailyfacter::cluster_ha {
       iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
       iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
       iptables_comment     => "masquerade-for-public-net",
+      tie_with_ping        => true,
+      ping_host_list       => $::fuel_settings['network_data'][$::public_int]['gateway'],
     }
   }
   $vip_keys = keys($vips)
