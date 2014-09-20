@@ -10,8 +10,6 @@ if ($programname == 'lrmd' \
   or $programname == 'crmd' \
   or $programname == 'crm_verify' \
   or $programname == 'corosync') \
-### use 6 for INFO+ msg levels, 5 for WARN+ etc.
-###  and $syslogseverity <= '6' \
 then -/var/log/pacemaker.log
 ### stop further processing for the matched entries
 & ~

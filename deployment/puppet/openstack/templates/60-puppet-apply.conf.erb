@@ -4,8 +4,6 @@
 if ($programname == 'puppet-apply' \
  or $programname == 'puppet-user' \
  or $programname == 'puppet-error') \
-### use 6 for INFO+ msg levels, 5 for WARN+ etc.
-###  and $syslogseverity <= '6' \
 then -/var/log/puppet/puppet.log
 ### stop further processing for the matched entries
 & ~
