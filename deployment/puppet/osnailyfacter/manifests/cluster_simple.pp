@@ -488,6 +488,8 @@ class osnailyfacter::cluster_simple {
           vlan_interface          => $vcenter_hash['vlan_interface'],
           vnc_address             => $controller_node_public,
           use_quantum             => $::use_neutron,
+          ceilometer              => $ceilometer_hash['enabled'],
+          debug                   => $debug,
         }
       }
 
