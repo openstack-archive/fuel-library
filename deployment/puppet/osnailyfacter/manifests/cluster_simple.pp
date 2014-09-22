@@ -59,8 +59,10 @@ class osnailyfacter::cluster_simple {
 
   if $::fuel_settings['libvirt_type'] == 'vcenter' {
     $vcenter_hash = $::fuel_settings['vcenter']
+    $vcenter = true
   } else {
     $vcenter_hash = {}
+    $vcenter = false
   }
 
   if $::fuel_settings['role'] == 'controller' {
@@ -244,6 +246,7 @@ class osnailyfacter::cluster_simple {
         syslog_log_facility_keystone   => $::syslog_log_facility_keystone,
         syslog_log_facility_ceilometer => $::syslog_log_facility_ceilometer,
         cinder_rate_limits             => $::cinder_rate_limits,
+        vcenter                        => $vcenter,
         horizon_use_ssl                => $::horizon_use_ssl,
         nameservers                    => $::dns_nameservers,
         primary_controller             => true,
