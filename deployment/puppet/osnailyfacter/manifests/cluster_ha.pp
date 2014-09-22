@@ -789,6 +789,8 @@ class osnailyfacter::cluster_ha {
           use_quantum             => $::use_neutron,
           ha_mode                 => true,
           vnc_address             => $controller_node_public,
+          ceilometer              => $ceilometer_hash['enabled'],
+          debug                   => $debug,
         }
       }
 

@@ -1,5 +1,6 @@
 fixtures:
   symlinks:
+    ceilometer: "#{source_dir}/../ceilometer"
     corosync: "#{source_dir}/../corosync"
     inifile: "#{source_dir}/../inifile"
     nova: "#{source_dir}/../nova"
