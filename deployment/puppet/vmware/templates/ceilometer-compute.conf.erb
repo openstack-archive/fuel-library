@@ -1,0 +1,14 @@
+[DEFAULT]
+hypervisor_inspector=<%= scope.lookupvar('vmware::ceilometer::hypervisor_inspector') %>
+default_log_levels=<%= scope.lookupvar('vmware::ceilometer::default_log_levels') %>
+
+[vmware]
+host_ip=<%= scope.lookupvar('vmware::ceilometer::vcenter_host_ip') %>
+host_username=<%= scope.lookupvar('vmware::ceilometer::vcenter_user') %>
+host_password=<%= scope.lookupvar('vmware::ceilometer::vcenter_password') %>
+
+api_retry_count=<%= scope.lookupvar('vmware::ceilometer::api_retry_count') %>
+task_poll_interval=<%= scope.lookupvar('vmware::ceilometer::task_poll_interval') %>
+<% if scope.lookupvar('vmware::ceilometer::wsdl_location') -%>
+wsdl_location=<%= scope.lookupvar('vmware::ceilometer::wsdl_location') %>
+<% end -%>

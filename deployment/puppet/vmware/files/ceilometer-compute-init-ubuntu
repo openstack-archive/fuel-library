@@ -1,0 +1,25 @@
+# vim: set ft=upstart et ts=2:
+description "Ceilometer compute worker"
+author "Ivan Berezovskiy <iberezovskiy@mirantis.com>"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+chdir /var/run
+
+pre-start script
+  mkdir -p /var/run/ceilometer
+  chown ceilometer:root /var/run/ceilometer/
+
+  mkdir -p /var/lock/ceilometer
+  chown ceilometer:root /var/lock/ceilometer/
+end script
+
+script
+  if [ -r /etc/default/$UPSTART_JOB ]; then
+    . /etc/default/$UPSTART_JOB
+  fi
+
+  start-stop-daemon --start --chuid ceilometer --exec /usr/bin/ceilometer-agent-compute --config-file=/etc/ceilometer/ceilometer.conf $CEILOMETER_COMPUTE_OPTS
+end script
+

@@ -89,6 +89,7 @@ class openstack::controller_ha (
    $ceilometer_db_type             = 'mongodb',
    $swift_rados_backend            = false,
    $ceilometer_db_host             = '127.0.0.1',
+   $swift_rados_backend            = false,
    $sahara                         = false,
    $murano                         = false,
    $rabbit_node_ip_address         = $internal_address,
