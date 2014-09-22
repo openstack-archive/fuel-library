@@ -46,6 +46,7 @@ class ceilometer(
   $amqp_password       = 'rabbit_pw',
   $rabbit_ha_queues    = false,
   $rabbit_virtual_host = '/',
+  $polling_interval    = '60',
 ) {
 
   validate_string($metering_secret)
@@ -143,5 +144,10 @@ class ceilometer(
     ceilometer_config {
       'DEFAULT/use_syslog': value => false;
     }
+  }
+
+  exec { 'polling_interval':
+    command => "/bin/sed -i s/600/$polling_interval/g  /etc/ceilometer/pipeline.yaml",
+    require => Package['ceilometer-common'],
   }
 }
