@@ -34,8 +34,9 @@ node default {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
+    class {'docker::container': }
 
-  class { 'nailgun::nginx':
+    class { 'nailgun::nginx':
     production      => $production,
     staticdir       => $staticdir,
     templatedir     => $staticdir,

@@ -20,6 +20,7 @@ $mco_password = $::fuel_settings['mcollective']['password']
 $mco_vhost = "mcollective"
 $stomp = false
 
+class {'docker::container': }
 
 user { "rabbitmq":
   ensure => present,

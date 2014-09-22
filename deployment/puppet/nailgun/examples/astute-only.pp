@@ -35,8 +35,11 @@ node default {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
+  Class['docker::container'] ->
   Class['nailgun::astute'] ->
   Class['nailgun::supervisor']
+
+  class {'docker::container': }
 
   class {"nailgun::astute":
     production               => $production,
