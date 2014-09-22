@@ -201,6 +201,7 @@ class openstack::controller (
   $nova_rate_limits               = undef,
   $cinder_rate_limits             = undef,
   $ha_mode                        = false,
+  $vcenter                        = false,
   $nameservers                    = undef,
   $memcached_bind_address         = undef,
   #
@@ -520,6 +521,7 @@ class openstack::controller (
       on_controller        => true,
       use_neutron          => $quantum,
       swift                => $swift,
+      vcenter              => $vcenter,
     }
   }
 

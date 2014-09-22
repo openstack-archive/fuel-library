@@ -90,6 +90,7 @@ class openstack::controller_ha (
    $create_networks                = true,
    $use_unicast_corosync           = false,
    $ha_mode                        = true,
+   $vcenter                        = false,
    $nameservers                    = undef,
    $idle_timeout                   = '3600',
    $max_pool_size                  = '10',
@@ -211,6 +212,7 @@ class openstack::controller_ha (
       nova_service_down_time         => $nova_service_down_time,
       horizon_use_ssl                => $horizon_use_ssl,
       ha_mode                        => $ha_mode,
+      vcenter                        => $vcenter,
       nameservers                    => $nameservers,
       # SQLALchemy backend
       max_retries                    => $max_retries,

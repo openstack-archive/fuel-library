@@ -89,8 +89,10 @@ class osnailyfacter::cluster_ha {
 
   if $::fuel_settings['libvirt_type'] == 'vcenter' {
     $vcenter_hash = $::fuel_settings['vcenter']
+    $vcenter = true
   } else {
     $vcenter_hash = {}
+    $vcenter = false
   }
 
   if $primary_controller {
@@ -400,6 +402,7 @@ class osnailyfacter::cluster_ha {
       syslog_log_facility_ceilometer => $::syslog_log_facility_ceilometer,
       nova_rate_limits               => $::nova_rate_limits,
       cinder_rate_limits             => $::cinder_rate_limits,
+      vcenter                        => $::osnailyfacter::cluster_ha::vcenter,
       horizon_use_ssl                => $::fuel_settings['horizon_use_ssl'],
       use_unicast_corosync           => $::fuel_settings['use_unicast_corosync'],
       nameservers                    => $::dns_nameservers,
