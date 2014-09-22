@@ -30,6 +30,7 @@ class openstack::ceilometer (
   $primary_controller  = false,
   $use_neutron         = false,
   $swift               = false,
+  $vcenter             = false,
 ) {
 
   # Add the base ceilometer class & parameters
@@ -198,6 +199,17 @@ class openstack::ceilometer (
 
   if !defined(Service['ceilometer-alarm-evaluator']) {
     notify{ "Module ${module_name} cannot notify service ceilometer-alarm-evaluator on packages update": }
+  }
+
+  if ($vcenter) {
+    ceilometer_config {
+      'DEFAULT/hypervisor_inspector' : value => 'vsphere';
+      'DEFAULT/default_log_levels'   : value => 'amqp=WARN,amqplib=WARN,boto=WARN,qpid=WARN,sqlalchemy=WARN,suds=INFO,iso8601=WARN,requests.packages.urllib3.connectionpool=WARN,oslo.vmware=WARN';
+    }
+    # Install compute agent on controller
+    class { 'ceilometer::agent::compute':
+      enabled => true,
+    }
   }
 
   if ($on_compute) {
