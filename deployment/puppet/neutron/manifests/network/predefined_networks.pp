@@ -13,5 +13,10 @@ class neutron::network::predefined_networks (
   Neutron_net<||> -> Neutron_floatingip_pool<||>
   Neutron_subnet<||> -> Neutron_floatingip_pool<||>
   Neutron_router<||> -> Neutron_floatingip_pool<||>
+
+  Service <| title == 'neutron' |> -> Neutron_net<||>
+  Service <| title == 'neutron' |> -> Neutron_subnet<||>
+  Service <| title == 'neutron' |> -> Neutron_router<||>
+  Service <| title == 'neutron' |> -> Neutron_floatingip_pool<||>
 }
 # vim: set ts=2 sw=2 et :
