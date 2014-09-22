@@ -89,6 +89,9 @@ class openstack::controller_ha (
    $ceilometer_db_type             = 'mongodb',
    $swift_rados_backend            = false,
    $ceilometer_db_host             = '127.0.0.1',
+   $ceilometer_vcenter_user        = undef,
+   $ceilometer_vcenter_password    = undef,
+   $ceilometer_vcenter_host_ip     = undef,
    $sahara                         = false,
    $murano                         = false,
    $rabbit_node_ip_address         = $internal_address,
@@ -212,6 +215,9 @@ class openstack::controller_ha (
       ceilometer_db_type             => $ceilometer_db_type,
       ceilometer_db_host             => $ceilometer_db_host,
       swift_rados_backend            => $swift_rados_backend,
+      ceilometer_vcenter_user        => $ceilometer_vcenter_user,
+      ceilometer_vcenter_password    => $ceilometer_vcenter_password,
+      ceilometer_vcenter_host_ip     => $ceilometer_vcenter_host_ip,
       #
       # turn on SWIFT_ENABLED option for Horizon dashboard
       swift                          => $glance_backend ? { 'swift'    => true, default => false },
