@@ -452,6 +452,8 @@ class osnailyfacter::cluster_simple {
           vcenter_cluster   => $vcenter_hash['cluster'],
           vnc_address       => $controller_node_public,
           use_quantum       => $::use_neutron,
+          ceilometer        => $ceilometer_hash['enabled'],
+          debug             => $debug,
         }
       }
 
