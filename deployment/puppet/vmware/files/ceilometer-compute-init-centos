@@ -1,0 +1,109 @@
+#!/bin/sh
+#
+#
+# openstack-ceilometer-compute  OpenStack ceilometer compute node agent
+#
+# chkconfig:   - 98 02
+# description: OpenStack measurement and collection service for running on compute nodes
+
+### BEGIN INIT INFO
+# Provides:
+# Required-Start: $remote_fs $network $syslog
+# Required-Stop: $remote_fs $syslog
+# Default-Stop: 0 1 6
+# Short-Description: OpenStack ceilometer compute node agent
+# Description: OpenStack measurement and collection service for running on compute nodes
+### END INIT INFO
+
+. /etc/rc.d/init.d/functions
+
+suffix=compute
+cluster=${0##*-}
+prog=openstack-ceilometer-$suffix-vmware-$cluster
+exec="/usr/bin/ceilometer-agent-$suffix"
+config="/etc/ceilometer/ceilometer.conf"
+pidfile="/var/run/ceilometer/ceilometer-agent-$suffix.$cluster.pid"
+logfile="/var/log/ceilometer/$suffix-$cluster.log"
+
+[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+
+lockfile=/var/lock/subsys/$prog
+
+start() {
+    [ -x $exec ] || exit 5
+    [ -f $config ] || exit 6
+    echo -n $"Starting $prog: "
+    daemon --user ceilometer --pidfile $pidfile "$exec --logfile $logfile ${OPTIONS} &>/dev/null & echo \$! > $pidfile"
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc -p $pidfile ${prog%%.*}
+    if pgrep -f "ceilometer-agent-$suffix.*$cluster\.conf" &>/dev/null ; then
+        sleep 2
+        pgrep -f "ceilometer-agent-$suffix.*$cluster\.conf" &>/dev/null && \
+        pkill -f "$cluster.conf"
+    fi
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+reload() {
+    restart
+}
+
+force_reload() {
+    restart
+}
+
+rh_status() {
+    status -p $pidfile $prog
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+
+case "$1" in
+    start)
+        rh_status_q && exit 0
+        $1
+        ;;
+    stop)
+        rh_status_q || exit 0
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    reload)
+        rh_status_q || exit 7
+        $1
+        ;;
+    force-reload)
+        force_reload
+        ;;
+    status)
+        rh_status
+        ;;
+    condrestart|try-restart)
+        rh_status_q || exit 0
+        restart
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload}"
+        exit 2
+esac
+exit $?
