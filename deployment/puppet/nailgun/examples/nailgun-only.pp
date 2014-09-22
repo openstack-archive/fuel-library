@@ -11,6 +11,7 @@ else {
 $env_path = "/usr"
 $staticdir = "/usr/share/nailgun/static"
 
+Class["docker::container"] ->
 Class["nailgun::user"] ->
 Class["nailgun::packages"] ->
 Class["nailgun::venv"] ->
@@ -62,6 +63,8 @@ $mco_connector = "rabbitmq"
 
 #deprecated
 $puppet_master_hostname = "${::fuel_settings['HOSTNAME']}.${::fuel_settings['DNS_DOMAIN']}"
+
+class {'docker::container': }
 
 class { "nailgun::user":
   nailgun_group => $nailgun_group,

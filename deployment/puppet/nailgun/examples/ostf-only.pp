@@ -25,10 +25,12 @@ node default {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
+  class['docker::container'] ->
   Class['nailgun::packages'] ->
   Class['nailgun::ostf'] ->
   Class['nailgun::supervisor']
 
+  class {'docker::container': }
   class { "nailgun::packages": }
 
   class { "nailgun::ostf":

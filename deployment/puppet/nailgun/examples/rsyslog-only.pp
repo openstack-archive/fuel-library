@@ -1,6 +1,8 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
 $fuel_version = parseyaml($fuel_version_yaml)
 
+class {'docker::container': }
+
 class {"::rsyslog::server":
   enable_tcp                => true,
   enable_udp                => true,

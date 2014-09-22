@@ -63,6 +63,7 @@ node default {
   $gem_source =
 "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8080/gems/"
 
+  class { 'docker::container': }
 
   class { "nailgun::cobbler":
     production   => $production,

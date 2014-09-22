@@ -17,6 +17,8 @@ $database_port = "5432"
 $database_user = $::fuel_settings['postgres']['nailgun_user']
 $database_passwd = $::fuel_settings['postgres']['nailgun_password']
 
+class {'docker::container': }
+
 class { "nailgun::database":
   user      => $database_user,
   password  => $database_passwd,
