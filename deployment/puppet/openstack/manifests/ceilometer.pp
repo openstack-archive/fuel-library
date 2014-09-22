@@ -31,6 +31,7 @@ class openstack::ceilometer (
   $primary_controller  = false,
   $use_neutron         = false,
   $swift               = false,
+  $vcenter              = false,
 ) {
 
   # Add the base ceilometer class & parameters
@@ -90,7 +91,7 @@ class openstack::ceilometer (
     }
 
     class { '::ceilometer::alarm::evaluator':
-      eval_interval      => 600,
+      eval_interval      => 60,
       ha_mode            => $ha_mode,
       primary_controller => $primary_controller
     }
@@ -101,6 +102,18 @@ class openstack::ceilometer (
       use_neutron => $use_neutron,
       swift       => $swift,
     }
+
+    if ($vcenter) {
+      ceilometer_config {
+        'DEFAULT/hypervisor_inspector' : value => 'vsphere';
+        'DEFAULT/default_log_levels'   : value => 'amqp=WARN,amqplib=WARN,boto=WARN,qpid=WARN,sqlalchemy=WARN,suds=INFO,iso8601=WARN,requests.packages.urllib3.connectionpool=WARN,oslo.vmware=WARN';
+      }
+      # Install compute agent on controller
+      class { 'ceilometer::agent::compute':
+        auth_host     => $keystone_host,
+        auth_password => $keystone_password,
+      }
+
  }
 
   if ($on_compute) {
