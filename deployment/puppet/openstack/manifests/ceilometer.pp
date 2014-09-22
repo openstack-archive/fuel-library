@@ -90,7 +90,7 @@ class openstack::ceilometer (
     }
 
     class { '::ceilometer::alarm::evaluator':
-      eval_interval      => 600,
+      eval_interval      => 60,
       ha_mode            => $ha_mode,
       primary_controller => $primary_controller
     }
