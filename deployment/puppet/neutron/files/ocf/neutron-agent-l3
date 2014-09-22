@@ -46,6 +46,8 @@ OCF_RESKEY_username_default="neutron"
 OCF_RESKEY_password_default="neutron_pass"
 OCF_RESKEY_tenant_default="services"
 OCF_RESKEY_external_bridge_default="br-ex"
+OCF_RESKEY_rescheduling_tries_default=3
+OCF_RESKEY_rescheduling_interspace_default=33
 OCF_RESKEY_debug_default=false
 
 : ${OCF_RESKEY_os_auth_url=${OCF_RESKEY_os_auth_url_default}}
@@ -60,6 +62,8 @@ OCF_RESKEY_debug_default=false
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
 : ${OCF_RESKEY_external_bridge=${OCF_RESKEY_external_bridge_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
+: ${OCF_RESKEY_rescheduling_tries=${OCF_RESKEY_rescheduling_tries_default}}
+: ${OCF_RESKEY_rescheduling_interspace=${OCF_RESKEY_rescheduling_interspace_default}}
 : ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
 
 
@@ -208,6 +212,22 @@ External bridge for l3-agent
   </longdesc>
   <shortdesc lang="en">Enable debug logging</shortdesc>
   <content type="boolean" default="false"/>
+</parameter>
+
+<parameter name="rescheduling_tries" unique="0" required="0">
+  <longdesc lang="en">
+  Tries to start rescheduling script after start of agent.
+  </longdesc>
+  <shortdesc lang="en">Tries to start rescheduling script after start of agent.</shortdesc>
+  <content type="boolean" default="${OCF_RESKEY_rescheduling_tries_default}"/>
+</parameter>
+
+<parameter name="rescheduling_interspace" unique="0" required="0">
+  <longdesc lang="en">
+  Interspace between starts of rescheduling script.
+  </longdesc>
+  <shortdesc lang="en">Interspace between starts of rescheduling script.</shortdesc>
+  <content type="boolean" default="${OCF_RESKEY_rescheduling_interspace_default}"/>
 </parameter>
 
 <parameter name="syslog" unique="0" required="0">
@@ -432,7 +452,12 @@ neutron_l3_agent_start() {
     fi
 
     # detach deferred rescheduling procedure
-    bash -c "sleep 33 ; q-agent-cleanup.py --agent=l3 --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log " &
+    RESCHEDULING_CMD="q-agent-cleanup.py --agent=l3 --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
+    RESCH_CMD=''
+    for ((i=0; i<$OCF_RESKEY_rescheduling_tries; i++)) ; do
+        RESCH_CMD="$RESCH_CMD sleep $OCF_RESKEY_rescheduling_interspace ; $RESCHEDULING_CMD ;"
+    done
+    bash -c "$RESCH_CMD" &
     fuel-fdb-cleaner --ssh-keyfile /root/.ssh/id_rsa_neutron -l /var/log/neutron/fdb-cleaner.log
 
     ocf_log info "OpenStack Router (neutron-l3-agent) started"
