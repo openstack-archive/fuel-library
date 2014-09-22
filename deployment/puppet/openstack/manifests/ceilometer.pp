@@ -5,31 +5,34 @@
 #
 
 class openstack::ceilometer (
-  $keystone_password   = 'ceilometer_pass',
-  $metering_secret     = 'ceilometer',
-  $verbose             =  false,
-  $use_syslog          =  false,
-  $syslog_log_facility = 'LOG_LOCAL0',
-  $debug               =  false,
-  $db_type             = 'mysql',
-  $db_host             = 'localhost',
-  $db_user             = 'ceilometer',
-  $db_password         = 'ceilometer_pass',
-  $db_dbname           = 'ceilometer',
-  $mongo_replicaset    = false,
-  $amqp_hosts          = '127.0.0.1',
-  $amqp_user           = 'guest',
-  $amqp_password       = 'rabbit_pw',
-  $rabbit_ha_queues    = false,
-  $keystone_host       = '127.0.0.1',
-  $host                = '0.0.0.0',
-  $port                = '8777',
-  $on_controller       = false,
-  $on_compute          = false,
-  $ha_mode             = false,
-  $primary_controller  = false,
-  $use_neutron         = false,
-  $swift               = false,
+  $keystone_password           = 'ceilometer_pass',
+  $metering_secret             = 'ceilometer',
+  $verbose                     =  false,
+  $use_syslog                  =  false,
+  $syslog_log_facility         = 'LOG_LOCAL0',
+  $debug                       =  false,
+  $db_type                     = 'mysql',
+  $db_host                     = 'localhost',
+  $db_user                     = 'ceilometer',
+  $db_password                 = 'ceilometer_pass',
+  $db_dbname                   = 'ceilometer',
+  $mongo_replicaset            = false,
+  $amqp_hosts                  = '127.0.0.1',
+  $amqp_user                   = 'guest',
+  $amqp_password               = 'rabbit_pw',
+  $rabbit_ha_queues            = false,
+  $keystone_host               = '127.0.0.1',
+  $host                        = '0.0.0.0',
+  $port                        = '8777',
+  $on_controller               = false,
+  $on_compute                  = false,
+  $ha_mode                     = false,
+  $primary_controller          = false,
+  $use_neutron                 = false,
+  $swift                       = false,
+  $ceilometer_vcenter_user     = undef,
+  $ceilometer_vcenter_password = undef,
+  $ceilometer_vcenter_host_ip  = undef,
 ) {
 
   # Add the base ceilometer class & parameters
@@ -200,7 +203,17 @@ class openstack::ceilometer (
     notify{ "Module ${module_name} cannot notify service ceilometer-alarm-evaluator on packages update": }
   }
 
-  if ($on_compute) {
+  if ($ceilometer_vcenter_host_ip) {
+    ceilometer_config {
+      'DEFAULT/hypervisor_inspector' : value => 'vsphere';
+      'DEFAULT/default_log_levels'   : value => 'amqp=WARN,amqplib=WARN,boto=WARN,qpid=WARN,sqlalchemy=WARN,suds=INFO,iso8601=WARN,requests.packages.urllib3.connectionpool=WARN,oslo.vmware=WARN';
+      'vmware/host_username'         : value => $ceilometer_vcenter_user;
+      'vmware/host_password'         : value => $ceilometer_vcenter_password;
+      'vmware/host_ip'               : value => $ceilometer_vcenter_host_ip;
+    }
+  }
+
+  if ($on_compute) or ($ceilometer_vcenter_host_ip) {
     # Install compute agent
     class { 'ceilometer::agent::compute':
       enabled => true,
