@@ -17,6 +17,11 @@ class osnailyfacter::apache_api_proxy {
       require => Package['dashboard'],
     }->
 
+    file {'/etc/apache2/mods-enabled/proxy_connect.load':
+      ensure => link,
+      target => '/etc/apache2/mods-available/proxy_connect.load',
+    }->
+
     file {'/etc/apache2/mods-enabled/proxy.conf':
       ensure => link,
       target => '/etc/apache2/mods-available/proxy.conf',
