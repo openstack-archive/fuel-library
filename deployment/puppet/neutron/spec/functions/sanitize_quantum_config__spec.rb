@@ -216,7 +216,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
         'password' => 'passwd__admin',
         'user'     => 'user__admin',
         'tenant'   => 'tenant__admin',
-        'email'    => 'admin@example.org',
+        'email'    => 'admin@localhost',
       },
       'nova' => {
         'user_password' => 'nova_user_passwd'
