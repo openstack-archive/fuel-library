@@ -34,6 +34,8 @@ class vmware (
   $use_quantum = false,
   $ha_mode = false,
   $vnc_address = '0.0.0.0',
+  $ceilometer = false,
+  $debug = false,
 )
 {
   class { 'vmware::controller':
@@ -44,5 +46,16 @@ class vmware (
     use_quantum      => $use_quantum,
     ha_mode          => $ha_mode,
     vnc_address      => $vnc_address,
+  }
+
+  if $ceilometer {
+    class { 'vmware::ceilometer':
+      vcenter_user      => $vcenter_user,
+      vcenter_password  => $vcenter_password,
+      vcenter_host_ip   => $vcenter_host_ip,
+      vcenter_cluster   => $vcenter_cluster,
+      ha_mode           => $ha_mode,
+      debug             => $debug,
+    }
   }
 }
