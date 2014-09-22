@@ -14,7 +14,7 @@
 #
 class ceilometer::alarm::evaluator (
   $enabled       = true,
-  $eval_interval = 600,
+  $eval_interval = 60,
   $ha_mode       = false,
   $primary_controller = false
 )
