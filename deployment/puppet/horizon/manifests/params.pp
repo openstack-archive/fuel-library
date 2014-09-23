@@ -39,7 +39,7 @@ class horizon::params {
       $ssl_key_file              = '/etc/ssl/private/ssl-cert-snakeoil.key'
       $ssl_cert_type             = 'pem'
       $dashboard_http_conf_file  = '/etc/apache2/conf-available/openstack-dashboard.conf'
-      $apache_tuning_file        = '/etc/apache2/conf.d/zzz_performance_tuning.conf'
+      $apache_tuning_file        = '/etc/apache2/conf-available/zzz_performance_tuning.conf'
       case $::operatingsystem {
         'Debian': {
             $package_name        = 'openstack-dashboard-apache'
