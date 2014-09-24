@@ -33,14 +33,14 @@ class zabbix::server {
   service { $zabbix::params::server_service:
     enable    => true,
     ensure    => running,
-    require   => File[$zabbix::params::server_config],
+    subscribe => File[$zabbix::params::server_config],
   }
 
   Anchor<| title == 'zabbix_db_end' |> -> Anchor<| title == 'zabbix_frontend_start' |>
 
   if $zabbix::params::frontend {
-    class { 'zabbix::frontend': 
-      require => Service[$zabbix::params::server_service],
+    class { 'zabbix::frontend':
+    require => Service[$zabbix::params::server_service],
     }
     anchor { 'zabbix_frontend_start': } -> Class['zabbix::frontend'] -> anchor { 'zabbix_frontend_end': }
   }
