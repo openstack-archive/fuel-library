@@ -28,6 +28,7 @@ describe 'glance::backend::swift' do
       should contain_glance_api_config('DEFAULT/swift_store_auth_address').with_value('127.0.0.1:5000/v2.0/')
       should contain_glance_api_config('DEFAULT/swift_store_container').with_value('glance')
       should contain_glance_api_config('DEFAULT/swift_store_create_container_on_put').with_value(false)
+      should contain_glance_api_config('DEFAULT/swift_store_large_object_size').with_value('200')
     end
 
     it 'configures glance-cache.conf' do
