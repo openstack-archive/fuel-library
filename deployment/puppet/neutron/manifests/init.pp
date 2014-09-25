@@ -46,6 +46,10 @@ class neutron (
     }
   }
 
+  package {'ipset':
+    ensure => present
+  }
+
   package {'neutron':
     name   => $::neutron::params::package_name,
     ensure => present
