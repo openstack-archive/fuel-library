@@ -88,26 +88,26 @@
 #
 class neutron::quota (
   $default_quota             = -1,
-  $quota_network             = 50,
-  $quota_subnet              = 50,
-  $quota_port                = 250,
+  $quota_network             = 10,
+  $quota_subnet              = 10,
+  $quota_port                = 50,
   # l3 extension
-  $quota_router              = 50,
-  $quota_floatingip          = 250,
+  $quota_router              = 10,
+  $quota_floatingip          = 50,
   # securitygroup extension
-  $quota_security_group      = -1,
-  $quota_security_group_rule = -1,
+  $quota_security_group      = 10,
+  $quota_security_group_rule = 100,
   $quota_driver              = 'neutron.db.quota_db.DbQuotaDriver',
-  $quota_firewall            = -1,
-  $quota_firewall_policy     = -1,
+  $quota_firewall            = 1,
+  $quota_firewall_policy     = 1,
   $quota_firewall_rule       = -1,
   $quota_health_monitor      = -1,
   $quota_items               = 'network,subnet,port',
   $quota_member              = -1,
-  $quota_network_gateway     = -1,
+  $quota_network_gateway     = 5,
   $quota_packet_filter       = 100,
   $quota_pool                = 10,
-  $quota_vip                 = -1
+  $quota_vip                 = 10
 ) {
 
   neutron_config {
