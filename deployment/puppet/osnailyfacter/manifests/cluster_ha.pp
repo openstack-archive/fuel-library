@@ -150,7 +150,10 @@ class osnailyfacter::cluster_ha {
       iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
       iptables_comment     => "masquerade-for-public-net",
       tie_with_ping        => true,
-      ping_host_list       => $::fuel_settings['network_data'][$::public_int]['gateway'],
+      ping_host_list       => $::use_quantum ? {
+        default => $::fuel_settings['network_data'][$::public_int]['gateway'],
+        true    => $::fuel_settings['network_scheme']['endpoints']['br-ex']['gateway'],
+      },
     }
   }
   $vip_keys = keys($vips)
