@@ -326,7 +326,7 @@ class MrntNeutron
         :rpc_workers     => nil,
         :control_exchange=> 'neutron',
         :core_plugin  => 'openvswitch',
-        :service_plugins  => 'neutron.services.l3_router.l3_router_plugin.L3RouterPlugin,neutron.services.firewall.fwaas_plugin.FirewallPlugin,neutron.services.metering.metering_plugin.MeteringPlugin',
+        :service_plugins  => 'neutron.services.l3_router.l3_router_plugin.L3RouterPlugin,neutron.services.metering.metering_plugin.MeteringPlugin',
         :notify_nova_send_events_interval => 2,
         :notify_nova_on_port_status_changes => true,
         :notify_nova_on_port_data_changes => true,
