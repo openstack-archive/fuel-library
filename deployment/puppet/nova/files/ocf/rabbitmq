@@ -280,12 +280,29 @@ reset_mnesia() {
 
 block_client_access()
 {
-    iptables -I INPUT -p tcp -m tcp --dport ${OCF_RESKEY_node_port} -m state --state NEW,RELATED,ESTABLISHED -m comment --comment 'temporary RMQ block' -j REJECT --reject-with tcp-reset
-
+    # do not add temporary RMQ blocking rule, if it is already exist
+    # otherwise, try to add a blocking rule with max of 5 retries
+    tries=5
+    until $(iptables -nvL | grep -q 'temporary RMQ block') || [[ $tries -eq 0 ]]; do
+      ((tries--))
+      iptables -I INPUT -p tcp -m tcp --dport ${OCF_RESKEY_node_port} -m state --state NEW,RELATED,ESTABLISHED \
+      -m comment --comment 'temporary RMQ block' -j REJECT --reject-with tcp-reset
+      sleep 1
+    done
+    if [ $tries -eq 0 ]; then
+        return $OCF_ERR_GENERIC
+    else
+        return $OCF_SUCCESS
+    fi
 }
+
 unblock_client_access()
 {
-    iptables -D INPUT -p tcp -m tcp --dport ${OCF_RESKEY_node_port} -m state --state NEW,RELATED,ESTABLISHED -m comment --comment 'temporary RMQ block' -j REJECT --reject-with tcp-reset
+    # remove all temporary RMQ blocking rules, if there are more than one exist
+    for i in $(iptables -nvL --line-numbers | awk '/temporary RMQ block/ {print $1}'); do
+      iptables -D INPUT -p tcp -m tcp --dport ${OCF_RESKEY_node_port} -m state --state NEW,RELATED,ESTABLISHED \
+      -m comment --comment 'temporary RMQ block' -j REJECT --reject-with tcp-reset
+    done
 }
 
 get_nodes__base(){
@@ -664,8 +681,16 @@ start_rmq_server_app() {
 
 
     ocf_log info "${LH} begin."
-
+    # Safe-unblock the rules, if there are any
+    unblock_client_access
+    # Apply the blocking rule
     block_client_access
+    if [[ $? == $OCF_SUCCESS ]]; then
+      ocf_log info "${LH} blocked access to RMQ port"
+    else
+      ocf_log err "${LH} cannot block access to RMQ port!"
+      return $OCF_ERR_GENERIC
+    fi
     get_status
     if [[ $? != $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} RMQ-runtime (beam) not started, starting..."
@@ -674,6 +699,7 @@ start_rmq_server_app() {
         if [ $rc -ne $OCF_SUCCESS ]
         then
             unblock_client_access
+            ocf_log info "${LH} unblocked access to RMQ port"
             return $OCF_ERR_GENERIC
         fi
     fi
@@ -706,6 +732,7 @@ start_rmq_server_app() {
                     ocf_log err "${LH} RMQ-server app can't be stopped during Mnesia cleaning. beam will be killed."
                     ocf_run killall -9 beam
                     unblock_client_access
+                    ocf_log info "${LH} unblocked access to RMQ port"
                     return $OCF_ERR_GENERIC
                 fi
             fi
@@ -717,6 +744,7 @@ start_rmq_server_app() {
     fi
     ocf_log info "${LH} end."
     unblock_client_access
+    ocf_log info "${LH} unblocked access to RMQ port"
     return $rc
 }
 
