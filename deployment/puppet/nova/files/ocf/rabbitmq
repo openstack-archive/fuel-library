@@ -676,6 +676,7 @@ start_rmq_server_app() {
             unblock_client_access
             return $OCF_ERR_GENERIC
         fi
+    unblock_client_access
     fi
 
     ocf_log info "${LH} RMQ-server app not started, starting..."
