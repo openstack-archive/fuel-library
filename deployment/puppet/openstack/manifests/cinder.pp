@@ -52,7 +52,11 @@ class openstack::cinder(
   #  localhost anyway.
 
 
-  cinder_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }
+  class {'cinder::glance':
+    glance_api_servers  => $glance_api_servers,
+    # Glance API v2 is required for Ceph RBD backend
+    $glance_api_version => '2',
+  }
 
   if $queue_provider == 'rabbitmq' and $rabbit_ha_queues {
     Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
