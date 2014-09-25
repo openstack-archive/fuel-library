@@ -1,8 +1,8 @@
 # = Class: firewall::linux
 #
-# Installs the `iptables` package for Linux operating systems and includes
-# the appropriate sub-class for any distribution specific services and
-# additional packages.
+# Installs the `iptables` and `ipset` packages for Linux operating systems
+# and includes the appropriate sub-class for any distribution specific services
+# and additional packages.
 #
 # == Parameters:
 #
@@ -20,6 +20,10 @@ class firewall::linux (
   }
 
   package { 'iptables':
+    ensure => present,
+  }
+
+  package { 'ipset':
     ensure => present,
   }
 
