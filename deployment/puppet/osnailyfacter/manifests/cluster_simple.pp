@@ -347,7 +347,6 @@ class osnailyfacter::cluster_simple {
           sahara_auth_uri            => "http://${controller_node_address}:5000/v2.0/",
           sahara_identity_uri        => "http://${controller_node_address}:35357/",
           use_neutron                => $::use_neutron,
-          use_floating_ips           => $::fuel_settings['auto_assign_floating_ip'],
           syslog_log_facility_sahara => $syslog_log_facility_sahara,
           debug                      => $debug,
           verbose                    => $verbose,
