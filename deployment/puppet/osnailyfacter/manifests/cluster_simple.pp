@@ -144,8 +144,10 @@ class osnailyfacter::cluster_simple {
 
   if ($storage_hash['images_ceph']) {
     $glance_backend = 'ceph'
+    $glance_known_stores = [ 'glance.store.rbd.Store' ]
   } else {
     $glance_backend = 'file'
+    $glance_known_stores = false
   }
 
   if ($::use_ceph) {
@@ -205,6 +207,7 @@ class osnailyfacter::cluster_simple {
         glance_user_password           => $glance_hash[user_password],
         glance_backend                 => $glance_backend,
         glance_image_cache_max_size    => $glance_hash[image_cache_max_size],
+        known_stores                   => $glance_known_stores,
         nova_db_password               => $nova_hash[db_password],
         nova_user_password             => $nova_hash[user_password],
         nova_rate_limits               => $::nova_rate_limits,

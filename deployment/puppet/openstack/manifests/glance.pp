@@ -70,6 +70,7 @@ class openstack::glance (
   $rabbit_notification_topic    = 'notifications',
   $amqp_durable_queues          = false,
   $control_exchange             = 'glance',
+  $known_stores                 = false,
 ) {
   validate_string($glance_user_password)
   validate_string($glance_db_password)
@@ -101,6 +102,7 @@ class openstack::glance (
     sql_idle_timeout      => $idle_timeout,
     show_image_direct_url => true,
     pipeline              => 'keystone+cachemanagement',
+    known_stores          => $known_stores,
   }
 
   glance_api_config {
