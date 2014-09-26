@@ -155,4 +155,9 @@ class neutron::plugins::ml2 (
     'ml2/mechanism_drivers':                value => join($mechanism_drivers, ',');
     'securitygroup/enable_security_group':  value => $enable_security_group;
   }
+
+
+  #NOTE(bogdando) contribute change to upstream #1384119:
+  Neutron_plugin_ml2<||> -> Exec<| title == 'neutron-db-sync' |>
+
 }

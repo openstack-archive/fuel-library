@@ -86,6 +86,10 @@
 class neutron::agents::ml2::ovs (
   $package_ensure        = 'present',
   $enabled               = true,
+  # TODO(bogdando) contribute change to upstream:
+  #   new manage_service param is required for pacemaker OCF control plane.
+  #   perhaps, could be removed once pacemaker wrappers implemented
+  $manage_service        = true,
   $bridge_uplinks        = [],
   $bridge_mappings       = [],
   $integration_bridge    = 'br-int',
@@ -101,7 +105,11 @@ class neutron::agents::ml2::ovs (
 ) {
 
   include neutron::params
-  require vswitch::ovs
+  # TODO(bogdando) contribute change to upstream:
+  #   replace vswitch::ovs with l23network, once its ready to be contributed
+  # FIXME(xarses): Need to come up with a better method to support vswitch and
+  # l23network at the same time
+  #require vswitch::ovs 
 
   if $enable_tunneling and ! $local_ip {
     fail('Local ip for ovs agent must be set when tunneling is enabled')
@@ -128,12 +136,18 @@ class neutron::agents::ml2::ovs (
     neutron_plugin_ml2 {
       'ovs/bridge_mappings': value => $br_map_str;
     }
-    neutron::plugins::ovs::bridge{ $bridge_mappings:
-      before => Service['neutron-ovs-agent-service'],
-    }
-    neutron::plugins::ovs::port{ $bridge_uplinks:
-      before => Service['neutron-ovs-agent-service'],
-    }
+
+    # TODO(bogdando) contribute change to upstream:
+    #   replace neutron::plugins::ovs::bridge with l23network,
+    #   once its ready to be contributed
+    # FIXME(xarses): Need to come up with a better method to support vswitch and
+    # l23network at the same time
+    #neutron::plugins::ovs::bridge{ $bridge_mappings:
+    #  before => Service['neutron-ovs-agent-service'],
+    #}
+    #neutron::plugins::ovs::port{ $bridge_uplinks:
+    #  before => Service['neutron-ovs-agent-service'],
+    #}
   }
 
   neutron_plugin_ml2 {
@@ -151,13 +165,19 @@ class neutron::agents::ml2::ovs (
     neutron_plugin_ml2 { 'securitygroup/firewall_driver': ensure => absent }
   }
 
-  vs_bridge { $integration_bridge:
+  # TODO(bogdando) contribute change to upstream:
+  #   replace vs_bridge with l23network,
+  #   once its ready to be contributed
+  l23network::l2::bridge { $integration_bridge:
     ensure => present,
     before => Service['neutron-ovs-agent-service'],
   }
 
   if $enable_tunneling {
-    vs_bridge { $tunnel_bridge:
+    # TODO(bogdando) contribute change to upstream:
+    #   replace vs_bridge with l23network,
+    #   once its ready to be contributed
+    l23network::l2::bridge { $tunnel_bridge:
       ensure => present,
       before => Service['neutron-ovs-agent-service'],
     }
@@ -215,24 +235,28 @@ class neutron::agents::ml2::ovs (
     }
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
-  }
+  # TODO(bogdando) contribute change to upstream:
+  #   new manage_service param is required for pacemaker OCF control plane
+  #   perhaps, could be removed once pacemaker wrappers implemented
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
 
-  service { 'neutron-ovs-agent-service':
-    ensure  => $service_ensure,
-    name    => $::neutron::params::ovs_agent_service,
-    enable  => $enabled,
-    require => Class['neutron'],
-  }
-
-  if $::neutron::params::ovs_cleanup_service {
-    service {'ovs-cleanup-service':
-      ensure => $service_ensure,
-      name   => $::neutron::params::ovs_cleanup_service,
-      enable => $enabled,
+    service { 'neutron-ovs-agent-service':
+      ensure  => $service_ensure,
+      name    => $::neutron::params::ovs_agent_service,
+      enable  => $enabled,
+      require => Class['neutron'],
+    }
+    if $::neutron::params::ovs_cleanup_service {
+      service {'ovs-cleanup-service':
+        ensure => $service_ensure,
+        name   => $::neutron::params::ovs_cleanup_service,
+        enable => $enabled,
+      }
     }
   }
 }
