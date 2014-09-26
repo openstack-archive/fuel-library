@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 #
-# OpenStack L3 Service (neutron-l3-agent)
+# OpenStack Neutron DHCP Service
 #
-# Description:  Manages an OpenStack L3 Service (neutron-l3-agent) process as an HA resource
+# Description:  Manages an OpenStack Neutron DHCP Service process as an HA resource
 #
 # Authors: Emilien Macchi
 # Mainly inspired by the Nova Network resource agent written by Emilien Macchi & Sebastien Han
@@ -20,7 +20,7 @@
 #   OCF_RESKEY_plugin_config
 #   OCF_RESKEY_user
 #   OCF_RESKEY_pid
-#   OCF_RESKEY_neutron_server_port
+#   OCF_RESKEY_amqp_server_port
 #   OCF_RESKEY_additional_parameters
 #######################################################################
 # Initialization:
@@ -34,21 +34,21 @@
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
-OCF_RESKEY_binary_default="neutron-l3-agent"
+OCF_RESKEY_binary_default="neutron-dhcp-agent"
 OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
 OCF_RESKEY_keystone_config_default="/etc/keystone/keystone.conf"
-OCF_RESKEY_plugin_config_default="/etc/neutron/l3_agent.ini"
-OCF_RESKEY_log_file_default="/var/log/neutron/l3-agent.log"
+OCF_RESKEY_plugin_config_default="/etc/neutron/dhcp_agent.ini"
+OCF_RESKEY_log_file_default="/var/log/neutron/dhcp-agent.log"
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
 OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
 OCF_RESKEY_username_default="neutron"
 OCF_RESKEY_password_default="neutron_pass"
 OCF_RESKEY_tenant_default="services"
-OCF_RESKEY_external_bridge_default="br-ex"
 OCF_RESKEY_rescheduling_tries_default=5
 OCF_RESKEY_rescheduling_interval_default=33
-OCF_RESKEY_debug_default=false
+OCF_RESKEY_debug_default='false'
+
 
 : ${OCF_RESKEY_os_auth_url=${OCF_RESKEY_os_auth_url_default}}
 : ${OCF_RESKEY_username=${OCF_RESKEY_username_default}}
@@ -60,11 +60,11 @@ OCF_RESKEY_debug_default=false
 : ${OCF_RESKEY_plugin_config=${OCF_RESKEY_plugin_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
-: ${OCF_RESKEY_external_bridge=${OCF_RESKEY_external_bridge_default}}
-: ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
+: ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
 : ${OCF_RESKEY_rescheduling_tries=${OCF_RESKEY_rescheduling_tries_default}}
 : ${OCF_RESKEY_rescheduling_interval=${OCF_RESKEY_rescheduling_interval_default}}
-: ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
+: ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
+
 
 
 #######################################################################
@@ -73,7 +73,7 @@ usage() {
     cat <<UEND
         usage: $0 (start|stop|validate-all|meta-data|status|monitor)
 
-        $0 manages an OpenStack L3 Service (neutron-l3-agent) process as an HA resource
+        $0 manages an OpenStack DHCP Service (${OCF_RESKEY_binary}) process as an HA resource
 
         The 'start' operation starts the networking service.
         The 'stop' operation stops the networking service.
@@ -89,30 +89,30 @@ meta_data() {
     cat <<END
 <?xml version="1.0"?>
 <!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
-<resource-agent name="neutron-l3-agent">
+<resource-agent name="neutron-dhcp-agent">
 <version>1.0</version>
 
 <longdesc lang="en">
-Resource agent for the OpenStack Router (neutron-l3-agent)
-May manage a neutron-l3-agent instance or a clone set that
-creates a distributed neutron-l3-agent cluster.
+Resource agent for the OpenStack Neutron DHCP Service (${OCF_RESKEY_binary})
+May manage a neutron-dhcp-agent instance or a clone set that
+creates a distributed neutron-dhcp-agent cluster.
 </longdesc>
-<shortdesc lang="en">Manages the OpenStack L3 Service (neutron-l3-agent)</shortdesc>
+<shortdesc lang="en">Manages the OpenStack DHCP Service (${OCF_RESKEY_binary})</shortdesc>
 <parameters>
 
 <parameter name="binary" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack Router server binary (neutron-l3-agent)
+Location of the OpenStack DHCP Server server binary (${OCF_RESKEY_binary})
 </longdesc>
-<shortdesc lang="en">OpenStack Router server binary (neutron-l3-agent)</shortdesc>
+<shortdesc lang="en">OpenStack DHCP Server server binary (${OCF_RESKEY_binary})</shortdesc>
 <content type="string" default="${OCF_RESKEY_binary_default}" />
 </parameter>
 
 <parameter name="config" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack Router (neutron-server) configuration file
+Location of the OpenStack Neutron Service (neutron-server) configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack Router (neutron-server) config file</shortdesc>
+<shortdesc lang="en">OpenStack DHCP Server (neutron-server) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_config_default}" />
 </parameter>
 
@@ -126,44 +126,35 @@ Location of the Keystone configuration file
 
 <parameter name="plugin_config" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack L3 Service (neutron-l3-agent) configuration file
+Location of the OpenStack DHCP Service (${OCF_RESKEY_binary}) configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack Router (neutron-l3-agent) config file</shortdesc>
+<shortdesc lang="en">OpenStack DHCP Server (${OCF_RESKEY_binary}) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_plugin_config_default}" />
 </parameter>
 
 <parameter name="user" unique="0" required="0">
 <longdesc lang="en">
-User running OpenStack L3 Service (neutron-l3-agent)
+User running OpenStack DHCP Service (${OCF_RESKEY_binary})
 </longdesc>
-<shortdesc lang="en">OpenStack L3 Service (neutron-l3-agent) user</shortdesc>
+<shortdesc lang="en">OpenStack DHCP Service (${OCF_RESKEY_binary}) user</shortdesc>
 <content type="string" default="${OCF_RESKEY_user_default}" />
 </parameter>
 
 <parameter name="pid" unique="0" required="0">
 <longdesc lang="en">
-The pid file to use for this OpenStack L3 Service (neutron-l3-agent) instance
+The pid file to use for this OpenStack DHCP Service (${OCF_RESKEY_binary}) instance
 </longdesc>
-<shortdesc lang="en">OpenStack L3 Service (neutron-l3-agent) pid file</shortdesc>
+<shortdesc lang="en">OpenStack DHCP Service (${OCF_RESKEY_binary}) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
 </parameter>
 
 <parameter name="log_file" unique="0" required="0">
 <longdesc lang="en">
-The log file to use for this OpenStack L3 Service (neutron-l3-agent) instance
+The log file to use for this OpenStack DHCP Service (${OCF_RESKEY_binary}) instance
 </longdesc>
-<shortdesc lang="en">OpenStack L3 Service (neutron-l3-agent) log file</shortdesc>
+<shortdesc lang="en">OpenStack DHCP Service (${OCF_RESKEY_binary}) log file</shortdesc>
 <content type="string" default="${OCF_RESKEY_log_file_default}" />
 </parameter>
-
-<parameter name="neutron_server_port" unique="0" required="0">
-<longdesc lang="en">
-The listening port number of the AMQP server. Mandatory to perform a monitor check
-</longdesc>
-<shortdesc lang="en">AMQP listening port</shortdesc>
-<content type="integer" default="${OCF_RESKEY_neutron_server_port_default}" />
-</parameter>
-
 
 <parameter name="username" unique="0" required="0">
 <longdesc lang="en">
@@ -198,22 +189,6 @@ Admin tenant name
 <content type="string" default="${OCF_RESKEY_tenant_default}" />
 </parameter>
 
-<parameter name="external_bridge" unique="0" required="0">
-<longdesc lang="en">
-External bridge for l3-agent
-</longdesc>
-<shortdesc lang="en">External bridge</shortdesc>
-<content type="string" />
-</parameter>
-
-<parameter name="debug" unique="0" required="0">
-  <longdesc lang="en">
-  Enable debug logging
-  </longdesc>
-  <shortdesc lang="en">Enable debug logging</shortdesc>
-  <content type="boolean" default="false"/>
-</parameter>
-
 <parameter name="rescheduling_tries" unique="0" required="0">
   <longdesc lang="en">
   Tries to start rescheduling script after start of agent.
@@ -230,19 +205,11 @@ External bridge for l3-agent
   <content type="boolean" default="${OCF_RESKEY_rescheduling_interval_default}"/>
 </parameter>
 
-<parameter name="syslog" unique="0" required="0">
-  <longdesc lang="en">
-  Enable logging to syslog
-  </longdesc>
-  <shortdesc lang="en">Enable logging to syslog</shortdesc>
-  <content type="boolean" default="false"/>
-</parameter>
-
 <parameter name="additional_parameters" unique="0" required="0">
 <longdesc lang="en">
-Additional parameters to pass on to the OpenStack L3 Service (neutron-l3-agent)
+Additional parameters to pass on to the OpenStack DHCP Service (${OCF_RESKEY_binary})
 </longdesc>
-<shortdesc lang="en">Additional parameters for neutron-l3-agent</shortdesc>
+<shortdesc lang="en">Additional parameters for neutron-dhcp-agent</shortdesc>
 <content type="string" />
 </parameter>
 
@@ -270,7 +237,7 @@ get_worker_pid() {
 #######################################################################
 # Functions invoked by resource manager actions
 
-neutron_l3_agent_validate() {
+neutron_dhcp_agent_validate() {
     local rc
 
     check_binary $OCF_RESKEY_binary
@@ -312,7 +279,7 @@ setup_auth() {
     true
 }
 
-neutron_l3_agent_status() {
+neutron_dhcp_agent_status() {
     local pid
     local f_pid
     local rc
@@ -339,7 +306,7 @@ neutron_l3_agent_status() {
     fi
 
     # at this point we have PID file and PID from it
-    # differents with PID from `pgrep...`
+    # defferents with PID from `pgrep...`
     if [ ! -d "/proc/$f_pid" ] || [ "xxx$f_pid" == "xxx" ] ; then
         # process with PID from PID-file not found
         ocf_log warn "Old PID file $OCF_RESKEY_pid found, but no running processes with PID=$f_pid found."
@@ -353,9 +320,8 @@ neutron_l3_agent_status() {
     return $OCF_ERR_GENERIC
 }
 
-
 get_ns_list() {
-    local rv=`ip netns list | grep -Ee "^qrouter-.*"`
+    local rv=`ip netns list | grep -Ee "^qdhcp-.*"`
     echo $rv
 }
 
@@ -394,7 +360,7 @@ clean_up() {
     fi
 
     # cleanup network interfaces
-    q-agent-cleanup.py --agent=l3 --cleanup-ports
+    q-agent-cleanup.py --agent=dhcp --cleanup-ports
 }
 
 clean_up_namespaces() {
@@ -410,20 +376,19 @@ clean_up_namespaces() {
     fi
 }
 
-neutron_l3_agent_monitor() {
-    neutron_l3_agent_status
+neutron_dhcp_agent_monitor() {
+    neutron_dhcp_agent_status
     rc=$?
     return $rc
-
 }
 
 
-neutron_l3_agent_start() {
+neutron_dhcp_agent_start() {
     local rc
-    neutron_l3_agent_status
+    neutron_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
-        ocf_log info "OpenStack neutron-l3-agent already running"
+        ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) already running"
         return $OCF_SUCCESS
     fi
 
@@ -434,61 +399,59 @@ neutron_l3_agent_start() {
     # run and detach to background agent as daemon.
     # Don't use ocf_run as we're sending the tool's output
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-        --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters  \
-        >> ${OCF_RESKEY_log_file}"' 2>&1 &'
-
+        --config-file=$OCF_RESKEY_plugin_config --log-file=$OCF_RESKEY_log_file $OCF_RESKEY_additional_parameters "' 2>&1 &'
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
     while true; do
-        neutron_l3_agent_monitor
+        neutron_dhcp_agent_monitor
         rc=$?
         [ $rc -eq $OCF_SUCCESS ] && break
-        if [ $rc -ne $OCF_NOT_RUNNING ] ; then
-            ocf_log err "OpenStack neutron-l3-agent start failed"
+        if [ $rc -ne $OCF_NOT_RUNNING ]; then
+            ocf_log err "OpenStack DHCP Server (${OCF_RESKEY_binary}) start failed"
             exit $OCF_ERR_GENERIC
         fi
         sleep 3
     done
 
-    # detach deferred rescheduling procedure
-    RESCHEDULING_CMD="q-agent-cleanup.py --agent=l3 --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
+    # detach deffered rescheduling procedure
+    RESCHEDULING_CMD="q-agent-cleanup.py --agent=dhcp --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
     RESCH_CMD=''
     for ((i=0; i<$OCF_RESKEY_rescheduling_tries; i++)) ; do
         RESCH_CMD="$RESCH_CMD sleep $OCF_RESKEY_rescheduling_interval ; $RESCHEDULING_CMD ;"
     done
     bash -c "$RESCH_CMD" &
-    fuel-fdb-cleaner --ssh-keyfile /root/.ssh/id_rsa_neutron -l /var/log/neutron/fdb-cleaner.log
 
-    ocf_log info "OpenStack Router (neutron-l3-agent) started"
+    ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) started"
     return $OCF_SUCCESS
 }
 
-neutron_l3_agent_stop() {
+
+neutron_dhcp_agent_stop() {
     local rc
     local pid
 
-    neutron_l3_agent_status
+    neutron_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
         clean_up
+        ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) already stopped"
         sleep 1
         clean_up_namespaces
-        ocf_log info "OpenStack Router ($OCF_RESKEY_binary) already stopped"
         return $OCF_SUCCESS
     fi
 
-    # Try SIGTERM
+    #Try SIGTERM
     pid=`get_worker_pid`
     if [ "xxx$pid" == "xxx" ] ; then
-        ocf_log warn "OpenStack Router ($OCF_RESKEY_binary) not running."
+        ocf_log warn "OpenStack DHCP Server (${OCF_RESKEY_binary}) not running."
         #return $OCF_NOT_RUNNING
         return $OCF_SUCCESS
     fi
     ocf_run kill -s TERM $pid
     rc=$?
     if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack Router ($OCF_RESKEY_binary) couldn't be stopped"
+        ocf_log err "OpenStack DHCP Server (${OCF_RESKEY_binary}) couldn't be stopped"
         exit $OCF_ERR_GENERIC
     fi
 
@@ -499,32 +462,32 @@ neutron_l3_agent_stop() {
     fi
     count=0
     while [ $count -lt $shutdown_timeout ]; do
-        neutron_l3_agent_status
+        neutron_dhcp_agent_status
         rc=$?
         if [ $rc -eq $OCF_NOT_RUNNING ]; then
             break
         fi
         count=`expr $count + 1`
         sleep 1
-        ocf_log debug "OpenStack Router ($OCF_RESKEY_binary) still hasn't stopped yet. Waiting ..."
+        ocf_log debug "OpenStack DHCP Server (${OCF_RESKEY_binary}) still hasn't stopped yet. Waiting ..."
     done
 
-    neutron_l3_agent_status
+    neutron_dhcp_agent_status
     rc=$?
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
         # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack Router ($OCF_RESKEY_binary) failed to stop after ${shutdown_timeout}s \
+        ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) failed to stop after ${shutdown_timeout}s \
           using SIGTERM. Trying SIGKILL ..."
         ocf_run kill -s KILL $pid
     fi
-
-    ocf_log info "OpenStack Router ($OCF_RESKEY_binary) stopped"
+    ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) stopped"
 
     rm -f $OCF_RESKEY_pid
+
     clean_up
     sleep 1
     clean_up_namespaces
-    q-agent-cleanup.py --agent=l3 --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
+    q-agent-cleanup.py --agent=dhcp --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
     sleep 3
 
     return $OCF_SUCCESS
@@ -540,17 +503,16 @@ case "$1" in
 esac
 
 # Anything except meta-data and help must pass validation
-neutron_l3_agent_validate || exit $?
+neutron_dhcp_agent_validate || exit $?
 setup_auth || exit $?
 
 # What kind of method was invoked?
 case "$1" in
-  start)        neutron_l3_agent_start;;
-  stop)         neutron_l3_agent_stop;;
-  status)       neutron_l3_agent_status;;
-  monitor)      neutron_l3_agent_monitor;;
+  start)        neutron_dhcp_agent_start;;
+  stop)         neutron_dhcp_agent_stop;;
+  status)       neutron_dhcp_agent_status;;
+  monitor)      neutron_dhcp_agent_monitor;;
   validate-all) ;;
   *)            usage
                 exit $OCF_ERR_UNIMPLEMENTED;;
 esac
-
