@@ -277,7 +277,7 @@ neutron_ovs_agent_start() {
     # run and detach to background Neutron-ovs-agent as daemon.
     # Don't use ocf_run as we're sending the tool's output
      su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-        --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters --log-file=$OCF_RESKEY_log_file"' 2>&1 &'
+        --config-file=$OCF_RESKEY_plugin_config --log-file=$OCF_RESKEY_log_file $OCF_RESKEY_additional_parameters "' 2>&1 &'
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
