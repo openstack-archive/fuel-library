@@ -66,23 +66,16 @@ class openstack::network::neutron_agents (
       enable_tunneling    => $enable_tunneling,
       local_ip            => $local_ip,
       manage_service      => true,
-      enabled             => $ha_agents ? { false => true, default => false},
+      enabled             => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>
     Service<| title == 'neutron-server' |> -> Service<| title == 'ovs-cleanup-service' |>
+    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-ovs-agent-service' |>
+
     if $ha_agents {
       class {'cluster::neutron::ovs':
         primary => $ha_agents ? { 'primary' => true, default => false},
-        #require => Class['::neutron::agents::ovs']
       }
-
-      # Because we enabled_service false, ovs_cleanup_service is also not managed
-      # so we need to re-manage it here.
-      Service <| title == 'ovs-cleanup-service' |> {
-        ensure => running,
-        enable => true,
-      }
-
     }
   }
 
@@ -104,35 +97,16 @@ class openstack::network::neutron_agents (
       enable_tunneling    => $enable_tunneling,
       local_ip            => $local_ip,
       manage_service      => true,
-      enabled             => $ha_agents ? { false => true, default => false},
+      enabled             => true,
     }
 
-    # Workaround for https://bugs.launchpad.net/fuel/+bug/1335869
-    #file {'/etc/neutron/plugins/openvswitch':
-    #  ensure  => directory,
-    #  recurse => true,
-    #  require => File['/etc/neutron/plugin.ini'],
-    #} ->
-    #file {'/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini':
-    #  ensure  => link,
-    #  target  => '/etc/neutron/plugins/ml2/ml2_conf.ini',
-    #  require => File['/etc/neutron/plugin.ini'],
-    #  before  => Service['neutron-ovs-agent-service']
-    #}
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>
     Service<| title == 'neutron-server' |> -> Service<| title == 'ovs-cleanup-service' |>
+    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-ovs-agent-service' |>
 
     if $ha_agents {
       class {'cluster::neutron::ovs':
         primary   => $ha_agents ? { 'primary' => true, default => false},
-        #require   => Class['::neutron::agents::ml2::ovs']
-      }
-
-      # Because we enabled_service false, ovs_cleanup_service is also not managed
-      # so we need to re-manage it here.
-      Service <| title =='ovs-cleanup-service' |> {
-        ensure => running,
-        enable => true,
       }
     }
   }
@@ -152,13 +126,14 @@ class openstack::network::neutron_agents (
       shared_secret  => $shared_secret,
       metadata_ip    => $metadata_ip,
       manage_service => true,
-      enabled        => $ha_agents ? { false => true, default => false},
+      enabled        => true,
+
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-metadata' |>
+    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-metadata' |>
     if $ha_agents {
       class {'cluster::neutron::metadata':
           primary => $ha_agents ? { 'primary' => true, default => false},
-          #require => Class['::neutron::agents::metadata']
       }
     }
   }
@@ -169,9 +144,10 @@ class openstack::network::neutron_agents (
       resync_interval => $resync_interval,
       use_namespaces  => $use_namespaces,
       manage_service  => true,
-      enabled         => $ha_agents ? { false => true, default => false},
+      enabled         => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-dhcp-service' |>
+    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-dhcp-service' |>
     if $ha_agents {
       class {'cluster::neutron::dhcp':
         ha_agents         => $agents,
@@ -180,7 +156,6 @@ class openstack::network::neutron_agents (
         admin_username    => $admin_username,
         auth_url          => $auth_url,
         primary           => $ha_agents ? { 'primary' => true, default => false},
-        #require           => Class['::neutron::agents::dhcp']
       }
     }
   }
@@ -192,9 +167,10 @@ class openstack::network::neutron_agents (
       send_arp_for_ha         => $send_arp_for_ha,
       external_network_bridge => $external_network_bridge,
       manage_service          => true,
-      enabled                 => $ha_agents ? { false => true, default => false},
+      enabled                 => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-l3' |>
+    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-l3' |>
     if $ha_agents {
       # Yes, l3 is supposed to be a defined resource, this will become
       # necessary when we start supporting multiple external routers.
@@ -207,7 +183,6 @@ class openstack::network::neutron_agents (
         admin_username    => $admin_username,
         auth_url          => $auth_url,
         primary           => $ha_agents ? { 'primary' => true, default => false},
-        #require           => Class['::neutron::agents::metadata']
       }
     }
   }
