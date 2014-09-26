@@ -137,19 +137,21 @@ class neutron::agents::ovs (
     } else {
       $service_ensure = 'stopped'
     }
-  }
-
-  service { 'neutron-plugin-ovs-service':
-    ensure  => $service_ensure,
-    name    => $::neutron::params::ovs_agent_service,
-    enable  => $enabled,
-    require => Class['neutron'],
-  }
-
-  if $::neutron::params::ovs_cleanup_service {
-    service {'ovs-cleanup-service':
-      name   => $::neutron::params::ovs_cleanup_service,
-      enable => $enabled,
+    # TODO(bogdando) contribute change to upstream:
+    #   manage_service param should control services definitions as well.
+    #   Required for pacemaker OCF control plane,
+    #   perhaps, could be undone once pacemaker wrappers implemented
+    service { 'neutron-plugin-ovs-service':
+      ensure  => $service_ensure,
+      name    => $::neutron::params::ovs_agent_service,
+      enable  => $enabled,
+      require => Class['neutron'],
+    }
+    if $::neutron::params::ovs_cleanup_service {
+      service {'ovs-cleanup-service':
+        name   => $::neutron::params::ovs_cleanup_service,
+        enable => $enabled,
+      }
     }
   }
 

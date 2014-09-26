@@ -1,34 +1,13 @@
-# The neutron::db::mysql class creates a MySQL database for neutron.
-# It must be used on the MySQL server
 #
-# == Parameters
+#   [*mysql_module*]
+#   (optional) The mysql puppet module version to use. Tested versions
+#   include 0.9 and 2.2
+#   Default to '0.9'
 #
-#  [*password*]
-#    password to connect to the database. Mandatory.
-#
-#  [*dbname*]
-#    name of the database. Optional. Defaults to neutron.
-#
-#  [*user*]
-#    user to connect to the database. Optional. Defaults to neutron.
-#
-#  [*host*]
-#    the default source host user is allowed to connect from.
-#    Optional. Defaults to 'localhost'
-#
-#  [*allowed_hosts*]
-#    other hosts the user is allowd to connect from.
-#    Optional. Defaults to undef.
-#
-#  [*charset*]
-#    the database charset. Optional. Defaults to 'utf8'
-#
-#  [*collate*]
-#    the database collation. Optional. Defaults to 'utf8_unicode_ci'
-#
-#  [*mysql_module*]
-#   (optional) Deprecated. Does nothing.
-#
+
+# TODO(bogdando) sync this manifest with upstream once puppet-openstacklib
+#   synced in Fuel as well. We cannot sync it for now.
+
 class neutron::db::mysql (
   $password,
   $dbname        = 'neutron',
@@ -38,24 +17,43 @@ class neutron::db::mysql (
   $charset       = 'utf8',
   $collate       = 'utf8_unicode_ci',
   $cluster_id    = 'localzone',
-  $mysql_module  = undef,
+  $mysql_module  = '0.9'
 ) {
 
-  if $mysql_module {
-    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
+  if ($mysql_module >= 2.2) {
+    mysql::db { $dbname:
+      user         => $user,
+      password     => $password,
+      host         => $host,
+      charset      => $charset,
+      collate      => $collate,
+      require      => Class['mysql::server'],
+    } -> Service <| title == 'neutron-server' |>
+  } else {
+    require mysql::python
+
+    mysql::db { $dbname:
+      user         => $user,
+      password     => $password,
+      host         => $host,
+      charset      => $charset,
+      require      => Class['mysql::config'],
+    }
   }
 
-  validate_string($password)
-
-
-  ::openstacklib::db::mysql { 'neutron':
-    user          => $user,
-    password_hash => mysql_password($password),
-    dbname        => $dbname,
-    host          => $host,
-    charset       => $charset,
-    collate       => $collate,
-    allowed_hosts => $allowed_hosts,
+  # Check allowed_hosts to avoid duplicate resource declarations
+  if is_array($allowed_hosts) and delete($allowed_hosts,$host) != [] {
+    $real_allowed_hosts = delete($allowed_hosts,$host)
+  } elsif is_string($allowed_hosts) and ($allowed_hosts != $host) {
+    $real_allowed_hosts = $allowed_hosts
   }
-  ::Openstacklib::Db::Mysql['neutron'] ~> Service <| title == 'neutron-server' |>
+
+  if $real_allowed_hosts {
+    neutron::db::mysql::host_access { $real_allowed_hosts:
+      user          => $user,
+      password      => $password,
+      database      => $dbname,
+      mysql_module  => $mysql_module,
+    }
+  }
 }

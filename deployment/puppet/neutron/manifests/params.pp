@@ -47,7 +47,9 @@ class neutron::params {
 
     $l3_agent_package   = false
     $l3_agent_service   = 'neutron-l3-agent'
-
+    # TODO(bogdando) contribute change to upstream:
+    #   new metadata_agent_package param
+    $metadata_agent_package = false
     $metadata_agent_service = 'neutron-metadata-agent'
 
     $cliff_package      = 'python-cliff'
