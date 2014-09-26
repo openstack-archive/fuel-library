@@ -183,19 +183,18 @@ class nova::api(
     'DEFAULT/use_forwarded_for':     value => $use_forwarded_for;
   }
 
-#FIXME(bogdando) enable it back after neutron modules got synced with upstream
-#      if ($neutron_metadata_proxy_shared_secret){
-#      nova_config {
-#      'DEFAULT/service_neutron_metadata_proxy': value => true;
-#      'DEFAULT/neutron_metadata_proxy_shared_secret':
-#        value => $neutron_metadata_proxy_shared_secret;
-#    }
-#  } else {
-#    nova_config {
-#      'DEFAULT/service_neutron_metadata_proxy':       value  => false;
-#      'DEFAULT/neutron_metadata_proxy_shared_secret': ensure => absent;
-#    }
-#  }
+  if ($neutron_metadata_proxy_shared_secret){
+    nova_config {
+       'DEFAULT/service_neutron_metadata_proxy': value => true;
+       'DEFAULT/neutron_metadata_proxy_shared_secret':
+         value => $neutron_metadata_proxy_shared_secret;
+    }
+  } else {
+    nova_config {
+       'DEFAULT/service_neutron_metadata_proxy':       value  => false;
+       'DEFAULT/neutron_metadata_proxy_shared_secret': ensure => absent;
+    }
+  }
 
   if $auth_uri {
     nova_config { 'keystone_authtoken/auth_uri': value => $auth_uri; }
