@@ -137,19 +137,17 @@ class neutron::agents::ovs (
     } else {
       $service_ensure = 'stopped'
     }
-  }
-
-  service { 'neutron-plugin-ovs-service':
-    ensure  => $service_ensure,
-    name    => $::neutron::params::ovs_agent_service,
-    enable  => $enabled,
-    require => Class['neutron'],
-  }
-
-  if $::neutron::params::ovs_cleanup_service {
-    service {'ovs-cleanup-service':
-      name   => $::neutron::params::ovs_cleanup_service,
-      enable => $enabled,
+    service { 'neutron-plugin-ovs-service':
+      ensure  => $service_ensure,
+      name    => $::neutron::params::ovs_agent_service,
+      enable  => $enabled,
+      require => Class['neutron'],
+    }
+    if $::neutron::params::ovs_cleanup_service {
+      service {'ovs-cleanup-service':
+        name   => $::neutron::params::ovs_cleanup_service,
+        enable => $enabled,
+      }
     }
   }
 

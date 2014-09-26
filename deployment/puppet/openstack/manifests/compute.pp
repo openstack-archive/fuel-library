@@ -89,9 +89,11 @@ class openstack::compute (
   $private_interface,
   $network_manager,
   $fixed_range                    = undef,
-  # Quantum
-  $quantum                        = false,
-  $quantum_config                 = {},
+  # Neutron
+  $network_provider               = 'nova',
+  $neutron_integration_bridge     = 'br-int',
+  $neutron_user_password          = 'asdf1234',
+  $base_mac                       = 'fa:16:3e:00:00:00',
   # Ceilometer
   $ceilometer_user_password       = 'ceilometer_pass',
   # nova compute configuration parameters
@@ -430,7 +432,7 @@ on packages update": }
 
   # if the compute node should be configured as a multi-host
   # compute installation
-  if ! $quantum {
+  if $network_provider == 'nova' {
 
     class { 'nova::api':
       ensure_package       => $::openstack_version['nova'],
@@ -454,7 +456,6 @@ on packages update": }
       nova_config {
         'DEFAULT/multi_host':      value => 'True';
         'DEFAULT/send_arp_for_ha': value => 'True';
-        # 'DEFAULT/metadata_listen': value => $internal_address;
         'DEFAULT/metadata_host':   value => $internal_address;
       }
 
@@ -485,20 +486,6 @@ on packages update": }
       $config_overrides = $network_config
     }
 
-    class { 'nova::network':
-      ensure_package    => $::openstack_version['nova'],
-      private_interface => $private_interface,
-      public_interface  => $public_interface,
-      fixed_range       => $fixed_range,
-      floating_range    => $floating_range,
-      network_manager   => $network_manager,
-      config_overrides  => $config_overrides,
-      create_networks   => $create_networks,
-      num_networks      => $num_networks,
-      enabled           => $enable_network_service,
-      install_service   => $enable_network_service,
-    }
-
     # From legacy network.pp
     # I don't think this is applicable to Folsom...
     # If it is, the details will need changed. -jt
@@ -513,35 +500,6 @@ on packages update": }
 
   } else {
 
-    class { '::neutron':
-      neutron_config      => $quantum_config,
-      verbose             => $verbose,
-      debug               => $debug,
-      use_syslog          => $use_syslog,
-      syslog_log_facility => $syslog_log_facility_neutron,
-    }
-
-    if $quantum_config[L2][provider] == 'ml2' {
-      class { 'neutron::plugins::ml2_plugin':
-        neutron_config  => $quantum_config
-      } #->
-      class { '::neutron::agents::ml2_agent':
-        neutron_config  => $quantum_config
-      }
-    } elsif $quantum_config[L2][provider] == 'nsx' {
-      # do nothing because nsx has its own neutron's agent
-      # which will be installed in module plugin_neutronnsx
-    } else {
-      #todo: Quantum plugin and database connection not need on compute.
-      class { 'neutron::plugins::ovs':
-        neutron_config  => $quantum_config
-      } ->
-      class { 'neutron::agents::ovs':
-        neutron_config  => $quantum_config
-      }
-    }
-
-
     # script called by qemu needs to manipulate the tap device
     file { '/etc/libvirt/qemu.conf':
       ensure => present,
@@ -553,23 +511,9 @@ on packages update": }
       libvirt_vif_driver => $libvirt_vif_driver,
     }
 
-    class { 'nova::network::neutron':
-      neutron_auth_strategy            => 'keystone',
-      neutron_url                      => $quantum_config['server']['api_url'],
-      neutron_admin_tenant_name        => $quantum_config['keystone']['admin_tenant_name'],
-      neutron_region_name              => $quantum_config['keystone']['auth_region'],
-      neutron_admin_username           => $quantum_config['keystone']['admin_user'],
-      neutron_admin_password           => $quantum_config['keystone']['admin_password'],
-      neutron_admin_auth_url           => $quantum_config['keystone']['auth_url'],
-      neutron_ovs_bridge               => $quantum_config['L2']['integration_bridge'],
-    }
-
-    #todo: LibvirtHybridOVSBridgeDriver Will be deprecated in Havana, and removed in Ixxxx.
-    #  https://github.com/openstack/nova/blob/stable/grizzly/nova/virt/libvirt/vif.py
     nova_config {
-      #'DEFAULT/libvirt_vif_driver':              value => 'nova.virt.libvirt.vif.LibvirtHybridOVSBridgeDriver';
       'DEFAULT/linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
-      'DEFAULT/linuxnet_ovs_integration_bridge': value => $quantum_config['L2']['integration_bridge'];
+      'DEFAULT/linuxnet_ovs_integration_bridge': value => $neutron_integration_bridge;
     }
   }
 
@@ -590,5 +534,127 @@ on packages update": }
         package_name => 'cinder-volume',
       }
     }
+  }
+
+
+  ######## [Nova|Neutron] Network ########
+  if $network_provider == 'neutron' {
+
+    # FIXME(xarses) Nearly everything between here and the class
+    # should be moved into osnaily or nailgun but will stay here
+    # in the interim.
+    $neutron_settings = $::fuel_settings['quantum_settings']
+
+    $pnets = $neutron_settings['L2']['phys_nets']
+    if $pnets['physnet1'] {
+      $physnet1 = "physnet1:${pnets['physnet1']['bridge']}"
+      notify{ $physnet1:}
+    }
+    if $pnets['physnet2'] {
+      $physnet2 = "physnet2:${pnets['physnet2']['bridge']}"
+      notify{ $physnet2:}
+      if $pnets['physnet2']['vlan_range'] {
+        $vlan_range = ["physnet2:${pnets['physnet2']['vlan_range']}"]
+        $fallback = split($pnets['physnet2']['vlan_range'], ':')
+        notify{ $vlan_range:}
+      }
+    } else {
+      $vlan_range = []
+    }
+
+    if $physnet1 and $physnet2 {
+      $bridge_mappings = [$physnet1, $physnet2]
+    } elsif $physnet1 {
+      $bridge_mappings = [$physnet1]
+    } elsif $physnet2 {
+      $bridge_mappings = [$physnet2]
+    } else {
+      $bridge_mappings = []
+    }
+
+    if $neutron_settings['L2']['tunnel_id_ranges'] {
+      $enable_tunneling = true
+      $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
+    } else {
+      $enable_tunneling = false
+      $tunnel_id_ranges = []
+    }
+    notify{ $tunnel_id_ranges:}
+    if $neutron_settings['L2']['mechanism_drivers'] {
+        $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
+    } else {
+        $mechanism_drivers = ['openvswitch']
+    }
+
+    if $neutron_settings['L2']['provider'] == 'ovs' {
+      $core_plugin      = 'openvswitch'
+      $service_plugins  = ['router', 'firewall', 'metering']
+      $agent            = 'ovs'
+    } elsif $neutron_settings['L2']['provider'] == 'nsx' {
+      $core_plugin      = 'ovs'
+      $service_plugins  = ['router', 'firewall', 'metering']
+      $agent            = 'ovs'
+    } else {
+      # by default we use ML2 plugin
+      $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
+      $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin']
+      $agent            = 'ml2-ovs'
+    }
+  }
+
+
+  class { 'openstack::network':
+    network_provider  => $network_provider,
+    agents            => [$agent],
+    public_address    => $public_address,
+    internal_address  => $internal_address,
+    admin_address     => $admin_address,
+    nova_neutron      => true,
+
+    base_mac          => $base_mac,
+    core_plugin       => $core_plugin,
+    service_plugins   => $service_plugins,
+
+    # ovs
+    mechanism_drivers   => $mechanism_drivers,
+    local_ip            => $internal_address,
+    bridge_mappings     => $bridge_mappings,
+    network_vlan_ranges => $vlan_range,
+    enable_tunneling    => $enable_tunneling,
+    tunnel_id_ranges    => $tunnel_id_ranges,
+
+    verbose             => $verbose,
+    debug               => $debug,
+    use_syslog          => $use_syslog,
+    syslog_log_facility => $syslog_log_facility_neutron,
+
+    # queue settings
+    queue_provider => $queue_provider,
+    amqp_hosts     => [$amqp_hosts],
+    amqp_user      => $amqp_user,
+    amqp_password  => $amqp_password,
+
+    # keystone
+    admin_password => $neutron_user_password,
+    auth_url       => "http://${service_endpoint}:35357/v2.0",
+    neutron_url    => "http://${service_endpoint}:9696",
+
+    # metadata
+    shared_secret  => undef,
+
+    integration_bridge => $neutron_integration_bridge,
+
+    # nova settings
+    private_interface => $private_interface,
+    public_interface  => $public_interface,
+    fixed_range       => $fixed_range,
+    floating_range    => $floating_range,
+    network_manager   => $network_manager,
+    network_config    => $config_overrides,
+    create_networks   => $create_networks,
+    num_networks      => $num_networks,
+    network_size      => $network_size,
+    nameservers       => $nameservers,
+    enable_nova_net   => $enable_network_service,
   }
 }
