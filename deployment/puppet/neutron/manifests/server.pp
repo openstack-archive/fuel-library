@@ -164,7 +164,7 @@ class neutron::server (
   $agent_down_time         = '75',
   $router_scheduler_driver = 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
   # DEPRECATED PARAMETERS
-  $mysql_module            = undef,
+  $mysql_module            = '0.9',
   $sql_connection          = undef,
   $connection              = undef,
   $sql_max_retries         = undef,
@@ -245,8 +245,12 @@ class neutron::server (
 
   case $database_connection_real {
     /mysql:\/\/\S+:\S+@\S+\/\S+/: {
-      require 'mysql::bindings'
-      require 'mysql::bindings::python'
+      if ($mysql_module >= 2.2) {
+        require 'mysql::bindings'
+        require 'mysql::bindings::python'
+      } else {
+        require 'mysql::python'
+      }
     }
     /postgresql:\/\/\S+:\S+@\S+\/\S+/: {
       $backend_package = 'python-psycopg2'
@@ -272,8 +276,12 @@ class neutron::server (
       path        => '/usr/bin',
       before      => Service['neutron-server'],
       require     => Neutron_config['database/connection'],
-      refreshonly => true
+      refreshonly => true,
+      tries       => 10,
+      try_sleep   => 20,
     }
+    Neutron_config<||> -> Exec['neutron-db-sync']
+    Exec['neutron-db-sync'] -> Service['neutron-server']
   }
 
   neutron_config {
