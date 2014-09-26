@@ -48,6 +48,7 @@ class neutron::params {
     $l3_agent_package   = false
     $l3_agent_service   = 'neutron-l3-agent'
 
+    $metadata_agent_package = false
     $metadata_agent_service = 'neutron-metadata-agent'
 
     $cliff_package      = 'python-cliff'
@@ -116,8 +117,9 @@ class neutron::params {
     $kernel_headers     = "linux-headers-${::kernelrelease}"
 
   } else {
-
     fail("Unsupported osfamily ${::osfamily}")
-
   }
+
+  # Additional packages
+  $fuel_utils_package = 'fuel-utils'
 }
