@@ -77,8 +77,15 @@ class nova::network(
     path => $::path
   }
 
-  sysctl::value { 'net.ipv4.ip_forward':
-    value => '1'
+  # NOTE(bogdando) contribute change to upstream #1384145
+  if !defined(Sysctl::Value['net.ipv4.ip_forward']) {
+    sysctl::value { 'net.ipv4.ip_forward':
+      value => '1'
+    }
+  } else {
+    Sysctl::Value<| name == 'net.ipv4.ip_forward' |> {
+      value => '1'
+    }
   }
 
   if $floating_range {

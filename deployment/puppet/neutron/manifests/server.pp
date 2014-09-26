@@ -162,9 +162,13 @@ class neutron::server (
   $api_workers             = $::processorcount,
   $rpc_workers             = $::processorcount,
   $agent_down_time         = '75',
+  #NOTE(bogdando) contribute change to upstream #1384123
+  $state_path              = '/var/lib/neutron',
+  $lock_path               = '$state_path/lock',
   $router_scheduler_driver = 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
   # DEPRECATED PARAMETERS
-  $mysql_module            = undef,
+  # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel
+  $mysql_module            = '0.9',
   $sql_connection          = undef,
   $connection              = undef,
   $sql_max_retries         = undef,
@@ -245,8 +249,14 @@ class neutron::server (
 
   case $database_connection_real {
     /mysql:\/\/\S+:\S+@\S+\/\S+/: {
-      require 'mysql::bindings'
-      require 'mysql::bindings::python'
+      # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel.
+      #   we cannot remove deprecated mysql_module for now
+      if ($mysql_module >= 2.2) {
+        require 'mysql::bindings'
+        require 'mysql::bindings::python'
+      } else {
+        require 'mysql::python'
+      }
     }
     /postgresql:\/\/\S+:\S+@\S+\/\S+/: {
       $backend_package = 'python-psycopg2'
@@ -272,8 +282,15 @@ class neutron::server (
       path        => '/usr/bin',
       before      => Service['neutron-server'],
       require     => Neutron_config['database/connection'],
-      refreshonly => true
+      refreshonly => true,
+      tries       => 10,
+      # TODO(bogdando) contribute change to upstream:
+      #   new try_sleep param for sleep driven development (SDD)
+      try_sleep   => 20,
     }
+    #NOTE(bogdando) contribute change to upstream #1384133
+    Neutron_config<||> -> Exec['neutron-db-sync']
+    Exec['neutron-db-sync'] -> Service['neutron-server']
   }
 
   neutron_config {
@@ -281,6 +298,9 @@ class neutron::server (
     'DEFAULT/rpc_workers':             value => $rpc_workers;
     'DEFAULT/agent_down_time':         value => $agent_down_time;
     'DEFAULT/router_scheduler_driver': value => $router_scheduler_driver;
+     #NOTE(bogdando) contribute change to upstream #1384123
+    'DEFAULT/state_path':              value => $state_path;
+    'DEFAULT/lock_path':               value => $lock_path;
     'database/connection':             value => $database_connection_real, secret => true;
     'database/idle_timeout':           value => $database_idle_timeout_real;
     'database/retry_interval':         value => $database_retry_interval_real;
