@@ -59,7 +59,7 @@ class glance::backend::cinder(
   $cinder_api_insecure         = false,
   $cinder_catalog_info         = 'volume:cinder:publicURL',
   $cinder_endpoint_template    = undef,
-  $cinder_http_retries         = '3'
+  $cinder_http_retries         = '3',
 
 ) {
 
