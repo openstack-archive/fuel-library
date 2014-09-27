@@ -72,7 +72,7 @@
 #
 # == Authors
 #
-#   François Charlier <francois.charlier@enovance.com>
+#   Francois Charlier <francois.charlier@enovance.com>
 #
 # == Copyright
 #
