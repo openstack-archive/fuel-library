@@ -13,7 +13,7 @@
 #  [admin_password] Password used with user to authenticate service.
 #    Optional. Defaults to ChangeMe.
 #  [delay_decision] Set to 1 to support token-less access (anonymous access,
-#    tempurl, …)
+#    tempurl, ...)
 #    Optional, Defaults to 0
 #  [auth_host] Host providing the keystone service API endpoint. Optional.
 #    Defaults to 127.0.0.1
