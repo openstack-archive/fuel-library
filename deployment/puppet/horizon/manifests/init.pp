@@ -3,7 +3,7 @@
 #
 #
 # - Parameters
-# $secret_key           the application secret key (used to crypt cookies, etc. …). mandatory
+# $secret_key           the application secret key (used to crypt cookies, etc. ...). mandatory
 # $cache_server_ip      memcached ip address (or VIP)
 # $cache_server_port    memcached port
 # $swift                (bool) is swift installed
