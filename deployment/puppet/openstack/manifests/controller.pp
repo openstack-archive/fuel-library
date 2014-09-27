@@ -34,7 +34,7 @@
 #   Optional. Defaults to false.
 # [export_resources] Rather to export resources.
 # Horizon related config - assumes puppetlabs-horizon code
-# [secret_key]          secret key to encode cookies, …
+# [secret_key]          secret key to encode cookies, ...
 # [cache_server_ip]     local memcached instance ip
 # [cache_server_port]   local memcached instance port
 # [swift]               (bool) is swift installed
