@@ -8,7 +8,7 @@ class openstack::ha::mysqld (
     order               => '110',
     listen_port         => 3306,
     balancermember_port => 3307,
-    define_backups      => true,
+    define_backups      => false,
     before_start        => $before_start,
 
     haproxy_config_options => {
