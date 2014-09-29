@@ -203,7 +203,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           ifconfig_order.insert(-1, t[:name].to_sym())
         end
       elsif action == :bond
-        t[:provider] = 'ovs' if ! t[:provider]  # default provider for Bond
+        t[:provider] ||= 'ovs'  # default provider for Bond
         if ! t[:interfaces].is_a? Array
           raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'interfaces' list.")
         end
@@ -245,7 +245,6 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       # create puppet resources
       if action == :bond and t[:provider] == 'lnx'
         # Add Linux_bond-specific parameters to the ifconfig
-        res_name = :bond_lnx
         e_name = t[:name].to_sym
         if ! endpoints[e_name]
           endpoints[e_name] = create_endpoint()
