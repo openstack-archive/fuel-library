@@ -104,7 +104,8 @@ class cinder::keystone::auth (
   }
 
   if $configure_endpoint {
-    keystone_endpoint { "${region}/${auth_name}":
+    keystone_endpoint { $auth_name:
+      region       => $region,
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${port}/${volume_version}/%(tenant_id)s",
       admin_url    => "${admin_protocol}://${admin_address}:${port}/${volume_version}/%(tenant_id)s",
@@ -112,7 +113,8 @@ class cinder::keystone::auth (
     }
   }
   if $configure_endpoint_v2 {
-    keystone_endpoint { "${region}/${auth_name_v2}":
+    keystone_endpoint { $auth_name_v2:
+      region       => $region,
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${port}/v2/%(tenant_id)s",
       admin_url    => "http://${admin_address}:${port}/v2/%(tenant_id)s",

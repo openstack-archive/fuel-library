@@ -93,7 +93,7 @@ class nova::keystone::auth(
     warning('The cinder parameter is deprecated and has no effect.')
   }
 
-  Keystone_endpoint["${region}/${auth_name}"] ~> Service <| name == 'nova-api' |>
+  Keystone_endpoint[$auth_name] ~> Service <| name == 'nova-api' |>
 
   keystone_user { $auth_name:
     ensure   => present,
@@ -112,7 +112,8 @@ class nova::keystone::auth(
   }
 
   if $configure_endpoint {
-    keystone_endpoint { "${region}/${auth_name}":
+    keystone_endpoint { $auth_name:
+      region       => $region,
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${compute_port}/${compute_version}/%(tenant_id)s",
       admin_url    => "${admin_protocol}://${admin_address}:${compute_port}/${compute_version}/%(tenant_id)s",
@@ -126,7 +127,8 @@ class nova::keystone::auth(
       type        => 'ec2',
       description => 'EC2 Service',
     }
-    keystone_endpoint { "${region}/${auth_name}_ec2":
+    keystone_endpoint { "${auth_name}_ec2":
+      region       => $region,
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${ec2_port}/services/Cloud",
       admin_url    => "${admin_protocol}://${admin_address}:${ec2_port}/services/Admin",
