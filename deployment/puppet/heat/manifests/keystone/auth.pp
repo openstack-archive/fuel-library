@@ -88,7 +88,8 @@ class heat::keystone::auth (
     description => 'Openstack Orchestration Service',
   }
   if $configure_endpoint {
-    keystone_endpoint { "${region}/${auth_name}":
+    keystone_endpoint { $auth_name:
+      region       => $region,
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${port}/${version}/%(tenant_id)s",
       admin_url    => "${admin_protocol}://${admin_address}:${port}/${version}/%(tenant_id)s",
