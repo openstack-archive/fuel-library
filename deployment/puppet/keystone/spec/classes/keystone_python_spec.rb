@@ -9,9 +9,9 @@ describe 'keystone::python' do
   it { should contain_package('python-keystone').with_ensure("present") }
 
   describe 'override ensure' do
-  	let(:params) { { :ensure => "latest" } }
+    let(:params) { { :ensure => "latest" } }
 
-	it { should contain_package('python-keystone').with_ensure("latest") }  	
+    it { should contain_package('python-keystone').with_ensure("latest") }
   end
 
 end
