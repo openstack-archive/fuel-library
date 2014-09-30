@@ -5,29 +5,30 @@ describe 'keystone::roles::admin' do
 
     let :params do
       {
-        :email    => 'foo@bar',
-        :password => 'ChangeMe'
+        :email          => 'foo@bar',
+        :password       => 'ChangeMe',
+        :service_tenant => 'services'
       }
     end
 
     it { should contain_keystone_tenant('services').with(
       :ensure      => 'present',
-      :enabled     => 'True',
+      :enabled     => true,
       :description => 'Tenant for the openstack services'
     )}
     it { should contain_keystone_tenant('openstack').with(
       :ensure      => 'present',
-      :enabled     => 'True',
+      :enabled     => true,
       :description => 'admin tenant'
     )}
     it { should contain_keystone_user('admin').with(
       :ensure      => 'present',
-      :enabled     => 'True',
+      :enabled     => true,
       :tenant      => 'openstack',
       :email       => 'foo@bar',
       :password    => 'ChangeMe'
     )}
-    ['admin', 'Member'].each do |role_name|
+    ['admin', '_member_'].each do |role_name|
       it { should contain_keystone_role(role_name).with_ensure('present') }
     end
     it { should contain_keystone_user_role('admin@openstack').with(
@@ -41,21 +42,27 @@ describe 'keystone::roles::admin' do
 
     let :params do
       {
-        :admin        => 'admin',
-        :email        => 'foo@baz',
-        :password     => 'foo',
-        :admin_tenant => 'admin'
+        :admin          => 'admin',
+        :email          => 'foo@baz',
+        :password       => 'foo',
+        :admin_tenant   => 'admin',
+        :service_tenant => 'foobar'
       }
     end
 
+    it { should contain_keystone_tenant('foobar').with(
+      :ensure  => 'present',
+      :enabled => true,
+      :description => 'Tenant for the openstack services'
+    )}
     it { should contain_keystone_tenant('admin').with(
       :ensure      => 'present',
-      :enabled     => 'True',
+      :enabled     => true,
       :description => 'admin tenant'
     )}
     it { should contain_keystone_user('admin').with(
       :ensure      => 'present',
-      :enabled     => 'True',
+      :enabled     => true,
       :tenant      => 'admin',
       :email       => 'foo@baz',
       :password    => 'foo'
