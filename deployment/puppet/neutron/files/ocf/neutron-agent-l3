@@ -368,7 +368,7 @@ clean_up() {
     count=3  # we will try kill process 3 times
     while [ $count -gt 0 ]; do
         # we can't use ps, because ps can't select processes for given network namespace
-        inside_ns_pids=`get_pid_list_for_ns_list "$ns_list"`
+        inside_ns_pids=`get_pid_list_for_ns_list $ns_list`
         if [ -z "$inside_ns_pids" ] ; then
             break
         fi
@@ -380,7 +380,7 @@ clean_up() {
     done
 
     # kill all remaining proceses, that not died by simple kill
-    inside_ns_pids=`get_pid_list_for_ns_list "$ns_list"`
+    inside_ns_pids=`get_pid_list_for_ns_list $ns_list`
     if [ ! -z "$inside_ns_pids" ] ; then
         for ns_pid in $inside_ns_pids ; do
           ocf_run kill -9 $ns_pid
@@ -524,7 +524,6 @@ neutron_l3_agent_stop() {
     clean_up
     sleep 1
     clean_up_namespaces
-    q-agent-cleanup.py --agent=l3  --remove-self ${AUTH_TAIL} 2>&1
 
     return $OCF_SUCCESS
 }
