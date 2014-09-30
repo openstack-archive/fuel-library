@@ -46,7 +46,7 @@ if [ "$OPER" == "discovery" ]; then
         echo ","
       fi
       echo -n " { \"{#HAPX}\": \"$HAPX\", \"{#HASTAT}\": \"$HASTAT\", \"{#HASV}\": \"$HASV\" }"
-      POSITION=$[POSITION+1]
+      POSITION=$((POSITION+1))
   done
   echo ""
   echo " ]"
