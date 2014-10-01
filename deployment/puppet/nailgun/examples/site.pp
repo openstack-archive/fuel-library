@@ -100,8 +100,7 @@ node default {
     puppet_master_hostname => $puppet_master_hostname,
     puppet_master_ip => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 
-    keystone_admin_token => $::fuel_settings['keystone']['admin_token'],
-    keystone_host        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    keystone_host => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   }
 
   Class['postgresql::server'] -> Class['nailgun']
