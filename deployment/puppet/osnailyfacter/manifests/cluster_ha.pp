@@ -638,6 +638,7 @@ class osnailyfacter::cluster_ha {
           vcenter_cluster   => $vcenter_hash['cluster'],
           use_quantum       => $::use_quantum,
           ha_mode           => true,
+          vnc_address       => $controller_node_public,
         }
       }
 
