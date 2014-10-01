@@ -1,0 +1,4 @@
+---
+cinder:
+  - name: legacy
+    priority: 1
