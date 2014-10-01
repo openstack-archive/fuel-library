@@ -32,6 +32,11 @@ case $production {
       ensure  => present
     }
 
+    keystone_tenant { 'services' :
+      enabled => 'True',
+      ensure  => present
+    }
+
     keystone_role {'admin' :
       ensure => present
     }
@@ -40,12 +45,36 @@ case $production {
       password => $::fuel_settings['FUEL_ACCESS']['password'],
       ensure   => present,
       enabled  => 'True',
-      tenant   => 'admin'
+      tenant   => 'admin',
+    }
+
+    keystone_user { 'nailgun':
+      password => $::fuel_settings['keystone']['nailgun_password'],
+      ensure   => present,
+      enabled  => 'True',
+      tenant   => 'services',
+    }
+
+    keystone_user { 'ostf':
+      password => $::fuel_settings['keystone']['ostf_password'],
+      ensure   => present,
+      enabled  => 'True',
+      tenant   => 'services',
     }
 
     keystone_user_role { 'admin@admin':
+      roles   => ['admin'],
+      ensure  => present,
+    }
+
+    keystone_user_role { 'nailgun@services':
       roles  => ['admin'],
-      ensure => present
+      ensure => present,
+    }
+
+    keystone_user_role { 'ostf@services':
+      roles  => ['admin'],
+      ensure => present,
     }
   }
   'docker-build': {

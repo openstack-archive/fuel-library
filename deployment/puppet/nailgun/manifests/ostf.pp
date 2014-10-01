@@ -13,9 +13,9 @@ class nailgun::ostf(
   $host                 = '127.0.0.1',
   $port                 = '8777',
   $logfile              = '/var/log/ostf.log',
-  $keystone_admin_token = 'ADMIN',
   $keystone_host        = '127.0.0.1',
   $keystone_port        = '35357',
+  $keystone_ostf_pass   = 'ostf',
   $auth_enable          = 'True',
 ){
   package{'libevent-devel':}

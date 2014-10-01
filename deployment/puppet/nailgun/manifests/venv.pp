@@ -49,8 +49,8 @@ class nailgun::venv(
   $exclude_network = $admin_network,
   $exclude_cidr = $admin_network_cidr,
 
-  $keystone_admin_token = 'ADMIN',
   $keystone_host = '127.0.0.1',
+  $keystone_nailgun_pass = 'nailgun',
 
   $dns_domain,
   ) {
