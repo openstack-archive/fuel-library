@@ -142,6 +142,10 @@ class vmware::controller (
 
   # Enable metadata service on Controller node
   Nova_config <| title == 'DEFAULT/enabled_apis' |> { value => 'ec2,osapi_compute,metadata' }
+  # Set correct parameter for vnc access
+  nova_config {
+    'DEFAULT/novncproxy_base_url': value => "http://${::openstack::controller::public_address}:6080/vnc_auto.html"
+  }
   # install cirros vmdk package
 
   package { 'cirros-testvmware':
