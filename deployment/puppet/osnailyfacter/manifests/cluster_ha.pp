@@ -215,6 +215,9 @@ class osnailyfacter::cluster_ha {
   if ($storage_hash['images_ceph']) {
     $glance_backend = 'ceph'
     $glance_known_stores = [ 'glance.store.rbd.Store' ]
+  } elsif ($storage_hash['images_vcenter']) {
+    $glance_backend = 'vmware'
+    $glance_known_stores = [ 'glance.store.vmware_datastore.Store' ]
   } else {
     $glance_backend = 'swift'
     $glance_known_stores = [ 'glance.store.swift.Store' ]
@@ -320,6 +323,13 @@ class osnailyfacter::cluster_ha {
       glance_user_password           => $::osnailyfacter::cluster_ha::glance_hash[user_password],
       glance_image_cache_max_size    => $::osnailyfacter::cluster_ha::glance_hash[image_cache_max_size],
       known_stores                   => $::osnailyfacter::cluster_ha::glance_known_stores,
+      glance_vcenter_host            => $::osnailyfacter::cluster_ha::storage_hash['vc_host'],
+      glance_vcenter_user            => $::osnailyfacter::cluster_ha::storage_hash['vc_user'],
+      glance_vcenter_password        => $::osnailyfacter::cluster_ha::storage_hash['vc_password'],
+      glance_vcenter_datacenter      => $::osnailyfacter::cluster_ha::storage_hash['vc_datacenter'],
+      glance_vcenter_datastore       => $::osnailyfacter::cluster_ha::storage_hash['vc_datastore'],
+      glance_vcenter_image_dir       => $::osnailyfacter::cluster_ha::storage_hash['vc_image_dir'],
+      glance_vcenter_use_esx         => $::osnailyfacter::cluster_ha::storage_hash['vc_images_is_esx'],
       nova_db_password               => $::osnailyfacter::cluster_ha::nova_hash[db_password],
       nova_user_password             => $::osnailyfacter::cluster_ha::nova_hash[user_password],
       queue_provider                 => $::queue_provider,

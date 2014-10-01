@@ -145,6 +145,9 @@ class osnailyfacter::cluster_simple {
   if ($storage_hash['images_ceph']) {
     $glance_backend = 'ceph'
     $glance_known_stores = [ 'glance.store.rbd.Store' ]
+  } elsif ($storage_hash['images_vcenter']) {
+    $glance_backend = 'vmware'
+    $glance_known_stores = [ 'glance.store.vmware_datastore.Store' ]
   } else {
     $glance_backend = 'file'
     $glance_known_stores = false
@@ -208,6 +211,13 @@ class osnailyfacter::cluster_simple {
         glance_backend                 => $glance_backend,
         glance_image_cache_max_size    => $glance_hash[image_cache_max_size],
         known_stores                   => $glance_known_stores,
+        glance_vcenter_host            => $storage_hash['vc_host'],
+        glance_vcenter_user            => $storage_hash['vc_user'],
+        glance_vcenter_password        => $storage_hash['vc_password'],
+        glance_vcenter_datacenter      => $storage_hash['vc_datacenter'],
+        glance_vcenter_datastore       => $storage_hash['vc_datastore'],
+        glance_vcenter_image_dir       => $storage_hash['vc_image_dir'],
+        glance_vcenter_use_esx         => $storage_hash['vc_images_is_esx'],
         nova_db_password               => $nova_hash[db_password],
         nova_user_password             => $nova_hash[user_password],
         nova_rate_limits               => $::nova_rate_limits,
