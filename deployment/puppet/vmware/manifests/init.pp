@@ -29,6 +29,7 @@ class vmware (
   $vcenter_cluster = 'cluster',
   $use_quantum = false,
   $ha_mode = false,
+  $vnc_address = '0.0.0.0',
 )
 
 { # begin of class
@@ -40,6 +41,7 @@ class vmware (
     vcenter_cluster => $vcenter_cluster,
     use_quantum => $use_quantum,
     ha_mode => $ha_mode,
+    vnc_address => $vnc_address,
   }
 
 } # end of class
