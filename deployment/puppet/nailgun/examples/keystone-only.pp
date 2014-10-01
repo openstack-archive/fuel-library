@@ -20,6 +20,9 @@ case $production {
       sql_connection => "postgresql://${::fuel_settings['postgres']['keystone_user']}:${::fuel_settings['postgres']['keystone_password']}@${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/${::fuel_settings['postgres']['keystone_dbname']}",
     }
 
+    $keystone_nailgun_user = $::fuel_settings['keystone']['nailgun_user']
+    $keystone_ostf_user = $::fuel_settings['keystone']['ostf_user']
+
     #FIXME(mattymo): We should enable db_sync on every run inside keystone,
     #but this is related to a larger scope fix for concurrent deployment of
     #secondary controllers.
@@ -32,6 +35,11 @@ case $production {
       ensure  => present
     }
 
+    keystone_tenant { 'services' :
+      enabled => 'True',
+      ensure  => present
+    }
+
     keystone_role {'admin' :
       ensure => present
     }
@@ -40,12 +48,36 @@ case $production {
       password => $::fuel_settings['FUEL_ACCESS']['password'],
       ensure   => present,
       enabled  => 'True',
-      tenant   => 'admin'
+      tenant   => 'admin',
+    }
+
+    keystone_user { $keystone_nailgun_user:
+      password => $::fuel_settings['keystone']['nailgun_password'],
+      ensure   => present,
+      enabled  => 'True',
+      tenant   => 'services',
+    }
+
+    keystone_user { $keystone_ostf_user:
+      password => $::fuel_settings['keystone']['ostf_password'],
+      ensure   => present,
+      enabled  => 'True',
+      tenant   => 'services',
     }
 
     keystone_user_role { 'admin@admin':
+      roles   => ['admin'],
+      ensure  => present,
+    }
+
+    keystone_user_role { "${keystone_nailgun_user}@services":
       roles  => ['admin'],
-      ensure => present
+      ensure => present,
+    }
+
+    keystone_user_role { "${keystone_ostf_user}@services":
+      roles  => ['admin'],
+      ensure => present,
     }
   }
   'docker-build': {
