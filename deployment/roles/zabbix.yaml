@@ -1,0 +1,4 @@
+---
+zabbix-server:
+  - name: legacy
+    priority: 1

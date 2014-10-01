@@ -1,0 +1,4 @@
+---
+compute:
+  - name: legacy
+    priority: 1
