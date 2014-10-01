@@ -89,7 +89,7 @@ class murano (
     ensure => directory,
     owner  => 'murano',
     group  => 'murano',
-    mode   => '0755',
+    mode   => '0750',
   }
 
   class { 'murano::db::mysql':
