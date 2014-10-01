@@ -1,0 +1,7 @@
+---
+mongo:
+  - name: legacy
+    priority: 1
+primary-mongo:
+  - name: legacy
+    priority: 1

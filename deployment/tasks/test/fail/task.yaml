@@ -1,0 +1,5 @@
+---
+comment: A simple test task that fails
+description: This task can help with debugging of task failures
+type: exec
+cmd: /bin/false
