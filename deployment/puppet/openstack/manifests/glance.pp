@@ -48,6 +48,13 @@ class openstack::glance (
   $glance_db_user               = 'glance',
   $glance_db_dbname             = 'glance',
   $glance_backend               = 'file',
+  $glance_vcenter_host          = undef,
+  $glance_vcenter_user          = undef,
+  $glance_vcenter_password      = undef,
+  $glance_vcenter_datacenter    = undef,
+  $glance_vcenter_datastore     = undef,
+  $glance_vcenter_image_dir     = undef,
+  $glance_vcenter_use_esx       = false,
   $verbose                      = false,
   $debug                        = false,
   $enabled                      = true,
@@ -81,6 +88,9 @@ class openstack::glance (
       $sql_connection = "mysql://${glance_db_user}:${glance_db_password}@${db_host}/${glance_db_dbname}?read_timeout=60"
     }
   }
+  if $glance_backend == 'vmware' {
+    $known_stores = ['glance.store.vmware_datastore.Store']
+  }
 
   # Install and configure glance-api
   class { 'glance::api':
@@ -101,6 +111,7 @@ class openstack::glance (
     sql_idle_timeout      => $idle_timeout,
     show_image_direct_url => true,
     pipeline              => 'keystone+cachemanagement',
+    known_stores          => $known_stores,
   }
 
   glance_api_config {
@@ -226,6 +237,17 @@ class openstack::glance (
       class { "glance::backend::rbd":
         rbd_store_user => $::ceph::glance_user,
         rbd_store_pool => $::ceph::glance_pool,
+      }
+    }
+    'vmware': {
+      class { "glance::backend::vmware":
+          vcenter_host        => $glance_vcenter_host,
+          vcenter_user        => $glance_vcenter_user,
+          vcenter_password    => $glance_vcenter_password,
+          vcenter_datacenter  => $glance_vcenter_datacenter,
+          vcenter_datastore   => $glance_vcenter_datastore,
+          vcenter_image_dir   => $glance_vcenter_image_dir,
+          vcenter_use_esx     => $glance_vcenter_use_esx,
       }
     }
     default: {
