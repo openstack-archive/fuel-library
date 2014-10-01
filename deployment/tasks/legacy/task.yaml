@@ -1,0 +1,5 @@
+---
+comment: Legacy deployment using the old site.pp file
+description: This task just wraps the old manifests into a task
+type: puppet
+puppet_manifest: site.pp

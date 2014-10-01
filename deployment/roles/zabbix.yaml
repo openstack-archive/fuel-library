@@ -1,0 +1,4 @@
+---
+zabbiz-server:
+  - name: legacy
+    priority: 1
