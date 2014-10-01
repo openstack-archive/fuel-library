@@ -48,6 +48,12 @@ class openstack::glance (
   $glance_db_user               = 'glance',
   $glance_db_dbname             = 'glance',
   $glance_backend               = 'file',
+  $glance_vcenter_host          = undef,
+  $glance_vcenter_user          = undef,
+  $glance_vcenter_password      = undef,
+  $glance_vcenter_datacenter    = undef,
+  $glance_vcenter_datastore     = undef,
+  $glance_vcenter_image_dir     = undef,
   $verbose                      = false,
   $debug                        = false,
   $enabled                      = true,
@@ -228,6 +234,16 @@ class openstack::glance (
       class { "glance::backend::rbd":
         rbd_store_user => $::ceph::glance_user,
         rbd_store_pool => $::ceph::glance_pool,
+      }
+    }
+    'vmware': {
+      class { "glance::backend::vsphere":
+          vcenter_host        => $glance_vcenter_host,
+          vcenter_user        => $glance_vcenter_user,
+          vcenter_password    => $glance_vcenter_password,
+          vcenter_datacenter  => $glance_vcenter_datacenter,
+          vcenter_datastore   => $glance_vcenter_datastore,
+          vcenter_image_dir   => $glance_vcenter_image_dir,
       }
     }
     default: {
