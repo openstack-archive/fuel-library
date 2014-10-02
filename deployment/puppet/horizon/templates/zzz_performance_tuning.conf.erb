@@ -12,7 +12,7 @@ end
 if @processorcount.to_i <= 2
   start_servers = 2
 else
-  start_servers = @processorcount.to_i
+  start_servers = [2,[@processorcount.to_i,6].min].max
 end
 
 if @osfamily == 'RedHat' %>
