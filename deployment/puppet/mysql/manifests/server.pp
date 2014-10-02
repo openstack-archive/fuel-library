@@ -206,9 +206,9 @@ class mysql::server (
       provider => 'pacemaker',
     }
 
-    #Tie vip__management_old to p_mysqld
+    #Tie vip__management to p_mysqld
     cs_colocation { 'mysql_to_internal-vip':
-      primitives => ['vip__management_old',"master_p_${service_name}:Master"],
+      primitives => ['vip__management',"master_p_${service_name}:Master"],
       score      => 'INFINITY',
       require    => [Cs_resource["p_${service_name}"], Cs_commit['mysql']],
     }
