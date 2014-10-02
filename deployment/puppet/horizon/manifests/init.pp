@@ -237,18 +237,7 @@ class horizon(
         before  => Service['httpd'],
       }
 
-      #todo: may be need fix
-      Package['dashboard'] -> Exec['horizon_compress_styles']
-      Package['dashboard'] ~> Exec['horizon_compress_styles']
-      File[$::horizon::params::local_settings_path] -> Exec['horizon_compress_styles']
       Package[$::horizon::params::horizon_additional_packages] -> Exec['horizon_compress_styles']
-      exec { 'horizon_compress_styles':
-        path    => '/bin:/usr/bin:/sbin:/usr/sbin',
-        cwd     => '/usr/share/openstack-dashboard',
-        command => 'python manage.py compress',
-        refreshonly => true
-      }
-      Exec['horizon_compress_styles'] ~> Service['httpd']
     }
     'Debian': {
       A2mod {
@@ -277,6 +266,17 @@ class horizon(
       }
     }
   }
+
+  Package['dashboard'] -> Exec['horizon_compress_styles']
+  Package['dashboard'] ~> Exec['horizon_compress_styles']
+  File[$::horizon::params::local_settings_path] -> Exec['horizon_compress_styles']
+  exec { 'horizon_compress_styles':
+    path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+    cwd     => '/usr/share/openstack-dashboard',
+    command => 'python manage.py compress',
+    refreshonly => true
+  }
+  Exec['horizon_compress_styles'] ~> Service['httpd']
 
   service { 'httpd':
     name      => $::horizon::params::http_service,
