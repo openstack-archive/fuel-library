@@ -75,6 +75,7 @@ class cobbler::snippets {
   cobbler_snippet {'centos_post_kernel_lt_if_enabled':}
   cobbler_snippet {'centos_pkg_kernel_lt_if_enabled':}
   cobbler_snippet {'centos_ofed_prereq_pkgs_if_enabled':}
+  cobbler_snippet {'bug1376564':}
 
   case $operatingsystem {
     /(?i)(debian|ubuntu)/:  {
