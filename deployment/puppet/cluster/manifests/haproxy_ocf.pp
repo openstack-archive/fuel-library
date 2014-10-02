@@ -56,7 +56,7 @@ class cluster::haproxy_ocf (
       ensure     => present,
       score      => 'INFINITY',
       primitives => [
-          "vip__public_old",
+          "vip__public",
           "clone_${service_name}"
       ],
     }
@@ -64,7 +64,7 @@ class cluster::haproxy_ocf (
       ensure     => present,
       score      => 'INFINITY',
       primitives => [
-          "vip__management_old",
+          "vip__management",
           "clone_${service_name}"
       ],
     }
