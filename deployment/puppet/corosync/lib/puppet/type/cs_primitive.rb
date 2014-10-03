@@ -1,5 +1,5 @@
 module Puppet
-  newtype(:cs_resource) do
+  newtype(:cs_primitive) do
     @doc = "Type for manipulating Corosync/Pacemaker primitives.  Primitives
       are probably the most important building block when creating highly
       available clusters using Corosync and Pacemaker.  Each primitive defines
@@ -24,21 +24,22 @@ module Puppet
 
       isnamevar
     end
+
     newparam(:primitive_class) do
       desc "Corosync class of the primitive.  Examples of classes are lsb or ocf.
         Lsb funtions a lot like the init provider in Puppet for services, an init
         script is ran periodically on each host to identify status, or to start
         and stop a particular application.  Ocf of the other hand is a script with
         meta-data and stucture that is specific to Corosync and Pacemaker."
-      isrequired
     end
+
     newparam(:primitive_type) do
       desc "Corosync primitive type.  Type generally matches to the specific
         'thing' your managing, i.e. ip address or vhost.  Though, they can be
         completely arbitarily named and manage any number of underlying
         applications or resources."
-      isrequired
     end
+
     newparam(:provided_by) do
       desc "Corosync primitive provider.  All resource agents used in a primitve
         have something that provides them to the system, be it the Pacemaker or
@@ -50,7 +51,6 @@ module Puppet
         from the command line has Corosync installed:
 
         * `crm configure ra providers <ra> <class>`"
-      isrequired
     end
 
     newparam(:cib) do
@@ -76,11 +76,10 @@ module Puppet
       validate do |value|
         raise Puppet::Error, "Puppet::Type::Cs_Primitive: parameters property must be a hash." unless value.is_a? Hash
       end
-      munge do |parameters|
-        convert_to_sym(parameters)
-      end
+
       defaultto Hash.new
     end
+
     newproperty(:operations) do
       desc "A hash of operations for the primitive.  Operations defined in a
         primitive are little more predictable as they are commonly things like
@@ -93,9 +92,24 @@ module Puppet
       validate do |value|
         raise Puppet::Error, "Puppet::Type::Cs_Primitive: operations property must be a hash." unless value.is_a? Hash
       end
-      munge do |operations|
-        convert_to_sym(operations)
+
+      defaultto Hash.new
+    end
+
+    newproperty(:utilization) do
+      desc "A hash of utilization attributes for the primitive. If nodes are
+        also configured with available resources, and Pacemaker's placement
+        stratgey is set appropriately, then Pacemaker can place primitives on
+        nodes only where resources are available.
+
+        See the Pacemaker documentation:
+
+        http://clusterlabs.org/doc/en-US/Pacemaker/1.1/html/Pacemaker_Explained/ch11.html"
+
+      validate do |value|
+        raise Puppet::Error, "Puppet::Type::Cs_Primitive: utilization property must be a hash." unless value.is_a? Hash
       end
+
       defaultto Hash.new
     end
 
@@ -109,14 +123,12 @@ module Puppet
       validate do |value|
         raise Puppet::Error, "Puppet::Type::Cs_Primitive: metadata property must be a hash." unless value.is_a? Hash
       end
-      munge do |metadata|
-        convert_to_sym(metadata)
-      end
+
       defaultto Hash.new
     end
 
     newproperty(:ms_metadata) do
-      desc "A hash of metadata for the multistate state."
+      desc "A hash of metadata for the master/slave primitive state."
 
       munge do |value_hash|
         value_hash.inject({}) do |memo,(key,value)|
@@ -132,41 +144,22 @@ module Puppet
       defaultto Hash.new
     end
 
-    newproperty(:multistate_hash) do
-      desc "Designates if the primitive is capable of being managed in a multistate
-        state.  This will create a new ms or clone resource in your Corosync config and add
+    newproperty(:promotable) do
+      desc "Designates if the primitive is capable of being managed in a master/slave
+        state.  This will create a new ms resource in your Corosync config and add
         this primitive to it.  Concequently Corosync will be helpful and update all
-        your colocation and order resources too but Puppet won't. Hash contains
-        two key-value pairs: type (master, clone) and its name (${type}_{$primitive_name})
-        by default"
+        your colocation and order resources too but Puppet won't.  Currenlty we unmunge
+        configuraiton entries that start with ms_ so that you don't have to account for
+        name change in all our manifests."
 
-      munge do |value_hash|
-        munged_hash = value_hash.inject({}) do |memo,(key,value)|
-          memo[key.to_sym] = String(value)
-          memo
-        end
-        if munged_hash[:name].to_s.empty? and !munged_hash[:type].to_s.empty?
-          munged_hash[:name] = "#{munged_hash[:type]}_#{@resource[:name]}"
-        end
-        munged_hash
-      end
+        newvalues(:true, :false)
 
-      validate do |value|
-        raise Puppet::Error, "Puppet::Type::Cs_Resource: multistate_hash property must be a hash" unless
-        value.is_a? Hash
-
-        raise Puppet::Error, "Puppet::Type::Cs_Resource: multistate_hash type property #{value[:type]} must be in master|clone|'' if set" unless
-        ["master", "clone", ""].include?(value[:type]) or value[:type] == nil
-
-      end
-      defaultto Hash.new
-
+        defaultto :false
     end
 
     autorequire(:cs_shadow) do
       autos = []
       if @parameters[:cib]
-        Puppet.debug("#{@parameters[:cib].value}")
         autos << @parameters[:cib].value
       end
 
@@ -176,22 +169,5 @@ module Puppet
     autorequire(:service) do
       [ 'corosync' ]
     end
-  end
-end
-
-def convert_to_sym(hash)
-  if hash.is_a? Hash
-    hash.inject({}) do |memo,(key,value)|
-      value = convert_to_sym(value)
-      if value.is_a?(Array)
-        value.collect! do |arr_el|
-          convert_to_sym(arr_el)
-        end
-      end
-      memo[key.to_sym] = value
-      memo
-    end
-  else
-    hash
   end
 end

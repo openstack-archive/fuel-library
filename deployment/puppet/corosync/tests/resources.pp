@@ -14,7 +14,7 @@ cs_property { 'placement-strategy':
   ensure => absent,
   value  => 'default',
 } ->
-cs_resource { 'bar':
+cs_primitive { 'bar':
   ensure          => present,
   primitive_class => 'ocf',
   provided_by     => 'pacemaker',
@@ -25,12 +25,12 @@ cs_resource { 'bar':
     }
   },
 } ->
-cs_resource { 'blort':
+cs_primitive { 'blort':
   ensure          => present,
   primitive_class => 'ocf',
   provided_by     => 'pacemaker',
   primitive_type  => 'Dummy',
-  multistate_hash => { type => 'master' },
+  promotable      => true,
   operations      => {
     'monitor' => {
       'interval' => '20'
@@ -41,7 +41,7 @@ cs_resource { 'blort':
     }
   },
 } ->
-cs_resource { 'foo':
+cs_primitive { 'foo':
   ensure          => present,
   primitive_class => 'ocf',
   provided_by     => 'pacemaker',
