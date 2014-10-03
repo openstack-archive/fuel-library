@@ -173,6 +173,7 @@ mkdir -p /var/log/coredump
 echo -e "kernel.core_pattern=/var/log/coredump/core.%e.%p.%h.%t" >> /etc/sysctl.conf
 chmod 777 /var/log/coredump
 echo -e "* soft core unlimited\n* hard core unlimited" >> /etc/security/limits.conf
+sed -i "s/1024/10240/g" /etc/security/limits.d/90-nproc.conf
 
 # COBBLER EMBEDDED SNIPPET: 'log_ks_post'
 # CONFIGURES %post LOGGING
