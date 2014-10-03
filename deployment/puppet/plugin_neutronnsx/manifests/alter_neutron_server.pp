@@ -66,6 +66,16 @@ class plugin_neutronnsx::alter_neutron_server (
     ensure => absent,
   }
 
+  # NSX cluster can operate without Service nodes.
+  # If cluster lacks Service node we must configure `replication_mode'
+  # configuration stanza with 'source' value.  It is usefull only for testing
+  # purposes, production clusters must run with Service nodes.
+  if $neutron_nsx_config['replication_mode'] {
+    $replication_mode = 'service'
+  } else {
+    $replication_mode = 'source'
+  }
+
   neutron_plugin_vmware {
     'DATABASE/sql_connection':            value => $neutron_config['database']['url'];
     'DATABASE/sql_max_retries':           value => $neutron_config['database']['reconnects'];
@@ -84,6 +94,7 @@ class plugin_neutronnsx::alter_neutron_server (
     'nsx/max_lp_per_overlay_ls':          value => 256;
     'nsx/metadata_mode':                  value => 'dhcp_host_route';
     'nsx/default_transport_type':         value => $neutron_nsx_config['connector_type'];
+    'nsx/replication_mode':               value => $replication_mode;
   }
 
   Anchor['alter-neutron-server-vmware-start'] ->
