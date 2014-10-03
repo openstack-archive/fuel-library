@@ -126,6 +126,14 @@ $syslog_log_facility_sahara     = 'LOG_LOCAL0'
 $syslog_log_facility_ceilometer = 'LOG_LOCAL0'
 $syslog_log_facility_ceph       = 'LOG_LOCAL0'
 
+### Monit ###
+# Monit for compute nodes.
+# If enabled, will install monit and configure its watchdogs to track
+# nova-compute/api/network (and openvswitch service, if neutron enabled)
+# at compute nodes.
+# TODO(bogdando) set to true once monit package shipped with Fuel ISO
+$use_monit = false
+
 $nova_rate_limits = {
   'POST' => 100000,
   'POST_SERVERS' => 100000,

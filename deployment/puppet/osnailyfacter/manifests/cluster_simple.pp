@@ -1,5 +1,30 @@
 class osnailyfacter::cluster_simple {
 
+  if $::use_monit {
+    # Configure service names for monit watchdogs and 'service' system path
+    # FIXME(bogdando) replace service_path to systemd, once supported
+    include nova::params
+    include cinder::params
+    include neutron::params
+    include l23network::params
+    $nova_compute_name   = $::nova::params::compute_service_name
+    $nova_api_name       = $::nova::params::api_service_name
+    $nova_network_name   = $::nova::params::network_service_name
+    $cinder_volume_name  = $::cinder::params::volume_service
+    $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
+    case $::osfamily {
+      'RedHat' : {
+         $service_path   = '/sbin/service'
+      }
+      'Debian' : {
+        $service_path    = '/usr/sbin/service'
+      }
+      default  : {
+        fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
+      }
+    }
+  }
+
   if $::use_quantum {
     $novanetwork_params  = {}
     $quantum_config = sanitize_neutron_config($::fuel_settings, 'quantum_settings')
@@ -507,6 +532,41 @@ class osnailyfacter::cluster_simple {
         }
       }
 
+    # Configure monit watchdogs
+    # FIXME(bogdando) replace service_path and action to systemd, once supported
+    if $::use_monit {
+      monit::process { $nova_compute_name :
+        ensure        => running,
+        matching      => '/usr/bin/python /usr/bin/nova-compute',
+        start_command => "${service_path} ${nova_compute_name} restart",
+        stop_command  => "${service_path} ${nova_compute_name} stop",
+        pidfile       => false,
+      }
+      if $::use_quantum {
+        monit::process { $ovs_vswitchd_name :
+          ensure        => running,
+          start_command => "${service_path} ${ovs_vswitchd_name} restart",
+          stop_command  => "${service_path} ${ovs_vswitchd_name} stop",
+          pidfile       => '/var/run/openvswitch/ovs-vswitchd.pid',
+        }
+      } else {
+        monit::process { $nova_network_name :
+          ensure        => running,
+          matching      => '/usr/bin/python /usr/bin/nova-network',
+          start_command => "${service_path} ${nova_network_name} restart",
+          stop_command  => "${service_path} ${nova_network_name} stop",
+          pidfile       => false,
+        }
+        monit::process { $nova_api_name :
+          ensure        => running,
+          matching      => '/usr/bin/python /usr/bin/nova-api',
+          start_command => "${service_path} ${nova_api_name} restart",
+          stop_command  => "${service_path} ${nova_api_name} stop",
+          pidfile       => false,
+        }
+      }
+    }
+
     } # COMPUTE ENDS
 
     "mongo" : {
@@ -575,17 +635,31 @@ class osnailyfacter::cluster_simple {
         vmware_host_username => $vcenter_hash['vc_user'],
         vmware_host_password => $vcenter_hash['vc_password']
       }
+
+      # FIXME(bogdando) replace service_path and action to systemd, once supported
+      if $::use_monit {
+        monit::process { $cinder_volume_name :
+          ensure        => running,
+          matching      => '/usr/bin/python /usr/bin/cinder-volume',
+          start_command => "${service_path} ${cinder_volume_name} restart",
+          stop_command  => "${service_path} ${cinder_volume_name} stop",
+          pidfile       => false,
+        }
+      }
+
     } #CINDER ENDS
 
     "ceph-osd" : {
       #Nothing needs to be done Class Ceph is already defined
       notify {"ceph-osd: ${::ceph::osd_devices}": }
       notify {"osd_devices:  ${::osd_devices_list}": }
+      # TODO(bogdando) add monit ceph-osd services monitoring, if required
     } #CEPH_OSD ENDS
 
   } # ROLE CASE ENDS
 
   class { 'zabbix': }
+  # TODO(bogdando) add monit zabbix services monitoring, if required
 
 } # CLUSTER_SIMPLE ENDS
 # vim: set ts=2 sw=2 et :
