@@ -3,7 +3,7 @@
 class openstack::corosync (
   $bind_address = '127.0.0.1',
   $multicast_address = '239.1.1.2',
-  $secauth = 'off',
+  $secauth = false,
   $stonith = 'false',
   $quorum_policy = 'ignore',
   $expected_quorum_votes = "2",
