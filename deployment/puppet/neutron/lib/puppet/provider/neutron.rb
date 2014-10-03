@@ -189,19 +189,74 @@ correctly configured.")
     return results
   end
 
-  def self.get_tenant_id(catalog, name)
-    instance_type = 'keystone_tenant'
-    instance = catalog.resource("#{instance_type.capitalize!}[#{name}]")
-    if ! instance
-      instance = Puppet::Type.type(instance_type).instances.find do |i|
-        i.provider.name == name
+  def self.auth_keystone(*args)
+    q = neutron_credentials
+    authenv = {
+      :OS_AUTH_URL    => self.auth_endpoint,
+      :OS_USERNAME    => q['admin_user'],
+      :OS_TENANT_NAME => q['admin_tenant_name'],
+      :OS_PASSWORD    => q['admin_password']
+    }
+    if q.key?('nova_region_name')
+      authenv[:OS_REGION_NAME] = q['nova_region_name']
+    end
+
+    rv = nil
+    timeout = 120
+    end_time = Time.now.to_i + timeout
+    loop do
+      begin
+        withenv authenv do
+          rv = keystone(args)
+        end
+        break
+      rescue Puppet::ExecutionFailure => e
+        if ! e.message =~ /(\(HTTP\s+400\))|
+              (400-\{\'message\'\:\s+\'\'\})|
+              (\[Errno 111\]\s+Connection\s+refused)|
+              (503\s+Service\s+Unavailable)|
+              (504\s+Gateway\s+Time-out)|
+              (\:\s+Maximum\s+attempts\s+reached)|
+              (Unauthorized\:\s+bad\s+credentials)|
+              (Max\s+retries\s+exceeded)/
+          raise(e)
+        end
+        current_time = Time.now.to_i
+        if current_time > end_time
+          #raise(e)
+          break
+        else
+          wait = end_time - current_time
+          Puppet::debug("Non-fatal error: \"#{e.message}\"")
+          notice("Keystone API not avalaible. Wait up to #{wait} sec.")
+        end
+        sleep(2)
+        # Note(xarses): Don't remove, we know that there is one of the
+        # Recoverable erros above, So we will retry a few more times
       end
     end
-    if instance
-      return instance.provider.id
-    else
-      fail("Unable to find #{instance_type} for name #{name}")
+    return rv
+  end
+
+  def auth_keystone(*args)
+    self.class.auth_neutron(args)
+  end
+
+  def self.get_tenant_id(catalog, name)
+    rv = nil
+    auth_keystone('tenant-list').each do |line|
+      fields=line.split(/\s*\|\s*/)
+      if fields[1] and fields[1].size == 32
+        if fields[2] == name
+          rv = fields[1]
+          break
+        end
+      end
     end
+    if rv.nil?
+      fail("Unable to get tenant-ID for tenant '#{name}'")
+    end
+    return rv
   end
 
   def self.parse_creation_output(data)
