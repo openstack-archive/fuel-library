@@ -9,8 +9,10 @@ describe 'monit::process' do
     :pidfile => 'pidfile',
   } }
 
-  describe 'configuration file' do
-    let(:filename) { "/etc/monit/conf.d/#{title}" }
+  let(:facts) { { :osfamily => 'debian' } }
+  let(:filename) { "/etc/monit/conf.d/#{title}" }
+
+  describe 'configuration file debian' do
 
     it 'is declared' do
       should contain_file(filename)
@@ -27,6 +29,34 @@ describe 'monit::process' do
       should contain_file(filename).that_comes_before("Service[#{title}]")
     end
 
+    it 'notifies the monit daemon' do
+      should contain_file(filename).that_notifies("Class[monit::service]")
+    end
+  end
+
+  let(:facts) { { :osfamily => 'redhat' } }
+  let(:filename) { "/etc/monit.d/#{title}" }
+
+  describe 'configuration file redhat' do
+
+    it 'is declared' do
+      should contain_file(filename)
+    end
+
+    let(:facts) { { :osfamily => 'redhat' } }
+    it 'requires monit to be installed' do
+      # can't very well create the configuration file when the directory that
+      # should contain it doesn't exist because monit has not yet been
+      # installed.
+      should contain_file(filename).that_requires('Class[monit::package]')
+    end
+
+    let(:facts) { { :osfamily => 'redhat' } }
+    it 'comes before the monit service' do
+      should contain_file(filename).that_comes_before("Service[#{title}]")
+    end
+
+    let(:facts) { { :osfamily => 'redhat' } }
     it 'notifies the monit daemon' do
       should contain_file(filename).that_notifies("Class[monit::service]")
     end
