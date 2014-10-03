@@ -214,8 +214,10 @@ class osnailyfacter::cluster_ha {
 
   if ($storage_hash['images_ceph']) {
     $glance_backend = 'ceph'
+    $glance_known_stores = [ 'glance.store.rbd.Store' ]
   } else {
     $glance_backend = 'swift'
+    $glance_known_stores = [ 'glance.store.swift.Store' ]
   }
 
   if ($::use_ceph) {
@@ -317,6 +319,7 @@ class osnailyfacter::cluster_ha {
       glance_db_password             => $::osnailyfacter::cluster_ha::glance_hash[db_password],
       glance_user_password           => $::osnailyfacter::cluster_ha::glance_hash[user_password],
       glance_image_cache_max_size    => $::osnailyfacter::cluster_ha::glance_hash[image_cache_max_size],
+      known_stores                   => $::osnailyfacter::cluster_ha::glance_known_stores,
       nova_db_password               => $::osnailyfacter::cluster_ha::nova_hash[db_password],
       nova_user_password             => $::osnailyfacter::cluster_ha::nova_hash[user_password],
       queue_provider                 => $::queue_provider,

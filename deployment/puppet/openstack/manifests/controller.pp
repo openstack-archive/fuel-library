@@ -140,6 +140,7 @@ class openstack::controller (
   $glance_db_dbname               = 'glance',
   $glance_api_servers             = undef,
   $glance_image_cache_max_size    = '10737418240',
+  $known_stores                   = false,
   # Nova
   $nova_db_user                   = 'nova',
   $nova_db_dbname                 = 'nova',
@@ -332,6 +333,7 @@ class openstack::controller (
     rabbit_use_ssl               => $rabbit_use_ssl,
     rabbit_notification_exchange => $rabbit_notification_exchange,
     rabbit_notification_topic    => $rabbit_notification_topic,
+    known_stores                 => $known_stores,
   }
 
   ######## BEGIN NOVA ###########
