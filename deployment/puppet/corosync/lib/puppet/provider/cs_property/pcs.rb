@@ -1,15 +1,15 @@
 require 'pathname' # JJM WORK_AROUND #14073
-require Pathname.new(__FILE__).dirname.dirname.expand_path + 'corosync'
+require Pathname.new(__FILE__).dirname.dirname.expand_path + 'pacemaker'
 
-Puppet::Type.type(:cs_rsc_defaults).provide(:crm, :parent => Puppet::Provider::Corosync) do
-  desc 'Specific rsc_defaults for a rather specific type since I currently have no plan to
-        abstract corosync/pacemaker vs. keepalived. This rsc_defaults will check the state
+Puppet::Type.type(:cs_property).provide(:pcs, :parent => Puppet::Provider::Pacemaker) do
+  desc 'Specific provider for a rather specific type since I currently have no plan to
+        abstract corosync/pacemaker vs. keepalived. This provider will check the state
         of Corosync cluster configuration properties.'
 
+  defaultfor :operatingsystem => [:fedora, :centos, :redhat]
+
   # Path to the crm binary for interacting with the cluster configuration.
-  commands :crm           => 'crm'
-  commands :cibadmin      => 'cibadmin'
-  commands :crm_attribute => 'crm_attribute'
+  commands :pcs           => 'pcs'
 
   def self.instances
 
@@ -17,21 +17,21 @@ Puppet::Type.type(:cs_rsc_defaults).provide(:crm, :parent => Puppet::Provider::C
 
     instances = []
 
-    cmd = [ command(:crm), 'configure', 'show', 'xml' ]
-    raw, status = Puppet::Util::SUIDManager.run_and_capture(cmd)
+    cmd = [ command(:pcs), 'cluster', 'cib' ]
+    raw, status = run_pcs_command(cmd)
     doc = REXML::Document.new(raw)
 
-    defined?doc.root.elements['configuration/rsc_defaults/meta_attributes'].each_element do |e|
+    doc.root.elements['configuration/crm_config/cluster_property_set'].each_element do |e|
       items = e.attributes
-      rsc_defaults = { :name => items['name'], :value => items['value'] }
+      property = { :name => items['name'], :value => items['value'] }
 
-      rsc_defaults_instance = {
-        :name       => rsc_defaults[:name],
+      property_instance = {
+        :name       => property[:name],
         :ensure     => :present,
-        :value      => rsc_defaults[:value],
+        :value      => property[:value],
         :provider   => self.name
       }
-      instances << new(rsc_defaults_instance)
+      instances << new(property_instance)
     end
     instances
   end
@@ -48,8 +48,9 @@ Puppet::Type.type(:cs_rsc_defaults).provide(:crm, :parent => Puppet::Provider::C
 
   # Unlike create we actually immediately delete the item.
   def destroy
-    debug('Revmoving cluster property')
-    cibadmin('--scope', 'crm_config', '--delete', '--xpath', "//nvpair[@name='#{resource[:name]}']")
+    debug('Removing cluster property')
+    cmd = [ command(:pcs), 'property', 'unset', "#{@property_hash[:name]}" ]
+    raw, status = run_pcs_command(cmd)
     @property_hash.clear
   end
 
@@ -70,13 +71,14 @@ Puppet::Type.type(:cs_rsc_defaults).provide(:crm, :parent => Puppet::Provider::C
   # Flush is triggered on anything that has been detected as being
   # modified in the property_hash.  It generates a temporary file with
   # the updates that need to be made.  The temporary file is then used
-  # as stdin for the crm command.
+  # as stdin for the pcs command.
   def flush
     unless @property_hash.empty?
       # clear this on properties, in case it's set from a previous
       # run of a different corosync type
       ENV['CIB_shadow'] = nil
-      crm('configure', 'rsc_defaults', "#{@property_hash[:name]}=#{@property_hash[:value]}")
+      cmd = [ command(:pcs), 'property', 'set', "#{@property_hash[:name]}=#{@property_hash[:value]}" ]
+      raw, status = Puppet::Provider::Pacemaker::run_pcs_command(cmd)
     end
   end
 end

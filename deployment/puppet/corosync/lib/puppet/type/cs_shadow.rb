@@ -26,16 +26,8 @@ module Puppet
       isnamevar
     end
 
-    newparam(:isempty) do
-      desc "If newly created shadow CIB should be empty. Be really careful with this
-      as it can destroy your cluster"
-      newvalues(:true,:false)
-      defaultto(:false)
-    end
-
     def generate
       options = { :name => @title }
-      Puppet.notice("generating cs_commit #{@title}")
       [ Puppet::Type.type(:cs_commit).new(options) ]
     end
 

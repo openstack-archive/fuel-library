@@ -1,3 +1,5 @@
+compatibility: whitetank
+
 totem {
   version:                             2
   token:                               3000
@@ -7,32 +9,32 @@ totem {
   vsftype:                             none
   max_messages:                        20
   clear_node_high_bit:                 yes
-  rrp_mode:                            none
-  secauth:                             <%= @enable_secauth %>
-  threads:                             <%= @threads %>
+  rrp_mode:                            <%= @rrp_mode %>
+  secauth:                             <%= @enable_secauth_real %>
+  threads:                             <%= @threads_real %>
   transport:                           udpu
   interface {
-<% @unicast_addresses.sort.each do |hostname,addr| -%>
+<% @unicast_addresses.each do |addr| -%>
     member {
       memberaddr: <%= addr %>
     }
 <% end -%>
     ringnumber:  0
-    bindnetaddr: <%= @bind_address %>
-    mcastport:   <%= @port %>
+    bindnetaddr: <%= @bind_address_real %>
+    mcastport:   <%= @port_real %>
+<% if @ttl -%>
+    ttl:         <%= @ttl %>
+<% end -%>
   }
 }
 
 logging {
   fileline:        off
-  to_stderr:       no 
+  to_stderr:       yes
   to_logfile:      no
   to_syslog:       yes
-  logfile:         /var/log/corosync.log
   syslog_facility: daemon
-# We don't really want corosync debugs, it is TOO verbose
-#  debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
-  debug:           off
+  debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
   timestamp:       on
   logger_subsys {
     subsys: AMF

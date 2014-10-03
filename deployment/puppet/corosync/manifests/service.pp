@@ -30,7 +30,8 @@
 #
 # Copyright 2012 Puppet Labs, LLC.
 #
-define corosync::service ($version) {
+define corosync::service($version) {
+
   file { "/etc/corosync/service.d/${name}":
     ensure  => file,
     content => template("${module_name}/service.erb"),

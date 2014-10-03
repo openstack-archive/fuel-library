@@ -16,21 +16,15 @@
 #
 class corosync::reprobe {
   exec { 'crm resource reprobe':
-    command => 'crm resource reprobe || :',
-    path        => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
+    path        => ['/bin','/usr/bin','/sbin','/usr/sbin'],
     refreshonly => true,
-    timeout => 600,
   }
-  Cs_resource <| |> {
+  Cs_primitive <| |> {
     notify => Exec['crm resource reprobe'],
   }
   Cs_colocation <| |> {
     notify => Exec['crm resource reprobe'],
   }
-  Cs_location <| |> {
-    notify => Exec['crm resource reprobe'],
-  }
- 
   Cs_order <| |> {
     notify => Exec['crm resource reprobe'],
   }
