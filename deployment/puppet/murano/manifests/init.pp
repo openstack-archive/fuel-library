@@ -1,4 +1,6 @@
 class murano (
+  # package
+  $murano_package_name                   = 'murano',
   # keystone
   $murano_keystone_host                  = '127.0.0.1',
   $murano_keystone_port                  = '5000',

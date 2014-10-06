@@ -594,7 +594,21 @@ class osnailyfacter::cluster_ha {
 
       if $murano_hash['enabled'] {
 
+        #NOTE(mattymo): Backward compatibility for Icehouse
+        case $::fuel_settings['openstack_version'] {
+          /201[1-3]\./: {
+            fail("Unsupported OpenStack version: ${::fuel_settings['openstack_version']}")
+          }
+          /2014\.1\./: {
+            $murano_package_name              = 'murano-api'
+          }
+          default: {
+            $murano_package_name              = 'murano'
+          }
+        }
+
         class { 'murano' :
+          murano_package_name      => $murano_package_name,
           murano_api_host          => $::fuel_settings['management_vip'],
 
           # Murano uses two RabbitMQ - one from OpenStack and another one installed on each controller.
