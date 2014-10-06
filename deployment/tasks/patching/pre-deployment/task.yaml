@@ -1,0 +1,5 @@
+---
+comment: This task will run before all node's deployment
+description: This task will run before all node's deployment
+type: exec
+cmd: ruby task.rb

@@ -1,0 +1,5 @@
+---
+comment: This task will run after all nodes have been deployed
+description: This task will run after all nodes have been deployed
+type: exec
+cmd: ruby task.rb
