@@ -16,6 +16,7 @@ class openstack::ceilometer (
   $db_user             = 'ceilometer',
   $db_password         = 'ceilometer_pass',
   $db_dbname           = 'ceilometer',
+  $swift_rados_backend = false,
   $mongo_replicaset    = false,
   $amqp_hosts          = '127.0.0.1',
   $amqp_user           = 'guest',
@@ -190,6 +191,12 @@ class openstack::ceilometer (
       File['ceilometer-alarm-evaluator-ocf'] -> Cs_resource[$ceilometer_alarm_res_name] -> Service['ceilometer-alarm-evaluator']
     }
     File['ceilometer-alarm-evaluator-ocf'] -> Service['ceilometer-alarm-evaluator']
+  }
+
+  if ($swift_rados_backend) {
+    ceilometer_config {
+       'DEFAULT/swift_rados_backend'    : value => $swift_rados_backend;
+    }
   }
 
   Package<| title == $::ceilometer::params::alarm_package or

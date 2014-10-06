@@ -256,6 +256,7 @@ class osnailyfacter::cluster_simple {
         ceilometer_metering_secret     => $ceilometer_hash[metering_secret],
         ceilometer_db_type             => 'mongodb',
         ceilometer_db_host             => mongo_hosts($nodes_hash),
+        swift_rados_backend            => $storage_hash['objects_ceph'],
         queue_provider                 => $::queue_provider,
         amqp_hosts                     => $amqp_hosts,
         amqp_user                      => $rabbit_hash['user'],
