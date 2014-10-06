@@ -1,0 +1,5 @@
+---
+comment: This task will recrete Murano database
+description: Backups, drops and recreates Murano database. Use it before migration to a new version
+type: exec
+cmd: ruby task.rb
