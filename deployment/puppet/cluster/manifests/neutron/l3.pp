@@ -34,6 +34,7 @@ define cluster::neutron::l3 (
     csr_timeout     => '60',
     service_name    => $::neutron::params::l3_agent_service,
     package         => $::neutron::params::l3_agent_package,
+    service_title   => 'neutron-l3',
     primary         => $primary,
     hasrestart      => false,
   }
