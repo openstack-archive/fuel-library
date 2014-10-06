@@ -1,0 +1,5 @@
+---
+comment: Upload CirrOS image to Glance
+description: Upload CirrOS image from local file to Glance
+type: exec
+cmd: sh upload_cirros.sh

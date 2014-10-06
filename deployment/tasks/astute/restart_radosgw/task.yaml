@@ -1,0 +1,5 @@
+---
+comment: Restart RadosGW service
+description: Restarts RadosGW service on Ubuntu or CentOS
+type: exec
+cmd: sh restart_radosgw.sh

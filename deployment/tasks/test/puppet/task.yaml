@@ -1,0 +1,4 @@
+---
+comment: Puppet Test Task
+description: A task to test that Puppet is working
+type: puppet

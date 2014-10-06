@@ -1,0 +1,4 @@
+---
+comment: Update /etc/hosts usiung Puppet
+description: Takes hosts inforamiton from astute.yaml and updates hosts file. Should be used when new nodes are added.
+type: puppet
