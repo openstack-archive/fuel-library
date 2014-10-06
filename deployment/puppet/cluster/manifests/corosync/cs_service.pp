@@ -3,6 +3,7 @@
 define cluster::corosync::cs_service (
   $ocf_script,
   $service_name,
+  $service_title = undef,  # Title of Service from community manifests
   $csr_multistate_hash = undef,
   $csr_ms_metadata = undef,
   $csr_parameters = undef,
@@ -10,13 +11,15 @@ define cluster::corosync::cs_service (
   $csr_mon_intr = 20,
   $csr_mon_timeout = 20,
   $csr_timeout = 60,
-  $mangle_real_service = false,
+  $mangle_real_service = true,
   $service_alias = undef,
   $package = false,
   $primary = true,
   $hasrestart = true,
   )
 {
+  $service_true_title = $service_title ? { undef => $service_name, default => $service_title }
+
   # OCF script for pacemaker
   file {$ocf_script:
     path   => "/usr/lib/ocf/resource.d/mirantis/${ocf_script}",
@@ -49,22 +52,23 @@ define cluster::corosync::cs_service (
         }
       }
     }
-    File["$ocf_script"] -> Cs_resource["p_${service_name}"] -> Service["${service_name}"]
+    File["$ocf_script"] -> Cs_resource["p_${service_name}"] -> Service["${service_true_title}"]
   } else {
-    File["$ocf_script"] -> Service["${service_name}"]
+    File["$ocf_script"] -> Service["${service_true_title}"]
   }
 
   if $mangle_real_service {
     # If the service is defined elsewhere, then we need to disable it. Some
     # service manifests will do this for us (which is preferred)
     service { "${service_name}-disable-init":
-      name       => $service_name,
+      name       => "${service_name}-disable-init",  # this will be redefined later
       enable     => false,
       ensure     => stopped,
       hasstatus  => true,
       hasrestart => true
     }
-    Service["${service_name}-disable-init"] -> Service["$service_name"]
+    Package <| title == $package |> -> Service["${service_name}-disable-init"]
+    Service["${service_name}-disable-init"] -> Service["${service_true_title}"]
   }
 
   # Ubuntu packages like to auto-start, this is annoying and makes it harder
@@ -80,7 +84,7 @@ define cluster::corosync::cs_service (
     } -> Package <| title == $package |>
   }
 
-  Service<| title=="${service_name}" |> {
+  Service<| title=="${service_true_title}" |> {
     name       => "p_${service_name}",
     enable     => true,
     ensure     => running,
@@ -88,5 +92,7 @@ define cluster::corosync::cs_service (
     hasrestart => $hasrestart,
     provider   => "pacemaker",
   }
-
+  Service<| title=="${service_name}-disable-init" |> {
+    name       => $service_name,
+  }
 }
