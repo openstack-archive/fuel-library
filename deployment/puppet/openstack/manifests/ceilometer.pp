@@ -16,6 +16,7 @@ class openstack::ceilometer (
   $db_user             = 'ceilometer',
   $db_password         = 'ceilometer_pass',
   $db_dbname           = 'ceilometer',
+  $swift_rados_backend = false,
   $mongo_replicaset    = false,
   $amqp_hosts          = '127.0.0.1',
   $amqp_user           = 'guest',
@@ -45,6 +46,7 @@ class openstack::ceilometer (
     debug               => $debug,
     use_syslog          => $use_syslog,
     log_facility        => $syslog_log_facility,
+    swift_rados_backend => $swift_rados_backend,
   }
 
   # Configure authentication for agents
