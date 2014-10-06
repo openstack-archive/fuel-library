@@ -32,6 +32,10 @@ class IniFile
       @end_line.nil?
     end
 
+    def setting_names
+      @existing_settings.keys | @additional_settings.keys
+    end
+
     def get_value(setting_name)
       @existing_settings[setting_name] || @additional_settings[setting_name]
     end
