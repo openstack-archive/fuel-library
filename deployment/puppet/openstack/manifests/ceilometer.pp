@@ -16,8 +16,8 @@ class openstack::ceilometer (
   $db_user             = 'ceilometer',
   $db_password         = 'ceilometer_pass',
   $db_dbname           = 'ceilometer',
+  $swift_rados_backend = false,
   $mongo_replicaset    = false,
-  $queue_provider      = 'rabbitmq',
   $amqp_hosts          = '127.0.0.1',
   $amqp_user           = 'guest',
   $amqp_password       = 'rabbit_pw',
@@ -101,7 +101,13 @@ class openstack::ceilometer (
       use_neutron => $use_neutron,
       swift       => $swift,
     }
- }
+
+    if ($swift_rados_backend) {
+      ceilometer_config {
+         'DEFAULT/swift_rados_backend'    : value => $swift_rados_backend;
+      }
+    }
+  }
 
   if ($on_compute) {
     # Install compute agent
