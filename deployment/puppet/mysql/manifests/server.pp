@@ -96,11 +96,8 @@ class mysql::server (
   elsif ($custom_setup_class == 'pacemaker_mysql')  {
     include mysql
     Package[mysql-server] -> Class['mysql::config']
-    Package[mysql-server] -> Cs_shadow['mysql']
     Package[mysql-client] -> Package[mysql-server]
     Cs_commit['mysql']    -> Service['mysql']
-    #Cs_property <||> -> Cs_shadow <||>
-    #Cs_shadow['mysql']    -> Service['mysql']
 
     $config_hash['custom_setup_class'] = $custom_setup_class
     $allowed_hosts = '%'
@@ -170,7 +167,6 @@ class mysql::server (
     }
     ### end hacks
 
-    cs_shadow { 'mysql': cib => 'mysql' } ->
     corosync::resource { "p_${service_name}":
       ensure          => present,
       primitive_class => 'ocf',

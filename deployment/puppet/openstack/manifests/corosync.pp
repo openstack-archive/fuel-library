@@ -15,17 +15,7 @@ anchor {'corosync':}
 
 Anchor['corosync'] -> Cs_property<||>
 
-#Define shadow CIB
-
-#Cs_resource {cib => 'shadow'}
-#Cs_property {cib => 'shadow'}
-#Cs_order {cib => 'shadow'}
-#Cs_colocation {cib => 'shadow'}
-#Cs_group {cib => 'shadow'}
-
-Class['::corosync']->Cs_shadow<||>
 Class['::corosync']->Cs_property<||>->Cs_resource<||>
-Cs_property<||>->Cs_shadow<||>
 Cs_property['no-quorum-policy']->Cs_property['stonith-enabled']->Cs_property['start-failure-is-fatal']
 
 file {'filter_quantum_ports.py':
