@@ -87,19 +87,13 @@ class heat::engine (
 
     # pacemaker resource mode
 
-    if $::osfamily == 'RedHat' {
-      $ocf_script_template = 'heat_engine_centos.ocf.erb'
-    } else {
-      $ocf_script_template = 'heat_engine_ubuntu.ocf.erb'
-    }
-
     file { 'heat-engine-ocf' :
       ensure  => present,
       path    => "${ocf_scripts_dir}/${ocf_scripts_provider}/${service_name}",
       mode    => '0755',
       owner   => 'root',
       group   => 'root',
-      content => template("heat/${ocf_script_template}"),
+      content => template('heat/heat_engine.ocf.erb'),
     }
 
     if $primary_controller {

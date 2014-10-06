@@ -32,7 +32,13 @@ LOG="/var/log/heat/engine.log"
 
 OCF_RESKEY_binary_default="/usr/bin/heat-engine"
 OCF_RESKEY_config_default="/etc/heat/heat.conf"
+<% if @osfamily == 'Redhat' -%>
+OCF_RESKEY_pid_default="/var/run/heat/heat-engine.pid"
+<% elsif @osfamily == 'Debian' -%>
 OCF_RESKEY_pid_default="/var/run/heat-engine.pid"
+<% else -%>
+<%= scope.function_fail('Unsupported OS Family') %>
+<% end -%>
 OCF_RESKEY_user_default="heat"
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
@@ -195,10 +201,19 @@ service_start() {
     fi
 
     # source init and venv
+<% if @osfamily == 'Redhat' -%>
+    . /etc/rc.d/init.d/functions
+
+    # run the actual daemon
+    daemon --user "${OCF_RESKEY_user}" --pidfile "${OCF_RESKEY_pid}" "${OCF_RESKEY_binary} --config-file ${OCF_RESKEY_config} --logfile ${LOG} &>/dev/null & echo \$! > ${OCF_RESKEY_pid}"
+<% elsif @osfamily == 'Debian' -%>
     . /lib/lsb/init-functions
-    # run the actual daemon.
-    #daemon --user "${OCF_RESKEY_user}" --pidfile "${OCF_RESKEY_pid}" "${OCF_RESKEY_binary} --config-file ${OCF_RESKEY_config} --logfile ${LOG} &>/dev/null & echo \$! > ${OCF_RESKEY_pid}"
+
+    # run the actual daemon
     start-stop-daemon --start --background --quiet --chuid "${OCF_RESKEY_user}:${OCF_RESKEY_user}" --make-pidfile --pidfile "${OCF_RESKEY_pid}" --startas "${OCF_RESKEY_binary}"
+<% else -%>
+<%= scope.function_fail('Unsupported OS') %>
+<% end -%>
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
