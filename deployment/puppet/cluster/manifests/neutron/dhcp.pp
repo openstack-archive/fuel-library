@@ -27,6 +27,7 @@ class cluster::neutron::dhcp (
     csr_timeout     => '60',
     service_name    => $::neutron::params::dhcp_agent_service,
     package         => $::neutron::params::dhcp_agent_package,
+    service_title   => 'neutron-dhcp-service',
     primary         => $primary,
     hasrestart      => false,
   }
