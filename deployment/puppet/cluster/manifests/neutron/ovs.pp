@@ -17,6 +17,7 @@ class cluster::neutron::ovs (
     csr_timeout         => '80',
     service_name        => $::neutron::params::ovs_agent_service,
     package             => $::neutron::params::ovs_agent_package,
+    service_title       => 'neutron-ovs-agent-service',
     primary             => $primary,
     hasrestart          => false,
   }
