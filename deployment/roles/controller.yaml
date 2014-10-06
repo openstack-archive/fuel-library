@@ -1,0 +1,7 @@
+---
+controller:
+  - name: legacy
+    priority: 1
+primary-controller:
+  - name: legacy
+    priority: 1
