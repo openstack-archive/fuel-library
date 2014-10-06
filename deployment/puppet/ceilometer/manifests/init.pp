@@ -79,6 +79,7 @@ class ceilometer(
   $log_dir             = '/var/log/ceilometer',
   $verbose             = false,
   $use_syslog          = false,
+  $swift_rados_backend = false,
   $log_facility        = 'LOG_USER',
   $rpc_backend         = 'ceilometer.openstack.common.rpc.impl_kombu',
   $rabbit_host         = '127.0.0.1',
@@ -234,6 +235,7 @@ class ceilometer(
   ceilometer_config {
     'DEFAULT/rpc_backend'            : value => $rpc_backend;
     'publisher/metering_secret'      : value => $metering_secret;
+    'DEFAULT/swift_rados_backend'    : value => $swift_rados_backend;
     'DEFAULT/debug'                  : value => $debug;
     'DEFAULT/verbose'                : value => $verbose;
     'DEFAULT/notification_topics'    : value => join($notification_topics, ',');
