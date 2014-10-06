@@ -15,6 +15,7 @@ class cluster::neutron::metadata (
     csr_timeout         => '30',
     service_name        => $::neutron::params::metadata_agent_service,
     package             => $::neutron::params::metadata_agent_package,
+    service_title       => 'neutron-metadata',
     primary             => $primary,
   }
 }
