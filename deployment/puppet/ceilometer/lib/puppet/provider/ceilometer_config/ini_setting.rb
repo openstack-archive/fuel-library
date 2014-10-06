@@ -15,7 +15,7 @@ Puppet::Type.type(:ceilometer_config).provide(
     '='
   end
 
-  def file_path
+  def self.file_path
     '/etc/ceilometer/ceilometer.conf'
   end
 

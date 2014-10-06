@@ -7,11 +7,13 @@ describe 'ceilometer::db::mysql' do
   end
 
   let :params do
-    { :password  => 's3cr3t',
-      :dbname    => 'ceilometer',
-      :user      => 'ceilometer',
-      :host      => 'localhost',
-      :charset   => 'latin1'
+    { :password     => 's3cr3t',
+      :dbname       => 'ceilometer',
+      :user         => 'ceilometer',
+      :host         => 'localhost',
+      :charset      => 'latin1',
+      :collate      => 'latin1_swedish_ci',
+      :mysql_module => '0.9',
     }
   end
 
@@ -47,5 +49,64 @@ describe 'ceilometer::db::mysql' do
     end
 
     it_configures 'ceilometer mysql database'
+  end
+
+  describe "overriding allowed_hosts param to array" do
+    let :facts do
+      { :osfamily => "Debian" }
+    end
+    let :params do
+      {
+        :password       => 'ceilometerpass',
+        :allowed_hosts  => ['localhost','%']
+      }
+    end
+
+    it {should_not contain_ceilometer__db__mysql__host_access("localhost").with(
+      :user     => 'ceilometer',
+      :password => 'ceilometerpass',
+      :database => 'ceilometer'
+    )}
+    it {should contain_ceilometer__db__mysql__host_access("%").with(
+      :user     => 'ceilometer',
+      :password => 'ceilometerpass',
+      :database => 'ceilometer'
+    )}
+  end
+
+  describe "overriding allowed_hosts param to string" do
+    let :facts do
+      { :osfamily => 'RedHat' }
+    end
+    let :params do
+      {
+        :password       => 'ceilometerpass2',
+        :allowed_hosts  => '192.168.1.1'
+      }
+    end
+
+    it {should contain_ceilometer__db__mysql__host_access("192.168.1.1").with(
+      :user     => 'ceilometer',
+      :password => 'ceilometerpass2',
+      :database => 'ceilometer'
+    )}
+  end
+
+  describe "overriding allowed_hosts param equals to host param " do
+    let :facts do
+      { :osfamily => 'RedHat' }
+    end
+    let :params do
+      {
+        :password       => 'ceilometerpass2',
+        :allowed_hosts  => 'localhost'
+      }
+    end
+
+    it {should_not contain_ceilometer__db__mysql__host_access("localhost").with(
+      :user     => 'ceilometer',
+      :password => 'ceilometerpass2',
+      :database => 'ceilometer'
+    )}
   end
 end
