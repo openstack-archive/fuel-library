@@ -20,6 +20,7 @@
 # OCF_RESKEY_user
 # OCF_RESKEY_pid
 # OCF_RESKEY_monitor_binary
+# OCF_RESKEY_amqp_server_port
 # OCF_RESKEY_additional_parameters
 #######################################################################
 # Initialization:
@@ -35,11 +36,13 @@ OCF_RESKEY_binary_default="ceilometer-agent-central"
 OCF_RESKEY_config_default="/etc/ceilometer/ceilometer.conf"
 OCF_RESKEY_user_default="ceilometer"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+OCF_RESKEY_amqp_server_port_default="5673"
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_amqp_server_port=${OCF_RESKEY_amqp_server_port_default}}
 
 #######################################################################
 
@@ -106,6 +109,14 @@ The pid file to use for this OpenStack Ceilometer Central Agent Service (ceilome
 <content type="string" default="${OCF_RESKEY_pid_default}" />
 </parameter>
 
+<parameter name="amqp_server_port" unique="0" required="0">
+<longdesc lang="en">
+The listening port number of the AMQP server. Use for monitoring purposes
+</longdesc>
+<shortdesc lang="en">AMQP listening port</shortdesc>
+<content type="integer" default="${OCF_RESKEY_amqp_server_port_default}" />
+</parameter>
+
 <parameter name="additional_parameters" unique="0" required="0">
 <longdesc lang="en">
 Additional parameters to pass on to the OpenStack Ceilometer Central Agent Service (ceilometer-agent-central)
@@ -155,6 +166,7 @@ ceilometer_agent_central_validate() {
 
     check_binary $OCF_RESKEY_binary
     check_binary netstat
+    ceilometer_agent_central_check_port $OCF_RESKEY_amqp_server_port
 
     # A config file on shared storage that is not available
     # during probes is OK.
@@ -200,6 +212,7 @@ ceilometer_agent_central_status() {
 ceilometer_agent_central_monitor() {
     local rc
     local pid
+    local scheduler_amqp_check
 
     ceilometer_agent_central_status
     rc=$?
@@ -207,6 +220,16 @@ ceilometer_agent_central_monitor() {
     # If status returned anything but success, return that immediately
     if [ $rc -ne $OCF_SUCCESS ]; then
         return $rc
+    fi
+
+    # Check the connections according to the PID.
+    # We are sure to hit the scheduler process and not other process with the same connection behavior
+    pid=`cat $OCF_RESKEY_pid`
+    scheduler_amqp_check=`netstat -punt | grep -s "$OCF_RESKEY_amqp_server_port" | grep -s "$pid" | grep -qs "ESTABLISHED"`
+    rc=$?
+    if [ $rc -ne 0 ]; then
+       ocf_log err "Central Agent is not connected to the AMQP server : $rc"
+       return $OCF_NOT_RUNNING
     fi
 
     ocf_log debug "OpenStack Ceilometer Central Agent (ceilometer-agent-central) monitor succeeded"
