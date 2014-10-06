@@ -1,0 +1,5 @@
+---
+comment: This task enables no-quorum policy
+description: Switches no-quorum policy from Ignore to Stop. Should be done after the deployment
+type: exec
+cmd: ruby task.rb

@@ -1,0 +1,5 @@
+---
+comment: This task will stop OpenStack services
+description: This stop OpenStack services. It should be used before the update procedure
+type: exec
+cmd: ruby task.rb
