@@ -66,7 +66,7 @@ class openstack::network::neutron_agents (
       enable_tunneling    => $enable_tunneling,
       local_ip            => $local_ip,
       manage_service      => true,
-      enabled             => $ha_agents ? { false => true, default => false},
+      enabled             => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>
     Service<| title == 'neutron-server' |> -> Service<| title == 'ovs-cleanup-service' |>
@@ -74,14 +74,6 @@ class openstack::network::neutron_agents (
       class {'cluster::neutron::ovs':
         primary => $ha_agents ? { 'primary' => true, default => false},
       }
-
-      # Because we enabled_service false, ovs_cleanup_service is also not managed
-      # so we need to re-manage it here.
-      Service <| title == 'ovs-cleanup-service' |> {
-        ensure => running,
-        enable => true,
-      }
-
     }
   }
 
@@ -103,7 +95,7 @@ class openstack::network::neutron_agents (
       enable_tunneling    => $enable_tunneling,
       local_ip            => $local_ip,
       manage_service      => true,
-      enabled             => $ha_agents ? { false => true, default => false},
+      enabled             => true,
     }
 
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>
@@ -112,13 +104,6 @@ class openstack::network::neutron_agents (
     if $ha_agents {
       class {'cluster::neutron::ovs':
         primary   => $ha_agents ? { 'primary' => true, default => false},
-      }
-
-      # Because we enabled_service false, ovs_cleanup_service is also not managed
-      # so we need to re-manage it here.
-      Service <| title =='ovs-cleanup-service' |> {
-        ensure => running,
-        enable => true,
       }
     }
   }
@@ -138,7 +123,8 @@ class openstack::network::neutron_agents (
       shared_secret  => $shared_secret,
       metadata_ip    => $metadata_ip,
       manage_service => true,
-      enabled        => $ha_agents ? { false => true, default => false},
+      enabled        => true,
+
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-metadata' |>
     if $ha_agents {
@@ -154,7 +140,7 @@ class openstack::network::neutron_agents (
       resync_interval => $resync_interval,
       use_namespaces  => $use_namespaces,
       manage_service  => true,
-      enabled         => $ha_agents ? { false => true, default => false},
+      enabled         => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-dhcp-service' |>
     if $ha_agents {
@@ -176,7 +162,7 @@ class openstack::network::neutron_agents (
       send_arp_for_ha         => $send_arp_for_ha,
       external_network_bridge => $external_network_bridge,
       manage_service          => true,
-      enabled                 => $ha_agents ? { false => true, default => false},
+      enabled                 => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-l3' |>
     if $ha_agents {
