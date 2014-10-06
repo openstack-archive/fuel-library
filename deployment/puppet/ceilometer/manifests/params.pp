@@ -13,7 +13,7 @@ class ceilometer::params {
       $agent_compute_package_name      = 'openstack-ceilometer-compute'
       $api_package_name                = 'openstack-ceilometer-api'
       $collector_package_name          = 'openstack-ceilometer-collector'
-      $agent_notification_package_name = 'openstack-ceilometer-collector'
+      $agent_notification_package_name = 'openstack-ceilometer-notification'
       # notification agent is included in collector package:
       $alarm_package_name              = ['openstack-ceilometer-alarm']
       $common_package_name             = 'openstack-ceilometer-common'
@@ -23,7 +23,7 @@ class ceilometer::params {
       $agent_compute_service_name      = 'openstack-ceilometer-compute'
       $api_service_name                = 'openstack-ceilometer-api'
       $collector_service_name          = 'openstack-ceilometer-collector'
-      $agent_notification_service_name = 'openstack-ceilometer-agent-notification'
+      $agent_notification_service_name = 'openstack-ceilometer-notification'
       $alarm_notifier_service_name     = 'openstack-ceilometer-alarm-notifier'
       $alarm_evaluator_service_name    = 'openstack-ceilometer-alarm-evaluator'
       $pymongo_package_name            = 'python-pymongo'
