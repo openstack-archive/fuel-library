@@ -16,6 +16,7 @@ class sahara::api (
   $use_floating_ips            = true,
   $debug                       = false,
   $verbose                     = false,
+  $region                      = 'RegionOne',
   $use_syslog                  = false,
   $syslog_log_facility_sahara  = "LOG_LOCAL0",
   $log_dir                     = '/var/log/sahara',
@@ -69,6 +70,7 @@ class sahara::api (
     'DEFAULT/use_neutron'                  : value => $use_neutron_value;
     'DEFAULT/node_domain'                  : value => $node_domain;
     'DEFAULT/plugins'                      : value => $plugins;
+    'DEFAULT/os_region_name'               : value => $region;
     'database/connection'                  : value => $sql_connection;
     'database/max_retries'                 : value => '-1';
     'DEFAULT/verbose'                      : value => $verbose;

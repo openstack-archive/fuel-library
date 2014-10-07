@@ -19,6 +19,7 @@ class sahara (
   $sahara_db_user                      = 'sahara',
   $sahara_db_host                      = 'localhost',
   $sahara_db_allowed_hosts             = ['localhost','%'],
+  $sahara_region                       = 'RegionOne'
 
   $sahara_firewall_rule                = '201 sahara-api',
   $use_neutron                         = false,
@@ -52,6 +53,7 @@ class sahara (
     node_domain                         => $sahara_node_domain,
     plugins                             => $sahara_plugins,
     sql_connection                      => $sahara_sql_connection,
+    region                              => $sahara_region,
     use_neutron                         => $use_neutron,
     debug                               => $debug,
     use_syslog                          => $use_syslog,
@@ -66,7 +68,7 @@ class sahara (
     admin_address                  => $sahara_keystone_host,
     internal_address               => $sahara_keystone_host,
     sahara_port                    => $sahara_api_port,
-    region                         => 'RegionOne',
+    region                         => $sahara_region,
     tenant                         => $sahara_keystone_tenant,
     email                          => 'sahara-team@localhost',
   }
