@@ -1,0 +1,11 @@
+---
+:backends:
+  - yaml
+:yaml:
+  :datadir: /etc
+:hierarchy:
+  - fuel/hiera/node/%{::fqdn}
+  - fuel/hiera/facts/%{::some_custom_fact}
+  - fuel/hiera/class/%{calling_class}
+  - fuel/hiera/module/%{calling_module}
+  - astute
