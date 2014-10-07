@@ -32,6 +32,7 @@ class galera::params {
   $key_buffer_size         = '64M'
   $table_open_cache        = '10000'
   $open_files_limit        = '102400'
+  $innodb_flush_method     = 'O_DIRECT'
   $max_connections         = '4096'
 
   case $::osfamily {
