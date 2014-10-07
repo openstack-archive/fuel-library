@@ -33,6 +33,7 @@ class galera::params {
   $table_open_cache        = '10000'
   $open_files_limit        = '102400'
   $max_connections         = '4096'
+  $innodb_flush_method     = 'O_DIRECT'
 
   case $::osfamily {
     'RedHat': {
