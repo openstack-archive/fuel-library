@@ -419,6 +419,7 @@ class osnailyfacter::cluster_simple {
           vcenter_host_ip   => $vcenter_hash['host_ip'],
           vcenter_cluster   => $vcenter_hash['cluster'],
           use_quantum       => $::use_quantum,
+          vnc_address       => $controller_node_public,
         }
       }
 
