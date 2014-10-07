@@ -16,7 +16,7 @@
 #   http://openvswitch.org/cgi-bin/ovsman.cgi?page=utilities%2Fovs-vsctl.8
 #
 define l23network::l2::bridge (
-  $external_ids  = '',
+  $external_ids  = "bridge-id=${name}",
   $provider      = 'ovs',
   $ensure        = present,
   $skip_existing = false
