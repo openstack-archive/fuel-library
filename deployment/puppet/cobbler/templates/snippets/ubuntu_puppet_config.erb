@@ -1,7 +1,7 @@
 #import late_command
 #if $str($getVar('puppet_auto_setup','')) == "1"
-in-target mkdir -p /etc/puppet /var/lib/hiera && \
-in-target touch /var/lib/hiera/common.yaml /etc/puppet/hiera.yaml && \
+in-target mkdir -p /etc/puppet && \
+in-target ln -s /etc/puppet/modules/osnailyfacter/examples/hiera.yaml /etc/puppet/hiera.yaml && \
     #if $getVar('puppet_master','') != ''
 in-target $late_command.late_file("""[main]
     logdir = /var/log/puppet
