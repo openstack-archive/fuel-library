@@ -2,17 +2,14 @@ class sahara (
   $sahara_enabled                      = true,
   $sahara_api_port                     = '8386',
   $sahara_api_host                     = '127.0.0.1',
-  $sahara_api_version                  = 'v1.1',
 
+  $sahara_auth_uri                     = 'http://127.0.0.1:5000/v2.0/',
+  $sahara_identity_uri                 = 'http://127.0.0.1:35357/',
   $sahara_keystone_host                = '127.0.0.1',
-  $sahara_keystone_port                = '35357',
-  $sahara_keystone_protocol            = 'http',
   $sahara_keystone_user                = 'sahara',
   $sahara_keystone_tenant              = 'services',
   $sahara_keystone_password            = 'sahara',
-
   $sahara_node_domain                  = 'novalocal',
-  $sahara_plugins                      = 'vanilla,hdp',
 
   $sahara_db_password                  = 'sahara',
   $sahara_db_name                      = 'sahara',
@@ -20,9 +17,8 @@ class sahara (
   $sahara_db_host                      = 'localhost',
   $sahara_db_allowed_hosts             = ['localhost','%'],
 
-  $sahara_firewall_rule                = '201 sahara-api',
+  $sahara_firewall_rule                = '201 sahara-all',
   $use_neutron                         = false,
-  $use_floating_ips                    = false,
 
   $use_syslog                          = false,
   $debug                               = false,
@@ -42,15 +38,13 @@ class sahara (
 
   class { 'sahara::api':
     enabled                             => $sahara_enabled,
-    keystone_host                       => $sahara_keystone_host,
-    keystone_port                       => $sahara_keystone_port,
-    keystone_protocol                   => $sahara_keystone_protocol,
+    sahara_auth_uri                     => $sahara_auth_uri,
+    sahara_identity_uri                 => $sahara_identity_uri,
     keystone_user                       => $sahara_keystone_user,
     keystone_tenant                     => $sahara_keystone_tenant,
     keystone_password                   => $sahara_keystone_password,
     bind_port                           => $sahara_api_port,
     node_domain                         => $sahara_node_domain,
-    plugins                             => $sahara_plugins,
     sql_connection                      => $sahara_sql_connection,
     use_neutron                         => $use_neutron,
     debug                               => $debug,
@@ -78,12 +72,18 @@ class sahara (
     require => Class['openstack::firewall']
   }
 
-  class { 'sahara::dashboard' :
-    enabled            => $sahara_enabled,
-    use_neutron        => $use_neutron,
-    use_floating_ips   => $use_floating_ips,
+  #NOTE(mattymo): Backward compatibility for Icehouse
+  case $::fuel_settings['openstack_version'] {
+    /2014.1.*-6/: {
+      class {'sahara::dashboard':
+        enabled          => $sahara_enabled,
+        use_neutron      => $use_neutron,
+        use_floating_ips => $::fuel_settings['auto_assign_floating_ip'],
+      }
+      Class['sahara::api'] -> Class['sahara::dashboard']
+    }
+    default: { }
   }
-
-  Class['mysql::server'] -> Class['sahara::db::mysql'] -> Firewall[$sahara_firewall_rule] -> Class['sahara::keystone::auth'] -> Class['sahara::api'] -> Class['sahara::dashboard']
+  Class['mysql::server'] -> Class['sahara::db::mysql'] -> Firewall[$sahara_firewall_rule] -> Class['sahara::keystone::auth'] -> Class['sahara::api']
 
 }

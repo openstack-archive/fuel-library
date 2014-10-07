@@ -531,9 +531,9 @@ class osnailyfacter::cluster_ha {
           sahara_keystone_user       => 'sahara',
           sahara_keystone_password   => $sahara_hash['user_password'],
           sahara_keystone_tenant     => 'services',
-
+          sahara_auth_uri            => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
+          sahara_identity_uri        => "http://${::fuel_settings['management_vip']}:35357/",
           use_neutron                => $::use_quantum,
-          use_floating_ips           => $::fuel_settings['auto_assign_floating_ip'],
 
           syslog_log_facility_sahara => $syslog_log_facility_sahara,
           debug                      => $::debug,
