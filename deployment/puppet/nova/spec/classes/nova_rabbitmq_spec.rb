@@ -13,7 +13,7 @@ describe 'nova::rabbitmq' do
 
     it 'should contain all of the default resources' do
 
-      should contain_class('rabbitmq::server').with(
+      should contain_class('::rabbitmq').with(
         :service_ensure    => 'running',
         :port              => '5672',
         :delete_guest_user => false
@@ -67,7 +67,7 @@ describe 'nova::rabbitmq' do
 
       should_not contain_rabbitmq_user('dan')
       should_not contain_rabbitmq_user_permissions('dan@/')
-      should contain_class('rabbitmq::server').with(
+      should contain_class('::rabbitmq').with(
         :service_ensure    => 'stopped',
         :port              => '5672',
         :delete_guest_user => false
@@ -88,7 +88,7 @@ describe 'nova::rabbitmq' do
 
     it 'should contain all the clustering resources' do
 
-      should contain_class('rabbitmq::server').with(
+      should contain_class('::rabbitmq').with(
         :service_ensure           => 'running',
         :port                     => '5672',
         :delete_guest_user        => false,
