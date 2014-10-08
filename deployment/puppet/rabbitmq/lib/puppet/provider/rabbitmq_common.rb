@@ -1,4 +1,6 @@
 class Puppet::Provider::Rabbitmq_common < Puppet::Provider
+  initvars
+  commands :rabbitmqctl => 'rabbitmqctl'
   # Wait 'count*step' seconds while RabbitMQ is ready (able to list its users&channels)
   # Make 'count' retries with 'step' delay between retries.
   # Limit each query time by 'timeout'

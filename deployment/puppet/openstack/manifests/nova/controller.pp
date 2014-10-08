@@ -65,7 +65,7 @@ class openstack::nova::controller (
   $rabbitmq_bind_ip_address    = 'UNSET',
   $rabbitmq_bind_port          = '5672',
   $rabbitmq_cluster_nodes      = [],
-  $rabbit_cluster              = false,
+  $cluster_partition_handling  = 'autoheal',
   # Database
   $db_type                     = 'mysql',
   # Glance
@@ -122,6 +122,11 @@ class openstack::nova::controller (
 
   $sql_connection    = $nova_db
   $glance_connection = $real_glance_api_servers
+  if ($debug) {
+    $rabbit_levels = '[connection,debug,info,error]'
+  } else {
+    $rabbit_levels = '[connection,info,error]'
+  }
 
   # From legacy params.pp
   case $::osfamily {
@@ -139,21 +144,77 @@ class openstack::nova::controller (
     }
   }
 
+
+  # NOTE(bogdando) indentation is important
+  $rabbit_tcp_listen_options =
+    '[
+      binary,
+      {packet, raw},
+      {reuseaddr, true},
+      {backlog, 128},
+      {nodelay, true},
+      {exit_on_close, false},
+      {keepalive, true}
+    ]'
+
+  # NOTE(bogdando) Offline install feature requires this temp file.
+  if (!defined(File['/tmp/rabbit.pub.key'])) {
+    file { '/tmp/rabbit.pub.key':
+     content => template('openstack/rabbit.pub.key'),
+    }
+    case $::osfamily {
+      'Debian' : {
+        File['/tmp/rabbit.pub.key'] -> Class['rabbitmq::repo::apt']
+      }
+      'RedHat' : {
+        File['/tmp/rabbit.pub.key'] -> Class['rabbitmq::repo::rhel']
+      }
+      default : {
+        fail("The ${module_name} module is not supported on an ${::osfamily} based system.")
+      }
+    }
+  }
+
   # Install / configure queue provider
+  # NOTE(bogdnado) Debian family will use key_content, Rhel will use key_source.
+  #  key_source - source method, should be a file name for rpm or url for apt/rpm
+  #  key_content - content method, should be a template for apt::source class, overrides key_source
+
   case $queue_provider {
     'rabbitmq': {
       class { 'nova::rabbitmq':
-        enabled                => $enabled,
-        userid                 => $amqp_user,
-        password               => $amqp_password,
-        rabbit_node_ip_address => $rabbitmq_bind_ip_address,
-        port                   => $rabbitmq_bind_port,
-        cluster_disk_nodes     => $rabbitmq_cluster_nodes,
-        cluster                => $rabbit_cluster,
-        primary_controller     => $primary_controller,
+        key_content                 => template('openstack/rabbit.pub.key'),
+        key_source                  => '/tmp/rabbit.pub.key',
+        rabbitmq_class              => '::rabbitmq',
+        rabbitmq_module             => '4.1',
+        enabled                     => $enabled,
+        userid                      => $amqp_user,
+        password                    => $amqp_password,
+        node_ip_address             => $rabbitmq_bind_ip_address,
+        port                        => $rabbitmq_bind_port,
+        config_kernel_variables     => {
+          'inet_dist_listen_min'         => '41055',
+          'inet_dist_listen_max'         => '41055',
+          'inet_default_connect_options' => '[{nodelay,true}]',
+        },
+        config_variables            => {
+          'log_levels'                   => $rabbit_levels,
+          'default_vhost'                => "<<\"/\">>",
+          'default_permissions'          => '[<<".*">>, <<".*">>, <<".*">>]',
+          'tcp_listen_options'           => $rabbit_tcp_listen_options,
+          # NOTE(bogdando) we want cluster configured by OCF and don't pass cluster_disc_nodes,
+          #   so we have to define autoheal as a config_variables instead of a parameter.
+          'cluster_partition_handling'   => $cluster_partition_handling,
+        },
+        environment_variables       => {
+          'RABBIT_SERVER_ERL_ARGS'       => '"+K true +A30 +P 1048576"',
+          'RABBITMQ_PID_FILE'            => '/var/run/rabbitmq/p_pid',
+        },
         # FIXME(bogdando) remove HA configuration for rabbitmq to pcs wrappers
         command_timeout        => $command_timeout,
-        ha_mode                => $ha_mode,
+      }
+      if $ha_mode {
+        include pacemaker_wrappers::rabbitmq
       }
     }
     'qpid': {

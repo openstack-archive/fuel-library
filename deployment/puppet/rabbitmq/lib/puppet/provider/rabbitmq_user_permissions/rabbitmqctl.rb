@@ -1,21 +1,20 @@
-Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl) do
+require File.join File.dirname(__FILE__), '../rabbitmq_common.rb'
 
-  if Puppet::PUPPETVERSION.to_f < 3
-    commands :rabbitmqctl => 'rabbitmqctl'
-  else
-     has_command(:rabbitmqctl, 'rabbitmqctl') do
-       environment :HOME => "/tmp"
-     end
-  end
+Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl, :parent => Puppet::Provider::Rabbitmq_common) do
 
+  #TODO: change optional_commands -> commands when puppet >= 3.0
+  optional_commands :rabbitmqctl => 'rabbitmqctl'
   defaultfor :feature=> :posix
 
   # cache users permissions
   def self.users(name, vhost)
+    self.wait_for_online
     @users = {} unless @users
     unless @users[name]
       @users[name] = {}
-      rabbitmqctl('list_user_permissions', name).split(/\n/)[1..-2].each do |line|
+       out = self.run_with_retries {
+        rabbitmqctl('-q', 'list_user_permissions', name)
+       }.split(/\n/).each do |line|
         if line =~ /^(\S+)\s+(\S*)\s+(\S*)\s+(\S*)$/
           @users[name][$1] =
             {:configure => $2, :read => $4, :write => $3}
