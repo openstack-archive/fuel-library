@@ -23,6 +23,8 @@ OCF_RESKEY_pid_file_default=/var/run/rabbitmq/p_pid
 OCF_RESKEY_log_dir_default=/var/log/rabbitmq
 OCF_RESKEY_mnesia_base_default=/var/lib/rabbitmq/mnesia
 OCF_RESKEY_node_port_default=5672
+OCF_RESKEY_erlang_cookie_default=false
+OCF_RESKEY_erlang_cookie_file_default="/var/lib/rabbitmq/.erlang.cookie"
 
 : ${HA_LOGTAG="lrmd"}
 : ${HA_LOGFACILITY="daemon"}
@@ -35,6 +37,8 @@ OCF_RESKEY_node_port_default=5672
 : ${OCF_RESKEY_mnesia_base=${OCF_RESKEY_mnesia_base_default}}
 : ${OCF_RESKEY_pid_file=${OCF_RESKEY_pid_file_default}}
 : ${OCF_RESKEY_node_port=${OCF_RESKEY_node_port_default}}
+: ${OCF_RESKEY_erlang_cookie=${OCF_RESKEY_erlang_cookie_default}}
+: ${OCF_RESKEY_erlang_cookie_file=${OCF_RESKEY_erlang_cookie_file_default}}
 
 #######################################################################
 
@@ -166,6 +170,22 @@ ${OCF_RESKEY_binary} should listen on this port
 <content type="boolean" default="${OCF_RESKEY_node_port_default}" />
 </parameter>
 
+<parameter name="erlang_cookie" unique="0" required="0">
+<longdesc lang="en">
+Erlang cookie for clustering. If specified, will be updated at the mnesia reset
+</longdesc>
+<shortdesc lang="en">Erlang cookie</shortdesc>
+<content type="boolean" default="${OCF_RESKEY_erlang_cookie_default}" />
+</parameter>
+
+<parameter name="erlang_cookie_file" unique="0" required="0">
+<longdesc lang="en">
+Erlang cookie file path where the cookie will be put, if requested
+</longdesc>
+<shortdesc lang="en">Erlang cookie file</shortdesc>
+<content type="boolean" default="${OCF_RESKEY_erlang_cookie_file_default}" />
+</parameter>
+
 </parameters>
 
 <actions>
@@ -266,6 +286,7 @@ rmq_setup_env() {
     done
 
     export LL="${OCF_RESOURCE_INSTANCE}:"
+    update_cookie
 }
 
 rabbit_node_name() {
@@ -405,6 +426,15 @@ check_need_join_to() {
     done
 
     return $rc
+}
+
+# Update erlang cookie, if it has been specified
+update_cookie() {
+    if [[ "${OCF_RESKEY_erlang_cookie}" != false ]] ; then
+        echo "${OCF_RESKEY_erlang_cookie}" > "${OCF_RESKEY_erlang_cookie_file}" && \
+        chown ${OCF_RESKEY_username}:${OCF_RESKEY_groupname} "${OCF_RESKEY_erlang_cookie_file}"
+    fi
+    return $OCF_SUCCESS
 }
 
 kill_rmq_and_remove_pid() {

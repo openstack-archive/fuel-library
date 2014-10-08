@@ -65,7 +65,7 @@ class openstack::nova::controller (
   $rabbitmq_bind_ip_address    = 'UNSET',
   $rabbitmq_bind_port          = '5672',
   $rabbitmq_cluster_nodes      = [],
-  $rabbit_cluster              = false,
+  $cluster_partition_handling  = 'autoheal',
   # Database
   $db_type                     = 'mysql',
   # Glance
@@ -122,6 +122,11 @@ class openstack::nova::controller (
 
   $sql_connection    = $nova_db
   $glance_connection = $real_glance_api_servers
+  if ($debug) {
+    $rabbit_levels = '[connection,debug,info,error]'
+  } else {
+    $rabbit_levels = '[connection,info,error]'
+  }
 
   # From legacy params.pp
   case $::osfamily {
@@ -139,21 +144,102 @@ class openstack::nova::controller (
     }
   }
 
+  # TODO(bogdando) move rabbit class to a granular deploy step
+  # NOTE(bogdando) indentation is important
+  $rabbit_tcp_listen_options =
+    '[
+      binary,
+      {packet, raw},
+      {reuseaddr, true},
+      {backlog, 128},
+      {nodelay, true},
+      {exit_on_close, false},
+      {keepalive, true}
+    ]'
+  $config_kernel_variables     = {
+    'inet_dist_listen_min'         => '41055',
+    'inet_dist_listen_max'         => '41055',
+    'inet_default_connect_options' => '[{nodelay,true}]',
+  }
+  $config_variables            = {
+    'log_levels'                   => $rabbit_levels,
+    'default_vhost'                => "<<\"/\">>",
+    'default_permissions'          => '[<<".*">>, <<".*">>, <<".*">>]',
+    'tcp_listen_options'           => $rabbit_tcp_listen_options,
+    # NOTE(bogdando) we want the cluster to be configured by OCF on a fly,
+    #   we have to define autoheal as a config_variables instead of a parameter.
+    'cluster_partition_handling'   => $cluster_partition_handling,
+  }
+  $environment_variables       = {
+    'RABBIT_SERVER_ERL_ARGS'       => '"+K true +A30 +P 1048576"',
+    'RABBITMQ_PID_FILE'            => '/var/run/rabbitmq/p_pid',
+  }
+  # NOTE(bogdando) Offline install feature requires this temp file.
+  if (!defined(File['/tmp/rabbit.pub.key'])) {
+    file { '/tmp/rabbit.pub.key':
+     content => template('openstack/rabbit.pub.key'),
+    }
+    case $::osfamily {
+      'Debian' : {
+        File['/tmp/rabbit.pub.key'] -> Class['rabbitmq::repo::apt']
+      }
+      'RedHat' : {
+        File['/tmp/rabbit.pub.key'] -> Class['rabbitmq::repo::rhel']
+      }
+      default : {
+        fail("The ${module_name} module is not supported on an ${::osfamily} based system.")
+      }
+    }
+  }
+
   # Install / configure queue provider
   case $queue_provider {
     'rabbitmq': {
+      # NOTE(bogdnado) Debian family will use key_content, Rhel will use key_source.
+      #  key_source - source method, should be a file name for rpm or url for apt/rpm
+      #  key_content - content method, should be a template for apt::source class, overrides key_source
+      class { '::rabbitmq':
+        package_gpg_key            => '/tmp/rabbit.pub.key',
+        package_source             => '',
+        repos_ensure               => true,
+        key_content                => template('openstack/rabbit.pub.key'),
+        service_ensure             => 'running',
+        service_manage             => $enabled,
+        port                       => $rabbitmq_bind_port,
+        delete_guest_user          => true,
+        default_user               => $amqp_user,
+        default_pass               => $amqp_password,
+        # Set to true and uncomment the lines below, if puppet should create a cluster
+        config_cluster             => false,
+        #TODO(bogdando) make erlang cookie as a hiera(astute) value.
+        #  this one was a default for old rabbitmq::server, but is required now
+        #erlang_cookie              => 'EOKOWXQREETZSHFNTPEY',
+        #wipe_db_on_cookie_change   => true,
+        #cluster_nodes              => $rabbitmq_cluster_nodes,
+        #cluster_node_type          => 'disc',
+        #cluster_partition_handling => $cluster_partition_handling,
+        version                    => '3.3.5',
+        node_ip_address            => $rabbitmq_bind_ip_address,
+        config_kernel_variables    => $config_kernel_variables,
+        config_variables           => $config_variables,
+        environment_variables      => $environment_variables,
+      }
       class { 'nova::rabbitmq':
-        enabled                => $enabled,
-        userid                 => $amqp_user,
-        password               => $amqp_password,
-        rabbit_node_ip_address => $rabbitmq_bind_ip_address,
-        port                   => $rabbitmq_bind_port,
-        cluster_disk_nodes     => $rabbitmq_cluster_nodes,
-        cluster                => $rabbit_cluster,
-        primary_controller     => $primary_controller,
-        # FIXME(bogdando) remove HA configuration for rabbitmq to pcs wrappers
-        command_timeout        => $command_timeout,
-        ha_mode                => $ha_mode,
+        enabled                    => $enabled,
+        # Do not install rabbitmq from nova classes
+        rabbitmq_class             => false,
+        userid                     => $amqp_user,
+        password                   => $amqp_password,
+        require                    => Class['::rabbitmq'],
+      }
+      if ($ha_mode and $enabled) {
+        class { 'pacemaker_wrappers::rabbitmq':
+          command_timeout         => $command_timeout,
+          debug                   => $debug,
+          #TODO(bogdando) make erlang cookie as a hiera(astute) value.
+          erlang_cookie           => 'EOKOWXQREETZSHFNTPEY',
+          before                  => Class['nova::rabbitmq'],
+        }
       }
     }
     'qpid': {
