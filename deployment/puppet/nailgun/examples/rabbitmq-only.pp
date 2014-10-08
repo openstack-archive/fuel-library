@@ -40,7 +40,15 @@ file { "/var/log/rabbitmq":
   before  => Service["rabbitmq-server"],
 }
 
+if (!defined(File['/tmp/rabbit.pub.key'])) {
+  file { '/tmp/rabbit.pub.key':
+   content => template('openstack/rabbit.pub.key'),
+   before  => Class['nailgun::rabbitmq'],
+  }
+}
+
 class { 'nailgun::rabbitmq':
+  package_gpg_key => '/tmp/rabbit.pub.key',
   production      => $production,
   astute_user     => $rabbitmq_astute_user,
   astute_password => $rabbitmq_astute_password,
@@ -48,6 +56,9 @@ class { 'nailgun::rabbitmq':
   mco_password    => $mco_password,
   mco_vhost       => $mco_vhost,
   stomp           => $stomp,
-  env_config      => "RABBITMQ_SERVER_ERL_ARGS='+K true +A30 +P 1048576'\nNODENAME='rabbit@$::hostname'\n",
+  env_config      => {
+    'RABBITMQ_SERVER_ERL_ARGS' => '+K true +A30 +P 1048576',
+    'NODENAME'                 => "rabbit@${::hostname}",
+  },
 }
 

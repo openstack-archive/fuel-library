@@ -1,0 +1,6 @@
+.bundle
+.pkg
+.ruby-version
+.vagrant
+Gemfile.lock
+spec/fixtures
