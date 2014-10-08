@@ -34,7 +34,6 @@ puppet
 puppetmaster
 puppet-network
 qpid
-rabbitmq
 rpmcache
 rsyslog
 sahara
