@@ -36,17 +36,21 @@
 #   Defaults to 'rabbitmq::server'
 #
 class nova::rabbitmq(
-  $userid             ='guest',
-  $password           ='guest',
-  $port               ='5672',
-  $virtual_host       ='/',
-  $cluster            = false,
-  $cluster_disk_nodes = false,
-  $enabled            = true,
-  $rabbitmq_class     = 'rabbitmq::server',
-  $rabbit_node_ip_address = 'UNSET',
-  $ha_mode            = false,
-  $primary_controller = false
+  $userid                  ='guest',
+  $password                ='guest',
+  $port                    ='5672',
+  $virtual_host            ='/',
+  $cluster                 = false,
+  $cluster_disk_nodes      = false,
+  $enabled                 = true,
+  $rabbitmq_class          = 'rabbitmq::server',
+  $rabbit_node_ip_address  = 'UNSET',
+  $ha_mode                 = false,
+  $primary_controller      = false,
+  # TODO(bogdando) contribute new params
+  $config_kernel_variables = {},
+  $config_variables        = {},
+  $environment_variables   = {},
 ) {
 
   # only configure nova after the queue is up
@@ -97,7 +101,7 @@ class nova::rabbitmq(
       service_name             => $service_name,
       service_ensure           => $service_ensure,
       service_provider         => $service_provider,
-      service_enabled          => $service_enabled,
+      service_manage           => $service_enabled,
       port                     => $port,
       delete_guest_user        => $real_delete_guest_user,
       config_cluster           => $cluster,
@@ -105,6 +109,9 @@ class nova::rabbitmq(
       wipe_db_on_cookie_change => true,
       version                  => $::openstack_version['rabbitmq_version'],
       node_ip_address          => $rabbit_node_ip_address,
+      config_kernel_variables  => $config_kernel_variables,
+      config_variables         => $config_variables,
+      environment_variables    => $environment_variables,
     }
 
     if ($ha_mode) {
@@ -119,21 +126,26 @@ class nova::rabbitmq(
       }
 
       # Disable OS-aware service, because rabbitmq-server managed by Pacemaker.
-      service {'rabbitmq-server__disabled':
-        name       => 'rabbitmq-server',
-        ensure     => 'stopped',
-        enable     => false,
+      if defined(Service['rabbitmq-server']) {
+        Service <| title == 'rabbitmq-server' |> {
+          ensure     => 'stopped',
+          enable     => false,
+        }
+      } else {
+        service {'rabbitmq-server':
+          ensure     => 'stopped',
+          enable     => false,
+        }
       }
 
       File<| title == 'ocf-mirantis-path' |> -> File['rabbitmq-ocf']
       Package['pacemaker'] -> File<| title == 'ocf-mirantis-path' |>
       Package['pacemaker'] -> File['rabbitmq-ocf']
       Package['rabbitmq-server'] ->
-        Service['rabbitmq-server__disabled'] ->
           File['rabbitmq-ocf'] ->
-            Service["$service_name"]
+            Service[$service_name]
       if ($primary_controller) {
-        cs_resource {"$service_name":
+        cs_resource {$service_name:
           ensure          => present,
           #cib             => 'rabbitmq',
           primitive_class => 'ocf',
@@ -154,7 +166,7 @@ class nova::rabbitmq(
           ms_metadata => {
             'notify'      => 'true',
             'ordered'     => 'false', # We shouldn't enable ordered start for parallel start of RA.
-            'interleave'  => 'true',  
+            'interleave'  => 'true',
             'master-max'  => '1',
             'master-node-max' => '1',
             'target-role' => 'Master'
@@ -187,21 +199,24 @@ class nova::rabbitmq(
           },
         }
         File['rabbitmq-ocf'] ->
-          Cs_resource["$service_name"] ->
-            Service["$service_name"]
+          Cs_resource[$service_name] ->
+            Service[$service_name]
       }
 
-      Service["$service_name"] ->
+      Service[$service_name] ->
           Rabbitmq_user <||>
     }
   } else {
     class { $rabbitmq_class:
-      service_ensure    => $service_ensure,
-      port              => $port,
-      delete_guest_user => $delete_guest_user,
-      config_cluster    => false,
-      version           => $::openstack_version['rabbitmq_version'],
-      node_ip_address   => $rabbit_node_ip_address,
+      service_ensure          => $service_ensure,
+      port                    => $port,
+      delete_guest_user       => $delete_guest_user,
+      config_cluster          => false,
+      version                 => $::openstack_version['rabbitmq_version'],
+      node_ip_address         => $rabbit_node_ip_address,
+      config_kernel_variables => $config_kernel_variables,
+      config_variables        => $config_variables,
+      environment_variables   => $environment_variables,
     }
   }
 

@@ -53,6 +53,36 @@ class nailgun::rabbitmq (
     notify  => Service["rabbitmq-server"],
   }
 
+  # From obsolete rabbimq::server
+  if $production !~ /docker/ {
+    case $::osfamily {
+      'RedHat' : {
+        file { 'rabbitmq-server':
+          ensure  => present,
+          path    => '/etc/init.d/rabbitmq-server',
+          content => template('nailgun/rabbitmq-server_redhat.erb'),
+          replace => true,
+          owner   => '0',
+          group   => '0',
+          mode    => '0755',
+        }
+      }
+      'Debian' : {
+        file { 'rabbitmq-server':
+          ensure  => present,
+          path    => '/etc/init.d/rabbitmq-server',
+          content => template('nailgun/rabbitmq-server_ubuntu.erb'),
+          replace => true,
+          owner   => '0',
+          group   => '0',
+          mode    => '0755',
+        }
+      }
+    }
+    Package <| title == 'rabbitmq-server' |> ->
+    File['rabbitmq-server']
+  }
+
   if $stomp {
     $actual_vhost = "/"
   } else {

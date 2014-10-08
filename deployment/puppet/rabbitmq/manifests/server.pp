@@ -56,6 +56,12 @@ class rabbitmq::server(
   # DEPRECATED
   $manage_service           = undef,
   $config_mirrored_queues   = undef,
+  # NOTE(bogdando) these are required for backward compatibility
+  $config_kernel_variables  = {},
+  $environment_variables    = {},
+  $config_variables         = {},
+  # TODO(bogdando) add docs for new param
+  $service_provider         = undef,
 ) inherits rabbitmq::params {
 
   if $manage_service != undef {
@@ -85,6 +91,10 @@ class rabbitmq::server(
     service_name              => $service_name,
     service_ensure            => $service_ensure,
     service_manage            => $_service_manage,
+    service_provider          => $service_provider,
+    config_kernel_variables   => $config_kernel_variables,
+    environment_variables     => $environment_variables,
+    config_variables          => $config_variables,
     config_stomp              => $config_stomp,
     stomp_port                => $stomp_port,
     config_cluster            => $config_cluster,

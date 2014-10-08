@@ -51,6 +51,8 @@ class rabbitmq(
   $environment_variables      = $rabbitmq::params::environment_variables,
   $config_variables           = $rabbitmq::params::config_variables,
   $config_kernel_variables    = $rabbitmq::params::config_kernel_variables,
+  # TODO(bogdando) add docs for new param
+  $service_provider           = undef,
 ) inherits rabbitmq::params {
 
   validate_bool($admin_enable)

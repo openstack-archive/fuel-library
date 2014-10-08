@@ -124,20 +124,47 @@ class openstack::nova::controller (
 
   $sql_connection    = $nova_db
   $glance_connection = $real_glance_api_servers
-
+  if ($debug) {
+    $rabbit_levels = '[connection,debug,info,error]'
+  } else {
+    $rabbit_levels = '[connection,info,error]'
+  }
   # Install / configure queue provider
   case $queue_provider {
     'rabbitmq': {
       class { 'nova::rabbitmq':
-        enabled                => $enabled,
-        userid                 => $amqp_user,
-        password               => $amqp_password,
-        rabbit_node_ip_address => $rabbitmq_bind_ip_address,
-        port                   => $rabbitmq_bind_port,
-        cluster_disk_nodes     => $rabbitmq_cluster_nodes,
-        cluster                => $rabbit_cluster,
-        primary_controller     => $primary_controller,
-        ha_mode                => $ha_mode,
+        enabled                 => $enabled,
+        userid                  => $amqp_user,
+        password                => $amqp_password,
+        rabbit_node_ip_address  => $rabbitmq_bind_ip_address,
+        port                    => $rabbitmq_bind_port,
+        cluster_disk_nodes      => $rabbitmq_cluster_nodes,
+        cluster                 => $rabbit_cluster,
+        primary_controller      => $primary_controller,
+        ha_mode                 => $ha_mode,
+        config_kernel_variables => {
+          'inet_dist_listen_min'         => '41055',
+          'inet_dist_listen_max'         => '41055',
+          'inet_default_connect_options' => '[{nodelay,true}]',
+        },
+        config_variables        => {
+          'log_levels'                   => $rabbit_levels,
+          'default_vhost'                => "<<\"/\">>",
+          'default_permissions'          => '[<<".*">>, <<".*">>, <<".*">>]',
+          'cluster_partition_handling'   => 'autoheal',
+          'tcp_listen_options'           => '[
+             binary,
+             {packet, raw},
+             {reuseaddr, true},
+             {backlog, 128},
+             {nodelay, true},
+             {exit_on_close, false},
+             {keepalive, true}
+          ]',
+        },
+        environment_variables   => {
+          'SERVER_ERL_ARGS'              => '"+K true +A30 +P 1048576"',
+        },
       }
     }
     'qpid': {
