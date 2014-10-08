@@ -9,7 +9,7 @@ class zabbix::monitoring::rabbitmq_mon {
   }
 
   #RabbitMQ server
-  if defined(Class['rabbitmq::server']) {
+  if defined(Class['::rabbitmq']) {
 
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack RabbitMQ":
       host     => $zabbix::params::host_name,

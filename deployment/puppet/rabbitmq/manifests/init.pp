@@ -51,6 +51,9 @@ class rabbitmq(
   $environment_variables      = $rabbitmq::params::environment_variables,
   $config_variables           = $rabbitmq::params::config_variables,
   $config_kernel_variables    = $rabbitmq::params::config_kernel_variables,
+  # TODO(bogdando) add docs for new params
+  $service_provider           = undef,
+  $apt_key_source             = 'http://www.rabbitmq.com/rabbitmq-signing-key-public.asc',
 ) inherits rabbitmq::params {
 
   validate_bool($admin_enable)
@@ -105,6 +108,7 @@ class rabbitmq(
   validate_hash($environment_variables)
   validate_hash($config_variables)
   validate_hash($config_kernel_variables)
+  validate_string($apt_key_source)
 
   if $ssl_only and ! $ssl {
     fail('$ssl_only => true requires that $ssl => true')
@@ -119,8 +123,11 @@ class rabbitmq(
     case $::osfamily {
       'RedHat', 'SUSE':
         { include '::rabbitmq::repo::rhel' }
-      'Debian':
-        { include '::rabbitmq::repo::apt' }
+      'Debian': {
+        class { '::rabbitmq::repo::apt' :
+          key_source => $apt_key_source,
+        }
+      }
       default:
         { }
     }
