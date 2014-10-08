@@ -13,7 +13,7 @@ set -e
 
 if [ -z "$*" ]; then
   ruby_files=`find -type f -print0 | xargs -0 file -i | grep -i ruby | awk -F: '{ print $1 }'`
-  all_files="${ruby_files} `find -name "*.pp" -o -name "*.erb" -o -name "*.sh"`"
+  all_files="${ruby_files} `find -name "*.pp" -o -name "*.erb" -o -name "*.sh" -o -path "*/ocf/*"`"
 else
   all_files="$*"
 fi
@@ -49,6 +49,22 @@ for x in $all_files; do
     ;;
   *.sh )
     bash -n $x
+    ;;
+  */ocf/* )
+    case $(file --brief $x) in
+      *shell\ script*)
+        bash -n $x
+        ;;
+      *Ruby\ script*)
+        ruby -c $x
+        ;;
+      *Python\ script*)
+        python -m py_compile $x
+        ;;
+      *Perl\ script*)
+        perl -c $x
+        ;;
+    esac
     ;;
   esac
 done
