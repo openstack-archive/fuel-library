@@ -2,9 +2,13 @@ require File.join File.dirname(__FILE__), '../rabbitmq_common.rb'
 
 Puppet::Type.type(:rabbitmq_vhost).provide(:rabbitmqctl, :parent => Puppet::Provider::Rabbitmq_common) do
 
-  #TODO: change optional_commands -> commands when puppet >= 3.0
-  optional_commands :rabbitmqctl => 'rabbitmqctl'
-  defaultfor :feature => :posix
+  if Puppet::PUPPETVERSION.to_f < 3
+    commands :rabbitmqctl => 'rabbitmqctl'
+  else
+     has_command(:rabbitmqctl, 'rabbitmqctl') do
+       environment :HOME => "/tmp"
+     end
+  end
 
   def self.instances
     self.wait_for_online
