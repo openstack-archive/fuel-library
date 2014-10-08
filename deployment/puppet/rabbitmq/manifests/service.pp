@@ -2,9 +2,6 @@
 #
 #   This class manages the rabbitmq server service itself.
 #
-#   Jeff McCune <jeff@puppetlabs.com>
-#
-#
 # Parameters:
 #
 # Actions:
@@ -14,45 +11,29 @@
 # Sample Usage:
 #
 class rabbitmq::service(
-  $service_name = 'rabbitmq-server',
-  $service_provider = undef,
-  $ensure='running',
-  $enabled=true
-) {
+  $service_ensure = $rabbitmq::service_ensure,
+  $service_manage = $rabbitmq::service_manage,
+  $service_name   = $rabbitmq::service_name,
+) inherits rabbitmq {
 
-  validate_re($ensure, '^(running|stopped)$')
-  if $ensure == 'running' {
-    Class['rabbitmq::service'] -> Rabbitmq_user<| |>
-    Class['rabbitmq::service'] -> Rabbitmq_vhost<| |>
-    Class['rabbitmq::service'] -> Rabbitmq_user_permissions<| |>
-    $ensure_real = 'running'
-    $enable_real = $enabled
-  } else {
-    $ensure_real = 'stopped'
-    $enable_real = false
-  }
+  validate_re($service_ensure, '^(running|stopped)$')
+  validate_bool($service_manage)
 
-  File <| title == '/etc/rabbitmq/enabled_plugins'|> -> Service[$service_name]
-  Package<| title == 'rabbitmq-server'|> ~> Service<| title == $service_name|>
-  if !defined(Service[$service_name]) {
-    notify{ "Module ${module_name} cannot notify service ${service_name}\
- on package rabbitmq-server update": }
-  }
-
-  if ($service_provider) {
-    service { $service_name:
-      ensure     => $ensure_real,
-      enable     => $enable_real,
-      hasstatus  => true,
-      hasrestart => true,
-      provider   => $service_provider,
+  if ($service_manage) {
+    if $service_ensure == 'running' {
+      $ensure_real = 'running'
+      $enable_real = true
+    } else {
+      $ensure_real = 'stopped'
+      $enable_real = false
     }
-  } else {
-    service { $service_name:
+
+    service { 'rabbitmq-server':
       ensure     => $ensure_real,
       enable     => $enable_real,
       hasstatus  => true,
       hasrestart => true,
+      name       => $service_name,
     }
   }
 
