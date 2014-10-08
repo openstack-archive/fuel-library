@@ -9,7 +9,7 @@ class zabbix::monitoring::rabbitmq_mon {
   }
 
   #RabbitMQ server
-  if defined(Class['rabbitmq::server']) {
+  if defined(Class['::rabbitmq']) {
 
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack RabbitMQ":
       host     => $zabbix::params::host_name,
@@ -19,14 +19,14 @@ class zabbix::monitoring::rabbitmq_mon {
 
     Package['rabbitmq-server'] ->
     Exec['enable rabbitmq management plugin'] ->
-    Service[$nova::rabbitmq::service_name]
+    Service['rabbitmq-server']
 
     exec { 'enable rabbitmq management plugin':
       command     => 'rabbitmq-plugins enable rabbitmq_management',
       path        => ['/usr/sbin', '/usr/bin', '/sbin', '/bin' ],
       unless      => 'rabbitmq-plugins list -m -E rabbitmq_management | grep -q rabbitmq_management',
       environment => "HOME=/root",
-      notify      => Service[$nova::rabbitmq::service_name]
+      notify      => Service['rabbitmq-server']
     }
 
     firewall {'992 rabbitmq management':

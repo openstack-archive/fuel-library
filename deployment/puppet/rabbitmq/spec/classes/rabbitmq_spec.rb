@@ -19,6 +19,7 @@ describe 'rabbitmq' do
     describe 'apt::source default values' do
       it 'should add a repo with defaults values' do
         should contain_apt__source('rabbitmq').with( {
+          :ensure   => 'present',
           :location => 'http://www.rabbitmq.com/debian/',
           :release  => 'testing',
           :repos    => 'main',
@@ -30,8 +31,111 @@ describe 'rabbitmq' do
   context 'on Debian' do
     let(:params) {{ :manage_repos => false }}
     let(:facts) {{ :osfamily => 'Debian', :lsbdistid => 'Debian', :lsbdistcodename => 'squeeze' }}
-    it 'does not include rabbitmq::repo::apt when manage_repos is false' do
-      should_not contain_class('rabbitmq::repo::apt')
+    it 'does ensure rabbitmq apt::source is absent when manage_repos is false' do
+      should_not contain_apt__source('rabbitmq')
+    end
+  end
+
+  context 'on Debian' do
+    let(:params) {{ :manage_repos => true }}
+    let(:facts) {{ :osfamily => 'Debian', :lsbdistid => 'Debian', :lsbdistcodename => 'squeeze' }}
+
+    it 'includes rabbitmq::repo::apt' do
+      should contain_class('rabbitmq::repo::apt')
+    end
+
+    describe 'apt::source default values' do
+      it 'should add a repo with defaults values' do
+        should contain_apt__source('rabbitmq').with( {
+          :ensure   => 'present',
+          :location => 'http://www.rabbitmq.com/debian/',
+          :release  => 'testing',
+          :repos    => 'main',
+        })
+      end
+    end
+  end
+
+  context 'on Debian' do
+    let(:params) {{ :repos_ensure => false }}
+    let(:facts) {{ :osfamily => 'Debian', :lsbdistid => 'Debian', :lsbdistcodename => 'squeeze' }}
+    it 'does ensure rabbitmq apt::source is absent when repos_ensure is false' do
+      should contain_apt__source('rabbitmq').with(
+        'ensure'  => 'absent'
+      )
+    end
+  end
+
+  context 'on Debian' do
+    let(:params) {{ :repos_ensure => true }}
+    let(:facts) {{ :osfamily => 'Debian', :lsbdistid => 'Debian', :lsbdistcodename => 'squeeze' }}
+
+    it 'includes rabbitmq::repo::apt' do
+      should contain_class('rabbitmq::repo::apt')
+    end
+
+    describe 'apt::source default values' do
+      it 'should add a repo with defaults values' do
+        should contain_apt__source('rabbitmq').with( {
+          :ensure   => 'present',
+          :location => 'http://www.rabbitmq.com/debian/',
+          :release  => 'testing',
+          :repos    => 'main',
+        })
+      end
+    end
+  end
+
+  context 'on Debian' do
+    let(:params) {{ :manage_repos => true, :repos_ensure => false }}
+    let(:facts) {{ :osfamily => 'Debian', :lsbdistid => 'Debian', :lsbdistcodename => 'squeeze' }}
+
+    it 'includes rabbitmq::repo::apt' do
+      should contain_class('rabbitmq::repo::apt')
+    end
+
+    describe 'apt::source default values' do
+      it 'should add a repo with defaults values' do
+        should contain_apt__source('rabbitmq').with( {
+          :ensure => 'absent',
+        })
+      end
+    end
+  end
+
+  context 'on Debian' do
+    let(:params) {{ :manage_repos => true, :repos_ensure => true }}
+    let(:facts) {{ :osfamily => 'Debian', :lsbdistid => 'Debian', :lsbdistcodename => 'squeeze' }}
+
+    it 'includes rabbitmq::repo::apt' do
+      should contain_class('rabbitmq::repo::apt')
+    end
+
+    describe 'apt::source default values' do
+      it 'should add a repo with defaults values' do
+        should contain_apt__source('rabbitmq').with( {
+          :ensure   => 'present',
+          :location => 'http://www.rabbitmq.com/debian/',
+          :release  => 'testing',
+          :repos    => 'main',
+        })
+      end
+    end
+  end
+
+  context 'on Debian' do
+    let(:params) {{ :manage_repos => false, :repos_ensure => true }}
+    let(:facts) {{ :osfamily => 'Debian', :lsbdistid => 'Debian', :lsbdistcodename => 'squeeze' }}
+    it 'does ensure rabbitmq apt::source is absent when manage_repos is false and repos_ensure is true' do
+      should_not contain_apt__source('rabbitmq')
+    end
+  end
+
+  context 'on Debian' do
+    let(:params) {{ :manage_repos => false, :repos_ensure => false }}
+    let(:facts) {{ :osfamily => 'Debian', :lsbdistid => 'Debian', :lsbdistcodename => 'squeeze' }}
+    it 'does ensure rabbitmq apt::source is absent when manage_repos is false and repos_ensure is false' do
+      should_not contain_apt__source('rabbitmq')
     end
   end
 
@@ -39,14 +143,79 @@ describe 'rabbitmq' do
     let(:facts) {{ :osfamily => 'RedHat' }}
     it 'includes rabbitmq::repo::rhel' do
       should contain_class('rabbitmq::repo::rhel')
+      should contain_exec('rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc')
+    end
+  end
+
+  context 'on Redhat' do
+    let(:params) {{ :repos_ensure => false }}
+    let(:facts) {{ :osfamily => 'RedHat' }}
+    it 'does not import repo public key when repos_ensure is false' do
+      should contain_class('rabbitmq::repo::rhel')
+      should_not contain_exec('rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc')
+    end
+  end
+
+  context 'on Redhat' do
+    let(:params) {{ :repos_ensure => true }}
+    let(:facts) {{ :osfamily => 'RedHat' }}
+    it 'does import repo public key when repos_ensure is true' do
+      should contain_class('rabbitmq::repo::rhel')
+      should contain_exec('rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc')
     end
   end
 
   context 'on Redhat' do
     let(:params) {{ :manage_repos => false }}
     let(:facts) {{ :osfamily => 'RedHat' }}
-    it 'does not include rabbitmq::repo::rhel when manage_repos is false' do
+    it 'does not import repo public key when manage_repos is false' do
       should_not contain_class('rabbitmq::repo::rhel')
+      should_not contain_exec('rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc')
+    end
+  end
+
+  context 'on Redhat' do
+    let(:params) {{ :manage_repos => true }}
+    let(:facts) {{ :osfamily => 'RedHat' }}
+    it 'does import repo public key when manage_repos is true' do
+      should contain_class('rabbitmq::repo::rhel')
+      should contain_exec('rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc')
+    end
+  end
+
+  context 'on Redhat' do
+    let(:params) {{ :manage_repos => false, :repos_ensure => true }}
+    let(:facts) {{ :osfamily => 'RedHat' }}
+    it 'does not import repo public key when manage_repos is false and repos_ensure is true' do
+      should_not contain_class('rabbitmq::repo::rhel')
+      should_not contain_exec('rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc')
+    end
+  end
+
+  context 'on Redhat' do
+    let(:params) {{ :manage_repos => true, :repos_ensure => true }}
+    let(:facts) {{ :osfamily => 'RedHat' }}
+    it 'does import repo public key when manage_repos is true and repos_ensure is true' do
+      should contain_class('rabbitmq::repo::rhel')
+      should contain_exec('rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc')
+    end
+  end
+
+  context 'on Redhat' do
+    let(:params) {{ :manage_repos => false, :repos_ensure => false }}
+    let(:facts) {{ :osfamily => 'RedHat' }}
+    it 'does not import repo public key when manage_repos is false and repos_ensure is false' do
+      should_not contain_class('rabbitmq::repo::rhel')
+      should_not contain_exec('rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc')
+    end
+  end
+
+  context 'on Redhat' do
+    let(:params) {{ :manage_repos => true, :repos_ensure => false }}
+    let(:facts) {{ :osfamily => 'RedHat' }}
+    it 'does not import repo public key when manage_repos is true and repos_ensure is false' do
+      should contain_class('rabbitmq::repo::rhel')
+      should_not contain_exec('rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc')
     end
   end
 
@@ -54,7 +223,6 @@ describe 'rabbitmq' do
     context "on #{distro}" do
       let(:facts) {{
         :osfamily => distro,
-        :rabbitmq_erlang_cookie => 'EOKOWXQREETZSHFNTPEY',
         :lsbdistcodename => 'squeeze',
         :lsbdistid => 'Debian'
       }}
@@ -98,14 +266,6 @@ describe 'rabbitmq' do
         end
       end
 
-      context 'deprecated parameters' do
-        describe 'cluster_disk_nodes' do
-          let(:params) {{ :cluster_disk_nodes => ['node1', 'node2'] }}
-
-          it { should contain_notify('cluster_disk_nodes') }
-        end
-      end
-
       describe 'manages configuration directory correctly' do
         it { should contain_file('/etc/rabbitmq').with(
           'ensure' => 'directory'
@@ -117,22 +277,21 @@ describe 'rabbitmq' do
       end
 
       context 'configures config_cluster' do
-        let(:facts) {{ :osfamily => distro, :rabbitmq_erlang_cookie => 'ORIGINAL', :lsbdistid => 'Debian' }}
+        let(:facts) {{ :osfamily => distro, :lsbdistid => 'Debian' }}
         let(:params) {{
           :config_cluster           => true,
           :cluster_nodes            => ['hare-1', 'hare-2'],
           :cluster_node_type        => 'ram',
-          :erlang_cookie            => 'TESTCOOKIE',
           :wipe_db_on_cookie_change => false
         }}
 
         describe 'with defaults' do
           it 'fails' do
-            expect{subject}.to raise_error(/^ERROR: The current erlang cookie is ORIGINAL/)
+            expect{subject}.to raise_error(/^You must set the \$erlang_cookie value/)
           end
         end
 
-        describe 'with wipe_db_on_cookie_change set' do
+        describe 'with erlang_cookie set' do
           let(:params) {{
             :config_cluster           => true,
             :cluster_nodes            => ['hare-1', 'hare-2'],
@@ -140,22 +299,8 @@ describe 'rabbitmq' do
             :erlang_cookie            => 'TESTCOOKIE',
             :wipe_db_on_cookie_change => true
           }}
-          it 'wipes the database' do
-            should contain_exec('wipe_db')
-            should contain_file('erlang_cookie')
-          end
-        end
-
-        describe 'correctly when cookies match' do
-          let(:params) {{
-            :config_cluster           => true,
-            :cluster_nodes            => ['hare-1', 'hare-2'],
-            :cluster_node_type        => 'ram',
-            :erlang_cookie            => 'ORIGINAL',
-            :wipe_db_on_cookie_change => true
-          }}
-          it 'and doesnt wipe anything' do
-            should contain_file('erlang_cookie')
+          it 'contains the rabbitmq_erlang_cookie' do
+            should contain_rabbitmq_erlang_cookie('/var/lib/rabbitmq/.erlang.cookie')
           end
         end
 
@@ -173,11 +318,6 @@ describe 'rabbitmq' do
             })
           end
 
-          it 'for erlang_cookie' do
-            should contain_file('erlang_cookie').with({
-              'content' => 'ORIGINAL',
-            })
-          end
         end
       end
 
@@ -277,7 +417,7 @@ describe 'rabbitmq' do
         it { should contain_rabbitmq_plugin('rabbitmq_auth_backend_ldap') }
 
         it 'should contain ldap parameters' do
-          verify_contents(subject, 'rabbitmq.config', 
+          verify_contents(subject, 'rabbitmq.config',
                           ['[', '  {rabbit, [', '    {auth_backends, [rabbit_auth_backend_internal, rabbit_auth_backend_ldap]},', '  ]}',
                             '  {rabbitmq_auth_backend_ldap, [', '    {other_bind, anon},',
                             '    {servers, ["ldap.example.com"]},',
@@ -301,7 +441,7 @@ describe 'rabbitmq' do
         it { should contain_rabbitmq_plugin('rabbitmq_auth_backend_ldap') }
 
         it 'should contain ldap parameters' do
-          verify_contents(subject, 'rabbitmq.config', 
+          verify_contents(subject, 'rabbitmq.config',
                           ['[', '  {rabbit, [', '    {auth_backends, [rabbit_auth_backend_internal, rabbit_auth_backend_ldap]},', '  ]}',
                             '  {rabbitmq_auth_backend_ldap, [', '    {other_bind, anon},',
                             '    {servers, ["ldap.example.com"]},',
@@ -460,7 +600,7 @@ describe 'rabbitmq' do
         it 'should set config variables' do
           should contain_file('rabbitmq.config') \
             .with_content(/\{inet_dist_listen_min, 9100\}/) \
-            .with_content(/\{inet_dist_listen_max, 9105\}/) 
+            .with_content(/\{inet_dist_listen_max, 9105\}/)
         end
       end
 
@@ -564,7 +704,7 @@ describe 'rabbitmq' do
       should contain_package('rabbitmq-server').with(
         'ensure'   => 'installed',
         'name'     => 'rabbitmq-server',
-        'provider' => 'yum',
+        'provider' => 'rpm',
         'source'   => 'http://www.rabbitmq.com/releases/rabbitmq-server/v3.2.3/rabbitmq-server-3.2.3-1.noarch.rpm'
       )
     end
@@ -602,7 +742,7 @@ describe 'rabbitmq' do
           'release'     => 'testing',
           'repos'       => 'main',
           'include_src' => false,
-          'key'         => '056E8E56'
+          'key'         => 'F7B8CEA6056E8E56'
         ) }
       end
     end
@@ -616,7 +756,7 @@ describe 'rabbitmq' do
           'release'     => 'testing',
           'repos'       => 'main',
           'include_src' => false,
-          'key'         => '056E8E56'
+          'key'         => 'F7B8CEA6056E8E56'
         ) }
 
         it { should contain_apt__pin('rabbitmq').with(

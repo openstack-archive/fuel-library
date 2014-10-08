@@ -15,7 +15,8 @@ Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl) do
     @users = {} unless @users
     unless @users[name]
       @users[name] = {}
-      rabbitmqctl('list_user_permissions', name).split(/\n/)[1..-2].each do |line|
+      rabbitmqctl('-q', 'list_user_permissions', name).split(/\n/).each do |line|
+        line = self::strip_backslashes(line)
         if line =~ /^(\S+)\s+(\S*)\s+(\S*)\s+(\S*)$/
           @users[name][$1] =
             {:configure => $2, :read => $4, :write => $3}
@@ -100,6 +101,11 @@ Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl) do
         resource[:read_permission]
       )
     end
+  end
+
+  def self.strip_backslashes(string)
+    # See: https://github.com/rabbitmq/rabbitmq-server/blob/v1_7/docs/rabbitmqctl.1.pod#output-escaping
+    string.gsub(/\\\\/, '\\')
   end
 
 end
