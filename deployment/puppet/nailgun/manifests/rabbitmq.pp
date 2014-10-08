@@ -9,7 +9,7 @@ class nailgun::rabbitmq (
   $management_port = "15672",
   $stompport       = "61613",
   $rabbitmq_host   = "localhost",
-  $env_config      = 'UNSET',
+  $env_config      = {},
 ) {
 
   include stdlib
@@ -29,11 +29,11 @@ class nailgun::rabbitmq (
     admin     => true,
     password  => $astute_password,
     provider  => 'rabbitmqctl',
-    require   => Class['rabbitmq::server'],
+    require   => Class['::rabbitmq'],
   }
 
   rabbitmq_vhost { "/":
-    require => Class['rabbitmq::server'],
+    require => Class['::rabbitmq'],
   }
 
   rabbitmq_user_permissions { "${astute_user}@/":
@@ -41,7 +41,7 @@ class nailgun::rabbitmq (
     write_permission     => '.*',
     read_permission      => '.*',
     provider             => 'rabbitmqctl',
-    require              => [Class['rabbitmq::server'], Rabbitmq_vhost['/']]
+    require              => [Class['::rabbitmq'], Rabbitmq_vhost['/']]
   }
 
   file { "/etc/rabbitmq/enabled_plugins":
@@ -51,6 +51,36 @@ class nailgun::rabbitmq (
     mode    => 0644,
     require => Package["rabbitmq-server"],
     notify  => Service["rabbitmq-server"],
+  }
+
+  # From obsolete rabbimq::server
+  if $production !~ /docker/ {
+    case $::osfamily {
+      'RedHat' : {
+        file { 'rabbitmq-server':
+          ensure  => present,
+          path    => '/etc/init.d/rabbitmq-server',
+          content => template('nailgun/rabbitmq-server_redhat.erb'),
+          replace => true,
+          owner   => '0',
+          group   => '0',
+          mode    => '0755',
+        }
+      }
+      'Debian' : {
+        file { 'rabbitmq-server':
+          ensure  => present,
+          path    => '/etc/init.d/rabbitmq-server',
+          content => template('nailgun/rabbitmq-server_ubuntu.erb'),
+          replace => true,
+          owner   => '0',
+          group   => '0',
+          mode    => '0755',
+        }
+      }
+    }
+    Package <| title == 'rabbitmq-server' |> ->
+    File['rabbitmq-server']
   }
 
   if $stomp {
@@ -64,7 +94,7 @@ class nailgun::rabbitmq (
     admin     => true,
     password  => $mco_password,
     provider  => 'rabbitmqctl',
-    require   => Class['rabbitmq::server'],
+    require   => Class['::rabbitmq'],
   }
 
   rabbitmq_user_permissions { "${mco_user}@${actual_vhost}":
@@ -72,7 +102,7 @@ class nailgun::rabbitmq (
     write_permission     => '.*',
     read_permission      => '.*',
     provider             => 'rabbitmqctl',
-    require              => Class['rabbitmq::server'],
+    require              => Class['::rabbitmq'],
   }
 
   exec { 'create-mcollective-directed-exchange':
@@ -102,20 +132,44 @@ class nailgun::rabbitmq (
     try_sleep => 3,
   }
 
-  class { 'rabbitmq::server':
-    production         => $production,
-    service_ensure     => running,
-    delete_guest_user  => true,
-    config_cluster     => false,
-    cluster_disk_nodes => [],
-    config_stomp       => true,
-    stomp_port         => $stompport,
-    node_ip_address    => 'UNSET',
-    env_config         => $env_config,
+  # NOTE(bogdando) indentation is important
+  $rabbit_tcp_listen_options =
+    '[
+      binary,
+      {packet, raw},
+      {reuseaddr, true},
+      {backlog, 128},
+      {nodelay, true},
+      {exit_on_close, false},
+      {keepalive, true}
+    ]'
+
+  # NOTE(bogdando) requires rabbitmq module >=4.0
+  class { '::rabbitmq':
+    apt_key_source          => template('openstack/rabbit.pub.key'),
+    environment_variables   => $env_config,
+    service_ensure          => 'running',
+    delete_guest_user       => true,
+    config_cluster          => false,
+    cluster_disk_nodes      => [],
+    config_stomp            => true,
+    stomp_port              => $stompport,
+    node_ip_address         => 'UNSET',
+    config_kernel_variables => {
+     'inet_dist_listen_min'         => '41055',
+     'inet_dist_listen_max'         => '41055',
+     'inet_default_connect_options' => '[{nodelay,true}]',
+    },
+    config_variables => {
+      'log_levels'                  => '[connection,debug,info,error]',
+      'default_vhost'               => '<<"">>',
+      'default_permissions'         => '[<<".*">>, <<".*">>, <<".*">>]',
+      'tcp_listen_options'          => $rabbit_tcp_listen_options,
+    },
   }
 
   Anchor['nailgun::rabbitmq start'] ->
-  Class['rabbitmq::server'] ->
+  Class['::rabbitmq'] ->
   Anchor['nailgun::rabbitmq end']
 
 }
