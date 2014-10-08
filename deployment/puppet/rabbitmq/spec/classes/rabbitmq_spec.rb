@@ -277,7 +277,7 @@ describe 'rabbitmq' do
         it { should contain_rabbitmq_plugin('rabbitmq_auth_backend_ldap') }
 
         it 'should contain ldap parameters' do
-          verify_contents(subject, 'rabbitmq.config', 
+          verify_contents(subject, 'rabbitmq.config',
                           ['[', '  {rabbit, [', '    {auth_backends, [rabbit_auth_backend_internal, rabbit_auth_backend_ldap]},', '  ]}',
                             '  {rabbitmq_auth_backend_ldap, [', '    {other_bind, anon},',
                             '    {servers, ["ldap.example.com"]},',
@@ -301,7 +301,7 @@ describe 'rabbitmq' do
         it { should contain_rabbitmq_plugin('rabbitmq_auth_backend_ldap') }
 
         it 'should contain ldap parameters' do
-          verify_contents(subject, 'rabbitmq.config', 
+          verify_contents(subject, 'rabbitmq.config',
                           ['[', '  {rabbit, [', '    {auth_backends, [rabbit_auth_backend_internal, rabbit_auth_backend_ldap]},', '  ]}',
                             '  {rabbitmq_auth_backend_ldap, [', '    {other_bind, anon},',
                             '    {servers, ["ldap.example.com"]},',
@@ -460,7 +460,7 @@ describe 'rabbitmq' do
         it 'should set config variables' do
           should contain_file('rabbitmq.config') \
             .with_content(/\{inet_dist_listen_min, 9100\}/) \
-            .with_content(/\{inet_dist_listen_max, 9105\}/) 
+            .with_content(/\{inet_dist_listen_max, 9105\}/)
         end
       end
 
