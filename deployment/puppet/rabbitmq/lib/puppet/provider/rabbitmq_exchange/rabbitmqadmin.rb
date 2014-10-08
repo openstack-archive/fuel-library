@@ -1,10 +1,15 @@
-require 'puppet'
+require File.join File.dirname(__FILE__), '../rabbitmq_common.rb'
+
 Puppet::Type.type(:rabbitmq_exchange).provide(:rabbitmqadmin) do
 
   commands :rabbitmqctl => '/usr/sbin/rabbitmqctl'
   has_command(:rabbitmqadmin, '/usr/local/bin/rabbitmqadmin') do
     environment( { 'HOME' => '' })
   end
+
+  include RabbitmqCommon
+  extend RabbitmqCommon
+
   defaultfor :feature => :posix
 
   def should_vhost
@@ -38,6 +43,7 @@ Puppet::Type.type(:rabbitmq_exchange).provide(:rabbitmqadmin) do
   end
 
   def self.instances
+    self.wait_for_rabbitmq
     resources = []
     all_vhosts.each do |vhost|
         all_exchanges(vhost).collect do |line|
@@ -60,6 +66,7 @@ Puppet::Type.type(:rabbitmq_exchange).provide(:rabbitmqadmin) do
   end
 
   def self.prefetch(resources)
+    self.wait_for_rabbitmq
     packages = instances
     resources.keys.each do |name|
       if provider = packages.find{ |pkg| pkg.name == name }
@@ -69,6 +76,7 @@ Puppet::Type.type(:rabbitmq_exchange).provide(:rabbitmqadmin) do
   end
 
   def exists?
+    wait_for_rabbitmq
     @property_hash[:ensure] == :present
   end
 

@@ -10,6 +10,7 @@ describe provider_class do
       {:name => 'foo', :password => 'bar'}
     )
     @provider = provider_class.new(@resource)
+    @provider.stubs(:wait_for_rabbitmq).returns(true)
   end
   it 'should match user names' do
     @provider.expects(:rabbitmqctl).with('list_users').returns <<-EOT

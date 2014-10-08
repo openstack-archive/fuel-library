@@ -1,5 +1,6 @@
-require 'puppet'
 require 'set'
+require File.join File.dirname(__FILE__), '../rabbitmq_common.rb'
+
 Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl) do
 
   if Puppet::PUPPETVERSION.to_f < 3
@@ -12,7 +13,11 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl) do
 
   defaultfor :feature => :posix
 
+  include RabbitmqCommon
+  extend RabbitmqCommon
+
   def self.instances
+    self.wait_for_rabbitmq
     rabbitmqctl('list_users').split(/\n/)[1..-2].collect do |line|
       if line =~ /^(\S+)(\s+\[.*?\]|)$/
         new(:name => $1)
@@ -37,6 +42,7 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl) do
   end
 
   def exists?
+    wait_for_rabbitmq
     rabbitmqctl('list_users').split(/\n/)[1..-2].detect do |line|
       line.match(/^#{Regexp.escape(resource[:name])}(\s+(\[.*?\]|\S+)|)$/)
     end

@@ -11,6 +11,12 @@ describe provider_class do
        :type => :topic}
     )
     @provider = provider_class.new(@resource)
+    @provider.stubs(:wait_for_rabbitmq).returns(true)
+    if Puppet::Util::Execution.respond_to? :execute
+      Puppet::Util::Execution.stubs(:execute).returns(0)
+    else
+      Puppet::Util.stubs(:execute).returns(0)
+    end
   end
 
   it 'should return instances' do

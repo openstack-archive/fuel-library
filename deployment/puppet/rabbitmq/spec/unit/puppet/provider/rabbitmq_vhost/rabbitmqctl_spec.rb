@@ -10,8 +10,15 @@ describe provider_class do
       {:name => 'foo'}
     )
     @provider = provider_class.new(@resource)
+    @provider.stubs(:wait_for_rabbitmq).returns(true)
+    if Puppet::Util::Execution.respond_to? :execute
+      Puppet::Util::Execution.stubs(:execute).returns(0)
+    else
+      Puppet::Util.stubs(:execute).returns(0)
+    end
   end
   it 'should match vhost names' do
+    @provider.expects(:wait_for_rabbitmq).once
     @provider.expects(:rabbitmqctl).with('list_vhosts').returns <<-EOT
 Listing vhosts ...
 foo
@@ -20,6 +27,7 @@ EOT
     @provider.exists?.should == 'foo'
   end
   it 'should not match if no vhosts on system' do
+    @provider.expects(:wait_for_rabbitmq).once
     @provider.expects(:rabbitmqctl).with('list_vhosts').returns <<-EOT
 Listing vhosts ...
 ...done.
@@ -27,6 +35,7 @@ EOT
     @provider.exists?.should be_nil
   end
   it 'should not match if no matching vhosts on system' do
+    @provider.expects(:wait_for_rabbitmq).once
     @provider.expects(:rabbitmqctl).with('list_vhosts').returns <<-EOT
 Listing vhosts ...
 fooey

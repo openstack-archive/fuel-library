@@ -87,6 +87,11 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     service_name = @service[:msname] ? @service[:msname] : @service[:name]
   end
 
+  def disable_os_aware_service
+    # TODO(bogdando) disable OS-aware service
+    # refered as @service[:name]
+  end
+
   def self.get_stonith
     get_cib
     stonith = XPath.first(@@cib,"crm_config/nvpair[@name='stonith-enabled']")
@@ -234,6 +239,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   #  end
 
   def enable
+    disable_os_aware_service
     crm('resource','manage', get_service_name)
   end
 
