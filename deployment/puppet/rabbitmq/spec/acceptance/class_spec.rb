@@ -32,7 +32,7 @@ describe 'rabbitmq class:' do
     end
 
     describe package(package_name) do
-      it { should be_installed }      
+      it { should be_installed }
     end
 
     describe service(service_name) do
@@ -83,7 +83,6 @@ describe 'rabbitmq class:' do
       }
       EOS
 
-      
       apply_manifest(pp_pre, :catch_failures => true)
       apply_manifest(pp, :catch_failures => true)
     end
