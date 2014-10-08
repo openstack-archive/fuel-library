@@ -1,22 +1,24 @@
 Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl) do
 
-  #TODO: change optional_commands -> commands when puppet >= 3.0
-  optional_commands :rabbitmqctl => 'rabbitmqctl'
-  defaultfor :feature=> :posix
+  if Puppet::PUPPETVERSION.to_f < 3
+    commands :rabbitmqctl => 'rabbitmqctl'
+  else
+     has_command(:rabbitmqctl, 'rabbitmqctl') do
+       environment :HOME => "/tmp"
+     end
+  end
 
-  #def self.instances
-  #
-  #end
+  defaultfor :feature=> :posix
 
   # cache users permissions
   def self.users(name, vhost)
     @users = {} unless @users
     unless @users[name]
       @users[name] = {}
-      out = rabbitmqctl('list_user_permissions', name).split(/\n/)[1..-2].each do |line|
-        if line =~ /^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$/
+      rabbitmqctl('list_user_permissions', name).split(/\n/)[1..-2].each do |line|
+        if line =~ /^(\S+)\s+(\S*)\s+(\S*)\s+(\S*)$/
           @users[name][$1] =
-            {:configure => $2, :read => $3, :write => $4}
+            {:configure => $2, :read => $4, :write => $3}
         else
           raise Puppet::Error, "cannot parse line from list_user_permissions:#{line}"
         end
@@ -49,7 +51,7 @@ Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl) do
     resource[:configure_permission] ||= "''"
     resource[:read_permission]      ||= "''"
     resource[:write_permission]     ||= "''"
-    rabbitmqctl('set_permissions', '-p', should_vhost, should_user, resource[:configure_permission], resource[:read_permission], resource[:write_permission]) 
+    rabbitmqctl('set_permissions', '-p', should_vhost, should_user, resource[:configure_permission], resource[:write_permission], resource[:read_permission])
   end
 
   def destroy
@@ -94,8 +96,8 @@ Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl) do
       resource[:read_permission]      ||= read_permission
       resource[:write_permission]     ||= write_permission
       rabbitmqctl('set_permissions', '-p', should_vhost, should_user,
-        resource[:configure_permission], resource[:read_permission],
-        resource[:write_permission]
+        resource[:configure_permission], resource[:write_permission],
+        resource[:read_permission]
       )
     end
   end
