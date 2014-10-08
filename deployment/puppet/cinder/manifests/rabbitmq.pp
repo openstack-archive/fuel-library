@@ -28,7 +28,7 @@
 #   (optional) The rabbitmq puppet class to depend on,
 #   which is dependent on the puppet-rabbitmq version.
 #   Use the default for 1.x, use 'rabbitmq' for 3.x
-#   Defaults to 'rabbitmq::server'
+#   Defaults to '::rabbitmq'
 #
 class cinder::rabbitmq(
   $userid         = 'guest',
@@ -36,7 +36,7 @@ class cinder::rabbitmq(
   $port           = '5672',
   $virtual_host   = '/',
   $enabled        = true,
-  $rabbitmq_class = 'rabbitmq::server',
+  $rabbitmq_class = '::rabbitmq',
 ) {
 
   # only configure cinder after the queue is up
