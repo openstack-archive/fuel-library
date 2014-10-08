@@ -1,7 +1,9 @@
+# Class: rabbitmq::config
+# Sets all the configuration values for RabbitMQ and creates the directories for
+# config and ssl.
 class rabbitmq::config {
 
   $admin_enable               = $rabbitmq::admin_enable
-  $cluster_disk_nodes         = $rabbitmq::cluster_disk_nodes
   $cluster_node_type          = $rabbitmq::cluster_node_type
   $cluster_nodes              = $rabbitmq::cluster_nodes
   $config                     = $rabbitmq::config
@@ -42,29 +44,18 @@ class rabbitmq::config {
   # Handle env variables.
   $environment_variables = merge($default_env_variables, $rabbitmq::environment_variables)
 
-  # Handle deprecated option.
-  if $cluster_disk_nodes != [] {
-    notify { 'cluster_disk_nodes':
-      message => 'WARNING: The cluster_disk_nodes is deprecated.
-       Use cluster_nodes instead.',
-    }
-    $r_cluster_nodes = $cluster_disk_nodes
-  } else {
-    $r_cluster_nodes = $cluster_nodes
-  }
-
   file { '/etc/rabbitmq':
-    ensure  => directory,
-    owner   => '0',
-    group   => '0',
-    mode    => '0644',
+    ensure => directory,
+    owner  => '0',
+    group  => '0',
+    mode   => '0644',
   }
 
   file { '/etc/rabbitmq/ssl':
-    ensure  => directory,
-    owner   => '0',
-    group   => '0',
-    mode    => '0644',
+    ensure => directory,
+    owner  => '0',
+    group  => '0',
+    mode   => '0644',
   }
 
   file { 'rabbitmq.config':
@@ -87,37 +78,29 @@ class rabbitmq::config {
     notify  => Class['rabbitmq::service'],
   }
 
+  file { 'rabbitmqadmin.conf':
+    ensure  => file,
+    path    => '/etc/rabbitmq/rabbitmqadmin.conf',
+    content => template('rabbitmq/rabbitmqadmin.conf.erb'),
+    owner   => '0',
+    group   => '0',
+    mode    => '0644',
+    require => File['/etc/rabbitmq'],
+  }
 
   if $config_cluster {
 
-    file { 'erlang_cookie':
-      ensure  => 'present',
-      path    => '/var/lib/rabbitmq/.erlang.cookie',
-      owner   => 'rabbitmq',
-      group   => 'rabbitmq',
-      mode    => '0400',
-      content => $erlang_cookie,
-      replace => true,
-      before  => File['rabbitmq.config'],
-      notify  => Class['rabbitmq::service'],
-    }
-
-    # rabbitmq_erlang_cookie is a fact in this module.
-    if $erlang_cookie != $::rabbitmq_erlang_cookie {
-      # Safety check.
-      if $wipe_db_on_cookie_change {
-        exec { 'wipe_db':
-          command    => "puppet resource service ${service_name} ensure=stopped; rm -rf /var/lib/rabbitmq/mnesia",
-          path       => '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin',
-        }
-        File['erlang_cookie'] {
-          require => Exec['wipe_db'],
-        }
-      } else {
-        fail("ERROR: The current erlang cookie is ${::rabbitmq_erlang_cookie} and needs to change to ${erlang_cookie}. In order to do this the RabbitMQ database needs to be wiped.  Please set the parameter called wipe_db_on_cookie_change to true to allow this to happen automatically.")
+    if $erlang_cookie == undef {
+      fail('You must set the $erlang_cookie value in order to configure clustering.')
+    } else {
+      rabbitmq_erlang_cookie { '/var/lib/rabbitmq/.erlang.cookie':
+        content      => $erlang_cookie,
+        force        => $wipe_db_on_cookie_change,
+        service_name => $service_name,
+        before       => File['rabbitmq.config'],
+        notify       => Class['rabbitmq::service'],
       }
     }
-
   }
 
 
