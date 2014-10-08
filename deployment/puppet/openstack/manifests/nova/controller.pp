@@ -69,6 +69,7 @@ class openstack::nova::controller (
   $rabbitmq_bind_port          = '5672',
   $rabbitmq_cluster_nodes      = [],
   $rabbit_cluster              = false,
+  $cluster_partition_handling  = 'autoheal',
   # Database
   $db_type                     = 'mysql',
   # Glance
@@ -124,20 +125,67 @@ class openstack::nova::controller (
 
   $sql_connection    = $nova_db
   $glance_connection = $real_glance_api_servers
+  if ($debug) {
+    $rabbit_levels = '[connection,debug,info,error]'
+  } else {
+    $rabbit_levels = '[connection,info,error]'
+  }
+
+  # NOTE(bogdando) indentation is important
+  $rabbit_tcp_listen_options =
+    '[
+      binary,
+      {packet, raw},
+      {reuseaddr, true},
+      {backlog, 128},
+      {nodelay, true},
+      {exit_on_close, false},
+      {keepalive, true}
+    ]'
+
+  # NOTE(bogdando) Offline install feature requires this temp file.
+  if (!defined(File['/tmp/rabbit.pub.key'])) {
+    file { '/tmp/rabbit.pub.key':
+     content => template('openstack/rabbit.pub.key'),
+     before  => Class['::rabbitmq'],
+    }
+  }
 
   # Install / configure queue provider
+  # NOTE(bogdnado) Debian family will use key_content, Rhel will use key_source.
+  #  key_source - source method, should be a file name for rpm or url for apt/rpm
+  #  key_content - content method, should be a template for apt::source class, overrides key_source
   case $queue_provider {
     'rabbitmq': {
       class { 'nova::rabbitmq':
-        enabled                => $enabled,
-        userid                 => $amqp_user,
-        password               => $amqp_password,
-        rabbit_node_ip_address => $rabbitmq_bind_ip_address,
-        port                   => $rabbitmq_bind_port,
-        cluster_disk_nodes     => $rabbitmq_cluster_nodes,
-        cluster                => $rabbit_cluster,
-        primary_controller     => $primary_controller,
-        ha_mode                => $ha_mode,
+        key_content                 => template('openstack/rabbit.pub.key'),
+        key_source                  => '/tmp/rabbit.pub.key',
+        rabbitmq_class              => '::rabbitmq',
+        rabbitmq_module             => '4.1',
+        enabled                     => $enabled,
+        userid                      => $amqp_user,
+        password                    => $amqp_password,
+        rabbit_node_ip_address      => $rabbitmq_bind_ip_address,
+        port                        => $rabbitmq_bind_port,
+        cluster_disk_nodes          => $rabbitmq_cluster_nodes,
+        cluster                     => $rabbit_cluster,
+        primary_controller          => $primary_controller,
+        ha_mode                     => $ha_mode,
+        cluster_partition_handling  => $cluster_partition_handling,
+        config_kernel_variables     => {
+          'inet_dist_listen_min'         => '41055',
+          'inet_dist_listen_max'         => '41055',
+          'inet_default_connect_options' => '[{nodelay,true}]',
+        },
+        config_variables            => {
+          'log_levels'                   => $rabbit_levels,
+          'default_vhost'                => "<<\"/\">>",
+          'default_permissions'          => '[<<".*">>, <<".*">>, <<".*">>]',
+          'tcp_listen_options'           => $rabbit_tcp_listen_options,
+        },
+        environment_variables       => {
+          'RABBIT_SERVER_ERL_ARGS'       => '"+K true +A30 +P 1048576"',
+        },
       }
     }
     'qpid': {
