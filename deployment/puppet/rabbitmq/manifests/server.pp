@@ -14,179 +14,87 @@
 #  [*config*] - contents of config file
 #  [*env_config*] - contents of env-config file
 #  [*config_cluster*] - whether to configure a RabbitMQ cluster
-#  [*cluster_disk_nodes*] - which nodes to cluster with (including the current one)
+#  [*config_mirrored_queues*] - DEPRECATED (doesn't do anything)
+#  [*cluster_disk_nodes*] - DEPRECATED (use cluster_nodes instead)
+#  [*cluster_nodes*] - which nodes to cluster with (including the current one)
+#  [*cluster_node_type*] - Type of cluster node (disc or ram)
 #  [*erlang_cookie*] - erlang cookie, must be the same for all nodes in a cluster
 #  [*wipe_db_on_cookie_change*] - whether to wipe the RabbitMQ data if the specified
 #    erlang_cookie differs from the current one. This is a sad parameter: actually,
 #    if the cookie indeed differs, then wiping the database is the *only* thing you
 #    can do. You're only required to set this parameter to true as a sign that you
 #    realise this.
-
 # Requires:
 #  stdlib
 # Sample Usage:
 #
-#
+# This module is used as backward compability layer for modules
+# which require rabbitmq::server instead of rabbitmq class.
+# It's still common uasge in many modules.
 #
 #
 # [Remember: No empty lines between comments and class definition]
 class rabbitmq::server(
-  $production = 'prod',
-  $port = '5672',
-  $delete_guest_user = false,
-  $package_name = 'rabbitmq-server',
-  $version = 'UNSET',
-  $service_name = 'rabbitmq-server',
-  $service_ensure = 'running',
-  $service_enabled = true,
-  $config_stomp = false,
-  $stomp_port = '6163',
-  $config_cluster = false,
-  $cluster_disk_nodes = [],
-  $node_ip_address = 'UNSET', #getvar("::ipaddress_${::internal_interface}"),
-  $config='UNSET',
-  $env_config='UNSET',
-  $erlang_cookie='EOKOWXQREETZSHFNTPEY',
-  $wipe_db_on_cookie_change=true,
-  $inet_dist_listen_min = '41055',
-  $inet_dist_listen_max = '41055',
-  $max_retry = '60',
-  $service_provider = undef
-) {
+  $port                     = $rabbitmq::params::port,
+  $delete_guest_user        = $rabbitmq::params::delete_guest_user,
+  $package_name             = $rabbitmq::params::package_name,
+  $version                  = $rabbitmq::params::version,
+  $service_name             = $rabbitmq::params::service_name,
+  $service_ensure           = $rabbitmq::params::service_ensure,
+  $service_manage           = $rabbitmq::params::service_manage,
+  $config_stomp             = $rabbitmq::params::config_stomp,
+  $stomp_port               = $rabbitmq::params::stomp_port,
+  $config_cluster           = $rabbitmq::params::config_cluster,
+  $cluster_disk_nodes       = $rabbitmq::params::cluster_disk_nodes,
+  $cluster_nodes            = $rabbitmq::params::cluster_nodes,
+  $cluster_node_type        = $rabbitmq::params::cluster_node_type,
+  $node_ip_address          = $rabbitmq::params::node_ip_address,
+  $config                   = $rabbitmq::params::config,
+  $env_config               = $rabbitmq::params::env_config,
+  $erlang_cookie            = $rabbitmq::params::erlang_cookie,
+  $wipe_db_on_cookie_change = $rabbitmq::params::wipe_db_on_cookie_change,
+  # DEPRECATED
+  $manage_service           = undef,
+  $config_mirrored_queues   = undef,
+) inherits rabbitmq::params {
 
-  validate_bool($delete_guest_user, $config_stomp)
-  validate_re($port, '\d+')
-  validate_re($stomp_port, '\d+')
-
-  if $version == 'UNSET' {
-    $version_real = '2.4.1'
-    $pkg_ensure_real   = 'present'
+  if $manage_service != undef {
+    warning('The $manage_service parameter is deprecated; please use $service_manage instead')
+    $_service_manage = $manage_service
   } else {
-    $version_real = $version
-    $pkg_ensure_real   = $version
-  }
-  if $config == 'UNSET' {
-    $config_real = template("${module_name}/rabbitmq.config")
-  } else {
-    $config_real = $config
-  }
-  if $env_config == 'UNSET' {
-    $env_config_real = template("${module_name}/rabbitmq-env.conf.erb")
-  } else {
-    $env_config_real = $env_config
+    $_service_manage = $service_manage
   }
 
-  $plugin_dir = "/usr/lib/rabbitmq/lib/rabbitmq_server-${version_real}/plugins"
-
-  if $::osfamily == 'RedHat' {
-    package {'qpid-cpp-server': ensure => 'purged' }
-    Package['qpid-cpp-server'] -> Package[$package_name]
+  if $config_mirrored_queues != undef {
+    warning('The $config_mirrored_queues parameter is deprecated; it does not affect anything')
   }
 
-  package { $package_name:
-    ensure => $pkg_ensure_real,
-    notify => Class['rabbitmq::service'],
+  anchor {'before::rabbimq::class':
+    before => Class['rabbitmq'],
   }
 
-  file { '/etc/rabbitmq':
-    ensure  => directory,
-    owner   => '0',
-    group   => '0',
-    mode    => '0644',
-    require => Package[$package_name],
+  anchor {'after::rabbimq::class':
+    require => Class['rabbitmq'],
   }
 
-  file { 'rabbitmq.config':
-    ensure  => file,
-    path    => '/etc/rabbitmq/rabbitmq.config',
-    content => $config_real,
-    owner   => '0',
-    group   => '0',
-    mode    => '0644',
-    require => Package[$package_name],
-    notify  => Class['rabbitmq::service'],
+  class { 'rabbitmq':
+    port                      => $port,
+    delete_guest_user         => $delete_guest_user,
+    package_name              => $package_name,
+    version                   => $version,
+    service_name              => $service_name,
+    service_ensure            => $service_ensure,
+    service_manage            => $_service_manage,
+    config_stomp              => $config_stomp,
+    stomp_port                => $stomp_port,
+    config_cluster            => $config_cluster,
+    cluster_disk_nodes        => $cluster_disk_nodes,
+    cluster_nodes             => $cluster_nodes,
+    cluster_node_type         => $cluster_node_type,
+    node_ip_address           => $node_ip_address,
+    config                    => $config,
+    env_config                => $env_config,
+    erlang_cookie             => $erlang_cookie,
+    wipe_db_on_cookie_change  => $wipe_db_on_cookie_change,
   }
-
-  if $config_cluster {
-     file { 'erlang_cookie':
-       path =>"/var/lib/rabbitmq/.erlang.cookie",
-       owner   => rabbitmq,
-       group   => rabbitmq,
-       mode    => '0400',
-       content => $erlang_cookie,
-       replace => true,
-       before  => File['rabbitmq.config'],
-       require => Exec['wipe_db'], # require => Exec['rabbitmq_stop']
-     }
-     # require authorize_cookie_change
-
-     if $wipe_db_on_cookie_change {
-       exec { 'wipe_db':
-         command => '/etc/init.d/rabbitmq-server stop; /bin/rm -rf /var/lib/rabbitmq/mnesia',
-         require => Package[$package_name],
-         unless  => "/bin/grep -qx ${erlang_cookie} /var/lib/rabbitmq/.erlang.cookie"
-       }
-     } else {
-       exec { 'wipe_db':
-         command => '/bin/false "Cookie must be changed but wipe_db is false"', # If the cookie doesn't match, just fail.
-         require => Package[$package_name],
-         unless  => "/bin/grep -qx ${erlang_cookie} /var/lib/rabbitmq/.erlang.cookie"
-       }
-     }
-   }
-
-  file { 'rabbitmq-env.config':
-    ensure  => file,
-    path    => '/etc/rabbitmq/rabbitmq-env.conf',
-    content => $env_config_real,
-    owner   => '0',
-    group   => '0',
-    mode    => '0644',
-    notify  => Class['rabbitmq::service'],
-  }
-  if $production !~ /docker/ {
-    case $::osfamily {
-      'RedHat' : {
-        file { 'rabbitmq-server':
-          ensure  => present,
-          path    => '/etc/init.d/rabbitmq-server',
-          content => template('rabbitmq/rabbitmq-server_redhat.erb'),
-          replace => true,
-          owner   => '0',
-          group   => '0',
-          mode    => '0755',
-          #notify  => Class['rabbitmq::service'],
-          require => Package[$package_name],
-        }
-      }
-      'Debian' : {
-        file { 'rabbitmq-server':
-          ensure  => present,
-          path    => '/etc/init.d/rabbitmq-server',
-          content => template('rabbitmq/rabbitmq-server_ubuntu.erb'),
-          replace => true,
-          owner   => '0',
-          group   => '0',
-          mode    => '0755',
-          #notify  => Class['rabbitmq::service'],
-          require => Package[$package_name],
-        }
-      }
-    }
-  }
-  class { 'rabbitmq::service':
-    service_name     => $service_name,
-    ensure           => $service_ensure,
-    enabled          => $service_enabled,
-    service_provider => $service_provider
-  }
-
-  if $delete_guest_user {
-    # delete the default guest user
-    rabbitmq_user{ 'guest':
-      ensure   => absent,
-      provider => 'rabbitmqctl',
-    }
-  }
-
 }
