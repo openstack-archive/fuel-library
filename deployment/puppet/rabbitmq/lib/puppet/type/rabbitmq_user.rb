@@ -11,6 +11,8 @@ Puppet::Type.newtype(:rabbitmq_user) do
     end
   end
 
+  autorequire(:service) { 'rabbitmq-server' }
+
   newparam(:name, :namevar => true) do
     desc 'Name of user'
     newvalues(/^\S+$/)
@@ -29,6 +31,10 @@ Puppet::Type.newtype(:rabbitmq_user) do
       value.to_s.to_sym
     end
     defaultto :false
+  end
+
+  newproperty(:tags, :array_matching => :all) do
+    desc 'additional tags for the user'
   end
 
   validate do
