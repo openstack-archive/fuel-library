@@ -6,7 +6,7 @@ class rabbitmq::repo::apt(
   $release     = 'testing',
   $repos       = 'main',
   $include_src = false,
-  $key         = '056E8E56',
+  $key         = 'F7B8CEA6056E8E56',
   $key_source  = 'http://www.rabbitmq.com/rabbitmq-signing-key-public.asc',
   $key_content = undef,
   ) {
@@ -15,7 +15,13 @@ class rabbitmq::repo::apt(
 
   Class['rabbitmq::repo::apt'] -> Package<| title == 'rabbitmq-server' |>
 
+  $ensure_source = $rabbitmq::repos_ensure ? {
+    false   => 'absent',
+    default => 'present',
+  }
+
   apt::source { 'rabbitmq':
+    ensure      => $ensure_source,
     location    => $location,
     release     => $release,
     repos       => $repos,
