@@ -29,11 +29,11 @@ class nailgun::rabbitmq (
     admin     => true,
     password  => $astute_password,
     provider  => 'rabbitmqctl',
-    require   => Class['rabbitmq::server'],
+    require   => Class['::rabbitmq'],
   }
 
   rabbitmq_vhost { "/":
-    require => Class['rabbitmq::server'],
+    require => Class['::rabbitmq'],
   }
 
   rabbitmq_user_permissions { "${astute_user}@/":
@@ -41,7 +41,7 @@ class nailgun::rabbitmq (
     write_permission     => '.*',
     read_permission      => '.*',
     provider             => 'rabbitmqctl',
-    require              => [Class['rabbitmq::server'], Rabbitmq_vhost['/']]
+    require              => [Class['::rabbitmq'], Rabbitmq_vhost['/']]
   }
 
   file { "/etc/rabbitmq/enabled_plugins":
@@ -51,6 +51,36 @@ class nailgun::rabbitmq (
     mode    => 0644,
     require => Package["rabbitmq-server"],
     notify  => Service["rabbitmq-server"],
+  }
+
+  # From obsolete rabbimq::server
+  if $production !~ /docker/ {
+    case $::osfamily {
+      'RedHat' : {
+        file { 'rabbitmq-server':
+          ensure  => present,
+          path    => '/etc/init.d/rabbitmq-server',
+          content => template('nailgun/rabbitmq-server_redhat.erb'),
+          replace => true,
+          owner   => '0',
+          group   => '0',
+          mode    => '0755',
+        }
+      }
+      'Debian' : {
+        file { 'rabbitmq-server':
+          ensure  => present,
+          path    => '/etc/init.d/rabbitmq-server',
+          content => template('nailgun/rabbitmq-server_ubuntu.erb'),
+          replace => true,
+          owner   => '0',
+          group   => '0',
+          mode    => '0755',
+        }
+      }
+    }
+    Package <| title == 'rabbitmq-server' |> ->
+    File['rabbitmq-server']
   }
 
   if $stomp {
@@ -64,7 +94,7 @@ class nailgun::rabbitmq (
     admin     => true,
     password  => $mco_password,
     provider  => 'rabbitmqctl',
-    require   => Class['rabbitmq::server'],
+    require   => Class['::rabbitmq'],
   }
 
   rabbitmq_user_permissions { "${mco_user}@${actual_vhost}":
@@ -72,7 +102,7 @@ class nailgun::rabbitmq (
     write_permission     => '.*',
     read_permission      => '.*',
     provider             => 'rabbitmqctl',
-    require              => Class['rabbitmq::server'],
+    require              => Class['::rabbitmq'],
   }
 
   exec { 'create-mcollective-directed-exchange':
@@ -102,7 +132,7 @@ class nailgun::rabbitmq (
     try_sleep => 3,
   }
 
-  class { 'rabbitmq::server':
+  class { '::rabbitmq':
     production         => $production,
     service_ensure     => running,
     delete_guest_user  => true,
@@ -115,7 +145,7 @@ class nailgun::rabbitmq (
   }
 
   Anchor['nailgun::rabbitmq start'] ->
-  Class['rabbitmq::server'] ->
+  Class['::rabbitmq'] ->
   Anchor['nailgun::rabbitmq end']
 
 }

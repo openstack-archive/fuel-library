@@ -8,7 +8,7 @@ class murano::rabbitmq(
     admin     => false,
     password  => $rabbit_password,
     provider  => 'rabbitmqctl',
-    require   => Class['rabbitmq::server'],
+    require   => Class['::rabbitmq'],
   }
 
   rabbitmq_user_permissions { "${rabbit_user}@${rabbit_virtual_host}":

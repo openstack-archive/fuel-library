@@ -51,14 +51,40 @@ class mcollective::rabbitmq (
     }
   }
 
-  class { 'rabbitmq::server':
-    service_ensure     => 'running',
-    delete_guest_user  => true,
-    config_cluster     => false,
-    cluster_disk_nodes => [],
-    config_stomp       => true,
-    stomp_port         => $stompport,
-    node_ip_address    => 'UNSET',
+  # NOTE(bpgdando) indentation is important
+  $rabbit_tcp_listen_options =
+'[
+  binary,
+  {packet, raw},
+  {reuseaddr, true},
+  {backlog, 128},
+  {nodelay, true},
+  {exit_on_close, false},
+  {keepalive, true}
+]'
+
+  class { '::rabbitmq':
+    service_ensure          => 'running',
+    delete_guest_user       => true,
+    config_cluster          => false,
+    cluster_disk_nodes      => [],
+    config_stomp            => true,
+    stomp_port              => $stompport,
+    node_ip_address         => 'UNSET',
+    config_kernel_variables => {
+     'inet_dist_listen_min' => '41055',
+     'inet_dist_listen_max' => '41055',
+     'inet_default_connect_options' => '[{nodelay,true}]',
+    },
+    config_variables => {
+      'log_levels' => '[connection,debug,info,error]',
+      'default_vhost' => '<<"">>',
+      'default_permissions' => '[<<".*">>, <<".*">>, <<".*">>]',
+      'tcp_listen_options' => $rabbit_tcp_listen_options,
+    },
+    environment_variables => {
+      'SERVER_ERL_ARGS' => '"+K true +A30 +P 1048576"',
+    },
   }
 
   if $stomp {
@@ -72,7 +98,7 @@ class mcollective::rabbitmq (
     admin    => true,
     password => $password,
     provider => 'rabbitmqctl',
-    require  => Class['rabbitmq::server'],
+    require  => Class['::rabbitmq'],
   }
 
   rabbitmq_user_permissions { "${user}@${actual_vhost}":
@@ -80,7 +106,7 @@ class mcollective::rabbitmq (
     write_permission     => '.*',
     read_permission      => '.*',
     provider             => 'rabbitmqctl',
-    require              => [Class['rabbitmq::server'], Rabbitmq_user[$user],]
+    require              => [Class['::rabbitmq'], Rabbitmq_user[$user],]
   }
 
   file { "/etc/rabbitmq/enabled_plugins":
