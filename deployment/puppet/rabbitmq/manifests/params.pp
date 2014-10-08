@@ -86,7 +86,7 @@ class rabbitmq::params {
   $stomp_ensure               = false
   $ldap_auth                  = false
   $ldap_server                = 'ldap'
-  $ldap_user_dn_pattern       = 'cn=${username},ou=People,dc=example,dc=com'
+  $ldap_user_dn_pattern       = "cn=\${username},ou=People,dc=example,dc=com"
   $ldap_use_ssl               = false
   $ldap_port                  = '389'
   $ldap_log                   = false
