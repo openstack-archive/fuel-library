@@ -115,7 +115,6 @@ class openstack::controller (
   $rabbitmq_bind_ip_address       = 'UNSET',
   $rabbitmq_bind_port             = '5672',
   $rabbitmq_cluster_nodes         = [],
-  $rabbit_cluster                 = false,
   # network configuration
   # this assumes that it is a flat network manager
   $network_manager                = 'nova.network.manager.FlatDHCPManager',
@@ -224,9 +223,9 @@ class openstack::controller (
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
   Class['openstack::db::mysql'] -> Cinder_config <||>
 
-  Class["${queue_provider}::server"] -> Nova_config <||>
-  Class["${queue_provider}::server"] -> Cinder_config <||>
-  Class["${queue_provider}::server"] -> Neutron_config <||>
+  Class[$queue_provider] -> Nova_config <||>
+  Class[$queue_provider] -> Cinder_config <||>
+  Class[$queue_provider] -> Neutron_config <||>
 
   ####### DATABASE SETUP ######
   # set up mysql server
@@ -412,7 +411,6 @@ class openstack::controller (
     rabbitmq_bind_ip_address    => $rabbitmq_bind_ip_address,
     rabbitmq_bind_port          => $rabbitmq_bind_port,
     rabbitmq_cluster_nodes      => $rabbitmq_cluster_nodes,
-    rabbit_cluster              => $rabbit_cluster,
     cache_server_ip             => $cache_server_ip,
     cache_server_port           => $cache_server_port,
     # Glance
