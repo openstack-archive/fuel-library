@@ -1,5 +1,6 @@
-Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl) do
+require File.join File.dirname(__FILE__), '../rabbitmq_common.rb'
 
+Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl, :parent => Puppet::Provider::Rabbitmq_common) do
   if Puppet::PUPPETVERSION.to_f < 3
     commands :rabbitmqctl => 'rabbitmqctl'
   else
@@ -7,14 +8,18 @@ Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl) do
        environment :HOME => "/tmp"
      end
   end
+
   defaultfor :feature=> :posix
 
   # cache users permissions
   def self.users(name, vhost)
+    self.wait_for_online
     @users = {} unless @users
     unless @users[name]
       @users[name] = {}
-      rabbitmqctl('list_user_permissions', name).split(/\n/)[1..-2].each do |line|
+       out = self.run_with_retries {
+        rabbitmqctl('-q', 'list_user_permissions', name)
+       }.split(/\n/).each do |line|
         if line =~ /^(\S+)\s+(\S*)\s+(\S*)\s+(\S*)$/
           @users[name][$1] =
             {:configure => $2, :read => $4, :write => $3}
@@ -50,7 +55,7 @@ Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl) do
     resource[:configure_permission] ||= "''"
     resource[:read_permission]      ||= "''"
     resource[:write_permission]     ||= "''"
-    rabbitmqctl('set_permissions', '-p', should_vhost, should_user, resource[:configure_permission], resource[:write_permission], resource[:read_permission]) 
+    rabbitmqctl('set_permissions', '-p', should_vhost, should_user, resource[:configure_permission], resource[:write_permission], resource[:read_permission])
   end
 
   def destroy
