@@ -51,6 +51,9 @@ class rabbitmq(
   $environment_variables      = $rabbitmq::params::environment_variables,
   $config_variables           = $rabbitmq::params::config_variables,
   $config_kernel_variables    = $rabbitmq::params::config_kernel_variables,
+  # TODO(bogdando) add docs for new params
+  $service_provider           = undef,
+  $key_content                = undef,
 ) inherits rabbitmq::params {
 
   validate_bool($admin_enable)
@@ -119,8 +122,12 @@ class rabbitmq(
     case $::osfamily {
       'RedHat', 'SUSE':
         { include '::rabbitmq::repo::rhel' }
-      'Debian':
-        { include '::rabbitmq::repo::apt' }
+      'Debian': {
+        class { '::rabbitmq::repo::apt' :
+          key_source  => $package_gpg_key,
+          key_content => $key_content,
+        }
+      }
       default:
         { }
     }
