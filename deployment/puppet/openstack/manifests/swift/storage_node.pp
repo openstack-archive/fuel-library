@@ -63,14 +63,29 @@ class openstack::swift::storage_node (
     }
   }
 
+  # create dirs for devices
+  define device_directory($devices) {
+    if(!defined(File[$devices])) {
+      file { $devices:
+        ensure       => 'directory',
+        owner        => 'swift',
+        group        => 'swift',
+        recurse      => true,
+        recurselimit => 1,
+      }
+    }
+  }
+  if ($storage_devices != undef) {
+    device_directory { $storage_devices:
+      devices => $storage_mnt_base_dir,
+#      require => File[$storage_mnt_base_dir],
+    }
+  }
+
   # install all swift storage servers together
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
     devices              => $storage_mnt_base_dir,
-    devices_dirs         => $storage_devices,
-    swift_zone           => $swift_zone,
-    debug                => $debug,
-    verbose              => $verbose,
   }
 
   validate_string($master_swift_proxy_ip)

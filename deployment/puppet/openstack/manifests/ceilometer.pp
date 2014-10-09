@@ -99,11 +99,11 @@ class openstack::ceilometer (
       class { '::neutron::notify::ceilometer': }
     }
 
-    if $swift {
-      class {'::swift::notify::ceilometer':
-        enable_ceilometer => true,
-      }
-    }
+#    if $swift {
+#      class {'::swift::proxy::ceilometer':
+#        swift_hash_suffix => 'swift_secret',
+#      }
+#    }
 
     if $ha_mode {
       $ceilometer_agent_res_name = "p_${::ceilometer::params::agent_central_service_name}"

@@ -59,8 +59,6 @@ class openstack::swift::proxy (
     allow_account_management => $proxy_allow_account_management,
     account_autocreate       => $proxy_account_autocreate,
     package_ensure           => $package_ensure,
-    debug                    => $debug,
-    verbose                  => $verbose,
   }
 
   # configure all of the middlewares
@@ -142,5 +140,6 @@ class openstack::swift::proxy (
   }
 
   # deploy a script that can be used for testing
-  file { '/tmp/swift_keystone_test.rb': source => 'puppet:///modules/swift/swift_keystone_test.rb' }
+  # adidenko: it doesn't look like we use this script, also new module does not have it
+  # file { '/tmp/swift_keystone_test.rb': source => 'puppet:///modules/swift/swift_keystone_test.rb' }
 }
