@@ -6,13 +6,22 @@
 define swift::storage::mount(
   $device,
   $mnt_base_dir = '/srv/node',
-  $loopback     = false
+  $loopback     = false,
+  $fstype       = 'xfs'
 ) {
+
   if($loopback){
-    $options = 'noatime,nodiratime,nobarrier,logbufs=8,loop'
+    $options = 'noatime,nodiratime,nobarrier,loop'
   } else {
-    $options = 'noatime,nodiratime,nobarrier,logbufs=8'
+    $options = 'noatime,nodiratime,nobarrier'
   }
+
+  if($fstype == 'xfs'){
+    $fsoptions = 'logbufs=8'
+  } else {
+    $fsoptions = 'user_xattr'
+  }
+
   # the directory that represents the mount point
   # needs to exist
   file { "${mnt_base_dir}/${name}":
@@ -24,8 +33,8 @@ define swift::storage::mount(
   mount { "${mnt_base_dir}/${name}":
     ensure  => present,
     device  => $device,
-    fstype  => 'xfs',
-    options => $options,
+    fstype  => $fstype,
+    options => "${options},${fsoptions}",
     require => File["${mnt_base_dir}/${name}"]
   }
 
@@ -44,5 +53,22 @@ define swift::storage::mount(
     path        => ['/usr/sbin', '/bin'],
     subscribe   => Exec["mount_${name}"],
     refreshonly => true,
+  }
+
+  # mounting in linux and puppet is broken and non-atomic
+  # we have to mount, check mount with executing command,
+  # fix ownership and on selinux systems fix context.
+  # It would be definetly nice if passing options uid=,gid=
+  # would be possible as context is. But, as there already is
+  # chown command we'll just restorecon on selinux enabled
+  # systems :(
+  if ($::selinux == 'true') {
+    exec { "restorecon_mount_${name}":
+      command     => "restorecon ${mnt_base_dir}/${name}",
+      path        => ['/usr/sbin', '/sbin'],
+      subscribe   => Exec["mount_${name}"],
+      before      =>  Exec["fix_mount_permissions_${name}"],
+      refreshonly => true,
+    }
   }
 }
