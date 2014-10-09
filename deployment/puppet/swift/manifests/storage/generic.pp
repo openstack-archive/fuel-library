@@ -29,19 +29,12 @@ define swift::storage::generic(
   validate_re($name, '^object|container|account$')
 
   package { "swift-${name}":
+    ensure => $package_ensure,
     # this is a way to dynamically build the variables to lookup
     # sorry its so ugly :(
     name   => inline_template("<%= scope.lookupvar('::swift::params::${name}_package_name') %>"),
-    ensure => $package_ensure,
-  } ~>
-  Service <| title == "swift-${name}" or title == "swift-${name}-replicator" |>
-  if !defined(Service["swift-${name}"]) {
-    notify{ "Module ${module_name} cannot notify service swift-${name} on package update": }
+    before => Service["swift-${name}", "swift-${name}-replicator"],
   }
-  if !defined(Service["swift-${name}-replicator"]) {
-    notify{ "Module ${module_name} cannot notify service swift-${name}-replicator on package update": }
-  }
-  Package["swift-${name}"] -> Swift::Ringsync <||>
 
   file { "/etc/swift/${name}-server/":
     ensure => directory,
@@ -50,11 +43,10 @@ define swift::storage::generic(
   }
 
   service { "swift-${name}":
-    name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_service_name') %>"),
     ensure    => running,
+    name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_service_name') %>"),
     enable    => true,
-    hasstatus  => true,
-    hasrestart => true,
+    hasstatus => true,
     provider  => $service_provider,
     subscribe => Package["swift-${name}"],
   }
@@ -67,11 +59,12 @@ define swift::storage::generic(
 
 
   service { "swift-${name}-replicator":
-    name      => $service_name,
     ensure    => running,
+    name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_replicator_service_name') %>"),
     enable    => true,
-    hasstatus  => true,
-    hasrestart => true,
+    hasstatus => true,
+    provider  => $service_provider,
+    subscribe => Package["swift-${name}"],
   }
 
   Package["swift-${name}"] ~> Service["swift-${name}-replicator"]

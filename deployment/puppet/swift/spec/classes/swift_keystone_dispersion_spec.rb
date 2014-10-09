@@ -6,7 +6,9 @@ describe 'swift::keystone::dispersion' do
 
     it { should contain_keystone_user('dispersion').with(
       :ensure   => 'present',
-      :password => 'dispersion_password'
+      :password => 'dispersion_password',
+      :email    => 'swift@localhost',
+      :tenant   => 'services'
     ) }
 
     it { should contain_keystone_user_role('dispersion@services').with(
@@ -16,32 +18,25 @@ describe 'swift::keystone::dispersion' do
     ) }
   end
 
-  describe 'when overriding password' do
+  describe 'when overriding parameters' do
 
     let :params do
       {
-        :auth_pass => 'foo'
+        :auth_user => 'bar',
+        :auth_pass => 'foo',
+        :email     => 'bar@example.com',
+        :tenant    => 'dummyTenant'
       }
     end
 
-    it { should contain_keystone_user('dispersion').with(
+    it { should contain_keystone_user('bar').with(
       :ensure   => 'present',
-      :password => 'foo'
+      :password => 'foo',
+      :email    => 'bar@example.com',
+      :tenant   => 'dummyTenant'
     ) }
 
-  end
-
-  describe 'when overriding auth user' do
-
-    let :params do
-      {
-        :auth_user => 'bar'
-      }
-    end
-
-    it { should contain_keystone_user('bar') }
-
-    it { should contain_keystone_user_role('bar@services') }
+    it { should contain_keystone_user_role('bar@dummyTenant') }
 
   end
 

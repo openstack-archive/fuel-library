@@ -55,6 +55,12 @@ describe 'swift::storage::generic' do
           :hasstatus => true,
           :provider  => param_hash[:service_provider]
         )}
+        it { should contain_service("swift-#{t}-replicator").with(
+          :ensure    => 'running',
+          :enable    => true,
+          :hasstatus => true,
+          :provider  => param_hash[:service_provider]
+        )}
         it { should contain_file("/etc/swift/#{t}-server/").with(
           :ensure => 'directory',
           :owner  => 'swift',

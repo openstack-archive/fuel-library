@@ -1,25 +1,43 @@
 # This file is managed by puppet.  Do not edit
 #
 [DEFAULT]
-bind_ip = <%= @proxy_local_net_ip %>
 bind_port = <%= @port %>
+<% if @proxy_local_net_ip %>
+bind_ip = <%= @proxy_local_net_ip %>
+<% end %>
 workers = <%= @workers %>
-log_facility = LOG_SYSLOG
-<% if @debug then -%>
-log_level = DEBUG
-<% elsif @verbose then -%>
-log_level = INFO
-<% else -%>
-log_level = WARNING
-<% end -%>
-log_name = swift-proxy-server
 user = swift
+log_name = swift
+log_facility = <%= @log_facility %>
+log_level = <%= @log_level %>
+log_headers = <%= @log_headers %>
+log_address = <%= @log_address %>
+<% if @log_udp_host != '' -%>
+# If set, log_udp_host will override log_address
+log_udp_host = <%= @log_udp_host -%>
+<% end %>
+<% if @log_udp_host !='' and @log_udp_port != '' -%>
+log_udp_port = <%= @log_udp_port -%>
+<% end %>
 
 [pipeline:main]
 pipeline = <%= @pipeline.to_a.join(' ') %>
 
 [app:proxy-server]
 use = egg:swift#proxy
+set log_name = proxy-server
+set log_facility = <%= @log_facility %>
+set log_level = <%= @log_level %>
+set log_address = <%= @log_address %>
+log_handoffs = <%= @log_handoffs %>
 allow_account_management = <%= @allow_account_management %>
 account_autocreate = <%= @account_autocreate %>
-
+<% if @read_affinity -%>
+read_affinity = <%= @read_affinity -%>
+<% end %>
+<% if @write_affinity -%>
+write_affinity = <%= @write_affinity -%>
+<% end %>
+<% if @write_affinity_node_count -%>
+write_affinity_node_count = <%= @write_affinity_node_count -%>
+<% end %>

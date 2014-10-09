@@ -20,13 +20,23 @@ class swift::ringserver(
   $local_net_ip,
   $max_connections = 5
 ) {
-  Class['swift::ringbuilder'] -> Class['swift::ringserver']
-  rsync::server::module { "swift_server":
-    path => '/etc/swift',
-    lock_file => "/var/lock/swift_server.lock",
-    uid => 'swift',
-    gid => 'swift',
+
+  Class['ringbuilder'] -> Class['swift::ringserver']
+
+  if !defined(Class['rsync::server']) {
+    class { 'rsync::server':
+      use_xinetd => true,
+      address    => $local_net_ip,
+      use_chroot => 'no',
+    }
+  }
+
+  rsync::server::module { 'swift_server':
+    path            => '/etc/swift',
+    lock_file       => '/var/lock/swift_server.lock',
+    uid             => 'swift',
+    gid             => 'swift',
     max_connections => $max_connections,
-    read_only => true,
+    read_only       => true,
   }
 }
