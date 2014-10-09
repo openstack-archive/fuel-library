@@ -4,22 +4,21 @@ bind_ip = <%= @storage_local_net_ip %>
 bind_port = <%= @bind_port %>
 mount_check = <%= @mount_check %>
 user = <%= @user %>
-log_facility = LOG_SYSLOG
-<% if @debug then -%>
-log_level = DEBUG
-<% elsif @verbose then -%>
-log_level = INFO
-<% else -%>
-log_level = WARNING
-<% end -%>
-log_name = swift-container-server
+log_facility = <%= @log_facility %>
 workers = <%= @workers %>
+allowed_sync_hosts = <%= scope.lookupvar("swift::storage::container::allowed_sync_hosts").to_a.join(',') %>
 
 [pipeline:main]
-pipeline = <%= @pipeline_real.join(' ') %>
+pipeline = <%= @pipeline.to_a.join(' ') %>
 
 [app:container-server]
+allow_versions = <%= @allow_versions %>
 use = egg:swift#container
+set log_name = @container-server
+set log_facility = <%= @log_facility %>
+set log_level = <%= @log_level %>
+set log_requests = True
+set log_address = <%= @log_address %>
 
 [container-replicator]
 concurrency = <%= @replicator_concurrency %>

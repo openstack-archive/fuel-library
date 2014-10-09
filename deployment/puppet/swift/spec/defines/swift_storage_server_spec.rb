@@ -25,9 +25,8 @@ describe 'swift::storage::server' do
 
   describe 'with an invalid title' do
     let :params do
-      {:swift_zone => '1',
-       :storage_local_net_ip => '127.0.0.1',
-       :type => 'object'}
+      {:storage_local_net_ip => '127.0.0.1',
+      :type => 'object'}
     end
     let :title do
       'foo'
@@ -46,7 +45,7 @@ describe 'swift::storage::server' do
       end
 
       let :req_params do
-        {:swift_zone => '1', :storage_local_net_ip => '10.0.0.1', :type => t}
+        {:storage_local_net_ip => '10.0.0.1', :type => t}
       end
       let :params do
         req_params
@@ -68,22 +67,31 @@ describe 'swift::storage::server' do
           :user        => 'dan',
           :mount_check => true,
           :workers     => 7,
-          :pipeline    => 'foo'
+          :pipeline    => ['foo']
         }.each do |k,v|
           describe "when #{k} is set" do
             let :params do req_params.merge({k => v}) end
             it { should contain_file(fragment_file) \
-              .with_content(/^#{k.to_s}\s*=\s*#{v}\s*$/)
+              .with_content(
+                /^#{k.to_s}\s*=\s*#{v.is_a?(Array) ? v.join(' ') : v}\s*$/
+              )
             }
           end
         end
         describe "when pipeline is passed an array" do
-          let :params do req_params.merge({:pipeline => [1,2,3]})  end
-          it { should contain_file(fragment_file).with({
-            :content => /^pipeline\s*=\s*1 2 3\s*$/,
-            :before => ["Swift::Storage::Filter::1[#{t}]", "Swift::Storage::Filter::2[#{t}]", "Swift::Storage::Filter::3[#{t}]"]
-          })}
+          let :params do req_params.merge({:pipeline => ['healthcheck','recon','test']})  end
+          it { should contain_concat__fragment("swift-#{t}-#{title}").with(
+            :content => /^pipeline\s*=\s*healthcheck recon test\s*$/,
+            :before => ["Swift::Storage::Filter::Healthcheck[#{t}]", "Swift::Storage::Filter::Recon[#{t}]", "Swift::Storage::Filter::Test[#{t}]"]
+          )}
         end
+        describe "when pipeline is not passed an array" do
+          let :params do req_params.merge({:pipeline => 'not an array'}) end
+          it "should fail" do
+            expect { subject }.to raise_error(Puppet::Error, /is not an Array/)
+          end
+        end
+
         describe "when replicator_concurrency is set" do
           let :params do req_params.merge({:replicator_concurrency => 42}) end
           it { should contain_file(fragment_file) \
@@ -103,6 +111,12 @@ describe 'swift::storage::server' do
             it { should contain_file(fragment_file) \
               .with_content(/\[#{t}-reaper\]\nconcurrency\s*=\s*4682\s*$/m)
             }
+          end
+        end
+        if t == 'container'
+          describe "when allow_versioning is set" do
+           let :params do req_params.merge({ :allow_versions => false, }) end
+            it { should contain_file(fragment_file).with_content(/\[app:container-server\]\nallow_versions\s*=\s*false\s*$/m)}
           end
         end
       end
@@ -138,7 +152,13 @@ describe 'swift::storage::server' do
           .with_content(/^user\s*=\s*swift\s*$/)
         }
         it { should contain_file(fragment_file) \
-          .with_content(/^log_facility\s*=\s*LOG_SYSLOG\s*$/)
+          .with_content(/^set log_facility\s*=\s*LOG_LOCAL2\s*$/)
+        }
+        it { should contain_file(fragment_file) \
+          .with_content(/^set log_level\s*=\s*INFO\s*$/)
+        }
+        it { should contain_file(fragment_file) \
+          .with_content(/^set log_address\s*=\s*\/dev\/log\s*$/)
         }
         it { should contain_file(fragment_file) \
           .with_content(/^workers\s*=\s*1\s*$/)

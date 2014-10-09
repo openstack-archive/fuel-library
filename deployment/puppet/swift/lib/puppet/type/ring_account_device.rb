@@ -5,24 +5,25 @@ Puppet::Type.newtype(:ring_account_device) do
 
   newparam(:name, :namevar => true) do
     validate do |value|
-      # Commit 103b68b changed the acceptable name from address:port/device to simply address:port.
       address = value.split(':')
-      raise(Puppet::Error, "invalid name #{value}: should contain address:port") unless address.size == 2
+      raise(Puppet::Error, "invalid name #{value}, should contain address:port/device") unless address.size == 2
+      port_device = address[1].split('/')
+      raise(Puppet::Error, "namevar should contain a device") unless port_device.size == 2
       IPAddr.new(address[0])
     end
   end
 
-  newparam(:mountpoints) do
-    desc "mountpoints and weight "
+  newproperty(:region)
+
+  newproperty(:zone)
+
+  newproperty(:weight) do
+    munge do |value|
+      "%.2f" % value
+    end
   end
 
-  newproperty(:zone) do
-  end  
-
-  # weight removed in 103b68b but I don't know why
-
-  newproperty(:meta) do
-  end
+  newproperty(:meta)
 
   [:id, :partitions, :balance].each do |param|
     newproperty(param) do
@@ -30,10 +31,6 @@ Puppet::Type.newtype(:ring_account_device) do
         raise(Puppet::Error, "#{param} is a read only property, cannot be assigned")
       end
     end
-  end
-
-  autorequire(:exec) do
-    ['create_account']
   end
 
 end

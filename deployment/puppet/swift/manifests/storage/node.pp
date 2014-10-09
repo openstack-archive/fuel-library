@@ -7,6 +7,7 @@
 define swift::storage::node(
   $mnt_base_dir,
   $zone,
+  $weight = 1,
   $owner = 'swift',
   $group  = 'swift',
   $max_connections = 25,
@@ -14,8 +15,9 @@ define swift::storage::node(
   $manage_ring = true
 ) {
 
+  validate_re($zone, '^\d+$', 'The zone parameter must be an integer')
+
   Swift::Storage::Server {
-    swift_zone           => $zone,
     storage_local_net_ip => $storage_local_net_ip,
     devices              => $mnt_base_dir,
     max_connections      => $max_connections,
@@ -24,24 +26,30 @@ define swift::storage::node(
   }
 
   swift::storage::server { "60${name}0":
-    type => 'object',
+    type             => 'object',
+    config_file_path => 'object-server.conf',
   }
-  ring_object_device { "${storage_local_net_ip}:60${name}0":
+  ring_object_device { "${storage_local_net_ip}:60${name}0/${name}":
     zone        => $zone,
+    weight      => $weight,
   }
 
   swift::storage::server { "60${name}1":
-    type => 'container',
+    type             => 'container',
+    config_file_path => 'container-server.conf',
   }
-  ring_container_device { "${storage_local_net_ip}:60${name}1":
+  ring_container_device { "${storage_local_net_ip}:60${name}1/${name}":
     zone        => $zone,
+    weight      => $weight,
   }
 
   swift::storage::server { "60${name}2":
-    type => 'account',
+    type             => 'account',
+    config_file_path => 'account-server.conf',
   }
-  ring_account_device { "${storage_local_net_ip}:60${name}2":
+  ring_account_device { "${storage_local_net_ip}:60${name}2/${name}":
     zone        => $zone,
+    weight      => $weight,
   }
 
 }

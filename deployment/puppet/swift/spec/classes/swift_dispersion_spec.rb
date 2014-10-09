@@ -2,8 +2,30 @@ require 'spec_helper'
 
 describe 'swift::dispersion' do
 
+  let :default_params do
+    { :auth_url      => 'http://127.0.0.1:5000/v2.0/',
+      :auth_user     => 'dispersion',
+      :auth_tenant   => 'services',
+      :auth_pass     => 'dispersion_password',
+      :auth_version  => '2.0',
+      :endpoint_type => 'publicURL',
+      :swift_dir     => '/etc/swift',
+      :coverage      => 1,
+      :retries       => 5,
+      :concurrency   => 25,
+      :dump_json     => 'no' }
+  end
+
+  let :pre_condition do
+    "class { 'swift': swift_hash_suffix => 'string' }"
+  end
+
   let :facts do
     { :osfamily => 'Debian' }
+  end
+
+  let :params do
+    {}
   end
 
   it { should contain_file('/etc/swift/dispersion.conf').with(
@@ -14,95 +36,68 @@ describe 'swift::dispersion' do
     :require => 'Package[swift]')
   }
 
+  shared_examples 'swift::dispersion' do
+    let (:p) { default_params.merge!(params) }
+
+    it 'depends on swift package' do
+      should contain_package('swift').with_before(/Swift_dispersion_config\[.+\]/)
+    end
+
+    it 'configures dispersion.conf' do
+      should contain_swift_dispersion_config(
+        'dispersion/auth_url').with_value(p[:auth_url])
+      should contain_swift_dispersion_config(
+        'dispersion/auth_version').with_value(p[:auth_version])
+      should contain_swift_dispersion_config(
+        'dispersion/auth_user').with_value("#{p[:auth_tenant]}:#{p[:auth_user]}")
+      should contain_swift_dispersion_config(
+        'dispersion/auth_key').with_value(p[:auth_pass])
+      should contain_swift_dispersion_config(
+        'dispersion/endpoint_type').with_value(p[:endpoint_type])
+      should contain_swift_dispersion_config(
+        'dispersion/swift_dir').with_value(p[:swift_dir])
+      should contain_swift_dispersion_config(
+        'dispersion/dispersion_coverage').with_value(p[:coverage])
+      should contain_swift_dispersion_config(
+        'dispersion/retries').with_value(p[:retries])
+      should contain_swift_dispersion_config(
+        'dispersion/concurrency').with_value(p[:concurrency])
+      should contain_swift_dispersion_config(
+        'dispersion/dump_json').with_value(p[:dump_json])
+    end
+
+    it 'triggers swift-dispersion-populate' do
+      should contain_exec('swift-dispersion-populate').with(
+        :path      => ['/bin', '/usr/bin'],
+        :subscribe => 'File[/etc/swift/dispersion.conf]',
+        :onlyif    => "swift -A #{p[:auth_url]} -U #{p[:auth_tenant]}:#{p[:auth_user]} -K #{p[:auth_pass]} -V #{p[:auth_version]} stat | grep 'Account: '",
+        :unless    => "swift -A #{p[:auth_url]} -U #{p[:auth_tenant]}:#{p[:auth_user]} -K #{p[:auth_pass]} -V #{p[:auth_version]} list | grep dispersion_",
+        :require => 'Package[swiftclient]'
+      )
+    end
+  end
+
   describe 'with default parameters' do
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^\[dispersion\]$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^auth_url = http:\/\/127.0.0.1:5000\/v2.0\/$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^auth_version = 2.0$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^auth_user = services:dispersion$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^auth_key = dispersion_password$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^swift_dir = \/etc\/swift$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^dispersion_coverage = 1$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^retries = 5$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^concurrency = 25$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^dump_json = no$/)
-    }
-    it { should contain_exec('swift-dispersion-populate').with(
-      :path      => ['/bin', '/usr/bin'],
-      :subscribe => 'File[/etc/swift/dispersion.conf]',
-      :onlyif    => "swift -A http://127.0.0.1:5000/v2.0/ -U services:dispersion -K dispersion_password -V 2.0 stat | grep 'Account: '",
-      :unless    => "swift -A http://127.0.0.1:5000/v2.0/ -U services:dispersion -K dispersion_password -V 2.0 list | grep dispersion_"
-    )}
+    include_examples 'swift::dispersion'
   end
 
   describe 'when parameters are overriden' do
-    let :params do
-      {
-        :auth_url     => 'https://169.254.0.1:7000/auth/v8.0/',
-        :auth_user    => 'foo',
-        :auth_tenant  => 'bar',
-        :auth_pass    => 'dummy',
-        :auth_version => '1.0',
-        :swift_dir    => '/usr/local/etc/swift',
-        :coverage     => 42,
-        :retries      => 51,
-        :concurrency  => 4682,
-        :dump_json    => 'yes'
-      }
+    before do
+      params.merge!(
+        :auth_url      => 'https://10.0.0.10:7000/auth/v8.0/',
+        :auth_user     => 'foo',
+        :auth_tenant   => 'bar',
+        :auth_pass     => 'dummy',
+        :auth_version  => '1.0',
+        :endpoint_type => 'internalURL',
+        :swift_dir     => '/usr/local/etc/swift',
+        :coverage      => 42,
+        :retries       => 51,
+        :concurrency   => 4682,
+        :dump_json     => 'yes'
+      )
     end
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^\[dispersion\]$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^auth_url = https:\/\/169.254.0.1:7000\/auth\/v8.0\/$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^auth_version = 1.0$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^auth_user = bar:foo$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^auth_key = dummy$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^swift_dir = \/usr\/local\/etc\/swift$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^dispersion_coverage = 42$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^retries = 51$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^concurrency = 4682$/)
-    }
-    it { should contain_file('/etc/swift/dispersion.conf') \
-      .with_content(/^dump_json = yes$/)
-    }
-    it { should contain_exec('swift-dispersion-populate').with(
-      :path      => ['/bin', '/usr/bin'],
-      :subscribe => 'File[/etc/swift/dispersion.conf]',
-      :onlyif    => "swift -A https://169.254.0.1:7000/auth/v8.0/ -U bar:foo -K dummy -V 1.0 stat | grep 'Account: '",
-      :unless    => "swift -A https://169.254.0.1:7000/auth/v8.0/ -U bar:foo -K dummy -V 1.0 list | grep dispersion_"
-    )}
+
+    include_examples 'swift::dispersion'
   end
 end
