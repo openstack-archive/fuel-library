@@ -31,4 +31,22 @@ describe 'swift::storage::account' do
       it { should contain_swift__storage__generic('account').with_package_ensure(param_hash[:package_ensure]) }
     end
   end
+  describe 'on rhel' do
+    let :facts do
+      {
+        :operatingsystem => 'RedHat',
+        :osfamily        => 'RedHat'
+      }
+    end
+    it 'should have some support services' do
+      ['swift-account-reaper', 'swift-account-auditor'].each do |service|
+        should contain_service(service).with(
+          :name     => "openstack-#{service}",
+          :ensure   => 'running',
+          :enable   => true,
+          :require  => 'Package[swift-account]'
+        )
+      end
+    end
+  end
 end

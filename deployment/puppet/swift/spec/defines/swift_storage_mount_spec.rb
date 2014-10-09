@@ -34,9 +34,29 @@ describe 'swift::storage::mount' do
 
     it { should contain_mount('/srv/node/dans_mount_point').with(
       :device  => '/dev/sda',
-      :options => 'noatime,nodiratime,nobarrier,logbufs=8,loop'
+      :options => 'noatime,nodiratime,nobarrier,loop,logbufs=8'
     )}
 
   end
 
+  describe 'when mounting a loopback device on selinux system' do
+    let :params do
+      {
+        :device => '/dev/sda'
+      }
+    end
+
+    let :facts do
+      {
+        :selinux => 'true',
+      }
+    end
+
+    it { should contain_exec("restorecon_mount_dans_mount_point").with(
+      {:command     => "restorecon /srv/node/dans_mount_point",
+       :path        => ['/usr/sbin', '/sbin'],
+       :refreshonly => true}
+    )}
+
+  end
 end

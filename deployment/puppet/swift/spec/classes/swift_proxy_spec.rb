@@ -25,8 +25,7 @@ describe 'swift::proxy' do
 
     let :pre_condition do
       "class { memcached: max_memory => 1}
-       class { swift: swift_hash_suffix => string }
-       class { 'ssh::server::install': }"
+       class { swift: swift_hash_suffix => string }"
     end
 
     describe 'without the proxy local network ip address being specified' do
@@ -45,6 +44,7 @@ describe 'swift::proxy' do
         {:ensure    => 'running',
          :provider  => 'upstart',
          :enable    => true,
+         :hasstatus => true,
          :subscribe => 'Concat[/etc/swift/proxy-server.conf]'
         }
       )}
@@ -53,7 +53,6 @@ describe 'swift::proxy' do
          :owner   => 'swift',
          :group   => 'swift',
          :mode    => '0660',
-         :require => 'Package[swift-proxy]'
         }
       )}
 
@@ -64,10 +63,19 @@ describe 'swift::proxy' do
             'bind_port = 8080',
             "workers = #{facts[:processorcount]}",
             'user = swift',
+            'log_name = swift',
+            'log_level = INFO',
+            'log_headers = False',
+            'log_address = /dev/log',
             '[pipeline:main]',
             'pipeline = healthcheck cache tempauth proxy-server',
             '[app:proxy-server]',
             'use = egg:swift#proxy',
+            'set log_name = proxy-server',
+            'set log_facility = LOG_LOCAL1',
+            'set log_level = INFO',
+            'set log_address = /dev/log',
+            'log_handoffs = true',
             'allow_account_management = true',
             'account_autocreate = true'
           ]
@@ -84,12 +92,16 @@ describe 'swift::proxy' do
       describe 'when more parameters are set' do
         let :params do
           {
-           :proxy_local_net_ip => '10.0.0.2',
-           :port => '80',
-           :workers => 3,
-           :pipeline  => ['swauth', 'proxy-server'],
-           :allow_account_management => false,
-           :account_autocreate => false
+           :proxy_local_net_ip        => '10.0.0.2',
+           :port                      => '80',
+           :workers                   => 3,
+           :pipeline                  => ['swauth', 'proxy-server'],
+           :allow_account_management  => false,
+           :account_autocreate        => false,
+           :log_level                 => 'DEBUG',
+           :read_affinity             => 'r1z1=100, r1=200',
+           :write_affinity            => 'r1',
+           :write_affinity_node_count => '2 * replicas',
           }
         end
         it 'should build the header file with provided values' do
@@ -99,12 +111,16 @@ describe 'swift::proxy' do
               'bind_port = 80',
               "workers = 3",
               'user = swift',
+              'log_level = DEBUG',
               '[pipeline:main]',
               'pipeline = swauth proxy-server',
               '[app:proxy-server]',
               'use = egg:swift#proxy',
               'allow_account_management = false',
-              'account_autocreate = false'
+              'account_autocreate = false',
+              'read_affinity = r1z1=100, r1=200',
+              'write_affinity = r1',
+              'write_affinity_node_count = 2 * replicas'
             ]
           )
         end
@@ -119,6 +135,17 @@ describe 'swift::proxy' do
             params[param] = 'false'
             expect { subject }.to raise_error(Puppet::Error, /is not a boolean/)
           end
+        end
+
+        let :params do
+          {
+           :proxy_local_net_ip        => '127.0.0.1',
+           :write_affinity_node_count => '2 * replicas'
+          }
+        end
+
+        it "should fail if write_affinity_node_count is used without write_affinity" do
+          expect { subject }.to raise_error(Puppet::Error, /write_affinity_node_count requires write_affinity/)
         end
       end
     end
