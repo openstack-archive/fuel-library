@@ -39,12 +39,24 @@ class openstack::swift::proxy (
   $rings                              = ['account', 'object', 'container'],
   $debug                              = false,
   $verbose                            = true,
+  $log_facility                       = 'LOG_LOCAL1',
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
       swift_hash_suffix => $swift_hash_suffix,
       package_ensure    => $package_ensure,
     }
+  }
+
+  # calculate log_level
+  if $debug {
+    $log_level = 'DEBUG'
+  }
+  elsif $verbose {
+    $log_level = 'INFO'
+  }
+  else {
+    $log_level = 'WARNING'
   }
 
   if $memcached and !defined(Class['memcached']) {
@@ -59,8 +71,9 @@ class openstack::swift::proxy (
     allow_account_management => $proxy_allow_account_management,
     account_autocreate       => $proxy_account_autocreate,
     package_ensure           => $package_ensure,
-    debug                    => $debug,
-    verbose                  => $verbose,
+    log_facility             => $log_facility,
+    log_level                => $log_level,
+    log_name                 => 'swift-proxy-server',
   }
 
   # configure all of the middlewares
@@ -120,8 +133,13 @@ class openstack::swift::proxy (
     }
 
     # anchors
-    Anchor <| title == 'rebalance_end' |> -> Service['swift-proxy']
-    Anchor <| title == 'rebalance_end' |> -> Swift::Storage::Generic <| |>
+    #Anchor <| title == 'rebalance_end' |> -> Service['swift-proxy']
+    #Anchor <| title == 'rebalance_end' |> -> Swift::Storage::Generic <| |>
+    Swift::Ringbuilder::Rebalance <||> -> Service['swift-proxy']
+    Swift::Ringbuilder::Rebalance <||> -> Swift::Storage::Generic <| |>
+    Swift::Ringbuilder::Create<||> ->
+    Ring_devices<||> ~>
+    Swift::Ringbuilder::Rebalance <||>
 
  } else {
     validate_string($master_swift_proxy_ip)
@@ -142,5 +160,6 @@ class openstack::swift::proxy (
   }
 
   # deploy a script that can be used for testing
-  file { '/tmp/swift_keystone_test.rb': source => 'puppet:///modules/swift/swift_keystone_test.rb' }
+  # adidenko: it doesn't look like we use this script, also new module does not have it
+  # file { '/tmp/swift_keystone_test.rb': source => 'puppet:///modules/swift/swift_keystone_test.rb' }
 }

@@ -25,7 +25,7 @@ pipeline = <%= @pipeline.to_a.join(' ') %>
 
 [app:proxy-server]
 use = egg:swift#proxy
-set log_name = proxy-server
+set log_name = <%= @log_name %>
 set log_facility = <%= @log_facility %>
 set log_level = <%= @log_level %>
 set log_address = <%= @log_address %>

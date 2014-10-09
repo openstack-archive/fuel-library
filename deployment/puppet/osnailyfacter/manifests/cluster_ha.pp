@@ -279,7 +279,7 @@ class osnailyfacter::cluster_ha {
     $swift_proxies            = $controllers
     $swift_local_net_ip       = $::storage_address
     $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-    $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['internal_address']
+    $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
     #$master_hostname         = $master_swift_proxy_nodes[0]['name']
     $swift_loopback = false
     if $primary_controller {
@@ -469,9 +469,13 @@ class osnailyfacter::cluster_ha {
           sync_rings            => ! $primary_proxy,
           debug                 => $::debug,
           verbose               => $::verbose,
+          log_facility          => 'LOG_SYSLOG',
         }
         if $primary_proxy {
-          ring_devices {'all': storages => $controllers }
+          ring_devices {'all':
+            storages => $controllers,
+            require  => Class['swift'],
+          }
         }
 
         if !$swift_hash['resize_value']
@@ -491,6 +495,7 @@ class osnailyfacter::cluster_ha {
           master_swift_proxy_ip   => $master_swift_proxy_ip,
           debug                   => $::debug,
           verbose                 => $::verbose,
+          log_facility            => 'LOG_SYSLOG',
         }
         class { 'swift::keystone::auth':
           password         => $swift_hash[user_password],
@@ -947,7 +952,8 @@ class osnailyfacter::cluster_ha {
 
       if $primary_proxy {
         ring_devices {'all':
-          storages => $swift_storages
+          storages => $swift_storages,
+          require  => Class['swift'],
         }
       }
 
@@ -961,6 +967,7 @@ class osnailyfacter::cluster_ha {
         syslog_log_level        => $syslog_log_level,
         debug                   => $debug,
         verbose                 => $verbose,
+        log_facility            => 'LOG_SYSLOG',
       }
     }
 
