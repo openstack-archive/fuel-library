@@ -14,33 +14,59 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
     if File.exists?(builder_file_path)
       if rows = swift_ring_builder(builder_file_path).split("\n")[4..-1]
         rows.each do |row|
-          #FIXME: Workaround for Red Hat still running Grizzly
-          if Facter.value(:operatingsystem) == 'RedHat'
-            if row =~ /^\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)?\s+\d?(-?\d+\.\d+)\s+(\S*)$/
-              object_hash["#{$4}:#{$5}"] = {
-                :id          => $1,
-                :region      => $2,
-                :zone        => $3,
-                :partitions  => $8,
-                :balance     => $9,
-                :meta        => $10,
-              }
-            else
-              Puppet.warning("Unexpected line: #{row}")
-            end
+           # Swift 1.7+ output example:
+           # Devices:    id  region  zone      ip address  port      name weight partitions balance meta
+           #              0     1     2       127.0.0.1  6022         2   1.00     262144   0.00
+           #              0     1     3  192.168.101.15  6002         1   1.00     262144   -100.00
+           #
+           # Swift 1.8.0 output example:
+           # Devices:    id  region  zone      ip address  port      name weight partitions balance meta
+           #              2     1     2  192.168.101.14  6002         1   1.00     262144 200.00  m2
+           #              0     1     3  192.168.101.15  6002         1   1.00     262144-100.00  m2
+           #
+           # Swift 1.8+ output example:
+           # Devices:    id  region  zone      ip address  port  replication ip  replication port      name weight partitions balance meta
+           #              0       1     2       127.0.0.1  6021       127.0.0.1              6021         2   1.00     262144    0.00
+          # Swift 1.8+ output example:
+          if row =~ /^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+\S+\s+\d+\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s*((-|\s-?)?\d+\.\d+)\s*(\S*)/
+
+            object_hash["#{$4}:#{$5}/#{$6}"] = {
+              :id          => $1,
+              :region      => $2,
+              :zone        => $3,
+              :weight      => $7,
+              :partitions  => $8,
+              :balance     => $9,
+              :meta        => $11
+            }
+
+          # Swift 1.8.0 output example:
+          elsif row =~ /^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s*((-|\s-?)?\d+\.\d+)\s*(\S*)/
+
+            object_hash["#{$4}:#{$5}/#{$6}"] = {
+              :id          => $1,
+              :region      => $2,
+              :zone        => $3,
+              :weight      => $7,
+              :partitions  => $8,
+              :balance     => $9,
+              :meta        => $11
+            }
+           # This regex is for older swift versions
+          elsif row =~ /^\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(\S*)$/
+
+            object_hash["#{$3}:#{$4}/#{$5}"] = {
+              :id          => $1,
+              :region      => 'none',
+              :zone        => $2,
+              :weight      => $6,
+              :partitions  => $7,
+              :balance     => $8,
+              :meta        => $9
+            }
+
           else
-            if row =~ /^\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)?\s+\d?(-?\d+\.\d+)\s*(\S*)$/
-              object_hash["#{$4}:#{$5}"] = {
-                :id          => $1,
-                :region      => $2,
-                :zone        => $3,
-                :partitions  => $10,
-                :balance     => $11,
-                :meta        => $12,
-              }
-            else
-              Puppet.warning("Unexpected line: #{row}")
-            end
+            Puppet.warning("Unexpected line: #{row}")
           end
         end
       end
@@ -57,64 +83,32 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   end
 
   def exists?
-    notice("node name: #{resource[:name]}")
-    notice("available devs: #{available_devs.keys.sort.inspect}")
-    available_devs.keys.each do |dev|
-      raise(Puppet::Error, "Device name #{resource[:name]} should not contain underscore") if dev.include?('_')
-    end
-    raise(Puppet::Error, "Device not found check device on  #{resource[:name]} ") if available_devs.empty?
-    return  available_devs.keys.sort == used_devs
+    ring[resource[:name]]
   end
 
   def create
-    raise(Puppet::Error, "#{param} is required") unless resource[:zone]
+    [:zone, :weight].each do |param|
+      raise(Puppet::Error, "#{param} is required") unless resource[param]
+    end
 
-    # remove the missing devices
-    destroy
-
-    (available_devs.keys - used_devs).each do |mountpoint|
-      notice("*** create device: #{mountpoint}")
-      swift_ring_builder(builder_file_path,
+    if :region == 'none'
+      # Prior to Swift 1.8.0, regions did not exist.
+      swift_ring_builder(
+        builder_file_path,
         'add',
-        "z#{resource[:zone]}-#{resource[:name]}/#{mountpoint}",
-        available_devs[mountpoint]
+        "z#{resource[:zone]}-#{resource[:name]}",
+        resource[:weight]
       )
-    end
-  end
-
-  def destroy
-    (used_devs - available_devs.keys).each do |mountpoint|
-      notice("*** remove device: #{mountpoint}")
-      swift_ring_builder(builder_file_path,
-        'remove',
-        "#{resource[:name]}/#{mountpoint}"
-      )
-    end
-  end
-
-  def available_devs
-    @available_devices = {}
-
-    mountpoints = "#{resource[:mountpoints]}".split("\n")
-    for i in mountpoints
-      @available_devices[i.split[0]] = i.split[1]
-    end
-
-    @available_devices
-  end
-
-  def used_devs
-    if devs = swift_ring_builder(builder_file_path).split("\n")[4..-1]
-      @used_devices = devs.collect do |line|
-        #Workaround for Red Hat still running Grizzly
-        if Facter.value(:operatingsystem) == 'RedHat'
-          line.strip.split(/\s+/)[5] if line.match(/#{resource[:name].split(':')[0]}/)
-        else
-          line.strip.split(/\s+/)[7] if line.match(/#{resource[:name].split(':')[0]}/)
-        end
-      end.compact.sort
     else
-      []
+      # Swift 1.8+
+      # Region defaults to 1 if unspecified
+      resource[:region] ||= 1
+      swift_ring_builder(
+        builder_file_path,
+        'add',
+        "r#{resource[:region]}z#{resource[:zone]}-#{resource[:name]}",
+        resource[:weight]
+      )
     end
   end
 
@@ -126,6 +120,14 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
     raise(Puppet::Error, "Cannot assign id, it is immutable")
   end
 
+  def region
+    ring[resource[:name]][:region]
+  end
+
+  def region=(region)
+    raise(Puppet::Error, "Changing the region of a device is not possible.")
+  end
+
   def zone
     ring[resource[:name]][:zone]
   end
@@ -133,6 +135,21 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   # TODO - is updating the zone supported?
   def zone=(zone)
     Puppet.warning('Setting zone is not yet supported, I am not even sure if it is supported')
+  end
+
+  def weight
+    ring[resource[:name]][:weight]
+    # get the weight
+  end
+
+  def weight=(weight)
+    swift_ring_builder(
+      builder_file_path,
+      'set_weight',
+      "d#{ring[resource[:name]][:id]}",
+      resource[:weight]
+    )
+    # requires a rebalance
   end
 
   def partitions

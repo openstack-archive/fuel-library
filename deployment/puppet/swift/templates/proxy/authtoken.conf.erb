@@ -1,0 +1,22 @@
+[filter:authtoken]
+log_name = swift
+signing_dir = <%= @signing_dir %>
+paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
+auth_host = <%= @auth_host %>
+auth_port = <%= @auth_port %>
+auth_protocol = <%= @auth_protocol %>
+<% if @auth_admin_prefix -%>
+auth_admin_prefix = <%= @auth_admin_prefix %>
+<% end -%>
+auth_uri = <%= @auth_uri_real %>
+# if its defined
+<% if @admin_token -%>
+admin_token = <%= @admin_token %>
+<% else -%>
+admin_tenant_name = <%= @admin_tenant_name %>
+admin_user = <%= @admin_user %>
+admin_password = <%= @admin_password %>
+<% end -%>
+delay_auth_decision = <%= @delay_auth_decision %>
+cache = <%= @cache %>
+include_service_catalog = False

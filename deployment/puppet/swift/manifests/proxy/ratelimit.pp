@@ -23,7 +23,7 @@
 #
 # == Authors
 #
-#   François Charlier fcharlier@ploup.net
+#   Francois Charlier fcharlier@ploup.net
 #
 # == Copyright
 #
