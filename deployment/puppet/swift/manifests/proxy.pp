@@ -34,6 +34,9 @@
 #  Optional but requires write_affinity to be set. Defaults to undef.
 # [*package_ensure*] Ensure state of the swift proxy package.
 #   Optional. Defaults to present.
+# [*log_name*]
+#  Configures log_name for swift proxy-server.
+#  Optional. Defaults to proxy-server
 #
 # == Examples
 #
@@ -59,6 +62,7 @@ class swift::proxy(
   $log_level = 'INFO',
   $log_facility = 'LOG_LOCAL1',
   $log_handoffs = true,
+  $log_name = 'proxy-server',
   $read_affinity = undef,
   $write_affinity = undef,
   $write_affinity_node_count = undef,

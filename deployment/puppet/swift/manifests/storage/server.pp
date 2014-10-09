@@ -21,6 +21,7 @@ define swift::storage::server(
   $log_facility           = 'LOG_LOCAL2',
   $log_level              = 'INFO',
   $log_address            = '/dev/log',
+  $log_name               = "${type}-server",
   # this parameters needs to be specified after type and name
   $config_file_path       = "${type}-server/${name}.conf"
 ) {
