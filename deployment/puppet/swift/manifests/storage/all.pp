@@ -9,6 +9,8 @@
 #    Optional. Defaults to /srv/node/
 #  [*object_port*] Port where object storage server should be hosted.
 #    Optional. Defaults to 6000.
+#  [*allow_versions*] Boolean to enable the versioning in swift container
+#    Optional. Default to false.
 #  [*container_port*] Port where the container storage server should be hosted.
 #    Optional. Defaults to 6001.
 #  [*account_port*] Port where the account storage server should be hosted.
@@ -16,81 +18,48 @@
 #
 #
 class swift::storage::all(
-  $swift_zone,
   $storage_local_net_ip,
   $devices            = '/srv/node',
-  $devices_dirs       = undef,
   $object_port        = '6000',
   $container_port     = '6001',
   $account_port       = '6002',
   $object_pipeline    = undef,
   $container_pipeline = undef,
+  $allow_versions     = false,
+  $mount_check        = false,
   $account_pipeline   = undef,
-  $export_devices     = false,
-  $debug              = false,
-  $verbose            = true,
+  $log_facility       = 'LOG_LOCAL2'
 ) {
 
   class { 'swift::storage':
     storage_local_net_ip => $storage_local_net_ip,
   }
 
-  if(!defined(File[$devices])) {
-    file {$devices:
-      ensure       => 'directory',
-      owner        => 'swift',
-      group        => 'swift',
-      recurse      => true,
-      recurselimit => 1,
-    }
-  }
-
-  anchor {'swift-device-directories-start': } -> File[$devices]
-
-  define device_directory($devices){
-    if ! defined(File["${devices}/${name}"]){
-      file{"${devices}/${name}":
-        ensure => 'directory',
-        owner => 'swift',
-        group => 'swift',
-        recurse => true,
-        recurselimit => 1,
-      }
-    }
-  }
-
-  if ($devices_dirs != undef){
-    device_directory {$devices_dirs :
-      devices => $devices,
-      require => File[$devices]
-    }
-  }
-
-
-
   Swift::Storage::Server {
-    swift_zone           => $swift_zone,
     devices              => $devices,
     storage_local_net_ip => $storage_local_net_ip,
-    debug                => $debug,
-    verbose              => $verbose,
+    mount_check          => $mount_check,
   }
 
   swift::storage::server { $account_port:
     type             => 'account',
     config_file_path => 'account-server.conf',
     pipeline         => $account_pipeline,
+    log_facility     => $log_facility,
   }
 
   swift::storage::server { $container_port:
     type             => 'container',
     config_file_path => 'container-server.conf',
     pipeline         => $container_pipeline,
+    log_facility     => $log_facility,
+    allow_versions   => $allow_versions,
   }
 
   swift::storage::server { $object_port:
     type             => 'object',
     config_file_path => 'object-server.conf',
     pipeline         => $object_pipeline,
+    log_facility     => $log_facility,
   }
 }

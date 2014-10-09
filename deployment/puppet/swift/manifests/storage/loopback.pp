@@ -10,7 +10,8 @@ define swift::storage::loopback(
   $base_dir     = '/srv/loopback-device',
   $mnt_base_dir = '/srv/node',
   $byte_size    = '1024',
-  $seek         = '25000'
+  $seek         = '25000',
+  $fstype       = 'xfs'
 ) {
 
   if(!defined(File[$base_dir])) {
@@ -21,9 +22,9 @@ define swift::storage::loopback(
 
   if(!defined(File[$mnt_base_dir])) {
     file { $mnt_base_dir:
+      ensure => directory,
       owner  => 'swift',
       group  => 'swift',
-      ensure => directory,
     }
   }
 
@@ -34,12 +35,15 @@ define swift::storage::loopback(
     require     => File[$base_dir],
   }
 
-  swift::storage::xfs { $name:
+  $storage_params = {
     device       => "${base_dir}/${name}",
     mnt_base_dir => $mnt_base_dir,
     byte_size    => $byte_size,
     subscribe    => Exec["create_partition-${name}"],
     loopback     => true,
   }
-
+  # NOTE(mgagne) Puppet does not allow hash keys to be bare variables.
+  #              Keep double-quotes to avoid parse errors.
+  $device_config_hash = { "${name}" => $storage_params }
+  create_resources("swift::storage::${fstype}", $device_config_hash)
 }
