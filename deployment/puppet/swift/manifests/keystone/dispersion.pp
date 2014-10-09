@@ -24,15 +24,19 @@
 
 class swift::keystone::dispersion(
   $auth_user = 'dispersion',
-  $auth_pass = 'dispersion_password'
+  $auth_pass = 'dispersion_password',
+  $email     = 'swift@localhost',
+  $tenant    = 'services'
 ) {
 
   keystone_user { $auth_user:
     ensure   => present,
     password => $auth_pass,
+    email    => $email,
+    tenant   => $tenant,
   }
 
-  keystone_user_role { "${auth_user}@services":
+  keystone_user_role { "${auth_user}@${tenant}":
     ensure  => present,
     roles   => 'admin',
     require => Keystone_user[$auth_user]

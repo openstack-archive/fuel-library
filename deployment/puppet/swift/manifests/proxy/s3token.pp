@@ -15,7 +15,7 @@
 #
 # == Authors
 #
-#   François Charlier fcharlier@ploup.net
+#   Francois Charlier fcharlier@ploup.net
 #
 # == Copyright
 #
@@ -23,15 +23,15 @@
 #
 class swift::proxy::s3token(
   $auth_host = '127.0.0.1',
-  $auth_port = 5000,
+  $auth_port = '35357',
   $auth_protocol = 'http'
 ) {
+
+  include keystone::python
 
   concat::fragment { 'swift_s3token':
     target  => '/etc/swift/proxy-server.conf',
     content => template('swift/proxy/s3token.conf.erb'),
     order   => '28',
   }
-
-  include 'keystone::python'
 }
