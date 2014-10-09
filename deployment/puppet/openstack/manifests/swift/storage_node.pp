@@ -45,6 +45,7 @@ class openstack::swift::storage_node (
   $qpid_password              = 'qpid_pw',
   $qpid_user                  = 'nova',
   $qpid_nodes                 = ['127.0.0.1'],
+  $log_facility               = 'LOG_LOCAL2',
   ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -63,14 +64,42 @@ class openstack::swift::storage_node (
     }
   }
 
+  # create dirs for devices
+  define device_directory($devices) {
+    if(!defined(File[$devices])) {
+      file { $devices:
+        ensure       => 'directory',
+        owner        => 'swift',
+        group        => 'swift',
+        recurse      => true,
+        recurselimit => 1,
+      }
+    }
+  }
+  if ($storage_devices != undef) {
+    anchor {'swift-device-directories-start': } ->
+    device_directory { $storage_devices:
+      devices => $storage_mnt_base_dir,
+#      require => File[$storage_mnt_base_dir],
+    }
+  }
+
   # install all swift storage servers together
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
     devices              => $storage_mnt_base_dir,
-    devices_dirs         => $storage_devices,
-    swift_zone           => $swift_zone,
-    debug                => $debug,
-    verbose              => $verbose,
+    log_facility         => $log_facility,
+  }
+  # override log_name defaults for Swift::Storage::Server
+  # TODO (adidenko) move this into Hiera when it's ready
+  Swift::Storage::Server <| title == '6000' |> {
+    log_name => 'swift-object-server',
+  }
+  Swift::Storage::Server <| title == '6001' |> {
+    log_name => 'swift-container-server',
+  }
+  Swift::Storage::Server <| title == '6002' |> {
+    log_name => 'swift-account-server',
   }
 
   validate_string($master_swift_proxy_ip)
