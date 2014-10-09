@@ -12,7 +12,7 @@ pipeline = <%= @pipeline.to_a.join(' ') %>
 
 [app:object-server]
 use = egg:swift#object
-set log_name = object-server
+set log_name = <%= @log_name %>
 set log_facility = <%= @log_facility %>
 set log_level = <%= @log_level %>
 set log_requests = True
