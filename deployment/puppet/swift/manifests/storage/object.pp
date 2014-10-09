@@ -1,15 +1,25 @@
 class swift::storage::object(
-  $package_ensure = 'present',
-  $swift_mountpoints = $::swift_mountpoints,
+  $package_ensure = 'present'
 ) {
   swift::storage::generic { 'object':
     package_ensure => $package_ensure
   }
 
-  if $swift::storage::all::export_devices {
-    @@ring_object_device { "${swift::storage::all::storage_local_net_ip}:${swift::storage::all::object_port}":
-      zone => $swift::storage::all::swift_zone,
-      mountpoints => $swift_mountpoints,
-    }
+  include swift::params
+
+  service { 'swift-object-updater':
+    ensure    => running,
+    name      => $::swift::params::object_updater_service_name,
+    enable    => true,
+    provider  => $::swift::params::service_provider,
+    require   => Package['swift-object'],
+  }
+
+  service { 'swift-object-auditor':
+    ensure    => running,
+    name      => $::swift::params::object_auditor_service_name,
+    enable    => true,
+    provider  => $::swift::params::service_provider,
+    require   => Package['swift-object'],
   }
 }

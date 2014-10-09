@@ -23,13 +23,19 @@ describe 'swift::storage::all' do
       :devices => '/srv/node',
       :object_port => '6000',
       :container_port => '6001',
-      :account_port => '6002'
+      :account_port => '6002',
+      :log_facility => 'LOG_LOCAL2'
     }
   end
 
-  [{  :swift_zone => '1', :storage_local_net_ip => '127.0.0.1' },
+  describe 'when an internal network ip is not specified' do
+    it 'should fail' do
+      expect { subject }.to raise_error(Puppet::Error, /Must pass storage_local_net_ip/)
+    end
+  end
+
+  [{  :storage_local_net_ip => '127.0.0.1' },
    {
-      :swift_zone => '1',
       :devices => '/tmp/node',
       :storage_local_net_ip => '10.0.0.1',
       :object_port => '7000',
@@ -38,6 +44,8 @@ describe 'swift::storage::all' do
       :object_pipeline => ["1", "2"],
       :container_pipeline => ["3", "4"],
       :account_pipeline => ["5", "6"],
+      :allow_versions => true,
+      :log_facility => ['LOG_LOCAL2', 'LOG_LOCAL3'],
     }
   ].each do |param_set|
 
@@ -74,7 +82,8 @@ describe 'swift::storage::all' do
 
       let :storage_server_defaults do
         {:devices              => param_hash[:devices],
-         :storage_local_net_ip => param_hash[:storage_local_net_ip]
+         :storage_local_net_ip => param_hash[:storage_local_net_ip],
+         :log_facility         => param_hash[:log_facility]
         }
       end
 
@@ -91,8 +100,17 @@ describe 'swift::storage::all' do
       it { should contain_swift__storage__server(param_hash[:container_port]).with(
         {:type => 'container',
          :config_file_path => 'container-server.conf',
-         :pipeline => param_hash[:container_pipeline] || 'container-server' }.merge(storage_server_defaults)
+         :pipeline => param_hash[:container_pipeline] || 'container-server',
+         :allow_versions => param_hash[:allow_versions] || false }.merge(storage_server_defaults)
       )}
+
+      it { should contain_class('rsync::server').with(
+        {:use_xinetd => true,
+         :address    => param_hash[:storage_local_net_ip],
+         :use_chroot => 'no'
+        }
+      )}
+
     end
   end
 
@@ -105,9 +123,8 @@ describe 'swift::storage::all' do
       }
     end
 
-    [{  :swift_zone => '1', :storage_local_net_ip => '127.0.0.1' },
+    [{  :storage_local_net_ip => '127.0.0.1' },
       {
-      :swift_zone => '1',
       :devices => '/tmp/node',
       :storage_local_net_ip => '10.0.0.1',
       :object_port => '7000',

@@ -25,6 +25,13 @@
 #   delete accounts. Optional. Defaults to true.
 # [*account_autocreate*] Rather accounts should automatically be created.
 #  Has to be set to true for tempauth. Optional. Defaults to true.
+# [*read_affinity*]
+#  Configures the read affinity of proxy-server. Optional. Defaults to undef.
+# [*write_affinity*]
+#  Configures the write affinity of proxy-server. Optional. Defaults to undef.
+# [*write_affinity_node_count*]
+#  Configures write_affinity_node_count for proxy-server.
+#  Optional but requires write_affinity to be set. Defaults to undef.
 # [*package_ensure*] Ensure state of the swift proxy package.
 #   Optional. Defaults to present.
 #
@@ -40,22 +47,34 @@
 #
 class swift::proxy(
   $proxy_local_net_ip,
-  $port                     = '8080',
-  $pipeline                 = ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
-  $workers                  = $::processorcount,
+  $port = '8080',
+  $pipeline = ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
+  $workers = $::processorcount,
   $allow_account_management = true,
-  $account_autocreate       = true,
-  $package_ensure           = 'present',
-  $debug                    = false,
-  $verbose                  = true,
+  $account_autocreate = true,
+  $log_headers = 'False',
+  $log_udp_host = '',
+  $log_udp_port = '',
+  $log_address = '/dev/log',
+  $log_level = 'INFO',
+  $log_facility = 'LOG_LOCAL1',
+  $log_handoffs = true,
+  $read_affinity = undef,
+  $write_affinity = undef,
+  $write_affinity_node_count = undef,
+  $package_ensure = 'present'
 ) {
 
-  include 'swift::params'
-  include 'concat::setup'
+  include swift::params
+  include concat::setup
 
   validate_bool($account_autocreate)
   validate_bool($allow_account_management)
   validate_array($pipeline)
+
+  if($write_affinity_node_count and ! $write_affinity) {
+    fail('Usage of write_affinity_node_count requires write_affinity to be set')
+  }
 
   if(member($pipeline, 'tempauth')) {
     $auth_type = 'tempauth'
@@ -68,25 +87,17 @@ class swift::proxy(
   }
 
   if(! member($pipeline, 'proxy-server')) {
-    warning("swift storage server ${type} must specify ${type}-server")
+    warning('pipeline parameter must contain proxy-server')
   }
 
   if($auth_type == 'tempauth' and ! $account_autocreate ){
-    fail("\$account_autocreate must be set to true when auth type is tempauth")
-  }
-  if $::osfamily == "Debian"
-  {
-    package { 'swift-plugin-s3':
-    ensure => present,
-    before=>Package['swift-proxy']
-    }
+    fail('account_autocreate must be set to true when auth_type is tempauth')
   }
 
   package { 'swift-proxy':
-    name   => $::swift::params::proxy_package_name,
     ensure => $package_ensure,
+    name   => $::swift::params::proxy_package_name,
   }
-  Package['swift-proxy'] -> Swift::Ringsync <||>
 
   concat { '/etc/swift/proxy-server.conf':
     owner   => 'swift',
@@ -99,13 +110,13 @@ class swift::proxy(
     inline_template(
       "<%=
           (@pipeline - ['proxy-server']).collect do |x|
-            'swift::proxy::' + x
+            'swift::proxy::' + x.gsub(/-/){ %q(_) }
           end.join(',')
       %>"), ',')
 
   # you can now add your custom fragments at the user level
   concat::fragment { 'swift_proxy':
-    target  => "/etc/swift/proxy-server.conf",
+    target  => '/etc/swift/proxy-server.conf',
     content => template('swift/proxy-server.conf.erb'),
     order   => '00',
     # require classes for each of the elements of the pipeline
@@ -116,14 +127,11 @@ class swift::proxy(
   }
 
   service { 'swift-proxy':
-    name      => $::swift::params::proxy_service_name,
     ensure    => running,
+    name      => $::swift::params::proxy_service_name,
     enable    => true,
-    hasstatus  => true,
-    hasrestart => true,
     provider  => $::swift::params::service_provider,
-    require   => [Concat['/etc/swift/proxy-server.conf']],
-    subscribe => [Concat['/etc/swift/proxy-server.conf']],
+    hasstatus => true,
+    subscribe => Concat['/etc/swift/proxy-server.conf'],
   }
-  Package['swift-proxy'] ~> Service['swift-proxy']
 }

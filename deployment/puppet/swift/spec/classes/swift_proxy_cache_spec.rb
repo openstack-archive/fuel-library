@@ -33,7 +33,7 @@ describe 'swift::proxy::cache' do
   describe 'with overridden memcache server' do
 
     let :params do
-      {:memcache_servers => ['10.0.0.1:1']}
+      {:memcache_servers => '10.0.0.1:1'}
     end
 
     it { should contain_file(fragment_file).with_content(/memcache_servers = 10\.0\.0\.1:1/) }
