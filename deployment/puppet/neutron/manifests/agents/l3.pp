@@ -116,6 +116,105 @@ class neutron::agents::l3 (
     'DEFAULT/enable_metadata_proxy':        value => $enable_metadata_proxy;
     'DEFAULT/router_delete_namespaces':     value => $router_delete_namespaces;
   }
+  Service<| title == 'neutron-server' |> -> Service['neutron-l3']
+
+  if $service_provider == 'pacemaker' {
+
+    # OCF script for pacemaker
+    # and his dependences
+    file {'neutron-l3-agent-ocf':
+      path   =>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-l3',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
+      source => "puppet:///modules/neutron/ocf/neutron-agent-l3",
+    }
+
+    Anchor['neutron-l3'] -> File['neutron-l3-agent-ocf']
+    Neutron_l3_agent_config <| |> -> File['neutron-l3-agent-ocf']
+    Package['pacemaker'] -> File['neutron-l3-agent-ocf']
+    File<| title == 'ocf-mirantis-path' |> -> File['neutron-l3-agent-ocf']
+    File<| title == 'q-agent-cleanup.py'|> -> File['neutron-l3-agent-ocf']
+    Package[$l3_agent_package] -> File['neutron-l3-agent-ocf']
+
+    if $primary_controller {
+      cs_resource { "p_${::neutron::params::l3_agent_service}":
+        ensure          => present,
+        primitive_class => 'ocf',
+        provided_by     => 'mirantis',
+        primitive_type  => 'neutron-agent-l3',
+        parameters      => {
+          'debug'            => $debug,
+          'syslog'           => $::use_syslog,
+          'os_auth_url'      => $neutron_config['keystone']['auth_url'],
+          'tenant'           => $neutron_config['keystone']['admin_tenant_name'],
+          'username'         => $neutron_config['keystone']['admin_user'],
+          'password'         => $neutron_config['keystone']['admin_password'],
+          'amqp_server_port' => $neutron_config['amqp']['port'],
+        },
+        metadata        => { 'resource-stickiness' => '1' },
+        operations      => {
+          'monitor'  => {
+            'interval' => '20',
+            'timeout'  => '10'
+          }
+          ,
+          'start'    => {
+            'timeout' => '60'
+          }
+          ,
+          'stop'     => {
+            'timeout' => '60'
+          }
+        },
+      }
+
+      Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
+      cs_colocation { 'l3-with-ovs':
+        ensure     => present,
+        primitives => ["p_${::neutron::params::l3_agent_service}", "clone_p_${::neutron::params::ovs_agent_service}"],
+        score      => 'INFINITY',
+      } ->
+      cs_order { 'l3-after-ovs':
+        ensure => present,
+        first  => "clone_p_${::neutron::params::ovs_agent_service}",
+        second => "p_${::neutron::params::l3_agent_service}",
+        score  => 'INFINITY',
+      } -> Service['neutron-l3']
+
+      Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
+      cs_colocation { 'l3-with-metadata':
+        ensure     => present,
+        primitives => [
+            "p_${::neutron::params::l3_agent_service}",
+            "clone_p_neutron-metadata-agent"
+        ],
+        score      => 'INFINITY',
+      } ->
+      cs_order { 'l3-after-metadata':
+        ensure => present,
+        first  => "clone_p_neutron-metadata-agent",
+        second => "p_${::neutron::params::l3_agent_service}",
+        score  => 'INFINITY',
+      } -> Service['neutron-l3']
+
+      # start DHCP and L3 agents on different controllers if it's possible
+      Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
+      cs_colocation { 'dhcp-without-l3':
+        ensure     => present,
+        score      => '-100',
+        primitives => [
+          "p_${::neutron::params::dhcp_agent_service}",
+          "p_${::neutron::params::l3_agent_service}"
+        ],
+      }
+
+      Service['neutron-l3-init_stopped'] ->
+        Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
+           Service['neutron-l3']
+
+      File['neutron-l3-agent-ocf'] -> Cs_resource["p_${::neutron::params::l3_agent_service}"]
+    } else {
 
   if $network_device_mtu {
     warning('The neutron::l3_agent::newtork_device_mtu parameter is deprecated, use neutron::newtork_device_mtu instead.')
