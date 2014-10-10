@@ -13,9 +13,11 @@
 define nova::generic_service(
   $package_name,
   $service_name,
-  $enabled        = false,
-  $manage_service = true,
-  $ensure_package = 'present'
+  $enabled            = false,
+  $manage_service     = true,
+  $ensure_package     = 'present',
+  $ha_mode            = false,
+  $primary_controller = false,
 ) {
 
   include nova::params
@@ -32,14 +34,14 @@ define nova::generic_service(
   # I need to mark that ths package should be
   # installed before nova_config
   if ($package_name) {
-    if !defined(Package[$package_name]) {
-      package { $nova_title:
-        ensure => $ensure_package,
+    if !defined(Package[$package_name])
+      { package { $nova_title: ensure => $ensure_package,
         name   => $package_name,
         notify => Service[$nova_title],
       }
     }
   }
+
 
   if $service_name {
     if $manage_service {
@@ -49,14 +51,56 @@ define nova::generic_service(
         $service_ensure = 'stopped'
       }
     }
-
-    service { $nova_title:
-      ensure    => $service_ensure,
-      name      => $service_name,
-      enable    => $enabled,
-      hasstatus  => true,
-      hasrestart => true,
-      require   => [Package['nova-common'], Package[$package_name]],
+    if $ha_mode {
+      file { "${service_name}-ocf":
+        path   => "/usr/lib/ocf/resource.d/mirantis/${service_name}",
+        mode   => '0755',
+        owner  => root,
+        group  => root,
+        source => "puppet:///modules/nova/ocf/${service_name}",
+      }
+      if $primary_controller {
+        cs_resource { "p_${service_name}":
+          ensure          => 'present',
+          primitive_class => 'ocf',
+          provided_by     => 'mirantis',
+          primitive_type  => $service_name,
+          multistate_hash => {
+            'type' => 'clone',
+          },
+          operations => {
+            'monitor' => {
+               'interval' => '60',
+               'timeout'  => '55',
+            },
+            'start' => {
+              'timeout' => '60',
+            },
+            'stop' => {
+              'timeout' => '60',
+            },
+          },
+          require       => File["${service_name}-ocf"],
+        }
+        service { $nova_title:
+          ensure  => $service_ensure,
+          name    => $service_name,
+          enable  => $enabled,
+          provider => 'pacemaker',
+          require   => [Package['nova-common'],
+                        Package[$package_name],
+                        Cs_resource["p_${service_name}"]],
+        }
+      }
+    } else {
+      service { $nova_title:
+        ensure    => $service_ensure,
+        name      => $service_name,
+        enable    => $enabled,
+        hasstatus  => true,
+        hasrestart => true,
+        require   => [Package['nova-common'], Package[$package_name]],
+      }
     }
   }
 }

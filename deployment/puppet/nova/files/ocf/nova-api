@@ -1,0 +1,372 @@
+#!/bin/sh
+#
+#
+# OpenStack NovaAPI (nova-api)
+#
+# Description:  Manages an OpenStack Nova API (nova-api) process as an HA resource
+#
+# Authors:      Sébastien Han
+# Mainly inspired by the Glance API resource agent written by Martin Gerhard Loschwitz from Hastexo: http://goo.gl/whLpr
+#
+# Support:      openstack@lists.launchpad.net
+# License:      Apache Software License (ASL) 2.0
+#
+#
+# See usage() function below for more details ...
+#
+# OCF instance parameters:
+#   OCF_RESKEY_binary
+#   OCF_RESKEY_config
+#   OCF_RESKEY_user
+#   OCF_RESKEY_pid
+#   OCF_RESKEY_os_username
+#   OCF_RESKEY_os_password
+#   OCF_RESKEY_os_tenant_name
+#   OCF_RESKEY_keystone_get_token_url
+#   OCF_RESKEY_additional_parameters
+#######################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+
+#######################################################################
+
+# Fill in some defaults if no values are specified
+
+OCF_RESKEY_binary_default="nova-api"
+OCF_RESKEY_config_default="/etc/nova/nova.conf"
+OCF_RESKEY_user_default="nova"
+OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+OCF_RESKEY_url_default="http://127.0.0.1:8774/v2/"
+OCF_RESKEY_keystone_get_token_url_default="http://127.0.0.1:5000/v2.0/tokens"
+
+: ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
+: ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
+: ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
+: ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_url=${OCF_RESKEY_url_default}}
+: ${OCF_RESKEY_keystone_get_token_url=${OCF_RESKEY_keystone_get_token_url_default}}
+
+#######################################################################
+
+usage() {
+    cat <<UEND
+        usage: $0 (start|stop|validate-all|meta-data|status|monitor)
+
+        $0 manages an OpenStack NovaAPI (nova-api) process as an HA resource 
+
+        The 'start' operation starts the nova-api service.
+        The 'stop' operation stops the nova-api service.
+        The 'validate-all' operation reports whether the parameters are valid
+        The 'meta-data' operation reports this RA's meta-data information
+        The 'status' operation reports whether the nova-api service is running
+        The 'monitor' operation reports whether the nova-api service seems to be working
+
+UEND
+}
+
+meta_data() {
+    cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="nova-api">
+<version>1.0</version>
+
+<longdesc lang="en">
+Resource agent for the OpenStack Nova API Service (nova-api)
+May manage a nova-api instance or a clone set that 
+creates a distributed nova-api cluster.
+</longdesc>
+<shortdesc lang="en">Manages the OpenStack Nova API (nova-api)</shortdesc>
+<parameters>
+
+<parameter name="binary" unique="0" required="0">
+<longdesc lang="en">
+Location of the OpenStack Nova API server binary (nova-api)
+</longdesc>
+<shortdesc lang="en">OpenStack Nova API server binary (nova-api)</shortdesc>
+<content type="string" default="${OCF_RESKEY_binary_default}" />
+</parameter>
+
+<parameter name="config" unique="0" required="0">
+<longdesc lang="en">
+Location of the OpenStack Nova API (nova-api) configuration file
+</longdesc>
+<shortdesc lang="en">OpenStack Nova API (nova-api registry) config file</shortdesc>
+<content type="string" default="${OCF_RESKEY_config_default}" />
+</parameter>
+
+<parameter name="user" unique="0" required="0">
+<longdesc lang="en">
+User running OpenStack Nova API (nova-api)
+</longdesc>
+<shortdesc lang="en">OpenStack Nova API (nova-api) user</shortdesc>
+<content type="string" default="${OCF_RESKEY_user_default}" />
+</parameter>
+
+<parameter name="pid" unique="0" required="0">
+<longdesc lang="en">
+The pid file to use for this OpenStack Nova API (nova-api) instance
+</longdesc>
+<shortdesc lang="en">OpenStack Nova API (nova-api) pid file</shortdesc>
+<content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+<parameter name="url" unique="0" required="0">
+<longdesc lang="en">
+The default URL to use for monitoring this instance (nova-api) via curl. Important note: the monitor function doesn't accept http return code different than 200, for instance redirection code will generate an error. Don't forget the '/' at the end of your url endpoint. For example http://127.0.0.1:8774/v1.1 won't work and http://127.0.0.1:8774/v1.1/ will.
+</longdesc>
+<shortdesc lang="en">OpenStack Nova API (nova-api) monitor url</shortdesc>
+<content type="string" default="${OCF_RESKEY_url_default}" />
+</parameter>
+
+<parameter name="keystone_get_token_url" unique="0" required="0">
+<longdesc lang="en">
+The default URL to use to acquire a Nova API (nova-api) token for monitoring this instance
+of OpenStack Nova API (nova-api)
+</longdesc>
+<shortdesc lang="en">OpenStack Nova API (nova-api) url</shortdesc>
+<content type="string" default="${OCF_RESKEY_keystone_get_token_url_default}" />
+</parameter>
+
+<parameter name="os_username" unique="0" required="0">
+<longdesc lang="en">
+The username to use when connecting with Nova API (nova-api) for monitoring purposes
+</longdesc>
+<shortdesc lang="en">Nova API (nova-api) monitoring login</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="os_password" unique="0" required="0">
+<longdesc lang="en">
+The password to use when connecting Nova API (nova-api) for monitoring purposes
+</longdesc>
+<shortdesc lang="en">Nova API (nova-api) monitoring password</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="os_tenant_name" unique="0" required="0">
+<longdesc lang="en">
+The tenant to use when connecting Nova API (nova-api) for monitoring purposes
+</longdesc>
+<shortdesc lang="en">Nova API (nova-api) monitoring tenant</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="additional_parameters" unique="0" required="0">
+<longdesc lang="en">
+Additional parameters to pass on to the OpenStack NovaAPI (nova-api)
+</longdesc>
+<shortdesc lang="en">Additional parameters for nova-api</shortdesc>
+<content type="string" />
+</parameter>
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20" />
+<action name="stop" timeout="20" />
+<action name="status" timeout="20" />
+<action name="monitor" timeout="10" interval="5" />
+<action name="validate-all" timeout="5" />
+<action name="meta-data" timeout="5" />
+</actions>
+</resource-agent>
+END
+}
+
+#######################################################################
+# Functions invoked by resource manager actions
+
+nova_api_validate() {
+    local rc
+
+    check_binary $OCF_RESKEY_binary
+    check_binary curl
+    check_binary tr
+    check_binary grep
+    check_binary cut
+    check_binary head
+    
+    # A config file on shared storage that is not available
+    # during probes is OK.
+    if [ ! -f $OCF_RESKEY_config ]; then
+        if ! ocf_is_probe; then
+            ocf_log err "Config $OCF_RESKEY_config doesn't exist"
+            return $OCF_ERR_INSTALLED
+        fi
+        ocf_log_warn "Config $OCF_RESKEY_config not available during a probe"
+    fi
+
+    getent passwd $OCF_RESKEY_user >/dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "User $OCF_RESKEY_user doesn't exist"
+        return $OCF_ERR_INSTALLED
+    fi
+
+    true
+}
+
+nova_api_status() {
+    local pid
+    local rc
+
+    if [ ! -f $OCF_RESKEY_pid ]; then
+        ocf_log info "OpenStack Nova API (nova-api) is not running"
+        return $OCF_NOT_RUNNING
+    else
+        pid=`cat $OCF_RESKEY_pid`
+    fi
+
+    ocf_run -warn kill -s 0 $pid
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        return $OCF_SUCCESS
+    else
+        ocf_log info "Old PID file found, but OpenStack Nova API (nova-api) is not running"
+        return $OCF_NOT_RUNNING
+    fi
+}
+
+nova_api_monitor() {
+    local rc
+    local token
+    local http_code
+
+    nova_api_status
+    rc=$?
+
+    # If status returned anything but success, return that immediately
+    if [ $rc -ne $OCF_SUCCESS ]; then
+        return $rc
+    fi
+
+    # Check detailed information about this specific version of the API.
+    if [ -n "$OCF_RESKEY_os_username" ] && [ -n "$OCF_RESKEY_os_password" ] \
+    && [ -n "$OCF_RESKEY_os_tenant_name" ] && [ -n "$OCF_RESKEY_keystone_get_token_url" ]; then
+        token=`curl -s -d  "{\"auth\":{\"passwordCredentials\": {\"username\": \"$OCF_RESKEY_os_username\", \
+          \"password\": \"$OCF_RESKEY_os_password\"}, \"tenantName\": \"$OCF_RESKEY_os_tenant_name\"}}" \
+          -H "Content-type: application/json" $OCF_RESKEY_keystone_get_token_url | tr ',' '\n' | grep '"id":' \
+          | cut -d'"' -f4 | head --lines 1` 
+        http_code=`curl --write-out %{http_code} --output /dev/null -sH "X-Auth-Token: $token" $OCF_RESKEY_url`
+        rc=$?
+        if [ $rc -ne 0 ] || [ $http_code -ne 200 ]; then
+            ocf_log err "Failed to connect to the OpenStack Nova API (nova-api): $rc and $http_code"
+            return $OCF_NOT_RUNNING
+        fi
+    fi
+
+    ocf_log debug "OpenStack Nova API (nova-api) monitor succeeded"
+    return $OCF_SUCCESS
+}
+
+nova_api_start() {
+    local rc
+
+    nova_api_status
+    rc=$?
+    if [ $rc -eq $OCF_SUCCESS ]; then
+        ocf_log info "OpenStack Nova API (nova-api) already running"
+        return $OCF_SUCCESS
+    fi
+
+    # run the actual nova-api daemon. Don't use ocf_run as we're sending the tool's output
+    # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
+    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
+       $OCF_RESKEY_additional_parameters"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+
+    # Spin waiting for the server to come up.
+    # Let the CRM/LRM time us out if required
+    while true; do
+    nova_api_monitor
+    rc=$?
+    [ $rc -eq $OCF_SUCCESS ] && break
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        ocf_log err "OpenStack Nova API (nova-api) start failed"
+        exit $OCF_ERR_GENERIC
+    fi
+    sleep 1
+    done
+
+    ocf_log info "OpenStack Nova API (nova-api) started"
+    return $OCF_SUCCESS
+}
+
+nova_api_stop() {
+    local rc
+    local pid
+
+    nova_api_status
+    rc=$?
+    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+        ocf_log info "OpenStack Nova API (nova-api) already stopped"
+        return $OCF_SUCCESS
+    fi
+
+    # Try SIGTERM
+    pid=`cat $OCF_RESKEY_pid`
+    ocf_run kill -s TERM $pid
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "OpenStack Nova API (nova-api) couldn't be stopped"
+        exit $OCF_ERR_GENERIC
+    fi
+
+    # stop waiting
+    shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+    fi
+    count=0
+    while [ $count -lt $shutdown_timeout ]; do
+        nova_api_status
+        rc=$?
+        if [ $rc -eq $OCF_NOT_RUNNING ]; then
+            break
+        fi
+        count=`expr $count + 1`
+        sleep 1
+        ocf_log debug "OpenStack Nova API (nova-api) still hasn't stopped yet. Waiting ..."
+    done
+
+    nova_api_status
+    rc=$?
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        # SIGTERM didn't help either, try SIGKILL
+        ocf_log info "OpenStack Nova API (nova-api) failed to stop after ${shutdown_timeout}s \
+          using SIGTERM. Trying SIGKILL ..."
+        ocf_run kill -s KILL $pid
+    fi
+
+    ocf_log info "OpenStack Nova API (nova-api) stopped"
+
+    rm -f $OCF_RESKEY_pid
+
+    return $OCF_SUCCESS
+}
+
+#######################################################################
+
+case "$1" in
+  meta-data)    meta_data
+                exit $OCF_SUCCESS;;
+  usage|help)   usage
+                exit $OCF_SUCCESS;;
+esac
+
+# Anything except meta-data and help must pass validation
+nova_api_validate || exit $?
+
+# What kind of method was invoked?
+case "$1" in
+  start)        nova_api_start;;
+  stop)         nova_api_stop;;
+  status)       nova_api_status;;
+  monitor)      nova_api_monitor;;
+  validate-all) ;;
+  *)            usage
+                exit $OCF_ERR_UNIMPLEMENTED;;
+esac
+

@@ -31,8 +31,8 @@ class openstack::nova::controller (
   # Nova Required
   $nova_user_password,
   $nova_db_password,
-  $primary_controller          = false,
   $ha_mode                     = false,
+  $primary_controller          = false,
   # Network
   $fixed_range                 = '10.0.0.0/24',
   $floating_range              = false,
@@ -136,8 +136,8 @@ class openstack::nova::controller (
         port                   => $rabbitmq_bind_port,
         cluster_disk_nodes     => $rabbitmq_cluster_nodes,
         cluster                => $rabbit_cluster,
-        primary_controller     => $primary_controller,
         ha_mode                => $ha_mode,
+        primary_controller     => $primary_controller,
       }
     }
     'qpid': {
@@ -319,6 +319,7 @@ class openstack::nova::controller (
     ensure_package      => $ensure_package,
     ratelimits          => $nova_rate_limits_string,
     require             => Package['nova-common'],
+    primary_controller  => $primary_controller,
   }
 
   # From legacy params.pp

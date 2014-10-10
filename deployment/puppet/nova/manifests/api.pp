@@ -134,6 +134,8 @@ class nova::api(
   $ratelimits            = undef,
   $ratelimits_factory    =
     'nova.api.openstack.compute.limits:RateLimitingMiddleware.factory',
+  $ha_mode               = false,
+  $primary_controller    = false,
   # DEPRECATED PARAMETER
   $workers               = undef,
 ) {
@@ -162,12 +164,14 @@ class nova::api(
   }
 
   nova::generic_service { 'api':
-    enabled        => $enabled,
-    manage_service => $manage_service,
-    ensure_package => $ensure_package,
-    package_name   => $::nova::params::api_package_name,
-    service_name   => $::nova::params::api_service_name,
-    subscribe      => Class['cinder::client'],
+    enabled            => $enabled,
+    manage_service     => $manage_service,
+    ensure_package     => $ensure_package,
+    package_name       => $::nova::params::api_package_name,
+    service_name       => $::nova::params::api_service_name,
+    subscribe          => Class['cinder::client'],
+    ha_mode            => $ha_mode,
+    primary_controller => $primary_controller,
   }
 
   nova_config {

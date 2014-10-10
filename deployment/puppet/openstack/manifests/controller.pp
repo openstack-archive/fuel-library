@@ -409,7 +409,6 @@ class openstack::controller (
     glance_api_servers          => $glance_api_servers,
     # General
     verbose                     => $verbose,
-    primary_controller          => $primary_controller,
     debug                       => $debug,
     enabled                     => $enabled,
     exported_resources          => $export_resources,
@@ -430,6 +429,7 @@ class openstack::controller (
     idle_timeout                => $idle_timeout,
     novnc_address               => $novnc_address,
     ha_mode                     => $ha_mode,
+    primary_controller          => $primary_controller,
   }
 
   ######### Cinder Controller Services ########

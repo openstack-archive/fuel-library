@@ -1,0 +1,364 @@
+#!/bin/sh
+#
+#
+# OpenStack Network Service (nova-network) (replaced by Neutron in Havana)
+#
+# Description:  Manages an OpenStack Network Service (nova-network) process as an HA resource
+#
+# Authors: Sebastien Han & Emilien Macchi
+# Mainly inspired by the Nova Scheduler resource agent written by Sebastien Han : http://goo.gl/s8hOU
+# Which are also inspired by the resource agents written by Martin Gerhard Loschwitz from Hastexo: http://goo.gl/whLpr
+#
+# Support:      openstack@lists.launchpad.net
+# License:      Apache Software License (ASL) 2.0
+#
+#
+# See usage() function below for more details ...
+#
+# OCF instance parameters:
+#   OCF_RESKEY_binary
+#   OCF_RESKEY_config
+#   OCF_RESKEY_user
+#   OCF_RESKEY_pid
+#   OCF_RESKEY_database_server_port
+#   OCF_RESKEY_amqp_server_port
+#   OCF_RESKEY_zeromq
+#   OCF_RESKEY_additional_parameters
+#######################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+
+#######################################################################
+
+# Fill in some defaults if no values are specified
+
+OCF_RESKEY_binary_default="nova-network"
+OCF_RESKEY_config_default="/etc/nova/nova.conf"
+OCF_RESKEY_user_default="nova"
+OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+OCF_RESKEY_database_server_port_default="3306"
+OCF_RESKEY_amqp_server_port_default="5672"
+OCF_RESKEY_zeromq_default="false"
+
+: ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
+: ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
+: ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
+: ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_database_server_port=${OCF_RESKEY_database_server_port_default}}
+: ${OCF_RESKEY_amqp_server_port=${OCF_RESKEY_amqp_server_port_default}}
+: ${OCF_RESKEY_zeromq=${OCF_RESKEY_zeromq_default}}
+
+#######################################################################
+
+usage() {
+    cat <<UEND
+        usage: $0 (start|stop|validate-all|meta-data|status|monitor)
+
+        $0 manages an OpenStack Network Service (nova-network) process as an HA resource 
+
+        The 'start' operation starts the networking service.
+        The 'stop' operation stops the networking service.
+        The 'validate-all' operation reports whether the parameters are valid
+        The 'meta-data' operation reports this RA's meta-data information
+        The 'status' operation reports whether the networking service is running
+        The 'monitor' operation reports whether the networking service seems to be working
+
+UEND
+}
+
+meta_data() {
+    cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="nova-network">
+<version>1.0</version>
+
+<longdesc lang="en">
+Resource agent for the OpenStack Nova Network Service (nova-network)
+May manage a nova-network instance or a clone set that 
+creates a distributed nova-network cluster.
+</longdesc>
+<shortdesc lang="en">Manages the OpenStack Network Service (nova-network)</shortdesc>
+<parameters>
+
+<parameter name="binary" unique="0" required="0">
+<longdesc lang="en">
+Location of the OpenStack Nova Network server binary (nova-network)
+</longdesc>
+<shortdesc lang="en">OpenStack Nova Network server binary (nova-network)</shortdesc>
+<content type="string" default="${OCF_RESKEY_binary_default}" />
+</parameter>
+
+<parameter name="config" unique="0" required="0">
+<longdesc lang="en">
+Location of the OpenStack Network Service (nova-network) configuration file
+</longdesc>
+<shortdesc lang="en">OpenStack Nova Network (nova-network) config file</shortdesc>
+<content type="string" default="${OCF_RESKEY_config_default}" />
+</parameter>
+
+<parameter name="user" unique="0" required="0">
+<longdesc lang="en">
+User running OpenStack Network Service (nova-network)
+</longdesc>
+<shortdesc lang="en">OpenStack Network Service (nova-network) user</shortdesc>
+<content type="string" default="${OCF_RESKEY_user_default}" />
+</parameter>
+
+<parameter name="pid" unique="0" required="0">
+<longdesc lang="en">
+The pid file to use for this OpenStack Network Service (nova-network) instance
+</longdesc>
+<shortdesc lang="en">OpenStack Network Service (nova-network) pid file</shortdesc>
+<content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+<parameter name="database_server_port" unique="0" required="0">                                                                                                                                                              
+<longdesc lang="en">                                                                                                                                                                                                      
+The listening port number of the database server. Mandatory to perform a monitor check                                                                                                                                        
+</longdesc>                                                                                                                                                                                                               
+<shortdesc lang="en">Database listening port</shortdesc>                                                                                                                                                                      
+<content type="integer" default="${OCF_RESKEY_database_server_port_default}" />                                                                                                                                              
+</parameter>  
+
+<parameter name="amqp_server_port" unique="0" required="0">                                                                                                                                                              
+<longdesc lang="en">                                                                                                                                                                                                      
+The listening port number of the AMQP server. Mandatory to perform a monitor check                                                                                                                                        
+</longdesc>                                                                                                                                                                                                               
+<shortdesc lang="en">AMQP listening port</shortdesc>                                                                                                                                                                      
+<content type="integer" default="${OCF_RESKEY_amqp_server_port_default}" />                                                                                                                                              
+</parameter>      
+
+<parameter name="zeromq" unique="0" required="0">                                                                                                                                                              
+<longdesc lang="en">                                                                                                                                                                                                      
+If zeromq is used, this will disable the connection test to the AMQP server                                                                                                                                     
+</longdesc>                                                                                                                                                                                                               
+<shortdesc lang="en">Zero-MQ usage</shortdesc>                                                                                                                                                                      
+<content type="boolean" default="${OCF_RESKEY_zeromq_default}" />                                                                                                                                              
+</parameter>  
+
+<parameter name="additional_parameters" unique="0" required="0">
+<longdesc lang="en">
+Additional parameters to pass on to the OpenStack Network Service (nova-network)
+</longdesc>
+<shortdesc lang="en">Additional parameters for nova-network</shortdesc>
+<content type="string" />
+</parameter>
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20" />
+<action name="stop" timeout="20" />
+<action name="status" timeout="20" />
+<action name="monitor" timeout="30" interval="20" />
+<action name="validate-all" timeout="5" />
+<action name="meta-data" timeout="5" />
+</actions>
+</resource-agent>
+END
+}
+
+#######################################################################
+# Functions invoked by resource manager actions
+
+nova_network_validate() {
+    local rc
+
+    check_binary $OCF_RESKEY_binary
+    check_binary netstat
+
+    # A config file on shared storage that is not available
+    # during probes is OK.
+    if [ ! -f $OCF_RESKEY_config ]; then
+        if ! ocf_is_probe; then
+            ocf_log err "Config $OCF_RESKEY_config doesn't exist"
+            return $OCF_ERR_INSTALLED
+        fi
+        ocf_log_warn "Config $OCF_RESKEY_config not available during a probe"
+    fi
+
+    getent passwd $OCF_RESKEY_user >/dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "User $OCF_RESKEY_user doesn't exist"
+        return $OCF_ERR_INSTALLED
+    fi
+
+    true
+}
+
+nova_network_status() {
+    local pid
+    local rc
+
+    if [ ! -f $OCF_RESKEY_pid ]; then
+        ocf_log info "OpenStack Nova Network (nova-network) is not running"
+        return $OCF_NOT_RUNNING
+    else
+        pid=`cat $OCF_RESKEY_pid`
+    fi
+
+    ocf_run -warn kill -s 0 $pid
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        return $OCF_SUCCESS
+    else
+        ocf_log info "Old PID file found, but OpenStack Nova Network (nova-network) is not running"
+        return $OCF_NOT_RUNNING
+    fi
+}
+
+nova_network_monitor() {
+    local rc
+    local pid
+    local rc_db
+    local rc_amqp
+    local network_db_check
+    local network_amqp_check
+    
+    nova_network_status
+    rc=$?
+
+    # If status returned anything but success, return that immediately
+    if [ $rc -ne $OCF_SUCCESS ]; then
+        return $rc
+    fi
+
+    # Check the connections according to the PID.
+    # We are sure to hit the scheduler process and not other nova process with the same connection behavior (for example nova-cert)
+	if ocf_is_true "$OCF_RESKEY_zeromq"; then
+	    pid=`cat $OCF_RESKEY_pid`
+	    network_db_check=`netstat -punt | grep -s "$OCF_RESKEY_database_server_port" | grep -s "$pid" | grep -qs "ESTABLISHED"`
+	    rc_db=$?
+	    if [ $rc_db -ne 0 ]; then
+	        ocf_log err "Nova Network is not connected to the database server: $rc_db"
+	        return $OCF_NOT_RUNNING
+	    fi
+	else
+        pid=`cat $OCF_RESKEY_pid`
+        # check the connections according to the PID
+        network_db_check=`netstat -punt | grep -s "$OCF_RESKEY_database_server_port" | grep -s "$pid" | grep -qs "ESTABLISHED"`
+        rc_db=$?
+        network_amqp_check=`netstat -punt | grep -s "$OCF_RESKEY_amqp_server_port" | grep -s "$pid" | grep -qs "ESTABLISHED"`
+        rc_amqp=$?
+	    if [ $rc_amqp -ne 0 ] || [ $rc_db -ne 0 ]; then
+	        ocf_log err "Nova Network is not connected to the AMQP server and/or the database server: AMQP connection test returned $rc_amqp and database connection test returned $rc_db"
+	        return $OCF_NOT_RUNNING
+	    fi
+	fi
+
+    ocf_log debug "OpenStack Nova Network (nova-network) monitor succeeded"
+    return $OCF_SUCCESS
+}
+
+nova_network_start() {
+    local rc
+
+    nova_network_status
+    rc=$?
+    if [ $rc -eq $OCF_SUCCESS ]; then
+        ocf_log info "OpenStack Nova Network (nova-network) already running"
+        return $OCF_SUCCESS
+    fi
+
+    # run the actual nova-network daemon. Don't use ocf_run as we're sending the tool's output
+    # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
+    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
+       $OCF_RESKEY_additional_parameters"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+
+    # Spin waiting for the server to come up.
+    # Let the CRM/LRM time us out if required
+    while true; do
+    nova_network_monitor
+    rc=$?
+    [ $rc -eq $OCF_SUCCESS ] && break
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        ocf_log err "OpenStack Nova Network (nova-network) start failed"
+        exit $OCF_ERR_GENERIC
+    fi
+    sleep 1
+    done
+
+    ocf_log info "OpenStack Nova Network (nova-network) started"
+    return $OCF_SUCCESS
+}
+
+nova_network_stop() {
+    local rc
+    local pid
+
+    nova_network_status
+    rc=$?
+    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+        ocf_log info "OpenStack Nova Network (nova-network) already stopped"
+        return $OCF_SUCCESS
+    fi
+
+    # Try SIGTERM
+    pid=`cat $OCF_RESKEY_pid`
+    pid="$pid `ps ax | grep -v grep | grep 'dnsmasq' | cut -c1-5`"
+    ocf_run kill -s TERM $pid
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "OpenStack Nova Network (nova-network) couldn't be stopped"
+        exit $OCF_ERR_GENERIC
+    fi
+
+    # stop waiting
+    shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+    fi
+    count=0
+    while [ $count -lt $shutdown_timeout ]; do
+        nova_network_status
+        rc=$?
+        if [ $rc -eq $OCF_NOT_RUNNING ]; then
+            break
+        fi
+        count=`expr $count + 1`
+        sleep 1
+        ocf_log debug "OpenStack Nova Network (nova-network) still hasn't stopped yet. Waiting ..."
+    done
+
+    nova_network_status
+    rc=$?
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        # SIGTERM didn't help either, try SIGKILL
+        ocf_log info "OpenStack Nova Network (nova-network) failed to stop after ${shutdown_timeout}s \
+          using SIGTERM. Trying SIGKILL ..."
+        ocf_run kill -s KILL $pid
+    fi
+
+    ocf_log info "OpenStack Nova Network (nova-network) stopped"
+
+    rm -f $OCF_RESKEY_pid
+
+    return $OCF_SUCCESS
+}
+
+#######################################################################
+
+case "$1" in
+  meta-data)    meta_data
+                exit $OCF_SUCCESS;;
+  usage|help)   usage
+                exit $OCF_SUCCESS;;
+esac
+
+# Anything except meta-data and help must pass validation
+nova_network_validate || exit $?
+
+# What kind of method was invoked?
+case "$1" in
+  start)        nova_network_start;;
+  stop)         nova_network_stop;;
+  status)       nova_network_status;;
+  monitor)      nova_network_monitor;;
+  validate-all) ;;
+  *)            usage
+                exit $OCF_ERR_UNIMPLEMENTED;;
+esac
