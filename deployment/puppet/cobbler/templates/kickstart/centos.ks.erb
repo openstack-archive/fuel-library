@@ -227,9 +227,11 @@ rpm -e --nodeps ruby
 yum install --exclude=ruby-2.1.1* -y ruby rubygems
 
 mkdir -p /etc/nailgun-agent/
+#set admin_net = $getVar('admin_net')
 cat > /etc/nailgun-agent/config.yaml << EOA
 ---
 url: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'
+admin_net: '$admin_net'
 EOA
 
 # COBBLER EMBEDDED SNIPPET: 'kernel_lt_if_enabled'

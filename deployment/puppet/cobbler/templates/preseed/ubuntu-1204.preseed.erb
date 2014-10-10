@@ -131,7 +131,8 @@ $SNIPPET('ntp_to_masternode_ubuntu')
 echo -e "nf_conntrack_ipv4\nnf_conntrack_ipv6" >> /target/etc/modules && \
 echo -e "net.nf_conntrack_max=1048576" >> /target/etc/sysctl.conf && \
 mkdir -p /target/etc/nailgun-agent && \
-echo -e "---\nurl: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'" > /target/etc/nailgun-agent/config.yaml && \
+#set admin_net=$getVar('admin_net')
+echo -e "---\nurl: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'\nadmin_net: '$admin_net'" > /target/etc/nailgun-agent/config.yaml && \
 echo target > /target/etc/nailgun_systemtype && \
 echo 'APT::Get::AllowUnauthenticated 1;' > /target/etc/apt/apt.conf.d/02mirantis-allow-unsigned && \
 # REPOSITORIES FROM Nailgun
