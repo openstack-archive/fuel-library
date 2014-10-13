@@ -13,18 +13,18 @@ class plugin_neutronnsx::alter_neutron_server (
   Anchor['alter-neutron-server-vmware-end'] ->
   Anchor<| title=='neutron-server-done' |>
 
-  Neutron_net <| title == 'net04' |> {
-    router_ext   => false,
-    network_type => false,
-    physnet      => false,
-    segment_id   => false,
+  Neutron_network <| title == 'net04' |> {
+    router_external   => false,
+    provider_network_type => undef,
+    provider_physical_network      => false,
+    provider_segmentation_id   => undef,
   }
 
-  Neutron_net <| title == 'net04_ext' |> {
-    router_ext   => true,
-    network_type => 'l3_ext',
-    physnet      => $neutron_nsx_config['l3_gw_service_uuid'],
-    segment_id   => false,
+  Neutron_network <| title == 'net04_ext' |> {
+    router_external   => true,
+    provider_network_type => 'l3_ext',
+    provider_physical_network      => $neutron_nsx_config['l3_gw_service_uuid'],
+    provider_segmentation_id   => undef,
   }
 
   Neutron_subnet <| title == 'net04__subnet' |> {
@@ -57,13 +57,24 @@ class plugin_neutronnsx::alter_neutron_server (
     } -> File <| title == '/etc/neutron/plugins/vmware' |>
   }
 
-  File <| title == '/etc/neutron/plugin.ini' |> {
-    ensure  => link,
-    target  => '/etc/neutron/plugins/vmware/nsx.ini',
+  if !  defined(File['/etc/neutron/plugin.ini']){
+    file {'/etc/neutron/plugin.ini':
+      ensure  => link,
+      target  => '/etc/neutron/plugins/vmware/nsx.ini',
+    }
+  } else {
+        File <| title == '/etc/neutron/plugin.ini' |> {
+        ensure  => link,
+        target  => '/etc/neutron/plugins/vmware/nsx.ini',
+        }
   }
 
   Neutron_config <| title == 'DEFAULT/service_plugins' |> {
     ensure => absent,
+  }
+
+  Neutron_dhcp_agent_config<| title == 'DEFAULT/enable_isolated_metadata' or title == 'DEFAULT/enable_metadata_network'|>{
+    value => true,
   }
 
   # NSX cluster can operate without Service nodes.
