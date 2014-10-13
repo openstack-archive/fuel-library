@@ -332,6 +332,13 @@ get_pid_list_for_ns_list() {
     echo $pids
 }
 
+
+#Check if $pid is running
+checkpid() {
+    [ -d "/proc/$1" ] && return 0
+    return 1
+}
+
 clean_up() {
     # kill processes inside network namespaces
     ns_list=`get_ns_list`
@@ -449,43 +456,54 @@ neutron_dhcp_agent_stop() {
         #return $OCF_NOT_RUNNING
         return $OCF_SUCCESS
     fi
-    ocf_run kill -s TERM $pid
-    rc=$?
-    if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack DHCP Server (${OCF_RESKEY_binary}) couldn't be stopped"
-        exit $OCF_ERR_GENERIC
-    fi
 
     # stop waiting
     shutdown_timeout=15
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
         shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
     fi
+    all_inside_ns_pids=`get_pid_list_for_ns_list $(get_ns_list)`
+    all_pids="$pid $all_inside_ns_pids"
     count=0
-    while [ $count -lt $shutdown_timeout ]; do
-        neutron_dhcp_agent_status
-        rc=$?
-        if [ $rc -eq $OCF_NOT_RUNNING ]; then
-            break
+    alive=1
+    while [ $alive -gt 0 ] && [ $count -lt $shutdown_timeout ]; do
+        alive=0
+        ocf_run kill -s TERM $all_pids 2>&1 > /dev/null
+        sleep 3
+        #Check if processes are alive after command kill
+        #if yes, send to them the term signal again 
+        np=""
+        for pid in $all_pids ; do
+            if checkpid "$pid" ; then
+                np="$np $pid"
+                alive=$(($alive+1))
+            fi
+        done
+        if [ $alive -gt 0 ] ; then
+            all_pids=$np
         fi
-        count=`expr $count + 1`
-        sleep 1
+        ((count+=3))
         ocf_log debug "OpenStack DHCP Server (${OCF_RESKEY_binary}) still hasn't stopped yet. Waiting ..."
     done
-
-    neutron_dhcp_agent_status
-    rc=$?
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) failed to stop after ${shutdown_timeout}s \
-          using SIGTERM. Trying SIGKILL ..."
-        ocf_run kill -s KILL $pid
+    if [ $alive -gt 0 ] ; then
+        ocf_run kill -KILL $all_pids 2>&1 > /dev/null
+        sleep 3
+        for pid in $all_pids ; do
+            if checkpid "$pid" ; then
+                alive=$(($alive+1))
+            fi
+        done
+        if [ $alive -gt 0 ] ; then
+            ocf_log err "OpenStack DHCP Server (${OCF_RESKEY_binary}) stop failed"
+            return $OCF_ERR_GENERIC
+        fi
     fi
     ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) stopped"
 
     rm -f $OCF_RESKEY_pid
 
-    clean_up
+#   cleanup network interfaces
+    q-agent-cleanup.py --agent=dhcp --cleanup-ports
     sleep 1
     clean_up_namespaces
     q-agent-cleanup.py --agent=dhcp --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
