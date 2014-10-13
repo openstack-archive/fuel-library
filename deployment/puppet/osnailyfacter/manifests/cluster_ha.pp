@@ -404,6 +404,8 @@ class osnailyfacter::cluster_ha {
     /controller/ : {
       include osnailyfacter::test_controller
 
+      class { 'openstack::reserved_ports': }
+
       class { '::cluster':
         stage             => 'corosync_setup',
         internal_address  => $::internal_address,

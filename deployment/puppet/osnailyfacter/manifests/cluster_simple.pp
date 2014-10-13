@@ -181,6 +181,8 @@ class osnailyfacter::cluster_simple {
     "controller" : {
       include osnailyfacter::test_controller
 
+      class { 'openstack::reserved_ports': }
+
       class {'osnailyfacter::apache_api_proxy':}
       class { 'openstack::controller':
         admin_address                  => $controller_node_address,
