@@ -43,7 +43,7 @@ class plugin_neutronnsx::install_ovs (
       Package['dkms'] -> Package['openvswitch-datapath']
 
       Package['openvswitch-common'] -> Package['openvswitch-nsx-switch'] ->
-      Package['nicira-ovs-hypervisor-node'] -> file['nsx-alias.sh_profile_hack'] ~>
+      Package['nicira-ovs-hypervisor-node'] -> File['nsx-alias.sh_profile_hack'] ~>
       Service['nicira-ovs-hypervisor-node']
     }
     /(?i)redhat/: {
@@ -63,7 +63,13 @@ class plugin_neutronnsx::install_ovs (
         source => $packages_url,
       }
 
+      package { 'openstack-neutron-openvswitch':
+        name => 'openstack-neutron-openvswitch',
+        ensure => present,
+      }
+
       Package['openvswitch-common'] ->
+      Package['openstack-neutron-openvswitch'] ->
       Package['nicira-ovs-hypervisor-node'] ~>
       Service['nicira-ovs-hypervisor-node']
     }
