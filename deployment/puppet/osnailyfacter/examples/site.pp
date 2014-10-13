@@ -198,6 +198,12 @@ class os_common {
     tcp_retries2    => '5',
   }
 
+  # setting kernel reserved ports
+  # defaults are 49000,35357,41055,58882
+  class { 'openstack::reserved_ports':
+    stage => 'netconfig',
+  }
+
   # setting service down time and report interval
   # to 60 and 180 for Nova respectively to allow kernel
   # to kill dead connections
