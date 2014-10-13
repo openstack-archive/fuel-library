@@ -449,27 +449,27 @@ neutron_dhcp_agent_stop() {
         #return $OCF_NOT_RUNNING
         return $OCF_SUCCESS
     fi
-    ocf_run kill -s TERM $pid
-    rc=$?
-    if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack DHCP Server (${OCF_RESKEY_binary}) couldn't be stopped"
-        exit $OCF_ERR_GENERIC
-    fi
 
     # stop waiting
     shutdown_timeout=15
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
-        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-20))
     fi
     count=0
     while [ $count -lt $shutdown_timeout ]; do
+        ocf_run kill -s TERM $pid 2>&1 > /dev/null
+        rc=$?
+        if [ $rc -ne 0 ]; then
+            ocf_log err "OpenStack DHCP Server (${OCF_RESKEY_binary}) couldn't be stopped"
+            exit $OCF_ERR_GENERIC
+        fi
+        sleep 3
         neutron_dhcp_agent_status
         rc=$?
         if [ $rc -eq $OCF_NOT_RUNNING ]; then
             break
         fi
-        count=`expr $count + 1`
-        sleep 1
+        count=`expr $count + 3`
         ocf_log debug "OpenStack DHCP Server (${OCF_RESKEY_binary}) still hasn't stopped yet. Waiting ..."
     done
 
