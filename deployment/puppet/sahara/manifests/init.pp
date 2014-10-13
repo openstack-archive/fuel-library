@@ -24,6 +24,16 @@ class sahara (
   $debug                               = false,
   $verbose                             = false,
   $syslog_log_facility_sahara          = 'LOG_LOCAL0',
+
+  $rpc_backend                         = false,
+
+  $amqp_password,
+  $amqp_user                           = 'guest',
+  $amqp_host                           = 'localhost',
+  $amqp_port                           = '5672',
+  $amqp_hosts                          = false,
+  $rabbit_virtual_host                 = '/',
+  $rabbit_ha_queues                    = false,
 ) {
 
   $sahara_sql_connection               = "mysql://${sahara_db_user}:${sahara_db_password}@${sahara_db_host}/${sahara_db_name}?read_timeout=60"
@@ -63,6 +73,28 @@ class sahara (
     region                         => 'RegionOne',
     tenant                         => $sahara_keystone_tenant,
     email                          => 'sahara-team@localhost',
+  }
+
+  if $rpc_backend == 'rabbit' {
+    class { 'sahara::notify::rabbitmq':
+      rabbit_password     => $amqp_password,
+      rabbit_userid       => $amqp_user,
+      rabbit_host         => $amqp_host,
+      rabbit_port         => $amqp_port,
+      rabbit_hosts        => $amqp_hosts,
+      rabbit_virtual_host => $rabbit_virtual_host,
+      rabbit_ha_queues    => $rabbit_ha_queues,
+    }
+  }
+
+  if $rpc_backend == 'qpid' {
+    class { 'sahara::notify::qpid':
+      qpid_password  => $amqp_password,
+      qpid_username  => $amqp_user,
+      qpid_hostname  => $amqp_host,
+      qpid_port      => $amqp_port,
+      qpid_hosts     => $amqp_hosts,
+    }
   }
 
   firewall { $sahara_firewall_rule :

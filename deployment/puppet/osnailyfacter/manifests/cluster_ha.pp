@@ -548,6 +548,12 @@ class osnailyfacter::cluster_ha {
           debug                      => $::debug,
           verbose                    => $::verbose,
           use_syslog                 => $::use_syslog,
+          rpc_backend                => 'rabbit',
+          amqp_password              => $rabbit_hash['password'],
+          amqp_user                  => $rabbit_hash['user'],
+          amqp_port                  => $rabbitmq_bind_port,
+          amqp_hosts                 => $amqp_hosts,
+          rabbit_ha_queues           => $rabbit_ha_queues,
         }
           $scheduler_default_filters = [ 'DifferentHostFilter' ]
       } else {
