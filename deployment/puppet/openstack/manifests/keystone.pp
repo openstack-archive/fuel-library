@@ -197,6 +197,13 @@ class openstack::keystone (
   } else {
     $ceilometer_admin_real = $admin_real
   }
+  if($ceilometer) {
+    $notification_driver = 'messaging'
+    $notification_topics = 'notifications'
+  } else {
+    $notification_driver = false
+    $notification_topics = false
+  }
 
   if $memcache_servers {
     $memcache_servers_real = suffix($memcache_servers, inline_template(":<%= @memcache_server_port %>"))
@@ -224,6 +231,8 @@ class openstack::keystone (
     memcache_servers    => $memcache_servers_real,
     token_driver        => $token_driver,
     token_provider      => 'keystone.token.providers.uuid.Provider',
+    notification_driver => $notification_driver,
+    notification_topics => $notification_topics,
   }
 
   if $::operatingsystem == 'Ubuntu' {
