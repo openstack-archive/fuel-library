@@ -194,6 +194,13 @@ class openstack::keystone (
   } else {
     $ceilometer_admin_real = $admin_real
   }
+  if($ceilometer) {
+    $notification_driver = 'messaging'
+    $notification_topics = 'notifications'
+  } else {
+    $notification_driver = false
+    $notification_topics = false
+  }
 
   class { '::keystone':
     verbose             => $verbose,
@@ -216,6 +223,8 @@ class openstack::keystone (
     rabbit_virtual_host => $rabbit_virtual_host,
     memcache_servers    => $memcache_servers,
     memcache_server_port => $memcache_server_port,
+    notification_driver => $notification_driver,
+    notification_topics => $notification_topics,
   }
 
   if ($enabled) {
