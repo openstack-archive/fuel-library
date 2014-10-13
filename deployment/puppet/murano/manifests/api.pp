@@ -120,6 +120,7 @@ class murano::api (
 
     'keystone/auth_url'                     : value => $keystone_auth_url;
 
+    'keystone_authtoken/auth_uri'           : value => $keystone_auth_url;
     'keystone_authtoken/auth_host'          : value => $auth_host;
     'keystone_authtoken/auth_port'          : value => $auth_port;
     'keystone_authtoken/auth_protocol'      : value => $auth_protocol;

@@ -52,6 +52,10 @@ class murano (
   $use_neutron                           = false,
   # Other parameters
   $primary_controller                    = true,
+  # Controller addresses
+  $admin_address                         = '127.0.0.1',
+  $public_address                        = '127.0.0.1',
+  $internal_address                      = '127.0.0.1',
 ) {
 
   Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::apps'] -> Class['murano::dashboard'] -> Class['murano::cirros']
@@ -164,9 +168,13 @@ class murano (
   }
 
   class { 'murano::keystone':
-    tenant   => $murano_keystone_tenant,
-    user     => $murano_keystone_user,
-    password => $murano_keystone_password,
+    tenant           => $murano_keystone_tenant,
+    user             => $murano_keystone_user,
+    password         => $murano_keystone_password,
+    admin_address    => $admin_address,
+    public_address   => $public_address,
+    internal_address => $internal_address,
+    murano_api_port  => $murano_bind_port,
   }
 
 }
