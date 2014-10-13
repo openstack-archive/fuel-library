@@ -102,9 +102,9 @@ creates a distributed neutron-dhcp-agent cluster.
 
 <parameter name="binary" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack DHCP Server server binary (${OCF_RESKEY_binary})
+Location of the OpenStack DHCP Agent server binary (${OCF_RESKEY_binary})
 </longdesc>
-<shortdesc lang="en">OpenStack DHCP Server server binary (${OCF_RESKEY_binary})</shortdesc>
+<shortdesc lang="en">OpenStack DHCP Agent server binary (${OCF_RESKEY_binary})</shortdesc>
 <content type="string" default="${OCF_RESKEY_binary_default}" />
 </parameter>
 
@@ -112,7 +112,7 @@ Location of the OpenStack DHCP Server server binary (${OCF_RESKEY_binary})
 <longdesc lang="en">
 Location of the OpenStack Neutron Service (neutron-server) configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack DHCP Server (neutron-server) config file</shortdesc>
+<shortdesc lang="en">OpenStack DHCP Agent (neutron-server) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_config_default}" />
 </parameter>
 
@@ -128,7 +128,7 @@ Location of the Keystone configuration file
 <longdesc lang="en">
 Location of the OpenStack DHCP Service (${OCF_RESKEY_binary}) configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack DHCP Server (${OCF_RESKEY_binary}) config file</shortdesc>
+<shortdesc lang="en">OpenStack DHCP Agent (${OCF_RESKEY_binary}) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_plugin_config_default}" />
 </parameter>
 
@@ -388,7 +388,7 @@ neutron_dhcp_agent_start() {
     neutron_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
-        ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) already running"
+        ocf_log info "OpenStack DHCP Agent (${OCF_RESKEY_binary}) already running"
         return $OCF_SUCCESS
     fi
 
@@ -409,7 +409,7 @@ neutron_dhcp_agent_start() {
         rc=$?
         [ $rc -eq $OCF_SUCCESS ] && break
         if [ $rc -ne $OCF_NOT_RUNNING ]; then
-            ocf_log err "OpenStack DHCP Server (${OCF_RESKEY_binary}) start failed"
+            ocf_log err "OpenStack DHCP Agent (${OCF_RESKEY_binary}) start failed"
             exit $OCF_ERR_GENERIC
         fi
         sleep 3
@@ -423,7 +423,7 @@ neutron_dhcp_agent_start() {
     done
     bash -c "$RESCH_CMD" &
 
-    ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) started"
+    ocf_log info "OpenStack DHCP Agent (${OCF_RESKEY_binary}) started"
     return $OCF_SUCCESS
 }
 
@@ -436,7 +436,7 @@ neutron_dhcp_agent_stop() {
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
         clean_up
-        ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) already stopped"
+        ocf_log info "OpenStack DHCP Agent (${OCF_RESKEY_binary}) already stopped"
         sleep 1
         clean_up_namespaces
         return $OCF_SUCCESS
@@ -444,49 +444,58 @@ neutron_dhcp_agent_stop() {
 
     #Try SIGTERM
     pid=`get_worker_pid`
-    if [ "xxx$pid" == "xxx" ] ; then
-        ocf_log warn "OpenStack DHCP Server (${OCF_RESKEY_binary}) not running."
-        #return $OCF_NOT_RUNNING
-        return $OCF_SUCCESS
-    fi
-    ocf_run kill -s TERM $pid
-    rc=$?
-    if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack DHCP Server (${OCF_RESKEY_binary}) couldn't be stopped"
-        exit $OCF_ERR_GENERIC
-    fi
-
     # stop waiting
     shutdown_timeout=15
+    iteration_time=3
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
-        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-6))
     fi
+    all_inside_ns_pids=`get_pid_list_for_ns_list $(get_ns_list)`
+    all_pids="$pid $all_inside_ns_pids"
     count=0
-    while [ $count -lt $shutdown_timeout ]; do
-        neutron_dhcp_agent_status
-        rc=$?
-        if [ $rc -eq $OCF_NOT_RUNNING ]; then
-            break
+    alive=1
+    while [ $alive -gt 0 ] && [ $count -lt $shutdown_timeout ]; do
+        alive=0
+        ocf_run kill -s TERM $all_pids
+        sleep $iteration_time
+        #Check if processes are alive after command kill
+        #if yes, send to them the term signal again
+        np=""
+        for pid in $all_pids ; do
+            ocf_run kill -s 0 $pid
+            if [ $? -eq 0 ]; then
+                np="$np $pid"
+                ((alive+=1))
+            fi
+        done
+        if [ $alive -gt 0 ] ; then
+            all_pids=$np
         fi
-        count=`expr $count + 1`
-        sleep 1
-        ocf_log debug "OpenStack DHCP Server (${OCF_RESKEY_binary}) still hasn't stopped yet. Waiting ..."
+        ((count+=$iteration_time))
+        ocf_log debug "OpenStack DHCP Agent (${OCF_RESKEY_binary}) still hasn't stopped yet. Waiting ..."
     done
-
-    neutron_dhcp_agent_status
-    rc=$?
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) failed to stop after ${shutdown_timeout}s \
-          using SIGTERM. Trying SIGKILL ..."
-        ocf_run kill -s KILL $pid
+    #Send the kill signal to processes which are still alive
+    if [ $alive -gt 0 ] ; then
+        alive=0
+        ocf_run kill -s KILL $all_pids
+        sleep 1
+        for pid in $all_pids ; do
+            ocf_run kill -s 0 $pid
+            if [ $? -eq 0 ]; then
+                ((alive+=1))
+            fi
+        done
+        if [ $alive -gt 0 ] ; then
+            ocf_log err "OpenStack DHCP Agent (${OCF_RESKEY_binary}) stop failed"
+            return $OCF_ERR_GENERIC
+        fi
     fi
-    ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) stopped"
+    ocf_log info "OpenStack DHCP Agent (${OCF_RESKEY_binary}) stopped"
 
     rm -f $OCF_RESKEY_pid
 
-    clean_up
-    sleep 1
+#   cleanup network interfaces
+    q-agent-cleanup.py --agent=dhcp --cleanup-ports
     clean_up_namespaces
     q-agent-cleanup.py --agent=dhcp --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
     sleep 3
