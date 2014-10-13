@@ -605,6 +605,11 @@ class osnailyfacter::cluster_ha {
         class { 'murano' :
           murano_api_host          => $::fuel_settings['management_vip'],
 
+          # Controller adresses (for endpoints)
+          admin_address            => $controller_node_address,
+          public_address           => $controller_node_public,
+          internal_address         => $controller_node_address,
+
           # Murano uses two RabbitMQ - one from OpenStack and another one installed on each controller.
           #   The second instance is used for communication with agents.
           #   * murano_rabbit_host provides address for murano-engine which communicates with this
