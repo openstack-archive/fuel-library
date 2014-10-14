@@ -141,6 +141,10 @@ class murano (
     murano_db_host                       => $murano_db_host,
 
     primary_controller                   => $primary_controller,
+
+    use_neutron                          => $use_neutron,
+    default_router                       => 'murano-default-router',
+    default_network                      => 'net04_ext',
   }
 
   class { 'murano::apps':
