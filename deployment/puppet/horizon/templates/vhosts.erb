@@ -24,6 +24,14 @@ ErrorLog syslog:local1
 <% end -%>
 
 <VirtualHost *:<%= @http_port %>>
+  <Location /websockify>
+    ProxyPass ws://<%= @novnc_address %>:6080/websockify
+    ProxyPassReverse ws://<%= @novnc_address %>:6080/websockify
+  </Location>
+  <LocationMatch ^/(vnc_auto.html|include)>
+    ProxyPassMatch http://<%= @novnc_address %>:6080
+    ProxyPassReverse http://<%= @novnc_address %>:6080
+  </LocationMatch>
   RedirectMatch permanent ^/$ <%= @root_url %>/
 <% if @use_ssl =~ /^(default|exist|custom)$/ -%>
   RewriteEngine On
@@ -32,6 +40,14 @@ ErrorLog syslog:local1
 </VirtualHost>
 
 <VirtualHost *:<%= @https_port %>>
+  <Location /websockify>
+    ProxyPass ws://<%= @novnc_address %>:6080/websockify
+    ProxyPassReverse ws://<%= @novnc_address %>:6080/websockify
+  </Location>
+  <LocationMatch ^/(vnc_auto.html|include)>
+    ProxyPassMatch http://<%= @novnc_address %>:6080
+    ProxyPassReverse http://<%= @novnc_address %>:6080
+  </LocationMatch>
   RedirectMatch permanent ^/$ <%= @root_url %>/
   SSLEngine on
   SSLCertificateFile <%= @ssl_cert_file %>

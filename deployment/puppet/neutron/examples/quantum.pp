@@ -35,4 +35,10 @@
     local_ip             => $::ipaddress_eth2,
   }
 
-
+  class { 'neutron::agents::vpnaas':
+    debug => true,
+    auth_url => 'http://172.18.66.112:5000/v2.0',
+    auth_password => '1',
+    use_namespaces => 'False',
+    metadata_ip => '172.18.66.112',
+  }
