@@ -499,6 +499,9 @@ on packages update": }
       install_service   => $enable_network_service,
     }
 
+    #NOTE(aglarendil): lp/1381164
+    nova_config {'DEFAULT/force_snat_range': value => '0.0.0.0/0' }
+
     # From legacy network.pp
     # I don't think this is applicable to Folsom...
     # If it is, the details will need changed. -jt
