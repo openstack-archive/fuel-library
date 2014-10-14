@@ -7,15 +7,24 @@ totem {
   vsftype:                             none
   max_messages:                        20
   clear_node_high_bit:                 yes
-  rrp_mode:                            none
-  secauth:                             <%= @enable_secauth %>
-  threads:                             <%= @threads %>
+  rrp_mode:                            <%= @rrp_mode %>
+  secauth:                             <%= @enable_secauth_real %>
+  threads:                             <%= @threads_real %>
+<% [@bind_address_real].flatten.each_index do |i| -%>
   interface {
-    ringnumber:   0
-    bindnetaddr:  <%= @bind_address %>
-    mcastaddr:    <%= @multicast_address %>
-    mcastport:    <%= @port %>
+    ringnumber:  <%= i %>
+    bindnetaddr: <%= [@bind_address_real].flatten[i] %>
+<% if [@multicast_address_real].flatten[i] == 'broadcast' -%>
+    broadcast:   yes
+<% else -%>
+    mcastaddr:   <%= [@multicast_address_real].flatten[i] %>
+    mcastport:   <%= [@port_real].flatten[i] %>
+<% end -%>
+<% if @ttl -%>
+    ttl:         <%= @ttl %>
+<% end -%>
   }
+<% end -%>
 }
 
 logging {
