@@ -5,9 +5,9 @@ fi
 
 dockerctl post_start_hooks cobbler
 
-( ps -p "`cat /var/run/dhcrelay.pid 2>/dev/null`" &>/dev/null || /etc/init.d/dhcrelay start )
+( ps -p "`cat /var/run/dhcp-helper.pid 2>/dev/null`" &>/dev/null || /etc/init.d/dhcp-helper start )
 if [ $? -eq 0 ]; then
-  pid=$(cat /var/run/dhcrelay.pid)
+  pid=$(cat /var/run/dhcp-helper.pid)
   while test -d "/proc/$pid/fd"; do
     sleep 30
   done

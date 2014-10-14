@@ -27,19 +27,24 @@ define setup_bond_interfaces (
   # Detect main bond interfaces, allow bondXXX (alphanum only, XXX - pos int numbers with 0)
   if $interface =~ /^bond\d+$/ {
     if ! defined(L23network::L3::Ifconfig[$interface]) {
-      # TODO implement bond options support
-      #$bond_mode = $network_settings[$interface]['bond_mode']
-      #$bond_miimon = $network_settings[$interface]['bond_miimon']
-      #$bond_lacp_rate = $network_settings[$interface]['bond_lacp_rate']
+      $ipaddr = $network_settings[$interface]['ipaddr']
+      $gateway = $network_settings[$interface]['gateway']
+      $slaves = $network_settings[$interface]['slaves']
+      $bond_mode = $network_settings[$interface]['bond_mode']
+      $bond_miimon = $network_settings[$interface]['bond_miimon']
+      $bond_lacp_rate = $network_settings[$interface]['bond_lacp_rate']
       notify{"Stub for bond interface ${interface}":} #->
-      #l23network::l3::ifconfig{$interface:
-        #ipaddr          => $ipaddr,
-        #gateway         => $gateway,
-        #bond_mode       => $bond_mode,
-        #bond_miimon     => $bond_miimon,
-        #bond_lacp_rate  => $bond_lacp_rate,
-        #check_by_ping   => 'none'
-      #}
+      l23network::l3::ifconfig{$interface:
+      ipaddr => $ipaddr,
+      gateway => $gateway,
+      bond_properties  => {
+          mode => $bond_mode,
+          miimon => 100,
+          lacp_rate => 1,
+      }
+      } ->
+      l23network::l3::ifconfig {$slaves[0]: ipaddr=>'none', bond_master=>$interface} ->
+      l23network::l3::ifconfig {$slaves[1]: ipaddr=>'none', bond_master=>$interface}
     }
   }
 }

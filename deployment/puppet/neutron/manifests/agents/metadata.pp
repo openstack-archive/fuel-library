@@ -41,6 +41,10 @@ class neutron::agents::metadata (
     'DEFAULT/metadata_proxy_shared_secret': value => $neutron_config['metadata']['metadata_proxy_shared_secret'];
     'DEFAULT/metadata_workers':   value => $metadata_workers;
     'DEFAULT/metadata_backlog':   value => $neutron_config['metadata']['backlog'];
+  } ->
+  exec { 'workaround_metadata_agent_stop':
+    path => '/sbin:/bin:/usr/bin:/usr/sbin',
+    command => "service neutron-metadata-agent stop || true",
   }
 
   if $::neutron::params::metadata_agent_package {
@@ -52,7 +56,8 @@ class neutron::agents::metadata (
     # do not move it to outside this IF
     Anchor['neutron-metadata-agent'] ->
       Package['neutron-metadata-agent'] ->
-        Neutron_metadata_agent_config<||>
+        Neutron_metadata_agent_config<||> ->
+          Exec['workaround_metadata_agent_stop']
   }
 
   if $service_provider == 'generic' {
@@ -67,6 +72,7 @@ class neutron::agents::metadata (
 
     Anchor['neutron-metadata-agent'] ->
       Neutron_metadata_agent_config<||> ->
+       Exec['workaround_metadata_agent_stop'] ->
         Service['neutron-metadata-agent'] ->
           Anchor['neutron-metadata-agent-done']
     Package<| title == 'neutron-metadata-agent'|> ~> Service['neutron-metadata-agent']
