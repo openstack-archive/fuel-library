@@ -39,7 +39,6 @@ Puppet::Type.type(:keystone_endpoint).provide(
   def create
     optional_opts = []
     {
-      :region       => '--region',
       :public_url   => '--publicurl',
       :internal_url => '--internalurl',
       :admin_url    => '--adminurl'
@@ -51,9 +50,11 @@ Puppet::Type.type(:keystone_endpoint).provide(
 
     if resource[:name].match('/')
       (region, service_name) = resource[:name].split('/')
-      resource[:region] = region
-      optional_opts.push('--region').push(resource[:region])
+      optional_opts.push('--region').push(region)
     else
+      if resource[:region]
+        optional_opts.push('--region').push(resource[:region])
+      end
       service_name = resource[:name]
     end
 
@@ -68,49 +69,58 @@ Puppet::Type.type(:keystone_endpoint).provide(
     )
   end
 
+  def endpoint_hash_key
+    if resource[:name].match('/')
+      service_hash = resource[:name]
+    else
+      service_hash = "#{resource[:region]}/#{resource[:name]}"
+    end
+    service_hash
+  end
+
   def exists?
-    endpoint_hash[resource[:name]]
+    endpoint_hash[endpoint_hash_key]
   end
 
   def destroy
-    auth_keystone('endpoint-delete', endpoint_hash[resource[:name]][:id])
+    auth_keystone('endpoint-delete', endpoint_hash[endpoint_hash_key][:id])
   end
 
   def id
-    endpoint_hash[resource[:name]][:id]
+    endpoint_hash[endpoint_hash_key][:id]
   end
 
   def region
-    endpoint_hash[resource[:name]][:region]
+    endpoint_hash[endpoint_hash_key][:region]
   end
 
   def public_url
-    endpoint_hash[resource[:name]][:public_url]
+    endpoint_hash[endpoint_hash_key][:public_url]
   end
 
   def internal_url
-    endpoint_hash[resource[:name]][:internal_url]
+    endpoint_hash[endpoint_hash_key][:internal_url]
   end
 
   def admin_url
-    endpoint_hash[resource[:name]][:admin_url]
+    endpoint_hash[endpoint_hash_key][:admin_url]
   end
 
   def public_url=(value)
     destroy
-    endpoint_hash[resource[:name]][:public_url] = value
+    endpoint_hash[endpoint_hash_key][:public_url] = value
     create
   end
 
   def internal_url=(value)
     destroy
-    endpoint_hash[resource[:name]][:internal_url] = value
+    endpoint_hash[endpoint_hash_key][:internal_url] = value
     create
   end
 
   def admin_url=(value)
     destroy
-    endpoint_hash[resource[:name]][:admin_url]
+    endpoint_hash[endpoint_hash_key][:admin_url] = value
     create
   end
 
@@ -121,7 +131,7 @@ Puppet::Type.type(:keystone_endpoint).provide(
       list_keystone_objects('endpoint', [5,6]).each do |endpoint|
         service_id   = get_service_id(endpoint[0])
         service_name = get_keystone_object('service', service_id, 'name')
-        hash[service_name] = {
+        hash["#{endpoint[1]}/#{service_name}"] = {
           :id           => endpoint[0],
           :region       => endpoint[1],
           :public_url   => endpoint[2],
