@@ -92,6 +92,7 @@ class horizon(
   }
 
   Package['dashboard'] -> File[$dashboard_directory] ~> Exec['chown_dashboard']
+  Exec['horizon_compress_styles'] -> Exec['chown_dashboard']
 
   case $use_ssl {
     'exist': { # SSL certificate already exists
