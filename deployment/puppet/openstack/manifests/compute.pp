@@ -528,9 +528,11 @@ on packages update": }
       class { '::neutron::agents::ml2_agent':
         neutron_config  => $quantum_config
       }
+      # TODO(bogdando) add ml2 agent to monit, if required
     } elsif $quantum_config[L2][provider] == 'nsx' {
       # do nothing because nsx has its own neutron's agent
       # which will be installed in module plugin_neutronnsx
+      # TODO(bogdando) add nsx agent to monit, if required
     } else {
       #todo: Quantum plugin and database connection not need on compute.
       class { 'neutron::plugins::ovs':
@@ -539,6 +541,8 @@ on packages update": }
       class { 'neutron::agents::ovs':
         neutron_config  => $quantum_config
       }
+      # NOTE(bogdando) ovs agent does not require monit - it would be
+      #   restarted instantly, if killed
     }
 
 
