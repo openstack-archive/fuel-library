@@ -41,7 +41,7 @@ Puppet::Type.type(:l2_ovs_nsx).provide(:ovs) do
 
   def login
     Puppet.debug "Trying to login to NSX Controller API"
-    Puppet.debug "NSX controller endpoint is '@resource[:nsx_endpoint].split(',')[0]'"
+    Puppet.debug "NSX controller endpoint is '#{@resource[:nsx_endpoint].split(',')[0]}'"
     conn = Net::HTTP.new(@resource[:nsx_endpoint].split(',')[0],443)
     conn.use_ssl = true
     conn.verify_mode = OpenSSL::SSL::VERIFY_NONE

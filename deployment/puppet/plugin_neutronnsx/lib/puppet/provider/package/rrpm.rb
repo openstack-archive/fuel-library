@@ -47,7 +47,7 @@ Puppet::Type.type(:package).provide :rrpm, :parent => :rpm, :source => :rpm do
       fo.write open(path).read
     end
     @resource[:source] = "/tmp/#{package}"
-    Puppet.debug "RDPKG: package is saved to #{@resource[:source]}"
+    Puppet.debug "RRPM: package is saved to #{@resource[:source]}"
   end
 
   def install
