@@ -99,6 +99,7 @@ class nova::network(
       ensure_package => $ensure_package,
       before         => Exec['networking-refresh']
     }
+    Nova_config<||> ~> Service[$::nova::params::network_service_name]
   }
 
   if $create_networks {
