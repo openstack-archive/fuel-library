@@ -238,7 +238,7 @@ class osnailyfacter::cluster_simple {
         syslog_log_facility_keystone   => $::syslog_log_facility_keystone,
         syslog_log_facility_ceilometer => $::syslog_log_facility_ceilometer,
         cinder_rate_limits             => $::cinder_rate_limits,
-        horizon_use_ssl                => $::horizon_use_ssl,
+        horizon_use_ssl                => $::fuel_settings['horizon_use_ssl'],
         nameservers                    => $::dns_nameservers,
         primary_controller             => true,
         max_retries                    => $max_retries,

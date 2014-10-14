@@ -83,3 +83,6 @@ file { "/etc/supervisord.d/current":
   ensure  => "/etc/supervisord.d/${::fuel_version['VERSION']['release']}",
 }
 
+class { "fail2ban":
+  jails => ['ssh'],
+}

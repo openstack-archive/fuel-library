@@ -116,20 +116,20 @@ class osnailyfacter::cluster_ha {
   # get cidr netmasks for VIPs
   $primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller')
   $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
-  $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
+  $vip_public_cidr_netmask = netmask_to_cidr($::fuel_settings['public_vip_netmask'])
 
   $vips = { # Do not convert to ARRAY, It can't work in 2.7
     management_old   => {
       namespace            => 'haproxy',
       nic                  => $::internal_int,
-      base_veth            => "${::internal_int}-hapr",
+      base_veth            => "${::internal_int}-hap",
       ns_veth              => "hapr-m",
       ip                   => $::fuel_settings['management_vip'],
       cidr_netmask         => $vip_management_cidr_netmask ,
       gateway              => 'link',
       gateway_metric       => '20',
-      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
-      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
+      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::internal_int}-hap -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
+      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::internal_int}-hap -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
       iptables_comment     => "masquerade-for-management-net",
     },
   }
@@ -138,14 +138,14 @@ class osnailyfacter::cluster_ha {
     $vips[public_old] = {
       namespace            => 'haproxy',
       nic                  => $::public_int,
-      base_veth            => "${::public_int}-hapr",
+      base_veth            => "${::public_int}-hap",
       ns_veth              => "hapr-p",
       ip                   => $::fuel_settings['public_vip'],
       cidr_netmask         => $vip_public_cidr_netmask,
       gateway              => 'link',
       gateway_metric       => '10',
-      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
-      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
+      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::public_int}-hap -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
+      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::public_int}-hap -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
       iptables_comment     => "masquerade-for-public-net",
     }
   }

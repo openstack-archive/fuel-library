@@ -31,6 +31,7 @@ class glance::backend::swift(
     'DEFAULT/swift_store_auth_version': value => $swift_store_auth_version;
     'DEFAULT/swift_store_create_container_on_put':
       value => $swift_store_create_container_on_put;
+    'DEFAULT/swift_store_large_object_size': value => '100';
   }
 
   glance_cache_config {
@@ -41,6 +42,7 @@ class glance::backend::swift(
     'DEFAULT/swift_store_auth_version': value => $swift_store_auth_version;
     'DEFAULT/swift_store_create_container_on_put':
       value => $swift_store_create_container_on_put;
+    'DEFAULT/swift_store_large_object_size': value => '100';
   }
 
 }

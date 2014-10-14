@@ -87,7 +87,7 @@ class nova::compute (
 
   if ($vnc_enabled) {
     if ($vncproxy_host) {
-      $vncproxy_base_url = "${vncproxy_protocol}://${vncproxy_host}:${vncproxy_port}${vncproxy_path}"
+      $vncproxy_base_url = "${vncproxy_path}"
       # config for vnc proxy
       nova_config {
         'DEFAULT/novncproxy_base_url': value => $vncproxy_base_url;
