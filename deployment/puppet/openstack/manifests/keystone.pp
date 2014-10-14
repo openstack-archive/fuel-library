@@ -195,7 +195,7 @@ class openstack::keystone (
     $ceilometer_admin_real = $admin_real
   }
 
-  class { '::keystone':
+  class { '::keystone_ha':
     verbose             => $verbose,
     debug               => $debug,
     catalog_type        => 'sql',
