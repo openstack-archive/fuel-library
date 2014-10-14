@@ -65,9 +65,6 @@ define swift::storage::generic(
     $service_name = "swift-${name}-replicator"
   }
 
-  exec { "swift-init-kill-${name}-replicator" :
-    command => "/usr/bin/swift-init kill ${name}-replicator",
-  }
 
   service { "swift-${name}-replicator":
     name      => $service_name,
@@ -78,6 +75,5 @@ define swift::storage::generic(
   }
 
   Package["swift-${name}"] ~> Service["swift-${name}-replicator"]
-  Exec["swift-init-kill-${name}-replicator"] ~> Service["swift-${name}-replicator"]
 
 }
