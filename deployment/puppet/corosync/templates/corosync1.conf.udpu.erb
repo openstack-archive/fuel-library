@@ -7,19 +7,22 @@ totem {
   vsftype:                             none
   max_messages:                        20
   clear_node_high_bit:                 yes
-  rrp_mode:                            none
-  secauth:                             <%= @enable_secauth %>
-  threads:                             <%= @threads %>
+  rrp_mode:                            <%= @rrp_mode %>
+  secauth:                             <%= @enable_secauth_real %>
+  threads:                             <%= @threads_real %>
   transport:                           udpu
   interface {
-<% @unicast_addresses.sort.each do |hostname,addr| -%>
+<% @unicast_addresses.each do |addr| -%>
     member {
       memberaddr: <%= addr %>
     }
 <% end -%>
     ringnumber:  0
-    bindnetaddr: <%= @bind_address %>
-    mcastport:   <%= @port %>
+    bindnetaddr: <%= @bind_address_real %>
+    mcastport:   <%= @port_real %>
+<% if @ttl -%>
+    ttl:         <%= @ttl %>
+<% end -%>
   }
 }
 
