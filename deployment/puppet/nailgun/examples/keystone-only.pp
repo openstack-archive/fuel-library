@@ -76,6 +76,11 @@ case $production {
       address   => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
     }
 
+    # Increase token expiratin to 24h
+    keystone_config {
+      'token/expiration': value => 86400;
+    }
+
   }
   'docker-build': {
   }
