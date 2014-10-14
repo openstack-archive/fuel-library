@@ -40,6 +40,10 @@ class murano::api (
     $stats_period               = '5',
 
     $primary_controller         = true,
+
+    $use_neutron                = false,
+    $default_network            = 'net04_ext',
+    $default_router             = 'murano-default-router',
 ) {
 
   $database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}?read_timeout=60"
@@ -85,6 +89,14 @@ class murano::api (
       'DEFAULT/use_syslog'           : value => true;
       'DEFAULT/use_syslog_rfc_format': value => true;
       'DEFAULT/syslog_log_facility'  : value => $syslog_log_facility;
+    }
+  }
+
+  if $use_neutron {
+    murano_config {
+      'networking/external_network' : value => get_ext_net_name($::fuel_settings['quantum_settings']['predefined_networks'], $default_network);
+      'networking/router_name'      : value => $default_router;
+      'networking/create_router'    : value => true;
     }
   }
 
