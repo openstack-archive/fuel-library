@@ -75,6 +75,130 @@ class openstack::firewall (
     proto   => 'all',
     state   => ['RELATED', 'ESTABLISHED'],
     action  => 'accept',
+    }->
+
+  firewallchain { 'EXTERNAL_TRAFFIC:filter:IPv4':
+    ensure  => present,
+  }->
+
+  firewall { '003 filter EXTERNAL_TRAFFIC':
+    chain   => 'INPUT',
+    destination => get_network_role_property('ex', 'ipaddr'),
+    proto   => 'all',
+    jump    => 'EXTERNAL_TRAFFIC',
+  }
+
+  if $::fuel_settings['role'] == 'controller' {
+    firewall {'004 allow horizon':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [80, 443],
+      action => 'accept',
+    }
+
+    firewall {'004 allow keystone':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [5000],
+      action => 'accept',
+    }
+
+    firewall {'004 allow nova':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [8773, 8774, 8775, 8776],
+      action => 'accept',
+    }
+
+    firewall {'004 allow glance':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [9191, 9292],
+      action => 'accept',
+    }
+
+    firewall {'004 allow neutron':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [9696],
+      action => 'accept',
+    }
+
+    firewall {'004 allow heat':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [8004, 8000, 8003],
+      action => 'accept',
+    }
+
+    firewall {'004 allow swift':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [8080],
+      action => 'accept',
+    }
+
+    firewall {'004 allow sahara':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [8386],
+      action => 'accept',
+    }
+
+    firewall {'004 allow murano':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [8082],
+      action => 'accept',
+    }
+
+    firewall {'004 allow ceph mon':
+
+
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [6789],
+      action => 'accept',
+    }
+
+    firewall {'004 allow ceph rgw':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => [6780],
+      action => 'accept',
+    }
+
+    ferewall {'004 allow ceph osd':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'tcp',
+      dport => '6800-7100',
+      action => 'accept',
+    }
+
+    firewall {'004 allow ipsec services':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'udp',
+      dport => [500, 4500],
+      action => 'accept',
+    }
+
+    firewall {'004 allow ipsec AH':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'ah',
+      action => 'accept',
+    }
+
+    firewall {'004 allow ipsec ESP':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'esp',
+      action => 'accept',
+    }
+  }
+
+  firewall {'999 drop all other EXTERNAL_TRAFFIC':
+      chain => 'EXTERNAL_TRAFFIC',
+      proto => 'all',
+      action => 'drop',
   }
 
   firewall {'020 ssh':
@@ -220,6 +344,22 @@ class openstack::firewall (
   firewall {'119 ceilometer':
     port => $ceilometer_port,
     proto => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'120 vpnaas ipsec services':
+    proto => 'udp',
+    port => [500, 4500],
+    action => 'accept',
+  }
+
+  firewall {'120 vpnaas ipsec AH':
+    proto => 'esp',
+    action => 'accept',
+  }
+
+  firewall {'121 vpnaas ipsec ESP':
+    proto => 'esp',
     action => 'accept',
   }
 
