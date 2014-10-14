@@ -91,6 +91,8 @@ class nova::network(
     $vlan_start = undef
   }
 
+  nova_config {'DEFAULT/force_snat_range': value => '0.0.0.0/0' }
+
   if $install_service {
     nova::generic_service { 'network':
       enabled        => $enabled,
