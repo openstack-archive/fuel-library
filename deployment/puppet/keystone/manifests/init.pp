@@ -141,26 +141,6 @@ class keystone(
     mode    => '0755',
     notify  => Service['keystone'],
   }
-  if $::operatingsystem == 'Ubuntu' {
-   if $service_provider == 'pacemaker' {
-      file { '/etc/init/keystone.override':
-        ensure  => present,
-        content => "manual",
-        mode    => '0644',
-        replace => "no",
-        owner   => 'root',
-        group   => 'root',
-      }
-
-      File['/etc/init/keystone.override'] -> Package['keystone']
-
-      exec { 'remove-keystone-bootblockr':
-        command => 'rm -rf /etc/init/keystone.override',
-        path    => ['/bin', '/usr/bin'],
-        require => Package['keystone']
-      }
-    }
-  }
 
       Package['keystone'] -> User['keystone']
       Package['keystone'] -> Group['keystone']

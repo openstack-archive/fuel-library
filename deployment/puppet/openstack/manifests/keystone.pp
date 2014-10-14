@@ -217,6 +217,7 @@ class openstack::keystone (
     memcache_servers    => $memcache_servers,
     memcache_server_port => $memcache_server_port,
   }
+  class { '::keystone_ha': }
 
   if ($enabled) {
     # Setup the admin user
