@@ -1,0 +1,5 @@
+name    'jbussdieker-monit'
+source  'git@github.com:jbussdieker/puppet-monit.git'
+author  'Joshua B. Bussdieker'
+summary 'Monit Module'
+version '0.0.4'
