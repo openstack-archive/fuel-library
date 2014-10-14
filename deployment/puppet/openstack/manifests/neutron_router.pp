@@ -74,6 +74,13 @@ class openstack::neutron_router (
         service_provider   => $service_provider,
         primary_controller => $primary_controller
       }
+      class { '::neutron::agents::vpnaas':
+        neutron_config => $neutron_config,
+        verbose => $verbose,
+        debug => $debug,
+        service_provider => $service_provider,
+        primary_controller => $primary_controller
+      }
     }
 
     if !defined(Sysctl::Value['net.ipv4.ip_forward']) {
