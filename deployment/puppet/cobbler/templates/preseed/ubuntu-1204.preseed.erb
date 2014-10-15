@@ -40,7 +40,7 @@ d-i base-installer/kernel/image string linux-server
 d-i mirror/protocol string http
 d-i mirror/country string manual
 d-i mirror/http/hostname string @@server@@:8080
-d-i mirror/http/directory string /ubuntu/fuelweb/x86_64
+d-i mirror/http/directory string /ubuntu/x86_64
 d-i mirror/http/proxy string
 
 d-i mirror/suite string precise
@@ -142,7 +142,7 @@ echo -e "" /target/etc/apt/sources.list && \
 echo -e 'deb $repo_url' >> /target/etc/apt/sources.list && \
 #end for
 #else
-echo 'deb http://@@server@@:8080/ubuntu/fuelweb/x86_64 precise main' > /target/etc/apt/sources.list && \
+echo 'deb http://@@server@@:8080/ubuntu/x86_64 precise main' > /target/etc/apt/sources.list && \
 #end if
 $SNIPPET('ubuntu_authorized_keys')
 sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication\ .*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \

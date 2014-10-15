@@ -102,7 +102,7 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
     require => Cobbler_distro["rhel-x86_64"],
   } ->
   exec {'rebuild-fuel-repo':
-    command => "/bin/cp -f /var/www/nailgun/centos/fuelweb/x86_64/repodata/comps.xml ${pkgdir}/repodata/comps.xml; /usr/bin/createrepo --simple-md-filenames -g ${pkgdir}/repodata/comps.xml ${pkgdir}",
+    command => "/bin/cp -f /var/www/nailgun/centos/x86_64/repodata/comps.xml ${pkgdir}/repodata/comps.xml; /usr/bin/createrepo --simple-md-filenames -g ${pkgdir}/repodata/comps.xml ${pkgdir}",
   }
 
   file { '/etc/nailgun/req-fuel-rhel.txt':
@@ -114,7 +114,7 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
     require => File['/etc/nailgun/']
   } ->
   exec {'fuel-rpms':
-    command => "/bin/mkdir -p ${pkgdir}/fuel/Packages; rsync -ra --include-from=/etc/nailgun/req-fuel-rhel.txt /var/www/nailgun/centos/fuelweb/x86_64/Packages/. ${pkgdir}/fuel/Packages/.",
+    command => "/bin/mkdir -p ${pkgdir}/fuel/Packages; rsync -ra --include-from=/etc/nailgun/req-fuel-rhel.txt /var/www/nailgun/centos/x86_64/Packages/. ${pkgdir}/fuel/Packages/.",
     logoutput => true,
     before    => Exec['rebuild-fuel-repo'],
   }

@@ -105,12 +105,12 @@ class nailgun::cobbler(
       } ->
 
       cobbler_distro { "centos-x86_64":
-        kernel => "${repo_root}/centos/fuelweb/x86_64/isolinux/vmlinuz",
-        initrd => "${repo_root}/centos/fuelweb/x86_64/isolinux/initrd.img",
+        kernel => "${repo_root}/centos/x86_64/isolinux/vmlinuz",
+        initrd => "${repo_root}/centos/x86_64/isolinux/initrd.img",
         arch => "x86_64",
         breed => "redhat",
         osversion => "rhel6",
-        ksmeta => "tree=http://@@server@@:8080/centos/fuelweb/x86_64/",
+        ksmeta => "tree=http://@@server@@:8080/centos/x86_64/",
         require => Class["::cobbler::server"],
       }
 
@@ -123,8 +123,8 @@ class nailgun::cobbler(
       } ->
 
       cobbler_distro { "ubuntu_1204_x86_64":
-        kernel => "${repo_root}/ubuntu/fuelweb/x86_64/images/linux",
-        initrd => "${repo_root}/ubuntu/fuelweb/x86_64/images/initrd.gz",
+        kernel => "${repo_root}/ubuntu/x86_64/images/linux",
+        initrd => "${repo_root}/ubuntu/x86_64/images/initrd.gz",
         arch => "x86_64",
         breed => "ubuntu",
         osversion => "precise",
