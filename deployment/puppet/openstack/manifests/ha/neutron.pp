@@ -5,7 +5,7 @@ class openstack::ha::neutron {
     order           => '085',
     listen_port     => 9696,
     public          => true,
-    define_backups  => true,
+    define_backups  => false,
     require_service => 'neutron-server',
   }
 
