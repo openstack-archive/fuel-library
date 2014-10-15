@@ -75,6 +75,21 @@ case $production {
       password  => $::fuel_settings['keystone']['ostf_password'],
       address   => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
     }
+
+    # Increase token expiratin to 24h
+    keystone_config {
+      'token/expiration': value => 86400;
+    }
+
+    # Flush expired tokens
+    cron { 'keystone-flush-token':
+      ensure      => present,
+      command     => 'keystone-manage token_flush',
+      environment => 'PATH=/bin:/usr/bin:/usr/sbin',
+      user        => 'root',
+      hour        => '1',
+    }
+
   }
   'docker-build': {
   }
