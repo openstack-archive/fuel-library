@@ -6,8 +6,6 @@ if ($programname == 'mysql' \
   or $programname == 'mysqld_safe' \
   or $programname == 'mysql_slow' \
   or $programname == 'mysql-wss') \
-### use 6 for INFO+ msg levels, 5 for WARN+ etc.
-###  and $syslogseverity <= '6' \
 then -/var/log/mysqld.log
 ### stop further processing for the matched entries
 & ~
