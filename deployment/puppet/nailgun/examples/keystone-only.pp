@@ -47,6 +47,16 @@ case $production {
       roles  => ['admin'],
       ensure => present
     }
+
+    # Flush expired tokens
+    cron { 'keystone-flush-token':
+      ensure      => present,
+      command     => 'keystone-manage token_flush',
+      environment => 'PATH=/bin:/usr/bin:/usr/sbin',
+      user        => 'root',
+      hour        => '1',
+    }
+
   }
   'docker-build': {
   }
