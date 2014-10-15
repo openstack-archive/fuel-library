@@ -50,6 +50,17 @@ case $production {
       roles  => ['admin'],
       ensure => present
     }
+
+    #Cron
+    package {'cronie-anacron': }
+
+    file {"/etc/cron.daily/token_flush":
+      content => template("nailgun/cron_keystone_token_flush.erb"),
+      owner => 'root',
+      group => 'root',
+      mode  => '0755',
+      require => Package['cronie-anacron']
+    }
   }
   'docker-build': {
   }
