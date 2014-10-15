@@ -221,6 +221,17 @@ class openstack::compute (
     notify  => Service['libvirt'],
   }
 
+  $host_uuid=generate('/bin/sh', '-c', "uuidgen")
+
+  augeas { 'libvirt-conf-uuid':
+    context => '/files/etc/libvirt/libvirtd.conf',
+    changes => [
+      "set host_uuid $host_uuid",
+    ],
+    onlyif  => "match /files/etc/libvirt/libvirtd.conf/host_uuid size == 0",
+    notify  => Service['libvirt'],
+  }
+
   $memcached_addresses =  suffix($cache_server_ip, inline_template(":<%= @cache_server_port %>"))
   $notify_on_state_change = 'vm_and_task_state'
 
