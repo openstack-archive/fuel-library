@@ -1,372 +1,195 @@
-require 'pathname'
-require Pathname.new(__FILE__).dirname.dirname.expand_path + 'corosync_service'
-require 'rexml/document'
-require 'open3'
+require File.join File.dirname(__FILE__), '../pacemaker.rb'
 
-include REXML
+Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider do
+  include Pacemaker
 
-Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Corosync_service do
-
-  commands :crm => 'crm'
-  commands :cibadmin => 'cibadmin'
-  commands :crm_attribute => 'crm_attribute'
-  commands :crm_resource => 'crm_resource'
-
-  desc "Pacemaker service management."
-
-  has_feature :refreshable
   has_feature :enableable
-  has_feature :ensurable
-  def self.get_cib
-    raw, _status = dump_cib
-    @@cib=REXML::Document.new(raw)
+  has_feature :refreshable
+
+  commands :uname => 'uname'
+  commands :pcs => 'pcs'
+  commands :cibadmin => 'cibadmin'
+
+  # hostname of the current node
+  # @return [String]
+  def hostname
+    return @hostname if @hostname
+    @hostname = (uname '-n').chomp.strip
   end
 
-  # List all services of this type.
-  def self.instances
-    get_services
+  # original name passed from the type
+  # @return [String]
+  def title
+    @resource[:name]
   end
 
-  #Return list of pacemaker resources
-  def self.get_resources
-    @@resources = @@cib.root.elements['configuration'].elements['resources']
-  end
-
-  #Get services list
-  def self.get_services
-    get_cib
-    get_resources
-    instances = []
-    XPath.match(@@resources, '//primitive').each do |element|
-      if !element.nil?
-        instances << new(:name => element.attributes['id'], :hasstatus => true, :hasrestart => false)
-      end
+  # primitive name with 'p_' added if needed
+  # @return [String]
+  def name
+    return @name if @name
+    primitive_name = title
+    if primitive_exists? primitive_name
+      Puppet.debug "Primitive with title '#{primitive_name}' was found in CIB"
+      @name = primitive_name
+      return @name
     end
-    instances
+    primitive_name = "p_#{primitive_name}"
+    if primitive_exists? primitive_name
+      Puppet.debug "Using '#{primitive_name}' name instead of '#{title}'"
+      @name = primitive_name
+      return @name
+    end
+    fail "Primitive '#{title}' was not found in CIB!"
   end
 
-  def get_service_hash
-    self.class.get_cib
-    self.class.get_resources
-    @service={}
-    default_start_timeout = 30
-    default_stop_timeout = 30
-    cib_resource =  XPath.match(@@resources, "//primitive[@id=\'#{@resource[:name]}\']").first
-    raise(Puppet::Error,"resource #{@resource[:name]} not found") unless cib_resource
-    @service[:msname] = ['master','clone'].include?(cib_resource.parent.name) ? cib_resource.parent.attributes['id'] : nil
-    @service[:name] = @resource[:name]
-    @service[:class] = cib_resource.attributes['class']
-    @service[:provider] = cib_resource.attributes['provider']
-    @service[:type] = cib_resource.attributes['type']
-    @service[:metadata] = {}
-    if !cib_resource.elements['meta_attributes'].nil?
-      cib_resource.elements['meta_attributes'].each_element do |m|
-        @service[:metadata][m.attributes['name'].to_sym] = m.attributes['value']
-      end
-    end
-    if @service[:class] == 'ocf'
-      stdout = Open3.popen3("/bin/bash -c 'OCF_ROOT=/usr/lib/ocf /usr/lib/ocf/resource.d/#{@service[:provider]}/#{@service[:type]} meta-data'")[1].read
-      metadata = REXML::Document.new(stdout)
-      default_start_timeout = XPath.match(metadata, "//actions/action[@name=\'start\']").first.attributes['timeout'].to_i
-      default_stop_timeout = XPath.match(metadata, "//actions/action[@name=\'stop\']").first.attributes['timeout'].to_i
-    end
-    op_start=XPath.match(REXML::Document.new(cib_resource.to_s),"//operations/op[@name='start']").first
-    op_stop=XPath.match(REXML::Document.new(cib_resource.to_s),"//operations/op[@name='stop']").first
-    @service[:start_timeout] =  default_start_timeout
-    @service[:stop_timeout] =  default_stop_timeout
-    if !op_start.nil?
-      @service[:start_timeout] = op_start.attributes['timeout'].to_i
-    end
-    if !op_stop.nil?
-      @service[:stop_timeout] = op_stop.attributes['timeout'].to_i
-    end
-  end
-
-  def get_service_name
-    get_service_hash
-    service_name = @service[:msname] ? @service[:msname] : @service[:name]
-  end
-
-  def self.get_stonith
-    get_cib
-    stonith = XPath.first(@@cib,"crm_config/nvpair[@name='stonith-enabled']")
-    @@stonith = stonith == "true"
-  end
-
-  def self.get_node_state_stonith(ha_state,in_ccm,crmd,join,expected,shutdown)
-    if (in_ccm == "true") && (ha_state == 'active') && (crmd == 'online')
-      case join
-      when 'member'
-        state = :online
-      when 'expected'
-        state = :offline
-      when 'pending'
-        state = :pending
-      when 'banned'
-        state = :standby
-      else
-        state = :unclean
-      end
-    elsif !(in_ccm == "true") && (ha_state =='dead') && (crmd == 'offline') && !(shutdown == 0)
-      state = :offline
-    elsif shutdown == 0
-      state = :unclean
+  # full name of the primitive
+  # if resource is complex use group name
+  # @return [String]
+  def full_name
+    return @full_name if @full_name
+    if primitive_is_complex? name
+      full_name = primitives[name]['name']
+      Puppet.debug "Using full name '#{full_name}' for complex primitive '#{name}'"
+      @full_name = full_name
     else
-      state = :offline
+      @full_name = name
     end
-    state
   end
 
-  def self.get_node_state_no_stonith(ha_state,in_ccm,crmd,join,expected,shutdown)
-    state = :unclean
-    if !(in_ccm == "true") || (ha_state == 'dead')
-      state = :offline
-    elsif crmd == 'online'
-      if join == 'member'
-        state = :online
-      else
-        state = :offline
-      end
-    elsif !(shutdown == "0")
-      state = :offline
+  # name of the basic service without 'p_' prefix
+  # used to disable the basic service
+  # @return [String]
+  def basic_service_name
+    return @basic_service_name if @basic_service_name
+    if name.start_with? 'p_'
+      basic_service_name = name.gsub /^p_/, ''
+      Puppet.debug "Using '#{basic_service_name}' as the basic service name for primitive '#{name}'"
+      @basic_service_name = basic_service_name
     else
-      state = :unclean
-    end
-    state
-  end
-
-  def self.get_node_state(*args)
-    get_stonith
-    if @@stonith
-      return get_node_state_stonith(*args)
-    else
-      return get_node_state_no_stonith(*args)
+      @basic_service_name = name
     end
   end
 
-  def self.get_nodes
-    @@nodes = []
-    get_cib
-    nodes = XPath.match(@@cib,'cib/configuration/nodes/node')
-    nodes.each do |node|
-      state = :unclean
-      uname = node.attributes['uname']
-      node_state = XPath.first(@@cib,"cib/status/node_state[@uname='#{uname}']")
-      if node_state
-        ha_state = node_state.attributes['ha'] == 'dead' ? 'dead' : 'active'
-        in_ccm  = node_state.attributes['in_ccm']
-        crmd = node_state.attributes['crmd']
-        join = node_state.attributes['join']
-        expected = node_state.attributes['expected']
-        shutdown = node_state.attributes['shutdown'].nil? ? 0 : node_state.attributes['shutdown']
-        state = get_node_state(ha_state,in_ccm,crmd,join,expected,shutdown)
-        if state == :online
-          standby = node.elements["instance_attributes/nvpair[@name='standby']"]
-          if standby && ['true', 'yes', '1', 'on'].include?(standby.attributes['value'])
-            state = :standby
-          end
-        end
-      end
-      @@nodes << {:uname => uname, :state => state}
-    end
+  # called by Puppet to determine if the service is running
+  # @return [:running,:stopped]
+  def status(node = nil)
+    wait_for_online
+    message = "Call: 'status' for Pacemaker service '#{name}'"
+    message += " on node '#{node}'" if node
+    Puppet.debug message
+    disable_basic_service
+    cib_reset
+    cleanup_with_wait name if primitive_has_failures? name
+    out = get_primitive_puppet_status name, node
+    Puppet.debug "Return: '#{out}' (#{out.class})"
+    out
   end
 
-  def get_last_successful_operations
-    self.class.get_cib
-    self.class.get_nodes
-    @last_successful_operations = {}
-    begin
-      @@nodes.each do |node|
-        next unless node[:state] == :online
-        debug("getting last ops on #{node[:uname]} for #{@resource[:name]}")
-        all_operations =  XPath.match(@@cib,"cib/status/node_state[@uname='#{node[:uname]}']/lrm/lrm_resources/lrm_resource/lrm_rsc_op[starts-with(@id,'#{@resource[:name]}')]")
-        debug("ALL OPERATIONS:\n\n #{all_operations.inspect}")
-        next if all_operations.nil?
-        completed_ops = all_operations.select{|op| op.attributes['op-status'].to_i != -1 }
-        debug("COMPLETED OPERATIONS:\n\n #{completed_ops.inspect}")
-        next if completed_ops.nil?
-        start_stop_ops = completed_ops.select{|op| ["start","stop","monitor","promote"].include? op.attributes['operation']}
-        debug("START/STOP OPERATIONS:\n\n #{start_stop_ops.inspect}")
-        next if start_stop_ops.nil?
-        sorted_operations = start_stop_ops.sort do
-          |a,b| a.attributes['call-id'].to_i <=> b.attributes['call-id'].to_i
-        end
-        good_operations = sorted_operations.select do |op|
-          op.attributes['rc-code'] == '0' or
-          op.attributes['operation'] == 'monitor'
-        end
-        debug("GOOD OPERATIONS :\n\n #{good_operations.inspect}")
-        next if good_operations.nil?
-        last_op = good_operations.last
-        debug("LAST GOOD OPERATION :\n\n '#{last_op.inspect}' '#{last_op.nil?}' '#{last_op}'")
-        next if last_op.nil?
-        last_successful_op = nil
-        if ['promote','start','stop'].include?(last_op.attributes['operation'])
-          debug("last operations: #{last_op.attributes['operation']}")
-          last_successful_op = last_op.attributes['operation']
-        else
-          if last_op.attributes['rc-code'].to_i == 0
-            last_successful_op = 'start'
-          elsif  last_op.attributes['rc-code'].to_i == 8
-            last_successful_op = 'start'
-          else
-            last_successful_op = 'stop'
-            if last_op.attributes['rc-code'].to_i == 5 and node[:uname] == Facter.value(:pacemaker_hostname)
-              crm_resource('--cleanup','--resource',get_service_name,'--node',Facter.value(:pacemaker_hostname))
-              sleep 15
-              self.class.get_cib
-              raise "repeat"
-            end
-          end
-        end
-        debug("LAST SUCCESSFUL OP :\n\n #{last_successful_op.inspect}")
-        @last_successful_operations[node[:uname]] = last_successful_op unless last_successful_op.nil?
-      end
-    rescue  => e
-      retry if e.message == 'repeat'
-      raise
-    end
-    @last_successful_operations
-  end
-
-  #  def get_operations
-  #     XPath.match(@@operations,"lrm_rsc_op")
-  #  end
-
-  def enable
-    crm('resource','manage', get_service_name)
-  end
-
-  def enabled?
-    get_service_hash
-    @service[:metadata][:'is-managed'] != 'false'
-  end
-
-  def disable
-    crm('resource','unmanage',get_service_name)
-  end
-
-  #TODO: think about per-node start/stop/restart of services
-
+  # called by Puppet to start the service
   def start
-    get_service_hash
-    enable
-    target_start
-    unban
-    if simple? and global_status
-      debug("Not starting to wait for the service to start. Simple resource is started elsewhere.")
+    Puppet.debug "Call 'start' for Pacemaker service '#{name}' on node '#{hostname}'"
+    enable unless primitive_is_managed? name
+    cleanup_with_wait full_name if primitive_has_failures? name
+    unban_primitive name
+    start_primitive full_name
+    constraint_location_add full_name, hostname
+    if primitive_is_multistate? name
+      Puppet.debug "Choose master start for Pacemaker service '#{name}' on node '#{hostname}'"
+      wait_for_master name
+    elsif primitive_is_clone? name
+      Puppet.debug "Choose local start for Pacemaker service '#{name}' on node '#{hostname}'"
+      wait_for_start name, hostname
     else
-      debug("Starting countdown for resource start")
-      debug("Start timeout is #{@service[:start_timeout]}")
-      Timeout::timeout(5*@service[:start_timeout],Puppet::Error) do
-        loop do
-          break if status == :running
-          sleep 5
-        end
-      end
-      sleep 3
+      Puppet.debug "Choose global start for Pacemaker service '#{name}' on node '#{hostname}'"
+      wait_for_start name
     end
   end
 
+  # called by Puppet to stop the service
   def stop
-    get_service_hash
-    enable
-    return if local_status == :stopped
-    if simple?
-      target_stop
+    Puppet.debug "Call 'stop' for Pacemaker service '#{name}' on node '#{hostname}'"
+    enable unless primitive_is_managed? name
+    cleanup_with_wait full_name if primitive_has_failures? name
+    if primitive_is_complex? name
+      Puppet.debug "Choose local stop for Pacemaker service '#{name}' on node '#{hostname}'"
+      ban_primitive name
+      wait_for_stop name, hostname
     else
-      ban
-    end
-    debug("Starting countdown for resource stop")
-    debug("Stop timeout is #{@service[:stop_timeout]}")
-    Timeout::timeout(5*@service[:stop_timeout],Puppet::Error) do
-      loop do
-        break if status == :stopped
-        sleep 5
-      end
+      Puppet.debug "Choose global stop for Pacemaker service '#{name}' on node '#{hostname}'"
+      stop_primitive full_name
+      wait_for_stop name
     end
   end
 
-  def set_location(score = 100, diff = 'added')
-    rsc = get_service_name
-    node = Facter.value(:pacemaker_hostname)
-    xml = <<-EOF
-    <diff>
-      <diff-#{diff}>
-        <cib>
-          <configuration>
-            <constraints>
-              <rsc_location id="#{rsc}_on_#{node}" node="#{node}" rsc="#{rsc}" score="#{score}"/>
-            </constraints>
-          </configuration>
-        </cib>
-      </diff-#{diff}>
-    </diff>
-    EOF
-    cibadmin '--patch', '--sync-call', '--xml-text', xml
-  end
-
-  def ban
-    set_location('-INFINITY')
-  end
-
-  def unban
-    set_location('0')
-  end
-
-  def target_start
-    crm('resource', 'start', get_service_name)
-  end
-
-  def target_stop
-    crm('resource', 'stop', get_service_name)
-  end
-
+  # called by Puppet to restart the service
   def restart
-    stop
-    start
-  end
-
-  def simple?
-    get_service_hash
-    @service[:msname].nil?
-  end
-
-  def global_status
-    #debug(crm('status'))
-    debug("getting last operations")
-    get_last_successful_operations
-    lso = @last_successful_operations
-    debug "LSO: #{lso.inspect}"
-    if lso.any? { |k,v| ['start','promote'].include?(v) }
-      return :running
-    elsif lso.all? { |k,v| v == 'stop' } or lso.empty?
-      return :stopped
+    Puppet.debug "Call 'restart' for Pacemaker service '#{name}' on node '#{hostname}'"
+    if primitive_is_running? name, hostname
+      stop
+      start
     else
-      raise(Puppet::Error,"resource #{@resource[:name]} in unknown state")
+      Puppet.info "Pacemaker service '#{name}' is not running on node '#{hostname}'. Skipping restart!"
     end
   end
 
-  def local_status
-    #debug(crm('status'))
-    debug("getting last operations")
-    get_last_successful_operations
-    lso = @last_successful_operations
-    hostname = Facter.value(:pacemaker_hostname)
-    debug "LSO: #{lso.inspect}"
-    if ['start','promote'].include? lso[hostname]
-      return :running
-    elsif [nil, 'stop'].include? lso[hostname]
-      return :stopped
-    else
-      raise(Puppet::Error,"resource #{@resource[:name]} in unknown state")
+  # called by Puppet to enable the service
+  def enable
+    Puppet.debug "Call 'enable' for Pacemaker service '#{name}' on node '#{hostname}'"
+    manage_primitive name
+  end
+
+  # called by Puppet to disable  the service
+  def disable
+    Puppet.debug "Call 'disable' for Pacemaker service '#{name}' on node '#{hostname}'"
+    unmanage_primitive name
+  end
+  alias :manual_start :disable
+
+  # called by Puppet to determine if the service is enabled
+  # @return [:true,:false]
+  def enabled?
+    Puppet.debug "Call 'enabled?' for Pacemaker service '#{name}' on node '#{hostname}'"
+    out = get_primitive_puppet_enable name
+    Puppet.debug "Return: '#{out}' (#{out.class})"
+    out
+  end
+
+  # create an extra provider instance to deal with the basic service
+  # the provider will be chosen to match the current system
+  # @return [Puppet::Type::Service::Provider]
+  def extra_provider(provider_name = nil)
+    return @extra_provider if @extra_provider
+    begin
+      param_hash = {}
+      param_hash.store :name, basic_service_name
+      param_hash.store :provider, provider_name if provider_name
+      type = Puppet::Type::Service.new param_hash
+      @extra_provider = type.provider
+    rescue => e
+      Puppet.warning "Could not get extra provider for Pacemaker primitive '#{name}': #{e.message}"
+      @extra_provider = nil
     end
   end
 
-  def status
-    status = local_status
-    debug "STATUS IS: #{status}"
-    status
+  # disable and stop the basic service
+  def disable_basic_service
+    return unless extra_provider
+    begin
+      if extra_provider.enableable? and extra_provider.enabled? == :true
+        Puppet.info "Disable basic service '#{extra_provider.name}' using provider '#{extra_provider.class.name}'"
+        extra_provider.disable
+      else
+        Puppet.info "Basic service '#{extra_provider.name}' is disabled as reported by '#{extra_provider.class.name}' provider"
+      end
+      if extra_provider.status == :running
+        Puppet.info "Stop basic service '#{extra_provider.name}' using provider '#{extra_provider.class.name}'"
+        extra_provider.stop
+      else
+        Puppet.info "Basic service '#{extra_provider.name}' is stopped as reported by '#{extra_provider.class.name}' provider"
+      end
+    rescue => e
+      Puppet.warning "Could not disable basic service for Pacemaker primitive '#{name}' using '#{extra_provider.class.name}' provider: #{e.message}"
+    end
   end
 
 end
