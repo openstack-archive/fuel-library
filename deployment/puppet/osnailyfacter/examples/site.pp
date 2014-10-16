@@ -157,11 +157,14 @@ $syslog_log_facility_ceph       = 'LOG_LOCAL0'
 
 ### Monit ###
 # Monit for compute nodes.
-# If enabled, will install monit and configure its watchdogs to track
-# nova-compute/api/network (and openvswitch service, if neutron enabled)
-# at compute nodes.
-# TODO(bogdando) set to true once monit package shipped with Fuel ISO
-$use_monit = false
+# If enabled, will install and configure monit at compute/cinder nodes.
+# NOTE(bogdando) for controller nodes running Corosync with Pacemaker
+#   we delegate all of the monitor functions to RA instead of monit.
+if member($roles, 'controller') or member($roles, 'primary-controller') {
+  $use_monit = false
+} else {
+  $use_monit = true
+}
 
 $nova_rate_limits = {
   'POST' => 100000,
