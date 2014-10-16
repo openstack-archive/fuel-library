@@ -157,10 +157,7 @@ $syslog_log_facility_ceph       = 'LOG_LOCAL0'
 
 ### Monit ###
 # Monit for compute nodes.
-# If enabled, will install monit and configure its watchdogs to track
-# nova-compute/api/network (and openvswitch service, if neutron enabled)
-# at compute nodes.
-# TODO(bogdando) set to true once monit package shipped with Fuel ISO
+# If enabled, will install and configure monit at compute/cinder nodes.
 $use_monit = false
 
 $nova_rate_limits = {
