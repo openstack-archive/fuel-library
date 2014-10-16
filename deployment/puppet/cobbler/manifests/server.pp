@@ -11,14 +11,23 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
+#
+# == Class: cobbler::server
+#
+# Installs cobbler package and service
+#
+# == Parameters:
+#
+# [*dhcp_lease_max*]
+# (optional) Sets the default dhcp-lease-max time for dnsmasq server
 
 class cobbler::server (
-  $production = 'prod',
-  $domain_name = 'local',
-  $dns_search = 'local',
-  $dns_domain = 'local',
-  $dns_upstream = '8.8.8.8',
+  $production     = 'prod',
+  $domain_name    = 'local',
+  $dns_search     = 'local',
+  $dns_domain     = 'local',
+  $dns_upstream   = '8.8.8.8',
+  $dhcp_lease_max = '1800',
 ) {
   include cobbler::packages
 
@@ -26,69 +35,74 @@ class cobbler::server (
     path => '/usr/bin:/bin:/usr/sbin:/sbin'
   }
 
-  case $operatingsystem {
+  case $::operatingsystem {
     /(?i)(centos|redhat)/ : {
-      $cobbler_service     = "cobblerd"
-      $cobbler_web_service = "httpd"
-      $dnsmasq_service     = "dnsmasq"
+      $cobbler_service     = 'cobblerd'
+      $cobbler_web_service = 'httpd'
+      $dnsmasq_service     = 'dnsmasq'
 
-      service { "xinetd":
-        enable     => true,
+      service { 'xinetd':
         ensure     => running,
+        enable     => true,
         hasrestart => true,
         require    => Package[$cobbler::packages::cobbler_additional_packages],
       }
 
-      file { "/etc/xinetd.conf":
-        content => template("cobbler/xinetd.conf.erb"),
+      file { '/etc/xinetd.conf':
+        content => template('cobbler/xinetd.conf.erb'),
         owner   => root,
         group   => root,
-        mode    => 0600,
+        mode    => '0600',
         require => Package[$cobbler::packages::cobbler_additional_packages],
-        notify  => Service["xinetd"],
+        notify  => Service['xinetd'],
       }
 
     }
     /(?i)(debian|ubuntu)/ : {
-      $cobbler_service     = "cobbler"
-      $cobbler_web_service = "apache2"
-      $dnsmasq_service     = "dnsmasq"
-      $apache_ssl_module   = "ssl"
+      $cobbler_service     = 'cobbler'
+      $cobbler_web_service = 'apache2'
+      $dnsmasq_service     = 'dnsmasq'
+      $apache_ssl_module   = 'ssl'
 
+    }
+    default : {
+      fail('Unsupported OS')
     }
   }
   File['/etc/cobbler/modules.conf'] -> File['/etc/cobbler/settings'] ->
-  Service[$cobbler_service] -> Exec["cobbler_sync"] -> Service[$dnsmasq_service]
+  Service[$cobbler_service] ->
+    Exec['cobbler_sync'] ->
+      Service[$dnsmasq_service]
 
   if $production !~ /docker/ {
     service { $cobbler_service:
-      enable     => true,
       ensure     => running,
+      enable     => true,
       hasrestart => true,
       require    => Package[$cobbler::packages::cobbler_package],
     }
 
     service { $dnsmasq_service:
-      enable     => true,
       ensure     => running,
+      enable     => true,
       hasrestart => true,
       require    => Package[$cobbler::packages::dnsmasq_package],
-      subscribe  => Exec["cobbler_sync"],
+      subscribe  => Exec['cobbler_sync'],
     }
   } else {
     service { $cobbler_service:
-      enable     => true,
       ensure     => running,
+      enable     => true,
       hasrestart => true,
       require    => Package[$cobbler::packages::cobbler_package],
     }
 
     service { $dnsmasq_service:
-      enable     => false,
       ensure     => false,
+      enable     => false,
       hasrestart => true,
       require    => Package[$cobbler::packages::dnsmasq_package],
-      subscribe  => Exec["cobbler_sync"],
+      subscribe  => Exec['cobbler_sync'],
     }
   }
   if $apache_ssl_module {
@@ -107,13 +121,13 @@ class cobbler::server (
   }
 
   service { $cobbler_web_service:
-    enable     => true,
     ensure     => running,
+    enable     => true,
     hasrestart => true,
     require    => Package[$cobbler::packages::cobbler_web_package],
   }
 
-  exec { "wait_for_web_service":
+  exec { 'wait_for_web_service':
     command   => '[ $(curl --connect-timeout 1 -s -w %{http_code} http://127.0.0.1:80/ -o /dev/null) -lt 500 ]',
     require   => Service[$cobbler_web_service],
     subscribe => Service[$cobbler_web_service],
@@ -121,8 +135,8 @@ class cobbler::server (
     try_sleep => 1,
   }
 
-  exec { "cobbler_sync":
-    command     => "cobbler sync",
+  exec { 'cobbler_sync':
+    command     => 'cobbler sync',
     refreshonly => false,
     require     => [
       Service[$cobbler_web_service],
@@ -131,71 +145,71 @@ class cobbler::server (
       Package[$cobbler::packages::dnsmasq_package],
       File['/etc/dnsmasq.upstream']],
     subscribe   => Service[$cobbler_service],
-    notify      => [Service[$dnsmasq_service], Service["xinetd"]],
+    notify      => [Service[$dnsmasq_service], Service['xinetd']],
     tries       => 20,
     try_sleep   => 3,
   }
 
-  file { "/etc/cobbler/modules.conf":
-    content => template("cobbler/modules.conf.erb"),
+  file { '/etc/cobbler/modules.conf':
+    content => template('cobbler/modules.conf.erb'),
     owner   => root,
     group   => root,
-    mode    => 0644,
-    require => [Package[$cobbler::packages::cobbler_package],],
-    notify  => [Service[$cobbler_service], Exec["cobbler_sync"],],
+    mode    => '0644',
+    require => [Package[$cobbler::packages::cobbler_package]],
+    notify  => [Service[$cobbler_service], Exec['cobbler_sync']],
   }
 
-  file { "/etc/cobbler/settings":
-    content => template("cobbler/settings.erb"),
+  file { '/etc/cobbler/settings':
+    content => template('cobbler/settings.erb'),
     owner   => root,
     group   => root,
-    mode    => 0644,
+    mode    => '0644',
     require => Package[$cobbler::packages::cobbler_package],
-    notify  => [Service[$cobbler_service], Exec["cobbler_sync"],],
+    notify  => [Service[$cobbler_service], Exec['cobbler_sync']],
   }
 
-  file { "/etc/cobbler/dnsmasq.template":
-    content => template("cobbler/dnsmasq.template.erb"),
+  file { '/etc/cobbler/dnsmasq.template':
+    content => template('cobbler/dnsmasq.template.erb'),
     owner   => root,
     group   => root,
-    mode    => 0644,
+    mode    => '0644',
     require => [
       Package[$cobbler::packages::cobbler_package],
-      Package[$cobbler::packages::dnsmasq_package],],
+      Package[$cobbler::packages::dnsmasq_package]],
     notify  => [
       Service[$cobbler_service],
-      Exec["cobbler_sync"],
+      Exec['cobbler_sync'],
       Service[$dnsmasq_service],],
   }
 
-  file { "/etc/cobbler/pxe/pxedefault.template":
-    content => template("cobbler/pxedefault.template.erb"),
+  file { '/etc/cobbler/pxe/pxedefault.template':
+    content => template('cobbler/pxedefault.template.erb'),
     owner   => root,
     group   => root,
-    mode    => 0644,
+    mode    => '0644',
     require => Package[$cobbler::packages::cobbler_package],
-    notify  => [Service[$cobbler_service], Exec["cobbler_sync"],],
+    notify  => [Service[$cobbler_service], Exec['cobbler_sync']],
   }
 
-  file { "/etc/cobbler/pxe/pxelocal.template":
-    content => template("cobbler/pxelocal.template.erb"),
+  file { '/etc/cobbler/pxe/pxelocal.template':
+    content => template('cobbler/pxelocal.template.erb'),
     owner   => root,
     group   => root,
-    mode    => 0644,
+    mode    => '0644',
     require => Package[$cobbler::packages::cobbler_package],
-    notify  => [Service[$cobbler_service], Exec["cobbler_sync"],],
+    notify  => [Service[$cobbler_service], Exec['cobbler_sync']],
   }
 
-  exec { "/var/lib/tftpboot/chain.c32":
-    command => "cp /usr/share/syslinux/chain.c32 /var/lib/tftpboot/chain.c32",
-    unless  => "test -e /var/lib/tftpboot/chain.c32",
+  exec { '/var/lib/tftpboot/chain.c32':
+    command => 'cp /usr/share/syslinux/chain.c32 /var/lib/tftpboot/chain.c32',
+    unless  => 'test -e /var/lib/tftpboot/chain.c32',
     require => [
       Package[$cobbler::packages::cobbler_additional_packages],
       Package[$cobbler::packages::cobbler_package],]
   }
 
   file { '/etc/dnsmasq.upstream':
-    content => template("cobbler/dnsmasq.upstream.erb"),
+    content => template('cobbler/dnsmasq.upstream.erb'),
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
