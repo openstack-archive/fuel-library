@@ -41,29 +41,29 @@ $gem_source = "http://localhost/gems/",
   }
   file { "/var/log/remote":
     ensure => directory,
-    owner => 'root', 
+    owner => 'root',
     group => 'root',
     mode  => '0750',
   }
   file { "/var/www/nailgun/dump":
     ensure => directory,
-    owner => 'root', 
+    owner => 'root',
     group => 'root',
     mode  => '0755',
   }
 
-  file { "/etc/dhcp/dhcp-enter-hooks": 
-    content => template("nailgun/dhcp-enter-hooks.erb"), 
-    owner   => 'root', 
-    group   => 'root', 
-    mode    => '0755', 
+  file { "/etc/dhcp/dhcp-enter-hooks":
+    content => template("nailgun/dhcp-enter-hooks.erb"),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0755',
   }
 
-  file { "/etc/resolv.conf": 
-    content => template("nailgun/resolv.conf.erb"), 
-    owner   => 'root', 
-    group   => 'root', 
-    mode    => '0644', 
+  file { "/etc/resolv.conf":
+    content => template("nailgun/resolv.conf.erb"),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
   }
 
   file { '/etc/dhcp/dhclient.conf':
@@ -74,6 +74,11 @@ $gem_source = "http://localhost/gems/",
   }
 
   #Suppress kernel messages to console
-  sysctl::value{'kernel.printk': value=>'4 1 1 7'}
+  sysctl::value{'kernel.printk': value => '4 1 1 7'}
+
+  #Increase values for neighbour table
+  sysctl::value{'net.ipv4.neigh.default.gc_thresh1': value => '256'}
+  sysctl::value{'net.ipv4.neigh.default.gc_thresh2': value => '1024'}
+  sysctl::value{'net.ipv4.neigh.default.gc_thresh3': value => '2048'}
 
 }

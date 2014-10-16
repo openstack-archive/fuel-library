@@ -8,11 +8,13 @@ log-queries
 log-facility=/var/log/dnsmasq.log
 addn-hosts = /var/lib/cobbler/cobbler_hosts
 domain=<%= @domain_name %>
-dhcp-lease-max=1000
+dhcp-lease-max=<%= @dhcp_lease_max %>
 server=/<%= @domain_name %>/
 resolv-file=/etc/dnsmasq.upstream
 dhcp-match=gpxe,175
 interface=<%= @dhcp_interface %>
+
+cache-size=1024
 
 # This is one of the key options. dnsmasq tries to move out servername
 # and PXE filename from special fields into DHCP options.
@@ -28,7 +30,7 @@ dhcp-sequential-ip
 
 dhcp-option=6,<%= @name_server %>
 
-dhcp-range=internal,<%= @dhcp_start_address %>,<%= @dhcp_end_address %>,<%= @dhcp_netmask %>
+dhcp-range=internal,<%= @dhcp_start_address %>,<%= @dhcp_end_address %>,<%= @dhcp_netmask %>,<%= @lease_time %>
 dhcp-option=net:internal,option:router,<%= @dhcp_gateway %>
 pxe-service=net:#gpxe,x86PC,"Install",pxelinux,<%= @next_server %>
 dhcp-boot=net:internal,pxelinux.0,boothost,<%= @next_server %>
