@@ -1,0 +1,483 @@
+<cib epoch="622" num_updates="11" admin_epoch="0" validate-with="pacemaker-1.2" crm_feature_set="3.0.7" have-quorum="1" dc-uuid="node-1" cib-last-written="Wed Nov  5 10:54:20 2014" update-origin="node-2" update-client="cibadmin">
+  <configuration>
+    <crm_config>
+      <cluster_property_set id="cib-bootstrap-options">
+        <nvpair id="cib-bootstrap-options-dc-version" name="dc-version" value="1.1.10-42f2063"/>
+        <nvpair id="cib-bootstrap-options-cluster-infrastructure" name="cluster-infrastructure" value="classic openais (with plugin)"/>
+        <nvpair id="cib-bootstrap-options-expected-quorum-votes" name="expected-quorum-votes" value="3"/>
+        <nvpair id="cib-bootstrap-options-no-quorum-policy" name="no-quorum-policy" value="ignore"/>
+        <nvpair id="cib-bootstrap-options-stonith-enabled" name="stonith-enabled" value="false"/>
+        <nvpair id="cib-bootstrap-options-start-failure-is-fatal" name="start-failure-is-fatal" value="false"/>
+        <nvpair id="cib-bootstrap-options-symmetric-cluster" name="symmetric-cluster" value="false"/>
+        <nvpair id="cib-bootstrap-options-last-lrm-refresh" name="last-lrm-refresh" value="1415124915"/>
+      </cluster_property_set>
+    </crm_config>
+    <nodes>
+      <node id="node-1" uname="node-1">
+        <instance_attributes id="nodes-node-1">
+          <nvpair id="nodes-node-1-gtid" name="gtid" value="b65eb4b3-644a-11e4-afd3-9335a5b6ec3f:80680"/>
+        </instance_attributes>
+      </node>
+      <node id="node-2" uname="node-2">
+        <instance_attributes id="nodes-node-2">
+          <nvpair id="nodes-node-2-gtid" name="gtid" value="b65eb4b3-644a-11e4-afd3-9335a5b6ec3f:80645"/>
+        </instance_attributes>
+      </node>
+      <node id="node-3" uname="node-3"/>
+    </nodes>
+    <resources>
+      <primitive class="ocf" id="vip__public" provider="mirantis" type="ns_IPaddr2">
+        <instance_attributes id="vip__public-instance_attributes">
+          <nvpair id="vip__public-instance_attributes-nic" name="nic" value="br-ex"/>
+          <nvpair id="vip__public-instance_attributes-iflabel" name="iflabel" value="ka"/>
+          <nvpair id="vip__public-instance_attributes-iptables_comment" name="iptables_comment" value="masquerade-for-public-net"/>
+          <nvpair id="vip__public-instance_attributes-ns_veth" name="ns_veth" value="hapr-p"/>
+          <nvpair id="vip__public-instance_attributes-base_veth" name="base_veth" value="br-ex-hapr"/>
+          <nvpair id="vip__public-instance_attributes-cidr_netmask" name="cidr_netmask" value="24"/>
+          <nvpair id="vip__public-instance_attributes-gateway" name="gateway" value="link"/>
+          <nvpair id="vip__public-instance_attributes-iptables_stop_rules" name="iptables_stop_rules" value="iptables -t mangle -D PREROUTING -i br-ex-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o br-ex -j MASQUERADE"/>
+          <nvpair id="vip__public-instance_attributes-ns" name="ns" value="haproxy"/>
+          <nvpair id="vip__public-instance_attributes-iptables_start_rules" name="iptables_start_rules" value="iptables -t mangle -I PREROUTING -i br-ex-hapr -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o br-ex -j MASQUERADE"/>
+          <nvpair id="vip__public-instance_attributes-ip" name="ip" value="10.108.1.2"/>
+          <nvpair id="vip__public-instance_attributes-gateway_metric" name="gateway_metric" value="10"/>
+        </instance_attributes>
+        <meta_attributes id="vip__public-meta_attributes">
+          <nvpair id="vip__public-meta_attributes-migration-threshold" name="migration-threshold" value="3"/>
+          <nvpair id="vip__public-meta_attributes-failure-timeout" name="failure-timeout" value="60"/>
+          <nvpair id="vip__public-meta_attributes-resource-stickiness" name="resource-stickiness" value="1"/>
+        </meta_attributes>
+        <operations>
+          <op id="vip__public-monitor-3" interval="3" name="monitor" timeout="30"/>
+          <op id="vip__public-start-0" interval="0" name="start" timeout="30"/>
+          <op id="vip__public-stop-0" interval="0" name="stop" timeout="30"/>
+        </operations>
+      </primitive>
+      <clone id="clone_ping_vip__public">
+        <primitive class="ocf" id="ping_vip__public" provider="pacemaker" type="ping">
+          <instance_attributes id="ping_vip__public-instance_attributes">
+            <nvpair id="ping_vip__public-instance_attributes-dampen" name="dampen" value="30s"/>
+            <nvpair id="ping_vip__public-instance_attributes-timeout" name="timeout" value="3s"/>
+            <nvpair id="ping_vip__public-instance_attributes-multiplier" name="multiplier" value="1000"/>
+            <nvpair id="ping_vip__public-instance_attributes-host_list" name="host_list" value="10.108.1.1"/>
+          </instance_attributes>
+          <operations>
+            <op id="ping_vip__public-monitor-20" interval="20" name="monitor" timeout="30"/>
+          </operations>
+        </primitive>
+      </clone>
+      <primitive class="ocf" id="vip__management" provider="mirantis" type="ns_IPaddr2">
+        <instance_attributes id="vip__management-instance_attributes">
+          <nvpair id="vip__management-instance_attributes-nic" name="nic" value="br-mgmt"/>
+          <nvpair id="vip__management-instance_attributes-iflabel" name="iflabel" value="ka"/>
+          <nvpair id="vip__management-instance_attributes-iptables_comment" name="iptables_comment" value="masquerade-for-management-net"/>
+          <nvpair id="vip__management-instance_attributes-ns_veth" name="ns_veth" value="hapr-m"/>
+          <nvpair id="vip__management-instance_attributes-base_veth" name="base_veth" value="br-mgmt-hapr"/>
+          <nvpair id="vip__management-instance_attributes-cidr_netmask" name="cidr_netmask" value="24"/>
+          <nvpair id="vip__management-instance_attributes-gateway" name="gateway" value="link"/>
+          <nvpair id="vip__management-instance_attributes-iptables_stop_rules" name="iptables_stop_rules" value="iptables -t mangle -D PREROUTING -i br-mgmt-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o br-mgmt -j MASQUERADE"/>
+          <nvpair id="vip__management-instance_attributes-ns" name="ns" value="haproxy"/>
+          <nvpair id="vip__management-instance_attributes-iptables_start_rules" name="iptables_start_rules" value="iptables -t mangle -I PREROUTING -i br-mgmt-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o br-mgmt -j MASQUERADE"/>
+          <nvpair id="vip__management-instance_attributes-ip" name="ip" value="10.108.2.2"/>
+          <nvpair id="vip__management-instance_attributes-gateway_metric" name="gateway_metric" value="20"/>
+        </instance_attributes>
+        <meta_attributes id="vip__management-meta_attributes">
+          <nvpair id="vip__management-meta_attributes-migration-threshold" name="migration-threshold" value="3"/>
+          <nvpair id="vip__management-meta_attributes-failure-timeout" name="failure-timeout" value="60"/>
+          <nvpair id="vip__management-meta_attributes-resource-stickiness" name="resource-stickiness" value="1"/>
+        </meta_attributes>
+        <operations>
+          <op id="vip__management-monitor-3" interval="3" name="monitor" timeout="30"/>
+          <op id="vip__management-start-0" interval="0" name="start" timeout="30"/>
+          <op id="vip__management-stop-0" interval="0" name="stop" timeout="30"/>
+        </operations>
+      </primitive>
+      <master id="master_p_rabbitmq-server">
+        <meta_attributes id="master_p_rabbitmq-server-meta_attributes">
+          <nvpair id="master_p_rabbitmq-server-meta_attributes-notify" name="notify" value="true"/>
+          <nvpair id="master_p_rabbitmq-server-meta_attributes-master-node-max" name="master-node-max" value="1"/>
+          <nvpair id="master_p_rabbitmq-server-meta_attributes-ordered" name="ordered" value="false"/>
+          <nvpair id="master_p_rabbitmq-server-meta_attributes-target-role" name="target-role" value="Master"/>
+          <nvpair id="master_p_rabbitmq-server-meta_attributes-master-max" name="master-max" value="1"/>
+          <nvpair id="master_p_rabbitmq-server-meta_attributes-interleave" name="interleave" value="true"/>
+        </meta_attributes>
+        <primitive class="ocf" id="p_rabbitmq-server" provider="mirantis" type="rabbitmq-server">
+          <instance_attributes id="p_rabbitmq-server-instance_attributes">
+            <nvpair id="p_rabbitmq-server-instance_attributes-node_port" name="node_port" value="5673"/>
+          </instance_attributes>
+          <meta_attributes id="p_rabbitmq-server-meta_attributes">
+            <nvpair id="p_rabbitmq-server-meta_attributes-migration-threshold" name="migration-threshold" value="INFINITY"/>
+            <nvpair id="p_rabbitmq-server-meta_attributes-failure-timeout" name="failure-timeout" value="60s"/>
+          </meta_attributes>
+          <operations>
+            <op id="p_rabbitmq-server-promote-0" interval="0" name="promote" timeout="120"/>
+            <op id="p_rabbitmq-server-monitor-30" interval="30" name="monitor" timeout="60"/>
+            <op id="p_rabbitmq-server-start-0" interval="0" name="start" timeout="120"/>
+            <op id="p_rabbitmq-server-monitor-27" interval="27" name="monitor" role="Master" timeout="60"/>
+            <op id="p_rabbitmq-server-stop-0" interval="0" name="stop" timeout="60"/>
+            <op id="p_rabbitmq-server-notify-0" interval="0" name="notify" timeout="60"/>
+            <op id="p_rabbitmq-server-demote-0" interval="0" name="demote" timeout="60"/>
+          </operations>
+        </primitive>
+      </master>
+      <clone id="clone_p_neutron-plugin-openvswitch-agent">
+        <meta_attributes id="clone_p_neutron-plugin-openvswitch-agent-meta_attributes">
+          <nvpair id="clone_p_neutron-plugin-openvswitch-agent-meta_attributes-interleave" name="interleave" value="true"/>
+        </meta_attributes>
+        <primitive class="ocf" id="p_neutron-plugin-openvswitch-agent" provider="mirantis" type="neutron-agent-ovs">
+          <instance_attributes id="p_neutron-plugin-openvswitch-agent-instance_attributes">
+            <nvpair id="p_neutron-plugin-openvswitch-agent-instance_attributes-plugin_config" name="plugin_config" value="/etc/neutron/plugin.ini"/>
+          </instance_attributes>
+          <operations>
+            <op id="p_neutron-plugin-openvswitch-agent-monitor-20" interval="20" name="monitor" timeout="10"/>
+            <op id="p_neutron-plugin-openvswitch-agent-start-0" interval="0" name="start" timeout="80"/>
+            <op id="p_neutron-plugin-openvswitch-agent-stop-0" interval="0" name="stop" timeout="80"/>
+          </operations>
+        </primitive>
+      </clone>
+      <primitive class="ocf" id="p_neutron-dhcp-agent" provider="mirantis" type="neutron-agent-dhcp">
+        <instance_attributes id="p_neutron-dhcp-agent-instance_attributes">
+          <nvpair id="p_neutron-dhcp-agent-instance_attributes-os_auth_url" name="os_auth_url" value="http://10.108.2.2:35357/v2.0"/>
+          <nvpair id="p_neutron-dhcp-agent-instance_attributes-amqp_server_port" name="amqp_server_port" value="5673"/>
+          <nvpair id="p_neutron-dhcp-agent-instance_attributes-multiple_agents" name="multiple_agents" value="false"/>
+          <nvpair id="p_neutron-dhcp-agent-instance_attributes-password" name="password" value="7BqMhboS"/>
+          <nvpair id="p_neutron-dhcp-agent-instance_attributes-tenant" name="tenant" value="services"/>
+          <nvpair id="p_neutron-dhcp-agent-instance_attributes-username" name="username" value="undef"/>
+        </instance_attributes>
+        <meta_attributes id="p_neutron-dhcp-agent-meta_attributes">
+          <nvpair id="p_neutron-dhcp-agent-meta_attributes-resource-stickiness" name="resource-stickiness" value="1"/>
+        </meta_attributes>
+        <operations>
+          <op id="p_neutron-dhcp-agent-monitor-20" interval="20" name="monitor" timeout="10"/>
+          <op id="p_neutron-dhcp-agent-start-0" interval="0" name="start" timeout="60"/>
+          <op id="p_neutron-dhcp-agent-stop-0" interval="0" name="stop" timeout="60"/>
+        </operations>
+      </primitive>
+      <primitive id="p_heat-engine" class="ocf" provider="mirantis" type="heat-engine">
+        <meta_attributes id="p_heat-engine-meta_attributes">
+          <nvpair id="p_heat-engine-meta_attributes-resource-stickiness" name="resource-stickiness" value="1"/>
+        </meta_attributes>
+        <operations>
+          <op id="p_heat-engine-monitor-20" interval="20" name="monitor" timeout="30"/>
+          <op id="p_heat-engine-start-0" interval="0" name="start" timeout="60"/>
+          <op id="p_heat-engine-stop-0" interval="0" name="stop" timeout="60"/>
+        </operations>
+      </primitive>
+      <clone id="clone_p_neutron-metadata-agent">
+        <meta_attributes id="clone_p_neutron-metadata-agent-meta_attributes">
+          <nvpair id="clone_p_neutron-metadata-agent-meta_attributes-interleave" name="interleave" value="true"/>
+        </meta_attributes>
+        <primitive class="ocf" id="p_neutron-metadata-agent" provider="mirantis" type="neutron-agent-metadata">
+          <operations>
+            <op id="p_neutron-metadata-agent-monitor-60" interval="60" name="monitor" timeout="10"/>
+            <op id="p_neutron-metadata-agent-start-0" interval="0" name="start" timeout="30"/>
+            <op id="p_neutron-metadata-agent-stop-0" interval="0" name="stop" timeout="30"/>
+          </operations>
+        </primitive>
+      </clone>
+      <clone id="clone_p_neutron-l3-agent">
+        <meta_attributes id="clone_p_neutron-l3-agent-meta_attributes">
+          <nvpair id="clone_p_neutron-l3-agent-meta_attributes-interleave" name="interleave" value="true"/>
+        </meta_attributes>
+        <primitive class="ocf" id="p_neutron-l3-agent" provider="mirantis" type="neutron-agent-l3">
+          <instance_attributes id="p_neutron-l3-agent-instance_attributes">
+            <nvpair id="p_neutron-l3-agent-instance_attributes-os_auth_url" name="os_auth_url" value="http://10.108.2.2:35357/v2.0"/>
+            <nvpair id="p_neutron-l3-agent-instance_attributes-multiple_agents" name="multiple_agents" value="true"/>
+            <nvpair id="p_neutron-l3-agent-instance_attributes-syslog" name="syslog" value="true"/>
+            <nvpair id="p_neutron-l3-agent-instance_attributes-password" name="password" value="7BqMhboS"/>
+            <nvpair id="p_neutron-l3-agent-instance_attributes-plugin_config" name="plugin_config" value="/etc/neutron/l3_agent.ini"/>
+            <nvpair id="p_neutron-l3-agent-instance_attributes-debug" name="debug" value="true"/>
+            <nvpair id="p_neutron-l3-agent-instance_attributes-tenant" name="tenant" value="services"/>
+            <nvpair id="p_neutron-l3-agent-instance_attributes-username" name="username" value="undef"/>
+          </instance_attributes>
+          <operations>
+            <op id="p_neutron-l3-agent-monitor-20" interval="20" name="monitor" timeout="10"/>
+            <op id="p_neutron-l3-agent-start-0" interval="0" name="start" timeout="60"/>
+            <op id="p_neutron-l3-agent-stop-0" interval="0" name="stop" timeout="60"/>
+          </operations>
+        </primitive>
+      </clone>
+      <clone id="clone_p_mysql">
+        <primitive class="ocf" id="p_mysql" provider="mirantis" type="mysql-wss">
+          <instance_attributes id="p_mysql-instance_attributes">
+            <nvpair id="p_mysql-instance_attributes-socket" name="socket" value="/var/run/mysqld/mysqld.sock"/>
+            <nvpair id="p_mysql-instance_attributes-test_passwd" name="test_passwd" value="password"/>
+            <nvpair id="p_mysql-instance_attributes-test_user" name="test_user" value="wsrep_sst"/>
+          </instance_attributes>
+          <operations>
+            <op id="p_mysql-monitor-120" interval="120" name="monitor" timeout="115"/>
+            <op id="p_mysql-start-0" interval="0" name="start" timeout="475"/>
+            <op id="p_mysql-stop-0" interval="0" name="stop" timeout="175"/>
+          </operations>
+        </primitive>
+        <meta_attributes id="clone_p_mysql-meta_attributes">
+          <nvpair id="clone_p_mysql-meta_attributes-target-role" name="target-role" value="Started"/>
+        </meta_attributes>
+      </clone>
+      <primitive class="ocf" id="p_ceilometer-alarm-evaluator" provider="mirantis" type="ceilometer-alarm-evaluator">
+        <instance_attributes id="p_ceilometer-alarm-evaluator-instance_attributes">
+          <nvpair id="p_ceilometer-alarm-evaluator-instance_attributes-user" name="user" value="ceilometer"/>
+        </instance_attributes>
+        <meta_attributes id="p_ceilometer-alarm-evaluator-meta_attributes">
+          <nvpair id="p_ceilometer-alarm-evaluator-meta_attributes-target-role" name="target-role" value="stopped"/>
+        </meta_attributes>
+        <operations>
+          <op id="p_ceilometer-alarm-evaluator-monitor-20" interval="20" name="monitor" timeout="30"/>
+          <op id="p_ceilometer-alarm-evaluator-start-0" interval="0" name="start" timeout="360"/>
+          <op id="p_ceilometer-alarm-evaluator-stop-0" interval="0" name="stop" timeout="360"/>
+        </operations>
+      </primitive>
+      <primitive class="ocf" id="p_ceilometer-agent-central" provider="mirantis" type="ceilometer-agent-central">
+        <instance_attributes id="p_ceilometer-agent-central-instance_attributes">
+          <nvpair id="p_ceilometer-agent-central-instance_attributes-user" name="user" value="ceilometer"/>
+        </instance_attributes>
+        <meta_attributes id="p_ceilometer-agent-central-meta_attributes">
+          <nvpair id="p_ceilometer-agent-central-meta_attributes-target-role" name="target-role" value="stopped"/>
+          <nvpair id="p_ceilometer-agent-central-meta_attributes-resource-stickiness" name="resource-stickiness" value="1"/>
+        </meta_attributes>
+        <operations>
+          <op id="p_ceilometer-agent-central-monitor-20" interval="20" name="monitor" timeout="30"/>
+          <op id="p_ceilometer-agent-central-start-0" interval="0" name="start" timeout="360"/>
+          <op id="p_ceilometer-agent-central-stop-0" interval="0" name="stop" timeout="360"/>
+        </operations>
+      </primitive>
+      <clone id="clone_p_haproxy">
+        <meta_attributes id="clone_p_haproxy-meta_attributes">
+          <nvpair id="clone_p_haproxy-meta_attributes-interleave" name="interleave" value="true"/>
+        </meta_attributes>
+        <primitive class="ocf" id="p_haproxy" provider="mirantis" type="ns_haproxy">
+          <instance_attributes id="p_haproxy-instance_attributes">
+            <nvpair id="p_haproxy-instance_attributes-ns" name="ns" value="haproxy"/>
+          </instance_attributes>
+          <meta_attributes id="p_haproxy-meta_attributes">
+            <nvpair id="p_haproxy-meta_attributes-migration-threshold" name="migration-threshold" value="3"/>
+            <nvpair id="p_haproxy-meta_attributes-failure-timeout" name="failure-timeout" value="120"/>
+          </meta_attributes>
+          <operations>
+            <op id="p_haproxy-monitor-20" interval="20" name="monitor" timeout="10"/>
+            <op id="p_haproxy-start-0" interval="0" name="start" timeout="30"/>
+            <op id="p_haproxy-stop-0" interval="0" name="stop" timeout="30"/>
+          </operations>
+        </primitive>
+      </clone>
+    </resources>
+    <constraints>
+      <rsc_location id="loc_ping_vip__public" rsc="vip__public">
+        <rule boolean-op="or" id="loc_ping_vip__public-rule" score="-INFINITY">
+          <expression attribute="pingd" id="loc_ping_vip__public-expression" operation="not_defined"/>
+          <expression attribute="pingd" id="loc_ping_vip__public-expression-0" operation="lte" value="0"/>
+        </rule>
+      </rsc_location>
+      <rsc_location id="clone_ping_vip__public_on_node-1" node="node-1" rsc="clone_ping_vip__public" score="100"/>
+      <rsc_location id="vip__management_on_node-1" node="node-1" rsc="vip__management" score="100"/>
+      <rsc_colocation id="p_neutron-dhcp-agent-with-clone_p_neutron-plugin-openvswitch-agent" rsc="p_neutron-dhcp-agent" score="INFINITY" with-rsc="clone_p_neutron-plugin-openvswitch-agent"/>
+      <rsc_order first="clone_p_neutron-plugin-openvswitch-agent" id="p_neutron-dhcp-agent-after-clone_p_neutron-plugin-openvswitch-agent" score="INFINITY" then="p_neutron-dhcp-agent"/>
+      <rsc_location id="master_p_rabbitmq-server_on_node-1" node="node-1" rsc="master_p_rabbitmq-server" score="100"/>
+      <rsc_colocation id="vip_management-with-haproxy" rsc="vip__management" score="INFINITY" with-rsc="clone_p_haproxy"/>
+      <rsc_colocation id="vip_public-with-haproxy" rsc="vip__public" score="INFINITY" with-rsc="clone_p_haproxy"/>
+      <rsc_location id="p_neutron-dhcp-agent_on_node-1" node="node-1" rsc="p_neutron-dhcp-agent" score="100"/>
+      <rsc_location id="clone_p_neutron-l3-agent_on_node-1" node="node-1" rsc="clone_p_neutron-l3-agent" score="100"/>
+      <rsc_location id="clone_p_neutron-metadata-agent_on_node-1" node="node-1" rsc="clone_p_neutron-metadata-agent" score="100"/>
+      <rsc_location id="vip__public_on_node-1" node="node-1" rsc="vip__public" score="100"/>
+      <rsc_location id="clone_p_mysql_on_node-1" node="node-1" rsc="clone_p_mysql" score="100"/>
+      <rsc_location id="clone_p_haproxy_on_node-1" node="node-1" rsc="clone_p_haproxy" score="100"/>
+      <rsc_location id="clone_p_neutron-plugin-openvswitch-agent_on_node-1" node="node-1" rsc="clone_p_neutron-plugin-openvswitch-agent" score="100"/>
+      <rsc_location id="p_heat-engine_on_node-1" node="node-1" rsc="p_heat-engine" score="100"/>
+      <rsc_location id="vip__public_on_node-3" node="node-3" rsc="vip__public" score="100"/>
+      <rsc_location id="vip__public_on_node-2" node="node-2" rsc="vip__public" score="100"/>
+      <rsc_location id="clone_ping_vip__public_on_node-3" node="node-3" rsc="clone_ping_vip__public" score="100"/>
+      <rsc_location id="clone_ping_vip__public_on_node-2" node="node-2" rsc="clone_ping_vip__public" score="100"/>
+      <rsc_location id="vip__management_on_node-3" node="node-3" rsc="vip__management" score="100"/>
+      <rsc_location id="vip__management_on_node-2" node="node-2" rsc="vip__management" score="100"/>
+      <rsc_location id="clone_p_mysql_on_node-2" node="node-2" rsc="clone_p_mysql" score="100"/>
+      <rsc_location id="master_p_rabbitmq-server_on_node-2" node="node-2" rsc="master_p_rabbitmq-server" score="100"/>
+      <rsc_location id="clone_p_haproxy_on_node-2" node="node-2" rsc="clone_p_haproxy" score="100"/>
+    </constraints>
+  </configuration>
+  <status>
+    <node_state id="node-1" uname="node-1" in_ccm="true" crmd="online" join="member" expected="member" crm-debug-origin="do_state_transition">
+      <transient_attributes id="node-1">
+        <instance_attributes id="status-node-1">
+          <nvpair id="status-node-1-probe_complete" name="probe_complete" value="true"/>
+          <nvpair id="status-node-1-pingd" name="pingd" value="1000"/>
+          <nvpair id="status-node-1-master-p_rabbitmq-server" name="master-p_rabbitmq-server" value="1000"/>
+          <nvpair id="status-node-1-fail-count-p_neutron-dhcp-agent" name="fail-count-p_neutron-dhcp-agent" value="5"/>
+          <nvpair id="status-node-1-last-failure-p_neutron-dhcp-agent" name="last-failure-p_neutron-dhcp-agent" value="1415184394"/>
+          <nvpair id="status-node-1-fail-count-p_heat-engine" name="fail-count-p_heat-engine" value="5"/>
+          <nvpair id="status-node-1-last-failure-p_heat-engine" name="last-failure-p_heat-engine" value="1415184394"/>
+          <nvpair id="status-node-1-rabbit-master" name="rabbit-master" value="true"/>
+          <nvpair id="status-node-1-rabbit-start-time" name="rabbit-start-time" value="1415184397"/>
+        </instance_attributes>
+      </transient_attributes>
+      <lrm id="node-1">
+        <lrm_resources>
+          <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="neutron-agent-ovs" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_failure_0" operation_key="p_neutron-plugin-openvswitch-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="14:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;14:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="269" rc-code="0" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="17" queue-time="0" op-digest="424153f43b0852bb5bccdf71f34784d4"/>
+            <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_monitor_20000" operation_key="p_neutron-plugin-openvswitch-agent_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="56:95:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;56:95:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="272" rc-code="0" op-status="0" interval="20000" last-rc-change="1415124890" exec-time="18" queue-time="0" op-digest="cb8604dd2f221b4ea8d2b0670feb8819"/>
+          </lrm_resource>
+          <lrm_resource id="p_ceilometer-alarm-evaluator" type="ceilometer-alarm-evaluator" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_ceilometer-alarm-evaluator_last_0" operation_key="p_ceilometer-alarm-evaluator_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="8:32:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;8:32:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="102" rc-code="7" op-status="0" interval="0" last-run="1415123313" last-rc-change="1415123313" exec-time="9" queue-time="0" op-digest="0af7dfa5435ca11d7d668ed679515e13"/>
+          </lrm_resource>
+          <lrm_resource id="p_heat-engine" type="heat-engine" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_heat-engine_last_0" operation_key="p_heat-engine_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="62:648:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;62:648:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="456" rc-code="0" op-status="0" interval="0" last-run="1415184593" last-rc-change="1415184593" exec-time="8162" queue-time="0" op-digest="f2317cad3d54cec5d7d7aa7d0bf35cf8"/>
+            <lrm_rsc_op id="p_heat-engine_last_failure_0" operation_key="p_heat-engine_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="60:626:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="2:1;60:626:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="387" rc-code="1" op-status="2" interval="0" last-run="1415184334" last-rc-change="1415184334" exec-time="60001" queue-time="0" op-digest="f2317cad3d54cec5d7d7aa7d0bf35cf8"/>
+            <lrm_rsc_op id="p_heat-engine_monitor_20000" operation_key="p_heat-engine_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="64:649:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;64:649:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="459" rc-code="0" op-status="0" interval="20000" last-rc-change="1415184601" exec-time="20" queue-time="0" op-digest="02a5bcf940fc8d3239701acb11438d6a"/>
+          </lrm_resource>
+          <lrm_resource id="p_ceilometer-agent-central" type="ceilometer-agent-central" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_ceilometer-agent-central_last_0" operation_key="p_ceilometer-agent-central_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="8:33:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;8:33:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="107" rc-code="7" op-status="0" interval="0" last-run="1415123321" last-rc-change="1415123321" exec-time="9" queue-time="0" op-digest="0af7dfa5435ca11d7d668ed679515e13"/>
+          </lrm_resource>
+          <lrm_resource id="vip__management" type="ns_IPaddr2" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="vip__management_last_0" operation_key="vip__management_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="15:42:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;15:42:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="146" rc-code="0" op-status="0" interval="0" last-run="1415123419" last-rc-change="1415123419" exec-time="1225" queue-time="0" op-digest="88dd3ef5610eee85fdb12cf6731c0720"/>
+            <lrm_rsc_op id="vip__management_monitor_3000" operation_key="vip__management_monitor_3000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="16:42:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;16:42:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="158" rc-code="0" op-status="0" interval="3000" last-rc-change="1415123420" exec-time="2077" queue-time="0" op-digest="7e62e225befb35aa4e6bf834801d9954"/>
+          </lrm_resource>
+          <lrm_resource id="ping_vip__public" type="ping" class="ocf" provider="pacemaker">
+            <lrm_rsc_op id="ping_vip__public_last_0" operation_key="ping_vip__public_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="4:11:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;4:11:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="25" rc-code="0" op-status="0" interval="0" last-run="1415123088" last-rc-change="1415123088" exec-time="2009" queue-time="0" op-digest="606e53800773938f91e1c261bb4c725c"/>
+            <lrm_rsc_op id="ping_vip__public_monitor_20000" operation_key="ping_vip__public_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="5:11:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;5:11:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="28" rc-code="0" op-status="0" interval="20000" last-rc-change="1415123090" exec-time="2009" queue-time="0" op-digest="873bd0812a107843932917e76b49de81"/>
+          </lrm_resource>
+          <lrm_resource id="p_neutron-l3-agent" type="neutron-agent-l3" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-l3-agent_last_0" operation_key="p_neutron-l3-agent_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="72:101:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;72:101:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="311" rc-code="0" op-status="0" interval="0" last-run="1415124912" last-rc-change="1415124912" exec-time="1303" queue-time="0" op-digest="8c1166c16a3eccc28a06071394828564"/>
+            <lrm_rsc_op id="p_neutron-l3-agent_last_failure_0" operation_key="p_neutron-l3-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="14:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;14:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="292" rc-code="0" op-status="0" interval="0" last-run="1415124901" last-rc-change="1415124901" exec-time="25" queue-time="0" op-digest="8c1166c16a3eccc28a06071394828564"/>
+            <lrm_rsc_op id="p_neutron-l3-agent_monitor_20000" operation_key="p_neutron-l3-agent_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="72:102:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;72:102:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="317" rc-code="0" op-status="0" interval="20000" last-rc-change="1415124913" exec-time="49" queue-time="0" op-digest="c5692788618f2567fcca9a9865023acd"/>
+          </lrm_resource>
+          <lrm_resource id="p_neutron-metadata-agent" type="neutron-agent-metadata" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-metadata-agent_last_failure_0" operation_key="p_neutron-metadata-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="13:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;13:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="309" rc-code="0" op-status="0" interval="0" last-run="1415124912" last-rc-change="1415124912" exec-time="18" queue-time="0" op-digest="f2317cad3d54cec5d7d7aa7d0bf35cf8"/>
+            <lrm_rsc_op id="p_neutron-metadata-agent_monitor_60000" operation_key="p_neutron-metadata-agent_monitor_60000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="65:102:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;65:102:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="315" rc-code="0" op-status="0" interval="60000" last-rc-change="1415124913" exec-time="42" queue-time="0" op-digest="19240b0a103493c96459e91c1a816b50"/>
+          </lrm_resource>
+          <lrm_resource id="p_mysql" type="mysql-wss" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_mysql_last_0" operation_key="p_mysql_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="76:617:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;76:617:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="337" rc-code="0" op-status="0" interval="0" last-run="1415184199" last-rc-change="1415184199" exec-time="12137" queue-time="0" op-digest="af83dba8adcaf0e62865958e2b4993b7"/>
+            <lrm_rsc_op id="p_mysql_last_failure_0" operation_key="p_mysql_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="14:70:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;14:70:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="221" rc-code="0" op-status="0" interval="0" last-run="1415123879" last-rc-change="1415123879" exec-time="70" queue-time="0" op-digest="af83dba8adcaf0e62865958e2b4993b7"/>
+            <lrm_rsc_op id="p_mysql_monitor_120000" operation_key="p_mysql_monitor_120000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="78:618:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;78:618:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="340" rc-code="0" op-status="0" interval="120000" last-rc-change="1415184211" exec-time="57" queue-time="0" op-digest="a8b28e947b0d74f7953d47c509353648"/>
+          </lrm_resource>
+          <lrm_resource id="p_neutron-dhcp-agent" type="neutron-agent-dhcp" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-dhcp-agent_last_0" operation_key="p_neutron-dhcp-agent_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="59:630:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;59:630:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="414" rc-code="0" op-status="0" interval="0" last-run="1415184400" last-rc-change="1415184400" exec-time="4640" queue-time="0" op-digest="1b732a7fb883e1f6a419959b2aa29f92"/>
+            <lrm_rsc_op id="p_neutron-dhcp-agent_last_failure_0" operation_key="p_neutron-dhcp-agent_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="58:626:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="2:1;58:626:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="385" rc-code="1" op-status="2" interval="0" last-run="1415184334" last-rc-change="1415184334" exec-time="60002" queue-time="0" op-digest="1b732a7fb883e1f6a419959b2aa29f92"/>
+            <lrm_rsc_op id="p_neutron-dhcp-agent_monitor_20000" operation_key="p_neutron-dhcp-agent_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="60:630:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;60:630:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="424" rc-code="0" op-status="0" interval="20000" last-rc-change="1415184405" exec-time="35" queue-time="0" op-digest="1544ce43fe39b90e744ce887e1e691d6"/>
+          </lrm_resource>
+          <lrm_resource id="vip__public" type="ns_IPaddr2" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="vip__public_last_0" operation_key="vip__public_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="7:42:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;7:42:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="144" rc-code="0" op-status="0" interval="0" last-run="1415123419" last-rc-change="1415123419" exec-time="1196" queue-time="0" op-digest="c59062bf796f251f178e8646ea654950"/>
+            <lrm_rsc_op id="vip__public_monitor_3000" operation_key="vip__public_monitor_3000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="8:42:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;8:42:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="155" rc-code="0" op-status="0" interval="3000" last-rc-change="1415123420" exec-time="2085" queue-time="0" op-digest="11d7dbf9a56a20ff8834890f633710aa"/>
+          </lrm_resource>
+          <lrm_resource id="p_haproxy" type="ns_haproxy" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_haproxy_last_0" operation_key="p_haproxy_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="84:636:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;84:636:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="445" rc-code="0" op-status="0" interval="0" last-run="1415184446" last-rc-change="1415184446" exec-time="144" queue-time="0" op-digest="2a23892614b6b1d0f70ca66b073b5bc0"/>
+            <lrm_rsc_op id="p_haproxy_monitor_20000" operation_key="p_haproxy_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="10:636:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;10:636:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="448" rc-code="0" op-status="0" interval="20000" last-rc-change="1415184446" exec-time="53" queue-time="0" op-digest="3513c6578b2be63b3c075d885eb6ac8d"/>
+          </lrm_resource>
+          <lrm_resource id="p_rabbitmq-server" type="rabbitmq-server" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_rabbitmq-server_last_0" operation_key="p_rabbitmq-server_promote_0" operation="promote" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="28:629:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;28:629:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="404" rc-code="0" op-status="0" interval="0" last-run="1415184394" last-rc-change="1415184394" exec-time="3654" queue-time="0" op-digest="6f1cd990340e90d62b7efecdec17ba24"/>
+            <lrm_rsc_op id="p_rabbitmq-server_monitor_27000" operation_key="p_rabbitmq-server_monitor_27000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="28:630:8:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:8;28:630:8:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="412" rc-code="8" op-status="0" interval="27000" last-rc-change="1415184401" exec-time="1103" queue-time="0" op-digest="f81fdd633d61ff45f1dfcce00be7c955"/>
+          </lrm_resource>
+        </lrm_resources>
+      </lrm>
+    </node_state>
+    <node_state id="node-2" uname="node-2" crmd="online" crm-debug-origin="do_update_resource" in_ccm="true" join="member" expected="member">
+      <transient_attributes id="node-2">
+        <instance_attributes id="status-node-2">
+          <nvpair id="status-node-2-probe_complete" name="probe_complete" value="true"/>
+          <nvpair id="status-node-2-master-p_rabbitmq-server" name="master-p_rabbitmq-server" value="1"/>
+          <nvpair id="status-node-2-pingd" name="pingd" value="1000"/>
+          <nvpair id="status-node-2-rabbit-start-time" name="rabbit-start-time" value="1415184812"/>
+        </instance_attributes>
+      </transient_attributes>
+      <lrm id="node-2">
+        <lrm_resources>
+          <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="neutron-agent-ovs" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_0" operation_key="p_neutron-plugin-openvswitch-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="16:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;16:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="141" rc-code="7" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="29" queue-time="0" op-digest="424153f43b0852bb5bccdf71f34784d4"/>
+          </lrm_resource>
+          <lrm_resource id="p_ceilometer-alarm-evaluator" type="ceilometer-alarm-evaluator" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_ceilometer-alarm-evaluator_last_failure_0" operation_key="p_ceilometer-alarm-evaluator_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="26:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:5;26:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="51" rc-code="5" op-status="0" interval="0" last-run="1415123701" last-rc-change="1415123701" exec-time="1" queue-time="0" op-digest="0af7dfa5435ca11d7d668ed679515e13"/>
+          </lrm_resource>
+          <lrm_resource id="p_heat-engine" type="heat-engine" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_heat-engine_last_0" operation_key="p_heat-engine_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="16:103:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;16:103:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="174" rc-code="7" op-status="0" interval="0" last-run="1415124915" last-rc-change="1415124915" exec-time="11" queue-time="0" op-digest="f2317cad3d54cec5d7d7aa7d0bf35cf8"/>
+          </lrm_resource>
+          <lrm_resource id="p_ceilometer-agent-central" type="ceilometer-agent-central" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_ceilometer-agent-central_last_failure_0" operation_key="p_ceilometer-agent-central_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="27:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:5;27:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="55" rc-code="5" op-status="0" interval="0" last-run="1415123701" last-rc-change="1415123701" exec-time="0" queue-time="0" op-digest="0af7dfa5435ca11d7d668ed679515e13"/>
+          </lrm_resource>
+          <lrm_resource id="vip__management" type="ns_IPaddr2" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="vip__management_last_0" operation_key="vip__management_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="18:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;18:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="14" rc-code="7" op-status="0" interval="0" last-run="1415123701" last-rc-change="1415123701" exec-time="9" queue-time="0" op-digest="88dd3ef5610eee85fdb12cf6731c0720"/>
+          </lrm_resource>
+          <lrm_resource id="ping_vip__public" type="ping" class="ocf" provider="pacemaker">
+            <lrm_rsc_op id="ping_vip__public_last_0" operation_key="ping_vip__public_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="24:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;24:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="177" rc-code="0" op-status="0" interval="0" last-run="1415184705" last-rc-change="1415184705" exec-time="2012" queue-time="0" op-digest="606e53800773938f91e1c261bb4c725c"/>
+            <lrm_rsc_op id="ping_vip__public_monitor_20000" operation_key="ping_vip__public_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="25:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;25:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="180" rc-code="0" op-status="0" interval="20000" last-rc-change="1415184707" exec-time="2010" queue-time="0" op-digest="873bd0812a107843932917e76b49de81"/>
+          </lrm_resource>
+          <lrm_resource id="p_neutron-l3-agent" type="neutron-agent-l3" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-l3-agent_last_0" operation_key="p_neutron-l3-agent_stop_0" operation="stop" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="73:99:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;73:99:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="159" rc-code="0" op-status="0" interval="0" last-run="1415124901" last-rc-change="1415124901" exec-time="4289" queue-time="0" op-digest="8c1166c16a3eccc28a06071394828564"/>
+            <lrm_rsc_op id="p_neutron-l3-agent_last_failure_0" operation_key="p_neutron-l3-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="16:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;16:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="156" rc-code="0" op-status="0" interval="0" last-run="1415124901" last-rc-change="1415124901" exec-time="63" queue-time="0" op-digest="8c1166c16a3eccc28a06071394828564"/>
+          </lrm_resource>
+          <lrm_resource id="p_neutron-metadata-agent" type="neutron-agent-metadata" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-metadata-agent_last_0" operation_key="p_neutron-metadata-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="15:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;15:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="167" rc-code="7" op-status="0" interval="0" last-run="1415124912" last-rc-change="1415124912" exec-time="30" queue-time="0" op-digest="f2317cad3d54cec5d7d7aa7d0bf35cf8"/>
+          </lrm_resource>
+          <lrm_resource id="p_mysql" type="mysql-wss" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_mysql_last_0" operation_key="p_mysql_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="85:659:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;85:659:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="183" rc-code="0" op-status="0" interval="0" last-run="1415184750" last-rc-change="1415184750" exec-time="34103" queue-time="1" op-digest="af83dba8adcaf0e62865958e2b4993b7"/>
+            <lrm_rsc_op id="p_mysql_monitor_120000" operation_key="p_mysql_monitor_120000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="86:659:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;86:659:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="186" rc-code="0" op-status="0" interval="120000" last-rc-change="1415184784" exec-time="77" queue-time="0" op-digest="a8b28e947b0d74f7953d47c509353648"/>
+          </lrm_resource>
+          <lrm_resource id="p_neutron-dhcp-agent" type="neutron-agent-dhcp" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-dhcp-agent_last_0" operation_key="p_neutron-dhcp-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="15:97:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;15:97:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="148" rc-code="7" op-status="0" interval="0" last-run="1415124893" last-rc-change="1415124893" exec-time="20" queue-time="0" op-digest="1b732a7fb883e1f6a419959b2aa29f92"/>
+          </lrm_resource>
+          <lrm_resource id="vip__public" type="ns_IPaddr2" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="vip__public_last_0" operation_key="vip__public_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="16:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;16:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="5" rc-code="7" op-status="0" interval="0" last-run="1415123701" last-rc-change="1415123701" exec-time="14" queue-time="0" op-digest="c59062bf796f251f178e8646ea654950"/>
+          </lrm_resource>
+          <lrm_resource id="p_haproxy" type="ns_haproxy" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_haproxy_last_0" operation_key="p_haproxy_start_0" operation="start" crm-debug-origin="do_update_resource" crm_feature_set="3.0.7" transition-key="97:664:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;97:664:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="198" rc-code="0" op-status="0" interval="0" last-run="1415184860" last-rc-change="1415184860" exec-time="236" queue-time="0" op-digest="2a23892614b6b1d0f70ca66b073b5bc0"/>
+            <lrm_rsc_op id="p_haproxy_monitor_20000" operation_key="p_haproxy_monitor_20000" operation="monitor" crm-debug-origin="do_update_resource" crm_feature_set="3.0.7" transition-key="98:664:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;98:664:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="201" rc-code="0" op-status="0" interval="20000" last-rc-change="1415184861" exec-time="71" queue-time="0" op-digest="3513c6578b2be63b3c075d885eb6ac8d"/>
+          </lrm_resource>
+          <lrm_resource id="p_rabbitmq-server" type="rabbitmq-server" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_rabbitmq-server_last_0" operation_key="p_rabbitmq-server_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="38:661:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;38:661:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="189" rc-code="0" op-status="0" interval="0" last-run="1415184803" last-rc-change="1415184803" exec-time="5579" queue-time="0" op-digest="6f1cd990340e90d62b7efecdec17ba24"/>
+            <lrm_rsc_op id="p_rabbitmq-server_monitor_30000" operation_key="p_rabbitmq-server_monitor_30000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="40:662:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;40:662:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="195" rc-code="0" op-status="0" interval="30000" last-rc-change="1415184812" exec-time="459" queue-time="0" op-digest="f81fdd633d61ff45f1dfcce00be7c955"/>
+          </lrm_resource>
+        </lrm_resources>
+      </lrm>
+    </node_state>
+    <node_state id="node-3" uname="node-3" crmd="online" crm-debug-origin="do_state_transition" in_ccm="true" join="member" expected="member">
+      <transient_attributes id="node-3">
+        <instance_attributes id="status-node-3">
+          <nvpair id="status-node-3-probe_complete" name="probe_complete" value="true"/>
+          <nvpair id="status-node-3-master-p_rabbitmq-server" name="master-p_rabbitmq-server" value="0"/>
+          <nvpair id="status-node-3-pingd" name="pingd" value="1000"/>
+        </instance_attributes>
+      </transient_attributes>
+      <lrm id="node-3">
+        <lrm_resources>
+          <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="neutron-agent-ovs" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_0" operation_key="p_neutron-plugin-openvswitch-agent_stop_0" operation="stop" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="57:95:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;57:95:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="144" rc-code="0" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="34" queue-time="0" op-digest="424153f43b0852bb5bccdf71f34784d4"/>
+            <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_failure_0" operation_key="p_neutron-plugin-openvswitch-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="18:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;18:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="141" rc-code="0" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="20" queue-time="1" op-digest="424153f43b0852bb5bccdf71f34784d4"/>
+          </lrm_resource>
+          <lrm_resource id="p_ceilometer-alarm-evaluator" type="ceilometer-alarm-evaluator" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_ceilometer-alarm-evaluator_last_failure_0" operation_key="p_ceilometer-alarm-evaluator_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="40:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:5;40:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="51" rc-code="5" op-status="0" interval="0" last-run="1415123701" last-rc-change="1415123701" exec-time="1" queue-time="0" op-digest="0af7dfa5435ca11d7d668ed679515e13"/>
+          </lrm_resource>
+          <lrm_resource id="p_heat-engine" type="heat-engine" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_heat-engine_last_0" operation_key="p_heat-engine_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="18:103:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;18:103:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="174" rc-code="7" op-status="0" interval="0" last-run="1415124915" last-rc-change="1415124915" exec-time="14" queue-time="0" op-digest="f2317cad3d54cec5d7d7aa7d0bf35cf8"/>
+          </lrm_resource>
+          <lrm_resource id="p_ceilometer-agent-central" type="ceilometer-agent-central" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_ceilometer-agent-central_last_failure_0" operation_key="p_ceilometer-agent-central_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="41:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:5;41:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="55" rc-code="5" op-status="0" interval="0" last-run="1415123701" last-rc-change="1415123701" exec-time="0" queue-time="0" op-digest="0af7dfa5435ca11d7d668ed679515e13"/>
+          </lrm_resource>
+          <lrm_resource id="vip__management" type="ns_IPaddr2" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="vip__management_last_0" operation_key="vip__management_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="32:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;32:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="14" rc-code="7" op-status="0" interval="0" last-run="1415123701" last-rc-change="1415123701" exec-time="11" queue-time="0" op-digest="88dd3ef5610eee85fdb12cf6731c0720"/>
+          </lrm_resource>
+          <lrm_resource id="ping_vip__public" type="ping" class="ocf" provider="pacemaker">
+            <lrm_rsc_op id="ping_vip__public_last_0" operation_key="ping_vip__public_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="21:653:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;21:653:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="177" rc-code="0" op-status="0" interval="0" last-run="1415184703" last-rc-change="1415184703" exec-time="2011" queue-time="0" op-digest="606e53800773938f91e1c261bb4c725c"/>
+            <lrm_rsc_op id="ping_vip__public_monitor_20000" operation_key="ping_vip__public_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="23:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;23:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="180" rc-code="0" op-status="0" interval="20000" last-rc-change="1415184705" exec-time="2008" queue-time="0" op-digest="873bd0812a107843932917e76b49de81"/>
+          </lrm_resource>
+          <lrm_resource id="p_neutron-l3-agent" type="neutron-agent-l3" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-l3-agent_last_0" operation_key="p_neutron-l3-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="18:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;18:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="159" rc-code="7" op-status="0" interval="0" last-run="1415124900" last-rc-change="1415124900" exec-time="22" queue-time="0" op-digest="8c1166c16a3eccc28a06071394828564"/>
+          </lrm_resource>
+          <lrm_resource id="p_neutron-metadata-agent" type="neutron-agent-metadata" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-metadata-agent_last_0" operation_key="p_neutron-metadata-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="17:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;17:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="167" rc-code="7" op-status="0" interval="0" last-run="1415124912" last-rc-change="1415124912" exec-time="17" queue-time="0" op-digest="f2317cad3d54cec5d7d7aa7d0bf35cf8"/>
+          </lrm_resource>
+          <lrm_resource id="p_mysql" type="mysql-wss" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_mysql_last_0" operation_key="p_mysql_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="18:70:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;18:70:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="97" rc-code="7" op-status="0" interval="0" last-run="1415123879" last-rc-change="1415123879" exec-time="20039" queue-time="0" op-digest="af83dba8adcaf0e62865958e2b4993b7"/>
+          </lrm_resource>
+          <lrm_resource id="p_neutron-dhcp-agent" type="neutron-agent-dhcp" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_neutron-dhcp-agent_last_0" operation_key="p_neutron-dhcp-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="17:97:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;17:97:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="151" rc-code="7" op-status="0" interval="0" last-run="1415124893" last-rc-change="1415124893" exec-time="32" queue-time="0" op-digest="1b732a7fb883e1f6a419959b2aa29f92"/>
+          </lrm_resource>
+          <lrm_resource id="vip__public" type="ns_IPaddr2" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="vip__public_last_0" operation_key="vip__public_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="30:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;30:59:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="5" rc-code="7" op-status="0" interval="0" last-run="1415123701" last-rc-change="1415123701" exec-time="9" queue-time="0" op-digest="c59062bf796f251f178e8646ea654950"/>
+          </lrm_resource>
+          <lrm_resource id="p_haproxy" type="ns_haproxy" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_haproxy_last_0" operation_key="p_haproxy_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="18:91:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;18:91:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="133" rc-code="7" op-status="0" interval="0" last-run="1415124881" last-rc-change="1415124881" exec-time="80" queue-time="0" op-digest="2a23892614b6b1d0f70ca66b073b5bc0"/>
+          </lrm_resource>
+          <lrm_resource id="p_rabbitmq-server" type="rabbitmq-server" class="ocf" provider="mirantis">
+            <lrm_rsc_op id="p_rabbitmq-server_last_0" operation_key="p_rabbitmq-server_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="18:83:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;18:83:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="114" rc-code="7" op-status="0" interval="0" last-run="1415124527" last-rc-change="1415124527" exec-time="132" queue-time="0" op-digest="6f1cd990340e90d62b7efecdec17ba24"/>
+          </lrm_resource>
+        </lrm_resources>
+      </lrm>
+    </node_state>
+  </status>
+</cib>
