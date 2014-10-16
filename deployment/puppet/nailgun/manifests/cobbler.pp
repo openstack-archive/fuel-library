@@ -135,7 +135,7 @@ class nailgun::cobbler(
 
       cobbler_profile { "centos-x86_64":
         kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
-        kopts => "biosdevname=0 sshd=1",
+        kopts => "biosdevname=0 sshd=1 dhcptimeout=120",
         distro => "centos-x86_64",
         ksmeta => "",
         menu => true,
@@ -145,7 +145,7 @@ class nailgun::cobbler(
 
       cobbler_profile { "ubuntu_1204_x86_64":
         kickstart => "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed",
-        kopts => "netcfg/choose_interface=eth0",
+        kopts => "netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20",
         distro => "ubuntu_1204_x86_64",
         ksmeta => "",
         menu => true,
@@ -168,7 +168,7 @@ class nailgun::cobbler(
         distro => "bootstrap",
         menu => true,
         kickstart => "",
-        kopts => "biosdevname=0 url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts => "biosdevname=0 url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api mco_user=${mco_user} mco_pass=${mco_pass} dhcptimeout=120",
         ksmeta => "",
         server => $real_server,
         require => Cobbler_distro["bootstrap"],
