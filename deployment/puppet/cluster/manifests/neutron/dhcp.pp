@@ -13,6 +13,11 @@ class cluster::neutron::dhcp (
 
   require cluster::neutron
 
+  $dhcp_agent_package = $::neutron::params::dhcp_agent_package ? {
+    false   => $::neutron::params::package_name,
+    default => $::neutron::params::dhcp_agent_package,
+  }
+
   cluster::corosync::cs_service {'dhcp':
     ocf_script      => 'neutron-agent-dhcp',
     csr_parameters  => {
@@ -26,7 +31,7 @@ class cluster::neutron::dhcp (
     csr_mon_timeout => '10',
     csr_timeout     => '60',
     service_name    => $::neutron::params::dhcp_agent_service,
-    package         => $::neutron::params::dhcp_agent_package,
+    package_name    => $dhcp_agent_package,
     service_title   => 'neutron-dhcp-service',
     primary         => $primary,
     hasrestart      => false,
