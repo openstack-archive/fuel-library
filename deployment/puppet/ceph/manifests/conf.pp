@@ -58,8 +58,7 @@ class ceph::conf {
       creates => ['/root/ceph.bootstrap-mds.keyring',
                   '/root/ceph.bootstrap-osd.keyring',
                   '/root/ceph.client.admin.keyring',
-                  '/root/ceph.mon.keyring',
-                 ],
+                  '/root/ceph.mon.keyring',],
     }
 
     file {'/etc/ceph/ceph.client.admin.keyring':
