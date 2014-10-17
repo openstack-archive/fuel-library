@@ -174,6 +174,25 @@ class neutron::server (
     provider   => $::neutron::params::service_provider,
   }
 
+  # In Juno Neutron API ready for answer not yet when server starts.
+  exec {'waiting-for-neutron-api':
+    tries     => 30,
+    try_sleep => 4,
+    command   => "bash -c \"source /root/openrc ; neutron net-list\" 2>&1 > /dev/null",
+    path      => '/usr/sbin:/usr/bin:/sbin:/bin',
+    require   => File['/root/openrc']
+  }
+  Service['neutron-server'] -> Exec['waiting-for-neutron-api']
+  Exec['waiting-for-neutron-api'] -> Anchor['neutron-api-up']
+  Exec['waiting-for-neutron-api'] -> Service<| title == 'neutron-dhcp-service' |>
+  Exec['waiting-for-neutron-api'] -> Service<| title == 'neutron-l3' |>
+  Exec['waiting-for-neutron-api'] -> Service<| title == 'neutron-metadata-agent' |>   # it's not a mistake, for pacemakered
+  Exec['waiting-for-neutron-api'] -> Service<| title == 'p_neutron-metadata-agent' |> # and not services -- names are different
+  Exec['waiting-for-neutron-api'] -> Service<| title == 'neutron-ovs-agent-service' |>
+  Exec['waiting-for-neutron-api'] -> Neutron_net<||>
+  Exec['waiting-for-neutron-api'] -> Neutron_subnet<||>
+  Exec['waiting-for-neutron-api'] -> Neutron_router<||>
+
   anchor {'neutron-api-up':}
 
   Anchor['neutron-server'] ->
