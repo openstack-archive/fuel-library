@@ -71,6 +71,8 @@ class openstack::network::neutron_agents (
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>
     Service<| title == 'neutron-server' |> -> Service<| title == 'ovs-cleanup-service' |>
+    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-ovs-agent-service' |>
+
     if $ha_agents {
       class {'cluster::neutron::ovs':
         primary => $ha_agents ? { 'primary' => true, default => false},
@@ -123,6 +125,7 @@ class openstack::network::neutron_agents (
     #}
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>
     Service<| title == 'neutron-server' |> -> Service<| title == 'ovs-cleanup-service' |>
+    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-ovs-agent-service' |>
 
     if $ha_agents {
       class {'cluster::neutron::ovs':
@@ -159,6 +162,7 @@ class openstack::network::neutron_agents (
 
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-metadata' |>
+    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-metadata' |>
     if $ha_agents {
       class {'cluster::neutron::metadata':
           primary => $ha_agents ? { 'primary' => true, default => false},
@@ -177,6 +181,7 @@ class openstack::network::neutron_agents (
       enabled         => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-dhcp-service' |>
+    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-dhcp-service' |>
     if $ha_agents {
       class {'cluster::neutron::dhcp':
         ha_agents         => $agents,
@@ -201,6 +206,7 @@ class openstack::network::neutron_agents (
       enabled                 => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-l3' |>
+    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-l3' |>
     if $ha_agents {
       # Yes, l3 is supposed to be a defined resource, this will become
       # necessary when we start supporting multiple external routers.
