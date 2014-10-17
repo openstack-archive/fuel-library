@@ -143,7 +143,7 @@ class osnailyfacter::cluster_ha {
   $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 
   $vips = { # Do not convert to ARRAY, It can't work in 2.7
-    management_old   => {
+    management   => {
       namespace            => 'haproxy',
       nic                  => $::internal_int,
       base_veth            => "${::internal_int}-hapr",
@@ -161,7 +161,7 @@ class osnailyfacter::cluster_ha {
   }
 
   if $::public_int {
-    $vips[public_old] = {
+    $vips[public] = {
       namespace            => 'haproxy',
       nic                  => $::public_int,
       base_veth            => "${::public_int}-hapr",
