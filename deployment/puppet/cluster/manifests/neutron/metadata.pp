@@ -6,6 +6,11 @@ class cluster::neutron::metadata (
 
   require cluster::neutron
 
+  $metadata_agent_package = $::neutron::params::metadata_agent_package ? {
+    false   => $::neutron::params::package_name,
+    default => $::neutron::params::metadata_agent_package,
+  }
+
   cluster::corosync::cs_service {'neutron-metadata-agent':
     ocf_script          => 'neutron-agent-metadata',
     csr_multistate_hash => { 'type' => 'clone' },
@@ -14,7 +19,7 @@ class cluster::neutron::metadata (
     csr_mon_timeout     => '10',
     csr_timeout         => '30',
     service_name        => $::neutron::params::metadata_agent_service,
-    package             => $::neutron::params::metadata_agent_package,
+    package_name        => $metadata_agent_package,
     service_title       => 'neutron-metadata',
     primary             => $primary,
   }
