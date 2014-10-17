@@ -4,6 +4,7 @@ define cluster::corosync::cs_service (
   $ocf_script,
   $service_name,
   $service_title = undef,  # Title of Service, that been mangled for pacemakering
+  $package_name  = undef,
   $csr_multistate_hash = undef,
   $csr_ms_metadata = undef,
   $csr_parameters = undef,
@@ -12,13 +13,14 @@ define cluster::corosync::cs_service (
   $csr_mon_timeout = 20,
   $csr_timeout = 60,
   $mangle_real_service = true,
-  $service_alias = undef,
-  $package = false,
   $primary = true,
   $hasrestart = true,
   )
 {
-  $service_true_title = $service_title ? { undef => $service_name, default => $service_title }
+  $service_true_title = $service_title ? {
+    undef => $service_name,
+    default => $service_title
+  }
 
   # OCF script for pacemaker
   file {$ocf_script:
@@ -67,21 +69,28 @@ define cluster::corosync::cs_service (
       hasstatus  => true,
       hasrestart => true
     }
-    Package <| title == $package |> -> Service["${service_name}-disable-init"]
     Service["${service_name}-disable-init"] -> Service["${service_true_title}"]
-  }
 
-  # Ubuntu packages like to auto-start, this is annoying and makes it harder
-  # to put them under pacemaker. In these cases, we need to inject the
-  # override file before the package is installed. When upstart sees this it
-  # will cause it to ignore the autostart that the service might of had.
-  if $::operatingsystem == 'Ubuntu' and $package {
-    file {"/etc/init/${service_name}.override":
-      replace => 'no',
-      ensure  => present,
-      content => 'manual',
-      mode    => '0644'
-    } -> Package <| title == $package |>
+    # In this IF used Package[$package_name] notation, because $package_name incoming parameter may be array.
+    if ! $package_name {
+      warning("Cluster::cs_service: Without package definition can't mangle service correctly.")
+    } else {
+      if $::operatingsystem == 'Ubuntu' {
+        # Ubuntu packages like to auto-start, this is annoying and makes it harder
+        # to put them under pacemaker. In these cases, we need to inject the
+        # override file before the package is installed. When upstart sees this it
+        # will cause it to ignore the autostart that the service might of had.
+        file {"/etc/init/${service_name}.override":
+          replace => 'no',
+          ensure  => present,
+          content => 'manual',
+          mode    => '0644'
+        }
+        File["/etc/init/${service_name}.override"] -> Package[$package_name]
+      }
+      # Service SHOULD be found just by spaceship operation
+      Package[$package_name] -> Service<| title == "${service_name}-disable-init" |>
+    }
   }
 
   Service<| title=="${service_true_title}" |> {
@@ -92,6 +101,8 @@ define cluster::corosync::cs_service (
     hasrestart => $hasrestart,
     provider   => "pacemaker",
   }
+  # This here, because it should be found AFTER previous Service.
+  # DO NOT change this order, or put this under any IF
   Service<| title=="${service_name}-disable-init" |> {
     name       => $service_name,
   }
