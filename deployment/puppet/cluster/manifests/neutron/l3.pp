@@ -17,6 +17,11 @@ define cluster::neutron::l3 (
 
   require cluster::neutron
 
+  $l3_agent_package = $::neutron::params::l3_agent_package ? {
+    false   => $::neutron::params::package_name,
+    default => $::neutron::params::l3_agent_package,
+  }
+
   cluster::corosync::cs_service {'l3':
     ocf_script      => 'neutron-agent-l3',
     csr_parameters  => {
@@ -33,7 +38,7 @@ define cluster::neutron::l3 (
     csr_mon_timeout => '10',
     csr_timeout     => '60',
     service_name    => $::neutron::params::l3_agent_service,
-    package         => $::neutron::params::l3_agent_package,
+    package_name    => $l3_agent_package,
     service_title   => 'neutron-l3',
     primary         => $primary,
     hasrestart      => false,
