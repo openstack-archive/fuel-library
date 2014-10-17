@@ -442,6 +442,8 @@ on packages update": }
       api_bind_address     => $internal_address,
       auth_host            => $service_endpoint,
       ratelimits           => $nova_rate_limits,
+      # NOTE(bogdando) 1 api worker for compute node is enough
+      osapi_compute_workers => 1,
     }
 
     if ! $fixed_range {
