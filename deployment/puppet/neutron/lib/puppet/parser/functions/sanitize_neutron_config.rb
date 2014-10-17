@@ -187,13 +187,13 @@ class MrntNeutron
   end
 
   def get_bridge_name(bb)
-    #todo: Import bridge names from network-roles
+    roles = @fuel_config[:network_scheme][:roles]
     case bb
-      when 'management'  then 'br-mgmt'
-      when 'public'  then 'br-ex'
-      when 'private' then 'br-prv'
-      when 'tunnel'  then 'br-tun'
-      when 'integration' then 'br-int'
+      when 'management'  then roles[:management]
+      when 'public'  then roles[:ex]
+      when 'private' then roles[:private]
+      when 'tunnel'  then roles[:neutron-tunnel-bridge]
+      when 'integration' then roles[:neutron-integration-bridge]
     end
   end
 
