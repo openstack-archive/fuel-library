@@ -148,6 +148,15 @@ class openstack::network (
         rabbit_password         => $amqp_password,
         kombu_reconnect_delay   => '5.0',
       }
+      # In Juno Neutron API ready for answer not yet when server starts.
+      @exec {'waiting-for-neutron-api':
+        tries     => 30,
+        try_sleep => 4,
+        onlyif    => "test -r /root/openrc",
+        command   => "bash -c \"source /root/openrc ; neutron net-list\" 2>&1 > /dev/null",
+        path      => '/usr/sbin:/usr/bin:/sbin:/bin',
+        require   => File<| name == '/root/openrc' |>
+      }
 
       if $nova_neutron {
         class {'nova::network::neutron':
@@ -197,6 +206,10 @@ class openstack::network (
           nova_admin_tenant_name  => 'services', # Default
           nova_admin_password     => $nova_admin_password,
         }
+        Service['neutron-server'] -> Exec<| title == 'waiting-for-neutron-api' |>
+        Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_network<||>
+        Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_subnet<||>
+        Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_router<||>
       }
 
       if $agents {
