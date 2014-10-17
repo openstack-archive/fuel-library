@@ -37,7 +37,7 @@ OCF_RESKEY_binary_default="nova-compute"
 OCF_RESKEY_config_default="/etc/nova/nova.conf"
 OCF_RESKEY_user_default="nova"
 OCF_RESKEY_pid_default="/var/run/nova/nova-compute.pid"
-OCF_RESKEY_amqp_server_port_default="5672"
+OCF_RESKEY_amqp_server_port_default="5673"
 OCF_RESKEY_zeromq_default="false"
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
