@@ -382,8 +382,10 @@ class osnailyfacter::cluster_simple {
           #     communicates with 'system' RabbitMQ and uses oslo.messaging.
           murano_rabbit_host       => $controller_node_public,
           murano_rabbit_ha_hosts   => $amqp_hosts,
-          murano_rabbit_login      => 'murano',
-          murano_rabbit_password   => $heat_hash['rabbit_password'],
+          murano_os_rabbit_userid  => $rabbit_hash['user'],
+          murano_os_rabbit_passwd  => $rabbit_hash['password'],
+          murano_own_rabbit_userid => 'murano',
+          murano_own_rabbit_passwd => $heat_hash['rabbit_password'],
 
           murano_db_host           => $controller_node_address,
           murano_db_password       => $murano_hash['db_password'],
