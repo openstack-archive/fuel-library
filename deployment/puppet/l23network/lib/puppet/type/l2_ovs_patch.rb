@@ -42,7 +42,7 @@ Puppet::Type.newtype(:l2_ovs_patch) do
     #   desc "Allow to skip existing bond"
     # end
 
-    newparam(:tags, :array_matching => :all) do
+    newparam(:vlan_ids, :array_matching => :all) do
       defaultto([0,0])
       desc "Array of 802.1q tag for ends."
       #

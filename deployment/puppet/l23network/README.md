@@ -256,14 +256,14 @@ In example above we create two ports with tags 10 and 20, and assign IP address 
         bridge  => 'bridge0',
         type    => 'internal',
         port_properties => [
-            'tag=10'
+            'vlan_id=10'
         ],
     } ->
     l23network::l2::port{'vl20':
         bridge  => 'bridge0',
         type    => 'internal',
         port_properties => [
-            'tag=20'
+            'vlan_id=20'
         ],
     } ->
     l23network::l3::ifconfig {'vl10':
