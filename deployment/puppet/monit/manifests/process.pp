@@ -19,7 +19,6 @@ define monit::process(
 ) {
 
   include monit
-  $servicep = $::monit::params::servicep
   $included = $::monit::params::included
 
   file { "${included}/${name}" :
