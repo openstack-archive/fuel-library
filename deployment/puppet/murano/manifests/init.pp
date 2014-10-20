@@ -56,7 +56,7 @@ class murano (
 
   Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::apps'] -> Class['murano::dashboard'] -> Class['murano::cirros']
 
-  User['murano'] -> Class['murano::api']
+  User['murano'] -> Class['murano::api'] -> File <| title == $murano_log_dir |>
 
   $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
 
@@ -91,7 +91,7 @@ class murano (
     ensure => directory,
     owner  => 'murano',
     group  => 'murano',
-    mode   => '0755',
+    mode   => '0750',
   }
 
   class { 'murano::db::mysql':
