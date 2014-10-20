@@ -653,8 +653,11 @@ class osnailyfacter::cluster_ha {
           murano_rabbit_host       => $::fuel_settings['public_vip'],
           murano_rabbit_ha_hosts   => $amqp_hosts,
           murano_rabbit_ha_queues  => $rabbit_ha_queues,
-          murano_rabbit_login      => 'murano',
-          murano_rabbit_password   => $heat_hash['rabbit_password'],
+          murano_os_rabbit_userid  => $rabbit_hash['user'],
+          murano_os_rabbit_passwd  => $rabbit_hash['password'],
+          murano_own_rabbit_login  => 'murano',
+          murano_own_rabbit_passwd => $heat_hash['rabbit_password'],
+
 
           murano_db_host           => $::fuel_settings['management_vip'],
           murano_db_password       => $murano_hash['db_password'],
