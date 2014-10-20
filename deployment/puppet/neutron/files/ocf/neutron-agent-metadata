@@ -240,7 +240,7 @@ neutron_metadata_agent_start() {
     # run and detach to background Neutron-metadata-agent as daemon.
     # Don't use ocf_run as we're sending the tool's output
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-        --config-file=$OCF_RESKEY_agent_config $OCF_RESKEY_additional_parameters \
+        --config-file=$OCF_RESKEY_agent_config $OCF_RESKEY_additional_parameters --log-file=$OCF_RESKEY_log_file \
         >> ${OCF_RESKEY_log_file}"' 2>&1 &'
 
     # Spin waiting for the server to come up.
