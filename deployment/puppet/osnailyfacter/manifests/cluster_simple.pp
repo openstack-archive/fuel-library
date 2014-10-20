@@ -336,7 +336,7 @@ class osnailyfacter::cluster_simple {
 
       if $sahara_hash['enabled'] {
         class { 'sahara' :
-          sahara_api_host            => $controller_node_address,
+          sahara_api_host            => $controller_node_public,
 
           sahara_db_password         => $sahara_hash['db_password'],
           sahara_db_host             => $controller_node_address,
