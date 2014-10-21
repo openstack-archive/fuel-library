@@ -19,7 +19,7 @@ OCF_RESKEY_ctl_default="/usr/sbin/rabbitmqctl"
 OCF_RESKEY_debug_default=false
 OCF_RESKEY_username_default="rabbitmq"
 OCF_RESKEY_groupname_default="rabbitmq"
-OCF_RESKEY_pid_file_default=/var/run/rabbitmq/pid
+OCF_RESKEY_pid_file_default="${HA_RSCTMP}/p_${__SCRIPT_NAME}/p_${__SCRIPT_NAME}.pid"
 OCF_RESKEY_log_dir_default=/var/log/rabbitmq
 OCF_RESKEY_mnesia_base_default=/var/lib/rabbitmq/mnesia
 OCF_RESKEY_node_port_default=5672
@@ -242,6 +242,18 @@ rmq_setup_env() {
     MNESIA_FILES="${OCF_RESKEY_mnesia_base}/rabbit@${H}"
     RMQ_START_TIME="${MNESIA_FILES}/ocf_server_start_time.txt"
     MASTER_FLAG_FILE="${MNESIA_FILES}/ocf_master_for_${OCF_RESOURCE_INSTANCE}"
+    # check for user and group
+    getent passwd $OCF_RESKEY_username >/dev/null 2>&1
+    if [ ! $? -eq 0 ]; then
+        ocf_log err "User $OCF_RESKEY_username doesn't exit";
+        return $OCF_ERR_INSTALLED;
+    fi
+
+    getent group $OCF_RESKEY_groupname >/dev/null 2>&1
+    if [ ! $? -eq 0 ]; then
+        ocf_log err "Group $OCF_RESKEY_groupname doesn't exist";
+        return $OCF_ERR_INSTALLED;
+    fi
     # check and make PID file dir
     local PID_DIR=$( dirname $OCF_RESKEY_pid_file )
     if [ ! -d ${PID_DIR} ] ; then
