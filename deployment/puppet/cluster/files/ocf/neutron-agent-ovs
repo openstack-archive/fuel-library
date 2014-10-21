@@ -36,7 +36,7 @@ OCF_RESKEY_binary_default="neutron-openvswitch-agent"
 OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
 OCF_RESKEY_plugin_config_default="/etc/neutron/plugin.ini"
 OCF_RESKEY_user_default="neutron"
-OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_amqp_server_port_default="5672"
 OCF_RESKEY_segmentation_bridge_default="br-tun"
 OCF_RESKEY_log_file_default="/var/log/neutron/openvswitch-agent.log"
@@ -264,6 +264,13 @@ cleanup_agents_ovs_bridges() {
 
 neutron_ovs_agent_start() {
     local rc
+    # check and make PID file dir
+    local PID_DIR="$( dirname $OCF_RESKEY_pid )"
+    if [ ! -d "${PID_DIR}" ] ; then
+        mkdir -p "${PID_DIR}"
+        chown -R ${OCF_RESKEY_user} "${PID_DIR}"
+        chmod 755 "${PID_DIR}"
+    fi
 
     neutron_ovs_agent_status
     rc=$?
