@@ -40,7 +40,7 @@ OCF_RESKEY_keystone_config_default="/etc/keystone/keystone.conf"
 OCF_RESKEY_plugin_config_default="/etc/neutron/dhcp_agent.ini"
 OCF_RESKEY_log_file_default="/var/log/neutron/dhcp-agent.log"
 OCF_RESKEY_user_default="neutron"
-OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_amqp_server_port_default="5672" # or "none" for disable checking
 OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
 OCF_RESKEY_username_default="neutron"
@@ -305,6 +305,15 @@ neutron_dhcp_agent_status() {
     local f_pid
     local rc
 
+    # check and make PID file dir
+    local PID_DIR="$( dirname ${OCF_RESKEY_pid} )"
+    if [ ! -d "${PID_DIR}" ] ; then
+        ocf_log debug "Create pid file dir: ${PID_DIR} and chown to ${OCF_RESKEY_user}"
+        mkdir -p "${PID_DIR}"
+        chown -R ${OCF_RESKEY_user} "${PID_DIR}"
+        chmod 755 "${PID_DIR}"
+    fi
+
     pid=`get_worker_pid`
     if [ "xxx$pid" == "xxx" ] ; then
         ocf_log warn "OpenStack Neutron agent '$OCF_RESKEY_binary' not running."
@@ -439,10 +448,11 @@ neutron_dhcp_agent_start() {
     clean_up_namespaces
 
     # run and detach to background agent as daemon.
-    # Don't use ocf_run as we're sending the tool's output
+    # Don't use ocf_run as we're sending the tool's output to /dev/null
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
         --config-file=$OCF_RESKEY_plugin_config --log-file=$OCF_RESKEY_log_file $OCF_RESKEY_additional_parameters \
         >> /dev/null"' 2>&1 & echo \$! > $OCF_RESKEY_pid'
+    ocf_log debug "Create pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
@@ -536,6 +546,7 @@ neutron_dhcp_agent_stop() {
     fi
     ocf_log info "OpenStack DHCP Agent (${OCF_RESKEY_binary}) stopped"
 
+    ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid
 
 #   cleanup network interfaces
