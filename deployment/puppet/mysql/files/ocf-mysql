@@ -71,7 +71,7 @@ if [ "X${HOSTOS}" = "XOpenBSD" ];then
 	OCF_RESKEY_user_default="_mysql"
 	OCF_RESKEY_group_default="_mysql"
 	OCF_RESKEY_log_default="/var/log/mysqld.log"
-	OCF_RESKEY_pid_default="/var/mysql/mysqld.pid"
+        OCF_RESKEY_pid_default="${HA_RSCTMP}/p_${__SCRIPT_NAME}/p_${__SCRIPT_NAME}.pid"
 	OCF_RESKEY_socket_default="/var/run/mysql/mysql.sock"
 else
 	if [ "$OCF_RESKEY_binary_default" = "" ]; then
@@ -82,7 +82,7 @@ else
 	OCF_RESKEY_user_default="mysql"
 	OCF_RESKEY_group_default="mysql"
 	OCF_RESKEY_log_default="/var/log/mysqld.log"
-	OCF_RESKEY_pid_default="/var/run/mysql/mysqld.pid"
+        OCF_RESKEY_pid_default="${HA_RSCTMP}/p_${__SCRIPT_NAME}/p_${__SCRIPT_NAME}.pid"
 	OCF_RESKEY_socket_default="/var/lib/mysql/mysql.sock"
 fi
 OCF_RESKEY_client_binary_default="mysql"
