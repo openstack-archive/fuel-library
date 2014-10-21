@@ -19,7 +19,7 @@ OCF_RESKEY_ctl_default="/usr/sbin/rabbitmqctl"
 OCF_RESKEY_debug_default=false
 OCF_RESKEY_username_default="rabbitmq"
 OCF_RESKEY_groupname_default="rabbitmq"
-OCF_RESKEY_pid_file_default=/var/run/rabbitmq/pid
+OCF_RESKEY_pid_file_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_log_dir_default=/var/log/rabbitmq
 OCF_RESKEY_mnesia_base_default=/var/lib/rabbitmq/mnesia
 OCF_RESKEY_node_port_default=5672
@@ -242,12 +242,17 @@ rmq_setup_env() {
     MNESIA_FILES="${OCF_RESKEY_mnesia_base}/rabbit@${H}"
     RMQ_START_TIME="${MNESIA_FILES}/ocf_server_start_time.txt"
     MASTER_FLAG_FILE="${MNESIA_FILES}/ocf_master_for_${OCF_RESOURCE_INSTANCE}"
-    # check and make PID file dir
-    local PID_DIR=$( dirname $OCF_RESKEY_pid_file )
-    if [ ! -d ${PID_DIR} ] ; then
-        mkdir -p ${PID_DIR}
-        chown -R ${OCF_RESKEY_username}:${OCF_RESKEY_groupname} ${PID_DIR}
-        chmod 755 ${PID_DIR}
+    # check for user and group
+    getent passwd $OCF_RESKEY_username >/dev/null 2>&1
+    if [ ! $? -eq 0 ]; then
+        ocf_log err "User ${OCF_RESKEY_username} doesn't exit";
+        return $OCF_ERR_INSTALLED;
+    fi
+
+    getent group $OCF_RESKEY_groupname >/dev/null 2>&1
+    if [ ! $? -eq 0 ]; then
+        ocf_log err "Group ${OCF_RESKEY_groupname} doesn't exist";
+        return $OCF_ERR_INSTALLED;
     fi
     export LL="${OCF_RESOURCE_INSTANCE}:"
 }
@@ -361,6 +366,7 @@ kill_rmq_and_remove_pid() {
             ocf_run kill -9 $pid
             ocf_log warn "${LH} RMQ-runtime (beam) PID=${pid} stopped by 'kill -9', sorry..."
         fi
+        ocf_log debug "Delete pid file: ${OCF_RESKEY_pid_file} with content ${pid}"
         ocf_run rm -f $OCF_RESKEY_pid_file
     fi
 }
@@ -575,11 +581,13 @@ start_beam_process() {
                 return $OCF_ERR_GENERIC
             fi
         fi
-        ocf_run rm -rf $OCF_RESKEY_pid_file
+        ocf_log debug "Delete pid file: ${OCF_RESKEY_pid_file} with content ${pid})"
+        ocf_run rm -f $OCF_RESKEY_pid_file
     fi
 
     # run beam process
-    RABBITMQ_NODE_ONLY=1 ${OCF_RESKEY_binary} > "${OCF_RESKEY_log_dir}/startup_log" 2>/dev/null &
+    RABBITMQ_NODE_ONLY=1 ${OCF_RESKEY_binary} > "${OCF_RESKEY_log_dir}/startup_log"' 2>/dev/null & echo $!' > $OCF_RESKEY_pid_file
+    ocf_log debug "Create pid file: ${OCF_RESKEY_pid_file} with content $(cat ${OCF_RESKEY_pid_file})"
     ts_end=$(( $(now) + ${OCF_RESKEY_start_time} ))
     rc=$OCF_ERR_GENERIC
     while [ $(now) -lt ${ts_end} ]; do
@@ -753,10 +761,34 @@ get_status() {
     local rc
     local body
 
+    # check and make PID file dir
+    local PID_DIR="$( dirname ${OCF_RESKEY_pid_file} )"
+    if [ ! -d ${PID_DIR} ] ; then
+        ocf_log debug "Create pid file dir: ${PID_DIR} and chown to ${OCF_RESKEY_username}:${OCF_RESKEY_groupname}"
+        mkdir -p ${PID_DIR}
+        chown -R ${OCF_RESKEY_username}:${OCF_RESKEY_groupname} ${PID_DIR}
+        chmod 755 ${PID_DIR}
+    fi
+
+    if [ ! -f $OCF_RESKEY_pid_file ]; then
+        ocf_log info "RabbitMQ is not running"
+        return $OCF_NOT_RUNNING
+    else
+        pid=`cat $OCF_RESKEY_pid_file`
+    fi
+
+    if [ -n "${pid}" ]; then
+      ocf_run -warn kill -s 0 $pid
+      rc_pid=$?
+    else
+      ocf_log err "PID file ${OCF_RESKEY_pid_file} is empty!"
+      return $OCF_ERR_GENERIC
+    fi
+
     body=$( ${OCF_RESKEY_ctl} eval 'rabbit_misc:which_applications().' 2>&1 )
     rc=$?
 
-    if [[ $rc != 0 ]] ; then
+    if [ $rc != 0 -o $rc_pid != 0  ] ; then
         return $OCF_NOT_RUNNING
     fi
 
