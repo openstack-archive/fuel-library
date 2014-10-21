@@ -155,10 +155,6 @@ class galera (
 
 
   if $primary_controller {
-    $galera_pid = $::osfamily ? {
-      'RedHat' => '/var/run/mysql/mysqld.pid',
-      'Debian' => '/var/run/mysqld/mysqld.pid',
-    }
     $galera_socket = $::osfamily ? {
       'RedHat' => '/var/lib/mysql/mysql.sock',
       'Debian' => '/var/run/mysqld/mysqld.sock',
@@ -175,7 +171,6 @@ class galera (
       parameters      => {
         'test_user'   => "${mysql_user}",
         'test_passwd' => "${mysql_password}",
-        'pid'         => "${galera_pid}",
         'socket'      => "${galera_socket}",
       },
       operations      => {

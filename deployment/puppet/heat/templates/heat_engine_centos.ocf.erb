@@ -33,7 +33,7 @@ LOG="/var/log/heat/engine.log"
 
 OCF_RESKEY_binary_default="/usr/bin/heat-engine"
 OCF_RESKEY_config_default="/etc/heat/heat.conf"
-OCF_RESKEY_pid_default="/var/run/heat/heat-engine.pid"
+OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_amqp_server_port_default="5673"
 OCF_RESKEY_user_default="heat"
 
@@ -193,6 +193,14 @@ service_status() {
     local pid
     local rc
 
+    # check and make PID file dir
+    local PID_DIR="$( dirname ${OCF_RESKEY_pid} )"
+    if [ ! -d "${PID_DIR}" ] ; then
+        mkdir -p "${PID_DIR}"
+        chown -R ${OCF_RESKEY_user} "${PID_DIR}"
+        chmod 755 "${PID_DIR}"
+    fi
+
     if [ ! -f $OCF_RESKEY_pid ]; then
         ocf_log info "${SERVICE_NAME} is not running"
         return $OCF_NOT_RUNNING
@@ -200,8 +208,14 @@ service_status() {
         pid=`cat $OCF_RESKEY_pid`
     fi
 
-    ocf_run -warn kill -s 0 $pid
-    rc=$?
+    if [ -n "${pid}" ]; then
+      ocf_run -warn kill -s 0 $pid
+      rc=$?
+    else
+      ocf_log err "PID file ${OCF_RESKEY_pid} is empty!"
+      return $OCF_ERR_GENERIC
+    fi
+
     if [ $rc -eq 0 ]; then
         return $OCF_SUCCESS
     else
@@ -317,6 +331,7 @@ service_stop() {
 
     ocf_log info "${SERVICE_NAME} stopped"
 
+    ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f "${OCF_RESKEY_pid}"
 
     return "${OCF_SUCCESS}"
