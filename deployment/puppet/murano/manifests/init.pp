@@ -56,7 +56,7 @@ class murano (
   $primary_controller                    = true,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::apps'] -> Class['murano::dashboard'] -> Class['murano::cirros']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::apps'] -> Class['murano::dashboard'] -> Class['murano::cirros']
 
   User['murano'] -> Class['murano::api'] -> File <| title == $murano_log_dir |>
 
@@ -154,12 +154,6 @@ class murano (
   class { 'murano::dashboard' :
     settings_py       => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
   }
-
-  # class { 'murano::rabbitmq':
-  #   rabbit_user         => $murano_os_rabbit_userid,
-  #   rabbit_password     => $murano_os_rabbit_passwd,
-  #   rabbit_virtual_host => $murano_rabbit_virtual_host,
-  # }
 
   class { 'murano::murano_rabbitmq' :
     rabbit_user        => $murano_own_rabbit_userid,
