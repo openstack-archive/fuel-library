@@ -311,14 +311,15 @@ class openstack::nova::controller (
   notice("will apply following limits: ${nova_rate_limits_string}")
   # Configure nova-api
   class { '::nova::api':
-    enabled             => $enabled,
-    api_bind_address    => $api_bind_address,
-    admin_password      => $nova_user_password,
-    auth_host           => $keystone_host,
-    enabled_apis        => $_enabled_apis,
-    ensure_package      => $ensure_package,
-    ratelimits          => $nova_rate_limits_string,
-    require             => Package['nova-common'],
+    enabled               => $enabled,
+    api_bind_address      => $api_bind_address,
+    admin_password        => $nova_user_password,
+    auth_host             => $keystone_host,
+    enabled_apis          => $_enabled_apis,
+    ensure_package        => $ensure_package,
+    ratelimits            => $nova_rate_limits_string,
+    require               => Package['nova-common'],
+    osapi_compute_workers => min($::processorcount + 0, 50 + 0),
   }
 
   # From legacy params.pp
