@@ -24,8 +24,10 @@ class murano::api (
     $rabbit_ha_queues           = false,
     $rabbit_use_ssl             = false,
     $rabbit_ca_certs            = '',
-    $rabbit_login               = 'murano',
-    $rabbit_password            = 'murano',
+    $os_rabbit_userid           = 'guest',
+    $os_rabbit_password         = 'guest',
+    $murano_rabbit_userid       = 'murano',
+    $murano_rabbit_password     = 'murano',
     $rabbit_virtual_host        = '/',
     $firewall_rule_name         = '202 murano-api',
     $murano_db_user             = 'murano',
@@ -95,8 +97,8 @@ class murano::api (
     'DEFAULT/rabbit_hosts'                  : value => $rabbit_ha_hosts;
     'DEFAULT/rabbit_ha_queues'              : value => $rabbit_ha_queues;
     'DEFAULT/rabbit_use_ssl'                : value => $rabbit_use_ssl;
-    'DEFAULT/rabbit_userid'                 : value => $rabbit_login;
-    'DEFAULT/rabbit_password'               : value => $rabbit_password;
+    'DEFAULT/rabbit_userid'                 : value => $os_rabbit_userid;
+    'DEFAULT/rabbit_password'               : value => $os_rabbit_password;
     'DEFAULT/rabbit_virtual_host'           : value => $rabbit_virtual_host;
     'DEFAULT/kombu_ssl_ca_certs'            : value => $rabbit_ca_certs;
     # Direct RabbitMQ client configuration (for murano-engine).
@@ -105,8 +107,8 @@ class murano::api (
     'rabbitmq/host'                         : value => $rabbit_host;
     'rabbitmq/port'                         : value => $rabbit_port;
     'rabbitmq/ssl'                          : value => $rabbit_use_ssl;
-    'rabbitmq/login'                        : value => $rabbit_login;
-    'rabbitmq/password'                     : value => $rabbit_password;
+    'rabbitmq/login'                        : value => $murano_rabbit_userid;
+    'rabbitmq/password'                     : value => $murano_rabbit_password;
     'rabbitmq/virtual_host'                 : value => $rabbit_virtual_host;
     'rabbitmq/ca_certs'                     : value => $rabbit_ca_certs;
 

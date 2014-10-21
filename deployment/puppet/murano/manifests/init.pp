@@ -34,8 +34,10 @@ class murano (
   $murano_rabbit_port                    = '55572',
   $murano_rabbit_ssl                     = false,
   $murano_rabbit_ca_certs                = '',
-  $murano_rabbit_login                   = 'murano',
-  $murano_rabbit_password                = 'murano',
+  $murano_os_rabbit_userid               = 'guest',
+  $murano_os_rabbit_passwd               = 'guest',
+  $murano_own_rabbit_userid              = 'murano',
+  $murano_own_rabbit_passwd              = 'murano',
   $murano_rabbit_virtual_host            = '/',
   # murano-api.conf
   $murano_bind_host                      = '0.0.0.0',
@@ -131,8 +133,10 @@ class murano (
     rabbit_ha_queues                     => $murano_rabbit_ha_queues,
     rabbit_use_ssl                       => $murano_rabbit_ssl,
     rabbit_ca_certs                      => $murano_rabbit_ca_certs,
-    rabbit_login                         => $murano_rabbit_login,
-    rabbit_password                      => $murano_rabbit_password,
+    os_rabbit_userid                     => $murano_os_rabbit_userid,
+    os_rabbit_password                   => $murano_os_rabbit_passwd,
+    murano_rabbit_userid                 => $murano_own_rabbit_userid,
+    murano_rabbit_password               => $murano_own_rabbit_passwd,
     rabbit_virtual_host                  => $murano_rabbit_virtual_host,
 
     murano_db_password                   => $murano_db_password,
@@ -151,15 +155,15 @@ class murano (
     settings_py       => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
   }
 
-  class { 'murano::rabbitmq':
-    rabbit_user         => $murano_rabbit_login,
-    rabbit_password     => $murano_rabbit_password,
-    rabbit_virtual_host => $murano_rabbit_virtual_host,
-  }
+  # class { 'murano::rabbitmq':
+  #   rabbit_user         => $murano_os_rabbit_userid,
+  #   rabbit_password     => $murano_os_rabbit_passwd,
+  #   rabbit_virtual_host => $murano_rabbit_virtual_host,
+  # }
 
   class { 'murano::murano_rabbitmq' :
-    rabbit_user        => $murano_rabbit_login,
-    rabbit_password    => $murano_rabbit_password,
+    rabbit_user        => $murano_own_rabbit_userid,
+    rabbit_password    => $murano_own_rabbit_passwd,
     rabbit_vhost       => $murano_rabbit_virtual_host,
     rabbitmq_main_port => $murano_rabbit_port,
   }
