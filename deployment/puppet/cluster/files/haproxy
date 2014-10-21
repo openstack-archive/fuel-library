@@ -27,7 +27,7 @@
 # Initialization:
 
 OCF_RESKEY_conffile_default="/etc/haproxy/haproxy.cfg"
-OCF_RESKEY_pidfile_default="/var/run/haproxy.pid"
+OCF_RESKEY_pidfile_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE/$OCF_RESOURCE_INSTANCE.pid"
 OCF_RESKEY_binpath_default="/usr/sbin/haproxy"
 
 : ${OCF_RESKEY_conffile=${OCF_RESKEY_conffile_default}}
@@ -142,6 +142,13 @@ haproxy_status()
 haproxy_start()
 {
 	get_variables
+        # check and make PID file dir
+        local PID_DIR="$( dirname $OCF_RESKEY_pidfile )"
+        if [ ! -d "${PID_DIR}" ] ; then
+                mkdir -p "${PID_DIR}"
+                # no need to chown, root is user for haproxy
+                chmod 755 "${PID_DIR}"
+        fi
 	# if haproxy is running return success
 	haproxy_status
 	retVal=$?

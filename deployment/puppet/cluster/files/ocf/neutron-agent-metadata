@@ -31,7 +31,7 @@ OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
 OCF_RESKEY_agent_config_default="/etc/neutron/metadata_agent.ini"
 OCF_RESKEY_log_file_default="/var/log/neutron/metadata-agent.log"
 OCF_RESKEY_user_default="neutron"
-OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE/$OCF_RESOURCE_INSTANCE.pid"
 OCF_RESKEY_debug_default="false"
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
@@ -230,6 +230,13 @@ neutron_metadata_agent_monitor() {
 
 neutron_metadata_agent_start() {
     local rc
+    # check and make PID file dir
+    local PID_DIR="$( dirname $OCF_RESKEY_pid )"
+    if [ ! -d "${PID_DIR}" ] ; then
+        mkdir -p "${PID_DIR}"
+        chown -R ${OCF_RESKEY_user} "${PID_DIR}"
+        chmod 755 "${PID_DIR}"
+    fi
     neutron_metadata_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
