@@ -110,10 +110,11 @@ class neutron::agents::dhcp (
         provided_by     => 'mirantis',
         primitive_type  => 'neutron-agent-dhcp',
         parameters      => {
-          'os_auth_url' => $neutron_config['keystone']['auth_url'],
-          'tenant'      => $neutron_config['keystone']['admin_tenant_name'],
-          'username'    => $neutron_config['keystone']['admin_user'],
-          'password'    => $neutron_config['keystone']['admin_password'],
+          'os_auth_url'      => $neutron_config['keystone']['auth_url'],
+          'tenant'           => $neutron_config['keystone']['admin_tenant_name'],
+          'username'         => $neutron_config['keystone']['admin_user'],
+          'password'         => $neutron_config['keystone']['admin_password'],
+          'amqp_server_port' => $neutron_config['amqp']['port'],
         },
         metadata        => { 'resource-stickiness' => '1' },
         operations      => {
