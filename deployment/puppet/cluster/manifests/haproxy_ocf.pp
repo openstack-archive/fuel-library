@@ -90,12 +90,6 @@ class cluster::haproxy_ocf (
     }
   }
 
-  service { 'haproxy-init-stopped':
-    ensure     => 'stopped',
-    name       => 'haproxy',
-    enable     => false,
-  } -> File['haproxy-ocf']
-
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
     value => '1'
   } ->

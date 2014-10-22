@@ -153,7 +153,6 @@ class galera (
     before  => File['mysql-wss-ocf']
   }
 
-
   if $primary_controller {
     $galera_pid = $::osfamily ? {
       'RedHat' => '/var/run/mysql/mysqld.pid',
@@ -190,17 +189,16 @@ class galera (
         },
       },
     }
+
     Anchor['galera'] ->
-      File['mysql-wss-ocf'] ->
-        Service["${service_name}_stopped"] ->
-          Cs_resource["p_${service_name}"] ->
-            Service["${service_name}-service"] ->
-              Exec['wait-for-synced-state']
+    File['mysql-wss-ocf'] ->
+    Cs_resource["p_${service_name}"] ->
+    Service[$service_name] ->
+    Exec['wait-for-synced-state']
   } else {
     Anchor['galera'] ->
-      File['mysql-wss-ocf'] ->
-        Service["${service_name}_stopped"] ->
-          Service["${service_name}-service"]
+    File['mysql-wss-ocf'] ->
+    Service[$service_name]
   }
 
   file { 'mysql-wss-ocf':
@@ -215,24 +213,18 @@ class galera (
 
   Package['MySQL-server', 'galera'] -> File['mysql-wss-ocf']
 
-  tweaks::ubuntu_service_override { "${service_name}":
+  tweaks::ubuntu_service_override { $service_name :
     package_name => 'MySQL-server',
   }
 
-  service { "${service_name}_stopped":
-    ensure => 'stopped',
-    name   => "${service_name}",
-    enable => false,
-  }
-
-  service { "${service_name}-service":
+  service { $service_name:
     ensure     => 'running',
     name       => "p_${service_name}",
     enable     => true,
     provider   => 'pacemaker',
   }
 
-  Service["${service_name}-service"] -> Anchor['galera-done']
+  Service[$service_name] -> Anchor['galera-done']
 
   if $::galera_gcomm_empty == 'true' {
     #FIXME(bogdando): dirtyhack to pervert imperative puppet nature.
@@ -258,7 +250,7 @@ class galera (
   }
 
   File['/etc/mysql/conf.d/wsrep.cnf'] -> Package['MySQL-server']
-  File['/etc/mysql/conf.d/wsrep.cnf'] ~> Service["${service_name}-service"]
+  File['/etc/mysql/conf.d/wsrep.cnf'] ~> Service[$service_name]
 # This file contains initial sql requests for creating replication users.
 
   file { '/tmp/wsrep-init-file':
@@ -289,11 +281,13 @@ class galera (
   }
 
   File['/tmp/wsrep-init-file'] ->
-    Service["${service_name}-service"] ->
-      Exec['wait-initial-sync'] ->
-        Exec['wait-for-synced-state'] ->
-          Exec ['rm-init-file']
-  Package['MySQL-server'] ~> Exec['wait-initial-sync']
+  Service[$service_name] ->
+  Exec['wait-initial-sync'] ->
+  Exec['wait-for-synced-state'] ->
+  Exec ['rm-init-file']
+
+  Package['MySQL-server'] ~>
+  Exec['wait-initial-sync']
 
   if $status_check {
     include galera::status
