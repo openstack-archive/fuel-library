@@ -191,8 +191,17 @@ class nova::rabbitmq(
             Service["$service_name"]
       }
 
-      Service["$service_name"] ->
-          Rabbitmq_user <||>
+      exec {'wait for rabbitmq service':
+        path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+        try_sleep => 5,
+        tries     => 60,
+        command => "rabbitmqctl list_users",
+      }
+
+      Service["$service_name"] -> Exec<| title == 'wait for rabbitmq service' |>
+      Exec<| title == 'wait for rabbitmq service' |> -> Rabbitmq_user <||>
+      Exec<| title == 'wait for rabbitmq service' |> -> Rabbitmq_vhost <||>
+      Exec<| title == 'wait for rabbitmq service' |> -> Rabbitmq_user_permissions <||>
     }
   } else {
     class { $rabbitmq_class:
