@@ -214,13 +214,13 @@ class osnailyfacter::cluster_ha {
 
   if ($storage_hash['images_ceph']) {
     $glance_backend = 'ceph'
-    $glance_known_stores = [ 'glance.store.rbd.Store' ]
+    $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
   } elsif ($storage_hash['images_vcenter']) {
     $glance_backend = 'vmware'
-    $glance_known_stores = [ 'glance.store.vmware_datastore.Store' ]
+    $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
   } else {
     $glance_backend = 'swift'
-    $glance_known_stores = [ 'glance.store.swift.Store' ]
+    $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
   }
 
   if ($::use_ceph) {

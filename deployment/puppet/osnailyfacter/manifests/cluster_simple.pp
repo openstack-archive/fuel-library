@@ -144,10 +144,10 @@ class osnailyfacter::cluster_simple {
 
   if ($storage_hash['images_ceph']) {
     $glance_backend = 'ceph'
-    $glance_known_stores = [ 'glance.store.rbd.Store' ]
+    $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
   } elsif ($storage_hash['images_vcenter']) {
     $glance_backend = 'vmware'
-    $glance_known_stores = [ 'glance.store.vmware_datastore.Store' ]
+    $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
   } else {
     $glance_backend = 'file'
     $glance_known_stores = false
