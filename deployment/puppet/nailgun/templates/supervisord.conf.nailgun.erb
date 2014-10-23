@@ -69,3 +69,20 @@ stdout_capture_maxbytes=0
 stdout_events_enabled=false
 serverurl=AUTO
 
+[program:statsenderd]
+command=/usr/bin/statsenderd
+process_name=%(program_name)s
+numprocs=1
+numprocs_start=0
+autostart=true
+autorestart=true
+startsecs=10
+startretries=1000000
+exitcodes=0
+stopsignal=INT
+stopwaitsecs=5
+redirect_stderr=true
+stdout_logfile=/var/log/nailgun/statsenderd.log
+stdout_capture_maxbytes=0
+stdout_events_enabled=false
+serverurl=AUTO
