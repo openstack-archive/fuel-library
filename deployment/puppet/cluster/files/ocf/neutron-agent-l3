@@ -46,6 +46,7 @@ OCF_RESKEY_username_default="neutron"
 OCF_RESKEY_password_default="neutron_pass"
 OCF_RESKEY_tenant_default="services"
 OCF_RESKEY_external_bridge_default="br-ex"
+OCF_RESKEY_multiple_agents_default=true
 OCF_RESKEY_rescheduling_tries_default=5
 OCF_RESKEY_rescheduling_interval_default=33
 OCF_RESKEY_debug_default=false
@@ -60,12 +61,12 @@ OCF_RESKEY_debug_default=false
 : ${OCF_RESKEY_plugin_config=${OCF_RESKEY_plugin_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_OCF_RESKEY_multiple_agents=${OCF_RESKEY_OCF_RESKEY_multiple_agents_default}}
 : ${OCF_RESKEY_external_bridge=${OCF_RESKEY_external_bridge_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 : ${OCF_RESKEY_rescheduling_tries=${OCF_RESKEY_rescheduling_tries_default}}
 : ${OCF_RESKEY_rescheduling_interval=${OCF_RESKEY_rescheduling_interval_default}}
 : ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
-
 
 #######################################################################
 
@@ -146,6 +147,14 @@ The pid file to use for this OpenStack L3 Service (neutron-l3-agent) instance
 </longdesc>
 <shortdesc lang="en">OpenStack L3 Service (neutron-l3-agent) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+<parameter name="multiple_agents" unique="0" required="0">
+<longdesc lang="en">
+Flag, that switch RCS-agent behavior for multiple or single L3-agent.
+</longdesc>
+<shortdesc lang="en">Switsh between multiple or single L3-agent behavior</shortdesc>
+<content type="string" default="${OCF_RESKEY_multiple_agents_default}" />
 </parameter>
 
 <parameter name="log_file" unique="0" required="0">
@@ -449,14 +458,16 @@ neutron_l3_agent_start() {
         sleep 3
     done
 
-    # detach deferred rescheduling procedure
-    RESCHEDULING_CMD="q-agent-cleanup.py --agent=l3 --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
-    RESCH_CMD=''
-    for ((i=0; i<$OCF_RESKEY_rescheduling_tries; i++)) ; do
-        RESCH_CMD="$RESCH_CMD sleep $OCF_RESKEY_rescheduling_interval ; $RESCHEDULING_CMD ;"
-    done
-    bash -c "$RESCH_CMD" &
-    fuel-fdb-cleaner --ssh-keyfile /root/.ssh/id_rsa_neutron -l /var/log/neutron/fdb-cleaner.log
+    if [[ ! ocf_is_true "$OCF_RESKEY_multiple_agents" ]]; then
+        # detach deferred rescheduling procedure
+        RESCHEDULING_CMD="q-agent-cleanup.py --agent=l3 --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
+        RESCH_CMD=''
+        for ((i=0; i<$OCF_RESKEY_rescheduling_tries; i++)) ; do
+            RESCH_CMD="$RESCH_CMD sleep $OCF_RESKEY_rescheduling_interval ; $RESCHEDULING_CMD ;"
+        done
+        bash -c "$RESCH_CMD" &
+        fuel-fdb-cleaner --ssh-keyfile /root/.ssh/id_rsa_neutron -l /var/log/neutron/fdb-cleaner.log
+    fi
 
     ocf_log info "OpenStack Router (neutron-l3-agent) started"
     return $OCF_SUCCESS
@@ -522,7 +533,9 @@ neutron_l3_agent_stop() {
     clean_up
     sleep 1
     clean_up_namespaces
-    q-agent-cleanup.py --agent=l3 --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
+    if [[ ! ocf_is_true "$OCF_RESKEY_multiple_agents" ]]; then
+        q-agent-cleanup.py --agent=l3 --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
+    fi
     sleep 3
 
     return $OCF_SUCCESS

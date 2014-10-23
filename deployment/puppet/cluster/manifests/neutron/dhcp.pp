@@ -4,15 +4,30 @@ class cluster::neutron::dhcp (
   $primary    = false,
   $ha_agents  = ['ovs', 'metadata', 'dhcp', 'l3'],
   $amqp_server_port  = 5673,
+  $multiple_agents   = false,  # will be enabled as default at 6.1
+  $agents_per_net    = 3,      # Value, recommended by Neutron team.
 
   #keystone settings
   $admin_password    = 'asdf123',
   $admin_tenant_name = 'services',
   $admin_username    = 'neutron',
   $auth_url          = 'http://localhost:35357/v2.0'
-  ) {
+) {
 
   require cluster::neutron
+
+  if $multiple_agents {
+    Neutron_config<| name == 'DEFAULT/dhcp_agents_per_network' |> {
+      value => $agents_per_net
+    }
+    $csr_metadata = undef
+    $csr_multistate_hash = { 'type' => 'clone' }
+    $csr_ms_metadata     = { 'interleave' => 'true' }
+  } else {
+    $csr_metadata        = { 'resource-stickiness' => '1' }
+    $csr_multistate_hash = undef
+    $csr_ms_metadata     = undef
+  }
 
   $dhcp_agent_package = $::neutron::params::dhcp_agent_package ? {
     false   => $::neutron::params::package_name,
@@ -26,9 +41,12 @@ class cluster::neutron::dhcp (
       'tenant'           => $admin_tenant_name,
       'username'         => $admin_user,
       'password'         => $admin_password,
+      'multiple_agents'  => $multiple_agents,
       'amqp_server_port' => $amqp_server_port
     },
-    csr_metadata    => { 'resource-stickiness' => '1' },
+    csr_metadata        => $csr_metadata,
+    csr_multistate_hash => $csr_multistate_hash,
+    csr_ms_metadata     => $csr_ms_metadata,
     csr_mon_intr    => '20',
     csr_mon_timeout => '10',
     csr_timeout     => '60',
@@ -39,20 +57,12 @@ class cluster::neutron::dhcp (
     hasrestart      => false,
   }
 
-if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {
+  if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {
     cluster::corosync::cs_with_service {'dhcp-and-ovs':
       first   => "clone_p_${::neutron::params::ovs_agent_service}",
       second  => "p_${::neutron::params::dhcp_agent_service}",
       require => Cluster::Corosync::Cs_service['ovs','dhcp']
-
     }
   }
 
-  if 'metadata' in $ha_agents {
-    cluster::corosync::cs_with_service {'dhcp-and-metadata':
-      first   => "clone_p_${::neutron::params::metadata_agent_service}",
-      second  => "p_${::neutron::params::dhcp_agent_service}",
-      require => Cluster::Corosync::Cs_service['neutron-metadata-agent','dhcp']
-    }
-  }
 }
