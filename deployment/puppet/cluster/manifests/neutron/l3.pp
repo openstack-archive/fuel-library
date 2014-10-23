@@ -7,6 +7,7 @@ define cluster::neutron::l3 (
   $plugin_config  = '/etc/neutron/l3_agent.ini',
   $primary        = false,
   $ha_agents      = ['ovs', 'metadata', 'dhcp', 'l3'],
+  $native_rescheduling = true, #todo(xenolog): pass from astute.yaml
 
   #keystone settings
   $admin_password    = 'asdf123',
@@ -16,6 +17,10 @@ define cluster::neutron::l3 (
 ) {
 
   require cluster::neutron
+
+  neutron_config{'DEFAULT/allow_automatic_l3agent_failover':
+    value => $native_rescheduling
+  }
 
   $l3_agent_package = $::neutron::params::l3_agent_package ? {
     false   => $::neutron::params::package_name,
@@ -33,7 +38,8 @@ define cluster::neutron::l3 (
       'username'      => $admin_user,
       'password'      => $admin_password,
     },
-    csr_metadata    => { 'resource-stickiness' => '1' },
+    csr_multistate_hash => { 'type' => 'clone' },
+    csr_ms_metadata     => { 'interleave' => 'true' },
     csr_mon_intr    => '20',
     csr_mon_timeout => '10',
     csr_timeout     => '60',
@@ -52,24 +58,4 @@ define cluster::neutron::l3 (
     }
   }
 
-  if 'metadata' in $ha_agents {
-    Cluster::Corosync::Cs_service <| title == 'neutron-metadata-agent' |> ->
-    Cluster::Corosync::Cs_service['l3'] ->
-    cluster::corosync::cs_with_service {'l3-and-metadata':
-      first   => "clone_p_${::neutron::params::metadata_agent_service}",
-      second  => "p_${::neutron::params::l3_agent_service}",
-    }
-  }
-
-  if 'dhcp' in $ha_agents {
-    cs_colocation { 'l3-keepaway-dhcp':
-      ensure     => present,
-      score      => '-100',
-      primitives => [
-        "p_${::neutron::params::dhcp_agent_service}",
-        "p_${::neutron::params::l3_agent_service}"
-      ],
-      require => Cluster::Corosync::Cs_service['dhcp','l3'],
-    }
-  }
 }
