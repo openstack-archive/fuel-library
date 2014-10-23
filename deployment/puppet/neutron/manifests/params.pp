@@ -13,18 +13,14 @@ class neutron::params {
     $ovs_agent_service   = 'neutron-openvswitch-agent'
     $ovs_server_package  = 'openstack-neutron-openvswitch'
     $ovs_cleanup_service = 'neutron-ovs-cleanup'
-    $ovs_package         = 'openvswitch'
-    $libnl_package       = 'libnl'
-    $package_provider    = 'rpm'
 
     $linuxbridge_agent_package  = false
     $linuxbridge_agent_service  = 'neutron-linuxbridge-agent'
     $linuxbridge_server_package = 'openstack-neutron-linuxbridge'
     $linuxbridge_config_file    = '/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini'
 
-    $cisco_server_package  = 'openstack-neutron-cisco'
-    $cisco_config_file     = '/etc/neutron/plugins/cisco/cisco_plugins.ini'
-    $cisco_ml2_config_file = '/etc/neutron/plugins/ml2/ml2_conf_cisco.ini'
+    $cisco_server_package = 'openstack-neutron-cisco'
+    $cisco_config_file    = '/etc/neutron/plugins/cisco/cisco_plugins.ini'
 
     $nvp_server_package = 'openstack-neutron-nicira'
 
@@ -61,28 +57,20 @@ class neutron::params {
     $server_service     = 'neutron-server'
     $client_package     = 'python-neutronclient'
 
-    if $::operatingsystem == 'Ubuntu' {
-      $ml2_server_package = 'neutron-plugin-ml2'
-    } else {
-      $ml2_server_package = false
-    }
+    $ml2_server_package = false
 
     $ovs_agent_package   = 'neutron-plugin-openvswitch-agent'
     $ovs_agent_service   = 'neutron-plugin-openvswitch-agent'
     $ovs_server_package  = 'neutron-plugin-openvswitch'
     $ovs_cleanup_service = false
-    $ovs_package         = 'openvswitch-switch'
-    $libnl_package       = 'libnl1'
-    $package_provider    = 'dpkg'
 
     $linuxbridge_agent_package  = 'neutron-plugin-linuxbridge-agent'
     $linuxbridge_agent_service  = 'neutron-plugin-linuxbridge-agent'
     $linuxbridge_server_package = 'neutron-plugin-linuxbridge'
     $linuxbridge_config_file    = '/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini'
 
-    $cisco_server_package  = 'neutron-plugin-cisco'
-    $cisco_config_file     = '/etc/neutron/plugins/cisco/cisco_plugins.ini'
-    $cisco_ml2_config_file = '/etc/neutron/plugins/ml2/ml2_conf_cisco.ini'
+    $cisco_server_package = 'neutron-plugin-cisco'
+    $cisco_config_file    = '/etc/neutron/plugins/cisco/cisco_plugins.ini'
 
     $nvp_server_package = 'neutron-plugin-nicira'
 
@@ -120,4 +108,6 @@ class neutron::params {
     fail("Unsupported osfamily ${::osfamily}")
 
   }
+  # Additional packages
+  $fuel_utils_package = 'fuel-utils'
 }

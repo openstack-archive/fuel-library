@@ -1,3 +1,5 @@
+Puppet::Type.type(:ini_setting)#.providers
+
 Puppet::Type.type(:neutron_api_config).provide(
   :ini_setting,
   :parent => Puppet::Type.type(:ini_setting).provider(:ruby)

@@ -9,10 +9,8 @@ Puppet::Type.newtype(:neutron_dhcp_agent_config) do
 
   newproperty(:value) do
     desc 'The value of the setting to be defined.'
-    munge do |value|
-      value = value.to_s.strip
-      value.capitalize! if value =~ /^(true|false)$/i
-      value
+    munge do |v|
+      v.to_s.strip
     end
   end
 end
