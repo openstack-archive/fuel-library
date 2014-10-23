@@ -450,13 +450,13 @@ neutron_l3_agent_start() {
     done
 
     # detach deferred rescheduling procedure
-    RESCHEDULING_CMD="q-agent-cleanup.py --agent=l3 --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
-    RESCH_CMD=''
-    for ((i=0; i<$OCF_RESKEY_rescheduling_tries; i++)) ; do
-        RESCH_CMD="$RESCH_CMD sleep $OCF_RESKEY_rescheduling_interval ; $RESCHEDULING_CMD ;"
-    done
-    bash -c "$RESCH_CMD" &
-    fuel-fdb-cleaner --ssh-keyfile /root/.ssh/id_rsa_neutron -l /var/log/neutron/fdb-cleaner.log
+    #RESCHEDULING_CMD="q-agent-cleanup.py --agent=l3 --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
+    #RESCH_CMD=''
+    #for ((i=0; i<$OCF_RESKEY_rescheduling_tries; i++)) ; do
+    #    RESCH_CMD="$RESCH_CMD sleep $OCF_RESKEY_rescheduling_interval ; $RESCHEDULING_CMD ;"
+    #done
+    #bash -c "$RESCH_CMD" &
+    #fuel-fdb-cleaner --ssh-keyfile /root/.ssh/id_rsa_neutron -l /var/log/neutron/fdb-cleaner.log
 
     ocf_log info "OpenStack Router (neutron-l3-agent) started"
     return $OCF_SUCCESS
@@ -522,7 +522,7 @@ neutron_l3_agent_stop() {
     clean_up
     sleep 1
     clean_up_namespaces
-    q-agent-cleanup.py --agent=l3 --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
+    #q-agent-cleanup.py --agent=l3 --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
     sleep 3
 
     return $OCF_SUCCESS

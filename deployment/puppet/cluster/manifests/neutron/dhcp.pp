@@ -4,6 +4,7 @@ class cluster::neutron::dhcp (
   $primary    = false,
   $ha_agents  = ['ovs', 'metadata', 'dhcp', 'l3'],
   $amqp_server_port  = 5673,
+  $agents_per_net = 3, #todo(xenolog): make as controllers-count parameter
 
   #keystone settings
   $admin_password    = 'asdf123',
@@ -13,6 +14,11 @@ class cluster::neutron::dhcp (
   ) {
 
   require cluster::neutron
+
+  #todo(xenolog): pass through neutron/init.pp
+  Neutron_config<| title == 'DEFAULT/dhcp_agents_per_network' |> {
+    value => $agents_per_net
+  }
 
   $dhcp_agent_package = $::neutron::params::dhcp_agent_package ? {
     false   => $::neutron::params::package_name,
@@ -28,7 +34,8 @@ class cluster::neutron::dhcp (
       'password'         => $admin_password,
       'amqp_server_port' => $amqp_server_port
     },
-    csr_metadata    => { 'resource-stickiness' => '1' },
+    csr_multistate_hash => { 'type' => 'clone' },
+    csr_ms_metadata     => { 'interleave' => 'true' },
     csr_mon_intr    => '20',
     csr_mon_timeout => '10',
     csr_timeout     => '60',
@@ -48,11 +55,4 @@ if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {
     }
   }
 
-  if 'metadata' in $ha_agents {
-    cluster::corosync::cs_with_service {'dhcp-and-metadata':
-      first   => "clone_p_${::neutron::params::metadata_agent_service}",
-      second  => "p_${::neutron::params::dhcp_agent_service}",
-      require => Cluster::Corosync::Cs_service['neutron-metadata-agent','dhcp']
-    }
-  }
 }

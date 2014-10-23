@@ -447,12 +447,12 @@ neutron_dhcp_agent_start() {
     done
 
     # detach deffered rescheduling procedure
-    RESCHEDULING_CMD="q-agent-cleanup.py --agent=dhcp --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
-    RESCH_CMD=''
-    for ((i=0; i<$OCF_RESKEY_rescheduling_tries; i++)) ; do
-        RESCH_CMD="$RESCH_CMD sleep $OCF_RESKEY_rescheduling_interval ; $RESCHEDULING_CMD ;"
-    done
-    bash -c "$RESCH_CMD" &
+    #RESCHEDULING_CMD="q-agent-cleanup.py --agent=dhcp --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
+    #RESCH_CMD=''
+    #for ((i=0; i<$OCF_RESKEY_rescheduling_tries; i++)) ; do
+    #    RESCH_CMD="$RESCH_CMD sleep $OCF_RESKEY_rescheduling_interval ; $RESCHEDULING_CMD ;"
+    #done
+    #bash -c "$RESCH_CMD" &
 
     ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) started"
     return $OCF_SUCCESS
@@ -519,7 +519,7 @@ neutron_dhcp_agent_stop() {
     clean_up
     sleep 1
     clean_up_namespaces
-    q-agent-cleanup.py --agent=dhcp --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
+    #q-agent-cleanup.py --agent=dhcp --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
     sleep 3
 
     return $OCF_SUCCESS
