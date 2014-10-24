@@ -137,15 +137,6 @@ class heat::engine (
       subscribe  => Exec['heat-dbsync'],
     }
 
-    #NOTE(bogdando) we have to disable init.d management for pacemaker handled service
-    service { 'heat-engine_stopped' :
-      name   => $service_name,
-      ensure => 'stopped',
-      enable => false,
-    }
-
-    Service['heat-engine_stopped'] -> Service['heat-engine_service']
-
   }
 
   exec {'heat-encryption-key-replacement':
