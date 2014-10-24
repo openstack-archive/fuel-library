@@ -422,7 +422,21 @@ class osnailyfacter::cluster_ha {
     class { 'mellanox_openstack::openibd' : }
   }
 
+  if $::fuel_settings['role'] =~ /controller/ {
+    class { 'ntp':
+      servers => ['0.pool.ntp.org','1.pool.ntp.org','2.pool.ntp.org'],
+      enable  => false,
+    }
+  }
+  else {
+    class { 'ntp':
+      servers => [$::fuel_settings['management_vip']],
+      ensure  => running,
+      enable  => true,
+    }
+  }
 
+  include dns
 
   case $::fuel_settings['role'] {
     /controller/ : {
