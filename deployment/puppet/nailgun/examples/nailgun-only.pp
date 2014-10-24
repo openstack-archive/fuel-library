@@ -117,10 +117,8 @@ class { "nailgun::venv":
 
   puppet_master_hostname => $puppet_master_hostname,
 
-  keystone_host         => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-  keystone_nailgun_user => $::fuel_settings['keystone']['nailgun_user'],
-  keystone_nailgun_pass => $::fuel_settings['keystone']['nailgun_password'],
-
+  keystone_admin_token => $::fuel_settings['keystone']['admin_token'],
+  keystone_host        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   dns_domain => $::fuel_settings['DNS_DOMAIN'],
 }
 class { 'nailgun::uwsgi':

@@ -46,9 +46,8 @@ node default {
     host         => "0.0.0.0",
     auth_enable  => 'True',
 
-    keystone_host      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-    keystone_ostf_user => $::fuel_settings['keystone']['ostf_user'],
-    keystone_ostf_pass => $::fuel_settings['keystone']['ostf_password'],
+    keystone_admin_token => $::fuel_settings['keystone']['admin_token'],
+    keystone_host        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   }
   class { "nailgun::supervisor":
     nailgun_env   => $env_path,
