@@ -17,7 +17,7 @@ stage {'first': } ->
 stage {'openstack-custom-repo': } ->
 stage {'netconfig': } ->
 stage {'corosync_setup': } ->
-stage {'openstack-firewall': } -> Stage['main']
+stage {'openstack-firewall': } -> Stage['main'] -> stage {'last': }
 
 class begin_deployment ()
 {
