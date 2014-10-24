@@ -244,7 +244,7 @@ class openstack::heat (
   class { 'heat::client' :  }
 
   # Patching openstack related notifications
-  Package<| title == 'heat-engine'|> ~> Service<| title == 'heat-engine_service'|>
+  Package<| title == 'heat-engine'|> ~> Service<| title == 'heat-engine'|>
   if !defined(Service['heat-engine']) {
     notify{ "Module ${module_name} cannot notify service heat-engine on package update": }
   }
