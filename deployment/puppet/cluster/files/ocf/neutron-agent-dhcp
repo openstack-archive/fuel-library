@@ -41,7 +41,7 @@ OCF_RESKEY_plugin_config_default="/etc/neutron/dhcp_agent.ini"
 OCF_RESKEY_log_file_default="/var/log/neutron/dhcp-agent.log"
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
-OCF_RESKEY_amqp_server_port_default="5672"
+OCF_RESKEY_amqp_server_port_default="5672" # or "none" for disable checking
 OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
 OCF_RESKEY_username_default="neutron"
 OCF_RESKEY_password_default="neutron_pass"
@@ -162,7 +162,9 @@ The pid file to use for this OpenStack DHCP Service (${OCF_RESKEY_binary}) insta
 
 <parameter name="amqp_server_port" unique="0" required="0">
 <longdesc lang="en">
-The listening port number of the AMQP server. Mandatory to perform a monitor check
+The listening port number of the AMQP server.
+Mandatory to perform a monitor check.
+Set to 'none' for disable this kind of checking.
 </longdesc>
 <shortdesc lang="en">AMQP listening port</shortdesc>
 <content type="integer" default="${OCF_RESKEY_amqp_server_port_default}" />
@@ -406,17 +408,18 @@ neutron_dhcp_agent_monitor() {
         return $rc
     fi
 
-    # Check the connections according to the PID.
-    # We are sure to hit the scheduler process and not other Neutron process with the same connection behavior (for example neutron-server)
-    pid=`get_worker_pid`
-    # check the connections according to the PID
-    network_amqp_check=`netstat -punt | grep -s "$OCF_RESKEY_amqp_server_port" | grep -s "$pid" | grep -qs "ESTABLISHED"`
-    rc=$?
-    if [ $rc -ne 0 ]; then
-      ocf_log err "Neutron DHCP Agent is not connected to the AMQP server : $rc"
-      return $OCF_NOT_RUNNING
+    if [[ "$OCF_RESKEY_amqp_server_port" != 'none' ]] ; then
+        # Check the connections according to the PID.
+        # We are sure to hit the scheduler process and not other Neutron process with the same connection behavior (for example neutron-server)
+        pid=`get_worker_pid`
+        # check the connections according to the PID
+        network_amqp_check=`netstat -punt | grep -s "$OCF_RESKEY_amqp_server_port" | grep -s "$pid" | grep -qs "ESTABLISHED"`
+        rc=$?
+        if [ $rc -ne 0 ]; then
+          ocf_log err "Neutron DHCP Agent is not connected to the AMQP server : $rc"
+          return $OCF_NOT_RUNNING
+        fi
     fi
-
     ocf_log debug "OpenStack DHCP Agent (neutron-dhcp-agent) monitor succeeded"
     return $OCF_SUCCESS
 }
