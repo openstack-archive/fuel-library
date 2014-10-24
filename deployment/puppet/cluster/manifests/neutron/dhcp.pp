@@ -34,6 +34,7 @@ class cluster::neutron::dhcp (
     default => $::neutron::params::dhcp_agent_package,
   }
 
+  #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'dhcp':
     ocf_script      => 'neutron-agent-dhcp',
     csr_parameters  => {
