@@ -509,6 +509,26 @@ class osnailyfacter::cluster_ha {
     }
   }
 
+  if $::fuel_settings['role'] =~ /controller/ {
+    class { 'ntp':
+      servers        => strip(split($::fuel_settings['external_ntp']['ntp_list'], ',')),
+      package_name   => 'ntp-dev',
+      service_enable => false,
+      service_ensure => stopped,
+    }
+  }
+  else {
+    class { 'ntp':
+      servers        => [$::fuel_settings['management_vip']],
+      package_name   => 'ntp-dev',
+      service_ensure => running,
+      service_enable => true,
+    }
+  }
+
+  class { 'osnailyfacter::resolvconf':
+    management_vip => $::fuel_settings['management_vip'],
+  }
 
   case $::fuel_settings['role'] {
     /controller/ : {
@@ -517,6 +537,11 @@ class osnailyfacter::cluster_ha {
       # Reduce swapiness on controllers, see LP#1413702
       sysctl::value { 'vm.swappiness':
         value => "10"
+      }
+
+      class { 'osnailyfacter::dnsmasq':
+        external_dns => strip(split($::fuel_settings['external_dns']['dns_list'], ',')),
+        master_ip    => $::fuel_settings['master_ip'],
       }
 
       class { '::cluster':
