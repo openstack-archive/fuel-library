@@ -155,14 +155,11 @@ class galera (
 
 
   if $primary_controller {
-    $galera_pid = $::osfamily ? {
-      'RedHat' => '/var/run/mysql/mysqld.pid',
-      'Debian' => '/var/run/mysqld/mysqld.pid',
-    }
     $galera_socket = $::osfamily ? {
       'RedHat' => '/var/lib/mysql/mysql.sock',
       'Debian' => '/var/run/mysqld/mysqld.sock',
     }
+    # TODO(bogdando) move to extras as a wrapper class
     cs_resource { "p_${service_name}":
       ensure          => present,
       primitive_class => 'ocf',
@@ -174,7 +171,6 @@ class galera (
       parameters      => {
         'test_user'   => "${mysql_user}",
         'test_passwd' => "${mysql_password}",
-        'pid'         => "${galera_pid}",
         'socket'      => "${galera_socket}",
       },
       operations      => {
@@ -192,15 +188,13 @@ class galera (
     }
     Anchor['galera'] ->
       File['mysql-wss-ocf'] ->
-        Service["${service_name}_stopped"] ->
           Cs_resource["p_${service_name}"] ->
-            Service["${service_name}-service"] ->
+            Service['mysql'] ->
               Exec['wait-for-synced-state']
   } else {
     Anchor['galera'] ->
       File['mysql-wss-ocf'] ->
-        Service["${service_name}_stopped"] ->
-          Service["${service_name}-service"]
+          Service['mysql']
   }
 
   file { 'mysql-wss-ocf':
@@ -215,24 +209,18 @@ class galera (
 
   Package['MySQL-server', 'galera'] -> File['mysql-wss-ocf']
 
-  tweaks::ubuntu_service_override { "${service_name}":
+  tweaks::ubuntu_service_override { 'mysql':
     package_name => 'MySQL-server',
   }
 
-  service { "${service_name}_stopped":
-    ensure => 'stopped',
-    name   => "${service_name}",
-    enable => false,
-  }
-
-  service { "${service_name}-service":
+  service { 'mysql':
     ensure     => 'running',
     name       => "p_${service_name}",
     enable     => true,
     provider   => 'pacemaker',
   }
 
-  Service["${service_name}-service"] -> Anchor['galera-done']
+  Service['mysql'] -> Anchor['galera-done']
 
   if $::galera_gcomm_empty == 'true' {
     #FIXME(bogdando): dirtyhack to pervert imperative puppet nature.
@@ -258,7 +246,7 @@ class galera (
   }
 
   File['/etc/mysql/conf.d/wsrep.cnf'] -> Package['MySQL-server']
-  File['/etc/mysql/conf.d/wsrep.cnf'] ~> Service["${service_name}-service"]
+  File['/etc/mysql/conf.d/wsrep.cnf'] ~> Service['mysql']
 # This file contains initial sql requests for creating replication users.
 
   file { '/tmp/wsrep-init-file':
@@ -289,7 +277,7 @@ class galera (
   }
 
   File['/tmp/wsrep-init-file'] ->
-    Service["${service_name}-service"] ->
+    Service['mysql'] ->
       Exec['wait-initial-sync'] ->
         Exec['wait-for-synced-state'] ->
           Exec ['rm-init-file']
