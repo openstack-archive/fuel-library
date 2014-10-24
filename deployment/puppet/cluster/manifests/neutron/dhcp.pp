@@ -19,6 +19,7 @@ class cluster::neutron::dhcp (
     default => $::neutron::params::dhcp_agent_package,
   }
 
+  #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'dhcp':
     ocf_script      => 'neutron-agent-dhcp',
     csr_parameters  => {
@@ -39,7 +40,7 @@ class cluster::neutron::dhcp (
     hasrestart      => false,
   }
 
-if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {
+  if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {
     cluster::corosync::cs_with_service {'dhcp-and-ovs':
       first   => "clone_p_${::neutron::params::ovs_agent_service}",
       second  => "p_${::neutron::params::dhcp_agent_service}",
