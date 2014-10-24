@@ -29,19 +29,25 @@ class osnailyfacter::cluster_ha {
     }
   }
 
-  if $::use_quantum {
-    $novanetwork_params  = {}
-    $quantum_config = sanitize_neutron_config($::fuel_settings, 'quantum_settings')
+  if $::use_neutron {
+    $novanetwork_params        = {}
+    $neutron_config            = $::fuel_settings['quantum_settings']
+    $network_provider          = 'neutron'
+    $neutron_db_password       = $neutron_config['database']['passwd']
+    $neutron_user_password     = $neutron_config['keystone']['admin_password']
+    $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
+    $base_mac                  = $neutron_config['L2']['base_mac']
     if $::fuel_settings['nsx_plugin']['metadata']['enabled'] {
-      $use_vmware_nsx = true
+      $use_vmware_nsx     = true
       $neutron_nsx_config = $::fuel_settings['nsx_plugin']
     }
   } else {
-    $quantum_config = {}
-    $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
-    $network_size         = $novanetwork_params['network_size']
-    $num_networks         = $novanetwork_params['num_networks']
-    $vlan_start           = $novanetwork_params['vlan_start']
+    $neutron_config     = {}
+    $novanetwork_params = $::fuel_settings['novanetwork_parameters']
+    $network_size       = $novanetwork_params['network_size']
+    $num_networks       = $novanetwork_params['num_networks']
+    $vlan_start         = $novanetwork_params['vlan_start']
+    $network_provider   = 'nova'
   }
 
   if $cinder_nodes {
@@ -122,7 +128,7 @@ class osnailyfacter::cluster_ha {
     $rabbit_hash['user'] = 'nova'
   }
 
-  if ! $::use_quantum {
+  if ! $::use_neutron {
     $floating_ips_range = $::fuel_settings['floating_network_range']
   }
   $floating_hash = {}
@@ -174,7 +180,7 @@ class osnailyfacter::cluster_ha {
       iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
       iptables_comment     => "masquerade-for-public-net",
       tie_with_ping        => true,
-      ping_host_list       => $::use_quantum ? {
+      ping_host_list       => $::use_neutron ? {
         default => $::fuel_settings['network_data'][$::public_int]['gateway'],
         true    => $::fuel_settings['network_scheme']['endpoints']['br-ex']['gateway'],
       },
@@ -238,13 +244,13 @@ class osnailyfacter::cluster_ha {
 
   if ($storage_hash['images_ceph']) {
     $glance_backend = 'ceph'
-    $glance_known_stores = [ 'glance.store.rbd.Store' ]
+    $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
   } elsif ($storage_hash['images_vcenter']) {
     $glance_backend = 'vmware'
-    $glance_known_stores = [ 'glance.store.vmware_datastore.Store' ]
+    $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
   } else {
     $glance_backend = 'swift'
-    $glance_known_stores = [ 'glance.store.swift.Store' ]
+    $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
   }
 
   if ($::use_ceph) {
@@ -266,7 +272,7 @@ class osnailyfacter::cluster_ha {
   }
 
   # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
-  if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) or !$storage_hash['images_vcenter'] {
+  if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
     $use_swift = true
   } else {
     $use_swift = false
@@ -279,7 +285,7 @@ class osnailyfacter::cluster_ha {
     $swift_proxies            = $controllers
     $swift_local_net_ip       = $::storage_address
     $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-    $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['internal_address']
+    $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
     #$master_hostname         = $master_swift_proxy_nodes[0]['name']
     $swift_loopback = false
     if $primary_controller {
@@ -304,14 +310,11 @@ class osnailyfacter::cluster_ha {
   #HARDCODED PARAMETERS
 
   $multi_host              = true
-  $quantum_netnode_on_cnt  = true
   $mirror_type = 'external'
   Exec { logoutput => true }
 
   class compact_controller (
     $primary_controller,
-    $quantum_network_node = $quantum_netnode_on_cnt
-
   ) {
 
     class {'osnailyfacter::apache_api_proxy':}
@@ -322,12 +325,12 @@ class osnailyfacter::cluster_ha {
       controller_internal_addresses  => $::osnailyfacter::cluster_ha::controller_internal_addresses,
       internal_address               => $::internal_address,
       public_interface               => $::public_int,
-      private_interface              => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
+      private_interface              => $::use_neutron ? { true=>false, default=>$::fuel_settings['fixed_interface']},
       internal_virtual_ip            => $::fuel_settings['management_vip'],
       public_virtual_ip              => $::fuel_settings['public_vip'],
       primary_controller             => $primary_controller,
-      floating_range                 => $::use_quantum ? { true=>$floating_hash, default=>false},
-      fixed_range                    => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range']},
+      floating_range                 => $::use_neutron ? { true=>$floating_hash, default=>false},
+      fixed_range                    => $::use_neutron ? { true=>false, default=>$::fuel_settings['fixed_network_range']},
       multi_host                     => $::osnailyfacter::cluster_ha::multi_host,
       network_manager                => $::osnailyfacter::cluster_ha::network_manager,
       num_networks                   => $::osnailyfacter::cluster_ha::num_networks,
@@ -369,10 +372,14 @@ class osnailyfacter::cluster_ha {
       glance_backend                 => $::osnailyfacter::cluster_ha::glance_backend,
       swift_proxies                  => $::osnailyfacter::cluster_ha::swift_proxies,
       rgw_servers                    => $::osnailyfacter::cluster_ha::rgw_servers,
-      quantum                        => $::use_quantum,
-      quantum_config                 => $::osnailyfacter::cluster_ha::quantum_config,
-      quantum_network_node           => $::use_quantum,
-      quantum_netnode_on_cnt         => $::use_quantum,
+
+      network_provider               => $::osnailyfacter::cluster_ha::network_provider,
+      neutron_db_password            => $::osnailyfacter::cluster_ha::neutron_db_password,
+      neutron_user_password          => $::osnailyfacter::cluster_ha::neutron_user_password,
+      neutron_metadata_proxy_secret  => $::osnailyfacter::cluster_ha::neutron_metadata_proxy_secret,
+      neutron_ha_agents              => $::osnailyfacter::cluster_ha::primary_controller ? {true => 'primary', default => 'slave'},
+      base_mac                       => $::osnailyfacter::cluster_ha::base_mac,
+
       cinder                         => true,
       cinder_user_password           => $::osnailyfacter::cluster_ha::cinder_hash[user_password],
       cinder_iscsi_bind_addr         => $::osnailyfacter::cluster_ha::cinder_iscsi_bind_addr,
@@ -385,6 +392,7 @@ class osnailyfacter::cluster_ha {
       ceilometer_metering_secret     => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
       ceilometer_db_type             => 'mongodb',
       ceilometer_db_host             => mongo_hosts($nodes_hash),
+      swift_rados_backend            => $::osnailyfacter::cluster_ha::storage_hash['objects_ceph'],
       galera_nodes                   => $::osnailyfacter::cluster_ha::controller_nodes,
       novnc_address                  => $::internal_address,
       sahara                         => $::osnailyfacter::cluster_ha::sahara_hash[enabled],
@@ -422,11 +430,32 @@ class osnailyfacter::cluster_ha {
     class { 'mellanox_openstack::openibd' : }
   }
 
+  if $::fuel_settings['role'] =~ /controller/ {
+    class { 'ntp':
+      servers => strip(split($::fuel_settings['external_ntp']['ntp_list'], ',')),
+      service_enable  => false,
+    }
+  }
+  else {
+    class { 'ntp':
+      servers => [$::fuel_settings['management_vip']],
+      service_ensure  => running,
+      service_enable  => true,
+    }
+  }
 
+  class { 'osnailyfacter::resolvconf':
+    management_vip => $::fuel_settings['management_vip'],
+  }
 
   case $::fuel_settings['role'] {
     /controller/ : {
       include osnailyfacter::test_controller
+
+      class { 'osnailyfacter::dnsmasq':
+        external_dns => strip(split($::fuel_settings['external_dns']['dns_list'], ',')),
+        master_ip    => $::fuel_settings['master_ip'],
+      }
 
       class { '::cluster':
         stage             => 'corosync_setup',
@@ -469,9 +498,13 @@ class osnailyfacter::cluster_ha {
           sync_rings            => ! $primary_proxy,
           debug                 => $::debug,
           verbose               => $::verbose,
+          log_facility          => 'LOG_SYSLOG',
         }
         if $primary_proxy {
-          ring_devices {'all': storages => $controllers }
+          ring_devices {'all':
+            storages => $controllers,
+            require  => Class['swift'],
+          }
         }
 
         if !$swift_hash['resize_value']
@@ -491,6 +524,7 @@ class osnailyfacter::cluster_ha {
           master_swift_proxy_ip   => $master_swift_proxy_ip,
           debug                   => $::debug,
           verbose                 => $::verbose,
+          log_facility            => 'LOG_SYSLOG',
         }
         class { 'swift::keystone::auth':
           password         => $swift_hash[user_password],
@@ -506,12 +540,12 @@ class osnailyfacter::cluster_ha {
 
       if $use_vmware_nsx {
         class {'plugin_neutronnsx':
-          neutron_config     => $quantum_config,
+          neutron_config     => $neutron_config,
           neutron_nsx_config => $neutron_nsx_config,
         }
       }
 
-      if ! $::use_quantum {
+      if ! $::use_neutron {
         if $primary_controller {
           exec { 'wait-for-haproxy-nova-backend':
             command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
@@ -558,7 +592,14 @@ class osnailyfacter::cluster_ha {
           Exec<| title=='wait-for-haproxy-keystone-admin-backend' |> ->
           Nova_floating_range <| |>
 
+          Openstack::Ha::Haproxy_service <| |> ->
+          Exec<| title=='wait-for-haproxy-nova-backend' |>
 
+          Openstack::Ha::Haproxy_service <| |> ->
+          Exec<| title=='wait-for-haproxy-keystone-admin-backend' |>
+
+          Openstack::Ha::Haproxy_service <| |> ->
+          Exec<| title=='wait-for-haproxy-keystone-backend' |>
         }
       }
       if ($::use_ceph){
@@ -580,14 +621,13 @@ class osnailyfacter::cluster_ha {
           sahara_keystone_tenant     => 'services',
           sahara_auth_uri            => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
           sahara_identity_uri        => "http://${::fuel_settings['management_vip']}:35357/",
-          use_neutron                => $::use_quantum,
-
+          use_neutron                => $::use_neutron,
           syslog_log_facility_sahara => $syslog_log_facility_sahara,
           debug                      => $::debug,
           verbose                    => $::verbose,
           use_syslog                 => $::use_syslog,
         }
-          $scheduler_default_filters = [ 'DifferentHostFilter' ]
+        $scheduler_default_filters = [ 'DifferentHostFilter' ]
       } else {
         $scheduler_default_filters = []
       }
@@ -681,7 +721,7 @@ class osnailyfacter::cluster_ha {
           murano_keystone_password => $murano_hash['user_password'],
           murano_keystone_tenant   => 'services',
 
-          use_neutron              => $::use_quantum,
+          use_neutron              => $::use_neutron,
 
           use_syslog               => $::use_syslog,
           debug                    => $::debug,
@@ -703,7 +743,7 @@ class osnailyfacter::cluster_ha {
           vcenter_password  => $vcenter_hash['vc_password'],
           vcenter_host_ip   => $vcenter_hash['host_ip'],
           vcenter_cluster   => $vcenter_hash['cluster'],
-          use_quantum       => $::use_quantum,
+          use_quantum       => $::use_neutron,
           ha_mode           => true,
           vnc_address       => $controller_node_public,
         }
@@ -725,7 +765,7 @@ class osnailyfacter::cluster_ha {
       include osnailyfacter::test_compute
 
       if ($::mellanox_mode == 'ethernet') {
-        $net04_physnet = $quantum_config['predefined_networks']['net04']['L2']['physnet']
+        $net04_physnet = $neutron_config['predefined_networks']['net04']['L2']['physnet']
         class { 'mellanox_openstack::compute':
           physnet => $net04_physnet,
           physifc => $::fuel_settings['neutron_mellanox']['physical_port'],
@@ -737,10 +777,10 @@ class osnailyfacter::cluster_ha {
 
       class { 'openstack::compute':
         public_interface            => $::public_int ? { undef=>'', default=>$::public_int },
-        private_interface           => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
+        private_interface           => $::use_neutron ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
         internal_address            => $::internal_address,
         libvirt_type                => $::fuel_settings['libvirt_type'],
-        fixed_range                 => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range']},
+        fixed_range                 => $::use_neutron ? { true=>false, default=>$::fuel_settings['fixed_network_range']},
         network_manager             => $network_manager,
         network_config              => $network_config,
         multi_host                  => $multi_host,
@@ -770,8 +810,11 @@ class osnailyfacter::cluster_ha {
         ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
         ceilometer_user_password    => $ceilometer_hash[user_password],
         db_host                     => $::fuel_settings['management_vip'],
-        quantum                     => $::use_quantum,
-        quantum_config              => $quantum_config,
+
+        network_provider            => $::osnailyfacter::cluster_ha::network_provider,
+        neutron_user_password       => $::osnailyfacter::cluster_ha::neutron_user_password,
+        base_mac                    => $::osnailyfacter::cluster_ha::base_mac,
+
         use_syslog                  => $use_syslog,
         syslog_log_facility         => $::syslog_log_facility_nova,
         syslog_log_facility_neutron => $::syslog_log_facility_neutron,
@@ -793,7 +836,7 @@ class osnailyfacter::cluster_ha {
 
       if $use_vmware_nsx {
         class {'plugin_neutronnsx':
-          neutron_config     => $quantum_config,
+          neutron_config     => $neutron_config,
           neutron_nsx_config => $neutron_nsx_config,
         }
       }
@@ -923,33 +966,34 @@ class osnailyfacter::cluster_ha {
       $swift_zone = $node[0]['swift_zone']
 
       class { 'openstack::swift::storage_node':
-        storage_type          => $swift_loopback,
-        loopback_size         => '5243780',
-        storage_mnt_base_dir  => $swift_partition,
-        storage_devices       =>  $mountpoints,
-        swift_zone             => $swift_zone,
-        swift_local_net_ip     => $swift_local_net_ip,
-        master_swift_proxy_ip  => $master_swift_proxy_ip,
-        cinder                 => $cinder,
-        cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
-        cinder_volume_group     => "cinder",
-        manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-        db_host                => $::fuel_settings['management_vip'],
-        service_endpoint       => $::fuel_settings['management_vip'],
-        cinder_rate_limits     => $cinder_rate_limits,
-        queue_provider         => $::queue_provider,
-        rabbit_nodes           => $controller_nodes,
-        rabbit_password        => $rabbit_hash[password],
-        rabbit_user            => $rabbit_hash[user],
-        rabbit_ha_virtual_ip   => $::fuel_settings['management_vip'],
-        qpid_password          => $rabbit_hash[password],
-        qpid_user              => $rabbit_hash[user],
-        qpid_nodes             => [$::fuel_settings['management_vip']],
-        sync_rings             => ! $primary_proxy,
-        syslog_log_level       => $syslog_log_level,
-        debug                  => $debug,
-        verbose                => $verbose,
+        storage_type               => $swift_loopback,
+        loopback_size              => '5243780',
+        storage_mnt_base_dir       => $swift_partition,
+        storage_devices            =>  $mountpoints,
+        swift_zone                 => $swift_zone,
+        swift_local_net_ip         => $swift_local_net_ip,
+        master_swift_proxy_ip      => $master_swift_proxy_ip,
+        cinder                     => $cinder,
+        cinder_iscsi_bind_addr     => $cinder_iscsi_bind_addr,
+        cinder_volume_group        => "cinder",
+        manage_volumes             => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
+        db_host                    => $::fuel_settings['management_vip'],
+        service_endpoint           => $::fuel_settings['management_vip'],
+        cinder_rate_limits         => $cinder_rate_limits,
+        queue_provider             => $::queue_provider,
+        rabbit_nodes               => $controller_nodes,
+        rabbit_password            => $rabbit_hash[password],
+        rabbit_user                => $rabbit_hash[user],
+        rabbit_ha_virtual_ip       => $::fuel_settings['management_vip'],
+        qpid_password              => $rabbit_hash[password],
+        qpid_user                  => $rabbit_hash[user],
+        qpid_nodes                 => [$::fuel_settings['management_vip']],
+        sync_rings                 => ! $primary_proxy,
+        syslog_log_level           => $syslog_log_level,
+        debug                      => $debug,
+        verbose                    => $verbose,
         syslog_log_facility_cinder => $syslog_log_facility_cinder,
+        log_facility               => 'LOG_SYSLOG',
       }
 
       # TODO(bogdando) add monit swift-storage services monitoring, if required
@@ -964,7 +1008,8 @@ class osnailyfacter::cluster_ha {
 
       if $primary_proxy {
         ring_devices {'all':
-          storages => $swift_storages
+          storages => $swift_storages,
+          require  => Class['swift'],
         }
       }
 
@@ -978,14 +1023,18 @@ class osnailyfacter::cluster_ha {
         syslog_log_level        => $syslog_log_level,
         debug                   => $debug,
         verbose                 => $verbose,
+        log_facility            => 'LOG_SYSLOG',
       }
     }
 
   } # ROLE CASE ENDS
 
-  class { 'zabbix': }
   # TODO(bogdando) add monit zabbix services monitoring, if required
   # NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
+  include galera::params
+  class { 'zabbix':
+    mysql_server_pkg => $::galera::params::mysql_server_name,
+  }
 
 } # CLUSTER_HA ENDS
 # vim: set ts=2 sw=2 et :
