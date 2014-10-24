@@ -628,16 +628,7 @@ class openstack::controller (
 
 
   ######## [Nova|Neutron] Network ########
-  if $enabled and $multi_host {
-    $enable_nova_net = true
-  } else {
-    $enable_nova_net = false
-  }
-  if $enabled and $create_networks {
-    $really_create_networks = true
-  } else {
-    $really_create_networks = false
-  }
+
   if $network_manager !~ /VlanManager$/ and $network_config {
     $config_overrides = delete($network_config, 'vlan_start')
   } else {
@@ -801,11 +792,11 @@ class openstack::controller (
     floating_range      => $floating_range,
     network_manager     => $network_manager,
     network_config      => $config_overrides,
-    create_networks     => $really_create_networks,
+    create_networks     => $create_networks,
     num_networks        => $num_networks,
     network_size        => $network_size,
     nameservers         => $nameservers,
-    enable_nova_net     => $enable_nova_net,
+    enable_nova_net     => false,  # only setup nets, but don't start service
     nova_admin_password => $nova_user_password,
     nova_url            => "http://${service_endpoint}:8774/v2",
   }

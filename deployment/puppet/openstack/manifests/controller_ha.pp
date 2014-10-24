@@ -193,6 +193,8 @@ class openstack::controller_ha (
       neutron_ha_agents              => $neutron_ha_agents,
       segment_range                  => $segment_range,
       tenant_network_type            => $tenant_network_type,
+      create_networks                => $primary_controller,
+      #
       cinder                         => $cinder,
       cinder_iscsi_bind_addr         => $cinder_iscsi_bind_addr,
       cinder_user_password           => $cinder_user_password,
