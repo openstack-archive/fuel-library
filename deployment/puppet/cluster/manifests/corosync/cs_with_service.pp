@@ -1,10 +1,11 @@
 # not a doc string
 
+#TODO (bogdando) move to extras ha wrappers
 define cluster::corosync::cs_with_service (
   $first,
   $second,
   $cib = undef,
-  $score = "INFINITY",
+  $score = 'INFINITY',
   $order = true,
   )
 {
