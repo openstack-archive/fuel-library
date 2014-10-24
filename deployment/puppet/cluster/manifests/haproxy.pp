@@ -37,6 +37,14 @@ class cluster::haproxy (
 
   class { 'cluster::haproxy_ocf':
     primary_controller => $primary_controller
+  } ->
+
+  class { 'cluster::ntp_ocf':
+    primary_controller => $primary_controller
+  } ->
+
+  class { 'cluster::dns_ocf':
+    primary_controller => $primary_controller
   }
 
   Package['haproxy'] -> Class['haproxy::base']
