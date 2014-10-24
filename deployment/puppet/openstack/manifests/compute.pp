@@ -244,6 +244,7 @@ class openstack::compute (
       service_down_time      => $nova_service_down_time,
       notify_on_state_change => $notify_on_state_change,
       memcached_servers      => $memcached_addresses,
+      nova_shell             => '/bin/bash',
   }
 
   # From legacy init.pp
