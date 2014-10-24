@@ -272,7 +272,7 @@ class osnailyfacter::cluster_ha {
   }
 
   # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
-  if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) or !$storage_hash['images_vcenter'] {
+  if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
     $use_swift = true
   } else {
     $use_swift = false
