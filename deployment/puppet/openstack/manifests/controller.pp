@@ -739,64 +739,66 @@ class openstack::controller (
     $neutron_db_uri = undef
   }
 
-  Class['openstack::keystone'] ->
-  class { 'openstack::network':
-    network_provider    => $network_provider,
-    agents              => [$agent, 'metadata', 'dhcp', 'l3'],
-    ha_agents           => $neutron_ha_agents,
-    verbose             => $verbose,
-    debug               => $debug,
-    use_syslog          => $use_syslog,
-    syslog_log_facility => $syslog_log_facility_neutron,
+  if $network_provider == 'neutron' {
+    Class['openstack::keystone'] ->
+    class { 'openstack::network':
+      network_provider    => $network_provider,
+      agents              => [$agent, 'metadata', 'dhcp', 'l3'],
+      ha_agents           => $neutron_ha_agents,
+      verbose             => $verbose,
+      debug               => $debug,
+      use_syslog          => $use_syslog,
+      syslog_log_facility => $syslog_log_facility_neutron,
 
-    neutron_server      => $neutron_server,
-    neutron_db_uri      => $neutron_db_uri,
-    public_address      => $public_address,
-    internal_address    => $internal_address, # Could be this node or, internal_vip
-    admin_address       => $admin_address,
-    nova_neutron        => true,
-    base_mac            => $base_mac,
-    core_plugin         => $core_plugin,
-    service_plugins     => $service_plugins,
+      neutron_server      => $neutron_server,
+      neutron_db_uri      => $neutron_db_uri,
+      public_address      => $public_address,
+      internal_address    => $internal_address, # Could be this node or, internal_vip
+      admin_address       => $admin_address,
+      nova_neutron        => true,
+      base_mac            => $base_mac,
+      core_plugin         => $core_plugin,
+      service_plugins     => $service_plugins,
 
-    #ovs
-    mechanism_drivers   => $mechanism_drivers,
-    local_ip            => $::internal_address, # $::internal_adress is this node
-    bridge_mappings     => $bridge_mappings,
-    network_vlan_ranges => $vlan_range,
-    enable_tunneling    => $enable_tunneling,
-    tunnel_id_ranges    => $tunnel_id_ranges,
+      #ovs
+      mechanism_drivers   => $mechanism_drivers,
+      local_ip            => $::internal_address, # $::internal_adress is this node
+      bridge_mappings     => $bridge_mappings,
+      network_vlan_ranges => $vlan_range,
+      enable_tunneling    => $enable_tunneling,
+      tunnel_id_ranges    => $tunnel_id_ranges,
 
-    #Queue settings
-    queue_provider  => $queue_provider,
-    amqp_hosts      => [$amqp_hosts],
-    amqp_user       => $amqp_user,
-    amqp_password   => $amqp_password,
+      #Queue settings
+      queue_provider  => $queue_provider,
+      amqp_hosts      => [$amqp_hosts],
+      amqp_user       => $amqp_user,
+      amqp_password   => $amqp_password,
 
-    # keystone
-    admin_password  => $neutron_user_password,
-    auth_host       => $internal_address,
-    auth_url        => "http://${service_endpoint}:35357/v2.0",
-    neutron_url     => "http://${service_endpoint}:9696",
+      # keystone
+      admin_password  => $neutron_user_password,
+      auth_host       => $internal_address,
+      auth_url        => "http://${service_endpoint}:35357/v2.0",
+      neutron_url     => "http://${service_endpoint}:9696",
 
-    #metadata
-    shared_secret   => $neutron_metadata_proxy_secret,
-    metadata_ip     => $service_endpoint,
+      #metadata
+      shared_secret   => $neutron_metadata_proxy_secret,
+      metadata_ip     => $service_endpoint,
 
-    #nova settings
-    private_interface   => $private_interface,
-    public_interface    => $public_interface,
-    fixed_range         => $fixed_range,
-    floating_range      => $floating_range,
-    network_manager     => $network_manager,
-    network_config      => $config_overrides,
-    create_networks     => $really_create_networks,
-    num_networks        => $num_networks,
-    network_size        => $network_size,
-    nameservers         => $nameservers,
-    enable_nova_net     => $enable_nova_net,
-    nova_admin_password => $nova_user_password,
-    nova_url            => "http://${service_endpoint}:8774/v2",
+      #nova settings
+      private_interface   => $private_interface,
+      public_interface    => $public_interface,
+      fixed_range         => $fixed_range,
+      floating_range      => $floating_range,
+      network_manager     => $network_manager,
+      network_config      => $config_overrides,
+      create_networks     => $really_create_networks,
+      num_networks        => $num_networks,
+      network_size        => $network_size,
+      nameservers         => $nameservers,
+      enable_nova_net     => $enable_nova_net,
+      nova_admin_password => $nova_user_password,
+      nova_url            => "http://${service_endpoint}:8774/v2",
+    }
   }
 }
 
