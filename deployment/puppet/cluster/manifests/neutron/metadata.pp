@@ -11,6 +11,7 @@ class cluster::neutron::metadata (
     default => $::neutron::params::metadata_agent_package,
   }
 
+  #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'neutron-metadata-agent':
     ocf_script          => 'neutron-agent-metadata',
     csr_multistate_hash => { 'type' => 'clone' },
