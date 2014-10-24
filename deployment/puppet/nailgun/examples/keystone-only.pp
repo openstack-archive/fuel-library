@@ -30,69 +30,26 @@ case $production {
       refreshonly => false,
     }
 
-    # Admin user
-    keystone_tenant { 'admin':
-      ensure  => present,
+    keystone_tenant { 'admin' :
       enabled => 'True',
+      ensure  => present
     }
 
-    keystone_tenant { 'services':
-      ensure      => present,
-      enabled     => 'True',
-      description => 'fuel services tenant',
-    }
-
-    keystone_role { 'admin':
-      ensure => present,
+    keystone_role {'admin' :
+      ensure => present
     }
 
     keystone_user { 'admin':
-      ensure   => present,
       password => $::fuel_settings['FUEL_ACCESS']['password'],
+      ensure   => present,
       enabled  => 'True',
-      tenant   => 'admin',
+      tenant   => 'admin'
     }
 
     keystone_user_role { 'admin@admin':
-      ensure => present,
       roles  => ['admin'],
+      ensure => present
     }
-
-    # Keystone Endpoint
-    class { 'keystone::endpoint':
-      public_address   => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-      admin_address    => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-      internal_address => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-    }
-
-    # Nailgun
-    class { 'nailgun::auth':
-      auth_name => $::fuel_settings['keystone']['nailgun_user'],
-      password  => $::fuel_settings['keystone']['nailgun_password'],
-      address   => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-    }
-
-    # OSTF
-    class { 'nailgun::ostf::auth':
-      auth_name => $::fuel_settings['keystone']['ostf_user'],
-      password  => $::fuel_settings['keystone']['ostf_password'],
-      address   => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-    }
-
-    # Increase token expiratin to 24h
-    keystone_config {
-      'token/expiration': value => 86400;
-    }
-
-    # Flush expired tokens
-    cron { 'keystone-flush-token':
-      ensure      => present,
-      command     => 'keystone-manage token_flush',
-      environment => 'PATH=/bin:/usr/bin:/usr/sbin',
-      user        => 'root',
-      hour        => '1',
-    }
-
   }
   'docker-build': {
   }

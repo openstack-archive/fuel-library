@@ -10,10 +10,8 @@ after_init_hook = False
 auth_enable = <%= @auth_enable %>
 
 [keystone_authtoken]
+admin_token=<%= @keystone_admin_token %>
 auth_protocol=http
 auth_port=<%= @keystone_port %>
 auth_host=<%= @keystone_host %>
 auth_version=v2.0
-admin_user=<%= @keystone_ostf_user  %>
-admin_password=<%= @keystone_ostf_pass %>
-admin_tenant_name=services

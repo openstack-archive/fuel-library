@@ -8,12 +8,10 @@ AUTH:
   # - keystone - authentication enabled.
   AUTHENTICATION_METHOD: "keystone"
   # use only if AUTHENTICATION_METHOD is set to "keystone"
+  admin_token: "<%= @keystone_admin_token %>"
   auth_host: "<%= @keystone_host %>"
   auth_protocol: "http"
   auth_version: "v2.0"
-  admin_user: "<%= @keystone_nailgun_user  %>"
-  admin_password: "<%= @keystone_nailgun_pass %>"
-  admin_tenant_name: "services"
 
 DATABASE:
   engine: "<%= @database_engine %>"
