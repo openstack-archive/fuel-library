@@ -452,11 +452,34 @@ class osnailyfacter::cluster_ha {
     class { 'mellanox_openstack::openibd' : }
   }
 
+  if $::fuel_settings['role'] =~ /controller/ {
+    class { 'ntp':
+      servers => strip(split($::fuel_settings['external_ntp']['ntp_list'], ',')),
+      service_enable  => false,
+    }
+  }
+  else {
+    class { 'ntp':
+      servers => [$::fuel_settings['management_vip']],
+      service_ensure  => running,
+      service_enable  => true,
+    }
+  }
 
+  class { 'osnailyfacter::resolvconf':
+    management_vip => $::fuel_settings['management_vip'],
+  }
 
   case $::fuel_settings['role'] {
     /controller/ : {
       include osnailyfacter::test_controller
+
+      class { 'osnailyfacter::dnsmasq':
+        external_dns => strip(split($::fuel_settings['external_dns']['dns_list'], ',')),
+        master_ip    => $::fuel_settings['master_ip'],
+      }
+
+      Class['openstack::controller'] -> Class['osnailyfacter::dnsmasq']
 
       class { '::cluster':
         stage             => 'corosync_setup',
