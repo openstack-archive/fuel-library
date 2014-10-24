@@ -656,6 +656,12 @@ class openstack::controller (
 
     if $primary_controller {
 
+      Class<| title == 'keystone::roles::admin' |> ->
+        Openstack::Network::Create_network <||>
+
+      Class<| title == 'keystone::roles::admin' |> ->
+        Openstack::Network::Create_router <||>
+
       Service<| title == 'neutron-server' |> ->
         Openstack::Network::Create_network <||>
 
