@@ -656,6 +656,17 @@ class openstack::controller (
 
     if $primary_controller {
 
+      if $enabled {
+        # Enabled is passed to keystone, if so keystone::roles::admin will
+        # be executed.
+
+        Class['keystone::roles::admin'] ->
+          Openstack::Network::Create_network <||>
+
+        Class['keystone::roles::admin'] ->
+          Openstack::Network::Create_router <||>
+      }
+
       Service<| title == 'neutron-server' |> ->
         Openstack::Network::Create_network <||>
 
