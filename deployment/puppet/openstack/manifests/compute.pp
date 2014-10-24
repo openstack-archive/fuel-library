@@ -604,9 +604,8 @@ on packages update": }
       $service_plugins  = ['router', 'firewall', 'metering']
       $agent            = 'ovs'
     } elsif $neutron_settings['L2']['provider'] == 'nsx' {
-      $core_plugin      = 'ovs'
-      $service_plugins  = ['router', 'firewall', 'metering']
-      $agent            = 'ovs'
+      # do nothing because nsx has its own neutron's agent
+      # which will be installed in module plugin_neutronnsx
     } else {
       # by default we use ML2 plugin
       $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'

@@ -728,6 +728,8 @@ class openstack::controller (
       $core_plugin      = 'openvswitch'
       $service_plugins  = ['router', 'firewall', 'metering']
       $agent            = 'ovs'
+    } elsif $neutron_settings['L2']['provider'] == 'nsx' {
+      $core_plugin = 'vmware'
     } else {
       $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
       $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin']
