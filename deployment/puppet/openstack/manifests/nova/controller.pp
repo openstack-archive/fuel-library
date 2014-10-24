@@ -211,17 +211,10 @@ class openstack::nova::controller (
     quota_driver                          => $nova_quota_driver
   }
 
-  if $enabled {
-    $really_create_networks = $create_networks
-  } else {
-    $really_create_networks = false
-  }
-
   if ! $neutron {
     # Configure nova-network
     if $multi_host {
       nova_config { 'DEFAULT/multi_host': value => 'True' }
-
       $_enabled_apis = $enabled_apis
     } else {
       $_enabled_apis = "${enabled_apis},metadata"
