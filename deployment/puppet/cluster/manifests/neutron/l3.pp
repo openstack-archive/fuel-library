@@ -36,6 +36,7 @@ define cluster::neutron::l3 (
     default => $::neutron::params::l3_agent_package,
   }
 
+  #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'l3':
     ocf_script      => 'neutron-agent-l3',
     csr_parameters  => {
