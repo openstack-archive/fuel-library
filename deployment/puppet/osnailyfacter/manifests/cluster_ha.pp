@@ -422,7 +422,25 @@ class osnailyfacter::cluster_ha {
     class { 'mellanox_openstack::openibd' : }
   }
 
+  if $::fuel_settings['role'] =~ /controller/ {
+    class { 'ntp':
+      servers => ['0.pool.ntp.org','1.pool.ntp.org','2.pool.ntp.org'], ### to be added in astute
+      enable  => false,
+    }
+  }
+  else {
+    class { 'ntp':
+      servers => [$::fuel_settings['management_vip']],
+      ensure  => running,
+      enable  => true,
+    }
+  }
 
+  class { 'osnailyfacter::dns':
+    external_dns    => ['8.8.8.8', '208.67.220.220'], ### to be added in astute
+    master_ip      => $::fuel_settings['master_ip'],
+    management_vip => $::fuel_settings['management_vip'],
+  }
 
   case $::fuel_settings['role'] {
     /controller/ : {
