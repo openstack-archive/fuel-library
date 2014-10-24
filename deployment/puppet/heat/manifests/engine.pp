@@ -52,10 +52,10 @@ class heat::engine (
   $package_name = $::heat::params::engine_package_name
   $pacemaker_service_name = "p_${service_name}"
 
-  Heat_config<||> ~> Service['heat-engine_service']
+  Heat_config<||> ~> Service['heat-engine']
 
   Package['heat-engine'] -> Heat_config<||>
-  Package['heat-engine'] ~> Service['heat-engine_service']
+  Package['heat-engine'] ~> Service['heat-engine']
   package { 'heat-engine':
     ensure => installed,
     name   => $package_name,
@@ -71,7 +71,7 @@ class heat::engine (
 
     # standard service mode
 
-    service { 'heat-engine_service':
+    service { 'heat-engine':
       ensure     => $service_ensure,
       name       => $service_name,
       enable     => $enabled,
@@ -116,15 +116,14 @@ class heat::engine (
         },
       }
 
-      Heat_config<||> -> File['heat-engine-ocf'] -> Cs_resource[$pacemaker_service_name] -> Service['heat-engine_service']
+      Heat_config<||> -> File['heat-engine-ocf'] -> Cs_resource[$pacemaker_service_name] -> Service['heat-engine']
     } else {
 
-      Heat_config<||> -> File['heat-engine-ocf'] -> Service['heat-engine_service']
+      Heat_config<||> -> File['heat-engine-ocf'] -> Service['heat-engine']
 
     }
 
-    #NOTE(bogdando) we have to diverge init.d service name vs pacemaker managed one
-    service { 'heat-engine_service':
+    service { 'heat-engine':
       ensure     => $service_ensure,
       name       => $pacemaker_service_name,
       enable     => $enabled,
@@ -136,15 +135,6 @@ class heat::engine (
                       Package['heat-engine']],
       subscribe  => Exec['heat-dbsync'],
     }
-
-    #NOTE(bogdando) we have to disable init.d management for pacemaker handled service
-    service { 'heat-engine_stopped' :
-      name   => $service_name,
-      ensure => 'stopped',
-      enable => false,
-    }
-
-    Service['heat-engine_stopped'] -> Service['heat-engine_service']
 
   }
 
@@ -163,5 +153,5 @@ class heat::engine (
     'DEFAULT/engine_life_check_timeout'    : value => $engine_life_check_timeout;
   }
 
-  File['/etc/heat/heat.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine_service']
+  File['/etc/heat/heat.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine']
 }
