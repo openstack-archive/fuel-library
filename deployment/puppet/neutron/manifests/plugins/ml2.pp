@@ -116,7 +116,7 @@ class neutron::plugins::ml2 (
       path    => '/etc/default/neutron-server',
       match   => '^NEUTRON_PLUGIN_CONFIG=(.*)$',
       line    => 'NEUTRON_PLUGIN_CONFIG=/etc/neutron/plugin.ini',
-      require => File['/etc/neutron/plugin.ini'],
+      require => File['/etc/default/neutron-server','/etc/neutron/plugin.ini'],
     }
     File_line['/etc/default/neutron-server:NEUTRON_PLUGIN_CONFIG']
     ~> Service<| title == 'neutron-server' |>
@@ -128,6 +128,12 @@ class neutron::plugins::ml2 (
     ensure  => link,
     target  => '/etc/neutron/plugins/ml2/ml2_conf.ini'
   }
+  file {'/etc/default/neutron-server':
+    ensure   => present,
+    owner    => 'root',
+    group    => 'root',
+    mode     => 644
+  }
 
   # Some platforms do not have a dedicated ml2 plugin package
   if $::neutron::params::ml2_server_package {
@@ -137,8 +143,10 @@ class neutron::plugins::ml2 (
     }
     Package['neutron-plugin-ml2'] -> Neutron_plugin_ml2<||>
     Package['neutron-plugin-ml2'] -> File['/etc/neutron/plugin.ini']
+    Package['neutron-plugin-ml2'] -> File['/etc/default/neutron-server']
   } else {
     Package['neutron'] -> File['/etc/neutron/plugin.ini']
+    Package['neutron'] -> File['/etc/default/neutron-server']
   }
 
   neutron::plugins::ml2::driver { $type_drivers:
