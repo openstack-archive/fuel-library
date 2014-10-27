@@ -1,10 +1,6 @@
 #
 # Used to grant access to the neutron mysql DB
 #
-
-# TODO(bogdando) sync this manifest with upstream once puppet-openstacklib
-#   synced in Fuel as well. We cannot sync it for now.
-
 define neutron::db::mysql::host_access ($user, $password, $database, $mysql_module = '0.9')  {
   if ($mysql_module >= 2.2) {
     mysql_user { "${user}@${name}":

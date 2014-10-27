@@ -1,3 +1,5 @@
+Puppet::Type.type(:ini_setting)#.providers
+
 Puppet::Type.type(:neutron_dhcp_agent_config).provide(
   :ini_setting,
   :parent => Puppet::Type.type(:ini_setting).provider(:ruby)

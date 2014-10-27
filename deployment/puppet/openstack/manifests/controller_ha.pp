@@ -52,17 +52,8 @@ class openstack::controller_ha (
    $glance_backend                 = 'file',
    $swift_proxies                  = undef,
    $rgw_servers                    = undef,
-
-   $network_provider               = 'nova',
-
-   $neutron_db_user                = 'neutron',
-   $neutron_db_password            = 'neutron_db_pass',
-   $neutron_db_dbname              = 'neutron',
-   $neutron_user_password          = 'asdf123',
-   $neutron_metadata_proxy_secret  = '12345',
-   $neutron_ha_agents              = 'slave',
-   $base_mac                       = 'fa:16:3e:00:00:00',
-
+   $quantum                        = false,
+   $quantum_config                 = {},
    $cinder                         = false,
    $cinder_iscsi_bind_addr         = false,
    $nv_physical_volume             = undef,
@@ -92,8 +83,8 @@ class openstack::controller_ha (
    $murano                         = false,
    $rabbit_node_ip_address         = $internal_address,
    $horizon_use_ssl                = false,
-   $neutron_network_node           = false,
-   $neutron_netnode_on_cnt         = false,
+   $quantum_network_node           = false,
+   $quantum_netnode_on_cnt         = false,
    $mysql_skip_name_resolve        = false,
    $ha_provider                    = "pacemaker",
    $create_networks                = true,
@@ -113,7 +104,7 @@ class openstack::controller_ha (
       public_virtual_ip        => $public_virtual_ip,
       internal_virtual_ip      => $internal_virtual_ip,
       horizon_use_ssl          => $horizon_use_ssl,
-      neutron                  => $network_provider ? {'neutron' => true, default => false},
+      neutron                  => $quantum,
       queue_provider           => $queue_provider,
       custom_mysql_setup_class => $custom_mysql_setup_class,
       swift_proxies            => $swift_proxies,
@@ -184,13 +175,10 @@ class openstack::controller_ha (
       glance_backend                 => $glance_backend,
       known_stores                   => $known_stores,
       #require                        => Service['keepalived'],
-      network_provider               => $network_provider,
-      neutron_db_user                => $neutron_db_user,
-      neutron_db_password            => $neutron_db_password,
-      neutron_db_dbname              => $neutron_db_dbname,
-      neutron_user_password          => $neutron_user_password,
-      neutron_metadata_proxy_secret  => $neutron_metadata_proxy_secret,
-      neutron_ha_agents              => $neutron_ha_agents,
+      quantum                        => $quantum,
+      quantum_config                 => $quantum_config,
+      quantum_network_node           => $quantum_network_node,
+      quantum_netnode_on_cnt         => $quantum_netnode_on_cnt,
       segment_range                  => $segment_range,
       tenant_network_type            => $tenant_network_type,
       cinder                         => $cinder,
@@ -229,6 +217,29 @@ class openstack::controller_ha (
       max_pool_size                  => $max_pool_size,
       max_overflow                   => $max_overflow,
       idle_timeout                   => $idle_timeout,
+    }
+
+    if $quantum and $quantum_network_node {
+      class { '::openstack::neutron_router':
+        #service_endpoint      => $internal_virtual_ip,
+        #auth_host             => $internal_virtual_ip,
+        #nova_api_vip          => $internal_virtual_ip,
+        #private_interface     => $private_interface,
+        #segment_range         => $segment_range,
+        #internal_address      => $internal_address,
+        #public_interface      => $public_interface,
+        #create_networks       => $create_networks,
+        verbose               => $verbose,
+        debug                 => $debug,
+        neutron               => $quantum,
+        neutron_config        => $quantum_config,
+        neutron_network_node  => $quantum_network_node,
+        service_provider      => $ha_provider,
+        use_syslog            => $use_syslog,
+        syslog_log_facility   => $syslog_log_facility_neutron,
+        ha_mode               => $ha_mode,
+        primary_controller    => $primary_controller
+      }
     }
 
 }

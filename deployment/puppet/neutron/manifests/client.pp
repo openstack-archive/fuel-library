@@ -1,22 +1,11 @@
-# == Class: neutron::client
-#
-# Manages the neutron client package on systems
-#
-# === Parameters:
-#
-# [*package_ensure*]
-#   (optional) The state of the package
-#   Defaults to present
-#
 class neutron::client (
   $package_ensure = present
 ) {
-
-  include neutron::params
-
+  include 'neutron::params'
   package { 'python-neutronclient':
-    ensure => $package_ensure,
-    name   => $::neutron::params::client_package,
+    name   => $::neutron::params::client_package_name,
+    ensure => $package_ensure
   }
-
 }
+
+# vim: set ts=2 sw=2 et :

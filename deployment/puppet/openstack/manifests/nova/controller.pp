@@ -47,8 +47,11 @@ class openstack::nova::controller (
   $network_config              = {},
   $network_manager             = 'nova.network.manager.FlatDHCPManager',
   $nova_quota_driver           = 'nova.quota.NoopQuotaDriver',
-  # Neutron
-  $neutron                     = false,
+  # Quantum
+  $quantum                     = false,
+  $quantum_config              = {},
+  $quantum_network_node        = false,
+  $quantum_netnode_on_cnt      = false,
   $segment_range               = '1:4094',
   $tenant_network_type         = 'gre',
   # Nova
@@ -96,8 +99,7 @@ class openstack::nova::controller (
   $max_pool_size               = '10',
   $max_overflow                = '30',
   $max_retries                 = '-1',
-  $novnc_address               = '127.0.0.1',
-  $neutron_metadata_proxy_shared_secret = undef
+  $novnc_address               = '127.0.0.1'
 ) {
 
   # Configure the db string
@@ -217,14 +219,74 @@ class openstack::nova::controller (
     $really_create_networks = false
   }
 
-  if ! $neutron {
+  if ! $quantum {
     # Configure nova-network
     if $multi_host {
       nova_config { 'DEFAULT/multi_host': value => 'True' }
 
+      $enable_network_service = false
       $_enabled_apis = $enabled_apis
     } else {
+      if $enabled {
+        $enable_network_service = true
+      } else {
+        $enable_network_service = false
+      }
+
       $_enabled_apis = "${enabled_apis},metadata"
+    }
+
+    # From legacy network.pp
+    if $network_manager !~ /VlanManager$/ {
+      $config_overrides = delete($network_config, 'vlan_start')
+    } else {
+      $config_overrides = $network_config
+    }
+
+    class { 'nova::network':
+      private_interface => $private_interface,
+      public_interface  => $public_interface,
+      fixed_range       => $fixed_range,
+      floating_range    => $floating_range,
+      network_manager   => $network_manager,
+      config_overrides  => $config_overrides,
+      create_networks   => $really_create_networks,
+      num_networks      => $num_networks,
+      network_size      => $network_size,
+      nameservers       => $nameservers,
+      enabled           => $enable_network_service,
+      install_service   => $enable_network_service,
+      ensure_package    => $ensure_package
+    }
+  } else {
+    # Set up Quantum
+    #todo: move to ::openstack:controller and ::openstack:neutron_router
+    #todo: from HERE to <<<
+    class { '::neutron::server':
+      neutron_config     => $quantum_config,
+      primary_controller => $primary_controller,
+      sync_db            => $primary_controller
+    }
+    if $quantum and !$quantum_network_node {
+      class { '::neutron':
+        neutron_config       => $quantum_config,
+        verbose              => $verbose,
+        debug                => $debug,
+        use_syslog           => $use_syslog,
+        syslog_log_facility  => $syslog_log_facility_neutron,
+        server_ha_mode       => $ha_mode,
+      }
+    }
+    #todo: <<<
+    class { '::nova::network::neutron':
+      #neutron_config => $quantum_config,
+      #neutron_connection_host => $service_endpoint
+      neutron_admin_password    => $quantum_config['keystone']['admin_password'],
+      neutron_admin_tenant_name => $quantum_config['keystone']['admin_tenant_name'],
+      neutron_region_name       => $quantum_config['keystone']['auth_region'],
+      neutron_admin_username    => $quantum_config['keystone']['admin_user'],
+      neutron_admin_auth_url    => $quantum_config['keystone']['auth_url'],
+      neutron_url               => $quantum_config['server']['api_url'],
     }
   }
 
@@ -256,7 +318,6 @@ class openstack::nova::controller (
     enabled_apis        => $_enabled_apis,
     ensure_package      => $ensure_package,
     ratelimits          => $nova_rate_limits_string,
-    neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_shared_secret,
     require             => Package['nova-common'],
   }
 

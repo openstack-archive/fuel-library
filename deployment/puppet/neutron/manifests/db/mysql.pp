@@ -4,10 +4,6 @@
 #   include 0.9 and 2.2
 #   Default to '0.9'
 #
-
-# TODO(bogdando) sync this manifest with upstream once puppet-openstacklib
-#   synced in Fuel as well. We cannot sync it for now.
-
 class neutron::db::mysql (
   $password,
   $dbname        = 'neutron',
@@ -16,9 +12,15 @@ class neutron::db::mysql (
   $allowed_hosts = undef,
   $charset       = 'utf8',
   $collate       = 'utf8_unicode_ci',
+  $mysql_module  = '0.9',
   $cluster_id    = 'localzone',
-  $mysql_module  = '0.9'
+  $sync_db       = 'false',
 ) {
+
+  Class['mysql::server'] -> Class['neutron::db::mysql']
+  if $::osfamily == "Debian" {
+    Class['neutron::db::mysql'] -> Package['neutron-server']
+  }
 
   if ($mysql_module >= 2.2) {
     mysql::db { $dbname:
@@ -28,7 +30,7 @@ class neutron::db::mysql (
       charset      => $charset,
       collate      => $collate,
       require      => Class['mysql::server'],
-    } -> Service <| title == 'neutron-server' |>
+    }
   } else {
     require mysql::python
 
@@ -37,7 +39,7 @@ class neutron::db::mysql (
       password     => $password,
       host         => $host,
       charset      => $charset,
-      require      => Class['mysql::config'],
+      require      => Class['mysql::server'],
     }
   }
 
@@ -48,12 +50,19 @@ class neutron::db::mysql (
     $real_allowed_hosts = $allowed_hosts
   }
 
+  if $sync_db {
+    Mysql::Db[$dbname] -> Exec['neutron-db-sync']
+  }
+
   if $real_allowed_hosts {
     neutron::db::mysql::host_access { $real_allowed_hosts:
       user          => $user,
       password      => $password,
       database      => $dbname,
       mysql_module  => $mysql_module,
+    }
+    if $sync_db {
+      Neutron::Db::Mysql::Host_access[$real_allowed_hosts] -> Exec['neutron-db-sync']
     }
   }
 }
