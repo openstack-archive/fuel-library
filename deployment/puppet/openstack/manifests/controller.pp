@@ -686,6 +686,7 @@ class openstack::controller (
         $vlan_range = ["physnet2:${pnets['physnet2']['vlan_range']}"]
         $fallback = split($pnets['physnet2']['vlan_range'], ':')
         Openstack::Network::Create_network {
+          tenant_name         => $keystone_admin_tenant,
           fallback_segment_id => $fallback[1]
         }
         notify{ $vlan_range:}
@@ -709,6 +710,7 @@ class openstack::controller (
       $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
       $alt_fallback = split($neutron_settings['L2']['tunnel_id_ranges'], ':')
       Openstack::Network::Create_network {
+        tenant_name         => $keystone_admin_tenant,
         fallback_segment_id => $alt_fallback[0]
       }
 
