@@ -53,7 +53,6 @@ class openstack::keystone (
   $nova_user_password,
   $cinder_user_password,
   $ceilometer_user_password,
-  $neutron_user_password,
   $public_address,
   $db_type                     = 'mysql',
   $db_user                     = 'keystone',
@@ -75,9 +74,10 @@ class openstack::keystone (
   $cinder_public_address       = false,
   $cinder_internal_address     = false,
   $cinder_admin_address        = false,
-  $neutron_public_address      = false,
-  $neutron_internal_address    = false,
-  $neutron_admin_address       = false,
+  $quantum_config              = {},
+  $quantum_public_address      = false,
+  $quantum_internal_address    = false,
+  $quantum_admin_address       = false,
   $ceilometer_public_address   = false,
   $ceilometer_internal_address = false,
   $ceilometer_admin_address    = false,
@@ -85,7 +85,7 @@ class openstack::keystone (
   $nova                        = true,
   $cinder                      = true,
   $ceilometer                  = true,
-  $neutron                     = true,
+  $quantum                     = true,
   $enabled                     = true,
   $package_ensure              = present,
   $use_syslog                  = false,
@@ -164,20 +164,20 @@ class openstack::keystone (
   } else {
     $cinder_admin_real = $admin_real
   }
-  if($neutron_public_address) {
-    $neutron_public_real = $neutron_public_address
+  if($quantum_public_address) {
+    $quantum_public_real = $quantum_public_address
   } else {
-    $neutron_public_real = $public_address
+    $quantum_public_real = $public_address
   }
-  if($neutron_internal_address) {
-    $neutron_internal_real = $neutron_internal_address
+  if($quantum_internal_address) {
+    $quantum_internal_real = $quantum_internal_address
   } else {
-    $neutron_internal_real = $internal_real
+    $quantum_internal_real = $internal_real
   }
-  if($neutron_admin_address) {
-    $neutron_admin_real = $neutron_admin_address
+  if($quantum_admin_address) {
+    $quantum_admin_real = $quantum_admin_address
   } else {
-    $neutron_admin_real = $admin_real
+    $quantum_admin_real = $admin_real
   }
   if($ceilometer_public_address) {
     $ceilometer_public_real = $ceilometer_public_address
@@ -269,12 +269,12 @@ class openstack::keystone (
       }
      Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
     }
-    if $neutron {
+    if $quantum {
       class { 'neutron::keystone::auth':
-        password         => $neutron_user_password,
-        public_address   => $neutron_public_real,
-        admin_address    => $neutron_admin_real,
-        internal_address => $neutron_internal_real,
+        neutron_config   => $quantum_config,
+        public_address   => $quantum_public_real,
+        admin_address    => $quantum_admin_real,
+        internal_address => $quantum_internal_real,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['neutron::keystone::auth']
     }

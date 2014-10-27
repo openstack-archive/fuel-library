@@ -1,138 +1,157 @@
-# == Class: neutron::agents::metadata
-#
-# Setup and configure Neutron metadata agent.
-#
-# === Parameters
-#
-# [*auth_password*]
-#   (required) The password for the administrative user.
-#
-# [*shared_secret*]
-#   (required) Shared secret to validate proxies Neutron metadata requests.
-#
-# [*package_ensure*]
-#   Ensure state of the package. Defaults to 'present'.
-#
-# [*enabled*]
-#   State of the service. Defaults to true.
-#
-# [*manage_service*]
-#   (optional) Whether to start/stop the service
-#   Defaults to true
-#
-# [*debug*]
-#   Debug. Defaults to false.
-#
-# [*auth_tenant*]
-#   The administrative user's tenant name. Defaults to 'services'.
-#
-# [*auth_user*]
-#   The administrative user name for OpenStack Networking.
-#   Defaults to 'neutron'.
-#
-# [*auth_url*]
-#   The URL used to validate tokens. Defaults to 'http://localhost:35357/v2.0'.
-#
-# [*auth_insecure*]
-#   turn off verification of the certificate for ssl (Defaults to false)
-#
-# [*auth_ca_cert*]
-#   CA cert to check against with for ssl keystone. (Defaults to undef)
-#
-# [*auth_region*]
-#   The authentication region. Defaults to 'RegionOne'.
-#
-# [*metadata_ip*]
-#   The IP address of the metadata service. Defaults to '127.0.0.1'.
-#
-# [*metadata_port*]
-#   The TCP port of the metadata service. Defaults to 8775.
-#
-# [*metadata_workers*]
-#   (optional) Number of separate worker processes to spawn.
-#   The default, count of machine's processors, runs the worker thread in the
-#   current process.
-#   Greater than 0 launches that number of child processes as workers.
-#   The parent process manages them. Having more workers will help to improve performances.
-#   Defaults to: $::processorcount
-#
-# [*metadata_backlog*]
-#   (optional) Number of backlog requests to configure the metadata server socket with.
-#   Defaults to 4096
-#
-
 class neutron::agents::metadata (
-  $auth_password,
-  $shared_secret,
-  $package_ensure   = 'present',
-  $enabled          = true,
-  $manage_service   = true,
+  $neutron_config     = {},
   $debug            = false,
-  $auth_tenant      = 'services',
-  $auth_user        = 'neutron',
-  $auth_url         = 'http://localhost:35357/v2.0',
-  $auth_insecure    = false,
-  $auth_ca_cert     = undef,
-  $auth_region      = 'RegionOne',
-  $metadata_ip      = '127.0.0.1',
-  $metadata_port    = '8775',
-  $metadata_workers = $::processorcount,
-  $metadata_backlog = '4096'
-  ) {
+  $verbose          = false,
+  $service_provider = 'generic',
+  $primary_controller = false
+) {
 
-  include neutron::params
+  $res_name = "p_neutron-metadata-agent"
 
-  Package['neutron'] -> Neutron_metadata_agent_config<||>
-  Neutron_config<||> ~> Service['neutron-metadata']
-  Neutron_metadata_agent_config<||> ~> Service['neutron-metadata']
+  include 'neutron::params'
 
-  neutron_metadata_agent_config {
-    'DEFAULT/debug':                          value => $debug;
-    'DEFAULT/auth_url':                       value => $auth_url;
-    'DEFAULT/auth_insecure':                  value => $auth_insecure;
-    'DEFAULT/auth_region':                    value => $auth_region;
-    'DEFAULT/admin_tenant_name':              value => $auth_tenant;
-    'DEFAULT/admin_user':                     value => $auth_user;
-    'DEFAULT/admin_password':                 value => $auth_password, secret => true;
-    'DEFAULT/nova_metadata_ip':               value => $metadata_ip;
-    'DEFAULT/nova_metadata_port':             value => $metadata_port;
-    'DEFAULT/metadata_proxy_shared_secret':   value => $shared_secret;
-    'DEFAULT/metadata_workers':               value => $metadata_workers;
-    'DEFAULT/metadata_backlog':               value => $metadata_backlog;
+  Anchor<| title=='neutron-server-done' |> ->
+  anchor {'neutron-metadata-agent': }
+  Anchor <| title == 'neutron-ovs-agent-done' |> -> Anchor['neutron-metadata-agent']
+
+  # add instructions to nova.conf
+  nova_config {
+    'DEFAULT/service_neutron_metadata_proxy':       value => true;
+    'DEFAULT/neutron_metadata_proxy_shared_secret': value => $neutron_config['metadata']['metadata_proxy_shared_secret'];
+  } -> Nova::Generic_service<| title=='api' |>
+
+  if $neutron_config['metadata']['workers'] {
+     $metadata_workers = $neutron_config['metadata']['workers']
+  }
+  else {
+     $metadata_workers = min($::processorcount + 0, 50 + 0)
   }
 
-  if $auth_ca_cert {
-    neutron_metadata_agent_config {
-      'DEFAULT/auth_ca_cert':                 value => $auth_ca_cert;
-    }
-  } else {
-    neutron_metadata_agent_config {
-      'DEFAULT/auth_ca_cert':                 ensure => absent;
-    }
+  neutron_metadata_agent_config {
+    'DEFAULT/debug':              value => $debug;
+    'DEFAULT/verbose':            value => $verbose;
+    'DEFAULT/auth_region':        value => $neutron_config['keystone']['auth_region'];
+    'DEFAULT/auth_url':           value => $neutron_config['keystone']['auth_url'];
+    'DEFAULT/admin_user':         value => $neutron_config['keystone']['admin_user'];
+    'DEFAULT/admin_password':     value => $neutron_config['keystone']['admin_password'];
+    'DEFAULT/admin_tenant_name':  value => $neutron_config['keystone']['admin_tenant_name'];
+    'DEFAULT/nova_metadata_ip':   value => $neutron_config['metadata']['nova_metadata_ip'];
+    'DEFAULT/nova_metadata_port': value => $neutron_config['metadata']['nova_metadata_port'];
+    'DEFAULT/use_namespaces':     value => $neutron_config['L3']['use_namespaces'];
+    'DEFAULT/metadata_proxy_shared_secret': value => $neutron_config['metadata']['metadata_proxy_shared_secret'];
+    'DEFAULT/metadata_workers':   value => $metadata_workers;
+    'DEFAULT/metadata_backlog':   value => $neutron_config['metadata']['backlog'];
   }
 
   if $::neutron::params::metadata_agent_package {
-    Package['neutron-metadata'] -> Neutron_metadata_agent_config<||>
-    Package['neutron-metadata'] -> Service['neutron-metadata']
-    package { 'neutron-metadata':
-      ensure  => $package_ensure,
-      name    => $::neutron::params::metadata_agent_package,
-      require => Package['neutron'],
+    package { 'neutron-metadata-agent':
+      name   => $::neutron::params::metadata_agent_package,
+      ensure => present,
+
     }
+    # do not move it to outside this IF
+    Anchor['neutron-metadata-agent'] ->
+      Package['neutron-metadata-agent'] ->
+        Neutron_metadata_agent_config<||>
   }
 
-  if $manage_service {
-    if $enabled {
-      $service_ensure = 'running'
+  if $service_provider == 'generic' {
+    # non-HA architecture
+    service { 'neutron-metadata-agent':
+      name    => $::neutron::params::metadata_agent_service,
+      enable  => true,
+      ensure  => running,
+      hasstatus  => true,
+      hasrestart => true,
+    }
+
+    Anchor['neutron-metadata-agent'] ->
+      Neutron_metadata_agent_config<||> ->
+        Service['neutron-metadata-agent'] ->
+          Anchor['neutron-metadata-agent-done']
+    Package<| title == 'neutron-metadata-agent'|> ~> Service['neutron-metadata-agent']
+
+  } else {
+    # OCF script for pacemaker
+    # and his dependences
+    file {'neutron-metadata-agent-ocf':
+      path   =>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-metadata',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
+      source => "puppet:///modules/neutron/ocf/neutron-agent-metadata",
+    }
+    Package['pacemaker'] -> File['neutron-metadata-agent-ocf']
+    File<| title == 'ocf-mirantis-path' |> -> File['neutron-metadata-agent-ocf']
+    Anchor['neutron-metadata-agent'] -> File['neutron-metadata-agent-ocf']
+    Neutron_metadata_agent_config<||> -> File['neutron-metadata-agent-ocf']
+
+    service { 'neutron-metadata-agent__disabled':
+      name    => $::neutron::params::metadata_agent_service,
+      enable  => false,
+      ensure  => stopped,
+    }
+
+    if $primary_controller {
+      cs_resource { "$res_name":
+        ensure          => present,
+        primitive_class => 'ocf',
+        provided_by     => 'mirantis',
+        primitive_type  => 'neutron-agent-metadata',
+        multistate_hash => {
+          'type' => 'clone',
+        },
+        ms_metadata     => {
+          'interleave' => 'false',
+        },
+        operations => {
+          'monitor' => {
+            'interval' => '60',
+            'timeout'  => '10'
+          },
+          'start' => {
+            'timeout' => '30'
+          },
+          'stop' => {
+            'timeout' => '30'
+          },
+        },
+      }
+
+      Service['neutron-metadata-agent__disabled'] ->
+        Cs_resource["$res_name"] ->
+          Service["$res_name"]
+
+      File['neutron-metadata-agent-ocf'] -> Cs_resource["$res_name"]
     } else {
-      $service_ensure = 'stopped'
+
+      File['neutron-metadata-agent-ocf'] -> Service["$res_name"]
     }
+
+    if !defined(Package['lsof']) {
+      package { 'lsof': }
+    }
+    Package['lsof'] -> File['neutron-metadata-agent-ocf']
+
+
+    service {"$res_name":
+      name       => $res_name,
+      enable     => true,
+      ensure     => running,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => "pacemaker"
+    }
+
+    Anchor['neutron-metadata-agent'] ->
+      Service['neutron-metadata-agent__disabled'] ->
+        Service["$res_name"] ->
+          Anchor['neutron-metadata-agent-done']
+    Package<| title == 'neutron-metadata-agent'|> ~> Service["$res_name"]
   }
 
-  service { 'neutron-metadata':
-    ensure  => $service_ensure,
-    name    => $::neutron::params::metadata_agent_service,
-    enable  => $enabled,
-    require => Class['neutron'],
+  anchor {'neutron-metadata-agent-done': }
+  if !defined(Service['neutron-metadata-agent']) {
+    notify{ "Module ${module_name} cannot notify service neutron-metadata-agent on package update": }
   }
 }

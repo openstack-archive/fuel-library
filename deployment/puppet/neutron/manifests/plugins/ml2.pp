@@ -83,11 +83,6 @@
 #   Min value is 0 and Max value is 16777215.
 #   Default to empty.
 #
-# [*enable_security_group*]
-#   (optional) Controls if neutron security group is enabled or not.
-#   It should be false when you use nova security group.
-#   Defaults to true.
-#
 
 class neutron::plugins::ml2 (
   $type_drivers          = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
@@ -98,47 +93,41 @@ class neutron::plugins::ml2 (
   $tunnel_id_ranges      = ['20:100'],
   $vxlan_group           = '224.0.0.1',
   $vni_ranges            = ['10:100'],
-  $enable_security_group = true,
-  $package_ensure        = 'present'
+  # DEPRECATED PARAMS
+  $enable_security_group = undef
 ) {
 
   include neutron::params
 
-  Neutron_plugin_ml2<||> ~> Service<| title == 'neutron-server' |>
+  Neutron_plugin_ml2<||> ~> Service <| title == 'neutron-server' |>
 
+  # test mechanism drivers
   validate_array($mechanism_drivers)
   if ! $mechanism_drivers {
     warning('Without networking mechanism driver, ml2 will not communicate with L2 agents')
   }
 
-  if $::operatingsystem == 'Ubuntu' {
-    file_line { '/etc/default/neutron-server:NEUTRON_PLUGIN_CONFIG':
-      path    => '/etc/default/neutron-server',
-      match   => '^NEUTRON_PLUGIN_CONFIG=(.*)$',
-      line    => 'NEUTRON_PLUGIN_CONFIG=/etc/neutron/plugin.ini',
-      require => File['/etc/neutron/plugin.ini'],
-    }
-    File_line['/etc/default/neutron-server:NEUTRON_PLUGIN_CONFIG']
-    ~> Service<| title == 'neutron-server' |>
-  }
-
+  # Some platforms do not have a dedicated ml2 plugin package
   # In RH, the link is used to start Neutron process but in Debian, it's used only
   # to manage database synchronization.
-  file {'/etc/neutron/plugin.ini':
-    ensure  => link,
-    target  => '/etc/neutron/plugins/ml2/ml2_conf.ini'
-  }
-
-  # Some platforms do not have a dedicated ml2 plugin package
   if $::neutron::params::ml2_server_package {
     package { 'neutron-plugin-ml2':
-      ensure => $package_ensure,
+      ensure => present,
       name   => $::neutron::params::ml2_server_package,
     }
+    Package['neutron'] -> Package['neutron-plugin-ml2']
     Package['neutron-plugin-ml2'] -> Neutron_plugin_ml2<||>
-    Package['neutron-plugin-ml2'] -> File['/etc/neutron/plugin.ini']
+    file {'/etc/neutron/plugin.ini':
+      ensure  => link,
+      target  => '/etc/neutron/plugins/ml2/ml2_conf.ini',
+      require => Package['neutron-plugin-ml2']
+    }
   } else {
-    Package['neutron'] -> File['/etc/neutron/plugin.ini']
+      file {'/etc/neutron/plugin.ini':
+        ensure  => link,
+        target  => '/etc/neutron/plugins/ml2/ml2_conf.ini',
+        require => Package['neutron']
+      }
   }
 
   neutron::plugins::ml2::driver { $type_drivers:
@@ -149,6 +138,7 @@ class neutron::plugins::ml2 (
     vxlan_group         => $vxlan_group,
   }
 
+  # Configure ml2_conf.ini
   neutron_plugin_ml2 {
     'ml2/type_drivers':                     value => join($type_drivers, ',');
     'ml2/tenant_network_types':             value => join($tenant_network_types, ',');
@@ -156,8 +146,24 @@ class neutron::plugins::ml2 (
     'securitygroup/enable_security_group':  value => $enable_security_group;
   }
 
-
-  #NOTE(bogdando) contribute change to upstream #1384119:
-  Neutron_plugin_ml2<||> -> Exec<| title == 'neutron-db-sync' |>
+  if ('linuxbridge' in $mechanism_drivers) {
+    if ($::osfamily == 'RedHat') {
+      package { 'neutron-plugin-linuxbridge':
+        ensure => present,
+        name   => $::neutron::params::linuxbridge_server_package,
+      }
+      Package['neutron-plugin-linuxbridge'] -> Neutron_plugin_linuxbridge<||>
+    }
+    if ('l2population' in $mechanism_drivers) {
+      neutron_plugin_linuxbridge {
+        'vxlan/enable_vxlan':  value => true;
+        'vxlan/l2_population': value => true;
+      }
+    } else {
+      neutron_plugin_linuxbridge {
+        'vxlan/l2_population': value => false;
+      }
+    }
+  }
 
 }

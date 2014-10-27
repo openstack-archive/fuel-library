@@ -7,7 +7,7 @@ class cluster (
     $unicast_addresses = undef,
 )
 {
-    #todo: move half of openstack::corosync to this module, another half -- to Neutron_ha
+    #todo: move half of openstack::corosync to this module, another half -- to Neutron
     if defined(Stage['corosync_setup']) {
       class { 'openstack::corosync':
         bind_address      => $internal_address,
@@ -23,6 +23,7 @@ class cluster (
     file { 'ocf-mirantis-path':
       ensure  => directory,
       path    =>'/usr/lib/ocf/resource.d/mirantis',
+      #mode   => 0755,
       recurse => true,
       owner   => root,
       group   => root,

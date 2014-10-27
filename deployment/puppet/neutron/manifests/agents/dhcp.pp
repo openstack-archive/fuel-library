@@ -1,157 +1,233 @@
-# == Class: neutron::agents::dhcp
-#
-# Setups Neutron DHCP agent.
-#
-# === Parameters
-#
-# [*package_ensure*]
-#   (optional) Ensure state for package. Defaults to 'present'.
-#
-# [*enabled*]
-#   (optional) Enable state for service. Defaults to 'true'.
-#
-# [*manage_service*]
-#   (optional) Whether to start/stop the service
-#   Defaults to true
-#
-# [*debug*]
-#   (optional) Show debugging output in log. Defaults to false.
-#
-# [*state_path*]
-#   (optional) Where to store dnsmasq state files. This directory must be
-#   writable by the user executing the agent. Defaults to '/var/lib/neutron'.
-#
-# [*resync_interval*]
-#   (optional) The DHCP agent will resync its state with Neutron to recover
-#   from any transient notification or rpc errors. The interval is number of
-#   seconds between attempts. Defaults to 30.
-#
-# [*interface_driver*]
-#   (optional) Defaults to 'neutron.agent.linux.interface.OVSInterfaceDriver'.
-#
-# [*dhcp_driver*]
-#   (optional) Defaults to 'neutron.agent.linux.dhcp.Dnsmasq'.
-#
-# [*root_helper*]
-#   (optional) Defaults to 'sudo neutron-rootwrap /etc/neutron/rootwrap.conf'.
-#   Addresses bug: https://bugs.launchpad.net/neutron/+bug/1182616
-#   Note: This can safely be removed once the module only targets the Havana release.
-#
-# [*use_namespaces*]
-#   (optional) Allow overlapping IP (Must have kernel build with
-#   CONFIG_NET_NS=y and iproute2 package that supports namespaces).
-#   Defaults to true.
-#
-# [*dnsmasq_config_file*]
-#   (optional) Override the default dnsmasq settings with this file.
-#   Defaults to undef
-#
-# [*dhcp_delete_namespaces*]
-#   (optional) Delete namespace after removing a dhcp server
-#   Defaults to false.
-#
-# [*enable_isolated_metadata*]
-#   (optional) enable metadata support on isolated networks.
-#   Defaults to false.
-#
-# [*enable_metadata_network*]
-#   (optional) Allows for serving metadata requests coming from a dedicated metadata
-#   access network whose cidr is 169.254.169.254/16 (or larger prefix), and is
-#   connected to a Neutron router from which the VMs send metadata request.
-#   This option requires enable_isolated_metadata = True
-#   Defaults to false.
 #
 class neutron::agents::dhcp (
-  $package_ensure         = present,
-  $enabled                = true,
-  $manage_service         = true,
-  $debug                  = false,
-  $state_path             = '/var/lib/neutron',
-  $resync_interval        = 30,
-  $interface_driver       = 'neutron.agent.linux.interface.OVSInterfaceDriver',
-  $dhcp_driver            = 'neutron.agent.linux.dhcp.Dnsmasq',
-  $root_helper            = 'sudo neutron-rootwrap /etc/neutron/rootwrap.conf',
-  $use_namespaces         = true,
-  $dnsmasq_config_file    = undef,
-  $dhcp_delete_namespaces = false,
-  $enable_isolated_metadata = false,
-  $enable_metadata_network  = false
+  $neutron_config     = {},
+  $verbose            = false,
+  $debug              = false,
+  $interface_driver   = 'neutron.agent.linux.interface.OVSInterfaceDriver',
+  $dhcp_driver        = 'neutron.agent.linux.dhcp.Dnsmasq',
+  $dhcp_agent_manager ='neutron.agent.dhcp_agent.DhcpAgentWithStateReport',
+  $state_path         = '/var/lib/neutron',
+  $service_provider   = 'generic',
+  $primary_controller = false
 ) {
-
-  include neutron::params
-
-  Neutron_config<||>            ~> Service['neutron-dhcp-service']
-  Neutron_dhcp_agent_config<||> ~> Service['neutron-dhcp-service']
-
-  case $dhcp_driver {
-    /\.Dnsmasq/: {
-      Package[$::neutron::params::dnsmasq_packages] -> Package<| title == 'neutron-dhcp-agent' |>
-      ensure_packages($::neutron::params::dnsmasq_packages)
-    }
-    default: {
-      fail("Unsupported dhcp_driver ${dhcp_driver}")
-    }
-  }
-
-  if (! $enable_isolated_metadata) and $enable_metadata_network {
-    fail('enable_metadata_network to true requires enable_isolated_metadata also enabled.')
-  } else {
-    neutron_dhcp_agent_config {
-      'DEFAULT/enable_isolated_metadata': value => $enable_isolated_metadata;
-      'DEFAULT/enable_metadata_network':  value => $enable_metadata_network;
-    }
-  }
-
-  # The DHCP agent loads both neutron.ini and its own file.
-  # This only lists config specific to the agent.  neutron.ini supplies
-  # the rest.
-  neutron_dhcp_agent_config {
-    'DEFAULT/debug':                  value => $debug;
-    'DEFAULT/state_path':             value => $state_path;
-    'DEFAULT/resync_interval':        value => $resync_interval;
-    'DEFAULT/interface_driver':       value => $interface_driver;
-    'DEFAULT/dhcp_driver':            value => $dhcp_driver;
-    'DEFAULT/use_namespaces':         value => $use_namespaces;
-    'DEFAULT/root_helper':            value => $root_helper;
-    'DEFAULT/dhcp_delete_namespaces': value => $dhcp_delete_namespaces;
-  }
-
-  if $dnsmasq_config_file {
-    neutron_dhcp_agent_config {
-      'DEFAULT/dnsmasq_config_file':           value => $dnsmasq_config_file;
-    }
-  } else {
-    neutron_dhcp_agent_config {
-      'DEFAULT/dnsmasq_config_file':           ensure => absent;
-    }
-  }
+  include 'neutron::params'
 
   if $::neutron::params::dhcp_agent_package {
-    Package['neutron']            -> Package['neutron-dhcp-agent']
-    Package['neutron-dhcp-agent'] -> Neutron_config<||>
-    Package['neutron-dhcp-agent'] -> Neutron_dhcp_agent_config<||>
+    Package['neutron'] -> Package['neutron-dhcp-agent']
+
+    $dhcp_agent_package = 'neutron-dhcp-agent'
+
     package { 'neutron-dhcp-agent':
-      ensure  => $package_ensure,
-      name    => $::neutron::params::dhcp_agent_package,
+      name   => $::neutron::params::dhcp_agent_package
     }
   } else {
-    # Some platforms (RedHat) do not provide a neutron DHCP agent package.
-    # The neutron DHCP agent config file is provided by the neutron package.
-    Package['neutron'] -> Neutron_dhcp_agent_config<||>
+    $dhcp_agent_package = $::neutron::params::package_name
   }
 
-  if $manage_service {
-    if $enabled {
-      $service_ensure = 'running'
-    } else {
-      $service_ensure = 'stopped'
+  if $::operatingsystem == 'Ubuntu' {
+    file { '/etc/init/neutron-dhcp-agent.override':
+     replace => 'no',
+     ensure  => 'present',
+     content => 'manual',
+     mode    => '0644',
+    } -> Package<| title=="$dhcp_agent_package" |>
+    if $service_provider != 'pacemaker' {
+       Package<| title=="$dhcp_agent_package" |> ->
+       exec { 'rm-neutron-dhcp-override':
+         path => '/sbin:/bin:/usr/bin:/usr/sbin',
+         command => "rm -f /etc/init/neutron-dhcp-agent.override",
+       }
     }
   }
 
-  service { 'neutron-dhcp-service':
-    ensure  => $service_ensure,
-    name    => $::neutron::params::dhcp_agent_service,
-    enable  => $enabled,
-    require => Class['neutron'],
+  include 'neutron::waist_setup'
+
+  Anchor<| title=='neutron-server-done' |> ->
+  anchor {'neutron-dhcp-agent': }
+
+  Service<| title=='neutron-server' |> -> Anchor['neutron-dhcp-agent']
+
+  case $dhcp_driver {
+    /\.Dnsmasq/ : {
+      package { $::neutron::params::dnsmasq_packages: ensure => present, }
+      Package[$::neutron::params::dnsmasq_packages] -> Package[$dhcp_agent_package]
+      $dhcp_server_packages = $::neutron::params::dnsmasq_packages
+    }
+    default: {
+      fail("${dhcp_driver} is not supported as of now")
+    }
+  }
+
+  Package[$dhcp_agent_package] -> Neutron_dhcp_agent_config <| |>
+  Package[$dhcp_agent_package] -> Neutron_config <| |>
+
+  neutron_dhcp_agent_config {
+    'DEFAULT/debug':             value => $debug;
+    'DEFAULT/verbose':           value => $verbose;
+    'DEFAULT/state_path':        value => $state_path;
+    'DEFAULT/interface_driver':  value => $interface_driver;
+    'DEFAULT/dhcp_driver':       value => $dhcp_driver;
+    'DEFAULT/dhcp_agent_manager':value => $dhcp_agent_manager;
+    'DEFAULT/auth_url':          value => $neutron_config['keystone']['auth_url'];
+    'DEFAULT/admin_user':        value => $neutron_config['keystone']['admin_user'];
+    'DEFAULT/admin_password':    value => $neutron_config['keystone']['admin_password'];
+    'DEFAULT/admin_tenant_name': value => $neutron_config['keystone']['admin_tenant_name'];
+    'DEFAULT/resync_interval':   value => $neutron_config['L3']['resync_interval'];
+    'DEFAULT/use_namespaces':    value => $neutron_config['L3']['use_namespaces'];
+    'DEFAULT/dhcp_delete_namespaces':   value => 'False';  # Neutron can't properly clean network namespace before delete.
+    'DEFAULT/root_helper':       value => $neutron_config['root_helper'];
+    'DEFAULT/signing_dir':       value => $neutron_config['keystone']['signing_dir'];
+    'DEFAULT/enable_isolated_metadata': value => $neutron_config['L3']['dhcp_agent']['enable_isolated_metadata'];
+    'DEFAULT/enable_metadata_network':  value => $neutron_config['L3']['dhcp_agent']['enable_metadata_network'];
+  }
+
+  Service <| title == 'neutron-server' |> -> Service['neutron-dhcp-service']
+
+  if $service_provider == 'pacemaker' {
+    # OCF script for pacemaker
+    # and his dependences
+    file {'neutron-dhcp-agent-ocf':
+      path   =>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-dhcp',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
+      source => "puppet:///modules/neutron/ocf/neutron-agent-dhcp",
+    }
+
+    Package['pacemaker'] -> File['neutron-dhcp-agent-ocf']
+    File<| title == 'ocf-mirantis-path' |> -> File['neutron-dhcp-agent-ocf']
+
+    Anchor['neutron-dhcp-agent'] -> File['neutron-dhcp-agent-ocf']
+    Neutron_config <| |> -> File['neutron-dhcp-agent-ocf']
+    Neutron_dhcp_agent_config <| |> -> File['neutron-dhcp-agent-ocf']
+    Package[$dhcp_agent_package] -> File['neutron-dhcp-agent-ocf']
+
+    if $primary_controller {
+      Anchor['neutron-dhcp-agent'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
+      cs_resource { "p_${::neutron::params::dhcp_agent_service}":
+        ensure          => present,
+        primitive_class => 'ocf',
+        provided_by     => 'mirantis',
+        primitive_type  => 'neutron-agent-dhcp',
+        parameters      => {
+          'os_auth_url'      => $neutron_config['keystone']['auth_url'],
+          'tenant'           => $neutron_config['keystone']['admin_tenant_name'],
+          'username'         => $neutron_config['keystone']['admin_user'],
+          'password'         => $neutron_config['keystone']['admin_password'],
+          'amqp_server_port' => $neutron_config['amqp']['port'],
+        },
+        metadata        => { 'resource-stickiness' => '1' },
+        operations      => {
+          'monitor'  => {
+            'interval' => '30',
+            'timeout'  => '10'
+          },
+          'start'    => {
+            'timeout' => '60'
+          },
+          'stop'     => {
+            'timeout' => '60'
+          }
+        },
+      }
+
+      cs_colocation { 'dhcp-with-ovs':
+        ensure     => present,
+        primitives => [
+          "p_${::neutron::params::dhcp_agent_service}",
+          "clone_p_${::neutron::params::ovs_agent_service}"
+        ],
+        score      => 'INFINITY',
+      } ->
+      cs_order { 'dhcp-after-ovs':
+        ensure => present,
+        first  => "clone_p_${::neutron::params::ovs_agent_service}",
+        second => "p_${::neutron::params::dhcp_agent_service}",
+        score  => 'INFINITY',
+      } -> Service['neutron-dhcp-service']
+
+      cs_colocation { 'dhcp-with-metadata':
+        ensure     => present,
+        primitives => [
+          "p_${::neutron::params::dhcp_agent_service}",
+          "clone_p_neutron-metadata-agent"
+        ],
+        score      => 'INFINITY',
+      } ->
+      cs_order { 'dhcp-after-metadata':
+        ensure => present,
+        first  => "clone_p_neutron-metadata-agent",
+        second => "p_${::neutron::params::dhcp_agent_service}",
+        score  => 'INFINITY',
+      } -> Service['neutron-dhcp-service']
+
+      Cs_resource["p_${::neutron::params::dhcp_agent_service}"] -> Cs_colocation['dhcp-with-ovs']
+      Cs_resource["p_${::neutron::params::dhcp_agent_service}"] -> Cs_order['dhcp-after-ovs']
+      Cs_resource["p_${::neutron::params::dhcp_agent_service}"] -> Cs_colocation['dhcp-with-metadata']
+      Cs_resource["p_${::neutron::params::dhcp_agent_service}"] -> Cs_order['dhcp-after-metadata']
+      Cs_resource["p_${::neutron::params::dhcp_agent_service}"] -> Service['neutron-dhcp-service']
+      File['neutron-dhcp-agent-ocf'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
+      File['q-agent-cleanup.py'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
+      Service['neutron-dhcp-service_stopped'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
+    } else {
+      Anchor['neutron-dhcp-agent'] -> Service['neutron-dhcp-service']
+      Service['neutron-dhcp-service_stopped'] -> Service['neutron-dhcp-service']
+      File['neutron-dhcp-agent-ocf'] -> Service['neutron-dhcp-service']
+      File['q-agent-cleanup.py'] -> Service['neutron-dhcp-service']
+    }
+
+    if !defined(Package['lsof']) {
+      package { 'lsof': }
+    }
+    Package['lsof'] -> File['neutron-dhcp-agent-ocf']
+
+
+    Anchor <| title == 'neutron-ovs-agent-done' |> -> Anchor['neutron-dhcp-agent']
+    Anchor <| title == 'neutron-metadata-agent-done' |> -> Anchor['neutron-dhcp-agent']
+
+    service { 'neutron-dhcp-service_stopped':
+      name       => "${::neutron::params::dhcp_agent_service}",
+      enable     => false,
+      ensure     => stopped,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => $::neutron::params::service_provider,
+      require    => [Package[$dhcp_agent_package], Class['neutron']],
+    }
+
+    Neutron::Network::Provider_router<||> -> Service<| title=='neutron-dhcp-service' |>
+    service { 'neutron-dhcp-service':
+      name       => "p_${::neutron::params::dhcp_agent_service}",
+      enable     => true,
+      ensure     => running,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => $service_provider,
+      require    => [Package[$dhcp_agent_package], Class['neutron'], Service['neutron-ovs-agent-service']],
+    }
+
+  } else {
+    Neutron_config <| |> ~> Service['neutron-dhcp-service']
+    Neutron_dhcp_agent_config <| |> ~> Service['neutron-dhcp-service']
+    service { 'neutron-dhcp-service':
+      name       => $::neutron::params::dhcp_agent_service,
+      enable     => true,
+      ensure     => running,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => $::neutron::params::service_provider,
+      require    => [Package[$dhcp_agent_package], Class['neutron'], Service['neutron-ovs-agent-service']],
+    }
+  }
+  Class[neutron::waistline] -> Service[neutron-dhcp-service]
+
+  Service['neutron-dhcp-service'] ->
+    Anchor['neutron-dhcp-agent-done']
+
+  anchor {'neutron-dhcp-agent-done': }
+  Package<| title == 'neutron-dhcp-agent'|> ~> Service<| title == 'neutron-dhcp-service'|>
+  if !defined(Service['neutron-dhcp-service']) {
+    notify{ "Module ${module_name} cannot notify service neutron-dhcp-service on package update": }
   }
 }
+
