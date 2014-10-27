@@ -1,13 +1,17 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
 
-$postgres_default_version = '8.4'
-
+$postgres_default_version = '9.3'
+:
 # install and configure postgresql server
+class { 'postgresql::globals':
+  version             => $postgres_default_version,
+  bindir              => "/usr/pgsql-${postgres_default_version}/bin",
+  server_package_name => "postgresql-server",
+  client_package_name => "postgresql",
+}
 class { 'postgresql::server':
-  config_hash => {
-    'ip_mask_allow_all_users' => '0.0.0.0/0',
-    'listen_addresses'        => '0.0.0.0',
-  },
+  listen_addresses        => '0.0.0.0',
+  ip_mask_allow_all_users => '0.0.0.0/0',
 }
 
 # nailgun db and grants
@@ -30,7 +34,7 @@ $keystone_dbname   = $::fuel_settings['postgres']['keystone_dbname']
 $keystone_dbuser   = $::fuel_settings['postgres']['keystone_user']
 $keystone_dbpass   = $::fuel_settings['postgres']['keystone_password']
 
-postgresql::db { $keystone_dbname:
+postgresql::server::db { $keystone_dbname:
   user     => $keystone_dbuser,
   password => $keystone_dbpass,
   grant    => 'all',
@@ -42,10 +46,9 @@ $ostf_dbname   = $::fuel_settings['postgres']['ostf_dbname']
 $ostf_dbuser   = $::fuel_settings['postgres']['ostf_user']
 $ostf_dbpass   = $::fuel_settings['postgres']['ostf_password']
 
-postgresql::db { $ostf_dbname:
+postgresql::server::db { $ostf_dbname:
   user     => $ostf_dbuser,
   password => $ostf_dbpass,
   grant    => 'all',
   require => Class['::postgresql::server'],
 }
-
