@@ -132,7 +132,7 @@ class neutron::plugins::ml2 (
     ensure   => present,
     owner    => 'root',
     group    => 'root',
-    mode     => 644
+    mode     => 0644
   }
 
   # Some platforms do not have a dedicated ml2 plugin package
