@@ -56,6 +56,10 @@ case $production {
       'token/expiration': value => 86400;
     }
 
+    package { 'crontabs':
+      ensure => latest,
+    }
+
     # Flush expired tokens
     cron { 'keystone-flush-token':
       ensure      => present,
@@ -63,6 +67,7 @@ case $production {
       environment => 'PATH=/bin:/usr/bin:/usr/sbin',
       user        => 'root',
       hour        => '1',
+      require     => Package['crontabs'],
     }
   }
   'docker-build': {
