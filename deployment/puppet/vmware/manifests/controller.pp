@@ -90,7 +90,8 @@ class vmware::controller (
   }
   # Set correct parameter for vnc access
   nova_config {
-    'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html"
+    'DEFAULT/novncproxy_base_url':     value => "http://${vnc_address}:6080/vnc_auto.html";
+    'DEFAULT/reserved_host_memory_mb': value => 0;
   }
 
   # install cirros vmdk package
