@@ -18,7 +18,7 @@ if $production == 'prod'{
 }
 
 # this replaces removed postgresql version fact
-$postgres_default_version = '8.4'
+$postgres_default_version = '9.3'
 
 $mco_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $mco_pskey = "unset"

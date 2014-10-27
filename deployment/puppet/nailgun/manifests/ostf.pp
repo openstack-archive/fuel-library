@@ -21,7 +21,7 @@ class nailgun::ostf(
   package{'libevent-devel':}
   package{'openssl-devel':}
   if $production !~ /docker/ {
-    postgresql::db{ $dbname:
+    postgresql::server::db{ $dbname:
       user     => $dbuser,
       password => $dbpass,
       grant    => 'all',
@@ -38,7 +38,7 @@ class nailgun::ostf(
         tries     => 50,
         try_sleep => 5,
       }
-      Postgresql::Db<| title == $dbname|> ->
+      Postgresql::Server::Db<| title == $dbname|> ->
       Exec['ostf-init'] -> Class['nailgun::supervisor']
       Package["fuel-ostf"] -> Exec['ostf-init']
       File["/etc/ostf/ostf.conf"] -> Exec['ostf-init']

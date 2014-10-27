@@ -13,7 +13,7 @@ $env_path = "/usr"
 $staticdir = "/usr/share/nailgun/static"
 
 # this replaces removed postgresql version fact
-$postgres_default_version = '8.4'
+$postgres_default_version = '9.3'
 
 $centos_repos =
 [
