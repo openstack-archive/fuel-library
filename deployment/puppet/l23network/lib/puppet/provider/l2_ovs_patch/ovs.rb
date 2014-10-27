@@ -46,7 +46,7 @@ Puppet::Type.type(:l2_ovs_patch).provide(:ovs) do
     for name in names
       # tag and trunks for port
       port_properties = [] #@resource[:port_properties]
-      tag = @resource[:vlan_ids][i]
+      tag = @resource[:tags][i]
       if tag > 0
         port_properties.insert(-1, "tag=#{tag}")
       end

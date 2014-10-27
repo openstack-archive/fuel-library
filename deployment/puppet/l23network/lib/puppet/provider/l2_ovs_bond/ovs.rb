@@ -28,8 +28,8 @@ Puppet::Type.type(:l2_ovs_bond).provide(:ovs) do
     end
 
     bond_properties = Array(@resource[:properties])
-    if @resource[:vlan_id] > 0
-      bond_properties.insert(-1, "tag=#{@resource[:vlan_id]}")
+    if @resource[:tag] > 0
+      bond_properties.insert(-1, "tag=#{@resource[:tag]}")
     end
     if not @resource[:trunks].empty?
       bond_properties.insert(-1, "trunks=[#{@resource[:trunks].join(',')}]")
