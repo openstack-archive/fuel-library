@@ -2,8 +2,8 @@
 define openstack::network::create_router (
   $internal_network,
   $external_network,
-  $tenant_name,
-  $virtual = false,
+  $tenant_name = 'admin',
+  $virtual     = false,
   ) {
 
   Neutron_subnet <| title == "${external_network}__subnet" |> ->
