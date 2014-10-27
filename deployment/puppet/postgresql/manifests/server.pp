@@ -1,54 +1,70 @@
-# Class: postgresql::server
-#
-# manages the installation of the postgresql server.  manages the package and service
-#
-# Parameters:
-#   [*package_name*] - name of package
-#   [*service_name*] - name of service
-#
-# Actions:
-#
-# Requires:
-#
-# Sample Usage:
-#
+# This installs a PostgreSQL server. See README.md for more details.
 class postgresql::server (
-  $package_name     = $postgresql::params::server_package_name,
-  $package_ensure   = 'present',
-  $service_name     = $postgresql::params::service_name,
-  $service_provider = $postgresql::params::service_provider,
-  $config_hash      = {}
+  $postgres_password          = undef,
+
+  $package_name               = $postgresql::params::server_package_name,
+  $client_package_name        = $postgresql::params::client_package_name,
+  $package_ensure             = $postgresql::params::package_ensure,
+
+  $plperl_package_name        = $postgresql::params::plperl_package_name,
+
+  $service_ensure             = $postgresql::params::service_ensure,
+  $service_enable             = $postgresql::params::service_enable,
+  $service_name               = $postgresql::params::service_name,
+  $service_provider           = $postgresql::params::service_provider,
+  $service_status             = $postgresql::params::service_status,
+  $default_database           = $postgresql::params::default_database,
+
+  $listen_addresses           = $postgresql::params::listen_addresses,
+  $port                       = $postgresql::params::port,
+  $ip_mask_deny_postgres_user = $postgresql::params::ip_mask_deny_postgres_user,
+  $ip_mask_allow_all_users    = $postgresql::params::ip_mask_allow_all_users,
+  $ipv4acls                   = $postgresql::params::ipv4acls,
+  $ipv6acls                   = $postgresql::params::ipv6acls,
+
+  $initdb_path                = $postgresql::params::initdb_path,
+  $createdb_path              = $postgresql::params::createdb_path,
+  $psql_path                  = $postgresql::params::psql_path,
+  $pg_hba_conf_path           = $postgresql::params::pg_hba_conf_path,
+  $pg_ident_conf_path         = $postgresql::params::pg_ident_conf_path,
+  $postgresql_conf_path       = $postgresql::params::postgresql_conf_path,
+
+  $datadir                    = $postgresql::params::datadir,
+  $xlogdir                    = $postgresql::params::xlogdir,
+
+  $pg_hba_conf_defaults       = $postgresql::params::pg_hba_conf_defaults,
+
+  $user                       = $postgresql::params::user,
+  $group                      = $postgresql::params::group,
+
+  $needs_initdb               = $postgresql::params::needs_initdb,
+
+  $encoding                   = $postgresql::params::encoding,
+  $locale                     = $postgresql::params::locale,
+
+  $manage_pg_hba_conf         = $postgresql::params::manage_pg_hba_conf,
+  $manage_pg_ident_conf       = $postgresql::params::manage_pg_ident_conf,
+
+  #Deprecated
+  $version                    = undef,
 ) inherits postgresql::params {
+  $pg = 'postgresql::server'
 
-  package { 'postgresql-server':
-    name   => $package_name,
-    ensure => $package_ensure,
+  if $version != undef {
+    warning('Passing "version" to postgresql::server is deprecated; please use postgresql::globals instead.')
+    $_version = $version
+  } else {
+    $_version = $postgresql::params::version
   }
 
-  $config_class = {}
-  $config_class['postgresql::config'] = $config_hash
+  # Reload has its own ordering, specified by other defines
+  class { "${pg}::reload": require => Class["${pg}::install"] }
 
-  create_resources( 'class', $config_class )
-
-  Package['postgresql-server'] -> Class['postgresql::config']
-
-  if ($needs_initdb) {
-    include postgresql::initdb
-
-    Class['postgresql::initdb'] -> Class['postgresql::config']
-    Class['postgresql::initdb'] -> Service['postgresqld']
-  }
-
-  service { 'postgresqld':
-    name     => $service_name,
-    ensure   => running,
-    enable   => true,
-    require  => Package['postgresql-server'],
-    provider => $service_provider,
-  }
-  Package<| title == 'postgresql-server'|> ~> Service<| title == 'postgresqld'|>
-  if !defined(Service['postgresqld']) {
-    notify{ "Module ${module_name} cannot notify service postgresqld on package update": }
-  }
-
+  anchor { "${pg}::start": }->
+  class { "${pg}::install": }->
+  class { "${pg}::initdb": }->
+  class { "${pg}::config": }->
+  class { "${pg}::service": }->
+  class { "${pg}::passwd": }->
+  anchor { "${pg}::end": }
 }
