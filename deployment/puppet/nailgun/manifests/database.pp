@@ -3,7 +3,7 @@ class nailgun::database(
   $password,
   $dbname,
   ){
-  postgresql::db{ $dbname:
+  postgresql::server::db{ $dbname:
     user     => $user,
     password => $password,
     grant    => 'all',
