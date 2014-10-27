@@ -34,7 +34,7 @@ module L23network
         :name => nil,
         :bridge => nil,
         #:type => "internal",
-        :vlan_id => 0,
+        :tag => 0,
         :trunks => [],
         :port_properties => [],
         :interface_properties => [],
@@ -45,7 +45,7 @@ module L23network
         :provider => 'ovs',
         :bridge => nil,
         :interfaces => [],
-        :vlan_id => 0,
+        :tag => 0,
         :trunks => [],
         :properties => [],
         #:port_properties => [],
@@ -56,7 +56,7 @@ module L23network
         :name => "unnamed", # calculated later
         :peers => [nil, nil],
         :bridges => [],
-        :vlan_ids => [0, 0],
+        :tags => [0, 0],
         :trunks => [],
       }
       else
