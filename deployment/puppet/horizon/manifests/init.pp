@@ -51,6 +51,19 @@ class horizon(
   $wsgi_user     = $::horizon::params::apache_user
   $wsgi_group    = $::horizon::params::apache_group
 
+
+  File[$::horizon::params::local_settings_path] -> Exec['horizon_compress_styles']
+  Exec['horizon_compress_styles'] -> Exec['chown_dashboard']
+  File["${horizon::params::logdir}/horizon.log"] -> Service['httpd']
+
+
+  File[$dashboard_directory] ~> Exec['chown_dashboard']
+  Exec['horizon_compress_styles'] ~> Exec['chown_dashboard']
+  Exec['horizon_compress_styles'] ~> Service['httpd']
+  File[$::horizon::params::local_settings_path, $::horizon::params::logdir] ~> Service['httpd']
+  Package[$::horizon::params::http_service, $::horizon::params::http_modwsgi] -> Service['httpd']
+  Package<| title == $::horizon::params::http_service or title == $::horizon::params::http_modwsgi|> ~> Service<| title == 'httpd'|>
+
   package { [$::horizon::params::http_service,
              $::horizon::params::http_modwsgi]:
     ensure => present,
@@ -91,8 +104,6 @@ class horizon(
     provider    => 'shell',
   }
 
-  Package['dashboard'] -> File[$dashboard_directory] ~> Exec['chown_dashboard']
-  Exec['horizon_compress_styles'] -> Exec['chown_dashboard']
 
   case $use_ssl {
     'exist': { # SSL certificate already exists
@@ -147,15 +158,14 @@ class horizon(
     mode    => '0750',
     owner   => $wsgi_user,
     group   => $wsgi_group,
-  } ->
+  }
+
   file { "${horizon::params::logdir}/horizon.log":
     ensure  => present,
     mode    => '0640',
     owner   => $wsgi_user,
     group   => $wsgi_group,
   }
-  Package["dashboard"] -> File[$horizon::params::logdir]
-  File["${horizon::params::logdir}/horizon.log"] -> Service['httpd']
 
   file { $::horizon::params::vhosts_file:
     content => template('horizon/vhosts.erb'),
@@ -268,26 +278,19 @@ class horizon(
     }
   }
 
-  Package['dashboard'] -> Exec['horizon_compress_styles']
-  Package['dashboard'] ~> Exec['horizon_compress_styles']
-  File[$::horizon::params::local_settings_path] -> Exec['horizon_compress_styles']
   exec { 'horizon_compress_styles':
     path    => '/bin:/usr/bin:/sbin:/usr/sbin',
     cwd     => '/usr/share/openstack-dashboard',
     command => 'python manage.py compress',
     refreshonly => true
   }
-  Exec['horizon_compress_styles'] ~> Service['httpd']
 
   service { 'httpd':
     name      => $::horizon::params::http_service,
     ensure    => 'running',
     enable    => true
   }
-  File[$::horizon::params::local_settings_path, $::horizon::params::logdir] ~> Service['httpd']
-  Package[$::horizon::params::http_service, $::horizon::params::http_modwsgi] -> Service['httpd']
-  Package<| title == $::horizon::params::http_service or title == $::horizon::params::http_modwsgi|> ~>
-  Service<| title == 'httpd'|>
+
   if !defined(Service['httpd']) {
     notify{ "Module ${module_name} cannot notify service httpd on packages update": }
   }
