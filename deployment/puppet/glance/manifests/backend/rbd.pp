@@ -27,11 +27,11 @@ class glance::backend::rbd(
   }
 
   glance_api_config {
-    'DEFAULT/default_store':          value => 'rbd';
     'DEFAULT/rbd_store_ceph_conf':    value => $rbd_store_ceph_conf;
     'DEFAULT/rbd_store_user':         value => $rbd_store_user;
     'DEFAULT/rbd_store_pool':         value => $rbd_store_pool;
     'DEFAULT/rbd_store_chunk_size':   value => $rbd_store_chunk_size;
+    'glance_store/default_store':     value => 'rbd';
   }
 
   package { 'python-ceph':

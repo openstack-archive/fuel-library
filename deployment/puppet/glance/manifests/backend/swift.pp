@@ -26,12 +26,12 @@ class glance::backend::swift(
 ) {
 
   glance_api_config {
-    'DEFAULT/default_store':            value => 'swift';
-    'DEFAULT/swift_store_user':         value => $swift_store_user;
-    'DEFAULT/swift_store_key':          value => $swift_store_key;
-    'DEFAULT/swift_store_auth_address': value => $swift_store_auth_address;
-    'DEFAULT/swift_store_container':    value => $swift_store_container;
-    'DEFAULT/swift_store_auth_version': value => $swift_store_auth_version;
+    'glance_store/default_store':            value => 'swift';
+    'glance_store/swift_store_user':         value => $swift_store_user;
+    'glance_store/swift_store_key':          value => $swift_store_key;
+    'glance_store/swift_store_auth_address': value => $swift_store_auth_address;
+    'DEFAULT/swift_store_container':         value => $swift_store_container;
+    'DEFAULT/swift_store_auth_version':      value => $swift_store_auth_version;
     'DEFAULT/swift_store_create_container_on_put':
       value => $swift_store_create_container_on_put;
     'DEFAULT/swift_store_large_object_size':
@@ -39,11 +39,11 @@ class glance::backend::swift(
   }
 
   glance_cache_config {
-    'DEFAULT/swift_store_user':         value => $swift_store_user;
-    'DEFAULT/swift_store_key':          value => $swift_store_key;
-    'DEFAULT/swift_store_auth_address': value => $swift_store_auth_address;
-    'DEFAULT/swift_store_container':    value => $swift_store_container;
-    'DEFAULT/swift_store_auth_version': value => $swift_store_auth_version;
+    'glance_store/swift_store_user':         value => $swift_store_user;
+    'glance_store/swift_store_key':          value => $swift_store_key;
+    'glance_store/swift_store_auth_address': value => $swift_store_auth_address;
+    'DEFAULT/swift_store_container':         value => $swift_store_container;
+    'DEFAULT/swift_store_auth_version':      value => $swift_store_auth_version;
     'DEFAULT/swift_store_create_container_on_put':
       value => $swift_store_create_container_on_put;
     'DEFAULT/swift_store_large_object_size':

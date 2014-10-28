@@ -245,11 +245,11 @@ class glance::api(
   # known_stores config
   if $known_stores {
     glance_api_config {
-      'DEFAULT/known_stores':  value => join($known_stores, ',');
+      'glance_store/stores':  value => join($known_stores, ',');
     }
   } else {
     glance_api_config {
-      'DEFAULT/known_stores': ensure => absent;
+      'glance_store/stores': ensure => absent;
     }
   }
 

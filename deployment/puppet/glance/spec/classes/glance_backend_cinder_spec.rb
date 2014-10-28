@@ -31,7 +31,7 @@ describe 'glance::backend::cinder' do
     context 'when default parameters' do
 
       it 'configures glance-api.conf' do
-        should contain_glance_api_config('DEFAULT/default_store').with_value('cinder')
+        should contain_glance_api_config('glance_store/default_store').with_value('cinder')
         should contain_glance_api_config('DEFAULT/cinder_api_insecure').with_value(false)
         should contain_glance_api_config('DEFAULT/cinder_catalog_info').with_value('volume:cinder:publicURL')
         should contain_glance_api_config('DEFAULT/os_region_name').with_value('RegionOne')
@@ -61,7 +61,7 @@ describe 'glance::backend::cinder' do
         }
       end
       it 'configures glance-api.conf' do
-        should contain_glance_api_config('DEFAULT/default_store').with_value('cinder')
+        should contain_glance_api_config('glance_store/default_store').with_value('cinder')
         should contain_glance_api_config('DEFAULT/cinder_api_insecure').with_value(true)
         should contain_glance_api_config('DEFAULT/cinder_ca_certificates_file').with_value('/etc/ssh/ca.crt')
         should contain_glance_api_config('DEFAULT/cinder_catalog_info').with_value('volume:cinder:internalURL')

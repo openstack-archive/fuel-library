@@ -14,7 +14,7 @@ describe 'glance::backend::rbd' do
       }
     end
 
-    it { should contain_glance_api_config('DEFAULT/default_store').with_value('rbd') }
+    it { should contain_glance_api_config('glance_store/default_store').with_value('rbd') }
     it { should contain_glance_api_config('DEFAULT/rbd_store_pool').with_value('images') }
     it { should contain_glance_api_config('DEFAULT/rbd_store_ceph_conf').with_value('/etc/ceph/ceph.conf') }
     it { should contain_glance_api_config('DEFAULT/rbd_store_chunk_size').with_value('8') }
