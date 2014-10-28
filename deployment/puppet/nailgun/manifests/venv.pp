@@ -55,6 +55,8 @@ class nailgun::venv(
   $keystone_nailgun_pass = 'nailgun',
 
   $dns_domain,
+  $dns_upstream = '8.8.8.8, 8.8.4.4',
+  $ntp_upstream = '0.pool.ntp.org, 1.pool.ntp.org',
   ) {
 
   package{'nailgun':}
