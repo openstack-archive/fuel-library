@@ -50,6 +50,14 @@ class murano::dashboard (
     ],
   }
 
+  exec { 'django_collectstatic':
+    command     => "${collect_static_script} collectstatic --noinput",
+    environment => [
+     "APACHE_USER=${apache_user}",
+     "APACHE_GROUP=${apache_user}",
+    ],
+  }
+
   file { $murano_log_file :
     ensure => present,
     mode   => '0755',
@@ -62,7 +70,7 @@ class murano::dashboard (
     name   => $package_name,
   }
 
-  Package['murano_dashboard'] -> File[$modify_config] -> Exec['clean_horizon_config'] -> Exec['fix_horizon_config'] -> File[$murano_log_file] -> File <| title == "${::horizon::params::logdir}/horizon.log" |> -> Service <| title == 'httpd' |>
+  Package['murano_dashboard'] -> File[$modify_config] -> Exec['clean_horizon_config'] -> Exec['fix_horizon_config'] -> Exec['django_collectstatic'] -> File[$murano_log_file] -> File <| title == "${::horizon::params::logdir}/horizon.log" |> -> Service <| title == 'httpd' |>
   Package['murano_dashboard'] ~> Service <| title == 'httpd' |>
   Exec['fix_horizon_config'] ~> Service <| title == 'httpd' |>
 
