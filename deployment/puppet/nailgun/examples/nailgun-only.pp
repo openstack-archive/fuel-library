@@ -122,6 +122,8 @@ class { "nailgun::venv":
   keystone_nailgun_pass => $::fuel_settings['keystone']['nailgun_password'],
 
   dns_domain => $::fuel_settings['DNS_DOMAIN'],
+  dns_upstream => $::fuel_settings['DNS_UPSTREAM'],
+  ntp_upstream => "$::fuel_settings['NTP1'], $::fuel_settings['NTP2'], $::fuel_settings['NTP3']",
 }
 class { 'nailgun::uwsgi':
 }
