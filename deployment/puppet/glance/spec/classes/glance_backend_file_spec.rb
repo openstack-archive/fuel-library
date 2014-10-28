@@ -10,12 +10,12 @@ describe 'glance::backend::file' do
   end
 
   it 'configures glance-api.conf' do
-    should contain_glance_api_config('DEFAULT/default_store').with_value('file')
-    should contain_glance_api_config('DEFAULT/filesystem_store_datadir').with_value('/var/lib/glance/images/')
+    should contain_glance_api_config('glance_store/default_store').with_value('file')
+    should contain_glance_api_config('glance_store/filesystem_store_datadir').with_value('/var/lib/glance/images/')
   end
 
   it 'configures glance-cache.conf' do
-    should contain_glance_cache_config('DEFAULT/filesystem_store_datadir').with_value('/var/lib/glance/images/')
+    should contain_glance_cache_config('glance_store/filesystem_store_datadir').with_value('/var/lib/glance/images/')
   end
 
   describe 'when overriding datadir' do
@@ -24,11 +24,11 @@ describe 'glance::backend::file' do
     end
 
     it 'configures glance-api.conf' do
-      should contain_glance_api_config('DEFAULT/filesystem_store_datadir').with_value('/tmp/')
+      should contain_glance_api_config('glance_store/filesystem_store_datadir').with_value('/tmp/')
     end
 
     it 'configures glance-cache.conf' do
-      should contain_glance_cache_config('DEFAULT/filesystem_store_datadir').with_value('/tmp/')
+      should contain_glance_cache_config('glance_store/filesystem_store_datadir').with_value('/tmp/')
     end
   end
 end
