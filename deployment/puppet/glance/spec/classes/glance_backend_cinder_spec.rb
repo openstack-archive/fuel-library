@@ -31,13 +31,13 @@ describe 'glance::backend::cinder' do
     context 'when default parameters' do
 
       it 'configures glance-api.conf' do
-        should contain_glance_api_config('DEFAULT/default_store').with_value('cinder')
-        should contain_glance_api_config('DEFAULT/cinder_api_insecure').with_value(false)
-        should contain_glance_api_config('DEFAULT/cinder_catalog_info').with_value('volume:cinder:publicURL')
-        should contain_glance_api_config('DEFAULT/os_region_name').with_value('RegionOne')
-        should contain_glance_api_config('DEFAULT/cinder_http_retries').with_value('3')
-        should contain_glance_api_config('DEFAULT/cinder_ca_certificates_file').with(:ensure => 'absent')
-        should contain_glance_api_config('DEFAULT/cinder_endpoint_template').with(:ensure => 'absent')
+        should contain_glance_api_config('glance_store/default_store').with_value('cinder')
+        should contain_glance_api_config('glance_store/cinder_api_insecure').with_value(false)
+        should contain_glance_api_config('glance_store/cinder_catalog_info').with_value('volume:cinder:publicURL')
+        should contain_glance_api_config('glance_store/os_region_name').with_value('RegionOne')
+        should contain_glance_api_config('glance_store/cinder_http_retries').with_value('3')
+        should contain_glance_api_config('glance_store/cinder_ca_certificates_file').with(:ensure => 'absent')
+        should contain_glance_api_config('glance_store/cinder_endpoint_template').with(:ensure => 'absent')
       end
       it 'configures glance-cache.conf' do
         should contain_glance_cache_config('DEFAULT/cinder_api_insecure').with_value(false)
@@ -61,13 +61,13 @@ describe 'glance::backend::cinder' do
         }
       end
       it 'configures glance-api.conf' do
-        should contain_glance_api_config('DEFAULT/default_store').with_value('cinder')
-        should contain_glance_api_config('DEFAULT/cinder_api_insecure').with_value(true)
-        should contain_glance_api_config('DEFAULT/cinder_ca_certificates_file').with_value('/etc/ssh/ca.crt')
-        should contain_glance_api_config('DEFAULT/cinder_catalog_info').with_value('volume:cinder:internalURL')
-        should contain_glance_api_config('DEFAULT/cinder_endpoint_template').with_value('http://srv-foo:8776/v1/%(project_id)s')
-        should contain_glance_api_config('DEFAULT/cinder_http_retries').with_value('10')
-        should contain_glance_api_config('DEFAULT/os_region_name').with_value('foo')
+        should contain_glance_api_config('glance_store/default_store').with_value('cinder')
+        should contain_glance_api_config('glance_store/cinder_api_insecure').with_value(true)
+        should contain_glance_api_config('glance_store/cinder_ca_certificates_file').with_value('/etc/ssh/ca.crt')
+        should contain_glance_api_config('glance_store/cinder_catalog_info').with_value('volume:cinder:internalURL')
+        should contain_glance_api_config('glance_store/cinder_endpoint_template').with_value('http://srv-foo:8776/v1/%(project_id)s')
+        should contain_glance_api_config('glance_store/cinder_http_retries').with_value('10')
+        should contain_glance_api_config('glance_store/os_region_name').with_value('foo')
       end
       it 'configures glance-cache.conf' do
         should contain_glance_cache_config('DEFAULT/cinder_api_insecure').with_value(true)

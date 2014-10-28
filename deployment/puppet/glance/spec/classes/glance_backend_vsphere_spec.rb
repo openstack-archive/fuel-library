@@ -25,16 +25,16 @@ describe 'glance::backend::vsphere' do
   describe 'when default parameters' do
 
     it 'configures glance-api.conf' do
-      should contain_glance_api_config('DEFAULT/default_store').with_value('vsphere')
-      should contain_glance_api_config('DEFAULT/vmware_api_insecure').with_value('False')
-      should contain_glance_api_config('DEFAULT/vmware_server_host').with_value('10.0.0.1')
-      should contain_glance_api_config('DEFAULT/vmware_server_username').with_value('root')
-      should contain_glance_api_config('DEFAULT/vmware_server_password').with_value('123456')
-      should contain_glance_api_config('DEFAULT/vmware_datastore_name').with_value('Datastore')
-      should contain_glance_api_config('DEFAULT/vmware_store_image_dir').with_value('/openstack_glance')
-      should contain_glance_api_config('DEFAULT/vmware_task_poll_interval').with_value('5')
-      should contain_glance_api_config('DEFAULT/vmware_api_retry_count').with_value('10')
-      should contain_glance_api_config('DEFAULT/vmware_datacenter_path').with_value('Datacenter')
+      should contain_glance_api_config('glance_store/default_store').with_value('vsphere')
+      should contain_glance_api_config('glance_store/vmware_api_insecure').with_value('False')
+      should contain_glance_api_config('glance_store/vmware_server_host').with_value('10.0.0.1')
+      should contain_glance_api_config('glance_store/vmware_server_username').with_value('root')
+      should contain_glance_api_config('glance_store/vmware_server_password').with_value('123456')
+      should contain_glance_api_config('glance_store/vmware_datastore_name').with_value('Datastore')
+      should contain_glance_api_config('glance_store/vmware_store_image_dir').with_value('/openstack_glance')
+      should contain_glance_api_config('glance_store/vmware_task_poll_interval').with_value('5')
+      should contain_glance_api_config('glance_store/vmware_api_retry_count').with_value('10')
+      should contain_glance_api_config('glance_store/vmware_datacenter_path').with_value('Datacenter')
     end
   end
 
@@ -54,9 +54,9 @@ describe 'glance::backend::vsphere' do
     end
 
     it 'configures glance-api.conf' do
-      should contain_glance_api_config('DEFAULT/vmware_api_insecure').with_value('True')
-      should contain_glance_api_config('DEFAULT/vmware_task_poll_interval').with_value('6')
-      should contain_glance_api_config('DEFAULT/vmware_api_retry_count').with_value('11')
+      should contain_glance_api_config('glance_store/vmware_api_insecure').with_value('True')
+      should contain_glance_api_config('glance_store/vmware_task_poll_interval').with_value('6')
+      should contain_glance_api_config('glance_store/vmware_api_retry_count').with_value('11')
     end
   end
 end

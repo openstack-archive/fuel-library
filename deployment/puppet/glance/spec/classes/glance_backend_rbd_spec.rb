@@ -14,10 +14,10 @@ describe 'glance::backend::rbd' do
       }
     end
 
-    it { should contain_glance_api_config('DEFAULT/default_store').with_value('rbd') }
-    it { should contain_glance_api_config('DEFAULT/rbd_store_pool').with_value('images') }
-    it { should contain_glance_api_config('DEFAULT/rbd_store_ceph_conf').with_value('/etc/ceph/ceph.conf') }
-    it { should contain_glance_api_config('DEFAULT/rbd_store_chunk_size').with_value('8') }
+    it { should contain_glance_api_config('glance_store/default_store').with_value('rbd') }
+    it { should contain_glance_api_config('glance_store/rbd_store_pool').with_value('images') }
+    it { should contain_glance_api_config('glance_store/rbd_store_ceph_conf').with_value('/etc/ceph/ceph.conf') }
+    it { should contain_glance_api_config('glance_store/rbd_store_chunk_size').with_value('8') }
 
     it { should contain_package('python-ceph').with(
         :name   => 'python-ceph',
@@ -33,7 +33,7 @@ describe 'glance::backend::rbd' do
         :rbd_store_chunk_size  => '2',
       }
     end
-    it { should contain_glance_api_config('DEFAULT/rbd_store_user').with_value('user') }
-    it { should contain_glance_api_config('DEFAULT/rbd_store_chunk_size').with_value('2') }
+    it { should contain_glance_api_config('glance_store/rbd_store_user').with_value('user') }
+    it { should contain_glance_api_config('glance_store/rbd_store_chunk_size').with_value('2') }
   end
 end
