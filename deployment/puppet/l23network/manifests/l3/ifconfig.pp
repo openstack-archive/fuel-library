@@ -88,6 +88,8 @@ define l23network::l3::ifconfig (
     $interface       = $name,
     $netmask         = '255.255.255.0',
     $gateway         = undef,
+    $default_gateway = false,
+    $other_nets      = undef,
     $vlandev         = undef,
     $bond_master     = undef,
     $bond_properties = {},
