@@ -356,6 +356,11 @@ class openstack::compute (
         ensure => present,
         before => Package[$::nova::params::compute_package_name],
       }
+      service { 'qemu-kvm':
+        ensure    => running,
+        require   => Package[$libvirt_type_kvm],
+        subscribe => Package[$libvirt_type_kvm],
+      }
     }
   }
 
