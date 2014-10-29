@@ -6,9 +6,9 @@ class ceph::ephemeral (
 ) {
 
   nova_config {
-    'DEFAULT/libvirt_images_type':      value => $libvirt_images_type;
-    'DEFAULT/libvirt_inject_key':       value => false;
-    'DEFAULT/libvirt_inject_partition': value => '-2';
-    'DEFAULT/libvirt_images_rbd_pool':  value => $pool;
+    'libvirt/images_type':      value => $libvirt_images_type;
+    'libvirt/inject_key':       value => false;
+    'libvirt/inject_partition': value => '-2';
+    'libvirt/images_rbd_pool':  value => $pool;
   }
 }
