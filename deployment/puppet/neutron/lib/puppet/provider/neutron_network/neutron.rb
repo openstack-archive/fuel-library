@@ -54,7 +54,7 @@ Puppet::Type.type(:neutron_network).provide(
   def create
     network_opts = Array.new
 
-    if @resource[:shared]
+    if @resource[:shared] =~ /true/i
       network_opts << '--shared'
     end
 
