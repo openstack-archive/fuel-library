@@ -19,8 +19,8 @@ class ceph::nova_compute (
   }
 
   nova_config {
-    'DEFAULT/rbd_secret_uuid':          value => $rbd_secret_uuid;
-    'DEFAULT/rbd_user':                 value => $user;
+    'libvirt/rbd_secret_uuid':          value => $rbd_secret_uuid;
+    'libvirt/rbd_user':                 value => $user;
   }
 
   File['/root/secret.xml'] ->
