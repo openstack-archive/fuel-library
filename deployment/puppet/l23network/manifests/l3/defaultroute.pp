@@ -19,6 +19,7 @@ define l23network::l3::defaultroute (
         }
     }
     /(?i)redhat/: {
+        Cfg <| name == $gateway |>
         if ! defined(Cfg[$gateway]) {
           cfg { $gateway:
               file  => '/etc/sysconfig/network',
