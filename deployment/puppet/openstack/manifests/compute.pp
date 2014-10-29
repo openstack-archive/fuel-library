@@ -364,7 +364,7 @@ class openstack::compute (
             require   => Package[$libvirt_type_kvm],
           }
         }
-        'Ubuntu': {
+        'Debian': {
           service { 'qemu-kvm':
             ensure    => running,
             require   => Package[$libvirt_type_kvm],
