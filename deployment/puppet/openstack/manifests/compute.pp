@@ -356,6 +356,23 @@ class openstack::compute (
         ensure => present,
         before => Package[$::nova::params::compute_package_name],
       }
+      case $::osfamily {
+        'RedHat': {
+          exec { '/etc/sysconfig/modules/kvm.modules':
+            path      => '/sbin:/usr/sbin:/bin:/usr/bin',
+            unless    => 'lsmod | grep -q kvm',
+            require   => Package[$libvirt_type_kvm],
+          }
+        }
+        'Ubuntu': {
+          service { 'qemu-kvm':
+            ensure    => running,
+            require   => Package[$libvirt_type_kvm],
+            subscribe => Package[$libvirt_type_kvm],
+          }
+        }
+        default: { fail("Unsupported osfamily: ${osfamily}") }
+      }
     }
   }
 
