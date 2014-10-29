@@ -120,15 +120,30 @@ And the OS will configure interfaces br-ex and aaa0 after eth0
     l23network::l3::ifconfig {"eth1":
         ipaddr                => '192.168.2.5/24',
         gateway               => '192.168.2.1',
+        default_gateway       => true,
         check_by_ping         => '8.8.8.8',
         check_by_ping_timeout => '30'
     }
 
-In this example we define default *gateway* and options for waiting that network stay up. 
+In this example we define default *gateway* and options for waiting that network stay up.
 Parameter *check_by_ping* define IP address, that will be pinged. Puppet will be blocked for waiting
-response for *check_by_ping_timeout* seconds. 
+response for *check_by_ping_timeout* seconds.
 Parameter *check_by_ping* can be IP address, 'gateway', or 'none' string for disabling checking.
 By default gateway will be pinged.
+
+
+### Additional routes
+
+    l23network::l3::ifconfig {"eth1":
+        ipaddr                => '192.168.2.5/24',
+        gateway               => '192.168.2.1',
+        other_nets            => ['10.20.20.0/24', '192.168.120.0/24']
+        check_by_ping         => '8.8.8.8',
+        check_by_ping_timeout => '30'
+    }
+
+In this example we define the *gateway* as the next hop and *other_nets* as a
+list of networks that may be reached by this gateway.
 
 ### DNS-specific options
 
