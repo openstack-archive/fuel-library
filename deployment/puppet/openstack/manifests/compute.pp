@@ -356,6 +356,12 @@ class openstack::compute (
         ensure => present,
         before => Package[$::nova::params::compute_package_name],
       }
+      exec { 'modprobe kvm':
+        command     => 'modprobe kvm;modprobe kvm_intel',
+        path        => '/bin:/sbin:/usr/sbin:/usr/bin',
+        require     => Package[$libvirt_type_kvm],
+        unless      => 'lsmod | grep -q kvm_intel',
+      }
     }
   }
 
