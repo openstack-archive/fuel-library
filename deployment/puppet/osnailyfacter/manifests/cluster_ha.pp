@@ -566,7 +566,14 @@ class osnailyfacter::cluster_ha {
           Exec<| title=='wait-for-haproxy-keystone-admin-backend' |> ->
           Nova_floating_range <| |>
 
+          Openstack::Ha::Haproxy_service <| |> ->
+          Exec<| title=='wait-for-haproxy-nova-backend' |>
 
+          Openstack::Ha::Haproxy_service <| |> ->
+          Exec<| title=='wait-for-haproxy-keystone-admin-backend' |>
+
+          Openstack::Ha::Haproxy_service <| |> ->
+          Exec<| title=='wait-for-haproxy-keystone-backend' |>
         }
       }
       if ($::use_ceph){
