@@ -13,10 +13,6 @@ describe 'swift' do
     }
   end
 
-  let :pre_condition do
-    "include ssh::server::install"
-  end
-
   describe 'when no swift hash is specified' do
     let :params do
       {}
@@ -26,14 +22,6 @@ describe 'swift' do
     end
   end
 
-  describe 'when ssh server install class is not included' do
-    let :pre_condition do
-      ''
-    end
-    it 'should should raise an exception' do
-      expect { subject }.to raise_error(Puppet::Error)
-    end
-  end
 
   describe 'when using the default value for package_ensure' do
     let :file_defaults do
@@ -43,6 +31,7 @@ describe 'swift' do
         :require => 'Package[swift]'
       }
     end
+    it {should contain_user('swift')}
     it {should contain_file('/home/swift').with(
       {:ensure => 'directory', :mode => '0700'
       }.merge(file_defaults)
@@ -54,20 +43,34 @@ describe 'swift' do
     it {should contain_file('/var/run/swift').with(
       {:ensure => 'directory'}.merge(file_defaults)
     )}
+    it {should contain_file('/var/lib/swift').with(
+      {:ensure => 'directory'}.merge(file_defaults)
+    )}
     it {should contain_file('/etc/swift/swift.conf').with(
       {:ensure  => 'present',
        :mode    => '0660',
-       :content => "[swift-hash]\nswift_hash_path_suffix = string\n"
       }.merge(file_defaults)
     )}
+    it 'configures swift.conf' do
+      should contain_swift_config(
+        'swift-hash/swift_hash_path_suffix').with_value('string')
+    end
     it {should contain_package('swift').with_ensure('present')}
   end
 
   describe 'when overriding package_ensure parameter' do
     it 'should effect ensure state of swift package' do
-      params[:package_ensure] = 'latest'
-      subject.should contain_package('swift').with_ensure('latest')
+      params[:package_ensure] = '1.12.0-1'
+      subject.should contain_package('swift').with_ensure(params[:package_ensure])
     end
   end
+
+  describe 'when overriding client_package_ensure parameter' do
+    it 'should effect ensure state of swift package' do
+      params[:client_package_ensure] = '2.0.2-1'
+      subject.should contain_package('swiftclient').with_ensure(params[:client_package_ensure])
+    end
+  end
+
 
 end

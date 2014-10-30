@@ -39,7 +39,6 @@ define swift::ringbuilder::create(
   exec { "create_${name}":
     command     => "swift-ring-builder /etc/swift/${name}.builder create ${part_power} ${replicas} ${min_part_hours}",
     path        => ['/usr/bin'],
-    user        => 'swift',
     creates     => "/etc/swift/${name}.builder",
   }
 

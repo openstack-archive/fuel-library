@@ -18,8 +18,7 @@ describe 'swift::ringbuilder' do
 
     let :pre_condition do
       "class { memcached: max_memory => 1}
-       class { swift: swift_hash_suffix => string }
-       class { 'ssh::server::install': }"
+       class { swift: swift_hash_suffix => string }"
     end
 
     it 'should rebalance the ring for all ring types' do
@@ -60,37 +59,39 @@ describe 'swift::ringbuilder' do
       let :pre_condition do
          'class { memcached: max_memory => 1}
           class { swift: swift_hash_suffix => string }
-          class { "ssh::server::install": }
-          ring_object_device { "127.0.0.1:6000":
+          ring_object_device { "127.0.0.1:6000/1":
           zone        => 1,
+          weight      => 1,
         }
 
-        ring_container_device { "127.0.0.1:6001":
+        ring_container_device { "127.0.0.1:6001/1":
           zone        => 2,
+          weight      => 1,
         }
 
-        ring_account_device { "127.0.0.1:6002":
+        ring_account_device { "127.0.0.1:6002/1":
           zone        => 3,
+          weight      => 1,
         }'
       end
 
       it 'should set up all of the correct dependencies' do
         should contain_swift__ringbuilder__create('object').with(
-          {:before => 'Ring_object_device[127.0.0.1:6000]'}
+          {:before => 'Ring_object_device[127.0.0.1:6000/1]'}
         )
         should contain_swift__ringbuilder__create('container').with(
-        {:before => 'Ring_container_device[127.0.0.1:6001]'}
+        {:before => 'Ring_container_device[127.0.0.1:6001/1]'}
         )
         should contain_swift__ringbuilder__create('account').with(
-        {:before => 'Ring_account_device[127.0.0.1:6002]'}
+        {:before => 'Ring_account_device[127.0.0.1:6002/1]'}
         )
-        should contain_ring_object_device('127.0.0.1:6000').with(
+        should contain_ring_object_device('127.0.0.1:6000/1').with(
         {:notify => 'Swift::Ringbuilder::Rebalance[object]'}
         )
-        should contain_ring_container_device('127.0.0.1:6001').with(
+        should contain_ring_container_device('127.0.0.1:6001/1').with(
         {:notify => 'Swift::Ringbuilder::Rebalance[container]'}
         )
-        should contain_ring_account_device('127.0.0.1:6002').with(
+        should contain_ring_account_device('127.0.0.1:6002/1').with(
         {:notify => 'Swift::Ringbuilder::Rebalance[account]'}
         )
       end
