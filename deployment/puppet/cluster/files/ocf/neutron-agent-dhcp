@@ -46,6 +46,7 @@ OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
 OCF_RESKEY_username_default="neutron"
 OCF_RESKEY_password_default="neutron_pass"
 OCF_RESKEY_tenant_default="services"
+OCF_RESKEY_multiple_agents_default='true'
 OCF_RESKEY_rescheduling_tries_default=5
 OCF_RESKEY_rescheduling_interval_default=33
 OCF_RESKEY_debug_default='false'
@@ -61,6 +62,7 @@ OCF_RESKEY_debug_default='false'
 : ${OCF_RESKEY_plugin_config=${OCF_RESKEY_plugin_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_OCF_RESKEY_multiple_agents=${OCF_RESKEY_OCF_RESKEY_multiple_agents_default}}
 : ${OCF_RESKEY_amqp_server_port=${OCF_RESKEY_amqp_server_port_default}}
 : ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
 : ${OCF_RESKEY_rescheduling_tries=${OCF_RESKEY_rescheduling_tries_default}}
@@ -142,6 +144,14 @@ User running OpenStack DHCP Service (${OCF_RESKEY_binary})
 <content type="string" default="${OCF_RESKEY_user_default}" />
 </parameter>
 
+<parameter name="multiple_agents" unique="0" required="0">
+<longdesc lang="en">
+Flag, that switch RCS-agent behavior for multiple or single DHCP-agent.
+</longdesc>
+<shortdesc lang="en">Switsh between multiple or single DHCP-agent behavior</shortdesc>
+<content type="string" default="${OCF_RESKEY_multiple_agents_default}" />
+</parameter>
+
 <parameter name="pid" unique="0" required="0">
 <longdesc lang="en">
 The pid file to use for this OpenStack DHCP Service (${OCF_RESKEY_binary}) instance
@@ -173,7 +183,6 @@ Neutron username for port list fetching
 <shortdesc lang="en">Neutron username</shortdesc>
 <content type="string" default="${OCF_RESKEY_username_default}" />
 </parameter>
-
 
 <parameter name="password" unique="0" required="0">
 <longdesc lang="en">
@@ -446,13 +455,15 @@ neutron_dhcp_agent_start() {
         sleep 3
     done
 
-    # detach deffered rescheduling procedure
-    RESCHEDULING_CMD="q-agent-cleanup.py --agent=dhcp --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
-    RESCH_CMD=''
-    for ((i=0; i<$OCF_RESKEY_rescheduling_tries; i++)) ; do
-        RESCH_CMD="$RESCH_CMD sleep $OCF_RESKEY_rescheduling_interval ; $RESCHEDULING_CMD ;"
-    done
-    bash -c "$RESCH_CMD" &
+    if ! ocf_is_true "$OCF_RESKEY_multiple_agents" ; then
+        # detach deffered rescheduling procedure
+        RESCHEDULING_CMD="q-agent-cleanup.py --agent=dhcp --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log"
+        RESCH_CMD=''
+        for ((i=0; i<$OCF_RESKEY_rescheduling_tries; i++)) ; do
+            RESCH_CMD="$RESCH_CMD sleep $OCF_RESKEY_rescheduling_interval ; $RESCHEDULING_CMD ;"
+        done
+        bash -c "$RESCH_CMD" &
+    fi
 
     ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) started"
     return $OCF_SUCCESS
@@ -519,7 +530,9 @@ neutron_dhcp_agent_stop() {
     clean_up
     sleep 1
     clean_up_namespaces
-    q-agent-cleanup.py --agent=dhcp --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
+    if ! ocf_is_true "$OCF_RESKEY_multiple_agents" ; then
+        q-agent-cleanup.py --agent=dhcp --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
+    fi
     sleep 3
 
     return $OCF_SUCCESS
