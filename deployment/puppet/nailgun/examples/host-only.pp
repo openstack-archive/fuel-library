@@ -34,7 +34,7 @@ class { 'nailgun::host':
 
 class { "openstack::clocksync":
   ntp_servers     => $ntp_servers,
-  config_template => "ntp/ntp.conf.centosserver.erb",
+  config_template => "ntp/ntp.conf.erb",
 }
 
 class { "docker::dockerctl":
