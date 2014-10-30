@@ -1,6 +1,7 @@
 #Not a docstring
 define openstack::network::create_network (
   $netdata,
+  $tenant_name   = 'admin',
   $fallback_segment_id = 1
   )
 {
@@ -37,7 +38,7 @@ define openstack::network::create_network (
     provider_network_type     => $netdata['L2']['network_type'],
     provider_segmentation_id  => $segment_id,
     router_external           => $netdata['L2']['router_ext'],
-    tenant_name               => $netdata['tenant'],
+    tenant_name               => $tenant_name,
     shared                    => $netdata['shared']
   }
 
@@ -45,7 +46,7 @@ define openstack::network::create_network (
     ensure          => present,
     cidr            => $netdata['L3']['subnet'],
     network_name    => $name,
-    tenant_name     => $netdata['tenant'],
+    tenant_name     => $tenant_name,
     gateway_ip      => $netdata['L3']['gateway'],
     enable_dhcp     => $netdata['L3']['enable_dhcp'],
     dns_nameservers => $netdata['L3']['nameservers'],
