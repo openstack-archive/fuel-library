@@ -50,8 +50,7 @@ class nailgun(
   $puppet_master_hostname = "${hostname}.${domain}",
   $puppet_master_ip = $ipaddress,
 
-  $keystone_admin_token = $keystone_admin_token,
-  $keystone_host        = $keystone_host,
+  $keystone_host = $keystone_host,
 
   ) {
 
@@ -167,8 +166,9 @@ class nailgun(
 
     puppet_master_hostname => $puppet_master_hostname,
 
-    keystone_admin_token => $::fuel_settings['keystone']['admin_token'],
-    keystone_host        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    keystone_host         => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    keystone_nailgun_user => $::fuel_settings['keystone']['nailgun_user'],
+    keystone_nailgun_pass => $::fuel_settings['keystone']['nailgun_password'],
   }
 
   class {"nailgun::astute":
@@ -270,10 +270,11 @@ class nailgun(
   class { "nailgun::logrotate": }
 
   class { "nailgun::ostf":
-    production => $production,
-    pip_opts => "${pip_index} ${pip_find_links}",
-    keystone_admin_token => $keystone_admin_token,
-    keystone_host        => $keystone_host,
+    production         => $production,
+    pip_opts           => "${pip_index} ${pip_find_links}",
+    keystone_host      => $keystone_host,
+    keystone_ostf_user => $::fuel_settings['keystone']['ostf_user'],
+    keystone_ostf_pass => $::fuel_settings['keystone']['ostf_password'],
   }
 
   class { "nailgun::puppetsync": }
