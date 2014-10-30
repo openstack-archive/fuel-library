@@ -24,7 +24,7 @@ describe 'swift::proxy::s3token' do
       verify_contents(subject, fragment_file,
         [
           '[filter:s3token]',
-          'paste.filter_factory = keystone.middleware.s3_token:filter_factory',
+          'paste.filter_factory = keystoneclient.middleware.s3_token:filter_factory',
           'auth_port = 35357',
           'auth_protocol = http',
           'auth_host = 127.0.0.1'
@@ -45,7 +45,7 @@ describe 'swift::proxy::s3token' do
       verify_contents(subject, fragment_file,
         [
           '[filter:s3token]',
-          'paste.filter_factory = keystone.middleware.s3_token:filter_factory',
+          'paste.filter_factory = keystoneclient.middleware.s3_token:filter_factory',
           'auth_port = 4212',
           'auth_protocol = https',
           'auth_host = 1.2.3.4'

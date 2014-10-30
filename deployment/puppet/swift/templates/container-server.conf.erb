@@ -14,7 +14,7 @@ pipeline = <%= @pipeline.to_a.join(' ') %>
 [app:container-server]
 allow_versions = <%= @allow_versions %>
 use = egg:swift#container
-set log_name = @container-server
+set log_name = <%= @log_name %>
 set log_facility = <%= @log_facility %>
 set log_level = <%= @log_level %>
 set log_requests = True

@@ -285,7 +285,7 @@ class osnailyfacter::cluster_ha {
     $swift_proxies            = $controllers
     $swift_local_net_ip       = $::storage_address
     $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-    $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['internal_address']
+    $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
     #$master_hostname         = $master_swift_proxy_nodes[0]['name']
     $swift_loopback = false
     if $primary_controller {
@@ -477,9 +477,13 @@ class osnailyfacter::cluster_ha {
           sync_rings            => ! $primary_proxy,
           debug                 => $::debug,
           verbose               => $::verbose,
+          log_facility          => 'LOG_SYSLOG',
         }
         if $primary_proxy {
-          ring_devices {'all': storages => $controllers }
+          ring_devices {'all':
+            storages => $controllers,
+            require  => Class['swift'],
+          }
         }
 
         if !$swift_hash['resize_value']
@@ -499,6 +503,7 @@ class osnailyfacter::cluster_ha {
           master_swift_proxy_ip   => $master_swift_proxy_ip,
           debug                   => $::debug,
           verbose                 => $::verbose,
+          log_facility            => 'LOG_SYSLOG',
         }
         class { 'swift::keystone::auth':
           password         => $swift_hash[user_password],
@@ -940,33 +945,34 @@ class osnailyfacter::cluster_ha {
       $swift_zone = $node[0]['swift_zone']
 
       class { 'openstack::swift::storage_node':
-        storage_type          => $swift_loopback,
-        loopback_size         => '5243780',
-        storage_mnt_base_dir  => $swift_partition,
-        storage_devices       =>  $mountpoints,
-        swift_zone             => $swift_zone,
-        swift_local_net_ip     => $swift_local_net_ip,
-        master_swift_proxy_ip  => $master_swift_proxy_ip,
-        cinder                 => $cinder,
-        cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
-        cinder_volume_group     => "cinder",
-        manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-        db_host                => $::fuel_settings['management_vip'],
-        service_endpoint       => $::fuel_settings['management_vip'],
-        cinder_rate_limits     => $cinder_rate_limits,
-        queue_provider         => $::queue_provider,
-        rabbit_nodes           => $controller_nodes,
-        rabbit_password        => $rabbit_hash[password],
-        rabbit_user            => $rabbit_hash[user],
-        rabbit_ha_virtual_ip   => $::fuel_settings['management_vip'],
-        qpid_password          => $rabbit_hash[password],
-        qpid_user              => $rabbit_hash[user],
-        qpid_nodes             => [$::fuel_settings['management_vip']],
-        sync_rings             => ! $primary_proxy,
-        syslog_log_level       => $syslog_log_level,
-        debug                  => $debug,
-        verbose                => $verbose,
+        storage_type               => $swift_loopback,
+        loopback_size              => '5243780',
+        storage_mnt_base_dir       => $swift_partition,
+        storage_devices            =>  $mountpoints,
+        swift_zone                 => $swift_zone,
+        swift_local_net_ip         => $swift_local_net_ip,
+        master_swift_proxy_ip      => $master_swift_proxy_ip,
+        cinder                     => $cinder,
+        cinder_iscsi_bind_addr     => $cinder_iscsi_bind_addr,
+        cinder_volume_group        => "cinder",
+        manage_volumes             => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
+        db_host                    => $::fuel_settings['management_vip'],
+        service_endpoint           => $::fuel_settings['management_vip'],
+        cinder_rate_limits         => $cinder_rate_limits,
+        queue_provider             => $::queue_provider,
+        rabbit_nodes               => $controller_nodes,
+        rabbit_password            => $rabbit_hash[password],
+        rabbit_user                => $rabbit_hash[user],
+        rabbit_ha_virtual_ip       => $::fuel_settings['management_vip'],
+        qpid_password              => $rabbit_hash[password],
+        qpid_user                  => $rabbit_hash[user],
+        qpid_nodes                 => [$::fuel_settings['management_vip']],
+        sync_rings                 => ! $primary_proxy,
+        syslog_log_level           => $syslog_log_level,
+        debug                      => $debug,
+        verbose                    => $verbose,
         syslog_log_facility_cinder => $syslog_log_facility_cinder,
+        log_facility               => 'LOG_SYSLOG',
       }
 
       # TODO(bogdando) add monit swift-storage services monitoring, if required
@@ -981,7 +987,8 @@ class osnailyfacter::cluster_ha {
 
       if $primary_proxy {
         ring_devices {'all':
-          storages => $swift_storages
+          storages => $swift_storages,
+          require  => Class['swift'],
         }
       }
 
@@ -995,6 +1002,7 @@ class osnailyfacter::cluster_ha {
         syslog_log_level        => $syslog_log_level,
         debug                   => $debug,
         verbose                 => $verbose,
+        log_facility            => 'LOG_SYSLOG',
       }
     }
 

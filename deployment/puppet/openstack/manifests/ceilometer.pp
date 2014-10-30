@@ -101,7 +101,7 @@ class openstack::ceilometer (
     }
 
     if $swift {
-      class {'::swift::notify::ceilometer':
+      class {'::openstack::swift::notify::ceilometer':
         enable_ceilometer => true,
       }
     }
