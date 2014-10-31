@@ -1,0 +1,13 @@
+{
+    "name": "vanilla-2-master",
+    "plugin_name": "vanilla",
+    "hadoop_version": "2.3.0",
+    "flavor_id": "4",
+    "node_processes": [
+        "namenode",
+        "resourcemanager",
+        "oozie",
+        "historyserver"
+    ],
+    "floating_ip_pool": "FLOATING_IP_POOL"
+}
