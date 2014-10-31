@@ -1,0 +1,11 @@
+{
+    "name": "vanilla-2-worker",
+    "plugin_name": "vanilla",
+    "hadoop_version": "2.3.0",
+    "flavor_id": "3",
+    "node_processes": [
+        "datanode",
+        "nodemanager"
+    ],
+    "floating_ip_pool": "FLOATING_IP_POOL"
+}

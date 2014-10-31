@@ -1,0 +1,16 @@
+{
+    "name": "hdp-2-master",
+    "plugin_name": "hdp",
+    "hadoop_version": "2.0.6",
+    "flavor_id": "4",
+    "node_processes": [
+        "NAMENODE",
+        "SECONDARY_NAMENODE",
+        "ZOOKEEPER_SERVER",
+        "ZOOKEEPER_CLIENT",
+        "HISTORYSERVER",
+        "RESOURCEMANAGER",
+        "OOZIE_SERVER"
+    ],
+    "floating_ip_pool": "FLOATING_IP_POOL"
+}
