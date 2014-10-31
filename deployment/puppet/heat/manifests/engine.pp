@@ -33,7 +33,7 @@
 #
 
 class heat::engine (
-  $pacemaker                     = false,
+  $pacemaker                     = false, # unused
   $ocf_scripts_dir               = '/usr/lib/ocf/resource.d',
   $ocf_scripts_provider          = 'mirantis',
   $auth_encryption_key,
@@ -43,19 +43,14 @@ class heat::engine (
   $heat_waitcondition_server_url = 'http://127.0.0.1:8000/v1/waitcondition',
   $heat_watch_server_url         = 'http://127.0.0.1:8003',
   $engine_life_check_timeout     = '2',
-  $primary_controller            = false,
+  $primary_controller            = false, # unused
 ) {
 
   include heat::params
 
   $service_name = $::heat::params::engine_service_name
   $package_name = $::heat::params::engine_package_name
-  $pacemaker_service_name = "p_${service_name}"
 
-  Heat_config<||> ~> Service['heat-engine']
-
-  Package['heat-engine'] -> Heat_config<||>
-  Package['heat-engine'] ~> Service['heat-engine']
   package { 'heat-engine':
     ensure => installed,
     name   => $package_name,
@@ -67,76 +62,20 @@ class heat::engine (
     $service_ensure = 'stopped'
   }
 
-  if !$pacemaker {
-
-    # standard service mode
-
-    service { 'heat-engine':
-      ensure     => $service_ensure,
-      name       => $service_name,
-      enable     => $enabled,
-      hasstatus  => true,
-      hasrestart => true,
-      require    => [ File['/etc/heat/heat.conf'],
-                      Package['heat-common'],
-                      Package['heat-engine']],
-      subscribe  => Exec['heat-dbsync'],
-    }
-
-  } else {
-
-    # pacemaker resource mode
-
-    if $::osfamily == 'RedHat' {
-      $ocf_script_template = 'heat_engine_centos.ocf.erb'
-    } else {
-      $ocf_script_template = 'heat_engine_ubuntu.ocf.erb'
-    }
-
-    file { 'heat-engine-ocf' :
-      ensure  => present,
-      path    => "${ocf_scripts_dir}/${ocf_scripts_provider}/${service_name}",
-      mode    => '0755',
-      owner   => 'root',
-      group   => 'root',
-      content => template("heat/${ocf_script_template}"),
-    }
-
-    if $primary_controller {
-      cs_resource { $pacemaker_service_name :
-        ensure          => present,
-        primitive_class => 'ocf',
-        provided_by     => $ocf_scripts_provider,
-        primitive_type  => $service_name,
-        metadata        => { 'resource-stickiness' => '1' },
-        operations   => {
-          'monitor'  => { 'interval' => '20', 'timeout'  => '30' },
-          'start'    => { 'timeout' => '60' },
-          'stop'     => { 'timeout' => '60' },
-        },
-      }
-
-      Heat_config<||> -> File['heat-engine-ocf'] -> Cs_resource[$pacemaker_service_name] -> Service['heat-engine']
-    } else {
-
-      Heat_config<||> -> File['heat-engine-ocf'] -> Service['heat-engine']
-
-    }
-
-    service { 'heat-engine':
-      ensure     => $service_ensure,
-      name       => $pacemaker_service_name,
-      enable     => $enabled,
-      hasstatus  => true,
-      hasrestart => true,
-      provider   => 'pacemaker',
-      require    => [ File['/etc/heat/heat.conf'],
-                      Package['heat-common'],
-                      Package['heat-engine']],
-      subscribe  => Exec['heat-dbsync'],
-    }
-
+  service { 'heat-engine' :
+    ensure     => $service_ensure,
+    name       => $service_name,
+    enable     => $enabled,
+    hasstatus  => true,
+    hasrestart => true,
+    require    => [ File['/etc/heat/heat.conf'],
+                    Package['heat-common'],
+                    Package['heat-engine']],
+    subscribe  => Exec['heat-dbsync'],
   }
+
+  Heat_config<||> ~> Service['heat-engine']
+  Heat_engine_config<||> ~> Service['heat-engine']
 
   exec {'heat-encryption-key-replacement':
     command => 'sed -i "s/%ENCRYPTION_KEY%/`hexdump -n 16 -v -e \'/1 "%02x"\' /dev/random`/" /etc/heat/heat.conf',
@@ -154,4 +93,5 @@ class heat::engine (
   }
 
   File['/etc/heat/heat.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine']
+
 }
