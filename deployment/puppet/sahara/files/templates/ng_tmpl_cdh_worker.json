@@ -1,0 +1,12 @@
+{
+    "name": "cdh-worker",
+    "plugin_name": "cdh",
+    "hadoop_version": "5",
+    "flavor_id": "3",
+    "node_processes": [
+        "DATANODE",
+        "NODEMANAGER"
+    ],
+    "floating_ip_pool": "FLOATING_IP_POOL",
+    "auto_security_group": true
+}
