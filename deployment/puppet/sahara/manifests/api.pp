@@ -17,6 +17,7 @@ class sahara::api (
   $syslog_log_facility_sahara  = "LOG_LOCAL0",
   $log_dir                     = '/var/log/sahara',
   $log_file                    = '/var/log/sahara/api.log',
+  $templates_dir               = '/usr/share/sahara/templates',
 ) inherits sahara::params {
 
   validate_string($keystone_password)
@@ -129,7 +130,47 @@ class sahara::api (
     mode    => '0751',
   }
 
-  Package['sahara'] -> Sahara_config<||> -> Exec['sahara-db-manage'] -> Service['sahara-api']
+  file { 'create_templates':
+    path         => "${templates_dir}",
+    ensure       => directory,
+    owner        => 'root',
+    group        => 'root',
+    mode         => '0644',
+    source       => 'puppet:///modules/sahara/templates',
+    recurse      => true,
+    require      => Package['sahara'],
+  }
+
+  file { 'script_templates':
+    path     => "${templates_dir}/create_templates.sh",
+    ensure   => present,
+    owner    => 'root',
+    group    => 'root',
+    mode     => '0755',
+    source   => 'puppet:///modules/sahara/create_templates.sh',
+    require  => [ Package['sahara'], File['create_templates'] ],
+  }
+
+  if $use_neutron {
+    $network_provider = "neutron"
+  } else {
+    $network_provider = "nova"
+  }
+
+  exec { 'create_templates':
+    path    => "/bin:/usr/bin",
+    cwd     => "${templates_dir}",
+    creates => "${templates_dir}/templates_installed",
+    command => "bash create_templates.sh ${network_provider}",
+    require => [ File['/root/openrc'], File['script_templates'] ],
+  }
+
+  Package['sahara'] -> Sahara_config<||> -> Exec['sahara-db-manage'] -> Service['sahara-api'] -> Exec['create_templates']
+  if $use_neutron {
+     Neutron_network<||> -> Exec['create_templates']
+  } else {
+     Nova_network<||> -> Exec['create_templates']
+  }
   Package<| title == 'sahara'|> ~> Service<| title == 'sahara-api'|>
   if !defined(Service['sahara-api']) {
     notify{ "Module ${module_name} cannot notify service sahara-api on package update": }
