@@ -1,0 +1,18 @@
+{
+    "name": "vanilla-2",
+    "plugin_name": "vanilla",
+    "hadoop_version": "2.4.1",
+    "node_groups": [
+        {
+            "name": "master",
+            "node_group_template_id": "MASTER_NG_TEMPLATE",
+            "count": 1
+        },
+        {
+            "name": "worker",
+            "node_group_template_id": "WORKER_NG_TEMPLATE",
+            "count": 3
+        }
+    ],
+    "neutron_management_network": "PRIVATE_NETWORK"
+}
