@@ -23,6 +23,11 @@ cache-size=1024
 # For example gPXE will not work while iPXE works fine.
 dhcp-no-override
 
+# for many simultaneously DHCPDISCOVVER requests dnsmasq can offer
+# the same IP for two differnt MAC addresses. This option prevents it
+# by assigning IPs one by one instead of using hash algorithm.
+dhcp-sequential-ip
+
 dhcp-option=6,<%= @name_server %>
 
 dhcp-range=internal,<%= @dhcp_start_address %>,<%= @dhcp_end_address %>,<%= @dhcp_netmask %>,<%= @lease_time %>
