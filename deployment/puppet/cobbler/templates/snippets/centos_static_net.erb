@@ -1,6 +1,7 @@
-#raw
+#set $gw = $getVar('gw', '@@server@@')
 #!/bin/bash
-DEFAULT_GW=@@server@@
+DEFAULT_GW=$gw
+#raw
 ADMIN_MAC=$(sed 's/\ /\n/g' /proc/cmdline | grep choose_interface | awk -F\= '{print $2}')
 ADMIN_IF=$(tr ' ' '\n' < /proc/cmdline | grep "udevrules=" | sed 's/[,=]/\n/g' | grep "$ADMIN_MAC" | cut -d_ -f2 | head -1)
 INSTALL_IF=$(ifconfig | grep "$ADMIN_MAC" | head -1 | cut -d' ' -f1)
