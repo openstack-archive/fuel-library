@@ -141,6 +141,12 @@
 # [*mysql_module*]
 #   (optional) Deprecated. Does nothing.
 #
+# [*router_distributed*]
+#   (optional) Setting the "router_distributed" flag to "True" will default to the creation
+#   of distributed tenant routers.
+#   Also can be the type of the router on the create request (admin-only attribute).
+#   Defaults to false
+#
 class neutron::server (
   $package_ensure          = 'present',
   $enabled                 = true,
@@ -166,6 +172,7 @@ class neutron::server (
   $state_path              = '/var/lib/neutron',
   $lock_path               = '$state_path/lock',
   $router_scheduler_driver = 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
+  $router_distributed       = false,
   # DEPRECATED PARAMETERS
   # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel
   $mysql_module            = '0.9',
@@ -298,6 +305,7 @@ class neutron::server (
     'DEFAULT/rpc_workers':             value => $rpc_workers;
     'DEFAULT/agent_down_time':         value => $agent_down_time;
     'DEFAULT/router_scheduler_driver': value => $router_scheduler_driver;
+    'DEFAULT/router_distributed':      value => $router_distributed;
      #NOTE(bogdando) contribute change to upstream #1384123
     'DEFAULT/state_path':              value => $state_path;
     'DEFAULT/lock_path':               value => $lock_path;

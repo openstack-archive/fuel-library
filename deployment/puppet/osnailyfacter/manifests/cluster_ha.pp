@@ -834,6 +834,7 @@ class osnailyfacter::cluster_ha {
         network_provider            => $::osnailyfacter::cluster_ha::network_provider,
         neutron_user_password       => $::osnailyfacter::cluster_ha::neutron_user_password,
         base_mac                    => $::osnailyfacter::cluster_ha::base_mac,
+        neutron_metadata_proxy_secret  => $::osnailyfacter::cluster_ha::neutron_metadata_proxy_secret,
 
         use_syslog                  => $use_syslog,
         syslog_log_facility         => $::syslog_log_facility_nova,
