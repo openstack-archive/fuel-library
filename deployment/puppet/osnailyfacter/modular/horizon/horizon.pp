@@ -4,6 +4,9 @@ $controllers                    = hiera('controllers')
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
 $horizon_hash                   = hiera('horizon', {})
+$neutron_dvr                    = true
+#hard-coded for testing
+$neutron_options                = {'enable_distributed_router' => true}
 
 if $horizon_hash['secret_key'] {
   $secret_key = $horizon_hash['secret_key']
@@ -27,6 +30,7 @@ class { 'openstack::horizon':
   use_syslog        => hiera('use_syslog', true),
   nova_quota        => hiera('nova_quota'),
   servername        => hiera('public_vip'),
+  neutron_options   => $neutron_options,
 }
 
 include ::tweaks::apache_wrappers
