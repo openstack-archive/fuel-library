@@ -25,6 +25,7 @@ class openstack::horizon (
   $cache_server_ip         = '127.0.0.1',
   $cache_server_port       = '11211',
   $neutron                 = false,
+  $neutron_options         = {},
   $horizon_app_links       = undef,
   $keystone_url            = 'http://127.0.0.1:5000/v2.0/',
   $keystone_default_role   = '_member_',
@@ -83,6 +84,7 @@ class openstack::horizon (
     allowed_hosts           => '*',
     secure_cookies          => false,
     log_handler             => $log_handler,
+    neutron_options         => $neutron_options,
   }
 
   # Performance optimization for wsgi
