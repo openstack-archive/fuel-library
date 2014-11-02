@@ -44,6 +44,7 @@ class openstack::network::neutron_agents (
   $metadata_port = 9697,
   $send_arp_for_ha = 3,
   $external_network_bridge = 'br-ex',
+  $agent_mode = 'legacy',
 
   # keystone params
   $admin_password    = 'asdf123',
@@ -91,13 +92,15 @@ class openstack::network::neutron_agents (
       vni_ranges            => $vni_ranges,
     }
     class { 'neutron::agents::ml2::ovs':
-      integration_bridge  => $integration_bridge,
-      tunnel_bridge       => $tunnel_bridge,
-      bridge_mappings     => $bridge_mappings,
-      enable_tunneling    => $enable_tunneling,
-      local_ip            => $local_ip,
-      manage_service      => true,
-      enabled             => true,
+      integration_bridge         => $integration_bridge,
+      tunnel_bridge              => $tunnel_bridge,
+      bridge_mappings            => $bridge_mappings,
+      enable_tunneling           => $enable_tunneling,
+      local_ip                   => $local_ip,
+      enable_distributed_routing => $agent_mode ? { 'legacy' => false, default => true},
+      l2_population              => $agent_mode ? { 'legacy' => false, default => true},
+      manage_service             => true,
+      enabled                    => true,
     }
 
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>
@@ -166,6 +169,7 @@ class openstack::network::neutron_agents (
       metadata_port           => $metadata_port,
       send_arp_for_ha         => $send_arp_for_ha,
       external_network_bridge => $external_network_bridge,
+      agent_mode              => $agent_mode,
       manage_service          => true,
       enabled                 => true,
     }
