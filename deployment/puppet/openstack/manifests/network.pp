@@ -1,6 +1,17 @@
+# == Class: openstack::network
+#
 # Entry points for OpenStack networking services
-# not a doc string
-
+#
+# === Parameters
+#
+# [*dvr*]
+#   (optional) Enabled or not Neutron DVR (distributed virtual router)
+#   Defaults to false
+#
+# [*l2_population*]
+#   (optional) Enabled or not ml2 plugin's l2population mechanism driver.
+#   Defaults to false
+#
 class openstack::network (
   # asdf = {} #Trick to color editor
   $network_provider = 'neutron',
@@ -95,6 +106,8 @@ class openstack::network (
   $base_mac         = 'fa:16:3e:00:00:00',
   $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin',
   $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin'],
+  $dvr              = false,
+  $l2_population    = false,
   )
 {
 
@@ -200,6 +213,8 @@ class openstack::network (
 
           api_workers => min($::processorcount + 0, 50 + 0),
           rpc_workers => min($::processorcount + 0, 50 + 0),
+
+          router_distributed => $dvr,
         }
 
         tweaks::ubuntu_service_override { "$::neutron::params::server_service":
@@ -238,6 +253,16 @@ class openstack::network (
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_network<||>
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_subnet<||>
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_router<||>
+
+      }
+
+      if $dvr {
+        $agent_mode = $neutron_server ? {
+          true  => 'dvr_snat',
+          false => 'dvr',
+        }
+      } else {
+        $agent_mode = 'legacy'
       }
 
       if $use_syslog {
@@ -271,6 +296,7 @@ class openstack::network (
           bridge_mappings       => $bridge_mappings,
           local_ip              => $local_ip,
           tunnel_types          => $tunnel_types,
+          l2_population         => $l2_population,
 
           #ML2 only
           type_drivers          => $type_drivers,
@@ -293,6 +319,7 @@ class openstack::network (
           metadata_port           => $metadata_port,
           send_arp_for_ha         => $send_arp_for_ha,
           external_network_bridge => $floating_bridge,
+          agent_mode              => $agent_mode,
         }
       }
     } # End case neutron
