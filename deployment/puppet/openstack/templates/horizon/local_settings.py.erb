@@ -203,6 +203,7 @@ OPENSTACK_NEUTRON_NETWORK = {
     'enable_quotas': <%= @neutron_options['enable_quotas'].to_s.capitalize %>,
     'enable_security_group': <%= @neutron_options['enable_security_group'].to_s.capitalize %>,
     'enable_vpn': <%= @neutron_options['enable_vpn'].to_s.capitalize %>,
+    'enable_distributed_router': <%= @neutron_options['enable_distributed_router'].to_s.capitalize %>,
     # The profile_support option is used to detect if an externa lrouter can be
     # configured via the dashboard. When using specific plugins the
     # profile_support can be turned on if needed.

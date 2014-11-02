@@ -277,7 +277,7 @@ if $network_provider == 'neutron' {
   if $neutron_settings['L2']['mechanism_drivers'] {
       $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
   } else {
-      $mechanism_drivers = ['openvswitch']
+      $mechanism_drivers = ['openvswitch', 'l2population']
   }
 
   if $neutron_settings['L2']['provider'] == 'ovs' {
@@ -288,16 +288,31 @@ if $network_provider == 'neutron' {
     $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
     $agent            = 'ml2-ovs'
   }
+
+  #   hard-coded only for testing
+  #   will be removed when this option will be available
+  #   $dvr = $neutron_settings['DVR']
+  $dvr = true
+  if $dvr {
+    $agents = [$agent, 'l3' , 'metadata']
+  }
+  else {
+    $agents = [$agent]
+  }
 }
 
 class { 'openstack::network':
   network_provider  => $network_provider,
-  agents            => [$agent],
+  agents            => $agents,
+  public_address    => undef,
+  internal_address  => $internal_address,
+  admin_address     => undef,
   nova_neutron      => true,
 
   base_mac          => $base_mac,
   core_plugin       => $core_plugin,
   service_plugins   => undef,
+  dvr               => $dvr,
 
   # ovs
   mechanism_drivers   => $mechanism_drivers,
@@ -324,7 +339,8 @@ class { 'openstack::network':
   neutron_url    => "http://${service_endpoint}:9696",
 
   # metadata
-  shared_secret  => undef,
+  shared_secret   => $neutron_metadata_proxy_secret,
+  metadata_ip     => $service_endpoint,
 
   integration_bridge => $neutron_integration_bridge,
 
