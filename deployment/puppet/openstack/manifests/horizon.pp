@@ -26,6 +26,7 @@ class openstack::horizon (
   $cache_server_port       = '11211',
   $swift                   = false,
   $neutron                 = false,
+  $neutron_options         = {},
   $horizon_app_links       = undef,
   $keystone_host           = '127.0.0.1',
   $keystone_scheme         = 'http',
@@ -129,6 +130,7 @@ class openstack::horizon (
     django_session_engine   => $django_session_engine,
     allowed_hosts           => '*',
     secure_cookies          => false,
+    neutron_options         => $neutron_options,
   }
 
   class { '::horizon::wsgi::apache':
