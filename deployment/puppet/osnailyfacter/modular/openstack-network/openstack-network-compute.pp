@@ -25,6 +25,7 @@ if $use_neutron {
   $network_provider      = 'neutron'
   $novanetwork_params    = {}
   $neutron_config        = hiera_hash('quantum_settings')
+  $network_config        = hiera_hash('network', {})
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   $base_mac              = $neutron_config['L2']['base_mac']
   # Neutron Keystone settings
@@ -302,7 +303,7 @@ if $network_provider == 'neutron' {
   if $neutron_settings['L2']['mechanism_drivers'] {
       $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
   } else {
-      $mechanism_drivers = ['openvswitch']
+      $mechanism_drivers = ['openvswitch', 'l2population']
   }
 
   if $neutron_settings['L2']['provider'] == 'ovs' {
@@ -313,17 +314,38 @@ if $network_provider == 'neutron' {
     $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
     $agent            = 'ml2-ovs'
   }
+
+  if $network_config['neutron_dvr'] {
+    $dvr = $network_config['neutron_dvr']
+  } else {
+    $dvr = false
+  }
+
+  if $network_config['neutron_l2_pop'] {
+    $l2_pop = $network_config['neutron_l2_pop']
+  } else {
+    $l2_pop = false
+  }
+
+  if $dvr {
+    $agents = [$agent, 'l3' , 'metadata']
+  }
+  else {
+    $agents = [$agent]
+  }
 }
 
 class { 'openstack::network':
-  network_provider => $network_provider,
-  agents           => [$agent],
-  nova_neutron     => true,
+  network_provider  => $network_provider,
+  agents            => $agents,
+  nova_neutron      => true,
   net_mtu          => $mtu_for_virt_network,
 
   base_mac          => $base_mac,
   core_plugin       => $core_plugin,
   service_plugins   => undef,
+  dvr               => $dvr,
+  l2_pop            => $l2_pop,
 
   # ovs
   mechanism_drivers   => $mechanism_drivers,
@@ -354,7 +376,8 @@ class { 'openstack::network':
   region            => $region,
 
   # metadata
-  shared_secret  => undef,
+  shared_secret   => $neutron_metadata_proxy_secret,
+  metadata_ip     => $service_endpoint,
 
   integration_bridge => $neutron_integration_bridge,
 
