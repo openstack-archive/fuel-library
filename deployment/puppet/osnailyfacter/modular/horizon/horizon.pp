@@ -18,5 +18,6 @@ class { 'openstack::horizon':
   use_syslog        => hiera('use_syslog', true),
   nova_quota        => hiera('nova_quota'),
   servername        => hiera('public_vip'),
+  neutron_options   => {'enable_distributed_router' => true },
 }
 

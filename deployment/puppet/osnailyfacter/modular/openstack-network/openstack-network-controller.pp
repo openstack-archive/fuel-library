@@ -146,7 +146,7 @@ if $network_provider == 'neutron' {
   if $neutron_settings['L2']['mechanism_drivers'] {
       $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
   } else {
-      $mechanism_drivers = ['openvswitch']
+      $mechanism_drivers = ['openvswitch', 'l2population']
   }
 
   if $neutron_settings['L2']['provider'] == 'ovs' {
@@ -201,6 +201,10 @@ class { 'openstack::network':
   base_mac            => $base_mac,
   core_plugin         => $core_plugin,
   service_plugins     => $service_plugins,
+  dvr                 => true,
+#   hard-coded only for testing
+#   will be removed when this option will be available
+#   enable_dvr        => $neutron_settings['DVR'],
 
   #ovs
   mechanism_drivers   => $mechanism_drivers,
