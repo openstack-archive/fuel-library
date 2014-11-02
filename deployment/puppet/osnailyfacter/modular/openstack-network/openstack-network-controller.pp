@@ -178,7 +178,7 @@ if $network_provider == 'neutron' {
   if $neutron_settings['L2']['mechanism_drivers'] {
       $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
   } else {
-      $mechanism_drivers = ['openvswitch']
+      $mechanism_drivers = ['openvswitch', 'l2population']
   }
 
   if $neutron_settings['L2']['provider'] == 'ovs' {
@@ -189,6 +189,10 @@ if $network_provider == 'neutron' {
     $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
     $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin','neutron.services.metering.metering_plugin.MeteringPlugin']
     $agent            = 'ml2-ovs'
+  }
+
+  if has_key($neutron_config, 'DVR') {
+    $dvr = $neutron_config['DVR']
   }
 
 } else {
@@ -234,6 +238,7 @@ class { 'openstack::network':
   core_plugin         => $core_plugin,
   service_plugins     => $service_plugins,
   net_mtu             => $mtu_for_virt_network,
+  dvr                 => $dvr,
 
   #ovs
   mechanism_drivers   => $mechanism_drivers,

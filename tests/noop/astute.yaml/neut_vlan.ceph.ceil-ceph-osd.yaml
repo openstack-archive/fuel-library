@@ -290,6 +290,7 @@ puppet:
 puppet_debug: true
 quantum: true
 quantum_settings:
+  DVR: false
   L2:
     base_mac: fa:16:3e:00:00:00
     phys_nets:

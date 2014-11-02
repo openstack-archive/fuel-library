@@ -50,6 +50,28 @@ describe manifest do
 
       neutron_config =  Noop.hiera_structure 'quantum_settings'
 
+      if neutron_config.has_key?('DVR')
+        dvr = neutron_config['DVR']
+        it 'should configure neutron DVR' do
+           should contain_class('openstack::network').with(
+             'dvr' => dvr,
+           )
+        end
+        if dvr
+          it 'should set dvr_snat mode for neutron l3 agent' do
+             should contain_class('openstack::network::neutron_agents').with(
+               'agent_mode' => 'dvr_snat',
+             )
+          end
+        else
+          it 'should set legacy mode for neutron l3 agent' do
+             should contain_class('openstack::network::neutron_agents').with(
+               'agent_mode' => 'legacy',
+             )
+          end
+        end
+      end
+
       if neutron_config && neutron_config.has_key?('L2') && neutron_config['L2'].has_key?('tunnel_id_ranges')
         tunnel_types = ['gre']
         it 'should configure tunnel_types for neutron' do
