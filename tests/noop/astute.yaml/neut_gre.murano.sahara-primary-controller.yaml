@@ -543,6 +543,9 @@ public_network_assignment:
     - action: hide
       condition: cluster:net_provider != 'neutron'
     weight: 50
+neutron_advanced_configuration:
+  neutron_dvr: true
+  neutron_l2_pop: true
 public_vip: 172.16.0.5
 public_vrouter_vip: 172.16.0.6
 puppet:
