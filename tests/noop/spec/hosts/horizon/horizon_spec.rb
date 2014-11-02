@@ -10,6 +10,8 @@ describe manifest do
     management_vip = Noop.hiera('management_vip')
     keystone_url = "http://#{management_vip}:5000/v2.0"
     cache_options = nil
+    network_config =  Noop.hiera_structure 'network'
+
 
     # Horizon
     it 'should declare openstack::horizon class' do
@@ -29,6 +31,15 @@ describe manifest do
             'cache_options' => cache_options,
             'log_handler'   => 'file',
         )
+    end
+
+    if network_config.has_key?('neutron_dvr')
+      dvr = network_config['neutron_dvr']
+      it 'should configure horizon for neutron DVR' do
+         should contain_class('openstack::horizon').with(
+           'neutron_options' => {'enable_distributed_router' => dvr},
+         )
+      end
     end
 
   end
