@@ -89,6 +89,7 @@ class openstack::network (
   $base_mac         = 'fa:16:3e:00:00:00',
   $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin',
   $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin'],
+  $dvr              = false,
   )
 {
 
@@ -200,6 +201,8 @@ class openstack::network (
 
           api_workers => min($::processorcount + 0, 50 + 0),
           rpc_workers => min($::processorcount + 0, 50 + 0),
+
+          router_distributed => $dvr,
         }
         tweaks::ubuntu_service_override { "$::neutron::params::server_service":
           package_name => $::neutron::params::server_package ? {
@@ -222,7 +225,19 @@ class openstack::network (
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_network<||>
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_subnet<||>
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_router<||>
+
+        if $dvr {
+          $agent_mode = 'dvr_snat'
+        }
       }
+      elsif $dvr {
+        $agent_mode = 'dvr'
+      }
+      else {
+        $agent_mode = 'legacy'
+      }
+
+      notify {"DVR DEBUG MESSAGE: $agent_mode":}
 
       if $agents {
         class {'openstack::network::neutron_agents':
@@ -265,6 +280,7 @@ class openstack::network (
           metadata_port           => $metadata_port,
           send_arp_for_ha         => $send_arp_for_ha,
           external_network_bridge => $external_network_bridge,
+          agent_mode              => $agent_mode,
         }
       }
     } # End case neutron

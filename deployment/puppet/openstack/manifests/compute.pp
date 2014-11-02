@@ -94,6 +94,7 @@ class openstack::compute (
   $neutron_integration_bridge     = 'br-int',
   $neutron_user_password          = 'asdf1234',
   $base_mac                       = 'fa:16:3e:00:00:00',
+  $neutron_metadata_proxy_secret  = '12345',
   # Ceilometer
   $ceilometer_user_password       = 'ceilometer_pass',
   # nova compute configuration parameters
@@ -670,7 +671,7 @@ on packages update": }
     if $neutron_settings['L2']['mechanism_drivers'] {
         $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
     } else {
-        $mechanism_drivers = ['openvswitch']
+        $mechanism_drivers = ['openvswitch', 'l2population']
     }
 
     if $neutron_settings['L2']['provider'] == 'ovs' {
@@ -686,10 +687,21 @@ on packages update": }
     }
   }
 
+#   hard-coded only for testing
+#   will be removed when this option will be available
+#    $dvr = $neutron_settings['DVR']
+    $dvr = true
+    if $dvr {
+      $agents = [$agent, 'l3' , 'metadata']
+    }
+    else {
+      $agents = [$agent]
+    }
+
 
   class { 'openstack::network':
     network_provider  => $network_provider,
-    agents            => [$agent],
+    agents            => $agents,
     public_address    => $public_address,
     internal_address  => $internal_address,
     admin_address     => $admin_address,
@@ -698,6 +710,7 @@ on packages update": }
     base_mac          => $base_mac,
     core_plugin       => $core_plugin,
     service_plugins   => undef,
+    dvr               => $dvr,
 
     # ovs
     mechanism_drivers   => $mechanism_drivers,
@@ -724,7 +737,8 @@ on packages update": }
     neutron_url    => "http://${service_endpoint}:9696",
 
     # metadata
-    shared_secret  => undef,
+    shared_secret   => $neutron_metadata_proxy_secret,
+    metadata_ip     => $service_endpoint,
 
     integration_bridge => $neutron_integration_bridge,
 

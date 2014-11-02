@@ -535,6 +535,7 @@ class osnailyfacter::cluster_simple {
         network_provider               => $network_provider,
         neutron_user_password          => $neutron_user_password,
         base_mac                       => $base_mac,
+        neutron_metadata_proxy_secret  => $neutron_metadata_proxy_secret,
         service_endpoint               => $controller_node_address,
         cinder                         => true,
         cinder_user_password           => $cinder_hash[user_password],

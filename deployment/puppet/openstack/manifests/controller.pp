@@ -717,7 +717,7 @@ class openstack::controller (
     if $neutron_settings['L2']['mechanism_drivers'] {
         $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
     } else {
-        $mechanism_drivers = ['openvswitch']
+        $mechanism_drivers = ['openvswitch', 'l2population']
     }
 
     if $neutron_settings['L2']['provider'] == 'ovs' {
@@ -754,6 +754,10 @@ class openstack::controller (
     admin_address       => $admin_address,
     nova_neutron        => true,
     base_mac            => $base_mac,
+#   hard-coded only for testing
+#   will be removed when this option will be available
+#    dvr                 => $neutron_settings['DVR'],
+    dvr                 => true,
     core_plugin         => $core_plugin,
     service_plugins     => $service_plugins,
 
