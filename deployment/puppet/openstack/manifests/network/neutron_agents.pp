@@ -1,14 +1,25 @@
-# Not a doc string
-
-# agents should be a list of agents we want enabled
+# == Class: openstack::network::neutron_agents
 #
-# ha_agents should be false, "primary", or "slave"
-#  primary ensures that any relevant cluster resources will be created.
-#  slave ensures that agents are stopped but doesn't attempt to manage them
-#  the asumption here is that the slave will get the membership from the
-#  cluster and it will manage the resources
-
-
+# Entry points for Neutron agents setup
+#
+# === Parameters
+#
+# [*l2_population*]
+#   (optional) Enabled or not ml2 plugin's l2population mechanism driver.
+#   Defaults to false
+#
+# [*agents*]
+#   (optional) A list of agents we want enabled
+#   Defaults to [ml2-ovs]
+#
+# [*ha_agents*]
+#   (optional) Should be false, "primary", or "slave"
+#   primary ensures that any relevant cluster resources will be created.
+#   slave ensures that agents are stopped but doesn't attempt to manage them
+#   the asumption here is that the slave will get the membership from the
+#   cluster and it will manage the resources
+#   Defaults to false
+#
 class openstack::network::neutron_agents (
   $agents     = ['ml2-ovs'],
   $ha_agents  = false,
@@ -24,6 +35,7 @@ class openstack::network::neutron_agents (
   $network_vlan_ranges  = ['physnet1:1000:2999'],
   $local_ip             = false,
   $tunnel_types         = [],
+  $l2_population        = false,
 
   # ML2 settings
   $type_drivers          = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
@@ -47,6 +59,7 @@ class openstack::network::neutron_agents (
   $metadata_port = 9697,
   $send_arp_for_ha = 3,
   $external_network_bridge = 'br-ex',
+  $agent_mode = 'legacy',
 
   # keystone params
   $admin_password    = 'asdf123',
@@ -75,14 +88,16 @@ class openstack::network::neutron_agents (
       path_mtu              => $net_mtu,
     }
     class { 'neutron::agents::ml2::ovs':
-      integration_bridge  => $integration_bridge,
-      tunnel_bridge       => $tunnel_bridge,
-      bridge_mappings     => $bridge_mappings,
-      enable_tunneling    => $enable_tunneling,
-      local_ip            => $local_ip,
-      tunnel_types        => $tunnel_types,
-      manage_service      => true,
-      enabled             => true,
+      integration_bridge         => $integration_bridge,
+      tunnel_bridge              => $tunnel_bridge,
+      bridge_mappings            => $bridge_mappings,
+      enable_tunneling           => $enable_tunneling,
+      local_ip                   => $local_ip,
+      tunnel_types               => $tunnel_types,
+      enable_distributed_routing => $agent_mode ? { 'legacy' => false, default => true},
+      l2_population              => $l2_population,
+      manage_service             => true,
+      enabled                    => true,
     }
 
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>
@@ -155,6 +170,7 @@ class openstack::network::neutron_agents (
       external_network_bridge => $external_network_bridge,
       manage_service          => true,
       enabled                 => true,
+      agent_mode              => $agent_mode,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-l3' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-l3' |>
