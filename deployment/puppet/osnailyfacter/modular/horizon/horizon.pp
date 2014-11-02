@@ -1,10 +1,11 @@
 notice('MODULAR: horizon.pp')
 
 prepare_network_config(hiera('network_scheme', {}))
-$horizon_hash         = hiera_hash('horizon', {})
-$service_endpoint     = hiera('service_endpoint')
-$memcache_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('memcache_nodes'), 'mgmt/memcache')
-$bind_address         = get_network_role_property('horizon', 'ipaddr')
+$horizon_hash            = hiera_hash('horizon', {})
+$service_endpoint        = hiera('service_endpoint')
+$memcache_address_map    = get_node_to_ipaddr_map_by_network_role(hiera_hash('memcache_nodes'), 'mgmt/memcache')
+$bind_address            = get_network_role_property('horizon', 'ipaddr')
+$neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
 
 if $horizon_hash['secret_key'] {
   $secret_key = $horizon_hash['secret_key']
@@ -12,11 +13,15 @@ if $horizon_hash['secret_key'] {
   $secret_key = 'dummy_secret_key'
 }
 
+$neutron_dvr = pick($neutron_advanced_config['neutron_dvr'], false)
+
 $keystone_scheme = 'http'
 $keystone_host = $service_endpoint
 $keystone_port = '5000'
 $keystone_api = 'v2.0'
 $keystone_url = "${keystone_scheme}://${keystone_host}:${keystone_port}/${keystone_api}"
+
+$neutron_options                = {'enable_distributed_router' => $neutron_dvr}
 
 class { 'openstack::horizon':
   secret_key        => $secret_key,
@@ -33,6 +38,7 @@ class { 'openstack::horizon':
   use_syslog        => hiera('use_syslog', true),
   nova_quota        => hiera('nova_quota'),
   servername        => hiera('public_vip'),
+  neutron_options   => $neutron_options,
 }
 
 include ::tweaks::apache_wrappers

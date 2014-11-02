@@ -24,6 +24,7 @@ class openstack::network::neutron_agents (
   $network_vlan_ranges  = ['physnet1:1000:2999'],
   $local_ip             = false,
   $tunnel_types         = [],
+  $l2_pop               = false,
 
   # ML2 settings
   $type_drivers          = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
@@ -47,6 +48,7 @@ class openstack::network::neutron_agents (
   $metadata_port = 9697,
   $send_arp_for_ha = 3,
   $external_network_bridge = 'br-ex',
+  $agent_mode = 'legacy',
 
   # keystone params
   $admin_password    = 'asdf123',
@@ -75,14 +77,16 @@ class openstack::network::neutron_agents (
       path_mtu              => $net_mtu,
     }
     class { 'neutron::agents::ml2::ovs':
-      integration_bridge  => $integration_bridge,
-      tunnel_bridge       => $tunnel_bridge,
-      bridge_mappings     => $bridge_mappings,
-      enable_tunneling    => $enable_tunneling,
-      local_ip            => $local_ip,
-      tunnel_types        => $tunnel_types,
-      manage_service      => true,
-      enabled             => true,
+      integration_bridge         => $integration_bridge,
+      tunnel_bridge              => $tunnel_bridge,
+      bridge_mappings            => $bridge_mappings,
+      enable_tunneling           => $enable_tunneling,
+      local_ip                   => $local_ip,
+      tunnel_types               => $tunnel_types,
+      enable_distributed_routing => $agent_mode ? { 'legacy' => false, default => true},
+      l2_population              => $l2_pop,
+      manage_service             => true,
+      enabled                    => true,
     }
 
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>
@@ -155,6 +159,7 @@ class openstack::network::neutron_agents (
       external_network_bridge => $external_network_bridge,
       manage_service          => true,
       enabled                 => true,
+      agent_mode              => $agent_mode,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-l3' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-l3' |>
