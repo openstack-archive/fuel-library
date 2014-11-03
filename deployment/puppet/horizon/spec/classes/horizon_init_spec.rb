@@ -28,7 +28,7 @@ describe 'horizon' do
           is_expected.to contain_package('python-lesscpy').with_ensure('present')
           is_expected.to contain_package('horizon').with(
             :ensure => 'present',
-            :tag    => 'openstack'
+            :tag    => 'openstack',
           )
       }
       it { is_expected.to contain_exec('refresh_horizon_django_cache').with({
@@ -39,10 +39,11 @@ describe 'horizon' do
 
       it 'configures apache' do
         is_expected.to contain_class('horizon::wsgi::apache').with({
-          :servername   => 'some.host.tld',
-          :listen_ssl   => false,
-          :servername   => 'some.host.tld',
-          :extra_params => {},
+          :servername    => 'some.host.tld',
+          :listen_ssl    => false,
+          :servername    => 'some.host.tld',
+          :extra_params  => {},
+          :redirect_type => 'permanent',
         })
       end
 
@@ -193,13 +194,15 @@ describe 'horizon' do
     context 'with vhost_extra_params' do
       before do
         params.merge!({
-          :vhost_extra_params   => { 'add_listen' => false },
+          :vhost_extra_params => { 'add_listen' => false },
+          :redirect_type      => 'temp',
         })
       end
 
       it 'configures apache' do
         is_expected.to contain_class('horizon::wsgi::apache').with({
-          :extra_params => { 'add_listen' => false },
+          :extra_params  => { 'add_listen' => false },
+          :redirect_type => 'temp',
         })
       end
     end
