@@ -1,1 +1,0 @@
-class { 'keystone::roles::admin': }

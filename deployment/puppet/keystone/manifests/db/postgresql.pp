@@ -13,12 +13,7 @@
 #
 # [dbname] Name of keystone database. Optional. Defaults to keystone.
 #
-# [user] Name of keystone user. Optional. Defaults to keystone_admin.
-#
-# [host] Host where user should be allowed all priveleges for database.
-# Optional. Defaults to 127.0.0.1.
-#
-# [allowed_hosts] Hosts allowed to use the database
+# [user] Name of keystone user. Optional. Defaults to keystone.
 #
 # == Dependencies
 #   Class['postgresql::server']
@@ -35,18 +30,18 @@
 class keystone::db::postgresql(
   $password,
   $dbname        = 'keystone',
-  $user          = 'keystone_admin',
+  $user          = 'keystone'
 ) {
 
-  Class['keystone::db::postgresql'] -> Package<| title == 'keystone' |>
-  Class['keystone::db::postgresql'] -> Exec<| title == 'keystone-manage db_sync' |>
-  #require 'postgresql::python'
+  Class['keystone::db::postgresql'] -> Service<| title == 'keystone' |>
 
-   postgresql::server::db { "${dbname}":
-      user     =>  "${user}",
-      password  =>  "${password}",
-   }
+  require postgresql::python
 
-  Postgresql::Server::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
+  postgresql::db { $dbname:
+    user      => $user,
+    password  => $password,
+  }
+
+  Postgresql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
 
 }
