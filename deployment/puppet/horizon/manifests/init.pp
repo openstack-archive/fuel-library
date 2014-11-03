@@ -147,9 +147,6 @@
 #  [*listen_ssl*]
 #    (optional) Enable SSL support in Apache. (Defaults to false)
 #
-#  [*ssl_no_verify*]
-#    (optionsl) Disable SSL hostname verifying. (Defaults to false)
-#
 #  [*ssl_redirect*]
 #    (optional) Whether to redirect http to https
 #    Defaults to True
@@ -212,6 +209,16 @@
 #    (optional) Tuskar-UI - Deployment mode ('poc' or 'scale')
 #    Defaults to 'scale'
 #
+#  [*redirect_type*]
+#    (optional) What type of redirect to use when redirecting an http request
+#    for a user. This should be either 'temp' or 'permanent'. Setting this value
+#    to 'permanent' will result in the use of a 301 redirect which may be cached
+#    by a user's browser.  Setting this value to 'temp' will result in the use
+#    of a 302 redirect which is not cached by browsers and may solve issues if
+#    users report errors accessing horizon. Only used if configure_apache is
+#    set to true.
+#    Defaults to 'permanent'
+#
 # === Examples
 #
 #  class { 'horizon':
@@ -249,7 +256,6 @@ class horizon(
   $server_aliases                      = $::fqdn,
   $allowed_hosts                       = $::fqdn,
   $listen_ssl                          = false,
-  $ssl_no_verify                       = false,
   $ssl_redirect                        = true,
   $horizon_cert                        = undef,
   $horizon_key                         = undef,
@@ -265,6 +271,7 @@ class horizon(
   $tuskar_ui_ironic_discoverd_url      = 'http://127.0.0.1:5050',
   $tuskar_ui_undercloud_admin_password = undef,
   $tuskar_ui_deployment_mode           = 'scale',
+  $redirect_type                       = 'permanent',
   # DEPRECATED PARAMETERS
   $can_set_mount_point                 = undef,
   $vhost_extra_params                  = undef,
@@ -314,7 +321,7 @@ class horizon(
   package { 'horizon':
     ensure => $package_ensure,
     name   => $::horizon::params::package_name,
-    tag    => 'openstack',
+    tag    => ['openstack', 'horizon-package'],
   }
 
   concat { $::horizon::params::config_file:
@@ -353,6 +360,7 @@ class horizon(
       horizon_key    => $horizon_key,
       horizon_ca     => $horizon_ca,
       extra_params   => $vhost_extra_params,
+      redirect_type  => $redirect_type,
     }
   }
 

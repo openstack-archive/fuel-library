@@ -59,6 +59,16 @@
 # [*extra_params*]
 #   (optional) A hash of extra paramaters for apache::wsgi class.
 #   Defaults to {}
+#
+# [*redirect_type*]
+#   (optional) What type of redirect to use when redirecting an http request
+#   for a user. This should be either 'temp' or 'permanent'. Setting this value
+#   to 'permanent' will result in the use of a 301 redirect which may be cached
+#   by a user's browser.  Setting this value to 'temp' will result in the use
+#   of a 302 redirect which is not cached by browsers and may solve issues if
+#   users report errors accessing horizon.
+#   Defaults to 'permanent'
+#
 class horizon::wsgi::apache (
   $bind_address        = undef,
   $fqdn                = undef,
@@ -75,6 +85,7 @@ class horizon::wsgi::apache (
   $vhost_conf_name     = 'horizon_vhost',
   $vhost_ssl_conf_name = 'horizon_ssl_vhost',
   $extra_params        = {},
+  $redirect_type       = 'permanent',
 ) {
 
   include ::horizon::params
@@ -132,6 +143,10 @@ class horizon::wsgi::apache (
     $redirect_url   = $::horizon::params::root_url
   }
 
+  if !($redirect_type in ['temp', 'permanent']) {
+    fail("Invalid redirect type '${redirect_type} provided.")
+  }
+
   Package['horizon'] -> Package[$::horizon::params::http_service]
   File[$::horizon::params::config_file] ~> Service[$::horizon::params::http_service]
 
@@ -187,7 +202,7 @@ class horizon::wsgi::apache (
     },
     wsgi_import_script   => $::horizon::params::django_wsgi,
     wsgi_process_group   => $::horizon::params::wsgi_group,
-    redirectmatch_status => 'permanent',
+    redirectmatch_status => $redirect_type,
   }
 
   # Only add the 'ip' element to the $default_vhost_conf hash if it was explicitly
