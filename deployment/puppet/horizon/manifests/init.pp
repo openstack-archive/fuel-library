@@ -216,6 +216,16 @@
 #    (optional) The directory location for the theme (e.g., "static/themes/blue")
 #    Default to undefined
 #
+#  [*redirect_type*]
+#    (optional) What type of redirect to use when redirecting an http request
+#    for a user. This should be either 'temp' or 'permanent'. Setting this value
+#    to 'permanent' will result in the use of a 301 redirect which may be cached
+#    by a user's browser.  Setting this value to 'temp' will result in the use
+#    of a 302 redirect which is not cached by browsers and may solve issues if
+#    users report errors accessing horizon. Only used if configure_apache is
+#    set to true.
+#    Defaults to 'permanent'
+#
 # === Examples
 #
 #  class { 'horizon':
@@ -270,6 +280,7 @@ class horizon(
   $tuskar_ui_undercloud_admin_password = undef,
   $tuskar_ui_deployment_mode           = 'scale',
   $custom_theme_path                   = undef,
+  $redirect_type                       = 'permanent',
   # DEPRECATED PARAMETERS
   $can_set_mount_point                 = undef,
   $vhost_extra_params                  = undef,
@@ -358,6 +369,7 @@ class horizon(
       horizon_key    => $horizon_key,
       horizon_ca     => $horizon_ca,
       extra_params   => $vhost_extra_params,
+      redirect_type  => $redirect_type,
     }
   }
 
