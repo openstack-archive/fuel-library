@@ -109,5 +109,7 @@ class openstack::ceilometer (
       auth_host     => $keystone_host,
       auth_password => $keystone_password,
     }
+    ceilometer_config { 'service_credentials/os_endpoint_type': value => 'internalURL'} ->
+    Service<| title == 'ceilometer-agent-compute'|>
   }
 }
