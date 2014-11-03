@@ -458,6 +458,8 @@ on packages update": }
       metering_secret                => $ceilometer_metering_secret,
     }
   }
+  # NOTE(bogdando) #1388745
+  ceilometer_config { 'service_credentials/os_endpoint_type': value => 'internalURL'}
 
   # if the compute node should be configured as a multi-host
   # compute installation
