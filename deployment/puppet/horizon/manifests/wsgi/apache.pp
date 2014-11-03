@@ -166,7 +166,7 @@ class horizon::wsgi::apache (
     },
     wsgi_import_script   => $::horizon::params::django_wsgi,
     wsgi_process_group   => $::horizon::params::wsgi_group,
-    redirectmatch_status => 'permanent',
+    redirectmatch_status => 'temp',
   }
 
   # Only add the 'ip' element to the $default_vhost_conf hash if it was explicitly
