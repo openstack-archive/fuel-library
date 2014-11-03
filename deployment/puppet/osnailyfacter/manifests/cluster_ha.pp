@@ -148,7 +148,7 @@ class osnailyfacter::cluster_ha {
   $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
   $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 
-  if $::use_quantum {
+  if $::use_neutron {
     $vip_mgmt_other_nets = join($::fuel_settings['network_scheme']['endpoints']["$::internal_int"]['other_nets'], ' ')
   }
 
@@ -173,7 +173,7 @@ class osnailyfacter::cluster_ha {
 
   if $::public_int {
 
-    if $::use_quantum {
+    if $::use_neutron{
       $vip_publ_other_nets = join($::fuel_settings['network_scheme']['endpoints']["$::public_int"]['other_nets'], ' ')
     }
 
@@ -852,7 +852,7 @@ class osnailyfacter::cluster_ha {
         stop_command  => "${service_path} ${nova_compute_name} stop",
         pidfile       => false,
       }
-      if $::use_quantum {
+      if $::use_neutron {
         monit::process { $ovs_vswitchd_name :
           ensure        => running,
           start_command => "${service_path} ${ovs_vswitchd_name} restart",
