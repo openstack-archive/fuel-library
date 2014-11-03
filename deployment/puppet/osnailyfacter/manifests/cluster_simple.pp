@@ -552,7 +552,7 @@ class osnailyfacter::cluster_simple {
         stop_command  => "${service_path} ${nova_compute_name} stop",
         pidfile       => false,
       }
-      if $::use_quantum {
+      if $::use_neutron {
         monit::process { $ovs_vswitchd_name :
           ensure        => running,
           start_command => "${service_path} ${ovs_vswitchd_name} restart",
