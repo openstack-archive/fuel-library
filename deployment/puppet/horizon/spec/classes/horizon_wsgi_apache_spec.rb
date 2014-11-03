@@ -43,7 +43,7 @@ describe 'horizon::wsgi::apache' do
           'serveraliases'        => '*',
           'docroot'              => '/var/www/',
           'ssl'                  => 'false',
-          'redirectmatch_status' => 'permanent',
+          'redirectmatch_status' => 'temp',
           'redirectmatch_regexp' => '^/$',
           'redirectmatch_dest'   => platforms_params[:root_url],
           'wsgi_script_aliases'  => { platforms_params[:root_url] => '/usr/share/openstack-dashboard/openstack_dashboard/wsgi/django.wsgi' },
