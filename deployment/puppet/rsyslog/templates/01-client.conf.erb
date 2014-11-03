@@ -4,10 +4,6 @@
 $EscapeControlCharactersOnReceive off
 <% end -%>
 
-# Load UDP module, required since Openstack Juno (#1385295)
-$ModLoad imudp
-$UDPServerRun 514
-
 #
 # Disk-Assisted Memory Queues, async writes, no escape chars
 #
