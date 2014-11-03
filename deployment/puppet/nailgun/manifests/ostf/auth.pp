@@ -21,7 +21,8 @@ class nailgun::ostf::auth(
   $internal_address = undef,
   $admin_address    = undef,
   $public_address   = undef,
-  $port             = '8000'
+  $port             = '8000',
+  $region           = 'RegionOne',
 ) {
   if ($internal_address == undef) {
     $internal_address_real = $address
@@ -59,7 +60,7 @@ class nailgun::ostf::auth(
     description => 'OSTF',
   }
 
-  keystone_endpoint { 'ostf':
+  keystone_endpoint { "$region/ostf":
     ensure       => present,
     public_url   => "http://${public_address_real}:${port}/ostf",
     admin_url    => "http://${admin_address_real}:${port}/ostf",

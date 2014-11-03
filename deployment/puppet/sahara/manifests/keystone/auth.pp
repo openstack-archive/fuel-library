@@ -23,9 +23,8 @@ class sahara::keystone::auth (
     description => 'OpenStack Data Processing',
   }
 
-  keystone_endpoint { $auth_name:
+  keystone_endpoint { "$region/$auth_name":
     ensure       => present,
-    region       => $region,
     public_url   => "http://${public_address}:${sahara_port}/v1.1/%(tenant_id)s",
     internal_url => "http://${internal_address}:${sahara_port}/v1.1/%(tenant_id)s",
     admin_url    => "http://${admin_address}:${sahara_port}/v1.1/%(tenant_id)s",
