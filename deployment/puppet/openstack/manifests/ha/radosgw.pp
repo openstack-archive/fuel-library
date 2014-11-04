@@ -10,5 +10,9 @@ class openstack::ha::radosgw (
     server_names        => filter_hash($servers, 'name'),
     ipaddresses         => filter_hash($servers, 'internal_address'),
     public              => true,
+
+    haproxy_config_options => {
+      'option'         => ['httplog', 'httpchk GET /'],
+    },
   }
 }
