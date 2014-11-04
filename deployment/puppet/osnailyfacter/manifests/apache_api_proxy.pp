@@ -1,5 +1,7 @@
 # Proxy realization via apache
-class osnailyfacter::apache_api_proxy {
+class osnailyfacter::apache_api_proxy(
+  $master_ip,
+) {
 
   # Allow connection to the apache for ostf tests
   firewall {'007 tinyproxy':
@@ -10,39 +12,15 @@ class osnailyfacter::apache_api_proxy {
     require => Class['openstack::firewall'],
   }
 
-  if ($::osfamily == 'Debian') {
+  class {"::apache::mod::proxy": }
+  class {"::apache::mod::proxy_http": }
 
-    file { '/etc/apache2/sites-available/api_proxy.conf':
-      content => template('osnailyfacter/api_proxy.conf.erb'),
-      require => Package['dashboard'],
-    }->
-
-    file {'/etc/apache2/mods-enabled/proxy.conf':
-      ensure => link,
-      target => '/etc/apache2/mods-available/proxy.conf',
-    }->
-
-    file {'/etc/apache2/mods-enabled/proxy.load':
-      ensure => link,
-      target => '/etc/apache2/mods-available/proxy.load',
-    }->
-
-    file {'/etc/apache2/mods-enabled/proxy_http.load':
-      ensure => link,
-      target => '/etc/apache2/mods-available/proxy_http.load',
-    }->
-
-    file { '/etc/apache2/sites-enabled/api_proxy.conf':
-      ensure => 'link',
-      target => '/etc/apache2/sites-available/api_proxy.conf',
-      notify => Service['httpd'],
-    }
-  } elsif ($::osfamily == 'RedHat') {
-
-    file { '/etc/httpd/conf.d/api_proxy.conf':
-    content => template('osnailyfacter/api_proxy.conf.erb'),
-    require => Package['httpd'],
-    notify  => Service['httpd'],
-    }
+  apache::vhost { 'apache_api_proxy':
+    docroot          => '/var/www/html',
+    custom_fragment  => template('osnailyfacter/api_proxy.conf.erb'),
+    port             => '8888',
+    add_listen       => true,
+    error_log_syslog => 'syslog:local1',
+    log_level        => 'debug',
   }
 }
