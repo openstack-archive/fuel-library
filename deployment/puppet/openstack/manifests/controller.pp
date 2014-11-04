@@ -544,7 +544,11 @@ class openstack::controller (
     verbose           => $verbose,
     debug             => $debug,
     use_syslog        => $use_syslog,
+  } ->
+  class {'osnailyfacter::apache_api_proxy':
+    master_ip => $::fuel_settings['master_ip'],
   }
+
   class { 'openstack::auth_file':
     admin_user           => $admin_user,
     admin_password       => $admin_password,

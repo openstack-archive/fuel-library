@@ -1,0 +1,34 @@
+<% if @osfamily == 'RedHat' %>
+<Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>
+  <IfModule mod_deflate.c>
+    SetOutputFilter DEFLATE
+    <IfModule mod_headers.c>
+      # Make sure proxies don’t deliver the wrong content
+      Header append Vary User-Agent env=!dont-vary
+    </IfModule>
+  </IfModule>
+
+  Order allow,deny
+  Allow from all
+</Directory>
+
+<Directory /usr/share/openstack-dashboard/static>
+  <IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access 6 month"
+  </IfModule>
+  <IfModule mod_deflate.c>
+    SetOutputFilter DEFLATE
+  </IfModule>
+
+  Order allow,deny
+  Allow from all
+</Directory>
+<%
+end
+if @osfamily == 'Debian' %>
+<Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>
+  Order allow,deny
+  Allow from all
+</Directory>
+<% end %>
