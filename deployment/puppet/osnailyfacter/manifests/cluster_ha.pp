@@ -340,8 +340,6 @@ class osnailyfacter::cluster_ha {
     $primary_controller,
   ) {
 
-    class {'osnailyfacter::apache_api_proxy':}
-
     class { 'openstack::controller_ha':
       controllers                    => $::osnailyfacter::cluster_ha::controllers,
       controller_public_addresses    => $::osnailyfacter::cluster_ha::controller_public_addresses,
