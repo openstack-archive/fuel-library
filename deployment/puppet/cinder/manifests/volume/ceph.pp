@@ -17,5 +17,6 @@ class cinder::volume::ceph (
     'DEFAULT/rbd_pool':           value => $rbd_pool;
     'DEFAULT/rbd_user':           value => $rbd_user;
     'DEFAULT/rbd_secret_uuid':    value => $rbd_secret_uuid;
+    "${name}/host":               value => "rbd:${rbd_pool}";
   }
 }
