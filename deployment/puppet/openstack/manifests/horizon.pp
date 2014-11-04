@@ -44,39 +44,50 @@ class openstack::horizon (
   #  tcp_port  => $cache_server_port,
   #  udp_port  => $cache_server_port,
   # }
- if $debug { #syslog and nondebug case
-   #We don't realy want django debug, it is too verbose.
-   $django_debug   = false
-   $django_verbose = false
-   $log_level_real = 'DEBUG'
- } elsif $verbose {
-   $django_verbose = true
-   $django_debug   = false
-   $log_level_real = 'INFO'
- } else {
-   $django_verbose = false
-   $django_debug   = false
-   $log_level_real = $log_level
- }
+  if $debug { #syslog and nondebug case
+    #We don't realy want django debug, it is too verbose.
+    $django_debug   = false
+    $django_verbose = false
+    $log_level_real = 'DEBUG'
+  } elsif $verbose {
+    $django_verbose = true
+    $django_debug   = false
+    $log_level_real = 'INFO'
+  } else {
+    $django_verbose = false
+    $django_debug   = false
+    $log_level_real = $log_level
+  }
+
+  $local_settings_template = $use_syslog ? {
+    true    => 'openstack/horizon/local_settings.py.erb',
+    default => 'horizon/local_settings.py.erb',
+  }
 
   class { '::horizon':
-    bind_address          => $bind_address,
-    cache_server_ip       => $cache_server_ip,
-    cache_server_port     => $cache_server_port,
-    secret_key            => $secret_key,
-    swift                 => $swift,
-    quantum               => $neutron,
-    package_ensure        => $package_ensure,
-    horizon_app_links     => $horizon_app_links,
-    keystone_host         => $keystone_host,
-    keystone_scheme       => $keystone_scheme,
-    keystone_default_role => $keystone_default_role,
-    django_debug          => $django_debug,
-    django_verbose        => $django_verbose,
-    api_result_limit      => $api_result_limit,
-    use_ssl               => $use_ssl,
-    use_syslog            => $use_syslog,
-    log_level             => $log_level_real,
+    bind_address            => $bind_address,
+    cache_server_ip         => $cache_server_ip,
+    cache_server_port       => $cache_server_port,
+    secret_key              => $secret_key,
+    swift                   => $swift,
+    package_ensure          => $package_ensure,
+    horizon_app_links       => $horizon_app_links,
+    keystone_host           => $keystone_host,
+    keystone_scheme         => $keystone_scheme,
+    keystone_default_role   => $keystone_default_role,
+    django_debug            => $django_debug,
+    api_result_limit        => $api_result_limit,
+    listen_ssl              => $use_ssl,
+    log_level               => $log_level_real,
+    local_settings_template => $local_settings_template,
+    vhost_extra_params      => {
+      add_listen => false,
+    },
+  }
+
+  # Override default_vhost for ::apache class
+  Apache {
+    default_vhost => false,
   }
 }
 
