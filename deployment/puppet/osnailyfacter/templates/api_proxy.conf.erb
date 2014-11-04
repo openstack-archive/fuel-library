@@ -1,24 +1,9 @@
-#
-# THIS FILE IS MANAGED BY PUPPET
-# <%= file %>
-#
-Listen 0.0.0.0:8888
-NameVirtualHost *:8888
-
-<VirtualHost *:8888>
   ProxyRequests on
   ProxyVia On
   AllowCONNECT 443 563
-  ServerAdmin webmaster@localhost
   HostnameLookups off
-
-  ErrorLog syslog:local1
-  # Possible values: debug, info, notice, warn, error, crit, alert, emerg
-  LogLevel debug
-
   <Proxy *>
     Order Deny,Allow
-    <% master_ip = @fuel_settings['master_ip'] %>
     <% if master_ip.kind_of?(Array) -%>
     Allow from <%= master_ip.join(",") %>
     <% else -%>
@@ -26,4 +11,3 @@ NameVirtualHost *:8888
     <% end -%>
     Deny from all
   </Proxy>
-</VirtualHost>
