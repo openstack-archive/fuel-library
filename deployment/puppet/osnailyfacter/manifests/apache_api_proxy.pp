@@ -14,7 +14,7 @@ class osnailyfacter::apache_api_proxy {
 
     file { '/etc/apache2/sites-available/api_proxy.conf':
       content => template('osnailyfacter/api_proxy.conf.erb'),
-      require => Package['dashboard'],
+      require => Package['horizon'],
     }->
 
     file {'/etc/apache2/mods-enabled/proxy.conf':
