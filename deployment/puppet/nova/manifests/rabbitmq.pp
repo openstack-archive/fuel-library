@@ -46,7 +46,8 @@ class nova::rabbitmq(
   $rabbitmq_class     = 'rabbitmq::server',
   $rabbit_node_ip_address = 'UNSET',
   $ha_mode            = false,
-  $primary_controller = false
+  $primary_controller = false,
+  $users_dump_file    = '/etc/rabbitmq/users'
 ) {
 
   # only configure nova after the queue is up
@@ -128,20 +129,23 @@ class nova::rabbitmq(
       File<| title == 'ocf-mirantis-path' |> -> File['rabbitmq-ocf']
       Package['pacemaker'] -> File<| title == 'ocf-mirantis-path' |>
       Package['pacemaker'] -> File['rabbitmq-ocf']
-      Package['rabbitmq-server'] ->
+      Package['rabbitmq-server'] -> rabbitmq_plugin{'rabbitmq_management': ensure => present, } ->
         Service['rabbitmq-server__disabled'] ->
           File['rabbitmq-ocf'] ->
             Service["$service_name"]
       if ($primary_controller) {
         cs_resource {"$service_name":
-          ensure          => present,
-          #cib             => 'rabbitmq',
-          primitive_class => 'ocf',
-          provided_by     => 'mirantis',
-          primitive_type  => 'rabbitmq-server',
-          parameters      => {
-            'node_port'     => $port,
-            #'debug'         => true,
+          ensure              => present,
+          #cib                => 'rabbitmq',
+          primitive_class     => 'ocf',
+          provided_by         => 'mirantis',
+          primitive_type      => 'rabbitmq-server',
+          parameters          => {
+            'node_port'       => $port,
+            'username'        => $userid,
+            'password'        => $password,
+            'users_dump_file' => $users_dump_file,
+            #'debug'          => true,
           },
           metadata                 => {
              'migration-threshold' => 'INFINITY',
@@ -154,7 +158,7 @@ class nova::rabbitmq(
           ms_metadata => {
             'notify'      => 'true',
             'ordered'     => 'false', # We shouldn't enable ordered start for parallel start of RA.
-            'interleave'  => 'true',  
+            'interleave'  => 'true',
             'master-max'  => '1',
             'master-node-max' => '1',
             'target-role' => 'Master'
@@ -220,4 +224,10 @@ class nova::rabbitmq(
       require  => Class[$rabbitmq_class],
     }
   }
+
+  exec {'dump users':
+    path            => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    command     => "curl -u ${userid}:${password} localhost:15672/api/users -o ${users_dump_file}",
+  }
+  Rabbitmq_user <||> -> Exec<| title == 'dump users' |>
 }
