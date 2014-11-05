@@ -31,7 +31,7 @@ class cluster::neutron::dhcp (
 
   $dhcp_agent_package = $::neutron::params::dhcp_agent_package ? {
     false   => $::neutron::params::package_name,
-    default => $::neutron::params::dhcp_agent_package,
+    default => $::neutron::params::dhcp_agent_package
   }
 
   cluster::corosync::cs_service {'dhcp':
@@ -60,7 +60,10 @@ class cluster::neutron::dhcp (
   if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {
     cluster::corosync::cs_with_service {'dhcp-and-ovs':
       first   => "clone_p_${::neutron::params::ovs_agent_service}",
-      second  => "p_${::neutron::params::dhcp_agent_service}",
+      second  => $multiple_agents ? {
+                    false   => "p_${::neutron::params::dhcp_agent_service}",
+                    default => "clone_p_${::neutron::params::dhcp_agent_service}"
+                 },
       require => Cluster::Corosync::Cs_service['ovs','dhcp']
     }
   }
