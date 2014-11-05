@@ -50,6 +50,7 @@ class nova::rabbitmq(
   # FIXME(bogdando) remove HA rabbitmq configuration from nova module
   #   to papcemaker HA wrappers
   $command_timeout    = '',
+  $users_dump_file    = '/etc/rabbitmq/users'
 ) {
 
   # only configure nova after the queue is up
@@ -124,18 +125,21 @@ class nova::rabbitmq(
       File<| title == 'ocf-mirantis-path' |> -> File['rabbitmq-ocf']
       Package['pacemaker'] -> File<| title == 'ocf-mirantis-path' |>
       Package['pacemaker'] -> File['rabbitmq-ocf']
-      Package['rabbitmq-server'] ->
+      Package['rabbitmq-server'] -> rabbitmq_plugin{'rabbitmq_management': ensure => present, } ->
         File['rabbitmq-ocf'] ->
           Service["$service_name"]
       if ($primary_controller) {
         cs_resource {"$service_name":
-          ensure          => present,
-          #cib             => 'rabbitmq',
-          primitive_class => 'ocf',
-          provided_by     => 'mirantis',
-          primitive_type  => 'rabbitmq-server',
-          parameters      => {
+          ensure              => present,
+          #cib                => 'rabbitmq',
+          primitive_class     => 'ocf',
+          provided_by         => 'mirantis',
+          primitive_type      => 'rabbitmq-server',
+          parameters          => {
             'node_port'       => $port,
+            'username'        => $userid,
+            'password'        => $password,
+            'users_dump_file' => $users_dump_file,
             'command_timeout' => $command_timeout
           },
           metadata                 => {
@@ -212,4 +216,10 @@ class nova::rabbitmq(
       require  => Class[$rabbitmq_class],
     }
   }
+
+  exec {'dump users':
+    path            => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    command     => "curl -u ${userid}:${password} localhost:15672/api/users -o ${users_dump_file}",
+  }
+  Rabbitmq_user <||> -> Exec<| title == 'dump users' |>
 }

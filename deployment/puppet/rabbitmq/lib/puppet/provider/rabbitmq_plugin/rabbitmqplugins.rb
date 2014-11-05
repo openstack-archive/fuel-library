@@ -2,7 +2,24 @@ require File.join File.dirname(__FILE__), '../rabbitmq_common.rb'
 
 Puppet::Type.type(:rabbitmq_plugin).provide(:rabbitmqplugins, :parent => Puppet::Provider::Rabbitmq_common) do
 
-  commands :rabbitmqplugins => 'rabbitmq-plugins'
+  if Puppet::PUPPETVERSION.to_f < 3
+    if Facter.value(:osfamily) == 'RedHat'
+      commands :rabbitmqplugins => '/usr/lib/rabbitmq/bin/rabbitmq-plugins'
+    else
+      commands :rabbitmqplugins => 'rabbitmq-plugins'
+    end
+  else
+    if Facter.value(:osfamily) == 'RedHat'
+      has_command(:rabbitmqplugins, '/usr/lib/rabbitmq/bin/rabbitmq-plugins') do
+        environment :HOME => "/tmp"
+      end
+    else
+      has_command(:rabbitmqplugins, 'rabbitmq-plugins') do
+        environment :HOME => "/tmp"
+      end
+    end
+  end
+
   defaultfor :feature => :posix
 
   def self.instances
@@ -27,11 +44,8 @@ Puppet::Type.type(:rabbitmq_plugin).provide(:rabbitmqplugins, :parent => Puppet:
   end
 
   def exists?
-    self.class.wait_for_online
-    out = self.class.run_with_retries {
-      rabbitmqplugins('list', '-E')
-    }.split(/\n/).detect do |line|
-      line.split(/\s+/)[1].match(/^#{resource[:name]}$/)
+    rabbitmqplugins('list', '-E', '-m').split(/\n/).detect do |line|
+      line.match(/^#{resource[:name]}$/)
     end
   end
 
