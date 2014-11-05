@@ -212,5 +212,7 @@ class openstack::ceilometer (
     class { 'ceilometer::agent::compute':
       enabled => true,
     }
+    ceilometer_config { 'service_credentials/os_endpoint_type': value => 'internalURL'} ->
+    Service<| title == 'ceilometer-agent-compute'|>
   }
 }
