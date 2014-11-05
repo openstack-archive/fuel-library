@@ -17,8 +17,11 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 OCF_RESKEY_binary_default="/usr/sbin/rabbitmq-server"
 OCF_RESKEY_ctl_default="/usr/sbin/rabbitmqctl"
 OCF_RESKEY_debug_default=false
-OCF_RESKEY_username_default="rabbitmq"
-OCF_RESKEY_groupname_default="rabbitmq"
+OCF_RESKEY_user_default="rabbitmq"
+OCF_RESKEY_group_default="rabbitmq"
+OCF_RESKEY_username_default="guest"
+OCF_RESKEY_password_default="guest"
+OCF_RESKEY_users_dump_file_default="/etc/rabbitmq/users"
 OCF_RESKEY_pid_file_default=/var/run/rabbitmq/p_pid
 OCF_RESKEY_log_dir_default=/var/log/rabbitmq
 OCF_RESKEY_mnesia_base_default=/var/lib/rabbitmq/mnesia
@@ -29,8 +32,11 @@ OCF_RESKEY_node_port_default=5672
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_ctl=${OCF_RESKEY_ctl_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
+: ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
+: ${OCF_RESKEY_group=${OCF_RESKEY_group_default}}
 : ${OCF_RESKEY_username=${OCF_RESKEY_username_default}}
-: ${OCF_RESKEY_groupname=${OCF_RESKEY_groupname_default}}
+: ${OCF_RESKEY_password=${OCF_RESKEY_password_default}}
+: ${OCF_RESKEY_users_dump_file=${OCF_RESKEY_users_dump_file_default}}
 : ${OCF_RESKEY_log_dir=${OCF_RESKEY_log_dir_default}}
 : ${OCF_RESKEY_mnesia_base=${OCF_RESKEY_mnesia_base_default}}
 : ${OCF_RESKEY_pid_file=${OCF_RESKEY_pid_file_default}}
@@ -108,20 +114,44 @@ RabbitMQ log directory
 <content type="string" default="${OCF_RESKEY_log_dir_default}" />
 </parameter>
 
-<parameter name="username" unique="0" required="0">
+<parameter name="user" unique="0" required="0">
 <longdesc lang="en">
 RabbitMQ user name
 </longdesc>
 <shortdesc lang="en">RabbitMQ user name</shortdesc>
-<content type="string" default="${OCF_RESKEY_username_default}" />
+<content type="string" default="${OCF_RESKEY_user_default}" />
 </parameter>
 
-<parameter name="groupname" unique="0" required="0">
+<parameter name="group" unique="0" required="0">
 <longdesc lang="en">
 RabbitMQ group name
 </longdesc>
 <shortdesc lang="en">RabbitMQ group name</shortdesc>
-<content type="string" default="${OCF_RESKEY_groupname_default}" />
+<content type="string" default="${OCF_RESKEY_group_default}" />
+</parameter>
+
+<parameter name="username" unique="0" required="0">
+<longdesc lang="en">
+RabbitMQ default username API
+</longdesc>
+<shortdesc lang="en">RabbitMQ username</shortdesc>
+<content type="string" default="${OCF_RESKEY_username_default}" />
+</parameter>
+
+<parameter name="password" unique="0" required="0">
+<longdesc lang="en">
+RabbitMQ default password for API
+</longdesc>
+<shortdesc lang="en">RabbitMQ password</shortdesc>
+<content type="string" default="${OCF_RESKEY_password_default}" />
+</parameter>
+
+<parameter name="users_dump_file" unique="0" required="0">
+<longdesc lang="en">
+RabbitMQ default users dump file
+</longdesc>
+<shortdesc lang="en">RabbitMQ users dump file</shortdesc>
+<content type="string" default="${OCF_RESKEY_users_dump_file}" />
 </parameter>
 
 <parameter name="command_timeout" unique="0" required="0">
@@ -248,7 +278,7 @@ rmq_setup_env() {
     local PID_DIR=$( dirname $OCF_RESKEY_pid_file )
     if [ ! -d ${PID_DIR} ] ; then
         mkdir -p ${PID_DIR}
-        chown -R ${OCF_RESKEY_username}:${OCF_RESKEY_groupname} ${PID_DIR}
+        chown -R ${OCF_RESKEY_user}:${OCF_RESKEY_group} ${PID_DIR}
         chmod 755 ${PID_DIR}
     fi
     export LL="${OCF_RESOURCE_INSTANCE}:"
@@ -884,7 +914,7 @@ get_monitor() {
         ocf_log info "${LH} ensuring this slave does not get promoted."
         master_score 0
         return $OCF_ERR_GENERIC
-    else 
+    else
         ocf_log info "${LH} preparing to update master score for node"
         our_uptime=$(srv_uptime)
         nodelist=$( crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$" | grep -v `hostname` )
@@ -912,7 +942,7 @@ get_monitor() {
         if [ $max -eq 0 ]
         then
             ocf_log info "${LH} we are the oldest node"
-            master_score 1000 
+            master_score 1000
         fi
     fi
     ocf_log info "${LH} get_monitor function ready to return ${rc}"
@@ -966,6 +996,18 @@ action_start() {
     rc=$?
     if [[ $rc == $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} RMQ prepared for start succesfully."
+    fi
+
+    if [[-s ${OCF_RESKEY_users_dump_file}]] ; then
+        ocf_log info "File ${OCF_RESKEY_users_dump_file} exist"
+        ocf_run  curl -X POST -u $OCF_RESKEY_username:$OCF_RESKEY_password localhost:15672/api/definitions --header "Content-Type:application/json" -d "{\"users\":$(<${OCF_RESKEY_users_dump_file})}"
+        rc=$?
+        if [[ $rc == $OCF_SUCCESS ]]
+          then
+            ocf_log info "$RMQ users imported succesfully."
+          else
+            ocf_log err "$RMQ users did not import."
+        fi
     fi
 
     ocf_log info "${LH} action end."
