@@ -14,7 +14,6 @@ define cluster::corosync::cs_service (
   $csr_mon_intr = 20,
   $csr_mon_timeout = 20,
   $csr_timeout = 60,
-  $mangle_real_service = false,
   $primary = true,
   $hasrestart = true,
   )
@@ -61,55 +60,15 @@ define cluster::corosync::cs_service (
     File[$ocf_script] -> Service[$service_true_title]
   }
 
-  # NOTE(bogdando) no need for mangling anymore with new pcs provider
-  if $mangle_real_service {
-    # If the service is defined elsewhere, then we need to disable it. Some
-    # service manifests will do this for us (which is preferred)
-    service { "${service_name}-disable-init":
-      name       => "${service_name}-disable-init",  # this will be redefined later
-      enable     => false,
-      ensure     => stopped,
-      hasstatus  => true,
-      hasrestart => true
-    }
-    Service["${service_name}-disable-init"] -> Service[$service_true_title]
-
-    # In this IF used Package[$package_name] notation, because $package_name incoming parameter may be array.
-    if ! $package_name {
-      warning('Cluster::cs_service: Without package definition can\'t mangle service correctly.')
-    } else {
-      if $::operatingsystem == 'Ubuntu' {
-        # Ubuntu packages like to auto-start, this is annoying and makes it harder
-        # to put them under pacemaker. In these cases, we need to inject the
-        # override file before the package is installed. When upstart sees this it
-        # will cause it to ignore the autostart that the service might of had.
-        file {"/etc/init/${service_name}.override":
-          replace => 'no',
-          ensure  => present,
-          content => 'manual',
-          mode    => '0644'
-        }
-        File["/etc/init/${service_name}.override"] -> Package[$package_name]
-      }
-      # Service SHOULD be found just by spaceship operation
-      Package[$package_name] -> Service<| title == "${service_name}-disable-init" |>
-    }
+  tweaks::ubuntu_service_override { "${service_name}":
+    package_name => $package_name,
   }
 
   Service<| title=="${service_true_title}" |> {
-    name       => "p_${service_name}",
     enable     => true,
     ensure     => running,
     hasstatus  => true,
     hasrestart => $hasrestart,
     provider   => 'pacemaker',
-  }
-  # This here, because it should be found AFTER previous Service.
-  # DO NOT change this order
-  # NOTE(bogdando) no need for mangling anymore with new pcs provider
-  if $mangle_real_service {
-    Service<| title=="${service_name}-disable-init" |> {
-      name       => $service_name,
-    }
   }
 }
