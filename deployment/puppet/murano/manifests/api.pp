@@ -26,6 +26,7 @@ class murano::api (
     $rabbit_login               = 'murano',
     $rabbit_password            = 'murano',
     $rabbit_virtual_host        = '/',
+    $notification_driver        = 'messagingv2',
     $firewall_rule_name         = '202 murano-api',
     $murano_db_user             = 'murano',
     $murano_db_password         = 'murano',
@@ -97,6 +98,7 @@ class murano::api (
     'DEFAULT/rabbit_password'               : value => $rabbit_password;
     'DEFAULT/rabbit_virtual_host'           : value => $rabbit_virtual_host;
     'DEFAULT/kombu_ssl_ca_certs'            : value => $rabbit_ca_certs;
+    'DEFAULT/notification_driver'           : value => $notification_driver;
     # Direct RabbitMQ client configuration (for murano-engine).
     # FIXME(dteselkin): murano-engine doesn't support oslo.messaging yet
     #    so additional configuration is required.
