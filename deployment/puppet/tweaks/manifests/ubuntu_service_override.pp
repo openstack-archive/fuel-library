@@ -22,6 +22,6 @@ define tweaks::ubuntu_service_override (
 	    onlyif  => "test -f ${override_file}",
 	  }
 
-	  File[$file_name] -> Package <| title == $package_name |> -> Exec[$exec_name]
+	  File[$file_name] -> Package <| name == $package_name |> -> Exec[$exec_name]
   }
 }

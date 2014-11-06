@@ -25,14 +25,16 @@ totem {
 
 logging {
   fileline:        off
-  to_stderr:       no 
+  to_stderr:       no
   to_logfile:      no
   to_syslog:       yes
   logfile:         /var/log/corosync.log
   syslog_facility: daemon
+  syslog_priority: info
 # We don't really want corosync debugs, it is TOO verbose
 #  debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
   debug:           off
+  function_name:   on
   timestamp:       on
   logger_subsys {
     subsys: AMF
