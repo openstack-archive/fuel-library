@@ -1027,6 +1027,10 @@ class PreseedPManager(object):
         self.lv()
         self.late("apt-get install -y grub-pc", True)
         self.late("sed -i "
+                  "-e '$a\ ' "
+                  "-e '$a\#Disable the waiting for user input if the last boot failed' "
+                  "-e '$a\GRUB_RECORDFAIL_TIMEOUT=$GRUB_TIMEOUT' /etc/default/grub", True)
+        self.late("sed -i "
                   "-e 's/.*GRUB_TERMINAL.*/GRUB_TERMINAL=console/g' "
                   "-e 's/.*GRUB_GFXMODE.*/#GRUB_GFXMODE=640x480/g' "
                   "-e 's/.*GRUB_CMDLINE_LINUX.*/"
