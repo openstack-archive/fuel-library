@@ -674,9 +674,8 @@ function backup_cleanup {
 function check_nailgun_tasks {
 #Returns 0 if tasks are running in nailgun
   #if command returns error, then app is not running
-  shell_container nailgun fuel tasks &> /dev/null || return 1
-  tasks=$(shell_container nailgun fuel tasks | tail -n+3)
-  test -z "$tasks"
+  shell_container nailgun fuel task &> /dev/null || return 1
+  shell_container nailgun fuel task | grep -q running &> /dev/null
   return $?
 }
 
@@ -684,6 +683,11 @@ function restore {
 #TODO(mattymo): Optionally not include system dirs during restore
 #TODO(mattymo): support remote file such as ssh://user@myhost/backup.tar.lrz
 #               or http://myhost/backup.tar.lrz
+  if check_nailgun_tasks; then
+    echo "There are currently running Fuel tasks. Please wait for them to \
+finish or cancel them. Run \"fuel task list\" for more details." 1>&2
+    exit 1
+  fi
   verify_disk_space "restore"
   backupfile=$1
   if [ -z "$backupfile" ]; then
