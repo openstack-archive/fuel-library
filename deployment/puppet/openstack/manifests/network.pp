@@ -138,7 +138,7 @@ class openstack::network (
         log_facility            => $syslog_log_facility,
         base_mac                => $base_mac,
         core_plugin             => $core_plugin,
-        service_plugins         => $service_plugins,
+        service_plugins         => $neutron_server ? {false => undef, default => $service_plugins},
         allow_overlapping_ips   => true,
         mac_generation_retries  => 32,
         dhcp_lease_duration     => 120,
