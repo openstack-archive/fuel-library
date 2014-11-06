@@ -627,7 +627,7 @@ on packages update": }
     } else {
       # by default we use ML2 plugin
       $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
-      $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin']
+      $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin','neutron.services.metering.metering_plugin.MeteringPlugin']
       $agent            = 'ml2-ovs'
     }
   }
