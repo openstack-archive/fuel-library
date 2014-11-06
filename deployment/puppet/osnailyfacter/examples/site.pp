@@ -69,19 +69,6 @@ if $::fuel_settings['nodes'] {
     if $public_int {
       $public_address = get_network_role_property('ex', 'ipaddr')
       $public_netmask = get_network_role_property('ex', 'netmask')
-
-      # TODO(Xarses): remove this after completing merge of
-      # multiple-cluster-networks
-      L23network::L3::Ifconfig<| title == $public_int |> {
-        default_gateway => true
-      }
-    } else {
-      # TODO(Xarses): remove this after completing merge of
-      # multiple-cluster-networks
-      $fw_admin_int = get_network_role_property('fw-admin', 'interface')
-      L23network::L3::Ifconfig<| title == $fw_admin_int |> {
-        default_gateway => true
-      }
     }
     #
     $storage_address = get_network_role_property('storage', 'ipaddr')
@@ -97,13 +84,6 @@ if $::fuel_settings['nodes'] {
     $internal_br = $node[0]['internal_br']
     $public_int   = $::fuel_settings['public_interface']
     $internal_int = $::fuel_settings['management_interface']
-
-    # TODO(Xarses): remove this after completing merge of
-    # multiple-cluster-networks
-    L23network::L3::Ifconfig<| title == $public_int |> {
-      default_gateway => true
-    }
-
   }
 }
 

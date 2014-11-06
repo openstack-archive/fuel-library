@@ -14,12 +14,11 @@ define l23network::l3::defaultroute (
     /(?i)debian/: {
         exec { $exec_name :
             path    => '/bin:/usr/bin:/sbin:/usr/sbin',
-            command => "ip route replace default via ${gateway}",
+            command => "ip route replace default via ${gateway} || true",
             unless  => "netstat -r | grep -q 'default.*${gateway}'",
         }
     }
     /(?i)redhat/: {
-        Cfg <| name == $gateway |>
         if ! defined(Cfg[$gateway]) {
           cfg { $gateway:
               file  => '/etc/sysconfig/network',
