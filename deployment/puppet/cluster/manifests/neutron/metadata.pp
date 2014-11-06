@@ -22,5 +22,6 @@ class cluster::neutron::metadata (
     package_name        => $metadata_agent_package,
     service_title       => 'neutron-metadata',
     primary             => $primary,
+    mangle_real_service => true
   }
 }

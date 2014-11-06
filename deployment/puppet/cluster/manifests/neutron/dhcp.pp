@@ -55,6 +55,7 @@ class cluster::neutron::dhcp (
     service_title   => 'neutron-dhcp-service',
     primary         => $primary,
     hasrestart      => false,
+    mangle_real_service => true
   }
 
   if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {

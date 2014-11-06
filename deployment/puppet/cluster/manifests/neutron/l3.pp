@@ -59,6 +59,7 @@ define cluster::neutron::l3 (
     service_title   => 'neutron-l3',
     primary         => $primary,
     hasrestart      => false,
+    mangle_real_service => true
   }
 
   if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {

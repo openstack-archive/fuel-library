@@ -25,5 +25,6 @@ class cluster::neutron::ovs (
     service_title       => 'neutron-ovs-agent-service',
     primary             => $primary,
     hasrestart          => false,
+    mangle_real_service => true
   }
 }
