@@ -14,7 +14,7 @@ class cluster::haproxy_ocf (
     mode   => '0755',
     owner  => root,
     group  => root,
-    source => 'puppet:///modules/cluster/ns_haproxy',
+    source => 'puppet:///modules/cluster/ocf/ns_haproxy',
   }
   Anchor['haproxy'] -> File['haproxy-ocf']
   File<| title == 'ocf-mirantis-path' |> -> File['haproxy-ocf']

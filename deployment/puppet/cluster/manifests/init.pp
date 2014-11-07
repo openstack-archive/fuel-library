@@ -35,7 +35,7 @@ class cluster (
       mode   => '0755',
       owner  => root,
       group  => root,
-      source => 'puppet:///modules/cluster/ns_IPaddr2',
+      source => 'puppet:///modules/cluster/ocf/ns_IPaddr2',
     }
 
     Package['pacemaker'] -> File['ns-ipaddr2-ocf']
