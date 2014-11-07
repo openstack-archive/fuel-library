@@ -65,7 +65,10 @@ define cluster::neutron::l3 (
   if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {
     cluster::corosync::cs_with_service {'l3-and-ovs':
       first   => "clone_p_${::neutron::params::ovs_agent_service}",
-      second  => "p_${::neutron::params::l3_agent_service}",
+      second  => $multiple_agents ? {
+                    false   => "p_${::neutron::params::l3_agent_service}",
+                    default => "clone_p_${::neutron::params::l3_agent_service}"
+                 },
       require => Cluster::Corosync::Cs_service['ovs','l3'],
     }
   }
