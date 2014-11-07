@@ -34,6 +34,10 @@ define pacemaker_wrappers::service (
     provider   => 'pacemaker',
   }
 
+  Service<| name == $service_name |> {
+    provider   => 'pacemaker',
+  }
+
   if $create_primitive {
     cs_resource { $primitive_name :
       ensure          => $ensure,

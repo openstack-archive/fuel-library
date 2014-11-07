@@ -33,17 +33,15 @@
 #
 
 class heat::engine (
-  $pacemaker                     = false, # unused
   $ocf_scripts_dir               = '/usr/lib/ocf/resource.d',
   $ocf_scripts_provider          = 'mirantis',
-  $auth_encryption_key,
+  $auth_encryption_key           = '%ENCRYPTION_KEY%',
   $enabled                       = true,
   $heat_stack_user_role          = 'heat_stack_user',
   $heat_metadata_server_url      = 'http://127.0.0.1:8000',
   $heat_waitcondition_server_url = 'http://127.0.0.1:8000/v1/waitcondition',
   $heat_watch_server_url         = 'http://127.0.0.1:8003',
   $engine_life_check_timeout     = '2',
-  $primary_controller            = false, # unused
 ) {
 
   include heat::params
@@ -77,12 +75,6 @@ class heat::engine (
   Heat_config<||> ~> Service['heat-engine']
   Heat_engine_config<||> ~> Service['heat-engine']
 
-  exec {'heat-encryption-key-replacement':
-    command => 'sed -i "s/%ENCRYPTION_KEY%/`hexdump -n 16 -v -e \'/1 "%02x"\' /dev/random`/" /etc/heat/heat.conf',
-    path    => [ '/usr/bin', '/bin' ],
-    onlyif  => 'grep -c ENCRYPTION_KEY /etc/heat/heat.conf',
-  }
-
   heat_config {
     'DEFAULT/auth_encryption_key'          : value => $auth_encryption_key;
     'DEFAULT/heat_stack_user_role'         : value => $heat_stack_user_role;
@@ -92,6 +84,6 @@ class heat::engine (
     'DEFAULT/engine_life_check_timeout'    : value => $engine_life_check_timeout;
   }
 
-  File['/etc/heat/heat.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine']
+  File['/etc/heat/heat.conf'] -> Service['heat-engine']
 
 }

@@ -2,7 +2,6 @@
 #TODO(bogdando) sync extended qpid rpc backend configuration here as well
 
 class openstack::heat (
-  $pacemaker                     = false,
   $external_ip                   = '127.0.0.1',
   $enabled                       = true,
 
@@ -54,7 +53,6 @@ class openstack::heat (
   $api_cfn_bind_port             = '8000',
   $api_cloudwatch_bind_host      = '0.0.0.0',
   $api_cloudwatch_bind_port      = '8003',
-  $primary_controller            = false,
 ){
 
   # No empty passwords allowed
@@ -214,8 +212,6 @@ class openstack::heat (
 
   # Engine
   class { 'heat::engine' :
-    pacemaker                     => $pacemaker,
-    primary_controller            => $primary_controller,
     auth_encryption_key           => $auth_encryption_key,
     heat_stack_user_role          => $heat_stack_user_role,
     heat_metadata_server_url      => $metadata_server_url,
