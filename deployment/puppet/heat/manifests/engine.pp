@@ -108,7 +108,8 @@ class heat::engine (
         primitive_class => 'ocf',
         provided_by     => $ocf_scripts_provider,
         primitive_type  => $service_name,
-        metadata        => { 'resource-stickiness' => '1' },
+        multistate_hash => { 'type' => 'clone' },
+        metadata     => { 'resource-stickiness' => '1' },
         operations   => {
           'monitor'  => { 'interval' => '20', 'timeout'  => '30' },
           'start'    => { 'timeout' => '60' },
@@ -148,11 +149,6 @@ class heat::engine (
 
   }
 
-  exec {'heat-encryption-key-replacement':
-    command => 'sed -i "s/%ENCRYPTION_KEY%/`hexdump -n 16 -v -e \'/1 "%02x"\' /dev/random`/" /etc/heat/heat.conf',
-    path    => [ '/usr/bin', '/bin' ],
-    onlyif  => 'grep -c ENCRYPTION_KEY /etc/heat/heat.conf',
-  }
 
   heat_config {
     'DEFAULT/auth_encryption_key'          : value => $auth_encryption_key;
@@ -163,5 +159,6 @@ class heat::engine (
     'DEFAULT/engine_life_check_timeout'    : value => $engine_life_check_timeout;
   }
 
-  File['/etc/heat/heat.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine_service']
+  File['/etc/heat/heat.conf'] -> Service[''heat-engine_service']
+
 }
