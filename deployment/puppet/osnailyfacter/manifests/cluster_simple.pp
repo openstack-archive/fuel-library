@@ -373,7 +373,6 @@ class osnailyfacter::cluster_simple {
 
 
       class { 'openstack::heat' :
-        pacemaker           => false,
         external_ip         => $controller_node_public,
 
         keystone_host       => $controller_node_address,
@@ -401,6 +400,8 @@ class osnailyfacter::cluster_simple {
         verbose             => $::verbose,
         use_syslog          => $::use_syslog,
         syslog_log_facility => $::syslog_log_facility_heat,
+
+        auth_encryption_key => $heat_hash['auth_encryption_key'],
       }
 
 

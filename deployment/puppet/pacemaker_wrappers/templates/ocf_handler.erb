@@ -5,6 +5,7 @@ export OCF_RA_VERSION_MAJOR='1'
 export OCF_RA_VERSION_MINOR='0'
 export OCF_RESOURCE_INSTANCE='<%= @primitive_name %>'
 
+# OCF parameters
 <% if @parameters.is_a? Hash -%>
     <% @parameters.each do |k,v| -%>
         <% v = v.to_s -%>
@@ -64,7 +65,7 @@ blue() {
 
 ec2error() {
   case "${1}" in
-    0) green 'Running' ;;
+    0) green 'Success' ;;
     1) red 'Error: Generic' ;;
     2) red 'Error: Arguments' ;;
     3) red 'Error: Unimplemented' ;;
