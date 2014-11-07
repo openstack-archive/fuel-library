@@ -647,8 +647,6 @@ class osnailyfacter::cluster_ha {
       }
 
       class { 'openstack::heat' :
-        pacemaker              => true,
-        primary_controller     => $primary_controller,
         external_ip            => $controller_node_public,
 
         keystone_host     => $controller_node_address,
@@ -677,8 +675,11 @@ class osnailyfacter::cluster_ha {
         verbose             => $::verbose,
         use_syslog          => $::use_syslog,
         syslog_log_facility => $::syslog_log_facility_heat,
+
+        auth_encryption_key => $heat_hash['auth_encryption_key'],
+
       }
-      include pacemaker_wrappers::heat
+      include heat_ha::engine
 
 
       if $murano_hash['enabled'] {

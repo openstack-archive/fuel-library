@@ -1,4 +1,4 @@
-class pacemaker_wrappers::heat inherits heat::engine {
+class heat_ha::engine inherits heat::engine {
   $primitive_type  = 'heat-engine'
 
   if $::osfamily == 'RedHat' {
@@ -24,9 +24,19 @@ class pacemaker_wrappers::heat inherits heat::engine {
     },
   }
 
+  $multistate_hash = {
+    'type' => 'clone',
+  }
+
+  $ms_metadata = {
+    'interleave' => true,
+  }
+
   pacemaker_wrappers::service { $service_name :
     primitive_type      => $primitive_type,
     metadata            => $metadata,
+    multistate_hash     => $multistate_hash,
+    ms_metadata         => $ms_metadata,
     operations          => $operations,
     ocf_script_template => $ocf_script_template,
   }
