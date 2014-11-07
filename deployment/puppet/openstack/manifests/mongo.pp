@@ -26,7 +26,7 @@ class openstack::mongo (
   mongodb::db { $ceilometer_database:
     user          => $ceilometer_user,
     password      => $ceilometer_db_password,
-    roles         => ['readWrite', 'dbAdmin', 'dbOwner'],
+    roles         => ['readWrite', 'dbAdmin'],
     admin_username => 'admin',
     admin_password => $ceilometer_db_password,
     admin_database => 'admin',
