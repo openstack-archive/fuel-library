@@ -64,7 +64,7 @@ blue() {
 
 ec2error() {
   case "${1}" in
-    0) green 'Running' ;;
+    0) green 'Success' ;;
     1) red 'Error: Generic' ;;
     2) red 'Error: Arguments' ;;
     3) red 'Error: Unimplemented' ;;
