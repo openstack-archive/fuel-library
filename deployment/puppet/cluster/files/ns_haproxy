@@ -37,7 +37,7 @@ OCF_ROOT_default="/usr/lib/ocf"
 
 OCF_RESKEY_ns_default="haproxy"
 OCF_RESKEY_conffile_default="/etc/haproxy/haproxy.cfg"
-OCF_RESKEY_pidfile_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
+OCF_RESKEY_pidfile_default="/var/run/haproxy.pid"
 OCF_RESKEY_binpath_default="/usr/sbin/haproxy"
 OCF_RESKEY_extraconf_default=""
 
@@ -308,16 +308,6 @@ set_ns_routing() {
 
 haproxy_status() {
 	get_variables
-
-        # check and make PID file dir
-        local PID_DIR="$( dirname ${PIDFILE} )"
-        if [ ! -d "${PID_DIR}" ] ; then
-                ocf_log debug "Create pid file dir: ${PID_DIR}"
-                mkdir -p "${PID_DIR}"
-                # no need to chown, root is user for haproxy
-                chmod 755 "${PID_DIR}"
-        fi
-
 	if [ -n "${PIDFILE}" -a -f "${PIDFILE}" ]; then
 		# haproxy is probably running
 		# get pid from pidfile
@@ -344,7 +334,6 @@ haproxy_status() {
 haproxy_start()
 {
 	get_variables
-
 	# if haproxy is running return success
 	haproxy_status
 	retVal=$?
@@ -402,7 +391,6 @@ haproxy_stop()
 					return $OCF_ERR_GENERIC
 				fi
 			fi
-                        ocf_log debug "Delete pid file: ${PIDFILE} with content ${PID}"
 			rm -f "${PIDFILE}"
 		fi
 	fi

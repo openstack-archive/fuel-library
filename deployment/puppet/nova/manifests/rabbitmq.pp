@@ -118,12 +118,20 @@ class nova::rabbitmq(
         source => "puppet:///modules/nova/ocf/rabbitmq",
       }
 
+      # Disable OS-aware service, because rabbitmq-server managed by Pacemaker.
+      service {'rabbitmq-server__disabled':
+        name       => 'rabbitmq-server',
+        ensure     => 'stopped',
+        enable     => false,
+      }
+
       File<| title == 'ocf-mirantis-path' |> -> File['rabbitmq-ocf']
       Package['pacemaker'] -> File<| title == 'ocf-mirantis-path' |>
       Package['pacemaker'] -> File['rabbitmq-ocf']
       Package['rabbitmq-server'] ->
-        File['rabbitmq-ocf'] ->
-          Service["$service_name"]
+        Service['rabbitmq-server__disabled'] ->
+          File['rabbitmq-ocf'] ->
+            Service["$service_name"]
       if ($primary_controller) {
         cs_resource {"$service_name":
           ensure          => present,

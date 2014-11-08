@@ -1,7 +1,5 @@
 # Not a doc string
 
-#TODO (bogdando) move to extras ha wrappers,
-#  remove mangling due to new pcs provider
 define cluster::corosync::cs_service (
   $ocf_script,
   $service_name,
@@ -14,7 +12,7 @@ define cluster::corosync::cs_service (
   $csr_mon_intr = 20,
   $csr_mon_timeout = 20,
   $csr_timeout = 60,
-  $mangle_real_service = false,
+  $mangle_real_service = true,
   $primary = true,
   $hasrestart = true,
   )
@@ -25,7 +23,7 @@ define cluster::corosync::cs_service (
   }
 
   # OCF script for pacemaker
-  file { $ocf_script :
+  file {$ocf_script:
     path   => "/usr/lib/ocf/resource.d/mirantis/${ocf_script}",
     mode   => '0755',
     owner  => root,
@@ -56,12 +54,11 @@ define cluster::corosync::cs_service (
         }
       }
     }
-    File[$ocf_script] -> Cs_resource["p_${service_name}"] -> Service[$service_true_title]
+    File["$ocf_script"] -> Cs_resource["p_${service_name}"] -> Service["${service_true_title}"]
   } else {
-    File[$ocf_script] -> Service[$service_true_title]
+    File["$ocf_script"] -> Service["${service_true_title}"]
   }
 
-  # NOTE(bogdando) no need for mangling anymore with new pcs provider
   if $mangle_real_service {
     # If the service is defined elsewhere, then we need to disable it. Some
     # service manifests will do this for us (which is preferred)
@@ -72,11 +69,11 @@ define cluster::corosync::cs_service (
       hasstatus  => true,
       hasrestart => true
     }
-    Service["${service_name}-disable-init"] -> Service[$service_true_title]
+    Service["${service_name}-disable-init"] -> Service["${service_true_title}"]
 
     # In this IF used Package[$package_name] notation, because $package_name incoming parameter may be array.
     if ! $package_name {
-      warning('Cluster::cs_service: Without package definition can\'t mangle service correctly.')
+      warning("Cluster::cs_service: Without package definition can't mangle service correctly.")
     } else {
       if $::operatingsystem == 'Ubuntu' {
         # Ubuntu packages like to auto-start, this is annoying and makes it harder
@@ -102,14 +99,11 @@ define cluster::corosync::cs_service (
     ensure     => running,
     hasstatus  => true,
     hasrestart => $hasrestart,
-    provider   => 'pacemaker',
+    provider   => "pacemaker",
   }
   # This here, because it should be found AFTER previous Service.
-  # DO NOT change this order
-  # NOTE(bogdando) no need for mangling anymore with new pcs provider
-  if $mangle_real_service {
-    Service<| title=="${service_name}-disable-init" |> {
-      name       => $service_name,
-    }
+  # DO NOT change this order, or put this under any IF
+  Service<| title=="${service_name}-disable-init" |> {
+    name       => $service_name,
   }
 }
