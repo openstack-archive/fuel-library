@@ -678,7 +678,6 @@ class osnailyfacter::cluster_ha {
         use_syslog          => $::use_syslog,
         syslog_log_facility => $::syslog_log_facility_heat,
       }
-      include pacemaker_wrappers::heat
 
 
       if $murano_hash['enabled'] {

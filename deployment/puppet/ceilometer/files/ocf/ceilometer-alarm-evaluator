@@ -34,7 +34,7 @@
 OCF_RESKEY_binary_default="ceilometer-alarm-evaluator"
 OCF_RESKEY_config_default="/etc/ceilometer/ceilometer.conf"
 OCF_RESKEY_user_default="ceilometer"
-OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
+OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
@@ -180,15 +180,6 @@ ceilometer_alarm_evaluator_status() {
     local pid
     local rc
 
-    # check and make PID file dir
-    local PID_DIR="$( dirname ${OCF_RESKEY_pid} )"
-    if [ ! -d "${PID_DIR}" ] ; then
-        ocf_log debug "Create pid file dir: ${PID_DIR} and chown to ${OCF_RESKEY_user}"
-        mkdir -p "${PID_DIR}"
-        chown -R ${OCF_RESKEY_user} "${PID_DIR}"
-        chmod 755 "${PID_DIR}"
-    fi
-
     if [ ! -f $OCF_RESKEY_pid ]; then
         ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) is not running"
         return $OCF_NOT_RUNNING
@@ -196,14 +187,8 @@ ceilometer_alarm_evaluator_status() {
         pid=`cat $OCF_RESKEY_pid`
     fi
 
-    if [ -n "${pid}" ]; then
-      ocf_run -warn kill -s 0 $pid
-      rc=$?
-    else
-      ocf_log err "PID file ${OCF_RESKEY_pid} is empty!"
-      return $OCF_ERR_GENERIC
-    fi
-
+    ocf_run -warn kill -s 0 $pid
+    rc=$?
     if [ $rc -eq 0 ]; then
         return $OCF_SUCCESS
     else
@@ -243,7 +228,6 @@ ceilometer_alarm_evaluator_start() {
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
        $OCF_RESKEY_additional_parameters"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
 
-    ocf_log debug "Create pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     # Spin waiting for the server to come up.
     while true; do
     ceilometer_alarm_evaluator_monitor
@@ -308,7 +292,6 @@ ceilometer_alarm_evaluator_stop() {
 
     ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) stopped"
 
-    ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid
 
     return $OCF_SUCCESS

@@ -29,7 +29,7 @@ OCF_RESKEY_config_default="/etc/my.cnf"
 OCF_RESKEY_datadir_default="/var/lib/mysql"
 OCF_RESKEY_user_default="mysql"
 OCF_RESKEY_group_default="mysql"
-OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
+OCF_RESKEY_pid_default="/var/run/mysql/mysqld.pid"
 OCF_RESKEY_socket_default="/var/lib/mysql/mysql.sock"
 OCF_RESKEY_test_user_default="root"
 OCF_RESKEY_test_passwd_default=""
@@ -459,16 +459,6 @@ mysql_validate() {
 }
 
 mysql_status() {
-
-    # check and make PID file dir
-    pid_dir="$( dirname ${OCF_RESKEY_pid} )"
-    if [ ! -d "${pid_dir}" ] ; then
-        ocf_log info "Create PID dir: ${pid_dir} and chown to ${OCF_RESKEY_user}:${OCF_RESKEY_group}"
-        mkdir -p "${pid_dir}"
-        chown -R ${OCF_RESKEY_user}:${OCF_RESKEY_group} "${pid_dir}"
-        chmod 755 "${pid_dir}"
-    fi
-
     i=${2:-3}
     sleeptime=${3:-5}
     while [ $i -gt 0 ]
@@ -499,7 +489,6 @@ mysql_status() {
         return $OCF_SUCCESS;
     else
         ocf_log $1 "MySQL not running: removing old PID file"
-        ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
         rm -f $OCF_RESKEY_pid
         return $OCF_NOT_RUNNING;
     fi
@@ -569,12 +558,18 @@ mysql_start() {
         return $OCF_SUCCESS
     fi
 
-    socket_dir="$( dirname ${OCF_RESKEY_socket} )"
-    if [ ! -d "${socket_dir}" ] ; then
-        ocf_log info "Create socket dir: ${socket_dir} and chown to ${OCF_RESKEY_user}:${OCF_RESKEY_group}"
-        mkdir -p "${socket_dir}"
-        chown ${OCF_RESKEY_user}:${OCF_RESKEY_group} "${socket_dir}"
-        chmod 755 "${socket_dir}"
+    pid_dir=`dirname $OCF_RESKEY_pid`
+    if [ ! -d $pid_dir ] ; then
+        ocf_log info "Creating PID dir: $pid_dir"
+        mkdir -p $pid_dir
+        chown $OCF_RESKEY_user:$OCF_RESKEY_group $pid_dir
+    fi
+
+    socket_dir=`dirname $OCF_RESKEY_socket`
+    if [ ! -d $socket_dir ] ; then
+        ocf_log info "Creating socket dir: $socket_dir"
+        mkdir -p $socket_dir
+        chown $OCF_RESKEY_user:$OCF_RESKEY_group $socket_dir
     fi
 
     # Regardless of whether we just created the directory or it
@@ -679,15 +674,8 @@ mysql_stop() {
     fi
 
     ocf_log info "MySQL stopped";
-
-    ocf_log debug "Delete lock file: /var/lock/subsys/mysqld"
     rm -f /var/lock/subsys/mysqld
-
-    ocf_log debug "Delete sock file: ${OCF_RESKEY_socket}"
     rm -f $OCF_RESKEY_socket
-
-    ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
-    rm -f $OCF_RESKEY_pid
 
     update_node_gtid
 
