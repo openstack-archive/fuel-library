@@ -9,6 +9,7 @@ class mellanox_openstack::agent (
     $filters_dir          = $::mellanox_openstack::params::filters_dir
     $filters_file         = $::mellanox_openstack::params::filters_file
     $compute_service_name = $::mellanox_openstack::params::compute_service_name
+    $mlnx_agent_conf      = $::mellanox_openstack::params::mlnx_agent_conf
 
     # Only relevant for Debian since no package provides network.filters file
     if $::osfamily == 'Debian' {
@@ -34,6 +35,10 @@ class mellanox_openstack::agent (
         Service[$compute_service_name]
     }
 
+    file { $mlnx_agent_conf :
+        owner => 'neutron'
+    }
+
     mellanox_agent_config {
         'agent/rpc_support_old_agents'        : value => true;
         'eswitch/physical_interface_mappings' : value => "${physnet}:${physifc}";
@@ -51,6 +56,7 @@ class mellanox_openstack::agent (
     }
 
     Package[$package] ->
+    File[$mlnx_agent_conf] ->
     Mellanox_agent_config <||> ~>
     Service[$agent]
 

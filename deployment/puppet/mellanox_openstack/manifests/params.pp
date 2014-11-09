@@ -3,6 +3,7 @@ class mellanox_openstack::params {
   $eswitchd_package          = 'eswitchd'
   $filters_dir               = '/etc/nova/rootwrap.d'
   $filters_file              = "${filters_dir}/network.filters"
+  $mlnx_agent_conf           = '/etc/neutron/plugins/mlnx/mlnx_conf.ini'
 
   case $::osfamily {
     'RedHat': {
