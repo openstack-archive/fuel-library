@@ -45,7 +45,6 @@ describe Puppet::Provider::Pacemaker_common do
   before(:each) do
     @class = subject
     @class.stubs(:raw_cib).returns raw_cib
-    @class.stubs(:pcs).returns true
   end
 
   context 'configuration parser' do
@@ -84,7 +83,10 @@ describe Puppet::Provider::Pacemaker_common do
     it 'can produce nodes structure' do
       expect(@class.nodes).to be_a Hash
       expect(@class.nodes['node-1']['primitives']['p_heat-engine']['status']).to eq('start')
-      #puts @class.get_cluster_debug_report
+    end
+
+    it 'can determine the name of the DC node' do
+      expect(@class.dc).to eq 'node-1'
     end
 
     it 'can determite a global primitive status' do
@@ -157,41 +159,55 @@ describe Puppet::Provider::Pacemaker_common do
       expect(@class.primitive_is_clone? 'p_rabbitmq-server').to eq false
       expect(@class.primitive_is_clone? 'UNKNOWN').to eq nil
     end
-
   end
 
-  context 'cluster control' do
-    it 'can enable maintenance mode' do
-      @class.expects(:pcs).with 'property', 'set', 'maintenance-mode=true'
-      @class.maintenance_mode 'true'
+  context 'cluster properties' do
+    it 'can get cluster property value' do
+      expect(@class.cluster_property_value 'no-quorum-policy').to eq 'ignore'
+      expect(@class.cluster_property_value 'UNKNOWN').to be_nil
     end
 
-    it 'can disable maintenance mode' do
-      @class.expects(:pcs).with 'property', 'set', 'maintenance-mode=false'
-      @class.maintenance_mode 'false'
+    it 'can set cluster property value' do
+      @class.expects(:crm_attribute).returns true
+      @class.cluster_property_set 'no-quorum-policy', 'ignore'
     end
 
-    it 'can set no-quorum policy' do
-      @class.expects(:pcs).with 'property', 'set', 'no-quorum-policy=ignore'
-      @class.no_quorum_policy 'ignore'
+    it 'can delete cluster property value' do
+      @class.expects(:crm_attribute).returns true
+      @class.cluster_property_delete 'no-quorum-policy'
+    end
+
+    it 'can determine if a property is defined' do
+      expect(@class.cluster_property_defined? 'no-quorum-policy').to eq(true)
+      expect(@class.cluster_property_defined? 'UNKNOWN').to eq(false)
     end
   end
 
   context 'constraints control' do
+    it 'can get the constraints structure from the CIB XML' do
+      expect(@class.constraints).to be_a(Hash)
+      expect(@class.constraints['clone_p_haproxy-on-node-1']).to be_a(Hash)
+    end
+
+    it 'can determine that location constraint exists' do
+      expect(@class.constraint_location_exists? 'clone_p_haproxy', 'node-1').to eq(true)
+      expect(@class.constraint_location_exists? 'clone_p_haproxy', 'UNKNOWN').to eq(false)
+    end
+
     it 'can add location constraint' do
-      @class.expects(:pcs).with 'constraint', 'location', 'add', 'myprimitive_on_mynode', 'myprimitive', 'mynode', '200'
+      @class.expects(:apply_cib_patch).returns true
       @class.constraint_location_add 'myprimitive', 'mynode', '200'
     end
 
     it 'can remove location constraint' do
-      @class.expects(:pcs).with 'constraint', 'location', 'remove', 'myprimitive_on_mynode'
+      @class.expects(:apply_cib_patch).returns true
       @class.constraint_location_remove 'myprimitive', 'mynode'
     end
   end
 
   context 'wait functions' do
     it 'retries block until it becomes true' do
-      @class.retry_block_until_true { true }
+      @class.retry_block { true }
     end
 
     it 'waits for Pacemaker to become ready' do
