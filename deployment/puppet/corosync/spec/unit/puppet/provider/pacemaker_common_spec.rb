@@ -58,8 +58,9 @@ describe Puppet::Provider::Pacemaker_common do
     end
 
     it 'can get primitives section of CIB XML' do
-      expect(@class.cib_section_primitives.to_s).to start_with '<primitive'
-      expect(@class.cib_section_primitives.to_s).to end_with '</primitive>'
+      expect(@class.cib_section_primitives).to be_a(Array)
+      expect(@class.cib_section_primitives.first.to_s).to start_with '<primitive'
+      expect(@class.cib_section_primitives.first.to_s).to end_with '</primitive>'
     end
 
     it 'can get primitives configuration' do
@@ -174,9 +175,24 @@ describe Puppet::Provider::Pacemaker_common do
       @class.expects(:pcs).with 'property', 'set', 'no-quorum-policy=ignore'
       @class.no_quorum_policy 'ignore'
     end
+
+    it 'can get cluster property value' do
+      require 'pry'
+      binding.pry
+    end
   end
 
   context 'constraints control' do
+    it 'can get the constraints structure from the CIB XML' do
+      expect(@class.constraints).to be_a(Hash)
+      expect(@class.constraints['clone_p_haproxy_on_node-1']).to be_a(Hash)
+    end
+
+    it 'can determine that location constraint exists' do
+      expect(@class.constraint_location_exists? 'clone_p_haproxy', 'node-1').to eq(true)
+      expect(@class.constraint_location_exists? 'clone_p_haproxy', 'UNKNOWN').to eq(false)
+    end
+
     it 'can add location constraint' do
       @class.expects(:pcs).with 'constraint', 'location', 'add', 'myprimitive_on_mynode', 'myprimitive', 'mynode', '200'
       @class.constraint_location_add 'myprimitive', 'mynode', '200'
@@ -199,10 +215,10 @@ describe Puppet::Provider::Pacemaker_common do
     end
 
     it 'cleanups primitive and waits for it to become online again' do
-      @class.stubs(:cleanup_primitive).with('myprimitive').returns true
+      @class.stubs(:cleanup_primitive).with('myprimitive', 'mynode').returns true
       @class.stubs(:cib_reset).returns true
       @class.stubs(:primitive_status).returns 'stopped'
-      @class.cleanup_with_wait 'myprimitive'
+      @class.cleanup_with_wait 'myprimitive', 'mynode'
     end
 
     it 'waits for the service to start' do
