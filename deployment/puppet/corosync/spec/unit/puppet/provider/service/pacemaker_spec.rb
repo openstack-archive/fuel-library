@@ -46,7 +46,7 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
     @class.stubs(:constraint_location_add).returns(true)
     @class.stubs(:constraint_location_remove).returns(true)
 
-    @class.stubs(:get_cluster_debug_report).returns(true)
+    @class.stubs(:cluster_debug_report).returns(true)
   end
 
   context 'service name mangling' do
@@ -66,6 +66,15 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
     it 'uses name without "p_" to disable basic service' do
       @class.stubs(:name).returns(name)
       expect(@class.basic_service_name).to eq(title)
+    end
+
+    it 'can work with complex name instead of simple' do
+      @class.unstub(:name)
+      @class.stubs(:title).returns(full_name)
+      @class.stubs(:primitive_exists?).with('p_' + full_name).returns(false)
+      @class.stubs(:primitive_exists?).with(full_name).returns(false)
+      @class.stubs(:primitive_exists?).with(name).returns(true)
+      expect(@class.name).to eq(name)
     end
   end
 
@@ -126,7 +135,7 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
       @class.start
     end
 
-    it 'waits for the service to start locally if primitive is clone' do
+    it 'waits for the service to start anywhere if primitive is clone' do
       @class.stubs(:primitive_is_clone?).returns(true)
       @class.stubs(:primitive_is_multistate?).returns(false)
       @class.stubs(:primitive_is_complex?).returns(true)
@@ -170,8 +179,19 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
       @class.start
     end
 
-    it 'uses Ban to stop the service and waits for it to stop locally if service is complex' do
+    it 'uses Ban to stop the service and waits for it to stop locally if service is clone' do
       @class.stubs(:primitive_is_complex?).returns(true)
+      @class.stubs(:primitive_is_clone?).returns(true)
+      @class.stubs(:primitive_is_multistate?).returns(false)
+      @class.expects(:wait_for_stop).with name, hostname
+      @class.expects(:ban_primitive).with name, hostname
+      @class.stop
+    end
+
+    it 'uses Ban to stop the service and waits for it to stop locally if service is multistate' do
+      @class.stubs(:primitive_is_complex?).returns(true)
+      @class.stubs(:primitive_is_clone?).returns(false)
+      @class.stubs(:primitive_is_multistate?).returns(true)
       @class.expects(:wait_for_stop).with name, hostname
       @class.expects(:ban_primitive).with name, hostname
       @class.stop
