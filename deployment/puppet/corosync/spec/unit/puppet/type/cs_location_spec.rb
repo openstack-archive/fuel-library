@@ -1,70 +1,238 @@
 require 'spec_helper'
 
 describe Puppet::Type.type(:cs_location) do
+
   subject do
     Puppet::Type.type(:cs_location)
   end
 
-  it "should have a 'name' parameter" do
-    subject.new(:name => "mock_resource")[:name].should == "mock_resource"
+  it 'should have a "name" parameter' do
+    expect(
+        subject.new(
+            :name => 'mock_resource',
+            :node_name => 'node',
+            :node_score => '100',
+            :primitive => 'my_primitive'
+        )[:name]
+    ).to eq('mock_resource')
   end
 
-  describe "basic structure" do
-    it "should be able to create an instance" do
-      provider_class = Puppet::Type::Cs_location.provider(Puppet::Type::Cs_location.providers[0])
-      Puppet::Type::Cs_location.expects(:defaultprovider).returns(provider_class)
-      subject.new(:name => "mock_resource").should_not be_nil
+  context 'basic structure' do
+    it 'should be able to create an instance' do
+      expect(
+          subject.new(
+              :name => 'mock_resource',
+              :node_name => 'node',
+              :node_score => '100',
+              :primitive => 'my_primitive'
+          )
+      ).to_not be_nil
     end
 
-    [:cib, :name ].each do |param|
+    [:cib, :name].each do |param|
       it "should have a #{param} parameter" do
-        subject.validparameter?(param).should be_true
+        expect(subject.validparameter?(param)).to be_truthy
       end
 
       it "should have documentation for its #{param} parameter" do
-        subject.paramclass(param).doc.should be_instance_of(String)
+        expect(subject.paramclass(param).doc).to be_a(String)
       end
     end
 
-    [:primitive,:node_score,:rules,:node].each do |property|
+    [:primitive, :node_score, :rules, :node_name].each do |property|
       it "should have a #{property} property" do
-        subject.validproperty?(property).should be_true
+        expect(subject.validproperty?(property)).to be_truthy
       end
       it "should have documentation for its #{property} property" do
-        subject.propertybyname(property).doc.should be_instance_of(String)
+        expect(subject.propertybyname(property).doc).to be_a(String)
       end
-
     end
 
   end
 
-  describe "when autorequiring resources" do
+  context 'validation and munging' do
 
+    context 'node_score' do
+      it 'should allow only correct node_score values' do
+        expect {
+          subject.new(
+              :name => 'mock_resource',
+              :primitive => 'my_primitive',
+              :node_name => 'node',
+              :node_score => 'test'
+          )
+        }.to raise_error
+        expect(subject.new(
+                   :name => 'mock_resource',
+                   :primitive => 'my_primitive',
+                   :node_name => 'node',
+                   :node_score => '100'
+               )).to_not be_nil
+        expect(subject.new(
+                   :name => 'mock_resource',
+                   :primitive => 'my_primitive',
+                   :node_name => 'node',
+                   :node_score => 'inf'
+               )).to_not be_nil
+      end
+
+      it 'should change inf to INFINITY' do
+        expect(
+            subject.new(
+                :name => 'mock_resource',
+                :primitive => 'my_primitive',
+                :node_name => 'node',
+                :node_score => 'inf'
+            )[:node_score]
+        ).to eq 'INFINITY'
+        expect(
+            subject.new(
+                :name => 'mock_resource',
+                :primitive => 'my_primitive',
+                :node_name => 'node',
+                :node_score => '-inf'
+            )[:node_score]
+        ).to eq '-INFINITY'
+      end
+    end
+
+    context 'rules' do
+      it 'should stringify keys and values' do
+        expect(
+            subject.new(
+                :name => 'mock_resource',
+                :primitive => 'my_primitive',
+                :rules => {
+                    'id' => 'test',
+                    'boolean-op' => :or,
+                    :a => 1,
+                    2 => :c
+                }
+            )[:rules].first
+        ).to eq({
+                    'boolean-op' => 'or',
+                    'id' => 'test',
+                    '2' => 'c',
+                    'a' => '1'
+                })
+      end
+      it 'should generate missing rule id' do
+        expect(
+            subject.new(
+                :name => 'mock_resource',
+                :primitive => 'my_primitive',
+                :rules => {
+                    'a' => '1',
+                    'boolean-op' => 'or'
+                }
+            )[:rules].first
+        ).to eq({
+                    'boolean-op' => 'or',
+                    'id' => 'mock_resource-rule-0',
+                    'a' => '1'
+                })
+      end
+      it 'should add missing boolean-op' do
+        expect(
+            subject.new(
+                :name => 'mock_resource',
+                :primitive => 'my_primitive',
+                :rules => {
+                    'id' => 'test'
+                }
+            )[:rules].first
+        ).to eq({
+                    'boolean-op' => 'or',
+                    'id' => 'test'
+                })
+      end
+      it 'should change rule score from inf to INFINITY' do
+        expect(
+            subject.new(
+                :name => 'mock_resource',
+                :primitive => 'my_primitive',
+                :rules => {
+                    'id' => 'test',
+                    'boolean-op' => 'and',
+                    'score' => 'inf'
+                }
+            )[:rules].first
+        ).to eq({
+                    'boolean-op' => 'and',
+                    'id' => 'test',
+                    'score' => 'INFINITY'
+                })
+      end
+      it 'should generate missing expression id' do
+        expect(
+            subject.new(
+                :name => 'mock_resource',
+                :primitive => 'my_primitive',
+                :rules => {
+                    :score => 'inf',
+                    :id => 'test',
+                    :expressions => [
+                        {
+                            :attribute => 'pingd1',
+                            :operation => 'defined',
+                            :id => 'first_expression',
+                        },
+                        {
+                            :attribute => 'pingd2',
+                            :operation => 'defined',
+                        }
+                    ]
+                }
+            )[:rules].first
+        ).to eq({'score' => 'INFINITY', 'id' => 'test', 'boolean-op' => 'or',
+                 'expressions' => [
+                     {
+                         'operation' => 'defined',
+                         'attribute' => 'pingd1',
+                         'id' => 'first_expression',
+                     },
+                     {
+                         'operation' => 'defined',
+                         'attribute' => 'pingd2',
+                         'id' => 'mock_resource-rule-0-expression-1',
+                     }
+                 ]
+                })
+      end
+    end
+  end
+
+  describe 'when autorequiring resources' do
     before :each do
-      @csresource_foo = Puppet::Type.type(:cs_resource).new(:name => 'foo', :ensure => :present)
-      @shadow = Puppet::Type.type(:cs_shadow).new(:name => 'baz',:cib=>"baz")
+      @csresource_foo = Puppet::Type.type(:cs_resource).new(
+          :name => 'foo',
+          :ensure => :present
+      )
+      @csshadow = Puppet::Type.type(:cs_shadow).new(
+          :name => 'baz',
+          :cib => 'baz'
+      )
       @catalog = Puppet::Resource::Catalog.new
-      @catalog.add_resource @shadow, @csresource_foo
+      @catalog.add_resource @csshadow, @csresource_foo
     end
 
-    it "should autorequire the corresponding resources" do
-
-      @resource = described_class.new(:name => 'dummy', :primitive => 'foo', :cib=>"baz")
-
+    it 'should autorequire the corresponding resources' do
+      @resource = described_class.new(
+          :name => 'mock_resource',
+          :primitive => 'foo',
+          :node_name => 'node',
+          :node_score => '100',
+          :cib => 'baz'
+      )
       @catalog.add_resource @resource
-      req = @resource.autorequire
-      req.size.should == 2
-      req.each do |e|
-        #rewrite this f*cking should method of property type by the ancestor method
-        class << e.target
-          def should(*args)
-            Object.instance_method(:should).bind(self).call(*args)
-          end
-        end
-        e.target.should eql(@resource)
-        [@csresource_foo,@shadow].should include(e.source)
+      required_resources = @resource.autorequire
+      expect(required_resources.size).to eq 2
+      required_resources.each do |e|
+        expect(e.target).to eq(@resource)
+        expect([@csresource_foo, @csshadow]).to include e.source
       end
     end
-
   end
+
+
 end
