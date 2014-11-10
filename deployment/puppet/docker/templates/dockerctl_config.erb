@@ -138,7 +138,9 @@ for requirement in "${!REQS[@]}"; do
   done
 done
 
-
 #backup settings
 SYSTEM_DIRS="/etc/puppet /etc/fuel /var/www/nailgun /root/.ssh"
 BACKUP_ROOT="/var/backup/fuel"
+
+# number of retries for "docker check"
+CHECK_RETRIES=240
