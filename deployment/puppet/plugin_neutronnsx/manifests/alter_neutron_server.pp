@@ -28,7 +28,7 @@ class plugin_neutronnsx::alter_neutron_server (
   }
 
   Neutron_subnet <| title == 'net04__subnet' |> {
-    gateway => false,
+    gateway_ip => false,
   }
 
   if $::osfamily =~ /(?i)debian/ {
