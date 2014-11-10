@@ -59,6 +59,9 @@
 #  [*auth_uri*]
 #    (optional) Complete public Identity API endpoint.
 #
+#  [*identity_uri*]
+#    (optional) Complete admin Identity API endpoint.
+#
 #  [*keystone_tenant*]
 #    (optional) administrative tenant name to connect to keystone.
 #    Defaults to 'services'.
@@ -115,6 +118,7 @@ class glance::registry(
   $auth_port         = '35357',
   $auth_admin_prefix = false,
   $auth_uri          = false,
+  $identity_uri      = false,
   $auth_protocol     = 'http',
   $keystone_tenant   = 'services',
   $keystone_user     = 'glance',
@@ -186,6 +190,16 @@ class glance::registry(
   }
 
   # auth config
+  if $identity_uri {
+    glance_registry_config { 'keystone_authtoken/identity_uri':  value => $identity_uri; }
+  } else {
+    if $auth_admin_prefix {
+      glance_registry_config { 'keystone_authtoken/identity_uri':  value => "${auth_protocol}://${auth_host}:${auth_port}/${auth_admin_prefix}"; }
+    } else {
+      glance_registry_config { 'keystone_authtoken/identity_uri':  value => "${auth_protocol}://${auth_host}:${auth_port}/"; }
+    }
+  }
+
   glance_registry_config {
     'keystone_authtoken/auth_host':     value => $auth_host;
     'keystone_authtoken/auth_port':     value => $auth_port;
