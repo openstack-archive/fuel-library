@@ -1,6 +1,7 @@
 module Puppet
   newtype(:cs_commit) do
-    @doc = "This type is an implementation detail. DO NOT use it directly"
+    desc 'This type is an implementation detail. DO NOT use it directly'
+
     newproperty(:cib) do
       def sync
         provider.sync(self.should)
@@ -21,46 +22,48 @@ module Puppet
       isnamevar
     end
 
-    autorequire(:cs_shadow) do
-      [ @parameters[:cib].should ]
-    end
-
     autorequire(:service) do
-      [ 'corosync' ]
-    end
-
-    autorequire(:cs_resource) do
-      resources_with_cib :cs_resource
+      ['corosync']
     end
 
     autorequire(:cs_location) do
       resources_with_cib :cs_location
     end
 
-    autorequire(:cs_colocation) do
-      resources_with_cib :cs_colocation
+    autorequire(:cs_resource) do
+      resources_with_cib :cs_resource
+    end
+
+    autorequire(:cs_property) do
+      resources_with_cib :cs_property
     end
 
     autorequire(:cs_order) do
       resources_with_cib :cs_order
     end
 
-    autorequire(:cs_property) do
-      resources_with_cib :cs_order
+    autorequire(:cs_colocation) do
+      resources_with_cib :cs_colocation
     end
 
     autorequire(:cs_group) do
-      resources_with_cib :cs_order
+      resources_with_cib :cs_group
     end
 
-    def resources_with_cib(cib)
-      autos = []
+    autorequire(:cs_shadow) do
+      [parameter(:cib).value] if parameter :cib
+    end
 
-      catalog.resources.find_all { |r| r.is_a?(Puppet::Type.type(cib)) and param = r.parameter(:cib) and param.value == @parameters[:cib].should }.each do |r|
-        autos << r
+    def resources_with_cib(cs_resource_type)
+      cs_resource_names = []
+      catalog.resources.each do |r|
+        next unless r.is_a? Puppet::Type.type(cs_resource_type)
+        cib_param = r.parameter(:cib)
+        next unless cib_param.value == @parameters[:cib].value
+        cs_resource_names << r.parameter(:name).value
       end
-
-      autos
+      cs_resource_names
     end
+
   end
 end
