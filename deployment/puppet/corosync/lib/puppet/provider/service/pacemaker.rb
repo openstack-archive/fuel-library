@@ -95,9 +95,6 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     if primitive_is_multistate? name
       Puppet.debug "Choose master start for Pacemaker service '#{name}'"
       wait_for_master name
-    elsif primitive_is_clone? name
-      Puppet.debug "Choose local start for Pacemaker service '#{name}' on node '#{hostname}'"
-      wait_for_start name, hostname
     else
       Puppet.debug "Choose global start for Pacemaker service '#{name}'"
       wait_for_start name
