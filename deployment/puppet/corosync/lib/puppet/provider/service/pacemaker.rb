@@ -5,9 +5,36 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   has_feature :enableable
   has_feature :refreshable
 
+  # how do we determine that the service have been started?
+  # :global - The service is running on any node
+  # :master - The service is running in the master mode on any node
+  # :local  - The service is running on the local node
+  START_MODE_MULTISTATE = :master
+  START_MODE_CLONE      = :global
+  START_MODE_SIMPLE     = :global
+
+  # what method should be used to stop the service?
+  # :global - Stop the running service by disabling it
+  # :local  - Stop the locally running service by banning it on this node
+  STOP_MODE_MULTISTATE = :local
+  STOP_MODE_CLONE      = :local
+  STOP_MODE_SIMPLE     = :global
+
+  # what service is considered running?
+  # :global - The service is running on any node
+  # :local  - The service is running on the local node
+  STATUS_MODE_MULTISTATE = :local
+  STATUS_MODE_CLONE      = :local
+  STATUS_MODE_SIMPLE     = :local
+
+  # try to stop and disable the basic init/upstart service
+  DISABLE_BASIC_SERVICE   = true
+  # add location constraint to allow the service on the current node
+  # useful for asymmetric cluster mode
+  ADD_LOCATION_CONSTRAINT = true
+
   commands :uname => 'uname'
   commands :pcs => 'pcs'
-  commands :cibadmin => 'cibadmin'
 
   # hostname of the current node
   # @return [String]
@@ -32,9 +59,15 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
       @name = primitive_name
       return @name
     end
-    primitive_name = "p_#{primitive_name}"
+    primitive_name = "p_#{title}"
     if primitive_exists? primitive_name
       Puppet.debug "Using '#{primitive_name}' name instead of '#{title}'"
+      @name = primitive_name
+      return @name
+    end
+    primitive_name = title.gsub /(ms-)|(clone-)/, ''
+    if primitive_exists? primitive_name
+      Puppet.debug "Using simple name '#{primitive_name}' instead of '#{title}'"
       @name = primitive_name
       return @name
     end
@@ -76,9 +109,15 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     wait_for_online
     Puppet.debug "Call: 'status' for Pacemaker service '#{name}' on node '#{hostname}'"
     cib_reset
-    out = get_primitive_puppet_status name, hostname
-    Puppet.debug get_cluster_debug_report
+    if primitive_is_multistate? name
+      out = service_status_mode STATUS_MODE_MULTISTATE
+    elsif primitive_is_clone? name
+      out = service_status_mode STATUS_MODE_CLONE
+    else
+      out = service_status_mode STATUS_MODE_SIMPLE
+    end
     Puppet.debug "Return: '#{out}' (#{out.class})"
+    Puppet.debug get_cluster_debug_report
     out
   end
 
@@ -86,8 +125,8 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   def start
     Puppet.debug "Call 'start' for Pacemaker service '#{name}' on node '#{hostname}'"
     enable unless primitive_is_managed? name
-    disable_basic_service
-    constraint_location_add name, hostname
+    disable_basic_service if DISABLE_BASIC_SERVICE
+    constraint_location_add name, hostname if ADD_LOCATION_CONSTRAINT
     unban_primitive name, hostname
     start_primitive name
     cleanup_with_wait name if primitive_has_failures? name
@@ -96,9 +135,9 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
       Puppet.debug "Choose master start for Pacemaker service '#{name}'"
       wait_for_master name
     else
-      Puppet.debug "Choose global start for Pacemaker service '#{name}'"
-      wait_for_start name
+      service_start_mode START_MODE_SIMPLE
     end
+    Puppet.debug get_cluster_debug_report
   end
 
   # called by Puppet to stop the service
@@ -107,15 +146,14 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     enable unless primitive_is_managed? name
     cleanup_with_wait name if primitive_has_failures? name
 
-    if primitive_is_complex? name
-      Puppet.debug "Choose local stop for Pacemaker service '#{name}' on node '#{hostname}'"
-      ban_primitive name, hostname
-      wait_for_stop name, hostname
+    if primitive_is_multistate? name
+      service_stop_mode STOP_MODE_MULTISTATE
+    elsif primitive_is_clone? name
+      service_stop_mode STOP_MODE_CLONE
     else
-      Puppet.debug "Choose global stop for Pacemaker service '#{name}'"
-      stop_primitive name
-      wait_for_stop name
+      service_stop_mode STOP_MODE_SIMPLE
     end
+    Puppet.debug get_cluster_debug_report
   end
 
   # called by Puppet to restart the service
@@ -135,6 +173,57 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     end
   end
 
+  # wait for the service to start using
+  # the selected method.
+  # @param mode [:global, :master, :local]
+  def service_start_mode(mode = :global)
+    if mode == :master
+      Puppet.debug "Choose master start for Pacemaker service '#{name}'"
+      wait_for_master name
+    elsif mode == :local
+      Puppet.debug "Choose local start for Pacemaker service '#{name}' on node '#{hostname}'"
+      wait_for_start name, hostname
+    elsif :global
+      Puppet.debug "Choose global start for Pacemaker service '#{name}'"
+      wait_for_start name
+    else
+      fail "Unknown service start mode '#{mode}'"
+    end
+  end
+
+  # wait for the service to stop using
+  # the selected method.
+  # @param mode [:global, :master, :local]
+  def service_stop_mode(mode = :global)
+    if mode == :local
+      Puppet.debug "Choose local stop for Pacemaker service '#{name}' on node '#{hostname}'"
+      ban_primitive name, hostname
+      wait_for_stop name, hostname
+    elsif mode == :global
+      Puppet.debug "Choose global stop for Pacemaker service '#{name}'"
+      stop_primitive name
+      wait_for_stop name
+    else
+      fail "Unknown service stop mode '#{mode}'"
+    end
+  end
+
+  # determine the status of the service using
+  # the selected method.
+  # @param mode [:global, :master, :local]
+  # @return [:running,:stopped]
+  def service_status_mode(mode = :local)
+    if mode == :local
+      Puppet.debug "Choose local status for Pacemaker service '#{name}' on node '#{hostname}'"
+      get_primitive_puppet_status name, hostname
+    elsif mode == :global
+      Puppet.debug "Choose global status for Pacemaker service '#{name}'"
+      get_primitive_puppet_status name
+    else
+      fail "Unknown service status mode '#{mode}'"
+    end
+  end
+
   # called by Puppet to enable the service
   def enable
     Puppet.debug "Call 'enable' for Pacemaker service '#{name}' on node '#{hostname}'"
@@ -146,6 +235,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     Puppet.debug "Call 'disable' for Pacemaker service '#{name}' on node '#{hostname}'"
     unmanage_primitive name
   end
+
   alias :manual_start :disable
 
   # called by Puppet to determine if the service is enabled
