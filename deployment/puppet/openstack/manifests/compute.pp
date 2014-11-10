@@ -463,26 +463,51 @@ on packages update": }
   # compute installation
   if $network_provider == 'nova' {
 
-    class { 'nova::api':
-      ensure_package       => $::openstack_version['nova'],
-      enabled              => true,
-      admin_tenant_name    => 'services',
-      admin_user           => 'nova',
-      admin_password       => $nova_user_password,
-      enabled_apis         => $enabled_apis,
-      api_bind_address     => $internal_address,
-      auth_host            => $service_endpoint,
-      ratelimits           => $nova_rate_limits,
-      # NOTE(bogdando) 1 api worker for compute node is enough
-      osapi_compute_workers => 1,
-    }
-
     if ! $fixed_range {
       fail('Must specify the fixed range when using nova-networks')
     }
 
     if $multi_host {
       include keystone::python
+
+      case $::osfamily {
+        'RedHat': {
+          $pymemcache_package_name      = 'python-memcached'
+        }
+        'Debian': {
+          $pymemcache_package_name      = 'python-memcache'
+        }
+        default: {
+          fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem},\
+                module ${module_name} only support osfamily RedHat and Debian")
+        }
+      }
+      if !defined(Package[$pymemcache_package_name]) {
+        package { $pymemcache_package_name:
+          ensure => present,
+        } ->
+        Nova::Generic_service <| title == 'api' |>
+      }
+
+      class { 'nova::api':
+        ensure_package       => $::openstack_version['nova'],
+        enabled              => true,
+        admin_tenant_name    => 'services',
+        admin_user           => 'nova',
+        admin_password       => $nova_user_password,
+        enabled_apis         => $enabled_apis,
+        api_bind_address     => $internal_address,
+        auth_host            => $service_endpoint,
+        ratelimits           => $nova_rate_limits,
+        # NOTE(bogdando) 1 api worker for compute node is enough
+        osapi_compute_workers => 1,
+      }
+
+      if($::operatingsystem == 'Ubuntu') {
+        tweaks::ubuntu_service_override { 'nova-api':
+          package_name => 'nova-api',
+        }
+      }
 
       nova_config {
         'DEFAULT/multi_host':      value => 'True';
@@ -499,8 +524,6 @@ on packages update": }
       if $auto_assign_floating_ip {
         nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
       }
-
-
     } else {
       $enable_network_service = false
 
@@ -510,7 +533,7 @@ on packages update": }
       }
     }
 
-  # From legacy network.pp
+    # From legacy network.pp
     if $network_manager !~ /VlanManager$/ {
       $config_overrides = delete($network_config, 'vlan_start')
     } else {
@@ -550,9 +573,6 @@ on packages update": }
 
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
-    tweaks::ubuntu_service_override { 'nova-api':
-      package_name => 'nova-api',
-    }
     tweaks::ubuntu_service_override { 'nova-compute':
       package_name => 'nova-compute',
     }
