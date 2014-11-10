@@ -1,7 +1,7 @@
 uwsgi:
   enable-threads: 1
   threads: 1
-  workers: <%= (@physicalprocessorcount) %>
+  workers: <%= (2 * @physicalprocessorcount.to_i) %>
   master: 1
   socket: :8001
   plugin: python
@@ -11,5 +11,6 @@ uwsgi:
   virtualenv: <%= @venv %>
   module: nailgun.wsgi
   buffer-size: 49180
+  listen: 4096
   pidfile: /tmp/nailgun.pid
   logto: /var/log/nailgun/app.log
