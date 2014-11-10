@@ -2,21 +2,22 @@ require 'rexml/document'
 
 class Puppet::Provider::Pacemaker_common < Puppet::Provider
 
-  @raw_cib = nil
   @cib = nil
   @primitives = nil
   @primitives_structure = nil
 
-  RETRY_COUNT = 100
-  RETRY_STEP = 6
+  RETRY_COUNT = 360
+  RETRY_STEP = 5
 
-  # get a raw CIB from cibadmin
-  # or from a debug file if raw_cib_file is set
+  # CIB and its sections
+  ######################
+
+  # get the raw CIB from Pacemaker
   # @return [String] cib xml
   def raw_cib
-    @raw_cib = cibadmin '-Q'
-    if @raw_cib == '' or not @raw_cib
-      fail 'Could not dump CIB XML using "cibadmin -Q" command!'
+    @raw_cib = pcs 'cluster', 'cib'
+    if ! @raw_cib or @raw_cib == ''
+        fail 'Could not dump CIB XML!'
     end
     @raw_cib
   end
@@ -72,6 +73,9 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     REXML::XPath.match lrm, 'lrm_resources/lrm_resource'
   end
 
+  # Status calculations
+  #####################
+
   # determine the status of a single operation
   # @param op [Hash<String => String>]
   # @return ['start','stop','master',nil]
@@ -119,30 +123,6 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
       status = op_status if op_status
     end
     status
-  end
-
-  # check if operations have same failed operations
-  # that should be cleaned up later
-  # @param ops [Array<Hash>]
-  # @return [TrueClass,FalseClass]
-  def failed_operations_found?(ops)
-    ops.each do |op|
-      # skip incompleate ops
-      next unless op['op-status'] == '0'
-      # skip useless ops
-      next unless %w(start stop monitor promote).include? op['operation']
-
-      # are there failed start, stop
-      if %w(start stop promote).include? op['operation']
-        return true if op['rc-code'] != '0'
-      end
-
-      # are there failed monitors
-      if op['operation'] == 'monitor'
-        return true unless %w(0 7 8).include? op['rc-code']
-      end
-    end
-    false
   end
 
   # convert elements's attributes to hash
@@ -224,155 +204,28 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     @nodes_structure
   end
 
-  # get primitives configuration structure with primitives and their attributes
-  # @return [Hash<String => Hash>]
-  def primitives
-    return @primitives_structure if @primitives_structure
-    @primitives_structure = {}
-    cib_section_primitives.each do |primitive|
-      primitive_structure = {}
-      id = primitive.attributes['id']
-      next unless id
-      primitive_structure.store 'name', id
-      primitive.attributes.each do |k, v|
-        primitive_structure.store k.to_s, v
+  # check if operations have same failed operations
+  # that should be cleaned up later
+  # @param ops [Array<Hash>]
+  # @return [TrueClass,FalseClass]
+  def failed_operations_found?(ops)
+    ops.each do |op|
+      # skip incompleate ops
+      next unless op['op-status'] == '0'
+      # skip useless ops
+      next unless %w(start stop monitor promote).include? op['operation']
+
+      # are there failed start, stop
+      if %w(start stop promote).include? op['operation']
+        return true if op['rc-code'] != '0'
       end
 
-      if primitive.parent.name and primitive.parent.attributes['id']
-        parent_structure = {
-            'id' => primitive.parent.attributes['id'],
-            'type' => primitive.parent.name
-        }
-        primitive_structure.store 'name', parent_structure['id']
-        primitive_structure.store 'parent', parent_structure
+      # are there failed monitors
+      if op['operation'] == 'monitor'
+        return true unless %w(0 7 8).include? op['rc-code']
       end
-
-      instance_attributes = primitive.elements['instance_attributes']
-      if instance_attributes
-        instance_attributes_structure = elements_to_hash instance_attributes, 'name', 'nvpair'
-        primitive_structure.store 'instance_attributes', instance_attributes_structure
-      end
-
-      meta_attributes = primitive.elements['meta_attributes']
-      if meta_attributes
-        meta_attributes_structure = elements_to_hash meta_attributes, 'name', 'nvpair'
-        primitive_structure.store 'meta_attributes', meta_attributes_structure
-      end
-
-      operations = primitive.elements['operations']
-      if operations
-        operations_structure = elements_to_hash operations, 'id', 'op'
-        primitive_structure.store 'operations', operations_structure
-      end
-
-      @primitives_structure.store id, primitive_structure
     end
-    @primitives_structure
-  end
-
-  # check if primitive is clone or multistate
-  # @param primitive [String] primitive id
-  # @return [TrueClass,FalseClass]
-  def primitive_is_complex?(primitive)
-    return unless primitive_exists? primitive
-    primitives[primitive].key? 'parent'
-  end
-
-  # check if primitive is clone
-  # @param primitive [String] primitive id
-  # @return [TrueClass,FalseClass]
-  def primitive_is_clone?(primitive)
-    is_complex = primitive_is_complex? primitive
-    return is_complex unless is_complex
-    primitives[primitive]['parent']['type'] == 'clone'
-  end
-
-  # check if primitive is multistate
-  # @param primitive [String] primitive id
-  # @return [TrueClass,FalseClass]
-  def primitive_is_multistate?(primitive)
-    is_complex = primitive_is_complex? primitive
-    return is_complex unless is_complex
-    primitives[primitive]['parent']['type'] == 'master'
-  end
-
-  # stop this primitive
-  # @param primitive [String]
-  def stop_primitive(primitive)
-    pcs 'resource', 'meta', primitive, 'target-role=Stopped'
-  end
-
-  # start this primitive
-  # @param primitive [String]
-  def start_primitive(primitive)
-    pcs 'resource', 'meta', primitive, 'target-role=Started'
-  end
-
-  # ban this primitive
-  # @param primitive [String]
-  def ban_primitive(primitive, node = '')
-    pcs 'resource', 'ban', primitive, node
-  end
-
-  # move this primitive
-  # @param primitive [String]
-  def move_primitive(primitive, node = '')
-    pcs 'resource', 'move',  primitive, node
-  end
-
-  # unban/unmove this primitive
-  # @param primitive [String]
-  def unban_primitive(primitive, node = '')
-    pcs 'resource', 'clear',  primitive, node
-  end
-  alias :clear_primitive :unban_primitive
-  alias :unmove_primitive :unban_primitive
-
-  # cleanup this primitive
-  # @param primitive [String]
-  def cleanup_primitive(primitive)
-    pcs 'resource', 'cleanup', primitive
-  end
-
-  # manage this primitive
-  # @param primitive [String]
-  def manage_primitive(primitive)
-    pcs 'resource', 'manage', primitive
-  end
-
-  # unamanage this primitive
-  # @param primitive [String]
-  def unmanage_primitive(primitive)
-    pcs 'resource', 'unmanage', primitive
-  end
-
-  # set quorum_policy of the cluster
-  # @param primitive [String]
-  def no_quorum_policy(primitive)
-    pcs 'property', 'set', "no-quorum-policy=#{primitive}"
-  end
-
-  # set maintenance_mode of the cluster
-  # @param primitive [TrueClass,FalseClass]
-  def maintenance_mode(primitive)
-    pcs 'property', 'set', "maintenance-mode=#{primitive}"
-  end
-
-  # add a location constraint
-  # @param primitive [String] the primitive's name
-  # @param node [String] the node's name
-  # @param score [Numeric,String] score value
-  def constraint_location_add(primitive, node, score = 100)
-    id = "#{primitive}_on_#{node}"
-    pcs 'constraint', 'location', 'add', id, primitive, node, score
-  end
-
-  # remove a location constraint
-  # @param primitive [String] the primitive's name
-  # @param node [String] the node's name
-  def constraint_location_remove(primitive, node)
-    id = "#{primitive}_on_#{node}"
-    pcs 'constraint', 'location', 'remove', id
+    false
   end
 
   # get a status of a primitive on the entire cluster
@@ -405,53 +258,6 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
         status_values[status]
       end
     end
-  end
-
-  # generate report of primitive statuses by node
-  # mostly for debugging
-  # @return [Hash]
-  def primitives_status_by_node
-    report = {}
-    return unless nodes.is_a? Hash
-    nodes.each do |node_name, node_data|
-      primitives_of_node = node_data['primitives']
-      next unless primitives_of_node.is_a? Hash
-      primitives_of_node.each do |primitive, primitive_data|
-        primitive_status = primitive_data['status']
-        report[primitive] = {} unless report[primitive].is_a? Hash
-        report[primitive][node_name] = primitive_status
-      end
-    end
-    report
-  end
-
-  # form a cluster status report for debugging
-  # @return [String]
-  def get_cluster_debug_report
-    report = "\n"
-    primitives_status_by_node.each do |primitive, data|
-      primitive_name = primitive
-      primitive_name = primitives[primitive]['name'] if primitives[primitive]['name']
-      primitive_type = 'Simple'
-      primitive_type = 'Cloned' if primitive_is_clone? primitive
-      primitive_type = 'Multistate' if primitive_is_multistate? primitive
-      primitive_status = primitive_status primitive
-
-      report += "-> #{primitive_type} primitive '#{primitive_name}' global status: #{primitive_status}"
-      report += ' (UNMANAGE)' unless primitive_is_managed? primitive
-      report += "\n"
-      report += '   ' if data.any?
-      nodes = []
-      data.keys.sort.each do |node_name|
-        node_status = data.fetch node_name
-        node_block = "#{node_name}: #{node_status}"
-        node_block += ' (FAIL)' if primitive_has_failures? primitive, node_name
-        nodes << node_block
-      end
-      report += nodes.join ' | '
-      report += "\n"
-    end
-    report
   end
 
   # does this primitive have failed operations?
@@ -502,6 +308,214 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     status == 'master'
   end
 
+  # Primitive configuration parser
+  ################################
+
+  # get primitives configuration structure with primitives and their attributes
+  # @return [Hash<String => Hash>]
+  def primitives
+    return @primitives_structure if @primitives_structure
+    @primitives_structure = {}
+    cib_section_primitives.each do |primitive|
+      primitive_structure = {}
+      id = primitive.attributes['id']
+      next unless id
+      primitive_structure.store 'name', id
+      primitive.attributes.each do |k, v|
+        primitive_structure.store k.to_s, v
+      end
+
+      if primitive.parent.name and primitive.parent.attributes['id']
+        parent_structure = {
+            'id' => primitive.parent.attributes['id'],
+            'type' => primitive.parent.name
+        }
+        primitive_structure.store 'name', parent_structure['id']
+        primitive_structure.store 'parent', parent_structure
+      end
+
+      instance_attributes = primitive.elements['instance_attributes']
+      if instance_attributes
+        instance_attributes_structure = elements_to_hash instance_attributes, 'name', 'nvpair'
+        primitive_structure.store 'instance_attributes', instance_attributes_structure
+      end
+
+      meta_attributes = primitive.elements['meta_attributes']
+      if meta_attributes
+        meta_attributes_structure = elements_to_hash meta_attributes, 'name', 'nvpair'
+        primitive_structure.store 'meta_attributes', meta_attributes_structure
+      end
+
+      operations = primitive.elements['operations']
+      if operations
+        operations_structure = elements_to_hash operations, 'id', 'op'
+        primitive_structure.store 'operations', operations_structure
+      end
+
+      @primitives_structure.store id, primitive_structure
+    end
+    @primitives_structure
+  end
+
+  # check if primitive exists in the confiuguration
+  # @param primitive primitive id or name
+  def primitive_exists?(primitive)
+    primitives.key? primitive
+  end
+
+  # check if primitive is clone or multistate
+  # @param primitive [String] primitive id
+  # @return [TrueClass,FalseClass]
+  def primitive_is_complex?(primitive)
+    return unless primitive_exists? primitive
+    primitives[primitive].key? 'parent'
+  end
+
+  # check if primitive is clone
+  # @param primitive [String] primitive id
+  # @return [TrueClass,FalseClass]
+  def primitive_is_clone?(primitive)
+    is_complex = primitive_is_complex? primitive
+    return is_complex unless is_complex
+    primitives[primitive]['parent']['type'] == 'clone'
+  end
+
+  # check if primitive is multistate
+  # @param primitive [String] primitive id
+  # @return [TrueClass,FalseClass]
+  def primitive_is_multistate?(primitive)
+    is_complex = primitive_is_complex? primitive
+    return is_complex unless is_complex
+    primitives[primitive]['parent']['type'] == 'master'
+  end
+
+  # determine if primitive is managed
+  # @param primitive [String] primitive id
+  # @return [TrueClass,FalseClass]
+  # TODO: will not work correctly if cluster is in management mode
+  def primitive_is_managed?(primitive)
+    return unless primitive_exists? primitive
+    is_managed = primitives.fetch(primitive).fetch('meta_attributes', {}).fetch('is-managed', {}).fetch('value', 'true')
+    is_managed == 'true'
+  end
+
+  # determine if primitive has target-state started
+  # @param primitive [String] primitive id
+  # @return [TrueClass,FalseClass]
+  # TODO: will not work correctly if target state is set globally to stopped
+  def primitive_is_started?(primitive)
+    return unless primitive_exists? primitive
+    target_role = primitives.fetch(primitive).fetch('meta_attributes', {}).fetch('target-role', {}).fetch('value', 'Started')
+    target_role == 'Started'
+  end
+
+  # Basic actions
+  ###############
+
+  # check if pacemaker is online
+  # and we can work with it
+  # @return [TrueClass,FalseClass]
+  def is_online?
+    begin
+      pcs 'cluster', 'cib'
+      true
+    rescue Puppet::ExecutionFailure
+      false
+    else
+      true
+    end
+  end
+
+  # disable this primitive
+  # @param primitive [String]
+  def disable_primitive(primitive)
+    pcs 'resource', 'disable', primitive
+  end
+  alias :stop_primitive :disable_primitive
+
+  # enable this primitive
+  # @param primitive [String]
+  def enable_primitive(primitive)
+    pcs 'resource', 'enable', primitive
+  end
+  alias :start_primitive :enable_primitive
+
+  # ban this primitive
+  # @param primitive [String]
+  # @param node [String] ban primitive on this node
+  def ban_primitive(primitive, node = '')
+    pcs 'resource', 'ban', primitive, node
+  end
+
+  # move this primitive
+  # @param primitive [String]
+  # @param node [String] move primitive from this node
+  def move_primitive(primitive, node = '')
+    pcs 'resource', 'move',  primitive, node
+  end
+
+  # unban/unmove this primitive
+  # @param primitive [String]
+  # @param node [String] unban/unmove on this node
+  def clear_primitive(primitive, node = '')
+    pcs 'resource', 'clear',  primitive, node
+  end
+  alias :unban_primitive :clear_primitive
+  alias :unmove_primitive :clear_primitive
+
+  # cleanup this primitive
+  # @param primitive [String]
+  def cleanup_primitive(primitive)
+    pcs 'resource', 'cleanup', primitive
+  end
+
+  # manage this primitive
+  # @param primitive [String]
+  def manage_primitive(primitive)
+    pcs 'resource', 'manage', primitive
+  end
+
+  # unamanage this primitive
+  # @param primitive [String]
+  def unmanage_primitive(primitive)
+    pcs 'resource', 'unmanage', primitive
+  end
+
+  # set quorum_policy of the cluster
+  # @param primitive [String]
+  def no_quorum_policy(primitive)
+    pcs 'property', 'set', "no-quorum-policy=#{primitive}"
+  end
+
+  # set maintenance_mode of the cluster
+  # @param primitive [TrueClass,FalseClass]
+  def maintenance_mode(primitive)
+    pcs 'property', 'set', "maintenance-mode=#{primitive}"
+  end
+
+  # Constraints actions
+  #####################
+
+  # add a location constraint
+  # @param primitive [String] the primitive's name
+  # @param node [String] the node's name
+  # @param score [Numeric,String] score value
+  def constraint_location_add(primitive, node, score = 100)
+    id = "#{primitive}_on_#{node}"
+    pcs 'constraint', 'location', 'add', id, primitive, node, score
+  end
+
+  # remove a location constraint
+  # @param primitive [String] the primitive's name
+  # @param node [String] the node's name
+  def constraint_location_remove(primitive, node)
+    id = "#{primitive}_on_#{node}"
+    pcs 'constraint', 'location', 'remove', id
+  end
+
+  # Puppet translators
+  ####################
+
   # return service status value expected by Puppet
   # puppet wants :running or :stopped symbol
   # @param primitive [String] primitive id
@@ -527,45 +541,8 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     end
   end
 
-  # check if primitive exists in the confiuguration
-  # @param primitive primitive id or name
-  def primitive_exists?(primitive)
-    primitives.key? primitive
-  end
-
-  # determine if primitive is managed
-  # @param primitive [String] primitive id
-  # @return [TrueClass,FalseClass]
-  # TODO: will not work correctly if cluster is in management mode
-  def primitive_is_managed?(primitive)
-    return unless primitive_exists? primitive
-    is_managed = primitives.fetch(primitive).fetch('meta_attributes', {}).fetch('is-managed', {}).fetch('value', 'true')
-    is_managed == 'true'
-  end
-
-  # determine if primitive has target-state started
-  # @param primitive [String] primitive id
-  # @return [TrueClass,FalseClass]
-  # TODO: will not work correctly if target state is set globally to stopped
-  def primitive_is_started?(primitive)
-    return unless primitive_exists? primitive
-    target_role = primitives.fetch(primitive).fetch('meta_attributes', {}).fetch('target-role', {}).fetch('value', 'Started')
-    target_role == 'Started'
-  end
-
-  # check if pacemaker is online
-  # and we can work with it
-  # @return [TrueClass,FalseClass]
-  def is_online?
-    begin
-      cibadmin '-Q'
-      true
-    rescue Puppet::ExecutionFailure
-      false
-    else
-      true
-    end
-  end
+  # Wait actions
+  ##############
 
   # retry the given block until it returns true
   # or for RETRY_COUNT times with RETRY_STEP sec step
@@ -655,6 +632,56 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     message = "Service '#{primitive}' was stopped"
     message += " on node '#{node}'" if node
     Puppet.debug message
+  end
+
+  # Reports
+  #########
+
+  # generate report of primitive statuses by node
+  # mostly for debugging
+  # @return [Hash]
+  def primitives_status_by_node
+    report = {}
+    return unless nodes.is_a? Hash
+    nodes.each do |node_name, node_data|
+      primitives_of_node = node_data['primitives']
+      next unless primitives_of_node.is_a? Hash
+      primitives_of_node.each do |primitive, primitive_data|
+        primitive_status = primitive_data['status']
+        report[primitive] = {} unless report[primitive].is_a? Hash
+        report[primitive][node_name] = primitive_status
+      end
+    end
+    report
+  end
+
+  # form a cluster status report for debugging
+  # @return [String]
+  def get_cluster_debug_report
+    report = "\n"
+    primitives_status_by_node.each do |primitive, data|
+      primitive_name = primitive
+      primitive_name = primitives[primitive]['name'] if primitives[primitive]['name']
+      primitive_type = 'Simple'
+      primitive_type = 'Cloned' if primitive_is_clone? primitive
+      primitive_type = 'Multistate' if primitive_is_multistate? primitive
+      primitive_status = primitive_status primitive
+
+      report += "-> #{primitive_type} primitive '#{primitive_name}' global status: #{primitive_status}"
+      report += ' (UNMANAGE)' unless primitive_is_managed? primitive
+      report += "\n"
+      report += '   ' if data.any?
+      nodes = []
+      data.keys.sort.each do |node_name|
+        node_status = data.fetch node_name
+        node_block = "#{node_name}: #{node_status}"
+        node_block += ' (FAIL)' if primitive_has_failures? primitive, node_name
+        nodes << node_block
+      end
+      report += nodes.join ' | '
+      report += "\n"
+    end
+    report
   end
 
 end
