@@ -7,7 +7,6 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
 
   commands :uname => 'uname'
   commands :pcs => 'pcs'
-  commands :cibadmin => 'cibadmin'
 
   # hostname of the current node
   # @return [String]
