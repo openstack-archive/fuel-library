@@ -8,6 +8,7 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
   let(:full_name) { 'clone-p_myservice' }
   let(:name) { 'p_myservice' }
   let(:hostname) { 'mynode' }
+  let(:primitive_class) { 'ocf' }
 
   before :each do
     @class = provider
@@ -17,6 +18,7 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
     @class.stubs(:name).returns(name)
     @class.stubs(:full_name).returns(full_name)
     @class.stubs(:basic_service_name).returns(title)
+    @class.stubs(:primitive_class).returns(primitive_class)
 
     @class.stubs(:cib_reset).returns(true)
 
@@ -46,7 +48,7 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
     @class.stubs(:constraint_location_add).returns(true)
     @class.stubs(:constraint_location_remove).returns(true)
 
-    @class.stubs(:get_cluster_debug_report).returns(true)
+    @class.stubs(:cluster_debug_report).returns(true)
   end
 
   context 'service name mangling' do
@@ -66,6 +68,15 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
     it 'uses name without "p_" to disable basic service' do
       @class.stubs(:name).returns(name)
       expect(@class.basic_service_name).to eq(title)
+    end
+
+    it 'can work with complex name instead of simple' do
+      @class.unstub(:name)
+      @class.stubs(:title).returns(full_name)
+      @class.stubs(:primitive_exists?).with('p_' + full_name).returns(false)
+      @class.stubs(:primitive_exists?).with(full_name).returns(false)
+      @class.stubs(:primitive_exists?).with(name).returns(true)
+      expect(@class.name).to eq(name)
     end
   end
 
@@ -126,7 +137,7 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
       @class.start
     end
 
-    it 'waits for the service to start locally if primitive is clone' do
+    it 'waits for the service to start anywhere if primitive is clone' do
       @class.stubs(:primitive_is_clone?).returns(true)
       @class.stubs(:primitive_is_multistate?).returns(false)
       @class.stubs(:primitive_is_complex?).returns(true)
@@ -170,8 +181,19 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
       @class.start
     end
 
-    it 'uses Ban to stop the service and waits for it to stop locally if service is complex' do
+    it 'uses Ban to stop the service and waits for it to stop locally if service is clone' do
       @class.stubs(:primitive_is_complex?).returns(true)
+      @class.stubs(:primitive_is_clone?).returns(true)
+      @class.stubs(:primitive_is_multistate?).returns(false)
+      @class.expects(:wait_for_stop).with name, hostname
+      @class.expects(:ban_primitive).with name, hostname
+      @class.stop
+    end
+
+    it 'uses Ban to stop the service and waits for it to stop locally if service is multistate' do
+      @class.stubs(:primitive_is_complex?).returns(true)
+      @class.stubs(:primitive_is_clone?).returns(false)
+      @class.stubs(:primitive_is_multistate?).returns(true)
       @class.expects(:wait_for_stop).with name, hostname
       @class.expects(:ban_primitive).with name, hostname
       @class.stop
@@ -204,21 +226,36 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
 
   context 'basic service handling' do
     before :each do
+      @extra_provider = @class.extra_provider
       @class.unstub(:disable_basic_service)
-      @class.extra_provider.stubs(:enableable?).returns true
-      @class.extra_provider.stubs(:enabled?).returns :true
-      @class.extra_provider.stubs(:disable).returns true
-      @class.extra_provider.stubs(:stop).returns true
-      @class.extra_provider.stubs(:status).returns :running
+      @extra_provider.stubs(:enableable?).returns true
+      @extra_provider.stubs(:enabled?).returns :true
+      @extra_provider.stubs(:disable).returns true
+      @extra_provider.stubs(:stop).returns true
+      @extra_provider.stubs(:status).returns :running
+      @class.stubs(:extra_provider).returns @extra_provider
     end
 
     it 'tries to disable the basic service if it is enabled' do
-      @class.extra_provider.expects(:disable)
+      @extra_provider.expects(:disable).once
       @class.disable_basic_service
     end
 
     it 'tries to stop the service if it is running' do
-      @class.extra_provider.expects(:stop)
+      @extra_provider.expects(:stop).once
+      @class.disable_basic_service
+    end
+
+    it 'does not try to stop a systemd running service' do
+      @class.stubs(:primitive_class).returns('systemd')
+      @extra_provider.unstub(:stop)
+      @extra_provider.expects(:stop).never
+      @class.disable_basic_service
+    end
+
+    it 'stops an ocf based service' do
+      @class.stubs(:primitive_class).returns('ocf')
+      @class.extra_provider.expects(:stop).once
       @class.disable_basic_service
     end
   end
