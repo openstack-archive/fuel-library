@@ -77,9 +77,11 @@ elif [ "$1" == "start" ]; then
   fi
 elif [ "$1" == "check" ]; then
   if [ "$container" = "all" ];then
+    exit_code=0
     for service in $container_seq; do
-      check_ready $service
+      check_ready $service || exit_code=1
     done
+    exit $exit_code
   else
     check_ready $container
   fi
@@ -105,10 +107,10 @@ elif [ "$1" == "upgrade" ]; then
   shift 2
   upgrade_container $container $@
 elif [ "$1" == "restore" ]; then
-  shift 
+  shift
   restore "$@"
 elif [ "$1" == "backup" ]; then
-  shift 
+  shift
   backup "$@"
 elif [ "$1" == "destroy" ]; then
   shift 2

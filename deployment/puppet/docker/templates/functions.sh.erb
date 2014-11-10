@@ -85,7 +85,7 @@ function retry_checker {
      ((tries++))
      echo "try number $tries"
      echo "return code is $rc"
-     if [ $tries -gt 240 ];then
+     if [ $tries -gt $CHECK_RETRIES ];then
         failure=1
      break
   fi
@@ -130,8 +130,10 @@ function check_ready {
 
   if [ $failure -eq 1 ]; then
     echo "ERROR: $1 failed to start."
+    return 1
   else
     echo "$1 is ready."
+    return 0
   fi
 }
 
