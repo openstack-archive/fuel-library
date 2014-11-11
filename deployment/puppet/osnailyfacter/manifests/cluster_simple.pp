@@ -201,10 +201,6 @@ class osnailyfacter::cluster_simple {
     }
   }
 
-  if ($::mellanox_mode != 'disabled') {
-    class { 'mellanox_openstack::openibd' : }
-  }
-
 
 
   case $::fuel_settings['role'] {
@@ -483,9 +479,6 @@ class osnailyfacter::cluster_simple {
           physnet => $net04_physnet,
           physifc => $::fuel_settings['neutron_mellanox']['physical_port'],
         }
-        $libvirt_vif_driver             = 'mlnxvif.vif.MlxEthVIFDriver'
-      } else {
-        $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver'
       }
 
       class { 'openstack::compute':
@@ -533,7 +526,6 @@ class osnailyfacter::cluster_simple {
         nova_report_interval           => $::nova_report_interval,
         nova_service_down_time         => $::nova_service_down_time,
         cinder_rate_limits             => $::cinder_rate_limits,
-        libvirt_vif_driver             => $libvirt_vif_driver,
       }
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
