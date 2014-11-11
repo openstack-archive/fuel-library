@@ -201,10 +201,6 @@ class osnailyfacter::cluster_simple {
     }
   }
 
-  if ($::mellanox_mode != 'disabled') {
-    class { 'mellanox_openstack::openibd' : }
-  }
-
 
 
   case $::fuel_settings['role'] {
@@ -482,9 +478,6 @@ class osnailyfacter::cluster_simple {
           physnet => $net04_physnet,
           physifc => $::fuel_settings['neutron_mellanox']['physical_port'],
         }
-        $libvirt_vif_driver             = 'mlnxvif.vif.MlxEthVIFDriver'
-      } else {
-        $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver'
       }
 
       class { 'openstack::compute':

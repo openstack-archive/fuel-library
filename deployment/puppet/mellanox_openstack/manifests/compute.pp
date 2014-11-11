@@ -13,10 +13,8 @@ class mellanox_openstack::compute (
       physifc => $physifc,
   }
 
-  class { 'mellanox_openstack::mlnxvif' :}
 
   Service['libvirt'] ->
-  Class['mellanox_openstack::mlnxvif'] ->
   Class['mellanox_openstack::eswitchd'] ->
   Class['mellanox_openstack::agent']
 
