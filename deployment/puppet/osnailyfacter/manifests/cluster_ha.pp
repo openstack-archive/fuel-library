@@ -546,29 +546,36 @@ class osnailyfacter::cluster_ha {
         }
       }
 
+      # Deploy python script we use for Haproxy backend checks
+      file { '/usr/local/bin/check_haproxy_backend.py':
+        ensure => present,
+        source => 'puppet:///modules/osnailyfacter/check_haproxy_backend.py',
+        mode   => 0755,
+      }
+
       if ! $::use_neutron {
         if $primary_controller {
           exec { 'wait-for-haproxy-nova-backend':
-            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
+            command   => "/usr/local/bin/check_haproxy_backend.py /var/lib/haproxy/stats nova-api-2",
             path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
             try_sleep => 5,
             tries     => 60,
-            require   => Package['socat'],
+            require   => File['/usr/local/bin/check_haproxy_backend.py'],
           }
           exec { 'wait-for-haproxy-keystone-backend':
-            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-1,BACKEND,.*,UP,'",
+            command   => "/usr/local/bin/check_haproxy_backend.py /var/lib/haproxy/stats keystone-1",
             path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
             try_sleep => 5,
             tries     => 60,
-            require   => Package['socat'],
+            require   => File['/usr/local/bin/check_haproxy_backend.py'],
           }
 
           exec { 'wait-for-haproxy-keystone-admin-backend':
-            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-2,BACKEND,.*,UP,'",
+            command   => "/usr/local/bin/check_haproxy_backend.py /var/lib/haproxy/stats keystone-2",
             path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
             try_sleep => 5,
             tries     => 60,
-            require   => Package['socat'],
+            require   => File['/usr/local/bin/check_haproxy_backend.py'],
           }
 
           nova_floating_range { $floating_ips_range:
