@@ -549,14 +549,16 @@ class osnailyfacter::cluster_ha {
       if ! $::use_neutron {
         if $primary_controller {
           exec { 'wait-for-haproxy-nova-backend':
-            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
+            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^nova-api-2,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
+                          echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
             path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
             try_sleep => 5,
             tries     => 60,
             require   => Package['socat'],
           }
           exec { 'wait-for-haproxy-keystone-backend':
-            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-1,BACKEND,.*,UP,'",
+            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^keystone-1,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
+                          echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-1,BACKEND,.*,UP,'",
             path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
             try_sleep => 5,
             tries     => 60,
@@ -564,7 +566,8 @@ class osnailyfacter::cluster_ha {
           }
 
           exec { 'wait-for-haproxy-keystone-admin-backend':
-            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-2,BACKEND,.*,UP,'",
+            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^keystone-2,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
+                          echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-2,BACKEND,.*,UP,'",
             path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
             try_sleep => 5,
             tries     => 60,
