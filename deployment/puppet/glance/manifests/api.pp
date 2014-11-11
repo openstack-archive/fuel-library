@@ -61,6 +61,10 @@
 #   (optional) Authentication URL.
 #   Defaults to 'http://localhost:5000/v2.0'.
 #
+#  [*identity_uri*]
+#    (optional) Complete admin Identity API endpoint.
+#    Defaults to "${auth_protocol}://${auth_host}:${auth_port}/"
+#
 # [* auth_port*]
 #   (optional) Port to use for auth service on auth_host.
 #   Defaults to '35357'.
@@ -162,6 +166,7 @@ class glance::api(
   $auth_url              = 'http://localhost:5000/v2.0',
   $auth_port             = '35357',
   $auth_uri              = false,
+  $identity_uri          = false,
   $auth_admin_prefix     = false,
   $auth_protocol         = 'http',
   $pipeline              = 'keystone+cachemanagement',
@@ -280,6 +285,16 @@ class glance::api(
   }
 
   # auth config
+  if $identity_uri {
+    glance_api_config { 'keystone_authtoken/identity_uri':  value => $identity_uri; }
+  } else {
+    if $auth_admin_prefix {
+      glance_api_config { 'keystone_authtoken/identity_uri':  value => "${auth_protocol}://${auth_host}:${auth_port}/${auth_admin_prefix}"; }
+    } else {
+      glance_api_config { 'keystone_authtoken/identity_uri':  value => "${auth_protocol}://${auth_host}:${auth_port}/"; }
+    }
+  }
+
   glance_api_config {
     'keystone_authtoken/auth_host':     value => $auth_host;
     'keystone_authtoken/auth_port':     value => $auth_port;
