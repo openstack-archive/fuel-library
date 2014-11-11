@@ -144,6 +144,9 @@
 #   Defaults to '0.9'.
 #
 # [*known_stores*]
+#   DEPRECATED, use stores
+#
+# [*stores*]
 #   (optional)List of which store classes and store class locations are
 #    currently known to glance at startup.
 #    Defaults to false.
@@ -183,6 +186,8 @@ class glance::api(
   $key_file              = false,
   $ca_file               = false,
   $mysql_module          = '0.9',
+  $stores                = false,
+# DEPRECATED PARAMETERS
   $known_stores          = false,
 ) inherits glance {
 
@@ -242,14 +247,21 @@ class glance::api(
     'DEFAULT/show_image_direct_url': value => $show_image_direct_url;
   }
 
-  # known_stores config
+  # stores config
+  # known_stores was removed in Juno
   if $known_stores {
+    warning("The known_stores parameter is deprecated, use stores instead.")
+    $real_stores = $known_stores
+  } else {
+    $real_stores = $stores
+  }
+  if $real_stores {
     glance_api_config {
-      'DEFAULT/known_stores':  value => join($known_stores, ',');
+      'DEFAULT/stores':  value => join($real_stores, ',');
     }
   } else {
     glance_api_config {
-      'DEFAULT/known_stores': ensure => absent;
+      'DEFAULT/stores': ensure => absent;
     }
   }
 
