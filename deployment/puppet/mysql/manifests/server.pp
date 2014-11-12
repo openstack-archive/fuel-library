@@ -124,6 +124,7 @@ class mysql::server (
     }
 
     Class['openstack::corosync'] -> Cs_resource["p_${service_name}"]
+    Class['openstack::corosync'] -> Service['mysql']
 
     file { '/tmp/repl_create.sql' :
       ensure  => present,
