@@ -209,6 +209,9 @@ class openstack::network (
           nova_admin_tenant_name  => 'services', # Default
           nova_admin_password     => $nova_admin_password,
         }
+        if $use_syslog {
+          neutron_config { 'DEFAULT/use_syslog_rfc_format': value => true; }
+        }
         Service['neutron-server'] -> Exec<| title == 'waiting-for-neutron-api' |>
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_network<||>
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_subnet<||>

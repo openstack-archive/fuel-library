@@ -199,6 +199,12 @@ class openstack::ceilometer (
     }
   }
 
+  if ($use_syslog) {
+    ceilometer_config {
+       'DEFAULT/use_syslog_rfc_format': value => true;
+    }
+  }
+
   Package<| title == $::ceilometer::params::alarm_package or
     title == 'ceilometer-common'|> ~>
   Service<| title == 'ceilometer-alarm-evaluator'|>
