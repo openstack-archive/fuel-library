@@ -11,7 +11,7 @@ module Puppet::Parser::Functions
     hosts=Hash.new
     nodes=args[0]
     nodes.each do |node|
-      hosts[node['name']]={:ip=>node['internal_address'],:host_aliases=>[node['fqdn']]}
+      hosts[node['fqdn']]={:ip=>node['internal_address'],:host_aliases=>[node['name']]}
       notice("Generating host entry #{node['name']} #{node['internal_address']} #{node['fqdn']}")
     end
     return hosts
