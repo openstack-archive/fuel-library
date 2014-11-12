@@ -1038,5 +1038,8 @@ class osnailyfacter::cluster_ha {
     mysql_server_pkg => $::galera::params::mysql_server_name,
   }
 
+  # Make corosync and pacemaker setup and configuration before all services provided by pacemaker
+  Class['openstack::corosync'] -> Service<| provider=='pacemaker' |>
+
 } # CLUSTER_HA ENDS
 # vim: set ts=2 sw=2 et :
