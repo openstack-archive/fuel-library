@@ -50,7 +50,7 @@ class { '::corosync':
   bind_address      => $bind_address,
   multicast_address => $multicast_address,
   unicast_addresses => $unicast_addresses
-}
+} -> Anchor['corosync-done']
 
 #cs_property { 'expected-quorum-votes':
 #  ensure => present,
