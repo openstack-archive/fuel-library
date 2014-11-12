@@ -99,6 +99,7 @@ define cluster::virtual_ip (
     # Tie vip with ping
     cs_resource { "ping_${vip_name}":
       ensure          => present,
+      require         => Service[$vip_name],
       primitive_class => 'ocf',
       provided_by     => 'pacemaker',
       primitive_type  => 'ping',
@@ -121,6 +122,7 @@ define cluster::virtual_ip (
       provider => 'pacemaker',
     }
     cs_location { "loc_ping_${vip_name}":
+      require   => Service[$vip_name, "ping_${vip_name}"],
       primitive => $vip_name,
       cib       => "ping_${vip_name}",
       rules     => [
