@@ -219,6 +219,7 @@ class galera (
     enable     => true,
     provider   => 'pacemaker',
   }
+  Class['openstack::corosync'] -> Service['mysql']
 
   Service['mysql'] -> Anchor['galera-done']
 

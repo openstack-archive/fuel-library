@@ -93,6 +93,7 @@ define cluster::virtual_ip (
     enable   => true,
     provider => 'pacemaker',
   }
+  Class['openstack::corosync'] -> Service[$vip_name]
 
   Cs_resource[$vip_name] -> Service[$vip_name]
   if $vip[tie_with_ping] {
@@ -120,6 +121,7 @@ define cluster::virtual_ip (
       enable   => true,
       provider => 'pacemaker',
     }
+    Class['openstack::corosync'] -> Service["ping_${vip_name}"]
     cs_location { "loc_ping_${vip_name}":
       primitive => $vip_name,
       cib       => "ping_${vip_name}",

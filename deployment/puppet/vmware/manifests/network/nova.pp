@@ -82,6 +82,7 @@ class vmware::network::nova (
       enable => true,
       provider => 'pacemaker',
     }
+    Class['openstack::corosync'] -> Service['p_vcenter_nova_network']
 
     anchor { 'vcenter-nova-network-start': }
     anchor { 'vcenter-nova-network-end': }

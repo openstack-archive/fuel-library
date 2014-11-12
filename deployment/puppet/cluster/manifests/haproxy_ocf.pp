@@ -107,6 +107,7 @@ class cluster::haproxy_ocf (
     hasrestart => true,
     provider   => 'pacemaker',
   } -> Anchor['haproxy-done']
+  Class['openstack::corosync'] -> Service[$service_name]
 
   anchor {'haproxy-done': }
 }

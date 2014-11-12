@@ -32,6 +32,7 @@ define pacemaker_wrappers::service (
 
   Service<| title == $service_name |> {
     provider   => 'pacemaker',
+    require    => Class['openstack::corosync'],
   }
 
   if $create_primitive {

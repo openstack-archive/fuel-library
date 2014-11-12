@@ -103,6 +103,7 @@ define cluster::corosync::cs_service (
     hasstatus  => true,
     hasrestart => $hasrestart,
     provider   => 'pacemaker',
+    require    => Class['openstack::corosync'],
   }
   # This here, because it should be found AFTER previous Service.
   # DO NOT change this order

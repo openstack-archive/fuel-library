@@ -97,6 +97,7 @@ class vmware::controller (
       enable => true,
       provider => 'pacemaker',
     }
+    Class['openstack::corosync'] -> Service['p_vcenter_nova_compute']
 
     anchor { 'vcenter-nova-compute-start': }
     anchor { 'vcenter-nova-compute-end': }
