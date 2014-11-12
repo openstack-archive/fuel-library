@@ -95,6 +95,7 @@ define cluster::virtual_ip (
   }
 
   Cs_resource[$vip_name] -> Service[$vip_name]
+
   if $vip[tie_with_ping] {
     # Tie vip with ping
     cs_resource { "ping_${vip_name}":
@@ -114,7 +115,7 @@ define cluster::virtual_ip (
       multistate_hash => {
         'type' => 'clone',
       },
-    } ->
+    }
     service { "ping_${vip_name}":
       ensure   => 'running',
       enable   => true,
@@ -134,6 +135,11 @@ define cluster::virtual_ip (
         },
       ],
     }
+    # Resources ordering
+    Service[$vip_name] ->
+    Cs_resource["ping_${vip_name}"] ->
+    Cs_location ["loc_ping_${vip_name}"] ->
+    Service ["ping_${vip_name}"]
   }
 }
 
