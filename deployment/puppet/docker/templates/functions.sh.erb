@@ -124,6 +124,7 @@ function check_ready {
       rsyslog) retry_checker "shell_container rsyslog netstat -nl | grep -q 514" ;;
       mcollective) retry_checker "shell_container mcollective ps aux | grep -q mcollectived" ;;
       nginx) retry_checker "shell_container nginx ps aux | grep -q nginx"  ;;
+      keystone) retry_checker "shell_container keystone keystone  --os-auth-url \"http://$ADMIN_IP:35357/v2.0\" --os-username \"$keystone_nailgun_user\" --os-password \"$keystone_nailgun_password\" token-get &>/dev/null" ;;
       *) echo "No defined test for determining if $1 is ready."
                 ;;
   esac
