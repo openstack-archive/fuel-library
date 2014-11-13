@@ -639,7 +639,6 @@ on packages update": }
 
     if $neutron_settings['L2']['provider'] == 'ovs' {
       $core_plugin      = 'openvswitch'
-      $service_plugins  = ['router', 'firewall', 'metering']
       $agent            = 'ovs'
     } elsif $neutron_settings['L2']['provider'] == 'nsx' {
       # do nothing because nsx has its own neutron's agent
@@ -647,7 +646,6 @@ on packages update": }
     } else {
       # by default we use ML2 plugin
       $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
-      $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin']
       $agent            = 'ml2-ovs'
     }
   }
@@ -663,7 +661,7 @@ on packages update": }
 
     base_mac          => $base_mac,
     core_plugin       => $core_plugin,
-    service_plugins   => $service_plugins,
+    service_plugins   => undef,
 
     # ovs
     mechanism_drivers   => $mechanism_drivers,
