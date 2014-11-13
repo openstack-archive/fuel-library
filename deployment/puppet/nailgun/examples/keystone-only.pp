@@ -52,6 +52,11 @@ case $production {
       ensure => latest,
     }
 
+    service { 'crond':
+      ensure => running,
+      enable => true,
+    }
+
     # Flush expired tokens
     cron { 'keystone-flush-token':
       ensure      => present,
