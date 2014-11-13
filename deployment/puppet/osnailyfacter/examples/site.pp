@@ -194,7 +194,19 @@ class os_common {
       }
   }
   class {"l23network::hosts_file": stage => 'netconfig', nodes => $nodes_hash }
-  class {'l23network': use_ovs=>$use_neutron, stage=> 'netconfig'}
+
+  if has_key($::fuel_settings, 'nsx_plugin') and $::fuel_settings['nsx_plugin']['metadata']['enabled'] {
+    $use_nsx = true
+  } else {
+    $use_nsx = false
+  }
+
+  class { 'l23network':
+    use_ovs => $use_neutron,
+    use_nsx => $use_nsx,
+    stage   => 'netconfig'
+  }
+
   if $use_neutron {
       class {'advanced_node_netconfig': stage => 'netconfig' }
   } else {

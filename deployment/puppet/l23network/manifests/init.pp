@@ -6,10 +6,12 @@
 class l23network (
   $use_ovs   = true,
   $use_lnxbr = true,
+  $use_nsx   = false,
 ){
   class {'l23network::l2':
     use_ovs   => $use_ovs,
     use_lnxbr => $use_lnxbr,
+    use_nsx   => $use_nsx,
   }
 }
 #

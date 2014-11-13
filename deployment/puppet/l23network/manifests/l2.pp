@@ -6,10 +6,11 @@
 class l23network::l2 (
   $use_ovs   = true,
   $use_lnxbr = true,
+  $use_nsx   = false,
 ){
   include ::l23network::params
 
-  if $use_ovs {
+  if $use_ovs and !$use_nsx {
     case $::osfamily {
       /(?i)debian/: {
         package { 'openvswitch-datapath':

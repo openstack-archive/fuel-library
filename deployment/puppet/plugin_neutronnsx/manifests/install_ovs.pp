@@ -85,5 +85,7 @@ class plugin_neutronnsx::install_ovs (
     hasrestart => true,
   }
 
-  Service['nicira-ovs-hypervisor-node'] -> Service['openvswitch-service']
+  Service['nicira-ovs-hypervisor-node'] ->
+  Service['openvswitch-service'] ->
+  L23network::L3::Ifconfig<||>
 }
