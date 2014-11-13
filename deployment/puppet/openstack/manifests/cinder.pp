@@ -150,7 +150,8 @@ class openstack::cinder(
           volume_group     => $volume_group,
         }
         class { 'mellanox_openstack::cinder':
-          iser => $iser
+          iser            => $iser,
+          iser_ip_address => $iscsi_bind_host,
         }
       }
       'vmdk': {
