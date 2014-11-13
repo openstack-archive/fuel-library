@@ -34,7 +34,5 @@ LogFile=<%= scope.lookupvar('zabbix::params::agent_log_file') %>
 
 Timeout=10
 
-<% if scope.lookupvar('zabbix::params::has_userparameters') %>
 Include=<%= scope.lookupvar('zabbix::params::agent_include') %>
-<% end %>
 
