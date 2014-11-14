@@ -1046,6 +1046,12 @@ class osnailyfacter::cluster_ha {
     mysql_server_pkg => $::galera::params::mysql_server_name,
   }
 
+  class { 'osnailyfacter::atop': }
+
+  package { 'screen':
+    ensure => present,
+  }
+
   # Make corosync and pacemaker setup and configuration before all services provided by pacemaker
   Class['openstack::corosync'] -> Service<| provider=='pacemaker' |>
 
