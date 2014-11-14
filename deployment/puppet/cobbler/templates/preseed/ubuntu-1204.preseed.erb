@@ -128,18 +128,21 @@ $SNIPPET('cinder_create_lvm_group__ubuntu') && \
 $SNIPPET('ubuntu_puppet_config') && \
 $SNIPPET('ubuntu_mcollective_config') && \
 $SNIPPET('ntp_to_masternode_ubuntu')
-echo -e "nf_conntrack_ipv4\nnf_conntrack_ipv6" >> /target/etc/modules && \
-echo -e "net.nf_conntrack_max=1048576" >> /target/etc/sysctl.conf && \
+echo "nf_conntrack_ipv4" >> /target/etc/modules && \
+echo "nf_conntrack_ipv6" >> /target/etc/modules && \
+echo "net.nf_conntrack_max=1048576" >> /target/etc/sysctl.conf && \
 mkdir -p /target/etc/nailgun-agent && \
-echo -e "---\nurl: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'" > /target/etc/nailgun-agent/config.yaml && \
+#set nailgun_agent_conf = '/target/etc/nailgun-agent/config.yaml'
+echo "---" > $nailgun_agent_conf && \
+echo "url: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'" >> $nailgun_agent_conf && \
 echo target > /target/etc/nailgun_systemtype && \
 echo 'APT::Get::AllowUnauthenticated 1;' > /target/etc/apt/apt.conf.d/02mirantis-allow-unsigned && \
 # REPOSITORIES FROM Nailgun
 #if $varExists('repo_metadata')
-echo -e "" /target/etc/apt/sources.list && \
+echo "" /target/etc/apt/sources.list && \
 #set repo_list = dict(item.split("=") for item in $repo_metadata.split(","))
 #for $repo_name, $repo_url in $repo_list.items()
-echo -e 'deb $repo_url' >> /target/etc/apt/sources.list && \
+echo 'deb $repo_url' >> /target/etc/apt/sources.list && \
 #end for
 #else
 echo 'deb http://@@server@@:8080/ubuntu/x86_64 precise main' > /target/etc/apt/sources.list && \
