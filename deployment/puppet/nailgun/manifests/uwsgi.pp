@@ -7,10 +7,10 @@
 class nailgun::uwsgi(
 ) {
 
-  if $::physicalprocessorcount > 8  {
+  if $::physicalprocessorcount > 4  {
     $physicalprocessorcount = 8
   } else {
-    $physicalprocessorcount = $::physicalprocessorcount
+    $physicalprocessorcount = $::physicalprocessorcount * 2
   }
 
   package { ['uwsgi', 'uwsgi-plugin-common', 'uwsgi-plugin-python']:
