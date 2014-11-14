@@ -7,10 +7,10 @@
 class nailgun::uwsgi(
 ) {
 
-  if $::physicalprocessorcount > 4  {
+  if $::physicalprocessorcount > 8  {
     $physicalprocessorcount = 8
   } else {
-    $physicalprocessorcount = $::physicalprocessorcount * 2
+    $physicalprocessorcount = $::physicalprocessorcount
   }
 
   package { ['uwsgi', 'uwsgi-plugin-common', 'uwsgi-plugin-python']:
@@ -32,8 +32,6 @@ class nailgun::uwsgi(
     group  => 'root',
     mode   => '0644',
   }
-  sysctl::value{'net.core.somaxconn': value => '4096'}
-
 
   Class[Nailgun::Venv]->
     File['/etc/nailgun/uwsgi_nailgun.yaml']
