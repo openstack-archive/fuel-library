@@ -682,5 +682,10 @@ class osnailyfacter::cluster_simple {
     mysql_server_pkg => $::galera::params::mysql_server_name,
   }
 
+  class { 'osnailyfacter::atop': }
+
+  package { 'screen':
+    ensure => present,
+  }
 } # CLUSTER_SIMPLE ENDS
 # vim: set ts=2 sw=2 et :
