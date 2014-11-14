@@ -18,7 +18,7 @@ Puppet::Type.type(:keystone_role).provide(
   end
 
   def self.role_hash
-    @role_hash ||= build_role_hash
+    @role_hash = build_role_hash
   end
 
   def role_hash

@@ -41,7 +41,7 @@ describe provider_class do
     end
 
     before :each do
-      provider_class.expects(:build_tenant_hash).returns(tenant_hash)
+      provider_class.expects(:build_tenant_hash).at_least(1).returns(tenant_hash)
     end
 
     it 'should call tenant-update to set enabled' do
@@ -52,4 +52,14 @@ describe provider_class do
       provider.enabled=('False')
     end
   end
+
+  describe 'when query keystone objects' do
+    it 'should not cache keystone objects in catalog' do
+      provider_class.stubs(:build_tenant_hash).returns({ 'foo' => 'bar' })
+      provider_class.tenant_hash.should == ({ 'foo' => 'bar' })
+      provider_class.stubs(:build_tenant_hash).returns({ 'baz' => 'qux' })
+      provider_class.tenant_hash.should == ({ 'baz' => 'qux' })
+    end
+  end
+
 end

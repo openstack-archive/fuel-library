@@ -25,7 +25,7 @@ describe provider_class do
     end
 
     before :each do
-      provider_class.expects(:build_user_hash).returns(
+      provider_class.expects(:build_user_hash).at_least(1).returns(
         'foo' => {:id   => 'id', :name => 'foo', :tenant => 'foo2', :password => 'passwd'}
       )
     end
@@ -40,5 +40,14 @@ describe provider_class do
       provider.password=('newpassword')
     end
   end
-end
 
+  describe 'when query keystone objects' do
+    it 'should not cache keystone objects in catalog' do
+      provider_class.stubs(:build_user_hash).returns({ 'foo' => 'bar' })
+      provider_class.user_hash.should == ({ 'foo' => 'bar' })
+      provider_class.stubs(:build_user_hash).returns({ 'baz' => 'qux' })
+      provider_class.user_hash.should == ({ 'baz' => 'qux' })
+    end
+  end
+
+end

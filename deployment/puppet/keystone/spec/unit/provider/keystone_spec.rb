@@ -132,6 +132,15 @@ describe Puppet::Provider::Keystone do
     end
   end
 
+  describe 'when query keystone objects' do
+    it 'should not cache keystone objects in catalog' do
+      klass.stubs(:build_tenant_hash).returns({ 'foo' => 'bar' })
+      klass.tenant_hash.should == ({ 'foo' => 'bar' })
+      klass.stubs(:build_tenant_hash).returns({ 'baz' => 'qux' })
+      klass.tenant_hash.should == ({ 'baz' => 'qux' })
+    end
+  end
+
   describe 'when parsing keystone objects' do
     it 'should parse valid output into a hash' do
       data = <<-EOT
