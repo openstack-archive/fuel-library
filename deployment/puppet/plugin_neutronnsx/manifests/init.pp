@@ -3,7 +3,7 @@ class plugin_neutronnsx (
   $neutron_nsx_config,
 ) {
 
-  $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
+  $roles = node_roles($::fuel_settings['nodes'], $::fuel_settings['uid'])
 
   if member($roles, 'controller') or member($roles, 'primary-controller') {
     class { 'plugin_neutronnsx::install_ovs':
