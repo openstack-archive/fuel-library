@@ -540,9 +540,10 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
       if $use_vmware_nsx {
-        class {'plugin_neutronnsx':
+        class { 'plugin_neutronnsx':
           neutron_config     => $neutron_config,
           neutron_nsx_config => $neutron_nsx_config,
+          roles              => $roles,
         }
       }
 
@@ -845,9 +846,10 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
       if $use_vmware_nsx {
-        class {'plugin_neutronnsx':
+        class { 'plugin_neutronnsx':
           neutron_config     => $neutron_config,
           neutron_nsx_config => $neutron_nsx_config,
+          roles              => $roles,
         }
       }
 
