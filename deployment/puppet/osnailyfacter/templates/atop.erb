@@ -1,0 +1,19 @@
+# Managed by puppet
+#
+
+<% if @osfamily == 'RedHat' -%>
+# Current Day format
+CURDAY=`date +%Y%m%d`
+# Log files path
+LOGPATH=<%= @logpath %>
+# Binaries path
+BINPATH=/usr/bin
+# PID File
+PIDFILE=/var/run/atop.pid
+# interval (default 10 minutes)
+INTERVAL=<%= @interval %>
+<% elsif @osfamily == 'Debian' -%>
+INTERVAL=<%= @interval %>
+LOGPATH="<%= @logpath %>"
+OUTFILE="$LOGPATH/daily.log"
+<% end -%>
