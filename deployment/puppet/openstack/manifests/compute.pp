@@ -191,7 +191,7 @@ class openstack::compute (
       $guestmount_package_name      = 'libguestfs-tools-c'
 
       # From legacy utilities.pp
-      package { ['unzip', 'screen', 'curl', 'euca2ools']:
+      package { ['unzip', 'curl', 'euca2ools']:
         ensure => present
       }
       if !(defined(Package['parted'])) {
