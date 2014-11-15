@@ -12,6 +12,8 @@ class nailgun::uwsgi(
   } else {
     $physicalprocessorcount = $::physicalprocessorcount * 2
   }
+  $maxconn = 4096
+  sysctl::value{'net.core.somaxconn': value => $maxconn}
 
   package { ['uwsgi', 'uwsgi-plugin-common', 'uwsgi-plugin-python']:
     ensure => installed,
