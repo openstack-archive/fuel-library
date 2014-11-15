@@ -81,6 +81,4 @@ $gem_source = 'http://localhost/gems/',
   sysctl::value{'net.ipv4.neigh.default.gc_thresh2': value => '1024'}
   sysctl::value{'net.ipv4.neigh.default.gc_thresh3': value => '2048'}
 
-  #Increase max connections for sockets for Nailgun uWSGI
-  sysctl::value{'net.core.somaxconn': value => '4096'}
 }
