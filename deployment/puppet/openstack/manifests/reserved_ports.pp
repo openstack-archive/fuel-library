@@ -16,7 +16,7 @@
 # class { 'openstack::reserved_ports': }
 #
 
-class openstack::reserved_ports ( $ports = '49000,35357,41055,58882' ) {
+class openstack::reserved_ports ( $ports = '49000,35357,41055,58882,55672' ) {
   sysctl::value { 'net.ipv4.ip_local_reserved_ports': value => $ports }
 }
 
