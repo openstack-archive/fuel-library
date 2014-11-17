@@ -51,6 +51,7 @@ class mongodb::server (
   $rest            = undef,
   $slowms          = undef,
   $keyfile         = undef,
+  $set_parameter   = undef,
 ) inherits mongodb::params {
 
   if ($ensure == 'present' or $ensure == true) {
