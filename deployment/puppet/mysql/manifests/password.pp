@@ -12,15 +12,6 @@ class mysql::password (
       default: { $old_pw="-p${old_root_password}" }
     }
 
-    exec { 'set_mysql_rootpw':
-      command   => "mysqladmin -u root ${old_pw} password ${root_password}",
-      logoutput => true,
-      unless    => "mysqladmin -u root -p${root_password} status > /dev/null",
-      path      => '/usr/local/sbin:/usr/bin:/usr/local/bin',
-      tries     => 10,
-      try_sleep => 3,
-    }
-
     if $etc_root_password {
       $password_file_path = '/etc/mysql/conf.d/password.cnf'
     } else {
@@ -35,15 +26,23 @@ class mysql::password (
       group   => 'mysql',
     }
 
+    exec { 'set_mysql_rootpw':
+      command   => "mysqladmin -u root ${old_pw} password ${root_password}",
+      unless    => "mysqladmin --defaults-extra-file=$password_file_path -u root status > /dev/null",
+      path      => '/usr/local/sbin:/usr/bin:/usr/local/bin',
+      tries     => 10,
+      try_sleep => 3,
+      require   => File['mysql_password'],
+    }
+
     Service <| title == 'mysql' |>  -> Exec['set_mysql_rootpw']
     Service <| title == 'mysql-service' |> -> Exec['set_mysql_rootpw']
 
-    Exec['set_mysql_rootpw'] -> File['mysql_password']
     File <| title == $config_file |> -> File['mysql_password']
     File <| title == '/etc/my.cnf' |> -> File['mysql_password']
-    File['mysql_password'] -> Database <| provider=='mysql' |>
-    File['mysql_password'] -> Database_grant <| provider=='mysql' |>
-    File['mysql_password'] -> Database_user <| provider=='mysql' |>
+    Exec['set_mysql_rootpw'] -> Database <| provider=='mysql' |>
+    Exec['set_mysql_rootpw'] -> Database_grant <| provider=='mysql' |>
+    Exec['set_mysql_rootpw'] -> Database_user <| provider=='mysql' |>
 
     Anchor <| title == 'galera' |> -> Class['mysql::password'] -> Anchor <| title == 'galera-done' |>
     Exec <| title == 'wait-for-synced-state' |> -> Exec['set_mysql_rootpw']
