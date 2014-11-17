@@ -140,9 +140,7 @@ class nova::rabbitmq(
              'failure-timeout'     => '60s'
 
           },
-          multistate_hash => {
-            'type' => 'master',
-          },
+          complex_type => 'master',
           ms_metadata => {
             'notify'      => 'true',
             'ordered'     => 'false', # We shouldn't enable ordered start for parallel start of RA.
