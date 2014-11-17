@@ -30,9 +30,14 @@ class sahara::notify::rabbitmq(
 ) {
 
   if $rabbit_hosts {
+    if !is_array($rabbit_hosts) {
+      $rabbit_hosts_real = split($rabbit_hosts, ',')
+    } else {
+      $rabbit_hosts_real = $rabbit_hosts
+    }
     sahara_config { 'DEFAULT/rabbit_host': ensure => absent }
     sahara_config { 'DEFAULT/rabbit_port': ensure => absent }
-    sahara_config { 'DEFAULT/rabbit_hosts': value => join($rabbit_hosts, ',') }
+    sahara_config { 'DEFAULT/rabbit_hosts': value => join($rabbit_hosts_real, ',') }
   } else {
     sahara_config { 'DEFAULT/rabbit_host': value => $rabbit_host }
     sahara_config { 'DEFAULT/rabbit_port': value => $rabbit_port }
@@ -48,7 +53,7 @@ class sahara::notify::rabbitmq(
     'DEFAULT/rpc_backend':          value => 'rabbit';
     'DEFAULT/rabbit_use_ssl':       value => $rabbit_use_ssl;
     'DEFAULT/amqp_durable_queues':  value => $amqp_durable_queues;
-    'DEFAULT/rabbit_ha_queues:':    value => $rabbit_ha_queues;
+    'DEFAULT/rabbit_ha_queues':     value => $rabbit_ha_queues;
   }
 
   if $rabbit_use_ssl {
