@@ -59,14 +59,19 @@ class galera (
   $use_syslog           = false,
   $gcomm_port           = '4567',
   $status_check         = true,
-  $wsrep_sst_method     = 'xtrabackup-v2'
+  $wsrep_sst_method     = 'xtrabackup-v2',
+  $wsrep_sst_password   = undef,
   ) {
+
   include galera::params
 
   anchor {'galera': }
 
   $mysql_user = $::galera::params::mysql_user
-  $mysql_password = $::galera::params::mysql_password
+  $mysql_password = $wsrep_sst_password ? {
+    undef => $::galera::params::mysql_password,
+    default => $wsrep_sst_password
+  }
   $libgalera_prefix = $::galera::params::libgalera_prefix
   $mysql_buffer_pool_size = $::galera::params::mysql_buffer_pool_size
   $mysql_log_file_size = $::galera::params::mysql_log_file_size
