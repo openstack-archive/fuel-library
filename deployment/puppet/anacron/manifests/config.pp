@@ -32,5 +32,10 @@ case $::operatingsystem {
        source => 'puppet:///modules/anacron/logrotate-debug'
     }
   }
+  if $::anacron::debug {
+    file { '/etc/cron.d/logrotate-debug':
+       source => 'puppet:///modules/anacron/logrotate-debug'
+    }
+  }
 }
 
