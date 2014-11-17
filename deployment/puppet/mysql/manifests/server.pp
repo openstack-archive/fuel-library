@@ -177,8 +177,8 @@ class mysql::server (
       provided_by     => 'heartbeat',
       primitive_type  => 'mysql',
       cib             => 'mysql',
-      multistate_hash => {'type'=>'master'},
-      ms_metadata     => {'notify'             => "true"},
+      complex_type    => 'master',
+      ms_metadata     => {'notify' => "true"},
       parameters      => {
         'binary' => "/usr/bin/mysqld_safe",
         'test_table'         => 'mysql.user',
