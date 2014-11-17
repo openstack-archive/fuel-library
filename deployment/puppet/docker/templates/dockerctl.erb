@@ -73,7 +73,9 @@ elif [ "$1" == "start" ]; then
   else
     shift 2
     start_container $container $@
-    check_ready $container
+    if ! [[ "$@" =~ "--attach" ]]; then
+      check_ready $container
+    fi
   fi
 elif [ "$1" == "check" ]; then
   if [ "$container" = "all" ];then
