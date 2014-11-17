@@ -331,7 +331,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # cleanup this primitive
   # @param primitive [String]
   def cleanup_primitive(primitive)
-    pcs 'resource', 'cleanup', primitive
+    retry_command { pcs 'resource', 'cleanup', primitive }
   end
 
   # manage this primitive
@@ -565,6 +565,26 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     else
       true
     end
+  end
+
+  # retry the given command until it runs without errors
+  # or for RETRY_COUNT times with RETRY_STEP sec step
+  # print cluster status report on fail
+  # returns normal command output on success
+  # @return [String]
+  def retry_command
+    (0..RETRY_COUNT).each do
+      begin
+        out = yield
+      rescue Puppet::ExecutionFailure => e
+        Puppet.debug "Command failed: #{e.message}"
+        sleep RETRY_STEP
+      else
+        return out
+      end
+    end
+    Puppet.debug get_cluster_debug_report if is_online?
+    fail "Execution timeout after #{RETRY_COUNT * RETRY_STEP} seconds!"
   end
 
   # retry the given block until it returns true
