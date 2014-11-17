@@ -16,7 +16,7 @@ describe 'Puppet::Type.newtype(:nova_floating_range)' do
   end
 
   it 'auth url should be url' do
-    expect {     @nova_floating_range[:auth_url] = 'h ttp://192.168.1.1:5000/v2.0/'
+    expect {     @nova_floating_range[:auth_url] = 'http://192.168.1.1:5000/v2.0/'
     }.to raise_error(Puppet::Error, /does not look/)
   end
 
