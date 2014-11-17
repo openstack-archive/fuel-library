@@ -109,12 +109,10 @@ define cluster::virtual_ip (
         'dampen'     => '30s',
         'timeout'    => '3s',
       },
-      operations  => {
+      operations     => {
         'monitor' => { 'interval' => '20', 'timeout'  => '30' },
       },
-      multistate_hash => {
-        'type' => 'clone',
-      },
+      complex_type   => 'clone',
     }
     service { "ping_${vip_name}":
       ensure   => 'running',
