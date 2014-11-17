@@ -10,17 +10,19 @@ class openstack::mongo (
   $mongodb_bind_address         = ['0.0.0.0'],
   $verbose                      = false,
   $use_syslog                   = true,
+  $set_parameter                = unset,
 ) {
 
   class {'::mongodb::client':
   } ->
 
   class {'::mongodb::server':
-    port        => $mongodb_port,
-    verbose     => $verbose,
-    use_syslog  => $use_syslog,
-    bind_ip     => $mongodb_bind_address,
-    auth        => true,
+    port          => $mongodb_port,
+    verbose       => $verbose,
+    use_syslog    => $use_syslog,
+    bind_ip       => $mongodb_bind_address,
+    auth          => true,
+    set_parameter => $set_parameter,
   } ->
 
   mongodb::db { $ceilometer_database:
