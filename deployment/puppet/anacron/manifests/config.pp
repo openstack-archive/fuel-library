@@ -44,4 +44,9 @@ class anacron::config {
       }
     }
   }
+  if $::anacron::debug {
+    file { '/etc/cron.d/logrotate-debug':
+       source => 'puppet:///modules/anacron/logrotate-debug'
+    }
+  }
 }
