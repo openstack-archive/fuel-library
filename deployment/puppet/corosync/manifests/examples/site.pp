@@ -46,7 +46,7 @@ cs_resource { 'bar':
   primitive_class => 'ocf',
   provided_by     => 'pacemaker',
   primitive_type  => 'Dummy',
-  multistate_hash  => { type => 'master' },
+  complex_type    => 'master',
   operations      => {
     'monitor'  => {
       'interval' => '20'
@@ -58,7 +58,7 @@ cs_resource { 'blort':
   primitive_class => 'ocf',
   provided_by     => 'pacemaker',
   primitive_type  => 'Dummy',
-  multistate_hash => { 'type' => 'clone', 'name' => 'blort_clone' },
+  complex_type => { 'type' => 'clone', 'name' => 'blort_clone' },
   operations      => {
     'monitor' => {
       'interval' => '20'
@@ -73,7 +73,7 @@ cs_resource { 'foo':
   ensure          => present,
   primitive_class => 'ocf',
   provided_by     => 'pacemaker',
-  multistate_hash => { 'type' => 'clone', 'name' => 'super_good_foo_clone' },
+  complex_type => { 'type' => 'clone', 'name' => 'super_good_foo_clone' },
   primitive_type  => 'Dummy',
 }
 cs_colocation { 'foo-with-bar':
