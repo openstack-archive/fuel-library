@@ -14,7 +14,7 @@ class cluster::neutron::ovs (
 
   cluster::corosync::cs_service {'ovs':
     ocf_script          => 'neutron-agent-ovs',
-    csr_multistate_hash => { 'type' => 'clone' },
+    csr_complex_type    => 'clone',
     csr_ms_metadata     => { 'interleave' => 'true' },
     csr_parameters      => { 'plugin_config' => $plugin_config },
     csr_mon_intr        => '20',
