@@ -64,24 +64,18 @@ class nailgun::venv(
     mode => 0755,
   }
 
-
-  $fuel_key = $::generate_fuel_key
-
-  file { "/etc/nailgun/settings.yaml":
-    content => template("nailgun/settings.yaml.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
-    require => File["/etc/nailgun"],
-  }
-
-  file { "/usr/local/bin/fuel":
-    ensure  => link,
-    target  => "/opt/nailgun/bin/fuel",
-  }
-
   case $production {
     'docker': {
+      $fuel_key = $::generate_fuel_key
+
+      file { "/etc/nailgun/settings.yaml":
+        content => template("nailgun/settings.yaml.erb"),
+        owner => 'root',
+        group => 'root',
+        mode => 0644,
+        require => File["/etc/nailgun"],
+      }
+
       exec {"nailgun_syncdb":
         command   => "${venv}/bin/nailgun_syncdb",
         require   => [
