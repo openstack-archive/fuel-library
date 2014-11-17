@@ -1,9 +1,8 @@
-class Puppet::Provider::Corosync < Puppet::Provider
-  require "open3"
-  # Yep, that's right we are parsing XML...FUN! (It really wasn't that bad)
-  require 'rexml/document'
-  #require 'system'
+require 'pp'
+require 'open3'
+require 'rexml/document'
 
+class Puppet::Provider::Corosync < Puppet::Provider
 
   def self.dump_cib
     stdout = Open3.popen3("#{command(:crm)} configure show xml")[1].read
@@ -67,8 +66,11 @@ class Puppet::Provider::Corosync < Puppet::Provider
 
   def exists?
     self.class.block_until_ready
-    debug(@property_hash.inspect)
-    !(@property_hash[:ensure] == :absent or @property_hash.empty?)
+    Puppet.debug "#{self.class} call exists? on '#{@resource[:name]}'"
+    out = !(@property_hash[:ensure] == :absent or @property_hash.empty?)
+    Puppet.debug "Return: #{out}"
+    Puppet.debug "Current state:\n#{@property_hash.pretty_inspect}" if @property_hash.any?
+    out
   end
 
   def get_scope(type)

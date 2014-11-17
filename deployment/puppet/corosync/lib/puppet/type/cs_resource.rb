@@ -74,10 +74,12 @@ module Puppet
         defining a model and just accept a hash."
 
       validate do |value|
-        raise Puppet::Error, "Puppet::Type::Cs_Primitive: parameters property must be a hash." unless value.is_a? Hash
+        unless value.is_a? Hash
+          raise Puppet::Error, "Puppet::Type::Cs_Primitive: parameters property must be a hash."
+        end
       end
-      munge do |parameters|
-        convert_to_sym(parameters)
+      munge do |value|
+        stringify value
       end
       defaultto Hash.new
     end
@@ -91,10 +93,12 @@ module Puppet
         is valid."
 
       validate do |value|
-        raise Puppet::Error, "Puppet::Type::Cs_Primitive: operations property must be a hash." unless value.is_a? Hash
+        unless value.is_a? Hash
+          raise Puppet::Error, "Puppet::Type::Cs_Primitive: operations property must be a hash."
+        end
       end
-      munge do |operations|
-        convert_to_sym(operations)
+      munge do |value|
+        stringify value
       end
       defaultto Hash.new
     end
@@ -107,29 +111,50 @@ module Puppet
         behavior but have no affect of the data that is synced or manipulated."
 
       validate do |value|
-        raise Puppet::Error, "Puppet::Type::Cs_Primitive: metadata property must be a hash." unless value.is_a? Hash
+        unless value.is_a? Hash
+          raise Puppet::Error, "Puppet::Type::Cs_Primitive: metadata property must be a hash."
+        end
       end
-      munge do |metadata|
-        convert_to_sym(metadata)
+      munge do |value|
+        stringify value
       end
       defaultto Hash.new
+
+      def insync?(is)
+        status_metadata = %w(target-role is-managed)
+        is_without_state = is.reject do |k, v|
+          status_metadata.include? k.to_s
+        end
+        should_without_state = should.reject do |k, v|
+          status_metadata.include? k.to_s
+        end
+        is_without_state == should_without_state
+      end
     end
 
     newproperty(:ms_metadata) do
       desc "A hash of metadata for the multistate state."
 
-      munge do |value_hash|
-        value_hash.inject({}) do |memo,(key,value)|
-          memo[key] = String(value)
-          memo
+      validate do |value|
+        unless value.is_a? Hash
+          raise Puppet::Error, "Puppet::Type::Cs_Primitive: ms_metadata property must be a hash"
         end
       end
-
-      validate do |value|
-        raise Puppet::Error, "Puppet::Type::Cs_Primitive: ms_metadata property must be a hash" unless value.is_a? Hash
+      munge do |value|
+        stringify value
       end
-
       defaultto Hash.new
+
+      def insync?(is)
+        status_metadata = %w(target-role is-managed)
+        is_without_state = is.reject do |k, v|
+          status_metadata.include? k.to_s
+        end
+        should_without_state = should.reject do |k, v|
+          status_metadata.include? k.to_s
+        end
+        is_without_state == should_without_state
+      end
     end
 
     newproperty(:multistate_hash) do
@@ -140,27 +165,23 @@ module Puppet
         two key-value pairs: type (master, clone) and its name (${type}_{$primitive_name})
         by default"
 
-      munge do |value_hash|
-        munged_hash = value_hash.inject({}) do |memo,(key,value)|
-          memo[key.to_sym] = String(value)
-          memo
-        end
-        if munged_hash[:name].to_s.empty? and !munged_hash[:type].to_s.empty?
-          munged_hash[:name] = "#{munged_hash[:type]}_#{@resource[:name]}"
-        end
-        munged_hash
-      end
-
       validate do |value|
-        raise Puppet::Error, "Puppet::Type::Cs_Resource: multistate_hash property must be a hash" unless
-        value.is_a? Hash
+        unless value.is_a? Hash
+          raise Puppet::Error,
+            'Cs_Resource: multistate_hash property must be a hash'
+        end
 
-        raise Puppet::Error, "Puppet::Type::Cs_Resource: multistate_hash type property #{value[:type]} must be in master|clone|'' if set" unless
-        ["master", "clone", ""].include?(value[:type]) or value[:type] == nil
-
+        if value['type']
+          unless %w(master clone).include?(value['type'])
+            raise Puppet::Error,
+              "Cs_Resource: multistate_hash type property '#{value['type']}' must be master or clone if set"
+          end
+        end
+      end
+      munge do |value|
+        stringify value
       end
       defaultto Hash.new
-
     end
 
     autorequire(:cs_shadow) do
@@ -169,29 +190,29 @@ module Puppet
         Puppet.debug("#{@parameters[:cib].value}")
         autos << @parameters[:cib].value
       end
-
       autos
     end
 
     autorequire(:service) do
-      [ 'corosync' ]
+      %w(corosync pacemaker)
     end
   end
 end
 
-def convert_to_sym(hash)
-  if hash.is_a? Hash
-    hash.inject({}) do |memo,(key,value)|
-      value = convert_to_sym(value)
-      if value.is_a?(Array)
-        value.collect! do |arr_el|
-          convert_to_sym(arr_el)
-        end
-      end
-      memo[key.to_sym] = value
-      memo
+# convert data structure to strings
+def stringify(data)
+  if data.is_a? Hash
+    new_data = {}
+    data.each do |key, value|
+      new_data.store stringify(key), stringify(value)
+    end
+    data.clear
+    data.merge! new_data
+  elsif data.is_a? Array
+    data.map! do |element|
+      stringify element
     end
   else
-    hash
+    data.to_s
   end
 end

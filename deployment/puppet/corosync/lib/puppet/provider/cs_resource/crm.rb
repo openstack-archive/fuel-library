@@ -1,5 +1,5 @@
-require 'pathname'
-require Pathname.new(__FILE__).dirname.dirname.expand_path + 'corosync'
+require File.join File.dirname(__FILE__), '../corosync.rb'
+require 'pp'
 
 Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Corosync) do
   desc 'Specific provider for a rather specific type since I currently have no
@@ -10,99 +10,73 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
         operations and parameters.  A hash is used instead of constucting a
         better model since these values can be almost anything.'
 
-  # Path to the crm binary for interacting with the cluster configuration.
-
-
   commands :cibadmin => 'cibadmin'
   commands :crm_shadow => 'crm_shadow'
   commands :crm => 'crm'
   commands :crm_diff => 'crm_diff'
   commands :crm_attribute => 'crm_attribute'
 
+  # parse CIB XML and create the array of found primitives
+  # @return [Array<Puppet::Provider::Crm>]
   def self.instances
-
     block_until_ready
-
     instances = []
-
-    # cmd = [ command(:crm), 'configure', 'show', 'xml' ]
     raw, status = dump_cib
     doc = REXML::Document.new(raw)
 
-    # We are obtaining four different sets of data in this block.  We obtain
-    # key/value pairs for basic primitive information (which Corosync stores
-    # in the configuration as "resources").  After getting that basic data we
-    # descend into parameters, operations (which the config labels as
-    # instance_attributes and operations), and metadata then generate embedded
-    # hash structures of each entry.
     REXML::XPath.each(doc, '//primitive') do |e|
-
-      primitive = {}
       items = e.attributes
-      primitive.merge!({
-        items['id'].to_sym => {
-        :class    => items['class'],
-        :type     => items['type'],
-        :provider => items['provider']
-        }
-      })
 
-      primitive[items['id'].to_sym][:parameters]  = {}
-      primitive[items['id'].to_sym][:operations]  = {}
-      primitive[items['id'].to_sym][:metadata]    = {}
-      primitive[items['id'].to_sym][:ms_metadata] = {}
-      primitive[items['id'].to_sym][:multistate_hash]  = {}
-
-      if ! e.elements['instance_attributes'].nil?
-        e.elements['instance_attributes'].each_element do |i|
-          primitive[items['id'].to_sym][:parameters][(i.attributes['name'])] = i.attributes['value']
-        end
-      end
-
-      if ! e.elements['meta_attributes'].nil?
-        e.elements['meta_attributes'].each_element do |m|
-          primitive[items['id'].to_sym][:metadata][(m.attributes['name'])] = m.attributes['value']
-        end
-      end
-
-      if ! e.elements['operations'].nil?
-        e.elements['operations'].each_element do |o|
-          valids = o.attributes.reject do |k,v| k == 'id' end
-          if valids['role']
-            op_name = "#{valids['name']}:#{valids['role']}" #.to_sym()
-          else
-            op_name = valids['name'] #.to_sym()
-          end
-          primitive[items['id'].to_sym][:operations][op_name] = {}
-          valids.each do |k,v|
-            primitive[items['id'].to_sym][:operations][op_name][k] = v if k != 'name'
-          end
-        end
-      end
-      if e.parent.name == 'master' or e.parent.name == 'clone'
-        primitive[items['id'].to_sym][:multistate_hash][:name] = e.parent.attributes['id']
-        primitive[items['id'].to_sym][:multistate_hash][:type] = e.parent.name
-        if ! e.parent.elements['meta_attributes'].nil?
-          e.parent.elements['meta_attributes'].each_element do |m|
-            primitive[items['id'].to_sym][:ms_metadata][(m.attributes['name'])] = m.attributes['value']
-          end
-        end
-      end
-      primitive_instance = {
-        :name            => primitive.first[0],
+      primitive = {
         :ensure          => :present,
-        :primitive_class => primitive.first[1][:class],
-        :provided_by     => primitive.first[1][:provider],
-        :primitive_type  => primitive.first[1][:type],
-        :parameters      => primitive.first[1][:parameters],
-        :operations      => primitive.first[1][:operations],
-        :metadata        => primitive.first[1][:metadata],
-        :ms_metadata     => primitive.first[1][:ms_metadata],
-        :multistate_hash      => primitive.first[1][:multistate_hash],
-        :provider        => self.name
+        :name            => items['id'].to_s,
+        :primitive_class => items['class'].to_s,
+        :primitive_type  => items['type'].to_s,
+        :provided_by     => items['provider'].to_s,
       }
 
-      instances << new(primitive_instance)
+      primitive[:parameters]      = {}
+      primitive[:operations]      = {}
+      primitive[:metadata]        = {}
+      primitive[:ms_metadata]     = {}
+      primitive[:multistate_hash] = {}
+
+      if e.elements['instance_attributes']
+        e.elements['instance_attributes'].each_element do |i|
+          primitive[:parameters].store i.attributes['name'].to_s, i.attributes['value'].to_s
+        end
+      end
+
+      if e.elements['meta_attributes']
+        e.elements['meta_attributes'].each_element do |m|
+          primitive[:metadata].store m.attributes['name'].to_s, m.attributes['value'].to_s
+        end
+      end
+
+      if e.elements['operations']
+        e.elements['operations'].each_element do |o|
+          op_name = o.attributes['name'].to_s
+          op_name += ":#{o.attributes['role']}" if o.attributes['role']
+          primitive[:operations][op_name] = {}
+          o.attributes.each do |k,v|
+            next if k == 'name'
+            next if k == 'id'
+            primitive[:operations][op_name].store k.to_s, v.to_s
+          end
+        end
+      end
+
+      if e.parent.name == 'master' or e.parent.name == 'clone'
+        primitive[:multistate_hash]['name'] = e.parent.attributes['id'].to_s
+        primitive[:multistate_hash]['type'] = e.parent.name.to_s
+        if e.parent.elements['meta_attributes']
+          e.parent.elements['meta_attributes'].each_element do |m|
+            primitive[:ms_metadata].store m.attributes['name'].to_s, m.attributes['value'].to_s
+          end
+        end
+      end
+
+      instances << new(primitive)
     end
     instances
   end
@@ -116,13 +90,13 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
       :primitive_class => @resource[:primitive_class],
       :provided_by     => @resource[:provided_by],
       :primitive_type  => @resource[:primitive_type],
-      :multistate_hash      => @resource[:multistate_hash],
+      :multistate_hash => @resource[:multistate_hash],
     }
-    @property_hash[:parameters] = @resource[:parameters] if ! @resource[:parameters].nil?
-    @property_hash[:operations] = @resource[:operations] if ! @resource[:operations].nil?
-    @property_hash[:metadata] = @resource[:metadata] if ! @resource[:metadata].nil?
-    @property_hash[:ms_metadata] = @resource[:ms_metadata] if ! @resource[:ms_metadata].nil?
-    @property_hash[:cib] = @resource[:cib] if ! @resource[:cib].nil?
+    @property_hash[:parameters]  = @resource[:parameters]  if @resource[:parameters]
+    @property_hash[:operations]  = @resource[:operations]  if @resource[:operations]
+    @property_hash[:metadata]    = @resource[:metadata]    if @resource[:metadata]
+    @property_hash[:ms_metadata] = @resource[:ms_metadata] if @resource[:ms_metadata]
+    @property_hash[:cib]         = @resource[:cib]         if @resource[:cib]
   end
 
   # Unlike create we actually immediately delete the item.  Corosync forces us
@@ -130,6 +104,7 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
   def destroy
     debug('Stopping primitive before removing it')
     crm('resource', 'stop', @resource[:name])
+    crm('resource', 'cleanup', @resource[:name])
     debug('Removing primitive')
     ## FIXME(aglarendil): may be we need to apply crm_diff related approach
     ## FIXME(aglarendil): due to 1338594 bug and do this in flush section
@@ -164,22 +139,27 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
   # resource already exists so we just update the current value in the
   # property_hash and doing this marks it to be flushed.
   def parameters=(should)
+    Puppet.debug "Set paramemter:\n#{should.pretty_inspect}"
     @property_hash[:parameters] = should
   end
 
   def operations=(should)
+    Puppet.debug "Set operations:\n#{should.pretty_inspect}"
     @property_hash[:operations] = should
   end
 
   def metadata=(should)
+    Puppet.debug "Set metadata:\n#{should.pretty_inspect}"
     @property_hash[:metadata] = should
   end
 
   def ms_metadata=(should)
+    Puppet.debug "Set ms_metadata:\n#{should.pretty_inspect}"
     @property_hash[:ms_metadata] = should
   end
 
   def multistate_hash=(should)
+    Puppet.debug "Set multistate_hash:\n#{should.pretty_inspect}"
     #Check if we use default multistate name
     #if it is empty
     if should[:type] and  should[:name].to_s.empty?
@@ -242,7 +222,7 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
           metadatas << "#{k}=#{v} "
         end
       end
-      updated = "primitive "
+      updated = 'primitive '
       updated << "#{@property_hash[:name]} #{@property_hash[:primitive_class]}:"
       updated << "#{@property_hash[:provided_by]}:" if @property_hash[:provided_by]
       updated << "#{@property_hash[:primitive_type]} "
@@ -250,11 +230,11 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
       updated << "#{parameters} " unless parameters.nil?
       updated << "#{metadatas} " unless metadatas.nil?
 
-      if ( @property_hash[:multistate_hash][:type] == "master" or @property_hash[:multistate_hash][:type] == "clone" )
-        debug("creating multistate #{@property_hash[:multistate_hash][:type]} resource for #{@property_hash[:multistate_hash][:name]}")
-        crm_name =  @property_hash[:multistate_hash][:type] == "master" ? :ms : :clone
+      if %w(master clone).include? @property_hash[:multistate_hash]['type']
+        crm_name = @property_hash[:multistate_hash]['type'] == 'master' ? 'ms' : 'clone'
+        debug "Creating '#{crm_name}' parent for '#{@property_hash[:multistate_hash]['name']}' resource"
         updated << "\n"
-        updated << " #{crm_name} #{@property_hash[:multistate_hash][:name]} #{@property_hash[:name]} "
+        updated << " #{crm_name} #{@property_hash[:multistate_hash]['name']} #{@property_hash[:name]} "
         unless @property_hash[:ms_metadata].empty?
           updated << 'meta '
           @property_hash[:ms_metadata].each_pair do |k,v|
