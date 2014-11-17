@@ -9,7 +9,7 @@ define pacemaker_wrappers::service (
   $operations          = undef,
   $metadata            = undef,
   $ms_metadata         = undef,
-  $multistate_hash     = undef,
+  $complex_type        = undef,
 
   $use_handler         = true,
   $handler_root_path   = '/usr/local/bin',
@@ -48,7 +48,7 @@ define pacemaker_wrappers::service (
       operations      => $operations,
       metadata        => $metadata,
       ms_metadata     => $ms_metadata,
-      multistate_hash => $multistate_hash,
+      complex_type    => $complex_type,
     }
   }
 

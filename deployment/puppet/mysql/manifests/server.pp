@@ -171,8 +171,9 @@ class mysql::server (
       primitive_class => 'ocf',
       provided_by     => 'heartbeat',
       primitive_type  => 'mysql',
-      multistate_hash => {'type'=>'master'},
-      ms_metadata     => {'notify'             => "true"},
+      cib             => 'mysql',
+      complex_type    => 'master',
+      ms_metadata     => {'notify' => "true"},
       parameters      => {
         'binary' => "/usr/bin/mysqld_safe",
         'test_table'         => 'mysql.user',
