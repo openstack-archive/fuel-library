@@ -119,6 +119,7 @@ class { "nailgun::venv":
   dns_domain => $::fuel_settings['DNS_DOMAIN'],
 }
 class { 'nailgun::uwsgi':
+  production => $production,
 }
 class { "nailgun::client":
   server        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
