@@ -448,10 +448,6 @@ class osnailyfacter::cluster_ha {
     } # End If keep_vips_together
   }
 
-  if ($::mellanox_mode != 'disabled') {
-    class { 'mellanox_openstack::openibd' : }
-  }
-
 
 
   case $::fuel_settings['role'] {
@@ -783,9 +779,6 @@ class osnailyfacter::cluster_ha {
           physnet => $net04_physnet,
           physifc => $::fuel_settings['neutron_mellanox']['physical_port'],
         }
-        $libvirt_vif_driver             = 'mlnxvif.vif.MlxEthVIFDriver'
-      } else {
-        $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver'
       }
 
       class { 'openstack::compute':
@@ -835,7 +828,6 @@ class osnailyfacter::cluster_ha {
         nova_report_interval        => $::nova_report_interval,
         nova_service_down_time      => $::nova_service_down_time,
         state_path                  => $nova_hash[state_path],
-        libvirt_vif_driver          => $libvirt_vif_driver,
       }
 
       if ($::use_ceph){
