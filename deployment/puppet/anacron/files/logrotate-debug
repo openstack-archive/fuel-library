@@ -1,0 +1,6 @@
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=root
+HOME=/
+10,20,30,40,50 * * * * root nice ionice -c3 /etc/cron.hourly/logrotate
+

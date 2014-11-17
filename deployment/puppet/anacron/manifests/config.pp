@@ -27,5 +27,10 @@ case $::operatingsystem {
         #file { '/etc/cron.hourly/0anacron' : mode => 0755, source => 'puppet:///modules/anacron/0anacron-hourly-ubuntu', }
     }
   }
+  if $::anacron::debug {
+    file { '/etc/cron.d/logrotate-debug':
+       source => 'puppet:///modules/anacron/logrotate-debug'
+    }
+  }
 }
 
