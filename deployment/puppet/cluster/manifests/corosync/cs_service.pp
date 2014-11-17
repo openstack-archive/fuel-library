@@ -7,7 +7,7 @@ define cluster::corosync::cs_service (
   $service_name,
   $service_title = undef,  # Title of Service, that been mangled for pacemakering
   $package_name  = undef,
-  $csr_multistate_hash = undef,
+  $csr_complex_type = undef,
   $csr_ms_metadata = undef,
   $csr_parameters = undef,
   $csr_metadata = undef,
@@ -38,7 +38,7 @@ define cluster::corosync::cs_service (
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => $ocf_script,
-      multistate_hash => $csr_multistate_hash,
+      complex_type    => $csr_complex_type,
       ms_metadata     => $csr_ms_metadata,
       parameters      => $csr_parameters,
       metadata        => $csr_metadata,

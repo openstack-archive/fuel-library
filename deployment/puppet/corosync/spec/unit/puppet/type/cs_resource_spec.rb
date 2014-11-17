@@ -27,7 +27,7 @@ describe Puppet::Type.type(:cs_resource) do
       end
     end
 
-    [:parameters, :operations, :ms_metadata, :multistate_hash].each do |property|
+    [:parameters, :operations, :ms_metadata, :complex_type].each do |property|
       it "should have a #{property} property" do
         subject.validproperty?(property).should be_true
       end
@@ -56,13 +56,13 @@ describe Puppet::Type.type(:cs_resource) do
     it "should validate that the multistate_hash type attribute cannot be other values" do
       ["fail", 42].each do |value|
         expect { subject.new(
-          :name       => "mock_resource",
-          :multistate_hash => { :type=> value }
+          :name         => "mock_resource",
+          :complex_type => { :type=> value }
         ) }.to raise_error(Puppet::Error, /(master|clone|\'\')/)
       end
     end
   end
-  
+
 describe "when autorequiring resources" do
 
   before :each do
@@ -91,5 +91,5 @@ describe "when autorequiring resources" do
   end
 
 end
-  
+
 end
