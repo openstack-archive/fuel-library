@@ -38,8 +38,8 @@
 # [*skip_name_resolve*]
 #  By default, MySQL tries to do reverse name mapping IP->hostname. In this
 #  case MySQL requests can be timed out by clients in case of broken name
-#  resolving system. If you are not sure that your DNS/NIS/whatever are configured
-#  correctly, set this value to true.
+#  resolving system. If you are not sure that your DNS/NIS/whatever are
+#  configured correctly, set this value to true.
 #
 # [*node_addresses*]
 #  Array with IPs/hostnames of cluster members.
@@ -59,14 +59,19 @@ class galera (
   $use_syslog           = false,
   $gcomm_port           = '4567',
   $status_check         = true,
-  $wsrep_sst_method     = 'xtrabackup-v2'
+  $wsrep_sst_method     = 'xtrabackup-v2',
+  $wsrep_sst_password   = undef,
   ) {
+
   include galera::params
 
   anchor {'galera': }
 
   $mysql_user = $::galera::params::mysql_user
-  $mysql_password = $::galera::params::mysql_password
+  $mysql_password = $wsrep_sst_password ? {
+    undef   => $::galera::params::mysql_password,
+    default => $wsrep_sst_password
+  }
   $libgalera_prefix = $::galera::params::libgalera_prefix
   $mysql_buffer_pool_size = $::galera::params::mysql_buffer_pool_size
   $mysql_log_file_size = $::galera::params::mysql_log_file_size
@@ -214,10 +219,10 @@ class galera (
   }
 
   service { 'mysql':
-    ensure     => 'running',
-    name       => "p_${service_name}",
-    enable     => true,
-    provider   => 'pacemaker',
+    ensure   => 'running',
+    name     => "p_${service_name}",
+    enable   => true,
+    provider => 'pacemaker',
   }
 
   Service['mysql'] -> Anchor['galera-done']
@@ -228,9 +233,9 @@ class galera (
       # delete MySQL ib_logfiles, if log file size does not match the one
       # from params
       exec { 'delete_logfiles':
-        command     => "rm -f ${datadir}/ib_logfile* || true",
-        path        => [ '/sbin/', '/usr/sbin/', '/usr/bin/' ,'/bin/' ],
-        before      => File['/etc/mysql/conf.d/wsrep.cnf'],
+        command => "rm -f ${datadir}/ib_logfile* || true",
+        path    => [ '/sbin/', '/usr/sbin/', '/usr/bin/' ,'/bin/' ],
+        before  => File['/etc/mysql/conf.d/wsrep.cnf'],
       }
       # use predefined value for log file size
       $innodb_log_file_size_real = $mysql_log_file_size
@@ -254,7 +259,8 @@ class galera (
     content => template('galera/wsrep-init-file.erb'),
   }
 
-# This exec waits for initial sync of galera cluster after mysql replication user creation.
+# This exec waits for initial sync of galera cluster after mysql replication
+# user creation.
 
   $user_password_string="-u${mysql_user} -p${mysql_password}"
   exec { 'wait-initial-sync':
