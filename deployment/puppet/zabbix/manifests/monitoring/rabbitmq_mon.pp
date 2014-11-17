@@ -35,8 +35,6 @@ class zabbix::monitoring::rabbitmq_mon {
       action => 'accept',
     }
 
-    sysctl::value { 'net.ipv4.ip_local_reserved_ports': value => '55672' }
-
     zabbix::agent::userparameter {
       'rabbitmq.queue.items':
         command => "/etc/zabbix/scripts/check_rabbit.py queues-items";
