@@ -509,23 +509,33 @@ class osnailyfacter::cluster_simple {
       }
 
     } # COMPUTE ENDS
-
     "mongo" : {
+      if $debug {
+        $mongo_set_parameter = 'logLevel=2'
+      } else {
+        $mongo_set_parameter = 'logLevel=1'
+      }
+
       class { 'openstack::mongo_secondary':
         mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
         use_syslog                  => $use_syslog,
-        verbose                     => $verbose,
+        set_parameter               => $mongo_set_parameter,
       }
     } # MONGO ENDS
 
     "primary-mongo" : {
+      if $debug {
+        $mongo_set_parameter = 'logLevel=2'
+      } else {
+        $mongo_set_parameter = 'logLevel=1'
+      }
       class { 'openstack::mongo_primary':
         mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
         ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
         ceilometer_db_password      => $ceilometer_hash['db_password'],
         ceilometer_replset_members  => mongo_hosts($nodes_hash, 'array', 'mongo'),
         use_syslog                  => $use_syslog,
-        verbose                     => $verbose,
+        set_parameter               => $mongo_set_parameter,
       }
     } # PRIMARY-MONGO ENDS
 

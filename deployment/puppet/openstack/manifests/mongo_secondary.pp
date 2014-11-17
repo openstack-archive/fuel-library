@@ -10,6 +10,7 @@ class openstack::mongo_secondary (
   $mongodb_bind_address         = ['0.0.0.0'],
   $use_syslog                   = true,
   $verbose                      = false,
+  $set_parameter                = undef,
 ) {
 
   notify {"MongoDB params: $mongodb_bind_address": } ->
@@ -17,12 +18,13 @@ class openstack::mongo_secondary (
   class {'::mongodb::client':
   } ->
   class {'::mongodb::server':
-    port       => $mongodb_port,
-    verbose    => $verbose,
-    use_syslog => $use_syslog,
-    bind_ip    => $mongodb_bind_address,
-    replset    => 'ceilometer',
-    auth       => true,
-    keyfile    => '/etc/mongodb.key',
+    port          => $mongodb_port,
+    verbose       => $verbose,
+    use_syslog    => $use_syslog,
+    bind_ip       => $mongodb_bind_address,
+    replset       => 'ceilometer',
+    auth          => true,
+    keyfile       => '/etc/mongodb.key',
+    set_parameter => $set_parameter,
   }
 }
