@@ -86,6 +86,7 @@ CONTAINER_OPTIONS["keystone"]="-p ${BIND_ALL}5000:5000 -p ${BIND_ALL}35357:35357
 declare -A HOST_VOL
 HOST_VOL['repo']="-v /var/www/nailgun:/var/www/nailgun:rw"
 HOST_VOL['puppet']="-v /etc/puppet:/etc/puppet:ro"
+HOST_VOL['puppetrsync']="-v /etc/puppet:/puppet:ro"
 HOST_VOL['sshkey']="-v /root/.ssh:/root/.ssh:ro"
 HOST_VOL['astuteyaml']="-v /etc/fuel:/etc/fuel:ro"
 HOST_VOL['remotelogs']="-v /var/log/remote:/remote"
@@ -124,7 +125,7 @@ declare -A REQS
 REQS["${HOST_VOL['astuteyaml']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
 REQS["${HOST_VOL['repo']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog keystone mcollective"
 #Most containers work from local integrated puppet
-REQS["$PUPPET_VOL"]="rsync"
+REQS["${HOST_VOL['puppetrsync']}"]="rsync"
 #REQS["$PUPPET_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
 REQS["$LOG_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
 REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective ostf"
