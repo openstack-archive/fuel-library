@@ -88,5 +88,7 @@ node default {
     dhcp_gateway       => $cobbler_host,
     dhcp_interface     => $dhcp_interface,
     nailgun_api_url    => $nailgun_api_url,
+
+    release => $fuel_version['VERSION']['release']
   }
 }
