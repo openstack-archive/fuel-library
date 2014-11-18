@@ -17,7 +17,8 @@ stage {'first': } ->
 stage {'openstack-custom-repo': } ->
 stage {'netconfig': } ->
 stage {'corosync_setup': } ->
-stage {'openstack-firewall': } -> Stage['main']
+stage {'openstack-firewall': } -> Stage['main'] ->
+stage {'openstack-updates': }
 
 class begin_deployment ()
 {
@@ -26,6 +27,8 @@ class begin_deployment ()
 }
 
 class {'begin_deployment': stage => 'zero' }
+
+class {'osnailyfacter::patching_classes': stage => 'openstack-updates'}
 
 stage {'glance-image':
   require => Stage['main'],
