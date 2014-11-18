@@ -979,7 +979,19 @@ class PreseedPManager(object):
 
         self.log_lvm("before vgcreate", False)
         for vg, devs in devices_dict.iteritems():
+            self.late("vgremove -f {0}".format(vg))
+            # This sleep cycle is supposed to give udev
+            # some time to update lvm devices. Here we just
+            # check if /dev/vgname (default udev rule) directory is removed.
+            self.late("while test -e /dev/{0}; do"
+                      "echo 'Waiting for vg {0} to be removed'; "
+                      "sleep 1; done".format(vg))
             self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)))
+            # This sleep cycle is supposed to give udev
+            # some time to update lvm devices. Here we just
+            self.late("while test ! -e /dev/{0}; do"
+                      "echo 'Waiting for vg {0} to be created'; "
+                      "sleep 1; done".format(vg))
 
         self.log_lvm("after vgcreate", False)
         self._mount_target()
@@ -989,7 +1001,7 @@ class PreseedPManager(object):
             for lv in vg["volumes"]:
                 if lv["size"] <= 0:
                     continue
-                self.late("lvcreate -L {0}m -n {1} {2}".format(
+                self.late("lvcreate -L {0}m -Z n -n {1} {2}".format(
                     lv["size"], lv["name"], vg["id"]))
                 self.late("sleep 10")
                 self.late("lvscan")
