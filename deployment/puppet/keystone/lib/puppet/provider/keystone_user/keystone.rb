@@ -25,7 +25,7 @@ Puppet::Type.type(:keystone_user).provide(
   end
 
   def self.user_hash
-    @user_hash ||= build_user_hash
+    @user_hash = build_user_hash
   end
 
   def user_hash

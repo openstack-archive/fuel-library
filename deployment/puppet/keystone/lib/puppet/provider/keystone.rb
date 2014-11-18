@@ -44,7 +44,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
   end
 
   def self.tenant_hash
-    @tenant_hash ||= build_tenant_hash
+    @tenant_hash = build_tenant_hash
   end
 
   def tenant_hash
