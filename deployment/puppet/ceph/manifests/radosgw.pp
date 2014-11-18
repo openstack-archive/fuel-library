@@ -45,27 +45,6 @@ class ceph::radosgw (
     ensure  => 'installed',
   }
 
-  service { 'radosgw':
-    ensure  => 'running',
-    name    => $::ceph::params::service_radosgw,
-    enable  => true,
-    require => Package[$::ceph::params::package_radosgw],
-  }
-  Package<| title == $::ceph::params::package_radosgw|> ~>
-  Service<| title == 'radosgw'|>
-  if !defined(Service['radosgw']) {
-    notify{ "Module ${module_name} cannot notify service radosgw\
- on package ${::ceph::params::package_radosgw} update": }
-  }
-
-  # The Ubuntu upstart script is incompatible with the upstart provider
-  #  This will force the service to fall back to the debian init script
-  if ($::operatingsystem == 'Ubuntu') {
-    Service['radosgw'] {
-      provider  => 'debian'
-    }
-  }
-
   if !(defined('horizon') or
        defined($::ceph::params::package_httpd) or
        defined($::ceph::params::service_httpd) ) {
@@ -93,14 +72,13 @@ class ceph::radosgw (
   }
 
   ceph_conf {
-    "client.${rgw_id}/host":                value => $rgw_host;
-    "client.${rgw_id}/keyring":             value => $keyring_path;
-    "client.${rgw_id}/rgw_socket_path":     value => $rgw_socket_path;
-    "client.${rgw_id}/log_file":            value => $rgw_log_file;
-    "client.${rgw_id}/user":                value => $rgw_user;
-    "client.${rgw_id}/rgw_data":            value => $rgw_data;
-    "client.${rgw_id}/rgw_dns_name":        value => $rgw_dns_name;
-    "client.${rgw_id}/rgw_print_continue":  value => $rgw_print_continue;
+    "client.${rgw_id}/host":               value => $rgw_host;
+    "client.${rgw_id}/keyring":            value => $keyring_path;
+    "client.${rgw_id}/rgw_socket_path":    value => $rgw_socket_path;
+    "client.${rgw_id}/user":               value => $rgw_user;
+    "client.${rgw_id}/rgw_data":           value => $rgw_data;
+    "client.${rgw_id}/rgw_dns_name":       value => $rgw_dns_name;
+    "client.${rgw_id}/rgw_print_continue": value => $rgw_print_continue;
   }
 
   if ($use_ssl) {
@@ -143,8 +121,7 @@ class ceph::radosgw (
       }
 
       Exec["ceph-create-radosgw-keyring-on ${name}"] ->
-      Exec['create nss db signing certs'] ~>
-      Service['radosgw']
+      Exec['create nss db signing certs']
 
     } #END rgw_use_pki
 
@@ -231,6 +208,5 @@ class ceph::radosgw (
   Exec["Populate ${radosgw_auth_key} keyring"] ->
   File[$keyring_path] ->
   Firewall['012 RadosGW allow'] ~>
-  Service ['httpd'] ~>
-  Service['radosgw']
+  Service ['httpd']
 }
