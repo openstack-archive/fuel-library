@@ -600,6 +600,9 @@ class osnailyfacter::cluster_ha {
         verbose             => $::verbose,
         use_syslog          => $::use_syslog,
         syslog_log_facility => $::syslog_log_facility_heat,
+
+        auth_encryption_key => $heat_hash['auth_encryption_key'],
+
       }
 
 
