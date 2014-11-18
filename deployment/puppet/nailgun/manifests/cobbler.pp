@@ -4,7 +4,7 @@ class nailgun::cobbler(
   $centos_repos,
   $production,
   $gem_source,
-
+  $release = '',
   $ks_system_timezone         = "Etc/UTC",
   $server = $::ipaddress,
   $name_server = $::ipaddress,
@@ -38,6 +38,8 @@ class nailgun::cobbler(
   $real_server = $next_server
 
   class { "::cobbler":
+    release = $release,
+
     server              => $server,
     production          => $production,
 
@@ -59,6 +61,15 @@ class nailgun::cobbler(
 
     pxetimeout          => '50'
   }
+  $base_profile = "x86_64_${release}"
+  $centos_profile = "centos-${base_profile}"
+  $ubuntu_profile = "ubuntu-${base_profile}"
+  $ubuntu_distro = $ubuntu_profile
+  $centos_distro = $centos_profile
+  $boostrap_profile = "bootrap_${release}"
+  $kickstart_path = "/var/lib/cobbler/kickstarts/${centos_distro}.ks"
+  $preseed_path = "/var/lib/cobbler/kickstarts/${ubuntu_distro}.preseed"
+
 
   # ADDING send2syslog.py SCRIPT AND CORRESPONDING SNIPPET
 
@@ -96,7 +107,7 @@ class nailgun::cobbler(
   case $production {
     'prod', 'docker': {
 
-      file { "/var/lib/cobbler/kickstarts/centos-x86_64.ks":
+      file { $kickstart_path:
         content => template("cobbler/kickstart/centos.ks.erb"),
         owner => root,
         group => root,
@@ -104,7 +115,7 @@ class nailgun::cobbler(
         require => Class["::cobbler::server"],
       } ->
 
-      cobbler_distro { "centos-x86_64":
+      cobbler_distro { $centos_distro:
         kernel => "${repo_root}/centos/x86_64/isolinux/vmlinuz",
         initrd => "${repo_root}/centos/x86_64/isolinux/initrd.img",
         arch => "x86_64",
@@ -114,7 +125,7 @@ class nailgun::cobbler(
         require => Class["::cobbler::server"],
       }
 
-      file { "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed":
+      file { $preseed_path:
         content => template("cobbler/preseed/ubuntu-1204.preseed.erb"),
         owner => root,
         group => root,
@@ -122,7 +133,7 @@ class nailgun::cobbler(
         require => Class["::cobbler::server"],
       } ->
 
-      cobbler_distro { "ubuntu_1204_x86_64":
+      cobbler_distro { $ubuntu_distro:
         kernel => "${repo_root}/ubuntu/x86_64/images/linux",
         initrd => "${repo_root}/ubuntu/x86_64/images/initrd.gz",
         arch => "x86_64",
@@ -133,28 +144,28 @@ class nailgun::cobbler(
       }
 
 
-      cobbler_profile { "centos-x86_64":
-        kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
+      cobbler_profile { $centos_profile:
+        kickstart => $kickstart_path,
         kopts => "biosdevname=0 sshd=1 dhcptimeout=120",
-        distro => "centos-x86_64",
+        distro => $centos_distro,
         ksmeta => "",
         menu => true,
         server => $real_server,
-        require => Cobbler_distro["centos-x86_64"],
+        require => Cobbler_distro[$centos_distro],
       }
 
-      cobbler_profile { "ubuntu_1204_x86_64":
-        kickstart => "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed",
+      cobbler_profile { $ubuntu_profile:
+        kickstart => $preseed_path,
         kopts => "netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20",
-        distro => "ubuntu_1204_x86_64",
+        distro => $ubuntu_distro,
         ksmeta => "",
         menu => true,
         server => $real_server,
-        require => Cobbler_distro["ubuntu_1204_x86_64"],
+        require => Cobbler_distro[$ubuntu_distro],
       }
 
 
-      cobbler_distro { "bootstrap":
+      cobbler_distro { $boostrap_distro:
         kernel => "${repo_root}/bootstrap/linux",
         initrd => "${repo_root}/bootstrap/initramfs.img",
         arch => "x86_64",
@@ -164,14 +175,14 @@ class nailgun::cobbler(
         require => Class["::cobbler::server"],
       }
 
-      cobbler_profile { "bootstrap":
-        distro => "bootstrap",
+      cobbler_profile { $boostrap_profile:
+        distro => $boostrap_distro,
         menu => true,
         kickstart => "",
         kopts => "biosdevname=0 url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api mco_user=${mco_user} mco_pass=${mco_pass}",
         ksmeta => "",
         server => $real_server,
-        require => Cobbler_distro["bootstrap"],
+        require => Cobbler_distro[$boostrap_distro],
       }
 
       if str2bool($::is_virtual) {  class { cobbler::checksum_bootpc: } }
@@ -180,14 +191,14 @@ class nailgun::cobbler(
         command => "cobbler system add --name=default \
         --profile=bootstrap --netboot-enabled=True",
         onlyif => "test -z `cobbler system find --name=default`",
-        require => Cobbler_profile["bootstrap"],
+        require => Cobbler_profile[$boostrap_profile],
       }
 
       exec { "cobbler_system_edit_default":
         command => "cobbler system edit --name=default \
         --profile=bootstrap --netboot-enabled=True",
         onlyif => "test ! -z `cobbler system find --name=default`",
-        require => Cobbler_profile["bootstrap"],
+        require => Cobbler_profile[$boostrap_profile],
       }
 
       exec { "nailgun_cobbler_sync":
