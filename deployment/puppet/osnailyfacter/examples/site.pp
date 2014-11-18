@@ -271,6 +271,7 @@ class os_common {
       virtual        => str2bool($::is_virtual),
       # Rabbit doesn't support syslog directly
       rabbit_log_level => 'NOTICE',
+      debug            => $debug,
     }
   }
 

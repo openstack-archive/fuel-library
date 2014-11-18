@@ -4,6 +4,7 @@ class openstack::logrotate (
     $rotation       = 'daily',
     $keep           = '7',
     $limitsize      = '300M',
+    $debug          = false,
 ) {
   validate_re($rotation, 'daily|weekly|monthly')
 
@@ -47,7 +48,9 @@ class openstack::logrotate (
   }
 
 # Configure (ana)cron for fuel custom hourly logrotations
-  class { '::anacron': }
+  class { '::anacron': 
+    debug => $debug,
+  }
   case $osfamily {
     'RedHat': {
      # Due to bug existing, logrotate always returns 0. Use grep for detect errors:
