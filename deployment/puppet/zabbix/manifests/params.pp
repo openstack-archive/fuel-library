@@ -26,6 +26,7 @@ class zabbix::params {
 
       $prepare_schema_cmd = 'cat /usr/share/zabbix-server-mysql/schema.sql /usr/share/zabbix-server-mysql/images.sql > /tmp/zabbix/schema.sql'
 
+      $frontend_service_pkg = 'apache2'
       $frontend_service = 'apache2'
       $mysql_server_pkg = 'mysql-server-wsrep-5.6'
 
@@ -47,6 +48,7 @@ class zabbix::params {
 
       $prepare_schema_cmd = 'cat /usr/share/doc/zabbix-server-mysql-`zabbix_server -V | awk \'/v[0-9].[0-9].[0-9]/{print substr($3, 2)}\'`/create/schema.sql /usr/share/doc/zabbix-server-mysql-`zabbix_server -V | awk \'/v[0-9].[0-9].[0-9]/{print substr($3, 2)}\'`/create/images.sql > /tmp/zabbix/schema.sql'
 
+      $frontend_service_pkg = 'httpd'
       $frontend_service = 'httpd'
       $mysql_server_pkg = "MySQL-server-wsrep"
 
