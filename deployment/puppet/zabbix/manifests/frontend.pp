@@ -17,6 +17,11 @@ class zabbix::frontend {
     content   => template($zabbix::params::frontend_php_ini_template),
   }
 
+  package { $zabbix::params::frontend_service_pkg:
+    ensure    => present,
+    before    => Service[$zabbix::params::frontend_service],
+  }
+
   service { $zabbix::params::frontend_service:
     ensure    => running,
     require   => Package[$zabbix::params::frontend_pkg],
