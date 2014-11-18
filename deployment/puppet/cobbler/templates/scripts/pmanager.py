@@ -561,8 +561,13 @@ class PreseedPManager(object):
             return self._recipe.append(command)
         return self._recipe
 
-    def late(self, command=None, in_target=False):
+    def late(self, command=None, in_target=False, udev_settle=False):
         if command:
+            if udev_settle:
+                # this gonna wait until udev event queue is handled
+                # and avoid appearing udev race condition.
+                # for example http://permalink.gmane.org/gmane.linux.raid/34027
+                self._late.append(("/sbin/udevadm settle", False))
             return self._late.append((command, in_target))
         return self._late
 
@@ -979,7 +984,9 @@ class PreseedPManager(object):
 
         self.log_lvm("before vgcreate", False)
         for vg, devs in devices_dict.iteritems():
-            self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)))
+            self.late("vgremove -f {0}".format(vg), udev_settle=True)
+            self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)),
+                      udev_settle=True)
 
         self.log_lvm("after vgcreate", False)
         self._mount_target()
@@ -989,8 +996,8 @@ class PreseedPManager(object):
             for lv in vg["volumes"]:
                 if lv["size"] <= 0:
                     continue
-                self.late("lvcreate -L {0}m -n {1} {2}".format(
-                    lv["size"], lv["name"], vg["id"]))
+                self.late("lvcreate -L {0}m -Z n -n {1} {2}".format(
+                    lv["size"], lv["name"], vg["id"]), udev_settle=True)
                 self.late("sleep 10")
                 self.late("lvscan")
 
