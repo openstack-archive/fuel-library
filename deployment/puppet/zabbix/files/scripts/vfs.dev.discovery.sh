@@ -12,7 +12,7 @@ do
         echo ","
     fi
     echo -n " { \"{#DEVNAME}\": \"$DEV\"}"
-    POSITION=$[POSITION+1]
+    POSITION=$((POSITION+1))
 done
 echo ""
 echo " ]"
