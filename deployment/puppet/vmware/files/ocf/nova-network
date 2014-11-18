@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #
 # OpenStack Network Service (nova-network) (replaced by Neutron in Havana)
@@ -205,65 +205,119 @@ nova_network_validate() {
 }
 
 nova_network_cleanup() {
-    network_manager_nlines=`egrep -c -e '^network_manager' $OCF_RESKEY_config`
+    network_manager_nlines=$(egrep -c -e '^network_manager' $OCF_RESKEY_config)
 
-    if [ $network_manager_nlines -eq 0 ];then
+    if [ $network_manager_nlines -eq 0 ]; then
         ocf_log err "You must specify 'network_manager' in $OCF_RESKEY_config"
         return OCF_ERR_CONFIGURED
     fi
 
+    shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-6))
+    fi
+
+    count=0
+    alive=1
+    dnsmasq_pids=$(pgrep dnsmasq)
+    while [ $alive -gt 0 ] && [ $count -lt $shutdown_timeout ]; do
+        ocf_run kill -s TERM $dnsmasq_pids
+
+        iteration_time=3
+        sleep $iteration_time
+
+        alive=0
+        np=""
+
+        # Find out if there are dnsmasq processes that are
+        # still alive after receiveing TERM signal
+        for pid in $dnsmasq_pids ; do
+            # Check if process with $pid is running
+            ocf_run ps -p $pid > /dev/null
+            if [ $? -eq 0 ]; then
+                np="$np $pid"
+                ((alive++))
+            fi
+        done
+
+        if [ $alive -gt 0 ] ; then
+            dnsmasq_pids=$np
+        fi
+
+        ((count+=$iteration_time))
+
+        ocf_log debug "dnsmasq processes started by nova-network still hasn't stopped yet. Waiting ..."
+    done
+
+    if [ $alive -gt 0 ] ; then
+        alive=0
+
+        ocf_run kill -s KILL $dnsmasq_pids
+        sleep 1
+
+        for pid in $dnsmasq_pids ; do
+            ocf_run ps -p $pid > /dev/null
+            if [ $? -eq 0 ]; then
+                ((alive++))
+            fi
+        done
+        if [ $alive -gt 0 ] ; then
+            ocf_log err "Termination of dnsmasq processes stop failed"
+            return $OCF_ERR_GENERIC
+        fi
+    fi
+    ocf_log info "dnsmasq processes started by nova-network stopped"
+
+    use_ipv6=$(egrep -e '^use_ipv6' $OCF_RESKEY_config | sed -e "s/$regexp/\1/")
+
+    # Consider IPv4 if 'use_ipv6' was not explicitly defined
+    if [ -z $use_ipv6 ];then
+            use_ipv6=false
+    fi
+
+    # Flush firewall rules that nova-network creates
+    prefix="nova-network"
+    case $use_ipv6 in
+            # IPv4
+            false)
+                filter_chains="$prefix-FORWARD $prefix-INPUT $prefix-OUTPUT $prefix-local"
+                for filter_chain in $filter_chains
+                do
+                    ocf_run iptables -t filter -F $filter_chain
+                done
+
+                nat_chains="$prefix-OUTPUT $prefix-POSTROUTING $prefix-PREROUTING \
+                    $prefix-float-snat $prefix-snat"
+                for nat_chain in $nat_chains
+                do
+                    ocf_run iptables -t nat -F $nat_chain
+                done
+
+                ocf_run iptables -t mangle -F $prefix-POSTROUTING
+            ;;
+
+            # IPv6
+            true)
+                filter_chains="$prefix-FORWARD $prefix-INPUT $prefix-OUTPUT $prefix-local"
+
+                for chain in $filter_chains
+                do
+                    ocf_run ip6tables -t filter -F $chain
+                done
+            ;;
+    esac
+    ocf_log debug "firewall rules created by nova-network removed"
+
+
     # Regular expression to extract value from .ini style config file line
     regexp='.*=\s*\(\w\+\)'
 
-    # Grab last network segmentation type (FlatDHCP or VLAN) from config file
+    # Grab last network manager value (FlatDHCP or VLAN) from config file
     network_manager=$(egrep -e '^network_manager' $OCF_RESKEY_config | sed -e "s/$regexp/\1/" | tail -n 1)
-
     case $network_manager in
         nova.network.manager.FlatDHCPManager)
-            use_ipv6=$(egrep -e '^use_ipv6' $OCF_RESKEY_config | sed -e "s/$regexp/\1/")
 
-            # Consider IPv4 if 'use_ipv6' was not explicitly defined
-            if [ -z $use_ipv6 ];then
-                    use_ipv6=false
-            fi
-
-            # Stop all dnsmasq processes
-            ocf_run killall -SIGKILL dnsmasq
-
-            prefix="nova-network"
-            case $use_ipv6 in
-                # IPv4
-                false)
-                    filter_chains="nova-filter-top $prefix-FORWARD $prefix-INPUT \
-                                   $prefix-OUTPUT $prefix-local"
-                    for filter_chain in $filter_chains
-                    do
-                            ocf_run iptables -t filter -F $filter_chain
-                    done
-
-                    nat_chains="$prefix-OUTPUT $prefix-PREROUTING $prefix-POSTROUTING \
-                                $prefix-PREROUTING $prefix-float-snat $prefix-snat \
-                                nova-postrouting-bottom"
-                    for nat_chain in $nat_chains
-                    do
-                            ocf_run iptables -t nat -F $nat_chain
-                    done
-
-                    ocf_run iptables -t mangle -F $prefix-POSTROUTING
-                ;;
-                # IPv6
-                true)
-                    filter_chains="nova-filter-top $prefix-FORWARD $prefix-INPUT \
-                                   $prefix-OUTPUT $prefix-local"
-
-                    for chain in $filter_chains
-                    do
-                         ocf_run ip6tables -t filter -F $chain
-                    done
-                ;;
-            esac
-
-            flat_network_bridge_nlines=`egrep -c -e '^flat_network_bridge' $OCF_RESKEY_config`
+            flat_network_bridge_nlines=`egrep --count -e '^flat_network_bridge' $OCF_RESKEY_config`
             if [ $flat_network_bridge_nlines -ne 1 ]; then
                 ocf_log err "Specifying more than one 'flat_network_bridge' in $OCF_RESKEY_config is not supported"
                 return OCF_ERR_CONFIGURED
@@ -274,9 +328,13 @@ nova_network_cleanup() {
             ocf_run ip addr flush dev $flat_network_bridge
         ;;
         nova.network.manager.VlanManager)
-            # TODO: nova-network (VLAN manager) with vCenter is not supported
-            ocf_log err "Unsupported network manager $NETWORK_MANAGER"
-            return OCF_ERR_GENERIC
+            # Collect all bridge interfaces that were created by nova-network and
+            # remove IP addresses assigned to them
+            bridges=$(ifconfig | egrep -e '^br*'| awk '{ print $1; }')
+            for bridge in $bridges
+            do
+                    ocf_run ip addr flush dev $bridge
+            done
         ;;
         *)
             ocf_log err "Unsupported network manager $NETWORK_MANAGER"
@@ -403,9 +461,6 @@ nova_network_stop() {
 
     # Try SIGTERM
     pid=`cat $OCF_RESKEY_pid`
-
-    # Also stop dnsmasq processes that may left
-    pid="$pid `pidof dnsmasq`"
     ocf_run kill -s TERM $pid
     rc=$?
     if [ $rc -ne 0 ]; then
