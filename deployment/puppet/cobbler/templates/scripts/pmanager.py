@@ -979,7 +979,14 @@ class PreseedPManager(object):
 
         self.log_lvm("before vgcreate", False)
         for vg, devs in devices_dict.iteritems():
+            self.late("vgremove -f {0}".format(vg))
+            # this gonna give some time to device mapper
+            # to remove /dev/vgname directory
+            self.late("sleep 2")
             self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)))
+            # this gonna give time to device mapper
+            # to create volume group structures
+            self.late("sleep 2")
 
         self.log_lvm("after vgcreate", False)
         self._mount_target()
@@ -989,7 +996,7 @@ class PreseedPManager(object):
             for lv in vg["volumes"]:
                 if lv["size"] <= 0:
                     continue
-                self.late("lvcreate -L {0}m -n {1} {2}".format(
+                self.late("lvcreate -L {0}m -Z n -n {1} {2}".format(
                     lv["size"], lv["name"], vg["id"]))
                 self.late("sleep 10")
                 self.late("lvscan")
