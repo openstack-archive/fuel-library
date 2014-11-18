@@ -766,8 +766,10 @@ class PreseedPManager(object):
             for part in self.non_boot_partitions(disk["volumes"]):
 
                 if self.pcount(self._disk_dev(disk)) == 0:
+                    self.late("/sbin/udevadm settle")
                     self.late("parted -s {0} mklabel gpt"
                               "".format(self._disk_dev(disk)))
+                    self.late("/sbin/udevadm settle")
                     self.late("parted -a none -s {0} "
                         "unit {3} mkpart primary {1} {2}".format(
                             self._disk_dev(disk),
@@ -777,6 +779,7 @@ class PreseedPManager(object):
                             self.unit
                         )
                     )
+                    self.late("/sbin/udevadm settle")
                     self.late("parted -s {0} set {1} "
                               "bios_grub on".format(
                                   self._disk_dev(disk),
@@ -807,7 +810,7 @@ class PreseedPManager(object):
                         journals_left -= 1
                         pcount = self.pcount(self._disk_dev(disk), 1)
                         part["pcount"] = pcount
-
+                        self.late("/sbin/udevadm settle")
                         self.late(
                             "parted -a none -s {0} "
                             "unit {4} mkpart {1} {2} {3}".format(
@@ -835,6 +838,7 @@ class PreseedPManager(object):
                 pcount = self.pcount(self._disk_dev(disk), 1)
                 part["pcount"] = pcount
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
+                self.late("/sbin/udevadm settle")
                 self.late("parted -a none -s {0} "
                           "unit {4} mkpart {1} {2} {3}".format(
                              self._disk_dev(disk),
@@ -917,8 +921,11 @@ class PreseedPManager(object):
                 if pv["size"] <= 0:
                     continue
                 if self.pcount(self._disk_dev(disk)) == 0:
+                    # this gonna wait until udev event queue is handled
+                    self.late("/sbin/udevadm settle")
                     self.late("parted -s {0} mklabel gpt"
                               "".format(self._disk_dev(disk)))
+                    self.late("/sbin/udevadm settle")
                     self.late("parted -a none -s {0} "
                         "unit {3} mkpart primary {1} {2}".format(
                             self._disk_dev(disk),
@@ -928,6 +935,7 @@ class PreseedPManager(object):
                             self.unit
                         )
                     )
+                    self.late("/sbin/udevadm settle")
                     self.late("parted -s {0} set {1} "
                               "bios_grub on".format(
                                   self._disk_dev(disk),
@@ -939,6 +947,7 @@ class PreseedPManager(object):
                 end_size = self.psize(self._disk_dev(disk),
                                       pv["size"] * self.factor)
 
+                self.late("/sbin/udevadm settle")
                 self.late("parted -a none -s {0} "
                           "unit {4} mkpart {1} {2} {3}".format(
                              self._disk_dev(disk),
