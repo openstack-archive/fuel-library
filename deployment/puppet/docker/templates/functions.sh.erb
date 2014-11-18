@@ -777,7 +777,7 @@ function verify_disk_space {
   #11gb free space required to backup and restore
   (( required = 11 * 1024 * 1024 ))
   avail=$(df /var | grep /var | awk '{print $4}')
-  if [[ "$avail" < "$required" ]]; then
+  if (( avail < required )); then
     echo "Insufficient disk space to perform $1. At least 11gb must be free on /var partition." 1>&2
     exit 1
   fi
