@@ -66,7 +66,7 @@ class mysql::server (
     Class['mysql::server'] -> Class['mysql::config']
     Class['mysql']         -> Class['mysql::server']
 
-    if !defined(Package[mysql-client]) {
+    if !defined(Package['mysql-client']) {
       package { 'mysql-client':
         name   => $package_name,
       }
@@ -83,7 +83,7 @@ class mysql::server (
       }
       File['/etc/init.d/mysqld'] -> Service['mysql']
     }
-    Package[mysql-client] -> Package[mysql-server]
+    Package['mysql-client'] -> Package['mysql-server']
 
     service { 'mysql':
       name     => $service_name,
@@ -95,12 +95,8 @@ class mysql::server (
   }
   elsif ($custom_setup_class == 'pacemaker_mysql')  {
     include mysql
-    Package[mysql-server] -> Class['mysql::config']
-    Package[mysql-server] -> Cs_shadow['mysql']
-    Package[mysql-client] -> Package[mysql-server]
-    Cs_commit['mysql']    -> Service['mysql']
-    #Cs_property <||> -> Cs_shadow <||>
-    #Cs_shadow['mysql']    -> Service['mysql']
+    Package['mysql-server'] -> Class['mysql::config']
+    Package['mysql-client'] -> Package['mysql-server']
 
     $config_hash['custom_setup_class'] = $custom_setup_class
     $allowed_hosts = '%'
@@ -108,7 +104,7 @@ class mysql::server (
     create_resources( 'class', { 'mysql::config' => $config_hash })
     Class['mysql::config'] -> Cs_resource["p_${service_name}"]
 
-    if !defined(Package[mysql-client]) {
+    if !defined(Package['mysql-client']) {
       package { 'mysql-client':
         name   => $package_name,
       }
@@ -170,13 +166,11 @@ class mysql::server (
     }
     ### end hacks
 
-    cs_shadow { 'mysql': cib => 'mysql' } ->
     cs_resource { "p_${service_name}":
       ensure          => present,
       primitive_class => 'ocf',
       provided_by     => 'heartbeat',
       primitive_type  => 'mysql',
-      cib             => 'mysql',
       multistate_hash => {'type'=>'master'},
       ms_metadata     => {'notify'             => "true"},
       parameters      => {
@@ -196,13 +190,11 @@ class mysql::server (
       }
     }->
 
-    cs_commit { 'mysql': cib => 'mysql' } ->
-
     service { 'mysql':
       name     => "p_${service_name}",
       ensure   => 'running',
       enable   => true,
-      require  => [Package['mysql-server'], Cs_commit['mysql']],
+      require  => [Package['mysql-server']],
       provider => 'pacemaker',
     }
 
@@ -210,7 +202,7 @@ class mysql::server (
     cs_colocation { 'mysql_to_internal-vip':
       primitives => ['vip__management',"master_p_${service_name}:Master"],
       score      => 'INFINITY',
-      require    => [Cs_resource["p_${service_name}"], Cs_commit['mysql']],
+      require    => [Cs_resource["p_${service_name}"]],
     }
 
   }

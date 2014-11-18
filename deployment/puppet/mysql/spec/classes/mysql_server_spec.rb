@@ -20,7 +20,7 @@ describe 'mysql::server' do
       :ensure   => 'running',
       :enable   => 'true',
       :provider => 'upstart',
-      :require  => 'Package[mysql-server]'
+      :require  => 'Package["mysql-server"]'
     )}
   end
 
@@ -80,7 +80,7 @@ describe 'mysql::server' do
               :name    => param_values[:service_name],
               :ensure  => param_values[:enabled] ? 'running' : 'stopped',
               :enable  => param_values[:enabled],
-              :require => 'Package[mysql-server]'
+              :require => 'Package["mysql-server"]'
             )}
 
             it { should contain_service('mysqld').without_provider }
