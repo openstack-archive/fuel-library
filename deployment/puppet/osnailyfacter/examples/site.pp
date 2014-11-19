@@ -315,7 +315,8 @@ class os_common {
   }
 
   class { 'puppet::pull' :
-    master_ip => $::fuel_settings['master_ip'],
+    modules_source   => $::fuel_settings['puppet_modules_source'],
+    manifests_source => $::fuel_settings['puppet_manifests_source'],
   }
 } # OS_COMMON ENDS
 
