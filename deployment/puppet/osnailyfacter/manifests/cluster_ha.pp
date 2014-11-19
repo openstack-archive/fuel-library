@@ -542,28 +542,42 @@ class osnailyfacter::cluster_ha {
         }
       }
 
+      # TODO(bogdando) move exec checkers to puppet native types for haproxy backends
+      if $primary_controller {
+        exec { 'wait-for-haproxy-keystone-backend':
+          command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^keystone-1,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
+                        echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-1,BACKEND,.*,UP,'",
+          path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+          try_sleep => 5,
+          tries     => 60,
+          require   => Package['socat'],
+        }
+        exec { 'wait-for-haproxy-keystone-admin-backend':
+          command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^keystone-2,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
+                        echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-2,BACKEND,.*,UP,'",
+          path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+          try_sleep => 5,
+          tries     => 60,
+          require   => Package['socat'],
+        }
+
+        Openstack::Ha::Haproxy_service <| |> -> Exec<| title=='wait-for-haproxy-keystone-admin-backend' |>
+        Openstack::Ha::Haproxy_service <| |> -> Exec<| title=='wait-for-haproxy-keystone-backend' |>
+
+        Class['keystone', 'openstack::ha::keystone']-> Exec<| title=='wait-for-haproxy-keystone-backend' |>
+        Class['keystone', 'openstack::ha::keystone']-> Exec<| title=='wait-for-haproxy-keystone-admin-backend' |>
+
+        if $::use_neutron {
+          Exec<| title=='wait-for-haproxy-keystone-backend' |> -> Exec <| title == 'waiting-for-neutron-api' |>
+          Exec<| title=='wait-for-haproxy-keystone-admin-backend' |> -> Exec <| title == 'waiting-for-neutron-api' |>
+        }
+      }
+
       if ! $::use_neutron {
         if $primary_controller {
           exec { 'wait-for-haproxy-nova-backend':
             command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^nova-api-2,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
                           echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
-            path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-            try_sleep => 5,
-            tries     => 60,
-            require   => Package['socat'],
-          }
-          exec { 'wait-for-haproxy-keystone-backend':
-            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^keystone-1,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
-                          echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-1,BACKEND,.*,UP,'",
-            path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-            try_sleep => 5,
-            tries     => 60,
-            require   => Package['socat'],
-          }
-
-          exec { 'wait-for-haproxy-keystone-admin-backend':
-            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^keystone-2,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
-                          echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-2,BACKEND,.*,UP,'",
             path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
             try_sleep => 5,
             tries     => 60,
@@ -594,12 +608,6 @@ class osnailyfacter::cluster_ha {
 
           Openstack::Ha::Haproxy_service <| |> ->
           Exec<| title=='wait-for-haproxy-nova-backend' |>
-
-          Openstack::Ha::Haproxy_service <| |> ->
-          Exec<| title=='wait-for-haproxy-keystone-admin-backend' |>
-
-          Openstack::Ha::Haproxy_service <| |> ->
-          Exec<| title=='wait-for-haproxy-keystone-backend' |>
         }
       }
       if ($::use_ceph){
