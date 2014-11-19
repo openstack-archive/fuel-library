@@ -5,12 +5,21 @@
 # === Parameters
 #
 class nailgun::uwsgi(
+  $production,
 ) {
 
-  if $::physicalprocessorcount > 8  {
+  if $::physicalprocessorcount > 4  {
     $physicalprocessorcount = 8
   } else {
-    $physicalprocessorcount = $::physicalprocessorcount
+    $physicalprocessorcount = $::physicalprocessorcount * 2
+  }
+
+  if $production == "docker-build" {
+    $somaxconn = "100"
+  } else {
+    #Increase max connections for sockets for Nailgun uWSGI
+    $somaxconn = "4096"
+    sysctl::value{'net.core.somaxconn': value => $somaxconn}
   }
 
   package { ['uwsgi', 'uwsgi-plugin-common', 'uwsgi-plugin-python']:
@@ -32,7 +41,6 @@ class nailgun::uwsgi(
     group  => 'root',
     mode   => '0644',
   }
-
   Class[Nailgun::Venv]->
     File['/etc/nailgun/uwsgi_nailgun.yaml']
 
