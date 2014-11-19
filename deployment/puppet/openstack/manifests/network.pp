@@ -201,6 +201,12 @@ class openstack::network (
           api_workers => min($::processorcount + 0, 50 + 0),
           rpc_workers => min($::processorcount + 0, 50 + 0),
         }
+        tweaks::ubuntu_service_override { "$::neutron::params::server_service":
+          package_name => $::neutron::params::server_package ? {
+              false   => $::neutron::params::package_name,
+              default => $::neutron::params::server_package
+          }
+        }
 
         class { 'neutron::server::notifications':
           nova_url                => $nova_url,
