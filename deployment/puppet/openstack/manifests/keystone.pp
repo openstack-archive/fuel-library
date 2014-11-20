@@ -251,10 +251,14 @@ class openstack::keystone (
   if $memcache_servers {
     Service<| title == 'memcached' |> -> Service<| title == 'keystone'|>
     keystone_config {
-      'token/caching': value => 'true';
-      'cache/enabled': value => 'true';
-      'cache/backend': value => 'dogpile.cache.memcached';
-      'cache/backend_argument': value => inline_template("url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
+      'token/caching':                      value => 'false';
+      'cache/enabled':                      value => 'true';
+      'cache/backend':                      value => 'keystone.cache.memcache_pool';
+      'cache/memcache_servers':             value => join($memcache_servers_real, ',');
+      'cache/memcache_dead_retry':          value => '300';
+      'cache/memcache_socket_timeout':      value => '3';
+      'cache/memcache_pool_maxsize':        value => '100';
+      'cache/memcache_pool_unused_timeout': value => '60';
      }
   }
 
