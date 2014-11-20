@@ -7,6 +7,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
 
   commands :uname => 'uname'
   commands :pcs => 'pcs'
+  commands :crm_resource => 'crm_resource'
   commands :cibadmin => 'cibadmin'
 
   # hostname of the current node
@@ -90,7 +91,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     constraint_location_add name, hostname
     unban_primitive name, hostname
     start_primitive name
-    cleanup_with_wait name if primitive_has_failures? name
+    cleanup_with_wait(name, hostname) if primitive_has_failures?(name, hostname)
 
     if primitive_is_multistate? name
       Puppet.debug "Choose master start for Pacemaker service '#{name}'"
@@ -105,7 +106,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   def stop
     Puppet.debug "Call 'stop' for Pacemaker service '#{name}' on node '#{hostname}'"
     enable unless primitive_is_managed? name
-    cleanup_with_wait name if primitive_has_failures? name
+    cleanup_with_wait(name, hostname) if primitive_has_failures?(name, hostname)
 
     if primitive_is_complex? name
       Puppet.debug "Choose local stop for Pacemaker service '#{name}' on node '#{hostname}'"

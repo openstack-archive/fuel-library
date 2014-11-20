@@ -330,8 +330,10 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
 
   # cleanup this primitive
   # @param primitive [String]
-  def cleanup_primitive(primitive)
-    retry_command { pcs 'resource', 'cleanup', primitive }
+  def cleanup_primitive(primitive, node = '')
+    opts = ['--cleanup', "--resource=#{primitive}"]
+    opts << "--node=#{node}" if ! node.empty?
+    retry_command { crm_resource opts }
   end
 
   # manage this primitive
@@ -612,14 +614,15 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # we can get it's status again because
   # cleanup blocks operations sections for a while
   # @param primitive [String] primitive name
-  def cleanup_with_wait(primitive)
-    Puppet.debug "Cleanup primitive '#{primitive}' and wait until cleanup finishes"
-    cleanup_primitive primitive
+  def cleanup_with_wait(primitive, node = '')
+    node_msgpart = node.empty? ? '' : " on node '#{node}'"
+    Puppet.debug "Cleanup primitive '#{primitive}'#{node_msgpart} and wait until cleanup finishes"
+    cleanup_primitive(primitive, node)
     retry_block_until_true do
       cib_reset
       primitive_status(primitive) != nil
     end
-    Puppet.debug "Primitive '#{primitive}' have been cleaned up and is online again"
+    Puppet.debug "Primitive '#{primitive}' have been cleaned up#{node_msgpart} and is online again"
   end
 
   # wait for primitive to start
