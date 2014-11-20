@@ -8,19 +8,27 @@ class openstack::mongo (
   $ceilometer_metering_secret   = "ceilometer",
   $mongodb_port                 = 27017,
   $mongodb_bind_address         = ['0.0.0.0'],
-  $verbose                      = false,
   $use_syslog                   = true,
+  $verbose                      = false,
+  $debug                        = false,
 ) {
+
+  if $debug {
+    $set_parameter = 'logLevel=2'
+  } else {
+    $set_parameter = 'logLevel=1'
+  }
 
   class {'::mongodb::client':
   } ->
 
   class {'::mongodb::server':
-    port        => $mongodb_port,
-    verbose     => $verbose,
-    use_syslog  => $use_syslog,
-    bind_ip     => $mongodb_bind_address,
-    auth        => true,
+    port          => $mongodb_port,
+    verbose       => $verbose,
+    use_syslog    => $use_syslog,
+    bind_ip       => $mongodb_bind_address,
+    auth          => true,
+    set_parameter => $set_parameter,
   } ->
 
   mongodb::db { $ceilometer_database:

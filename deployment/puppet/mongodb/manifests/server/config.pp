@@ -44,6 +44,7 @@ class mongodb::server::config {
   $bind_ip         = $mongodb::server::bind_ip
   $directoryperdb  = $mongodb::server::directoryperdb
   $profile         = $mongodb::server::profile
+  $set_parameter   = $mongodb::server::set_parameter
 
   File {
     owner => $user,
