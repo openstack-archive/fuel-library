@@ -11,6 +11,7 @@ class openstack::mongo_primary (
   $mongodb_port                 = 27017,
   $use_syslog                   = true,
   $verbose                      = false,
+  $set_parameter                = unset,
 ) {
 
   if size($ceilometer_replset_members) > 0 {
@@ -29,13 +30,14 @@ class openstack::mongo_primary (
   } ->
 
   class {'::mongodb::server':
-    port       => $mongodb_port,
-    verbose    => $verbose,
-    use_syslog => $use_syslog,
-    bind_ip    => $mongodb_bind_address,
-    auth       => true,
-    replset    => $replset,
-    keyfile    => $keyfile,
+    port          => $mongodb_port,
+    verbose       => $verbose,
+    use_syslog    => $use_syslog,
+    bind_ip       => $mongodb_bind_address,
+    auth          => true,
+    replset       => $replset,
+    keyfile       => $keyfile,
+    set_parameter => $set_parameter,
   } ->
 
   class {'::mongodb::replset':
