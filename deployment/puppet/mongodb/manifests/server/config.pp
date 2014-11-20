@@ -69,7 +69,7 @@ class mongodb::server::config {
     }
     if $keyfile {
       file { $keyfile:
-        content => template('mongodb/mongodb.key.erb'),
+        content => file('/var/lib/astute/mongodb/mongodb.key'),
         owner   => 'mongodb',
         group   => 'root',
         mode    => '0600',
