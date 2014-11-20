@@ -44,6 +44,14 @@ if $::fuel_settings['nodes'] {
   $base_syslog_hash     = $::fuel_settings['base_syslog']
   $syslog_hash          = $::fuel_settings['syslog']
 
+  $disable_offload      = $::fuel_settings['disable_offload']
+  if $disable_offload {
+    L23network::L3::Ifconfig<||> {
+      ethtool =>     {
+        'K' => ['gso off',  'gro off'],
+      }
+    }
+  }
 
   $use_neutron = $::fuel_settings['quantum']
 
