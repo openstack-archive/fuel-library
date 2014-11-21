@@ -9,16 +9,12 @@ else {
     $production = 'prod'
 }
 
-case $production {
-  /docker/: {
-    $puppet_folder = "/puppet"
-  }
-  "prod": {
-    $puppet_folder = "/etc/puppet"
-  }
-  default: {
-    fail("Unsupported production mode $production")
-  }
+if $production == 'prod'{
+  $env_path = "/usr"
+  $staticdir = "/usr/share/nailgun/static"
+} else {
+  $env_path = "/opt/nailgun"
+  $staticdir = "/opt/nailgun/share/nailgun/static"
 }
 
 # this replaces removed postgresql version fact
@@ -28,8 +24,6 @@ $postgres_default_version = '8.4'
 node default {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
-  class { "nailgun::puppetsync":
-    puppet_folder => $puppet_folder,
-  }
+  class { "nailgun::puppetsync": }
 
 }
