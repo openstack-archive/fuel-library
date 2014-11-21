@@ -58,8 +58,9 @@ describe Puppet::Provider::Pacemaker_common do
     end
 
     it 'can get primitives section of CIB XML' do
-      expect(@class.cib_section_primitives.to_s).to start_with '<primitive'
-      expect(@class.cib_section_primitives.to_s).to end_with '</primitive>'
+      expect(@class.cib_section_primitives).to be_a(Array)
+      expect(@class.cib_section_primitives.first.to_s).to start_with '<primitive'
+      expect(@class.cib_section_primitives.first.to_s).to end_with '</primitive>'
     end
 
     it 'can get primitives configuration' do
@@ -199,10 +200,10 @@ describe Puppet::Provider::Pacemaker_common do
     end
 
     it 'cleanups primitive and waits for it to become online again' do
-      @class.stubs(:cleanup_primitive).with('myprimitive').returns true
+      @class.stubs(:cleanup_primitive).with('myprimitive', 'mynode').returns true
       @class.stubs(:cib_reset).returns true
       @class.stubs(:primitive_status).returns 'stopped'
-      @class.cleanup_with_wait 'myprimitive'
+      @class.cleanup_with_wait 'myprimitive', 'mynode'
     end
 
     it 'waits for the service to start' do

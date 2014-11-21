@@ -296,34 +296,46 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     primitives[primitive]['parent']['type'] == 'master'
   end
 
-  # stop this primitive
+  # disable this primitive
   # @param primitive [String]
-  def stop_primitive(primitive)
-    pcs 'resource', 'meta', primitive, 'target-role=Stopped'
+  def disable_primitive(primitive)
+    retry_command {
+      pcs 'resource', 'disable', primitive
+    }
   end
+  alias :stop_primitive :disable_primitive
 
-  # start this primitive
+  # enable this primitive
   # @param primitive [String]
-  def start_primitive(primitive)
-    pcs 'resource', 'meta', primitive, 'target-role=Started'
+  def enable_primitive(primitive)
+    retry_command {
+      pcs 'resource', 'enable', primitive
+    }
   end
+  alias :start_primitive :enable_primitive
 
   # ban this primitive
   # @param primitive [String]
   def ban_primitive(primitive, node = '')
-    pcs 'resource', 'ban', primitive, node
+    retry_command {
+      pcs 'resource', 'ban', primitive, node
+    }
   end
 
   # move this primitive
   # @param primitive [String]
   def move_primitive(primitive, node = '')
-    pcs 'resource', 'move',  primitive, node
+    retry_command {
+      pcs 'resource', 'move',  primitive, node
+    }
   end
 
   # unban/unmove this primitive
   # @param primitive [String]
   def unban_primitive(primitive, node = '')
-    pcs 'resource', 'clear',  primitive, node
+    retry_command {
+      pcs 'resource', 'clear',  primitive, node
+    }
   end
   alias :clear_primitive :unban_primitive
   alias :unmove_primitive :unban_primitive
@@ -333,31 +345,41 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   def cleanup_primitive(primitive, node = '')
     opts = ['--cleanup', "--resource=#{primitive}"]
     opts << "--node=#{node}" if ! node.empty?
-    retry_command { crm_resource opts }
+    retry_command {
+      crm_resource opts
+    }
   end
 
   # manage this primitive
   # @param primitive [String]
   def manage_primitive(primitive)
-    pcs 'resource', 'manage', primitive
+    retry_command {
+      pcs 'resource', 'manage', primitive
+    }
   end
 
   # unamanage this primitive
   # @param primitive [String]
   def unmanage_primitive(primitive)
-    pcs 'resource', 'unmanage', primitive
+    retry_command {
+      pcs 'resource', 'unmanage', primitive
+    }
   end
 
   # set quorum_policy of the cluster
   # @param primitive [String]
   def no_quorum_policy(primitive)
-    pcs 'property', 'set', "no-quorum-policy=#{primitive}"
+    retry_command {
+      pcs 'property', 'set', "no-quorum-policy=#{primitive}"
+    }
   end
 
   # set maintenance_mode of the cluster
   # @param primitive [TrueClass,FalseClass]
   def maintenance_mode(primitive)
-    pcs 'property', 'set', "maintenance-mode=#{primitive}"
+    retry_command {
+      pcs 'property', 'set', "maintenance-mode=#{primitive}"
+    }
   end
 
   # add a location constraint
@@ -366,7 +388,9 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # @param score [Numeric,String] score value
   def constraint_location_add(primitive, node, score = 100)
     id = "#{primitive}_on_#{node}"
-    pcs 'constraint', 'location', 'add', id, primitive, node, score
+    retry_command {
+      pcs 'constraint', 'location', 'add', id, primitive, node, score
+    }
   end
 
   # remove a location constraint
@@ -374,7 +398,9 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # @param node [String] the node's name
   def constraint_location_remove(primitive, node)
     id = "#{primitive}_on_#{node}"
-    pcs 'constraint', 'location', 'remove', id
+    retry_command {
+      pcs 'constraint', 'location', 'remove', id
+    }
   end
 
   # get a status of a primitive on the entire cluster
