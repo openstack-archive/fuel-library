@@ -268,6 +268,14 @@ class osnailyfacter::cluster_ha {
     $primary_mons   = $controllers
     $primary_mon    = $controllers[0]['name']
 
+    if ($::use_neutron) {
+      $cluster_network = get_network_role_property('storage', 'cidr')
+      $public_network  = get_network_role_property('management', 'cidr')
+    } else {
+      $cluster_network = $::fuel_settings['storage_network_range']
+      $public_network = $::fuel_settings['management_network_range']
+    }
+
     class {'ceph':
       primary_mon          => $primary_mon,
       cluster_node_address => $controller_node_public,
@@ -276,6 +284,8 @@ class osnailyfacter::cluster_ha {
       rgw_pub_ip           => $::fuel_settings['public_vip'],
       rgw_adm_ip           => $::fuel_settings['management_vip'],
       rgw_int_ip           => $::fuel_settings['management_vip'],
+      cluster_network      => $cluster_network,
+      public_network       => $public_network,
       use_syslog           => $::use_syslog,
       syslog_log_level     => $syslog_log_level,
       syslog_log_facility  => $::syslog_log_facility_ceph,
