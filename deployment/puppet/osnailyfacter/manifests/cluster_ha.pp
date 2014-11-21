@@ -567,11 +567,6 @@ class osnailyfacter::cluster_ha {
 
         Class['keystone', 'openstack::ha::keystone']-> Exec<| title=='wait-for-haproxy-keystone-backend' |>
         Class['keystone', 'openstack::ha::keystone']-> Exec<| title=='wait-for-haproxy-keystone-admin-backend' |>
-
-        if $::use_neutron {
-          Exec<| title=='wait-for-haproxy-keystone-backend' |> -> Exec <| title == 'waiting-for-neutron-api' |>
-          Exec<| title=='wait-for-haproxy-keystone-admin-backend' |> -> Exec <| title == 'waiting-for-neutron-api' |>
-        }
       }
 
       if ! $::use_neutron {
