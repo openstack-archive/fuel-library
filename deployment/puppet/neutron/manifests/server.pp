@@ -164,7 +164,7 @@ class neutron::server (
   $agent_down_time         = '75',
   #NOTE(bogdando) contribute change to upstream #1384123
   $state_path              = '/var/lib/neutron',
-  $lock_path               = '$state_path/lock',
+  $lock_path               = "${state_path}/lock",
   $router_scheduler_driver = 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
   # DEPRECATED PARAMETERS
   # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel
