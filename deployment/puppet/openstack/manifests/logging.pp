@@ -33,6 +33,7 @@ class openstack::logging (
     $rabbit_log_level               = 'NOTICE',
     $production                     = 'prod',
     $escapenewline                  = false,
+    $debug                          = false,
 ) {
 
   validate_re($proto, 'tcp|udp|both')
@@ -248,6 +249,7 @@ class openstack::logging (
     rotation       => $rotation,
     keep           => $keep,
     limitsize      => $limitsize,
+    debug          => $debug,
   }
 
   # Deprecated stuff handling section
