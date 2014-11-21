@@ -199,10 +199,10 @@ describe Puppet::Provider::Pacemaker_common do
     end
 
     it 'cleanups primitive and waits for it to become online again' do
-      @class.stubs(:cleanup_primitive).with('myprimitive').returns true
+      @class.stubs(:cleanup_primitive).with('myprimitive', 'mynode').returns true
       @class.stubs(:cib_reset).returns true
       @class.stubs(:primitive_status).returns 'stopped'
-      @class.cleanup_with_wait 'myprimitive'
+      @class.cleanup_with_wait 'myprimitive', 'mynode'
     end
 
     it 'waits for the service to start' do
