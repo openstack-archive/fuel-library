@@ -1,12 +1,17 @@
 require 'puppet'
-Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl) do
+require File.join File.dirname(__FILE__), '../rabbitmq_common.rb'
+
+Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provider::Rabbitmq_common) do
   
   #TODO: change optional_commands -> commands when puppet >= 3.0
   optional_commands :rabbitmqctl => 'rabbitmqctl'
   defaultfor :feature => :posix
 
   def self.instances
-    rabbitmqctl('list_users').split(/\n/)[1..-2].collect do |line|
+    self.wait_for_online
+    self.run_with_retries {
+      rabbitmqctl('-q', 'list_users')
+    }.split(/\n/).collect do |line|
       if line =~ /^(\S+)(\s+\S+|)$/
         new(:name => $1)
       else
@@ -27,7 +32,10 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl) do
   end
 
   def exists?
-    out = rabbitmqctl('list_users').split(/\n/)[1..-2].detect do |line|
+    self.class.wait_for_online
+    out = self.class.run_with_retries {
+      rabbitmqctl('list_users')
+    }.split(/\n/)[1..-2].detect do |line|
       line.match(/^#{Regexp.escape(resource[:name])}(\s+\S+|)$/)
     end
   end
