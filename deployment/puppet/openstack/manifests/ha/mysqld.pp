@@ -1,6 +1,5 @@
 # HA configuration for MySQL/Galera for OpenStack
 class openstack::ha::mysqld (
-  $is_primary_controller = false,
   $before_start = false
 ){
 
@@ -22,32 +21,27 @@ class openstack::ha::mysqld (
     balancermember_options => 'check port 49000 inter 15s fastinter 2s downinter 1s rise 3 fall 3',
   }
 
-  package { 'socat': ensure => present }
-
-  if $is_primary_controller {
-    exec { 'wait-for-haproxy-mysql-backend':
-      command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^mysqld,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
-                    echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^mysqld,BACKEND,.*,UP,'",
-      path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-      try_sleep => 5,
-      tries     => 60,
-      require   => Package['socat'],
-    }
-
-    Package['socat'] -> Exec['wait-for-haproxy-mysql-backend']
-
-    Class['cluster::haproxy_ocf'] -> Exec['wait-for-haproxy-mysql-backend']
-    Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
-    Openstack::Ha::Haproxy_service<| title == 'mysqld' |> -> Exec['wait-for-haproxy-mysql-backend']
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'heat-dbsync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'ceilometer-dbsync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'neutron-db-sync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-scheduler' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
+  package { 'socat' :
+    ensure => 'installed',
   }
+
+  haproxy_backend_status { 'mysql' :
+    name = 'mysqld',
+    url  => "http://${::fuel_settings['management_vip']}:10000/;csv",
+  }
+
+  Class['cluster::haproxy_ocf'] -> Haproxy_backend_status['mysql']
+  Exec<| title == 'wait-for-synced-state' |> -> Haproxy_backend_status['mysql']
+  Openstack::Ha::Haproxy_service<| title == 'mysqld' |> -> Haproxy_backend_status['mysql']
+  Haproxy_backend_status['mysql'] -> Exec<| title == 'keystone-manage db_sync' |>
+  Haproxy_backend_status['mysql'] -> Exec<| title == 'glance-manage db_sync' |>
+  Haproxy_backend_status['mysql'] -> Exec<| title == 'cinder-manage db_sync' |>
+  Haproxy_backend_status['mysql'] -> Exec<| title == 'nova-db-sync' |>
+  Haproxy_backend_status['mysql'] -> Exec<| title == 'heat-dbsync' |>
+  Haproxy_backend_status['mysql'] -> Exec<| title == 'ceilometer-dbsync' |>
+  Haproxy_backend_status['mysql'] -> Exec<| title == 'neutron-db-sync' |>
+  Haproxy_backend_status['mysql'] -> Service <| title == 'cinder-scheduler' |>
+  Haproxy_backend_status['mysql'] -> Service <| title == 'cinder-volume' |>
+  Haproxy_backend_status['mysql'] -> Service <| title == 'cinder-api' |>
+
 }
