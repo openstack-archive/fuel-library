@@ -132,6 +132,14 @@
 #   report_interval is a config for neutron agents, set by class neutron
 #   Defaults to: 75
 #
+# [*state_path*]
+#   (optional) Where to store dnsmasq state files. This directory must be
+#   writable by the user executing the agent. Defaults to '/var/lib/neutron'.
+#
+# [*lock_path*]
+#   (optional) Where to store dnsmasq lock files. This directory must be
+#   writable by the user executing the agent. Defaults to '/var/lib/neutron/lock'.
+#
 # [*router_scheduler_driver*]
 #   (optional) Driver to use for scheduling router to a default L3 agent. Could be:
 #   neutron.scheduler.l3_agent_scheduler.ChanceScheduler to schedule a router in a random way
@@ -162,9 +170,8 @@ class neutron::server (
   $api_workers             = $::processorcount,
   $rpc_workers             = $::processorcount,
   $agent_down_time         = '75',
-  #NOTE(bogdando) contribute change to upstream #1384123
   $state_path              = '/var/lib/neutron',
-  $lock_path               = '$state_path/lock',
+  $lock_path               = '/var/lib/neutron/lock',
   $router_scheduler_driver = 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
   # DEPRECATED PARAMETERS
   # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel
@@ -298,7 +305,6 @@ class neutron::server (
     'DEFAULT/rpc_workers':             value => $rpc_workers;
     'DEFAULT/agent_down_time':         value => $agent_down_time;
     'DEFAULT/router_scheduler_driver': value => $router_scheduler_driver;
-     #NOTE(bogdando) contribute change to upstream #1384123
     'DEFAULT/state_path':              value => $state_path;
     'DEFAULT/lock_path':               value => $lock_path;
     'database/connection':             value => $database_connection_real, secret => true;
