@@ -275,6 +275,10 @@ class os_common {
     }
   }
 
+  class { 'osnailyfacter::atop':
+    stage => 'first',
+  }
+
   #case $role {
     #    /controller/:          { $hostgroup = 'controller' }
     #    /swift-proxy/: { $hostgroup = 'swift-proxy' }
