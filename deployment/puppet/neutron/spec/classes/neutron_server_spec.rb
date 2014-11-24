@@ -21,6 +21,8 @@ describe 'neutron::server' do
       :auth_user               => 'neutron',
       :database_connection     => 'sqlite:////var/lib/neutron/ovs.sqlite',
       :database_max_retries    => '10',
+      :state_path              => '/var/lib/neutron',
+      :lock_path               => '/var/lib/neutron/lock',
       :database_idle_timeout   => '3600',
       :database_retry_interval => '10',
       :sync_db                 => false,
@@ -84,6 +86,8 @@ describe 'neutron::server' do
       should contain_neutron_config('DEFAULT/rpc_workers').with_value(facts[:processorcount])
       should contain_neutron_config('DEFAULT/agent_down_time').with_value(p[:agent_down_time])
       should contain_neutron_config('DEFAULT/router_scheduler_driver').with_value(p[:router_scheduler_driver])
+      should contain_neutron_config('DEFAULT/state_path').with_value(p[:state_path])
+      should contain_neutron_config('DEFAULT/lock_path').with_value(p[:lock_path])
     end
 
     context 'with manage_service as false' do
