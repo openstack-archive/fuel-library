@@ -98,6 +98,7 @@ class openstack::nova::controller (
   $max_retries                 = '-1',
   $novnc_address               = '127.0.0.1',
   $neutron_metadata_proxy_shared_secret = undef
+  $micro_size                  = '64',
 ) {
 
   # Configure the db string
@@ -324,5 +325,10 @@ class openstack::nova::controller (
       ensure_package => $ensure_package
     }
   }
-
+  exec {'create-m1.micro-flavor':
+    command => ". /root/openrc;nova flavor-create --is-public true m1.micro auto $micro_size 0 1"
+    path    => "/sbin:/usr/sbin:/bin:/usr/bin",
+    unless  => ". /root/openrc;nova flavor-list | grep -q m1.micro",
+    require => Class['nova'],
+  }
 }
