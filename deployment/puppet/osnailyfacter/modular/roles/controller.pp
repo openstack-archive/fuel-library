@@ -164,4 +164,11 @@ sysctl::value { 'vm.swappiness':
   value => "10"
 }
 
+class { 'openstack::nova::security':
+  auth_url      => "http://${management_vip}:5000/v2.0/",
+  auth_username => $access_hash[user],
+  auth_password => $access_hash[password],
+  auth_tenant   => $access_hash[tenant],
+}
+
 # vim: set ts=2 sw=2 et :
