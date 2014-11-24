@@ -223,6 +223,7 @@ class openstack::controller (
   }
   Class['openstack::db::mysql'] -> Class['openstack::glance']
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
+  Class['openstack::nova::controller'] -> Class['openstack::nova::security']
   Class['openstack::db::mysql'] -> Cinder_config <||>
 
   Class["${queue_provider}::server"] -> Nova_config <||>
@@ -447,6 +448,8 @@ class openstack::controller (
     ha_mode                     => $ha_mode,
     neutron_metadata_proxy_shared_secret => $network_provider ? {'nova'=>undef, 'neutron'=>$neutron_metadata_proxy_secret },
   }
+
+  class { 'openstack::nova::security': }
 
   ######### Cinder Controller Services ########
   if $cinder {
