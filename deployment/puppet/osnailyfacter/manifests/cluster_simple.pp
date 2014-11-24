@@ -312,6 +312,14 @@ class osnailyfacter::cluster_simple {
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
+      exec {'create-m1.micro-flavor':
+        command => "bash -c \"source /root/openrc; nova flavor-create --is-public true m1.micro auto 64 0 1\"",
+        path    => '/sbin:/usr/sbin:/bin:/usr/bin',
+        unless  => 'bash -c "source /root/openrc; nova flavor-list | grep -q m1.micro"',
+        require => [Class['nova'],Class['openstack::auth_file']],
+      }
+
+
       if !$::use_neutron {
         $floating_ips_range = $::fuel_settings['floating_network_range']
         if $floating_ips_range {
