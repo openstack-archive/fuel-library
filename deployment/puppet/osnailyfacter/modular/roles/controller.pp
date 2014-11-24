@@ -4,6 +4,7 @@ notice('MODULAR: controller.pp')
 $primary_controller             = hiera('primary_controller')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $use_neutron                    = hiera('use_neutron', false)
+$access_hash                    = hiera('access', {})
 
 # Do the stuff
 if $neutron_mellanox {
@@ -45,6 +46,13 @@ package { 'python-openstackclient' :
 # Reduce swapiness on controllers, see LP#1413702
 sysctl::value { 'vm.swappiness':
   value => '10'
+}
+
+class { 'openstack::nova::security':
+  auth_url      => "http://${management_vip}:5000/v2.0/",
+  auth_username => $access_hash[user],
+  auth_password => $access_hash[password],
+  auth_tenant   => $access_hash[tenant],
 }
 
 # vim: set ts=2 sw=2 et :
