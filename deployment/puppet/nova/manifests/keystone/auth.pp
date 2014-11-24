@@ -85,6 +85,7 @@ class nova::keystone::auth(
   $cinder                 = undef,
   $public_protocol        = 'http',
   $configure_endpoint     = true,
+  $configure_v3_endpoint  = true,
   $admin_protocol         = 'http',
   $internal_protocol      = 'http'
 ) {
@@ -110,6 +111,11 @@ class nova::keystone::auth(
     type        => 'compute',
     description => 'Openstack Compute Service',
   }
+  keystone_service { "${auth_name}_v3":
+    ensure      => present,
+    type        => 'computev3',
+    description => 'Openstack Compute Service v3',
+  }
 
   if $configure_endpoint {
     keystone_endpoint { "${region}/${auth_name}":
@@ -119,6 +125,16 @@ class nova::keystone::auth(
       internal_url => "${internal_protocol}://${internal_address}:${compute_port}/${compute_version}/%(tenant_id)s",
     }
   }
+  if $configure_v3_endpoint {
+    keystone_endpoint { "${region}/${auth_name}_v3":
+      ensure       => present,
+      public_url   => "${public_protocol}://${public_address}:${compute_port}/v3/%(tenant_id)s",
+      admin_url    => "${admin_protocol}://${admin_address}:${compute_port}/v3/%(tenant_id)s",
+      internal_url => "${internal_protocol}://${internal_address}:${compute_port}/v3/%(tenant_id)s",
+    }
+  }
+
+  nova_config { 'osapi_v3/enabled': value => 'true' }
 
   if $configure_ec2_endpoint {
     keystone_service { "${auth_name}_ec2":
