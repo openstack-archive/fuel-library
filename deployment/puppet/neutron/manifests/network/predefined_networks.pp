@@ -8,7 +8,7 @@ class neutron::network::predefined_networks (
   Anchor<| title == 'neutron-plugin-ovs-done' |> -> Neutron_net <| |>
   Anchor<| title == 'neutron-plugin-ml2-done' |> -> Neutron_net <| |>
 
-  neutron_floatingip_pool{'admin':
+  neutron_floatingip_pool{'services':
     pool_size => get_floatingip_pool_size_for_admin($neutron_config)
   }
   Neutron_net<||> -> Neutron_floatingip_pool<||>

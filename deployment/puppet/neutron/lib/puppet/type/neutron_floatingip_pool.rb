@@ -20,6 +20,9 @@ Puppet::Type.newtype(:neutron_floatingip_pool) do
     munge do |val|
       rv = val.to_i
     end
+    def insync?(value)
+        value.to_i >= should.to_i
+    end
   end
 
   newparam(:ext_net) do
