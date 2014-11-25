@@ -27,6 +27,14 @@ Puppet::Type.newtype(:zabbix_host) do
     newvalues(/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/)
   end
 
+  newparam(:port) do
+    desc <<-EOT
+      Port of the host.
+
+    EOT
+    newvalues(/^[0-9]{1,5}$/)
+  end
+
   newparam(:groups) do
     desc 'Host groups to add the host to.'
     isrequired

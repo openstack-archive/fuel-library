@@ -93,6 +93,12 @@ class osnailyfacter::cluster_simple {
     $vcenter_hash = {}
   }
 
+  if !$::fuel_settings['zabbix'] {
+    $zabbix_hash = {}
+  } else {
+    $zabbix_hash = $::fuel_settings['zabbix']
+  }
+
   if $::fuel_settings['role'] == 'controller' {
     if ($::mellanox_mode == 'ethernet') {
       $test_vm_pkg = 'cirros-testvm-mellanox'
@@ -472,6 +478,26 @@ class osnailyfacter::cluster_simple {
           eswitch_apply_profile_patch  => $ml2_eswitch['apply_profile_patch'],
         }
       }
+
+      #add 'enable' to zabbix_hash and FIX IT
+      if $zabbix_hash['enabled'] {
+        $zabbix_ports = {
+          server         => '10051',
+          agent          => '10050',
+          api            => '80'}
+
+        class { 'zabbix':
+          api_ip              => $controller_node_address,
+          server_ip           => $controller_node_address,
+          ports               => $zabbix_ports,
+          db_ip               => $controller_node_address,
+          primary_controller  => true,
+          username            => $zabbix_hash['username'],
+          password            => $zabbix_hash['password'],
+          db_password         => $zabbix_hash['db_password'],
+        }
+        Class['openstack::controller'] -> Class['zabbix']
+      }
       #ADDONS END
 
     }
@@ -672,17 +698,27 @@ class osnailyfacter::cluster_simple {
       # TODO(bogdando) add monit ceph-osd services monitoring, if required
     } #CEPH_OSD ENDS
 
-  } # ROLE CASE ENDS
+    /zabbix-monitoring/ : {
+      $zabbix_ports = {
+        api => '80',
+        agent => '10049'}
 
-  # TODO(bogdando) add monit zabbix services monitoring, if required
-  include galera::params
-  class { 'zabbix':
-    mysql_server_pkg => $::galera::params::mysql_server_name,
-  }
+      class { 'zabbix::monitoring':
+        api_ip     => $controller_node_address,
+        server_vip => $controller_node_address,
+        server_ips => [$controller_node_address],
+        ports      => $zabbix_ports,
+        username   => $zabbix_hash['username'],
+        password   => $zabbix_hash['password'],
+      }
+    }
+
+  } # ROLE CASE ENDS
 
   package { 'screen':
     ensure => present,
   }
+
 
 } # CLUSTER_SIMPLE ENDS
 # vim: set ts=2 sw=2 et :

@@ -379,7 +379,7 @@
                     <snmp_community>public</snmp_community>
                     <multiplier>0</multiplier>
                     <snmp_oid>interfaces.ifTable.ifEntry.ifInOctets.1</snmp_oid>
-                    <key>net.tcp.service[tcp,,11211]</key>
+                    <key>net.tcp.service[tcp,{$IP_MANAGEMENT},11211]</key>
                     <delay>30</delay>
                     <history>7</history>
                     <trends>365</trends>
@@ -899,7 +899,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template App Memcache:net.tcp.service[tcp,,11211].last(0)}=0</expression>
+            <expression>{Template App Memcache:net.tcp.service[tcp,{$IP_MANAGEMENT},11211].last(0)}=0</expression>
             <name>Memcache service is down on {HOSTNAME}</name>
             <url/>
             <status>0</status>

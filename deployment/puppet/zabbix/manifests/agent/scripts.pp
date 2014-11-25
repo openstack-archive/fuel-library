@@ -44,5 +44,4 @@ class zabbix::agent::scripts {
     }
   }
 
-  #Zabbix::agent::userparameter { require => $zabbix::params::agent_scripts }
 }

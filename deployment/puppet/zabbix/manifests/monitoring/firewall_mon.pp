@@ -3,11 +3,11 @@ class zabbix::monitoring::firewall_mon {
   include zabbix::params
 
   #Iptables stats
-  if defined(Class['firewall']) {
+  if defined_in_state(Class['firewall']) {
     zabbix_template_link { "$zabbix::params::host_name Template App Iptables Stats":
       host => $zabbix::params::host_name,
       template => 'Template App Iptables Stats',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
     package { 'iptstate':
       ensure => present;
@@ -16,7 +16,7 @@ class zabbix::monitoring::firewall_mon {
     #  ensure  => present,
     #  content => 'zabbix ALL = NOPASSWD: /usr/sbin/iptstate',
     #}
-    zabbix::agent::userparameter { 
+    zabbix::agent::userparameter {
       'iptstate.tcp':
         command => 'sudo iptstate -1 | grep tcp | wc -l';
       'iptstate.tcp.syn':

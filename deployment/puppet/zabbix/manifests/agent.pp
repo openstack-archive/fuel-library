@@ -1,9 +1,11 @@
-class zabbix::agent {
+class zabbix::agent(
+  $api_hash,
+) {
 
   include zabbix::params
 
-  firewall { '998 zabbix agent':
-    port   => $zabbix::params::agent_listen_port,
+  firewall { '997 zabbix agent':
+    port   => $zabbix::monitoring::ports['backend_agent'] ? { unset=>$zabbix::monitoring::ports['agent'], default=>$zabbix::monitoring::ports['backend_agent'] },
     proto  => 'tcp',
     action => 'accept'
   }
@@ -30,10 +32,18 @@ class zabbix::agent {
     enable => true,
   }
 
+  if defined_in_state(Class['openstack::controller']){
+    $groups = union($zabbix::params::host_groups_base, $zabbix::params::host_groups_controller)
+  } elsif defined_in_state(Class['openstack::compute']) {
+    $groups = union($zabbix::params::host_groups_base, $zabbix::params::host_groups_compute)
+  } else {
+    $groups = $zabbix::params::host_groups_base
+  }
+
   zabbix_host { $zabbix::params::host_name:
     host   => $zabbix::params::host_name,
     ip     => $zabbix::params::host_ip,
-    groups => $zabbix::params::host_groups,
-    api    => $zabbix::params::api_hash
+    groups => $groups,
+    api    => $api_hash
   }
 }

@@ -90,6 +90,11 @@ class osnailyfacter::cluster_ha {
     $ceilometer_hash = $::fuel_settings['ceilometer']
   }
 
+  if !$::fuel_settings['zabbix'] {
+    $zabbix_hash = {}
+  } else {
+    $zabbix_hash = $::fuel_settings['zabbix']
+  }
 
   # vCenter integration
 
@@ -775,6 +780,27 @@ class osnailyfacter::cluster_ha {
         }
       }
 
+      #Zabbix
+      if $zabbix_hash['enabled'] {
+        $zabbix_ports = {
+          server         => '10051',
+          backend_server => '10052',
+          agent          => '10049',
+          backend_agent  => '10050',
+          api            => '80'}
+
+        class { 'zabbix':
+          api_ip              => $::fuel_settings['management_vip'],
+          server_ip           => $::fuel_settings['management_vip'],
+          ports               => $zabbix_ports,
+          db_ip               => $::fuel_settings['management_vip'],
+          primary_controller  => $primary_controller,
+          username            => $zabbix_hash['username'],
+          password            => $zabbix_hash['password'],
+          db_password         => $zabbix_hash['db_password'],
+        }
+        Class['openstack::controller'] -> Class['zabbix']
+      }
       #ADDONS END
 
     } #CONTROLLER ENDS
@@ -1042,14 +1068,23 @@ class osnailyfacter::cluster_ha {
       }
     }
 
-  } # ROLE CASE ENDS
+    /zabbix-monitoring/ : {
+      $zabbix_ports = {
+        api => '80',
+        agent => '10049',
+        backend_agent => '10050'}
 
-  # TODO(bogdando) add monit zabbix services monitoring, if required
-  # NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
-  include galera::params
-  class { 'zabbix':
-    mysql_server_pkg => $::galera::params::mysql_server_name,
-  }
+      class { 'zabbix::monitoring':
+        api_ip     => $::fuel_settings['management_vip'],
+        server_vip => $::fuel_settings['management_vip'],
+        server_ips => $controller_nodes,
+        ports      => $zabbix_ports,
+        username   => $zabbix_hash['username'],
+        password   => $zabbix_hash['password'],
+      }
+    }
+
+  } # ROLE CASE ENDS
 
   package { 'screen':
     ensure => present,

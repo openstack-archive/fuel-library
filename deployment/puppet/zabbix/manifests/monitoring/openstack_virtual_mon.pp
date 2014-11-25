@@ -2,53 +2,26 @@ class zabbix::monitoring::openstack_virtual_mon {
 
   include zabbix::params
 
-  if $zabbix::params::host_name == $zabbix::params::openstack::virtual_cluster_hostname {
-    package {
-      'python-sqlalchemy':
-        ensure => present;
-      'MySQL-python':
-        ensure => present;
-      'python-simplejson':
-        ensure => present;
-    }
-    
+  $roles = node_roles($::fuel_settings['nodes'], $::fuel_settings['uid'])
+
+  if (($::fuel_settings["deployment_mode"] == "multinode") and member($roles, 'controller')) or
+    member($roles, 'primary-controller') {
+
     zabbix_host { $zabbix::params::openstack::virtual_cluster_name:
       host    => $zabbix::params::openstack::virtual_cluster_name,
-      ip      => $::internal_address,
-      groups  => $zabbix::params::host_groups,
-      api     => $zabbix::params::api_hash,
+      ip      => $zabbix::monitoring::server_vip,
+      port    => $zabbix::monitoring::ports['agent'],
+      groups  => $zabbix::params::host_groups_base,
+      api     => $zabbix::monitoring::api_hash,
     }
-
     zabbix_template_link { "$zabbix::params::openstack::virtual_cluster_name Template OpenStack Cluster":
       host    => $zabbix::params::openstack::virtual_cluster_name,
       template => 'Template OpenStack Cluster',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
+  }
 
-    zabbix_template_link { "$zabbix::params::openstack::virtual_cluster_name Template App OpenStack Cinder API check":
-      host     => $zabbix::params::openstack::virtual_cluster_name,
-      template => 'Template App OpenStack Cinder API check',
-      api      => $zabbix::params::api_hash,
-    }
-
-    zabbix_template_link { "$zabbix::params::openstack::virtual_cluster_name Template App OpenStack Glance API check":
-      host     => $zabbix::params::openstack::virtual_cluster_name,
-      template => 'Template App OpenStack Glance API check',
-      api      => $zabbix::params::api_hash,
-    }
-
-    zabbix_template_link { "$zabbix::params::openstack::virtual_cluster_name Template App OpenStack Keystone API check":
-      host     => $zabbix::params::openstack::virtual_cluster_name,
-      template => 'Template App OpenStack Keystone API check',
-      api      => $zabbix::params::api_hash,
-    }
-
-    zabbix_template_link { "$zabbix::params::openstack::virtual_cluster_name Template App OpenStack Nova API OSAPI check":
-      host     => $zabbix::params::openstack::virtual_cluster_name,
-      template => 'Template App OpenStack Nova API OSAPI check',
-      api      => $zabbix::params::api_hash,
-    }
-
+  if defined_in_state(Class['openstack::controller']) {
     zabbix::agent::userparameter {
       'db.token.count.query':
         command => "/etc/zabbix/scripts/query_db.py token_count";
@@ -68,17 +41,16 @@ class zabbix::monitoring::openstack_virtual_mon {
         command => "/etc/zabbix/scripts/query_db.py ram_used";
       'db.services.offline.cinder.query':
         command => "/etc/zabbix/scripts/query_db.py services_offline_cinder";
-      'nova.api.status':
+      'vip.nova.api.status':
         command => "/etc/zabbix/scripts/check_api.py nova_os http ${::zabbix::params::openstack::nova_vip} 8774";
-      'glance.api.status':
+      'vip.glance.api.status':
         command => "/etc/zabbix/scripts/check_api.py glance http ${::zabbix::params::openstack::glance_vip} 9292";
-      'keystone.api.status':
+      'vip.keystone.api.status':
         command => "/etc/zabbix/scripts/check_api.py keystone http ${::zabbix::params::openstack::keystone_vip} 5000";
-      'keystone.service.api.status':
+      'vip.keystone.service.api.status':
         command => "/etc/zabbix/scripts/check_api.py keystone_service http ${::zabbix::params::openstack::keystone_vip} 35357";
-      'cinder.api.status':
+      'vip.cinder.api.status':
         command => "/etc/zabbix/scripts/check_api.py cinder http ${::zabbix::params::openstack::cinder_vip} 8776";
     }
-    
   }
 }
