@@ -72,9 +72,8 @@ function revert_container {
 }
 
 function build_storage_containers {
-  build_image $SOURCE_DIR/storage-repo storage/repo
-  build_image $SOURCE_DIR/storage-puppet storage/puppet
-  build_image $SOURCE_DIR/storage-log storage/log
+  #Format: build_image $SOURCE_DIR/storage-foo storage/foo
+  return 0
 }
 
 function retry_checker {
@@ -141,20 +140,11 @@ function check_ready {
 function run_storage_containers {
   #Run storage containers once
   #Note: storage containers exit, but keep volumes available
-
-  #Remove existing ones if they exist
-  #kill_storage_containers
-  ${DOCKER} run -d ${CONTAINER_VOLUMES[$REPO_CNT]} --name "$REPO_CNT" storage/repo || true
-  ${DOCKER} run -d ${CONTAINER_VOLUMES[$PUPPET_CNT]} --name "$PUPPET_CNT" storage/puppet || true
-  #${DOCKER} run -d ${CONTAINER_VOLUMES[$LOG_CNT]} --name "$LOG_CNT" storage/log || true
+  #Example:
+  #${DOCKER} run -d ${CONTAINER_VOLUMES[$FOO_CNT]} --name "$FOO_CNT" storage/foo || true
+  return 0
 }
 
-function kill_storage_containers {
-  containers=$(${DOCKER} ps -a | egrep "($DUMP_CNT|$REPO_CNT|$PUPPET_CNT)" | cut -d' ' -f1)
-  if [ -n "$containers" ]; then
-    ${DOCKER} rm $containers || true
-  fi
-}
 function import_images {
   #Imports images with xz, gzip, or simple tar format
   for image_archive in $@; do
