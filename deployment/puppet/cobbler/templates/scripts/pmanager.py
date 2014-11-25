@@ -772,7 +772,7 @@ class PreseedPManager(object):
 
                 if self.pcount(self._disk_dev(disk)) == 0:
                     self.late("parted -s {0} mklabel gpt"
-                              "".format(self._disk_dev(disk)))
+                              "".format(self._disk_dev(disk)), udev_settle=True)
                     self.late("parted -a none -s {0} "
                         "unit {3} mkpart primary {1} {2}".format(
                             self._disk_dev(disk),
@@ -780,13 +780,15 @@ class PreseedPManager(object):
                             self.psize(self._disk_dev(disk),
                                        24 * self.factor),
                             self.unit
-                        )
+                        ),
+                        udev_settle=True
                     )
                     self.late("parted -s {0} set {1} "
                               "bios_grub on".format(
                                   self._disk_dev(disk),
                                   self.pcount(self._disk_dev(disk), 1)
-                        )
+                        ),
+                        udev_settle=True
                     )
                     self.late("parted -s {0} print free".format(self._disk_dev(disk)))
                 if part.get('name') == 'cephjournal':
@@ -812,7 +814,6 @@ class PreseedPManager(object):
                         journals_left -= 1
                         pcount = self.pcount(self._disk_dev(disk), 1)
                         part["pcount"] = pcount
-
                         self.late(
                             "parted -a none -s {0} "
                             "unit {4} mkpart {1} {2} {3}".format(
@@ -821,7 +822,8 @@ class PreseedPManager(object):
                                 self.psize(self._disk_dev(disk)),
                                 self.psize(self._disk_dev(disk),
                                            size * self.factor),
-                                self.unit)
+                                self.unit),
+                            udev_settle=True
                         )
                         # We don't want to append late command right here because
                         # we need sgdisk to be run in-target so the target must be mounted.
@@ -847,7 +849,8 @@ class PreseedPManager(object):
                              self.psize(self._disk_dev(disk)),
                              self.psize(self._disk_dev(disk),
                                         part["size"] * self.factor),
-                             self.unit))
+                             self.unit),
+                          udev_settle=True)
                 self.late("sleep 10")
                 self.late("hdparm -z {0}"
                           "".format(self._disk_dev(disk)))
@@ -922,8 +925,9 @@ class PreseedPManager(object):
                 if pv["size"] <= 0:
                     continue
                 if self.pcount(self._disk_dev(disk)) == 0:
+                    # this gonna wait until udev event queue is handled
                     self.late("parted -s {0} mklabel gpt"
-                              "".format(self._disk_dev(disk)))
+                              "".format(self._disk_dev(disk)), udev_settle=True)
                     self.late("parted -a none -s {0} "
                         "unit {3} mkpart primary {1} {2}".format(
                             self._disk_dev(disk),
@@ -931,12 +935,14 @@ class PreseedPManager(object):
                             self.psize(self._disk_dev(disk),
                                        24 * self.factor),
                             self.unit
-                        )
+                        ),
+                        udev_settle=True
                     )
                     self.late("parted -s {0} set {1} "
                               "bios_grub on".format(
                                   self._disk_dev(disk),
-                                  self.pcount(self._disk_dev(disk), 1)))
+                                  self.pcount(self._disk_dev(disk), 1)),
+                              udev_settle=True)
                     self.late("parted -s {0} print free".format(self._disk_dev(disk)))
 
                 pcount = self.pcount(self._disk_dev(disk), 1)
@@ -950,7 +956,7 @@ class PreseedPManager(object):
                              self._parttype(pcount),
                              begin_size,
                              end_size,
-                             self.unit))
+                             self.unit), udev_settle=True)
 
                 self.late("sleep 10")
                 self.log_lvm("after creating partition", False)
