@@ -3,18 +3,18 @@ class zabbix::monitoring::neutron_mon {
   include zabbix::params
 
   # Neutron server
-  if defined(Class['::neutron']) and !defined(Class['openstack::compute']) {
+  if defined_in_state(Class['::neutron']) and !defined_in_state(Class['openstack::compute']) {
 
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Neutron Server":
       host => $zabbix::params::host_name,
       template => 'Template App OpenStack Neutron Server',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
 
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Neutron API check":
       host    => $zabbix::params::host_name,
       template => 'Template App OpenStack Neutron API check',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
 
     zabbix::agent::userparameter {
@@ -24,38 +24,38 @@ class zabbix::monitoring::neutron_mon {
   }
 
   # Neutron OVS agent
-  if defined(Class['::neutron::agents::ovs']) {
+  if defined_in_state(Class['::neutron::agents::ovs']) {
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Neutron OVS Agent":
       host => $zabbix::params::host_name,
       template => 'Template App OpenStack Neutron OVS Agent',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
   }
 
   # Neutron Metadata agent
-  if defined(Class['::neutron::agents::metadata']) {
+  if defined_in_state(Class['::neutron::agents::metadata']) {
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Neutron Metadata Agent":
       host => $zabbix::params::host_name,
       template => 'Template App OpenStack Neutron Metadata Agent',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
   }
 
   # Neutron L3 agent
-  if defined(Class['::neutron::agents::l3']) {
+  if defined_in_state(Class['::neutron::agents::l3']) {
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Neutron L3 Agent":
       host => $zabbix::params::host_name,
       template => 'Template App OpenStack Neutron L3 Agent',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
   }
 
   # Neutron DHCP agent
-  if defined(Class['::neutron::agents::dhcp']) {
+  if defined_in_state(Class['::neutron::agents::dhcp']) {
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Neutron DHCP Agent":
       host => $zabbix::params::host_name,
       template => 'Template App OpenStack Neutron DHCP Agent',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
   }
 }

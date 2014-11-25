@@ -1,17 +1,11 @@
 class zabbix::db::mysql(
-    $mysql_server_pkg = $zabbix::mysql_server_pkg,
-  ) inherits zabbix {
+  $db_ip,
+  $mysql_module  = '0.9',
+  $db_password   = 'zabbix',
+  $sync_db       = false,
+) {
 
-  class { 'mysql::server':
-    config_hash => {
-      # Setting root pw breaks everything on puppet 3
-      #'root_password' => $zabbix::params::db_root_password,
-      'bind_address'  => '0.0.0.0',
-    },
-    package_name => $mysql_server_pkg,
-    enabled    => true,
-  }
-  anchor { 'mysql_server_start': } -> Class['mysql::server'] -> anchor { 'mysql_server_end': }
+  include zabbix::params
 
   file { '/tmp/zabbix':
     ensure => directory,
@@ -38,7 +32,7 @@ class zabbix::db::mysql(
     command => $zabbix::params::prepare_schema_cmd,
     creates => '/tmp/zabbix/schema.sql',
     path    => ['/usr/sbin', '/usr/bin', '/sbin', '/bin'],
-    require => File['/tmp/zabbix'],
+    require => [File['/tmp/zabbix'], Package[$zabbix::params::server_pkg]],
     notify  => Exec['prepare-schema-2'],
   }
 
@@ -49,11 +43,31 @@ class zabbix::db::mysql(
     require     => File['/tmp/zabbix/parts/data_clean.sql'],
   }
 
-  mysql::db { $zabbix::params::db_name:
-    user          => $zabbix::params::db_user,
-    password      => $zabbix::params::db_password,
-    host          => $zabbix::params::db_host,
-    sql           => '/tmp/zabbix/schema.sql',
-    require       => [Class['mysql::server'], Exec['prepare-schema-2']],
+  if ($mysql_module >= 2.2) {
+    mysql::db { $zabbix::params::db_name:
+      user          => $zabbix::params::db_user,
+      password      => $db_password,
+      host          => $db_ip,
+      require       => [Class['mysql::server'], Exec['prepare-schema-2']],
+    }
+  } else {
+    require 'mysql::python'
+
+    mysql::db { $zabbix::params::db_name:
+      user         => $zabbix::params::db_user,
+      password     => $db_password,
+      host         => $db_ip,
+      require      => [Class['mysql::config'], Exec['prepare-schema-2']],
+    }
+  }
+
+  if $sync_db {
+    exec{ "$zabbix::params::db_name-import":
+      command     => "/usr/bin/mysql $zabbix::params::db_name < /tmp/zabbix/schema.sql",
+      logoutput   => true,
+      refreshonly => true,
+      require     => Database[$zabbix::params::db_name],
+      subscribe   => Database[$zabbix::params::db_name],
+    }
   }
 }

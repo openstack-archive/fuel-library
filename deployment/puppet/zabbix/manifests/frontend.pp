@@ -10,17 +10,12 @@ class zabbix::frontend {
   file { $zabbix::params::frontend_config:
     ensure    => present,
     content   => template($zabbix::params::frontend_config_template),
+    notify    => Service[$zabbix::params::frontend_service],
   }
 
   file { $zabbix::params::frontend_php_ini:
     ensure    => present,
     content   => template($zabbix::params::frontend_php_ini_template),
-  }
-
-  service { $zabbix::params::frontend_service:
-    ensure    => running,
-    require   => Package[$zabbix::params::frontend_pkg],
-    subscribe => [ File["$zabbix::params::frontend_config"], File["$zabbix::params::frontend_php_ini"] ],
-    enable    => true,
+    notify    => Service[$zabbix::params::frontend_service],
   }
 }

@@ -28,7 +28,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>proc.num[python,openstack-neutron,,neutron-dhcp-agent]</key>
+                    <key>proc.num[python,neutron,,neutron-dhcp-agent]</key>
                     <delay>30</delay>
                     <history>90</history>
                     <trends>365</trends>
@@ -70,7 +70,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>crm.node.check[p_openstack-neutron-dhcp-agent]</key>
+                    <key>crm.node.check[p_neutron-dhcp-agent]</key>
                     <delay>30</delay>
                     <history>90</history>
                     <trends>365</trends>
@@ -115,7 +115,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template App OpenStack Neutron DHCP Agent:proc.num[python,openstack-neutron,,neutron-dhcp-agent].last(0)}=0 &amp; {Template App OpenStack Neutron DHCP Agent:crm.node.check[p_openstack-neutron-dhcp-agent].last(0)}=1</expression>
+            <expression>{Template App OpenStack Neutron DHCP Agent:proc.num[python,neutron,,neutron-dhcp-agent].last(0)}=0 &amp; {Template App OpenStack Neutron DHCP Agent:crm.node.check[p_neutron-dhcp-agent].last(0)}=1</expression>
             <name>Neutron DHCP Agent process is not running on {HOST.NAME}</name>
             <url/>
             <status>0</status>

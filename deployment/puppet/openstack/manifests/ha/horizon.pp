@@ -7,7 +7,6 @@ class openstack::ha::horizon (
     order          => '015',
     listen_port    => 80,
     public         => true,
-    internal       => false,
     define_cookies => true,
 
     haproxy_config_options => {

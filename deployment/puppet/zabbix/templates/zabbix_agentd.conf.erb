@@ -2,15 +2,12 @@
 
 # Fake server declaration to enforce running agent without
 # separate server declaration in /etc/zabbix/zabbix_agent.d/server.conf
-Server=<%= scope.lookupvar('zabbix::params::server_ip') %>
-ServerActive=<%= scope.lookupvar('zabbix::params::server_ip') %>
-
-# Server port for sending active checks
-#ServerPort=<%= scope.lookupvar('zabbix::params::server_listen_port') %>
+Server=<%= scope.lookupvar('zabbix::monitoring::server_vip') %>,<%= scope.lookupvar('zabbix::monitoring::server_ips').join(',') %>
+ServerActive=<%= scope.lookupvar('zabbix::monitoring::server_vip') %>
 
 Hostname=<%= @fqdn %>
 
-ListenPort=<%= scope.lookupvar('zabbix::params::agent_listen_port') %>
+ListenPort=<%= if scope.lookupvar('zabbix::monitoring::ports')['backend_agent'].nil?; scope.lookupvar('zabbix::monitoring::ports')['agent']; else scope.lookupvar('zabbix::monitoring::ports')['backend_agent']; end %>
 
 #ListenIP=<%= scope.lookupvar('zabbix::params::agent_listen_ip') %>
 
@@ -34,5 +31,7 @@ LogFile=<%= scope.lookupvar('zabbix::params::agent_log_file') %>
 
 Timeout=10
 
+<% if scope.lookupvar('zabbix::params::has_userparameters') %>
 Include=<%= scope.lookupvar('zabbix::params::agent_include') %>
+<% end %>
 

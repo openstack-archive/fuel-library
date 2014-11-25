@@ -2,11 +2,11 @@ class zabbix::monitoring::haproxy_mon {
 
   include zabbix::params
 
-  if defined(Class['haproxy']) {
+  if defined_in_state(Class['haproxy']) {
     zabbix_template_link { "$zabbix::params::host_name Template App HAProxy":
       host => $zabbix::params::host_name,
       template => 'Template App HAProxy',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
     zabbix::agent::userparameter {
       'haproxy.be.discovery':
@@ -28,9 +28,5 @@ class zabbix::monitoring::haproxy_mon {
         key     => 'haproxy.sv[*]',
         command => '/etc/zabbix/scripts/haproxy.sh -v $1';
     }
-    #sudo::directive {'zabbix_socat':
-    #  ensure  => present,
-    #  content => 'zabbix ALL = NOPASSWD: /usr/bin/socat',
-    #}
   }
 }

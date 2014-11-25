@@ -28,7 +28,7 @@ Puppet::Type.type(:zabbix_host).provide(:ruby,
                                :usedns => resource[:ip] == nil ? 1 : 0,
                                :dns => resource[:host],
                                :ip => resource[:ip] == nil ? "" : resource[:ip],
-                               :port => 10050,}],
+                               :port => resource[:port] == nil ? "10050" : resource[:port],}],
               :proxy_hostid => resource[:proxy_hostid] == nil ? 0 : resource[:proxy_hostid],
               :groups => groups}
 

@@ -28,7 +28,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>net.tcp.service[http,${IP_STORAGE},8080]</key>
+                    <key>net.tcp.service[http,{$IP_STORAGE},8080]</key>
                     <delay>60</delay>
                     <history>90</history>
                     <trends>365</trends>
@@ -119,7 +119,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template App OpenStack Swift Proxy:net.tcp.service[http,${IP_STORAGE},8080].last(0)}=0</expression>
+            <expression>{Template App OpenStack Swift Proxy:net.tcp.service[http,{$IP_STORAGE},8080].last(0)}=0</expression>
             <name>Swift Proxy Server service is down on {HOST.NAME}</name>
             <url/>
             <status>0</status>

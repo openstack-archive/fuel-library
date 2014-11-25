@@ -2,12 +2,12 @@ class zabbix::monitoring::mysql_mon {
 
   include zabbix::params
 
-  if defined(Class['mysql::server']) {
+  if defined_in_state(Class['mysql::server']) {
 
     zabbix_template_link { "$zabbix::params::host_name Template App MySQL":
       host => $zabbix::params::host_name,
       template => 'Template App MySQL',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
 
     zabbix::agent::userparameter {
@@ -27,7 +27,7 @@ class zabbix::monitoring::mysql_mon {
       ensure => absent,
     }
 
-    if defined(Class['zabbix::db::mysql']) {
+    if defined_in_state(Class['zabbix::db::mysql']) {
       file { "/var/lib/zabbix":
         ensure => directory,
       }

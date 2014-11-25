@@ -3,16 +3,16 @@ class zabbix::monitoring::cinder_mon {
   include zabbix::params
 
   #Cinder
-  if defined(Class['cinder::api']) {
+  if defined_in_state(Class['cinder::api']) {
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Cinder API":
       host => $zabbix::params::host_name,
       template => 'Template App OpenStack Cinder API',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Cinder API check":
       host    => $zabbix::params::host_name,
       template => 'Template App OpenStack Cinder API check',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
     zabbix::agent::userparameter {
       'cinder.api.status':
@@ -20,19 +20,19 @@ class zabbix::monitoring::cinder_mon {
     }
   }
 
-  if defined(Class['cinder::scheduler']) {
+  if defined_in_state(Class['cinder::scheduler']) {
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Cinder Scheduler":
       host => $zabbix::params::host_name,
       template => 'Template App OpenStack Cinder Scheduler',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
   }
 
-  if defined(Class['cinder::volume']) {
+  if defined_in_state(Class['cinder::volume']) {
     zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Cinder Volume":
       host => $zabbix::params::host_name,
       template => 'Template App OpenStack Cinder Volume',
-      api => $zabbix::params::api_hash,
+      api => $zabbix::monitoring::api_hash,
     }
   }
 }

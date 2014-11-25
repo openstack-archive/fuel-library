@@ -48,7 +48,7 @@ StartPollers=10
 # Listen port for trapper. Default port number is 10051. This parameter
 # must be between 1024 and 32767
 
-ListenPort=<%= scope.lookupvar('zabbix::params::server_listen_port') %>
+ListenPort=<%= if @ports['backend_server'].nil?; @ports['server']; else @ports['backend_server']; end %>
 
 # Source IP address for outgouing connections
 #SourceIP=
@@ -136,7 +136,7 @@ AlertScriptsPath=/home/zabbix/bin/
 # Database host name
 # Default is localhost
 
-DBHost=<%= scope.lookupvar('zabbix::params::db_host') %>
+DBHost=<%= @db_ip %>
 
 # Database name
 # SQLite3 note: path to database file must be provided. DBUser and DBPassword are ignored.
@@ -149,7 +149,7 @@ DBUser=<%= scope.lookupvar('zabbix::params::db_user') %>
 # Database password
 # Comment this line if no password used
 
-DBPassword=<%= scope.lookupvar('zabbix::params::db_password') %>
+DBPassword=<%= @db_password %>
 
 # Connect to MySQL using Unix socket?
 
