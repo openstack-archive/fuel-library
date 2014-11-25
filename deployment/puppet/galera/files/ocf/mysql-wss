@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Authors:  Bartosz Kupidura (Mirantis):  Rewrite RA to support mysql/galera
 #           Sergii Golovatiuk (Mirantis): Rewrite RA to support mysql/galera
 #           Alan Robertson:               DB2 Script
@@ -22,7 +23,6 @@
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
 #######################################################################
 # Fill in some defaults if no values are specified
-HOSTOS=`uname`
 OCF_RESKEY_binary_default="/usr/bin/mysqld_safe"
 OCF_RESKEY_client_binary_default="/usr/bin/mysql"
 OCF_RESKEY_config_default="/etc/my.cnf"
@@ -37,7 +37,7 @@ OCF_RESKEY_additional_parameters_default=""
 OCF_RESKEY_master_timeout_default="300"
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
-MYSQL_BINDIR=`dirname ${OCF_RESKEY_binary}`
+MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 
 : ${OCF_RESKEY_client_binary=${OCF_RESKEY_client_binary_default}}
 
@@ -59,7 +59,7 @@ MYSQL_BINDIR=`dirname ${OCF_RESKEY_binary}`
 #######################################################################
 # Convenience variables
 MYSQL=$OCF_RESKEY_client_binary
-HOSTNAME=`uname -n`
+HOSTNAME=$(uname -n)
 MYSQL_OPTIONS_LOCAL="-S $OCF_RESKEY_socket --connect_timeout=10"
 MYSQL_OPTIONS_TEST="$MYSQL_OPTIONS_LOCAL --user=$OCF_RESKEY_test_user --password=$OCF_RESKEY_test_passwd"
 #######################################################################
@@ -266,9 +266,8 @@ get_galera_gtid() {
     fi
 
     validate_gtid $GTID
-
     rc=$?
-    if [ $rc -eq 0 ]; then
+    if [ $rc -eq $OCF_SUCCESS ]; then
       echo $GTID
     else
       echo 0
@@ -281,7 +280,7 @@ update_node_gtid() {
 
     GTID=$(get_galera_gtid)
 
-    if [ "$GTID" != 0 ]; then
+    if [ $GTID -ne 0 ]; then
       crm_attribute --node $HOSTNAME --lifetime forever --name gtid --update $GTID
     else
       ocf_log err "Wrong GTID, not updating gtid attribute"
@@ -332,10 +331,10 @@ check_if_reelection_needed() {
     local RUNNING_INSTANCES
     local rc
 
-    if [ "$PARTITION_WITH_QUORUM" -eq 1 -o "$NODE_COUNT" -eq 1 ]; then
+    if [ $PARTITION_WITH_QUORUM -eq 1 -o $NODE_COUNT -eq 1 ]; then
         RUNNING_INSTANCES=$(crm_resource --quiet --locate --resource $RESOURCE_NAME | wc -l 2> /dev/null)
         rc=$?
-        if [ $rc -eq 0 -a "$RUNNING_INSTANCES" -lt 1 ]; then
+        if [ $rc -eq $OCF_SUCCESS -a $RUNNING_INSTANCES -lt 1 ]; then
           return 1
         fi
     fi
@@ -349,7 +348,7 @@ choose_master() {
 
     for NODE in $NODES
     do
-      NODE_ID=$(echo $NODE | cksum | awk '{print $1}')
+      NODE_ID=$(echo $NODE | md5sum | awk '{print $1}')
       TMP[$NODE_ID]=$NODE
     done
 
@@ -359,7 +358,7 @@ choose_master() {
 }
 
 get_possible_masters() {
-    local NODES=$1
+    local NODES=$*
     local POSSIBLE_MASTERS
     local -A TMP
     local MASTER_GTID
@@ -375,7 +374,7 @@ get_possible_masters() {
 
     for NODE in $NODES
     do
-      if [ "$MASTER_GTID" -eq ${TMP[$NODE]} ]; then
+      if [ $MASTER_GTID -eq ${TMP[$NODE]} ]; then
         POSSIBLE_MASTERS="$POSSIBLE_MASTERS $NODE"
       fi
     done
@@ -384,47 +383,36 @@ get_possible_masters() {
 }
 
 check_if_galera_pc() {
-    local NODES=$1
+    local NODES
     local MASTERS
-    local last_timeout=$(get_master_timeout)
-    local timeout=$last_timeout
-    local sleeptime=30
+    local timeout=$(get_master_timeout)
     local rc
 
-    ocf_log info "Checking if galera primary controller"
+    ocf_log info "Checking if Primary Component"
 
-    MASTERS=$(get_possible_masters "$NODES")
-    MASTER=$(choose_master "$MASTERS")
-
-    if [ "$MASTER" == "$HOSTNAME" ]; then
-      return 1
-    else
-      while [ "$timeout" -gt 0 ]; do
-        sleep $sleeptime
-        ocf_log info "Waiting for master. $timeout seconds to go"
-
-        if [ $last_timeout -ne $(get_master_timeout) ]; then
-          last_timeout=$(get_master_timeout)
-          timeout=$last_timeout
-        else
-          timeout=$(($timeout-$sleeptime))
-        fi
-
-        check_if_reelection_needed
-        rc=$?
-        if [ $rc -eq 0 ]; then
-          return 0
-        fi
-      done
+    while [ $timeout -gt 0 ]; do
 
       NODES=$(nodes_in_cluster_online)
       MASTERS=$(get_possible_masters "$NODES")
       MASTER=$(choose_master "$MASTERS")
-      if [ "$MASTER" == "$HOSTNAME" ]; then
+      if [ "$MASTER" = "$HOSTNAME" ]; then
+        ocf_log info "I'm Primary Component. Join me!"
         return 1
-      fi  
-    fi
+      fi
 
+      check_if_reelection_needed
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        ocf_log info "My neighbour is Primary Component"
+        return 0
+      fi
+
+      sleep $sleeptime
+      (( timeout -= 10 ))
+      ocf_log info "Waiting for master. ${timeout} seconds left"
+    done
+
+    ocf_log info "${HOSTNAME} is not Primary Component"
     return 0
 }
 # Functions invoked by resource manager actions
@@ -459,7 +447,6 @@ mysql_validate() {
 }
 
 mysql_status() {
-
     # check and make PID file dir
     pid_dir="$( dirname ${OCF_RESKEY_pid} )"
     if [ ! -d "${pid_dir}" ] ; then
@@ -473,13 +460,12 @@ mysql_status() {
     sleeptime=${3:-5}
     while [ $i -gt 0 ]
     do
-      if [ ! -e $OCF_RESKEY_pid ]; then
-        ocf_log info "PIDFile ${OCF_RESKEY_pid} of MySQL server not found. Sleeping for $sleeptime seconds. $(( i-1 )) retries left"
-        sleep $sleeptime
-      else
+      if [ -f $OCF_RESKEY_pid ]; then
         break
       fi
-      let i=$i-1
+      sleep $sleeptime
+      (( i-- ))
+      ocf_log info "PIDFile ${OCF_RESKEY_pid} of MySQL server not found. Sleeping for $sleeptime seconds. $(( i-1 )) retries left"
     done
 
     if [ $i -eq 0 ]
@@ -488,7 +474,7 @@ mysql_status() {
       return $OCF_NOT_RUNNING;
     fi
 
-    pid=`cat $OCF_RESKEY_pid`;
+    pid=$(cat $OCF_RESKEY_pid);
     if [ -d /proc -a -d /proc/1 ]; then
         [ "u$pid" != "u" -a -d /proc/$pid ]
     else
@@ -564,7 +550,7 @@ mysql_start() {
     local NODES
 
     mysql_status info 1
-    if [ $? = $OCF_SUCCESS ]; then
+    if [ $? -eq $OCF_SUCCESS ]; then
         ocf_log info "MySQL already running"
         return $OCF_SUCCESS
     fi
@@ -587,31 +573,34 @@ mysql_start() {
         fi
     done
 
+    # Cleaning of resources spawned by xtrabackup
+    # Due to https://bugs.launchpad.net/percona-xtradb-cluster/+bug/1380697
+    local mysql_user=$(ps -ouser= ${pid})
+    local mysql_user_pids=$(ps -o pid= -U ${mysql_user} 2> /dev/null|tr '\n' ' ')
+    if [ ! -z "$mysql_pids" ]; then
+        ocf_log info "Killing PIDs running under ${mysql_user} user: ${mysql_user_pids}"
+        /bin/kill -KILL ${mysql_user_pids} > /dev/null 2>&1
+    fi
+ 
     if [ -f /tmp/wsrep-init-file ]; then
       mysql_extra_params="--init-file=/tmp/wsrep-init-file"
     else
       mysql_extra_params=""
     fi
-    NODES=$(nodes_in_cluster)
-
 
     check_if_reelection_needed
     rc=$?
 
     if [ $rc -eq 1 ]; then
-      check_if_galera_pc "$NODES"
+      check_if_galera_pc
       rc=$?
 
       if [ $rc -eq 1 ]; then
-        ocf_log info "Im galera primary controller, join me!"
         mysql_extra_params="$mysql_extra_params --wsrep-new-cluster"
       fi
     fi
 
-    #ensure mysql is down
-    killall mysqld mysqld_safe && sleep 15
-    killall -s KILL mysqld mysqld_safe && sleep 2
-
+    ocf_log info "Starting MySQL"
     ${OCF_RESKEY_binary} \
     --pid-file=$OCF_RESKEY_pid \
     --socket=$OCF_RESKEY_socket \
@@ -620,7 +609,7 @@ mysql_start() {
     $mysql_extra_params >/dev/null 2>&1 &
     rc=$?
 
-    if [ $rc != 0 ]; then
+    if [ $rc -ne 0 ]; then
         ocf_log err "MySQL start command failed: $rc"
         return $rc
     fi
@@ -628,14 +617,13 @@ mysql_start() {
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required.
     start_wait=1
-    while [ $start_wait = 1 ]; do
-        mysql_status info
+    while [ $start_wait -eq 1 ]; do
+        mysql_status info 1
         rc=$?
-        if [ $rc = $OCF_SUCCESS ]; then
+        if [ $rc -eq $OCF_SUCCESS ]; then
             start_wait=0
-
-            elif [ $rc != $OCF_NOT_RUNNING ]; then
-            ocf_log info "MySQL start failed: $rc"
+        elif [ $rc -ne $OCF_NOT_RUNNING ]; then
+            ocf_log err "MySQL start failed: $rc"
             return $rc
         fi
         sleep 2
@@ -646,39 +634,40 @@ mysql_start() {
 }
 
 mysql_stop() {
-    if [ ! -f $OCF_RESKEY_pid ]; then
-        ocf_log info "MySQL is not running"
-        return $OCF_SUCCESS
-    fi
-    pid=`cat $OCF_RESKEY_pid 2> /dev/null `
-    /bin/kill $pid > /dev/null
+    local rc
+
+    mysql_status info 1
     rc=$?
-    if [ $rc != 0 ]; then
+    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+        return $OCF_NOT_RUNNING
+    fi
+
+    local pid=$(cat $OCF_RESKEY_pid 2> /dev/null)
+    ocf_log info "Sending SIGTERM to PID: ${pid}"
+    /bin/kill -TERM -$(ps -oppid= $pid) > /dev/null
+    rc=$?
+    if [ $rc -ne $OCF_SUCCESS ]; then
         ocf_log err "MySQL couldn't be stopped"
         return $OCF_ERR_GENERIC
     fi
     # stop waiting
-    shutdown_timeout=15
-    count=0
-    while [ $count -lt $shutdown_timeout ]
-    do
+    shutdown_timeout=20
+    while [ $shutdown_timeout -gt 0 ]; do
         mysql_status info 1
         rc=$?
-        if [ $rc = $OCF_NOT_RUNNING ]; then
+        if [ $rc -eq $OCF_NOT_RUNNING ]; then
             break
         fi
-        count=`expr $count + 1`
         sleep 1
-        ocf_log debug "MySQL still hasn't stopped yet. Waiting..."
+        (( shutdown_timeout-- ))
+        ocf_log info "MySQL still hasn't stopped yet. ${shutdown_timeout} left "
     done
 
     mysql_status info 1
-    if [ $? != $OCF_NOT_RUNNING ]; then
-        ocf_log info "MySQL failed to stop after ${shutdown_timeout}s using SIGTERM. Trying SIGKILL..."
-        /bin/kill -KILL $pid > /dev/null
+    if [ $? -ne $OCF_NOT_RUNNING ]; then
+        ocf_log info "MySQL failed to stop using SIGTERM. Sending SIGKILL to PID: ${pid}"
+        /bin/kill -KILL -$(ps -oppid= $pid) > /dev/null
     fi
-
-    ocf_log info "MySQL stopped";
 
     ocf_log debug "Delete lock file: /var/lock/subsys/mysqld"
     rm -f /var/lock/subsys/mysqld
