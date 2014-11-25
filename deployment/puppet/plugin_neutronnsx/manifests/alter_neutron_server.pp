@@ -45,6 +45,11 @@ class plugin_neutronnsx::alter_neutron_server (
     ensure => present,
   }
 
+  package { 'openstack-neutron-ml2':
+    name => $::plugin_neutronnsx::params::ml2_server_package,
+    ensure => present,
+  }
+
   file { '/etc/neutron/plugins/vmware':
     ensure  => directory,
     mode    => '0755',
@@ -114,5 +119,11 @@ e_metadata_network'|>{
   Neutron_plugin_vmware<||> ~>
   Service<| title == 'neutron-server' |> ->
   Anchor['alter-neutron-server-vmware-end']
+
+  Package['openstack-neutron-ml2'] ->
+  Package['openstack-neutron-vmware']
+
+  Neutron_plugin_vmware<||> ~>
+  Exec <| title == 'neutron-db-sync' |>
 
 }
