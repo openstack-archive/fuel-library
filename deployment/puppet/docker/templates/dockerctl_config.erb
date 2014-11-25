@@ -38,10 +38,7 @@ SOURCE_IMAGES['mcollective']="${IMAGE_DIR}/mcollective${ZIP_EXT}"
 SOURCE_IMAGES['keystone']="${IMAGE_DIR}/keystone${ZIP_EXT}"
 
 # storage container names
-PREFIX_STORAGE="fuel-storage-${VERSION}-"
-REPO_CNT="${PREFIX_STORAGE}repo"
-PUPPET_CNT="${PREFIX_STORAGE}puppet"
-LOG_CNT="${PREFIX_STORAGE}log"
+PREFIX_STORAGE="fuel-core-${VERSION}-volume-"
 
 # app container names
 declare -A CONTAINER_NAMES
@@ -79,7 +76,7 @@ CONTAINER_OPTIONS["mcollective"]="--privileged $base_opts"
 CONTAINER_OPTIONS["keystone"]="-p ${BIND_ALL}5000:5000 -p ${BIND_ALL}35357:35357 $base_opts"
 
 ######
-#DRAFT: Dependency of volumes for deployment
+Dependency of volumes for deployment
 #####
 
 #Host volumes
@@ -88,22 +85,14 @@ HOST_VOL['repo']="-v /var/www/nailgun:/var/www/nailgun:rw -v /etc/yum.repos.d:/e
 HOST_VOL['puppet']="-v /etc/puppet:/etc/puppet:ro"
 HOST_VOL['sshkey']="-v /root/.ssh:/root/.ssh:ro"
 HOST_VOL['astuteyaml']="-v /etc/fuel:/etc/fuel:ro"
-HOST_VOL['remotelogs']="-v /var/log/remote:/remote"
-HOST_VOL['dockerlogs']="-v /var/log/docker-logs:/log"
+HOST_VOL['logs']="-v /var/log/docker-logs:/var/log"
 
 #Storage container volume mounts
 declare -A CONTAINER_VOLUMES
-CONTAINER_VOLUMES[$REPO_CNT]="${HOST_VOL['repo']}"
-#TODO(mattymo): inject puppet modules to puppet container during initial run
-#instead of relaying host dir
-CONTAINER_VOLUMES[$PUPPET_CNT]="${HOST_VOL['puppet']}"
-CONTAINER_VOLUMES[$LOG_CNT]="${HOST_VOL['dockerlogs']} ${HOST_VOL['remotelogs']}"
+#Format: CONTAINER_VOLUMES[$FOO_CNT]="${HOST_VOL['foo']}"
 
 #Storage container volumes
-REPO_VOL="--volumes-from $REPO_CNT"
-PUPPET_VOL="--volumes-from $PUPPET_CNT"
-LOG_VOL="-v /var/log/docker-logs:/var/log"
-#LOG_VOL="--volumes-from $LOG_CNT"
+#Format: FOO_VOL="--volumes-from $FOO_CNT"
 
 #Nailgun static files are in nailgun container
 NAILGUN_VOL="--volumes-from ${CONTAINER_NAMES['nailgun']}"
@@ -112,23 +101,22 @@ ASTUTE_VOL="--volumes-from ${CONTAINER_NAMES['astute']}"
 
 #App container volume mounts
 ###requirements cheat sheet
-###ALL: astuteyaml $REPO_CNT $LOG_VOL
+###ALL: astuteyaml repo logs
+###puppet: rsync
 ###sshkey: nailgun cobbler astute mcollective ostf
-###reporw: nginx mcollective
-###remotelogs: rsyslog nailgun nginx
+###repo: nginx mcollective
 ###nailgun: nginx mcollective
 ###cobbler: mcollective
 ###astute: mcollective
-#
 declare -A REQS
 REQS["${HOST_VOL['astuteyaml']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
-REQS["${HOST_VOL['repo']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog keystone mcollective"
-#Most containers work from local integrated puppet
-REQS["$PUPPET_VOL"]="rsync"
-#REQS["$PUPPET_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
-REQS["$LOG_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
+REQS["${HOST_VOL['repo']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
+REQS["${HOST_VOL['logs']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
+#Most containers work from local integrated puppet, but rsync needs to serve host puppet
+REQS["${HOST_VOL['puppet']}"]="rsync"
+#Uncomment to enable host puppet manifests
+#REQS["${HOST_VOL['puppet']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
 REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective ostf"
-#REQS["${HOST_VOL['remotelogs']}"]="rsyslog nailgun nginx"
 REQS["$NAILGUN_VOL"]="nginx mcollective"
 REQS["$COBBLER_VOL"]="mcollective"
 REQS["$ASTUTE_VOL"]="mcollective"
