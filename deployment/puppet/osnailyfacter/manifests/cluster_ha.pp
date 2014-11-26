@@ -456,6 +456,10 @@ class osnailyfacter::cluster_ha {
     }
   }
 
+  if ($::mellanox_mode != 'disabled') {
+    class { 'mellanox_openstack::ofed_recompile' : }
+  }
+
   case $::fuel_settings['role'] {
     /controller/ : {
       include osnailyfacter::test_controller
