@@ -544,6 +544,7 @@ class openstack::controller (
     verbose           => $verbose,
     debug             => $debug,
     use_syslog        => $use_syslog,
+    nova_quota        => $::fuel_settings['nova_quota'],
   }
   class { 'openstack::auth_file':
     admin_user           => $admin_user,

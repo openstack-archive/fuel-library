@@ -37,6 +37,7 @@ class openstack::horizon (
   $use_ssl               = false,
   $use_syslog            = false,
   $log_level             = 'WARNING',
+  $nova_quota            = false,
 ) {
 
   # class { 'memcached':
