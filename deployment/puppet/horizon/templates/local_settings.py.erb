@@ -503,3 +503,11 @@ SECURITY_GROUP_RULES = {
         'to_port': '3389',
     },
 }
+
+ENABLED_QUOTA_GROUPS = {
+<% if scope.lookupvar('::openstack::horizon::nova_quota') %>
+    'nova': True
+<% else %>
+    'nova': False
+<% end %>
+}
