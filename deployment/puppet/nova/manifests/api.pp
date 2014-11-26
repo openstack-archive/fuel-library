@@ -134,6 +134,7 @@ class nova::api(
   $ratelimits            = undef,
   $ratelimits_factory    =
     'nova.api.openstack.compute.limits:RateLimitingMiddleware.factory',
+  $fping_path_debian     = '/usr/bin/fping',
   # DEPRECATED PARAMETER
   $workers               = undef,
 ) {
@@ -181,6 +182,12 @@ class nova::api(
     'DEFAULT/metadata_workers':      value => $metadata_workers;
     'conductor/workers':             value => $conductor_workers;
     'DEFAULT/use_forwarded_for':     value => $use_forwarded_for;
+  }
+
+  if $::osfamily == 'Debian' {
+    nova_config {
+        'DEFAULT/fping_path': value => $fping_path_debian;
+    }
   }
 
   if ($neutron_metadata_proxy_shared_secret){
