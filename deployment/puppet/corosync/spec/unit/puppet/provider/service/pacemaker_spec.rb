@@ -130,7 +130,7 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
       @class.stubs(:primitive_is_clone?).returns(true)
       @class.stubs(:primitive_is_multistate?).returns(false)
       @class.stubs(:primitive_is_complex?).returns(true)
-      @class.expects(:wait_for_start).with name, hostname
+      @class.expects(:wait_for_start).with name
       @class.start
     end
 
