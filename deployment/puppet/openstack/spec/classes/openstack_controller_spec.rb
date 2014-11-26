@@ -128,13 +128,13 @@ describe 'openstack::controller' do
         :enabled  => true
       )
       should contain_class('nova').with(
-        :sql_connection     => 'mysql://nova:nova_pass@127.0.0.1/nova',
-        :rabbit_host        => '127.0.0.1',
-        :rabbit_userid      => 'nova',
-        :rabbit_password    => 'rabbit_pw',
-        :image_service      => 'nova.image.glance.GlanceImageService',
-        :glance_api_servers => '10.0.0.1:9292',
-        :verbose            => false
+        :database_connection => 'mysql://nova:nova_pass@127.0.0.1/nova',
+        :rabbit_host         => '127.0.0.1',
+        :rabbit_userid       => 'nova',
+        :rabbit_password     => 'rabbit_pw',
+        :image_service       => 'nova.image.glance.GlanceImageService',
+        :glance_api_servers  => '10.0.0.1:9292',
+        :verbose             => false
       )
       should contain_class('nova::api').with(
         :enabled           => true,
@@ -245,13 +245,13 @@ describe 'openstack::controller' do
           :enabled  => true
         )
         should contain_class('nova').with(
-          :sql_connection     => 'mysql://nova:pass3@127.0.0.1/nova',
-          :rabbit_host        => '127.0.0.1',
-          :rabbit_userid      => 'rabby',
-          :rabbit_password    => 'rabby_pw',
-          :image_service      => 'nova.image.glance.GlanceImageService',
-          :glance_api_servers => '127.0.0.1:9292',
-          :verbose            => true
+          :database_connection => 'mysql://nova:pass3@127.0.0.1/nova',
+          :rabbit_host         => '127.0.0.1',
+          :rabbit_userid       => 'rabby',
+          :rabbit_password     => 'rabby_pw',
+          :image_service       => 'nova.image.glance.GlanceImageService',
+          :glance_api_servers  => '127.0.0.1:9292',
+          :verbose             => true
         )
         should contain_class('nova::api').with(
           :enabled           => true,
