@@ -661,7 +661,7 @@ class osnailyfacter::cluster_ha {
 
         keystone_host     => $controller_node_address,
         keystone_user     => 'heat',
-        keystone_password => 'heat',
+        keystone_password =>  $heat_hash['user_password'],
         keystone_tenant   => 'services',
 
         keystone_ec2_uri  => "http://${controller_node_address}:5000/v2.0",
