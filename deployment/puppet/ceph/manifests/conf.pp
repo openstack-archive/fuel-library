@@ -21,19 +21,21 @@ class ceph::conf {
     }
 
     ceph_conf {
-      'global/auth_supported':            value => $::ceph::auth_supported;
-      'global/osd_journal_size':          value => $::ceph::osd_journal_size;
-      'global/osd_mkfs_type':             value => $::ceph::osd_mkfs_type;
-      'global/osd_pool_default_size':     value => $::ceph::osd_pool_default_size;
-      'global/osd_pool_default_min_size': value => $::ceph::osd_pool_default_min_size;
-      'global/osd_pool_default_pg_num':   value => $::ceph::osd_pool_default_pg_num;
-      'global/osd_pool_default_pgp_num':  value => $::ceph::osd_pool_default_pgp_num;
-      'global/cluster_network':           value => $::ceph::cluster_network;
-      'global/public_network':            value => $::ceph::public_network;
-      'global/log_file':                  value => $::ceph::rgw_log_file;
-      'global/log_to_syslog':             value => $::ceph::use_syslog;
-      'global/log_to_syslog_level':       value => $::ceph::syslog_log_level;
-      'global/log_to_syslog_facility':    value => $::ceph::syslog_log_facility;
+      'global/auth_supported':                     value => $::ceph::auth_supported;
+      'global/osd_journal_size':                   value => $::ceph::osd_journal_size;
+      'global/osd_mkfs_type':                      value => $::ceph::osd_mkfs_type;
+      'global/osd_pool_default_size':              value => $::ceph::osd_pool_default_size;
+      'global/osd_pool_default_min_size':          value => $::ceph::osd_pool_default_min_size;
+      'global/osd_pool_default_pg_num':            value => $::ceph::osd_pool_default_pg_num;
+      'global/osd_pool_default_pgp_num':           value => $::ceph::osd_pool_default_pgp_num;
+      'global/cluster_network':                    value => $::ceph::cluster_network;
+      'global/public_network':                     value => $::ceph::public_network;
+      'global/log_file':                           value => $::ceph::rgw_log_file;
+      'global/log_to_syslog':                      value => $::ceph::use_syslog;
+      'global/log_to_syslog_level':                value => $::ceph::syslog_log_level;
+      'global/log_to_syslog_facility':             value => $::ceph::syslog_log_facility;
+      'client/rbd cache':                          value => true;
+      'client/rbd cache writethrough until flush': value => true;
     }
 
     Exec['ceph-deploy new'] ->
