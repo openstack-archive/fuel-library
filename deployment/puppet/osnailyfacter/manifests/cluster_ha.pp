@@ -446,9 +446,12 @@ class osnailyfacter::cluster_ha {
         after       => Cluster::Virtual_ips[$::osnailyfacter::cluster_ha::vip_keys]
       }
     } # End If keep_vips_together
+
+    if ($::mellanox_mode != 'disabled') {
+      class { 'mellanox_openstack::ofed_recompile' : }
+    }
+
   }
-
-
 
   case $::fuel_settings['role'] {
     /controller/ : {
