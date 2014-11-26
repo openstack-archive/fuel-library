@@ -688,8 +688,7 @@ class osnailyfacter::cluster_ha {
         amqp_user           => $rabbit_hash['user'],
         amqp_password       => $rabbit_hash['password'],
 
-        sql_connection      =>
-          "mysql://heat:${heat_hash['db_password']}@${$controller_node_address}/heat?read_timeout=60",
+        sql_connection      => "mysql://heat:${heat_hash['db_password']}@${$controller_node_address}/heat?read_timeout=60",
         db_host             => $controller_node_address,
         db_password         => $heat_hash['db_password'],
         max_retries         => $max_retries,
