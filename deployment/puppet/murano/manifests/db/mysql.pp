@@ -16,7 +16,7 @@ class murano::db::mysql(
     charset  => $charset,
     grant    => ['all'],
   }
-  
+
   if $allowed_hosts {
     murano::db::mysql::host_access { $allowed_hosts:
       user      => $user,
@@ -24,7 +24,7 @@ class murano::db::mysql(
       database  => $dbname,
     }
   }
-  
+
   $services = [ 'murano::api' ]
   # TODO(dteselkin): Update the line above similar
   # to the line below when murano::engine is added.
