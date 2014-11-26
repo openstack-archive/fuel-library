@@ -382,6 +382,7 @@ class osnailyfacter::cluster_ha {
 
   if ($::mellanox_mode != 'disabled') {
     class { 'mellanox_openstack::openibd' : }
+    class { 'mellanox_openstack::ofed_recompile' : }
   }
 
 
