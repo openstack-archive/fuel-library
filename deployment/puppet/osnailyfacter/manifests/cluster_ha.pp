@@ -446,14 +446,18 @@ class osnailyfacter::cluster_ha {
         after       => Cluster::Virtual_ips[$::osnailyfacter::cluster_ha::vip_keys]
       }
     } # End If keep_vips_together
+
+    if $use_vmware_nsx {
+      class { 'plugin_neutronnsx':
+        neutron_config     => $neutron_config,
+        neutron_nsx_config => $neutron_nsx_config,
+        roles              => $roles,
+      }
+    }
   }
 
-  if $use_vmware_nsx {
-    class { 'plugin_neutronnsx':
-      neutron_config     => $neutron_config,
-      neutron_nsx_config => $neutron_nsx_config,
-      roles              => $roles,
-    }
+  if ($::mellanox_mode != 'disabled') {
+    class { 'mellanox_openstack::ofed_recompile' : }
   }
 
   case $::fuel_settings['role'] {
