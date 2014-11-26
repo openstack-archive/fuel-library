@@ -801,7 +801,7 @@ class osnailyfacter::cluster_ha {
         network_manager             => $network_manager,
         network_config              => $network_config,
         multi_host                  => $multi_host,
-        sql_connection              => "mysql://nova:${nova_hash[db_password]}@${::fuel_settings['management_vip']}/nova?read_timeout=60",
+        database_connection         => "mysql://nova:${nova_hash[db_password]}@${::fuel_settings['management_vip']}/nova?read_timeout=60",
         queue_provider              => $::queue_provider,
         amqp_hosts                  => $amqp_hosts,
         amqp_user                   => $rabbit_hash['user'],
