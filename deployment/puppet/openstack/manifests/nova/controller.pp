@@ -97,7 +97,8 @@ class openstack::nova::controller (
   $max_overflow                = '30',
   $max_retries                 = '-1',
   $novnc_address               = '127.0.0.1',
-  $neutron_metadata_proxy_shared_secret = undef
+  $neutron_metadata_proxy_shared_secret = undef,
+  $fping_path_debian           = '/usr/bin/fping',
 ) {
 
   # Configure the db string
@@ -196,6 +197,12 @@ class openstack::nova::controller (
     'DATABASE/max_pool_size': value => $max_pool_size;
     'DATABASE/max_retries':   value => $max_retries;
     'DATABASE/max_overflow':  value => $max_overflow;
+  }
+
+  if $::osfamily == 'Debian' {
+    nova_config {
+        'DEFAULT/fping_path': value => $fping_path_debian;
+    }
   }
 
   class {'nova::quota':
