@@ -21,11 +21,11 @@ class cluster::neutron::dhcp (
       value => $agents_per_net
     }
     $csr_metadata = undef
-    $csr_multistate_hash = { 'type' => 'clone' }
+    $csr_complex_type    = 'clone'
     $csr_ms_metadata     = { 'interleave' => 'true' }
   } else {
     $csr_metadata        = { 'resource-stickiness' => '1' }
-    $csr_multistate_hash = undef
+    $csr_complex_type    = undef
     $csr_ms_metadata     = undef
   }
 
@@ -46,7 +46,7 @@ class cluster::neutron::dhcp (
       'amqp_server_port' => $amqp_server_port
     },
     csr_metadata        => $csr_metadata,
-    csr_multistate_hash => $csr_multistate_hash,
+    csr_complex_type    => $csr_complex_type,
     csr_ms_metadata     => $csr_ms_metadata,
     csr_mon_intr    => '20',
     csr_mon_timeout => '10',
