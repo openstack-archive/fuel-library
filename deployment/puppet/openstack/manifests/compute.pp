@@ -238,7 +238,7 @@ class openstack::compute (
   $notify_on_state_change = 'vm_and_task_state'
 
   class { 'nova':
-      install_utilities      => false,
+      install_utilities      => true,
       ensure_package         => $::openstack_version['nova'],
       sql_connection         => $sql_connection,
       rpc_backend            => $rpc_backend,
@@ -304,6 +304,11 @@ class openstack::compute (
     nova_config {
       'DEFAULT/use_syslog_rfc_format':  value => true;
     }
+  }
+
+  # Enable the file injection feature
+  if !$::fuel_settings['storage']['images_ceph'] {
+    nova_config { 'libvirt/inject_partition': value => '-1'; }
   }
 
   # From legacy libvirt.pp
