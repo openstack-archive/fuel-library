@@ -170,9 +170,7 @@ class galera (
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'mysql-wss',
-      multistate_hash => {
-        'type'        => 'clone',
-      },
+      complex_type    => 'clone',
       parameters      => {
         'test_user'   => "${mysql_user}",
         'test_passwd' => "${mysql_password}",

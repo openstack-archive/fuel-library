@@ -25,9 +25,7 @@ class cluster::haproxy_ocf (
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'ns_haproxy',
-      multistate_hash => {
-        'type' => 'clone',
-      },
+      complex_type    => 'clone',
       ms_metadata     => {
         'interleave' => true,
       },

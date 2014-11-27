@@ -24,10 +24,6 @@ class heat_ha::engine inherits heat::engine {
     },
   }
 
-  $multistate_hash = {
-    'type' => 'clone',
-  }
-
   $ms_metadata = {
     'interleave' => true,
   }
@@ -35,7 +31,7 @@ class heat_ha::engine inherits heat::engine {
   pacemaker_wrappers::service { $service_name :
     primitive_type      => $primitive_type,
     metadata            => $metadata,
-    multistate_hash     => $multistate_hash,
+    complex_type        => 'clone',
     ms_metadata         => $ms_metadata,
     operations          => $operations,
     ocf_script_template => $ocf_script_template,

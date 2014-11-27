@@ -30,7 +30,7 @@ cs_resource { 'blort':
   primitive_class => 'ocf',
   provided_by     => 'pacemaker',
   primitive_type  => 'Dummy',
-  multistate_hash => { type => 'master' },
+  complex_type    => 'master',
   operations      => {
     'monitor' => {
       'interval' => '20'
