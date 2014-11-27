@@ -215,6 +215,7 @@ class mysql::server (
       node_addresses     => $galera_nodes,
       skip_name_resolve  => $mysql_skip_name_resolve,
       use_syslog         => $use_syslog,
+      wsrep_sst_password => $root_password,
     }
 
   }
