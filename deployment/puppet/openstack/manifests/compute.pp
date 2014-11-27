@@ -238,7 +238,7 @@ class openstack::compute (
   $notify_on_state_change = 'vm_and_task_state'
 
   class { 'nova':
-      install_utilities      => false,
+      install_utilities      => true,
       ensure_package         => $::openstack_version['nova'],
       sql_connection         => $sql_connection,
       rpc_backend            => $rpc_backend,
