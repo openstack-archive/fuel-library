@@ -344,12 +344,11 @@ class openstack::keystone (
         public_address   => $nova_public_real,
         admin_address    => $nova_admin_real,
         internal_address => $nova_internal_real,
-        cinder            => $cinder,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
     }
 
-    # Configure Nova endpoint in Keystone
+    # Configure Cinder endpoint in Keystone
     if $cinder {
       class { 'cinder::keystone::auth':
         password         => $cinder_user_password,
