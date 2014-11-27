@@ -757,13 +757,14 @@ class osnailyfacter::cluster_ha {
 
       if $::fuel_settings['libvirt_type'] == 'vcenter' {
         class { 'vmware' :
-          vcenter_user      => $vcenter_hash['vc_user'],
-          vcenter_password  => $vcenter_hash['vc_password'],
-          vcenter_host_ip   => $vcenter_hash['host_ip'],
-          vcenter_cluster   => $vcenter_hash['cluster'],
-          use_quantum       => $::use_neutron,
-          ha_mode           => true,
-          vnc_address       => $controller_node_public,
+          vcenter_user            => $vcenter_hash['vc_user'],
+          vcenter_password        => $vcenter_hash['vc_password'],
+          vcenter_host_ip         => $vcenter_hash['host_ip'],
+          vcenter_cluster         => $vcenter_hash['cluster'],
+          vcenter_datastore_regex => $vcenter_hash['datastore_regex'],
+          use_quantum             => $::use_neutron,
+          ha_mode                 => true,
+          vnc_address             => $controller_node_public,
         }
       }
 

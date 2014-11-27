@@ -12,6 +12,9 @@ host_ip=<%= @vcenter_host_ip %>
 host_username=<%= @vcenter_user %>
 host_password=<%= @vcenter_password %>
 task_poll_interval=<%= @task_poll_interval %>
+<% if @datastore_regex and !@datastore_regex.empty? -%>
+datastore_regex=<%= @datastore_regex %>
+<% end -%>
 <% if @wsdl_location -%>
 wsdl_location=<%= @wsdl_location %>
 <% end -%>
