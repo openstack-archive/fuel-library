@@ -201,7 +201,13 @@ class osnailyfacter::cluster_simple {
     }
   }
 
-
+  if $use_vmware_nsx {
+    class { 'plugin_neutronnsx':
+      neutron_config     => $neutron_config,
+      neutron_nsx_config => $neutron_nsx_config,
+      roles              => $roles,
+      }
+  }
 
   case $::fuel_settings['role'] {
     "controller" : {
@@ -299,14 +305,6 @@ class osnailyfacter::cluster_simple {
       nova_config { 'DEFAULT/resume_guests_state_on_host_boot': value => $::fuel_settings['resume_guests_state_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
-
-      if $use_vmware_nsx {
-        class { 'plugin_neutronnsx':
-          neutron_config     => $neutron_config,
-          neutron_nsx_config => $neutron_nsx_config,
-          roles              => $roles,
-        }
-      }
 
       if !$::use_neutron {
         $floating_ips_range = $::fuel_settings['floating_network_range']
@@ -539,14 +537,6 @@ class osnailyfacter::cluster_simple {
 
       if ($::use_ceph){
         Class['openstack::compute'] -> Class['ceph']
-      }
-
-      if $use_vmware_nsx {
-        class { 'plugin_neutronnsx':
-          neutron_config     => $neutron_config,
-          neutron_nsx_config => $neutron_nsx_config,
-          roles              => $roles,
-        }
       }
 
     # Configure monit watchdogs
