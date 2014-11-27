@@ -388,8 +388,21 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # @param score [Numeric,String] score value
   def constraint_location_add(primitive, node, score = 100)
     id = "#{primitive}_on_#{node}"
+    xml = <<-EOF
+    <diff>
+      <diff-added>
+        <cib>
+          <configuration>
+            <constraints>
+              <rsc_location id="#{id}" node="#{node}" rsc="#{primitive}" score="#{score}"/>
+            </constraints>
+          </configuration>
+        </cib>
+      </diff-added>
+    </diff>
+    EOF
     retry_command {
-      pcs 'constraint', 'location', 'add', id, primitive, node, score
+      cibadmin '--patch', '--sync-call', '--xml-text', xml
     }
   end
 
