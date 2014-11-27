@@ -4,7 +4,7 @@
 # unzip swig screen parted curl euca2ools libguestfs-tools - extra packages
 class nova::utilities {
   if $::osfamily == 'Debian' {
-    ensure_packages(['unzip', 'screen', 'parted', 'curl', 'euca2ools'])
+    ensure_packages(['python-guestfs'])
 
     package {'libguestfs-tools':
       ensure       => present,
