@@ -12,8 +12,8 @@
 #
 # in case anacron is already running,
 # there will be log (daemon won't be running twice).
-if test -x /usr/bin/on_ac_power; then
-    /usr/bin/on_ac_power &> /dev/null
+if test -x /usr/bin/fuel_free_disk_check.py; then
+    python /usr/bin/fuel_free_disk_check.py &> /dev/null
     if test $? -eq 1; then
         exit 0
     fi
