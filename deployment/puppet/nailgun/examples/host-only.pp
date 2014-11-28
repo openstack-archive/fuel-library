@@ -18,7 +18,8 @@ Class['nailgun::host'] ->
 Class['docker::dockerctl'] ->
 Class['docker'] ->
 Class['openstack::logrotate'] ->
-Class['nailgun::supervisor']
+Class['nailgun::supervisor'] ->
+Class['nailgun::free-disk-check']
 
 class { 'nailgun::packages': }
 
@@ -83,3 +84,6 @@ file { "/etc/supervisord.d/current":
   ensure  => "/etc/supervisord.d/${::fuel_version['VERSION']['release']}",
 }
 
+# FIXME(pkaminski) Temporary solution. Get rid of this later and migrate to monit
+class { "nailgun::free-disk-check":
+}
