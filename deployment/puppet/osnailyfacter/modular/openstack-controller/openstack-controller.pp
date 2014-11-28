@@ -249,7 +249,7 @@ class { '::openstack::controller':
   keystone_admin_tenant          => $access_hash[tenant],
   glance_db_password             => $glance_hash[db_password],
   glance_user_password           => $glance_hash[user_password],
-  glance_api_servers             => undef,
+  glance_api_servers             => '$management_vip:9292',
   glance_image_cache_max_size    => $glance_hash[image_cache_max_size],
   glance_vcenter_host            => $storage_hash['vc_host'],
   glance_vcenter_user            => $storage_hash['vc_user'],
