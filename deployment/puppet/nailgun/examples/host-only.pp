@@ -18,7 +18,8 @@ Class['nailgun::host'] ->
 Class['docker::dockerctl'] ->
 Class['docker'] ->
 Class['openstack::logrotate'] ->
-Class['nailgun::supervisor']
+Class['nailgun::supervisor'] ->
+Class['monit']
 
 class { 'nailgun::packages': }
 
@@ -83,3 +84,21 @@ file { "/etc/supervisord.d/current":
   ensure  => "/etc/supervisord.d/${::fuel_version['VERSION']['release']}",
 }
 
+class { "monit": }
+
+# Free disk space monitoring
+file { '/usr/bin/fuel_notify.py':
+  source  => 'puppet:///modules/nailgun/fuel_notify.py',
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0755',
+}
+
+file { "${::monit::params::included}/free-space.conf":
+  source  => 'puppet:///modules/nailgun/monit-free-space.conf',
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0644',
+  require => Class['monit'],
+  notify  => Service['monit'],
+}
