@@ -24,15 +24,17 @@
 # [*use_no_cache*]
 #   (optional) Do not use the auth token cache. Defaults to true.
 # [*cinder_endpoint_type*]
-#   (optional) Defaults to 'publicURL'.
+#   (optional) Defaults to 'internalURL'.
 # [*glance_endpoint_type*]
-#   (optional) Defaults to 'publicURL'.
+#   (optional) Defaults to 'internalURL'.
 # [*keystone_endpoint_type*]
-#   (optional) Defaults to 'publicURL'.
+#   (optional) Defaults to 'internalURL'.
 # [*nova_endpoint_type*]
-#   (optional) Defaults to 'publicURL'.
+#   (optional) Defaults to 'internalURL'.
 # [*neutron_endpoint_type*]
-#   (optional) Defaults to 'publicURL'.
+#   (optional) Defaults to 'internalURL'.
+# [*os_endpoint_type*]
+#   (optional) Defaults to 'internalURL'.
 #
 class openstack::auth_file(
   $admin_password,
@@ -42,11 +44,12 @@ class openstack::auth_file(
   $admin_tenant             = 'openstack',
   $region_name              = 'RegionOne',
   $use_no_cache             = true,
-  $cinder_endpoint_type     = 'publicURL',
-  $glance_endpoint_type     = 'publicURL',
-  $keystone_endpoint_type   = 'publicURL',
-  $nova_endpoint_type       = 'publicURL',
-  $neutron_endpoint_type    = 'publicURL',
+  $cinder_endpoint_type     = 'internalURL',
+  $glance_endpoint_type     = 'internalURL',
+  $keystone_endpoint_type   = 'internalURL',
+  $nova_endpoint_type       = 'internalURL',
+  $neutron_endpoint_type    = 'internalURL',
+  $os_endpoint_type         = 'internalURL',
 ) {
 
   file { '/root/openrc':
