@@ -70,7 +70,8 @@ correctly configured.")
       :OS_AUTH_URL    => self.auth_endpoint,
       :OS_USERNAME    => q['admin_user'],
       :OS_TENANT_NAME => q['admin_tenant_name'],
-      :OS_PASSWORD    => q['admin_password']
+      :OS_PASSWORD    => q['admin_password'],
+      :OS_ENDPOINT_TYPE => 'internalURL'
     }
     if q.key?('nova_region_name')
       authenv[:OS_REGION_NAME] = q['nova_region_name']
