@@ -30,7 +30,12 @@ $SNIPPET('ubuntu_network_console_and_syslog')
 
 $SNIPPET('ubuntu_partition')
 
+#set fuel_version=$getVar('fuel_version', '')
+#if $fuel_version == '6.0'
 d-i base-installer/kernel/image string linux-image-generic-lts-trusty
+#else
+d-i base-installer/kernel/image string linux-server
+#end if
 
 
 ##########
@@ -150,7 +155,11 @@ echo 'deb http://@@server@@:8080/ubuntu/x86_64 precise main' > /target/etc/apt/s
 $SNIPPET('ubuntu_authorized_keys')
 sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication\ .*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
 echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
+#if $fuel_version == '6.0'
 in-target apt-get -y install linux-headers-generic-lts-trusty && \
+#else
+in-target apt-get -y install linux-image-3.11 linux-headers-3.11 && \
+#end if
 $SNIPPET('ubuntu_blacklist_i2c_piix4')
 $SNIPPET('ubuntu_static_net')
 $SNIPPET('ofed_install_with_sriov')
