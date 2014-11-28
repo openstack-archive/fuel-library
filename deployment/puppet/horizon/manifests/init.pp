@@ -34,7 +34,7 @@ class horizon(
   $keystone_host         = '127.0.0.1',
   $keystone_port         = 5000,
   $keystone_scheme       = 'http',
-  $keystone_default_role = 'Member',
+  $keystone_default_role = '_member_',
   $django_debug          = false,
   $django_verbose        = false,
   $api_result_limit      = 1000,
