@@ -41,6 +41,8 @@ class cluster (
     Package['pacemaker'] -> File['ns-ipaddr2-ocf']
     File<| title == 'ocf-mirantis-path' |> -> File['ns-ipaddr2-ocf']
 
+    include corosync::online
+
 }
 #
 ###
