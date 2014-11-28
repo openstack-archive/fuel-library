@@ -1,0 +1,6 @@
+#!/bin/bash
+# managed by puppet
+
+if test -x /usr/bin/fuel_free_disk_check.py; then
+    python /usr/bin/fuel_free_disk_check.py &> /dev/null
+fi
