@@ -17,7 +17,8 @@ Class['nailgun::host'] ->
 Class['docker::dockerctl'] ->
 Class['docker'] ->
 Class['openstack::logrotate'] ->
-Class['nailgun::client']
+Class['nailgun::client'] ->
+Class['nailgun::free-disk-check']
 
 class { 'nailgun::packages': }
 
@@ -54,5 +55,8 @@ class { "nailgun::client":
   server        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   keystone_user => $::fuel_settings['FUEL_ACCESS']['user'],
   keystone_pass => $::fuel_settings['FUEL_ACCESS']['password'],
+}
+
+class { "nailgun::free-disk-check":
 }
 
