@@ -15,13 +15,14 @@ class cluster::haproxy (
   #  and this override looks the only possible if
   #  upstream manifests must be kept intact
   $global_options   = {
-    'log'     => '/dev/log local0',
-    'pidfile' => '/var/run/haproxy.pid',
-    'maxconn' => $haproxy_maxconn,
-    'user'    => 'haproxy',
-    'group'   => 'haproxy',
-    'daemon'  => '',
-    'stats'   => 'socket /var/lib/haproxy/stats',
+    'log'          => '/dev/log local0',
+    'pidfile'      => '/var/run/haproxy.pid',
+    'maxconn'      => $haproxy_maxconn,
+    'user'         => 'haproxy',
+    'group'        => 'haproxy',
+    'daemon'       => '',
+    'stats'        => 'socket /var/lib/haproxy/stats',
+    'tune.bufsize' => '32768',
   }
 
   class { 'haproxy::base':
