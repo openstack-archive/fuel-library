@@ -19,6 +19,7 @@
 # vcenter_password - vCenter user password
 # vcenter_host_ip - contents IP address of the vCenter host
 # vcenter_cluster - contents vCenter cluster name (multi-cluster is not supported yet)
+# vcenter_datastore_regex - the datastore_regex setting specifies the data stores to use with Compute
 # use_quantum - shows if neutron enabled
 
 class vmware (
@@ -27,6 +28,7 @@ class vmware (
   $vcenter_password = 'password',
   $vcenter_host_ip = '10.10.10.10',
   $vcenter_cluster = 'cluster',
+  $vcenter_datastore_regex = undef,
   $use_quantum = false,
   $ha_mode = false,
   $vnc_address = '0.0.0.0',
@@ -39,6 +41,7 @@ class vmware (
     vcenter_password => $vcenter_password,
     vcenter_host_ip => $vcenter_host_ip,
     vcenter_cluster => $vcenter_cluster,
+    datastore_regex => $vcenter_datastore_regex,
     use_quantum => $use_quantum,
     ha_mode => $ha_mode,
     vnc_address => $vnc_address,

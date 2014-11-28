@@ -33,6 +33,7 @@ class vmware::controller (
   $task_poll_interval = 5.0,
   $use_linked_clone = true,
   $wsdl_location = undef,
+  $datastore_regex = undef,
   $compute_driver = 'vmwareapi.VMwareVCDriver',
   $vnc_address = '0.0.0.0',
 )
