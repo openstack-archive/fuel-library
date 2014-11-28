@@ -20,10 +20,7 @@ class l23network::params {
       $lnx_vlan_tools     = 'vconfig'
       $lnx_bond_tools     = undef
       $lnx_ethernet_tools = 'ethtool'
-      $ovs_datapath_package_name = $need_datapath_module ? {
-        true    => 'kmod-openvswitch',
-        default => false
-      }
+      $ovs_datapath_package_name = 'kmod-openvswitch'
       $ovs_common_package_name   = 'openvswitch'
     }
     default: {
