@@ -83,3 +83,19 @@ file { "/etc/supervisord.d/current":
   ensure  => "/etc/supervisord.d/${::fuel_version['VERSION']['release']}",
 }
 
+# Free disk space monitoring
+file { '/usr/bin/fuel_notify.py':
+  source  => 'puppet:///modules/nailgun/fuel_notify.py',
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0755',
+}
+
+include monit
+
+file { "${::monit::params::included}/free-space.conf":
+  source  => 'puppet:///modules/nailgun/monit-free-space.conf',
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0644',
+}
