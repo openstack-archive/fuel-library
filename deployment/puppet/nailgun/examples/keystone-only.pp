@@ -61,6 +61,24 @@ case $production {
       roles  => ['admin'],
     }
 
+    # Monitord user
+    keystone_role { 'monitoring':
+      ensure => present,
+    }
+
+    keystone_user { $::fuel_settings['keystone']['monitord_user']:
+      ensure   => present,
+      password => $::fuel_settings['keystone']['monitord_password'],
+      enabled  => 'True',
+      email    => 'monitord@localhost',
+      tenant   => 'services',
+    }
+
+    keystone_user_role { 'monitord@services':
+      ensure => present,
+      roles  => ['monitoring'],
+    }
+
     # Keystone Endpoint
     class { 'keystone::endpoint':
       public_address   => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
