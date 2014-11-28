@@ -324,5 +324,4 @@ class openstack::nova::controller (
       ensure_package => $ensure_package
     }
   }
-
 }
