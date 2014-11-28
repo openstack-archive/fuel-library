@@ -9,10 +9,10 @@ class plugin_neutronnsx::install_ovs (
         source  => $packages_url,
         provider   => 'rdpkg',
       }
-      Package<| title=="openvswitch-datapath" |> {
-        name       => "openvswitch-datapath-dkms",
-        source  => $packages_url,
-        provider   => 'rdpkg',
+      package { 'openvswitch-nsx-datapath':
+        name => "openvswitch-datapath-dkms",
+        source => $packages_url,
+        provider => 'rdpkg',
       }
 
       package { 'dkms':
@@ -40,7 +40,7 @@ class plugin_neutronnsx::install_ovs (
         ensure => absent,
       }
 
-      Package['dkms'] -> Package['openvswitch-datapath']
+      Package['dkms'] -> Package['openvswitch-nsx-datapath']
 
       Package['openvswitch-common'] -> Package['openvswitch-nsx-switch'] ->
       Package['nicira-ovs-hypervisor-node'] -> File['nsx-alias.sh_profile_hack'] ~>
