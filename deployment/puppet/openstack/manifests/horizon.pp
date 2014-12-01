@@ -29,7 +29,7 @@ class openstack::horizon (
   $horizon_app_links     = undef,
   $keystone_host         = '127.0.0.1',
   $keystone_scheme       = 'http',
-  $keystone_default_role = 'Member',
+  $keystone_default_role = '_member_',
   $verbose               = false,
   $debug                 = false,
   $api_result_limit      = 1000,
