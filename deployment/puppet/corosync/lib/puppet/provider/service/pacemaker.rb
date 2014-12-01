@@ -8,6 +8,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   commands :uname => 'uname'
   commands :pcs => 'pcs'
   commands :crm_resource => 'crm_resource'
+  commands :crm_attribute => 'crm_attribute'
   commands :cibadmin => 'cibadmin'
 
   # hostname of the current node
