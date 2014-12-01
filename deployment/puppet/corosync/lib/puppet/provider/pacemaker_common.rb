@@ -599,8 +599,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # @return [TrueClass,FalseClass]
   def is_online?
     begin
-      cibadmin '-Q'
-      true
+      crm_attribute '--type', 'crm_config', '--query', '--name', 'dc-version'
     rescue Puppet::ExecutionFailure
       false
     else
