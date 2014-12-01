@@ -244,7 +244,11 @@ TIME_ZONE = "UTC"
 # target installation.
 
 # Path to directory containing policy.json files
-#POLICY_FILES_PATH = os.path.join(ROOT_PATH, "conf")
+# POLICY_FILES_PATH = os.path.join(ROOT_PATH, "conf")
+<% if @osfamily == 'RedHat' %>
+POLICY_FILES_PATH = "/etc/openstack-dashboard/"
+<% end %>
+
 # Map of local copy of service policy files
 #POLICY_FILES = {
 #    'identity': 'keystone_policy.json',
