@@ -47,7 +47,7 @@ module Puppet
     newproperty(:rules, :array_matching=>:all) do
       desc "Specify rules for location"
       munge do |rule|
-        convert_to_sym(rule)
+        stringify rule
       end
     end
 
@@ -57,7 +57,7 @@ module Puppet
 
     autorequire(:cs_shadow) do
       rv = []
-      rv << @parameters[:cib].value if !@parameters[:cib].nil?
+      rv << @parameters[:cib].value if @parameters[:cib]
       rv
     end
 
@@ -72,20 +72,20 @@ module Puppet
   end
 end
 
-def convert_to_sym(hash)
-  if hash.is_a? Hash
-    hash.inject({}) do |memo,(key,value)|
-      value = convert_to_sym(value)
-      if value.is_a?(Array)
-        value.collect! do |arr_el|
-          convert_to_sym(arr_el)
-        end
-      end
-      memo[key.to_sym] = value
-      memo
+# convert data structure to strings
+def stringify(data)
+  if data.is_a? Hash
+    new_data = {}
+    data.each do |key, value|
+      new_data.store stringify(key), stringify(value)
+    end
+    data.clear
+    data.merge! new_data
+  elsif data.is_a? Array
+    data.map! do |element|
+      stringify element
     end
   else
-    hash
+    data.to_s
   end
 end
-
