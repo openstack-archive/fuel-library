@@ -8,9 +8,20 @@ class neutron::network::predefined_networks (
   Anchor<| title == 'neutron-plugin-ovs-done' |> -> Neutron_net <| |>
   Anchor<| title == 'neutron-plugin-ml2-done' |> -> Neutron_net <| |>
 
-  neutron_floatingip_pool{'services':
-    pool_size => get_floatingip_pool_size_for_admin($neutron_config)
+  $default_floating_net =
+  $neutron_config['predefined_networks']['net04_ext']
+
+  if $default_floating_net {
+    $default_floating_tenant_name=$default_floating_net['tenant']
+    if $default_floating_tenant_name {
+      neutron_floatingip_pool{$default_floating_tenant_name:
+        pool_size => get_floatingip_pool_size_for_admin($neutron_config)
+      }
+    }
   }
+
+
+
   Neutron_net<||> -> Neutron_floatingip_pool<||>
   Neutron_subnet<||> -> Neutron_floatingip_pool<||>
   Neutron_router<||> -> Neutron_floatingip_pool<||>
