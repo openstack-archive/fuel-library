@@ -121,7 +121,6 @@ define cluster::virtual_ip (
     }
     cs_location { "loc_ping_${vip_name}":
       primitive => $vip_name,
-      cib       => "ping_${vip_name}",
       rules     => [
         {
           'score'   => '-inf',

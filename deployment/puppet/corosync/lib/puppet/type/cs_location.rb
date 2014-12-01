@@ -32,7 +32,12 @@ module Puppet
 
     newproperty(:node_score) do
       desc "The score for the node"
-
+      def insync?(is)
+        require 'pp'
+        puts "IS: #{is.pretty_inspect}"
+        puts "SHOULD: #{should.pretty_inspect}"
+        false
+      end
       validate do |value|
         begin
           if  value !~ /^([+-]){0,1}(inf|INFINITY)$/
@@ -47,17 +52,29 @@ module Puppet
     newproperty(:rules, :array_matching=>:all) do
       desc "Specify rules for location"
       munge do |rule|
-        convert_to_sym(rule)
+        stringify rule
+      end
+      def insync?(is)
+        require 'pp'
+        puts "IS: #{is.pretty_inspect}"
+        puts "SHOULD: #{should.pretty_inspect}"
+        false
       end
     end
 
     newproperty(:node_name) do
       desc "The node for which to apply node_score"
+      def insync?(is)
+        require 'pp'
+        puts "IS: #{is.pretty_inspect}"
+        puts "SHOULD: #{should.pretty_inspect}"
+        false
+      end
     end
 
     autorequire(:cs_shadow) do
       rv = []
-      rv << @parameters[:cib].value if !@parameters[:cib].nil?
+      rv << @parameters[:cib].value if @parameters[:cib]
       rv
     end
 
@@ -72,20 +89,20 @@ module Puppet
   end
 end
 
-def convert_to_sym(hash)
-  if hash.is_a? Hash
-    hash.inject({}) do |memo,(key,value)|
-      value = convert_to_sym(value)
-      if value.is_a?(Array)
-        value.collect! do |arr_el|
-          convert_to_sym(arr_el)
-        end
-      end
-      memo[key.to_sym] = value
-      memo
+# convert data structure to strings
+def stringify(data)
+  if data.is_a? Hash
+    new_data = {}
+    data.each do |key, value|
+      new_data.store stringify(key), stringify(value)
+    end
+    data.clear
+    data.merge! new_data
+  elsif data.is_a? Array
+    data.map! do |element|
+      stringify element
     end
   else
-    hash
+    data.to_s
   end
 end
-

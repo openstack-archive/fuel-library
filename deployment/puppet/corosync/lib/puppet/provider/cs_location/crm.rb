@@ -1,5 +1,5 @@
-require 'pathname'
-require Pathname.new(__FILE__).dirname.dirname.expand_path + 'corosync'
+require File.join File.dirname(__FILE__), '../corosync'
+XML=File.join File.dirname(__FILE__), '1.xml'
 
 Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Corosync) do
   desc 'Specific provider for a rather specific type since I currently have no plan to
@@ -17,64 +17,69 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
   commands :crm_attribute => 'crm_attribute'
 
   def self.instances
-
     block_until_ready
-
     instances = []
-
-    #cmd = [ command(:crm), 'configure', 'show', 'xml' ]
     raw, status = dump_cib
     doc = REXML::Document.new(raw)
 
-    doc.root.elements['configuration'].elements['constraints'].each_element('rsc_location') do |e|
-      items = e.attributes
-      #
-      #      if ! e.elements['primitive'].nil?
-      #        e.each_element do |p|
-      #          primitives << p.attributes['id']
-      #        end
-      #      end
+    doc.root.elements['configuration'].elements['constraints'].each_element('rsc_location') do |location_element|
+      items = location_element.attributes
       rules = []
-      if ! items['node'].nil?
-        node_name = items['node'].to_s
+      node_name = nil
+      node_score = nil
+
+      if items['node']
+        # node score based rule
+        node_name  = items['node'].to_s
         node_score = items['score'].to_s
-      elsif ! e.elements['rule'].nil?
-        e.each_element('rule') do |r|
-          boolean_op = r.attributes['boolean-op'].to_s || "and"
-          score = r.attributes['score']
-          rule={:boolean => boolean_op, :score => score,
-            :expressions => [], :date_expressions => [] }
-          r.each_element('expression') do |expr|
-            expr_attrs=Hash.new
-            expr_id = expr.attributes['id']
-            expr.attributes.reject{|key,value| key=='id' }.each{|key,value| expr_attrs[key.to_sym] = value }
-            rule[:expressions] << expr_attrs
-          end
-          r.each_element('date_expression') do |date_expr|
-            date_expr_hash={}
-            if date_expr.attributes['operation'] == 'date_spec'
-              date_expr_hash[:date_spec] = date_expr.elements[1].attributes.reject{|key,value| key=='id' }
-            elsif date_expr.attributes['operation'] == 'in_range' and !date_expr.elements['duration'].nil?
-              date_expr_hash[:duration] = date_expr.elements[1].attributes.reject{|key,value| key=='id' }
+      elsif location_element.elements['rule']
+        # custom rule
+        location_element.each_element('rule') do |rule_element|
+          # node score
+          rule = {
+            'boolean' => rule_element.attributes['boolean-op'].to_s || 'and',
+            'score'   => rule_element.attributes['score'].to_s,
+          }
+          # expressions
+          rule_element.each_element('expression') do |expression_element|
+            #expr_id = expr.attributes['id']
+            expression_structure = {}
+            expression_element.attributes.each do |key, value|
+              next if key == 'id'
+              expression_structure[key.to_s] = value.to_s
             end
-            date_expr_hash.merge!({ :operation => date_expr.attributes['operation'].to_s,
-              :start=> date_expr.attributes['start'].to_s,
-              :end => date_expr.attributes['end'].to_s})
-            rule[:date_expressions] <<  convert_to_sym(date_expr_hash)
+            rule['expressions'] = [] unless rule['expressions']
+            rule['expressions'] << expression_structure
           end
+          # date expressions
+          rule_element.each_element('date_expression') do |date_expression_element|
+            date_expression_structure = {
+              'operation' => date_expression_element.attributes['operation'].to_s,
+              'start'     => date_expression_element.attributes['start'].to_s,
+              'end'       => date_expression_element.attributes['end'].to_s,
+            }
+            if date_expression_element.attributes['operation'] == 'date_spec'
+              date_expression_structure['date_spec'] = date_expression_element.elements[1].attributes.reject { |key, value| key == 'id' }
+            elsif date_expression_element.attributes['operation'] == 'in_range' and date_expression_element.elements['duration']
+              date_expression_structure['duration'] = date_expression_element.elements[1].attributes.reject { |key, value| key == 'id' }
+            end
+            rule['date_expressions'] = [] unless rule['date_expressions']
+            rule['date_expressions'] << date_expression_structure
+          end
+
           rules << rule
         end
 
       end
+
       location_instance = {
         :name       => items['id'],
         :ensure     => :present,
-        :primitive => items['rsc'],
-        :node_score => node_score,
-        :node_name => node_name,
-        :rules => rules,
-        :provider   => self.name
+        :primitive  => items['rsc'],
       }
+      location_instance[:rules] = rules if rules.any?
+      location_instance[:node_score] = node_score if node_score
+      location_instance[:node_name] = node_name if node_name
       instances << new(location_instance)
     end
     instances
@@ -148,81 +153,70 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
   def flush
     unless @property_hash.empty?
       self.class.block_until_ready
-      updated = "location "
+      updated = 'location '
       updated << "#{@property_hash[:name]} #{@property_hash[:primitive]} "
-      if !@property_hash[:node_name].nil?
+      if @property_hash[:node_name]
+        # node score rule
+        debug "Rule for '#{@resource}': node: #{@property_hash[:node_name]} score: #{@property_hash[:node_score]}"
         updated << "#{@property_hash[:node_score]}: "
         updated << "#{@property_hash[:node_name]}"
-      elsif !@property_hash[:rules].nil?
-        debug("Evaluating #{@property_hash.inspect}")
+      elsif @property_hash[:rules]
+        # custom rule
+        debug "Rule for '#{@resource}': #{@property_hash[:rules].inspect}"
         @property_hash[:rules].each do |rule_hash|
-          updated << "rule "
-          #updated << "$id-ref = #{rule_hash[:id_ref]}"
-          updated << "$role = #{rule_hash[:role]} " if !rule_hash[:role].nil?
-          updated << "#{rule_hash[:score]}: "
+          updated << 'rule '
+          updated << "$role = #{rule_hash['role']} " if rule_hash['role']
+          updated << "#{rule_hash['score']}: "
 
-          if !rule_hash[:expressions].nil?
-            rule_hash[:expressions].each do |expr|
-              updated << "#{expr[:attribute]} "
-              updated << "#{expr[:type]}:" if !expr[:type].nil?
-              updated << "#{expr[:operation]} "
-              updated << "#{expr[:value]} " if !expr[:value].nil?
+          if rule_hash['expressions']
+            rule_hash['expressions'].each do |expr|
+              updated << "#{expr['attribute']} " if expr['attribute']
+              updated << "#{expr['type']}:" if expr['type']
+              updated << "#{expr['operation']} " if expr['operation']
+              updated << "#{expr['value']} " if expr['value']
             end
           end
-          if !rule_hash[:date_expressions].nil?
-            rule_hash[:date_expressions].each do |date_expr|
-              updated << "date "
-              if !date_expr[:date_spec].nil?
-                updated << "date_spec "
-                date_expr[:date_spec].each{|key,value| updated << "#{key}=#{value} " }
+
+          if rule_hash['date_expressions']
+            rule_hash['date_expressions'].each do |date_expr|
+              updated << 'date '
+              if date_expr['date_spec']
+                updated << 'date_spec '
+                date_expr['date_spec'].each{|key,value| updated << "#{key}=#{value} " }
               else
-                updated << "#{date_expr[:operation]} "
-                if date_expr[:operation] == 'in_range'
-                  updated << "start=#{date_expr[:start]} "
-                  if date_expr[:duration].nil?
-                    updated << "end=#{date_expr[:end]} "
+                updated << "#{date_expr['operation']} "
+                if date_expr['operation'] == 'in_range'
+                  updated << "start=#{date_expr['start']} "
+                  if date_expr['duration'].nil?
+                    updated << "end=#{date_expr['end']} "
                   else
-                    date_expr[:duration].each{|key,value| updated << "#{key}=#{value} " }
+                    date_expr['duration'].each do |key,value|
+                      updated << "#{key}=#{value} "
+                    end
                   end
-                elsif date_expr[:operation] == 'gt'
-                  updated << "#{date_expr[:start]} "
+                elsif date_expr['operation'] == 'gt'
+                  updated << "#{date_expr['start']} "
                 elsif date_expr[:operation] == 'lt'
-                  updated << "#{date_expr[:end]} "
+                  updated << "#{date_expr['end']} "
                 end
               end
             end
           end
+
           rule_number = 0
-          rule_number += rule_hash[:expressions].size if !rule_hash[:expressions].nil?
-          rule_number += rule_hash[:date_expressions].size if !rule_hash[:date_expressions].nil?
-          updated << "#{rule_hash[:boolean].to_s} " if rule_number > 1
+          rule_number += rule_hash['expressions'].size if rule_hash['expressions']
+          rule_number += rule_hash['date_expressions'].size if rule_hash['date_expressions']
+          updated << "#{rule_hash['boolean'].to_s} " if rule_number > 1
         end
       end
 
-      debug("creating location with command\n #{updated}\n")
+      debug "Creating location with command:\n #{updated}\n"
 
-      Tempfile.open('puppet_crm_update') do |tmpfile|
-        tmpfile.write(updated.rstrip)
-        tmpfile.flush
-        apply_changes(@resource[:name],tmpfile,'location')
-      end
+      #Tempfile.open('puppet_crm_update') do |tmpfile|
+      #  tmpfile.write(updated.rstrip)
+      #  tmpfile.flush
+      #  apply_changes(@resource[:name],tmpfile,'location')
+      #end
     end
-  end
-end
-
-def convert_to_sym(hash)
-  if hash.is_a? Hash
-    hash.inject({}) do |memo,(key,value)|
-      value = convert_to_sym(value)
-      if value.is_a?(Array)
-        value.collect! do |arr_el|
-          convert_to_sym(arr_el)
-        end
-      end
-      memo[key.to_sym] = value
-      memo
-    end
-  else
-    hash
   end
 end
