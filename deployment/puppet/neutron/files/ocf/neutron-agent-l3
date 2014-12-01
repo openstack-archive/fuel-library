@@ -46,7 +46,7 @@ OCF_RESKEY_username_default="neutron"
 OCF_RESKEY_password_default="neutron_pass"
 OCF_RESKEY_tenant_default="services"
 OCF_RESKEY_external_bridge_default="br-ex"
-OCF_RESKEY_rescheduling_tries_default=5
+OCF_RESKEY_rescheduling_tries_default=10
 OCF_RESKEY_rescheduling_interval_default=33
 OCF_RESKEY_debug_default=false
 
