@@ -49,6 +49,10 @@ module Puppet
       munge do |rule|
         convert_to_sym(rule)
       end
+      def insync?(is)
+        #TODO fix idenpotency of this property
+        true
+      end
     end
 
     newproperty(:node_name) do
