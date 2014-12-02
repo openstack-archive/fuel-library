@@ -8,10 +8,20 @@ class zabbix::monitoring::memcached_mon {
       template => 'Template App Memcache',
       api => $zabbix::params::api_hash,
     }
+    $nodes_hash = hiera('nodes')
+    $node = filter_nodes($nodes_hash,'name',$::hostname)
+    $internal_address = $node[0]['internal_address']
+
+    file { '/etc/zabbix/scripts/check_memcached.sh':
+      mode  => '0755',
+      ensure    => present,
+      content   => template('zabbix/check_memcached.sh.erb'),
+    }
+
     zabbix::agent::userparameter {
       'memcache':
         key     => 'memcache[*]',
-        command => 'echo -e "stats\nquit" | nc 127.0.0.1 11211 | grep "STAT $1 " | awk \'{print $$3}\''
+        command => '/etc/zabbix/scripts/check_memcached.sh $1',
     }
   }
 }
