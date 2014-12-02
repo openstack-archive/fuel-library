@@ -431,7 +431,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template App OpenStack HA RabbitMQ:proc.num[,rabbitmq,,bin/epmd].last(0)}=0</expression>
+            <expression>{Template App OpenStack HA RabbitMQ:proc.num[,,,bin/epmd].last(0)}=0</expression>
             <name>RabbitMQ Server process is not running on {HOST.NAME}</name>
             <url/>
             <status>0</status>
