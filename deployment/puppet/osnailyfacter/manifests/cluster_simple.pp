@@ -473,6 +473,7 @@ class osnailyfacter::cluster_simple {
           vcenter_host_ip         => $vcenter_hash['host_ip'],
           vcenter_cluster         => $vcenter_hash['cluster'],
           vcenter_datastore_regex => $vcenter_hash['datastore_regex'],
+          vlan_interface          => $vcenter_hash['vlan_interface'],
           vnc_address             => $controller_node_public,
           use_quantum             => $::use_neutron,
         }

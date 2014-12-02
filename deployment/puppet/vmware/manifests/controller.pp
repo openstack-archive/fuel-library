@@ -22,6 +22,7 @@ class vmware::controller (
   $vcenter_password = 'password',
   $vcenter_host_ip = '10.10.10.10',
   $vcenter_cluster = 'cluster',
+  $vlan_interface = 'vmnic0',
   $use_quantum = false,
   $ensure_package = 'present',
   $ha_mode = false,
