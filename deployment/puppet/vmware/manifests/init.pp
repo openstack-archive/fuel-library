@@ -20,6 +20,7 @@
 # vcenter_host_ip - contents IP address of the vCenter host
 # vcenter_cluster - contents vCenter cluster name (multi-cluster is not supported yet)
 # vcenter_datastore_regex - the datastore_regex setting specifies the data stores to use with Compute
+# vlan_interface - interface which is used on ESXi hosts when nova-network uses VlanManager
 # use_quantum - shows if neutron enabled
 
 class vmware (
@@ -29,6 +30,7 @@ class vmware (
   $vcenter_host_ip = '10.10.10.10',
   $vcenter_cluster = 'cluster',
   $vcenter_datastore_regex = undef,
+  $vlan_interface = undef,
   $use_quantum = false,
   $ha_mode = false,
   $vnc_address = '0.0.0.0',
@@ -37,14 +39,15 @@ class vmware (
 { # begin of class
 
   class { 'vmware::controller':
-    vcenter_user => $vcenter_user,
+    vcenter_user     => $vcenter_user,
     vcenter_password => $vcenter_password,
-    vcenter_host_ip => $vcenter_host_ip,
-    vcenter_cluster => $vcenter_cluster,
-    datastore_regex => $vcenter_datastore_regex,
-    use_quantum => $use_quantum,
-    ha_mode => $ha_mode,
-    vnc_address => $vnc_address,
+    vcenter_host_ip  => $vcenter_host_ip,
+    vcenter_cluster  => $vcenter_cluster,
+    datastore_regex  => $vcenter_datastore_regex,
+    vlan_interface   => $vlan_interface,
+    use_quantum      => $use_quantum,
+    ha_mode          => $ha_mode,
+    vnc_address      => $vnc_address,
   }
 
 } # end of class
