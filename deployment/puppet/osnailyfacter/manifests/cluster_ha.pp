@@ -136,6 +136,8 @@ class osnailyfacter::cluster_ha {
     },
   }
 
+  $run_ping_checker = $::fuel_settings['run_ping_checker'] ? { 'false' => false, default =>true }
+
   if $::public_int {
     $vips[public_old] = {
       namespace            => 'haproxy',
@@ -149,7 +151,7 @@ class osnailyfacter::cluster_ha {
       iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
       iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
       iptables_comment     => "masquerade-for-public-net",
-      tie_with_ping        => true,
+      tie_with_ping        => $run_ping_checker,
       ping_host_list       => $::use_quantum ? {
         default => $::fuel_settings['network_data'][$::public_int]['gateway'],
         true    => $::fuel_settings['network_scheme']['endpoints']['br-ex']['gateway'],
