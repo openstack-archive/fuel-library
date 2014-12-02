@@ -56,11 +56,13 @@ class ceph::conf {
     }
 
     exec {'ceph-deploy gatherkeys remote':
-      command => "ceph-deploy gatherkeys ${::ceph::primary_mon}",
-      creates => ['/root/ceph.bootstrap-mds.keyring',
-                  '/root/ceph.bootstrap-osd.keyring',
-                  '/root/ceph.client.admin.keyring',
-                  '/root/ceph.mon.keyring',],
+      command   => "ceph-deploy gatherkeys ${::ceph::primary_mon}",
+      creates   => ['/root/ceph.bootstrap-mds.keyring',
+                    '/root/ceph.bootstrap-osd.keyring',
+                    '/root/ceph.client.admin.keyring',
+                    '/root/ceph.mon.keyring',],
+      tries     => 5,
+      try_sleep => 2,
     }
 
     file {'/etc/ceph/ceph.client.admin.keyring':
