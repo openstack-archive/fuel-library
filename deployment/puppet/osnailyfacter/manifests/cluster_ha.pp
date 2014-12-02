@@ -697,6 +697,8 @@ class osnailyfacter::cluster_ha {
           rabbit_ha_queues           => $rabbit_ha_queues,
         }
         $scheduler_default_filters = [ 'DifferentHostFilter' ]
+
+        include sahara_ha::api
       } else {
         $scheduler_default_filters = []
       }
