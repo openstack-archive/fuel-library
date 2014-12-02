@@ -25,10 +25,14 @@ class mellanox_openstack::ofed_recompile {
       logoutput => true,
       notify    => Service['openibd'],
     }
+    service { 'openibd' :
+      ensure => "running",
+      notify => Exec['restart_ovs_for_openibd'],
+    }
+    exec { 'restart_ovs_for_openibd' :
+      command     => "service openvswitch-switch restart",
+      path        => ['/usr/bin','/usr/sbin','/bin','/sbin','/usr/local/bin'],
+      refreshonly => true,
+    }
   }
-
-  service { 'openibd' :
-    ensure => "running",
-  }
-
 }
