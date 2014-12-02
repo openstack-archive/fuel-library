@@ -76,6 +76,7 @@ class openstack::controller_ha (
    $syslog_log_facility_nova       = 'LOG_LOCAL6',
    $syslog_log_facility_keystone   = 'LOG_LOCAL7',
    $syslog_log_facility_ceilometer = 'LOG_LOCAL0',
+   $syslog_log_facility_sahara     = 'LOG_LOCAL0',
    $cinder_rate_limits             = undef, $nova_rate_limits = undef,
    $cinder_volume_group            = 'cinder-volumes',
    $cinder_user_password           = 'cinder_user_pass',
@@ -90,6 +91,8 @@ class openstack::controller_ha (
    $swift_rados_backend            = false,
    $ceilometer_db_host             = '127.0.0.1',
    $sahara                         = false,
+   $sahara_db_password             = 'sahara-pass',
+   $sahara_user_password           = 'sahara-pass',
    $murano                         = false,
    $rabbit_node_ip_address         = $internal_address,
    $horizon_use_ssl                = false,
@@ -212,6 +215,10 @@ class openstack::controller_ha (
       ceilometer_db_type             => $ceilometer_db_type,
       ceilometer_db_host             => $ceilometer_db_host,
       swift_rados_backend            => $swift_rados_backend,
+      #
+      sahara                         => $sahara,
+      sahara_db_password             => $sahara_db_password,
+      sahara_user_password           => $sahara_user_password,
       #
       # turn on SWIFT_ENABLED option for Horizon dashboard
       swift                          => $glance_backend ? { 'swift'    => true, default => false },

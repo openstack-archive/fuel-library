@@ -265,6 +265,9 @@ class osnailyfacter::cluster_simple {
         ceilometer_db_type             => 'mongodb',
         ceilometer_db_host             => mongo_hosts($nodes_hash),
         swift_rados_backend            => $storage_hash['objects_ceph'],
+        sahara                         => $sahara_hash['enabled'],
+        sahara_db_password             => $sahara_hash['db_password'],
+        sahara_user_password           => $sahara_hash['user_password'],
         queue_provider                 => $::queue_provider,
         amqp_hosts                     => $amqp_hosts,
         amqp_user                      => $rabbit_hash['user'],
@@ -294,6 +297,7 @@ class osnailyfacter::cluster_simple {
         syslog_log_facility_nova       => $::syslog_log_facility_nova,
         syslog_log_facility_keystone   => $::syslog_log_facility_keystone,
         syslog_log_facility_ceilometer => $::syslog_log_facility_ceilometer,
+        syslog_log_facility_sahara     => $::syslog_log_facility_sahara,
         cinder_rate_limits             => $::cinder_rate_limits,
         horizon_use_ssl                => $::horizon_use_ssl,
         nameservers                    => $::dns_nameservers,
@@ -344,31 +348,6 @@ class osnailyfacter::cluster_simple {
       #ADDONS START
 
       if $sahara_hash['enabled'] {
-        class { 'sahara' :
-          sahara_api_host            => $controller_node_public,
-
-          sahara_db_password         => $sahara_hash['db_password'],
-          sahara_db_host             => $controller_node_address,
-
-          sahara_keystone_host       => $controller_node_address,
-          sahara_keystone_user       => 'sahara',
-          sahara_keystone_password   => $sahara_hash['user_password'],
-          sahara_keystone_tenant     => 'services',
-          sahara_auth_uri            => "http://${controller_node_address}:5000/v2.0/",
-          sahara_identity_uri        => "http://${controller_node_address}:35357/",
-          use_neutron                => $::use_neutron,
-          syslog_log_facility_sahara => $syslog_log_facility_sahara,
-          debug                      => $debug,
-          verbose                    => $verbose,
-          use_syslog                 => $use_syslog,
-          rpc_backend                => 'rabbit',
-          enable_notifications       => $ceilometer_hash['enabled'],
-          amqp_password              => $rabbit_hash['password'],
-          amqp_user                  => $rabbit_hash['user'],
-          amqp_port                  => $rabbitmq_bind_port,
-          amqp_hosts                 => $amqp_hosts,
-          rabbit_ha_queues           => $rabbit_ha_queues,
-        }
         $scheduler_default_filters = [ 'DifferentHostFilter' ]
       } else {
         $scheduler_default_filters = []
