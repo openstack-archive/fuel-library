@@ -406,7 +406,9 @@ class osnailyfacter::cluster_ha {
       swift_rados_backend            => $::osnailyfacter::cluster_ha::storage_hash['objects_ceph'],
       galera_nodes                   => $::osnailyfacter::cluster_ha::controller_nodes,
       novnc_address                  => $::internal_address,
-      sahara                         => $::osnailyfacter::cluster_ha::sahara_hash[enabled],
+      sahara                         => $::osnailyfacter::cluster_ha::sahara_hash['enabled'],
+      sahara_db_password             => $::osnailyfacter::cluster_ha::sahara_hash['db_password'],
+      sahara_user_password           => $::osnailyfacter::cluster_ha::sahara_hash['user_password'],
       murano                         => $::osnailyfacter::cluster_ha::murano_hash['enabled'],
       custom_mysql_setup_class       => $::custom_mysql_setup_class,
       mysql_skip_name_resolve        => true,
@@ -417,6 +419,7 @@ class osnailyfacter::cluster_ha {
       syslog_log_facility_nova       => $::syslog_log_facility_nova,
       syslog_log_facility_keystone   => $::syslog_log_facility_keystone,
       syslog_log_facility_ceilometer => $::syslog_log_facility_ceilometer,
+      syslog_log_facility_sahara     => $::syslog_log_facility_sahara,
       nova_rate_limits               => $::nova_rate_limits,
       cinder_rate_limits             => $::cinder_rate_limits,
       horizon_use_ssl                => $::fuel_settings['horizon_use_ssl'],
@@ -629,31 +632,6 @@ class osnailyfacter::cluster_ha {
       #ADDONS START
 
       if $sahara_hash['enabled'] {
-        class { 'sahara' :
-          sahara_api_host            => $::fuel_settings['public_vip'],
-
-          sahara_db_password         => $sahara_hash['db_password'],
-          sahara_db_host             => $::fuel_settings['management_vip'],
-
-          sahara_keystone_host       => $::fuel_settings['management_vip'],
-          sahara_keystone_user       => 'sahara',
-          sahara_keystone_password   => $sahara_hash['user_password'],
-          sahara_keystone_tenant     => 'services',
-          sahara_auth_uri            => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
-          sahara_identity_uri        => "http://${::fuel_settings['management_vip']}:35357/",
-          use_neutron                => $::use_neutron,
-          syslog_log_facility_sahara => $syslog_log_facility_sahara,
-          debug                      => $::debug,
-          verbose                    => $::verbose,
-          use_syslog                 => $::use_syslog,
-          enable_notifications       => $ceilometer_hash['enabled'],
-          rpc_backend                => 'rabbit',
-          amqp_password              => $rabbit_hash['password'],
-          amqp_user                  => $rabbit_hash['user'],
-          amqp_port                  => $rabbitmq_bind_port,
-          amqp_hosts                 => $amqp_hosts,
-          rabbit_ha_queues           => $rabbit_ha_queues,
-        }
         $scheduler_default_filters = [ 'DifferentHostFilter' ]
       } else {
         $scheduler_default_filters = []

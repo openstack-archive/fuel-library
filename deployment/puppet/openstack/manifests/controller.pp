@@ -182,6 +182,11 @@ class openstack::controller (
   $neutron_ha_agents              = false,
   $base_mac                       = 'fa:16:3e:00:00:00',
 
+  # Required Sahara
+  $sahara                         = false,
+  $sahara_db_password             = 'sahara-pass',
+  $sahara_user_password           = 'sahara-pass',
+
   $segment_range                  = '1:4094',
   $tenant_network_type            = 'gre',
   $enabled                        = true,
@@ -198,6 +203,7 @@ class openstack::controller (
   $nv_physical_volume             = undef,
   $use_syslog                     = false,
   $syslog_log_facility_ceilometer = 'LOG_LOCAL0',
+  $syslog_log_facility_sahara     = 'LOG_LOCAL0',
   $syslog_log_facility_glance     = 'LOG_LOCAL2',
   $syslog_log_facility_cinder     = 'LOG_LOCAL3',
   $syslog_log_facility_neutron    = 'LOG_LOCAL4',
@@ -526,6 +532,33 @@ class openstack::controller (
       on_controller        => true,
       use_neutron          => $neutron,
       swift                => $swift,
+    }
+  }
+
+  ######## Sahara ##########
+
+  if ($sahara) {
+    class {'openstack::sahara':
+      sahara_api_host            => $public_address,
+      sahara_db_password         => $sahara_db_password,
+      sahara_db_host             => $internal_address,
+      sahara_keystone_host       => $internal_address,
+      sahara_keystone_user       => 'sahara',
+      sahara_keystone_password   => $sahara_user_password,
+      sahara_keystone_tenant     => 'services',
+      use_neutron                => $network_provider ? {'neutron' => true, default => false},
+      syslog_log_facility_sahara => $syslog_log_facility_sahara,
+      debug                      => $debug,
+      verbose                    => $verbose,
+      use_syslog                 => $use_syslog,
+      rpc_backend                => 'rabbit',
+      enable_notifications       => $ceilometer,
+      amqp_password              => $amqp_password,
+      amqp_user                  => $amqp_user,
+      amqp_port                  => $rabbitmq_bind_port,
+      amqp_hosts                 => $amqp_hosts,
+      rabbit_ha_queues           => $rabbit_ha_queues,
+      ha_mode                    => $ha_mode,
     }
   }
 
