@@ -306,6 +306,16 @@ class openstack::compute (
     }
   }
 
+  # Enable the file injection feature
+  if !$::fuel_settings['storage']['images_ceph'] {
+    if $::osfamily == 'RedHat' {
+      nova_config { 'libvirt/inject_partition': value => '-1'; }
+      }
+    else {
+      nova_config { 'libvirt/inject_partition': value => '1'; }
+    }
+  }
+
   # From legacy libvirt.pp
   if !($vncproxy_host) {
     warning("VNC is enabled and \$vncproxy_host must be specified nova::compute assumes that it can\
