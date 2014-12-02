@@ -567,8 +567,8 @@ class osnailyfacter::cluster_ha {
         Openstack::Ha::Haproxy_service <| |> -> Exec<| title=='wait-for-haproxy-keystone-admin-backend' |>
         Openstack::Ha::Haproxy_service <| |> -> Exec<| title=='wait-for-haproxy-keystone-backend' |>
 
-        Class['keystone', 'openstack::ha::keystone']-> Exec<| title=='wait-for-haproxy-keystone-backend' |>
-        Class['keystone', 'openstack::ha::keystone']-> Exec<| title=='wait-for-haproxy-keystone-admin-backend' |>
+        Class['keystone', 'openstack::ha::keystone'] -> Exec<| title=='wait-for-haproxy-keystone-backend' |>
+        Class['keystone', 'openstack::ha::keystone'] -> Exec<| title=='wait-for-haproxy-keystone-admin-backend' |>
 
         exec { 'wait-for-haproxy-nova-backend':
           command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^nova-api-2,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
@@ -578,6 +578,9 @@ class osnailyfacter::cluster_ha {
           tries     => 60,
           require   => Package['socat'],
         }
+
+        Openstack::Ha::Haproxy_service <| |> -> Exec<| title=='wait-for-haproxy-nova-backend' |>
+        Class['nova::api', 'openstack::ha::nova', 'nova::keystone::auth'] -> Exec<| title=='wait-for-haproxy-nova-backend' |>
 
         exec {'create-m1.micro-flavor':
           command => "bash -c \"source /root/openrc; nova flavor-create --is-public true m1.micro auto 64 0 1\"",
@@ -606,20 +609,14 @@ class osnailyfacter::cluster_ha {
             authtenant_name => $access_hash[tenant],
             api_retries     => 10,
           }
-          Class['nova::api', 'openstack::ha::nova', 'nova::keystone::auth'] ->
           Exec<| title=='wait-for-haproxy-nova-backend' |> ->
           Nova_floating_range <| |>
 
-          Class['keystone', 'openstack::ha::keystone']->
           Exec<| title=='wait-for-haproxy-keystone-backend' |> ->
           Nova_floating_range <| |>
 
-          Class['keystone', 'openstack::ha::keystone']->
           Exec<| title=='wait-for-haproxy-keystone-admin-backend' |> ->
           Nova_floating_range <| |>
-
-          Openstack::Ha::Haproxy_service <| |> ->
-          Exec<| title=='wait-for-haproxy-nova-backend' |>
         }
       }
       if ($::use_ceph){
