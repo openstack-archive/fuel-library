@@ -3,6 +3,7 @@
     "plugin_name": "cdh",
     "hadoop_version": "5",
     "flavor_id": "4",
+    "description": "The master node contains all management Hadoop components like NameNode, HistoryServer and ResourceManager. It also includes Oozie server required to run Hadoop jobs.",
     "node_processes": [
         "NAMENODE",
         "SECONDARYNAMENODE",

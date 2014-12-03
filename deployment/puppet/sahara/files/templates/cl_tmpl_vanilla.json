@@ -3,6 +3,7 @@
     "plugin_name": "vanilla",
     "hadoop_version": "2.4.1",
     NEUTRON_MANAGEMENT_NETWORK
+    "description": "The upstream Apache Hadoop 2.4.1 cluster with master and 3 worker nodes. The master node contains all management Hadoop processes. Workers contain Hadoop processes for data storage and processing.",
     "node_groups": [
         {
             "name": "master",

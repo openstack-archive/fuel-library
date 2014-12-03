@@ -3,6 +3,7 @@
     "plugin_name": "cdh",
     "hadoop_version": "5",
     "flavor_id": "4",
+    "description": "The manager node is dedicated to Cloudera Manager management console that provides UI to manage Hadoop cluster.",
     "node_processes": [
         "MANAGER"
     ],

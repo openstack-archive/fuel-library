@@ -3,6 +3,7 @@
     "plugin_name": "cdh",
     "hadoop_version": "5",
     "flavor_id": "3",
+    "description": "The worker node contains components that can be scaled by running more nodes. Each node includes everything required for data storage and processing.",
     "node_processes": [
         "DATANODE",
         "NODEMANAGER"
