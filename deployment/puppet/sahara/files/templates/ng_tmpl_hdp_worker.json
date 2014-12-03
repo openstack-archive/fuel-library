@@ -3,6 +3,7 @@
     "plugin_name": "hdp",
     "hadoop_version": "2.0.6",
     "flavor_id": "3",
+    "description": "The worker node contains components that can be scaled by running more nodes. Each node includes everything required for data storage and processing.",
     "node_processes": [
         "DATANODE",
         "HDFS_CLIENT",
