@@ -22,8 +22,8 @@ class ceph (
       $osd_pool_default_min_size = '1',
       $osd_pool_default_pg_num   = $::fuel_settings['storage']['pg_num'],
       $osd_pool_default_pgp_num  = $::fuel_settings['storage']['pg_num'],
-      $cluster_network           = $::fuel_settings['storage_network_range'],
-      $public_network            = $::fuel_settings['management_network_range'],
+      $cluster_network           = undef,
+      $public_network            = undef,
 
       # RadosGW settings
       $rgw_host                         = $::hostname,

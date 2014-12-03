@@ -66,8 +66,8 @@ if $::fuel_settings['nodes'] {
   }
 
 
+  prepare_network_config($::fuel_settings['network_scheme'])
   if $use_neutron {
-    prepare_network_config($::fuel_settings['network_scheme'])
     #
     $internal_int     = get_network_role_property('management', 'interface')
     $internal_address = get_network_role_property('management', 'ipaddr')
