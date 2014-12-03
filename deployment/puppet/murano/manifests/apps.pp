@@ -7,11 +7,19 @@ class murano::apps (
     }
 
     if $primary_controller {
-        murano::application_package { 'io.murano.apps.PostgreSql':
+        murano::application_package { 'io.murano.databases.PostgreSql':
             package_category => 'Databases',
         }
 
-        murano::application_package { 'io.murano.apps.apache.Apache':
+        murano::application_package { 'io.murano.databases.MySql':
+            package_category => 'Databases',
+        }
+
+        murano::application_package { 'io.murano.databases.SqlDatabase':
+            package_category => 'Databases',
+        }
+
+        murano::application_package { 'io.murano.apps.apache.ApacheHttpServer':
             package_category => 'Web',
         }
 
@@ -19,12 +27,16 @@ class murano::apps (
             package_category => 'Web',
         }
 
-        murano::application_package { 'io.murano.apps.linux.Telnet':
+        murano::application_package { 'io.murano.apps.WordPress':
             package_category => 'Application Servers',
         }
 
-        murano::application_package { 'io.murano.windows.ActiveDirectory':
-            package_category => 'Microsoft Services',
+        murano::application_package { 'io.murano.apps.ZabbixAgent':
+            package_category => 'Application Servers',
+        }
+
+        murano::application_package { 'io.murano.apps.ZabbixServer':
+            package_category => 'Application Servers',
         }
 
         Package<| title == 'murano-apps'|> -> Murano::Application_package<| mandatory == false |>
