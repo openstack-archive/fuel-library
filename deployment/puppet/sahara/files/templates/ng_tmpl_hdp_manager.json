@@ -3,6 +3,7 @@
     "plugin_name": "hdp",
     "hadoop_version": "2.0.6",
     "flavor_id": "4",
+    "description": "The manager node is dedicated to Ambari 1.4.1 management console that provides UI to manage hadoop cluster. The node also includes third party monitoring systems: Ganglia 3.5.0 and Nagios 3.5.0.",
     "node_processes": [
         "AMBARI_SERVER",
         "GANGLIA_SERVER",

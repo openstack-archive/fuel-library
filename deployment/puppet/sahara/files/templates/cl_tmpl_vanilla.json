@@ -2,6 +2,7 @@
     "name": "vanilla-2",
     "plugin_name": "vanilla",
     "hadoop_version": "2.4.1",
+    "description": "The upstream Apache Hadoop 2.4.1 cluster with master and 3 worker nodes. The master node contains all management hadoop processes. Workers contain hadoop processes for data storage and processing.",
     "node_groups": [
         {
             "name": "master",

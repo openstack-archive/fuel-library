@@ -2,6 +2,7 @@
     "name": "hdp-2",
     "plugin_name": "hdp",
     "hadoop_version": "2.0.6",
+    "description": "Hortonworks Data Platform (HDP) 2.0.6 cluster with manager, master and 3 worker nodes. The manager node is dedicated to Ambari 1.4.1 management console. The master node contains all management hadoop processes. Workers contain hadoop processes for data storage and processing.",
     "node_groups": [
         {
             "name": "manager",

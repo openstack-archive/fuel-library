@@ -2,6 +2,7 @@
     "name": "cloudera",
     "plugin_name": "cdh",
     "hadoop_version": "5",
+    "description": "The Cloudera distribution of Apache Hadoop (CDH) 5.2.0 cluster with manager, master and 3 worker nodes. The manager node is dedicated to Cloudera Manager management console. The master node contains all management hadoop processes. Workers contain hadoop processes for data storage and processing.",
     "node_groups": [
         {
             "name": "manager",

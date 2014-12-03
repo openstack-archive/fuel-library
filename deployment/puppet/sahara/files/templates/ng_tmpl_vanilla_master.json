@@ -3,6 +3,7 @@
     "plugin_name": "vanilla",
     "hadoop_version": "2.4.1",
     "flavor_id": "4",
+    "description": "The master node contains all management hadoop components like name node, history server and resource manager. It also includes Oozie server required to run Hadoop jobs.",
     "node_processes": [
         "namenode",
         "resourcemanager",
