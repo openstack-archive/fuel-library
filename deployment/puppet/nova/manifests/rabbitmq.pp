@@ -136,9 +136,8 @@ class nova::rabbitmq(
             #'debug'         => true,
           },
           metadata                 => {
-             'migration-threshold' => 'INFINITY',
-             'failure-timeout'     => '60s'
-
+            'migration-threshold' => 'INFINITY',
+            'failure-timeout'     => '60s'
           },
           complex_type => 'master',
           ms_metadata => {
