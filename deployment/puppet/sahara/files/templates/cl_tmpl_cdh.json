@@ -2,6 +2,7 @@
     "name": "cloudera",
     "plugin_name": "cdh",
     "hadoop_version": "5",
+    NEUTRON_MANAGEMENT_NETWORK
     "node_groups": [
         {
             "name": "manager",
@@ -18,6 +19,5 @@
             "node_group_template_id": "WORKER_NG_TEMPLATE",
             "count": 3
         }
-    ],
-    "neutron_management_network": "PRIVATE_NETWORK"
+    ]
 }
