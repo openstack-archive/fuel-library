@@ -68,9 +68,9 @@ class cinder::backup (
   }
 
   service { 'cinder-backup':
-    ensure    => $ensure,
-    name      => $::cinder::params::backup_service,
-    enable    => $enabled,
+    ensure     => $ensure,
+    name       => $::cinder::params::backup_service,
+    enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
   }
