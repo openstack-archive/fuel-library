@@ -232,6 +232,7 @@ $SNIPPET('nailgun_repo')
 
 rpm -e --nodeps ruby
 yum install --exclude=ruby-2.1.1* -y ruby rubygems
+yum update -y --exclude --exclude=ruby*
 
 mkdir -p /etc/nailgun-agent/
 cat > /etc/nailgun-agent/config.yaml << EOA
