@@ -342,6 +342,7 @@ esac
 
 # Anything except meta-data and help must pass validation
 neutron_metadata_agent_validate || exit $?
+umask 0022
 
 # What kind of method was invoked?
 case "$1" in

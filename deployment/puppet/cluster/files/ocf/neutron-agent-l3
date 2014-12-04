@@ -566,6 +566,7 @@ esac
 # Anything except meta-data and help must pass validation
 neutron_l3_agent_validate || exit $?
 setup_auth || exit $?
+umask 0022
 
 # What kind of method was invoked?
 case "$1" in
