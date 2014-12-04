@@ -184,6 +184,14 @@ class osnailyfacter::cluster_simple {
   }
 
   if ($::use_ceph) {
+    if ($::use_neutron) {
+      $ceph_cluster_network = get_network_role_property('storage', 'cidr')
+      $ceph_public_network  = get_network_role_property('management', 'cidr')
+    } else {
+      $ceph_cluster_network = $::fuel_settings['storage_network_range']
+      $ceph_public_network = $::fuel_settings['management_network_range']
+    }
+
     $primary_mons   = $controller
     $primary_mon    = $controller[0]['name']
     class {'ceph':
@@ -194,6 +202,8 @@ class osnailyfacter::cluster_simple {
       rgw_pub_ip             => $controller_node_public,
       rgw_adm_ip             => $controller_node_address,
       rgw_int_ip             => $controller_node_address,
+      cluster_network        => $ceph_cluster_network,
+      public_network         => $ceph_public_network,
       swift_endpoint_port    => '6780',
       use_syslog             => $::use_syslog,
       syslog_log_level       => $syslog_log_level,

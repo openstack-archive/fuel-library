@@ -78,10 +78,16 @@ class ceph::conf {
       creates => '/etc/ceph/ceph.conf',
     }
 
+    ceph_conf {
+      'global/cluster_network': value => $::ceph::cluster_network;
+      'global/public_network':  value => $::ceph::public_network;
+    }
+
     Exec['ceph-deploy config pull'] ->
-      File['/root/ceph.conf'] ->
-        Exec['ceph-deploy gatherkeys remote'] ->
-          File['/etc/ceph/ceph.client.admin.keyring'] ->
-            Exec['ceph-deploy init config']
+      Ceph_conf <||> ->
+        File['/root/ceph.conf'] ->
+          Exec['ceph-deploy gatherkeys remote'] ->
+            File['/etc/ceph/ceph.client.admin.keyring'] ->
+              Exec['ceph-deploy init config']
   }
 }
