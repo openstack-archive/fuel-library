@@ -38,9 +38,9 @@ class cinder::scheduler (
   }
 
   service { 'cinder-scheduler':
-    ensure    => $ensure,
-    name      => $::cinder::params::scheduler_service,
-    enable    => $enabled,
+    ensure     => $ensure,
+    name       => $::cinder::params::scheduler_service,
+    enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
   }
