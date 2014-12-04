@@ -250,17 +250,19 @@ nova_compute_monitor() {
         return $rc
     fi
 
-    # Check the connections according to the PID.
-    # We are sure to hit the scheduler process and not other nova process with the same connection behavior (for example nova-scheduler)
-    if ! ocf_is_true "$OCF_RESKEY_zeromq"; then
-        pid=`cat $OCF_RESKEY_pid`
-        # check the connections according to the PID
-        console_amqp_check=`netstat -punt | grep -s "$OCF_RESKEY_amqp_server_port" | grep -s "$pid" |  grep -s "ESTABLISHED"`
-        rc_amqp=$?
-        if [ $rc_amqp -ne 0 ]; then
-          ocf_log err "Nova Compute is not connected to the AMQP server: AMQP connection test returned $rc_amqp"
-          return $OCF_NOT_RUNNING
-      fi
+    # Check the connections according to the PID, if has been invoked as a monitor action.
+    if [ "${__OCF_ACTION}" = "monitor" ]; then
+        # We are sure to hit the scheduler process and not other nova process with the same connection behavior (for example nova-scheduler)
+        if ! ocf_is_true "$OCF_RESKEY_zeromq"; then
+            pid=`cat $OCF_RESKEY_pid`
+            # check the connections according to the PID
+            console_amqp_check=`netstat -punt | grep -s "$OCF_RESKEY_amqp_server_port" | grep -s "$pid" |  grep -s "ESTABLISHED"`
+            rc_amqp=$?
+            if [ $rc_amqp -ne 0 ]; then
+              ocf_log err "Nova Compute is not connected to the AMQP server: AMQP connection test returned $rc_amqp"
+              return $OCF_NOT_RUNNING
+            fi
+        fi
     fi
 
     ocf_log debug "OpenStack Nova Compute (nova-compute) monitor succeeded"
