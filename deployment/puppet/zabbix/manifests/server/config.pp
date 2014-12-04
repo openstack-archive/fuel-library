@@ -159,6 +159,13 @@ class zabbix::server::config {
     api => $zabbix::params::api_hash,
   }
 
+  # Ceph template
+  zabbix_configuration_import { 'Template_App_OpenStack_Ceph.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Ceph.xml',
+    api => $zabbix::params::api_hash,
+  }
+
   # RabbitMQ templates
   zabbix_configuration_import { 'Template_App_OpenStack_RabbitMQ.xml Import':
     ensure   => present,

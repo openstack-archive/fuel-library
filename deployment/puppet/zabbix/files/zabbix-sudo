@@ -4,3 +4,4 @@ zabbix ALL = NOPASSWD: /usr/bin/mysqladmin
 zabbix ALL = NOPASSWD: /usr/bin/socat
 zabbix ALL = NOPASSWD: /usr/sbin/iptstate
 zabbix ALL = NOPASSWD: /usr/sbin/crm_resource
+zabbix ALL = NOPASSWD: /usr/bin/ceph
