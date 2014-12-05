@@ -141,7 +141,7 @@ The ``cobbler_common`` section applies to all machines::
     # for Centos
     profile: "centos64_x86_64"
     # for Ubuntu
-    # profile: "ubuntu_1204_x86_64"
+    # profile: "ubuntu_1404_x86_64"
 
 Fuel can install CentOS or Ubuntu on your servers, or you can add a profile of your own. By default, ``config.yaml`` uses CentOS. ::
 
