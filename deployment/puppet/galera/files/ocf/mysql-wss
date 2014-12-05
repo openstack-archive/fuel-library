@@ -632,7 +632,7 @@ mysql_stop() {
         mysql_status info 1
         rc=$?
         if [ $rc -eq $OCF_NOT_RUNNING ]; then
-            /usr/bin/pkill -9 --pgroup ${pgrp} > /dev/null
+            /usr/bin/pkill -9 -g ${pgrp} > /dev/null
             mysql_cleanup
             return $OCF_SUCCESS
         fi
@@ -645,7 +645,7 @@ mysql_stop() {
     rc=$?
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
         ocf_log info "MySQL failed to stop using SIGTERM. Sending SIGKILL to PID: ${pid}"
-        /usr/bin/pkill -9 --pgroup ${pgrp} > /dev/null
+        /usr/bin/pkill -9 -g ${pgrp} > /dev/null
     fi
 
     mysql_cleanup
