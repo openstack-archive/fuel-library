@@ -393,15 +393,17 @@ nova_network_monitor() {
         return $rc
     fi
 
-    # Check the connections according to the PID.
-    # We are sure to hit the scheduler process and not other nova process with the same connection behavior (for example nova-cert)
-    pid=`cat $OCF_RESKEY_pid`
-    # check the connections according to the PID
-    network_amqp_check=`netstat -punt | grep -s "$OCF_RESKEY_amqp_server_port" | grep -s "$pid" | grep -qs "ESTABLISHED"`
-    rc_amqp=$?
-    if [ $rc_amqp -ne 0 ]; then
-        ocf_log err "Nova Network is not connected to the AMQP server: AMQP connection test returned $rc_amqp"
-        return $OCF_NOT_RUNNING
+    # Check the connections according to the PID, if has been invoked as a monitor action.
+    if [ "${__OCF_ACTION}" = "monitor" ]; then
+        # We are sure to hit the scheduler process and not other nova process with the same connection behavior (for example nova-cert)
+        pid=`cat $OCF_RESKEY_pid`
+        # check the connections according to the PID
+        network_amqp_check=`lsof -nPp ${pid} | grep -s ':${OCF_RESKEY_amqp_server_port}\s\+(ESTABLISHED)'`
+        rc_amqp=$?
+        if [ $rc_amqp -ne 0 ]; then
+            ocf_log err "Nova Network is not connected to the AMQP server: AMQP connection test returned $rc_amqp"
+            return $OCF_NOT_RUNNING
+        fi
     fi
 
     ocf_log debug "OpenStack Nova Network (nova-network) monitor succeeded"
