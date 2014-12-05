@@ -1,4 +1,4 @@
-#set $pkgsel_packages = ["acl", "openssh-server", "debconf-utils", "ntp-dev", "ruby-ipaddress", "ruby-netaddr", "ruby-openstack", "libaugeas-ruby", "libstomp-ruby1.8", "libshadow-ruby1.8", "libjson-ruby1.8", "vim", "vlan", "curl", "anacron", "python-amqp", "nailgun-agent", "nailgun-mcagents", "lvm2", "nailgun-net-check", "puppet", "telnet", "gdisk", "daemonize", "rsync", "virt-what" ]
+#set $pkgsel_packages = ["acl", "openssh-server", "debconf-utils", "ntp-dev", "ruby-ipaddress", "ruby-netaddr", "ruby-openstack", "ruby-augeas", "ruby-stomp", "ruby-shadow", "ruby-json", "vim", "vlan", "curl", "anacron", "python-amqp", "nailgun-agent", "nailgun-mcagents", "lvm2", "nailgun-net-check", "puppet", "telnet", "gdisk", "daemonize", "rsync", "virt-what" ]
 
 #if $str($getVar('mco_auto_setup','')) == "1"
     #silent $pkgsel_packages.append("ruby-stomp")
