@@ -45,9 +45,11 @@ class ceph::conf {
   } else {
 
     exec {'ceph-deploy config pull':
-      command => "ceph-deploy --overwrite-conf config pull ${::ceph::primary_mon}",
-      cwd     => '/etc/ceph',
-      creates => '/etc/ceph/ceph.conf',
+      command   => "ceph-deploy --overwrite-conf config pull ${::ceph::primary_mon}",
+      cwd       => '/etc/ceph',
+      creates   => '/etc/ceph/ceph.conf',
+      tries     => 5,
+      try_sleep => 2,
     }
 
     file {'/root/ceph.conf':
