@@ -115,19 +115,19 @@ class nailgun::cobbler(
       }
 
       file { "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed":
-        content => template("cobbler/preseed/ubuntu-1204.preseed.erb"),
+        content => template("cobbler/preseed/ubuntu-1404.preseed.erb"),
         owner => root,
         group => root,
         mode => 0644,
         require => Class["::cobbler::server"],
       } ->
 
-      cobbler_distro { "ubuntu_1204_x86_64":
+      cobbler_distro { "ubuntu_1404_x86_64":
         kernel => "${repo_root}/ubuntu/x86_64/images/linux",
         initrd => "${repo_root}/ubuntu/x86_64/images/initrd.gz",
         arch => "x86_64",
         breed => "ubuntu",
-        osversion => "precise",
+        osversion => "trusty",
         ksmeta => "",
         require => Class["::cobbler::server"],
       }
@@ -143,14 +143,14 @@ class nailgun::cobbler(
         require => Cobbler_distro["centos-x86_64"],
       }
 
-      cobbler_profile { "ubuntu_1204_x86_64":
+      cobbler_profile { "ubuntu_1404_x86_64":
         kickstart => "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed",
         kopts => "netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20",
-        distro => "ubuntu_1204_x86_64",
+        distro => "ubuntu_1404_x86_64",
         ksmeta => "",
         menu => true,
         server => $real_server,
-        require => Cobbler_distro["ubuntu_1204_x86_64"],
+        require => Cobbler_distro["ubuntu_1404_x86_64"],
       }
 
 
