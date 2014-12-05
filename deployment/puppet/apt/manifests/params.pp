@@ -23,7 +23,7 @@ class apt::params {
     }
     'ubuntu': {
       case $::lsbdistcodename {
-        'hardy','maverick','natty','oneiric','precise': {
+        'hardy','maverick','natty','oneiric','precise','trusty': {
           $backports_location = 'http://us.archive.ubuntu.com/ubuntu'
           $ppa_options = '-y'
         }
