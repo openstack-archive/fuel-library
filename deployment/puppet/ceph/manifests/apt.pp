@@ -20,9 +20,9 @@ class ceph::apt (
     location => "http://ceph.com/debian-${release}/",
   }
   apt::source { 'radosgw-apache2':
-    location => 'http://gitbuilder.ceph.com/apache2-deb-precise-x86_64-basic/ref/master/',
+    location => 'http://gitbuilder.ceph.com/apache2-deb-trusty-x86_64-basic/ref/master/',
   }
   apt::source { 'radosgw-fastcgi':
-    location => 'http://gitbuilder.ceph.com/libapache-mod-fastcgi-deb-precise-x86_64-basic/ref/master/',
+    location => 'http://gitbuilder.ceph.com/libapache-mod-fastcgi-deb-trusty-x86_64-basic/ref/master/',
   }
 }

@@ -116,7 +116,7 @@ common:
     # for Centos
     profile: "centos64_x86_64"
     # for Ubuntu
-    # profile: "ubuntu_1204_x86_64"
+    # profile: "ubuntu_1404_x86_64"
     netboot-enabled: "1"
     # for Ubuntu
     # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
