@@ -194,13 +194,22 @@ case $::operatingsystem {
 }
 
 class os_common {
-  if ($::fuel_settings['neutron_mellanox']) and ($::fuel_settings['storage']['iser']) {
-      class { 'mellanox_openstack::iser_rename':
-                   stage => 'zero',
-                   storage_parent => $::fuel_settings['neutron_mellanox']['storage_parent'],
-                   iser_interface_name => $::fuel_settings['neutron_mellanox']['iser_interface_name'],
+  if ($::fuel_settings['neutron_mellanox']) {
+    if ($::mellanox_mode != 'disabled') {
+      class { 'mellanox_openstack::ofed_recompile' :
+        stage => 'zero',
       }
+    }
+    if ($::fuel_settings['storage']['iser']) {
+      class { 'mellanox_openstack::iser_rename':
+        stage => 'zero',
+        storage_parent => $::fuel_settings['neutron_mellanox']['storage_parent'],
+        iser_interface_name => $::fuel_settings['neutron_mellanox']['iser_interface_name'],
+      }
+      Class['mellanox_openstack::ofed_recompile'] -> Class['mellanox_openstack::iser_rename']
+    }
   }
+
   class {"l23network::hosts_file": stage => 'netconfig', nodes => $nodes_hash }
   class {'l23network': use_ovs=>$use_neutron, stage=> 'netconfig'}
   if $use_neutron {
