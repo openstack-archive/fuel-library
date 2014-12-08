@@ -125,6 +125,22 @@ class openstack::nova::controller (
   $sql_connection    = $nova_db
   $glance_connection = $real_glance_api_servers
 
+  # From legacy params.pp
+  case $::osfamily {
+    'RedHat': {
+      $pymemcache_package_name      = 'python-memcached'
+      $command_timeout              = "'-s KILL'"
+    }
+    'Debian': {
+      $pymemcache_package_name      = 'python-memcache'
+      $command_timeout              = "'--signal=KILL'"
+    }
+    default: {
+      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem},\
+ module ${module_name} only support osfamily RedHat and Debian")
+    }
+  }
+
   # Install / configure queue provider
   case $queue_provider {
     'rabbitmq': {
@@ -137,6 +153,8 @@ class openstack::nova::controller (
         cluster_disk_nodes     => $rabbitmq_cluster_nodes,
         cluster                => $rabbit_cluster,
         primary_controller     => $primary_controller,
+        # FIXME(bogdando) remove HA configuration for rabbitmq to pcs wrappers
+        command_timeout        => $command_timeout,
         ha_mode                => $ha_mode,
       }
     }
@@ -320,20 +338,6 @@ class openstack::nova::controller (
     ratelimits            => $nova_rate_limits_string,
     require               => Package['nova-common'],
     osapi_compute_workers => min($::processorcount + 0, 50 + 0),
-  }
-
-  # From legacy params.pp
-  case $::osfamily {
-    'RedHat': {
-      $pymemcache_package_name      = 'python-memcached'
-    }
-    'Debian': {
-      $pymemcache_package_name      = 'python-memcache'
-    }
-    default: {
-      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem},\
- module ${module_name} only support osfamily RedHat and Debian")
-    }
   }
 
   # From legacy init.pp
