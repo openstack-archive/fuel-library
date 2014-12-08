@@ -266,7 +266,7 @@ class osnailyfacter::cluster_ha {
     $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
   }
 
-  if ($::use_ceph) {
+  if ($::use_ceph and !(($::fuel_settings['role'] == 'cinder') and $storage_hash['volumes_lvm'])) {
     $primary_mons   = $controllers
     $primary_mon    = $controllers[0]['name']
 
