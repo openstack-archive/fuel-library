@@ -159,7 +159,6 @@ nova_network_check_port() {
 # The length of the integer must be 4
 # Examples of valid port: "1080", "0080"
 # Examples of invalid port: "1080bad", "0", "0000", ""
-
     local int
     local cnt
 
@@ -391,19 +390,6 @@ nova_network_monitor() {
     # If status returned anything but success, return that immediately
     if [ $rc -ne $OCF_SUCCESS ]; then
         return $rc
-    fi
-
-    # Check the connections according to the PID, if has been invoked as a monitor action.
-    if [ "${__OCF_ACTION}" = "monitor" ]; then
-        # We are sure to hit the scheduler process and not other nova process with the same connection behavior (for example nova-cert)
-        pid=`cat $OCF_RESKEY_pid`
-        # check the connections according to the PID
-        network_amqp_check=`lsof -nPp ${pid} | grep -s ':${OCF_RESKEY_amqp_server_port}\s\+(ESTABLISHED)'`
-        rc_amqp=$?
-        if [ $rc_amqp -ne 0 ]; then
-            ocf_log err "Nova Network is not connected to the AMQP server: AMQP connection test returned $rc_amqp"
-            return $OCF_NOT_RUNNING
-        fi
     fi
 
     ocf_log debug "OpenStack Nova Network (nova-network) monitor succeeded"

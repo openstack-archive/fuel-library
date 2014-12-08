@@ -238,18 +238,6 @@ service_monitor() {
         return $rc
     fi
 
-    # Check the connections according to the PID, if has been invoked as a monitor action.
-    if [ "${__OCF_ACTION}" = "monitor" ]; then
-        # We are sure to hit the heat-engine process and not other heat process with the same connection behavior (for example heat-api)
-        pid=`cat $OCF_RESKEY_pid`
-        engine_amqp_check=`lsof -nPp ${pid} | grep -s ':${OCF_RESKEY_amqp_server_port}\s\+(ESTABLISHED)'`
-        rc_amqp=$?
-        if [ $rc_amqp -ne 0 ]; then
-            ocf_log err "${SERVICE_NAME} is not connected to the AMQP server: AMQP connection test returned $rc_amqp"
-            return $OCF_NOT_RUNNING
-        fi
-    fi
-
     ocf_log debug "OpenStack Orchestration Engine (heat-engine) monitor succeeded"
     return $OCF_SUCCESS
 }
