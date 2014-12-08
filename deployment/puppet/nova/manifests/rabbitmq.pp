@@ -140,7 +140,7 @@ class nova::rabbitmq(
           },
           metadata                 => {
              'migration-threshold' => 'INFINITY',
-             'failure-timeout'     => '180s'
+             'failure-timeout'     => '360s'
 
           },
           complex_type => 'master',
@@ -163,7 +163,7 @@ class nova::rabbitmq(
               'timeout'  => '60'
             },
             'start' => {
-              'timeout' => '180'
+              'timeout' => '360'
             },
             'stop' => {
               'timeout' => '60'
