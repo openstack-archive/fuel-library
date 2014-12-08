@@ -135,6 +135,8 @@ class openstack::nova::controller (
         cluster_disk_nodes     => $rabbitmq_cluster_nodes,
         cluster                => $rabbit_cluster,
         primary_controller     => $primary_controller,
+        # FIXME(bogdando) remove HA configuration for rabbitmq to pcs wrappers
+        command_timeout        => $command_timeout,
         ha_mode                => $ha_mode,
       }
     }
@@ -258,9 +260,11 @@ class openstack::nova::controller (
   case $::osfamily {
     'RedHat': {
       $pymemcache_package_name      = 'python-memcached'
+      $command_timeout              = '/usr/bin/timeout -s KILL'
     }
     'Debian': {
       $pymemcache_package_name      = 'python-memcache'
+      $command_timeout              = '/usr/bin/timeout --signal=KILL'
     }
     default: {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem},\
