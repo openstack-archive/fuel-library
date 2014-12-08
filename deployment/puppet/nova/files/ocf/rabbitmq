@@ -38,13 +38,12 @@ OCF_RESKEY_node_port_default=5672
 
 #######################################################################
 
-OCF_RESKEY_shutdown_time_default=$((OCF_RESKEY_CRM_meta_timeout / 6000 + 2))
-: ${OCF_RESKEY_shutdown_time=${OCF_RESKEY_shutdown_time_default}}
 OCF_RESKEY_start_time_default=$((OCF_RESKEY_CRM_meta_timeout / 6000 + 2))
 : ${OCF_RESKEY_start_time=${OCF_RESKEY_start_time_default}}
 OCF_RESKEY_command_timeout_default=""
 : ${OCF_RESKEY_command_timeout=${OCF_RESKEY_command_timeout_default}}
-COMMAND_TIMEOUT="/usr/bin/timeout ${OCF_RESKEY_command_timeout} $((OCF_RESKEY_CRM_meta_timeout / 6000 + 5))"
+TIMEOUT_ARG=$((OCF_RESKEY_CRM_meta_timeout / 6000 + 5))
+COMMAND_TIMEOUT="/usr/bin/timeout ${OCF_RESKEY_command_timeout} ${TIMEOUT_ARG}"
 
 #######################################################################
 
@@ -125,14 +124,6 @@ RabbitMQ group name
 <content type="string" default="${OCF_RESKEY_groupname_default}" />
 </parameter>
 
-<parameter name="shutdown_time" unique="0" required="0">
-<longdesc lang="en">
-Timeout for shutdown rabbitmq server before kill -TERM
-</longdesc>
-<shortdesc lang="en">Timeout for shutdown rabbitmq server</shortdesc>
-<content type="string" default="${OCF_RESKEY_shutdown_time_default}" />
-</parameter>
-
 <parameter name="command_timeout" unique="0" required="0">
 <longdesc lang="en">
 Timeout command arguments for issued commands termination (value is auto evaluated)
@@ -209,20 +200,21 @@ master_score() {
     return $OCF_SUCCESS
 }
 
+# Return OCF_SUCCESS, if current host is in the list of given hosts.
+# Otherwise, return 10
 my_host() {
     local hostlist="$1"
     local hostname=$(hostname -s)
     local hn
-    local rc
+    local rc=10
     local LH="${LL} my_host():"
 
-    rc=1
     ocf_log info "${LH} hostlist is: $hostlist"
     for host in $hostlist ; do
         hn=$(echo "$host" | awk -F. '{print $1}')
         ocf_log debug "${LH} comparing '$hostname' with '$hn'"
         if [[ "X${hostname}" == "X${hn}" ]] ; then
-            rc=0
+            rc=$OCF_SUCCESS
             break
         fi
     done
@@ -233,7 +225,6 @@ my_host() {
 srv_uptime() {
     local stime
     stime=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}')
-    rc=$?
 
     if [[ "x$stime" != "x(null)" ]] ; then
         echo $(( $(now) - ${stime} ))
@@ -267,24 +258,61 @@ rabbit_node_name() {
     echo "rabbit@"$(echo "$1" | awk -F. '{print $1}')
 }
 
+# Return a RabbitMQ node to its virgin state.
+# For reset and force_reset to succeed the RabbitMQ application must have been stopped.
+# If the app cannot be stopped, beam will be killed and mnesia files will be removed.
 reset_mnesia() {
-    get_status ; rc=$?
+    local LH="${LL} reset_mnesia():"
+    local make_amnesia=false
+    local rc=$OCF_ERR_GENERIC
+
+    # check status of a beam process
+    get_status
+    rc=$?
     if [[ $rc == 0 ]] ; then
-        ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} reset ; rc=$?
+        # beam is running
+        # check status of rabbit app and stop it, if it is running
+        get_status rabbit
+        rc=$?
         if [[ $rc != 0 ]] ; then
-            ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} force_reset ; rc=$?
+            # rabbit app is running, have to stop it
+            ocf_log info "${LH} Stopping RMQ-app prior to reset the mnesia."
+            stop_rmq_server_app
+            rc=$?
             if [[ $rc != 0 ]] ; then
-                ocf_log err "Mnesia couldn't cleaned, even by force-reset command."
-                # #ocf_run killall beam
-                # kill_rmq_and_remove_pid
-                # ocf_run find ${MNESIA_FILES} -type f -delete
-                # start_beam_process
+                 ocf_log warn "${LH} RMQ-app can't be stopped."
+                 make_amnesia=true
+            fi
+        fi
+
+        if ! $make_amnesia ; then
+            # rabbit app is not running, reset mnesia
+            ocf_log debug "${LH} Execute reset with timeout: ${TIMEOUT_ARG}"
+            ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} reset
+            rc=$?
+            if [[ $rc != $OCF_SUCCESS ]] ; then
+                ocf_log debug "${LH} Execute force_reset with timeout: ${TIMEOUT_ARG}"
+                ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} force_reset
+                rc=$?
+                if [[ $rc != $OCF_SUCCESS ]] ; then
+                    ocf_log warn "${LH} Mnesia couldn't cleaned, even by force-reset command."
+                    make_amnesia=true
+                fi
             fi
         fi
     else
-        ocf_run find ${MNESIA_FILES} -type f -delete
-        ocf_log warn "Mnesia files appear corrupted and have been removed."
+        # there is no beam running
+        make_amnesia=true
+        ocf_log warn "${LH} There is no Beam process running."
     fi
+
+    # remove mnesia files, if required
+    if $make_amnesia ; then
+        kill_rmq_and_remove_pid
+        ocf_run find ${MNESIA_FILES} -type f -delete
+        ocf_log warn "${LH} Beam have been killed. Mnesia files appear corrupted and have been removed."
+    fi
+    # always return OCF SUCCESS
     return $OCF_SUCCESS
 }
 
@@ -318,6 +346,8 @@ unblock_client_access()
 
 get_nodes__base(){
     local infotype=''
+    local rc=$OCF_ERR_GENERIC
+
     if [ "$1" == 'nodes' ]
     then
         infotype='db_nodes'
@@ -326,7 +356,8 @@ get_nodes__base(){
         infotype='running_db_nodes'
     fi
     local c_status=$(${OCF_RESKEY_ctl} eval "mnesia:system_info(${infotype})." 2>/dev/null)
-    if [[ $? != 0 ]] ; then
+    rc=$?
+    if [[ $rc != 0 ]] ; then
         echo ''
         return $OCF_ERR_GENERIC
     fi
@@ -349,6 +380,7 @@ check_need_join_to() {
     local join_to=$(rabbit_node_name $1)
     local node
     local running_nodes=$(get_running_nodes)
+    local rc=$OCF_ERR_GENERIC
 
     rc=0
     for node in $running_nodes ; do
@@ -408,27 +440,29 @@ action_validate() {
 join_to_cluster() {
     local node="$1"
     local rmq_node=$(rabbit_node_name $node)
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local LH="${LL} join_to_cluster():"
 
     ocf_log info "${LH} start."
     ocf_log info "${LH} Joining to cluster by node '${rmq_node}'."
 
-    get_status rabbit ; rc=$?
+    get_status rabbit
+    rc=$?
     if [[ $rc == $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} rabbitmq app will be stopped."
         stop_rmq_server_app
         rc=$?
         if [[ $rc != 0 ]] ; then
-            ocf_log err "${LH} Can't stop rabbitmq app by stop_app command. Beam will be killed."
-            kill_rmq_and_remove_pid
+            ocf_log err "${LH} Can't stop rabbitmq app by stop_app command. Stopping."
+            action_stop
             return $OCF_ERR_GENERIC
         fi
     fi
+    ocf_log debug "${LH} Execute join_cluster with timeout: ${TIMEOUT_ARG}"
     ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} join_cluster $rmq_node
     rc=$?
-    if [[ $rc != 0 ]] ; then
-        ocf_log err "${LH} Can't join to cluster by node '${rmq_node}'."
+    if [[ $rc != $OCF_SUCCESS ]] ; then
+        ocf_log err "${LH} Can't join to cluster by node '${rmq_node}'. Stopping."
         action_stop
         return $OCF_ERR_GENERIC
     fi
@@ -436,7 +470,7 @@ join_to_cluster() {
     try_to_start_rmq_app
     rc=$?
     if [[ $rc != 0 ]] ; then
-        ocf_log err "${LH} Can't start RMQ app after join to cluster."
+        ocf_log err "${LH} Can't start RMQ app after join to cluster. Stopping."
         action_stop
         return $OCF_ERR_GENERIC
     else
@@ -450,20 +484,25 @@ join_to_cluster() {
 }
 
 unjoin_nodes_from_cluster() {
+    # node names of the nodes where the pcs resource is being stopped
     local nodelist="$1"
     local hostname
     local nodename
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local rnode
+    # nodes in rabbit cluster db
     local nodes_in_cluster
     local LH="${LL} unjoin_nodes_from_cluster():"
 
     nodes_in_cluster=$(get_nodes)
-    if [[ $? != $OCF_SUCCESS ]] ; then
+    rc=$?
+    if [[ $rc != 0 ]] ; then
         # no nodes in node list, nothing to do
         return $OCF_SUCCESS
     fi
 
+    # unjoin all cluster nodes which are being stopped (i.e. recieved post-stop notify), except *this* node
+    # before to unjoin the nodes, make sure they were disconnected from *this* node
     for hostname in $nodelist ; do
         nodename=$(rabbit_node_name $hostname)
         if [[ "$nodename" == "$RABBITMQ_NODENAME" ]] ; then
@@ -471,10 +510,20 @@ unjoin_nodes_from_cluster() {
         fi
         for rnode in $nodes_in_cluster ; do
             if [[ "$nodename" == "$rnode" ]] ; then
+                # disconnect node being unjoined from this node
+                ocf_run ${OCF_RESKEY_ctl} eval "disconnect_node(list_to_atom(\"${nodename}\"))." 2>&1
+                rc=$?
+                if [[ $rc == $OCF_SUCCESS ]] ; then
+                    ocf_log info "${LH} node '${nodename}' disconnected succesfully."
+                else
+                    ocf_log info "${LH} disconnecting node '${nodename}' failed."
+                fi
+
                 # unjoin node
+                ocf_log debug "${LH} Execute forget_cluster_node with timeout: ${TIMEOUT_ARG}"
                 ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} forget_cluster_node ${nodename} 2>&1
                 rc=$?
-                if [[ $rc == 0 ]] ; then
+                if [[ $rc == $OCF_SUCCESS ]] ; then
                     ocf_log info "${LH} node '${nodename}' unjoined succesfully."
                 else
                     ocf_log info "${LH} unjoining node '${nodename}' failed."
@@ -485,38 +534,27 @@ unjoin_nodes_from_cluster() {
     return $OCF_SUCCESS
 }
 
+# Stop RMQ server process. Returns OCS_SUCCESS
 stop_server_process() {
     local pid
-    local ts_end
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local LH="${LL} stop_server_process():"
 
     pid=$(cat ${OCF_RESKEY_pid_file})
-    if [[ $? != 0 ]] ; then
+    rc=$?
+    if [[ $rc != 0 ]] ; then
+      ocf_log err "${LH} RMQ-server process PIDFILE was not found!"
       return $OCF_ERR_GENERIC
     fi
 
-    # detach 'stop' command and monitor its result later
-    # because 'rabbitmqctl stop' can hangs
-    ${OCF_RESKEY_ctl} stop ${OCF_RESKEY_pid_file} 2>&1 >> "${OCF_RESKEY_log_dir}/shutdown_log" &
-    stop_pid=$!  # PID of root of stop command process tree
-
-    ts_end=$(( $(now) + ${OCF_RESKEY_shutdown_time} ))
-    rc=-1
-    while [ $(now) -lt $ts_end ] ; do
-        # waiting for normal shutdown of rabbitmq-server
-        if [[ ! -d /proc/${pid} ]] ; then
-            rc=$OCF_SUCCESS
-            break
-        fi
-        ocf_log info "${LH} Waiting for stop RMQ-server process (PID=${pid})..."
-        sleep 3
-    done
+    ocf_log debug "${LH} Execute stop with timeout: ${TIMEOUT_ARG}"
+    ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} stop ${OCF_RESKEY_pid_file} 2>&1 >> "${OCF_RESKEY_log_dir}/shutdown_log"
     if [[ $rc == $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} RMQ-server process (PID=${pid}) stopped succesfully."
     else
         # RMQ-server process can't stop succesfully
         if [[ -d /proc/$stop_pid/ ]] ; then
+            ocf_log warn "${LH} RMQ-server process (PID=${pid}) stopped by 'kill -9', sorry..."
             ocf_run kill -9 $stop_pid
         fi
     fi
@@ -525,48 +563,37 @@ stop_server_process() {
     return $OCF_SUCCESS
 }
 
+# Stop RMQ-app. Return OCF_SUCCESS, if the app was stopped,
+# otherwise return OCF_ERR_GENERIC
 stop_rmq_server_app() {
-    local rc
-    local stop_pid
-    local waiting_to_stop_timeout=30  # todo: make as incoming parameter
-    local ts_end
+    local rc=$OCF_ERR_GENERIC
 
+    # if the beam process isn't running, then rabbit app is stopped as well
     get_status
     rc=$?
     if [[ $rc != 0 ]] ; then
         return $OCF_SUCCESS
     fi
 
-    # detach stop process, because stop_app may be hung
-    ${OCF_RESKEY_ctl} stop_app 2>&1 > "${OCF_RESKEY_log_dir}/shutdown_log" &
-    stop_pid=$!  # PID of root of stop command process tree
+    # stop the app
+    ocf_log debug "${LH} Execute stop_app with timeout: ${TIMEOUT_ARG}"
+    ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} stop_app 2>&1 >> "${OCF_RESKEY_log_dir}/shutdown_log"
 
-    # waiting for rabbitmq stopped
-    ts_end=$(( $(now) + $waiting_to_stop_timeout ))
-    rc=$OCF_ERR_GENERIC
-    while [ $(now) -lt $ts_end ]; do
-        get_status rabbit
-        rc=$?
-        if [[ $rc != 0 ]] ; then
-            rc=$OCF_SUCCESS
-            break
-        fi
-        sleep 2
-    done
-    if [[ $rc == $OCF_SUCCESS ]] ; then
+    get_status rabbit
+    rc=$?
+    if [[ $rc != $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} RMQ-server app stopped succesfully."
+        rc=$OCF_SUCCESS
     else
-        # RMQ-server can't stop succesfully
-        if [[ -d /proc/$stop_pid/ ]] ; then
-            ocf_run kill -9 $stop_pid
-        fi
+        ocf_log err "${LH} RMQ-server app cannot be stopped."
+        rc=$OCF_ERR_GENERIC
     fi
 
     return $rc
 }
 
 start_beam_process() {
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local ts_end
     local pf_end
     local pid
@@ -578,7 +605,8 @@ start_beam_process() {
         pid=$(cat ${OCF_RESKEY_pid_file})
         if [[ -d /proc/${pid} && ! -z ${pid} ]] ; then
             ocf_run cat /proc/${pid}/cmdline | grep -c 'bin/beam' 2>&1 > /dev/null
-            if [[ $? == 0 ]] ; then
+            rc=$?
+            if [[ $rc == $OCF_SUCCESS ]] ; then
                 ocf_log warn "${LH} found beam process with PID=${pid}, killing...'."
                 ocf_run kill -9 $pid
             else
@@ -590,7 +618,7 @@ start_beam_process() {
     fi
 
     # run beam process
-    RABBITMQ_NODE_ONLY=1 ${OCF_RESKEY_binary} > "${OCF_RESKEY_log_dir}/startup_log" 2>/dev/null &
+    RABBITMQ_NODE_ONLY=1 ${OCF_RESKEY_binary} >> "${OCF_RESKEY_log_dir}/startup_log" 2>/dev/null &
     ts_end=$(( $(now) + ${OCF_RESKEY_start_time} ))
     rc=$OCF_ERR_GENERIC
     while [ $(now) -lt ${ts_end} ]; do
@@ -646,8 +674,8 @@ list_active_plugins() {
 }
 
 try_to_start_rmq_app() {
-    local startup_log="$1"
-    local rc
+    local startup_log="${1:-${OCF_RESKEY_log_dir}/startup_log}"
+    local rc=$OCF_ERR_GENERIC
     local LH="${LL} try_to_start_rmq_app():"
 
 
@@ -656,11 +684,12 @@ try_to_start_rmq_app() {
     fi
 
     ocf_log info "${LH} begin."
-    ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} start_app >$startup_log 2>&1
+    ocf_log debug "${LH} Execute start_app with timeout: ${TIMEOUT_ARG}"
+    ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} start_app >>$startup_log 2>&1
     rc=$?
-    if [[ $rc == 0 ]] ; then
+    if [[ $rc == $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} start_app was successful."
-        ocf_log info "${LH} waiting for start to finish."
+        ocf_log info "${LH} waiting for start to finish with timeout: ${TIMEOUT_ARG}"
         ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} wait ${OCF_RESKEY_pid_file}
         rc=$OCF_SUCCESS
         # Loading enabled modules
@@ -681,7 +710,7 @@ try_to_start_rmq_app() {
 }
 
 start_rmq_server_app() {
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local startup_log="${OCF_RESKEY_log_dir}/startup_log"
     local startup_output
     local LH="${LL} start_rmq_server_app():"
@@ -696,19 +725,20 @@ start_rmq_server_app() {
     unblock_client_access
     # Apply the blocking rule
     block_client_access
-    if [[ $? == $OCF_SUCCESS ]]; then
+    rc=$?
+    if [[ $rc == $OCF_SUCCESS ]]; then
       ocf_log info "${LH} blocked access to RMQ port"
     else
       ocf_log err "${LH} cannot block access to RMQ port!"
       return $OCF_ERR_GENERIC
     fi
     get_status
-    if [[ $? != $OCF_SUCCESS ]] ; then
+    rc=$?
+    if [[ $rc != $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} RMQ-runtime (beam) not started, starting..."
         start_beam_process
         rc=$?
-        if [ $rc -ne $OCF_SUCCESS ]
-        then
+        if [[ $rc != $OCF_SUCCESS ]]; then
             unblock_client_access
             ocf_log info "${LH} unblocked access to RMQ port"
             return $OCF_ERR_GENERIC
@@ -721,9 +751,15 @@ start_rmq_server_app() {
     if [[ $rc == $OCF_SUCCESS ]] ; then
         # rabbitmq-server started successfuly as master of cluster
         master_score 1  # minimal positive master-score for this node.
-        # create timestamp file
-        #ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --update $(now)
         stop_rmq_server_app
+        rc=$?
+        if [[ $rc != 0 ]] ; then
+            ocf_log err "${LH} RMQ-server app can't be stopped. Beam will be killed."
+            kill_rmq_and_remove_pid
+            unblock_client_access
+            ocf_log info "${LH} unblocked access to RMQ port"
+            return $OCF_ERR_GENERIC
+        fi
     else
        # error at start RMQ-server
        ocf_log warn "${LH} RMQ-server app can't start without Mnesia cleaning."
@@ -733,7 +769,8 @@ start_rmq_server_app() {
             try_to_start_rmq_app "$startup_log"
             rc=$?
             if [[ $rc == $OCF_SUCCESS ]]; then
-                stop_rmq_server_app ; rc=$?
+                stop_rmq_server_app
+                rc=$?
                 if [[ $rc == $OCF_SUCCESS ]]; then
                     ocf_log info "${LH} RMQ-server app Mnesia cleaned successfully."
                     rc=$OCF_SUCCESS
@@ -759,9 +796,10 @@ start_rmq_server_app() {
     return $rc
 }
 
+# check status of rabbit beam process or a rabbit app, if rabbit arg specified
 get_status() {
     local what="$1"
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local body
 
     body=$( ${OCF_RESKEY_ctl} eval 'rabbit_misc:which_applications().' 2>&1 )
@@ -780,7 +818,7 @@ get_status() {
 }
 
 action_status() {
-    local rc
+    local rc=$OCF_ERR_GENERIC
 
     get_status
     rc=$?
@@ -791,7 +829,7 @@ action_status() {
 
 
 get_monitor() {
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local scope
     local LH="${LL} get_monitor():"
 
@@ -817,7 +855,7 @@ get_monitor() {
     rabbit_running=$?
     ocf_log info "${LH} checking if rabbit app is running"
 
-    if [ $rabbit_running -eq $OCF_SUCCESS ]
+    if [ $rabbit_running == $OCF_SUCCESS ]
         then
             ocf_log info "${LH} rabbit app is running. checking if we are the part of healthy cluster"
             prev_rc=$rc
@@ -841,7 +879,7 @@ get_monitor() {
             done
     fi
 
-    if [[ $rc -eq $OCF_ERR_GENERIC ]]; then
+    if [[ $rc == $OCF_ERR_GENERIC ]]; then
         ocf_log info "${LH} get_status() returns generic error ${rc}"
         ocf_log info "${LH} ensuring this slave does not get promoted."
         master_score 0
@@ -883,7 +921,7 @@ get_monitor() {
 
 
 action_monitor() {
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local LH="${LL} monitor:"
     ocf_log debug "${LH} action start."
     if [[ "${OCF_RESKEY_debug}" == "true" ]] ; then
@@ -892,7 +930,8 @@ action_monitor() {
         env >> /tmp/rmq-monitor.log
         echo "$d  [monitor] start='${OCF_RESKEY_CRM_meta_notify_start_uname}' stop='${OCF_RESKEY_CRM_meta_notify_stop_uname}' active='${OCF_RESKEY_CRM_meta_notify_active_uname}' inactive='${OCF_RESKEY_CRM_meta_notify_inactive_uname}'" >> /tmp/rmq-ocf.log
     fi
-    get_monitor ; rc=$?
+    get_monitor
+    rc=$?
     ocf_log debug "${LH} role: ${OCF_RESKEY_CRM_meta_role}"
     ocf_log debug "${LH} result: $rc"
     ocf_log debug "${LH} action end."
@@ -901,7 +940,7 @@ action_monitor() {
 
 
 action_start() {
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local msg
     local master_node
     local LH="${LL} start:"
@@ -935,7 +974,7 @@ action_start() {
 
 
 action_stop() {
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local LH="${LL} stop:"
 
     if [[ ${OCF_RESKEY_debug} == "true" ]] ; then
@@ -974,9 +1013,12 @@ action_stop() {
 }
 
 #######################################################################
+# Join the cluster and return OCF_SUCCESS, if joined.
+# Return 10, if node is trying to join to itself or empty destination.
+# Return OCF_ERR_GENERIC, if cannot join.
 jjj_join () {
     local join_to="$1"
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local LH="${LL} jjj_join:"
 
     my_host ${join_to}
@@ -988,12 +1030,17 @@ jjj_join () {
     if [[ $rc != 0 && $join_to != '' ]] ; then
             ocf_log info "${LH} Joining to cluster by node '${join_to}'"
             join_to_cluster "${join_to}"
-            ocf_log info "${LH} May be joined."
+            rc=$?
+            if [[ $rc != $OCF_SUCCESS ]] ; then
+                rc=$OCF_ERR_GENERIC
+            fi
     fi
+    return $rc
 }
 
 action_notify() {
-    local rc
+    local rc=$OCF_ERR_GENERIC
+    local rc2=$OCF_ERR_GENERIC
     local LH="${LL} notify:"
 
     if [[ ${OCF_RESKEY_debug} == "true" ]] ; then
@@ -1011,12 +1058,12 @@ action_notify() {
                 my_host "$OCF_RESKEY_CRM_meta_notify_promote_uname"
                 rc=$?
                 if [[ $rc == $OCF_SUCCESS ]] ; then
-                nodelist=`crm_node -l | awk '{print $2}' | grep -v "^$"`
-                for i in $nodelist
-                do
-                   crm_attribute -N $i -l reboot --name 'rabbit-master' --delete
-                done
-                ocf_log info "${LH} pre-promote end."
+                    nodelist=`crm_node -l | awk '{print $2}' | grep -v "^$"`
+                    for i in $nodelist
+                    do
+                       crm_attribute -N $i -l reboot --name 'rabbit-master' --delete
+                    done
+                    ocf_log info "${LH} pre-promote end."
                 fi
                 ;;
             *)
@@ -1030,7 +1077,12 @@ action_notify() {
             promote)
                 ocf_log info "${LH} post-promote begin."
                 jjj_join ${OCF_RESKEY_CRM_meta_notify_promote_uname}
+                rc=$?
                 ocf_log info "${LH} post-promote end."
+                if [[ $rc == $OCF_ERR_GENERIC ]] ; then
+                    ocf_log err "${LH} Failed to join the cluster on post-promote. Master resource is failed."
+                    exit $OCF_FAILED_MASTER
+                fi
                 ;;
             start)
                 ocf_log info "${LH} post-start begin."
@@ -1039,12 +1091,18 @@ action_notify() {
                 rc=$?
                 if [[ $rc == $OCF_SUCCESS ]] ; then
                     jjj_join ${OCF_RESKEY_CRM_meta_notify_master_uname}
+                    rc2=$?
                 fi
                 ocf_log info "${LH} post-start end."
+                if [[ $rc2 == $OCF_ERR_GENERIC ]] ; then
+                    ocf_log warn "${LH} Failed to join the cluster on post-start. Resource is failed."
+                    return $OCF_NOT_RUNNING
+                fi
                 ;;
             stop)
                 # if rabbitmq-server stops on any another node, we should remove it from cluster (as ordinary operation)
                 ocf_log info "${LH} post-stop begin."
+                # always returns OCF_SUCCESS
                 unjoin_nodes_from_cluster "${OCF_RESKEY_CRM_meta_notify_stop_uname}"
                 ocf_log info "${LH} post-stop end."
                 ;;
@@ -1056,9 +1114,14 @@ action_notify() {
                 if [[ $rc != $OCF_SUCCESS ]] ; then
                    ocf_log info "${LH} master was demoted. stopping RabbitMQ app."
                    stop_rmq_server_app 
+                   rc2=$?
                    crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --delete
                 fi
                 ocf_log info "${LH} post-demote end."
+                if [[ $rc2 != $OCF_SUCCESS ]] ; then
+                    ocf_log err "${LH} RMQ-server app can't be stopped on post-demote. Master resource is failed"
+                    exit $OCF_FAILED_MASTER
+                fi
                 ;;
             *)  ;;
         esac
@@ -1069,7 +1132,7 @@ action_notify() {
 
 
 action_promote() {
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local pid
     local LH="${LL} promote:"
 
@@ -1100,6 +1163,12 @@ action_promote() {
                 rc=$?
                 if [[ $rc == 0 ]] ; then
                     try_to_start_rmq_app
+                    rc=$?
+                    if [[ $rc != 0 ]] ; then
+                        ocf_log err "${LH} Can't start RMQ app. Master resource is failed."
+                        ocf_log info "${LH} action end."
+                        exit $OCF_FAILED_MASTER
+                    fi
                     ocf_log info "${LH} Setting HA policy for all queues"
                     rabbitmqctl set_policy ha-all "." '{"ha-mode":"all", "ha-sync-mode":"automatic"}'
                     # create timestamp file
@@ -1109,31 +1178,43 @@ action_promote() {
                     get_monitor
                     rc=$?
                     ocf_log info "${LH} Master status is $rc"
-                    if [ $rc -eq $OCF_RUNNING_MASTER ]
+                    if [ $rc == $OCF_RUNNING_MASTER ]
                     then
-                       return $OCF_SUCCESS
+                       rc=$OCF_SUCCESS
                     else
-                       return $OCF_ERR_GENERIC
+                       ocf_log err "${LH} Master resource is failed."
+                       ocf_log info "${LH} action end."
+                       exit $OCF_FAILED_MASTER
                     fi
                 else
-                    return $OCF_ERR_GENERIC
+                    ocf_log err "${LH} Can't start RMQ-runtime."
+                    rc=$OCF_ERR_GENERIC
                 fi
             fi
+            return $rc
             ;;
         "$OCF_RUNNING_MASTER")
             # Already a master. Unexpected, but not a problem.
             ocf_log warn "${LH} Resource is already running as Master"
-            return $OCF_SUCCESS
+            rc=$OCF_SUCCESS
             ;;
+
+        "$OCF_FAILED_MASTER")
+            # Master failed.
+            ocf_log err "${LH} Master resource is failed and not running"
+            ocf_log info "${LH} action end."
+            exit $OCF_FAILED_MASTER
+            ;;
+
         "$OCF_NOT_RUNNING")
-            # Currently not running. Need to start before promoting.
+            # Currently not running.
             ocf_log err "${LH} Resource is currently not running"
-            #action_start
-            return $OCF_NOT_RUNNING
+            rc=$OCF_NOT_RUNNING
             ;;
         *)
             # Failed resource. Let the cluster manager recover.
             ocf_log err "${LH} Unexpected error, cannot promote"
+            ocf_log info "${LH} action end."
             exit $rc
             ;;
     esac
@@ -1146,7 +1227,7 @@ action_promote() {
 
 
 action_demote() {
-    local rc
+    local rc=$OCF_ERR_GENERIC
     local pid
     local LH="${LL} demote:"
 
@@ -1174,10 +1255,16 @@ action_demote() {
         "$OCF_SUCCESS")
             # Alread running as slave. Nothing to do.
             ocf_log warn "${LH} Resource is currently running as Slave"
-            return $OCF_SUCCESS
+            rc=$OCF_SUCCESS
+            ;;
+        "$OCF_FAILED_MASTER")
+            # Master failed and being demoted.
+            ocf_log err "${LH} Demoting of a failed Master."
+            ocf_log info "${LH} action end."
+            exit $OCF_FAILED_MASTER
             ;;
         "$OCF_NOT_RUNNING")
-            ocf_log warn "${LH} Try to demote currently not running resource. nothing to do."
+            ocf_log warn "${LH} Try to demote currently not running resource. Nothing to do."
             rc=$OCF_SUCCESS
             ;;
         "$OCF_ERR_GENERIC")
@@ -1188,6 +1275,7 @@ action_demote() {
         *)
             # Failed resource. Let the cluster manager recover.
             ocf_log err "${LH} Unexpected error, cannot demote"
+            ocf_log info "${LH} action end."
             exit $rc
             ;;
     esac
