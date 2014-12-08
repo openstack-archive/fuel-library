@@ -38,10 +38,13 @@ OCF_RESKEY_node_port_default=5672
 
 #######################################################################
 
-OCF_RESKEY_shutdown_time_default=$((OCF_RESKEY_CRM_meta_timeout / 1000 - 10))
+OCF_RESKEY_shutdown_time_default=$((OCF_RESKEY_CRM_meta_timeout / 6000 + 2))
 : ${OCF_RESKEY_shutdown_time=${OCF_RESKEY_shutdown_time_default}}
-OCF_RESKEY_start_time_default=$((OCF_RESKEY_CRM_meta_timeout / 1000 - 10))
+OCF_RESKEY_start_time_default=$((OCF_RESKEY_CRM_meta_timeout / 6000 + 2))
 : ${OCF_RESKEY_start_time=${OCF_RESKEY_start_time_default}}
+OCF_RESKEY_command_timeout_default=""
+: ${OCF_RESKEY_command_timeout=${OCF_RESKEY_command_timeout_default}}
+COMMAND_TIMEOUT="/usr/bin/timeout ${OCF_RESKEY_command_timeout} $((OCF_RESKEY_CRM_meta_timeout / 6000 + 5))"
 
 #######################################################################
 
@@ -128,6 +131,14 @@ Timeout for shutdown rabbitmq server before kill -TERM
 </longdesc>
 <shortdesc lang="en">Timeout for shutdown rabbitmq server</shortdesc>
 <content type="string" default="${OCF_RESKEY_shutdown_time_default}" />
+</parameter>
+
+<parameter name="command_timeout" unique="0" required="0">
+<longdesc lang="en">
+Timeout command arguments for issued commands termination (value is auto evaluated)
+</longdesc>
+<shortdesc lang="en">Arguments for timeout wrapping command</shortdesc>
+<content type="string" default="${OCF_RESKEY_command_timeout_default}" />
 </parameter>
 
 <parameter name="start_time" unique="0" required="0">
@@ -259,9 +270,9 @@ rabbit_node_name() {
 reset_mnesia() {
     get_status ; rc=$?
     if [[ $rc == 0 ]] ; then
-        ocf_run ${OCF_RESKEY_ctl} reset ; rc=$?
+        ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} reset ; rc=$?
         if [[ $rc != 0 ]] ; then
-            ocf_run ${OCF_RESKEY_ctl} force_reset ; rc=$?
+            ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} force_reset ; rc=$?
             if [[ $rc != 0 ]] ; then
                 ocf_log err "Mnesia couldn't cleaned, even by force-reset command."
                 # #ocf_run killall beam
@@ -414,7 +425,7 @@ join_to_cluster() {
             return $OCF_ERR_GENERIC
         fi
     fi
-    ocf_run ${OCF_RESKEY_ctl} join_cluster $rmq_node
+    ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} join_cluster $rmq_node
     rc=$?
     if [[ $rc != 0 ]] ; then
         ocf_log err "${LH} Can't join to cluster by node '${rmq_node}'."
@@ -461,7 +472,7 @@ unjoin_nodes_from_cluster() {
         for rnode in $nodes_in_cluster ; do
             if [[ "$nodename" == "$rnode" ]] ; then
                 # unjoin node
-                ocf_run ${OCF_RESKEY_ctl} forget_cluster_node ${nodename} 2>&1
+                ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} forget_cluster_node ${nodename} 2>&1
                 rc=$?
                 if [[ $rc == 0 ]] ; then
                     ocf_log info "${LH} node '${nodename}' unjoined succesfully."
@@ -647,12 +658,12 @@ try_to_start_rmq_app() {
     fi
 
     ocf_log info "${LH} begin."
-    ${OCF_RESKEY_ctl} start_app >$startup_log 2>&1
+    ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} start_app >$startup_log 2>&1
     rc=$?
     if [[ $rc == 0 ]] ; then
         ocf_log info "${LH} start_app was successful."
         ocf_log info "${LH} waiting for start to finish."
-        ocf_run ${OCF_RESKEY_ctl} wait ${OCF_RESKEY_pid_file}
+        ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} wait ${OCF_RESKEY_pid_file}
         rc=$OCF_SUCCESS
         # Loading enabled modules
         ocf_log info "${LH} start plugins."
