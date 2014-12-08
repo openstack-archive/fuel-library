@@ -46,7 +46,10 @@ class nova::rabbitmq(
   $rabbitmq_class     = 'rabbitmq::server',
   $rabbit_node_ip_address = 'UNSET',
   $ha_mode            = false,
-  $primary_controller = false
+  $primary_controller = false,
+  # FIXME(bogdando) remove HA rabbitmq configuration from nova module
+  #   to papcemaker HA wrappers
+  $command_timeout    = '',
 ) {
 
   # only configure nova after the queue is up
@@ -132,12 +135,13 @@ class nova::rabbitmq(
           provided_by     => 'mirantis',
           primitive_type  => 'rabbitmq-server',
           parameters      => {
-            'node_port'     => $port,
-            #'debug'         => true,
+            'node_port'       => $port,
+            'command_timeout' => $command_timeout
           },
           metadata                 => {
-            'migration-threshold' => 'INFINITY',
-            'failure-timeout'     => '60s'
+             'migration-threshold' => 'INFINITY',
+             'failure-timeout'     => '180s'
+
           },
           complex_type => 'master',
           ms_metadata => {
@@ -159,7 +163,7 @@ class nova::rabbitmq(
               'timeout'  => '60'
             },
             'start' => {
-              'timeout' => '120'
+              'timeout' => '180'
             },
             'stop' => {
               'timeout' => '60'
@@ -171,7 +175,7 @@ class nova::rabbitmq(
               'timeout' => '60'
             },
             'notify' => {
-              'timeout' => '60'
+              'timeout' => '180'
             },
           },
         }
