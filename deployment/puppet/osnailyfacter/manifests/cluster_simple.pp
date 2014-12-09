@@ -321,7 +321,7 @@ class osnailyfacter::cluster_simple {
         command => "bash -c \"source /root/openrc; nova flavor-create --is-public true m1.micro auto 64 0 1\"",
         path    => '/sbin:/usr/sbin:/bin:/usr/bin',
         unless  => 'bash -c "source /root/openrc; nova flavor-list | grep -q m1.micro"',
-        require => [Class['nova'],Class['openstack::auth_file'],Class['keystone']],
+        require => [Class['nova'],Class['openstack::auth_file'],Class['keystone'],Class['nova::keystone::auth']],
       }
 
 
