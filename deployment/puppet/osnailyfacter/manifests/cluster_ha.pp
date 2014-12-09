@@ -605,6 +605,8 @@ class osnailyfacter::cluster_ha {
         Exec<| title=='create-m1.micro-flavor' |>
         Exec<| title=='wait-for-haproxy-nova-backend' |> ->
         Exec<| title=='create-m1.micro-flavor' |>
+        Keystone::Roles::Admin <||> ->
+        Exec<| title=='create-m1.micro-flavor' |>
 
         if ! $::use_neutron {
           nova_floating_range { $floating_ips_range:
