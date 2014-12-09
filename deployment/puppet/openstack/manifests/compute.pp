@@ -584,6 +584,19 @@ on packages update": }
       'DEFAULT/linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
       'DEFAULT/linuxnet_ovs_integration_bridge': value => $quantum_config['L2']['integration_bridge'];
     }
+
+    sysctl::value { 'net.bridge.bridge-nf-call-arptables':
+      value   => '1',
+      require => Service['libvirt'],
+    }
+    sysctl::value { 'net.bridge.bridge-nf-call-iptables':
+      value   => '1',
+      require => Service['libvirt'],
+    }
+    sysctl::value { 'net.bridge.bridge-nf-call-ip6tables':
+      value   => '1',
+      require => Service['libvirt'],
+    }
   }
 
   ####### Disable upstart startup on install #######
