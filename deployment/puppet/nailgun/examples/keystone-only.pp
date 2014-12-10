@@ -49,10 +49,11 @@ case $production {
     }
 
     keystone_user { 'admin':
-      ensure   => present,
-      password => $::fuel_settings['FUEL_ACCESS']['password'],
-      enabled  => 'True',
-      tenant   => 'admin',
+      ensure          => present,
+      password        => $::fuel_settings['FUEL_ACCESS']['password'],
+      enabled         => 'True',
+      tenant          => 'admin',
+      manage_password => 'False',
     }
 
     keystone_user_role { 'admin@admin':
