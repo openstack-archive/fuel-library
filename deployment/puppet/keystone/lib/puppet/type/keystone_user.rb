@@ -62,6 +62,14 @@ Puppet::Type.newtype(:keystone_user) do
     end
   end
 
+  newproperty(:manage_password) do
+    newvalues(/(t|T)rue/, /(f|F)alse/)
+    defaultto('True')
+    munge do |value|
+      value.to_s.capitalize
+    end
+  end
+
   autorequire(:keystone_tenant) do
     self[:tenant]
   end

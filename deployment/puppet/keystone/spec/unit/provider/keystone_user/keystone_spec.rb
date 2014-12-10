@@ -50,4 +50,29 @@ describe provider_class do
     end
   end
 
+  describe 'when updating a user with unmanaged password' do
+    let :resource do
+      Puppet::Type::Keystone_user.new(
+        {
+          :name            => 'foo',
+          :ensure          => 'present',
+          :enabled         => 'True',
+          :tenant          => 'foo2',
+          :email           => 'foo@foo.com',
+          :password        => 'passwd',
+          :manage_password => 'False',
+        }
+      )
+    end
+
+    let :provider do
+      provider_class.new(resource)
+    end
+
+    it 'should not call user-password-update to change password' do
+      provider.expects(:auth_keystone).with('user-password-update', '--pass', 'newpassword', 'id').times(0)
+      provider.password=('newpassword')
+    end
+  end
+
 end
