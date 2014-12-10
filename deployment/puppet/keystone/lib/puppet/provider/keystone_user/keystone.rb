@@ -88,7 +88,7 @@ Puppet::Type.type(:keystone_user).provide(
     begin
       token_out = creds_keystone(resource[:name], resource[:tenant], resource[:password], "token-get")
     rescue Exception => e
-      return nil if e.message =~ /Not Authorized/
+      return nil if e.message =~ /Not Authorized/ or e.message =~ /HTTP 401/
       raise e
     end
     return resource[:password]
