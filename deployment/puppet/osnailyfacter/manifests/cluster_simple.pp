@@ -324,6 +324,9 @@ class osnailyfacter::cluster_simple {
         require => [Class['nova'],Class['openstack::auth_file'],Class['keystone'],Class['nova::keystone::auth']],
       }
 
+      Class['keystone::roles::admin'] ->
+      Exec<| title=='create-m1.micro-flavor' |>
+
 
       if !$::use_neutron {
         $floating_ips_range = $::fuel_settings['floating_network_range']
