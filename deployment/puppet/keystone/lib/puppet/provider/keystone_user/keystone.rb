@@ -95,7 +95,9 @@ Puppet::Type.type(:keystone_user).provide(
   end
 
   def password=(value)
-    auth_keystone('user-password-update', '--pass', value, user_hash[resource[:name]][:id])
+    if resource[:manage_password] == 'True'
+      auth_keystone('user-password-update', '--pass', value, user_hash[resource[:name]][:id])
+    end
   end
 
   def tenant
@@ -135,6 +137,14 @@ Puppet::Type.type(:keystone_user).provide(
     )
   end
 
+  def manage_password
+    user_hash[resource[:name]][:manage_password]
+  end
+
+  def manage_password=(value)
+    user_hash[resource[:name]][:manage_password]
+  end
+
   def id
     user_hash[resource[:name]][:id]
   end
@@ -145,15 +155,18 @@ Puppet::Type.type(:keystone_user).provide(
       hash = {}
       list_keystone_objects('user', 4).each do |user|
         password = 'nil'
+        manage_password = 'True',
         hash[user[1]] = {
-          :id          => user[0],
-          :enabled     => user[2],
-          :email       => user[3],
-          :name        => user[1],
-          :password    => password,
+          :id              => user[0],
+          :enabled         => user[2],
+          :email           => user[3],
+          :name            => user[1],
+          :password        => password,
+          :manage_password => manage_password,
         }
       end
       hash
     end
 
 end
+
