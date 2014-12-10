@@ -589,18 +589,25 @@ on packages update": }
       'DEFAULT/linuxnet_ovs_integration_bridge': value => $neutron_integration_bridge;
     }
 
-    sysctl::value { 'net.bridge.bridge-nf-call-arptables':
-      value   => '1',
-      require => Service['libvirt'],
+    augeas { 'sysctl-net.bridge.bridge-nf-call-arptables':
+      context => '/files/etc/sysctl.conf',
+      onlyif  => "get net.bridge.bridge-nf-call-arptables != '1'",
+      changes => "set net.bridge.bridge-nf-call-arptables '1'",
+      before  => Service['libvirt'],
     }
-    sysctl::value { 'net.bridge.bridge-nf-call-iptables':
-      value   => '1',
-      require => Service['libvirt'],
+    augeas { 'sysctl-net.bridge.bridge-nf-call-iptables':
+      context => '/files/etc/sysctl.conf',
+      onlyif  => "get net.bridge.bridge-nf-call-iptables != '1'",
+      changes => "set net.bridge.bridge-nf-call-iptables '1'",
+      before  => Service['libvirt'],
     }
-    sysctl::value { 'net.bridge.bridge-nf-call-ip6tables':
-      value   => '1',
-      require => Service['libvirt'],
+    augeas { 'sysctl-net.bridge.bridge-nf-call-ip6tables':
+      context => '/files/etc/sysctl.conf',
+      onlyif  => "get net.bridge.bridge-nf-call-ip6tables != '1'",
+      changes => "set net.bridge.bridge-nf-call-ip6tables '1'",
+      before  => Service['libvirt'],
     }
+
   }
 
   ####### Disable upstart startup on install #######
