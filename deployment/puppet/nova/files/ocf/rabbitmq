@@ -439,20 +439,30 @@ join_to_cluster() {
 }
 
 unjoin_nodes_from_cluster() {
+    # node names of the nodes where the pcs resource is being stopped
     local nodelist="$1"
     local hostname
     local nodename
     local rc
     local rnode
+    local alive_node
+    # nodes in rabbit cluster db
     local nodes_in_cluster
+    # running nodes in rabbit cluster
+    local running_nodes
     local LH="${LL} unjoin_nodes_from_cluster():"
 
     nodes_in_cluster=$(get_nodes)
-    if [[ $? != $OCF_SUCCESS ]] ; then
+    rc=$?
+    if [[ $rc != $OCF_SUCCESS ]] ; then
         # no nodes in node list, nothing to do
         return $OCF_SUCCESS
     fi
 
+    running_nodes=$(get_running_nodes)
+
+    # unjoin all cluster nodes which are being stopped (i.e. recieved post-stop notify), except *this* node
+    # before to unjoin the nodes, make sure they were disconnected from all running nodes in cluster!
     for hostname in $nodelist ; do
         nodename=$(rabbit_node_name $hostname)
         if [[ "$nodename" == "$RABBITMQ_NODENAME" ]] ; then
@@ -460,10 +470,23 @@ unjoin_nodes_from_cluster() {
         fi
         for rnode in $nodes_in_cluster ; do
             if [[ "$nodename" == "$rnode" ]] ; then
+                if [[ "$running_nodes" != "" ]]; then
+                    # disconnect node from all running nodes
+                    for alive_node in $running_nodes; do
+                        ocf_run ${OCF_RESKEY_ctl} -n ${alive_node} eval "disconnect_node(list_to_atom(\"${nodename}\"))." 2>&1
+                        rc=$?
+                        if [[ $rc == $OCF_SUCCESS ]] ; then
+                            ocf_log info "${LH} node '${nodename}' disconnected from node '${alive_node}' succesfully."
+                        else
+                            ocf_log info "${LH} disconnecting node '${nodename}' from node '${alive_node}' failed."
+                        fi
+                    done
+                fi
+
                 # unjoin node
                 ocf_run ${OCF_RESKEY_ctl} forget_cluster_node ${nodename} 2>&1
                 rc=$?
-                if [[ $rc == 0 ]] ; then
+                if [[ $rc == $OCF_SUCCESS ]] ; then
                     ocf_log info "${LH} node '${nodename}' unjoined succesfully."
                 else
                     ocf_log info "${LH} unjoining node '${nodename}' failed."
