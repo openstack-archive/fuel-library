@@ -1,0 +1,12 @@
+---
+:backends:
+  - yaml
+
+:hierarchy:
+  - "%{::hiera_data_globals}"
+  - "%{::hiera_data_astute}"
+
+:yaml:
+  :datadir: "%{::hiera_data_path}"
+
+:logger: noop
