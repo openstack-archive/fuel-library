@@ -1,0 +1,609 @@
+---
+tasks:
+- priority: 100
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 200
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/globals/globals.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 300
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/logging/logging.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 400
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 500
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/tools/tools.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 600
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/hosts/hosts.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 700
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/firewall/firewall.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 800
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 900
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 1000
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/virtual_ips/virtual_ips.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 1100
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 1200
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 1300
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/openstack-controller/openstack-controller.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 1400
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/sahara/sahara.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 1500
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/heat/heat.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 1600
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/murano/murano.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 1700
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/swift/swift.pp"
+    timeout: 3600
+    cwd: "/"
+- priority: 1900
+  type: puppet
+  uids:
+  - '7'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/roles/controller.pp"
+    timeout: 3600
+    cwd: "/"
+user_node_name: Untitled (2e:f5)
+uid: '7'
+management_vip: 192.168.0.5
+public_vip: 10.108.1.128
+syslog:
+  syslog_port: '514'
+  syslog_transport: tcp
+  syslog_server: ''
+  metadata:
+    weight: 50
+    label: Syslog
+libvirt_type: qemu
+sahara:
+  db_password: 8BwXDYO9
+  user_password: 5W3lY6Xg
+  enabled: false
+nsx_plugin:
+  replication_mode: true
+  nsx_password: ''
+  nsx_username: admin
+  connector_type: stt
+  packages_url: ''
+  nsx_controllers: ''
+  l3_gw_service_uuid: ''
+  transport_zone_uuid: ''
+  metadata:
+    restrictions:
+    - action: hide
+      condition: cluster:net_provider != 'neutron' or networking_parameters:net_l23_provider
+        != 'nsx'
+    enabled: false
+    weight: 20
+    label: VMware NSX
+mysql:
+  root_password: QyL9gLnD
+  wsrep_password: GYYxevP3
+fail_if_error: true
+use_cow_images: true
+glance:
+  image_cache_max_size: '13868466176'
+  user_password: KXMa0P3N
+  db_password: GE9QzO7k
+cobbler:
+  profile: ubuntu_1204_x86_64
+mongo:
+  enabled: false
+quantum_settings:
+  database:
+    passwd: GwEKBfl1
+  keystone:
+    admin_password: 61d3YJq0
+  L3:
+    use_namespaces: true
+  L2:
+    phys_nets:
+      physnet2:
+        bridge: br-prv
+        vlan_range: 500:530
+    base_mac: fa:16:3e:00:00:00
+    segmentation_type: vlan
+  predefined_networks:
+    net04_ext:
+      shared: false
+      L2:
+        network_type: local
+        router_ext: true
+        physnet: 
+        segment_id: 
+      L3:
+        nameservers: []
+        subnet: 10.108.1.0/24
+        floating: 10.108.1.201:10.108.1.254
+        gateway: 10.108.1.1
+        enable_dhcp: false
+      tenant: admin
+    net04:
+      shared: false
+      L2:
+        network_type: vlan
+        router_ext: false
+        physnet: physnet2
+        segment_id: 
+      L3:
+        nameservers:
+        - 8.8.4.4
+        - 8.8.8.8
+        subnet: 192.168.111.0/24
+        floating: 
+        gateway: 192.168.111.1
+        enable_dhcp: true
+      tenant: admin
+  metadata:
+    metadata_proxy_shared_secret: yQqafQpJ
+use_vcenter: false
+openstack_version: 2014.2-6.1
+disable_offload: true
+nova_quota: false
+provision:
+  image_data:
+    "/boot":
+      container: gzip
+      uri: http://10.108.0.2:8080/targetimages/ubuntu_1204_amd64-boot.img.gz
+      format: ext2
+    "/":
+      container: gzip
+      uri: http://10.108.0.2:8080/targetimages/ubuntu_1204_amd64.img.gz
+      format: ext4
+  method: cobbler
+  metadata:
+    restrictions:
+    - action: hide
+      condition: not ('experimental' in version:feature_groups)
+    weight: 80
+    label: Provision
+resume_guests_state_on_host_boot: true
+storage:
+  iser: false
+  volumes_ceph: false
+  objects_ceph: false
+  vc_datacenter: ''
+  vc_user: ''
+  volumes_lvm: true
+  volumes_vmdk: false
+  vc_datastore: ''
+  images_vcenter: false
+  vc_host: ''
+  vc_image_dir: "/openstack_glance"
+  osd_pool_size: '2'
+  pg_num: 128
+  images_ceph: false
+  vc_password: ''
+  ephemeral_ceph: false
+  metadata:
+    weight: 60
+    label: Storage
+nova:
+  db_password: scWzQXVX
+  user_password: jCXOJ22V
+  state_path: "/var/lib/nova"
+master_ip: 10.108.0.2
+priority: 100
+external_dns:
+  dns_list: 8.8.8.8, 8.8.4.4
+  metadata:
+    weight: 90
+    label: Upstream DNS
+murano:
+  db_password: eKDdH8wr
+  user_password: ZzDd0q6E
+  enabled: false
+  rabbit_password: yFxfN5W1
+role: primary-controller
+external_mongo:
+  mongo_db_name: ceilometer
+  mongo_replset: ''
+  mongo_user: ceilometer
+  hosts_ip: ''
+  mongo_password: ceilometer
+  metadata:
+    restrictions:
+    - action: hide
+      condition: settings:additional_components.mongo.value == false
+    weight: 20
+    label: External MongoDB
+online: true
+keystone:
+  db_password: 5IoN80WB
+  admin_token: iBClj3a9
+vcenter:
+  datastore_regex: ''
+  vlan_interface: ''
+  vc_user: ''
+  host_ip: ''
+  cluster: ''
+  vc_password: ''
+  metadata:
+    restrictions:
+    - action: hide
+      condition: settings:common.libvirt_type.value != 'vcenter'
+    weight: 20
+    label: vCenter
+auto_assign_floating_ip: false
+ceilometer:
+  db_password: PgHWp0vJ
+  user_password: S1yPZLFI
+  metering_secret: U6haU1gS
+  enabled: false
+external_ntp:
+  ntp_list: 0.pool.ntp.org, 1.pool.ntp.org
+  metadata:
+    weight: 100
+    label: Upstream NTP
+metadata:
+  weight: 30
+  label: Common
+status: discover
+deployment_mode: ha_compact
+puppet_manifests_source: rsync://10.108.0.2:/puppet/2014.2-6.1/manifests/
+network_scheme:
+  transformations:
+  - action: add-br
+    name: br-eth0
+  - action: add-port
+    bridge: br-eth0
+    name: eth0
+  - action: add-br
+    name: br-eth1
+  - action: add-port
+    bridge: br-eth1
+    name: eth1
+  - action: add-br
+    name: br-eth2
+  - action: add-port
+    bridge: br-eth2
+    name: eth2
+  - action: add-br
+    name: br-eth3
+  - action: add-port
+    bridge: br-eth3
+    name: eth3
+  - action: add-br
+    name: br-eth4
+  - action: add-port
+    bridge: br-eth4
+    name: eth4
+  - action: add-br
+    name: br-ex
+  - action: add-br
+    name: br-mgmt
+  - action: add-br
+    name: br-storage
+  - action: add-br
+    name: br-fw-admin
+  - action: add-patch
+    bridges:
+    - br-eth3
+    - br-storage
+    vlan_ids:
+    - 202
+    - 0
+    tags:
+    - 202
+    - 0
+  - action: add-patch
+    bridges:
+    - br-eth2
+    - br-mgmt
+    vlan_ids:
+    - 201
+    - 0
+    tags:
+    - 201
+    - 0
+  - action: add-patch
+    bridges:
+    - br-eth0
+    - br-fw-admin
+    trunks:
+    - 0
+  - action: add-patch
+    bridges:
+    - br-eth1
+    - br-ex
+    trunks:
+    - 0
+  - action: add-br
+    name: br-prv
+  - action: add-patch
+    bridges:
+    - br-eth4
+    - br-prv
+  roles:
+    management: br-mgmt
+    storage: br-storage
+    ex: br-ex
+    private: br-prv
+    fw-admin: br-fw-admin
+  interfaces:
+    eth4:
+      L2:
+        vlan_splinters: 'off'
+    eth3:
+      L2:
+        vlan_splinters: 'off'
+    eth2:
+      L2:
+        vlan_splinters: 'off'
+    eth1:
+      L2:
+        vlan_splinters: 'off'
+    eth0:
+      L2:
+        vlan_splinters: 'off'
+  version: '1.0'
+  provider: ovs
+  endpoints:
+    br-fw-admin:
+      IP:
+      - 10.108.0.3/24
+      other_nets:
+      - 10.108.0.0/24
+    br-storage:
+      IP:
+      - 192.168.1.4/24
+      other_nets: []
+    br-ex:
+      IP:
+      - 10.108.1.129/24
+      other_nets: []
+      gateway: 10.108.1.1
+      default_gateway: true
+    br-mgmt:
+      IP:
+      - 192.168.0.6/24
+      other_nets: []
+    br-prv:
+      IP: none
+heat:
+  db_password: PSmkCwKy
+  user_password: 3m9nCdNr
+  enabled: true
+  auth_encryption_key: 05ed7e8d2155a25a5a4e382b6d6f3803
+  rabbit_password: AFhvSpV8
+test_vm_image:
+  os_name: cirros
+  img_path: "/usr/share/cirros-testvm/cirros-x86_64-disk.img"
+  container_format: bare
+  min_ram: 64
+  disk_format: qcow2
+  glance_properties: '--property murano_image_info=''{"title": "Murano Demo", "type":
+    "cirros.demo"}'''
+  img_name: TestVM
+  public: 'true'
+fuel_version: '6.1'
+rabbit:
+  password: dUFwxhvg
+public_network_assignment:
+  assign_to_all_nodes: false
+  metadata:
+    restrictions:
+    - action: hide
+      condition: cluster:net_provider != 'neutron'
+    weight: 50
+    label: Public network assignment
+use_cinder: true
+management_network_range: 192.168.0.0/24
+nodes:
+- user_node_name: Untitled (2e:f5)
+  uid: '7'
+  public_address: 10.108.1.129
+  internal_netmask: 255.255.255.0
+  fqdn: node-7.test.domain.local
+  role: primary-controller
+  public_netmask: 255.255.255.0
+  internal_address: 192.168.0.6
+  storage_address: 192.168.1.4
+  swift_zone: '7'
+  storage_netmask: 255.255.255.0
+  name: node-7
+- user_node_name: Untitled (c3:27)
+  uid: '8'
+  internal_netmask: 255.255.255.0
+  fqdn: node-8.test.domain.local
+  role: cinder
+  internal_address: 192.168.0.7
+  storage_address: 192.168.1.5
+  swift_zone: '8'
+  storage_netmask: 255.255.255.0
+  name: node-8
+- user_node_name: Untitled (c3:27)
+  uid: '8'
+  internal_netmask: 255.255.255.0
+  fqdn: node-8.test.domain.local
+  role: compute
+  internal_address: 192.168.0.7
+  storage_address: 192.168.1.5
+  swift_zone: '8'
+  storage_netmask: 255.255.255.0
+  name: node-8
+base_syslog:
+  syslog_port: '514'
+  syslog_server: 10.108.0.2
+storage_network_range: 192.168.1.0/24
+swift:
+  user_password: wtNRxBYW
+auth_key: ''
+corosync:
+  verified: false
+  group: 226.94.1.1
+  port: '12000'
+  metadata:
+    restrictions:
+    - action: hide
+      condition: 'true'
+    weight: 50
+    label: Corosync
+repo_metadata:
+  2014.2-6.1: http://10.108.0.2:8080/2014.2-6.1/ubuntu/x86_64 precise main
+quantum: true
+access:
+  user: admin
+  password: admin
+  email: admin@localhost
+  tenant: admin
+  metadata:
+    weight: 10
+    label: Access
+last_controller: node-7
+fqdn: node-7.test.domain.local
+kernel_params:
+  kernel: console=ttyS0,9600 console=tty0 rootdelay=90 nomodeset
+  metadata:
+    weight: 40
+    label: Kernel parameters
+zabbix:
+  username: admin
+  db_password: pDa0LqsX
+  password: zabbix
+  metadata:
+    restrictions:
+    - action: hide
+      condition: not ('experimental' in version:feature_groups)
+    weight: 70
+    label: Zabbix Access
+  db_root_password: v2GpT8XX
+mp:
+- weight: '1'
+  point: '1'
+- weight: '2'
+  point: '2'
+neutron_mellanox:
+  vf_num: '16'
+  plugin: disabled
+  metadata:
+    enabled: true
+    weight: 50
+    toggleable: false
+    label: Mellanox Neutron components
+puppet_modules_source: rsync://10.108.0.2:/puppet/2014.2-6.1/modules/
+debug: false
+cinder:
+  db_password: O0X1blKL
+  user_password: 78vCCbG1
+deployment_id: 4
+openstack_version_prev: 
