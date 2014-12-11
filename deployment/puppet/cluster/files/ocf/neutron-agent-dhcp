@@ -41,6 +41,7 @@ OCF_RESKEY_plugin_config_default="/etc/neutron/dhcp_agent.ini"
 OCF_RESKEY_log_file_default="/var/log/neutron/dhcp-agent.log"
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
+OCF_RESKEY_failcount_report_file_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}_failcount_report.yaml"
 OCF_RESKEY_amqp_server_port_default="5672" # or "none" for disable checking
 OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
 OCF_RESKEY_username_default="neutron"
@@ -49,6 +50,7 @@ OCF_RESKEY_tenant_default="services"
 OCF_RESKEY_multiple_agents_default='true'
 OCF_RESKEY_rescheduling_tries_default=5
 OCF_RESKEY_rescheduling_interval_default=33
+OCF_RESKEY_critical_failcount_dnsmasq_default=5
 OCF_RESKEY_debug_default='false'
 
 
@@ -62,12 +64,14 @@ OCF_RESKEY_debug_default='false'
 : ${OCF_RESKEY_plugin_config=${OCF_RESKEY_plugin_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_failcount_report_file=${OCF_RESKEY_failcount_report_file_default}}
 : ${OCF_RESKEY_multiple_agents=${OCF_RESKEY_multiple_agents_default}}
 : ${OCF_RESKEY_amqp_server_port=${OCF_RESKEY_amqp_server_port_default}}
 : ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
 : ${OCF_RESKEY_rescheduling_tries=${OCF_RESKEY_rescheduling_tries_default}}
 : ${OCF_RESKEY_rescheduling_interval=${OCF_RESKEY_rescheduling_interval_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
+: ${OCF_RESKEY_critical_failcount_dnsmasq=${OCF_RESKEY_critical_failcount_dnsmasq_default}}
 
 
 
@@ -160,6 +164,14 @@ The pid file to use for this OpenStack DHCP Service (${OCF_RESKEY_binary}) insta
 <content type="string" default="${OCF_RESKEY_pid_default}" />
 </parameter>
 
+<parameter name="failcount_report_file" unique="0" required="0">
+<longdesc lang="en">
+File for store failcount information for 2-nd level monitors
+</longdesc>
+<shortdesc lang="en">File for store failcount information for 2-nd level monitors</shortdesc>
+<content type="string" default="${OCF_RESKEY_failcount_report_file_default}" />
+</parameter>
+
 <parameter name="amqp_server_port" unique="0" required="0">
 <longdesc lang="en">
 The listening port number of the AMQP server.
@@ -215,7 +227,7 @@ Admin tenant name
   Tries to start rescheduling script after start of agent.
   </longdesc>
   <shortdesc lang="en">Tries to start rescheduling script after start of agent.</shortdesc>
-  <content type="boolean" default="${OCF_RESKEY_rescheduling_tries_default}"/>
+  <content type="string" default="${OCF_RESKEY_rescheduling_tries_default}"/>
 </parameter>
 
 <parameter name="rescheduling_interval" unique="0" required="0">
@@ -223,7 +235,15 @@ Admin tenant name
   Interval between starts of rescheduling script.
   </longdesc>
   <shortdesc lang="en">Interval between starts of rescheduling script.</shortdesc>
-  <content type="boolean" default="${OCF_RESKEY_rescheduling_interval_default}"/>
+  <content type="string" default="${OCF_RESKEY_rescheduling_interval_default}"/>
+</parameter>
+
+<parameter name="critical_failcount_dnsmasq" unique="0" required="0">
+  <longdesc lang="en">
+  Count of fails while dnsmasq count check for restart RA.
+  </longdesc>
+  <shortdesc lang="en">Count of fails while dnsmasq count check for restart RA.</shortdesc>
+  <content type="string" default="${OCF_RESKEY_critical_failcount_dnsmasq_default}"/>
 </parameter>
 
 <parameter name="additional_parameters" unique="0" required="0">
@@ -404,10 +424,84 @@ clean_up_namespaces() {
     fi
 }
 
+check_failcount_file() {
+    if [[ ! -f $OCF_RESKEY_failcount_report_file ]] ; then
+        echo "failcount_dhcp: 0" >> $OCF_RESKEY_failcount_report_file
+        echo "failcount_metadata: 0" >> $OCF_RESKEY_failcount_report_file
+    fi
+}
+
+monitor_dnsmasq_failcount() {
+    local API_calls=4
+    local tmpdir=$(mktemp -d)
+    #local netns_file="$tmpdir/netns.txt"
+    local dnsmasq_plist_file="$tmpdir/dnsmasqs.txt"
+    local net_file="$tmpdir/networks.txt"
+    local subnet_file="$tmpdir/subnets.txt"
+    local hostname=$(hostname -s)
+    local API_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)/$API_calls))
+
+    check_failcount_file
+
+    source /root/openrc
+    # get agent ID
+    local agent_id=$(timeout -sKILL $API_timeout neutron agent-list | grep -iE 'DHCP\s+agent' | grep "$hostname" | awk -F\| '{print $2}' | tr -d '[:space:]')
+    if [[ -z $agent_id ]] ; then
+        return $OCF_SUCCESS
+    fi
+    # get netns list for this agent
+    #ip netns list | grep 'qdhcp-' > $netns_file
+    # get dnsmasq processlist
+    ps axwww | grep -E '\s+dnsmasq\s+.*\s+--conf-file=\s+' > $dnsmasq_plist_file
+    # get network list for this agent
+    timeout -sKILL $API_timeout neutron net-list-on-dhcp-agent -c id -c admin_state_up $agent_id | grep -i 'true' |  awk -F\| '{print $2}' | tr -d ' ' > $net_file
+    # get subnets list (in format network_id | use_dhcp | subnet_id)
+    timeout -sKILL $API_timeout neutron subnet-list -c network_id -c enable_dhcp -c id | grep -vE '\+|\|\s+id\s+|False' > $subnet_file
+    # calculate dnsmasq list
+    dnsmasq_should_be__count=0
+    dnsmasq_in_real__count=0
+    for net_id in $(cat $net_file) ; do
+        i=$(grep -c $net_id $subnet_file)
+        if [[ $i -gt 0 ]] ; then
+            ((dnsmasq_should_be__count++))
+            grep "dhcp/$net_id/pid" $dnsmasq_plist_file > /dev/null ; rc=$?
+            if [[ $rc == 0 ]] ; then
+                ((dnsmasq_in_real__count++))
+            else
+                ocf_log warn "Dnsmasq process for network '$net_id' not running."
+            fi
+        fi
+    done
+    if [[ $dnsmasq_should_be__count != $dnsmasq_in_real__count ]] ; then
+        i=$(cat $OCF_RESKEY_failcount_report_file | grep 'failcount_dhcp:' | awk '{print $2}')
+        ((i++))
+        ocf_run sed -i "s/.*failcount_dhcp:.*/failcount_dhcp: $i/" $OCF_RESKEY_failcount_report_file
+        ocf_log warn "Should be found $dnsmasq_should_be__count running dnsmasq processes, but running only $dnsmasq_in_real__count"
+    else
+        ocf_log info "Found $dnsmasq_should_be__count running dnsmasq processes."
+        ocf_run sed -i "s/.*failcount_dhcp:.*/failcount_dhcp: 0/" $OCF_RESKEY_failcount_report_file
+    fi
+    ocf_run rm -rf $tmpdir
+    return $OCF_SUCCESS
+}
+
 neutron_dhcp_agent_monitor() {
     local rc
     local pid
     local network_amqp_check
+
+    if [[ "${OCF_RESKEY_CRM_meta_OCF_CHECK_LEVEL}" == "FAILCOUNT_DHCP" ]] ; then
+        monitor_dnsmasq_failcount
+        return $OCF_SUCCESS
+    fi
+
+    # check collected failcounts
+    local dnsmasq_failcount=$(cat $OCF_RESKEY_failcount_report_file | grep 'failcount_dhcp:' | awk '{print $2}')
+    if [[ $dnsmasq_failcount -ge $OCF_RESKEY_critical_failcount_dnsmasq ]] ; then
+        ocf_run sed -i "s/.*failcount_dhcp:.*/failcount_dhcp: 0/" $OCF_RESKEY_failcount_report_file
+        ocf_log err "Dnsmasq failcount ($dnsmasq_failcount) is huge, need restart."
+        return $OCF_NOT_RUNNING
+    fi
 
     neutron_dhcp_agent_status
     rc=$?
