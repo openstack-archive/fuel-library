@@ -23,7 +23,7 @@ function show_usage {
   echo "Usage:"
   echo "  $0 command"
   echo
-  echo "Available commands: (Note: work in progress)"
+  echo "Available commands:"
   echo "  help: show this message"
   echo "  build: create all Docker containers"
   echo "  list: list container short names (-l for more output)"
@@ -36,8 +36,8 @@ function show_usage {
   echo "  destroy: destroy one or more containers"
   echo "  copy: copy files in or out of container"
   echo "  check: check of container is ready"
-  echo "  backup: back up entire deployment"
-  echo "  restore: restore backed up deployment"
+  echo "  backup: back up entire deployment (--full to include containers, puppet and repos)"
+  echo "  restore: restore backed up deployment (--full includes containers)"
 }
 
 function parse_options {
@@ -490,27 +490,44 @@ function copy_files {
 function backup {
   set -e
   trap backup_fail EXIT
+
+  if [ "$1" == "--full" ]; then
+    fullbackup=1
+    shift
+  elif [ "$2" == "--full" ]; then
+    fullbackup=1
+  fi
+
   backup_id=$(date +%F_%H%S)
   use_rsync=0
   #Sets backup_dir
   parse_backup_dir $1
-  [[ "$backup_dir" =~ var ]] && verify_disk_space "backup"
+  mkdir -p $SYSTEM_DIRS $backup_dir
+  [[ "$backup_dir" =~ var ]] && [[ "$fullbackup" == "1" ]] && verify_disk_space "backup"
   if check_nailgun_tasks; then
     echo "There are currently running Fuel tasks. Please wait for them to \
 finish or cancel them." 1>&2
     exit 1
   fi
-  backup_containers "$backup_id"
-  backup_system_dirs
+  if [[ "$fullbackup" == "1" ]]; then
+    backup_containers "$backup_id"
+    backup_system_dirs --full
+  else
+    backup_system_dirs
+  fi
+  backup_postgres_db
   backup_compress
   [ $use_rsync -eq 1 ] && backup_rsync_upload $rsync_dest $backup_dir
   backup_cleanup $backup_dir
   echo "Backup complete. File is available at $backup_dir/fuel_backup${image_suffix}.tar.lrz"
+  #remove trap
+  trap - EXIT
 }
 
 function backup_fail {
+  exit_code=$?
   echo "Backup failed!" 1>&2
-  exit 1
+  exit $exit_code
 }
 
 function parse_backup_dir {
@@ -558,16 +575,20 @@ function backup_containers {
     ${DOCKER} rmi "${container_image}"
   done < <(${DOCKER} ps -aq)
 }
-
-function backup_system_dirs {
-  echo "Archiving system folders"
-  tar cf $backup_dir/system-dirs.tar -C / $SYSTEM_DIRS
+function backup_postgres_db {
+  if [ -n "$1" ];then
+    dst=$1
+  else
+    dst="$backup_dir/postgres_backup.sql"
+  fi
+  echo "Backing up PostgreSQL database to ${dst}..."
+  shell_container postgres su postgres -c 'pg_dumpall --clean' > "$dst"
 }
 
 function backup_compress {
   echo "Compressing archives..."
   component_tars=($backup_dir/*.tar)
-  ( cd $backup_dir && tar cf $backup_dir/fuel_backup${image_suffix}.tar *.tar )
+  ( cd $backup_dir && tar cf $backup_dir/fuel_backup${image_suffix}.tar *.tar *.sql)
   rm -rf "${component_tars[@]}"
   #Improve compression on bare metal
   if [ -z "$(virt-what)" ] ; then
@@ -603,6 +624,10 @@ function restore {
 #TODO(mattymo): Optionally not include system dirs during restore
 #TODO(mattymo): support remote file such as ssh://user@myhost/backup.tar.lrz
 #               or http://myhost/backup.tar.lrz
+  if [ "$2" == "--full" ]; then
+    fullrestore=1
+  fi
+
   set -e
   trap restore_fail EXIT
   if check_nailgun_tasks; then
@@ -630,20 +655,25 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
   fi
   restoredir="$BACKUP_ROOT/restore-$timestamp/"
   disable_supervisor
+  if [ "$fullrestore" == "1" ]; then
+    echo "Stopping and destroying existing containers..."
+    destroy_container all
+  else
+    echo "Stopping containers..."
+    stop_container all
+  fi
   unpack_archive "$backupfile" "$restoredir"
-  restore_images "$restoredir"
-  rename_images "$timestamp"
+  [ "$fullrestore" == "1" ] && restore_images "$restoredir"
+  [ "$fullrestore" == "1" ] && rename_images "$timestamp"
   restore_systemdirs "$restoredir"
-  echo "Stopping and destroying existing containers..."
-  destroy_container all
-  echo "Preparing storage containers..."
-  run_storage_containers
-  echo "Starting application containers..."
+  echo "Starting containers..."
   start_container all
   enable_supervisor
   for container in $CONTAINER_SEQUENCE; do
     check_ready $container
   done
+  #remove trap
+  trap - EXIT
 }
 
 function restore_fail {
