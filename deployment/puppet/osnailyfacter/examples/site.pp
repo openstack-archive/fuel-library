@@ -154,6 +154,10 @@ class os_common {
       class {'osnailyfacter::network_setup': stage => 'netconfig'}
   }
 
+  if ($::osfamily == 'RedHat') {
+    package {'irqbalance': ensure => present} -> service {'irqbalance': ensure => running }
+  }
+
   class { 'openstack::firewall':
     stage => 'openstack-firewall',
     nova_vnc_ip_range => $::fuel_settings['management_network_range'],
