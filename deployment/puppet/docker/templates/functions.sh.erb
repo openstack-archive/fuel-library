@@ -567,6 +567,25 @@ function copy_files {
   fi
 }
 
+function stateful_backup {
+  backup_id=$(date +%F_%H%S)
+  use_rsync=0
+  #Sets backup_dir
+  parse_backup_dir $1
+  # Backs up only stateful container data
+  if check_nailgun_tasks; then
+    echo "There are currently running Fuel tasks. Please wait for them to \
+finish or cancel them." 1>&2
+    exit 1
+  fi
+  backup_stateful_containers "$backup_id"
+  backup_system_dirs stateful_only
+  backup_compress
+  [ $use_rsync -eq 1 ] && backup_rsync_upload $rsync_dest $backup_dir           
+  backup_cleanup $backup_dir                                                    
+  echo "Backup complete. File is available at $backup_dir/fuel_backup${image_suffix}.tar.lrz"
+}
+
 function backup {
   backup_id=$(date +%F_%H%S)
   use_rsync=0
@@ -630,9 +649,64 @@ function backup_containers {
   done < <(${DOCKER} ps -aq)
 }
 
+function backup_stateful_containers {
+#Backs up data from stateful containers
+
+  image_suffix="_$1"
+  purge_images=0
+
+  mkdir -p $backup_dir/data
+  for container in $CONTAINERS; do
+    case $container in
+      postgres) backup_postgres
+                ;;
+      cobbler)  backup_cobbler
+                ;;
+      astute)   backup_astute
+                ;;
+      *)        debug "No stateful data to back up for container $container"
+                ;;
+    esac
+  done
+  echo "Stateful backup complete!"
+}
+
+function backup_postgres {
+  shell_container postgres 'su postgres -c "pg_dumpall --clean"' | gzip > $backup_dir/postgres_backup.sql.gz
+}
+function backup_cobbler {
+  mkdir -p $backup_dir/cobbler
+  copy_files "cobbler:/var/lib/cobbler/config" $backup_dir/cobbler/
+}
+
+function backup_astute {
+  mkdir -p $backup_dir/astute
+  copy_files "astute:/var/lib/astute/" $backup_dir/astute/
+}
+
+function restore_postgres {
+  gunzip $restore_dir/postgres_backup.sql > $restore_dir/postgres_backup.sql
+  copy_files $restore_dir/postgres_backup.sql postgres:/tmp/postgres_backup.sql
+  shell_container postgres 'su postgres -c "psql -f /tmp/postgres_backup.sql"'
+}
+
+function restore_cobbler {
+  copy_files $restore_dir/cobbler/config cobbler:/var/lib/cobbler/config
+  shell_container cobbler "cobbler sync"
+}
+
+function restore_astute {
+  copy_files $restore_dir/astute/ astute:/var/lib/astute/
+  shell_container astute "supervisorctl restart astute"
+}
+
 function backup_system_dirs {
   echo "Archiving system folders"
-  tar cf $backup_dir/system-dirs.tar -C / $SYSTEM_DIRS
+  if [ "$1" = "stateful-only" ];then
+    tar cf $backup_dir/system-dirs.tar -C / $STATEFUL_SYSTEM_DIRS
+  else
+    tar cf $backup_dir/system-dirs.tar -C / $SYSTEM_DIRS
+  fi
 }
 
 function backup_compress {
@@ -668,6 +742,41 @@ function check_nailgun_tasks {
   shell_container nailgun fuel task &> /dev/null || return 1
   shell_container nailgun fuel task | grep -q running &> /dev/null
   return $?
+}
+
+function restore_stateful {
+  if check_nailgun_tasks; then
+    echo "There are currently running Fuel tasks. Please wait for them to \
+finish or cancel them. Run \"fuel task list\" for more details." 1>&2
+    exit 1
+  fi
+  backupfile=$1
+  if [ -z "$backupfile" ]; then
+    #TODO(mattymo): Parse BACKUP_DIR for lrz files
+    echo "Specify a backup file to restore" 1>&2
+    exit 1
+  elif ! [ -f "$backupfile" ]; then
+    echo "Archive does not exist: $backupfile" 1>&2
+    exit 1
+  elif ! [[ "$backupfile" =~ lrz$ ]]; then
+    echo "Archive does not have lrz extension." 1>&2
+    exit 2
+  fi
+  timestamp=$(echo $backupfile | sed -n 's/.*\([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9][0-9][0-9]\).*/\1/p')
+  if [ -z "$timestamp" ]; then
+    echo "Unable to parse timestamp in archive." 1>&2
+    exit 3
+  fi
+  restoredir="$BACKUP_ROOT/restore-$timestamp/"
+  unpack_archive "$backupfile" "$restoredir"
+  restore_stateful_containerss "$restoredir"
+  restore_systemdirs "$restoredir" stateful-only
+  restart_container keystone
+  restart_container nailgun
+  restart_container ostf
+  for container in $CONTAINER_SEQUENCE; do
+    check_ready $container
+  done
 }
 
 function restore {
