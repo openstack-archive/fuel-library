@@ -564,6 +564,24 @@ function copy_files {
   fi
 }
 
+function stateful_backup {
+  backup_id=$(date +%F_%H%S)
+  use_rsync=0
+  #Sets backup_dir
+  parse_backup_dir $1
+  # Backs up only stateful container data
+  if check_nailgun_tasks; then
+    echo "There are currently running Fuel tasks. Please wait for them to \
+finish or cancel them." 1>&2
+    exit 1
+  fi
+  backup_system_dirs
+  backup_compress
+  [ $use_rsync -eq 1 ] && backup_rsync_upload $rsync_dest $backup_dir
+  backup_cleanup $backup_dir
+  echo "Backup complete. File is available at $backup_dir/fuel_backup${image_suffix}.tar.lrz"
+}
+
 function backup {
   backup_id=$(date +%F_%H%S)
   use_rsync=0
@@ -665,6 +683,39 @@ function check_nailgun_tasks {
   shell_container nailgun fuel task &> /dev/null || return 1
   shell_container nailgun fuel task | grep -q running &> /dev/null
   return $?
+}
+
+function restore_stateful {
+  if check_nailgun_tasks; then
+    echo "There are currently running Fuel tasks. Please wait for them to \
+finish or cancel them. Run \"fuel task list\" for more details." 1>&2
+    exit 1
+  fi
+  backupfile=$1
+  if [ -z "$backupfile" ]; then
+    #TODO(mattymo): Parse BACKUP_DIR for lrz files
+    echo "Specify a backup file to restore" 1>&2
+    exit 1
+  elif ! [ -f "$backupfile" ]; then
+    echo "Archive does not exist: $backupfile" 1>&2
+    exit 1
+  elif ! [[ "$backupfile" =~ lrz$ ]]; then
+    echo "Archive does not have lrz extension." 1>&2
+    exit 2
+  fi
+  timestamp=$(echo $backupfile | sed -n 's/.*\([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9][0-9][0-9]\).*/\1/p')
+  if [ -z "$timestamp" ]; then
+    echo "Unable to parse timestamp in archive." 1>&2
+    exit 3
+  fi
+  restoredir="$BACKUP_ROOT/restore-$timestamp/"
+  unpack_archive "$backupfile" "$restoredir"
+  stop_container keystone nailgun ostf postgres
+  restore_systemdirs "$restoredir" stateful-only
+  start_container postgres keystone nailgun ostf
+  for container in $CONTAINER_SEQUENCE; do
+    check_ready $container
+  done
 }
 
 function restore {
