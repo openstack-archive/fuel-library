@@ -185,6 +185,7 @@ class neutron::agents::ml2::ovs (
       'ovs/enable_tunneling': value => true;
       'ovs/tunnel_bridge':    value => $tunnel_bridge;
       'ovs/local_ip':         value => $local_ip;
+      'agent/dont_fragment':  value => false;
     }
 
     if size($tunnel_types) > 0 {
