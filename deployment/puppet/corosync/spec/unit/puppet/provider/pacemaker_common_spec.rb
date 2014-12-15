@@ -179,7 +179,7 @@ describe Puppet::Provider::Pacemaker_common do
 
   context 'constraints control' do
     it 'can add location constraint' do
-      @class.expects(:pcs).with 'constraint', 'location', 'add', 'myprimitive_on_mynode', 'myprimitive', 'mynode', '200'
+      @class.expects(:cibadmin).returns(true)
       @class.constraint_location_add 'myprimitive', 'mynode', '200'
     end
 
