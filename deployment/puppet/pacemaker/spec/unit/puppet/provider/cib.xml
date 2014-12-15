@@ -123,7 +123,7 @@
         <meta_attributes id="clone_p_neutron-plugin-openvswitch-agent-meta_attributes">
           <nvpair id="clone_p_neutron-plugin-openvswitch-agent-meta_attributes-interleave" name="interleave" value="true"/>
         </meta_attributes>
-        <primitive class="ocf" id="p_neutron-plugin-openvswitch-agent" provider="mirantis" type="neutron-agent-ovs">
+        <primitive class="ocf" id="p_neutron-plugin-openvswitch-agent" provider="mirantis" type="ocf-neutron-agent-ovs">
           <instance_attributes id="p_neutron-plugin-openvswitch-agent-instance_attributes">
             <nvpair id="p_neutron-plugin-openvswitch-agent-instance_attributes-plugin_config" name="plugin_config" value="/etc/neutron/plugin.ini"/>
           </instance_attributes>
@@ -134,7 +134,7 @@
           </operations>
         </primitive>
       </clone>
-      <primitive class="ocf" id="p_neutron-dhcp-agent" provider="mirantis" type="neutron-agent-dhcp">
+      <primitive class="ocf" id="p_neutron-dhcp-agent" provider="mirantis" type="ocf-neutron-agent-dhcp">
         <instance_attributes id="p_neutron-dhcp-agent-instance_attributes">
           <nvpair id="p_neutron-dhcp-agent-instance_attributes-os_auth_url" name="os_auth_url" value="http://10.108.2.2:35357/v2.0"/>
           <nvpair id="p_neutron-dhcp-agent-instance_attributes-amqp_server_port" name="amqp_server_port" value="5673"/>
@@ -166,7 +166,7 @@
         <meta_attributes id="clone_p_neutron-metadata-agent-meta_attributes">
           <nvpair id="clone_p_neutron-metadata-agent-meta_attributes-interleave" name="interleave" value="true"/>
         </meta_attributes>
-        <primitive class="ocf" id="p_neutron-metadata-agent" provider="mirantis" type="neutron-agent-metadata">
+        <primitive class="ocf" id="p_neutron-metadata-agent" provider="mirantis" type="ocf-neutron-agent-metadata">
           <operations>
             <op id="p_neutron-metadata-agent-monitor-60" interval="60" name="monitor" timeout="10"/>
             <op id="p_neutron-metadata-agent-start-0" interval="0" name="start" timeout="30"/>
@@ -178,7 +178,7 @@
         <meta_attributes id="clone_p_neutron-l3-agent-meta_attributes">
           <nvpair id="clone_p_neutron-l3-agent-meta_attributes-interleave" name="interleave" value="true"/>
         </meta_attributes>
-        <primitive class="ocf" id="p_neutron-l3-agent" provider="mirantis" type="neutron-agent-l3">
+        <primitive class="ocf" id="p_neutron-l3-agent" provider="mirantis" type="ocf-neutron-agent-l3">
           <instance_attributes id="p_neutron-l3-agent-instance_attributes">
             <nvpair id="p_neutron-l3-agent-instance_attributes-os_auth_url" name="os_auth_url" value="http://10.108.2.2:35357/v2.0"/>
             <nvpair id="p_neutron-l3-agent-instance_attributes-multiple_agents" name="multiple_agents" value="true"/>
@@ -310,7 +310,7 @@
       </transient_attributes>
       <lrm id="node-1">
         <lrm_resources>
-          <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="neutron-agent-ovs" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="ocf-neutron-agent-ovs" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_failure_0" operation_key="p_neutron-plugin-openvswitch-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="14:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;14:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="269" rc-code="0" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="17" queue-time="0" op-digest="424153f43b0852bb5bccdf71f34784d4"/>
             <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_monitor_20000" operation_key="p_neutron-plugin-openvswitch-agent_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="56:95:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;56:95:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="272" rc-code="0" op-status="0" interval="20000" last-rc-change="1415124890" exec-time="18" queue-time="0" op-digest="cb8604dd2f221b4ea8d2b0670feb8819"/>
           </lrm_resource>
@@ -333,12 +333,12 @@
             <lrm_rsc_op id="ping_vip__public_last_0" operation_key="ping_vip__public_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="4:11:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;4:11:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="25" rc-code="0" op-status="0" interval="0" last-run="1415123088" last-rc-change="1415123088" exec-time="2009" queue-time="0" op-digest="606e53800773938f91e1c261bb4c725c"/>
             <lrm_rsc_op id="ping_vip__public_monitor_20000" operation_key="ping_vip__public_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="5:11:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;5:11:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="28" rc-code="0" op-status="0" interval="20000" last-rc-change="1415123090" exec-time="2009" queue-time="0" op-digest="873bd0812a107843932917e76b49de81"/>
           </lrm_resource>
-          <lrm_resource id="p_neutron-l3-agent" type="neutron-agent-l3" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-l3-agent" type="ocf-neutron-agent-l3" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-l3-agent_last_0" operation_key="p_neutron-l3-agent_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="72:101:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;72:101:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="311" rc-code="0" op-status="0" interval="0" last-run="1415124912" last-rc-change="1415124912" exec-time="1303" queue-time="0" op-digest="8c1166c16a3eccc28a06071394828564"/>
             <lrm_rsc_op id="p_neutron-l3-agent_last_failure_0" operation_key="p_neutron-l3-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="14:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;14:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="292" rc-code="0" op-status="0" interval="0" last-run="1415124901" last-rc-change="1415124901" exec-time="25" queue-time="0" op-digest="8c1166c16a3eccc28a06071394828564"/>
             <lrm_rsc_op id="p_neutron-l3-agent_monitor_20000" operation_key="p_neutron-l3-agent_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="72:102:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;72:102:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="317" rc-code="0" op-status="0" interval="20000" last-rc-change="1415124913" exec-time="49" queue-time="0" op-digest="c5692788618f2567fcca9a9865023acd"/>
           </lrm_resource>
-          <lrm_resource id="p_neutron-metadata-agent" type="neutron-agent-metadata" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-metadata-agent" type="ocf-neutron-agent-metadata" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-metadata-agent_last_failure_0" operation_key="p_neutron-metadata-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="13:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;13:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="309" rc-code="0" op-status="0" interval="0" last-run="1415124912" last-rc-change="1415124912" exec-time="18" queue-time="0" op-digest="f2317cad3d54cec5d7d7aa7d0bf35cf8"/>
             <lrm_rsc_op id="p_neutron-metadata-agent_monitor_60000" operation_key="p_neutron-metadata-agent_monitor_60000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="65:102:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;65:102:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="315" rc-code="0" op-status="0" interval="60000" last-rc-change="1415124913" exec-time="42" queue-time="0" op-digest="19240b0a103493c96459e91c1a816b50"/>
           </lrm_resource>
@@ -347,7 +347,7 @@
             <lrm_rsc_op id="p_mysql_last_failure_0" operation_key="p_mysql_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="14:70:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;14:70:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="221" rc-code="0" op-status="0" interval="0" last-run="1415123879" last-rc-change="1415123879" exec-time="70" queue-time="0" op-digest="af83dba8adcaf0e62865958e2b4993b7"/>
             <lrm_rsc_op id="p_mysql_monitor_120000" operation_key="p_mysql_monitor_120000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="78:618:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;78:618:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="340" rc-code="0" op-status="0" interval="120000" last-rc-change="1415184211" exec-time="57" queue-time="0" op-digest="a8b28e947b0d74f7953d47c509353648"/>
           </lrm_resource>
-          <lrm_resource id="p_neutron-dhcp-agent" type="neutron-agent-dhcp" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-dhcp-agent" type="ocf-neutron-agent-dhcp" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-dhcp-agent_last_0" operation_key="p_neutron-dhcp-agent_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="59:630:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;59:630:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="414" rc-code="0" op-status="0" interval="0" last-run="1415184400" last-rc-change="1415184400" exec-time="4640" queue-time="0" op-digest="1b732a7fb883e1f6a419959b2aa29f92"/>
             <lrm_rsc_op id="p_neutron-dhcp-agent_last_failure_0" operation_key="p_neutron-dhcp-agent_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="58:626:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="2:1;58:626:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="385" rc-code="1" op-status="2" interval="0" last-run="1415184334" last-rc-change="1415184334" exec-time="60002" queue-time="0" op-digest="1b732a7fb883e1f6a419959b2aa29f92"/>
             <lrm_rsc_op id="p_neutron-dhcp-agent_monitor_20000" operation_key="p_neutron-dhcp-agent_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="60:630:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;60:630:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="424" rc-code="0" op-status="0" interval="20000" last-rc-change="1415184405" exec-time="35" queue-time="0" op-digest="1544ce43fe39b90e744ce887e1e691d6"/>
@@ -378,7 +378,7 @@
       </transient_attributes>
       <lrm id="node-2">
         <lrm_resources>
-          <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="neutron-agent-ovs" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="ocf-neutron-agent-ovs" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_0" operation_key="p_neutron-plugin-openvswitch-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="16:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;16:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="141" rc-code="7" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="29" queue-time="0" op-digest="424153f43b0852bb5bccdf71f34784d4"/>
           </lrm_resource>
           <lrm_resource id="p_ceilometer-alarm-evaluator" type="ceilometer-alarm-evaluator" class="ocf" provider="mirantis">
@@ -397,18 +397,18 @@
             <lrm_rsc_op id="ping_vip__public_last_0" operation_key="ping_vip__public_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="24:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;24:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="177" rc-code="0" op-status="0" interval="0" last-run="1415184705" last-rc-change="1415184705" exec-time="2012" queue-time="0" op-digest="606e53800773938f91e1c261bb4c725c"/>
             <lrm_rsc_op id="ping_vip__public_monitor_20000" operation_key="ping_vip__public_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="25:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;25:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="180" rc-code="0" op-status="0" interval="20000" last-rc-change="1415184707" exec-time="2010" queue-time="0" op-digest="873bd0812a107843932917e76b49de81"/>
           </lrm_resource>
-          <lrm_resource id="p_neutron-l3-agent" type="neutron-agent-l3" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-l3-agent" type="ocf-neutron-agent-l3" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-l3-agent_last_0" operation_key="p_neutron-l3-agent_stop_0" operation="stop" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="73:99:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;73:99:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="159" rc-code="0" op-status="0" interval="0" last-run="1415124901" last-rc-change="1415124901" exec-time="4289" queue-time="0" op-digest="8c1166c16a3eccc28a06071394828564"/>
             <lrm_rsc_op id="p_neutron-l3-agent_last_failure_0" operation_key="p_neutron-l3-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="16:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;16:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="156" rc-code="0" op-status="0" interval="0" last-run="1415124901" last-rc-change="1415124901" exec-time="63" queue-time="0" op-digest="8c1166c16a3eccc28a06071394828564"/>
           </lrm_resource>
-          <lrm_resource id="p_neutron-metadata-agent" type="neutron-agent-metadata" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-metadata-agent" type="ocf-neutron-agent-metadata" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-metadata-agent_last_0" operation_key="p_neutron-metadata-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="15:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;15:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="167" rc-code="7" op-status="0" interval="0" last-run="1415124912" last-rc-change="1415124912" exec-time="30" queue-time="0" op-digest="f2317cad3d54cec5d7d7aa7d0bf35cf8"/>
           </lrm_resource>
           <lrm_resource id="p_mysql" type="mysql-wss" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_mysql_last_0" operation_key="p_mysql_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="85:659:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;85:659:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="183" rc-code="0" op-status="0" interval="0" last-run="1415184750" last-rc-change="1415184750" exec-time="34103" queue-time="1" op-digest="af83dba8adcaf0e62865958e2b4993b7"/>
             <lrm_rsc_op id="p_mysql_monitor_120000" operation_key="p_mysql_monitor_120000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="86:659:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;86:659:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="186" rc-code="0" op-status="0" interval="120000" last-rc-change="1415184784" exec-time="77" queue-time="0" op-digest="a8b28e947b0d74f7953d47c509353648"/>
           </lrm_resource>
-          <lrm_resource id="p_neutron-dhcp-agent" type="neutron-agent-dhcp" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-dhcp-agent" type="ocf-neutron-agent-dhcp" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-dhcp-agent_last_0" operation_key="p_neutron-dhcp-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="15:97:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;15:97:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="148" rc-code="7" op-status="0" interval="0" last-run="1415124893" last-rc-change="1415124893" exec-time="20" queue-time="0" op-digest="1b732a7fb883e1f6a419959b2aa29f92"/>
           </lrm_resource>
           <lrm_resource id="vip__public" type="ns_IPaddr2" class="ocf" provider="mirantis">
@@ -435,7 +435,7 @@
       </transient_attributes>
       <lrm id="node-3">
         <lrm_resources>
-          <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="neutron-agent-ovs" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="ocf-neutron-agent-ovs" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_0" operation_key="p_neutron-plugin-openvswitch-agent_stop_0" operation="stop" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="57:95:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;57:95:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="144" rc-code="0" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="34" queue-time="0" op-digest="424153f43b0852bb5bccdf71f34784d4"/>
             <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_failure_0" operation_key="p_neutron-plugin-openvswitch-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="18:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;18:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="141" rc-code="0" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="20" queue-time="1" op-digest="424153f43b0852bb5bccdf71f34784d4"/>
           </lrm_resource>
@@ -455,16 +455,16 @@
             <lrm_rsc_op id="ping_vip__public_last_0" operation_key="ping_vip__public_start_0" operation="start" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="21:653:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;21:653:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="177" rc-code="0" op-status="0" interval="0" last-run="1415184703" last-rc-change="1415184703" exec-time="2011" queue-time="0" op-digest="606e53800773938f91e1c261bb4c725c"/>
             <lrm_rsc_op id="ping_vip__public_monitor_20000" operation_key="ping_vip__public_monitor_20000" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="23:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;23:654:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="180" rc-code="0" op-status="0" interval="20000" last-rc-change="1415184705" exec-time="2008" queue-time="0" op-digest="873bd0812a107843932917e76b49de81"/>
           </lrm_resource>
-          <lrm_resource id="p_neutron-l3-agent" type="neutron-agent-l3" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-l3-agent" type="ocf-neutron-agent-l3" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-l3-agent_last_0" operation_key="p_neutron-l3-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="18:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;18:98:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="159" rc-code="7" op-status="0" interval="0" last-run="1415124900" last-rc-change="1415124900" exec-time="22" queue-time="0" op-digest="8c1166c16a3eccc28a06071394828564"/>
           </lrm_resource>
-          <lrm_resource id="p_neutron-metadata-agent" type="neutron-agent-metadata" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-metadata-agent" type="ocf-neutron-agent-metadata" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-metadata-agent_last_0" operation_key="p_neutron-metadata-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="17:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;17:101:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="167" rc-code="7" op-status="0" interval="0" last-run="1415124912" last-rc-change="1415124912" exec-time="17" queue-time="0" op-digest="f2317cad3d54cec5d7d7aa7d0bf35cf8"/>
           </lrm_resource>
           <lrm_resource id="p_mysql" type="mysql-wss" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_mysql_last_0" operation_key="p_mysql_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="18:70:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;18:70:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="97" rc-code="7" op-status="0" interval="0" last-run="1415123879" last-rc-change="1415123879" exec-time="20039" queue-time="0" op-digest="af83dba8adcaf0e62865958e2b4993b7"/>
           </lrm_resource>
-          <lrm_resource id="p_neutron-dhcp-agent" type="neutron-agent-dhcp" class="ocf" provider="mirantis">
+          <lrm_resource id="p_neutron-dhcp-agent" type="ocf-neutron-agent-dhcp" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-dhcp-agent_last_0" operation_key="p_neutron-dhcp-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="17:97:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;17:97:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="151" rc-code="7" op-status="0" interval="0" last-run="1415124893" last-rc-change="1415124893" exec-time="32" queue-time="0" op-digest="1b732a7fb883e1f6a419959b2aa29f92"/>
           </lrm_resource>
           <lrm_resource id="vip__public" type="ns_IPaddr2" class="ocf" provider="mirantis">
