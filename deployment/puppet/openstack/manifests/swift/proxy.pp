@@ -133,8 +133,8 @@ class openstack::swift::proxy (
     }
 
     # resource ordering
-    Swift::Ringbuilder::Rebalance <||> -> Service['swift-proxy']
-    Swift::Ringbuilder::Rebalance <||> -> Swift::Storage::Generic <| |>
+    Anchor <| title == 'rebalance_end' |> -> Service['swift-proxy']
+    Anchor <| title == 'rebalance_end' |> -> Swift::Storage::Generic <| |>
     Swift::Ringbuilder::Create<||> ->
     Ring_devices<||> ~>
     Swift::Ringbuilder::Rebalance <||>
