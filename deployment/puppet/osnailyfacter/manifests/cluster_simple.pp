@@ -46,6 +46,10 @@ class osnailyfacter::cluster_simple {
     $network_provider   = 'nova'
   }
 
+  $network_config = {
+    'vlan_start'     => $vlan_start,
+  }
+
   if $fuel_settings['cinder_nodes'] {
      $cinder_nodes_array   = $::fuel_settings['cinder_nodes']
   } else {
