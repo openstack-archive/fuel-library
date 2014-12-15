@@ -71,6 +71,12 @@ class swift(
     mode    => '0660',
   }
 
+  file { '/etc/swift/backups':
+    ensure => directory,
+    owner  => 'swift',
+    group  => 'swift'
+  }
+
   swift_config { 'swift-hash/swift_hash_path_suffix':
     value => $swift_hash_suffix
   }
