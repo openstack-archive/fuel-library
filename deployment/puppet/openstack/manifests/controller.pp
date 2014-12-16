@@ -795,6 +795,7 @@ class openstack::controller (
     enable_nova_net     => false,  # just setup networks, but don't start nova-network service on controllers
     nova_admin_password => $nova_user_password,
     nova_url            => "http://${service_endpoint}:8774/v2",
+    ceilometer_enabled  => $ceilometer,
   }
 }
 

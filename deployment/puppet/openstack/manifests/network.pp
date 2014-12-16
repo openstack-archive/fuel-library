@@ -83,6 +83,8 @@ class openstack::network (
   $nova_admin_password  = 'secret',
   $nova_url             = 'http://127.0.0.1:8774/v2',
 
+  $ceilometer_enabled   = false,
+
   # Neutron
   $neutron_server   = false,
   $neutron_db_uri   = undef,
@@ -217,6 +219,9 @@ class openstack::network (
         }
         if $use_syslog {
           neutron_config { 'DEFAULT/use_syslog_rfc_format': value => true; }
+        }
+        if $ceilometer_enabled {
+          neutron_config { 'DEFAULT/notification_driver': value => 'messaging' }
         }
         Service['neutron-server'] -> Exec<| title == 'waiting-for-neutron-api' |>
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_network<||>
