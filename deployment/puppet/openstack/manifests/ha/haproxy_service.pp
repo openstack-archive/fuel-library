@@ -65,8 +65,8 @@ define openstack::ha::haproxy_service (
     Class['cluster::haproxy_ocf'] -> Haproxy::Balancermember[$name]
 
     # Dirty hack, due Puppet can't send notify between stages
-    exec { "haproxy reload for ${name}":
-      command     => 'export OCF_ROOT="/usr/lib/ocf"; (ip netns list | grep haproxy) && ip netns exec haproxy /usr/lib/ocf/resource.d/mirantis/ns_haproxy reload',
+    exec { "haproxy restart for ${name}":
+      command     => 'export OCF_ROOT="/usr/lib/ocf"; (ip netns list | grep haproxy) && ip netns exec haproxy /usr/lib/ocf/resource.d/mirantis/ns_haproxy restart',
       path        => '/usr/bin:/usr/sbin:/bin:/sbin',
       logoutput   => true,
       provider    => 'shell',
