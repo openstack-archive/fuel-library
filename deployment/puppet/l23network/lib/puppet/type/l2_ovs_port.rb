@@ -88,7 +88,7 @@ Puppet::Type.newtype(:l2_ovs_port) do
       desc "Enable vlan splinters (if it's a phys. interface)"
     end
 
-    autorequire(:l2_ovs_bridge) do
+    autorequire(:l2_bridge) do
       [self[:bridge]]
     end
 end

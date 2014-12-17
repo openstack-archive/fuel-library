@@ -1,4 +1,4 @@
-Puppet::Type.type(:l2_ovs_bridge).provide(:ovs) do
+Puppet::Type.type(:l2_bridge).provide(:ovs) do
   optional_commands :vsctl => "/usr/bin/ovs-vsctl"
 
   def exists?

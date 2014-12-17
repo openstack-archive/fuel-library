@@ -1,4 +1,4 @@
-Puppet::Type.newtype(:l2_ovs_bridge) do
+Puppet::Type.newtype(:l2_bridge) do
     @doc = "Manage a Open vSwitch bridge (virtual switch)"
     desc @doc
 
