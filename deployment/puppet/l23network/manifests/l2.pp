@@ -37,32 +37,32 @@ class l23network::l2 (
 
   if $use_lnx {
     if $install_brctl {
-      if !defined(Package["$l23network::params::lnx_bridge_tools"]) {
-        package {"$l23network::params::lnx_bridge_tools": }
+      if !defined(Package["${::l23network::params::lnx_bridge_tools}"]) {
+        package {"${::l23network::params::lnx_bridge_tools}": }
       }
     }
   }
 
   if $::osfamily =~ /(?i)debian/ {
-    if !defined(Package["$l23network::params::lnx_bond_tools"]) {
-      package {"$l23network::params::lnx_bond_tools": }
+    if !defined(Package["${::l23network::params::lnx_bond_tools}"]) {
+      package {"${::l23network::params::lnx_bond_tools}": }
     }
   }
 
-  if !defined(Package["$l23network::params::lnx_vlan_tools"]) {
-    package {"$l23network::params::lnx_vlan_tools": }
+  if !defined(Package["${::l23network::params::lnx_vlan_tools}"]) {
+    package {"${::l23network::params::lnx_vlan_tools}": }
   }
 
-  if !defined(Package["$l23network::params::lnx_ethernet_tools"]) {
-    package {"$l23network::params::lnx_ethernet_tools": }
+  if !defined(Package["${::l23network::params::lnx_ethernet_tools}"]) {
+    package {"${::l23network::params::lnx_ethernet_tools}": }
   }
 
   if $::osfamily =~ /(?i)debian/ {
-    Package["$l23network::params::lnx_bond_tools"] -> Anchor['l23network::l2::init']
+    Package["${::l23network::params::lnx_bond_tools}"] -> Anchor['l23network::l2::init']
   }
-  Package["$l23network::params::lnx_bridge_tools"] -> Anchor['l23network::l2::init']
-  Package["$l23network::params::lnx_vlan_tools"] -> Anchor['l23network::l2::init']
-  Package["$l23network::params::lnx_ethernet_tools"] -> Anchor['l23network::l2::init']
+  Package["${::l23network::params::lnx_bridge_tools}"] -> Anchor['l23network::l2::init']
+  Package["${::l23network::params::lnx_vlan_tools}"] -> Anchor['l23network::l2::init']
+  Package["${::l23network::params::lnx_ethernet_tools}"] -> Anchor['l23network::l2::init']
   anchor { 'l23network::l2::init': }
 
 }

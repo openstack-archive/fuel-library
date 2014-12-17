@@ -1,3 +1,4 @@
+# xxx
 class l23network::examples::bond_lnx (
     $bond            = $name,
     $interfaces      = ['eth4','eth5'],
