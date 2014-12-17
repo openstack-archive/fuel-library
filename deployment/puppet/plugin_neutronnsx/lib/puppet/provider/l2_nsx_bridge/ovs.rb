@@ -1,6 +1,6 @@
 Puppet::Type.type(:l2_nsx_bridge).provide(
   :ovs,
-  :parent => Puppet::Type.type(:l2_ovs_bridge).provider(:ovs)
+  :parent => Puppet::Type.type(:l2_bridge).provider(:ovs)
 ) do
   optional_commands :vsctl => "/usr/bin/ovs-vsctl"
 
