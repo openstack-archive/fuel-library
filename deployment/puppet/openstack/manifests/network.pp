@@ -45,7 +45,7 @@ class openstack::network (
   # l3-agent
   $metadata_port            = 8775,
   $send_arp_for_ha          = 8,
-  $external_network_bridge  = 'br-ex',
+  $floating_bridge          = 'br-floating',
 
   # amqp
   $queue_provider = 'rabbitmq',
@@ -264,7 +264,7 @@ class openstack::network (
           #l3-agent
           metadata_port           => $metadata_port,
           send_arp_for_ha         => $send_arp_for_ha,
-          external_network_bridge => $external_network_bridge,
+          external_network_bridge => $floating_bridge,
         }
       }
     } # End case neutron

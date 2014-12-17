@@ -33,7 +33,6 @@ $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
 $network_scheme                 = hiera('network_scheme', {})
-$network_data                   = hiera('network_data', {})
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
@@ -182,9 +181,9 @@ $primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller'
 $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
 $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 
-if $use_neutron {
-  $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
-}
+# if $use_neutron {
+#   $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
+# }
 
 
 ##TODO: simply parse nodes array
