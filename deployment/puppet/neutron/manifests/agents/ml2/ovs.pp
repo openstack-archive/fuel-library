@@ -109,7 +109,7 @@ class neutron::agents::ml2::ovs (
   #   replace vswitch::ovs with l23network, once its ready to be contributed
   # FIXME(xarses): Need to come up with a better method to support vswitch and
   # l23network at the same time
-  #require vswitch::ovs 
+  #require vswitch::ovs
 
   if $enable_tunneling and ! $local_ip {
     fail('Local ip for ovs agent must be set when tunneling is enabled')
