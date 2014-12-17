@@ -4,13 +4,15 @@ Puppet::Type.newtype(:l2_bridge) do
 
     ensurable
 
+    MAX_BR_NAME_LENGTH = 15
+
     newparam(:bridge) do
       isnamevar
       desc "The bridge to configure"
       #
       validate do |val|
         if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
-          fail("Invalid bridge name: '#{val}'")
+          fail("Wrong bridge name: '#{val}'")
         end
       end
     end
@@ -23,4 +25,16 @@ Puppet::Type.newtype(:l2_bridge) do
     newproperty(:external_ids) do
       desc "External IDs for the bridge"
     end
+
+    # global validator
+    def validate
+        # require 'pry'
+        # binding.pry
+        if provider.class.name != :ovs and self[:name].length > MAX_BR_NAME_LENGTH
+          # validate name for differetn providers may only in global validator, because
+          # 'provider' option don't accessible while validating name
+          fail("Wrong bridge name '#{self[:name]}'.\n For provider '#{provider.class.name}' bridge name shouldn't has length more, than #{MAX_BR_NAME_LENGTH}.")
+        end
+    end
+
 end

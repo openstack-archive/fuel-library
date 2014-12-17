@@ -31,10 +31,9 @@ class l23network (
 
   if ! defined(File["${::l23network::params::interfaces_dir}"]) {
     file {"${::l23network::params::interfaces_dir}":
-      ensure  => directory,
-      owner   => 'root',
-      mode    => '0755',
-      recurse => true,    # for downstream files !!!
+      ensure => directory,
+      owner  => 'root',
+      mode   => '0755',
     } -> Anchor['l23network::init']
   }
   Class['l23network::l2'] -> File<| title == "${::l23network::params::interfaces_dir}" |>
@@ -42,7 +41,7 @@ class l23network (
 
   # Centos interface up-n-down scripts
   if $::osfamily =~ /(?i)redhat/ {
-    class{'::l23network::l2::centos_upndown_scripts': stage=>$stage }
+    class{'::l23network::l2::centos_upndown_scripts': } -> Anchor['l23network::init']
     Anchor <| title == 'l23network::l2::centos_upndown_scripts' |> -> Anchor['l23network::init']
   }
 
