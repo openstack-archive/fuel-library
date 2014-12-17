@@ -200,30 +200,6 @@ define l23network::l3::ifconfig (
     fail("Ipaddr must be a string or array of strings")
   }
 
-  # OS dependent constants and packages
-  case $::osfamily {
-    /(?i)debian/: {
-      $if_files_dir = '/etc/network/interfaces.d'
-      $interfaces = '/etc/network/interfaces'
-    }
-    /(?i)redhat/: {
-      $if_files_dir = '/etc/sysconfig/network-scripts'
-      $interfaces = false
-      if ! defined(Class[L23network::L2::Centos_upndown_scripts]) {
-        if defined(Stage[netconfig]) {
-          class{'l23network::l2::centos_upndown_scripts': stage=>'netconfig' }
-        } else {
-          class{'l23network::l2::centos_upndown_scripts': }
-        }
-      }
-      Anchor <| title == 'l23network::l2::centos_upndown_scripts' |>
-        -> L23network::L3::Ifconfig <| interface == "${interface}" |>
-    }
-    default: {
-      fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
-    }
-  }
-
   # DNS nameservers, search and domain options
   if $dns_nameservers {
     $dns_nameservers_list = concat(array_or_string_to_array($dns_nameservers), [false, false])
@@ -279,10 +255,12 @@ define l23network::l3::ifconfig (
 
   # Specify interface file name prefix
   if $ifname_order_prefix {
-    $interface_file= "${if_files_dir}/ifcfg-${ifname_order_prefix}-${interface}"
+    $interface_file= "${::l23network::params::interfaces_dir}/ifcfg-${ifname_order_prefix}-${interface}"
   } else {
-    $interface_file= "${if_files_dir}/ifcfg-${interface}"
+    $interface_file= "${::l23network::params::interfaces_dir}/ifcfg-${interface}"
   }
+  File<| title == "${::l23network::params::interfaces_dir}" |> -> File<| title == "${interface_file}" |>
+
 
   if $method == 'static' {
     if $gateway and $gateway != 'save' and $default_gateway {
@@ -299,6 +277,7 @@ define l23network::l3::ifconfig (
         $def_gateway and
         !defined(L23network::L3::Defaultroute[$def_gateway])
         ) {
+      Anchor['l23network::init'] ->
       L3_if_downup[$interface] ->
       l23network::l3::defaultroute { $def_gateway: }
     }
@@ -308,7 +287,8 @@ define l23network::l3::ifconfig (
 
   if $other_nets {
     if $::osfamily =~ /(?i)redhat/ and $other_nets {
-      file {"${if_files_dir}/route-${interface}":
+      Anchor['l23network::init'] ->
+      file {"${::l23network::params::interfaces_dir}/route-${interface}":
         ensure  => present,
         owner   => 'root',
         mode    => '0755',
@@ -319,39 +299,20 @@ define l23network::l3::ifconfig (
     }
   }
 
-  if $interfaces {
-    if ! defined(File["${interfaces}"]) {
-      file {"${interfaces}":
-        ensure  => present,
-        content => template('l23network/interfaces.erb'),
-      }
-    }
-    File<| title == "${interfaces}" |> -> File<| title == "${if_files_dir}" |>
-  }
-
-  if ! defined(File["${if_files_dir}"]) {
-    file {"${if_files_dir}":
-      ensure  => directory,
-      owner   => 'root',
-      mode    => '0755',
-      recurse => true,
-    }
-  }
-  File<| title == "${if_files_dir}" |> -> File<| title == "${interface_file}" |>
-
   if $ethtool {
     $ethtool_lines=ethtool_convert_hash($ethtool)
   }
 
   if $::osfamily =~ /(?i)redhat/ and ($ipaddr_aliases or $ethtool_lines) {
-    file {"${if_files_dir}/interface-up-script-${interface}":
+    Anchor['l23network::init'] ->
+    file {"${::l23network::params::interfaces_dir}/interface-up-script-${interface}":
       ensure  => present,
       owner   => 'root',
       mode    => '0755',
       recurse => true,
       content => template("l23network/ipconfig_${::osfamily}_ifup-script.erb"),
     } ->
-    file {"${if_files_dir}/interface-dn-script-${interface}":
+    file {"${::l23network::params::interfaces_dir}/interface-dn-script-${interface}":
       ensure  => present,
       owner   => 'root',
       mode    => '0755',
@@ -361,6 +322,7 @@ define l23network::l3::ifconfig (
     File <| title == $interface_file |>
   }
 
+  Anchor['l23network::init'] ->
   file {"${interface_file}":
     ensure  => present,
     owner   => 'root',

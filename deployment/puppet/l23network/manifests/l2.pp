@@ -32,10 +32,7 @@ class l23network::l2 (
       hasstatus => true,
       status    => $::l23network::params::ovs_status_cmd,
     }
-    Service['openvswitch-service'] -> L23network::L3::Ifconfig<||>
-    if !defined(Service['openvswitch-service']) {
-      notify{ "Module ${module_name} cannot notify service openvswitch-service on packages update": }
-    }
+    Service['openvswitch-service'] -> Anchor['l23network::l2::init']
   }
 
   if $use_lnx {
@@ -61,9 +58,11 @@ class l23network::l2 (
   }
 
   if $::osfamily =~ /(?i)debian/ {
-    Package["$l23network::params::lnx_bond_tools"] -> L23network::L3::Ifconfig<||>
+    Package["$l23network::params::lnx_bond_tools"] -> Anchor['l23network::l2::init']
   }
-  Package["$l23network::params::lnx_vlan_tools"] -> L23network::L3::Ifconfig<||>
-  Package["$l23network::params::lnx_ethernet_tools"] -> L23network::L3::Ifconfig<||>
+  Package["$l23network::params::lnx_bridge_tools"] -> Anchor['l23network::l2::init']
+  Package["$l23network::params::lnx_vlan_tools"] -> Anchor['l23network::l2::init']
+  Package["$l23network::params::lnx_ethernet_tools"] -> Anchor['l23network::l2::init']
+  anchor { 'l23network::l2::init': }
 
 }

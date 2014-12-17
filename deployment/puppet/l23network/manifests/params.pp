@@ -5,6 +5,8 @@ class l23network::params {
 
   case $::osfamily {
     /(?i)debian/: {
+      $interfaces_dir     = '/etc/network/interfaces.d'
+      $interfaces_file    = '/etc/network/interfaces'
       $ovs_service_name   = 'openvswitch-switch'
       $ovs_status_cmd     = '/etc/init.d/openvswitch-switch status'
       $lnx_vlan_tools     = 'vlan'
@@ -17,6 +19,8 @@ class l23network::params {
       $ovs_common_package_name = 'openvswitch-switch'
     }
     /(?i)redhat/: {
+      $interfaces_dir     = '/etc/sysconfig/network-scripts'
+      $interfaces_file    = undef
       $ovs_service_name   = 'openvswitch'
       $ovs_status_cmd     = '/etc/init.d/openvswitch status'
       $lnx_vlan_tools     = 'vconfig'
