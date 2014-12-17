@@ -3,8 +3,6 @@
 class l23network::params {
   $need_datapath_module = !str2bool($::kern_has_ovs_datapath)
 
-  $lnx_bridge_tools = 'bridge-utils'
-
   case $::osfamily {
     /(?i)debian/: {
       $interfaces_dir     = '/etc/network/interfaces.d'
@@ -14,6 +12,7 @@ class l23network::params {
       $lnx_vlan_tools     = 'vlan'
       $lnx_bond_tools     = 'ifenslave'
       $lnx_ethernet_tools = 'ethtool'
+      $lnx_bridge_tools   = 'bridge-utils'
       $ovs_datapath_package_name = $need_datapath_module ? {
         true    => 'openvswitch-datapath-lts-saucy-dkms',
         default => false
@@ -28,8 +27,20 @@ class l23network::params {
       $lnx_vlan_tools     = 'vconfig'
       $lnx_bond_tools     = undef
       $lnx_ethernet_tools = 'ethtool'
+      $lnx_bridge_tools   = 'bridge-utils'
       $ovs_datapath_package_name = 'kmod-openvswitch'
       $ovs_common_package_name   = 'openvswitch'
+    }
+    /(?i)darwin/: {
+      $interfaces_dir     = '/tmp/1'
+      $interfaces_file    = undef
+      $ovs_service_name   = undef
+      $lnx_vlan_tools     = undef
+      $lnx_bond_tools     = undef
+      $lnx_ethernet_tools = undef
+      $lnx_bridge_tools   = undef
+      $ovs_datapath_package_name = undef
+      $ovs_common_package_name   = undef
     }
     default: {
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
