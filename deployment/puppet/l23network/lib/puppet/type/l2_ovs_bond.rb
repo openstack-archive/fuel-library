@@ -83,7 +83,7 @@ Puppet::Type.newtype(:l2_ovs_bond) do
       end
     end
 
-    autorequire(:l2_ovs_bridge) do
+    autorequire(:l2_bridge) do
       [self[:bridge]]
     end
 end
