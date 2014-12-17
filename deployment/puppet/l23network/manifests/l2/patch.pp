@@ -40,14 +40,14 @@ define l23network::l2::patch (
   #$patch = "${bridges[0]}_${vlan_ids[0]}--${bridges[1]}_${vlan_ids[1]}"
   $patch = "${bridges[0]}--${bridges[1]}"
 
-  if ! defined (L2_ovs_patch["$patch"]) {
-    l2_ovs_patch { "$patch" :
-      bridges       => $bridges,
-      peers         => $peers,
-      vlan_ids      => $vlan_ids,
-      trunks        => $trunks,
-      ensure        => $ensure
+  if ! defined (L2_ovs_patch["${patch}"]) {
+    l2_ovs_patch { "${patch}" :
+      ensure   => $ensure,
+      bridges  => $bridges,
+      peers    => $peers,
+      vlan_ids => $vlan_ids,
+      trunks   => $trunks
     }
-    Service<| title == 'openvswitch-service' |> -> L2_ovs_patch["$patch"]
+    Service<| title == 'openvswitch-service' |> -> L2_ovs_patch["${patch}"]
   }
 }

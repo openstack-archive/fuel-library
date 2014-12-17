@@ -82,7 +82,7 @@ Puppet::Type.newtype(:l3_if_downup) do
       provider.restart()
     end
 
-    # autorequire(:l2_ovs_bridge) do
+    # autorequire(:l2_bridge) do
     #   [self[:bridge]]
     # end
 end
