@@ -1,5 +1,8 @@
 Puppet::Type.type(:l2_bridge).provide(:ovs) do
-  optional_commands :vsctl => "/usr/bin/ovs-vsctl"
+  confine  :osfamily => :Linux
+  commands :vsctl   => 'ovs-vsctl',
+           :iproute => 'ip'
+
 
   def exists?
     vsctl("br-exists", @resource[:bridge])
@@ -22,6 +25,7 @@ Puppet::Type.type(:l2_bridge).provide(:ovs) do
       notice("Bridge '#{@resource[:bridge]}' not exists, creating...")
     end
     vsctl('add-br', @resource[:bridge])
+    iproute('link', 'set', 'up', 'dev', @resource[:bridge])
     notice("bridge '#{@resource[:bridge]}' created.")
     # We do self.attr_setter=(value) instead of attr=value because this doesn't
     # work in Puppet (our guess).
@@ -30,6 +34,7 @@ Puppet::Type.type(:l2_bridge).provide(:ovs) do
   end
 
   def destroy
+    iproute('link', 'set', 'down', 'dev', @resource[:bridge])
     vsctl("del-br", @resource[:bridge])
   end
 
