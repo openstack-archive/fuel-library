@@ -524,7 +524,7 @@ class openstack::controller (
       ha_mode              => $ha_mode,
       primary_controller   => $primary_controller,
       on_controller        => true,
-      use_neutron          => $neutron,
+      use_neutron          => $network_provider ? {'nova' => false, 'neutron' => true},
       swift                => $swift,
     }
   }
@@ -537,7 +537,7 @@ class openstack::controller (
     bind_address      => $api_bind_address,
     cache_server_port => $cache_server_port,
     swift             => $swift,
-    neutron           => $neutron,
+    neutron           => $network_provider ? {'nova' => false, 'neutron' => true},
     horizon_app_links => $horizon_app_links,
     keystone_host     => $service_endpoint,
     use_ssl           => $horizon_use_ssl,

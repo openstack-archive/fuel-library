@@ -97,7 +97,7 @@ class openstack::ceilometer (
     class { '::ceilometer::agent::notification': }
 
     if $use_neutron {
-      class { '::neutron::notify::ceilometer': }
+      neutron_config { 'DEFAULT/notification_driver': value => 'messaging' }
     }
 
     if $swift {
