@@ -1,6 +1,8 @@
 class l23network::params {
   $need_datapath_module = !str2bool($::kern_has_ovs_datapath)
 
+  $lnx_bridge_tools = 'bridge-utils'
+
   case $::osfamily {
     /(?i)debian/: {
       $ovs_service_name   = 'openvswitch-switch'
