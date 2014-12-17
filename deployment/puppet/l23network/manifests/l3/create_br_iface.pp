@@ -74,31 +74,31 @@ define l23network::l3::create_br_iface (
       $gateway_ip_address_for_newly_created_interface = undef
     }
     # Build ovs bridge
-    l23network::l2::bridge {"$bridge":
+    l23network::l2::bridge {"${bridge}":
       skip_existing => $se,
       external_ids  => $ext_ids,
     }
     if is_array($interface) {
       # Build an ovs bridge containing ovs bond with given interfaces
-      l23network::l2::bond {"$ovs_bond_name":
+      l23network::l2::bond {"${ovs_bond_name}":
         bridge        => $bridge,
         ports         => $interface,
         properties    => $ovs_bond_properties,
         skip_existing => $se,
-        require       => L23network::L2::Bridge["$bridge"]
+        require       => L23network::L2::Bridge["${bridge}"]
       } ->
       l23network::l3::ifconfig {$interface: # no quotes here, $interface _may_be_ array!!!
         ipaddr              => 'none',
         ifname_order_prefix => '0',
-        require             => L23network::L2::Bond["$ovs_bond_name"],
-        before              => L23network::L3::Ifconfig["$bridge"]
+        require             => L23network::L2::Bond["${ovs_bond_name}"],
+        before              => L23network::L3::Ifconfig["${bridge}"]
       }
     } else {
       # Build an ovs bridge containing one interface
       l23network::l2::port {$interface:
         bridge        => $bridge,
         skip_existing => $se,
-        require       => L23network::L2::Bridge["$bridge"]
+        require       => L23network::L2::Bridge["${bridge}"]
       } ->
       l23network::l3::ifconfig {"${interface}":
         ipaddr              => 'none',
