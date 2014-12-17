@@ -48,8 +48,10 @@ class l23network::l2 (
     Package[$::l23network::params::lnx_vlan_tools] -> Anchor['l23network::l2::init']
   }
 
-  ensure_packages($::l23network::params::lnx_ethernet_tools)
-  Package[$::l23network::params::lnx_ethernet_tools] -> Anchor['l23network::l2::init']
+  if $::l23network::params::lnx_ethernet_tools {
+    ensure_packages($::l23network::params::lnx_ethernet_tools)
+    Package[$::l23network::params::lnx_ethernet_tools] -> Anchor['l23network::l2::init']
+  }
 
   anchor { 'l23network::l2::init': }
 
