@@ -1,3 +1,5 @@
+# L23network OS-aware constants
+#
 class l23network::params {
   $need_datapath_module = !str2bool($::kern_has_ovs_datapath)
 

@@ -48,8 +48,8 @@ define l23network::l2::bond (
     fail("You must specify 'interfaces' property for this bond.")
   }
 
-  if ! defined (L2_ovs_bond["$bond"]) {
-    l2_ovs_bond { "$bond" :
+  if ! defined (L2_ovs_bond["${bond}"]) {
+    l2_ovs_bond { "${bond}" :
       ensure        => $ensure,
       interfaces    => $r_interfaces,
       bridge        => $bridge,
@@ -58,6 +58,6 @@ define l23network::l2::bond (
       properties    => $properties,
       skip_existing => $skip_existing,
     }
-    Service<| title == 'openvswitch-service' |> -> L2_ovs_bond["$bond"]
+    Service<| title == 'openvswitch-service' |> -> L2_ovs_bond["${bond}"]
   }
 }
