@@ -1,0 +1,6 @@
+#current tasks will not pass
+- id: primary-controller
+  requires: [controller]
+- id: controller
+  type: group
+  requires: [primary-controller]
