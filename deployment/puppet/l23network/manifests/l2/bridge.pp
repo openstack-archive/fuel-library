@@ -24,13 +24,13 @@ define l23network::l2::bridge (
   if ! $::l23network::l2::use_ovs {
     fail('You must enable Open vSwitch by setting the l23network::l2::use_ovs to true.')
   }
-  if ! defined (L2_ovs_bridge[$name]) {
-    l2_ovs_bridge {$name:
+  if ! defined (L2_bridge[$name]) {
+    l2_bridge {$name:
       ensure       => $ensure,
       external_ids => $external_ids,
       skip_existing=> $skip_existing,
     }
-    Service<| title == 'openvswitch-service' |> -> L2_ovs_bridge[$name]
+    Service<| title == 'openvswitch-service' |> -> L2_bridge[$name]
   }
 }
 
