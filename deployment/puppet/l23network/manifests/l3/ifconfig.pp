@@ -197,7 +197,7 @@ define l23network::l3::ifconfig (
       }
     }
   } else {
-    fail("Ipaddr must be a string or array of strings")
+    fail('Ipaddr must be a string or array of strings')
   }
 
   # DNS nameservers, search and domain options
@@ -211,7 +211,7 @@ define l23network::l3::ifconfig (
     if $dns_search_list {
       $dns_search_string = join($dns_search_list, ' ')
     } else {
-      fail("dns_search option must be array or string")
+      fail('dns_search option must be array or string')
     }
   }
   if $dns_domain {
@@ -219,7 +219,7 @@ define l23network::l3::ifconfig (
     if $dns_domain_list {
       $dns_domain_string = $dns_domain_list[0]
     } else {
-      fail("dns_domain option must be array or string")
+      fail('dns_domain option must be array or string')
     }
   }
 
