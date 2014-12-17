@@ -4,15 +4,13 @@ class l23network::l2::centos_upndown_scripts {
     ensure  => present,
     owner   => 'root',
     mode    => '0755',
-    recurse => true,
-    content => template("l23network/centos_ifup-local.erb"),
+    content => template('l23network/centos_ifup-local.erb'),
   } ->
   file {'/sbin/ifdown-local':
     ensure  => present,
     owner   => 'root',
     mode    => '0755',
-    recurse => true,
-    content => template("l23network/centos_ifdown-local.erb"),
+    content => template('l23network/centos_ifdown-local.erb'),
   } ->
   anchor { 'l23network::l2::centos_upndown_scripts': }
 }
