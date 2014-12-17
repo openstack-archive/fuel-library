@@ -7,4 +7,3 @@ main_manifest="/etc/puppet/manifests/site.pp"
 
 rsync -rvc --delete "${remote_modules}/" "${local_modules}/"
 rsync -rvc --delete "${remote_manifests}/" "${local_manifests}/"
-puppet apply --verbose --debug --trace "${main_manifest}"
