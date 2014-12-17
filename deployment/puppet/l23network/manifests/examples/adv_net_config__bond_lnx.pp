@@ -1,3 +1,4 @@
+# xxx
 class l23network::examples::adv_net_config__bond_lnx (
     $fuel_settings,
 ) {
