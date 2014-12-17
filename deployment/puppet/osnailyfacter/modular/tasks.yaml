@@ -1,0 +1,21 @@
+- id: netconfig
+  type: puppet
+  role: [primary-controller, controller,
+                 cinder, compute, ceph-osd,
+                 zabbix-server, primary-mongo, mongo]
+  required_for: [deploy]
+  requires: [hiera]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+- id: hiera
+  type: puppet
+  role: [primary-controller, controller,
+                 cinder, compute, ceph-osd,
+                 zabbix-server, primary-mongo, mongo]
+  required_for: [deploy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
