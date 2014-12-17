@@ -16,21 +16,33 @@
 #   http://openvswitch.org/cgi-bin/ovsman.cgi?page=utilities%2Fovs-vsctl.8
 #
 define l23network::l2::bridge (
-  $external_ids  = "bridge-id=${name}",
-  $provider      = 'ovs',
-  $ensure        = present,
-  $skip_existing = false
+  $ensure          = present,
+  $bpdu_forward    = true,
+  $external_ids    = "bridge-id=${name}",
+  $skip_existing   = false
+  $provider        = undef,
 ) {
-  if ! $::l23network::l2::use_ovs {
-    fail('You must enable Open vSwitch by setting the l23network::l2::use_ovs to true.')
-  }
+  include l23network::params
+
   if ! defined (L2_bridge[$name]) {
+    Anchor['l23network::init'] ->
+    l23_store_config {"l2_br_config_file__$name":
+      ensure => $ensure,
+      file   => "ifcfg-${name}",
+      config => {
+        name            => $name
+        external_ids    => $external_ids,
+        bpdu_forward    => $bpdu_forward,
+        vendor_specific => $vendor_specific,
+      },
+      provider => "${provider}_${::l23_os}"
+    } ->
     l2_bridge {$name:
-      ensure       => $ensure,
-      external_ids => $external_ids,
-      skip_existing=> $skip_existing,
+      ensure        => $ensure,
+      external_ids  => $external_ids,
+      skip_existing => $skip_existing,
+      provider      => $provider
     }
-    Service<| title == 'openvswitch-service' |> -> L2_bridge[$name]
   }
 }
 
