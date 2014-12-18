@@ -18,8 +18,8 @@
 #
 class openstack::keepalive (
   $tcpka_time   = '7200',
-  $tcpka_probes = '75',
-  $tcpka_intvl  = '9',
+  $tcpka_probes = '9',
+  $tcpka_intvl  = '75',
   $tcp_retries2 = '15',
 ) {
   sysctl::value { 'net.ipv4.tcp_keepalive_time':   value => $tcpka_time }
