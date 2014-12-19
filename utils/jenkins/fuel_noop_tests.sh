@@ -14,7 +14,21 @@ bundle --version || exit 1
 
 export GEM_HOME=$WORKSPACE/.bundled_gems
 
-pushd ./utils/noop &>/dev/null
-  bundle update
-  bundle exec rake spec SPEC_OPTS='--format documentation'
-popd &>/dev/null
+# Prepare gems
+pushd ./utils/noop
+bundle update
+popd
+
+# Iterate over astute.yaml files we have
+for YAML in ./utils/noop/astute.yaml/*yaml ; do
+  echo "${YAML}" | grep -q 'globals_yaml_for_'
+  if [ $? -eq 0 ]; then
+    continue
+  fi
+  export astute_filename=`basename $YAML`
+  echo -e "\n\n======== Running modular noop tests for $astute_filename ========\n"
+  pushd ./utils/noop
+  echo "Starting test for YAML '${astute_filename} at directory '`pwd`'"
+  bundle exec rake spec
+  popd
+done

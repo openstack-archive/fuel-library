@@ -1,0 +1,460 @@
+--- 
+  access_hash: 
+    user: admin
+    tenant: admin
+    metadata: 
+      weight: 10
+      label: Access
+    email: "admin@localhost"
+    password: admin
+  amqp_hosts: "10.108.2.3:5673, 10.108.2.5:5673, 10.108.2.4:5673"
+  amqp_port: "5673"
+  base_mac: "fa:16:3e:00:00:00"
+  base_syslog_hash: 
+    syslog_server: "10.108.0.2"
+    syslog_port: "514"
+  ceilometer_hash: 
+    metering_secret: ljye4oHm
+    db_password: U5MySDDO
+    enabled: false
+    user_password: Ebge91r7
+  cinder_hash: 
+    db_password: UadbW5Wq
+    user_password: B7VW9lql
+  cinder_iscsi_bind_addr: "10.108.4.2"
+  cinder_nodes_array: []
+  cinder_rate_limits: 
+    POST: "100000"
+    POST_SERVERS: "100000"
+    PUT: "100000"
+    GET: "100000"
+    DELETE: "100000"
+  controller: 
+  controller_hostnames: &id005
+    
+    - node-1
+    - node-2
+    - node-3
+  controller_internal_addresses: 
+    node-1: "10.108.2.3"
+    node-2: "10.108.2.4"
+    node-3: "10.108.2.5"
+  controller_node_address: "10.108.2.2"
+  controller_node_public: "10.108.1.2"
+  controller_nodes: 
+    - "10.108.2.3"
+    - "10.108.2.4"
+    - "10.108.2.5"
+  controller_public_addresses: 
+    node-1: "10.108.1.3"
+    node-2: "10.108.1.4"
+    node-3: "10.108.1.5"
+  controller_storage_addresses: 
+    node-1: "10.108.4.2"
+    node-2: "10.108.4.3"
+    node-3: "10.108.4.4"
+  controllers: &id004
+    
+    - &id001
+      swift_zone: "1"
+      public_netmask: "255.255.255.0"
+      storage_address: "10.108.4.2"
+      internal_address: "10.108.2.3"
+      internal_netmask: "255.255.255.0"
+      public_address: "10.108.1.3"
+      uid: "1"
+      name: node-1
+      storage_netmask: "255.255.255.0"
+      fqdn: node-1.test.domain.local
+      user_node_name: slave-01_controller
+      role: primary-controller
+    - &id002
+      swift_zone: "2"
+      public_netmask: "255.255.255.0"
+      storage_address: "10.108.4.3"
+      internal_address: "10.108.2.4"
+      internal_netmask: "255.255.255.0"
+      public_address: "10.108.1.4"
+      uid: "2"
+      name: node-2
+      storage_netmask: "255.255.255.0"
+      fqdn: node-2.test.domain.local
+      user_node_name: slave-02_controller
+      role: controller
+    - &id003
+      swift_zone: "3"
+      public_netmask: "255.255.255.0"
+      storage_address: "10.108.4.4"
+      internal_address: "10.108.2.5"
+      internal_netmask: "255.255.255.0"
+      public_address: "10.108.1.5"
+      uid: "3"
+      name: node-3
+      storage_netmask: "255.255.255.0"
+      fqdn: node-3.test.domain.local
+      user_node_name: slave-03_controller
+      role: controller
+  custom_mysql_setup_class: galera
+  debug: true
+  default_gateway: ""
+  deployment_mode: ha_compact
+  disable_offload: true
+  dns_nameservers: []
+  fuel_settings: false
+  glance_backend: file
+  glance_hash: 
+    db_password: OmMLH6HF
+    image_cache_max_size: "13868466176"
+    user_password: SyYVSBMV
+  glance_known_stores: false
+  heat_hash: 
+    db_password: nQNKGiAe
+    enabled: true
+    rabbit_password: "1v59MH1A"
+    auth_encryption_key: ada53a7b9a8d587d88dfe033ab260602
+    user_password: "72fzPvrk"
+  idle_timeout: "3600"
+  internal_address: "10.108.2.3"
+  internal_br: 
+  internal_int: br-mgmt
+  internal_netmask: "255.255.255.0"
+  keystone_hash: 
+    admin_token: WNS2f4Uf
+    db_password: JfOWfuqA
+  manage_volumes: false
+  management_network_range: "10.108.2.0/24"
+  master_ip: "10.108.0.2"
+  max_overflow: 20
+  max_pool_size: 20
+  max_retries: "-1"
+  mirror_type: external
+  mountpoints: 
+    - "1"
+    - "2"
+  multi_host: true
+  murano_hash: 
+    db_password: DOMrWIP7
+    enabled: false
+    rabbit_password: "2VkcQOJ8"
+    user_password: g8YEsShd
+  mysql_hash: 
+    root_password: Bq84GPHi
+    wsrep_password: mNZVc8rD
+  network_config: 
+  network_manager: 
+  network_provider: neutron
+  network_scheme: 
+    provider: ovs
+    roles: 
+      ex: br-ex
+      fw-admin: br-fw-admin
+      management: br-mgmt
+      storage: br-storage
+      private: br-prv
+    transformations: 
+      - name: br-eth0
+        action: add-br
+      - bridge: br-eth0
+        name: eth0
+        action: add-port
+      - name: br-eth1
+        action: add-br
+      - bridge: br-eth1
+        name: eth1
+        action: add-port
+      - name: br-eth2
+        action: add-br
+      - bridge: br-eth2
+        name: eth2
+        action: add-port
+      - name: br-eth3
+        action: add-br
+      - bridge: br-eth3
+        name: eth3
+        action: add-port
+      - name: br-eth4
+        action: add-br
+      - bridge: br-eth4
+        name: eth4
+        action: add-port
+      - name: br-ex
+        action: add-br
+      - name: br-mgmt
+        action: add-br
+      - name: br-storage
+        action: add-br
+      - name: br-fw-admin
+        action: add-br
+      - trunks: 
+          - 0
+        action: add-patch
+        bridges: 
+          - br-eth4
+          - br-storage
+      - trunks: 
+          - 0
+        action: add-patch
+        bridges: 
+          - br-eth2
+          - br-mgmt
+      - trunks: 
+          - 0
+        action: add-patch
+        bridges: 
+          - br-eth0
+          - br-fw-admin
+      - trunks: 
+          - 0
+        action: add-patch
+        bridges: 
+          - br-eth1
+          - br-ex
+      - name: br-prv
+        action: add-br
+      - action: add-patch
+        bridges: 
+          - br-eth3
+          - br-prv
+    endpoints: 
+      br-prv: 
+        IP: none
+      br-fw-admin: 
+        IP: 
+          - "10.108.0.6/24"
+        other_nets: 
+          - "10.108.0.0/24"
+      br-mgmt: 
+        IP: 
+          - "10.108.2.3/24"
+        gateway: "10.108.2.1"
+        other_nets: []
+      br-ex: 
+        IP: 
+          - "10.108.1.3/24"
+        gateway: "10.108.1.1"
+        default_gateway: true
+        other_nets: []
+      br-storage: 
+        IP: 
+          - "10.108.4.2/24"
+        gateway: "10.108.4.1"
+        other_nets: []
+    interfaces: 
+      eth0: 
+        L2: 
+          vlan_splinters: "off"
+      eth1: 
+        L2: 
+          vlan_splinters: "off"
+      eth2: 
+        L2: 
+          vlan_splinters: "off"
+      eth3: 
+        L2: 
+          vlan_splinters: "off"
+      eth4: 
+        L2: 
+          vlan_splinters: "off"
+    version: "1.0"
+  network_size: 
+  neutron_config: 
+    database: 
+      passwd: dN35Lnug
+    metadata: 
+      metadata_proxy_shared_secret: F97qobV2
+    keystone: 
+      admin_password: v0oYnz8E
+    predefined_networks: 
+      net04_ext: 
+        tenant: admin
+        shared: false
+        L3: 
+          floating: "10.108.1.128:10.108.1.254"
+          nameservers: []
+          enable_dhcp: false
+          gateway: "10.108.1.1"
+          subnet: "10.108.1.0/24"
+        L2: 
+          physnet: 
+          network_type: local
+          segment_id: 
+          router_ext: true
+      net04: 
+        tenant: admin
+        shared: false
+        L3: 
+          floating: 
+          nameservers: 
+            - "8.8.4.4"
+            - "8.8.8.8"
+          enable_dhcp: true
+          gateway: "192.168.196.1"
+          subnet: "192.168.196.0/22"
+        L2: 
+          physnet: physnet2
+          network_type: vlan
+          segment_id: 
+          router_ext: false
+    L2: 
+      base_mac: "fa:16:3e:00:00:00"
+      segmentation_type: vlan
+      phys_nets: 
+        physnet2: 
+          bridge: br-prv
+          vlan_range: "1000:1030"
+    L3: 
+      use_namespaces: true
+  neutron_db_password: dN35Lnug
+  neutron_metadata_proxy_secret: F97qobV2
+  neutron_nsx_config: 
+  neutron_user_password: v0oYnz8E
+  node: 
+    - swift_zone: "1"
+      public_netmask: "255.255.255.0"
+      storage_address: "10.108.4.2"
+      internal_address: "10.108.2.3"
+      internal_netmask: "255.255.255.0"
+      public_address: "10.108.1.3"
+      uid: "1"
+      name: node-1
+      storage_netmask: "255.255.255.0"
+      fqdn: node-1.test.domain.local
+      user_node_name: slave-01_controller
+      role: primary-controller
+  nodes_hash: 
+    - *id001
+    - *id002
+    - *id003
+    - swift_zone: "4"
+      storage_address: "10.108.4.5"
+      internal_address: "10.108.2.6"
+      internal_netmask: "255.255.255.0"
+      uid: "4"
+      name: node-4
+      storage_netmask: "255.255.255.0"
+      fqdn: node-4.test.domain.local
+      user_node_name: slave-04_compute
+      role: compute
+    - swift_zone: "5"
+      storage_address: "10.108.4.6"
+      internal_address: "10.108.2.7"
+      internal_netmask: "255.255.255.0"
+      uid: "5"
+      name: node-5
+      storage_netmask: "255.255.255.0"
+      fqdn: node-5.test.domain.local
+      user_node_name: slave-05_compute
+      role: compute
+  nova_db_password: "0uby8H7M"
+  nova_hash: 
+    db_password: "0uby8H7M"
+    state_path: /var/lib/nova
+    user_password: YSLRsqwd
+  nova_rate_limits: 
+    POST: "100000"
+    POST_SERVERS: "100000"
+    PUT: "1000"
+    GET: "100000"
+    DELETE: "100000"
+  nova_report_interval: "60"
+  nova_service_down_time: "180"
+  novanetwork_params: {}
+  nsx_config: 
+    nsx_controllers: ""
+    packages_url: ""
+    l3_gw_service_uuid: ""
+    connector_type: stt
+    metadata: 
+      weight: 20
+      enabled: false
+      label: "VMware NSX"
+      restrictions: 
+        - action: hide
+          condition: "cluster:net_provider != 'neutron' or networking_parameters:net_l23_provider != 'nsx'"
+    nsx_username: admin
+    nsx_password: ""
+    transport_zone_uuid: ""
+    replication_mode: true
+  num_networks: 
+  openstack_version: "2014.2-6.1"
+  primary_controller: true
+  primary_controller_nodes: *id004
+  public_address: "10.108.1.3"
+  public_br: 
+  public_int: br-ex
+  public_netmask: "255.255.255.0"
+  queue_provider: rabbitmq
+  rabbit_ha_queues: true
+  rabbit_hash: 
+    password: o7gaeKUE
+    user: nova
+  rabbitmq_cluster_nodes: *id005
+  node_role: primary-controller
+  roles: 
+    - primary-controller
+  sahara_hash: 
+    db_password: trt3djZV
+    enabled: false
+    user_password: fSz91Xr3
+  sql_connection: "mysql://nova:0uby8H7M@10.108.2.2/nova?read_timeout = 6 0"
+  storage_address: "10.108.4.2"
+  storage_hash: 
+    vc_host: ""
+    images_vcenter: false
+    volumes_lvm: true
+    vc_password: ""
+    vc_datastore: ""
+    volumes_ceph: false
+    images_ceph: false
+    metadata: 
+      weight: 60
+      label: Storage
+    volumes_vmdk: false
+    ephemeral_ceph: false
+    vc_image_dir: /openstack_glance
+    pg_num: 128
+    iser: false
+    vc_datacenter: ""
+    osd_pool_size: "2"
+    vc_user: ""
+    objects_ceph: false
+  storage_netmask: "255.255.255.0"
+  swift_hash: 
+    user_password: mvBajhHP
+  syslog_hash: 
+    syslog_server: ""
+    syslog_port: "514"
+    metadata: 
+      weight: 50
+      label: Syslog
+    syslog_transport: tcp
+  syslog_log_facility_ceilometer: LOG_LOCAL0
+  syslog_log_facility_ceph: LOG_LOCAL0
+  syslog_log_facility_cinder: LOG_LOCAL3
+  syslog_log_facility_glance: LOG_LOCAL2
+  syslog_log_facility_heat: LOG_LOCAL0
+  syslog_log_facility_keystone: LOG_LOCAL7
+  syslog_log_facility_murano: LOG_LOCAL0
+  syslog_log_facility_neutron: LOG_LOCAL4
+  syslog_log_facility_nova: LOG_LOCAL6
+  syslog_log_facility_sahara: LOG_LOCAL0
+  use_ceilometer: false
+  use_monit: false
+  use_neutron: true
+  use_syslog: true
+  use_vmware_nsx: 
+  vcenter_hash: 
+    host_ip: ""
+    vc_password: ""
+    datastore_regex: ""
+    metadata: 
+      weight: 20
+      label: vCenter
+      restrictions: 
+        - action: hide
+          condition: "settings:common.libvirt_type.value != 'vcenter'"
+    vlan_interface: ""
+    cluster: ""
+    vc_user: ""
+  verbose: true
+  vlan_start: 
