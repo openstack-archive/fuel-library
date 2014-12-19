@@ -94,7 +94,9 @@ class openstack::ceilometer (
 
     class { '::ceilometer::alarm::notifier': }
 
-    class { '::ceilometer::agent::notification': }
+    class { '::ceilometer::agent::notification':
+      store_events => true,
+    }
 
     if $use_neutron {
       neutron_config { 'DEFAULT/notification_driver': value => 'messaging' }
