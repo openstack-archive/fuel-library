@@ -14,7 +14,22 @@ bundle --version || exit 1
 
 export GEM_HOME=$WORKSPACE/.bundled_gems
 
-pushd ./utils/noop &>/dev/null
-  bundle update
-  bundle exec rake spec SPEC_OPTS='--format documentation'
-popd &>/dev/null
+# Iterate over astute.yaml files we have
+for YAML in ./utils/noop/astute.yaml/*yaml ; do
+  export astute_filename=`basename $YAML`
+  echo -e "\n\n======== Running modular noop tests for $astute_filename ========\n"
+  # Now iterate over tasks defined in astute.yaml and run
+  # rspec tests for each (if it exists, of course)
+  for task in `grep 'puppet_manifest:' $YAML | awk '{print $2}'` ; do
+    dir=`echo $task | sed -e 's#.*/etc/puppet/modules/##g' -e 's#\.pp$##g' -e 's#/#_#g'`
+    if [ -d "./utils/noop/$dir" ] ; then
+      echo -e "\nTest found for puppet task: $task"
+      pushd "./utils/noop/$dir" &>/dev/null
+        bundle update &>/dev/null
+        bundle exec rake spec SPEC_OPTS='--format documentation'
+      popd &>/dev/null
+    else
+      echo -e "\nNo test found for puppet task: $task"
+    fi
+  done
+done
