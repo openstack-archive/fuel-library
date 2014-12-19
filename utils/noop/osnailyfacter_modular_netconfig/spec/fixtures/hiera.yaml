@@ -1,0 +1,10 @@
+---
+:backends:
+  - yaml
+
+:hierarchy:
+  - "%{::globals_yaml}"
+  - "%{::test_yaml}"
+
+:yaml:
+  :datadir: ../astute.yaml/
