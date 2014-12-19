@@ -1,0 +1,528 @@
+--- 
+external_ntp: 
+  metadata: 
+    weight: 100
+    label: Upstream NTP
+  ntp_list: 0.pool.ntp.org, 1.pool.ntp.org
+cinder: 
+  db_password: UadbW5Wq
+  user_password: B7VW9lql
+external_mongo: 
+  mongo_user: ceilometer
+  mongo_replset: ""
+  mongo_db_name: ceilometer
+  metadata: 
+    weight: 20
+    label: External MongoDB
+    restrictions: 
+    - action: hide
+      condition: settings:additional_components.mongo.value == false
+  hosts_ip: ""
+  mongo_password: ceilometer
+external_dns: 
+  metadata: 
+    weight: 90
+    label: Upstream DNS
+  dns_list: 8.8.8.8, 8.8.4.4
+fail_if_error: true
+murano: 
+  db_password: DOMrWIP7
+  enabled: false
+  rabbit_password: 2VkcQOJ8
+  user_password: g8YEsShd
+mysql: 
+  root_password: Bq84GPHi
+  wsrep_password: mNZVc8rD
+repo_metadata: 
+  2014.2-6.1: http://10.108.0.2:8080/2014.2-6.1/ubuntu/x86_64 precise main
+management_network_range: 10.108.2.0/24
+vcenter: 
+  host_ip: ""
+  vc_password: ""
+  datastore_regex: ""
+  metadata: 
+    weight: 20
+    label: vCenter
+    restrictions: 
+    - action: hide
+      condition: settings:common.libvirt_type.value != 'vcenter'
+  vlan_interface: ""
+  cluster: ""
+  vc_user: ""
+nova_quota: false
+quantum_settings: 
+  database: 
+    passwd: dN35Lnug
+  metadata: 
+    metadata_proxy_shared_secret: F97qobV2
+  keystone: 
+    admin_password: v0oYnz8E
+  predefined_networks: 
+    net04_ext: 
+      tenant: admin
+      shared: false
+      L3: 
+        floating: 10.108.1.128:10.108.1.254
+        nameservers: []
+
+        enable_dhcp: false
+        gateway: 10.108.1.1
+        subnet: 10.108.1.0/24
+      L2: 
+        physnet: 
+        network_type: local
+        segment_id: 
+        router_ext: true
+    net04: 
+      tenant: admin
+      shared: false
+      L3: 
+        floating: 
+        nameservers: 
+        - 8.8.4.4
+        - 8.8.8.8
+        enable_dhcp: true
+        gateway: 192.168.196.1
+        subnet: 192.168.196.0/22
+      L2: 
+        physnet: physnet2
+        network_type: vlan
+        segment_id: 
+        router_ext: false
+  L2: 
+    base_mac: fa:16:3e:00:00:00
+    segmentation_type: vlan
+    phys_nets: 
+      physnet2: 
+        bridge: br-prv
+        vlan_range: 1000:1030
+  L3: 
+    use_namespaces: true
+uid: "1"
+kernel_params: 
+  kernel: console=ttyS0,9600 console=tty0 rootdelay=90 nomodeset
+  metadata: 
+    weight: 40
+    label: Kernel parameters
+swift: 
+  user_password: mvBajhHP
+nodes: 
+- swift_zone: "1"
+  public_netmask: 255.255.255.0
+  storage_address: 10.108.4.2
+  internal_address: 10.108.2.3
+  internal_netmask: 255.255.255.0
+  public_address: 10.108.1.3
+  uid: "1"
+  name: node-1
+  storage_netmask: 255.255.255.0
+  fqdn: node-1.test.domain.local
+  user_node_name: slave-01_controller
+  role: primary-controller
+- swift_zone: "2"
+  public_netmask: 255.255.255.0
+  storage_address: 10.108.4.3
+  internal_address: 10.108.2.4
+  internal_netmask: 255.255.255.0
+  public_address: 10.108.1.4
+  uid: "2"
+  name: node-2
+  storage_netmask: 255.255.255.0
+  fqdn: node-2.test.domain.local
+  user_node_name: slave-02_controller
+  role: controller
+- swift_zone: "3"
+  public_netmask: 255.255.255.0
+  storage_address: 10.108.4.4
+  internal_address: 10.108.2.5
+  internal_netmask: 255.255.255.0
+  public_address: 10.108.1.5
+  uid: "3"
+  name: node-3
+  storage_netmask: 255.255.255.0
+  fqdn: node-3.test.domain.local
+  user_node_name: slave-03_controller
+  role: controller
+- swift_zone: "4"
+  storage_address: 10.108.4.5
+  internal_address: 10.108.2.6
+  internal_netmask: 255.255.255.0
+  uid: "4"
+  name: node-4
+  storage_netmask: 255.255.255.0
+  fqdn: node-4.test.domain.local
+  user_node_name: slave-04_compute
+  role: compute
+- swift_zone: "5"
+  storage_address: 10.108.4.6
+  internal_address: 10.108.2.7
+  internal_netmask: 255.255.255.0
+  uid: "5"
+  name: node-5
+  storage_netmask: 255.255.255.0
+  fqdn: node-5.test.domain.local
+  user_node_name: slave-05_compute
+  role: compute
+online: true
+use_cow_images: true
+syslog: 
+  syslog_server: ""
+  syslog_port: "514"
+  metadata: 
+    weight: 50
+    label: Syslog
+  syslog_transport: tcp
+management_vip: 10.108.2.2
+auth_key: ""
+storage_network_range: 10.108.4.0/24
+rabbit: 
+  password: o7gaeKUE
+puppet_manifests_source: rsync://10.108.0.2:/puppet/2014.2-6.1/manifests/
+deployment_mode: ha_compact
+status: discover
+nova: 
+  db_password: 0uby8H7M
+  state_path: /var/lib/nova
+  user_password: YSLRsqwd
+resume_guests_state_on_host_boot: true
+access: 
+  user: admin
+  tenant: admin
+  metadata: 
+    weight: 10
+    label: Access
+  email: admin@localhost
+  password: admin
+base_syslog: 
+  syslog_server: 10.108.0.2
+  syslog_port: "514"
+metadata: 
+  weight: 30
+  label: Common
+corosync: 
+  metadata: 
+    weight: 50
+    label: Corosync
+    restrictions: 
+    - action: hide
+      condition: "true"
+  port: "12000"
+  group: 226.94.1.1
+  verified: false
+master_ip: 10.108.0.2
+openstack_version: 2014.2-6.1
+public_vip: 10.108.1.2
+tasks: 
+- type: puppet
+  uids: 
+  - "1"
+  priority: 100
+  parameters: 
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera.pp
+    puppet_modules: /etc/puppet/modules
+    cwd: /
+    timeout: 3600
+- type: puppet
+  uids: 
+  - "1"
+  priority: 200
+  parameters: 
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/globals.pp
+    puppet_modules: /etc/puppet/modules
+    cwd: /
+    timeout: 3600
+- type: puppet
+  uids: 
+  - "1"
+  priority: 300
+  parameters: 
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig.pp
+    puppet_modules: /etc/puppet/modules
+    cwd: /
+    timeout: 3600
+- type: puppet
+  uids: 
+  - "1"
+  priority: 400
+  parameters: 
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hosts.pp
+    puppet_modules: /etc/puppet/modules
+    cwd: /
+    timeout: 3600
+- type: puppet
+  uids: 
+  - "1"
+  priority: 500
+  parameters: 
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/tools.pp
+    puppet_modules: /etc/puppet/modules
+    cwd: /
+    timeout: 3600
+- type: puppet
+  uids: 
+  - "1"
+  priority: 600
+  parameters: 
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall.pp
+    puppet_modules: /etc/puppet/modules
+    cwd: /
+    timeout: 3600
+- type: puppet
+  uids: 
+  - "1"
+  priority: 700
+  parameters: 
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/controller.pp
+    puppet_modules: /etc/puppet/modules
+    cwd: /
+    timeout: 3600
+deployment_id: 1
+test_vm_image: 
+  img_path: /usr/share/cirros-testvm/cirros-x86_64-disk.img
+  disk_format: qcow2
+  public: "true"
+  os_name: cirros
+  container_format: bare
+  img_name: TestVM
+  glance_properties: "--property murano_image_info='{\"title\": \"Murano Demo\", \"type\": \"cirros.demo\"}'"
+  min_ram: 64
+mongo: 
+  enabled: false
+glance: 
+  db_password: OmMLH6HF
+  image_cache_max_size: "13868466176"
+  user_password: SyYVSBMV
+libvirt_type: qemu
+neutron_mellanox: 
+  vf_num: "16"
+  plugin: disabled
+  metadata: 
+    weight: 50
+    enabled: true
+    label: Mellanox Neutron components
+    toggleable: false
+heat: 
+  db_password: nQNKGiAe
+  enabled: true
+  rabbit_password: 1v59MH1A
+  auth_encryption_key: ada53a7b9a8d587d88dfe033ab260602
+  user_password: 72fzPvrk
+mp: 
+- weight: "1"
+  point: "1"
+- weight: "2"
+  point: "2"
+zabbix: 
+  db_password: eTAoORwT
+  metadata: 
+    weight: 70
+    label: Zabbix Access
+    restrictions: 
+    - action: hide
+      condition: not ('experimental' in version:feature_groups)
+  username: admin
+  password: zabbix
+  db_root_password: pjK7lf7r
+fqdn: node-1.test.domain.local
+fuel_version: "6.1"
+keystone: 
+  admin_token: WNS2f4Uf
+  db_password: JfOWfuqA
+priority: 100
+last_controller: node-3
+quantum: true
+storage: 
+  vc_host: ""
+  images_vcenter: false
+  volumes_lvm: true
+  vc_password: ""
+  vc_datastore: ""
+  volumes_ceph: false
+  images_ceph: false
+  metadata: 
+    weight: 60
+    label: Storage
+  volumes_vmdk: false
+  ephemeral_ceph: false
+  vc_image_dir: /openstack_glance
+  pg_num: 128
+  iser: false
+  vc_datacenter: ""
+  osd_pool_size: "2"
+  vc_user: ""
+  objects_ceph: false
+provision: 
+  metadata: 
+    weight: 80
+    label: Provision
+    restrictions: 
+    - action: hide
+      condition: not ('experimental' in version:feature_groups)
+  method: cobbler
+  image_data: 
+    /boot: 
+      format: ext2
+      container: gzip
+      uri: http://10.108.0.2:8080/targetimages/ubuntu_1204_amd64-boot.img.gz
+    /: 
+      format: ext4
+      container: gzip
+      uri: http://10.108.0.2:8080/targetimages/ubuntu_1204_amd64.img.gz
+cobbler: 
+  profile: ubuntu_1204_x86_64
+nsx_plugin: 
+  nsx_controllers: ""
+  packages_url: ""
+  l3_gw_service_uuid: ""
+  connector_type: stt
+  metadata: 
+    weight: 20
+    enabled: false
+    label: VMware NSX
+    restrictions: 
+    - action: hide
+      condition: cluster:net_provider != 'neutron' or networking_parameters:net_l23_provider != 'nsx'
+  nsx_username: admin
+  nsx_password: ""
+  transport_zone_uuid: ""
+  replication_mode: true
+user_node_name: slave-01_controller
+openstack_version_prev: 
+debug: true
+puppet_modules_source: rsync://10.108.0.2:/puppet/2014.2-6.1/modules/
+public_network_assignment: 
+  assign_to_all_nodes: false
+  metadata: 
+    weight: 50
+    label: Public network assignment
+    restrictions: 
+    - action: hide
+      condition: cluster:net_provider != 'neutron'
+network_scheme: 
+  provider: ovs
+  roles: 
+    ex: br-ex
+    fw-admin: br-fw-admin
+    management: br-mgmt
+    storage: br-storage
+    private: br-prv
+  transformations: 
+  - name: br-eth0
+    action: add-br
+  - bridge: br-eth0
+    name: eth0
+    action: add-port
+  - name: br-eth1
+    action: add-br
+  - bridge: br-eth1
+    name: eth1
+    action: add-port
+  - name: br-eth2
+    action: add-br
+  - bridge: br-eth2
+    name: eth2
+    action: add-port
+  - name: br-eth3
+    action: add-br
+  - bridge: br-eth3
+    name: eth3
+    action: add-port
+  - name: br-eth4
+    action: add-br
+  - bridge: br-eth4
+    name: eth4
+    action: add-port
+  - name: br-ex
+    action: add-br
+  - name: br-mgmt
+    action: add-br
+  - name: br-storage
+    action: add-br
+  - name: br-fw-admin
+    action: add-br
+  - trunks: 
+    - 0
+    action: add-patch
+    bridges: 
+    - br-eth4
+    - br-storage
+  - trunks: 
+    - 0
+    action: add-patch
+    bridges: 
+    - br-eth2
+    - br-mgmt
+  - trunks: 
+    - 0
+    action: add-patch
+    bridges: 
+    - br-eth0
+    - br-fw-admin
+  - trunks: 
+    - 0
+    action: add-patch
+    bridges: 
+    - br-eth1
+    - br-ex
+  - name: br-prv
+    action: add-br
+  - action: add-patch
+    bridges: 
+    - br-eth3
+    - br-prv
+  endpoints: 
+    br-prv: 
+      IP: none
+    br-fw-admin: 
+      IP: 
+      - 10.108.0.6/24
+      other_nets: 
+      - 10.108.0.0/24
+    br-mgmt: 
+      IP: 
+      - 10.108.2.3/24
+      gateway: 10.108.2.1
+      other_nets: []
+
+    br-ex: 
+      IP: 
+      - 10.108.1.3/24
+      gateway: 10.108.1.1
+      default_gateway: true
+      other_nets: []
+
+    br-storage: 
+      IP: 
+      - 10.108.4.2/24
+      gateway: 10.108.4.1
+      other_nets: []
+
+  interfaces: 
+    eth0: 
+      L2: 
+        vlan_splinters: "off"
+    eth1: 
+      L2: 
+        vlan_splinters: "off"
+    eth2: 
+      L2: 
+        vlan_splinters: "off"
+    eth3: 
+      L2: 
+        vlan_splinters: "off"
+    eth4: 
+      L2: 
+        vlan_splinters: "off"
+  version: "1.0"
+ceilometer: 
+  metering_secret: ljye4oHm
+  db_password: U5MySDDO
+  enabled: false
+  user_password: Ebge91r7
+auto_assign_floating_ip: false
+role: primary-controller
+disable_offload: true
+sahara: 
+  db_password: trt3djZV
+  enabled: false
+  user_password: fSz91Xr3
