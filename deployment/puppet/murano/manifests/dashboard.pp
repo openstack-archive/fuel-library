@@ -53,8 +53,8 @@ class murano::dashboard (
   exec { 'django_collectstatic':
     command     => "${collect_static_script} collectstatic --noinput",
     environment => [
-     "APACHE_USER=${apache_user}",
-     "APACHE_GROUP=${apache_user}",
+      "APACHE_USER=${apache_user}",
+      "APACHE_GROUP=${apache_user}",
     ],
   }
 
