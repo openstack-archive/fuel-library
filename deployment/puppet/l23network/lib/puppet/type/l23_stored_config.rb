@@ -63,6 +63,31 @@ Puppet::Type.newtype(:l23_stored_config) do
     end
   end
 
+  newproperty(:vlan_dev) do
+    desc "802.1q vlan base device"
+  end
+
+  newproperty(:vlan_id) do
+    desc "802.1q vlan ID"
+    validate do |value|
+      unless (value =~ /^\d+$/)
+        raise ArgumentError, "#{value} is not a valid VLAN_ID (must be a positive integer)"
+      end
+      min_id = 2
+      max_id = 4094
+      unless (min_id .. max_id).include?(value.to_i)
+        raise ArgumentError, "#{value} is not in the valid VLAN_ID (#{min_mtu} .. #{max_mtu})"
+      end
+    end
+  end
+
+  newproperty(:vlan_mode) do
+    desc "802.1q vlan interface naming model"
+    #newvalues(:ethernet, :bridge, :bond)
+    #defaultto :ethernet
+  end
+
+
   # `:options` provides an arbitrary passthrough for provider properties, so
   # that provider specific behavior doesn't clutter up the main type but still
   # allows for more powerful actions to be taken.

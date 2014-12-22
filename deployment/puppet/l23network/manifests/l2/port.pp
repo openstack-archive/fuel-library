@@ -29,34 +29,83 @@
 #   Must be true or false.
 #
 define l23network::l2::port (
-  $bridge,
-  $port                  = $name,
-  $type                  = '',
-  $port_properties       = [],
-  $interface_properties  = [],
-  $vlan_id               = 0,
-  $trunks                = [],
-  $vlan_splinters        = false,
-  $provider              = 'ovs',
   $ensure                = present,
-  $skip_existing         = false
+  $port                  = $name,
+  $bridge                = undef,
+  $vlan_id               = undef, # actually only for OVS workflow
+  $vlan_dev              = undef,
+  $mtu                   = undef,
+  $onboot                = undef,
+# $type                  = undef, # was '',
+# $trunks                = [],
+  $skip_existing         = undef,
+  $provider              = undef,
 ) {
-  if ! $::l23network::l2::use_ovs {
-    fail('You must enable Open vSwitch by setting the l23network::l2::use_ovs to true.')
+  # Detect VLAN mode configuration
+  case $port {
+    /^vlan(\d+)/: {
+      $port_name = $port
+      $port_vlan_mode = 'vlan'
+      if $vlan_id {
+        $port_vlan_id = $vlan_id
+      } else {
+        $port_vlan_id = $1
+      }
+      if $vlan_dev {
+        $port_vlan_dev = $vlan_dev
+      } else {
+        fail("Can't configure vlan interface ${port} without definition vlandev=>ethXX.")
+      }
+    }
+    /^(eth\d+)\.(\d+)/: {
+      $port_vlan_mode = 'eth'
+      $port_vlan_id   = $2
+      $port_vlan_dev  = $1
+      $port_name      = "${1}.${2}"
+    }
+    default: {
+      $port_vlan_mode = undef
+      $port_vlan_id   = undef
+      $port_vlan_dev  = undef
+      $port_name      = $port
+    }
   }
 
-  if ! defined (L2_port[$port]) {
-    l2_port { $port :
+  if ! defined (L2_port[$port_name]) {
+    if $provider {
+      $config_provider = "${provider}_${::l23_os}"
+    } else {
+      $config_provider = undef
+    }
+
+    if ! defined (L23_stored_config[$port_name]) {
+      l23_stored_config { $port_name: }
+    }
+    L23_stored_config[$port_name] {
+      ensure        => $ensure,
+      if_type       => 'ethernet',
+      vlan_id       => $port_vlan_id,
+      vlan_dev      => $port_vlan_dev,
+      vlan_mode     => $port_vlan_mode,
+      mtu           => $mtu,
+      onboot        => $onboot,
+      provider      => $config_provider
+    }
+
+    l2_port { $port_name :
       ensure               => $ensure,
       bridge               => $bridge,
-      type                 => $type,
-      vlan_id              => $vlan_id,
-      trunks               => $trunks,
-      vlan_splinters       => $vlan_splinters,
-      port_properties      => $port_properties,
-      interface_properties => $interface_properties,
-      skip_existing        => $skip_existing
+      vlan_id              => $port_vlan_id,
+      vlan_dev             => $port_vlan_dev,
+      vlan_mode            => $port_vlan_mode,
+      mtu                  => $mtu,
+      onboot               => $onboot,
+      #type                 => $type,
+      #trunks               => $trunks,
+      #vlan_splinters       => $vlan_splinters,
+      #port_properties      => $port_properties,
+      #interface_properties => $interface_properties,
+      provider             => $provider
     }
-    Service<| title == 'openvswitch-service' |> -> L2_port[$port]
   }
 }
