@@ -12,6 +12,7 @@ class openstack::mongo_primary (
   $use_syslog                   = true,
   $verbose                      = false,
   $debug                        = false,
+  $replset                      = undef,
 ) {
   if $debug {
     $set_parameter = 'logLevel=2'
@@ -23,11 +24,9 @@ class openstack::mongo_primary (
   if size($ceilometer_replset_members) > 0 {
     $replset_setup = true
     $keyfile = '/etc/mongodb.key'
-    $replset = 'ceilometer'
   } else {
     $replset_setup = false
     $keyfile = undef
-    $replset = undef
   }
 
   notify {"MongoDB params: $mongodb_bind_address" :} ->

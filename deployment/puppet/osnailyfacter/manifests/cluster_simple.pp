@@ -85,8 +85,24 @@ class osnailyfacter::cluster_simple {
       user_password => 'ceilometer',
       metering_secret => 'ceilometer',
     }
+    $ext_mongo = false
   } else {
     $ceilometer_hash = $::fuel_settings['ceilometer']
+
+    # External mongo integration
+    if has_key($::fuel_settings, 'mongo') and $::fuel_settings['mongo']['enabled'] {
+      $ext_mongo_hash = $::fuel_settings['external_mongo']
+      $ceilometer_db_user = $ext_mongo_hash['mongo_user']
+      $ceilometer_db_password = $ext_mongo_hash['mongo_password']
+      $ceilometer_db_name = $ext_mongo_hash['mongo_db_name']
+      $ext_mongo = true
+    } else {
+      $ceilometer_db_user = 'ceilometer'
+      $ceilometer_db_password = $ceilometer_hash['db_password']
+      $ceilometer_db_name = 'ceilometer'
+      $ext_mongo = false
+      $ext_mongo_hash = {}
+    }
   }
 
   # vCenter integration
@@ -120,6 +136,22 @@ class osnailyfacter::cluster_simple {
   $access_hash          = $::fuel_settings['access']
   $nodes_hash           = $::fuel_settings['nodes']
   $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
+
+  if $ext_mongo {
+    $mongo_hosts = $ext_mongo_hash['hosts_ip']
+    if $ext_mongo_hash['mongo_replset'] {
+      $mongo_replicaset = $ext_mongo_hash['mongo_replset']
+    } else {
+      $mongo_replicaset = undef
+    }
+  } elsif $ceilometer_hash['enabled'] {
+    $mongo_hosts = mongo_hosts($nodes_hash)
+    if size(mongo_hosts($nodes_hash, 'array', 'mongo')) > 1 {
+      $mongo_replicaset = 'ceilometer'
+    } else {
+      $mongo_replicaset = undef
+    }
+  }
 
   if !$rabbit_hash[user] {
     $rabbit_hash[user] = 'nova'
@@ -268,12 +300,16 @@ class osnailyfacter::cluster_simple {
         nova_user_password             => $nova_hash[user_password],
         nova_rate_limits               => $::nova_rate_limits,
         ceilometer                     => $ceilometer_hash[enabled],
-        ceilometer_db_password         => $ceilometer_hash[db_password],
+        ceilometer_db_user             => $ceilometer_db_user,
+        ceilometer_db_password         => $ceilometer_db_password,
         ceilometer_user_password       => $ceilometer_hash[user_password],
         ceilometer_metering_secret     => $ceilometer_hash[metering_secret],
+        ceilometer_db_dbname           => $ceilometer_db_name,
         ceilometer_db_type             => 'mongodb',
-        ceilometer_db_host             => mongo_hosts($nodes_hash),
         swift_rados_backend            => $storage_hash['objects_ceph'],
+        ceilometer_db_host             => $mongo_hosts,
+        ceilometer_ext_mongo           => $ext_mongo,
+        mongo_replicaset               => $mongo_replicaset,
         queue_provider                 => $::queue_provider,
         amqp_hosts                     => $amqp_hosts,
         amqp_user                      => $rabbit_hash['user'],
@@ -606,21 +642,26 @@ class osnailyfacter::cluster_simple {
 
     } # COMPUTE ENDS
     "mongo" : {
-      class { 'openstack::mongo_secondary':
-        mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
-        use_syslog                  => $use_syslog,
-        debug                       => $debug,
+      if !$ext_mongo {
+         class { 'openstack::mongo_secondary':
+          mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
+          use_syslog                  => $use_syslog,
+          debug                       => $debug,
+        }
       }
     } # MONGO ENDS
 
     "primary-mongo" : {
-      class { 'openstack::mongo_primary':
-        mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
-        ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
-        ceilometer_db_password      => $ceilometer_hash['db_password'],
-        ceilometer_replset_members  => mongo_hosts($nodes_hash, 'array', 'mongo'),
-        use_syslog                  => $use_syslog,
-        debug                       => $debug,
+      if !$ext_mongo {
+        class { 'openstack::mongo_primary':
+          mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
+          ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
+          ceilometer_db_password      => $ceilometer_db_password,
+          ceilometer_replset_members  => mongo_hosts($nodes_hash, 'array', 'mongo'),
+          replset                     => $mongo_replicaset,
+          use_syslog                  => $use_syslog,
+          debug                       => $debug,
+        }
       }
     } # PRIMARY-MONGO ENDS
 
@@ -628,7 +669,7 @@ class osnailyfacter::cluster_simple {
 #      class { 'openstack::mongo':
 #        mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
 #        ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
-#        ceilometer_db_password      => $ceilometer_hash['db_password'],
+#        ceilometer_db_password      => $ceilometer_db_password,
 #      }
 #    } # MONGO ENDS
     "cinder" : {
