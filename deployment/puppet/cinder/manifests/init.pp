@@ -69,6 +69,8 @@ class cinder (
   $log_dir                     = '/var/log/cinder',
   $verbose                     = false,
   $debug                       = false,
+  $storage_availability_zone   = 'nova',
+  $default_availability_zone   = false,
   $mysql_module                = '0.9',
   # DEPRECATED PARAMETERS
   $sql_connection              = undef,
@@ -183,13 +185,21 @@ class cinder (
     }
   }
 
+  if ! $default_availability_zone {
+    $default_availability_zone_real = $storage_availability_zone
+  } else {
+    $default_availability_zone_real = $default_availability_zone
+  }
+
   cinder_config {
-    'database/connection':         value => $database_connection_real, secret => true;
-    'database/idle_timeout':       value => $database_idle_timeout_real;
-    'DEFAULT/verbose':             value => $verbose;
-    'DEFAULT/debug':               value => $debug;
-    'DEFAULT/api_paste_config':    value => $api_paste_config;
-    'DEFAULT/rpc_backend':         value => $rpc_backend;
+    'database/connection':               value => $database_connection_real, secret => true;
+    'database/idle_timeout':             value => $database_idle_timeout_real;
+    'DEFAULT/verbose':                   value => $verbose;
+    'DEFAULT/debug':                     value => $debug;
+    'DEFAULT/api_paste_config':          value => $api_paste_config;
+    'DEFAULT/rpc_backend':               value => $rpc_backend;
+    'DEFAULT/storage_availability_zone': value => $storage_availability_zone;
+    'DEFAULT/default_availability_zone': value => $default_availability_zone_real;
   }
 
   if($database_connection_real =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
