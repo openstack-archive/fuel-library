@@ -114,12 +114,6 @@ class openstack::nova::controller (
     $real_glance_api_servers = $glance_api_servers
   }
 
-  # From legacy init.pp
-  if !($glance_api_servers) {
-    # TODO this only supports setting a single address for the api server
-    Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'glance_api_servers' |>>
-  }
-
   $sql_connection    = $nova_db
   $glance_connection = $real_glance_api_servers
 
