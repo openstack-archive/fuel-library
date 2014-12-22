@@ -168,7 +168,7 @@ class galera (
     cs_resource { "p_${service_name}":
       ensure          => present,
       primitive_class => 'ocf',
-      provided_by     => 'mirantis',
+      provided_by     => 'fuel',
       primitive_type  => 'mysql-wss',
       complex_type    => 'clone',
       parameters      => {
@@ -201,14 +201,14 @@ class galera (
   }
 
   file { 'mysql-wss-ocf':
-    path   => '/usr/lib/ocf/resource.d/mirantis/mysql-wss',
+    path   => '/usr/lib/ocf/resource.d/fuel/mysql-wss',
     mode   => '0755',
     owner  => root,
     group  => root,
     source => 'puppet:///modules/galera/ocf/mysql-wss',
   }
 
-  File<| title == 'ocf-mirantis-path' |> -> File['mysql-wss-ocf']
+  File<| title == 'ocf-fuel-path' |> -> File['mysql-wss-ocf']
 
   Package['MySQL-server', 'galera'] -> File['mysql-wss-ocf']
 

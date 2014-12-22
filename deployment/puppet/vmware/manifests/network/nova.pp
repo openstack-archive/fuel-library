@@ -45,7 +45,7 @@ class vmware::network::nova (
     cs_resource { 'p_vcenter_nova_network':
       ensure          => present,
       primitive_class => 'ocf',
-      provided_by     => 'mirantis',
+      provided_by     => 'fuel',
       primitive_type  => 'nova-network',
       metadata        => {
         'resource-stickiness' => '1'
@@ -69,7 +69,7 @@ class vmware::network::nova (
     }
 
     file { 'vcenter-nova-network-ocf':
-      path  => '/usr/lib/ocf/resource.d/mirantis/nova-network',
+      path  => '/usr/lib/ocf/resource.d/fuel/nova-network',
       source => 'puppet:///modules/vmware/ocf/nova-network',
       owner => 'root',
       group => 'root',

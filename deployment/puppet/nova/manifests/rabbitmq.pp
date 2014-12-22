@@ -111,15 +111,15 @@ class nova::rabbitmq(
       # OCF script for pacemaker
       # and his dependences
       file {'rabbitmq-ocf':
-        path   =>'/usr/lib/ocf/resource.d/mirantis/rabbitmq-server',
+        path   =>'/usr/lib/ocf/resource.d/fuel/rabbitmq-server',
         mode   => '0755',
         owner  => root,
         group  => root,
         source => "puppet:///modules/nova/ocf/rabbitmq",
       }
 
-      File<| title == 'ocf-mirantis-path' |> -> File['rabbitmq-ocf']
-      Package['pacemaker'] -> File<| title == 'ocf-mirantis-path' |>
+      File<| title == 'ocf-fuel-path' |> -> File['rabbitmq-ocf']
+      Package['pacemaker'] -> File<| title == 'ocf-fuel-path' |>
       Package['pacemaker'] -> File['rabbitmq-ocf']
       Package['rabbitmq-server'] ->
         File['rabbitmq-ocf'] ->
@@ -129,7 +129,7 @@ class nova::rabbitmq(
           ensure          => present,
           #cib             => 'rabbitmq',
           primitive_class => 'ocf',
-          provided_by     => 'mirantis',
+          provided_by     => 'fuel',
           primitive_type  => 'rabbitmq-server',
           parameters      => {
             'node_port'     => $port,
