@@ -126,7 +126,7 @@ class openstack::ceilometer (
       Package['ceilometer-agent-central'] -> File['ceilometer-agent-central-ocf']
 
       file {'ceilometer-agent-central-ocf':
-        path   => '/usr/lib/ocf/resource.d/mirantis/ceilometer-agent-central',
+        path   => '/usr/lib/ocf/resource.d/fuel/ceilometer-agent-central',
         mode   => '0755',
         owner  => root,
         group  => root,
@@ -137,7 +137,7 @@ class openstack::ceilometer (
         cs_resource { $ceilometer_agent_res_name:
           ensure          => present,
           primitive_class => 'ocf',
-          provided_by     => 'mirantis',
+          provided_by     => 'fuel',
           primitive_type  => 'ceilometer-agent-central',
           metadata        => { 'target-role' => 'stopped', 'resource-stickiness' => '1' },
           parameters      => { 'user' => 'ceilometer' },
@@ -172,7 +172,7 @@ class openstack::ceilometer (
     Package[$::ceilometer::params::alarm_package_name] -> File['ceilometer-alarm-evaluator-ocf']
     Package['pacemaker'] -> File['ceilometer-alarm-evaluator-ocf']
     file {'ceilometer-alarm-evaluator-ocf':
-      path   => '/usr/lib/ocf/resource.d/mirantis/ceilometer-alarm-evaluator',
+      path   => '/usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator',
       mode   => '0755',
       owner  => root,
       group  => root,
@@ -183,7 +183,7 @@ class openstack::ceilometer (
       cs_resource { $ceilometer_alarm_res_name:
         ensure          => present,
         primitive_class => 'ocf',
-        provided_by     => 'mirantis',
+        provided_by     => 'fuel',
         primitive_type  => 'ceilometer-alarm-evaluator',
         metadata        => { 'target-role' => 'stopped' },
         parameters      => { 'user' => 'ceilometer' },
