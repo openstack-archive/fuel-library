@@ -58,6 +58,12 @@ describe 'cinder' do
       should contain_cinder_config('DEFAULT/debug').with(
         :value => false
       )
+      should contain_cinder_config('DEFAULT/storage_availability_zone').with(
+        :value => 'nova'
+      )
+      should contain_cinder_config('DEFAULT/default_availability_zone').with(
+        :value => 'nova'
+      )
       should contain_cinder_config('DEFAULT/api_paste_config').with(
         :value => '/etc/cinder/api-paste.ini'
       )
