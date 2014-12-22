@@ -1,15 +1,15 @@
-Puppet::Type.newtype(:l2_ovs_port) do
-    @doc = "Manage a Open vSwitch port"
+Puppet::Type.newtype(:l2_port) do
+    @doc = "Manage a network port abctraction."
     desc @doc
 
     ensurable
 
     newparam(:interface) do
       isnamevar
-      desc "The interface to attach to the bridge"
+      desc "The interface name"
       #
       validate do |val|
-        if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
+        if not val =~ /^[a-z_][0-9a-z\.\-\_]*[0-9a-z]$/
           fail("Invalid interface name: '#{val}'")
         end
       end
