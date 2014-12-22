@@ -28,10 +28,22 @@ Puppet::Type.newtype(:l23_stored_config) do
     defaultto :manual
   end
 
+  # newproperty(:port_type) do
+  #   desc "port_type fake RO property"
+  # end
+
   newproperty(:if_type) do
     desc "Device type"
     newvalues(:ethernet, :bridge, :bond)
     defaultto :ethernet
+  end
+
+  newproperty(:bridge_ports) do
+    desc "Ports, member of bridge"
+    #defaultto 'none'
+    munge do |val|
+      val.strip.split(/[\s,\:]+/).reject{|l| l.empty?}.join(' ')
+    end
   end
 
   newproperty(:onboot, :parent => Puppet::Property::Boolean) do
@@ -63,26 +75,51 @@ Puppet::Type.newtype(:l23_stored_config) do
     end
   end
 
-  # `:options` provides an arbitrary passthrough for provider properties, so
-  # that provider specific behavior doesn't clutter up the main type but still
-  # allows for more powerful actions to be taken.
-  newproperty(:options, :required_features => :provider_options) do
-    desc "Provider specific options to be passed to the provider"
+  newproperty(:vlan_dev) do
+    desc "802.1q vlan base device"
+  end
 
-    def is_to_s(hash = @is)
-      hash.keys.sort.map {|key| "#{key} => #{hash[key]}"}.join(", ")
-    end
-
-    def should_to_s(hash = @should)
-      hash.keys.sort.map {|key| "#{key} => #{hash[key]}"}.join(", ")
-    end
-
-    defaultto {}
-
+  newproperty(:vlan_id) do
+    desc "802.1q vlan ID"
     validate do |value|
-      raise ArgumentError, "#{self.class} requires a hash for the options property" unless value.is_a? Hash
-      #provider.validate
+      unless (value =~ /^\d+$/)
+        raise ArgumentError, "#{value} is not a valid VLAN_ID (must be a positive integer)"
+      end
+      min_id = 2
+      max_id = 4094
+      unless (min_id .. max_id).include?(value.to_i)
+        raise ArgumentError, "#{value} is not in the valid VLAN_ID (#{min_mtu} .. #{max_mtu})"
+      end
     end
   end
+
+  newproperty(:vlan_mode) do
+    desc "802.1q vlan interface naming model"
+    #newvalues(:ethernet, :bridge, :bond)
+    #defaultto :ethernet
+  end
+
+
+  # # `:options` provides an arbitrary passthrough for provider properties, so
+  # # that provider specific behavior doesn't clutter up the main type but still
+  # # allows for more powerful actions to be taken.
+  # newproperty(:options, :required_features => :provider_options) do
+  #   desc "Provider specific options to be passed to the provider"
+
+  #   def is_to_s(hash = @is)
+  #     hash.keys.sort.map {|key| "#{key} => #{hash[key]}"}.join(", ")
+  #   end
+
+  #   def should_to_s(hash = @should)
+  #     hash.keys.sort.map {|key| "#{key} => #{hash[key]}"}.join(", ")
+  #   end
+
+  #   defaultto {}
+
+  #   validate do |value|
+  #     raise ArgumentError, "#{self.class} requires a hash for the options property" unless value.is_a? Hash
+  #     #provider.validate
+  #   end
+  # end
 
 end
