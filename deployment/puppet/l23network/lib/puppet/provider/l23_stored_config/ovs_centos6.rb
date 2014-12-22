@@ -1,7 +1,7 @@
 require 'puppetx/filemapper'
-require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/l23_stored_config_ubuntu')
+require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/l23_stored_config_centos6')
 
-Puppet::Type.type(:l23_stored_config).provide(:ovs_centos6, :parent => Puppet::Provider::L23_stored_config_ovs_centos6) do
+Puppet::Type.type(:l23_stored_config).provide(:ovs_centos6, :parent => Puppet::Provider::L23_stored_config_centos6) do
 
   include PuppetX::FileMapper
 
@@ -10,18 +10,5 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_centos6, :parent => Puppet::P
   has_feature :provider_options
 
   self.unlink_empty_files = true
-
-
-  def self.mangle__method(val)
-    :manual
-  end
-
-  # may be should be used virtual OVSbridge type as in Centos7/Fedora-20
-  # def self.mangle__type(val)
-  #   :ethernet
-  # end
-  # def self.unmangle__type(val)
-  #   nil
-  # end
 
 end
