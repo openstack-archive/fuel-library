@@ -20,18 +20,18 @@ class cluster (
         unicast_addresses => $unicast_addresses
       }
     }
-    file { 'ocf-mirantis-path':
+    file { 'ocf-fuel-path':
       ensure  => directory,
-      path    =>'/usr/lib/ocf/resource.d/mirantis',
+      path    =>'/usr/lib/ocf/resource.d/fuel',
       recurse => true,
       owner   => root,
       group   => root,
     }
-    Package['corosync'] -> File['ocf-mirantis-path']
-    Package<| title == 'pacemaker' |> -> File['ocf-mirantis-path']
+    Package['corosync'] -> File['ocf-fuel-path']
+    Package<| title == 'pacemaker' |> -> File['ocf-fuel-path']
 
     file { 'ns-ipaddr2-ocf':
-      path   =>'/usr/lib/ocf/resource.d/mirantis/ns_IPaddr2',
+      path   =>'/usr/lib/ocf/resource.d/fuel/ns_IPaddr2',
       mode   => '0755',
       owner  => root,
       group  => root,
@@ -39,7 +39,7 @@ class cluster (
     }
 
     Package['pacemaker'] -> File['ns-ipaddr2-ocf']
-    File<| title == 'ocf-mirantis-path' |> -> File['ns-ipaddr2-ocf']
+    File<| title == 'ocf-fuel-path' |> -> File['ns-ipaddr2-ocf']
 
 }
 #

@@ -10,20 +10,20 @@ class cluster::haproxy_ocf (
   $service_name = 'p_haproxy'
 
   file {'haproxy-ocf':
-    path   =>'/usr/lib/ocf/resource.d/mirantis/ns_haproxy',
+    path   =>'/usr/lib/ocf/resource.d/fuel/ns_haproxy',
     mode   => '0755',
     owner  => root,
     group  => root,
     source => 'puppet:///modules/cluster/ns_haproxy',
   }
   Anchor['haproxy'] -> File['haproxy-ocf']
-  File<| title == 'ocf-mirantis-path' |> -> File['haproxy-ocf']
+  File<| title == 'ocf-fuel-path' |> -> File['haproxy-ocf']
 
   if $primary_controller {
     cs_resource { $service_name:
       ensure          => present,
       primitive_class => 'ocf',
-      provided_by     => 'mirantis',
+      provided_by     => 'fuel',
       primitive_type  => 'ns_haproxy',
       complex_type    => 'clone',
       ms_metadata     => {

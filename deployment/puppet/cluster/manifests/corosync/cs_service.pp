@@ -25,7 +25,7 @@ define cluster::corosync::cs_service (
 
   # OCF script for pacemaker
   file { $ocf_script :
-    path   => "/usr/lib/ocf/resource.d/mirantis/${ocf_script}",
+    path   => "/usr/lib/ocf/resource.d/fuel/${ocf_script}",
     mode   => '0755',
     owner  => root,
     group  => root,
@@ -36,7 +36,7 @@ define cluster::corosync::cs_service (
     cs_resource { "p_${service_name}":
       ensure          => present,
       primitive_class => 'ocf',
-      provided_by     => 'mirantis',
+      provided_by     => 'fuel',
       primitive_type  => $ocf_script,
       complex_type    => $csr_complex_type,
       ms_metadata     => $csr_ms_metadata,
