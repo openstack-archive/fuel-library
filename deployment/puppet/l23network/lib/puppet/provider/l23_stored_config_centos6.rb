@@ -12,9 +12,18 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     :name       => 'DEVICE',
     :onboot     => 'ONBOOT',
     :mtu        => 'MTU',
-    :if_type    => 'TYPE',
+    :vlan_id    => 'VLAN',
+    :vlan_dev   => 'PHYSDEV',
+    :vlan_mode  => 'VLAN_NAME_TYPE',
+    :if_type    => 'TYPE'
   }
 
+  # In the interface config files those fields should be written as boolean
+  BOOLEAN_FIELDS = [
+    :vlan_id,
+    :hotplug,
+    :onboot
+  ]
 
   # This is a hook method that will be called by PuppetX::Filemapper
   #
@@ -100,7 +109,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     #!# # For all of the remaining values, blindly toss them into the options hash.
     #!# props[:options] = pairs if ! pairs.empty?
 
-    [:onboot, :hotplug].each do |bool_property|
+    BOOLEAN_FIELDS.each do |bool_property|
       if props[bool_property]
         props[bool_property] = ! (props[bool_property] =~ /yes/i).nil?
       end
@@ -114,6 +123,14 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     # end
 
     props
+  end
+
+  def self.mangle__vlan_mode(val)
+    if val.to_s.upcase == 'VLAN_PLUS_VID_NO_PAD'
+      'vlan'
+    else
+      'eth'
+    end
   end
 
 
@@ -155,7 +172,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
 
     pairs = {}
 
-    [:onboot, :hotplug].each do |bool_property|
+    BOOLEAN_FIELDS.each do |bool_property|
       if props[bool_property]
         props[bool_property] = ((props[bool_property] == true) ? 'yes' : 'no')
       end
@@ -182,6 +199,14 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     end
 
     pairs
+  end
+
+  def self.unmangle__vlan_mode(val)
+    if val.to_s == 'vlan'
+      'VLAN_PLUS_VID_NO_PAD'
+    else
+      nil
+    end
   end
 
 end
