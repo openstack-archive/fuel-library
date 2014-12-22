@@ -1,5 +1,8 @@
-Puppet::Type.type(:l2_ovs_port).provide(:ovs) do
-  optional_commands :vsctl => "/usr/bin/ovs-vsctl"
+Puppet::Type.type(:l2_port).provide(:ovs) do
+  confine  :osfamily => :Linux
+  commands :vsctl   => 'ovs-vsctl',
+           :iproute => 'ip'
+
 
   def exists?
     vsctl("list-ports", @resource[:bridge]).split(/\n+/).include? @resource[:interface]
