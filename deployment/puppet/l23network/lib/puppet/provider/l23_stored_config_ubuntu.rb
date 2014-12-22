@@ -8,11 +8,19 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   end
 
   NAME_MAPPINGS = {
-    :method     => 'method',  # fake papping
-    :name       => 'iface',
-    :onboot     => 'auto',
-    :mtu        => 'mtu',
+    :method       => 'method',  # fake property
+    :name         => 'iface',
+    :onboot       => 'auto',
+    :mtu          => 'mtu',
+    :bridge_ports => 'bridge_ports',  # ports, members of bridge, fake property
+    :vlan_dev     => 'vlan-raw-device'
   }
+
+  # In the interface config files those fields should be written as boolean
+  BOOLEAN_FIELDS = [
+    :hotplug,
+    :onboot
+  ]
 
   # This is a hook method that will be called by PuppetX::Filemapper
   #
@@ -127,11 +135,11 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     #!# # For all of the remaining values, blindly toss them into the options hash.
     #!# props[:options] = pairs if ! pairs.empty?
 
-    # [:onboot, :hotplug].each do |bool_property|
-    #   if props[bool_property]
-    #     props[bool_property] = ! (props[bool_property] =~ /yes/i).nil?
-    #   end
-    # end
+    BOOLEAN_FIELDS.each do |bool_property|
+      if props[bool_property]
+        props[bool_property] = ! (props[bool_property] =~ /yes/i).nil?
+      end
+    end
 
     props
   end
@@ -190,6 +198,12 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   def self.unmangle_properties(props)
     pairs = {}
 
+    BOOLEAN_FIELDS.each do |bool_property|
+      if props[bool_property]
+        props[bool_property] = ((props[bool_property] == true)  ?  'yes'  :  'no')
+      end
+    end
+
     NAME_MAPPINGS.each_pair do |type_name, in_config_name|
       if (val = props[type_name])
         props.delete(type_name)
@@ -213,17 +227,8 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     pairs
   end
 
-  def self.unmangle__onboot(val)
-    ((val == true) ? 'yes' : 'no')
-  end
-
-  def self.unmangle__hotplug(val)
-    ((val == true) ? 'yes' : 'no')
-  end
-
   def self.unmangle__type(val)
     val.capitalize
   end
-
 
 end

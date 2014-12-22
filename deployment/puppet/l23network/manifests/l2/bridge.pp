@@ -40,8 +40,10 @@ define l23network::l2::bridge (
       ensure       => $ensure,
       #bpdu_forward => $bpdu_forward,
       if_type      => 'bridge',
+      bridge_ports => 'none',
       provider     => $config_provider
     }
+
     l2_bridge {$name:
       ensure        => $ensure,
       external_ids  => $external_ids,

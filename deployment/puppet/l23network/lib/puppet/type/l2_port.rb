@@ -1,3 +1,7 @@
+# type for managing runtime NIC states.
+
+require 'puppet/property/boolean'
+
 Puppet::Type.newtype(:l2_port) do
     @doc = "Manage a network port abctraction."
     desc @doc
@@ -21,17 +25,36 @@ Puppet::Type.newtype(:l2_port) do
       desc "Ovs port type"
     end
 
+    newproperty(:port_type) do
+      desc "Internal read-only property"
+      validate do |value|
+        raise ArgumentError, "You shouldn't change port_type -- it's a internal RO property!"
+      end
+    end
+
     newparam(:skip_existing) do
       defaultto(false)
       desc "Allow to skip existing port"
     end
 
-    newparam(:bridge) do
+    newproperty(:onboot, :parent => Puppet::Property::Boolean) do
+      desc "Whether to bring the interface up"
+      defaultto :true
+    end
+
+    newproperty(:bridge) do
       desc "What bridge to use"
       #
       validate do |val|
-        if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
+        if not val =~ /^[a-z][0-9a-z\-\_]*[0-9a-z]$/
           fail("Invalid bridge name: '#{val}'")
+        end
+      end
+      munge do |val|
+        if [:nil, :undef, :none, :absent].include?(val.to_sym)
+          :absent
+        else
+          val
         end
       end
     end
@@ -52,33 +75,68 @@ Puppet::Type.newtype(:l2_port) do
       end
     end
 
-    newparam(:vlan_id) do
-      defaultto(0)
-      desc "802.1q tag"
-      validate do |val|
-        if !val.is_a?(Integer) or (val < 0 or val > 4094)
-          fail("Wrong 802.1q tag. Tag must be an integer in 2..4094 interval")
+    newproperty(:vlan_dev) do
+      desc "802.1q vlan base device"
+    end
+
+    newproperty(:vlan_id) do
+      desc "802.1q vlan ID"
+      validate do |value|
+        unless (value =~ /^\d+$/)
+          raise ArgumentError, "#{value} is not a valid VLAN_ID (must be a positive integer)"
+        end
+        min_id = 2
+        max_id = 4094
+        unless (min_id .. max_id).include?(value.to_i)
+          raise ArgumentError, "#{value} is not in the valid VLAN_ID (#{min_mtu} .. #{max_mtu})"
         end
       end
-      munge do |val|
-        val.to_i
-      end
+    end
+
+    newproperty(:vlan_mode) do
+      desc "802.1q vlan interface naming model"
+      #newvalues(:ethernet, :bridge, :bond)
+      #defaultto :ethernet
     end
 
     newparam(:trunks, :array_matching => :all) do
       defaultto([])
       desc "Array of trunks id, for configure patch's ends as ports in trunk mode"
       #
-      validate do |val|
-        val = Array(val)  # prevents puppet conversion array of one Int to Int
-        for i in val
-          if !i.is_a?(Integer) or (i < 0 or i > 4094)
-            fail("Wrong 802.1q tag. Tag must be an integer in 2..4094 interval")
-          end
-        end
-      end
+      # validate do |val|
+      #   val = Array(val)  # prevents puppet conversion array of one Int to Int
+      #   for i in val
+      #     if !i.is_a?(Integer) or (i < 0 or i > 4094)
+      #       fail("Wrong 802.1q tag. Tag must be an integer in 2..4094 interval")
+      #     end
+      #   end
+      # end
       munge do |val|
         Array(val)
+      end
+    end
+
+    newproperty(:mtu) do
+      desc "The Maximum Transmission Unit size to use for the interface"
+      validate do |value|
+        # reject floating point and negative integers
+        # XXX this lets 1500.0 pass
+        unless (value =~ /^\d+$/)
+          raise ArgumentError, "#{value} is not a valid mtu (must be a positive integer)"
+        end
+
+        # Intel 82598 & 82599 chips support MTUs up to 16110; is there any
+        # hardware in the wild that supports larger frames?
+        #
+        # It appears loopback devices routinely have large MTU values; Eg. 65536
+        #
+        # Frames small than 64bytes are discarded as runts.  Smallest valid MTU
+        # is 42 with a 802.1q header and 46 without.
+        min_mtu = 42
+        max_mtu = 65536
+        unless (min_mtu .. max_mtu).include?(value.to_i)
+          raise ArgumentError, "#{value} is not in the valid mtu range (#{min_mtu} .. #{max_mtu})"
+        end
       end
     end
 
