@@ -12,6 +12,13 @@ package { 'python-psycopg2':
   ensure => installed,
 }
 
+if $production =~ /docker/ {
+  #Bind to localhost during puppet run and then switch during start.sh after
+  $bind_host = '127.0.0.1'
+} else {
+  $bind_host = '0.0.0.0'
+}
+
 case $production {
   'prod', 'docker': {
 
@@ -23,6 +30,8 @@ case $production {
       sql_connection   => "postgresql://${::fuel_settings['postgres']['keystone_user']}:${::fuel_settings['postgres']['keystone_password']}@${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/${::fuel_settings['postgres']['keystone_dbname']}",
       token_expiration => 86400,
       token_provider   => 'keystone.token.providers.uuid.Provider',
+      public_bind_host => $bind_host,
+      admin_bind_host  => $bind_host,
     }
 
     #FIXME(mattymo): We should enable db_sync on every run inside keystone,
