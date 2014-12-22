@@ -1,7 +1,7 @@
 Puppet::Type.type(:l2_port).provide(:ovs) do
-  confine  :osfamily => :Linux
-  commands :vsctl   => 'ovs-vsctl',
-           :iproute => 'ip'
+  confine    :osfamily => :linux
+  commands   :vsctl   => 'ovs-vsctl',
+             :iproute => 'ip'
 
 
   def exists?
