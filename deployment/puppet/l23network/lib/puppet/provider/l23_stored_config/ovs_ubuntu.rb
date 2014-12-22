@@ -12,10 +12,6 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
   self.unlink_empty_files = true
 
 
-  def self.mangle__method(val)
-    :manual
-  end
-
   def self.mangle__type(val)
     :ethernet
   end
