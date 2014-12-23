@@ -80,14 +80,6 @@ class osnailyfacter::cluster_simple {
     }
   }
 
-  # vCenter integration
-
-  if $::fuel_settings['libvirt_type'] == 'vcenter' {
-    $vcenter_hash = $::fuel_settings['vcenter']
-  } else {
-    $vcenter_hash = {}
-  }
-
   if $::fuel_settings['role'] == 'controller' {
     if ($::mellanox_mode == 'ethernet') {
       $test_vm_pkg = 'cirros-testvm-mellanox'
@@ -201,6 +193,16 @@ class osnailyfacter::cluster_simple {
         fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
       }
     }
+  }
+  
+  # vCenter integration
+
+  # Fixme! This statement keeps working the current realisation of vCenter support.
+  # Needs to be fixed after migration to vcenter-compute role
+  if $::fuel_settings['libvirt_type'] == 'vcenter' or member($roles, 'cinder-vmdk') {
+    $vcenter_hash = $::fuel_settings['vcenter']
+  } else {
+    $vcenter_hash = {}
   }
 
   # Determine who should get the volume service
@@ -522,17 +524,18 @@ class osnailyfacter::cluster_simple {
 
       # vCenter integration
       if $::fuel_settings['libvirt_type'] == 'vcenter' {
-        class { 'vmware' :
-          vcenter_user            => $vcenter_hash['vc_user'],
-          vcenter_password        => $vcenter_hash['vc_password'],
-          vcenter_host_ip         => $vcenter_hash['host_ip'],
-          vcenter_cluster         => $vcenter_hash['cluster'],
-          vcenter_datastore_regex => $vcenter_hash['datastore_regex'],
-          vlan_interface          => $vcenter_hash['vlan_interface'],
-          vnc_address             => $controller_node_public,
-          use_quantum             => $::use_neutron,
-          ceilometer              => $ceilometer_hash['enabled'],
-          debug                   => $debug,
+        class { 'vmware::controller' :
+          vcenter_user     => $vcenter_hash['vc_user'],
+          vcenter_password => $vcenter_hash['vc_password'],
+          vcenter_host_ip  => $vcenter_hash['host_ip'],
+          vcenter_cluster  => $vcenter_hash['cluster'],
+          datastore_regex  => $vcenter_hash['datastore_regex'],
+          vlan_interface   => $vcenter_hash['vlan_interface'],
+          vnc_address      => $controller_node_public,
+          use_quantum      => $::use_neutron,
+          ceilometer       => $ceilometer_hash['enabled'],
+          debug            => $debug,
+          node_fqdn        => $::fqdn,
         }
       }
 
@@ -648,6 +651,7 @@ class osnailyfacter::cluster_simple {
     }
 
     } # COMPUTE ENDS
+
     "mongo" : {
       if !$ext_mongo {
          class { 'openstack::mongo_secondary':
@@ -717,7 +721,7 @@ class osnailyfacter::cluster_simple {
         ceilometer           => $ceilometer_hash[enabled],
         vmware_host_ip       => $vcenter_hash['host_ip'],
         vmware_host_username => $vcenter_hash['vc_user'],
-        vmware_host_password => $vcenter_hash['vc_password']
+        vmware_host_password => $vcenter_hash['vc_password'],
       }
 
       # FIXME(bogdando) replace service_path and action to systemd, once supported
