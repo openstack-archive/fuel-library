@@ -65,22 +65,37 @@
 #   Time period must be hour, day, month or year
 #   Defaults to 'month'
 #
+#  [*default_availability_zone*]
+#   (optional) Default compute node availability zone.
+#   Defaults to undef
+#
+#  [*default_schedule_zone*]
+#   (optional) Availability zone to use when user doesn't specify one.
+#   Defaults to undef
+#
+#  [*internal_service_availability_zone*]
+#   (optional) The availability zone to show internal services under.
+#   Defaults to undef
+#
 class nova::compute (
-  $enabled                       = false,
-  $manage_service                = true,
-  $ensure_package                = 'present',
-  $vnc_enabled                   = true,
-  $vncserver_proxyclient_address = '127.0.0.1',
-  $vncproxy_host                 = false,
-  $vncproxy_protocol             = 'http',
-  $vncproxy_port                 = '6080',
-  $vncproxy_path                 = '/vnc_auto.html',
-  $force_config_drive            = false,
-  $virtio_nic                    = false,
-  $neutron_enabled               = true,
-  $network_device_mtu            = undef,
-  $instance_usage_audit          = false,
-  $instance_usage_audit_period   = 'month'
+  $enabled                            = false,
+  $manage_service                     = true,
+  $ensure_package                     = 'present',
+  $vnc_enabled                        = true,
+  $vncserver_proxyclient_address      = '127.0.0.1',
+  $vncproxy_host                      = false,
+  $vncproxy_protocol                  = 'http',
+  $vncproxy_port                      = '6080',
+  $vncproxy_path                      = '/vnc_auto.html',
+  $force_config_drive                 = false,
+  $virtio_nic                         = false,
+  $neutron_enabled                    = true,
+  $network_device_mtu                 = undef,
+  $instance_usage_audit               = false,
+  $instance_usage_audit_period        = 'month',
+  $default_availability_zone          = undef,
+  $default_schedule_zone              = undef,
+  $internal_service_availability_zone = undef,
 ) {
 
   include nova::params
@@ -147,6 +162,24 @@ class nova::compute (
     nova_config {
       'DEFAULT/instance_usage_audit':        ensure => absent;
       'DEFAULT/instance_usage_audit_period': ensure => absent;
+    }
+  }
+
+  if $default_availability_zone {
+    nova_config {
+      'DEFAULT/default_availability_zone':value => $default_availability_zone;
+    }
+  }
+
+  if $default_schedule_zone {
+    nova_config {
+      'DEFAULT/default_schedule_zone':value => $default_schedule_zone;
+    }
+  }
+
+  if $internal_service_availability_zone {
+    nova_config {
+      'DEFAULT/internal_service_availability_zone':value => $internal_service_availability_zone;
     }
   }
 
