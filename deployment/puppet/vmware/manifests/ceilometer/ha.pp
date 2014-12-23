@@ -3,6 +3,7 @@ define vmware::ceilometer::ha (
   $amqp_port = '5673',
   $ceilometer_config   = '/etc/ceilometer/ceilometer.conf',
   $ceilometer_conf_dir = '/etc/ceilometer/ceilometer-compute.d',
+  $node_fqdn,
 ) {
   $ceilometer_compute_conf = "${ceilometer_conf_dir}/vmware-${index}.conf"
 
