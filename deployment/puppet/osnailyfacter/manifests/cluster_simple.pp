@@ -105,26 +105,6 @@ class osnailyfacter::cluster_simple {
     }
   }
 
-  # vCenter integration
-
-  if $::fuel_settings['libvirt_type'] == 'vcenter' {
-    $vcenter_hash = $::fuel_settings['vcenter']
-  } else {
-    $vcenter_hash = {}
-  }
-
-  if $::fuel_settings['role'] == 'controller' {
-    if ($::mellanox_mode == 'ethernet') {
-      $test_vm_pkg = 'cirros-testvm-mellanox'
-    } else {
-      $test_vm_pkg = 'cirros-testvm'
-    }
-    package { 'cirros-testvm' :
-      ensure => 'installed',
-      name   => $test_vm_pkg,
-    }
-  }
-
   $storage_hash         = $::fuel_settings['storage']
   $nova_hash            = $::fuel_settings['nova']
   $mysql_hash           = $::fuel_settings['mysql']
@@ -194,6 +174,30 @@ class osnailyfacter::cluster_simple {
   $use_syslog = $::use_syslog
   $verbose = $::verbose
   $debug = $::debug
+
+  # vCenter integration
+
+  # Fixme! This statement keeps working the current realisation of vCenter support.
+  # Needs to be fixed after migration to vcenter-compute role
+  if $::fuel_settings['libvirt_type'] == 'vcenter' or (member($roles, 'compute-vcenter')) or (member($roles, 'cinder-vmdk')) {
+    $vcenter_hash = $::fuel_settings['vcenter']
+    $default_availability_zone = "vCenter"
+  } else {
+    $vcenter_hash = {}
+    $default_availability_zone = undef
+  }
+
+  if $::fuel_settings['role'] == 'controller' {
+    if ($::mellanox_mode == 'ethernet') {
+      $test_vm_pkg = 'cirros-testvm-mellanox'
+    } else {
+      $test_vm_pkg = 'cirros-testvm'
+    }
+    package { 'cirros-testvm' :
+      ensure => 'installed',
+      name   => $test_vm_pkg,
+    }
+  }
 
   # Determine who should get the volume service
   if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
@@ -514,18 +518,20 @@ class osnailyfacter::cluster_simple {
       }
 
       # vCenter integration
-      if $::fuel_settings['libvirt_type'] == 'vcenter' {
-        class { 'vmware' :
-          vcenter_user            => $vcenter_hash['vc_user'],
-          vcenter_password        => $vcenter_hash['vc_password'],
-          vcenter_host_ip         => $vcenter_hash['host_ip'],
-          vcenter_cluster         => $vcenter_hash['cluster'],
-          vcenter_datastore_regex => $vcenter_hash['datastore_regex'],
-          vlan_interface          => $vcenter_hash['vlan_interface'],
-          vnc_address             => $controller_node_public,
-          use_quantum             => $::use_neutron,
-          ceilometer              => $ceilometer_hash['enabled'],
-          debug                   => $debug,
+      if member($roles, 'compute-vcenter') or $::fuel_settings['libvirt_type'] == 'vcenter' {
+        class { 'vmware::controller' :
+          vcenter_user                   => $vcenter_hash['vc_user'],
+          vcenter_password               => $vcenter_hash['vc_password'],
+          vcenter_host_ip                => $vcenter_hash['host_ip'],
+          vcenter_cluster                => $vcenter_hash['cluster'],
+          datastore_regex                => $vcenter_hash['datastore_regex'],
+          vlan_interface                 => $vcenter_hash['vlan_interface'],
+          vnc_address                    => $controller_node_public,
+          use_quantum                    => $::use_neutron,
+          ceilometer                     => $ceilometer_hash['enabled'],
+          debug                          => $debug,
+          nova_default_availability_zone => $default_availability_zone,
+          node_fqdn                      => $::fqdn,
         }
       }
 
@@ -596,7 +602,6 @@ class osnailyfacter::cluster_simple {
         nova_report_interval           => $::nova_report_interval,
         nova_service_down_time         => $::nova_service_down_time,
         cinder_rate_limits             => $::cinder_rate_limits,
-        nova_default_availability_zone => "KVM",
       }
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
@@ -642,6 +647,122 @@ class osnailyfacter::cluster_simple {
     }
 
     } # COMPUTE ENDS
+    "compute-vcenter" : {
+      if !(member($roles, 'controller') or member($roles, 'primary-controller')) {
+        include osnailyfacter::test_compute
+
+        if ($::mellanox_mode == 'ethernet') {
+          $net04_physnet = $neutron_config['predefined_networks']['net04']['L2']['physnet']
+          class { 'mellanox_openstack::compute':
+            physnet => $net04_physnet,
+            physifc => $::fuel_settings['neutron_mellanox']['physical_port'],
+          }
+        }
+
+        class { 'openstack::compute':
+          public_interface               => $::public_int ? { undef=>'', default=>$::public_int },
+          private_interface              => $::use_neutron ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
+          internal_address               => $::internal_address,
+          libvirt_type                   => $::fuel_settings['libvirt_type'],
+          fixed_range                    => $::fuel_settings['fixed_network_range'],
+          network_manager                => $network_manager,
+          network_config                 => $::use_neutron ? { true=>false, default=>$network_config },
+          multi_host                     => $multi_host,
+          sql_connection                 => $sql_connection,
+          nova_user_password             => $nova_hash[user_password],
+          ceilometer                     => $ceilometer_hash[enabled],
+          ceilometer_metering_secret     => $ceilometer_hash[metering_secret],
+          ceilometer_user_password       => $ceilometer_hash[user_password],
+          queue_provider                 => $::queue_provider,
+          amqp_hosts                     => $amqp_hosts,
+          amqp_user                      => $rabbit_hash['user'],
+          amqp_password                  => $rabbit_hash['password'],
+          auto_assign_floating_ip        => $::fuel_settings['auto_assign_floating_ip'],
+          glance_api_servers             => "${controller_node_address}:9292",
+          vncproxy_host                  => $controller_node_public,
+          vncserver_listen               => '0.0.0.0',
+          vnc_enabled                    => true,
+          network_provider               => $network_provider,
+          neutron_user_password          => $neutron_user_password,
+          base_mac                       => $base_mac,
+          service_endpoint               => $controller_node_address,
+          cinder                         => true,
+          cinder_user_password           => $cinder_hash[user_password],
+          cinder_db_password             => $cinder_hash[db_password],
+          cinder_iscsi_bind_addr         => $cinder_iscsi_bind_addr,
+          cinder_volume_group            => "cinder",
+          manage_volumes                 => $manage_volumes,
+          db_host                        => $controller_node_address,
+          debug                          => $debug,
+          verbose                        => $verbose,
+          use_syslog                     => $use_syslog,
+          syslog_log_facility            => $::syslog_log_facility_nova,
+          syslog_log_facility_neutron    => $::syslog_log_facility_neutron,
+          syslog_log_facility_ceilometer => $::syslog_log_facility_ceilometer,
+          state_path                     => $nova_hash[state_path],
+          nova_rate_limits               => $::nova_rate_limits,
+          nova_report_interval           => $::nova_report_interval,
+          nova_service_down_time         => $::nova_service_down_time,
+          cinder_rate_limits             => $::cinder_rate_limits,
+        }
+        nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
+        nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+        nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
+
+        if ($::use_ceph){
+          Class['openstack::compute'] -> Class['ceph']
+        }
+
+      # Configure monit watchdogs
+      # FIXME(bogdando) replace service_path and action to systemd, once supported
+        if $::use_monit {
+          monit::process { $nova_compute_name :
+          ensure        => running,
+          matching      => '/usr/bin/python /usr/bin/nova-compute',
+          start_command => "${service_path} ${nova_compute_name} restart",
+          stop_command  => "${service_path} ${nova_compute_name} stop",
+          pidfile       => false,
+        }
+        if $::use_neutron {
+          monit::process { $ovs_vswitchd_name :
+            ensure        => running,
+            start_command => "${service_path} ${ovs_vswitchd_name} restart",
+            stop_command  => "${service_path} ${ovs_vswitchd_name} stop",
+            pidfile       => '/var/run/openvswitch/ovs-vswitchd.pid',
+          }
+        } else {
+          monit::process { $nova_network_name :
+            ensure        => running,
+            matching      => '/usr/bin/python /usr/bin/nova-network',
+            start_command => "${service_path} ${nova_network_name} restart",
+            stop_command  => "${service_path} ${nova_network_name} stop",
+            pidfile       => false,
+          }
+          monit::process { $nova_api_name :
+            ensure        => running,
+            matching      => '/usr/bin/python /usr/bin/nova-api',
+            start_command => "${service_path} ${nova_api_name} restart",
+            stop_command  => "${service_path} ${nova_api_name} stop",
+            pidfile       => false,
+          }
+        }
+        }
+        class { 'vmware::compute' :
+          vcenter_user                   => $vcenter_hash['vc_user'],
+          vcenter_password               => $vcenter_hash['vc_password'],
+          vcenter_host_ip                => $vcenter_hash['host_ip'],
+          vcenter_cluster                => $vcenter_hash['cluster'],
+          datastore_regex                => $vcenter_hash['datastore_regex'],
+          vlan_interface                 => $vcenter_hash['vlan_interface'],
+          vnc_address                    => $controller_node_public,
+          use_quantum                    => $::use_neutron,
+          ceilometer                     => $ceilometer_hash['enabled'],
+          debug                          => $debug,
+          node_fqdn                      => $::fqdn,
+          nova_default_availability_zone => $default_availability_zone,
+        }
+      }
+    } # COMPUTE VCENTER ENDS
     "mongo" : {
       if !$ext_mongo {
          class { 'openstack::mongo_secondary':
@@ -686,33 +807,32 @@ class osnailyfacter::cluster_simple {
       }
 
       class { 'openstack::cinder':
-        sql_connection                   => "mysql://cinder:${cinder_hash[db_password]}@${controller_node_address}/cinder?charset=utf8&read_timeout=60",
-        glance_api_servers               => "${controller_node_address}:9292",
-        queue_provider                   => $::queue_provider,
-        amqp_hosts                       => $amqp_hosts,
-        amqp_user                        => $rabbit_hash['user'],
-        amqp_password                    => $rabbit_hash['password'],
-        bind_host                        => $bind_host,
-        volume_group                     => 'cinder',
-        manage_volumes                   => $manage_volumes,
-        iser                             => $storage_hash['iser'],
-        enabled                          => true,
-        auth_host                        => $controller_node_address,
-        iscsi_bind_host                  => $cinder_iscsi_bind_addr,
-        cinder_user_password             => $cinder_hash[user_password],
-        syslog_log_facility              => $::syslog_log_facility_cinder,
-        debug                            => $debug,
-        verbose                          => $verbose,
-        use_syslog                       => $use_syslog,
-        max_retries                      => $max_retries,
-        max_pool_size                    => $max_pool_size,
-        max_overflow                     => $max_overflow,
-        idle_timeout                     => $idle_timeout,
-        ceilometer                       => $ceilometer_hash[enabled],
-        vmware_host_ip                   => $vcenter_hash['host_ip'],
-        vmware_host_username             => $vcenter_hash['vc_user'],
-        vmware_host_password             => $vcenter_hash['vc_password'],
-        cinder_default_availability_zone => 'KVM',
+        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${controller_node_address}/cinder?charset=utf8&read_timeout=60",
+        glance_api_servers   => "${controller_node_address}:9292",
+        queue_provider       => $::queue_provider,
+        amqp_hosts           => $amqp_hosts,
+        amqp_user            => $rabbit_hash['user'],
+        amqp_password        => $rabbit_hash['password'],
+        bind_host            => $bind_host,
+        volume_group         => 'cinder',
+        manage_volumes       => $manage_volumes,
+        iser                 => $storage_hash['iser'],
+        enabled              => true,
+        auth_host            => $controller_node_address,
+        iscsi_bind_host      => $cinder_iscsi_bind_addr,
+        cinder_user_password => $cinder_hash[user_password],
+        syslog_log_facility  => $::syslog_log_facility_cinder,
+        debug                => $debug,
+        verbose              => $verbose,
+        use_syslog           => $use_syslog,
+        max_retries          => $max_retries,
+        max_pool_size        => $max_pool_size,
+        max_overflow         => $max_overflow,
+        idle_timeout         => $idle_timeout,
+        ceilometer           => $ceilometer_hash[enabled],
+        vmware_host_ip       => $vcenter_hash['host_ip'],
+        vmware_host_username => $vcenter_hash['vc_user'],
+        vmware_host_password => $vcenter_hash['vc_password'],
       }
 
       # FIXME(bogdando) replace service_path and action to systemd, once supported
