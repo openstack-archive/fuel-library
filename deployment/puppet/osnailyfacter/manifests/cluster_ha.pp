@@ -110,8 +110,10 @@ class osnailyfacter::cluster_ha {
 
   if $::fuel_settings['libvirt_type'] == 'vcenter' {
     $vcenter_hash = $::fuel_settings['vcenter']
+    $default_availability_zone = "vCenter"
   } else {
     $vcenter_hash = {}
+    $default_availability_zone = "KVM"
   }
 
   if $primary_controller {
@@ -899,7 +901,7 @@ class osnailyfacter::cluster_ha {
         nova_report_interval           => $::nova_report_interval,
         nova_service_down_time         => $::nova_service_down_time,
         state_path                     => $nova_hash[state_path],
-        nova_default_availability_zone => "KVM",
+        nova_default_availability_zone => $default_availability_zone,
       }
 
       if ($::use_ceph){
@@ -1011,7 +1013,7 @@ class osnailyfacter::cluster_ha {
         vmware_host_ip                   => $vcenter_hash['host_ip'],
         vmware_host_username             => $vcenter_hash['vc_user'],
         vmware_host_password             => $vcenter_hash['vc_password'],
-        cinder_default_availability_zone => "KVM",
+        cinder_default_availability_zone => $default_availability_zone,
       }
 
       # FIXME(bogdando) replace service_path and action to systemd, once supported
