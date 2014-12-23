@@ -11,13 +11,13 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-#
-# This type creates nova-compute service for provided vSphere
-# cluster (cluster that is formed of ESXi hosts and is managed by vCenter
-# server).
+
+# Variables:
+#   node_fqdn - used in erb template
 
 define vmware::compute::ha(
   $index,
+  $node_fqdn,
   $amqp_port = '5673',
   $api_retry_count = 5,
   $compute_driver = 'vmwareapi.VMwareVCDriver',
@@ -26,7 +26,7 @@ define vmware::compute::ha(
   $nova_conf_dir = '/etc/nova/nova-compute.d',
   $task_poll_interval = 5.0,
   $use_linked_clone = true,
-  $wsdl_location = undef
+  $wsdl_location = undef,
 )
 {
   $nova_compute_conf = "${nova_conf_dir}/vmware-${index}.conf"
