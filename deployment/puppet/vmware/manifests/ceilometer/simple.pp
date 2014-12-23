@@ -2,6 +2,7 @@ define vmware::ceilometer::simple (
   $index,
   $ceilometer_config   = '/etc/ceilometer/ceilometer.conf',
   $ceilometer_conf_dir = '/etc/ceilometer/ceilometer-compute.d',
+  $node_fqdn,
 ) {
   if ! defined(File["${ceilometer_conf_dir}"]) {
     file { $ceilometer_conf_dir:
