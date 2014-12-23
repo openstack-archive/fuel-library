@@ -1,7 +1,10 @@
 [DEFAULT]
 compute_driver=<%= @compute_driver %>
 log_file=nova-compute-vmware-<%= @index %>.log
-host=<%= @index %>
+host=<%= @node_fqdn %>
+<% if @nova_default_availability_zone and !@nova_default_availability_zone.empty? -%>
+default_availability_zone=<%= @nova_default_availability_zone %>
+<% end -%>
 
 [vmware]
 
