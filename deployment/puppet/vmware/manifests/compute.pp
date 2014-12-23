@@ -16,7 +16,7 @@
 # limitations:
 # - only one vcenter supported
 
-class vmware::controller (
+class vmware::compute (
   $api_retry_count = 5,
   $datastore_regex = undef,
   $amqp_port = '5673',
@@ -47,19 +47,30 @@ class vmware::controller (
   # Index is used to form file names on host system, e.g.
   # /etc/sysconfig/nova-compute-vmware-0
   $compute_defaults = {
-    node_fqdn => $node_fqdn,
+    node_fqdn => $node_fqdn, 
   }
-
   $vsphere_clusters = vmware_index($vcenter_cluster)
+  
 
   # install the nova-compute service
-   nova::generic_service { 'compute':
-   enabled        => false,
+ #  nova::generic_service { 'compute':
+ #  enabled        => false,
+ #   package_name   => $::nova::params::compute_package_name,
+ #   service_name   => $::nova::params::compute_service_name,
+ #   ensure_package => $ensure_package,
+ #   before         => Exec['networking-refresh']
+ # }
+
+  Nova::Generic_service <| title == 'compute' |> {
+    enabled        => false,
     package_name   => $::nova::params::compute_package_name,
     service_name   => $::nova::params::compute_service_name,
     ensure_package => $ensure_package,
     before         => Exec['networking-refresh']
   }
+#  Nova::Generic_service['compute'] <| title == 'before' |> {
+#    value => Exec['networking-refresh']
+#  }
 
   if ! $ha_mode {
     create_resources(vmware::compute::simple, $vsphere_clusters, $compute_defaults)
@@ -87,28 +98,32 @@ class vmware::controller (
   }
 
   # network configuration
-  class { 'vmware::network':
-    use_quantum => $use_quantum,
-    ha_mode     => $ha_mode
-  }
+#  class { 'vmware::network':
+ #   use_quantum => $use_quantum,
+ #   ha_mode     => $ha_mode
+ # }
 
   # Enable metadata service on Controller node
   Nova_config <| title == 'DEFAULT/enabled_apis' |> {
     value => 'ec2,osapi_compute,metadata'
   }
   # Set correct parameter for vnc access
-  nova_config {
-    'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html"
+  Nova_config <| title == 'DEFAULT/novncproxy_base_url' |> {
+    value => "http://${vnc_address}:6080/vnc_auto.html"
   }
+ 
+  Nova_config <| title == 'DEFAULT/compute_driver' |> {
+    value => $compute_driver
+  }
+  
 #  Nova_config <| title == 'DEFAULT/multi_host' |> { value => 'False' }
-  # install cirros vmdk package
-#  package { 'cirros-testvmware':
-#    ensure => present
+#  nova_config {
+#    'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html"
 #  }
+
   package { 'python-suds':
     ensure => present
   }
-
   if $ceilometer {
     class { 'vmware::ceilometer':
       vcenter_user      => $vcenter_user,
