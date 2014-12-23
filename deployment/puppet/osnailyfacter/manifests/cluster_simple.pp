@@ -107,10 +107,14 @@ class osnailyfacter::cluster_simple {
 
   # vCenter integration
 
-  if $::fuel_settings['libvirt_type'] == 'vcenter' {
+  # Fixme! This statement keeps working the current realisation of vCenter support.
+  # Needs to be fixed after migration to vcenter-compute role
+  if $::fuel_settings['libvirt_type'] == 'vcenter' or (member($roles, 'compute-vcenter')) or (member($roles, 'cinder-vmdk')) {
     $vcenter_hash = $::fuel_settings['vcenter']
+    $default_availability_zone = "vCenter"
   } else {
     $vcenter_hash = {}
+    $default_availability_zone = undef
   }
 
   if $::fuel_settings['role'] == 'controller' {
@@ -710,7 +714,7 @@ class osnailyfacter::cluster_simple {
         ceilometer           => $ceilometer_hash[enabled],
         vmware_host_ip       => $vcenter_hash['host_ip'],
         vmware_host_username => $vcenter_hash['vc_user'],
-        vmware_host_password => $vcenter_hash['vc_password']
+        vmware_host_password => $vcenter_hash['vc_password'],
       }
 
       # FIXME(bogdando) replace service_path and action to systemd, once supported
