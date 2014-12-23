@@ -26,7 +26,8 @@ define vmware::compute::ha(
   $nova_conf_dir = '/etc/nova/nova-compute.d',
   $task_poll_interval = 5.0,
   $use_linked_clone = true,
-  $wsdl_location = undef
+  $wsdl_location = undef,
+  $node_fqdn,
 )
 {
   $nova_compute_conf = "${nova_conf_dir}/vmware-${index}.conf"
