@@ -25,7 +25,8 @@ define vmware::compute::simple(
   $nova_conf_dir = '/etc/nova/nova-compute.d',
   $task_poll_interval = 5.0,
   $use_linked_clone = true,
-  $wsdl_location = undef
+  $wsdl_location = undef,
+  $node_fqdn,
 )
 {
   if ! defined(File["${nova_conf_dir}"]) {
