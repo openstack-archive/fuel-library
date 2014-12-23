@@ -128,6 +128,7 @@ class openstack::compute (
   $ceilometer                     = false,
   $ceilometer_metering_secret     = 'ceilometer',
   $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
+  $nova_default_availability_zone = undef,
 ) {
 
   #
@@ -290,6 +291,7 @@ class openstack::compute (
     neutron_enabled               => false,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
+    default_availability_zone     => $nova_default_availability_zone,
   }
 
   nova_config {
