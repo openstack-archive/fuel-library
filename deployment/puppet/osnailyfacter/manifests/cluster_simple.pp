@@ -107,10 +107,14 @@ class osnailyfacter::cluster_simple {
 
   # vCenter integration
 
-  if $::fuel_settings['libvirt_type'] == 'vcenter' {
+  # Fixme! This statement keeps working the current realisation of vCenter support.
+  # Needs to be fixed after migration to vcenter-compute role
+  if $::fuel_settings['libvirt_type'] == 'vcenter' or (member($roles, 'compute-vcenter')) or (member($roles, 'cinder-vmdk')) {
     $vcenter_hash = $::fuel_settings['vcenter']
+    $default_availability_zone = "vCenter"
   } else {
     $vcenter_hash = {}
+    $default_availability_zone = undef
   }
 
   if $::fuel_settings['role'] == 'controller' {
@@ -685,32 +689,33 @@ class osnailyfacter::cluster_simple {
       }
 
       class { 'openstack::cinder':
-        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${controller_node_address}/cinder?charset=utf8&read_timeout=60",
-        glance_api_servers   => "${controller_node_address}:9292",
-        queue_provider       => $::queue_provider,
-        amqp_hosts           => $amqp_hosts,
-        amqp_user            => $rabbit_hash['user'],
-        amqp_password        => $rabbit_hash['password'],
-        bind_host            => $bind_host,
-        volume_group         => 'cinder',
-        manage_volumes       => $manage_volumes,
-        iser                 => $storage_hash['iser'],
-        enabled              => true,
-        auth_host            => $controller_node_address,
-        iscsi_bind_host      => $cinder_iscsi_bind_addr,
-        cinder_user_password => $cinder_hash[user_password],
-        syslog_log_facility  => $::syslog_log_facility_cinder,
-        debug                => $debug,
-        verbose              => $verbose,
-        use_syslog           => $use_syslog,
-        max_retries          => $max_retries,
-        max_pool_size        => $max_pool_size,
-        max_overflow         => $max_overflow,
-        idle_timeout         => $idle_timeout,
-        ceilometer           => $ceilometer_hash[enabled],
-        vmware_host_ip       => $vcenter_hash['host_ip'],
-        vmware_host_username => $vcenter_hash['vc_user'],
-        vmware_host_password => $vcenter_hash['vc_password']
+        sql_connection                   => "mysql://cinder:${cinder_hash[db_password]}@${controller_node_address}/cinder?charset=utf8&read_timeout=60",
+        glance_api_servers               => "${controller_node_address}:9292",
+        queue_provider                   => $::queue_provider,
+        amqp_hosts                       => $amqp_hosts,
+        amqp_user                        => $rabbit_hash['user'],
+        amqp_password                    => $rabbit_hash['password'],
+        bind_host                        => $bind_host,
+        volume_group                     => 'cinder',
+        manage_volumes                   => $manage_volumes,
+        iser                             => $storage_hash['iser'],
+        enabled                          => true,
+        auth_host                        => $controller_node_address,
+        iscsi_bind_host                  => $cinder_iscsi_bind_addr,
+        cinder_user_password             => $cinder_hash[user_password],
+        syslog_log_facility              => $::syslog_log_facility_cinder,
+        debug                            => $debug,
+        verbose                          => $verbose,
+        use_syslog                       => $use_syslog,
+        max_retries                      => $max_retries,
+        max_pool_size                    => $max_pool_size,
+        max_overflow                     => $max_overflow,
+        idle_timeout                     => $idle_timeout,
+        ceilometer                       => $ceilometer_hash[enabled],
+        vmware_host_ip                   => $vcenter_hash['host_ip'],
+        vmware_host_username             => $vcenter_hash['vc_user'],
+        vmware_host_password             => $vcenter_hash['vc_password'],
+        cinder_default_availability_zone => $default_availability_zone,
       }
 
       # FIXME(bogdando) replace service_path and action to systemd, once supported
