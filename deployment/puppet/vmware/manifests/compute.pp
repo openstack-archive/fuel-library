@@ -16,17 +16,13 @@
 # limitations:
 # - only one vcenter supported
 
-# Variables:
-#   node_fqdn - used in erb template
-
-class vmware::controller (
+class vmware::compute (
   $node_fqdn,
   $api_retry_count = 5,
   $datastore_regex = undef,
-  $amqp_port = '5673',
+  $amqp_port = '5672',
   $compute_driver = 'vmwareapi.VMwareVCDriver',
   $ensure_package = 'present',
-  $ha_mode = false,
   $maximum_objects = 100,
   $nova_conf = '/etc/nova/nova.conf',
   $task_poll_interval = 5.0,
@@ -51,8 +47,7 @@ class vmware::controller (
   # /etc/sysconfig/nova-compute-vmware-0
   $vsphere_clusters = vmware_index($vcenter_cluster)
 
-  # install the nova-compute service
-  nova::generic_service { 'compute':
+  Nova::Generic_service <| title == 'compute' |> {
     package_name   => $::nova::params::compute_package_name,
     service_name   => $::nova::params::compute_service_name,
     ensure_package => $ensure_package,
@@ -63,54 +58,36 @@ class vmware::controller (
     node_fqdn => $node_fqdn,
   }
 
-  if ! $ha_mode {
-    create_resources(vmware::compute::simple, $vsphere_clusters, $compute_defaults)
+  create_resources(vmware::compute::simple, $vsphere_clusters, $compute_defaults)
 
-    Nova::Generic_service['compute']->
-    Vmware::Compute::Simple<| |>
-  } else {
+  Nova::Generic_service['compute']->
+  Vmware::Compute::Simple<| |>
 
-    file { 'vcenter-nova-compute-ocf':
-      path   => '/usr/lib/ocf/resource.d/mirantis/nova-compute',
-      source => 'puppet:///modules/vmware/ocf/nova-compute',
-      owner  => 'root',
-      group  => 'root',
-      mode   => '0755',
-    }
+  # Create nova-compute per vsphere cluster
+  create_resources(vmware::compute::ha, $vsphere_clusters)
 
-    # Create nova-compute per vsphere cluster
-    create_resources(vmware::compute::ha, $vsphere_clusters)
-
-    Nova::Generic_service['compute']->
-    anchor { 'vmware-nova-compute-start': }->
-    File['vcenter-nova-compute-ocf']->
-    Vmware::Compute::Ha<||>->
-    anchor { 'vmware-nova-compute-end': }
-  }
-
-  # network configuration
-  class { 'vmware::network':
-    use_quantum => $use_quantum,
-    ha_mode     => $ha_mode
-  }
+  Nova::Generic_service['compute']->
+  anchor { 'vmware-nova-compute-start': }->
+  File['vcenter-nova-compute-ocf']->
+  Vmware::Compute::Ha<||>->
+  anchor { 'vmware-nova-compute-end': }
 
   # Enable metadata service on Controller node
   Nova_config <| title == 'DEFAULT/enabled_apis' |> {
     value => 'ec2,osapi_compute,metadata'
   }
   # Set correct parameter for vnc access
-  nova_config {
-    'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html"
+  Nova_config <| title == 'DEFAULT/novncproxy_base_url' |> {
+    value => "http://${vnc_address}:6080/vnc_auto.html"
   }
-#  Nova_config <| title == 'DEFAULT/multi_host' |> { value => 'False' }
-  # install cirros vmdk package
-#  package { 'cirros-testvmware':
-#    ensure => present
-#  }
+
+  Nova_config <| title == 'DEFAULT/compute_driver' |> {
+    value => $compute_driver
+  }
+
   package { 'python-suds':
     ensure => present
   }
-
   if $ceilometer {
     class { 'vmware::ceilometer':
       vcenter_user      => $vcenter_user,
