@@ -1,8 +1,12 @@
 [DEFAULT]
-host=<%= @index %>
 hypervisor_inspector=<%= scope.lookupvar('vmware::ceilometer::hypervisor_inspector') %>
 default_log_levels=<%= scope.lookupvar('vmware::ceilometer::default_log_levels') %>
 log_file=ceilometer-agent-compute-vmware-<%= @index %>.log
+host=<%= @node_fqdn %>
+<% if @nova_default_availability_zone and !@nova_default_availability_zone.empty? -%>
+default_availability_zone=<%= @nova_default_availability_zone %>
+<% end -%>
+
 
 [vmware]
 host_ip=<%= scope.lookupvar('vmware::ceilometer::vcenter_host_ip') %>
