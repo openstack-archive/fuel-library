@@ -35,8 +35,7 @@ define l23network::l2::bridge (
       l23_stored_config { $name: }
     }
 
-    #Anchor['l23network::init'] ->
-    L23_stored_config[$name] {
+    L23_stored_config <| title == $name |> {
       ensure       => $ensure,
       #bpdu_forward => $bpdu_forward,
       if_type      => 'bridge',

@@ -81,17 +81,24 @@ Puppet::Type.type(:l2_port).provide(:lnx) do
 
   def create
     debug("CREATE resource: #{@resource}")
+    @old_property_hash = {}
+    @property_flush = {}.merge! @resource
     # todo: divide simple creating interface and vlan
     iproute('link', 'add', 'link', @resource[:vlan_dev], 'name', @resource[:interface], 'type', 'vlan', 'id', @resource[:vlan_id])
-    if ! @resource[:bridge].empty?
-      @property_flush[:bridge] = @resource[:bridge]
-    end
+  end
+
+  def destroy
+    debug("DESTROY resource: #{@resource}")
+    # todo: Destroing of L2 resource -- is a putting interface to the DOWN state.
+    #       Or remove, if ove a vlan interface
+    #iproute('--force', 'addr', 'flush', 'dev', @resource[:interface])
   end
 
   def initialize(value={})
     super(value)
     @property_flush = {}
-    #@bridges = {}
+    @old_property_hash = {}
+    @old_property_hash.merge! @property_hash
   end
 
   def flush
