@@ -88,6 +88,13 @@ Puppet::Type.type(:l2_port).provide(:lnx) do
     end
   end
 
+  def destroy
+    debug("DESTROY resource: #{@resource}")
+    # todo: Destroing of L2 resource -- is a putting interface to the DOWN state.
+    #       Or remove, if ove a vlan interface
+    #iproute('--force', 'addr', 'flush', 'dev', @resource[:interface])
+  end
+
   def initialize(value={})
     super(value)
     @property_flush = {}

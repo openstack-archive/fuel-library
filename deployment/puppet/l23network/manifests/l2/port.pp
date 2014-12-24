@@ -90,7 +90,7 @@ define l23network::l2::port (
     if ! defined (L23_stored_config[$port_name]) {
       l23_stored_config { $port_name: }
     }
-    L23_stored_config[$port_name] {
+    L23_stored_config <| title == $port_name |> {
       ensure        => $ensure,
       if_type       => 'ethernet',
       vlan_id       => $port_vlan_id,
