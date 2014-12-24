@@ -8,12 +8,17 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   end
 
   NAME_MAPPINGS = {
-    :method       => 'method',  # fake property
-    :name         => 'iface',
-    :onboot       => 'auto',
-    :mtu          => 'mtu',
-    :bridge_ports => 'bridge_ports',  # ports, members of bridge, fake property
-    :vlan_dev     => 'vlan-raw-device'
+    :method         => 'method',
+    :name           => 'iface',
+    :onboot         => 'auto',
+    :mtu            => 'mtu',
+    :bridge_ports   => 'bridge_ports',  # ports, members of bridge, fake property
+    :vlan_dev       => 'vlan-raw-device',
+    :ipaddr         => 'address',
+#   :netmask        => 'netmask',
+    :gateway        => 'gateway',
+    :gateway_metric => 'metric',     # todo: rename to 'metric'
+#   :dhcp_hostname  => 'hostname'
   }
 
   # In the interface config files those fields should be written as boolean
@@ -123,11 +128,12 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
         # it from the pairs and copy it as an actual property
         pairs.delete(in_config_name)
         mangle_method_name="mangle__#{type_name}"
-        if self.class.respond_to?(mangle_method_name)
-          props[type_name] = self.class.send(mangle_method_name, val)
+        if self.respond_to?(mangle_method_name)
+          rv = self.send(mangle_method_name, val)
         else
-          props[type_name] = val
+          rv = val
         end
+        props[type_name] = rv if ! [nil, :absent].include? rv
 
       end
     end
@@ -150,6 +156,10 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
   def self.mangle__type(val)
     val.downcase.to_sym
+  end
+
+  def self.mangle__gateway_metric(val)
+    (val.to_i == 0)  ?  :absent  :  val.to_i
   end
 
   ###
@@ -208,11 +218,12 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       if (val = props[type_name])
         props.delete(type_name)
         mangle_method_name="unmangle__#{type_name}"
-        if self.class.respond_to?(mangle_method_name)
-          pairs[in_config_name] = self.class.send(mangle_method_name, val)
+        if self.respond_to?(mangle_method_name)
+          rv = self.send(mangle_method_name, val)
         else
-          pairs[in_config_name] = val
+          rv = val
         end
+        pairs[in_config_name] = rv if ! [nil, :absent].include? rv
       end
     end
 
@@ -230,5 +241,11 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   def self.unmangle__type(val)
     val.capitalize
   end
+
+  def self.unmangle__gateway_metric(val)
+    (val.to_i == 0)  ?  :absent  :  val.to_i
+
+  end
+
 
 end

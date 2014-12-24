@@ -100,6 +100,40 @@ Puppet::Type.newtype(:l23_stored_config) do
   end
 
 
+  newproperty(:ipaddr) do
+    desc "Primary IP address for interface"
+    newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/, :absent, :none, :undef, :nil, :dhcp)
+    aliasvalue(:absent, :none)
+    aliasvalue(:absent, :undef)
+    aliasvalue(:absent, :nil)
+    defaultto(:absent)
+  end
+
+  newproperty(:gateway) do
+    desc "Default gateway"
+    newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, :absent, :none, :undef, :nil)
+    aliasvalue(:absent, :none)
+    aliasvalue(:absent, :undef)
+    aliasvalue(:absent, :nil)
+    defaultto(:absent)
+  end
+
+  newproperty(:gateway_metric) do
+    desc "Default gateway metric"
+    newvalues(/^\d+$/, :absent, :none, :undef, :nil)
+    aliasvalue(:absent, :none)
+    aliasvalue(:absent, :undef)
+    aliasvalue(:absent, :nil)
+    defaultto(:absent)
+    # validate do |val|
+    #   if val != :absent and val.to_i < 0
+    #     raise ArgumentError, "Invalid gateway metric: '#{val}'"
+    #   end
+    # end
+  end
+
+
+
   # # `:options` provides an arbitrary passthrough for provider properties, so
   # # that provider specific behavior doesn't clutter up the main type but still
   # # allows for more powerful actions to be taken.
