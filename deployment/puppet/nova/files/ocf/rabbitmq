@@ -237,6 +237,7 @@ srv_uptime() {
 
 rmq_setup_env() {
     local H
+    local dir
     H=`hostname -s`
     export RABBITMQ_NODENAME="rabbit@${H}"
     export RABBITMQ_NODE_PORT=$OCF_RESKEY_node_port
@@ -251,6 +252,19 @@ rmq_setup_env() {
         chown -R ${OCF_RESKEY_username}:${OCF_RESKEY_groupname} ${PID_DIR}
         chmod 755 ${PID_DIR}
     fi
+
+    # Regardless of whether we just created the directory or it
+    # already existed, check whether it is writable by the configured
+    # user
+    for dir in ${PID_DIR} "${OCF_RESKEY_mnesia_base}" "${OCF_RESKEY_log_dir}"; do
+        if test -e ${dir}; then
+            if ! su -s /bin/sh - $OCF_RESKEY_username -c "test -w ${dir}"; then
+                ocf_log warn "Directory ${dir} is not writable by ${OCF_RESKEY_username}, chowning."
+                chown -R ${OCF_RESKEY_username}:${OCF_RESKEY_groupname} "${dir}"
+            fi
+        fi
+    done
+
     export LL="${OCF_RESOURCE_INSTANCE}:"
 }
 
