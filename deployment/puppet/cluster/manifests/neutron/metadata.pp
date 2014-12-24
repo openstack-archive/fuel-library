@@ -13,15 +13,16 @@ class cluster::neutron::metadata (
 
   #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'neutron-metadata-agent':
-    ocf_script          => 'neutron-agent-metadata',
-    csr_complex_type    => 'clone',
-    csr_ms_metadata     => { 'interleave' => 'true' },
-    csr_mon_intr        => '60',
-    csr_mon_timeout     => '10',
-    csr_timeout         => '30',
-    service_name        => $::neutron::params::metadata_agent_service,
-    package_name        => $metadata_agent_package,
-    service_title       => 'neutron-metadata',
-    primary             => $primary,
+    ocf_script        => 'neutron-agent-metadata',
+    csr_complex_type  => 'clone',
+    csr_ms_metadata   => { 'interleave' => 'true' },
+    csr_mon_intr      => '60',
+    csr_mon_timeout   => '10',
+    csr_start_timeout => '30',
+    csr_stop_timeout  => '30',
+    service_name      => $::neutron::params::metadata_agent_service,
+    package_name      => $metadata_agent_package,
+    service_title     => 'neutron-metadata',
+    primary           => $primary,
   }
 }
