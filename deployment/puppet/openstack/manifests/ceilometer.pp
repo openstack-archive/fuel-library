@@ -87,6 +87,11 @@ class openstack::ceilometer (
       database_connection => $current_database_connection,
     }
 
+    if $ha_mode {
+      $ceilometer_api_enabled = false
+    } else {
+      $ceilometer_api_enabled = true
+    }
     # Install the ceilometer-api service
     # The keystone_password parameter is mandatory
     class { '::ceilometer::api':
@@ -94,6 +99,7 @@ class openstack::ceilometer (
       keystone_password => $keystone_password,
       host              => $host,
       port              => $port,
+      enabled           => $ceilometer_api_enabled,
     }
 
     class { '::ceilometer::collector': }
@@ -133,6 +139,20 @@ class openstack::ceilometer (
         source => 'puppet:///modules/ceilometer/ocf/ceilometer-agent-central',
       }
 
+      $ceilometer_api_res_name = "p_${::ceilometer::params::api_service_name}"
+
+      Package['pacemaker'] -> File['ceilometer-api-ocf']
+      Package['ceilometer-common'] -> File['ceilometer-api-ocf']
+      Package['ceilometer-api'] -> File['ceilometer-api-ocf']
+
+      file {'ceilometer-api-ocf':
+        path   => '/usr/lib/ocf/resource.d/mirantis/ceilometer-api',
+        mode   => '0755',
+        owner  => root,
+        group  => root,
+        source => 'puppet:///modules/ceilometer/ocf/ceilometer-api',
+      }
+
       if $primary_controller {
         cs_resource { $ceilometer_agent_res_name:
           ensure          => present,
@@ -155,12 +175,49 @@ class openstack::ceilometer (
           },
         }
         File['ceilometer-agent-central-ocf'] -> Cs_resource[$ceilometer_agent_res_name] -> Service['ceilometer-agent-central']
+
+        cs_resource { $ceilometer_api_res_name:
+          ensure          => present,
+          primitive_class => 'ocf',
+          provided_by     => 'mirantis',
+          primitive_type  => 'ceilometer-api',
+          metadata        => { 'target-role' => 'stopped', 'resource-stickiness' => '1' },
+          parameters      => { 'user' => 'ceilometer' },
+          operations      => {
+            'monitor' => {
+              'interval' => '20',
+              'timeout'  => '30'
+            },
+            'start'   => {
+              'timeout'  => '360'
+            },
+            'stop'    => {
+              'timeout'  => '360'
+            },
+          },
+        }
+        File['ceilometer-api-ocf'] -> Cs_resource[$ceilometer_api_res_name] -> Service[$ceilometer_api_res_name]
       } else {
         File['ceilometer-agent-central-ocf'] -> Service['ceilometer-agent-central']
+        File['ceilometer-api-ocf'] -> Service[$ceilometer_api_res_name]
       }
     } else {
       Package['ceilometer-common'] -> Service['ceilometer-agent-central']
+      Package['ceilometer-common'] -> Service[$ceilometer_api_res_name]
       Package['ceilometer-agent-central'] -> Service['ceilometer-agent-central']
+      Package['ceilometer-api'] -> Service[$ceilometer_api_res_name]
+    }
+
+    Package['ceilometer-common'] -> Service[$ceilometer_api_res_name]
+    service { $ceilometer_api_res_name:
+      ensure     => 'running',
+      enable     => true,
+      hasstatus  => true,
+      hasrestart => true,
+      before     => Service['ceilometer-collector'],
+      require    => Class['ceilometer::db'],
+      subscribe  => Exec['ceilometer-dbsync'],
+      provider   => 'pacemaker',
     }
   }
 
