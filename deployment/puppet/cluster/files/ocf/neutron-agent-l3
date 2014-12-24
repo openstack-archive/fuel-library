@@ -371,46 +371,28 @@ neutron_l3_agent_status() {
     return $OCF_ERR_GENERIC
 }
 
-
 get_ns_list() {
     local rv=`ip netns list | grep -Ee "^qrouter-.*"`
     echo $rv
 }
 
-get_pid_list_for_ns_list() {
-    # the first parameter is a list of ns names for searching pids
-    local ns_list="$1"
-    local pids=`for netns in $ns_list ; do ip netns exec $netns lsof -n -i -t ; done`
-    echo $pids
-}
-
 clean_up() {
     # kill processes inside network namespaces
-    ns_list=`get_ns_list`
+    local ns_list=`get_ns_list`
+    local namespace_pids
 
-    # kill all proceses from all dhcp-agent's net.namespaces, that using ip
-    count=3  # we will try kill process 3 times
-    while [ $count -gt 0 ]; do
-        # we can't use ps, because ps can't select processes for given network namespace
-        inside_ns_pids=`get_pid_list_for_ns_list "$ns_list"`
+    for netns in $ns_list; do
+        ns_pids=$(ip netns pids $netns | tr '\n' ' ')
         if [ -z "$inside_ns_pids" ] ; then
             break
         fi
-        for ns_pid in $inside_ns_pids ; do
-          ocf_run kill $ns_pid
-        done
-        sleep 1
-        count=$(($count - 1))
+        ocf_run kill -TERM $netns_pids
+        sleep 0.5
+        ns_pids=$(ip netns pids $netns | tr '\n' ' ')
+        ocf_log "PIDs ${ns_pids} failed to stop using SIGTERM. Sending SIGKILL"
+        # Killing the process
+        ocf_run kill -KILL $netns_pids
     done
-
-    # kill all remaining proceses, that not died by simple kill
-    inside_ns_pids=`get_pid_list_for_ns_list "$ns_list"`
-    if [ ! -z "$inside_ns_pids" ] ; then
-        for ns_pid in $inside_ns_pids ; do
-          ocf_run kill -9 $ns_pid
-        done
-    fi
-
     # cleanup network interfaces
     q-agent-cleanup.py --agent=l3 --cleanup-ports
 }
@@ -447,7 +429,6 @@ neutron_l3_agent_start() {
     fi
 
     clean_up
-    sleep 1
     clean_up_namespaces
 
     # run and detach to background agent as daemon.
@@ -489,67 +470,21 @@ neutron_l3_agent_stop() {
     local rc
     local pid
 
+    clean_up
+    clean_up_namespaces
     neutron_l3_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-        clean_up
-        sleep 1
-        clean_up_namespaces
         ocf_log info "OpenStack Router ($OCF_RESKEY_binary) already stopped"
         return $OCF_SUCCESS
     fi
 
-    # Try SIGTERM
-    pid=`get_worker_pid`
-    if [ "xxx$pid" == "xxx" ] ; then
-        ocf_log warn "OpenStack Router ($OCF_RESKEY_binary) not running."
-        #return $OCF_NOT_RUNNING
-        return $OCF_SUCCESS
-    fi
-    ocf_run kill -s TERM $pid
-    rc=$?
-    if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack Router ($OCF_RESKEY_binary) couldn't be stopped"
-        exit $OCF_ERR_GENERIC
-    fi
-
-    # stop waiting
-    shutdown_timeout=15
-    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
-        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
-    fi
-    count=0
-    while [ $count -lt $shutdown_timeout ]; do
-        neutron_l3_agent_status
-        rc=$?
-        if [ $rc -eq $OCF_NOT_RUNNING ]; then
-            break
-        fi
-        count=`expr $count + 1`
-        sleep 1
-        ocf_log debug "OpenStack Router ($OCF_RESKEY_binary) still hasn't stopped yet. Waiting ..."
-    done
-
-    neutron_l3_agent_status
-    rc=$?
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack Router ($OCF_RESKEY_binary) failed to stop after ${shutdown_timeout}s \
-          using SIGTERM. Trying SIGKILL ..."
-        ocf_run kill -s KILL $pid
-    fi
-
-    ocf_log info "OpenStack Router ($OCF_RESKEY_binary) stopped"
-
     ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid
-    clean_up
-    sleep 1
-    clean_up_namespaces
+
     if ! ocf_is_true "$OCF_RESKEY_multiple_agents" ; then
         q-agent-cleanup.py --agent=l3 --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
     fi
-    sleep 3
 
     return $OCF_SUCCESS
 }
@@ -579,3 +514,4 @@ case "$1" in
                 exit $OCF_ERR_UNIMPLEMENTED;;
 esac
 
+# vim: set ts=4 sw=4 tw=0 et :

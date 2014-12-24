@@ -5,19 +5,19 @@
 define cluster::corosync::cs_service (
   $ocf_script,
   $service_name,
-  $service_title = undef,  # Title of Service, that been mangled for pacemakering
-  $package_name  = undef,
-  $csr_complex_type = undef,
-  $csr_ms_metadata = undef,
-  $csr_parameters = undef,
-  $csr_metadata = undef,
-  $csr_mon_intr = 20,
-  $csr_mon_timeout = 20,
-  $csr_timeout = 60,
-  $primary = true,
-  $hasrestart = true,
-  )
-{
+  $service_title     = undef,  # Title of Service, that been mangled for pacemakering
+  $package_name      = undef,
+  $csr_complex_type  = undef,
+  $csr_ms_metadata   = undef,
+  $csr_parameters    = undef,
+  $csr_metadata      = undef,
+  $csr_mon_intr      = 20,
+  $csr_mon_timeout   = 20,
+  $csr_start_timeout = 60,
+  $csr_stop_timeout  = 60,
+  $primary           = true,
+  $hasrestart        = true,
+) {
   $service_true_title = $service_title ? {
     undef => $service_name,
     default => $service_title
@@ -48,10 +48,10 @@ define cluster::corosync::cs_service (
           'timeout'  => $csr_mon_timeout
         },
         'start'   => {
-          'timeout' => $csr_timeout
+          'timeout' => $csr_start_timeout
         },
         'stop'    => {
-          'timeout' => $csr_timeout
+          'timeout' => $csr_stop_timeout
         }
       }
     }

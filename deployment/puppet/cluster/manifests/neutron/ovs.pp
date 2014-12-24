@@ -13,17 +13,18 @@ class cluster::neutron::ovs (
   }
 
   cluster::corosync::cs_service {'ovs':
-    ocf_script          => 'neutron-agent-ovs',
-    csr_complex_type    => 'clone',
-    csr_ms_metadata     => { 'interleave' => 'true' },
-    csr_parameters      => { 'plugin_config' => $plugin_config },
-    csr_mon_intr        => '20',
-    csr_mon_timeout     => '10',
-    csr_timeout         => '80',
-    service_name        => $::neutron::params::ovs_agent_service,
-    package_name        => $ovs_agent_package,
-    service_title       => 'neutron-ovs-agent-service',
-    primary             => $primary,
-    hasrestart          => false,
+    ocf_script        => 'neutron-agent-ovs',
+    csr_complex_type  => 'clone',
+    csr_ms_metadata   => { 'interleave' => 'true' },
+    csr_parameters    => { 'plugin_config' => $plugin_config },
+    csr_mon_intr      => '20',
+    csr_mon_timeout   => '10',
+    csr_start_timeout => '80',
+    csr_stop_timeout  => '120',
+    service_name      => $::neutron::params::ovs_agent_service,
+    package_name      => $ovs_agent_package,
+    service_title     => 'neutron-ovs-agent-service',
+    primary           => $primary,
+    hasrestart        => false,
   }
 }
