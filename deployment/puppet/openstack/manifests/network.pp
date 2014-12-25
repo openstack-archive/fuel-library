@@ -141,7 +141,7 @@ class openstack::network (
         service_plugins         => $neutron_server ? {false => undef, default => $service_plugins},
         allow_overlapping_ips   => true,
         mac_generation_retries  => 32,
-        dhcp_lease_duration     => 120,
+        dhcp_lease_duration     => 600,
         dhcp_agents_per_network => 1,
         report_interval         => 5,
         rabbit_user             => $amqp_user,
