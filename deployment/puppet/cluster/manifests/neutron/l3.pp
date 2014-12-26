@@ -45,7 +45,7 @@ define cluster::neutron::l3 (
       'plugin_config'   => $plugin_config,
       'os_auth_url'     => $auth_url,
       'tenant'          => $admin_tenant_name,
-      'username'        => $admin_user,
+      'username'        => $admin_username,
       'password'        => $admin_password,
       'multiple_agents' => $multiple_agents
     },
