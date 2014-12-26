@@ -26,6 +26,13 @@ class ceph::osd (
     unless    => "grep -q '^${ $::ceph::osd_devices[0] }' /proc/mounts",
   }
 
+  exec { 'ceph-deploy osd activate':
+    command   => "ceph-deploy osd activate ${devices}",
+    returns   => 0,
+    logoutput => true,
+  }
+
   Firewall['011 ceph-osd allow'] ->
-  Exec['ceph-deploy osd prepare']
+  Exec['ceph-deploy osd prepare'] ->
+  Exec['ceph-deploy osd activate']
 }
