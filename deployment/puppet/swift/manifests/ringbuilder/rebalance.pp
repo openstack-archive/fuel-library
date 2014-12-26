@@ -34,7 +34,6 @@ define swift::ringbuilder::rebalance() {
     refreshonly => true,
     timeout     => 900,
     user        => 'swift',
-    returns     => [0,1],
   }
 
 }
