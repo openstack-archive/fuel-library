@@ -150,3 +150,4 @@ Puppet::Type.newtype(:l2_port) do
       [self[:bridge]]
     end
 end
+# vim: set ts=2 sw=2 et :

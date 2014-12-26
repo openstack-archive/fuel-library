@@ -73,3 +73,4 @@ Puppet::Type.type(:l2_port).provide(:ovs) do
     vsctl("del-port", @resource[:bridge], @resource[:interface])
   end
 end
+# vim: set ts=2 sw=2 et :
