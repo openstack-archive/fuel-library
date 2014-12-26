@@ -149,7 +149,13 @@ class os_common {
   class {"l23network::hosts_file": stage => 'netconfig', nodes => $nodes_hash }
   class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
   if $use_quantum {
-      class {'advanced_node_netconfig': stage => 'netconfig' }
+      class {'advanced_node_netconfig': stage => 'netconfig' } ->
+      class { 'osnailyfacter::custom_network':
+        network_scheme => $::fuel_settings['network_scheme'],
+        stage          => 'netconfig',
+        role           => $::fuel_settings['role'],
+        run_exec       => true,
+      }
   } else {
       class {'osnailyfacter::network_setup': stage => 'netconfig'}
   }

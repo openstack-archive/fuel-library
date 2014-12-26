@@ -1,0 +1,63 @@
+#!/bin/bash
+set -x
+PATH="$PATH:/bin:/usr/bin:/sbin:/usr/local/bin"
+netcfg_dir='/etc/sysconfig/network-scripts'
+backup_netcfg_dir="/root/ifcfg/backup-$(date '+%Y%m%d-%H%M')"
+mgmt_bond='bond0'
+storage_bond='bond1'
+mgmt_vlan='<%= @mgmt_vlan %>'
+ext_vlan='<%= @ext_vlan %>'
+storage_vlan='<%= @storage_vlan %>'
+eth_ifs='<%= @eth_ifs %>'
+
+#Linux naming convention do not allow to include Linux bond names to any OVS names
+#Do not include parts like 'bond0', 'bond1' etc to OVS names at all!
+cidr_br_ex='<%= @cidr_br_ex %>'
+cidr_br_mgmt='<%= @cidr_br_mgmt %>'
+cidr_br_storage='<%= @cidr_br_storage %>'
+
+#backup existing ifconfig scripts
+mkdir $backup_netcfg_dir
+cp -b $netcfg_dir/ifcfg* $backup_netcfg_dir/
+
+#down the existing ports
+for eth_if in $eth_ifs ; do
+  ip l set down dev $eth_if
+done
+ip l set down dev $mgmt_bond
+ip l set down dev $storage_bond
+
+for eth_if in $eth_ifs ; do
+  ifdown $eth_if
+done
+ifdown $mgmt_bond
+ifdown $storage_bond
+
+#copy prepared ifcfg scripts to the target dir
+cp /root/ifcfg/ifcfg* $netcfg_dir/
+
+ovs-vsctl del-br br-ovs-bond0
+ovs-vsctl del-br br-ovs-bond1
+
+rmmod bonding
+modprobe bonding
+
+#start up new NICs and bonds
+for eth_if in $eth_ifs ; do
+  ifup $eth_if
+done
+ifup $mgmt_bond
+ifup $storage_bond
+ifup "$mgmt_bond.$mgmt_vlan"
+ifup "$mgmt_bond.$ext_vlan"
+ifup "$storage_bond.$storage_vlan"
+
+ovs-vsctl del-port br-storage br-storage--br-ovs-bond1
+ovs-vsctl add-port br-storage "$storage_bond.$storage_vlan"
+
+ovs-vsctl del-port br-ex br-ex--br-ovs-bond0
+ovs-vsctl add-port br-ex "$mgmt_bond.$ext_vlan"
+
+ovs-vsctl del-port br-mgmt br-mgmt--br-ovs-bond0
+ovs-vsctl add-port br-mgmt "$mgmt_bond.$mgmt_vlan"
+
