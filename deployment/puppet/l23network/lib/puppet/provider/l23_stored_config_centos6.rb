@@ -210,3 +210,4 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
   end
 
 end
+# vim: set ts=2 sw=2 et :

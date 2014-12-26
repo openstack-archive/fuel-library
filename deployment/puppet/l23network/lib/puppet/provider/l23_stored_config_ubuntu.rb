@@ -247,5 +247,5 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
   end
 
-
 end
+# vim: set ts=2 sw=2 et :
