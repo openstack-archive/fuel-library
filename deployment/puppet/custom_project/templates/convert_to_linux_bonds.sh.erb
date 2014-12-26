@@ -1,0 +1,86 @@
+#!/bin/bash
+set -x
+PATH="$PATH:/bin:/usr/bin:/sbin:/usr/local/bin"
+netcfg_dir='/etc/sysconfig/network-scripts'
+backup_netcfg_dir="/root/ifcfg/backup-$(date '+%Y%m%d-%H%M')"
+mgmt_bond='bond0'
+storage_bond='bond1'
+gateway='172.20.0.1'
+mgmt_vlan='<%= @mgmt_vlan %>'
+ext_vlan='<%= @ext_vlan %>'
+storage_vlan='<%= @storage_vlan %>'
+eth_ifs='<%= @eth_ifs %>'
+
+#Linux naming convention do not allow to include Linux bond names to any OVS names
+#Do not include parts like 'bond0', 'bond1' etc to OVS names at all!
+mgmt_bridge='br-bnd0'
+storage_bridge='br-bnd1'
+cidr_br_ex='<%= @cidr_br_ex %>'
+cidr_br_mgmt='<%= @cidr_br_mgmt %>'
+cidr_br_storage='<%= @cidr_br_storage %>'
+
+#backup existing ifconfig scripts
+mkdir $backup_netcfg_dir
+cp -b $netcfg_dir/ifcfg* $backup_netcfg_dir/
+
+#down the existing ports
+for eth_if in $eth_ifs ; do
+  ip l set down dev $eth_if
+done
+ip l set down dev $mgmt_bond
+
+for eth_if in $eth_ifs ; do
+  ifdown $eth_if
+done
+
+ifdown $mgmt_bond
+
+#copy prepared ifcfg scripts to the target dir
+cp /root/ifcfg/ifcfg* $netcfg_dir/
+
+#del existing extra OVS bridge and bonds
+ip addr del "$cidr_br_mgmt" dev br-mgmt
+ip addr del "$cidr_br_storage" dev br-storage
+sed -e 's/^IPADDR/#IPADDR/' -i /etc/sysconfig/network-scripts/ifcfg-br-mgmt
+sed -e 's/^NETMASK/#NETMASK/' -i /etc/sysconfig/network-scripts/ifcfg-br-mgmt
+sed -e 's/^IPADDR/#IPADDR/' -i /etc/sysconfig/network-scripts/ifcfg-br-storage
+sed -e 's/^NETMASK/#NETMASK/' -i /etc/sysconfig/network-scripts/ifcfg-br-storage
+
+ovs-vsctl del-port br-storage br-storage--br-ovs-bond0
+ovs-vsctl del-port br-mgmt br-mgmt--br-ovs-bond0
+ovs-vsctl del-port br-ex br-ex--br-ovs-bond0
+ovs-vsctl del-br br-ovs-bond0
+ovs-vsctl del-port ovs-bond0
+
+#load linux bonding module
+rmmod bonding
+modprobe bonding max_bonds=2 xmit_hash_policy=2 mode=4
+
+#start up new NICs and bonds
+for eth_if in $eth_ifs ; do
+  ifup $eth_if
+done
+
+ifup $mgmt_bond
+ifup "$mgmt_bond.$mgmt_vlan"
+ifup "$mgmt_bond.$ext_vlan"
+ifup "$mgmt_bond.$storage_vlan"
+
+#add new bridges
+ovs-vsctl add-br $mgmt_bridge
+
+ovs-vsctl add-port br-ex "${mgmt_bond}.${ext_vlan}"
+
+ovs-vsctl add-port br-ex br-ex--"$mgmt_bridge" -- set interface br-ex--"$mgmt_bridge" type=patch options:peer="$mgmt_bridge"--br-ex
+ovs-vsctl add-port "$mgmt_bridge" "$mgmt_bridge"--br-ex tag=$ext_vlan -- set interface "$mgmt_bridge"--br-ex type=patch options:peer=br-ex--"$mgmt_bridge"
+
+ovs-vsctl add-port br-mgmt br-mgmt--"$mgmt_bridge" -- set interface br-mgmt--"$mgmt_bridge" type=patch options:peer="$mgmt_bridge"--br-mgmt
+ovs-vsctl add-port "$mgmt_bridge" "$mgmt_bridge"--br-mgmt tag=$mgmt_vlan -- set interface "$mgmt_bridge"--br-mgmt type=patch options:peer=br-mgmt--"$mgmt_bridge"
+
+ovs-vsctl add-port br-storage br-str--"$mgmt_bridge" -- set interface br-str--"$mgmt_bridge" type=patch options:peer="$mgmt_bridge"--br-str
+ovs-vsctl add-port "$mgmt_bridge" "$mgmt_bridge"--br-str tag=$storage_vlan -- set interface "$mgmt_bridge"--br-str type=patch options:peer=br-str--"$mgmt_bridge"
+
+
+# Changing default route
+FACTER_gateway="$gateway" puppet apply /etc/puppet/modules/custom_project/examples/set_default_route.pp
+
