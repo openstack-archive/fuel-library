@@ -100,3 +100,4 @@ Puppet::Type.newtype(:l3_ifconfig) do
       [self[:interface]]
     end
 end
+# vim: set ts=2 sw=2 et :
