@@ -21,3 +21,4 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
   end
 
 end
+# vim: set ts=2 sw=2 et :

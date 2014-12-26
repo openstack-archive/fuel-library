@@ -23,41 +23,49 @@ module L23network
     # Setup defaults
     rv = case action
       when "noop" then {
-        :name => nil,
+        :name     => nil,
+        :provider => nil
       }
       when "add-br" then {
-        :name => nil,
-        #:stp_enable => true,
-        :skip_existing => true
+        :name          => nil,
+#       :stp_enable    => true,
+        :skip_existing => nil,
+        :external_ids  => nil,
+        :provider      => nil
       }
       when "add-port" then {
-        :name => nil,
-        :bridge => nil,
-        #:type => "internal",
-        :vlan_id => 0,
-        :trunks => [],
-        :port_properties => [],
+        :name                 => nil,
+        :bridge               => nil,
+#       :type                 => "internal",
+        :mtu                  => nil,
+        :vlan_id              => 0,
+        :vlan_dev             => nil,
+        :vlan_mode            => nil,
+        :trunks               => [],
+        :port_properties      => [],
         :interface_properties => [],
-        :skip_existing => true
+        :skip_existing        => true,
+        :provider             => nil
       }
       when "add-bond" then {
-        :name => nil,
-        :provider => 'ovs',
-        :bridge => nil,
-        :interfaces => [],
-        :vlan_id => 0,
-        :trunks => [],
-        :properties => [],
-        #:port_properties => [],
-        #:interface_properties => [],
-        :skip_existing => true
+        :name          => nil,
+        :bridge        => nil,
+        :interfaces    => [],
+        :vlan_id       => 0,
+        :trunks        => [],
+        :properties    => [],
+#       :port_properties => [],
+#       :interface_properties => [],
+        :skip_existing => true,
+        :provider      => 'ovs'
       }
       when "add-patch" then {
-        :name => "unnamed", # calculated later
-        :peers => [nil, nil],
-        :bridges => [],
-        :vlan_ids => [0, 0],
-        :trunks => [],
+        :name      => "unnamed", # calculated later
+        :peers     => [nil, nil],
+        :bridges   => [],
+        :vlan_ids  => [0, 0],
+        :trunks    => [],
+        :provider  => 'ovs'
       }
       else
         raise(Puppet::ParseError, "Unknown transformation: '#{action}'.")
@@ -128,7 +136,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       :br       => { :name_of_resource => 'l23network::l2::bridge' },
       :port     => { :name_of_resource => 'l23network::l2::port' },
       :bond     => { :name_of_resource => 'l23network::l2::bond' },
-      :bond_lnx => { :name_of_resource => 'l23network::l3::ifconfig' },
+#     :bond_lnx => { :name_of_resource => 'l23network::l3::ifconfig' },
       :patch    => { :name_of_resource => 'l23network::l2::patch' },
       :ifconfig => { :name_of_resource => 'l23network::l3::ifconfig' }
     }
@@ -168,12 +176,12 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           if !(v.is_a?(Array) || ['none','dhcp',nil].include?(v))
             raise(Puppet::ParseError, "generate_network_config(): IP field for endpoint '#{e_name}' must be array of IP addresses, 'dhcp' or 'none'.")
           elsif ['none','dhcp',nil].include?(v)
-            endpoints[e_name][:IP].insert(-1, v ? v : 'none')
+            endpoints[e_name][:IP] <<  (v  or 'none')
           else
             v.each do |ip|
               begin
-                iip = IPAddr.new(ip)
-                endpoints[e_name][:IP].insert(-1, ip)
+#               iip = IPAddr.new(ip)
+                endpoints[e_name][:IP] << ip
               rescue
                 raise(Puppet::ParseError, "generate_network_config(): IP address '#{ip}' for endpoint '#{e_name}' wrong!.")
               end
@@ -202,38 +210,39 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         if ! ifconfig_order.index(t[:name].to_sym())
           ifconfig_order.insert(-1, t[:name].to_sym())
         end
-      elsif action == :bond
-        t[:provider] ||= 'ovs'  # default provider for Bond
-        if ! t[:interfaces].is_a? Array
-          raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'interfaces' list.")
-        end
-        if t[:provider] == 'lnx'
-          if ! t[:properties].is_a? Hash
-            raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has 'properties' hash for '#{t[:provider]}' provider.")
-          else
-            if t[:properties].size < 1
-              raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'properties' hash for '#{t[:provider]}' provider.")
-            end
-          end
-        elsif t[:provider] == 'ovs'
-          if ! t[:properties].is_a? Array
-            raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has 'properties' array for '#{t[:provider]}' provider.")
-          else
-            if t[:properties].size < 1
-              raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'properties' array for '#{t[:provider]}' provider.")
-            end
-          end
+      # temporary disabled
+      # elsif action == :bond
+      #   t[:provider] ||= 'ovs'  # default provider for Bond
+      #   if ! t[:interfaces].is_a? Array
+      #     raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'interfaces' list.")
+      #   end
+      #   if t[:provider] == 'lnx'
+      #     if ! t[:properties].is_a? Hash
+      #       raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has 'properties' hash for '#{t[:provider]}' provider.")
+      #     else
+      #       if t[:properties].size < 1
+      #         raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'properties' hash for '#{t[:provider]}' provider.")
+      #       end
+      #     end
+      #   elsif t[:provider] == 'ovs'
+      #     if ! t[:properties].is_a? Array
+      #       raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has 'properties' array for '#{t[:provider]}' provider.")
+      #     else
+      #       if t[:properties].size < 1
+      #         raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'properties' array for '#{t[:provider]}' provider.")
+      #       end
+      #     end
         else
           raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource has wrong provider '#{t[:provider]}'.")
         end
         if t[:provider] == 'lnx'
-          if ! ifconfig_order.index(t[:name].to_sym())
-            ifconfig_order.insert(-1, t[:name].to_sym())
+          if ! ifconfig_order.include? t[:name].to_sym()
+            ifconfig_order << t[:name].to_sym()
           end
         end
         t[:interfaces].each do |physint|
-          if ! ifconfig_order.index(physint.to_sym())
-            ifconfig_order.insert(-1, physint.to_sym())
+          if ! ifconfig_order.include? physint.to_sym()
+            ifconfig_order << physint.to_sym()
           end
         end
       end
