@@ -1,5 +1,5 @@
 Puppet::Type.type(:l2_bridge).provide(:ovs) do
-  confine    :osfamily => :linux
+#  confine    :osfamily => :linux
   commands   :vsctl   => 'ovs-vsctl',
              :iproute => 'ip'
 

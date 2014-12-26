@@ -23,9 +23,11 @@ Puppet::Type.newtype(:l23_stored_config) do
     desc "The method for determining an IP address for the interface"
     # static -- assign IP address in config
     # manual -- UP interface without IP address
-    newvalues(:static, :manual, :dhcp, :loopback)
-    aliasvalue(:none, :manual)
-    defaultto :manual
+    newvalues(:static, :manual, :dhcp, :loopback, :none, :undef, :nil)
+    aliasvalue(:manual, :none)
+    aliasvalue(:absent, :undef)
+    aliasvalue(:absent, :nil)
+    defaultto(:manual)
   end
 
   # newproperty(:port_type) do
@@ -35,7 +37,7 @@ Puppet::Type.newtype(:l23_stored_config) do
   newproperty(:if_type) do
     desc "Device type"
     newvalues(:ethernet, :bridge, :bond)
-    defaultto :ethernet
+    defaultto(:ethernet)
   end
 
   newproperty(:bridge_ports) do
@@ -48,18 +50,17 @@ Puppet::Type.newtype(:l23_stored_config) do
 
   newproperty(:onboot, :parent => Puppet::Property::Boolean) do
     desc "Whether to bring the interface up on boot"
-    defaultto :true
+    defaultto(true)
   end
 
   newproperty(:mtu) do
     desc "The Maximum Transmission Unit size to use for the interface"
+    newvalues(/^\d+$/, :absent, :none, :undef, :nil)
+    aliasvalue(:absent, :none)
+    aliasvalue(:absent, :undef)
+    aliasvalue(:absent, :nil)
+    defaultto(1500)
     validate do |value|
-      # reject floating point and negative integers
-      # XXX this lets 1500.0 pass
-      unless (value =~ /^\d+$/)
-        raise ArgumentError, "#{value} is not a valid mtu (must be a positive integer)"
-      end
-
       # Intel 82598 & 82599 chips support MTUs up to 16110; is there any
       # hardware in the wild that supports larger frames?
       #
@@ -69,8 +70,19 @@ Puppet::Type.newtype(:l23_stored_config) do
       # is 42 with a 802.1q header and 46 without.
       min_mtu = 42
       max_mtu = 65536
-      unless (min_mtu .. max_mtu).include?(value.to_i)
-        raise ArgumentError, "#{value} is not in the valid mtu range (#{min_mtu} .. #{max_mtu})"
+      if ! (value.to_s == 'absent' or (min_mtu .. max_mtu).include?(value.to_i))
+        raise ArgumentError, "'#{value}' is not a valid mtu (must be a positive integer in range (#{min_mtu} .. #{max_mtu})"
+      end
+    end
+    munge do |val|
+      if val == :absent
+        :absent
+      else
+        begin
+          val.to_i
+        rescue
+          :absent
+        end
       end
     end
   end
@@ -81,14 +93,27 @@ Puppet::Type.newtype(:l23_stored_config) do
 
   newproperty(:vlan_id) do
     desc "802.1q vlan ID"
-    validate do |value|
-      unless (value =~ /^\d+$/)
-        raise ArgumentError, "#{value} is not a valid VLAN_ID (must be a positive integer)"
+    newvalues(/^\d+$/, :absent, :none, :undef, :nil)
+    aliasvalue(:absent, :none)
+    aliasvalue(:absent, :undef)
+    aliasvalue(:absent, :nil)
+    defaultto(:absent)
+    validate do |val|
+      min_vid = 1
+      max_vid = 4094
+      if ! (val.to_s == 'absent' or (min_vid .. max_vid).include?(val.to_i))
+        raise ArgumentError, "'#{val}' is not a valid 802.1q NALN_ID (must be a integer value in range (#{min_vid} .. #{max_vid})"
       end
-      min_id = 2
-      max_id = 4094
-      unless (min_id .. max_id).include?(value.to_i)
-        raise ArgumentError, "#{value} is not in the valid VLAN_ID (#{min_mtu} .. #{max_mtu})"
+    end
+    munge do |val|
+      if val == :absent
+        :absent
+      else
+        begin
+          val.to_i
+        rescue
+          :absent
+        end
       end
     end
   end
@@ -125,14 +150,25 @@ Puppet::Type.newtype(:l23_stored_config) do
     aliasvalue(:absent, :undef)
     aliasvalue(:absent, :nil)
     defaultto(:absent)
-    # validate do |val|
-    #   if val != :absent and val.to_i < 0
-    #     raise ArgumentError, "Invalid gateway metric: '#{val}'"
-    #   end
-    # end
+    validate do |val|
+      min_metric = 0
+      max_metric = 65535
+      if ! (val.to_s == 'absent' or (min_metric .. max_metric).include?(val.to_i))
+        raise ArgumentError, "'#{val}' is not a valid metric (must be a integer value in range (#{min_metric} .. #{max_metric})"
+      end
+    end
+    munge do |val|
+      if val == :absent
+        :absent
+      else
+        begin
+          val.to_i
+        rescue
+          :absent
+        end
+      end
+    end
   end
-
-
 
   # # `:options` provides an arbitrary passthrough for provider properties, so
   # # that provider specific behavior doesn't clutter up the main type but still

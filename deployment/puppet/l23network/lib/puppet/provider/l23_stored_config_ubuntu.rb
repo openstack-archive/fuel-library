@@ -105,6 +105,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
     # The FileMapper mixin expects an array of providers, so we return the
     # single interface wrapped in an array
+    debug("parse_file('#{filename}'): #{props.inspect}")
     [props]
   end
 
@@ -159,7 +160,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   end
 
   def self.mangle__gateway_metric(val)
-    (val.to_i == 0)  ?  :absent  :  val.to_i
+    (val.to_i == 0  ?  :absent  :  val.to_i)
   end
 
   ###
@@ -194,13 +195,15 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       end
     end
 
+    debug("format_file('#{filename}')::properties: #{props.inspect}")
     pairs = self.unmangle_properties(props)
 
     pairs.each_pair do |key, val|
       content << "#{key} #{val}" if ! val.nil?
     end
-    content << ''
 
+    debug("format_file('#{filename}')::content: #{content.inspect}")
+    content << ''
     content.join("\n")
   end
 
@@ -243,8 +246,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   end
 
   def self.unmangle__gateway_metric(val)
-    (val.to_i == 0)  ?  :absent  :  val.to_i
-
+    (val.to_i == 0  ?  :absent  :  val.to_i)
   end
 
 end
