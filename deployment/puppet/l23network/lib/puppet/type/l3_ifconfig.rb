@@ -78,12 +78,22 @@ Puppet::Type.newtype(:l3_ifconfig) do
       aliasvalue(:absent, :nil)
       defaultto(:absent)
       validate do |val|
-        if val.to_sym != :absent and val.to_i < 0
-          raise ArgumentError, "Invalid gateway metric: '#{val}'"
+        min_metric = 0
+        max_metric = 65535
+        if ! (val.to_s == 'absent' or (min_metric .. max_metric).include?(val.to_i))
+          raise ArgumentError, "'#{val}' is not a valid metric (must be a integer value in range (#{min_metric} .. #{max_metric})"
         end
       end
       munge do |val|
-        (val.to_sym == :absent)  ?  :absent  :  val.to_i
+        if val == :absent
+          :absent
+        else
+          begin
+            val.to_i
+          rescue
+            :absent
+          end
+        end
       end
     end
 

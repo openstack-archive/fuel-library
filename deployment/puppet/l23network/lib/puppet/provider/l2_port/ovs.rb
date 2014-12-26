@@ -1,5 +1,5 @@
 Puppet::Type.type(:l2_port).provide(:ovs) do
-  confine    :osfamily => :linux
+#  confine    :osfamily => :linux
   commands   :vsctl   => 'ovs-vsctl',
              :iproute => 'ip'
 
@@ -21,10 +21,10 @@ Puppet::Type.type(:l2_port).provide(:ovs) do
     end
     # tag and trunks for port
     port_properties = @resource[:port_properties]
-    if @resource[:vlan_id] > 0
-      port_properties.insert(-1, "tag=#{@resource[:vlan_id]}")
+    if ![nil, :absent].include? @resource[:vlan_id] and @resource[:vlan_id] > 0
+      port_properties << "tag=#{@resource[:vlan_id]}"
     end
-    if not @resource[:trunks].empty?
+    if ![nil, :absent].include? @resource[:trunks] and !@resource[:trunks].empty?
       port_properties.insert(-1, "trunks=[#{@resource[:trunks].join(',')}]")
     end
     # Port create begins from definition brodge and port
@@ -72,5 +72,73 @@ Puppet::Type.type(:l2_port).provide(:ovs) do
   def destroy
     vsctl("del-port", @resource[:bridge], @resource[:interface])
   end
+
+  def initialize(value={})
+    super(value)
+    @property_flush = {}
+    @old_property_hash = {}
+    @old_property_hash.merge! @property_hash
+  end
+
+  def flush
+    if @property_flush
+      debug("FLUSH properties: #{@property_flush}")
+      #@property_hash = resource.to_hash
+    end
+  end
+
+  #-----------------------------------------------------------------
+  def bridge
+    @property_hash[:bridge] || :absent
+  end
+  def bridge=(val)
+    @property_flush[:bridge] = val
+  end
+
+  def vlan_dev
+    @property_hash[:vlan_dev] || :absent
+  end
+  def vlan_dev=(val)
+    @property_flush[:vlan_dev] = val
+  end
+
+  def vlan_id
+    @property_hash[:vlan_id] || :absent
+  end
+  def vlan_id=(val)
+    @property_flush[:vlan_id] = val
+  end
+
+  def port_type
+    @property_hash[:port_type] || :absent
+  end
+  def port_type=(val)
+    @property_flush[:port_type] = val
+  end
+
+  def vlan_mode
+    @property_hash[:vlan_mode] || :absent
+  end
+  def vlan_mode=(val)
+    @property_flush[:vlan_mode] = val
+  end
+
+  def mtu
+    @property_hash[:mtu] || :absent
+  end
+  def mtu=(val)
+    @property_flush[:mtu] = val
+  end
+
+  def onboot
+    @property_hash[:onboot] || :absent
+  end
+  def onboot=(val)
+    @property_flush[:onboot] = val
+  end
+
+  #-----------------------------------------------------------------
+
+
 end
 # vim: set ts=2 sw=2 et :

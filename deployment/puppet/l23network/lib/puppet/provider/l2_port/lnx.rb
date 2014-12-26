@@ -15,7 +15,7 @@ Puppet::Type.type(:l2_port).provide(:lnx) do
   end
 
   def self.instances
-    # get port-bridges mapping
+    bridges ||= get_bridge_list()
     #todo: what do with OVS ports, inserted in LNX bridge? i.e. port located in two bridges.
     port_bridges_hash = self.get_lnx_port_bridges_pairs()
     #debug("port-bridges: '#{port_bridges_hash}'")
@@ -41,6 +41,7 @@ Puppet::Type.type(:l2_port).provide(:lnx) do
         props = {
           :ensure     => :present,
           :name       => if_name,
+          :port_type  => '',
         }
         debug("prefetching interface '#{if_name}'")
         # check, whether this interface is vlan
@@ -69,6 +70,17 @@ Puppet::Type.type(:l2_port).provide(:lnx) do
         # get bridge if port included to it
         if ! port_bridges_hash[if_name].nil?
           props[:bridge] = port_bridges_hash[if_name][:bridge]
+        end
+        # calculate port_type field
+        if !bridges[if_name].nil?
+          case bridges[if_name][:br_type]
+          when :ovs
+            props[:port_type] = 'ovs:br:unremovable'
+          when :lnx
+            props[:port_type] = 'lnx:br:unremovable'
+          else
+            # pass
+          end
         end
         debug("PREFETCHED properties for '#{if_name}': #{props}")
         new(props)
@@ -126,13 +138,16 @@ Puppet::Type.type(:l2_port).provide(:lnx) do
         if ! port_bridges_hash[@resource[:interface]].nil?
           br_name = port_bridges_hash[@resource[:interface]][:bridge]
           br_type = port_bridges_hash[@resource[:interface]][:br_type]
-          case br_type
-          when :ovs
-            vsctl('del-port', br_name, @resource[:interface])
-          when :lnx
-            brctl('delif', br_name, @resource[:interface])
-          else
-            #pass
+          if br_name != @resource[:interface]
+            # do not remove bridge-based interface from his bridge
+            case br_type
+            when :ovs
+              vsctl('del-port', br_name, @resource[:interface])
+            when :lnx
+              brctl('delif', br_name, @resource[:interface])
+            else
+              #pass
+            end
           end
         end
         # add port to the new bridge
@@ -208,19 +223,27 @@ Puppet::Type.type(:l2_port).provide(:lnx) do
     bridges = {}
     # obtain OVS bridges list
     re_c = /^\s*([\w\-]+)/
-    vsctl('list-br').split(/\n+/).select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
-      br_name.strip!
-      bridges[br_name] = {
-        :br_type => :ovs
-      }
+    begin
+      vsctl('list-br').split(/\n+/).select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
+        br_name.strip!
+        bridges[br_name] = {
+          :br_type => :ovs
+        }
+      end
+    rescue
+      debug("No OVS bridges found, because error while 'ovs-vsctl list-br' execution")
     end
     # obtain LNX bridges list
     re_c = /([\w\-]+)\s+\d+/
-    brctl('show').split(/\n+/).select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
-      br_name.strip!
-      bridges[br_name] = {
-        :br_type => :lnx
-      }
+    begin
+      brctl('show').split(/\n+/).select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
+        br_name.strip!
+        bridges[br_name] = {
+          :br_type => :lnx
+        }
+      end
+    rescue
+      debug("No LNX bridges found, because error while 'brctl show' execution")
     end
     return bridges
   end
