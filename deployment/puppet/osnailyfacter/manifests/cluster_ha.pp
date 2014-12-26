@@ -115,15 +115,15 @@ class osnailyfacter::cluster_ha {
     },
     management_old   => {
       namespace            => 'haproxy',
-      nic                  => $::internal_int,
+      nic                  => $::mgmt_vip_nic,
       base_veth            => "${::internal_int}-hapr",
       ns_veth              => "hapr-m",
       ip                   => $::fuel_settings['management_vip'],
       cidr_netmask         => netmask_to_cidr($::fuel_settings['nodes'][0]['internal_netmask']),
       gateway              => 'link',
       gateway_metric       => '20',
-      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
-      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
+      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${::mgmt_vip_nic} -j MASQUERADE",
+      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${::mgmt_vip_nic} -j MASQUERADE",
       iptables_comment     => "masquerade-for-management-net",
     },
   }
