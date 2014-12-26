@@ -150,6 +150,16 @@ class os_common {
   class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
   if $use_quantum {
       class {'advanced_node_netconfig': stage => 'netconfig' }
+      # Declare convert class only in case of neutron + gre segmentation
+      if ($::fuel_settings['quantum_settings']['L2']['segmentation_type'] == 'gre') {
+        class {'custom_project::convert_to_linux_bonds':
+          network_scheme => $::fuel_settings['network_scheme'],
+          stage          => 'netconfig',
+          role           => $::fuel_settings['role'],
+          run_exec       => true,
+          require        => Class['advanced_node_netconfig'],
+        }
+      }
   } else {
       class {'osnailyfacter::network_setup': stage => 'netconfig'}
   }
