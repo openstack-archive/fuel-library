@@ -99,6 +99,28 @@ class osnailyfacter::cluster_ha {
     fail("Node $::hostname is not defined in the hash structure")
   }
 
+  # Customization for a project
+  $mgmt_vlan = inline_template("<%= begin @fuel_settings['network_scheme']['transformations'].select{|n| n['action'] == 'add-patch' and n['bridges'][1] == 'br-mgmt'}.first['tags'][0] rescue 'fail' end %>")
+  $storage_vlan = inline_template("<%= begin @fuel_settings['network_scheme']['transformations'].select{|n| n['action'] == 'add-patch' and n['bridges'][1] == 'br-storage'}.first['tags'][0] rescue 'fail' end %>")
+  $ext_vlan = inline_template("<%= begin @fuel_settings['network_scheme']['transformations'].select{|n| n['action'] == 'add-patch' and n['bridges'][1] == 'br-ex'}.first['tags'][0] rescue 'fail' end %>")
+  $bond0_interfaces = inline_template("<%= begin @fuel_settings['network_scheme']['transformations'].find{|n| n['action'] == 'add-bond' and n['bridge'] == 'br-ovs-bond0'}['interfaces'].join(' ') rescue 'fail' end %>")
+  $bond0_properties = inline_template("<%= begin @fuel_settings['network_scheme']['transformations'].find{|n| n['action'] == 'add-bond' and n['bridge'] == 'br-ovs-bond0'}['properties'].join(' ') rescue 'fail' end %>")
+
+  if (
+    $::osfamily == 'RedHat' and
+    $mgmt_vlan != 'fail' and
+    $storage_vlan != 'fail' and
+    $ext_vlan != 'fail' and
+    $bond0_interfaces != 'fail' and
+    $bond0_properties =~ /lacp=active/ and
+    $bond0_properties =~ /bond_mode=balance-tcp/
+  ){
+    $mgmt_vip_nic = "bond0.$mgmt_vlan"
+  }
+  else {
+    $mgmt_vip_nic = $::internal_int
+  }
+
   $vips = { # Do not convert to ARRAY, It can't work in 2.7
     public_old => {
       namespace            => 'haproxy',
@@ -115,15 +137,15 @@ class osnailyfacter::cluster_ha {
     },
     management_old   => {
       namespace            => 'haproxy',
-      nic                  => $::internal_int,
+      nic                  => $mgmt_vip_nic,
       base_veth            => "${::internal_int}-hapr",
       ns_veth              => "hapr-m",
       ip                   => $::fuel_settings['management_vip'],
       cidr_netmask         => netmask_to_cidr($::fuel_settings['nodes'][0]['internal_netmask']),
       gateway              => 'link',
       gateway_metric       => '20',
-      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
-      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
+      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${mgmt_vip_nic} -j MASQUERADE",
+      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${mgmt_vip_nic} -j MASQUERADE",
       iptables_comment     => "masquerade-for-management-net",
     },
   }
