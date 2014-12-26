@@ -4,3 +4,6 @@ s
 --loadby
 mtime
 --backtrace
+--tty
+--colour
+--tty
