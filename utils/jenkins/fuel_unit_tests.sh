@@ -39,7 +39,7 @@ function rake_spec {
   fi
 
   bundle update
-  bundle exec rake spec SPEC_OPTS='--format documentation'
+  bundle exec rake spec SPEC_OPTS='--format documentation --tty --color'
   return $?
 }
 
