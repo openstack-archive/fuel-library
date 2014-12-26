@@ -6,4 +6,6 @@ RSpec.configure do |c|
     # avoid "Only root can execute commands as other users"
     Puppet.features.stubs(:root? => true)
   end
+  c.default_facts = { :concat_basedir => '/var/lib/puppet/concat' }
+  c.tty = true
 end
