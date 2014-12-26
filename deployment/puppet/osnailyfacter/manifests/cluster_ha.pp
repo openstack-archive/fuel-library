@@ -99,6 +99,8 @@ class osnailyfacter::cluster_ha {
     fail("Node $::hostname is not defined in the hash structure")
   }
 
+  $mgmt_vlan = inline_template("<%= @fuel_settings['network_scheme']['transformations'].select{|n| n['action'] == 'add-patch' and n['bridges'][1] == 'br-mgmt'}.first['tags'][0] %>")
+  $internal_bond = "bond0.$mgmt_vlan"
   $vips = { # Do not convert to ARRAY, It can't work in 2.7
     public_old => {
       namespace            => 'haproxy',
@@ -115,15 +117,15 @@ class osnailyfacter::cluster_ha {
     },
     management_old   => {
       namespace            => 'haproxy',
-      nic                  => $::internal_int,
+      nic                  => $internal_bond,
       base_veth            => "${::internal_int}-hapr",
       ns_veth              => "hapr-m",
       ip                   => $::fuel_settings['management_vip'],
       cidr_netmask         => netmask_to_cidr($::fuel_settings['nodes'][0]['internal_netmask']),
       gateway              => 'link',
       gateway_metric       => '20',
-      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
-      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
+      iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${internal_bond} -j MASQUERADE",
+      iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${internal_bond} -j MASQUERADE",
       iptables_comment     => "masquerade-for-management-net",
     },
   }
