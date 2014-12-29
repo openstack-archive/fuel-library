@@ -98,6 +98,7 @@ class openstack::network::neutron_agents (
       local_ip            => $local_ip,
       manage_service      => true,
       enabled             => true,
+      l2_population       => true,
     }
 
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>

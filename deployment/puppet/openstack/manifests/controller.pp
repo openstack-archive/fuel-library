@@ -714,7 +714,7 @@ class openstack::controller (
     if $neutron_settings['L2']['mechanism_drivers'] {
         $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
     } else {
-        $mechanism_drivers = ['openvswitch']
+        $mechanism_drivers = ['openvswitch', 'l2population']
     }
 
     if $neutron_settings['L2']['provider'] == 'ovs' {
