@@ -31,9 +31,9 @@ class murano::keystone (
 
   keystone_endpoint { "$region/$user":
     ensure       => present,
-    public_url   => "http://${public_address}:${murano_api_port}/v1/%(tenant_id)s",
-    internal_url => "http://${internal_address}:${murano_api_port}/v1/%(tenant_id)s",
-    admin_url    => "http://${admin_address}:${murano_api_port}/v1/%(tenant_id)s",
+    public_url   => "http://${public_address}:${murano_api_port}",
+    internal_url => "http://${internal_address}:${murano_api_port}",
+    admin_url    => "http://${admin_address}:${murano_api_port}",
   }
 
 }
