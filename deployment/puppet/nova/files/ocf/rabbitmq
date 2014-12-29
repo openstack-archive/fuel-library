@@ -617,6 +617,8 @@ start_beam_process() {
         ocf_run rm -rf $OCF_RESKEY_pid_file
     fi
 
+    [ -f /etc/default/${OCF_RESKEY_binary} ] && . /etc/default/${OCF_RESKEY_binary}
+
     # run beam process
     RABBITMQ_NODE_ONLY=1 ${OCF_RESKEY_binary} >> "${OCF_RESKEY_log_dir}/startup_log" 2>/dev/null &
     ts_end=$(( $(now) + ${OCF_RESKEY_start_time} ))
