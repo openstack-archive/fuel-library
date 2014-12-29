@@ -83,3 +83,7 @@ file { "/etc/supervisord.d/current":
   ensure  => "/etc/supervisord.d/${::fuel_version['VERSION']['release']}",
 }
 
+exec {"sync_deployment_tasks":
+  command => "fuel rel --sync-deployment-tasks --dir /etc/puppet/",
+  path => "/usr/bin"
+}
