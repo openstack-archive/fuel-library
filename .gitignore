@@ -21,6 +21,8 @@ _build
 .vagrant
 Vagrantfile
 
-metadata.json
+# Bundle
 Gemfile.lock
+.bundled_gems
+
 /rdoc
