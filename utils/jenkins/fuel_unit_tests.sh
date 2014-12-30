@@ -39,7 +39,7 @@ function rake_spec {
   fi
 
   bundle update
-  bundle exec rake spec SPEC_OPTS='--format documentation'
+  bundle exec rake spec SPEC_OPTS='--format documentation --tty --color'
   return $?
 }
 
@@ -55,10 +55,10 @@ for mod in $modules; do
 done
 
 if [ -z "$failed_modules" ] ; then
-  echo -e "RSpec Test SUCCEEDED: All modules successfully passed RSpec tests.\n"
+  echo -e "\nRSpec Tests SUCCEEDED: No errors found.\n"
   exit 0
 else
-  echo -e "\nRSpec RSpec tests failed for the following modules:"
+  echo -e "\nRSpec Tests FAILED for the following modules:"
   echo -e "$failed_modules\n"
   exit 1
 fi
