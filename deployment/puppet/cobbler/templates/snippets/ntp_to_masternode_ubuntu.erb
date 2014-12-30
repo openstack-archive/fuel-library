@@ -2,7 +2,7 @@ sed -i '/^\s*tinker panic/ d' /target/etc/ntp.conf && \
 sed -i '1 i tinker panic 0' /target/etc/ntp.conf && \
 mkdir /target/var/lib/ntp && \
 echo 0 > /target/var/lib/ntp/ntp.drift && \
-chown -R ntp:ntp /target/var/lib/ntp && \
+in-target chown -R ntp:ntp /var/lib/ntp && \
 sed -i '/^\s*server/ d' /target/etc/ntp.conf && \
 echo "server $server burst iburst" >> /target/etc/ntp.conf && \
 in-target sntp -t4 -S $server;\
