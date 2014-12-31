@@ -328,14 +328,14 @@ class openstack::compute (
     class { 'nova::compute::libvirt':
       libvirt_virt_type       => $libvirt_type,
       libvirt_cpu_mode        => $libvirt_cpu_mode,
-      libvirt_disk_cachemodes => ['"file=directsync"','"block=none"'],
+      libvirt_disk_cachemodes => ['file=directsync','block=none'],
       vncserver_listen        => $vncserver_listen,
     }
   } else {
     class { 'nova::compute::libvirt':
       libvirt_virt_type       => $libvirt_type,
       libvirt_cpu_mode        => $libvirt_cpu_mode,
-      libvirt_disk_cachemodes => ['"network=writeback"','"block=none"'],
+      libvirt_disk_cachemodes => ['network=writeback','block=none'],
       vncserver_listen        => $vncserver_listen,
     }
   }
