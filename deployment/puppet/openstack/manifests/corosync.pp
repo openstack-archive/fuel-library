@@ -15,14 +15,6 @@ anchor {'corosync':}
 
 Anchor['corosync'] -> Cs_property<||>
 
-#Define shadow CIB
-
-#Cs_resource {cib => 'shadow'}
-#Cs_property {cib => 'shadow'}
-#Cs_order {cib => 'shadow'}
-#Cs_colocation {cib => 'shadow'}
-#Cs_group {cib => 'shadow'}
-
 Class['::corosync']->Cs_shadow<||>
 Class['::corosync']->Cs_property<||>->Cs_resource<||>
 Cs_property<||>->Cs_shadow<||>
@@ -31,8 +23,6 @@ Cs_property['no-quorum-policy']->Cs_property['stonith-enabled']->Cs_property['st
 file {'filter_quantum_ports.py':
   path   =>'/usr/bin/filter_quantum_ports.py',
   mode   => '0744',
-  #require =>[Package['corosync'],File['/root/openrc']],
-  #require =>Package['corosync'],
   owner  => root,
   group  => root,
   source => "puppet:///modules/openstack/filter_quantum_ports.py",
@@ -51,11 +41,6 @@ class { '::corosync':
   multicast_address => $multicast_address,
   unicast_addresses => $unicast_addresses
 } -> Anchor['corosync-done']
-
-#cs_property { 'expected-quorum-votes':
-#  ensure => present,
-#  value  => $expected_quorum_votes
-#}
 
 cs_property { 'no-quorum-policy':
   ensure => present,
@@ -78,10 +63,10 @@ cs_property { 'symmetric-cluster':
   value  => "false",
 } -> Anchor['corosync-done']
 
-#cs_property { 'placement-strategy':
-#  ensure => absent,
-#  value  => 'default',
-#}
+cs_property { 'shutdown-escalation':
+  ensure => present,
+  value  => "5min",
+} -> Anchor['corosync-done']
 
 anchor {'corosync-done':}
 }
