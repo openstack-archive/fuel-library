@@ -4,6 +4,6 @@
 #
 Facter.add(:pacemaker_hostname) do
   setcode do
-    rv = Facter::Util::Resolution.exec('uname -n')
+    rv = Facter::Util::Resolution.exec('crm_node -n') rescue ''
   end
 end
