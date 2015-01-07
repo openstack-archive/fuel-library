@@ -38,24 +38,19 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     @nodes_structure = nil
   end
 
-  # get status CIB section
-  # @return [REXML::Element] at /cib/status
-  def cib_section_status
-    REXML::XPath.match cib, '/cib/status'
-  end
-
   # get lrm_rsc_ops section from lrm_resource section CIB section
   # @param lrm_resource [REXML::Element]
   # at /cib/status/node_state/lrm[@id="node-name"]/lrm_resources/lrm_resource[@id="resource-name"]/lrm_rsc_op
   # @return [REXML::Element]
   def cib_section_lrm_rsc_ops(lrm_resource)
+    return unless lrm_resource.is_a? REXML::Element
     REXML::XPath.match lrm_resource, 'lrm_rsc_op'
   end
 
   # get node_state CIB section
   # @return [REXML::Element] at /cib/status/node_state
   def cib_section_nodes_state
-    REXML::XPath.match cib_section_status, 'node_state'
+    REXML::XPath.match cib, '//node_state'
   end
 
   # get primitives CIB section
@@ -69,6 +64,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # at /cib/status/node_state/lrm[@id="node-name"]/lrm_resources/lrm_resource
   # @return [REXML::Element]
   def cib_section_lrm_resources(lrm)
+    return unless lrm.is_a? REXML::Element
     REXML::XPath.match lrm, 'lrm_resources/lrm_resource'
   end
 
@@ -184,6 +180,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
       id = resource['id']
       next unless id
       lrm_rsc_ops = cib_section_lrm_rsc_ops lrm_resource
+      next unless lrm_rsc_ops
       ops = decode_lrm_rsc_ops lrm_rsc_ops
       resource.store 'ops', ops
       resource.store 'status', determine_primitive_status(ops)
@@ -216,7 +213,9 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
       id = node['id']
       next unless id
       lrm = node_state.elements['lrm']
+      next unless lrm
       lrm_resources = cib_section_lrm_resources lrm
+      next unless lrm_resources
       resources = decode_lrm_resources lrm_resources
       node.store 'primitives', resources
       @nodes_structure.store id, node
@@ -602,6 +601,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
       dc_version = crm_attribute '-q', '--type', 'crm_config', '--query', '--name', 'dc-version'
       return false unless dc_version
       return false if dc_version.empty?
+      return false unless cib_section_nodes_state
       true
     rescue Puppet::ExecutionFailure
       false
