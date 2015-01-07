@@ -172,6 +172,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   end
 
   def get_last_successful_operations
+    debug("getting last operations")
     self.class.get_cib
     self.class.get_nodes
     @last_successful_operations = []
@@ -250,6 +251,8 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
 
   def start
     get_service_hash
+    debug("START PCMK SERVICE: #{get_service_name}")
+    crm('resource', 'cleanup', get_service_name)
     enable
     crm('resource', 'start', get_service_name)
     debug("Starting countdown for resource start")
@@ -265,6 +268,8 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
 
   def stop
     get_service_hash
+    debug("STOP PCMK SERVICE: #{get_service_name}")
+    crm('resource', 'cleanup', get_service_name)
     enable
     crm('resource', 'stop', get_service_name)
     debug("Starting countdown for resource stop")
@@ -284,8 +289,9 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
 
   def status
     #debug(crm('status'))
-    debug("getting last operations")
     get_last_successful_operations
+    debug("STATUS PCMK SERVICE: #{get_service_name}")
+    crm('resource', 'cleanup', get_service_name)
     if @last_successful_operations.any? {|op| ['start','promote'].include?(op)}
       return :running
     elsif @last_successful_operations.all? {|op| op == 'stop'} or @last_successful_operations.empty?
