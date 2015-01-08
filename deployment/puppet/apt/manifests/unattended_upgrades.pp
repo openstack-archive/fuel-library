@@ -14,7 +14,7 @@
 # file and in /etc/cron.daily/apt
 #
 class apt::unattended_upgrades (
-  $origins             = ["${distro_id}:${distro_codename}-security"],
+  $origins             = $::apt::params::origins,
   $blacklist           = [],
   $update              = '1',
   $download            = '1',
@@ -28,6 +28,7 @@ class apt::unattended_upgrades (
   $remove_unused       = true,
   $auto_reboot         = false,
   $dl_limit            = 'NONE',
+  $randomsleep         = undef,
   $enable              = '1',
   $backup_interval     = '0',
   $backup_level        = '3',
@@ -36,8 +37,7 @@ class apt::unattended_upgrades (
   $max_size            = '0',
   $download_delta      = '0',
   $verbose             = '0',
-) {
-  include apt::params
+) inherits ::apt::params {
 
   validate_bool(
     $auto_fix,
@@ -47,23 +47,33 @@ class apt::unattended_upgrades (
     $remove_unused,
     $auto_reboot
   )
+  validate_array($origins)
+
+  if $randomsleep {
+    unless is_numeric($randomsleep) {
+      fail('randomsleep must be numeric')
+    }
+  }
 
   package { 'unattended-upgrades':
     ensure => present,
   }
 
-  File {
+  file { '/etc/apt/apt.conf.d/50unattended-upgrades':
     ensure  => file,
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
+    content => template('apt/50unattended-upgrades.erb'),
     require => Package['unattended-upgrades'],
   }
 
-  file {
-    '/etc/apt/apt.conf.d/50unattended-upgrades':
-      content => template('apt/50unattended-upgrades.erb');
-    '/etc/apt/apt.conf.d/10periodic':
-      content => template('apt/10periodic.erb');
+  file { '/etc/apt/apt.conf.d/10periodic':
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    content => template('apt/10periodic.erb'),
+    require => Package['unattended-upgrades'],
   }
 }

@@ -1,6 +1,6 @@
 require 'spec_helper'
 describe 'apt::debian::unstable', :type => :class do
-  let(:facts) { { :lsbdistid => 'Debian' } }
+  let(:facts) { { :lsbdistid => 'Debian', :osfamily => 'Debian' } }
   it {
     should contain_apt__source("debian_unstable").with({
       "location"          => "http://debian.mirror.iweb.ca/debian/",

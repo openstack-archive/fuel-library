@@ -1,6 +1,3 @@
-# conf.pp
-# conf is the configuration file
-
 define apt::conf (
   $content,
   $ensure   = present,

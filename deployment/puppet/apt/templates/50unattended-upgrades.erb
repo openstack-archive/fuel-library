@@ -1,5 +1,9 @@
 // Automatically upgrade packages from these (origin:archive) pairs
+<%- if @legacy_origin -%>
 Unattended-Upgrade::Allowed-Origins {
+<%- else -%>
+Unattended-Upgrade::Origins-Pattern {
+<%- end -%>
 <% @origins.each do |origin| -%>
 	"<%= origin %>";
 <% end -%>
@@ -13,7 +17,7 @@ Unattended-Upgrade::Package-Blacklist {
 };
 
 // This option allows you to control if on a unclean dpkg exit
-// unattended-upgrades will automatically run 
+// unattended-upgrades will automatically run
 //   dpkg --force-confold --configure -a
 // The default is true, to ensure updates keep getting installed
 Unattended-Upgrade::AutoFixInterruptedDpkg "<%= @auto_fix %>";
@@ -43,8 +47,8 @@ Unattended-Upgrade::InstallOnShutdown "<%= @install_on_shutdown %>";
 // (equivalent to apt-get autoremove)
 Unattended-Upgrade::Remove-Unused-Dependencies "<%= @remove_unused %>";
 
-// Automatically reboot *WITHOUT CONFIRMATION* if a 
-// the file /var/run/reboot-required is found after the upgrade 
+// Automatically reboot *WITHOUT CONFIRMATION* if a
+// the file /var/run/reboot-required is found after the upgrade
 Unattended-Upgrade::Automatic-Reboot "<%= @auto_reboot %>";
 
 

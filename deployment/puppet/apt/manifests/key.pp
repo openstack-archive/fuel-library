@@ -1,92 +1,120 @@
-# key.pp
-
+# == Define: apt::key
+#
+# The apt::key defined type allows for keys to be added to apt's keyring
+# which is used for package validation. This defined type uses the apt_key
+# native type to manage keys. This is a simple wrapper around apt_key with
+# a few safeguards in place.
+#
+# === Parameters
+#
+# [*key*]
+#   _default_: +$title+, the title/name of the resource
+#
+#   Is a GPG key ID. This key ID is validated with a regex enforcing it
+#   to only contain valid hexadecimal characters, be precisely 8 or 16
+#   characters long and optionally prefixed with 0x.
+#
+# [*ensure*]
+#   _default_: +present+
+#
+#   The state we want this key in, may be either one of:
+#   * +present+
+#   * +absent+
+#
+# [*key_content*]
+#   _default_: +undef+
+#
+#   This parameter can be used to pass in a GPG key as a
+#   string in case it cannot be fetched from a remote location
+#   and using a file resource is for other reasons inconvenient.
+#
+# [*key_source*]
+#   _default_: +undef+
+#
+#   This parameter can be used to pass in the location of a GPG
+#   key. This URI can take the form of a:
+#   * +URL+: ftp, http or https
+#   * +path+: absolute path to a file on the target system.
+#
+# [*key_server*]
+#   _default_: +undef+
+#
+#   The keyserver from where to fetch our GPG key. It can either be a domain
+#   name or url. It defaults to
+#   undef which results in apt_key's default keyserver being used,
+#   currently +keyserver.ubuntu.com+.
+#
+# [*key_options*]
+#   _default_: +undef+
+#
+#   Additional options to pass on to `apt-key adv --keyserver-options`.
 define apt::key (
-  $key = $title,
-  $ensure = present,
-  $key_content = false,
-  $key_source = false,
-  $key_server = 'keyserver.ubuntu.com',
-  $key_options = false
+  $key         = $title,
+  $ensure      = present,
+  $key_content = undef,
+  $key_source  = undef,
+  $key_server  = undef,
+  $key_options = undef,
 ) {
 
-  include apt::params
-
-  $upkey = upcase($key)
-  # trim the key to the last 8 chars so we can match longer keys with apt-key list too
-  $trimmedkey = regsubst($upkey, '^.*(.{8})$', '\1')
+  validate_re($key, ['\A(0x)?[0-9a-fA-F]{8}\Z', '\A(0x)?[0-9a-fA-F]{16}\Z'])
+  validate_re($ensure, ['\Aabsent|present\Z',])
 
   if $key_content {
-    $method = 'content'
-  } elsif $key_source {
-    $method = 'source'
-  } elsif $key_server {
-    $method = 'server'
+    validate_string($key_content)
   }
 
-  # This is a hash of the parts of the key definition that we care about.
-  # It is used as a unique identifier for this instance of apt::key. It gets
-  # hashed to ensure that the resource name doesn't end up being pages and
-  # pages (e.g. in the situation where key_content is specified).
-  $digest = sha1("${upkey}/${key_content}/${key_source}/${key_server}/")
+  if $key_source {
+    validate_re($key_source, ['\Ahttps?:\/\/', '\Aftp:\/\/', '\A\/\w+'])
+  }
 
-  # Allow multiple ensure => present for the same key to account for many
-  # apt::source resources that all reference the same key.
+  if $key_server {
+    validate_re($key_server,['\A((hkp|http|https):\/\/)?([a-z\d])([a-z\d-]{0,61}\.)+[a-z\d]+(:\d{2,4})?$'])
+  }
+
+  if $key_options {
+    validate_string($key_options)
+  }
+
   case $ensure {
     present: {
-
-      anchor { "apt::key/${title}": }
-
-      if defined(Exec["apt::key ${upkey} absent"]) {
-        fail("Cannot ensure Apt::Key[${upkey}] present; ${upkey} already ensured absent")
+      if defined(Anchor["apt_key ${key} absent"]){
+        fail("key with id ${key} already ensured as absent")
       }
 
-      if !defined(Anchor["apt::key ${upkey} present"]) {
-        anchor { "apt::key ${upkey} present": }
+      if !defined(Anchor["apt_key ${key} present"]) {
+        apt_key { $title:
+          ensure            => $ensure,
+          id                => $key,
+          source            => $key_source,
+          content           => $key_content,
+          server            => $key_server,
+          keyserver_options => $key_options,
+        } ->
+        anchor { "apt_key ${key} present": }
       }
-
-      if $key_options{
-        $options_string = "--keyserver-options ${key_options}"
-      }
-      else{
-        $options_string = ''
-      }
-
-      if !defined(Exec[$digest]) {
-        $digest_command = $method ? {
-          'content' => "echo '${key_content}' | /usr/bin/apt-key add -",
-          'source'  => "wget -q '${key_source}' -O- | apt-key add -",
-          'server'  => "apt-key adv --keyserver '${key_server}' ${options_string} --recv-keys '${upkey}'",
-        }
-        exec { $digest:
-          command   => $digest_command,
-          path      => '/bin:/usr/bin',
-          unless    => "/usr/bin/apt-key list | /bin/grep '${trimmedkey}'",
-          logoutput => 'on_failure',
-          before    => Anchor["apt::key ${upkey} present"],
-        }
-      }
-
-      Anchor["apt::key ${upkey} present"] -> Anchor["apt::key/${title}"]
-
     }
-    absent: {
 
-      if defined(Anchor["apt::key ${upkey} present"]) {
-        fail("Cannot ensure Apt::Key[${upkey}] absent; ${upkey} already ensured present")
+    absent: {
+      if defined(Anchor["apt_key ${key} present"]){
+        fail("key with id ${key} already ensured as present")
       }
 
-      exec { "apt::key ${upkey} absent":
-        command   => "apt-key del '${upkey}'",
-        path      => '/bin:/usr/bin',
-        onlyif    => "apt-key list | grep '${trimmedkey}'",
-        user      => 'root',
-        group     => 'root',
-        logoutput => 'on_failure',
+      if !defined(Anchor["apt_key ${key} absent"]){
+        apt_key { $title:
+          ensure            => $ensure,
+          id                => $key,
+          source            => $key_source,
+          content           => $key_content,
+          server            => $key_server,
+          keyserver_options => $key_options,
+        } ->
+        anchor { "apt_key ${key} absent": }
       }
     }
 
     default: {
-      fail "Invalid 'ensure' value '${ensure}' for aptkey"
+      fail "Invalid 'ensure' value '${ensure}' for apt::key"
     }
   }
 }
