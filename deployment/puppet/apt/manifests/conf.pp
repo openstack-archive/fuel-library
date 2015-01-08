@@ -1,6 +1,3 @@
-# conf.pp
-# conf is the configuration file
-
 define apt::conf (
   $content,
   $ensure   = present,
@@ -13,7 +10,7 @@ define apt::conf (
 
   file { "${apt_conf_d}/${priority}${name}":
     ensure  => $ensure,
-    content => $content,
+    content => template('apt/_header.erb', 'apt/conf.erb'),
     owner   => root,
     group   => root,
     mode    => '0644',

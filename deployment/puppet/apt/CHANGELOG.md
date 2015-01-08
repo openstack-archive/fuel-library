@@ -1,3 +1,125 @@
+##2015-03-17 - Supported Release 1.8.0
+###Summary
+
+This is the last planned feature release of the 1.x series of this module. All new features will be evaluated for puppetlabs-apt 2.x.
+
+This release includes many important features, including support for full fingerprints, and fixes issues where `apt_key` was not supporting user/password and `apt_has_updates` was not properly parsing the `apt-check` output.
+
+####Changes to default behavior
+- The apt module will now throw warnings if you don't use full fingerprints for `apt_key`s
+
+####Features
+- Use gpg to check keys to work around https://bugs.launchpad.net/ubuntu/+source/gnupg2/+bug/1409117 (MODULES-1675)
+- Add 'oldstable' to the default update origins for wheezy
+- Add utopic, vivid, and cumulus compatibility
+- Add support for full fingerprints
+- New parameter for `apt::source`
+  - `trusted_source`
+- New parameters for `apt::ppa`
+  - `package_name`
+  - `package_manage`
+- New parameter for `apt::unattended_upgrades`
+  - `legacy_origin`
+- Separate `apt::pin` from `apt::backports` to allow pin by release instead of origin
+
+####Bugfixes
+- Cleanup lint and future parser issues
+- Fix to support username and passwords again for `apt_key` (MODULES-1119)
+- Fix issue where `apt::force` `$install_check` didn't work with non-English locales (MODULES-1231)
+- Allow 5 digit ports in `apt_key`
+- Fix for `ensure => absent` in `apt_key` (MODULES-1661)
+- Fix `apt_has_updates` not parsing `apt-check` output correctly
+- Fix inconsistent headers across files (MODULES-1200)
+- Clean up formatting for 50unattended-upgrades.erb
+
+##2014-10-28 - Supported Release 1.7.0
+###Summary
+
+This release includes several new features, documentation and test improvements, and a few bug fixes.
+
+####Features
+- Updated unit and acceptance tests
+- Update module to work with Linux Mint
+- Documentation updates
+- Future parser / strict variables support
+- Improved support for long GPG keys
+- New parameters!
+  - Added `apt_update_frequency` to apt
+  - Added `cfg_files` and `cfg_missing` parameters to apt::force
+  - Added `randomsleep` to apt::unattended_upgrades
+- Added `apt_update_last_success` fact
+- Refactored facts for performance improvements
+
+####Bugfixes
+- Update apt::builddep to require Exec['apt_update'] instead of notifying it
+- Clean up lint errors
+
+##2014-08-20 - Supported Release 1.6.0
+###Summary
+
+####Features
+- Allow URL or domain name for key_server parameter
+- Allow custom comment for sources list
+- Enable auto-update for Debian squeeze LTS
+- Add facts showing available updates
+- Test refactoring
+
+####Bugfixes
+- Allow dashes in URL or domain for key_server parameter
+
+##2014-08-13 - Supported Release 1.5.3
+###Summary
+
+This is a bugfix releases.  It addresses a bad regex, failures with unicode
+characters, and issues with the $proxy_host handling in apt::ppa.
+
+####Features
+- Synced files from Modulesync
+
+####Bugfixes
+- Fix regex to follow APT requirements in apt::pin
+- Fix for unicode characters
+- Fix inconsistent $proxy_host handling in apt and apt::ppa
+- Fix typo in README
+- Fix broken acceptance tests
+
+##2014-07-15 - Supported Release 1.5.2
+###Summary
+
+This release merely updates metadata.json so the module can be uninstalled and
+upgraded via the puppet module command.
+
+##2014-07-10 - Supported Release 1.5.1
+###Summary
+
+This release has added tests to ensure graceful failure on OSX.
+
+##2014-06-04 - Release 1.5.0
+###Summary
+
+This release adds support for Ubuntu 14.04.  It also includes many new features 
+and important bugfixes.  One huge change is that apt::key was replaced with
+apt_key, which allows you to use puppet resource apt_key to inventory keys on
+your system.
+
+Special thanks to daenney, our intrepid unofficial apt maintainer!
+
+####Features
+- Add support for Ubuntu Trusty!
+- Add apt::hold define
+- Generate valid *.pref files in apt::pin
+- Made pin_priority configurable for apt::backports
+- Add apt_key type and provider
+- Rename "${apt_conf_d}/proxy" to "${apt_conf_d}/01proxy"
+- apt::key rewritten to use apt_key type
+- Add support for update_tries to apt::update
+
+####Bugfixes
+- Typo fixes
+- Fix unattended upgrades
+- Removed bogus line when using purge_preferences
+- Fix apt::force to upgrade allow packages to be upgraded to the pacakge from the specified release
+
 ##2014-03-04 - Supported Release 1.4.2
 ###Summary
 

@@ -12,6 +12,6 @@ class apt::release (
     owner   => root,
     group   => root,
     mode    => '0644',
-    content => "APT::Default-Release \"${release_id}\";"
+    content => template('apt/_header.erb', 'apt/release.erb'),
   }
 }
