@@ -29,8 +29,8 @@ $access_hash                    = hiera('access', {})
 $role                           = hiera('role')
 $cinder_nodes_array             = hiera('cinder_nodes', [])
 $dns_nameservers                = hiera('dns_nameservers', [])
-$use_neutron                    = hiera('quantum')
-$network_scheme                 = hiera('network_scheme')
+$use_neutron                    = hiera('quantum', false)
+$network_scheme                 = hiera('network_scheme', {})
 $disable_offload                = hiera('disable_offload')
 $verbose                        = true
 $debug                          = hiera('debug', false)
@@ -101,9 +101,8 @@ if empty($node) {
 }
 $default_gateway = hiera('default_gateway', $node[0]['default_gateway'])
 
-prepare_network_config($network_scheme)
-
 if $use_neutron {
+  prepare_network_config($network_scheme)
   $internal_int                  = get_network_role_property('management', 'interface')
   $internal_address              = get_network_role_property('management', 'ipaddr')
   $internal_netmask              = get_network_role_property('management', 'netmask')
@@ -184,7 +183,7 @@ if $deployment_mode == 'ha_compact' {
   }
 
   $amqp_port              = '5673'
-  $amqp_hosts             = inline_template("<%   = @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+  $amqp_hosts             = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
   $rabbit_ha_queues       = true
   $rabbitmq_cluster_nodes = $controller_hostnames
 } else {
