@@ -181,51 +181,7 @@ class openstack::nova::controller (
   # Install / configure queue provider
   case $queue_provider {
     'rabbitmq': {
-      # NOTE(bogdnado) Debian family will use key_content, Rhel will use key_source.
-      #  key_source - source method, should be a file name for rpm or url for apt/rpm
-      #  key_content - content method, should be a template for apt::source class, overrides key_source
-      class { '::rabbitmq':
-        repos_ensure               => false,
-        package_provider           => $package_provider,
-        package_source             => undef,
-        service_ensure             => 'running',
-        service_manage             => $enabled,
-        port                       => $rabbitmq_bind_port,
-        delete_guest_user          => true,
-        default_user               => $amqp_user,
-        default_pass               => $amqp_password,
-        # Set to true and uncomment the lines below, if puppet should create a cluster
-        config_cluster             => false,
-        #TODO(bogdando) make erlang cookie as a hiera(astute) value.
-        #  this one was a default for old rabbitmq::server, but is required now
-        #erlang_cookie              => 'EOKOWXQREETZSHFNTPEY',
-        #wipe_db_on_cookie_change   => true,
-        #cluster_nodes              => $rabbitmq_cluster_nodes,
-        #cluster_node_type          => 'disc',
-        #cluster_partition_handling => $cluster_partition_handling,
-        version                    => '3.3.5',
-        node_ip_address            => $rabbitmq_bind_ip_address,
-        config_kernel_variables    => $config_kernel_variables,
-        config_variables           => $config_variables,
-        environment_variables      => $environment_variables,
-      }
-      class { 'nova::rabbitmq':
-        enabled                    => $enabled,
-        # Do not install rabbitmq from nova classes
-        rabbitmq_class             => false,
-        userid                     => $amqp_user,
-        password                   => $amqp_password,
-        require                    => Class['::rabbitmq'],
-      }
-      if ($ha_mode and $enabled) {
-        class { 'pacemaker_wrappers::rabbitmq':
-          command_timeout         => $command_timeout,
-          debug                   => $debug,
-          #TODO(bogdando) make erlang cookie as a hiera(astute) value.
-          erlang_cookie           => 'EOKOWXQREETZSHFNTPEY',
-          before                  => Class['nova::rabbitmq'],
-        }
-      }
+      notice("Rabbitmq server should be already installed and configured.")
     }
     'qpid': {
       class { 'qpid::server':
