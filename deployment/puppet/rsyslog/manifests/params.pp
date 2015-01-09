@@ -1,6 +1,6 @@
 class rsyslog::params {
-  case $::operatingsystem {
-    /(?i)(ubuntu|debian)/: {
+  case $::osfamily {
+    'debian': {
       $rsyslog_package_name   = 'rsyslog'
       #FIXME(bogdando) enable relp package back once we include it into
       # the ISO, and if Fuel would start to use any of RELP features
@@ -20,7 +20,7 @@ class rsyslog::params {
       $client_conf            = "${rsyslog_d}client.conf"
       $server_conf            = "${rsyslog_d}server.conf"
     }
-    /(?i)(redhat|centos)/: {
+    'redhat': {
       $rsyslog_package_name   = 'rsyslog'
       #FIXME(bogdando) enable relp package back once we include it into
       # the ISO, and if Fuel would start to use any of RELP features
@@ -40,7 +40,7 @@ class rsyslog::params {
       $client_conf            = "${rsyslog_d}client.conf"
       $server_conf            = "${rsyslog_d}server.conf"
     }
-    /(?i)freebsd/: {
+    'freebsd': {
       $rsyslog_package_name   = 'rsyslog5'
       $relp_package_name      = 'rsyslog5-relp'
       $package_status         = 'present'
