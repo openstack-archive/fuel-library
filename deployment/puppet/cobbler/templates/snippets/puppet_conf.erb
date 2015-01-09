@@ -1,6 +1,6 @@
 #if $getVar('puppet_master','') != ''
 mkdir -p /etc/puppet /var/lib/hiera
-touch /var/lib/hiera/common.yaml /etc/puppet/hiera.yaml
+touch /etc/puppet/hiera.yaml
 cat <<EOCONF > /etc/puppet/puppet.conf
 [main]
     # The Puppet log directory.
