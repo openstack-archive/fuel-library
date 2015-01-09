@@ -220,10 +220,6 @@ class openstack::controller (
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
   Class['openstack::db::mysql'] -> Cinder_config <||>
 
-  Class[$queue_provider] -> Nova_config <||>
-  Class[$queue_provider] -> Cinder_config <||>
-  Class[$queue_provider] -> Neutron_config <||>
-
   ####### DATABASE SETUP ######
   # set up mysql server
   if ($db_type == 'mysql') {
