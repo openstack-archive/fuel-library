@@ -1,0 +1,36 @@
+<% if scope.lookupvar('rsyslog::server::enable_udp') -%>
+# Load UDP module
+$ModLoad imudp
+<% end -%>
+
+<% if scope.lookupvar('rsyslog::server::enable_tcp') -%>
+# Load TCP module
+$ModLoad imtcp
+<% end -%>
+
+#
+<% if scope.lookupvar('rsyslog::server::high_precision_timestamps') == false -%>
+# Use traditional timestamp format.
+#
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+<% else -%>
+# Use high precision timestamp format.
+#
+$ActionFileDefaultTemplate RSYSLOG_FileFormat
+<% end -%>
+
+<% if scope.lookupvar('rsyslog::server::ssl') -%>
+# Server side SSL.
+$DefaultNetstreamDriver gtls
+
+# Cert files.
+$DefaultNetstreamDriverCAFile <%= scope.lookupvar('rsyslog::server::ssl_ca') %>
+$DefaultNetstreamDriverCertFile <%= scope.lookupvar('rsyslog::server::ssl_cert') %>
+$DefaultNetstreamDriverKeyFile <%= scope.lookupvar('rsyslog::server::ssl_key') %>
+
+$InputTCPServerStreamDriverMode 1
+$InputTCPServerStreamDriverAuthMode anon
+<% end -%>
+
+# Switch to remote ruleset
+$RuleSet remote
