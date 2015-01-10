@@ -4,28 +4,46 @@
 #### MODULES ####
 #################
 
-$ModLoad imuxsock # provides support for local system logging
-$ModLoad imklog   # provides kernel logging support (previously done by rklogd) 
-#$ModLoad immark  # provides --MARK-- message capability
+<% scope.lookupvar('rsyslog::modules').each do |module_row| -%>
+<%= module_row %>
+<% end -%>
 
 ###########################
 #### GLOBAL DIRECTIVES ####
 ###########################
+#
+# Set max message size for sending and receiving
+#
+$MaxMessageSize <%= scope.lookupvar('rsyslog::max_message_size') %>
 
 #
 # Set the default permissions for all log files.
 #
-$FileOwner <%= scope.lookupvar('rsyslog::params::log_user') %>
-$FileGroup <%= scope.lookupvar('rsyslog::params::log_group') %>
-$FileCreateMode 0640
-$DirCreateMode 0755
-$PrivDropToUser <%= scope.lookupvar('rsyslog::params::run_user') %>
-$PrivDropToGroup <%= scope.lookupvar('rsyslog::params::run_group') %>
-
-$MaxMessageSize 32k
+<% if scope.lookupvar('rsyslog::preserve_fqdn') -%>
+$PreserveFQDN on
+<% end -%>
+$FileOwner <%= scope.lookupvar('rsyslog::log_user') %>
+$FileGroup <%= scope.lookupvar('rsyslog::log_group') %>
+$FileCreateMode <%= scope.lookupvar('rsyslog::perm_file') %>
+$DirOwner <%= scope.lookupvar('rsyslog::log_user') %>
+$DirGroup <%= scope.lookupvar('rsyslog::log_group') %>
+$DirCreateMode <%= scope.lookupvar('rsyslog::perm_dir') %>
+$PrivDropToUser <%= scope.lookupvar('rsyslog::run_user') %>
+$PrivDropToGroup <%= scope.lookupvar('rsyslog::run_group') %>
+<% if scope.lookupvar('rsyslog::umask') -%>
+$Umask <%= scope.lookupvar('rsyslog::umask') %>
+<% end -%>
 
 #
-# Include all config files in <%= scope.lookupvar('rsyslog::params::rsyslog_d') %>
+# Include all config files in <%= scope.lookupvar('rsyslog::rsyslog_d') %>
 #
-$IncludeConfig <%= scope.lookupvar('rsyslog::params::rsyslog_d') -%>*.conf
+$IncludeConfig <%= scope.lookupvar('rsyslog::rsyslog_d') -%>*.conf
 
+#
+# Emergencies are sent to everybody logged in.
+#
+<% if @rsyslog_version and @rsyslog_version.split('.')[0].to_i >= 8 -%>
+*.emerg       :omusrmsg:*
+<% else -%>
+*.emerg				*
+<% end -%>

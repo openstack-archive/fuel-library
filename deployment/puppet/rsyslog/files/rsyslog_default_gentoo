@@ -1,0 +1,16 @@
+# Copyright 1999-2012 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: /var/cvsroot/gentoo-x86/app-admin/rsyslog/files/7-stable/rsyslog.confd,v 1.1 2012/11/20 13:03:36 ultrabug Exp $
+
+# Configuration file
+CONFIGFILE="/etc/rsyslog.conf"
+
+# PID file
+PIDFILE="/var/run/rsyslogd.pid"
+
+# Options to rsyslogd
+# See rsyslogd(8) for more details
+# Notes:
+# * Do not specify another PIDFILE but use the variable above to change the location
+# * Do not specify another CONFIGFILE but use the variable above to change the location
+RSYSLOG_OPTS=""

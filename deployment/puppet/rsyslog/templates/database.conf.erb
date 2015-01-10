@@ -1,0 +1,6 @@
+# File is managed by Puppet
+
+## Configuration file for rsyslog-<%= @backend %>
+
+$ModLoad <%= @db_module %>
+*.* :<%= @db_module -%>:<%= @server -%>,<%= @database -%>,<%= @username -%>,<%= @password %>
