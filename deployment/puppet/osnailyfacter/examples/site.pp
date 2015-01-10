@@ -228,7 +228,7 @@ class os_common {
   }
 
   $base_syslog_rserver  = {
-    'remote_type' => 'tcp',
+    'remote_type' => 'udp',
     'server' => $base_syslog_hash['syslog_server'],
     'port' => $base_syslog_hash['syslog_port']
   }
@@ -261,12 +261,18 @@ class os_common {
   $nova_report_interval = '60'
   $nova_service_down_time  = '180'
 
+
+  if $syslog_hash['syslog_transport'] == undef {
+    $syslog_hash['syslog_transport'] = 'udp'
+  }
+
   $syslog_rserver = {
     'remote_type' => $syslog_hash['syslog_transport'],
-    'server' => $syslog_hash['syslog_server'],
-    'port' => $syslog_hash['syslog_port'],
+    'server'      => $syslog_hash['syslog_server'],
+    'port'        => $syslog_hash['syslog_port'],
   }
-  if $syslog_hash['syslog_server'] != "" and $syslog_hash['syslog_port'] != "" and $syslog_hash['syslog_transport'] != "" {
+
+  if $syslog_hash['syslog_server'] != "" and $syslog_hash['syslog_port'] != "" {
     $rservers = [$base_syslog_rserver, $syslog_rserver]
   } else {
     $rservers = [$base_syslog_rserver]
