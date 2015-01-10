@@ -32,7 +32,6 @@ class openstack::logging (
     $virtual                        = false,
     $rabbit_log_level               = 'NOTICE',
     $production                     = 'prod',
-    $escapenewline                  = false,
     $debug                          = false,
 ) {
 
@@ -198,7 +197,6 @@ class openstack::logging (
       log_remote                => $log_remote,
       log_local                 => $log_local,
       log_auth_local            => $log_auth_local,
-      escapenewline             => $escapenewline,
     }
 
   } else { # server
