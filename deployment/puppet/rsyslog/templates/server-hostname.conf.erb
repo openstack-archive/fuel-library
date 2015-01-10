@@ -1,0 +1,41 @@
+# File is managed by puppet
+
+<% # Common header across all templates -%>
+<%= scope.function_template(['rsyslog/server/_default-header.conf.erb']) %>
+
+# Log files are stored in directories matching the hostname
+<% if scope.lookupvar('rsyslog::server::enable_onefile') == false -%>
+
+# Templates
+$Template dynAuthLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%hostname%<%= scope.lookupvar('rsyslog::server::logpath') -%>auth.log"
+$Template dynSyslog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%hostname%<%= scope.lookupvar('rsyslog::server::logpath') -%>syslog"
+$Template dynCronLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%hostname%<%= scope.lookupvar('rsyslog::server::logpath') -%>cron.log"
+$Template dynDaemonLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%hostname%<%= scope.lookupvar('rsyslog::server::logpath') -%>daemon.log"
+$Template dynKernLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%hostname%<%= scope.lookupvar('rsyslog::server::logpath') -%>kern.log"
+$Template dynUserLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%hostname%<%= scope.lookupvar('rsyslog::server::logpath') -%>user.log"
+$Template dynMailLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%hostname%<%= scope.lookupvar('rsyslog::server::logpath') -%>mail.log"
+$Template dynDebug,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%hostname%<%= scope.lookupvar('rsyslog::server::logpath') -%>debug"
+$Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%hostname%<%= scope.lookupvar('rsyslog::server::logpath') -%>messages"
+
+# Rules
+auth,authpriv.*         ?dynAuthLog
+*.*;auth,authpriv.none,mail.none,cron.none      -?dynSyslog
+cron.*              ?dynCronLog
+daemon.*            -?dynDaemonLog
+kern.*              -?dynKernLog
+mail.*              -?dynMailLog
+user.*              -?dynUserLog
+*.=info;*.=notice;*.=warn;\
+    auth.none,authpriv.none;\
+    cron.none,daemon.none;\
+    mail.none,news.none     -?dynMessages
+<% else -%>
+# Template
+$Template dynAllMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%hostname%<%= scope.lookupvar('rsyslog::server::logpath') -%>messages"
+
+# Rules
+*.*                 -?dynAllMessages
+<% end -%>
+
+<% # Common footer across all templates -%>
+<%= scope.function_template(['rsyslog/server/_default-footer.conf.erb']) %>

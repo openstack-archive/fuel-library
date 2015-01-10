@@ -1,6 +1,7 @@
-# file is managed by puppet
-
+<% if @extra_modules.empty?() or !@extra_modules.include?('imfile') -%>
 $ModLoad imfile
+<% end -%>
+
 
 $InputFileName <%= @file_name %>
 $InputFileTag <%= @file_tag %>
@@ -8,6 +9,7 @@ $InputFileStateFile state-<%= @name %>
 $InputFileSeverity <%= @file_severity %>
 $InputFileFacility <%= @file_facility %>
 $InputFilePollInterval <%= @polling_interval %>
+$InputFilePersistStateInterval <%= @persist_state_interval %>
 <% if @run_file_monitor == true -%>
 $InputRunFileMonitor
 <% end -%>
