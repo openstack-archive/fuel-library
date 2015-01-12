@@ -1,5 +1,5 @@
 $data_dir            = '/etc/hiera'
-$data_name           = 'astute'
+$data                = ['globals','astute']
 $astute_data_file    = '/etc/astute.yaml'
 $hiera_main_config   = '/etc/hiera.yaml'
 $hiera_puppet_config = '/etc/puppet/hiera.yaml'
@@ -8,7 +8,7 @@ $hiera_data_file     = "${data_dir}/${data_name}.yaml"
 File {
   owner => 'root',
   group => 'root',
-  mode  => '0755',
+  mode  => '0644',
 }
 
 $hiera_config_content = inline_template('
@@ -17,7 +17,9 @@ $hiera_config_content = inline_template('
   - yaml
 
 :hierarchy:
-  - <%= @data_name %>
+<% @data.each do |name| -%>
+  - <%= name %>
+<% end -%>
 
 :yaml:
   :datadir: <%= @data_dir %>
