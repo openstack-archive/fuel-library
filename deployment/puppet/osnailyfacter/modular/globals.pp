@@ -1,8 +1,15 @@
 notice('Import Globals start')
+#FIXME(bogdando) make all evaluations/hardcode to come from a hiera
+# For example, assume it is already calculated and use just:
+#   $roles=hiera('roles')
+# instead of:
+#   $roles = node_roles($nodes_hash, hiera('uid'))
 
 $fuel_settings = parseyaml($astute_settings_yaml)
 
 $nodes_hash                     = hiera('nodes', {})
+$deployment_mode                = hiera('deployment_mode', 'ha_compact')
+$roles                          = hiera('roles', node_roles($nodes_hash, hiera('uid')))
 $storage_hash                   = hiera('storage', {})
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
@@ -22,8 +29,8 @@ $access_hash                    = hiera('access', {})
 $role                           = hiera('role')
 $cinder_nodes_array             = hiera('cinder_nodes', [])
 $dns_nameservers                = hiera('dns_nameservers', [])
-$use_neutron                    = hiera('quantum')
-$network_scheme                 = hiera('network_scheme')
+$use_neutron                    = hiera('quantum', false)
+$network_scheme                 = hiera('network_scheme', {})
 $disable_offload                = hiera('disable_offload')
 $verbose                        = true
 $debug                          = hiera('debug', false)
@@ -32,95 +39,103 @@ $master_ip                      = hiera('master_ip')
 $management_network_range       = hiera('management_network_range')
 
 $use_syslog                     = hiera('use_syslog', true)
-$syslog_log_facility_glance     = 'LOG_LOCAL2'
-$syslog_log_facility_cinder     = 'LOG_LOCAL3'
-$syslog_log_facility_neutron    = 'LOG_LOCAL4'
-$syslog_log_facility_nova       = 'LOG_LOCAL6'
-$syslog_log_facility_keystone   = 'LOG_LOCAL7'
-$syslog_log_facility_murano     = 'LOG_LOCAL0'
-$syslog_log_facility_heat       = 'LOG_LOCAL0'
-$syslog_log_facility_sahara     = 'LOG_LOCAL0'
-$syslog_log_facility_ceilometer = 'LOG_LOCAL0'
-$syslog_log_facility_ceph       = 'LOG_LOCAL0'
+$syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
+$syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
+$syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
+$syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
+$syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
+$syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL0')
+$syslog_log_facility_heat       = hiera('syslog_log_facility_heat','LOG_LOCAL0')
+$syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
+$syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
+$syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 
-$nova_report_interval           = '60'
-$nova_service_down_time         = '180'
+$nova_report_interval           = hiera('nova_report_interval', 60)
+$nova_service_down_time         = hiera('nova_service_down_time', 180)
 
-$openstack_version = {
+$openstack_version = hiera('openstack_version',
+  {
   'keystone'   => 'installed',
   'glance'     => 'installed',
   'horizon'    => 'installed',
   'nova'       => 'installed',
   'novncproxy' => 'installed',
   'cinder'     => 'installed',
-}
+  }
+)
 
-$nova_rate_limits = {
-  'POST' => 100000,
-  'POST_SERVERS' => 100000,
-  'PUT' => 1000,
-  'GET' => 100000,
-  'DELETE' => 100000
-}
+$nova_rate_limits = hiera('nova_rate_limits',
+  {
+    'POST'         => 100000,
+    'POST_SERVERS' => 100000,
+    'PUT'          => 1000,
+    'GET'          => 100000,
+    'DELETE'       => 100000
+  }
+)
 
-$cinder_rate_limits = {
-  'POST' => 100000,
-  'POST_SERVERS' => 100000,
-  'PUT' => 100000,
-  'GET' => 100000,
-  'DELETE' => 100000
-}
+$cinder_rate_limits = hiera('cinder_rate_limits',
+  {
+    'POST'         => 100000,
+    'POST_SERVERS' => 100000,
+    'PUT'          => 100000,
+    'GET'          => 100000,
+    'DELETE'       => 100000
+  }
+)
 
-$default_ceilometer_hash = {
-  'enabled'         => false,
-  'db_password'     => 'ceilometer',
-  'user_password'   => 'ceilometer',
-  'metering_secret' => 'ceilometer',
-}
+$default_ceilometer_hash = hiera('default_ceilometer_hash',
+  {
+    'enabled'         => false,
+    'db_password'     => 'ceilometer',
+    'user_password'   => 'ceilometer',
+    'metering_secret' => 'ceilometer',
+  }
+)
+
 $ceilometer_hash = hiera('ceilometer', $default_ceilometer_hash)
 
-$node = filter_nodes($nodes_hash, 'name', $::hostname)
+$node = hiera('node', filter_nodes($nodes_hash, 'name', $::hostname))
 if empty($node) {
   fail("Node hostname is not defined in the hash structure")
 }
-$default_gateway = $node[0]['default_gateway']
-
-prepare_network_config($network_scheme)
+$default_gateway = hiera('default_gateway', $node[0]['default_gateway'])
 
 if $use_neutron {
-  $internal_int     = get_network_role_property('management', 'interface')
-  $internal_address = get_network_role_property('management', 'ipaddr')
-  $internal_netmask = get_network_role_property('management', 'netmask')
-  $public_int       = get_network_role_property('ex', 'interface')
-  $public_address   = get_network_role_property('ex', 'ipaddr')
-  $public_netmask   = get_network_role_property('ex', 'netmask')
-  $storage_address  = get_network_role_property('storage', 'ipaddr')
-  $storage_netmask  = get_network_role_property('storage', 'netmask')
+  prepare_network_config($network_scheme)
+  $internal_int                  = get_network_role_property('management', 'interface')
+  $internal_address              = get_network_role_property('management', 'ipaddr')
+  $internal_netmask              = get_network_role_property('management', 'netmask')
+  $public_int                    = get_network_role_property('ex', 'interface')
+  $public_address                = get_network_role_property('ex', 'ipaddr')
+  $public_netmask                = get_network_role_property('ex', 'netmask')
+  $storage_address               = get_network_role_property('storage', 'ipaddr')
+  $storage_netmask               = get_network_role_property('storage', 'netmask')
   #
-  $novanetwork_params        = {}
-  $neutron_config            = hiera('quantum_settings')
-  $network_provider          = 'neutron'
-  $neutron_db_password       = $neutron_config['database']['passwd']
-  $neutron_user_password     = $neutron_config['keystone']['admin_password']
+  $novanetwork_params            = {}
+  $neutron_config                = hiera('quantum_settings')
+  $network_provider              = 'neutron'
+  $neutron_db_password           = $neutron_config['database']['passwd']
+  $neutron_user_password         = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
-  $base_mac                  = $neutron_config['L2']['base_mac']
+  $base_mac                      = $neutron_config['L2']['base_mac']
 
-  $nsx_config = hiera('nsx_plugin')
+  $nsx_config                    = hiera('nsx_plugin')
   if $nsx_config['metadata']['enabled'] {
     $use_vmware_nsx     = true
     $neutron_nsx_config = $nsx_plugin
   }
 } else {
-  $internal_address = $node[0]['internal_address']
-  $internal_netmask = $node[0]['internal_netmask']
-  $public_address   = $node[0]['public_address']
-  $public_netmask   = $node[0]['public_netmask']
-  $storage_address  = $node[0]['storage_address']
-  $storage_netmask  = $node[0]['storage_netmask']
-  $public_br        = $node[0]['public_br']
-  $internal_br      = $node[0]['internal_br']
-  $public_int       = hiera('public_interface')
-  $internal_int     = hiera('management_interface')
+  $internal_address   = $node[0]['internal_address']
+  $internal_netmask   = $node[0]['internal_netmask']
+  $public_address     = $node[0]['public_address']
+  $public_netmask     = $node[0]['public_netmask']
+  $storage_address    = $node[0]['storage_address']
+  $storage_netmask    = $node[0]['storage_netmask']
+  $public_br          = $node[0]['public_br']
+  $internal_br        = $node[0]['internal_br']
+  $public_int         = hiera('public_interface')
+  $internal_int       = hiera('management_interface')
   #
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
@@ -128,41 +143,70 @@ if $use_neutron {
   $num_networks       = $novanetwork_params['num_networks']
   $vlan_start         = $novanetwork_params['vlan_start']
   $network_provider   = 'nova'
-  $network_config = {
-    'vlan_start'     => $vlan_start,
+  $network_config     = {
+    'vlan_start'      => $vlan_start,
   }
   $network_manager    = "nova.network.manager.${novanetwork_params['network_manager']}"
 }
 
-$queue_provider           = 'rabbitmq'
-$custom_mysql_setup_class = 'galera'
+if $deployment_mode == 'ha_compact' {
+  $primary_controller_nodes      = filter_nodes($nodes_hash,'role','primary-controller')
+  $controllers                   = concat($primary_controller_nodes,
+                                          filter_nodes($nodes_hash,'role','controller')
+  )
+  $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
+  $controller_public_addresses   = nodes_to_hash($controllers,'name','public_address')
+  $controller_storage_addresses  = nodes_to_hash($controllers,'name','storage_address')
+  $controller_hostnames          = keys($controller_internal_addresses)
+  $controller_nodes              = ipsort(values($controller_internal_addresses))
+  $controller_node_public        = hiera('public_vip')
+  $controller_node_address       = hiera['management_vip']
+  $mountpoints                   = filter_hash($mp_hash,'point')
+} else {
+  # simple multinode
+  $controller              = filter_nodes($nodes_hash, 'role', 'controller')
+  $controller_node_address = $controller[0]['internal_address']
+  $controller_node_public  = $controller[0]['public_address']
+}
 
-$controller = filter_nodes($nodes_hash, 'role', 'controller')
-$controller_node_address = $controller[0]['internal_address']
-$controller_node_public = $controller[0]['public_address']
-$roles = node_roles($nodes_hash, hiera('uid'))
+# AMQP configuration
+$queue_provider = hiera('queue_provider','rabbitmq')
 
-# AMQP client configuration
-$amqp_port = '5672'
-$amqp_hosts = "${controller_node_address}:${amqp_port}"
-$rabbit_ha_queues = false
+if !$rabbit_hash['user'] {
+$rabbit_hash['user'] = 'nova'
+}
 
-# RabbitMQ server configuration
-$rabbitmq_bind_ip_address = 'UNSET'                 # bind RabbitMQ to 0.0.0.0
-$rabbitmq_bind_port = $amqp_port
-$rabbitmq_cluster_nodes = [$controller[0]['name']]  # has to be hostnames
+if $deployment_mode == 'ha_compact' {
+  if $internal_address in $controller_nodes {
+    $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
+  } else {
+    $amqp_nodes = fqdn_rotate($controller_nodes)
+  }
 
-# SQLAlchemy backend configuration
-$max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
+  $amqp_port              = '5673'
+  $amqp_hosts             = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+  $rabbit_ha_queues       = true
+  $rabbitmq_cluster_nodes = $controller_hostnames
+} else {
+  # simple multinode (deprecated)
+  $amqp_port              = '5672'
+  $amqp_hosts             = "${controller_node_address}:${amqp_port}"
+  $rabbitmq_cluster_nodes = [$controller[0]['name']]  # has to be hostnames
+  $rabbit_ha_queues       = false
+  $rabbitmq_cluster_nodes = []
+}
 
-$nova_db_password = $nova_hash['db_password']
-$cinder_iscsi_bind_addr = $storage_address
-$sql_connection = "mysql://nova:${nova_db_password}@${controller_node_address}/nova?read_timeout=60"
-$mirror_type = 'external'
-$multi_host = true
+# MySQL and SQLAlchemy backend configuration
+$custom_mysql_setup_class = hiera('custom_mysql_setup_class', 'galera')
+$max_pool_size            = hiera('max_pool_size', min($::processorcount * 5 + 0, 30 + 0))
+$max_overflow             = hiera('max_overflow', min($::processorcount * 5 + 0, 60 + 0))
+$max_retries              = hiera('max_retries', '-1')
+$idle_timeout             = hiera('idle_timeout','3600')
+$nova_db_password         = $nova_hash['db_password']
+$cinder_iscsi_bind_addr   = $storage_address
+$sql_connection           = "mysql://nova:${nova_db_password}@${controller_node_address}/nova?read_timeout = 6 0"
+$mirror_type              = hiera('mirror_type', 'external')
+$multi_host               = hiera('multi_host', true)
 
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
