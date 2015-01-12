@@ -132,7 +132,7 @@ class mysql::server (
     ### Start hacks
     file { '/usr/lib/ocf/resource.d/heartbeat/mysql':
       ensure  => present,
-      source  => 'puppet:///modules/mysql/ocf-mysql',
+      source  => 'puppet:///modules/mysql/ocf/ocf-mysql',
       owner   => 'root',
       group   => 'root',
       mode    => 0755,
