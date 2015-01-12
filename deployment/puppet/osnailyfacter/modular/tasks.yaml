@@ -138,3 +138,13 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/corosync.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+- id: database
+  type: puppet
+  groups: [primary-controller, controller,
+           zabbix-server]
+  required_for: [deploy]
+  requires: [netconfig, corosync]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
