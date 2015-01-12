@@ -1,48 +1,140 @@
+- id: deploy
+  type: stage
+- id: primary-controller
+  parameters:
+    strategy:
+      type: one_by_one
+  required_for:
+  - deploy
+  role:
+  - primary-controller
+  type: group
+- id: controller
+  parameters:
+    strategy:
+      amount: 6
+      type: parallel
+  required_for:
+  - deploy
+  requires:
+  - primary-controller
+  role:
+  - controller
+  type: group
+- id: cinder
+  parameters:
+    strategy:
+      type: parallel
+  required_for:
+  - deploy
+  requires:
+  - controller
+  role:
+  - cinder
+  type: group
+- id: compute
+  parameters:
+    strategy:
+      type: parallel
+  required_for:
+  - deploy
+  requires:
+  - controller
+  role:
+  - compute
+  type: group
+- id: zabbix-server
+  parameters:
+    strategy:
+      type: one_by_one
+  required_for:
+  - deploy
+  role:
+  - zabbix-server
+  type: group
+- id: mongo
+  parameters:
+    strategy:
+      type: parallel
+  required_for:
+  - deploy
+  - primary-controller
+  - controller
+  requires:
+  - zabbix-server
+  role:
+  - mongo
+  type: group
+- id: primary-mongo
+  parameters:
+    strategy:
+      type: one_by_one
+  required_for:
+  - deploy
+  - primary-controller
+  - controller
+  requires:
+  - mongo
+  role:
+  - primary-mongo
+  type: group
+- id: ceph-osd
+  parameters:
+    strategy:
+      type: parallel
+  required_for:
+  - deploy
+  requires:
+  - controller
+  role:
+  - ceph-osd
+  type: group
+- id: hiera
+  type: puppet
+  groups: [primary-controller, controller, cinder, compute, ceph-osd, 
+           zabbix-server, primary-mongo, mongo]
+  required_for: [deploy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
 - id: netconfig
   type: puppet
-  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller, cinder, compute, ceph-osd, 
+           zabbix-server, primary-mongo, mongo]
   required_for: [deploy]
   requires: [hiera]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
-
 - id: tools
   type: puppet
-  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller, cinder, compute, ceph-osd, 
+           zabbix-server, primary-mongo, mongo]
   required_for: [deploy]
   requires: [hiera]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/tools.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
-
 - id: hosts
   type: puppet
-  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller, cinder, compute, ceph-osd, 
+           zabbix-server, primary-mongo, mongo]
   required_for: [deploy]
   requires: [netconfig]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hosts.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
-
-- id: firewall
+- id: corosync
   type: puppet
-  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller]
   required_for: [deploy]
   requires: [netconfig]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-
-- id: hiera
-  type: puppet
-  role: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
-  required_for: [deploy]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/corosync.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
