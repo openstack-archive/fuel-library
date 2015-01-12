@@ -1,18 +1,20 @@
 require 'puppet'
-require File.join File.dirname(__FILE__), '../rabbitmq_common.rb'
+require 'set'
+Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl) do
 
-Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provider::Rabbitmq_common) do
-  
-  #TODO: change optional_commands -> commands when puppet >= 3.0
-  optional_commands :rabbitmqctl => 'rabbitmqctl'
+  if Puppet::PUPPETVERSION.to_f < 3
+    commands :rabbitmqctl => 'rabbitmqctl'
+  else
+     has_command(:rabbitmqctl, 'rabbitmqctl') do
+       environment :HOME => "/tmp"
+     end
+  end
+
   defaultfor :feature => :posix
 
   def self.instances
-    self.wait_for_online
-    self.run_with_retries {
-      rabbitmqctl('-q', 'list_users')
-    }.split(/\n/).collect do |line|
-      if line =~ /^(\S+)(\s+\S+|)$/
+    rabbitmqctl('list_users').split(/\n/)[1..-2].collect do |line|
+      if line =~ /^(\S+)(\s+\[.*?\]|)$/
         new(:name => $1)
       else
         raise Puppet::Error, "Cannot parse invalid user line: #{line}"
@@ -25,6 +27,9 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provi
     if resource[:admin] == :true
       make_user_admin()
     end
+    if !resource[:tags].nil?
+      set_user_tags(resource[:tags])
+    end
   end
 
   def destroy
@@ -32,22 +37,26 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provi
   end
 
   def exists?
-    self.class.wait_for_online
-    out = self.class.run_with_retries {
-      rabbitmqctl('list_users')
-    }.split(/\n/)[1..-2].detect do |line|
-      line.match(/^#{Regexp.escape(resource[:name])}(\s+\S+|)$/)
+    rabbitmqctl('list_users').split(/\n/)[1..-2].detect do |line|
+      line.match(/^#{Regexp.escape(resource[:name])}(\s+(\[.*?\]|\S+)|)$/)
     end
   end
 
-  # def password
-  # def password=()
+
+  def tags
+    get_user_tags.entries.sort
+  end
+
+
+  def tags=(tags)
+    if ! tags.nil?
+      set_user_tags(tags)
+    end
+  end
+
   def admin
-    match = rabbitmqctl('list_users').split(/\n/)[1..-2].collect do |line|
-      line.match(/^#{Regexp.escape(resource[:name])}\s+\[(administrator)?\]/)
-    end.compact.first
-    if match
-      (:true if match[1].to_s == 'administrator') || :false
+    if usertags = get_user_tags
+      (:true if usertags.include?('administrator')) || :false
     else
       raise Puppet::Error, "Could not match line '#{resource[:name]} (true|false)' from list_users (perhaps you are running on an older version of rabbitmq that does not support admin users?)"
     end
@@ -57,12 +66,33 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provi
     if state == :true
       make_user_admin()
     else
-      rabbitmqctl('set_user_tags', resource[:name])
+      usertags = get_user_tags
+      usertags.delete('administrator')
+      rabbitmqctl('set_user_tags', resource[:name], usertags.entries.sort)
     end
   end
 
-  def make_user_admin
-    rabbitmqctl('set_user_tags', resource[:name], 'administrator')
+  def set_user_tags(tags)
+    is_admin = get_user_tags().member?("administrator") \
+               || resource[:admin] == :true
+    usertags = Set.new(tags)
+    if is_admin
+      usertags.add("administrator")
+    end
+    rabbitmqctl('set_user_tags', resource[:name], usertags.entries.sort)
   end
 
+  def make_user_admin
+    usertags = get_user_tags
+    usertags.add('administrator')
+    rabbitmqctl('set_user_tags', resource[:name], usertags.entries.sort)
+  end
+
+  private
+  def get_user_tags
+    match = rabbitmqctl('list_users').split(/\n/)[1..-2].collect do |line|
+      line.match(/^#{Regexp.escape(resource[:name])}\s+\[(.*?)\]/)
+    end.compact.first
+    Set.new(match[1].split(/, /)) if match
+  end
 end
