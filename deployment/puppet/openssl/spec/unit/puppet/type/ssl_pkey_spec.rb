@@ -11,12 +11,12 @@ describe Puppet::Type.type(:ssl_pkey) do
 
   it 'should accept ensure' do
     subject[:ensure] = :present
-    subject[:ensure].should == :present
+    expect(subject[:ensure]).to eq(:present)
   end
 
   it 'should accept a valid size' do
     subject[:size] = 1024
-    subject[:size].should == 1024
+    expect(subject[:size]).to eq(1024)
   end
 
   it 'should not accept an invalid size' do
@@ -27,9 +27,9 @@ describe Puppet::Type.type(:ssl_pkey) do
 
   it 'should accept a valid authentication' do
     subject[:authentication] = :rsa
-    subject[:authentication].should == :rsa
+    expect(subject[:authentication]).to eq(:rsa)
     subject[:authentication] = :dsa
-    subject[:authentication].should == :dsa
+    expect(subject[:authentication]).to eq(:dsa)
   end
 
   it 'should not accept an invalid authentication' do
@@ -40,6 +40,6 @@ describe Puppet::Type.type(:ssl_pkey) do
 
   it 'should accept a password' do
     subject[:password] = 'foox2$bar'
-    subject[:password].should == 'foox2$bar'
+    expect(subject[:password]).to eq('foox2$bar')
   end
 end

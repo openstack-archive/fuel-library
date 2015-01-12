@@ -13,6 +13,7 @@ class openssl::packages {
     }
 
     exec { 'update-ca-certificates':
+      path        => $::path,
       refreshonly => true,
       require     => Package['ca-certificates'],
     }

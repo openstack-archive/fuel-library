@@ -1,5 +1,6 @@
 # OpenSSL Puppet Module
 
+[![Puppet Forge](http://img.shields.io/puppetforge/v/camptocamp/openssl.svg)](https://forge.puppetlabs.com/camptocamp/openssl)
 [![Build Status](https://travis-ci.org/camptocamp/puppet-openssl.png?branch=master)](https://travis-ci.org/camptocamp/puppet-openssl)
 
 **This module manages OpenSSL.**
@@ -8,6 +9,7 @@
 
 This module provides three types and associated providers to manage SSL keys and certificates.
 
+In every case, not providing the password (or setting it to _undef_, which is the default) means that __the private key won't be encrypted__ with any symmetric cipher so __it is completely unprotected__.
 
 ### ssl\_pkey
 
@@ -101,11 +103,12 @@ Advanced options:
 This definition generates a pkcs12 file:
 
     openssl::export::pkcs12 { 'foo':
-      ensure    => 'present',
-      basedir   => '/path/to/dir',
-      pkey      => '/here/is/my/private.key',
-      cert      => '/there/is/the/cert.crt',
-      pkey_pass => 'mypassword',
+      ensure   => 'present',
+      basedir  => '/path/to/dir',
+      pkey     => '/here/is/my/private.key',
+      cert     => '/there/is/the/cert.crt',
+      in_pass  => 'my_pkey_password',
+      out_pass => 'my_pkcs12_password',
     }
 
 ## Contributing
@@ -116,22 +119,4 @@ tracker](https://github.com/camptocamp/puppet-openssl/issues).
 For pull requests, it is very much appreciated to check your Puppet manifest
 with [puppet-lint](https://github.com/rodjek/puppet-lint) to follow the recommended Puppet style guidelines from the
 [Puppet Labs style guide](http://docs.puppetlabs.com/guides/style_guide.html).
-
-## License
-
-Copyright (c) 2013 <mailto:puppet@camptocamp.com> All rights reserved.
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-    
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 

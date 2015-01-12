@@ -11,12 +11,12 @@ describe Puppet::Type.type(:x509_cert) do
 
   it 'should accept ensure' do
     subject[:ensure] = :present
-    subject[:ensure].should == :present
+    expect(subject[:ensure]).to eq(:present)
   end
 
   it 'should accept valid days' do
     subject[:days] = 365
-    subject[:days].should == 365
+    expect(subject[:days]).to eq(365)
   end
 
   it 'should not accept invalid days' do
@@ -27,7 +27,7 @@ describe Puppet::Type.type(:x509_cert) do
 
   it 'should accept valid template' do
     subject[:template] = '/tmp/foo.cnf'
-    subject[:template].should == '/tmp/foo.cnf'
+    expect(subject[:template]).to eq('/tmp/foo.cnf')
   end
 
   it 'should not accept non absolute template' do
@@ -38,12 +38,12 @@ describe Puppet::Type.type(:x509_cert) do
 
   it 'should accept a password' do
     subject[:password] = 'foox2$bar'
-    subject[:password].should == 'foox2$bar'
+    expect(subject[:password]).to eq('foox2$bar')
   end
 
   it 'should accept a valid force parameter' do
     subject[:force] = true
-    subject[:force].should == :true
+    expect(subject[:force]).to eq(:true)
   end
 
   it 'should not accept a bad force parameter' do
@@ -54,9 +54,9 @@ describe Puppet::Type.type(:x509_cert) do
 
   it 'should accept a valid authentication' do
     subject[:authentication] = :rsa
-    subject[:authentication].should == :rsa
+    expect(subject[:authentication]).to eq(:rsa)
     subject[:authentication] = :dsa
-    subject[:authentication].should == :dsa
+    expect(subject[:authentication]).to eq(:dsa)
   end
 
   it 'should not accept an invalid authentication' do

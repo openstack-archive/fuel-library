@@ -12,12 +12,12 @@ describe 'The openssl provider for the x509_request type' do
   context 'when not forcing key' do
     it 'exists? should return true if csr exists' do
       Pathname.any_instance.expects(:exist?).returns(true)
-      subject.exists?.should == true
+      expect(subject.exists?).to eq(true)
     end
 
     it 'exists? should return false if csr exists' do
       Pathname.any_instance.expects(:exist?).returns(false)
-      subject.exists?.should == false
+      expect(subject.exists?).to eq(false)
     end
 
     it 'should create a certificate with the proper options' do
@@ -54,7 +54,7 @@ describe 'The openssl provider for the x509_request type' do
       OpenSSL::X509::Request.stubs(:new).returns(c)
       OpenSSL::PKey::RSA.expects(:new)
       OpenSSL::X509::Request.any_instance.expects(:verify).returns(true)
-      subject.exists?.should == true
+      expect(subject.exists?).to eq(true)
     end
 
     it 'exists? should return false if certificate exists and is not synced' do
@@ -65,13 +65,13 @@ describe 'The openssl provider for the x509_request type' do
       OpenSSL::X509::Request.stubs(:new).returns(c)
       OpenSSL::PKey::RSA.expects(:new)
       OpenSSL::X509::Request.any_instance.expects(:verify).returns(false)
-      subject.exists?.should == false
+      expect(subject.exists?).to eq(false)
     end
 
     it 'exists? should return false if certificate does not exist' do
       resource[:force] = true
       Pathname.any_instance.expects(:exist?).returns(false)
-      subject.exists?.should == false
+      expect(subject.exists?).to eq(false)
     end
   end
 

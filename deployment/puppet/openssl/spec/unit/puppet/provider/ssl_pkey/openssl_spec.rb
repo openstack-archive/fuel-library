@@ -12,12 +12,12 @@ describe 'The openssl provider for the ssl_pkey type' do
 
   it 'exists? should return true if key exists' do
     Pathname.any_instance.expects(:exist?).returns(true)
-    subject.exists?.should == true
+    expect(subject.exists?).to eq(true)
   end
 
   it 'exists? should return false if certificate does not exist' do
     Pathname.any_instance.expects(:exist?).returns(false)
-    subject.exists?.should == false
+    expect(subject.exists?).to eq(false)
   end
 
   context 'when creating a key with defaults' do

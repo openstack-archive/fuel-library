@@ -9,7 +9,7 @@ class openssl::params {
     }
 
     'RedHat': {
-      $ca_cert_path = $::lsbmajdistrelease ? {
+      $ca_cert_path = $::operatingsystemmajrelease ? {
         '4'     => '/usr/share/ssl/certs/ca-bundle.crt',
         default => '/etc/pki/tls/certs/ca-bundle.crt',
       }
