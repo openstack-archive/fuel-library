@@ -22,7 +22,6 @@ mysql
 nailgun
 neutron
 nova
-ntp
 openssl
 openstack
 operatingsystem
