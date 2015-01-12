@@ -1,15 +1,23 @@
 #
 class rabbitmq::install::rabbitmqadmin {
 
-  $management_port = $rabbitmq::management_port
+  if($rabbitmq::ssl) {
+    $management_port = $rabbitmq::ssl_management_port
+  }
+  else {
+    $management_port = $rabbitmq::management_port
+  }
+
   $default_user = $rabbitmq::default_user
   $default_pass = $rabbitmq::default_pass
   $protocol = $rabbitmq::ssl ? { false => 'http', default => 'https' }
 
   staging::file { 'rabbitmqadmin':
-    target  => '/var/lib/rabbitmq/rabbitmqadmin',
-    source  => "${protocol}://${default_user}:${default_pass}@localhost:${management_port}/cli/rabbitmqadmin",
-    require => [
+    target      => '/var/lib/rabbitmq/rabbitmqadmin',
+    source      => "${protocol}://${default_user}:${default_pass}@localhost:${management_port}/cli/rabbitmqadmin",
+    curl_option => '-k --noproxy localhost',
+    wget_option => '--no-proxy',
+    require     => [
       Class['rabbitmq::service'],
       Rabbitmq_plugin['rabbitmq_management']
     ],
