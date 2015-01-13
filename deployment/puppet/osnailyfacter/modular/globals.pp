@@ -231,4 +231,14 @@ if ($storage_hash['images_ceph']) {
   $glance_known_stores = false
 }
 
-notice('Import Globals end')
+notice('Globals end')
+
+# save all these global variables into hiera yaml file for later use
+# by other manifests with hiera function
+file { '/etc/hiera/globals.yaml' :
+  ensure  => 'present',
+  mode    => '0644',
+  owner   => 'root',
+  group   => 'root',
+  content => template('osnailyfacter/globals_yaml.erb')
+}
