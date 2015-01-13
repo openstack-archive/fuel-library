@@ -2,9 +2,19 @@
   type: puppet
   groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
   required_for: [deploy]
-  requires: [hiera, globals]
+  requires: [logging]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: logging
+  type: puppet
+  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  required_for: [deploy]
+  requires: [globals]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/logging.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -12,7 +22,7 @@
   type: puppet
   groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
   required_for: [deploy]
-  requires: [hiera, globals]
+  requires: [logging]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/tools.pp
     puppet_modules: /etc/puppet/modules
