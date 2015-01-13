@@ -1,0 +1,9 @@
+- id: mellanox
+  type: puppet
+  groups: [primary-controller, controller, compute]
+  required_for: [deploy]
+  requires: [hiera, globals, netconfig, firewall, top-role-controller, top-role-compute]
+  parameters:
+  puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/neutron/mellanox.pp
+  puppet_modules: /etc/puppet/modules
+  timeout: 3600
