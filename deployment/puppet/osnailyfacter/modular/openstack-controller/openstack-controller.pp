@@ -335,77 +335,40 @@ package { 'socat': ensure => present }
 #TODO: PUT this configuration stanza into nova class
 nova_config { 'DEFAULT/use_cow_images':                   value => hiera('use_cow_images')}
 
-# TODO(bogdando) move exec checkers to puppet native types for haproxy backends
 if $primary_controller {
-  exec { 'wait-for-haproxy-keystone-backend':
-    command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^keystone-1,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
-                  echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-1,BACKEND,.*,UP,'",
-    path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-    try_sleep => 5,
-    tries     => 60,
-    require   => Package['socat'],
-  }
-  exec { 'wait-for-haproxy-keystone-admin-backend':
-    command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^keystone-2,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
-                  echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^keystone-2,BACKEND,.*,UP,'",
-    path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-    try_sleep => 5,
-    tries     => 60,
-    require   => Package['socat'],
+
+  $haproxy_stats_url = "http://${management_vip}:10000/;csv"
+
+  haproxy_backend_status { 'keystone-public' :
+    name => 'keystone-1',
+    url  => $haproxy_stats_url,
   }
 
-  exec { 'wait-for-haproxy-mysql-backend':
-    command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^mysqld,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
-                  echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^mysqld,BACKEND,.*,UP,'",
-    path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-    try_sleep => 5,
-    tries     => 60,
-    require   => Package['socat'],
+  haproxy_backend_status { 'keystone-admin' :
+    name => 'keystone-2',
+    url  => $haproxy_stats_url,
   }
 
-  Package['socat'] -> Exec['wait-for-haproxy-mysql-backend']
-  Class['galera::status'] -> Exec['wait-for-haproxy-mysql-backend']
-  Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'heat-dbsync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'ceilometer-dbsync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'neutron-db-sync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-scheduler' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
-
-  Class['keystone'] -> Exec<| title=='wait-for-haproxy-keystone-backend' |>
-  Class['keystone'] -> Exec<| title=='wait-for-haproxy-keystone-admin-backend' |>
-
-  exec { 'wait-for-haproxy-nova-backend':
-    command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep '^nova-api-2,' | egrep -v ',FRONTEND,|,BACKEND,' | grep -qv ',INI,' &&
-                  echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
-    path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-    try_sleep => 5,
-    tries     => 60,
-    require   => Package['socat'],
+  haproxy_backend_status { 'nova-api' :
+    name => 'nova-api-2',
+    url  => $haproxy_stats_url,
   }
 
-  Class['nova::api', 'nova::keystone::auth'] -> Exec<| title=='wait-for-haproxy-nova-backend' |>
+  Openstack::Ha::Haproxy_service <| |> -> Haproxy_backend_status <| |>
 
-  exec {'create-m1.micro-flavor':
+  Class['keystone', 'openstack::ha::keystone'] -> Haproxy_backend_status['keystone-public']
+  Class['keystone', 'openstack::ha::keystone'] -> Haproxy_backend_status['keystone-admin']
+  Class['nova::api', 'openstack::ha::nova', 'nova::keystone::auth'] -> Haproxy_backend_status['nova-api']
+
+  exec { 'create-m1.micro-flavor' :
     command => "bash -c \"source /root/openrc; nova flavor-create --is-public true m1.micro auto 64 0 1\"",
     path    => '/sbin:/usr/sbin:/bin:/usr/bin',
     unless  => 'bash -c "source /root/openrc; nova flavor-list | grep -q m1.micro"',
-    require => [Class['nova'],Class['openstack::auth_file']],
+    require => [ Class['nova'], Class['openstack::auth_file'] ],
   }
 
-  Exec<| title=='wait-for-haproxy-keystone-admin-backend' |> ->
-  Exec<| title=='create-m1.micro-flavor' |>
-  Exec<| title=='wait-for-haproxy-keystone-backend' |> ->
-  Exec<| title=='create-m1.micro-flavor' |>
-  Exec<| title=='wait-for-haproxy-nova-backend' |> ->
-  Exec<| title=='create-m1.micro-flavor' |>
-  Class['keystone::roles::admin'] ->
-  Exec<| title=='create-m1.micro-flavor' |>
+  Haproxy_backend_status <| |>    -> Exec<| title == 'create-m1.micro-flavor' |>
+  Class['keystone::roles::admin'] -> Exec<| title == 'create-m1.micro-flavor' |>
 
   if ! $use_neutron {
     nova_floating_range { $floating_ips_range:
