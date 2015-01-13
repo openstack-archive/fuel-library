@@ -430,66 +430,6 @@ nova_config {
   'DEFAULT/ram_weight_multiplier':        value => '1.0'
 }
 
-if $murano_hash['enabled'] {
-
-  #NOTE(mattymo): Backward compatibility for Icehouse
-  case $hiera_openstack_version {
-    /201[1-3]\./: {
-      fail("Unsupported OpenStack version: ${hiera_openstack_version}")
-    }
-    /2014\.1\./: {
-      $murano_package_name              = 'murano-api'
-    }
-    default: {
-      $murano_package_name              = 'murano'
-    }
-  }
-
-  class { 'murano' :
-    murano_package_name      => $murano_package_name,
-    murano_api_host          => $management_vip,
-
-    # Controller adresses (for endpoints)
-    admin_address            => $controller_node_address,
-    public_address           => $controller_node_public,
-    internal_address         => $controller_node_address,
-
-    # Murano uses two RabbitMQ - one from OpenStack and another one installed on each controller.
-    #   The second instance is used for communication with agents.
-    #   * murano_rabbit_host provides address for murano-engine which communicates with this
-    #    'separate' rabbitmq directly (without oslo.messaging).
-    #   * murano_rabbit_ha_hosts / murano_rabbit_ha_queues are required for murano-api which
-    #     communicates with 'system' RabbitMQ and uses oslo.messaging.
-    murano_rabbit_host       => $public_vip,
-    murano_rabbit_ha_hosts   => $amqp_hosts,
-    murano_rabbit_ha_queues  => $rabbit_ha_queues,
-    murano_os_rabbit_userid  => $rabbit_hash['user'],
-    murano_os_rabbit_passwd  => $rabbit_hash['password'],
-    murano_own_rabbit_userid => 'murano',
-    murano_own_rabbit_passwd => $heat_hash['rabbit_password'],
-
-
-    murano_db_host           => $management_vip,
-    murano_db_password       => $murano_hash['db_password'],
-
-    murano_keystone_host     => $management_vip,
-    murano_keystone_user     => 'murano',
-    murano_keystone_password => $murano_hash['user_password'],
-    murano_keystone_tenant   => 'services',
-
-    use_neutron              => $use_neutron,
-
-    use_syslog               => $use_syslog,
-    debug                    => $::debug,
-    verbose                  => $::verbose,
-    syslog_log_facility      => $::syslog_log_facility_murano,
-
-    primary_controller       => $primary_controller,
-    neutron_settings         => $neutron_config,
-  }
-
-}
-
 if ($::mellanox_mode == 'ethernet') {
   $ml2_eswitch = $neutron_mellanox['ml2_eswitch']
   class { 'mellanox_openstack::controller':
