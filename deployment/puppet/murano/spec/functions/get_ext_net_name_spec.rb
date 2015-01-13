@@ -7,8 +7,8 @@ describe 'get_ext_net_name' do
     Puppet::Parser::Functions.function('get_ext_net_name').should == 'function_get_ext_net_name'
   end
 
-  it 'should return network specified in net04_ext' do
-    scope.function_get_ext_net_name(
+  it 'should return the network name that has router_ext enabled' do
+    expect(scope.function_get_ext_net_name(
       [
         {
           "net04" =>
@@ -25,14 +25,13 @@ describe 'get_ext_net_name' do
               "router_ext"   => true,
             }
           }
-        },
-        'net99_ext'
+        }
       ]
-    ).should eql 'net04_ext'
+    )).to eq 'net04_ext'
   end
 
-  it 'should return default_net' do
-    scope.function_get_ext_net_name(
+  it 'should return nil if router_ext is not enabled' do
+    expect(scope.function_get_ext_net_name(
       [
         {
           "net04" =>
@@ -49,14 +48,13 @@ describe 'get_ext_net_name' do
               "router_ext"   => false,
             }
           }
-        },
-        'net99_ext'
+        }
       ],
-    ).should eql 'net99_ext'
+    )).to be_nil
   end
 
-  it 'should return default_net' do
-    scope.function_get_ext_net_name(
+  it 'should return nil if there is no router_ext' do
+    expect(scope.function_get_ext_net_name(
       [
         {
           "net04" =>
@@ -71,19 +69,17 @@ describe 'get_ext_net_name' do
             {
             }
           }
-        },
-        'net99_ext'
+        }
       ]
-    ).should eql 'net99_ext'
+    )).to be_nil
   end
 
-  it 'should return default_net' do
-    scope.function_get_ext_net_name(
+  it 'should return nil with empty network data' do
+    expect(scope.function_get_ext_net_name(
       [
-        {},
-        'net99_ext'
+        {}
       ]
-    ).should eql 'net99_ext'
+    )).to be_nil
   end
 
 end
