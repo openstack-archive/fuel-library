@@ -129,6 +129,11 @@ class openstack::controller (
   $mysql_account_security         = true,
   $mysql_bind_address             = '0.0.0.0',
   $allowed_hosts                  = [ '%', $::hostname ],
+  $status_check                   = false,
+  $status_user                    = false,
+  $status_password                = false,
+  $backend_port                   = false,
+  $backend_timeout                = false,
   # Keystone
   $keystone_db_user               = 'keystone',
   $keystone_db_dbname             = 'keystone',
@@ -262,6 +267,17 @@ class openstack::controller (
       mysql_skip_name_resolve => $mysql_skip_name_resolve,
       use_syslog              => $use_syslog,
       debug                   => $debug,
+    }
+    if ($status_check) {
+      class { 'openstack::galera::status':
+        status_user             => $status_user,
+        status_password         => $status_password,
+        status_allow            => $galera_node_address,
+        backend_host            => $galera_node_address,
+        backend_port            => $backend_port,
+        backend_timeout         => $backend_timeout,
+        require                 => Class[openstack::db::mysql],
+      }
     }
   }
   ####### KEYSTONE ###########
