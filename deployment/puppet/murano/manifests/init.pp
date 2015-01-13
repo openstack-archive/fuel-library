@@ -58,6 +58,7 @@ class murano (
   $admin_address                         = '127.0.0.1',
   $public_address                        = '127.0.0.1',
   $internal_address                      = '127.0.0.1',
+  $external_network                      = 'net04_ext',
 ) {
 
   Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::apps'] -> Class['murano::dashboard'] -> Class['murano::cirros']
@@ -152,7 +153,7 @@ class murano (
 
     use_neutron                          => $use_neutron,
     default_router                       => 'murano-default-router',
-    default_network                      => 'net04_ext',
+    external_network                     => $external_network,
   }
 
   class { 'murano::apps':
