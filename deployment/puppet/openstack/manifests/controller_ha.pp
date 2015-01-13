@@ -123,7 +123,6 @@ class openstack::controller_ha (
       ceilometer               => $ceilometer,
       sahara                   => $sahara,
       murano                   => $murano,
-      is_primary_controller    => $primary_controller,
     }
 
     class { '::openstack::controller':
