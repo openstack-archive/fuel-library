@@ -385,29 +385,6 @@ class osnailyfacter::cluster_ha {
 
   # ROLE CASE STARTS
   case $::fuel_settings['role'] {
-    "mongo" : {
-      if !$ext_mongo {
-        class { 'openstack::mongo_secondary':
-          mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
-          use_syslog                  => $use_syslog,
-          debug                       => $debug,
-        }
-      }
-    } # MONGO ENDS
-
-    "primary-mongo" : {
-      if !$ext_mongo {
-        class { 'openstack::mongo_primary':
-          mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
-          ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
-          ceilometer_db_password      => $ceilometer_db_password,
-          ceilometer_replset_members  => mongo_hosts($nodes_hash, 'array', 'mongo'),
-          replset                     => $mongo_replicaset,
-          use_syslog                  => $use_syslog,
-          debug                       => $debug,
-        }
-      }
-    } # PRIMARY-MONGO ENDS
 
     # Definition of the first OpenStack Swift node.
     /storage/ : {
@@ -483,10 +460,6 @@ class osnailyfacter::cluster_ha {
 
   # TODO(bogdando) add monit zabbix services monitoring, if required
   # NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
-  include galera::params
-  class { 'zabbix':
-    mysql_server_pkg => $::galera::params::mysql_server_name,
-  }
 
   package { 'screen':
     ensure => present,
