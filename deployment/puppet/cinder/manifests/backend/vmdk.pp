@@ -73,6 +73,7 @@ define cinder::backend::vmdk (
     "${name}/vmware_max_object_retrieval":        value => $max_object_retrieval;
     "${name}/vmware_task_poll_interval":          value => $task_poll_interval;
     "${name}/vmware_image_transfer_timeout_secs": value => $image_transfer_timeout_secs;
+    "${name}/host":                               value => "vmdk:${host_ip}-${volume_folder}";
   }
 
   if $wsdl_location {
