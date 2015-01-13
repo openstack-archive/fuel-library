@@ -764,32 +764,6 @@ if $murano_hash['enabled'] {
 
 }
 
-# vCenter integration
-
-if hiera('libvirt_type') == 'vcenter' {
-  class { 'vmware' :
-    vcenter_user            => $vcenter_hash['vc_user'],
-    vcenter_password        => $vcenter_hash['vc_password'],
-    vcenter_host_ip         => $vcenter_hash['host_ip'],
-    vcenter_cluster         => $vcenter_hash['cluster'],
-    vcenter_datastore_regex => $vcenter_hash['datastore_regex'],
-    vlan_interface          => $vcenter_hash['vlan_interface'],
-    use_quantum             => $use_neutron,
-    ha_mode                 => true,
-    vnc_address             => $controller_node_public,
-    ceilometer              => $ceilometer_hash['enabled'],
-    debug                   => $debug,
-  }
-}
-
-if ($::mellanox_mode == 'ethernet') {
-  $ml2_eswitch = $neutron_mellanox['ml2_eswitch']
-  class { 'mellanox_openstack::controller':
-    eswitch_vnic_type            => $ml2_eswitch['vnic_type'],
-    eswitch_apply_profile_patch  => $ml2_eswitch['apply_profile_patch'],
-  }
-}
-
 #ADDONS END
 
 ########################################################################
