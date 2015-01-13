@@ -48,12 +48,6 @@ class osnailyfacter::cluster_ha {
     $murano_hash = $::fuel_settings['murano']
   }
 
-  if !$::fuel_settings['heat'] {
-    $heat_hash = {}
-  } else {
-    $heat_hash = $::fuel_settings['heat']
-  }
-
   if !$::fuel_settings['ceilometer'] {
     $ceilometer_hash = {
       enabled => false,
