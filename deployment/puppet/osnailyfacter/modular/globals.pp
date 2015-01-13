@@ -24,11 +24,13 @@ $glance_hash                    = hiera('glance', {})
 $keystone_hash                  = hiera('keystone', {})
 $swift_hash                     = hiera('swift', {})
 $cinder_hash                    = hiera('cinder', {})
+$ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
 
 $role                           = hiera('role')
 $cinder_nodes_array             = hiera('cinder_nodes', [])
 $dns_nameservers                = hiera('dns_nameservers', [])
+$use_ceilometer                 = $ceilometer_hash['enabled']
 $use_neutron                    = hiera('quantum', false)
 $network_scheme                 = hiera('network_scheme', {})
 $disable_offload                = hiera('disable_offload')
@@ -83,17 +85,6 @@ $cinder_rate_limits = hiera('cinder_rate_limits',
     'DELETE'       => 100000
   }
 )
-
-$default_ceilometer_hash = hiera('default_ceilometer_hash',
-  {
-    'enabled'         => false,
-    'db_password'     => 'ceilometer',
-    'user_password'   => 'ceilometer',
-    'metering_secret' => 'ceilometer',
-  }
-)
-
-$ceilometer_hash = hiera('ceilometer', $default_ceilometer_hash)
 
 $node = hiera('node', filter_nodes($nodes_hash, 'name', $::hostname))
 if empty($node) {
@@ -150,6 +141,7 @@ if $use_neutron {
 }
 
 if $deployment_mode == 'ha_compact' {
+  $primary_controller            = $role ? { 'primary-controller' => true, default =>false }
   $primary_controller_nodes      = filter_nodes($nodes_hash,'role','primary-controller')
   $controllers                   = concat($primary_controller_nodes,
                                           filter_nodes($nodes_hash,'role','controller')
