@@ -19,6 +19,8 @@ define staging::file (
   $timeout     = undef, #: the the time to wait for the file transfer to complete
   $curl_option = undef, #: options to pass to curl
   $wget_option = undef, #: options to pass to wget
+  $tries       = undef, #: amount of retries for the file transfer when non transient connection errors exist
+  $try_sleep   = undef, #: time to wait between retries for the file transfer
   $subdir      = $caller_module_name
 ) {
 
@@ -46,6 +48,8 @@ define staging::file (
     cwd         => $staging_dir,
     creates     => $target_file,
     timeout     => $timeout,
+    try_sleep   => $try_sleep,
+    tries       => $tries,
     logoutput   => on_failure,
   }
 

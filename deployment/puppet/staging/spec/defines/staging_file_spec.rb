@@ -70,7 +70,9 @@ describe 'staging::file', :type => :define do
   describe 'when deploying via http with parameters' do
     let(:title) { 'sample.tar.gz' }
     let(:params) { { :source => 'http://webserver/sample.tar.gz',
-      :target => '/usr/local/sample.tar.gz',
+      :target    => '/usr/local/sample.tar.gz',
+      :tries     => '10',
+      :try_sleep => '6',
     } }
 
     it { should contain_file('/opt/staging')
@@ -80,6 +82,8 @@ describe 'staging::file', :type => :define do
         :environment => nil,
         :cwd         => '/usr/local',
         :creates     => '/usr/local/sample.tar.gz',
+        :tries       => '10',
+        :try_sleep   => '6',
       })
     }
   end
