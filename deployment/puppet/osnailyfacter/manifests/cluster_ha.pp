@@ -202,7 +202,7 @@ class osnailyfacter::cluster_ha {
 
   if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
     $manage_volumes = 'iscsi'
-  } elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
+  } elsif ($storage_hash['volumes_vmdk']) {
     $manage_volumes = 'vmdk'
   } elsif ($storage_hash['volumes_ceph']) {
     $manage_volumes = 'ceph'
