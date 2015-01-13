@@ -518,6 +518,7 @@ class osnailyfacter::cluster_simple {
           debug                    => $debug,
           verbose                  => $verbose,
           syslog_log_facility      => $syslog_log_facility_murano,
+          external_network         => get_ext_net_name($::fuel_settings['quantum_settings']['predefined_networks']),
         }
 
         Class['openstack::heat'] -> Class['murano']

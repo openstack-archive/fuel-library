@@ -815,6 +815,7 @@ class osnailyfacter::cluster_ha {
           syslog_log_facility      => $::syslog_log_facility_murano,
 
           primary_controller       => $primary_controller,
+          external_network         => get_ext_net_name($::fuel_settings['quantum_settings']['predefined_networks']),
         }
 
        Class['openstack::heat'] -> Class['murano']
