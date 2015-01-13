@@ -285,9 +285,5 @@ class galera (
           Exec ['rm-init-file']
   Package['MySQL-server'] ~> Exec['wait-initial-sync']
 
-  if $status_check {
-    include galera::status
-  }
-
   anchor {'galera-done': }
 }
