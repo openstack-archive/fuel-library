@@ -42,12 +42,6 @@ class osnailyfacter::cluster_ha {
     $sahara_hash = $::fuel_settings['sahara']
   }
 
-  if !$::fuel_settings['murano'] {
-    $murano_hash = {}
-  } else {
-    $murano_hash = $::fuel_settings['murano']
-  }
-
   if !$::fuel_settings['heat'] {
     $heat_hash = {}
   } else {
