@@ -239,7 +239,7 @@ correctly configured.")
   end
 
   def auth_keystone(*args)
-    self.class.auth_neutron(args)
+    self.class.auth_keystone(args)
   end
 
   def self.get_tenant_id(catalog, name)
