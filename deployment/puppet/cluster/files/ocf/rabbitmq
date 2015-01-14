@@ -662,7 +662,7 @@ start_beam_process() {
         ocf_run rm -rf $OCF_RESKEY_pid_file
     fi
 
-    [ -f /etc/default/${OCF_RESKEY_binary} ] && . /etc/default/${OCF_RESKEY_binary}
+    [ -f /etc/default/rabbitmq-server ] && . /etc/default/rabbitmq-server
 
     # run beam process
     RABBITMQ_NODE_ONLY=1 ${OCF_RESKEY_binary} >> "${OCF_RESKEY_log_dir}/startup_log" 2>/dev/null &
@@ -931,7 +931,7 @@ get_monitor() {
         ocf_log info "${LH} ensuring this slave does not get promoted."
         master_score 0
         return $OCF_ERR_GENERIC
-    else 
+    else
         ocf_log info "${LH} preparing to update master score for node"
         our_uptime=$(srv_uptime)
         nodelist=$( crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$" | grep -v `hostname` )
@@ -959,7 +959,7 @@ get_monitor() {
         if [ $max -eq 0 ]
         then
             ocf_log info "${LH} we are the oldest node"
-            master_score 1000 
+            master_score 1000
         fi
     fi
     ocf_log info "${LH} get_monitor function ready to return ${rc}"
@@ -1160,7 +1160,7 @@ action_notify() {
                 rc=$?
                 if [[ $rc != $OCF_SUCCESS ]] ; then
                    ocf_log info "${LH} master was demoted. stopping RabbitMQ app."
-                   stop_rmq_server_app 
+                   stop_rmq_server_app
                    rc2=$?
                    crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --delete
                 fi
