@@ -19,10 +19,11 @@ stage {'netconfig': } ->
 stage {'corosync_setup': } ->
 stage {'openstack-firewall': } -> Stage['main']
 
+# Begin deployment
 class begin_deployment ()
 {
   $role = $::fuel_settings['role']
-  notify { "***** Beginning deployment of node ${::hostname} with role $role *****": }
+  notify { "***** Beginning deployment of node ${::hostname} with role ${role} *****": }
 }
 
 class {'begin_deployment': stage => 'zero' }
@@ -36,7 +37,7 @@ if $::fuel_settings['nodes'] {
   $dns_nameservers=$::fuel_settings['dns_nameservers']
   $node = filter_nodes($nodes_hash,'name',$::hostname)
   if empty($node) {
-    fail("Node $::hostname is not defined in the hash structure")
+    fail("Node ${::hostname} is not defined in the hash structure")
   }
 
   $default_gateway = $node[0]['default_gateway']
@@ -190,6 +191,7 @@ case $::operatingsystem {
   }
 }
 
+# Configure common features
 class os_common {
   if ($::fuel_settings['neutron_mellanox']) {
     if ($::mellanox_mode != 'disabled') {
@@ -199,17 +201,17 @@ class os_common {
     }
     if ($::fuel_settings['storage']['iser']) {
       class { 'mellanox_openstack::iser_rename':
-        stage => 'zero',
-        storage_parent => $::fuel_settings['neutron_mellanox']['storage_parent'],
+        stage               => 'zero',
+        storage_parent      => $::fuel_settings['neutron_mellanox']['storage_parent'],
         iser_interface_name => $::fuel_settings['neutron_mellanox']['iser_interface_name'],
       }
       Class['mellanox_openstack::ofed_recompile'] -> Class['mellanox_openstack::iser_rename']
     }
   }
 
-  class {"l23network::hosts_file": stage => 'netconfig', nodes => $nodes_hash }
-  class {'l23network': use_ovs=>$use_neutron, stage=> 'netconfig'}
-  if $use_neutron {
+  class {'l23network::hosts_file': stage => 'netconfig', nodes => $::nodes_hash }
+  class {'l23network': use_ovs=>$::use_neutron, stage=> 'netconfig'}
+  if $::use_neutron {
       class {'advanced_node_netconfig': stage => 'netconfig' }
   } else {
       class {'osnailyfacter::network_setup': stage => 'netconfig'}
@@ -220,14 +222,14 @@ class os_common {
   }
 
   class { 'openstack::firewall':
-    stage => 'openstack-firewall',
+    stage             => 'openstack-firewall',
     nova_vnc_ip_range => $::fuel_settings['management_network_range'],
   }
 
   $base_syslog_rserver  = {
     'remote_type' => 'tcp',
-    'server' => $base_syslog_hash['syslog_server'],
-    'port' => $base_syslog_hash['syslog_port']
+    'server' => $::base_syslog_hash['syslog_server'],
+    'port' => $::base_syslog_hash['syslog_port']
   }
 
 ### TCP connections keepalives and failover related parameters ###
@@ -259,43 +261,45 @@ class os_common {
   $nova_service_down_time  = '180'
 
   $syslog_rserver = {
-    'remote_type' => $syslog_hash['syslog_transport'],
-    'server' => $syslog_hash['syslog_server'],
-    'port' => $syslog_hash['syslog_port'],
+    'remote_type' => $::syslog_hash['syslog_transport'],
+    'server' => $::syslog_hash['syslog_server'],
+    'port' => $::syslog_hash['syslog_port'],
   }
-  if $syslog_hash['syslog_server'] != "" and $syslog_hash['syslog_port'] != "" and $syslog_hash['syslog_transport'] != "" {
+  if $::syslog_hash['syslog_server'] != '' and $::syslog_hash['syslog_port'] != '' and $::syslog_hash['syslog_transport'] != '' {
     $rservers = [$base_syslog_rserver, $syslog_rserver]
   } else {
     $rservers = [$base_syslog_rserver]
   }
 
-  if $use_syslog {
-    class { "::openstack::logging":
-      stage          => 'first',
-      role           => 'client',
-      show_timezone  => true,
+  if $::use_syslog {
+    class { '::openstack::logging':
+      stage            => 'first',
+      role             => 'client',
+      show_timezone    => true,
       # log both locally include auth, and remote
-      log_remote     => true,
-      log_local      => true,
-      log_auth_local => true,
+      log_remote       => true,
+      log_local        => true,
+      log_auth_local   => true,
       # keep four weekly log rotations, force rotate if 300M size have exceeded
-      rotation       => 'weekly',
-      keep           => '4',
+      rotation         => 'weekly',
+      keep             => '4',
       # should be > 30M
-      limitsize      => '300M',
+      limitsize        => '300M',
       # remote servers to send logs to
-      rservers       => $rservers,
+      rservers         => $rservers,
       # should be true, if client is running at virtual node
-      virtual        => str2bool($::is_virtual),
+      virtual          => str2bool($::is_virtual),
       # Rabbit doesn't support syslog directly
       rabbit_log_level => 'NOTICE',
-      debug            => $debug,
+      debug            => $::debug,
     }
   }
 
   class { 'osnailyfacter::atop':
     stage => 'first',
   }
+
+  class { 'osnailyfacter::ssh': }
 
   #case $role {
     #    /controller/:          { $hostgroup = 'controller' }
@@ -328,14 +332,6 @@ class os_common {
     require => Class['openstack::firewall'],
   }
 
-  firewall {'004 remote puppet ':
-    sport   => [ 8140 ],
-    source  => $master_ip,
-    proto   => 'tcp',
-    action  => 'accept',
-    require => Class['openstack::firewall'],
-  }
-
   class { 'puppet::pull' :
     modules_source   => $::fuel_settings['puppet_modules_source'],
     manifests_source => $::fuel_settings['puppet_manifests_source'],
@@ -346,18 +342,23 @@ class os_common {
 
 node default {
   case $::fuel_settings['deployment_mode'] {
-    "singlenode": {
-      include "osnailyfacter::cluster_simple"
+    'singlenode': {
+      include 'osnailyfacter::cluster_simple'
       class {'os_common':}
-      }
-    "multinode": {
-      include "osnailyfacter::cluster_simple"
+    }
+    'multinode': {
+      include 'osnailyfacter::cluster_simple'
       class {'os_common':}
-      }
+    }
     /^(ha|ha_compact)$/: {
-      include "osnailyfacter::cluster_ha"
+      include 'osnailyfacter::cluster_ha'
       class {'os_common':}
-      }
-    "rpmcache": { include osnailyfacter::rpmcache }
+    }
+    'rpmcache': {
+      include 'osnailyfacter::rpmcache'
+    }
+    default: {
+      fail("Deployment mode ${deployment_mode} is not supported")
+    }
   }
 }
