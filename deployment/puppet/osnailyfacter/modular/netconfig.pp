@@ -1,6 +1,4 @@
-import 'globals.pp'
-
-if $disable_offload {
+if  hiera('disable_offload') {
   L23network::L3::Ifconfig<||> {
     ethtool => {
       'K' => ['gso off',  'gro off'],
@@ -9,7 +7,7 @@ if $disable_offload {
 }
 
 class { 'l23network' :
-  use_ovs => $use_neutron,
+  use_ovs => hiera('use_neutron'),
 }
 
 class advanced_node_netconfig {
