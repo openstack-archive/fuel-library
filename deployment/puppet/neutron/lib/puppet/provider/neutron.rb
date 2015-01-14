@@ -244,7 +244,7 @@ correctly configured.")
 
   def self.get_tenant_id(catalog, name)
     rv = nil
-    auth_keystone('tenant-list').each do |line|
+    auth_keystone('tenant-list').split("\n").each do |line|
       fields=line.split(/\s*\|\s*/)
       if fields[1] and fields[1].size == 32
         if fields[2] == name
