@@ -1,0 +1,292 @@
+$fuel_settings = parseyaml($astute_settings_yaml)
+
+$openstack_version = {
+  'keystone'   => 'installed',
+  'glance'     => 'installed',
+  'horizon'    => 'installed',
+  'nova'       => 'installed',
+  'novncproxy' => 'installed',
+  'cinder'     => 'installed',
+}
+
+tag("${::fuel_settings['deployment_id']}::${::fuel_settings['environment']}")
+
+#Stages configuration
+stage {'zero': } ->
+stage {'first': } ->
+stage {'openstack-custom-repo': } ->
+stage {'netconfig': } ->
+stage {'corosync_setup': } ->
+stage {'openstack-firewall': } -> Stage['main']
+
+class begin_deployment ()
+{
+  $role = $::fuel_settings['role']
+  notify { "***** Beginning deployment of node ${::hostname} with role $role *****": }
+}
+
+class {'begin_deployment': stage => 'zero' }
+
+stage {'glance-image':
+  require => Stage['main'],
+}
+
+if $::fuel_settings['nodes'] {
+  $nodes_hash = $::fuel_settings['nodes']
+  $dns_nameservers=$::fuel_settings['dns_nameservers']
+  $node = filter_nodes($nodes_hash,'name',$::hostname)
+  if empty($node) {
+    fail("Node $::hostname is not defined in the hash structure")
+  }
+
+  $default_gateway = $node[0]['default_gateway']
+
+  $base_syslog_hash     = $::fuel_settings['base_syslog']
+  $syslog_hash          = $::fuel_settings['syslog']
+
+  $use_neutron = $::fuel_settings['quantum']
+
+  if (!empty(filter_nodes($::fuel_settings['nodes'], 'role', 'ceph-osd')) or
+  $::fuel_settings['storage']['volumes_ceph'] or
+  $::fuel_settings['storage']['images_ceph'] or
+  $::fuel_settings['storage']['objects_ceph']
+  ) {
+    $use_ceph = true
+  } else {
+    $use_ceph = false
+  }
+
+  if $use_neutron {
+    prepare_network_config($::fuel_settings['network_scheme'])
+  #
+    $internal_int     = get_network_role_property('management', 'interface')
+    $internal_address = get_network_role_property('management', 'ipaddr')
+    $internal_netmask = get_network_role_property('management', 'netmask')
+  #
+    $public_int = get_network_role_property('ex', 'interface')
+    if $public_int {
+      $public_address = get_network_role_property('ex', 'ipaddr')
+      $public_netmask = get_network_role_property('ex', 'netmask')
+
+    # TODO(Xarses): remove this after completing merge of
+    # multiple-cluster-networks
+      L23network::L3::Ifconfig<| title == $public_int |> {
+        default_gateway => true
+      }
+    } else {
+    # TODO(Xarses): remove this after completing merge of
+    # multiple-cluster-networks
+      $fw_admin_int = get_network_role_property('fw-admin', 'interface')
+      L23network::L3::Ifconfig<| title == $fw_admin_int |> {
+        default_gateway => true
+      }
+    }
+  #
+    $storage_address = get_network_role_property('storage', 'ipaddr')
+    $storage_netmask = get_network_role_property('storage', 'netmask')
+  } else {
+    $internal_address = $node[0]['internal_address']
+    $internal_netmask = $node[0]['internal_netmask']
+    $public_address = $node[0]['public_address']
+    $public_netmask = $node[0]['public_netmask']
+    $storage_address = $node[0]['storage_address']
+    $storage_netmask = $node[0]['storage_netmask']
+    $public_br = $node[0]['public_br']
+    $internal_br = $node[0]['internal_br']
+    $public_int   = $::fuel_settings['public_interface']
+    $internal_int = $::fuel_settings['management_interface']
+
+  # TODO(Xarses): remove this after completing merge of
+  # multiple-cluster-networks
+    L23network::L3::Ifconfig<| title == $public_int |> {
+      default_gateway => true
+    }
+
+  }
+}
+
+if ($::fuel_settings['neutron_mellanox']) {
+  $mellanox_mode = $::fuel_settings['neutron_mellanox']['plugin']
+} else {
+  $mellanox_mode = 'disabled'
+}
+
+# This parameter specifies the verbosity level of log messages
+# in openstack components config.
+# Debug would have set DEBUG level and ignore verbose settings, if any.
+# Verbose would have set INFO level messages
+# In case of non debug and non verbose - WARNING, default level would have set.
+$verbose = true
+$debug = $::fuel_settings['debug']
+
+### Storage Settings ###
+# Determine if any ceph parts have been asked for.
+# This will ensure that monitors are set up on controllers, even if no
+#  ceph-osd roles during deployment
+
+
+### Syslog ###
+#TODO(bogdando) move logging options to astute.yaml
+# Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
+$use_syslog = $::fuel_settings['use_syslog'] ? { default=>true }
+# Syslog facilities for main openstack services
+# should vary (reserved usage)
+# local1 is reserved for openstack-dashboard
+$syslog_log_facility_glance     = 'LOG_LOCAL2'
+$syslog_log_facility_cinder     = 'LOG_LOCAL3'
+$syslog_log_facility_neutron    = 'LOG_LOCAL4'
+$syslog_log_facility_nova       = 'LOG_LOCAL6'
+$syslog_log_facility_keystone   = 'LOG_LOCAL7'
+# could be the same
+# local0 is free for use
+$syslog_log_facility_murano     = 'LOG_LOCAL0'
+$syslog_log_facility_heat       = 'LOG_LOCAL0'
+$syslog_log_facility_sahara     = 'LOG_LOCAL0'
+$syslog_log_facility_ceilometer = 'LOG_LOCAL0'
+$syslog_log_facility_ceph       = 'LOG_LOCAL0'
+
+### Monit ###
+# Monit for compute nodes.
+# If enabled, will install monit and configure its watchdogs to track
+# nova-compute/api/network (and openvswitch service, if neutron enabled)
+# at compute nodes.
+# TODO(bogdando) set to true once monit package shipped with Fuel ISO
+$use_monit = false
+
+$nova_rate_limits = {
+  'POST' => 100000,
+  'POST_SERVERS' => 100000,
+  'PUT' => 1000, 'GET' => 100000,
+  'DELETE' => 100000
+}
+$cinder_rate_limits = {
+  'POST' => 100000,
+  'POST_SERVERS' => 100000,
+  'PUT' => 100000, 'GET' => 100000,
+  'DELETE' => 100000
+}
+
+case $::operatingsystem {
+  'redhat' : {
+    $queue_provider = 'qpid'
+    $custom_mysql_setup_class = 'pacemaker_mysql'
+  }
+  default: {
+    $queue_provider='rabbitmq'
+    $custom_mysql_setup_class='galera'
+  }
+}
+
+class os_common {
+  if ($::fuel_settings['neutron_mellanox']) {
+    if ($::mellanox_mode != 'disabled') {
+      class { 'mellanox_openstack::ofed_recompile' :
+        stage => 'zero',
+      }
+    }
+    if ($::fuel_settings['storage']['iser']) {
+      class { 'mellanox_openstack::iser_rename':
+        stage => 'zero',
+        storage_parent => $::fuel_settings['neutron_mellanox']['storage_parent'],
+        iser_interface_name => $::fuel_settings['neutron_mellanox']['iser_interface_name'],
+      }
+      Class['mellanox_openstack::ofed_recompile'] -> Class['mellanox_openstack::iser_rename']
+    }
+  }
+
+  if ($::osfamily == 'RedHat') {
+    package {'irqbalance': ensure => present} -> service {'irqbalance': ensure => running }
+  }
+
+  $base_syslog_rserver  = {
+    'remote_type' => 'tcp',
+    'server' => $base_syslog_hash['syslog_server'],
+    'port' => $base_syslog_hash['syslog_port']
+  }
+
+# setting service down time and report interval
+# to 60 and 180 for Nova respectively to allow kernel
+# to kill dead connections
+# (see zendesk #1158 as well)
+  $nova_report_interval = '60'
+  $nova_service_down_time  = '180'
+
+  $syslog_rserver = {
+    'remote_type' => $syslog_hash['syslog_transport'],
+    'server' => $syslog_hash['syslog_server'],
+    'port' => $syslog_hash['syslog_port'],
+  }
+  if $syslog_hash['syslog_server'] != "" and $syslog_hash['syslog_port'] != "" and $syslog_hash['syslog_transport'] != "" {
+    $rservers = [$base_syslog_rserver, $syslog_rserver]
+  } else {
+    $rservers = [$base_syslog_rserver]
+  }
+
+  if $use_syslog {
+    class { "::openstack::logging":
+      stage          => 'first',
+      role           => 'client',
+      show_timezone  => true,
+    # log both locally include auth, and remote
+      log_remote     => true,
+      log_local      => true,
+      log_auth_local => true,
+    # keep four weekly log rotations, force rotate if 300M size have exceeded
+      rotation       => 'weekly',
+      keep           => '4',
+    # should be > 30M
+      limitsize      => '300M',
+    # remote servers to send logs to
+      rservers       => $rservers,
+    # should be true, if client is running at virtual node
+      virtual        => str2bool($::is_virtual),
+    # Rabbit doesn't support syslog directly
+      rabbit_log_level => 'NOTICE',
+      debug            => $debug,
+    }
+  }
+
+} # OS_COMMON ENDS
+
+node default {
+  case $::fuel_settings['deployment_mode'] {
+    "singlenode": {
+      include "osnailyfacter::cluster_simple"
+      class {'os_common':}
+    }
+    "multinode": {
+      include "osnailyfacter::cluster_simple"
+      class {'os_common':}
+    }
+    /^(ha|ha_compact)$/: {
+      include "osnailyfacter::cluster_ha"
+      class {'os_common':}
+    }
+    "rpmcache": { include osnailyfacter::rpmcache }
+  }
+}
+
+# left for compatibility
+
+class {'l23network': use_ovs=>$use_neutron, stage=> 'netconfig'}
+
+# Workaround for fuel bug with firewall
+firewall {'003 remote rabbitmq ':
+  sport   => [ 4369, 5672, 15672, 41055, 55672, 61613 ],
+  source  => $master_ip,
+  proto   => 'tcp',
+  action  => 'accept',
+  require => Class['openstack::firewall'],
+}
+
+firewall {'004 remote puppet ':
+  sport   => [ 8140 ],
+  source  => $master_ip,
+  proto   => 'tcp',
+  action  => 'accept',
+  require => Class['openstack::firewall'],
+}
+
+class { 'openstack::firewall' :
+  nova_vnc_ip_range => $management_network_range,
+}

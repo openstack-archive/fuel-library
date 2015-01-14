@@ -24,7 +24,7 @@ File.open(template, 'w') do |file|
   file.puts '<% require "yaml" -%>'
   file.puts '<% globals = {} -%>'
   variables.each do |var|
-    file.puts "<% globals.store \"#{var}\", @#{Marshal.load(Marshal.dump(var))} -%>"
+    file.puts "<% globals.store \"#{var}\", @#{var} -%>"
   end
   file.puts '<%= YAML.dump globals %>'
 end
