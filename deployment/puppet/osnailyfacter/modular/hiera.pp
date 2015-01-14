@@ -12,7 +12,7 @@ $data                = [
 $astute_data_file    = '/etc/astute.yaml'
 $hiera_main_config   = '/etc/hiera.yaml'
 $hiera_puppet_config = '/etc/puppet/hiera.yaml'
-$hiera_data_file     = "${data_dir}/${data_name}.yaml"
+$hiera_data_file     = "${data_dir}/astute.yaml"
 
 File {
   owner => 'root',
