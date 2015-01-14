@@ -1,3 +1,5 @@
+# Configuration of Fuel Master node only
+
 $fuel_settings = parseyaml($astute_settings_yaml)
 $fuel_version = parseyaml($fuel_version_yaml)
 
@@ -32,54 +34,57 @@ class { 'nailgun::host':
 
 }
 
-class { "openstack::clocksync":
+class { 'openstack::clocksync':
   ntp_servers     => $ntp_servers,
-  config_template => "ntp/ntp.conf.erb",
+  config_template => 'ntp/ntp.conf.erb',
 }
 
-class { "docker::dockerctl":
+class { 'docker::dockerctl':
   release         => $::fuel_version['VERSION']['release'],
   production      => $production,
   admin_ipaddress => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 }
-class { "docker": }
+class { 'docker': }
 
-class {'openstack::logrotate':
+class { 'openstack::logrotate':
   role           => 'server',
   rotation       => 'weekly',
   keep           => '4',
   limitsize      => '100M',
 }
 
-class { "nailgun::client":
+class { 'nailgun::client':
   server        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   keystone_user => $::fuel_settings['FUEL_ACCESS']['user'],
   keystone_pass => $::fuel_settings['FUEL_ACCESS']['password'],
 }
 
-class { "nailgun::supervisor":
+class { 'nailgun::supervisor':
   nailgun_env => false,
   ostf_env    => false,
-  require     => File["/etc/supervisord.d/current", "/etc/supervisord.d/${::fuel_version['VERSION']['release']}"],
-  conf_file   => "nailgun/supervisord.conf.base.erb",
+  require     => File['/etc/supervisord.d/current', "/etc/supervisord.d/${::fuel_version['VERSION']['release']}"],
+  conf_file   => 'nailgun/supervisord.conf.base.erb',
 }
 
-file { "/etc/supervisord.d":
+class { 'osnailyfacter::ssh': }
+
+file { '/etc/supervisord.d':
   ensure  => directory,
 }
 
 file { "/etc/supervisord.d/${::fuel_version['VERSION']['release']}":
-  require => File["/etc/supervisord.d"],
+  ensure  => directory,
+  require => File['/etc/supervisord.d'],
   owner   => root,
   group   => root,
   recurse => true,
-  ensure  => directory,
-  source  => "puppet:///modules/docker/supervisor",
+  source  => 'puppet:///modules/docker/supervisor',
 }
 
-file { "/etc/supervisord.d/current":
+file { '/etc/supervisord.d/current':
+  ensure  => link,
+  target  => "/etc/supervisord.d/${::fuel_version['VERSION']['release']}",
   require => File["/etc/supervisord.d/${::fuel_version['VERSION']['release']}"],
   replace => true,
-  ensure  => "/etc/supervisord.d/${::fuel_version['VERSION']['release']}",
 }
 
