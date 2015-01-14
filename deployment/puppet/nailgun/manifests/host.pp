@@ -25,13 +25,6 @@ $gem_source = 'http://localhost/gems/',
     keytype   => 'rsa',
   }
 
-  file { '/etc/ssh/sshd_config':
-    content => template('nailgun/sshd_config.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0600',
-  }
-
   file { '/root/.ssh/config':
     content => template('nailgun/root_ssh_config.erb'),
     owner   => 'root',
