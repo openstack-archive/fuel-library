@@ -4,31 +4,6 @@ class osnailyfacter::cluster_ha {
 
   $primary_controller = $::fuel_settings['role'] ? { 'primary-controller'=>true, default=>false }
 
-  if $::use_monit {
-    # Configure service names for monit watchdogs and 'service' system path
-    # FIXME(bogdando) replace service_path to systemd, once supported
-    include nova::params
-    include cinder::params
-    include neutron::params
-    include l23network::params
-    $nova_compute_name   = $::nova::params::compute_service_name
-    $nova_api_name       = $::nova::params::api_service_name
-    $nova_network_name   = $::nova::params::network_service_name
-    $cinder_volume_name  = $::cinder::params::volume_service
-    $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
-    case $::osfamily {
-      'RedHat' : {
-         $service_path   = '/sbin/service'
-      }
-      'Debian' : {
-        $service_path    = '/usr/sbin/service'
-      }
-      default  : {
-        fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
-      }
-    }
-  }
-
   if $::use_neutron {
     $novanetwork_params        = {}
     $neutron_config            = $::fuel_settings['quantum_settings']
@@ -360,6 +335,39 @@ class osnailyfacter::cluster_ha {
   $use_syslog = $::use_syslog
   $verbose = $::verbose
   $debug = $::debug
+
+  # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
+  #   we delegate all of the monitor functions to RA instead of monit.
+  if member($roles, 'controller') or member($roles, 'primary-controller') {
+    $use_monit_real = false
+  } else {
+    $use_monit_real = $::use_monit
+  }
+
+  if $use_monit_real {
+    # Configure service names for monit watchdogs and 'service' system path
+    # FIXME(bogdando) replace service_path to systemd, once supported
+    include nova::params
+    include cinder::params
+    include neutron::params
+    include l23network::params
+    $nova_compute_name   = $::nova::params::compute_service_name
+    $nova_api_name       = $::nova::params::api_service_name
+    $nova_network_name   = $::nova::params::network_service_name
+    $cinder_volume_name  = $::cinder::params::volume_service
+    $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
+    case $::osfamily {
+      'RedHat' : {
+         $service_path   = '/sbin/service'
+      }
+      'Debian' : {
+        $service_path    = '/usr/sbin/service'
+      }
+      default  : {
+        fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
+      }
+    }
+  }
 
   #HARDCODED PARAMETERS
 
@@ -910,7 +918,7 @@ class osnailyfacter::cluster_ha {
 
     # Configure monit watchdogs
     # FIXME(bogdando) replace service_path and action to systemd, once supported
-    if $::use_monit {
+    if $use_monit_real {
       monit::process { $nova_compute_name :
         ensure        => running,
         matching      => '/usr/bin/python /usr/bin/nova-compute',
@@ -1011,7 +1019,7 @@ class osnailyfacter::cluster_ha {
       }
 
       # FIXME(bogdando) replace service_path and action to systemd, once supported
-      if $::use_monit {
+      if $use_monit_real {
         monit::process { $cinder_volume_name :
           ensure        => running,
           matching      => '/usr/bin/python /usr/bin/cinder-volume',

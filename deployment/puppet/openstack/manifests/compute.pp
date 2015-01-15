@@ -610,7 +610,7 @@ on packages update": }
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { 'nova-compute':
-      package_name => 'nova-compute',
+      package_name => "nova-compute-${libvirt_type}",
     }
     tweaks::ubuntu_service_override { 'nova-network':
       package_name => 'nova-network',
