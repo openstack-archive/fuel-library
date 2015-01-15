@@ -1,0 +1,35 @@
+<% if @proxy_dest or @proxy_pass -%>
+
+  ## Proxy rules
+  ProxyRequests Off
+<%- end -%>
+<% if @proxy_preserve_host -%>
+  ProxyPreserveHost On
+<%- end -%>
+<%- [@proxy_pass].flatten.compact.each do |proxy| -%>
+  ProxyPass <%= proxy['path'] %> <%= proxy['url'] -%>
+  <%- if proxy['params'] -%>
+    <%- proxy['params'].each_pair do |key, value| -%> <%= key %>=<%= value -%>
+    <%- end -%>
+  <%- end -%>
+  <%- if proxy['keywords'] %> <%= proxy['keywords'].join(' ') -%>
+  <%- end %>
+  <Location <%= proxy['path']%>>
+  <%- if proxy['reverse_urls'].nil? -%>
+    ProxyPassReverse <%= proxy['url'] %>
+  <%- else -%>
+    <%- Array(proxy['reverse_urls']).each do |reverse_url| -%>
+    ProxyPassReverse <%= reverse_url %>
+    <%- end -%>
+  <%- end -%>
+  </Location>
+<% end -%>
+<% if @proxy_dest -%>
+<%- Array(@no_proxy_uris).each do |uri| -%>
+  ProxyPass        <%= uri %> !
+<% end -%>
+  ProxyPass          / <%= @proxy_dest %>/
+  <Location          />
+    ProxyPassReverse <%= @proxy_dest %>/
+  </Location>
+<% end -%>
