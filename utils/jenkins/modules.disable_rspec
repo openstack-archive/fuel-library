@@ -12,7 +12,6 @@ glance
 haproxy
 heat
 heat_ha
-horizon
 inifile
 l23network
 mcollective
