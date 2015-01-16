@@ -1,0 +1,23 @@
+<% require 'ipaddr' -%>
+<%- if @bind -%>
+<%- @bind.sort.map do |address_port, bind_params| -%>
+  bind <%= address_port -%> <%= Array(bind_params).join(" ") %>
+<%- end -%>
+<%- else -%>
+<%-
+  Array(@ipaddress).uniq.each do |virtual_ip| (@ports.is_a?(Array) ? @ports : Array(@ports.split(","))).each do |port|
+  begin
+    IPAddr.new(virtual_ip)
+    valid_ip = true
+  rescue ArgumentError => e
+    valid_ip = false
+  end
+  if ! valid_ip and ! virtual_ip.match(/^[A-Za-z][A-Za-z0-9\.-]+$/) and virtual_ip != "*"
+    scope.function_fail(["Invalid IP address or hostname [#{virtual_ip}]"])
+  end
+  scope.function_fail(["Port [#{port}] is outside of range 1-65535"]) if port.to_i < 1 or port.to_i > 65535
+-%>
+  bind <%= virtual_ip -%>:<%= port -%> <%= Array(@bind_options).join(" ") %>
+<%- end -%>
+<%- end -%>
+<%- end -%>
