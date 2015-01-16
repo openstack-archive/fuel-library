@@ -74,25 +74,14 @@ class cluster::haproxy_ocf (
     File['haproxy-ocf'] -> Service[$service_name]
   }
 
-  if ($::osfamily == 'Debian') {
-    file { '/etc/default/haproxy':
-      content => 'ENABLED=0',
+  if $::operatingsystem == 'Ubuntu' {
+    file { '/etc/init/haproxy.override':
+      ensure  => 'present',
+      replace => 'no',
+      content => 'manual',
+      mode    => '0644'
     } -> File['haproxy-ocf']
-    if $::operatingsystem == 'Ubuntu' {
-      file { '/etc/init/haproxy.override':
-        ensure  => 'present',
-        replace => 'no',
-        content => 'manual',
-        mode    => '0644'
-      } -> File['haproxy-ocf']
-    }
   }
-
-  service { 'haproxy-init-stopped':
-    ensure     => 'stopped',
-    name       => 'haproxy',
-    enable     => false,
-  } -> File['haproxy-ocf']
 
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
     value => '1'

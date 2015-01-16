@@ -8,6 +8,7 @@ class haproxy::params {
   case $::osfamily {
     'Archlinux', 'Debian', 'Redhat': {
       $package_name     = 'haproxy'
+      $use_include      = true
       $global_options   = {
         'log'     => "${::ipaddress} local0",
         'chroot'  => '/var/lib/haproxy',
@@ -33,6 +34,8 @@ class haproxy::params {
         ],
         'maxconn' => '8000'
       }
+      $use_stats = true
+      $stats_port = '10000'
     }
     default: { fail("The ${::osfamily} operating system is not supported with the haproxy module") }
   }

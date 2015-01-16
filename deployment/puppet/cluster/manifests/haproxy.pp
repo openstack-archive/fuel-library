@@ -11,8 +11,6 @@ class cluster::haproxy (
   include ::concat::setup
   include ::haproxy::params
 
-  package { 'haproxy': }
-
   #NOTE(bogdando) we want defaults w/o chroot
   #  and this override looks the only possible if
   #  upstream manifests must be kept intact
@@ -28,22 +26,30 @@ class cluster::haproxy (
     'tune.maxrewrite' => $haproxy_maxrewrite,
   }
 
-  class { 'haproxy::base':
+
+  class { '::haproxy':
     global_options   => $global_options,
     defaults_options => merge($::haproxy::params::defaults_options,
                               {'mode' => 'http'}),
-    use_include      => true,
+    custom_fragment  => 'include conf.d/*.cfg',
+    service_ensure   => $service_ensure,
+    service_manage   => $service_manage,
   }
 
   class { 'cluster::haproxy_ocf':
     primary_controller => $primary_controller
   }
 
-  Package['haproxy'] -> Class['haproxy::base']
-  Class['haproxy::base'] -> Class['cluster::haproxy_ocf']
-  Class['haproxy::base'] -> Haproxy::Service <||>
+  Class['::haproxy'] -> Class['cluster::haproxy_ocf']
 
   if defined(Corosync::Service['pacemaker']) {
     Corosync::Service['pacemaker'] -> Class['cluster::haproxy_ocf']
+    $service_ensure   = 'stopped'
+    $service_manage   = false
+    notify {"Service haproxy stopped!!":}
+  } else {
+    $service_ensure   = 'running'
+    $service_manage   = true
+    notify {"Service haproxy started!!":}
   }
 }
