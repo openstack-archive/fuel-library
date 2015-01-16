@@ -12,7 +12,7 @@ class pacemaker_wrappers::rabbitmq (
   $service_name       = $::rabbitmq::service_name,
   $port               = $::rabbitmq::port,
   $debug              = false,
-  $ocf_script_file    = 'openstack/ocf/rabbitmq',
+  $ocf_script_file    = 'cluster/ocf/rabbitmq',
   $command_timeout    = '',
   $erlang_cookie      = 'EOKOWXQREETZSHFNTPEY',
 ) inherits ::rabbitmq::service {
