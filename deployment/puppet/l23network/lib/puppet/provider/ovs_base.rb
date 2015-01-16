@@ -1,7 +1,6 @@
-# require 'csv'
-# require 'puppet/util/inifile'
+require File.join(File.dirname(__FILE__), 'l2_base')
 
-class Puppet::Provider::Ovs_base < Puppet::Provider
+class Puppet::Provider::Ovs_base < Puppet::Provider::L2_base
 
   def vendor_specific
     return {}
