@@ -169,23 +169,16 @@ $rabbit_hash['user'] = 'nova'
 }
 
 if $deployment_mode == 'ha_compact' {
-  if $internal_address in $controller_nodes {
-    $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
-  } else {
-    $amqp_nodes = fqdn_rotate($controller_nodes)
-  }
-
   $amqp_port              = '5673'
-  $amqp_hosts             = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+  $amqp_hosts             = amqp_hosts($controller_nodes, $amqp_port, $internal_address)
   $rabbit_ha_queues       = true
   $rabbitmq_cluster_nodes = $controller_hostnames
 } else {
   # simple multinode (deprecated)
   $amqp_port              = '5672'
-  $amqp_hosts             = "${controller_node_address}:${amqp_port}"
-  $rabbitmq_cluster_nodes = [$controller[0]['name']]  # has to be hostnames
+  $amqp_hosts             = amqp_hosts($controller_node_address, $amqp_port)
+  $rabbitmq_cluster_nodes = [ $controller[0]['name'] ]
   $rabbit_ha_queues       = false
-  $rabbitmq_cluster_nodes = []
 }
 
 # MySQL and SQLAlchemy backend configuration
