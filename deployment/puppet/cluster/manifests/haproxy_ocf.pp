@@ -74,6 +74,9 @@ class cluster::haproxy_ocf (
     File['haproxy-ocf'] -> Service[$service_name]
   }
 
+  # TODO (sbog) Needs to be checked if haproxy init 'manage=false' set Ubuntu
+  # override option too. If so, next block can be deleted. If not - only Ubuntu
+  # part shoud remain.
   if ($::osfamily == 'Debian') {
     file { '/etc/default/haproxy':
       content => 'ENABLED=0',
@@ -87,12 +90,6 @@ class cluster::haproxy_ocf (
       } -> File['haproxy-ocf']
     }
   }
-
-  service { 'haproxy-init-stopped':
-    ensure     => 'stopped',
-    name       => 'haproxy',
-    enable     => false,
-  } -> File['haproxy-ocf']
 
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
     value => '1'

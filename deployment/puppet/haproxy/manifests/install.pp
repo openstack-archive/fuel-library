@@ -5,7 +5,7 @@ class haproxy::install inherits haproxy {
   }
 
   package { $package_name:
-    ensure  => $_package_ensure,
-    alias   => 'haproxy',
+    ensure => $_package_ensure,
+    alias  => 'haproxy',
   }
 }
