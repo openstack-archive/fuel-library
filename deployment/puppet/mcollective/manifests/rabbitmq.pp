@@ -87,7 +87,7 @@ class mcollective::rabbitmq (
       'tcp_listen_options'          => $rabbit_tcp_listen_options,
     },
     environment_variables   => {
-      'RABBIT_SERVER_ERL_ARGS'      => '"+K true +A30 +P 1048576"',
+      'SERVER_ERL_ARGS'      => '"+K true +A30 +P 1048576"',
     },
   }
 
