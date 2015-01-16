@@ -81,6 +81,9 @@ define haproxy::listen (
   $bind                         = undef,
   $mode                         = undef,
   $collect_exported             = true,
+  $order                        = '20',
+  $use_include                  = $haproxy::params::use_include,
+  $ensure                       = 'present',
   $options                      = {
     'option'  => [
       'tcplog',
@@ -109,10 +112,26 @@ define haproxy::listen (
     fail("An haproxy::backend resource was discovered with the same name (${name}) which is not supported")
   }
 
+  if $use_include {
+    $target         = "/etc/haproxy/conf.d/${order}-${name}.cfg"
+    $fragment_order = '00'
+
+    concat { $target:
+      owner  => '0',
+      group  => '0',
+      mode   => '0644',
+    }
+
+  } else {
+    $target         = '/etc/haproxy/haproxy.cfg'
+    $fragment_order = "${order}-${name}-00"
+  }
+
   # Template uses: $name, $ipaddress, $ports, $options
-  concat::fragment { "${name}_listen_block":
-    order   => "20-${name}-00",
-    target  => '/etc/haproxy/haproxy.cfg',
+  concat::fragment { "haproxy_${name}":
+    ensure  => $ensure,
+    order   => $fragment_order,
+    target  => $target,
     content => template('haproxy/haproxy_listen_block.erb'),
   }
 

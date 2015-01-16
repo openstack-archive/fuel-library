@@ -10,6 +10,22 @@ class haproxy::config inherits haproxy {
     mode    => '0644',
   }
 
+  if $use_include {
+    file { '/etc/haproxy/conf.d':
+      ensure => 'directory',
+      owner  => '0',
+      group  => '0',
+    }
+  }
+
+  if $use_stats {
+    concat::fragment { 'haproxy-stats' :
+      target  => '/etc/haproxy/haproxy.cfg',
+      order   => '90',
+      content => template('haproxy/haproxy-stats.cfg.erb'),
+    }
+  }
+
   # Simple Header
   concat::fragment { '00-header':
     target  => '/etc/haproxy/haproxy.cfg',

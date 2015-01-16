@@ -15,7 +15,7 @@ class openstack::ha::haproxy (
   $is_primary_controller    = false,
 ) {
 
-  Haproxy::Service        { use_include => true }
+  Haproxy::Listen         { use_include => true }
   Haproxy::Balancermember { use_include => true }
 
   Openstack::Ha::Haproxy_service {
