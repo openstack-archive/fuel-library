@@ -163,6 +163,11 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     (val.to_i == 0  ?  :absent  :  val.to_i)
   end
 
+  def self.mangle__bridge_ports(val)
+    val.split(/[\s,]+/).sort
+  end
+
+
   ###
   # Hash to file
 
@@ -247,6 +252,11 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
   def self.unmangle__gateway_metric(val)
     (val.to_i == 0  ?  :absent  :  val.to_i)
+  end
+
+  def self.unmangle__bridge_ports(val)
+    return 'none' if val.size < 1
+    val.sort.join(' ')
   end
 
 end

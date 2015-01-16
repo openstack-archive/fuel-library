@@ -40,12 +40,17 @@ Puppet::Type.newtype(:l23_stored_config) do
     defaultto(:ethernet)
   end
 
-  newproperty(:bridge_ports) do
-    desc "Ports, member of bridge"
-    #defaultto 'none'
-    munge do |val|
-      val.strip.split(/[\s,\:]+/).reject{|l| l.empty?}.join(' ')
-    end
+  newproperty(:bridge) do
+    desc "Name of bridge, including this port"
+    newvalues(/^[\w+\-]+$/, :none, :undef, :nil, :absent)
+    aliasvalue(:absent, :none)
+    aliasvalue(:absent, :undef)
+    aliasvalue(:absent, :nil)
+    defaultto(:absent)
+  end
+
+  newproperty(:bridge_ports, :array_matching => :all) do
+    desc "Ports, member of bridge, service property, do not use directly."
   end
 
   newproperty(:onboot, :parent => Puppet::Property::Boolean) do
@@ -191,6 +196,20 @@ Puppet::Type.newtype(:l23_stored_config) do
   #     #provider.validate
   #   end
   # end
+
+  def generate
+    return if ! (self[:bridge] != :absent and self[:if_type] == :ethernet)
+    br = self.catalog.resource 'L23_stored_config', self[:bridge]
+    fail "Stored_config resource for bridge '#{self[:bridge]}' not found for port '#{self[:name]}'!" if ! br
+    br[:bridge_ports] ||= []
+    ports = br[:bridge_ports]
+    return if ! ports.is_a? Array
+    if ! ports.include? self[:name]
+      ports << self[:name].to_s
+      br[:bridge_ports] = ports.reject{|a| a=='none'}.sort
+    end
+    nil
+  end
 
 end
 # vim: set ts=2 sw=2 et :
