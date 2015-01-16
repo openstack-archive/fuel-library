@@ -1,8 +1,32 @@
-Puppet::Type.type(:l2_bridge).provide(:ovs) do
-#  confine    :osfamily => :linux
+require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_base')
+
+Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Lnx_base) do
   commands   :vsctl   => 'ovs-vsctl',
+             :brctl   => 'brctl',
              :iproute => 'ip'
 
+
+  def self.prefetch(resources)
+    interfaces = instances
+    resources.keys.each do |name|
+      if provider = interfaces.find{ |ii| ii.name == name }
+        resources[name].provider = provider
+      end
+    end
+  end
+
+  def self.instances
+    rv = []
+    get_bridge_list().each_pair do |bridge, props|
+      rv << new({
+        :ensure   => :present,
+        :name     => bridge,
+        :br_type  => props[:br_type],
+      }) if props[:br_type] == :ovs
+    end
+    rv
+  end
+  #-----------------------------------------------------------------
 
   def exists?
     vsctl("br-exists", @resource[:bridge])
@@ -38,15 +62,38 @@ Puppet::Type.type(:l2_bridge).provide(:ovs) do
     vsctl("del-br", @resource[:bridge])
   end
 
-  def _split(string, splitter=",")
-    return Hash[string.split(splitter).map{|i| i.split("=")}]
+  def initialize(value={})
+    super(value)
+    @property_flush = {}
+    @old_property_hash = {}
+    @old_property_hash.merge! @property_hash
+  end
+
+  def flush
+    if @property_flush
+      debug("FLUSH properties: #{@property_flush}")
+      #
+      # FLUSH changed properties
+      # if ! @property_flush[:mtu].nil?
+      #   File.open("/sys/class/net/#{@resource[:interface]}/mtu", "w") { |f| f.write(@property_flush[:mtu]) }
+      # end
+      @property_hash = resource.to_hash
+    end
+  end
+
+
+  #-----------------------------------------------------------------
+  def br_type
+    @property_hash[:br_type] || :absent
+  end
+  def br_type=(val)
+    @property_flush[:br_type] = val
   end
 
   def external_ids
     result = vsctl("br-get-external-id", @resource[:bridge])
     return result.split("\n").join(",")
   end
-
   def external_ids=(value)
     old_ids = _split(external_ids)
     new_ids = _split(value)
@@ -57,5 +104,11 @@ Puppet::Type.type(:l2_bridge).provide(:ovs) do
       end
     end
   end
+  #-----------------------------------------------------------------
+
+  def _split(string, splitter=",")
+    return Hash[string.split(splitter).map{|i| i.split("=")}]
+  end
+
 end
 # vim: set ts=2 sw=2 et :

@@ -26,6 +26,13 @@ Puppet::Type.newtype(:l2_bridge) do
       desc "External IDs for the bridge"
     end
 
+    newproperty(:br_type) do
+      desc "Internal read-only property"
+      validate do |value|
+        raise ArgumentError, "You shouldn't change br_type -- it's a internal RO property!"
+      end
+    end
+
     # global validator
     def validate
         # require 'pry'
