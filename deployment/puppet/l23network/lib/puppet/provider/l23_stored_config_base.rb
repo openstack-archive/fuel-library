@@ -9,7 +9,7 @@ class Puppet::Provider::L23_stored_config_base < Puppet::Provider
   VLAN_RANGE_REGEX = %r[\d{1,3}|40[0-9][0-5]]
 
   # @return [Regexp] The regular expression for interface scripts
-  SCRIPT_REGEX     = %r[\Aifcfg-[a-z]+[a-z\d]+(?::\d+|\.#{VLAN_RANGE_REGEX})?\Z]
+  SCRIPT_REGEX     = %r[\Aifcfg-[a-z]+[\w\d-]+(?::\d+|\.#{VLAN_RANGE_REGEX})?\Z]
 
   def self.script_directory
     raise "Should be implemented in more specific class."

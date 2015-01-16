@@ -84,19 +84,20 @@ define l23network::l2::port (
   #   L2_bridge[$bridge] -> L2_port[$port_name]
   # }
 
-  if ! defined (L2_port[$port_name]) {
+  if ! defined(L2_port[$port_name]) {
     if $provider {
       $config_provider = "${provider}_${::l23_os}"
     } else {
       $config_provider = undef
     }
 
-    if ! defined (L23_stored_config[$port_name]) {
+    if ! defined(L23_stored_config[$port_name]) {
       l23_stored_config { $port_name: }
     }
     L23_stored_config <| title == $port_name |> {
       ensure        => $ensure,
       if_type       => 'ethernet',
+      bridge        => $bridge,
       vlan_id       => $port_vlan_id,
       vlan_dev      => $port_vlan_dev,
       vlan_mode     => $port_vlan_mode,
