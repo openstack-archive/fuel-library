@@ -13,7 +13,7 @@ class l23network::l2 (
     case $::osfamily {
       /(?i)debian/: {
         package { 'openvswitch-datapath':
-          name => 'openvswitch-datapath-lts-saucy-dkms'
+          name => 'openvswitch-datapath-dkms'
         }
         package { 'openvswitch-common':
           name => 'openvswitch-switch'
