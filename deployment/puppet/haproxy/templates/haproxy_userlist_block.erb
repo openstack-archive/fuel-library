@@ -1,0 +1,12 @@
+
+userlist <%= @name %>
+<%- Array(@groups).each do |group| -%>
+  <%- if group and ! group.empty? -%>
+  group <%= group %>
+  <%- end -%>
+<%- end -%>
+<%- Array(@users).each do |user| -%>
+  <%- if user and ! user.empty? -%>
+  user <%= user %>
+  <%- end -%>
+<%- end -%>

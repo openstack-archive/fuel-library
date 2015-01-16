@@ -1,0 +1,20 @@
+---
+default_set: 'centos-64-x64'
+sets:
+  'centos-64-x64':
+    nodes:
+      "main.foo.vm":
+        prefab: 'centos-64-x64'
+  'multi-centos-64-x64':
+    default_node: 'lb'
+    nodes:
+      "lb":
+        prefab: 'centos-64-x64'
+      "slave1":
+        prefab: 'centos-64-x64'
+      "slave2":
+        prefab: 'centos-64-x64'
+  'ubuntu-server-12042-x64':
+    nodes:
+      "main.foo.vm":
+        prefab: 'ubuntu-server-12042-x64'

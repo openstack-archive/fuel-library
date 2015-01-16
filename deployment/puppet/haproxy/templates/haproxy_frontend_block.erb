@@ -1,13 +1,5 @@
 
 frontend <%= @name %>
-<% Array(@ipaddress).uniq.each do |virtual_ip| (@ports.is_a?(Array) ? @ports : Array(@ports.split(","))).each do |port| -%>
-  bind <%= virtual_ip %>:<%= port %>
-<% end end -%>
-<% if @mode -%>
-  mode  <%= @mode %>
-<% end -%>
-<% @options.sort.each do |key, val| -%>
-<% Array(val).each do |item| -%>
-  <%= key %>  <%= item %>
-<% end -%>
-<% end -%>
+<%= scope.function_template(['haproxy/fragments/_bind.erb']) -%>
+<%= scope.function_template(['haproxy/fragments/_mode.erb']) -%>
+<%= scope.function_template(['haproxy/fragments/_options.erb']) -%>
