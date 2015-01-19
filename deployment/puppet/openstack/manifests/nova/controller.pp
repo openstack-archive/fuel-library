@@ -179,8 +179,8 @@ class openstack::nova::controller (
     'cluster_partition_handling'   => $cluster_partition_handling,
   }
   $environment_variables       = {
-    'RABBIT_SERVER_ERL_ARGS'       => '"+K true +A30 +P 1048576"',
-    'RABBITMQ_PID_FILE'            => $rabbit_pid_file,
+    'SERVER_ERL_ARGS'       => '"+K true +A30 +P 1048576"',
+    'PID_FILE'              => $rabbit_pid_file,
   }
 
   # Install / configure queue provider
