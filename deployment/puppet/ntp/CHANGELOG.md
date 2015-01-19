@@ -1,3 +1,41 @@
+##2014-11-04 - Supported Release 3.3.0
+###Summary
+
+This release adds support for SLES 12.
+
+####Features
+- Added support for SLES 12
+
+##2014-10-02 - Supported Release 3.2.1
+###Summary
+
+This is a bug-fix release addressing the security concerns of setting /etc/ntp to mode 0755 recursively.
+
+####Bugfixes
+- Do not recursively set ownership/mode of /etc/ntp
+
+##2014-09-10 - Supported Release 3.2.0
+###Summary
+
+This is primarily a feature release. It adds a few new parameters to class `ntp`
+and adds support for Solaris 11.
+
+####Features
+- Add the `$interfaces` parameter to `ntp`
+- Add support for Solaris 10 and 11
+- Synchronized files with modulesync
+- Test updates
+- Add the `$iburst_enable` parameter to `ntp`
+
+####Bugfixes
+- Fixes for strict variables
+- Remove dependency on stdlib4
+
+##2014-06-06 - Release 3.1.2
+###Summary
+
+This is a supported release.  This release fixes a manifest typo.
+
 ##2014-06-06 - Release 3.1.1
 ###Summary
 
