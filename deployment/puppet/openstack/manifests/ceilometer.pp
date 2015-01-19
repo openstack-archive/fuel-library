@@ -6,6 +6,7 @@
 
 class openstack::ceilometer (
   $keystone_password   = 'ceilometer_pass',
+  $keystone_user       = 'ceilometer',
   $metering_secret     = 'ceilometer',
   $verbose             =  false,
   $use_syslog          =  false,
@@ -52,6 +53,7 @@ class openstack::ceilometer (
   # Configure authentication for agents
   class { '::ceilometer::agent::auth':
     auth_url      => "http://${keystone_host}:5000/v2.0",
+    auth_user     => $keystone_user,
     auth_password => $keystone_password,
   }
 
@@ -91,6 +93,7 @@ class openstack::ceilometer (
     # The keystone_password parameter is mandatory
     class { '::ceilometer::api':
       keystone_host     => $keystone_host,
+      keystone_user     => $keystone_user,
       keystone_password => $keystone_password,
       host              => $host,
       port              => $port,

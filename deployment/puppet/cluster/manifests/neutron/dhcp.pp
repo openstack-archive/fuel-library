@@ -40,7 +40,7 @@ class cluster::neutron::dhcp (
     csr_parameters  => {
       'os_auth_url'      => $auth_url,
       'tenant'           => $admin_tenant_name,
-      'username'         => $admin_user,
+      'username'         => $admin_username,
       'password'         => $admin_password,
       'multiple_agents'  => $multiple_agents,
       'amqp_server_port' => $amqp_server_port

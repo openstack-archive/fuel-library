@@ -138,6 +138,125 @@ class osnailyfacter::cluster_ha {
   $nodes_hash           = $::fuel_settings['nodes']
   $mp_hash              = $::fuel_settings['mp']
   $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
+  $ext_auth_hash        = $::fuel_settings['external_auth']
+
+  # keystone
+  $keystone_admin_user     = $access_hash['user']
+  $keystone_admin_password = $access_hash['password']
+
+  # swift
+  # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
+  if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
+    $use_swift = true
+  } else {
+    $use_swift = false
+  }
+
+  if $ext_auth_hash['is_enabled'] {
+    $identity_driver = 'keystone.identity.backends.ldap.Identity'
+    $allow_add_user = false
+
+    # glance
+    $glance_keystone_user     = $ext_auth_hash['glance_account']
+    $glance_keystone_password = $ext_auth_hash['glance_pass']
+
+    # nova
+    $nova_keystone_user     = $ext_auth_hash['nova_account']
+    $nova_keystone_password = $ext_auth_hash['nova_pass']
+
+    # cinder
+    $cinder_keystone_user     = $ext_auth_hash['cinder_account']
+    $cinder_keystone_password = $ext_auth_hash['cinder_pass']
+
+    # ceilometer
+    if $ceilometer_hash['enabled'] {
+      $ceilometer_keystone_user     = $ext_auth_hash['ceilometer_account']
+      $ceilometer_keystone_password = $ext_auth_hash['ceilometer_pass']
+    }
+
+    # neutron
+    if $::use_neutron {
+      $neutron_keystone_user     = $ext_auth_hash['neutron_account']
+      $neutron_keystone_password = $ext_auth_hash['neutron_pass']
+    }
+
+    # swift
+    if ($use_swift) {
+      $swift_keystone_user     = $ext_auth_hash['swift_account']
+      $swift_keystone_password = $ext_auth_hash['swift_pass']
+    }
+
+    # sahara
+    if $sahara_hash['enabled'] {
+      $sahara_keystone_user     = $ext_auth_hash['sahara_account']
+      $sahara_keystone_password = $ext_auth_hash['sahara_pass']
+    }
+
+    # heat
+    $heat_keystone_user         = $ext_auth_hash['heat_account']
+    $heat_keystone_password     = $ext_auth_hash['heat_pass']
+    $heat_cfn_keystone_user     = $ext_auth_hash['heat_cfn_account']
+    $heat_cfn_keystone_password = $ext_auth_hash['heat_cfn_pass']
+
+    # murano
+    if $murano_hash['enabled'] {
+      $murano_keystone_user     = $ext_auth_hash['murano_account']
+      $murano_keystone_password = $ext_auth_hash['murano_pass']
+    }
+  } else {
+    $identity_driver = 'keystone.identity.backends.sql.Identity'
+    $allow_add_user = true
+    # keystone
+    $keystone_admin_email = $access_hash['email']
+
+    # glance
+    $glance_keystone_user     = 'glance'
+    $glance_keystone_password = $glance_hash['user_password']
+
+    # nova
+    $nova_keystone_user     = 'nova'
+    $nova_keystone_password = $nova_hash['user_password']
+
+    # cinder
+    $cinder_keystone_user     = 'cinder'
+    $cinder_keystone_password = $cinder_hash['user_password']
+
+    # ceilometer
+    if $ceilometer_hash['enabled'] {
+      $ceilometer_keystone_user     = 'ceilometer'
+      $ceilometer_keystone_password = $ceilometer_hash['user_password']
+    }
+
+    # neutron
+    if $::use_neutron {
+      $neutron_keystone_user     = 'neutron'
+      $neutron_keystone_password = $neutron_config['keystone']['admin_password']
+    }
+
+    # swift
+    if ($use_swift) {
+      $swift_keystone_user     = 'swift'
+      $swift_keystone_password = $swift_hash['user_password']
+    }
+
+    # sahara
+    if $sahara_hash['enabled'] {
+      $sahara_keystone_user     = 'sahara'
+      $sahara_keystone_password = $sahara_hash['user_password']
+    }
+
+    # heat
+    $heat_keystone_user         = 'heat'
+    $heat_keystone_password     = $heat_hash['user_password']
+    $heat_cfn_keystone_user     = 'heat-cfn'
+    $heat_cfn_keystone_password = $heat_hash['user_password']
+
+    # murano
+    if $murano_hash['enabled'] {
+      $murano_keystone_user     = 'murano'
+      $murano_keystone_password = $murano_hash['user_password']
+    }
+  }
 
   if $ext_mongo {
     $mongo_hosts = $ext_mongo_hash['hosts_ip']
@@ -325,13 +444,6 @@ class osnailyfacter::cluster_ha {
     }
   }
 
-  # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
-  if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
-    $use_swift = true
-  } else {
-    $use_swift = false
-  }
-
   if ($use_swift) {
     if !$::fuel_settings['swift_partition'] {
       $swift_partition = '/var/lib/glance/node'
@@ -394,14 +506,18 @@ class osnailyfacter::cluster_ha {
       verbose                        => $::osnailyfacter::cluster_ha::verbose,
       auto_assign_floating_ip        => $::fuel_settings['auto_assign_floating_ip'],
       mysql_root_password            => $::osnailyfacter::cluster_ha::mysql_hash[root_password],
-      admin_email                    => $::osnailyfacter::cluster_ha::access_hash[email],
-      admin_user                     => $::osnailyfacter::cluster_ha::access_hash[user],
-      admin_password                 => $::osnailyfacter::cluster_ha::access_hash[password],
+      admin_email                    => $::osnailyfacter::cluster_ha::keystone_admin_email,
+      admin_user                     => $::osnailyfacter::cluster_ha::keystone_admin_user,
+      admin_password                 => $::osnailyfacter::cluster_ha::keystone_admin_password,
       keystone_db_password           => $::osnailyfacter::cluster_ha::keystone_hash[db_password],
       keystone_admin_token           => $::osnailyfacter::cluster_ha::keystone_hash[admin_token],
       keystone_admin_tenant          => $::osnailyfacter::cluster_ha::access_hash[tenant],
+      identity_driver                => $::osnailyfacter::cluster_ha::identity_driver,
+      ext_auth_cfg                   => $::osnailyfacter::cluster_ha::ext_auth_hash,
+      allow_add_user                 => $::osnailyfacter::cluster_ha::allow_add_user,
       glance_db_password             => $::osnailyfacter::cluster_ha::glance_hash[db_password],
-      glance_user_password           => $::osnailyfacter::cluster_ha::glance_hash[user_password],
+      glance_user_name               => $::osnailyfacter::cluster_ha::glance_keystone_user,
+      glance_user_password           => $::osnailyfacter::cluster_ha::glance_keystone_password,
       glance_image_cache_max_size    => $::osnailyfacter::cluster_ha::glance_hash[image_cache_max_size],
       known_stores                   => $::osnailyfacter::cluster_ha::glance_known_stores,
       glance_vcenter_host            => $::osnailyfacter::cluster_ha::storage_hash['vc_host'],
@@ -411,7 +527,8 @@ class osnailyfacter::cluster_ha {
       glance_vcenter_datastore       => $::osnailyfacter::cluster_ha::storage_hash['vc_datastore'],
       glance_vcenter_image_dir       => $::osnailyfacter::cluster_ha::storage_hash['vc_image_dir'],
       nova_db_password               => $::osnailyfacter::cluster_ha::nova_hash[db_password],
-      nova_user_password             => $::osnailyfacter::cluster_ha::nova_hash[user_password],
+      nova_user_name                 => $::osnailyfacter::cluster_ha::nova_keystone_user,
+      nova_user_password             => $::osnailyfacter::cluster_ha::nova_keystone_password,
       queue_provider                 => $::queue_provider,
       amqp_hosts                     => $::osnailyfacter::cluster_ha::amqp_hosts,
       amqp_user                      => $::osnailyfacter::cluster_ha::rabbit_hash['user'],
@@ -429,13 +546,15 @@ class osnailyfacter::cluster_ha {
 
       network_provider               => $::osnailyfacter::cluster_ha::network_provider,
       neutron_db_password            => $::osnailyfacter::cluster_ha::neutron_db_password,
-      neutron_user_password          => $::osnailyfacter::cluster_ha::neutron_user_password,
+      neutron_user_name              => $::osnailyfacter::cluster_ha::neutron_keystone_user,
+      neutron_user_password          => $::osnailyfacter::cluster_ha::neutron_keystone_password,
       neutron_metadata_proxy_secret  => $::osnailyfacter::cluster_ha::neutron_metadata_proxy_secret,
       neutron_ha_agents              => $::osnailyfacter::cluster_ha::primary_controller ? {true => 'primary', default => 'slave'},
       base_mac                       => $::osnailyfacter::cluster_ha::base_mac,
 
       cinder                         => true,
-      cinder_user_password           => $::osnailyfacter::cluster_ha::cinder_hash[user_password],
+      cinder_user_name               => $::osnailyfacter::cluster_ha::cinder_keystone_user,
+      cinder_user_password           => $::osnailyfacter::cluster_ha::cinder_keystone_password,
       cinder_iscsi_bind_addr         => $::osnailyfacter::cluster_ha::cinder_iscsi_bind_addr,
       cinder_db_password             => $::osnailyfacter::cluster_ha::cinder_hash[db_password],
       cinder_volume_group            => "cinder",
@@ -443,7 +562,8 @@ class osnailyfacter::cluster_ha {
       ceilometer                     => $::osnailyfacter::cluster_ha::ceilometer_hash[enabled],
       ceilometer_db_user             => $::osnailyfacter::cluster_ha::ceilometer_db_user,
       ceilometer_db_password         => $::osnailyfacter::cluster_ha::ceilometer_db_password,
-      ceilometer_user_password       => $::osnailyfacter::cluster_ha::ceilometer_hash[user_password],
+      ceilometer_user_name           => $::osnailyfacter::cluster_ha::ceilometer_keystone_user,
+      ceilometer_user_password       => $::osnailyfacter::cluster_ha::ceilometer_keystone_password,
       ceilometer_metering_secret     => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
       ceilometer_db_type             => 'mongodb',
       swift_rados_backend            => $::osnailyfacter::cluster_ha::storage_hash['objects_ceph'],
@@ -567,7 +687,8 @@ class osnailyfacter::cluster_ha {
         $ring_part_power=calc_ring_part_power($controllers,$swift_hash['resize_value'])
 
         class { 'openstack::swift::proxy':
-          swift_user_password     => $swift_hash[user_password],
+          swift_user              => $swift_keystone_user,
+          swift_user_password     => $swift_keystone_password,
           swift_proxies           => $controller_internal_addresses,
           ring_part_power         => $ring_part_power,
           primary_proxy           => $primary_proxy,
@@ -579,10 +700,12 @@ class osnailyfacter::cluster_ha {
           log_facility            => 'LOG_SYSLOG',
         }
         class { 'swift::keystone::auth':
-          password         => $swift_hash[user_password],
-          public_address   => $::fuel_settings['public_vip'],
-          internal_address => $::fuel_settings['management_vip'],
-          admin_address    => $::fuel_settings['management_vip'],
+          auth_name           => $swift_keystone_user,
+          password            => $swift_keystone_password,
+          public_address      => $::fuel_settings['public_vip'],
+          internal_address    => $::fuel_settings['management_vip'],
+          admin_address       => $::fuel_settings['management_vip'],
+          allow_add_user      => $allow_add_user,
         }
       }
       #TODO: PUT this configuration stanza into nova class
@@ -647,8 +770,8 @@ class osnailyfacter::cluster_ha {
           nova_floating_range { $floating_ips_range:
             ensure          => 'present',
             pool            => 'nova',
-            username        => $access_hash[user],
-            api_key         => $access_hash[password],
+            username        => $keystone_admin_user,
+            api_key         => $keystone_admin_password,
             auth_method     => 'password',
             auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
             authtenant_name => $access_hash[tenant],
@@ -678,8 +801,9 @@ class osnailyfacter::cluster_ha {
           sahara_db_host             => $::fuel_settings['management_vip'],
 
           sahara_keystone_host       => $::fuel_settings['management_vip'],
-          sahara_keystone_user       => 'sahara',
-          sahara_keystone_password   => $sahara_hash['user_password'],
+          sahara_keystone_user       => $sahara_keystone_user,
+          sahara_keystone_password   => $sahara_keystone_password,
+          allow_add_user             => $allow_add_user,
           sahara_keystone_tenant     => 'services',
           sahara_auth_uri            => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
           sahara_identity_uri        => "http://${::fuel_settings['management_vip']}:35357/",
@@ -717,34 +841,36 @@ class osnailyfacter::cluster_ha {
       class { 'openstack::heat' :
         external_ip            => $controller_node_public,
 
-        keystone_host     => $controller_node_address,
-        keystone_user     => 'heat',
-        keystone_password =>  $heat_hash['user_password'],
-        keystone_tenant   => 'services',
+        keystone_host         => $controller_node_address,
+        keystone_user         => $heat_keystone_user,
+        keystone_password     => $heat_keystone_password,
+        keystone_cfn_user     => $heat_cfn_keystone_user,
+        keystone_cfn_password => $heat_cfn_keystone_password,
+        keystone_tenant       => 'services',
+        allow_add_user        => $allow_add_user,
+        keystone_ec2_uri      => "http://${controller_node_address}:5000/v2.0",
 
-        keystone_ec2_uri  => "http://${controller_node_address}:5000/v2.0",
-
-        rpc_backend         => 'heat.openstack.common.rpc.impl_kombu',
+        rpc_backend           => 'heat.openstack.common.rpc.impl_kombu',
         #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-        amqp_hosts          => split($amqp_hosts, ','),
-        amqp_user           => $rabbit_hash['user'],
-        amqp_password       => $rabbit_hash['password'],
+        amqp_hosts            => split($amqp_hosts, ','),
+        amqp_user             => $rabbit_hash['user'],
+        amqp_password         => $rabbit_hash['password'],
 
-        sql_connection      =>
+        sql_connection        =>
           "mysql://heat:${heat_hash['db_password']}@${$controller_node_address}/heat?read_timeout=60",
-        db_host             => $controller_node_address,
-        db_password         => $heat_hash['db_password'],
-        max_retries         => $max_retries,
-        max_pool_size       => $max_pool_size,
-        max_overflow        => $max_overflow,
-        idle_timeout        => $idle_timeout,
+        db_host               => $controller_node_address,
+        db_password           => $heat_hash['db_password'],
+        max_retries           => $max_retries,
+        max_pool_size         => $max_pool_size,
+        max_overflow          => $max_overflow,
+        idle_timeout          => $idle_timeout,
 
-        debug               => $::debug,
-        verbose             => $::verbose,
-        use_syslog          => $::use_syslog,
-        syslog_log_facility => $::syslog_log_facility_heat,
+        debug                 => $::debug,
+        verbose               => $::verbose,
+        use_syslog            => $::use_syslog,
+        syslog_log_facility   => $::syslog_log_facility_heat,
 
-        auth_encryption_key => $heat_hash['auth_encryption_key'],
+        auth_encryption_key   => $heat_hash['auth_encryption_key'],
 
       }
       include heat_ha::engine
@@ -793,10 +919,11 @@ class osnailyfacter::cluster_ha {
           murano_db_password       => $murano_hash['db_password'],
 
           murano_keystone_host     => $::fuel_settings['management_vip'],
-          murano_keystone_user     => 'murano',
-          murano_keystone_password => $murano_hash['user_password'],
-          murano_keystone_tenant   => 'services',
 
+          murano_keystone_user     => $murano_keystone_user,
+          murano_keystone_password => $murano_keystone_password,
+          murano_keystone_tenant   => 'services',
+          allow_add_user           => $allow_add_user,
           use_neutron              => $::use_neutron,
 
           use_syslog               => $::use_syslog,
@@ -805,6 +932,7 @@ class osnailyfacter::cluster_ha {
           syslog_log_facility      => $::syslog_log_facility_murano,
 
           primary_controller       => $primary_controller,
+
         }
 
        Class['openstack::heat'] -> Class['murano']
@@ -876,20 +1004,24 @@ class osnailyfacter::cluster_ha {
         cinder_volume_group         => "cinder",
         vnc_enabled                 => true,
         manage_volumes              => $manage_volumes,
-        nova_user_password          => $nova_hash[user_password],
+        nova_user_name              => $nova_keystone_user,
+        nova_user_password          => $nova_keystone_password,
         cache_server_ip             => $controller_nodes,
         service_endpoint            => $::fuel_settings['management_vip'],
         cinder                      => true,
         cinder_iscsi_bind_addr      => $cinder_iscsi_bind_addr,
-        cinder_user_password        => $cinder_hash[user_password],
+        cinder_user_name            => $cinder_keystone_user,
+        cinder_user_password        => $cinder_keystone_password,
         cinder_db_password          => $cinder_hash[db_password],
         ceilometer                  => $ceilometer_hash[enabled],
         ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
-        ceilometer_user_password    => $ceilometer_hash[user_password],
+        ceilometer_user_name        => $ceilometer_keystone_user,
+        ceilometer_user_password    => $ceilometer_keystone_password,
         db_host                     => $::fuel_settings['management_vip'],
 
         network_provider            => $::osnailyfacter::cluster_ha::network_provider,
-        neutron_user_password       => $::osnailyfacter::cluster_ha::neutron_user_password,
+        neutron_user_name           => $neutron_keystone_user,
+        neutron_user_password       => $neutron_keystone_password,
         base_mac                    => $::osnailyfacter::cluster_ha::base_mac,
 
         use_syslog                  => $use_syslog,
@@ -899,6 +1031,7 @@ class osnailyfacter::cluster_ha {
         nova_report_interval        => $::nova_report_interval,
         nova_service_down_time      => $::nova_service_down_time,
         state_path                  => $nova_hash[state_path],
+        ext_auth_cfg                => $ext_auth_hash,
       }
 
       if ($::use_ceph){
@@ -997,7 +1130,8 @@ class osnailyfacter::cluster_ha {
         enabled              => true,
         auth_host            => $::fuel_settings['management_vip'],
         iscsi_bind_host      => $::storage_address,
-        cinder_user_password => $cinder_hash[user_password],
+        keystone_user        => $cinder_keystone_user,
+        cinder_user_password => $cinder_keystone_password,
         syslog_log_facility  => $::syslog_log_facility_cinder,
         debug                => $::debug,
         verbose              => $::verbose,
@@ -1088,7 +1222,8 @@ class osnailyfacter::cluster_ha {
       }
 
       class { 'openstack::swift::proxy':
-        swift_user_password     => $swift_hash[user_password],
+        swift_user              => $swift_keystone_user,
+        swift_user_password     => $swift_keystone_password,
         swift_proxies           => $swift_proxies,
         primary_proxy           => $primary_proxy,
         controller_node_address => $::fuel_settings['management_vip'],
