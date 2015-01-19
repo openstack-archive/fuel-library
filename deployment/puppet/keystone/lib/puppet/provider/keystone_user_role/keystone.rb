@@ -178,7 +178,8 @@ Puppet::Type.type(:keystone_user_role).provide(
       @users ||= {}
       user_key = "#{name}@#{tenant_id}"
       unless @users[user_key]
-        list_keystone_objects('user', 4, '--tenant-id', tenant_id).each do |user|
+        # list_keystone_objects('user', 4, '--tenant-id', tenant_id).each do |user|
+        list_keystone_objects('user', 4).each do |user|
           @users["#{user[1]}@#{tenant_id}"] = user[0]
         end
       end
@@ -187,7 +188,8 @@ Puppet::Type.type(:keystone_user_role).provide(
 
     def self.get_users(tenant_id='')
       @users = {}
-      list_keystone_objects('user', 4, '--tenant-id', tenant_id).each do |user|
+      # list_keystone_objects('user', 4, '--tenant-id', tenant_id).each do |user|
+      list_keystone_objects('user', 4).each do |user|
         @users[user[1]] = user[0]
       end
       @users

@@ -118,44 +118,13 @@ class NeutronCleaner(object):
                     self.log.error(">>> Keystone error: no more retries for connect to keystone server.")
                     sys.exit(1)
                 try:
-                    a_token = self.options.get('auth-token')
-                    a_url = self.options.get('admin-auth-url')
-                    if a_token and a_url:
-                        self.log.debug("Authentication by predefined token.")
-                        # create keystone instance, authorized by service token
-                        ks = ks_client.Client(
-                            token=a_token,
-                            endpoint=a_url,
-                        )
-                        service_tenant = ks.tenants.find(name='services')
-                        auth_url = ks.endpoints.find(
-                                        service_id=ks.services.find(type='identity').id
-                                   ).internalurl
-                        # find and re-create temporary rescheduling-admin user with random password
-                        try:
-                            user = ks.users.find(username=TMP_USER_NAME)
-                            ks.users.delete(user)
-                        except ks_NotFound:
-                            # user not found, it's OK
-                            pass
-                        user = ks.users.create(TMP_USER_NAME, tmp_passwd, tenant_id=service_tenant.id)
-                        ks.roles.add_user_role(user, ks.roles.find(name='admin'), service_tenant)
-                        # authenticate newly-created tmp neutron admin
-                        self._keystone = ks_client.Client(
-                            username=user.username,
-                            password=tmp_passwd,
-                            tenant_id=user.tenantId,
-                            auth_url=auth_url,
-                        )
-                        self._need_cleanup_tmp_admin = True
-                    else:
-                        self.log.debug("Authentication by given credentionals.")
-                        self._keystone = ks_client.Client(
+                    self.log.debug("Authentication by given credentionals.")
+                    self._keystone = ks_client.Client(
                             username=self.auth_config['OS_USERNAME'],
                             password=self.auth_config['OS_PASSWORD'],
                             tenant_name=self.auth_config['OS_TENANT_NAME'],
                             auth_url=self.auth_config['OS_AUTH_URL'],
-                        )
+                    )
                     break
                 except Exception as e:
                     errmsg = str(e.message).strip()  # str() need, because keystone may use int as message in exception

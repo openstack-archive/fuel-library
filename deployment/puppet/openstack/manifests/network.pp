@@ -80,6 +80,7 @@ class openstack::network (
   $enable_nova_net      = false,
   $integration_bridge   = undef, #'br-int'
   $nova_neutron         = false, #Enable to run nova::network::neutron, usefull for computes and controllers, but not routers
+  $nova_admin_username  = 'nova',
   $nova_admin_password  = 'secret',
   $nova_url             = 'http://127.0.0.1:8774/v2',
 
@@ -181,7 +182,7 @@ class openstack::network (
         # $ha_agents for "HA" configurations may be 'primary' or 'slave'. Database should
         # be synced only on primary controller.
         class { '::neutron::server':
-          sync_db       =>  $ha_agents ? {'primary' => true, false => true, default => false},
+          sync_db       => $ha_agents ? {'primary' => true, false => true, default => false},
 
           auth_host     => $auth_host,
           auth_port     => $auth_port,
@@ -210,7 +211,7 @@ class openstack::network (
         class { 'neutron::server::notifications':
           nova_url                => $nova_url,
           nova_admin_auth_url     => $auth_url,
-          nova_admin_username     => 'nova', # Default
+          nova_admin_username     => $nova_admin_username,
           nova_admin_tenant_name  => 'services', # Default
           nova_admin_password     => $nova_admin_password,
         }
@@ -225,40 +226,40 @@ class openstack::network (
 
       if $agents {
         class {'openstack::network::neutron_agents':
-          agents    => $agents,
-          ha_agents => $ha_agents,
-          verbose   => $verbose,
-          debug     => $debug,
+          agents                  => $agents,
+          ha_agents               => $ha_agents,
+          verbose                 => $verbose,
+          debug                   => $debug,
 
-          admin_password    => $admin_password,
-          admin_tenant_name => $admin_tenant_name,
-          admin_username    => $admin_username,
-          auth_url          => $auth_url,
+          admin_password          => $admin_password,
+          admin_tenant_name       => $admin_tenant_name,
+          admin_username          => $admin_username,
+          auth_url                => $auth_url,
 
           #ovs
-          tunnel_bridge         => $tunnel_bridge,
-          enable_tunneling      => $enable_tunneling,
-          integration_bridge    => $integration_bridge,
-          tunnel_id_ranges      => $tunnel_id_ranges,
-          tenant_network_types  => $tenant_network_types,
-          network_vlan_ranges   => $network_vlan_ranges,
-          bridge_mappings       => $bridge_mappings,
-          local_ip              => $local_ip,
+          tunnel_bridge           => $tunnel_bridge,
+          enable_tunneling        => $enable_tunneling,
+          integration_bridge      => $integration_bridge,
+          tunnel_id_ranges        => $tunnel_id_ranges,
+          tenant_network_types    => $tenant_network_types,
+          network_vlan_ranges     => $network_vlan_ranges,
+          bridge_mappings         => $bridge_mappings,
+          local_ip                => $local_ip,
 
           #ML2 only
-          type_drivers          => $type_drivers,
-          mechanism_drivers     => $mechanism_drivers,
-          flat_networks         => $flat_networks,
-          vxlan_group           => $vxlan_group,
-          vni_ranges            => $vni_ranges,
+          type_drivers            => $type_drivers,
+          mechanism_drivers       => $mechanism_drivers,
+          flat_networks           => $flat_networks,
+          vxlan_group             => $vxlan_group,
+          vni_ranges              => $vni_ranges,
 
           #metadata-agent
-          shared_secret => $shared_secret,
-          metadata_ip   => $metadata_ip,
+          shared_secret           => $shared_secret,
+          metadata_ip             => $metadata_ip,
 
           #dhcp-agent
-          resync_interval => $resync_interval,
-          use_namespaces  => $use_namespaces,
+          resync_interval         => $resync_interval,
+          use_namespaces          => $use_namespaces,
 
           #l3-agent
           metadata_port           => $metadata_port,

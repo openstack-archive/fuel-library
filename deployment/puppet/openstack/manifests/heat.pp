@@ -12,8 +12,11 @@ class openstack::heat (
   $keystone_user                 = 'heat',
   $keystone_tenant               = 'services',
   $keystone_password             = false,
+  $keystone_cfn_user             = 'heat',
+  $keystone_cfn_password         = false,
   $keystone_ec2_uri              = false,
   $auth_uri                      = false,
+  $allow_add_user                = true,
 
   $verbose                       = false,
   $debug                         = false,
@@ -56,6 +59,7 @@ class openstack::heat (
 ){
 
   # No empty passwords allowed
+  validate_string($keystone_cfn_password)
   validate_string($keystone_password)
   validate_string($amqp_password)
   validate_string($db_password)
@@ -142,12 +146,14 @@ class openstack::heat (
     admin_protocol                 => 'http',
     internal_protocol              => 'http',
     configure_endpoint             => true,
+    allow_add_user                 => $allow_add_user,
 
   }
   #TODO(bogdando) clarify this new to Fuel Heat auth cfn patterns
   class { 'heat::keystone::auth_cfn' :
-    password                       => $keystone_password,
-    auth_name                      => "${keystone_user}-cfn",
+    password                       => $keystone_cfn_password,
+    auth_name                      => $keystone_cfn_user,
+    allow_add_user                 => $allow_add_user,
     service_type                   => 'cloudformation',
     public_address                 => $external_ip,
     admin_address                  => $keystone_host,
