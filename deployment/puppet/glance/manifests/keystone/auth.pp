@@ -6,6 +6,7 @@
 #  $auth_name :: identifier used for all keystone objects related to glance.
 #    Optional. Defaults to glance.
 #  $password :: password for glance user. Optional. Defaults to glance_password.
+#  $service_name :: dentifier service for all keystone objects related to glance.
 #  $service_type :: type of service to create. Optional. Defaults to image.
 #  $public_address :: Public address for endpoint. Optional. Defaults to 127.0.0.1.
 #  $admin_address :: Admin address for endpoint. Optional. Defaults to 127.0.0.1.
@@ -22,6 +23,7 @@ class glance::keystone::auth(
   $email              = 'glance@localhost',
   $auth_name          = 'glance',
   $configure_endpoint = true,
+  $service_name       = 'glance',
   $service_type       = 'image',
   $public_address     = '127.0.0.1',
   $admin_address      = '127.0.0.1',
@@ -31,33 +33,38 @@ class glance::keystone::auth(
   $tenant             = 'services',
   $public_protocol    = 'http',
   $admin_protocol     = 'http',
-  $internal_protocol  = 'http'
+  $internal_protocol  = 'http',
+  $allow_add_user     = true,
 ) {
 
-  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'glance-registry' |>
-  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'glance-api' |>
-  Keystone_endpoint["${region}/${auth_name}"]  ~> Service <| name == 'glance-api' |>
+  Keystone_user_role["${auth_name}@${tenant}"]   ~> Service <| name == 'glance-registry' |>
+  Keystone_user_role["${auth_name}@${tenant}"]   ~> Service <| name == 'glance-api' |>
+  Keystone_endpoint["${region}/${service_name}"] ~> Service <| name == 'glance-api' |>
 
-  keystone_user { $auth_name:
-    ensure   => present,
-    password => $password,
-    email    => $email,
-    tenant   => $tenant,
+  if ($allow_add_user != false) {
+    keystone_user { $auth_name:
+      ensure   => present,
+      password => $password,
+      email    => $email,
+      tenant   => $tenant,
+    }
   }
 
-  keystone_user_role { "${auth_name}@${tenant}":
-    ensure  => present,
-    roles   => 'admin',
+  if !defined(Keystone_user_role["${auth_name}@${tenant}"]) {
+    keystone_user_role { "${auth_name}@${tenant}":
+      ensure  => present,
+      roles   => 'admin',
+    }
   }
 
-  keystone_service { $auth_name:
+  keystone_service { $service_name:
     ensure      => present,
     type        => $service_type,
     description => 'Openstack Image Service',
   }
 
   if $configure_endpoint {
-    keystone_endpoint { "${region}/${auth_name}":
+    keystone_endpoint { "${region}/${service_name}":
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${port}",
       admin_url    => "${admin_protocol}://${admin_address}:${port}",
