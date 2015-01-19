@@ -26,7 +26,7 @@ class vmware::ceilometer (
 
   if $ha_mode {
     file {'ceilometer-agent-compute-ocf':
-      path   =>'/usr/lib/ocf/resource.d/mirantis/ceilometer-agent-compute',
+      path   =>'/usr/lib/ocf/resource.d/fuel/ceilometer-agent-compute',
       mode   => '0755',
       owner  => root,
       group  => root,

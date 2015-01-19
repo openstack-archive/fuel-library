@@ -17,7 +17,7 @@ describe 'vmware::ceilometer::ha' do
   it 'should create service p_ceilometer_agent_compute_vmware_0' do
     should contain_cs_resource('p_ceilometer_agent_compute_vmware_0').with({
       'primitive_class' => 'ocf',
-      'provided_by' => 'mirantis',
+      'provided_by' => 'fuel',
     })
   end
 

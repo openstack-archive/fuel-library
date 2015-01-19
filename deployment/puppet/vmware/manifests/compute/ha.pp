@@ -55,7 +55,7 @@ define vmware::compute::ha(
   cs_resource { "p_nova_compute_vmware_${index}":
     ensure          => present,
     primitive_class => 'ocf',
-    provided_by     => 'mirantis',
+    provided_by     => 'fuel',
     primitive_type  => 'nova-compute',
     metadata        => {
       resource-stickiness => '1'
