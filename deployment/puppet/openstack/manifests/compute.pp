@@ -59,6 +59,7 @@ class openstack::compute (
   $internal_address,
   # Required Nova
   $nova_user_password,
+  $nova_user_name,
   # Network
   # DB
   $sql_connection                 = false,
@@ -92,9 +93,11 @@ class openstack::compute (
   # Neutron
   $network_provider               = 'nova',
   $neutron_integration_bridge     = 'br-int',
+  $neutron_user_name              = 'neutron',
   $neutron_user_password          = 'asdf1234',
   $base_mac                       = 'fa:16:3e:00:00:00',
   # Ceilometer
+  $ceilometer_user_name           = 'ceilometer',
   $ceilometer_user_password       = 'ceilometer_pass',
   # nova compute configuration parameters
   $verbose                        = false,
@@ -110,6 +113,7 @@ class openstack::compute (
   $cinder_volume_group            = 'cinder-volumes',
   $cinder                         = true,
   $cinder_user_password           = 'cinder_user_pass',
+  $cinder_user_name               = 'cinder',
   $cinder_db_password             = 'cinder_db_pass',
   $cinder_db_user                 = 'cinder',
   $cinder_db_dbname               = 'cinder',
@@ -128,6 +132,7 @@ class openstack::compute (
   $ceilometer                     = false,
   $ceilometer_metering_secret     = 'ceilometer',
   $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
+  $ext_auth_cfg                   = {},
 ) {
 
   #
@@ -472,6 +477,7 @@ on packages update": }
       amqp_user                      => $amqp_user,
       amqp_password                  => $amqp_password,
       keystone_host                  => $service_endpoint,
+      keystone_user                  => $ceilometer_user_name,
       keystone_password              => $ceilometer_user_password,
       on_compute                     => true,
       metering_secret                => $ceilometer_metering_secret,
@@ -512,7 +518,7 @@ on packages update": }
         ensure_package       => $::openstack_version['nova'],
         enabled              => true,
         admin_tenant_name    => 'services',
-        admin_user           => 'nova',
+        admin_user           => $nova_user_name,
         admin_password       => $nova_user_password,
         enabled_apis         => $enabled_apis,
         api_bind_address     => $internal_address,
@@ -719,6 +725,7 @@ on packages update": }
     amqp_password  => $amqp_password,
 
     # keystone
+    admin_username => $neutron_user_name,
     admin_password => $neutron_user_password,
     auth_url       => "http://${service_endpoint}:35357/v2.0",
     neutron_url    => "http://${service_endpoint}:9696",

@@ -17,6 +17,7 @@
 # [keystone_db_user] Name of keystone db user. Optional. Defaults to  'keystone'
 # [keystone_db_dbname] Name of keystone DB. Optional. Defaults to  'keystone'
 # [keystone_admin_tenant] Name of keystone admin tenant. Optional. Defaults to  'admin'
+# [identity_driver] identity backend for keystone.
 # [verbose] Rather to print more verbose (INFO+) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option.
 #    Optional. Defaults to false.
@@ -52,12 +53,21 @@ class openstack::keystone (
   $admin_email,
   $admin_user = 'admin',
   $admin_password,
+  $glance_user_name,
   $glance_user_password,
+  $nova_user_name,
   $nova_user_password,
+  $cinder_user_name,
   $cinder_user_password,
+  $ceilometer_user_name,
   $ceilometer_user_password,
+  $neutron_user_name,
   $neutron_user_password,
   $public_address,
+  $allow_add_user              = true,
+  $identity_driver             = "keystone.identity.backends.sql.Identity",
+  $assignment_driver           = 'keystone.assignment.backends.sql.Assignment',
+  $ext_auth_cfg                = {},
   $db_type                     = 'mysql',
   $db_user                     = 'keystone',
   $db_name                     = 'keystone',
@@ -235,6 +245,26 @@ class openstack::keystone (
     notification_topics => $notification_topics,
   }
 
+  if ($identity_driver == 'keystone.identity.backends.ldap.Identity') {
+    notice("Setting LDAP/AD section for Keystone")
+    class { '::keystone::ldap':
+      url                 => $ext_auth_cfg['ldap_url'],
+      user                => $ext_auth_cfg['user_dn'],
+      password            => $ext_auth_cfg['password'],
+      suffix              => $ext_auth_cfg['suffix'],
+      user_tree_dn        => $ext_auth_cfg['user_tree_dn'],
+      user_objectclass    => $ext_auth_cfg['user_objclass'],
+      user_filter         => $ext_auth_cfg['user_filter'],
+      group_tree_dn       => $ext_auth_cfg['group_tree_dn'],
+      group_objectclass   => $ext_auth_cfg['group_objclass'],
+      query_scope         => 'sub',
+      debug_level         => '1',
+      user_allow_create   => false,
+      user_allow_update   => false,
+      user_allow_delete   => false,
+    }
+  }
+
   if $::operatingsystem == 'Ubuntu' {
    if $service_provider == 'pacemaker' {
       tweaks::ubuntu_service_override { 'keystone':
@@ -277,7 +307,8 @@ class openstack::keystone (
     'DATABASE/max_pool_size':                          value => $max_pool_size;
     'DATABASE/max_retries':                            value => $max_retries;
     'DATABASE/max_overflow':                           value => $max_overflow;
-    'identity/driver':                                 value =>"keystone.identity.backends.sql.Identity";
+    'identity/driver':                                 value => $identity_driver;
+    'assignment/driver':                               value => $assignment_driver;
     'policy/driver':                                   value =>"keystone.policy.backends.rules.Policy";
     'ec2/driver':                                      value =>"keystone.contrib.ec2.backends.sql.Ec2";
     'filter:debug/paste.filter_factory':               value =>"keystone.common.wsgi:Debug.factory";
@@ -311,10 +342,11 @@ class openstack::keystone (
   if ($enabled) {
     # Setup the admin user
     class { 'keystone::roles::admin':
-      admin        => $admin_user,
-      email        => $admin_email,
-      password     => $admin_password,
-      admin_tenant => $admin_tenant,
+      admin          => $admin_user,
+      email          => $admin_email,
+      password       => $admin_password,
+      admin_tenant   => $admin_tenant,
+      allow_add_user => $allow_add_user,
     }
     Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::roles::admin']
 
@@ -329,10 +361,12 @@ class openstack::keystone (
     # Configure Glance endpoint in Keystone
     if $glance {
       class { 'glance::keystone::auth':
+        auth_name        => $glance_user_name,
         password         => $glance_user_password,
         public_address   => $glance_public_real,
         admin_address    => $glance_admin_real,
         internal_address => $glance_internal_real,
+        allow_add_user   => $allow_add_user,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['glance::keystone::auth']
     }
@@ -340,11 +374,13 @@ class openstack::keystone (
     # Configure Nova endpoint in Keystone
     if $nova {
       class { 'nova::keystone::auth':
+        auth_name        => $nova_user_name,
         password         => $nova_user_password,
         public_address   => $nova_public_real,
         admin_address    => $nova_admin_real,
         internal_address => $nova_internal_real,
-        cinder            => $cinder,
+        cinder           => $cinder,
+        allow_add_user   => $allow_add_user,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
     }
@@ -352,28 +388,35 @@ class openstack::keystone (
     # Configure Nova endpoint in Keystone
     if $cinder {
       class { 'cinder::keystone::auth':
+        auth_name        => $cinder_user_name,
         password         => $cinder_user_password,
         public_address   => $cinder_public_real,
         admin_address    => $cinder_admin_real,
         internal_address => $cinder_internal_real,
+        allow_add_user   => $allow_add_user,
       }
      Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
     }
     if $neutron {
       class { 'neutron::keystone::auth':
+        auth_name        => $neutron_user_name,
         password         => $neutron_user_password,
+        service_name     => 'neutron',
         public_address   => $neutron_public_real,
         admin_address    => $neutron_admin_real,
         internal_address => $neutron_internal_real,
+        allow_add_user   => $allow_add_user,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['neutron::keystone::auth']
     }
     if $ceilometer {
       class { 'ceilometer::keystone::auth':
+        auth_name        => $ceilometer_user_name,
         password         => $ceilometer_user_password,
         public_address   => $ceilometer_public_real,
         admin_address    => $ceilometer_admin_real,
         internal_address => $ceilometer_internal_real,
+        allow_add_user   => $allow_add_user,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['ceilometer::keystone::auth']
     }

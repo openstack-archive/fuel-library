@@ -9,6 +9,7 @@ class murano (
   $murano_keystone_user                  = 'murano',
   $murano_keystone_password              = 'swordfish',
   $murano_keystone_signing_dir           = '/tmp/keystone-signing-muranoapi',
+  $allow_add_user                        = true,
   # murano
   $use_syslog                            = false,
   $debug                                 = false,
@@ -181,6 +182,7 @@ class murano (
     public_address   => $public_address,
     internal_address => $internal_address,
     murano_api_port  => $murano_bind_port,
+    allow_add_user   => $allow_add_user,
   }
 
 }

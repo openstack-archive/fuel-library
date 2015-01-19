@@ -19,6 +19,10 @@
 #   (optional) The admin nova-api endpoint
 #   Defaults to '127.0.0.1'
 #
+# [*service_name*]
+#   (optional) The name of the nova service
+#   Defaults to 'nova'
+#
 # [*internal_address*]
 #   (optional) The internal nova-api endpoint
 #   Defaults to '127.0.0.1'
@@ -69,9 +73,13 @@
 # [*internal_protocol*]
 #   Protocol for internal endpoints. Defaults to 'http'.
 #
+# [*allow_add_user*]
+#   Allow keystone to add user account
+#
 class nova::keystone::auth(
   $password,
   $auth_name              = 'nova',
+  $service_name           = 'nova',
   $public_address         = '127.0.0.1',
   $admin_address          = '127.0.0.1',
   $internal_address       = '127.0.0.1',
@@ -86,33 +94,38 @@ class nova::keystone::auth(
   $public_protocol        = 'http',
   $configure_endpoint     = true,
   $admin_protocol         = 'http',
-  $internal_protocol      = 'http'
+  $internal_protocol      = 'http',
+  $allow_add_user         = true,
 ) {
 
   if $cinder != undef {
     warning('The cinder parameter is deprecated and has no effect.')
   }
 
-  Keystone_endpoint["${region}/${auth_name}"] ~> Service <| name == 'nova-api' |>
+  Keystone_endpoint["${region}/${service_name}"] ~> Service <| name == 'nova-api' |>
 
-  keystone_user { $auth_name:
-    ensure   => present,
-    password => $password,
-    email    => $email,
-    tenant   => $tenant,
+  if ($allow_add_user != false) {
+    keystone_user { $auth_name:
+      ensure   => present,
+      password => $password,
+      email    => $email,
+      tenant   => $tenant,
+    }
   }
-  keystone_user_role { "${auth_name}@${tenant}":
-    ensure  => present,
-    roles   => 'admin',
+  if !defined(Keystone_user_role["${auth_name}@${tenant}"]) {
+    keystone_user_role { "${auth_name}@${tenant}":
+      ensure  => present,
+      roles   => 'admin',
+    }
   }
-  keystone_service { $auth_name:
+  keystone_service { $service_name:
     ensure      => present,
     type        => 'compute',
     description => 'Openstack Compute Service',
   }
 
   if $configure_endpoint {
-    keystone_endpoint { "${region}/${auth_name}":
+    keystone_endpoint { "${region}/${service_name}":
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${compute_port}/${compute_version}/%(tenant_id)s",
       admin_url    => "${admin_protocol}://${admin_address}:${compute_port}/${compute_version}/%(tenant_id)s",
@@ -121,12 +134,12 @@ class nova::keystone::auth(
   }
 
   if $configure_ec2_endpoint {
-    keystone_service { "${auth_name}_ec2":
+    keystone_service { "${service_name}_ec2":
       ensure      => present,
       type        => 'ec2',
       description => 'EC2 Service',
     }
-    keystone_endpoint { "${region}/${auth_name}_ec2":
+    keystone_endpoint { "${region}/${service_name}_ec2":
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${ec2_port}/services/Cloud",
       admin_url    => "${admin_protocol}://${admin_address}:${ec2_port}/services/Admin",

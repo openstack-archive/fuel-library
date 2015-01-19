@@ -15,6 +15,8 @@
 # [admin_tenant] The name of the tenant to be used for admin privileges. Optional. Defaults to openstack.
 # [admin] Admin user. Optional. Defaults to admin.
 #
+# [allow_add_user] Allow create user in authentication server. Optional. Defaults to true.
+#
 # == Dependencies
 # == Examples
 # == Authors
@@ -30,7 +32,8 @@ class keystone::roles::admin(
   $password,
   $admin          = 'admin',
   $admin_tenant   = 'openstack',
-  $service_tenant = 'services'
+  $service_tenant = 'services',
+  $allow_add_user = true
 ) {
 
   keystone_tenant { $service_tenant:
@@ -43,19 +46,28 @@ class keystone::roles::admin(
     enabled     => true,
     description => 'admin tenant',
   }
-  keystone_user { $admin:
-    ensure      => present,
-    enabled     => true,
-    tenant      => $admin_tenant,
-    email       => $email,
-    password    => $password,
+  if ($allow_add_user != false) {
+    keystone_user { $admin:
+      ensure      => present,
+      enabled     => true,
+      tenant      => $admin_tenant,
+      email       => $email,
+      password    => $password,
+    }
   }
   keystone_role { 'admin':
     ensure => present,
   }
-  keystone_user_role { "${admin}@${admin_tenant}":
+
+  keystone_role { '_member_':
     ensure => present,
-    roles  => 'admin',
+  }
+
+  if !defined(Keystone_user_role["${admin}@${admin_tenant}"]) {
+    keystone_user_role { "${admin}@${admin_tenant}":
+      roles  => 'admin',
+      ensure => present,
+    }
   }
 
 }

@@ -1,5 +1,6 @@
 #
 class openstack::swift::proxy (
+  $swift_user                         = 'swift',
   $swift_user_password                = 'swift_pass',
   $swift_hash_suffix                  = 'swift_secret',
   $swift_local_net_ip                 = $::ipaddress_eth0,
@@ -102,7 +103,7 @@ class openstack::swift::proxy (
   }
 
   class { '::swift::proxy::authtoken':
-    admin_user        => 'swift',
+    admin_user        => $swift_user,
     admin_tenant_name => 'services',
     admin_password    => $swift_user_password,
     auth_host         => $controller_node_address,

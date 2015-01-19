@@ -20,6 +20,7 @@
 class swift::keystone::auth(
   $auth_name              = 'swift',
   $password               = 'swift_password',
+  $service_name           = 'swift',
   $port                   = '8080',
   $tenant                 = 'services',
   $email                  = 'swift@localhost',
@@ -35,6 +36,7 @@ class swift::keystone::auth(
   $configure_endpoint     = true,
   $configure_s3_endpoint  = true,
   $endpoint_prefix        = 'AUTH',
+  $allow_add_user         = true,
 ) {
 
   if ! $public_port {
@@ -53,26 +55,29 @@ class swift::keystone::auth(
     $real_internal_address = $internal_address
   }
 
-  keystone_user { $auth_name:
-    ensure   => present,
-    password => $password,
-    email    => $email,
-    tenant   => $tenant,
-  }
-  keystone_user_role { "${auth_name}@${tenant}":
-    ensure  => present,
-    roles   => 'admin',
-    require => Keystone_user[$auth_name]
+  if ($allow_add_user != false) {
+    keystone_user { $auth_name:
+      ensure   => present,
+      tenant   => 'services',
+      password => $password,
+    }
   }
 
-  keystone_service { $auth_name:
+  if !defined(Keystone_user_role["${auth_name}@services"]) {
+    keystone_user_role { "${auth_name}@services":
+      ensure => present,
+      roles  => 'admin',
+    }
+  }
+
+  keystone_service { $service_name:
     ensure      => present,
     type        => 'object-store',
     description => 'Openstack Object-Store Service',
   }
 
   if $configure_endpoint {
-    keystone_endpoint { "${region}/${auth_name}":
+    keystone_endpoint { "${region}/${service_name}":
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${real_public_port}/v1/${endpoint_prefix}_%(tenant_id)s",
       admin_url    => "${admin_protocol}://${real_admin_address}:${port}/",
@@ -81,13 +86,13 @@ class swift::keystone::auth(
   }
 
   if $configure_s3_endpoint {
-    keystone_service { "${auth_name}_s3":
+    keystone_service { "${service_name}_s3":
       ensure      => present,
       type        => 's3',
       description => 'Openstack S3 Service',
     }
 
-    keystone_endpoint { "${region}/${auth_name}_s3":
+    keystone_endpoint { "${region}/${service_name}_s3":
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${real_public_port}",
       admin_url    => "${admin_protocol}://${real_admin_address}:${port}",

@@ -74,7 +74,10 @@ class neutron::server::notifications (
 ) {
 
   # Depend on the specified keystone_user resource, if it exists.
-  Keystone_user <| title == 'nova' |> -> Class[neutron::server::notifications]
+  Keystone_user <| title == $nova_admin_username |> -> Class[neutron::server::notifications]
+  Keystone_user_role["${nova_admin_username}@${nova_admin_tenant_name}"] -> Class[neutron::server::notifications]
+
+  Class['openstack::keystone'] -> Class[neutron::server::notifications]
 
   if ! $nova_admin_password {
     fail('nova_admin_password must be set.')
