@@ -12,7 +12,8 @@ class osnailyfacter::apache_api_proxy(
     require => Class['openstack::firewall'],
   }
 
-  class {"::apache::mod::proxy": }
+  class {"::apache::mod::proxy": } ->
+  class {"::apache::mod::proxy_connect": } ->
   class {"::apache::mod::proxy_http": }
 
   apache::vhost { 'apache_api_proxy':
