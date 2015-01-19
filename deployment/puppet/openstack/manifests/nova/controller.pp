@@ -29,6 +29,7 @@ class openstack::nova::controller (
   # Rabbit Required
   $amqp_password,
   # Nova Required
+  $nova_user_name              = 'nova',
   $nova_user_password,
   $nova_db_password,
   $primary_controller          = false,
@@ -262,6 +263,7 @@ class openstack::nova::controller (
   class { '::nova::api':
     enabled                              => $enabled,
     api_bind_address                     => $api_bind_address,
+    admin_user                           => $nova_user_name,
     admin_password                       => $nova_user_password,
     auth_host                            => $keystone_host,
     enabled_apis                         => $_enabled_apis,

@@ -68,7 +68,8 @@ class neutron::keystone::auth (
   $internal_address   = '127.0.0.1',
   $port               = '9696',
   $public_port        = undef,
-  $region             = 'RegionOne'
+  $region             = 'RegionOne',
+  $allow_add_user     = true,
 ) {
 
   if $service_name == undef {
@@ -86,16 +87,22 @@ class neutron::keystone::auth (
     $real_public_port = $public_port
   }
 
-  keystone_user { $auth_name:
-    ensure   => present,
-    password => $password,
-    email    => $email,
-    tenant   => $tenant,
+  if ($allow_add_user != false) {
+    keystone_user { $auth_name:
+      ensure   => present,
+      password => $password,
+      email    => $email,
+      tenant   => $tenant,
+    }
   }
-  keystone_user_role { "${auth_name}@${tenant}":
-    ensure  => present,
-    roles   => 'admin',
+
+  if !defined(Keystone_user_role["${auth_name}@${tenant}"]) {
+    keystone_user_role { "${auth_name}@${tenant}":
+      ensure  => present,
+      roles   => 'admin',
+    }
   }
+
   keystone_service { $real_service_name:
     ensure      => present,
     type        => $service_type,

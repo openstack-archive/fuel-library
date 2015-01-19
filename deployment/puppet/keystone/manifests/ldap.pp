@@ -84,6 +84,7 @@ class keystone::ldap(
   $tls_req_cert                        = undef,
   $identity_driver                     = undef,
   $assignment_driver                   = undef,
+  $debug_level                         = 0,
 ) {
 
   package { 'python-ldap':
@@ -177,7 +178,6 @@ class keystone::ldap(
     'ldap/tls_cacertdir':                       value => $tls_cacertdir;
     'ldap/tls_cacertfile':                      value => $tls_cacertfile;
     'ldap/tls_req_cert':                        value => $tls_req_cert;
-    'identity/driver':                          value => $identity_driver;
-    'assignment/driver':                        value => $assignment_driver;
+    'ldap/debug_level':                         value => $debug_level;
   }
 }

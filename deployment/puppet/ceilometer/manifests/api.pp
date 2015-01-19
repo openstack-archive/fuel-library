@@ -18,7 +18,7 @@
 #  [*keystone_protocol*] http/https
 #    Optional. Defaults to https
 #
-#  [*keytone_user*] user to authenticate with
+#  [*keystone_user*] user to authenticate with
 #    Optional. Defaults to ceilometer
 #
 #  [*keystone_tenant*] tenant to authenticate with

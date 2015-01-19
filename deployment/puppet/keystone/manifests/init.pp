@@ -181,7 +181,8 @@ class keystone(
   $rabbit_virtual_host   = '/',
   $notification_driver   = false,
   $notification_topics   = false,
-  $control_exchange      = false
+  $control_exchange      = false,
+  $member_role_name      = '_member_',
 ) {
 
   if ! $catalog_driver {
@@ -248,6 +249,7 @@ class keystone(
     'DEFAULT/compute_port':     value => $compute_port;
     'DEFAULT/verbose':          value => $verbose;
     'DEFAULT/debug':            value => $debug;
+    'DEFAULT/member_role_name': value => $member_role_name;
   }
 
   # Endpoint configuration

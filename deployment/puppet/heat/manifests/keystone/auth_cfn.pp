@@ -16,6 +16,9 @@
 # [*configure_endpoint*]
 #   Should heat-cfn endpoint be configured? Optional. Defaults to 'true'.
 #
+# [*service_name*]
+#   Servicename for heat-cfn service. Optional. Defaults to 'heat'.
+#
 # [*service_type*]
 #    Type of service. Optional. Defaults to 'cloudformation'.
 #
@@ -43,10 +46,13 @@
 # [*protocol*]
 #    Protocol for public endpoint. Optional. Defaults to 'http'.
 #
+# [allow_add_user] Allow create user in authentication server. Optional. Defaults to true.
+#
 class heat::keystone::auth_cfn (
   $password           = false,
   $email              = 'heat-cfn@localhost',
   $auth_name          = 'heat-cfn',
+  $service_name       = 'heat-cfn',
   $service_type       = 'cloudformation',
   $public_address     = '127.0.0.1',
   $admin_address      = '127.0.0.1',
@@ -59,6 +65,7 @@ class heat::keystone::auth_cfn (
   $admin_protocol     = 'http',
   $internal_protocol  = 'http',
   $configure_endpoint = true,
+  $allow_add_user     = true,
 ) {
 
   validate_string($password)
@@ -66,25 +73,28 @@ class heat::keystone::auth_cfn (
   Keystone_user_role["${auth_name}@${tenant}"] ~>
     Service <| name == 'heat-api-cfn' |>
 
-  keystone_user { $auth_name:
-    ensure   => present,
-    password => $password,
-    email    => $email,
-    tenant   => $tenant,
+  if ($allow_add_user != false) {
+    keystone_user { $auth_name:
+      ensure   => present,
+      password => $password,
+      email    => $email,
+      tenant   => $tenant,
+    }
+  }
+  if !defined(Keystone_user_role["${auth_name}@${tenant}"]) {
+    keystone_user_role { "${auth_name}@${tenant}":
+      ensure  => present,
+      roles   => ['admin'],
+    }
   }
 
-  keystone_user_role { "${auth_name}@${tenant}":
-    ensure  => present,
-    roles   => ['admin'],
-  }
-
-  keystone_service { $auth_name:
+  keystone_service { $service_name:
     ensure      => present,
     type        => $service_type,
     description => 'Openstack Cloudformation Service',
   }
   if $configure_endpoint {
-    keystone_endpoint { "${region}/${auth_name}":
+    keystone_endpoint { "${region}/${service_name}":
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${port}/${version}/",
       admin_url    => "${admin_protocol}://${admin_address}:${port}/${version}/",

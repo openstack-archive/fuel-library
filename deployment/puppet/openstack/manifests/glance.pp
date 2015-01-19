@@ -38,6 +38,7 @@
 
 class openstack::glance (
   $db_host                      = 'localhost',
+  $glance_user_name             = 'glance',
   $glance_user_password         = false,
   $glance_db_password           = false,
   $bind_host                    = '127.0.0.1',
@@ -98,7 +99,7 @@ class openstack::glance (
     auth_port             => '35357',
     auth_host             => $keystone_host,
     keystone_tenant       => 'services',
-    keystone_user         => 'glance',
+    keystone_user         => $glance_user_name,
     keystone_password     => $glance_user_password,
     sql_connection        => $sql_connection,
     enabled               => $enabled,
@@ -145,7 +146,7 @@ class openstack::glance (
     auth_port           => '35357',
     auth_type           => 'keystone',
     keystone_tenant     => 'services',
-    keystone_user       => 'glance',
+    keystone_user       => $glance_user_name,
     keystone_password   => $glance_user_password,
     sql_connection      => $sql_connection,
     enabled             => $enabled,

@@ -11,6 +11,8 @@
 # [admin_password] Admin password.
 # [keystone_db_password] Keystone database password.
 # [keystone_admin_token] Admin token for keystone.
+# [ext_auth_cfg] all ext_auth settings include LDAP/AD
+# [identity_driver] identity backend for keystone.
 # [glance_db_password] Glance DB password.
 # [glance_user_password] Glance service user password.
 # [nova_db_password] Nova DB password.
@@ -83,15 +85,20 @@ class openstack::controller (
   $admin_password                 = 'ChangeMe',
   $keystone_db_password           = 'keystone_pass',
   $keystone_admin_token           = 'keystone_admin_token',
+  $allow_add_user                 = true,
+  $ext_auth_cfg                   = {},
   # Required Glance
   $glance_db_password             = 'glance_pass',
+  $glance_user_name               = 'glance',
   $glance_user_password           = 'glance_pass',
   # Required Nova
   $nova_db_password               = 'nova_pass',
+  $nova_user_name                 = 'nova',
   $nova_user_password             = 'nova_pass',
   # Required Ceilometer
   $ceilometer                     = false,
   $ceilometer_db_password         = 'ceilometer_pass',
+  $ceilometer_user_name           = 'ceilometer',
   $ceilometer_user_password       = 'ceilometer_pass',
   $ceilometer_db_user             = 'ceilometer',
   $ceilometer_db_dbname           = 'ceilometer',
@@ -137,6 +144,7 @@ class openstack::controller (
   $keystone_db_user               = 'keystone',
   $keystone_db_dbname             = 'keystone',
   $keystone_admin_tenant          = 'admin',
+  $identity_driver                = 'keystone.identity.backends.sql.Identity',
   # Glance
   $glance_db_user                 = 'glance',
   $glance_db_dbname               = 'glance',
@@ -167,6 +175,7 @@ class openstack::controller (
   $debug                          = false,
   $export_resources               = true,
   # if the cinder management components should be installed
+  $cinder_user_name               = 'cinder', 
   $cinder_user_password           = 'cinder_user_pass',
   $cinder_db_password             = 'cinder_db_pass',
   $cinder_db_user                 = 'cinder',
@@ -179,6 +188,7 @@ class openstack::controller (
   $neutron_db_user                = 'neutron',
   $neutron_db_password            = 'neutron_db_pass',
   $neutron_db_dbname              = 'neutron',
+  $neutron_user_name              = 'neutron',
   $neutron_user_password          = 'asdf123',
   $neutron_metadata_proxy_secret  = '12345',
   $neutron_ha_agents              = false,
@@ -284,13 +294,18 @@ class openstack::controller (
     public_address            => $public_address,
     internal_address          => $internal_address,
     admin_address             => $admin_address,
+    glance_user_name          => $glance_user_name,
     glance_user_password      => $glance_user_password,
+    nova_user_name            => $nova_user_name,
     nova_user_password        => $nova_user_password,
     cinder                    => $cinder,
+    cinder_user_name          => $cinder_user_name,
     cinder_user_password      => $cinder_user_password,
     neutron                   => $network_provider ? {'nova' => false, 'neutron' => true},
+    neutron_user_name         => $neutron_user_name,
     neutron_user_password     => $neutron_user_password,
     ceilometer                => $ceilometer,
+    ceilometer_user_name      => $ceilometer_user_name,
     ceilometer_user_password  => $ceilometer_user_password,
     bind_host                 => $api_bind_address,
     enabled                   => $enabled,
@@ -307,6 +322,9 @@ class openstack::controller (
     rabbit_hosts              => split($amqp_hosts, ','),
     rabbit_virtual_host       => $rabbit_virtual_host,
     idle_timeout              => $idle_timeout,
+    allow_add_user            => $allow_add_user,
+    identity_driver           => $identity_driver,
+    ext_auth_cfg              => $ext_auth_cfg,
   }
 
 
@@ -319,6 +337,7 @@ class openstack::controller (
     glance_db_user               => $glance_db_user,
     glance_db_dbname             => $glance_db_dbname,
     glance_db_password           => $glance_db_password,
+    glance_user_name             => $glance_user_name,
     glance_user_password         => $glance_user_password,
     glance_vcenter_host          => $glance_vcenter_host,
     glance_vcenter_user          => $glance_vcenter_user,
@@ -398,6 +417,7 @@ class openstack::controller (
     segment_range               => $segment_range,
     tenant_network_type         => $tenant_network_type,
     # Nova
+    nova_user_name              => $nova_user_name,
     nova_user_password          => $nova_user_password,
     nova_db_password            => $nova_db_password,
     nova_db_user                => $nova_db_user,
@@ -461,6 +481,7 @@ class openstack::controller (
         auth_host            => $service_endpoint,
         bind_host            => $api_bind_address,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
+        keystone_user        => $cinder_user_name,
         cinder_user_password => $cinder_user_password,
         use_syslog           => $use_syslog,
         verbose              => $verbose,
@@ -514,6 +535,7 @@ class openstack::controller (
       amqp_password        => $amqp_password,
       rabbit_ha_queues     => $rabbit_ha_queues,
       keystone_host        => $internal_address,
+      keystone_user        => $ceilometer_user_name,
       keystone_password    => $ceilometer_user_password,
       host                 => $api_bind_address,
       ha_mode              => $ha_mode,
@@ -769,6 +791,7 @@ class openstack::controller (
     amqp_password   => $amqp_password,
 
     # keystone
+    admin_username  => $neutron_user_name,
     admin_password  => $neutron_user_password,
     auth_host       => $internal_address,
     auth_url        => "http://${service_endpoint}:35357/v2.0",
@@ -790,6 +813,7 @@ class openstack::controller (
     network_size        => $network_size,
     nameservers         => $nameservers,
     enable_nova_net     => false,  # just setup networks, but don't start nova-network service on controllers
+    nova_admin_username => $nova_user_name,
     nova_admin_password => $nova_user_password,
     nova_url            => "http://${service_endpoint}:8774/v2",
   }

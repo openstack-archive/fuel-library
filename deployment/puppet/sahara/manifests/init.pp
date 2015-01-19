@@ -35,6 +35,7 @@ class sahara (
   $amqp_hosts                          = false,
   $rabbit_virtual_host                 = '/',
   $rabbit_ha_queues                    = false,
+  $allow_add_user                      = true,
 ) {
 
   $sahara_sql_connection               = "mysql://${sahara_db_user}:${sahara_db_password}@${sahara_db_host}/${sahara_db_name}?read_timeout=60"
@@ -48,32 +49,33 @@ class sahara (
   }
 
   class { 'sahara::api':
-    enabled                             => $sahara_enabled,
-    sahara_auth_uri                     => $sahara_auth_uri,
-    sahara_identity_uri                 => $sahara_identity_uri,
-    keystone_user                       => $sahara_keystone_user,
-    keystone_tenant                     => $sahara_keystone_tenant,
-    keystone_password                   => $sahara_keystone_password,
-    bind_port                           => $sahara_api_port,
-    node_domain                         => $sahara_node_domain,
-    sql_connection                      => $sahara_sql_connection,
-    use_neutron                         => $use_neutron,
-    debug                               => $debug,
-    use_syslog                          => $use_syslog,
-    verbose                             => $verbose,
-    syslog_log_facility_sahara          => $syslog_log_facility_sahara,
+    enabled                    => $sahara_enabled,
+    sahara_auth_uri            => $sahara_auth_uri,
+    sahara_identity_uri        => $sahara_identity_uri,
+    keystone_user              => $sahara_keystone_user,
+    keystone_tenant            => $sahara_keystone_tenant,
+    keystone_password          => $sahara_keystone_password,
+    bind_port                  => $sahara_api_port,
+    node_domain                => $sahara_node_domain,
+    sql_connection             => $sahara_sql_connection,
+    use_neutron                => $use_neutron,
+    debug                      => $debug,
+    use_syslog                 => $use_syslog,
+    verbose                    => $verbose,
+    syslog_log_facility_sahara => $syslog_log_facility_sahara,
   }
 
   class { 'sahara::keystone::auth' :
-    password                       => $sahara_keystone_password,
-    auth_name                      => $sahara_keystone_user,
-    public_address                 => $sahara_api_host,
-    admin_address                  => $sahara_keystone_host,
-    internal_address               => $sahara_keystone_host,
-    sahara_port                    => $sahara_api_port,
-    region                         => 'RegionOne',
-    tenant                         => $sahara_keystone_tenant,
-    email                          => 'sahara-team@localhost',
+    password         => $sahara_keystone_password,
+    auth_name        => $sahara_keystone_user,
+    public_address   => $sahara_api_host,
+    admin_address    => $sahara_keystone_host,
+    internal_address => $sahara_keystone_host,
+    sahara_port      => $sahara_api_port,
+    region           => 'RegionOne',
+    tenant           => $sahara_keystone_tenant,
+    email            => 'sahara-team@localhost',
+    allow_add_user   => $allow_add_user,
   }
 
   if $enable_notifications {
