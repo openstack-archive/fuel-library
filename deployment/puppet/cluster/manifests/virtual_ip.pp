@@ -25,7 +25,7 @@ define cluster::virtual_ip (
   cs_resource { $vip_name:
     ensure          => present,
     primitive_class => 'ocf',
-    provided_by     => 'mirantis',
+    provided_by     => 'fuel',
     primitive_type  => 'ns_IPaddr2',
     parameters      => {
       'nic'                  => $vip[nic],

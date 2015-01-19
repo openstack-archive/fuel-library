@@ -29,7 +29,7 @@ define vmware::ceilometer::ha (
   cs_resource { "p_ceilometer_agent_compute_vmware_${index}":
     ensure          => present,
     primitive_class => 'ocf',
-    provided_by     => 'mirantis',
+    provided_by     => 'fuel',
     primitive_type  => 'ceilometer-agent-compute',
     metadata        => {
       'target-role' => 'stopped',
