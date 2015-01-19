@@ -16,6 +16,9 @@
 # [*configure_endpoint*]
 #   Should Ceilometer endpoint be configured? Optional. Defaults to 'true'.
 #
+# [*service_name*]
+#   servicename for Ceilometer service. Optional. Defaults to 'ceilometer'.
+#
 # [*service_type*]
 #    Type of service. Optional. Defaults to 'metering'.
 #
@@ -67,10 +70,13 @@
 #    no trailing '/'
 #    Setting this variable overrides other $internal_* parameters.
 #
+# [allow_add_user] Allow create user in authentication server. Optional. Defaults to true.
+#
 class ceilometer::keystone::auth (
   $password           = false,
   $email              = 'ceilometer@localhost',
   $auth_name          = 'ceilometer',
+  $service_name       = 'ceilometer',
   $service_type       = 'metering',
   $public_address     = '127.0.0.1',
   $admin_address      = '127.0.0.1',
@@ -85,6 +91,7 @@ class ceilometer::keystone::auth (
   $public_url         = undef,
   $admin_url          = undef,
   $internal_url       = undef,
+  $allow_add_user     = true,
 ) {
 
   validate_string($password)
@@ -110,29 +117,33 @@ class ceilometer::keystone::auth (
   Keystone_user_role["${auth_name}@${tenant}"] ~>
     Service <| name == 'ceilometer-api' |>
 
-  keystone_user { $auth_name:
-    ensure   => present,
-    password => $password,
-    email    => $email,
-    tenant   => $tenant,
+  if ($allow_add_user != false) {
+    keystone_user { $auth_name:
+      ensure   => present,
+      password => $password,
+      email    => $email,
+      tenant   => $tenant,
+    }
   }
   if !defined(Keystone_role['ResellerAdmin']) {
     keystone_role { 'ResellerAdmin':
       ensure => present,
     }
   }
-  keystone_user_role { "${auth_name}@${tenant}":
-    ensure  => present,
-    roles   => ['admin', 'ResellerAdmin'],
-    require => Keystone_role['ResellerAdmin'],
+  if !defined(Keystone_user_role["${auth_name}@${tenant}"]) {
+    keystone_user_role { "${auth_name}@${tenant}":
+      ensure  => present,
+      roles   => ['admin', 'ResellerAdmin'],
+      require => Keystone_role['ResellerAdmin'],
+    }
   }
-  keystone_service { $auth_name:
+  keystone_service { $service_name:
     ensure      => present,
     type        => $service_type,
     description => 'Openstack Metering Service',
   }
   if $configure_endpoint {
-    keystone_endpoint { "${region}/${auth_name}":
+    keystone_endpoint { "${region}/${service_name}":
       ensure       => present,
       public_url   => $public_url_real,
       admin_url    => $admin_url_real,

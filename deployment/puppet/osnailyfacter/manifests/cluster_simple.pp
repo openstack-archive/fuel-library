@@ -136,6 +136,117 @@ class osnailyfacter::cluster_simple {
   $access_hash          = $::fuel_settings['access']
   $nodes_hash           = $::fuel_settings['nodes']
   $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
+  $ext_auth_hash        = $::fuel_settings['external_auth']
+
+  # keystone
+  $keystone_admin_user     = $access_hash['user']
+  $keystone_admin_password = $access_hash['password']
+
+  if $ext_auth_hash['is_enabled'] {
+    $identity_driver = 'keystone.identity.backends.ldap.Identity'
+    $allow_add_user = false
+
+    # glance
+    $glance_keystone_user     = $ext_auth_hash['glance_account']
+    $glance_keystone_password = $ext_auth_hash['glance_pass']
+    
+    # nova
+    $nova_keystone_user     = $ext_auth_hash['nova_account']
+    $nova_keystone_password = $ext_auth_hash['nova_pass']
+
+    # cinder
+    $cinder_keystone_user     = $ext_auth_hash['cinder_account']
+    $cinder_keystone_password = $ext_auth_hash['cinder_pass']
+
+    # ceilometer
+    if $ceilometer_hash['enabled'] {
+      $ceilometer_keystone_user     = $ext_auth_hash['ceilometer_account']
+      $ceilometer_keystone_password = $ext_auth_hash['ceilometer_pass']
+    }
+
+    # neutron
+    if $::use_neutron {
+      $neutron_keystone_user     = $ext_auth_hash['neutron_account']
+      $neutron_keystone_password = $ext_auth_hash['neutron_pass']
+    }
+
+    # swift
+    if ($use_swift) {
+      $swift_keystone_user     = $ext_auth_hash['swift_account']
+      $swift_keystone_password = $ext_auth_hash['swift_pass']
+    }
+
+    # sahara
+    if $sahara_hash['enabled'] {
+      $sahara_keystone_user     = $ext_auth_hash['sahara_account']
+      $sahara_keystone_password = $ext_auth_hash['sahara_pass']
+    }
+
+    # heat
+    $heat_keystone_user         = $ext_auth_hash['heat_account']
+    $heat_keystone_password     = $ext_auth_hash['heat_pass']
+    $heat_cfn_keystone_user     = $ext_auth_hash['heat_cfn_account']
+    $heat_cfn_keystone_password = $ext_auth_hash['heat_cfn_pass']
+
+    # murano
+    if $murano_hash['enabled'] {
+      $murano_keystone_user     = $ext_auth_hash['murano_account']
+      $murano_keystone_password = $ext_auth_hash['murano_pass']
+    }
+  } else {
+    $identity_driver = 'keystone.identity.backends.sql.Identity'
+    $allow_add_user = true
+    # keystone
+    $keystone_admin_email = $access_hash['email']
+
+    # glance
+    $glance_keystone_user     = 'glance'
+    $glance_keystone_password = $glance_hash['user_password']
+
+    # nova
+    $nova_keystone_user     = 'nova'
+    $nova_keystone_password = $nova_hash['user_password']
+
+    # cinder
+    $cinder_keystone_user     = 'cinder'
+    $cinder_keystone_password = $cinder_hash['user_password']
+
+    # ceilometer
+    if $ceilometer_hash['enabled'] {
+      $ceilometer_keystone_user     = 'ceilometer'
+      $ceilometer_keystone_password = $ceilometer_hash['user_password']
+    }
+
+    # neutron
+    if $::use_neutron {
+      $neutron_keystone_user     = 'neutron'
+      $neutron_keystone_password = $neutron_config['keystone']['admin_password']
+    }
+
+    # swift
+    if ($use_swift) {
+      $swift_keystone_user     = 'swift'
+      $swift_keystone_password = $swift_hash['user_password']
+    }
+
+    # sahara
+    if $sahara_hash['enabled'] {
+      $sahara_keystone_user     = 'sahara'
+      $sahara_keystone_password = $sahara_hash['user_password']
+    }
+
+    # heat
+    $heat_keystone_user         = 'heat'
+    $heat_keystone_password     = $heat_hash['user_password']
+    $heat_cfn_keystone_user     = 'heat-cfn'
+    $heat_cfn_keystone_password = $heat_hash['user_password']
+
+    # murano
+    if $murano_hash['enabled'] {
+      $murano_keystone_user     = 'murano'
+      $murano_keystone_password = $murano_hash['user_password']
+    }
+  }
 
   if $ext_mongo {
     $mongo_hosts = $ext_mongo_hash['hosts_ip']
@@ -280,13 +391,17 @@ class osnailyfacter::cluster_simple {
         auto_assign_floating_ip        => $::fuel_settings['auto_assign_floating_ip'],
         mysql_root_password            => $mysql_hash[root_password],
         admin_email                    => $access_hash[email],
-        admin_user                     => $access_hash[user],
-        admin_password                 => $access_hash[password],
+        admin_user                     => $keystone_admin_user,
+        admin_password                 => $keystone_admin_password,
         keystone_db_password           => $keystone_hash[db_password],
         keystone_admin_token           => $keystone_hash[admin_token],
         keystone_admin_tenant          => $access_hash[tenant],
+        identity_driver                => $identity_driver,
+        ext_auth_cfg                   => $ext_auth_hash,
+        allow_add_user                 => $allow_add_user,
         glance_db_password             => $glance_hash[db_password],
-        glance_user_password           => $glance_hash[user_password],
+        glance_user_name               => $glance_keystone_user,
+        glance_user_password           => $glance_keystone_password,
         glance_backend                 => $glance_backend,
         glance_image_cache_max_size    => $glance_hash[image_cache_max_size],
         known_stores                   => $glance_known_stores,
@@ -297,12 +412,14 @@ class osnailyfacter::cluster_simple {
         glance_vcenter_datastore       => $storage_hash['vc_datastore'],
         glance_vcenter_image_dir       => $storage_hash['vc_image_dir'],
         nova_db_password               => $nova_hash[db_password],
-        nova_user_password             => $nova_hash[user_password],
+        nova_user_name                 => $nova_keystone_user,
+        nova_user_password             => $nova_keystone_password,
         nova_rate_limits               => $::nova_rate_limits,
         ceilometer                     => $ceilometer_hash[enabled],
         ceilometer_db_user             => $ceilometer_db_user,
         ceilometer_db_password         => $ceilometer_db_password,
-        ceilometer_user_password       => $ceilometer_hash[user_password],
+        ceilometer_user_name           => $ceilometer_keystone_user,
+        ceilometer_user_password       => $ceilometer_keystone_password,
         ceilometer_metering_secret     => $ceilometer_hash[metering_secret],
         ceilometer_db_dbname           => $ceilometer_db_name,
         ceilometer_db_type             => 'mongodb',
@@ -321,12 +438,14 @@ class osnailyfacter::cluster_simple {
 
         network_provider               => $network_provider,
         neutron_db_password            => $neutron_db_password,
-        neutron_user_password          => $neutron_user_password,
+        neutron_user_name              => $neutron_keystone_user,
+        neutron_user_password          => $neutron_keystone_password,
         neutron_metadata_proxy_secret  => $neutron_metadata_proxy_secret,
         base_mac                       => $base_mac,
 
         cinder                         => true,
-        cinder_user_password           => $cinder_hash[user_password],
+        cinder_user_name               => $cinder_keystone_user,
+        cinder_user_password           => $cinder_keystone_password,
         cinder_db_password             => $cinder_hash[db_password],
         cinder_iscsi_bind_addr         => $cinder_iscsi_bind_addr,
         cinder_volume_group            => "cinder",
@@ -367,6 +486,14 @@ class osnailyfacter::cluster_simple {
       Class['keystone::roles::admin'] ->
       Exec<| title=='create-m1.micro-flavor' |>
 
+      Class['openstack::auth_file'] ->
+      Exec<| title=='create-m1.micro-flavor' |>
+
+      Class['nova::keystone::auth'] ->
+      Exec<| title=='create-m1.micro-flavor' |>
+
+      Class['keystone'] ->
+      Exec<| title=='create-m1.micro-flavor' |>
 
       if !$::use_neutron {
         $floating_ips_range = $::fuel_settings['floating_network_range']
@@ -374,15 +501,16 @@ class osnailyfacter::cluster_simple {
           nova_floating_range{ $floating_ips_range:
             ensure          => 'present',
             pool            => 'nova',
-            username        => $access_hash[user],
-            api_key         => $access_hash[password],
+            username        => $keystone_admin_user,
+            api_key         => $keystone_admin_password,
             auth_method     => 'password',
             auth_url        => "http://${controller_node_address}:5000/v2.0/",
             authtenant_name => $access_hash[tenant],
             api_retries     => 10,
           }
         }
-        Class[nova::api, nova::keystone::auth] -> Nova_floating_range <| |>
+        Class[nova::api, nova::keystone::auth] ->
+        Nova_floating_range <| |>
       }
 
       if ($::use_ceph){
@@ -399,9 +527,11 @@ class osnailyfacter::cluster_simple {
           sahara_db_host             => $controller_node_address,
 
           sahara_keystone_host       => $controller_node_address,
-          sahara_keystone_user       => 'sahara',
-          sahara_keystone_password   => $sahara_hash['user_password'],
+
+          sahara_keystone_user       => $sahara_keystone_user,
+          sahara_keystone_password   => $sahara_keystone_password,
           sahara_keystone_tenant     => 'services',
+          allow_add_user             => $allow_add_user,
           sahara_auth_uri            => "http://${controller_node_address}:5000/v2.0/",
           sahara_identity_uri        => "http://${controller_node_address}:35357/",
           use_neutron                => $::use_neutron,
@@ -437,35 +567,38 @@ class osnailyfacter::cluster_simple {
 
 
       class { 'openstack::heat' :
-        external_ip         => $controller_node_public,
+        external_ip           => $controller_node_public,
 
-        keystone_host       => $controller_node_address,
-        keystone_user       => 'heat',
-        keystone_password   => $heat_hash['user_password'],
-        keystone_tenant     => 'services',
+        keystone_host         => $controller_node_address,
+        keystone_user         => $heat_keystone_user,
+        keystone_password     => $heat_keystone_password,
+        keystone_cfn_user     => $heat_cfn_keystone_user,
+        keystone_cfn_password => $heat_cfn_keystone_password,
+        keystone_tenant       => 'services',
+        allow_add_user        => $allow_add_user,
 
-        keystone_ec2_uri    => "http://${controller_node_address}:5000/v2.0",
+        keystone_ec2_uri      => "http://${controller_node_address}:5000/v2.0",
 
-        rpc_backend         => 'heat.openstack.common.rpc.impl_kombu',
-        amqp_hosts          => [$amqp_hosts],
-        amqp_user           => $rabbit_hash['user'],
-        amqp_password       => $rabbit_hash['password'],
+        rpc_backend           => 'heat.openstack.common.rpc.impl_kombu',
+        amqp_hosts            => [$amqp_hosts],
+        amqp_user             => $rabbit_hash['user'],
+        amqp_password         => $rabbit_hash['password'],
 
-        sql_connection      =>
+        sql_connection        =>
           "mysql://heat:${heat_hash['db_password']}@${$controller_node_address}/heat?read_timeout=60",
-        db_host             => $controller_node_address,
-        db_password         => $heat_hash['db_password'],
-        max_retries         => $max_retries,
-        max_pool_size       => $max_pool_size,
-        max_overflow        => $max_overflow,
-        idle_timeout        => $idle_timeout,
+        db_host               => $controller_node_address,
+        db_password           => $heat_hash['db_password'],
+        max_retries           => $max_retries,
+        max_pool_size         => $max_pool_size,
+        max_overflow          => $max_overflow,
+        idle_timeout          => $idle_timeout,
 
-        debug               => $::debug,
-        verbose             => $::verbose,
-        use_syslog          => $::use_syslog,
-        syslog_log_facility => $::syslog_log_facility_heat,
+        debug                 => $::debug,
+        verbose               => $::verbose,
+        use_syslog            => $::use_syslog,
+        syslog_log_facility   => $::syslog_log_facility_heat,
 
-        auth_encryption_key => $heat_hash['auth_encryption_key'],
+        auth_encryption_key   => $heat_hash['auth_encryption_key'],
       }
 
 
@@ -497,9 +630,10 @@ class osnailyfacter::cluster_simple {
           murano_db_password       => $murano_hash['db_password'],
 
           murano_keystone_host     => $controller_node_address,
-          murano_keystone_user     => 'murano',
-          murano_keystone_password => $murano_hash['user_password'],
+          murano_keystone_user     => $murano_keystone_user,
+          murano_keystone_password => $murano_keystone_password,
           murano_keystone_tenant   => 'services',
+          allow_add_user           => $allow_add_user,
 
           use_neutron              => $::use_neutron,
 
@@ -561,10 +695,12 @@ class osnailyfacter::cluster_simple {
         network_config                 => $::use_neutron ? { true=>false, default=>$network_config },
         multi_host                     => $multi_host,
         sql_connection                 => $sql_connection,
-        nova_user_password             => $nova_hash[user_password],
+        nova_user_name                 => $nova_keystone_user,
+        nova_user_password             => $nova_keystone_password,
         ceilometer                     => $ceilometer_hash[enabled],
         ceilometer_metering_secret     => $ceilometer_hash[metering_secret],
-        ceilometer_user_password       => $ceilometer_hash[user_password],
+        ceilometer_user_name           => $ceilometer_keystone_user,
+        ceilometer_user_password       => $ceilometer_keystone_password,
         queue_provider                 => $::queue_provider,
         amqp_hosts                     => $amqp_hosts,
         amqp_user                      => $rabbit_hash['user'],
@@ -575,11 +711,13 @@ class osnailyfacter::cluster_simple {
         vncserver_listen               => '0.0.0.0',
         vnc_enabled                    => true,
         network_provider               => $network_provider,
-        neutron_user_password          => $neutron_user_password,
+        neutron_user_name              => $neutron_keystone_user,
+        neutron_user_password          => $neutron_keystone_password,
         base_mac                       => $base_mac,
         service_endpoint               => $controller_node_address,
         cinder                         => true,
-        cinder_user_password           => $cinder_hash[user_password],
+        cinder_user_name               => $cinder_keystone_user,
+        cinder_user_password           => $cinder_keystone_password,
         cinder_db_password             => $cinder_hash[db_password],
         cinder_iscsi_bind_addr         => $cinder_iscsi_bind_addr,
         cinder_volume_group            => "cinder",
@@ -596,6 +734,7 @@ class osnailyfacter::cluster_simple {
         nova_report_interval           => $::nova_report_interval,
         nova_service_down_time         => $::nova_service_down_time,
         cinder_rate_limits             => $::cinder_rate_limits,
+        ext_auth_cfg                   => $ext_auth_hash,
       }
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
@@ -697,8 +836,9 @@ class osnailyfacter::cluster_simple {
         iser                 => $storage_hash['iser'],
         enabled              => true,
         auth_host            => $controller_node_address,
-        iscsi_bind_host      => $cinder_iscsi_bind_addr,
-        cinder_user_password => $cinder_hash[user_password],
+        iscsi_bind_host      => $cinder_iscsi_bind_addr, 
+        keystone_user        => $cinder_keystone_user,
+        cinder_user_password => $cinder_keystone_password,
         syslog_log_facility  => $::syslog_log_facility_cinder,
         debug                => $debug,
         verbose              => $verbose,

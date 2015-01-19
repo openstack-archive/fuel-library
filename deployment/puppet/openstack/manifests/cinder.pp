@@ -120,6 +120,7 @@ class openstack::cinder(
       keystone_enabled   => $keystone_enabled,
       package_ensure     => $::openstack_version['cinder'],
       keystone_auth_host => $auth_host,
+      keystone_user      => $keystone_user,
       keystone_password  => $cinder_user_password,
       bind_host          => $bind_host,
       ratelimits         => $cinder_rate_limits
