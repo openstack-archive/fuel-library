@@ -30,6 +30,8 @@ class openstack::ceilometer (
   $ha_mode             = false,
   $primary_controller  = false,
   $use_neutron         = false,
+  # ttl is 1 week (3600*24*7)
+  $time_to_live        = '604800',
 ) {
 
   # Add the base ceilometer class & parameters
@@ -81,6 +83,16 @@ class openstack::ceilometer (
       keystone_password => $keystone_password,
       host              => $host,
       port              => $port,
+    }
+
+    # Clean up expired data once a week
+    class { '::ceilometer::expirer':
+      time_to_live => $time_to_live,
+      minute       => '0',
+      hour         => '0',
+      monthday     => '*',
+      month        => '*',
+      weekday      => '0',
     }
 
     class { '::ceilometer::collector': }
