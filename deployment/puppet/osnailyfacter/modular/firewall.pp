@@ -1,3 +1,5 @@
+notice('MODULAR: firewall.pp')
+
 # Workaround for fuel bug with firewall
 firewall {'003 remote rabbitmq ':
   sport   => [ 4369, 5672, 15672, 41055, 55672, 61613 ],
