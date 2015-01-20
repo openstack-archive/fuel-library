@@ -19,13 +19,10 @@ class corosync::reprobe {
     path        => ['/bin','/usr/bin','/sbin','/usr/sbin'],
     refreshonly => true,
   }
-  Cs_resource <| |> {
+  Cs_primitive <| |> {
     notify => Exec['crm resource reprobe'],
   }
   Cs_colocation <| |> {
-    notify => Exec['crm resource reprobe'],
-  }
-  Cs_location <| |> {
     notify => Exec['crm resource reprobe'],
   }
   Cs_order <| |> {

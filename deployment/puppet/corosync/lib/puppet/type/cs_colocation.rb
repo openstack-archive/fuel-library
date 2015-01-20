@@ -16,24 +16,29 @@ module Puppet
       desc "Identifier of the colocation entry.  This value needs to be unique
         across the entire Corosync/Pacemaker configuration since it doesn't have
         the concept of name spaces per type."
+
       isnamevar
     end
 
     newproperty(:primitives, :array_matching => :all) do
       desc "Two Corosync primitives to be grouped together.  Colocation groups
-        come in twos.  Property will raise an error if
+        come in twos and order is irrelavent.  Property will raise an error if
         you do not provide a two value array."
+
+      # Have to redefine should= here so we can sort the array that is given to
+      # us by the manifest.  While were checking on the class of our value we
+      # are going to go ahead and do some validation too.  The way Corosync
+      # colocation works we need to only accept two value arrays.
       def should=(value)
         super
         if value.is_a? Array
-          raise Puppet::Error, "Puppet::Type::Cs_Colocation: The primitives property must be a two value array." unless value.size == 2
-          @should
+          raise Puppet::Error, "Puppet::Type::Cs_Colocation: The primitives property must be a two value array." unless value.size >= 2
+          @should.sort!
         else
           raise Puppet::Error, "Puppet::Type::Cs_Colocation: The primitives property must be a two value array."
           @should
         end
       end
-      isrequired
     end
 
     newparam(:cib) do
@@ -54,38 +59,33 @@ module Puppet
         This value can be an integer but is often defined as the string
         INFINITY."
 
-      defaultto 'INFINITY'
-
-      validate do |value|
-        begin
-          if  value !~ /^([+-]){0,1}(inf|INFINITY)$/
-            score = Integer(value)
-          end
-        rescue ArgumentError
-          raise Puppet::Error("score parameter is invalid, should be +/- INFINITY(or inf) or Integer")
-        end
-      end
-      isrequired
+        defaultto 'INFINITY'
     end
 
     autorequire(:cs_shadow) do
-        autos = []
-        autos << @parameters[:cib].value if !@parameters[:cib].nil?
-        autos
+      [ @parameters[:cib] ]
     end
 
     autorequire(:service) do
       [ 'corosync' ]
     end
 
-    autorequire(:cs_resource) do
+    autorequire(:cs_primitive) do
       autos = []
       @parameters[:primitives].should.each do |val|
-        autos << val
+        autos << unmunge_cs_primitive(val)
       end
 
       autos
     end
 
+    def unmunge_cs_primitive(name)
+      name = name.split(':')[0]
+      if name.start_with? 'ms_'
+        name = name[3..-1]
+      end
+
+      name
+    end
   end
 end
