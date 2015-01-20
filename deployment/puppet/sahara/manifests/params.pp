@@ -2,7 +2,8 @@ class sahara::params {
   # package names
   $sahara_package_name = 'sahara'
   #NOTE(mattymo): Backward compatibility for Icehouse
-  case $::fuel_settings['openstack_version'] {
+  $openstack_version = hiera('openstack_version')
+  case $openstack_version {
     /2014.2-6./: {
        $sahara_service_name = 'sahara-all'
     }
@@ -27,7 +28,7 @@ Debian")
       }
     }
     default: {
-     fail("Unsupported OpenStack version: ${::fuel_settings['openstack_version']}")
+     fail("Unsupported OpenStack version: $openstack_version")
     }
   }
 }
