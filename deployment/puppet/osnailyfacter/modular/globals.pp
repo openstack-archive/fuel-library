@@ -1,4 +1,4 @@
-notice('Import Globals start')
+notice('MODULAR: globals.pp')
 #FIXME(bogdando) make all evaluations/hardcode to come from a hiera
 # For example, assume it is already calculated and use just:
 #   $roles=hiera('roles')
@@ -27,7 +27,7 @@ $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
 
-$role                           = hiera('role')
+$node_role                      = hiera('role')
 $cinder_nodes_array             = hiera('cinder_nodes', [])
 $dns_nameservers                = hiera('dns_nameservers', [])
 $use_ceilometer                 = $ceilometer_hash['enabled']
@@ -141,7 +141,7 @@ if $use_neutron {
 }
 
 if $deployment_mode == 'ha_compact' {
-  $primary_controller            = $role ? { 'primary-controller' => true, default =>false }
+  $primary_controller            = $node_role ? { 'primary-controller' => true, default =>false }
   $primary_controller_nodes      = filter_nodes($nodes_hash,'role','primary-controller')
   $controllers                   = concat($primary_controller_nodes,
                                           filter_nodes($nodes_hash,'role','controller')
@@ -215,8 +215,6 @@ if ($storage_hash['images_ceph']) {
   $glance_backend = 'file'
   $glance_known_stores = false
 }
-
-notice('Globals end')
 
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
