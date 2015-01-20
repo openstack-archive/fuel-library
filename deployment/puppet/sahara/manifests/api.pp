@@ -18,6 +18,8 @@ class sahara::api (
   $log_dir                     = '/var/log/sahara',
   $log_file                    = '/var/log/sahara/api.log',
   $templates_dir               = '/usr/share/sahara/templates',
+  $openstack_version           = '2014.2-6.1',
+  $auto_assign_floating_ip     = false,
 ) inherits sahara::params {
 
   validate_string($keystone_password)
@@ -61,9 +63,8 @@ class sahara::api (
   }
 
   #NOTE(mattymo): Backward compatibility for Icehouse
-  case $::fuel_settings['openstack_version'] {
+  case $openstack_version {
     /2014.1.*-6/: {
-      $use_floating_ips = $::fuel_settings['auto_assign_floating_ip']
       $plugins = "vanilla,hdp"
       #parse keystone_host for backward compatibility
       $keystone_host = inline_template("<%= @sahara_auth_uri.split('://')[1].split('/')[0].split(':')[0] %>")
@@ -88,7 +89,7 @@ class sahara::api (
       }
     }
     default: {
-      fail("Unsupported OpenStack version: ${::fuel_settings['openstack_version']}")
+      fail("Unsupported OpenStack version: $openstack_version")
     }
   }
   # Log configuration
