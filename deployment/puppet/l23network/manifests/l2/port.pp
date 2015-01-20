@@ -32,15 +32,18 @@ define l23network::l2::port (
   $ensure                = present,
   $port                  = $name,
   $bridge                = undef,
-  $vlan_id               = undef, # actually only for OVS workflow
+  $onboot                = undef,
+  $vlan_id               = undef,  # actually only for OVS workflow
   $vlan_dev              = undef,
   $mtu                   = undef,
-  $onboot                = undef,
-# $type                  = undef, # was '',
-  $skip_existing         = undef,
+  $ethtool               = undef,
+  $master                = undef,  # used for bonds automatically
+  $slave                 = undef,  # used for bonds automatically
+# $type                  = undef,  # was '',
   $vendor_specific       = {},
   $provider              = undef,
   # deprecated parameters, in the future ones will be moved to the vendor_specific hash
+  $skip_existing         = undef,
   $port_properties       = [],
   $interface_properties  = [],
   $trunks                = [],
@@ -101,6 +104,7 @@ define l23network::l2::port (
       vlan_id       => $port_vlan_id,
       vlan_dev      => $port_vlan_dev,
       vlan_mode     => $port_vlan_mode,
+      bond_master   => $master,
       mtu           => $mtu,
       onboot        => $onboot,
       provider      => $config_provider
@@ -112,6 +116,7 @@ define l23network::l2::port (
       vlan_id              => $port_vlan_id,
       vlan_dev             => $port_vlan_dev,
       vlan_mode            => $port_vlan_mode,
+      bond_master          => $master,
       mtu                  => $mtu,
       onboot               => $onboot,
       #type                 => $type,
@@ -121,5 +126,6 @@ define l23network::l2::port (
       #interface_properties => $interface_properties,
       provider             => $provider
     }
+    K_mod<||> -> L2_port<||>
   }
 }
