@@ -13,7 +13,7 @@ Puppet::Type.newtype(:l2_port) do
       desc "The interface name"
       #
       validate do |val|
-        if not val =~ /^[a-z_][0-9a-z\.\-\_]*[0-9a-z]$/
+        if not val =~ /^[a-z_][\w\.\-]*[0-9a-z]$/
           fail("Invalid interface name: '#{val}'")
         end
       end
@@ -102,25 +102,20 @@ Puppet::Type.newtype(:l2_port) do
 
     newproperty(:vlan_mode) do
       desc "802.1q vlan interface naming model"
-      #newvalues(:ethernet, :bridge, :bond)
-      #defaultto :ethernet
+    end
+
+    newproperty(:bond_master) do
+      desc "Bond name, if interface is a part of bond"
+      newvalues(/^[a-z][\w\-]*$/, :absent, :none, :undef, :nil)
+      aliasvalue(:absent, :none)
+      aliasvalue(:absent, :undef)
+      aliasvalue(:absent, :nil)
+      defaultto(:absent)
     end
 
     newparam(:trunks, :array_matching => :all) do
       defaultto([])
       desc "Array of trunks id, for configure patch's ends as ports in trunk mode"
-      #
-      # validate do |val|
-      #   val = Array(val)  # prevents puppet conversion array of one Int to Int
-      #   for i in val
-      #     if !i.is_a?(Integer) or (i < 0 or i > 4094)
-      #       fail("Wrong 802.1q tag. Tag must be an integer in 2..4094 interval")
-      #     end
-      #   end
-      # end
-      munge do |val|
-        Array(val)
-      end
     end
 
     newproperty(:mtu) do
@@ -129,8 +124,8 @@ Puppet::Type.newtype(:l2_port) do
       aliasvalue(:absent, :none)
       aliasvalue(:absent, :undef)
       aliasvalue(:absent, :nil)
-      defaultto(1500)
-      validate do |value|
+      defaultto(:absent)  # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
+      validate do |value| #     inherits it from a parent interface
         # Intel 82598 & 82599 chips support MTUs up to 16110; is there any
         # hardware in the wild that supports larger frames?
         #
@@ -157,12 +152,11 @@ Puppet::Type.newtype(:l2_port) do
       end
     end
 
-
-    newparam(:vlan_splinters) do
-      newvalues(true, false)
-      defaultto(false)
-      desc "Enable vlan splinters (if it's a phys. interface)"
-    end
+    # newparam(:vlan_splinters) do
+    #   newvalues(true, false)
+    #   defaultto(false)
+    #   desc "Enable vlan splinters (if it's a phys. interface)"
+    # end
 
     autorequire(:l2_bridge) do
       [self[:bridge]]

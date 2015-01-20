@@ -74,6 +74,14 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           props[:bridge] = port_bridges_hash[if_name][:bridge]
         end
         # calculate port_type field
+        if File.directory?("/sys/class/net/#{if_name}/bonding")
+          # port is a bond
+          props[:port_type] = 'lnx:bond:unremovable'
+        elsif File.symlink?("/sys/class/net/#{if_name}/master")
+          # port is a slave of bond
+          props[:bond_master] = File.readlink("/sys/class/net/#{if_name}/master").split('/')[-1]
+          props[:port_type] = 'lnx:bond-slave'
+        end
         if !bridges[if_name].nil?
           case bridges[if_name][:br_type]
           when :ovs
@@ -123,16 +131,30 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       if ! @property_flush[:mtu].nil?
         File.open("/sys/class/net/#{@resource[:interface]}/mtu", "w") { |f| f.write(@property_flush[:mtu]) }
       end
-      if ! @property_flush[:onboot].nil?
-        iproute('link', 'set', 'dev', @resource[:interface], 'up')
+      if @property_flush.has_key? :bond_master
+        bond = @old_property_hash[:bond_master]
+        # putting interface to the down-state, because add/remove upped interface impossible. undocumented kern.behavior.
+        iproute('--force', 'link', 'set', 'dev', @resource[:interface], 'down')
+        if bond
+          # remove interface from bond, if one included to it
+          debug("Remove interface '#{@resource[:interface]}' from bond '#{bond}'.")
+          File.open("/sys/class/net/#{@resource[:interface]}/master/bonding/slaves", "a") {|f| f << "-#{@resource[:interface]}"}
+        end
+        if ! @property_flush[:bond_master].nil?
+          # add interface as slave to bond
+          debug("Add interface '#{@resource[:interface]}' to bond '#{@property_flush[:bond_master]}'.")
+          File.open("/sys/class/net/#{@property_flush[:bond_master]}/bonding/slaves", "a") {|f| f << "+#{@resource[:interface]}"}
+        else
+          # port no more member of any bonds
+          @property_flush[:port_type] = nil
+        end
       end
-      if ! @property_flush[:bridge].nil?
+      if @property_flush.has_key? :bridge
         # get actual bridge-list. We should do it here,
         # because bridge may be not existing at prefetch stage.
         @bridges ||= self.class.get_bridge_list  # resource port can't change bridge list
         debug("Actual-bridge-list: #{@bridges}")
-        port_bridges_hash = self.class.get_ovs_port_bridges_pairs()       # LNX bridges should overwrite OVS
-        port_bridges_hash.merge! self.class.get_lnx_port_bridges_pairs()  # because if port includes in two bridges
+        port_bridges_hash = self.class.get_port_bridges_pairs()
         debug("Actual-port-bridge-mapping: '#{port_bridges_hash}'")       # it should removed from LNX
         #
         iproute('--force', 'link', 'set', 'dev', @resource[:interface], 'down')
@@ -153,7 +175,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           end
         end
         # add port to the new bridge
-        if @property_flush[:bridge].to_sym != :absent
+        if !@property_flush[:bridge].nil? and @property_flush[:bridge].to_sym != :absent
           case @bridges[@property_flush[:bridge]][:br_type]
           when :ovs
             vsctl('add-port', @property_flush[:bridge], @resource[:interface])
@@ -165,6 +187,11 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         end
         iproute('link', 'set', 'dev', @resource[:interface], 'up') if @resource[:onboot]
         debug("Change bridge")
+      end
+      if ! @property_flush[:onboot].nil?
+        # Should be after bond, because interface may auto-upped while added to the bond
+        debug("Setup UP state for interface '#{@resource[:interface]}'.")
+        iproute('link', 'set', 'dev', @resource[:interface], 'up')
       end
       @property_hash = resource.to_hash
     end
@@ -206,11 +233,18 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     @property_flush[:vlan_mode] = val
   end
 
+  def bond_master
+    @property_hash[:bond_master] || :absent
+  end
+  def bond_master=(val)
+    @property_flush[:bond_master] = val
+  end
+
   def mtu
     @property_hash[:mtu] || :absent
   end
   def mtu=(val)
-    @property_flush[:mtu] = val
+    @property_flush[:mtu] = val if val
   end
 
   def onboot
