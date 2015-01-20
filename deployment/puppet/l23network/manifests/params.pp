@@ -2,6 +2,7 @@
 #
 class l23network::params {
   $need_datapath_module = !str2bool($::kern_has_ovs_datapath)
+  $monolith_bond_providers = ['ovs']
 
   case $::osfamily {
     /(?i)debian/: {

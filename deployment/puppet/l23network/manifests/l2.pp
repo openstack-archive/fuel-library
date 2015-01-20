@@ -8,10 +8,12 @@ class l23network::l2 (
   $use_lnx       = true,
   $install_ovs   = true,
   $install_brctl = true,
+  $ovs_modname   = 'openvswitch'
 ){
   include ::l23network::params
 
   if $use_ovs {
+    $ovs_mod_ensure = present
     if $install_ovs {
       if $::l23network::params::ovs_datapath_package_name {
         package { 'openvswitch-datapath':
@@ -33,9 +35,18 @@ class l23network::l2 (
       status    => $::l23network::params::ovs_status_cmd,
     }
     Service['openvswitch-service'] -> Anchor['l23network::l2::init']
+  } else {
+    $ovs_mod_ensure = absent
+  }
+
+  @k_mod{$ovs_modname:
+    ensure => $ovs_mod_ensure
   }
 
   if $use_lnx {
+    $mod_8021q_ensure = present
+    $mod_bonding_ensure = present
+    $mod_bridge_ensure = present
     if $install_brctl {
       ensure_packages($::l23network::params::lnx_bridge_tools)
       #Package[$::l23network::params::lnx_bridge_tools] -> Anchor['l23network::l2::init']
@@ -46,6 +57,20 @@ class l23network::l2 (
     }
     ensure_packages($::l23network::params::lnx_vlan_tools)
     Package[$::l23network::params::lnx_vlan_tools] -> Anchor['l23network::l2::init']
+  } else {
+    $mod_8021q_ensure = absent
+    $mod_bonding_ensure = absent
+    $mod_bridge_ensure = absent
+  }
+
+  @k_mod{'8021q':
+    ensure => $mod_8021q_ensure
+  }
+  @k_mod{'bonding':
+    ensure => $mod_bonding_ensure
+  }
+  @k_mod{'bridge':
+    ensure => $mod_bridge_ensure
   }
 
   if $::l23network::params::lnx_ethernet_tools {
