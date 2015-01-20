@@ -1,0 +1,16 @@
+{
+  "name": "puppetlabs-corosync",
+  "version": "0.7.0",
+  "author": "Puppet Labs",
+  "summary": "This module is a set of manifests and types/providers for quickly setting up highly available clusters using Corosync",
+  "license": "Apache License, Version 2.0",
+  "source": "https://github.com/puppetlabs/puppetlabs-corosync",
+  "project_page": "https://github.com/puppetlabs/puppetlabs-corosync",
+  "issues_url": "https://tickets.puppetlabs.com/browse/MODULES",
+  "types": [
+  
+  ],
+  "dependencies": [
+    {"name":"puppetlabs/stdlib","version_requirement":"4.x"}
+  ]
+}

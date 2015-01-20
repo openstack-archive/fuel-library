@@ -82,90 +82,45 @@
 # Copyright 2012, Puppet Labs, LLC.
 #
 class corosync(
-  $enable_secauth     = 'UNSET',
-  $authkey_source     = 'file',
-  $authkey            = '/etc/puppet/ssl/certs/ca.pem',
-  $threads            = 'UNSET',
-  $port               = 'UNSET',
-  $bind_address       = 'UNSET',
-  $multicast_address  = 'UNSET',
-  $unicast_addresses  = 'UNSET',
-  $force_online       = false,
-  $check_standby      = false,
-  $debug              = false,
-  $rrp_mode           = 'none',
-  $ttl                = false,
-  $packages           = ['corosync', 'pacemaker'],
-  $corosync_version   = '1',
-) {
+  $enable_secauth    = $::corosync::params::enable_secauth,
+  $authkey_source    = $::corosync::params::authkey_source,
+  $authkey           = $::corosync::params::authkey,
+  $threads           = $::corosync::params::threads,
+  $port              = $::corosync::params::port,
+  $bind_address      = $::corosync::params::bind_address,
+  $multicast_address = $::corosync::params::multicast_address,
+  $unicast_addresses = $::corosync::params::unicast_addresses,
+  $force_online      = $::corosync::params::force_online,
+  $check_standby     = $::corosync::params::check_standby,
+  $debug             = $::corosync::params::debug,
+  $rrp_mode          = $::corosync::params::rrp_mode,
+  $ttl               = $::corosync::params::ttl,
+  $packages          = $::corosync::params::packages,
+) inherits ::corosync::params {
 
-  # Making it possible to provide data with parameterized class declarations or
-  # Console.
-  $threads_real = $threads ? {
-    'UNSET' => $::threads ? {
-      undef   => $::processorcount,
-      default => $::threads,
-    },
-    default => $threads,
+  if ! is_bool($enable_secauth) {
+    validate_re($enable_secauth, '^(on|off)$')
   }
+  validate_re($authkey_source, '^(file|string)$')
+  validate_bool($force_online)
+  validate_bool($check_standby)
+  validate_bool($debug)
 
-  $port_real = $port ? {
-    'UNSET' => $::port ? {
-      undef   => '5405',
-      default => $::port,
-    },
-    default => $port,
-  }
-
-  $bind_address_real = $bind_address ? {
-    'UNSET' => $::bind_address ? {
-      undef   => $::ipaddress,
-      default => $::bind_address,
-    },
-    default => $bind_address,
-  }
-  $unicast_addresses_real = $unicast_addresses ? {
-    'UNSET' => $::unicast_addresses ? {
-      undef   => 'UNSET',
-      default => $::unicast_addresses
-    },
-    default => $unicast_addresses
-  }
-  if $unicast_addresses_real == 'UNSET' {
-    $corosync_conf = "${module_name}/corosync${corosync_version}.conf.erb"
+  if $unicast_addresses == 'UNSET' {
+    $corosync_conf = "${module_name}/corosync.conf.erb"
   } else {
-    $corosync_conf = "${module_name}/corosync${corosync_version}.conf.udpu.erb"
+    $corosync_conf = "${module_name}/corosync.conf.udpu.erb"
   }
-
-  # We use an if here instead of a selector since we need to fail the catalog if
-  # this value is provided.  This is emulating a required variable as defined in
-  # parameterized class.
 
   # $multicast_address is NOT required if $unicast_address is provided
-  if $multicast_address == 'UNSET' and $unicast_addresses_real == 'UNSET' {
-    if ! $::multicast_address {
+  if $multicast_address == 'UNSET' and $unicast_addresses == 'UNSET' {
       fail('You must provide a value for multicast_address')
-    } else {
-      $multicast_address_real = $::multicast_address
-    }
-  } else {
-    $multicast_address_real = $multicast_address
   }
 
-  if $enable_secauth == 'UNSET' {
-    case $::enable_secauth {
-      true:  { $enable_secauth_real = 'on' }
-      false: { $enable_secauth_real = 'off' }
-      undef:   { $enable_secauth_real = 'on' }
-      '':      { $enable_secauth_real = 'on' }
-      default: { validate_re($::enable_secauth, '^true$|^false$') }
-    }
-  } else {
-      case $enable_secauth {
-        true:   { $enable_secauth_real = 'on' }
-        false:  { $enable_secauth_real = 'off' }
-        default: { fail('The enable_secauth class parameter requires a true or false boolean') }
-      }
+  case $enable_secauth {
+    true:    { $enable_secauth_real = 'on' }
+    false:   { $enable_secauth_real = 'off' }
+    default: { $enable_secauth_real = $enable_secauth }
   }
 
   # Using the Puppet infrastructure's ca as the authkey, this means any node in
@@ -195,9 +150,7 @@ class corosync(
           require => Package['corosync'],
         }
       }
-      default: {
-        fail("authkey_source must be either 'file' or 'string'.")
-      }
+      default: {}
     }
   }
 
@@ -222,11 +175,6 @@ class corosync(
     require => Package['corosync'],
   }
 
-  file { '/tmp/variable':
-    content => "${unicast_addresses}",
-    require => File['/etc/corosync/corosync.conf'],
-  }
-
   file { '/etc/corosync/service.d':
     ensure  => directory,
     mode    => '0755',
@@ -237,33 +185,7 @@ class corosync(
     require => Package['corosync']
   }
 
-  package { 'crmsh':
-    ensure => present,
-    before => Package['pacemaker'],
-  }
-
   case $::osfamily {
-    'RedHat': {
-      exec { 'enable corosync':
-        require => Package['corosync'],
-        before  => Service['corosync'],
-      }
-      package { 'pcs':
-        ensure => present,
-        before => Package['pacemaker'],
-      }
-      file { ['/var/lib/pacemaker',
-              '/var/lib/pacemaker/cores',
-              '/var/lib/pacemaker/cores/root',
-              ]:
-        ensure  => directory,
-        mode    => '0750',
-        owner   => 'hacluster',
-        group   => 'haclient',
-        require => Package['pacemaker'],
-        before => Service['corosync'],
-      }
-    }
     'Debian': {
       exec { 'enable corosync':
         command => 'sed -i s/START=no/START=yes/ /etc/default/corosync',
@@ -272,29 +194,11 @@ class corosync(
         require => Package['corosync'],
         before  => Service['corosync'],
       }
-      if $::operatingsystem == 'Ubuntu' {
-        package {'python-pcs':
-          ensure => present,
-          before => Package['pacemaker'],
-        }
-        file { "/etc/init/corosync.override":
-          replace => "no",
-          ensure  => "present",
-          content => "manual",
-          mode    => '0644',
-          before  => Package['corosync'],
-        }
-        exec { 'rm_corosync_override':
-          command => '/bin/rm -f /etc/init/corosync.override',
-          path    => ['/bin', '/usr/bin'],
-          require => Package['corosync'],
-        }
-      }
     }
     default: {}
   }
 
-  if $check_standby == true {
+  if $check_standby {
     # Throws a puppet error if node is on standby
     exec { 'check_standby node':
       command => 'echo "Node appears to be on standby" && false',
@@ -304,7 +208,7 @@ class corosync(
     }
   }
 
-  if $force_online == true {
+  if $force_online {
     exec { 'force_online node':
       command => 'crm node online',
       path    => [ '/bin', '/usr/bin', '/sbin', '/usr/sbin' ],
