@@ -1,3 +1,5 @@
+notice('MODULAR: tools.pp')
+
 class { 'osnailyfacter::atop': }
 
 $tools = [
