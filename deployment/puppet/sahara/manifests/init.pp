@@ -35,6 +35,8 @@ class sahara (
   $amqp_hosts                          = false,
   $rabbit_virtual_host                 = '/',
   $rabbit_ha_queues                    = false,
+  $openstack_version                   = '2014.2-6.1',
+  $auto_assign_floating_ip             = false,
 ) {
 
   $sahara_sql_connection               = "mysql://${sahara_db_user}:${sahara_db_password}@${sahara_db_host}/${sahara_db_name}?read_timeout=60"
@@ -62,6 +64,7 @@ class sahara (
     use_syslog                          => $use_syslog,
     verbose                             => $verbose,
     syslog_log_facility_sahara          => $syslog_log_facility_sahara,
+    openstack_version                   => $openstack_version,
   }
 
   class { 'sahara::keystone::auth' :
@@ -104,16 +107,15 @@ class sahara (
     dport   => $sahara_api_port,
     proto   => 'tcp',
     action  => 'accept',
-    require => Class['openstack::firewall']
   }
 
   #NOTE(mattymo): Backward compatibility for Icehouse
-  case $::fuel_settings['openstack_version'] {
+  case $openstack_version {
     /2014.1.*-6/: {
       class {'sahara::dashboard':
         enabled          => $sahara_enabled,
         use_neutron      => $use_neutron,
-        use_floating_ips => $::fuel_settings['auto_assign_floating_ip'],
+        use_floating_ips => $auto_assign_floating_ip,
       }
       Class['sahara::api'] -> Class['sahara::dashboard']
     }
