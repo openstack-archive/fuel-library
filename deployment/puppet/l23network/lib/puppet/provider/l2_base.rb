@@ -80,5 +80,34 @@ class Puppet::Provider::L2_base < Puppet::Provider
     end
     return portlist
   end
+
+  def self.get_lnx_bonds
+    bond = {}
+    bondlist = File.open("/sys/class/net/bonding_masters").read.chomp.split(/\s+/).sort
+    bondlist.each do |bond_name|
+      #bond_config = IO.readlines("/proc/net/bonding/#{bond_name}")
+      bond[bond_name] = {
+        :mtu             => File.open("/sys/class/net/#{bond_name}/mtu").read.chomp,
+        :slaves           => File.open("/sys/class/net/#{bond_name}/bonding/slaves").read.chomp.split(/\s+/).sort,
+        :bond_properties => {
+          :mode             => File.open("/sys/class/net/#{bond_name}/bonding/mode").read.split(/\s+/)[0],
+          :miimon           => File.open("/sys/class/net/#{bond_name}/bonding/miimon").read.chomp,
+          #:xmit_hash_policy => File.open("/sys/class/net/#{bond_name}/bonding/xmit_hash_policy").read.split(/\s+/)[0],
+          :lacp_rate        => File.open("/sys/class/net/#{bond_name}/bonding/lacp_rate").read.split(/\s+/)[0],
+        }
+      }
+      begin
+        File.open("/sys/class/net/#{bond_name}/carrier").read
+        bond[bond_name][:onboot] = true
+      rescue
+        # if interface if down, this file can't be read
+        bond[bond_name][:onboot] = false
+      end
+    end
+    return bond
+  end
+
 end
+
+
 # vim: set ts=2 sw=2 et :

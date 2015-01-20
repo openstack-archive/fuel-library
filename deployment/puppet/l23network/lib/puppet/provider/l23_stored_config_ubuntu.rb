@@ -8,6 +8,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   end
 
   NAME_MAPPINGS = {
+    :if_type        => 'if_type',       # pseudo field, not found in config, but calculated
     :method         => 'method',
     :name           => 'iface',
     :onboot         => 'auto',
@@ -19,6 +20,10 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     :gateway        => 'gateway',
     :gateway_metric => 'metric',     # todo: rename to 'metric'
 #   :dhcp_hostname  => 'hostname'
+    :bond_master    => 'bond-master',
+    :bond_slaves    => 'bond-slaves',
+    :bond_mode      => 'bond-mode',
+    :bond_miimon    => 'bond-miimon',
   }
 
   # In the interface config files those fields should be written as boolean
@@ -59,7 +64,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     # initialize hash as predictible values
     hash = {}
     hash['auto'] = false
-    hash['type'] = :Ethernet
+    hash['if_type'] = :ethernet
     dirty_iface_name = nil
     if (m = filename.match(%r/ifcfg-(\S+)$/))
       # save iface name from file name. One will be used if iface name not defined inside config.
@@ -67,7 +72,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     end
 
     # Convert the data into key/value pairs
-    pair_regex = %r/^\s*(.+?)\s+(.*)\s*$/
+    pair_regex = %r/^\s*([\w+\-]+)\s+(.*)\s*$/
     lines.each do |line|
       if (m = line.match(pair_regex))
         key = m[1].strip
@@ -87,8 +92,14 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
               hash['method'] = mm[2]
               if hash['iface'] =~ /^br.*/i
                 # todo(sv): Make more powerful methodology for recognizind Bridges.
-                hash['type'] = :Bridge
+                hash['if_type'] = :bridge
               end
+          when /bridge-ports/
+              hash['if_type'] = :bridge
+              hash[key] = val
+          when /bond-(slaves|mode)/
+              hash['if_type'] = :bond
+              hash[key] = val
           else
               hash[key] = val
         end
@@ -135,7 +146,6 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
           rv = val
         end
         props[type_name] = rv if ! [nil, :absent].include? rv
-
       end
     end
 
@@ -155,7 +165,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     val.to_sym
   end
 
-  def self.mangle__type(val)
+  def self.mangle__if_type(val)
     val.downcase.to_sym
   end
 
@@ -167,6 +177,12 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     val.split(/[\s,]+/).sort
   end
 
+  def self.mangle__bond_slaves(val)
+    rv = val.split(/[\s,]+/).sort
+    # if rv.size == 1 and rv[0] == 'none'
+    #   rv = []
+    # end
+  end
 
   ###
   # Hash to file
@@ -193,7 +209,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     #props = (provider.options || {})
     props    = {}
 
-    NAME_MAPPINGS.keys.select{|v| ! [:onboot, :name, :family, :method, :type].include?(v)}.each do |type_name|
+    NAME_MAPPINGS.keys.select{|v| ! [:onboot, :name, :family, :method, :if_type].include?(v)}.each do |type_name|
       val = provider.send(type_name)
       if val and val.to_s != 'absent'
         props[type_name] = val
@@ -237,17 +253,19 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
     #pairs.merge! props
 
-    pairs.each_pair do |key, val|
-      if val.is_a? String and val.match(/\s+/)
-        pairs[key.to_sym] = "#{val}"
-      end
-    end
+    # pairs.each_pair do |key, val|
+    #   if val.is_a? String and val.match(/\s+/)
+    #     debug("==[#{key.to_sym}]==[\"#{val}\"]==")
+    #     pairs[key.to_sym] = "\"#{val}\""
+    #   end
+    # end
 
     pairs
   end
 
-  def self.unmangle__type(val)
-    val.capitalize
+  def self.unmangle__if_type(val)
+    # in Debian family interface config file don't contains declaration of interface type
+    nil
   end
 
   def self.unmangle__gateway_metric(val)
@@ -255,8 +273,27 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   end
 
   def self.unmangle__bridge_ports(val)
-    return 'none' if val.size < 1
-    val.sort.join(' ')
+    if val.size < 1 or [:absent, :undef].include? Array(val)[0].downcase.to_sym
+      nil
+    else
+      val.sort.join(' ')
+    end
+  end
+
+  def self.unmangle__bond_master(val)
+    if [:none, :absent, :undef].include? val.downcase.to_sym
+      nil
+    else
+      val
+    end
+  end
+
+  def self.unmangle__bond_slaves(val)
+    if val.size < 1 or [:absent, :undef].include? Array(val)[0].downcase.to_sym
+      nil
+    else
+      val.sort.join(' ')
+    end
   end
 
 end
