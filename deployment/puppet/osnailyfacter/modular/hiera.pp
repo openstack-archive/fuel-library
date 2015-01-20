@@ -1,3 +1,5 @@
+notice('MODULAR: hiera.pp')
+
 $data_dir            = '/etc/hiera'
 $data                = [
   'override/node/%{::fqdn}',
