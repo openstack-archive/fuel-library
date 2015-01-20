@@ -35,9 +35,8 @@ Puppet::Type.newtype(:l23_stored_config) do
   # end
 
   newproperty(:if_type) do
-    desc "Device type"
+    desc "Device type. Service property, shouldn't be setting by puppet"
     newvalues(:ethernet, :bridge, :bond)
-    defaultto(:ethernet)
   end
 
   newproperty(:bridge) do
@@ -64,8 +63,8 @@ Puppet::Type.newtype(:l23_stored_config) do
     aliasvalue(:absent, :none)
     aliasvalue(:absent, :undef)
     aliasvalue(:absent, :nil)
-    defaultto(1500)
-    validate do |value|
+    defaultto(:absent)  # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
+    validate do |value| #     inherits it from a parent interface
       # Intel 82598 & 82599 chips support MTUs up to 16110; is there any
       # hardware in the wild that supports larger frames?
       #
@@ -175,6 +174,30 @@ Puppet::Type.newtype(:l23_stored_config) do
     end
   end
 
+  newproperty(:bond_master) do
+    desc "bond name for bonded interface"
+    newvalues(/^[\w+\-]+$/, :none, :undef, :nil, :absent)
+    aliasvalue(:absent, :none)
+    aliasvalue(:absent, :undef)
+    aliasvalue(:absent, :nil)
+    defaultto(:absent)
+  end
+
+  newproperty(:bond_slaves, :array_matching => :all) do
+    desc "slave ports for bond interface"
+    newvalues(/^[\w+\-]+$/, :false, :no, :none, :undef, :nil, :absent)
+    #aliasvalue(:absent, :none)  # none is a valid config value
+    aliasvalue(:none, :no)
+    aliasvalue(:none, :false)
+    aliasvalue(:absent, :undef)
+    aliasvalue(:absent, :nil)
+    defaultto(:absent)
+  end
+
+  newproperty(:bond_mode)
+  newproperty(:bond_miimon)
+  newproperty(:bond_lacp_rate)
+
   # # `:options` provides an arbitrary passthrough for provider properties, so
   # # that provider specific behavior doesn't clutter up the main type but still
   # # allows for more powerful actions to be taken.
@@ -198,7 +221,7 @@ Puppet::Type.newtype(:l23_stored_config) do
   # end
 
   def generate
-    return if ! (self[:bridge] != :absent and self[:if_type] == :ethernet)
+    return if ! (![:absent, :none, :nil, :undef].include? self[:bridge] and self[:if_type] == :ethernet)
     br = self.catalog.resource 'L23_stored_config', self[:bridge]
     fail "Stored_config resource for bridge '#{self[:bridge]}' not found for port '#{self[:name]}'!" if ! br
     br[:bridge_ports] ||= []

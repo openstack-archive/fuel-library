@@ -17,6 +17,7 @@
 #
 define l23network::l2::bridge (
   $ensure          = present,
+  $mtu             = undef,
   $bpdu_forward    = true,
   $external_ids    = "bridge-id=${name}",
   $skip_existing   = false,
@@ -50,6 +51,7 @@ define l23network::l2::bridge (
       #bpdu_forward  => $bpdu_forward,
       provider      => $provider
     }
+    K_mod<||> -> L2_bridge<||>
   }
 }
 
