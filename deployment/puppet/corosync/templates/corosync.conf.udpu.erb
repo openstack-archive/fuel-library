@@ -1,0 +1,53 @@
+compatibility: whitetank
+
+totem {
+  version:                             2
+  token:                               3000
+  token_retransmits_before_loss_const: 10
+  join:                                60
+  consensus:                           3600
+  vsftype:                             none
+  max_messages:                        20
+  clear_node_high_bit:                 yes
+  rrp_mode:                            <%= @rrp_mode %>
+  secauth:                             <%= @enable_secauth_real %>
+  threads:                             <%= @threads_real %>
+  transport:                           udpu
+  interface {
+<% @unicast_addresses.each do |addr| -%>
+    member {
+      memberaddr: <%= addr %>
+    }
+<% end -%>
+    ringnumber:  0
+    bindnetaddr: <%= @bind_address_real %>
+    mcastport:   <%= @port_real %>
+<% if @ttl -%>
+    ttl:         <%= @ttl %>
+<% end -%>
+  }
+}
+
+logging {
+  fileline:        off
+  to_stderr:       yes
+  to_logfile:      no
+  to_syslog:       yes
+  syslog_facility: daemon
+  debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
+  timestamp:       on
+  logger_subsys {
+    subsys: AMF
+    debug:  off
+    tags:   enter|leave|trace1|trace2|trace3|trace4|trace6
+  }
+}
+
+amf {
+  mode: disabled
+}
+
+aisexec {
+  user:  root
+  group: root
+}

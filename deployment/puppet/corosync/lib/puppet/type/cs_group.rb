@@ -20,14 +20,14 @@ module Puppet
     newproperty(:primitives, :array_matching => :all) do
       desc "An array of primitives to have in this group.  Must be listed in the
           order that you wish them to start."
+
       # Have to redefine should= here so we can sort the array that is given to
       # us by the manifest.  While were checking on the class of our value we
       # are going to go ahead and do some validation too.  The way Corosync
       # colocation works we need to only accept two value arrays.
       def should=(value)
         super
-        raise Puppet::Error, "Puppet::Type::Cs_Group: primitives property must be at least a 2-element array." unless
-        value.is_a? Array and value.length > 1
+        raise Puppet::Error, "Puppet::Type::Cs_Group: primitives property must be at least a 2-element array." unless value.is_a? Array and value.length > 1
         @should
       end
     end
@@ -44,22 +44,29 @@ module Puppet
     end
 
     autorequire(:cs_shadow) do
-      rv = []
-      rv << @parameters[:cib].value if !@parameters[:cib].nil?
-      rv
+      [ @parameters[:cib] ]
     end
 
     autorequire(:service) do
       [ 'corosync' ]
     end
 
-    autorequire(:cs_resource) do
+    autorequire(:cs_primitive) do
       autos = []
       @parameters[:primitives].should.each do |val|
-        autos << val
+        autos << unmunge_cs_primitive(val)
       end
+
       autos
     end
 
+    def unmunge_cs_primitive(name)
+      name = name.split(':')[0]
+      if name.start_with? 'ms_'
+        name = name[3..-1]
+      end
+
+      name
+    end
   end
 end
