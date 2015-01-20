@@ -44,6 +44,7 @@ class murano::api (
     $use_neutron                = false,
     $default_network            = 'net04_ext',
     $default_router             = 'murano-default-router',
+    $neutron_settings           = {},
 ) {
 
   $database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}?read_timeout=60"
@@ -94,7 +95,7 @@ class murano::api (
 
   if $use_neutron {
     murano_config {
-      'networking/external_network' : value => get_ext_net_name($::fuel_settings['quantum_settings']['predefined_networks'], $default_network);
+      'networking/external_network' : value => get_ext_net_name($neutron_settings['predefined_networks'], $default_network);
       'networking/router_name'      : value => $default_router;
       'networking/create_router'    : value => true;
     }

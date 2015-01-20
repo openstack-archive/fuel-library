@@ -365,7 +365,7 @@ class openstack::controller (
     $enabled_apis = 'ec2,osapi_compute,osapi_volume'
   }
 
-  if $::fuel_settings['nova_quota'] {
+  if hiera('nova_quota') {
     $nova_quota_driver = "nova.quota.DbQuotaDriver"
   } else {
     $nova_quota_driver = "nova.quota.NoopQuotaDriver"
@@ -539,10 +539,10 @@ class openstack::controller (
     verbose           => $verbose,
     debug             => $debug,
     use_syslog        => $use_syslog,
-    nova_quota        => $::fuel_settings['nova_quota'],
+    nova_quota        => hiera('nova_quota'),
   } ->
   class {'osnailyfacter::apache_api_proxy':
-    master_ip => $::fuel_settings['master_ip'],
+    master_ip => hiera('master_ip'),
   }
 
   class { 'openstack::auth_file':
@@ -579,7 +579,7 @@ class openstack::controller (
       package_name => 'keystone',
     }
     # Ceph rbd backend configures its override on its own
-    if !$::fuel_settings['storage']['volumes_ceph'] {
+    if !$::storage_hash['volumes_ceph'] {
       tweaks::ubuntu_service_override { 'cinder-volume':
         package_name => 'cinder-volume',
       }
@@ -644,7 +644,7 @@ class openstack::controller (
     # FIXME(xarses) Nearly everything between here and the class
     # should be moved into osnaily or nailgun but will stay here
     # in the interum.
-    $neutron_settings = $::fuel_settings['quantum_settings']
+    $neutron_settings = hiera('quantum_settings')
     $nets = $neutron_settings['predefined_networks']
 
     if $primary_controller {

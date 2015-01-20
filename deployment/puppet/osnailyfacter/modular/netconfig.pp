@@ -1,3 +1,5 @@
+notice('MODULAR: netconfig.pp')
+
 if  hiera('disable_offload') {
   L23network::L3::Ifconfig<||> {
     ethtool => {
