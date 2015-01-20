@@ -29,27 +29,20 @@ module Puppet
       [ 'corosync' ]
     end
 
-    autorequire(:cs_resource) do
-      resources_with_cib :cs_resource
-    end
-
-    autorequire(:cs_location) do
-      resources_with_cib :cs_location
+    autorequire(:cs_primitive) do
+      resources_with_cib :cs_primitive
     end
 
     autorequire(:cs_colocation) do
       resources_with_cib :cs_colocation
     end
 
+    autorequire(:cs_location) do
+      resources_with_cib :cs_location
+    end
+
+
     autorequire(:cs_order) do
-      resources_with_cib :cs_order
-    end
-
-    autorequire(:cs_property) do
-      resources_with_cib :cs_order
-    end
-
-    autorequire(:cs_group) do
       resources_with_cib :cs_order
     end
 
