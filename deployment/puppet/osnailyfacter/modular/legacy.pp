@@ -1,3 +1,5 @@
+notice('MODULAR: legacy.pp')
+
 $fuel_settings = parseyaml($astute_settings_yaml)
 
 $openstack_version = {
