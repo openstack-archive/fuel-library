@@ -96,6 +96,7 @@ class corosync(
   $rrp_mode          = $::corosync::params::rrp_mode,
   $ttl               = $::corosync::params::ttl,
   $packages          = $::corosync::params::packages,
+  $corosync_version  = $::corosync::params::corosync_version,
 ) inherits ::corosync::params {
 
   if ! is_bool($enable_secauth) {
@@ -221,5 +222,13 @@ class corosync(
     ensure    => running,
     enable    => true,
     subscribe => File[ [ '/etc/corosync/corosync.conf', '/etc/corosync/service.d' ] ],
+  }
+
+  if $corosync_version != '1' {
+    service { 'pacemaker':
+      ensure    => running,
+      enable    => true,
+      subscribe => Service['corosync'],
+    }
   }
 }
