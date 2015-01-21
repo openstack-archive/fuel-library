@@ -99,10 +99,30 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
+- id: ceph
+  type: puppet
+  groups: [primary-controller, controller, cinder]
+  required_for: [deploy]
+  requires: [top-role-primary-controller, top-role-controller,
+             top-role-cinder]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: top-role-ceph-osd
+  type: puppet
+  groups: [ceph-osd]
+  required_for: [deploy]
+  requires: [ceph]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph-osd.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
 - id: legacy
   type: puppet
-  groups: [ceph-osd, zabbix-server,
-           primary-mongo, mongo]
+  groups: [zabbix-server, primary-mongo, mongo]
   required_for: [deploy]
   requires: [hosts, firewall]
   parameters:
