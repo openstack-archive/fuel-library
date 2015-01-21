@@ -508,6 +508,47 @@ if $use_vmware_nsx {
 }
 
 #################################################################
+# we need to evaluate ceph here, because ceph notifies/requires
+# other services that are declared in openstack manifests
+if $use_ceph {
+  $primary_mons   = $controllers
+  $primary_mon    = $controllers[0]['name']
+
+  if ($use_neutron) {
+    prepare_network_config($network_scheme)
+    $ceph_cluster_network = get_network_role_property('storage', 'cidr')
+    $ceph_public_network  = get_network_role_property('management', 'cidr')
+  } else {
+    $ceph_cluster_network = hiera('storage_network_range')
+    $ceph_public_network = hiera('management_network_range')
+  }
+
+  class {'ceph':
+    primary_mon              => $primary_mon,
+    mon_hosts                => nodes_with_roles($nodes_hash, ['primary-controller',
+                                                 'controller', 'ceph-mon'], 'name'),
+    mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller',
+                                                 'controller', 'ceph-mon'], 'internal_address'),
+    cluster_node_address     => $controller_node_public,
+    osd_pool_default_size    => $storage_hash['osd_pool_size'],
+    osd_pool_default_pg_num  => $storage_hash['pg_num'],
+    osd_pool_default_pgp_num => $storage_hash['pg_num'],
+    use_rgw                  => $storage_hash['objects_ceph'],
+    glance_backend           => $glance_backend,
+    rgw_pub_ip               => $public_vip,
+    rgw_adm_ip               => $management_vip,
+    rgw_int_ip               => $management_vip,
+    cluster_network          => $ceph_cluster_network,
+    public_network           => $ceph_public_network,
+    use_syslog               => $use_syslog,
+    syslog_log_level         => $syslog_log_level,
+    syslog_log_facility      => $syslog_log_facility_ceph,
+    rgw_keystone_admin_token => $keystone_hash['admin_token'],
+    ephemeral_ceph           => $storage_hash['ephemeral_ceph']
+  }
+  Class['openstack::controller'] -> Class['ceph']
+}
+#################################################################
 include osnailyfacter::test_controller
 
 class { '::cluster':
