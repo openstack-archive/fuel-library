@@ -50,7 +50,7 @@ class cluster::haproxy_ocf (
       },
     }
 
-    cs_colocation { 'vip_public-with-haproxy':
+    cs_rsc_colocation { 'vip_public-with-haproxy':
       ensure     => present,
       score      => 'INFINITY',
       primitives => [
@@ -58,7 +58,7 @@ class cluster::haproxy_ocf (
           "clone_${service_name}"
       ],
     }
-    cs_colocation { 'vip_management-with-haproxy':
+    cs_rsc_colocation { 'vip_management-with-haproxy':
       ensure     => present,
       score      => 'INFINITY',
       primitives => [
@@ -68,8 +68,8 @@ class cluster::haproxy_ocf (
     }
 
     File['haproxy-ocf'] -> Cs_resource[$service_name]
-    Cs_resource[$service_name] -> Cs_colocation['vip_public-with-haproxy'] -> Service[$service_name]
-    Cs_resource[$service_name] -> Cs_colocation['vip_management-with-haproxy'] -> Service[$service_name]
+    Cs_resource[$service_name] -> Cs_rsc_colocation['vip_public-with-haproxy'] -> Service[$service_name]
+    Cs_resource[$service_name] -> Cs_rsc_colocation['vip_management-with-haproxy'] -> Service[$service_name]
   } else {
     File['haproxy-ocf'] -> Service[$service_name]
   }

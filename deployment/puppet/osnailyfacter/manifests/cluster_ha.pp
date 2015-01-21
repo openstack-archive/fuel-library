@@ -493,7 +493,7 @@ class osnailyfacter::cluster_ha {
     # deploymenet. This wouldls only need to be changed by hand.
     $keep_vips_together = false
     if ($keep_vips_together) {
-      cs_colocation { 'ha_vips':
+      cs_rsc_colocation { 'ha_vips':
         ensure      => present,
         primitives  => [prefix(keys($::osnailyfacter::cluster_ha::vips),"vip__")],
         after       => Cluster::Virtual_ips[$::osnailyfacter::cluster_ha::vip_keys]
