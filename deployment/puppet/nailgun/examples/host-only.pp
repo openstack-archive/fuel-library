@@ -84,7 +84,9 @@ file { "/etc/supervisord.d/current":
 }
 
 exec {'sync_deployment_tasks':
-  command => 'fuel rel --sync-deployment-tasks --dir /etc/puppet/',
-  path    => '/usr/bin',
-  require => Class['nailgun::supervisor']
+  command   => 'fuel rel --sync-deployment-tasks --dir /etc/puppet/',
+  path      => '/usr/bin',
+  tries     => 60,
+  try_sleep => 10,
+  require   => Class['docker']
 }
