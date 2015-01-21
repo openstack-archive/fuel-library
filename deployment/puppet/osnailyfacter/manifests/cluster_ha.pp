@@ -594,7 +594,6 @@ class osnailyfacter::cluster_ha {
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/resume_guests_state_on_host_boot': value => $::fuel_settings['resume_guests_state_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images':            value => $::fuel_settings['use_cow_images'] }
-      nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
       # TODO(bogdando) move exec checkers to puppet native types for haproxy backends
       if $primary_controller {
@@ -914,7 +913,6 @@ class osnailyfacter::cluster_ha {
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
-      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
     # Configure monit watchdogs
     # FIXME(bogdando) replace service_path and action to systemd, once supported
