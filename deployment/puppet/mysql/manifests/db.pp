@@ -42,11 +42,19 @@ define mysql::db (
   $enforce_sql = false
 ) {
 
-  database { $name:
-    ensure   => present,
-    charset  => $charset,
-    provider => 'mysql',
-    require  => Class['mysql::server'],
+  if defined(Class['mysql::server']) {
+    database { $name:
+      ensure   => present,
+      charset  => $charset,
+      provider => 'mysql',
+      require  => Class['mysql::server'],
+    } 
+  } else {
+    database { $name:
+      ensure   => present,
+      charset  => $charset,
+      provider => 'mysql',
+    }
   }
 
   database_user { "${user}@${host}":
