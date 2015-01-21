@@ -2,14 +2,10 @@
 
 class ceph (
       # General settings
+      $mon_hosts,
+      $mon_ip_addresses,
       $cluster_node_address = $::ipaddress, #This should be the cluster service address
       $primary_mon          = $::hostname, #This should be the first controller
-      $mon_hosts            = nodes_with_roles($::fuel_settings['nodes'],
-                                               ['primary-controller', 'controller', 'ceph-mon'],
-                                               'name'),
-      $mon_ip_addresses     = nodes_with_roles($::fuel_settings['nodes'],
-                                               ['primary-controller', 'controller', 'ceph-mon'],
-                                               'internal_address'),
       $osd_devices          = split($::osd_devices_list, ' '),
       $use_ssl              = false,
       $use_rgw              = false,
@@ -18,10 +14,10 @@ class ceph (
       $auth_supported            = 'cephx',
       $osd_journal_size          = '2048',
       $osd_mkfs_type             = 'xfs',
-      $osd_pool_default_size     = $::fuel_settings['storage']['osd_pool_size'],
+      $osd_pool_default_size     = undef,
       $osd_pool_default_min_size = '1',
-      $osd_pool_default_pg_num   = $::fuel_settings['storage']['pg_num'],
-      $osd_pool_default_pgp_num  = $::fuel_settings['storage']['pg_num'],
+      $osd_pool_default_pg_num   = undef,
+      $osd_pool_default_pgp_num  = undef,
       $cluster_network           = undef,
       $public_network            = undef,
 
@@ -35,7 +31,7 @@ class ceph (
       $rgw_use_keystone                 = true,
       $rgw_use_pki                      = false,
       $rgw_keystone_url                 = "${cluster_node_address}:5000",
-      $rgw_keystone_admin_token         = $::fuel_settings['keystone']['admin_token'],
+      $rgw_keystone_admin_token         = undef,
       $rgw_keystone_token_cache_size    = '10',
       $rgw_keystone_accepted_roles      = '_member_, Member, admin, swiftoperator',
       $rgw_keystone_revocation_interval = $::ceph::rgw_use_pki ? { false => 1000000, default => 60},
@@ -67,6 +63,7 @@ class ceph (
       $compute_user          = 'compute',
       $compute_pool          = 'compute',
       $libvirt_images_type   = 'rbd',
+      $ephemeral_ceph        = false,
 
       # Log settings
       $use_syslog            = false,
@@ -81,7 +78,7 @@ class ceph (
   # Re-enable ceph::yum if not using a Fuel iso with Ceph packages
   #include ceph::yum
 
-  if $::fuel_settings['role'] =~ /controller|ceph|compute|cinder/ {
+  if hiera('role') =~ /controller|ceph|compute|cinder/ {
     # the regex above includes all roles that require ceph.conf
     include ceph::ssh
     include ceph::params
@@ -89,7 +86,7 @@ class ceph (
     Class[['ceph::ssh', 'ceph::params']] -> Class['ceph::conf']
   }
 
-  if $::fuel_settings['role'] =~ /controller|ceph/ {
+  if hiera('role') =~ /controller|ceph/ {
     service {'ceph':
       ensure  => 'running',
       enable  => true,
@@ -101,7 +98,7 @@ class ceph (
     }
   }
 
-  case $::fuel_settings['role'] {
+  case hiera('role') {
     'primary-controller', 'controller', 'ceph-mon': {
       include ceph::mon
 
@@ -148,7 +145,7 @@ class ceph (
 
       include ceph::nova_compute
 
-      if ($::fuel_settings['storage']['ephemeral_ceph']) {
+      if ($ephemeral_ceph) {
         include ceph::ephemeral
         Class['ceph::conf'] -> Class['ceph::ephemeral'] ~>
         Service[$::ceph::params::service_nova_compute]
