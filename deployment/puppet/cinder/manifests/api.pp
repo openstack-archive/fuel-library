@@ -116,7 +116,8 @@ class cinder::api (
     Package['cinder-api'] -> Class['cinder::policy']
     Package['cinder-api'] -> Cinder_config<||>
     Package['cinder-api'] -> Cinder_api_paste_ini<||>
-    Package['cinder-api'] -> Service['cinder-api']
+    Package['cinder-api'] ~> Service['cinder-api']
+    Package['cinder']     ~> Service['cinder-api']
     package { 'cinder-api':
       ensure  => $package_ensure,
       name    => $::cinder::params::api_package,
@@ -145,11 +146,11 @@ class cinder::api (
   }
 
   service { 'cinder-api':
-    ensure    => $ensure,
-    name      => $::cinder::params::api_service,
-    enable    => $enabled,
-    hasstatus => true,
-    require   => Package['cinder'],
+    ensure     => $ensure,
+    name       => $::cinder::params::api_service,
+    enable     => $enabled,
+    hasstatus  => true,
+    hasrestart => true,
   }
 
   cinder_config {
