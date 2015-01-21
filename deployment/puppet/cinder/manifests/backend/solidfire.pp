@@ -55,7 +55,7 @@ define cinder::backend::solidfire(
     "${name}/volume_driver":       value => $volume_driver;
     "${name}/san_ip":              value => $san_ip;
     "${name}/san_login":           value => $san_login;
-    "${name}/san_password":        value => $san_password;
+    "${name}/san_password":        value => $san_password, secret => true;
     "${name}/sf_emulate_512":      value => $sf_emulate_512;
     "${name}/sf_allow_tenant_qos": value => $sf_allow_tenant_qos;
     "${name}/sf_account_prefix":   value => $sf_account_prefix;

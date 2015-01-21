@@ -9,6 +9,49 @@
 #   Timeout when db connections should be reaped.
 #   (Optional) Defaults to 3600.
 #
+# [database_min_pool_size]
+#   Minimum number of SQL connections to keep open in a pool.
+#   (Optional) Defaults to 1.
+#
+# [database_max_pool_size]
+#   Maximum number of SQL connections to keep open in a pool.
+#   (Optional) Defaults to undef.
+#
+# [database_max_retries]
+#   Maximum db connection retries during startup.
+#   Setting -1 implies an infinite retry count.
+#   (Optional) Defaults to 10.
+#
+# [database_retry_interval]
+#   Interval between retries of opening a sql connection.
+#   (Optional) Defaults to 10.
+#
+# [database_max_overflow]
+#   If set, use this value for max_overflow with sqlalchemy.
+#   (Optional) Defaults to undef.
+#
+# [*rabbit_use_ssl*]
+#   (optional) Connect over SSL for RabbitMQ
+#   Defaults to false
+#
+# [*kombu_ssl_ca_certs*]
+#   (optional) SSL certification authority file (valid only if SSL enabled).
+#   Defaults to undef
+#
+# [*kombu_ssl_certfile*]
+#   (optional) SSL cert file (valid only if SSL enabled).
+#   Defaults to undef
+#
+# [*kombu_ssl_keyfile*]
+#   (optional) SSL key file (valid only if SSL enabled).
+#   Defaults to undef
+#
+# [*kombu_ssl_version*]
+#   (optional) SSL version to use (valid only if SSL enabled).
+#   Valid values are TLSv1, SSLv23 and SSLv3. SSLv2 may be
+#   available on some distributions.
+#   Defaults to 'SSLv3'
+#
 # [amqp_durable_queues]
 #   Use durable queues in amqp.
 #   (Optional) Defaults to false.
@@ -26,10 +69,34 @@
 #   If set to boolean false, it will not log to any directory.
 #   Defaults to '/var/log/cinder'
 #
+# [*use_ssl*]
+#   (optional) Enable SSL on the API server
+#   Defaults to false, not set
+#
+# [*cert_file*]
+#   (optinal) Certificate file to use when starting API server securely
+#   Defaults to false, not set
+#
+# [*key_file*]
+#   (optional) Private key file to use when starting API server securely
+#   Defaults to false, not set
+#
+# [*ca_file*]
+#   (optional) CA certificate file to use to verify connecting clients
+#   Defaults to false, not set_
+#
 # [*mysql_module*]
-#   (optional) Puppetlabs-mysql module version to use
-#   Tested versions include 0.9 and 2.2
-#   Defaults to '0.9'
+#   (optional) Deprecated. Does nothing.
+#
+# [*storage_availability_zone*]
+#   (optional) Availability zone of the node.
+#   Defaults to 'nova'
+#
+# [*default_availability_zone*]
+#   (optional) Default availability zone for new volumes.
+#   If not set, the storage_availability_zone option value is used as
+#   the default for new volumes.
+#   Defaults to false
 #
 # [sql_connection]
 #   DEPRECATED
@@ -39,6 +106,11 @@
 class cinder (
   $database_connection         = 'sqlite:////var/lib/cinder/cinder.sqlite',
   $database_idle_timeout       = '3600',
+  $database_min_pool_size      = '1',
+  $database_max_pool_size      = undef,
+  $database_max_retries        = '10',
+  $database_retry_interval     = '10',
+  $database_max_overflow       = undef,
   $rpc_backend                 = 'cinder.openstack.common.rpc.impl_kombu',
   $control_exchange            = 'openstack',
   $rabbit_host                 = '127.0.0.1',
@@ -47,6 +119,11 @@ class cinder (
   $rabbit_virtual_host         = '/',
   $rabbit_userid               = 'guest',
   $rabbit_password             = false,
+  $rabbit_use_ssl              = false,
+  $kombu_ssl_ca_certs          = undef,
+  $kombu_ssl_certfile          = undef,
+  $kombu_ssl_keyfile           = undef,
+  $kombu_ssl_version           = 'SSLv3',
   $amqp_durable_queues         = false,
   $qpid_hostname               = 'localhost',
   $qpid_port                   = '5672',
@@ -63,6 +140,10 @@ class cinder (
   $qpid_protocol               = 'tcp',
   $qpid_tcp_nodelay            = true,
   $package_ensure              = 'present',
+  $use_ssl                     = false,
+  $ca_file                     = false,
+  $cert_file                   = false,
+  $key_file                    = false,
   $api_paste_config            = '/etc/cinder/api-paste.ini',
   $use_syslog                  = false,
   $log_facility                = 'LOG_USER',
@@ -71,8 +152,8 @@ class cinder (
   $debug                       = false,
   $storage_availability_zone   = 'nova',
   $default_availability_zone   = false,
-  $mysql_module                = '0.9',
   # DEPRECATED PARAMETERS
+  $mysql_module                = undef,
   $sql_connection              = undef,
   $sql_idle_timeout            = undef,
 ) {
@@ -81,6 +162,10 @@ class cinder (
 
   Package['cinder'] -> Cinder_config<||>
   Package['cinder'] -> Cinder_api_paste_ini<||>
+
+  if $mysql_module {
+    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
+  }
 
   if $sql_connection {
     warning('The sql_connection parameter is deprecated, use database_connection instead.')
@@ -94,6 +179,27 @@ class cinder (
     $database_idle_timeout_real = $sql_idle_timeout
   } else {
     $database_idle_timeout_real = $database_idle_timeout
+  }
+
+  if $use_ssl {
+    if !$cert_file {
+      fail('The cert_file parameter is required when use_ssl is set to true')
+    }
+    if !$key_file {
+      fail('The key_file parameter is required when use_ssl is set to true')
+    }
+  }
+
+  if $rabbit_use_ssl {
+    if !$kombu_ssl_ca_certs {
+      fail('The kombu_ssl_ca_certs parameter is required when rabbit_use_ssl is set to true')
+    }
+    if !$kombu_ssl_certfile {
+      fail('The kombu_ssl_certfile parameter is required when rabbit_use_ssl is set to true')
+    }
+    if !$kombu_ssl_keyfile {
+      fail('The kombu_ssl_keyfile parameter is required when rabbit_use_ssl is set to true')
+    }
   }
 
   # this anchor is used to simplify the graph between cinder components by
@@ -132,6 +238,7 @@ class cinder (
       'DEFAULT/rabbit_password':     value => $rabbit_password, secret => true;
       'DEFAULT/rabbit_userid':       value => $rabbit_userid;
       'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
+      'DEFAULT/rabbit_use_ssl':      value => $rabbit_use_ssl;
       'DEFAULT/control_exchange':    value => $control_exchange;
       'DEFAULT/amqp_durable_queues': value => $amqp_durable_queues;
     }
@@ -145,6 +252,23 @@ class cinder (
       cinder_config { 'DEFAULT/rabbit_hosts':     value => "${rabbit_host}:${rabbit_port}" }
       cinder_config { 'DEFAULT/rabbit_ha_queues': value => false }
     }
+
+    if $rabbit_use_ssl {
+      cinder_config {
+        'DEFAULT/kombu_ssl_ca_certs': value => $kombu_ssl_ca_certs;
+        'DEFAULT/kombu_ssl_certfile': value => $kombu_ssl_certfile;
+        'DEFAULT/kombu_ssl_keyfile':  value => $kombu_ssl_keyfile;
+        'DEFAULT/kombu_ssl_version':  value => $kombu_ssl_version;
+      }
+    } else {
+      cinder_config {
+        'DEFAULT/kombu_ssl_ca_certs': ensure => absent;
+        'DEFAULT/kombu_ssl_certfile': ensure => absent;
+        'DEFAULT/kombu_ssl_keyfile':  ensure => absent;
+        'DEFAULT/kombu_ssl_version':  ensure => absent;
+      }
+    }
+
   }
 
   if $rpc_backend == 'cinder.openstack.common.rpc.impl_qpid' {
@@ -194,6 +318,9 @@ class cinder (
   cinder_config {
     'database/connection':               value => $database_connection_real, secret => true;
     'database/idle_timeout':             value => $database_idle_timeout_real;
+    'database/min_pool_size':            value => $database_min_pool_size;
+    'database/max_retries':              value => $database_max_retries;
+    'database/retry_interval':           value => $database_retry_interval;
     'DEFAULT/verbose':                   value => $verbose;
     'DEFAULT/debug':                     value => $debug;
     'DEFAULT/api_paste_config':          value => $api_paste_config;
@@ -202,13 +329,29 @@ class cinder (
     'DEFAULT/default_availability_zone': value => $default_availability_zone_real;
   }
 
-  if($database_connection_real =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-    if ($mysql_module >= 2.2) {
-      require 'mysql::bindings'
-      require 'mysql::bindings::python'
-    } else {
-      require 'mysql::python'
+  if $database_max_pool_size {
+    cinder_config {
+      'database/max_pool_size': value => $database_max_pool_size;
     }
+  } else {
+    cinder_config {
+      'database/max_pool_size': ensure => absent;
+    }
+  }
+
+  if $database_max_overflow {
+    cinder_config {
+      'database/max_overflow': value => $database_max_overflow;
+    }
+  } else {
+    cinder_config {
+      'database/max_overflow': ensure => absent;
+    }
+  }
+
+  if($database_connection_real =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+    require 'mysql::bindings'
+    require 'mysql::bindings::python'
   } elsif($database_connection_real =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
   } elsif($database_connection_real =~ /sqlite:\/\//) {
@@ -224,6 +367,29 @@ class cinder (
   } else {
     cinder_config {
       'DEFAULT/log_dir': ensure => absent;
+    }
+  }
+
+  # SSL Options
+  if $use_ssl {
+    cinder_config {
+      'DEFAULT/ssl_cert_file' : value => $cert_file;
+      'DEFAULT/ssl_key_file' :  value => $key_file;
+    }
+    if $ca_file {
+      cinder_config { 'DEFAULT/ssl_ca_file' :
+        value => $ca_file,
+      }
+    } else {
+      cinder_config { 'DEFAULT/ssl_ca_file' :
+        ensure => absent,
+      }
+    }
+  } else {
+    cinder_config {
+      'DEFAULT/ssl_cert_file' : ensure => absent;
+      'DEFAULT/ssl_key_file' :  ensure => absent;
+      'DEFAULT/ssl_ca_file' :   ensure => absent;
     }
   }
 

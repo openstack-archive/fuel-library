@@ -48,6 +48,10 @@
 #   (optional) The cinder api port
 #   Defaults to 5000
 #
+# [*service_workers*]
+#   (optional) Number of cinder-api workers
+#   Defaults to $::processorcount
+#
 # [*package_ensure*]
 #   (optional) The state of the package
 #   Defaults to present
@@ -72,6 +76,12 @@
 #   (optional) Factory to use for ratelimiting
 #   Defaults to 'cinder.api.v1.limits:RateLimitingMiddleware.factory'
 #
+# [*default_volume_type*]
+#   (optional) default volume type to use.
+#   This should contain the name of the default volume type to use.
+#   If not configured, it produces an error when creating a volume
+#   without specifying a type.
+#   Defaults to 'false'.
 class cinder::api (
   $keystone_password,
   $keystone_enabled           = true,
@@ -84,25 +94,29 @@ class cinder::api (
   $keystone_auth_uri          = false,
   $os_region_name             = undef,
   $service_port               = '5000',
+  $service_workers            = $::processorcount,
   $package_ensure             = 'present',
   $bind_host                  = '0.0.0.0',
   $enabled                    = true,
   $manage_service             = true,
   $ratelimits                 = undef,
+  $default_volume_type        = false,
   $ratelimits_factory =
     'cinder.api.v1.limits:RateLimitingMiddleware.factory'
 ) {
 
   include cinder::params
+  include cinder::policy
 
   Cinder_config<||> ~> Service['cinder-api']
   Cinder_api_paste_ini<||> ~> Service['cinder-api']
+  Class['cinder::policy'] ~> Service['cinder-api']
 
   if $::cinder::params::api_package {
+    Package['cinder-api'] -> Class['cinder::policy']
     Package['cinder-api'] -> Cinder_config<||>
     Package['cinder-api'] -> Cinder_api_paste_ini<||>
-    Package['cinder-api'] ~> Service['cinder-api']
-    Package['cinder']     ~> Service['cinder-api']
+    Package['cinder-api'] -> Service['cinder-api']
     package { 'cinder-api':
       ensure  => $package_ensure,
       name    => $::cinder::params::api_package,
@@ -131,15 +145,16 @@ class cinder::api (
   }
 
   service { 'cinder-api':
-    ensure     => $ensure,
-    name       => $::cinder::params::api_service,
-    enable     => $enabled,
-    hasstatus  => true,
-    hasrestart => true,
+    ensure    => $ensure,
+    name      => $::cinder::params::api_service,
+    enable    => $enabled,
+    hasstatus => true,
+    require   => Package['cinder'],
   }
 
   cinder_config {
-    'DEFAULT/osapi_volume_listen': value => $bind_host
+    'DEFAULT/osapi_volume_listen':  value => $bind_host;
+    'DEFAULT/osapi_volume_workers': value => $service_workers;
   }
 
   if $os_region_name {
@@ -188,4 +203,15 @@ class cinder::api (
       }
     }
   }
+
+  if $default_volume_type {
+    cinder_config {
+      'DEFAULT/default_volume_type': value => $default_volume_type;
+    }
+  } else {
+    cinder_config {
+      'DEFAULT/default_volume_type': ensure => absent;
+    }
+  }
+
 }

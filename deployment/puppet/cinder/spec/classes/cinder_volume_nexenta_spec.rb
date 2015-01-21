@@ -34,5 +34,10 @@ describe 'cinder::volume::nexenta' do
         should contain_cinder_config("DEFAULT/#{config}").with_value(value)
       end
     end
+
+    it 'marks nexenta_password as secret' do
+      should contain_cinder_config('DEFAULT/nexenta_password').with_secret( true )
+    end
+
   end
 end

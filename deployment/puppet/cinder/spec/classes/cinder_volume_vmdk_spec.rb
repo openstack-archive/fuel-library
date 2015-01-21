@@ -34,6 +34,10 @@ describe 'cinder::volume::vmdk' do
     should_not contain_cinder_config('DEFAULT/vmware_wsdl_location')
   end
 
+  it 'marks vmware_host_password as secret' do
+    should contain_cinder_config('DEFAULT/vmware_host_password').with_secret( true )
+  end
+
   it 'installs vmdk python driver' do
     should contain_package('python-suds').with(
                :ensure => 'present'

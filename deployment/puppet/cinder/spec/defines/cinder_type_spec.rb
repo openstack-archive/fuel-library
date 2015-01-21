@@ -24,6 +24,7 @@ describe 'cinder::type' do
         'OS_USERNAME=admin',
         'OS_PASSWORD=asdf',
         'OS_AUTH_URL=http://127.127.127.1:5000/v2.0/'],
+      :unless  => "cinder type-list | grep -qP '\\bhippo\\b'",
       :require => 'Package[python-cinderclient]')
     should contain_exec('cinder type-key hippo set volume_backend_name=name1')
     should contain_exec('cinder type-key hippo set volume_backend_name=name2')
