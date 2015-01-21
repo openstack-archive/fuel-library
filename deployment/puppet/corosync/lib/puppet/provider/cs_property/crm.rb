@@ -77,6 +77,8 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Crmsh
   # as stdin for the crm command.
   def flush
     unless @property_hash.empty?
+      #TODO(bogdando) contribute this to upstream
+      self.class.block_until_ready
       # clear this on properties, in case it's set from a previous
       # run of a different corosync type
       ENV['CIB_shadow'] = nil

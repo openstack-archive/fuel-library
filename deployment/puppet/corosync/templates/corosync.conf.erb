@@ -1,4 +1,25 @@
+<% if @corosync_version == '2' %>
 compatibility: whitetank
+
+quorum {
+  provider: corosync_votequorum
+   <% if @unicast_addresses.length  == 2 %>
+     two_node: 1
+   <% else %>
+     two_node: 0
+   <% end %>
+}
+
+nodelist {
+  <% id = 0 %>
+  <% @unicast_addresses.each do |node| %>
+  node {
+    ring0_addr: <%= node %>
+    nodeid: <%= id+=1 %>
+  }
+  <% end %>
+}
+<% end %>
 
 totem {
   version:                             2
@@ -31,11 +52,14 @@ totem {
 
 logging {
   fileline:        off
-  to_stderr:       yes
+  to_stderr:       no
   to_logfile:      no
+  logfile:         /var/log/corosync.log
   to_syslog:       yes
   syslog_facility: daemon
+  syslog_priority: info
   debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
+  function_name:   on
   timestamp:       on
   logger_subsys {
     subsys: AMF
