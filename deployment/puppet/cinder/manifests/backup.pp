@@ -53,7 +53,8 @@ class cinder::backup (
 
   if $::cinder::params::backup_package {
     Package['cinder-backup'] -> Cinder_config<||>
-    Package['cinder-backup'] -> Service['cinder-backup']
+    Package['cinder-backup'] ~> Service['cinder-backup']
+    Package['cinder']        ~> Service['cinder-backup']
     package { 'cinder-backup':
       ensure => $package_ensure,
       name   => $::cinder::params::backup_package,
@@ -67,11 +68,11 @@ class cinder::backup (
   }
 
   service { 'cinder-backup':
-    ensure    => $ensure,
-    name      => $::cinder::params::backup_service,
-    enable    => $enabled,
-    hasstatus => true,
-    require   => Package['cinder'],
+    ensure     => $ensure,
+    name       => $::cinder::params::backup_service,
+    enable     => $enabled,
+    hasstatus  => true,
+    hasrestart => true,
   }
 
   cinder_config {
