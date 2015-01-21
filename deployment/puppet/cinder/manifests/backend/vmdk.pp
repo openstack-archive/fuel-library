@@ -81,7 +81,9 @@ define cinder::backend::vmdk (
     }
   }
 
-  package { 'python-suds':
-    ensure   => present
+  if ! defined(Package['python-suds']) {
+    package { 'python-suds':
+      ensure   => present
+    }
   }
 }

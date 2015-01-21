@@ -21,7 +21,8 @@ class cinder::scheduler (
   if $::cinder::params::scheduler_package {
     Package['cinder-scheduler'] -> Cinder_config<||>
     Package['cinder-scheduler'] -> Cinder_api_paste_ini<||>
-    Package['cinder-scheduler'] -> Service['cinder-scheduler']
+    Package['cinder-scheduler'] ~> Service['cinder-scheduler']
+    Package['cinder']           ~> Service['cinder-scheduler']
     package { 'cinder-scheduler':
       ensure => $package_ensure,
       name   => $::cinder::params::scheduler_package,
@@ -37,10 +38,10 @@ class cinder::scheduler (
   }
 
   service { 'cinder-scheduler':
-    ensure    => $ensure,
-    name      => $::cinder::params::scheduler_service,
-    enable    => $enabled,
-    hasstatus => true,
-    require   => Package['cinder'],
+    ensure     => $ensure,
+    name       => $::cinder::params::scheduler_service,
+    enable     => $enabled,
+    hasstatus  => true,
+    hasrestart => true,
   }
 }
