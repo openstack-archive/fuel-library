@@ -13,4 +13,5 @@ class corosync::params {
   $rrp_mode          = 'none'
   $ttl               = false
   $packages          = ['corosync', 'pacemaker']
+  $corosync_version  = '1'
 }
