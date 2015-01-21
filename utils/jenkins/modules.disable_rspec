@@ -5,7 +5,7 @@ cinder
 cluster
 cobbler
 common
-corosync
+pacemaker
 docker
 erlang
 glance

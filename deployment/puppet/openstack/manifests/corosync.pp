@@ -5,7 +5,9 @@ class openstack::corosync (
   $stonith               = false,
   $quorum_policy         = 'ignore',
   $expected_quorum_votes = '2',
-  $unicast_addresses     = undef
+  $unicast_addresses     = undef,
+  $corosync_version      = '2',
+  $packages              = ['corosync', 'pacemaker', 'crmsh'],
 ) {
 
   file { 'limitsconf':
@@ -52,39 +54,32 @@ class openstack::corosync (
     bind_address      => $bind_address,
     multicast_address => $multicast_address,
     unicast_addresses => $unicast_addresses,
-    corosync_version  => '2',
+    corosync_version  => $corosync_version,
+    packages          => $packages,
+    # NOTE(bogdando) debug is *too* verbose
+    debug             => false,
   } -> Anchor['corosync-done']
 
-  #cs_property { 'expected-quorum-votes':
-  #  ensure => present,
-  #  value  => $expected_quorum_votes
-  #}
+  Cs_property {
+    ensure   => present,
+    provider => 'crm',
+  }
 
   cs_property { 'no-quorum-policy':
-    ensure  => present,
     value   => $quorum_policy,
-    retries => 5
   } -> Anchor['corosync-done']
 
   cs_property { 'stonith-enabled':
-    ensure => present,
     value  => $stonith,
   } -> Anchor['corosync-done']
 
   cs_property { 'start-failure-is-fatal':
-    ensure => present,
     value  => false,
   } -> Anchor['corosync-done']
 
   cs_property { 'symmetric-cluster':
-    ensure => present,
     value  => false,
   } -> Anchor['corosync-done']
-
-  #cs_property { 'placement-strategy':
-  #  ensure => absent,
-  #  value  => 'default',
-  #}
 
   anchor {'corosync-done':}
 }
