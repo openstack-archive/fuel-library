@@ -9,7 +9,7 @@ define cluster::corosync::cs_with_service (
   $order = true,
   )
 {
-  cs_colocation { "${second}-with-${first}":
+  cs_rsc_colocation { "${second}-with-${first}":
     ensure     => present,
     cib        => $cib,
     primitives => [$second, $first],
@@ -17,13 +17,13 @@ define cluster::corosync::cs_with_service (
   }
 
   if $order {
-    cs_order { "${second}-after-${first}":
+    cs_rsc_order { "${second}-after-${first}":
       ensure   => present,
       cib      => $cib,
       first    => $first,
       second   => $second,
       score    => $score,
-      require  => Cs_colocation["${second}-with-${first}"]
+      require  => Cs_rsc_colocation["${second}-with-${first}"]
     }
   }
 

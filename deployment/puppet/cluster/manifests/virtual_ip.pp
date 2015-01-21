@@ -119,7 +119,7 @@ define cluster::virtual_ip (
       enable   => true,
       provider => 'pacemaker',
     }
-    cs_location { "loc_ping_${vip_name}":
+    cs_rsc_location { "loc_ping_${vip_name}":
       primitive => $vip_name,
       cib       => "ping_${vip_name}",
       rules     => [
@@ -136,7 +136,7 @@ define cluster::virtual_ip (
     # Resource ordering
     Service[$vip_name] ->
     Cs_resource["ping_${vip_name}"] ->
-    Cs_location["loc_ping_${vip_name}"] ->
+    Cs_rsc_location["loc_ping_${vip_name}"] ->
     Service["ping_${vip_name}"]
   }
 }
