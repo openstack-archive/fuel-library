@@ -131,8 +131,7 @@ class openstack::network (
 
       Sysctl::Value<| name == 'net.ipv4.ip_forward' |> -> Neutron_config<||>
       class {'::neutron':
-        # FIXME: add verbose option back into upstream neutron module
-        #verbose                 => $verbose,
+        verbose                 => $verbose,
         debug                   => $debug,
         use_syslog              => $use_syslog,
         log_facility            => $syslog_log_facility,
