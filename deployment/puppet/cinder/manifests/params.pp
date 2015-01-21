@@ -40,10 +40,17 @@ class cinder::params {
     $ceph_init_override = '/etc/sysconfig/openstack-cinder-volume'
     $lio_package_name   = 'targetcli'
 
-    if $::operatingsystem == 'RedHat' and $::operatingsystemrelease >= 7 {
-      $iscsi_helper = 'lioadm'
-    } else {
-      $iscsi_helper = 'tgtadm'
+    case $::operatingsystem {
+      'RedHat', 'CentOS', 'Scientific': {
+        if $::operatingsystemmajrelease >= 7 {
+          $iscsi_helper = 'lioadm'
+        } else {
+          $iscsi_helper = 'tgtadm'
+        }
+      }
+      default: {
+        $iscsi_helper = 'tgtadm'
+      }
     }
 
   } else {

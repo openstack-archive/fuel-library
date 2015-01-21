@@ -15,7 +15,7 @@
 #
 # [*san_thin_provision*]
 #   (optional) Whether or not to use thin provisioning for volumes.
-#   Defaults to false
+#   Defaults to true
 #
 # [*volume_backend_name*]
 #   (optional) The backend name.
@@ -53,7 +53,7 @@ define cinder::backend::eqlx (
   $san_ip,
   $san_login,
   $san_password,
-  $san_thin_provision   = false,
+  $san_thin_provision   = true,
   $volume_backend_name  = $name,
   $eqlx_group_name      = 'group-0',
   $eqlx_pool            = 'default',
@@ -68,7 +68,7 @@ define cinder::backend::eqlx (
     "${name}/volume_driver":        value => 'cinder.volume.drivers.eqlx.DellEQLSanISCSIDriver';
     "${name}/san_ip":               value => $san_ip;
     "${name}/san_login":            value => $san_login;
-    "${name}/san_password":         value => $san_password;
+    "${name}/san_password":         value => $san_password, secret => true;
     "${name}/san_thin_provision":   value => $san_thin_provision;
     "${name}/eqlx_group_name":      value => $eqlx_group_name;
     "${name}/eqlx_use_chap":        value => $eqlx_use_chap;
@@ -80,7 +80,7 @@ define cinder::backend::eqlx (
   if(str2bool($eqlx_use_chap)) {
     cinder_config {
       "${name}/eqlx_chap_login":      value => $eqlx_chap_login;
-      "${name}/eqlx_chap_password":   value => $eqlx_chap_password;
+      "${name}/eqlx_chap_password":   value => $eqlx_chap_password, secret => true;
     }
   }
 }

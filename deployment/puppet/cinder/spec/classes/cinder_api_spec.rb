@@ -6,7 +6,8 @@ describe 'cinder::api' do
     {:keystone_password => 'foo'}
   end
   let :facts do
-    {:osfamily => 'Debian'}
+    {:osfamily       => 'Debian',
+     :processorcount => 8 }
   end
 
   describe 'with only required params' do
@@ -25,6 +26,12 @@ describe 'cinder::api' do
       )
       should contain_cinder_config('DEFAULT/osapi_volume_listen').with(
        :value => '0.0.0.0'
+      )
+      should contain_cinder_config('DEFAULT/osapi_volume_workers').with(
+       :value => '8'
+      )
+      should contain_cinder_config('DEFAULT/default_volume_type').with(
+       :ensure => 'absent'
       )
       should contain_cinder_api_paste_ini('filter:authtoken/service_protocol').with(
         :value => 'http'
@@ -73,6 +80,17 @@ describe 'cinder::api' do
     it 'should configure the region for nova' do
       should contain_cinder_config('DEFAULT/os_region_name').with(
         :value => 'MyRegion'
+      )
+    end
+  end
+
+  describe 'with a default volume type' do
+    let :params do
+      req_params.merge({'default_volume_type' => 'foo'})
+    end
+    it 'should configure the default volume type for cinder' do
+      should contain_cinder_config('DEFAULT/default_volume_type').with(
+        :value => 'foo'
       )
     end
   end
