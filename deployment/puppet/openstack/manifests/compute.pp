@@ -128,6 +128,8 @@ class openstack::compute (
   $ceilometer                     = false,
   $ceilometer_metering_secret     = 'ceilometer',
   $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
+  $storage_hash                   = {},
+  $neutron_settings               = {},
 ) {
 
   #
@@ -307,7 +309,7 @@ class openstack::compute (
   }
 
   # Enable the file injection feature
-  if !$::fuel_settings['storage']['images_ceph'] {
+  if !$storage_hash['images_ceph'] {
     if $::osfamily == 'RedHat' {
       nova_config { 'libvirt/inject_partition': value => '-1'; }
       }
@@ -324,7 +326,7 @@ class openstack::compute (
   }
 
   # Configure libvirt for nova-compute
-  if !$::fuel_settings['storage']['images_ceph'] {
+  if !$storage_hash['images_ceph'] {
     class { 'nova::compute::libvirt':
       libvirt_virt_type       => $libvirt_type,
       libvirt_cpu_mode        => $libvirt_cpu_mode,
@@ -616,7 +618,7 @@ on packages update": }
       package_name => 'nova-network',
     }
     # Ceph rbd backend configures its override on its own
-    if !$::fuel_settings['storage']['volumes_ceph'] {
+    if !$storage_hash['volumes_ceph'] {
       tweaks::ubuntu_service_override { 'cinder-volume':
         package_name => 'cinder-volume',
       }
@@ -630,7 +632,6 @@ on packages update": }
     # FIXME(xarses) Nearly everything between here and the class
     # should be moved into osnaily or nailgun but will stay here
     # in the interim.
-    $neutron_settings = $::fuel_settings['quantum_settings']
 
     $pnets = $neutron_settings['L2']['phys_nets']
     if $pnets['physnet1'] {
