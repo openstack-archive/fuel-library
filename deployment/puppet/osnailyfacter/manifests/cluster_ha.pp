@@ -409,13 +409,6 @@ class osnailyfacter::cluster_ha {
       }
     } # PRIMARY-MONGO ENDS
 
-    "ceph-osd" : {
-      #Class Ceph is already defined so it will do it's thing.
-      notify {"ceph_osd: ${::ceph::osd_devices}": }
-      notify {"osd_devices:  ${::osd_devices_list}": }
-      # TODO(bogdando) add monit ceph-osd services monitoring, if required
-    } # CEPH-OSD ENDS
-
     # Definition of the first OpenStack Swift node.
     /storage/ : {
       class { 'operatingsystem::checksupported':
