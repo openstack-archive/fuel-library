@@ -75,7 +75,7 @@ define cluster::neutron::l3 (
 
   if ! $multiple_agents {
     if 'dhcp' in $ha_agents {
-      cs_colocation { 'l3-keepaway-dhcp':
+      cs_rsc_colocation { 'l3-keepaway-dhcp':
         ensure     => present,
         score      => '-100',
         primitives => [
