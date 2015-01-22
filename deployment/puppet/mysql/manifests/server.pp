@@ -16,6 +16,7 @@
 #
 class mysql::server (
   $custom_setup_class      = undef,
+  $client_package_name     = $mysql::params::client_package_name,
   $package_name            = $mysql::params::server_package_name,
   $package_ensure          = 'present',
   $service_name            = $mysql::params::service_name,
@@ -62,7 +63,10 @@ class mysql::server (
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
   if ($custom_setup_class == undef) {
-    include mysql
+    class { 'mysql':
+      package_name => $client_package_name,
+    }
+    
     Class['mysql::server'] -> Class['mysql::config']
     Class['mysql']         -> Class['mysql::server']
 
@@ -94,7 +98,10 @@ class mysql::server (
     }
   }
   elsif ($custom_setup_class == 'pacemaker_mysql')  {
-    include mysql
+    class { 'mysql':
+      package_name => $client_package_name,
+    }
+    
     Package['mysql-server'] -> Class['mysql::config']
     Package['mysql-client'] -> Package['mysql-server']
 
