@@ -41,7 +41,7 @@ describe 'cinder::backup::ceph' do
     end
 
     it 'configures cinder.conf' do
-      should contain_cinder_config('DEFAULT/backup_driver').with_value('cinder.backup.driver.ceph')
+      should contain_cinder_config('DEFAULT/backup_driver').with_value('cinder.backup.drivers.ceph')
       should contain_cinder_config('DEFAULT/backup_ceph_conf').with_value(p[:backup_ceph_conf])
       should contain_cinder_config('DEFAULT/backup_ceph_user').with_value(p[:backup_ceph_user])
       should contain_cinder_config('DEFAULT/backup_ceph_chunk_size').with_value(p[:backup_ceph_chunk_size])
