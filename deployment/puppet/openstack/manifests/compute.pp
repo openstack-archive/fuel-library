@@ -217,7 +217,7 @@ class openstack::compute (
   class { 'nova::compute::libvirt':
     libvirt_type     => $libvirt_type,
     vncserver_listen => $vncserver_listen,
-    libvirt_disk_cachemodes => ['"file=directsync"','"block=none"'],
+    libvirt_disk_cachemodes => ['"file=directsync"','"block=none"', '"network=writeback"'],
   }
 
   include nova::client

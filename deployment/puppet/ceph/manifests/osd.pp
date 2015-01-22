@@ -32,7 +32,14 @@ class ceph::osd (
     logoutput => true,
   }
 
+  exec {'ceph osd unset noout':
+    command   => "ceph osd unset noout",
+    returns   => 0,
+    logoutput => true,
+  }
+
   Firewall['011 ceph-osd allow'] ->
   Exec['ceph-deploy osd prepare'] ->
-  Exec['ceph-deploy osd activate']
+  Exec['ceph-deploy osd activate'] ->
+  Exec['ceph osd unset noout']
 }
