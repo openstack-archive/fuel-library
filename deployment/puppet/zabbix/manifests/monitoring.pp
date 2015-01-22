@@ -77,7 +77,8 @@ class zabbix::monitoring {
   include zabbix::monitoring::haproxy_mon
   include zabbix::monitoring::zabbixserver_mon
   include zabbix::monitoring::openstack_virtual_mon
-  include zabbix::monitoring::firewall_mon
+  # (TODO) uncomment this after iptstate will added to repos
+  #include zabbix::monitoring::firewall_mon
   include zabbix::monitoring::neutron_mon
   include zabbix::monitoring::openvswitch_mon
   include zabbix::monitoring::ceilometer_mon

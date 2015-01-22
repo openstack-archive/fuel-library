@@ -1,5 +1,6 @@
 class zabbix::db::mysql(
     $mysql_server_pkg = $zabbix::mysql_server_pkg,
+    $mysql_client_pkg = $zabbix::mysql_client_pkg,
   ) inherits zabbix {
 
   class { 'mysql::server':
@@ -8,6 +9,7 @@ class zabbix::db::mysql(
       #'root_password' => $zabbix::params::db_root_password,
       'bind_address'  => '0.0.0.0',
     },
+    client_package_name => $mysql_client_pkg,
     package_name => $mysql_server_pkg,
     enabled    => true,
   }
