@@ -110,7 +110,6 @@ class cinder::api (
   }
 
   if $enabled {
-
     Cinder_config<||> ~> Exec['cinder-manage db_sync']
 
     exec { 'cinder-manage db_sync':
@@ -120,6 +119,7 @@ class cinder::api (
       refreshonly => true,
       logoutput   => 'on_failure',
       require     => Package['cinder'],
+      before      => Service['cinder-api'],
     }
     if $manage_service {
       $ensure = 'running'
