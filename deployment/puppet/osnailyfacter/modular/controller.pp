@@ -834,7 +834,6 @@ if ($::mellanox_mode == 'ethernet') {
 
 # TODO(bogdando) add monit zabbix services monitoring, if required
 # NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
-include galera::params
 
 package { 'screen':
   ensure => present,
