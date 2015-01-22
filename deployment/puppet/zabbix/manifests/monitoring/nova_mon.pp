@@ -40,7 +40,7 @@ class zabbix::monitoring::nova_mon {
         command => "/etc/zabbix/scripts/check_api.py nova_os http ${::internal_address} 8774";
     }
 
-    if ! $::fuel_settings['quantum'] {
+    if ! hiera('quantum') {
       zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Nova Network":
         host => $zabbix::params::host_name,
         template => 'Template App OpenStack Nova Network',
@@ -52,7 +52,7 @@ class zabbix::monitoring::nova_mon {
   #Nova (compute)
   if defined(Class['openstack::compute']) {
 
-    if ! $::fuel_settings['quantum'] {
+    if ! hiera('quantum') {
       zabbix_template_link { "$zabbix::params::host_name Template App OpenStack Nova API Metadata":
         host => $zabbix::params::host_name,
         template => 'Template App OpenStack Nova API Metadata',

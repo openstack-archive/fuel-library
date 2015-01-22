@@ -100,9 +100,21 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
+- id: top-role-zabbix
+  type: puppet
+  groups: [primary-controller, controller,
+           cinder, compute, ceph-osd,
+           zabbix-server, primary-mongo, mongo]
+  required_for: [deploy]
+  requires: [hosts, firewall]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
 - id: legacy
   type: puppet
-  groups: [zabbix-server, primary-mongo, mongo]
+  groups: [primary-mongo, mongo]
   required_for: [deploy]
   requires: [hosts, firewall]
   parameters:
