@@ -7,7 +7,7 @@ class zabbix::params::openstack {
 
   #monitoring VIP settings
   if ($::management_vip == undef) {
-    $controller     = get_server_by_role($::fuel_settings['nodes'], ['primary-controller', 'controller'])
+    $controller     = get_server_by_role(hiera('nodes'), ['primary-controller', 'controller'])
     $controller_ip  = $controller['internal_address']
     $keystone_vip   = $controller_ip
     $db_vip         = $controller_ip
@@ -24,11 +24,20 @@ class zabbix::params::openstack {
     $rabbit_vip     = $::management_vip
   }
 
-  $access_user          = $::fuel_settings['access']['user']
-  $access_password      = $::fuel_settings['access']['password']
-  $access_tenant        = $::fuel_settings['access']['tenant']
-  $keystone_db_password = $::fuel_settings['keystone']['db_password']
-  $nova_db_password     = $::fuel_settings['nova']['db_password']
-  $cinder_db_password   = $::fuel_settings['cinder']['db_password']
-  $rabbit_password      = $::fuel_settings['rabbit']['password']
+  $access_hash          = hiera('access')
+  $access_user          = $access_hash['user']
+  $access_password      = $access_hash['password']
+  $access_tenant        = $access_hash['tenant']
+
+  $keystone_hash        = hiera('keystone')
+  $keystone_db_password = $keystone_hash['db_password']
+
+  $nova_hash            = hiera('nova')
+  $nova_db_password     = $nova_hash['db_password']
+
+  $cinder_hash          = hiera('cinder')
+  $cinder_db_password   = $cinder_hash['db_password']
+
+  $rabbit_hash          = hiera('rabbit')
+  $rabbit_password      = $rabbit_hash['password']
 }
