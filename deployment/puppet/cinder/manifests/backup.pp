@@ -50,6 +50,7 @@ class cinder::backup (
   include cinder::params
 
   Cinder_config<||> ~> Service['cinder-backup']
+  Exec<| title == 'cinder-manage db_sync' |> ~> Service['cinder-backup']
 
   if $::cinder::params::backup_package {
     Package['cinder-backup'] -> Cinder_config<||>
