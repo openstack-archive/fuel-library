@@ -362,7 +362,6 @@ class osnailyfacter::cluster_simple {
 
       nova_config { 'DEFAULT/resume_guests_state_on_host_boot': value => $::fuel_settings['resume_guests_state_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
-      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
       exec {'create-m1.micro-flavor':
         command => "bash -c \"source /root/openrc; nova flavor-create --is-public true m1.micro auto 64 0 1\"",
@@ -606,7 +605,6 @@ class osnailyfacter::cluster_simple {
       }
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
-      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
       if ($::use_ceph){
         Class['openstack::compute'] -> Class['ceph']
