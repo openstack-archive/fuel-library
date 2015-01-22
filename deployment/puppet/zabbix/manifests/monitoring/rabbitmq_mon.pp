@@ -2,7 +2,7 @@ class zabbix::monitoring::rabbitmq_mon {
 
   include zabbix::params
 
-  if $::fuel_settings["deployment_mode"] == "multinode" {
+  if hiera("deployment_mode") == "multinode" {
     $template = "Template App OpenStack RabbitMQ"
   } else {
     $template = "Template App OpenStack HA RabbitMQ"
