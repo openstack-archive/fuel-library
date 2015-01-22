@@ -1,6 +1,10 @@
 #STAGES
 - id: deploy
   type: stage
+- id: pre_deployment
+  type: stage
+- id: post_deployment
+  type: stage
 
 #GROUPS
 - id: primary-controller
