@@ -1,6 +1,7 @@
 require 'pp'
 require 'open3'
 require 'rexml/document'
+include REXML
 
 class Puppet::Provider::Pacemaker < Puppet::Provider
 
@@ -111,8 +112,10 @@ class Puppet::Provider::Pacemaker < Puppet::Provider
       #cibadmin returns code 6 if scope is empty
       #in this case write empty file
       if orig_status == 6 or File.open("/tmp/#{shadow_name}_orig.xml").read.empty?
-          cur_scope=REXML::Element.new(get_scope(res_type)).to_s
-          emptydoc=REXML::Document.new(cur_scope)
+          cur_scope=Element.new('cib')
+          cur_scope.add_element('configuration')
+          cur_scope.add_element(get_scope(res_type))
+          emptydoc=Document.new(cur_scope)
           emptydoc.write(File.new("/tmp/#{shadow_name}_orig.xml",'w'))
       end
       exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
@@ -122,18 +125,19 @@ class Puppet::Provider::Pacemaker < Puppet::Provider
           debug("no difference - nothing to apply")
           return
       end
-      xml_patch = REXML::Document.new(patch)
-      wrap_cib=REXML::Element.new('cib')
-      wrap_configuration=REXML::Element.new('configuration')
+      xml_patch = Document.new(patch)
+      xml_patch.root.attributes.delete 'digest'
+      wrap_cib=Element.new('cib')
+      wrap_configuration=Element.new('configuration')
       wrap_cib.add_element(wrap_configuration)
       wrap_cib_a=Marshal.load(Marshal.dump(wrap_cib))
       wrap_cib_r=Marshal.load(Marshal.dump(wrap_cib))
-      diff_a=REXML::XPath.first(xml_patch,'//diff-added')
-      diff_r=REXML::XPath.first(xml_patch,'//diff-removed')
+      diff_a=XPath.first(xml_patch,'//diff-added')
+      diff_r=XPath.first(xml_patch,'//diff-removed')
       diff_a_elements=diff_a.elements
       diff_r_elements=diff_r.elements
-      wrap_configuration_a=REXML::XPath.first(wrap_cib_a,'//configuration')
-      wrap_configuration_r=REXML::XPath.first(wrap_cib_r,'//configuration')
+      wrap_configuration_a=XPath.first(wrap_cib_a,'//configuration')
+      wrap_configuration_r=XPath.first(wrap_cib_r,'//configuration')
       diff_a_elements.each {|element| wrap_configuration_a.add_element(element)}
       diff_r_elements.each {|element| wrap_configuration_r.add_element(element)}
       diff_a.add_element(wrap_cib_a)

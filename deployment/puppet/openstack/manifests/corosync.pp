@@ -6,8 +6,8 @@ class openstack::corosync (
   $quorum_policy         = 'ignore',
   $expected_quorum_votes = '2',
   $unicast_addresses     = undef,
-  $corosync_version      = '2',
-  $packages              = ['corosync', 'pacemaker', 'crmsh'],
+  $corosync_version      = '1',
+  $packages              = ['corosync', 'pacemaker'],
 ) {
 
   file { 'limitsconf':
@@ -41,10 +41,17 @@ class openstack::corosync (
     source => 'puppet:///modules/openstack/filter_quantum_ports.py',
   }
 
-  Anchor['corosync'] ->
-  corosync::service { 'pacemaker':
-    version => '0',
+  if $corosync_version == '2' {
+    $version_real = '1'
+  } else {
+    $version_real = '0'
   }
+
+  corosync::service { 'pacemaker':
+    version => $version_real,
+  }
+
+  Anchor['corosync'] -> Corosync::Service['pacemaker']
   Corosync::Service['pacemaker'] ~> Service['corosync']
   Corosync::Service['pacemaker'] -> Anchor['corosync-done']
 
