@@ -9,6 +9,12 @@ class ceph::nova_compute (
     content => template('ceph/secret.erb')
   }
 
+  ceph_conf {
+    'client/rbd cache':                          value => 'true';
+    'client/rbd cache writethrough until flush': value => 'true';
+    'client/admin socket':                       value => '/var/run/ceph/rbd-client-$pid.asok';
+  }
+
   exec {'Set Ceph RBD secret for Nova':
     # TODO: clean this command up
     command => "virsh secret-set-value --secret $( \

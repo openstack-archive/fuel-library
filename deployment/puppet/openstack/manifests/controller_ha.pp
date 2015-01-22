@@ -198,4 +198,8 @@ class openstack::controller_ha (
       keystone_admin_token    => $keystone_admin_token,
       controller_node         => $internal_virtual_ip,
     }
+
+    sysctl::value { 'vm.swappiness':
+      value => "10"
+    }
 }

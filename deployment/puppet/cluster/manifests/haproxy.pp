@@ -16,7 +16,9 @@ class cluster::haproxy (
                                 'maxconn' => $haproxy_maxconn
                               }),
     defaults_options => merge($::haproxy::params::defaults_options,
-                              {'mode' => 'http'}),
+                              {'mode'   => 'http'},
+                              {'option' => 'http-server-close'}
+                        ),
     use_include      => true,
   } ->
   class { 'cluster::haproxy_ocf': }
