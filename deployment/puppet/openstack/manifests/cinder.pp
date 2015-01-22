@@ -168,6 +168,10 @@ class openstack::cinder(
           rbd_user        => $::ceph::cinder_user,
           rbd_secret_uuid => $::ceph::rbd_secret_uuid,
         }
+
+        class {'cinder::backup':
+          enabled => true
+        }
       }
     }
   }
