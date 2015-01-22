@@ -1,12 +1,12 @@
 class zabbix::params {
 
-  $enabled  = ! empty(get_server_by_role($::fuel_settings['nodes'], 'zabbix-server'))
-  if $enabled {
+#  $enabled  = ! empty(get_server_by_role($::fuel_settings['nodes'], 'zabbix-server'))
+#  if $enabled {
 
   include zabbix::params::openstack
 
   # $enabled = $::fuel_settings['zabbix']['enabled']
-  $server  = ($::fuel_settings['role'] == 'zabbix-server')
+  $server  = (hiera('role') == 'zabbix-server')
   $frontend = true
 
   case $::operatingsystem {
@@ -28,6 +28,7 @@ class zabbix::params {
 
       $frontend_service = 'apache2'
       $mysql_server_pkg = 'mysql-server-wsrep-5.6'
+      $mysql_client_pkg = 'mysql-client-5.6'
 
     }
     'CentOS', 'RedHat': {
@@ -49,6 +50,7 @@ class zabbix::params {
 
       $frontend_service = 'httpd'
       $mysql_server_pkg = "MySQL-server-wsrep"
+      $mysql_client_pkg = 'MySQL-client-wsrep'
 
     }
   }
@@ -67,9 +69,12 @@ class zabbix::params {
   $userparameters       = {}
 
   #server parameters
-  $server_node          = get_server_by_role($::fuel_settings['nodes'], 'zabbix-server')
-  $server_hostname      = $server_node['fqdn']
-  $server_ip            = $server_node['internal_address']
+  $server_node          = get_server_by_role(hiera('nodes',{}), 'zabbix-server')
+  if $server_node != '' {
+    $server_hostname      = $server_node['fqdn']
+    $server_ip            = $server_node['internal_address']
+  }
+
   $server_listen_port   = '10051'
   $server_include_path  = '/etc/zabbix/agent_server.conf'
   $server_config     = '/etc/zabbix/zabbix_server.conf'
@@ -90,8 +95,9 @@ class zabbix::params {
   $frontend_php_ini_template = 'zabbix/php_ini.erb'
 
   # credentials
-  $username             = $::fuel_settings['zabbix']['username']
-  $password             = $::fuel_settings['zabbix']['password']
+  $zabbix_hash          = hiera('zabbix',{})
+  $username             = $zabbix_hash['username']
+  $password             = $zabbix_hash['password']
   $password_hash        = md5($password)
 
   #api parameters
@@ -109,12 +115,12 @@ class zabbix::params {
   $db_port            = '3306'
   $db_name            = 'zabbix'
   $db_user            = 'zabbix'
-  $db_password        = $::fuel_settings['zabbix']['db_password']
-  $db_root_password   = $::fuel_settings['zabbix']['db_root_password']
+  $db_password        = $zabbix_hash['db_password']
+  $db_root_password   = $zabbix_hash['db_root_password']
 
   #zabbix hosts params
   $host_name          = $::fqdn
   $host_ip            = $::internal_address
   $host_groups        = ['ManagedByPuppet']
-  }
+#  }
 }
