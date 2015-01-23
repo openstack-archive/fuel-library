@@ -109,4 +109,3 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/legacy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
-
