@@ -22,6 +22,8 @@ Class['nailgun::supervisor']
 
 class { 'nailgun::packages': }
 
+class { 'osnailyfacter::atop': }
+
 class { 'nailgun::host':
   production    => $production,
   cobbler_host  => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
