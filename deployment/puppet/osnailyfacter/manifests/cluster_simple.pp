@@ -353,6 +353,11 @@ class osnailyfacter::cluster_simple {
         Class['openstack::controller'] -> Class['ceph']
       }
 
+      # Reduce swapiness on controllers, see LP#1413702
+      sysctl::value { 'vm.swappiness':
+        value => "10"
+      }
+
       #ADDONS START
 
       if $sahara_hash['enabled'] {
