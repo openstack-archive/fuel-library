@@ -227,7 +227,7 @@ class osnailyfacter::cluster_simple {
     $glance_known_stores = false
   }
 
-  if ($::use_ceph) {
+  if ($::use_ceph and !(($::fuel_settings['role'] == 'cinder') and $storage_hash['volumes_lvm'])) {
     if ($::use_neutron) {
       $ceph_cluster_network = get_network_role_property('storage', 'cidr')
       $ceph_public_network  = get_network_role_property('management', 'cidr')
