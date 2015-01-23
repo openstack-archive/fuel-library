@@ -77,3 +77,15 @@
   parameters:
     strategy:
       type: parallel
+
+#PREDEPLOYMENT HOOKS
+- id: copy_keys
+  type: copy_files
+  role: '*'
+  stage: pre_deployment
+  requires: [generate_keys]
+  parameters:
+    srcs_and_dests: [‘/var/www/nailgun/keys/{CLUSTER_ID}/{KEY_NAME}.key’, ‘/var/lib/astute/{KEY_NAME}.key’]
+    permissions: 0600
+    dir_permissions: 0700
+

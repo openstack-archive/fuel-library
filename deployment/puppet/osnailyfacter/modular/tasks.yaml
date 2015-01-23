@@ -110,3 +110,11 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
+- id: generate_keys
+  type: shell
+  role: ‘master’
+  stage: pre_deployment
+  required_for: [rsync_keys]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova ceph mysql' -p /var/www/nailgun/keys/
+    timeout: 180
