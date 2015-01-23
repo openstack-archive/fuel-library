@@ -14,3 +14,25 @@
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/upload_cirros.rb
     timeout: 180
+
+#PREDEPLOYMENT HOOKS
+- id: copy_keys
+  type: copy_files
+  role: '*'
+  stage: pre_deployment
+  requires: [generate_keys]
+  parameters:
+    files: 
+      - src: ‘/var/www/nailgun/keys/{CLUSTER_ID}/{KEY_NAME}.key’
+        dst: ‘/var/lib/astute/{KEY_NAME}.key’
+    permissions: 0600
+    dir_permissions: 0700
+
+- id: generate_keys
+  type: shell
+  role: ‘master’
+  stage: pre_deployment
+  required_for: [rsync_keys]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova ceph mysql' -p /var/www/nailgun/keys/
+    timeout: 180
