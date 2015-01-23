@@ -42,3 +42,33 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
+
+#PREDEPLOYMENT HOOKS
+- id: copy_keys
+  type: copy_files
+  role: '*'
+  stage: pre_deployment
+  requires: [generate_keys]
+  parameters:
+    files:
+      - src: /var/www/nailgun/keys/{CLUSTER_ID}/neutron.key
+        dst: /var/lib/astute/neutron.key
+      - src: /var/www/nailgun/keys/{CLUSTER_ID}/nova.key
+        dst: /var/lib/astute/nova.key
+      - src: /var/www/nailgun/keys/{CLUSTER_ID}/ceph.key
+        dst: /var/lib/astute/ceph.key
+      - src: /var/www/nailgun/keys/{CLUSTER_ID}/mysql.key
+        dst: /var/lib/astute/mysql.key
+      - src: /var/www/nailgun/keys/{CLUSTER_ID}/mongodb.key
+        dst: /var/lib/astute/mongodb.key
+    permissions: 0600
+    dir_permissions: 0700
+
+- id: generate_keys
+  type: shell
+  role: master
+  stage: pre_deployment
+  required_for: [copy_keys]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova ceph mysql' -p /var/www/nailgun/keys/
+    timeout: 180
