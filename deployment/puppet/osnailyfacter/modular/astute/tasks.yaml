@@ -1,0 +1,18 @@
+#POST DEPLOYMENT TASKS
+- id: upload_nodes_info
+  type: upload_file
+  role: '*'
+  stage: post_deployment
+  parameters:
+    path: /etc/hiera/nodes.yaml
+
+- id: update_hosts
+  type: puppet
+  role: '*'
+  stage: post_deployment
+  requires: [upload_nodes_info]
+  parameters:
+    puppet_manifest: /etc/pupppet/modules/osnailyfacter/modular/astute/update_hosts_files.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
