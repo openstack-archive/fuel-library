@@ -73,3 +73,22 @@
   parameters:
     strategy:
       type: parallel
+
+#PREDEPLOYMENT HOOKS
+- id: rsync_keys
+  type: sync
+  role: '*'
+  stage: pre_deployment
+  requires: [generate_keys]
+  parameters:
+    src: root@{MASTER_IP}:/etc/fuel/keys/{CLUSTER_ID}/
+    dst: /var/lib/astute
+    timeout: 180
+- id: generate_keys
+  type: shell
+  role: ‘master’
+  stage: pre_deployment
+  required_for: [rsync_keys]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/generate_keys.sh -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova ceph mysql' -p /etc/fuel/keys/
+    timeout: 180
