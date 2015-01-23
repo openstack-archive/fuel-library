@@ -394,6 +394,11 @@ class osnailyfacter::cluster_ha {
     /controller/ : {
       include osnailyfacter::test_controller
 
+      # Reduce swapiness on controllers, see LP#1413702
+      sysctl::value { 'vm.swappiness':
+        value => "10"
+      }
+
       class { '::cluster':
         stage             => 'corosync_setup',
         internal_address  => $::internal_address,
