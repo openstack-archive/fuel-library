@@ -6,6 +6,7 @@ $data                = [
   'override/common',
   'class/%{calling_class}',
   'module/%{calling_module}',
+  'nodes',
   'globals',
   'astute'
 ]
