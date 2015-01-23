@@ -43,6 +43,7 @@
     timeout: 3600
     cwd: /
 
+
 - id: vcenter_compute_zones_create
   type: shell
   role: [primary-controller]
@@ -50,4 +51,42 @@
   condition: "settings:common.use_vcenter.value == true"
   parameters:
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py
+    timeout: 180
+
+#PREDEPLOYMENT HOOKS
+- id: copy_keys
+  type: copy_files
+  role: '*'
+  stage: pre_deployment
+  requires: [generate_keys]
+  parameters:
+    files:
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/neutron/neutron.pub
+        dst: /var/lib/astute/neutron/neutron.pub
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/neutron/neutron
+        dst: /var/lib/astute/neutron/neutron
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/nova/nova.pub
+        dst: /var/lib/astute/nova/nova.pub
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/nova/nova
+        dst: /var/lib/astute/nova/nova
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph.pub
+        dst: /var/lib/astute/ceph/ceph.pub
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph
+        dst: /var/lib/astute/ceph/ceph
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/mysql/mysql.pub
+        dst: /var/lib/astute/mysql/mysql.pub
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/mysql/mysql
+        dst: /var/lib/astute/mysql/mysql
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/mongodb/mongodb.key
+        dst: /var/lib/astute/mongodb/mongodb.key
+    permissions: ‘0600’
+    dir_permissions: ‘0700’
+
+- id: generate_keys
+  type: shell
+  role: master
+  stage: pre_deployment
+  required_for: [copy_keys]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova ceph mysql' -p /var/lib/fuel/keys/
     timeout: 180
