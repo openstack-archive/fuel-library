@@ -17,7 +17,7 @@ describe 'vmware::compute::ha' do
   it 'should create service p_nova_compute_vmware_0' do
     should contain_cs_resource('p_nova_compute_vmware_0').with({
       'primitive_class' => 'ocf',
-      'provided_by' => 'mirantis',
+      'provided_by' => 'fuel',
     })
   end
 

@@ -61,7 +61,7 @@ class vmware::controller (
   } else {
 
     file { 'vcenter-nova-compute-ocf':
-      path   => '/usr/lib/ocf/resource.d/mirantis/nova-compute',
+      path   => '/usr/lib/ocf/resource.d/fuel/nova-compute',
       source => 'puppet:///modules/vmware/ocf/nova-compute',
       owner  => 'root',
       group  => 'root',

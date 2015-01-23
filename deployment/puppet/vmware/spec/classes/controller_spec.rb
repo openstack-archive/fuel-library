@@ -14,7 +14,7 @@ describe 'vmware::controller' do
 
     it 'should install nova-compute OCF script' do
       should contain_file('vcenter-nova-compute-ocf').with({
-        'path'   => '/usr/lib/ocf/resource.d/mirantis/nova-compute',
+        'path'   => '/usr/lib/ocf/resource.d/fuel/nova-compute',
         'source' => 'puppet:///modules/vmware/ocf/nova-compute',
       })
     end

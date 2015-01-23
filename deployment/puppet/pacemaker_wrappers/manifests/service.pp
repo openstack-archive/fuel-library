@@ -2,7 +2,7 @@ define pacemaker_wrappers::service (
   $ensure              = 'present',
   $ocf_root_path       = '/usr/lib/ocf',
   $primitive_class     = 'ocf',
-  $primitive_provider  = 'mirantis',
+  $primitive_provider  = 'fuel',
   $primitive_type      = undef,
 
   $parameters          = undef,
