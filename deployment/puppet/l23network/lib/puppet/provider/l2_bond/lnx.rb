@@ -22,8 +22,9 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     rv = []
     bonds.each_pair do |bond_name, bond_props|
         props = {
-          :ensure     => :present,
-          :name       => bond_name,
+          :ensure          => :present,
+          :name            => bond_name,
+          :vendor_specific => {}
         }
         props.merge! bond_props
         # # get bridge if port included to it
@@ -226,6 +227,13 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   end
   def onboot=(val)
     @property_flush[:onboot] = val
+  end
+
+  def vendor_specific
+    @property_hash[:vendor_specific] || {}
+  end
+  def vendor_specific=(val)
+    @property_flush[:vendor_specific] = val
   end
 
 end
