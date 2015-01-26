@@ -311,7 +311,12 @@ if $use_monit_real {
 
 #HARDCODED PARAMETERS
 
-$multi_host = true
+if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
+  $multi_host = false
+} else {
+  $multi_host = true
+}
+
 $mirror_type = 'external'
 Exec { logoutput => true }
 
@@ -769,24 +774,6 @@ if $murano_hash['enabled'] {
 
  Class['openstack::heat'] -> Class['murano']
 
-}
-
-# vCenter integration
-
-if hiera('libvirt_type') == 'vcenter' {
-  class { 'vmware' :
-    vcenter_user            => $vcenter_hash['vc_user'],
-    vcenter_password        => $vcenter_hash['vc_password'],
-    vcenter_host_ip         => $vcenter_hash['host_ip'],
-    vcenter_cluster         => $vcenter_hash['cluster'],
-    vcenter_datastore_regex => $vcenter_hash['datastore_regex'],
-    vlan_interface          => $vcenter_hash['vlan_interface'],
-    use_quantum             => $use_neutron,
-    ha_mode                 => true,
-    vnc_address             => $controller_node_public,
-    ceilometer              => $ceilometer_hash['enabled'],
-    debug                   => $debug,
-  }
 }
 
 if ($::mellanox_mode == 'ethernet') {
