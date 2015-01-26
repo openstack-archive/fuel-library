@@ -10,8 +10,6 @@ describe 'vmware::controller' do
   end
 
   context 'in HA deployment mode' do
-    let(:params) { { :ha_mode => true } }
-
     it 'should install nova-compute OCF script' do
       should contain_file('vcenter-nova-compute-ocf').with({
         'path'   => '/usr/lib/ocf/resource.d/fuel/nova-compute',

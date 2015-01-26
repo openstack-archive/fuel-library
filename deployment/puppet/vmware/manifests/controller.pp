@@ -17,12 +17,12 @@
 # - only one vcenter supported
 
 class vmware::controller (
+  $vcenter_settings = undef,
   $api_retry_count = 5,
   $datastore_regex = undef,
   $amqp_port = '5673',
   $compute_driver = 'vmwareapi.VMwareVCDriver',
   $ensure_package = 'present',
-  $ha_mode = false,
   $maximum_objects = 100,
   $nova_conf = '/etc/nova/nova.conf',
   $task_poll_interval = 5.0,
@@ -37,41 +37,58 @@ class vmware::controller (
   $wsdl_location = undef
 )
 {
-  include nova
+  include nova::params
 
   # Split provided string with cluster names and enumerate items.
   # Index is used to form file names on host system, e.g.
   # /etc/sysconfig/nova-compute-vmware-0
   $vsphere_clusters = vmware_index($vcenter_cluster)
+  $libvirt_type = hiera('libvirt_type')
 
-  # install the nova-compute service
-  nova::generic_service { 'compute':
-    enabled        => false,
-    package_name   => $::nova::params::compute_package_name,
-    service_name   => $::nova::params::compute_service_name,
-    ensure_package => $ensure_package,
-    before         => Exec['networking-refresh']
+  if($::operatingsystem == 'Ubuntu') {
+    $compute_package_name = "nova-compute-${libvirt_type}"
+  } else {
+    $compute_package_name = $::nova::params::compute_package_name
   }
 
-  if ! $ha_mode {
-    create_resources(vmware::compute::simple, $vsphere_clusters)
+  package { 'nova-compute':
+    name => $compute_package_name,
+    ensure => 'present',
+  }
 
-    Nova::Generic_service['compute']->
-    Vmware::Compute::Simple<| |>
+  service { 'nova-compute':
+    name   => $::nova::params::compute_service_name,
+    ensure => 'stopped',
+    enable => false
+  }
+
+  file { 'vcenter-nova-compute-ocf':
+    path   => '/usr/lib/ocf/resource.d/fuel/nova-compute',
+    source => 'puppet:///modules/vmware/ocf/nova-compute',
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+  }
+
+  # Create nova-compute per vsphere cluster
+  if $vcenter_settings {
+    # Fixme! This a temporary workaround to keep existing functioanality
+    # After fully implementation of the multi HV support it is need to rename resource
+    # back to vmware::compute::ha
+    create_resources(vmware::compute::ha_multi_hv, parse_vcenter_settings($vcenter_settings))
+
+    Package['nova-compute']->
+    Service['nova-compute']->
+    anchor { 'vmware-nova-compute-start': }->
+    File['vcenter-nova-compute-ocf']->
+    Vmware::Compute::Ha_multi_hv<||>->
+    anchor { 'vmware-nova-compute-end': }
+
   } else {
-
-    file { 'vcenter-nova-compute-ocf':
-      path   => '/usr/lib/ocf/resource.d/fuel/nova-compute',
-      source => 'puppet:///modules/vmware/ocf/nova-compute',
-      owner  => 'root',
-      group  => 'root',
-      mode   => '0755',
-    }
-
-    # Create nova-compute per vsphere cluster
     create_resources(vmware::compute::ha, $vsphere_clusters)
 
-    Nova::Generic_service['compute']->
+    Package['nova-compute']->
+    Service['nova-compute']->
     anchor { 'vmware-nova-compute-start': }->
     File['vcenter-nova-compute-ocf']->
     Vmware::Compute::Ha<||>->
@@ -81,17 +98,14 @@ class vmware::controller (
   # network configuration
   class { 'vmware::network':
     use_quantum => $use_quantum,
-    ha_mode     => $ha_mode
   }
 
   # Enable metadata service on Controller node
-  Nova_config <| title == 'DEFAULT/enabled_apis' |> {
-    value => 'ec2,osapi_compute,metadata'
-  }
   # Set correct parameter for vnc access
   nova_config {
-    'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html"
-  }
+    'DEFAULT/enabled_apis': value => 'ec2,osapi_compute,metadata';
+    'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html";
+  } -> Package['nova-compute']
 
   # install cirros vmdk package
   package { 'cirros-testvmware':
@@ -101,3 +115,4 @@ class vmware::controller (
     ensure => present
   }
 }
+
