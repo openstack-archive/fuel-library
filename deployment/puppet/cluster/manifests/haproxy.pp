@@ -26,12 +26,15 @@ class cluster::haproxy (
     'stats'           => 'socket /var/lib/haproxy/stats',
     'tune.bufsize'    => $haproxy_bufsize,
     'tune.maxrewrite' => $haproxy_maxrewrite,
+    'option'          => 'http-server-close',
   }
 
   class { 'haproxy::base':
     global_options   => $global_options,
     defaults_options => merge($::haproxy::params::defaults_options,
-                              {'mode' => 'http'}),
+                              {'mode'   => 'http'},
+                              {'option' => 'http-server-close'}
+                        ),
     use_include      => true,
   }
 
