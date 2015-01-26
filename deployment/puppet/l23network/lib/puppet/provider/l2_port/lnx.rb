@@ -41,9 +41,10 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         mm = if_line.match(re_c)
         if_name = mm[1]
         props = {
-          :ensure     => :present,
-          :name       => if_name,
-          :port_type  => '',
+          :ensure          => :present,
+          :name            => if_name,
+          :port_type       => '',
+          :vendor_specific => {}
         }
         debug("prefetching interface '#{if_name}'")
         # check, whether this interface is vlan
@@ -254,7 +255,12 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     @property_flush[:onboot] = val
   end
 
-
+  def vendor_specific
+    @property_hash[:vendor_specific] || {}
+  end
+  def vendor_specific=(val)
+    @property_flush[:vendor_specific] = val
+  end
 
 end
 # vim: set ts=2 sw=2 et :

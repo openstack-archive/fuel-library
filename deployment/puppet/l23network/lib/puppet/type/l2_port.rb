@@ -152,11 +152,16 @@ Puppet::Type.newtype(:l2_port) do
       end
     end
 
-    # newparam(:vlan_splinters) do
-    #   newvalues(true, false)
-    #   defaultto(false)
-    #   desc "Enable vlan splinters (if it's a phys. interface)"
-    # end
+    newproperty(:vendor_specific) do
+      desc "Hash of vendor specific properties"
+      defaultto {}
+      # provider-specific hash, validating only by type.
+      validate do |val|
+        if ! val.is_a? Hash
+          fail("Vendor_specific should be a hash!")
+        end
+      end
+    end
 
     autorequire(:l2_bridge) do
       [self[:bridge]]

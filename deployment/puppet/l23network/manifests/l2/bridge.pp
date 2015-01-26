@@ -39,17 +39,19 @@ define l23network::l2::bridge (
     L23_stored_config <| title == $name |> {
       ensure       => $ensure,
       #bpdu_forward => $bpdu_forward,
-      if_type      => 'bridge',
-      bridge_ports => ['none'],
-      provider     => $config_provider
+      if_type         => 'bridge',
+      bridge_ports    => ['none'],
+      #vendor_specific=> $vendor_specific,
+      provider        => $config_provider
     }
 
     l2_bridge {$name:
-      ensure        => $ensure,
-      external_ids  => $external_ids,
-      skip_existing => $skip_existing,
-      #bpdu_forward  => $bpdu_forward,
-      provider      => $provider
+      ensure          => $ensure,
+      external_ids    => $external_ids,
+      skip_existing   => $skip_existing,
+      #bpdu_forward   => $bpdu_forward,
+      vendor_specific => $vendor_specific,
+      provider        => $provider
     }
     K_mod<||> -> L2_bridge<||>
   }
