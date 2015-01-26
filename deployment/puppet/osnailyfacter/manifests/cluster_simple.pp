@@ -540,6 +540,20 @@ class osnailyfacter::cluster_simple {
         }
       }
 
+      # Fixme! This a temporary workaround to keep existing functioanality.
+      # After fully implementation of the multi HV support it is need to delete
+      # previos if statement
+      if $::fuel_settings['use_vcenter']  {
+        class { 'vmware' :
+          vcenter_settings        => $vcenter_hash['computes'],
+          vlan_interface          => $vcenter_hash['vlan_interface'],
+          vnc_address             => $controller_node_public,
+          use_quantum             => $::use_neutron,
+          ceilometer              => $ceilometer_hash['enabled'],
+          debug                   => $debug,
+        }
+      }
+
       if ($::mellanox_mode == 'ethernet') {
         $ml2_eswitch = $::fuel_settings['neutron_mellanox']['ml2_eswitch']
         class { 'mellanox_openstack::controller':
