@@ -869,6 +869,21 @@ if hiera('libvirt_type') == 'vcenter' {
     debug                   => $debug,
   }
 }
+# Fixme! This a temporary workaround to keep existing functioanality.
+# After fully implementation of the multi HV support it is need to delete
+# previos if statement
+$use_vcenter = hiera('use_vcenter', false)
+if $use_vcenter {
+  class { 'vmware' :
+    vcenter_settings        => $vcenter_hash['computes'],
+    vlan_interface          => $vcenter_hash['vlan_interface'],
+    use_quantum             => $::use_neutron,
+    ha_mode                 => true,
+    vnc_address             => $controller_node_public,
+    ceilometer              => $ceilometer_hash['enabled'],
+    debug                   => $debug,
+  }
+}
 
 if ($::mellanox_mode == 'ethernet') {
   $ml2_eswitch = $neutron_mellanox['ml2_eswitch']
