@@ -28,17 +28,16 @@ class cluster (
         bind_address      => $internal_address,
         unicast_addresses => $unicast_addresses,
         stage             => 'corosync_setup',
-        #FIXME(bogdando) use version 2 when Corosync 2.x packages merged
-        #corosync_version  => '2',
+        corosync_version  => '2',
         packages          => ['corosync', 'pacemaker', 'crmsh', $pcs_package],
       }
     } else {
       class { 'openstack::corosync':
         bind_address      => $internal_address,
         unicast_addresses => $unicast_addresses,
-        #FIXME(bogdando) use version 2 when Corosync 2.x packages merged
-        #corosync_version  => '2',
-        packages          => ['corosync', 'pacemaker', 'crmsh', $pcs_package],      }
+        corosync_version  => '2',
+        packages          => ['corosync', 'pacemaker', 'crmsh', $pcs_package],
+      }
     }
     file { 'ocf-fuel-path':
       ensure  => directory,
