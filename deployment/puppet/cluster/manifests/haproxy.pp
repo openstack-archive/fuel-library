@@ -26,6 +26,7 @@ class cluster::haproxy (
     'stats'           => 'socket /var/lib/haproxy/stats',
     'tune.bufsize'    => $haproxy_bufsize,
     'tune.maxrewrite' => $haproxy_maxrewrite,
+    'option'          => 'http-server-close',
   }
 
   class { 'haproxy::base':
