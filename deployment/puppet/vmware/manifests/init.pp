@@ -28,6 +28,7 @@
 # ha_mode - flag that shows what deployment mode we are running
 
 class vmware (
+  $vcenter_settings = undef,
   $vcenter_user = 'user',
   $vcenter_password = 'password',
   $vcenter_host_ip = '10.10.10.10',
@@ -42,6 +43,7 @@ class vmware (
 )
 {
   class { 'vmware::controller':
+    vcenter_settings => $vcenter_settings
     datastore_regex  => $vcenter_datastore_regex,
     vcenter_user     => $vcenter_user,
     vcenter_password => $vcenter_password,

@@ -84,3 +84,87 @@ define vmware::compute::ha(
   Cs_resource["p_nova_compute_vmware_${index}"]->
   Service["p_nova_compute_vmware_${index}"]
 }
+
+# Fixme! This a temporary workaround to keep existing functioanality
+# After fully implementation of the multi HV support it is need to delete
+# resource vmware::compute::ha and rename vmware::compute::ha_multi_hv resource to
+# vmware::compute::ha
+define vmware::compute::ha_multi_hv(
+  $availability_zone_name,
+  $vc_cluster,
+  $vc_host,
+  $vc_user,
+  $vc_password,
+  $service_name,
+  $datastore_regex = undef,
+  $amqp_port = '5673',
+  $api_retry_count = 5,
+  $compute_driver = 'vmwareapi.VMwareVCDriver',
+  $maximum_objects = 100,
+  $nova_conf = '/etc/nova/nova.conf',
+  $nova_conf_dir = '/etc/nova/nova-compute.d',
+  $task_poll_interval = 5.0,
+  $use_linked_clone = true,
+  $wsdl_location = undef
+)
+{
+  $nova_compute_conf = "${nova_conf_dir}/vmware-${availability_zone_name}_${service_name}.conf"
+
+  if ! defined(File[$nova_conf_dir]) {
+    file { $nova_conf_dir:
+      ensure => directory,
+      owner  => nova,
+      group  => nova,
+      mode   => '0750'
+    }
+  }
+
+  if ! defined(File[$nova_compute_conf]) {
+    # $cluster is used inside template
+    $cluster = $name
+    file { $nova_compute_conf:
+      ensure  => present,
+      # Fixme! This a temporary workaround to keep existing functioanality
+      # After fully implementation of the multi HV support it is need to delete
+      # temlate nova-compute.conf.erb and rename nova-compute-multi_hv.conf.erb template to
+      # nova-compute.conf.erb
+      content => template('vmware/nova-compute-multi_hv.conf.erb'),
+      mode    => '0600',
+      owner   => nova,
+      group   => nova,
+    }
+  }
+
+  cs_resource { "p_nova_compute_vmware_${availability_zone_name}-${service_name}":
+    ensure          => present,
+    primitive_class => 'ocf',
+    provided_by     => 'fuel',
+    primitive_type  => 'nova-compute',
+    metadata        => {
+      resource-stickiness => '1'
+    },
+    parameters      => {
+      amqp_server_port      => $amqp_port,
+      config                => $nova_conf,
+      pid                   => "/var/run/nova/nova-compute-${availability_zone_name}-${service_name}.pid",
+      additional_parameters => "--config-file=${nova_compute_conf}",
+    },
+    operations      => {
+      monitor  => { timeout => '10', interval => '20' },
+      start    => { timeout => '30' },
+      stop     => { timeout => '30' }
+    }
+  }
+
+  service { "p_nova_compute_vmware_${availability_zone_name}-${service_name}":
+    ensure => running,
+    enable => true,
+    provider => 'pacemaker',
+  }
+
+  File["${nova_conf_dir}"]->
+  File["${nova_compute_conf}"]->
+  Cs_resource["p_nova_compute_vmware_${availability_zone_name}-${service_name}"]->
+  Service["p_nova_compute_vmware_${availability_zone_name}-${service_name}"]
+}
+
