@@ -682,19 +682,17 @@ class osnailyfacter::cluster_ha {
 
       if $sahara_hash['enabled'] {
         class { 'sahara' :
-          sahara_api_host            => $::fuel_settings['public_vip'],
-
-          sahara_db_password         => $sahara_hash['db_password'],
-          sahara_db_host             => $::fuel_settings['management_vip'],
-
-          sahara_keystone_host       => $::fuel_settings['management_vip'],
-          sahara_keystone_user       => 'sahara',
-          sahara_keystone_password   => $sahara_hash['user_password'],
-          sahara_keystone_tenant     => 'services',
-          sahara_auth_uri            => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
-          sahara_identity_uri        => "http://${::fuel_settings['management_vip']}:35357/",
+          api_host                   => $::fuel_settings['public_vip'],
+          db_password                => $sahara_hash['db_password'],
+          db_host                    => $::fuel_settings['management_vip'],
+          keystone_host              => $::fuel_settings['management_vip'],
+          keystone_user              => 'sahara',
+          keystone_password          => $sahara_hash['user_password'],
+          keystone_tenant            => 'services',
+          auth_uri                   => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
+          identity_uri               => "http://${::fuel_settings['management_vip']}:35357/",
           use_neutron                => $::use_neutron,
-          syslog_log_facility_sahara => $syslog_log_facility_sahara,
+          syslog_log_facility        => $syslog_log_facility_sahara,
           debug                      => $::debug,
           verbose                    => $::verbose,
           use_syslog                 => $::use_syslog,
@@ -705,6 +703,8 @@ class osnailyfacter::cluster_ha {
           amqp_port                  => $rabbitmq_bind_port,
           amqp_hosts                 => $amqp_hosts,
           rabbit_ha_queues           => $rabbit_ha_queues,
+          use_floating_ips           => $::fuel_settings['auto_assign_floating_ip'],
+          openstack_version          => $::fuel_settings['openstack_version'],
         }
         $scheduler_default_filters = [ 'DifferentHostFilter' ]
       } else {

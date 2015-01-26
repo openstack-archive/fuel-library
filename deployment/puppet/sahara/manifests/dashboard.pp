@@ -5,6 +5,7 @@ class sahara::dashboard (
   $enabled            = true,
   $settings_py        = $sahara::params::settings_path,
   $local_settings     = $sahara::params::local_settings_path,
+  $package_name       = $sahara::params::dashboard_package_name,
   $use_neutron        = false,
   $use_floating_ips   = false,
 ) inherits sahara::params {
@@ -67,7 +68,7 @@ class sahara::dashboard (
 
   package { 'sahara_dashboard':
     ensure => $package_ensure,
-    name   => $sahara::params::sahara_dashboard_package_name,
+    name   => $package_name,
   }
 
   File_line <| title == 'sahara' or title == 'sahara_dashboard' |> ~> Service <| title == 'httpd' |>

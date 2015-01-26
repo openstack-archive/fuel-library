@@ -404,19 +404,17 @@ class osnailyfacter::cluster_simple {
 
       if $sahara_hash['enabled'] {
         class { 'sahara' :
-          sahara_api_host            => $controller_node_public,
-
-          sahara_db_password         => $sahara_hash['db_password'],
-          sahara_db_host             => $controller_node_address,
-
-          sahara_keystone_host       => $controller_node_address,
-          sahara_keystone_user       => 'sahara',
-          sahara_keystone_password   => $sahara_hash['user_password'],
-          sahara_keystone_tenant     => 'services',
-          sahara_auth_uri            => "http://${controller_node_address}:5000/v2.0/",
-          sahara_identity_uri        => "http://${controller_node_address}:35357/",
+          api_host                   => $controller_node_public,
+          db_password                => $sahara_hash['db_password'],
+          db_host                    => $controller_node_address,
+          keystone_host              => $controller_node_address,
+          keystone_user              => 'sahara',
+          keystone_password          => $sahara_hash['user_password'],
+          keystone_tenant            => 'services',
+          auth_uri                   => "http://${controller_node_address}:5000/v2.0/",
+          identity_uri               => "http://${controller_node_address}:35357/",
           use_neutron                => $::use_neutron,
-          syslog_log_facility_sahara => $syslog_log_facility_sahara,
+          syslog_log_facility        => $syslog_log_facility_sahara,
           debug                      => $debug,
           verbose                    => $verbose,
           use_syslog                 => $use_syslog,
@@ -427,6 +425,8 @@ class osnailyfacter::cluster_simple {
           amqp_port                  => $rabbitmq_bind_port,
           amqp_hosts                 => $amqp_hosts,
           rabbit_ha_queues           => $rabbit_ha_queues,
+          use_floating_ips           => $::fuel_settings['auto_assign_floating_ip'],
+          openstack_version          => $::fuel_settings['openstack_version'],
         }
         $scheduler_default_filters = [ 'DifferentHostFilter' ]
       } else {

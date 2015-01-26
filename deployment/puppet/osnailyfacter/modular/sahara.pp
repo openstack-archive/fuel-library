@@ -1,0 +1,75 @@
+#<task>
+#- id: sahara
+#  type: puppet
+#  groups: [primary-controller, controller]
+#  required_for: [deploy]
+#  requires: [hiera, globals, netconfig, firewall]
+#  parameters:
+#  puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/sahara.pp
+#  puppet_modules: /etc/puppet/modules
+#  timeout: 3600
+#</task>
+# requires: mysql, keystone, horizon, rabbitmq
+
+$sahara_hash                = hiera('sahara')
+$controller_node_address    = hiera('controller_node_address')
+$controller_node_public     = hiera('controller_node_public')
+$public_ip                  = hiera('public_vip', $controller_node_public)
+$management_ip              = hiera('management_vip', $controller_node_address)
+$use_neutron                = hiera('use_neutron')
+$syslog_log_facility_sahara = hiera('syslog_log_facility_sahara')
+$ceilometer_hash            = hiera('ceilometer')
+$debug                      = hiera('debug', false)
+$verbose                    = hiera('verbose', true)
+$use_syslog                 = hiera('use_syslog', true)
+$rabbit_hash                = hiera('rabbit')
+$amqp_port                  = hiera('amqp_port')
+$amqp_hosts                 = hiera('amqp_hosts')
+$rabbit_ha_queue            = hiera('rabbit_ha_queues')
+$deployment_mode            = hiera('deployment_mode')
+$openstack_version          = hiera('openstack_version')
+$auto_assign_floating_ip    = hiera('auto_assign_floating_ip')
+
+#################################################################
+
+if $sahara_hash['enabled'] {
+  class { 'sahara' :
+    api_host                   => $public_ip,
+    db_password                => $sahara_hash['db_password'],
+    db_host                    => $management_ip,
+    keystone_host              => $management_ip,
+    keystone_user              => 'sahara',
+    keystone_password          => $sahara_hash['user_password'],
+    keystone_tenant            => 'services',
+    auth_uri                   => "http://${management_ip}:5000/v2.0/",
+    identity_uri               => "http://${management_ip}:35357/",
+    use_neutron                => $use_neutron,
+    syslog_log_facility        => $syslog_log_facility_sahara,
+    debug                      => $debug,
+    verbose                    => $verbose,
+    use_syslog                 => $use_syslog,
+    enable_notifications       => $ceilometer_hash['enabled'],
+    rpc_backend                => 'rabbit',
+    amqp_password              => $rabbit_hash['password'],
+    amqp_user                  => $rabbit_hash['user'],
+    amqp_port                  => $amqp_port,
+    amqp_hosts                 => $amqp_hosts,
+    rabbit_ha_queues           => $rabbit_ha_queues,
+    use_floating_ips           => $auto_assign_floating_ip,
+    openstack_version          => $openstack_version,
+  }
+
+}
+
+#########################
+
+class mysql::server {}
+class mysql::config {}
+
+include mysql::server
+include mysql::config
+
+class openstack::firewall {}
+include openstack::firewall
+
+file { '/root/openrc' :}
