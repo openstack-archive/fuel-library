@@ -246,7 +246,7 @@ srv_uptime() {
     local stime
     stime=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}')
 
-    if [[ "x$stime" != "x(null)" ]] ; then
+    if [ -z "${stime}" -o x"${stime}" == x"(null)" ] ; then
         echo $(( $(now) - ${stime} ))
     else
         echo 0
@@ -939,8 +939,7 @@ get_monitor() {
         for node in $nodelist
         do
             node_start_time=`crm_attribute -N $node -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}'`
-            if [[ x"$node_start_time" == "x(null)" ]]
-            then
+            if [ -z "${node_start_time}" -o x"${node_start_time}" == x"(null)" ] ; then
                 node_uptime=0
             else
                 node_uptime=$(( $(now) - ${node_start_time}  ))
