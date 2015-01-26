@@ -89,7 +89,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     Puppet.debug "Call 'start' for Pacemaker service '#{name}' on node '#{hostname}'"
     enable unless primitive_is_managed? name
     disable_basic_service
-    constraint_location_add name, hostname
+    constraint_location_add full_name, hostname
     unban_primitive name, hostname
     start_primitive name
     cleanup_with_wait(name, hostname) if primitive_has_failures?(name, hostname)
