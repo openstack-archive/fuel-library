@@ -1,0 +1,16 @@
+[DEFAULT]
+host=<%= @availability_zone_name %>-<%= @service_name %>
+hypervisor_inspector=<%= scope.lookupvar('vmware::ceilometer::hypervisor_inspector') %>
+default_log_levels=<%= scope.lookupvar('vmware::ceilometer::default_log_levels') %>
+log_file=ceilometer-agent-compute-vmware-<%= @availability_zone_name %>-<%= @service_name %>.log
+
+[vmware]
+host_ip=<%= @vc_host %>
+host_username=<%= @vc_user %>
+host_password=<%= @vc_password %>
+
+api_retry_count=<%= @api_retry_count %>
+task_poll_interval=<%= @task_poll_interval %>
+<% if @wsdl_location -%>
+wsdl_location=<%= @wsdl_location %>
+<% end -%>
