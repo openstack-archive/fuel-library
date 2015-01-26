@@ -16,82 +16,97 @@
 
 class vmware::network::nova (
   $ensure_package = 'present',
-  $ha_mode = false,
   $amqp_port = '5673',
   $nova_network_config = '/etc/nova/nova.conf'
 )
 {
   include nova::params
 
-  if ! $ha_mode {
-    nova::generic_service { 'network':
-      enabled        => true,
-      # We cant ensure that ::nova::params is parsed so it is possible for these to become undef.
-      # TODO (adanin) Rewrite it properly.
-      package_name   => $::nova::params::network_package_name,
-      service_name   => $::nova::params::network_service_name,
-      ensure_package => $ensure_package,
-      before         => Exec['networking-refresh']
-    }
-  } else {
-    nova::generic_service { 'network':
-      enabled        => false,
-      package_name   => $::nova::params::network_package_name,
-      service_name   => $::nova::params::network_service_name,
-      ensure_package => present,
-      before         => Exec['networking-refresh']
-    }
+  $novanetwork_params = hiera('novanetwork_parameters')
+  $fixed_range        = hiera('fixed_network_range')
+  $nameservers        = hiera('dns_nameservers')
+  $network_size       = $novanetwork_params['network_size']
+  $num_networks       = $novanetwork_params['num_networks']
+  $vlan_start         = $novanetwork_params['vlan_start']
 
-    cs_resource { 'p_vcenter_nova_network':
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'fuel',
-      primitive_type  => 'nova-network',
-      metadata        => {
-        'resource-stickiness' => '1'
-      },
-      parameters      => {
-        'amqp_server_port' => $amqp_port,
-        'config' => $nova_network_config,
-      },
-      operations      => {
-        'monitor' => {
-          'interval' => '20',
-          'timeout'  => '30',
-        },
-        'start'   => {
-          'timeout' => '20',
-        },
-        'stop'    => {
-          'timeout' => '20',
-        }
-      }
-    }
-
-    file { 'vcenter-nova-network-ocf':
-      path  => '/usr/lib/ocf/resource.d/fuel/nova-network',
-      source => 'puppet:///modules/vmware/ocf/nova-network',
-      owner => 'root',
-      group => 'root',
-      mode => '0755',
-    }
-
-    service { 'p_vcenter_nova_network':
-      ensure => 'running',
-      enable => true,
-      provider => 'pacemaker',
-    }
-
-    anchor { 'vcenter-nova-network-start': }
-    anchor { 'vcenter-nova-network-end': }
-
-    Anchor['vcenter-nova-network-start']->
-    Nova::Generic_service['network']->
-    File['vcenter-nova-network-ocf']->
-    Cs_resource['p_vcenter_nova_network']->
-    Service['p_vcenter_nova_network']->
-    Anchor['vcenter-nova-network-end']
+  # Delete existing network because it is cached multi_host=True,
+  # but we are using a simple mode
+  exec { 'delete_network_with_multihost':
+    path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    command   => "nova-manage network delete --fixed_range $fixed_range",
+  } ~>
+  nova_network { 'nova-vm-network':
+    ensure       => present,
+    network      => $fixed_range,
+    label        => 'novanetwork',
+    num_networks => $num_networks,
+    network_size => $network_size,
+    vlan_start   => $vlan_start,
+    dns1         => $nameservers[0],
+    dns2         => $nameservers[1]
   }
 
-  Nova_config <| title == 'DEFAULT/multi_host' |> { value => 'False' }
+  package { 'nova-network':
+    name   => $::nova::params::network_package_name,
+    ensure => present,
+  }
+
+  cs_resource { 'p_vcenter_nova_network':
+    ensure          => present,
+    primitive_class => 'ocf',
+    provided_by     => 'fuel',
+    primitive_type  => 'nova-network',
+    metadata        => {
+      'resource-stickiness' => '1'
+    },
+    parameters      => {
+      'amqp_server_port' => $amqp_port,
+      'config' => $nova_network_config,
+    },
+    operations      => {
+      'monitor' => {
+        'interval' => '20',
+        'timeout'  => '30',
+      },
+      'start'   => {
+        'timeout' => '20',
+      },
+      'stop'    => {
+        'timeout' => '20',
+      }
+    }
+  }
+
+  file { 'vcenter-nova-network-ocf':
+    path  => '/usr/lib/ocf/resource.d/fuel/nova-network',
+    source => 'puppet:///modules/vmware/ocf/nova-network',
+    owner => 'root',
+    group => 'root',
+    mode => '0755',
+  }
+
+  service { 'p_vcenter_nova_network':
+    ensure => 'running',
+    enable => true,
+    provider => 'pacemaker',
+  }
+
+  service { 'nova-network':
+    ensure => 'stopped',
+    enable => false,
+    name   => $::nova::params::network_service_name,
+  }
+
+  anchor { 'vcenter-nova-network-start': }
+  anchor { 'vcenter-nova-network-end': }
+
+  Anchor['vcenter-nova-network-start']->
+  Package['nova-network']->
+  Service['nova-network']->
+  File['vcenter-nova-network-ocf']->
+  Cs_resource['p_vcenter_nova_network']->
+  Service['p_vcenter_nova_network']->
+  Anchor['vcenter-nova-network-end']
+
+  nova_config { 'DEFAULT/multi_host': value => 'False' } ~> Service['p_vcenter_nova_network']
 }
