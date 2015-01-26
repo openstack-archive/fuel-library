@@ -17,6 +17,7 @@
 # - only one vcenter supported
 
 class vmware::controller (
+  $vcenter_settings = undef,
   $api_retry_count = 5,
   $datastore_regex = undef,
   $amqp_port = '5673',
@@ -54,10 +55,20 @@ class vmware::controller (
   }
 
   if ! $ha_mode {
-    create_resources(vmware::compute::simple, $vsphere_clusters)
+    if $vcenter_settings {
+      # Fixme! This a temporary workaround to keep existing functioanality
+      # After fully implementation of the multi HV support it is need to rename resource
+      # back to vmware::compute::simple
+      create_resources(vmware::compute::simple_multi_hv, parse_vcenter_settings($vcenter_settings))
 
-    Nova::Generic_service['compute']->
-    Vmware::Compute::Simple<| |>
+      Nova::Generic_service['compute']->
+      Vmware::Compute::Simple_multi_hv<||>
+    } else {
+      create_resources(vmware::compute::simple, $vsphere_clusters)
+
+      Nova::Generic_service['compute']->
+      Vmware::Compute::Simple<||>
+    }
   } else {
 
     file { 'vcenter-nova-compute-ocf':
@@ -69,13 +80,26 @@ class vmware::controller (
     }
 
     # Create nova-compute per vsphere cluster
-    create_resources(vmware::compute::ha, $vsphere_clusters)
+    if $vcenter_settings {
+      # Fixme! This a temporary workaround to keep existing functioanality
+      # After fully implementation of the multi HV support it is need to rename resource
+      # back to vmware::compute::ha
+      create_resources(vmware::compute::ha_multi_hv, parse_vcenter_settings($vcenter_settings))
 
-    Nova::Generic_service['compute']->
-    anchor { 'vmware-nova-compute-start': }->
-    File['vcenter-nova-compute-ocf']->
-    Vmware::Compute::Ha<||>->
-    anchor { 'vmware-nova-compute-end': }
+      Nova::Generic_service['compute']->
+      anchor { 'vmware-nova-compute-start': }->
+      File['vcenter-nova-compute-ocf']->
+      Vmware::Compute::Ha_multi_hv<||>->
+      anchor { 'vmware-nova-compute-end': }
+    } else {
+      create_resources(vmware::compute::ha, $vsphere_clusters)
+
+      Nova::Generic_service['compute']->
+      anchor { 'vmware-nova-compute-start': }->
+      File['vcenter-nova-compute-ocf']->
+      Vmware::Compute::Ha<||>->
+      anchor { 'vmware-nova-compute-end': }
+    }
   }
 
   # network configuration
