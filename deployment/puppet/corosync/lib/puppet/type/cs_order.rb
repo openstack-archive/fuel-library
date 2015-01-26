@@ -20,11 +20,14 @@ module Puppet
     end
 
     newproperty(:first) do
-      desc "First Corosync primitive."
+      desc "First Corosync primitive.  Just like colocation, our primitives for
+        ording come in pairs but this time order matters so we need to define
+        which primitive starts the desired state change chain."
     end
 
     newproperty(:second) do
-      desc "Second Corosync primitive."
+      desc "Second Corosync primitive.  Our second primitive will move to the
+        desired state after the first primitive."
     end
 
     newparam(:cib) do
@@ -49,23 +52,53 @@ module Puppet
     end
 
     autorequire(:cs_shadow) do
-      rv = []
-      rv << @parameters[:cib].value if !@parameters[:cib].nil?
-      rv
+      [ @parameters[:cib] ]
+    end
+    newproperty(:symmetrical) do
+      desc "Boolean specifying if the resources should stop in reverse order.
+        Default value: true."
+      defaultto true
+    end
+
+    valid_resource_types = [:cs_primitive, :cs_group]
+    newparam(:resources_type) do
+      desc "String to specify which HA resource type is used for this order,
+        e.g. when you want to order groups (cs_group) instead of primitives.
+        Defaults to cs_primitive."
+
+      defaultto :cs_primitive
+      validate do |value|
+        valid_resource_types.include? value
+      end
     end
 
     autorequire(:service) do
       [ 'corosync' ]
     end
 
-    autorequire(:cs_resource) do
-      autos = []
+    valid_resource_types.each{ |possible_resource_type|
+      # We're generating autorequire blocks for all possible cs_ types because
+      # accessing the @parameters[:resources_type].value doesn't seem possible
+      # when the type is declared. Feel free to improve this.
+      autorequire(possible_resource_type) do
+        autos = []
+        resource_type = @parameters[:resources_type].value
+        if resource_type.to_sym == possible_resource_type.to_sym
+          autos << unmunge_cs_resourcename(@parameters[:first].should)
+          autos << unmunge_cs_resourcename(@parameters[:second].should)
+        end
 
-      autos << @parameters[:first].should
-      autos << @parameters[:second].should
+        autos
+      end
+    }
 
-      autos
+    def unmunge_cs_resourcename(name)
+      name = name.split(':')[0]
+      if name.start_with? 'ms_'
+        name = name[3..-1]
+      end
+
+      name
     end
-
   end
 end

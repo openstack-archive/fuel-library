@@ -26,45 +26,14 @@ module Puppet
       isnamevar
     end
 
-    newparam(:cib) do
-      desc "Corosync applies its configuration immediately. Using a CIB allows
-            you to group multiple primitives and relationships to be applied at
-            once. This can be necessary to insert complex configurations into
-            Corosync correctly.
-
-            This paramater sets the CIB this order should be created in. A
-            cs_shadow resource with a title of the same name as this value should
-            also be added to your manifest."
-    end
-
     newproperty(:value) do
       desc "Value of the property.  It is expected that this will be a single
         value but we aren't validating string vs. integer vs. boolean because
         cluster properties can range the gambit."
     end
 
-    newparam(:retries) do
-      desc "How many attempts we should make in order to set this cluster
-      property. Sometimes it is needed when configuring cluster bootstrap
-      options, e.g. no-quorum-policy and others."
-      munge do |value|
-	      Integer(value)
-      end
-      defaultto(1)
-    end
-
     autorequire(:service) do
       [ 'corosync' ]
     end
-
-    autorequire(:cs_shadow) do
-      autos = []
-      if @parameters[:cib]
-        autos << @parameters[:cib].value
-      end
-
-      autos
-    end
-
   end
 end
