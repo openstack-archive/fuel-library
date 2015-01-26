@@ -98,16 +98,17 @@ define l23network::l2::port (
       l23_stored_config { $port_name: }
     }
     L23_stored_config <| title == $port_name |> {
-      ensure        => $ensure,
-      if_type       => 'ethernet',
-      bridge        => $bridge,
-      vlan_id       => $port_vlan_id,
-      vlan_dev      => $port_vlan_dev,
-      vlan_mode     => $port_vlan_mode,
-      bond_master   => $master,
-      mtu           => $mtu,
-      onboot        => $onboot,
-      provider      => $config_provider
+      ensure          => $ensure,
+      if_type         => 'ethernet',
+      bridge          => $bridge,
+      vlan_id         => $port_vlan_id,
+      vlan_dev        => $port_vlan_dev,
+      vlan_mode       => $port_vlan_mode,
+      bond_master     => $master,
+      mtu             => $mtu,
+      onboot          => $onboot,
+      #vendor_specific=> $vendor_specific,
+      provider        => $config_provider
     }
 
     l2_port { $port_name :
@@ -119,11 +120,12 @@ define l23network::l2::port (
       bond_master          => $master,
       mtu                  => $mtu,
       onboot               => $onboot,
-      #type                 => $type,
-      #trunks               => $trunks,
-      #vlan_splinters       => $vlan_splinters,
-      #port_properties      => $port_properties,
-      #interface_properties => $interface_properties,
+      #type                => $type,
+      #trunks              => $trunks,
+      #vlan_splinters      => $vlan_splinters,
+      #port_properties     => $port_properties,
+      #interface_properties=> $interface_properties,
+      vendor_specific      => $vendor_specific,
       provider             => $provider
     }
     K_mod<||> -> L2_port<||>
