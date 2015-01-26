@@ -17,6 +17,7 @@
 # - only one vcenter supported
 
 class vmware::controller (
+  $vcenter_settings = undef,
   $api_retry_count = 5,
   $datastore_regex = undef,
   $amqp_port = '5673',
@@ -54,7 +55,14 @@ class vmware::controller (
   }
 
   if ! $ha_mode {
-    create_resources(vmware::compute::simple, $vsphere_clusters)
+    if $vcenter_settings {
+      # Fixme! This a temporary workaround to keep existing functioanality
+      # After fully implementation of the multi HV support it is need to rename resource
+      # back to vmware::compute::simple
+      create_resources(vmware::compute::simple_multi_hv, parse_vcenter_settings($vcenter_settings))
+    } else {
+      create_resources(vmware::compute::simple, $vsphere_clusters)
+    }
 
     Nova::Generic_service['compute']->
     Vmware::Compute::Simple<| |>
@@ -69,7 +77,14 @@ class vmware::controller (
     }
 
     # Create nova-compute per vsphere cluster
-    create_resources(vmware::compute::ha, $vsphere_clusters)
+    if $vcenter_settings {
+      # Fixme! This a temporary workaround to keep existing functioanality
+      # After fully implementation of the multi HV support it is need to rename resource
+      # back to vmware::compute::ha
+      create_resources(vmware::compute::ha_multi_hv, parse_vcenter_settings($vcenter_settings))
+    } else {
+      create_resources(vmware::compute::ha, $vsphere_clusters)
+    }
 
     Nova::Generic_service['compute']->
     anchor { 'vmware-nova-compute-start': }->
