@@ -621,33 +621,6 @@ if $primary_controller {
 #ADDONS START
 
 if $sahara_hash['enabled'] {
-  class { 'sahara' :
-    sahara_api_host            => $public_vip,
-
-    sahara_db_password         => $sahara_hash['db_password'],
-    sahara_db_host             => $management_vip,
-
-    sahara_keystone_host       => $management_vip,
-    sahara_keystone_user       => 'sahara',
-    sahara_keystone_password   => $sahara_hash['user_password'],
-    sahara_keystone_tenant     => 'services',
-    sahara_auth_uri            => "http://${management_vip}:5000/v2.0/",
-    sahara_identity_uri        => "http://${management_vip}:35357/",
-    use_neutron                => $use_neutron,
-    syslog_log_facility_sahara => $syslog_log_facility_sahara,
-    debug                      => $::debug,
-    verbose                    => $::verbose,
-    use_syslog                 => $use_syslog,
-    enable_notifications       => $ceilometer_hash['enabled'],
-    rpc_backend                => 'rabbit',
-    amqp_password              => $rabbit_hash['password'],
-    amqp_user                  => $rabbit_hash['user'],
-    amqp_port                  => $rabbitmq_bind_port,
-    amqp_hosts                 => $amqp_hosts,
-    rabbit_ha_queues           => $rabbit_ha_queues,
-    openstack_version          => $hiera_openstack_version,
-    auto_assign_floating_ip    => $auto_assign_floating_ip,
-  }
   $scheduler_default_filters = [ 'DifferentHostFilter' ]
 } else {
   $scheduler_default_filters = []
