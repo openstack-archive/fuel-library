@@ -150,3 +150,154 @@ define vmware::compute::simple(
   Exec[$init_reload]->
   Service["nova_compute_vmware_${index}"]
 }
+
+# Fixme! This a temporary workaround to keep existing functioanality
+# After fully implementation of the multi HV support it is need to delete
+# resource vmware::compute::simple and rename vmware::compute::simple_multi_hv resource to
+# vmware::compute::simple
+
+define vmware::compute::simple_multi_hv(
+  $availability_zone_name,
+  $vc_cluster,
+  $vc_host,
+  $vc_user,
+  $vc_password,
+  $service_name,
+  $datastore_regex = undef,
+  $api_retry_count = 5,
+  $compute_driver = 'vmwareapi.VMwareVCDriver',
+  $maximum_objects = 100,
+  $nova_conf = '/etc/nova/nova.conf',
+  $nova_conf_dir = '/etc/nova/nova-compute.d',
+  $task_poll_interval = 5.0,
+  $use_linked_clone = true,
+  $wsdl_location = undef
+)
+{
+  if ! defined(File["${nova_conf_dir}"]) {
+    file { $nova_conf_dir:
+      ensure => directory,
+      owner  => nova,
+      group  => nova,
+      mode   => '0750'
+    }
+  }
+
+  $nova_compute_conf = "${nova_conf_dir}/vmware-${availability_zone_name}_${service_name}.conf"
+
+  include nova::params
+  $nova_compute_vmware = "${::nova::params::compute_service_name}-vmware"
+  case $::osfamily {
+    'RedHat': {
+      $nova_compute_vmware_init = "/etc/init.d/${nova_compute_vmware}"
+
+      if ! defined(File[$nova_compute_vmware_init]) {
+        file { $nova_compute_vmware_init:
+          owner  => root,
+          group  => root,
+          mode   => '0755',
+          source => 'puppet:///modules/vmware/nova-compute-init-centos',
+        }
+      }
+
+      $nova_compute_default = "/etc/sysconfig/${nova_compute_vmware}-${availability_zone_name}_${service_name}"
+      if ! defined(File[$nova_compute_default]) {
+        file { $nova_compute_default:
+          ensure  => present,
+          content => "OPTIONS='--config-file=${nova_conf} --config-file=${nova_compute_conf}'",
+        }
+      }
+
+      $init_link = "${nova_compute_vmware_init}-${availability_zone_name}_${service_name}"
+      if ! defined(File[$init_link]) {
+        file { $init_link:
+          ensure => link,
+          target => "${nova_compute_vmware_init}"
+        }
+      }
+
+      $init_reload_cmd = '/bin/true'
+    }
+    'Debian': {
+      $nova_compute_default = "/etc/default/${nova_compute_vmware}-${availability_zone_name}_${service_name}"
+      if ! defined(File[$nova_compute_default]) {
+        file { $nova_compute_default:
+          ensure  => present,
+          content => "NOVA_COMPUTE_OPTS='--config-file=${nova_conf} --config-file=${nova_compute_conf}'",
+        }
+      }
+
+      $nova_compute_vmware_init = "/etc/init/${nova_compute_vmware}.conf"
+      if ! defined(File[$nova_compute_vmware_init]) {
+        file { $nova_compute_vmware_init:
+          owner  => root,
+          group  => root,
+          mode   => '0644',
+          source => 'puppet:///modules/vmware/nova-compute-init-ubuntu',
+        }
+      }
+
+      $init_link = "/etc/init/${nova_compute_vmware}-${availability_zone_name}_${service_name}.conf"
+      if ! defined(File[$init_link]) {
+        file { $init_link:
+          ensure => link,
+          target => "${nova_compute_vmware_init}"
+        }
+      }
+
+      $upstart_link = "/etc/init.d/${nova_compute_vmware}-${availability_zone_name}_${service_name}"
+      if ! defined(File[$upstart_link]) {
+        file { $upstart_link:
+          ensure => link,
+          target => '/etc/init.d/nova-compute'
+        }
+      }
+
+      $init_reload_cmd = '/sbin/initctl reload-configuration'
+    }
+    default: {
+      fail { "Unsupported OS family (${::osfamily})": }
+    }
+  }
+
+  # $cluster is used inside template
+  $cluster = $name
+  if ! defined (File["${nova_compute_conf}"]) {
+    file { "${nova_compute_conf}":
+      ensure  => present,
+      # Fixme! This a temporary workaround to keep existing functioanality
+      # After fully implementation of the multi HV support it is need to delete
+      # temlate nova-compute.conf.erb and rename nova-compute-multi_hv.conf.erb template to
+      # nova-compute.conf.erb
+      content => template('vmware/nova-compute-multi_hv.conf.erb'),
+      mode    => '0600',
+      owner   => nova,
+      group   => nova,
+    }
+  }
+
+  $init_reload = 'initctl reload-configuration'
+  if ! defined(Exec[$init_reload]) {
+    exec { $init_reload:
+      command => "${init_reload_cmd}",
+      path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ]
+    }
+  }
+
+  if ! defined(Service["nova_compute_vmware_${availability_zone_name}_${service_name}"]) {
+    service { "nova_compute_vmware_${availability_zone_name}_${service_name}":
+      ensure => running,
+      name   => "${nova_compute_vmware}-${availability_zone_name}_${service_name}",
+      enable => true,
+      before => Exec['networking-refresh']
+    }
+  }
+
+  File[$nova_conf_dir]->
+  File[$nova_compute_conf]->
+  File[$nova_compute_vmware_init]->
+  File[$nova_compute_default]~>
+  Exec[$init_reload]->
+  Service["nova_compute_vmware_${availability_zone_name}_${service_name}"]
+}
+
