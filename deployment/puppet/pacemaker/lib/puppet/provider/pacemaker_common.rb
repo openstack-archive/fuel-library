@@ -393,7 +393,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
         <cib>
           <configuration>
             <constraints>
-              <rsc_location id="#{id}" node="#{node}" rsc="#{primitive}" score="#{score}"/>
+              <rsc_location id="#{id}" node="#{node}" rsc="#{primitive}" score="#{score}" __crm_diff_marker__="added:top"/>
             </constraints>
           </configuration>
         </cib>
