@@ -17,12 +17,12 @@
 # - only one vcenter supported
 
 class vmware::controller (
+  $vcenter_settings = undef,
   $api_retry_count = 5,
   $datastore_regex = undef,
   $amqp_port = '5673',
   $compute_driver = 'vmwareapi.VMwareVCDriver',
   $ensure_package = 'present',
-  $ha_mode = false,
   $maximum_objects = 100,
   $nova_conf = '/etc/nova/nova.conf',
   $task_poll_interval = 5.0,
@@ -53,22 +53,27 @@ class vmware::controller (
     before         => Exec['networking-refresh']
   }
 
-  if ! $ha_mode {
-    create_resources(vmware::compute::simple, $vsphere_clusters)
+  file { 'vcenter-nova-compute-ocf':
+    path   => '/usr/lib/ocf/resource.d/fuel/nova-compute',
+    source => 'puppet:///modules/vmware/ocf/nova-compute',
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+  }
+
+  # Create nova-compute per vsphere cluster
+  if $vcenter_settings {
+    # Fixme! This a temporary workaround to keep existing functioanality
+    # After fully implementation of the multi HV support it is need to rename resource
+    # back to vmware::compute::ha
+    create_resources(vmware::compute::ha_multi_hv, parse_vcenter_settings($vcenter_settings))
 
     Nova::Generic_service['compute']->
-    Vmware::Compute::Simple<| |>
+    anchor { 'vmware-nova-compute-start': }->
+    File['vcenter-nova-compute-ocf']->
+    Vmware::Compute::Ha_multi_hv<||>->
+    anchor { 'vmware-nova-compute-end': }
   } else {
-
-    file { 'vcenter-nova-compute-ocf':
-      path   => '/usr/lib/ocf/resource.d/fuel/nova-compute',
-      source => 'puppet:///modules/vmware/ocf/nova-compute',
-      owner  => 'root',
-      group  => 'root',
-      mode   => '0755',
-    }
-
-    # Create nova-compute per vsphere cluster
     create_resources(vmware::compute::ha, $vsphere_clusters)
 
     Nova::Generic_service['compute']->
@@ -81,12 +86,11 @@ class vmware::controller (
   # network configuration
   class { 'vmware::network':
     use_quantum => $use_quantum,
-    ha_mode     => $ha_mode
   }
 
   # Enable metadata service on Controller node
-  Nova_config <| title == 'DEFAULT/enabled_apis' |> {
-    value => 'ec2,osapi_compute,metadata'
+  nova_config {
+    'DEFAULT/enabled_apis': value => 'ec2,osapi_compute,metadata'
   }
   # Set correct parameter for vnc access
   nova_config {

@@ -140,3 +140,23 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+
+- id: vmware-vcenter
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy]
+  requires: [top-role-controller]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/vcenter.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: vmware-compute
+  type: puppet
+  groups: [compute]
+  required_for: [deploy]
+  requires: [top-role-compute]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
