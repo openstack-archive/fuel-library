@@ -15,8 +15,6 @@ describe 'vmware::ceilometer' do
   end
 
   context 'in HA deployment mode' do
-    let(:params) { { :ha_mode => true } }
-
     it 'should install ceilometer-agent-compute OCF script' do
       should contain_file('ceilometer-agent-compute-ocf').with({
         'path'   => '/usr/lib/ocf/resource.d/fuel/ceilometer-agent-compute',
