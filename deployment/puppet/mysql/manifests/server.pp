@@ -200,7 +200,7 @@ class mysql::server (
     }
 
     #Tie vip__management to p_mysqld
-    cs_colocation { 'mysql_to_internal-vip':
+    cs_rsc_colocation { 'mysql_to_internal-vip':
       primitives => ['vip__management',"master_p_${service_name}:Master"],
       score      => 'INFINITY',
       require    => [Cs_resource["p_${service_name}"]],

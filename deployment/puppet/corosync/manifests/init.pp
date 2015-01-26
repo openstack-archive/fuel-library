@@ -96,6 +96,7 @@ class corosync(
   $rrp_mode          = $::corosync::params::rrp_mode,
   $ttl               = $::corosync::params::ttl,
   $packages          = $::corosync::params::packages,
+  $corosync_version  = $::corosync::params::corosync_version,
 ) inherits ::corosync::params {
 
   if ! is_bool($enable_secauth) {
@@ -105,6 +106,30 @@ class corosync(
   validate_bool($force_online)
   validate_bool($check_standby)
   validate_bool($debug)
+
+  $threads_real = $threads ? {
+    'UNSET' => $::threads ? {
+      undef   => $::processorcount,
+      default => $::threads,
+    },
+    default => $threads,
+  }
+
+  $port_real = $port ? {
+    'UNSET' => $::port ? {
+      undef   => '5405',
+      default => $::port,
+    },
+    default => $port,
+  }
+
+  $bind_address_real = $bind_address ? {
+    'UNSET' => $::bind_address ? {
+      undef   => $::ipaddress,
+      default => $::bind_address,
+    },
+    default => $bind_address,
+  }
 
   if $unicast_addresses == 'UNSET' {
     $corosync_conf = "${module_name}/corosync.conf.erb"
@@ -221,5 +246,13 @@ class corosync(
     ensure    => running,
     enable    => true,
     subscribe => File[ [ '/etc/corosync/corosync.conf', '/etc/corosync/service.d' ] ],
+  }
+
+  if $corosync_version != '1' {
+    service { 'pacemaker':
+      ensure    => running,
+      enable    => true,
+      subscribe => Service['corosync'],
+    }
   }
 }
