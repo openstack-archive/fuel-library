@@ -20,10 +20,11 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
     rv = []
     get_bridge_list().each_pair do |bridge, props|
       rv << new({
-        :ensure       => :present,
-        :name         => bridge,
-        :br_type      => props[:br_type],
-        :external_ids => :absent
+        :ensure          => :present,
+        :name            => bridge,
+        :br_type         => props[:br_type],
+        :external_ids    => :absent,
+        :vendor_specific => {}
       }) if props[:br_type] == :lnx
     end
     rv
@@ -73,6 +74,7 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
   def br_type=(val)
     @property_flush[:br_type] = val
   end
+
   # external IDs not supported
   def external_ids
     :absent
@@ -80,6 +82,14 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
   def external_ids=(value)
     nil
   end
+
+  def vendor_specific
+    @property_hash[:vendor_specific] || {}
+  end
+  def vendor_specific=(val)
+    @property_flush[:vendor_specific] = val
+  end
+
   #-----------------------------------------------------------------
 
 

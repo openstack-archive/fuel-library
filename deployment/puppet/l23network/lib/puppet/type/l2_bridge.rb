@@ -33,6 +33,17 @@ Puppet::Type.newtype(:l2_bridge) do
       end
     end
 
+    newproperty(:vendor_specific) do
+      desc "Hash of vendor specific properties"
+      defaultto {}
+      # provider-specific hash, validating only by type.
+      validate do |val|
+        if ! val.is_a? Hash
+          fail("Vendor_specific should be a hash!")
+        end
+      end
+    end
+
     # global validator
     def validate
         # require 'pry'
