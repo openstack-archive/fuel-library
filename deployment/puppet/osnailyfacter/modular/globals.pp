@@ -152,7 +152,7 @@ if $deployment_mode == 'ha_compact' {
   $controller_hostnames          = keys($controller_internal_addresses)
   $controller_nodes              = ipsort(values($controller_internal_addresses))
   $controller_node_public        = hiera('public_vip')
-  $controller_node_address       = hiera['management_vip']
+  $controller_node_address       = hiera('management_vip')
   $mountpoints                   = filter_hash($mp_hash,'point')
 } else {
   # simple multinode
