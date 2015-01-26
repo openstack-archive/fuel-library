@@ -1,10 +1,10 @@
 class sahara::templates::create_templates (
   $network_provider = undef,
-  $templates_dir    = '/usr/share/sahara/templates',
-) {
+  $templates_dir    = $sahara::params::templates_dir,
+) inherits sahara::params {
 
   file { 'create_templates':
-    path         => "${templates_dir}",
+    path         => $templates_dir,
     ensure       => directory,
     owner        => 'root',
     group        => 'root',
