@@ -10,7 +10,7 @@ define sahara::templates::template (
 
   exec { "${plugin}_create_templates":
     path    => "/bin:/usr/bin",
-    cwd     => "${templates_dir}",
+    cwd     => $templates_dir,
     command => "bash -c \"source /root/openrc; sahara node-group-template-list | grep -q ${plugin}\"",
     unless  => "bash create_templates.sh ${network_provider} ${plugin}",
     require => File['script_templates'],
