@@ -36,11 +36,6 @@ class osnailyfacter::cluster_ha {
   # they will be undefined (don't move to site.pp)
 
   #These aren't always present.
-  if !$::fuel_settings['sahara'] {
-    $sahara_hash={}
-  } else {
-    $sahara_hash = $::fuel_settings['sahara']
-  }
 
   if !$::fuel_settings['murano'] {
     $murano_hash = {}

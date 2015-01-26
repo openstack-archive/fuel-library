@@ -35,11 +35,6 @@ class osnailyfacter::cluster_simple {
   #  be undefined (don't move to site.pp)
 
   #These aren't always present.
-  if !$::fuel_settings['sahara'] {
-    $sahara_hash={}
-  } else {
-    $sahara_hash = $::fuel_settings['sahara']
-  }
 
   if !$::fuel_settings['murano'] {
     $murano_hash = {}
@@ -401,37 +396,6 @@ class osnailyfacter::cluster_simple {
       }
 
       #ADDONS START
-
-      if $sahara_hash['enabled'] {
-        class { 'sahara' :
-          sahara_api_host            => $controller_node_public,
-
-          sahara_db_password         => $sahara_hash['db_password'],
-          sahara_db_host             => $controller_node_address,
-
-          sahara_keystone_host       => $controller_node_address,
-          sahara_keystone_user       => 'sahara',
-          sahara_keystone_password   => $sahara_hash['user_password'],
-          sahara_keystone_tenant     => 'services',
-          sahara_auth_uri            => "http://${controller_node_address}:5000/v2.0/",
-          sahara_identity_uri        => "http://${controller_node_address}:35357/",
-          use_neutron                => $::use_neutron,
-          syslog_log_facility_sahara => $syslog_log_facility_sahara,
-          debug                      => $debug,
-          verbose                    => $verbose,
-          use_syslog                 => $use_syslog,
-          rpc_backend                => 'rabbit',
-          enable_notifications       => $ceilometer_hash['enabled'],
-          amqp_password              => $rabbit_hash['password'],
-          amqp_user                  => $rabbit_hash['user'],
-          amqp_port                  => $rabbitmq_bind_port,
-          amqp_hosts                 => $amqp_hosts,
-          rabbit_ha_queues           => $rabbit_ha_queues,
-        }
-        $scheduler_default_filters = [ 'DifferentHostFilter' ]
-      } else {
-        $scheduler_default_filters = []
-      }
 
       class { '::nova::scheduler::filter':
         cpu_allocation_ratio       => '8.0',
