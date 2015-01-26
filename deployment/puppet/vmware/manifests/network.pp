@@ -18,7 +18,6 @@
 class vmware::network (
 
   $use_quantum = false,
-  $ha_mode = false
 
 )
 
@@ -27,9 +26,7 @@ class vmware::network (
   if $use_quantum { # for quantum
     class { 'vmware::network::neutron': }
   } else { # for nova network
-    class { 'vmware::network::nova':
-      ha_mode => $ha_mode
-    }
+    class { 'vmware::network::nova': }
   } # end of network check
 
 } # end of class

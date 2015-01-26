@@ -25,9 +25,9 @@
 # vcenter_datastore_regex - the datastore_regex setting specifies the data stores to use with Compute
 # vlan_interface - interface which is used on ESXi hosts when nova-network uses VlanManager
 # use_quantum - shows if neutron enabled
-# ha_mode - flag that shows what deployment mode we are running
 
 class vmware (
+  $vcenter_settings = undef,
   $vcenter_user = 'user',
   $vcenter_password = 'password',
   $vcenter_host_ip = '10.10.10.10',
@@ -35,13 +35,13 @@ class vmware (
   $vcenter_datastore_regex = undef,
   $vlan_interface = undef,
   $use_quantum = false,
-  $ha_mode = false,
   $vnc_address = '0.0.0.0',
   $ceilometer = false,
   $debug = false,
 )
 {
   class { 'vmware::controller':
+    vcenter_settings => $vcenter_settings,
     datastore_regex  => $vcenter_datastore_regex,
     vcenter_user     => $vcenter_user,
     vcenter_password => $vcenter_password,
@@ -49,17 +49,16 @@ class vmware (
     vcenter_cluster  => $vcenter_cluster,
     vlan_interface   => $vlan_interface,
     use_quantum      => $use_quantum,
-    ha_mode          => $ha_mode,
     vnc_address      => $vnc_address,
   }
 
   if $ceilometer {
     class { 'vmware::ceilometer':
+      vcenter_settings  => $vcenter_settings,
       vcenter_user      => $vcenter_user,
       vcenter_password  => $vcenter_password,
       vcenter_host_ip   => $vcenter_host_ip,
       vcenter_cluster   => $vcenter_cluster,
-      ha_mode           => $ha_mode,
       debug             => $debug,
     }
   }
