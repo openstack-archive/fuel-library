@@ -132,6 +132,7 @@ define l23network::l2::bond (
       bond_slaves     => $interfaces,
       bond_miimon     => $real_bond_properties[miimon],
       bond_lacp_rate  => $real_bond_properties[lacp_rate],
+#     vendor_specific => $vendor_specific,
       provider        => $config_provider
     }
 
@@ -143,7 +144,7 @@ define l23network::l2::bond (
       slaves               => $interfaces,
       interface_properties => $interface_properties,
       bond_properties      => $real_bond_properties,
-#      vendor_specific      => $vendor_specific,
+      vendor_specific      => $vendor_specific,
       provider             => $provider
     }
     K_mod<||> -> L2_bond<||>
