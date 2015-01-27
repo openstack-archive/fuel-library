@@ -82,6 +82,9 @@ module NoopTests
       opts.on('-C', '--catalog_debug', 'Show catalog debug output') do
         ENV['SPEC_CATALOG_DEBUG'] = 'YES'
       end
+      opts.on('-U', '--puppet_debug', 'Show Puppet debug messages in the specs') do
+        ENV['SPEC_PUPPET_DEBUG'] = 'YES'
+      end
       opts.on('-G', '--spec_generate', 'Generate specs for catalogs') do
         ENV['SPEC_SPEC_GENERATE'] = 'YES'
       end
