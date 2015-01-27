@@ -61,7 +61,9 @@ define l23network::l2::port (
       if $vlan_dev {
         $port_vlan_dev = $vlan_dev
       } else {
-        fail("Can't configure vlan interface ${port} without definition vlandev=>ethXX.")
+        if $provider != 'ovs' {
+          fail("Can't configure vlan interface ${port} without definition vlandev=>ethXX.")
+        }
       }
     }
     /^(eth\d+)\.(\d+)/: {

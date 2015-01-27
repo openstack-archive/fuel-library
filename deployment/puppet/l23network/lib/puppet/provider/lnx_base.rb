@@ -16,5 +16,12 @@ class Puppet::Provider::Lnx_base < Puppet::Provider::L2_base
     fail("Resource '#{@resource[:name]}': Vendor_specific field don't implemented for default providers.")
   end
 
+  def type
+    :absent
+  end
+  def type=(value)
+    debug("Resource '#{@resource[:name]}': Don't support interface type change.")
+  end
+
 end
 # vim: set ts=2 sw=2 et :

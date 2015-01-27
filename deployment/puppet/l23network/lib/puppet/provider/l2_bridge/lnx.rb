@@ -1,3 +1,9 @@
+# Native linux bridging implementation
+# Inspired by:
+#  * https://www.kernel.org/doc/Documentation/networking/bridge.txt
+#  * http://www.linuxfoundation.org/collaborate/workgroups/networking/bridge
+#
+
 require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_base')
 
 Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
@@ -24,7 +30,8 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
         :name            => bridge,
         :br_type         => props[:br_type],
         :external_ids    => :absent,
-        :vendor_specific => {}
+        :vendor_specific => {},
+        :provider        => 'lnx'
       }) if props[:br_type] == :lnx
     end
     rv
