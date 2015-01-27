@@ -19,10 +19,15 @@ Puppet::Type.newtype(:l2_port) do
       end
     end
 
-    newparam(:type) do
-      newvalues('', :system, :internal, :tap, :gre, :ipsec_gre, :capwap, :patch, :null)
-      defaultto('')
-      desc "Ovs port type"
+    #todo(sv): move to provider_specific hash
+    newproperty(:type) do
+      newvalues(:system, :internal, :tap, :gre, :ipsec_gre, :capwap, :patch, :null, :undef, :nil, :none)
+      aliasvalue(:internal, :null)
+      aliasvalue(:internal, :nil)
+      aliasvalue(:internal, :undef)
+      aliasvalue(:internal, :none)
+      #defaultto(:internal)
+      desc "Port type (for openvswitch only)"
     end
 
     newproperty(:port_type) do

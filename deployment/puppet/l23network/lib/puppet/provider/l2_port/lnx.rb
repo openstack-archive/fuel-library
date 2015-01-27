@@ -7,95 +7,36 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
              :vsctl   => 'ovs-vsctl'
 
 
-  def self.prefetch(resources)
-    interfaces = instances
-    resources.keys.each do |name|
-      if provider = interfaces.find{ |ii| ii.name == name }
-        resources[name].provider = provider
-      end
-    end
-  end
-
   def self.instances
-    bridges ||= get_bridge_list()
+    rv = []
     #todo: what do with OVS ports, inserted in LNX bridge? i.e. port located in two bridges.
-    port_bridges_hash = self.get_lnx_port_bridges_pairs()
-    #debug("port-bridges: '#{port_bridges_hash}'")
-    port_bridges_hash.merge! self.get_ovs_port_bridges_pairs()
-    debug("port-bridges mapping: '#{port_bridges_hash}'")
-    # parse 802.1q vlan interfaces
-    vlan_ifaces = {}
-    rc_c = /([\w+\.\-]+)\s*\|\s*(\d+)\s*\|\s*([\w+\-]+)/
-    File.open("/proc/net/vlan/config", "r").each do |line|
-      if (rv=line.match(rc_c))
-        vlan_ifaces[rv[1]] = {
-          :vlan_dev  => rv[3],
-          :vlan_id   => rv[2],
-          :vlan_mode => (rv[1].match('\.').nil?  ?  'vlan'  :  'eth'  )
-        }
+    ports = get_lnx_ports()
+    ovs_interfaces = get_ovs_interfaces()
+    ports.each_pair do |if_name, if_props|
+      props = {
+        :ensure          => :present,
+        :name            => if_name,
+        :vendor_specific => {}
+      }
+      debug("prefetching interface '#{if_name}'")
+      props.merge! if_props
+      # add PROVIDER prefix to port type flags and convert port_type to string
+      if ovs_interfaces.has_key? if_name and ovs_interfaces[if_name][:port_type].is_a? Array and ovs_interfaces[if_name][:port_type].include? 'internal'
+        if_provider = ovs_interfaces[if_name][:provider]
+        props[:port_type] = ovs_interfaces[if_name][:port_type]
+        props[:provider] = ovs_interfaces[if_name][:provider]
+      else
+        if_provider = props[:provider]
+      end
+      props[:port_type] = props[:port_type].insert(0, if_provider).join(':')
+      if if_provider == 'lnx'
+        rv << new(props)
+        debug("PREFETCH properties for '#{if_name}': #{props}")
+      else
+        debug("SKIP properties for '#{if_name}': #{props}")
       end
     end
-    # parse all system interfaces
-    re_c = /^\s*([0-9A-Za-z\.\-\_]+):/
-    File.open("/proc/net/dev", "r").each.select{|line| line.match(re_c)}.collect do |if_line|
-        mm = if_line.match(re_c)
-        if_name = mm[1]
-        props = {
-          :ensure          => :present,
-          :name            => if_name,
-          :port_type       => '',
-          :vendor_specific => {}
-        }
-        debug("prefetching interface '#{if_name}'")
-        # check, whether this interface is vlan
-        if File.file?("/proc/net/vlan/#{if_name}")
-          props.merge!(vlan_ifaces[if_name])
-        else
-          props.merge!({
-            :vlan_dev  => nil,
-            :vlan_id   => nil,
-            :vlan_mode => nil
-          })
-        end
-        # check whether interface UP
-        begin
-          File.open("/sys/class/net/#{if_name}/carrier", "r").each.select{|l| l.match(/^(\d+)$/)}.size
-          props[:onboot] = true
-        rescue
-          # if interface if down, this file can't be read
-          props[:onboot] = false
-        end
-
-        # get MTU
-        if File.open("/sys/class/net/#{if_name}/mtu", "r").each.select{|l| l.match(/^(\d+)$/)}.size > 0
-          props[:mtu] = $1.to_s
-        end
-        # get bridge if port included to it
-        if ! port_bridges_hash[if_name].nil?
-          props[:bridge] = port_bridges_hash[if_name][:bridge]
-        end
-        # calculate port_type field
-        if File.directory?("/sys/class/net/#{if_name}/bonding")
-          # port is a bond
-          props[:port_type] = 'lnx:bond:unremovable'
-        elsif File.symlink?("/sys/class/net/#{if_name}/master")
-          # port is a slave of bond
-          props[:bond_master] = File.readlink("/sys/class/net/#{if_name}/master").split('/')[-1]
-          props[:port_type] = 'lnx:bond-slave'
-        end
-        if !bridges[if_name].nil?
-          case bridges[if_name][:br_type]
-          when :ovs
-            props[:port_type] = 'ovs:br:unremovable'
-          when :lnx
-            props[:port_type] = 'lnx:br:unremovable'
-          else
-            # pass
-          end
-        end
-        debug("PREFETCHED properties for '#{if_name}': #{props}")
-        new(props)
-    end
+    return rv
   end
 
   def exists?
@@ -141,7 +82,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           debug("Remove interface '#{@resource[:interface]}' from bond '#{bond}'.")
           File.open("/sys/class/net/#{@resource[:interface]}/master/bonding/slaves", "a") {|f| f << "-#{@resource[:interface]}"}
         end
-        if ! @property_flush[:bond_master].nil?
+        if ! @property_flush[:bond_master].nil? and @property_flush[:bond_master] != :absent
           # add interface as slave to bond
           debug("Add interface '#{@resource[:interface]}' to bond '#{@property_flush[:bond_master]}'.")
           File.open("/sys/class/net/#{@property_flush[:bond_master]}/bonding/slaves", "a") {|f| f << "+#{@resource[:interface]}"}
