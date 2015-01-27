@@ -258,6 +258,26 @@
             <op id="p_haproxy-stop-0" interval="0" name="stop" timeout="30"/>
           </operations>
         </primitive>
+        <group id="test">
+          <primitive class="ocf" id="test1" provider="pacemaker" type="Dummy">
+            <instance_attributes id="test1-instance_attributes"/>
+            <operations>
+              <op id="test1-monitor-interval-60s" interval="60s" name="monitor"/>
+            </operations>
+          </primitive>
+          <primitive class="ocf" id="test2" provider="pacemaker" type="Dummy">
+            <instance_attributes id="test2-instance_attributes"/>
+            <operations>
+              <op id="test2-monitor-interval-60s" interval="60s" name="monitor"/>
+            </operations>
+          </primitive>
+          <primitive class="ocf" id="test3" provider="pacemaker" type="Dummy">
+            <instance_attributes id="test3-instance_attributes"/>
+            <operations>
+              <op id="test3-monitor-interval-60s" interval="60s" name="monitor"/>
+            </operations>
+          </primitive>
+        </group>
       </clone>
     </resources>
     <constraints>
@@ -267,30 +287,30 @@
           <expression attribute="pingd" id="loc_ping_vip__public-expression-0" operation="lte" value="0"/>
         </rule>
       </rsc_location>
-      <rsc_location id="clone_ping_vip__public_on_node-1" node="node-1" rsc="clone_ping_vip__public" score="100"/>
-      <rsc_location id="vip__management_on_node-1" node="node-1" rsc="vip__management" score="100"/>
+      <rsc_location id="clone_ping_vip__public-on-node-1" node="node-1" rsc="clone_ping_vip__public" score="100"/>
+      <rsc_location id="vip__management-on-node-1" node="node-1" rsc="vip__management" score="100"/>
       <rsc_colocation id="p_neutron-dhcp-agent-with-clone_p_neutron-plugin-openvswitch-agent" rsc="p_neutron-dhcp-agent" score="INFINITY" with-rsc="clone_p_neutron-plugin-openvswitch-agent"/>
       <rsc_order first="clone_p_neutron-plugin-openvswitch-agent" id="p_neutron-dhcp-agent-after-clone_p_neutron-plugin-openvswitch-agent" score="INFINITY" then="p_neutron-dhcp-agent"/>
-      <rsc_location id="master_p_rabbitmq-server_on_node-1" node="node-1" rsc="master_p_rabbitmq-server" score="100"/>
+      <rsc_location id="master_p_rabbitmq-server-on-node-1" node="node-1" rsc="master_p_rabbitmq-server" score="100"/>
       <rsc_colocation id="vip_management-with-haproxy" rsc="vip__management" score="INFINITY" with-rsc="clone_p_haproxy"/>
       <rsc_colocation id="vip_public-with-haproxy" rsc="vip__public" score="INFINITY" with-rsc="clone_p_haproxy"/>
-      <rsc_location id="p_neutron-dhcp-agent_on_node-1" node="node-1" rsc="p_neutron-dhcp-agent" score="100"/>
-      <rsc_location id="clone_p_neutron-l3-agent_on_node-1" node="node-1" rsc="clone_p_neutron-l3-agent" score="100"/>
-      <rsc_location id="clone_p_neutron-metadata-agent_on_node-1" node="node-1" rsc="clone_p_neutron-metadata-agent" score="100"/>
-      <rsc_location id="vip__public_on_node-1" node="node-1" rsc="vip__public" score="100"/>
-      <rsc_location id="clone_p_mysql_on_node-1" node="node-1" rsc="clone_p_mysql" score="100"/>
-      <rsc_location id="clone_p_haproxy_on_node-1" node="node-1" rsc="clone_p_haproxy" score="100"/>
-      <rsc_location id="clone_p_neutron-plugin-openvswitch-agent_on_node-1" node="node-1" rsc="clone_p_neutron-plugin-openvswitch-agent" score="100"/>
-      <rsc_location id="p_heat-engine_on_node-1" node="node-1" rsc="p_heat-engine" score="100"/>
-      <rsc_location id="vip__public_on_node-3" node="node-3" rsc="vip__public" score="100"/>
-      <rsc_location id="vip__public_on_node-2" node="node-2" rsc="vip__public" score="100"/>
-      <rsc_location id="clone_ping_vip__public_on_node-3" node="node-3" rsc="clone_ping_vip__public" score="100"/>
-      <rsc_location id="clone_ping_vip__public_on_node-2" node="node-2" rsc="clone_ping_vip__public" score="100"/>
-      <rsc_location id="vip__management_on_node-3" node="node-3" rsc="vip__management" score="100"/>
-      <rsc_location id="vip__management_on_node-2" node="node-2" rsc="vip__management" score="100"/>
-      <rsc_location id="clone_p_mysql_on_node-2" node="node-2" rsc="clone_p_mysql" score="100"/>
-      <rsc_location id="master_p_rabbitmq-server_on_node-2" node="node-2" rsc="master_p_rabbitmq-server" score="100"/>
-      <rsc_location id="clone_p_haproxy_on_node-2" node="node-2" rsc="clone_p_haproxy" score="100"/>
+      <rsc_location id="p_neutron-dhcp-agent-on-node-1" node="node-1" rsc="p_neutron-dhcp-agent" score="100"/>
+      <rsc_location id="clone_p_neutron-l3-agent-on-node-1" node="node-1" rsc="clone_p_neutron-l3-agent" score="100"/>
+      <rsc_location id="clone_p_neutron-metadata-agent-on-node-1" node="node-1" rsc="clone_p_neutron-metadata-agent" score="100"/>
+      <rsc_location id="vip__public-on-node-1" node="node-1" rsc="vip__public" score="100"/>
+      <rsc_location id="clone_p_mysql-on-node-1" node="node-1" rsc="clone_p_mysql" score="100"/>
+      <rsc_location id="clone_p_haproxy-on-node-1" node="node-1" rsc="clone_p_haproxy" score="100"/>
+      <rsc_location id="clone_p_neutron-plugin-openvswitch-agent-on-node-1" node="node-1" rsc="clone_p_neutron-plugin-openvswitch-agent" score="100"/>
+      <rsc_location id="p_heat-engine-on-node-1" node="node-1" rsc="p_heat-engine" score="100"/>
+      <rsc_location id="vip__public-on-node-3" node="node-3" rsc="vip__public" score="100"/>
+      <rsc_location id="vip__public-on-node-2" node="node-2" rsc="vip__public" score="100"/>
+      <rsc_location id="clone_ping_vip__public-on-node-3" node="node-3" rsc="clone_ping_vip__public" score="100"/>
+      <rsc_location id="clone_ping_vip__public-on-node-2" node="node-2" rsc="clone_ping_vip__public" score="100"/>
+      <rsc_location id="vip__management-on-node-3" node="node-3" rsc="vip__management" score="100"/>
+      <rsc_location id="vip__management-on-node-2" node="node-2" rsc="vip__management" score="100"/>
+      <rsc_location id="clone_p_mysql-on-node-2" node="node-2" rsc="clone_p_mysql" score="100"/>
+      <rsc_location id="master_p_rabbitmq-server-on-node-2" node="node-2" rsc="master_p_rabbitmq-server" score="100"/>
+      <rsc_location id="clone_p_haproxy-on-node-2" node="node-2" rsc="clone_p_haproxy" score="100"/>
     </constraints>
   </configuration>
   <status>
