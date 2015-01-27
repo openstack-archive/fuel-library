@@ -5,7 +5,10 @@ EOS
     ) do |args|
         interfaces = lookupvar('interfaces')
 
-        return false if (interfaces == :undefined)
+        # In Puppet v2.7, lookupvar returns :undefined if the variable does
+        # not exist.  In Puppet 3.x, it returns nil.
+        # See http://docs.puppetlabs.com/guides/custom_functions.html
+        return false if (interfaces.nil? || interfaces == :undefined)
 
         result = []
         if interfaces.count(',') > 0
@@ -14,10 +17,10 @@ EOS
                 if ! iface.include?('lo')
                     ipaddr = lookupvar("ipaddress_#{iface}")
                     ipaddr6 = lookupvar("ipaddress6_#{iface}")
-                    if ipaddr
+                    if ipaddr and (ipaddr!= :undefined)
                         result << ipaddr
                     end
-                    if ipaddr6
+                    if ipaddr6 and (ipaddr6!= :undefined)
                         result << ipaddr6
                     end
                 end
@@ -26,10 +29,10 @@ EOS
             if ! interfaces.include?('lo')
                 ipaddr = lookupvar("ipaddress_#{interfaces}")
                 ipaddr6 = lookupvar("ipaddress6_#{interfaces}")
-                if ipaddr
+                if ipaddr and (ipaddr!= :undefined)
                     result << ipaddr
                 end
-                if ipaddr6
+                if ipaddr6 and (ipaddr6!= :undefined)
                     result << ipaddr6
                 end
             end
