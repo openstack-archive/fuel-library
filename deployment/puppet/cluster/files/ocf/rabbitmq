@@ -244,9 +244,9 @@ my_host() {
 
 srv_uptime() {
     local stime
-    stime=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}')
+    stime=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}' | sed -e '/(null)/d' )
 
-    if [[ "x$stime" != "x(null)" ]] ; then
+    if [ -z "${stime}" -o x"${stime}" == x"(null)" ] ; then
         echo $(( $(now) - ${stime} ))
     else
         echo 0
@@ -891,7 +891,7 @@ get_monitor() {
         ocf_log info "${LH} also checking if we are master."
         get_status rabbit
         rabbit_running=$?
-        am_i_master=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}' )
+        am_i_master=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}' | sed -e '/(null)/d' )
         ocf_log info "${LH} master attribute is ${am_i_master}"
         if [[ "x${am_i_master}" == "xtrue" && ${rabbit_running} -eq $OCF_SUCCESS ]]
         then
@@ -906,11 +906,11 @@ get_monitor() {
         then
             ocf_log info "${LH} rabbit app is running. checking if we are the part of healthy cluster"
             prev_rc=$rc
-            nodelist=`crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$"`
+            nodelist=`crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$" | sed -e '/(null)/d'`
             for node in $nodelist
             do
                 ocf_log info "${LH} rabbit app is running. looking for master on $node"
-                is_master=`crm_attribute -N $node -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}'`
+                is_master=`crm_attribute -N $node -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}' | sed -e '/(null)/d'`
                 ocf_log info "${LH} fetched master attribute for $node. attr value is ${is_master}"
                 if [[ "x${is_master}" == "xtrue" ]]
                 then
@@ -934,13 +934,12 @@ get_monitor() {
     else
         ocf_log info "${LH} preparing to update master score for node"
         our_uptime=$(srv_uptime)
-        nodelist=$( crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$" | grep -v `hostname` )
+        nodelist=$( crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$" | grep -v `hostname` | sed -e '/(null)/d' )
         max=1
         for node in $nodelist
         do
-            node_start_time=`crm_attribute -N $node -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}'`
-            if [[ x"$node_start_time" == "x(null)" ]]
-            then
+            node_start_time=`crm_attribute -N $node -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}' | sed -e '/(null)/d'`
+            if [ -z "${node_start_time}" -o x"${node_start_time}" == x"(null)" ] ; then
                 node_uptime=0
             else
                 node_uptime=$(( $(now) - ${node_start_time}  ))
@@ -1105,7 +1104,7 @@ action_notify() {
                 my_host "$OCF_RESKEY_CRM_meta_notify_promote_uname"
                 rc=$?
                 if [[ $rc == $OCF_SUCCESS ]] ; then
-                    nodelist=`crm_node -l | awk '{print $2}' | grep -v "^$"`
+                    nodelist=`crm_node -l | awk '{print $2}' | grep -v "^$" | sed -e '/(null)/d'`
                     for i in $nodelist
                     do
                        crm_attribute -N $i -l reboot --name 'rabbit-master' --delete
