@@ -5,8 +5,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   has_feature :enableable
   has_feature :refreshable
 
-  commands :uname => 'uname'
-  commands :pcs => 'pcs'
+  commands :crm_node => 'crm_node'
   commands :crm_resource => 'crm_resource'
   commands :crm_attribute => 'crm_attribute'
   commands :cibadmin => 'cibadmin'
@@ -15,7 +14,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   # @return [String]
   def hostname
     return @hostname if @hostname
-    @hostname = (uname '-n').chomp.strip
+    @hostname = (crm_node '-n').chomp.strip
   end
 
   # original name passed from the type
@@ -30,13 +29,19 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     return @name if @name
     primitive_name = title
     if primitive_exists? primitive_name
-      Puppet.debug "Primitive with title '#{primitive_name}' was found in CIB"
+      debug "Primitive with title '#{primitive_name}' was found in CIB"
       @name = primitive_name
       return @name
     end
-    primitive_name = "p_#{primitive_name}"
+    primitive_name = "p_#{title}"
     if primitive_exists? primitive_name
-      Puppet.debug "Using '#{primitive_name}' name instead of '#{title}'"
+      debug "Using '#{primitive_name}' name instead of '#{title}'"
+      @name = primitive_name
+      return @name
+    end
+    primitive_name = title.gsub /(ms-)|(clone-)/, ''
+    if primitive_exists? primitive_name
+      debug "Using simple name '#{primitive_name}' instead of '#{title}'"
       @name = primitive_name
       return @name
     end
@@ -50,7 +55,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     return @full_name if @full_name
     if primitive_is_complex? name
       full_name = primitives[name]['name']
-      Puppet.debug "Using full name '#{full_name}' for complex primitive '#{name}'"
+      debug "Using full name '#{full_name}' for complex primitive '#{name}'"
       @full_name = full_name
     else
       @full_name = name
@@ -64,7 +69,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     return @basic_service_name if @basic_service_name
     if name.start_with? 'p_'
       basic_service_name = name.gsub /^p_/, ''
-      Puppet.debug "Using '#{basic_service_name}' as the basic service name for primitive '#{name}'"
+      debug "Using '#{basic_service_name}' as the basic service name for primitive '#{name}'"
       @basic_service_name = basic_service_name
     else
       @basic_service_name = name
@@ -72,7 +77,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   end
 
   # cleanup a primitive and
-  # wait for cleanup to finish
+  # wait until cleanup finishes
   def cleanup
     cleanup_primitive full_name, hostname
     wait_for_status name
@@ -83,55 +88,62 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   # @return [:running,:stopped]
   def status
     wait_for_online
-    Puppet.debug "Call: 'status' for Pacemaker service '#{name}' on node '#{hostname}'"
+    debug "Call: 'status' for Pacemaker service '#{name}' on node '#{hostname}'"
     cib_reset
-    out = get_primitive_puppet_status name, hostname
-    Puppet.debug get_cluster_debug_report
-    Puppet.debug "Return: '#{out}' (#{out.class})"
+    cleanup if pacemaker_options[:cleanup_on_status] and (not pacemaker_options[:cleanup_only_if_failures] or primitive_has_failures? name, hostname)
+
+    if primitive_is_multistate? name
+      out = service_status_mode pacemaker_options[:status_mode_multistate]
+    elsif primitive_is_clone? name
+      out = service_status_mode pacemaker_options[:status_mode_clone]
+    else
+      out = service_status_mode pacemaker_options[:status_mode_simple]
+    end
+    debug "Return: '#{out}' (#{out.class})"
+    debug cluster_debug_report "#{@resource} status"
     out
   end
 
   # called by Puppet to start the service
   def start
-    Puppet.debug "Call 'start' for Pacemaker service '#{name}' on node '#{hostname}'"
+    debug "Call 'start' for Pacemaker service '#{name}' on node '#{hostname}'"
     enable unless primitive_is_managed? name
-    disable_basic_service
-    constraint_location_add full_name, hostname
+    disable_basic_service if pacemaker_options[:disable_basic_service]
+    cleanup if pacemaker_options[:cleanup_on_start] and (not pacemaker_options[:cleanup_only_if_failures] or primitive_has_failures? name, hostname)
+    service_location_add full_name, hostname if pacemaker_options[:add_location_constraint]
     unban_primitive name, hostname
-    start_primitive full_name
     start_primitive name
-    cleanup
+    start_primitive full_name
 
     if primitive_is_multistate? name
-      Puppet.debug "Choose master start for Pacemaker service '#{name}'"
+      debug "Choose master start for Pacemaker service '#{name}'"
       wait_for_master name
     else
-      Puppet.debug "Choose global start for Pacemaker service '#{name}'"
-      wait_for_start name
+      service_start_mode pacemaker_options[:start_mode_simple]
     end
+    debug cluster_debug_report "#{@resource} start"
   end
 
   # called by Puppet to stop the service
   def stop
-    Puppet.debug "Call 'stop' for Pacemaker service '#{name}' on node '#{hostname}'"
+    debug "Call 'stop' for Pacemaker service '#{name}' on node '#{hostname}'"
     enable unless primitive_is_managed? name
-    cleanup
+    cleanup if pacemaker_options[:cleanup_on_stop] and (not pacemaker_options[:cleanup_only_if_failures] or primitive_has_failures? name, hostname)
 
-    if primitive_is_complex? name
-      Puppet.debug "Choose local stop for Pacemaker service '#{name}' on node '#{hostname}'"
-      ban_primitive name, hostname
-      wait_for_stop name, hostname
+    if primitive_is_multistate? name
+      service_stop_mode pacemaker_options[:stop_mode_multistate]
+    elsif primitive_is_clone? name
+      service_stop_mode pacemaker_options[:stop_mode_clone]
     else
-      Puppet.debug "Choose global stop for Pacemaker service '#{name}'"
-      stop_primitive name
-      wait_for_stop name
+      service_stop_mode pacemaker_options[:stop_mode_simple]
     end
+    debug cluster_debug_report "#{@resource} stop"
   end
 
   # called by Puppet to restart the service
   def restart
-    Puppet.debug "Call 'restart' for Pacemaker service '#{name}' on node '#{hostname}'"
-    unless primitive_is_running? name, hostname
+    debug "Call 'restart' for Pacemaker service '#{name}' on node '#{hostname}'"
+    if pacemaker_options[:restart_only_if_local] and not primitive_is_running? name, hostname
       Puppet.info "Pacemaker service '#{name}' is not running on node '#{hostname}'. Skipping restart!"
       return
     end
@@ -145,25 +157,77 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     end
   end
 
+  # wait for the service to start using
+  # the selected method.
+  # @param mode [:global, :master, :local]
+  def service_start_mode(mode = :global)
+    if mode == :master
+      debug "Choose master start for Pacemaker service '#{name}'"
+      wait_for_master name
+    elsif mode == :local
+      debug "Choose local start for Pacemaker service '#{name}' on node '#{hostname}'"
+      wait_for_start name, hostname
+    elsif :global
+      debug "Choose global start for Pacemaker service '#{name}'"
+      wait_for_start name
+    else
+      fail "Unknown service start mode '#{mode}'"
+    end
+  end
+
+  # wait for the service to stop using
+  # the selected method.
+  # @param mode [:global, :master, :local]
+  def service_stop_mode(mode = :global)
+    if mode == :local
+      debug "Choose local stop for Pacemaker service '#{name}' on node '#{hostname}'"
+      ban_primitive name, hostname
+      wait_for_stop name, hostname
+    elsif mode == :global
+      debug "Choose global stop for Pacemaker service '#{name}'"
+      stop_primitive name
+      wait_for_stop name
+    else
+      fail "Unknown service stop mode '#{mode}'"
+    end
+  end
+
+  # determine the status of the service using
+  # the selected method.
+  # @param mode [:global, :master, :local]
+  # @return [:running,:stopped]
+  def service_status_mode(mode = :local)
+    if mode == :local
+      debug "Choose local status for Pacemaker service '#{name}' on node '#{hostname}'"
+      get_primitive_puppet_status name, hostname
+    elsif mode == :global
+      debug "Choose global status for Pacemaker service '#{name}'"
+      get_primitive_puppet_status name
+    else
+      fail "Unknown service status mode '#{mode}'"
+    end
+  end
+
   # called by Puppet to enable the service
   def enable
-    Puppet.debug "Call 'enable' for Pacemaker service '#{name}' on node '#{hostname}'"
+    debug "Call 'enable' for Pacemaker service '#{name}' on node '#{hostname}'"
     manage_primitive name
   end
 
   # called by Puppet to disable  the service
   def disable
-    Puppet.debug "Call 'disable' for Pacemaker service '#{name}' on node '#{hostname}'"
+    debug "Call 'disable' for Pacemaker service '#{name}' on node '#{hostname}'"
     unmanage_primitive name
   end
+
   alias :manual_start :disable
 
   # called by Puppet to determine if the service is enabled
   # @return [:true,:false]
   def enabled?
-    Puppet.debug "Call 'enabled?' for Pacemaker service '#{name}' on node '#{hostname}'"
+    debug "Call 'enabled?' for Pacemaker service '#{name}' on node '#{hostname}'"
     out = get_primitive_puppet_enable name
-    Puppet.debug "Return: '#{out}' (#{out.class})"
+    debug "Return: '#{out}' (#{out.class})"
     out
   end
 
@@ -186,6 +250,12 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
 
   # disable and stop the basic service
   def disable_basic_service
+    # skip native-based primitive classes
+    if pacemaker_options[:native_based_primitive_classes].include?(primitive_class name)
+      Puppet.info "Not stopping basic service '#{basic_service_name}', since its Pacemaker primitive is using primitive_class '#{primitive_class name}'"
+      return
+    end
+
     return unless extra_provider
     begin
       if extra_provider.enableable? and extra_provider.enabled? == :true
