@@ -1,0 +1,75 @@
+---
+# how many times a command should retry if it's failing
+:retry_count: 360
+
+# how long to wait between retries (seconds)
+:retry_step: 5
+
+# how long to wait for a single commnand to finish running (seconds)
+:retry_timeout: 60
+
+# count false or nil block return values as failures or only exceptions?
+:retry_false_is_failure: true
+
+# raise error if no more retries left and command is still failing?
+:retry_fail_on_timeout: true
+
+# what cluster properties should be shown on the debug status output
+:debug_show_properties:
+- symmetric-cluster
+- no-quorum-policy
+
+# how do we determine that the service have been started?
+# :global - The service is running on any node
+# :master - The service is running in the master mode on any node
+# :local  - The service is running on the local node
+:start_mode_multistate: :master
+:start_mode_clone: :global
+:start_mode_simple: :global
+
+# what method should be used to stop the service?
+# :global - Stop the running service by disabling it
+# :local  - Stop the locally running service by banning it on this node
+# Note: by default restart does not stop services
+# if they are not running locally on the node
+:stop_mode_multistate: :local
+:stop_mode_clone: :local
+:stop_mode_simple: :global
+
+# what service is considered running?
+# :global - The service is running on any node
+# :local  - The service is running on the local node
+:status_mode_multistate: :local
+:status_mode_clone: :local
+:status_mode_simple: :local
+
+# try to stop and disable the basic init/upstart service
+# because it will mess with OCF-based Pacemaker primitive
+:disable_basic_service: true
+
+# don't try to stop basic service for these primitive classes
+# because they are based on the native service manager
+:native_based_primitive_classes:
+- lsb
+- systemd
+- upstart
+
+# add location constraint to allow the service to run on the current node
+# useful for asymmetric cluster mode
+:add_location_constraint: true
+
+# restart the service only if it's running on this node
+# and skip restart if it's running elsewhere
+:restart_only_if_local: true
+
+# cleanup the primitive before the status action.
+:cleanup_on_status: false
+
+# cleanup the primitive before the start action
+:cleanup_on_start: true
+
+# cleanup the primitive before the stop action
+:cleanup_on_stop: true
+
+# cleanup primitive only if it has failures
+:cleanup_only_if_failures: true
