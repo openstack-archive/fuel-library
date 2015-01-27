@@ -1,6 +1,165 @@
 
 class Puppet::Provider::L2_base < Puppet::Provider
 
+  def self.prefetch(resources)
+    interfaces = instances
+    resources.keys.each do |name|
+      if provider = interfaces.find{ |ii| ii.name == name }
+        resources[name].provider = provider
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+
+  def self.get_lnx_vlan_interfaces
+    # returns hash, that contains ports (interfaces) configuration.
+    # i.e {
+    #       eth0.101 => { :vlan_dev => 'eth0',  :vlan_id => 101, vlan_mode => 'eth' },
+    #       vlan102  => { :vlan_dev => 'eth0',  :vlan_id => 102, vlan_mode => 'vlan' },
+    #     }
+    #
+    vlan_ifaces = {}
+    rc_c = /([\w+\.\-]+)\s*\|\s*(\d+)\s*\|\s*([\w+\-]+)/
+    File.open("/proc/net/vlan/config", "r").each do |line|
+      if (rv=line.match(rc_c))
+        vlan_ifaces[rv[1]] = {
+          :vlan_dev  => rv[3],
+          :vlan_id   => rv[2],
+          :vlan_mode => (rv[1].match('\.').nil?  ?  'vlan'  :  'eth'  )
+        }
+      end
+    end
+    return vlan_ifaces
+  end
+
+  def self.get_lnx_ports
+    # returns hash, that contains ports (interfaces) configuration.
+    # i.e {
+    #       eth0 => { :mtu => 1500,  :if_type => :ethernet, port_type => lnx:eth:unremovable },
+    #     }
+    #
+    # 'unremovable' flag for port_type means, that this port is a more complicated thing,
+    # than just a port and can't be removed just as port. For example you can't remove bond
+    #  as port. You should remove it as bond.
+    #
+    port = {}
+    #
+    # parse 802.1q vlan interfaces from /proc
+    vlan_ifaces = self.get_lnx_vlan_interfaces()
+    # Fetch information about interfaces, visible in network namespace from /sys/class/net
+    interfaces = Dir['/sys/class/net/*'].select{ |f| File.symlink? f}
+    interfaces.each do |if_dir|
+      if_name = if_dir.split('/')[-1]
+      port[if_name] = {
+        :name      => if_name,
+        :port_type => [],
+        :onboot    => self.get_iface_state(if_name),
+        :mtu       => File.open("#{if_dir}/mtu").read.chomp,
+        :provider  => (if_name == 'ovs-system')  ?  'ovs'  :  'lnx' ,
+      }
+      # determine port_type for this iface
+      if File.directory? "#{if_dir}/bonding"
+        # This interface is a baster of bond, get bonding properties
+        port[if_name][:slaves] = File.open("#{if_dir}/bonding/slaves").read.chomp.strip.split(/\s+/).sort
+        port[if_name][:port_type] << 'bond' << 'unremovable'
+      elsif File.directory? "#{if_dir}/bridge" and File.directory? "#{if_dir}/brif"
+        # this interface is a bridge, get bridge properties
+        port[if_name][:slaves] = Dir["#{if_dir}/brif/*"].map{|f| f.split('/')[-1]}.sort
+        port[if_name][:port_type] << 'bridge' << 'unremovable'
+      else
+        #pass
+      end
+      # Check, whether this interface is a slave of anything
+      if File.symlink?("#{if_dir}/master")
+        port[if_name][:has_master] = File.readlink("#{if_dir}/master").split('/')[-1]
+      end
+      # Check, whether this interface is a subinterface
+      if vlan_ifaces.has_key? if_name
+        # this interface is a 802.1q subinterface
+        port[if_name].merge! vlan_ifaces[if_name]
+        port[if_name][:port_type] << 'vlan'
+      end
+    end
+    # Check, whether port is a slave of anything another
+    port.keys.each do |p_name|
+      if port[p_name].has_key? :has_master
+        master = port[p_name][:has_master]
+        #debug("m='#{master}', name='#{p_name}', props=#{port[p_name]}")
+        master_flags = port[master][:port_type]
+        if master_flags.include? 'bond'
+          # this port is a bond_member
+          port[p_name][:bond_master] = master
+          port[p_name][:port_type] << 'bond-slave'
+        elsif master_flags.include? 'bridge'
+          # this port is a member of bridge
+          port[p_name][:bridge] = master
+          port[p_name][:port_type] << 'bridge-slave'
+        elsif master == 'ovs-system'
+          port[p_name][:port_type] << 'ovs-affected'
+        else
+          #pass
+        end
+        port[p_name].delete(:has_master)
+      end
+    end
+    return port
+  end
+
+  # ---------------------------------------------------------------------------
+  def self.ovs_parse_opthash(hh)
+    #if !(hh=~/^['"]/ and hh=~/['"]$/)
+    rv = {}
+    if hh =~ /^\{(.*)\}$/
+      $1.split(/\s*\,\s*/).each do |pair|
+        k,v = pair.split('=')
+        rv[k.tr("'\"",'').to_sym] = v.nil?  ?  nil  :  v.tr("'\"",'')
+      end
+    end
+    return rv
+  end
+
+  def self.get_ovs_interfaces
+    # return OVS interfaces hash if it possible
+    begin
+      vsctl_list_interfaces = vsctl('list', 'Interface')
+    rescue
+      debug("Can't find OVS interfaces, because error while 'ovs-vsctl list Interface' execution")
+      return {}
+    end
+    #
+    buff = {}
+    rv = {}
+    # parse ovs-vsctl output and find OVS and OVS-affected interfaces
+    vsctl_list_interfaces.split("\n").each do |line|
+      if line =~ /(\w+)\s*\:\s*(.*)\s*$/
+        key = $1.tr("'\"",'')
+        val = $2.tr("'\"",'')
+        buff[key] = val == '[]'  ?  ''  :  val
+      elsif line =~ /^\s*$/
+        rv[buff['name']] = {
+          :mtu        => buff['mtu'],
+          :port_type  => buff['type'].empty?  ?  []  :  [buff['type']],
+          :vendor_specific => {
+            :status     => ovs_parse_opthash(buff['status']),
+          }
+        }
+        driver = rv[buff['name']][:vendor_specific][:status][:driver_name]
+        if driver.nil? or driver.empty? or driver == 'openvswitch'
+            rv[buff['name']][:provider] = 'ovs'
+        else
+            rv[buff['name']][:provider] = nil
+        end
+        debug("Found OVS interface '#{buff['name']}' with properties: #{rv[buff['name']]}")
+        buff = {}
+      else
+        debug("Output of 'ovs-vsctl list Interface' contain misformated line: '#{line}'")
+      end
+    end
+    return rv
+  end
+  # ---------------------------------------------------------------------------
+
   def self.get_bridge_list
     # search all (LXN and OVS) bridges on the host, and return hash with mapping
     # bridge_name => { bridge options }

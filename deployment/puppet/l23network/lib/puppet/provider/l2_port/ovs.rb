@@ -1,11 +1,45 @@
-Puppet::Type.type(:l2_port).provide(:ovs) do
+require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_base')
+
+Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
 #  confine    :osfamily => :linux
   commands   :vsctl   => 'ovs-vsctl',
              :iproute => 'ip'
 
+  def self.instances
+    rv = []
+    #bridges ||= get_bridge_list()
+    #todo: what do with OVS ports, inserted in LNX bridge? i.e. port located in two bridges.
+    #ports = get_ovs_ports()
+    ports = get_ovs_interfaces()
+    ports.each_pair do |if_name, if_props|
+      props = {
+        :ensure          => :present,
+        :name            => if_name,
+        :vendor_specific => {}
+      }
+      debug("prefetching interface '#{if_name}'")
+      props.merge! if_props
+      ##add PROVIDER prefix to port type flags and convert port_type to string
+      if_provider = props[:provider]
+      props[:port_type] = props[:port_type].insert(0, if_provider).join(':')
+      # if !bridges[if_name].nil?
+      #   case bridges[if_name][:br_type]
+      #   when :ovs
+      #     props[:port_type] = 'ovs:br:unremovable'
+      #   when :lnx
+      #     props[:port_type] = 'lnx:br:unremovable'
+      #   else
+      #     # pass
+      #   end
+      # end
+      debug("PREFETCHED properties for '#{if_name}': #{props}")
+      rv << new(props) if if_provider == 'ovs'
+    end
+    return rv
+  end
 
   def exists?
-    vsctl("list-ports", @resource[:bridge]).split(/\n+/).include? @resource[:interface]
+    @property_hash[:ensure] == :present
   end
 
   def create
@@ -88,6 +122,7 @@ Puppet::Type.type(:l2_port).provide(:ovs) do
   end
 
   #-----------------------------------------------------------------
+  #-----------------------------------------------------------------
   def bridge
     @property_hash[:bridge] || :absent
   end
@@ -123,11 +158,18 @@ Puppet::Type.type(:l2_port).provide(:ovs) do
     @property_flush[:vlan_mode] = val
   end
 
+  def bond_master
+    @property_hash[:bond_master] || :absent
+  end
+  def bond_master=(val)
+    @property_flush[:bond_master] = val
+  end
+
   def mtu
     @property_hash[:mtu] || :absent
   end
   def mtu=(val)
-    @property_flush[:mtu] = val
+    @property_flush[:mtu] = val if val
   end
 
   def onboot
@@ -135,6 +177,13 @@ Puppet::Type.type(:l2_port).provide(:ovs) do
   end
   def onboot=(val)
     @property_flush[:onboot] = val
+  end
+
+  def vendor_specific
+    @property_hash[:vendor_specific] || {}
+  end
+  def vendor_specific=(val)
+    @property_flush[:vendor_specific] = val
   end
 
   #-----------------------------------------------------------------

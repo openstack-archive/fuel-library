@@ -24,7 +24,8 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
         :name            => bridge,
         :br_type         => props[:br_type],
         :external_ids    => :absent,
-        :vendor_specific => {}
+        :vendor_specific => {},
+        :provider        => 'lnx'
       }) if props[:br_type] == :lnx
     end
     rv
