@@ -1,14 +1,41 @@
-Puppet::Type.type(:l2_port).provide(:ovs) do
+require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_base')
+
+Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
 #  confine    :osfamily => :linux
   commands   :vsctl   => 'ovs-vsctl',
              :iproute => 'ip'
 
+  def self.instances
+    rv = []
+    vsctl_show = ovs_vsctl_show()
+    vsctl_show[:port].each_pair do |p_name, p_props|
+      props = {
+        :ensure          => :present,
+        :name            => p_name,
+        :vendor_specific => {}
+      }
+      debug("prefetching ovs_port '#{p_name}'")
+      props.merge! p_props
+      ##add PROVIDER prefix to port type flags and create puppet resource
+      if props[:provider] == 'ovs'
+        props[:port_type] = props[:port_type].insert(0, 'ovs').join(':')
+        rv << new(props)
+        debug("PREFETCH properties for '#{p_name}': #{props}")
+      else
+        debug("SKIP properties for '#{p_name}': #{props}")
+      end
+    end
+    return rv
+  end
 
   def exists?
-    vsctl("list-ports", @resource[:bridge]).split(/\n+/).include? @resource[:interface]
+    @property_hash[:ensure] == :present
   end
 
   def create
+    # debug("CREATE resource: #{@resource}")
+    # @old_property_hash = {}
+    # @property_flush = {}.merge! @resource
     begin
       vsctl('port-to-br', @resource[:interface])
       if @resource[:skip_existing]
@@ -57,16 +84,6 @@ Puppet::Type.type(:l2_port).provide(:ovs) do
         end
       end
     end
-    # enable vlan_splinters if need
-    if @resource[:vlan_splinters].to_s() == 'true'  # puppet send non-boolean value instead true/false
-      Puppet.debug("Interface '#{@resource[:interface]}' vlan_splinters is '#{@resource[:vlan_splinters]}' [#{@resource[:vlan_splinters].class}]")
-      begin
-        vsctl('--', "set", "Port", @resource[:interface], "vlan_mode=trunk")
-        vsctl('--', "set", "Interface", @resource[:interface], "other-config:enable-vlan-splinters=true")
-      rescue Puppet::ExecutionFailure => error
-        raise Puppet::ExecutionFailure, "Interface '#{@resource[:interface]}' can't setup vlan_splinters:\n#{error}"
-      end
-    end
   end
 
   def destroy
@@ -87,6 +104,7 @@ Puppet::Type.type(:l2_port).provide(:ovs) do
     end
   end
 
+  #-----------------------------------------------------------------
   #-----------------------------------------------------------------
   def bridge
     @property_hash[:bridge] || :absent
@@ -123,11 +141,18 @@ Puppet::Type.type(:l2_port).provide(:ovs) do
     @property_flush[:vlan_mode] = val
   end
 
+  def bond_master
+    @property_hash[:bond_master] || :absent
+  end
+  def bond_master=(val)
+    @property_flush[:bond_master] = val
+  end
+
   def mtu
     @property_hash[:mtu] || :absent
   end
   def mtu=(val)
-    @property_flush[:mtu] = val
+    @property_flush[:mtu] = val if val
   end
 
   def onboot
@@ -135,6 +160,13 @@ Puppet::Type.type(:l2_port).provide(:ovs) do
   end
   def onboot=(val)
     @property_flush[:onboot] = val
+  end
+
+  def vendor_specific
+    @property_hash[:vendor_specific] || {}
+  end
+  def vendor_specific=(val)
+    @property_flush[:vendor_specific] = val
   end
 
   #-----------------------------------------------------------------
