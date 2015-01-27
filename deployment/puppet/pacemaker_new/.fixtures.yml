@@ -1,0 +1,4 @@
+fixtures:
+  symlinks:
+    pacemaker: "#{source_dir}"
+
