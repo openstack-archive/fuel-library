@@ -48,6 +48,7 @@ class mysql::config(
   $custom_setup_class = undef,
   $server_id          = $mysql::params::server_id,
   $debug              = $mysql::params::debug,
+  $wait_timeout       = $mysql::params::wait_timeout,
 ) inherits mysql::params {
 
   $mysql_buffer_pool_size  = $::mysql::params::mysql_buffer_pool_size
