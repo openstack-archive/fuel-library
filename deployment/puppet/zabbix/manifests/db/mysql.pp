@@ -10,6 +10,7 @@ class zabbix::db::mysql(
     },
     package_name => $mysql_server_pkg,
     enabled    => true,
+    wait_timeout => '86400',
   }
   anchor { 'mysql_server_start': } -> Class['mysql::server'] -> anchor { 'mysql_server_end': }
 
