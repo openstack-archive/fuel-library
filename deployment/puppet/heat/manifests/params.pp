@@ -14,6 +14,7 @@ class heat::params {
       $engine_package_name = 'openstack-heat-engine'
       $client_package_name = 'python-heatclient'
       $common_package_name = 'openstack-heat-common'
+      $docker_resource_package_name = 'openstack-heat-docker'
       # service names
       $api_service_name = 'openstack-heat-api'
       $api_cloudwatch_service_name = 'openstack-heat-api-cloudwatch'
@@ -28,6 +29,7 @@ class heat::params {
       $engine_package_name = 'heat-engine'
       $client_package_name = 'python-heatclient'
       $common_package_name = 'heat-common'
+      $docker_resource_package_name = 'heat-docker'
       # service names
       $api_service_name = 'heat-api'
       $api_cloudwatch_service_name = 'heat-api-cloudwatch'

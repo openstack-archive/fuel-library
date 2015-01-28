@@ -171,6 +171,9 @@ class heat(
     mode    => '0640',
   }
 
+  class { 'heat::docker_resource' :
+  }
+  
   package { 'heat-common':
     ensure => $package_ensure,
     name   => $::heat::params::common_package_name,
