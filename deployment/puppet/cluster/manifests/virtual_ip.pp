@@ -56,17 +56,29 @@ define cluster::virtual_ip (
         undef => 'false', '' => 'false',
         default => $vip[other_networks]
       },
-      'iptables_start_rules' => $vip[iptables_start_rules] ? {
+      'bridge'              => $vip[bridge] ? {
         undef   => '',
+        default => $vip[bridge]
+      },
+      'iptables_start_rules' => $vip[iptables_start_rules] ? {
+        undef   => 'undef',
         default => "'${vip[iptables_start_rules]}'"
       },
       'iptables_stop_rules'  => $vip[iptables_stop_rules] ? {
-        undef   => '',
+        undef   => 'undef',
         default => "'${vip[iptables_stop_rules]}'"
       },
       'iptables_comment'     => $vip[iptables_comment] ? {
         undef   => 'default-comment',
         default => "'${vip[iptables_comment]}'"
+      },
+      'ns_iptables_start_rules' => $vip[ns_iptables_start_rules] ? {
+        undef   => 'undef',
+        default => "'${vip[ns_iptables_start_rules]}'"
+      },
+      'ns_iptables_stop_rules'  => $vip[ns_iptables_stop_rules] ? {
+        undef   => 'indef',
+        default => "'${vip[ns_iptables_stop_rules]}'"
       },
     },
     metadata => {
