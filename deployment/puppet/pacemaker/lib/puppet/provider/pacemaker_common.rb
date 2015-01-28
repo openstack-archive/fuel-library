@@ -341,12 +341,20 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
 
   # cleanup this primitive
   # @param primitive [String]
+  # use local crm_resource command if node was specified
+  # otherwise use pcs command
   def cleanup_primitive(primitive, node = '')
     opts = ['--cleanup', "--resource=#{primitive}"]
-    opts << "--node=#{node}" if ! node.empty?
-    retry_command {
-      crm_resource opts
-    }
+    if ! node.empty?
+      opts << "--node=#{node}"
+      retry_command {
+        crm_resource opts
+      }
+    else
+      retry_command {
+        pcs 'resource', 'cleanup',  primitive
+      }
+    end
   end
 
   # manage this primitive

@@ -91,8 +91,9 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     disable_basic_service
     constraint_location_add full_name, hostname
     unban_primitive name, hostname
-    start_primitive name
-    cleanup_with_wait(name, hostname) if primitive_has_failures?(name, hostname)
+    start_primitive full_name
+    cleanup_with_wait full_name
+    cleanup_with_wait(full_name, hostname) if primitive_has_failures?(name, hostname)
 
     if primitive_is_multistate? name
       Puppet.debug "Choose master start for Pacemaker service '#{name}'"
@@ -107,7 +108,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   def stop
     Puppet.debug "Call 'stop' for Pacemaker service '#{name}' on node '#{hostname}'"
     enable unless primitive_is_managed? name
-    cleanup_with_wait(name, hostname) if primitive_has_failures?(name, hostname)
+    cleanup_with_wait(full_name, hostname) if primitive_has_failures?(name, hostname)
 
     if primitive_is_complex? name
       Puppet.debug "Choose local stop for Pacemaker service '#{name}' on node '#{hostname}'"
