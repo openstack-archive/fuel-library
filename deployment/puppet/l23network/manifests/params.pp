@@ -8,10 +8,6 @@ class l23network::params {
       $lnx_vlan_tools     = 'vlan'
       $lnx_bond_tools     = 'ifenslave'
       $lnx_ethernet_tools = 'ethtool'
-      $ovs_datapath_package_name = $need_datapath_module ? {
-        true    => 'openvswitch-datapath-lts-saucy-dkms',
-        default => false
-      }
       $ovs_common_package_name = 'openvswitch-switch'
     }
     /(?i)redhat/: {
