@@ -116,13 +116,20 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
       @class.start
     end
 
-    it 'tries to start the service by its name' do
-      @class.expects(:start_primitive).with(name)
+    it 'tries to start the service by its full name' do
+      @class.expects(:start_primitive).with(full_name)
       @class.start
     end
 
-    it 'adds a location constraint for the service by its name' do
-      @class.expects(:constraint_location_add).with(name, hostname)
+    it 'cleans up the clone primitive by its full name' do
+      @class.stubs(:primitive_is_complex?).returns(true)
+      @class.expects(:start_primitive).with(full_name)
+      @class.expects(:cleanup_with_wait).once
+      @class.start
+    end
+
+    it 'adds a location constraint for the service by its full_name' do
+      @class.expects(:constraint_location_add).with(full_name, hostname)
       @class.start
     end
 
@@ -130,7 +137,7 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
       @class.stubs(:primitive_is_clone?).returns(true)
       @class.stubs(:primitive_is_multistate?).returns(false)
       @class.stubs(:primitive_is_complex?).returns(true)
-      @class.expects(:wait_for_start).with name
+      @class.expects(:wait_for_start).with full_name
       @class.start
     end
 
@@ -138,7 +145,7 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
       @class.stubs(:primitive_is_clone?).returns(false)
       @class.stubs(:primitive_is_multistate?).returns(true)
       @class.stubs(:primitive_is_complex?).returns(true)
-      @class.expects(:wait_for_master).with name
+      @class.expects(:wait_for_master).with full_name
       @class.start
     end
 
@@ -146,28 +153,25 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
       @class.stubs(:primitive_is_clone?).returns(false)
       @class.stubs(:primitive_is_multistate?).returns(false)
       @class.stubs(:primitive_is_complex?).returns(false)
-      @class.expects(:wait_for_start).with name
+      @class.expects(:wait_for_start).with full_name
       @class.start
     end
   end
 
   context '#stop' do
-    it 'tries to enable service if it is not enabled to work with it' do
+    it 'tries to disable service if it is not enabled to work with it' do
       @class.stubs(:primitive_is_managed?).returns(false)
       @class.expects(:enable).once
-      @class.start
+      @class.stop
       @class.stubs(:primitive_is_managed?).returns(true)
       @class.expects(:enable).never
-      @class.start
+      @class.stop
     end
 
-    it 'should cleanup a primitive only if there are errors' do
+    it 'should cleanup a primitive on stop if there were errors' do
       @class.stubs(:primitive_has_failures?).returns(true)
       @class.expects(:cleanup_with_wait).once
-      @class.start
-      @class.stubs(:primitive_has_failures?).returns(false)
-      @class.expects(:cleanup_with_wait).never
-      @class.start
+      @class.stop
     end
 
     it 'uses Ban to stop the service and waits for it to stop locally if service is complex' do
