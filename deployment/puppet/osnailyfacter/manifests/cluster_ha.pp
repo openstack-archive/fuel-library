@@ -175,6 +175,20 @@ class osnailyfacter::cluster_ha {
       tie_with_ping        => false,
       ping_host_list       => "",
     },
+    management_vrouter => {
+      namespace            => 'vrouter',
+      nic                  => $::internal_int,
+      base_veth            => "${::internal_int}-vrouter",
+      ns                   => 'vrouter',
+      ns_veth              => "vr-mgmt",
+      ip                   => '10.108.12.104',  ### TO BE PASSED FORM ASTUTE
+      cidr_netmask         => '24',             ### TO BE PASSED FORM ASTUTE
+      gateway              => 'none',
+      gateway_metric       => '0',
+      bridge               => 'br-mgmt',        ### TO BE PASSED FORM ASTUTE
+      tie_with_ping        => false,
+      ping_host_list       => "",
+    },
   }
 
   if $::public_int {
@@ -201,6 +215,26 @@ class osnailyfacter::cluster_ha {
       tie_with_ping        => $run_ping_checker,
       ping_host_list       => $::use_neutron ? {
         default => $::fuel_settings['network_data'][$::public_int]['gateway'],
+        true    => $::fuel_settings['network_scheme']['endpoints']['br-ex']['gateway'],
+      },
+    }
+    $vips[public_vrouter] = {
+      namespace            => 'vrouter',
+      nic                  => $::public_int,
+      base_veth            => "${::public_int}-vrouter",
+      ns_veth              => "vr-ex",
+      ns                   => 'vrouter',
+      ip                   => '10.108.11.104',                       ### TO BE PASSED FORM ASTUTE
+      cidr_netmask         => '24',                                  ### TO BE PASSED FORM ASTUTE
+      gateway              => '10.108.11.1',                         ### TO BE PASSED FORM ASTUTE
+      gateway_metric       => '0',
+      bridge               => 'br-ex',                               ### TO BE PASSED FORM ASTUTE
+      ns_iptables_start_rules => "iptables -t nat -A POSTROUTING -o br-ex -j MASQUERADE",              ### TO BE PASSED FORM ASTUTE
+      ns_iptables_stop_rules  => "iptables -t nat -D POSTROUTING -o br-ex -j MASQUERADE",              ### TO BE PASSED FORM ASTUTE
+      tie_with_ping        => $run_ping_checker,
+      ping_host_list       => $::use_neutron ? {
+        #default => $::fuel_settings['network_data'][$::public_int]['gateway'],
+        default => $::fuel_settings['network_scheme']['endpoints']['br-ex']['gateway'],
         true    => $::fuel_settings['network_scheme']['endpoints']['br-ex']['gateway'],
       },
     }

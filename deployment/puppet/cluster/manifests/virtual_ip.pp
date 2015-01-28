@@ -25,7 +25,7 @@ define cluster::virtual_ip (
   cs_resource { $vip_name:
     ensure          => present,
     primitive_class => 'ocf',
-    provided_by     => 'fuel',
+    provided_by     => 'mirantis',
     primitive_type  => 'ns_IPaddr2',
     parameters      => {
       'nic'                  => $vip[nic],
@@ -53,20 +53,39 @@ define cluster::virtual_ip (
         default => $vip[gateway_metric]
       },
       'other_networks'       => $vip[other_networks] ? {
-        undef => 'false', '' => 'false',
+        undef   => 'false', 
+        ''      => 'false',
         default => $vip[other_networks]
       },
+      'bridge'              => $vip[bridge] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => $vip[bridge]
+      },
       'iptables_start_rules' => $vip[iptables_start_rules] ? {
-        undef   => '',
+        undef   => 'false',
+        ''      => 'false',
         default => "'${vip[iptables_start_rules]}'"
       },
       'iptables_stop_rules'  => $vip[iptables_stop_rules] ? {
-        undef   => '',
+        undef   => 'false',
+        ''      => 'false',
         default => "'${vip[iptables_stop_rules]}'"
       },
       'iptables_comment'     => $vip[iptables_comment] ? {
-        undef   => 'default-comment',
+        undef   => 'false',
+        ''      => 'false',
         default => "'${vip[iptables_comment]}'"
+      },
+      'ns_iptables_start_rules' => $vip[ns_iptables_start_rules] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => "'${vip[ns_iptables_start_rules]}'"
+      },
+      'ns_iptables_stop_rules'  => $vip[ns_iptables_stop_rules] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => "'${vip[ns_iptables_stop_rules]}'"
       },
     },
     metadata => {
@@ -119,7 +138,7 @@ define cluster::virtual_ip (
       enable   => true,
       provider => 'pacemaker',
     }
-    cs_rsc_location { "loc_ping_${vip_name}":
+    cs_location { "loc_ping_${vip_name}":
       primitive => $vip_name,
       cib       => "ping_${vip_name}",
       rules     => [
@@ -136,9 +155,17 @@ define cluster::virtual_ip (
     # Resource ordering
     Service[$vip_name] ->
     Cs_resource["ping_${vip_name}"] ->
-    Cs_rsc_location["loc_ping_${vip_name}"] ->
+    Cs_location["loc_ping_${vip_name}"] ->
     Service["ping_${vip_name}"]
   }
+}
+
+########################################
+### TO BE CHANGED ######################
+########################################
+
+cs_colocation { 'mgmt_with_public': 
+  primitives => [ 'vip__management_vrouter', 'vip__public_vrouter' ],
 }
 
 Class['corosync'] -> Cluster::Virtual_ip <||>
