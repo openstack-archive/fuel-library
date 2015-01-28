@@ -47,6 +47,7 @@ class mysql::config(
   $use_syslog        = false,
   $custom_setup_class = undef,
   $server_id         = $mysql::params::server_id,
+  $wait_timeout      = $mysql::params::wait_timeout,
 ) inherits mysql::params {
 
   $mysql_buffer_pool_size = $::mysql::params::mysql_buffer_pool_size
@@ -55,7 +56,6 @@ class mysql::config(
   $table_open_cache = $::mysql::params::table_open_cache
   $key_buffer_size = $::mysql::params::key_buffer_size
   $myisam_sort_buffer_size = $::mysql::params::myisam_sort_buffer_size
-  $wait_timeout = $::mysql::params::wait_timeout
   $open_files_limit= $::mysql::params::open_files_limit
 
   if $custom_setup_class != "pacemaker_mysql" {

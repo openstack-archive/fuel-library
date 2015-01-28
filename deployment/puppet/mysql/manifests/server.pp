@@ -38,6 +38,7 @@ class mysql::server (
   $etc_root_password       = true,
   $bind_address            = '0.0.0.0',
   $use_syslog              = true,
+  $wait_timeout            = $mysql::params::wait_timeout,
 ) inherits mysql::params {
 
   if ($config_hash['config_file']) {
@@ -58,6 +59,7 @@ class mysql::server (
     use_syslog         => $use_syslog,
     custom_setup_class => $custom_setup_class,
     config_file        => $config_file_real,
+    wait_timeout       => $wait_timeout,
   }
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
