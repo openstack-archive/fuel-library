@@ -72,8 +72,9 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # @param op [Hash<String => String>]
   # @return ['start','stop','master',nil]
   def operation_status(op)
-    # skip incomplete ops
-    return unless op['op-status'] == '0'
+    # skip pending ops
+    # we should wait for status for become known
+    return if op['op-status'] == '-1'
 
     if op['operation'] == 'monitor'
       # for monitor operation status is determined by its rc-code
@@ -210,15 +211,15 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     @nodes_structure = {}
     cib_section_nodes_state.each do |node_state|
       node = attributes_to_hash node_state
-      id = node['id']
-      next unless id
+      node_name = node['uname']
+      next unless node_name
       lrm = node_state.elements['lrm']
       next unless lrm
       lrm_resources = cib_section_lrm_resources lrm
       next unless lrm_resources
       resources = decode_lrm_resources lrm_resources
       node.store 'primitives', resources
-      @nodes_structure.store id, node
+      @nodes_structure.store node_name, node
     end
     @nodes_structure
   end
@@ -671,6 +672,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   def wait_for_start(primitive, node = nil)
     message = "Waiting #{RETRY_COUNT * RETRY_STEP} seconds for service '#{primitive}' to start"
     message += " on node '#{node}'" if node
+    Puppet.debug get_cluster_debug_report
     Puppet.debug message
     retry_block_until_true do
       cib_reset
@@ -689,6 +691,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   def wait_for_master(primitive, node = nil)
     message = "Waiting #{RETRY_COUNT * RETRY_STEP} seconds for service '#{primitive}' to start master"
     message += " on node '#{node}'" if node
+    Puppet.debug get_cluster_debug_report
     Puppet.debug message
     retry_block_until_true do
       cib_reset
@@ -707,6 +710,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   def wait_for_stop(primitive, node = nil)
     message = "Waiting #{RETRY_COUNT * RETRY_STEP} seconds for service '#{primitive}' to stop"
     message += " on node '#{node}'" if node
+    Puppet.debug get_cluster_debug_report
     Puppet.debug message
     retry_block_until_true do
       cib_reset
