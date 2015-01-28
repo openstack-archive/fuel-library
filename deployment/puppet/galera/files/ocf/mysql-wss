@@ -191,7 +191,7 @@ END
 nodes_in_cluster_online() {
     local NODES
 
-    NODES=$(crm_node --partition)
+    NODES=$(crm_node --partition | sed -e '/(null)/d')
     if [ ! -z "$NODES" ]; then
         echo $NODES
     else
@@ -202,7 +202,7 @@ nodes_in_cluster() {
     local NODES
 
     #Ubuntu doesn't like \w
-    NODES=$(crm_node --list | awk '/^[a-zA-Z0-9]/ {print $2}')
+    NODES=$(crm_node --list | awk '/^[a-zA-Z0-9]/ {print $2}' | sed -e '/(null)/d')
     if [ ! -z "$NODES" ]; then
         echo $NODES
     else
@@ -276,7 +276,7 @@ get_master_timeout() {
     local default=$OCF_RESKEY_master_timeout
     local rc
     local timeout=$(crm_attribute --quiet --name galera_master_timeout \
-        --query -d $default -q)
+        --query -d $default -q | sed -e '/(null)/d')
     rc=$?
 
     if [ $rc -eq 0 ]; then
@@ -292,7 +292,7 @@ get_node_gtid() {
     local GTID
 
     GTID=$(crm_attribute --quiet --node $1 --lifetime reboot --query \
-        --name gtid 2> /dev/null)
+        --name gtid 2> /dev/null | sed -e '/(null)/d')
     rc=$?
 
     if [ $rc -ne 0 -o -z "$GTID" ]; then
@@ -310,7 +310,7 @@ get_node_gtid() {
 }
 
 check_if_reelection_needed() {
-    local PARTITION_WITH_QUORUM=$(crm_node -q)
+    local PARTITION_WITH_QUORUM=$(crm_node -q | sed -e '/(null)/d')
     local RESOURCE_NAME=$(echo $OCF_RESOURCE_INSTANCE | cut -f1 -d":")
     local NODE_COUNT=$(nodes_in_cluster | wc -w)
     local RUNNING_INSTANCES
@@ -318,7 +318,7 @@ check_if_reelection_needed() {
 
     if [ $PARTITION_WITH_QUORUM -eq 1 -o $NODE_COUNT -eq 1 ]; then
         RUNNING_INSTANCES=$(crm_resource \
-            --quiet --locate --resource $RESOURCE_NAME | wc -l 2> /dev/null)
+            --quiet --locate --resource $RESOURCE_NAME | sed -e '/(null)/d' | wc -l 2> /dev/null)
         rc=$?
         if [ $rc -eq $OCF_SUCCESS -a $RUNNING_INSTANCES -lt 1 ]; then
             return 1
