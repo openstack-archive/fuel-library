@@ -116,13 +116,13 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
       @class.start
     end
 
-    it 'tries to start the service by its name' do
-      @class.expects(:start_primitive).with(name)
+    it 'tries to start the service by its full name' do
+      @class.expects(:start_primitive).with(full_name)
       @class.start
     end
 
-    it 'adds a location constraint for the service by its name' do
-      @class.expects(:constraint_location_add).with(name, hostname)
+    it 'adds a location constraint for the service by its full_name' do
+      @class.expects(:constraint_location_add).with(full_name, hostname)
       @class.start
     end
 
