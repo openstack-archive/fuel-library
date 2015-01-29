@@ -6,18 +6,27 @@ ENV['LANG'] = 'C'
 hiera = Hiera.new(:config => '/etc/puppet/hiera.yaml')
 test_vm_image = hiera.lookup 'test_vm_image', {}, {}
 
-raise 'Not test_vm_image data!' unless test_vm_image.is_a? Hash and test_vm_image.any?
+raise 'Not test_vm_image data!' unless ( test_vm_image.is_a? Hash or test_vm_image.is_a? Array ) and test_vm_image.any?
 
-%w(
-disk_format
-img_path
-img_name
-os_name
-public
-container_format
-min_ram
-).each do |f|
-  raise "Data field '#{f}' is missing!" unless test_vm_image[f]
+# Check for old or new yaml 'test_vm_image' data format for
+# backward compatibility.
+test_vm_images = Array.new
+if test_vm_image.is_a? Hash
+  test_vm_images << test_vm_image
+end
+
+test_vm_images.each do |image|
+  %w(
+  disk_format
+  img_path
+  img_name
+  os_name
+  public
+  container_format
+  min_ram
+  ).each do |f|
+    raise "Data field '#{f}' is missing!" unless image[f]
+  end
 end
 
 def image_list
@@ -51,23 +60,34 @@ EOF
 end
 
 # check if Glance is online
+# waited until the glance is started because when vCenter used as a glance
+# backend launch may takes up to 1 minute.
+5.times.each do |retries|
+  sleep 10 if retries > 0
+  break if image_list.last == 0
+end
 raise 'Could not get a list of glance images!' unless image_list.last == 0
+
+images_for_upload = test_vm_images.clone
 
 # check if image is already uploaded
 images, return_code = image_list
-if images.include? test_vm_image['img_name'] and return_code == 0
-  puts "Image '#{test_vm_image['img_name']}' is already present!"
-  exit return_code
+test_vm_images.each do |image|
+  if images.include? image['img_name'] and return_code == 0
+    puts "Image '#{image['img_name']}' is already present!"
+    images_for_upload.delete(image)
+  end
 end
 
-# create an image
-stdout, return_code = image_create test_vm_image
+images_for_upload do |image|
+  # create an image
+  stdout, return_code = image_create image
 
-if return_code == 0
-  puts "Image '#{test_vm_image['img_name']}' was uploaded from '#{test_vm_image['img_path']}'"
-else
-  puts "Image '#{test_vm_image['img_name']}' uploaded from '#{test_vm_image['img_path']}' have FAILED!"
+  if return_code == 0
+    puts "Image '#{image['img_name']}' was uploaded from '#{image['img_path']}'"
+  else
+    puts "Image '#{image['img_name']}' uploaded from '#{image['img_path']}' have FAILED!"
+    exit return_code
+  end
+  puts stdout
 end
-
-puts stdout
-exit return_code
