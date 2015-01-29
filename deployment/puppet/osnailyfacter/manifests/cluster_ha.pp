@@ -1021,6 +1021,10 @@ class osnailyfacter::cluster_ha {
         vmware_host_password => $vcenter_hash['vc_password']
       }
 
+      cinder_config { 'DEFAULT/nova_catalog_info':
+        value => 'compute:nova:internalURL'
+      }
+
       # FIXME(bogdando) replace service_path and action to systemd, once supported
       if $use_monit_real {
         monit::process { $cinder_volume_name :
