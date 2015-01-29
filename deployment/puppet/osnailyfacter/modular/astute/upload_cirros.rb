@@ -3,21 +3,25 @@ require 'hiera'
 
 ENV['LANG'] = 'C'
 
-hiera = Hiera.new(:config => '/etc/puppet/hiera.yaml')
-test_vm_image = hiera.lookup 'test_vm_image', {}, {}
+hiera = Hiera.new(:config => '/etc/hiera.yaml')
+test_vm_images = hiera.lookup 'test_vm_image', {}, {}
 
-raise 'Not test_vm_image data!' unless test_vm_image.is_a? Hash and test_vm_image.any?
+raise 'Not test_vm_image data!' unless [Array, Hash].include?(test_vm_images.class) && test_vm_images.any?
 
-%w(
-disk_format
-img_path
-img_name
-os_name
-public
-container_format
-min_ram
-).each do |f|
-  raise "Data field '#{f}' is missing!" unless test_vm_image[f]
+test_vm_images = Array(test_vm_images)
+
+test_vm_images.each do |image|
+  %w(
+  disk_format
+  img_path
+  img_name
+  os_name
+  public
+  container_format
+  min_ram
+  ).each do |f|
+    raise "Data field '#{f}' is missing!" unless image[f]
+  end
 end
 
 def image_list
@@ -30,7 +34,7 @@ def image_list
     next unless fields[2]
     images << fields[2]
   end
-  [ images, return_code ]
+  {:images => images, :exit_code => return_code}
 end
 
 def image_create(image_hash)
@@ -51,23 +55,39 @@ EOF
 end
 
 # check if Glance is online
-raise 'Could not get a list of glance images!' unless image_list.last == 0
-
-# check if image is already uploaded
-images, return_code = image_list
-if images.include? test_vm_image['img_name'] and return_code == 0
-  puts "Image '#{test_vm_image['img_name']}' is already present!"
-  exit return_code
+# waited until the glance is started because when vCenter used as a glance
+# backend launch may takes up to 1 minute.
+def wait_for_glance
+  5.times.each do |retries|
+    sleep 10 if retries > 0
+    return if image_list[:exit_code] == 0
+  end
+  raise 'Could not get a list of glance images!'
 end
 
-# create an image
-stdout, return_code = image_create test_vm_image
+# upload image to Glance
+# if it have not been already uploaded
+def upload_image(image)
+  images, return_code = image_list
+  if image_list[:images].include? image['img_name'] && image_list[:exit_code] == 0
+    puts "Image '#{image['img_name']}' is already present!"
+    return 0
+  end
 
-if return_code == 0
-  puts "Image '#{test_vm_image['img_name']}' was uploaded from '#{test_vm_image['img_path']}'"
-else
-  puts "Image '#{test_vm_image['img_name']}' uploaded from '#{test_vm_image['img_path']}' have FAILED!"
+  stdout, return_code = image_create image
+  if return_code == 0
+    puts "Image '#{image['img_name']}' was uploaded from '#{image['img_path']}'"
+  else
+    puts "Image '#{image['img_name']}' upload from '#{image['img_path']}' have FAILED!"
+  end
+  puts stdout
+  return return_code
 end
 
-puts stdout
-exit return_code
+########################
+
+wait_for_glance
+
+test_vm_images.each do |image|
+  upload_image image
+end
