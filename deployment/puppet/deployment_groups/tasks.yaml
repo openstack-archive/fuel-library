@@ -77,3 +77,13 @@
   parameters:
     strategy:
       type: parallel
+
+#PRE DEPLOYMENT
+- id: sync_time
+  type: shell
+  role: '*'
+  stage: pre_deployment
+  parameters:
+    cmd: ntpdate -u $(egrep '^server' /etc/ntp.conf | egrep -v '127\.127\.[0-9]+\.[0-9]+' | sed '/^#/d' | awk '{print $2}')
+    retry: true
+    timeout: 180
