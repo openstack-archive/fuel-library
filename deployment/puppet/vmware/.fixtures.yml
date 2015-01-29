@@ -1,7 +1,7 @@
 fixtures:
   symlinks:
     ceilometer: "#{source_dir}/../ceilometer"
-    corosync: "#{source_dir}/../corosync"
+    pacemaker: "#{source_dir}/../pacemaker"
     inifile: "#{source_dir}/../inifile"
     nova: "#{source_dir}/../nova"
     stdlib: "#{source_dir}/../stdlib"
