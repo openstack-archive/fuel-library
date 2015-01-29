@@ -6,28 +6,21 @@ module Puppet::Parser::Functions
     NSX controllers addresses
     EOS
   ) do |argv|
-    if argv.size != 1
-      raise(Puppet::ParseError, "get_connector_address(hash): Wrong number of arguments.")
+    raise Puppet::ParseError, 'You should privide: nodes, fqdn, nsx_controllers!' unless argv.size == 3
+    nodes = argv[0]
+    fqdn = argv[1]
+    nsx_controllers = argv[2]
+    node_data = nodes.find { |node| node['fqdn'] == fqdn }
+    raise Puppet::ParseError, 'Node not found in the nodes Hash!' unless node_data
+    storage_net = IPAddr.new "#{node_data['storage_address']}/#{node_data['storage_netmask']}"
+    internal_net = IPAddr.new "#{node_data['internal_address']}/#{node_data['internal_netmask']}"
+    nsx_controller = IPAddr.new nsx_controllers.split(',').first
+    if storage_net.include? nsx_controller
+      node_data['storage_address'].to_s
+    elsif internal_net.include? nsx_controller
+      node_data['internal_address'].to_s
+    else
+      node_data['public_address'].to_s
     end
-    node_data = {}
-    argv[0]['nodes'].each do |node|
-      if node['fqdn'] == argv[0]['fqdn']
-        node_data = node
-        break
-      end
-    end
-    if node_data == {}
-       raise(Puppet::ParseError, "Node not found in nodes Hash")
-    end
-    storage_net = IPAddr.new("#{node_data['storage_address']}/#{node_data['storage_netmask']}")
-    internal_net = IPAddr.new("#{node_data['internal_address']}/#{node_data['internal_netmask']}")
-    nsx_controller = IPAddr.new(argv[0]['nsx_plugin']['nsx_controllers'].split(',')[0])
-    if storage_net.include?(nsx_controller)
-      return node_data['storage_address']
-    end
-    if internal_net.include?(nsx_controller)
-      return node_data['internal_address']
-    end
-    return node_data['public_address'].to_s
   end
 end
