@@ -628,7 +628,12 @@ class osnailyfacter::cluster_ha {
           Exec<| title=='wait-for-haproxy-keystone-admin-backend' |> ->
           Nova_floating_range <| |>
         }
+
+        nova_config {
+          'DEFAULT/teardown_unused_network_gateway': value => 'True'
+        }
       }
+
       if ($::use_ceph){
         Class['openstack::controller'] -> Class['ceph']
       }
