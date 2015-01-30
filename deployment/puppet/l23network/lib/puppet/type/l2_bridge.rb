@@ -1,3 +1,6 @@
+#
+require 'puppet/property/boolean'
+
 Puppet::Type.newtype(:l2_bridge) do
     @doc = "Manage a Open vSwitch bridge (virtual switch)"
     desc @doc
@@ -24,6 +27,26 @@ Puppet::Type.newtype(:l2_bridge) do
 
     newproperty(:external_ids) do
       desc "External IDs for the bridge"
+      validate do |val|
+        if ! val.is_a? Hash
+          fail("External_ids should be a hash!")
+        end
+      end
+      def should_to_s(value)
+        rv = []
+        value.keys.sort.each do |key|
+          rv << "(#{key.to_s}=#{value[key]})"
+        end
+        rv.join(', ')
+      end
+
+      def is_to_s(value)
+        should_to_s(value)
+      end
+
+      def insync?(value)
+        should_to_s(value) == should_to_s(should)
+      end
     end
 
     newproperty(:br_type) do
@@ -31,6 +54,11 @@ Puppet::Type.newtype(:l2_bridge) do
       validate do |value|
         raise ArgumentError, "You shouldn't change br_type -- it's a internal RO property!"
       end
+    end
+
+    newproperty(:stp, :parent => Puppet::Property::Boolean) do
+      desc "Whether stp enable"
+      defaultto :true
     end
 
     newproperty(:vendor_specific) do

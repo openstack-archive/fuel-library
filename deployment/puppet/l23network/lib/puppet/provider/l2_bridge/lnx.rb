@@ -87,7 +87,7 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
     :absent
   end
   def external_ids=(value)
-    nil
+    {}
   end
 
   def vendor_specific
@@ -95,6 +95,13 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
   end
   def vendor_specific=(val)
     @property_flush[:vendor_specific] = val
+  end
+
+  def stp
+    @property_hash[:stp] || :absent
+  end
+  def stp=(val)
+    @property_flush[:stp] = val
   end
 
   #-----------------------------------------------------------------

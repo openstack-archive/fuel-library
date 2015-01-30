@@ -13,6 +13,10 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
     end
   end
 
+  def self.get_instances(big_hash)
+    big_hash[:port]
+  end
+
   #-----------------------------------------------------------------
 
   def create
