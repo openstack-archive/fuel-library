@@ -13,10 +13,15 @@ class Puppet::Provider::Ovs_base < Puppet::Provider::L2_base
     true
   end
 
+  def self.get_instances(big_hash)
+    # calculate hash of hashes from given big hash
+    # Should be re-defined in chield providers
+    {}
+  end
+
   def self.instances
     rv = []
-    vsctl_show = ovs_vsctl_show()
-    vsctl_show[:port].each_pair do |p_name, p_props|
+    get_instances(ovs_vsctl_show()).each_pair do |p_name, p_props|
       props = {
         :ensure          => :present,
         :name            => p_name,
@@ -109,7 +114,7 @@ class Puppet::Provider::Ovs_base < Puppet::Provider::L2_base
   end
 
   def vendor_specific
-    @property_hash[:vendor_specific] || {}
+    @property_hash[:vendor_specific] || :absent
   end
   def vendor_specific=(val)
     @property_flush[:vendor_specific] = val

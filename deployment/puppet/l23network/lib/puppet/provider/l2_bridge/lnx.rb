@@ -12,33 +12,29 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
              :vsctl   => 'ovs-vsctl',
              :iproute => 'ip'
 
-
-  def self.prefetch(resources)
-    interfaces = instances
-    resources.keys.each do |name|
-      if provider = interfaces.find{ |ii| ii.name == name }
-        resources[name].provider = provider
-      end
-    end
-  end
-
   def self.instances
     rv = []
     get_bridge_list().each_pair do |bridge, props|
-      rv << new({
+      debug("prefetching '#{bridge}'")
+      br_props = {
         :ensure          => :present,
         :name            => bridge,
-        :br_type         => props[:br_type],
-        :external_ids    => :absent,
-        :vendor_specific => {},
-        :provider        => 'lnx'
-      }) if props[:br_type] == :lnx
+      }
+      br_props.merge! props
+      if props[:br_type] == :lnx
+        #br_props[:provider] = 'lnx'
+        #props[:port_type] = props[:port_type].insert(0, 'ovs').join(':')
+        rv << new(br_props)
+        debug("PREFETCH properties for '#{bridge}': #{br_props}")
+      else
+        debug("SKIP properties for '#{bridge}': #{br_props}")
+      end
     end
     rv
   end
 
   def exists?
-    brctl('show', @resource[:bridge]).split(/\n+/).select{|v| v=~/^#{@resource[:bridge]}\s+\d+/}.size > 0  ?  true  :  false
+    @property_hash[:ensure] == :present
   end
 
   def create
@@ -67,9 +63,10 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
       debug("FLUSH properties: #{@property_flush}")
       #
       # FLUSH changed properties
-      # if ! @property_flush[:mtu].nil?
-      #   File.open("/sys/class/net/#{@resource[:interface]}/mtu", "w") { |f| f.write(@property_flush[:mtu]) }
-      # end
+      if @property_flush.has_key? :stp
+        effective_stp = (@property_flush[:stp].to_s == 'true'  ?  1  :  0)
+        File.open("/sys/class/net/#{@resource[:bridge]}/bridge/stp_state", "a") {|f| f << effective_stp}
+      end
       @property_hash = resource.to_hash
     end
   end
@@ -87,14 +84,15 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
     :absent
   end
   def external_ids=(value)
-    nil
+    {}
   end
 
-  def vendor_specific
-    @property_hash[:vendor_specific] || {}
+  def stp
+    # puppet has internal transformation, and we shouldn't use boolean values. Use symbols -- it works stable!!!
+    @property_hash[:stp].to_s.to_sym
   end
-  def vendor_specific=(val)
-    @property_flush[:vendor_specific] = val
+  def stp=(val)
+    @property_flush[:stp] = (val.to_s.downcase.to_sym==:true)
   end
 
   #-----------------------------------------------------------------

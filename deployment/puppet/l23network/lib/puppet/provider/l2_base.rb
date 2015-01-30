@@ -113,7 +113,44 @@ class Puppet::Provider::L2_base < Puppet::Provider
     if hh =~ /^\{(.*)\}$/
       $1.split(/\s*\,\s*/).each do |pair|
         k,v = pair.split('=')
+        #debug("===#{k}===#{v}===")
         rv[k.tr("'\"",'').to_sym] = v.nil?  ?  nil  :  v.tr("'\"",'')
+      end
+    end
+    return rv
+  end
+
+  def self.get_ovs_bridges
+    # return OVS interfaces hash if it possible
+    begin
+      vsctl_list_bridges = vsctl('list', 'Bridge').split("\n")
+      vsctl_list_bridges << :EOF  # last section of output should be processsed anyway.
+    rescue
+      debug("Can't find OVS ports, because error while 'ovs-vsctl list Bridge' execution")
+      return {}
+    end
+    #
+    buff = {}
+    rv = {}
+    # parse ovs-vsctl output and find OVS and OVS-affected interfaces
+    vsctl_list_bridges.each do |line|
+      if line =~ /(\w+)\s*\:\s*(.*)\s*$/
+        key = $1.tr("'\"",'')
+        val = $2.tr("'\"",'')
+        buff[key] = (val == '[]'  ?  ''  :  val)
+      elsif line =~ /^\s*$/ or line == :EOF
+        rv[buff['name']] = {
+          :stp             => buff['stp_enable'].downcase == 'true',
+          :vendor_specific => {
+            :external_ids  => ovs_parse_opthash(buff['external_ids']),
+            :other_config  => ovs_parse_opthash(buff['other_config']),
+            :status        => ovs_parse_opthash(buff['status']),
+          }
+        }
+        debug("Found OVS br: '#{buff['name']}' with properties: #{rv[buff['name']]}")
+        buff = {}
+      else
+        debug("Output of 'ovs-vsctl list Bridge' contain misformated line: '#{line}'")
       end
     end
     return rv
@@ -138,7 +175,13 @@ class Puppet::Provider::L2_base < Puppet::Provider
         val = $2.tr("'\"",'')
         buff[key] = val == '[]'  ?  ''  :  val
       elsif line =~ /^\s*$/ or line == :EOF
-        rv[buff['name']] = {}
+        rv[buff['name']] = {
+          :vendor_specific => {
+            :trunks        => buff['trunks'].tr("[]",'').split(/[\,\s]+/), #.map{|i| i.to_i},
+            :other_config  => ovs_parse_opthash(buff['other_config']),
+            :status        => ovs_parse_opthash(buff['status']),
+          }
+        }
         rv[buff['name']][:vlan_id] = buff['tag'] if ! buff['tag'].empty?
         debug("Found OVS port '#{buff['name']}' with properties: #{rv[buff['name']]}")
         buff = {}
@@ -198,6 +241,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
       debug("Can't get OVS configuration, because error while 'ovs-vsctl show' execution")
       return {}
     end
+    bridges = get_ovs_bridges()
     ports = get_ovs_ports()
     interfaces = get_ovs_interfaces()
     ovs_config = {
@@ -219,8 +263,12 @@ class Puppet::Provider::L2_base < Puppet::Provider
           _if = nil
           ovs_config[:bridge][_br] = {
             :port_type => ['bridge'],
+            :br_type   => 'ovs',
             :provider  => 'ovs'
           }
+          if bridges.has_key? _br
+            ovs_config[:bridge][_br].merge! bridges[_br]
+          end
         when /^\s+Port\s+"?([\w\-\.]+)\"?$/
           next if _br.nil?
           _po = $1
@@ -301,9 +349,13 @@ class Puppet::Provider::L2_base < Puppet::Provider
     # obtain LNX bridges list
     re_c = /([\w\-]+)\s+\d+/
     begin
+      # todo(sv): using port_list instead fork subprocess
       brctl('show').split(/\n+/).select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
         br_name.strip!
         bridges[br_name] = {
+          :stp     => (File.open("/sys/class/net/#{br_name}/bridge/stp_state").read.strip.to_i == 1),
+          :external_ids    => :absent,
+          :vendor_specific => {},
           :br_type => :lnx
         }
       end

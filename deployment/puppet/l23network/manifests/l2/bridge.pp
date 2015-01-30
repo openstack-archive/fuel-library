@@ -7,10 +7,6 @@
 # [*name*]
 #   Bridge name.
 #
-# [*skip_existing*]
-#   If this bridge already exists it will be ignored without any errors.
-#   Must be true or false.
-#
 # [*external_ids*]
 #   See open vSwitch documentation.
 #   http://openvswitch.org/cgi-bin/ovsman.cgi?page=utilities%2Fovs-vsctl.8
@@ -18,9 +14,9 @@
 define l23network::l2::bridge (
   $ensure          = present,
   $mtu             = undef,
+  $stp             = false,
   $bpdu_forward    = true,
-  $external_ids    = "bridge-id=${name}",
-  $skip_existing   = false,
+  $external_ids    = { 'bridge-id' => "${name}" },
   $provider        = undef,
 ) {
   include l23network::params
@@ -40,6 +36,7 @@ define l23network::l2::bridge (
       ensure       => $ensure,
       #bpdu_forward => $bpdu_forward,
       if_type         => 'bridge',
+      bridge_stp      => $stp,
       bridge_ports    => ['none'],
       #vendor_specific=> $vendor_specific,
       provider        => $config_provider
@@ -48,7 +45,7 @@ define l23network::l2::bridge (
     l2_bridge {$name:
       ensure          => $ensure,
       external_ids    => $external_ids,
-      skip_existing   => $skip_existing,
+      stp             => $stp,
       #bpdu_forward   => $bpdu_forward,
       vendor_specific => $vendor_specific,
       provider        => $provider
