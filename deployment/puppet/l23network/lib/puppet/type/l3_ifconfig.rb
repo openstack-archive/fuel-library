@@ -1,7 +1,5 @@
 # type for managing runtime IP addresses and another L3 stuff.
 
-require 'puppet/property/boolean'
-
 Puppet::Type.newtype(:l3_ifconfig) do
     @doc = "Manage a network port abctraction."
     desc @doc
@@ -29,9 +27,9 @@ Puppet::Type.newtype(:l3_ifconfig) do
     newproperty(:ipaddr, :array_matching => :all) do
       desc "List of IP address for this interface"
       newvalues(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(\/(\d{1,2}))?$/, :absent, :none, :undef, :nil)
-      aliasvalue(:absent, :none)
-      aliasvalue(:absent, :undef)
-      aliasvalue(:absent, :nil)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
       validate do |val|
         return true if [:dhcp, :none, :undef, :nil, :absent].include?(val.downcase.to_sym)
         val.strip!
@@ -54,10 +52,10 @@ Puppet::Type.newtype(:l3_ifconfig) do
     newproperty(:gateway) do
       desc "Default gateway"
       newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, :absent, :none, :undef, :nil)
-      aliasvalue(:absent, :none)
-      aliasvalue(:absent, :undef)
-      aliasvalue(:absent, :nil)
-      defaultto(:absent)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      defaultto :absent
       validate do |val|
         if val != :absent
           val.strip!
@@ -73,10 +71,10 @@ Puppet::Type.newtype(:l3_ifconfig) do
     newproperty(:gateway_metric) do
       desc "Default gateway metric"
       newvalues(/^\d+$/, :absent, :none, :undef, :nil)
-      aliasvalue(:absent, :none)
-      aliasvalue(:absent, :undef)
-      aliasvalue(:absent, :nil)
-      defaultto(:absent)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      defaultto :absent
       validate do |val|
         min_metric = 0
         max_metric = 65535
