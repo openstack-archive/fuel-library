@@ -14,6 +14,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     :onboot         => 'auto',
     :mtu            => 'mtu',
     :bridge_ports   => 'bridge_ports',  # ports, members of bridge, fake property
+    :bridge_stp     => 'bridge_stp',
     :vlan_dev       => 'vlan-raw-device',
     :ipaddr         => 'address',
 #   :netmask        => 'netmask',
@@ -29,7 +30,8 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   # In the interface config files those fields should be written as boolean
   BOOLEAN_FIELDS = [
     :hotplug,
-    :onboot
+    :onboot,
+    :bridge_stp
   ]
 
   # This is a hook method that will be called by PuppetX::Filemapper
@@ -154,7 +156,9 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
     BOOLEAN_FIELDS.each do |bool_property|
       if props[bool_property]
-        props[bool_property] = ! (props[bool_property] =~ /yes/i).nil?
+        props[bool_property] = ! (props[bool_property] =~ /^\s*(yes|on)\s*$/i).nil?
+      else
+        props[bool_property] = :absent
       end
     end
 
@@ -178,10 +182,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   end
 
   def self.mangle__bond_slaves(val)
-    rv = val.split(/[\s,]+/).sort
-    # if rv.size == 1 and rv[0] == 'none'
-    #   rv = []
-    # end
+    val.split(/[\s,]+/).sort
   end
 
   ###
@@ -233,8 +234,8 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     pairs = {}
 
     BOOLEAN_FIELDS.each do |bool_property|
-      if props[bool_property]
-        props[bool_property] = ((props[bool_property] == true)  ?  'yes'  :  'no')
+      if ! props[bool_property].nil?
+        props[bool_property] = ((props[bool_property].to_s.to_sym == :true)  ?  'yes'  :  'no')
       end
     end
 

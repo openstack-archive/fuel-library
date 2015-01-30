@@ -52,12 +52,12 @@ Puppet::Type.newtype(:l23_stored_config) do
 
   newproperty(:bridge_stp) do
     desc "Whether stp enable"
-    newvalues(:true, :yes, :on, :false, :no, :off)
+    newvalues(:true, :absent, :yes, :on, :false, :no, :off)
     aliasvalue(:yes, :true)
     aliasvalue(:on,  :true)
     aliasvalue(:no,  :false)
     aliasvalue(:off, :false)
-    defaultto :false
+    defaultto :absent
   end
 
   newproperty(:onboot) do
