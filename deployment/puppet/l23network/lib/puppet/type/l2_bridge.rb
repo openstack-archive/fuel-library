@@ -1,5 +1,6 @@
+#
 Puppet::Type.newtype(:l2_bridge) do
-    @doc = "Manage a Open vSwitch bridge (virtual switch)"
+    @doc = "Manage a native linux and open vSwitch bridges (virtual switches)"
     desc @doc
 
     ensurable
@@ -17,13 +18,31 @@ Puppet::Type.newtype(:l2_bridge) do
       end
     end
 
-    newparam(:skip_existing) do
-      defaultto(false)
-      desc "Allow to skip existing bridge"
-    end
-
     newproperty(:external_ids) do
       desc "External IDs for the bridge"
+      #defaultto {}  # do not use defaultto here!!!
+
+      validate do |val|
+        if ! val.is_a? Hash
+          fail("External_ids should be a hash!")
+        end
+      end
+      def should_to_s(value)
+        return [] if value == :absent
+        rv = []
+        value.keys.sort.each do |key|
+          rv << "(#{key.to_s}=#{value[key]})"
+        end
+        rv.join(', ')
+      end
+
+      def is_to_s(value)
+        should_to_s(value)
+      end
+
+      def insync?(value)
+        should_to_s(value) == should_to_s(should)
+      end
     end
 
     newproperty(:br_type) do
@@ -33,9 +52,19 @@ Puppet::Type.newtype(:l2_bridge) do
       end
     end
 
+    newproperty(:stp) do
+      desc "Whether stp enable"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
+      defaultto :false
+    end
+
     newproperty(:vendor_specific) do
       desc "Hash of vendor specific properties"
-      defaultto {}
+      #defaultto {}
       # provider-specific hash, validating only by type.
       validate do |val|
         if ! val.is_a? Hash

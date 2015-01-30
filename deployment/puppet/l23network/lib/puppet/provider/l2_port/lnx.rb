@@ -203,5 +203,12 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     @property_flush[:vendor_specific] = val
   end
 
+  def type
+    :absent
+  end
+  def type=(value)
+    debug("Resource '#{@resource[:name]}': Doesn't support interface type change.")
+  end
+
 end
 # vim: set ts=2 sw=2 et :
