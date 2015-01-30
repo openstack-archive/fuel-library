@@ -1,6 +1,6 @@
 sed -i '/^\s*tinker panic/ d' /target/etc/ntp.conf && \
 sed -i '1 i tinker panic 0' /target/etc/ntp.conf && \
-mkdir /target/var/lib/ntp && \
+mkdir -p /target/var/lib/ntp && \
 echo 0 > /target/var/lib/ntp/ntp.drift && \
 in-target chown -R ntp:ntp /var/lib/ntp && \
 sed -i '/^\s*server/ d' /target/etc/ntp.conf && \
