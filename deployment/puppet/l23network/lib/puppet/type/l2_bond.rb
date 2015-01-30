@@ -1,7 +1,5 @@
 # type for managing runtime bond of NICs states.
 
-require 'puppet/property/boolean'
-
 Puppet::Type.newtype(:l2_bond) do
     @doc = "Manage a network port abctraction."
     desc @doc
@@ -26,27 +24,32 @@ Puppet::Type.newtype(:l2_bond) do
     #   end
     # end
 
-    newproperty(:onboot, :parent => Puppet::Property::Boolean) do
+    newproperty(:onboot) do
       desc "Whether to bring the interface up"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
       defaultto :true
     end
 
     newproperty(:bridge) do
       desc "What bridge to use"
       newvalues(/^[a-z][0-9a-z\-\_]*[0-9a-z]$/, :absent, :none, :undef, :nil)
-      aliasvalue(:absent, :none)
-      aliasvalue(:absent, :undef)
-      aliasvalue(:absent, :nil)
-      defaultto(:absent)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      defaultto :absent
     end
 
     newproperty(:slaves, :array_matching => :all) do
       desc "What bridge to use"
       newvalues(/^[a-z][0-9a-z\-\_]*[0-9a-z]$/, :absent, :none, :undef, :nil)
-      aliasvalue(:absent, :none)
-      aliasvalue(:absent, :undef)
-      aliasvalue(:absent, :nil)
-      defaultto(:absent)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      defaultto :absent
       # provider-specific list. may be empty.
       def should_to_s(value)
         value.sort.join(',')
@@ -101,10 +104,10 @@ Puppet::Type.newtype(:l2_bond) do
     newproperty(:mtu) do
       desc "The Maximum Transmission Unit size to use for the interface"
       newvalues(/^\d+$/, :absent, :none, :undef, :nil)
-      aliasvalue(:absent, :none)
-      aliasvalue(:absent, :undef)
-      aliasvalue(:absent, :nil)
-      defaultto(:absent)  # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      defaultto :absent   # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
       validate do |value| #     inherits it from a parent interface
         # Intel 82598 & 82599 chips support MTUs up to 16110; is there any
         # hardware in the wild that supports larger frames?

@@ -1,8 +1,6 @@
 # type for managing persistent interface config options
 # Inspired by puppet-network module. Adrien, thanks.
 
-require 'puppet/property/boolean'
-
 Puppet::Type.newtype(:l23_stored_config) do
   @doc = "Manage lines in interface config file"
   desc @doc
@@ -23,11 +21,11 @@ Puppet::Type.newtype(:l23_stored_config) do
     desc "The method for determining an IP address for the interface"
     # static -- assign IP address in config
     # manual -- UP interface without IP address
-    newvalues(:static, :manual, :dhcp, :loopback, :none, :undef, :nil)
-    aliasvalue(:manual, :none)
-    aliasvalue(:absent, :undef)
-    aliasvalue(:absent, :nil)
-    defaultto(:manual)
+    newvalues(:static, :absent, :manual, :dhcp, :loopback, :none, :undef, :nil)
+    aliasvalue(:none,  :manual)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :manual
   end
 
   # newproperty(:port_type) do
@@ -42,28 +40,43 @@ Puppet::Type.newtype(:l23_stored_config) do
   newproperty(:bridge) do
     desc "Name of bridge, including this port"
     newvalues(/^[\w+\-]+$/, :none, :undef, :nil, :absent)
-    aliasvalue(:absent, :none)
-    aliasvalue(:absent, :undef)
-    aliasvalue(:absent, :nil)
-    defaultto(:absent)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :absent
   end
 
   newproperty(:bridge_ports, :array_matching => :all) do
     desc "Ports, member of bridge, service property, do not use directly."
   end
 
-  newproperty(:onboot, :parent => Puppet::Property::Boolean) do
+  newproperty(:bridge_stp) do
+    desc "Whether stp enable"
+    newvalues(:true, :yes, :on, :false, :no, :off)
+    aliasvalue(:yes, :true)
+    aliasvalue(:on,  :true)
+    aliasvalue(:no,  :false)
+    aliasvalue(:off, :false)
+    defaultto :false
+  end
+
+  newproperty(:onboot) do
     desc "Whether to bring the interface up on boot"
-    defaultto(true)
+    newvalues(:true, :yes, :on, :false, :no, :off)
+    aliasvalue(:yes, :true)
+    aliasvalue(:on,  :true)
+    aliasvalue(:no,  :false)
+    aliasvalue(:off, :false)
+    defaultto :true
   end
 
   newproperty(:mtu) do
     desc "The Maximum Transmission Unit size to use for the interface"
     newvalues(/^\d+$/, :absent, :none, :undef, :nil)
-    aliasvalue(:absent, :none)
-    aliasvalue(:absent, :undef)
-    aliasvalue(:absent, :nil)
-    defaultto(:absent)  # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :absent   # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
     validate do |value| #     inherits it from a parent interface
       # Intel 82598 & 82599 chips support MTUs up to 16110; is there any
       # hardware in the wild that supports larger frames?
@@ -98,10 +111,10 @@ Puppet::Type.newtype(:l23_stored_config) do
   newproperty(:vlan_id) do
     desc "802.1q vlan ID"
     newvalues(/^\d+$/, :absent, :none, :undef, :nil)
-    aliasvalue(:absent, :none)
-    aliasvalue(:absent, :undef)
-    aliasvalue(:absent, :nil)
-    defaultto(:absent)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :absent
     validate do |val|
       min_vid = 1
       max_vid = 4094
@@ -132,28 +145,28 @@ Puppet::Type.newtype(:l23_stored_config) do
   newproperty(:ipaddr) do
     desc "Primary IP address for interface"
     newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/, :absent, :none, :undef, :nil, :dhcp)
-    aliasvalue(:absent, :none)
-    aliasvalue(:absent, :undef)
-    aliasvalue(:absent, :nil)
-    defaultto(:absent)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :absent
   end
 
   newproperty(:gateway) do
     desc "Default gateway"
     newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, :absent, :none, :undef, :nil)
-    aliasvalue(:absent, :none)
-    aliasvalue(:absent, :undef)
-    aliasvalue(:absent, :nil)
-    defaultto(:absent)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :absent
   end
 
   newproperty(:gateway_metric) do
     desc "Default gateway metric"
     newvalues(/^\d+$/, :absent, :none, :undef, :nil)
-    aliasvalue(:absent, :none)
-    aliasvalue(:absent, :undef)
-    aliasvalue(:absent, :nil)
-    defaultto(:absent)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :absent
     validate do |val|
       min_metric = 0
       max_metric = 65535
@@ -177,21 +190,20 @@ Puppet::Type.newtype(:l23_stored_config) do
   newproperty(:bond_master) do
     desc "bond name for bonded interface"
     newvalues(/^[\w+\-]+$/, :none, :undef, :nil, :absent)
-    aliasvalue(:absent, :none)
-    aliasvalue(:absent, :undef)
-    aliasvalue(:absent, :nil)
-    defaultto(:absent)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :absent
   end
 
   newproperty(:bond_slaves, :array_matching => :all) do
     desc "slave ports for bond interface"
-    newvalues(/^[\w+\-]+$/, :false, :no, :none, :undef, :nil, :absent)
+    newvalues(/^[\w+\-]+$/, :false, :none, :undef, :nil, :absent)
     #aliasvalue(:absent, :none)  # none is a valid config value
-    aliasvalue(:none, :no)
-    aliasvalue(:none, :false)
-    aliasvalue(:absent, :undef)
-    aliasvalue(:absent, :nil)
-    defaultto(:absent)
+    aliasvalue(:false, :none)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :absent
   end
 
   newproperty(:bond_mode)
