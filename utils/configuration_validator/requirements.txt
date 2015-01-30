@@ -1,4 +1,4 @@
 pytest
 networkx
 jsonschema
-yaml
+pyyaml
