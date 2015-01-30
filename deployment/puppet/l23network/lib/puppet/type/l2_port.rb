@@ -1,7 +1,5 @@
 # type for managing runtime NIC states.
 
-require 'puppet/property/boolean'
-
 Puppet::Type.newtype(:l2_port) do
     @doc = "Manage a network port abctraction."
     desc @doc
@@ -22,11 +20,11 @@ Puppet::Type.newtype(:l2_port) do
     #todo(sv): move to provider_specific hash
     newproperty(:type) do
       newvalues(:system, :internal, :tap, :gre, :ipsec_gre, :capwap, :patch, :null, :undef, :nil, :none)
-      aliasvalue(:internal, :null)
-      aliasvalue(:internal, :nil)
-      aliasvalue(:internal, :undef)
-      aliasvalue(:internal, :none)
-      #defaultto(:internal)
+      aliasvalue(:none,  :internal)
+      aliasvalue(:undef, :internal)
+      aliasvalue(:nil,   :internal)
+      aliasvalue(:null,  :internal)
+      #defaultto :internal
       desc "Port type (for openvswitch only)"
     end
 
@@ -42,8 +40,13 @@ Puppet::Type.newtype(:l2_port) do
       desc "Allow to skip existing port"
     end
 
-    newproperty(:onboot, :parent => Puppet::Property::Boolean) do
+    newproperty(:onboot) do
       desc "Whether to bring the interface up"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
       defaultto :true
     end
 
@@ -81,10 +84,10 @@ Puppet::Type.newtype(:l2_port) do
     newproperty(:vlan_id) do
       desc "802.1q vlan ID"
       newvalues(/^\d+$/, :absent, :none, :undef, :nil)
-      aliasvalue(:absent, :none)
-      aliasvalue(:absent, :undef)
-      aliasvalue(:absent, :nil)
-      defaultto(:absent)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      defaultto :absent
       validate do |value|
         min_vid = 1
         max_vid = 4094
@@ -112,10 +115,10 @@ Puppet::Type.newtype(:l2_port) do
     newproperty(:bond_master) do
       desc "Bond name, if interface is a part of bond"
       newvalues(/^[a-z][\w\-]*$/, :absent, :none, :undef, :nil)
-      aliasvalue(:absent, :none)
-      aliasvalue(:absent, :undef)
-      aliasvalue(:absent, :nil)
-      defaultto(:absent)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      defaultto :absent
     end
 
     newparam(:trunks, :array_matching => :all) do
@@ -126,10 +129,10 @@ Puppet::Type.newtype(:l2_port) do
     newproperty(:mtu) do
       desc "The Maximum Transmission Unit size to use for the interface"
       newvalues(/^\d+$/, :absent, :none, :undef, :nil)
-      aliasvalue(:absent, :none)
-      aliasvalue(:absent, :undef)
-      aliasvalue(:absent, :nil)
-      defaultto(:absent)  # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      defaultto :absent   # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
       validate do |value| #     inherits it from a parent interface
         # Intel 82598 & 82599 chips support MTUs up to 16110; is there any
         # hardware in the wild that supports larger frames?
