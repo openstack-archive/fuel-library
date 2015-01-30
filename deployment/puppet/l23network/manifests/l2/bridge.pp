@@ -14,7 +14,7 @@
 define l23network::l2::bridge (
   $ensure          = present,
   $mtu             = undef,
-  $stp             = false,
+  $stp             = undef,
   $bpdu_forward    = true,
   $external_ids    = { 'bridge-id' => "${name}" },
   $provider        = undef,
