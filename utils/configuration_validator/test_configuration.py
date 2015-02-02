@@ -26,7 +26,7 @@ TASK_SCHEMA = {
     'required': ['type', 'id'],
     'properties': {
         'id': {'type': 'string'},
-        'type': {'enum': ['puppet', 'shell', 'group', 'stage'],
+        'type': {'enum': ['puppet', 'shell', 'group', 'stage', 'upload_file'],
                  'type': 'string'},
         'parameters': {'type': 'object'},
         'required_for': {'type': 'array'},
