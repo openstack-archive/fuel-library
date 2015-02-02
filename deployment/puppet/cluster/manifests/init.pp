@@ -38,15 +38,4 @@ class cluster (
     Package['corosync'] -> File['ocf-fuel-path']
     Package<| title == 'pacemaker' |> -> File['ocf-fuel-path']
 
-    file { 'ns-ipaddr2-ocf':
-      path   =>'/usr/lib/ocf/resource.d/fuel/ns_IPaddr2',
-      mode   => '0755',
-      owner  => root,
-      group  => root,
-      source => 'puppet:///modules/cluster/ocf/ns_IPaddr2',
-    }
-
-    Package['pacemaker'] -> File['ns-ipaddr2-ocf']
-    File<| title == 'ocf-fuel-path' |> -> File['ns-ipaddr2-ocf']
-
 }
