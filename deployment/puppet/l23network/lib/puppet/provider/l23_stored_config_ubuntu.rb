@@ -1,4 +1,5 @@
 require File.join(File.dirname(__FILE__), 'l23_stored_config_base')
+require 'pry'
 
 class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_config_base
 
@@ -7,32 +8,57 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     '/etc/network/interfaces.d'
   end
 
-  NAME_MAPPINGS = {
-    :if_type        => 'if_type',       # pseudo field, not found in config, but calculated
-    :method         => 'method',
-    :name           => 'iface',
-    :onboot         => 'auto',
-    :mtu            => 'mtu',
-    :bridge_ports   => 'bridge_ports',  # ports, members of bridge, fake property
-    :bridge_stp     => 'bridge_stp',
-    :vlan_dev       => 'vlan-raw-device',
-    :ipaddr         => 'address',
-#   :netmask        => 'netmask',
-    :gateway        => 'gateway',
-    :gateway_metric => 'metric',     # todo: rename to 'metric'
-#   :dhcp_hostname  => 'hostname'
-    :bond_master    => 'bond-master',
-    :bond_slaves    => 'bond-slaves',
-    :bond_mode      => 'bond-mode',
-    :bond_miimon    => 'bond-miimon',
-  }
+  def self.property_mappings
+    {
+      :if_type        => 'if_type',       # pseudo field, not found in config, but calculated
+      :if_provider    => 'if_provider',   # pseudo field, not found in config, but calculated
+      :method         => 'method',
+      :name           => 'iface',
+      :onboot         => 'auto',
+      :mtu            => 'mtu',
+      :bridge_ports   => 'bridge_ports',  # ports, members of bridge, fake property
+      :bridge_stp     => 'bridge_stp',
+      :vlan_dev       => 'vlan-raw-device',
+      :ipaddr         => 'address',
+  #   :netmask        => 'netmask',
+      :gateway        => 'gateway',
+      :gateway_metric => 'metric',     # todo: rename to 'metric'
+  #   :dhcp_hostname  => 'hostname'
+      :bond_master    => 'bond-master',
+      :bond_slaves    => 'bond-slaves',
+      :bond_mode      => 'bond-mode',
+      :bond_miimon    => 'bond-miimon',
+    }
+  end
+  def property_mappings
+    self.class.property_mappings
+  end
 
   # In the interface config files those fields should be written as boolean
-  BOOLEAN_FIELDS = [
-    :hotplug,
-    :onboot,
-    :bridge_stp
-  ]
+  def self.boolean_properties
+    [
+      :hotplug,
+      :onboot,
+      :bridge_stp
+    ]
+  end
+  def boolean_properties
+    self.class.boolean_properties
+  end
+
+  def self.properties_fake
+    [
+      :onboot,
+      :name,
+      :family,
+      :method,
+      :if_type,
+      :if_provider
+    ]
+  end
+  def properties_fake
+    self.class.properties_fake
+  end
 
   # This is a hook method that will be called by PuppetX::Filemapper
   #
@@ -66,6 +92,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     # initialize hash as predictible values
     hash = {}
     hash['auto'] = false
+    hash['if_provider'] = 'none'
     hash['if_type'] = :ethernet
     dirty_iface_name = nil
     if (m = filename.match(%r/ifcfg-(\S+)$/))
@@ -81,8 +108,9 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
         val = m[2].strip
         case key
           # Ubuntu has non-linear config format. Some options should be calculated evristically
-          when /auto/
-              hash['auto'] = true
+          when /(auto|allow-ovs)/
+              hash[$1] = true
+              hash['if_provider'] = $1  # temporary store additional data for self.check_if_provider
               if ! hash.has_key?('iface')
                 # setup iface name if it not given in iface directive
                 mm = val.split(/\s+/)
@@ -118,10 +146,14 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
     # The FileMapper mixin expects an array of providers, so we return the
     # single interface wrapped in an array
+    rv = (self.check_if_provider(props)  ?  [props]  :  [])
     debug("parse_file('#{filename}'): #{props.inspect}")
-    [props]
+    rv
   end
 
+  def self.check_if_provider(if_data)
+    raise Puppet::Error, "self.check_if_provider(if_data) Should be implemented in more specific class."
+  end
 
   def self.mangle_properties(pairs)
     props = {}
@@ -136,7 +168,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
     # For each interface attribute that we recognize it, add the value to the
     # hash with our expected label
-    NAME_MAPPINGS.each_pair do |type_name, in_config_name|
+    property_mappings.each_pair do |type_name, in_config_name|
       if (val = pairs[in_config_name])
         # We've recognized a value that maps to an actual type property, delete
         # it from the pairs and copy it as an actual property
@@ -154,7 +186,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     #!# # For all of the remaining values, blindly toss them into the options hash.
     #!# props[:options] = pairs if ! pairs.empty?
 
-    BOOLEAN_FIELDS.each do |bool_property|
+    boolean_properties.each do |bool_property|
       if props[bool_property]
         props[bool_property] = ! (props[bool_property] =~ /^\s*(yes|on)\s*$/i).nil?
       else
@@ -200,7 +232,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
     # Add onboot interfaces
     if provider.onboot
-      content << "auto #{provider.name}"
+      content << "#{property_mappings[:onboot]} #{provider.name}"
     end
 
     # Add iface header
@@ -210,7 +242,9 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     #props = (provider.options || {})
     props    = {}
 
-    NAME_MAPPINGS.keys.select{|v| ! [:onboot, :name, :family, :method, :if_type].include?(v)}.each do |type_name|
+    property_mappings.keys.select{|v| ! properties_fake.include?(v)}.each do |type_name|
+      #binding.pry
+      #debug("ZZZZZZZ: #{property_mappings}")
       val = provider.send(type_name)
       if val and val.to_s != 'absent'
         props[type_name] = val
@@ -233,13 +267,13 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   def self.unmangle_properties(props)
     pairs = {}
 
-    BOOLEAN_FIELDS.each do |bool_property|
+    boolean_properties.each do |bool_property|
       if ! props[bool_property].nil?
         props[bool_property] = ((props[bool_property].to_s.to_sym == :true)  ?  'yes'  :  'no')
       end
     end
 
-    NAME_MAPPINGS.each_pair do |type_name, in_config_name|
+    property_mappings.each_pair do |type_name, in_config_name|
       if (val = props[type_name])
         props.delete(type_name)
         mangle_method_name="unmangle__#{type_name}"
