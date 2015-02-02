@@ -706,6 +706,10 @@ if $primary_controller {
   }
 }
 
+nova_config {
+  'DEFAULT/teardown_unused_network_gateway': value => 'True'
+}
+
 #ADDONS START
 
 if $sahara_hash['enabled'] {
