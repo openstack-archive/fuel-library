@@ -26,6 +26,7 @@ $swift_hash                     = hiera('swift', {})
 $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
+$mp_hash                        = hiera('mp', {})
 
 $node_role                      = hiera('role')
 $cinder_nodes_array             = hiera('cinder_nodes', [])
