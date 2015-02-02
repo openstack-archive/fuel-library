@@ -17,3 +17,9 @@ class { "mcollective::server":
     host     => $::mco_host,
     stomp    => false,
 }
+
+file { "/usr/bin/extract_repos":
+    ensure   => file,
+    mode     => 0755,
+    source   => "puppet:///modules/nailgun/extract_repos.py"
+}
