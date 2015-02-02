@@ -158,7 +158,7 @@ $syslog_log_facility_ceph       = 'LOG_LOCAL0'
 ### Monit ###
 # Monit for compute nodes.
 # If enabled, will install and configure monit at compute/cinder nodes.
-$use_monit = false
+$use_monit = true
 
 $nova_rate_limits = {
   'POST' => 100000,
