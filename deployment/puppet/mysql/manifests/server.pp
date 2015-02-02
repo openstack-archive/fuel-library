@@ -119,8 +119,6 @@ class mysql::server (
       unless => "test -d $mysql::params::datadir/mysql",
     }
 
-    Class['openstack::corosync'] -> Cs_resource["p_${service_name}"]
-
     file { '/tmp/repl_create.sql' :
       ensure  => present,
       content => template('mysql/repl_create.sql.erb'),
