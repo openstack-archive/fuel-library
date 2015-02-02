@@ -1061,6 +1061,7 @@ class osnailyfacter::cluster_ha {
         debug                   => $debug,
         verbose                 => $verbose,
         log_facility            => 'LOG_SYSLOG',
+        ceilometer              => $ceilometer_hash['enabled'],
       }
     }
 
