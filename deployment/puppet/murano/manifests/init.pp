@@ -52,6 +52,7 @@ class murano (
   $murano_db_allowed_hosts               = ['localhost','%'],
   # neutron
   $use_neutron                           = false,
+  $neutron_settings                      = {},
   # Other parameters
   $primary_controller                    = true,
   # Controller addresses
@@ -153,6 +154,7 @@ class murano (
     use_neutron                          => $use_neutron,
     default_router                       => 'murano-default-router',
     default_network                      => 'net04_ext',
+    neutron_settings                     => $neutron_settings,
   }
 
   class { 'murano::apps':
