@@ -551,13 +551,6 @@ if $use_ceph {
 #################################################################
 include osnailyfacter::test_controller
 
-class { '::cluster':
-  stage             => 'corosync_setup',
-  internal_address  => $::internal_address,
-  unicast_addresses => $::controller_nodes,
-}
-
-Class['::cluster']->
 class { 'virtual_ips' :
   stage => 'corosync_setup',
 }

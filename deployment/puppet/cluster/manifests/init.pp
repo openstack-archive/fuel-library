@@ -6,11 +6,7 @@ class cluster (
     $internal_address  = '127.0.0.1',
     $unicast_addresses = undef,
 ) {
-
-    #todo: move half of openstack::corosync
-    #to this module, another half -- to Neutron
-    if defined(Stage['corosync_setup']) {
-
+  #did not clean up due to it will be reworked later
       case $::osfamily {
         'RedHat': {
           $pcs_package = 'pcs'
@@ -32,14 +28,7 @@ class cluster (
         #corosync_version  => '2',
         packages          => ['corosync', 'pacemaker', 'crmsh', $pcs_package],
       }
-    } else {
-      class { 'openstack::corosync':
-        bind_address      => $internal_address,
-        unicast_addresses => $unicast_addresses,
-        #FIXME(bogdando) use version 2 when Corosync 2.x packages merged
-        #corosync_version  => '2',
-        packages          => ['corosync', 'pacemaker', 'crmsh', $pcs_package],      }
-    }
+
     file { 'ocf-fuel-path':
       ensure  => directory,
       path    =>'/usr/lib/ocf/resource.d/fuel',
@@ -62,5 +51,3 @@ class cluster (
     File<| title == 'ocf-fuel-path' |> -> File['ns-ipaddr2-ocf']
 
 }
-#
-###
