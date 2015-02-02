@@ -41,9 +41,15 @@ server {
         root <%= @staticdir %>;
     }
 
+    location ~ ^/api(/v\d+)?/releases/\d+/upload/iso/?$ {
+        include uwsgi_params;
+        uwsgi_pass <%= @nailgun_host %>:8001;
+        client_max_body_size 800m;
+    }
+
     location /api {
         include uwsgi_params;
-        uwsgi_pass <%= @nailgun_host %>:8001; 
+        uwsgi_pass <%= @nailgun_host %>:8001;
         client_max_body_size 100m;
     }
 }
