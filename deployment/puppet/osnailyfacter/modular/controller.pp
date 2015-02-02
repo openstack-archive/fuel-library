@@ -1,10 +1,6 @@
 notice('MODULAR: controller.pp')
 
-#Stages configuration
-stage {'corosync_setup': } -> Stage['main']
-
 # Pulling hiera
-$internal_int                   = hiera('internal_int')
 $public_int                     = hiera('public_int', undef)
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
@@ -36,7 +32,6 @@ $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
 $network_scheme                 = hiera('network_scheme', {})
-$network_data                   = hiera('network_data', {})
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
@@ -183,61 +178,6 @@ if empty($node) {
 
 # get cidr netmasks for VIPs
 $primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-$vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
-$vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
-
-if $use_neutron {
-  $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
-}
-
-$vips = { # Do not convert to ARRAY, It can't work in 2.7
-  management   => {
-    namespace            => 'haproxy',
-    nic                  => $internal_int,
-    base_veth            => "${internal_int}-hapr",
-    ns_veth              => "hapr-m",
-    ip                   => hiera('management_vip'),
-    cidr_netmask         => $vip_management_cidr_netmask,
-    gateway              => 'link',
-    gateway_metric       => '20',
-    other_networks       => $vip_mgmt_other_nets,
-    iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${internal_int} -j MASQUERADE",
-    iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${internal_int} -j MASQUERADE",
-    iptables_comment     => "masquerade-for-management-net",
-    tie_with_ping        => false,
-    ping_host_list       => "",
-  },
-}
-
-if $public_int {
-
-  if $use_neutron{
-    $vip_publ_other_nets = join($network_scheme['endpoints']["$public_int"]['other_nets'], ' ')
-  }
-
-  $run_ping_checker = hiera('run_ping_checker', true)
-
-  $vips[public] = {
-    namespace            => 'haproxy',
-    nic                  => $public_int,
-    base_veth            => "${public_int}-hapr",
-    ns_veth              => "hapr-p",
-    ip                   => $public_vip,
-    cidr_netmask         => $vip_public_cidr_netmask,
-    gateway              => 'link',
-    gateway_metric       => '10',
-    other_networks       => $vip_publ_other_nets,
-    iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o ${public_int} -j MASQUERADE",
-    iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${public_int} -j MASQUERADE",
-    iptables_comment     => "masquerade-for-public-net",
-    tie_with_ping        => $run_ping_checker,
-    ping_host_list       => $use_neutron ? {
-      default => $network_data[$public_int]['gateway'],
-      true    => $network_scheme['endpoints']['br-ex']['gateway'],
-    },
-  }
-}
-$vip_keys = keys($vips)
 
 ##REFACTORING NEEDED
 
@@ -482,23 +422,6 @@ class compact_controller (
   }
 }
 
-class virtual_ips () {
-  cluster::virtual_ips { $::vip_keys:
-    vips => $::vips,
-  }
-
-  # Some topologies might need to keep the vips on the same node during
-  # deploymenet. This wouldls only need to be changed by hand.
-  $keep_vips_together = false
-  if ($keep_vips_together) {
-    cs_rsc_colocation { 'ha_vips':
-      ensure      => present,
-      primitives  => [prefix(keys($::vips),"vip__")],
-      after       => Cluster::Virtual_ips[$::vip_keys]
-    }
-  } # End If keep_vips_together
-}
-
 if $use_vmware_nsx {
   class { 'plugin_neutronnsx':
     neutron_config     => $neutron_config,
@@ -550,10 +473,6 @@ if $use_ceph {
 }
 #################################################################
 include osnailyfacter::test_controller
-
-class { 'virtual_ips' :
-  stage => 'corosync_setup',
-}
 
 class { 'cluster::haproxy':
   haproxy_maxconn    => '16000',
