@@ -483,6 +483,14 @@ class compact_controller (
 }
 
 class virtual_ips () {
+  file { 'ns-ipaddr2-ocf':
+    path   =>'/usr/lib/ocf/resource.d/fuel/ns_IPaddr2',
+    mode   => '0755',
+    owner  => root,
+    group  => root,
+    source => 'puppet:///modules/cluster/ocf/ns_IPaddr2',
+  }
+
   cluster::virtual_ips { $::vip_keys:
     vips => $::vips,
   }
@@ -551,13 +559,6 @@ if $use_ceph {
 #################################################################
 include osnailyfacter::test_controller
 
-class { '::cluster':
-  stage             => 'corosync_setup',
-  internal_address  => $::internal_address,
-  unicast_addresses => $::controller_nodes,
-}
-
-Class['::cluster']->
 class { 'virtual_ips' :
   stage => 'corosync_setup',
 }
@@ -889,9 +890,6 @@ include galera::params
 package { 'screen':
   ensure => present,
 }
-
-# Make corosync and pacemaker setup and configuration before all services provided by pacemaker
-Class['openstack::corosync'] -> Service<| provider=='pacemaker' |>
 
 # Reduce swapiness on controllers, see LP#1413702
 sysctl::value { 'vm.swappiness':
