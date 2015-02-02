@@ -1,0 +1,9 @@
+- id: cluster
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [virtual_ips, deploy]
+  requires: [hosts, firewall]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
