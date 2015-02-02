@@ -5,12 +5,21 @@ Puppet::Type.type(:l23_stored_config).provide(:lnx_ubuntu, :parent => Puppet::Pr
 
   include PuppetX::FileMapper
 
-  confine    :l23_os => :ubuntu
   defaultfor :l23_os => :ubuntu
 
   has_feature :provider_options
   #has_feature :hotpluggable
 
   self.unlink_empty_files = true
+
+  def self.check_if_provider(if_data)
+    if if_data[:if_provider] == 'auto'
+        if_data[:if_provider] = :lnx
+        true
+    else
+        if_data[:if_provider] = nil
+        false
+    end
+  end
 
 end

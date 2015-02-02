@@ -139,8 +139,9 @@ class Puppet::Provider::L2_base < Puppet::Provider
         val = $2.tr("'\"",'')
         buff[key] = (val == '[]'  ?  ''  :  val)
       elsif line =~ /^\s*$/ or line == :EOF
+        stp_enable = buff['stp_enable'] || ''
         rv[buff['name']] = {
-          :stp             => buff['stp_enable'].downcase == 'true',
+          :stp             => stp_enable.downcase == 'true',
           :vendor_specific => {
             :external_ids  => ovs_parse_opthash(buff['external_ids']),
             :other_config  => ovs_parse_opthash(buff['other_config']),
