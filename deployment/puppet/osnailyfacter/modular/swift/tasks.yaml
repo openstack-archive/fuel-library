@@ -1,0 +1,9 @@
+- id: swift
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy]
+  requires: [top-role-controller]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
