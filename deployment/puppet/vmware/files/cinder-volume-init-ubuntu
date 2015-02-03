@@ -1,0 +1,21 @@
+# vim: set ft=upstart et ts=2:
+description "Cinder volume service for vmware"
+author "Igor Gajsin igajsin@mirantis.com"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+chdir /var/run
+
+pre-start script
+    mkdir -p /var/run/cinder
+    chown cinder:cinder /var/run/cinder
+
+    mkdir -p /var/lock/cinder
+    chown cinder:root /var/lock/cinder
+end script
+
+script
+  [ -r /etc/default/$UPSTART_JOB ] &&. /etc/default/$UPSTART_JOB
+  start-stop-daemon --start --chuid cinder --exec /usr/bin/cinder-volume -- $CINDER_VOLUME_OPTS
+end script
