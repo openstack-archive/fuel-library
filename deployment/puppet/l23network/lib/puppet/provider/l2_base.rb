@@ -303,7 +303,6 @@ class Puppet::Provider::L2_base < Puppet::Provider
           #debug("Misformated line for br='#{_br}', po='#{_po}', if='#{_if}' => '#{line}'")
       end
     end
-    debug("VSCTL-SHOW: #{ovs_config.inspect}")
     ovs_config[:port].keys.each do |p_name|
       ifaces = ovs_config[:interface].select{|k,v| v[:port]==p_name}
       if ifaces.size > 1
@@ -326,6 +325,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
         ovs_config[:port][p_name][:port_type] << 'vlan'
       end
     end
+    debug("VSCTL-SHOW: #{ovs_config.inspect}")
     return ovs_config
   end
   # ---------------------------------------------------------------------------
@@ -490,6 +490,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
       :arp_validate      => {},
       :arp_all_targets   => {},
       :downdelay         => {},
+      :updelay           => {},
       :fail_over_mac     => {},
       :lacp_rate         => {:need_reassemble => true},
       :miimon            => {},
@@ -501,7 +502,6 @@ class Puppet::Provider::L2_base < Puppet::Provider
       :primary           => {},
       :primary_reselect  => {},
       :tlb_dynamic_lb    => {},
-      :updelay           => {},
       :use_carrier       => {},
       :xmit_hash_policy  => {},
       :resend_igmp       => {},
@@ -510,6 +510,25 @@ class Puppet::Provider::L2_base < Puppet::Provider
   end
   def self.lnx_bond_allowed_properties_list
     self.lnx_bond_allowed_properties.keys.sort
+  end
+
+  def self.ovs_bond_allowed_properties
+    {
+      :downdelay   => {:property => 'bond_downdelay'},
+      :updelay     => {:property => 'bond_updelay'},
+      :use_carrier => {:property => 'other_config:bond-detect-mode',
+                       :override_integer => ['miimon', 'carrier'] },
+      :mode        => {:property => 'bond_mode',
+                       :allow    => ['balance-slb', 'active-backup', 'balance-tcp', 'stable'] },
+      :lacp        => {:property => 'lacp',
+                       :allow => ['off', 'active', 'passive'] },
+      :lacp_rate   => {:property => 'other_config:lacp_time'},
+      :miimon      => {:property => 'other_config:bond-miimon-interval'},
+      :slb_rebalance_interval => {:property => 'other_config:bond-rebalance-interval'},
+    }
+  end
+  def self.ovs_bond_allowed_properties_list
+    self.ovs_bond_allowed_properties.keys.sort
   end
 
 
