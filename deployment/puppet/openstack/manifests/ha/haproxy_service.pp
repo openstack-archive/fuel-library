@@ -26,6 +26,8 @@ define openstack::ha::haproxy_service (
 
   # if true, configure this service before starting the haproxy service;
   # HAProxy will refuse to start with no listening services defined
+  # But we are using haproxy 'listen Stats' directive, so it can be
+  # started w/o this bells and whistles
   $before_start           = false,
 ) {
 
@@ -56,14 +58,6 @@ define openstack::ha::haproxy_service (
     define_backups    => $define_backups,
   }
 
-  if $before_start {
-    Haproxy::Listen[$name]         -> Class['cluster::haproxy_ocf']
-    Haproxy::Balancermember[$name] -> Class['cluster::haproxy_ocf']
-
-  } else {
-    Class['cluster::haproxy_ocf'] -> Haproxy::Listen[$name]
-    Class['cluster::haproxy_ocf'] -> Haproxy::Balancermember[$name]
-
     # Dirty hack, due Puppet can't send notify between stages
     exec { "haproxy restart for ${name}":
       command     => 'export OCF_ROOT="/usr/lib/ocf"; (ip netns list | grep haproxy) && ip netns exec haproxy /usr/lib/ocf/resource.d/fuel/ns_haproxy restart',
@@ -73,12 +67,6 @@ define openstack::ha::haproxy_service (
       tries       => 10,
       try_sleep   => 10,
       returns     => [0, ''],
-      require     => [Service['haproxy'],Haproxy::Listen[$name], Haproxy::Balancermember[$name]],
+      require     => [Haproxy::Listen[$name], Haproxy::Balancermember[$name]],
     }
-  }
-
-  if $require_service {
-    Service[$require_service] -> Haproxy::Listen[$name]
-    Service[$require_service] -> Haproxy::Balancermember[$name]
-  }
 }

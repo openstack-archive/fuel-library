@@ -7,6 +7,4 @@ class openstack::ha::ceilometer {
     public          => true,
     require_service => 'ceilometer-api',
   }
-
-  Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service['ceilometer-api']
 }
