@@ -100,6 +100,17 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
+- id: top-role-cinder-vmware
+  type: puppet
+  groups: [cinder-vmware]
+  required_for: [deploy]
+  requires: [hosts, firewall]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cinder-vmware.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+
 - id: legacy
   type: puppet
   groups: [zabbix-server, primary-mongo, mongo]
@@ -109,4 +120,3 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/legacy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
-
