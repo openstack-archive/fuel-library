@@ -11,6 +11,4 @@ class openstack::ha::cinder {
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
-
-  Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service['cinder-api']
 }

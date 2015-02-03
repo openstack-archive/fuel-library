@@ -36,6 +36,4 @@ class openstack::ha::nova {
     internal        => false,
     require_service => 'nova-vncproxy',
   }
-
-  Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service['nova-api']
 }
