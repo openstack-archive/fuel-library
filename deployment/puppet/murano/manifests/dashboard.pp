@@ -24,7 +24,6 @@ class murano::dashboard (
   file_line { 'murano_url' :
     path    => $local_settings,
     line    => $murano_url_string,
-    require => File[$local_settings],
   }
 
   file { $modify_config :

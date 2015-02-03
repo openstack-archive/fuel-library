@@ -22,5 +22,4 @@ class openstack::ha::keystone {
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
 
   }
-  Openstack::Ha::Haproxy_service['keystone-1', 'keystone-2']->Service<| title=='keystone' |>
 }
