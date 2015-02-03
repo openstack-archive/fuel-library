@@ -9,6 +9,8 @@ $mco_user = $::fuel_settings['mcollective']['user']
 $mco_password = $::fuel_settings['mcollective']['password']
 $mco_connector = "rabbitmq"
 
+class { 'nailgun::loopback': }
+
 class { "mcollective::server":
     pskey    => $::mco_pskey,
     vhost    => $::mco_vhost,
