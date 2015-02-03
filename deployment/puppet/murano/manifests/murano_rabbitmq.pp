@@ -94,7 +94,7 @@ class murano::murano_rabbitmq(
     path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
   }
 
-  Class['rabbitmq::service'] -> File['rabbitmq_config'] -> File['init_script'] -> Exec['install_init_script'] -> Service['rabbitmq-server-murano']
+  File['rabbitmq_config'] -> File['init_script'] -> Exec['install_init_script'] -> Service['rabbitmq-server-murano']
   Firewall[$firewall_rule_name] -> Service['rabbitmq-server-murano']
   File['rabbitmq_config'] ~> Service['rabbitmq-server-murano']
   File['init_script'] ~> Service['rabbitmq-server-murano']
