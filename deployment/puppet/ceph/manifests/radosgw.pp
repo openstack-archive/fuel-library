@@ -136,9 +136,6 @@ class ceph::radosgw (
 
   if ($::osfamily == 'Debian'){
 
-    apache::mod {'rewrite': }
-    apache::mod {'fastcgi': }
-
     file {'/etc/apache2/sites-enabled/rgw.conf':
       ensure => link,
       target => "${::ceph::params::dir_httpd_sites}/rgw.conf",
@@ -147,8 +144,7 @@ class ceph::radosgw (
 
     Package[$::ceph::params::package_fastcgi] ->
     File["${::ceph::params::dir_httpd_sites}/rgw.conf"] ->
-    File['/etc/apache2/sites-enabled/rgw.conf'] ->
-    Apache::Mod[['rewrite', 'fastcgi']] ~>
+    File['/etc/apache2/sites-enabled/rgw.conf'] ~>
     Service['httpd']
 
   } #END osfamily Debian

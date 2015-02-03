@@ -6,7 +6,6 @@ class openstack::ha::rabbitmq {
     listen_port         => 5672,
     balancermember_port => 5673,
     define_backups      => true,
-    before_start        => true,
 
     haproxy_config_options => {
       'option'         => ['tcpka'],

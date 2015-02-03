@@ -77,6 +77,8 @@ class openstack::glance (
   $amqp_durable_queues          = false,
   $control_exchange             = 'glance',
   $known_stores                 = false,
+  $rbd_store_user               = 'images',
+  $rbd_store_pool               = 'images',
 ) {
   validate_string($glance_user_password)
   validate_string($glance_db_password)
@@ -233,8 +235,8 @@ class openstack::glance (
     'rbd', 'ceph': {
       Ceph::Pool<| title == $::ceph::glance_pool |> ->
       class { "glance::backend::rbd":
-        rbd_store_user => $::ceph::glance_user,
-        rbd_store_pool => $::ceph::glance_pool,
+        rbd_store_user => $rbd_store_user,
+        rbd_store_pool => $rbd_store_pool,
       }
     }
     'vmware': {
