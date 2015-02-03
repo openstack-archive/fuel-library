@@ -12,11 +12,4 @@ class openstack::ha::neutron {
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
-
-  Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service<| title == 'neutron-server'|>
-  Exec['haproxy reload for neutron'] -> Service<| title == 'neutron-server'|>
-
-  Openstack::Ha::Haproxy_service<| title == 'mysqld' |> -> Exec <| title == 'neutron-db-sync' |>
-  Openstack::Ha::Haproxy_service<| title == 'mysqld' |> -> Service<| title == 'neutron-server'|>
-
 }
