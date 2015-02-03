@@ -474,12 +474,6 @@ if $use_ceph {
 #################################################################
 include osnailyfacter::test_controller
 
-class { 'cluster::haproxy':
-  haproxy_maxconn    => '16000',
-  haproxy_bufsize    => '32768',
-  primary_controller => $primary_controller
-}
-
 class { 'compact_controller':
   primary_controller => $primary_controller
 }
