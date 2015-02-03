@@ -19,3 +19,14 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/compute.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+
+- id: top-role-cinder-vmware
+  type: puppet
+  groups: [cinder-vmware]
+  required_for: [deploy]
+  requires: [hosts, firewall, top-role-cinder]
+  condition: "settings:common.libvirt_type.value == 'vcenter' or settings:common.use_vcenter.value == true"
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/cinder-vmware.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
