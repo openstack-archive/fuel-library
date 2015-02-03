@@ -98,9 +98,7 @@ define l23network::l2::bond (
     default => $provider
   }
   $eee = default_provider_for('L2_port')
-  # notify{"XXXXX: '$actual_provider_for_bond_interface'":}
-  # notify{"YYYYY: '$actual_monolith_bond_providers'":}
-  # notify{"ZZZ: '$eee'":}
+
   if ! member($actual_monolith_bond_providers, $actual_provider_for_bond_interface) {
     l23network::l2::bond_interface{ $interfaces:
       bond                 => $bond,

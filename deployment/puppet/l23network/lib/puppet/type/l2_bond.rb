@@ -17,12 +17,13 @@ Puppet::Type.newtype(:l2_bond) do
       end
     end
 
-    # newproperty(:port_type) do
-    #   desc "Internal read-only property"
-    #   validate do |value|
-    #     raise ArgumentError, "You shouldn't change port_type -- it's a internal RO property!"
-    #   end
-    # end
+    newproperty(:port_type) do
+      desc "Internal read-only property"
+      validate do |value|
+        raise ArgumentError, "You shouldn't change port_type -- it's a internal RO property!"
+      end
+    end
+
 
     newproperty(:onboot) do
       desc "Whether to bring the interface up"
@@ -52,7 +53,7 @@ Puppet::Type.newtype(:l2_bond) do
       defaultto :absent
       # provider-specific list. may be empty.
       def should_to_s(value)
-        value.sort.join(',')
+        value == :absent  ?  value  :  value.sort.join(',')
       end
       def is_to_s(value)
         should_to_s(value)
@@ -72,6 +73,23 @@ Puppet::Type.newtype(:l2_bond) do
           fail("Interface_properties should be a hash!")
         end
       end
+
+      def should_to_s(value)
+        return :absent if value == :absent
+        rv = []
+        value.keys.sort.each do |key|
+          rv << "(#{key.to_s}=#{value[key]})"
+        end
+        rv.join(', ')
+      end
+
+      def is_to_s(value)
+        should_to_s(value)
+      end
+
+      def insync?(value)
+        should_to_s(value) == should_to_s(should)
+      end
     end
 
     newproperty(:bond_properties) do
@@ -85,6 +103,7 @@ Puppet::Type.newtype(:l2_bond) do
       end
 
       def should_to_s(value)
+        return :absent if value == :absent
         rv = []
         value.keys.sort.each do |key|
           rv << "(#{key.to_s}=#{value[key]})"
