@@ -20,7 +20,8 @@
 # [verbose] Rather to print more verbose (INFO+) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option.
 #    Optional. Defaults to false.
-# [bind_host] Address that keystone binds to. Optional. Defaults to  '0.0.0.0'
+# [public_bind_host] Address that keystone binds to. Optional. Defaults to  '0.0.0.0'
+# [admin_bind_host] Address that keystone binds to. Optional. Defaults to  '0.0.0.0'
 # [internal_address] Internal address for keystone. Optional. Defaults to  $public_address
 # [admin_address] Keystone admin address. Optional. Defaults to  $internal_address
 # [glance] Set up glance endpoints and auth. Optional. Defaults to  true
@@ -50,7 +51,7 @@ class openstack::keystone (
   $db_password,
   $admin_token,
   $admin_email,
-  $admin_user = 'admin',
+  $admin_user                  = 'admin',
   $admin_password,
   $glance_user_password,
   $nova_user_password,
@@ -64,7 +65,8 @@ class openstack::keystone (
   $admin_tenant                = 'admin',
   $verbose                     = false,
   $debug                       = false,
-  $bind_host                   = '0.0.0.0',
+  $public_bind_host            = '0.0.0.0',
+  $admin_bind_host             = '0.0.0.0',
   $internal_address            = false,
   $admin_address               = false,
   $memcache_servers            = false,
@@ -220,7 +222,8 @@ class openstack::keystone (
     admin_token         => $admin_token,
     enabled             => $enabled,
     sql_connection      => $sql_conn,
-    bind_host           => $bind_host,
+    public_bind_host    => $public_bind_host,
+    admin_bind_host     => $admin_bind_host,
     package_ensure      => $package_ensure,
     use_syslog          => $use_syslog,
     idle_timeout        => $idle_timeout,
