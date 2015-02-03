@@ -93,8 +93,7 @@
   type: puppet
   groups: [ceph-osd]
   required_for: [deploy]
-  requires: [top-role-controller,
-             top-role-compute, top-role-cinder]
+  requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph-osd.pp
     puppet_modules: /etc/puppet/modules
