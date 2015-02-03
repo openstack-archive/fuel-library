@@ -189,7 +189,7 @@ $max_retries              = hiera('max_retries', '-1')
 $idle_timeout             = hiera('idle_timeout','3600')
 $nova_db_password         = $nova_hash['db_password']
 $cinder_iscsi_bind_addr   = $storage_address
-$sql_connection           = "mysql://nova:${nova_db_password}@${controller_node_address}/nova?read_timeout = 6 0"
+$database_connection      = "mysql://nova:${nova_db_password}@${controller_node_address}/nova?read_timeout = 6 0"
 $mirror_type              = hiera('mirror_type', 'external')
 $multi_host               = hiera('multi_host', true)
 

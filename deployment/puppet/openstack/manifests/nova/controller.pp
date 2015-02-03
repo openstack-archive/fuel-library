@@ -120,8 +120,8 @@ class openstack::nova::controller (
     Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'glance_api_servers' |>>
   }
 
-  $sql_connection    = $nova_db
-  $glance_connection = $real_glance_api_servers
+  $database_connection = $nova_db
+  $glance_connection   = $real_glance_api_servers
   if ($debug) {
     $rabbit_levels = '[connection,debug,info,error]'
   } else {
@@ -253,7 +253,7 @@ class openstack::nova::controller (
 
   class { 'nova':
     install_utilities      => false,
-    sql_connection         => $sql_connection,
+    database_connection    => $database_connection,
     rpc_backend            => $rpc_backend,
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
     rabbit_hosts           => split($amqp_hosts, ','),
@@ -356,7 +356,7 @@ class openstack::nova::controller (
     Nova::Generic_service <| title == 'api' |>
   }
 
-  if !($sql_connection) {
+  if !($database_connection) {
      Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'connection' |>>
   }
 
