@@ -116,7 +116,6 @@ class openstack::ceilometer (
     if $ha_mode {
       $ceilometer_agent_res_name = "p_${::ceilometer::params::agent_central_service_name}"
 
-      Package['pacemaker'] -> File['ceilometer-agent-central-ocf']
       Package['ceilometer-common'] -> File['ceilometer-agent-central-ocf']
       Package['ceilometer-agent-central'] -> File['ceilometer-agent-central-ocf']
 
@@ -165,7 +164,6 @@ class openstack::ceilometer (
 
     Package['ceilometer-common'] -> File['ceilometer-alarm-evaluator-ocf']
     Package[$::ceilometer::params::alarm_package_name] -> File['ceilometer-alarm-evaluator-ocf']
-    Package['pacemaker'] -> File['ceilometer-alarm-evaluator-ocf']
     file {'ceilometer-alarm-evaluator-ocf':
       path   => '/usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator',
       mode   => '0755',

@@ -39,6 +39,9 @@ class openstack::cinder(
   $vmware_host_ip         = '10.10.10.10',
   $vmware_host_username   = 'administrator@vsphere.local',
   $vmware_host_password   = 'password',
+  $rbd_pool               = 'volumes',
+  $rbd_user               = 'volumes',
+  $rbd_secret_uuid        = 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -172,9 +175,9 @@ class openstack::cinder(
       'ceph': {
         Ceph::Pool<| title == $::ceph::cinder_pool |> ->
         class {'cinder::volume::rbd':
-          rbd_pool        => $::ceph::cinder_pool,
-          rbd_user        => $::ceph::cinder_user,
-          rbd_secret_uuid => $::ceph::rbd_secret_uuid,
+          rbd_pool        => $rbd_pool,
+          rbd_user        => $rbd_user,
+          rbd_secret_uuid => $rbd_secret_uuid,
         }
 
         class {'cinder::backup':

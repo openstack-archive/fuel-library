@@ -101,6 +101,12 @@ class openstack::horizon (
     default_vhost => false,
   }
 
+  if ($::osfamily == 'Debian'){
+    # We need these apache modules for rados-gw
+    apache::mod {'rewrite': }
+    apache::mod {'fastcgi': }
+  }
+
   class { "::apache::mod::$mpm_module":
     startservers        => $startservers,
     maxclients          => $maxclients,
