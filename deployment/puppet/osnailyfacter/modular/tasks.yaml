@@ -30,7 +30,7 @@
 
 - id: hosts
   type: puppet
-  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
   required_for: [deploy]
   requires: [netconfig]
   parameters:
@@ -40,7 +40,7 @@
 
 - id: firewall
   type: puppet
-  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
   required_for: [deploy]
   requires: [netconfig]
   parameters:
@@ -60,7 +60,7 @@
 - id: globals
   type: puppet
   groups: [primary-controller, controller,
-           cinder, compute, ceph-osd,
+           cinder, cinder-vmware, compute, ceph-osd,
            zabbix-server, primary-mongo, mongo]
   required_for: [deploy]
   requires: [hiera]
@@ -91,7 +91,7 @@
 
 - id: top-role-cinder
   type: puppet
-  groups: [cinder]
+  groups: [cinder, cinder-vmware]
   required_for: [deploy]
   requires: [hosts, firewall]
   parameters:
@@ -108,6 +108,7 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph-osd.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+
 
 - id: top-role-primary-mongo
   type: puppet
@@ -138,5 +139,15 @@
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: top-role-cinder-vmware
+  type: puppet
+  groups: [cinder-vmware]
+  required_for: [deploy]
+  requires: [hosts, firewall, top-role-cinder]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cinder-vmware.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600

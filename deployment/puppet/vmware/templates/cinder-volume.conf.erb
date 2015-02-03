@@ -1,0 +1,22 @@
+[DEFAULT]
+host=<%= @index %>
+storage_availability_zone=<%= scope.lookupvar('vmware::cinder::storage_availability_zone')%>
+default_availability_zone=<%= scope.lookupvar('vmware::cinder::default_availability_zone')%>
+log_file=<%= scope.lookupvar('vmware::cinder::cinder_volume_log')%>
+volume_driver=cinder.volume.drivers.vmware.vmdk.VMwareVcVmdkDriver
+debug=<%= scope.lookupvar('vmware::cinder::debug')%>
+vmware_host_ip=<%= scope.lookupvar('vmware::cinder::vmware_host_ip')%>
+vmware_host_password=<%= scope.lookupvar('vmware::cinder::vmware_host_password')%>
+vmware_host_username=<%= scope.lookupvar('vmware::cinder::vmware_host_username')%>
+vmware_volume_folder=<%= scope.lookupvar('vmware::cinder::vmware_volume_folder')%>
+<% if !scope.lookupvar('vmware::cinder::vmware_wsdl_location').empty? -%>
+vmware_wsdl_location=<%= scope.lookupvar('vmware::cinder::vmware_wsdl_location')%>
+<% end -%>
+vmware_api_retry_count=<%= scope.lookupvar('vmware::cinder::vmware_api_retry_count')%>
+<% if !scope.lookupvar('vmware::cinder::vmware_host_version').empty? -%>
+vmware_host_version=<%= scope.lookupvar('vmware::cinder::vmware_host_version')%>
+<% end -%>
+vmware_image_transfer_timeout_secs=<%= scope.lookupvar('vmware::cinder::vmware_image_transfer_timeout_secs')%>
+vmware_max_objects_retrieval=<%= scope.lookupvar('vmware::cinder::vmware_max_objects_retrieval')%>
+vmware_task_poll_interval=<%= scope.lookupvar('vmware::cinder::vmware_task_poll_interval')%>
+vmware_tmp_dir=<%= scope.lookupvar('vmware::cinder::vmware_tmp_dir')%>
