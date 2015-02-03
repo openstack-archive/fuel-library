@@ -12,9 +12,9 @@ class l23network::l2 (
   if $use_ovs {
     case $::osfamily {
       /(?i)debian/: {
-        package { 'openvswitch-datapath':
-          name => 'openvswitch-datapath-lts-saucy-dkms'
-        }
+	# FIXME: Linux 3.13 and newer don't need the out of tree module.
+	# However the deployment logic assumes such a module is always necessary.
+	# As a work around let's install a different OpenvSwitch related package.
         package { 'openvswitch-common':
           name => 'openvswitch-switch'
         }
@@ -26,12 +26,13 @@ class l23network::l2 (
         package { 'openvswitch-common':
           name => 'openvswitch'
         }
+        Package['openvswitch-datapath'] -> Package['openvswitch-common']
       }
       default: {
         fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
       }
     }
-    Package['openvswitch-datapath'] -> Package['openvswitch-common'] ~> Service['openvswitch-service']
+    Package['openvswitch-common'] ~> Service['openvswitch-service']
     service {'openvswitch-service':
       ensure    => running,
       name      => $::l23network::params::ovs_service_name,
