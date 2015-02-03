@@ -320,17 +320,17 @@ class openstack::all (
 
   # Configure Nova
   class { 'nova':
-    sql_connection     => $nova_db,
-    rabbit_userid      => $rabbit_user,
-    rabbit_password    => $rabbit_password,
-    image_service      => 'nova.image.glance.GlanceImageService',
-    glance_api_servers => "$internal_address:9292",
-    verbose            => $verbose,
-    use_syslog         => $use_syslog,
+    database_connection => $nova_db,
+    rabbit_userid       => $rabbit_user,
+    rabbit_password     => $rabbit_password,
+    image_service       => 'nova.image.glance.GlanceImageService',
+    glance_api_servers  => "$internal_address:9292",
+    verbose             => $verbose,
+    use_syslog          => $use_syslog,
     syslog_log_facility => $syslog_log_facility_nova,
     syslog_log_level    => $syslog_log_level,
-    debug              => $debug,
-    rabbit_host        => '127.0.0.1',
+    debug               => $debug,
+    rabbit_host         => '127.0.0.1',
   }
 
   # Configure nova-api
