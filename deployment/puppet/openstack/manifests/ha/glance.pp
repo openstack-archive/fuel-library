@@ -19,7 +19,4 @@ class openstack::ha::glance {
     listen_port     => 9191,
     require_service => 'glance-registry',
   }
-
-  Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service['glance-api']
-  Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service['glance-registry']
 }

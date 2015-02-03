@@ -37,7 +37,23 @@ class vmware::controller (
   $wsdl_location = undef
 )
 {
-  include nova
+  include nova::params
+
+  # Stubs from nova class in order to not include whole class
+  if ! defined(Class['nova']) {
+    exec { 'post-nova_config':
+      command     => '/bin/echo "Nova config has changed"',
+      refreshonly => true,
+    }
+    exec { 'networking-refresh':
+      command     => '/sbin/ifdown -a ; /sbin/ifup -a',
+      refreshonly => true,
+    }
+    package { 'nova-common':
+      ensure  => 'installed',
+      name    => 'binutils',
+    }
+  }
 
   # Split provided string with cluster names and enumerate items.
   # Index is used to form file names on host system, e.g.

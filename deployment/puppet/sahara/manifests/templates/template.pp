@@ -13,6 +13,6 @@ define sahara::templates::template (
     cwd     => "${templates_dir}",
     command => "bash -c \"source /root/openrc; sahara node-group-template-list | grep -q ${plugin}\"",
     unless  => "bash create_templates.sh ${network_provider} ${plugin}",
-    require => [ File['/root/openrc'], File['script_templates'] ],
+    require => File['script_templates'],
   }
 }
