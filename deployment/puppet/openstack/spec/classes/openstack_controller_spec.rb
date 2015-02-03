@@ -128,7 +128,7 @@ describe 'openstack::controller' do
         :enabled  => true
       )
       should contain_class('nova').with(
-        :sql_connection     => 'mysql://nova:nova_pass@127.0.0.1/nova',
+        :database_connection     => 'mysql://nova:nova_pass@127.0.0.1/nova',
         :rabbit_host        => '127.0.0.1',
         :rabbit_userid      => 'nova',
         :rabbit_password    => 'rabbit_pw',
@@ -245,7 +245,7 @@ describe 'openstack::controller' do
           :enabled  => true
         )
         should contain_class('nova').with(
-          :sql_connection     => 'mysql://nova:pass3@127.0.0.1/nova',
+          :database_connection     => 'mysql://nova:pass3@127.0.0.1/nova',
           :rabbit_host        => '127.0.0.1',
           :rabbit_userid      => 'rabby',
           :rabbit_password    => 'rabby_pw',
