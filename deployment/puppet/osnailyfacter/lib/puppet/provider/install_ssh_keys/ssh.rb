@@ -28,7 +28,7 @@ Puppet::Type.type(:install_ssh_keys).provide :ssh do
 
   def authkey_present?
     return false unless File.exist? authfile
-    File.read(authfile).grep(sshkey).any?
+    File.readlines(authfile).grep(sshkey).any?
   end
 
   def sshdir
