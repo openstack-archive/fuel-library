@@ -1,0 +1,15 @@
+#!/bin/sh
+# This file is managed by Puppet.
+#
+# openstack-nova-compute  OpenStack Nova Compute Worker
+#
+# chkconfig:   - 98 02
+# description: Compute workers manage computing instances on host  \
+#               machines. Through the API, commands are dispatched \
+#               to compute workers to:                             \
+#               * Run instances                                    \
+#               * Terminate instances                              \
+#               * Reboot instances                                 \
+#               * Attach volumes                                   \
+#               * Detach volumes                                   \
+#               * Get console output
