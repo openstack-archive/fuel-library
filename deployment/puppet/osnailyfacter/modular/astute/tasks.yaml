@@ -42,3 +42,21 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
+
+- id: vcenter_compute_zones_create
+  type: shell
+  role: [primary-controller]
+  stage: post_deployment
+  condition: "settings:common.use_vcenter.value == true"
+  parameters:
+    cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py --create_zones
+    timeout: 180
+
+- id: vcenter_delete_network_services
+  type: shell
+  role: [primary-controller]
+  stage: post_deployment
+  condition: "settings:common.use_vcenter.value == true"
+  parameters:
+    cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py --delete_network_services
+    timeout: 180
