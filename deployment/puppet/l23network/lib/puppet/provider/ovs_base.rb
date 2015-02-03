@@ -99,6 +99,13 @@ class Puppet::Provider::Ovs_base < Puppet::Provider::L2_base
     nil
   end
 
+  def slaves
+    @property_hash[:slaves] || :absent
+  end
+  def slaves=(val)
+    nil
+  end
+
   def mtu
     @property_hash[:mtu] || :absent
   end
