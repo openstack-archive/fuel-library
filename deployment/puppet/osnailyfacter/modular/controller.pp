@@ -474,12 +474,6 @@ if $use_ceph {
 #################################################################
 include osnailyfacter::test_controller
 
-class { 'cluster::haproxy':
-  haproxy_maxconn    => '16000',
-  haproxy_bufsize    => '32768',
-  primary_controller => $primary_controller
-}
-
 class { 'compact_controller':
   primary_controller => $primary_controller
 }
@@ -796,7 +790,6 @@ if ($::mellanox_mode == 'ethernet') {
 
 # TODO(bogdando) add monit zabbix services monitoring, if required
 # NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
-include galera::params
 
 package { 'screen':
   ensure => present,
