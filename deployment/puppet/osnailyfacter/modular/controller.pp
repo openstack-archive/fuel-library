@@ -17,7 +17,6 @@ $cinder_nodes_array             = hiera('cinder_nodes', [])
 $sahara_hash                    = hiera('sahara', {})
 $murano_hash                    = hiera('murano', {})
 $heat_hash                      = hiera('heat', {})
-$mp_hash                        = hiera('mp')
 $verbose                        = true
 $debug                          = hiera('debug', true)
 $use_monit                      = hiera('use_monit', false)
@@ -31,7 +30,6 @@ $mysql_hash                     = hiera('mysql', {})
 $rabbit_hash                    = hiera('rabbit', {})
 $glance_hash                    = hiera('glance', {})
 $keystone_hash                  = hiera('keystone', {})
-$swift_hash                     = hiera('swift', {})
 $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
@@ -251,7 +249,6 @@ $controller_nodes = ipsort(values($controller_internal_addresses))
 $controller_node_public  = $public_vip
 $controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
-$mountpoints = filter_hash($mp_hash,'point')
 
 # AMQP client configuration
 if $internal_address in $controller_nodes {
@@ -311,20 +308,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 }
 
 if ($use_swift) {
-  if !hiera('swift_partition', false) {
-    $swift_partition = '/var/lib/glance/node'
-  }
   $swift_proxies            = $controllers
-  $swift_local_net_ip       = $storage_address
-  $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-  $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
-  #$master_hostname         = $master_swift_proxy_nodes[0]['name']
-  $swift_loopback = false
-  if $primary_controller {
-    $primary_proxy = true
-  } else {
-    $primary_proxy = false
-  }
 } elsif ($storage_hash['objects_ceph']) {
   $rgw_servers = $controllers
 }
@@ -572,62 +556,7 @@ class { 'compact_controller':
   primary_controller => $primary_controller
 }
 
-if ($use_swift) {
-  $swift_zone = $node[0]['swift_zone']
 
-  # At least debian glance-common package chowns whole /var/lib/glance recursively
-  # which breaks swift ownership of dirs inside $storage_mnt_base_dir (default: /var/lib/glance/node/)
-  # so we just need to make sure package glance-common (dependency for glance-api) is already installed
-  # before creating swift device directories
-
-  Package[$glance::params::api_package_name] -> Anchor <| title=='swift-device-directories-start' |>
-
-  class { 'openstack::swift::storage_node':
-    storage_type          => $swift_loopback,
-    loopback_size         => '5243780',
-    storage_mnt_base_dir  => $swift_partition,
-    storage_devices       => $mountpoints,
-    swift_zone            => $swift_zone,
-    swift_local_net_ip    => $storage_address,
-    master_swift_proxy_ip => $master_swift_proxy_ip,
-    sync_rings            => ! $primary_proxy,
-    debug                 => $::debug,
-    verbose               => $::verbose,
-    log_facility          => 'LOG_SYSLOG',
-  }
-  if $primary_proxy {
-    ring_devices {'all':
-      storages => $controllers,
-      require  => Class['swift'],
-    }
-  }
-
-  if !$swift_hash['resize_value']
-  {
-    $swift_hash['resize_value'] = 2
-  }
-
-  $ring_part_power=calc_ring_part_power($controllers,$swift_hash['resize_value'])
-
-  class { 'openstack::swift::proxy':
-    swift_user_password     => $swift_hash[user_password],
-    swift_proxies           => $controller_internal_addresses,
-    ring_part_power         => $ring_part_power,
-    primary_proxy           => $primary_proxy,
-    controller_node_address => $management_vip,
-    swift_local_net_ip      => $swift_local_net_ip,
-    master_swift_proxy_ip   => $master_swift_proxy_ip,
-    debug                   => $::debug,
-    verbose                 => $::verbose,
-    log_facility            => 'LOG_SYSLOG',
-  }
-  class { 'swift::keystone::auth':
-    password         => $swift_hash[user_password],
-    public_address   => $public_vip,
-    internal_address => $management_vip,
-    admin_address    => $management_vip,
-  }
-}
 #TODO: PUT this configuration stanza into nova class
 nova_config { 'DEFAULT/use_cow_images':                   value => hiera('use_cow_images')}
 
