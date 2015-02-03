@@ -28,7 +28,6 @@ $mysql_hash                     = hiera('mysql', {})
 $rabbit_hash                    = hiera('rabbit', {})
 $glance_hash                    = hiera('glance', {})
 $keystone_hash                  = hiera('keystone', {})
-$swift_hash                     = hiera('swift', {})
 $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
@@ -247,33 +246,6 @@ if ($storage_hash['images_ceph']) {
   $glance_backend = 'swift'
   $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
 }
-
-# Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
-if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
-  $use_swift = true
-} else {
-  $use_swift = false
-}
-
-if ($use_swift) {
-  if !hiera('swift_partition', false) {
-    $swift_partition = '/var/lib/glance/node'
-  }
-  $swift_proxies            = $controllers
-  $swift_local_net_ip       = $storage_address
-  $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-  $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
-  #$master_hostname         = $master_swift_proxy_nodes[0]['name']
-  $swift_loopback = false
-  if $primary_controller {
-    $primary_proxy = true
-  } else {
-    $primary_proxy = false
-  }
-} elsif ($storage_hash['objects_ceph']) {
-  $rgw_servers = $controllers
-}
-
 
 $network_config = {
   'vlan_start'     => $vlan_start,
