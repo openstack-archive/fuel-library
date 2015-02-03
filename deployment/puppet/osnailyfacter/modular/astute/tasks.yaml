@@ -14,3 +14,11 @@
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/upload_cirros.rb
     timeout: 180
+
+- id: vcenter_compute_zones_create
+  type: shell
+  role: [primary-controller]
+  stage: post_deployment
+  parameters:
+    cmd: . ~/openrc && /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py
+    timeout: 180
