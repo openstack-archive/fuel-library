@@ -703,6 +703,9 @@ if $primary_controller {
 
     Exec<| title=='wait-for-haproxy-keystone-admin-backend' |> ->
     Nova_floating_range <| |>
+
+    Class['keystone::roles::admin'] ->
+    Nova_floating_range <| |>
   }
 }
 
