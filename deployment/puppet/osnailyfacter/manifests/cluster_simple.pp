@@ -388,7 +388,7 @@ class osnailyfacter::cluster_simple {
             api_retries     => 10,
           }
         }
-        Class[nova::api, nova::keystone::auth] -> Nova_floating_range <| |>
+        Class[keystone::roles::admin, nova::api, nova::keystone::auth] -> Nova_floating_range <| |>
       }
 
       if ($::use_ceph){
