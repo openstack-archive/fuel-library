@@ -37,7 +37,8 @@ class vmware::controller (
   $wsdl_location = undef
 )
 {
-  include nova
+  include nova::params
+  include nova::generic_service
 
   # Split provided string with cluster names and enumerate items.
   # Index is used to form file names on host system, e.g.

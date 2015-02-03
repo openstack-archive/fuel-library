@@ -56,7 +56,6 @@ class heat::db::mysql(
       host         => $host,
       charset      => $charset,
       collate      => $collate,
-      require      => Service['mysqld'],
     }
   } else {
     mysql::db { $dbname:
@@ -64,7 +63,6 @@ class heat::db::mysql(
       password     => $password,
       host         => $host,
       charset      => $charset,
-      require      => Class['mysql::config'],
     }
   }
 
