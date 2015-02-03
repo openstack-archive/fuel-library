@@ -7,6 +7,4 @@ class openstack::ha::sahara {
     public          => true,
     require_service => 'sahara-api',
   }
-
-  Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service['sahara-api']
 }
