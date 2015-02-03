@@ -49,5 +49,5 @@
   stage: post_deployment
   condition: "settings:common.use_vcenter.value == true"
   parameters:
-    cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py
+    cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_hooks.py --create_zones
     timeout: 180
