@@ -10,28 +10,17 @@ class l23network::l2 (
   include ::l23network::params
 
   if $use_ovs {
-    case $::osfamily {
-      /(?i)debian/: {
+    if $::l23network::params::ovs_datapath_package_name {
         package { 'openvswitch-datapath':
-          name => 'openvswitch-datapath-lts-saucy-dkms'
-        }
-        package { 'openvswitch-common':
-          name => 'openvswitch-switch'
-        }
-      }
-      /(?i)redhat/: {
-        package { 'openvswitch-datapath':
-          name => 'kmod-openvswitch'
-        }
-        package { 'openvswitch-common':
-          name => 'openvswitch'
-        }
-      }
-      default: {
-        fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
-      }
+        name => $::l23network::params::ovs_datapath_package_name
+       }
     }
-    Package['openvswitch-datapath'] -> Package['openvswitch-common'] ~> Service['openvswitch-service']
+    package { 'openvswitch-common':
+      name => $::l23network::params::ovs_common_package_name
+    }
+ 
+    Package<| title=='openvswitch-datapath' |> -> Package['openvswitch-common']
+    Package['openvswitch-common'] ~> Service['openvswitch-service']
     service {'openvswitch-service':
       ensure    => running,
       name      => $::l23network::params::ovs_service_name,
