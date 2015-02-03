@@ -1,5 +1,6 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
 $fuel_version = parseyaml($fuel_version_yaml)
+$production = $::fuel_version['VERSION']['production']
 
 $mco_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 
@@ -8,6 +9,10 @@ $mco_vhost = "mcollective"
 $mco_user = $::fuel_settings['mcollective']['user']
 $mco_password = $::fuel_settings['mcollective']['password']
 $mco_connector = "rabbitmq"
+
+if $production != 'docker-build' {
+  class { 'nailgun::loopback': }
+}
 
 class { "mcollective::server":
     pskey    => $::mco_pskey,
