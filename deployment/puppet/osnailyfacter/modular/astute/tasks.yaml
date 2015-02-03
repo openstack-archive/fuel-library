@@ -42,3 +42,11 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
+
+- id: vcenter_compute_zones_create
+  type: shell
+  role: [primary-controller]
+  stage: post_deployment
+  parameters:
+    cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py
+    timeout: 180
