@@ -1,0 +1,43 @@
+#    Copyright 2014 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+class vmware::cinder(
+  $vmware_host_ip                     = "1.2.3.4",
+  $vmware_host_password               = "",
+  $vmware_host_username               = "administrator@vsphere.local",
+  $vmware_volume_folder               = "cinder-volumes",
+  $vmware_wsdl_location               = "",
+  $vmware_api_retry_count             = 10,
+  $vmware_host_version                = "",
+  $vmware_image_transfer_timeout_secs = 7200,
+  $vmware_max_objects_retrieval       = 100,
+  $vmware_task_poll_interval          = 0.5,
+  $vmware_tmp_dir                     = "/tmp",
+  $vmware_cluster,
+  $debug,
+)
+{
+  include cinder
+  $vsphere_clusters = vmware_index($vmware_cluster)
+
+  create_resources(vmware::cinder::vmdk, $vsphere_clusters)
+  #а надо ли это с учётом гранулярного деплоя?
+  Cinder::Generic_service['volume'] ->
+  Vmware::Cinder::Vmdk<| |>
+
+  cinder::тратата_service( 'volume':
+    .....
+  )
+  Cinder::..._service['volume']-> Vmware::Cinder<| |>
+}
