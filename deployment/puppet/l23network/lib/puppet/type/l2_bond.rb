@@ -64,9 +64,13 @@ Puppet::Type.newtype(:l2_bond) do
 
     end
 
+    newparam(:trunks, :array_matching => :all) do
+      desc "Array of trunks id, for configure patch's ends as ports in trunk mode"
+    end
+
     newproperty(:interface_properties) do
       desc "Hash of bonded interfaces properties"
-      defaultto {}
+      #defaultto {}
       # provider-specific hash, validating only by type.
       validate do |val|
         if ! val.is_a? Hash
@@ -94,25 +98,35 @@ Puppet::Type.newtype(:l2_bond) do
 
     newproperty(:bond_properties) do
       desc "Hash of bond properties"
-      defaultto {}
+      #defaultto {}
       # provider-specific hash, validating only by type.
       validate do |val|
+        #puts "l2_bond validate got '#{val.inspect}'"
         if ! val.is_a? Hash
           fail("Interface_properties should be a hash!")
         end
       end
 
-      def should_to_s(value)
-        return :absent if value == :absent
-        rv = []
-        value.keys.sort.each do |key|
-          rv << "(#{key.to_s}=#{value[key]})"
+      munge do |val|
+        # it's a workaround, because puppet double some values inside his internal logic
+        val.keys.each do |k|
+          if k.is_a? String
+            if ! val.has_key? k.to_sym
+              val[k.to_sym] = val[k]
+            end
+            val.delete(k)
+          end
         end
-        rv.join(', ')
+        val
+      end
+
+      def should_to_s(value)
+        return '' if value == :absent
+        value.keys.sort.map{|k| "(#{k.to_s}=#{value[k]})"}.join(', ')
       end
 
       def is_to_s(value)
-        should_to_s(value)
+        value.keys.sort.map{|k| "(#{k.to_s}=#{value[k]})"}.join(', ')
       end
 
       def insync?(value)
@@ -160,5 +174,12 @@ Puppet::Type.newtype(:l2_bond) do
     autorequire(:l2_bridge) do
       [self[:bridge]]
     end
+
+    # def validate
+    #   if self[:name].to_s == 'bond23'
+    #     require 'pry'
+    #     binding.pry
+    #   end
+    # end
 end
 # vim: set ts=2 sw=2 et :
