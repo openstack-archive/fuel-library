@@ -18,7 +18,7 @@ end
 
 
 module L23network
-  def self.sanitize_transformation(trans)
+  def self.sanitize_transformation(trans, def_provider)
     action = trans[:action].downcase()
     # Setup defaults
     rv = case action
@@ -27,11 +27,12 @@ module L23network
         :provider => nil
       }
       when "add-br" then {
-        :name          => nil,
-#       :stp_enable    => true,
-#       :skip_existing => nil,
-        :external_ids  => nil,
-        :provider      => nil
+        :name                 => nil,
+        :stp_enable           => nil,
+        :external_ids         => nil,
+#       :interface_properties => nil,
+        :vendor_specific      => nil,
+        :provider             => nil
       }
       when "add-port" then {
         :name                 => nil,
@@ -41,31 +42,29 @@ module L23network
         :vlan_id              => 0,
         :vlan_dev             => nil,
         :vlan_mode            => nil,
-        :trunks               => [],
-        :port_properties      => [],
-        :interface_properties => [],
-#       :skip_existing        => true,
+#       :trunks               => [],
+        :vendor_specific      => nil,
         :provider             => nil
       }
       when "add-bond" then {
-        :name          => nil,
-        :bridge        => nil,
-        :interfaces    => [],
-        :vlan_id       => 0,
-        :trunks        => [],
-        :properties    => [],
-#       :port_properties => [],
-#       :interface_properties => [],
-#       :skip_existing => true,
-        :provider      => 'ovs'
+        :name                 => nil,
+        :bridge               => nil,
+        :interfaces           => [],
+#       :vlan_id              => 0,
+#       :trunks               => [],
+        :bond_properties      => nil,
+        :interface_properties => nil,
+        :vendor_specific      => nil,
+        :provider             => nil
       }
       when "add-patch" then {
-        :name      => "unnamed", # calculated later
-        :peers     => [nil, nil],
-        :bridges   => [],
-        :vlan_ids  => [0, 0],
-        :trunks    => [],
-        :provider  => 'ovs'
+        :name            => "unnamed", # calculated later
+        :peers           => [nil, nil],
+        :bridges         => [],
+        :vlan_ids        => [0, 0],
+        :trunks          => [],
+        :vendor_specific => nil,
+        :provider        => nil
       }
       else
         raise(Puppet::ParseError, "Unknown transformation: '#{action}'.")
@@ -77,6 +76,7 @@ module L23network
         rv[k] = trans[k]
       end
     end
+    rv[:provider] = def_provider if rv[:provider].nil?
     # Check for incorrect parameters
     if not rv[:name].is_a? String
       raise(Puppet::ParseError, "Unnamed transformation: '#{action}'.")
@@ -121,24 +121,25 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       }
     end
 
-    #PORT_PROPERTIES = [:macaddr, :mtu, :ethtool]
-    PORT_PROPERTIES = [:mtu]
-
     if argv.size != 0
       raise(Puppet::ParseError, "generate_network_config(): Wrong number of arguments.")
     end
-
     config_hash = L23network::Scheme.get_config(lookupvar('l3_fqdn_hostname'))
     if config_hash.nil?
-      raise(Puppet::ParseError, "get_network_role_property(...): You must call prepare_network_config(...) first!")
+      raise(Puppet::ParseError, "generate_network_config(...): You must call prepare_network_config(...) first!")
     end
+
+    if config_hash[:version].to_r < 1.1
+      raise(Puppet::ParseError, "generate_network_config(...): You network_scheme hash has wrong format.\nThis parser can work with v1.1 format, please convert you config.")
+    end
+
+    default_provider = config_hash[:provider] || 'lnx'
 
     # define internal puppet parameters for creating resources
     res_factory = {
       :br       => { :name_of_resource => 'l23network::l2::bridge' },
       :port     => { :name_of_resource => 'l23network::l2::port' },
       :bond     => { :name_of_resource => 'l23network::l2::bond' },
-#     :bond_lnx => { :name_of_resource => 'l23network::l3::ifconfig' },
       :patch    => { :name_of_resource => 'l23network::l2::patch' },
       :ifconfig => { :name_of_resource => 'l23network::l3::ifconfig' }
     }
@@ -165,14 +166,14 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       born_ports << int_name
       # add some of 1st level interface properties to it's config
       ports_properties[int_name] ||= {}
-      int_properties.each do |k,v|
-        k = k.to_s.tr('-','_').to_sym
-        next if ! PORT_PROPERTIES.include? k
-        ports_properties[int_name][k] = v
+      if ! int_properties.nil?
+        int_properties.each do |k,v|
+          k = k.to_s.tr('-','_').to_sym
+          ports_properties[int_name][k] = v
+        end
       end
     end
     # collect L3::ifconfig properties from 'endpoints' section
-    endpoints_properties = {}
     endpoints = {}
     config_hash[:endpoints].each do |e_name, e_properties|
       e_name = e_name.to_sym()
@@ -210,6 +211,10 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       action = t[:action].strip()
       if action.start_with?('add-')
         action = t[:action][4..-1].to_sym()
+        action_ensure = nil
+      elsif action.start_with?('del-')
+        action = t[:action][4..-1].to_sym()
+        action_ensure = 'absent'
       else
         action = t[:action].to_sym()
       end
@@ -258,119 +263,32 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
 
       next if action == :noop
 
-      trans = L23network.sanitize_transformation(t)
+      trans = L23network.sanitize_transformation(t, default_provider)
       if !ports_properties[t[:name].to_sym()].nil?
         trans.merge! ports_properties[t[:name].to_sym()]
       end
 
       # create puppet resources
+      resource = res_factory[action][:name_of_resource]
+      resource_properties = { }
+      debug("generate_network_config(): Transformation '#{trans[:name]} will be produced as '#{trans}'.")
 
-      if action == :bond and t[:provider] == 'lnx'
-        # #temporary disable bonds
-        # #
-        # # Add Linux_bond-specific parameters to the ifconfig
-        # e_name = t[:name].to_sym
-        # if ! endpoints[e_name]
-        #   endpoints[e_name] = create_endpoint()
-        # end
-        # endpoints[e_name][:properties] ||= { :ipaddr => 'none' }
-        # endpoints[e_name][:properties][:bond_properties] = Hash[t[:properties].map{|k,v| [k.to_s,v]}]
-        # born_ports.insert(-1, e_name)
-        # t[:interfaces].each{ |iface|
-        #   if ! endpoints[iface.to_sym]
-        #     endpoints[iface.to_sym] = create_endpoint()
-        #   end
-        #   endpoints[iface.to_sym][:properties] ||= { :ipaddr => 'none' }
-        #   endpoints[iface.to_sym][:properties][:bond_master] = t[:name].to_s
-        # }
-        # # add port to the ovs bridge as ordinary port
-        # tt = Marshal.load(Marshal.dump(t))
-        # tt[:action] = 'add-port'  # because lnx-bind is a ordinary port in OVS
-        # port_trans = L23network.sanitize_transformation(tt)
-        # resource = res_factory[:port][:resource]
-        # p_resource = Puppet::Parser::Resource.new(
-        #     res_factory[:port][:name_of_resource],
-        #     port_trans[:name],
-        #     :scope => self,
-        #     :source => resource
-        # )
-        # trans.select{|k,v| ! [:action, :interfaces, :properties].index(k) }.each do |k,v|
-        #   p_resource.set_parameter(k,v)
-        # end
-        # req_list = []
-        # req_list.insert(-1, previous) if previous
-        # req_list.insert(-1, "L3_if_downup[#{tt[:name]}]")
-        # p_resource.set_parameter(:require, req_list)
-        # resource.instantiate_resource(self, p_resource)
-        # compiler.add_resource(self, p_resource)
-        # transformation_success.insert(-1, "bond-lnx_as_port(#{port_trans[:name]})")
-        # born_ports.insert(-1, port_trans[:name].to_sym())
-      else
-        # normal transformation
-        resource = res_factory[action][:resource]
-        p_resource = Puppet::Parser::Resource.new(
-            res_factory[action][:name_of_resource],
-            trans[:name],
-            :scope => self,
-            :source => resource
-        )
-
-        # temporary disable VLAN-splinters
-        # # setup trunks and vlan_splinters for phys.NIC
-        # if (action == :port) and config_hash[:interfaces][trans[:name].to_sym] and  # does adding phys.interface?
-        #    config_hash[:interfaces][trans[:name].to_sym][:L2] and                   # does this interface have L2 section
-        #    config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks] and          # does this interface have TRUNKS section
-        #    config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks].is_a?(Array) and
-        #    config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks].size() > 0   # does trunks section non empty?
-        #       Puppet.debug("Configure trunks and vlan_splinters for #{trans[:name]} (value is '#{config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters]}')")
-        #       _do_trunks = true
-        #       if config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters]
-        #         if config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters] == 'on'
-        #           trans[:vlan_splinters] = true
-        #         elsif config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters] == 'auto'
-        #           sp_nics = lookupvar('l2_ovs_vlan_splinters_need_for')
-        #           Puppet.debug("l2_ovs_vlan_splinters_need_for: #{sp_nics}")
-        #           if sp_nics and sp_nics != :undefined and sp_nics.split(',').index(trans[:name].to_s)
-        #             Puppet.debug("enable vlan_splinters for: #{trans[:name].to_s}")
-        #             trans[:vlan_splinters] = true
-        #           else
-        #             trans[:vlan_splinters] = false
-        #             if trans[:trunks] and trans[:trunks].size() >0
-        #               Puppet.debug("disable vlan_splinters for: #{trans[:name].to_s}. Trunks will be set to '#{trans[:trunks].join(',')}'")
-        #               config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks] = []
-        #             else
-        #               Puppet.debug("disable vlan_splinters for: #{trans[:name].to_s}. Trunks for this interface also disabled.")
-        #               _do_trunks = false
-        #             end
-        #           end
-        #         else
-        #           trans[:vlan_splinters] = false
-        #         end
-        #       else
-        #         trans[:vlan_splinters] = false
-        #       end
-        #       # add trunks list to the interface if it given
-        #       if _do_trunks
-        #         _trunks = [0] + trans[:trunks] + config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks]  # zero for pass untagged traffic
-        #         _trunks.sort!().uniq!()
-        #         trans[:trunks] = _trunks
-        #       end
-        #       Puppet.debug("Configure trunks and vlan_splinters for #{trans[:name]} done.")
-        # end
-
-        debug("generate_network_config(): Transformation '#{trans[:name]} will be produced as '#{trans}'.")
-
-        trans.select{|k,v| ![:action, :skip_existing].include? k}.each do |k,v|
-          p_resource.set_parameter(k,v) if !v.nil?
-        end
-
-        p_resource.set_parameter(:require, [previous]) if previous
-        resource.instantiate_resource(self, p_resource)
-        compiler.add_resource(self, p_resource)
-        transformation_success.insert(-1, "#{t[:action].strip()}(#{trans[:name]})")
-        born_ports.insert(-1, trans[:name].to_sym()) if action != :patch
-        previous = p_resource.to_s
+      trans.select{|k,v| k != :action}.each do |k,v|
+        #puts "[#{k}]=[#{v}]"
+        resource_properties[k.to_sym] = v if ! v.nil?
       end
+
+      resource_properties[:require] = [previous] if previous
+      function_create_resources([resource, {
+        "#{trans[:name]}" => resource_properties
+      }])
+      # if trans[:name].to_s == 'bond23'
+      #   require 'pry'
+      #   binding.pry
+      # end
+      transformation_success.insert(-1, "#{t[:action].strip()}(#{trans[:name]})")
+      born_ports.insert(-1, trans[:name].to_sym()) if action != :patch
+      previous = "#{resource}[#{trans[:name]}]"
     end
 
     # check for all in endpoints are in interfaces or born by transformation

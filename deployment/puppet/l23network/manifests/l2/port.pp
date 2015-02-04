@@ -66,7 +66,7 @@ define l23network::l2::port (
         }
       }
     }
-    /^(eth\d+)\.(\d+)/: {
+    /^([\w\-]+\d+)\.(\d+)/: {
       $port_vlan_mode = 'eth'
       $port_vlan_id   = $2
       $port_vlan_dev  = $1
