@@ -35,11 +35,6 @@ Puppet::Type.newtype(:l2_port) do
       end
     end
 
-    newparam(:skip_existing) do
-      defaultto(false)
-      desc "Allow to skip existing port"
-    end
-
     newproperty(:onboot) do
       desc "Whether to bring the interface up"
       newvalues(:true, :yes, :on, :false, :no, :off)
@@ -122,7 +117,6 @@ Puppet::Type.newtype(:l2_port) do
     end
 
     newparam(:trunks, :array_matching => :all) do
-      defaultto([])
       desc "Array of trunks id, for configure patch's ends as ports in trunk mode"
     end
 
@@ -156,6 +150,17 @@ Puppet::Type.newtype(:l2_port) do
           rescue
             :absent
           end
+        end
+      end
+    end
+
+    newproperty(:ethtool) do
+      desc "Hash of ethtool properties"
+      defaultto {}
+      # provider-specific hash, validating only by type.
+      validate do |val|
+        if ! val.is_a? Hash
+          fail("Ethtool should be a hash!")
         end
       end
     end

@@ -178,12 +178,12 @@ class Puppet::Provider::L2_base < Puppet::Provider
       elsif line =~ /^\s*$/ or line == :EOF
         rv[buff['name']] = {
           :vendor_specific => {
-            :trunks        => buff['trunks'].tr("[]",'').split(/[\,\s]+/), #.map{|i| i.to_i},
             :other_config  => ovs_parse_opthash(buff['other_config']),
             :status        => ovs_parse_opthash(buff['status']),
           }
         }
-        rv[buff['name']][:vlan_id] = buff['tag'] if ! buff['tag'].empty?
+        rv[buff['name']][:vlan_id] = buff['tag'] if ! (buff['tag'].nil? or buff['tag'].empty?)
+        rv[buff['name']][:trunks]  = buff['trunks'].tr("[]",'').split(/[\,\s]+/) if ! (buff['trunks'].nil? or buff['trunks'].empty?)
         debug("Found OVS port '#{buff['name']}' with properties: #{rv[buff['name']]}")
         buff = {}
       else
@@ -214,7 +214,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
       elsif line =~ /^\s*$/ or line == :EOF
         rv[buff['name']] = {
           :mtu        => buff['mtu'],
-          :port_type  => buff['type'].empty?  ?  []  :  [buff['type']],
+          :port_type  => (buff['type'].nil? or buff['type'].empty?)  ?  []  :  [buff['type']],
           :vendor_specific => {
             :status     => ovs_parse_opthash(buff['status']),
           }
