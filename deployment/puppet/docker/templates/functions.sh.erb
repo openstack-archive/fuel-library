@@ -62,7 +62,9 @@ function debug {
   fi
 }
 function build_image {
-  ${DOCKER} build -t $2 $1
+  tag_name=$2
+  dockerfile_path=$1
+  ${DOCKER} build -t $tag_name $dockerfile_path
 }
 
 function revert_container {
