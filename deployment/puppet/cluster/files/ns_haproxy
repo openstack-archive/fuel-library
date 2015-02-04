@@ -270,6 +270,7 @@ if [ $# -ne 1 ]; then
 	usage
 	exit $OCF_ERR_ARGS
 fi
+umask 0022
 
 case $1 in
 	start) haproxy_start
