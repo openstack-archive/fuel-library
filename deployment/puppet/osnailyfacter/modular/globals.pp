@@ -37,7 +37,7 @@ $network_scheme                 = hiera('network_scheme', {})
 $disable_offload                = hiera('disable_offload')
 $verbose                        = true
 $debug                          = hiera('debug', false)
-$use_monit                      = hiera('use_monit', true)
+$use_monit                      = false
 $master_ip                      = hiera('master_ip')
 $management_network_range       = hiera('management_network_range')
 

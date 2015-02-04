@@ -152,7 +152,8 @@ $syslog_log_facility_ceph       = 'LOG_LOCAL0'
 # If enabled, will install monit and configure its watchdogs to track
 # nova-compute/api/network (and openvswitch service, if neutron enabled)
 # at compute nodes.
-$use_monit = true
+# TODO(bogdando) set to true once monit package shipped with Fuel ISO
+$use_monit = false
 
 $nova_rate_limits = {
   'POST' => 100000,
