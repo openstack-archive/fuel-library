@@ -1,13 +1,24 @@
 module Puppet::Parser::Functions
   newfunction(:filter_hash, :type => :rvalue,  :doc => <<-EOS
-    Map array of hashes $arg0 to an array yielding 
+    Map array of hashes $arguments[0] to an array yielding
     an element from each hash by key $arg1
     EOS
- ) do |args|
-    hash = args[0]
-    field  = args[1]
-    hash.map do |e|
-      e[field]
-    end
-  end
+ ) do |arguments|
+
+   raise(Puppet::ParseError, "filter_hash(): Wrong number of arguments " +
+     "given (#{arguments.size} for 2) if arguments.size < 2"
+
+   value = arguments[0]
+   field = arguments[1]
+
+   if value.is_a?(Hash)
+     value.map do |e|
+       value = e[field]
+     end
+   else
+     raise(Puppet::ParseError, 'filter_hash(): Requires Hash to work with')
+   end
+
+   return value
 end
+#  vim: set ts=2 sw=2 tw=0 et :
