@@ -9,6 +9,7 @@ addn-hosts = /var/lib/cobbler/cobbler_hosts
 domain=<%= @domain_name %>
 dhcp-lease-max=<%= @dhcp_lease_max %>
 server=/<%= @domain_name %>/
+server=/<%= @dns_domain %>/
 resolv-file=/etc/dnsmasq.upstream
 dhcp-match=gpxe,175
 interface=<%= @dhcp_interface %>
