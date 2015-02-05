@@ -6,8 +6,12 @@ module Puppet::Parser::Functions
  ) do |args|
     hash = args[0]
     field  = args[1]
-    hash.map do |e|
-      e[field]
+    if hash.respond_to?('each')
+       hash.map do |e|
+          e[field]
+       end
+    else
+      []
     end
   end
 end
