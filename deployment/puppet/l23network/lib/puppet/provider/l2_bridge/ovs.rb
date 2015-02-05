@@ -1,9 +1,10 @@
 require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_base')
 
 Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
-  commands   :vsctl   => 'ovs-vsctl',
-             :brctl   => 'brctl',
-             :iproute => 'ip'
+  commands   :vsctl       => 'ovs-vsctl',
+             :ethtool_cmd => 'ethtool',
+             :brctl       => 'brctl',
+             :iproute     => 'ip'
 
   def self.skip_port_for?(port_props)
     port_props[:br_type] != 'ovs'

@@ -275,10 +275,10 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
 
       trans.select{|k,v| k != :action}.each do |k,v|
         #puts "[#{k}]=[#{v}]"
-        resource_properties[k.to_sym] = v if ! v.nil?
+        resource_properties[k.to_s] = v if ! v.nil?
       end
 
-      resource_properties[:require] = [previous] if previous
+      resource_properties['require'] = [previous] if previous
       function_create_resources([resource, {
         "#{trans[:name]}" => resource_properties
       }])
