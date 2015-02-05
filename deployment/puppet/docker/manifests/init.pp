@@ -1,6 +1,8 @@
 class docker (
 $admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 $limit = "102400",
+$metadata_device = "/dev/os/docker_metadata",
+$data_device = "/dev/os/docker_data",
 $docker_package = "docker-io",
 $docker_service = "docker",
 $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",

@@ -1,2 +1,2 @@
-other_args=""
+other_args="--storage-opt dm.datadev=<%= @data_device %> --storage-opt dm.metadatadev=<%= @metadata_device %>"
 ulimit -n <%= @limit %>
