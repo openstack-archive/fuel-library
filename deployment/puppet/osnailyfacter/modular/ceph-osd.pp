@@ -107,6 +107,15 @@ notify {"ceph_osd: ${osd_devices}": }
 notify {"osd_devices:  ${::osd_devices_list}": }
 # TODO(bogdando) add monit ceph-osd services monitoring, if required
 
+#Verify whether ceph OSDs are ready
+exec { 'wait for ready Ceph OSDs':
+  command   => "ceph osd stat | grep -c '0 up' | grep -q 0 && ceph --status | grep -q HEALTH_OK ",
+  path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+  try_sleep => 60,
+  tries     => 30,
+  require   => Class['ceph'],
+}
+
 #################################################################
 
 # vim: set ts=2 sw=2 et :
