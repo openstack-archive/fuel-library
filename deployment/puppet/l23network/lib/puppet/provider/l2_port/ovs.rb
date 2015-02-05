@@ -1,9 +1,9 @@
 require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_base')
 
 Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
-#  confine    :osfamily => :linux
-  commands   :vsctl   => 'ovs-vsctl',
-             :iproute => 'ip'
+  commands   :vsctl       => 'ovs-vsctl',
+             :ethtool_cmd => 'ethtool',
+             :iproute     => 'ip'
 
 
   def self.add_unremovable_flag(port_props)
@@ -95,6 +95,13 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   end
 
   #-----------------------------------------------------------------
+
+  def ethtool
+    @property_hash[:ethtool] || nil
+  end
+  def ethtool=(val)
+    @property_flush[:ethtool] = val
+  end
 
 end
 # vim: set ts=2 sw=2 et :
