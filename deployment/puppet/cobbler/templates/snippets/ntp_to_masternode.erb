@@ -2,7 +2,6 @@
 sed -i '/^\s*tinker panic/ d' /etc/ntp.conf
 sed -i '1 i tinker panic 0' /etc/ntp.conf
 
-mkdir /var/lib/ntp
 echo 0 > /var/lib/ntp/drift
 chown ntp: /var/lib/ntp/drift
 
@@ -11,4 +10,4 @@ sed -i '/^\s*server/ d' /etc/ntp.conf
 echo "server $server burst iburst" >> /etc/ntp.conf
 sed -i 's/SYNC_HWCLOCK\s*=\s*no/SYNC_HWCLOCK=yes/' /etc/sysconfig/ntpdate
 chkconfig ntpd on
-chkconfig sntp on
+chkconfig ntpdate on
