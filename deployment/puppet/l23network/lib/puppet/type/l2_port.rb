@@ -1,5 +1,8 @@
 # type for managing runtime NIC states.
 
+require 'yaml'
+require 'puppetx/l23_utils'
+
 Puppet::Type.newtype(:l2_port) do
     @doc = "Manage a network port abctraction."
     desc @doc
@@ -156,23 +159,60 @@ Puppet::Type.newtype(:l2_port) do
 
     newproperty(:ethtool) do
       desc "Hash of ethtool properties"
-      defaultto {}
+      #defaultto {}
       # provider-specific hash, validating only by type.
       validate do |val|
         if ! val.is_a? Hash
           fail("Ethtool should be a hash!")
         end
       end
+      munge do |value|
+        reccursive_sanitize_hash(value)
+      end
+
+      def should_to_s(value)
+        "\n#{value.to_yaml}\n"
+      end
+
+      def is_to_s(value)
+        "\n#{value.to_yaml}\n"
+      end
+
+      def insync?(value)
+        new_should = {}
+        (value.keys + should.keys).map{|k| new_should[k] = {}}
+        #debug("\nV: #{value.to_yaml}\n")
+        #debug("\nS: #{should.to_yaml}\n")
+        new_should.keys.map{|key| new_should[key] = value[key].merge should[key] }
+        #debug("\nZ: #{new_should.to_yaml}\n")
+        (reccursive_sanitize_hash(value) == reccursive_sanitize_hash(new_should))
+      end
     end
 
     newproperty(:vendor_specific) do
       desc "Hash of vendor specific properties"
-      defaultto {}
+      #defaultto {}
       # provider-specific hash, validating only by type.
       validate do |val|
         if ! val.is_a? Hash
           fail("Vendor_specific should be a hash!")
         end
+      end
+
+      munge do |value|
+        reccursive_sanitize_hash(value)
+      end
+
+      def should_to_s(value)
+        "\n#{value.to_yaml}\n"
+      end
+
+      def is_to_s(value)
+        "\n#{value.to_yaml}\n"
+      end
+
+      def insync?(value)
+        should_to_s(value) == should_to_s(should)
       end
     end
 

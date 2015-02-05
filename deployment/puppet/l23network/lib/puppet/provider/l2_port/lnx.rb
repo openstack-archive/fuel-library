@@ -1,10 +1,11 @@
 require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_base')
 
 Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
-  defaultfor :osfamily => :linux
-  commands   :iproute => 'ip',
-             :brctl   => 'brctl',
-             :vsctl   => 'ovs-vsctl'
+  defaultfor :osfamily    => :linux
+  commands   :iproute     => 'ip',
+             :ethtool_cmd => 'ethtool',
+             :brctl       => 'brctl',
+             :vsctl       => 'ovs-vsctl'
 
 
   def self.instances
@@ -20,6 +21,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       }
       debug("prefetching interface '#{if_name}'")
       props.merge! if_props
+      props[:ethtool] = get_iface_ethtool_hash(if_name, nil)
       # add PROVIDER prefix to port type flags and convert port_type to string
       if ovs_interfaces.has_key? if_name and ovs_interfaces[if_name][:port_type].is_a? Array and ovs_interfaces[if_name][:port_type].include? 'internal'
         if_provider = ovs_interfaces[if_name][:provider]
@@ -130,6 +132,21 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         iproute('link', 'set', 'dev', @resource[:interface], 'up') if @resource[:onboot]
         debug("Change bridge")
       end
+      if @property_flush.has_key? :ethtool and @property_flush[:ethtool].is_a? Hash
+        @property_flush[:ethtool].each_pair do |section, pairs|
+          debug("Setup '#{section}' by ethtool for interface '#{@resource[:interface]}'.")
+          optmaps = self.class.get_ethtool_name_commands_mapping[section]
+          if optmaps
+            pairs.each_pair do |k,v|
+              if optmaps.has_key? k
+                ethtool_cmd(optmaps['__section_key__'], @resource[:interface], optmaps[k], v ? 'on':'off')
+              end
+            end
+          else
+            warn("No mapping for ethtool section '#{section}' for interface '#{@resource[:interface]}'.")
+          end
+        end
+      end
       if ! @property_flush[:onboot].nil?
         # Should be after bond, because interface may auto-upped while added to the bond
         debug("Setup UP state for interface '#{@resource[:interface]}'.")
@@ -196,8 +213,15 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     @property_flush[:onboot] = val
   end
 
+  def ethtool
+    @property_hash[:ethtool] || nil
+  end
+  def ethtool=(val)
+    @property_flush[:ethtool] = val
+  end
+
   def vendor_specific
-    @property_hash[:vendor_specific] || {}
+    @property_hash[:vendor_specific] || nil
   end
   def vendor_specific=(val)
     @property_flush[:vendor_specific] = val

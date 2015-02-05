@@ -129,7 +129,8 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       raise(Puppet::ParseError, "generate_network_config(...): You must call prepare_network_config(...) first!")
     end
 
-    if config_hash[:version].to_r < 1.1
+    # we can't imagine, that user can write in this field, but we try to convert to numeric and compare
+    if config_hash[:version].to_s.to_f < 1.1
       raise(Puppet::ParseError, "generate_network_config(...): You network_scheme hash has wrong format.\nThis parser can work with v1.1 format, please convert you config.")
     end
 
@@ -240,10 +241,10 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
 
       trans.select{|k,v| k != :action}.each do |k,v|
         #puts "[#{k}]=[#{v}]"
-        resource_properties[k.to_sym] = v if ! v.nil?
+        resource_properties[k.to_s] = v if ! v.nil?
       end
 
-      resource_properties[:require] = [previous] if previous
+      resource_properties['require'] = [previous] if previous
       function_create_resources([resource, {
         "#{trans[:name]}" => resource_properties
       }])

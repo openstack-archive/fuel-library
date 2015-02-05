@@ -5,10 +5,11 @@
 require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_base')
 
 Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
-  defaultfor :osfamily => :linux
-  commands   :iproute => 'ip',
-             :brctl   => 'brctl',
-             :vsctl   => 'ovs-vsctl'
+  defaultfor :osfamily    => :linux
+  commands   :iproute     => 'ip',
+             :ethtool_cmd => 'ethtool',
+             :brctl       => 'brctl',
+             :vsctl       => 'ovs-vsctl'
 
 
   def self.prefetch(resources)
