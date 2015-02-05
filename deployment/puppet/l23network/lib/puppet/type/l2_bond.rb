@@ -121,12 +121,12 @@ Puppet::Type.newtype(:l2_bond) do
       end
 
       def should_to_s(value)
-        return '' if value == :absent
+        return '' if [:absent, 'absent', nil, {}].include? value
         value.keys.sort.map{|k| "(#{k.to_s}=#{value[k]})"}.join(', ')
       end
 
       def is_to_s(value)
-        value.keys.sort.map{|k| "(#{k.to_s}=#{value[k]})"}.join(', ')
+        should_to_s(value)
       end
 
       def insync?(value)

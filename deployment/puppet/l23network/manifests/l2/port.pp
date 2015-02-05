@@ -109,6 +109,7 @@ define l23network::l2::port (
       bond_master     => $master,
       mtu             => $mtu,
       onboot          => $onboot,
+      #ethtool              => $ethtool,
       #vendor_specific=> $vendor_specific,
       provider        => $config_provider
     }
@@ -124,9 +125,9 @@ define l23network::l2::port (
       onboot               => $onboot,
       #type                => $type,
       #trunks              => $trunks,
-      #vlan_splinters      => $vlan_splinters,
       #port_properties     => $port_properties,
       #interface_properties=> $interface_properties,
+      ethtool              => $ethtool,
       vendor_specific      => $vendor_specific,
       provider             => $provider
     }
