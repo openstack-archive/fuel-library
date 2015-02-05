@@ -7,10 +7,11 @@
 require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_base')
 
 Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
-  defaultfor :osfamily => :linux
-  commands   :brctl   => 'brctl',
-             :vsctl   => 'ovs-vsctl',
-             :iproute => 'ip'
+  defaultfor :osfamily    => :linux
+  commands   :brctl       => 'brctl',
+             :ethtool_cmd => 'ethtool',
+             :vsctl       => 'ovs-vsctl',
+             :iproute     => 'ip'
 
   def self.instances
     rv = []

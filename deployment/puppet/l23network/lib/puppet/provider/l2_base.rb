@@ -55,6 +55,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
         :name      => if_name,
         :port_type => [],
         :onboot    => self.get_iface_state(if_name),
+        :ethtool   => nil,
         :mtu       => File.open("#{if_dir}/mtu").read.chomp,
         :provider  => (if_name == 'ovs-system')  ?  'ovs'  :  'lnx' ,
       }
@@ -544,6 +545,60 @@ class Puppet::Provider::L2_base < Puppet::Provider
       nil
     end
   end
+
+  # ---------------------------------------------------------------------------
+
+  def self.get_ethtool_name_commands_mapping
+    {
+      'offload' => {
+        '__section_key__'              => '-K',
+        'rx-checksumming'              => 'rx',
+        'tx-checksumming'              => 'tx',
+        'scatter-gather'               => 'sg',
+        'tcp-segmentation-offload'     => 'tso',
+        'udp-fragmentation-offload'    => 'ufo',
+        'generic-segmentation-offload' => 'gso',
+        'generic-receive-offload'      => 'gro',
+        'large-receive-offload'        => 'lro',
+        'rx-vlan-offload'              => 'rxvlan',
+        'tx-vlan-offload'              => 'txvlan',
+        'ntuple-filters'               => 'ntuple',
+        'receive-hashing'              => 'rxhash',
+        'rx-fcs'                       => 'rx-fcs',
+        'rx-all'                       => 'rx-all',
+        'highdma'                      => 'highdma',
+        'rx-vlan-filter'               => 'rx-vlan-filter',
+        'fcoe-mtu'                     => 'fcoe-mtu',
+        'l2-fwd-offload'               => 'l2-fwd-offload',
+        'loopback'                     => 'loopback',
+        'tx-nocache-copy'              => 'tx-nocache-copy',
+        'tx-gso-robust'                => 'tx-gso-robust',
+        'tx-fcoe-segmentation'         => 'tx-fcoe-segmentation',
+        'tx-gre-segmentation'          => 'tx-gre-segmentation',
+        'tx-ipip-segmentation'         => 'tx-ipip-segmentation',
+        'tx-sit-segmentation'          => 'tx-sit-segmentation',
+        'tx-udp_tnl-segmentation'      => 'tx-udp_tnl-segmentation',
+        'tx-mpls-segmentation'         => 'tx-mpls-segmentation',
+        'tx-vlan-stag-hw-insert'       => 'tx-vlan-stag-hw-insert',
+        'rx-vlan-stag-hw-parse'        => 'rx-vlan-stag-hw-parse',
+        'rx-vlan-stag-filter'          => 'rx-vlan-stag-filter',
+      }
+    }
+  end
+
+  def self.get_iface_ethtool_hash(if_name, empty_return = {})
+    tmp = {}
+    #todo(sv): wrap to begin--resque
+    ethtool_k = ethtool_cmd('-k', if_name)
+    ethtool_k.split(/\n+/).select{|l| !l.match(/(^\s+|\[fixed\]|^Features)/)}.map{|x| x.split(/[\s\:]+/)}.each do |p|
+      tmp[p[0]] = (p[1] == 'on')
+    end
+    return {
+      'offload' => tmp || empty_return
+    }
+  end
+
+
 end
 
 

@@ -1,9 +1,9 @@
 require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_base')
 
 Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
-#  confine    :osfamily => :linux
-  commands   :vsctl   => 'ovs-vsctl',
-             :iproute => 'ip'
+  commands  :vsctl       => 'ovs-vsctl',
+            :ethtool_cmd => 'ethtool',
+            :iproute     => 'ip'
 
 
   # def self.add_unremovable_flag(port_props)
