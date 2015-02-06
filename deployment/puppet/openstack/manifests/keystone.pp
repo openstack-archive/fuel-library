@@ -281,7 +281,7 @@ class openstack::keystone (
     'DATABASE/max_retries':                            value => $max_retries;
     'DATABASE/max_overflow':                           value => $max_overflow;
     'identity/driver':                                 value =>"keystone.identity.backends.sql.Identity";
-    'policy/driver':                                   value =>"keystone.policy.backends.rules.Policy";
+    'policy/driver':                                   value =>"keystone.policy.backends.sql.Policy";
     'ec2/driver':                                      value =>"keystone.contrib.ec2.backends.sql.Ec2";
     'filter:debug/paste.filter_factory':               value =>"keystone.common.wsgi:Debug.factory";
     'filter:token_auth/paste.filter_factory':          value =>"keystone.middleware:TokenAuthMiddleware.factory";
