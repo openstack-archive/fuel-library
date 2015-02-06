@@ -172,7 +172,7 @@ class nova::rabbitmq(
               'timeout'  => '60'
             },
             'start' => {
-              'timeout' => '180'
+              'timeout' => '360'
             },
             'stop' => {
               'timeout' => '60'
