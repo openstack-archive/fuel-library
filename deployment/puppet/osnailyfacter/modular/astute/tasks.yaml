@@ -6,6 +6,16 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/enable_quorum.rb
     timeout: 180
 
+- id: restart_rados
+  type: shell
+  role: [primary-controller, controller]
+  stage: post_deployment
+  condition: "settings:storage.objects_ceph.value == true"
+  required_for: [upload_cirros]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/restart_rados.sh
+    timeout: 180
+
 - id: upload_cirros
   type: shell
   role: [primary-controller]
