@@ -43,10 +43,10 @@ define l23network::l2::port (
   $vendor_specific       = {},
   $provider              = undef,
   # deprecated parameters, in the future ones will be moved to the vendor_specific hash
-  $skip_existing         = undef,
-  $port_properties       = [],
-  $interface_properties  = [],
-  $trunks                = [],
+# $skip_existing         = undef,
+# $port_properties       = [],
+# $interface_properties  = [],
+# $trunks                = [],
 ) {
   # Detect VLAN mode configuration
   case $port {
@@ -131,6 +131,10 @@ define l23network::l2::port (
       vendor_specific      => $vendor_specific,
       provider             => $provider
     }
+
+    # this need for creating L2_port resource by ifup, if it allowed by OS
+    L23_stored_config[$port_name] -> L2_port[$port_name]
+
     K_mod<||> -> L2_port<||>
   }
 }
