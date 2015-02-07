@@ -28,7 +28,9 @@ module L23network
       }
       when "add-br" then {
         :name                 => nil,
-        :stp_enable           => nil,
+        :stp                  => nil,
+        :bpdu_forward         => nil,
+#       :bridge_id            => nil,
         :external_ids         => nil,
 #       :interface_properties => nil,
         :vendor_specific      => nil,
@@ -39,9 +41,9 @@ module L23network
         :bridge               => nil,
 #       :type                 => "internal",
         :mtu                  => nil,
-        :vlan_id              => 0,
+        :ethtool              => nil,
+        :vlan_id              => nil,
         :vlan_dev             => nil,
-        :vlan_mode            => nil,
 #       :trunks               => [],
         :vendor_specific      => nil,
         :provider             => nil
@@ -49,6 +51,7 @@ module L23network
       when "add-bond" then {
         :name                 => nil,
         :bridge               => nil,
+        :mtu                  => nil,
         :interfaces           => [],
 #       :vlan_id              => 0,
 #       :trunks               => [],
@@ -62,7 +65,7 @@ module L23network
         :peers           => [nil, nil],
         :bridges         => [],
         :vlan_ids        => [0, 0],
-        :trunks          => [],
+#       :trunks          => [],
         :vendor_specific => nil,
         :provider        => nil
       }
@@ -121,6 +124,17 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       }
     end
 
+    def res_factory()
+      # define internal puppet parameters for creating resources
+      {
+        :br       => 'l23network::l2::bridge',
+        :port     => 'l23network::l2::port',
+        :bond     => 'l23network::l2::bond',
+        :patch    => 'l23network::l2::patch',
+        :ifconfig => 'l23network::l3::ifconfig'
+      }
+    end
+
     if argv.size != 0
       raise(Puppet::ParseError, "generate_network_config(): Wrong number of arguments.")
     end
@@ -135,26 +149,6 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
     end
 
     default_provider = config_hash[:provider] || 'lnx'
-
-    # define internal puppet parameters for creating resources
-    res_factory = {
-      :br       => { :name_of_resource => 'l23network::l2::bridge' },
-      :port     => { :name_of_resource => 'l23network::l2::port' },
-      :bond     => { :name_of_resource => 'l23network::l2::bond' },
-      :patch    => { :name_of_resource => 'l23network::l2::patch' },
-      :ifconfig => { :name_of_resource => 'l23network::l3::ifconfig' }
-    }
-    res_factory.each do |k, v|
-      if v[:name_of_resource].index('::')
-        # operate by Define
-        res_factory[k][:resource] = lookuptype(v[:name_of_resource].downcase())  # may be find_definition(k.downcase())
-        res_factory[k][:type_of_resource] = :define
-      else
-        # operate by custom Type
-        res_factory[k][:resource] = Puppet::Type.type(v[:name_of_resource].to_sym())
-        res_factory[k][:type_of_resource] = :type
-      end
-    end
 
     # collect interfaces and endpoints
     ifconfig_order = []
@@ -235,7 +229,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       end
 
       # create puppet resources for transformations
-      resource = res_factory[action][:name_of_resource]
+      resource = res_factory[action]
       resource_properties = { }
       debug("generate_network_config(): Transformation '#{trans[:name]} will be produced as '#{trans}'.")
 
@@ -248,10 +242,6 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       function_create_resources([resource, {
         "#{trans[:name]}" => resource_properties
       }])
-      # if trans[:name].to_s == 'bond23'
-      #   require 'pry'
-      #   binding.pry
-      # end
       transformation_success.insert(-1, "#{t[:action].strip()}(#{trans[:name]})")
       born_ports.insert(-1, trans[:name].to_sym()) if action != :patch
       previous = "#{resource}[#{trans[:name]}]"
@@ -275,7 +265,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         resource_properties = { }
 
         # create resource
-        resource = res_factory[:ifconfig][:name_of_resource]
+        resource = res_factory[:ifconfig]
         debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with additional properties '#{endpoints[endpoint_name]}'.")
         # collect properties for creating endpoint resource
         endpoints[endpoint_name].each_pair do |k,v|

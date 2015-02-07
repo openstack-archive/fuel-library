@@ -50,6 +50,10 @@ define l23network::l2::bridge (
       vendor_specific => $vendor_specific,
       provider        => $provider
     }
+
+    # this need for creating L2_bridge resource by ifup, if it allowed by OS
+    L23_stored_config[$name] -> L2_bridge[$name]
+
     K_mod<||> -> L2_bridge<||>
   }
 }

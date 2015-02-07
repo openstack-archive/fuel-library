@@ -50,7 +50,13 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
     # todo: divide simple creating interface and vlan
-    iproute('link', 'add', 'link', @resource[:vlan_dev], 'name', @resource[:interface], 'type', 'vlan', 'id', @resource[:vlan_id])
+    begin
+      iproute('link', 'add', 'link', @resource[:vlan_dev], 'name', @resource[:interface], 'type', 'vlan', 'id', @resource[:vlan_id])
+    rescue
+      # Some time interface may be created by OS init scripts. It's a normal for Ubuntu.
+      raise if ! self.class.iface_exist? @resource[:interface]
+      notice("'#{@resource[:interface]}' already created by ghost event.")
+    end
   end
 
   def destroy
@@ -139,7 +145,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           if optmaps
             pairs.each_pair do |k,v|
               if optmaps.has_key? k
-                ethtool_cmd(optmaps['__section_key__'], @resource[:interface], optmaps[k], v ? 'on':'off')
+                ethtool_cmd(optmaps['__section_key_set__'], @resource[:interface], optmaps[k], v ? 'on':'off')
               end
             end
           else
