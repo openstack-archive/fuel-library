@@ -42,9 +42,14 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
-    brctl('addbr', @resource[:bridge])
+    begin
+      brctl('addbr', @resource[:bridge])
+    rescue
+      # Some time interface may be created by OS init scripts. It's a normal for Ubuntu.
+      raise if ! self.class.iface_exist? @resource[:bridge]
+      notice("'#{@resource[:bridge]}' already created by ghost event.")
+    end
     iproute('link', 'set', 'up', 'dev', @resource[:bridge])
-    notice("bridge '#{@resource[:bridge]}' created.")
   end
 
   def destroy
