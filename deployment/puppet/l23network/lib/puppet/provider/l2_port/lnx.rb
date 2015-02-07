@@ -139,7 +139,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           if optmaps
             pairs.each_pair do |k,v|
               if optmaps.has_key? k
-                ethtool_cmd(optmaps['__section_key__'], @resource[:interface], optmaps[k], v ? 'on':'off')
+                ethtool_cmd(optmaps['__section_key_set__'], @resource[:interface], optmaps[k], v ? 'on':'off')
               end
             end
           else
