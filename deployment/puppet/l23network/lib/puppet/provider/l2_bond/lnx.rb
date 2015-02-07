@@ -174,11 +174,11 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         iproute('link', 'set', 'dev', @resource[:bond], 'up') if runtime_bond_state
         debug("Change bridge")
       end
+      if @property_flush[:onboot]
+        iproute('link', 'set', 'dev', @resource[:bond], 'up')
+      end
       if ! @property_flush[:mtu].nil?
         File.open("/sys/class/net/#{@resource[:bond]}/mtu", "w") { |f| f.write(@property_flush[:mtu]) }
-      end
-      if ! @property_flush[:onboot].nil?
-        iproute('link', 'set', 'dev', @resource[:bond], 'up')
       end
       @property_hash = resource.to_hash
     end

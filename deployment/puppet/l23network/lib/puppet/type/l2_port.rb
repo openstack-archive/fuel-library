@@ -167,7 +167,7 @@ Puppet::Type.newtype(:l2_port) do
         end
       end
       munge do |value|
-        reccursive_sanitize_hash(value)
+        L23network.reccursive_sanitize_hash(value)
       end
 
       def should_to_s(value)
@@ -186,7 +186,7 @@ Puppet::Type.newtype(:l2_port) do
         # debug("\nN: #{new_should.to_yaml}\n")
         new_should.keys.map{|key| new_should[key] = value[key].merge should[key] }
         #debug("\nZ: #{new_should.to_yaml}\n")
-        (reccursive_sanitize_hash(value) == reccursive_sanitize_hash(new_should))
+        (L23network.reccursive_sanitize_hash(value) == L23network.reccursive_sanitize_hash(new_should))
       end
     end
 
@@ -201,7 +201,7 @@ Puppet::Type.newtype(:l2_port) do
       end
 
       munge do |value|
-        reccursive_sanitize_hash(value)
+        L23network.reccursive_sanitize_hash(value)
       end
 
       def should_to_s(value)
