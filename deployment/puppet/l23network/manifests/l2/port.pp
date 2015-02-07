@@ -43,10 +43,10 @@ define l23network::l2::port (
   $vendor_specific       = {},
   $provider              = undef,
   # deprecated parameters, in the future ones will be moved to the vendor_specific hash
-  $skip_existing         = undef,
-  $port_properties       = [],
-  $interface_properties  = [],
-  $trunks                = [],
+# $skip_existing         = undef,
+# $port_properties       = [],
+# $interface_properties  = [],
+# $trunks                = [],
 ) {
   # Detect VLAN mode configuration
   case $port {

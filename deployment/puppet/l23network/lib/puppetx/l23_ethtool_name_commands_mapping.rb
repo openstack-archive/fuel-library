@@ -1,6 +1,10 @@
 module L23network
 
+<<<<<<< HEAD
   def ethtool_name_commands_mapping()
+=======
+  def self.ethtool_name_commands_mapping()
+>>>>>>> 3a3a331... Set of small patches
     {
     'offload' => {
         '__section_key_set__'          => '-K',

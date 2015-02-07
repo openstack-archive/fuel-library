@@ -20,13 +20,14 @@ define l23network::l2::bond (
   $bridge                  = undef,
   $mtu                     = undef,
   $onboot                  = undef,
+# $ethtool                 = undef,
   $bond_properties         = {},  # bond configuration options
   $interface_properties    = {},  # configuration options for included interfaces (mtu, ethtool, etc...)
   $vendor_specific         = {},
   $monolith_bond_providers = undef,
   $provider                = undef,
   # deprecated parameters, in the future ones will be moved to the vendor_specific hash
-  $skip_existing           = undef,
+# $skip_existing           = undef,
 ) {
   include ::stdlib
   include ::l23network::params

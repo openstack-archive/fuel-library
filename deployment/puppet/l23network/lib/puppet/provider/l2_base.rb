@@ -1,4 +1,5 @@
 require 'puppetx/l23_utils'
+require 'puppetx/l23_ethtool_name_commands_mapping'
 
 class Puppet::Provider::L2_base < Puppet::Provider
 

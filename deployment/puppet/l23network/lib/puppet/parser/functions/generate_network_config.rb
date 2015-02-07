@@ -4,6 +4,7 @@ require 'puppet/parser'
 require 'puppet/parser/templatewrapper'
 require 'puppet/resource/type_collection_helper'
 require 'puppet/util/methodhelper'
+require 'puppetx/l23_utils'
 
 begin
   require 'puppet/parser/functions/lib/l23network_scheme.rb'
@@ -28,7 +29,9 @@ module L23network
       }
       when "add-br" then {
         :name                 => nil,
-        :stp_enable           => nil,
+        :stp                  => nil,
+        :bpdu_forward         => nil,
+#       :bridge_id            => nil,
         :external_ids         => nil,
 #       :interface_properties => nil,
         :vendor_specific      => nil,
@@ -39,9 +42,9 @@ module L23network
         :bridge               => nil,
 #       :type                 => "internal",
         :mtu                  => nil,
-        :vlan_id              => 0,
+        :ethtool              => nil,
+        :vlan_id              => nil,
         :vlan_dev             => nil,
-        :vlan_mode            => nil,
 #       :trunks               => [],
         :vendor_specific      => nil,
         :provider             => nil
@@ -49,6 +52,7 @@ module L23network
       when "add-bond" then {
         :name                 => nil,
         :bridge               => nil,
+        :mtu                  => nil,
         :interfaces           => [],
 #       :vlan_id              => 0,
 #       :trunks               => [],
@@ -62,7 +66,7 @@ module L23network
         :peers           => [nil, nil],
         :bridges         => [],
         :vlan_ids        => [0, 0],
-        :trunks          => [],
+#       :trunks          => [],
         :vendor_specific => nil,
         :provider        => nil
       }
@@ -231,8 +235,13 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       debug("generate_network_config(): Transformation '#{trans[:name]} will be produced as '#{trans}'.")
 
       trans.select{|k,v| k != :action}.each do |k,v|
-        #puts "[#{k}]=[#{v}]"
-        resource_properties[k.to_s] = v if ! v.nil?
+        if ['Hash', 'Array'].include? v.class.to_s
+          resource_properties[k.to_s] = L23network.reccursive_sanitize_hash(v)
+        elsif ! v.nil?
+          resource_properties[k.to_s] = v
+        else
+          #pass
+        end
       end
 
       resource_properties['require'] = [previous] if previous
@@ -266,7 +275,13 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with additional properties '#{endpoints[endpoint_name]}'.")
         # collect properties for creating endpoint resource
         endpoints[endpoint_name].each_pair do |k,v|
-          resource_properties[k.to_s] = v if ! v.nil?
+          if ['Hash', 'Array'].include? v.class.to_s
+            resource_properties[k.to_s] = L23network.reccursive_sanitize_hash(v)
+          elsif ! v.nil?
+            resource_properties[k.to_s] = v
+          else
+            #pass
+          end
         end
         resource_properties['require'] = [previous] if previous
         # # set ipaddresses
