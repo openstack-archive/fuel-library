@@ -1,5 +1,4 @@
 require File.join(File.dirname(__FILE__), 'l23_stored_config_base')
-require 'pry'
 
 class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_config_base
 
