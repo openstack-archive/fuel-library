@@ -11,6 +11,7 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
   commands   :brctl       => 'brctl',
              :ethtool_cmd => 'ethtool',
              :vsctl       => 'ovs-vsctl',
+             :ifup        => 'ifup',
              :iproute     => 'ip'
 
   def self.instances
@@ -42,9 +43,13 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
-    brctl('addbr', @resource[:bridge])
+    if File.exist? "/sys/class/net/#{@resource[:bridge]}"
+      notice("bridge '#{@resource[:bridge]}' already created by ghost event.")
+    else
+      #brctl('addbr', @resource[:bridge])
+      ifup(@resource[:bridge])
+    end
     iproute('link', 'set', 'up', 'dev', @resource[:bridge])
-    notice("bridge '#{@resource[:bridge]}' created.")
   end
 
   def destroy

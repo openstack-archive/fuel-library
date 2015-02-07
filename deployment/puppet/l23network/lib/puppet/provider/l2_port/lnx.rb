@@ -3,6 +3,7 @@ require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_ba
 Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
   defaultfor :osfamily    => :linux
   commands   :iproute     => 'ip',
+             :ifup        => 'ifup',
              :ethtool_cmd => 'ethtool',
              :brctl       => 'brctl',
              :vsctl       => 'ovs-vsctl'
@@ -50,7 +51,12 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
     # todo: divide simple creating interface and vlan
-    iproute('link', 'add', 'link', @resource[:vlan_dev], 'name', @resource[:interface], 'type', 'vlan', 'id', @resource[:vlan_id])
+    if File.exist? "/sys/class/net/#{@resource[:interface]}"
+      notice("'#{@resource[:interface]}' already created by ghost event.")
+    else
+      #iproute('link', 'add', 'link', @resource[:vlan_dev], 'name', @resource[:interface], 'type', 'vlan', 'id', @resource[:vlan_id])
+      ifup(@resource[:interface])
+    end
   end
 
   def destroy
@@ -139,7 +145,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           if optmaps
             pairs.each_pair do |k,v|
               if optmaps.has_key? k
-                ethtool_cmd(optmaps['__section_key__'], @resource[:interface], optmaps[k], v ? 'on':'off')
+                ethtool_cmd(optmaps['__section_key_set__'], @resource[:interface], optmaps[k], v ? 'on':'off')
               end
             end
           else

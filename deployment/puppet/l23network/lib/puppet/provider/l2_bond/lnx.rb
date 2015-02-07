@@ -7,6 +7,7 @@ require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_ba
 Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
   defaultfor :osfamily    => :linux
   commands   :iproute     => 'ip',
+             :ifup        => 'ifup',
              :ethtool_cmd => 'ethtool',
              :brctl       => 'brctl',
              :vsctl       => 'ovs-vsctl'
