@@ -64,7 +64,7 @@ Puppet::Type.newtype(:ring_devices) do
     self[:storages].each do |storage|
       merged_storage = default_storage.merge(storage)
       merged_storage['types'].collect do |type|
-        merged_storage['mountpoints'].each do |mountpoint|
+        merged_storage['mountpoints'].split("\n").each do |mountpoint|
           port = merged_storage["#{type}_port"]
           device = mountpoint.split[0]
           options = {
