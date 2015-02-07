@@ -60,6 +60,7 @@
 #
 
 define l23network::l3::ifconfig (
+    $ensure          = present,
     $interface       = $name,
     $ipaddr          = undef,
 #   $netmask         = '255.255.255.0',  # I hardly want deprecate this address notation
