@@ -106,7 +106,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>proc.num[,rabbitmq,,bin/epmd]</key>
+                    <key>proc.num[,,,bin/epmd]</key>
                     <delay>30</delay>
                     <history>90</history>
                     <trends>365</trends>
