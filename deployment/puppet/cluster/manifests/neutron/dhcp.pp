@@ -4,7 +4,7 @@ class cluster::neutron::dhcp (
   $primary    = false,
   $ha_agents  = ['ovs', 'metadata', 'dhcp', 'l3'],
   $amqp_server_port  = 5673,
-  $multiple_agents   = false,  # will be enabled as default at 6.1
+  $multiple_agents   = true,
   $agents_per_net    = 3,      # Value, recommended by Neutron team.
 
   #keystone settings
