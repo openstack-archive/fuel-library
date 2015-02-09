@@ -247,9 +247,9 @@ srv_uptime() {
     stime=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}' | sed -e '/(null)/d' )
 
     if [ -z "${stime}" -o x"${stime}" == x"(null)" ] ; then
-        echo $(( $(now) - ${stime} ))
-    else
         echo 0
+    else
+        echo $(( $(now) - ${stime} ))
     fi
 
     return $OCF_SUCCESS
