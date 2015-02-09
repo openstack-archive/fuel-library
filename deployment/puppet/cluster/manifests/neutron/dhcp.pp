@@ -36,7 +36,7 @@ class cluster::neutron::dhcp (
 
   #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'dhcp':
-    ocf_script      => 'neutron-agent-dhcp',
+    ocf_script      => 'ocf-neutron-agent-dhcp',
     csr_parameters  => {
       'os_auth_url'      => $auth_url,
       'tenant'           => $admin_tenant_name,
