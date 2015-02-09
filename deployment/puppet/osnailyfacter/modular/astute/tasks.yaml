@@ -3,7 +3,7 @@
   role: [primary-controller]
   stage: post_deployment
   parameters:
-    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/enable_quorum.sh
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/enable_quorum.rb
     timeout: 180
 
 - id: upload_cirros
