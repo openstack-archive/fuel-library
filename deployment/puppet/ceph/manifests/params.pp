@@ -41,7 +41,7 @@ class ceph::params {
       $dir_httpd_sites            = '/etc/apache2/sites-available/'
       $dir_httpd_ssl              = '/etc/apache2/ssl/'
 
-      package { ['ceph','ceph-deploy', 'python-pushy', ]:
+      package { ['ceph','ceph-deploy', ]:
         ensure => installed,
       }
     }
