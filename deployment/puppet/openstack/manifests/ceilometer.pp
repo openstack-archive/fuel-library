@@ -98,9 +98,12 @@ class openstack::ceilometer (
 
     class { '::ceilometer::collector': }
 
-    class { '::ceilometer::agent::central': }
+    class { '::ceilometer::agent::central':
+      enabled => !$ha_mode,
+    }
 
     class { '::ceilometer::alarm::evaluator':
+      enabled             => !$ha_mode,
       evaluation_interval => 60,
     }
 
@@ -121,46 +124,29 @@ class openstack::ceilometer (
     }
 
     if $ha_mode {
-      $ceilometer_agent_res_name = "p_${::ceilometer::params::agent_central_service_name}"
 
-      Package['pacemaker'] -> File['ceilometer-agent-central-ocf']
-      Package['ceilometer-common'] -> File['ceilometer-agent-central-ocf']
-      Package['ceilometer-agent-central'] -> File['ceilometer-agent-central-ocf']
+       Package[$::ceilometer::params::agent_central_package_name] -> Cluster::Corosync::Cs_service['ceilometer_agent_central']
+       Package['ceilometer-common'] ->
+       Tweaks::Ubuntu_service_override[$::ceilometer::params::agent_central_service_name] ->
+       Cluster::Corosync::Cs_service['ceilometer_agent_central']
 
-      file {'ceilometer-agent-central-ocf':
-        path   => '/usr/lib/ocf/resource.d/fuel/ceilometer-agent-central',
-        mode   => '0755',
-        owner  => root,
-        group  => root,
-        source => 'puppet:///modules/ceilometer/ocf/ceilometer-agent-central',
-      }
+       tweaks::ubuntu_service_override { "$::ceilometer::params::agent_central_service_name":
+         package_name => $::ceilometer::params::agent_central_package_name,
+       }
 
-      if $primary_controller {
-        cs_resource { $ceilometer_agent_res_name:
-          ensure          => present,
-          primitive_class => 'ocf',
-          provided_by     => 'fuel',
-          primitive_type  => 'ceilometer-agent-central',
-          metadata        => { 'target-role' => 'stopped', 'resource-stickiness' => '1' },
-          parameters      => { 'user' => 'ceilometer' },
-          operations      => {
-            'monitor' => {
-              'interval' => '20',
-              'timeout'  => '30'
-            },
-            'start'   => {
-              'timeout'  => '360'
-            },
-            'stop'    => {
-              'timeout'  => '360'
-            },
-          },
-        }
-        File['ceilometer-agent-central-ocf'] -> Cs_resource[$ceilometer_agent_res_name] -> Service['ceilometer-agent-central']
-      } else {
-        File['ceilometer-agent-central-ocf'] -> Service['ceilometer-agent-central']
-      }
-    } else {
+       cluster::corosync::cs_service { 'ceilometer_agent_central':
+         ocf_script        => 'ceilometer-agent-central',
+         service_name      => $::ceilometer::params::agent_central_service_name,
+         csr_parameters    => { 'user' => 'ceilometer' },
+         csr_metadata      => { 'resource-stickiness' => '1' },
+         csr_mon_intr      => 20,
+         csr_mon_timeout   => 30,
+         csr_timeout       => 360,
+         service_title     => 'ceilometer-agent-central',
+         hasrestart        => false,
+       }
+    } 
+    else {
       Package['ceilometer-common'] -> Service['ceilometer-agent-central']
       Package['ceilometer-agent-central'] -> Service['ceilometer-agent-central']
     }
@@ -168,43 +154,35 @@ class openstack::ceilometer (
 
   if $ha_mode {
 
-    $ceilometer_alarm_res_name = "p_${::ceilometer::params::alarm_evaluator_service_name}"
-
-    Package['ceilometer-common'] -> File['ceilometer-alarm-evaluator-ocf']
-    Package[$::ceilometer::params::alarm_package_name] -> File['ceilometer-alarm-evaluator-ocf']
-    Package['pacemaker'] -> File['ceilometer-alarm-evaluator-ocf']
-    file {'ceilometer-alarm-evaluator-ocf':
-      path   => '/usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator',
-      mode   => '0755',
-      owner  => root,
-      group  => root,
-      source => 'puppet:///modules/ceilometer/ocf/ceilometer-alarm-evaluator',
-    }
-
-    if $primary_controller {
-      cs_resource { $ceilometer_alarm_res_name:
-        ensure          => present,
-        primitive_class => 'ocf',
-        provided_by     => 'fuel',
-        primitive_type  => 'ceilometer-alarm-evaluator',
-        metadata        => { 'target-role' => 'stopped' },
-        parameters      => { 'user' => 'ceilometer' },
-        operations      => {
-          'monitor' => {
-            'interval' => '20',
-            'timeout'  => '30'
-          },
-          'start'   => {
-            'timeout'  => '360'
-          },
-          'stop'    => {
-            'timeout'  => '360'
-          },
-        },
+    case $::osfamily {
+      'RedHat': {
+        $alarm_package = $::ceilometer::params::alarm_package_name[0]
       }
-      File['ceilometer-alarm-evaluator-ocf'] -> Cs_resource[$ceilometer_alarm_res_name] -> Service['ceilometer-alarm-evaluator']
+      'Debian': {
+        $alarm_package = $::ceilometer::params::alarm_package_name[1]
+      }
     }
-    File['ceilometer-alarm-evaluator-ocf'] -> Service['ceilometer-alarm-evaluator']
+
+    Package[$alarm_package] -> Cluster::Corosync::Cs_service['ceilometer_alarm_evaluator']
+    Package['ceilometer-common'] ->
+    Tweaks::Ubuntu_service_override[$::ceilometer::params::alarm_evaluator_service_name] ->
+    Cluster::Corosync::Cs_service['ceilometer_alarm_evaluator']
+
+    tweaks::ubuntu_service_override { "$::ceilometer::params::alarm_evaluator_service_name":
+      package_name => $alarm_package,
+    }
+
+    cluster::corosync::cs_service { 'ceilometer_alarm_evaluator':
+      ocf_script        => 'ceilometer-alarm-evaluator',
+      service_name      => $::ceilometer::params::alarm_evaluator_service_name,
+      csr_parameters    => { 'user' => 'ceilometer' },
+      csr_metadata      => { 'resource-stickiness' => '1' },
+      csr_mon_intr      => 20,
+      csr_mon_timeout   => 30,
+      csr_timeout       => 360,
+      service_title     => 'ceilometer-alarm-evaluator',
+      hasrestart        => false,
+    }
   }
 
   if ($swift_rados_backend) {
