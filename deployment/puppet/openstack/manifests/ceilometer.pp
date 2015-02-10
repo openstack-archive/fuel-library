@@ -121,90 +121,31 @@ class openstack::ceilometer (
     }
 
     if $ha_mode {
-      $ceilometer_agent_res_name = "p_${::ceilometer::params::agent_central_service_name}"
+      include ceilometer_ha::agent::central
 
-      Package['pacemaker'] -> File['ceilometer-agent-central-ocf']
-      Package['ceilometer-common'] -> File['ceilometer-agent-central-ocf']
-      Package['ceilometer-agent-central'] -> File['ceilometer-agent-central-ocf']
-
-      file {'ceilometer-agent-central-ocf':
-        path   => '/usr/lib/ocf/resource.d/fuel/ceilometer-agent-central',
-        mode   => '0755',
-        owner  => root,
-        group  => root,
-        source => 'puppet:///modules/ceilometer/ocf/ceilometer-agent-central',
-      }
-
-      if $primary_controller {
-        cs_resource { $ceilometer_agent_res_name:
-          ensure          => present,
-          primitive_class => 'ocf',
-          provided_by     => 'fuel',
-          primitive_type  => 'ceilometer-agent-central',
-          metadata        => { 'target-role' => 'stopped', 'resource-stickiness' => '1' },
-          parameters      => { 'user' => 'ceilometer' },
-          operations      => {
-            'monitor' => {
-              'interval' => '20',
-              'timeout'  => '30'
-            },
-            'start'   => {
-              'timeout'  => '360'
-            },
-            'stop'    => {
-              'timeout'  => '360'
-            },
-          },
-        }
-        File['ceilometer-agent-central-ocf'] -> Cs_resource[$ceilometer_agent_res_name] -> Service['ceilometer-agent-central']
-      } else {
-        File['ceilometer-agent-central-ocf'] -> Service['ceilometer-agent-central']
-      }
-    } else {
-      Package['ceilometer-common'] -> Service['ceilometer-agent-central']
-      Package['ceilometer-agent-central'] -> Service['ceilometer-agent-central']
+      Package[$::ceilometer::params::common_package_name] -> Class['ceilometer_ha::agent::central']
+      Package[$::ceilometer::params::agent_central_package_name] -> Class['ceilometer_ha::agent::central']
+    } 
+    else {
+      Package[$::ceilometer::params::common_package_name] -> Service[$agent_central_service_name]
+      Package[$::ceilometer::params::agent_central_package_name] -> Service[$agent_central_service_name]
     }
   }
 
   if $ha_mode {
+    include ceilometer_ha::alarm::evaluator
 
-    $ceilometer_alarm_res_name = "p_${::ceilometer::params::alarm_evaluator_service_name}"
-
-    Package['ceilometer-common'] -> File['ceilometer-alarm-evaluator-ocf']
-    Package[$::ceilometer::params::alarm_package_name] -> File['ceilometer-alarm-evaluator-ocf']
-    Package['pacemaker'] -> File['ceilometer-alarm-evaluator-ocf']
-    file {'ceilometer-alarm-evaluator-ocf':
-      path   => '/usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator',
-      mode   => '0755',
-      owner  => root,
-      group  => root,
-      source => 'puppet:///modules/ceilometer/ocf/ceilometer-alarm-evaluator',
-    }
-
-    if $primary_controller {
-      cs_resource { $ceilometer_alarm_res_name:
-        ensure          => present,
-        primitive_class => 'ocf',
-        provided_by     => 'fuel',
-        primitive_type  => 'ceilometer-alarm-evaluator',
-        metadata        => { 'target-role' => 'stopped' },
-        parameters      => { 'user' => 'ceilometer' },
-        operations      => {
-          'monitor' => {
-            'interval' => '20',
-            'timeout'  => '30'
-          },
-          'start'   => {
-            'timeout'  => '360'
-          },
-          'stop'    => {
-            'timeout'  => '360'
-          },
-        },
+    case $::osfamily {
+      'RedHat': {
+        $alarm_package = $::ceilometer::params::alarm_package_name[0]
       }
-      File['ceilometer-alarm-evaluator-ocf'] -> Cs_resource[$ceilometer_alarm_res_name] -> Service['ceilometer-alarm-evaluator']
+      'Debian': {
+        $alarm_package = $::ceilometer::params::alarm_package_name[1]
+      }
     }
-    File['ceilometer-alarm-evaluator-ocf'] -> Service['ceilometer-alarm-evaluator']
+
+    Package[$::ceilometer::params::common_package_name] -> Class['ceilometer_ha::alarm::evaluator']
+    Package[$alarm_package] -> Class['ceilometer_ha::alarm::evaluator']
   }
 
   if ($swift_rados_backend) {
