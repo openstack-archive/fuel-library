@@ -70,4 +70,10 @@ describe 'the amqp_hosts function' do
     ).to eq '192.168.0.1:5673'
   end
 
+  it 'should not spoil the input data' do
+    hosts = %w(192.168.0.1 192.168.0.2 192.168.0.3)
+    amqp_hosts = scope.function_amqp_hosts([hosts])
+    expect(hosts).to eq(%w(192.168.0.1 192.168.0.2 192.168.0.3))
+  end
+
 end

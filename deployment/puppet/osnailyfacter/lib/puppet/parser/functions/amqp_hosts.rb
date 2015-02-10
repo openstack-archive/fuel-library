@@ -13,9 +13,9 @@ EOS
 
     # split nodes by comma if the are provided as a string
     if amqp_nodes.is_a? String
-      amqp_nodes = amqp_nodes.split(",").map { |n| n.strip }
+      amqp_nodes = amqp_nodes.split(',').map { |n| n.strip }
     end
-    amqp_nodes = Array(amqp_nodes)
+    amqp_nodes = Array(amqp_nodes.dup)
 
     # rotate nodes array random times (host name as a seed)
     if amqp_nodes.length > 1
