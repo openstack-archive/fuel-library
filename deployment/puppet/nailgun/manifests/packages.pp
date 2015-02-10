@@ -16,7 +16,7 @@ class nailgun::packages(
   nailgun_safe_package { "postgresql-libs": }
   nailgun_safe_package { "rsyslog": }
   nailgun_safe_package { "rsync": }
-  nailgun_safe_package { "fence-agents": }
+  nailgun_safe_package { "fence-agents-all": }
   nailgun_safe_package { "nailgun-redhat-license": }
   nailgun_safe_package { "python-fuelclient": }
   nailgun_safe_package { "screen": }
