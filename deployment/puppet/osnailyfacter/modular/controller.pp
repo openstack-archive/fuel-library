@@ -889,6 +889,11 @@ package { 'screen':
   ensure => present,
 }
 
+# BP https://blueprints.launchpad.net/mos/+spec/include-openstackclient
+package { 'python-openstackclient' :
+  ensure => installed,
+}
+
 # Make corosync and pacemaker setup and configuration before all services provided by pacemaker
 Class['openstack::corosync'] -> Service<| provider=='pacemaker' |>
 
