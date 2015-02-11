@@ -302,7 +302,7 @@ function destroy_container {
         #This happens because devicemapper glitched
         #Try to unmount all devicemapper mounts manually and try again
         echo "Destruction of container $container failed. Trying workaround..."
-        id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$container]})
+        id=$(${DOCKER} inspect -f='{{if .ID}}{{.ID}}{{else}}{{.Id}}{{end}}' ${CONTAINER_NAMES[$container]})
         if [ -z $id ]; then
           echo "Could not get docker ID for $container" 1>&2
           return 1
@@ -334,10 +334,10 @@ function container_lookup {
 
 function get_container_id {
   #Try to get ID from container short name first
-  id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$1]} 2>/dev/null)
+  id=$(${DOCKER} inspect -f='{{if .ID}}{{.ID}}{{else}}{{.Id}}{{end}}' ${CONTAINER_NAMES[$1]} 2>/dev/null)
   if [ -z "$id" ]; then
      #Try to get ID short ID, long ID, or container name
-     id=$(${DOCKER} inspect -f='{{.ID}}' "$1")
+     id=$(${DOCKER} inspect -f='{{if .ID}}{{.ID}}{{else}}{{.Id}}{{end}}' "$1")
      if [ -z "$id" ]; then
        echo "Could not get docker ID for container $1. Is it running?" 1>&2
        return 1
@@ -512,7 +512,7 @@ function allow_all_docker_traffic {
 }
 
 function container_root {
-  id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$1]})
+  id=$(${DOCKER} inspect -f='{{if .ID}}{{.ID}}{{else}}{{.Id}}{{end}}' ${CONTAINER_NAMES[$1]})
   if [ -n "$id" ]; then
     echo "/var/lib/docker/devicemapper/mnt/${id}/rootfs"
     return 0
