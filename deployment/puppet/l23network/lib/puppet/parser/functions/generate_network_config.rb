@@ -63,7 +63,7 @@ module L23network
       }
       when "add-patch" then {
         :name            => "unnamed", # calculated later
-        :peers           => [nil, nil],
+#       :peers           => [nil, nil],
         :bridges         => [],
         :vlan_ids        => [0, 0],
 #       :trunks          => [],
@@ -90,13 +90,13 @@ module L23network
       raise(Puppet::ParseError, "Undefined bridge for transformation '#{action}' with name '#{name}'.")
     end
     if action == "add-patch"
-      if not rv[:bridges].is_a? Array  and  rv[:bridges].size() != 2
+      if not rv[:bridges].is_a? Array  or  rv[:bridges].size() != 2
         raise(Puppet::ParseError, "Transformation patch have wrong 'bridges' parameter.")
       end
-      name = "patch__#{rv[:bridges][0]}__#{rv[:bridges][1]}"
-      if not rv[:peers].is_a? Array  and  rv[:peers].size() != 2
-        raise(Puppet::ParseError, "Transformation patch '#{name}' have wrong 'peers' parameter.")
-      end
+      name = get_patch_name(rv[:bridges])  # name shouldn't depend from bridge order
+      # if not rv[:peers].is_a? Array  or  rv[:peers].size() != 2
+      #   raise(Puppet::ParseError, "Transformation patch '#{name}' have wrong 'peers' parameter.")
+      # end
       rv[:name] = name
     end
     if action == "add-bond"
@@ -229,6 +229,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       next if action == :noop
 
       trans = L23network.sanitize_transformation(t, default_provider)
+
       if !ports_properties[trans[:name].to_sym()].nil?
         trans.merge! ports_properties[trans[:name].to_sym()]
       end
