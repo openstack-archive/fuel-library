@@ -86,3 +86,4 @@ Puppet::Type.newtype(:l3_if_downup) do
     #   [self[:bridge]]
     # end
 end
+# vim: set ts=2 sw=2 et :

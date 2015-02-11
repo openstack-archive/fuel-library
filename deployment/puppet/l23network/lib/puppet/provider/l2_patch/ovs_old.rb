@@ -88,3 +88,4 @@ Puppet::Type.type(:l2_ovs_patch).provide(:ovs) do
     end
   end
 end
+# vim: set ts=2 sw=2 et :

@@ -1,5 +1,5 @@
-Puppet::Type.newtype(:l2_ovs_patch) do
-    @doc = "Manage a Open vSwitch patch between two bridges"
+Puppet::Type.newtype(:l2_patch) do
+    @doc = "Manage a patchcords between two bridges"
     desc @doc
 
     ensurable
@@ -8,42 +8,12 @@ Puppet::Type.newtype(:l2_ovs_patch) do
     # Error 400 on SERVER: Could not render to pson: undefined method `merge' for []:Array
     # http://projects.puppetlabs.com/issues/5220
 
-    newparam(:bridges, :array_matching => :all) do
+    newproperty(:bridges, :array_matching => :all) do
       desc "Array of bridges that will be connected"
-      #
-      validate do |val|
-        if !val.is_a?(Array) or val.size() != 2
-          fail("Must be an array of two bridge names")
-        end
-        if not (val[0].is_a?(String) and val[1].is_a?(String))
-          fail("Bridge names must have be a string.")
-        end
-      end
+      newvalues(/^[a-z][0-9a-z\-\_]*[0-9a-z]$/)
     end
 
-    newparam(:peers, :array_matching => :all) do
-      defaultto([nil,nil])
-      desc "List of names that will be used for naming patches at it's ends."
-      #
-      validate do |val|
-        if !val.is_a?(Array) or val.size() != 2
-          fail("Must be an array of two bridge names")
-        end
-        for i in val
-          if not (i.is_a?(String) or i == nil)
-            fail("Peer names must have be a string.")
-          end
-        end
-      end
-    end
-
-    # newparam(:skip_existing) do
-    #   defaultto(false)
-    #   desc "Allow to skip existing bond"
-    # end
-
-    newparam(:vlan_ids, :array_matching => :all) do
-      defaultto([0,0])
+    newproperty(:vlan_ids, :array_matching => :all) do
       desc "Array of 802.1q tag for ends."
       #
       validate do |val|
@@ -58,7 +28,7 @@ Puppet::Type.newtype(:l2_ovs_patch) do
       end
     end
 
-    newparam(:trunks, :array_matching => :all) do
+    newproperty(:trunks, :array_matching => :all) do
       defaultto([])
       desc "Array of trunks id, for configure patch's ends as ports in trunk mode"
       #
@@ -75,7 +45,35 @@ Puppet::Type.newtype(:l2_ovs_patch) do
       end
     end
 
+    newproperty(:vendor_specific) do
+      desc "Hash of vendor specific properties"
+      #defaultto {}  # no default value should be!!!
+      # provider-specific properties, can be validating only by provider.
+      validate do |val|
+        if ! val.is_a? Hash
+          fail("Vendor_specific should be a hash!")
+        end
+      end
+
+      munge do |value|
+        L23network.reccursive_sanitize_hash(value)
+      end
+
+      def should_to_s(value)
+        "\n#{value.to_yaml}\n"
+      end
+
+      def is_to_s(value)
+        "\n#{value.to_yaml}\n"
+      end
+
+      def insync?(value)
+        should_to_s(value) == should_to_s(should)
+      end
+    end
+
     autorequire(:l2_bridge) do
       self[:bridges]
     end
 end
+# vim: set ts=2 sw=2 et :
