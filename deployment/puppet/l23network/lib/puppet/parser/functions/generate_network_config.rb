@@ -63,7 +63,7 @@ module L23network
       }
       when "add-patch" then {
         :name            => "unnamed", # calculated later
-        :peers           => [nil, nil],
+#       :peers           => [nil, nil],
         :bridges         => [],
         :vlan_ids        => [0, 0],
 #       :trunks          => [],
@@ -216,6 +216,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       next if action == :noop
 
       trans = L23network.sanitize_transformation(t, default_provider)
+
       if !ports_properties[trans[:name].to_sym()].nil?
         trans.merge! ports_properties[trans[:name].to_sym()]
       end

@@ -23,3 +23,4 @@ Puppet::Type.type(:l23_stored_config).provide(:lnx_ubuntu, :parent => Puppet::Pr
   end
 
 end
+# vim: set ts=2 sw=2 et :
