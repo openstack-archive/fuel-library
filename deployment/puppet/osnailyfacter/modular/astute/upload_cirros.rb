@@ -41,7 +41,6 @@ def image_create(image_hash)
 --container-format='#{image_hash['container_format']}' \
 --disk-format='#{image_hash['disk_format']}' \
 --min-ram='#{image_hash['min_ram']}' \
-#{image_hash['glance_properties']} \
 --file '#{image_hash['img_path']}'
 EOF
   puts command
