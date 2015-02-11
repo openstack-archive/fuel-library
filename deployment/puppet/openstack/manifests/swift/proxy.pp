@@ -40,6 +40,7 @@ class openstack::swift::proxy (
   $debug                              = false,
   $verbose                            = true,
   $log_facility                       = 'LOG_LOCAL1',
+  $ceilometer                         = false,
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -63,9 +64,21 @@ class openstack::swift::proxy (
     class { 'memcached': }
   }
 
+  if $ceilometer {
+    $new_proxy_pipeline = split(
+      inline_template(
+      "<%=
+          @proxy_pipeline.insert(-2, 'ceilometer').join(',')
+       %>"), ',')
+    class { '::swift::proxy::ceilometer': }
+  }
+  else {
+    $new_proxy_pipeline = $proxy_pipeline
+  }
+
   class { '::swift::proxy':
     proxy_local_net_ip       => $swift_local_net_ip,
-    pipeline                 => $proxy_pipeline,
+    pipeline                 => $new_proxy_pipeline,
     port                     => $proxy_port,
     workers                  => $proxy_workers,
     allow_account_management => $proxy_allow_account_management,
