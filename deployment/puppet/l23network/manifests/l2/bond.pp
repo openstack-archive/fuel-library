@@ -21,9 +21,9 @@ define l23network::l2::bond (
   $mtu                     = undef,
   $onboot                  = undef,
 # $ethtool                 = undef,
-  $bond_properties         = {},  # bond configuration options
-  $interface_properties    = {},  # configuration options for included interfaces (mtu, ethtool, etc...)
-  $vendor_specific         = {},
+  $bond_properties         = undef,  # bond configuration options
+  $interface_properties    = undef,  # configuration options for included interfaces (mtu, ethtool, etc...)
+  $vendor_specific         = undef,
   $monolith_bond_providers = undef,
   $provider                = undef,
   # deprecated parameters, in the future ones will be moved to the vendor_specific hash

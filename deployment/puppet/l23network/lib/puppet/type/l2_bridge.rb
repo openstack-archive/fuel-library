@@ -64,14 +64,31 @@ Puppet::Type.newtype(:l2_bridge) do
 
     newproperty(:vendor_specific) do
       desc "Hash of vendor specific properties"
-      #defaultto {}
-      # provider-specific hash, validating only by type.
+      #defaultto {}  # no default value should be!!!
+      # provider-specific properties, can be validating only by provider.
       validate do |val|
         if ! val.is_a? Hash
           fail("Vendor_specific should be a hash!")
         end
       end
+
+      munge do |value|
+        L23network.reccursive_sanitize_hash(value)
+      end
+
+      def should_to_s(value)
+        "\n#{value.to_yaml}\n"
+      end
+
+      def is_to_s(value)
+        "\n#{value.to_yaml}\n"
+      end
+
+      def insync?(value)
+        should_to_s(value) == should_to_s(should)
+      end
     end
+
 
     # global validator
     def validate

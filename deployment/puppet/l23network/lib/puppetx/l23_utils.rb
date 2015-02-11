@@ -21,6 +21,11 @@ module L23network
     end
   end
 
+  def self.get_patch_name(bridges)
+    # bridges should be an array of two string
+    "patch__#{bridges.map{|s| s.to_s}.sort.join('--')}"
+  end
+
 # def self.reccursive_merge_hash(a,b)
 #   rv = {}
 
@@ -59,3 +64,4 @@ module L23network
 #   return rv
 # end
 end
+# vim: set ts=2 sw=2 et :

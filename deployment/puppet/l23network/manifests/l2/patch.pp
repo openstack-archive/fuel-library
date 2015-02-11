@@ -24,30 +24,59 @@
 #
 define l23network::l2::patch (
   $bridges,
-  $peers         = [undef,undef],
-  $vlan_ids      = [0, 0],
-  $trunks        = [],
-  $provider      = 'ovs',
-  $ensure        = present,
-  $skip_existing = false
+  $ensure          = present,
+  $peers           = [undef,undef],  # unused and will be
+  $vlan_ids        = [0, 0],         # deprecated or moved
+  $trunks          = [],             # to the 'vendor_specific' hash
+  $vendor_specific = undef,
+  $provider        = undef,
 ) {
-  if ! $::l23network::l2::use_ovs {
-    fail('You must enable Open vSwitch by setting the l23network::l2::use_ovs to true.')
-  }
+
+  #$provider_1 = get_provider_for('L2_bridge', bridges[0])  # this didn't work, because parser functions
+  #$provider_2 = get_provider_for('L2_bridge', bridges[1])  # executed before resources prefetch
 
   # Architecture limitation.
   # We can't create more one patch between same bridges.
-  #$patch = "${bridges[0]}_${vlan_ids[0]}--${bridges[1]}_${vlan_ids[1]}"
-  $patch = "${bridges[0]}--${bridges[1]}"
+  $patch_name = get_patch_name($bridges)
 
-  if ! defined (L2_ovs_patch["${patch}"]) {
-    l2_ovs_patch { "${patch}" :
-      ensure   => $ensure,
-      bridges  => $bridges,
-      peers    => $peers,
-      vlan_ids => $vlan_ids,
-      trunks   => $trunks
+  if ! defined(L2_patch[$patch_name]) {
+    if $provider {
+      $config_provider = "${provider}_${::l23_os}"
+    } else {
+      $config_provider = undef
     }
-    Service<| title == 'openvswitch-service' |> -> L2_ovs_patch["${patch}"]
+
+    if ! defined(L23_stored_config[$patch_name]) {
+      l23_stored_config { $patch_name: }
+    }
+    # L23_stored_config <| title == $patch_name |> {
+    #   ensure          => $ensure,
+    #   if_type         => 'ethernet',
+    #   bridge          => $bridge,
+    #   vlan_id         => $port_vlan_id,
+    #   vlan_dev        => $port_vlan_dev,
+    #   vlan_mode       => $port_vlan_mode,
+    #   bond_master     => $master,
+    #   mtu             => $mtu,
+    #   onboot          => $onboot,
+    #   #ethtool              => $ethtool,
+    #   #vendor_specific=> $vendor_specific,
+    #   provider        => $config_provider
+    # }
+
+    l2_patch{ $patch_name :
+      ensure               => $ensure,
+      bridges              => $bridges,
+#     mtu                  => $mtu,
+      vendor_specific      => $vendor_specific,
+#     provider             => $provider
+    }
+
+    # this need for creating L2_patch resource by ifup, if it allowed by OS
+    #L23_stored_config[$patch1_name] -> L2_patch[$patch_name]
+    #L23_stored_config[$patch2_name] -> L2_patch[$patch_name]
+
+    K_mod<||> -> L2_patch<||>
   }
 }
+# vim: set ts=2 sw=2 et :
