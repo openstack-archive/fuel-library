@@ -119,10 +119,10 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
               mm = val.split(/\s+/)
               hash['iface'] = mm[0]
               hash['method'] = mm[2]
-              if hash['iface'] =~ /^br.*/i
-                # todo(sv): Make more powerful methodology for recognizind Bridges.
-                hash['if_type'] = :bridge
-              end
+              # if hash['iface'] =~ /^br.*/i
+              #   # todo(sv): Make more powerful methodology for recognizind Bridges.
+              #   hash['if_type'] = :bridge
+              # end
           when /bridge-ports/
               hash['if_type'] = :bridge
               hash[key] = val
