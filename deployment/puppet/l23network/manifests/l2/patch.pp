@@ -24,30 +24,57 @@
 #
 define l23network::l2::patch (
   $bridges,
-  $peers         = [undef,undef],
-  $vlan_ids      = [0, 0],
-  $trunks        = [],
-  $provider      = 'ovs',
-  $ensure        = present,
-  $skip_existing = false
+  $ensure          = present,
+  $mtu             = undef,
+  $peers           = [undef,undef],  # unused and will be
+  $vlan_ids        = [0, 0],         # deprecated or moved
+  $trunks          = [],             # to the 'vendor_specific' hash
+  $vendor_specific = undef,
+  $provider        = undef,
 ) {
-  if ! $::l23network::l2::use_ovs {
-    fail('You must enable Open vSwitch by setting the l23network::l2::use_ovs to true.')
-  }
+
+  #$provider_1 = get_provider_for('L2_bridge', bridges[0])  # this didn't work, because parser functions
+  #$provider_2 = get_provider_for('L2_bridge', bridges[1])  # executed before resources prefetch
 
   # Architecture limitation.
   # We can't create more one patch between same bridges.
-  #$patch = "${bridges[0]}_${vlan_ids[0]}--${bridges[1]}_${vlan_ids[1]}"
-  $patch = "${bridges[0]}--${bridges[1]}"
+  $patch_name = get_patch_name($bridges)
+  $patch_jacks_names = get_pair_of_jack_names($bridges)
 
-  if ! defined (L2_ovs_patch["${patch}"]) {
-    l2_ovs_patch { "${patch}" :
-      ensure   => $ensure,
-      bridges  => $bridges,
-      peers    => $peers,
-      vlan_ids => $vlan_ids,
-      trunks   => $trunks
+  if ! defined(L2_patch[$patch_name]) {
+    if $provider {
+      $config_provider = "${provider}_${::l23_os}"
+    } else {
+      $config_provider = undef
     }
-    Service<| title == 'openvswitch-service' |> -> L2_ovs_patch["${patch}"]
+
+    if ! defined(L23_stored_config[$patch_jacks_names[0]]) {
+      # we use only one (last) patch jack name here and later,
+      # because a both jacks for patch
+      # creates by one command. This command stores in one config file.
+      l23_stored_config { $patch_jacks_names[0]: }
+    }
+    L23_stored_config <| title == $patch_jacks_names[0] |> {
+      ensure          => $ensure,
+      if_type         => 'ethernet',
+      bridge          => $bridges,
+      jacks           => $patch_jacks_names,
+      #mtu             => $mtu,
+      onboot          => true,
+      #vendor_specific=> $vendor_specific,
+      provider        => $config_provider
+    }
+    L23_stored_config[$patch_jacks_names[0]] -> L2_patch[$patch_name]
+
+    l2_patch{ $patch_name :
+      ensure               => $ensure,
+      bridges              => $bridges,
+#     mtu                  => $mtu,
+      vendor_specific      => $vendor_specific,
+      provider             => $provider
+    }
+
+    K_mod<||> -> L2_patch<||>
   }
 }
+# vim: set ts=2 sw=2 et :

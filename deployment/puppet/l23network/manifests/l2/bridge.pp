@@ -16,7 +16,9 @@ define l23network::l2::bridge (
   $mtu             = undef,
   $stp             = undef,
   $bpdu_forward    = true,
+# $bridge_id       = undef,  # will be implemented later
   $external_ids    = { 'bridge-id' => "${name}" },
+  $vendor_specific = undef,
   $provider        = undef,
 ) {
   include l23network::params

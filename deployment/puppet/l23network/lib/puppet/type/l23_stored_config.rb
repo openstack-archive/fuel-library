@@ -37,13 +37,20 @@ Puppet::Type.newtype(:l23_stored_config) do
     newvalues(:ethernet, :bridge, :bond)
   end
 
-  newproperty(:bridge) do
+  newproperty(:bridge, :array_matching => :all) do
+    # Array_matching for this resource required for very complicated cases
+    # ex. patchcord for connectind two bridges or bridge and network namesspace
     desc "Name of bridge, including this port"
     newvalues(/^[\w+\-]+$/, :none, :undef, :nil, :absent)
     aliasvalue(:none,  :absent)
     aliasvalue(:undef, :absent)
     aliasvalue(:nil,   :absent)
     defaultto :absent
+  end
+
+  newproperty(:jacks, :array_matching => :all) do
+    desc "Name of jacks for patchcord"
+    newvalues(/^[\w+\-]+$/)
   end
 
   newproperty(:bridge_ports, :array_matching => :all) do
@@ -233,17 +240,19 @@ Puppet::Type.newtype(:l23_stored_config) do
   # end
 
   def generate
-    return if ! (![:absent, :none, :nil, :undef].include? self[:bridge] \
+    return if ! (!([:absent, :none, :nil, :undef] & self[:bridge]).any? \
                 and [:ethernet, :bond].include? self[:if_type]
                 )
-    br = self.catalog.resource 'L23_stored_config', self[:bridge]
-    fail "Stored_config resource for bridge '#{self[:bridge]}' not found for port '#{self[:name]}'!" if ! br
-    br[:bridge_ports] ||= []
-    ports = br[:bridge_ports]
-    return if ! ports.is_a? Array
-    if ! ports.include? self[:name]
-      ports << self[:name].to_s
-      br[:bridge_ports] = ports.reject{|a| a=='none'}.sort
+    self[:bridge].each do |bridge|
+      br = self.catalog.resource('L23_stored_config', bridge)
+      fail("Stored_config resource for bridge '#{bridge}' not found for port '#{self[:name]}'!") if ! br
+      br[:bridge_ports] ||= []
+      ports = br[:bridge_ports]
+      return if ! ports.is_a? Array
+      if ! ports.include? self[:name]
+        ports << self[:name].to_s
+        br[:bridge_ports] = ports.reject{|a| a=='none'}.sort
+      end
     end
     nil
   end

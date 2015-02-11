@@ -229,3 +229,4 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
 
 
 end
+# vim: set ts=2 sw=2 et :
