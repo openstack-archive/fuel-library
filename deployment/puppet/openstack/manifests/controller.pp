@@ -525,7 +525,8 @@ class openstack::controller (
       primary_controller   => $primary_controller,
       on_controller        => true,
       use_neutron          => $network_provider ? {'nova' => false, 'neutron' => true},
-      swift                => $swift,
+      ext_mongo            => $ceilometer_ext_mongo,
+      mongo_replicaset     => $mongo_replicaset,
     }
   }
 
