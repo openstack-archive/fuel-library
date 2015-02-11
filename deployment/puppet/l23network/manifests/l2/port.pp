@@ -40,7 +40,7 @@ define l23network::l2::port (
   $master                = undef,  # used for bonds automatically
   $slave                 = undef,  # used for bonds automatically
 # $type                  = undef,  # was '',
-  $vendor_specific       = {},
+  $vendor_specific       = undef,
   $provider              = undef,
   # deprecated parameters, in the future ones will be moved to the vendor_specific hash
 # $skip_existing         = undef,
@@ -109,7 +109,7 @@ define l23network::l2::port (
       bond_master     => $master,
       mtu             => $mtu,
       onboot          => $onboot,
-      #ethtool              => $ethtool,
+      #ethtool        => $ethtool,
       #vendor_specific=> $vendor_specific,
       provider        => $config_provider
     }
@@ -138,3 +138,4 @@ define l23network::l2::port (
     K_mod<||> -> L2_port<||>
   }
 }
+# vim: set ts=2 sw=2 et :
