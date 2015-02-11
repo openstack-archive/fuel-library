@@ -13,6 +13,7 @@
 #    under the License.
 
 import os
+from fnmatch import fnmatch
 
 import jsonschema
 import networkx as nx
@@ -39,10 +40,10 @@ TASKS_SCHEMA = {
     'items': TASK_SCHEMA}
 
 
-def get_files(base_dir, patterns=('tasks.yaml',)):
+def get_files(base_dir, file_pattern='*tasks.yaml'):
     for root, dirs, files in os.walk(base_dir):
         for file_name in files:
-            if file_name in patterns:
+            if fnmatch(file_name, file_pattern):
                 yield os.path.join(root, file_name)
 
 
