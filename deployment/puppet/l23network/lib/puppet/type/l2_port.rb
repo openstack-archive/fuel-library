@@ -57,7 +57,7 @@ Puppet::Type.newtype(:l2_port) do
         end
       end
       munge do |val|
-        if [:nil, :undef, :none, :absent].include?(val.to_sym)
+        if ['nil', 'undef', 'none', 'absent', ''].include?(val.to_s)
           :absent
         else
           val
@@ -191,8 +191,8 @@ Puppet::Type.newtype(:l2_port) do
 
     newproperty(:vendor_specific) do
       desc "Hash of vendor specific properties"
-      #defaultto {}
-      # provider-specific hash, validating only by type.
+      #defaultto {}  # no default value should be!!!
+      # provider-specific properties, can be validating only by provider.
       validate do |val|
         if ! val.is_a? Hash
           fail("Vendor_specific should be a hash!")

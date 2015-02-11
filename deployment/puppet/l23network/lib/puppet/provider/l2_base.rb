@@ -257,6 +257,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
       :interface => {},
       #:bond      => {},  # bond in ovs is a internal only port !!!
       :bridge    => {},
+      :jack      => {}  # jack of ovs patchcord (patchcord is a pair of ports with type 'patch')
     }
     _br = nil
     _po = nil
@@ -306,18 +307,26 @@ class Puppet::Provider::L2_base < Puppet::Provider
           ovs_config[:interface][_if].merge!({
             :type => $1
           })
+        when /^\s+options:\s+\{(.+)\}\s*$/
+          opts = $1.split(/[\s\,]+/).map{|o| o.split('=')}.reduce({}){|h,p| h.merge(p[0] => p[1].tr('"',''))}
+          ovs_config[:interface][_if].merge!({
+            :options => opts
+          })
         else
           #debug("Misformated line for br='#{_br}', po='#{_po}', if='#{_if}' => '#{line}'")
       end
     end
     ovs_config[:port].keys.each do |p_name|
       ifaces = ovs_config[:interface].select{|k,v| v[:port]==p_name}
+      iface = ifaces[ifaces.keys[0]]
       if ifaces.size > 1
         # Bond found
         #ovs_config[:bond][p_name] = ovs_config[:port][p_name]
         #ovs_config[:port].delete(p_name)
         ovs_config[:port][p_name][:port_type] << 'bond'
         ovs_config[:port][p_name][:provider] = 'ovs'
+      elsif iface[:type] == 'path'
+        ovs_config[:port][p_name][:port_type] << 'jack'
       else
         # ordinary interface found
         # pass
@@ -409,19 +418,18 @@ class Puppet::Provider::L2_base < Puppet::Provider
   def self.get_lnx_port_bridges_pairs
     # returns hash, which map ports to it's bridge.
     # i.e {
-    #       eth0     => { :bridge => 'br0',    :br_type => :lnx },
+    #       'eth0' => { :bridge => 'br0',    :br_type => :lnx },
     #     }
     # This function returns all visible in default namespace ports
     # (lnx and ovs (with type internal)) included to the lnx bridge
     #
-    port_mappings = {}
     begin
       brctl_show = brctl('show').split(/\n+/).select{|l| l.match(/^[\w\-]+\s+\d+/) or l.match(/^\s+[\w\.\-]+/)}
     rescue
       debug("No LNX bridges found, because error while 'brctl show' execution")
       return {}
     end
-    #todo: handle error
+    port_mappings = {}
     br_name = nil
     brctl_show.each do |line|
       line.rstrip!
