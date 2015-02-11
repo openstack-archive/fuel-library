@@ -12,3 +12,4 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_centos6, :parent => Puppet::P
   self.unlink_empty_files = true
 
 end
+# vim: set ts=2 sw=2 et :
