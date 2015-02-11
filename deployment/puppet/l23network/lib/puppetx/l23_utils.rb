@@ -21,6 +21,45 @@ module L23network
     end
   end
 
+  def self.get_patch_name(bridges)
+    # bridges should be an array of two string
+    "patch__#{bridges.map{|s| s.to_s}.sort.join('--')}"
+  end
+
+  def self.ovs_jack_name_len
+    13
+  end
+
+  def self.get_ovs_jack_name(bridge)
+    # bridges should be an array of two string
+    tail = bridge[0..ovs_jack_name_len-1]
+    "p_#{tail}"
+  end
+
+  def self.lnx_jack_name_len
+    11
+  end
+
+  def self.get_lnx_jack_name(bridge, num=0)
+    # bridges should be an array of two string
+    tail = bridge[0..lnx_jack_name_len-1]
+    "p_#{tail}-#{num}"
+  end
+
+  def self.get_pair_of_jack_names(bridges)
+    if bridges.is_a? String
+      j1 = get_lnx_jack_name(bridges,0)
+      j2 = get_lnx_jack_name(bridges,1)
+    elsif bridges.is_a? Array and bridges.length==1
+      j1 = get_lnx_jack_name(bridges[0],0)
+      j2 = get_lnx_jack_name(bridges[0],1)
+    else
+      j1 = get_lnx_jack_name(bridges[0],0)
+      j2 = get_lnx_jack_name(bridges[1],1)
+    end
+    return [j1, j2]
+  end
+
 # def self.reccursive_merge_hash(a,b)
 #   rv = {}
 
@@ -59,3 +98,4 @@ module L23network
 #   return rv
 # end
 end
+# vim: set ts=2 sw=2 et :
