@@ -3,6 +3,7 @@ $admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 $limit = "102400",
 $docker_package = "docker-io",
 $docker_service = "docker",
+$docker_engine = "native",
 $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   "/var/log/docker-logs/audit", "/var/log/docker-logs/cobbler",
   "/var/log/docker-logs/ConsoleKit", "/var/log/docker-logs/coredump",
@@ -13,6 +14,10 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   "/var/log/docker-logs/rhsm", "/var/log/docker-logs/supervisor",
   ]
 ) {
+
+  package { "lxc":
+    ensure => installed,
+  }
 
   package {$docker_package:
     ensure => installed,
