@@ -6,6 +6,7 @@ service rsync
     user            = root
     server          = /usr/bin/rsync
     server_args     = --daemon
+    log_type        = FILE /var/log/rsync.log
     cps = 512 10
     flags = IPv4
     per_source = UNLIMITED
