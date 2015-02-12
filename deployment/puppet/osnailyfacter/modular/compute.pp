@@ -33,7 +33,6 @@ $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
 $network_scheme                 = hiera('network_scheme', {})
-$network_data                   = hiera('network_data', {})
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
@@ -89,7 +88,6 @@ if $use_neutron {
   include l23network::l2
   $novanetwork_params        = {}
   $neutron_config            = hiera('quantum_settings')
-  $network_provider          = 'neutron'
   $neutron_db_password       = $neutron_config['database']['passwd']
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
@@ -98,14 +96,10 @@ if $use_neutron {
     $use_vmware_nsx     = true
   }
 } else {
+  $floating_ips_range = hiera('floating_network_range')
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
-  $network_size       = $novanetwork_params['network_size']
-  $num_networks       = $novanetwork_params['num_networks']
-  $vlan_start         = $novanetwork_params['vlan_start']
-  $network_provider   = 'nova'
 }
-$network_manager = "nova.network.manager.${novanetwork_params['network_manager']}"
 
 if !$ceilometer_hash {
   $ceilometer_hash = {
@@ -166,9 +160,6 @@ if !$rabbit_hash['user'] {
   $rabbit_hash['user'] = 'nova'
 }
 
-if ! $use_neutron {
-  $floating_ips_range = hiera('floating_network_range')
-}
 $floating_hash = {}
 
 ##CALCULATED PARAMETERS
@@ -278,11 +269,6 @@ if ($use_swift) {
   $rgw_servers = $controllers
 }
 
-
-$network_config = {
-  'vlan_start'     => $vlan_start,
-}
-
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
 #   we delegate all of the monitor functions to RA instead of monit.
 if member($roles, 'controller') or member($roles, 'primary-controller') {
@@ -385,12 +371,12 @@ if ($::mellanox_mode == 'ethernet') {
 
 class { 'openstack::compute':
   public_interface            => $public_int ? { undef=>'', default=>$public_int},
-  private_interface           => $use_neutron ? { true=>false, default=>hiera('fixed_interface')},
+  private_interface              => $::use_neutron ? { true=>false, default=>hiera('private_int')},
   internal_address            => $internal_address,
   libvirt_type                => hiera('libvirt_type'),
   fixed_range                 => $use_neutron ? { true=>false, default=>hiera('fixed_network_range')},
-  network_manager             => $network_manager,
-  network_config              => $network_config,
+  network_manager             => hiera('network_manager'),
+  network_config              => hiera('network_config', {}),
   multi_host                  => $multi_host,
   sql_connection              => "mysql://nova:${nova_hash[db_password]}@${management_vip}/nova?read_timeout=60",
   queue_provider              => $queue_provider,
@@ -418,8 +404,7 @@ class { 'openstack::compute':
   ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
   ceilometer_user_password    => $ceilometer_hash[user_password],
   db_host                     => $management_vip,
-
-  network_provider            => $network_provider,
+  network_provider            => hiera('network_provider'),
   neutron_user_password       => $neutron_user_password,
   base_mac                    => $base_mac,
 
