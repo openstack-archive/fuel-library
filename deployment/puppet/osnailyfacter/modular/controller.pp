@@ -79,9 +79,7 @@ if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
 
 if $use_neutron {
   include l23network::l2
-  $novanetwork_params        = {}
   $neutron_config            = hiera('quantum_settings')
-  $network_provider          = 'neutron'
   $neutron_db_password       = $neutron_config['database']['passwd']
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
@@ -91,13 +89,7 @@ if $use_neutron {
   }
 } else {
   $neutron_config     = {}
-  $novanetwork_params = hiera('novanetwork_parameters')
-  $network_size       = $novanetwork_params['network_size']
-  $num_networks       = $novanetwork_params['num_networks']
-  $vlan_start         = $novanetwork_params['vlan_start']
-  $network_provider   = 'nova'
 }
-$network_manager = "nova.network.manager.${novanetwork_params['network_manager']}"
 
 if !$ceilometer_hash {
   $ceilometer_hash = {
@@ -270,10 +262,6 @@ if ($use_swift) {
   }
 }
 
-$network_config = {
-  'vlan_start'     => $vlan_start,
-}
-
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
 #   we delegate all of the monitor functions to RA instead of monit.
 if member($roles, 'controller') or member($roles, 'primary-controller') {
@@ -377,6 +365,10 @@ if ($use_swift) {
     internal_address => $management_vip,
     admin_address    => $management_vip,
   }
+}
+
+nova_config {
+  'DEFAULT/teardown_unused_network_gateway': value => 'True'
 }
 
 nova_config {
