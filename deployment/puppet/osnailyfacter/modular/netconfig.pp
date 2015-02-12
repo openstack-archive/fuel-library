@@ -1,15 +1,25 @@
 notice('MODULAR: netconfig.pp')
 
-if  hiera('disable_offload') {
-  L23network::L3::Ifconfig<||> {
-    ethtool => {
-      'K' => ['gso off',  'gro off'],
-    }
-  }
-}
+$network_scheme = hiera('network_scheme')
 
-class { 'l23network' :
-  use_ovs => hiera('use_neutron'),
+#if  hiera('disable_offload') {
+#  L23network::L3::Ifconfig<||> {
+#    ethtool => {
+#      'K' => ['gso off',  'gro off'],
+#    }
+#  }
+#}
+
+if $network_scheme['provider'] == 'lnx' {
+  class { 'l23network' :
+    use_ovs => false,
+    use_lnx => true,
+  }
+} else {
+  class { 'l23network' :
+    use_ovs => true,
+    use_lnx => false,
+  }
 }
 
 class advanced_node_netconfig {
@@ -17,15 +27,8 @@ class advanced_node_netconfig {
   notify {"SDN: ${sdn}": }
 }
 
-if hiera('use_neutron') {
-  prepare_network_config(hiera('network_scheme'))
-  class {'advanced_node_netconfig': }
-} else {
-  class { 'osnailyfacter::network_setup':
-    interfaces       => keys(hiera('network_data')),
-    network_settings => hiera('network_data'),
-  }
-}
+prepare_network_config(hiera('network_scheme'))
+class {'advanced_node_netconfig': }
 
 # setting kernel reserved ports
 # defaults are 49000,35357,41055,58882
