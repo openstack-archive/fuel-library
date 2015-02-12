@@ -42,3 +42,18 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
+
+- id: upload_core_repos
+  type: upload_file
+  role: '*'
+  stage: pre_deployment
+
+- id: rsync_core_puppet
+  type: sync
+  role: '*'
+  stage: pre_deployment
+  requires: [upload_core_repos]
+  parameters:
+    src: /etc/puppet/{OPENSTACK_VERSION}/
+    dst: /etc/puppet
+    timeout:
