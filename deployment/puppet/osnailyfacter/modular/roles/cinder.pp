@@ -32,7 +32,6 @@ $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
 $network_scheme                 = hiera('network_scheme', {})
-$network_data                   = hiera('network_data', {})
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
@@ -245,10 +244,6 @@ if ($storage_hash['images_ceph']) {
 } else {
   $glance_backend = 'swift'
   $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
-}
-
-$network_config = {
-  'vlan_start'     => $vlan_start,
 }
 
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
