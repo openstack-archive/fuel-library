@@ -76,9 +76,7 @@ if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
 
 if $use_neutron {
   include l23network::l2
-  $novanetwork_params        = {}
   $neutron_config            = hiera('quantum_settings')
-  $network_provider          = 'neutron'
   $neutron_db_password       = $neutron_config['database']['passwd']
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
@@ -88,13 +86,7 @@ if $use_neutron {
   }
 } else {
   $neutron_config     = {}
-  $novanetwork_params = hiera('novanetwork_parameters')
-  $network_size       = $novanetwork_params['network_size']
-  $num_networks       = $novanetwork_params['num_networks']
-  $vlan_start         = $novanetwork_params['vlan_start']
-  $network_provider   = 'nova'
 }
-$network_manager = "nova.network.manager.${novanetwork_params['network_manager']}"
 
 if !$ceilometer_hash {
   $ceilometer_hash = {
