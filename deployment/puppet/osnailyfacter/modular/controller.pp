@@ -317,13 +317,16 @@ class compact_controller (
   $primary_controller,
 ) {
 
+  prepare_network_config(hiera('network_scheme'))
+  $fixed_int                  = get_network_role_property('novanetwork/fixed', 'interface')
+
   class { 'openstack::controller_ha':
     controllers                    => $::controllers,
     controller_public_addresses    => $::controller_public_addresses,
     controller_internal_addresses  => $::controller_internal_addresses,
     internal_address               => $::internal_address,
     public_interface               => $::public_int,
-    private_interface              => $::use_neutron ? { true=>false, default=>hiera('fixed_interface')},
+    private_interface              => $::use_neutron ? { true=>false, default=>$fixed_int}, ##TODO have to be changed
     internal_virtual_ip            => $::management_vip,
     public_virtual_ip              => $::public_vip,
     primary_controller             => $::primary_controller,
