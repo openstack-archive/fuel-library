@@ -33,7 +33,6 @@ $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
 $network_scheme                 = hiera('network_scheme', {})
-$network_data                   = hiera('network_data', {})
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
@@ -385,7 +384,7 @@ if ($::mellanox_mode == 'ethernet') {
 
 class { 'openstack::compute':
   public_interface            => $public_int ? { undef=>'', default=>$public_int},
-  private_interface           => $use_neutron ? { true=>false, default=>hiera('fixed_interface')},
+  private_interface           => $use_neutron ? { true=>false, default=>hiera('public_int')}, ##TODO have to be changed
   internal_address            => $internal_address,
   libvirt_type                => hiera('libvirt_type'),
   fixed_range                 => $use_neutron ? { true=>false, default=>hiera('fixed_network_range')},

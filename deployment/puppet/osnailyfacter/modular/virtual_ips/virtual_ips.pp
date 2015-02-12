@@ -5,7 +5,6 @@ $internal_int                = hiera('internal_int')
 $public_int                  = hiera('public_int',  undef)
 $primary_controller_nodes    = hiera('primary_controller_nodes', false)
 $network_scheme              = hiera('network_scheme', {})
-$network_data                = hiera('network_data', {})
 $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
 $vip_public_cidr_netmask     = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 $use_neutron                 = hiera('use_neutron')
@@ -52,11 +51,8 @@ if $public_int {
     iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${public_int} -j MASQUERADE",
     iptables_comment     => "masquerade-for-public-net",
     tie_with_ping        => hiera('run_ping_checker', true),
-    ping_host_list       => $use_neutron ? {
-      default => $network_data[$public_int]['gateway'],
-      true    => $network_scheme['endpoints']['br-ex']['gateway'],
-    },
-  }
+    ping_host_list       => $network_scheme['endpoints']['br-ex']['gateway'],
+  },
 }
 $vip_keys = keys($vips)
 

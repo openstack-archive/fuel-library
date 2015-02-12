@@ -93,12 +93,13 @@ if empty($node) {
 }
 $default_gateway = hiera('default_gateway', $node[0]['default_gateway'])
 
+prepare_network_config($network_scheme)
+$internal_int                  = get_network_role_property('management', 'interface')
+$public_int                    = get_network_role_property('ex', 'interface')
+
 if $use_neutron {
-  prepare_network_config($network_scheme)
-  $internal_int                  = get_network_role_property('management', 'interface')
   $internal_address              = get_network_role_property('management', 'ipaddr')
   $internal_netmask              = get_network_role_property('management', 'netmask')
-  $public_int                    = get_network_role_property('ex', 'interface')
   $public_address                = get_network_role_property('ex', 'ipaddr')
   $public_netmask                = get_network_role_property('ex', 'netmask')
   $storage_address               = get_network_role_property('storage', 'ipaddr')
@@ -126,8 +127,6 @@ if $use_neutron {
   $storage_netmask    = $node[0]['storage_netmask']
   $public_br          = $node[0]['public_br']
   $internal_br        = $node[0]['internal_br']
-  $public_int         = hiera('public_interface')
-  $internal_int       = hiera('management_interface')
   #
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
