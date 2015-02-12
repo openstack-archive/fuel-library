@@ -6,11 +6,6 @@ $sahara_hash                    = hiera('sahara', {})
 $murano_hash                    = hiera('murano', {})
 $storage_hash                   = hiera('storage', {})
 $controllers                    = hiera('controllers')
-if $use_neutron {
-  $network_provider = 'neutron'
-} else {
-  $network_provider = 'nova'
-}
 
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
   $use_swift = true
@@ -29,7 +24,7 @@ class { '::openstack::ha::haproxy':
       public_virtual_ip        => hiera('public_vip'),
       internal_virtual_ip      => hiera('management_vip'),
       horizon_use_ssl          => hiera('horizon_use_ssl', false),
-      neutron                  => $network_provider ? {'neutron' => true, default => false},
+      neutron                  => hiera('network_provider')? {'neutron' => true, default => false},
       queue_provider           => 'rabbitmq',
       custom_mysql_setup_class => 'galera',
       swift_proxies            => $swift_proxies,
