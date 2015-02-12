@@ -1,6 +1,7 @@
 notice('MODULAR: openstack-network-controller.pp')
 
 $use_neutron                    = hiera('use_neutron')
+$network_provider               = hiera('network_provider')
 $neutron_nsx_config             = hiera('nsx_plugin')
 $primary_controller             = hiera('primary_controller')
 $access_hash                    = hiera('access', {})
@@ -33,7 +34,6 @@ if $use_neutron {
   include l23network::l2
   $novanetwork_params    = {}
   $neutron_config        = hiera('quantum_settings')
-  $network_provider      = 'neutron'
   $neutron_db_password   = $neutron_config['database']['passwd']
   $neutron_user_password = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
@@ -45,16 +45,8 @@ if $use_neutron {
   $floating_ips_range = hiera('floating_network_range')
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
-  $network_size       = $novanetwork_params['network_size']
-  $num_networks       = $novanetwork_params['num_networks']
-  $vlan_start         = $novanetwork_params['vlan_start']
-  $network_provider   = 'nova'
 }
 
-$network_manager = "nova.network.manager.${novanetwork_params['network_manager']}"
-$network_config = {
-  'vlan_start'     => $vlan_start,
-}
 $keystone_admin_tenant = $access_hash[tenant]
 
 $openstack_version = {
@@ -64,13 +56,6 @@ $openstack_version = {
   'nova'       => 'installed',
   'novncproxy' => 'installed',
   'cinder'     => 'installed',
-}
-
-######## [Nova|Neutron] Network ########
-if $network_manager !~ /VlanManager$/ and $network_config {
-  $config_overrides = delete($network_config, 'vlan_start')
-} else {
-  $config_overrides = $network_config
 }
 
 if $network_provider == 'neutron' {
@@ -233,15 +218,15 @@ class { 'openstack::network':
   metadata_ip     => $service_endpoint,
 
   #nova settings
-  private_interface   => $use_neutron ? { true =>false, default =>hiera('fixed_interface')},
+  private_interface   => $use_neutron ? { true=>false, default=>hiera('private_int')},
   public_interface    => hiera('public_int', undef),
   fixed_range         => $use_neutron ? { true =>false, default =>hiera('fixed_network_range')},
   floating_range      => $use_neutron ? { true =>$floating_hash, default  =>false},
-  network_manager     => $network_manager,
-  network_config      => $config_overrides,
+  network_manager     => hiera('network_manager'),
+  network_config      => hiera('network_config', {}),
   create_networks     => $primary_controller,
-  num_networks        => $num_networks,
-  network_size        => $network_size,
+  num_networks        => hiera('num_networks'),
+  network_size        => hiera('network_size'),
   nameservers         => hiera('dns_nameservers'),
   enable_nova_net     => false,  # just setup networks, but don't start nova-network service on controllers
   nova_admin_password => $nova_hash[user_password],
