@@ -93,17 +93,17 @@ if empty($node) {
 }
 $default_gateway = hiera('default_gateway', $node[0]['default_gateway'])
 
+prepare_network_config($network_scheme)
+$internal_int                  = get_network_role_property('management', 'interface')
+$public_int                    = get_network_role_property('ex', 'interface')
+$internal_address              = get_network_role_property('management', 'ipaddr')
+$internal_netmask              = get_network_role_property('management', 'netmask')
+$public_address                = get_network_role_property('ex', 'ipaddr')
+$public_netmask                = get_network_role_property('ex', 'netmask')
+$storage_address               = get_network_role_property('storage', 'ipaddr')
+$storage_netmask               = get_network_role_property('storage', 'netmask')
+
 if $use_neutron {
-  prepare_network_config($network_scheme)
-  $internal_int                  = get_network_role_property('management', 'interface')
-  $internal_address              = get_network_role_property('management', 'ipaddr')
-  $internal_netmask              = get_network_role_property('management', 'netmask')
-  $public_int                    = get_network_role_property('ex', 'interface')
-  $public_address                = get_network_role_property('ex', 'ipaddr')
-  $public_netmask                = get_network_role_property('ex', 'netmask')
-  $storage_address               = get_network_role_property('storage', 'ipaddr')
-  $storage_netmask               = get_network_role_property('storage', 'netmask')
-  #
   $novanetwork_params            = {}
   $neutron_config                = hiera('quantum_settings')
   $network_provider              = 'neutron'
@@ -118,25 +118,19 @@ if $use_neutron {
     $neutron_nsx_config = $nsx_plugin
   }
 } else {
-  $internal_address   = $node[0]['internal_address']
-  $internal_netmask   = $node[0]['internal_netmask']
-  $public_address     = $node[0]['public_address']
-  $public_netmask     = $node[0]['public_netmask']
-  $storage_address    = $node[0]['storage_address']
-  $storage_netmask    = $node[0]['storage_netmask']
-  $public_br          = $node[0]['public_br']
-  $internal_br        = $node[0]['internal_br']
-  $public_int         = hiera('public_interface')
-  $internal_int       = hiera('management_interface')
-  #
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
   $network_size       = $novanetwork_params['network_size']
   $num_networks       = $novanetwork_params['num_networks']
-  $vlan_start         = $novanetwork_params['vlan_start']
   $network_provider   = 'nova'
-  $network_config     = {
-    'vlan_start'      => $vlan_start,
+  if ( $novanetwork_params['network_manager'] == 'FlatDHCPManager') {
+    $private_int                  = get_network_role_property('novanetwork/fixed', 'interface')
+  } else {
+    $private_int                  = get_network_role_property('novanetwork/vlan', 'interface')
+    $vlan_start         = $novanetwork_params['vlan_start']
+    $network_config     = {
+      'vlan_start'      => $vlan_start,
+    }
   }
   $network_manager    = "nova.network.manager.${novanetwork_params['network_manager']}"
 }
