@@ -452,7 +452,7 @@ function purge_stale_iptables_rules {
         if ! [[ "$ruleips" =~ "$containerip" ]]; then
           iptables-save | grep -v -- "$rule" | iptables-restore
         fi
-      done < <(iptables-save | grep -- "-m $proto --dport $port")
+      done < <(iptables-save | grep -- "-m $proto --dport $port ")
   done
 }
 
