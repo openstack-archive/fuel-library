@@ -32,7 +32,6 @@ $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
 $network_scheme                 = hiera('network_scheme', {})
-$network_data                   = hiera('network_data', {})
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
@@ -82,25 +81,13 @@ if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
 
 if $use_neutron {
   include l23network::l2
-  $novanetwork_params        = {}
   $neutron_config            = hiera('quantum_settings')
-  $network_provider          = 'neutron'
-  $neutron_db_password       = $neutron_config['database']['passwd']
-  $neutron_user_password     = $neutron_config['keystone']['admin_password']
-  $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
-  $base_mac                  = $neutron_config['L2']['base_mac']
   if $neutron_nsx_config['metadata']['enabled'] {
     $use_vmware_nsx     = true
   }
 } else {
   $neutron_config     = {}
-  $novanetwork_params = hiera('novanetwork_parameters')
-  $network_size       = $novanetwork_params['network_size']
-  $num_networks       = $novanetwork_params['num_networks']
-  $vlan_start         = $novanetwork_params['vlan_start']
-  $network_provider   = 'nova'
 }
-$network_manager = "nova.network.manager.${novanetwork_params['network_manager']}"
 
 if !$ceilometer_hash {
   $ceilometer_hash = {
@@ -245,10 +232,6 @@ if ($storage_hash['images_ceph']) {
 } else {
   $glance_backend = 'swift'
   $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
-}
-
-$network_config = {
-  'vlan_start'     => $vlan_start,
 }
 
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
