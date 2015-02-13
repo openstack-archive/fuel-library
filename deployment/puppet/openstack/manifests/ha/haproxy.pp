@@ -33,7 +33,6 @@ class openstack::ha::haproxy (
   class { 'openstack::ha::cinder': }
 
   if $neutron { class { 'openstack::ha::neutron': } }
-  if $queue_provider == 'rabbitmq' { class { 'openstack::ha::rabbitmq': } }
 
   if $custom_mysql_setup_class == 'galera' {
     class { 'openstack::ha::mysqld':
