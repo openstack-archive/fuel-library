@@ -157,26 +157,6 @@ function run_storage_containers {
   return 0
 }
 
-function import_images {
-  #Imports images with xz, gzip, or simple tar format
-  for image_archive in $@; do
-    if [ ! -f $image_archive ]; then
-      echo "Warning: $image_archive does not exist. Skipping..."
-      continue
-    fi
-    debug "Importing $image_archive"
-    image="$(echo $image_archive | cut -d. -f1)"
-    if egrep -q "gz\$" <<< "$image_archive"; then
-      zcat "$image_archive" | ${DOCKER} load
-    elif egrep -q "xz\$" <<< "$image_archive"; then
-      xz -dkc "$image_archive" | ${DOCKER} load
-    else
-      #try to just import
-      cat "$image_archive" | ${DOCKER} load
-    fi
-  done
-}
-
 function export_containers {
   #--trim option removes $CNT_PREFIX from container name when exporting
   if [[ "$1" == "--trim" ]]; then
