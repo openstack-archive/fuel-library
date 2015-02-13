@@ -39,6 +39,9 @@ OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
 OCF_RESKEY_keystone_config_default="/etc/keystone/keystone.conf"
 OCF_RESKEY_plugin_config_default="/etc/neutron/dhcp_agent.ini"
 OCF_RESKEY_log_file_default="/var/log/neutron/dhcp-agent.log"
+OCF_RESKEY_check_state_reports_default=false
+OCF_RESKEY_state_reports_file_default="/var/lib/neutron/dhcp_agent_report.log"
+OCF_RESKEY_state_reports_timeout_default=60
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_amqp_server_port_default="5672" # or "none" for disable checking
@@ -65,6 +68,9 @@ OCF_RESKEY_debug_default='false'
 : ${OCF_RESKEY_multiple_agents=${OCF_RESKEY_multiple_agents_default}}
 : ${OCF_RESKEY_amqp_server_port=${OCF_RESKEY_amqp_server_port_default}}
 : ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
+: ${OCF_RESKEY_check_state_reports=${OCF_RESKEY_check_state_reports_default}}
+: ${OCF_RESKEY_state_reports_file=${OCF_RESKEY_state_reports_file_default}}
+: ${OCF_RESKEY_state_reports_timeout=${OCF_RESKEY_state_reports_timeout_default}}
 : ${OCF_RESKEY_rescheduling_tries=${OCF_RESKEY_rescheduling_tries_default}}
 : ${OCF_RESKEY_rescheduling_interval=${OCF_RESKEY_rescheduling_interval_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
@@ -176,6 +182,33 @@ The log file to use for this OpenStack DHCP Service (${OCF_RESKEY_binary}) insta
 </longdesc>
 <shortdesc lang="en">OpenStack DHCP Service (${OCF_RESKEY_binary}) log file</shortdesc>
 <content type="string" default="${OCF_RESKEY_log_file_default}" />
+</parameter>
+
+<parameter name="check_state_reports" unique="0" required="0">
+<longdesc lang="en">
+The flag, which enables or disables additional monitoring
+based on agent's local state reports
+</longdesc>
+<shortdesc lang="en">Enable or disable local state reports based monitoring</shortdesc>
+<content type="string" default="${OCF_RESKEY_check_state_reports_default}" />
+</parameter>
+
+<parameter name="state_reports_file" unique="0" required="0">
+<longdesc lang="en">
+This file contains DHCP agent local state report information.
+There're three section in it: STARTUP, RPC_STATE_REPORT and SYNC_STATE.
+</longdesc>
+<shortdesc lang="en">DHCP agent local state report file</shortdesc>
+<content type="string" default="${OCF_RESKEY_state_reports_file_default}" />
+</parameter>
+
+<parameter name="state_reports_timeout" unique="0" required="0">
+<longdesc lang="en">
+The timeout value for DHCP agent to update its local state report.
+If it takes more time than the specified value agent is considered to be dead.
+</longdesc>
+<shortdesc lang="en">DHCP agent local state reports timeout</shortdesc>
+<content type="string" default="${OCF_RESKEY_state_reports_timeout_default}" />
 </parameter>
 
 <parameter name="username" unique="0" required="0">
@@ -350,6 +383,52 @@ neutron_dhcp_agent_status() {
     return $OCF_ERR_GENERIC
 }
 
+get_local_reports_value() {
+
+    local SECTION
+    local KEY
+    local VALUE
+
+    SECTION=$1
+    KEY=$2
+    VALUE=$(awk "/$SECTION/,/}/" $OCF_RESKEY_state_reports_file | grep $KEY | awk '{$1=""; print $0}' | tr -d "\",")
+    echo $VALUE
+}
+
+check_local_reports() {
+
+    local SECTIONS
+    local SYSTIME
+    local RPC_STATE_TIMESTAMP
+
+    if [ ! -f $OCF_RESKEY_state_reports_file ] ; then
+        ocf_log warn "State reports file wasn't found"
+        return $OCF_SUCCESS
+    fi
+
+    SECTIONS="STARTUP RPC_STATE_REPORT SYNC_STATE"
+    SYSTIME=$(date +%s)
+    RPC_STATE_TIMESTAMP=$(get_local_reports_value RPC_STATE_REPORT Timestamp)
+    RPC_STATE_TIMESTAMP=${RPC_STATE_TIMESTAMP%.*}
+
+    if [[ $(($SYSTIME-$RPC_STATE_TIMESTAMP)) -gt $OCF_RESKEY_state_reports_timeout ]] ; then
+         ocf_log err "Agent is not reporting for too long"
+         return $OCF_ERR_GENERIC
+    fi
+
+    for SECTION in $SECTIONS ; do
+        STATUS=$(get_local_reports_value $SECTION Status)
+        if [[ "$STATUS" =~ "failure" ]] ; then
+             SINCE=$(date --date="$(get_local_reports_value SYNC_STATE Since)" +%s)
+             if [[ $(($SYSTIME-$SINCE)) -gt $OCF_RESKEY_state_reports_timeout ]] ; then
+                  ocf_log err "$SECTION report is in failure status for too long"
+                  return $OCF_ERR_GENERIC
+             fi
+        fi
+    done
+    return $OCF_SUCCESS
+}
+
 get_ns_list() {
     local rv=`ip netns list | grep -Ee "^qdhcp-.*"`
     echo $rv
@@ -417,6 +496,15 @@ neutron_dhcp_agent_monitor() {
         return $rc
     fi
 
+
+    if ocf_is_true "$OCF_RESKEY_check_state_reports" ; then
+        check_local_reports
+        rc=$?
+        if [ $rc -ne $OCF_SUCCESS ]; then
+            return $rc
+        fi
+    fi
+
     ocf_log debug "OpenStack DHCP Agent (neutron-dhcp-agent) monitor succeeded"
     return $OCF_SUCCESS
 }
@@ -434,6 +522,7 @@ neutron_dhcp_agent_start() {
     clean_up
     sleep 1
     clean_up_namespaces
+    rm -f $OCF_RESKEY_state_reports_file
 
     # run and detach to background agent as daemon.
     # Don't use ocf_run as we're sending the tool's output to /dev/null
