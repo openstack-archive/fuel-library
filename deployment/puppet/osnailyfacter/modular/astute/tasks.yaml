@@ -1,7 +1,9 @@
+# POST_DEPLOYMENT TASKS
 - id: enable_quorum
   type: shell
   role: [primary-controller]
-  stage: post_deployment
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/enable_quorum.rb
     timeout: 180
@@ -9,9 +11,9 @@
 - id: restart_rados
   type: shell
   role: [primary-controller, controller]
-  stage: post_deployment
   condition: "settings:storage.objects_ceph.value == true"
-  required_for: [upload_cirros]
+  requires: [post_deployment_start]
+  required_for: [upload_cirros, post_deployment_end]
   parameters:
     cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/restart_rados.sh
     timeout: 180
@@ -20,7 +22,7 @@
   type: shell
   role: [primary-controller]
   requires: [enable_quorum]
-  stage: post_deployment
+  required_for: [post_deployment_end]
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/upload_cirros.rb
     timeout: 180
@@ -28,14 +30,14 @@
 - id: upload_nodes_info
   type: upload_file
   role: '*'
-  stage: post_deployment
+  requires: [post_deployment_start]
   parameters:
     path: /etc/hiera/nodes.yaml
 
 - id: update_hosts
   type: puppet
   role: '*'
-  stage: post_deployment
+  required_for: [post_deployment_end]
   requires: [upload_nodes_info]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hosts.pp
@@ -46,31 +48,48 @@
 - id: vcenter_compute_zones_create
   type: shell
   role: [primary-controller]
-  stage: post_deployment
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
   condition: "settings:common.use_vcenter.value == true"
   parameters:
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py
     timeout: 180
 
+#PRE DEPLOYMENT
 - id: upload_core_repos
   type: upload_file
   role: '*'
-  stage: pre_deployment
+  requires: [pre_deployment_start]
 
 - id: rsync_core_puppet
   type: sync
   role: '*'
-  stage: pre_deployment
+  required_for: [pre_deployment_end]
   requires: [upload_core_repos]
   parameters:
     src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/
     dst: /etc/puppet
-    timeout:
+    timeout: 180
+
 
 - id: clear_nodes_info
   type: shell
   role: '*'
-  stage: pre_deployment
+  requires: [pre_deployment_start]
+  required_for: [pre_deployment_end]
   parameters:
     cmd: rm -f /etc/hiera/nodes.yaml
     retries: 1
+
+
+- id: sync_time
+  type: shell
+  role: '*'
+  requires: [pre_deployment_start]
+  required_for: [pre_deployment_end]
+  parameters:
+    cmd: ntpdate -u $(egrep '^server' /etc/ntp.conf | egrep -v '127\.127\.[0-9]+\.[0-9]+' | sed '/^#/d' | awk '{print $2}')
+    retries: 10
+    interval: 1
+    timeout: 180
+

@@ -1,7 +1,7 @@
 - id: vmware-vcenter
   type: puppet
   groups: [primary-controller, controller]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [top-role-controller]
   condition: "settings:common.libvirt_type.value == 'vcenter' or settings:common.use_vcenter.value == true"
   parameters:
@@ -12,7 +12,7 @@
 - id: vmware-compute
   type: puppet
   groups: [compute]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [top-role-compute]
   condition: "settings:common.libvirt_type.value == 'vcenter' or settings:common.use_vcenter.value == true"
   parameters:
