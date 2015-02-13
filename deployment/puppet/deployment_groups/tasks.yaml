@@ -1,19 +1,38 @@
 #STAGES
-- id: deploy
+
+- id: pre_deployment_start
   type: stage
+
 - id: pre_deployment
   type: stage
+  requires: [pre_deployment_start]
+
+- id: deploy_start
+  type: stage
+  requires: [pre_deployment]
+
+- id: deploy
+  type: stage
+  requires: [deploy_start]
+
+- id: post_deployment_start
+  type: stage
+  requires: [deploy]
+
 - id: post_deployment
   type: stage
+  requires: [post_deployment_start]
 
 #GROUPS
 - id: primary-controller
   type: group
   role: [primary-controller]
+  requires: [deploy_start]
   required_for: [deploy]
   parameters:
     strategy:
       type: one_by_one
+
 - id: controller
   type: group
   role: [controller]
@@ -23,6 +42,7 @@
     strategy:
       type: parallel
       amount: 6
+
 - id: cinder
   type: group
   role: [cinder]
@@ -31,6 +51,7 @@
   parameters:
     strategy:
       type: parallel
+
 - id: compute
   type: group
   role: [compute]
@@ -39,13 +60,16 @@
   parameters:
     strategy:
       type: parallel
+
 - id: zabbix-server
   type: group
   role: [zabbix-server]
   required_for: [deploy]
+  requires: [deploy_start]
   parameters:
     strategy:
       type: one_by_one
+
 - id: mongo
   type: group
   role: [mongo]
@@ -54,6 +78,7 @@
   parameters:
     strategy:
       type: parallel
+
 - id: primary-mongo
   type: group
   role: [primary-mongo]
@@ -62,6 +87,7 @@
   parameters:
     strategy:
       type: one_by_one
+
 - id: ceph-osd
   type: group
   role: [ceph-osd]
@@ -70,21 +96,12 @@
   parameters:
     strategy:
       type: parallel
+
 - id: base-os
   type: group
   role: [base-os]
   required_for: [deploy]
+  requires: [deploy_start]
   parameters:
     strategy:
       type: parallel
-
-#PRE DEPLOYMENT
-- id: sync_time
-  type: shell
-  role: '*'
-  stage: pre_deployment
-  parameters:
-    cmd: ntpdate -u $(egrep '^server' /etc/ntp.conf | egrep -v '127\.127\.[0-9]+\.[0-9]+' | sed '/^#/d' | awk '{print $2}')
-    retries: 10
-    interval: 1
-    timeout: 180
