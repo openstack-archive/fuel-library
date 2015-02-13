@@ -39,6 +39,8 @@ OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
 OCF_RESKEY_keystone_config_default="/etc/keystone/keystone.conf"
 OCF_RESKEY_plugin_config_default="/etc/neutron/l3_agent.ini"
 OCF_RESKEY_log_file_default="/var/log/neutron/l3-agent.log"
+OCF_RESKEY_state_reports_file_default="/var/lib/neutron/l3_agent_report.log"
+OCF_RESKEY_state_reports_timeout_default=30
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
@@ -67,6 +69,8 @@ OCF_RESKEY_debug_default=false
 : ${OCF_RESKEY_rescheduling_tries=${OCF_RESKEY_rescheduling_tries_default}}
 : ${OCF_RESKEY_rescheduling_interval=${OCF_RESKEY_rescheduling_interval_default}}
 : ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
+: ${OCF_RESKEY_state_reports_file=${OCF_RESKEY_state_reports_file_default}}
+: ${OCF_RESKEY_state_reports_timeout=${OCF_RESKEY_state_reports_timeout_default}}
 
 #######################################################################
 
@@ -163,6 +167,24 @@ The log file to use for this OpenStack L3 Service (neutron-l3-agent) instance
 </longdesc>
 <shortdesc lang="en">OpenStack L3 Service (neutron-l3-agent) log file</shortdesc>
 <content type="string" default="${OCF_RESKEY_log_file_default}" />
+</parameter>
+
+<parameter name="state_reports_file" unique="0" required="0">
+<longdesc lang="en">
+This file contains L3 agent local state report information.
+There're three section in it: STARTUP, RPC_STATE_REPORT and SYNC_STATE.
+</longdesc>
+<shortdesc lang="en">L3 agent local state report file</shortdesc>
+<content type="string" default="${OCF_RESKEY_state_reports_file_default}" />
+</parameter>
+
+<parameter name="state_reports_timeout" unique="0" required="0">
+<longdesc lang="en">
+The timeout value for L3 agent to update its local state report.
+If it takes more time than the specified value agent is considered to be dead.
+</longdesc>
+<shortdesc lang="en">L3 agent local state reports timeout</shortdesc>
+<content type="string" default="${OCF_RESKEY_state_reports_timeout_default}" />
 </parameter>
 
 <parameter name="neutron_server_port" unique="0" required="0">
@@ -371,6 +393,52 @@ neutron_l3_agent_status() {
     return $OCF_ERR_GENERIC
 }
 
+get_local_reports_value() {
+
+    local SECTION
+    local KEY
+    local VALUE
+
+    SECTION=$1
+    KEY=$2
+    # 'cat' is done here to avoid problems with file opening by awk due to permanent rewrites by the agent
+    VALUE=$(awk "/$SECTION/,/}/" $OCF_RESKEY_state_reports_file | grep $KEY | awk '{$1=""; print $0}' | tr -d "\",")
+    echo $VALUE
+}
+
+check_local_reports() {
+
+    local SECTIONS
+    local SYSTIME
+    local RPC_STATE_TIMESTAMP
+
+    if [ ! -f $OCF_RESKEY_state_reports_file ] ; then
+        ocf_log warn "State reports file wasn't found"
+        return $OCF_SUCCESS
+    fi
+
+    SECTIONS="STARTUP RPC_STATE_REPORT SYNC_STATE"
+    SYSTIME=$(date +%s)
+    RPC_STATE_TIMESTAMP=$(get_local_reports_value RPC_STATE_REPORT Timestamp)
+    RPC_STATE_TIMESTAMP=${RPC_STATE_TIMESTAMP%.*}
+
+    if [[ $(($SYSTIME-$RPC_STATE_TIMESTAMP)) -gt $OCF_RESKEY_state_reports_timeout ]] ; then
+         ocf_log err "Agent is not reporting for too long"
+         return $OCF_ERR_GENERIC
+    fi
+
+    for SECTION in $SECTIONS ; do
+        STATUS=$(get_local_reports_value $SECTION Status)
+        if [[ "$STATUS" =~ "failure" ]] ; then
+             SINCE=$(date --date="$(get_local_reports_value SYNC_STATE Since)" +%s)
+             if [[ $(($SYSTIME-$SINCE)) -gt $OCF_RESKEY_state_reports_timeout ]] ; then
+                  ocf_log err "$SECTION report is in failure status for too long"
+                  return $OCF_ERR_GENERIC
+             fi
+        fi
+    done
+    return $OCF_SUCCESS
+}
 
 get_ns_list() {
     local rv=`ip netns list | grep -Ee "^qrouter-.*"`
@@ -431,6 +499,10 @@ clean_up_namespaces() {
 neutron_l3_agent_monitor() {
     neutron_l3_agent_status
     rc=$?
+    if [ $rc -eq 0 ]; then
+        check_local_reports
+        rc=$?
+    fi
     return $rc
 
 }
@@ -449,6 +521,7 @@ neutron_l3_agent_start() {
     clean_up
     sleep 1
     clean_up_namespaces
+    rm -f $OCF_RESKEY_state_reports_file
 
     # run and detach to background agent as daemon.
     # Don't use ocf_run as we're sending the tool's output to /dev/null
