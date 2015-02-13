@@ -82,8 +82,6 @@ def graph(tasks):
             for req in task['tasks']:
                 graph.add_edge(req, task['id'])
 
-        if 'stage' in task:
-            graph.add_edge(task['id'], task['stage'])
     return graph
 
 
