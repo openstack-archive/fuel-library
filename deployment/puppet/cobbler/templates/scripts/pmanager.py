@@ -711,6 +711,27 @@ class PreseedPManager(object):
              "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
              "pvremove -ff -y $p; done")
 
+    def _blacklist_udev_rules(self):
+        self.late(
+            "for rules in $(ls -1 /lib/udev/rules.d/*.rules); do "
+            "test -e /etc/udev/rules.d/$(basename $rules) && "
+            "mv /etc/udev/rules.d/$(basename $rules) "
+            "/etc/udev/rules.d/$(basename $rules).bak; "
+            "touch /etc/udev/rules.d/$(basename $rules); "
+            "done")
+        self.late("udevadm control --reload")
+
+    def _unblacklist_udev_rules(self):
+        self.late(
+            "for rules in $(ls -1 /lib/udev/rules.d/*.rules); do "
+            "if test -e /etc/udev/rules.d/$(basename $rules).bak; "
+            "then mv /etc/udev/rules.d/$(basename $rules).bak "
+            "/etc/udev/rules.d/$(basename $rules); "
+            "else rm -f /etc/udev/rules.d/$(basename $rules); "
+            "fi; done")
+        self.late("udevadm control --reload")
+        self.late("udevadm trigger")
+
     def boot(self):
         self.recipe("24 24 24 ext3 "
                     "$gptonly{ } "
@@ -776,6 +797,7 @@ class PreseedPManager(object):
         ceph_journals = self.num_ceph_journals()
 
         self._umount_target()
+        self._blacklist_udev_rules()
         cephjournal_guid_commands = []
         for disk in self.iterdisks():
             for part in self.non_boot_partitions(disk["volumes"]):
@@ -889,6 +911,7 @@ class PreseedPManager(object):
                         self._disk_dev(disk),
                         self._pseparator(disk["id"]),
                         pcount, disk_label))
+        self._unblacklist_udev_rules()
         self._mount_target()
 
         # Partition guids must be set in-target, which requires target to be
@@ -934,6 +957,7 @@ class PreseedPManager(object):
         pvlist = []
 
         self._umount_target()
+        self._blacklist_udev_rules()
         for disk in self.iterdisks():
             self.late("parted -s {0} print free".format(self._disk_dev(disk)))
             for pv in [p for p in disk["volumes"]
@@ -998,6 +1022,7 @@ class PreseedPManager(object):
                     "".format(self._disk_dev(disk),
                               self._pseparator(disk["id"]), pcount)
                 )
+        self._unblacklist_udev_rules()
 
         self.log_lvm("before additional cleaning", False)
         self.erase_lvm_metadata(False)
