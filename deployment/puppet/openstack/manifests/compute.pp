@@ -262,12 +262,6 @@ class openstack::compute (
       nova_shell             => '/bin/bash',
   }
 
-  # From legacy init.pp
-  if !($glance_api_servers) {
-    # TODO this only supports setting a single address for the api server
-    Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'glance_api_servers' |>>
-  }
-
   #Cinder setup
   $enabled_apis = 'metadata'
 
@@ -316,13 +310,6 @@ class openstack::compute (
     else {
       nova_config { 'libvirt/inject_partition': value => '1'; }
     }
-  }
-
-  # From legacy libvirt.pp
-  if !($vncproxy_host) {
-    warning("VNC is enabled and \$vncproxy_host must be specified nova::compute assumes that it can\
- collect the exported resource: Nova_config[novncproxy_base_url]")
-    Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'novncproxy_base_url' |>>
   }
 
   # Configure libvirt for nova-compute
