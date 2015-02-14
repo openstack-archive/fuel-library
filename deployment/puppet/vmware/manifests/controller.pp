@@ -97,7 +97,8 @@ class vmware::controller (
 
   # network configuration
   class { 'vmware::network':
-    use_quantum => $use_quantum,
+    vlan_interface => $vlan_interface,
+    use_quantum    => $use_quantum,
   }
 
   # Enable metadata service on Controller node

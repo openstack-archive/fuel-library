@@ -17,10 +17,17 @@
 class vmware::network::nova (
   $ensure_package = 'present',
   $amqp_port = '5673',
-  $nova_network_config = '/etc/nova/nova.conf'
+  $nova_network_config = '/etc/nova/nova.conf',
+  $vlan_interface = undef
 )
 {
   include nova::params
+
+  if defined ($vlan_interface) {
+    nova_config { 'vmware/vlan_interface': value => $vlan_interface }
+
+    Nova_config['vmware/vlan_interface']->Service['p_vcenter_nova_network']
+  }
 
   cs_resource { 'p_vcenter_nova_network':
     ensure          => present,

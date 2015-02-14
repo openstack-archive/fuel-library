@@ -16,9 +16,8 @@
 # It handles whether we use neutron or nova-network and call for an appropriate class
 
 class vmware::network (
-
+  $vlan_interface = undef,
   $use_quantum = false,
-
 )
 
 { # begin of class
@@ -26,7 +25,9 @@ class vmware::network (
   if $use_quantum { # for quantum
     class { 'vmware::network::neutron': }
   } else { # for nova network
-    class { 'vmware::network::nova': }
+    class { 'vmware::network::nova':
+      vlan_interface => $vlan_interface
+    }
   } # end of network check
 
 } # end of class
