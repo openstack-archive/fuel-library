@@ -1,0 +1,11 @@
+- id: tools
+  type: puppet
+  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  required_for: [deploy]
+  requires: [logging]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/tools/tools.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/tools/tools_post.rb
