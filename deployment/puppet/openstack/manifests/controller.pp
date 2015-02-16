@@ -667,6 +667,7 @@ class openstack::controller (
         tenant_name      => $keystone_admin_tenant
       }
     }
+    nova_config { 'DEFAULT/default_floating_pool': value => 'net04_ext' }
     $pnets = $neutron_settings['L2']['phys_nets']
     if $pnets['physnet1'] {
       $physnet1 = "physnet1:${pnets['physnet1']['bridge']}"
