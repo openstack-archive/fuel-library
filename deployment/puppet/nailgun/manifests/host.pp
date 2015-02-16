@@ -5,7 +5,53 @@ $dns_search = 'domain.tld',
 $dns_domain = 'domain.tld',
 $nailgun_group = 'nailgun',
 $nailgun_user = 'nailgun',
-$gem_source = 'http://localhost/gems/',
+$confdir = "/etc/fuel/${::fuel_version['VERSION']['release']}/containers/",
+$database_name,
+$database_engine,
+$database_host,
+$database_port,
+$database_user,
+$database_passwd,
+
+$staticdir,
+$templatedir,
+
+$rabbitmq_host,
+$rabbitmq_astute_user,
+$rabbitmq_astute_password,
+
+$admin_network,
+$admin_network_cidr,
+$admin_network_size,
+$admin_network_first,
+$admin_network_last,
+$admin_network_netmask,
+$admin_network_mac,
+$admin_network_ip,
+
+$cobbler_host,
+$cobbler_url,
+$cobbler_user = "cobbler",
+$cobbler_password = "cobbler",
+
+$mco_pskey,
+$mco_vhost,
+$mco_host,
+$mco_user,
+$mco_password,
+$mco_connector,
+
+$puppet_master_hostname,
+
+$exclude_network = $admin_network,
+$exclude_cidr = $admin_network_cidr,
+
+$keystone_host = '127.0.0.1',
+$keystone_nailgun_user = 'nailgun',
+$keystone_nailgun_pass = 'nailgun',
+
+$dns_domain,
+
 ) {
   #Enable cobbler's iptables rules even if Cobbler not called
   include cobbler::iptables
@@ -18,13 +64,52 @@ $gem_source = 'http://localhost/gems/',
   } ->
   class { 'nailgun::iptables': }
 
-  nailgun::sshkeygen { '/root/.ssh/id_rsa':
-    homedir   => '/root',
-    username  => 'root',
-    groupname => 'root',
-    keytype   => 'rsa',
+  class { 'nailgun::host::nailgun':
+    confdir         => "${confdir}/nailgun/",
+    dns_domain      => $dns_domain,
+    database_name   => $database_name,
+    database_engine => $database_engine,
+    database_host   => $database_host,
+    database_port   => $database_port,
+    database_user   => $database_user,
+    database_passwd => $database_passwd,
+
+    staticdir                => $staticdir,
+    templatedir              => $templatedir,
+    rabbitmq_host            => $rabbitmq_host,
+    rabbitmq_astute_user     => $rabbitmq_astute_user,
+    rabbitmq_astute_password => $rabbitmq_astute_password,
+
+    admin_network         => $admin_network,
+    admin_network_cidr    => $admin_network_cidr,
+    admin_network_size    => $admin_network_size,
+    admin_network_first   => $admin_network_first,
+    admin_network_last    => $admin_network_last,
+    admin_network_netmask => $admin_network_netmask,
+    admin_network_mac     => $admin_network_mac,
+    admin_network_ip      => $admin_network_ip,
+
+    cobbler_host     => $cobbler_host,
+    cobbler_url      => $cobbler_url,
+    cobbler_user     => $cobbler_user,
+    cobbler_password => $cobbler_password,
+
+    mco_pskey     => $mco_pskey,
+    mco_vhost     => $mco_vhost,
+    mco_host      => $mco_host,
+    mco_user      => $mco_user,
+    mco_password  => $mco_password,
+    mco_connector => $mco_connector,
+
+    puppet_master_hostname => $puppet_master_hostname,
   }
 
+  file { ["/etc/nailgun","/etc/nailgun/${::fuel_version['VERSION']['release']}/", "/etc/nailgun/${::fuel_version['VERSION']['release']}/containers/"]:
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '755',
+  }
   file { '/etc/ssh/sshd_config':
     content => template('nailgun/sshd_config.erb'),
     owner   => 'root',

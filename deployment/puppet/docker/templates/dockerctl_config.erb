@@ -86,7 +86,7 @@ HOST_VOL['puppet']="-v /etc/puppet:/etc/puppet:ro"
 HOST_VOL['sshkey']="-v /root/.ssh:/root/.ssh:ro"
 HOST_VOL['astuteyaml']="-v /etc/fuel:/etc/fuel:ro"
 HOST_VOL['logs']="-v /var/log/docker-logs:/var/log"
-
+HOST_VOL['nailgun_conf']="-v /etc/fuel/${VERSION}/containers/nailgun:/etc/nailgun"
 #Storage container volume mounts
 declare -A CONTAINER_VOLUMES
 #Format: CONTAINER_VOLUMES[$FOO_CNT]="${HOST_VOL['foo']}"
@@ -116,8 +116,9 @@ REQS["${HOST_VOL['logs']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf
 REQS["${HOST_VOL['puppet']}"]="rsync"
 #Uncomment to enable host puppet manifests
 #REQS["${HOST_VOL['puppet']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
+REQS["${HOST_VOL['nailgun_conf']}"]="nailgun mcollective"
 REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective ostf"
-REQS["$NAILGUN_VOL"]="nginx mcollective"
+REQS["$NAILGUN_VOL"]="nginx"
 REQS["$COBBLER_VOL"]="mcollective"
 REQS["$ASTUTE_VOL"]="mcollective"
 
