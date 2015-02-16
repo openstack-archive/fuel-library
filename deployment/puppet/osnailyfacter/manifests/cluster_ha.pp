@@ -544,7 +544,12 @@ class osnailyfacter::cluster_ha {
           Openstack::Ha::Haproxy_service <| |> ->
           Exec<| title=='wait-for-haproxy-nova-backend' |>
         }
+
+        nova_config {
+          'DEFAULT/teardown_unused_network_gateway': value => 'True'
+        }
       }
+
       if ($::use_ceph){
         Class['openstack::controller'] -> Class['ceph']
       }
