@@ -4,7 +4,7 @@ dir = File.dirname(__FILE__)
 Dir.chdir dir
 
 globals = 'globals.pp'
-template_dir = '../templates'
+template_dir = '../../templates'
 raise 'No globlas.pp!' unless File.exist? globals
 raise 'No template dir!' unless File.directory? template_dir
 
