@@ -1,0 +1,15 @@
+- id: globals
+  type: puppet
+  groups: [primary-controller, controller,
+           cinder, compute, ceph-osd,
+           zabbix-server, primary-mongo, mongo]
+  required_for: [deploy_end]
+  requires: [hiera]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/globals/globals.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: python /etc/puppet/modules/osnailyfacter/modular/globals/globals_pre.py
+  test_post:
+    cmd: python /etc/puppet/modules/osnailyfacter/modular/globals/globals_post.py

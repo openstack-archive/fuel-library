@@ -1,0 +1,13 @@
+- id: zabbix
+  type: puppet
+  groups: [primary-controller, controller,
+           cinder, compute, ceph-osd,
+           zabbix-server, primary-mongo, mongo]
+  required_for: [deploy_end]
+  requires: [hosts, firewall]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix_post.rb
