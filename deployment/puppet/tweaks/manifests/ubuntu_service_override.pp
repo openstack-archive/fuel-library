@@ -3,25 +3,26 @@ define tweaks::ubuntu_service_override (
   $package_name = $name,
 ) {
   if $::operatingsystem == 'Ubuntu' {
-	  $override_file = "/etc/init/${service_name}.override"
-	  $file_name     = "create_${service_name}_override"
-	  $exec_name     = "remove_${service_name}_override"
+    $override_file = "/etc/init/${service_name}.override"
+    $file_name     = "create_${service_name}_override"
+    $exec_name     = "remove_${service_name}_override"
 
-	  file { $file_name :
-	    ensure  => present,
-	    path    => $override_file,
-			content => 'manual',
-			mode    => '0644',
-			owner   => 'root',
-			group   => 'root',
-	  }
+    file { $file_name :
+      ensure  => present,
+      path    => $override_file,
+      content => 'manual',
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+    }
 
-	  exec { $exec_name :
-	    path    => [ '/sbin', '/bin', '/usr/bin', '/usr/sbin' ],
-	    command => "rm -f ${override_file}",
-	    onlyif  => "test -f ${override_file}",
-	  }
+    exec { $exec_name :
+      path    => [ '/sbin', '/bin', '/usr/bin', '/usr/sbin' ],
+      command => "rm -f ${override_file}",
+      onlyif  => "test -f ${override_file}",
+    }
 
-	  File[$file_name] -> Package <| name == $package_name |> -> Exec[$exec_name]
+    File[$file_name] -> Package <| name == $package_name |> -> Exec[$exec_name]
+    File[$file_name] -> Exec[$exec_name]
   }
 }
