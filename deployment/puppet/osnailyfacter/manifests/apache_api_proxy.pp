@@ -21,6 +21,6 @@ class osnailyfacter::apache_api_proxy(
     port             => '8888',
     add_listen       => true,
     error_log_syslog => 'syslog:local1',
-    log_level        => 'debug',
+    log_level        => 'notice',
   }
 }
