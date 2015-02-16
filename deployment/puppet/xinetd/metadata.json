@@ -1,0 +1,20 @@
+{
+  "name": "puppetlabs-xinetd",
+  "version": "1.3.1",
+  "author": "puppetlabs",
+  "summary": "Puppet Labs Xinetd Module",
+  "license": "Apache License, Version 2.0",
+  "source": "https://github.com/puppetlabs/puppetlabs-xinetd",
+  "project_page": "https://github.com/puppetlabs/puppetlabs-xinetd",
+  "issues_url": "https://github.com/puppetlabs/puppetlabs-xinetd/issues",
+  "types": [
+  
+  ],
+  "description": "Puppet module to configure xinetd services",
+  "dependencies": [
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">=2.2.1"
+    }
+  ]
+}
