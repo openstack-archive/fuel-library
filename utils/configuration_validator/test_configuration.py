@@ -40,7 +40,7 @@ TASKS_SCHEMA = {
     'items': TASK_SCHEMA}
 
 
-def get_files(base_dir, patterns=('tasks.yaml',)):
+def get_files(base_dir, patterns=('*tasks.yaml',)):
     for root, dirs, files in os.walk(base_dir):
         for file_name in files:
             if file_name in patterns:
