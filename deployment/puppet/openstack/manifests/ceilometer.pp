@@ -30,7 +30,6 @@ class openstack::ceilometer (
   $ha_mode             = false,
   $primary_controller  = false,
   $use_neutron         = false,
-  $swift               = false,
 ) {
 
   # Add the base ceilometer class & parameters
@@ -98,12 +97,6 @@ class openstack::ceilometer (
 
     if $use_neutron {
       neutron_config { 'DEFAULT/notification_driver': value => 'messaging' }
-    }
-
-    if $swift {
-      class {'::openstack::swift::notify::ceilometer':
-        enable_ceilometer => true,
-      }
     }
 
     if $ha_mode {
