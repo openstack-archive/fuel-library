@@ -50,7 +50,7 @@
 
 - id: hiera
   type: puppet
-  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo, base-os]
   required_for: [deploy]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera.pp
@@ -61,7 +61,7 @@
   type: puppet
   groups: [primary-controller, controller,
            cinder, compute, ceph-osd,
-           zabbix-server, primary-mongo, mongo]
+           zabbix-server, primary-mongo, mongo, base-os]
   required_for: [deploy]
   requires: [hiera]
   parameters:
