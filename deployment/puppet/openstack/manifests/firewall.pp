@@ -35,6 +35,7 @@ class openstack::firewall (
   $ntp_server_port              = 123,
   $corosync_input_port          = 5404,
   $corosync_output_port         = 5405,
+  $pcsd_port                    = 2224,
   $openvswitch_db_port          = 58882,
   $libvirt_port                 = 16509,
   $nrpe_server_port             = 5666,
@@ -186,38 +187,44 @@ class openstack::firewall (
     action => 'accept',
   }
 
-  firewall {'115 openvswitch db':
+  firewall {'115 pcsd-server':
+    port   => $pcsd_port,
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'116 openvswitch db':
     port   => $openvswitch_db_port,
     proto  => 'udp',
     action => 'accept',
   }
 
-  firewall {'116 nrpe-server':
+  firewall {'117 nrpe-server':
     port   => $nrpe_server_port,
     proto  => 'tcp',
     action => 'accept',
   }
 
-  firewall {'117 libvirt':
+  firewall {'118 libvirt':
     port   => $libvirt_port,
     proto  => 'tcp',
     action => 'accept',
   }
 
-  firewall {'118 libvirt migration':
+  firewall {'119 libvirt migration':
     port   => '49152-49215',
     proto  => 'tcp',
     action => 'accept',
   }
 
-  firewall {'118 vnc ports':
+  firewall {'120 vnc ports':
     port => '5900-6100',
     proto => 'tcp',
     source => $nova_vnc_ip_range,
     action => 'accept',
   }
 
-  firewall {'119 ceilometer':
+  firewall {'121 ceilometer':
     port => $ceilometer_port,
     proto => 'tcp',
     action => 'accept',
