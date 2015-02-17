@@ -22,21 +22,6 @@ BASE_IMAGE="centos.tar.gz"
 # Order in which to start all containers
 CONTAINER_SEQUENCE="postgres rabbitmq keystone rsync astute rsyslog nailgun ostf nginx cobbler mcollective"
 
-ZIP_EXT=${ZIP_EXT:-".tar.xz"}
-# source images for apps
-declare -A SOURCE_IMAGES
-SOURCE_IMAGES['cobbler']="${IMAGE_DIR}/cobbler${ZIP_EXT}"
-SOURCE_IMAGES['postgres']="${IMAGE_DIR}/postgres${ZIP_EXT}"
-SOURCE_IMAGES['rabbitmq']="${IMAGE_DIR}/rabbitmq${ZIP_EXT}"
-SOURCE_IMAGES['rsync']="${IMAGE_DIR}/rsync${ZIP_EXT}"
-SOURCE_IMAGES['astute']="${IMAGE_DIR}/astute${ZIP_EXT}"
-SOURCE_IMAGES['nailgun']="${IMAGE_DIR}/nailgun${ZIP_EXT}"
-SOURCE_IMAGES['ostf']="${IMAGE_DIR}/ostf${ZIP_EXT}"
-SOURCE_IMAGES['nginx']="${IMAGE_DIR}/nginx${ZIP_EXT}"
-SOURCE_IMAGES['rsyslog']="${IMAGE_DIR}/rsyslog${ZIP_EXT}"
-SOURCE_IMAGES['mcollective']="${IMAGE_DIR}/mcollective${ZIP_EXT}"
-SOURCE_IMAGES['keystone']="${IMAGE_DIR}/keystone${ZIP_EXT}"
-
 # storage container names
 PREFIX_STORAGE="fuel-core-${VERSION}-volume-"
 
