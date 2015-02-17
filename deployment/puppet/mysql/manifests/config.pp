@@ -30,33 +30,34 @@
 #   }
 #
 class mysql::config(
-  $bind_address      = $mysql::params::bind_address,
-  $port              = $mysql::params::port,
-  $service_name      = $mysql::params::service_name,
-  $config_file       = $mysql::params::config_file,
-  $socket            = $mysql::params::socket,
-  $pidfile           = $mysql::params::pidfile,
-  $datadir           = $mysql::params::datadir,
-  $ssl               = $mysql::params::ssl,
-  $ssl_ca            = $mysql::params::ssl_ca,
-  $ssl_cert          = $mysql::params::ssl_cert,
-  $ssl_key           = $mysql::params::ssl_key,
-  $log_error         = $mysql::params::log_error,
-  $default_engine    = 'UNSET',
-  $root_group        = $mysql::params::root_group,
-  $use_syslog        = false,
+  $bind_address       = $mysql::params::bind_address,
+  $port               = $mysql::params::port,
+  $service_name       = $mysql::params::service_name,
+  $config_file        = $mysql::params::config_file,
+  $socket             = $mysql::params::socket,
+  $pidfile            = $mysql::params::pidfile,
+  $datadir            = $mysql::params::datadir,
+  $ssl                = $mysql::params::ssl,
+  $ssl_ca             = $mysql::params::ssl_ca,
+  $ssl_cert           = $mysql::params::ssl_cert,
+  $ssl_key            = $mysql::params::ssl_key,
+  $log_error          = $mysql::params::log_error,
+  $default_engine     = 'UNSET',
+  $root_group         = $mysql::params::root_group,
+  $use_syslog         = false,
   $custom_setup_class = undef,
-  $server_id         = $mysql::params::server_id,
+  $server_id          = $mysql::params::server_id,
+  $debug              = $mysql::params::debug,
 ) inherits mysql::params {
 
-  $mysql_buffer_pool_size = $::mysql::params::mysql_buffer_pool_size
-  $mysql_log_file_size    = $::mysql::params::mysql_log_file_size
-  $max_connections = $::mysql::params::max_connections
-  $table_open_cache = $::mysql::params::table_open_cache
-  $key_buffer_size = $::mysql::params::key_buffer_size
+  $mysql_buffer_pool_size  = $::mysql::params::mysql_buffer_pool_size
+  $mysql_log_file_size     = $::mysql::params::mysql_log_file_size
+  $max_connections         = $::mysql::params::max_connections
+  $table_open_cache        = $::mysql::params::table_open_cache
+  $key_buffer_size         = $::mysql::params::key_buffer_size
   $myisam_sort_buffer_size = $::mysql::params::myisam_sort_buffer_size
-  $wait_timeout = $::mysql::params::wait_timeout
-  $open_files_limit= $::mysql::params::open_files_limit
+  $wait_timeout            = $::mysql::params::wait_timeout
+  $open_files_limit        = $::mysql::params::open_files_limit
 
   if $custom_setup_class != "pacemaker_mysql" {
     File {

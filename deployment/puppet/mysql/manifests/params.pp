@@ -31,6 +31,7 @@ class mysql::params {
   $table_open_cache        = '10000'
   $open_files_limit        = '102400'
   $max_connections         = '3000'
+  $debug                   = false
 
   case $::osfamily {
     'RedHat': {
