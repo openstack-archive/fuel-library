@@ -808,6 +808,11 @@ package { 'screen':
   ensure => present,
 }
 
+# BP https://blueprints.launchpad.net/mos/+spec/include-openstackclient
+package { 'python-openstackclient' :
+  ensure => installed,
+}
+
 # Reduce swapiness on controllers, see LP#1413702
 sysctl::value { 'vm.swappiness':
   value => "10"
