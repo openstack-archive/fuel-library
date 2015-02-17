@@ -135,8 +135,11 @@ class openstack::cinder(
 
     ####### Disable upstart startup on install #######
     if($::operatingsystem == 'Ubuntu') {
-      tweaks::ubuntu_service_override { 'cinder-volume':
-        package_name => 'cinder-volume',
+      # cinder::backend::rbd configures its override on its own
+      if $manage_volumes != 'ceph' {
+        tweaks::ubuntu_service_override { 'cinder-volume':
+          package_name => 'cinder-volume',
+        }
       }
     }
 
