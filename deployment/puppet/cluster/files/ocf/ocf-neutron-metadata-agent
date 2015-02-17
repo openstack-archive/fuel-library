@@ -146,7 +146,15 @@ END
 }
 
 get_worker_pid() {
-    pid=`pgrep -u ${OCF_RESKEY_user} -fol ${OCF_RESKEY_binary} | grep -E  "python\s+\/usr\/bin" | awk '{print $1}'`
+    local options
+    local pid
+    # FIXME: Remove it after migration to Centos 7 and Ubuntu 14.04 and higher
+    if grep -q 'Ubuntu 14.04' /etc/issue.net; then
+      options='falo'
+    else
+      options='flo'
+    fi
+    pid=`pgrep -u ${OCF_RESKEY_user} -${options} ${OCF_RESKEY_binary} | awk '/python\s+\/usr\/bin/ {print $1}'`
     echo $pid
 }
 
