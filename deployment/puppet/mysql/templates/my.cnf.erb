@@ -61,6 +61,11 @@ ssl-ca    = <%= @ssl_ca %>
 ssl-cert  = <%= @ssl_cert %>
 ssl-key   = <%= @ssl_key %>
 <% end %>
+<% if @debug %>
+slow_query_log = 1
+long_query_time = 10
+log_queries_not_using_indexes = 1
+<% end %>
 <% if @custom_setup_class == 'pacemaker_mysql' %>
 server-id=<%= @server_id %>
 log-bin=mysql-bin
