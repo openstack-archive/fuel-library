@@ -64,11 +64,12 @@ class openstack::db::mysql (
     $galera_cluster_name     = 'openstack',
     $primary_controller      = false,
     $galera_node_address     = '127.0.0.1',
-    $db_host                = '127.0.0.1',
+    $db_host                 = '127.0.0.1',
     $galera_nodes            = ['127.0.0.1'],
     $mysql_skip_name_resolve = false,
     $custom_setup_class      = undef,
     $use_syslog              = false,
+    $debug                   = false,
 ) {
 
   if $custom_setup_class {

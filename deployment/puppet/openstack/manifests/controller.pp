@@ -264,6 +264,7 @@ class openstack::controller (
       custom_setup_class      => $custom_mysql_setup_class,
       mysql_skip_name_resolve => $mysql_skip_name_resolve,
       use_syslog              => $use_syslog,
+      debug                   => $debug,
     }
   }
   ####### KEYSTONE ###########
