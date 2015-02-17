@@ -3,8 +3,9 @@
 # Configure HAProxy managed by corosync/pacemaker
 #
 class cluster::haproxy (
-  $haproxy_maxconn = '4000',
-  $haproxy_bufsize = '16384',
+  $haproxy_maxconn    = '4000',
+  $haproxy_bufsize    = '16384',
+  $haproxy_maxrewrite = '1024',
   $primary_controller = false
 ) {
   include ::concat::setup
@@ -16,14 +17,15 @@ class cluster::haproxy (
   #  and this override looks the only possible if
   #  upstream manifests must be kept intact
   $global_options   = {
-    'log'          => '/dev/log local0',
-    'pidfile'      => '/var/run/haproxy.pid',
-    'maxconn'      => $haproxy_maxconn,
-    'user'         => 'haproxy',
-    'group'        => 'haproxy',
-    'daemon'       => '',
-    'stats'        => 'socket /var/lib/haproxy/stats',
-    'tune.bufsize' => $haproxy_bufsize,
+    'log'             => '/dev/log local0',
+    'pidfile'         => '/var/run/haproxy.pid',
+    'maxconn'         => $haproxy_maxconn,
+    'user'            => 'haproxy',
+    'group'           => 'haproxy',
+    'daemon'          => '',
+    'stats'           => 'socket /var/lib/haproxy/stats',
+    'tune.bufsize'    => $haproxy_bufsize,
+    'tune.maxrewrite' => $haproxy_maxrewrite,
   }
 
   class { 'haproxy::base':
