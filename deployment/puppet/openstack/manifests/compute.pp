@@ -624,11 +624,5 @@ on packages update": }
     tweaks::ubuntu_service_override { 'nova-network':
       package_name => 'nova-network',
     }
-    # Ceph rbd backend configures its override on its own
-    if !$::fuel_settings['storage']['volumes_ceph'] {
-      tweaks::ubuntu_service_override { 'cinder-volume':
-        package_name => 'cinder-volume',
-      }
-    }
   }
 }
