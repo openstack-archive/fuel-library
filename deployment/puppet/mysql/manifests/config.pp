@@ -30,33 +30,36 @@
 #   }
 #
 class mysql::config(
-  $bind_address      = $mysql::params::bind_address,
-  $port              = $mysql::params::port,
-  $service_name      = $mysql::params::service_name,
-  $config_file       = $mysql::params::config_file,
-  $socket            = $mysql::params::socket,
-  $pidfile           = $mysql::params::pidfile,
-  $datadir           = $mysql::params::datadir,
-  $ssl               = $mysql::params::ssl,
-  $ssl_ca            = $mysql::params::ssl_ca,
-  $ssl_cert          = $mysql::params::ssl_cert,
-  $ssl_key           = $mysql::params::ssl_key,
-  $log_error         = $mysql::params::log_error,
-  $default_engine    = 'UNSET',
-  $root_group        = $mysql::params::root_group,
-  $use_syslog        = false,
+  $bind_address       = $mysql::params::bind_address,
+  $port               = $mysql::params::port,
+  $service_name       = $mysql::params::service_name,
+  $config_file        = $mysql::params::config_file,
+  $socket             = $mysql::params::socket,
+  $pidfile            = $mysql::params::pidfile,
+  $datadir            = $mysql::params::datadir,
+  $ssl                = $mysql::params::ssl,
+  $ssl_ca             = $mysql::params::ssl_ca,
+  $ssl_cert           = $mysql::params::ssl_cert,
+  $ssl_key            = $mysql::params::ssl_key,
+  $log_error          = $mysql::params::log_error,
+  $default_engine     = 'UNSET',
+  $root_group         = $mysql::params::root_group,
+  $use_syslog         = false,
   $custom_setup_class = undef,
-  $server_id         = $mysql::params::server_id,
+  $server_id          = $mysql::params::server_id,
+  $slow_query_log     = $mysql::params::slow_query_log,
+  $log_queries_not_using_indexes = $mysql::params::log_queries_not_using_indexes
 ) inherits mysql::params {
 
-  $mysql_buffer_pool_size = $::mysql::params::mysql_buffer_pool_size
-  $mysql_log_file_size    = $::mysql::params::mysql_log_file_size
-  $max_connections = $::mysql::params::max_connections
-  $table_open_cache = $::mysql::params::table_open_cache
-  $key_buffer_size = $::mysql::params::key_buffer_size
+  $mysql_buffer_pool_size  = $::mysql::params::mysql_buffer_pool_size
+  $mysql_log_file_size     = $::mysql::params::mysql_log_file_size
+  $max_connections         = $::mysql::params::max_connections
+  $table_open_cache        = $::mysql::params::table_open_cache
+  $key_buffer_size         = $::mysql::params::key_buffer_size
   $myisam_sort_buffer_size = $::mysql::params::myisam_sort_buffer_size
-  $wait_timeout = $::mysql::params::wait_timeout
-  $open_files_limit= $::mysql::params::open_files_limit
+  $wait_timeout            = $::mysql::params::wait_timeout
+  $open_files_limit        = $::mysql::params::open_files_limit
+  $long_query_time         = $::mysql::params::long_query_time
 
   if $custom_setup_class != "pacemaker_mysql" {
     File {
@@ -86,6 +89,10 @@ class mysql::config(
 
     if $ssl and $ssl_key == undef {
       fail('The ssl_key parameter is required when ssl is true')
+    }
+
+    if $log_queries_not_using_indexes and $slow_query_log == false {
+      notify('The log_queries_not_using_indexes parameter has no effect when slow_query_log is disabled')
     }
 
     # This kind of sucks, that I have to specify a difference resource for
