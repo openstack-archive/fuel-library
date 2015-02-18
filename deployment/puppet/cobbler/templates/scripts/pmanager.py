@@ -167,7 +167,7 @@ class PManager(object):
         embed its code later, useable for legacy boot.
         May be way smaller, but be aware that the parted may
         shrink 1M partition to zero at some disks and versions."""
-        self.pre("parted -a none -s {0} "
+        self.pre("parted -a optimal -s {0} "
                  "unit {3} mkpart primary {1} {2}".format(
                      self._disk_dev(disk),
                      self.psize(disk["id"]),
@@ -186,7 +186,7 @@ class PManager(object):
         future mountpoint in the /boot/efi. There is also
         '/usr/sbin/parted -s /dev/sda set 2 boot on'
         which is strictly needed for EFI boot."""
-        self.pre("parted -a none -s {0} "
+        self.pre("parted -a optimal -s {0} "
                  "unit {3} mkpart primary fat32 {1} {2}".format(
                      self._disk_dev(disk),
                      self.psize(disk["id"]),
@@ -245,7 +245,7 @@ class PManager(object):
                         journals_left -= 1
                         pcount = self.pcount(disk["id"], 1)
 
-                        self.pre("parted -a none -s /dev/{0} "
+                        self.pre("parted -a optimal -s /dev/{0} "
                                  "unit {4} mkpart {1} {2} {3}".format(
                                      disk["id"],
                                      self._parttype(pcount),
@@ -259,7 +259,7 @@ class PManager(object):
                     continue
 
                 pcount = self.pcount(disk["id"], 1)
-                self.pre("parted -a none -s {0} "
+                self.pre("parted -a optimal -s {0} "
                          "unit {4} mkpart {1} {2} {3}".format(
                              self._disk_dev(disk),
                              self._parttype(pcount),
@@ -330,7 +330,7 @@ class PManager(object):
                 rname = "raid.{0:03d}".format(self.rcount(1))
                 begin_size = self.psize(disk["id"])
                 end_size = self.psize(disk["id"], raid["size"] * self.factor)
-                self.pre("parted -a none -s {0} "
+                self.pre("parted -a optimal -s {0} "
                          "unit {4} mkpart {1} {2} {3}".format(
                              self._disk_dev(disk), self._parttype(pcount),
                              begin_size, end_size, self.unit))
@@ -384,7 +384,7 @@ class PManager(object):
                 pvname = "pv.{0:03d}".format(self.pvcount(1))
                 begin_size = self.psize(disk["id"])
                 end_size = self.psize(disk["id"], pv["size"] * self.factor)
-                self.pre("parted -a none -s {0} "
+                self.pre("parted -a optimal -s {0} "
                          "unit {4} mkpart {1} {2} {3}".format(
                              self._disk_dev(disk), self._parttype(pcount),
                              begin_size, end_size, self.unit))
@@ -768,7 +768,7 @@ class PreseedPManager(object):
                 if self.pcount(self._disk_dev(disk)) == 0:
                     self.late("parted -s {0} mklabel gpt"
                               "".format(self._disk_dev(disk)))
-                    self.late("parted -a none -s {0} "
+                    self.late("parted -a optimal -s {0} "
                         "unit {3} mkpart primary {1} {2}".format(
                             self._disk_dev(disk),
                             self.psize(self._disk_dev(disk)),
@@ -809,7 +809,7 @@ class PreseedPManager(object):
                         part["pcount"] = pcount
 
                         self.late(
-                            "parted -a none -s {0} "
+                            "parted -a optimal -s {0} "
                             "unit {4} mkpart {1} {2} {3}".format(
                                 self._disk_dev(disk),
                                 self._parttype(pcount),
@@ -835,7 +835,7 @@ class PreseedPManager(object):
                 pcount = self.pcount(self._disk_dev(disk), 1)
                 part["pcount"] = pcount
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
-                self.late("parted -a none -s {0} "
+                self.late("parted -a optimal -s {0} "
                           "unit {4} mkpart {1} {2} {3}".format(
                              self._disk_dev(disk),
                              self._parttype(pcount),
@@ -919,7 +919,7 @@ class PreseedPManager(object):
                 if self.pcount(self._disk_dev(disk)) == 0:
                     self.late("parted -s {0} mklabel gpt"
                               "".format(self._disk_dev(disk)))
-                    self.late("parted -a none -s {0} "
+                    self.late("parted -a optimal -s {0} "
                         "unit {3} mkpart primary {1} {2}".format(
                             self._disk_dev(disk),
                             self.psize(self._disk_dev(disk)),
@@ -939,7 +939,7 @@ class PreseedPManager(object):
                 end_size = self.psize(self._disk_dev(disk),
                                       pv["size"] * self.factor)
 
-                self.late("parted -a none -s {0} "
+                self.late("parted -a optimal -s {0} "
                           "unit {4} mkpart {1} {2} {3}".format(
                              self._disk_dev(disk),
                              self._parttype(pcount),
