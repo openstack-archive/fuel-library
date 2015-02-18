@@ -849,7 +849,7 @@ get_status() {
     local rc=$OCF_ERR_GENERIC
     local body
 
-    body=$( ${OCF_RESKEY_ctl} eval 'rabbit_misc:which_applications().' 2>&1 )
+    body=$( ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} eval 'rabbit_misc:which_applications().' 2>&1 )
     rc=$?
 
     if [[ $rc != 0 ]] ; then
