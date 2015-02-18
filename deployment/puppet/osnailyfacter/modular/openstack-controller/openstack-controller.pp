@@ -212,6 +212,12 @@ if $use_ceph {
   Class['openstack::controller'] -> Class['ceph']
 }
 #################################################################
+if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
+  $multi_host = false
+} else {
+  $multi_host = true
+}
+
 class { '::openstack::controller':
   private_interface              => $use_neutron ? { true =>false, default =>hiera('fixed_interface')},
   public_interface               => hiera('public_int', undef),
@@ -220,7 +226,7 @@ class { '::openstack::controller':
   admin_address                  => $management_vip,  # through load balancer.
   floating_range                 => $use_neutron ? { true =>$floating_hash, default  =>false},
   fixed_range                    => $use_neutron ? { true =>false, default =>hiera('fixed_network_range')},
-  multi_host                     => true,
+  multi_host                     => $multi_host,
   network_config                 => $network_config,
   num_networks                   => $num_networks,
   network_size                   => $network_size,
