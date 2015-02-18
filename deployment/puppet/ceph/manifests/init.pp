@@ -124,8 +124,9 @@ class ceph (
         Class['ceph::mon'] ->
         Class['ceph::radosgw'] ~>
         Service['ceph']
-
-        Class['::keystone'] -> Class['ceph::radosgw']
+        if defined(Class['::keystone']){
+          Class['::keystone'] -> Class['ceph::radosgw']
+        }
       }
     }
 

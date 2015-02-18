@@ -25,6 +25,4 @@ class openstack::ha::murano {
 
     balancermember_options => 'check inter 5000 rise 2 fall 3',
   }
-
-  Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service['murano_api']
 }
