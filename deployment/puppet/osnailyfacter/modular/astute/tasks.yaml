@@ -51,3 +51,11 @@
   parameters:
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py
     timeout: 180
+
+- id: clear_nodes_info
+  type: upload_file
+  role: '*'
+  stage: pre_deployment
+  parameters:
+    path: /etc/hiera/nodes.yaml
+    data: ''
