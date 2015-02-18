@@ -302,31 +302,27 @@ class openstack::compute (
     }
   }
 
-  # Enable the file injection feature
-  if !$storage_hash['images_ceph'] {
+  # The default value for inject_partition is -2, so it will be disabled
+  # when we use Ceph for ephemeral storage or for Cinder. We only need to
+  # modify the libvirt_disk_cachemodes in that case.
+  if ($storage_hash['ephemeral_ceph'] or $storage_hash['volumes_ceph']) {
+      $disk_cachemodes => ['"network=writeback,block=none"']
+  } else {
     if $::osfamily == 'RedHat' {
       nova_config { 'libvirt/inject_partition': value => '-1'; }
       }
     else {
       nova_config { 'libvirt/inject_partition': value => '1'; }
     }
+    $disk_cachemodes = ['"file=directsync,block=none"']
   }
 
   # Configure libvirt for nova-compute
-  if !$storage_hash['images_ceph'] {
-    class { 'nova::compute::libvirt':
-      libvirt_virt_type       => $libvirt_type,
-      libvirt_cpu_mode        => $libvirt_cpu_mode,
-      libvirt_disk_cachemodes => ['"file=directsync,block=none"'],
-      vncserver_listen        => $vncserver_listen,
-    }
-  } else {
-    class { 'nova::compute::libvirt':
-      libvirt_virt_type       => $libvirt_type,
-      libvirt_cpu_mode        => $libvirt_cpu_mode,
-      libvirt_disk_cachemodes => ['"network=writeback,block=none"'],
-      vncserver_listen        => $vncserver_listen,
-    }
+  class { 'nova::compute::libvirt':
+    libvirt_virt_type       => $libvirt_type,
+    libvirt_cpu_mode        => $libvirt_cpu_mode,
+    libvirt_disk_cachemodes => $disk_cachemodes,
+    vncserver_listen        => $vncserver_listen,
   }
 
   # From legacy libvirt.pp
