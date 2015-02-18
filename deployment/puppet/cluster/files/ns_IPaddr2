@@ -558,6 +558,7 @@ END
 }
 
 ## main
+umask 0022
 
 rc=$OCF_SUCCESS
 case $__OCF_ACTION in
