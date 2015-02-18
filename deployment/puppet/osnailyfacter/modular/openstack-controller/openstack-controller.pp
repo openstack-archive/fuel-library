@@ -178,7 +178,7 @@ if $use_ceph {
   $primary_mon    = $controllers[0]['name']
 
   if ($use_neutron) {
-    prepare_network_config($network_scheme)
+    prepare_network_config(hiera('network_scheme', {}))
     $ceph_cluster_network = get_network_role_property('storage', 'cidr')
     $ceph_public_network  = get_network_role_property('management', 'cidr')
   } else {
