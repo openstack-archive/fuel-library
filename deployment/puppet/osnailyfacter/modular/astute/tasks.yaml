@@ -66,3 +66,11 @@
     src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/
     dst: /etc/puppet
     timeout:
+
+- id: clear_nodes_info
+  type: shell
+  role: '*'
+  stage: pre_deployment
+  parameters:
+    cmd: rm -f /etc/hiera/nodes.yaml
+    retries: 1
