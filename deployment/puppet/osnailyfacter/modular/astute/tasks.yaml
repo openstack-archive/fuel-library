@@ -51,3 +51,18 @@
   parameters:
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py
     timeout: 180
+
+- id: upload_core_repos
+  type: upload_file
+  role: '*'
+  stage: pre_deployment
+
+- id: rsync_core_puppet
+  type: sync
+  role: '*'
+  stage: pre_deployment
+  requires: [upload_core_repos]
+  parameters:
+    src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/
+    dst: /etc/puppet
+    timeout:
