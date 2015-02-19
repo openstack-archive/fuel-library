@@ -19,6 +19,7 @@
 # It's only required for platforms on which it is not packaged yet.
 # It should be removed when available everywhere in a package.
 #
+# flake8: noqa
 
 import logging
 import os
