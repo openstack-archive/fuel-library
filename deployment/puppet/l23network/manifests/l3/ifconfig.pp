@@ -158,6 +158,7 @@ define l23network::l3::ifconfig (
   if $mtu and !is_integer("${mtu}") {  # is_integer() fails if integer given :)
     fail("Invalid MTU '${mtu}' for interface '${interface}'")
   }
+  $vrouter_gateway = hiera('management_vrouter_vip', undef)
 
   # setup configure method for inteface
   if $bond_master {
@@ -285,7 +286,9 @@ define l23network::l3::ifconfig (
   }
 
   if $method == 'static' {
-    if $gateway and $gateway != 'save' and $default_gateway {
+    if $vrouter_gateway {
+      $def_gateway = $vrouter_gateway
+    } elsif $gateway and $gateway != 'save' and $default_gateway {
       $def_gateway = $gateway
     } else {
       # recognizing default gateway
