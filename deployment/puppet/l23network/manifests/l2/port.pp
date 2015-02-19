@@ -30,6 +30,7 @@
 #
 define l23network::l2::port (
   $ensure                = present,
+  $use_ovs               = $::l23network::use_ovs,
   $port                  = $name,
   $bridge                = undef,
   $onboot                = undef,
@@ -110,26 +111,25 @@ define l23network::l2::port (
       mtu             => $mtu,
       onboot          => $onboot,
       #ethtool        => $ethtool,
-      #vendor_specific=> $vendor_specific,
+      vendor_specific => $vendor_specific,
       provider        => $config_provider
     }
 
     l2_port { $port_name :
-      ensure               => $ensure,
-      bridge               => $bridge,
-      vlan_id              => $port_vlan_id,
-      vlan_dev             => $port_vlan_dev,
-      vlan_mode            => $port_vlan_mode,
-      bond_master          => $master,
-      mtu                  => $mtu,
-      onboot               => $onboot,
-      #type                => $type,
-      #trunks              => $trunks,
-      #port_properties     => $port_properties,
-      #interface_properties=> $interface_properties,
-      ethtool              => $ethtool,
-      vendor_specific      => $vendor_specific,
-      provider             => $provider
+      ensure          => $ensure,
+      use_ovs         => $use_ovs,
+      bridge          => $bridge,
+      vlan_id         => $port_vlan_id,
+      vlan_dev        => $port_vlan_dev,
+      vlan_mode       => $port_vlan_mode,
+      bond_master     => $master,
+      mtu             => $mtu,
+      onboot          => $onboot,
+      #type           => $type,
+      #trunks         => $trunks,
+      ethtool         => $ethtool,
+      vendor_specific => $vendor_specific,
+      provider        => $provider
     }
 
     # this need for creating L2_port resource by ifup, if it allowed by OS

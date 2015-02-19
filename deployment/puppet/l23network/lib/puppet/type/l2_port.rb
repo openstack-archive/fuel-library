@@ -20,6 +20,16 @@ Puppet::Type.newtype(:l2_port) do
       end
     end
 
+    newparam(:use_ovs) do
+      desc "Whether using OVS comandline tools"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
+      defaultto :true
+    end
+
     #todo(sv): move to provider_specific hash
     newproperty(:type) do
       newvalues(:system, :internal, :tap, :gre, :ipsec_gre, :capwap, :patch, :null, :undef, :nil, :none)

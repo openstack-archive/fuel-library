@@ -76,6 +76,7 @@ define l23network::l3::ifconfig (
     $check_by_ping   = 'gateway',
     $check_by_ping_timeout = 30,
     #todo: label => "XXX", # -- "ip addr add..... label XXX"
+    $vendor_specific = undef,
     $provider        = undef
 ) {
   include ::l23network::params
@@ -209,10 +210,11 @@ define l23network::l3::ifconfig (
       }
     }
     L23_stored_config <| title == $interface |> {
-      method         => $method,
-      ipaddr         => $ipaddr_list[0],
-      gateway        => $def_gateway,
-      gateway_metric => $gateway_metric,
+      method          => $method,
+      ipaddr          => $ipaddr_list[0],
+      gateway         => $def_gateway,
+      gateway_metric  => $gateway_metric,
+      vendor_specific => $vendor_specific,
       #provider      => $config_provider  # do not enable, provider should be set while port define
     }
 
@@ -230,6 +232,7 @@ define l23network::l3::ifconfig (
 #     dhcp_hostname         => $dhcp_hostname,
 #     check_by_ping         => $check_by_ping,
 #     check_by_ping_timeout => $check_by_ping_timeout,
+      vendor_specific       => $vendor_specific,
       provider              => $provider  # For L3 features provider independed from OVS
     }
   }

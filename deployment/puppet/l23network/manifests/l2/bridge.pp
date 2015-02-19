@@ -13,6 +13,7 @@
 #
 define l23network::l2::bridge (
   $ensure          = present,
+  $use_ovs         = $::l23network::use_ovs,
   $mtu             = undef,
   $stp             = undef,
   $bpdu_forward    = true,
@@ -39,13 +40,14 @@ define l23network::l2::bridge (
       #bpdu_forward => $bpdu_forward,
       if_type         => 'bridge',
       bridge_stp      => $stp,
-      bridge_ports    => ['none'],
-      #vendor_specific=> $vendor_specific,
+      bridge_ports    => ['none'],  # this property will be fulled by l2_port
+      vendor_specific => $vendor_specific,
       provider        => $config_provider
     }
 
     l2_bridge {$name:
       ensure          => $ensure,
+      use_ovs         => $use_ovs,
       external_ids    => $external_ids,
       stp             => $stp,
       #bpdu_forward   => $bpdu_forward,
