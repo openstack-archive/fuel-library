@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# flake8: noqa
 import urllib2
 import simplejson as json
 import sys

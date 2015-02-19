@@ -38,7 +38,7 @@ Supports KVM, LXC, QEMU, UML, and XEN.
 :allow_same_net_traffic:  Whether to allow in project network traffic
 
 """
-
+# flake8: noqa
 import errno
 import hashlib
 import functools

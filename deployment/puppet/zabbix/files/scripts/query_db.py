@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# flake8: noqa
 import ConfigParser
 import sys
 import logging
