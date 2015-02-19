@@ -385,6 +385,10 @@ cinder_config { 'DEFAULT/nova_catalog_info':
   value => 'compute:nova:internalURL'
 }
 
+cinder_config { 'keymgr/fixed_key':
+  value => $cinder_hash[fixed_key];
+}
+
 # FIXME(bogdando) replace service_path and action to systemd, once supported
 if $use_monit_real {
   monit::process { $cinder_volume_name :

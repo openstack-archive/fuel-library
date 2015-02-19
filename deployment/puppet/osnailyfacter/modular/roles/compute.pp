@@ -227,6 +227,12 @@ $idle_timeout = '3600'
 
 $cinder_iscsi_bind_addr = $storage_address
 
+if (member($roles, 'cinder')) {
+  nova_config { 'keymgr/fixed_key':
+    value => $cinder_hash[fixed_key];
+  }
+}
+
 # Determine who should get the volume service
 
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
