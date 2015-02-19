@@ -73,6 +73,7 @@
 - id: base-os
   type: group
   role: [base-os]
+  tasks: [hiera, globals]
   required_for: [deploy]
   parameters:
     strategy:
