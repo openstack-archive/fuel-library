@@ -159,7 +159,9 @@ define l23network::l3::ifconfig (
   # File<| title == "${::l23network::params::interfaces_dir}" |> -> File<| title == "${interface_file}" |>
 
   if $method == 'static' {
-    if $gateway and $gateway != 'save' {
+    if $vrouter_gateway {
+      $def_gateway = $vrouter_gateway
+    } elsif $gateway and $gateway != 'save' {
       $def_gateway = $gateway
     } elsif $gateway == 'save' and $::l3_default_route and $::l3_default_route_interface == $interface {
       $def_gateway = $::l3_default_route
