@@ -84,6 +84,11 @@ if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
   $use_ceph = false
 }
 
+if (!empty(filter_nodes(hiera('nodes'), 'role', 'cinder'))) {
+  nova_config { 'keymgr/fixed_key':
+    value => $cinder_hash[fixed_key];
+  }
+}
 
 if $use_neutron {
   include l23network::l2
