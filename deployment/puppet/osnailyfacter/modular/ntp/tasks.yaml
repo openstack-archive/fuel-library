@@ -1,0 +1,30 @@
+- id: ntp-server
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [openstack-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-server.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: ntp-client
+  type: puppet
+  groups: [cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  required_for: [deploy_end]
+  requires: [netconfig]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-client.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: sync-time
+  type: puppet
+  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  required_for: [logging]
+  requires: [globals]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/timesync.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180
+
