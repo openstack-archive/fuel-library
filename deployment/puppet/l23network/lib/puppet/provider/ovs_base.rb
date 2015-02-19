@@ -110,7 +110,8 @@ class Puppet::Provider::Ovs_base < Puppet::Provider::L2_base
     @property_hash[:mtu] || :absent
   end
   def mtu=(val)
-    @property_flush[:mtu] = val if val
+    # for MTU :absent is sinonym of 'do not change'
+    @property_flush[:mtu] = val.to_i if !['', 'absent'].include? val.to_s
   end
 
   def onboot
