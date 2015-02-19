@@ -261,12 +261,6 @@ if ($use_swift) {
   } else {
     $primary_proxy = false
   }
-
-  if $ceilometer_hash['enabled'] {
-    class {'::openstack::swift::notify::ceilometer':
-      enable_ceilometer => true,
-    }
-  }
 }
 
 $network_config = {
