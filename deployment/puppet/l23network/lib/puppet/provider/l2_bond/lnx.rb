@@ -53,10 +53,6 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     rv
   end
 
-  def exists?
-    @property_hash[:ensure] == :present
-  end
-
   def create
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
@@ -71,13 +67,6 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     open('/sys/class/net/bonding_masters', 'a') do |f|
       f << "-#{@resource[:name]}"
     end
-  end
-
-  def initialize(value={})
-    super(value)
-    @property_flush = {}
-    @old_property_hash = {}
-    @old_property_hash.merge! @property_hash
   end
 
   def flush
@@ -177,28 +166,14 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       if @property_flush[:onboot]
         iproute('link', 'set', 'dev', @resource[:bond], 'up')
       end
-      if ! @property_flush[:mtu].nil?
-        File.open("/sys/class/net/#{@resource[:bond]}/mtu", "w") { |f| f.write(@property_flush[:mtu]) }
+      if !['', 'absent'].include? @property_flush[:mtu].to_s
+        self.class.set_mtu(@resource[:bond], @property_flush[:mtu])
       end
       @property_hash = resource.to_hash
     end
   end
 
   #-----------------------------------------------------------------
-  def bridge
-    @property_hash[:bridge] || :absent
-  end
-  def bridge=(val)
-    @property_flush[:bridge] = val
-  end
-
-  def port_type
-    @property_hash[:port_type] || :absent
-  end
-  def port_type=(val)
-    @property_flush[:port_type] = val
-  end
-
   def slaves
     @property_hash[:slaves] || :absent
   end
@@ -218,27 +193,6 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   end
   def interface_properties=(val)
     @property_flush[:interface_properties] = val
-  end
-
-  def mtu
-    @property_hash[:mtu] || :absent
-  end
-  def mtu=(val)
-    @property_flush[:mtu] = val
-  end
-
-  def onboot
-    @property_hash[:onboot] || :absent
-  end
-  def onboot=(val)
-    @property_flush[:onboot] = val
-  end
-
-  def vendor_specific
-    @property_hash[:vendor_specific] || {}
-  end
-  def vendor_specific=(val)
-    @property_flush[:vendor_specific] = val
   end
 
 end
