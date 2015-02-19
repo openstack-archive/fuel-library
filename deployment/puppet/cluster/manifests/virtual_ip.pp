@@ -56,17 +56,35 @@ define cluster::virtual_ip (
         undef => 'false', '' => 'false',
         default => $vip[other_networks]
       },
+      'bridge'              => $vip[bridge] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => $vip[bridge]
+      },
       'iptables_start_rules' => $vip[iptables_start_rules] ? {
-        undef   => '',
+        undef   => 'false',
+        ''      => 'false',
         default => "'${vip[iptables_start_rules]}'"
       },
       'iptables_stop_rules'  => $vip[iptables_stop_rules] ? {
-        undef   => '',
+        undef   => 'false',
+        ''      => 'false',
         default => "'${vip[iptables_stop_rules]}'"
       },
       'iptables_comment'     => $vip[iptables_comment] ? {
-        undef   => 'default-comment',
+        undef   => 'false',
+        ''      => 'false',
         default => "'${vip[iptables_comment]}'"
+      },
+      'ns_iptables_start_rules' => $vip[ns_iptables_start_rules] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => "'${vip[ns_iptables_start_rules]}'"
+      },
+      'ns_iptables_stop_rules'  => $vip[ns_iptables_stop_rules] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => "'${vip[ns_iptables_stop_rules]}'"
       },
     },
     metadata => {
@@ -95,6 +113,20 @@ define cluster::virtual_ip (
   }
 
   Cs_resource[$vip_name] -> Service[$vip_name]
+
+  if $vip[collocation] {
+    cs_rsc_colocation { "${vip_name}-with-vip__${vip[collocation]}":
+      ensure     => present,
+      score      => 'INFINITY',
+      primitives => [
+          $vip_name,
+          "vip__${vip[collocation]}"
+      ],
+    }
+
+  Service["vip__${vip[collocation]}"] -> Cs_rsc_colocation["${vip_name}-with-vip__${vip[collocation]}"]
+
+  }
 
   if $vip[tie_with_ping] {
     # Tie vip with ping
