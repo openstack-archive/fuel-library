@@ -17,6 +17,16 @@ Puppet::Type.newtype(:l3_ifconfig) do
       end
     end
 
+    newparam(:use_ovs) do
+      desc "Whether using OVS comandline tools"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
+      defaultto :true
+    end
+
     newproperty(:port_type) do
       desc "Internal read-only property"
       validate do |value|
@@ -103,6 +113,33 @@ Puppet::Type.newtype(:l3_ifconfig) do
     #   desc "Whether to bring the interface up"
     #   defaultto :true
     # end
+
+    newproperty(:vendor_specific) do
+      desc "Hash of vendor specific properties"
+      #defaultto {}  # no default value should be!!!
+      # provider-specific properties, can be validating only by provider.
+      validate do |val|
+        if ! val.is_a? Hash
+          fail("Vendor_specific should be a hash!")
+        end
+      end
+
+      munge do |value|
+        L23network.reccursive_sanitize_hash(value)
+      end
+
+      def should_to_s(value)
+        "\n#{value.to_yaml}\n"
+      end
+
+      def is_to_s(value)
+        "\n#{value.to_yaml}\n"
+      end
+
+      def insync?(value)
+        should_to_s(value) == should_to_s(should)
+      end
+    end
 
     autorequire(:l2_port) do
       [self[:interface]]

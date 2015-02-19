@@ -17,6 +17,16 @@ Puppet::Type.newtype(:l2_bond) do
       end
     end
 
+    newparam(:use_ovs) do
+      desc "Whether using OVS comandline tools"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
+      defaultto :true
+    end
+
     newproperty(:port_type) do
       desc "Internal read-only property"
       validate do |value|

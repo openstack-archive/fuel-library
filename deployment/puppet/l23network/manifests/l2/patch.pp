@@ -11,6 +11,7 @@
 #
 define l23network::l2::patch (
   $bridges,
+  $use_ovs         = $::l23network::use_ovs,
   $ensure          = present,
   $mtu             = undef,
   $vendor_specific = undef,
@@ -45,17 +46,18 @@ define l23network::l2::patch (
       jacks           => $patch_jacks_names,
       mtu             => $mtu,
       onboot          => true,
-      #vendor_specific=> $vendor_specific,
+      vendor_specific => $vendor_specific,
       provider        => $config_provider
     }
     L23_stored_config[$patch_jacks_names[0]] -> L2_patch[$patch_name]
 
     l2_patch{ $patch_name :
-      ensure               => $ensure,
-      bridges              => $bridges,
-      mtu                  => $mtu,
-      vendor_specific      => $vendor_specific,
-      provider             => $provider
+      ensure          => $ensure,
+      bridges         => $bridges,
+      use_ovs         => $use_ovs,
+      mtu             => $mtu,
+      vendor_specific => $vendor_specific,
+      provider        => $provider
     }
 
     K_mod<||> -> L2_patch<||>

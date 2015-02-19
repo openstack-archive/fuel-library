@@ -4,19 +4,25 @@
 # Requirements, packages and services.
 #
 class l23network (
-  $use_ovs       = true,
-  $use_lnx       = true,
-  $install_ovs   = true,
-  $install_brctl = true,
+  $use_ovs          = true,
+  $use_lnx          = true,
+  $install_ovs      = $use_ovs,
+  $install_brtool   = $use_lnx,
+  $install_ethtool  = $use_lnx,
+  $install_bondtool = $use_lnx,
+  $install_vlantool = $use_lnx,
 ){
 
   include ::l23network::params
 
   class { 'l23network::l2':
-    use_ovs       => $use_ovs,
-    use_lnx       => $use_lnx,
-    install_ovs   =>  $install_ovs,
-    install_brctl =>  $install_brctl,
+    use_ovs          => $use_ovs,
+    use_lnx          => $use_lnx,
+    install_ovs      => $install_ovs,
+    install_brtool   => $install_brtool,
+    install_ethtool  => $install_ethtool,
+    install_bondtool => $install_bondtool,
+    install_vlantool => $install_vlantool,
   }
 
   if $::l23network::params::interfaces_file {

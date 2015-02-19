@@ -16,6 +16,7 @@
 define l23network::l2::bond (
   $ensure                  = present,
   $bond                    = $name,
+  $use_ovs                 = $::l23network::use_ovs,
   $interfaces              = undef,
   $bridge                  = undef,
   $mtu                     = undef,
@@ -131,13 +132,14 @@ define l23network::l2::bond (
       bond_slaves     => $interfaces,
       bond_miimon     => $real_bond_properties[miimon],
       bond_lacp_rate  => $real_bond_properties[lacp_rate],
-#     vendor_specific => $vendor_specific,
+      vendor_specific => $vendor_specific,
       provider        => $config_provider
     }
 
     l2_bond { $bond :
       ensure               => $ensure,
       bridge               => $bridge,
+      use_ovs              => $use_ovs,
       onboot               => $onboot,
       slaves               => $interfaces,
       interface_properties => $interface_properties,

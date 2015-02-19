@@ -8,6 +8,16 @@ Puppet::Type.newtype(:l2_patch) do
     # Error 400 on SERVER: Could not render to pson: undefined method `merge' for []:Array
     # http://projects.puppetlabs.com/issues/5220
 
+    newparam(:use_ovs) do
+      desc "Whether using OVS comandline tools"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
+      defaultto :true
+    end
+
     newproperty(:bridges, :array_matching => :all) do
       desc "Array of bridges that will be connected"
       newvalues(/^[a-z][0-9a-z\-\_]*[0-9a-z]$/)
