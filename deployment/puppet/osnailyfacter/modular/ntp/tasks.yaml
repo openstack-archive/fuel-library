@@ -1,0 +1,10 @@
+- id: ntp
+  type: puppet
+  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  required_for: [deploy]
+  requires: [netconfig]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
