@@ -130,6 +130,7 @@ class openstack::compute (
   $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
   $storage_hash                   = {},
   $neutron_settings               = {},
+  $fixed_key                      = 'E2660AED3C977D17BB7E74A87E32BA3191D79334EE6F50DC499E29B9637BAB0B',
 ) {
 
   #
@@ -286,6 +287,11 @@ class openstack::compute (
     neutron_enabled               => false,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
+  }
+
+  # Define a fixed key
+  nova_config {
+    'keymgr/fixed_key': value => $fixed_key;
   }
 
   nova_config {
