@@ -209,6 +209,18 @@ class nailgun::cobbler(
         group   => 'root',
         mode    => '0644',
       }
+      file { '/etc/httpd/conf.d/ssl.conf':
+        content => template('nailgun/httpd_ssl.conf.erb'),
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0644',
+      }
+      file { '/etc/httpd/conf/httpd.conf':
+        content => template('nailgun/httpd.conf.erb'),
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0644',
+      }
 
       #FIXME(mattymo): move pubkey to astute fact or download it
       exec { "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys":
