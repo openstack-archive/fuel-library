@@ -9,6 +9,7 @@ iso/build
 
 # Python
 *.pyc
+.tox
 
 # Doc
 _build
