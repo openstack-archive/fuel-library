@@ -124,7 +124,7 @@ define l23network::l2::bond (
       ensure          => $ensure,
       if_type         => 'bond',
       bridge          => $bridge,
-      mtu             => $mtu,
+      #mtu            => $mtu,  # do not setup MTU for bonds! only for interfaces.
       onboot          => $onboot,
       bond_mode       => $real_bond_properties[mode],
       bond_master     => undef,
@@ -138,7 +138,6 @@ define l23network::l2::bond (
     l2_bond { $bond :
       ensure               => $ensure,
       bridge               => $bridge,
-      mtu                  => $mtu,
       onboot               => $onboot,
       slaves               => $interfaces,
       interface_properties => $interface_properties,

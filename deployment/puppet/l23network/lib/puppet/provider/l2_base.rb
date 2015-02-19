@@ -62,7 +62,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
         :port_type => [],
         :onboot    => self.get_iface_state(if_name),
         :ethtool   => nil,
-        :mtu       => File.open("#{if_dir}/mtu").read.chomp,
+        :mtu       => File.open("#{if_dir}/mtu").read.chomp.to_i,
         :provider  => (if_name == 'ovs-system')  ?  'ovs'  :  'lnx' ,
       }
       # determine port_type for this iface
@@ -483,7 +483,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
     bondlist.each do |bond_name|
       #bond_config = IO.readlines("/proc/net/bonding/#{bond_name}")
       bond[bond_name] = {
-        :mtu             => File.open("/sys/class/net/#{bond_name}/mtu").read.chomp,
+        :mtu             => File.open("/sys/class/net/#{bond_name}/mtu").read.chomp.to_i,
         :slaves           => File.open("/sys/class/net/#{bond_name}/bonding/slaves").read.chomp.split(/\s+/).sort,
         :bond_properties => {
           :mode             => File.open("/sys/class/net/#{bond_name}/bonding/mode").read.split(/\s+/)[0],
@@ -580,6 +580,14 @@ class Puppet::Provider::L2_base < Puppet::Provider
     }
   end
 
+  # ---------------------------------------------------------------------------
+
+  def self.set_mtu(iface, mtu=1500)
+    if File.symlink?("/sys/class/net/#{iface}")
+      debug("Set MTU to '#{mtu}' for interface '#{iface}'")
+      File.open("/sys/class/net/#{iface}/mtu", "a") { |f| f.write(mtu) }
+    end
+  end
 
 end
 
