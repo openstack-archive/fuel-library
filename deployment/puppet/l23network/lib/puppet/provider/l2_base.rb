@@ -1,5 +1,6 @@
 require 'puppetx/l23_utils'
 require 'puppetx/l23_ethtool_name_commands_mapping'
+require 'yaml'
 
 class Puppet::Provider::L2_base < Puppet::Provider
 
@@ -317,7 +318,8 @@ class Puppet::Provider::L2_base < Puppet::Provider
       end
     end
     ovs_config[:port].keys.each do |p_name|
-      ifaces = ovs_config[:interface].select{|k,v| v[:port]==p_name}
+      # didn't use .select{...} here for backward compatibility with ruby 1.8
+      ifaces = ovs_config[:interface].reject{|k,v| v[:port]!=p_name}
       iface = ifaces[ifaces.keys[0]]
       if ifaces.size > 1
         # Bond found
@@ -343,7 +345,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
         ovs_config[:port][p_name][:port_type] << 'vlan'
       end
     end
-    debug("VSCTL-SHOW: #{ovs_config.inspect}")
+    debug("VSCTL-SHOW: #{ovs_config.to_yaml.gsub('!ruby/sym ',':')}")
     return ovs_config
   end
   # ---------------------------------------------------------------------------
@@ -452,6 +454,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
         }
       end
     end
+    debug("LNX ports to bridges mapping: #{port_mappings.to_yaml.gsub('!ruby/sym ',':')}")
     return port_mappings
   end
 
@@ -470,6 +473,23 @@ class Puppet::Provider::L2_base < Puppet::Provider
     #
     port_bridges_hash = self.get_ovs_port_bridges_pairs()       # LNX bridges should overwrite OVS
     port_bridges_hash.merge! self.get_lnx_port_bridges_pairs()  # because by design!
+  end
+
+  def self.get_bridges_order_for_patch(bridges)
+    # if given two OVS bridges -- we should sort it by name
+    # if given OVS and LNX bridges -- OVS should be first.
+    br_type = []
+    [0,1].each do |i|
+      br_type << (File.directory?("/sys/class/net/#{bridges[i]}/bridge")  ?  'lnx'  :  'ovs' )
+    end
+    if br_type[0] == br_type[1]
+      rv = bridges.sort()
+    elsif br_type[0] == 'ovs'
+      rv = [bridges[0],bridges[1]]
+    else
+      rv = [bridges[1],bridges[0]]
+    end
+    return rv
   end
 
   # ---------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 require 'ipaddr'
+require 'yaml'
 require 'forwardable'
 require 'puppet/parser'
 require 'puppet/parser/templatewrapper'
@@ -147,8 +148,10 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       ports_properties[int_name] ||= {}
       if ! int_properties.nil?
         int_properties.each do |k,v|
-          k = k.to_s.tr('-','_').to_sym
-          ports_properties[int_name][k] = v
+          if v.to_s != ''
+            k = k.to_s.tr('-','_').to_sym
+            ports_properties[int_name][k] = v
+          end
         end
       end
     end
@@ -215,7 +218,9 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
 
       next if action == :noop
 
+      #debug("TXX: '#{t[:name]}' =>  '#{t.to_yaml.gsub('!ruby/sym ',':')}'.")
       trans = L23network.sanitize_transformation(t, default_provider)
+      #debug("TTT: '#{trans[:name]}' =>  '#{trans.to_yaml.gsub('!ruby/sym ',':')}'.")
 
       if !ports_properties[trans[:name].to_sym()].nil?
         trans.merge! ports_properties[trans[:name].to_sym()]
@@ -224,7 +229,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       # create puppet resources for transformations
       resource = res_factory[action]
       resource_properties = { }
-      debug("generate_network_config(): Transformation '#{trans[:name]}' will be produced as '#{trans}'.")
+      debug("generate_network_config(): Transformation '#{trans[:name]}' will be produced as '#{trans.to_yaml.gsub('!ruby/sym ',':')}'.")
 
       trans.select{|k,v| k != :action}.each do |k,v|
         if ['Hash', 'Array'].include? v.class.to_s
@@ -264,7 +269,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
 
         # create resource
         resource = res_factory[:ifconfig]
-        debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with additional properties '#{endpoints[endpoint_name]}'.")
+        debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with additional properties '#{endpoints[endpoint_name].to_yaml.gsub('!ruby/sym ',':')}'.")
         # collect properties for creating endpoint resource
         endpoints[endpoint_name].each_pair do |k,v|
           if ['Hash', 'Array'].include? v.class.to_s
