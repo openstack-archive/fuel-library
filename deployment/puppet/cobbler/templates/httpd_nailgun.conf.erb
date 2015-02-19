@@ -1,0 +1,5 @@
+# Force everything except cobbler and nailgun dir to port 8000
+RewriteEngine on
+RewriteCond %{HTTPS} off
+RewriteCond %{REQUEST_URI} !^/(cblr|cobbler)
+RewriteRule (.*) http://%{HTTP_HOST}:8000%{REQUEST_URI} [R=301,L]
