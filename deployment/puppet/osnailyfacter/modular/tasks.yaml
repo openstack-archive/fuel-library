@@ -8,11 +8,21 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
+- id: sync_time
+  type: puppet
+  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  required_for: [logging]
+  requires: [globals]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/timesync.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180
+
 - id: logging
   type: puppet
   groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
   required_for: [deploy]
-  requires: [globals]
+  requires: [sync_time]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/logging.pp
     puppet_modules: /etc/puppet/modules
