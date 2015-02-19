@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# flake8: noqa
 import time
 import urllib2
 import sys
