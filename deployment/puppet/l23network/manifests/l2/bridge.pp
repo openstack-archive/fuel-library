@@ -39,7 +39,7 @@ define l23network::l2::bridge (
       #bpdu_forward => $bpdu_forward,
       if_type         => 'bridge',
       bridge_stp      => $stp,
-      bridge_ports    => ['none'],
+      bridge_ports    => ['none'],  # this property will be fulled by l2_port
       #vendor_specific=> $vendor_specific,
       provider        => $config_provider
     }
