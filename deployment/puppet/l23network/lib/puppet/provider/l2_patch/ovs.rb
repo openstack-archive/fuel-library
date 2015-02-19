@@ -34,6 +34,7 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
     # search pairs of jacks and make patchcord resources
     patches = []
     skip = []
+    mtu = nil
     jacks.each do |jack|
       next if skip.include? jack[:name]
       if jack[:cross]
@@ -42,6 +43,7 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
         next if peer.nil?
         _bridges = [jack[:bridge], peer[:bridge]]  # no sort here!!! architecture limitation -- ovs brodge always first!
         _tails   = [jack[:name], jack[:name]]
+        mtu      = File.open("/sys/class/net/#{jack[:name]}/mtu").read.chomp.to_i
       else
         # process patch between two OVS bridges
         next if jack[:peer].nil?
@@ -56,6 +58,7 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
         :name     => L23network.get_patch_name([jack[:bridge],peer[:bridge]]),
         :bridges  => _bridges,
         :jacks    => _tails,
+        :mtu      => mtu,
         :cross    => jack[:cross],
         :provider => 'ovs'
       }
@@ -134,18 +137,14 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
   end
 
   def flush
-    if @property_flush
+    if !@property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
-      # if @property_flush.has_key? :mtu
-      #   if !@property_flush[:mtu].nil? and @property_flush[:mtu] != :absent
-      #     #todo(sv): process array if interfaces
-      #     iproute('link', 'set', 'mtu', @property_flush[:mtu].to_i, 'dev', @resource[:interface])
-      #   else
-      #     # remove MTU
-      #     #todo(sv): process array if interfaces
-      #     iproute('link', 'set', 'mtu', '1500', 'dev', @resource[:interface])
-      #   end
-      # end
+      if !['', 'absent'].include? @property_flush[:mtu].to_s
+        # 'absent' is a synonym 'do-not-touch' for MTU
+        @property_hash[:jacks].uniq.each do |iface|
+          self.class.set_mtu(iface, @property_flush[:mtu])
+        end
+      end
       @property_hash = resource.to_hash
     end
   end

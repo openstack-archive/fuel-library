@@ -72,15 +72,8 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   def flush
     if @property_flush
       debug("FLUSH properties: #{@property_flush}")
-      if @property_flush.has_key? :mtu
-        if !@property_flush[:mtu].nil? and @property_flush[:mtu] != :absent
-          #todo(sv): process array if interfaces
-          iproute('link', 'set', 'mtu', @property_flush[:mtu].to_i, 'dev', @resource[:interface])
-        else
-          # remove MTU
-          #todo(sv): process array if interfaces
-          iproute('link', 'set', 'mtu', '1500', 'dev', @resource[:interface])
-        end
+      if !['', 'absent'].include? @property_flush[:mtu].to_s
+        self.class.set_mtu(@resource[:interface], @property_flush[:mtu])
       end
       if @property_flush.has_key? :vlan_id
         if !@property_flush[:vlan_id].nil? and @property_flush[:vlan_id] != :absent
