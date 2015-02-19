@@ -14,7 +14,8 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   # end
 
   def self.get_instances(big_hash)
-    big_hash[:port].select{|k,v| v[:port_type].include? 'bond'}
+    # didn't use .select{...} here for backward compatibility with ruby 1.8
+    big_hash[:port].reject{|k,v| !v[:port_type].include?('bond')}
   end
 
   #-----------------------------------------------------------------

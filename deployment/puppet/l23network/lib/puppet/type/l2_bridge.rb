@@ -18,6 +18,16 @@ Puppet::Type.newtype(:l2_bridge) do
       end
     end
 
+    newparam(:use_ovs) do
+      desc "Whether using OVS comandline tools"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
+      defaultto :true
+    end
+
     newproperty(:external_ids) do
       desc "External IDs for the bridge"
       #defaultto {}  # do not use defaultto here!!!

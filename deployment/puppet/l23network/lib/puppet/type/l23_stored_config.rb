@@ -218,6 +218,34 @@ Puppet::Type.newtype(:l23_stored_config) do
   #   end
   # end
 
+  newproperty(:vendor_specific) do
+    desc "Hash of vendor specific properties"
+    #defaultto {}  # no default value should be!!!
+    # provider-specific properties, can be validating only by provider.
+    validate do |val|
+      if ! val.is_a? Hash
+        fail("Vendor_specific should be a hash!")
+      end
+    end
+
+    munge do |value|
+      L23network.reccursive_sanitize_hash(value)
+    end
+
+    def should_to_s(value)
+      "\n#{value.to_yaml}\n"
+    end
+
+    def is_to_s(value)
+      "\n#{value.to_yaml}\n"
+    end
+
+    def insync?(value)
+      should_to_s(value) == should_to_s(should)
+    end
+  end
+
+
   def generate
     return if ! (!([:absent, :none, :nil, :undef] & self[:bridge]).any? \
                 and [:ethernet, :bond].include? self[:if_type]

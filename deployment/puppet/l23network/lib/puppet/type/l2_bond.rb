@@ -17,6 +17,16 @@ Puppet::Type.newtype(:l2_bond) do
       end
     end
 
+    newparam(:use_ovs) do
+      desc "Whether using OVS comandline tools"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
+      defaultto :true
+    end
+
     newproperty(:port_type) do
       desc "Internal read-only property"
       validate do |value|
@@ -131,6 +141,33 @@ Puppet::Type.newtype(:l2_bond) do
 
       def insync?(value)
         should_to_s(value) == should_to_s(should)
+      end
+    end
+
+    newproperty(:mtu) do
+      desc "The Maximum Transmission Unit size to use for the interface"
+      newvalues(/^\d+$/, :absent, :none, :undef, :nil)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      aliasvalue(0,      :absent)
+      defaultto :absent   # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
+      validate do |value| #     inherits it from a parent interface
+        # Intel 82598 & 82599 chips support MTUs up to 16110; is there any
+        # hardware in the wild that supports larger frames?
+        #
+        # It appears loopback devices routinely have large MTU values; Eg. 65536
+        #
+        # Frames small than 64bytes are discarded as runts.  Smallest valid MTU
+        # is 42 with a 802.1q header and 46 without.
+        min_mtu = 42
+        max_mtu = 65536
+        if ! (value.to_s == 'absent' or (min_mtu .. max_mtu).include?(value.to_i))
+          raise ArgumentError, "'#{value}' is not a valid mtu (must be a positive integer in range (#{min_mtu} .. #{max_mtu})"
+        end
+      end
+      munge do |val|
+        ((val == :absent)  ?  :absent  :  val.to_i)
       end
     end
 

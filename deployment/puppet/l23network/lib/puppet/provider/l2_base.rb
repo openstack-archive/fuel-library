@@ -1,5 +1,6 @@
 require 'puppetx/l23_utils'
 require 'puppetx/l23_ethtool_name_commands_mapping'
+require 'yaml'
 
 class Puppet::Provider::L2_base < Puppet::Provider
 
@@ -317,7 +318,8 @@ class Puppet::Provider::L2_base < Puppet::Provider
       end
     end
     ovs_config[:port].keys.each do |p_name|
-      ifaces = ovs_config[:interface].select{|k,v| v[:port]==p_name}
+      # didn't use .select{...} here for backward compatibility with ruby 1.8
+      ifaces = ovs_config[:interface].reject{|k,v| v[:port]!=p_name}
       iface = ifaces[ifaces.keys[0]]
       if ifaces.size > 1
         # Bond found
@@ -343,7 +345,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
         ovs_config[:port][p_name][:port_type] << 'vlan'
       end
     end
-    debug("VSCTL-SHOW: #{ovs_config.inspect}")
+    debug("VSCTL-SHOW: #{ovs_config.to_yaml.gsub('!ruby/sym ',':')}")
     return ovs_config
   end
   # ---------------------------------------------------------------------------
@@ -452,6 +454,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
         }
       end
     end
+    debug("LNX ports to bridges mapping: #{port_mappings.to_yaml.gsub('!ruby/sym ',':')}")
     return port_mappings
   end
 
@@ -472,6 +475,23 @@ class Puppet::Provider::L2_base < Puppet::Provider
     port_bridges_hash.merge! self.get_lnx_port_bridges_pairs()  # because by design!
   end
 
+  def self.get_bridges_order_for_patch(bridges)
+    # if given two OVS bridges -- we should sort it by name
+    # if given OVS and LNX bridges -- OVS should be first.
+    br_type = []
+    [0,1].each do |i|
+      br_type << (File.directory?("/sys/class/net/#{bridges[i]}/bridge")  ?  'lnx'  :  'ovs' )
+    end
+    if br_type[0] == br_type[1]
+      rv = bridges.sort()
+    elsif br_type[0] == 'ovs'
+      rv = [bridges[0],bridges[1]]
+    else
+      rv = [bridges[1],bridges[0]]
+    end
+    return rv
+  end
+
   # ---------------------------------------------------------------------------
 
   def self.get_lnx_bonds
@@ -481,17 +501,23 @@ class Puppet::Provider::L2_base < Puppet::Provider
     bond = {}
     bondlist = File.open("/sys/class/net/bonding_masters").read.chomp.split(/\s+/).sort
     bondlist.each do |bond_name|
-      #bond_config = IO.readlines("/proc/net/bonding/#{bond_name}")
+      mode = File.open("/sys/class/net/#{bond_name}/bonding/mode").read.split(/\s+/)[0]
       bond[bond_name] = {
-        :mtu             => File.open("/sys/class/net/#{bond_name}/mtu").read.chomp.to_i,
-        :slaves           => File.open("/sys/class/net/#{bond_name}/bonding/slaves").read.chomp.split(/\s+/).sort,
+        :mtu     => File.open("/sys/class/net/#{bond_name}/mtu").read.chomp.to_i,
+        :slaves  => File.open("/sys/class/net/#{bond_name}/bonding/slaves").read.chomp.split(/\s+/).sort,
         :bond_properties => {
-          :mode             => File.open("/sys/class/net/#{bond_name}/bonding/mode").read.split(/\s+/)[0],
+          :mode             => mode,
           :miimon           => File.open("/sys/class/net/#{bond_name}/bonding/miimon").read.chomp,
-          #:xmit_hash_policy => File.open("/sys/class/net/#{bond_name}/bonding/xmit_hash_policy").read.split(/\s+/)[0],
-          :lacp_rate        => File.open("/sys/class/net/#{bond_name}/bonding/lacp_rate").read.split(/\s+/)[0],
         }
       }
+      if ['802.3ad', 'balance-xor', 'balance-tlb', 'balance-alb'].include? mode
+        xmit_hash_policy = File.open("/sys/class/net/#{bond_name}/bonding/xmit_hash_policy").read.split(/\s+/)[0]
+        bond[bond_name][:bond_properties][:xmit_hash_policy] = xmit_hash_policy
+      end
+      if mode=='802.3ad'
+        lacp_rate = File.open("/sys/class/net/#{bond_name}/bonding/lacp_rate").read.split(/\s+/)[0]
+        bond[bond_name][:bond_properties][:lacp_rate] = lacp_rate
+      end
       bond[bond_name][:onboot] = !self.get_iface_state(bond_name).nil?
     end
     return bond
@@ -552,7 +578,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
   def self.get_iface_state(iface)
     # returns:
     #    true  -- interface in UP state
-    #    false -- interface in UP statu, but no-carrier
+    #    false -- interface in UP state, but no-carrier
     #    nil   -- interface in DOWN state
     begin
       1 == File.open("/sys/class/net/#{iface}/carrier").read.chomp.to_i
