@@ -59,7 +59,7 @@ define l23network::l2::patch (
       if_type         => 'ethernet',
       bridge          => $bridges,
       jacks           => $patch_jacks_names,
-      #mtu             => $mtu,
+      mtu             => $mtu,
       onboot          => true,
       #vendor_specific=> $vendor_specific,
       provider        => $config_provider
@@ -69,7 +69,7 @@ define l23network::l2::patch (
     l2_patch{ $patch_name :
       ensure               => $ensure,
       bridges              => $bridges,
-#     mtu                  => $mtu,
+      mtu                  => $mtu,
       vendor_specific      => $vendor_specific,
       provider             => $provider
     }
