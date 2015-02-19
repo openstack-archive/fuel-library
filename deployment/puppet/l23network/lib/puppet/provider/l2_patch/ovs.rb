@@ -12,7 +12,8 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
     vsctl_show = ovs_vsctl_show()
     lnx_port_br_mapping = get_lnx_port_bridges_pairs()
     jacks = []
-    vsctl_show[:port].select{|k,v| (v[:port_type] & ['jack','internal']).any?}.each_pair do |p_name, p_props|
+    # didn't use .select{...} here for backward compatibility with ruby 1.8
+    vsctl_show[:port].reject{|k,v| !(v[:port_type] & ['jack','internal']).any?}.each_pair do |p_name, p_props|
       props = {
         :name => p_name,
       }
@@ -20,7 +21,8 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
       if props[:port_type].include? 'jack'
         debug("found jack '#{p_name}'")
         # get 'peer' property and copy to jack
-        ifaces = vsctl_show[:interface].select{|k,v| v[:port]==p_name}
+        # didn't use .select{...} here for backward compatibility with ruby 1.8
+        ifaces = vsctl_show[:interface].reject{|k,v| v[:port]!=p_name}
         iface = ifaces[ifaces.keys[0]]
         props[:peer] = (iface.has_key?(:options)  ?  iface[:options]['peer']  :  nil)
       elsif props[:port_type].include? 'internal'
@@ -75,23 +77,33 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
+    bridges = self.class.get_bridges_order_for_patch(@resource[:bridges])
+    @property_flush[:bridges] = bridges
     #
-    if File.directory?("/sys/class/net/#{@resource[:bridges][1]}/bridge")
+    debug("Bridges: '#{bridges.join(', ')}.")
+    if File.directory?("/sys/class/net/#{bridges[1]}/bridge")
       # creating 'cross' OVS-to-lnx patchcord
       lnx_port_br_mapping = self.class.get_lnx_port_bridges_pairs()
-      jack = L23network.get_lnx_jack_name(@resource[:bridges][0])
-      vsctl('--may-exist', 'add-port', @resource[:bridges][0], jack, '--', 'set', 'Interface', jack, 'type=internal')
-      if lnx_port_br_mapping.has_key? jack and lnx_port_br_mapping[jack][:bridge] != @resource[:bridges][1]
+      jack = L23network.get_lnx_jack_name(bridges[0])
+      vsctl('--may-exist', 'add-port', bridges[0], jack, '--', 'set', 'Interface', jack, 'type=internal')
+      if lnx_port_br_mapping.has_key? jack and lnx_port_br_mapping[jack][:bridge] != bridges[1]
         # eject lnx-side jack from bridge, if jack aldeady a member
         brctl('delif', lnx_port_br_mapping[jack][:bridge], jack)
         lnx_port_br_mapping.delete(jack)
       end
-      if !lnx_port_br_mapping.has_key? jack or lnx_port_br_mapping[jack][:bridge] != @resource[:bridges][1]
-        brctl('addif', @resource[:bridges][1], jack)
+      if !lnx_port_br_mapping.has_key? jack
+        begin
+          brctl('addif', bridges[1], jack)
+        rescue Exception => e
+          if e.to_s =~ /device\s+#{jack}\s+is\s+already\s+a\s+member\s+of\s+a\s+bridge/
+            notice("'#{jack}' already addeded to '#{bridges[1]}' by ghost event.")
+          else
+            raise
+          end
+        end
       end
     else
       # creating OVS-to-OVS patchcord
-      bridges = @resource[:bridges].sort
       jacks = []
       jacks << L23network.get_ovs_jack_name(bridges[1])
       jacks << L23network.get_ovs_jack_name(bridges[0])
@@ -152,10 +164,10 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
   #-----------------------------------------------------------------
 
   def bridges
-    @property_hash[:bridges] || nil
+    self.class.get_bridges_order_for_patch(@property_hash[:bridges])
   end
   def bridges=(val)
-    @property_flush[:bridges] = val.sort
+    @property_flush[:bridges] = self.class.get_bridges_order_for_patch(val)
   end
 
   def jacks
