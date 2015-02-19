@@ -124,6 +124,36 @@ class cobbler::server (
     }
   }
 
+  #TODO(mattymo): refactor this into cobbler module and use OS-dependent
+  #directories
+  file { ['/etc/httpd', '/etc/httpd/conf/' '/etc/httpd/conf.d/']:
+    ensure => 'directory',
+  }
+  file { '/etc/httpd/conf.d/nailgun.conf':
+    content => template('cobbler/httpd_nailgun.conf.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    require => [File['/etc/httpd'], File['/etc/httpd/conf/'], File['/etc/httpd/conf.d/']],
+    notify  => Service[$cobbler_web_service],
+  }
+  file { '/etc/httpd/conf.d/ssl.conf':
+    content => template('cobbler/httpd_ssl.conf.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    require => [File['/etc/httpd'], File['/etc/httpd/conf/'], File['/etc/httpd/conf.d/']],
+    notify  => Service[$cobbler_web_service],
+  }
+  file { '/etc/httpd/conf/httpd.conf':
+    content => template('cobbler/httpd.conf.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    require => [File['/etc/httpd'], File['/etc/httpd/conf/'], File['/etc/httpd/conf.d/']],
+    notify  => Service[$cobbler_web_service],
+  }
+
   service { $cobbler_web_service:
     ensure     => running,
     enable     => true,

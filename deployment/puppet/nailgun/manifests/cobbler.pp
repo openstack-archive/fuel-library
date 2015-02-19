@@ -198,17 +198,6 @@ class nailgun::cobbler(
       Exec["cobbler_system_add_default"] ~> Exec["nailgun_cobbler_sync"]
       Exec["cobbler_system_edit_default"] ~> Exec["nailgun_cobbler_sync"]
       Cobbler_profile<| |> ~> Exec["nailgun_cobbler_sync"]
-      #TODO(mattymo): refactor this into cobbler module and use OS-dependent
-      #directories
-      file { ['/etc/httpd', '/etc/httpd/conf.d/']:
-        ensure => 'directory',
-      }
-      file { '/etc/httpd/conf.d/nailgun.conf':
-        content => template('nailgun/httpd_nailgun.conf.erb'),
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0644',
-      }
 
       #FIXME(mattymo): move pubkey to astute fact or download it
       exec { "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys":
