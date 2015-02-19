@@ -53,6 +53,40 @@ Puppet::Type.newtype(:l2_patch) do
       end
     end
 
+    newproperty(:mtu) do
+      desc "The Maximum Transmission Unit size to use for the interface"
+      newvalues(/^\d+$/, :absent, :none, :undef, :nil)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      defaultto :absent   # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
+      validate do |value| #     inherits it from a parent interface
+        # Intel 82598 & 82599 chips support MTUs up to 16110; is there any
+        # hardware in the wild that supports larger frames?
+        #
+        # It appears loopback devices routinely have large MTU values; Eg. 65536
+        #
+        # Frames small than 64bytes are discarded as runts.  Smallest valid MTU
+        # is 42 with a 802.1q header and 46 without.
+        min_mtu = 42
+        max_mtu = 65536
+        if ! (value.to_s == 'absent' or (min_mtu .. max_mtu).include?(value.to_i))
+          raise ArgumentError, "'#{value}' is not a valid mtu (must be a positive integer in range (#{min_mtu} .. #{max_mtu})"
+        end
+      end
+      munge do |val|
+        if val == :absent
+          :absent
+        else
+          begin
+            val.to_i
+          rescue
+            :absent
+          end
+        end
+      end
+    end
+
     newproperty(:vendor_specific) do
       desc "Hash of vendor specific properties"
       #defaultto {}  # no default value should be!!!
