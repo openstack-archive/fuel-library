@@ -34,10 +34,6 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
     rv
   end
 
-  def exists?
-    @property_hash[:ensure] == :present
-  end
-
   def create
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
@@ -55,13 +51,6 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
   def destroy
     iproute('link', 'set', 'down', 'dev', @resource[:bridge])
     brctl('delbr', @resource[:bridge])
-  end
-
-  def initialize(value={})
-    super(value)
-    @property_flush = {}
-    @old_property_hash = {}
-    @old_property_hash.merge! @property_hash
   end
 
   def flush

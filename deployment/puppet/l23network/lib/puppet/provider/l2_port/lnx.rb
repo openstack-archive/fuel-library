@@ -41,10 +41,6 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     return rv
   end
 
-  def exists?
-    @property_hash[:ensure] == :present
-  end
-
   def create
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
@@ -66,21 +62,11 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     #iproute('--force', 'addr', 'flush', 'dev', @resource[:interface])
   end
 
-  def initialize(value={})
-    super(value)
-    @property_flush = {}
-    @old_property_hash = {}
-    @old_property_hash.merge! @property_hash
-  end
-
   def flush
     if @property_flush
       debug("FLUSH properties: #{@property_flush}")
       #
       # FLUSH changed properties
-      if ! @property_flush[:mtu].nil?
-        File.open("/sys/class/net/#{@resource[:interface]}/mtu", "w") { |f| f.write(@property_flush[:mtu]) }
-      end
       if @property_flush.has_key? :bond_master
         bond = @old_property_hash[:bond_master]
         # putting interface to the down-state, because add/remove upped interface impossible. undocumented kern.behavior.
@@ -163,18 +149,14 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         debug("Setup UP state for interface '#{@resource[:interface]}'.")
         iproute('link', 'set', 'dev', @resource[:interface], 'up')
       end
+      if !['', 'absent'].include? @property_flush[:mtu].to_s
+        self.class.set_mtu(@resource[:interface], @property_flush[:mtu])
+      end
       @property_hash = resource.to_hash
     end
   end
 
   #-----------------------------------------------------------------
-  def bridge
-    @property_hash[:bridge] || :absent
-  end
-  def bridge=(val)
-    @property_flush[:bridge] = val
-  end
-
   def vlan_dev
     @property_hash[:vlan_dev] || :absent
   end
@@ -189,13 +171,6 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     @property_flush[:vlan_id] = val
   end
 
-  def port_type
-    @property_hash[:port_type] || :absent
-  end
-  def port_type=(val)
-    @property_flush[:port_type] = val
-  end
-
   def vlan_mode
     @property_hash[:vlan_mode] || :absent
   end
@@ -208,41 +183,6 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   end
   def bond_master=(val)
     @property_flush[:bond_master] = val
-  end
-
-  def mtu
-    @property_hash[:mtu] || :absent
-  end
-  def mtu=(val)
-    @property_flush[:mtu] = val if val
-  end
-
-  def onboot
-    @property_hash[:onboot] || :absent
-  end
-  def onboot=(val)
-    @property_flush[:onboot] = val
-  end
-
-  def ethtool
-    @property_hash[:ethtool] || nil
-  end
-  def ethtool=(val)
-    @property_flush[:ethtool] = val
-  end
-
-  def vendor_specific
-    @property_hash[:vendor_specific] || nil
-  end
-  def vendor_specific=(val)
-    @property_flush[:vendor_specific] = val
-  end
-
-  def type
-    :absent
-  end
-  def type=(value)
-    debug("Resource '#{@resource[:name]}': Doesn't support interface type change.")
   end
 
 end

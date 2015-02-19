@@ -85,6 +85,7 @@ Puppet::Type.newtype(:l2_port) do
       aliasvalue(:none,  :absent)
       aliasvalue(:undef, :absent)
       aliasvalue(:nil,   :absent)
+      aliasvalue(0,      :absent)
       defaultto :absent
       validate do |value|
         min_vid = 1
@@ -94,16 +95,9 @@ Puppet::Type.newtype(:l2_port) do
         end
       end
       munge do |val|
-        if val == :absent
-          :absent
-        else
-          begin
-            val.to_i
-          rescue
-            :absent
-          end
-        end
+        ((val == :absent)  ?  :absent  :  val.to_i)
       end
+
     end
 
     newproperty(:vlan_mode) do
@@ -129,6 +123,7 @@ Puppet::Type.newtype(:l2_port) do
       aliasvalue(:none,  :absent)
       aliasvalue(:undef, :absent)
       aliasvalue(:nil,   :absent)
+      aliasvalue(0,      :absent)
       defaultto :absent   # MTU value should be undefined by default, because some network resources (bridges, subinterfaces)
       validate do |value| #     inherits it from a parent interface
         # Intel 82598 & 82599 chips support MTUs up to 16110; is there any
@@ -145,16 +140,9 @@ Puppet::Type.newtype(:l2_port) do
         end
       end
       munge do |val|
-        if val == :absent
-          :absent
-        else
-          begin
-            val.to_i
-          rescue
-            :absent
-          end
-        end
+        ((val == :absent)  ?  :absent  :  val.to_i)
       end
+
     end
 
     newproperty(:ethtool) do
