@@ -44,7 +44,9 @@ class { "docker::dockerctl":
   production      => $production,
   admin_ipaddress => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 }
-class { "docker": }
+class { "docker":
+  release => $::fuel_version['VERSION']['release'],
+}
 
 class {'openstack::logrotate':
   role           => 'server',

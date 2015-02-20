@@ -1,4 +1,5 @@
 class docker (
+$release,
 $admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 $limit = "102400",
 $docker_package = "docker-io",
@@ -12,6 +13,8 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   "/var/log/docker-logs/puppet", "/var/log/docker-logs/rabbitmq",
   "/var/log/docker-logs/rhsm", "/var/log/docker-logs/supervisor",
   "/var/lib/fuel", "/var/lib/fuel/keys",
+  "/var/lib/fuel/container_data",
+  "/var/lib/fuel/container_data/${release}",
   ]
 ) {
 

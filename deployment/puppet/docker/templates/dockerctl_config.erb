@@ -73,6 +73,11 @@ HOST_VOL['astuteyaml']="-v /etc/fuel:/etc/fuel:ro"
 HOST_VOL['logs']="-v /var/log/docker-logs:/var/log"
 HOST_VOL['keys']="-v /var/lib/fuel/keys:/var/lib/fuel/keys:rw"
 
+#Persistent directories for container data
+HOST_VOL['astute_data']="-v /var/lib/fuel/container_data/$VERSION/astute:/var/lib/astute"
+HOST_VOL['cobbler_data']="-v /var/lib/fuel/container_data/$VERSION/cobbler:/var/lib/cobbler"
+HOST_VOL['postgres_data']="-v /var/lib/fuel/container_data/$VERSION/postgres:/var/lib/pgsql"
+
 #Storage container volume mounts
 declare -A CONTAINER_VOLUMES
 #Format: CONTAINER_VOLUMES[$FOO_CNT]="${HOST_VOL['foo']}"
@@ -103,6 +108,9 @@ REQS["${HOST_VOL['logs']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf
 REQS["${HOST_VOL['puppet']}"]="rsync"
 #Uncomment to enable host puppet manifests
 #REQS["${HOST_VOL['puppet']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
+REQS["${HOST_VOL['astute_data']}"]="astute"
+REQS["${HOST_VOL['cobbler_data']}"]="cobbler"
+REQS["${HOST_VOL['postgres_data']}"]="postgres"
 REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective ostf"
 REQS["$NAILGUN_VOL"]="nginx mcollective"
 REQS["$COBBLER_VOL"]="mcollective"
