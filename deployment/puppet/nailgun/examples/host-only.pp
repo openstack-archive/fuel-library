@@ -29,13 +29,16 @@ class { 'nailgun::packages': }
 class { 'osnailyfacter::atop': }
 
 class { 'nailgun::host':
-  production    => $production,
-  cobbler_host  => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-  nailgun_group => $nailgun_group,
-  nailgun_user  => $nailgun_user,
-  dns_domain    => $::fuel_settings['DNS_DOMAIN'],
-  dns_search    => $::fuel_settings['DNS_SEARCH'],
-  repo_root     => "/var/www/nailgun/${::fuel_version['VERSION']['openstack_version']}",
+  production        => $production,
+  cobbler_host      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+  nailgun_group     => $nailgun_group,
+  nailgun_user      => $nailgun_user,
+  dns_domain        => $::fuel_settings['DNS_DOMAIN'],
+  dns_search        => $::fuel_settings['DNS_SEARCH'],
+  repo_root         => "/var/www/nailgun/${::fuel_version['VERSION']['openstack_version']}",
+  monitord_user     => $::fuel_settings['keystone']['monitord_user'],
+  monitord_password => $::fuel_settings['keystone']['monitord_password'],
+  monitord_tenant   => 'services',
 }
 
 class { 'openstack::clocksync':
@@ -109,34 +112,4 @@ exec {'sync_deployment_tasks':
   tries     => 12,
   try_sleep => 10,
   require   => Class['nailgun::supervisor']
-}
-
-class { "monit": }
-
-# Free disk space monitoring
-file { '/usr/bin/fuel_notify.py':
-  source  => 'puppet:///modules/nailgun/fuel_notify.py',
-  owner   => 'root',
-  group   => 'root',
-  mode    => '0755',
-}
-
-file { "${::monit::params::included}/free-space.conf":
-  source  => 'puppet:///modules/nailgun/monit-free-space.conf',
-  owner   => 'root',
-  group   => 'root',
-  mode    => '0644',
-  require => Class['monit'],
-  notify  => Service['monit'],
-}
-
-$monitord_user = $::fuel_settings['keystone']['monitord_user']
-$monitord_password = $::fuel_settings['keystone']['monitord_password']
-$monitord_tenant = 'services'
-
-file { '/etc/fuel/free_disk_check.yaml':
-  content => template("nailgun/free_disk_check.yaml.erb"),
-  owner   => 'root',
-  group   => 'root',
-  mode    => '0755',
 }
