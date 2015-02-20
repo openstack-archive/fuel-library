@@ -58,8 +58,8 @@ class galera::status (
     }
   }
 
-  file { '/usr/local/bin/clustercheck':
-    content => template('galera/clustercheck.erb'),
+  file { '/etc/wsrepclustercheckrc':
+    content => template('galera/wsrepclustercheckrc.erb'),
     mode    => '0755',
   }
 
