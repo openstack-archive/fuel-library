@@ -177,9 +177,11 @@ $primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller'
 $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
 $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 
-if $use_neutron {
-  $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
-}
+#todo:(sv): temporary commented. Will be uncommented while
+#           'multiple-l2-network' feature re-implemented
+# if $use_neutron {
+#   $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
+# }
 
 
 ##TODO: simply parse nodes array
@@ -375,11 +377,11 @@ if ($::mellanox_mode == 'ethernet') {
 
 class { 'openstack::compute':
   public_interface            => $public_int ? { undef=>'', default=>$public_int},
-  private_interface              => $::use_neutron ? { true=>false, default=>hiera('private_int')},
+  private_interface           => $::use_neutron ? { true=>false, default=>hiera('private_int')},
   internal_address            => $internal_address,
   libvirt_type                => hiera('libvirt_type'),
   fixed_range                 => $use_neutron ? { true=>false, default=>hiera('fixed_network_range')},
-  network_manager             => hiera('network_manager'),
+  network_manager             => hiera('network_manager', undef),
   network_config              => hiera('network_config', {}),
   multi_host                  => $multi_host,
   sql_connection              => "mysql://nova:${nova_hash[db_password]}@${management_vip}/nova?read_timeout=60",
@@ -408,7 +410,7 @@ class { 'openstack::compute':
   ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
   ceilometer_user_password    => $ceilometer_hash[user_password],
   db_host                     => $management_vip,
-  network_provider            => hiera('network_provider'),
+  network_provider            => hiera('network_provider', undef),
   neutron_user_password       => $neutron_user_password,
   base_mac                    => $base_mac,
 
