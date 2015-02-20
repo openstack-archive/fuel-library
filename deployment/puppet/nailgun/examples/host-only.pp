@@ -48,6 +48,7 @@ class { "docker::dockerctl":
 
 class { "docker":
   docker_engine => 'lxc',
+  release => $::fuel_version['VERSION']['release'],
 }
 
 class {'openstack::logrotate':
