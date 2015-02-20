@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# flake8: noqa
 
 import json
 import math
 import re
+
 
 class PManager(object):
     def __init__(self, pm_data):
@@ -125,18 +125,20 @@ class PManager(object):
         return "primary"
 
     def _getsize(self, vol):
-        """Anaconda has hard coded limitation in 16TB
+        """Get volume size.
+
+        Anaconda has hard coded limitation in 16TB
         for ext3/4 and xfs filesystems (the only filesystems
         we are supposed to use). Besides there is no stable
         64-bit ext4 implementation at the moment, so the
         limitation in 16TB for ext4 is not only
-        anaconda limitation."""
-
-        """Root partition can not be located on xfs file system
+        anaconda limitation.
+        Root partition can not be located on xfs file system
         therefore we check if root filesystem is larger
         than 16TB and set it size into 16TB if it is larger.
         It is necessary to note that to format 16TB
-        volume on ext4 it is needed about 1G memory."""
+        volume on ext4 it is needed about 1G memory.
+        """
         if vol["size"] > 16777216 and vol["mount"] == "/":
             return 16777216
         return vol["size"]
@@ -164,23 +166,21 @@ class PManager(object):
         self.pre("parted -s {0} mklabel gpt".format(self._disk_dev(disk)))
 
     def bootable(self, disk):
-        """Create and mark Bios Boot partition to which grub will
-        embed its code later, useable for legacy boot.
+        """Create and mark Bios Boot partition
+
+        Grub will embed its code later, useable for legacy boot.
         May be way smaller, but be aware that the parted may
-        shrink 1M partition to zero at some disks and versions."""
+        shrink 1M partition to zero at some disks and versions.
+        """
         self.pre("parted -a none -s {0} "
                  "unit {3} mkpart primary {1} {2}".format(
                      self._disk_dev(disk),
                      self.psize(disk["id"]),
                      self.psize(disk["id"], 24 * self.factor),
-                     self.unit
-            )
-        )
+                     self.unit))
         self.pre("parted -s {0} set {1} bios_grub on".format(
-                     self._disk_dev(disk),
-                     self.pcount(disk["id"], 1)
-            )
-        )
+            self._disk_dev(disk),
+            self.pcount(disk["id"], 1)))
 
         """Create partition for the EFI boot, minimum
         size is 100M, recommended is 200M, with fat32 and
@@ -192,14 +192,10 @@ class PManager(object):
                      self._disk_dev(disk),
                      self.psize(disk["id"]),
                      self.psize(disk["id"], 200 * self.factor),
-                     self.unit
-            )
-        )
+                     self.unit))
         self.pre("parted -s {0} set {1} boot on".format(
-                     self._disk_dev(disk),
-                     self.pcount(disk["id"], 1)
-            )
-        )
+            self._disk_dev(disk),
+            self.pcount(disk["id"], 1)))
 
     def boot(self):
         self.plains(volume_filter=lambda x: x["mount"] == "/boot")
@@ -225,10 +221,12 @@ class PManager(object):
 
                 if part.get('name') == 'cephjournal':
                     # We need to allocate a journal partition for each ceph OSD
-                    # Determine the number of journal partitions we need on each device
+                    # Determine the number of journal partitions we need on
+                    # each device
                     ratio = math.ceil(float(ceph_osds) / ceph_journals)
 
-                    # No more than 10GB will be allocated to a single journal partition
+                    # No more than 10GB will be allocated to a single
+                    # journal partition
                     size = part["size"] / ratio
                     if size > 10240:
                         size = 10240
@@ -251,12 +249,14 @@ class PManager(object):
                                      disk["id"],
                                      self._parttype(pcount),
                                      self.psize(disk["id"]),
-                                     self.psize(disk["id"], size * self.factor),
+                                     self.psize(disk["id"],
+                                                size * self.factor),
                                      self.unit))
 
                         self.post("chroot /mnt/sysimage sgdisk "
                                   "--typecode={0}:{1} /dev/{2}".format(
-                                    pcount, part["partition_guid"],disk["id"]))
+                                      pcount, part["partition_guid"],
+                                      disk["id"]))
                     continue
 
                 pcount = self.pcount(disk["id"], 1)
@@ -265,10 +265,10 @@ class PManager(object):
                              self._disk_dev(disk),
                              self._parttype(pcount),
                              self.psize(disk["id"]),
-                             self.psize(disk["id"], part["size"] * self.factor),
+                             self.psize(disk["id"],
+                                        part["size"] * self.factor),
                              self.unit))
 
-                fstype = self._getfstype(part)
                 size = self._getsize(part)
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
                 tabfstype = self._gettabfstype(part)
@@ -283,9 +283,9 @@ class PManager(object):
                     self.kick("partition {0} "
                               "--onpart={2}"
                               "{3}{4}".format(part["mount"], size,
-                                           self._disk_dev(disk),
-                                           self._pseparator(disk["id"]),
-                                           pcount))
+                                              self._disk_dev(disk),
+                                              self._pseparator(disk["id"]),
+                                              pcount))
 
                 else:
                     if part["mount"] != "swap" and tabfstype != "none":
@@ -325,9 +325,10 @@ class PManager(object):
                 pcount = self.pcount(disk["id"], 1)
                 if not phys.get(raid["mount"]):
                     phys[raid["mount"]] = []
-                phys[raid["mount"]].append("{0}{1}{2}".
-                    format(self._disk_dev(disk),
-                           self._pseparator(disk["id"]), pcount))
+                phys[raid["mount"]].append(
+                    "{0}{1}{2}".format(
+                        self._disk_dev(disk),
+                        self._pseparator(disk["id"]), pcount))
                 rname = "raid.{0:03d}".format(self.rcount(1))
                 begin_size = self.psize(disk["id"])
                 end_size = self.psize(disk["id"], raid["size"] * self.factor)
@@ -355,24 +356,26 @@ class PManager(object):
                 if len(rnames) == 1:
                     phys[mount].append('missing')
                 self.post("mdadm --create /dev/md{0} --run --level=1 "
-                            "--raid-devices={1} {2}".format(self.raid_count,
-                            len(phys[mount]), ' '.join(phys[mount])))
+                          "--raid-devices={1} {2}".format(
+                              self.raid_count, len(phys[mount]),
+                              ' '.join(phys[mount])))
                 self.post("mkfs.{0} {1} {2} /dev/md{3}".format(
                           fstype, fsoptions,
                           self._getlabel(label), self.raid_count))
                 self.post("mdadm --detail --scan | grep '\/dev\/md{0}'"
                           ">> /mnt/sysimage/etc/mdadm.conf".format(
-                          self.raid_count))
+                              self.raid_count))
                 self.post("mkdir -p /mnt/sysimage{0}".format(mount))
                 self.post("echo \\\"UUID=\$(blkid -s UUID -o value "
                           "/dev/md{0}) "
                           "{1} {2} defaults 0 0\\\""
                           " >> /mnt/sysimage/etc/fstab".format(
-                             self.raid_count, mount, fstype))
+                              self.raid_count, mount, fstype))
             else:
                 self.kick("raid {0} --device md{1} --fstype {3} "
-                    "--level=RAID1 {2}".format(mount, self.raid_count,
-                    " ".join(rnames), fstype))
+                          "--level=RAID1 {2}".format(
+                              mount, self.raid_count,
+                              " ".join(rnames), fstype))
             self.raid_count += 1
 
     def pvs(self):
@@ -400,7 +403,6 @@ class PManager(object):
 
         for vg, pvnames in pvs.iteritems():
             self.kick("volgroup {0} {1}".format(vg, " ".join(pvnames)))
-
 
     def lvs(self):
         for vg in [g for g in self.data if g["type"] == "vg"]:
@@ -449,8 +451,8 @@ class PManager(object):
         if devs:
             self.kick("bootloader --location=mbr --driveorder={0} "
                       "--append=' {1} '".format(
-                        ",".join(devs),
-                        self.kernel_params))
+                          ",".join(devs),
+                          self.kernel_params))
 
             for dev in devs:
                 self.post("echo -n > /tmp/grub.script")
@@ -473,8 +475,7 @@ class PManager(object):
 
     def expose(self,
                kickfile="/tmp/partition.ks",
-               postfile="/tmp/post_partition.ks"
-        ):
+               postfile="/tmp/post_partition.ks"):
         result = ""
         for pre in self.pre():
             result += "{0}\n".format(pre)
@@ -604,24 +605,26 @@ class PreseedPManager(object):
         self.late("umount /target/proc")
         self.late("umount /target/boot")
         self.late("umount /target")
-        self.late("umount {0}{1}3".format(self.os_disk,
-            self._pseparator(self.os_disk)))
-        self.late("swapoff {0}{1}4".format(self.os_disk,
-            self._pseparator(self.os_disk)))
+        self.late("umount {0}{1}3".format(
+            self.os_disk, self._pseparator(self.os_disk)))
+        self.late("swapoff {0}{1}4".format(
+            self.os_disk, self._pseparator(self.os_disk)))
 
     def _mount_target(self):
-        self.late("mount {0}{1}3 /target".format(self.os_disk,
-            self._pseparator(self.os_disk)))
-        self.late("mount {0}{1}2 /target/boot".format(self.os_disk,
-            self._pseparator(self.os_disk)))
+        self.late("mount {0}{1}3 /target".format(
+            self.os_disk, self._pseparator(self.os_disk)))
+        self.late("mount {0}{1}2 /target/boot".format(
+            self.os_disk, self._pseparator(self.os_disk)))
         self.late("mount -t proc none /target/proc")
         self.late("mount -o bind /dev /target/dev")
         self.late("mount -o bind /sys /target/sys")
-        self.late("swapon {0}{1}4".format(self.os_disk,
-            self._pseparator(self.os_disk)))
+        self.late("swapon {0}{1}4".format(
+            self.os_disk, self._pseparator(self.os_disk)))
 
     def _long_logger(self):
-        """This method puts script which splits
+        """Create script for logging long lines.
+
+        This method puts script which splits
         long line and sends them to logger
         #!/bin/sh
         chunk=80
@@ -634,16 +637,21 @@ class PreseedPManager(object):
                 i=$(( i + 1 )); done; done;
         """
         return (
-            """echo '#!/bin/sh' > /tmp/long_logger.sh;""",
-            """echo 'chunk=80;' >> /tmp/long_logger.sh;""",
-            """echo 'while read string; do' >> /tmp/long_logger.sh;""",
-            """echo 'iterations=`expr ${#string} / $chunk + 1`; i=0;' >> /tmp/long_logger.sh;""",
-            """echo 'while [ $i -le $(( iterations - 1)) ]; do' >> /tmp/long_logger.sh;""",
-            """echo 'start_sym=$(( $i * ${chunk} + 1 ))' >> /tmp/long_logger.sh;""",
-            """echo 'end_sym=$(( $(( $i + 1 )) * ${chunk}))' >> /tmp/long_logger.sh;""",
-            """echo 'echo $string | cut -c ${start_sym}-${end_sym} | logger' >> /tmp/long_logger.sh;""",
-            """echo 'i=$(( i + 1 )); done; done;' >> /tmp/long_logger.sh;""",
-            """chmod +x /tmp/long_logger.sh;"""
+            "echo '#!/bin/sh' > /tmp/long_logger.sh;",
+            "echo 'chunk=80;' >> /tmp/long_logger.sh;",
+            "echo 'while read string; do' >> /tmp/long_logger.sh;",
+            ("echo 'iterations=`expr ${#string} / $chunk + 1`; i=0;' "
+                ">> /tmp/long_logger.sh;"),
+            ("echo 'while [ $i -le $(( iterations - 1)) ]; do' "
+                ">> /tmp/long_logger.sh;"),
+            ("echo 'start_sym=$(( $i * ${chunk} + 1 ))' "
+                ">> /tmp/long_logger.sh;"),
+            ("echo 'end_sym=$(( $(( $i + 1 )) * ${chunk}))' "
+                ">> /tmp/long_logger.sh;"),
+            ("echo 'echo $string | cut -c ${start_sym}-${end_sym} | logger' "
+                ">> /tmp/long_logger.sh;"),
+            "echo 'i=$(( i + 1 )); done; done;' >> /tmp/long_logger.sh;",
+            "chmod +x /tmp/long_logger.sh;"
         )
 
     def non_boot_partitions(self, volumes):
@@ -712,15 +720,16 @@ class PreseedPManager(object):
         self.pcount(self.os_disk, 1)
 
         self.late("parted -s $(readlink -f {0}) set {1} bios_grub on".format(
-                    self.os_disk,
-                    self.pcount(self.os_disk)
+            self.os_disk,
+            self.pcount(self.os_disk)
             )
         )
 
-        self.recipe("200 200 200 ext3 $primary{ } "
-                    "$gptonly{ } "
-                    "$bootable{ } method{ format } format{ } use_filesystem{ } "
-                    "filesystem{ ext3 } mountpoint{ /boot } .")
+        self.recipe(
+            "200 200 200 ext3 $primary{ } "
+            "$gptonly{ } "
+            "$bootable{ } method{ format } format{ } use_filesystem{ } "
+            "filesystem{ ext3 } mountpoint{ /boot } .")
         self.pcount(self.os_disk, 1)
         self.psize(self.os_disk, 200 * self.factor)
 
@@ -772,32 +781,31 @@ class PreseedPManager(object):
             for part in self.non_boot_partitions(disk["volumes"]):
 
                 if self.pcount(self._disk_dev(disk)) == 0:
-                    self.late("parted -s {0} mklabel gpt"
-                              "".format(self._disk_dev(disk)), udev_settle=True)
+                    self.late("parted -s {0} mklabel gpt".format(
+                        self._disk_dev(disk)), udev_settle=True)
                     self.late("parted -a none -s {0} "
-                        "unit {3} mkpart primary {1} {2}".format(
-                            self._disk_dev(disk),
-                            self.psize(self._disk_dev(disk)),
-                            self.psize(self._disk_dev(disk),
-                                       24 * self.factor),
-                            self.unit
-                        ),
-                        udev_settle=True
-                    )
+                              "unit {3} mkpart primary {1} {2}".format(
+                                  self._disk_dev(disk),
+                                  self.psize(self._disk_dev(disk)),
+                                  self.psize(self._disk_dev(disk),
+                                             24 * self.factor),
+                                  self.unit),
+                              udev_settle=True)
                     self.late("parted -s {0} set {1} "
                               "bios_grub on".format(
                                   self._disk_dev(disk),
-                                  self.pcount(self._disk_dev(disk), 1)
-                        ),
-                        udev_settle=True
-                    )
-                    self.late("parted -s {0} print free".format(self._disk_dev(disk)))
+                                  self.pcount(self._disk_dev(disk), 1)),
+                              udev_settle=True)
+                    self.late("parted -s {0} print free".format(
+                        self._disk_dev(disk)))
                 if part.get('name') == 'cephjournal':
                     # We need to allocate a journal partition for each ceph OSD
-                    # Determine the number of journal partitions we need on each device
+                    # Determine the number of journal partitions we need on
+                    # each device
                     ratio = math.ceil(float(ceph_osds) / ceph_journals)
 
-                    # No more than 10GB will be allocated to a single journal partition
+                    # No more than 10GB will be allocated to a single
+                    # journal partition
                     size = part["size"] / ratio
                     if size > 10240:
                         size = 10240
@@ -826,10 +834,11 @@ class PreseedPManager(object):
                                 self.unit),
                             udev_settle=True
                         )
-                        # We don't want to append late command right here because
-                        # we need sgdisk to be run in-target so the target must be mounted.
-                        # Instead of additional mounting and unmounting we just
-                        # collect all those commands and them run them all at once.
+                        # We don't want to append late command right here
+                        # because we need sgdisk to be run in-target so
+                        # the target must be mounted. Instead of additional
+                        # mounting and unmounting we just collect all those
+                        # commands and them run them all at once.
                         cephjournal_guid_commands.append(
                             "sgdisk --typecode={0}:{1} {2}".format(
                                 pcount,
@@ -837,7 +846,8 @@ class PreseedPManager(object):
                                 self._disk_dev(disk)
                             )
                         )
-                        self.late("parted -s {0} print free".format(self._disk_dev(disk)))
+                        self.late("parted -s {0} print free".format(
+                            self._disk_dev(disk)))
                     continue
 
                 pcount = self.pcount(self._disk_dev(disk), 1)
@@ -845,18 +855,20 @@ class PreseedPManager(object):
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
                 self.late("parted -a none -s {0} "
                           "unit {4} mkpart {1} {2} {3}".format(
-                             self._disk_dev(disk),
-                             self._parttype(pcount),
-                             self.psize(self._disk_dev(disk)),
-                             self.psize(self._disk_dev(disk),
-                                        part["size"] * self.factor),
-                             self.unit),
+                              self._disk_dev(disk),
+                              self._parttype(pcount),
+                              self.psize(self._disk_dev(disk)),
+                              self.psize(self._disk_dev(disk),
+                                         part["size"] * self.factor),
+                              self.unit),
                           udev_settle=True)
                 self.late("sleep 10")
                 self.late("hdparm -z {0}"
                           "".format(self._disk_dev(disk)))
-                self.late("parted -s {0} print free".format(self._disk_dev(disk)))
-                self.late("find /dev \( -type l -o -type b \) -exec ls -l {} \;")
+                self.late("parted -s {0} print free".format(
+                    self._disk_dev(disk)))
+                self.late(
+                    "find /dev \( -type l -o -type b \) -exec ls -l {} \;")
                 self.late("mount")
                 self.late("cat /proc/swaps")
                 self.late("cat /proc/mdstat")
@@ -868,21 +880,24 @@ class PreseedPManager(object):
                                     self._pseparator(disk["id"]),
                                     pcount))
 
-                if part.get("file_system", "xfs") not in ("swap", None, "none"):
+                fs = part.get("file_system", "xfs")
+                if fs not in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
-                    self.late("mkfs.{0} {1} {2}{3}{4} {5}"
-                              "".format(part.get("file_system", "xfs"),
-                                        self._fsoptions(part.get("file_system", "xfs")),
-                                        self._disk_dev(disk),
-                                        self._pseparator(disk["id"]),
-                                        pcount, disk_label))
+                    self.late("mkfs.{0} {1} {2}{3}{4} {5}".format(
+                        part.get("file_system", "xfs"),
+                        self._fsoptions(part.get("file_system", "xfs")),
+                        self._disk_dev(disk),
+                        self._pseparator(disk["id"]),
+                        pcount, disk_label))
         self._mount_target()
 
-        # Partition guids must be set in-target, which requires target to be mounted.
-        # But for cephjournal we have a separate collection of late commands.
+        # Partition guids must be set in-target, which requires target to be
+        # mounted. But for cephjournal we have a separate collection of
+        # late commands.
         for disk in self.iterdisks():
             for part in self.non_boot_partitions(disk["volumes"]):
-                if part.get("partition_guid") and part.get("name") != "cephjournal":
+                if (part.get("partition_guid") and
+                        part.get("name") != "cephjournal"):
                     self.late("sgdisk --typecode={0}:{1} {2}"
                               "".format(part["pcount"], part["partition_guid"],
                                         self._disk_dev(disk)), True)
@@ -910,7 +925,7 @@ class PreseedPManager(object):
                                   part["pcount"], tabmount,
                                   part.get("file_system", "xfs"),
                                   ("defaults" if part["mount"] != "swap"
-                                   else "sw" )))
+                                   else "sw")))
 
     def lv(self):
         self.log_lvm("before creating lvm", False)
@@ -927,24 +942,23 @@ class PreseedPManager(object):
                     continue
                 if self.pcount(self._disk_dev(disk)) == 0:
                     # this gonna wait until udev event queue is handled
-                    self.late("parted -s {0} mklabel gpt"
-                              "".format(self._disk_dev(disk)), udev_settle=True)
+                    self.late("parted -s {0} mklabel gpt".format(
+                        self._disk_dev(disk)), udev_settle=True)
                     self.late("parted -a none -s {0} "
-                        "unit {3} mkpart primary {1} {2}".format(
-                            self._disk_dev(disk),
-                            self.psize(self._disk_dev(disk)),
-                            self.psize(self._disk_dev(disk),
-                                       24 * self.factor),
-                            self.unit
-                        ),
-                        udev_settle=True
-                    )
+                              "unit {3} mkpart primary {1} {2}".format(
+                                  self._disk_dev(disk),
+                                  self.psize(self._disk_dev(disk)),
+                                  self.psize(self._disk_dev(disk),
+                                             24 * self.factor),
+                                  self.unit),
+                              udev_settle=True)
                     self.late("parted -s {0} set {1} "
                               "bios_grub on".format(
                                   self._disk_dev(disk),
                                   self.pcount(self._disk_dev(disk), 1)),
                               udev_settle=True)
-                    self.late("parted -s {0} print free".format(self._disk_dev(disk)))
+                    self.late("parted -s {0} print free".format(
+                        self._disk_dev(disk)))
 
                 pcount = self.pcount(self._disk_dev(disk), 1)
                 begin_size = self.psize(self._disk_dev(disk))
@@ -953,19 +967,22 @@ class PreseedPManager(object):
 
                 self.late("parted -a none -s {0} "
                           "unit {4} mkpart {1} {2} {3}".format(
-                             self._disk_dev(disk),
-                             self._parttype(pcount),
-                             begin_size,
-                             end_size,
-                             self.unit), udev_settle=True)
+                              self._disk_dev(disk),
+                              self._parttype(pcount),
+                              begin_size,
+                              end_size,
+                              self.unit),
+                          udev_settle=True)
 
                 self.late("sleep 10")
                 self.log_lvm("after creating partition", False)
                 self.erase_lvm_metadata(False)
                 self.late("hdparm -z {0}"
                           "".format(self._disk_dev(disk)))
-                self.late("parted -s {0} print free".format(self._disk_dev(disk)))
-                self.late("find /dev \( -type l -o -type b \) -exec ls -l {} \;")
+                self.late("parted -s {0} print free".format(
+                    self._disk_dev(disk)))
+                self.late(
+                    "find /dev \( -type l -o -type b \) -exec ls -l {} \;")
                 self.late("mount")
                 self.late("cat /proc/swaps")
                 self.late("cat /proc/mdstat")
@@ -1009,8 +1026,12 @@ class PreseedPManager(object):
                 self.late("lvscan")
 
                 tabmount = lv["mount"] if lv["mount"] != "swap" else "none"
-                if ((not lv.get("file_system", "xfs") in ("swap", None, "none"))
-                    and (not lv["mount"] in ("swap", "/"))):
+                if (
+                    (lv.get("file_system", "xfs") not in
+                     ("swap", None, "none"))
+                        and
+                    (lv["mount"] not in ("swap", "/"))
+                ):
                     self.late("mkfs.{0} {1} /dev/mapper/{2}-{3}".format(
                         lv.get("file_system", "xfs"),
                         self._fsoptions(lv.get("file_system", "xfs")),
@@ -1027,7 +1048,7 @@ class PreseedPManager(object):
                                   tabmount,
                                   lv.get("file_system", "xfs"),
                                   ("defaults" if lv["mount"] != "swap"
-                                   else "sw" )))
+                                   else "sw")))
 
     def eval(self):
         self.log_lvm("before early lvm cleaning")
@@ -1040,16 +1061,19 @@ class PreseedPManager(object):
         self.erase_lvm_metadata()
         self.lv()
         self.late("apt-get install -y grub-pc", True)
-        self.late("sed -i "
-                  "-e '$a\ ' "
-                  "-e '$a\#Disable the waiting for user input if the last boot failed' "
-                  "-e '$a\GRUB_RECORDFAIL_TIMEOUT=$GRUB_TIMEOUT' /etc/default/grub", True)
+        self.late(
+            "sed -i "
+            "-e '$a\ ' "
+            "-e '$a\#Disable the waiting "
+            "for user input if the last boot failed' "
+            "-e '$a\GRUB_RECORDFAIL_TIMEOUT=$GRUB_TIMEOUT' /etc/default/grub",
+            True)
         self.late("sed -i "
                   "-e 's/.*GRUB_TERMINAL.*/GRUB_TERMINAL=console/g' "
                   "-e 's/.*GRUB_GFXMODE.*/#GRUB_GFXMODE=640x480/g' "
                   "-e 's/.*GRUB_CMDLINE_LINUX.*/"
                   "GRUB_CMDLINE_LINUX=\" {0} \"/g' /etc/default/grub".format(
-                    self.kernel_params),
+                      self.kernel_params),
                   True)
         self._umount_target()
         self._mount_target()
