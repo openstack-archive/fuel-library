@@ -107,7 +107,7 @@ exec {'sync_deployment_tasks':
   require   => Class['nailgun::supervisor']
 }
 
-class { "monit": }
+class { 'monit': }
 
 # Free disk space monitoring
 file { '/usr/bin/fuel_notify.py':
@@ -131,7 +131,7 @@ $monitord_password = $::fuel_settings['keystone']['monitord_password']
 $monitord_tenant = 'services'
 
 file { '/etc/fuel/free_disk_check.yaml':
-  content => template("nailgun/free_disk_check.yaml.erb"),
+  content => template('nailgun/free_disk_check.yaml.erb'),
   owner   => 'root',
   group   => 'root',
   mode    => '0755',
