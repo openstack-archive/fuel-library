@@ -18,7 +18,8 @@ Class['nailgun::host'] ->
 Class['docker::dockerctl'] ->
 Class['docker'] ->
 Class['openstack::logrotate'] ->
-Class['nailgun::client']
+Class['nailgun::client'] ->
+Class['monit']
 
 class { 'nailgun::packages': }
 
@@ -30,14 +31,17 @@ class { 'nailgun::host':
   dns_domain    => $::fuel_settings['DNS_DOMAIN'],
   dns_search    => $::fuel_settings['DNS_SEARCH'],
   repo_root     => "/var/www/nailgun/${::fuel_version['VERSION']['openstack_version']}",
+  monitord_user => $::fuel_settings['keystone']['monitord_user'],
+  monitord_password => $::fuel_settings['keystone']['monitord_password'],
+  monitord_tenant => 'services',
 }
 
-class { "openstack::clocksync":
+class { 'openstack::clocksync':
   ntp_servers     => $ntp_servers,
-  config_template => "ntp/ntp.conf.erb",
+  config_template => 'ntp/ntp.conf.erb',
 }
 
-class { "docker::dockerctl":
+class { 'docker::dockerctl':
   release         => $::fuel_version['VERSION']['release'],
   production      => $production,
   admin_ipaddress => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
@@ -56,9 +60,8 @@ class { 'openstack::logrotate':
   maxsize  => '100M',
 }
 
-class { "nailgun::client":
+class { 'nailgun::client':
   server        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   keystone_user => $::fuel_settings['FUEL_ACCESS']['user'],
   keystone_pass => $::fuel_settings['FUEL_ACCESS']['password'],
 }
-
