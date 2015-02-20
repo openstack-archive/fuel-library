@@ -7,6 +7,9 @@ $nailgun_group = 'nailgun',
 $nailgun_user = 'nailgun',
 $gem_source = 'http://localhost/gems/',
 $repo_root = '/var/www/nailgun',
+$monitord_user = 'monitd',
+$monitord_password = 'monitd',
+$monitord_tenant = 'services',
 ) {
   #Enable cobbler's iptables rules even if Cobbler not called
   include cobbler::iptables
@@ -92,4 +95,25 @@ $repo_root = '/var/www/nailgun',
   package {'yum-plugin-priorities':
     ensure => installed,
   }
+
+  # Enable monit
+  class { 'monit': }
+
+  # Free disk space monitoring
+  package { 'fuel-notify':
+    ensure => latest,
+    notify => Service['monit'],
+  }
+
+  $monitord_user = $monitord_user
+  $monitord_password = $monitord_password
+  $monitord_tenant = $monitord_tenant
+
+  file { '/etc/fuel/free_disk_check.yaml':
+    content => template('nailgun/free_disk_check.yaml.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0755',
+  }
+
 }
