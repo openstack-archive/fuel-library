@@ -12,7 +12,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /"barz" is not an absolute path/)
     end
   end
@@ -25,7 +25,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /Must pass country to Openssl::Certificate::X509/)
     end
   end
@@ -39,7 +39,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not a string/)
     end
   end
@@ -52,7 +52,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /Must pass organization to Openssl::Certificate::X509/)
     end
   end
@@ -66,7 +66,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not a string/)
     end
   end
@@ -79,7 +79,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /Must pass commonname to Openssl::Certificate::X509/)
     end
   end
@@ -93,7 +93,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not a string/)
     end
   end
@@ -108,7 +108,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /\$ensure must be either 'present' or 'absent', got 'foo'/)
     end
   end
@@ -123,7 +123,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not a string/)
     end
   end
@@ -138,7 +138,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not a string/)
     end
   end
@@ -153,7 +153,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not a string/)
     end
   end
@@ -168,7 +168,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not an Array/)
     end
   end
@@ -183,7 +183,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not a string/)
     end
   end
@@ -198,8 +198,8 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
-      }.to raise_error(Puppet::Error, /true is not a string/)
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
+      }.to raise_error(Puppet::Error, /"true" does not match/)
     end
   end
 
@@ -212,7 +212,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not a string/)
     end
   end
@@ -227,7 +227,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not a string/)
     end
   end
@@ -242,7 +242,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /true is not a string/)
     end
   end
@@ -257,7 +257,7 @@ describe 'openssl::certificate::x509' do
     } }
     it 'should fail' do
       expect {
-        should contain_file('/etc/ssl/certs/foo.cnf')
+        is_expected.to contain_file('/etc/ssl/certs/foo.cnf')
       }.to raise_error(Puppet::Error, /"foobar" is not a boolean/)
     end
   end
@@ -270,7 +270,7 @@ describe 'openssl::certificate::x509' do
     } }
 
     it {
-      should contain_file('/etc/ssl/certs/foo.cnf').with(
+      is_expected.to contain_file('/etc/ssl/certs/foo.cnf').with(
         :ensure  => 'present',
         :owner   => 'root'
       ).with_content(
@@ -283,14 +283,14 @@ describe 'openssl::certificate::x509' do
     }
 
     it {
-      should contain_ssl_pkey('/etc/ssl/certs/foo.key').with(
+      is_expected.to contain_ssl_pkey('/etc/ssl/certs/foo.key').with(
         :ensure   => 'present',
         :password => nil
       )
     }
 
     it {
-      should contain_x509_cert('/etc/ssl/certs/foo.crt').with(
+      is_expected.to contain_x509_cert('/etc/ssl/certs/foo.crt').with(
         :ensure      => 'present',
         :template    => '/etc/ssl/certs/foo.cnf',
         :private_key => '/etc/ssl/certs/foo.key',
@@ -301,7 +301,7 @@ describe 'openssl::certificate::x509' do
     }
 
     it {
-      should contain_x509_request('/etc/ssl/certs/foo.csr').with(
+      is_expected.to contain_x509_request('/etc/ssl/certs/foo.csr').with(
         :ensure      => 'present',
         :template    => '/etc/ssl/certs/foo.cnf',
         :private_key => '/etc/ssl/certs/foo.key',
@@ -311,21 +311,21 @@ describe 'openssl::certificate::x509' do
     }
 
     it {
-      should contain_file('/etc/ssl/certs/foo.key').with(
+      is_expected.to contain_file('/etc/ssl/certs/foo.key').with(
         :ensure => 'present',
         :owner  => 'root'
       )
     }
 
     it {
-      should contain_file('/etc/ssl/certs/foo.crt').with(
+      is_expected.to contain_file('/etc/ssl/certs/foo.crt').with(
         :ensure => 'present',
         :owner  => 'root'
       )
     }
 
     it {
-      should contain_file('/etc/ssl/certs/foo.csr').with(
+      is_expected.to contain_file('/etc/ssl/certs/foo.csr').with(
         :ensure => 'present',
         :owner  => 'root'
       )
@@ -350,7 +350,7 @@ describe 'openssl::certificate::x509' do
     } }
 
     it {
-      should contain_file('/tmp/foobar/foo.cnf').with(
+      is_expected.to contain_file('/tmp/foobar/foo.cnf').with(
         :ensure  => 'present',
         :owner   => 'www-data'
       ).with_content(
@@ -373,14 +373,14 @@ describe 'openssl::certificate::x509' do
     }
 
     it {
-      should contain_ssl_pkey('/tmp/foobar/foo.key').with(
+      is_expected.to contain_ssl_pkey('/tmp/foobar/foo.key').with(
         :ensure   => 'present',
         :password => '5r$}^'
       )
     }
 
     it {
-      should contain_x509_cert('/tmp/foobar/foo.crt').with(
+      is_expected.to contain_x509_cert('/tmp/foobar/foo.crt').with(
         :ensure      => 'present',
         :template    => '/tmp/foobar/foo.cnf',
         :private_key => '/tmp/foobar/foo.key',
@@ -391,7 +391,7 @@ describe 'openssl::certificate::x509' do
     }
 
     it {
-      should contain_x509_request('/tmp/foobar/foo.csr').with(
+      is_expected.to contain_x509_request('/tmp/foobar/foo.csr').with(
         :ensure      => 'present',
         :template    => '/tmp/foobar/foo.cnf',
         :private_key => '/tmp/foobar/foo.key',
@@ -401,21 +401,21 @@ describe 'openssl::certificate::x509' do
     }
 
     it {
-      should contain_file('/tmp/foobar/foo.key').with(
+      is_expected.to contain_file('/tmp/foobar/foo.key').with(
         :ensure => 'present',
         :owner  => 'www-data'
       )
     }
 
     it {
-      should contain_file('/tmp/foobar/foo.crt').with(
+      is_expected.to contain_file('/tmp/foobar/foo.crt').with(
         :ensure => 'present',
         :owner  => 'www-data'
       )
     }
 
     it {
-      should contain_file('/tmp/foobar/foo.csr').with(
+      is_expected.to contain_file('/tmp/foobar/foo.csr').with(
         :ensure => 'present',
         :owner  => 'www-data'
       )

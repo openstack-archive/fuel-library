@@ -18,7 +18,8 @@
 #                     Directory must exist
 #  [*owner*]          cnf, crt, csr and key owner. User must exist
 #  [*group*]          cnf, crt, csr and key group. Group must exist
-#  [*password*]       private key password
+#  [*password*]       private key password. undef means no passphrase 
+#                     will be used to encrypt private key.
 #  [*force*]          whether to override certificate and request
 #                     if private key changes
 #  [*cnf_tpl*]        Specify an other template to generate ".cnf" file.
@@ -73,8 +74,10 @@ define openssl::certificate::x509(
   validate_string($unit)
   validate_array($altnames)
   validate_string($email)
-  validate_string($days)
-  validate_re($days, '^\d+$')
+  # lint:ignore:only_variable_string
+  validate_string("${days}")
+  validate_re("${days}", '^\d+$')
+  # lint:endignore
   validate_string($base_dir)
   validate_absolute_path($base_dir)
   validate_string($owner)
