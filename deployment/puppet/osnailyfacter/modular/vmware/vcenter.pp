@@ -4,7 +4,7 @@ $libvirt_type = hiera('libvirt_type')
 $use_vcenter = hiera('use_vcenter', false)
 $vcenter_hash = hiera('vcenter_hash')
 $controller_node_public = hiera('controller_node_public')
-$use_neutron = hiera('use_neutron')
+$use_neutron = hiera('use_neutron', false)
 $ceilometer_hash = hiera('ceilometer',{})
 $debug = hiera('debug', false)
 

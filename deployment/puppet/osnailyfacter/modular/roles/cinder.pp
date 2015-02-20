@@ -8,7 +8,7 @@ $management_vip                 = hiera('management_vip')
 $internal_address               = hiera('internal_address')
 $primary_controller             = hiera('primary_controller')
 $storage_address                = hiera('storage_address')
-$use_neutron                    = hiera('use_neutron')
+$use_neutron                    = hiera('use_neutron', false)
 $neutron_nsx_config             = hiera('nsx_plugin')
 $cinder_nodes_array             = hiera('cinder_nodes', [])
 $sahara_hash                    = hiera('sahara', {})
@@ -168,9 +168,11 @@ $primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller'
 $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
 $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 
-if $use_neutron {
-  $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
-}
+#todo:(sv): temporary commented. Will be uncommented while
+#           'multiple-l2-network' feature re-implemented
+# if $use_neutron {
+#   $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
+# }
 
 
 ##TODO: simply parse nodes array
