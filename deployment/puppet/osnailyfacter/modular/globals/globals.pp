@@ -34,7 +34,6 @@ $dns_nameservers                = hiera('dns_nameservers', [])
 $use_ceilometer                 = $ceilometer_hash['enabled']
 $use_neutron                    = hiera('quantum', false)
 $network_scheme                 = hiera('network_scheme', {})
-$disable_offload                = hiera('disable_offload')
 $verbose                        = true
 $debug                          = hiera('debug', false)
 $use_monit                      = false

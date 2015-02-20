@@ -1,7 +1,6 @@
 notice('MODULAR: openstack-network-compute.pp')
 
-$use_neutron                    = hiera('use_neutron')
-$network_provider               = hiera('network_provider')
+$use_neutron                    = hiera('use_neutron', false)
 $neutron_nsx_config             = hiera('nsx_plugin')
 $nova_hash                      = hiera('nova', {})
 $internal_address               = hiera('internal_address')
@@ -27,6 +26,7 @@ $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.jo
 
 if $use_neutron {
   include l23network::l2
+  $network_provider      = 'neutron'
   $novanetwork_params    = {}
   $neutron_config        = hiera('quantum_settings')
   $neutron_db_password   = $neutron_config['database']['passwd']
@@ -37,6 +37,7 @@ if $use_neutron {
     $use_vmware_nsx      = true
   }
 } else {
+  $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
@@ -141,7 +142,7 @@ if $network_provider == 'nova' {
   # From legacy network.pp
   # I don't think this is applicable to Folsom...
   # If it is, the details will need changed. -jt
-  if hiera('network_manager') == 'nova.network.neutron.manager.NeutronManager' {
+  if hiera('network_manager', undef) == 'nova.network.neutron.manager.NeutronManager' {
     $parameters = { fixed_range      => $fixed_range,
                     public_interface => $public_interface,
                   }
@@ -342,11 +343,11 @@ class { 'openstack::network':
   public_interface  => hiera('public_int', undef),
   fixed_range       => $use_neutron ? { true =>false, default =>hiera('fixed_network_range')},
   floating_range    => $use_neutron ? { true =>$floating_hash, default  =>false},
-  network_manager   => hiera('network_manager'),
+  network_manager   => hiera('network_manager', undef),
   network_config    => hiera('network_config', {}),
   create_networks   => $create_networks,
-  num_networks      => hiera('num_networks'),
-  network_size      => hiera('network_size'),
-  nameservers       => hiera('dns_nameservers'),
+  num_networks      => hiera('num_networks', undef),
+  network_size      => hiera('network_size', undef),
+  nameservers       => hiera('dns_nameservers', undef),
   enable_nova_net   => $enable_network_service,
 }

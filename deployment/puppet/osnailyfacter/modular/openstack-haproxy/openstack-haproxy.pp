@@ -1,6 +1,6 @@
 notice('MODULAR: openstack-haproxy.pp')
 
-$use_neutron                    = hiera('use_neutron')
+$use_neutron                    = hiera('use_neutron', false)
 $ceilometer_hash                = hiera('ceilometer',{})
 $sahara_hash                    = hiera('sahara', {})
 $murano_hash                    = hiera('murano', {})
@@ -24,7 +24,7 @@ class { '::openstack::ha::haproxy':
       public_virtual_ip        => hiera('public_vip'),
       internal_virtual_ip      => hiera('management_vip'),
       horizon_use_ssl          => hiera('horizon_use_ssl', false),
-      neutron                  => hiera('network_provider')? {'neutron' => true, default => false},
+      neutron                  => $use_neutron,
       queue_provider           => 'rabbitmq',
       custom_mysql_setup_class => 'galera',
       swift_proxies            => $swift_proxies,
