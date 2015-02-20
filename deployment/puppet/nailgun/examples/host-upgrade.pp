@@ -17,7 +17,8 @@ Class['nailgun::host'] ->
 Class['docker::dockerctl'] ->
 Class['docker'] ->
 Class['openstack::logrotate'] ->
-Class['nailgun::client']
+Class['nailgun::client'] ->
+Class['monit']
 
 class { 'nailgun::packages': }
 
@@ -31,18 +32,18 @@ class { 'nailgun::host':
 
 }
 
-class { "openstack::clocksync":
+class { 'openstack::clocksync':
   ntp_servers     => $ntp_servers,
-  config_template => "ntp/ntp.conf.erb",
+  config_template => 'ntp/ntp.conf.erb',
 }
 
-class { "docker::dockerctl":
+class { 'docker::dockerctl':
   release         => $::fuel_version['VERSION']['release'],
   production      => $production,
   admin_ipaddress => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 }
 
-class { "docker":
+class { 'docker':
   docker_engine => 'lxc',
   release => $::fuel_version['VERSION']['release'],
 }
@@ -54,9 +55,38 @@ class {'openstack::logrotate':
   limitsize      => '100M',
 }
 
-class { "nailgun::client":
+class { 'nailgun::client':
   server        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   keystone_user => $::fuel_settings['FUEL_ACCESS']['user'],
   keystone_pass => $::fuel_settings['FUEL_ACCESS']['password'],
 }
 
+class { 'monit': }
+
+# Free disk space monitoring
+file { '/usr/bin/fuel_notify.py':
+  source  => 'puppet:///modules/nailgun/fuel_notify.py',
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0755',
+}
+
+file { "${::monit::params::included}/free-space.conf":
+  source  => 'puppet:///modules/nailgun/monit-free-space.conf',
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0644',
+  require => Class['monit'],
+  notify  => Service['monit'],
+}
+
+$monitord_user = $::fuel_settings['keystone']['monitord_user']
+$monitord_password = $::fuel_settings['keystone']['monitord_password']
+$monitord_tenant = 'services'
+
+file { '/etc/fuel/free_disk_check.yaml':
+  content => template('nailgun/free_disk_check.yaml.erb'),
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0755',
+}
