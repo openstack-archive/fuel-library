@@ -197,6 +197,13 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
     @property_flush[:dhcp_hostname] = val
   end
 
+  def vendor_specific
+    @property_hash[:vendor_specific] || :absent
+  end
+  def vendor_specific=(val)
+    nil
+  end
+
   #-----------------------------------------------------------------
 
   def self.get_if_addr_mappings

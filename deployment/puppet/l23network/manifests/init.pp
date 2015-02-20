@@ -13,6 +13,7 @@ class l23network (
   $install_vlantool = $use_lnx,
 ){
 
+  include stdlib
   include ::l23network::params
 
   class { 'l23network::l2':

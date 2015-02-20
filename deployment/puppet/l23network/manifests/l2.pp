@@ -13,6 +13,7 @@ class l23network::l2 (
   $install_vlantool = $use_lnx,
   $ovs_modname      = 'openvswitch'
 ){
+  include stdlib
   include ::l23network::params
 
   if $use_ovs {

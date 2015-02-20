@@ -8,7 +8,7 @@ $management_vip                 = hiera('management_vip')
 $internal_address               = hiera('internal_address')
 $primary_controller             = hiera('primary_controller')
 $storage_address                = hiera('storage_address')
-$use_neutron                    = hiera('use_neutron')
+$use_neutron                    = hiera('use_neutron', false)
 $neutron_nsx_config             = hiera('nsx_plugin')
 $cinder_nodes_array             = hiera('cinder_nodes', [])
 $sahara_hash                    = hiera('sahara', {})
@@ -87,6 +87,7 @@ if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
 if $use_neutron {
   include l23network::l2
   $novanetwork_params        = {}
+  $network_provider          = 'neutron'
   $neutron_config            = hiera('quantum_settings')
   $neutron_db_password       = $neutron_config['database']['passwd']
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
@@ -96,6 +97,7 @@ if $use_neutron {
     $use_vmware_nsx     = true
   }
 } else {
+  $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
@@ -177,9 +179,11 @@ $primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller'
 $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
 $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 
-if $use_neutron {
-  $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
-}
+#todo:(sv): temporary commented. Will be uncommented while
+#           'multiple-l2-network' feature re-implemented
+# if $use_neutron {
+#   $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
+# }
 
 
 ##TODO: simply parse nodes array
@@ -381,11 +385,11 @@ if ($::mellanox_mode == 'ethernet') {
 
 class { 'openstack::compute':
   public_interface            => $public_int ? { undef=>'', default=>$public_int},
-  private_interface           => $use_neutron ? { true=>false, default=>hiera('private_int')},
+  private_interface           => $use_neutron ? { true=>false, default=>hiera('private_int', undef)},
   internal_address            => $internal_address,
-  libvirt_type                => hiera('libvirt_type'),
-  fixed_range                 => $use_neutron ? { true=>false, default=>hiera('fixed_network_range')},
-  network_manager             => hiera('network_manager'),
+  libvirt_type                => hiera('libvirt_type', undef),
+  fixed_range                 => $use_neutron ? { true=>false, default=>hiera('fixed_network_range', undef)},
+  network_manager             => hiera('network_manager', undef),
   network_config              => hiera('network_config', {}),
   multi_host                  => $multi_host,
   sql_connection              => "mysql://nova:${nova_hash[db_password]}@${management_vip}/nova?read_timeout=60",
@@ -414,7 +418,8 @@ class { 'openstack::compute':
   ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
   ceilometer_user_password    => $ceilometer_hash[user_password],
   db_host                     => $management_vip,
-  neutron_user_password       => $neutron_user_password,
+  network_provider            => $network_provider,
+  neutron_user_password       => $use_neutron ? { true=>$neutron_config['keystone']['admin_password'], default=>undef},
   base_mac                    => $base_mac,
 
   use_syslog                  => $use_syslog,
@@ -424,8 +429,8 @@ class { 'openstack::compute':
   nova_report_interval        => $nova_report_interval,
   nova_service_down_time      => $nova_service_down_time,
   state_path                  => $nova_hash[state_path],
-  neutron_settings           => $neutron_config,
-  storage_hash               => $storage_hash,
+  neutron_settings            => $neutron_config,
+  storage_hash                => $storage_hash,
 }
 
 #TODO: PUT this configuration stanza into nova class
