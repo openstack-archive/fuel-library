@@ -7,11 +7,13 @@ $primary_controller_nodes    = hiera('primary_controller_nodes', false)
 $network_scheme              = hiera('network_scheme', {})
 $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
 $vip_public_cidr_netmask     = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
-$use_neutron                 = hiera('use_neutron')
+$use_neutron                 = hiera('use_neutron', false)
 
-if $use_neutron {
-  $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
-}
+#todo:(sv): temporary commented. Will be uncommented while
+#           'multiple-l2-network' feature re-implemented
+# if $use_neutron {
+#   ip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
+# }
 
 $vips = { # Do not convert to ARRAY, It can't work in 2.7
   management   => {
@@ -23,7 +25,7 @@ $vips = { # Do not convert to ARRAY, It can't work in 2.7
     cidr_netmask         => $vip_management_cidr_netmask,
     gateway              => 'link',
     gateway_metric       => '20',
-    other_networks       => $vip_mgmt_other_nets,
+    #other_networks       => $vip_mgmt_other_nets,  # todo(sv): see above
     iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${internal_int} -j MASQUERADE",
     iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${internal_int} -j MASQUERADE",
     iptables_comment     => "masquerade-for-management-net",
@@ -33,9 +35,11 @@ $vips = { # Do not convert to ARRAY, It can't work in 2.7
 }
 
 if $public_int {
-  if $use_neutron{
-    $vip_publ_other_nets = join($network_scheme['endpoints']["$public_int"]['other_nets'], ' ')
-  }
+  #todo:(sv): temporary commented. Will be uncommented while
+  #           'multiple-l2-network' feature re-implemented
+  # if $use_neutron{
+  #   vip_publ_other_nets = join($network_scheme['endpoints']["$public_int"]['other_nets'], ' ')
+  # }
 
   $vips[public] = {
     namespace            => 'haproxy',
@@ -46,7 +50,7 @@ if $public_int {
     cidr_netmask         => $vip_public_cidr_netmask,
     gateway              => 'link',
     gateway_metric       => '10',
-    other_networks       => $vip_publ_other_nets,
+    #other_networks       => $vip_publ_other_nets,
     iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o ${public_int} -j MASQUERADE",
     iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${public_int} -j MASQUERADE",
     iptables_comment     => "masquerade-for-public-net",
