@@ -31,6 +31,7 @@ This package contains deployment manifests and code to execute provisioning of m
 %install
 mkdir -p %{buildroot}/etc/puppet/%{openstack_version}/modules/
 mkdir -p %{buildroot}/etc/puppet/%{openstack_version}/manifests/
+mkdir -p %{buildroot}/etc/monit.d/
 mkdir -p %{buildroot}/etc/profile.d/
 mkdir -p %{buildroot}/etc/dockerctl
 mkdir -p %{buildroot}/usr/bin/
@@ -72,6 +73,10 @@ install -m 0644 %{files_source}/fuel-ha-utils/tools/wsrepclustercheckrc %{buildr
 #install -m 0755 deployment/puppet/sahara/create_templates.sh /usr/share/sahara/templates/create_templates.sh
 #install -m 0755 TEMPLATE /usr/local/bin/swift-rings-rebalance.sh
 #install -m 0755 TEMPLATE /usr/local/bin/swift-rings-sync.sh
+#fuel-notify
+install -m 0644 %{files_source}/fuel-notify/monit-free_space.conf %{buildroot}/etc/notify.d/monit-free-space.conf
+install -m 0644 %{files_source}/fuel-notify/free_disk_space_check.yaml %{buildroot}/etc/fuel/free_disk_space_check.yaml
+install -m 0755 %{files_source}/fuel-notify/fuel_notify.py %{buildroot}/usr/bin/fuel_notify.py
 
 %post -p /bin/bash
 #Update puppet manifests symlinks to the latest version
@@ -160,8 +165,34 @@ For further information go to http://wiki.openstack.org/Fuel
 %config(noreplace) /etc/wsrepclustercheckrc
 #
 
+%package -n fuel-notify
+Summary: Fuel disk space monitor
+Version: 6.1
+Release: 1
+Group: System Environment/Libraries
+# FIXME(aglarendil): mixed license actually - need to figure out the best option
+License: GPLv2
+Requires: monit
+Requires: python-six
+Requires: PyYAML
+Requires: python-fuelclient
+URL: http://github.com/stackforge/fuel-library
+BuildArch: noarch
+BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
 
+%description -n fuel-notify
+Disk space monitoring and notification for Fuel
+based on monit.
 
+For further information go to http://wiki.openstack.org/Fuel
+
+%files -n fuel-notify
+
+#fuel-misc
+%defattr(-,root,root)
+/usr/bin/fuel_notify.py
+%config(noreplace) /etc/fuel/free_disk_space_check.yaml
+%config(noreplace) /etc/monit.d/monit-free-space.conf
 
 %clean
 rm -rf ${buildroot}
