@@ -287,7 +287,7 @@ class openstack::compute (
     vncserver_proxyclient_address => $internal_address,
     vncproxy_host                 => $vncproxy_host,
     #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
-    neutron_enabled               => false,
+    neutron_enabled               => ($network_provider == 'neutron'),
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
   }

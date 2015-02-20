@@ -1,7 +1,6 @@
 notice('MODULAR: openstack-network-controller.pp')
 
-$use_neutron                    = hiera('use_neutron')
-$network_provider               = hiera('network_provider')
+$use_neutron                    = hiera('use_neutron', false)
 $neutron_nsx_config             = hiera('nsx_plugin')
 $primary_controller             = hiera('primary_controller')
 $access_hash                    = hiera('access', {})
@@ -32,6 +31,7 @@ $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.jo
 
 if $use_neutron {
   include l23network::l2
+  $network_provider      = 'neutron'
   $novanetwork_params    = {}
   $neutron_config        = hiera('quantum_settings')
   $neutron_db_password   = $neutron_config['database']['passwd']
@@ -42,6 +42,7 @@ if $use_neutron {
     $use_vmware_nsx      = true
   }
 } else {
+  $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
@@ -218,16 +219,16 @@ class { 'openstack::network':
   metadata_ip     => $service_endpoint,
 
   #nova settings
-  private_interface   => $use_neutron ? { true=>false, default=>hiera('private_int')},
+  private_interface   => $use_neutron ? { true=>false, default=>hiera('private_int', undef)},
   public_interface    => hiera('public_int', undef),
-  fixed_range         => $use_neutron ? { true =>false, default =>hiera('fixed_network_range')},
+  fixed_range         => $use_neutron ? { true =>false, default =>hiera('fixed_network_range', undef)},
   floating_range      => $use_neutron ? { true =>$floating_hash, default  =>false},
-  network_manager     => hiera('network_manager'),
+  network_manager     => hiera('network_manager', undef),
   network_config      => hiera('network_config', {}),
   create_networks     => $primary_controller,
-  num_networks        => hiera('num_networks'),
-  network_size        => hiera('network_size'),
-  nameservers         => hiera('dns_nameservers'),
+  num_networks        => hiera('num_networks', undef),
+  network_size        => hiera('network_size', undef),
+  nameservers         => hiera('dns_nameservers', undef),
   enable_nova_net     => false,  # just setup networks, but don't start nova-network service on controllers
   nova_admin_password => $nova_hash[user_password],
   nova_url            => "http://${service_endpoint}:8774/v2",

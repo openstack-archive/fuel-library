@@ -2,7 +2,7 @@ notice('MODULAR: openstack-controller.pp')
 
 $nova_rate_limits               = hiera('nova_rate_limits')
 $primary_controller             = hiera('primary_controller')
-$use_neutron                    = hiera('use_neutron') # neutron
+$use_neutron                    = hiera('use_neutron', false)
 $neutron_nsx_config             = hiera('nsx_plugin')
 $cinder_rate_limits             = hiera('cinder_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
@@ -43,6 +43,7 @@ $floating_hash = {}
 
 if $use_neutron {
   include l23network::l2
+  $network_provider          = 'neutron'
   $novanetwork_params        = {}
   $neutron_config            = hiera('quantum_settings')
   $neutron_db_password       = $neutron_config['database']['passwd']
@@ -53,6 +54,7 @@ if $use_neutron {
     $use_vmware_nsx     = true
   }
 } else {
+  $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
@@ -221,9 +223,10 @@ class { '::openstack::controller':
   fixed_range                    => $use_neutron ? { true =>false, default =>hiera('fixed_network_range')},
   multi_host                     => $multi_host,
   network_config                 => hiera('network_config', {}),
-  num_networks                   => hiera('num_networks'),
-  network_size                   => hiera('network_size'),
-  network_manager                => hiera('network_manager'),
+  num_networks                   => hiera('num_networks', undef),
+  network_size                   => hiera('network_size', undef),
+  network_manager                => hiera('network_manager', undef),
+  network_provider               => $network_provider,
   verbose                        => true,
   debug                          => hiera('debug', true),
   auto_assign_floating_ip        => hiera('auto_assign_floating_ip', false),
