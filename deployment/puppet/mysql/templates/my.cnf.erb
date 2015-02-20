@@ -24,7 +24,6 @@ datadir   = <%= @datadir %>
 tmpdir    = /tmp
 skip-external-locking
 bind-address    = <%= @bind_address %>
-key_buffer         = 16M
 max_allowed_packet = 256M
 thread_stack       = 192K
 thread_cache_size  = 8
@@ -70,11 +69,12 @@ replicate-ignore-db=mysql
 collation-server = utf8_general_ci
 init-connect='SET NAMES utf8'
 character-set-server = utf8
+explicit_defaults_for_timestamp = TRUE
 [mysqldump]
 quick
 quote-names
 max_allowed_packet = 16M
 [mysql]
 [isamchk]
-key_buffer    = 16M
+key_buffer_size    = 16M
 !includedir /etc/mysql/conf.d/
