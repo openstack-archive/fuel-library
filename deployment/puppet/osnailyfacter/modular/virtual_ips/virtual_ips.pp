@@ -11,7 +11,7 @@ $vip_public_cidr_netmask     = netmask_to_cidr($primary_controller_nodes[0]['pub
 $use_neutron                 = hiera('use_neutron')
 
 if $use_neutron {
-  $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
+  #ip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
 }
 
 $vips = { # Do not convert to ARRAY, It can't work in 2.7
@@ -24,7 +24,7 @@ $vips = { # Do not convert to ARRAY, It can't work in 2.7
     cidr_netmask         => $vip_management_cidr_netmask,
     gateway              => 'link',
     gateway_metric       => '20',
-    other_networks       => $vip_mgmt_other_nets,
+    #other_networks       => $vip_mgmt_other_nets,
     iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${internal_int} -j MASQUERADE",
     iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${internal_int} -j MASQUERADE",
     iptables_comment     => "masquerade-for-management-net",
@@ -35,7 +35,7 @@ $vips = { # Do not convert to ARRAY, It can't work in 2.7
 
 if $public_int {
   if $use_neutron{
-    $vip_publ_other_nets = join($network_scheme['endpoints']["$public_int"]['other_nets'], ' ')
+    #$vip_publ_other_nets = join($network_scheme['endpoints']["$public_int"]['other_nets'], ' ')
   }
 
   $vips[public] = {
@@ -47,7 +47,7 @@ if $public_int {
     cidr_netmask         => $vip_public_cidr_netmask,
     gateway              => 'link',
     gateway_metric       => '10',
-    other_networks       => $vip_publ_other_nets,
+    #other_networks       => $vip_publ_other_nets,
     iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o ${public_int} -j MASQUERADE",
     iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${public_int} -j MASQUERADE",
     iptables_comment     => "masquerade-for-public-net",
