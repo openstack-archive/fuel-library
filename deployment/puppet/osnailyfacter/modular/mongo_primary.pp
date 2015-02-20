@@ -13,6 +13,7 @@ class { 'openstack::mongo_primary':
   ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
   ceilometer_db_password      => $ceilometer_hash['db_password'],
   ceilometer_replset_members  => mongo_hosts($nodes_hash, 'array', 'mongo'),
+  replset                     => 'ceilometer',
   use_syslog                  => $use_syslog,
   debug                       => $debug,
 }
