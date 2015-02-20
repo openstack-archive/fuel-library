@@ -2,6 +2,11 @@ notice('MODULAR: netconfig.pp')
 
 $network_scheme = hiera('network_scheme')
 
+class { 'l23network' :}
+prepare_network_config($network_scheme)
+$sdn = generate_network_config()
+notify {"SDN: ${sdn}": }
+
 #todo(sv): temporary commented. Will be enabled later as part of
 #          'disable-offloading' re-implementation
 #if  hiera('disable_offload') {
@@ -12,25 +17,6 @@ $network_scheme = hiera('network_scheme')
 #  }
 #}
 
-if $network_scheme['provider'] == 'lnx' {
-  class { 'l23network' :
-    #    use_ovs => false,
-    use_lnx => true,
-  }
-} else {
-  class { 'l23network' :
-    use_ovs => true,
-    use_lnx => false,
-  }
-}
-
-class advanced_node_netconfig {
-  $sdn = generate_network_config()
-  notify {"SDN: ${sdn}": }
-}
-
-prepare_network_config(hiera('network_scheme'))
-class {'advanced_node_netconfig': }
 
 # setting kernel reserved ports
 # defaults are 49000,35357,41055,58882
