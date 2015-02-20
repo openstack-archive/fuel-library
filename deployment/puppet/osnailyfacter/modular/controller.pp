@@ -545,4 +545,10 @@ sysctl::value { 'vm.swappiness':
 class mysql::server {}
 include mysql::server
 
+# 'ceilometer' class is being declared inside openstack::ceilometer class
+# which is declared inside openstack::controller class in the other task.
+# So we need a stub here for dependency from swift::proxy::ceilometer
+class ceilometer {}
+include ceilometer
+
 # vim: set ts=2 sw=2 et :
