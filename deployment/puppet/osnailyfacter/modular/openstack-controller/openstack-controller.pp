@@ -242,9 +242,6 @@ class { '::openstack::controller':
   galera_nodes                   => $controller_nodes,
   novnc_address                  => $internal_address,
   mysql_skip_name_resolve        => true,
-  admin_email                    => $access_hash[email],
-  admin_user                     => $access_hash[user],
-  admin_password                 => $access_hash[password],
   keystone_db_password           => $keystone_hash[db_password],
   keystone_admin_token           => $keystone_hash[admin_token],
   keystone_admin_tenant          => $access_hash[tenant],
@@ -329,6 +326,31 @@ class { '::openstack::controller':
   max_overflow                   => $max_overflow,
   idle_timeout                   => $idle_timeout,
 }
+
+# NOTE(xarses): keystone::roles:admin is the admin user for the enduser
+# no service should use it. It was moved out here to make it so that the admin
+# user_nmae and admin_password are cant be mistakenly used elsewhere in the
+# manifests
+
+class { 'keystone::roles::admin':
+  admin        => $access_hash[user],
+  password     => $access_hash[password],
+  email        => $access_hash[email],
+  admin_tenant => $access_hash[tenant],
+}
+
+class { 'openstack::auth_file':
+  admin_user           => $access_hash[user],
+  admin_password       => $access_hash[password],
+  admin_tenant         => $access_hash[tenant],
+  controller_node      => $internal_address,
+}
+
+Exec <| title == 'keystone-manage db_sync' |> ->
+ Class['Keystone::Roles::Admin'] ->
+  Class['Openstack::Auth_file']
+
+
 
 package { 'socat': ensure => present }
 
