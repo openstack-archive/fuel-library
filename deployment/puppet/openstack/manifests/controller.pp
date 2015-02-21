@@ -78,9 +78,6 @@ class openstack::controller (
   # Required Database
   $mysql_root_password            = 'sql_pass',
   $custom_mysql_setup_class       = undef,
-  $admin_email                    = 'some_user@some_fake_email_address.foo',
-  $admin_user                     = 'admin',
-  $admin_password                 = 'ChangeMe',
   $keystone_db_password           = 'keystone_pass',
   $keystone_admin_token           = 'keystone_admin_token',
   # Required Glance
@@ -276,10 +273,6 @@ class openstack::controller (
     db_name                   => $keystone_db_dbname,
     db_user                   => $keystone_db_user,
     admin_token               => $keystone_admin_token,
-    admin_tenant              => $keystone_admin_tenant,
-    admin_email               => $admin_email,
-    admin_user                => $admin_user,
-    admin_password            => $admin_password,
     public_address            => $public_address,
     internal_address          => $internal_address,
     admin_address             => $admin_address,
@@ -543,13 +536,6 @@ class openstack::controller (
   } ->
   class {'osnailyfacter::apache_api_proxy':
     master_ip => hiera('master_ip'),
-  }
-
-  class { 'openstack::auth_file':
-    admin_user           => $admin_user,
-    admin_password       => $admin_password,
-    admin_tenant         => $keystone_admin_tenant,
-    controller_node      => $internal_address,
   }
 
   ####### Disable upstart startup on install #######
