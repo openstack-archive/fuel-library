@@ -56,6 +56,14 @@
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py
     timeout: 180
 
+- id: enable_nova_compute_service
+  type: shell
+  role: [compute]
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/enable_compute.rb
+    timeout: 180
 
 #PRE DEPLOYMENT
 - id: upload_core_repos
@@ -72,7 +80,6 @@
     src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/
     dst: /etc/puppet
     timeout: 180
-
 
 - id: clear_nodes_info
   type: shell
