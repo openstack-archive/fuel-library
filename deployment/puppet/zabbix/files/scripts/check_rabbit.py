@@ -1,11 +1,10 @@
 #!/usr/bin/python
-# flake8: noqa
-import urllib2
-import simplejson as json
-import sys
 import base64
 import ConfigParser
 import logging
+import simplejson as json
+import sys
+import urllib2
 
 CONF_FILE = '/etc/zabbix/check_rabbit.conf'
 LOGGING_LEVELS = {
@@ -15,6 +14,7 @@ LOGGING_LEVELS = {
     'DEBUG': logging.DEBUG
 }
 
+
 def get_logger(level):
     logger = logging.getLogger()
     ch = logging.StreamHandler(sys.stdout)
@@ -22,13 +22,15 @@ def get_logger(level):
     logger.addHandler(ch)
     return logger
 
+
 class RabbitmqAPI(object):
     def __init__(self, logger, config):
         self.logger = logger
         self.login = config.get('rabbitmq', 'user')
         self.password = config.get('rabbitmq', 'password')
         self.host = config.get('rabbitmq', 'host')
-        self.auth_string = base64.encodestring('%s:%s' % (self.login, self.password)).replace('\n', '')
+        self.auth_string = base64.encodestring(
+            '%s:%s' % (self.login, self.password)).replace('\n', '')
         self.max_queues = int(config.get('rabbitmq', 'max_queues'))
 
     def get_http(self, url):
@@ -80,17 +82,21 @@ class RabbitmqAPI(object):
         for queue in response:
             if 'x-ha-policy' in queue['arguments']:
                 unmirror_queues += 1
-            if 'synchronised_slave_nodes' in queue and len(queue['synchronised_slave_nodes']) > 0:
+            if ('synchronised_slave_nodes' in queue
+                    and len(queue['synchronised_slave_nodes']) > 0):
                 unmirror_queues -= 1
         self.logger.critical(unmirror_queues)
 
+
 def usage():
-        print("check_rabbit.py usage:\n \
-                queues-items - item count in queues\n \
-                queues-without-consumers - count queues without consumers\n \
-                missing-nodes - count missing nodes from rabbitmq cluster\n \
-                unmirror-queues - count unmirrored queues\n \
-                missing-queues max_queues - compare queues count to max_queues\n")
+        print(
+            "check_rabbit.py usage:\n \
+            queues-items - item count in queues\n \
+            queues-without-consumers - count queues without consumers\n \
+            missing-nodes - count missing nodes from rabbitmq cluster\n \
+            unmirror-queues - count unmirrored queues\n \
+            missing-queues max_queues - compare queues count to max_queues\n")
+
 
 def main():
     config = ConfigParser.RawConfigParser()
