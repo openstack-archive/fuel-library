@@ -17,6 +17,7 @@ class openstack::cinder(
   $manage_volumes         = false,
   $iser                   = false,
   $enabled                = true,
+  $enable_volumes         = true,
   $purge_cinder_config    = true,
   $auth_host              = '127.0.0.1',
   $bind_host              = '0.0.0.0',
@@ -146,7 +147,7 @@ class openstack::cinder(
 
     class { 'cinder::volume':
       package_ensure => $::openstack_version['cinder'],
-      enabled        => true,
+      enable         => $enable_volumes,
     }
     case $manage_volumes {
       true, 'iscsi': {
