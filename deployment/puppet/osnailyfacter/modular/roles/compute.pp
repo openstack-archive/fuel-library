@@ -371,7 +371,11 @@ if ($::mellanox_mode == 'ethernet') {
   }
 }
 
+# NOTE(bogdando) deploy compute node with disabled nova-compute service #LP1398817
+#  An orchestration will start end enable it back after the deployment is done.
+# FIXME(bogdando) This should be changed once the host aggregates implemented, bp disable-new-computes
 class { 'openstack::compute':
+  enabled                     => false,
   public_interface            => $public_int ? { undef=>'', default=>$public_int},
   private_interface           => $use_neutron ? { true=>false, default=>hiera('private_int', undef)},
   internal_address            => $internal_address,
