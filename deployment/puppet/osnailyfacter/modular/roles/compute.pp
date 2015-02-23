@@ -448,6 +448,19 @@ class { 'openstack::compute':
 nova_config { 'DEFAULT/resume_guests_state_on_host_boot': value => hiera('resume_guests_state_on_host_boot')}
 nova_config { 'DEFAULT/use_cow_images': value => hiera('use_cow_images')}
 
+# FIXME(bogdando) when Compute role deploying, do not put new compute services in ready state,
+#   use post-deploy tasks instead. Use True for controllers as we don't want all nova
+#   services disabled on controllers. This fix is to be replaced by host-aggregates.
+if (member($roles, 'controller') or member($roles, 'primary-controller')) {
+  nova_config { 'DEFAULT/enable_new_services':
+    value => true
+  }
+} else {
+  nova_config { 'DEFAULT/enable_new_services':
+    value => false
+  }
+}
+
 # Configure monit watchdogs
 # FIXME(bogdando) replace service_path and action to systemd, once supported
 if $use_monit_real {
