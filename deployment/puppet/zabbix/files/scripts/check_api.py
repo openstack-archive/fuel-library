@@ -1,11 +1,9 @@
 #!/usr/bin/python
-# flake8: noqa
-import time
-import urllib2
-import sys
-import simplejson as json
 import ConfigParser
 import logging
+import simplejson as json
+import sys
+import urllib2
 
 CONF_FILE = '/etc/zabbix/check_api.conf'
 LOGGING_LEVELS = {
@@ -15,12 +13,14 @@ LOGGING_LEVELS = {
     'DEBUG': logging.DEBUG
 }
 
+
 def get_logger(level):
     logger = logging.getLogger()
     ch = logging.StreamHandler(sys.stdout)
     logger.setLevel(LOGGING_LEVELS[level])
     logger.addHandler(ch)
     return logger
+
 
 class OSAPI(object):
     """Openstack API"""
@@ -31,7 +31,8 @@ class OSAPI(object):
         self.username = self.config.get('api', 'user')
         self.password = self.config.get('api', 'password')
         self.tenant_name = self.config.get('api', 'tenant')
-        self.endpoint_keystone = self.config.get('api', 'keystone_endpoints').split(',')
+        self.endpoint_keystone = self.config.get(
+            'api', 'keystone_endpoints').split(',')
         self.token = None
         self.tenant_id = None
         self.get_token()
@@ -39,7 +40,7 @@ class OSAPI(object):
     def get_timeout(self, service):
         try:
             return int(self.config.get('api', '%s_timeout' % service))
-        except ConfigParser.NoOptionError as e:
+        except ConfigParser.NoOptionError:
             return 1
 
     def get_token(self):
@@ -58,12 +59,15 @@ class OSAPI(object):
         for keystone in self.endpoint_keystone:
             self.logger.info("Trying to get token from '%s'" % keystone)
             try:
-                request = urllib2.Request('%s/tokens' % keystone,
-                        data=data,
-                        headers={
-                            'Content-type': 'application/json'
-                            })
-                data = json.loads(urllib2.urlopen(request, timeout=self.get_timeout('keystone')).read())
+                request = urllib2.Request(
+                    '%s/tokens' % keystone,
+                    data=data,
+                    headers={
+                        'Content-type': 'application/json'
+                    })
+                data = json.loads(
+                    urllib2.urlopen(
+                        request, timeout=self.get_timeout('keystone')).read())
                 self.token = data['access']['token']['id']
                 self.tenant_id = data['access']['token']['tenant']['id']
                 self.logger.debug("Got token '%s'" % self.token)
@@ -78,16 +82,18 @@ class OSAPI(object):
     def check_api(self, url, service):
         self.logger.info("Trying '%s' on '%s'" % (service, url))
         try:
-            request = urllib2.Request(url,
-                    headers={
-                        'X-Auth-Token': self.token,
-                        })
+            request = urllib2.Request(
+                url,
+                headers={
+                    'X-Auth-Token': self.token,
+                })
             urllib2.urlopen(request, timeout=self.get_timeout(service))
         except Exception as e:
             self.logger.debug("Got exception from '%s' '%s'" % (service, e))
             self.logger.critical(0)
             sys.exit(1)
         self.logger.critical(1)
+
 
 def main():
     config = ConfigParser.RawConfigParser()
