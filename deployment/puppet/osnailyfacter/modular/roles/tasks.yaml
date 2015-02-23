@@ -17,6 +17,16 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
+- id: disable_new_compute_services
+  type: shell
+  groups: [primary-controller]
+  required_for: [deploy_end]
+  requires: [top-role-compute]
+  parameters:
+    cmd: service nova-conductor restart || service openstack-nova-conductor restart
+    retries: 1
+    timeout: 120
+
 - id: top-role-cinder
   type: puppet
   groups: [cinder]

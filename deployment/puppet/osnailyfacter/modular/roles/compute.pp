@@ -21,6 +21,7 @@ $use_monit                      = false
 $mongo_hash                     = hiera('mongo', {})
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $nodes_hash                     = hiera('nodes', {})
+$node                           = hiera('node', [])
 $storage_hash                   = hiera('storage', {})
 $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera('nova', {})
@@ -394,6 +395,10 @@ if ($::mellanox_mode == 'ethernet') {
 }
 
 class { 'openstack::compute':
+  # FIXME(bogdando) deploy compute nodes with disabled nova-compute service #LP1398817
+  #  An orchestration will enable them after the deployment is done.
+  #  This should be changed once we implement host aggregates, bp disable-new-computes
+  enabled                     => false,
   public_interface            => $public_int ? { undef=>'', default=>$public_int},
   private_interface           => $use_neutron ? { true=>false, default=>hiera('fixed_interface')},
   internal_address            => $internal_address,
@@ -447,6 +452,26 @@ class { 'openstack::compute':
 #TODO: PUT this configuration stanza into nova class
 nova_config { 'DEFAULT/resume_guests_state_on_host_boot': value => hiera('resume_guests_state_on_host_boot')}
 nova_config { 'DEFAULT/use_cow_images': value => hiera('use_cow_images')}
+
+# FIXME(bogdando) disable compute service with nova service-disable #LP1398817
+#  An orchestration will enable them after the deployment is done.
+#  This should be changed once we implement host aggregates, bp disable-new-computes
+#  Security impact: displays nova services user password in puppet logs
+$url = "http://${management_vip}:5000/v2.0/"
+$cli_args = "--os-username nova --os-password ${nova_hash}['user_password']\
+  --os-tenant-name services --os-auth-url ${url}"
+# issue the disable command both by node's short name and FQDN as well
+$cli_command = "nova ${cli_args} service-disable ${node}[0]['name'] nova-compute --reason 'Deploy policy'||\
+  nova ${cli_args} service-disable ${node}[0]['fqdn'] nova-compute  --reason 'Deploy policy'"
+
+exec { 'disable-nova-compute':
+  command   => $cli_command,
+  path      => '/bin:/usr/bin:/sbin:/usr/sbin',
+  tries     => 5,
+  try_sleep => 10,
+  logoutput => true,
+  require   => Class[openstack::compute],
+}
 
 # Configure monit watchdogs
 # FIXME(bogdando) replace service_path and action to systemd, once supported
