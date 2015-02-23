@@ -56,6 +56,26 @@
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py
     timeout: 180
 
+- id: enable_new_compute_services
+  type: shell
+  role: [compute]
+  stage: post_deployment
+  required_for: [confirm_new_compute_services]
+  parameters:
+    cmd: sed -i '/^enable_new_services=/s/=.*/=True/' /etc/nova/nova.conf && for s in api network compute; do service nova-$s restart || service openstack-nova-$s restart; done
+    retries: 1
+    timeout: 120
+
+- id: confirm_new_compute_services
+  type: shell
+  role: [primary-controller]
+  stage: post_deployment
+  requires: [enable_new_compute_services]
+  parameters:
+    cmd: service nova-conductor restart || service openstack-nova-conductor restart
+    retries: 1
+    timeout: 120
+
 
 #PRE DEPLOYMENT
 - id: upload_core_repos
@@ -72,7 +92,6 @@
     src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/
     dst: /etc/puppet
     timeout: 180
-
 
 - id: clear_nodes_info
   type: shell
