@@ -23,9 +23,7 @@ def set_power_status(conn, options):
     if options["-o"] == "off":
         try:
             #conn.sendline("/sbin/reboot")
-            # on dev environment where Nodes hosted as VM on KVM reboot command will failed to reboot after halting.
-            # so the installation process will not get start until manually force reboot nodes.
-            # the following signal wills force reboot nodes.
+            #force reboot
             conn.sendline("echo 1 >/proc/sys/kernel/sysrq ; echo b >/proc/sysrq-trigger")
             conn.log_expect(options, options["-c"], int(options["-g"]))
             time.sleep(2)
