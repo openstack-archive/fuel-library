@@ -22,7 +22,9 @@ def get_power_status(conn, options):
 def set_power_status(conn, options):
     if options["-o"] == "off":
         try:
-            conn.sendline("/sbin/reboot")
+            #conn.sendline("/sbin/reboot")
+            #force reboot
+            conn.sendline("echo 1 >/proc/sys/kernel/sysrq ; echo b >/proc/sysrq-trigger")
             conn.log_expect(options, options["-c"], int(options["-g"]))
             time.sleep(2)
         except:
