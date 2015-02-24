@@ -110,6 +110,7 @@
   type: shell
   role: master
   stage: pre_deployment
+  requires: [rsync_core_puppet]
   required_for: [copy_keys]
   parameters:
     cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova ceph mysql' -p /var/lib/fuel/keys/
