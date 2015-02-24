@@ -137,19 +137,21 @@ if $primary_controller {
 }
 
 
-if $ext_mongo {
-  $mongo_hosts = $ext_mongo_hash['hosts_ip']
-  if $ext_mongo_hash['mongo_replset'] {
-    $mongo_replicaset = $ext_mongo_hash['mongo_replset']
+if $ceilometer_hash['enabled'] {
+  if $ext_mongo {
+    $mongo_hosts = $ext_mongo_hash['hosts_ip']
+    if $ext_mongo_hash['mongo_replset'] {
+      $mongo_replicaset = $ext_mongo_hash['mongo_replset']
+    } else {
+      $mongo_replicaset = undef
+    }
   } else {
-    $mongo_replicaset = undef
-  }
-} elsif $ceilometer_hash['enabled'] {
-  $mongo_hosts = mongo_hosts($nodes_hash)
-  if size(mongo_hosts($nodes_hash, 'array', 'mongo')) > 1 {
-    $mongo_replicaset = 'ceilometer'
-  } else {
-    $mongo_replicaset = undef
+    $mongo_hosts = mongo_hosts($nodes_hash)
+    if size(mongo_hosts($nodes_hash, 'array', 'mongo')) > 1 {
+      $mongo_replicaset = 'ceilometer'
+    } else {
+      $mongo_replicaset = undef
+    }
   }
 }
 
