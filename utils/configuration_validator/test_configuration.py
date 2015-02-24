@@ -13,11 +13,17 @@
 #    under the License.
 
 import os
+from fnmatch import fnmatch
+import logging
 
 import jsonschema
 import networkx as nx
 import pytest
 import yaml
+
+logging.basicConfig(level=logging.DEBUG)
+
+log = logging.getLogger(__name__)
 
 
 TASK_SCHEMA = {
@@ -40,17 +46,18 @@ TASKS_SCHEMA = {
     'items': TASK_SCHEMA}
 
 
-def get_files(base_dir, patterns=('tasks.yaml',)):
+def get_files(base_dir, file_pattern='*tasks.yaml'):
     for root, dirs, files in os.walk(base_dir):
         for file_name in files:
-            if file_name in patterns:
+            if fnmatch(file_name, file_pattern):
                 yield os.path.join(root, file_name)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def tasks(request):
     tasks = []
     for file_path in get_files(request.config.getoption('dir')):
+        log.info('Reading tasks from file %s', file_path)
         with open(file_path) as f:
             tasks.extend(yaml.load(f.read()))
     return tasks
