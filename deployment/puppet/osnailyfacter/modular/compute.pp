@@ -317,8 +317,12 @@ if $use_monit_real {
 }
 
 #HARDCODED PARAMETERS
+if hiera('use_vcenter', false) {
+  $multi_host = false
+} else {
+  $multi_host = true
+}
 
-$multi_host = true
 $mirror_type = 'external'
 Exec { logoutput => true }
 
