@@ -15,7 +15,7 @@ class openstack::ha::keystone {
   openstack::ha::haproxy_service { 'keystone-2':
     order                  => '030',
     listen_port            => 35357,
-    public                 => true,
+    public                 => false,
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],
     },
