@@ -38,14 +38,14 @@ class cluster::haproxy_ocf (
       },
       operations      => {
         'monitor' => {
-          'interval' => '20',
-          'timeout'  => '10'
+          'interval' => '30',
+          'timeout'  => '60'
         },
         'start'   => {
           'timeout' => '30'
         },
         'stop'    => {
-          'timeout' => '30'
+          'timeout' => '60'
         },
       },
     }
