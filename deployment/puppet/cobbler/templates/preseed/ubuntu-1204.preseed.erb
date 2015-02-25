@@ -27,7 +27,6 @@ d-i clock-setup/ntp boolean false
 d-i time/zone string <%= @ks_system_timezone %>
 
 $SNIPPET('ubuntu_network_console_and_syslog')
-
 $SNIPPET('ubuntu_partition')
 
 #set fuel_version=$getVar('fuel_version', '')
@@ -42,26 +41,41 @@ d-i base-installer/kernel/image string linux-image-3.11
 # REPOS
 ##########
 
+#import json
+#set $repo_setup = json.loads($getVar("repo_setup"))
+#set $repos = $repo_setup["repos"]
+#set $base_mirror = $repos[0]
+#set $base_mirror_host = $base_mirror["uri"].split("http://")[1].split("/")[0]
+#set $base_mirror_directory = "/" + $base_mirror["uri"].split("http://")[1].split("/")[1]
+#set $base_mirror_suite = $base_mirror["suite"]
+#set $base_mirror_components = ", ".join($base_mirror["section"].split())
 d-i mirror/protocol string http
 d-i mirror/country string manual
-d-i mirror/http/hostname string @@server@@:8080
-d-i mirror/http/directory string /ubuntu/x86_64
+d-i mirror/http/hostname string $base_mirror_host
+d-i mirror/http/directory string $base_mirror_directory
 d-i mirror/http/proxy string
-
-d-i mirror/suite string precise
+d-i mirror/suite string $base_mirror_suite
 # Suite to use for loading installer components (optional).
-d-i mirror/udeb/suite string precise
+d-i mirror/udeb/suite string $base_mirror_suite
 # Components to use for loading installer components (optional).
-d-i mirror/udeb/components multiselect main, restricted
+d-i mirror/udeb/components multiselect $base_mirror_components
 # Retry failed repo
 d-i apt-setup/mirror/error select Retry
-# Downloading a file failed
-# d-i apt-setup/use_mirror select Retry
 
-d-i apt-setup/restricted boolean true
-d-i apt-setup/universe boolean true
+# Use network mirror
 d-i apt-setup/use_mirror boolean true
-d-i apt-setup/security_host 127.0.0.1
+
+# You can choose to install restricted and universe software, or to install
+# software from the backports repository.
+d-i apt-setup/restricted boolean false
+d-i apt-setup/universe boolean false
+d-i apt-setup/backports boolean false
+
+# Select which update services to use; define the mirrors to be used.
+# Values shown below are the normal defaults.
+d-i apt-setup/services-select multiselect
+# d-i apt-setup/security_host string security.ubuntu.com
+# d-i apt-setup/security_path string /ubuntu
 
 d-i debian-installer/allow_unauthenticated boolean true
 
@@ -69,16 +83,12 @@ d-i console-setup/ask_detect boolean false
 d-i keyboard-configuration/layoutcode string us
 d-i keyboard-configuration/modelcode string SKIP
 
-#if $varExists('repo_metadata')
-# Additional repositories, local[0-9] available
-#set counter_x = 0
-#set repo_list = dict(item.split("=") for item in $repo_metadata.split(","))
-#for $repo_name, $repo_url in $repo_list.items()
-d-i apt-setup/local$counter_x/repository string $repo_url
-d-i apt-setup/local$counter_x/comment string $repo_name
-#set counter_x = $counter_x + 1
-#end for
-#end if
+# NOTE(kozhukalov): We avoid defining multiple mirrors
+# using apt-setup/localN debconf variables.
+# The reason for this is that it does not suport pinning.
+# We define multiple repos with their priorities inside target
+# and then use in-target apt-get to install additional packages.
+# See ubuntu_repos_late and ubuntu_packages_late snippets.
 
 ##########
 # USERS
@@ -95,18 +105,19 @@ d-i passwd/make-user boolean false
 ############
 
 tasksel tasksel/first multiselect standard
-
 debconf debconf/frontend select Noninteractive
 
-# d-i pkgsel/include string openssh-server debconf-utils
-$SNIPPET('ubuntu_packages')
+# NOTE(kozhukalov): We deliberately avoid using
+# pkgsel/include mechanism for installing additional packages.
+# We need preferences for our additional mirrors
+# and it is only possible if we put preferences into target and
+# install packages using apt-get inside this target directory.
+# See ubuntu_repos_late and ubuntu_packages_late snippets.
+
 d-i pkgsel/language-packs multiselect en
 d-i pkgsel/update-policy select none
 d-i pkgsel/upgrade select none
 d-i pkgsel/updatedb boolean true
-
-
-
 
 d-i finish-install/keep-consoles    boolean false
 d-i finish-install/reboot_in_progress       note
@@ -120,11 +131,19 @@ d-i debian-installer/exit/poweroff boolean false
 ################
 # LATE COMMANDS
 ################
-
 # TODO:
 # add puppet and mcollective configuration
 # add network configuration
 d-i preseed/late_command string true && \
+$SNIPPET('ubuntu_repos_late')
+in-target apt-get update; \
+in-target apt-get upgrade -y; \
+#if $fuel_version >= '6.0'
+in-target apt-get -y install linux-image-generic-lts-trusty linux-headers-generic-lts-trusty; \
+#else
+in-target apt-get -y install linux-image-3.11 linux-headers-3.11; \
+#end if
+$SNIPPET('ubuntu_packages_late')
 $SNIPPET('ubuntu_partition_late')
 $SNIPPET('ubuntu_disable_pxe') && \
 $SNIPPET('ubuntu_network') && \
@@ -142,26 +161,9 @@ echo "---" > $nailgun_agent_conf && \
 echo "url: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'" >> $nailgun_agent_conf && \
 echo target > /target/etc/nailgun_systemtype && \
 echo 'APT::Get::AllowUnauthenticated 1;' > /target/etc/apt/apt.conf.d/02mirantis-allow-unsigned && \
-# REPOSITORIES FROM Nailgun
-#if $varExists('repo_metadata')
-echo "" /target/etc/apt/sources.list && \
-#set repo_list = dict(item.split("=") for item in $repo_metadata.split(","))
-#for $repo_name, $repo_url in $repo_list.items()
-echo 'deb $repo_url' >> /target/etc/apt/sources.list && \
-#end for
-#else
-echo 'deb http://@@server@@:8080/ubuntu/x86_64 precise main' > /target/etc/apt/sources.list && \
-#end if
 $SNIPPET('ubuntu_authorized_keys')
 sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication\ .*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
 echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
-#if $fuel_version >= '6.0'
-in-target apt-get -y install linux-image-generic-lts-trusty linux-headers-generic-lts-trusty && \
-#else
-in-target apt-get -y install linux-image-3.11 linux-headers-3.11 && \
-#end if
-in-target apt-get update; \
-in-target apt-get upgrade -y; \
 $SNIPPET('ubuntu_blacklist_i2c_piix4')
 $SNIPPET('ubuntu_static_net')
 $SNIPPET('ofed_install_with_sriov')
