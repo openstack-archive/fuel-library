@@ -1,0 +1,26 @@
+#!/bin/bash
+
+cat >/etc/init/rc-sysinit.override <<"EOF"
+start on umm
+EOF
+
+cat >/etc/init/failsafe.override <<"EOF"
+stop on static-network-up or starting rc-sysinit or starting umm
+EOF
+
+cat >/etc/init/umm.conf <<"EOF"
+# umm - Openstak maiteenace mode.
+#
+
+description "Openstack maintenance mode"
+author      "pzhurba@mirantis.com"
+
+start on (filesystem and static-network-up) or failsafe-boot
+
+emits umm
+
+script
+[ -f /usr/lib/umm/umm_svc ] && /usr/lib/umm/umm_svc
+initctl emit umm
+end script
+EOF
