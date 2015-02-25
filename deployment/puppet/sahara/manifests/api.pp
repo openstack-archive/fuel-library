@@ -9,6 +9,7 @@ class sahara::api (
   $keystone_password           = 'sahara',
   $bind_port                   = '8386',
   $node_domain                 = 'novalocal',
+  $infrastructure_engine       = 'heat',
   $sql_connection              = 'mysql://sahara:sahara@localhost/sahara',
   $use_neutron                 = false,
   $debug                       = false,
@@ -55,6 +56,7 @@ class sahara::api (
 
   sahara_config {
     'DEFAULT/use_neutron'                  : value => $use_neutron_value;
+    'DEFAULT/infrastructure_engine'        : value => $infrastructure_engine;
     'DEFAULT/node_domain'                  : value => $node_domain;
     'database/connection'                  : value => $sql_connection;
     'database/max_retries'                 : value => '-1';

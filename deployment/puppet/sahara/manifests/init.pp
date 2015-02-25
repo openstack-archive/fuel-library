@@ -10,6 +10,7 @@ class sahara (
   $keystone_tenant              = 'services',
   $keystone_password            = 'sahara',
   $node_domain                  = 'novalocal',
+  $infrastructure_engine        = 'heat',
 
   $db_password                  = 'sahara',
   $db_name                      = 'sahara',
@@ -54,6 +55,7 @@ class sahara (
     keystone_user                => $keystone_user,
     keystone_tenant              => $keystone_tenant,
     keystone_password            => $keystone_password,
+    infrastructure_engine        => $infrastructure_engine,
     bind_port                    => $api_port,
     node_domain                  => $node_domain,
     sql_connection               => $sql_connection,

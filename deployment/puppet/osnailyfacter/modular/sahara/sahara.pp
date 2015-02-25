@@ -25,6 +25,7 @@ if $sahara_hash['enabled'] {
     db_password                => $sahara_hash['db_password'],
     db_host                    => $management_ip,
     keystone_host              => $management_ip,
+    infrastructure_engine      => 'heat',
     keystone_user              => 'sahara',
     keystone_password          => $sahara_hash['user_password'],
     keystone_tenant            => 'services',
