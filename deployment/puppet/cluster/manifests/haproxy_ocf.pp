@@ -3,7 +3,8 @@
 # Configure OCF service for HAProxy managed by corosync/pacemaker
 #
 class cluster::haproxy_ocf (
-  $primary_controller
+  $primary_controller,
+  $debug = false
 ){
   anchor {'haproxy': }
 
@@ -34,18 +35,19 @@ class cluster::haproxy_ocf (
         'failure-timeout'     => '120',
       },
       parameters      => {
-        'ns' => 'haproxy',
+        'ns'    => 'haproxy',
+        'debug' => $debug,
       },
       operations      => {
         'monitor' => {
-          'interval' => '20',
-          'timeout'  => '10'
+          'interval' => '30',
+          'timeout'  => '60'
         },
         'start'   => {
           'timeout' => '30'
         },
         'stop'    => {
-          'timeout' => '30'
+          'timeout' => '60'
         },
       },
     }

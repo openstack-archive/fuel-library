@@ -6,7 +6,8 @@ class cluster::haproxy (
   $haproxy_maxconn    = '4000',
   $haproxy_bufsize    = '16384',
   $haproxy_maxrewrite = '1024',
-  $primary_controller = false
+  $primary_controller = false,
+  $debug              = false
 ) {
   include ::concat::setup
   include ::haproxy::params
@@ -39,7 +40,8 @@ class cluster::haproxy (
   }
 
   class { 'cluster::haproxy_ocf':
-    primary_controller => $primary_controller
+    primary_controller => $primary_controller,
+    debug              => $debug
   }
 
   Package['haproxy'] -> Class['haproxy::base']

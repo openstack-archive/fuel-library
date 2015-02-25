@@ -492,7 +492,8 @@ class osnailyfacter::cluster_ha {
       class { 'cluster::haproxy':
         haproxy_maxconn    => '16000',
         haproxy_bufsize    => '32768',
-        primary_controller => $primary_controller
+        primary_controller => $primary_controller,
+        debug              => $::debug,
       }
 
       class { 'compact_controller':
