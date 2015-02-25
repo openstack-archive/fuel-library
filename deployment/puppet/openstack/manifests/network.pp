@@ -154,15 +154,6 @@ class openstack::network (
         kombu_reconnect_delay   => '5.0',
       }
 
-      # In Juno Neutron API ready for answer not yet when server starts.
-      @exec {'waiting-for-neutron-api':
-        tries     => 30,
-        try_sleep => 4,
-        onlyif    => "test -r /root/openrc",
-        command   => "bash -c \"source /root/openrc ; neutron net-list --http-timeout=4 \" 2>&1 > /dev/null",
-        path      => '/usr/sbin:/usr/bin:/sbin:/bin',
-      }
-
       if $nova_neutron {
         class {'nova::network::neutron':
           neutron_admin_password    => $admin_password,
@@ -217,6 +208,22 @@ class openstack::network (
           nova_admin_tenant_name  => 'services', # Default
           nova_admin_password     => $nova_admin_password,
         }
+
+        # In Juno Neutron API ready for answer not yet when server starts.
+        exec {'waiting-for-neutron-api':
+          environment => [
+            "OS_TENANT_NAME=${admin_tenant_name}",
+            "OS_USERNAME=${admin_username}",
+            "OS_PASSWORD=${admin_password}",
+            "OS_AUTH_URL=${auth_url}",
+            'OS_ENDPOINT_TYPE=internalURL',
+          ],
+          tries     => 30,
+          try_sleep => 4,
+          command   => "bash -c \"neutron net-list --http-timeout=4 \" 2>&1 > /dev/null",
+          path      => '/usr/sbin:/usr/bin:/sbin:/bin',
+        }
+
         Service['neutron-server'] -> Exec<| title == 'waiting-for-neutron-api' |>
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_network<||>
         Exec<| title == 'waiting-for-neutron-api' |> -> Neutron_subnet<||>
