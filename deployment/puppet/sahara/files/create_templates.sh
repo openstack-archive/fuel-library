@@ -1,5 +1,4 @@
 #!/bin/bash -x
-. /root/openrc
 
 network_provider=$1
 plugin=$2
