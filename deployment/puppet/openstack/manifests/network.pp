@@ -153,10 +153,15 @@ class openstack::network (
 
       # In Juno Neutron API ready for answer not yet when server starts.
       @exec {'waiting-for-neutron-api':
+        environment => [
+          "OS_TENANT_NAME=${admin_tenant_name}",
+          "OS_USERNAME=${admin_username}",
+          "OS_PASSWORD=${admin_password}",
+          "OS_AUTH_URL=${auth_url}",
+        ],
         tries     => 30,
         try_sleep => 4,
-        onlyif    => "test -r /root/openrc",
-        command   => "bash -c \"source /root/openrc ; neutron net-list --http-timeout=4 \" 2>&1 > /dev/null",
+        command   => "bash -c \"neutron net-list --http-timeout=4 \" 2>&1 > /dev/null",
         path      => '/usr/sbin:/usr/bin:/sbin:/bin',
       }
 

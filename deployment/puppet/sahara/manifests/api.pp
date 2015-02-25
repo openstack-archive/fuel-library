@@ -140,6 +140,10 @@ class sahara::api (
   class { 'sahara::templates::create_templates':
     network_provider => $network_provider,
     templates_dir    => $templates_dir,
+    auth_user        => $keystone_user,
+    auth_password    => $keystone_password,
+    auth_tenant      => $keystone_tenant,
+    auth_uri         => $sahara_auth_uri,
   }
 
   Package['sahara'] -> Sahara_config<||> -> Exec['sahara-db-manage'] -> Service['sahara-api'] -> Class['sahara::templates::create_templates']
