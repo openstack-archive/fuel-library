@@ -25,7 +25,9 @@ def set_onfail_policy(operation_id, value)
   RETRY_COUNT.times do |n|
     begin
       Timeout::timeout(RETRY_TIMEOUT) do
-        system "cibadmin -M -X '<op id=\"#{operation_id}\" on-fail=\"#{value}\" />"
+        system <<-doc
+          cibadmin -M -X '<op id="#{operation_id}" on-fail="#{value}" />'
+        doc
         return if $?.exitstatus == 0
       end
     rescue Timeout::Error
@@ -45,7 +47,7 @@ def get_onfail_policy(operation_id)
         raw = `cibadmin -QA '//op[@id="#{operation_id}"]'`.chomp
         raw.split(' ').each do |part|
           if part =~ /^on-fail=/
-            value = part.split('=')[1].gsub(/["']/, '')
+            value = part.split('=')[1].gsub(/[^\w]/, '')
           end
         end
         return value if $?.exitstatus == 0
@@ -69,10 +71,10 @@ current_onfail_policy = get_onfail_policy(opid)
 puts "Controller nodes found: '#{controller_nodes}'"
 
 if controller_nodes > 2
-  set_onfail_policy(opid, 'restart') unless current_onfail_policy(opid) == 'restart'
+  set_onfail_policy(opid, 'restart') unless current_onfail_policy == 'restart'
 else
-  set_onfail_policy(opid, 'ignore') unless current_onfail_policy(opid) == 'ignore'
+  set_onfail_policy(opid, 'ignore') unless current_onfail_policy == 'ignore'
 end
 
-puts "Current on-fail policy for op #{opid} is: '#{get_onfail_policy(opid)}'"
+puts "Current on-fail policy for op id '#{opid}' is: '#{get_onfail_policy(opid)}'"
 exit 0
