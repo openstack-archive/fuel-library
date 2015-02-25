@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sed -e '/post-stop script/,/end script/!d' \
+-e '/post-stop script/a\ \ \ \ \ [ -f /usr/lib/umm/umm_svc ] && /usr/lib/umm/umm_svc' \
+/etc/init/rcS.conf >/etc/init/rcS.override
