@@ -71,6 +71,8 @@ class cobbler::snippets {
   cobbler_snippet {"ubuntu_partition":}
   cobbler_snippet {"ubuntu_partition_late":}
   cobbler_snippet {"ubuntu_static_net":}
+  cobbler_snippet {"ubuntu_repos_late":}
+  cobbler_snippet {"ubuntu_packages_late":}
   cobbler_snippet {"anaconda_ssh_console":}
   cobbler_snippet {"anaconda_yum":}
   cobbler_snippet {'centos_post_kernel_lt_if_enabled':}
