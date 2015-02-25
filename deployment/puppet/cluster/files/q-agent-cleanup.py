@@ -94,7 +94,7 @@ def retry(func, pattern=RECOVERABLE):
                 i += 1
                 if i >= RETRY_COUNT:
                     raise e
-                print("retry request {0}: {1}".format(i, e))
+                LOG.debug("retry request {0}: {1}".format(i, e))
                 sleep(RETRY_DELAY)
     return wrapper
 

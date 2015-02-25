@@ -64,5 +64,3 @@ include mysql::config
 
 class openstack::firewall {}
 include openstack::firewall
-
-file { '/root/openrc' :}
