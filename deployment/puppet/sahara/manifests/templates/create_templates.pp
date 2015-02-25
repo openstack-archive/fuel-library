@@ -1,6 +1,10 @@
 class sahara::templates::create_templates (
   $network_provider = undef,
   $templates_dir    = $sahara::params::templates_dir,
+  $auth_uri         = 'http://127.0.0.1:5000/v2.0/',
+  $auth_user        = 'sahara',
+  $auth_tenant      = 'services',
+  $auth_password    = 'sahara',
 ) inherits sahara::params {
 
   file { 'create_templates':
@@ -24,18 +28,14 @@ class sahara::templates::create_templates (
     require  => [ Package['sahara'], File['create_templates'] ],
   }
 
-  sahara::templates::template { 'vanilla':
+  Sahara::Templates::Template {
     network_provider => $network_provider,
     templates_dir    => $templates_dir,
+    auth_user        => $auth_user,
+    auth_password    => $auth_password,
+    auth_tenant      => $auth_tenant,
+    auth_auth_uri    => $auth_uri,
   }
 
-  sahara::templates::template { 'hdp':
-    network_provider => $network_provider,
-    templates_dir    => $templates_dir,
-  }
-
-  sahara::templates::template { 'cdh':
-    network_provider => $network_provider,
-    templates_dir    => $templates_dir,
-  }
+  sahara::templates::template { ['vanilla', 'hdp', 'cdh']: }
 }
