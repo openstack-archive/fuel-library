@@ -5,6 +5,14 @@ ENV['LANG'] = 'C'
 
 hiera = Hiera.new(:config => '/etc/hiera.yaml')
 test_vm_images = hiera.lookup 'test_vm_image', {}, {}
+glanced = hiera.lookup 'glance', {} , {}
+
+ENV['OS_TENANT_NAME']="services"
+ENV['OS_USERNAME']="glance"
+ENV['OS_PASSWORD']="#{glanced['user_password']}"
+#Will only be on the run on a controller so 127.0.0.1 should be fine
+ENV['OS_AUTH_URL']="http://127.0.0.1:5000/v2.0"
+
 
 raise 'Not test_vm_image data!' unless [Array, Hash].include?(test_vm_images.class) && test_vm_images.any?
 
