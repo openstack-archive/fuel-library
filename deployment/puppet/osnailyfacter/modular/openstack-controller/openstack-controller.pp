@@ -292,9 +292,16 @@ if $primary_controller {
   Class['nova::api'] -> Haproxy_backend_status['nova-api']
 
   exec { 'create-m1.micro-flavor' :
-    command => "bash -c \"source /root/openrc; nova flavor-create --is-public true m1.micro auto 64 0 1\"",
     path    => '/sbin:/usr/sbin:/bin:/usr/bin',
-    unless  => 'bash -c "source /root/openrc; nova flavor-list | grep -q m1.micro"',
+    environment => [
+      "OS_TENANT_NAME=services",
+      "OS_USERNAME=nova",
+      "OS_PASSWORD=${nova_user_password}",
+      "OS_AUTH_URL=http://${management_vip}:5000/v2.0/",
+      'OS_ENDPOINT_TYPE=internalURL',
+    ],
+    command => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
+    unless  => 'bash -c "nova flavor-list | grep -q m1.micro"',
     require => Class['nova'],
   }
 

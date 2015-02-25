@@ -5,6 +5,14 @@ ENV['LANG'] = 'C'
 
 hiera = Hiera.new(:config => '/etc/hiera.yaml')
 test_vm_images = hiera.lookup 'test_vm_image', {}, {}
+glanced = hiera.lookup 'glance', {} , {}
+auth_addr = hiera.lookup 'internal_address', nil, {}
+
+ENV['OS_TENANT_NAME']="services"
+ENV['OS_USERNAME']="glance"
+ENV['OS_PASSWORD']="#{glanced['user_password']}"
+ENV['OS_AUTH_URL']="http://#{auth_addr}:5000/v2.0"
+ENV['OS_ENDPOINT_TYPE'] = "internalURL"
 
 raise 'Not test_vm_image data!' unless [Array, Hash].include?(test_vm_images.class) && test_vm_images.any?
 
@@ -25,7 +33,7 @@ test_vm_images.each do |image|
 end
 
 def image_list
-  stdout = `. /root/openrc && glance image-list`
+  stdout = `glance image-list`
   return_code = $?.exitstatus
   images = []
   stdout.split("\n").each do |line|
@@ -39,7 +47,7 @@ end
 
 def image_create(image_hash)
   command = <<-EOF
-. /root/openrc && /usr/bin/glance image-create \
+/usr/bin/glance image-create \
 --name '#{image_hash['img_name']}' \
 --is-public '#{image_hash['public']}' \
 --container-format='#{image_hash['container_format']}' \
