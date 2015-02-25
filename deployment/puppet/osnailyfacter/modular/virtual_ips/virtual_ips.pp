@@ -86,3 +86,21 @@ class virtual_ips () {
 }
 
 class { 'virtual_ips': }
+
+#################################
+
+ping_host { 'vip__management':
+  name => hiera('management_vip'),
+}
+
+Service['vip__management'] -> Ping_host['vip__management']
+
+if $public_int {
+
+  ping_host { 'vip__public':
+    name => hiera('public_vip'),
+  }
+
+  Service['vip__public'] -> Ping_host['vip__public']
+
+}
