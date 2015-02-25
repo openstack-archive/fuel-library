@@ -1,0 +1,6 @@
+# Set secure Ciphers and MACs
+sed --follow-symlinks -i '/^\s*Ciphers\ .*/d' /etc/ssh/sshd_config
+sed --follow-symlinks -i '/^\s*MACs\ .*/d' /etc/ssh/sshd_config
+echo '# Secure Ciphers and MACs' >> /etc/ssh/sshd_config
+echo 'Ciphers aes256-ctr,aes192-ctr,aes128-ctr,arcfour256,arcfour128' >> /etc/ssh/sshd_config
+echo 'MACs hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,hmac-sha1' >> /etc/ssh/sshd_config
