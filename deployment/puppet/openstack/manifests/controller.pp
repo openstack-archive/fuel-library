@@ -539,6 +539,9 @@ class openstack::controller (
     master_ip => hiera('master_ip'),
   }
 
+  ####### Maintenance mode #######
+  class { 'umm': }
+
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { 'glance-api':
