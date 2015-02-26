@@ -347,11 +347,13 @@ class { 'openstack::auth_file':
   controller_node      => $internal_address,
 }
 
+class { 'openstack::keystone':
+  notification_driver => false,
+}
+
 Exec <| title == 'keystone-manage db_sync' |> ->
  Class['Keystone::Roles::Admin'] ->
   Class['Openstack::Auth_file']
-
-
 
 package { 'socat': ensure => present }
 
