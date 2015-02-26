@@ -17,3 +17,7 @@ class { 'openstack::mongo_primary':
   use_syslog                  => $use_syslog,
   debug                       => $debug,
 }
+
+sysctl::value { 'net.ipv4.tcp_keepalive_time':
+  value => '300',
+}

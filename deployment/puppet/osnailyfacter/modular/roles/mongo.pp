@@ -12,3 +12,7 @@ class { 'openstack::mongo_secondary':
   debug                       => $debug,
   replset                     => 'ceilometer',
 }
+
+sysctl::value { 'net.ipv4.tcp_keepalive_time':
+  value => '300',
+}
