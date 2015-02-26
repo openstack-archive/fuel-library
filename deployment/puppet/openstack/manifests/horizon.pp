@@ -40,6 +40,7 @@ class openstack::horizon (
   $nova_quota              = false,
   $local_settings_template = 'openstack/horizon/local_settings.py.erb',
   $django_session_engine   = 'django.contrib.sessions.backends.cache',
+  $servername              = $::hostname,
 ) {
 
   # class { 'memcached':
@@ -100,6 +101,7 @@ class openstack::horizon (
   class { '::apache':
     mpm_module    => false,
     default_vhost => false,
+    servername    => $servername,
   }
 
   if ($::osfamily == 'Debian'){
