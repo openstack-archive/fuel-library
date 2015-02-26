@@ -15,11 +15,11 @@
 #    under the License.
 
 #
-# This file was copied from https://github.com/openstack/keystone/raw/c3b92295b718a41c3136876eb39297081015a97c/httpd/keystone.py
+# This file was copied from https://github.com/openstack/keystone/raw/
+# c3b92295b718a41c3136876eb39297081015a97c/httpd/keystone.py
 # It's only required for platforms on which it is not packaged yet.
 # It should be removed when available everywhere in a package.
 #
-# flake8: noqa
 
 import logging
 import os
