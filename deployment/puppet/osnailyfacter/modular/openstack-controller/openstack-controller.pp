@@ -351,8 +351,6 @@ Exec <| title == 'keystone-manage db_sync' |> ->
  Class['Keystone::Roles::Admin'] ->
   Class['Openstack::Auth_file']
 
-
-
 package { 'socat': ensure => present }
 
 #TODO: PUT this configuration stanza into nova class

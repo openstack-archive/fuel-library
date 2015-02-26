@@ -282,7 +282,7 @@ class openstack::controller (
     cinder_user_password      => $cinder_user_password,
     neutron                   => $network_provider ? {'nova' => false, 'neutron' => true},
     neutron_user_password     => $neutron_user_password,
-    ceilometer                => $ceilometer,
+    ceilometer                => false,
     ceilometer_user_password  => $ceilometer_user_password,
     public_bind_host          => $api_bind_address,
     admin_bind_host           => $api_bind_address,
