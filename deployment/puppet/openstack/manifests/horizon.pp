@@ -39,6 +39,7 @@ class openstack::horizon (
   $log_level               = 'WARNING',
   $nova_quota              = false,
   $local_settings_template = 'openstack/horizon/local_settings.py.erb',
+  $servername              = $::hostname,
 ) {
 
   # class { 'memcached':
@@ -99,6 +100,7 @@ class openstack::horizon (
   class { '::apache':
     mpm_module    => false,
     default_vhost => false,
+    servername    => $servername,
   }
 
   class { "::apache::mod::$mpm_module":
