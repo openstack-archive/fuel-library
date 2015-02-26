@@ -538,6 +538,11 @@ if ($::mellanox_mode == 'ethernet') {
 # TODO(bogdando) add monit zabbix services monitoring, if required
 # NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
 
+# BP https://blueprints.launchpad.net/mos/+spec/include-openstackclient
+package { 'python-openstackclient' :
+  ensure => installed,
+}
+
 # Reduce swapiness on controllers, see LP#1413702
 sysctl::value { 'vm.swappiness':
   value => "10"
