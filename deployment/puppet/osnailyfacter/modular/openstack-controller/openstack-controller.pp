@@ -398,6 +398,10 @@ if $primary_controller {
     require => [Class['nova'],Class['openstack::auth_file']],
   }
 
+  keystone_config { 'DEFAULT/notification_driver':
+    ensure => absent,
+  }
+
   Exec<| title=='wait-for-haproxy-keystone-admin-backend' |> ->
   Exec<| title=='create-m1.micro-flavor' |>
   Exec<| title=='wait-for-haproxy-keystone-backend' |> ->
