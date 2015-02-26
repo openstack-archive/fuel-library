@@ -349,14 +349,13 @@ class { 'openstack::workloads_collector':
   workloads_password   => $workloads_hash[password],
   workloads_tenant     => $workloads_hash[tenant],
 }
+
 Exec <| title == 'keystone-manage db_sync' |> ->
  Class['Keystone::Roles::Admin'] ->
   Class['Openstack::Auth_file']
 
 Class['Keystone::Roles::Admin'] ->
   Class['Openstack::Workloads_collector']
-
-
 
 package { 'socat': ensure => present }
 
