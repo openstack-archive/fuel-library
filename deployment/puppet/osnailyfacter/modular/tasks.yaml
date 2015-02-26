@@ -1,7 +1,7 @@
 - id: netconfig
   type: puppet
   groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [logging]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig.pp
@@ -11,7 +11,7 @@
 - id: logging
   type: puppet
   groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [globals]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/logging.pp
@@ -21,7 +21,7 @@
 - id: tools
   type: puppet
   groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [logging]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/tools.pp
@@ -31,7 +31,7 @@
 - id: hosts
   type: puppet
   groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [netconfig]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hosts.pp
@@ -41,7 +41,7 @@
 - id: firewall
   type: puppet
   groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [netconfig]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall.pp
@@ -51,7 +51,8 @@
 - id: hiera
   type: puppet
   groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
-  required_for: [deploy]
+  requires: [deploy_start]
+  required_for: [deploy_end]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera.pp
     puppet_modules: /etc/puppet/modules
@@ -62,7 +63,7 @@
   groups: [primary-controller, controller,
            cinder, compute, ceph-osd,
            zabbix-server, primary-mongo, mongo]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [hiera]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/globals.pp
@@ -72,7 +73,7 @@
 - id: top-role-controller
   type: puppet
   groups: [primary-controller, controller]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/controller.pp
@@ -82,7 +83,7 @@
 - id: top-role-compute
   type: puppet
   groups: [compute]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/compute.pp
@@ -92,7 +93,7 @@
 - id: top-role-cinder
   type: puppet
   groups: [cinder]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cinder.pp
@@ -102,7 +103,7 @@
 - id: top-role-ceph-osd
   type: puppet
   groups: [ceph-osd]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph-osd.pp
@@ -112,7 +113,7 @@
 - id: top-role-primary-mongo
   type: puppet
   groups: [primary-mongo]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/mongo_primary.pp
@@ -122,7 +123,7 @@
 - id: top-role-mongo
   type: puppet
   groups: [mongo]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/mongo.pp
@@ -134,7 +135,7 @@
   groups: [primary-controller, controller,
            cinder, compute, ceph-osd,
            zabbix-server, primary-mongo, mongo]
-  required_for: [deploy]
+  required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix.pp
