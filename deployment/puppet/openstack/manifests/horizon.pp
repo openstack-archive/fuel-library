@@ -39,7 +39,6 @@ class openstack::horizon (
   $log_level               = 'WARNING',
   $nova_quota              = false,
   $local_settings_template = 'openstack/horizon/local_settings.py.erb',
-  $django_session_engine   = 'django.contrib.sessions.backends.cache',
 ) {
 
   # class { 'memcached':
@@ -135,7 +134,6 @@ class openstack::horizon (
     log_level               => $log_level_real,
     local_settings_template => $local_settings_template,
     configure_apache        => false,
-    django_session_engine   => $django_session_engine,
   }
 
   class { '::horizon::wsgi::apache':
