@@ -11,7 +11,8 @@
 - id: set_mysql_fail_action
   type: shell
   role: [primary-controller]
-  stage: post_deployment
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/set_mysql_fail_action.rb
     timeout: 180
