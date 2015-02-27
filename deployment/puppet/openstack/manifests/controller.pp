@@ -540,6 +540,7 @@ class openstack::controller (
     debug             => $debug,
     use_syslog        => $use_syslog,
     nova_quota        => hiera('nova_quota'),
+    servername        => $public_address,
   } ->
   class {'osnailyfacter::apache_api_proxy':
     master_ip => hiera('master_ip'),
