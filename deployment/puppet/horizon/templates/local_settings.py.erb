@@ -121,7 +121,7 @@ CACHES = {
             <%  split = ":" + @cache_server_port + "','" %>
         'LOCATION': [ <% @cache_server_ip.each do |ip| -%>'<%= ip -%>:<%= @cache_server_port -%>',<% end -%> ],
             <% else %>
-        'LOCATION': '<%= @cache_server_ip %>:<%= @cache_server_port %>',
+        'LOCATION' : "<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ';' %>"
           <% end %>
         <% else %>
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
