@@ -17,6 +17,7 @@ $syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LO
 $management_vip                 = hiera('management_vip')
 $public_vip                     = hiera('public_vip')
 $storage_address                = hiera('storage_address')
+$sahara_hash                    = hiera('sahara', {})
 $cinder_hash                    = hiera('cinder', {})
 $nodes_hash                     = hiera('nodes', {})
 $mysql_hash                     = hiera('mysql', {})
@@ -427,5 +428,28 @@ if $primary_controller {
     Exec<| title=='wait-for-haproxy-keystone-admin-backend' |> ->
     Nova_floating_range <| |>
   }
+}
+
+nova_config {
+  'DEFAULT/teardown_unused_network_gateway': value => 'True'
+}
+
+if $sahara_hash['enabled'] {
+  $scheduler_default_filters = [ 'DifferentHostFilter' ]
+} else {
+  $scheduler_default_filters = []
+}
+
+class { '::nova::scheduler::filter':
+  cpu_allocation_ratio       => '8.0',
+  disk_allocation_ratio      => '1.0',
+  ram_allocation_ratio       => '1.0',
+  scheduler_host_subset_size => '30',
+  scheduler_default_filters  => concat($scheduler_default_filters, [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])
+}
+
+# From logasy filter.pp
+nova_config {
+  'DEFAULT/ram_weight_multiplier':        value => '1.0'
 }
 

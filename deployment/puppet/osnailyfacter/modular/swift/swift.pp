@@ -1,3 +1,5 @@
+notice('MODULAR: swift.pp')
+
 $swift_hash      = hiera('swift_hash')
 $storage_hash    = hiera('storage_hash')
 $mp_hash         = hiera('mp')
