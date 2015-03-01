@@ -64,16 +64,6 @@ if $neutron_mellanox {
   $mellanox_mode = 'disabled'
 }
 
-if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
-  $storage_hash['volumes_ceph'] or
-  $storage_hash['images_ceph'] or
-  $storage_hash['objects_ceph']
-) {
-  $use_ceph = true
-} else {
-  $use_ceph = false
-}
-
 if $use_neutron {
   include l23network::l2
   $novanetwork_params        = {}
@@ -96,32 +86,6 @@ if $use_neutron {
 }
 $network_manager = "nova.network.manager.${novanetwork_params['network_manager']}"
 
-if !$ceilometer_hash {
-  $ceilometer_hash = {
-    enabled => false,
-    db_password => 'ceilometer',
-    user_password => 'ceilometer',
-    metering_secret => 'ceilometer',
-  }
-  $ext_mongo = false
-} else {
-  # External mongo integration
-  if $mongo_hash['enabled'] {
-    $ext_mongo_hash = hiera('external_mongo')
-    $ceilometer_db_user = $ext_mongo_hash['mongo_user']
-    $ceilometer_db_password = $ext_mongo_hash['mongo_password']
-    $ceilometer_db_name = $ext_mongo_hash['mongo_db_name']
-    $ext_mongo = true
-  } else {
-    $ceilometer_db_user = 'ceilometer'
-    $ceilometer_db_password = $ceilometer_hash['db_password']
-    $ceilometer_db_name = 'ceilometer'
-    $ext_mongo = false
-    $ext_mongo_hash = {}
-  }
-}
-
-
 if $primary_controller {
   if ($mellanox_mode == 'ethernet') {
     $test_vm_pkg = 'cirros-testvm-mellanox'
@@ -134,25 +98,6 @@ if $primary_controller {
   }
 }
 
-
-if $ceilometer_hash['enabled'] {
-  if $ext_mongo {
-    $mongo_hosts = $ext_mongo_hash['hosts_ip']
-    if $ext_mongo_hash['mongo_replset'] {
-      $mongo_replicaset = $ext_mongo_hash['mongo_replset']
-    } else {
-      $mongo_replicaset = undef
-    }
-  } else {
-    $mongo_hosts = mongo_hosts($nodes_hash)
-    if size(mongo_hosts($nodes_hash, 'array', 'mongo')) > 1 {
-      $mongo_replicaset = 'ceilometer'
-    } else {
-      $mongo_replicaset = undef
-    }
-  }
-}
-
 if !$rabbit_hash['user'] {
   $rabbit_hash['user'] = 'nova'
 }
@@ -162,21 +107,8 @@ if ! $use_neutron {
 }
 $floating_hash = {}
 
-##CALCULATED PARAMETERS
-
-
-##NO NEED TO CHANGE
-
-$node = filter_nodes($nodes_hash, 'name', $::hostname)
-if empty($node) {
-  fail("Node $::hostname is not defined in the hash structure")
-}
-
 # get cidr netmasks for VIPs
 $primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-
-##REFACTORING NEEDED
-
 
 ##TODO: simply parse nodes array
 $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
@@ -188,59 +120,10 @@ $controller_node_public  = $public_vip
 $controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
 
-# AMQP client configuration
-if $internal_address in $controller_nodes {
-  # prefer local MQ broker if it exists on this node
-  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
-} else {
-  $amqp_nodes = fqdn_rotate($controller_nodes)
-}
-
-$amqp_port = '5673'
-$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
-$rabbit_ha_queues = true
-
-# RabbitMQ server configuration
-$rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
-$rabbitmq_bind_port = $amqp_port
-$rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames
-
-# SQLAlchemy backend configuration
-$max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
-
-$cinder_iscsi_bind_addr = $storage_address
-
-# Determine who should get the volume service
-
-if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
-  $manage_volumes = 'iscsi'
-} elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
-  $manage_volumes = 'vmdk'
-} elsif ($storage_hash['volumes_ceph']) {
-  $manage_volumes = 'ceph'
-} else {
-  $manage_volumes = false
-}
-
-# Determine who should be the default backend
-
-if ($storage_hash['images_ceph']) {
-  $glance_backend = 'ceph'
-  $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
-} elsif ($storage_hash['images_vcenter']) {
-  $glance_backend = 'vmware'
-  $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
-} else {
-  $glance_backend = 'swift'
-  $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
-}
-
 $network_config = {
   'vlan_start'     => $vlan_start,
 }
+#################################################################
 
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
 #   we delegate all of the monitor functions to RA instead of monit.
@@ -264,7 +147,7 @@ if $use_monit_real {
   $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
   case $::osfamily {
     'RedHat' : {
-       $service_path   = '/sbin/service'
+      $service_path   = '/sbin/service'
     }
     'Debian' : {
       $service_path    = '/usr/sbin/service'
@@ -275,9 +158,6 @@ if $use_monit_real {
   }
 }
 
-#HARDCODED PARAMETERS
-
-$mirror_type = 'external'
 Exec { logoutput => true }
 
 if $use_vmware_nsx {
@@ -288,34 +168,6 @@ if $use_vmware_nsx {
   }
 }
 
-#################################################################
-include osnailyfacter::test_controller
-
-nova_config {
-  'DEFAULT/teardown_unused_network_gateway': value => 'True'
-}
-
-#ADDONS START
-
-if $sahara_hash['enabled'] {
-  $scheduler_default_filters = [ 'DifferentHostFilter' ]
-} else {
-  $scheduler_default_filters = []
-}
-
-class { '::nova::scheduler::filter':
-  cpu_allocation_ratio       => '8.0',
-  disk_allocation_ratio      => '1.0',
-  ram_allocation_ratio       => '1.0',
-  scheduler_host_subset_size => '30',
-  scheduler_default_filters  => concat($scheduler_default_filters, [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])
-}
-
-# From logasy filter.pp
-nova_config {
-  'DEFAULT/ram_weight_multiplier':        value => '1.0'
-}
-
 if ($::mellanox_mode == 'ethernet') {
   $ml2_eswitch = $neutron_mellanox['ml2_eswitch']
   class { 'mellanox_openstack::controller':
@@ -323,10 +175,6 @@ if ($::mellanox_mode == 'ethernet') {
     eswitch_apply_profile_patch  => $ml2_eswitch['apply_profile_patch'],
   }
 }
-
-#ADDONS END
-
-########################################################################
 
 # TODO(bogdando) add monit zabbix services monitoring, if required
 # NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
@@ -340,9 +188,5 @@ package { 'python-openstackclient' :
 sysctl::value { 'vm.swappiness':
   value => "10"
 }
-
-# Stubs
-class mysql::server {}
-include mysql::server
 
 # vim: set ts=2 sw=2 et :

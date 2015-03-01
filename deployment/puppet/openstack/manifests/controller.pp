@@ -547,21 +547,6 @@ class openstack::controller (
     tweaks::ubuntu_service_override { 'glance-registry':
       package_name => 'glance-registry',
     }
-    tweaks::ubuntu_service_override { ['murano_api', 'murano_engine']:
-      package_name => 'murano',
-    }
-    tweaks::ubuntu_service_override { 'heat-api-cloudwatch':
-      package_name => 'heat-api-cloudwatch',
-    }
-    tweaks::ubuntu_service_override { 'heat-api-cfn':
-      package_name => 'heat-api-cfn',
-    }
-    tweaks::ubuntu_service_override { 'heat-api':
-      package_name => 'heat-api',
-    }
-    tweaks::ubuntu_service_override { 'sahara-api':
-      package_name => 'sahara',
-    }
     tweaks::ubuntu_service_override { 'keystone':
       package_name => 'keystone',
     }

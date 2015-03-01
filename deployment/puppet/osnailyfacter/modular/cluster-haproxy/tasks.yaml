@@ -1,7 +1,7 @@
 - id: cluster-haproxy
   type: puppet
   groups: [primary-controller, controller]
-  required_for: [top-role-controller, deploy_end]
+  required_for: [deploy_end]
   requires: [virtual_ips]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
