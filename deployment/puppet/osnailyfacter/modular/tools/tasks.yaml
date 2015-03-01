@@ -1,8 +1,8 @@
 - id: tools
   type: puppet
   groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
-  required_for: [deploy_end]
-  requires: [logging]
+  required_for: [deploy_end, logging]
+  requires: [globals]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/tools/tools.pp
     puppet_modules: /etc/puppet/modules
