@@ -1,3 +1,5 @@
+notice('MODULAR: vmware/vcenter.pp')
+
 $libvirt_type = hiera('libvirt_type')
 $use_vcenter = hiera('use_vcenter', false)
 $vcenter_hash = hiera('vcenter_hash')

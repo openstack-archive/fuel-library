@@ -1,7 +1,7 @@
 - id: virtual_ips
   type: puppet
   groups: [primary-controller, controller]
-  required_for: [top-role-controller, deploy_end]
+  required_for: [deploy_end]
   requires: [cluster]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/virtual_ips.pp

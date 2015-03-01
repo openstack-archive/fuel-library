@@ -2,7 +2,7 @@
   type: puppet
   groups: [primary-controller, controller]
   required_for: [deploy_end]
-  requires: [top-role-controller]
+  requires: [controller_remaining_tasks]
   condition: "settings:common.libvirt_type.value == 'vcenter' or settings:common.use_vcenter.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/vcenter.pp

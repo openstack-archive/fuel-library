@@ -1,3 +1,5 @@
+notice('MODULAR: vmware/compute.pp')
+
 $use_vcenter = hiera('use_vcenter', false)
 
 include nova::params
