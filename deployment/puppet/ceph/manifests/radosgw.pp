@@ -8,9 +8,10 @@ define apache::loadmodule () {
 
 # deploys Ceph radosgw as an Apache FastCGI application
 class ceph::radosgw (
-  $rgw_id   = 'radosgw.gateway',
-  $rgw_user = $::ceph::params::user_httpd,
-  $use_ssl  = $::ceph::use_ssl,
+  $rgw_id      = 'radosgw.gateway',
+  $rgw_user    = $::ceph::params::user_httpd,
+  $use_ssl     = $::ceph::use_ssl,
+  $primary_mon = $::ceph::primary_mon,
 
   # RadosGW settings
   $rgw_host                         = $::ceph::rgw_host,
@@ -32,6 +33,9 @@ class ceph::radosgw (
   $rgw_keystone_accepted_roles      = $::ceph::rgw_keystone_accepted_roles,
   $rgw_keystone_revocation_interval = $::ceph::rgw_keystone_revocation_interval,
   $rgw_nss_db_path                  = $::ceph::rgw_nss_db_path,
+  $pub_ip                           = $::ceph::rgw_pub_ip,
+  $adm_ip                           = $::ceph::rgw_adm_ip,
+  $int_ip                           = $::ceph::rgw_int_ip,
 
   #rgw Log settings
   $use_syslog                       = $::ceph::use_syslog,
@@ -90,8 +94,8 @@ class ceph::radosgw (
 
     $httpd_ssl = $::ceph::params::dir_httpd_ssl
     exec {'copy OpenSSL certificates':
-      command => "scp -r ${rgw_nss_db_path}/* ${::ceph::primary_mon}:${rgw_nss_db_path} && \
-                  ssh ${::ceph::primary_mon} '/etc/init.d/radosgw restart'",
+      command => "scp -r ${rgw_nss_db_path}/* ${primary_mon}:${rgw_nss_db_path} && \
+                  ssh ${primary_mon} '/etc/init.d/radosgw restart'",
     }
     exec {"generate SSL certificate on ${name}":
       command => "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ${httpd_ssl}apache.key -out ${httpd_ssl}apache.crt -subj '/C=RU/ST=Russia/L=Saratov/O=Mirantis/OU=CA/CN=localhost'",
@@ -130,7 +134,12 @@ class ceph::radosgw (
 
     } #END rgw_use_pki
 
-  class {'ceph::keystone': }
+  class {'ceph::keystone':
+    pub_ip              => $pub_ip,
+    adm_ip              => $adm_ip,
+    int_ip              => $int_ip,
+    swift_endpoint_port => $swift_endpoint_port,
+  }
 
   } #END rgw_use_keystone
 
@@ -166,8 +175,8 @@ class ceph::radosgw (
   }
 
   file {[$::ceph::params::dir_httpd_ssl,
-         "${::ceph::rgw_data}/ceph-${rgw_id}",
-         $::ceph::rgw_data,
+         "${rgw_data}/ceph-${rgw_id}",
+         $rgw_data,
          $dir_httpd_root,
          $rgw_nss_db_path,
         ]:
@@ -210,8 +219,8 @@ class ceph::radosgw (
         "${::ceph::params::dir_httpd_sites}/fastcgi.conf",
         "${dir_httpd_root}/s3gw.fcgi",
         $::ceph::params::dir_httpd_ssl,
-        "${::ceph::rgw_data}/ceph-${rgw_id}",
-        $::ceph::rgw_data,
+        "${rgw_data}/ceph-${rgw_id}",
+        $rgw_data,
         $dir_httpd_root,
         $rgw_nss_db_path,
         $rgw_log_file,]] ->
