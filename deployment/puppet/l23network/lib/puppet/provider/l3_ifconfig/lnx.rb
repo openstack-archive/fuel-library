@@ -77,7 +77,7 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
           iproute('--force', 'addr', 'flush', 'dev', @resource[:interface])
         elsif (@property_flush[:ipaddr] & [:dhcp, 'dhcp', 'DHCP']).any?
           # start dhclient on interface the same way as at boot time
-          ifdown('--force', @resource[:interface])
+          ifdown(@resource[:interface])
           sleep(5)
           ifup(@resource[:interface])
         else
