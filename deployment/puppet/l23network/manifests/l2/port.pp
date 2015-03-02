@@ -49,6 +49,10 @@ define l23network::l2::port (
 # $interface_properties  = [],
 # $trunks                = [],
 ) {
+
+  include ::stdlib
+  include ::l23network::params
+
   # Detect VLAN mode configuration
   case $port {
     /^vlan(\d+)/: {
