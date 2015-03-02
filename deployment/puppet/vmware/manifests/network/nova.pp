@@ -18,9 +18,12 @@ class vmware::network::nova (
   $ensure_package = 'present',
   $ha_mode = false,
   $amqp_port = '5673',
-  $nova_network_config = '/etc/nova/nova.conf'
+  $nova_network_config = '/etc/nova/nova.conf',
+  $nova_network_config_dir = '/etc/nova/nova-network.d'
 )
 {
+  $nova_network_config_ha = "${nova_network_config_dir}/nova-network-ha.conf"
+
   if ! $ha_mode {
     nova::generic_service { 'network':
       enabled        => true,
@@ -43,6 +46,25 @@ class vmware::network::nova (
 
     Nova_config <| title == 'DEFAULT/multi_host' |> { value => 'False' }
 
+  if ! defined(File[$nova_network_config_dir]) {
+    file { $nova_network_config_dir:
+      ensure => directory,
+      owner  => nova,
+      group  => nova,
+      mode   => '0750'
+    }
+  }
+
+  if ! defined(File[$nova_network_config_ha]) {
+    file { $nova_network_config_ha:
+      ensure  => present,
+      content => template('vmware/nova-network-ha.conf.erb'),
+      mode    => '0600',
+      owner   => nova,
+      group   => nova,
+    }
+  }
+
     cs_resource { 'p_vcenter_nova_network':
       ensure          => present,
       primitive_class => 'ocf',
@@ -54,6 +76,7 @@ class vmware::network::nova (
       parameters      => {
         'amqp_server_port' => $amqp_port,
         'config' => $nova_network_config,
+        'additional_parameters' => "--config-file=${nova_network_config_ha}",
       },
       operations      => {
         'monitor' => {
@@ -92,6 +115,8 @@ class vmware::network::nova (
     Anchor['vcenter-nova-network-start']->
     Nova::Generic_service['network']->
     File['vcenter-nova-network-ocf']->
+    File["${nova_network_config_dir}"]->
+    File["${nova_network_config_ha}"]->
     Cs_resource['p_vcenter_nova_network']->
     Service['p_vcenter_nova_network']->
     Anchor['vcenter-nova-network-end']
