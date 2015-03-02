@@ -54,6 +54,7 @@ $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 
 $nova_report_interval           = hiera('nova_report_interval', 60)
 $nova_service_down_time         = hiera('nova_service_down_time', 180)
+$apache_ports                   = hiera_array('apache_ports', ['80', '8888'])
 
 $openstack_version = hiera('openstack_version',
   {
