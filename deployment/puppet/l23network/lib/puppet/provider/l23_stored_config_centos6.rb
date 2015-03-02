@@ -124,6 +124,11 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       hash.delete('BONDING_OPTS')
     end
 
+    if hash['BOOTPROTO'] == :dhcp
+      hash['IPADDR'] = :dhcp
+      hash.delete('BOOTPROTO')
+    end
+
     props = self.mangle_properties(hash)
     props.merge!({:family => :inet})
 
@@ -210,7 +215,9 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     end
 
     if props.has_key?(:ipaddr)
-      props[:ipaddr], props[:prefix] = props[:ipaddr].to_s.split('/')
+      if props[:ipaddr] != :dhcp
+        props[:ipaddr], props[:prefix] = props[:ipaddr].to_s.split('/')
+      end
     end
     if props.has_key?(:bond_master)
        props[:slave] = 'yes'
@@ -227,6 +234,11 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
 
     if pairs['TYPE'] == :OVSBridge
       pairs['DEVICETYPE'] = 'ovs'
+    end
+
+    if pairs['IPADDR'] == :dhcp
+      pairs['BOOTPROTO'] = :dhcp
+      pairs.delete('IPADDR')
     end
 
     pairs.each_pair do |key, val|
