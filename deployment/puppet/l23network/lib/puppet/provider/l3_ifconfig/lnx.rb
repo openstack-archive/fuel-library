@@ -1,6 +1,8 @@
 Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
   defaultfor :osfamily => :linux
-  commands   :iproute => 'ip'
+  commands   :iproute => 'ip',
+             :ifup    => 'ifup',
+             :ifdown  => 'ifdown'
 
 
   def self.prefetch(resources)
@@ -73,10 +75,11 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
         if @property_flush[:ipaddr].include?(:absent)
           # flush all ip addresses from interface
           iproute('--force', 'addr', 'flush', 'dev', @resource[:interface])
-        elsif @property_flush[:ipaddr].include?(:dhcp)
-          # start dhclient on interface
-          iproute('--force', 'addr', 'flush', 'dev', @resource[:interface])
-          #todo: start dhclient
+        elsif (@property_flush[:ipaddr] & [:dhcp, 'dhcp', 'DHCP']).any?
+          # start dhclient on interface the same way as at boot time
+          ifdown('--force', @resource[:interface])
+          sleep(5)
+          ifup(@resource[:interface])
         else
           # add-remove static IP addresses
           if !@old_property_hash.nil? and !@old_property_hash[:ipaddr].nil?
