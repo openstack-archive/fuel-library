@@ -6,7 +6,7 @@ class osnailyfacter::apache_api_proxy(
   # Allow connection to the apache for ostf tests
   firewall {'007 tinyproxy':
     dport   => [ 8888 ],
-    source  => hiera('master_ip'),
+    source  => $master_ip,
     proto   => 'tcp',
     action  => 'accept',
   }
