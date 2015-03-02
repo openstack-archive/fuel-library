@@ -174,14 +174,16 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     props
   end
 
+  def self.mangle__bridge(val)
+    Array(val)
+  end
+
   def self.mangle__if_type(val)
-    val.to_s.downcase.intern
+    val.to_s.downcase.to_sym
   end
 
   def self.mangle__method(val)
-    if [:manual, :static].include? val
-      :none
-    end
+    (['manual', 'static'].include? val.to_s.downcase)  ?  :none  :  val.to_sym
   end
 
   ###
@@ -208,8 +210,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     end
 
     if props.has_key?(:ipaddr)
-      props[:prefix] = props[:ipaddr].split('/')[1]
-      props[:ipaddr] = props[:ipaddr].split('/')[0]
+      props[:ipaddr], props[:prefix] = props[:ipaddr].to_s.split('/')
     end
     if props.has_key?(:bond_master)
        props[:slave] = 'yes'
@@ -242,7 +243,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
 
     boolean_properties.each do |bool_property|
       if ! props[bool_property].nil?
-        props[bool_property] = (props[bool_property].to_s.to_sym == :true || props[bool_property].integer?) ? 'yes' : 'no'
+        props[bool_property] = (props[bool_property].to_s.downcase == 'true' || props[bool_property].integer?) ? 'yes' : 'no'
       end
     end
 
@@ -255,21 +256,27 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
         else
           rv = val
         end
-        pairs[in_config_name] = rv if ! [nil, :absent].include? rv
+        pairs[in_config_name] = rv if ! ['', 'absent'].include? rv.to_s.downcase
       end
     end
 
     pairs
   end
 
+  def self.unmangle__bridge(val)
+    (['', 'absent'] & Array(val).map{|a| a.to_s.downcase}.uniq).any?  ?  nil  :  val.to_s
+  end
+
   def self.unmangle__if_type(val)
-    val.to_s.capitalize.intern
+    val.to_s.capitalize
   end
 
   def self.unmangle__method(val)
-    if [:manual, :static].include? val
-      :none
-    end
+    (['manual', 'static'].include? val.to_s.downcase)  ?  'none'  :  val
+  end
+
+  def self.unmangle__ipaddr(val)
+    (val.to_s.downcase == 'dhcp')  ?  nil  :  val
   end
 
 

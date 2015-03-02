@@ -79,6 +79,7 @@ define l23network::l3::ifconfig (
     $vendor_specific = undef,
     $provider        = undef
 ) {
+  include ::stdlib
   include ::l23network::params
 
   # setup configure method for inteface
