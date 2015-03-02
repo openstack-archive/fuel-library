@@ -175,13 +175,11 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
   end
 
   def self.mangle__if_type(val)
-    val.to_s.downcase.intern
+    val.to_s.downcase.to_sym
   end
 
   def self.mangle__method(val)
-    if [:manual, :static].include? val
-      :none
-    end
+    (['manual', 'static'].include? val.to_s.downcase)  ?  :none  :  val.to_sym
   end
 
   ###
@@ -208,8 +206,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     end
 
     if props.has_key?(:ipaddr)
-      props[:prefix] = props[:ipaddr].split('/')[1]
-      props[:ipaddr] = props[:ipaddr].split('/')[0]
+      props[:ipaddr], props[:prefix] = props[:ipaddr].to_s.split('/')
     end
     if props.has_key?(:bond_master)
        props[:slave] = 'yes'
@@ -263,13 +260,15 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
   end
 
   def self.unmangle__if_type(val)
-    val.to_s.capitalize.intern
+    val.to_s.capitalize
   end
 
   def self.unmangle__method(val)
-    if [:manual, :static].include? val
-      :none
-    end
+    (['manual', 'static'].include? val.to_s.downcase)  ?  'none'  :  val
+  end
+
+  def self.unmangle__ipaddr(val)
+    (val.to_s.downcase == 'dhcp')  ?  nil  :  val
   end
 
 

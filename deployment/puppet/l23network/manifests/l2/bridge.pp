@@ -22,7 +22,8 @@ define l23network::l2::bridge (
   $vendor_specific = undef,
   $provider        = undef,
 ) {
-  include l23network::params
+  include ::stdlib
+  include ::l23network::params
 
   if ! defined (L2_bridge[$name]) {
     if $provider {
