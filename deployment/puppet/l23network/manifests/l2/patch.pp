@@ -18,6 +18,9 @@ define l23network::l2::patch (
   $provider        = undef,
 ) {
 
+  include ::stdlib
+  include ::l23network::params
+
   #$provider_1 = get_provider_for('L2_bridge', bridges[0])  # this didn't work, because parser functions
   #$provider_2 = get_provider_for('L2_bridge', bridges[1])  # executed before resources prefetch
 
