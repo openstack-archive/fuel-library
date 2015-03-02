@@ -1,5 +1,10 @@
 require 'spec_helper'
 require 'fakefs/spec_helpers'
+require 'mocha/api'
+
+RSpec.configure do |config|
+  config.mock_framework = :mocha
+end
 
 describe Puppet::Type.type(:install_ssh_keys).provider(:ssh) do
   include FakeFS::SpecHelpers
