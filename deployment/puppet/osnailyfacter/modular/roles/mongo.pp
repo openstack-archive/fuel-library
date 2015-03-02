@@ -12,3 +12,9 @@ class { 'openstack::mongo_secondary':
   debug                       => $debug,
   replset                     => 'ceilometer',
 }
+
+if !(member($roles, 'controller') or member($roles, 'primary-controller')) {
+  sysctl::value { 'net.ipv4.tcp_keepalive_time':
+    value => '300',
+  }
+}
