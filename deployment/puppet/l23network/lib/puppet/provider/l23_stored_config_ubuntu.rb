@@ -297,6 +297,10 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     pairs
   end
 
+  def self.unmangle__ipaddr(val)
+    (val.to_s.downcase == 'dhcp')  ?  nil  :  val
+  end
+
   def self.unmangle__if_type(val)
     # in Debian family interface config file don't contains declaration of interface type
     nil

@@ -53,6 +53,7 @@ class Puppet::Provider::L23_stored_config_base < Puppet::Provider
   #   # => ['/etc/sysconfig/network-scripts/ifcfg-eth0', '/etc/sysconfig/network-scripts/ifcfg-eth1']
   def self.target_files(script_dir = nil)
     script_dir ||= script_directory
+    return [] if ! File.directory?(script_dir)
     entries = Dir.entries(script_dir).select {|entry| entry.match SCRIPT_REGEX}
     entries.map {|entry| File.join(script_directory, entry)}
   end
