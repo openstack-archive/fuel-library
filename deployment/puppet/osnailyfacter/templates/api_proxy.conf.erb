@@ -5,9 +5,9 @@
   <Proxy *>
     Order Deny,Allow
     <% if master_ip.kind_of?(Array) -%>
-    Allow from <%= master_ip.join(",") %>
+    Allow from <%= @master_ip.join(",") %>
     <% else -%>
-    Allow from <%= master_ip %>
+    Allow from <%= @master_ip %>
     <% end -%>
     Deny from all
   </Proxy>
