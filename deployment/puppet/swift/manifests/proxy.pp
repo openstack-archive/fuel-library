@@ -36,7 +36,7 @@
 #   Optional. Defaults to present.
 # [*log_name*]
 #  Configures log_name for swift proxy-server.
-#  Optional. Defaults to proxy-server
+#  Optional. Defaults to 90
 #
 # == Examples
 #
