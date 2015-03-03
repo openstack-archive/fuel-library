@@ -1,0 +1,6 @@
+/utils export-ignore  
+/docs export-ignore
+/specs export-ignore
+.gitattributes export-ignore  
+.gitignore export-ignore
+
