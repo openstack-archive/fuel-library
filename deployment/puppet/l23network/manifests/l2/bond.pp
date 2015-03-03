@@ -53,6 +53,11 @@ define l23network::l2::bond (
     'fast'
   ]
 
+  $xmit_hash_policies = [
+    'layer2',
+    'layer3+4'
+  ]
+
   # calculate string representation for bond_mode
   if ! $bond_properties[mode] {
     # default value by design https://www.kernel.org/doc/Documentation/networking/bonding.txt
@@ -81,11 +86,19 @@ define l23network::l2::bond (
     $miimon = 100
   }
 
+  # calculate string representation for xmit_hash_policy
+  if ! $bond_properties[xmit_hash_policy] {
+    $xmit_hash_policy = $xmit_hash_policies[0]
+  } else {
+    $xmit_hash_policy = $bond_properties[xmit_hash_policy]
+  }
+
   # default bond properties
   $default_bond_properties = {
     mode        => $bond_mode,
     miimon      => $miimon,
     lacp_rate   => $lacp_rate,
+    xmit_hash_policy => $xmit_hash_policy,
   }
 
   $real_bond_properties = merge($bond_properties, $default_bond_properties)
@@ -122,19 +135,19 @@ define l23network::l2::bond (
       l23_stored_config { $bond: }
     }
     L23_stored_config <| title == $bond |> {
-      ensure          => $ensure,
-      if_type         => 'bond',
-      bridge          => $bridge,
-      mtu             => $mtu,
-      onboot          => $onboot,
-      bond_mode       => $real_bond_properties[mode],
-      bond_xmit_hash_policy  => $real_bond_properties[xmit_hash_policy],
-      bond_master     => undef,
-      bond_slaves     => $interfaces,
-      bond_miimon     => $real_bond_properties[miimon],
-      bond_lacp_rate  => $real_bond_properties[lacp_rate],
-      vendor_specific => $vendor_specific,
-      provider        => $config_provider
+      ensure                => $ensure,
+      if_type               => 'bond',
+      bridge                => $bridge,
+      mtu                   => $mtu,
+      onboot                => $onboot,
+      bond_mode             => $real_bond_properties[mode],
+      bond_master           => undef,
+      bond_slaves           => $interfaces,
+      bond_miimon           => $real_bond_properties[miimon],
+      bond_lacp_rate        => $real_bond_properties[lacp_rate],
+      bond_xmit_hash_policy => $real_bond_properties[xmit_hash_policy],
+      vendor_specific       => $vendor_specific,
+      provider              => $config_provider
     }
 
     l2_bond { $bond :
