@@ -37,6 +37,9 @@
 # [*log_name*]
 #  Configures log_name for swift proxy-server.
 #  Optional. Defaults to proxy-server
+# [*node_timeout*]
+#  Configures swift proxy-server node timeout
+#  Optional. Defaults to 90
 #
 # == Examples
 #
@@ -66,6 +69,7 @@ class swift::proxy(
   $read_affinity = undef,
   $write_affinity = undef,
   $write_affinity_node_count = undef,
+  $node_timeout = '90',
   $package_ensure = 'present'
 ) {
 
