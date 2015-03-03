@@ -9,24 +9,25 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
 
   def self.property_mappings
     {
-      :method          => 'BOOTPROTO',
-      :ipaddr          => 'IPADDR',
-      :name            => 'DEVICE',
-      :onboot          => 'ONBOOT',
-      :mtu             => 'MTU',
-      :vlan_id         => 'VLAN',
-      :vlan_dev        => 'PHYSDEV',
-      :vlan_mode       => 'VLAN_NAME_TYPE',
-      :if_type         => 'TYPE',
-      :bridge          => 'BRIDGE',
-      :prefix          => 'PREFIX',
-      :gateway         => 'GATEWAY',
-      :bond_master     => 'MASTER',
-      :slave           => 'SLAVE',
-      :bond_mode       => 'mode',
-      :bond_miimon     => 'miimon',
-      :bonding_opts    => 'BONDING_OPTS',
-      :bond_lacp_rate  => 'lacp_rate',
+      :method                => 'BOOTPROTO',
+      :ipaddr                => 'IPADDR',
+      :name                  => 'DEVICE',
+      :onboot                => 'ONBOOT',
+      :mtu                   => 'MTU',
+      :vlan_id               => 'VLAN',
+      :vlan_dev              => 'PHYSDEV',
+      :vlan_mode             => 'VLAN_NAME_TYPE',
+      :if_type               => 'TYPE',
+      :bridge                => 'BRIDGE',
+      :prefix                => 'PREFIX',
+      :gateway               => 'GATEWAY',
+      :bond_master           => 'MASTER',
+      :slave                 => 'SLAVE',
+      :bond_mode             => 'mode',
+      :bond_miimon           => 'miimon',
+      :bonding_opts          => 'BONDING_OPTS',
+      :bond_lacp_rate        => 'lacp_rate',
+      :bond_xmit_hash_policy => 'xmit_hash_policy',
     }
   end
   def property_mappings
@@ -232,6 +233,10 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       if pairs.has_key?('lacp_rate')
         bond_options = "#{bond_options} lacp_rate=#{pairs['lacp_rate']}" 
         pairs.delete('lacp_rate')
+      end
+      if pairs.has_key?('xmit_hash_policy')
+        bond_options = "#{bond_options} xmit_hash_policy=#{pairs['xmit_hash_policy']}"
+        pairs.delete('xmit_hash_policy')
       end
       pairs['BONDING_OPTS']  = "\"#{bond_options}\""
       pairs.delete('mode')
