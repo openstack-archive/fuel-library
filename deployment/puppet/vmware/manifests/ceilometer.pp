@@ -32,20 +32,9 @@ class vmware::ceilometer (
     source => 'puppet:///modules/vmware/ocf/ceilometer-agent-compute',
   }
 
-  if $vcenter_settings {
-    # Fixme! This a temporary workaround to keep existing functioanality
-    # After fully implementation of the multi HV support it is need to rename resource
-    # back to vmware::ceilometer::ha
-    create_resources(vmware::ceilometer::ha_multi_hv, parse_vcenter_settings($vcenter_settings))
+  create_resources(vmware::ceilometer::ha_multi_hv, parse_vcenter_settings($vcenter_settings))
 
-    Class['ceilometer::agent::compute']->
-    File['ceilometer-agent-compute-ocf']->
-    Vmware::Ceilometer::Ha_multi_hv<||>
-  } else {
-    create_resources(vmware::ceilometer::ha, $vsphere_clusters)
-
-    Class['ceilometer::agent::compute']->
-    File['ceilometer-agent-compute-ocf']->
-    Vmware::Ceilometer::Ha<||>
-  }
+  Class['ceilometer::agent::compute']->
+  File['ceilometer-agent-compute-ocf']->
+  Vmware::Ceilometer::Ha_multi_hv<||>
 }

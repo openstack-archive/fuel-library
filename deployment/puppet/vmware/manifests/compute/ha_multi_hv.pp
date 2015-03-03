@@ -16,10 +16,6 @@
 # cluster (cluster that is formed of ESXi hosts and is managed by vCenter
 # server).
 
-# Fixme! This a temporary workaround to keep existing functioanality
-# After fully implementation of the multi HV support it is need to delete
-# resource vmware::compute::ha and rename vmware::compute::ha_multi_hv resource to
-# vmware::compute::ha
 define vmware::compute::ha_multi_hv(
   $availability_zone_name,
   $vc_cluster,
@@ -55,10 +51,6 @@ define vmware::compute::ha_multi_hv(
     $cluster = $name
     file { $nova_compute_conf:
       ensure  => present,
-      # Fixme! This a temporary workaround to keep existing functioanality
-      # After fully implementation of the multi HV support it is need to delete
-      # temlate nova-compute.conf.erb and rename nova-compute-multi_hv.conf.erb template to
-      # nova-compute.conf.erb
       content => template('vmware/nova-compute-multi_hv.conf.erb'),
       mode    => '0600',
       owner   => nova,
