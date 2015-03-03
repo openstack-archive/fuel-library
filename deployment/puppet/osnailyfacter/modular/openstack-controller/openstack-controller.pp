@@ -39,9 +39,6 @@ $cinder_iscsi_bind_addr         = $storage_address
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
 $floating_hash = {}
-$network_config = {
-  'vlan_start'     => $vlan_start,
-}
 
 if $use_neutron {
   include l23network::l2
@@ -63,6 +60,10 @@ if $use_neutron {
   $num_networks       = $novanetwork_params['num_networks']
   $vlan_start         = $novanetwork_params['vlan_start']
   $network_provider   = 'nova'
+}
+
+$network_config = {
+  'vlan_start'     => $vlan_start,
 }
 
 if $internal_address in $controller_nodes {
