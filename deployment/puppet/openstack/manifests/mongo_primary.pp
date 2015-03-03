@@ -16,8 +16,10 @@ class openstack::mongo_primary (
 ) {
   if $debug {
     $set_parameter = 'logLevel=2'
+    $quiet         = false
   } else {
-    $set_parameter = 'logLevel=1'
+    $set_parameter = 'logLevel=0'
+    $quiet         = true
   }
 
 
@@ -43,6 +45,7 @@ class openstack::mongo_primary (
     replset       => $replset,
     keyfile       => $keyfile,
     set_parameter => $set_parameter,
+    quiet         => $quiet,
   } ->
 
   class {'::mongodb::replset':
