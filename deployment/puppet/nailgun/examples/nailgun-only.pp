@@ -137,3 +137,20 @@ class { "nailgun::supervisor":
   conf_file => "nailgun/supervisord.conf.nailgun.erb",
 }
 
+package { 'crontabs':
+  ensure => latest,
+}
+
+service { 'crond':
+  ensure => running,
+  enable => true,
+ }
+
+cron { 'oswl_cleaner':
+  ensure      => present,
+  command     => 'oswl_cleaner',
+  environment => 'PATH=/bin:/usr/bin:/usr/sbin',
+  user        => $nailgun_user,
+  hour        => '1',
+  require     => Package['crontabs'],
+}
