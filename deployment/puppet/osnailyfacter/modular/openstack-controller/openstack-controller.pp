@@ -32,6 +32,7 @@ $rabbit_hash                    = hiera('rabbit', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $mongo_hash                     = hiera('mongo', {})
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
+$workloads_hash                 = hiera('workloads_collector', {})
 
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
@@ -320,6 +321,7 @@ class { '::openstack::controller':
   max_pool_size                  => $max_pool_size,
   max_overflow                   => $max_overflow,
   idle_timeout                   => $idle_timeout,
+
 }
 
 # NOTE(xarses): keystone::roles:admin is the admin user for the enduser
@@ -341,9 +343,18 @@ class { 'openstack::auth_file':
   controller_node      => $internal_address,
 }
 
+class { 'openstack::workloads_collector':
+  enabled              => $workloads_hash[enabled],
+  workloads_username   => $workloads_hash[username],
+  workloads_password   => $workloads_hash[password],
+  workloads_tenant     => $workloads_hash[tenant],
+}
 Exec <| title == 'keystone-manage db_sync' |> ->
  Class['Keystone::Roles::Admin'] ->
   Class['Openstack::Auth_file']
+
+Class['Keystone::Roles::Admin'] ->
+  Class['Openstack::Workloads_collector']
 
 
 
