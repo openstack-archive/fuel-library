@@ -9,23 +9,24 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
 
   def self.property_mappings
     {
-      :method      => 'BOOTPROTO',
-      :ipaddr      => 'IPADDR',
-      :name        => 'DEVICE',
-      :onboot      => 'ONBOOT',
-      :mtu         => 'MTU',
-      :vlan_id     => 'VLAN',
-      :vlan_dev    => 'PHYSDEV',
-      :vlan_mode   => 'VLAN_NAME_TYPE',
-      :if_type     => 'TYPE',
-      :bridge      => 'BRIDGE',
-      :prefix      => 'PREFIX',
-      :gateway     => 'GATEWAY',
-      :bond_master => 'MASTER',
-      :slave       => 'SLAVE',
-      :bond_mode   => 'mode',
-      :bond_miimon => 'miimon',
-      :bonding_opts => 'BONDING_OPTS',
+      :method          => 'BOOTPROTO',
+      :ipaddr          => 'IPADDR',
+      :name            => 'DEVICE',
+      :onboot          => 'ONBOOT',
+      :mtu             => 'MTU',
+      :vlan_id         => 'VLAN',
+      :vlan_dev        => 'PHYSDEV',
+      :vlan_mode       => 'VLAN_NAME_TYPE',
+      :if_type         => 'TYPE',
+      :bridge          => 'BRIDGE',
+      :prefix          => 'PREFIX',
+      :gateway         => 'GATEWAY',
+      :bond_master     => 'MASTER',
+      :slave           => 'SLAVE',
+      :bond_mode       => 'mode',
+      :bond_miimon     => 'miimon',
+      :bonding_opts    => 'BONDING_OPTS',
+      :bond_lacp_rate  => 'lacp_rate',
     }
   end
   def property_mappings
@@ -223,7 +224,12 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     pairs = self.unmangle_properties(props)
 
     if pairs.has_key?('mode')
-      pairs['BONDING_OPTS'] = "\"mode=#{pairs['mode']} miimon=#{pairs['miimon']}\""
+      bond_options = "mode=#{pairs['mode']} miimon=#{pairs['miimon']}"
+      if pairs.has_key?('lacp_rate')
+        bond_options = "#{bond_options} lacp_rate=#{pairs['lacp_rate']}" 
+        pairs.delete('lacp_rate')
+      end
+      pairs['BONDING_OPTS']  = "\"#{bond_options}\""
       pairs.delete('mode')
       pairs.delete('miimon')
     end
