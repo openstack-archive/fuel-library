@@ -1,7 +1,7 @@
 - id: swift
   type: puppet
   groups: [primary-controller, controller]
-  required_for: [deploy_end]
+  required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp

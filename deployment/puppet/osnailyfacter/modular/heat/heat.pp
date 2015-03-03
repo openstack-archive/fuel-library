@@ -20,7 +20,18 @@ $databse_name             = 'heat'
 $read_timeout             = '60'
 $sql_connection           = "mysql://${databse_user}:${database_password}@${$controller_node_address}/${databse_name}?read_timeout=${read_timeout}"
 
-#################################################################
+####### Disable upstart startup on install #######
+if($::operatingsystem == 'Ubuntu') {
+  tweaks::ubuntu_service_override { 'heat-api-cloudwatch':
+    package_name => 'heat-api-cloudwatch',
+  }
+  tweaks::ubuntu_service_override { 'heat-api-cfn':
+    package_name => 'heat-api-cfn',
+  }
+  tweaks::ubuntu_service_override { 'heat-api':
+    package_name => 'heat-api',
+  }
+}
 
 class { 'openstack::heat' :
   external_ip         => $controller_node_public,

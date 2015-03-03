@@ -21,6 +21,13 @@ $primary_controller         = hiera('primary_controller')
 
 if $murano_hash['enabled'] {
 
+  ####### Disable upstart startup on install #######
+  if($::operatingsystem == 'Ubuntu') {
+    tweaks::ubuntu_service_override { ['murano_api', 'murano_engine']:
+      package_name => 'murano',
+    }
+  }
+
   #NOTE(mattymo): Backward compatibility for Icehouse
   case $openstack_version {
     /201[1-3]\./: {

@@ -20,6 +20,14 @@ $deployment_mode            = hiera('deployment_mode')
 #################################################################
 
 if $sahara_hash['enabled'] {
+
+  ####### Disable upstart startup on install #######
+  if($::operatingsystem == 'Ubuntu') {
+    tweaks::ubuntu_service_override { 'sahara-api':
+      package_name => 'sahara',
+    }
+  }
+
   class { 'sahara' :
     api_host                   => $public_ip,
     db_password                => $sahara_hash['db_password'],
