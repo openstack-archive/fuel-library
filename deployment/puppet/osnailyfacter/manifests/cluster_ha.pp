@@ -1072,6 +1072,13 @@ class osnailyfacter::cluster_ha {
 
   } # ROLE CASE ENDS
 
+  # LP#1424919
+  if $::fuel_settings['role'] =~ /mongo/ and $::fuel_settings['role'] !~ /controller/ {
+    sysctl::value { 'net.ipv4.tcp_keepalive_time':
+      value => '300',
+    }
+  }
+
   # TODO(bogdando) add monit zabbix services monitoring, if required
   # NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
   include galera::params
