@@ -3,6 +3,7 @@ notice('MODULAR: mongo.pp')
 $use_syslog       = hiera('use_syslog', true)
 $debug            = hiera('debug', false)
 $internal_address = hiera('internal_address')
+$roles            = node_roles($nodes_hash, hiera('uid'))
 
 ####################################################################
 
