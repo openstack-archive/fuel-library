@@ -5,6 +5,7 @@ $debug            = hiera('debug', false)
 $internal_address = hiera('internal_address')
 $ceilometer_hash  = hiera('ceilometer')
 $nodes_hash       = hiera('nodes')
+$roles            = node_roles($nodes_hash, hiera('uid'))
 
 ####################################################################
 
