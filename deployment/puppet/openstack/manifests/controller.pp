@@ -497,12 +497,6 @@ class openstack::controller (
     } #end else
   } #end cinder
 
-  if !defined(Class['memcached']){
-    class { 'memcached':
-      listen_ip => $memcached_bind_address,
-    }
-  }
-
   ######## Ceilometer ########
 
   if ($ceilometer) {
