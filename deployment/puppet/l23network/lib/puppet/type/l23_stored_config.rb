@@ -195,6 +195,7 @@ Puppet::Type.newtype(:l23_stored_config) do
   newproperty(:bond_mode)
   newproperty(:bond_miimon)
   newproperty(:bond_lacp_rate)
+  newproperty(:bond_xmit_hash_policy)
 
   # # `:options` provides an arbitrary passthrough for provider properties, so
   # # that provider specific behavior doesn't clutter up the main type but still
