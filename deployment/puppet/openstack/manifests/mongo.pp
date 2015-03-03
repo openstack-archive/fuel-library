@@ -15,8 +15,10 @@ class openstack::mongo (
 
   if $debug {
     $set_parameter = 'logLevel=2'
+    $quiet         = false
   } else {
-    $set_parameter = 'logLevel=1'
+    $set_parameter = 'logLevel=0'
+    $quiet         = true
   }
 
   class {'::mongodb::client':
@@ -29,6 +31,7 @@ class openstack::mongo (
     bind_ip       => $mongodb_bind_address,
     auth          => true,
     set_parameter => $set_parameter,
+    quiet         => $quiet,
   } ->
 
   mongodb::db { $ceilometer_database:
