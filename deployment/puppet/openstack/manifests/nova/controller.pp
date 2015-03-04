@@ -91,6 +91,7 @@ class openstack::nova::controller (
   $nova_report_interval        = '10',
   $nova_service_down_time      = '60',
   $cinder                      = true,
+  $ceilometer                  = false,
   # SQLAlchemy backend
   $idle_timeout                = '3600',
   $max_pool_size               = '10',
@@ -243,8 +244,10 @@ class openstack::nova::controller (
   $memcached_addresses =  suffix($cache_server_ip, inline_template(":<%= @cache_server_port %>"))
 
   # From legacy ceilometer notifications for nova
-  $notify_on_state_change = 'vm_and_task_state'
-  $notification_driver = 'messaging'
+  if ($ceilometer) {
+    $notify_on_state_change = 'vm_and_task_state'
+    $notification_driver = 'messaging'
+  }
 
   class { 'nova':
     install_utilities      => false,
