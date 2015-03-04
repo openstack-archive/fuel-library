@@ -1,0 +1,68 @@
+#!/bin/sh
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+# NOTE(kozhukalov): This script is needed only for 6.1.
+# We are not allowed to re-distribute ubuntu debian-installer
+# kernel and initrd. So, we are going to download them just
+# before starting actual provisioning and put them where they
+# will be available for cobbler.
+
+LOG_FILE="/var/log/`basename $0`.log"
+LOCK_FILE="/var/lock/`basename $0`.lock"
+
+usage(){
+    echo "Usage: `basename $0` <kernel_uri> <initrd_uri>"
+    exit 1
+}
+
+lock(){
+    exec 200>$1
+    flock -w 600 -x 200 || return 1
+    return 0
+}
+
+log(){
+    echo "`date '+%Y-%m-%d %H:%M:%S'` $1" | tee $LOG_FILE
+}
+
+wget_file_if_necessary(){
+    local REMOTE_URI=$1
+    local LOCAL_FILE=$2
+
+    log "Checking if $LOCAL_FILE is already available"
+    if ! test -s $LOCAL_FILE; then
+        log "Looks like $LOCAL_FILE does not exist or has zero size"
+        log "Trying to download $REMOTE_URI"
+        mkdir -p `dirname $LOCAL_FILE`
+        wget -O - -T 10 -a $LOG_FILE -v $REMOTE_URI > $LOCAL_FILE
+    else
+        log "Looks like $LOCAL_FILE does exist and is available"
+    fi
+}
+
+log "Checking if another instance of `basename $0` is running."
+lock $LOCK_FILE || { echo "Another instance of `basename $0` is running \
+at the moment. Please try later." 1>&2 ; exit 1; }
+
+log "Checking if all necessary command line arguments are available."
+test $# -eq 2 || usage
+
+REMOTE_KERNEL_URI=$1
+REMOTE_INITRD_URI=$2
+LOCAL_KERNEL_FILE=${LOCAL_KERNEL_FILE:-/var/www/nailgun/ubuntu/x86_64/images/linux}
+LOCAL_INITRD_FILE=${LOCAL_INITRD_FILE:-/var/www/nailgun/ubuntu/x86_64/images/initrd.gz}
+
+wget_file_if_necessary $REMOTE_KERNEL_URI $LOCAL_KERNEL_FILE
+wget_file_if_necessary $REMOTE_INITRD_URI $LOCAL_INITRD_FILE
