@@ -20,7 +20,7 @@ class osnailyfacter::apache_api_proxy(
     custom_fragment  => template('osnailyfacter/api_proxy.conf.erb'),
     port             => '8888',
     add_listen       => true,
-    error_log_syslog => 'syslog:local1',
+    error_log_syslog => 'syslog:local0',
     log_level        => 'notice',
   }
 }
