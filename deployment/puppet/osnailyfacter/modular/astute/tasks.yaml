@@ -8,6 +8,15 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/enable_quorum.rb
     timeout: 180
 
+- id: ceph_ready_check
+  type: shell
+  role: [primary-controller, controller]
+  requires: [post_deployment_start]
+  required_for: [restart_rados, post_deployment_end]
+  parameters:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/ceph_ready_check.rb
+    timeout: 1800
+
 - id: restart_rados
   type: shell
   role: [primary-controller, controller]
