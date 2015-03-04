@@ -27,3 +27,5 @@ Gemfile.lock
 .bundled_gems
 
 /rdoc
+
+task_graph.png
