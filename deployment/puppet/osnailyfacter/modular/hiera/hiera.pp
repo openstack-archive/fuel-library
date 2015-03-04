@@ -5,6 +5,7 @@ $data                = [
   'override/node/%{::fqdn}',
   'override/class/%{calling_class}',
   'override/module/%{calling_module}',
+  'override/plugins',
   'override/common',
   'class/%{calling_class}',
   'module/%{calling_module}',
@@ -35,6 +36,8 @@ $hiera_config_content = inline_template('
 
 :yaml:
   :datadir: <%= @data_dir %>
+
+:logger: noop
 ')
 
 file { 'hiera_data_dir' :
