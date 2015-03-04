@@ -1,0 +1,71 @@
+#!/bin/sh
+
+# NOTE(kozhukalov): This script is needed only for 6.1.
+# We are not allowed to re-distribute ubuntu debian-installer
+# kernel and initrd. So, we are going to download them just
+# before starting actual provisioning and put them where they
+# will be available for cobbler.
+
+LOG_FILE="/var/log/`basename $0`.log"
+LOCK_FILE="/var/lock/`basename $0`.lock"
+
+usage(){
+    echo "Usage: `basename $0` <kernel_uri> <initrd_uri>"
+    exit 1
+}
+
+lock(){
+    exec 200>$1
+    flock -w 600 -x 200 || return 1
+    return 0
+}
+
+log(){
+    echo "`date '+%Y-%m-%d %H:%M:%S'` $1" | tee $LOG_FILE
+}
+
+log "Checking if another instance of `basename $0` is running."
+lock $LOCK_FILE || { echo "Another instance of download_debian_installer is running \
+at the moment. Please try later." 1>&2 ; exit 1; }
+
+log "Checking if all necessary command line arguments are available."
+test $# -eq 2 || usage
+
+KERNEL_URI=$1
+INITRD_URI=$2
+TARGET_KERNEL_FILE=${TARGET_KERNEL_FILE:-/var/www/nailgun/ubuntu/x86_64/images/linux}
+TARGET_INITRD_FILE=${TARGET_INITRD_FILE:-/var/www/nailgun/ubuntu/x86_64/images/initrd.gz}
+
+# TODO(kozhukalov): This commented part is going to check if
+# the sizes of kernel and initrd are correct. But for the first
+# iteration it looks like we only need to check if the sizes are
+# not equal to zero.
+# LS_LR_URI=${LS_LR_URI:-}
+# if test -n "$LS_LR_URI"; then
+#     LS_LR_TMP=`mktemp`
+#     wget -O - -T 10 -a $LOG_FILE -v $LS_LR_URI > $LS_LR_TMP
+#     if ( file $LS_LR_TMP | grep -qi gzip ); then
+#         gunzip -c $LS_LR_TMP > $LS_LR_TMP.gunzipped
+#         mv $LS_LR_TMP.gunzipped $LS_LR_TMP
+#     fi
+# fi
+
+log "Checking if debian-installer kernel is already available $TARGET_KERNEL_FILE"
+if ! test -s $TARGET_KERNEL_FILE; then
+    log "Looks like $TARGET_KERNEL_FILE does not exist or its size is zero"
+    log "Trying to download debian-installer kernel $KERNEL_URI"
+    mkdir -p `dirname $TARGET_KERNEL_FILE`
+    wget -O - -T 10 -a $LOG_FILE -v $KERNEL_URI > $TARGET_KERNEL_FILE
+else
+    log "Looks like $TARGET_KERNEL_FILE does exist"
+fi
+
+log "Checking if debian-installer initrd is already available $TARGET_INITRD_FILE"
+if ! test -s $TARGET_INITRD_FILE; then
+    log "Looks like $TARGET_INITRD_FILE does not exist or its size is zero"
+    log "Trying to download debian-installer initrd $INITRD_URI"
+    mkdir -p `dirname $TARGET_INITRD_FILE`
+    wget -O - -T 10 -a $LOG_FILE -v $INITRD_URI > $TARGET_INITRD_FILE
+else
+    log "Looks like $TARGET_INITRD_FILE does exist"
+fi
