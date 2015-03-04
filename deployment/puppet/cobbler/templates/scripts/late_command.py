@@ -15,12 +15,10 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# flake8: noqa
 
 from base64 import b64encode
 from cStringIO import StringIO
 from gzip import GzipFile
-import commands, os
 
 
 TEMPLATE_FILE = (
@@ -48,7 +46,8 @@ TEMPLATE_COMMAND_PLAIN = (
 
 
 def base64_gzip(content, gzip=True):
-    """
+    """Gzip and enconde bas64 provided content
+
     This method returns content gzipped and then base64 encoded
     so such line can be inserted into preseed file
     """
@@ -69,7 +68,7 @@ def get_content(source, source_method):
             f = open(source, 'r')
             content = f.read()
             f.close()
-        except:
+        except Exception:
             return ""
         else:
             return content
