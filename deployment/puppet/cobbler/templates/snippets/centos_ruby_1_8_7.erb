@@ -1,0 +1,5 @@
+rpm -e --nodeps ruby
+yum install --exclude=ruby-2.1.1* -y ruby ruby-devel ruby-irb ruby-libs ruby-rdoc ruby-ri rubygems
+yum versionlock ruby
+yum versionlock ruby-*
+yum versionlock rubygems

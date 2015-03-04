@@ -76,6 +76,7 @@ class cobbler::snippets {
   cobbler_snippet {'centos_post_kernel_lt_if_enabled':}
   cobbler_snippet {'centos_pkg_kernel_lt_if_enabled':}
   cobbler_snippet {'centos_ofed_prereq_pkgs_if_enabled':}
+  cobbler_snippet {'centos_ruby_1_8_7':}
 
   case $operatingsystem {
     /(?i)(debian|ubuntu)/:  {

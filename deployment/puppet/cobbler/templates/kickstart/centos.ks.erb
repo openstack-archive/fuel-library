@@ -148,6 +148,7 @@ vim
 wget
 yum
 yum-utils
+yum-plugin-versionlock
 
 # COBBLER EMBEDDED SNIPPET: 'centos_ofed_prereq_pkgs_if_enabled'
 # LISTS ofed prereq PACKAGES IF mlnx_plugin_mode VARIABLE IS SET TO enabled
@@ -231,9 +232,7 @@ $SNIPPET('centos_authorized_keys')
 # PUTS IN IT ALL THE REPOSITORIES DEFINED IN ks_repo VARIABLE
 $SNIPPET('nailgun_repo')
 
-rpm -e --nodeps ruby
-yum install --exclude=ruby-2.1.1* -y ruby rubygems
-yum update -y --exclude --exclude=ruby*
+$SNIPPET('centos_ruby_1_8_7')
 
 mkdir -p /etc/nailgun-agent/
 cat > /etc/nailgun-agent/config.yaml << EOA
