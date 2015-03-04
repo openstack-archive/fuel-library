@@ -14,7 +14,7 @@
 - id: openstack-network-compute
   type: puppet
   groups: [compute]
-  required_for: [deploy_end, vmware-compute]
+  required_for: [deploy_end]
   requires: [top-role-compute]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute.pp

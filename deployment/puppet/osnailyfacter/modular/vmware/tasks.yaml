@@ -8,14 +8,3 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/vcenter.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
-
-- id: vmware-compute
-  type: puppet
-  groups: [compute]
-  required_for: [deploy_end]
-  requires: [top-role-compute]
-  condition: "settings:common.libvirt_type.value == 'vcenter' or settings:common.use_vcenter.value == true"
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/compute.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
