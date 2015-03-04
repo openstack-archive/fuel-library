@@ -14,3 +14,6 @@ uwsgi:
   listen: <%= @somaxconn %>
   pidfile: /tmp/nailgun.pid
   logto: /var/log/nailgun/app.log
+  mule: 1
+  lazy: true
+  lazy-apps: true
