@@ -104,6 +104,10 @@ function check_ready {
   get_service_credentials
   failure=0
   echo "checking container $1"
+
+  #Catch all to ensure puppet is not running
+  retry_checker "! shell_container $1 pgrep puppet"
+
   case $1 in
       nailgun) retry_checker "shell_container nailgun supervisorctl status nailgun | grep -q RUNNING"  ;;
       ostf) retry_checker "egrep -q ^[2-4][0-9]? < <(curl --connect-timeout 1 -s -w '%{http_code}' http://$ADMIN_IP:8777/ostf/not_found -o /dev/null)" ;;
