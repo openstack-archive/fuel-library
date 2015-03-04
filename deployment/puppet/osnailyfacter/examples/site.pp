@@ -245,6 +245,8 @@ class os_common {
     }
   }
 
+  class { 'osnailyfacter::ssh': }
+
   #case $role {
     #    /controller/:          { $hostgroup = 'controller' }
     #    /swift-proxy/: { $hostgroup = 'swift-proxy' }
