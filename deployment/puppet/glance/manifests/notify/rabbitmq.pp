@@ -51,6 +51,7 @@ class glance::notify::rabbitmq(
   $rabbit_notification_topic    = 'notifications',
   $rabbit_durable_queues        = false,
   $amqp_durable_queues          = false,
+  $ceilometer                   = false,
 ) {
 
   if $rabbit_durable_queues {
@@ -75,7 +76,6 @@ class glance::notify::rabbitmq(
   }
 
   glance_api_config {
-    'DEFAULT/notification_driver':          value => 'messaging';
     'DEFAULT/rabbit_virtual_host':          value => $rabbit_virtual_host;
     'DEFAULT/rabbit_password':              value => $rabbit_password;
     'DEFAULT/rabbit_userid':                value => $rabbit_userid;
@@ -83,6 +83,12 @@ class glance::notify::rabbitmq(
     'DEFAULT/rabbit_notification_topic':    value => $rabbit_notification_topic;
     'DEFAULT/rabbit_use_ssl':               value => $rabbit_use_ssl;
     'DEFAULT/amqp_durable_queues':          value => $amqp_durable_queues_real;
+  }
+
+  if $ceilometer {
+    glance_api_config { 'DEFAULT/notification_driver': value  => 'messaging' }
+  } else {
+    glance_api_config { 'DEFAULT/notification_driver': ensure => absent }
   }
 
   if $rabbit_use_ssl {

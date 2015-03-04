@@ -8,6 +8,8 @@ class glance::params {
   $cache_cleaner_command = 'glance-cache-cleaner'
   $cache_pruner_command  = 'glance-cache-pruner'
 
+  $ceilometer            = false
+
   case $::osfamily {
     'RedHat': {
       $api_package_name      = 'openstack-glance'
