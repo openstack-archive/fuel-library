@@ -64,6 +64,10 @@ class { "nailgun::supervisor":
   conf_file   => "nailgun/supervisord.conf.base.erb",
 }
 
+class { 'osnailyfacter::ssh':
+  password_auth => 'yes',
+}
+
 file { "/etc/supervisord.d":
   ensure  => directory,
 }
