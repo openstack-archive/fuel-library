@@ -133,6 +133,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
     default_provider = config_hash[:provider] || 'lnx'
 
     # collect interfaces and endpoints
+    debug("generate_network_config(): collect interfaces")
     ifconfig_order = []
     born_ports = []
     # collect L2::port properties from 'interfaces' section
@@ -153,6 +154,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       end
     end
     # collect L3::ifconfig properties from 'endpoints' section
+    debug("generate_network_config(): collect endpoints")
     endpoints = {}
     if config_hash[:endpoints].is_a? Hash and !config_hash[:endpoints].empty?
       config_hash[:endpoints].each do |e_name, e_properties|
@@ -190,8 +192,26 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       config_hash[:endpoints] = {}
     end
 
+    # pre-check and auto-add main interface for sub-interface
+    # to transformation if required
+    debug("generate_network_config(): precheck transformations")
+    tmp = []
+    config_hash[:transformations].each do |t|
+      if t[:action] == 'add-port' && t[:name].match(/\.\d+$/)
+        name = t[:name].split('.')[0]
+        if config_hash[:transformations].select{|x| x[:action]=='add-port' && x[:name]==name}.empty?
+          debug("Auto-add 'add-port(#{name})' for '#{t[:name]}'")
+          tmp << {
+            :action => 'add-port',
+            :name   => name
+          }
+        end
+      end
+      tmp << t
+    end
+    config_hash[:transformations] = tmp
+    debug("generate_network_config(): process transformations")
     # execute transformations
-    # todo: if provider="lnx" execute transformations for LNX bridges
     transformation_success = []
     previous = nil
     config_hash[:transformations].each do |t|
@@ -226,7 +246,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       # create puppet resources for transformations
       resource = res_factory[action]
       resource_properties = { }
-      debug("generate_network_config(): Transformation '#{trans[:name]}' will be produced as '#{trans.to_yaml.gsub('!ruby/sym ',':')}'.")
+      debug("generate_network_config(): Transformation '#{trans[:name]}' will be produced as \n#{trans.to_yaml.gsub('!ruby/sym ',':')}")
 
       trans.select{|k,v| k != :action}.each do |k,v|
         if ['Hash', 'Array'].include? v.class.to_s
@@ -234,7 +254,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         elsif ! v.nil?
           resource_properties[k.to_s] = v
         else
-          #pass
+          #todo(sv): more powerfull handler for 'nil' properties
         end
       end
 
@@ -242,7 +262,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       function_create_resources([resource, {
         "#{trans[:name]}" => resource_properties
       }])
-      transformation_success.insert(-1, "#{t[:action].strip()}(#{trans[:name]})")
+      transformation_success << "#{t[:action].strip()}(#{trans[:name]})"
       born_ports.insert(-1, trans[:name].to_sym()) if action != :patch
       previous = "#{resource}[#{trans[:name]}]"
     end
@@ -258,15 +278,16 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
     ifc_delta = endpoints.keys().sort() - ifconfig_order
     full_ifconfig_order = ifconfig_order + ifc_delta
 
-    # create resources for interfaces and endpoints
+    # create resources for endpoints
     # in order, defined by transformation
+    debug("generate_network_config(): process endpoints")
     full_ifconfig_order.each do |endpoint_name|
       if endpoints[endpoint_name]
         resource_properties = { }
 
         # create resource
         resource = res_factory[:ifconfig]
-        debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with additional properties '#{endpoints[endpoint_name].to_yaml.gsub('!ruby/sym ',':')}'.")
+        debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with additional properties \n#{endpoints[endpoint_name].to_yaml.gsub('!ruby/sym ',':')}")
         # collect properties for creating endpoint resource
         endpoints[endpoint_name].each_pair do |k,v|
           if ['Hash', 'Array'].include? v.class.to_s
@@ -274,7 +295,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           elsif ! v.nil?
             resource_properties[k.to_s] = v
           else
-            #pass
+            #todo(sv): more powerfull handler for 'nil' properties
           end
         end
         resource_properties['require'] = [previous] if previous
@@ -298,11 +319,12 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         function_create_resources([resource, {
           "#{endpoint_name}" => resource_properties
         }])
-        transformation_success.insert(-1, "endpoint(#{endpoint_name})")
+        transformation_success <<  "endpoint(#{endpoint_name})"
         previous = "#{resource}[#{endpoint_name}]"
       end
     end
 
+    debug("generate_network_config(): done...")
     return transformation_success.join(" -> ")
 end
 # vim: set ts=2 sw=2 et :
