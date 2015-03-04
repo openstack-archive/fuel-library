@@ -37,6 +37,12 @@ def image_list
   {:images => images, :exit_code => return_code}
 end
 
+def ready_ceph
+  stdout = `ceph osd stat | grep -c '0 up' | grep -q 0 && ceph --status | grep -q HEALTH_OK `
+  return_code = $?.exitstatus
+  {:exit_code => return_code}
+end
+
 def image_create(image_hash)
   command = <<-EOF
 . /root/openrc && /usr/bin/glance image-create \
@@ -65,6 +71,15 @@ def wait_for_glance
   raise 'Could not get a list of glance images!'
 end
 
+# check if ceph cluster is ready
+def wait_for_ready_ceph
+  60.times.each do |retries|
+    sleep 60 if retries > 0
+    return if ready_ceph[:exit_code] == 0
+  end
+  raise 'Ceph is not ready !'
+end
+
 # upload image to Glance
 # if it have not been already uploaded
 def upload_image(image)
@@ -85,6 +100,8 @@ def upload_image(image)
 end
 
 ########################
+
+wait_for_ready_ceph if hiera.lookup('storage', false, {})['images_ceph']
 
 wait_for_glance
 
