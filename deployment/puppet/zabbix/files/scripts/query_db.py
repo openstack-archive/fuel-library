@@ -1,8 +1,8 @@
 #!/usr/bin/python
-# flake8: noqa
 import ConfigParser
-import sys
 import logging
+import sys
+
 import sqlalchemy
 
 
@@ -14,6 +14,7 @@ LOGGING_LEVELS = {
     'DEBUG': logging.DEBUG
 }
 
+
 def get_logger(level):
     logger = logging.getLogger()
     ch = logging.StreamHandler(sys.stdout)
@@ -21,14 +22,15 @@ def get_logger(level):
     logger.addHandler(ch)
     return logger
 
+
 def query_db(logger, connection_string, query_string):
     try:
         engine = sqlalchemy.create_engine(connection_string)
         res = engine.execute(query_string).first()
     except sqlalchemy.exc.OperationalError as e:
-        logger.critical("Operational error '%s'" % e)
+        logger.critical("Operational error '%s'", e)
     except sqlalchemy.exc.ProgrammingError as e:
-        logger.critical("Programming error '%s'" % e)
+        logger.critical("Programming error '%s'", e)
     else:
         return res[0]
 
@@ -47,9 +49,10 @@ if __name__ == '__main__':
         sql_connection = config.get('query_db', '%s_connection' % item)
         sql_query = config.get('query_db', '%s_query' % item)
     except ConfigParser.NoOptionError as e:
-        logger.critical("Item '%s' not configured" % item)
+        logger.critical("Item '%s' not configured", item)
         sys.exit(2)
 
-    logger.info("Get request for item '%s'" % item)
-    logger.debug("Sql connection: '%s', sql query: '%s'" % (sql_connection, sql_query))
+    logger.info("Get request for item '%s'", item)
+    logger.debug("Sql connection: '%s', sql query: '%s'",
+                 sql_connection, sql_query)
     logger.critical(query_db(logger, sql_connection, sql_query))
