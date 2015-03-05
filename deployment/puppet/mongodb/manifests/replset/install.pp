@@ -26,6 +26,12 @@ class mongodb::replset::install (
     try_sleep => 1,
   } ->
 
+  exec {"wait_for_elections":
+    command   => "/bin/echo \"TRY_NUMBER=1; for i in {1..10}; do echo \\\"db.isMaster()\\\" | /usr/bin/mongo | grep ismaster | grep -v -q true && break ; do echo \\\"Is not master yet\\\" ; sleep 1 ; done\" | /bin/bash",
+    tries     => 10,
+    try_sleep => 1,
+  } ->
+
   exec { 'rs.initiate':
     command   => '/bin/echo "rs.initiate()"| /usr/bin/mongo',
   } ->
