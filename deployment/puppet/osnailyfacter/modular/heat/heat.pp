@@ -101,6 +101,23 @@ class { 'heat::docker_resource' :
   package_name => $docker_resource_package_name,
 }
 
+class { 'heat::keystone::domain' :
+  auth_url          => "http://${controller_node_address}:5000/v2.0",
+  keystone_admin    => 'heat',
+  keystone_password => $heat_hash['user_password'],
+  keystone_tenant   => 'services',
+  domain_name       => 'heat',
+  domain_admin      => 'heat_admin',
+  domain_password   => $heat_hash['user_password'],
+}
+
+Class['heat'] -> Class['heat::keystone::domain']
+
+heat_config {
+  'default/deferred_auth_method'    : value => 'trusts';
+  'default/trusts_delegated_roles'  : value => '';
+}
+
 ######################
 
 class mysql::server {}
