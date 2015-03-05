@@ -19,7 +19,7 @@ class nailgun::cobbler(
   $dhcp_start_address,
   $dhcp_end_address,
   $dhcp_netmask,
-  $dhcp_gateway = $ipaddress,
+  $dhcp_gateway,
   $dhcp_interface,
   $nailgun_api_url = "http://${::ipaddress}:8000/api",
   # default password is 'r00tme'
