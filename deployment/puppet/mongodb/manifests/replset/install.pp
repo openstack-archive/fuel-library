@@ -38,9 +38,10 @@ class mongodb::replset::install (
     command   => '/bin/echo "rs.conf()"| /usr/bin/mongo',
   } ->
 
-  exec { 'do_pause_2':
-    command   => '/bin/sleep 5',
+  exec {"wait_for_elections":
+    command   => "/bin/echo \"for i in {1..100}; do echo \\\"db.isMaster()\\\" | /usr/bin/mongo | grep ismaster | grep -q true && break ; echo \\\"Is not master yet\\\" ; sleep 1 ; done\" | /bin/bash",
   } ->
+
   add_replset_members{ $replset_members:; }
 
 }
