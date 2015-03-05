@@ -1,0 +1,27 @@
+- id: database-install
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [openstack-controller]
+  requires: [openstack-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/install.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/install_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/install_post.rb
+
+- id: database-setup
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [openstack-controller]
+  requires: [database-install]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/setup.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/setup_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/setup_post.rb
