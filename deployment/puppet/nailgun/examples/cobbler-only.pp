@@ -41,6 +41,13 @@ node default {
   $dhcp_start_address = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start']
   $dhcp_end_address   = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end']
   $dhcp_netmask       = $::fuel_settings['ADMIN_NETWORK']['netmask']
+  $dhcp_gw            = $::fuel_settings['ADMIN_NETWORK']['gateway']
+  if $dhcp_gw {
+    $dhcp_gateway = $dhcp_gw
+  } else {
+    $dhcp_gateway = $cobbler_host
+  }
+
   if $production =~ /docker/ {
     $dhcp_interface     = "eth0"
   } else {
@@ -85,7 +92,7 @@ node default {
     dhcp_start_address => $dhcp_start_address,
     dhcp_end_address   => $dhcp_end_address,
     dhcp_netmask       => $dhcp_netmask,
-    dhcp_gateway       => $cobbler_host,
+    dhcp_gateway       => $dhcp_gateway,
     dhcp_interface     => $dhcp_interface,
     nailgun_api_url    => $nailgun_api_url,
   }
