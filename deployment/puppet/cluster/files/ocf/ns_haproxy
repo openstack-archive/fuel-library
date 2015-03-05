@@ -47,6 +47,7 @@ OCF_RESKEY_host_ip_default="240.0.0.1"
 OCF_RESKEY_namespace_ip_default="240.0.0.2"
 OCF_RESKEY_network_mask_default="30"
 OCF_RESKEY_route_metric_default="10000"
+OCF_RESKEY_debug_default=false
 
 : ${OCF_ROOT=${OCF_ROOT_default}}
 
@@ -62,6 +63,7 @@ OCF_RESKEY_route_metric_default="10000"
 : ${OCF_RESKEY_namespace_ip=${OCF_RESKEY_namespace_ip_default}}
 : ${OCF_RESKEY_network_mask=${OCF_RESKEY_network_mask_default}}
 : ${OCF_RESKEY_route_metric=${OCF_RESKEY_route_metric_default}}
+: ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
@@ -206,6 +208,14 @@ For example, "1000"
 <content type="string" default="${OCF_RESKEY_route_metric_default}" />
 </parameter>
 
+<parameter name="debug" unique="0" required="0">
+<longdesc lang="en">
+The debug flag for haproxy.
+</longdesc>
+<shortdesc lang="en">HAProxy RA debug flag</shortdesc>
+<content type="boolean" default="${OCF_RESKEY_debug_default}" />
+</parameter>
+
 </parameters>
 
 <actions>
@@ -222,31 +232,37 @@ exit $OCF_SUCCESS
 }
 
 check_ns() {
+  local LH="${LL} check_ns():"
   local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
+  ocf_log debug "${LH} recieved netns list: ${ns}"
   [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
   return $OCF_SUCCESS
 }
 
 get_ns() {
   local rc
+  local LH="${LL} get_ns():"
   check_ns && return $OCF_SUCCESS
 
   ocf_run ip netns add $OCF_RESKEY_ns
   rc=$?
   ocf_run $RUN_IN_NS ip link set up dev lo
+  ocf_log debug "${LH} added netns ${OCF_RESKEY_ns} and set up lo"
 
   return $rc
 }
 
 get_variables() {
-	get_ns
-	CONF_FILE="${OCF_RESKEY_conffile}"
-	COMMAND="$RUN ${OCF_RESKEY_binpath}"
-	if [ -n "${OCF_RESKEY_pidfile}" ]; then
-		PIDFILE=$(grep -v "#" ${CONF_FILE} | grep "pidfile" | sed 's/^[ \t]*pidfile[ \t]*//')
-	else
-		PIDFILE="${OCF_RESKEY_pidfile}"
-	fi
+        local LH="${LL} get_variables():"
+        get_ns
+        CONF_FILE="${OCF_RESKEY_conffile}"
+        COMMAND="$RUN ${OCF_RESKEY_binpath}"
+        if [ -n "${OCF_RESKEY_pidfile}" ]; then
+                PIDFILE=$(grep -v "#" ${CONF_FILE} | grep "pidfile" | sed 's/^[ \t]*pidfile[ \t]*//')
+        else
+                PIDFILE="${OCF_RESKEY_pidfile}"
+        fi
+        ocf_log debug "${LH} set up variables and PIDFILE name"
 }
 
 set_ns_routing() {
@@ -328,7 +344,7 @@ haproxy_status() {
 				ocf_log info "haproxy daemon running"
 				return $OCF_SUCCESS
 			else
-				ocf_log info "haproxy daemon is not running but pid file exists"
+				ocf_log warn "haproxy daemon is not running but pid file exists"
 				return $OCF_NOT_RUNNING
 			fi
 		else
@@ -388,23 +404,57 @@ haproxy_reload()
 	fi
 }
 
+# Try to kill (SIGTERM) specified pid 5 times by 2 sec interval
+haproxy_kill()
+{
+  local rc
+  local PID="$1"
+  local count=5
+  local LH="${LL} haproxy_kill():"
+
+  while [ $count -gt 0 ]; do
+    if [ -d /proc/${PID}/ ] ; then
+      ocf_log debug "${LH} Stopping haproxy daemon with SIGTERM... "
+      ocf_run kill "${PID}"
+      rc=$?
+      if [ $rc -eq 0 -a ! -d /proc/${PID}/ ]; then
+        ocf_log debug "${LH} Stopped haproxy daemon with SIGTERM"
+        return 0
+      fi
+    else
+      return 0
+    fi
+    sleep 2
+    count=$(( count-1 ))
+  done
+  ocf_log debug "${LH} Failed to stop haproxy daemon with SIGTERM"
+  return 1
+}
+
 haproxy_stop()
 {
+        local rc
+        local LH="${LL} haproxy_stop():"
 	get_variables
 	if haproxy_status ; then
 		PID="`${RUN} cat ${PIDFILE}`"
-		if [ -n "${PID}" ] ; then
-			kill "${PID}"
-			if [ $? -ne 0 ]; then
-				kill -SIGKILL "${PID}"
-				if [ $? -ne 0 ]; then
-					ocf_log err "Error. Could not stop haproxy daemon."
-					return $OCF_ERR_GENERIC
-				fi
-			fi
-                        ocf_log debug "Delete pid file: ${PIDFILE} with content ${PID}"
-			rm -f "${PIDFILE}"
-		fi
+                if [ -z "${PID}" -o "${PID}" -eq "1" -o ! -d /proc/${PID}/ ]; then
+                  ocf_log err "${LH} Cannot stop haproxy (PID=${PID})"
+                  return $OCF_ERR_GENERIC
+                fi
+		haproxy_kill "${PID}"
+                rc=$?
+                if [ $rc -ne 0 -a -d /proc/${PID}/ ]; then
+                        ocf_run kill -SIGKILL "${PID}"
+                        ocf_log err "${LH} Failed to stop haproxy daemon gracefully. Killed with SIGKILL"
+                        rc=$?
+                        if [ $rc -ne 0 ]; then
+                                ocf_log err "${LH} Error. Could not stop haproxy daemon."
+                                return $OCF_ERR_GENERIC
+                        fi
+                fi
+                ocf_log debug "Delete pid file: ${PIDFILE} with content ${PID}"
+                rm -f "${PIDFILE}"
 	fi
 	ocf_log info "Stopped haproxy daemon."
 	return $OCF_SUCCESS
@@ -452,6 +502,7 @@ if [ $# -ne 1 ]; then
 	exit $OCF_ERR_ARGS
 fi
 umask 0022
+export LL="${OCF_RESOURCE_INSTANCE}:"
 
 case $1 in
 	start) haproxy_start
