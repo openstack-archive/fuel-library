@@ -102,6 +102,7 @@ class { "nailgun::venv":
   admin_network_netmask => $::fuel_settings['ADMIN_NETWORK']['netmask'],
   admin_network_mac     => $::fuel_settings['ADMIN_NETWORK']['mac'],
   admin_network_ip      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+  admin_network_gateway => $::fuel_settings['ADMIN_NETWORK']['dhcp_gateway'],
 
   cobbler_host     => $cobbler_host,
   cobbler_url      => $cobbler_url,

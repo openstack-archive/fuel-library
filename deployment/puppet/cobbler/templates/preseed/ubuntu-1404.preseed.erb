@@ -153,7 +153,6 @@ $SNIPPET('ubuntu_precise_packages_late')
 $SNIPPET('ubuntu_partition_late')
 $SNIPPET('ubuntu_disable_pxe') && \
 $SNIPPET('ubuntu_network') && \
-echo 'supersede routers 0;' > /target/etc/dhcp/dhclient.conf && \
 $SNIPPET('cinder_create_lvm_group__ubuntu') && \
 $SNIPPET('ubuntu_puppet_config') && \
 $SNIPPET('ubuntu_mcollective_config') && \
