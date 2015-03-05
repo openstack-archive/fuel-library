@@ -1,6 +1,8 @@
+# manage /etc/hosts
+#
 class l23network::hosts_file (
   $nodes,
-  $hosts_file = "/etc/hosts"
+  $hosts_file = '/etc/hosts'
 ) {
 
   #Move original hosts file
