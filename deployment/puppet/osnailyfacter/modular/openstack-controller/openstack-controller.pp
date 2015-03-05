@@ -326,42 +326,7 @@ class { '::openstack::controller':
   max_pool_size                  => $max_pool_size,
   max_overflow                   => $max_overflow,
   idle_timeout                   => $idle_timeout,
-
 }
-
-# NOTE(xarses): keystone::roles:admin is the admin user for the enduser
-# no service should use it. It was moved out here to make it so that the admin
-# user_nmae and admin_password are cant be mistakenly used elsewhere in the
-# manifests
-
-class { 'keystone::roles::admin':
-  admin        => $access_hash[user],
-  password     => $access_hash[password],
-  email        => $access_hash[email],
-  admin_tenant => $access_hash[tenant],
-}
-
-class { 'openstack::auth_file':
-  admin_user           => $access_hash[user],
-  admin_password       => $access_hash[password],
-  admin_tenant         => $access_hash[tenant],
-  controller_node      => $internal_address,
-}
-
-class { 'openstack::workloads_collector':
-  enabled              => $workloads_hash[enabled],
-  workloads_username   => $workloads_hash[username],
-  workloads_password   => $workloads_hash[password],
-  workloads_tenant     => $workloads_hash[tenant],
-}
-Exec <| title == 'keystone-manage db_sync' |> ->
- Class['Keystone::Roles::Admin'] ->
-  Class['Openstack::Auth_file']
-
-Class['Keystone::Roles::Admin'] ->
-  Class['Openstack::Workloads_collector']
-
-
 
 package { 'socat': ensure => present }
 
@@ -372,59 +337,23 @@ if $primary_controller {
 
   $haproxy_stats_url = "http://${management_vip}:10000/;csv"
 
-  haproxy_backend_status { 'keystone-public' :
-    name    => 'keystone-1',
-    url     => $haproxy_stats_url,
-    require => Haproxy_Backend_Status['mysql'],
-  }
-
-  haproxy_backend_status { 'keystone-admin' :
-    name    => 'keystone-2',
-    url     => $haproxy_stats_url,
-    require => Haproxy_Backend_Status['mysql'],
-  }
-
   haproxy_backend_status { 'nova-api' :
     name    => 'nova-api-2',
     url     => $haproxy_stats_url,
-    require => Haproxy_Backend_Status['mysql'],
-  }
-
-  haproxy_backend_status { 'mysql' :
-    name => 'mysqld',
-    url  => $haproxy_stats_url,
   }
 
   Openstack::Ha::Haproxy_service <| |> -> Haproxy_backend_status <| |>
 
-  Class['keystone'] -> Haproxy_backend_status['keystone-public']
-  Class['keystone'] -> Haproxy_backend_status['keystone-admin']
-  Class['nova::api', 'nova::keystone::auth'] -> Haproxy_backend_status['nova-api']
-
-  #TODO(bogdando) remove this dependencies after granular deploy step 4 finished
-  Class['openstack::galera::status'] -> Haproxy_backend_status['mysql']
-  Exec<| title == 'wait-for-synced-state' |> -> Haproxy_backend_status['mysql']
-  Haproxy_backend_status['mysql'] -> Exec<| title == 'keystone-manage db_sync' |>
-  Haproxy_backend_status['mysql'] -> Exec<| title == 'glance-manage db_sync' |>
-  Haproxy_backend_status['mysql'] -> Exec<| title == 'cinder-manage db_sync' |>
-  Haproxy_backend_status['mysql'] -> Exec<| title == 'nova-db-sync' |>
-  Haproxy_backend_status['mysql'] -> Exec<| title == 'heat-dbsync' |>
-  Haproxy_backend_status['mysql'] -> Exec<| title == 'ceilometer-dbsync' |>
-  Haproxy_backend_status['mysql'] -> Exec<| title == 'neutron-db-sync' |>
-  Haproxy_backend_status['mysql'] -> Service <| title == 'cinder-scheduler' |>
-  Haproxy_backend_status['mysql'] -> Service <| title == 'cinder-volume' |>
-  Haproxy_backend_status['mysql'] -> Service <| title == 'cinder-api' |>
+  Class['nova::api'] -> Haproxy_backend_status['nova-api']
 
   exec { 'create-m1.micro-flavor' :
     command => "bash -c \"source /root/openrc; nova flavor-create --is-public true m1.micro auto 64 0 1\"",
     path    => '/sbin:/usr/sbin:/bin:/usr/bin',
     unless  => 'bash -c "source /root/openrc; nova flavor-list | grep -q m1.micro"',
-    require => [ Class['nova'], Class['openstack::auth_file'] ],
+    require => Class['nova'],
   }
 
   Haproxy_backend_status <| |>    -> Exec<| title == 'create-m1.micro-flavor' |>
-  Class['keystone::roles::admin'] -> Exec<| title == 'create-m1.micro-flavor' |>
-  Class['keystone::roles::admin'] -> Nova_floating_range <| |>
 
   if ! $use_neutron {
     nova_floating_range { $floating_ips_range:
@@ -438,8 +367,6 @@ if $primary_controller {
       api_retries     => 10,
     }
     Haproxy_backend_status['nova-api'] -> Nova_floating_range <| |>
-    Haproxy_backend_status['keystone-public'] -> Nova_floating_range <| |>
-    Haproxy_backend_status['keystone-admin'] -> Nova_floating_range <| |>
   }
 }
 
