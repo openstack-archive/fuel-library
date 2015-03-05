@@ -1,0 +1,13 @@
+- id: glance
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [openstack-controller]
+  requires: [openstack-haproxy, keystone, database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/glance/glance.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/glance/glance_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/glance/glance_post.rb
