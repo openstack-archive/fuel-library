@@ -4,7 +4,11 @@
 install
 
 # INSTALLATION SOURCE (centos repository)
+#if $varExists('repo_metadata')
+#set $repo_setup = {"repos": [{"name": "nailgun", "uri": "http://@@server@@:8080/centos/x86_64/", "priority": 1}]}
+#else
 #set $repo_setup = json.loads($getVar("repo_setup"))
+#end if
 #set $repo = $repo_setup["repos"][0]
 url --url=$repo["uri"]
 

@@ -1,10 +1,16 @@
+# TODO(ikalnitsky): remove this hack when new nailgun/astute will
+# be synced to fuel ci.
+#if $varExists('repo_metadata')
+#set $repo_setup = {"repos": [{"name": "nailgun", "uri": "http://@@server@@:8080/ubuntu/x86_64/", "suite": "trusty", "section": "main", "priority": 1001}]}
+#else
 #import json
+#set $repo_setup = json.loads($getVar("repo_setup"))
+#end if
 ## We assume ks_meta contains repo_setup variable
 ## Cleaning up sources.list
 echo > /target/etc/apt/sources.list; \
 mkdir -p /target/etc/apt/sources.list.d; \
 mkdir -p /target/etc/apt/preferences.d; \
-#set $repo_setup = json.loads($getVar("repo_setup"))
 #set $repos = $repo_setup["repos"]
 #for $repo in $repos
 echo 'deb $repo["uri"] $repo["suite"] $repo["section"]' > /target/etc/apt/sources.list.d/${repo["name"]}.list; \

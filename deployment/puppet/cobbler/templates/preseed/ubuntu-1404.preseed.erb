@@ -41,8 +41,14 @@ d-i base-installer/kernel/image string linux-image-3.11
 # REPOS
 ##########
 
+# TODO(ikalnitsky): remove this hack when new nailgun/astute will
+# be synced to fuel ci.
+#if $varExists('repo_metadata')
+#set $repo_setup = {"repos": [{"name": "nailgun", "uri": "http://@@server@@:8080/ubuntu/x86_64/", "suite": "trusty", "section": "main", "priority": 1001}]}
+#else
 #import json
 #set $repo_setup = json.loads($getVar("repo_setup"))
+#end if
 #set $repos = $repo_setup["repos"]
 #set $base_mirror = $repos[0]
 #set $base_mirror_protocol = $base_mirror["uri"].split(":", 1)[0]

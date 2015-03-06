@@ -15,10 +15,20 @@ package { $tools :
   ensure => 'present',
 }
 
-$puppet = hiera('puppet')
-class { 'puppet::pull' :
-  modules_source   => $puppet['modules'],
-  manifests_source => $puppet['manifests'],
+$puppet = hiera('puppet', false)
+
+# FIXME: when nailgun API is updated remove conditional and
+# leave only $puppet hash part
+if is_hash($puppet) {
+  class { 'puppet::pull' :
+    modules_source   => $puppet['modules'],
+    manifests_source => $puppet['manifests'],
+  }
+} else {
+  class { 'puppet::pull' :
+    modules_source   => hiera('puppet_modules_source'),
+    manifests_source => hiera('puppet_manifests_source'),
+  }
 }
 
 $deployment_mode = hiera('deployment_mode')
