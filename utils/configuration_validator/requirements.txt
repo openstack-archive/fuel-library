@@ -1,4 +1,3 @@
 pytest>=2.6.4
-networkx>=1.8
-jsonschema>=2.3.0
 PyYAML>=3.11
+fuel-tasks-validator==0.01

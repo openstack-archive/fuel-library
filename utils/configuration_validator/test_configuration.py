@@ -16,38 +16,18 @@ import os
 from fnmatch import fnmatch
 import logging
 
-import jsonschema
-import networkx as nx
 import pytest
 import yaml
+
+from tasks_validator import validator
 
 logging.basicConfig(level=logging.DEBUG)
 
 log = logging.getLogger(__name__)
 
 
-TASK_SCHEMA = {
-    '$schema': 'http://json-schema.org/draft-04/schema#',
-    'type': 'object',
-    'required': ['type', 'id'],
-    'properties': {
-        'id': {'type': 'string'},
-        'type': {'enum': ['puppet', 'shell', 'group', 'stage', 'copy_files',
-                          'sync', 'upload_file'],
-                 'type': 'string'},
-        'parameters': {'type': 'object'},
-        'required_for': {'type': 'array'},
-        'requires': {'type': 'array'}}}
-
-
-TASKS_SCHEMA = {
-    '$schema': 'http://json-schema.org/draft-04/schema#',
-    'type': 'array',
-    'items': TASK_SCHEMA}
-
-
 def get_files(base_dir, file_pattern='*tasks.yaml'):
-    for root, dirs, files in os.walk(base_dir):
+    for root, _dirs, files in os.walk(base_dir):
         for file_name in files:
             if fnmatch(file_name, file_pattern):
                 yield os.path.join(root, file_name)
@@ -63,40 +43,11 @@ def tasks(request):
     return tasks
 
 
-@pytest.fixture
-def graph(tasks):
-    graph = nx.DiGraph()
-    for task in tasks:
-        graph.add_node(task['id'], **task)
-        if 'required_for' in task:
-            for req in task['required_for']:
-                graph.add_edge(task['id'], req)
-        if 'requires' in task:
-            for req in task['requires']:
-                graph.add_edge(req, task['id'])
-
-        if 'groups' in task:
-            for req in task['groups']:
-                graph.add_edge(task['id'], req)
-        if 'tasks' in task:
-            for req in task['tasks']:
-                graph.add_edge(req, task['id'])
-
-    return graph
+def test_tasks_schema(tasks):
+    t_validator = validator.TasksValidator(tasks, 'newest')
+    t_validator.validate_schema()
 
 
-def test_schema(tasks):
-    checker = jsonschema.FormatChecker()
-    jsonschema.validate(tasks, TASKS_SCHEMA, format_checker=checker)
-
-
-def test_for_cycles_in_graph(graph):
-    #todo(dshulyak) show where cycle is
-    dag = nx.is_directed_acyclic_graph(graph)
-    assert dag, 'Graph is not acyclic.'
-
-
-def test_not_empty(graph):
-    for node_name, node in graph.node.items():
-        assert node != {}, "{0} should not be an empty".format(node_name)
-
+def test_tasks_graph(tasks):
+    t_validator = validator.TasksValidator(tasks, 'newest')
+    t_validator.validate_graph()
