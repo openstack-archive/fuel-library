@@ -1,18 +1,15 @@
-#import json
-
 # WHAT TO DO (install fresh system rather than upgrade)
 install
 
 # INSTALLATION SOURCE (centos repository)
-#set $repo_setup = json.loads($getVar("repo_setup"))
-#set $repo = $repo_setup["repos"][0]
-url --url=$repo["uri"]
+url --url=$tree
 
-#if $varExists("repo_setup")
+#if $varExists('repo_metadata')
 # REPOSITORIES FROM Nailgun
-#set $repos = $repo_setup["repos"][1:]
-#for $repo in $repos
-repo --name=$repo["name"] --baseurl=$repo["uri"]
+## Expected repo_metadata format Name1=Value1,Name2=Value2
+#set repo_list = dict(item.split("=") for item in $repo_metadata.split(","))
+#for $repo_name, $repo_url in $repo_list.items()
+repo --name=$repo_name --baseurl=$repo_url
 #end for
 #else
 # ALTERNATIVE REPOSITORIES (PRESET)
