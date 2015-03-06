@@ -1,0 +1,1 @@
+-e git+https://github.com/ksambor/fuel-tasks-validator.git@review/kamil_sambor/improve-graph#egg=fuel-tasks-validator
