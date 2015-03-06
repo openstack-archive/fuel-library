@@ -1,0 +1,1 @@
+fuel-tasks-validator==6.1.0
