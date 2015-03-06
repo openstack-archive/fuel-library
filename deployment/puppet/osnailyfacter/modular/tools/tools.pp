@@ -15,10 +15,9 @@ package { $tools :
   ensure => 'present',
 }
 
-$puppet = hiera('puppet')
 class { 'puppet::pull' :
-  modules_source   => $puppet['modules'],
-  manifests_source => $puppet['manifests'],
+  modules_source   => hiera('puppet_modules_source'),
+  manifests_source => hiera('puppet_manifests_source'),
 }
 
 $deployment_mode = hiera('deployment_mode')
