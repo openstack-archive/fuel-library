@@ -17,8 +17,8 @@ package { $tools :
 
 $puppet = hiera('puppet')
 class { 'puppet::pull' :
-  modules_source   => $puppet['modules'],
-  manifests_source => $puppet['manifests'],
+  modules_source   => hiera('puppet_modules_source','/etc/puppet/modules/'),
+  manifests_source => hiera('puppet_manifests_source','/etc/puppet/manifests/'),
 }
 
 $deployment_mode = hiera('deployment_mode')
