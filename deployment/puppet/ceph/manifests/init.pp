@@ -27,7 +27,7 @@ class ceph (
       $swift_endpoint_port              = '8080',
       $rgw_keyring_path                 = '/etc/ceph/keyring.radosgw.gateway',
       $rgw_socket_path                  = '/tmp/radosgw.sock',
-      $rgw_log_file                     = '/var/log/ceph/radosgw.log',
+      $rgw_log_file                     = '/var/log/ceph/$cluster-$name.log',
       $rgw_use_keystone                 = true,
       $rgw_use_pki                      = false,
       $rgw_keystone_url                 = "${cluster_node_address}:5000",
