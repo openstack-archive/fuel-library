@@ -423,6 +423,8 @@ if $primary_controller {
   Exec<| title=='create-m1.micro-flavor' |>
   Class['keystone::roles::admin'] ->
   Exec<| title=='create-m1.micro-flavor' |>
+  Class['keystone::roles::admin'] ->
+  Nova_floating_range <| |>
 
   if ! $use_neutron {
     nova_floating_range { $floating_ips_range:
