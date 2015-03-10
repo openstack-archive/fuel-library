@@ -48,7 +48,7 @@ Puppet::Type.type(:k_mod).provide(:lnx) do
   end
 
   # def flush
-  #   if @property_flush
+  #   if ! @property_flush.empty?
   #     debug("FLUSH properties: #{@property_flush}")
   #     #
   #     # FLUSH changed properties
