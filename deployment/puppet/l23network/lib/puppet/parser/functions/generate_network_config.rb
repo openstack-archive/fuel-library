@@ -281,6 +281,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
     # create resources for endpoints
     # in order, defined by transformation
     debug("generate_network_config(): process endpoints")
+    create_routes=[]
     full_ifconfig_order.each do |endpoint_name|
       if endpoints[endpoint_name]
         resource_properties = { }
@@ -290,7 +291,13 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with additional properties \n#{endpoints[endpoint_name].to_yaml.gsub('!ruby/sym ',':')}")
         # collect properties for creating endpoint resource
         endpoints[endpoint_name].each_pair do |k,v|
-          if ['Hash', 'Array'].include? v.class.to_s
+          if k.to_s.downcase == 'routes'
+            # for routes we should create additional resource, not a property of ifconfig
+            next if ! v.is_a?(Array)
+            v.each do |vv|
+              create_routes << vv
+            end
+          elsif ['Hash', 'Array'].include? v.class.to_s
             resource_properties[k.to_s] = L23network.reccursive_sanitize_hash(v)
           elsif ! v.nil?
             resource_properties[k.to_s] = v
@@ -322,6 +329,21 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         transformation_success <<  "endpoint(#{endpoint_name})"
         previous = "#{resource}[#{endpoint_name}]"
       end
+    end
+
+    debug("generate_network_config(): process additional routes")
+    create_routes.each do |route|
+      next if !route.has_key?(:net) or !route.has_key?(:via)
+      route_properties = {
+        'destination' => route[:net],
+        'gateway'     => route[:via]
+      }
+      route_properties[:metric] = route[:metric] if route[:metric].to_i > 0
+      route_name = L23network.get_route_resource_name(route[:net], route[:metric])
+      function_create_resources(['l23network::l3::route', {
+          "#{route_name}" => route_properties
+      }])
+      transformation_success <<  "route_for(#{route[:net]})"
     end
 
     debug("generate_network_config(): done...")
