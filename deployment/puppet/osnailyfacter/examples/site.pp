@@ -300,6 +300,8 @@ class os_common {
     stage => 'first',
   }
 
+  class { 'osnailyfacter::ssh': }
+
   #case $role {
     #    /controller/:          { $hostgroup = 'controller' }
     #    /swift-proxy/: { $hostgroup = 'swift-proxy' }
