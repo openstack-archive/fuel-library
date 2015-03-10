@@ -18,7 +18,7 @@ class vmware::ceilometer (
     $default_log_levels = 'amqp=WARN,amqplib=WARN,boto=WARN,qpid=WARN,sqlalchemy=WARN,suds=INFO,iso8601=WARN,requests.packages.urllib3.connectionpool=WARN,oslo.vmware=WARN'
   }
 
-  class { 'ceilometer::agent::compute':
+  class { 'vmware::ceilometer::compute':
     enabled => false,
   }
 
