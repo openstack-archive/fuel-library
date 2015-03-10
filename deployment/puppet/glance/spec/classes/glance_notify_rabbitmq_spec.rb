@@ -14,7 +14,7 @@ describe 'glance::notify::rabbitmq' do
     let :params do
       {:rabbit_password => 'pass'}
     end
-    it { should contain_glance_api_config('DEFAULT/notification_driver').with_value('messaging') }
+    it { should contain_glance_api_config('DEFAULT/notification_driver').with_ensure('absent') }
     it { should contain_glance_api_config('DEFAULT/rabbit_password').with_value('pass') }
     it { should contain_glance_api_config('DEFAULT/rabbit_userid').with_value('guest') }
     it { should contain_glance_api_config('DEFAULT/rabbit_host').with_value('localhost') }
