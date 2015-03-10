@@ -132,3 +132,14 @@
     interval: 1
     timeout: 180
 
+- id: pre_hiera_config
+  type: puppet
+  role: '*'
+  requires: [pre_deployment_start, rsync_core_puppet]
+  required_for: [pre_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
+
