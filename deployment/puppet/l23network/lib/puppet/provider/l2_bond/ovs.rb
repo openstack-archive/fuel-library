@@ -48,7 +48,7 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   end
 
   def flush
-    if @property_flush
+    if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       if @property_flush.has_key? :slaves
         warn("Do nothing, OVS don't allow change bond slaves for existing bond ('#{@resource[:bond]}').")
