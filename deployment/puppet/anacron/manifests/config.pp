@@ -13,9 +13,19 @@ class anacron::config {
 
   case $::operatingsystem  {
     /(?i)(centos|redhat)/: {
-      # assumes package cronie-anacron were istalled at BM
+      # assumes package cronie-anacron were installed at BM
       file { '/etc/anacrontab':
         source => 'puppet:///modules/anacron/anacrontab',
+      }
+      file { '/etc/cron.hourly/':
+        ensure => directory,
+        mode => '0755',
+        owner => 'root',
+      }
+      file { '/etc/cron.d/':
+        ensure => directory,
+        mode => '0755',
+        owner => 'root',
       }
       file { '/etc/cron.d/0hourly':
         source => 'puppet:///modules/anacron/0hourly',

@@ -6,6 +6,7 @@ class rsyslog::params {
       # the ISO, and if Fuel would start to use any of RELP features
       #$relp_package_name      = 'rsyslog-relp'
       $relp_package_name       = false
+      $additional_packages    = ['anacron', 'cron']
       $package_status         = 'installed'
       $rsyslog_d              = '/etc/rsyslog.d/'
       $rsyslog_conf           = '/etc/rsyslog.conf'
@@ -26,6 +27,7 @@ class rsyslog::params {
       # the ISO, and if Fuel would start to use any of RELP features
       #$relp_package_name      = 'rsyslog-relp'
       $relp_package_name       = false
+      $additional_packages    = ['cronie-anacron','crontabs']
       $package_status         = 'installed'
       $rsyslog_d              = '/etc/rsyslog.d/'
       $rsyslog_conf           = '/etc/rsyslog.conf'
