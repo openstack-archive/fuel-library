@@ -19,6 +19,7 @@ $FileOwner <%= scope.lookupvar('rsyslog::params::log_user') %>
 $FileGroup <%= scope.lookupvar('rsyslog::params::log_group') %>
 $FileCreateMode 0640
 $DirCreateMode 0755
+$umask 0000
 $PrivDropToUser <%= scope.lookupvar('rsyslog::params::run_user') %>
 $PrivDropToGroup <%= scope.lookupvar('rsyslog::params::run_group') %>
 
