@@ -2,6 +2,8 @@ notice('MODULAR: tools.pp')
 
 class { 'osnailyfacter::atop': }
 
+class { 'osnailyfacter::ssh': }
+
 $tools = [
   'screen',
   'tmux',
