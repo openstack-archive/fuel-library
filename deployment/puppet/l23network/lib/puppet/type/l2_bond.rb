@@ -43,6 +43,10 @@ Puppet::Type.newtype(:l2_bond) do
       aliasvalue(:no,  :false)
       aliasvalue(:off, :false)
       defaultto :true
+
+      def insync?(value)
+        value.to_s.downcase == should.to_s.downcase
+      end
     end
 
     newproperty(:bridge) do

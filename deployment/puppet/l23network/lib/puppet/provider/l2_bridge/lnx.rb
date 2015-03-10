@@ -54,7 +54,7 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
   end
 
   def flush
-    if @property_flush
+    if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       #
       # FLUSH changed properties

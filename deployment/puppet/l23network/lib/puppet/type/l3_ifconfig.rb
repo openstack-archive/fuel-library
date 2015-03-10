@@ -109,11 +109,6 @@ Puppet::Type.newtype(:l3_ifconfig) do
       desc "DHCP hostname"
     end
 
-    # newproperty(:onboot, :parent => Puppet::Property::Boolean) do
-    #   desc "Whether to bring the interface up"
-    #   defaultto :true
-    # end
-
     newproperty(:vendor_specific) do
       desc "Hash of vendor specific properties"
       #defaultto {}  # no default value should be!!!

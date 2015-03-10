@@ -70,7 +70,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   end
 
   def flush
-    if @property_flush
+    if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       #
       # FLUSH changed properties
@@ -86,10 +86,13 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             iproute('link', 'set', 'dev', slave, 'down')  # need by kernel requirements by design. undocumented :(
             File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "-#{slave}"}
           end
+          # add interfaces to bond
+          (@property_flush[:slaves] - runtime_slave_ports).each do |slave|
+            iproute('link', 'set', 'dev', slave, 'down')  # need by kernel requirements by design. undocumented :(
+            debug("Add interface '#{slave}' to bond '#{@resource[:bond]}'")
+            File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "+#{slave}"}
+          end
         end
-        # We shouldn't add ports here, because bond configures early, than ports.
-        # corresponded ports may be unconfigured at this time.
-        # corresponded ports will be add himself to bond while configuration
       end
       if @property_flush.has_key? :bond_properties
         # change bond_properties
