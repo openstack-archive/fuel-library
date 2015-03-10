@@ -63,7 +63,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   end
 
   def flush
-    if @property_flush
+    if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       #
       # FLUSH changed properties
