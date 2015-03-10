@@ -11,6 +11,7 @@ $rabbit_hash                    = hiera('rabbit_hash', {})
 $internal_address               = hiera('internal_address')
 $service_endpoint               = hiera('management_vip')
 $nova_hash                      = hiera('nova', {})
+$ceilometer_hash                = hiera('ceilometer',{})
 
 $floating_hash = {}
 
@@ -213,6 +214,9 @@ class { 'openstack::network':
   auth_host       => $internal_address,
   auth_url        => "http://${service_endpoint}:35357/v2.0",
   neutron_url     => "http://${service_endpoint}:9696",
+
+  # Ceilometer notifications
+  ceilometer => $ceilometer_hash['enabled'],
 
   #metadata
   shared_secret   => $neutron_metadata_proxy_secret,

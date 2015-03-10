@@ -29,7 +29,6 @@ class openstack::ceilometer (
   $on_compute          = false,
   $ha_mode             = false,
   $primary_controller  = false,
-  $use_neutron         = false,
   $ext_mongo           = false,
   # ttl is 1 week (3600*24*7)
   $time_to_live        = '604800',
@@ -119,10 +118,6 @@ class openstack::ceilometer (
 
     class { '::ceilometer::agent::notification':
       store_events => true,
-    }
-
-    if $use_neutron {
-      neutron_config { 'DEFAULT/notification_driver': value => 'messaging' }
     }
 
     if $ha_mode {
