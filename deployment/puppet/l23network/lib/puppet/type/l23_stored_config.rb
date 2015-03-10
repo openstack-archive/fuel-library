@@ -193,6 +193,7 @@ Puppet::Type.newtype(:l23_stored_config) do
   end
 
   newproperty(:bond_mode)
+  newproperty(:bond_xmit_hash_policy)
   newproperty(:bond_miimon)
   newproperty(:bond_lacp_rate)
 
