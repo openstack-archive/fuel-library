@@ -128,6 +128,7 @@ define l23network::l2::bond (
       mtu             => $mtu,
       onboot          => $onboot,
       bond_mode       => $real_bond_properties[mode],
+      bond_xmit_hash_policy  => $real_bond_properties[xmit_hash_policy],
       bond_master     => undef,
       bond_slaves     => $interfaces,
       bond_miimon     => $real_bond_properties[miimon],

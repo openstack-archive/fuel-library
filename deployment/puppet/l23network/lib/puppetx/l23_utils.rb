@@ -97,5 +97,9 @@ module L23network
 
 #   return rv
 # end
+
+  def self.get_route_resource_name(dest, metric)
+    (metric.to_i > 0  ?  "#{dest},metric:#{metric}"  :  rv = "#{dest}")
+  end
 end
 # vim: set ts=2 sw=2 et :
