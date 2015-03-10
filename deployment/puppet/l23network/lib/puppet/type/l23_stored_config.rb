@@ -1,6 +1,8 @@
 # type for managing persistent interface config options
 # Inspired by puppet-network module. Adrien, thanks.
 
+require 'ipaddr'
+
 Puppet::Type.newtype(:l23_stored_config) do
   @doc = "Manage lines in interface config file"
   desc @doc
@@ -193,6 +195,7 @@ Puppet::Type.newtype(:l23_stored_config) do
   end
 
   newproperty(:bond_mode)
+  newproperty(:bond_xmit_hash_policy)
   newproperty(:bond_miimon)
   newproperty(:bond_lacp_rate)
 
@@ -218,6 +221,50 @@ Puppet::Type.newtype(:l23_stored_config) do
   #   end
   # end
 
+  newproperty(:routes) do
+    desc "routes, corresponded to this interface. This-a R/O property, that autofill from L3_route resource"
+    #defaultto {}  # no default value should be!!!
+    validate do |val|
+      if ! val.is_a? Hash
+        fail("routes should be a hash!")
+      end
+    end
+
+    munge do |value|
+      L23network.reccursive_sanitize_hash(value)
+    end
+
+    def should_to_s(value)
+      "\n#{value.to_yaml.gsub('!ruby/sym','')}\n"
+    end
+
+    def is_to_s(value)
+      "\n#{value.to_yaml.gsub('!ruby/sym','')}\n"
+    end
+  end
+
+  newproperty(:ethtool) do
+    desc "ethtool addition configuration for this interface"
+    #defaultto {}  # no default value should be!!!
+    validate do |val|
+      if ! val.is_a? Hash
+        fail("ethtool commands should be a hash!")
+      end
+    end
+
+    munge do |value|
+      L23network.reccursive_sanitize_hash(value)
+    end
+
+    def should_to_s(value)
+      "\n#{value.to_yaml.gsub('!ruby/sym','')}\n"
+    end
+
+    def is_to_s(value)
+      "\n#{value.to_yaml.gsub('!ruby/sym','')}\n"
+    end
+  end
+
   newproperty(:vendor_specific) do
     desc "Hash of vendor specific properties"
     #defaultto {}  # no default value should be!!!
@@ -233,11 +280,11 @@ Puppet::Type.newtype(:l23_stored_config) do
     end
 
     def should_to_s(value)
-      "\n#{value.to_yaml}\n"
+      "\n#{value.to_yaml.gsub('!ruby/sym ','')}\n"
     end
 
     def is_to_s(value)
-      "\n#{value.to_yaml}\n"
+      "\n#{value.to_yaml.gsub('!ruby/sym ','')}\n"
     end
 
     def insync?(value)
@@ -247,22 +294,35 @@ Puppet::Type.newtype(:l23_stored_config) do
 
 
   def generate
-    return if ! (!([:absent, :none, :nil, :undef] & self[:bridge]).any? \
-                and [:ethernet, :bond].include? self[:if_type]
-                )
-    self[:bridge].each do |bridge|
-      br = self.catalog.resource('L23_stored_config', bridge)
-      fail("Stored_config resource for bridge '#{bridge}' not found for port '#{self[:name]}'!") if ! br
-      br[:bridge_ports] ||= []
-      ports = br[:bridge_ports]
-      return if ! ports.is_a? Array
-      if ! ports.include? self[:name]
-        ports << self[:name].to_s
-        br[:bridge_ports] = ports.reject{|a| a=='none'}.sort
+    if (!([:absent, :none, :nil, :undef] & self[:bridge]).any? and [:ethernet, :bond].include? self[:if_type])
+      self[:bridge].each do |bridge|
+        br = self.catalog.resource('L23_stored_config', bridge)
+        fail("Stored_config resource for bridge '#{bridge}' not found for port '#{self[:name]}'!") if ! br
+        br[:bridge_ports] ||= []
+        ports = br[:bridge_ports]
+        return if ! ports.is_a? Array
+        if ! ports.include? self[:name]
+          ports << self[:name].to_s
+          br[:bridge_ports] = ports.reject{|a| a=='none'}.sort
+        end
+      end
+    end
+    # find routes, that should be applied while this interface UP
+    if !['', 'none', 'absent'].include?(self[:ipaddr][0].to_s.downcase)
+      l3_routes = self.catalog.resources.reject{|nnn| nnn.ref.split('[')[0]!='L3_route'}
+      our_network = IPAddr.new(self[:ipaddr].to_s.downcase)
+      l3_routes.each do |rou|
+        if our_network.include? rou[:gateway]
+          self[:routes] ||= {}
+          self[:routes][rou[:name]] = {
+            :gateway => rou[:gateway],
+            :network => rou[:network]
+          }
+          self[:routes][rou[:name]][:metric] = rou[:metric] if !['', 'absent'].include? rou[:metric].to_s.downcase
+        end
       end
     end
     nil
   end
-
 end
 # vim: set ts=2 sw=2 et :
