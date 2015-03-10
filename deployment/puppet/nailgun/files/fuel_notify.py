@@ -3,6 +3,7 @@
 import logging
 import logging.handlers
 import os
+import six
 import subprocess
 import sys
 import yaml
@@ -53,8 +54,7 @@ def save_notify_state(mount_point, state):
 
 
 def was_notified(mount_point, state):
-    """Checks if user was notified of mount_point being in given state.
-    """
+    """Checks if user was notified of mount_point being in given state."""
 
     return read_state().get(mount_point, 'SUCCESS') == state
 
@@ -88,7 +88,9 @@ def get_error(state='SUCCESS', mount_point='/'):
 
 if __name__ == '__main__':
     if len(sys.argv) != 3 or sys.argv[1] not in ['ERROR', 'SUCCESS']:
-        print 'Syntax: {0} [ERROR|SUCCESS] <mount-point>'.format(sys.argv[0])
+        six.print_(
+            'Syntax: {0} [ERROR|SUCCESS] <mount-point>'.format(sys.argv[0])
+        )
         sys.exit(1)
 
     state = sys.argv[1]
@@ -106,4 +108,3 @@ if __name__ == '__main__':
         log.info('Notifying about ERROR state for {0}'.format(mount_point))
         notify(message, topic='error')
         save_notify_state(mount_point, state)
-
