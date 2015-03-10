@@ -34,8 +34,10 @@ class ceph::conf {
       'global/log_to_syslog':                      value => $::ceph::use_syslog;
       'global/log_to_syslog_level':                value => $::ceph::syslog_log_level;
       'global/log_to_syslog_facility':             value => $::ceph::syslog_log_facility;
-      'client/rbd cache':                          value => true;
-      'client/rbd cache writethrough until flush': value => true;
+      'global/osd_max_backfills':                  value => $::ceph::osd_max_backfills;
+      'global/osd_recovery_max_active':            value => $::ceph::osd_recovery_max_active;
+      'client/rbd_cache':                          value => true;
+      'client/rbd_cache_writethrough_until_flush': value => true;
     }
 
     Exec['ceph-deploy new'] ->
