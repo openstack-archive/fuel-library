@@ -1,5 +1,7 @@
 # type for managing runtime IP addresses and another L3 stuff.
 
+require 'yaml'
+
 Puppet::Type.newtype(:l3_ifconfig) do
     @doc = "Manage a network port abctraction."
     desc @doc
