@@ -1,3 +1,5 @@
+require 'puppetx/l23_utils'
+require 'puppetx/l23_ethtool_name_commands_mapping'
 require File.join(File.dirname(__FILE__), 'l23_stored_config_base')
 
 class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_config_base
@@ -31,6 +33,27 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   end
   def property_mappings
     self.class.property_mappings
+  end
+
+  # Some resources can be defined as repeatable strings in the config file
+  # these properties should be fetched by RE-scanning and converted to array
+  def self.collected_properties
+    {
+      :routes  => {
+          # post-up ip route add (default/10.20.30.0/24) via 1.2.3.4
+          :detect_re    => /(post-)?up\s+ip\s+r([oute]+)?\s+add\s+(default|\d+\.\d+\.\d+\.\d+\/\d+)\s+via\s+(\d+\.\d+\.\d+\.\d+)/,
+          :detect_shift => 3,
+      },
+      :ethtool => {
+          # post-up ethtool -K eth2 prop bool_val
+          :detect_re    => /(post-)?up\s+ethtool\s+-K\s+([\w\-]+)\s+(\w+)\s+(\w+)/,
+          :detect_shift => 2,
+          :store_format => "post-up ethtool -K % % % | true"
+      },
+    }
+  end
+  def collected_properties
+    self.class.collected_properties
   end
 
   # In the interface config files those fields should be written as boolean
@@ -143,6 +166,27 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     props = self.mangle_properties(hash)
     props.merge!({:family => :inet})
 
+    # collect properties, defined as repeatable strings
+    collected=[]
+    lines.each do |line|
+      rv = []
+      collected_properties.each_pair do |r_name, rule|
+        if rg=line.match(rule[:detect_re])
+          props[r_name] ||= []
+          props[r_name] << rg[rule[:detect_shift]..-1]
+          collected << r_name if !collected.include? r_name
+          next
+        end
+      end
+    end
+    # mangle collected properties if ones has specific method for it
+    collected.each do |prop_name|
+      mangle_method_name="mangle__#{prop_name}"
+      rv = (self.respond_to?(mangle_method_name)  ?  self.send(mangle_method_name, props[prop_name])  :  props[prop_name])
+      props[prop_name] = rv if ! ['', 'absent'].include? rv.to_s.downcase
+    end
+
+
     # The FileMapper mixin expects an array of providers, so we return the
     # single interface wrapped in an array
     rv = (self.check_if_provider(props)  ?  [props]  :  [])
@@ -216,6 +260,32 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     val.split(/[\s,]+/).sort
   end
 
+  def self.mangle__routes(data)
+    # incoming data is list of 3-element lists:
+    # [network, gateway, metric]
+    # metric is optional
+    rv = {}
+    data.each do |d|
+      name = L23network.get_route_resource_name(d[0], d[2])
+      rv[name] = {
+        :destination => d[0],
+        :gateway =>     d[1]
+      }
+      rv[name][:metric] = d[2] if d[2]
+    end
+    return rv
+  end
+
+  def self.mangle__ethtool(data)
+    # incoming data is list of 3-element lists:
+    # [interface, abbrv, value]
+    rv = {}
+    data.each do |d|
+    end
+    return rv
+  end
+
+
   ###
   # Hash to file
 
@@ -257,6 +327,19 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       content << "#{key} #{val}" if ! val.nil?
     end
 
+    #add to content unmangled collected-properties
+    collected_properties.keys.each do |type_name|
+      data = provider.send(type_name)
+      if !(data.nil? or data.empty?)
+        mangle_method_name="unmangle__#{type_name}"
+        if self.respond_to?(mangle_method_name)
+          rv = self.send(mangle_method_name, data)
+        end
+        content += rv if ! (rv.nil? or rv.empty?)
+      end
+    end
+
+
     debug("format_file('#{filename}')::content: #{content.inspect}")
     content << ''
     content.join("\n")
@@ -272,6 +355,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       end
     end
 
+    #will_unmangling
     property_mappings.each_pair do |type_name, in_config_name|
       if (val = props[type_name])
         props.delete(type_name)
@@ -332,6 +416,17 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     else
       val.sort.join(' ')
     end
+  end
+
+  def self.unmangle__routes(data)
+    # should generate set of lines:
+    # "post-up ip route add % via % | true"
+    return [] if ['', 'absent'].include? data.to_s
+    rv = []
+    data.each_pair do |name, rou|
+      rv << "post-up ip route add #{rou[:destination]} via #{rou[:gateway]} | true # #{name}"
+    end
+    rv
   end
 
 end
