@@ -38,7 +38,7 @@ class openstack::ceilometer (
   # This class is required by ceilometer agents & api classes
   # The metering_secret parameter is mandatory
   class { '::ceilometer':
-    package_ensure      => $::openstack_version['ceilometer'],
+    package_ensure      => 'present',
     rabbit_hosts        => split($amqp_hosts, ','),
     rabbit_userid       => $amqp_user,
     rabbit_password     => $amqp_password,
