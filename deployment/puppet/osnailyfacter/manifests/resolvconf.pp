@@ -26,9 +26,7 @@ class osnailyfacter::resolvconf (
 ) {
   $file_path = $::osfamily ? {
     /(RedHat|CentOS)/ => '/etc/resolv.conf',
-### Need a fix for Ubuntu ###
-#    /(Debian|Ubuntu)/ => '/etc/resolvconf/resolv.conf.d/head',
-    /(Debian|Ubuntu)/ => '/etc/resolv.conf',
+    /(Debian|Ubuntu)/ => '/etc/resolvconf/resolv.conf.d/head',
     default           => '/etc/resolv.conf',
   }
 
