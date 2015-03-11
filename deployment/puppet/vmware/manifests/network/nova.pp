@@ -71,6 +71,12 @@ class vmware::network::nova (
     }
   }
 
+  if ($::operatingsystem == 'Ubuntu') {
+    tweaks::ubuntu_service_override { 'nova-network':
+      package_name => 'nova-network'
+    }
+  }
+
   file { 'vcenter-nova-network-ocf':
     path  => '/usr/lib/ocf/resource.d/fuel/nova-network',
     source => 'puppet:///modules/vmware/ocf/nova-network',
