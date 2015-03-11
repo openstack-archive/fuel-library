@@ -82,8 +82,6 @@ define l23network::l3::ifconfig (
   include ::stdlib
   include ::l23network::params
 
-  $vrouter_gateway = hiera('management_vrouter_vip', undef)
-
   # setup configure method for inteface
   if is_array($ipaddr) {
     # getting array of IP addresses for one interface
@@ -152,24 +150,8 @@ define l23network::l3::ifconfig (
     }
   }
 
-  # # Specify interface file name prefix
-  # if $ifname_order_prefix {
-  #   $interface_file= "${::l23network::params::interfaces_dir}/ifcfg-${ifname_order_prefix}-${interface}"
-  # } else {
-  #   $interface_file= "${::l23network::params::interfaces_dir}/ifcfg-${interface}"
-  # }
-  # File<| title == "${::l23network::params::interfaces_dir}" |> -> File<| title == "${interface_file}" |>
-
   if $method == 'static' {
-    if $vrouter_gateway {
-      $def_gateway = $vrouter_gateway
-    } elsif $gateway and $gateway != 'save' {
-      $def_gateway = $gateway
-    } elsif $gateway == 'save' and $::l3_default_route and $::l3_default_route_interface == $interface {
-      $def_gateway = $::l3_default_route
-    } else {
-      $def_gateway = undef
-    }
+    $def_gateway = $gateway
     # # todo: move routing to separated resource with his own provider
     # if ($def_gateway and !defined(L23network::L3::Defaultroute[$def_gateway])) {
     #   Anchor['l23network::init'] ->
@@ -229,7 +211,6 @@ define l23network::l3::ifconfig (
       ipaddr                => $ipaddr_list,
       gateway               => $def_gateway,
       gateway_metric        => $gateway_metric,
-##    $default_gateway      = false,
 ##    $other_nets           = undef,
 #     dns_nameservers       => $dns_nameservers,
 #     dns_search            => $dns_search_string,
