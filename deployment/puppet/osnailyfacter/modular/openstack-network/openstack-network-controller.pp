@@ -168,6 +168,10 @@ if $network_provider == 'neutron' {
   $neutron_server = false
   $neutron_db_uri = undef
 
+  if hiera('network_manager', undef) == 'nova.network.manager.VlanManager' {
+    Class['nova::network::vlan'] -> Nova::Manage::Network <||>
+  }
+
   # Stubs for nova::network
   file { '/etc/nova/nova.conf':
     ensure => 'present',
