@@ -450,21 +450,4 @@ on packages update": }
     content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
   }
 
-  # configure ceilometer compute agent
-  if ($ceilometer) {
-    class { 'openstack::ceilometer':
-      verbose                        => $verbose,
-      debug                          => $debug,
-      use_syslog                     => $use_syslog,
-      syslog_log_facility            => $syslog_log_facility_ceilometer,
-      amqp_hosts                     => $amqp_hosts,
-      amqp_user                      => $amqp_user,
-      amqp_password                  => $amqp_password,
-      keystone_host                  => $service_endpoint,
-      keystone_password              => $ceilometer_user_password,
-      on_compute                     => true,
-      metering_secret                => $ceilometer_metering_secret,
-    }
-  }
-
 }
