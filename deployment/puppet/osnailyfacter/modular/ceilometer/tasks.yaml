@@ -1,0 +1,27 @@
+- id: ceilometer-controller
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [openstack-controller]
+  requires: [openstack-haproxy, database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller_post.rb
+
+- id: ceilometer-compute
+  type: puppet
+  groups: [compute]
+  required_for: [deploy_end]
+  requires: [top-role-compute]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute_post.rb

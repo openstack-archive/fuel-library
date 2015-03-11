@@ -12,6 +12,7 @@ $rabbit_hash           = hiera('rabbit_hash')
 $amqp_hosts            = hiera('amqp_hosts')
 $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
+$ceilometer_hash       = hiera('ceilometer')
 
 $db_type                        = 'mysql'
 $db_host                        = $management_vip
@@ -85,6 +86,7 @@ class { 'openstack::glance':
   rabbit_hosts                 => $rabbit_hosts,
   rabbit_virtual_host          => $rabbit_virtual_host,
   known_stores                 => $glance_known_stores,
+  ceilometer                   => $ceilometer_hash['enabled'],
 }
 
 ####### Disable upstart startup on install #######
