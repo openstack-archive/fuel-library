@@ -224,7 +224,7 @@ if $network_provider == 'nova' {
   # We need to restart nova-compute service in orderto apply new settings
   service { 'nova-compute':
     ensure => 'running',
-    name   => $::nova::params::compute_package_name,
+    name   => $::nova::params::compute_service_name,
   }
   Nova_config<| |> ~> Service['nova-compute']
 }

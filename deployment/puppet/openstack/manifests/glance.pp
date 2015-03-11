@@ -79,6 +79,7 @@ class openstack::glance (
   $known_stores                 = false,
   $rbd_store_user               = 'images',
   $rbd_store_pool               = 'images',
+  $ceilometer                   = false,
 ) {
   validate_string($glance_user_password)
   validate_string($glance_db_password)
@@ -188,6 +189,7 @@ class openstack::glance (
     rabbit_notification_exchange => $rabbit_notification_exchange,
     rabbit_notification_topic    => $rabbit_notification_topic,
     amqp_durable_queues          => $amqp_durable_queues,
+    ceilometer                   => $ceilometer,
   }
 
   glance_api_config {
