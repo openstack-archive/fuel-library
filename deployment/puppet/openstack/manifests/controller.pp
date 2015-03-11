@@ -314,36 +314,6 @@ class openstack::controller (
     neutron_metadata_proxy_shared_secret => $network_provider ? {'nova'=>undef, 'neutron'=>$neutron_metadata_proxy_secret },
   }
 
-  ######## Ceilometer ########
-
-  if ($ceilometer) {
-    class { 'openstack::ceilometer':
-      verbose              => $verbose,
-      debug                => $debug,
-      use_syslog           => $use_syslog,
-      syslog_log_facility  => $syslog_log_facility_ceilometer,
-      db_type              => $ceilometer_db_type,
-      db_host              => $ceilometer_db_host,
-      db_user              => $ceilometer_db_user,
-      db_password          => $ceilometer_db_password,
-      db_dbname            => $ceilometer_db_dbname,
-      swift_rados_backend  => $swift_rados_backend,
-      metering_secret      => $ceilometer_metering_secret,
-      amqp_hosts           => $amqp_hosts,
-      amqp_user            => $amqp_user,
-      amqp_password        => $amqp_password,
-      rabbit_ha_queues     => $rabbit_ha_queues,
-      keystone_host        => $internal_address,
-      keystone_password    => $ceilometer_user_password,
-      host                 => $api_bind_address,
-      ha_mode              => $ha_mode,
-      primary_controller   => $primary_controller,
-      on_controller        => true,
-      ext_mongo            => $ceilometer_ext_mongo,
-      mongo_replicaset     => $mongo_replicaset,
-    }
-  }
-
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { 'nova-cert':
