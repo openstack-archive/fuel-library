@@ -60,37 +60,14 @@ class sahara::api (
     'DEFAULT/debug'                        : value => $debug;
   }
 
-  #NOTE(mattymo): Backward compatibility for Icehouse
-  case $::fuel_settings['openstack_version'] {
-    /2014.1.*-6/: {
-      $use_floating_ips = $::fuel_settings['auto_assign_floating_ip']
-      $plugins = "vanilla,hdp"
-      #parse keystone_host for backward compatibility
-      $keystone_host = inline_template("<%= @sahara_auth_uri.split('://')[1].split('/')[0].split(':')[0] %>")
-      $keystone_port  = inline_template("<%= @sahara_auth_uri.split(':')[2].split('/')[0] %>")
-      sahara_config {
-        'DEFAULT/os_admin_tenant_name' : value => $keystone_tenant;
-        'DEFAULT/os_admin_username' : value => $keystone_user;
-        'DEFAULT/os_admin_password' : value => $keystone_password;
-        'DEFAULT/os_auth_host' : value => $keystone_host;
-        'DEFAULT/os_auth_port' : value => $keystone_port;
-        'DEFAULT/use_floating_ips' : value => $use_floating_ips;
-        'DEFAULT/plugins' : value => $plugins;
-      }
-    }
-    /2014.2.*-6/: {
-      sahara_config {
-        'keystone_authtoken/admin_tenant_name' : value => $keystone_tenant;
-        'keystone_authtoken/admin_user'        : value => $keystone_user;
-        'keystone_authtoken/admin_password'    : value => $keystone_password;
-        'keystone_authtoken/auth_uri'          : value => $sahara_auth_uri;
-        'keystone_authtoken/identity_uri'      : value => $sahara_identity_uri;
-      }
-    }
-    default: {
-      fail("Unsupported OpenStack version: ${::fuel_settings['openstack_version']}")
-    }
+  sahara_config {
+    'keystone_authtoken/admin_tenant_name' : value => $keystone_tenant;
+    'keystone_authtoken/admin_user'        : value => $keystone_user;
+    'keystone_authtoken/admin_password'    : value => $keystone_password;
+    'keystone_authtoken/auth_uri'          : value => $sahara_auth_uri;
+    'keystone_authtoken/identity_uri'      : value => $sahara_identity_uri;
   }
+
   # Log configuration
   if $log_dir {
     sahara_config {

@@ -107,18 +107,6 @@ class sahara (
     require => Class['openstack::firewall']
   }
 
-  #NOTE(mattymo): Backward compatibility for Icehouse
-  case $::fuel_settings['openstack_version'] {
-    /2014.1.*-6/: {
-      class {'sahara::dashboard':
-        enabled          => $sahara_enabled,
-        use_neutron      => $use_neutron,
-        use_floating_ips => $::fuel_settings['auto_assign_floating_ip'],
-      }
-      Class['sahara::api'] -> Class['sahara::dashboard']
-    }
-    default: { }
-  }
   Class['mysql::server'] -> Class['sahara::db::mysql'] -> Firewall[$sahara_firewall_rule] -> Class['sahara::keystone::auth'] -> Class['sahara::api']
 
 }
