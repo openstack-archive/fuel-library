@@ -198,16 +198,29 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
     tmp = []
     config_hash[:transformations].each do |t|
       if t[:action] == 'add-port' && t[:name].match(/\.\d+$/)
+        # we found vlan subinterface, but main interface for one didn't defined
+        # earlier. We should configure main interface as unaddressed interface
+        # wich has state UP to prevent fails in network configuration
         name = t[:name].split('.')[0]
-        if config_hash[:transformations].select{|x| x[:action]=='add-port' && x[:name]==name}.empty?
+        if tmp.select{|x| x[:action]=='add-port' && x[:name]==name}.empty?
           debug("Auto-add 'add-port(#{name})' for '#{t[:name]}'")
           tmp << {
             :action => 'add-port',
             :name   => name
           }
         end
+        tmp << t
+      elsif (i=tmp.index{|x| x[:action]=='add-port' && x[:name]==t[:name]})
+        # we has transformation for this interface already auto-added by previous
+        # condition. We should merge this properties into which are autocreated
+        # earlier by transformation and forget this.
+        #
+        # It's looks like some strange reordering
+        tmp[i].merge! t
+        debug("Auto-add 'move-properties-for-port(#{t[:name]})', because one autocreated early.")
+      else
+        tmp << t
       end
-      tmp << t
     end
     config_hash[:transformations] = tmp
     debug("generate_network_config(): process transformations")
