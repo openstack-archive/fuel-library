@@ -1075,8 +1075,14 @@ class osnailyfacter::cluster_ha {
 
   # LP#1424919
   if $::fuel_settings['role'] =~ /mongo/ and !(member($roles, 'controller') or member($roles, 'primary-controller')) {
-    sysctl::value { 'net.ipv4.tcp_keepalive_time':
-      value => '300',
+    if defined(Sysctl::Value['net.ipv4.tcp_keepalive_time']) {
+      Sysctl::Value <| title == 'net.ipv4.tcp_keepalive_time' |> {
+        value => '300',
+      }
+    } else {
+      sysctl::value { 'net.ipv4.tcp_keepalive_time':
+        value => '300',
+      }
     }
   }
 
