@@ -5,6 +5,7 @@ define vmware::ceilometer::ha_multi_hv (
   $vc_user,
   $vc_password,
   $service_name,
+  $datastore_regex = undef,
   $amqp_port = '5673',
   $ceilometer_config   = '/etc/ceilometer/ceilometer.conf',
   $ceilometer_conf_dir = '/etc/ceilometer/ceilometer-compute.d',
