@@ -313,51 +313,6 @@ class openstack::controller (
     neutron_metadata_proxy_shared_secret => $network_provider ? {'nova'=>undef, 'neutron'=>$neutron_metadata_proxy_secret },
   }
 
-  ######### Cinder Controller Services ########
-  if $cinder {
-    if !defined(Class['openstack::cinder']) {
-      class {'openstack::cinder':
-        sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8&read_timeout=60",
-        queue_provider       => $queue_provider,
-        amqp_hosts           => $amqp_hosts,
-        amqp_user            => $amqp_user,
-        amqp_password        => $amqp_password,
-        rabbit_ha_queues     => $rabbit_ha_queues,
-        volume_group         => $cinder_volume_group,
-        physical_volume      => $nv_physical_volume,
-        manage_volumes       => $manage_volumes,
-        enabled              => true,
-        glance_api_servers   => "${service_endpoint}:9292",
-        auth_host            => $service_endpoint,
-        bind_host            => $api_bind_address,
-        iscsi_bind_host      => $cinder_iscsi_bind_addr,
-        cinder_user_password => $cinder_user_password,
-        use_syslog           => $use_syslog,
-        verbose              => $verbose,
-        debug                => $debug,
-        syslog_log_facility  => $syslog_log_facility_cinder,
-        cinder_rate_limits   => $cinder_rate_limits,
-        max_retries          => $max_retries,
-        max_pool_size        => $max_pool_size,
-        max_overflow         => $max_overflow,
-        idle_timeout         => $idle_timeout,
-        ceilometer           => $ceilometer,
-      } # end class
-    } else { # defined
-      if $manage_volumes {
-      # Set up nova-volume
-        class { 'nova::volume':
-          ensure_package => $::openstack_version['nova'],
-          enabled        => true,
-        }
-        class { 'nova::volume::iscsi':
-          iscsi_ip_address => $api_bind_address,
-          physical_volume  => $nv_physical_volume,
-        }
-      } #end manage_volumes
-    } #end else
-  } #end cinder
-
   ######## Ceilometer ########
 
   if ($ceilometer) {
@@ -391,15 +346,6 @@ class openstack::controller (
 
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
-    tweaks::ubuntu_service_override { 'cinder-api':
-      package_name => 'cinder-api',
-    }
-    tweaks::ubuntu_service_override { 'cinder-backup':
-      package_name => 'cinder-backup',
-    }
-    tweaks::ubuntu_service_override { 'cinder-scheduler':
-      package_name => 'cinder-scheduler',
-    }
     tweaks::ubuntu_service_override { 'nova-cert':
       package_name => 'nova-cert',
     }

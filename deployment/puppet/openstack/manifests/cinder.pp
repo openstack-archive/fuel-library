@@ -174,7 +174,10 @@ class openstack::cinder(
         }
       }
       'ceph': {
-        Ceph::Pool<| title == $::ceph::cinder_pool |> ->
+        if defined(Class['::ceph']) {
+          Ceph::Pool<| title == $::ceph::cinder_pool |> ->
+          Class['cinder::volume::rbd']
+        }
         class {'cinder::volume::rbd':
           rbd_pool        => $rbd_pool,
           rbd_user        => $rbd_user,
