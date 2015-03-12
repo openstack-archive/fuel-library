@@ -468,7 +468,7 @@ get_ns_list() {
 get_pid_list_for_ns_list() {
     # the first parameter is a list of ns names for searching pids
     local ns_list="$1"
-    local pids=`for netns in $ns_list ; do ip netns exec $netns lsof -n -i -t ; done`
+    local pids=`for netns in $ns_list ; do ip netns pids $netns ; done`
     echo $pids
 }
 
