@@ -14,18 +14,6 @@ def ips
   $ips = ips
 end
 
-def router
-  return $router if $router
-  routes = `ip route`
-  return unless $?.exitstatus == 0
-  routes.split("\n").each do |line|
-    if line =~ /^default via ([\d\.]*)/
-      return $router = $1
-    end
-  end
-  nil
-end
-
 def ping(host)
   `ping -q -c 1 -W 3 '#{host}'`
   $?.exitstatus == 0
@@ -77,10 +65,6 @@ class NetconfigPostTest < Test::Unit::TestCase
 
   def test_can_ping_the_master_node
     assert ping(master_ip), 'Cannot ping the master node!'
-  end
-
-  def test_can_ping_the_default_router
-    assert ping(router), 'Cannot ping the default router!'
   end
 
 end

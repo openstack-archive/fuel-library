@@ -30,6 +30,18 @@ def is_ha?
   %w(ha ha_compact).include? deployment_mode
 end
 
+def router
+  return $router if $router
+  routes = `ip route`
+  return unless $?.exitstatus == 0
+  routes.split("\n").each do |line|
+    if line =~ /^default via ([\d\.]*)/
+      return $router = $1
+    end
+  end
+  nil
+end
+
 class VirtualIPsPostTest < Test::Unit::TestCase
 
   def test_public_vip_ping
@@ -38,6 +50,10 @@ class VirtualIPsPostTest < Test::Unit::TestCase
 
   def test_management_vip_ping
     assert ping(management_vip), "Could not ping the management vip '#{management_vip}'!" if is_ha?
+  end
+
+  def test_can_ping_the_default_router
+    assert ping(router), "Cannot ping the default router '#{router}'"
   end
 
 end
