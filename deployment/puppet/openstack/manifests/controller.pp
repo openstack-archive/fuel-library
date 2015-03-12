@@ -219,145 +219,9 @@ class openstack::controller (
   $idle_timeout                   = '3600',
 ) {
 
-  # Ensure things are run in order
-  Class['openstack::db::mysql'] -> Class['openstack::keystone']
-  Class['openstack::db::mysql'] -> Class['openstack::glance']
-  Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
-  Class['openstack::db::mysql'] -> Cinder_config <||>
-
   Class[$queue_provider] -> Nova_config <||>
   Class[$queue_provider] -> Cinder_config <||>
   Class[$queue_provider] -> Neutron_config <||>
-
-  ####### DATABASE SETUP ######
-  # set up mysql server
-  if ($db_type == 'mysql') {
-    if ($enabled) {
-      Class['glance::db::mysql'] -> Class['glance::registry']
-    }
-    class { 'openstack::db::mysql':
-      mysql_root_password     => $mysql_root_password,
-      mysql_bind_address      => $mysql_bind_address,
-      mysql_account_security  => $mysql_account_security,
-      keystone_db_user        => $keystone_db_user,
-      keystone_db_password    => $keystone_db_password,
-      keystone_db_dbname      => $keystone_db_dbname,
-      glance_db_user          => $glance_db_user,
-      glance_db_password      => $glance_db_password,
-      glance_db_dbname        => $glance_db_dbname,
-      nova_db_user            => $nova_db_user,
-      nova_db_password        => $nova_db_password,
-      nova_db_dbname          => $nova_db_dbname,
-      cinder                  => $cinder,
-      cinder_db_user          => $cinder_db_user,
-      cinder_db_password      => $cinder_db_password,
-      cinder_db_dbname        => $cinder_db_dbname,
-      neutron                 => $network_provider ? {'nova' => false, 'neutron' => true},
-      neutron_db_user         => $neutron_db_user,
-      neutron_db_password     => $neutron_db_password,
-      neutron_db_dbname       => $neutron_db_dbname,
-      allowed_hosts           => $allowed_hosts,
-      enabled                 => $enabled,
-      galera_cluster_name     => $galera_cluster_name,
-      primary_controller      => $primary_controller,
-      galera_node_address     => $galera_node_address ,
-      #db_host                 => $internal_address,
-      galera_nodes            => $galera_nodes,
-      custom_setup_class      => $custom_mysql_setup_class,
-      mysql_skip_name_resolve => $mysql_skip_name_resolve,
-      use_syslog              => $use_syslog,
-      debug                   => $debug,
-    }
-    if ($status_check) {
-      class { 'openstack::galera::status':
-        status_user             => $status_user,
-        status_password         => $status_password,
-        status_allow            => $galera_node_address,
-        backend_host            => $galera_node_address,
-        backend_port            => $backend_port,
-        backend_timeout         => $backend_timeout,
-        require                 => Class[openstack::db::mysql],
-      }
-    }
-  }
-  ####### KEYSTONE ###########
-  class { 'openstack::keystone':
-    verbose                   => $verbose,
-    debug                     => $debug,
-    db_type                   => $db_type,
-    db_host                   => $db_host,
-    db_password               => $keystone_db_password,
-    db_name                   => $keystone_db_dbname,
-    db_user                   => $keystone_db_user,
-    admin_token               => $keystone_admin_token,
-    public_address            => $public_address,
-    internal_address          => $internal_address,
-    admin_address             => $admin_address,
-    glance_user_password      => $glance_user_password,
-    nova_user_password        => $nova_user_password,
-    cinder                    => $cinder,
-    cinder_user_password      => $cinder_user_password,
-    neutron                   => $network_provider ? {'nova' => false, 'neutron' => true},
-    neutron_user_password     => $neutron_user_password,
-    ceilometer                => $ceilometer,
-    ceilometer_user_password  => $ceilometer_user_password,
-    public_bind_host          => $api_bind_address,
-    admin_bind_host           => $api_bind_address,
-    enabled                   => $enabled,
-    package_ensure            => $::openstack_keystone_version,
-    use_syslog                => $use_syslog,
-    syslog_log_facility       => $syslog_log_facility_keystone,
-    memcache_servers          => $cache_server_ip,
-    memcache_server_port      => $cache_server_port,
-    max_retries               => $max_retries,
-    max_pool_size             => $max_pool_size,
-    max_overflow              => $max_overflow,
-    rabbit_password           => $amqp_password,
-    rabbit_userid             => $amqp_user,
-    rabbit_hosts              => split($amqp_hosts, ','),
-    rabbit_virtual_host       => $rabbit_virtual_host,
-    idle_timeout              => $idle_timeout,
-  }
-
-
-  ######## BEGIN GLANCE ##########
-  class { 'openstack::glance':
-    verbose                      => $verbose,
-    debug                        => $debug,
-    db_type                      => $db_type,
-    db_host                      => $db_host,
-    glance_db_user               => $glance_db_user,
-    glance_db_dbname             => $glance_db_dbname,
-    glance_db_password           => $glance_db_password,
-    glance_user_password         => $glance_user_password,
-    glance_vcenter_host          => $glance_vcenter_host,
-    glance_vcenter_user          => $glance_vcenter_user,
-    glance_vcenter_password      => $glance_vcenter_password,
-    glance_vcenter_datacenter    => $glance_vcenter_datacenter,
-    glance_vcenter_datastore     => $glance_vcenter_datastore,
-    glance_vcenter_image_dir     => $glance_vcenter_image_dir,
-    auth_uri                     => "http://${service_endpoint}:5000/",
-    keystone_host                => $service_endpoint,
-    bind_host                    => $api_bind_address,
-    enabled                      => $enabled,
-    glance_backend               => $glance_backend,
-    registry_host                => $service_endpoint,
-    use_syslog                   => $use_syslog,
-    syslog_log_facility          => $syslog_log_facility_glance,
-    glance_image_cache_max_size  => $glance_image_cache_max_size,
-    max_retries                  => $max_retries,
-    max_pool_size                => $max_pool_size,
-    max_overflow                 => $max_overflow,
-    idle_timeout                 => $idle_timeout,
-    rabbit_password              => $amqp_password,
-    rabbit_userid                => $amqp_user,
-    rabbit_hosts                 => $amqp_hosts,
-    rabbit_virtual_host          => $rabbit_virtual_host,
-    rabbit_use_ssl               => $rabbit_use_ssl,
-    rabbit_notification_exchange => $rabbit_notification_exchange,
-    rabbit_notification_topic    => $rabbit_notification_topic,
-    known_stores                 => $known_stores,
-  }
 
   ######## BEGIN NOVA ###########
   #
@@ -536,15 +400,6 @@ class openstack::controller (
 
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
-    tweaks::ubuntu_service_override { 'glance-api':
-      package_name => 'glance-api',
-    }
-    tweaks::ubuntu_service_override { 'glance-registry':
-      package_name => 'glance-registry',
-    }
-    tweaks::ubuntu_service_override { 'keystone':
-      package_name => 'keystone',
-    }
     tweaks::ubuntu_service_override { 'cinder-api':
       package_name => 'cinder-api',
     }
