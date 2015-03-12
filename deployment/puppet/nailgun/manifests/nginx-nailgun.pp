@@ -4,6 +4,7 @@ class nailgun::nginx-nailgun(
   $nailgun_host = '127.0.0.1',
   $ostf_host = '127.0.0.1',
   $keystone_host = '127.0.0.1',
+  $registration_url = undef,
   ) {
 
   file { '/etc/nginx/conf.d/nailgun.conf':

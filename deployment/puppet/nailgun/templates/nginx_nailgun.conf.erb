@@ -32,6 +32,13 @@ server {
         proxy_buffering off;
     }
 
+<% if @registration_url -%>
+    location ~ ^/tracking/(.*) {
+        proxy_pass <%= @registration_url %>/$1;
+        proxy_buffering off;
+    }
+<% end -%>
+
     location ~ ^/keystone/(.*) {
         proxy_pass http://<%= @keystone_host %>:5000/$1;
         proxy_buffering off;
