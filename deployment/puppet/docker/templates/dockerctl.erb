@@ -50,15 +50,9 @@ if [ "$1" == "build" ]; then
     #Prepare iptables just in case ICC is broken
     allow_all_docker_traffic
 
-    #Step 2: Launch all in order
+    #Step 2: Launch all in order, checking each one
     for service in $container_seq; do
       start_container $service
-      sleep 4
-    done
-
-    #Step 3: Wait for key apps to be ready
-    echo "Waiting for applications to be ready"
-    for service in $container_seq; do
       check_ready $service
     done
   else
