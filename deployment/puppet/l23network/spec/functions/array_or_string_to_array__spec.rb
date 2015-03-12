@@ -1,8 +1,4 @@
-# require 'puppet'
-# require 'rspec'
-# require 'rspec-puppet'
 require 'spec_helper'
-require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 
 describe 'array_or_string_to_array' do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
