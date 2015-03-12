@@ -219,9 +219,6 @@ class openstack::controller (
   $idle_timeout                   = '3600',
 ) {
 
-  Class[$queue_provider] -> Nova_config <||>
-  Class[$queue_provider] -> Cinder_config <||>
-  Class[$queue_provider] -> Neutron_config <||>
 
   ######## BEGIN NOVA ###########
   #
