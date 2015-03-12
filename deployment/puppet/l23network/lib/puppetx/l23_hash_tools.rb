@@ -16,7 +16,6 @@ module L23network
   def self.sanitize_keys_in_hash(hh)
     rv = {}
     hh.each do |k, v|
-      #info("xx>>#{k}--#{k.to_sym}<<")
       if v.is_a? Hash
         rv[k.to_sym] = self.sanitize_keys_in_hash(v)
       elsif v.is_a? Array
