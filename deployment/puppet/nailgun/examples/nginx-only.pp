@@ -29,6 +29,7 @@ $keystone_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $nailgun_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 
 $repo_root = "/var/www/nailgun"
+$registration_url = 'https://software.mirantis.com/wp-content/themes/mirantis_responsive_v_1_0/scripts/fuel_forms_api/'
 
 node default {
 
@@ -37,14 +38,15 @@ node default {
     class {'docker::container': }
 
     class { 'nailgun::nginx':
-    production      => $production,
-    staticdir       => $staticdir,
-    templatedir     => $staticdir,
-    logdumpdir      => $logdumpdir,
-    ostf_host       => $ostf_host,
-    keystone_host   => $keystone_host,
-    nailgun_host    => $nailgun_host,
-    repo_root       => $repo_root,
-    service_enabled => false,
-  }
+      production       => $production,
+      staticdir        => $staticdir,
+      templatedir      => $staticdir,
+      logdumpdir       => $logdumpdir,
+      ostf_host        => $ostf_host,
+      keystone_host    => $keystone_host,
+      nailgun_host     => $nailgun_host,
+      repo_root        => $repo_root,
+      service_enabled  => false,
+      registration_url => $registration_url,
+    }
 }
