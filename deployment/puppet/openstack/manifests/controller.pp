@@ -534,28 +534,6 @@ class openstack::controller (
     }
   }
 
-  ######## Horizon ########
-  class { 'openstack::horizon':
-    secret_key        => $secret_key,
-    cache_server_ip   => $cache_server_ip,
-    package_ensure    => $::openstack_version['horizon'],
-    bind_address      => $api_bind_address,
-    cache_server_port => $cache_server_port,
-    swift             => $swift,
-    neutron           => $network_provider ? {'nova' => false, 'neutron' => true},
-    horizon_app_links => $horizon_app_links,
-    keystone_host     => $service_endpoint,
-    use_ssl           => $horizon_use_ssl,
-    verbose           => $verbose,
-    debug             => $debug,
-    use_syslog        => $use_syslog,
-    nova_quota        => hiera('nova_quota'),
-    servername        => $public_address,
-  } ->
-  class {'osnailyfacter::apache_api_proxy':
-    master_ip => hiera('master_ip'),
-  }
-
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { 'glance-api':
