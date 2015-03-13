@@ -76,7 +76,6 @@ def expected_backends
     glance-api
     neutron
     glance-registry
-    rabbitmq
     mysqld
     swift
     heat-api
