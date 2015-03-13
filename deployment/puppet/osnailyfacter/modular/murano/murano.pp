@@ -14,6 +14,7 @@ $use_neutron                = hiera('use_neutron', false)
 $neutron_config             = hiera('neutron_config', {})
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
+$use_syslog                 = hiera('use_syslog', false)
 $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $primary_controller         = hiera('primary_controller')
 
