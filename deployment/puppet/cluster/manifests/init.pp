@@ -11,11 +11,8 @@ class cluster (
     #to this module, another half -- to Neutron
 
     case $::osfamily {
-      'RedHat': {
+      /RedHat|Debian/: {
         $pcs_package = 'pcs'
-      }
-      'Debian': {
-        $pcs_package = 'python-pcs'
       }
        default: {
         fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem},\
