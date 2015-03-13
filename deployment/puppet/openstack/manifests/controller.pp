@@ -383,7 +383,6 @@ class openstack::controller (
       ha_mode              => $ha_mode,
       primary_controller   => $primary_controller,
       on_controller        => true,
-      use_neutron          => $network_provider ? {'nova' => false, 'neutron' => true},
       ext_mongo            => $ceilometer_ext_mongo,
       mongo_replicaset     => $mongo_replicaset,
     }

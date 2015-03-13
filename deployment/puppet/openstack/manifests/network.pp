@@ -66,6 +66,9 @@ class openstack::network (
   $region            = 'RegionOne',
   $neutron_url       = 'http://127.0.0.1:9696',
 
+  # Ceilometer notifications
+  $ceilometer = false,
+
   # Nova settings
   $private_interface,
   $public_interface,
@@ -222,6 +225,10 @@ class openstack::network (
 
       if $use_syslog {
         neutron_config { 'DEFAULT/use_syslog_rfc_format': value => true; }
+      }
+
+      if $ceilometer {
+        neutron_config { 'DEFAULT/notification_driver': value => 'messaging' }
       }
 
       if $agents {
