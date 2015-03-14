@@ -20,6 +20,29 @@ end
 
 
 module L23network
+  def self.default_offload_set
+    {
+      'generic-receive-offload'      => false,
+      'generic-segmentation-offload' => false
+    }
+  end
+
+  def self.correct_ethtool_set(prop_hash)
+    if (!prop_hash.has_key?('ethtool') or prop_hash['ethtool'].empty?) \
+      and (prop_hash.has_key?('vendor_specific') and prop_hash['vendor_specific']['disable_offloading'])
+      # add default offload settings if:
+      #  * no ethtool properties given
+      #  * "disable offload" flag given
+      rv = {}.merge prop_hash
+      rv['ethtool'] ||= {}
+      rv['ethtool']['offload'] = default_offload_set()
+      rv['vendor_specific'].delete('disable_offloading')
+    else
+      rv = prop_hash
+    end
+    return rv
+  end
+
   def self.sanitize_transformation(trans, def_provider=nil)
     action = trans[:action].to_s.downcase()
     # Setup defaults
@@ -272,6 +295,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       end
 
       resource_properties['require'] = [previous] if previous
+      resource_properties = L23network.correct_ethtool_set(resource_properties)
       function_create_resources([resource, {
         "#{trans[:name]}" => resource_properties
       }])
@@ -336,6 +360,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         #   # p_resource.set_parameter(:ipaddr, ipaddrs)
         # #end
         # #set another (see L23network::l3::ifconfig DOC) parametres
+        resource_properties = L23network.correct_ethtool_set(resource_properties)
         function_create_resources([resource, {
           "#{endpoint_name}" => resource_properties
         }])
