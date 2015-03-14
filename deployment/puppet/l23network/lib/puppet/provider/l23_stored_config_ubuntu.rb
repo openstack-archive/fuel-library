@@ -45,10 +45,9 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
           :detect_shift => 3,
       },
       :ethtool => {
-          # post-up ethtool -K eth2 prop bool_val
-          :detect_re    => /(post-)?up\s+ethtool\s+-K\s+([\w\-]+)\s+(\w+)\s+(\w+)/,
+          # post-up ethtool -K eth2 property [on|off]
+          :detect_re    => /(post-)?up\s+ethtool\s+(-\w+)\s+([\w\-]+)\s+(\w+)\s+(\w+)/,
           :detect_shift => 2,
-          :store_format => "post-up ethtool -K % % % | true"
       },
     }
   end
@@ -278,9 +277,19 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
   def self.mangle__ethtool(data)
     # incoming data is list of 3-element lists:
-    # [interface, abbrv, value]
+    # [key, interface, abbrv, value]
     rv = {}
-    data.each do |d|
+    data.each do |record|
+      # use .reject bellow for compatibilities with ruby 1.8
+      section = L23network.ethtool_name_commands_mapping.reject{|k,v| v['__section_key_set__']!=record[0]}
+      next if section.empty?
+      section_name = section.keys[0]
+      key_fullname = section[section_name].reject{|k, v| v!=record[2]}.to_a
+      next if key_fullname.empty?
+      key_fullname = key_fullname[0][0]
+      next if key_fullname.to_s == ''
+      rv[section_name] ||= {}
+      rv[section_name][key_fullname] = (record[3]=='on')
     end
     return rv
   end
@@ -312,8 +321,6 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     props    = {}
 
     property_mappings.keys.select{|v| ! properties_fake.include?(v)}.each do |type_name|
-      #binding.pry
-      #debug("ZZZZZZZ: #{property_mappings}")
       val = provider.send(type_name)
       if val and val.to_s != 'absent'
         props[type_name] = val
@@ -321,7 +328,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     end
 
     debug("format_file('#{filename}')::properties: #{props.inspect}")
-    pairs = self.unmangle_properties(props)
+    pairs = self.unmangle_properties(provider, props)
 
     pairs.each_pair do |key, val|
       content << "#{key} #{val}" if ! val.nil?
@@ -333,7 +340,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       if !(data.nil? or data.empty?)
         mangle_method_name="unmangle__#{type_name}"
         if self.respond_to?(mangle_method_name)
-          rv = self.send(mangle_method_name, data)
+          rv = self.send(mangle_method_name, provider, data)
         end
         content += rv if ! (rv.nil? or rv.empty?)
       end
@@ -346,7 +353,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   end
 
 
-  def self.unmangle_properties(props)
+  def self.unmangle_properties(provider, props)
     pairs = {}
 
     boolean_properties.each do |bool_property|
@@ -355,13 +362,13 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       end
     end
 
-    #will_unmangling
+    #Unmangling values for ordinary properties.
     property_mappings.each_pair do |type_name, in_config_name|
       if (val = props[type_name])
         props.delete(type_name)
         mangle_method_name="unmangle__#{type_name}"
         if self.respond_to?(mangle_method_name)
-          rv = self.send(mangle_method_name, val)
+          rv = self.send(mangle_method_name, provider, val)
         else
           rv = val
         end
@@ -369,32 +376,23 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       end
     end
 
-    #pairs.merge! props
-
-    # pairs.each_pair do |key, val|
-    #   if val.is_a? String and val.match(/\s+/)
-    #     debug("==[#{key.to_sym}]==[\"#{val}\"]==")
-    #     pairs[key.to_sym] = "\"#{val}\""
-    #   end
-    # end
-
     pairs
   end
 
-  def self.unmangle__ipaddr(val)
+  def self.unmangle__ipaddr(provider, val)
     (val.to_s.downcase == 'dhcp')  ?  nil  :  val
   end
 
-  def self.unmangle__if_type(val)
+  def self.unmangle__if_type(provider, val)
     # in Debian family interface config file don't contains declaration of interface type
     nil
   end
 
-  def self.unmangle__gateway_metric(val)
+  def self.unmangle__gateway_metric(provider, val)
     (val.to_i == 0  ?  :absent  :  val.to_i)
   end
 
-  def self.unmangle__bridge_ports(val)
+  def self.unmangle__bridge_ports(provider, val)
     if val.size < 1 or [:absent, :undef].include? Array(val)[0].to_sym
       nil
     else
@@ -402,7 +400,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     end
   end
 
-  def self.unmangle__bond_master(val)
+  def self.unmangle__bond_master(provider, val)
     if [:none, :absent, :undef].include? val.to_sym
       nil
     else
@@ -410,7 +408,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     end
   end
 
-  def self.unmangle__bond_slaves(val)
+  def self.unmangle__bond_slaves(provider, val)
     if val.size < 1 or [:absent, :undef].include? Array(val)[0].to_sym
       nil
     else
@@ -418,7 +416,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     end
   end
 
-  def self.unmangle__routes(data)
+  def self.unmangle__routes(provider, data)
     # should generate set of lines:
     # "post-up ip route add % via % | true"
     rv = []
@@ -426,6 +424,25 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       rv << "post-up ip route add #{rou[:destination]} via #{rou[:gateway]} | true # #{name}"
     end
     rv
+  end
+
+  def self.unmangle__ethtool(provider, data)
+    # should generate set of lines:
+    # "post-up ethtool -K %interface_name% property [on|off]"
+    return [] if ['', 'absent'].include? data.to_s
+    rv = []
+    data.each do |section_name, rules|
+      next if L23network.ethtool_name_commands_mapping[section_name].nil?
+      section_key = L23network.ethtool_name_commands_mapping[section_name]['__section_key_set__']
+      next if section_key.nil?
+      rules.each do |k,v|
+        next if L23network.ethtool_name_commands_mapping[section_name][k].nil?
+        iface=provider.name
+        val = (v==true  ?  'on'  :  'off')
+        rv << "post-up ethtool #{section_key} #{iface} #{L23network.ethtool_name_commands_mapping[section_name][k]} #{val} | true  # #{k}"
+      end
+    end
+    return rv
   end
 
 end
