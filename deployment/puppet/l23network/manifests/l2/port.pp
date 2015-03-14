@@ -114,7 +114,7 @@ define l23network::l2::port (
       bond_master     => $master,
       mtu             => $mtu,
       onboot          => $onboot,
-      #ethtool        => $ethtool,
+      ethtool         => $ethtool,
       vendor_specific => $vendor_specific,
       provider        => $config_provider
     }
