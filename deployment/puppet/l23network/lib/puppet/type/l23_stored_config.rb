@@ -231,7 +231,7 @@ Puppet::Type.newtype(:l23_stored_config) do
     end
 
     munge do |value|
-      L23network.reccursive_sanitize_hash(value)
+      (value.empty?  ?  nil  :  L23network.reccursive_sanitize_hash(value))
     end
 
     def should_to_s(value)
@@ -253,7 +253,7 @@ Puppet::Type.newtype(:l23_stored_config) do
     end
 
     munge do |value|
-      L23network.reccursive_sanitize_hash(value)
+      (value.empty?  ?  nil  :  L23network.reccursive_sanitize_hash(value))
     end
 
     def should_to_s(value)
@@ -276,7 +276,7 @@ Puppet::Type.newtype(:l23_stored_config) do
     end
 
     munge do |value|
-      L23network.reccursive_sanitize_hash(value)
+      (value.empty?  ?  nil  :  L23network.reccursive_sanitize_hash(value))
     end
 
     def should_to_s(value)
