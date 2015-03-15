@@ -3,3 +3,24 @@
 sed -e '/post-stop script/,/end script/!d' \
 -e '/post-stop script/a\ \ \ \ \ [ -f /usr/lib/umm/umm_svc ] && /usr/lib/umm/umm_svc' \
 /etc/init/rcS.conf >/etc/init/rcS.override
+
+[ -f /boot/grub/grub.conf ] && GRC=/boot/grub/grub.conf
+
+
+if [ ! -z "$GRC" ]; then
+    sed -e '/#UMM BEGIN/,/#UMM END/d' -i $GRC
+    eval $(sed -n -e '/default=/ p' $GRC)
+    ST='-e 1,/^title/d'
+    until [ "$default" == "0" ] ; do
+        ST="$ST -e 1,/^title/d"
+        default=$(($default - 1))
+    done;
+    echo "#UMM BEGIN" >/tmp/mm-gr
+    echo "title Unified Mintenance mode (UMM)" >>/tmp/mm-gr
+    sed $ST -e 's/\(^\s*kernel .*\)/\1 umm/'  -e '/^title/,$ d'  $GRC>>/tmp/mm-gr
+    echo "#UMM END" >>/tmp/mm-gr
+    cat /tmp/mm-gr >>$GRC
+
+    rm /tmp/mm-gr
+fi
+
