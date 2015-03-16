@@ -26,7 +26,7 @@
 #set $interfaces_file = "/etc/network/interfaces"
 #set $interfaces_dir = "/etc/network/interfaces.d"
 #set $script += "echo source %s/*  > %s\n" % ($interfaces_dir,$interfaces_file)
-#set $script += "mkdir %s\n" % $interfaces_dir
+#set $script += "mkdir -p %s\n" % $interfaces_dir
 #set $script += "echo auto lo >> %s/ifcfg-lo \n" % $interfaces_dir
 #set $script += "echo iface lo inet loopback >> %s/ifcfg-lo\n" % $interfaces_dir
 #set $script += "echo >> %s/ifcfg-lo\n" % $interfaces_dir
