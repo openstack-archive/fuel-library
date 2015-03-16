@@ -169,8 +169,17 @@ if $network_provider == 'neutron' {
   $neutron_server = false
   $neutron_db_uri = undef
 
-  if hiera('network_manager', undef) == 'nova.network.manager.VlanManager' {
-    Class['nova::network::vlan'] -> Nova::Manage::Network <||>
+  case hiera('network_manager', undef) {
+    'nova.network.manager.VlanManager': {
+      Class['nova::network::vlan'] -> Nova::Manage::Network <||>
+    }
+    'nova.network.manager.FlatDHCPManager': {
+      Class['nova::network::flatdhcp'] -> Nova::Manage::Network <||>
+    }
+    'nova.network.manager.FlatManager': {
+      Class['nova::network::flat'] -> Nova::Manage::Network <||>
+    }
+
   }
 
   # Stubs for nova::network
