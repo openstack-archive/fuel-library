@@ -122,8 +122,6 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           end
         end
         iproute('link', 'set', 'dev', @resource[:interface], 'up') if @resource[:onboot]
-        #Flush routes after interface up. BUG on CentOS6
-        iproute('route', 'flush', 'dev', @resource[:interface]) if @resource[:onboot]
         debug("Change bridge")
       end
       if @property_flush.has_key? :ethtool and @property_flush[:ethtool].is_a? Hash
