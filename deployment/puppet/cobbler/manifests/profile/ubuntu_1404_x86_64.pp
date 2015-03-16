@@ -39,7 +39,7 @@ class cobbler::profile::ubuntu_1404_x86_64(
   # default password is 'r00tme'
   $ks_encrypted_root_password = "\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61",
 
-  $kopts = "priority=critical locale=en_US biosdevname=0 netcfg/choose_interface=auto auto=true netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20 elevator=deadline",
+  $kopts = "auto=true priority=critical locale=en_US net.ifnames=0 biosdevname=0 netcfg/choose_interface=auto netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20 elevator=deadline",
   ){
 
   case $operatingsystem {
