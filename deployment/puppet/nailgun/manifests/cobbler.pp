@@ -145,7 +145,7 @@ class nailgun::cobbler(
 
       cobbler_profile { "ubuntu_1404_x86_64":
         kickstart => "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed",
-        kopts => "netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20",
+        kopts => "inet.ifnames=0 biosdevname=0 netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20",
         distro => "ubuntu_1404_x86_64",
         ksmeta => "",
         menu => true,

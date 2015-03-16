@@ -10,11 +10,18 @@ d-i console-setup/variantcode       string
 # d-i netcfg/enable boolean false
 d-i netcfg/choose_interface select auto
 
+# To set a different link detection timeout (default is 3 seconds).
+d-i netcfg/link_detection_timeout string 20
+
 # by default we use dhcp but it is possible to set network
 # configuration via kernel parameters
-d-i netcfg/dhcp_timeout string 30
+d-i netcfg/dhcp_timeout string 120
 d-i netcfg/dhcp_failed note
 d-i netcfg/dhcp_options select Configure network manually
+
+# Don't copy /etc/network/interfaces to to /target
+# LP: #1361902
+d-i netcfg/target_network_config ifupdown
 
 # these lines must be added via system kopts
 # d-i netcfg/get_hostname string nailgun
@@ -136,23 +143,24 @@ d-i debian-installer/exit/poweroff boolean false
 # add puppet and mcollective configuration
 # add network configuration
 d-i preseed/late_command string true && \
-$SNIPPET('ubuntu_repos_late')
+$SNIPPET('ubuntu_repos_late') && \
 echo 'APT::Get::AllowUnauthenticated 1;' > /target/etc/apt/apt.conf.d/02mirantis-allow-unsigned && \
 in-target apt-get update; \
 in-target apt-get upgrade -y; \
-#if $fuel_version >= '6.0'
+#if $fuel_version >= '6.1'
 in-target apt-get -y install linux-image-generic-lts-trusty linux-headers-generic-lts-trusty; \
 #else
 in-target apt-get -y install linux-image-3.11 linux-headers-3.11; \
 #end if
 #if $fuel_version >= '6.1'
-$SNIPPET('ubuntu_trusty_packages_late')
+$SNIPPET('ubuntu_trusty_packages_late'); \
 #else
-$SNIPPET('ubuntu_precise_packages_late')
+$SNIPPET('ubuntu_precise_packages_late'); \
 #end if
-$SNIPPET('ubuntu_partition_late')
+$SNIPPET('ubuntu_partition_late'); \
 $SNIPPET('ubuntu_disable_pxe') && \
 $SNIPPET('ubuntu_network') && \
+$SNIPPET('ubuntu_static_net') && \
 echo 'supersede routers 0;' > /target/etc/dhcp/dhclient.conf && \
 $SNIPPET('cinder_create_lvm_group__ubuntu') && \
 $SNIPPET('ubuntu_puppet_config') && \
@@ -170,7 +178,6 @@ $SNIPPET('ubuntu_authorized_keys')
 sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication\ .*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
 echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
 $SNIPPET('ubuntu_blacklist_i2c_piix4')
-$SNIPPET('ubuntu_static_net')
 $SNIPPET('ofed_install_with_sriov')
 # Rsyslogd should send all messages to master node
 $SNIPPET('target_logs_to_master_ubuntu')
