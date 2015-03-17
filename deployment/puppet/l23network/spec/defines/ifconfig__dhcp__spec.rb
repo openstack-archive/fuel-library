@@ -1,9 +1,5 @@
 require 'spec_helper'
 
-# Ubintu, manual -- no IP addresses, but interface in UP state
-#describe 'l23network::l3::ifconfig', :type => :define do
-#  let(:module_path) { '../' }
-#describe 'l23network::l3::ifconfig', :type => :define do
 describe 'l23network::l3::ifconfig', :type => :define do
   context 'ifconfig with dhcp' do
     let(:title) { 'ifconfig simple test' }
@@ -23,14 +19,6 @@ describe 'l23network::l3::ifconfig', :type => :define do
     end
 
     it do
-      should contain_l3_ifconfig('eth4').with({
-        'ensure'  => 'present',
-        'ipaddr'  => 'dhcp',
-        'gateway' => nil,
-      })
-    end
-
-    it do
       should contain_l23_stored_config('eth4').only_with({
         'name'           => 'eth4',
         'method'         => 'dhcp',
@@ -38,6 +26,15 @@ describe 'l23network::l3::ifconfig', :type => :define do
         'gateway'        => nil,
       })
     end
+
+    it do
+      should contain_l3_ifconfig('eth4').with({
+        'ensure'  => 'present',
+        'ipaddr'  => 'dhcp',
+        'gateway' => nil,
+      }).that_requires('L23_stored_config[eth4]')
+    end
+
 
   end
 
@@ -142,4 +139,4 @@ end
 #     should rv.without_content(/NETMASK=/)
 #   end
 # end
-###
+# vim: set ts=2 sw=2 et
