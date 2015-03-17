@@ -27,7 +27,6 @@ class openstack::swift::proxy (
   $ratelimit_account_ratelimit        = 0,
   $package_ensure                     = 'present',
   $controller_node_address            = '10.0.0.1',
-  $memcached                          = true,
   $swift_proxies                      = {
     '127.0.0.1' => '127.0.0.1'
   }
@@ -60,9 +59,7 @@ class openstack::swift::proxy (
     $log_level = 'WARNING'
   }
 
-  if $memcached and !defined(Class['memcached']) {
-    class { 'memcached': }
-  }
+  #FIXME(bogdando) the memcached class must be included in catalog if swift node is a standalone!
 
   if $ceilometer {
     $new_proxy_pipeline = split(
@@ -93,7 +90,7 @@ class openstack::swift::proxy (
   class { ['::swift::proxy::catch_errors', '::swift::proxy::healthcheck', '::swift::proxy::swift3',]:
   }
 
-  $cache_addresses = inline_template("<%= @swift_proxies.keys.uniq.sort.collect {|ip| ip + ':11211' }.join ',' %>")
+  $cache_addresses = inline_template("<%= @swift_proxies.values.uniq.sort.collect {|ip| ip + ':11211' }.join ',' %>")
 
   class { '::swift::proxy::cache': memcache_servers => split($cache_addresses, ',') }
 

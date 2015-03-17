@@ -52,7 +52,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 
   class { 'openstack::swift::proxy':
     swift_user_password     => $swift_hash[user_password],
-    swift_proxies           => $controller_internal_addresses,
+    swift_proxies           => hiera('controller_internal_addresses'),
     ring_part_power         => $ring_part_power,
     primary_proxy           => $primary_proxy,
     controller_node_address => $management_vip,
