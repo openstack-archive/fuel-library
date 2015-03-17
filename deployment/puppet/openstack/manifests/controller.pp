@@ -352,6 +352,7 @@ class openstack::controller (
     rabbit_notification_exchange => $rabbit_notification_exchange,
     rabbit_notification_topic    => $rabbit_notification_topic,
     known_stores                 => $known_stores,
+    ceilometer                   => $ceilometer,
   }
 
   ######## BEGIN NOVA ###########
@@ -445,6 +446,7 @@ class openstack::controller (
     idle_timeout                => $idle_timeout,
     novnc_address               => $novnc_address,
     ha_mode                     => $ha_mode,
+    ceilometer                  => $ceilometer,
     neutron_metadata_proxy_shared_secret => $network_provider ? {'nova'=>undef, 'neutron'=>$neutron_metadata_proxy_secret },
   }
 

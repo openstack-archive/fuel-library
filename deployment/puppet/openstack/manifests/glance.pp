@@ -77,6 +77,7 @@ class openstack::glance (
   $amqp_durable_queues          = false,
   $control_exchange             = 'glance',
   $known_stores                 = false,
+  $ceilometer                   = false,
 ) {
   validate_string($glance_user_password)
   validate_string($glance_db_password)
@@ -175,6 +176,12 @@ class openstack::glance (
 
   # Configure rabbitmq notifications
   # TODO(bogdando) sync qpid support from upstream
+  if $ceilometer {
+    $notification_driver = 'messaging'
+  } else {
+    $notification_driver = 'noop'
+  }
+
   class { 'glance::notify::rabbitmq':
     rabbit_password              => $rabbit_password,
     rabbit_userid                => $rabbit_userid,
@@ -186,6 +193,7 @@ class openstack::glance (
     rabbit_notification_exchange => $rabbit_notification_exchange,
     rabbit_notification_topic    => $rabbit_notification_topic,
     amqp_durable_queues          => $amqp_durable_queues,
+    notification_driver          => $notification_driver,
   }
 
   glance_api_config {
