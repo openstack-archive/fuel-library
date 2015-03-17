@@ -75,6 +75,10 @@ Puppet::Type.newtype(:l23_stored_config) do
     aliasvalue(:no,  :false)
     aliasvalue(:off, :false)
     defaultto :true
+
+    def insync?(value)
+      value.to_s.downcase == should.to_s.downcase
+    end
   end
 
   newproperty(:mtu) do

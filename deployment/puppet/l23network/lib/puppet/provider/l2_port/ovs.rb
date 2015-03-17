@@ -70,7 +70,7 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   end
 
   def flush
-    if @property_flush
+    if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       if !['', 'absent'].include? @property_flush[:mtu].to_s
         self.class.set_mtu(@resource[:interface], @property_flush[:mtu])

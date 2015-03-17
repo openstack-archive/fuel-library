@@ -63,7 +63,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   end
 
   def flush
-    if @property_flush
+    if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       #
       # FLUSH changed properties
@@ -93,6 +93,9 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         port_bridges_hash = self.class.get_port_bridges_pairs()
         debug("Actual-port-bridge-mapping: '#{port_bridges_hash}'")       # it should removed from LNX
         #
+        #Flush ipaddr and routes for interface, thah adding to the bridge
+        iproute('route', 'flush', 'dev', @resource[:interface])
+        iproute('addr', 'flush', 'dev', @resource[:interface])
         iproute('--force', 'link', 'set', 'dev', @resource[:interface], 'down')
         # remove interface from old bridge
         if ! port_bridges_hash[@resource[:interface]].nil?
@@ -121,9 +124,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             #pass
           end
         end
-        iproute('link', 'set', 'dev', @resource[:interface], 'up') if @resource[:onboot]
-        #Flush routes after interface up. BUG on CentOS6
-        iproute('route', 'flush', 'dev', @resource[:interface]) if @resource[:onboot]
+        iproute('link', 'set', 'dev', @resource[:interface], 'up')
         debug("Change bridge")
       end
       if @property_flush.has_key? :ethtool and @property_flush[:ethtool].is_a? Hash
