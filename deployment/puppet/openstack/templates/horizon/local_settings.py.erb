@@ -13,7 +13,11 @@ TEMPLATE_DEBUG = DEBUG
 # For more information see:
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 #ALLOWED_HOSTS = ['horizon.example.com', ]
-ALLOWED_HOSTS = ['*']
+<% if @final_allowed_hosts.kind_of?(Array) %>
+ALLOWED_HOSTS = ['<%= @final_allowed_hosts.join("', '") %>', ]
+<% else %>
+ALLOWED_HOSTS = ['<%= @final_allowed_hosts %>', ]
+<% end %>
 
 # Set SSL proxy settings:
 # For Django 1.4+ pass this header from the proxy after terminating the SSL,
@@ -24,8 +28,13 @@ ALLOWED_HOSTS = ['*']
 
 # If Horizon is being served through SSL, then uncomment the following two
 # settings to better secure the cookies from security exploits
+<% if @secure_cookies %>
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+<% else %>
 #CSRF_COOKIE_SECURE = True
 #SESSION_COOKIE_SECURE = True
+<% end %>
 
 # Overrides for OpenStack API versions. Use this setting to force the
 # OpenStack dashboard to use a specfic API version for a given service API.
@@ -270,15 +279,27 @@ EXTERNAL_MONITORING = <%= @horizon_app_links %>
 # target installation.
 
 # Path to directory containing policy.json files
-#POLICY_FILES_PATH = os.path.join(ROOT_PATH, "conf")
-<% if @osfamily == 'RedHat' %>
+<% if !(@policy_files_path.nil?) %>
+POLICY_FILES_PATH = '<%= @policy_files_path %>'
+<% elsif @osfamily == 'RedHat' %>
 POLICY_FILES_PATH = '/etc/openstack-dashboard'
-<% end %>
+<% else %>
+#POLICY_FILES_PATH = os.path.join(ROOT_PATH, "conf")
+<% end -%>
+
 # Map of local copy of service policy files
+<% if @policy_files.kind_of?(Hash) %>
+POLICY_FILES = {
+<% @policy_files.sort.each do |service_name,filename| -%>
+    '<%= service_name -%>': '<%= filename -%>',
+<% end -%>
+} # POLICY_FILES
+<% else -%>
 #POLICY_FILES = {
 #    'identity': 'keystone_policy.json',
 #    'compute': 'nova_policy.json'
 #}
+<% end -%>
 
 # Trove user and database extension support. By default support for
 # creating users and databases on database instances is turned on.
@@ -298,9 +319,6 @@ LOGGING = {
         'verbose': {
             'format': '%(asctime)s %(process)d %(levelname)s %(name)s '
                       '%(message)s'
-        },
-        'normal': {
-            'format': 'dashboard-%(name)s: %(levelname)s %(message)s'
         },
     },
     'handlers': {
@@ -347,98 +365,98 @@ end
         },
         'horizon': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'openstack_dashboard': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'novaclient': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'cinderclient': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'keystoneclient': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'glanceclient': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'neutronclient': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'heatclient': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'ceilometerclient': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'troveclient': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'swiftclient': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'openstack_auth': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'nose.plugins.manager': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'django': {
             # 'handlers': ['console'],
-            'handlers': ['<%= log_handler %>'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
@@ -534,8 +552,8 @@ SECURITY_GROUP_RULES = {
     'ms_sql': {
         'name': 'MS SQL',
         'ip_protocol': 'tcp',
-        'from_port': '1443',
-        'to_port': '1443',
+        'from_port': '1433',
+        'to_port': '1433',
     },
     'mysql': {
         'name': 'MYSQL',
@@ -564,11 +582,3 @@ COMPRESS_OFFLINE = <%= @compress_offline.to_s.capitalize %>
 # so we add this option to change the directory where uploaded files are temporarily
 # stored until they are loaded into Glance.
 FILE_UPLOAD_TEMP_DIR = '<%= @file_upload_temp_dir %>'
-
-ENABLED_QUOTA_GROUPS = {
-<% if scope.lookupvar('::openstack::horizon::nova_quota') %>
-    'nova': True
-<% else %>
-    'nova': False
-<% end %>
-}
