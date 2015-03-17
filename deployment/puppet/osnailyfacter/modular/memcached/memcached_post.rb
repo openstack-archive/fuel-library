@@ -1,6 +1,7 @@
 require 'hiera'
 require 'test/unit'
 require 'socket'
+require 'timeout'
 
 def hiera
   return $hiera if $hiera
@@ -10,6 +11,11 @@ end
 def internal_address
   return $internal_address if $internal_address
   $internal_address = hiera.lookup 'internal_address', nil, {}
+end
+
+def public_address
+  return $public_address if $public_address
+  $public_address = hiera.lookup 'public_address', nil, {}
 end
 
 def process_tree
@@ -48,16 +54,22 @@ end
 
 def test_connection(host, port)
   begin
-    s = TCPSocket.open(host, port)
-    s.close
+    Timeout::timeout( 3 ) do
+      s = TCPSocket.open(host, port)
+      s.close
+    end
   rescue
-    return false
+    raise Errno::ECONNREFUSED
   end
   true
 end
 
 def memcached_backend_online?
   test_connection(internal_address, '11211')
+end
+
+def memcached_backend_listen_public?
+  test_connection(public_address, '11211')
 end
 
 PROCESSES = %w(
@@ -75,7 +87,15 @@ class MemcachedPostTest < Test::Unit::TestCase
   end
 
   def test_memcached_backend_online
-    assert memcached_backend_online?, 'Can not connect to memcached on this host!'
+    assert_nothing_raised do
+      assert memcached_backend_online?, 'Can not connect to memcached on this host!'
+    end
+  end
+
+  def test_memcached_backend_dont_listen_public
+    assert_raise Errno::ECONNREFUSED do
+      memcached_backend_listen_public?
+    end
   end
 end
 
