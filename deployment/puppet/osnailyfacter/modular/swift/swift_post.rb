@@ -95,6 +95,7 @@ swift-proxy-server
 swift-account-server
 swift-container-server
 swift-object-server
+memcached
 )
 
 class SwiftPostTest < Test::Unit::TestCase
