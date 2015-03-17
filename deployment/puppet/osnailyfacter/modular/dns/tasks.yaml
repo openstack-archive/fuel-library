@@ -10,7 +10,7 @@
 
 - id: dns-client
   type: puppet
-  groups: [primary-controller, controller, cinder, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
   required_for: [deploy_end]
   requires: [netconfig]
   parameters:

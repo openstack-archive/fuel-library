@@ -1,7 +1,7 @@
 - id: zabbix
   type: puppet
   groups: [primary-controller, controller,
-           cinder, compute, ceph-osd,
+           cinder, cinder-vmware, compute, ceph-osd,
            zabbix-server, primary-mongo, mongo]
   required_for: [deploy_end]
   requires: [hosts, firewall]
