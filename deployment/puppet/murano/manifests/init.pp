@@ -62,7 +62,7 @@ class murano (
   $external_network                      = 'net04_ext',
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::apps'] -> Class['murano::dashboard'] -> Class['murano::cirros']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::dashboard'] -> Class['murano::cirros']
 
   User['murano'] -> Class['murano::api'] -> File <| title == $murano_log_dir |>
 
@@ -155,10 +155,6 @@ class murano (
     use_neutron                          => $use_neutron,
     default_router                       => 'murano-default-router',
     external_network                     => $external_network,
-  }
-
-  class { 'murano::apps':
-    primary_controller => $primary_controller,
   }
 
   class { 'murano::dashboard' :
