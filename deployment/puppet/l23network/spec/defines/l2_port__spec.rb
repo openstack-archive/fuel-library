@@ -144,7 +144,7 @@ describe 'l23network::l2::port', :type => :define do
         'gateway' => nil,
         'mtu'     => 9000,
       })
-      should contain_l2_port('eth2').with({
+      should contain_l2_port('eth2').only_with({
         'ensure'  => 'present',
         'mtu'     => 9000,
         'use_ovs' => nil,
@@ -169,10 +169,53 @@ describe 'l23network::l2::port', :type => :define do
         'gateway' => nil,
         'bridge'  => 'br-floating',
       })
-      should contain_l2_port('eth2').with({
+      should contain_l2_port('eth2').only_with({
         'ensure'  => 'present',
         'use_ovs' => nil,
         'bridge'  => 'br-floating',
+      }).that_requires('L23_stored_config[eth2]')
+    end
+  end
+
+  context 'Port, which has vendor-specific field' do
+    let(:params) do
+      {
+        :name            => 'eth2',
+        :vendor_specific => {
+            'aaa' => '1111',
+            'bbb' => {
+                'bbb1' => 11111,
+                'bbb2' => ['b11','b12','b13']
+            },
+        },
+      }
+    end
+
+    it do
+      should compile
+      should contain_l23_stored_config('eth2').only_with({
+        'use_ovs' => nil,
+        'method'  => nil,
+        'ipaddr'  => nil,
+        'gateway' => nil,
+        'vendor_specific' => {
+            'aaa' => '1111',
+            'bbb' => {
+                'bbb1' => 11111,
+                'bbb2' => ['b11','b12','b13']
+            },
+        },
+      })
+      should contain_l2_port('eth2').only_with({
+        'ensure'  => 'present',
+        'use_ovs' => nil,
+        'vendor_specific' => {
+            'aaa' => '1111',
+            'bbb' => {
+                'bbb1' => 11111,
+                'bbb2' => ['b11','b12','b13']
+            },
+        },
       }).that_requires('L23_stored_config[eth2]')
     end
   end
