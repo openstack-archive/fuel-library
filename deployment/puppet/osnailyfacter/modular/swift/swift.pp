@@ -79,3 +79,8 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 class ceilometer {}
 include ceilometer
 
+# we need to declare stub for 'mamcached' class, otherwise swift::proxy will
+# decalre it which will cause memcached service restart
+class memcached {}
+include memcached
+
