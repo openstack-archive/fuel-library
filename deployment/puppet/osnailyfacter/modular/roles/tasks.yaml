@@ -19,7 +19,7 @@
 
 - id: top-role-cinder
   type: puppet
-  groups: [cinder]
+  groups: [cinder, cinder-vmware]
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
