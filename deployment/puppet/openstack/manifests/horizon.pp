@@ -132,6 +132,8 @@ class openstack::horizon (
     local_settings_template => $local_settings_template,
     configure_apache        => false,
     django_session_engine   => $django_session_engine,
+    allowed_hosts           => '*',
+    secure_cookies          => false,
   }
 
   class { '::horizon::wsgi::apache':
