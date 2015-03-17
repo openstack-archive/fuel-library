@@ -19,6 +19,7 @@ $amqp_hosts            = hiera('amqp_hosts')
 $primary_controller    = hiera('primary_controller')
 $controller_nodes      = hiera('controller_nodes')
 $neutron_user_password = hiera('neutron_user_password', false)
+$workloads_hash        = hiera('workloads_collector', {})
 
 $db_type     = 'mysql'
 $db_host     = $management_vip
@@ -115,9 +116,20 @@ class { 'openstack::auth_file':
   controller_node      => $internal_address,
 }
 
+class { 'openstack::workloads_collector':
+  enabled              => $workloads_hash[enabled],
+  workloads_username   => $workloads_hash[username],
+  workloads_password   => $workloads_hash[password],
+  workloads_tenant     => $workloads_hash[tenant],
+}
+
+
 Exec <| title == 'keystone-manage db_sync' |> ->
 Class['keystone::roles::admin'] ->
 Class['openstack::auth_file']
+
+Class['keystone::roles::admin'] ->
+Class['openstack::workloads_collector']
 
 $haproxy_stats_url = "http://${management_vip}:10000/;csv"
 
