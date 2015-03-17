@@ -83,4 +83,5 @@ class zabbix::monitoring {
   include zabbix::monitoring::openvswitch_mon
   include zabbix::monitoring::ceilometer_mon
   include zabbix::monitoring::ceilometer_compute_mon
+  include zabbix::monitoring::ceph_mon
 }
