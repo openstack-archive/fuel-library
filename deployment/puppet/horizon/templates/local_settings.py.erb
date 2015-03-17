@@ -290,7 +290,7 @@ POLICY_FILES_PATH = '/etc/openstack-dashboard'
 # Map of local copy of service policy files
 <% if @policy_files.kind_of?(Hash) %>
 POLICY_FILES = {
-<% @policy_files.each do |service_name,filename| -%>
+<% @policy_files.sort.each do |service_name,filename| -%>
     '<%= service_name -%>': '<%= filename -%>',
 <% end -%>
 } # POLICY_FILES
