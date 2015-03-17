@@ -27,7 +27,6 @@ class openstack::swift::proxy (
   $ratelimit_account_ratelimit        = 0,
   $package_ensure                     = 'present',
   $controller_node_address            = '10.0.0.1',
-  $memcached                          = true,
   $swift_proxies                      = {
     '127.0.0.1' => '127.0.0.1'
   }
@@ -58,10 +57,6 @@ class openstack::swift::proxy (
   }
   else {
     $log_level = 'WARNING'
-  }
-
-  if $memcached and !defined(Class['memcached']) {
-    class { 'memcached': }
   }
 
   if $ceilometer {
