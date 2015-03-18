@@ -1,11 +1,9 @@
-require 'hiera'
-require 'test/unit'
+require File.join File.dirname(__FILE__), '../test_common.rb'
 
 class HostsPostTest < Test::Unit::TestCase
 
   def test_hosts_file_has_all_nodes
-    hiera = Hiera.new(:config => '/etc/puppet/hiera.yaml')
-    nodes_array = hiera.lookup 'nodes', nil, {}
+    nodes_array = TestCommon::Settings.nodes
     raise 'No nodes data!' unless nodes_array and nodes_array.is_a? Array
     hosts_file = File.read '/etc/hosts'
     nodes_array.each do |node|
