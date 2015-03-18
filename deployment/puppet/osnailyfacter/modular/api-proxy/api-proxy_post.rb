@@ -1,23 +1,8 @@
-require 'test/unit'
-require 'socket'
-
-def test_connection(host, port)
-  begin
-    s = TCPSocket.open(host, port)
-    s.close
-  rescue
-    return false
-  end
-  true
-end
-
-def api_proxy_online?
-  test_connection('localhost', '8888')
-end
+require File.join File.dirname(__FILE__), '../test_common.rb'
 
 class ApiProxyPostTest < Test::Unit::TestCase
   def test_api_proxy_online
-    assert api_proxy_online?, 'Can not connect to API proxy!'
+    assert TestCommon::Network.connection?('localhost', 8888), 'Cannot connect to API proxy!'
   end
 end
 

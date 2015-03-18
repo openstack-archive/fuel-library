@@ -1,43 +1,20 @@
-require 'hiera'
-require 'test/unit'
-
-def ping(host)
-  `ping -q -c 1 -W 3 '#{host}'`
-  $?.exitstatus == 0
-end
-
-def hiera
-  return $hiera if $hiera
-  $hiera = Hiera.new(:config => '/etc/puppet/hiera.yaml')
-end
-
-def public_vip
-  return $public_vip if $public_vip
-  $public_vip = hiera.lookup 'public_vip', nil, {}
-end
-
-def management_vip
-  return $management_vip if $management_vip
-  $management_vip = hiera.lookup 'management_vip', nil, {}
-end
-
-def deployment_mode
-  return $deployment_mode if $deployment_mode
-  $deployment_mode = hiera.lookup 'deployment_mode', nil, {}
-end
-
-def is_ha?
-  %w(ha ha_compact).include? deployment_mode
-end
+require File.join File.dirname(__FILE__), '../test_common.rb'
 
 class VirtualIPsPostTest < Test::Unit::TestCase
 
   def test_public_vip_ping
-    assert ping(public_vip), "Could not ping the public vip '#{public_vip}'!" if is_ha?
+    ip = TestCommon::Settings.public_vip
+    assert TestCommon::Network.ping?(ip), "Could not ping the public vip '#{ip}'!"
   end
 
   def test_management_vip_ping
-    assert ping(management_vip), "Could not ping the management vip '#{management_vip}'!" if is_ha?
+    ip = TestCommon::Settings.management_vip
+    assert TestCommon::Network.ping?(ip), "Could not ping the management vip '#{ip}'!"
+  end
+
+  def test_can_ping_the_default_router
+    ip = TestCommon::Network.default_router
+    assert TestCommon::Network.ping?(ip), "Cannot ping the default router '#{ip}'!"
   end
 
 end
