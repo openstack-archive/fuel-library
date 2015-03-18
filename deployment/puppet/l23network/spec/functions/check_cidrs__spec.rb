@@ -1,8 +1,4 @@
-# require 'puppet'
-# require 'rspec'
-# require 'rspec-puppet'
 require 'spec_helper'
-require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 
 describe 'check_cidrs' do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }

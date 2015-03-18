@@ -1,4 +1,5 @@
 require 'rspec-puppet'
+require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 
 fixture_path = File.expand_path(File.join(__FILE__, '..', 'fixtures'))
 

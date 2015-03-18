@@ -1,9 +1,4 @@
-# require 'puppet'
-# require 'rspec'
-# require 'rspec-puppet'
 require 'spec_helper'
-require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
-require 'puppetx/l23_network_scheme'
 
 describe Puppet::Parser::Functions.function(:get_network_role_property) do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }

@@ -1,6 +1,4 @@
-require 'rspec-puppet'
 require 'spec_helper'
-require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 
 # Ubintu, manual -- no IP addresses, but interface in UP state
 #describe 'l23network::l3::ifconfig', :type => :define do

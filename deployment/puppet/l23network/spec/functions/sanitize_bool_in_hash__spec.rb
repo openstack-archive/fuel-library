@@ -1,8 +1,4 @@
-# require 'puppet'
-# require 'rspec'
-# require 'rspec-puppet'
 require 'spec_helper'
-require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 
 describe 'sanitize_bool_in_hash' do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
