@@ -1,8 +1,4 @@
-# require 'puppet'
-# require 'rspec'
-# require 'rspec-puppet'
 require 'spec_helper'
-require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 
 describe 'get_pair_of_jack_names' do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
