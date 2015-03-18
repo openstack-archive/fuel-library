@@ -1,9 +1,4 @@
-require 'test/unit'
-
-def tool_present(tool)
-  `which '#{tool}' 1>/dev/null 2>/dev/null`
-  $?.exitstatus == 0
-end
+require File.join File.dirname(__FILE__), '../test_common.rb'
 
 TOOLS = %w(
 screen
@@ -22,7 +17,7 @@ class ToolsPostTest < Test::Unit::TestCase
     TOOLS.each do |tool|
       method_name = "test_tool_#{tool}_present"
       define_method method_name do
-        assert tool_present(tool), "There is no '#{tool}' installed!"
+        assert TestCommon::Process.command_present?(tool), "There is no '#{tool}' installed!"
       end
     end
   end

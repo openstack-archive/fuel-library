@@ -3,6 +3,7 @@ require 'test/unit'
 require 'open-uri'
 require 'timeout'
 require 'facter'
+require 'socket'
 
 module TestCommon
 
@@ -74,7 +75,7 @@ module TestCommon
     end
   end
 
-  module PS
+  module Process
 
     def self.run_successful?(cmd)
       `#{cmd}`
@@ -333,10 +334,66 @@ module TestCommon
     end
   end
 
-  module Net
+  module Network
     def self.url_accessible?(url)
       `curl --fail '#{url}' 1>/dev/null 2>/dev/null`
       $?.exitstatus == 0
+    end
+
+    def self.connection?(host, port)
+      begin
+        Timeout::timeout(5) do
+          sock = TCPSocket.open(host, port)
+          sock.close
+        end
+      rescue
+        return false
+      end
+      true
+    end
+
+    def self.no_connection?(host, port)
+      not connection?(host, port)
+    end
+
+    def self.iptables_rules
+      return @iptables_rules if @iptables_rules
+      output = `iptables-save`
+      code = $?.exitstatus
+      return unless code == 0
+      comments = []
+      output.split("\n").each do |line|
+        line =~ %r(--comment\s+"(.*?)")
+        next unless $1
+        comment = $1.chomp.strip.gsub /^\d+\s+/, ''
+        comments << comment
+      end
+      @iptables_rules = comments
+    end
+
+    def self.ips
+      return @ips if @ips
+      ip_out = `ip addr`
+      return unless $?.exitstatus == 0
+      ips = []
+      ip_out.split("\n").each do |line|
+        if line =~ /\s+inet\s+([\d\.]*)/
+          ips << $1
+        end
+      end
+      @ips = ips
+    end
+
+    def self.default_router
+      return @default_router if @default_router
+      routes = `ip route`
+      return unless $?.exitstatus == 0
+      routes.split("\n").each do |line|
+        if line =~ /^default via ([\d\.]*)/
+          return @default_router = $1
+        end
+      end
+      nil
     end
 
     def self.ping?(host)
@@ -346,7 +403,13 @@ module TestCommon
   end
 
   module AMQP
-    def self.connection?(user, password, host='localhost', port='5672', vhost='/', protocol='amqp')
+    def self.connection?(
+        user=Settings.rabbit['user'],
+        password=Settings.rabbit['password'],
+        host='localhost',
+        port='5673',
+        vhost='/',
+        protocol='amqp')
       url = "#{protocol}://#{user}:#{password}@#{host}:#{port}/#{vhost}"
       python = <<-eof
 import sys
@@ -371,9 +434,43 @@ else:
     end
   end
 
-end
+  module Config
+    def self.ini_file(file)
+      content = File.read file
+      data = {}
+      return data unless content
+      section = 'default'
+      content.split("\n").each do |line|
+        line = line.strip
+        next if line.start_with? '#'
+        next if line == ''
+        if line =~ /\[(\S+)\]/
+          section = $1.downcase
+        elsif line =~ /(\S+)\s*=\s*(.*)/
+          data["#{section}/#{$1.downcase}"] = $2
+        end
+      end
+      data
+    end
 
-if __FILE__ == $1
-  require 'pry'
-  TestCommon.pry
+    def self.value?(file, key, value)
+      key = key.downcase
+      key = 'default/' + key unless key.include? '/'
+      value = value.to_s
+      data = ini_file file
+      data[key] == value
+    end
+
+    def self.has_line?(file, line)
+      content = File.read file
+      if line.is_a? String
+        content.include? line
+      elsif line.is_a? Regexp
+        content =~ line
+      else
+        raise 'Line should be a string or a regexp!'
+      end
+    end
+  end
+
 end
