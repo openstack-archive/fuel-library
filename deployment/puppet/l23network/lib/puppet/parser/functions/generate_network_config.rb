@@ -28,8 +28,7 @@ module L23network
   end
 
   def self.correct_ethtool_set(prop_hash)
-    if (!prop_hash.has_key?('ethtool') or prop_hash['ethtool'].empty?) \
-      and (prop_hash.has_key?('vendor_specific') and prop_hash['vendor_specific']['disable_offloading'])
+    if !prop_hash.has_key?('ethtool') and (prop_hash.has_key?('vendor_specific') and prop_hash['vendor_specific']['disable_offloading'])
       # add default offload settings if:
       #  * no ethtool properties given
       #  * "disable offload" flag given
@@ -287,6 +286,10 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       trans.select{|k,v| k != :action}.each do |k,v|
         if ['Hash', 'Array'].include? v.class.to_s
           resource_properties[k.to_s] = L23network.reccursive_sanitize_hash(v)
+          if action == :bond && k==:interface_properties
+            # search 'disable_offloading' flag and correct ethtool properties if required
+            resource_properties[k.to_s] = L23network.correct_ethtool_set(resource_properties[k.to_s])
+          end
         elsif ! v.nil?
           resource_properties[k.to_s] = v
         else
