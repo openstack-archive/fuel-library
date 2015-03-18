@@ -1,43 +1,28 @@
-require 'test/unit'
-
-def process_tree
-  return $process_tree if $process_tree
-  $process_tree = {}
-  ps = `ps haxo pid,ppid,cmd`
-  ps.split("\n").each do |p|
-    f = p.split
-    pid = f.shift.to_i
-    ppid = f.shift.to_i
-    cmd = f.join ' '
-
-    # create entry for this pid if not present
-    $process_tree[pid] = {
-        :children => []
-    } unless $process_tree.key? pid
-
-    # fill this entry
-    $process_tree[pid][:ppid] = ppid
-    $process_tree[pid][:pid] = pid
-    $process_tree[pid][:cmd] = cmd
-
-    unless ppid == 0
-      # create entry for parent process if not present
-      $process_tree[ppid] = {
-          :children => [],
-          :cmd => '',
-      } unless $process_tree.key? ppid
-
-      # fill parent's children
-      $process_tree[ppid][:children] << pid
-    end
-  end
-  $process_tree
-end
+require File.join File.dirname(__FILE__), '../test_common.rb'
 
 class MuranoPostTest < Test::Unit::TestCase
 
   def test_murano_is_running
-    assert process_tree.find { |pid, proc| proc[:cmd].include? 'murano' }, 'Murano is not running!'
+    assert TestCommon::Process.running?('murano-api'), 'Murano-api is not running!'
+  end
+
+  def test_murano_engine_pacemaker_service_running
+    assert TestCommon::Pacemaker.primitive_started?('p_openstack-murano-engine'), 'Murano-engine Pacemaker service is not started!'
+  end
+
+  def test_murano_haproxy_backend_online
+    assert TestCommon::HAProxy.backend_up?('murano'), 'Murano HAProxy backend is not up!'
+  end
+
+  def test_murano_rabbitmq_haproxy_backend_online
+    assert TestCommon::HAProxy.backend_up?('murano_rabbitmq'), 'Murano_rabbitmq HAProxy backend is not up!'
+  end
+
+  def test_murano_api_url_accessible
+    ip = TestCommon::Settings.management_vip
+    port = 8082
+    url = "http://#{ip}:#{port}"
+    assert TestCommon::Network.url_accessible?(url), "Murano-api url '#{url}' is not accessible!"
   end
 
 end
