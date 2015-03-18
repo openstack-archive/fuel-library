@@ -8,6 +8,6 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/database.rb
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/database_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/database.rb
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/database_post.rb
