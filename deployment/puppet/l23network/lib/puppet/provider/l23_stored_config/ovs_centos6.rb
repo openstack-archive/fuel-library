@@ -35,7 +35,7 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_centos6, :parent => Puppet::P
     end
   end
 
-  def self.unmangle__if_type(val)
+  def self.unmangle__if_type(provider, val)
     if val == :bridge
       val = :OVSBridge
     else
@@ -53,7 +53,7 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_centos6, :parent => Puppet::P
 
   #Dirty hack which deletes OVS bridges from patch OVS
   #interfaces
-  def self.unmangle__bridge(val)
+  def self.unmangle__bridge(provider, val)
     if val.length == 2
       val.delete('br-prv') if val.include?('br-prv')
       val.delete('br-floating') if val.include?('br-floating')
