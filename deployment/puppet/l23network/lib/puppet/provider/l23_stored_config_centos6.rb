@@ -1,3 +1,4 @@
+require 'puppetx/l23_ethtool_name_commands_mapping'
 require File.join(File.dirname(__FILE__), 'l23_stored_config_base')
 
 class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored_config_base
@@ -28,6 +29,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       :bonding_opts          => 'BONDING_OPTS',
       :bond_lacp_rate        => 'lacp_rate',
       :bond_xmit_hash_policy => 'xmit_hash_policy',
+      :ethtool               => 'ETHTOOL_OPTS',
     }
   end
   def property_mappings
@@ -219,7 +221,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     end
 
     debug("format_file('#{filename}')::properties: #{props.inspect}")
-    pairs = self.unmangle_properties(props)
+    pairs = self.unmangle_properties(provider, props)
 
     if pairs.has_key?('mode')
       bond_options = "mode=#{pairs['mode']} miimon=#{pairs['miimon']}"
@@ -249,7 +251,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     content.join("\n")
   end
 
-  def self.unmangle_properties(props)
+  def self.unmangle_properties(provider, props)
     pairs = {}
 
     boolean_properties.each do |bool_property|
@@ -263,7 +265,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
         props.delete(type_name)
         mangle_method_name="unmangle__#{type_name}"
         if self.respond_to?(mangle_method_name)
-          rv = self.send(mangle_method_name, val)
+          rv = self.send(mangle_method_name, provider, val)
         else
           rv = val
         end
@@ -274,22 +276,36 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     pairs
   end
 
-  def self.unmangle__bridge(val)
+  def self.unmangle__bridge(provider, val)
     (['', 'absent'] & Array(val).map{|a| a.to_s.downcase}.uniq).any?  ?  nil  :  val.to_s
   end
 
-  def self.unmangle__if_type(val)
+  def self.unmangle__if_type(provider, val)
     val.to_s.capitalize
   end
 
-  def self.unmangle__method(val)
+  def self.unmangle__method(provider, val)
     (['manual', 'static'].include? val.to_s.downcase)  ?  'none'  :  val
   end
 
-  def self.unmangle__ipaddr(val)
+  def self.unmangle__ipaddr(provider, val)
     (val.to_s.downcase == 'dhcp')  ?  nil  :  val
   end
 
+  def self.unmangle__ethtool(provider, val)
+    rv = ''
+    val.each do | section_name, features |
+      next if L23network.ethtool_name_commands_mapping[section_name].nil?
+      section_key = L23network.ethtool_name_commands_mapping[section_name]['__section_key_set__']
+      next if section_key.nil?
+      features.each do | feature, value |
+        next if L23network.ethtool_name_commands_mapping[section_name][feature].nil?
+        rv << " #{L23network.ethtool_name_commands_mapping[section_name][feature]} #{(value==true  ?  'on'  :  'off')} "
+      end
+      rv = "#{section_key} #{provider.name} #{rv};"
+    end
+    return "\"#{rv}\""
+  end
 
 end
 # vim: set ts=2 sw=2 et :
