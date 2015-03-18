@@ -1,43 +1,56 @@
-require 'test/unit'
+require File.join File.dirname(__FILE__), '../test_common.rb'
 
-def process_tree
-  return $process_tree if $process_tree
-  $process_tree = {}
-  ps = `ps haxo pid,ppid,cmd`
-  ps.split("\n").each do |p|
-    f = p.split
-    pid = f.shift.to_i
-    ppid = f.shift.to_i
-    cmd = f.join ' '
+PROCESSES = %w(
+heat-api
+heat-api-cfn
+heat-api-cloudwatch
+heat-engine
+)
 
-    # create entry for this pid if not present
-    $process_tree[pid] = {
-        :children => []
-    } unless $process_tree.key? pid
+BACKENDS = %w(
+heat-api
+heat-api-cfn
+heat-api-cloudwatch
+)
 
-    # fill this entry
-    $process_tree[pid][:ppid] = ppid
-    $process_tree[pid][:pid] = pid
-    $process_tree[pid][:cmd] = cmd
+HOSTS = {
+  'public' => TestCommon::Settings.public_vip,
+  'management' => TestCommon::Settings.management_vip,
+}
 
-    unless ppid == 0
-      # create entry for parent process if not present
-      $process_tree[ppid] = {
-          :children => [],
-          :cmd => '',
-      } unless $process_tree.key? ppid
-
-      # fill parent's children
-      $process_tree[ppid][:children] << pid
-    end
-  end
-  $process_tree
-end
+PORTS = {
+  'api' => 8004,
+  'api-cfn' => 8003,
+  'api-cloudwatch' => 8000,
+}
 
 class HeatPostTest < Test::Unit::TestCase
+  def self.create_tests
+    PROCESSES.each do |process|
+      method_name = "test_process_#{process}_running"
+      define_method method_name do
+        assert TestCommon::Process.running?(process), "Process '#{process}' is not running!"
+      end
+    end
 
-  def test_heat_is_running
-    assert process_tree.find { |pid, proc| proc[:cmd].include? 'heat' }, 'Heat is not running!'
+    BACKENDS.each do |backend|
+      method_name = "test_backend_#{backend}_online"
+      define_method method_name do
+        assert TestCommon::HAProxy.backend_up?(backend), "HAProxy backend '#{backend}' is not online!"
+      end
+    end
+
+    HOSTS.each do |host_type, ip|
+      PORTS.each do |port_type, port|
+        method_name = "test_#{host_type}_heat_#{port_type}_accessible"
+        define_method method_name do
+          url = "http://#{ip}:#{port}"
+          assert TestCommon::Network.url_accessible?(url), "URL '#{url}' is unaccessible?"
+        end
+      end
+    end
+
   end
-
 end
+
+HeatPostTest.create_tests
