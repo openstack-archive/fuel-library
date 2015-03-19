@@ -33,14 +33,6 @@ class openstack::corosync (
     Cs_property['stonith-enabled']->
       Cs_property['start-failure-is-fatal']
 
-  file {'filter_quantum_ports.py':
-    path   =>'/usr/bin/filter_quantum_ports.py',
-    mode   => '0744',
-    owner  => root,
-    group  => root,
-    source => 'puppet:///modules/openstack/filter_quantum_ports.py',
-  }
-
   if $corosync_version == '2' {
     $version_real = '1'
   } else {
