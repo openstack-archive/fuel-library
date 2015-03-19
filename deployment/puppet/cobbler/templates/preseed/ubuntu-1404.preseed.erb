@@ -153,6 +153,8 @@ $SNIPPET('ubuntu_precise_packages_late')
 $SNIPPET('ubuntu_partition_late')
 $SNIPPET('ubuntu_disable_pxe') && \
 $SNIPPET('ubuntu_network') && \
+##FIXME Ubuntu 14.04 55netcfg-copy-config always cp /etc/network/interfaces /target/etc/network/interfaces
+cp /target/etc/network/interfaces /etc/network/interfaces && \
 $SNIPPET('cinder_create_lvm_group__ubuntu') && \
 $SNIPPET('ubuntu_puppet_config') && \
 $SNIPPET('ubuntu_mcollective_config') && \
