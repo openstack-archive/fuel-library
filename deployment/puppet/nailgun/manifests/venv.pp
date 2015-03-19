@@ -31,6 +31,7 @@ class nailgun::venv(
   $admin_network_netmask,
   $admin_network_mac,
   $admin_network_ip,
+  $admin_network_gateway,
 
   $cobbler_host,
   $cobbler_url,

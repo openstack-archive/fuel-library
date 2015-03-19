@@ -44,6 +44,13 @@ node default {
   $dhcp_end_address   = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end']
   $dhcp_netmask       = $::fuel_settings['ADMIN_NETWORK']['netmask']
 
+  $dhcp_gw            = $::fuel_settings['ADMIN_NETWORK']['dhcp_gateway']
+  if $dhcp_gw {
+    $dhcp_gateway = $dhcp_gw
+  } else {
+    $dhcp_gateway = $cobbler_host
+  }
+
   $puppet_master_hostname = "${hostname}.${domain}"
 
   $mco_pskey = "unset"
@@ -82,7 +89,7 @@ node default {
     dhcp_start_address => $dhcp_start_address,
     dhcp_end_address   => $dhcp_end_address,
     dhcp_netmask       => $dhcp_netmask,
-    dhcp_gateway       => $cobbler_host,
+    dhcp_gateway       => $dhcp_gateway,
     dhcp_interface     => $dhcp_interface,
     nailgun_api_url    => $nailgun_api_url,
   }
