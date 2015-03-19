@@ -9,7 +9,6 @@ $internal_address               = hiera('internal_address')
 $primary_controller             = hiera('primary_controller')
 $storage_address                = hiera('storage_address')
 $use_neutron                    = hiera('use_neutron', false)
-$neutron_nsx_config             = hiera('nsx_plugin')
 $cinder_nodes_array             = hiera('cinder_nodes', [])
 $sahara_hash                    = hiera('sahara', {})
 $murano_hash                    = hiera('murano', {})
@@ -93,9 +92,6 @@ if $use_neutron {
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   $base_mac                  = $neutron_config['L2']['base_mac']
-  if $neutron_nsx_config['metadata']['enabled'] {
-    $use_vmware_nsx     = true
-  }
 } else {
   $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
@@ -321,14 +317,6 @@ if hiera('use_vcenter', false) {
 
 $mirror_type = 'external'
 Exec { logoutput => true }
-
-if $use_vmware_nsx {
-  class { 'plugin_neutronnsx':
-    neutron_config     => $neutron_config,
-    neutron_nsx_config => $neutron_nsx_config,
-    roles              => $roles,
-  }
-}
 
 
 #################################################################

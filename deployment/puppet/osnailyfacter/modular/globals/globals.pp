@@ -111,12 +111,6 @@ if $use_neutron {
   $neutron_user_password         = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   $base_mac                      = $neutron_config['L2']['base_mac']
-
-  $nsx_config                    = hiera('nsx_plugin')
-  if $nsx_config['metadata']['enabled'] {
-    $use_vmware_nsx     = true
-    $neutron_nsx_config = $nsx_plugin
-  }
 } else {
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')

@@ -1,7 +1,6 @@
 notice('MODULAR: openstack-network-controller.pp')
 
 $use_neutron                    = hiera('use_neutron', false)
-$neutron_nsx_config             = hiera('nsx_plugin')
 $primary_controller             = hiera('primary_controller')
 $access_hash                    = hiera('access', {})
 $controllers                    = hiera('controllers')
@@ -39,9 +38,6 @@ if $use_neutron {
   $neutron_user_password = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   $base_mac              = $neutron_config['L2']['base_mac']
-  if $neutron_nsx_config['metadata']['enabled'] {
-    $use_vmware_nsx      = true
-  }
 } else {
   $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
@@ -157,8 +153,6 @@ if $network_provider == 'neutron' {
     $core_plugin      = 'openvswitch'
     $service_plugins  = ['router', 'firewall', 'metering']
     $agent            = 'ovs'
-  } elsif $neutron_settings['L2']['provider'] == 'nsx' {
-    $core_plugin = 'vmware'
   } else {
     $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
     $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin','neutron.services.metering.metering_plugin.MeteringPlugin']
