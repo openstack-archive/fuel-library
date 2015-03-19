@@ -15,5 +15,5 @@ EXITVALUE=$?
 if [ $EXITVALUE != 0 ]; then
     /usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE] (0 was expected)"
 fi
-exit 0
+exit $EXITVALUE
 
