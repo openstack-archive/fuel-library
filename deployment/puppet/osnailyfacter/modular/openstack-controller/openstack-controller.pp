@@ -3,7 +3,6 @@ notice('MODULAR: openstack-controller.pp')
 $nova_rate_limits               = hiera('nova_rate_limits')
 $primary_controller             = hiera('primary_controller')
 $use_neutron                    = hiera('use_neutron', false)
-$neutron_nsx_config             = hiera('nsx_plugin')
 $cinder_rate_limits             = hiera('cinder_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
@@ -51,9 +50,6 @@ if $use_neutron {
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   $base_mac                  = $neutron_config['L2']['base_mac']
-  if $neutron_nsx_config['metadata']['enabled'] {
-    $use_vmware_nsx     = true
-  }
 } else {
   $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')

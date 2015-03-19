@@ -1,7 +1,6 @@
 notice('MODULAR: openstack-network-compute.pp')
 
 $use_neutron                    = hiera('use_neutron', false)
-$neutron_nsx_config             = hiera('nsx_plugin')
 $nova_hash                      = hiera('nova', {})
 $internal_address               = hiera('internal_address')
 $service_endpoint               = hiera('management_vip')
@@ -33,9 +32,6 @@ if $use_neutron {
   $neutron_user_password = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   $base_mac              = $neutron_config['L2']['base_mac']
-  if $neutron_nsx_config['metadata']['enabled'] {
-    $use_vmware_nsx      = true
-  }
 } else {
   $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
@@ -287,9 +283,6 @@ if $network_provider == 'neutron' {
   if $neutron_settings['L2']['provider'] == 'ovs' {
     $core_plugin      = 'openvswitch'
     $agent            = 'ovs'
-  } elsif $neutron_settings['L2']['provider'] == 'nsx' {
-    # do nothing because nsx has its own neutron's agent
-    # which will be installed in module plugin_neutronnsx
   } else {
     # by default we use ML2 plugin
     $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
