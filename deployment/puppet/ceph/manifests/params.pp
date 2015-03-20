@@ -17,7 +17,7 @@ class ceph::params {
       $dir_httpd_sites            = '/etc/httpd/conf.d/'
       $dir_httpd_ssl              = '/etc/httpd/ssl/'
 
-      package { ['ceph', 'redhat-lsb-core','ceph-deploy', 'pushy',]:
+      package { ['ceph', 'redhat-lsb-core','ceph-deploy',]:
         ensure => installed,
       }
 
