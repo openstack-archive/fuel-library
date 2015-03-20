@@ -41,6 +41,7 @@ OCF_RESKEY_pidfile_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_binpath_default="/usr/sbin/haproxy"
 OCF_RESKEY_extraconf_default=""
 
+OCF_RESKEY_other_networks_default=""
 OCF_RESKEY_host_interface_default="hapr-host"
 OCF_RESKEY_namespace_interface_default="hapr-ns"
 OCF_RESKEY_host_ip_default="240.0.0.1"
@@ -57,6 +58,7 @@ OCF_RESKEY_debug_default=false
 : ${OCF_RESKEY_binpath=${OCF_RESKEY_binpath_default}}
 : ${OCF_RESKEY_extraconf=${OCF_RESKEY_extraconf_default}}
 
+: ${OCF_RESKEY_other_networks=${OCF_RESKEY_other_networks_default}}
 : ${OCF_RESKEY_host_interface=${OCF_RESKEY_host_interface_default}}
 : ${OCF_RESKEY_namespace_interface=${OCF_RESKEY_namespace_interface_default}}
 : ${OCF_RESKEY_host_ip=${OCF_RESKEY_host_ip_default}}
@@ -141,6 +143,14 @@ For example, "-f /etc/haproxy/shared.cfg"
 </longdesc>
 <shortdesc lang="en">Extra command line arguments for haproxy</shortdesc>
 <content type="string" default="${OCF_RESKEY_extraconf_default}" />
+</parameter>
+
+<parameter name="other_networks">
+<longdesc lang="en">
+Additional routes that should be added to this resource. Routes will be added via value namespace_interface.
+</longdesc>
+<shortdesc lang="en">List of addtional routes to add routes for.</shortdesc>
+<content type="string" default="$OCF_RESKEY_other_networks_default"/>
 </parameter>
 
 <parameter name="host_interface">
@@ -319,6 +329,14 @@ set_ns_routing() {
   if [ $? -gt 0 ]; then
     ocf_log debug "Creating NAT rule on the host system for traffic from IP: ${OCF_RESKEY_namespace_ip}"
     ocf_run iptables -t nat -A POSTROUTING -s "${OCF_RESKEY_namespace_ip}" -j MASQUERADE -m comment --comment "masquerade-for-haproxy-namespace"
+  fi
+
+  if [[ "${OCF_RESKEY_other_networks}" != "false" ]] ; then
+    for network in ${OCF_RESKEY_other_networks}
+    do
+      ocf_log debug "Adding route on the host system to ${network}: ${OCF_RESKEY_namespace_ip}"
+      ocf_run $RUN_IN_NS ip route add ${network} via ${OCF_RESKEY_host_ip}
+    done
   fi
 }
 
