@@ -7,6 +7,7 @@ class { 'ntp':
   servers        => strip(split($ntp_servers['ntp_list'], ',')),
   service_enable => false,
   service_ensure => stopped,
+  config         => '/etc/ntp.server.conf',
 } ->
 
 class { 'cluster::ntp_ocf':

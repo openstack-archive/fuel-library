@@ -29,7 +29,7 @@
 OCF_ROOT_default="/usr/lib/ocf"
 
 OCF_RESKEY_ns_default="vrouter"
-OCF_RESKEY_conffile_default="/etc/ntp.conf"
+OCF_RESKEY_conffile_default="/etc/ntp.server.conf"
 OCF_RESKEY_pidfile_default="/var/run/ntpd.pid"
 OCF_RESKEY_binpath_default="/usr/sbin/ntpd"
 OCF_RESKEY_extraconf_default=""
@@ -231,7 +231,8 @@ get_ns() {
 }
 
 get_variables() {
-        get_ns
+  get_ns
+
   CONF_FILE="${OCF_RESKEY_conffile}"
   COMMAND="$RUN ${OCF_RESKEY_binpath}"
   PIDFILE="${OCF_RESKEY_pidfile}"
@@ -331,16 +332,12 @@ ntp_start()
     return $OCF_ERR_GENERIC
   fi
 
-
-
   if [ "${OCF_RESKEY_ns}" != '' ]; then
-
     set_ns_routing
-
   fi
 
   # run the ntp binary
-        ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -g
+        ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -g -c ${CONF_FILE}
   if [ $? -ne 0 ]; then
     ocf_log err "Error. ntp daemon returned error $?."
     return $OCF_ERR_GENERIC
