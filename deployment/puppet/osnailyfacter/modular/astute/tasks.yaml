@@ -55,6 +55,16 @@
     timeout: 3600
     cwd: /
 
+- id: ntp-client
+  type: puppet
+  role: '*'
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-client.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
 
 - id: vcenter_compute_zones_create
   type: shell
@@ -65,7 +75,6 @@
   parameters:
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_compute_zones.py
     timeout: 180
-
 
 #PRE DEPLOYMENT
 - id: upload_core_repos
@@ -139,7 +148,7 @@
   parameters:
     cmd: ntpdate -u $(egrep '^server' /etc/ntp.conf | egrep -v '127\.127\.[0-9]+\.[0-9]+' | sed '/^#/d' | awk '{print $2}')
     retries: 10
-    interval: 1
+    interval: 30
     timeout: 180
 
 - id: pre_hiera_config
