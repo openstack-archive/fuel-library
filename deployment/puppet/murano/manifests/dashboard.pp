@@ -8,6 +8,7 @@ class murano::dashboard (
 ) {
 
   include murano::params
+  include horizon::params
 
   $package_name = $::murano::params::murano_dashboard_package_name
 
