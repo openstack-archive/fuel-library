@@ -79,8 +79,10 @@ class NetconfigPostTest < Test::Unit::TestCase
     assert ping(master_ip), 'Cannot ping the master node!'
   end
 
-  def test_can_ping_the_default_router
-    assert ping(router), 'Cannot ping the default router!'
+  def test_can_ping_the_default_router_on_controller
+    if %w(controller primary-controller).include? role
+      assert ping(router), 'Cannot ping the default router!'
+    end
   end
 
 end
