@@ -4,7 +4,8 @@
 #
 class cluster::haproxy_ocf (
   $primary_controller,
-  $debug = false
+  $debug = false,
+  $other_networks = false,
 ){
   anchor {'haproxy': }
 
@@ -35,8 +36,9 @@ class cluster::haproxy_ocf (
         'failure-timeout'     => '120',
       },
       parameters      => {
-        'ns'    => 'haproxy',
-        'debug' => $debug,
+        'ns'             => 'haproxy',
+        'debug'          => $debug,
+        'other_networks' => "'$other_networks'", 
       },
       operations      => {
         'monitor' => {
