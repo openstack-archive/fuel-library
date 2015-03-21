@@ -38,6 +38,11 @@ class cluster::dns_ocf ( $primary_controller ) {
   Cs_resource[$service_name] ~> Service[$service_name]
   }
 
+  file { '/etc/init.d/dnsmasq':
+    ensure  => present,
+    mode    => '0644',
+  } ->
+
   file {'dns-ocf':
     path   =>'/usr/lib/ocf/resource.d/fuel/ns_dns',
     mode   => '0755',
