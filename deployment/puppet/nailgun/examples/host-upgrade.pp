@@ -36,6 +36,11 @@ class { "openstack::clocksync":
   config_template => "ntp/ntp.conf.erb",
 }
 
+class { 'nailgun::auxillaryrepos':
+  production => $production,
+  repo_root  => "/var/www/nailgun/${::fuel_version['VERSION']['openstack_release']}",
+}
+
 class { "docker::dockerctl":
   release         => $::fuel_version['VERSION']['release'],
   production      => $production,
