@@ -6,6 +6,7 @@ $dns_domain = 'domain.tld',
 $nailgun_group = 'nailgun',
 $nailgun_user = 'nailgun',
 $gem_source = 'http://localhost/gems/',
+$repo_root = '/var/www/nailgun',
 ) {
   #Enable cobbler's iptables rules even if Cobbler not called
   include cobbler::iptables
@@ -17,6 +18,10 @@ $gem_source = 'http://localhost/gems/',
     action => 'accept',
   } ->
   class { 'nailgun::iptables': }
+
+  class { 'nailgun::auxiliaryrepos':
+    repo_root  => "/var/www/nailgun/${::fuel_version['VERSION']['openstack_version']}",
+  }
 
   nailgun::sshkeygen { '/root/.ssh/id_rsa':
     homedir   => '/root',
