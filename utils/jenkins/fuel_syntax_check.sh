@@ -86,11 +86,13 @@ modules=$(git diff --name-only HEAD~ | grep -o 'deployment/puppet/[^/]*/' | sort
 git diff --name-only HEAD~ &>/dev/null || exit 1
 
 for mod in $modules; do
-  echo -e "\nChecking $mod"
-  pushd $mod &> /dev/null
-  check_lint || failed_modules="$failed_modules\n$mod"
-  check_syntax || failed_modules="$failed_modules\n$mod"
-  popd &>/dev/null
+  if [ -d $mod ] ; then
+    echo -e "\nChecking $mod"
+    pushd $mod &> /dev/null
+    check_lint || failed_modules="$failed_modules\n$mod"
+    check_syntax || failed_modules="$failed_modules\n$mod"
+    popd &>/dev/null
+  fi
 done
 
 if [ -z "$failed_modules" ] ; then
