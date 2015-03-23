@@ -310,6 +310,7 @@ class openstack::controller (
     idle_timeout                => $idle_timeout,
     novnc_address               => $novnc_address,
     ha_mode                     => $ha_mode,
+    ceilometer                  => $ceilometer,
     neutron_metadata_proxy_shared_secret => $network_provider ? {'nova'=>undef, 'neutron'=>$neutron_metadata_proxy_secret },
   }
 
