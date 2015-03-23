@@ -107,6 +107,11 @@ exec {'sync_deployment_tasks':
 
 class { "monit": }
 
+class { 'nailgun::updatesrepos':
+  production => $production,
+  repo_root  => "${repo_root}/${::fuel_version['VERSION']['openstack_release']}",
+}
+
 # Free disk space monitoring
 file { '/usr/bin/fuel_notify.py':
   source  => 'puppet:///modules/nailgun/fuel_notify.py',
