@@ -11,4 +11,6 @@ echo -e "# FROM COBBLER SNIPPET\nDEVICE=$ADMIN_IF\nIPADDR=${NETADDR[0]}\nNETMASK
 echo GATEWAY="$DEFAULT_GW" >> /etc/sysconfig/network
 
 cat /proc/cmdline | tr ' ' '\n' | grep udevrules | tr '[:upper:]' '[:lower:]' | sed -e 's/udevrules=//g' -e 's/,/\n/g' | sed -e "s/^/SUBSYSTEM==\"net\",\ ACTION==\"add\",\ DRIVERS==\"?*\",\ ATTR{address}==\"/g" -e "s/_/\",\ ATTR{type}==\"1\",\ KERNEL==\"eth*\",\ NAME=\"/g" -e "s/$/\"/g" | tee /etc/udev/rules.d/70-persistent-net.rules
+# Disable net-generator to prevent accidental NIC renaming
+echo '#' > /etc/udev/rules.d/75-persistent-net-generator.rules
 #end raw
