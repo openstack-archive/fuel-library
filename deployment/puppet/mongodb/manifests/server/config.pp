@@ -39,6 +39,7 @@ class mongodb::server::config {
   $source          = $mongodb::server::source
   $replset         = $mongodb::server::replset
   $rest            = $mongodb::server::rest
+  $quiet           = $mongodb::server::quiet
   $slowms          = $mongodb::server::slowms
   $keyfile         = $mongodb::server::keyfile
   $bind_ip         = $mongodb::server::bind_ip

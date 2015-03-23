@@ -1,6 +1,9 @@
 # mongo.conf - generated from Puppet
 
 #where to log
+<% if @quiet -%>
+quiet = <%= @quiet %>
+<% end -%>
 <% if @use_syslog -%>
 syslog = true
 <% else -%>

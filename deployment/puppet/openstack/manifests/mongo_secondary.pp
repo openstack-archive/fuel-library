@@ -16,8 +16,10 @@ class openstack::mongo_secondary (
 
   if $debug {
     $set_parameter = 'logLevel=2'
+    $quiet         = false
   } else {
-    $set_parameter = 'logLevel=1'
+    $set_parameter = 'logLevel=0'
+    $quiet         = true
   }
 
   notify {"MongoDB params: $mongodb_bind_address": } ->
@@ -33,5 +35,6 @@ class openstack::mongo_secondary (
     auth          => true,
     keyfile       => '/etc/mongodb.key',
     set_parameter => $set_parameter,
+    quiet         => $quiet,
   }
 }
