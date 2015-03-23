@@ -49,9 +49,11 @@ modules=$(git diff --name-only HEAD~ | grep -o 'deployment/puppet/[^/]*/' | sort
 git diff --name-only HEAD~ &>/dev/null || exit 1
 
 for mod in $modules; do
-  pushd $mod &> /dev/null
-  rake_spec || failed_modules="$failed_modules\n$mod"
-  popd &>/dev/null
+  if [ -d $mod ] ; then
+    pushd $mod &> /dev/null
+    rake_spec || failed_modules="$failed_modules\n$mod"
+    popd &>/dev/null
+  fi
 done
 
 if [ -z "$failed_modules" ] ; then
