@@ -111,7 +111,7 @@ class { 'heat::keystone::domain' :
   domain_password   => $heat_hash['user_password'],
 }
 
-Class['heat'] -> Class['heat::keystone::domain']
+Class['heat'] -> Class['heat::keystone::domain'] ~> Service<| title == 'heat-engine' |>
 
 heat_config {
   'DEFAULT/deferred_auth_method'    : value => 'trusts';
