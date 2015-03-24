@@ -8,6 +8,10 @@ class { 'ntp':
   service_enable => false,
   service_ensure => stopped,
   config         => '/etc/ntp.server.conf',
+i} ->
+
+file { '/var/lib/ntp/controller-server':
+  content => '# Do not delete, it is a flag for multi-role deploy',
 } ->
 
 class { 'cluster::ntp_ocf':
