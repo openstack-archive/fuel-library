@@ -216,7 +216,6 @@ class openstack::glance (
   }
 
   # Configure file storage backend
-
   case $glance_backend {
     'swift': {
       if !defined(Package['swift']) {
@@ -261,4 +260,8 @@ class openstack::glance (
       class { "glance::backend::$glance_backend": }
     }
   }
+
+  # Configure cache pruner and cache cleaner
+  class { 'glance::cache::pruner': }
+  class { 'glance::cache::cleaner': }
 }
