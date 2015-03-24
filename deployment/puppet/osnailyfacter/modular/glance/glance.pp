@@ -31,11 +31,12 @@ $glance_db_user                 = 'glance'
 $glance_db_dbname               = 'glance'
 $glance_db_password             = $glance_hash['db_password']
 $glance_user_password           = $glance_hash['user_password']
-$glance_vcenter_host            = $storage_hash['vc_host']
-$glance_vcenter_user            = $storage_hash['vc_user']
-$glance_vcenter_password        = $storage_hash['vc_password']
-$glance_vcenter_datastore       = $storage_hash['vc_datastore']
-$glance_vcenter_image_dir       = $storage_hash['vc_image_dir']
+$glance_vcenter_host            = $glance_hash['vc_host']
+$glance_vcenter_user            = $glance_hash['vc_user']
+$glance_vcenter_password        = $glance_hash['vc_password']
+$glance_vcenter_datacenter      = $glance_hash['vc_datacenter']
+$glance_vcenter_datastore       = $glance_hash['vc_datastore']
+$glance_vcenter_image_dir       = $glance_hash['vc_image_dir']
 
 $glance_image_cache_max_size    = $glance_hash['image_cache_max_size']
 
