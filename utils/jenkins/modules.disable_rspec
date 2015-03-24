@@ -27,7 +27,6 @@ operatingsystem
 osnailyfacter
 pacemaker_wrappers
 package
-plugin_neutronnsx
 postgresql
 puppet
 puppetmaster

@@ -466,13 +466,6 @@ class MrntNeutron
     if @neutron_config[:L2][:provider].downcase.to_sym == :ovs
       #todo (sv): rename to shot form 'ovs', after https://bugs.launchpad.net/neutron/+bug/1286052
       @neutron_config[:server][:core_plugin] = 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2'
-    elsif @neutron_config[:L2][:provider].downcase.to_sym == :nsx
-      @neutron_config[:server][:core_plugin] = 'neutron.plugins.vmware.plugin.NsxPlugin'
-      #@neutron_config[:server][:service_plugins] = ' '
-      # NSX plugin doesn't deploy properly if service_plugins is empty,
-      # it should be undefined, but we can't undefine it here,
-      # so we ensure that it is absent in plugin_neutronnsx/manifests/alter_neutron_server.pp
-
     else
       #todo (sv): rename to shot form 'ml2', after https://bugs.launchpad.net/neutron/+bug/1286052
       @neutron_config[:server][:core_plugin] = 'neutron.plugins.ml2.plugin.Ml2Plugin'

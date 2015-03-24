@@ -9,7 +9,6 @@ $internal_address               = hiera('internal_address')
 $primary_controller             = hiera('primary_controller')
 $storage_address                = hiera('storage_address')
 $use_neutron                    = hiera('use_neutron', false)
-$neutron_nsx_config             = hiera('nsx_plugin')
 $cinder_nodes_array             = hiera('cinder_nodes', [])
 $sahara_hash                    = hiera('sahara', {})
 $murano_hash                    = hiera('murano', {})
@@ -82,9 +81,6 @@ if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
 if $use_neutron {
   include l23network::l2
   $neutron_config            = hiera('quantum_settings')
-  if $neutron_nsx_config['metadata']['enabled'] {
-    $use_vmware_nsx     = true
-  }
 } else {
   $neutron_config     = {}
 }
@@ -275,13 +271,6 @@ $multi_host = true
 $mirror_type = 'external'
 Exec { logoutput => true }
 
-if $use_vmware_nsx {
-  class { 'plugin_neutronnsx':
-    neutron_config     => $neutron_config,
-    neutron_nsx_config => $neutron_nsx_config,
-    roles              => $roles,
-  }
-}
 
 #################################################################
 # we need to evaluate ceph here, because ceph notifies/requires
