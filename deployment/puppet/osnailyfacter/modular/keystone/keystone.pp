@@ -20,6 +20,7 @@ $primary_controller    = hiera('primary_controller')
 $controller_nodes      = hiera('controller_nodes')
 $neutron_user_password = hiera('neutron_user_password', false)
 $workloads_hash        = hiera('workloads_collector', {})
+$murano_repo_url       = hiera('murano_repo_url', 'http://marketplace.openstack.org')
 
 $db_type     = 'mysql'
 $db_host     = $management_vip
@@ -114,6 +115,7 @@ class { 'openstack::auth_file':
   admin_password       => $admin_password,
   admin_tenant         => $admin_tenant,
   controller_node      => $internal_address,
+  murano_repo_url      => $murano_repo_url,
 }
 
 class { 'openstack::workloads_collector':
