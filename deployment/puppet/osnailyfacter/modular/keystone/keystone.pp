@@ -60,6 +60,13 @@ $max_overflow  = hiera('max_overflow')
 $max_retries   = '-1'
 $idle_timeout  = '3600'
 
+$murano_hash = hiera('murano', {})
+if $murano_hash['murano_repo_url'] {
+  $murano_repo_url = $murano_hash['murano_repo_url']
+} else {
+  $murano_repo_url = 'http://marketplace.openstack.org'
+}
+
 ###############################################################################
 
 ####### KEYSTONE ###########
@@ -114,6 +121,7 @@ class { 'openstack::auth_file':
   admin_password       => $admin_password,
   admin_tenant         => $admin_tenant,
   controller_node      => $internal_address,
+  murano_repo_url      => $murano_repo_url,
 }
 
 class { 'openstack::workloads_collector':
