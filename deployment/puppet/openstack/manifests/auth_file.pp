@@ -50,6 +50,7 @@ class openstack::auth_file(
   $nova_endpoint_type       = 'internalURL',
   $neutron_endpoint_type    = 'internalURL',
   $os_endpoint_type         = 'internalURL',
+  $murano_repo_url          = undef,
 ) {
 
   file { '/root/openrc':
