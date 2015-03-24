@@ -10,6 +10,10 @@ class { 'ntp':
   config         => '/etc/ntp.server.conf',
 } ->
 
+file { '/var/lib/ntp/controller-server':
+  content => '# Do not delete, it is a flag for multi-role deploy',
+} ->
+
 class { 'cluster::ntp_ocf':
   primary_controller => $primary_controller,
 }
