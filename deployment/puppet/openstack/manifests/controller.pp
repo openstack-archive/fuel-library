@@ -333,6 +333,7 @@ class openstack::controller (
     rabbit_use_ssl               => $rabbit_use_ssl,
     rabbit_notification_exchange => $rabbit_notification_exchange,
     rabbit_notification_topic    => $rabbit_notification_topic,
+    ceilometer                   => $ceilometer,
   }
 
   ######## BEGIN NOVA ###########
@@ -429,6 +430,7 @@ class openstack::controller (
     idle_timeout                => $idle_timeout,
     novnc_address               => $novnc_address,
     ha_mode                     => $ha_mode,
+    ceilometer                  => $ceilometer,
   }
 
   ######### Cinder Controller Services ########
