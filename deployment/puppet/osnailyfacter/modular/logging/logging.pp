@@ -40,7 +40,11 @@ if $use_syslog {
     rotation         => 'weekly',
     keep             => '4',
     # should be > 30M
-    limitsize        => '300M',
+    limitsize        => '40M',
+    # Log  files  are  rotated  when they grow bigger than
+    maxsize        => '30M',
+    # Log  files  are  rotated ONLY when they grow bigger than
+    minsize        => '100k',
     # remote servers to send logs to
     rservers         => $rservers,
     # should be true, if client is running at virtual node

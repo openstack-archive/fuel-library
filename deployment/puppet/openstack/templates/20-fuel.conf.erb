@@ -28,14 +28,16 @@
 "/var/log/ceilometer/*.log"
 "/var/log/messages"
 {
-# This file is used for hourly log rotations, use (min)size options here
+  # rotation frequency
+  <%= @rotation %>
+  # This file is used for hourly log rotations, use (min)size options here
   sharedscripts
   # truncate file, do not delete & recreate
   copytruncate
-  # rotate only if 30M size or bigger
-  minsize 30M
-  # also rotate if <%= @limitsize %> size have exceeded, should be size > minsize
-  size <%= @limitsize %>
+  # rotate if <%= @maxsize %> size have exceeded
+  maxsize <%= @maxsize %>
+  # rotate ONLY if <%= @minsize %> size have exceeded
+  minsize <%= @minsize %>
   # keep logs for <%= @keep %> rotations
   rotate <%= @keep %>
   # compression will be postponed to the next rotation, if uncommented
