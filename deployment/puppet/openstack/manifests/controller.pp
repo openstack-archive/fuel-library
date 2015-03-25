@@ -563,12 +563,6 @@ class openstack::controller (
     tweaks::ubuntu_service_override { 'keystone':
       package_name => 'keystone',
     }
-    # Ceph rbd backend configures its override on its own
-    if !$::fuel_settings['storage']['volumes_ceph'] {
-      tweaks::ubuntu_service_override { 'cinder-volume':
-        package_name => 'cinder-volume',
-      }
-    }
     tweaks::ubuntu_service_override { 'cinder-api':
       package_name => 'cinder-api',
     }
