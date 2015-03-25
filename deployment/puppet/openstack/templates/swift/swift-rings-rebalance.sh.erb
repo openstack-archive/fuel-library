@@ -1,0 +1,8 @@
+#!/bin/bash
+
+<% @rings.each do |ring| -%>
+swift-ring-builder /etc/swift/<%= ring %>.builder pretend_min_part_hours_passed
+swift-ring-builder /etc/swift/<%= ring %>.builder rebalance
+
+<% end -%>
+
