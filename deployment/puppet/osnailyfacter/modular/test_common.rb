@@ -691,4 +691,18 @@ else:
     end
   end
 
+  module Cron
+    # check if cronjob exists, ignores comments
+    # 'section/key' => 'value'
+    # @param user [String] usernam to check cron for
+    # @param cronjob [String, Regexp] pattern look for in cron
+    # @return [true,false]
+    def self.cronjob_exists?(user, cronjob)
+      cmd = "crontab -u #{user} -l"
+      out = TestCommon.run_command cmd
+      false unless out.last == 0
+      out.first[/^\s*[^#]*#{cronjob}/].nil? == false
+    end
+  end
+
 end

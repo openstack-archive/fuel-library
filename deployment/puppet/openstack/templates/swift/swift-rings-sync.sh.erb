@@ -1,0 +1,6 @@
+#!/bin/bash
+
+<% @rings.each do |ring| -%>
+rsync -q -a rsync://<%= @master_swift_proxy_ip %>/swift_server/<%= ring %>.ring.gz /etc/swift/<%= ring %>.ring.gz
+<% end -%>
+
