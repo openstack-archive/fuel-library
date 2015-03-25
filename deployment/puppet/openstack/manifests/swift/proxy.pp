@@ -40,6 +40,7 @@ class openstack::swift::proxy (
   $verbose                            = true,
   $log_facility                       = 'LOG_LOCAL1',
   $ceilometer                         = false,
+  $ring_rebalance_period              = 23,
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -142,12 +143,21 @@ class openstack::swift::proxy (
       local_net_ip => $swift_local_net_ip,
     }
 
+    # setup a cronjob to rebalance rings periodically
+    class { 'openstack::swift::rebalance_cronjob':
+      rings                 => $rings,
+      ring_rebalance_period => min($ring_min_part_hours * 2, 23),
+      master_swift_proxy_ip => $master_swift_proxy_ip,
+      primary_proxy         => $primary_proxy,
+    }
+
     # resource ordering
     Anchor <| title == 'rebalance_end' |> -> Service['swift-proxy']
     Anchor <| title == 'rebalance_end' |> -> Swift::Storage::Generic <| |>
     Swift::Ringbuilder::Create<||> ->
     Ring_devices<||> ~>
-    Swift::Ringbuilder::Rebalance <||>
+    Swift::Ringbuilder::Rebalance <||> ->
+    Class['openstack::swift::rebalance_cronjob']
 
  } else {
     validate_string($master_swift_proxy_ip)
@@ -162,6 +172,14 @@ class openstack::swift::proxy (
 
     if member($rings, 'container') and ! defined(Swift::Ringsync['container']) {
       swift::ringsync { 'container': ring_server => $master_swift_proxy_ip }
+    }
+
+    # setup a cronjob to download rings periodically
+    class { 'openstack::swift::rebalance_cronjob':
+      rings                 => $rings,
+      ring_rebalance_period => $ring_rebalance_period,
+      master_swift_proxy_ip => $master_swift_proxy_ip,
+      primary_proxy         => $primary_proxy,
     }
 
     Swift::Ringsync <| |> ~> Service["swift-proxy"]
