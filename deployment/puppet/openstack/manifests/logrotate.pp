@@ -4,6 +4,8 @@ class openstack::logrotate (
     $rotation       = 'daily',
     $keep           = '7',
     $limitsize      = '300M',
+    $maxsize        = '30M',
+    $minsize        = '100k',    
     $debug          = false,
 ) {
   validate_re($rotation, 'daily|weekly|monthly')

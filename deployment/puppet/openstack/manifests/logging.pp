@@ -25,6 +25,8 @@ class openstack::logging (
     $rotation                       = 'daily',
     $keep                           = '7',
     $limitsize                      = '300M',
+    $maxsize                        = '30M',
+    $minsize                        = '100k',
     $rservers                       = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
     $port                           = '514',
     $proto                          = 'udp',
@@ -253,6 +255,8 @@ class openstack::logging (
     rotation       => $rotation,
     keep           => $keep,
     limitsize      => $limitsize,
+    maxsize        => $maxsize,
+    minsize        => $minsize,
     debug          => $debug,
   }
 
