@@ -66,6 +66,10 @@ d-i apt-setup/mirror/error select Retry
 # Use network mirror
 d-i apt-setup/use_mirror boolean true
 
+# Select architecture to amd64. That's very important to dpkg, since
+# by default we have both amd64 and i386.
+d-i apt-setup/multiarch string amd64
+
 # You can choose to install restricted and universe software, or to install
 # software from the backports repository.
 d-i apt-setup/restricted boolean false
