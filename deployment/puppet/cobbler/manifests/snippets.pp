@@ -70,6 +70,7 @@ class cobbler::snippets {
   cobbler_snippet {"ubuntu_partition_late":}
   cobbler_snippet {"ubuntu_static_net":}
   cobbler_snippet {"ubuntu_repos_late":}
+  cobbler_snippet {"ubuntu_remove_repos_late":}
   cobbler_snippet {"ubuntu_precise_packages_late":}
   cobbler_snippet {"ubuntu_trusty_packages_late":}
   cobbler_snippet {"anaconda_ssh_console":}
