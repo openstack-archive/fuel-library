@@ -29,6 +29,7 @@ define l23network::l2::bond (
   $provider                = undef,
   # deprecated parameters, in the future ones will be moved to the vendor_specific hash
 # $skip_existing           = undef,
+  $lacp_rate               = undef,
 ) {
   include ::stdlib
   include ::l23network::params
@@ -72,13 +73,12 @@ define l23network::l2::bond (
   }
 
   # calculate string representation for lacp_rate
-  if ! $bond_properties[lacp_rate] {
-    # default value by design https://www.kernel.org/doc/Documentation/networking/bonding.txt
-    $lacp_rate = $lacp_rates[0]
-  } elsif is_integer($bond_properties[lacp_rate]) and $bond_properties[lacp_rate] < size($lacp_rates) {
-    $lacp_rate = $lacp_rates[$bond_properties[lacp_rate]]
-  } else {
-    $lacp_rate = $bond_properties[lacp_rate]
+  if $bond_properties[lacp_rate] {
+    if is_integer($bond_properties[lacp_rate]) and $bond_properties[lacp_rate] < size($lacp_rates) {
+      $lacp_rate = $lacp_rates[$bond_properties[lacp_rate]]
+    } else {
+      $lacp_rate = $bond_properties[lacp_rate]
+    }
   }
 
   # calculate default miimon
@@ -89,19 +89,11 @@ define l23network::l2::bond (
     $miimon = 100
   }
 
-  # calculate string representation for xmit_hash_policy
-  if ! $bond_properties[xmit_hash_policy] {
-    $xmit_hash_policy = $xmit_hash_policies[0]
-  } else {
-    $xmit_hash_policy = $bond_properties[xmit_hash_policy]
-  }
-
   # default bond properties
   $default_bond_properties = {
-    mode        => $bond_mode,
-    miimon      => $miimon,
-    lacp_rate   => $lacp_rate,
-    xmit_hash_policy => $xmit_hash_policy,
+    mode             => $bond_mode,
+    miimon           => $miimon,
+    lacp_rate        => $lacp_rate,
   }
 
   $real_bond_properties = merge($bond_properties, $default_bond_properties)
