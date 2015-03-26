@@ -5,6 +5,7 @@
 d-i partman/early_command string \
 anna-install parted-udeb && \
 anna-install hdparm-udeb && \
+$pm.disks_map() \
 debconf-set partman-auto/disk $pm.expose_disks();\
 $pm.expose_early()
 true
@@ -47,4 +48,3 @@ d-i grub-installer/skip boolean true
 d-i lilo-installer/skip boolean true
 d-i grub-installer/only_debian      boolean true
 d-i grub-installer/with_other_os    boolean true
-
