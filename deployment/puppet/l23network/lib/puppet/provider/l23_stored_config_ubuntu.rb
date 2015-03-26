@@ -11,24 +11,26 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
   def self.property_mappings
     {
-      :if_type        => 'if_type',       # pseudo field, not found in config, but calculated
-      :if_provider    => 'if_provider',   # pseudo field, not found in config, but calculated
-      :method         => 'method',
-      :name           => 'iface',
-      :onboot         => 'auto',
-      :mtu            => 'mtu',
-      :bridge_ports   => 'bridge_ports',  # ports, members of bridge, fake property
-      :bridge_stp     => 'bridge_stp',
-      :vlan_dev       => 'vlan-raw-device',
-      :ipaddr         => 'address',
-  #   :netmask        => 'netmask',
-      :gateway        => 'gateway',
-      :gateway_metric => 'metric',     # todo: rename to 'metric'
-  #   :dhcp_hostname  => 'hostname'
-      :bond_master    => 'bond-master',
-      :bond_slaves    => 'bond-slaves',
-      :bond_mode      => 'bond-mode',
-      :bond_miimon    => 'bond-miimon',
+      :if_type               => 'if_type',       # pseudo field, not found in config, but calculated
+      :if_provider           => 'if_provider',   # pseudo field, not found in config, but calculated
+      :method                => 'method',
+      :name                  => 'iface',
+      :onboot                => 'auto',
+      :mtu                   => 'mtu',
+      :bridge_ports          => 'bridge_ports',  # ports, members of bridge, fake property
+      :bridge_stp            => 'bridge_stp',
+      :vlan_dev              => 'vlan-raw-device',
+      :ipaddr                => 'address',
+  #   :netmask               => 'netmask',
+      :gateway               => 'gateway',
+      :gateway_metric        => 'metric',     # todo: rename to 'metric'
+  #   :dhcp_hostname         => 'hostname'
+      :bond_master           => 'bond-master',
+      :bond_slaves           => 'bond-slaves',
+      :bond_mode             => 'bond-mode',
+      :bond_miimon           => 'bond-miimon',
+      :bond_lacp_rate        => 'bond-lacp-rate',
+      :bond_xmit_hash_policy => 'bond-xmit-hash-policy'
     }
   end
   def property_mappings
