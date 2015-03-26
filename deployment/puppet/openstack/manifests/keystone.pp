@@ -207,7 +207,7 @@ class openstack::keystone (
 
   if $memcache_servers {
     $memcache_servers_real = suffix($memcache_servers, inline_template(":<%= @memcache_server_port %>"))
-    $token_driver = 'keystone.token.backends.memcache.Token'
+    $token_driver = 'keystone.token.persistence.backends.memcache_pool.Token'
   } else {
     $memcache_servers_real = false
     $token_driver = 'keystone.token.backends.sql.Token'
