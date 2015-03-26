@@ -17,7 +17,13 @@
 # server).
 
 define vmware::compute::ha(
-  $index,
+  $availability_zone_name,
+  $vc_cluster,
+  $vc_host,
+  $vc_user,
+  $vc_password,
+  $service_name,
+  $datastore_regex = undef,
   $amqp_port = '5673',
   $api_retry_count = 5,
   $compute_driver = 'vmwareapi.VMwareVCDriver',
@@ -29,7 +35,7 @@ define vmware::compute::ha(
   $wsdl_location = undef
 )
 {
-  $nova_compute_conf = "${nova_conf_dir}/vmware-${index}.conf"
+  $nova_compute_conf = "${nova_conf_dir}/vmware-${availability_zone_name}_${service_name}.conf"
 
   if ! defined(File[$nova_conf_dir]) {
     file { $nova_conf_dir:
@@ -52,7 +58,7 @@ define vmware::compute::ha(
     }
   }
 
-  cs_resource { "p_nova_compute_vmware_${index}":
+  cs_resource { "p_nova_compute_vmware_${availability_zone_name}-${service_name}":
     ensure          => present,
     primitive_class => 'ocf',
     provided_by     => 'fuel',
@@ -63,7 +69,7 @@ define vmware::compute::ha(
     parameters      => {
       amqp_server_port      => $amqp_port,
       config                => $nova_conf,
-      pid                   => "/var/run/nova/nova-compute-${index}.pid",
+      pid                   => "/var/run/nova/nova-compute-${availability_zone_name}-${service_name}.pid",
       additional_parameters => "--config-file=${nova_compute_conf}",
     },
     operations      => {
@@ -73,7 +79,7 @@ define vmware::compute::ha(
     }
   }
 
-  service { "p_nova_compute_vmware_${index}":
+  service { "p_nova_compute_vmware_${availability_zone_name}-${service_name}":
     ensure => running,
     enable => true,
     provider => 'pacemaker',
@@ -81,6 +87,7 @@ define vmware::compute::ha(
 
   File["${nova_conf_dir}"]->
   File["${nova_compute_conf}"]->
-  Cs_resource["p_nova_compute_vmware_${index}"]->
-  Service["p_nova_compute_vmware_${index}"]
+  Cs_resource["p_nova_compute_vmware_${availability_zone_name}-${service_name}"]->
+  Service["p_nova_compute_vmware_${availability_zone_name}-${service_name}"]
 }
+
