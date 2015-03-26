@@ -31,7 +31,6 @@ class cobbler::snippets {
   cobbler_snippet {"kickstart_ntp": }
   cobbler_snippet {"ntp_to_masternode": }
   cobbler_snippet {"ntp_to_masternode_ubuntu": }
-  cobbler_snippet {"dhclient_ignore_routers_opt": }
   cobbler_snippet {"pre_install_network_config": }
   cobbler_snippet {"pre_install_partition": }
   cobbler_snippet {"pre_install_partition_lvm": }
