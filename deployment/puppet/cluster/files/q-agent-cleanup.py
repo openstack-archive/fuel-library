@@ -255,24 +255,30 @@ class NeutronCleaner(object):
                 from_cache, json.dumps(rv, indent=4)))
         return rv
 
-    def __collect_namespaces_for_agent(self, agent):
-        cmd = self.CMD__ip_netns_list[:]
-        self.log.debug("Execute command '{0}'".format(' '.join(cmd)))
+    def _execute(self, cmd):
         process = subprocess.Popen(
             cmd,
             shell=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        rc = process.wait()
-        if rc != 0:
+        (stdout, stderr) = process.communicate()
+        ret_code = process.returncode
+        if ret_code != 0:
             self.log.error(
-                "ERROR (rc={0}) while execution {1}".format(
-                    rc, ' '.join(cmd)))
+                "ERROR (rc={0}) while execution {1}, stderr: {2}".format(
+                    ret_code, ' '.join(cmd), stderr))
+            return None
+        return ret_code, stdout
+
+    def __collect_namespaces_for_agent(self, agent):
+        cmd = self.CMD__ip_netns_list[:]
+        self.log.debug("Execute command '{0}'".format(' '.join(cmd)))
+        ret_code, stdout = self._execute(cmd)
+        if ret_code != 0:
             return []
         # filter namespaces by given agent type
         netns = []
-        stdout = process.communicate()[0]
         for ns in StringIO.StringIO(stdout):
             ns = ns.strip()
             self.log.debug("Found network namespace '{0}'".format(ns))
@@ -284,20 +290,10 @@ class NeutronCleaner(object):
         cmd = self.CMD__ip_netns_exec[:]
         cmd.extend([ns, 'ip', 'l', 'show'])
         self.log.debug("Execute command '{0}'".format(' '.join(cmd)))
-        process = subprocess.Popen(
-            cmd,
-            shell=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        rc = process.wait()
-        if rc != 0:
-            self.log.error(
-                "ERROR (rc={0}) while execution {1}".format(
-                    rc, ' '.join(cmd)))
+        ret_code, stdout = self._execute(cmd)
+        if ret_code != 0:
             return []
         ports = []
-        stdout = process.communicate()[0]
         for line in StringIO.StringIO(stdout):
             pp = self.RE__port_in_portlist.match(line)
             if not pp:
@@ -327,17 +323,7 @@ class NeutronCleaner(object):
                 self.log.info("NOOP-execution: '{0}'".format(' '.join(cmd)))
             else:
                 self.log.debug("Execute command '{0}'".format(' '.join(cmd)))
-                process = subprocess.Popen(
-                    cmd,
-                    shell=False,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-                rc = process.wait()
-                if rc != 0:
-                    self.log.error(
-                        "ERROR (rc={0}) while execution {1}".format(
-                            rc, ' '.join(cmd)))
+                self._execute(cmd)
         self.log.debug("_cleanup_ports: end.")
 
         return True
