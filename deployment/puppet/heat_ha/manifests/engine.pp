@@ -1,12 +1,6 @@
 class heat_ha::engine inherits heat::engine {
   $primitive_type  = 'heat-engine'
 
-  if $::osfamily == 'RedHat' {    
-    $ocf_script_template = 'heat/heat_engine_centos.ocf.erb'    
-  } else {    
-    $ocf_script_template = 'heat/heat_engine_ubuntu.ocf.erb'    
-  }
-
   $metadata = {
     'resource-stickiness' => '1'
   }
@@ -34,7 +28,7 @@ class heat_ha::engine inherits heat::engine {
     complex_type        => 'clone',
     ms_metadata         => $ms_metadata,
     operations          => $operations,
-    ocf_script_template => $ocf_script_template,
+    #    ocf_script_template => $ocf_script_template,
   }
 
 }

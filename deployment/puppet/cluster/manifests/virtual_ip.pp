@@ -20,7 +20,7 @@ define cluster::virtual_ip (
 ){
   $vip_name = "vip__${key}"
 
-  File<| title == 'ns-ipaddr2-ocf' |> -> Cs_resource[$vip_name]
+  # File['ns-ipaddr2-ocf'] -> Cs_resource[$vip_name]
 
   cs_resource { $vip_name:
     ensure          => present,
