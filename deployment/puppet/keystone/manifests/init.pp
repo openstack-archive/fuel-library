@@ -37,7 +37,7 @@
 #   [cache_dir] Directory created when token_provider is pki. Optional.
 #     Defaults to /var/cache/keystone.
 #   [memcache_servers] List of memcache servers/ports. Optional. Used with
-#     token_driver keystone.token.backends.memcache.Token.  Defaults to false.
+#     token_driver keystone.token.persistence.backends.memcache_pool.Token.  Defaults to false.
 #   [enabled] If the keystone services should be enabled. Optional. Default to true.
 #   [sql_connection] Url used to connect to database.
 #   [idle_timeout] Timeout when db connections should be reaped.

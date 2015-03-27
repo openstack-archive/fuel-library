@@ -288,7 +288,7 @@ describe 'keystone' do
       {
         'admin_token'      => 'service_token',
         'memcache_servers' => [ 'SERVER1:11211', 'SERVER2:11211' ],
-        'token_driver'     => 'keystone.token.backends.memcache.Token'
+        'token_driver'     => 'keystone.token.persistence.backends.memcache_pool.Token'
       }
     end
 
