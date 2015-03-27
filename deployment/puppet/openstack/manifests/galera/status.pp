@@ -81,9 +81,16 @@ class openstack::galera::status (
     }
   }
 
-  file { '/usr/local/bin/clustercheck':
+  file { '/etc/wsrepclustercheckrc':
     content => template('openstack/galera_clustercheck.erb'),
     mode    => '0755',
+  }
+
+  file { '/usr/bin/clustercheck':
+    mode   => '0755',
+    owner  => root,
+    group  => root,
+    source => "puppet:///modules/openstack/clustercheck"
   }
 
   augeas { 'galeracheck':
@@ -94,7 +101,7 @@ class openstack::galera::status (
       "set /files/etc/services/service-name[port = '${port}']/protocol tcp",
       "set /files/etc/services/service-name[port = '${port}']/#comment 'Galera Cluster Check'",
     ],
-    require => File['/usr/local/bin/clustercheck'],
+    require => File['/usr/bin/clustercheck'],
   }
 
   $group = $::osfamily ? {
@@ -109,10 +116,10 @@ class openstack::galera::status (
     port       => $port,
     cps        => '512 10',
     per_source => 'UNLIMITED',
-    server     => '/usr/local/bin/clustercheck',
+    server     => '/usr/bin/clustercheck',
     user       => 'nobody',
     group      => $group,
     flags      => 'IPv4',
-    require    => File['/usr/local/bin/clustercheck'],
+    require    => File['/usr/bin/clustercheck'],
   }
 }

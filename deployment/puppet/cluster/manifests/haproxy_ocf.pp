@@ -15,9 +15,9 @@ class cluster::haproxy_ocf (
     path   =>'/usr/lib/ocf/resource.d/fuel/ns_haproxy',
     mode   => '0755',
     owner  => root,
-    group  => root,
-    source => 'puppet:///modules/cluster/ocf/ns_haproxy',
-  }
+     group  => root,
+     source => 'puppet:///modules/cluster/ocf/ns_haproxy',
+    }
   Anchor['haproxy'] -> File['haproxy-ocf']
   File<| title == 'ocf-fuel-path' |> -> File['haproxy-ocf']
 
@@ -71,24 +71,25 @@ class cluster::haproxy_ocf (
       ],
     }
 
-    File['haproxy-ocf'] -> Cs_resource[$service_name]
+    #  File['haproxy-ocf'] -> Cs_resource[$service_name]
     Cs_resource[$service_name] -> Cs_rsc_colocation['vip_public-with-haproxy'] -> Service[$service_name]
     Cs_resource[$service_name] -> Cs_rsc_colocation['vip_management-with-haproxy'] -> Service[$service_name]
   } else {
-    File['haproxy-ocf'] -> Service[$service_name]
+    # File['haproxy-ocf'] -> Service[$service_name]
   }
 
   if ($::osfamily == 'Debian') {
     file { '/etc/default/haproxy':
       content => 'ENABLED=0',
-    } -> File['haproxy-ocf']
+    } -> Service <| title == $service_name |>
     if $::operatingsystem == 'Ubuntu' {
       file { '/etc/init/haproxy.override':
         ensure  => 'present',
         replace => 'no',
         content => 'manual',
         mode    => '0644'
-      } -> File['haproxy-ocf']
+      } -> Service <| title == $service_name |>
+      Service <| title == $service_name |> -> File['haproxy-ocf']
     }
   }
 
@@ -96,7 +97,9 @@ class cluster::haproxy_ocf (
     ensure     => 'stopped',
     name       => 'haproxy',
     enable     => false,
-  } -> File['haproxy-ocf']
+  } -> Service <| title == $service_name |>
+
+  Service <| title == $service_name |> -> File['haproxy-ocf']
 
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
     value => '1'
