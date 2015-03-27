@@ -1,4 +1,4 @@
-notice('ceilometer/controller.pp')
+notice('MODULAR: ceilometer/controller.pp')
 
 $verbose                  = hiera('verbose', true)
 $debug                    = hiera('debug', false)
