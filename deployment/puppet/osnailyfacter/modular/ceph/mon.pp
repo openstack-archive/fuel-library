@@ -66,21 +66,28 @@ if $use_ceph {
     ephemeral_ceph           => $storage_hash['ephemeral_ceph']
   }
 
-  include ::cinder::params
-  service { 'cinder-volume':
-    ensure     => 'running',
-    name       => $::cinder::params::volume_service,
-    hasstatus  => true,
-    hasrestart => true,
+  if ($storage_hash['volumes_ceph']) {
+    include ::cinder::params
+    service { 'cinder-volume':
+      ensure     => 'running',
+      name       => $::cinder::params::volume_service,
+      hasstatus  => true,
+      hasrestart => true,
+    }
+
+    Class['ceph'] ~> Service['cinder-volume']
   }
 
-  include ::glance::params
-  service { 'glance-api':
-    ensure     => 'running',
-    name       => $::glance::params::api_service_name,
-    hasstatus  => true,
-    hasrestart => true,
+  if ($storage_hash['images_ceph']) {
+    include ::glance::params
+    service { 'glance-api':
+      ensure     => 'running',
+      name       => $::glance::params::api_service_name,
+      hasstatus  => true,
+      hasrestart => true,
+    }
+
+    Class['ceph'] ~> Service['glance-api']
   }
 
-  Class['ceph'] ~> Service['cinder-volume', 'glance-api']
 }
