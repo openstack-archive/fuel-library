@@ -1,0 +1,18 @@
+Source: fuel-library6.1
+Section: admin
+Priority: optional
+Maintainer: Mirantis Product <product@mirantis.com>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.9.2
+
+Package: fuel-ha-utils
+Architecture: all 
+Depends: ${misc:Depends}, ${shlibs:Depends}, python-keystoneclient, python-neutronclient
+Description: Fuel Library HA utils
+ .
+
+Package: fuel-misc
+Architecture: all 
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: Misc Fuel library scripts
+ .

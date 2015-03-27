@@ -1,0 +1,5 @@
+#!/bin/sh
+SCRIPT="/etc/sysconfig/network-scripts/interface-down-script-$1"
+if [[ -x $SCRIPT ]] ; then
+. $SCRIPT
+fi

@@ -1,0 +1,281 @@
+#!/bin/bash
+#
+# Resource script for haproxy daemon
+#
+# Description:  Manages haproxy daemon as an OCF resource in
+#               an High Availability setup.
+#
+# HAProxy OCF script's Author: Russki
+# Rsync OCF script's Author: Dhairesh Oza <odhairesh@novell.com>
+# License: GNU General Public License (GPL)
+#
+#
+#	usage: $0 {start|stop|status|monitor|validate-all|meta-data}
+#
+#	The "start" arg starts haproxy.
+#
+#	The "stop" arg stops it.
+#
+# OCF parameters:
+# OCF_RESKEY_binpath
+# OCF_RESKEY_conffile
+# OCF_RESKEY_extraconf
+#
+# Note:This RA requires that the haproxy config files has a "pidfile"
+# entry so that it is able to act on the correct process
+##########################################################################
+# Initialization:
+
+OCF_RESKEY_conffile_default="/etc/haproxy/haproxy.cfg"
+OCF_RESKEY_pidfile_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
+OCF_RESKEY_binpath_default="/usr/sbin/haproxy"
+
+: ${OCF_RESKEY_conffile=${OCF_RESKEY_conffile_default}}
+: ${OCF_RESKEY_pidfile=${OCF_RESKEY_pidfile_default}}
+: ${OCF_RESKEY_binpath=${OCF_RESKEY_binpath_default}}
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
+
+USAGE="Usage: $0 {start|stop|status|monitor|validate-all|meta-data}";
+
+##########################################################################
+
+usage()
+{
+	echo $USAGE >&2
+}
+
+meta_data()
+{
+cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="haproxy">
+<version>1.0</version>
+<longdesc lang="en">
+This script manages haproxy daemon
+</longdesc>
+<shortdesc lang="en">Manages an haproxy daemon</shortdesc>
+
+<parameters>
+
+<parameter name="binpath">
+<longdesc lang="en">
+The haproxy binary path.
+For example, "/usr/sbin/haproxy"
+</longdesc>
+<shortdesc lang="en">Full path to the haproxy binary</shortdesc>
+<content type="string" default="/usr/sbin/haproxy"/>
+</parameter>
+
+<parameter name="conffile">
+<longdesc lang="en">
+The haproxy daemon configuration file name with full path.
+For example, "/etc/haproxy/haproxy.cfg"
+</longdesc>
+<shortdesc lang="en">Configuration file name with full path</shortdesc>
+<content type="string" default="/etc/haproxy/haproxy.cfg" />
+</parameter>
+
+<parameter name="extraconf">
+<longdesc lang="en">
+Extra command line arguments to pass to haproxy.
+For example, "-f /etc/haproxy/shared.cfg"
+</longdesc>
+<shortdesc lang="en">Extra command line arguments for haproxy</shortdesc>
+<content type="string" default="" />
+</parameter>
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20s"/>
+<action name="stop" timeout="20s"/>
+<action name="reload" timeout="20s"/>
+<action name="monitor" depth="0" timeout="20s" interval="60s" />
+<action name="validate-all" timeout="20s"/>
+<action name="meta-data"  timeout="5s"/>
+</actions>
+</resource-agent>
+END
+exit $OCF_SUCCESS
+}
+
+get_variables()
+{
+	CONF_FILE="${OCF_RESKEY_conffile}"
+	COMMAND="${OCF_RESKEY_binpath}"
+
+	if [ -n "${OCF_RESKEY_pidfile}" ]; then
+		PIDFILE=$(grep -v "#" ${CONF_FILE} | grep "pidfile" | sed 's/^[ \t]*pidfile[ \t]*//')
+	else
+		PIDFILE="${OCF_RESKEY_pidfile}"
+	fi
+}
+
+haproxy_status()
+{
+	get_variables
+
+        # check and make PID file dir
+        local PID_DIR="$( dirname ${PIDFILE} )"
+        if [ ! -d "${PID_DIR}" ] ; then
+                ocf_log debug "Create pid file dir: ${PID_DIR}"
+                mkdir -p "${PID_DIR}"
+                # no need to chown, root is user for haproxy
+                chmod 755 "${PID_DIR}"
+        fi
+
+	if [ -n "${PIDFILE}" -a -f "${PIDFILE}" ]; then
+		# haproxy is probably running
+		# get pid from pidfile
+		PID="`cat ${PIDFILE}`"
+		if [ -n "${PID}" ]; then
+			# check if process exists
+			if ps -p "${PID}" | grep -q haproxy; then
+				ocf_log info "haproxy daemon running"
+				return $OCF_SUCCESS
+			else
+				ocf_log info "haproxy daemon is not running but pid file exists"
+				return $OCF_NOT_RUNNING
+			fi
+		else
+			ocf_log err "PID file empty!"
+			return $OCF_ERR_GENERIC
+		fi
+	fi
+	# haproxy is not running
+	ocf_log info "haproxy daemon is not running"
+	return $OCF_NOT_RUNNING
+}
+
+haproxy_start()
+{
+	get_variables
+
+	# if haproxy is running return success
+	haproxy_status
+	retVal=$?
+	if [ $retVal -eq $OCF_SUCCESS ]; then
+		exit $OCF_SUCCESS
+	elif [ $retVal -ne $OCF_NOT_RUNNING ]; then
+		ocf_log err "Error. Unknown status."
+		exit $OCF_ERR_GENERIC
+	fi
+
+        # run the haproxy binary
+	"${COMMAND}" ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" 
+	if [ $? -ne 0 ]; then
+		ocf_log err "Error. haproxy daemon returned error $?."
+		exit $OCF_ERR_GENERIC
+	fi
+
+	ocf_log info "Started haproxy daemon."
+	exit $OCF_SUCCESS
+}
+
+haproxy_reload()
+{
+	get_variables
+	if haproxy_status; then
+		# get pid from pidfile
+		PID="`cat ${PIDFILE}`"
+		# reload haproxy binary replacing the old process
+		"${COMMAND}" ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" -sf "${PID}"
+		if [ $? -ne 0 ]; then
+			ocf_log err "Error. haproxy daemon returned error $?."
+			exit $OCF_ERR_GENERIC
+		fi
+	else
+		ocf_log info "Haproxy daemon is not running. Starting it."
+		haproxy_start
+	fi
+}
+
+haproxy_stop()
+{
+	get_variables
+	if haproxy_status ; then
+		PID="`cat ${PIDFILE}`"
+		if [ -n "${PID}" ] ; then
+			kill "${PID}"
+			if [ $? -ne 0 ]; then
+				kill -SIGKILL "${PID}"
+				if [ $? -ne 0 ]; then
+					ocf_log err "Error. Could not stop haproxy daemon."
+					return $OCF_ERR_GENERIC
+				fi
+			fi
+                        ocf_log debug "Delete pid file: ${PIDFILE} with content ${PID}"
+			rm -f "${PIDFILE}"
+		fi
+	fi
+	ocf_log info "Stopped haproxy daemon."
+	exit $OCF_SUCCESS
+}
+
+haproxy_monitor()
+{
+	haproxy_status
+}
+
+haproxy_validate_all()
+{
+	get_variables
+	if [ -n "$OCF_RESKEY_binpath" -a ! -x "$OCF_RESKEY_binpath" ]; then
+		ocf_log err "Binary path $OCF_RESKEY_binpath does not exist."
+		exit $OCF_ERR_ARGS
+	fi
+	if [ -n "$OCF_RESKEY_conffile" -a ! -f "$OCF_RESKEY_conffile" ]; then
+		ocf_log err "Config file $OCF_RESKEY_conffile does not exist."
+		exit $OCF_ERR_ARGS
+	fi
+
+	if  grep -v "^#" "$CONF_FILE" | grep "pidfile" > /dev/null ; then
+		:
+	else
+		ocf_log err "Error. \"pidfile\" entry required in the haproxy config file by haproxy OCF RA."
+		return $OCF_ERR_GENERIC
+	fi
+
+	return $OCF_SUCCESS
+}
+
+
+#
+# Main
+#
+
+if [ $# -ne 1 ]; then
+	usage
+	exit $OCF_ERR_ARGS
+fi
+
+case $1 in
+	start) haproxy_start
+	;;
+
+	stop) haproxy_stop
+	;;
+
+	reload) haproxy_reload
+	;;
+
+	status)	haproxy_status
+	;;
+
+	monitor) haproxy_monitor
+	;;
+
+	validate-all) haproxy_validate_all
+	;;
+
+	meta-data) meta_data
+	;;
+
+	usage) usage; exit $OCF_SUCCESS
+	;;
+
+	*) usage; exit $OCF_ERR_UNIMPLEMENTED
+	;;
+esac
