@@ -15,9 +15,9 @@ class cluster::haproxy_ocf (
     path   =>'/usr/lib/ocf/resource.d/fuel/ns_haproxy',
     mode   => '0755',
     owner  => root,
-    group  => root,
-    source => 'puppet:///modules/cluster/ocf/ns_haproxy',
-  }
+     group  => root,
+     source => 'puppet:///modules/cluster/ocf/ns_haproxy',
+    }
   Anchor['haproxy'] -> File['haproxy-ocf']
   File<| title == 'ocf-fuel-path' |> -> File['haproxy-ocf']
 
@@ -81,7 +81,7 @@ class cluster::haproxy_ocf (
   if ($::osfamily == 'Debian') {
     file { '/etc/default/haproxy':
       content => 'ENABLED=0',
-    } -> File['haproxy-ocf']
+    } ->  File['haproxy-ocf']
     if $::operatingsystem == 'Ubuntu' {
       file { '/etc/init/haproxy.override':
         ensure  => 'present',
@@ -97,6 +97,7 @@ class cluster::haproxy_ocf (
     name       => 'haproxy',
     enable     => false,
   } -> File['haproxy-ocf']
+
 
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
     value => '1'

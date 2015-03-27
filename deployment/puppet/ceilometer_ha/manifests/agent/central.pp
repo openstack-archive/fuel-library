@@ -15,6 +15,6 @@ class ceilometer_ha::agent::central inherits ceilometer::agent::central {
         'timeout' => '360',
       },
     },
-    ocf_script_file => 'cluster/ocf/ceilometer-agent-central',
+        ocf_script_file => 'cluster/ocf/ceilometer-agent-central',
   }
 }
