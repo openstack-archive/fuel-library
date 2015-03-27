@@ -24,13 +24,13 @@ define cluster::corosync::cs_service (
   }
 
   # OCF script for pacemaker
-  file { $ocf_script :
-    path   => "/usr/lib/ocf/resource.d/fuel/${ocf_script}",
-    mode   => '0755',
-    owner  => root,
-    group  => root,
-    source => "puppet:///modules/cluster/ocf/${ocf_script}"
-  }
+  #  file { $ocf_script :
+  #  path   => "/usr/lib/ocf/resource.d/fuel/${ocf_script}",
+  #  mode   => '0755',
+  #  owner  => root,
+  #  group  => root,
+  #  source => "puppet:///modules/cluster/ocf/${ocf_script}"
+  #}
 
   if $primary {
     cs_resource { "p_${service_name}":
@@ -55,11 +55,8 @@ define cluster::corosync::cs_service (
         }
       }
     }
-    File[$ocf_script] -> Cs_resource["p_${service_name}"] -> Service[$service_true_title]
-  } else {
-    File[$ocf_script] -> Service[$service_true_title]
+    Cs_resource["p_${service_name}"] -> Service[$service_true_title]
   }
-
   if ! $package_name {
     warning('Cluster::corosync::cs_service: Without package definition can\'t protect service for autostart correctly.')
   } else {

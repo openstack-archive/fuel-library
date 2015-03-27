@@ -37,13 +37,13 @@ class cluster::ntp_ocf ( ) {
 
   Cs_resource[$service_name] ~> Service[$service_name]
 
-  file {'ntp-ocf':
-    path   =>'/usr/lib/ocf/resource.d/fuel/ns_ntp',
-    mode   => '0755',
-    owner  => root,
-    group  => root,
-    source => 'puppet:///modules/cluster/ocf/ns_ntp',
-  } ~>
+  #file {'ntp-ocf':
+  #  path   =>'/usr/lib/ocf/resource.d/fuel/ns_ntp',
+  #  mode   => '0755',
+  #  owner  => root,
+  #  group  => root,
+  #  source => 'puppet:///modules/cluster/ocf/ns_ntp',
+  #} ~>
 
   service { $service_name:
     name     => $service_name,

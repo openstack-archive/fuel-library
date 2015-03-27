@@ -47,6 +47,7 @@ class { 'docker::dockerctl':
   release         => $::fuel_version['VERSION']['release'],
   production      => $production,
   admin_ipaddress => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+  docker_engine => 'native',
 }
 
 class { "docker":
