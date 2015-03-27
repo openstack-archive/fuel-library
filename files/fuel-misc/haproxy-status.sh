@@ -1,7 +1,7 @@
 #!/bin/sh
 
 show_stats() {
-  echo 'show stat' | socat 'UNIX-CONNECT:<%= @haproxy_socket %>' STDIO | awk \
+  echo 'show stat' | socat 'UNIX-CONNECT:/var/lib/haproxy/stats' STDIO | awk \
   '
   function fillstr(string, num)
   {
