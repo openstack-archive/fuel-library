@@ -13,7 +13,6 @@ haproxy
 heat
 heat_ha
 inifile
-l23network
 mcollective
 mellanox_openstack
 mongodb
