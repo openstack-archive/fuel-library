@@ -1,0 +1,593 @@
+#!/bin/bash
+
+#######################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+
+# Defaults
+
+OCF_RESKEY_cidr_netmask_default="32"
+OCF_RESKEY_ns_default=""
+OCF_RESKEY_base_veth_default=""       # should be defined
+OCF_RESKEY_ns_veth_default=""         # should be defined
+OCF_RESKEY_gateway_default=""         # can be "", "link", IPaddr
+OCF_RESKEY_gateway_metric_default=0   # can be "", or metric value
+OCF_RESKEY_also_check_interfaces_default="" # can be "", or list of interfaces
+OCF_RESKEY_enable_forwarding_default=true
+OCF_RESKEY_other_networks_default=""
+
+: ${OCF_RESKEY_cidr_netmask=${OCF_RESKEY_cidr_netmask_default}}
+: ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
+: ${OCF_RESKEY_base_veth=${OCF_RESKEY_base_veth_default}}
+: ${OCF_RESKEY_ns_veth=${OCF_RESKEY_ns_veth_default}}
+: ${OCF_RESKEY_gateway=${OCF_RESKEY_gateway_default}}
+: ${OCF_RESKEY_gateway_metric=${OCF_RESKEY_gateway_metric_default}}
+: ${OCF_RESKEY_also_check_interfaces=${OCF_RESKEY_also_check_interfaces_default}}
+: ${OCF_RESKEY_enable_forwarding=${OCF_RESKEY_enable_forwarding_default}}
+: ${OCF_RESKEY_other_networks=${OCF_RESKEY_other_networks_default}}
+
+FAMILY='inet'
+RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
+SH="/bin/bash"
+SENDARP=$HA_BIN/send_arp
+SENDARPPIDDIR=$HA_RSCTMP
+SENDARPPIDFILE="$SENDARPPIDDIR/send_arp-$OCF_RESKEY_ip"
+#######################################################################
+
+#######################################################################
+
+meta_data() {
+  cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="IPaddr2">
+<version>1.0</version>
+
+<longdesc lang="en">
+This Linux-specific resource manages IP address inside network namespace.
+</longdesc>
+
+<shortdesc lang="en">This Linux-specific resource manages IP address inside network namespace.</shortdesc>
+
+<parameters>
+<parameter name="ip" unique="1" required="1">
+<longdesc lang="en">
+The IPv4 address to be configured in dotted quad notation, for example
+"192.168.1.1".
+</longdesc>
+<shortdesc lang="en">IPv4 address</shortdesc>
+<content type="string" default="" />
+</parameter>
+
+<parameter name="nic" unique="0">
+<longdesc lang="en">
+The base network interface on which the IP address will be brought
+online.
+If left empty, the script will try and determine this from the
+routing table.
+
+Do NOT specify an alias interface in the form eth0:1 or anything here;
+rather, specify the base interface only.
+If you want a label, see the iflabel parameter.
+
+Prerequisite:
+
+There must be at least one static IP address, which is not managed by
+the cluster, assigned to the network interface.
+If you can not assign any static IP address on the interface,
+modify this kernel parameter:
+
+sysctl -w net.ipv4.conf.all.promote_secondaries=1 # (or per device)
+</longdesc>
+<shortdesc lang="en">Network interface</shortdesc>
+<content type="string"/>
+</parameter>
+
+<parameter name="cidr_netmask">
+<longdesc lang="en">
+The netmask for the interface in CIDR format
+(e.g., 24 and not 255.255.255.0)
+
+If unspecified, the script will also try to determine this from the
+routing table.
+</longdesc>
+<shortdesc lang="en">CIDR netmask</shortdesc>
+<content type="string" default=""/>
+</parameter>
+
+<parameter name="iflabel">
+<longdesc lang="en">
+You can specify an additional label for your IP address here.
+This label is appended to your interface name.
+
+A label can be specified in nic parameter but it is deprecated.
+If a label is specified in nic name, this parameter has no effect.
+</longdesc>
+<shortdesc lang="en">Interface label</shortdesc>
+<content type="string" default=""/>
+</parameter>
+
+<parameter name="ns">
+<longdesc lang="en">
+Name of network namespace.\n
+Should be present.
+</longdesc>
+<shortdesc lang="en">Name of network namespace.</shortdesc>
+<content type="string" default="$OCF_RESKEY_ns_default"/>
+</parameter>
+
+<parameter name="base_veth">
+<longdesc lang="en">
+Name of base system side veth pair tail.\n
+Should be present.
+</longdesc>
+<shortdesc lang="en">Name of base system side veth pair tail.</shortdesc>
+<content type="string" default="$OCF_RESKEY_base_veth_default"/>
+</parameter>
+
+<parameter name="ns_veth">
+<longdesc lang="en">
+Name of net.namespace side veth pair tail.\n
+Should be present.
+</longdesc>
+<shortdesc lang="en">Name of net.namespace side veth pair tail.</shortdesc>
+<content type="string" default="$OCF_RESKEY_ns_veth_default"/>
+</parameter>
+
+<parameter name="gateway">
+<longdesc lang="en">
+Default route address.\n
+Can be "", "link" or IP address.
+</longdesc>
+<shortdesc lang="en">Default route address.</shortdesc>
+<content type="string" default="$OCF_RESKEY_gateway_default"/>
+</parameter>
+
+<parameter name="gateway_metric">
+<longdesc lang="en">
+Default route address.\n
+Can be "", "link" or IP address.
+</longdesc>
+<shortdesc lang="en">Default route address.</shortdesc>
+<content type="string" default="$OCF_RESKEY_gateway_metric_default"/>
+</parameter>
+
+<parameter name="setup_forwarding">
+<longdesc lang="en">
+Setup forwarding on base system.
+</longdesc>
+<shortdesc lang="en">Setup forwarding.</shortdesc>
+<content type="string" default="$OCF_RESKEY_setup_forwarding_default"/>
+</parameter>
+
+<parameter name="iptables_start_rules">
+<longdesc lang="en">
+Iptables rules that should be started along with IP.\n
+</longdesc>
+<shortdesc lang="en">Iptables rules associated with IP start.</shortdesc>
+<content type="string" default=""/>
+</parameter>
+
+<parameter name="iptables_stop_rules">
+<longdesc lang="en">
+Iptables rules that should be stopped along with IP.\n
+</longdesc>
+<shortdesc lang="en">Iptables rules associated with IP stop.</shortdesc>
+<content type="string" default=""/>
+</parameter>
+
+<parameter name="iptables_comment">
+<longdesc lang="en">
+Iptables comment to associate with rules.\n
+</longdesc>
+<shortdesc lang="en">Iptables comment to associate with rules.</shortdesc>
+<content type="string" default="default-comment"/>
+</parameter>
+
+<parameter name="also_check_interfaces">
+<longdesc lang="en">
+Network interfaces list (ex. NIC), that should be in UP state for monitor action returns succesful.\n
+</longdesc>
+<shortdesc lang="en">Network interfaces list (ex. NIC), that should be in UP state for monitor action returns succesful.</shortdesc>
+<content type="string" default="$OCF_RESKEY_also_check_interfaces_default"/>
+</parameter>
+
+<parameter name="other_networks">
+<longdesc lang="en">
+Additional routes that should be added to this resource. Routes will be added via value ns_veth.
+</longdesc>
+<shortdesc lang="en">List of addtional routes to add routes for.</shortdesc>
+<content type="string" default="$OCF_RESKEY_other_networks_default"/>
+</parameter>
+
+</parameters>
+<actions>
+<action name="start"   timeout="20s" />
+<action name="stop"    timeout="20s" />
+<action name="status" depth="0"  timeout="20s" interval="10s" />
+<action name="monitor" depth="0"  timeout="20s" interval="10s" />
+<action name="meta-data"  timeout="5s" />
+<action name="validate-all"  timeout="20s" />
+</actions>
+</resource-agent>
+END
+
+  exit $OCF_SUCCESS
+}
+
+
+ip_validate() {
+
+  if [[ X`uname -s` != "XLinux" ]] ; then
+      ocf_log err "ns_IPaddr2 only supported Linux."
+      exit $OCF_ERR_INSTALLED
+  fi
+
+  if [[ -z $OCF_RESKEY_ip ]] ; then
+    ocf_log err "IP address not given"
+    exit $OCF_ERR_CONFIGURED
+  fi
+
+  if [[ -z $OCF_RESKEY_ns ]] ; then
+    ocf_log err "Network namespace not given"
+    exit $OCF_ERR_CONFIGURED
+  fi
+
+  if [[ -z $OCF_RESKEY_cidr_netmask ]] ; then
+    ocf_log err "CIDR Netmask not given"
+    exit $OCF_ERR_CONFIGURED
+  fi
+
+  if [[ -z $OCF_RESKEY_nic ]] ; then
+    ocf_log err "Base NIC not given"
+    exit $OCF_ERR_CONFIGURED
+  fi
+
+  if [[ -z $OCF_RESKEY_base_veth ]] ; then
+    ocf_log err "Base veth tail name not given"
+    exit $OCF_ERR_CONFIGURED
+  fi
+
+  if [[ -z $OCF_RESKEY_ns_veth ]] ; then
+    ocf_log err "NS veth tail name not given"
+    exit $OCF_ERR_CONFIGURED
+  fi
+
+  if ! ocf_is_decimal "$OCF_RESKEY_gateway_metric"; then
+    ocf_log err "Gateway_metric should be a positive digital value"
+    exit $OCF_ERR_CONFIGURED
+  fi
+
+  return $OCF_SUCCESS
+}
+
+
+#
+#   Find out which interfaces serve the given IP address and netmask.
+#   The arguments are an IP address and a netmask.
+#   Its output are interface names devided by spaces (e.g., "eth0 eth1").
+#
+find_interface() {
+    local ipaddr="$1"
+    local netmask="$2"
+    [[ -z netmask ]] || ipaddr="$ipaddr/$netmask"
+
+    #
+    # List interfaces but exclude FreeS/WAN ipsecN virtual interfaces
+    local iface="`ip -o -f inet addr show \
+        | grep "\ $ipaddr" \
+        | cut -d ' ' -f2 \
+        | grep -v '^ipsec[[0-9]][[0-9]]*$'`"
+    local rc=$?
+    echo "$iface"
+    return $rc
+}
+
+find_interface_in_ns() {
+    local ns="$1"
+    local ipaddr="$2"
+    local netmask="$3"
+    [[ -z netmask ]] || ipaddr="$ipaddr/$netmask"
+
+    #
+    # List interfaces but exclude FreeS/WAN ipsecN virtual interfaces
+    local iface=`ip netns exec $ns ip -o -f inet addr show \
+        | grep "\ $ipaddr" \
+        | cut -d ' ' -f2 \
+        | grep -v '^ipsec[[0-9]][[0-9]]*$'`
+    local rc=$?
+    echo "$iface"
+    return $rc
+}
+
+setup_routes() {
+  if [[ "${OCF_RESKEY_other_networks}" != "false" ]] ; then
+    for network in ${OCF_RESKEY_other_networks}
+    do
+      ocf_log debug "Adding route on the host system to ${network}: ${OCF_RESKEY_namespace_ip}"
+      ocf_run $RUN_IN_NS ip route add ${network} dev ${OCF_RESKEY_ns_veth}
+    done
+  fi
+}
+
+setup_forwarding() {
+  local forwarding
+  local rc=$OCF_SUCCESS
+  ocf_is_true ${OCF_RESKEY_enable_forwarding}
+  if [[ $? == 0 ]] ; then
+    forwarding=$(cat /proc/sys/net/ipv4/ip_forward)
+    if [[ "${forwarding}" != "1" ]] ; then
+      ocf_run sysctl -w net.ipv4.ip_forward=1
+      rc=$?
+    fi
+  fi
+  return $rc
+}
+
+get_first_ip_mask_for_if() {
+    local iface="$1"
+    local ns="$2"
+    local RUN=''
+    [[ -z ns ]] && RUN=$RUN_IN_NS
+    local addr=`$RUN ip -o -f inet a show dev $iface \
+                 | sed -re '1!d; s|.*\s([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+).*|\1|'`
+    local rc=$?
+    [[ $rc != 0 ]] && addr=''
+    echo "$addr"
+    return $rc
+}
+
+get_first_ip_for_if() {
+    local iface="$1"
+    local ns="$2"
+
+    local addr=`get_first_ip_mask_for_if $iface $ns \
+                 | sed -re 's|([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/.*|\1|'`
+    local rc=$?
+    [[ $rc != 0 ]] && addr=''
+    echo "$addr"
+    return $rc
+}
+
+
+#######################################################################
+
+
+check_ns() {
+  local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
+  [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
+  return $OCF_SUCCESS
+}
+
+get_ns() {
+  local rc
+  check_ns && return $OCF_SUCCESS
+
+  ocf_run ip netns add $OCF_RESKEY_ns
+  rc=$?
+  ocf_run $RUN_IN_NS ip link set up dev lo
+
+  return $rc
+}
+
+get_veth_pair() {
+  local rc
+  local ipaddr
+
+  # check tail of veth-pair in base system
+  ocf_run ip link show $OCF_RESKEY_base_veth 2>/dev/null
+  rc=$?
+
+  # create pair (tail's can't be alone) and attach tail to the net.namespace
+  if [[ $rc != 0 ]] ; then
+    ocf_run ip link add $OCF_RESKEY_base_veth type veth peer name $OCF_RESKEY_ns_veth
+    ocf_run ip link set dev $OCF_RESKEY_ns_veth netns $OCF_RESKEY_ns
+    echo 1 > /proc/sys/net/ipv4/conf/$OCF_RESKEY_nic/proxy_arp
+    echo 1 > /proc/sys/net/ipv4/conf/$OCF_RESKEY_base_veth/proxy_arp
+    ocf_run $RUN_IN_NS ip link set up dev $OCF_RESKEY_ns_veth
+    ocf_run            ip link set up dev $OCF_RESKEY_base_veth
+    sleep 1
+    # duplicate first IP address from base iface to the veth
+    ipaddr=`get_first_ip_mask_for_if $OCF_RESKEY_nic`
+    [[ -z $ipaddr ]] && return 0 # dublicate nothing
+    ocf_run ip addr add $ipaddr dev $OCF_RESKEY_base_veth
+  fi
+
+  return 0
+}
+
+check_interfaces_for_up_state() {
+  local interfaces=$(echo "$1" | tr " ,:;" "\n")
+  local rc=$OCF_SUCCESS
+
+  for i in $interfaces ; do
+    rv=$(cat /sys/class/net/$i/carrier)  # can return non-zero error-code for administrative-downed interface
+    if [[ $? != 0 || $rv != "1" ]] ; then
+      rc=$OCF_NOT_RUNNING
+      break
+    fi
+  done
+
+  return $rc
+}
+
+ip_prepare() {
+  local rc
+  ip_validate
+  [[ $? != 0 ]] && return $OCF_ERR_GENERIC
+
+  # create or get existing network namespace
+  get_ns || return $OCF_ERR_GENERIC
+
+  # create or get existing pair of veth interfaces
+  get_veth_pair || return $OCF_ERR_GENERIC
+
+  # attach IP address inside network namespace
+  ocf_run $RUN_IN_NS ip addr replace "$OCF_RESKEY_ip/$OCF_RESKEY_cidr_netmask" dev $OCF_RESKEY_ns_veth
+  [[ $? != 0 ]] && return $OCF_ERR_GENERIC
+
+  # modify route in base system
+  ocf_run ip route flush dev $OCF_RESKEY_base_veth
+  [[ $? != 0 ]] && return $OCF_ERR_GENERIC
+  ocf_run ip route add $OCF_RESKEY_ip dev $OCF_RESKEY_base_veth
+  [[ $? != 0 ]] && return $OCF_ERR_GENERIC
+
+  # setup default routing in namespace if gateway given
+  if [[ ! -z $OCF_RESKEY_gateway ]] ; then
+    if [[ $OCF_RESKEY_gateway == 'link' ]] ; then
+      ocf_run $RUN_IN_NS ip route replace default dev $OCF_RESKEY_ns_veth metric $OCF_RESKEY_gateway_metric
+    else
+      ocf_run $RUN_IN_NS ip route replace default via $OCF_RESKEY_gateway metric $OCF_RESKEY_gateway_metric
+    fi
+  fi
+  ARGS="-i 200 -r 5 -p $SENDARPPIDFILE $OCF_RESKEY_nic $OCF_RESKEY_ip auto not_used not_used"
+  ($SENDARP $ARGS || ocf_log err "Could not send gratuitous arps")& >&2
+  return $OCF_SUCCESS
+}
+
+iptables_start() {
+  local rc
+  local iptables_rules
+  local rule
+  rc=$OCF_SUCCESS
+  # setup iptables rules if given
+  if [[ ! -z $OCF_RESKEY_iptables_start_rules ]] ; then
+    IFS=';' read -a iptables_rules <<< "$OCF_RESKEY_iptables_start_rules"
+    for rule in "${iptables_rules[@]}"
+    do
+      ocf_run $rule -m comment --comment "$OCF_RESKEY_iptables_comment"
+    done
+  fi
+  setup_routes
+  return $rc
+}
+
+iptables_stop() {
+  local rc
+  local iptables_rules
+  local rule
+  rc=$OCF_SUCCESS
+  # remove iptables rules if given
+  if [[ ! -z $OCF_RESKEY_iptables_stop_rules ]] ; then
+    IFS=';' read -a iptables_rules <<< "$OCF_RESKEY_iptables_stop_rules"
+    for rule in "${iptables_rules[@]}"
+    do
+      ocf_run $rule -m comment --comment "$OCF_RESKEY_iptables_comment"
+    done
+  fi
+  return $rc
+}
+
+ip_start() {
+  setup_forwarding
+  check_interfaces_for_up_state "$OCF_RESKEY_nic:$OCF_RESKEY_also_check_interfaces" || return $OCF_ERR_GENERIC
+  ip_prepare
+  rc=$?
+  if [[ $rc != $OCF_SUCCESS ]] ; then
+    # cleanun ns
+    ip_stop
+    rc=$OCF_ERR_GENERIC
+  else
+    iptables_start
+  fi
+  return $rc
+}
+
+ip_stop() {
+  local rc
+  ip_validate
+  # destroy veth-pair in base system
+  ocf_run ip link show $OCF_RESKEY_base_veth 2>/dev/null
+  rc=$?
+  if [[ $rc == 0 ]] ; then
+    ocf_run ip link set down dev $OCF_RESKEY_base_veth &&
+    sleep 2 &&  # prevent race
+    ocf_run ip link del dev $OCF_RESKEY_base_veth
+    rc=$?
+  else
+    rc=0
+  fi
+
+  if [ -f "$SENDARPPIDFILE" ] ; then
+    kill `cat "$SENDARPPIDFILE"`
+    if [ $? -ne 0 ]; then
+      ocf_log warn "Could not kill previously running send_arp for $OCF_RESKEY_ip"
+    else
+      ocf_log info "killed previously running send_arp for $OCF_RESKEY_ip"
+      rm -f "$SENDARPPIDFILE"
+    fi
+  fi
+
+
+  if [[ $rc == 0 ]] ; then
+    rc=$OCF_SUCCESS  # it means stop was success
+    iptables_stop
+  else
+    rc=$OCF_ERR_GENERIC
+  fi
+  return $rc
+}
+
+ip_monitor() {
+  local rc
+  ip_validate
+  check_ns || return $OCF_NOT_RUNNING
+  local iface=$(find_interface_in_ns $OCF_RESKEY_ns $OCF_RESKEY_ip $OCF_RESKEY_cidr_netmask)
+  [[ -z $iface ]] && return $OCF_NOT_RUNNING
+
+  #todo: finding IP from VIP subnet
+  local ipaddr=$(get_first_ip_for_if $OCF_RESKEY_nic)
+  [[ -z $ipaddr ]] && return $OCF_NOT_RUNNING
+
+  check_interfaces_for_up_state "$OCF_RESKEY_nic:$OCF_RESKEY_also_check_interfaces" || return $OCF_NOT_RUNNING
+
+  ocf_run $RUN_IN_NS ping -n -c3 -q $ipaddr 2>&1 >>/dev/null || return $OCF_NOT_RUNNING
+  setup_forwarding
+  return $OCF_SUCCESS
+}
+
+
+ip_usage() {
+    cat <<END
+usage: $0 {start|stop|status|monitor|validate-all|meta-data}
+
+Expects to have a fully populated OCF RA-compliant environment set.
+END
+}
+
+## main
+umask 0022
+
+rc=$OCF_SUCCESS
+case $__OCF_ACTION in
+  meta-data)
+    meta_data
+    exit $OCF_SUCCESS
+    ;;
+  usage|help)
+    ip_usage
+    exit $OCF_SUCCESS
+    ;;
+  start)
+    ip_start
+    rc=$?
+    ;;
+  stop)
+    ip_stop
+    rc=$?
+    ;;
+  monitor)
+    ip_monitor
+    rc=$?
+    ;;
+  validate-all)
+    ;;
+  *)
+    ip_usage
+    exit $OCF_ERR_UNIMPLEMENTED
+    ;;
+esac
+exit $rc
+# vi:sw=4:ts=8:
