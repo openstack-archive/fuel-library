@@ -733,6 +733,7 @@ class PreseedPManager(object):
             "mv /etc/udev/rules.d/$(basename $rules) "
             "/etc/udev/rules.d/$(basename $rules).bak; "
             "touch /etc/udev/rules.d/$(basename $rules); "
+            "echo '#' >> /etc/udev/rules.d/$(basename $rules); "
             "done")
         self.late("udevadm control --reload")
 
