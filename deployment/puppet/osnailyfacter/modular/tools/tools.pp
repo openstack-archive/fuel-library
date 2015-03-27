@@ -11,6 +11,7 @@ $tools = [
   'htop',
   'tcpdump',
   'strace',
+  'fuel-misc'
 ]
 
 package { $tools :
@@ -28,6 +29,3 @@ class { 'puppet::pull' :
 }
 
 $deployment_mode = hiera('deployment_mode')
-if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
-  include haproxy::status
-}
