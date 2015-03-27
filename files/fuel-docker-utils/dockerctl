@@ -14,9 +14,9 @@
 #    under the License.
 
 
-confdir="<%= @config_dir %>"
+confdir="/etc/dockerctl"
 . "$confdir/config"
-. "<%= @share_dir %>/functions.sh"
+. "/usr/share/dockerctl/functions.sh"
 DEBUG=true
 
 #Sets var nonopts

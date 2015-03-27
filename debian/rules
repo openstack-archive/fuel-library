@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with python2
+
+override_dh_fixperms:
+	chmod 755 debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/*
+	dh_fixperms
+
+
