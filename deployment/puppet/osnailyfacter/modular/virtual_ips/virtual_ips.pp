@@ -85,13 +85,13 @@ if $public_int {
 $vip_keys = keys($vips)
 
 class virtual_ips () {
-  file { 'ns-ipaddr2-ocf':
-    path   =>'/usr/lib/ocf/resource.d/fuel/ns_IPaddr2',
-    mode   => '0755',
-    owner  => root,
-    group  => root,
-    source => 'puppet:///modules/cluster/ocf/ns_IPaddr2',
-  }
+  #  file { 'ns-ipaddr2-ocf':
+  #  path   =>'/usr/lib/ocf/resource.d/fuel/ns_IPaddr2',
+  #  mode   => '0755',
+  #  owner  => root,
+  #  group  => root,
+  #  source => 'puppet:///modules/cluster/ocf/ns_IPaddr2',
+  #}
 
   cluster::virtual_ips { $::vip_keys:
     vips => $::vips,
