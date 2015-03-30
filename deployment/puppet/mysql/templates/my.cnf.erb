@@ -8,6 +8,7 @@ nice    = 0
 syslog
 <% end -%>
 [mysqld]
+transaction-isolation=READ-COMMITTED
 innodb_file_per_table=1
 <% if @operatingsystem != 'RedHat' %>
 table_open_cache=<%= @table_open_cache %>
