@@ -872,13 +872,24 @@ action_status() {
     return $rc
 }
 
-
+# return 0, if given node has a master attribute in CIB,
+# otherwise, return 1
+is_master() {
+    local result
+    result=`crm_attribute -N "${1}" -l reboot --name 'rabbit-master' --query 2>/dev/null |\
+           awk '{print $3}' | awk -F "=" '{print $2}' | sed -e '/(null)/d'`
+    if [[ "${result}" != "true" ]] ; then
+        return 1
+    fi
+    return 0
+}
 
 
 get_monitor() {
     local rc=$OCF_ERR_GENERIC
     local scope
     local LH="${LL} get_monitor():"
+    local status_master
 
     get_status
     rc=$?
@@ -891,9 +902,10 @@ get_monitor() {
         ocf_log info "${LH} also checking if we are master."
         get_status rabbit
         rabbit_running=$?
-        am_i_master=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}' | sed -e '/(null)/d' )
-        ocf_log info "${LH} master attribute is ${am_i_master}"
-        if [[ "x${am_i_master}" == "xtrue" && ${rabbit_running} -eq $OCF_SUCCESS ]]
+        is_master `hostname`
+        status_master=$?
+        ocf_log info "${LH} master attribute is ${status_master}"
+        if [ $status_master -eq 0 -a $rabbit_running -eq $OCF_SUCCESS ]
         then
             rc=$OCF_RUNNING_MASTER
         fi
@@ -910,10 +922,10 @@ get_monitor() {
             for node in $nodelist
             do
                 ocf_log info "${LH} rabbit app is running. looking for master on $node"
-                is_master=`crm_attribute -N $node -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}' | sed -e '/(null)/d'`
-                ocf_log info "${LH} fetched master attribute for $node. attr value is ${is_master}"
-                if [[ "x${is_master}" == "xtrue" ]]
-                then
+                is_master $node
+                status_master=$?
+                ocf_log info "${LH} fetched master attribute for $node. attr value is ${status_master}"
+                if [ $status_master -eq 0 ] ; then
                     rc=$OCF_ERR_GENERIC
                     ocf_log info "${LH} rabbit app is running. master is $node"
                     if get_running_nodes | grep -q $(rabbit_node_name $node)
@@ -950,7 +962,16 @@ get_monitor() {
                 max=1
                 break
             else
-                max=0
+                # When uptime is equal, accept the existing master - if any - as the oldest node
+                is_master $node
+                status_master=$?
+                if [ $status_master -eq 0 ] ; then
+                    max=1
+                    ocf_log info "${LH} Found the oldest master node $node with uptime (${node_uptime})"
+                    break
+                else
+                    max=0
+                fi
             fi
         done
 
