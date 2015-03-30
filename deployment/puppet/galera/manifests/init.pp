@@ -83,6 +83,7 @@ class galera (
   $open_files_limit= $::galera::params::open_files_limit
   $datadir=$::mysql::params::datadir
   $service_name=$::galera::params::service_name
+  $innodb_flush_method=$::galera::params::innodb_flush_method
 
   package { ['wget',
               'perl']:
