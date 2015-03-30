@@ -59,6 +59,7 @@ wsrep_sst_method=<%= @wsrep_sst_method %>
 wsrep_sst_auth=<%= @mysql_user %>:<%= @mysql_password %>
 <% end -%>
 wsrep_node_address=<%= @node_address %>
+wsrep_retry_autocommit=3
 
 <% if @wsrep_sst_method =~ /xtrabackup/ -%>
 [xtrabackup]
