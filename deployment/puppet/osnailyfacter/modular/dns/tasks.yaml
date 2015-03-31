@@ -1,7 +1,7 @@
 - id: dns-server
   type: puppet
   groups: [primary-controller, controller]
-  required_for: [dns-client]
+  required_for: [deploy_end]
   requires: [openstack-haproxy]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-server.pp
@@ -10,10 +10,11 @@
 
 - id: dns-client
   type: puppet
-  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
-  required_for: [deploy_end]
-  requires: [netconfig]
+  role: '*'
+  requires: [post_deployment_start]
+#  required_for: [ntp-client]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-client.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    cwd: /
