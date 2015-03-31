@@ -32,7 +32,7 @@ $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.jo
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
-} elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
+} elsif member($roles, 'cinder-vmware') {
   $manage_volumes = 'vmdk'
 } elsif ($storage_hash['volumes_ceph']) {
   $manage_volumes = 'ceph'
