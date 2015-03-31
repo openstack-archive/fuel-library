@@ -1,5 +1,6 @@
 class docker (
 $release,
+$package_ensure = "latest",
 $admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 $limit = "102400",
 $docker_package = "docker-io",
@@ -24,7 +25,7 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   }
 
   package {$docker_package:
-    ensure => installed,
+    ensure => $package_ensure,
   }
 
   service {$docker_service:
