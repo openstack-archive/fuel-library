@@ -194,9 +194,6 @@ class { 'openstack::network':
 
   neutron_server      => $neutron_server,
   neutron_db_uri      => $neutron_db_uri,
-  public_address      => hiera('public_vip'),
-  internal_address    => $internal_address,
-  admin_address       => $internal_address,
   nova_neutron        => true,
   base_mac            => $base_mac,
   core_plugin         => $core_plugin,
@@ -218,7 +215,7 @@ class { 'openstack::network':
 
   # keystone
   admin_password  => $neutron_user_password,
-  auth_host       => $internal_address,
+  auth_host       => $service_endpoint,
   auth_url        => "http://${service_endpoint}:35357/v2.0",
   neutron_url     => "http://${service_endpoint}:9696",
 

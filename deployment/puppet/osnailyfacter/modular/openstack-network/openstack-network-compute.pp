@@ -293,9 +293,6 @@ if $network_provider == 'neutron' {
 class { 'openstack::network':
   network_provider  => $network_provider,
   agents            => [$agent],
-  public_address    => undef,
-  internal_address  => $internal_address,
-  admin_address     => undef,
   nova_neutron      => true,
 
   base_mac          => $base_mac,
