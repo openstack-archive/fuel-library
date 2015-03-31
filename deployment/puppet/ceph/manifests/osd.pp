@@ -9,6 +9,8 @@ class ceph::osd (
     action  => accept,
   }
 
+  $osd_size = size($::ceph::osd_devices)
+
   exec { 'ceph-deploy osd prepare':
     # ceph-deploy osd prepare is ensuring there is a filesystem on the
     # disk according to the args passed to ceph.conf (above).
@@ -26,6 +28,15 @@ class ceph::osd (
     unless    => "grep -q '^${ $::ceph::osd_devices[0] }' /proc/mounts",
   }
 
+  exec { 'ceph-deploy osd activate':
+    command   => "ceph-deploy osd activate ${devices}",
+    try_sleep => 10,
+    tries     => 6,
+    logoutput => true,
+    unless    => "ps ax | grep -c [c]eph-osd | grep -q $osd_size",
+  }
+
   Firewall['011 ceph-osd allow'] ->
-  Exec['ceph-deploy osd prepare']
+  Exec['ceph-deploy osd prepare'] ->
+  Exec['ceph-deploy osd activate']
 }
