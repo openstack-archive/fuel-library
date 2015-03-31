@@ -10,9 +10,19 @@
 
 - id: dns-client
   type: puppet
-  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server]
   required_for: [deploy_end]
   requires: [netconfig]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-client.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: dns-client-post
+  type: puppet
+  groups: [primary-mongo, mongo]
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-client.pp
     puppet_modules: /etc/puppet/modules
