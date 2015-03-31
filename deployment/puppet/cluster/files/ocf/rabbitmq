@@ -1138,11 +1138,11 @@ action_notify() {
                 if [[ $rc == $OCF_SUCCESS ]] ; then
                     jjj_join ${OCF_RESKEY_CRM_meta_notify_master_uname}
                     rc2=$?
-                fi
-                ocf_log info "${LH} post-start end."
-                if [[ $rc2 == $OCF_ERR_GENERIC ]] ; then
-                    ocf_log warn "${LH} Failed to join the cluster on post-start. Resource is failed."
-                    return $OCF_NOT_RUNNING
+                    ocf_log info "${LH} post-start end."
+                    if [[ $rc2 == $OCF_ERR_GENERIC ]] ; then
+                        ocf_log warn "${LH} Failed to join the cluster on post-start. Resource is failed."
+                        return $OCF_NOT_RUNNING
+                    fi
                 fi
                 ;;
             stop)
