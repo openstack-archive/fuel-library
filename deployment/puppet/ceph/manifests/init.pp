@@ -132,8 +132,8 @@ class ceph (
 
     'ceph-osd': {
       if ! empty($osd_devices) {
-        include ceph::osd
-        Class['ceph::conf'] -> Class['ceph::osd'] ~> Service['ceph']
+        include ceph::osds
+        Class['ceph::conf'] -> Class['ceph::osds'] ~> Service['ceph']
       }
     }
 
