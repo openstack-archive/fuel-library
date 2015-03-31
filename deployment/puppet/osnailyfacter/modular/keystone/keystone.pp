@@ -113,7 +113,7 @@ class { 'openstack::auth_file':
   admin_user           => $admin_user,
   admin_password       => $admin_password,
   admin_tenant         => $admin_tenant,
-  controller_node      => $internal_address,
+  controller_node      => $management_vip,
 }
 
 class { 'openstack::workloads_collector':

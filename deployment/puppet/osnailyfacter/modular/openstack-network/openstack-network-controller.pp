@@ -218,7 +218,7 @@ class { 'openstack::network':
 
   # keystone
   admin_password  => $neutron_user_password,
-  auth_host       => $internal_address,
+  auth_host       => $service_endpoint,
   auth_url        => "http://${service_endpoint}:35357/v2.0",
   neutron_url     => "http://${service_endpoint}:9696",
 
