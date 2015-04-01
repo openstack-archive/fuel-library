@@ -9,10 +9,20 @@ Puppet::Type.type(:rabbitmq_vhost).provide(:rabbitmqctl, :parent => Puppet::Prov
      end
   end
 
+  def retry_rabbitmqctl(*args)
+    self.class.run_with_retries do
+      rabbitmqctl(*args)
+    end
+  end
+
+  def self.retry_rabbitmqctl(*args)
+    self.run_with_retries do
+      rabbitmqctl(*args)
+    end
+  end
+
   def self.instances
-    self.run_with_retries {
-      rabbitmqctl('-q', 'list_vhosts')
-    }.split(/\n/).map do |line|
+    retry_rabbitmqctl('-q', 'list_vhosts').split(/\n/).map do |line|
       if line =~ /^(\S+)$/
         new(:name => $1)
       else
@@ -22,17 +32,15 @@ Puppet::Type.type(:rabbitmq_vhost).provide(:rabbitmqctl, :parent => Puppet::Prov
   end
 
   def create
-    rabbitmqctl('add_vhost', resource[:name])
+    retry_rabbitmqctl('add_vhost', resource[:name])
   end
 
   def destroy
-    rabbitmqctl('delete_vhost', resource[:name])
+    retry_rabbitmqctl('delete_vhost', resource[:name])
   end
 
   def exists?
-    out = self.class.run_with_retries {
-      rabbitmqctl('-q', 'list_vhosts')
-    }.split(/\n/).detect do |line|
+    out = retry_rabbitmqctl('-q', 'list_vhosts').split(/\n/).detect do |line|
       line.match(/^#{Regexp.escape(resource[:name])}$/)
     end
   end

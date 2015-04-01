@@ -19,8 +19,8 @@ class Puppet::Provider::Rabbitmqctl < Puppet::Provider
         output = Timeout::timeout(timeout) do
           yield
         end
-      rescue Puppet::ExecutionFailure, Timeout
-        Puppet.debug 'Command failed, retrying'
+      rescue Puppet::ExecutionFailure, Timeout => e
+        Puppet.debug "Fail: #{e.to_s} Retry: #{n + 1}"
         sleep step
       else
         Puppet.debug 'Command succeeded'

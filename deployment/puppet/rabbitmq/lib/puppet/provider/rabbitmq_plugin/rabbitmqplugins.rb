@@ -21,10 +21,20 @@ Puppet::Type.type(:rabbitmq_plugin).provide(:rabbitmqplugins, :parent => Puppet:
 
   defaultfor :feature => :posix
 
+  def retry_rabbitmqplugins(*args)
+    self.class.run_with_retries do
+      rabbitmqplugins(*args)
+    end
+  end
+
+  def self.retry_rabbitmqplugins(*args)
+    self.run_with_retries do
+      rabbitmqplugins(*args)
+    end
+  end
+
   def self.instances
-    self.run_with_retries {
-      rabbitmqplugins('list', '-E', '-m')
-    }.split(/\n/).map do |line|
+    retry_rabbitmqplugins('list', '-E', '-m').split(/\n/).map do |line|
       if line =~ /^(\S+)$/
         new(:name => $1)
       else
@@ -34,17 +44,15 @@ Puppet::Type.type(:rabbitmq_plugin).provide(:rabbitmqplugins, :parent => Puppet:
   end
 
   def create
-    rabbitmqplugins('enable', resource[:name])
+    retry_rabbitmqplugins('enable', resource[:name])
   end
 
   def destroy
-    rabbitmqplugins('disable', resource[:name])
+    retry_rabbitmqplugins('disable', resource[:name])
   end
 
   def exists?
-    self.class.run_with_retries {
-      rabbitmqplugins('list', '-E', '-m')
-    }.split(/\n/).detect do |line|
+    retry_rabbitmqplugins('list', '-E', '-m').split(/\n/).detect do |line|
       line.match(/^#{resource[:name]}$/)
     end
   end
