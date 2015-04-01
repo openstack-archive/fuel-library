@@ -7,14 +7,9 @@ class openstack::network (
   $agents           = ['ml2-ovs'], # ovs, ml2-ovs metadata dhcp l3
   $ha_agents        = false,
 
-  $public_address,
-  $internal_address,
-  $admin_address,
-
-  $verbose    = false,
-  $debug      = false,
-  $use_syslog = flase,
-
+  $verbose             = false,
+  $debug               = false,
+  $use_syslog          = flase,
   $syslog_log_facility = 'LOG_USER',
 
   # ovs
