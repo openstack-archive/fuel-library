@@ -13,10 +13,20 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provi
 
   defaultfor :feature => :posix
 
+  def retry_rabbitmqctl(*args)
+    self.class.run_with_retries do
+      rabbitmqctl(*args)
+    end
+  end
+
+  def self.retry_rabbitmqctl(*args)
+    self.run_with_retries do
+      rabbitmqctl(*args)
+    end
+  end
+
   def self.instances
-    self.run_with_retries {
-      rabbitmqctl('-q', 'list_users')
-    }.split(/\n/).collect do |line|
+    retry_rabbitmqctl('-q', 'list_users').split(/\n/).collect do |line|
       if line =~ /^(\S+)(\s+\[.*?\]|)$/
         new(:name => $1)
       else
@@ -26,7 +36,7 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provi
   end
 
   def create
-    rabbitmqctl('add_user', resource[:name], resource[:password])
+    retry_rabbitmqctl('add_user', resource[:name], resource[:password])
     if resource[:admin] == :true
       make_user_admin()
     end
@@ -36,7 +46,7 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provi
   end
 
   def change_password
-    rabbitmqctl('change_password', resource[:name], resource[:password])
+    retry_rabbitmqctl('change_password', resource[:name], resource[:password])
   end
 
   def password
@@ -45,7 +55,7 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provi
 
 
   def check_password
-    response = rabbitmqctl('eval', 'rabbit_auth_backend_internal:check_user_login(<<"' + resource[:name] + '">>, [{password, <<"' + resource[:password] +'">>}]).')
+    response = retry_rabbitmqctl('eval', 'rabbit_auth_backend_internal:check_user_login(<<"' + resource[:name] + '">>, [{password, <<"' + resource[:password] +'">>}]).')
     if response.include? 'invalid credentials'
         false
     else
@@ -54,13 +64,11 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provi
   end
 
   def destroy
-    rabbitmqctl('delete_user', resource[:name])
+    retry_rabbitmqctl('delete_user', resource[:name])
   end
 
   def exists?
-    self.class.run_with_retries {
-      rabbitmqctl('-q', 'list_users')
-    }.split(/\n/).detect do |line|
+    retry_rabbitmqctl('-q', 'list_users').split(/\n/).detect do |line|
       line.match(/^#{Regexp.escape(resource[:name])}(\s+(\[.*?\]|\S+)|)$/)
     end
   end
@@ -91,7 +99,7 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provi
     else
       usertags = get_user_tags
       usertags.delete('administrator')
-      rabbitmqctl('set_user_tags', resource[:name], usertags.entries.sort)
+      retry_rabbitmqctl('set_user_tags', resource[:name], usertags.entries.sort)
     end
   end
 
@@ -102,18 +110,18 @@ Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl, :parent => Puppet::Provi
     if is_admin
       usertags.add("administrator")
     end
-    rabbitmqctl('set_user_tags', resource[:name], usertags.entries.sort)
+    retry_rabbitmqctl('set_user_tags', resource[:name], usertags.entries.sort)
   end
 
   def make_user_admin
     usertags = get_user_tags
     usertags.add('administrator')
-    rabbitmqctl('set_user_tags', resource[:name], usertags.entries.sort)
+    retry_rabbitmqctl('set_user_tags', resource[:name], usertags.entries.sort)
   end
 
   private
   def get_user_tags
-    match = rabbitmqctl('-q', 'list_users').split(/\n/).collect do |line|
+    match = retry_rabbitmqctl('-q', 'list_users').split(/\n/).collect do |line|
       line.match(/^#{Regexp.escape(resource[:name])}\s+\[(.*?)\]/)
     end.compact.first
     Set.new(match[1].split(/, /)) if match

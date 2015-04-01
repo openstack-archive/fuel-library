@@ -6,14 +6,24 @@ Puppet::Type.type(:rabbitmq_policy).provide(:rabbitmqctl, :parent => Puppet::Pro
 
   defaultfor :feature => :posix
 
+  def retry_rabbitmqctl(*args)
+    self.class.run_with_retries do
+      rabbitmqctl(*args)
+    end
+  end
+
+  def self.retry_rabbitmqctl(*args)
+    self.run_with_retries do
+      rabbitmqctl(*args)
+    end
+  end
+
   # cache policies
   def self.policies(name, vhost)
     @policies = {} unless @policies
     unless @policies[vhost]
       @policies[vhost] = {}
-      self.run_with_retries {
-        rabbitmqctl('list_policies', '-q', '-p', vhost)
-      }.split(/\n/).each do |line|
+      retry_rabbitmqctl('list_policies', '-q', '-p', vhost).split(/\n/).each do |line|
         # rabbitmq<3.2 does not support the applyto field
         # 1 2      3?  4  5                                            6
         # / ha-all all .* {"ha-mode":"all","ha-sync-mode":"automatic"} 0
@@ -57,7 +67,7 @@ Puppet::Type.type(:rabbitmq_policy).provide(:rabbitmqctl, :parent => Puppet::Pro
   end
 
   def destroy
-    rabbitmqctl('clear_policy', '-p', should_vhost, should_policy)
+    retry_rabbitmqctl('clear_policy', '-p', should_vhost, should_policy)
   end
 
   def exists?
@@ -105,7 +115,7 @@ Puppet::Type.type(:rabbitmq_policy).provide(:rabbitmqctl, :parent => Puppet::Pro
       resource[:priority]   ||= priority
       # rabbitmq>=3.2.0
       if Puppet::Util::Package.versioncmp(self.class.rabbitmq_version, '3.2.0') >= 0
-        rabbitmqctl('set_policy',
+        retry_rabbitmqctl('set_policy',
           '-p', should_vhost,
           '--priority', resource[:priority],
           '--apply-to', resource[:applyto].to_s,
@@ -114,7 +124,7 @@ Puppet::Type.type(:rabbitmq_policy).provide(:rabbitmqctl, :parent => Puppet::Pro
           resource[:definition].to_json
         )
       else
-        rabbitmqctl('set_policy',
+        retry_rabbitmqctl('set_policy',
           '-p', should_vhost,
           should_policy,
           resource[:pattern],

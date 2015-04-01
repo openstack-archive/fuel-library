@@ -11,14 +11,24 @@ Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl, :parent => P
 
   defaultfor :feature=> :posix
 
+  def retry_rabbitmqctl(*args)
+    self.class.run_with_retries do
+      rabbitmqctl(*args)
+    end
+  end
+
+  def self.retry_rabbitmqctl(*args)
+    self.run_with_retries do
+      rabbitmqctl(*args)
+    end
+  end
+
   # cache users permissions
   def self.users(name, vhost)
     @users = {} unless @users
     unless @users[name]
       @users[name] = {}
-      self.run_with_retries {
-        rabbitmqctl('-q', 'list_user_permissions', name)
-      }.split(/\n/).each do |line|
+      retry_rabbitmqctl('-q', 'list_user_permissions', name).split(/\n/).each do |line|
         line = self::strip_backslashes(line)
         if line =~ /^(\S+)\s+(\S*)\s+(\S*)\s+(\S*)$/
           @users[name][$1] =
@@ -55,11 +65,11 @@ Puppet::Type.type(:rabbitmq_user_permissions).provide(:rabbitmqctl, :parent => P
     resource[:configure_permission] ||= "''"
     resource[:read_permission]      ||= "''"
     resource[:write_permission]     ||= "''"
-    rabbitmqctl('set_permissions', '-p', should_vhost, should_user, resource[:configure_permission], resource[:write_permission], resource[:read_permission])
+    retry_rabbitmqctl('set_permissions', '-p', should_vhost, should_user, resource[:configure_permission], resource[:write_permission], resource[:read_permission])
   end
 
   def destroy
-    rabbitmqctl('clear_permissions', '-p', should_vhost, should_user)
+    retry_rabbitmqctl('clear_permissions', '-p', should_vhost, should_user)
   end
 
   # I am implementing prefetching in exists b/c I need to be sure
