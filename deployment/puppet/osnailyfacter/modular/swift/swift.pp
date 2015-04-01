@@ -1,14 +1,15 @@
 notice('MODULAR: swift.pp')
 
-$swift_hash      = hiera('swift_hash')
-$storage_hash    = hiera('storage_hash')
-$mp_hash         = hiera('mp')
-$management_vip  = hiera('management_vip')
-$debug           = hiera('debug', false)
-$verbose         = hiera('verbose')
-$storage_address = hiera('storage_address')
-$node            = hiera('node')
-$controllers     = hiera('controllers')
+$swift_hash          = hiera('swift_hash')
+$storage_hash        = hiera('storage_hash')
+$mp_hash             = hiera('mp')
+$management_vip      = hiera('management_vip')
+$debug               = hiera('debug', false)
+$verbose             = hiera('verbose')
+$storage_address     = hiera('storage_address')
+$node                = hiera('node')
+$controllers         = hiera('controllers')
+$ring_min_part_hours = hiera('swift_ring_min_part_hours', 1)
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -62,6 +63,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     verbose                 => $verbose,
     log_facility            => 'LOG_SYSLOG',
     ceilometer              => hiera('use_ceilometer'),
+    ring_min_part_hours     => $ring_min_part_hours,
   }
 
   class { 'swift::keystone::auth':
