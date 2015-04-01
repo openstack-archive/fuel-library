@@ -30,13 +30,30 @@ class cluster::haproxy (
     'tune.maxrewrite' => $haproxy_maxrewrite,
   }
 
+  $defaults_options = {
+    'log'     => 'global',
+    'stats'   => 'enable',
+    'maxconn' => '8000',
+    'mode'   => 'http',
+    'retries' => '3',
+    'option'  => [
+      'redispatch',
+      'http-server-close',
+      'splice-auto',
+    ],
+    'timeout' => [
+      'http-request 20s',
+      'queue 1m',
+      'connect 10s',
+      'client 1m',
+      'server 1m',
+      'check 10s',
+    ],
+  }
+
   class { 'haproxy::base':
     global_options   => $global_options,
-    defaults_options => merge($::haproxy::params::defaults_options,
-                              {'mode'   => 'http'},
-                              {'option' => 'http-server-close'},
-                              {'option' => 'splice-auto'}
-                        ),
+    defaults_options => $defaults_options,
     use_include      => true,
   }
 
