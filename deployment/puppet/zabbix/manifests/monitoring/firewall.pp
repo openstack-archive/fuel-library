@@ -1,22 +1,22 @@
-class zabbix::monitoring::firewall_mon {
+class zabbix::monitoring::firewall inherits zabbix::params {
+  $enabled = true
 
-  include zabbix::params
+  if $enabled {
+    notice("Ceilometer monitoring auto-registration: '${name}'")
 
-  #Iptables stats
-  if defined(Class['firewall']) {
-    zabbix_template_link { "$zabbix::params::host_name Template App Iptables Stats":
-      host => $zabbix::params::host_name,
+    zabbix_template_link { "${host_name} Template App Iptables Stats":
+      host => $host_name,
       template => 'Template App Iptables Stats',
-      api => $zabbix::params::api_hash,
+      api => $api_hash,
     }
     package { 'iptstate':
       ensure => present;
     }
-    #sudo::directive {'iptstate_users':
-    #  ensure  => present,
-    #  content => 'zabbix ALL = NOPASSWD: /usr/sbin/iptstate',
-    #}
-    zabbix::agent::userparameter { 
+#    sudo::directive {'iptstate_users':
+#      ensure  => present,
+#      content => 'zabbix ALL = NOPASSWD: /usr/sbin/iptstate',
+#    }
+    zabbix::agent::userparameter {
       'iptstate.tcp':
         command => 'sudo iptstate -1 | grep tcp | wc -l';
       'iptstate.tcp.syn':

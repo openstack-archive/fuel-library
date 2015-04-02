@@ -60,5 +60,12 @@ Puppet::Type.newtype(:zabbix_usermacro) do
     fail('host is required when global is false') if
     self[:global] == :false and self[:host].nil?
   end
+
+  autorequire(:zabbix_host) do
+    host = self[:host]
+    return [] unless host
+    [host]
+  end
+
 end
 
