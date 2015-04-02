@@ -1,13 +1,13 @@
-class zabbix::monitoring::mysql_mon {
+class zabbix::monitoring::mysql inherits zabbix::params {
+  $enabled = ($role in ['controller', 'primary-controller'])
 
-  include zabbix::params
+  if $enabled {
+    notice("Ceilometer monitoring auto-registration: '${name}'")
 
-  if defined(Class['mysql::server']) {
-
-    zabbix_template_link { "$zabbix::params::host_name Template App MySQL":
-      host => $zabbix::params::host_name,
+    zabbix_template_link { "${host_name} Template App MySQL":
+      host => $host_name,
       template => 'Template App MySQL',
-      api => $zabbix::params::api_hash,
+      api => $api_hash,
     }
 
     zabbix::agent::userparameter {
@@ -23,7 +23,7 @@ class zabbix::monitoring::mysql_mon {
         command => 'mysql -V';
     }
 
-    file { "${::zabbix::params::agent_include}/userparameter_mysql.conf":
+    file { "${agent_include}/userparameter_mysql.conf":
       ensure => absent,
     }
 
