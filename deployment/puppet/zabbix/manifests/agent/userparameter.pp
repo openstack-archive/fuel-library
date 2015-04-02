@@ -8,25 +8,30 @@ define zabbix::agent::userparameter (
 ) {
 
   include zabbix::params
+  $agent_include = $zabbix::params::agent_include
+  $agent_service = $zabbix::params::agent_service
 
-  $key_real = $key ? {
-    undef   => $name,
-    default => $key
+  if $key {
+    $parameter_key = $key
+  } else {
+    $parameter_key = $name
   }
 
-  $index_real = $index ? {
-    undef => '',
-    default => "${index}_",
+  if $file {
+    $file_real = $file
+  } elsif $index {
+    $file_real = "${agent_include}/${index}_${name}.conf"
+  } else {
+    $file_real = "${agent_include}/${name}.conf"
   }
 
-  $file_real = $file ? {
-    undef   => "${::zabbix::params::agent_include}/${index_real}${name}.conf",
-    default => $file,
-  }
+  notice("UserParam for: ${parameter_key} at: ${file_real}")
 
-  file { $file_real:
+  file { "userparameter-${name}" :
     ensure  => $ensure,
+    path    => $file_real,
     content => template($template),
-    notify  => Service[$zabbix::params::agent_service]
   }
+
+  File["userparameter-${name}"] ~> Service <| title == $agent_service |>
 }

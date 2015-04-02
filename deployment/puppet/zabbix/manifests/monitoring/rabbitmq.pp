@@ -1,32 +1,25 @@
-class zabbix::monitoring::rabbitmq_mon {
+class zabbix::monitoring::rabbitmq inherits zabbix::params {
+  $enabled = ($role in ['controller', 'primary-controller'])
 
-  include zabbix::params
+  if $enabled {
+    notice("Ceilometer monitoring auto-registration: '${name}'")
 
-  if hiera("deployment_mode") == "multinode" {
-    $template = "Template App OpenStack RabbitMQ"
-  } else {
-    $template = "Template App OpenStack HA RabbitMQ"
-  }
-
-  #RabbitMQ server
-  if defined(Class['::rabbitmq']) {
-
-    zabbix_template_link { "$zabbix::params::host_name Template App OpenStack RabbitMQ":
-      host     => $zabbix::params::host_name,
-      template => $template,
-      api      => $zabbix::params::api_hash,
+    #RabbitMQ server
+    zabbix_template_link { "${host_name} Template App OpenStack RabbitMQ":
+      host     => $host_name,
+      template => "Template App OpenStack HA RabbitMQ",
+      api      => $api_hash,
     }
 
-    Package['rabbitmq-server'] ->
-    Exec['enable rabbitmq management plugin'] ->
-    Service['rabbitmq-server']
+    Package <| title == 'rabbitmq-server' |> ->
+    Exec['enable rabbitmq management plugin'] ~>
+    Service <| title == 'rabbitmq-server' |>
 
     exec { 'enable rabbitmq management plugin':
       command     => 'rabbitmq-plugins enable rabbitmq_management',
       path        => ['/usr/sbin', '/usr/bin', '/sbin', '/bin' ],
       unless      => 'rabbitmq-plugins list -m -E rabbitmq_management | grep -q rabbitmq_management',
       environment => "HOME=/root",
-      notify      => Service['rabbitmq-server']
     }
 
     firewall {'992 rabbitmq management':
@@ -47,5 +40,7 @@ class zabbix::monitoring::rabbitmq_mon {
       'rabbitmq.missing.queues':
         command => "/etc/zabbix/scripts/check_rabbit.py missing-queues";
     }
+
   }
+
 }

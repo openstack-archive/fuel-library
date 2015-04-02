@@ -2,19 +2,19 @@
 
 # Fake server declaration to enforce running agent without
 # separate server declaration in /etc/zabbix/zabbix_agent.d/server.conf
-Server=<%= scope.lookupvar('zabbix::params::server_ip') %>
-ServerActive=<%= scope.lookupvar('zabbix::params::server_ip') %>
+Server=<%= @server_ip %>
+ServerActive=<%= @server_ip %>
 
 # Server port for sending active checks
-#ServerPort=<%= scope.lookupvar('zabbix::params::server_listen_port') %>
+#ServerPort=<%= @server_listen_port %>
 
 Hostname=<%= @fqdn %>
 
-ListenPort=<%= scope.lookupvar('zabbix::params::agent_listen_port') %>
+ListenPort=<%= @agent_listen_port %>
 
-#ListenIP=<%= scope.lookupvar('zabbix::params::agent_listen_ip') %>
+#ListenIP=<%= @agent_listen_ip %>
 
-#SourceIP=<%= scope.lookupvar('zabbix::params::agent_source_ip') %>
+#SourceIP=<%= @agent_source_ip %>
 
 StartAgents=5
 
@@ -26,15 +26,13 @@ StartAgents=5
 
 DebugLevel=3
 
-PidFile=<%= scope.lookupvar('zabbix::params::agent_pid_file') %>
+PidFile=<%= @agent_pid_file %>
 
-# Name of log file
-# If not set, syslog is used
-#LogFile=<%= scope.lookupvar('zabbix::params::agent_log_file') %>
+LogFile=<%= @agent_log_file %>
 
 #LogFileSize=1
 
 Timeout=10
 
-Include=<%= scope.lookupvar('zabbix::params::agent_include') %>
+Include=<%= @agent_include %>
 

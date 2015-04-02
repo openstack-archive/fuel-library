@@ -1,12 +1,13 @@
-class zabbix::monitoring::haproxy_mon {
+class zabbix::monitoring::haproxy inherits zabbix::params {
+  $enabled = ($role in ['controller', 'primary-controller'])
 
-  include zabbix::params
+  if $enabled {
+    notice("Ceilometer monitoring auto-registration: '${name}'")
 
-  if defined(Class['haproxy']) {
-    zabbix_template_link { "$zabbix::params::host_name Template App HAProxy":
-      host => $zabbix::params::host_name,
+    zabbix_template_link { "${host_name} Template App HAProxy":
+      host => $host_name,
       template => 'Template App HAProxy',
-      api => $zabbix::params::api_hash,
+      api => $api_hash,
     }
     zabbix::agent::userparameter {
       'haproxy.be.discovery':
@@ -28,9 +29,9 @@ class zabbix::monitoring::haproxy_mon {
         key     => 'haproxy.sv[*]',
         command => '/etc/zabbix/scripts/haproxy.sh -v $1';
     }
-    #sudo::directive {'zabbix_socat':
-    #  ensure  => present,
-    #  content => 'zabbix ALL = NOPASSWD: /usr/bin/socat',
-    #}
+#    sudo::directive {'zabbix_socat':
+#      ensure  => present,
+#      content => 'zabbix ALL = NOPASSWD: /usr/bin/socat',
+#    }
   }
 }
