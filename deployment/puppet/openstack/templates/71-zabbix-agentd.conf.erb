@@ -1,0 +1,7 @@
+# file is managed by puppet
+
+### collect zabbix agentd logs of all levels in /var/log/zabbix_agentd.log
+if ($programname == 'zabbix_agentd') \
+then -/var/log/zabbix_agentd.log
+### stop further processing for the matched entries
+& ~
