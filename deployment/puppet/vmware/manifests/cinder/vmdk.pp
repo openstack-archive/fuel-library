@@ -115,14 +115,6 @@ define vmware::cinder::vmdk(
         }
       }
 
-      $upstart_link = "/etc/init.d/${cinder_volume_vmware}-${index}"
-      if ! defined(File[$upstart_link]) {
-        file { $upstart_link:
-          ensure => link,
-          target => '/etc/init.d/cinder-volume'
-        }
-      }
-
       $init_reload_cmd = '/sbin/initctl reload-configuration'
       $init_reload = 'initctl reload-configuration'
       if ! defined(Exec[$init_reload]) {
