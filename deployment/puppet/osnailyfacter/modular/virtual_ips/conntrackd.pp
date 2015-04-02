@@ -13,12 +13,6 @@ if $operatingsystem == 'Ubuntu' {
     ensure => installed,
   } ->
 
-  exec { 'Disable conntrackd':
-    command => 'service conntrackd stop; killall conntrackd; chmod -x /etc/init.d/conntrackd; exit 0',
-    path    => '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin',
-    onlyif  => '[ -x "/etc/init.d/conntrackd" ]',
-  } ->
-
   file { '/etc/conntrackd/conntrackd.conf':
     content => template('cluster/conntrackd.conf.erb'),
   } ->
