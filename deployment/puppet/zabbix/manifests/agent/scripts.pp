@@ -1,9 +1,8 @@
-class zabbix::agent::scripts {
+class zabbix::agent::scripts inherits zabbix::params {
 
-  include zabbix::params
-
-  file { $zabbix::params::agent_scripts:
+  file { 'agent-scripts':
     ensure    => directory,
+    path      => $agent_scripts,
     recurse   => true,
     purge     => true,
     force     => true,
@@ -27,22 +26,63 @@ class zabbix::agent::scripts {
   }
 
   file { '/etc/sudoers.d':
-    ensure => directory
+    ensure => directory,
   }
 
   file { 'zabbix_no_requiretty':
-    path => '/etc/sudoers.d/zabbix',
-    mode => 0440,
-    owner => root,
-    group => root,
+    path   => '/etc/sudoers.d/zabbix',
+    mode   => '0440',
+    owner  => 'root',
+    group  => 'root',
     source => 'puppet:///modules/zabbix/zabbix-sudo',
   }
 
   if ! defined(Package['sudo']) {
     package { 'sudo':
-      ensure => installed
+      ensure => installed,
     }
   }
 
-  #Zabbix::agent::userparameter { require => $zabbix::params::agent_scripts }
+  file { 'agent-include':
+    ensure => directory,
+    path   => $agent_include,
+    mode   => '0500',
+    owner  => 'zabbix',
+    group  => 'zabbix',
+  }
+
+  zabbix_host { $host_name:
+    host   => $host_name,
+    ip     => $host_ip,
+    groups => $host_groups,
+    api    => $api_hash,
+  }
+
+  Zabbix_usermacro {
+    require => Zabbix_host[$host_name],
+  }
+
+  zabbix_usermacro { "${host_name} IP_PUBLIC":
+    host  => $host_name,
+    macro => '{$IP_PUBLIC}',
+    value => $public_address,
+    api   => $api_hash,
+  }
+
+  zabbix_usermacro { "${host_name} IP_MANAGEMENT":
+    host  => $host_name,
+    macro => '{$IP_MANAGEMENT}',
+    value => $internal_address,
+    api   => $api_hash,
+  }
+
+  zabbix_usermacro { "${host_name} IP_STORAGE":
+    host  => $host_name,
+    macro => '{$IP_STORAGE}',
+    value => $storage_address,
+    api   => $api_hash,
+  }
+
+  File['agent-scripts'] -> Zabbix::Agent::Userparameter <||>
+  File['agent-include'] -> Zabbix::Agent::Userparameter <||>
 }
