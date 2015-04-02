@@ -41,4 +41,10 @@ Puppet::Type.newtype(:zabbix_template_link) do
     end
   end
 
+  autorequire(:zabbix_host) do
+    host = self[:host]
+    return [] unless host
+    [host]
+  end
+
 end

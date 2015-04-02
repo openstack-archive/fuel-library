@@ -1,39 +1,109 @@
-class zabbix::agent {
+class zabbix::agent inherits zabbix::params {
 
-  include zabbix::params
+  anchor { 'zabbix_agent_service_start': } ->
+  class { 'zabbix::agent::service': } ->
+  anchor { 'zabbix_agent_service_end': }
 
-  firewall { '998 zabbix agent':
-    port   => $zabbix::params::agent_listen_port,
-    proto  => 'tcp',
-    action => 'accept'
-  }
+  anchor { 'zabbix_agent_common_start': } ->
+  class { 'zabbix::agent::common': } ->
+  anchor { 'zabbix_agent_common_end': }
 
-  package { $zabbix::params::agent_pkg:
-    ensure => present
-  }
-  ->
-  file { $zabbix::params::agent_include:
-    ensure => directory,
-    mode   => '0500',
-    owner  => 'zabbix',
-    group  => 'zabbix'
-  }
-  ->
-  file { $zabbix::params::agent_config:
-    ensure  => present,
-    content => template($zabbix::params::agent_config_template),
-    notify  => Service[$zabbix::params::agent_service]
-  }
-  ->
-  service { $zabbix::params::agent_service:
-    ensure => running,
-    enable => true,
-  }
+  ####
 
-  zabbix_host { $zabbix::params::host_name:
-    host   => $zabbix::params::host_name,
-    ip     => $zabbix::params::host_ip,
-    groups => $zabbix::params::host_groups,
-    api    => $zabbix::params::api_hash
-  }
+  Anchor['zabbix_agent_common_end'] ->
+  Anchor['monitoring-registration-start']
+
+  Anchor['monitoring-registration-end'] ->
+  Anchor['zabbix_agent_service_start']
+
+  # Auto-registration
+
+  anchor{ 'monitoring-registration-start' :}
+  anchor{ 'monitoring-registration-end' :}
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::ceilometer_compute' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::ceilometer_controller' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::ceph' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::cinder' :} ->
+  Anchor['monitoring-registration-end']
+
+  # (TODO) uncomment this after iptstate will added to repos
+  # Anchor['monitoring-registration-start'] ->
+  # class { 'zabbix::monitoring::firewall' :} ->
+  # Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::glance' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::haproxy' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::horizon' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::keystone' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::memcached' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::mysql' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::neutron_agents' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::neutron_server' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::nova_compute' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::nova_controller' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::openstack_virtual' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::openvswitch' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::rabbitmq' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::swift' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::zabbix_server' :} ->
+  Anchor['monitoring-registration-end']
+
+  Anchor['monitoring-registration-start'] ->
+  class { 'zabbix::monitoring::zabbix_agent' :} ->
+  Anchor['monitoring-registration-end']
+
 }

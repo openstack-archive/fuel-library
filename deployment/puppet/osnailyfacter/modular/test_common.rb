@@ -4,6 +4,7 @@ require 'open-uri'
 require 'timeout'
 require 'facter'
 require 'socket'
+require 'net/http'
 
 module TestCommon
   # Run a shell command and return stdout and return code as an array
@@ -593,6 +594,18 @@ module TestCommon
       @iptables_rules = nil
       @ips = nil
       @default_router = nil
+    end
+
+    # send json RPC request
+    def self.json_rpc(url, data = nil, method='POST')
+      uri = URI.parse url
+      http = Net::HTTP.new uri.host, uri.port
+      request_object = Net::HTTP.const_get method.downcase.capitalize
+      request = request_object.new uri.request_uri
+      request.add_field 'Content-Type', 'application/json-rpc'
+      request.body = data if data
+      response = http.request request
+      [ response.code, response.body ]
     end
   end
 
