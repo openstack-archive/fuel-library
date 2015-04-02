@@ -1,2 +1,2 @@
 #!/bin/bash
-echo -e "stats\nquit" | nc <%= scope.lookupvar('zabbix::monitoring::memcached_mon::internal_address') %> 11211 | grep "STAT $1" | awk '{print $3}'
+echo -e "stats\nquit" | nc <%= @host_ip %> 11211 | grep "STAT $1" | awk '{print $3}'
