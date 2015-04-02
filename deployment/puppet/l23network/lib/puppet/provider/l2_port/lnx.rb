@@ -119,7 +119,14 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           when :ovs
             vsctl('add-port', @property_flush[:bridge], @resource[:interface])
           when :lnx
-            brctl('addif', @property_flush[:bridge], @resource[:interface])
+            begin
+              brctl('addif', @property_flush[:bridge], @resource[:interface])
+            rescue
+              # Sometimes interface may be automatically added to bridge if config file exists before interface creation,
+              # especially vlan interfaces. It appears on CentOS.
+              raise if ! File.exist? "/sys/class/net/#{@property_flush[:bridge]}/brif/#{@resource[:interface]}"
+              notice("'#{@resource[:interface]}' is already a member of a bridge '#{@property_flush[:bridge]}'.")
+            end
           else
             #pass
           end
