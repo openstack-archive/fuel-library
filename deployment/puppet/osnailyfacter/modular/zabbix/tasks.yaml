@@ -1,4 +1,4 @@
-- id: zabbix
+- id: zabbix-monitoring
   type: puppet
   groups: [primary-controller, controller,
            cinder, cinder-vmware, compute, ceph-osd,
@@ -6,8 +6,34 @@
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix/monitoring.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix_post.rb
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/zabbix/monitoring_post.rb
+
+- id: zabbix-mysql
+  type: puppet
+  groups: [zabbix-server]
+  required_for: [deploy_end]
+  requires: [hosts, firewall]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix/mysql.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/zabbix/mysql_post.rb
+
+- id: zabbix-server-install
+  type: puppet
+  groups: [zabbix-server]
+  required_for: [deploy_end]
+  requires: [zabbix-mysql]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix/server.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/zabbix/server_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/zabbix/server_post.rb
