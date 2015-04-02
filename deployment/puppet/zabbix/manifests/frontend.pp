@@ -1,26 +1,24 @@
-class zabbix::frontend {
+class zabbix::frontend inherits zabbix::params {
 
-  include zabbix::params
-
-  package { $zabbix::params::frontend_pkg:
+  package { $frontend_pkg:
     ensure    => present,
-    before    => [ File["$zabbix::params::frontend_config"], File["$zabbix::params::frontend_php_ini"] ],
   }
 
-  file { $zabbix::params::frontend_config:
+  file { $frontend_config:
     ensure    => present,
-    content   => template($zabbix::params::frontend_config_template),
+    content   => template($frontend_config_template),
   }
 
-  file { $zabbix::params::frontend_php_ini:
+  file { $frontend_php_ini:
     ensure    => present,
-    content   => template($zabbix::params::frontend_php_ini_template),
+    content   => template($frontend_php_ini_template),
   }
 
-  service { $zabbix::params::frontend_service:
+  service { $frontend_service:
     ensure    => running,
-    require   => Package[$zabbix::params::frontend_pkg],
-    subscribe => [ File["$zabbix::params::frontend_config"], File["$zabbix::params::frontend_php_ini"] ],
     enable    => true,
   }
+
+  Package[$frontend_pkg] -> File[$frontend_config]  ~> Service[$frontend_service]
+  Package[$frontend_pkg] -> File[$frontend_php_ini] ~> Service[$frontend_service]
 }

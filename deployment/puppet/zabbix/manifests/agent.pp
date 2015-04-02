@@ -1,39 +1,47 @@
-class zabbix::agent {
-
-  include zabbix::params
+class zabbix::agent inherits zabbix::params {
 
   firewall { '998 zabbix agent':
-    port   => $zabbix::params::agent_listen_port,
+    port   => $agent_listen_port,
     proto  => 'tcp',
-    action => 'accept'
+    action => 'accept',
   }
 
-  package { $zabbix::params::agent_pkg:
-    ensure => present
+  package { 'zabbix-agent':
+    name   => $agent_pkg,
+    ensure => present,
   }
-  ->
-  file { $zabbix::params::agent_include:
+
+  file { 'agent-include':
     ensure => directory,
+    path   => $agent_include,
     mode   => '0500',
     owner  => 'zabbix',
-    group  => 'zabbix'
+    group  => 'zabbix',
   }
-  ->
-  file { $zabbix::params::agent_config:
+
+  file { 'agent-config':
     ensure  => present,
-    content => template($zabbix::params::agent_config_template),
-    notify  => Service[$zabbix::params::agent_service]
+    path    => $agent_config,
+    content => template($agent_config_template),
   }
-  ->
-  service { $zabbix::params::agent_service:
+
+  service { 'zabbix-agent':
+    name   => $agent_service,
     ensure => running,
     enable => true,
   }
 
-  zabbix_host { $zabbix::params::host_name:
-    host   => $zabbix::params::host_name,
-    ip     => $zabbix::params::host_ip,
-    groups => $zabbix::params::host_groups,
-    api    => $zabbix::params::api_hash
+  zabbix_host { $host_name:
+    host   => $host_name,
+    ip     => $host_ip,
+    groups => $host_groups,
+    api    => $api_hash,
   }
+
+  Packege['zabbix-agent'] ->
+  File['agent-include'] ->
+  File['agent-config']
+
+  File['agent-config']    ~> Service['zabbix-agent']
+  Package['zabbix-agent'] ~> Service['zabbix-agent']
 }

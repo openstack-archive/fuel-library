@@ -1,10 +1,10 @@
 class zabbix(
-      $mysql_server_pkg = $zabbix::params::mysql_server_pkg,
-      $mysql_client_pkg = $zabbix::params::mysql_client_pkg,
-  ) inherits zabbix::params {
-  $enabled  = ! empty(get_server_by_role(hiera('nodes'), 'zabbix-server'))
-  if $enabled {
-    if $::zabbix::params::server {
+  $mysql_server_pkg = $zabbix::params::mysql_server_pkg,
+  $mysql_client_pkg = $zabbix::params::mysql_client_pkg,
+) inherits zabbix::params {
+
+  if $zabbix_enabled {
+    if $server {
       Anchor<| title == 'zabbix_server_end' |> -> Anchor<| title == 'zabbix_config_start' |>
       Anchor<| title == 'zabbix_config_end' |> -> Anchor<| title == 'zabbix_monitoring_start' |>
 

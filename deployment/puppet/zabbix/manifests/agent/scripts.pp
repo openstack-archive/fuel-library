@@ -1,9 +1,8 @@
-class zabbix::agent::scripts {
+class zabbix::agent::scripts inherits zabbix::params {
 
-  include zabbix::params
-
-  file { $zabbix::params::agent_scripts:
+  file { 'agent-scripts':
     ensure    => directory,
+    path      => $agent_scripts,
     recurse   => true,
     purge     => true,
     force     => true,
@@ -27,22 +26,22 @@ class zabbix::agent::scripts {
   }
 
   file { '/etc/sudoers.d':
-    ensure => directory
+    ensure => directory,
   }
 
   file { 'zabbix_no_requiretty':
-    path => '/etc/sudoers.d/zabbix',
-    mode => 0440,
-    owner => root,
-    group => root,
+    path   => '/etc/sudoers.d/zabbix',
+    mode   => '0440',
+    owner  => 'root',
+    group  => 'root',
     source => 'puppet:///modules/zabbix/zabbix-sudo',
   }
 
   if ! defined(Package['sudo']) {
     package { 'sudo':
-      ensure => installed
+      ensure => installed,
     }
   }
 
-  #Zabbix::agent::userparameter { require => $zabbix::params::agent_scripts }
+  File[$agent_scripts] -> Zabbix::Agent::Userparameter <||>
 }

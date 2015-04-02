@@ -1,54 +1,69 @@
-class zabbix::server {
+class zabbix::server inherits zabbix::params {
 
-  include zabbix::params
-
-  file { '/etc/dbconfig-common':
+  file { 'dbconfig-common':
     ensure    => directory,
+    path      => '/etc/dbconfig-common',
     owner     => 'root',
     group     => 'root',
     mode      => '0755',
   }
 
-  file { '/etc/dbconfig-common/zabbix-server-mysql.conf':
-    require   => File['/etc/dbconfig-common'],
+  file { 'zabbix-server-mysql-conf':
     ensure    => present,
+    path      => '/etc/dbconfig-common/zabbix-server-mysql.conf',
     mode      => '0600',
     source    => 'puppet:///modules/zabbix/zabbix-server-mysql.conf',
   }
 
-  package { $zabbix::params::server_pkg:
-    require   => File['/etc/dbconfig-common/zabbix-server-mysql.conf'],
+  package { 'zabbix-server-package':
     ensure    => present,
+    name      => $server_pkg,
   }
 
-  file { $zabbix::params::server_config:
+  file { 'zabbix-server-config':
     ensure    => present,
-    require   => Package[$zabbix::params::server_pkg],
-    content   => template($zabbix::params::server_config_template),
+    path      => $server_config,
+    content   => template($server_config_template),
   }
 
   class { 'zabbix::db': }
-  anchor { 'zabbix_db_start': } -> File[$zabbix::params::server_config] -> Class['zabbix::db'] -> Service[$zabbix::params::server_service] -> anchor { 'zabbix_db_end': }
 
-  service { $zabbix::params::server_service:
+  anchor { 'zabbix_db_start': } ->
+  File['zabbix-server-config'] ->
+  Class['zabbix::db'] ->
+  Service['zabbix-server'] ->
+  anchor { 'zabbix_db_end': }
+
+  service { 'zabbix-server':
     enable    => true,
+    name      => $server_service,
     ensure    => running,
-    subscribe => File[$zabbix::params::server_config],
   }
 
   Anchor<| title == 'zabbix_db_end' |> -> Anchor<| title == 'zabbix_frontend_start' |>
 
-  if $zabbix::params::frontend {
-    class { 'zabbix::frontend':
-    require => Service[$zabbix::params::server_service],
-    }
-    anchor { 'zabbix_frontend_start': } -> Class['zabbix::frontend'] -> anchor { 'zabbix_frontend_end': }
+  if $frontend {
+    class { 'zabbix::frontend': }
+
+    Service['zabbix-server'] -> Class['zabbix::frontend']
+
+    anchor { 'zabbix_frontend_start': } ->
+    Class['zabbix::frontend'] ->
+    anchor { 'zabbix_frontend_end': }
   }
 
   firewall { '997 zabbix server':
     proto     => 'tcp',
     action    => 'accept',
-    port      => $zabbix::params::server_listen_port,
+    port      => $server_listen_port,
   }
+
+  File['dbconfig-common'] ->
+  File['zabbix-server-mysql-conf'] ->
+  Package['zabbix-server-package'] ->
+  File['zabbix-server-config']
+
+  File['zabbix-server-config'] ~> Service['zabbix-server']
+  Package['zabbix-server-package'] ~> Service['zabbix-server']
 
 }
