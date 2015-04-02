@@ -43,11 +43,6 @@ class openstack::horizon (
   $servername              = $::hostname,
 ) {
 
-  # class { 'memcached':
-  #  listen_ip => $cache_server_ip,
-  #  tcp_port  => $cache_server_port,
-  #  udp_port  => $cache_server_port,
-  # }
   if $debug { #syslog and nondebug case
     #We don't realy want django debug, it is too verbose.
     $django_debug   = false
