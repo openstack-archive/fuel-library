@@ -29,7 +29,7 @@
 OCF_ROOT_default="/usr/lib/ocf"
 
 OCF_RESKEY_ns_default="vrouter"
-OCF_RESKEY_conffile_default="/etc/ntp.server.conf"
+OCF_RESKEY_conffile_default="/etc/ntp.conf"
 OCF_RESKEY_pidfile_default="/var/run/ntpd.pid"
 OCF_RESKEY_binpath_default="/usr/sbin/ntpd"
 OCF_RESKEY_extraconf_default=""
