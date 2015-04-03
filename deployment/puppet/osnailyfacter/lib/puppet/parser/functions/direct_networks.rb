@@ -1,8 +1,3 @@
-require 'rubygems'
-require 'json'
-require 'hiera'
-require 'ipaddr'
-
 Puppet::Parser::Functions::newfunction(:direct_networks, :type => :rvalue, :doc => <<-EOS
  parses network scheme and returns networks
  directly attached to the host
@@ -10,16 +5,14 @@ Puppet::Parser::Functions::newfunction(:direct_networks, :type => :rvalue, :doc 
  ) do |argv|
 
   endpoints = argv[0]
+  networks = []
 
-  ENV['LANG'] = 'C'
-  $hiera = Hiera.new(:config => '/etc/hiera.yaml')
-
-  endpoints = $hiera.lookup('network_scheme', false, {})[endpoints]
-
-  ip = []
-  endpoints.each do |x,y|
-    ip.push(y['IP'].join(' ')) if y.is_a?(Hash) and y.has_key?('IP') and y['IP'] != 'none'
-  end
-
-  return ip.map! { |a|  IPAddr.new(a).to_s + "/" + a.split('/')[1]}.join(' ')
+  endpoints.each{ |k,v|
+    if v['IP'].is_a?(Array)
+      v['IP'].each { |ip|
+        networks << IPAddr.new(ip).to_s + "/" + ip.split('/')[1]
+      }
+    end
+  }
+  return networks.join(' ')
 end
