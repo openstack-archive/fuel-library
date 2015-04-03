@@ -13,6 +13,11 @@ describe Puppet::Parser::Functions.function(:get_network_role_property) do
       #Puppet::Parser::Scope.any_instance.stubs(:lookupvar).with('l3_fqdn_hostname').returns('node1.tld')
       scope.stubs(:lookupvar).with('l3_fqdn_hostname').returns('node1.tld')
       L23network::Scheme.set_config(scope.lookupvar('l3_fqdn_hostname'), {
+        :transformations => [ {
+          :bridge => 'br-ex',
+          :name => 'bond0',
+          :mtu => 1450,
+        }, ],
         :endpoints => {
           :eth0 => {:IP => 'dhcp'},
           :"br-ex" => {
@@ -59,6 +64,10 @@ describe Puppet::Parser::Functions.function(:get_network_role_property) do
 
     it 'should return ip address and netmask for "management" network role' do
       should run.with_params('management', 'ipaddr_netmask_pair').and_return(['10.20.1.11','255.255.255.128'])
+    end
+
+    it 'should return physical device name for "ex" network role' do
+      should run.with_params('ex', 'phys_dev').and_return('bond0')
     end
 
     it 'should return NIL for "admin" network role' do
