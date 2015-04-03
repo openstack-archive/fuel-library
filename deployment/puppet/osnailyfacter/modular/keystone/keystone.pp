@@ -49,6 +49,7 @@ $ceilometer_user_password = $ceilometer_hash['user_password']
 $cinder = true
 $ceilometer = $ceilometer_hash['enabled']
 $enabled = true
+$ssl = false
 
 $rabbit_password     = $rabbit_hash['password']
 $rabbit_user         = $rabbit_hash['user']
@@ -107,6 +108,22 @@ class { 'openstack::keystone':
   idle_timeout              => $idle_timeout,
 }
 
+####### WSGI ###########
+
+class { 'osnailyfacter::apache':
+  listen_ports => hiera_array('apache_ports', ['80', '8888']),
+}
+
+class { 'keystone::wsgi::apache':
+  priority => '5',
+  ssl      => $ssl,
+}
+
+Service <| title == 'keystone' |> {
+  ensure => 'stopped',
+  enable => false,
+}
+
 ###############################################################################
 
 class { 'keystone::roles::admin':
@@ -125,12 +142,11 @@ class { 'openstack::auth_file':
 }
 
 class { 'openstack::workloads_collector':
-  enabled              => $workloads_hash[enabled],
-  workloads_username   => $workloads_hash[username],
-  workloads_password   => $workloads_hash[password],
-  workloads_tenant     => $workloads_hash[tenant],
+  enabled              => $workloads_hash['enabled'],
+  workloads_username   => $workloads_hash['username'],
+  workloads_password   => $workloads_hash['password'],
+  workloads_tenant     => $workloads_hash['tenant'],
 }
-
 
 Exec <| title == 'keystone-manage db_sync' |> ->
 Class['keystone::roles::admin'] ->
@@ -153,6 +169,8 @@ haproxy_backend_status { 'keystone-admin' :
 
 Class['openstack::keystone'] -> Haproxy_backend_status<||>
 Service['keystone'] -> Haproxy_backend_status<||>
+Service<| title == 'httpd' |> -> Haproxy_backend_status<||>
+Haproxy_backend_status<||> -> Class['keystone::roles::admin']
 
 case $::osfamily {
   'RedHat': {

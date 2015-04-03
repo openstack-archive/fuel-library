@@ -5,14 +5,14 @@ manifest = 'horizon/horizon.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    horizon_bind_address = Noop.node_hash['internal_address']
+    internal_address = Noop.node_hash['internal_address']
     nova_quota = Noop.hiera 'nova_quota'
 
     # Horizon
     it 'should declare openstack::horizon class' do
       should contain_class('openstack::horizon').with(
         'nova_quota'   => nova_quota,
-        'bind_address' => horizon_bind_address,
+        'bind_address' => '*',
       )
     end
 
