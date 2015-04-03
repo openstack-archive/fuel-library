@@ -59,7 +59,7 @@ describe 'keystone::wsgi::apache' do
         'docroot_owner'               => 'keystone',
         'docroot_group'               => 'keystone',
         'ssl'                         => 'true',
-        'wsgi_process_group'          => 'keystone',
+        'wsgi_process_group'          => 'keystone_admin',
         'wsgi_script_aliases'         => { '/' => "#{platform_parameters[:wsgi_script_path]}/admin" },
         'require'                     => ['Class[Apache::Mod::Wsgi]', 'File[keystone_wsgi_admin]']
       )}
@@ -72,8 +72,8 @@ describe 'keystone::wsgi::apache' do
         'docroot_owner'               => 'keystone',
         'docroot_group'               => 'keystone',
         'ssl'                         => 'true',
-        'wsgi_daemon_process'         => 'keystone',
-        'wsgi_process_group'          => 'keystone',
+        'wsgi_daemon_process'         => 'keystone_main',
+        'wsgi_process_group'          => 'keystone_main',
         'wsgi_script_aliases'         => { '/' => "#{platform_parameters[:wsgi_script_path]}/main" },
         'require'                     => ['Class[Apache::Mod::Wsgi]', 'File[keystone_wsgi_main]']
       )}
@@ -104,7 +104,7 @@ describe 'keystone::wsgi::apache' do
         'docroot_owner'               => 'keystone',
         'docroot_group'               => 'keystone',
         'ssl'                         => 'false',
-        'wsgi_process_group'          => 'keystone',
+        'wsgi_process_group'          => 'keystone_admin',
         'wsgi_script_aliases'         => { '/' => "#{platform_parameters[:wsgi_script_path]}/admin" },
         'require'                     => ['Class[Apache::Mod::Wsgi]', 'File[keystone_wsgi_admin]']
       )}
@@ -117,8 +117,8 @@ describe 'keystone::wsgi::apache' do
         'docroot_owner'               => 'keystone',
         'docroot_group'               => 'keystone',
         'ssl'                         => 'false',
-        'wsgi_daemon_process'         => 'keystone',
-        'wsgi_process_group'          => 'keystone',
+        'wsgi_daemon_process'         => 'keystone_main',
+        'wsgi_process_group'          => 'keystone_main',
         'wsgi_script_aliases'         => { '/' => "#{platform_parameters[:wsgi_script_path]}/main" },
         'require'                     => ['Class[Apache::Mod::Wsgi]', 'File[keystone_wsgi_main]']
       )}
@@ -152,8 +152,8 @@ describe 'keystone::wsgi::apache' do
         'docroot_owner'               => 'keystone',
         'docroot_group'               => 'keystone',
         'ssl'                         => 'true',
-        'wsgi_daemon_process'         => 'keystone',
-        'wsgi_process_group'          => 'keystone',
+        'wsgi_daemon_process'         => 'keystone_main',
+        'wsgi_process_group'          => 'keystone_main',
         'wsgi_script_aliases'         => {
         '/main/endpoint'  => "#{platform_parameters[:wsgi_script_path]}/main",
         '/admin/endpoint' => "#{platform_parameters[:wsgi_script_path]}/admin"
@@ -196,7 +196,7 @@ describe 'keystone::wsgi::apache' do
       {
         :httpd_service_name => 'httpd',
         :wsgi_script_path   => '/var/www/cgi-bin/keystone',
-        :wsgi_script_source => 'puppet:///modules/keystone/httpd/keystone.py'
+        :wsgi_script_source => '/usr/share/keystone/keystone.wsgi'
       }
     end
 

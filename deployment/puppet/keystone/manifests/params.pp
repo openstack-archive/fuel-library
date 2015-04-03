@@ -16,7 +16,7 @@ class keystone::params {
         }
         default: {
           $service_provider            = 'upstart'
-          $keystone_wsgi_script_source = 'puppet:///modules/keystone/httpd/keystone.py'
+          $keystone_wsgi_script_source = '/usr/share/keystone/wsgi.py'
         }
       }
     }
@@ -25,7 +25,7 @@ class keystone::params {
       $service_name                = 'openstack-keystone'
       $keystone_wsgi_script_path   = '/var/www/cgi-bin/keystone'
       $service_provider            = undef
-      $keystone_wsgi_script_source = 'puppet:///modules/keystone/httpd/keystone.py'
+      $keystone_wsgi_script_source = '/usr/share/keystone/keystone.wsgi'
     }
   }
 }
