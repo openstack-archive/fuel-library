@@ -49,6 +49,7 @@ $ceilometer_user_password = $ceilometer_hash['user_password']
 $cinder = true
 $ceilometer = $ceilometer_hash['enabled']
 $enabled = true
+$ssl = false
 
 $rabbit_password     = $rabbit_hash['password']
 $rabbit_user         = $rabbit_hash['user']
@@ -107,6 +108,29 @@ class { 'openstack::keystone':
   idle_timeout              => $idle_timeout,
 }
 
+####### WSGI ###########
+
+class { 'osnailyfacter::apache':
+  listen_ports => hiera_array('apache_ports', ['80', '8888']),
+}
+
+# TODO: (adidenko) use file from package for Debian, when
+# https://review.fuel-infra.org/6251 is merged.
+class { 'keystone::wsgi::apache':
+  priority           => '05',
+  threads            => min($::processorcount, 24),
+  ssl                => $ssl,
+  wsgi_script_ensure => $::osfamily ? {
+    'RedHat' => 'link',
+    default  => 'file',
+  },
+  wsgi_script_source => $::osfamily ? {
+  #  'Debian' => '/usr/share/keystone/wsgi.py',
+    'RedHat' => '/usr/share/keystone/keystone.wsgi',
+    default  => undef,
+  },
+}
+
 ###############################################################################
 
 class { 'keystone::roles::admin':
@@ -132,7 +156,6 @@ class { 'openstack::workloads_collector':
   workloads_create_user=> $workloads_hash['create_user'],
 }
 
-
 Exec <| title == 'keystone-manage db_sync' |> ->
 Class['keystone::roles::admin'] ->
 Class['openstack::auth_file']
@@ -153,6 +176,8 @@ haproxy_backend_status { 'keystone-admin' :
 }
 
 Service['keystone'] -> Haproxy_backend_status<||>
+Service<| title == 'httpd' |> -> Haproxy_backend_status<||>
+Haproxy_backend_status<||> -> Class['keystone::roles::admin']
 
 case $::osfamily {
   'RedHat': {
