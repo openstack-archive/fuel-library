@@ -22,6 +22,7 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
       cidr -- CIDR-notated IP addr and mask for the network_role
       netmask -- string, contains dotted nemmask
       ipaddr_netmask_pair -- list of ipaddr and netmask
+      phys_dev -- physical device name mapped to the network with the selected network_role
 
     Returns NIL if role not found.
 
@@ -69,7 +70,11 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
       ipaddr_cidr = ep[:IP][0] ? ep[:IP][0] : nil
     when "String"
       Puppet::debug("get_network_role_property(...): Can't determine dynamic or empty IP address for endpoint '#{interface}' (#{ep[:IP]}).")
-      return nil
+      if mode != 'PHYS_DEV'
+        return nil
+      end
+    when "NilClass"
+      ipaddr_cidr = nil
     else
       Puppet::debug("get_network_role_property(...): invalid IP address for endpoint '#{interface}'.")
       return nil
@@ -80,11 +85,23 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
     when 'CIDR'
       rv = ipaddr_cidr
     when 'NETMASK'
-      rv = IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s
+      rv = (ipaddr_cidr.nil?  ?  nil  :  IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s)
     when 'IPADDR'
-      rv = prepare_cidr(ipaddr_cidr)[0].to_s
+      rv = (ipaddr_cidr.nil?  ?  nil  :  prepare_cidr(ipaddr_cidr)[0].to_s)
     when 'IPADDR_NETMASK_PAIR'
-      rv = prepare_cidr(ipaddr_cidr)[0].to_s, IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s
+      rv = (ipaddr_cidr.nil?  ?  [nil,nil]  :  [prepare_cidr(ipaddr_cidr)[0].to_s, IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s])
+    when 'PHYS_DEV'
+      devices = L23network::Scheme.get_phys_dev_by_endpoint(interface, cfg[:interfaces], cfg[:transformations])
+      if devices.any? { |dev| /^bond/ =~ dev }
+        for i in 0..cfg[:transformations].size-1
+           transform = cfg[:transformations][i]
+           name = transform[:name]
+           if transform[:name] == devices[0]
+             devices.push(transform[:interfaces])
+           end
+        end
+      end
+      rv = devices.flatten
   end
 
   rv
