@@ -22,7 +22,7 @@ module Noop
   end
 
   def self.astute_yaml_name
-    ENV['astute_filename'] || 'neut_vlan.primary-controller.yaml'
+    ENV['astute_filename'] || 'novanet-primary-controller.yaml'
   end
 
   def self.astute_yaml_base
@@ -185,6 +185,40 @@ module Noop
       puts "Could not save Package resources list for manifest '#{manifest}' to '#{file_path}'"
     else
       puts "Package resources list for manifest '#{manifest}' saved to '#{file_path}'"
+    end
+  end
+
+  def self.show_catalog(subject)
+    catalog = subject
+    catalog = subject.call if subject.is_a? Proc
+    catalog.resources.each do |resource|
+      puts '=' * 70
+      puts resource.to_manifest
+    end
+  end
+
+  def self.resource_test_template(binding)
+    template = <<-'eof'
+  it do
+    expect(subject).to contain_<%= resource.type.gsub('::', '__').downcase %>('<%= resource.title %>').with(
+<% max_length = resource.to_hash.keys.inject(0) { |ml, key| key = key.to_s; ml = key.size if key.size > ml; ml } -%>
+<% resource.each do |parameter, value| -%>
+      <%= ":#{parameter}".to_s.ljust(max_length + 1) %> => <%= value.inspect %>,
+<% end -%>
+    )
+  end
+
+    eof
+    ERB.new(template, nil, '-').result(binding)
+  end
+
+  def self.catalog_to_spec(subject)
+    catalog = subject
+    catalog = subject.call if subject.is_a? Proc
+    catalog.resources.each do |resource|
+      next if %w(Stage Anchor).include? resource.type
+      next if resource.type == 'Class' and %w(Settings main).include? resource.title.to_s
+      puts resource_test_template binding
     end
   end
 
