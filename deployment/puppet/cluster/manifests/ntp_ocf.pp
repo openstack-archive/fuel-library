@@ -38,17 +38,6 @@ class cluster::ntp_ocf ( $primary_controller ) {
   Cs_resource[$service_name] ~> Service[$service_name]
   }
 
-  $service_path = $osfamily ? {
-    /(RedHat|CentOS)/ => '/etc/init.d/ntpd',
-    /(Debian|Ubuntu)/ => '/etc/init.d/ntp',
-    default           => '/etc/init.d/ntp',
-  }
-
-  file { $service_path:
-    ensure  => present,
-    mode    => '0644',
-  } ->
-
   file {'ntp-ocf':
     path   =>'/usr/lib/ocf/resource.d/fuel/ns_ntp',
     mode   => '0755',
