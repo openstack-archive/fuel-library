@@ -1,7 +1,6 @@
 fixtures:
   repositories:
     'apache': 'git://github.com/puppetlabs/puppetlabs-apache.git'
-    'concat': 'git://github.com/puppetlabs/puppetlabs-concat.git'
     'apt': 'git://github.com/puppetlabs/puppetlabs-apt.git'
     'mysql':
       repo: 'git://github.com/puppetlabs/puppetlabs-mysql.git'
@@ -11,5 +10,8 @@ fixtures:
     'postgresql':
       repo: 'git://github.com/puppetlabs/puppetlabs-postgresql.git'
       ref:  '2.5.0'
+    'concat':
+      'repo': 'git://github.com/puppetlabs/puppetlabs-concat.git'
+      'ref': '1.2.1'
   symlinks:
     'keystone': "#{source_dir}"
