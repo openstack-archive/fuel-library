@@ -165,9 +165,6 @@ class murano::api (
     murano::application_package{'io.murano':
       mandatory => true
     }
-    murano::application_package{'io.murano.lib.networks.Neutron':
-      mandatory => true
-    }
 
     Exec['murano_manage_db_sync'] -> Murano::Application_package<| mandatory == true |>
   }
