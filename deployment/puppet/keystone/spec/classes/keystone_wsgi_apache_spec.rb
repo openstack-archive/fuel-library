@@ -59,7 +59,7 @@ describe 'keystone::wsgi::apache' do
         'docroot_owner'               => 'keystone',
         'docroot_group'               => 'keystone',
         'ssl'                         => 'true',
-        'wsgi_process_group'          => 'keystone',
+        'wsgi_process_group'          => 'keystone_admin',
         'wsgi_script_aliases'         => { '/' => "#{platform_parameters[:wsgi_script_path]}/admin" },
         'require'                     => ['Class[Apache::Mod::Wsgi]', 'File[keystone_wsgi_admin]']
       )}
@@ -72,8 +72,8 @@ describe 'keystone::wsgi::apache' do
         'docroot_owner'               => 'keystone',
         'docroot_group'               => 'keystone',
         'ssl'                         => 'true',
-        'wsgi_daemon_process'         => 'keystone',
-        'wsgi_process_group'          => 'keystone',
+        'wsgi_daemon_process'         => 'keystone_main',
+        'wsgi_process_group'          => 'keystone_main',
         'wsgi_script_aliases'         => { '/' => "#{platform_parameters[:wsgi_script_path]}/main" },
         'require'                     => ['Class[Apache::Mod::Wsgi]', 'File[keystone_wsgi_main]']
       )}
@@ -104,7 +104,7 @@ describe 'keystone::wsgi::apache' do
         'docroot_owner'               => 'keystone',
         'docroot_group'               => 'keystone',
         'ssl'                         => 'false',
-        'wsgi_process_group'          => 'keystone',
+        'wsgi_process_group'          => 'keystone_admin',
         'wsgi_script_aliases'         => { '/' => "#{platform_parameters[:wsgi_script_path]}/admin" },
         'require'                     => ['Class[Apache::Mod::Wsgi]', 'File[keystone_wsgi_admin]']
       )}
@@ -117,8 +117,8 @@ describe 'keystone::wsgi::apache' do
         'docroot_owner'               => 'keystone',
         'docroot_group'               => 'keystone',
         'ssl'                         => 'false',
-        'wsgi_daemon_process'         => 'keystone',
-        'wsgi_process_group'          => 'keystone',
+        'wsgi_daemon_process'         => 'keystone_main',
+        'wsgi_process_group'          => 'keystone_main',
         'wsgi_script_aliases'         => { '/' => "#{platform_parameters[:wsgi_script_path]}/main" },
         'require'                     => ['Class[Apache::Mod::Wsgi]', 'File[keystone_wsgi_main]']
       )}
@@ -152,8 +152,8 @@ describe 'keystone::wsgi::apache' do
         'docroot_owner'               => 'keystone',
         'docroot_group'               => 'keystone',
         'ssl'                         => 'true',
-        'wsgi_daemon_process'         => 'keystone',
-        'wsgi_process_group'          => 'keystone',
+        'wsgi_daemon_process'         => 'keystone_main',
+        'wsgi_process_group'          => 'keystone_main',
         'wsgi_script_aliases'         => {
         '/main/endpoint'  => "#{platform_parameters[:wsgi_script_path]}/main",
         '/admin/endpoint' => "#{platform_parameters[:wsgi_script_path]}/admin"
@@ -181,6 +181,35 @@ describe 'keystone::wsgi::apache' do
       end
 
       it_raises 'a Puppet::Error', /When using the same port for public & private endpoints, public_path and admin_path should be different\./
+    end
+
+    describe 'when overriding parameters using symlink and custom file source' do
+      let :params do
+        {
+          :wsgi_script_ensure => 'link',
+          :wsgi_script_source => '/opt/keystone/httpd/keystone.py',
+        }
+      end
+
+      it { is_expected.to contain_file('keystone_wsgi_admin').with(
+        'ensure'  => 'link',
+        'path'    => "#{platform_parameters[:wsgi_script_path]}/admin",
+        'target'  => '/opt/keystone/httpd/keystone.py',
+        'owner'   => 'keystone',
+        'group'   => 'keystone',
+        'mode'    => '0644',
+        'require' => "File[#{platform_parameters[:wsgi_script_path]}]"
+      )}
+
+      it { is_expected.to contain_file('keystone_wsgi_main').with(
+        'ensure'  => 'link',
+        'path'    => "#{platform_parameters[:wsgi_script_path]}/main",
+        'target'  => '/opt/keystone/httpd/keystone.py',
+        'owner'   => 'keystone',
+        'group'   => 'keystone',
+        'mode'    => '0644',
+        'require' => "File[#{platform_parameters[:wsgi_script_path]}]"
+      )}
     end
   end
 

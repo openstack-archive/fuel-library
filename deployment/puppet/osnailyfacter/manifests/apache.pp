@@ -1,6 +1,7 @@
 # Configure apache and listen ports
 class osnailyfacter::apache (
-  $listen_ports = '80',
+  $purge_configs = false,
+  $listen_ports  = '80',
 ) {
 
   define apache_port {
@@ -11,7 +12,7 @@ class osnailyfacter::apache (
   class { '::apache':
     mpm_module    => false,
     default_vhost => false,
-    purge_configs => false,
+    purge_configs => $purge_configs,
     servername    => $::hostname,
   }
 
