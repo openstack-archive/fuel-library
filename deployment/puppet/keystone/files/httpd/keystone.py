@@ -1,5 +1,3 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
 # Copyright 2013 OpenStack Foundation
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,8 +13,6 @@
 #    under the License.
 
 #
-# This file was copied from https://github.com/openstack/keystone/raw/
-# c3b92295b718a41c3136876eb39297081015a97c/httpd/keystone.py
 # It's only required for platforms on which it is not packaged yet.
 # It should be removed when available everywhere in a package.
 #
@@ -24,23 +20,33 @@
 import logging
 import os
 
-from paste import deploy
+from oslo import i18n
 
-from keystone.openstack.common import gettextutils
 
-# NOTE(blk-u):
-# gettextutils.install() must run to set _ before importing any modules that
-# contain static translated strings.
-gettextutils.install('keystone')
+# NOTE(dstanek): i18n.enable_lazy() must be called before
+# keystone.i18n._() is called to ensure it has the desired lazy lookup
+# behavior. This includes cases, like keystone.exceptions, where
+# keystone.i18n._() is called at import time.
+i18n.enable_lazy()
 
+
+from keystone import backends
+from keystone.common import dependency
 from keystone.common import environment
+from keystone.common import sql
 from keystone import config
 from keystone.openstack.common import log
+from keystone import service
 
 
 CONF = config.CONF
+
+config.configure()
+sql.initialize()
+config.set_default_for_default_log_levels()
+
 CONF(project='keystone')
-config.setup_logging(CONF)
+config.setup_logging()
 
 environment.use_stdlib()
 name = os.path.basename(__file__)
@@ -48,8 +54,12 @@ name = os.path.basename(__file__)
 if CONF.debug:
     CONF.log_opt_values(log.getLogger(CONF.prog), logging.DEBUG)
 
+
+drivers = backends.load_backends()
+
 # NOTE(ldbragst): 'application' is required in this context by WSGI spec.
 # The following is a reference to Python Paste Deploy documentation
 # http://pythonpaste.org/deploy/
-application = deploy.loadapp('config:%s' % config.find_paste_config(),
-                             name=name)
+application = service.loadapp('config:%s' % config.find_paste_config(), name)
+
+dependency.resolve_future_dependencies()
