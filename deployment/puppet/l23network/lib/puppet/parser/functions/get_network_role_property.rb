@@ -22,6 +22,7 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
       cidr -- CIDR-notated IP addr and mask for the network_role
       netmask -- string, contains dotted nemmask
       ipaddr_netmask_pair -- list of ipaddr and netmask
+      phys_dev -- physical device name mapped to the network with the selected network_role
 
     Returns NIL if role not found.
 
@@ -70,6 +71,8 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
     when "String"
       Puppet::debug("get_network_role_property(...): Can't determine dynamic or empty IP address for endpoint '#{interface}' (#{ep[:IP]}).")
       return nil
+    when "NilClass"
+      ipaddr_cidr = nil
     else
       Puppet::debug("get_network_role_property(...): invalid IP address for endpoint '#{interface}'.")
       return nil
@@ -80,11 +83,32 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
     when 'CIDR'
       rv = ipaddr_cidr
     when 'NETMASK'
-      rv = IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s
+      rv = (ipaddr_cidr.nil?  ?  nil  :  IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s)
     when 'IPADDR'
-      rv = prepare_cidr(ipaddr_cidr)[0].to_s
+      rv = (ipaddr_cidr.nil?  ?  nil  :  prepare_cidr(ipaddr_cidr)[0].to_s)
     when 'IPADDR_NETMASK_PAIR'
-      rv = prepare_cidr(ipaddr_cidr)[0].to_s, IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s
+      rv = (ipaddr_cidr.nil?  ?  nil,nil  :  prepare_cidr(ipaddr_cidr)[0].to_s, IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s)
+    when 'PHYS_DEV'
+      ifaces = cfg[:interfaces]
+      found = false
+
+      while not found
+        found = true
+        for i in 0..cfg[:transformations].size do
+          transform = cfg[:transformations][i]
+          t_type = transform.class.to_s
+
+          if t_type != "NilClass" and transform[:bridge] == interface
+            iface = transform[:name].split(".")[0]
+            found = true
+            break
+          elsif t_type != "NilClass" and transform[:bridges] != nil and transform[:bridges].include? interface
+            interface = transform[:bridges][1]
+            found = false
+          end
+        end
+      end
+      rv = iface
   end
 
   rv
