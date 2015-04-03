@@ -19,9 +19,9 @@ def ipsort (ips)
   ips.sort { |a,b| IPAddr.new( a ) <=> IPAddr.new( b ) }
 end
 
-def test_ubuntu_and_centos(manifest)
+def test_ubuntu_and_centos(manifest, force_manifest = false)
   # check if task is present in the task list
-  unless Noop.manifest_present? manifest
+  unless force_manifest or Noop.manifest_present? manifest
     # puts "Manifest '#{manifest}' is not enabled on the node '#{Noop.hostname}'. Skipping tests."
     return
   end
@@ -47,7 +47,7 @@ def test_ubuntu_and_centos(manifest)
       File.stubs(:exists?).with('/var/lib/astute/nova/nova').returns(true)
       File.stubs(:exists?).with('/var/lib/astute/ceph/ceph').returns(true)
       File.stubs(:exists?).returns(false)
-      should compile
+      should compile.with_all_deps
     }
   end
 
@@ -89,6 +89,12 @@ def test_ubuntu_and_centos(manifest)
       if package_resources.any?
         Noop.save_package_resources_list package_resources, manifest, os
       end
+    end
+  end
+
+  shared_examples 'debug' do
+    it 'shows catalog contents' do
+      Noop.show_catalog subject
     end
   end
 

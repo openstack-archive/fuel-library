@@ -22,7 +22,7 @@ module Noop
   end
 
   def self.astute_yaml_name
-    ENV['astute_filename'] || 'neut_vlan.primary-controller.yaml'
+    ENV['astute_filename'] || 'novanet-primary-controller.yaml'
   end
 
   def self.astute_yaml_base
@@ -185,6 +185,23 @@ module Noop
       puts "Could not save Package resources list for manifest '#{manifest}' to '#{file_path}'"
     else
       puts "Package resources list for manifest '#{manifest}' saved to '#{file_path}'"
+    end
+  end
+
+  def self.show_catalog(subject)
+    catalog = subject
+    catalog = subject.call if subject.is_a? Proc
+    catalog.resources.each do |resource|
+      puts '=' * 70
+      puts resource.inspect
+    end
+  end
+
+  def self.show_catalog_titles(subject)
+    catalog = subject
+    catalog = subject.call if subject.is_a? Proc
+    catalog.resources.each do |resource|
+      puts resource.to_s
     end
   end
 
