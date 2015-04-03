@@ -133,6 +133,9 @@ if $network_provider == 'neutron' {
   }
 
   if $neutron_settings['L2']['tunnel_id_ranges'] {
+    prepare_network_config($network_scheme)
+    $iface = get_network_role_property('neutron/mesh', 'phys_dev')
+    $net_mtu = get_transformation_property('mtu', $iface[0])
     $enable_tunneling = true
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
     $alt_fallback = split($neutron_settings['L2']['tunnel_id_ranges'], ':')
@@ -141,10 +144,12 @@ if $network_provider == 'neutron' {
       fallback_segment_id => $alt_fallback[0]
     }
     # Required to use get_network_role_property
-    prepare_network_config($network_scheme)
     $local_ip = get_network_role_property('neutron/mesh', 'ipaddr')
 
   } else {
+    prepare_network_config($network_scheme)
+    $iface = get_network_role_property('neutron/private', 'phys_dev')
+    $net_mtu = get_transformation_property('mtu', $iface[0])
     $enable_tunneling = false
     $tunnel_id_ranges = []
     $local_ip = $internal_address
@@ -214,6 +219,9 @@ class { 'openstack::network':
   network_vlan_ranges => $vlan_range,
   enable_tunneling    => $enable_tunneling,
   tunnel_id_ranges    => $tunnel_id_ranges,
+
+  #dhcp
+  net_mtu             => $net_mtu,
 
   #Queue settings
   queue_provider  => hiera('queue_provider', 'rabbitmq'),

@@ -21,6 +21,9 @@ class openstack::network (
   $network_vlan_ranges  = ['physnet2:1000:2999'],
   $local_ip             = false,
 
+  # dhcp
+  $net_mtu = undef,
+
   # ML2 settings
   $type_drivers          = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
   $tenant_network_types  = ['flat', 'vlan', 'gre'],
@@ -269,6 +272,7 @@ class openstack::network (
           #dhcp-agent
           resync_interval => $resync_interval,
           use_namespaces  => $use_namespaces,
+          net_mtu         => $net_mtu,
 
           #l3-agent
           metadata_port           => $metadata_port,
