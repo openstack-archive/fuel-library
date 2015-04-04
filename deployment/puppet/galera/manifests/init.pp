@@ -179,14 +179,14 @@ class galera (
       },
       operations      => {
         'monitor' => {
-          'interval' => '120',
-          'timeout'  => '115'
+          'interval' => '60',
+          'timeout'  => '55'
         },
         'start'   => {
-          'timeout' => '475'
+          'timeout' => '300'
         },
         'stop'    => {
-          'timeout' => '175'
+          'timeout' => '120'
         },
       },
     }
