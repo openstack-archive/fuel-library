@@ -477,7 +477,6 @@ mysql_monitor() {
     rc=$?
 
     if [ $rc -ne $OCF_SUCCESS ]; then
-        mysql_cleanup
         return $rc
     fi
 
@@ -663,8 +662,8 @@ if [ "${DEBUG_LOG}" -a -w "${DEBUG_LOG}" -a ! -L "${DEBUG_LOG}" ]; then
     DEBUG_LOG_DIR="${DEBUG_LOG%/*}"
     if [ -d "${DEBUG_LOG_DIR}" ]; then
         exec 9>>"$DEBUG_LOG"
-        exec 2>&9
-        date >&9
+        exec 1>&9 2>&9
+        date '+%Y%m%d %H:%M:%S' >&9
         echo "$*" >&9
         env | grep OCF_ | sort >&9
         set -x
@@ -682,7 +681,6 @@ esac
 
 mysql_validate
 rc=$?
-LSB_STATUS_STOPPED=3
 if [ $rc -ne 0 ]; then
     case "$1" in
         stop) exit $OCF_SUCCESS;;
