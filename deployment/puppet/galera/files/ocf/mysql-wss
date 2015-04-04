@@ -455,7 +455,7 @@ mysql_status() {
         return $OCF_SUCCESS;
     else
         ocf_log $1 "MySQL is not running"
-        return $OCF_NOT_RUNNING;
+        return $OCF_ERR_GENERIC;
     fi
 }
 
@@ -477,7 +477,6 @@ mysql_monitor() {
     rc=$?
 
     if [ $rc -ne $OCF_SUCCESS ]; then
-        mysql_cleanup
         return $rc
     fi
 
@@ -612,7 +611,7 @@ mysql_stop() {
 
     mysql_status info 1
     rc=$?
-    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+    if [ $rc -ne $OCF_SUCCESS ]; then
         mysql_cleanup
         return $OCF_SUCCESS
     fi
@@ -631,7 +630,7 @@ mysql_stop() {
     while [ $shutdown_timeout -gt 0 ]; do
         mysql_status info 1
         rc=$?
-        if [ $rc -eq $OCF_NOT_RUNNING ]; then
+        if [ $rc -ne $OCF_SUCCESS ]; then
             /usr/bin/pkill -9 -g ${pgrp} > /dev/null
             mysql_cleanup
             return $OCF_SUCCESS
@@ -663,8 +662,8 @@ if [ "${DEBUG_LOG}" -a -w "${DEBUG_LOG}" -a ! -L "${DEBUG_LOG}" ]; then
     DEBUG_LOG_DIR="${DEBUG_LOG%/*}"
     if [ -d "${DEBUG_LOG_DIR}" ]; then
         exec 9>>"$DEBUG_LOG"
-        exec 2>&9
-        date >&9
+        exec 1>&9 2>&9
+        date '+%Y%m%d %H:%M:%S' >&9
         echo "$*" >&9
         env | grep OCF_ | sort >&9
         set -x
@@ -682,7 +681,6 @@ esac
 
 mysql_validate
 rc=$?
-LSB_STATUS_STOPPED=3
 if [ $rc -ne 0 ]; then
     case "$1" in
         stop) exit $OCF_SUCCESS;;
