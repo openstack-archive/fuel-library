@@ -66,6 +66,17 @@
     timeout: 3600
     cwd: /
 
+- id: netconfig-mongo-revert
+  type: puppet
+  role: [primary-mongo, mongo]
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
+
 - id: vcenter_compute_zones_create
   type: shell
   role: [primary-controller]
