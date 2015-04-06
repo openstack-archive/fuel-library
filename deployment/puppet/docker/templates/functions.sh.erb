@@ -547,6 +547,8 @@ function backup_containers {
     ${DOCKER} commit "$containerid" "${container_image}"
     echo "Saving $container_name..."
     ${DOCKER} save "${container_image}" > "${backup_dir}/${container_archive}"
+    echo "Cleaning up temporary iamge..."
+    ${DOCKER} rmi "${container_image}"
   done < <(${DOCKER} ps -aq)
 }
 
