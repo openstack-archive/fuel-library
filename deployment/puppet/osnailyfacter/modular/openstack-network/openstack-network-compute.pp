@@ -23,8 +23,11 @@ if $internal_address in $controller_nodes {
 $amqp_port = '5673'
 $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 
+class { 'l23network' :
+  use_ovs => $use_neutron
+}
+
 if $use_neutron {
-  include l23network::l2
   $network_provider      = 'neutron'
   $novanetwork_params    = {}
   $neutron_config        = hiera('quantum_settings')
