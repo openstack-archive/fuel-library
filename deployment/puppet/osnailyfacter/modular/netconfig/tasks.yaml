@@ -11,3 +11,13 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
+
+- id: netconfig-temporal
+  type: puppet
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  required_for: [firewall]
+  requires: [netconfig]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig-temporal.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
