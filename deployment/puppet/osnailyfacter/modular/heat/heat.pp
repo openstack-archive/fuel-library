@@ -14,6 +14,7 @@ $verbose                  = hiera('verbose', true)
 $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
+$internal_address         = hiera('internal_address')
 $database_password        = $heat_hash['db_password']
 $databse_user             = 'heat'
 $databse_name             = 'heat'
@@ -34,34 +35,38 @@ if($::operatingsystem == 'Ubuntu') {
 }
 
 class { 'openstack::heat' :
-  external_ip         => $controller_node_public,
+  external_ip              => $controller_node_public,
 
-  keystone_host       => $controller_node_address,
-  keystone_user       => 'heat',
-  keystone_password   => $heat_hash['user_password'],
-  keystone_tenant     => 'services',
+  api_bind_host            => $internal_address,
+  api_cfn_bind_host        => $internal_address,
+  api_cloudwatch_bind_host => $internal_address,
 
-  keystone_ec2_uri    => "http://${controller_node_address}:5000/v2.0",
+  keystone_host            => $controller_node_address,
+  keystone_user            => 'heat',
+  keystone_password        => $heat_hash['user_password'],
+  keystone_tenant          => 'services',
 
-  rpc_backend         => 'heat.openstack.common.rpc.impl_kombu',
-  amqp_hosts          => [$amqp_hosts],
-  amqp_user           => $rabbit_hash['user'],
-  amqp_password       => $rabbit_hash['password'],
+  keystone_ec2_uri         => "http://${controller_node_address}:5000/v2.0",
 
-  sql_connection      => $sql_connection,
-  db_host             => $controller_node_address,
-  db_password         => $database_password,
-  max_retries         => $max_retries,
-  max_pool_size       => $max_pool_size,
-  max_overflow        => $max_overflow,
-  idle_timeout        => $idle_timeout,
+  rpc_backend              => 'heat.openstack.common.rpc.impl_kombu',
+  amqp_hosts               => [$amqp_hosts],
+  amqp_user                => $rabbit_hash['user'],
+  amqp_password            => $rabbit_hash['password'],
 
-  debug               => $debug,
-  verbose             => $verbose,
-  use_syslog          => $use_syslog,
-  syslog_log_facility => $syslog_log_facility_heat,
+  sql_connection           => $sql_connection,
+  db_host                  => $controller_node_address,
+  db_password              => $database_password,
+  max_retries              => $max_retries,
+  max_pool_size            => $max_pool_size,
+  max_overflow             => $max_overflow,
+  idle_timeout             => $idle_timeout,
 
-  auth_encryption_key => $heat_hash['auth_encryption_key'],
+  debug                    => $debug,
+  verbose                  => $verbose,
+  use_syslog               => $use_syslog,
+  syslog_log_facility      => $syslog_log_facility_heat,
+
+  auth_encryption_key      => $heat_hash['auth_encryption_key'],
 }
 
 if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
