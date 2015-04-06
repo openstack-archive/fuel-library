@@ -169,18 +169,20 @@ class neutron::agents::ml2::ovs (
   #   replace vs_bridge with l23network,
   #   once its ready to be contributed
   l23network::l2::bridge { $integration_bridge:
-    ensure => present,
-    before => Service['neutron-ovs-agent-service'],
-  }
+    ensure   => present,
+    before   => Service['neutron-ovs-agent-service'],
+    provider => 'ovs'
+  } -> Service <| title=='neutron-ovs-agent-service' |>
 
   if $enable_tunneling {
     # TODO(bogdando) contribute change to upstream:
     #   replace vs_bridge with l23network,
     #   once its ready to be contributed
     l23network::l2::bridge { $tunnel_bridge:
-      ensure => present,
-      before => Service['neutron-ovs-agent-service'],
-    }
+      ensure   => present,
+      before   => Service['neutron-ovs-agent-service'],
+      provider => 'ovs'
+    } -> Service <| title=='neutron-ovs-agent-service' |>
     neutron_plugin_ml2 {
       'ovs/enable_tunneling': value => true;
       'ovs/tunnel_bridge':    value => $tunnel_bridge;
