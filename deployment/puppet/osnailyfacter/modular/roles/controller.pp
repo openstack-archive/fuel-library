@@ -63,8 +63,11 @@ if $neutron_mellanox {
   $mellanox_mode = 'disabled'
 }
 
+class { 'l23network' :
+  use_ovs => $use_neutron
+}
+
 if $use_neutron {
-  include l23network::l2
   $neutron_config            = hiera('quantum_settings')
   $neutron_db_password       = $neutron_config['database']['passwd']
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
