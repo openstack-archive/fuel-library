@@ -41,8 +41,11 @@ $roles                          = node_roles($nodes_hash, hiera('uid'))
 
 $floating_hash = {}
 
+class { 'l23network' :
+  use_ovs => $use_neutron
+}
+
 if $use_neutron {
-  include l23network::l2
   $network_provider          = 'neutron'
   $novanetwork_params        = {}
   $neutron_config            = hiera('quantum_settings')
