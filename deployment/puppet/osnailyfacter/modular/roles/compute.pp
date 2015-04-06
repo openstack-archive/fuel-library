@@ -46,7 +46,6 @@ $syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL
 $syslog_log_facility_heat       = hiera('syslog_log_facility_heat','LOG_LOCAL0')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
-$syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $nova_rate_limits               = hiera('nova_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
@@ -74,17 +73,6 @@ if $neutron_mellanox {
 } else {
   $mellanox_mode = 'disabled'
 }
-
-if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
-  $storage_hash['volumes_ceph'] or
-  $storage_hash['images_ceph'] or
-  $storage_hash['objects_ceph']
-) {
-  $use_ceph = true
-} else {
-  $use_ceph = false
-}
-
 
 if $use_neutron {
   include l23network::l2
@@ -321,49 +309,6 @@ if hiera('use_vcenter', false) {
 $mirror_type = 'external'
 Exec { logoutput => true }
 
-
-#################################################################
-# we need to evaluate ceph here, because ceph notifies compute
-# service in case we use ceph backend for ephemeral storage
-if $use_ceph {
-  $primary_mons   = $controllers
-  $primary_mon    = $controllers[0]['name']
-
-  if ($use_neutron) {
-    prepare_network_config($network_scheme)
-    $ceph_cluster_network = get_network_role_property('storage', 'cidr')
-    $ceph_public_network  = get_network_role_property('management', 'cidr')
-  } else {
-    $ceph_cluster_network = hiera('storage_network_range')
-    $ceph_public_network = hiera('management_network_range')
-  }
-
-  class {'ceph':
-    primary_mon              => $primary_mon,
-    mon_hosts                => nodes_with_roles($nodes_hash, ['primary-controller',
-                                                 'controller', 'ceph-mon'], 'name'),
-    mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller',
-                                                 'controller', 'ceph-mon'], 'internal_address'),
-    cluster_node_address     => $controller_node_public,
-    osd_pool_default_size    => $storage_hash['osd_pool_size'],
-    osd_pool_default_pg_num  => $storage_hash['pg_num'],
-    osd_pool_default_pgp_num => $storage_hash['pg_num'],
-    use_rgw                  => $storage_hash['objects_ceph'],
-    glance_backend           => $glance_backend,
-    rgw_pub_ip               => $public_vip,
-    rgw_adm_ip               => $management_vip,
-    rgw_int_ip               => $management_vip,
-    cluster_network          => $ceph_cluster_network,
-    public_network           => $ceph_public_network,
-    use_syslog               => $use_syslog,
-    syslog_log_level         => $syslog_log_level,
-    syslog_log_facility      => $syslog_log_facility_ceph,
-    rgw_keystone_admin_token => $keystone_hash['admin_token'],
-    ephemeral_ceph           => $storage_hash['ephemeral_ceph']
-  }
-  Class['openstack::compute'] -> Class['ceph']
-}
-#################################################################
 include osnailyfacter::test_compute
 
 if ($::mellanox_mode == 'ethernet') {
