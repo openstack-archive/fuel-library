@@ -78,8 +78,11 @@ if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
   $use_ceph = false
 }
 
+class { 'l23network' :
+  use_ovs => $use_neutron
+}
+
 if $use_neutron {
-  include l23network::l2
   $neutron_config            = hiera('quantum_settings')
 } else {
   $neutron_config     = {}
