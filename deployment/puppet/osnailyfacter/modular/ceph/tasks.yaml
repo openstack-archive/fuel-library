@@ -11,6 +11,7 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
+
 - id: ceph-mon
   type: puppet
   groups: [primary-controller, controller]
@@ -20,3 +21,15 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+
+- id: ceph-compute
+  type: puppet
+  groups: [compute]
+  required_for: [deploy_end]
+  requires: [top-role-compute]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/compute_post.rb
