@@ -86,8 +86,11 @@ if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
 }
 
 
+class { 'l23network' :
+  use_ovs => $use_neutron
+}
+
 if $use_neutron {
-  include l23network::l2
   $novanetwork_params        = {}
   $network_provider          = 'neutron'
   $neutron_config            = hiera('quantum_settings')
@@ -292,7 +295,6 @@ if $use_monit_real {
   include nova::params
   include cinder::params
   include neutron::params
-  include l23network::params
   $nova_compute_name   = $::nova::params::compute_service_name
   $nova_api_name       = $::nova::params::api_service_name
   $nova_network_name   = $::nova::params::network_service_name
