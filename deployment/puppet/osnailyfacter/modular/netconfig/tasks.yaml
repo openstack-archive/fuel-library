@@ -11,3 +11,13 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
+
+- id: netconfig-mongo
+  type: puppet
+  groups: [primary-mongo, mongo]
+  required_for: [firewall]
+  requires: [netconfig]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig-mongo.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
