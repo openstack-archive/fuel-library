@@ -5,8 +5,9 @@ require 'yaml'
 class Puppet::Provider::L2_base < Puppet::Provider
 
   def self.ovs_vsctl(*cmd)
+    actual_cmd = ['ovs-vsctl'] + Array(*cmd)
     begin
-      ff = IO.popen(['ovs-vsctl'] + Array(*cmd))
+      ff = IO.popen(actual_cmd.join(' '))
       rv = ff.readlines().map{|l| l.chomp()}
     rescue
       rv = nil
