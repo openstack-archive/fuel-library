@@ -26,12 +26,12 @@ module TestCommon
     # lookup a value using the Hiera class
     # @param key [String,Symbol] a value to look for
     # @return [String,Array,Hash,nil] found value or nil if not found
-    def self.lookup(key)
+    def self.lookup(key, default=nil)
       key = key.to_s
       key = 'rabbit_hash' if key == 'rabbit'
       @keys = {} unless @keys
       return @keys[key] if @keys[key]
-      @keys[key] = hiera.lookup key, nil, {}
+      @keys[key] = hiera.lookup key, default, {}
     end
 
     # access lookup values as methods
@@ -671,6 +671,7 @@ else:
       key = key.downcase
       key = 'default/' + key unless key.include? '/'
       value = value.to_s
+      value.capitalize! if %w(true false).include? value
       data = ini_file file
       data[key] == value
     end
