@@ -1,4 +1,5 @@
 # ceph configuration and resource relations
+# TODO: split ceph module to submodules instead of using case with roles
 
 class ceph (
       # General settings
