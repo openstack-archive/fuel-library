@@ -1,15 +1,14 @@
 [DEFAULT]
 compute_driver=<%= @compute_driver %>
-log_file=nova-compute-vmware-<%= @index %>.log
-host=<%= @index %>
+log_file=nova-compute-vmware-<%= @availability_zone_name %>-<%= @service_name %>.log
+host=<%= @availability_zone_name %>-<%= @service_name %>
 
 [vmware]
 
-cluster_name=<%= @cluster %>
-
-host_ip=<%= @vcenter_host_ip %>
-host_username=<%= @vcenter_user %>
-host_password=<%= @vcenter_password %>
+cluster_name=<%= @vc_cluster %>
+host_ip=<%= @vc_host %>
+host_username=<%= @vc_user %>
+host_password=<%= @vc_password %>
 
 api_retry_count=<%= @api_retry_count %>
 maximum_objects=<%= @maximum_objects %>

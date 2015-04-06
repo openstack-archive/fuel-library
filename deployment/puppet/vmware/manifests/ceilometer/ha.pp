@@ -1,10 +1,16 @@
 define vmware::ceilometer::ha (
-  $index,
+  $availability_zone_name,
+  $vc_cluster,
+  $vc_host,
+  $vc_user,
+  $vc_password,
+  $service_name,
+  $datastore_regex = undef,
   $amqp_port = '5673',
   $ceilometer_config   = '/etc/ceilometer/ceilometer.conf',
   $ceilometer_conf_dir = '/etc/ceilometer/ceilometer-compute.d',
 ) {
-  $ceilometer_compute_conf = "${ceilometer_conf_dir}/vmware-${index}.conf"
+  $ceilometer_compute_conf = "${ceilometer_conf_dir}/vmware-${availability_zone_name}_${service_name}.conf"
 
   if ! defined(File[$ceilometer_conf_dir]) {
     file { $ceilometer_conf_dir:
@@ -15,7 +21,6 @@ define vmware::ceilometer::ha (
     }
   }
 
-  $cluster = $name
   if ! defined(File[$ceilometer_compute_conf]) {
     file { $ceilometer_compute_conf:
       ensure  => present,
@@ -26,7 +31,7 @@ define vmware::ceilometer::ha (
     }
   }
 
-  cs_resource { "p_ceilometer_agent_compute_vmware_${index}":
+  cs_resource { "p_ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}":
     ensure          => present,
     primitive_class => 'ocf',
     provided_by     => 'fuel',
@@ -38,7 +43,7 @@ define vmware::ceilometer::ha (
     parameters      => {
       amqp_server_port      => $amqp_port,
       config                => $ceilometer_config,
-      pid                   => "/var/run/ceilometer/ceilometer-agent-compute-${index}.pid",
+      pid                   => "/var/run/ceilometer/ceilometer-agent-compute-${availability_zone_name}_${service_name}.pid",
       user                  => "ceilometer",
       additional_parameters => "--config-file=${ceilometer_compute_conf}",
     },
@@ -49,7 +54,7 @@ define vmware::ceilometer::ha (
     }
   }
 
-  service { "p_ceilometer_agent_compute_vmware_${index}":
+  service { "p_ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}":
     ensure     => running,
     enable     => true,
     hasstatus  => true,
@@ -59,6 +64,6 @@ define vmware::ceilometer::ha (
 
   File["${ceilometer_conf_dir}"]->
   File["${ceilometer_compute_conf}"]->
-  Cs_resource["p_ceilometer_agent_compute_vmware_${index}"]->
-  Service["p_ceilometer_agent_compute_vmware_${index}"]
+  Cs_resource["p_ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}"]->
+  Service["p_ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}"]
 }

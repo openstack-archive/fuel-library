@@ -59,19 +59,16 @@ class vmware::controller (
   # Index is used to form file names on host system, e.g.
   # /etc/sysconfig/nova-compute-vmware-0
   $vsphere_clusters = vmware_index($vcenter_cluster)
-  $libvirt_type = hiera('libvirt_type')
 
-  # Fixme! This a temporary workaround to keep existing functioanality
-  # After fully implementation of the multi HV support it is need to delete
-  # and case
-  if($::operatingsystem == 'Ubuntu') and $vcenter_settings {
+  if ($::operaringsystem == 'Ubuntu') {
+    $libvirt_type = hiera('libvirt_type')
     $compute_package_name = "nova-compute-${libvirt_type}"
   } else {
     $compute_package_name = $::nova::params::compute_package_name
   }
 
   package { 'nova-compute':
-    name => $compute_package_name,
+    name   => $compute_package_name,
     ensure => 'present',
   }
 
@@ -90,29 +87,12 @@ class vmware::controller (
   }
 
   # Create nova-compute per vsphere cluster
-  if $vcenter_settings {
-    # Fixme! This a temporary workaround to keep existing functioanality
-    # After fully implementation of the multi HV support it is need to rename resource
-    # back to vmware::compute::ha
-    create_resources(vmware::compute::ha_multi_hv, parse_vcenter_settings($vcenter_settings))
+  create_resources(vmware::compute::ha, parse_vcenter_settings($vcenter_settings))
 
-    Package['nova-compute']->
-    Service['nova-compute']->
-    anchor { 'vmware-nova-compute-start': }->
-    File['vcenter-nova-compute-ocf']->
-    Vmware::Compute::Ha_multi_hv<||>->
-    anchor { 'vmware-nova-compute-end': }
-
-  } else {
-    create_resources(vmware::compute::ha, $vsphere_clusters)
-
-    Package['nova-compute']->
-    Service['nova-compute']->
-    anchor { 'vmware-nova-compute-start': }->
-    File['vcenter-nova-compute-ocf']->
-    Vmware::Compute::Ha<||>->
-    anchor { 'vmware-nova-compute-end': }
-  }
+  Package['nova-compute']->
+  Service['nova-compute']->
+  File['vcenter-nova-compute-ocf']->
+  Vmware::Compute::Ha<||>->
 
   # network configuration
   class { 'vmware::network':
