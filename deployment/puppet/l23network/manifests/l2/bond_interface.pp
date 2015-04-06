@@ -1,4 +1,5 @@
-#
+# This technological resource should be used for configure bond slaves only from
+# l23network::l2::bond resource. No self-contained purposes given.
 define l23network::l2::bond_interface (
   $bond,
   $use_ovs                 = $::l23network::use_ovs,
