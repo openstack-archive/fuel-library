@@ -746,6 +746,7 @@ class PreseedPManager(object):
             "fi; done")
         self.late("udevadm control --reload")
         self.late("udevadm trigger")
+        self.late("udevadm settle --quiet")
 
     def boot(self):
         self.recipe("24 24 24 ext3 "
