@@ -50,6 +50,7 @@ $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $nova_rate_limits               = hiera('nova_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
+$block_device_allocate_timeout  = hiera('block_device_allocate_timeout', 900)
 
 # TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
 $hiera_openstack_version = hiera('openstack_version')
@@ -424,6 +425,11 @@ class { 'openstack::compute':
 #TODO: PUT this configuration stanza into nova class
 nova_config { 'DEFAULT/resume_guests_state_on_host_boot': value => hiera('resume_guests_state_on_host_boot')}
 nova_config { 'DEFAULT/use_cow_images': value => hiera('use_cow_images')}
+
+# LP: #1280399
+nova_config { 'DEFAULT/block_device_allocate_retries':
+  value => inline_template("<%= (@block_device_allocate_timeout.to_i / 3).to_i %>")
+}
 
 # Configure monit watchdogs
 # FIXME(bogdando) replace service_path and action to systemd, once supported
