@@ -288,7 +288,7 @@ reset_mnesia() {
         # check status of rabbit app and stop it, if it is running
         get_status rabbit
         rc=$?
-        if [[ $rc != 0 ]] ; then
+        if [[ $rc == 0 ]] ; then
             # rabbit app is running, have to stop it
             ocf_log info "${LH} Stopping RMQ-app prior to reset the mnesia."
             stop_rmq_server_app
