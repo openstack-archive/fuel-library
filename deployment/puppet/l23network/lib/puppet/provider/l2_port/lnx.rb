@@ -5,7 +5,8 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   commands   :iproute     => 'ip',
              :ethtool_cmd => 'ethtool',
              :brctl       => 'brctl',
-             :vsctl       => 'ovs-vsctl'
+             :vsctl       => 'ovs-vsctl',
+             :pkill       => 'pkill'
 
 
   def self.instances
@@ -65,6 +66,12 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   def flush
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
+      # If port is configured by dhcp, dhclient process could exist hence we have to kill it before configuring
+      begin
+        pkill('-KILL',  '-f', "dhclient.*#{@resource[:interface]}$")
+      rescue
+        notice("'#{@resource[:interface]}' does not have any running dhclient processes")
+      end
       #
       # FLUSH changed properties
       if @property_flush.has_key? :bond_master
