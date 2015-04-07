@@ -51,6 +51,9 @@ $nova_rate_limits               = hiera('nova_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
 
+$block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
+$block_device_allocate_retries_interval = hiera('block_device_allocate_retries_interval', 3)
+
 # TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
 $hiera_openstack_version = hiera('openstack_version')
 $openstack_version = {
@@ -427,6 +430,10 @@ nova_config { 'DEFAULT/use_cow_images': value => hiera('use_cow_images')}
 nova_config { 'libvirt/libvirt_inject_key': value => 'true'}
 nova_config { 'libvirt/libvirt_inject_password': value => 'true'}
 nova_config { 'libvirt/libvirt_inject_partition': value => '-1'}
+
+# LP: #1280399
+nova_config { 'DEFAULT/block_device_allocate_retries': value => $block_device_allocate_retries }
+nova_config { 'DEFAULT/block_device_allocate_retries_interval': value => $block_device_allocate_retries_interval }
 
 # Configure monit watchdogs
 # FIXME(bogdando) replace service_path and action to systemd, once supported
