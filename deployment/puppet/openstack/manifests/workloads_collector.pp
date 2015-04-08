@@ -24,14 +24,23 @@ class openstack::workloads_collector(
   validate_string($workloads_password)
 
   keystone_user { $workloads_username:
-    ensure          => present,
-    password        => $workloads_password,
-    enabled         => $enabled,
-    tenant          => $workloads_tenant,
+    ensure   => present,
+    password => $workloads_password,
+    enabled  => $enabled,
+    tenant   => $workloads_tenant,
   }
 
-  keystone_user_role { "$workloads_username@$workloads_tenant":
+  keystone_role { 'oswl':
     ensure => present,
-    roles  => ['admin'],
+  }
+
+  keystone_user_role { "${workloads_username}@${workloads_tenant}":
+    ensure  => present,
+    roles   => ['oswl'],
+    require => File['/etc/keystone/policy.json'],
+  }
+
+  file { '/etc/keystone/policy.json':
+    content => template("${module_name}/keystone.policy.json.erb")
   }
 }
