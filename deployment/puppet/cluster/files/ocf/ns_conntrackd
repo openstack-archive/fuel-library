@@ -34,17 +34,21 @@
 
 #######################################################################
 
-exec &>> /tmp/1
-
 OCF_RESKEY_binary_default=conntrackd
 OCF_RESKEY_config_default=/etc/conntrackd/conntrackd.conf
 OCF_RESKEY_ns_default=vrouter
+OCF_RESKEY_bridge_default=br-mgmt
+OCF_RESKEY_host_interface_default=mgmt-conntrd
+OCF_RESKEY_ns_interface_default=conntrd
 
 # For users of versions prior to 1.2:
 # Map renamed parameter "conntrackd" to "binary" if in use
 : ${OCF_RESKEY_binary=${OCF_RESKEY_conntrackd-${OCF_RESKEY_binary_default}}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
 : ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
+: ${OCF_RESKEY_bridge=${OCF_RESKEY_bridge_default}}
+: ${OCF_RESKEY_host_interface=${OCF_RESKEY_host_interface_default}}
+: ${OCF_RESKEY_ns_interface=${OCF_RESKEY_ns_interface_default}}
 
 meta_data() {
   cat <<END
@@ -117,30 +121,30 @@ conntrackd_set_master_score() {
 }
 
 add_to_bridge() {
-  brctl show br-mgmt | grep mgmt-conntrd
+  brctl show $OCF_RESKEY_bridge | grep $OCF_RESKEY_host_interface
   if [[ $rc != 0 ]] ; then
-    ocf_run brctl addif br-mgmt mgmt-conntrd
-    ocf_run ifconfig mgmt-conntrd 0.0.0.0
+    ocf_run brctl addif $OCF_RESKEY_bridge $OCF_RESKEY_host_interface
+    ocf_run ifconfig $OCF_RESKEY_host_interface 0.0.0.0
   fi
 }
 
 get_veth_pair() {
   ip netns list | grep "$OCF_RESKEY_ns"
 
-  [[ $? != 0 ]] && ip netns add $OCF_RESKEY_ns
+  [[ $? != 0 ]] && ip netns add $OCF_RESKEY_ns && ip netns exec $OCF_RESKEY_ns ip link set up dev lo
 
-  local last_octet=$(ifconfig br-mgmt 2>/dev/null|awk '/inet addr:/ {print $2}'|sed 's/addr://' | awk -F. '{print $NF}')
-
-  ocf_run ip netns exec $OCF_RESKEY_ns ip link show conntrd 2>/dev/null
+  ocf_run ip netns exec $OCF_RESKEY_ns ip link show $OCF_RESKEY_ns_interface 2>/dev/null
   rc=$?
 
   # create pair (tail's can't be alone) and attach tail to the net.namespace
   if [[ $rc != 0 ]] ; then
-    ocf_run ip link add mgmt-conntrd type veth peer name conntrd
-    ocf_run ip link set dev conntrd netns $OCF_RESKEY_ns
-    ocf_run ip netns exec $OCF_RESKEY_ns ip link set up dev conntrd
-    ocf_run ip link set up dev mgmt-conntrd
-    ocf_run ip netns exec $OCF_RESKEY_ns ifconfig conntrd 10.0.0.${last_octet}/24
+    local last_octet=$(ifconfig $OCF_RESKEY_bridge 2>/dev/null|awk '/inet addr:/ {print $2}'|sed 's/addr://' | awk -F. '{print $NF}')
+
+    ocf_run ip link add $OCF_RESKEY_host_interface type veth peer name $OCF_RESKEY_ns_interface
+    ocf_run ip link set dev $OCF_RESKEY_ns_interface netns $OCF_RESKEY_ns
+    ocf_run ip netns exec $OCF_RESKEY_ns ip link set up dev $OCF_RESKEY_ns_interface
+    ocf_run ip link set up dev $OCF_RESKEY_host_interface
+    ocf_run ip netns exec $OCF_RESKEY_ns ifconfig $OCF_RESKEY_ns_interface 10.0.0.${last_octet}/24
   fi
 
   add_to_bridge
@@ -160,7 +164,7 @@ conntrackd_monitor() {
   if [ "$rc" -eq "$OCF_SUCCESS" ]; then
     # conntrackd is running
     # now see if it acceppts queries
-    if ! ip netns exec vrouter $OCF_RESKEY_binary -C $OCF_RESKEY_config -s > /dev/null 2>&1; then
+    if ! ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -s > /dev/null 2>&1; then
       rc=$OCF_ERR_GENERIC
       ocf_exit_reason "conntrackd is running but not responding to queries"
     fi
@@ -192,7 +196,7 @@ conntrackd_start() {
     $OCF_SUCCESS)
       conntrackd_set_master_score $slave_score
       # -n = request resync from the others
-      if ! ip netns exec vrouter $OCF_RESKEY_binary -C $OCF_RESKEY_config -n; then
+      if ! ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -n; then
         ocf_exit_reason "$OCF_RESKEY_binary -C $OCF_RESKEY_config -n failed during start."
         rc=$OCF_ERR_GENERIC
       else
@@ -202,7 +206,7 @@ conntrackd_start() {
       ;;
     $OCF_NOT_RUNNING)
       ocf_log info "Starting conntrackd"
-      ip netns exec vrouter $OCF_RESKEY_binary -C $OCF_RESKEY_config -d
+      ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -d
       ;;
     $OCF_RUNNING_MASTER)
       ocf_log warn "conntrackd already in master mode, demoting."
@@ -229,7 +233,7 @@ conntrackd_stop() {
                 case "$status" in
                 $OCF_SUCCESS|$OCF_ERR_GENERIC)
       ocf_log info "Stopping conntrackd"
-                        ip netns exec vrouter $OCF_RESKEY_binary -C $OCF_RESKEY_config -k
+                        ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -k
                         ;;
                 $OCF_NOT_RUNNING)
                         rc=$OCF_SUCCESS
@@ -265,7 +269,7 @@ conntrackd_promote() {
     # -R = resync with the kernel table
     # -B = send a bulk update on the line
     for parm in c f R B; do
-      if ! ip netns exec vrouter $OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm; then
+      if ! ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm; then
         ocf_exit_reason "$OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm failed during promote."
         rc=$OCF_ERR_GENERIC
         break
@@ -283,7 +287,7 @@ conntrackd_demote() {
     # -t = shorten kernel timers to remove zombies
     # -n = request a resync from the others
     for parm in t n; do
-      if ! ip netns exec vrouter $OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm; then
+      if ! ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm; then
                           ocf_exit_reason "$OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm failed during demote."
                           rc=$OCF_ERR_GENERIC
                           break
@@ -303,7 +307,7 @@ conntrackd_notify() {
     # send a bulk update to allow failback
     if [ "$hostname" = "$master" -a "$OCF_RESKEY_CRM_meta_notify_type" = "post" -a "$OCF_RESKEY_CRM_meta_notify_operation" = "start" -a "$OCF_RESKEY_CRM_meta_notify_start_uname" != "$hostname" ]; then
       ocf_log info "Sending bulk update in post start to peers to allow failback"
-      ip netns exec vrouter $OCF_RESKEY_binary -C $OCF_RESKEY_config -B
+      ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -B
     fi
   done
   for tobepromoted in $OCF_RESKEY_CRM_meta_notify_promote_uname; do
@@ -311,7 +315,7 @@ conntrackd_notify() {
     # send a bulk update to allow failback
     if [ "$hostname" != "$tobepromoted" -a "$OCF_RESKEY_CRM_meta_notify_type" = "pre" -a "$OCF_RESKEY_CRM_meta_notify_operation" = "promote" ]; then
       ocf_log info "Sending bulk update in pre promote to peers to allow failback"
-      ip netns exec vrouter $OCF_RESKEY_binary -C $OCF_RESKEY_config -B
+      ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -B
     fi
   done
 }
