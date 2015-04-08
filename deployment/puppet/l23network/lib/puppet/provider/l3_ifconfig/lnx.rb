@@ -93,13 +93,12 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
           end
           if adding_addresses.include? :none
             iproute('--force', 'link', 'set', 'dev', @resource[:interface], 'up')
-          elsif adding_addresses.include? :dhcp
-            debug("!!! DHCP runtime configuration not implemented now !!!")
           else
             # add IP addresses
             adding_addresses.each do |ipaddr|
               iproute('addr', 'add', ipaddr, 'dev', @resource[:interface])
             end
+            iproute('--force', 'link', 'set', 'dev', @resource[:interface], 'up')
           end
         end
       end
