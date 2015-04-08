@@ -1,3 +1,6 @@
+# Installs & configure the heat API and Engine services
+# TODO: refactor manifest to place each service in own manifest for next release
+
 class murano::api (
     $use_syslog                 = false,
     $syslog_log_facility        = 'LOG_LOCAL0',
@@ -162,7 +165,7 @@ class murano::api (
 
     Murano_config<||> -> Exec['murano_manage_db_sync']
 
-    murano::application_package{'io.murano':
+    murano::application_package{'io.murano.zip':
       mandatory => true
     }
 

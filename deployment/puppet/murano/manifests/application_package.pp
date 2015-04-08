@@ -1,30 +1,27 @@
+# Import of murano based base application
+
 define murano::application_package (
   $package_name     = $title,
   $package_category = '',
-  $murano_manage    = 'murano-manage',
-  $murano_user      = 'murano',
+  $murano_cli       = 'murano',
+  $runas_user       = 'root',
   $mandatory        = false,
 ) {
   $package_path="/var/cache/murano/meta/${package_name}"
 
-  $murano_manage_cmd = $package_category ? {
-    ''       => "${murano_manage} --config-file=/etc/murano/murano.conf import-package '${package_path}' --update",
-    default  => "${murano_manage} --config-file=/etc/murano/murano.conf import-package '${package_path}' -c '${package_category}' --update",
+  $murano_cli_cmd = $package_category ? {
+    ''       => "bash -c \"source /root/openrc; ${murano_cli} package-import '${package_path}' --is-public --exists-action u\"",
+    default  => "bash -c \"source /root/openrc; ${murano_cli} package-import '${package_path}' -c '${package_category}' --is-public --exists-action u\""
   }
 
   exec { "murano_import_package_${package_name}":
-    path    => [ '/usr/bin', '/usr/sbin' ],
-    command => $murano_manage_cmd,
-    user    => $murano_user,
-    group   => $murano_user,
-    onlyif  => "test -d '${package_path}' && test ! -f '${package_path}.imported'",
+    path    => '/sbin:/usr/sbin:/bin:/usr/bin',
+    command => $murano_cli_cmd,
+    user    => $runas_user,
+    group   => $runas_user,
+    onlyif  => [
+                "test -e '${package_path}'",
+                "test -f '/root/openrc'"
+    ]
   }
-
-  file { "${package_path}.imported":
-    ensure => present,
-    owner  => $murano_user,
-    group  => $murano_user,
-  }
-
-  Exec["murano_import_package_${package_name}"] -> File["${package_path}.imported"]
 }

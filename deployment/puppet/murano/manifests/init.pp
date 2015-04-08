@@ -1,3 +1,7 @@
+# Class murano
+#
+#  murano base package & configuration
+
 class murano (
   # package
   $murano_package_name                   = 'murano',
@@ -168,8 +172,6 @@ class murano (
     rabbitmq_main_port => $murano_rabbit_port,
   }
 
-  class { 'murano::cirros':
-  }
 
   class { 'murano::keystone':
     tenant           => $murano_keystone_tenant,

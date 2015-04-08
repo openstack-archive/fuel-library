@@ -1,3 +1,5 @@
+# Parameters for puppet-murano
+
 class murano::params {
 
   # package names
