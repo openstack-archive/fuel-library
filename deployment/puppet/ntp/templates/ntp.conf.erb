@@ -1,9 +1,9 @@
 # ntp.conf: Managed by puppet.
 #
-<% if @panic == false -%>
+<% if @tinker == true -%>
 # Keep ntpd from panicking in the event of a large clock skew
 # when a VM guest is suspended and resumed.
-tinker panic 0
+tinker panic <%= @panic %><% if @stepout != 300 -%> stepout <%= @stepout %> <% end %>
 <% end -%>
 
 <% if @disable_monitor == true -%>
@@ -28,7 +28,7 @@ interface listen <%= interface %>
 <% end -%>
 
 <% [@servers].flatten.each do |server| -%>
-server <%= server %><% if @iburst_enable == true -%> iburst<% end %><% if @preferred_servers.include?(server) -%> prefer<% end %>
+server <%= server %><% if @iburst_enable == true -%> iburst<% end %><% if @preferred_servers.include?(server) -%> prefer<% end %><% if @minpoll.to_i != 6 -%> minpoll <%= @minpoll %><% end %><% if @maxpoll.to_i != 10 -%> maxpoll <%= @maxpoll %><% end %>
 <% end -%>
 
 <% if scope.lookupvar('::is_virtual') == "false" or @udlc -%>
