@@ -86,6 +86,7 @@ describe 'ntp' do
         describe 'preferred servers' do
           context "when set" do
             let(:params) {{
+              :maxpoll           => 10,
               :servers           => ['a', 'b', 'c', 'd'],
               :preferred_servers => ['a', 'b']
             }}
@@ -189,6 +190,7 @@ describe 'ntp' do
         describe 'with parameter iburst_enable' do
           context 'when set to true' do
             let(:params) {{
+              :maxpoll       => 10,
               :iburst_enable => true,
             }}
 
@@ -310,7 +312,7 @@ describe 'ntp' do
 
         it 'uses the freebsd ntp servers by default' do
           should contain_file('/etc/ntp.conf').with({
-            'content' => /server \d.freebsd.pool.ntp.org maxpoll 9 iburst/,
+            'content' => /server \d.freebsd.pool.ntp.org iburst maxpoll 9/,
           })
         end
       end
@@ -373,25 +375,6 @@ describe 'ntp' do
       it 'should not use local clock as a time source' do
         should_not contain_file('/etc/ntp.conf').with({
           'content' => /server.*127.127.1.0.*fudge.*127.127.1.0 stratum 10/,
-        })
-      end
-
-      it 'allows large clock skews' do
-        should contain_file('/etc/ntp.conf').with({
-          'content' => /tinker panic 0/,
-        })
-      end
-    end
-
-    describe 'for physical machines' do
-      let :facts do
-        super().merge({ :osfamily        => 'Archlinux',
-                     :is_virtual      => 'false' })
-      end
-
-      it 'disallows large clock skews' do
-        should_not contain_file('/etc/ntp.conf').with({
-          'content' => /tinker panic 0/,
         })
       end
     end
