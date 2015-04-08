@@ -15,6 +15,30 @@ Puppet::Type.type(:rabbitmq_exchange).provide(:rabbitmqadmin, :parent => Puppet:
   end
   defaultfor :feature => :posix
 
+  def retry_rabbitmqctl(*args)
+    self.class.run_with_retries do
+      rabbitmqctl(*args)
+    end
+  end
+
+  def self.retry_rabbitmqctl(*args)
+    self.run_with_retries do
+      rabbitmqctl(*args)
+    end
+  end
+
+  def retry_rabbitmqadmin(*args)
+    self.class.run_with_retries do
+      rabbitmqadmin(*args)
+    end
+  end
+
+  def self.retry_rabbitmqadmin(*args)
+    self.run_with_retries do
+      rabbitmqadmin(*args)
+    end
+  end
+
   def should_vhost
     if @should_vhost
       @should_vhost
@@ -26,9 +50,7 @@ Puppet::Type.type(:rabbitmq_exchange).provide(:rabbitmqadmin, :parent => Puppet:
   def self.all_vhosts
     vhosts = []
     parse_command(
-      self.run_with_retries {
-        rabbitmqctl('list_vhosts')
-      }
+        retry_rabbitmqctl('list_vhosts')
     ).collect do |vhost|
         vhosts.push(vhost)
     end
@@ -38,9 +60,7 @@ Puppet::Type.type(:rabbitmq_exchange).provide(:rabbitmqadmin, :parent => Puppet:
   def self.all_exchanges(vhost)
     exchanges = []
     parse_command(
-      self.run_with_retries {
-        rabbitmqctl('list_exchanges', '-p', vhost, 'name', 'type')
-      }
+        retry_rabbitmqctl('list_exchanges', '-p', vhost, 'name', 'type')
     )
   end
 
@@ -91,14 +111,14 @@ Puppet::Type.type(:rabbitmq_exchange).provide(:rabbitmqadmin, :parent => Puppet:
   def create
     vhost_opt = should_vhost ? "--vhost=#{should_vhost}" : ''
     name = resource[:name].split('@')[0]
-    rabbitmqadmin('declare', 'exchange', vhost_opt, "--user=#{resource[:user]}", "--password=#{resource[:password]}", "name=#{name}", "type=#{resource[:type]}", '-c', '/etc/rabbitmq/rabbitmqadmin.conf')
+    retry_rabbitmqadmin('declare', 'exchange', vhost_opt, "--user=#{resource[:user]}", "--password=#{resource[:password]}", "name=#{name}", "type=#{resource[:type]}", '-c', '/etc/rabbitmq/rabbitmqadmin.conf')
     @property_hash[:ensure] = :present
   end
 
   def destroy
     vhost_opt = should_vhost ? "--vhost=#{should_vhost}" : ''
     name = resource[:name].split('@')[0]
-    rabbitmqadmin('delete', 'exchange', vhost_opt, "--user=#{resource[:user]}", "--password=#{resource[:password]}", "name=#{name}", '-c', '/etc/rabbitmq/rabbitmqadmin.conf')
+    retry_rabbitmqadmin('delete', 'exchange', vhost_opt, "--user=#{resource[:user]}", "--password=#{resource[:password]}", "name=#{name}", '-c', '/etc/rabbitmq/rabbitmqadmin.conf')
     @property_hash[:ensure] = :absent
   end
 
