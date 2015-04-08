@@ -1,3 +1,5 @@
+# Installs python-muranoclient
+
 class murano::python_muranoclient {
 
   include murano::params

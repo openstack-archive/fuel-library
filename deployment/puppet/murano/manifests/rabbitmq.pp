@@ -1,3 +1,5 @@
+# Configures rabbitmq settings for murano
+
 class murano::rabbitmq(
   $rabbit_user            = 'murano',
   $rabbit_password        = 'murano',
