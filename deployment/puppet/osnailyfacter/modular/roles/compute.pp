@@ -424,6 +424,9 @@ class { 'openstack::compute':
 #TODO: PUT this configuration stanza into nova class
 nova_config { 'DEFAULT/resume_guests_state_on_host_boot': value => hiera('resume_guests_state_on_host_boot')}
 nova_config { 'DEFAULT/use_cow_images': value => hiera('use_cow_images')}
+nova_config { 'libvirt/libvirt_inject_key': value => 'true'}
+nova_config { 'libvirt/libvirt_inject_password': value => 'true'}
+nova_config { 'libvirt/libvirt_inject_partition': value => '-1'}
 
 # Configure monit watchdogs
 # FIXME(bogdando) replace service_path and action to systemd, once supported
