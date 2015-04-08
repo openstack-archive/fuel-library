@@ -190,6 +190,12 @@ define l23network::l3::ifconfig (
     }
 
 
+    if ! defined (L23network::L2::Port[$interface]) {
+      l23network::l2::port { $interface: }
+      L23network::L2::Port[$interface] -> L3_ifconfig[$interface]
+    }
+
+
     if ! defined (L23_stored_config[$interface]) {
       l23_stored_config { $interface:
         provider     => $config_provider
