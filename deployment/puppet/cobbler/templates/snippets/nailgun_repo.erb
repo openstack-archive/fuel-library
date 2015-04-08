@@ -9,6 +9,8 @@ cat > /etc/yum.repos.d/${repo["name"]}.repo << EOF
 name=$repo["name"]
 baseurl=$repo["uri"]
 gpgcheck=0
+#if $repo.get("priority")
 priority=$repo["priority"]
+#end if
 EOF
 #end for
