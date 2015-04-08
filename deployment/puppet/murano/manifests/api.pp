@@ -162,7 +162,7 @@ class murano::api (
 
     Murano_config<||> -> Exec['murano_manage_db_sync']
 
-    murano::application_package{'io.murano':
+    murano::application_package{'io.murano.zip':
       mandatory => true
     }
 
