@@ -86,4 +86,10 @@ $repo_root = '/var/www/nailgun',
   service {'dhcrelay':
     ensure => stopped,
   }
+
+  # Since we're supporting multiple repos, it's a good idea to support
+  # also priorities for them. Just in case.
+  package {'yum-plugin-priorities':
+    ensure => installed,
+  }
 }
