@@ -8,13 +8,21 @@ class openstack::swift::proxy (
   $ring_min_part_hours                = 1,
   $proxy_pipeline                     = [
     'catch_errors',
+    'crossdomain',
     'healthcheck',
     'cache',
+    'bulk',
+    'tempurl',
     'ratelimit',
+    'formpost',
     'swift3',
     's3token',
     'authtoken',
     'keystone',
+    'staticweb',
+    'container_quotas',
+    'account_quotas',
+    'slo',
     'proxy-server'],
   $proxy_workers                      = $::processorcount,
   $proxy_port                         = '8080',
@@ -87,7 +95,10 @@ class openstack::swift::proxy (
   }
 
   # configure all of the middlewares
-  class { ['::swift::proxy::catch_errors', '::swift::proxy::healthcheck', '::swift::proxy::swift3',]:
+  class { ['::swift::proxy::catch_errors', '::swift::proxy::crossdomain', '::swift::proxy::healthcheck',
+  '::swift::proxy::bulk', '::swift::proxy::tempurl', '::swift::proxy::formpost', '::swift::proxy::swift3',
+  '::swift::proxy::staticweb', '::swift::proxy::container_quotas', '::swift::proxy::account_quotas',
+  '::swift::proxy::slo',]:
   }
 
   $cache_addresses = inline_template("<%= @swift_proxies.values.uniq.sort.collect {|ip| ip + ':11211' }.join ',' %>")
