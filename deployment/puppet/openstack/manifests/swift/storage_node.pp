@@ -95,7 +95,8 @@ class openstack::swift::storage_node (
     log_name => 'swift-object-server',
   }
   Swift::Storage::Server <| title == '6001' |> {
-    log_name => 'swift-container-server',
+    log_name       => 'swift-container-server',
+    allow_versions => true,
   }
   Swift::Storage::Server <| title == '6002' |> {
     log_name => 'swift-account-server',
