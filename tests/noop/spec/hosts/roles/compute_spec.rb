@@ -57,6 +57,21 @@ describe manifest do
         'value' => '180',
       )
     end
+    it 'nova config should have libvirt_inject_partition set to -1' do
+      should contain_nova_config('libvirt/libvirt_inject_partition').with(
+        'value' => '-1',
+      )
+    end
+    it 'nova config should have libvirt_inject_key set to true' do
+      should contain_nova_config('libvirt/libvirt_inject_key').with(
+        'value' => 'true',
+      )
+    end
+    it 'nova config should have libvirt_inject_password set to true' do
+      should contain_nova_config('libvirt/libvirt_inject_password').with(
+        'value' => 'true',
+      )
+    end
 
   end
 
