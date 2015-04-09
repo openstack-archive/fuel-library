@@ -488,6 +488,8 @@ function copy_files {
 }
 
 function backup {
+  set -e
+  trap backup_error
   backup_id=$(date +%F_%H%S)
   use_rsync=0
   #Sets backup_dir
@@ -504,6 +506,11 @@ finish or cancel them." 1>&2
   [ $use_rsync -eq 1 ] && backup_rsync_upload $rsync_dest $backup_dir
   backup_cleanup $backup_dir
   echo "Backup complete. File is available at $backup_dir/fuel_backup${image_suffix}.tar.lrz"
+}
+
+function backup_fail {
+  echo "Backup failed!" 1>&2
+  exit 1
 }
 
 function parse_backup_dir {
