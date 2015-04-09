@@ -1,7 +1,6 @@
 notice('MODULAR: ntp-server.pp')
 
 $ntp_servers        = hiera('external_ntp')
-$primary_controller = hiera('primary_controller')
 
 class { 'ntp':
   servers        => strip(split($ntp_servers['ntp_list'], ',')),
@@ -9,6 +8,4 @@ class { 'ntp':
   service_ensure => stopped,
 } ->
 
-class { 'cluster::ntp_ocf':
-  primary_controller => $primary_controller,
-}
+class { 'cluster::ntp_ocf': }
