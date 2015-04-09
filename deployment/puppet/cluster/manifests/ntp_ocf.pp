@@ -2,41 +2,40 @@
 #
 # Configure OCF service for NTP managed by corosync/pacemaker
 #
-class cluster::ntp_ocf ( $primary_controller ) {
+class cluster::ntp_ocf ( ) {
   $service_name = 'p_ntp'
 
-  if $primary_controller {
-    cs_resource { $service_name:
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'fuel',
-      primitive_type  => 'ns_ntp',
-      complex_type    => 'clone',
-      ms_metadata => {
-        'interleave' => 'true',
+  cs_resource { $service_name:
+    ensure          => present,
+    primitive_class => 'ocf',
+    provided_by     => 'fuel',
+    primitive_type  => 'ns_ntp',
+    complex_type    => 'clone',
+    ms_metadata => {
+      'interleave' => 'true',
+    },
+    metadata => {
+      'migration-threshold' => '3',
+      'failure-timeout'     => '120',
+    },
+    parameters => {
+      'ns' => 'vrouter',
+    },
+    operations => {
+      'monitor' => {
+        'interval' => '20',
+        'timeout'  => '10'
       },
-      metadata => {
-        'migration-threshold' => '3',
-        'failure-timeout'     => '120',
+      'start' => {
+        'timeout' => '30'
       },
-      parameters => {
-        'ns' => 'vrouter',
+      'stop' => {
+        'timeout' => '30'
       },
-      operations => {
-        'monitor' => {
-          'interval' => '20',
-          'timeout'  => '10'
-        },
-        'start' => {
-          'timeout' => '30'
-        },
-        'stop' => {
-          'timeout' => '30'
-        },
-      },
-    }
-  Cs_resource[$service_name] ~> Service[$service_name]
+    },
   }
+
+  Cs_resource[$service_name] ~> Service[$service_name]
 
   file {'ntp-ocf':
     path   =>'/usr/lib/ocf/resource.d/fuel/ns_ntp',
