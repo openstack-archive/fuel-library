@@ -11,6 +11,11 @@ class openstack::clocksync ($ntp_servers = undef, $config_template = undef)
     config_template => $config_template,
     iburst_enable   => true,
     udlc            => !check_ntp($one_shot_ntp_server),
+    tinker          => true,
+    panic           => 0,
+    stepout         => 5,
+    minpoll         => 3,
+    maxpoll         => 9,
   }
 
   Exec['clocksync'] -> Service <| title == 'ntp' |>
