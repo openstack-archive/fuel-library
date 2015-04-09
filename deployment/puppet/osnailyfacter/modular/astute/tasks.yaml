@@ -35,6 +35,8 @@
   required_for: [post_deployment_end]
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/upload_cirros.rb
+    retries: 3
+    interval: 20
     timeout: 180
 
 - id: upload_nodes_info

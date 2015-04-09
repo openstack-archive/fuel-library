@@ -87,7 +87,11 @@ end
 ########################
 
 wait_for_glance
+errors = 0
 
 test_vm_images.each do |image|
-  upload_image(image)
+  errors += upload_image(image)
 end
+
+exit 1 unless errors == 0
+
