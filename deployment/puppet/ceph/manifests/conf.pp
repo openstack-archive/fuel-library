@@ -28,6 +28,7 @@ class ceph::conf {
       'global/osd_pool_default_min_size':          value => $::ceph::osd_pool_default_min_size;
       'global/osd_pool_default_pg_num':            value => $::ceph::osd_pool_default_pg_num;
       'global/osd_pool_default_pgp_num':           value => $::ceph::osd_pool_default_pgp_num;
+      'global/osd_pool_default_flag_hashpspool':   value => $::ceph::osd_pool_default_flag_hashpspool;
       'global/cluster_network':                    value => $::ceph::cluster_network;
       'global/public_network':                     value => $::ceph::public_network;
       'global/log_to_syslog':                      value => $::ceph::use_syslog;
@@ -35,8 +36,8 @@ class ceph::conf {
       'global/log_to_syslog_facility':             value => $::ceph::syslog_log_facility;
       'global/osd_max_backfills':                  value => $::ceph::osd_max_backfills;
       'global/osd_recovery_max_active':            value => $::ceph::osd_recovery_max_active;
-      'client/rbd_cache':                          value => true;
-      'client/rbd_cache_writethrough_until_flush': value => true;
+      'client/rbd_cache':                          value => $::ceph::rbd_cache;
+      'client/rbd_cache_writethrough_until_flush': value => $::ceph::rbd_cache_writethrough_until_flush;
     }
 
     Exec['ceph-deploy new'] ->
