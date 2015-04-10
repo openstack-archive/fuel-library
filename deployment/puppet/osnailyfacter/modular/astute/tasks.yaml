@@ -89,6 +89,17 @@
     timeout: 3600
     cwd: /
 
+- id: public_vip_ping
+  type: puppet
+  role: [primary-controller]
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/public_vip_ping.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
+
 #PRE DEPLOYMENT
 - id: upload_core_repos
   type: upload_file
