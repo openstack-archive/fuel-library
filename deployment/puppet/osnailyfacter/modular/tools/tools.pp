@@ -17,6 +17,10 @@ package { $tools :
   ensure => 'present',
 }
 
+package { 'cloud-init':
+   ensure => 'purged',
+}
+
 $puppet = hiera('puppet')
 class { 'puppet::pull' :
   modules_source   => $puppet['modules'],
