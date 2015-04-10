@@ -4,7 +4,7 @@ manifest = 'globals/globals.pp'
 
 describe manifest do
 
-  shared_examples 'puppet catalogue' do
+  shared_examples 'catalog' do
     it { should contain_file '/etc/hiera/globals.yaml' }
     it 'should save the globals yaml file' do
       catalog = subject
