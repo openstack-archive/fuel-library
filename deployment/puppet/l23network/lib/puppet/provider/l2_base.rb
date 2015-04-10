@@ -4,6 +4,16 @@ require 'yaml'
 
 class Puppet::Provider::L2_base < Puppet::Provider
 
+  def self.ovs_vsctl(*cmd)
+    begin
+      ff = IO.popen(['ovs-vsctl'] + Array(*cmd))
+      rv = ff.readlines().map{|l| l.chomp()}
+    rescue
+      rv = nil
+    end
+    return rv
+  end
+
   def self.prefetch(resources)
     interfaces = instances
     resources.keys.each do |name|
@@ -130,13 +140,13 @@ class Puppet::Provider::L2_base < Puppet::Provider
 
   def self.get_ovs_bridges
     # return OVS interfaces hash if it possible
-    begin
-      vsctl_list_bridges = vsctl('list', 'Bridge').split("\n")
-      vsctl_list_bridges << :EOF  # last section of output should be processsed anyway.
-    rescue
+
+    vsctl_list_bridges = ovs_vsctl(['list', 'Bridge'])
+    if vsctl_list_bridges.nil?
       debug("Can't find OVS ports, because error while 'ovs-vsctl list Bridge' execution")
       return {}
     end
+    vsctl_list_bridges << :EOF  # last section of output should be processsed anyway.
     #
     buff = {}
     rv = {}
@@ -167,13 +177,12 @@ class Puppet::Provider::L2_base < Puppet::Provider
 
   def self.get_ovs_ports
     # return OVS interfaces hash if it possible
-    begin
-      vsctl_list_ports = vsctl('list', 'Port').split("\n")
-      vsctl_list_ports << :EOF  # last section of output should be processsed anyway.
-    rescue
+    vsctl_list_ports = ovs_vsctl(['list', 'Port'])
+    if vsctl_list_ports.nil?
       debug("Can't find OVS ports, because error while 'ovs-vsctl list Port' execution")
       return {}
     end
+    vsctl_list_ports << :EOF  # last section of output should be processsed anyway.
     #
     buff = {}
     rv = {}
@@ -203,13 +212,12 @@ class Puppet::Provider::L2_base < Puppet::Provider
 
   def self.get_ovs_interfaces
     # return OVS interfaces hash if it possible
-    begin
-      vsctl_list_interfaces = vsctl('list', 'Interface').split("\n")
-      vsctl_list_interfaces << :EOF  # last section of output should be processsed anyway.
-    rescue
+    vsctl_list_interfaces = ovs_vsctl(['list', 'Interface'])
+    if vsctl_list_interfaces.nil?
       debug("Can't find OVS interfaces, because error while 'ovs-vsctl list Interface' execution")
       return {}
     end
+    vsctl_list_interfaces << :EOF  # last section of output should be processsed anyway.
     #
     buff = {}
     rv = {}
@@ -243,10 +251,8 @@ class Puppet::Provider::L2_base < Puppet::Provider
   end
 
   def self.ovs_vsctl_show
-    begin
-      #content = vsctl('show')
-      content = `ovs-vsctl show`
-    rescue
+    content = ovs_vsctl('show')
+    if content.nil?
       debug("Can't get OVS configuration, because error while 'ovs-vsctl show' execution")
       return {}
     end
@@ -264,7 +270,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
     _po = nil
     _if = nil
     #_ift = nil
-    content.split("\n").each do |line|
+    content.each do |line|
       line.rstrip!
       case line
         when /^\s+Bridge\s+"?([\w\-\.]+)\"?$/
@@ -357,15 +363,16 @@ class Puppet::Provider::L2_base < Puppet::Provider
     bridges = {}
     # obtain OVS bridges list
     re_c = /^\s*([\w\-]+)/
-    begin
-      vsctl('list-br').split(/\n+/).select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
+    listbr = ovs_vsctl('list-br')
+    if listbr.nil?
+      debug("No OVS bridges found, because error while 'ovs-vsctl list-br' execution")
+    else
+      listbr.select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
         br_name.strip!
         bridges[br_name] = {
           :br_type => :ovs
         }
       end
-    rescue
-      debug("No OVS bridges found, because error while 'ovs-vsctl list-br' execution")
     end
     # obtain LNX bridges list
     re_c = /([\w\-]+)\s+\d+/
@@ -393,15 +400,14 @@ class Puppet::Provider::L2_base < Puppet::Provider
     #     }
     #
     port_mappings = {}
-    begin
-      ovs_bridges = vsctl('list-br').split(/\n+/).select{|l| l.match(/^\s*[\w\-]+/)}
-    rescue
+    ovs_bridges = ovs_vsctl('list-br')
+    if ovs_bridges.nil?
       debug("No OVS bridges found, because error while 'ovs-vsctl list-br' execution")
       return {}
     end
-    ovs_bridges.each do |br_name|
+    ovs_bridges.select{|l| l.match(/^\s*[\w\-]+/)}.each do |br_name|
       br_name.strip!
-      ovs_portlist = vsctl('list-ports', br_name).split(/\n+/).select{|l| l.match(/^\s*[\w\-]+\s*/)}
+      ovs_portlist = ovs_vsctl(['list-ports', br_name]).select{|l| l.match(/^\s*[\w\-]+\s*/)}
       #todo: handle error
       ovs_portlist.each do |port_name|
         port_name.strip!
