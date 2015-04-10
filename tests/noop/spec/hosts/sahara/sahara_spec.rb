@@ -3,17 +3,19 @@ require 'shared-examples'
 manifest = 'sahara/sahara.pp'
 
 describe manifest do
-  shared_examples 'puppet catalogue' do
+  shared_examples 'catalog' do
 
-    settings = Noop.fuel_settings
-    use_neutron = settings['quantum'].to_s
+    use_neutron = Noop.hiera 'use_neutron'
+    enabled = Noop.hiera_structure 'sahara/enabled'
+    db_password = Noop.hiera_structure 'sahara/db_password'
+    user_password = Noop.hiera_structure 'sahara/user_password'
 
     # Sahara
-    if settings['sahara']['enabled']
+    if enabled
       it 'should declare sahara class correctly' do
         should contain_class('sahara').with(
-          'db_password'       => settings['sahara']['db_password'],
-          'keystone_password' => settings['sahara']['user_password'],
+          'db_password'              => db_password,
+          'keystone_password'        => user_password,
           'use_neutron'              => use_neutron,
           'rpc_backend'              => 'rabbit',
           'rabbit_ha_queues'         => 'true',
