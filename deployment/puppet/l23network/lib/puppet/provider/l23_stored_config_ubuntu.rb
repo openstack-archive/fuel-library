@@ -42,8 +42,8 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   def self.collected_properties
     {
       :routes  => {
-          # post-up ip route add (default/10.20.30.0/24) via 1.2.3.4
-          :detect_re    => /(post-)?up\s+ip\s+r([oute]+)?\s+add\s+(default|\d+\.\d+\.\d+\.\d+\/\d+)\s+via\s+(\d+\.\d+\.\d+\.\d+)/,
+          # post-up ip route add (default/10.20.30.0/24) via 1.2.3.4 [metric NN]
+          :detect_re    => /(post-)?up\s+ip\s+r([oute]+)?\s+add\s+(default|\d+\.\d+\.\d+\.\d+\/\d+)\s+via\s+(\d+\.\d+\.\d+\.\d+)(\s+metric\s+\d+)?/,
           :detect_shift => 3,
       },
       :ethtool => {
@@ -267,12 +267,17 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     # metric is optional
     rv = {}
     data.each do |d|
-      name = L23network.get_route_resource_name(d[0], d[2])
+      if d[2]
+        metric = d[2].split(/\s+/)[-1].to_i
+      else
+        metric = 0
+      end
+      name = L23network.get_route_resource_name(d[0], metric)
       rv[name] = {
-        :destination => d[0],
-        :gateway =>     d[1]
+        'destination' => d[0],
+        'gateway' =>     d[1]
       }
-      rv[name][:metric] = d[2] if d[2]
+      rv[name][:metric] = metric if metric > 0
     end
     return rv
   end
@@ -424,7 +429,8 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     return [] if ['', 'absent'].include? data.to_s
     rv = []
     data.each_pair do |name, rou|
-      rv << "post-up ip route add #{rou[:destination]} via #{rou[:gateway]} | true # #{name}"
+      mmm = (rou['metric'].nil?  ?  ''  :  "metric #{rou['metric']} ")
+      rv << "post-up ip route add #{rou['destination']} via #{rou['gateway']} #{mmm} | true # #{name}"
     end
     rv
   end

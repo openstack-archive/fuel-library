@@ -98,7 +98,7 @@ module L23network
 #   return rv
 # end
 
-  def self.get_route_resource_name(dest, metric)
+  def self.get_route_resource_name(dest, metric=0)
     (metric.to_i > 0  ?  "#{dest},metric:#{metric}"  :  rv = "#{dest}")
   end
 end
