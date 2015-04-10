@@ -1,3 +1,5 @@
+#  Configures keytone parameters required by murano
+
 class murano::keystone (
   $user             = 'murano',
   $password         = 'swordfish',

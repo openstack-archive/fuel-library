@@ -1,3 +1,5 @@
+# Installs & configure the murano dashboard
+
 class murano::dashboard (
   $settings_py                    = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
   $modify_config                  = '/usr/bin/modify-horizon-config.sh',
