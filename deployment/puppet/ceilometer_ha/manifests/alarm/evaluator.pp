@@ -15,6 +15,6 @@ class ceilometer_ha::alarm::evaluator inherits ceilometer::alarm::evaluator {
         'timeout' => '360',
       },
     },
-    ocf_script_file => 'cluster/ocf/ceilometer-alarm-evaluator',
+    #    ocf_script_file => 'cluster/ocf/ceilometer-alarm-evaluator',
   }
 }

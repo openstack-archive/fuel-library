@@ -46,12 +46,6 @@ class l23network (
   Class['l23network::l2'] -> File<| title == "${::l23network::params::interfaces_dir}" |>
   Class['l23network::l2'] -> File<| title == "${::l23network::params::interfaces_file}" |>
 
-  # Centos interface up-n-down scripts
-  if $::osfamily =~ /(?i)redhat/ {
-    class{'::l23network::l2::centos_upndown_scripts': } -> Anchor['l23network::init']
-    Anchor <| title == 'l23network::l2::centos_upndown_scripts' |> -> Anchor['l23network::init']
-  }
-
   Anchor['l23network::l2::init'] -> Anchor['l23network::init']
   anchor { 'l23network::init': }
 
