@@ -10,6 +10,8 @@ Provides: fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
 
+%define files_source %{_builddir}/%{name}-%{version}/files
+%define dockerctl_source %{files_source}/fuel-docker-utils
 
 %description
 
@@ -24,7 +26,20 @@ This package contains deployment manifests and code to execute provisioning of m
 %install
 mkdir -p %{buildroot}/etc/puppet/2014.2-%{version}/modules/
 mkdir -p %{buildroot}/etc/puppet/2014.2-%{version}/manifests/
-cp -fr deployment/puppet/* %{buildroot}/etc/puppet/2014.2-%{version}/modules/
+mkdir -p %{buildroot}/etc/profile.d/
+mkdir -p %{buildroot}/etc/dockerctl
+mkdir -p %{buildroot}/usr/bin/
+mkdir -p %{buildroot}/usr/lib/
+mkdir -p %{buildroot}/usr/share/dockerctl
+mkdir -p %{buildroot}/sbin/
+cp -fr %{_builddir}/%{name}-%{version}/deployment/puppet/* %{buildroot}/etc/puppet/2014.2-%{version}/modules/
+#FUEL DOCKERCTL UTILITY
+install -m 0644 %{dockerctl_source}/dockerctl-alias.sh %{buildroot}/etc/profile.d/
+install -m 0755 %{dockerctl_source}/dockerctl %{buildroot}/usr/bin
+install -m 0755 %{dockerctl_source}/get_service_credentials.py %{buildroot}/usr/bin
+install -m 0644 %{dockerctl_source}/dockerctl_config %{buildroot}/etc/dockerctl/config
+install -m 0644 %{dockerctl_source}/functions.sh %{buildroot}/usr/share/dockerctl/
+
 
 %post
 #!/bin/bash
@@ -43,6 +58,29 @@ done
 %files
 /etc/puppet/2014.2-%{version}/modules/
 /etc/puppet/2014.2-%{version}/manifests/
+
+%package -n fuel-docker-utils
+Summary: Fuel project utilities for Docker container management tool
+Version: 6.1
+Release: 1
+Group: System Environment/Libraries
+License: GPLv2
+URL: http://github.com/stackforge/fuel-library
+BuildArch: noarch
+BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+
+%description -n fuel-docker-utils
+This package contains a set of helpers to manage docker containers
+during Fuel All-in-One deployment toolkit installation
+
+%files -n fuel-docker-utils
+/etc/profile.d/dockerctl-alias.sh
+/usr/bin/dockerctl
+/usr/bin/get_service_credentials.py
+/usr/share/dockerctl/functions.sh
+%config(noreplace) /etc/dockerctl/config
+
+
 
 %clean
 rm -rf ${buildroot}
