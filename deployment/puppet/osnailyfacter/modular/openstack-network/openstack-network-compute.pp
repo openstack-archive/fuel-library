@@ -147,8 +147,11 @@ if $network_provider == 'nova' {
     create_resources('class', $neutron_resource)
   }
 
+  # Stub for networking-refresh that is needed by Nova::Network/Nova::Generic_service[network]
+  # We do not need it due to l23network is doing all stuff
+  # BTW '/sbin/ifdown -a ; /sbin/ifup -a' does not work on CentOS
   exec { 'networking-refresh':
-    command     => '/sbin/ifdown -a ; /sbin/ifup -a',
+    command     => '/bin/echo "networking-refresh has been refreshed"',
     refreshonly => true,
   }
 
@@ -166,6 +169,8 @@ if $network_provider == 'nova' {
     name   => 'binutils',
     ensure => 'installed',
   }
+
+  Nova_config<| |> -> Service['nova-network']
 
 } else {
   # Neutron
