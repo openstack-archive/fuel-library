@@ -1,0 +1,29 @@
+install -m 0755 TEMPLATE /usr/local/bin/puppet-pull
+install -m 0755 TEMPLATE /usr/local/bin/haproxy-status
+install -m 0755 deployment/puppet/cluster/ocf/ns_haproxy /usr/lib/ocf/resource.d/fuel/ns_haproxy
+install -m 0755 deployment/puppet/galera/ocf/mysql-wss /usr/lib/ocf/resource.d/fuel/mysql-wss
+install -m 0755 TEMPLATE /usr/local/bin/clustercheck
+install -m 0755 deployment/puppet/cluster/ocf/ns_dns /usr/lib/ocf/resource.d/fuel/ns_dns
+install -m 0755 TEMPLATE /usr/lib/ocf/resource.d/fuel/heat-engine
+install -m 0755 deployment/puppet/cluster/ocf/ns_ntp /usr/lib/ocf/resource.d/fuel/ns_ntp
+install -m 0755 deployment/puppet/cluster/q-agent-cleanup.py /usr/bin/q-agent-cleanup.py
+install -m 0755 deployment/puppet/cluster/ocf/ocf-neutron-ovs-agent /usr/lib/ocf/resource.d/fuel/ocf-neutron-ovs-agent
+install -m 0755 deployment/puppet/cluster/ocf/ocf-neutron-metadata-agent /usr/lib/ocf/resource.d/fuel/ocf-neutron-metadata-agent
+install -m 0755 deployment/puppet/cluster/ocf/ocf-neutron-dhcp-agent /usr/lib/ocf/resource.d/fuel/ocf-neutron-dhcp-agent
+install -m 0755 deployment/puppet/cluster/ocf/ocf-neutron-l3-agent /usr/lib/ocf/resource.d/fuel/ocf-neutron-l3-agent
+install -m 0755 deployment/puppet/cluster/ocf/rabbitmq /usr/lib/ocf/resource.d/fuel/rabbitmq-server
+install -m 0755 -d deployment/puppet/sahara/templates /usr/share/sahara/templates
+install -m 0755 deployment/puppet/sahara/create_templates.sh /usr/share/sahara/templates/create_templates.sh
+install -m 0755 TEMPLATE /usr/local/bin/swift-rings-rebalance.sh
+install -m 0755 TEMPLATE /usr/local/bin/swift-rings-sync.sh
+install -m 0770 deployment/puppet/umm/umm_svc /usr/lib/umm/umm_svc
+install -m 0770 TEMPLATE /usr/lib/umm/umm_vars
+install -m 0770 deployment/puppet/umm/umm /usr/local/bin/umm
+install -m 0770 deployment/puppet/umm/umm_svc.u1404 /usr/lib/umm/umm_svc.u1404
+install -m 0755 deployment/puppet/cluster/ocf/ns_IPaddr2 /usr/lib/ocf/resource.d/fuel/ns_IPaddr2
+install -m 0755 deployment/puppet/cluster/ocf/ceilometer-agent-central /usr/lib/ocf/resource.d/fuel/ceilometer-agent-central
+install -m 0755 deployment/puppet/cluster/ocf/ceilometer-alarm-evaluator /usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator
+install -d  /usr/lib/ocf/resource.d/fuel
+install -m 0755  /usr/bin/modify-horizon-config.sh
+install -d  /usr/lib/umm
+ln -s /var/lib/rabbitmq/rabbitmqadmin /usr/local/bin/rabbitmqadmin

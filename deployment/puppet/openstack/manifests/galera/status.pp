@@ -81,7 +81,7 @@ class openstack::galera::status (
     }
   }
 
-  file { '/usr/local/bin/clustercheck':
+  file { '/etc/wsrepclustercheckrc':
     content => template('openstack/galera_clustercheck.erb'),
     mode    => '0755',
   }
