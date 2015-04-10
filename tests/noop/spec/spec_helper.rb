@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'rspec-puppet'
 require 'puppetlabs_spec_helper/module_spec_helper'
+require 'fileutils'
 require 'yaml'
 
 puppet_logs_dir = ENV['PUPPET_LOGS_DIR'] || 'none'
@@ -141,26 +142,39 @@ module Noop
   ## File resources list ##
 
   def self.file_resources_lists_dir
-    File.expand_path File.join ENV['NOOP_SAVE_RESOURCES_DIR'], 'file_resources', self.astute_yaml_base
+    File.expand_path File.join ENV['NOOP_SAVE_RESOURCES_DIR'], 'file_resources'
+    #, self.astute_yaml_base
+    #, self.astute_yaml_base
   end
 
-  def self.file_resources_list_file(manifest, os)
-    file_name = manifest.gsub('/', '_').gsub('.pp', '') + "_#{os}_files.yaml"
+  def self.file_resources_list_file(os)
+    file_name = "#{os}_files.yaml"
     File.join file_resources_lists_dir, file_name
   end
 
   def self.save_file_resources_list(data, manifest, os)
-    begin
-      Dir.mkdir file_resources_lists_dir unless File.directory? file_resources_lists_dir
-      file_path = file_resources_list_file manifest, os
-      File.open(file_path, 'w') do |list_file|
-        YAML.dump(data, list_file)
+    #begin
+      #Dir.mkdir file_resources_lists_dir unless File.directory? file_resources_lists_dir
+      file_path=file_resources_list_file(os)
+      FileUtils.touch(file_path)
+      yaml=YAML.load_file(file_path)
+      if !yaml.is_a? Hash
+          yaml=Hash.new()
       end
-    rescue
-      puts "Could not save File resources list for manifest: '#{manifest}' to: '#{file_path}'"
-    else
-      puts "File resources list for manifest: '#{manifest}' saved to: '#{file_path}'"
-    end
+      data.each do |name,params|
+          if yaml[name].nil?
+              yaml[name]={}
+          end
+          yaml[name][manifest]=params
+      end
+      File.open(file_path, 'w') do |list_file|
+        YAML.dump(yaml, list_file)
+      end
+    #rescue
+    #  puts "Could not save File resources list for manifest: '#{manifest}' to: '#{file_path}'"
+    #else
+    #  puts "File resources list for manifest: '#{manifest}' saved to: '#{file_path}'"
+    #end
   end
 
   ## Package resources list ##

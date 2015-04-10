@@ -58,17 +58,28 @@ def test_ubuntu_and_centos(manifest)
       file_resources = {}
       catalog.resources.each do |resource|
         next unless resource.type == 'File'
-        next unless %w(present file).include? resource[:ensure] or not resource[:ensure]
+        next unless %w(present file directory link).include? resource[:ensure] or not resource[:ensure] or not resource[:ensure].to_s =~ /^\//
 
+        file=Hash.new
         if resource[:source]
-          content = resource[:source]
+          file['source'] = resource[:source].to_s
         elsif resource[:content]
-          content = 'TEMPLATE'
-        else
-          content = nil
+          file['source'] = 'TEMPLATE'
+        elsif
+          resource['ensure'].to_s == 'link' or resource[:ensure].to_s =~ /^\//
+          file['source'] = 'SYMLINK'
+          file['target'] = resource[:target].nil? ? resource[:ensure].to_s : resource[:target].to_s
         end
-        next unless content
-        file_resources[resource[:path]] = content
+        if resource[:ensure] == 'directory'
+          file['directory'] = 'true'
+        else
+          file['directory'] = 'false'
+        end
+        next if file.empty?
+        file['mode']=resource[:mode]
+        file['owner']=resource[:owner]
+        file['group']=resource[:group]
+        file_resources[resource[:path]] = file
       end
       if file_resources.any?
         Noop.save_file_resources_list file_resources, manifest, os

@@ -1,0 +1,112 @@
+#!/bin/bash
+#
+# Script to make a proxy (ie HAProxy) capable of monitoring Percona XtraDB Cluster nodes properly
+#
+# Author: Olaf van Zandwijk <olaf.vanzandwijk@nedap.com>
+# Author: Raghavendra Prabhu <raghavendra.prabhu@percona.com>
+#
+#
+#Copyright (c) 2012-2014, Olaf van Zandwijk
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without modification,
+#are permitted provided that the following conditions are met:
+#
+#1. Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+#2. Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+#3. Neither the name of the copyright holder nor the names of its contributors
+#   may be used to endorse or promote products derived from this software without
+#   specific prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+#ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+#WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+#DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+#ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+#(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+#ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+#(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+#SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Documentation and download: https://github.com/olafz/percona-clustercheck
+#
+# Based on the original script from Unai Rodriguez
+#
+
+if [[ $1 == '-h' || $1 == '--help' ]];then
+    echo "Usage: $0 <user> <pass> <available_when_donor=0|1> <log_file> <available_when_readonly=0|1> <defaults_extra_file>"
+    exit
+fi
+
+source /etc/wsrepclustercheckrc
+
+VAILABLE_WHEN_DONOR=${3:-0}
+ERR_FILE="${4:-/dev/null}"
+AVAILABLE_WHEN_READONLY=${5:-1}
+DEFAULTS_EXTRA_FILE=${6:-/etc/my.cnf}
+
+#Timeout exists for instances where mysqld may be hung
+TIMEOUT=10
+
+if [[ -r $DEFAULTS_EXTRA_FILE ]];then
+    MYSQL_CMDLINE="mysql --defaults-extra-file=$DEFAULTS_EXTRA_FILE -nNE --connect-timeout=$TIMEOUT \
+                    --user=${MYSQL_USERNAME} --password=${MYSQL_PASSWORD}"
+else
+    MYSQL_CMDLINE="mysql -nNE --connect-timeout=$TIMEOUT --user=${MYSQL_USERNAME} --password=${MYSQL_PASSWORD}"
+fi
+#
+# Perform the query to check the wsrep_local_state
+#
+WSREP_STATUS=$($MYSQL_CMDLINE -e "SHOW STATUS LIKE 'wsrep_local_state';" \
+    2>${ERR_FILE} | tail -1 2>>${ERR_FILE})
+
+if [[ "${WSREP_STATUS}" == "4" ]] || [[ "${WSREP_STATUS}" == "2" && ${AVAILABLE_WHEN_DONOR} == 1 ]]
+then
+    # Check only when set to 0 to avoid latency in response.
+    if [[ $AVAILABLE_WHEN_READONLY -eq 0 ]];then
+        READ_ONLY=$($MYSQL_CMDLINE -e "SHOW GLOBAL VARIABLES LIKE 'read_only';" \
+                    2>${ERR_FILE} | tail -1 2>>${ERR_FILE})
+
+        if [[ "${READ_ONLY}" == "ON" ]];then
+            # Percona XtraDB Cluster node local state is 'Synced', but it is in
+            # read-only mode. The variable AVAILABLE_WHEN_READONLY is set to 0.
+            # => return HTTP 503
+            # Shell return-code is 1
+            echo -en "HTTP/1.1 503 Service Unavailable\r\n"
+            echo -en "Content-Type: text/plain\r\n"
+            echo -en "Connection: close\r\n"
+            echo -en "Content-Length: 43\r\n"
+            echo -en "\r\n"
+            echo -en "Percona XtraDB Cluster Node is read-only.\r\n"
+            sleep 0.1
+            exit 1
+        fi
+    fi
+    # Percona XtraDB Cluster node local state is 'Synced' => return HTTP 200
+    # Shell return-code is 0
+    echo -en "HTTP/1.1 200 OK\r\n"
+    echo -en "Content-Type: text/plain\r\n"
+    echo -en "Connection: close\r\n"
+    echo -en "Content-Length: 40\r\n"
+    echo -en "\r\n"
+    echo -en "Percona XtraDB Cluster Node is synced.\r\n"
+    sleep 0.1
+    exit 0
+else
+    # Percona XtraDB Cluster node local state is not 'Synced' => return HTTP 503
+    # Shell return-code is 1
+    echo -en "HTTP/1.1 503 Service Unavailable\r\n"
+    echo -en "Content-Type: text/plain\r\n"
+    echo -en "Connection: close\r\n"
+    echo -en "Content-Length: 44\r\n"
+    echo -en "\r\n"
+    echo -en "Percona XtraDB Cluster Node is not synced.\r\n"
+    sleep 0.1
+    exit 1
+fi
