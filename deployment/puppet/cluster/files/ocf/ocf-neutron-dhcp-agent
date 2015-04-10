@@ -52,6 +52,7 @@ OCF_RESKEY_tenant_default="services"
 OCF_RESKEY_multiple_agents_default='true'
 OCF_RESKEY_rescheduling_tries_default=5
 OCF_RESKEY_rescheduling_interval_default=33
+OCF_RESKEY_cleanup_resources_default='false'
 OCF_RESKEY_debug_default='false'
 
 
@@ -73,6 +74,7 @@ OCF_RESKEY_debug_default='false'
 : ${OCF_RESKEY_state_reports_timeout=${OCF_RESKEY_state_reports_timeout_default}}
 : ${OCF_RESKEY_rescheduling_tries=${OCF_RESKEY_rescheduling_tries_default}}
 : ${OCF_RESKEY_rescheduling_interval=${OCF_RESKEY_rescheduling_interval_default}}
+: ${OCF_RESKEY_cleanup_resources=${OCF_RESKEY_cleanup_resources_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 
 
@@ -264,6 +266,15 @@ Admin tenant name
 Additional parameters to pass on to the OpenStack DHCP Service (${OCF_RESKEY_binary})
 </longdesc>
 <shortdesc lang="en">Additional parameters for neutron-dhcp-agent</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="cleanup_resources" unique="0" required="0">
+<longdesc lang="en">
+Clean up all resources created by Neutron DHCP agent, such as additional processes,
+network namespaces, created interfaces, on agent stop and start.
+</longdesc>
+<shortdesc lang="en">Clean up all resources created by DHCP agent on its start and stop</shortdesc>
 <content type="string" />
 </parameter>
 
@@ -528,9 +539,11 @@ neutron_dhcp_agent_start() {
         return $OCF_SUCCESS
     fi
 
-    clean_up
-    sleep 1
-    clean_up_namespaces
+    if ocf_is_true "$OCF_RESKEY_cleanup_resources"; then
+        clean_up
+        sleep 1
+        clean_up_namespaces
+    fi
     rm -f $OCF_RESKEY_state_reports_file
 
     # run and detach to background agent as daemon.
@@ -575,10 +588,12 @@ neutron_dhcp_agent_stop() {
     neutron_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-        clean_up
+        if ocf_is_true "$OCF_RESKEY_cleanup_resources"; then
+            clean_up
+            sleep 1
+            clean_up_namespaces
+        fi
         ocf_log info "OpenStack DHCP Agent (${OCF_RESKEY_binary}) already stopped"
-        sleep 1
-        clean_up_namespaces
         return $OCF_SUCCESS
     fi
 
@@ -590,8 +605,12 @@ neutron_dhcp_agent_stop() {
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
         shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-6))
     fi
-    all_inside_ns_pids=`get_pid_list_for_ns_list $(get_ns_list)`
-    all_pids="$pid $all_inside_ns_pids"
+    if ocf_is_true "$OCF_RESKEY_cleanup_resources"; then
+        all_inside_ns_pids=`get_pid_list_for_ns_list $(get_ns_list)`
+        all_pids="$pid $all_inside_ns_pids"
+    else
+        all_pids="$pid"
+    fi
     count=0
     alive=1
     while [ $alive -gt 0 ] && [ $count -lt $shutdown_timeout ]; do
@@ -635,9 +654,12 @@ neutron_dhcp_agent_stop() {
     ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid
 
-#   cleanup network interfaces
-    q-agent-cleanup.py --agent=dhcp --cleanup-ports
-    clean_up_namespaces
+    if ocf_is_true "$OCF_RESKEY_cleanup_resources"; then
+        # cleanup network interfaces
+        q-agent-cleanup.py --agent=dhcp --cleanup-ports
+        clean_up_namespaces
+    fi
+
     if ! ocf_is_true "$OCF_RESKEY_multiple_agents" ; then
         q-agent-cleanup.py --agent=dhcp --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
     fi
