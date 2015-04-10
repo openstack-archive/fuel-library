@@ -19,9 +19,9 @@ def ipsort (ips)
   ips.sort { |a,b| IPAddr.new( a ) <=> IPAddr.new( b ) }
 end
 
-def test_ubuntu_and_centos(manifest)
+def test_ubuntu_and_centos(manifest, force_manifest = false)
   # check if task is present in the task list
-  unless Noop.manifest_present? manifest
+  unless force_manifest or Noop.manifest_present? manifest
     # puts "Manifest '#{manifest}' is not enabled on the node '#{Noop.hostname}'. Skipping tests."
     return
   end
@@ -38,8 +38,7 @@ def test_ubuntu_and_centos(manifest)
   end
 
   shared_examples 'should_compile' do
-    # it { puts "OS: '#{os}'\nYAML: '#{Noop.astute_yaml_base}'\nManifest: '#{Noop.manifest}'"}
-    it {
+    it do
       File.stubs(:exists?).with('/var/lib/astute/ceph/ceph').returns(true)
       File.stubs(:exists?).with('/var/lib/astute/mongodb/mongodb.key').returns(true)
       File.stubs(:exists?).with('/var/lib/astute/mongodb/mongodb.key').returns(true)
@@ -47,8 +46,8 @@ def test_ubuntu_and_centos(manifest)
       File.stubs(:exists?).with('/var/lib/astute/nova/nova').returns(true)
       File.stubs(:exists?).with('/var/lib/astute/ceph/ceph').returns(true)
       File.stubs(:exists?).returns(false)
-      should compile
-    }
+      should compile.with_all_deps
+    end
   end
 
   shared_examples 'save_files_list' do
@@ -92,16 +91,45 @@ def test_ubuntu_and_centos(manifest)
     end
   end
 
+  shared_examples 'debug' do
+    it 'shows catalog contents' do
+      Noop.show_catalog subject
+    end
+  end
+
+  shared_examples 'generate' do
+    it 'shows catalog contents' do
+      Noop.catalog_to_spec subject
+    end
+  end
+
+  shared_examples 'status' do
+    it 'shows status' do
+      puts <<-eos
+      =============================================
+      OS:       #{os}
+      YAML:     #{Noop.astute_yaml_base}
+      Manifest: #{Noop.manifest}
+      Node:     #{Noop.fqdn}
+      Role:     #{Noop.hiera 'role'}
+      =============================================
+      eos
+    end
+  end
+
   #######################################
   # Testing on different operating systems
   # Ubuntu
   context 'on Ubuntu platforms' do
     let(:facts) { Noop.ubuntu_facts }
+
     it_behaves_like 'should_compile'
+
     if ENV['NOOP_SAVE_RESOURCES_DIR'] and File.directory?(ENV['NOOP_SAVE_RESOURCES_DIR'])
       it_behaves_like 'save_files_list'
       it_behaves_like 'save_packages_list'
     end
+
     begin
       it_behaves_like 'puppet catalogue'
     rescue ArgumentError
@@ -112,11 +140,14 @@ def test_ubuntu_and_centos(manifest)
   # CentOS
   context 'on CentOS platforms' do
     let(:facts) { Noop.centos_facts }
+
     it_behaves_like 'should_compile'
+
     if ENV['NOOP_SAVE_RESOURCES_DIR'] and File.directory?(ENV['NOOP_SAVE_RESOURCES_DIR'])
       it_behaves_like 'save_files_list'
       it_behaves_like 'save_packages_list'
     end
+
     begin
       it_behaves_like 'puppet catalogue'
     rescue ArgumentError

@@ -7,18 +7,17 @@ describe manifest do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
 
-    settings = Noop.fuel_settings
-    internal_address = Noop.node_hash['internal_address']
-    rabbit_user = settings['rabbit']['user'] || 'nova'
-    use_neutron = settings['quantum'].to_s
+    rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
+    rabbit_password = Noop.hiera_structure 'rabbit/password'
+    enabled = Noop.hiera_structure 'ceilometer/enabled'
     rabbit_ha_queues = 'true'
 
     # Ceilometer
-    if settings['ceilometer']['enabled']
+    if enabled
       it 'should declare openstack::ceilometer class with correct parameters' do
         should contain_class('openstack::ceilometer').with(
           'amqp_user'        => rabbit_user,
-          'amqp_password'    => settings['rabbit']['password'],
+          'amqp_password'    => rabbit_password,
           'rabbit_ha_queues' => rabbit_ha_queues,
           'on_controller'    => 'true',
         )

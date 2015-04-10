@@ -7,11 +7,11 @@ describe manifest do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
 
-    settings = Noop.fuel_settings
     internal_address = Noop.node_hash['internal_address']
+    use_neutron = Noop.hiera 'use_neutron'
 
     # Network
-    if settings['quantum']
+    if use_neutron
       it 'should declare openstack::network with neutron_server parameter set to false' do
         should contain_class('openstack::network').with(
           'neutron_server' => 'false',
@@ -25,7 +25,7 @@ describe manifest do
       end
     end
 
-    if settings['quantum']
+    if use_neutron
       it 'should create /etc/libvirt/qemu.conf file that notifies libvirt service' do
         should contain_file('/etc/libvirt/qemu.conf').with(
           'ensure' => 'present',

@@ -1,4 +1,6 @@
 require 'rubygems'
+require 'puppet'
+require 'hiera_puppet'
 require 'rspec-puppet'
 require 'puppetlabs_spec_helper/module_spec_helper'
 require 'yaml'
@@ -22,7 +24,7 @@ module Noop
   end
 
   def self.astute_yaml_name
-    ENV['astute_filename'] || 'neut_vlan.primary-controller.yaml'
+    ENV['astute_filename'] || 'novanet-primary-controller.yaml'
   end
 
   def self.astute_yaml_base
@@ -49,16 +51,8 @@ module Noop
     self.globlas_prefix + self.hiera_data_astute
   end
 
-  def self.hiera_config_file
-    File.join self.fixtures_path, 'hiera.yaml'
-  end
-
-  def self.fuel_settings
-    YAML.load_file self.astute_yaml_path
-  end
-
   def self.fqdn
-    self.fuel_settings['fqdn']
+   hiera 'fqdn', 'localhost.localdomain'
   end
 
   def self.hostname
@@ -66,20 +60,75 @@ module Noop
   end
 
   def self.node_hash
-    Noop.fuel_settings['nodes'].find { |node| node['fqdn'] == Noop.fqdn } || {}
+    hiera('nodes').find { |node| node['fqdn'] == Noop.fqdn } || {}
   end
 
   def self.manifest_present?(manifest)
     manifest_path = File.join self.modular_manifests_node_dir, manifest
-    self.fuel_settings['tasks'].find do |task|
+    hiera('tasks').find do |task|
       task['parameters']['puppet_manifest'] == manifest_path
+    end
+  end
+
+  def self.hiera_config
+    {
+        :backends=> [
+            'yaml',
+        ],
+        :yaml=>{
+            :datadir => hiera_data_path,
+        },
+        :hierarchy=> [
+            hiera_data_globals,
+            hiera_data_astute,
+        ],
+        :logger => 'noop',
+    }
+  end
+
+  def self.hiera_object
+    Hiera.new(:config => hiera_config)
+  end
+
+  def self.hiera(key, default = nil)
+    hiera_object.lookup key, default, {}
+  end
+
+  def self.hiera_structure(key, default=nil)
+    path_lookup = lambda do |data, path, default|
+      break default unless data
+      break data unless path.is_a? Array and path.any?
+      break default unless data.is_a? Hash or data.is_a? Array
+
+      key = path.shift
+      if data.is_a? Array
+        begin
+          key = Integer key
+        rescue ArgumentError
+          break default
+        end
+      end
+      path_lookup.call data[key], path, default
+    end
+
+    path = key.split '/'
+    key = path.shift
+    data = hiera key
+    path_lookup.call data, path, default
+  end
+
+  def self.hiera_puppet_override
+    class << HieraPuppet
+      def hiera
+        Noop.hiera_object
+      end
     end
   end
 
   def self.ubuntu_facts
     {
-        :fqdn                 => self.fqdn,
-        :hostname             => self.hostname,
+        :fqdn                 => fqdn,
+        :hostname             => hostname,
         :processorcount       => '4',
         :memorysize_mb        => '32138.66',
         :memorysize           => '31.39 GB',
@@ -88,21 +137,17 @@ module Noop
         :operatingsystem      => 'Ubuntu',
         :operatingsystemrelease => '14.04',
         :lsbdistid            => 'Ubuntu',
-        :l3_fqdn_hostname     => self.hostname,
+        :l3_fqdn_hostname     => hostname,
         :l3_default_route     => '172.16.1.1',
         :concat_basedir       => '/tmp/',
-        :hiera_data_path      => self.hiera_data_path,
-        :hiera_data_globals   => self.hiera_data_globals,
-        :hiera_data_astute    => self.hiera_data_astute,
-        :hiera_config_file    => self.hiera_config_file,
         :l23_os               => 'ubuntu',
     }
   end
 
   def self.centos_facts
     {
-        :fqdn                 => self.fqdn,
-        :hostname             => self.hostname,
+        :fqdn                 => fqdn,
+        :hostname             => hostname,
         :processorcount       => '4',
         :memorysize_mb        => '32138.66',
         :memorysize           => '31.39 GB',
@@ -111,13 +156,9 @@ module Noop
         :operatingsystem      => 'CentOS',
         :operatingsystemrelease => '6.5',
         :lsbdistid            => 'CentOS',
-        :l3_fqdn_hostname     => self.hostname,
+        :l3_fqdn_hostname     => hostname,
         :l3_default_route     => '172.16.1.1',
         :concat_basedir       => '/tmp/',
-        :hiera_data_path      => self.hiera_data_path,
-        :hiera_data_globals   => self.hiera_data_globals,
-        :hiera_data_astute    => self.hiera_data_astute,
-        :hiera_config_file    => self.hiera_config_file,
         :l23_os               => 'centos6',
     }
   end
@@ -188,6 +229,40 @@ module Noop
     end
   end
 
+  def self.show_catalog(subject)
+    catalog = subject
+    catalog = subject.call if subject.is_a? Proc
+    catalog.resources.each do |resource|
+      puts '=' * 70
+      puts resource.to_manifest
+    end
+  end
+
+  def self.resource_test_template(binding)
+    template = <<-'eof'
+  it do
+    expect(subject).to contain_<%= resource.type.gsub('::', '__').downcase %>('<%= resource.title %>').with(
+<% max_length = resource.to_hash.keys.inject(0) { |ml, key| key = key.to_s; ml = key.size if key.size > ml; ml } -%>
+<% resource.each do |parameter, value| -%>
+      <%= ":#{parameter}".to_s.ljust(max_length + 1) %> => <%= value.inspect %>,
+<% end -%>
+    )
+  end
+
+    eof
+    ERB.new(template, nil, '-').result(binding)
+  end
+
+  def self.catalog_to_spec(subject)
+    catalog = subject
+    catalog = subject.call if subject.is_a? Proc
+    catalog.resources.each do |resource|
+      next if %w(Stage Anchor).include? resource.type
+      next if resource.type == 'Class' and %w(Settings main).include? resource.title.to_s
+      puts resource_test_template binding
+    end
+  end
+
 end
 
 # Add fixture lib dirs to LOAD_PATH. Work-around for PUP-3336
@@ -199,7 +274,6 @@ end
 
 RSpec.configure do |c|
   c.module_path = Noop.module_path
-  c.hiera_config = Noop.hiera_config_file
   c.expose_current_running_example_as :example
 
   c.pattern = 'hosts/**'
@@ -233,4 +307,6 @@ RSpec.configure do |c|
   end
 
 end
+
+Noop.hiera_puppet_override
 

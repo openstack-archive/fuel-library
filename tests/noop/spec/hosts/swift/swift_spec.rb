@@ -4,11 +4,11 @@ manifest = 'swift/swift.pp'
 
 describe manifest do
   shared_examples 'puppet catalogue' do
-    settings = Noop.fuel_settings
-    role = settings['role']
-    storage_hash = Noop.fuel_settings['storage']
-    primary_controller_nodes = filter_nodes(settings['nodes'],'role','primary-controller')
-    controllers = primary_controller_nodes + filter_nodes(settings['nodes'],'role','controller')
+    role = Noop.hiera 'role'
+    storage_hash = Noop.hiera['storage']
+    nodes = Noop.hiera 'nodes'
+    primary_controller_nodes = filter_nodes(nodes,'role','primary-controller')
+    controllers = primary_controller_nodes + filter_nodes(nodes,'role','controller')
     controller_internal_addresses = nodes_to_hash(controllers,'name','internal_address')
     controller_nodes = ipsort(controller_internal_addresses.values)
     memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }

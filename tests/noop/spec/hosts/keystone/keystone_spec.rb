@@ -7,14 +7,14 @@ describe manifest do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
 
-    settings = Noop.fuel_settings
+    nodes = Noop.hiera 'nodes'
     internal_address = Noop.node_hash['internal_address']
-    primary_controller_nodes = filter_nodes(settings['nodes'],'role','primary-controller')
-    controllers = primary_controller_nodes + filter_nodes(settings['nodes'],'role','controller')
+    primary_controller_nodes = filter_nodes(nodes,'role','primary-controller')
+    controllers = primary_controller_nodes + filter_nodes(nodes,'role','controller')
     controller_internal_addresses = nodes_to_hash(controllers,'name','internal_address')
     controller_nodes = ipsort(controller_internal_addresses.values)
     memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }.join(',')
-    admin_token = settings['keystone']['admin_token']
+    admin_token = Noop.hiera_structure 'keystone/admin_token'
 
     # Keystone
     it 'should declare keystone class with admin_token' do
