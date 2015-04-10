@@ -5,6 +5,9 @@
 # clean previos state
 [ -f $UMM_FLAG ] && rm $UMM_FLAG
 
+# check if UMM enabled
+[  "z$UMM" == "zyes" ] || exit
+
 
 if [ -f $UMM_DATA/UMM_ENFORCED ] ; then
     echo umm >$UMM_FLAG
@@ -23,7 +26,6 @@ echo "UMM_DRC=$UMM_DRC">$UMM_DATA/UMM_DRC.var
 
 initctl start umm-tr || true
 
-[ -f $UMM_DATA/UMM_LOCK ] && exit
 
 if [ -f $UMM_FLAG ] ; then
     ${0}.${UMM_R}
