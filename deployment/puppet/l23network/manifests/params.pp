@@ -15,6 +15,7 @@ class l23network::params {
       $lnx_bridge_tools          = 'bridge-utils'
       $ovs_datapath_package_name = 'openvswitch-datapath-dkms'
       $ovs_common_package_name   = 'openvswitch-switch'
+      $ovs_kern_module_name      = 'openvswitch'
     }
     /(?i)redhat/: {
       $interfaces_dir            = '/etc/sysconfig/network-scripts'
@@ -27,6 +28,7 @@ class l23network::params {
       $lnx_bridge_tools          = 'bridge-utils'
       $ovs_datapath_package_name = 'kmod-openvswitch'
       $ovs_common_package_name   = 'openvswitch'
+      $ovs_kern_module_name      = 'openvswitch'
     }
     /(?i)darwin/: {
       $interfaces_dir            = '/tmp/1'

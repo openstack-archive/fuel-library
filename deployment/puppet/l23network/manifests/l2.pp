@@ -4,14 +4,16 @@
 # Requirements, packages and services.
 #
 class l23network::l2 (
-  $use_ovs          = true,
   $use_lnx          = true,
+  $use_ovs          = false,
   $install_ovs      = $use_ovs,
   $install_brtool   = $use_lnx,
   $install_ethtool  = $use_lnx,
   $install_bondtool = $use_lnx,
   $install_vlantool = $use_lnx,
-  $ovs_modname      = 'openvswitch'
+  $ovs_modname      = $::l23network::params::ovs_kern_module_name,
+  $ovs_datapath_package_name = $::l23network::params::ovs_datapath_package_name,
+  $ovs_common_package_name   = $::l23network::params::ovs_common_package_name,
 ){
   include stdlib
   include ::l23network::params
@@ -19,30 +21,33 @@ class l23network::l2 (
   if $use_ovs {
     $ovs_mod_ensure = present
     if $install_ovs {
-      if $::l23network::params::ovs_datapath_package_name {
+      if $ovs_datapath_package_name {
         package { 'openvswitch-datapath':
-          name => $::l23network::params::ovs_datapath_package_name
+          name => $ovs_datapath_package_name
         }
+        Package['openvswitch-datapath'] -> Service['openvswitch-service']
       }
-      package { 'openvswitch-common':
-        name => $::l23network::params::ovs_common_package_name
+      if $ovs_common_package_name {
+        package { 'openvswitch-common':
+          name => $ovs_common_package_name
+        }
+        Package['openvswitch-common'] ~> Service['openvswitch-service']
       }
 
-      Package<| title=='openvswitch-datapath' |> -> Package['openvswitch-common']
-      Package['openvswitch-common'] ~> Service['openvswitch-service']
+      Package<| title=='openvswitch-datapath' |> -> Package<| title=='openvswitch-common' |>
     }
-    $ovs_service_ensure = 'running'
+
+    service {'openvswitch-service':
+      ensure    => 'running',
+      name      => $::l23network::params::ovs_service_name,
+      enable    => true,
+      hasstatus => true,
+    }
+    Service['openvswitch-service'] -> Anchor['l23network::l2::init']
+
   } else {
     $ovs_mod_ensure = absent
-    $ovs_service_ensure = 'stopped'
   }
-  service {'openvswitch-service':
-    ensure    => $ovs_service_ensure,
-    name      => $::l23network::params::ovs_service_name,
-    enable    => $ovs_service_ensure == 'running',
-    hasstatus => true,
-  }
-  Service['openvswitch-service'] -> Anchor['l23network::l2::init']
 
   @k_mod{$ovs_modname:
     ensure => $ovs_mod_ensure
