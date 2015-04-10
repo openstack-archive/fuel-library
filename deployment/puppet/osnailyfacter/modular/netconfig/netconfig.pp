@@ -2,7 +2,9 @@ notice('MODULAR: netconfig.pp')
 
 $network_scheme = hiera('network_scheme')
 
-class { 'l23network' :}
+class { 'l23network' :
+  use_ovs => hiera('use_neutron', false)
+}
 prepare_network_config($network_scheme)
 $sdn = generate_network_config()
 notify {"SDN: ${sdn}": }
