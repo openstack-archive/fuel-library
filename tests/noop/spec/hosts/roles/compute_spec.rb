@@ -3,11 +3,7 @@ require 'shared-examples'
 manifest = 'roles/compute.pp'
 
 describe manifest do
-
   shared_examples 'puppet catalogue' do
-
-    use_neutron = Noop.fuel_settings['quantum'].to_s
-    internal_address = Noop.node_hash['internal_address']
 
     # Libvirtd.conf
     it 'should configure listen_tls, listen_tcp and auth_tcp in libvirtd.conf' do

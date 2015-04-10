@@ -4,12 +4,13 @@ manifest = 'cluster-haproxy/cluster-haproxy.pp'
 
 describe manifest do
   shared_examples 'puppet catalogue' do
-    settings = Noop.fuel_settings
+
     networks = []
-    settings['network_scheme']['endpoints'].each{ |k,v|
+    endpoints = Noop.hiera_structure 'network_scheme/endpoints'
+    endpoints.each{ |k,v|
       if v['IP'].is_a?(Array)
         v['IP'].each { |ip|
-          networks << IPAddr.new(ip).to_s + "/" + ip.split('/')[1]
+          networks << IPAddr.new(ip).to_s + '/' + ip.split('/')[1]
         }
       end
     }
