@@ -3,7 +3,7 @@ require 'shared-examples'
 manifest = 'roles/controller.pp'
 
 describe manifest do
-  shared_examples 'puppet catalogue' do
+  shared_examples 'catalog' do
 
     it 'should set vm.swappiness sysctl to 10' do
       should contain_sysctl('vm.swappiness').with(
