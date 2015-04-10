@@ -6,6 +6,7 @@ group :development, :test do
   gem 'rspec-puppet', '~> 2.0.0'
   gem 'openstack', :require => false
   gem 'netaddr', :require => false
+  gem 'pry'
 end
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']
