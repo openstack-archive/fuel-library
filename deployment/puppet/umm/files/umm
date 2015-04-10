@@ -14,14 +14,13 @@ Usage(){
 "
 }
 
-if [ -f $UMM_DATA/UMM_LOCK ] ; then
+if [  ! "z$UMM" == "zyes" ] ; then
     case $1 in
 
         "status" | "on" | "off" | "disable" )
             echo "UMM disabled"
             ;;
         "enable" )
-            [ -f $UMM_DATA/UMM_LOCK ] && rm $UMM_DATA/UMM_LOCK
             sed -i 's/UMM=.*/UMM=yes/' /etc/umm.conf
             ;;
         * )
@@ -73,8 +72,9 @@ else
             if [ -f $UMM_FLAG ] ; then
                 echo "Current state is $(cat $UMM_FLAG) switch off first "
             else
-                echo 1 > $UMM_DATA/UMM_LOCK
                 sed -i 's/UMM=.*/UMM=no/' /etc/umm.conf
+                [ -f $UMM_DATA/UMM_ENFORCED ] && rm  $UMM_DATA/UMM_ENFORCED
+                [ -f $UMM_DATA/UMM_CMD ] &&  rm  $UMM_DATA/UMM_CMD
             fi
             ;;
         * )
