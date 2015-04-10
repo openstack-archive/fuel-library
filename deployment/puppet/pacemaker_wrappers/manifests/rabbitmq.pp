@@ -74,7 +74,7 @@ class pacemaker_wrappers::rabbitmq (
     ms_metadata         => $ms_metadata,
     operations          => $operations,
     parameters          => $parameters,
-    ocf_script_file     => $ocf_script_file,
+    #    ocf_script_file     => $ocf_script_file,
   }
   Service[$service_name] -> Rabbitmq_user <||>
 }
