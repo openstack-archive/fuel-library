@@ -75,6 +75,8 @@ else
             else
                 echo 1 > $UMM_DATA/UMM_LOCK
                 sed -i 's/UMM=.*/UMM=no/' /etc/umm.conf
+                [ -f $UMM_DATA/UMM_ENFORCED ] && rm  $UMM_DATA/UMM_ENFORCED
+                [ -f $UMM_DATA/UMM_CMD ] &&  rm  $UMM_DATA/UMM_ENFORCED
             fi
             ;;
         * )
