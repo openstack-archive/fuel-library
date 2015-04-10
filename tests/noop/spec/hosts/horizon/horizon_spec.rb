@@ -3,11 +3,10 @@ require 'shared-examples'
 manifest = 'horizon/horizon.pp'
 
 describe manifest do
-  shared_examples 'puppet catalogue' do
+  shared_examples 'catalog' do
 
-    settings = Noop.fuel_settings
     horizon_bind_address = Noop.node_hash['internal_address']
-    nova_quota = settings['nova_quota']
+    nova_quota = Noop.hiera 'nova_quota'
 
     # Horizon
     it 'should declare openstack::horizon class' do
