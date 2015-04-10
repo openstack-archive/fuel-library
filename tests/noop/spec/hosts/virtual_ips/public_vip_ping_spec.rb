@@ -1,0 +1,48 @@
+require 'spec_helper'
+require 'shared-examples'
+manifest = 'virtual_ips/public_vip_ping.pp'
+
+shared_examples 'puppet catalogue' do
+
+  let (:ping_host) {
+    Noop.fuel_settings['network_scheme']['endpoints']['br-ex']['gateway']
+  }
+
+  it do
+    expect(subject).to contain_cs_resource('ping_vip__public').with(
+                           :name            => "ping_vip__public",
+                           :ensure          => "present",
+                           :primitive_class => "ocf",
+                           :provided_by     => "pacemaker",
+                           :primitive_type  => "ping",
+                           :parameters      => {"host_list"=>ping_host, "multiplier"=>"1000", "dampen"=>"30s", "timeout"=>"3s"},
+                           :operations      => {"monitor"=>{"interval"=>"20", "timeout"=>"30"}},
+                           :complex_type    => "clone",
+                           :before          => "Cs_rsc_location[loc_ping_vip__public]",
+                       )
+  end
+
+  it do
+    expect(subject).to contain_service('ping_vip__public').with(
+                           :name     => "ping_vip__public",
+                           :ensure   => "running",
+                           :enable   => true,
+                           :provider => "pacemaker",
+                       )
+  end
+
+  it do
+    expect(subject).to contain_cs_rsc_location('loc_ping_vip__public').with(
+                           :name      => "loc_ping_vip__public",
+                           :primitive => "vip__public",
+                           :cib       => "ping_vip__public",
+                           :rules     => {"score"=>"-inf", "boolean"=>"", "expressions"=>[{"attribute"=>"not_defined", "operation"=>"pingd", "value"=>"or"}, {"attribute"=>"pingd", "operation"=>"lte", "value"=>"0"}]},
+                           :before    => "Service[ping_vip__public]",
+                       )
+  end
+
+end
+
+describe manifest do
+  test_ubuntu_and_centos manifest, true
+end
