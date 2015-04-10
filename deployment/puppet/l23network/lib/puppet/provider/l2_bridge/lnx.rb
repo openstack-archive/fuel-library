@@ -10,7 +10,6 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
   defaultfor :osfamily    => :linux
   commands   :brctl       => 'brctl',
              :ethtool_cmd => 'ethtool',
-             :vsctl       => 'ovs-vsctl',
              :iproute     => 'ip'
 
   def self.instances
