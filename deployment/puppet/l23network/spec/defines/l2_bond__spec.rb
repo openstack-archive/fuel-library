@@ -134,7 +134,6 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_xmit_hash_policy' => 'layer2',
       })
     end
-
     # it do
     #   should contain_l2_bond('bond0').with_ensure('present')
     #   should contain_l2_bond('bond0').with_bond_properties({
@@ -146,6 +145,67 @@ describe 'l23network::l2::bond', :type => :define do
     # end
 
     # we shouldn't test bond slaves here, because it equalent to previous tests
+  end
+
+  context 'Create a lnx-bond with mode = active-backup, lacp_rate = fast xmit_hash_policy = layer2' do
+    let(:params) do
+      {
+        :name            => 'bond0',
+        :interfaces      => ['eth3', 'eth4'],
+        :bond_properties => {
+            'mode'             => 'active-backup',
+            'lacp_rate'        => 'fast',
+            'xmit_hash_policy' => 'layer2',
+        },
+        :provider => 'lnx'
+      }
+    end
+
+    it do
+      should compile
+    end
+
+    it do
+      should contain_l23_stored_config('bond0').with({
+        'ensure'                => 'present',
+        'if_type'               => 'bond',
+        'bond_mode'             => 'active-backup',
+        'bond_lacp_rate'        => nil,
+        'bond_xmit_hash_policy' => nil,
+        'bond_miimon'           => '100',
+      })
+    end
+  end
+
+  context 'Create a lnx-bond with mode = balance-tlb, lacp_rate = fast xmit_hash_policy = layer2+3' do
+    let(:params) do
+      {
+        :name            => 'bond0',
+        :interfaces      => ['eth3', 'eth4'],
+        :bond_properties => {
+            'mode'             => 'balance-tlb',
+            'lacp_rate'        => 'fast',
+            'xmit_hash_policy' => 'layer2+3',
+            'miimon'           => '300',
+        },
+        :provider => 'lnx'
+      }
+    end
+
+    it do
+      should compile
+    end
+
+    it do
+      should contain_l23_stored_config('bond0').with({
+        'ensure'                => 'present',
+        'if_type'               => 'bond',
+        'bond_mode'             => 'balance-tlb',
+        'bond_lacp_rate'        => nil,
+        'bond_xmit_hash_policy' => 'layer2+3',
+        'bond_miimon'           => '300',
+      })
+    end
   end
 
 
