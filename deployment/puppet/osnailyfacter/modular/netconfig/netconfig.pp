@@ -2,20 +2,12 @@ notice('MODULAR: netconfig.pp')
 
 $network_scheme = hiera('network_scheme')
 
-class { 'l23network' :}
+class { 'l23network' :
+  use_ovs => hiera('use_neutron', false)
+}
 prepare_network_config($network_scheme)
 $sdn = generate_network_config()
-notify {"SDN: ${sdn}": }
-
-#todo(sv): temporary commented. Will be enabled later as part of
-#          'disable-offloading' re-implementation
-#if  hiera('disable_offload') {
-#  L23network::L3::Ifconfig<||> {
-#    ethtool => {
-#      'K' => ['gso off',  'gro off'],
-#    }
-#  }
-#}
+notify {"SDN": message=>"${sdn}" }
 
 
 # setting kernel reserved ports
