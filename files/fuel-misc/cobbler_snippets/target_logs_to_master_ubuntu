@@ -1,0 +1,4 @@
+#raw
+echo \$template LogToMaster, "\"<%%PRI%>1 %\$NOW%T%TIMESTAMP:8:\$%Z %HOSTNAME% %APP-NAME% %PROCID% %MSGID% -%msg%\"" >> /target/etc/rsyslog.d/10-logs2master.conf && \
+#end raw
+echo "*.* @$server;LogToMaster" >> /target/etc/rsyslog.d/10-logs2master.conf && \

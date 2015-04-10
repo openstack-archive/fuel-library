@@ -1,0 +1,4 @@
+#import pmanager
+#set $pm = $pmanager.PreseedPManager($getVar("pm_data",{}))
+#silent $pm.eval()
+$pm.expose_late()

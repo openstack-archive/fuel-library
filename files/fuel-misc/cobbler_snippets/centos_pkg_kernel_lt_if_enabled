@@ -1,0 +1,10 @@
+#if $str($getVar('kernel_lt','')) == "1"
+kernel-lt
+kernel-lt-headers
+kernel-lt-devel
+linux-firmware
+-kernel
+-kernel-headers
+-kernel-firmware
+-kernel-devel
+#end if

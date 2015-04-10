@@ -1,0 +1,13 @@
+#set $pkgsel_packages = ["acl", "openssh-server", "debconf-utils", "ntp", "ntpdate", "ruby-ipaddress", "ruby-netaddr", "ruby-openstack", "libaugeas-ruby", "libstomp-ruby1.8", "libshadow-ruby1.8", "libjson-ruby1.8", "vim", "vlan", "curl", "anacron", "python-amqp", "nailgun-agent", "nailgun-mcagents", "lvm2", "nailgun-net-check", "puppet", "telnet", "gdisk", "daemonize", "rsync", "virt-what" ]
+
+#if $str($getVar('mco_auto_setup','')) == "1"
+    #silent $pkgsel_packages.append("ruby-stomp")
+    #silent $pkgsel_packages.append("mcollective")
+#end if
+
+#set mlnx_mode=$getVar('mlnx_plugin_mode','disabled')
+#if $mlnx_mode != "disabled"
+    #silent $pkgsel_packages.append("mlnx-ofed-light")
+#end if
+
+d-i pkgsel/include string #echo " ".join($pkgsel_packages)

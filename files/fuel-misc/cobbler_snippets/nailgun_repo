@@ -1,0 +1,21 @@
+rm /etc/yum.repos.d/*.repo
+cat > /etc/yum.repos.d/nailgun.repo << EOF
+
+#if $varExists('repo_metadata')
+# REPOSITORIES FROM Nailgun
+#set nailgun_repo_list = dict(item.split("=") for item in $repo_metadata.split(","))
+#for $repo_name, $repo_url in $nailgun_repo_list.items()
+[$repo_name]
+name=$repo_name
+baseurl=$repo_url
+gpgcheck=0
+#end for
+#else
+<% @ks_repo.each do |repo| %>
+[<%= repo['id'] %>]
+name=<%= repo['name'] %>
+baseurl=<%= repo['url'] %>
+gpgcheck=0
+<% end %>
+#end if
+EOF

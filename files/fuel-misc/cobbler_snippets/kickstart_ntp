@@ -1,0 +1,2 @@
+ntpdate -t0.5 -p8 -ub $server
+hwclock --systohc

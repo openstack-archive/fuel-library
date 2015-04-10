@@ -1,0 +1,50 @@
+#import pmanager
+#set $pm = $pmanager.PreseedPManager($getVar("pm_data",{}))
+#silent $pm.eval()
+
+d-i partman/early_command string \
+anna-install parted-udeb && \
+anna-install hdparm-udeb && \
+debconf-set partman-auto/disk $pm.expose_disks();\
+$pm.expose_early()
+true
+
+d-i partman-basicfilesystems/choose_label string gpt
+d-i partman-basicfilesystems/default_label string gpt
+d-i partman-partitioning/choose_label string gpt
+d-i partman-partitioning/default_label string gpt
+d-i partman/choose_label string gpt
+d-i partman/default_label string gpt
+
+d-i partman-iscsi/mainmenu string finish
+d-i partman-md/device_remove_md boolean true
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-lvm/device_remove_lvm_span boolean true
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+d-i partman-auto/purge_lvm_from_device  boolean true
+d-i partman-auto/method string regular
+d-i partman-auto/choose_recipe select customrecipe
+d-i partman-basicmethods/method_only boolean false
+d-i partman-auto/expert_recipe string \
+customrecipe :: \
+$pm.expose_recipe()
+
+d-i partman-partitioning/confirm_write_new_label boolean true
+
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+d-i partman/confirm_write_new_label boolean true
+d-i partman/choose_partition select Finish partitioning and write changes to disk
+d-i partman/default_filesystem string ext4
+
+
+##############
+# BOOTLOADERS
+##############
+
+d-i grub-installer/skip boolean true
+d-i lilo-installer/skip boolean true
+d-i grub-installer/only_debian      boolean true
+d-i grub-installer/with_other_os    boolean true
+

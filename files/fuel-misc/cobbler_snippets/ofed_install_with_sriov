@@ -1,0 +1,32 @@
+#set $mlnx_mode=$getVar('mlnx_plugin_mode','disabled')
+#set $iser_enabled=$getVar('mlnx_iser_enabled','false')
+
+#if $mlnx_mode != "disabled" or $iser_enabled == 'true'
+
+#set $ofed_install_cmd="/opt/ofed/install_ofed.sh"
+
+#if $breed == "redhat"
+$ofed_install_cmd
+#elif $breed == "debian" or $breed == "ubuntu"
+in-target $ofed_install_cmd && \
+#end if
+
+#set $mlnx_opt = "options mlx4_core port_type_array=2,2"
+
+#if $mlnx_mode in ("ethernet") or $iser_enabled == 'true'
+#set $vf_num = $getVar('mlnx_vf_num','1')
+#set $mlnx_opt += " num_vfs=%s enable_64b_cqe_eqe=0 log_num_mgm_entry_size=-1" % ($vf_num)
+#end if
+
+#if $iser_enabled == 'true'
+#set $mlnx_opt += " probe_vf=1"
+#end if
+
+#set $mlnx4_core_file="/etc/modprobe.d/mlx4_core.conf"
+#if $breed == "debian" or $breed == "ubuntu"
+#set $mlnx4_core_file = "/target" + $mlnx4_core_file + " && \\"
+#end if
+#set $mlnx_option_cmd="echo -e \"%s\" > %s" % ($mlnx_opt, $mlnx4_core_file)
+$mlnx_option_cmd
+
+#end if

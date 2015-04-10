@@ -1,0 +1,32 @@
+# begin Red Hat Network certificate-based server registration
+
+#if $redhat_management_type == "cert" and $redhat_register_user != "" and $redhat_register_password != ""
+# Necessary packages
+if ! rpm -q subscription-manager &>/dev/null; then
+  yum -y install subscription-manager
+fi
+if ! rpm -q virt-what &>/dev/null; then
+  yum -y install virt-what
+fi
+
+# Subscribe (register) the system, but don't attach
+subscription-manager register --username=$redhat_register_user --password=$redhat_register_password
+# Get Red Hat OpenStack profile
+
+if [ \$(virt-what | wc -c) -gt 2 ]; then
+  system_type="Virtual"
+else
+  system_type="Physical"
+fi
+# Capture Pool ID and register
+poolid=\$(subscription-manager list --available | awk "BEGIN {RS=\"\\n\\n\";} /$system_type/ && /OpenStack/ { print; exit; }" | grep "Pool Id:" | awk '{ print $3;}')
+subscription-manager attach --pool="$poolid"
+# Add what used to be called channels
+yum -y install yum-utils
+yum-config-manager --enable  rhel-6-server-optional-rpms &> /dev/null
+yum-config-manager --enable  rhel-6-server-supplementary &> /dev/null
+#else
+# not configured to use Certificate-based RHN (ok)
+#end if
+# end Red Hat Network certificate-based server registration
+

@@ -1,0 +1,49 @@
+#import late_command
+#if $str($getVar('mco_auto_setup','')) == "1"
+#set $mco_port = $getVar('mco_port', '61613')
+in-target mkdir -p /etc/mcollective && \
+in-target $late_command.late_file("""
+main_collective = mcollective
+collectives = mcollective
+libdir = /usr/share/mcollective/plugins
+logfile = /var/log/mcollective.log
+loglevel = debug
+daemonize = 0
+direct_addressing = 1
+
+# Set huge value of ttl to avoid cases with unsyncronized time between nodes
+# It means that ttl approximately equal to 50 days
+ttl = 4294957
+
+# Plugins
+securityprovider = psk
+plugin.psk = %(mco_pskey)s
+
+connector = rabbitmq
+plugin.rabbitmq.vhost = mcollective
+plugin.rabbitmq.pool.size = 1
+plugin.rabbitmq.pool.1.host = %(mco_host)s
+plugin.rabbitmq.pool.1.port = %(mco_port)s
+plugin.rabbitmq.pool.1.user = %(mco_user)s
+plugin.rabbitmq.pool.1.password = %(mco_password)s
+plugin.rabbitmq.heartbeat_interval = 30
+
+# Facts
+factsource = yaml
+plugin.yaml = /etc/mcollective/facts.yaml
+""" % {
+    "mco_pskey": $mco_pskey,
+    "mco_host": $mco_host,
+    "mco_port": $mco_port,
+    "mco_user": $mco_user,
+    "mco_password": $mco_password
+    }, "/etc/mcollective/server.cfg", source_method='content', mode="0600");\
+
+in-target sed -i 's/msg_age = Time.now.utc.to_i - msgtime/msg_age = 0 #Time.now.utc.to_i - msgtime/g' /usr/lib/ruby/1.8/mcollective/message.rb; \
+#end if
+#if $str($getVar('mco_enable', '')) == "0"
+in-target /usr/sbin/invoke-rc.d mcollective stop; \
+in-target /usr/sbin/update-rc.d -f mcollective remove \
+#else
+true \
+#end if

@@ -1,0 +1,231 @@
+#!/bin/sh
+#
+# rabbitmq-server Murano RabbitMQ broker
+#
+# chkconfig: - 80 05
+# description: Enable AMQP service provided by RabbitMQ
+#
+
+### BEGIN INIT INFO
+# Provides:      rabbitmq-server
+# Required-Start:  $remote_fs $network
+# Required-Stop:   $remote_fs $network
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Description:     RabbitMQ broker
+# Short-Description: Enable AMQP service provided by RabbitMQ broker for Murano
+### END INIT INFO
+
+PATH="/sbin:/usr/sbin:/bin:/usr/bin"
+NAME="rabbitmq-server-murano"
+DAEMON="/usr/sbin/rabbitmq-server"
+CONTROL="/usr/sbin/rabbitmqctl"
+DESC="Murano RabbitMQ Server"
+USER="rabbitmq"
+ROTATE_SUFFIX=".old"
+
+export RABBITMQ_LOG_DIR="/var/log/rabbitmq"
+export RABBITMQ_PID_FILE="/var/run/rabbitmq-murano/pid"
+export RABBITMQ_CONFIG_FILE="/etc/rabbitmq/rabbitmq-murano"
+export RABBITMQ_MNESIA_BASE="/var/lib/rabbitmq/mnesia-murano"
+export RABBITMQ_LOG_BASE="/var/log/rabbitmq-murano"
+export RABBITMQ_ENABLED_PLUGINS_FILE="/etc/rabbitmq/enabled_plugins_murano"
+export RABBITMQ_NODENAME="murano@localhost"
+export RABBITMQ_NODE_PORT="<%= @rabbitmq_main_port %>"
+export RABBITMQ_NODE_IP_ADDRESS="0.0.0.0"
+
+LOCK_DIR="/var/lock/rabbitmq"
+LOCK_FILE="${LOCK_DIR}/${NAME}"
+mkdir -p "${LOCK_DIR}"
+chown -R "${USER}:${USER}" "${LOCK_DIR}"
+
+test -x "${DAEMON}" || exit 0
+test -x "${CONTROL}" || exit 0
+
+CONTROL="${CONTROL} -n ${RABBITMQ_NODENAME}"
+
+RETVAL="0"
+
+[ -f /etc/default/${NAME} ] && . /etc/default/${NAME}
+
+check_dir () {
+    mkdir -p "${1}"
+    chown -R "${USER}:${USER}" "${1}"
+    chmod "755" "${1}"
+}
+
+ensure_dirs () {
+    PID_DIR=`dirname ${RABBITMQ_PID_FILE}`
+    check_dir "${PID_DIR}"
+    check_dir "${RABBITMQ_LOG_DIR}"
+    check_dir "${RABBITMQ_LOG_BASE}"
+    check_dir "${RABBITMQ_MNESIA_BASE}"
+}
+
+remove_pid () {
+    rm -f "${RABBITMQ_PID_FILE}"
+}
+#####
+
+c_start_rabbitmq () {
+    status_rabbitmq quiet
+    if [ $RETVAL != 0 ] ; then
+    #Slave nodes fail to start until master is not up and running
+    #So, give slaves several attempts to start
+    #Rabbit database will be moved out before last attempt.
+        local MAX_START_ATTEMPTS=3
+        printf '%s\n' "RabbitMQ is going to make ${MAX_START_ATTEMPTS} \
+ attempts to find master node and start."
+        while test $MAX_START_ATTEMPTS -ne 0
+        do
+            RETVAL=0
+            ensure_pid_dir
+            printf '%s\n' "${MAX_START_ATTEMPTS} attempts left to start \
+ RabbitMQ Server before consider start failed."
+            if [ $MAX_START_ATTEMPTS = 1 ] ; then
+                move_out_rabbit_database_to_backup
+            fi
+            set +e
+            RABBITMQ_PID_FILE=$PID_FILE start-stop-daemon --quiet \
+                --chuid rabbitmq --start --exec $DAEMON \
+                --pidfile "$RABBITMQ_PID_FILE" --background
+            $CONTROL wait $PID_FILE >/dev/null 2>&1
+            RETVAL=$?
+            set -e
+            if [ $RETVAL != 0 ] ; then
+                remove_pid
+            else
+                if [ $MAX_START_ATTEMPTS = 1 ] ; then
+                    set_nova_rabbit_credentials
+                    RETVAL=0
+                fi
+                break
+            fi
+            MAX_START_ATTEMPTS=$((MAX_START_ATTEMPTS - 1))
+        done
+    else
+        RETVAL=3
+    fi
+}
+#####
+
+start_rabbitmq () {
+    status_rabbitmq quiet
+
+    if [ "${RETVAL}" = "0" ] ; then
+        echo "Murano RabbitMQ is currently running!"
+        RETVAL="0"
+        return
+    fi
+
+    ensure_dirs
+    start-stop-daemon --quiet --chuid rabbitmq \
+        --start --exec "${DAEMON}" \
+        --pidfile "${RABBITMQ_PID_FILE}" --background
+    ${CONTROL} wait "${RABBITMQ_PID_FILE}" 1> "/dev/null" 2>&1
+    RETVAL="${?}"
+
+    if [ "${RETVAL}" -gt "0" ]; then
+        remove_pid
+        echo "Murano RabbitMQ start FAILED!"
+        RETVAL="1"
+    else
+        echo "Murano RabbitMQ start SUCCESS!"
+        if [ -n "${LOCK_FILE}" ]; then
+            touch "${LOCK_FILE}"
+        fi
+        RETVAL="0"
+    fi
+}
+
+stop_rabbitmq () {
+    status_rabbitmq quiet
+
+    if [ "${RETVAL}" != 0 ]; then
+        echo "RabbitMQ is not running!"
+        RETVAL="0"
+        return
+    fi
+
+    ${CONTROL} stop "${RABBITMQ_PID_FILE}" > "${RABBITMQ_LOG_BASE}/shutdown_log" 2> "${RABBITMQ_LOG_BASE}/shutdown_err"
+    RETVAL="${?}"
+
+    if [ "${RETVAL}" = "0" ] ; then
+        remove_pid
+        echo "Murano RabbitMQ stop SUCCESS!"
+        if [ -n "{$LOCK_FILE}" ] ; then
+            rm -f "${LOCK_FILE}"
+        fi
+        RETVAL="0"
+    else
+        echo "Murano RabbitMQ stop FAILED!"
+        RETVAL="1"
+    fi
+}
+
+status_rabbitmq () {
+    if [ "${1}" != "quiet" ] ; then
+        ${CONTROL} status 2>&1
+    else
+        ${CONTROL} status > /dev/null 2>&1
+    fi
+
+    if [ "${?}" != "0" ]; then
+        RETVAL="3"
+    fi
+}
+
+rotate_logs_rabbitmq () {
+    ${CONTROL} rotate_logs "${ROTATE_SUFFIX}"
+    if [ $? != 0 ]; then
+        RETVAL="1"
+    fi
+}
+
+restart_running_rabbitmq () {
+    status_rabbitmq quiet
+
+    if [ "${RETVAL}" != "0" ]; then
+        echo "RabbitMQ is not runnning!"
+        exit 0
+    fi
+
+    restart_rabbitmq
+}
+
+restart_rabbitmq () {
+    stop_rabbitmq
+    start_rabbitmq
+}
+
+case "${1}" in
+    start)
+        echo "Starting $DESC"
+        start_rabbitmq
+    ;;
+    stop)
+        echo "Stopping $DESC"
+        stop_rabbitmq
+    ;;
+    status)
+        status_rabbitmq
+    ;;
+    rotate-logs)
+        echo "Rotating log files for $DESC"
+        rotate_logs_rabbitmq
+    ;;
+    force-reload|reload|restart)
+        echo "Restarting $DESC"
+        restart_rabbitmq
+    ;;
+    try-restart)
+        echo "Restarting $DESC"
+        restart_running_rabbitmq
+    ;;
+    *)
+    echo "Usage: $0 {start|stop|status|rotate-logs|restart|condrestart|try-restart|reload|force-reload}" >&2
+        exit 1
+    ;;
+esac
+
+exit "${RETVAL}"

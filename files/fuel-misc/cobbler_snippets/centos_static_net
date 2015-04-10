@@ -1,0 +1,14 @@
+#set $gw = $getVar('gw', '@@server@@')
+#!/bin/bash
+DEFAULT_GW=$gw
+#raw
+ADMIN_MAC=$(sed 's/\ /\n/g' /proc/cmdline | grep choose_interface | awk -F\= '{print $2}')
+ADMIN_IF=$(tr ' ' '\n' < /proc/cmdline | grep "udevrules=" | sed 's/[,=]/\n/g' | grep "$ADMIN_MAC" | cut -d_ -f2 | head -1)
+INSTALL_IF=$(ifconfig | grep "$ADMIN_MAC" | head -1 | cut -d' ' -f1)
+NETADDR=( $(ifconfig $INSTALL_IF | grep -oP "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}") )
+echo -e "# FROM COBBLER SNIPPET\nDEVICE=$ADMIN_IF\nIPADDR=${NETADDR[0]}\nNETMASK=${NETADDR[2]}\nBOOTPROTO=none\nONBOOT=yes\nUSERCTL=no\n" > /etc/sysconfig/network-scripts/ifcfg-"$ADMIN_IF"
+
+echo GATEWAY="$DEFAULT_GW" >> /etc/sysconfig/network
+
+cat /proc/cmdline | tr ' ' '\n' | grep udevrules | tr '[:upper:]' '[:lower:]' | sed -e 's/udevrules=//g' -e 's/,/\n/g' | sed -e "s/^/SUBSYSTEM==\"net\",\ ACTION==\"add\",\ DRIVERS==\"?*\",\ ATTR{address}==\"/g" -e "s/_/\",\ ATTR{type}==\"1\",\ KERNEL==\"eth*\",\ NAME=\"/g" -e "s/$/\"/g" | tee /etc/udev/rules.d/70-persistent-net.rules
+#end raw

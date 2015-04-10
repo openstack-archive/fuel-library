@@ -1,0 +1,11 @@
+#set $authorized_keys = str(open("/etc/cobbler/authorized_keys", "r").read())
+#set $escaped_sys_keys = $authorized_keys.replace('\n', '\\n')
+#set $escaped_extra_keys = $getVar("auth_key","").replace('\n', '\\n')
+mkdir -p /target/root/.ssh && \
+chown root:root /target/root/.ssh && \
+chmod 700 /target/root/.ssh && \
+echo -e "$escaped_sys_keys" > /target/root/.ssh/authorized_keys && \
+#if $escaped_extra_keys
+echo -e "$escaped_extra_keys" >> /target/root/.ssh/authorized_keys && \
+#end if
+chown root:root /target/root/.ssh/authorized_keys && \
