@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'puppet catalogue' do
 
     settings = Noop.fuel_settings
-    use_neutron = settings['quantum'].to_s
+    use_neutron = settings['quantum'].nil? ? 'false' : settings['quantum'].to_s
 
     # Sahara
     if settings['sahara']['enabled']
