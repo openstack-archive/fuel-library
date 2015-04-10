@@ -14,3 +14,5 @@ UMM_DRC=0
 for i in $(ls ${UMM_DATA}/*.var 2>/dev/null) ; do
     . $i
 done
+
+[ "$UMM" == "yes" ]  ||  echo 1 > $UMM_DATA/UMM_LOCK || true
