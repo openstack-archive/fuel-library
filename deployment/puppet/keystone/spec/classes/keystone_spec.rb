@@ -179,7 +179,24 @@ describe 'keystone' do
           'token_provider' => 'keystone.token.providers.uuid.Provider'
         }
       end
+      it { should contain_exec('keystone-manage pki_setup').with(
+        :creates => '/etc/keystone/ssl/private/signing_key.pem'
+      ) }
+      it { should contain_file('/var/cache/keystone').with_ensure('directory') }
+
+      describe 'when overriding the cache dir' do
+        before do
+          params.merge!(:cache_dir => '/var/lib/cache/keystone')
+        end
+        it { should contain_file('/var/lib/cache/keystone') }
+      end
+
+      describe 'when disable pki_setup' do
+        before do
+          params.merge!(:enable_pki_setup => false)
+        end
       it { should_not contain_exec('keystone-manage pki_setup') }
+      end
     end
 
     describe 'when configuring as PKI' do
@@ -209,6 +226,38 @@ describe 'keystone' do
       end
     end
 
+    describe 'when configuring PKI signing cert paths with UUID and with pki_setup disabled' do
+      let :params do
+        {
+          'admin_token'       => 'service_token',
+          'token_provider'    => 'keystone.token.providers.uuid.Provider',
+          'enable_pki_setup'  => false,
+          'signing_certfile'  => 'signing_certfile',
+          'signing_keyfile'   => 'signing_keyfile',
+          'signing_ca_certs'  => 'signing_ca_certs',
+          'signing_ca_key'    => 'signing_ca_key'
+        }
+      end
+
+      it { should_not contain_exec('keystone-manage pki_setup') }
+
+      it 'should contain correct PKI certfile config' do
+        should contain_keystone_config('signing/certfile').with_value('signing_certfile')
+      end
+
+      it 'should contain correct PKI keyfile config' do
+        should contain_keystone_config('signing/keyfile').with_value('signing_keyfile')
+      end
+
+      it 'should contain correct PKI ca_certs config' do
+        should contain_keystone_config('signing/ca_certs').with_value('signing_ca_certs')
+      end
+
+      it 'should contain correct PKI ca_key config' do
+        should contain_keystone_config('signing/ca_key').with_value('signing_ca_key')
+      end
+    end
+
     describe 'with invalid catalog_type' do
       let :params do
         { :admin_token  => 'service_token',
@@ -234,7 +283,7 @@ describe 'keystone' do
           'token_format'   => 'UUID'
         }
       end
-      it { should_not contain_exec('keystone-manage pki_setup') }
+      it { should contain_exec('keystone-manage pki_setup') }
     end
 
     describe 'when configuring deprecated token_format as PKI' do
