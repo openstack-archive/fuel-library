@@ -27,17 +27,13 @@ Puppet::Type.newtype(:zabbix_host) do
     newvalues(/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/)
   end
 
-  newparam(:groups) do
+  newparam(:groups, :array_matching => :all) do
     desc 'Host groups to add the host to.'
     isrequired
 
     validate do |value|
-      fail("groups is not an array") unless value.kind_of?(Array) or value.kind_of?(String)
-      fail("groups array is empty") if value.empty?
-      value.each do |item|
-        fail("group name is not a string") unless item.kind_of?(String)
-        fail("group name is empty") unless item =~ /.+/
-      end
+      fail("group name is not a string") unless value.kind_of?(String)
+      fail("group name is empty") if value.empty?
     end
   end
 
