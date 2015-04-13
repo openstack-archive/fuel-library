@@ -21,6 +21,9 @@ end
 class KeystoneAPIError < KeystoneError
 end
 
+RETRY_COUNT = 10
+RETRY_SLEEP = 3
+
 # Provides common request handling semantics to the other methods in
 # this module.
 #
@@ -161,17 +164,20 @@ Puppet::Type.type(:heat_domain_id_setter).provide(:ruby) do
     # - There are multiple matches, or
     # - There are zero matches
     def get_domain_id
-        token = authenticate
-        domains = find_domain_by_name(token)
+        RETRY_COUNT.times do
+            token = authenticate
+            domains = find_domain_by_name(token)
 
-        if domains.length == 1
-            return domains[0]['id']
-        elsif domains.length > 1
-            name = domains[0]['name']
-            raise KeystoneAPIError, 'Found multiple matches for domain name "#{name}"'
-        else
-            raise KeystoneAPIError, 'Unable to find matching domain'
+            if domains.length == 1
+                return domains[0]['id']
+            elsif domains.length > 1
+                name = domains[0]['name']
+                raise KeystoneAPIError, "Found multiple matches for domain name: '#{name}'"
+            else
+                sleep RETRY_SLEEP
+            end
         end
+        raise KeystoneAPIError, "Unable to find domain with name: '#{@resource[:domain_name]}'"
     end
 
     def config
