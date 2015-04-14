@@ -325,7 +325,12 @@ if member($roles, 'controller') or member($roles, 'primary-controller') {
 } else {
   $bind_host = false
 }
+
+# NOTE(bogdando) deploy cinder volume node with disabled cinder-volume
+#   service #LP1398817. The orchestration will start and enable it back
+#   after the deployment is done.
 class { 'openstack::cinder':
+  enable_volumes       => false,
   sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${management_vip}/cinder?charset=utf8&read_timeout=60",
   glance_api_servers   => "${management_vip}:9292",
   bind_host            => $bind_host,
