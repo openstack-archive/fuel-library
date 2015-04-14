@@ -34,8 +34,18 @@ class cluster::dns_ocf ( $primary_controller ) {
           'timeout' => '30'
         },
       },
+    } ->
+
+    cs_rsc_colocation { 'dns-with-vrouter-ns':
+      ensure     => present,
+      score      => 'INFINITY',
+      primitives => [
+        "clone_${service_name}",
+        "clone_p_vrouter"
+      ],
     }
-  Cs_resource[$service_name] ~> Service[$service_name]
+
+    Cs_resource[$service_name] ~> Service[$service_name]
   }
 
   file {'dns-ocf':
