@@ -1,8 +1,11 @@
+%define name fuel-library6.1
+%define version 6.1.0
+%define release 1
+
 Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack 
-Name: fuel-library6.1
-#FIXME(aglarendil): this is a temp change for scripts compatibility. Should be bumped everywhere
-Version: 6.0.0
-Release: 1
+Name: %{name}
+Version: %{version}
+Release: %{release}
 Group: System Environment/Libraries
 License: GPLv2
 URL: http://github.com/stackforge/fuel-library
