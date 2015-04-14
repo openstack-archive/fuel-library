@@ -2,6 +2,7 @@ require 'rubygems'
 require 'rspec-puppet'
 require 'puppetlabs_spec_helper/module_spec_helper'
 require 'yaml'
+require 'find'
 
 puppet_logs_dir = ENV['PUPPET_LOGS_DIR'] || 'none'
 
@@ -19,6 +20,16 @@ module Noop
   def self.fixtures_path
     return @fixtures_path if @fixtures_path
     @fixtures_path = File.expand_path(File.join(__FILE__, '..', '..', 'fixtures'))
+  end
+
+  def self.tasks
+    tasks = []
+    Find.find(self.module_path) do |file|
+      if file =~ /.*tasks\.yaml$/
+        tasks += YAML.load_file(file)
+      end
+    end
+    tasks
   end
 
   def self.astute_yaml_name
@@ -71,8 +82,12 @@ module Noop
 
   def self.manifest_present?(manifest)
     manifest_path = File.join self.modular_manifests_node_dir, manifest
-    self.fuel_settings['tasks'].find do |task|
-      task['parameters']['puppet_manifest'] == manifest_path
+    self.tasks.find do |task|
+      task['type'] == 'puppet' and task['parameters']['puppet_manifest'] == manifest_path and
+        (
+          (task.has_key?('role') and (task['role'].include?(self.fuel_settings['role']) or task['role'] =='*')) or
+          (task.has_key?('groups') and (task['groups'].include?(self.fuel_settings['role']) or task['groups'] == '*'))
+        )
     end
   end
 
