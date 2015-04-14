@@ -331,6 +331,10 @@ set_ns_routing() {
     ocf_run iptables -t nat -A POSTROUTING -s "${OCF_RESKEY_namespace_ip}" -j MASQUERADE -m comment --comment "masquerade-for-haproxy-namespace"
   fi
 
+  ### Needed for ML2 routing ###
+  ocf_run sysctl -w net.ipv4.conf.${OCF_RESKEY_host_interface}.rp_filter=2
+  ocf_run $RUN_IN_NS net.ipv4.conf.default.rp_filter=2
+
   if [[ "${OCF_RESKEY_other_networks}" != "false" ]] ; then
     for network in ${OCF_RESKEY_other_networks}
     do
