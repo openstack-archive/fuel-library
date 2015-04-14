@@ -7,8 +7,11 @@ fixtures:
     "inifile":  "git://github.com/puppetlabs/puppetlabs-inifile"
     "keystone": "git://github.com/stackforge/puppet-keystone.git"
     "memcached": "git://github.com/saz/puppet-memcached.git"
+    "openstacklib": "git://github.com/stackforge/puppet-openstacklib.git"
     "rsync": "git://github.com/puppetlabs/puppetlabs-rsync.git"
-    "ssh": "git://github.com/saz/puppet-ssh.git"
+    "ssh":
+      repo: "git://github.com/saz/puppet-ssh.git"
+      ref: "v2.4.0"
     "stdlib": "git://github.com/puppetlabs/puppetlabs-stdlib.git"
     "xinetd": "git://github.com/puppetlabs/puppetlabs-xinetd.git"
   symlinks:
