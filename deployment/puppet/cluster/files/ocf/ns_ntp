@@ -34,13 +34,6 @@ OCF_RESKEY_pidfile_default="/var/run/ntpd.pid"
 OCF_RESKEY_binpath_default="/usr/sbin/ntpd"
 OCF_RESKEY_extraconf_default=""
 
-OCF_RESKEY_host_interface_default="vrouter-host"
-OCF_RESKEY_namespace_interface_default="vr-ns"
-OCF_RESKEY_host_ip_default="240.0.0.5"
-OCF_RESKEY_namespace_ip_default="240.0.0.6"
-OCF_RESKEY_network_mask_default="30"
-OCF_RESKEY_route_metric_default="10000"
-
 : ${OCF_ROOT=${OCF_ROOT_default}}
 
 : ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
@@ -48,13 +41,6 @@ OCF_RESKEY_route_metric_default="10000"
 : ${OCF_RESKEY_pidfile=${OCF_RESKEY_pidfile_default}}
 : ${OCF_RESKEY_binpath=${OCF_RESKEY_binpath_default}}
 : ${OCF_RESKEY_extraconf=${OCF_RESKEY_extraconf_default}}
-
-: ${OCF_RESKEY_host_interface=${OCF_RESKEY_host_interface_default}}
-: ${OCF_RESKEY_namespace_interface=${OCF_RESKEY_namespace_interface_default}}
-: ${OCF_RESKEY_host_ip=${OCF_RESKEY_host_ip_default}}
-: ${OCF_RESKEY_namespace_ip=${OCF_RESKEY_namespace_ip_default}}
-: ${OCF_RESKEY_network_mask=${OCF_RESKEY_network_mask_default}}
-: ${OCF_RESKEY_route_metric=${OCF_RESKEY_route_metric_default}}
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
@@ -134,71 +120,6 @@ For example, "-f /etc/ntp/shared.cfg"
 <content type="string" default="${OCF_RESKEY_extraconf_default}" />
 </parameter>
 
-<parameter name="host_interface">
-<longdesc lang="en">
-The host part of the interface pair used to connect the namespace to the network
-For example, "vrouter-host"
-</longdesc>
-<shortdesc lang="en">The name of the host interface used for namespace</shortdesc>
-<content type="string" default="${OCF_RESKEY_host_interface_default}" />
-</parameter>
-
-<parameter name="namespace_interface">
-<longdesc lang="en">
-The namespace part of the interface pair used to connect the namespace to the network
-For example, "vrouter-ns"
-</longdesc>
-<shortdesc lang="en">The name of the namespace interface used for namespace</shortdesc>
-<content type="string" default="${OCF_RESKEY_namespace_interface_default}" />
-</parameter>
-
-<parameter name="host_ip">
-<longdesc lang="en">
-The IP address used by the host interface. Must be from the same subnet as namesapce IP
-and uses network_mask to determine subnet.
-Should not collide with any IP addresses already used in your network.
-For example, "240.0.0.5"
-</longdesc>
-<shortdesc lang="en">Host interface IP address</shortdesc>
-<content type="string" default="${OCF_RESKEY_host_ip_default}" />
-</parameter>
-
-<parameter name="namespace_ip">
-<longdesc lang="en">
-The IP address used by the namespace interface. Must be from the same subnet as host IP
-and uses network_mask to determine subnet.
-Should not collide with any IP addresses already used in your network.
-For example, "240.0.0.6"
-</longdesc>
-<shortdesc lang="en">Namespace interface IP address</shortdesc>
-<content type="string" default="${OCF_RESKEY_namespace_ip_default}" />
-</parameter>
-
-<parameter name="network_mask">
-<longdesc lang="en">
-The network mask length used to determine subnet of the host
-and the namspace interfaces.
-For example, "30"
-</longdesc>
-<shortdesc lang="en">Network mask length</shortdesc>
-<content type="string" default="${OCF_RESKEY_network_mask_default}" />
-</parameter>
-
-<parameter name="route_metric">
-<longdesc lang="en">
-The metric value of the default route set for the pipe
-link connecting namespace and host. It should be set to
-a large number to be higher then other default route metrics
-that could be set to override this default route.
-If other routes are set eithin the namespace thir metric should
-be smaller then this number if you want them to be used istead of
-this route.
-For example, "1000"
-</longdesc>
-<shortdesc lang="en">Namespace default route metric</shortdesc>
-<content type="string" default="${OCF_RESKEY_route_metric_default}" />
-</parameter>
-
 </parameters>
 
 <actions>
@@ -213,85 +134,10 @@ END
 exit $OCF_SUCCESS
 }
 
-check_ns() {
-  local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
-  [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
-  return $OCF_SUCCESS
-}
-
-get_ns() {
-  local rc
-  check_ns && return $OCF_SUCCESS
-
-  ocf_run ip netns add $OCF_RESKEY_ns
-  rc=$?
-  ocf_run $RUN_IN_NS ip link set up dev lo
-
-  return $rc
-}
-
 get_variables() {
-  get_ns
-
   CONF_FILE="${OCF_RESKEY_conffile}"
   COMMAND="$RUN ${OCF_RESKEY_binpath}"
   PIDFILE="${OCF_RESKEY_pidfile}"
-}
-
-set_ns_routing() {
-  nsip() {
-    ip netns exec "${OCF_RESKEY_ns}" ip ${@}
-  }
-
-  # create host-ns veth pair unless it's present
-  ip link | grep -q -w "${OCF_RESKEY_host_interface}:"
-  if [ $? -gt 0 ]; then
-    ocf_log debug "Creating host interface: ${OCF_RESKEY_host_interface} and namespace interface: ${OCF_RESKEY_namespace_interface}"
-    ocf_run ip link add "${OCF_RESKEY_host_interface}" type veth peer name "${OCF_RESKEY_namespace_interface}"
-  fi
-
-  # move the ns part to the namespace
-  ip link | grep -q -w "${OCF_RESKEY_namespace_interface}:"
-  if [ $? -eq 0 ]; then
-    ocf_log debug "Moving interface: ${OCF_RESKEY_namespace_interface} to namespace: ${OCF_RESKEY_ns}"
-    ocf_run ip link set dev "${OCF_RESKEY_namespace_interface}" netns "${OCF_RESKEY_ns}"
-  fi
-
-  # up the host part
-  ocf_log debug "Bringing up host interface: ${OCF_RESKEY_host_interface}"
-  ocf_run ip link set "${OCF_RESKEY_host_interface}" up
-
-  # set host part's ip
-  ip addr show dev "${OCF_RESKEY_host_interface}" | grep -q "inet ${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}"
-  if [ $? -gt 0 ]; then
-    ocf_log debug "Setting host interface: ${OCF_RESKEY_host_interface} IP to: ${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}"
-    ocf_run ip addr add "${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}" dev "${OCF_RESKEY_host_interface}"
-  fi
-
-  # up the ns part
-  ocf_log debug "Bringing up the namespace interface: ${OCF_RESKEY_namespace_interface}" 
-  ocf_run nsip link set "${OCF_RESKEY_namespace_interface}" up
-
-  # set ns part's ip
-  nsip addr show dev "${OCF_RESKEY_namespace_interface}" | grep -q "inet ${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}"
-  if [ $? -gt 0 ]; then
-    ocf_log debug "Setting namespace interface: ${OCF_RESKEY_namespace_interface} IP to: ${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}"
-    ocf_run nsip addr add "${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}" dev "${OCF_RESKEY_namespace_interface}"
-  fi
-
-  # set default gateway inside ns
-  nsip route list | grep -q "default via ${OCF_RESKEY_host_ip}"
-  if [ $? -gt 0 ]; then
-    ocf_log debug "Creating default route inside the namespace to ${OCF_RESKEY_host_ip} with metric ${OCF_RESKEY_route_metric}"
-    ocf_run nsip route add default via "${OCF_RESKEY_host_ip}" metric "${OCF_RESKEY_route_metric}"
-  fi
-
-  # set masquerade on host node
-  iptables -t nat -L | grep -q masquerade-for-vrouter-namespace
-  if [ $? -gt 0 ]; then
-    ocf_log debug "Creating NAT rule on the host system for traffic from IP: ${OCF_RESKEY_namespace_ip}"
-    ocf_run iptables -t nat -A POSTROUTING -s "${OCF_RESKEY_namespace_ip}" -j MASQUERADE -m comment --comment "masquerade-for-vrouter-namespace"
-  fi
 }
 
 ntp_status() {
@@ -330,10 +176,6 @@ ntp_start()
   elif [ $retVal -ne $OCF_NOT_RUNNING ]; then
     ocf_log err "Error. Unknown status."
     return $OCF_ERR_GENERIC
-  fi
-
-  if [ "${OCF_RESKEY_ns}" != '' ]; then
-    set_ns_routing
   fi
 
   # run the ntp binary
