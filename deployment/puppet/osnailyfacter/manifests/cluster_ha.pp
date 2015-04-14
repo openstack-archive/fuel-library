@@ -1075,14 +1075,21 @@ class osnailyfacter::cluster_ha {
 
   # LP#1424919
   if $::fuel_settings['role'] =~ /mongo/ and !(member($roles, 'controller') or member($roles, 'primary-controller')) {
-    if defined(Sysctl::Value['net.ipv4.tcp_keepalive_time']) {
-      Sysctl::Value <| title == 'net.ipv4.tcp_keepalive_time' |> {
-        value => '300',
-      }
-    } else {
-      sysctl::value { 'net.ipv4.tcp_keepalive_time':
-        value => '300',
-      }
+    class { 'openstack::keepalive':
+      tcpka_time   => '300',
+    }
+  } else {
+    # Send 3 probes each 8 seconds, if the connection was idle
+    # for a 30 seconds. Consider it dead, if there was no responces
+    # during the check time frame, i.e. 30+3*8=54 seconds overall.
+    # (note: overall check time frame should be lower then
+    # nova_report_interval).
+
+    class { 'openstack::keepalive':
+      tcpka_time   => '30',
+      tcpka_probes => '8',
+      tcpka_intvl  => '3',
+      tcp_retries2 => '5',
     }
   }
 
