@@ -1,6 +1,7 @@
 notice('MODULAR: murano.pp')
 
 $murano_hash                = hiera('murano')
+$murano_settings_hash       = hiera('murano_settings', {})
 $openstack_version          = hiera('openstack_version')
 $controller_node_address    = hiera('controller_node_address')
 $controller_node_public     = hiera('controller_node_public')
@@ -43,6 +44,11 @@ if $murano_hash['enabled'] {
   }
 
   $external_network = get_ext_net_name($neutron_config['predefined_networks'])
+  if has_key($murano_settings_hash, 'murano_repo_url') {
+    $murano_repo_url = $murano_settings_hash['murano_repo_url']
+  } else {
+    $murano_repo_url = 'http://catalog.openstack.org'
+  }
 
   class { 'murano' :
     murano_package_name      => $murano_package_name,
@@ -85,6 +91,8 @@ if $murano_hash['enabled'] {
 
     primary_controller       => $primary_controller,
     external_network         => $external_network,
+
+    murano_repo_url_string   => $murano_repo_url,
   }
 
 }
