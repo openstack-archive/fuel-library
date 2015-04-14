@@ -11,7 +11,7 @@ class murano::params {
   # service names
   $murano_api_service_name          = 'openstack-murano-api'
   $murano_engine_service_name       = 'openstack-murano-engine'
-
+  $default_repo_url_string          = "MURANO_REPO_URL = 'http://catalog.openstack.org'"
   $default_url_string               = "MURANO_API_URL = 'http://127.0.0.1:8082'"
 
   case $::osfamily {

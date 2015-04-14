@@ -6,6 +6,7 @@ class murano::dashboard (
   $collect_static_script          = '/usr/share/openstack-dashboard/manage.py',
   $murano_log_file                = '/var/log/murano/murano-dashboard.log',
   $murano_url_string              = $::murano::params::default_url_string,
+  $repo_url_string                = $::murano::params::default_repo_url_string,
   $local_settings                 = $::murano::params::local_settings_path,
 ) {
 
@@ -45,6 +46,7 @@ class murano::dashboard (
     environment => [
       "HORIZON_CONFIG=${settings_py}",
       "MURANO_SSL_ENABLED=False",
+      "MURANO_REPO_URL=${repo_url_string}",
       "USE_KEYSTONE_ENDPOINT=True",
       "USE_SQLITE_BACKEND=False",
       "APACHE_USER=${apache_user}",
