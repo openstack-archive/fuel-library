@@ -115,7 +115,7 @@ class Puppet::Provider::Pacemaker < Puppet::Provider
           cur_scope=Element.new('cib')
           cur_scope.add_element('configuration')
           cur_scope.add_element(get_scope(res_type))
-          emptydoc=Document.new(cur_scope)
+          emptydoc=Document.new(cur_scope.to_s)
           emptydoc.write(File.new("/tmp/#{shadow_name}_orig.xml",'w'))
       end
       exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
