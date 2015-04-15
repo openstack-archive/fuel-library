@@ -329,7 +329,7 @@ nova_network_cleanup() {
         nova.network.manager.VlanManager)
             # Collect all bridge interfaces that were created by nova-network and
             # remove IP addresses assigned to them
-            bridges=$(ifconfig | egrep -e '^br*'| awk '{ print $1; }')
+            bridges=$(. ~/openrc && nova network-list --fields bridge | egrep --only-matching -e 'br[0-9]{1,4}')
             for bridge in $bridges
             do
                     ocf_run ip addr flush dev $bridge
