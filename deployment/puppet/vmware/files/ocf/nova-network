@@ -19,6 +19,8 @@
 #   OCF_RESKEY_binary
 #   OCF_RESKEY_config
 #   OCF_RESKEY_user
+#   OCF_RESKEY_password
+#   OCF_RESKEY_auth_url
 #   OCF_RESKEY_pid
 #   OCF_RESKEY_amqp_server_port
 #   OCF_RESKEY_zeromq
@@ -37,6 +39,9 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin
 OCF_RESKEY_binary_default="nova-network"
 OCF_RESKEY_config_default="/etc/nova/nova.conf"
 OCF_RESKEY_user_default="nova"
+OCF_RESKEY_password_default="nova_password"
+OCF_RESKEY_tenant_default="services"
+OCF_RESKEY_auth_url_default="http://127.0.0.1:5000/v2.0/"
 OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_amqp_server_port_default="5672"
 OCF_RESKEY_zeromq_default="false"
@@ -44,6 +49,9 @@ OCF_RESKEY_zeromq_default="false"
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
+: ${OCF_RESKEY_password=${OCF_RESKEY_password_default}}
+: ${OCF_RESKEY_tenant=${OCF_RESKEY_tenant_default}}
+: ${OCF_RESKEY_auth_url=${OCF_RESKEY_auth_url_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
 : ${OCF_RESKEY_amqp_server_port=${OCF_RESKEY_amqp_server_port_default}}
 : ${OCF_RESKEY_zeromq=${OCF_RESKEY_zeromq_default}}
@@ -103,6 +111,22 @@ User running OpenStack Network Service (nova-network)
 </longdesc>
 <shortdesc lang="en">OpenStack Network Service (nova-network) user</shortdesc>
 <content type="string" default="${OCF_RESKEY_user_default}" />
+</parameter>
+
+<parameter name="password" unique="0" required="0">
+<longdesc lang="en">
+Password for nova-network
+</longdesc>
+<shortdesc lang="en">nova-network password</shortdesc>
+<content type="string" default="${OCF_RESKEY_password_default}" />
+</parameter>
+
+<parameter name="auth_url" unique="0" required="0">
+<longdesc lang="en">
+OpenStack Identity Service (Keystone) URL
+</longdesc>
+<shortdesc lang="en">Keystone URL for nova-network</shortdesc>
+<content type="string" default="${OCF_RESKEY_auth_url_default}" />
 </parameter>
 
 <parameter name="pid" unique="0" required="0">
@@ -327,10 +351,15 @@ nova_network_cleanup() {
             ocf_run ip addr flush dev $flat_network_bridge
         ;;
         nova.network.manager.VlanManager)
-            # Collect all bridge interfaces that were created by nova-network and
-            # remove IP addresses assigned to them
-            bridges=$(ifconfig | egrep -e '^br*'| awk '{ print $1; }')
-            for bridge in $bridges
+            # Collect all bridge interfaces that were created by
+            # nova-network and remove IP addresses assigned to them
+            nova_bridges=$(OS_TENANT_NAME=services          \
+                           OS_USERNAME=$OCF_RESKEY_user     \
+                           OS_PASSWORD=$OCF_RESKEY_password \
+                           OS_AUTH_URL=$OCF_RESKEY_auth_url \
+                           OS_ENDPOINT_TYPE=internalURL     \
+                           nova network-list --fields bridge | egrep -o -e 'br[0-9]{1,4}')
+            for bridge in $nova_bridges
             do
                     ocf_run ip addr flush dev $bridge
             done

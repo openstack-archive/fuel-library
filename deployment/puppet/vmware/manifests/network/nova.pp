@@ -44,29 +44,39 @@ class vmware::network::nova (
     }
   }
 
+
+  $nova_user = 'nova'
+  $nova_hash = hiera('nova')
+  $nova_password = $nova_hash['user_password']
+  $management_vip = hiera('management_vip')
+  $auth_url = "http://${management_vip}:5000/v2.0"
+
   cs_resource { 'p_vcenter_nova_network':
     ensure          => present,
     primitive_class => 'ocf',
     provided_by     => 'fuel',
     primitive_type  => 'nova-network',
     metadata        => {
-      'resource-stickiness' => '1'
+      resource-stickiness => '1'
     },
     parameters      => {
-      'amqp_server_port' => $amqp_port,
-      'config' => $nova_network_config,
-      'additional_parameters' => "--config-file=${nova_network_config_ha}",
+      amqp_server_port      => $amqp_port,
+      user                  => $nova_user,
+      password              => $nova_password,
+      auth_url              => $auth_url,
+      config                => $nova_network_config,
+      additional_parameters => "--config-file=${nova_network_config_ha}",
     },
     operations      => {
-      'monitor' => {
-        'interval' => '20',
-        'timeout'  => '30',
+      monitor => {
+        interval => '20',
+        timeout  => '30',
       },
-      'start'   => {
-        'timeout' => '20',
+      start   => {
+        timeout => '20',
       },
-      'stop'    => {
-        'timeout' => '20',
+      stop    => {
+        timeout => '20',
       }
     }
   }
