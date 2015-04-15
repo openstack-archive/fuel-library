@@ -75,7 +75,15 @@ if $use_ceph {
       hasrestart => true,
     }
 
+    service { 'cinder-backup':
+      ensure     => 'running',
+      name       => $::cinder::params::backup_service,
+      hasstatus  => true,
+      hasrestart => true,
+    }
+
     Class['ceph'] ~> Service['cinder-volume']
+    Class['ceph'] ~> Service['cinder-backup']
   }
 
   if ($storage_hash['images_ceph']) {
