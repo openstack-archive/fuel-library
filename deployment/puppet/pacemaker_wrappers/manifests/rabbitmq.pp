@@ -15,6 +15,8 @@ class pacemaker_wrappers::rabbitmq (
   $ocf_script_file    = 'cluster/ocf/rabbitmq',
   $command_timeout    = '',
   $erlang_cookie      = 'EOKOWXQREETZSHFNTPEY',
+  $admin_user         = undef,
+  $admin_pass         = undef,
 ) inherits ::rabbitmq::service {
 
   $parameters      = {
@@ -22,6 +24,8 @@ class pacemaker_wrappers::rabbitmq (
     'debug'           => $debug,
     'command_timeout' => $command_timeout,
     'erlang_cookie'   => $erlang_cookie,
+    'admin_user'      => $admin_user,
+    'admin_password'  => $admin_pass,
   }
 
   $metadata        = {
