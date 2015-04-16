@@ -72,6 +72,8 @@ if $network_provider == 'nova' {
   if $multi_host {
     include keystone::python
 
+    Nova_config<| |> -> Service['nova-network']
+
     case $::osfamily {
       'RedHat': {
         $pymemcache_package_name      = 'python-memcached'
@@ -170,7 +172,7 @@ if $network_provider == 'nova' {
     ensure => 'installed',
   }
 
-  Nova_config<| |> -> Service['nova-network']
+
 
 } else {
   # Neutron
