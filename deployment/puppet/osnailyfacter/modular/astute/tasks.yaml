@@ -175,3 +175,12 @@
     timeout: 3600
     cwd: /
 
+- id: dump_rabbitmq_users
+  type: puppet
+  role: [primary-controller, controller]
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/rabbitmq_users.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180

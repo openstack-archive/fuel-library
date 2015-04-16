@@ -125,6 +125,8 @@ if $queue_provider == 'rabbitmq' {
       debug                   => $debug,
       #TODO(bogdando) make erlang cookie as a hiera(astute) value.
       erlang_cookie           => 'EOKOWXQREETZSHFNTPEY',
+      admin_user              => $rabbit_hash['user'],
+      admin_pass              => $rabbit_hash['password'],
       before                  => Class['nova::rabbitmq'],
     }
   }
