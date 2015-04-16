@@ -191,13 +191,13 @@ class galera (
       },
     }
     Anchor['galera'] ->
-      File['mysql-wss-ocf'] ->
+          File['mysql-wss-ocf'] ->
           Cs_resource["p_${service_name}"] ->
             Service['mysql'] ->
               Exec['wait-for-synced-state']
   } else {
     Anchor['galera'] ->
-      File['mysql-wss-ocf'] ->
+          File['mysql-wss-ocf'] ->
           Service['mysql']
   }
 
@@ -211,7 +211,7 @@ class galera (
 
   File<| title == 'ocf-fuel-path' |> -> File['mysql-wss-ocf']
 
-  Package['MySQL-server', 'galera'] -> File['mysql-wss-ocf']
+    Package['MySQL-server', 'galera'] -> File['mysql-wss-ocf']
 
   tweaks::ubuntu_service_override { 'mysql':
     package_name => 'MySQL-server',
