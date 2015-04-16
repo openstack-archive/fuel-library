@@ -31,11 +31,19 @@ class Puppet::Provider::Pacemaker < Puppet::Provider
   end
 
   def self.exec_withenv(cmd,env=nil)
-    Process.fork  do
-      ENV.update(env) if !env.nil?
-      Process.exec(cmd)
+    old_env = nil
+    if env
+      old_env = ENV.to_hash if env
+      ENV.update(env)
     end
-    Process.wait
+    system(cmd)  # or `#{cmd}` to hide output
+    if ! env.nil?
+      # remove all keys, existing only in "additional" env
+      env.keys.each do |k|
+        ENV[k] = nil
+      end
+    end
+    ENV.update(old_env) if old_env
     $?.exitstatus
   end
 
@@ -115,7 +123,7 @@ class Puppet::Provider::Pacemaker < Puppet::Provider
           cur_scope=Element.new('cib')
           cur_scope.add_element('configuration')
           cur_scope.add_element(get_scope(res_type))
-          emptydoc=Document.new(cur_scope)
+          emptydoc=Document.new(cur_scope.to_s)
           emptydoc.write(File.new("/tmp/#{shadow_name}_orig.xml",'w'))
       end
       exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
