@@ -125,10 +125,12 @@ if $queue_provider == 'rabbitmq' {
 
   if $enabled {
     class { 'pacemaker_wrappers::rabbitmq':
-      command_timeout         => $command_timeout,
-      debug                   => $debug,
-      erlang_cookie           => $erlang_cookie,
-      before                  => Class['nova::rabbitmq'],
+      command_timeout        => $command_timeout,
+      debug                  => $debug,
+      erlang_cookie          => $erlang_cookie,
+      admin_user             => $rabbit_hash['user'],
+      admin_pass             => $rabbit_hash['password'],
+      before                 => Class['nova::rabbitmq'],
     }
   }
 }
