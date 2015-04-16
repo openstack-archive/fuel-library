@@ -6,7 +6,45 @@
 #   provider wrapper implementation and should be moved to openstack_extra
 #   and params should be described
 #
-
+# === Parameters
+#
+# [*primitive_type*]
+#   String. Corosync resource primitive_type
+#   Defaults to 'rabbitmq-server'
+#
+# [*service_name*]
+#   String. The service name of rabbitmq.
+#   Defaults to $::rabbitmq::service_name
+#
+# [*port*]
+#   Integer. The port for rabbitmq to listen on.
+#   Defaults to $::rabbitmq::port
+#
+# [*debug*]
+#   Boolean. Flag to enable or disable debug logging.
+#   Defaults to false;
+# [*ocf_script_file*]
+#   String. The script filename for use with pacemaker.
+#   Defaults to 'cluster/ocf/rabbitmq'
+#
+# [*command_timeout*]
+#   String.
+#
+# [*erlang_cookie*]
+#   String. A string used as a cookie for rabbitmq instances to
+#   communicate with eachother.
+#   Defaults to 'EOKOWXQREETZSHFNTPEY'
+#
+# [*admin_user*]
+#   String. An admin username that is used to import the rabbitmq
+#   definitions from a backup as part of a recovery action.
+#   Defaults to undef
+#
+# [*admin_pass*]
+#   String. An admin password that is used to import the rabbitmq
+#   definitions from a backup as part of a recovery action.
+#   Defaults to undef
+#
 class pacemaker_wrappers::rabbitmq (
   $primitive_type     = 'rabbitmq-server',
   $service_name       = $::rabbitmq::service_name,
@@ -15,6 +53,8 @@ class pacemaker_wrappers::rabbitmq (
   $ocf_script_file    = 'cluster/ocf/rabbitmq',
   $command_timeout    = '',
   $erlang_cookie      = 'EOKOWXQREETZSHFNTPEY',
+  $admin_user         = undef,
+  $admin_pass         = undef,
 ) inherits ::rabbitmq::service {
 
   $parameters      = {
@@ -22,6 +62,8 @@ class pacemaker_wrappers::rabbitmq (
     'debug'           => $debug,
     'command_timeout' => $command_timeout,
     'erlang_cookie'   => $erlang_cookie,
+    'admin_user'      => $admin_user,
+    'admin_password'  => $admin_pass,
   }
 
   $metadata        = {
