@@ -35,7 +35,7 @@ class { 'nailgun::host':
   nailgun_user  => $nailgun_user,
   dns_domain    => $::fuel_settings['DNS_DOMAIN'],
   dns_search    => $::fuel_settings['DNS_SEARCH'],
-
+  repo_root     => "/var/www/nailgun/${::fuel_version['VERSION']['openstack_version']}",
 }
 
 class { 'openstack::clocksync':
