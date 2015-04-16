@@ -1,167 +1,183 @@
 require 'spec_helper'
+
 describe 'apt::source', :type => :define do
-  let(:facts) { { :lsbdistid => 'Debian' } }
+  GPG_KEY_ID = '47B320EB4C7C375AA9DAE1A01054B7A24BD6EC30'
+
+
   let :title do
     'my_source'
   end
 
-  let :default_params do
-    {
-      :ensure             => 'present',
-      :location           => '',
-      :release            => 'karmic',
-      :repos              => 'main',
-      :include_src        => true,
-      :required_packages  => false,
-      :key                => false,
-      :key_server         => 'keyserver.ubuntu.com',
-      :key_content        => false,
-      :key_source         => false,
-      :pin                => false
-    }
-  end
-
-  [{},
-   {
-      :location           => 'http://example.com',
-      :release            => 'precise',
-      :repos              => 'security',
-      :include_src        => false,
-      :required_packages  => 'apache',
-      :key                => 'key_name',
-      :key_server         => 'keyserver.debian.com',
-      :pin                => '600',
-      :key_content        => 'ABCD1234'
-    },
-    {
-      :key                => 'key_name',
-      :key_server         => 'keyserver.debian.com',
-      :key_content        => false,
-    },
-    {
-      :ensure             => 'absent',
-      :location           => 'http://example.com',
-      :release            => 'precise',
-      :repos              => 'security',
-    },
-    {
-      :release            => '',
-    },
-    {
-      :release            => 'custom',
-    },
-    {
-      :architecture       => 'amd64',
-    }
-  ].each do |param_set|
-    describe "when #{param_set == {} ? "using default" : "specifying"} class parameters" do
-      let :param_hash do
-        default_params.merge(param_set)
-      end
-
-      let :facts do
-        {:lsbdistcodename => 'karmic', :lsbdistid => 'Ubuntu'}
-      end
-
-      let :params do
-        param_set
-      end
-
-      let :filename do
-        "/etc/apt/sources.list.d/#{title}.list"
-      end
-
-      let :content do
-        content = "# #{title}"
-        if param_hash[:architecture]
-          arch = "[arch=#{param_hash[:architecture]}] "
-        end
-        content << "\ndeb #{arch}#{param_hash[:location]} #{param_hash[:release]} #{param_hash[:repos]}\n"
-
-        if param_hash[:include_src]
-          content << "deb-src #{arch}#{param_hash[:location]} #{param_hash[:release]} #{param_hash[:repos]}\n"
-        end
-        content
-      end
-
-      it { should contain_apt__params }
-
-      it { should contain_file("#{title}.list").with({
-          'ensure'    => param_hash[:ensure],
-          'path'      => filename,
-          'owner'     => 'root',
-          'group'     => 'root',
-          'mode'      => '0644',
-          'content'   => content,
-        })
-      }
-
-      it {
-        if param_hash[:pin]
-          should contain_apt__pin(title).with({
-            "priority"  => param_hash[:pin],
-            "before"    => "File[#{title}.list]"
-          })
-        else
-          should_not contain_apt__pin(title).with({
-            "priority"  => param_hash[:pin],
-            "before"    => "File[#{title}.list]"
-          })
-        end
-      }
-
-      it {
-        should contain_exec("apt_update").with({
-          "command"     => "/usr/bin/apt-get update",
-          "refreshonly" => true
-        })
-      }
-
-      it {
-        if param_hash[:required_packages]
-          should contain_exec("Required packages: '#{param_hash[:required_packages]}' for #{title}").with({
-            "command" => "/usr/bin/apt-get -y install #{param_hash[:required_packages]}",
-            "subscribe"   => "File[#{title}.list]",
-            "refreshonly" => true,
-            "before"      => 'Exec[apt_update]',
-          })
-        else
-          should_not contain_exec("Required packages: '#{param_hash[:required_packages]}' for #{title}").with({
-            "command"     => "/usr/bin/apt-get -y install #{param_hash[:required_packages]}",
-            "subscribe"   => "File[#{title}.list]",
-            "refreshonly" => true
-          })
-        end
-      }
-
-      it {
-        if param_hash[:key]
-          should contain_apt__key("Add key: #{param_hash[:key]} from Apt::Source #{title}").with({
-            "key"         => param_hash[:key],
-            "ensure"      => :present,
-            "key_server"  => param_hash[:key_server],
-            "key_content" => param_hash[:key_content],
-            "key_source"  => param_hash[:key_source],
-            "before"      => "File[#{title}.list]"
-          })
-        else
-          should_not contain_apt__key("Add key: #{param_hash[:key]} from Apt::Source #{title}").with({
-            "key"         => param_hash[:key],
-            "ensure"      => :present,
-            "key_server"  => param_hash[:key_server],
-            "key_content" => param_hash[:key_content],
-            "key_source"  => param_hash[:key_source],
-            "before"      => "File[#{title}.list]"
-          })
-        end
+  context 'mostly defaults' do
+    let :facts do
+      {
+        :lsbdistid       => 'Debian',
+        :lsbdistcodename => 'wheezy',
+        :osfamily        => 'Debian'
       }
     end
+
+    let :params do
+      {
+        'include_deb' => false,
+      }
+    end
+
+    it { is_expected.to contain_file('my_source.list').that_notifies('Exec[apt_update]').with({
+      'ensure' => 'present',
+      'path'   => '/etc/apt/sources.list.d/my_source.list',
+      'owner'  => 'root',
+      'group'  => 'root',
+      'mode'   => '0644',
+    }).with_content(/# my_source\ndeb-src  wheezy main\n/)
+    }
   end
-  describe "without release should raise a Puppet::Error" do
-    let(:default_params) { Hash.new }
-    let(:facts) { Hash.new }
-    it { expect { should raise_error(Puppet::Error) } }
-    let(:facts) { { :lsbdistcodename => 'lucid', :lsbdistid => 'Ubuntu' } }
-    it { should contain_apt__source(title) }
+
+  context 'no defaults' do
+    let :facts do
+      {
+        :lsbdistid       => 'Debian',
+        :lsbdistcodename => 'wheezy',
+        :osfamily        => 'Debian'
+      }
+    end
+    let :params do
+      {
+        'comment'           => 'foo',
+        'location'          => 'http://debian.mirror.iweb.ca/debian/',
+        'release'           => 'sid',
+        'repos'             => 'testing',
+        'include_src'       => false,
+        'required_packages' => 'vim',
+        'key'               => GPG_KEY_ID,
+        'key_server'        => 'pgp.mit.edu',
+        'key_content'       => 'GPG key content',
+        'key_source'        => 'http://apt.puppetlabs.com/pubkey.gpg',
+        'pin'               => '10',
+        'architecture'      => 'x86_64',
+        'trusted_source'    => true,
+      }
+    end
+
+    it { is_expected.to contain_file('my_source.list').that_notifies('Exec[apt_update]').with({
+      'ensure' => 'present',
+      'path'   => '/etc/apt/sources.list.d/my_source.list',
+      'owner'  => 'root',
+      'group'  => 'root',
+      'mode'   => '0644',
+    }).with_content(/# foo\ndeb \[arch=x86_64 trusted=yes\] http:\/\/debian\.mirror\.iweb\.ca\/debian\/ sid testing\n/).without_content(/deb-src/)
+    }
+
+    it { is_expected.to contain_apt__pin('my_source').that_comes_before('File[my_source.list]').with({
+      'ensure'   => 'present',
+      'priority' => '10',
+      'origin'   => 'debian.mirror.iweb.ca',
+    })
+    }
+
+    it { is_expected.to contain_exec("Required packages: 'vim' for my_source").that_comes_before('Exec[apt_update]').that_subscribes_to('File[my_source.list]').with({
+      'command'     => '/usr/bin/apt-get -y install vim',
+      'logoutput'   => 'on_failure',
+      'refreshonly' => true,
+      'tries'       => '3',
+      'try_sleep'   => '1',
+    })
+    }
+
+    it { is_expected.to contain_apt__key("Add key: #{GPG_KEY_ID} from Apt::Source my_source").that_comes_before('File[my_source.list]').with({
+      'ensure' => 'present',
+        'key'  => GPG_KEY_ID,
+        'key_server' => 'pgp.mit.edu',
+        'key_content' => 'GPG key content',
+        'key_source' => 'http://apt.puppetlabs.com/pubkey.gpg',
+    })
+    }
+  end
+
+  context 'trusted_source true' do
+    let :facts do
+      {
+        :lsbdistid       => 'Debian',
+        :lsbdistcodename => 'wheezy',
+        :osfamily        => 'Debian'
+      }
+    end
+    let :params do
+      {
+        'include_src'    => false,
+        'trusted_source' => true,
+      }
+    end
+
+    it { is_expected.to contain_file('my_source.list').that_notifies('Exec[apt_update]').with({
+      'ensure' => 'present',
+      'path'   => '/etc/apt/sources.list.d/my_source.list',
+      'owner'  => 'root',
+      'group'  => 'root',
+      'mode'   => '0644',
+    }).with_content(/# my_source\ndeb \[trusted=yes\]  wheezy main\n/)
+    }
+  end
+
+  context 'architecture equals x86_64' do
+    let :facts do
+      {
+        :lsbdistid       => 'Debian',
+        :lsbdistcodename => 'wheezy',
+        :osfamily        => 'Debian'
+      }
+    end
+    let :params do
+      {
+        'include_deb'  => false,
+        'architecture' => 'x86_64',
+      }
+    end
+
+    it { is_expected.to contain_file('my_source.list').that_notifies('Exec[apt_update]').with({
+      'ensure' => 'present',
+      'path'   => '/etc/apt/sources.list.d/my_source.list',
+      'owner'  => 'root',
+      'group'  => 'root',
+      'mode'   => '0644',
+    }).with_content(/# my_source\ndeb-src \[arch=x86_64 \]  wheezy main\n/)
+    }
+  end
+ 
+  context 'ensure => absent' do
+    let :facts do
+      {
+        :lsbdistid       => 'Debian',
+        :lsbdistcodename => 'wheezy',
+        :osfamily        => 'Debian'
+      }
+    end
+    let :params do
+      {
+        'ensure' => 'absent',
+      }
+    end
+
+    it { is_expected.to contain_file('my_source.list').that_notifies('Exec[apt_update]').with({
+      'ensure' => 'absent'
+    })
+    }
+  end
+
+  describe 'validation' do
+    context 'no release' do
+      let :facts do
+        {
+          :lsbdistid       => 'Debian',
+          :osfamily        => 'Debian'
+        }
+      end
+
+      it do
+        expect {
+          should compile
+        }.to raise_error(Puppet::Error, /lsbdistcodename fact not available: release parameter required/)
+      end
+    end
   end
 end

@@ -16,7 +16,7 @@ describe 'apt::release', :type => :class do
       "mode"    => "0644",
       "owner"   => "root",
       "group"   => "root",
-      "content" => "APT::Default-Release \"#{param_set[:release_id]}\";"
+      "content" => /APT::Default-Release "#{param_set[:release_id]}";/
     })
   }
 end

@@ -24,182 +24,188 @@ describe 'apt::unattended_upgrades', :type => :class do
     })
   }
 
-  describe "origins" do
-    describe "with param defaults" do
-      let(:params) {{ }}
-      it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::Allowed-Origins \{\n\t"\$\{distro_id\}:\$\{distro_codename\}-security";\n\};$/) }
+  describe 'failing' do
+    let :facts do
+      {
+        'lsbdistid'       => 'debian',
+        'lsbdistcodename' => 'squeeze',
+      }
     end
-
-    describe "with origins => ['ubuntu:precise-security']" do
+    context 'bad auto_fix' do
       let :params do
-        { :origins => ['ubuntu:precise-security'] }
+        {
+          'auto_fix' => 'foo',
+        }
       end
-      it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::Allowed-Origins \{\n\t"ubuntu:precise-security";\n\};$/) }
-    end
-  end
-
-  describe "blacklist" do
-    describe "with param defaults" do
-      let(:params) {{ }}
-      it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::Package-Blacklist \{\n\};$/) }
+      it { expect { should raise_error(Puppet::Error) } }
     end
 
-    describe "with blacklist => []" do
+    context 'bad minimal_steps' do
       let :params do
-        { :blacklist => ['libc6', 'libc6-dev'] }
+        {
+          'minimal_steps' => 'foo',
+        }
       end
-      it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::Package-Blacklist \{\n\t"libc6";\n\t"libc6-dev";\n\};$/) }
-    end
-  end
-
-  describe "with update => 2" do
-    let :params do
-      { :update => "2" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::Update-Package-Lists "2";$/) }
-  end
-
-  describe "with download => 2" do
-    let :params do
-      { :download => "2" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::Download-Upgradeable-Packages "2";$/) }
-  end
-
-  describe "with upgrade => 2" do
-    let :params do
-      { :upgrade => "2" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::Unattended-Upgrade "2";$/) }
-  end
-
-  describe "with autoclean => 2" do
-    let :params do
-      { :autoclean => "2" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::AutocleanInterval "2";$/) }
-  end
-
-  describe "with auto_fix => false" do
-    let :params do
-      { :auto_fix => false }
-    end
-    it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::AutoFixInterruptedDpkg "false";$/) }
-  end
-
-  describe "with minimal_steps => true" do
-    let :params do
-      { :minimal_steps => true }
-    end
-    it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::MinimalSteps "true";$/) }
-  end
-
-  describe "with install_on_shutdown => true" do
-    let :params do
-      { :install_on_shutdown => true }
-    end
-    it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::InstallOnShutdown "true";$/) }
-  end
-
-  describe "mail_to" do
-    describe "param defaults" do
-      let(:params) {{ }}
-      it { should_not contain_file(file_unattended).with_content(/^Unattended-Upgrade::Mail /) }
-      it { should_not contain_file(file_unattended).with_content(/^Unattended-Upgrade::MailOnlyOnError /) }
+      it { expect { should raise_error(Puppet::Error) } }
     end
 
-    describe "with mail_to => user@website, mail_only_on_error => true" do
+    context 'bad install_on_shutdown' do
       let :params do
-        { :mail_to => "user@website",
-          :mail_only_on_error => true }
+        {
+          'install_on_shutdown' => 'foo',
+        }
       end
-      it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::Mail "user@website";$/) }
-      it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::MailOnlyOnError "true";$/) }
-    end
-  end
-
-  describe "with remove_unused => false" do
-    let :params do
-      { :remove_unused => false }
-    end
-    it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::Remove-Unused-Dependencies "false";$/) }
-  end
-
-  describe "with auto_reboot => true" do
-    let :params do
-      { :auto_reboot => true }
-    end
-    it { should contain_file(file_unattended).with_content(/^Unattended-Upgrade::Automatic-Reboot "true";$/) }
-  end
-
-  describe "dl_limit" do
-    describe "param defaults" do
-      let(:params) {{ }}
-      it { should_not contain_file(file_unattended).with_content(/^Acquire::http::Dl-Limit /) }
+      it { expect { should raise_error(Puppet::Error) } }
     end
 
-    describe "with dl_limit => 70" do
+    context 'bad mail_only_on_error' do
       let :params do
-        { :dl_limit => "70" }
+        {
+          'mail_only_on_error' => 'foo',
+        }
       end
-      it { should contain_file(file_unattended).with_content(/^Acquire::http::Dl-Limit "70";$/) }
+      it { expect { should raise_error(Puppet::Error) } }
+    end
+
+    context 'bad remove_unused' do
+      let :params do
+        {
+          'remove_unused' => 'foo',
+        }
+      end
+      it { expect { should raise_error(Puppet::Error) } }
+    end
+
+    context 'bad auto_reboot' do
+      let :params do
+        {
+          'auto_reboot' => 'foo',
+        }
+      end
+      it { expect { should raise_error(Puppet::Error) } }
+    end
+
+    context 'bad origins' do
+      let :params do
+        {
+          'origins' => 'foo'
+        }
+      end
+      it { expect { should raise_error(Puppet::Error) } }
+    end
+
+    context 'bad randomsleep' do
+      let :params do
+        {
+          'randomsleep' => '4ever'
+        }
+      end
+      it { expect { should raise_error(Puppet::Error) } }
     end
   end
 
-  describe "with enable => 0" do
+  context 'defaults' do
+    let :facts do
+      {
+        'lsbdistid'       => 'debian',
+        'lsbdistcodename' => 'squeeze',
+      }
+    end
+
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::Allowed-Origins \{\n\t"\${distro_id} oldstable";\n\t"\${distro_id} \${distro_codename}-security";\n\t"\${distro_id} \${distro_codename}-lts";\n\};} }
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::AutoFixInterruptedDpkg "true";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::MinimalSteps "false";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::InstallOnShutdown "false";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::Remove-Unused-Dependencies "true";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::Automatic-Reboot "false";}}
+
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Enable "1";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::BackUpArchiveInterval "0";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::BackUpLevel "3";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::MaxAge "0";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::MinAge "0";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::MaxSize "0";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Update-Package-Lists "1";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Download-Upgradeable-Packages "1";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Download-Upgradeable-Packages-Debdelta "0";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Unattended-Upgrade "1";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::AutocleanInterval "7";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Verbose "0";}}
+    it { is_expected.to_not contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::RandomSleep}}
+  end
+
+  context 'wheezy' do
+    let :facts do
+      {
+        'lsbdistid'       => 'debian',
+        'lsbdistcodename' => 'wheezy',
+      }
+    end
+
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::Origins-Pattern \{\n\t"origin=Debian,archive=stable,label=Debian-Security";\n\t"origin=Debian,archive=oldstable,label=Debian-Security";\n\};} }
+  end
+
+  context 'anything but defaults' do
+    let :facts do
+      {
+        'lsbdistid'       => 'debian',
+        'lsbdistcodename' => 'wheezy',
+      }
+    end
+
     let :params do
-      { :enable => "0" }
+      {
+        'legacy_origin'       => true,
+        'enable'              => '0',
+        'backup_interval'     => '3',
+        'backup_level'        => '1',
+        'max_age'             => '7',
+        'min_age'             => '1',
+        'max_size'            => '100',
+        'update'              => '0',
+        'download'            => '0',
+        'download_delta'      => '1',
+        'upgrade'             => '0',
+        'autoclean'           => '0',
+        'verbose'             => '1',
+        'origins'             => ['bananas'],
+        'blacklist'           => ['foo', 'bar'],
+        'auto_fix'            => false,
+        'minimal_steps'       => true,
+        'install_on_shutdown' => true,
+        'mail_to'             => 'root@localhost',
+        'mail_only_on_error'  => true,
+        'remove_unused'       => false,
+        'auto_reboot'         => true,
+        'dl_limit'            => '70',
+        'randomsleep'         => '1799',
+      }
     end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::Enable "0";$/) }
-  end
 
-  describe "with backup_interval => 1" do
-    let :params do
-      { :backup_interval => "1" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::BackUpArchiveInterval "1";$/) }
-  end
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::Allowed-Origins \{\n\t"bananas";\n\};} }
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::Package-Blacklist \{\n\t"foo";\n\t"bar";\n\};} }
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::AutoFixInterruptedDpkg "false";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::MinimalSteps "true";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::InstallOnShutdown "true";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::Mail "root@localhost";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::MailOnlyOnError "true";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::Remove-Unused-Dependencies "false";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Unattended-Upgrade::Automatic-Reboot "true";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/50unattended-upgrades").with_content %r{Acquire::http::Dl-Limit "70";}}
 
-  describe "with backup_level => 0" do
-    let :params do
-      { :backup_level => "0" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::BackUpLevel "0";$/) }
-  end
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Enable "0";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::BackUpArchiveInterval "3";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::BackUpLevel "1";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::MaxAge "7";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::MinAge "1";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::MaxSize "100";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Update-Package-Lists "0";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Download-Upgradeable-Packages "0";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Download-Upgradeable-Packages-Debdelta "1";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Unattended-Upgrade "0";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::AutocleanInterval "0";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::Verbose "1";}}
+    it { is_expected.to contain_file("/etc/apt/apt.conf.d/10periodic").with_content %r{APT::Periodic::RandomSleep "1799";}}
 
-  describe "with max_age => 1" do
-    let :params do
-      { :max_age => "1" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::MaxAge "1";$/) }
   end
-
-  describe "with min_age => 1" do
-    let :params do
-      { :min_age => "1" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::MinAge "1";$/) }
-  end
-
-  describe "with max_size => 1" do
-    let :params do
-      { :max_size => "1" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::MaxSize "1";$/) }
-  end
-
-  describe "with download_delta => 2" do
-    let :params do
-      { :download_delta => "2" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::Download-Upgradeable-Packages-Debdelta "2";$/) }
-  end
-
-  describe "with verbose => 2" do
-    let :params do
-      { :verbose => "2" }
-    end
-    it { should contain_file(file_periodic).with_content(/^APT::Periodic::Verbose "2";$/) }
-  end
-
 end
