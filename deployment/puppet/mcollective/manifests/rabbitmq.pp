@@ -65,7 +65,7 @@ class mcollective::rabbitmq (
 
   # NOTE(bogdando) this requires rabbitmq>=4.0 module
   class { '::rabbitmq':
-    admin_enable            => false,
+    admin_enable            => true,
     repos_ensure            => false,
     package_provider        => 'yum',
     package_source          => undef,
