@@ -26,6 +26,6 @@ define sahara::templates::template (
     command => "bash -c \"sahara node-group-template-list | grep -q ${plugin}\"",
     unless  => "bash create_templates.sh ${network_provider} ${plugin}",
     timeout => 450,
-    require => File['script_templates'],
+    require => Exec["check_templates"],
   }
 }
