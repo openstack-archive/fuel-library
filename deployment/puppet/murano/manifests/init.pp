@@ -64,6 +64,7 @@ class murano (
   $public_address                        = '127.0.0.1',
   $internal_address                      = '127.0.0.1',
   $external_network                      = 'net04_ext',
+  $murano_repo_url_string                = undef,
 ) {
 
   Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::dashboard']
@@ -163,6 +164,7 @@ class murano (
 
   class { 'murano::dashboard' :
     settings_py       => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
+    repo_url_string   => $murano_repo_url_string,
   }
 
   class { 'murano::murano_rabbitmq' :
