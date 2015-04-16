@@ -19,6 +19,8 @@ OCF_RESKEY_ctl_default="/usr/sbin/rabbitmqctl"
 OCF_RESKEY_debug_default=false
 OCF_RESKEY_username_default="rabbitmq"
 OCF_RESKEY_groupname_default="rabbitmq"
+OCF_RESKEY_password_default="guest"
+OCF_RESKEY_users_dump_file_default="/etc/rabbitmq/users"
 OCF_RESKEY_pid_file_default=/var/run/rabbitmq/p_pid
 OCF_RESKEY_log_dir_default=/var/log/rabbitmq
 OCF_RESKEY_mnesia_base_default=/var/lib/rabbitmq/mnesia
@@ -32,7 +34,9 @@ OCF_RESKEY_erlang_cookie_file_default="/var/lib/rabbitmq/.erlang.cookie"
 : ${OCF_RESKEY_ctl=${OCF_RESKEY_ctl_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 : ${OCF_RESKEY_username=${OCF_RESKEY_username_default}}
+: ${OCF_RESKEY_password=${OCF_RESKEY_password_default}}
 : ${OCF_RESKEY_groupname=${OCF_RESKEY_groupname_default}}
+: ${OCF_RESKEY_users_dump_file=${OCF_RESKEY_users_dump_file_default}}
 : ${OCF_RESKEY_log_dir=${OCF_RESKEY_log_dir_default}}
 : ${OCF_RESKEY_mnesia_base=${OCF_RESKEY_mnesia_base_default}}
 : ${OCF_RESKEY_pid_file=${OCF_RESKEY_pid_file_default}}
@@ -126,6 +130,22 @@ RabbitMQ group name
 </longdesc>
 <shortdesc lang="en">RabbitMQ group name</shortdesc>
 <content type="string" default="${OCF_RESKEY_groupname_default}" />
+</parameter>
+
+<parameter name="password" unique="0" required="0">
+<longdesc lang="en">
+RabbitMQ default password for API
+</longdesc>
+<shortdesc lang="en">RabbitMQ password</shortdesc>
+<content type="string" default="${OCF_RESKEY_password_default}" />
+</parameter>
+
+<parameter name="users_dump_file" unique="0" required="0">
+<longdesc lang="en">
+RabbitMQ default users dump file
+</longdesc>
+<shortdesc lang="en">RabbitMQ users dump file</shortdesc>
+<content type="string" default="${OCF_RESKEY_users_dump_file}" />
 </parameter>
 
 <parameter name="command_timeout" unique="0" required="0">
@@ -1033,6 +1053,18 @@ action_start() {
     rc=$?
     if [[ $rc == $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} RMQ prepared for start succesfully."
+    fi
+
+    if [[-s ${OCF_RESKEY_users_dump_file}]] ; then
+        ocf_log info "File ${OCF_RESKEY_users_dump_file} exist"
+        ocf_run  curl -X POST -u $OCF_RESKEY_username:$OCF_RESKEY_password localhost:15672/api/definitions --header "Content-Type:application/json" -d "{\"users\":$(<${OCF_RESKEY_users_dump_file})}"
+        rc=$?
+        if [[ $rc == $OCF_SUCCESS ]]
+          then
+            ocf_log info "$RMQ users imported succesfully."
+          else
+            ocf_log err "$RMQ users did not import."
+        fi
     fi
 
     ocf_log info "${LH} action end."
