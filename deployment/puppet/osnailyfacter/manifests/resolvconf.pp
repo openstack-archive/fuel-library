@@ -31,15 +31,29 @@ class osnailyfacter::resolvconf (
   }
 
   file { $file_path:
-    ensure  => present,
+    ensure  => file,
     content => template('osnailyfacter/resolv.conf.erb')
   }
 
   if $::osfamily =~ /(Debian|Ubuntu)/ {
+    package { 'resolvconf':
+      ensure => present,
+    } ->
+    file { '/etc/resolv.conf':
+      ensure => link,
+      target => '/run/resolvconf/resolv.conf',
+    } ~>
+    exec { 'dpkg-reconfigure resolvconf':
+      command     => '/usr/sbin/dpkg-reconfigure -f noninteractive resolvconf',
+      refreshonly => true,
+    }
+    file {'/etc/default/resolvconf':
+      content => 'REPORT_ABSENT_SYMLINK="yes"',
+    }
     service { 'resolvconf':
       ensure    => running,
       enable    => true,
-      subscribe => File[$file_path],
+      subscribe => [ File[$file_path], File['/etc/default/resolvconf'], ]
     }
   }
 }
