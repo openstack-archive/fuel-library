@@ -3,9 +3,16 @@ notice('MODULAR: horizon.pp')
 $controllers                    = hiera('controllers')
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
+$horizon_hash                   = hiera('horizon', {})
+
+if $horizon_hash['secret_key'] {
+  $secret_key = $horizon_hash['secret_key']
+} else {
+  $secret_key = 'dummy_secret_key'
+}
 
 class { 'openstack::horizon':
-  secret_key        => hiera('secret_key', 'dummy_secret_key'),
+  secret_key        => $secret_key,
   cache_server_ip   => $controller_nodes,
   package_ensure    => hiera('horizon_package_ensure', 'installed'),
   bind_address      => hiera('internal_address'),
