@@ -4,13 +4,16 @@
 # Requirements, packages and services.
 #
 class l23network (
-  $use_ovs          = true,
   $use_lnx          = true,
+  $use_ovs          = false,
   $install_ovs      = $use_ovs,
   $install_brtool   = $use_lnx,
   $install_ethtool  = $use_lnx,
   $install_bondtool = $use_lnx,
   $install_vlantool = $use_lnx,
+  $ovs_modname      = undef,
+  $ovs_datapath_package_name = undef,
+  $ovs_common_package_name   = undef,
 ){
 
   include stdlib
@@ -24,6 +27,9 @@ class l23network (
     install_ethtool  => $install_ethtool,
     install_bondtool => $install_bondtool,
     install_vlantool => $install_vlantool,
+    ovs_modname      => $ovs_modname,
+    ovs_datapath_package_name => $ovs_datapath_package_name,
+    ovs_common_package_name   => $ovs_common_package_name,
   }
 
   if $::l23network::params::interfaces_file {
