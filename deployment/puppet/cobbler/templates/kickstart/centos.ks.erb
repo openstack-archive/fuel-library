@@ -253,12 +253,6 @@ $SNIPPET('centos_post_kernel_lt_if_enabled')
 # FROM /etc/ssh/sshd_config
 $SNIPPET('ssh_disable_gssapi')
 
-# COBBLER EMBEDDED SNIPPET: 'redhat_register'
-# REGISTER AT REDHAT WITH ACTIVATION KEY
-$SNIPPET('red_hat_register_satellite')
-# REGISTER TO RED HAT SUBSCRIPTION MANAGER WITH LOGIN/PASSWORD
-$SNIPPET('red_hat_register_rhsm')
-
 # Let's not wait forewer when ssh'ing:
 sed -i --follow-symlinks -e '/UseDNS/d' /etc/ssh/sshd_config
 echo 'UseDNS no' >> /etc/ssh/sshd_config
