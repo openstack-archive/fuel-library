@@ -10,10 +10,18 @@ do
 done >> status.clean
 mv status.clean status
 test -x /usr/sbin/logrotate || exit 0
-nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/20-fuel.conf
-EXITVALUE=$?
+
+if ! pgrep logrotate &>/dev/null; then
+    nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/fuel.conf
+    EXITVALUE=$?
+else
+    /usr/bin/logger -t logrotate "WARNING another logrotate instance is already running, exiting"
+    exit 1
+fi
+
 if [ $EXITVALUE != 0 ]; then
     /usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE] (0 was expected)"
 fi
+
 exit $EXITVALUE
 
