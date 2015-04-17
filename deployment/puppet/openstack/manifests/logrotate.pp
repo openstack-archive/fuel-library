@@ -1,66 +1,45 @@
 #
 class openstack::logrotate (
-    $role           = 'client',
-    $rotation       = 'daily',
-    $keep           = '7',
-    $limitsize      = '300M',
-    $debug          = false,
+  $role     = 'client',
+  $rotation = 'weekly',
+  $keep     = '4',
+  $minsize  = '30M',
+  $maxsize  = '100M',
+  $debug    = false,
 ) {
   validate_re($rotation, 'daily|weekly|monthly')
+  $logrotatefile = '/etc/logrotate.d/fuel.conf'
 
   if $role == 'server' {
-  # configure logs rotation both for host OS and docker containers of rsylog server role
-    # This file is used for daily/weekly/monthly log rotations
-    file { "/etc/logrotate.d/10-fuel-docker.conf":
-      owner => 'root',
-      group => 'root',
-      mode  => '0644',
-      content => template("openstack/10-fuel-docker.conf.erb"),
+    # Configure log rotation for master node and docker containers
+    file { '/etc/logrotate.d/fuel.conf':
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0644',
+      content => template('openstack/10-fuel-docker.conf.erb'),
     }
-    # This file is used for hourly log rotations by (ana)cron
-    file { "/etc/logrotate.d/20-fuel-docker.conf":
-      owner => 'root',
-      group => 'root',
-      mode  => '0644',
-      content => template("openstack/20-fuel-docker.conf.erb"),
-    }
-
-    $logrotatefile = '/etc/logrotate.d/20-fuel-docker.conf'
   } else {
-  # configure logrotation for rsylog client role
-    # This file is used for daily/weekly/monthly log rotations
-    file { "/etc/logrotate.d/10-fuel.conf":
-      owner => 'root',
-      group => 'root',
-      mode  => '0644',
-      content => template("openstack/10-fuel.conf.erb"),
+    # Configure log rotation for other nodes
+    file { '/etc/logrotate.d/fuel.conf':
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0644',
+      content => template('openstack/10-fuel.conf.erb'),
     }
-
-    # This file is used for hourly log rotations by (ana)cron
-    file { "/etc/logrotate.d/20-fuel.conf":
-      owner => 'root',
-      group => 'root',
-      mode  => '0644',
-      content => template("openstack/20-fuel.conf.erb"),
-    }
-
-    $logrotatefile = '/etc/logrotate.d/20-fuel.conf'
   }
 
-# Configure (ana)cron for fuel custom hourly logrotations
-  class { '::anacron': 
+  # Configure (ana)cron for fuel custom hourly logrotations
+  class { '::anacron':
     debug => $debug,
   }
-  case $osfamily {
-    'RedHat': {
-     # Due to bug existing, logrotate always returns 0. Use grep for detect errors:
-     # would return 1 (considered as normal result), if logrotate returns no errors, return 0, if any.
-     exec {'logrotate_check':
-      path    => ["/usr/bin", "/usr/sbin", "/sbin", "/bin"],
-      command => "logrotate $logrotatefile >& /tmp/logrotate && grep -q error /tmp/logrotate",
-      returns => 1,
-      require => File[$logrotatefile],
-   }
+  if $::osfamily == 'RedHat' {
+      # Due to bug in logrotate, it always returns 0. Use grep to detect errors
+      # in output; exit code 1 is considered success as no errors were emitted.
+      exec {'logrotate_check':
+        path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+        command => "logrotate ${logrotatefile} >& /tmp/logrotate && grep -q error /tmp/logrotate",
+        returns => 1,
+        require => File[$logrotatefile],
+    }
   }
- }
 }
