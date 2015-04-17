@@ -59,6 +59,21 @@ class openstack::corosync (
     debug             => false,
   } -> Anchor['corosync-done']
 
+  # NOTE(bogdando) #LP1445478 - lower the validator version for Ubuntu
+  if ($::osfamily == 'Debian') {
+    # Use retries as CIB require some time to become ready
+    exec { 'fix-crm-validator':
+      command   => 'cibadmin --modify --xml-text \'<cib validate-with="pacemaker-1.2"/>\'',
+      path      => '/bin:/usr/bin/:/sbin:/usr/sbin',
+      tries     => 10,
+      try_sleep => 30,
+      before    => Anchor['corosync-done'],
+    } -> Anchor['corosync-done']
+
+    Class['::corosync'] -> Exec['fix-crm-validator']
+    Exec['fix-crm-validator'] -> Cs_property<||>
+  }
+
   Cs_property {
     ensure   => present,
     provider => 'crm',
