@@ -99,6 +99,7 @@ class nova::compute (
 ) {
 
   include nova::params
+  include stdlib
 
   if ($vnc_enabled) {
     if ($vncproxy_host) {
@@ -117,10 +118,8 @@ class nova::compute (
 
   if $neutron_enabled != true {
     # Install bridge-utils if we use nova-network
-    package { 'bridge-utils':
-      ensure => present,
-      before => Nova::Generic_service['compute'],
-    }
+    ensure_packages('bridge-utils')
+    Package <| title == 'bridge-utils' |> -> Nova::Generic_service['compute']
   }
 
   nova::generic_service { 'compute':
