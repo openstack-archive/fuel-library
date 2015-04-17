@@ -11,52 +11,70 @@ class anacron::config {
     mode   => '0644',
   }
 
-  case $::operatingsystem  {
-    /(?i)(centos|redhat)/: {
-      # assumes package cronie-anacron were installed at BM
+  case $::osfamily {
+    'RedHat': {
+      # assume cronie-anacron is installed
+
       file { '/etc/anacrontab':
         source => 'puppet:///modules/anacron/anacrontab',
       }
+
       file { '/etc/cron.hourly/':
         ensure => directory,
-        mode => '0755',
-        owner => 'root',
+        mode   => '0755',
+        owner  => 'root',
       }
+
       file { '/etc/cron.d/':
         ensure => directory,
-        mode => '0755',
-        owner => 'root',
+        mode   => '0755',
+        owner  => 'root',
       }
+
       file { '/etc/cron.d/0hourly':
         source => 'puppet:///modules/anacron/0hourly',
       }
-      file { '/etc/cron.hourly/logrotate':
+
+      file { '/etc/cron.d/fuel-logrotate':
         mode   => '0755',
-        source => 'puppet:///modules/anacron/logrotate-hourly',
+        source => 'puppet:///modules/anacron/logrotate',
       }
+
       file { '/etc/cron.hourly/0anacron':
         mode   => '0755',
         source => 'puppet:///modules/anacron/0anacron-hourly',
       }
     }
+    'Debian': {
+      # assume anacron is installed
 
-    /(?i)(debian|ubuntu)/: {
-      # assumes package anacron were installed at BM
       file { '/etc/anacrontab':
         source => 'puppet:///modules/anacron/anacrontab-ubuntu',
       }
+
       file { '/etc/cron.d/anacron':
         source => 'puppet:///modules/anacron/anacron-ubuntu',
       }
-      file { '/etc/cron.hourly/logrotate':
+
+      file { '/etc/cron.d/fuel-logrotate':
         mode   => '0755',
-        source => 'puppet:///modules/anacron/logrotate-hourly-ubuntu',
+        source => 'puppet:///modules/anacron/logrotate-ubuntu',
       }
     }
+    default: {
+      fail("Unsupported platform: ${::osfamily}/${::operatingsystem}")
+    }
   }
+
   if $::anacron::debug {
     file { '/etc/cron.d/logrotate-debug':
-       source => 'puppet:///modules/anacron/logrotate-debug'
+      source => 'puppet:///modules/anacron/logrotate-debug'
     }
+  }
+
+  cron { 'fuel-logrotate':
+    command => '/etc/cron.d/fuel-logrotate',
+    user    => 'root',
+    minute  => '*/15',
   }
 }
