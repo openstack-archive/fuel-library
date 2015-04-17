@@ -56,10 +56,9 @@ class { "docker":
 }
 
 class { 'openstack::logrotate':
-  role           => 'server',
-  rotation       => 'weekly',
-  keep           => '4',
-  limitsize      => '100M',
+  role     => 'server',
+  rotation => 'weekly',
+  keep     => '4',
 }
 
 class { 'nailgun::client':

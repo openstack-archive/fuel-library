@@ -4,7 +4,7 @@
 # Due to bug in logrotate, it always returns 0. Use grep for detect errors;
 # exit code 1 is considered a success as no errors were found.
 
-nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/20-fuel*.conf >& /tmp/logrotate && grep -q error /tmp/logrotate
+nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/fuel.conf >& /tmp/logrotate && grep -q error /tmp/logrotate
 
 EXITVALUE=$?
 if [ $EXITVALUE != 1 ]; then
