@@ -1,6 +1,6 @@
 - id: cluster
   type: puppet
-  groups: [primary-controller, controller]
+  groups: [primary-controller, controller, cinder-vmware]
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:

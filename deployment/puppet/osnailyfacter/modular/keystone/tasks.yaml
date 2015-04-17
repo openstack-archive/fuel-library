@@ -1,6 +1,6 @@
 - id: keystone
   type: puppet
-  groups: [primary-controller, controller]
+  groups: [primary-controller, controller, cinder-vmware]
   required_for: [openstack-controller]
   requires: [openstack-haproxy, database]
   parameters:

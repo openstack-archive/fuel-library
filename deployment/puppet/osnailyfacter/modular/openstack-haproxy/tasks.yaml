@@ -1,6 +1,6 @@
 - id: openstack-haproxy
   type: puppet
-  groups: [primary-controller, controller]
+  groups: [primary-controller, controller, cinder-vmware]
   required_for: [deploy_end]
   requires: [cluster-haproxy]
   parameters:
