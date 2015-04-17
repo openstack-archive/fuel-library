@@ -29,7 +29,7 @@ class PManager(object):
 
     def _pseparator(self, devname):
         pseparator = ''
-        if devname.find('cciss') >= 0:
+        if 'cciss' in devname or 'nvme' in devname:
             pseparator = 'p'
         return pseparator
 
@@ -284,7 +284,7 @@ class PManager(object):
                               "--onpart={2}"
                               "{3}{4}".format(part["mount"], size,
                                               self._disk_dev(disk),
-                                              self._pseparator(disk["id"]),
+                                              self._pseparator(disk['name']),
                                               pcount))
 
                 else:
@@ -295,7 +295,7 @@ class PManager(object):
                                       tabfstype,
                                       tabfsoptions,
                                       self._disk_dev(disk),
-                                      self._pseparator(disk["id"]),
+                                      self._pseparator(disk['name']),
                                       pcount, disk_label))
                         if part["mount"] != "none":
                             self.post("mkdir -p /mnt/sysimage{0}".format(
@@ -307,7 +307,7 @@ class PManager(object):
                                   "{3} {4} defaults 0 0'"
                                   " >> /mnt/sysimage/etc/fstab".format(
                                       self._disk_dev(disk),
-                                      self._pseparator(disk["id"]),
+                                      self._pseparator(disk['name']),
                                       pcount, tabmount, tabfstype))
 
     def raids(self, volume_filter=None):
@@ -328,7 +328,7 @@ class PManager(object):
                 phys[raid["mount"]].append(
                     "{0}{1}{2}".format(
                         self._disk_dev(disk),
-                        self._pseparator(disk["id"]), pcount))
+                        self._pseparator(disk['name']), pcount))
                 rname = "raid.{0:03d}".format(self.rcount(1))
                 begin_size = self.psize(disk["id"])
                 end_size = self.psize(disk["id"], raid["size"] * self.factor)
@@ -339,7 +339,7 @@ class PManager(object):
                 self.kick("partition {0} "
                           "--onpart={2}{3}{4}"
                           "".format(rname, raid["size"], self._disk_dev(disk),
-                                    self._pseparator(disk["id"]), pcount))
+                                    self._pseparator(disk['name']), pcount))
 
                 if not raids.get(raid["mount"]):
                     raids[raid["mount"]] = []
@@ -395,7 +395,7 @@ class PManager(object):
                 self.kick("partition {0} "
                           "--onpart={2}{3}{4}"
                           "".format(pvname, pv["size"], self._disk_dev(disk),
-                                    self._pseparator(disk["id"]), pcount))
+                                    self._pseparator(disk['name']), pcount))
 
                 if not pvs.get(pv["vg"]):
                     pvs[pv["vg"]] = []
@@ -595,7 +595,7 @@ class PreseedPManager(object):
 
     def _pseparator(self, devname):
         pseparator = ''
-        if devname.find('cciss') >= 0:
+        if 'cciss' in devname or 'nvme' in devname:
             pseparator = 'p'
         return pseparator
 
@@ -915,7 +915,7 @@ class PreseedPManager(object):
                 # clear any fs info that may remain on newly created partition
                 self.late("dd if=/dev/zero of={0}{1}{2} bs=1M count=10"
                           "".format(self._disk_dev(disk),
-                                    self._pseparator(disk["id"]),
+                                    self._pseparator(disk['name']),
                                     pcount))
 
                 fs = part.get("file_system", "xfs")
@@ -925,7 +925,7 @@ class PreseedPManager(object):
                         part.get("file_system", "xfs"),
                         self._fsoptions(part.get("file_system", "xfs")),
                         self._disk_dev(disk),
-                        self._pseparator(disk["id"]),
+                        self._pseparator(disk['name']),
                         pcount, disk_label))
         self._unblacklist_udev_rules()
         self._mount_target()
@@ -960,7 +960,7 @@ class PreseedPManager(object):
                               " >> /target/etc/fstab"
                               "".format(
                                   self._disk_dev(disk),
-                                  self._pseparator(disk["id"]),
+                                  self._pseparator(disk['name']),
                                   part["pcount"], tabmount,
                                   part.get("file_system", "xfs"),
                                   ("defaults" if part["mount"] != "swap"
@@ -1029,14 +1029,14 @@ class PreseedPManager(object):
                 self.late("cat /proc/partitions")
                 pvlist.append("pvcreate -ff {0}{1}{2}"
                               "".format(self._disk_dev(disk),
-                                        self._pseparator(disk["id"]),
+                                        self._pseparator(disk['name']),
                                         pcount))
                 if not devices_dict.get(pv["vg"]):
                     devices_dict[pv["vg"]] = []
                 devices_dict[pv["vg"]].append(
                     "{0}{1}{2}"
                     "".format(self._disk_dev(disk),
-                              self._pseparator(disk["id"]), pcount)
+                              self._pseparator(disk['name']), pcount)
                 )
         self._unblacklist_udev_rules()
 
