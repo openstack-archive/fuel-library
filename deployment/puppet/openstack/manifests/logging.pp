@@ -5,7 +5,8 @@
 # [log_local], [log_auth_local] local & auth logging. Can be used with remote logging.
 # [rotation] logrotate option for rotation period - daily, weekly, monthly, yearly.
 # [keep] logrotate option for number or rotated log files to keep.
-# [limitsize] logrotate option for log files would be rotated, if exceeded.
+# [minsize] rotate log files periodically only if bigger than this value
+# [maxsize] force rotate if this value has been exceeded
 # [rservers] array of hashes which represents remote logging servers for client role.
 # [port] port to use by server role for remote logging.
 # [proto] tcp/udp/both proto(s) for remote log server role.
@@ -18,22 +19,23 @@
 #   (rabbit does not support syslog, imfile is used for log capturing)
 #
 class openstack::logging (
-    $role                           = 'client',
-    $log_remote                     = true,
-    $log_local                      = false,
-    $log_auth_local                 = false,
-    $rotation                       = 'daily',
-    $keep                           = '7',
-    $limitsize                      = '300M',
-    $rservers                       = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
-    $port                           = '514',
-    $proto                          = 'udp',
-    $show_timezone                  = false,
-    $virtual                        = false,
-    $rabbit_log_level               = 'NOTICE',
-    $production                     = 'prod',
-    $escapenewline                  = false,
-    $debug                          = false,
+    $role             = 'client',
+    $log_remote       = true,
+    $log_local        = false,
+    $log_auth_local   = false,
+    $rotation         = 'daily',
+    $keep             = '7',
+    $minsize          = '10M',
+    $maxsize          = '150M',
+    $rservers         = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+    $port             = '514',
+    $proto            = 'udp',
+    $show_timezone    = false,
+    $virtual          = false,
+    $rabbit_log_level = 'NOTICE',
+    $production       = 'prod',
+    $escapenewline    = false,
+    $debug            = false,
 ) {
 
   validate_re($proto, 'tcp|udp|both')
@@ -260,7 +262,8 @@ class openstack::logging (
     role           => $role,
     rotation       => $rotation,
     keep           => $keep,
-    limitsize      => $limitsize,
+    minsize        => $minsize,
+    maxsize        => $maxsize,
     debug          => $debug,
   }
 
