@@ -27,22 +27,34 @@
 "/var/log/sahara/*.log"
 "/var/log/ceilometer/*.log"
 {
-# This file is used for daily log rotations, do not use size options here
+  # pass whole regexp to {pre,post}rotate scripts
   sharedscripts
-  <%= @rotation %>
-  # rotate only if 30M size or bigger
-  minsize 30M
+
   # truncate file, do not delete & recreate
   copytruncate
-  # keep logs for <%= @keep %> rotations
-  rotate <%= @keep %>
-  # compression will be postponed to the next rotation, if uncommented
-  # delaycompress
+
+  # compress rotated files with gzip
   compress
+
   # ignore missing files
   missingok
+
   # do not rotate empty files
   notifempty
+
+  # logrotate allows to use only year, month, day and unix epoch
+  dateformat -%y%m%d-%s
+
+  # number of rotated files to keep
+  rotate <%= @keep %>
+
+  # do not rotate files unless both size and time conditions are met
+  <%= @rotation %>
+  minsize <%= @minsize %>
+
+  # force rotate if filesize exceeded <%= @maxsize %>
+  maxsize <%= @maxsize %>
+
   postrotate
       /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
       reload rsyslog >/dev/null 2>&1 || true
