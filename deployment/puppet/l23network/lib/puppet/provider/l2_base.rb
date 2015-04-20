@@ -5,13 +5,10 @@ require 'yaml'
 class Puppet::Provider::L2_base < Puppet::Provider
 
   def self.ovs_vsctl(*cmd)
-    begin
-      ff = IO.popen(['ovs-vsctl'] + Array(*cmd))
-      rv = ff.readlines().map{|l| l.chomp()}
-    rescue
-      rv = nil
-    end
-    return rv
+    cmd = ['ovs-vsctl'] + cmd
+    output = `"#{cmd.join ' '}"`
+    return unless $?.exitstatus == 0
+    output.split("\n").map { |line| line.chomp }
   end
 
   def self.prefetch(resources)
