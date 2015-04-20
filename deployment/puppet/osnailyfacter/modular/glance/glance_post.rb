@@ -22,7 +22,7 @@ class GlancePostTest < Test::Unit::TestCase
     assert TestCommon::Network.url_accessible?(url), "Management Glance URL '#{url}' is not accessible!"
   end
 
-  def test_keystone_endpoint_list_run
+  def test_glance_image_list_run
     ENV['OS_TENANT_NAME']="services"
     ENV['OS_USERNAME']="glance"
     ENV['OS_PASSWORD']="#{TestCommon::Settings.glance['user_password']}"
