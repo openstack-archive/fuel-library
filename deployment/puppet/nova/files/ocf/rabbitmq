@@ -563,6 +563,7 @@ stop_server_process() {
 
     ocf_log info "${LH} Execute stop with timeout: ${TIMEOUT_ARG}"
     ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} stop ${OCF_RESKEY_pid_file} 2>&1 >> "${OCF_RESKEY_log_dir}/shutdown_log"
+    rc=$?
     if [[ $rc == $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} RMQ-server process (PID=${pid}) stopped succesfully."
     else
@@ -592,6 +593,11 @@ stop_rmq_server_app() {
     # stop the app
     ocf_log info "${LH} Execute stop_app with timeout: ${TIMEOUT_ARG}"
     ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} stop_app 2>&1 >> "${OCF_RESKEY_log_dir}/shutdown_log"
+    rc=$?
+    if [[ $rc != $OCF_SUCCESS ]] ; then
+        ocf_log err "${LH} RMQ-server app cannot be stopped."
+        return $OCF_ERR_GENERIC
+    fi
 
     get_status rabbit
     rc=$?
@@ -707,6 +713,11 @@ try_to_start_rmq_app() {
         ocf_log info "${LH} start_app was successful."
         ocf_log info "${LH} waiting for start to finish with timeout: ${TIMEOUT_ARG}"
         ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} wait ${OCF_RESKEY_pid_file}
+        rc=$?
+        if [[ $rc != $OCF_SUCCESS ]] ; then
+            ocf_log err "${LH} RMQ-server app failed to wait for start."
+            return $OCF_ERR_GENERIC
+        fi
         rc=$OCF_SUCCESS
         # Loading enabled modules
         ocf_log info "${LH} start plugins."
