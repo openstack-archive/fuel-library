@@ -323,13 +323,13 @@ reset_mnesia() {
         if ! $make_amnesia ; then
             # rabbit app is not running, reset mnesia
             ocf_log info "${LH} Execute reset with timeout: ${TIMEOUT_ARG}"
-            ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} reset
+            ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} reset
             rc=$?
-            if [[ $rc != $OCF_SUCCESS ]] ; then
+            if [[ $rc != 0 ]] ; then
                 ocf_log info "${LH} Execute force_reset with timeout: ${TIMEOUT_ARG}"
-                ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} force_reset
+                ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} force_reset
                 rc=$?
-                if [[ $rc != $OCF_SUCCESS ]] ; then
+                if [[ $rc != 0 ]] ; then
                     ocf_log warn "${LH} Mnesia couldn't cleaned, even by force-reset command."
                     make_amnesia=true
                 fi
@@ -504,9 +504,9 @@ join_to_cluster() {
         fi
     fi
     ocf_log info "${LH} Execute join_cluster with timeout: ${TIMEOUT_ARG}"
-    ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} join_cluster $rmq_node
+    ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} join_cluster $rmq_node
     rc=$?
-    if [[ $rc != $OCF_SUCCESS ]] ; then
+    if [[ $rc != 0 ]] ; then
         ocf_log err "${LH} Can't join to cluster by node '${rmq_node}'. Stopping."
         action_stop
         return $OCF_ERR_GENERIC
@@ -566,9 +566,9 @@ unjoin_nodes_from_cluster() {
 
                 # unjoin node
                 ocf_log info "${LH} Execute forget_cluster_node with timeout: ${TIMEOUT_ARG}"
-                ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} forget_cluster_node ${nodename} 2>&1
+                ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} forget_cluster_node ${nodename} 2>&1
                 rc=$?
-                if [[ $rc == $OCF_SUCCESS ]] ; then
+                if [[ $rc == 0 ]] ; then
                     ocf_log info "${LH} node '${nodename}' unjoined succesfully."
                 else
                     ocf_log info "${LH} unjoining node '${nodename}' failed."
@@ -593,8 +593,8 @@ stop_server_process() {
     fi
 
     ocf_log info "${LH} Execute stop with timeout: ${TIMEOUT_ARG}"
-    ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} stop ${OCF_RESKEY_pid_file} 2>&1 >> "${OCF_RESKEY_log_dir}/shutdown_log"
-    if [[ $rc == $OCF_SUCCESS ]] ; then
+    ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} stop ${OCF_RESKEY_pid_file} 2>&1 >> "${OCF_RESKEY_log_dir}/shutdown_log"
+    if [[ $rc == 0 ]] ; then
         ocf_log info "${LH} RMQ-server process (PID=${pid}) stopped succesfully."
     else
         # RMQ-server process can't stop succesfully
@@ -622,7 +622,7 @@ stop_rmq_server_app() {
 
     # stop the app
     ocf_log info "${LH} Execute stop_app with timeout: ${TIMEOUT_ARG}"
-    ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} stop_app 2>&1 >> "${OCF_RESKEY_log_dir}/shutdown_log"
+    ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} stop_app 2>&1 >> "${OCF_RESKEY_log_dir}/shutdown_log"
 
     get_status rabbit
     rc=$?
@@ -732,12 +732,12 @@ try_to_start_rmq_app() {
 
     ocf_log info "${LH} begin."
     ocf_log info "${LH} Execute start_app with timeout: ${TIMEOUT_ARG}"
-    ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} start_app >>$startup_log 2>&1
+    ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} start_app >>$startup_log 2>&1
     rc=$?
-    if [[ $rc == $OCF_SUCCESS ]] ; then
+    if [[ $rc == 0 ]] ; then
         ocf_log info "${LH} start_app was successful."
         ocf_log info "${LH} waiting for start to finish with timeout: ${TIMEOUT_ARG}"
-        ocf_run ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} wait ${OCF_RESKEY_pid_file}
+        ${COMMAND_TIMEOUT} ${OCF_RESKEY_ctl} wait ${OCF_RESKEY_pid_file}
         rc=$OCF_SUCCESS
         # Loading enabled modules
         ocf_log info "${LH} start plugins."
