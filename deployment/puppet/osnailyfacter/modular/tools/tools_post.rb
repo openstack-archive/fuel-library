@@ -9,7 +9,6 @@ tcpdump
 strace
 atop
 puppet-pull
-haproxy-status
 )
 
 class ToolsPostTest < Test::Unit::TestCase
