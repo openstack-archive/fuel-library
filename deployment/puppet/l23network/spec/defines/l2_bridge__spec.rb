@@ -165,6 +165,39 @@ describe 'l23network::l2::bridge', :type => :define do
     end
   end
 
+  context 'create ovs bridge' do
+    let(:params) do
+      {
+        :name    => 'br-floating',
+        :use_ovs => true,
+#        :provider => 'ovs',
+      }
+    end
+
+    it do
+      should compile
+    end
+
+    it do
+      should contain_l23_stored_config('br-floating').only_with({
+        'ensure'       => 'present',
+        'bridge_stp'   => nil,
+        'if_type'      => 'bridge',
+        'bridge_ports' => ['none'],
+        'provider'     => nil,
+      })
+    end
+
+    it do
+      should contain_l2_bridge('br-floating').only_with({
+        'ensure'       => 'present',
+        'use_ovs'      => true,
+        'external_ids' => { 'bridge-id' => 'br-floating' },
+        'provider'     => nil,
+      }).that_requires('L23_stored_config[br-floating]')
+    end
+  end
+
 
 
 end
