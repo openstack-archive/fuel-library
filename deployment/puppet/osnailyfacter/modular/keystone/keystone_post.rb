@@ -20,7 +20,7 @@ class KeystonePostTest < Test::Unit::TestCase
   end
 
   def test_keystone_endpoint_list_run
-    cmd = 'source /root/openrc && keystone endpoint-list'
+    cmd = 'bash -c "source /root/openrc && keystone endpoint-list"'
     assert TestCommon::Process.run_successful?(cmd), "Could not run '#{cmd}'!"
   end
 

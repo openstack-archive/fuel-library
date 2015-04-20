@@ -22,8 +22,8 @@ class GlancePostTest < Test::Unit::TestCase
     assert TestCommon::Network.url_accessible?(url), "Management Glance URL '#{url}' is not accessible!"
   end
 
-  def test_keystone_endpoint_list_run
-    cmd = 'source /root/openrc && glance image-list'
+  def test_glance_image_list_run
+    cmd = 'bash -c "source /root/openrc && glance image-list"'
     assert TestCommon::Process.run_successful?(cmd), "Could not run '#{cmd}'!"
   end
 
