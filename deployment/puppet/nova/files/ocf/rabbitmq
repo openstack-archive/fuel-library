@@ -824,8 +824,9 @@ start_rmq_server_app() {
 }
 
 # check status of rabbit beam process or a rabbit app, if rabbit arg specified
+# by default, test if the kernel app is running, otherwise consider it is "not running"
 get_status() {
-    local what="$1"
+    local what="${1:-kernel}"
     local rc=$OCF_ERR_GENERIC
     local body
 
