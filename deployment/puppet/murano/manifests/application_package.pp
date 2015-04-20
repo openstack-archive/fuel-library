@@ -11,12 +11,15 @@ define murano::application_package (
   $os_auth_url      = 'http://127.0.0.1:5000/v2.0/',
   $mandatory        = false,
 ) {
-  $package_path="/var/cache/murano/meta/${package_name}"
+  $package_path="/var/cache/murano/meta/${package_name}.zip"
 
-  $murano_cli_cmd = $package_category ? {
-    ''       => "${murano_cli} package-import '${package_path}' --is-public --exists-action u",
-    default  => "${murano_cli} package-import '${package_path}' -c '${package_category}' --is-public --exists-action u"
+  if $package_category {
+    $murano_cli_cmd = "${murano_cli} package-import '${package_path}' -c '${package_category}' --is-public --exists-action u"
+  } else {
+    $murano_cli_cmd = "${murano_cli} package-import '${package_path}' --is-public --exists-action u"
   }
+
+  $murano_cli_pkgcheck = "${murano_cli} package-list 2>&1 | grep -q ${package_name}"
 
   exec { "murano_import_package_${package_name}":
     path    => '/sbin:/usr/sbin:/bin:/usr/bin',
@@ -30,6 +33,8 @@ define murano::application_package (
     command => $murano_cli_cmd,
     user    => $runas_user,
     group   => $runas_user,
-    onlyif  => "test -e '${package_path}'"
+    tries   => 3,
+    try_sleep => 10,
+    unless  => $murano_cli_pkgcheck,
   }
 }

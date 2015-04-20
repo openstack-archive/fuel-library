@@ -165,7 +165,7 @@ class murano::api (
 
     Murano_config<||> -> Exec['murano_manage_db_sync']
 
-    murano::application_package{'io.murano.zip':
+    murano::application_package{'io.murano':
       os_username  => $admin_user,
       os_password  => $admin_password,
       os_auth_url  => $keystone_auth_url,
