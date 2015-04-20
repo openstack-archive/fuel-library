@@ -6,7 +6,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
 
   def self.ovs_vsctl(*cmd)
     begin
-      ff = IO.popen(['ovs-vsctl'] + Array(*cmd))
+      ff = IO.popen(['ovs-vsctl'].push(*cmd).join(' '))
       rv = ff.readlines().map{|l| l.chomp()}
     rescue
       rv = nil
