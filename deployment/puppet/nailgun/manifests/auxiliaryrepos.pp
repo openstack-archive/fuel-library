@@ -1,5 +1,6 @@
 class nailgun::auxiliaryrepos(
   $repo_root  = '/var/www/nailgun',
+  $priority = '15',
   ){
 
   $centos_dir = "${repo_root}/centos/auxiliary/"
@@ -22,6 +23,7 @@ class nailgun::auxiliaryrepos(
     descr    => 'auxillary',
     baseurl  => "file://${centos_dir}",
     gpgcheck => '0',
+    priority => $priority,
   }
 
   package { 'createrepo':
