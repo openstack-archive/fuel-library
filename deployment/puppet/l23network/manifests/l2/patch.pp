@@ -63,7 +63,7 @@ define l23network::l2::patch (
       provider        => $provider
     }
 
-    K_mod<||> -> L2_patch<||>
+    Anchor['l23network::init'] -> K_mod<||> -> L2_patch<||>
   }
 }
 # vim: set ts=2 sw=2 et :

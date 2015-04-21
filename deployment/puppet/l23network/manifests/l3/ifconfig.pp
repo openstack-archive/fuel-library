@@ -230,5 +230,5 @@ define l23network::l3::ifconfig (
     L23_stored_config <| title == $interface |> ->
     L3_ifconfig <| title == $interface |>
   }
-
+  Anchor['l23network::init'] -> L3_ifconfig<||>
 }
