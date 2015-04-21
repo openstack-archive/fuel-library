@@ -14,12 +14,59 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+# usage: task_graph.py [-h] [--workbook] [--clear_workbook] [--dot] [--png]
+#                      [--png_file PNG_FILE] [--open] [--debug]
+#                      [--filter FILTER] [--topology]
+#                      PLACE [PLACE ...]
+#
+# positional arguments:
+#   PLACE                 The list of files of directories wheretasks can be
+#                         found
+#
+# optional arguments:
+#   -h, --help            show this help message and exit
+#   --workbook, -w        Output the raw workbook
+#   --clear_workbook, -c  Output the clear workbook
+#   --dot, -D             Output the graph in dot format
+#   --png, -p             Write the graph in png format (default)
+#   --png_file PNG_FILE, -P PNG_FILE
+#                         Write graph image to this file
+#   --open, -o            Open the image after creation
+#   --debug, -d           Print debug messages
+#   --filter FILTER, -f FILTER
+#                         Filter tasks by this group or role
+#   --topology, -t        Show the tasks topology(possible execution order)
+#
+# This tools can be used to create a task graph image. Just point it
+# at the folder where tasks.yaml files can be found.
+#
+# > ./task_graph.py deployment/puppet/osnailyfacter/modular
+#
+# It will create task_graph.png file in the current directroy.
+#
+# You can also use -w and -c options to inspect the workbook yamls
+# files and output graph as graphviz file with -o option.
+#
+# You can filter graph by roles and groups with -f option like this
+# > ./task_graph.py -f controller deployment/puppet/osnailyfacter/modular
+#
+# And you can use -t option to view the possible order of task execution
+# with the current graph.
+#
+# > ./task_graph.py -t deployment/puppet/osnailyfacter/modular
+
 import fnmatch
 import os
 import sys
 import argparse
-import networkx
 import yaml
+
+try:
+    import pygraphviz
+except ImportError:
+    pass
+
+import networkx
 
 
 class IO(object):
@@ -32,13 +79,12 @@ class IO(object):
         sys.stdout.write(msg)
 
     @classmethod
-    def output(cls, line, fill=None):
+    def output(cls, line, fill=None, newline=True):
         line = str(line)
         if fill:
             line = line[0:fill].ljust(fill)
-        else:
-            if not line.endswith("\n"):
-                line += "\n"
+        if newline and not line.endswith("\n"):
+            line += "\n"
         sys.stdout.write(line)
 
     @classmethod
@@ -73,7 +119,7 @@ class IO(object):
                             action="store_true",
                             default=True,
                             help='Write the graph in png format (default)')
-        parser.add_argument("--png_file", "-f",
+        parser.add_argument("--png_file", "-P",
                             type=str,
                             default='task_graph.png',
                             help='Write graph image to this file')
@@ -85,12 +131,9 @@ class IO(object):
                             action="store_true",
                             default=False,
                             help='Print debug messages')
-        parser.add_argument("--group", "-g",
-                            help="Group to build the graph for",
+        parser.add_argument("--filter", "-f",
+                            help="Filter tasks by this group or role",
                             default=None)
-        parser.add_argument("--stage", "-s",
-                            help="Stage to build the graph for",
-                            default='deployment')
         parser.add_argument("--topology", "-t",
                             action="store_true",
                             help="Show the tasks topology"
@@ -125,15 +168,15 @@ class IO(object):
             for task_file in cls.task_files(place):
                 task_graph.load_yaml_file(task_file)
 
-        task_graph.process_data(stage=cls.args.stage, group=cls.args.group)
+        if cls.args.workbook:
+            IO.output(yaml.dump(task_graph.workbook))
+            return
+
+        task_graph.process_data(filter=cls.args.filter)
         task_graph.build_graph()
 
         if cls.args.topology:
             task_graph.show_topology()
-            return
-
-        if cls.args.workbook:
-            IO.output(yaml.dump(task_graph.workbook))
             return
 
         if cls.args.clear_workbook:
@@ -152,12 +195,20 @@ class TaskGraph(object):
         self.workbook = []
         self.graph = networkx.DiGraph()
         self._max_task_id_length = None
-        self._max_task_stage_length = None
 
         self.options = {
             'debug': False,
             'prog': 'dot',
             'default_node': {
+                'fillcolor': 'yellow',
+            },
+            'stage_node': {
+                'fillcolor': 'blue',
+                'shape': 'rectangle',
+            },
+            'group_node': {
+                'fillcolor': 'green',
+                'shape': 'rectangle',
             },
             'default_edge': {
             },
@@ -171,16 +222,11 @@ class TaskGraph(object):
             'global_node': {
                 'style': 'filled',
                 'shape': 'ellipse',
-                'fillcolor': 'yellow',
             },
             'global_edge': {
                 'style': 'solid',
                 'arrowhead': 'vee',
             },
-            'non_task_types': [
-                'role',
-                'stage',
-            ]
         }
 
     def clear(self):
@@ -189,46 +235,67 @@ class TaskGraph(object):
         self.workbook = []
 
     def node_options(self, id):
+        if self.data.get(id, {}).get('type', None) == 'stage':
+            return self.options['stage_node']
+        if self.data.get(id, {}).get('type', None) == 'group':
+            return self.options['group_node']
         return self.options['default_node']
 
     def edge_options(self, id_from, id_to):
         return self.options['default_edge']
 
     def add_graph_node(self, id, options=None):
-        if not options:
-            options = self.node_options(id)
         if id not in self.data:
             return
+        if not options:
+            options = self.node_options(id)
         self.graph.add_node(id, options)
 
     def add_graph_edge(self, id_from, id_to, options=None):
-        if not options:
-            options = self.edge_options(id_from, id_to)
         if id_from not in self.data:
             return
         if id_to not in self.data:
             return
+        if not options:
+            options = self.edge_options(id_from, id_to)
         self.graph.add_edge(id_from, id_to, options)
 
-    def process_data(self, stage=None, group=None):
+    @staticmethod
+    def filter_by_group(node, filter=None):
+        # if group is not specified accept only the group tasks
+        # and show only them on the graph/list
+        # if there is a group, filter out group tasks
+        # and show only normal tasks in this group
+        type = node.get('type', None)
+        if not filter:
+            return type == 'group'
+        else:
+            if type == 'group':
+                return False
+        # always accept 'stage' tasks
+        if type == 'stage':
+            return True
+        # accept task only if it has matching group or role
+        # or its group or role is set to 'any'
+        if 'groups' in node:
+            if ('*' in node['groups']) or (filter in node['groups']):
+                return True
+        if 'role' in node:
+            if ('*' in node['role']) or (filter in node['role']):
+                return True
+        return False
+
+    def process_data(self, filter=None):
         for node in self.workbook:
             if not type(node) is dict:
                 continue
             if not node.get('type', None) and node.get('id', None):
                 continue
-            if node.get('type', None) in self.options['non_task_types']:
-                continue
-            if not 'stage' in node:
-                node['stage'] = 'deployment'
             if not 'requires' in node:
                 node['requires'] = []
             if not 'required_for' in node:
                 node['required_for'] = []
-            if not 'groups' in node:
-                node['groups'] = []
-            if stage and not node['stage'] == stage:
-                continue
-            if group and not group in node['groups']:
+            if not self.filter_by_group(node, filter=filter):
                 continue
             self.data[node['id']] = node
 
@@ -247,30 +314,26 @@ class TaskGraph(object):
         self._max_task_id_length = len(max(self.data.keys(), key=len))
         return self._max_task_id_length
 
-    @property
-    def max_task_stage_length(self):
-        if self._max_task_stage_length:
-            return self._max_task_stage_length
-        self._max_task_stage_length = max(map(lambda n: len(n['stage']),
-                                              self.data.values()))
-        return self._max_task_stage_length
-
     def make_dot_graph(self):
         return networkx.to_agraph(self.graph)
 
     def show_topology(self):
         number = 1
         for node in networkx.topological_sort(self.graph):
-            groups = self.data.get(node, {}).get('groups', [])
-            groups = ', '.join(groups)
-            stage = self.data.get(node, {}).get('stage', '')
-            IO.output(number, 5)
-            IO.output(node, self.max_task_id_length + 1)
-            IO.output(stage, self.max_task_stage_length + 1)
-            IO.output(groups)
+            type = self.data.get(node, {}).get('type', None)
+            if type == 'stage':
+                node = '<' + node + '>'
+            IO.output(number, fill=5, newline=False)
+            IO.output(node, fill=self.max_task_id_length + 1)
             number += 1
 
     def create_image(self, img_file):
+        try:
+            pygraphviz
+        except NameError:
+            IO.output('You need "pygraphviz" to draw the graph. '
+                      'But you can use -t to view the topology.')
+            sys.exit(1)
         graph = self.make_dot_graph()
         for attr_name in self.options['global_graph']:
             graph.graph_attr[attr_name] = \
