@@ -16,7 +16,7 @@
 
 confdir="/etc/dockerctl"
 . "$confdir/config"
-. "/usr/share/dockerctl/functions.sh"
+. "/usr/share/dockerctl/functions"
 DEBUG=true
 
 #Sets var nonopts
