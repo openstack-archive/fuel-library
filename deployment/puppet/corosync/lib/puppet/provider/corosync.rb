@@ -97,15 +97,14 @@ class Puppet::Provider::Corosync < Puppet::Provider
       rescue Puppet::ExecutionFailure
         debug('delete failed but proceeding anyway')
       end
-      crm_shadow("-b","-c",shadow_name)
-      env["CIB_shadow"] = shadow_name
-      exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
       if !get_scope(res_type).nil?
           cibadmin_scope = "-o #{get_scope(res_type)}"
       else
           cibadmin_scope = nil
       end
-      orig_status = exec_withenv("#{command(:cibadmin)} #{cibadmin_scope} -Q > /tmp/#{shadow_name}_orig.xml")
+      crm_shadow("-b","-c",shadow_name)
+      env["CIB_shadow"] = shadow_name
+      orig_status = exec_withenv("#{command(:cibadmin)} #{cibadmin_scope} -Q > /tmp/#{shadow_name}_orig.xml", env)
       #cibadmin returns code 6 if scope is empty
       #in this case write empty file
       if orig_status == 6 or File.open("/tmp/#{shadow_name}_orig.xml").read.empty?
@@ -113,6 +112,7 @@ class Puppet::Provider::Corosync < Puppet::Provider
           emptydoc=REXML::Document.new(cur_scope)
           emptydoc.write(File.new("/tmp/#{shadow_name}_orig.xml",'w'))
       end
+      exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
       exec_withenv("#{command(:cibadmin)} #{cibadmin_scope} -Q > /tmp/#{shadow_name}_new.xml",env)
       patch = Open3.popen3("#{command(:crm_diff)} --original #{original_cib} --new #{new_cib}")[1].read
       if patch.empty?
