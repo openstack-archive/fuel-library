@@ -9,6 +9,10 @@ describe 'l23network::l2::bridge', :type => :define do
     :l23_os => 'ubuntu',
     :l3_fqdn_hostname => 'stupid_hostname',
   } }
+  let(:pre_condition) { [
+    "class {'l23network': }"
+  ] }
+
 
   context 'Just a bridge, created by name' do
     let(:params) do
@@ -32,9 +36,8 @@ describe 'l23network::l2::bridge', :type => :define do
     end
 
     it do
-      should contain_l2_bridge('br-mgmt').only_with({
+      should contain_l2_bridge('br-mgmt').with({
         'ensure'       => 'present',
-        'use_ovs'      => nil,
         'external_ids' => {'bridge-id'=>'br-mgmt'},
       }).that_requires('L23_stored_config[br-mgmt]')
     end
@@ -77,7 +80,7 @@ describe 'l23network::l2::bridge', :type => :define do
     end
 
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
