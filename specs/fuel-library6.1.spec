@@ -40,7 +40,7 @@ install -m 0644 %{dockerctl_source}/dockerctl-alias.sh %{buildroot}/etc/profile.
 install -m 0755 %{dockerctl_source}/dockerctl %{buildroot}/usr/bin
 install -m 0755 %{dockerctl_source}/get_service_credentials.py %{buildroot}/usr/bin
 install -m 0644 %{dockerctl_source}/dockerctl_config %{buildroot}/etc/dockerctl/config
-install -m 0644 %{dockerctl_source}/functions.sh %{buildroot}/usr/share/dockerctl/
+install -m 0644 %{dockerctl_source}/functions.sh %{buildroot}/usr/share/dockerctl/functions
 #fuel-misc
 install -m 0755 %{files_source}/fuel-misc/centos_ifdown-local %{buildroot}/sbin/ifup-local
 install -m 0755 %{files_source}/fuel-misc/centos_ifup-local  %{buildroot}/sbin/ifdown-local
@@ -107,7 +107,8 @@ during Fuel All-in-One deployment toolkit installation
 /etc/profile.d/dockerctl.sh
 /usr/bin/dockerctl
 /usr/bin/get_service_credentials.py
-/usr/share/dockerctl/functions.sh
+/usr/share/dockerctl/functions
+
 %config(noreplace) /etc/dockerctl/config
 
 %package -n fuel-misc
