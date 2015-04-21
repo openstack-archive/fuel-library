@@ -16,8 +16,7 @@ class sahara::api (
   $use_syslog                  = false,
   $syslog_log_facility         = "LOG_LOCAL0",
   $log_dir                     = '/var/log/sahara',
-  $log_file                    = '/var/log/sahara/api.log',
-  $service_name                = $sahara::params::service_name,
+  $service_name                = $sahara::params::sahara_api_service_name,
   $package_name                = $sahara::params::package_name,
 ) inherits sahara::params {
 
@@ -44,7 +43,7 @@ class sahara::api (
     command    => "/usr/bin/sahara-db-manage --config-file /etc/sahara/sahara.conf upgrade head"
   }
 
-  service { 'sahara':
+  service { 'sahara-api':
     ensure     => $service_ensure,
     name       => $service_name,
     enable     => $enabled,
@@ -67,27 +66,6 @@ class sahara::api (
     'keystone_authtoken/admin_password'    : value => $keystone_password;
     'keystone_authtoken/auth_uri'          : value => $auth_uri;
     'keystone_authtoken/identity_uri'      : value => $identity_uri;
-  }
-
-  # Log configuration
-  if $log_dir {
-    sahara_config {
-      'DEFAULT/log_dir' :  value  => $log_dir;
-    }
-  } else {
-    sahara_config {
-      'DEFAULT/log_dir' :  ensure => 'absent';
-    }
-  }
-
-  if $log_file {
-    sahara_config {
-      'DEFAULT/log_file' :  value  => $log_file;
-    }
-  } else {
-    sahara_config {
-      'DEFAULT/log_file' :  ensure => 'absent';
-    }
   }
 
   # Syslog configuration
@@ -113,9 +91,9 @@ class sahara::api (
   Sahara_config<||> ->
   Exec['sahara-db-manage'] ->
   File['sahara_log_dir'] ->
-  Service['sahara']
+  Service['sahara-api'] ->
 
-  Package['sahara'] ~> Service['sahara']
-  Sahara_config<||> ~> Service['sahara']
+  Package['sahara'] ~> Service['sahara-api']
+  Sahara_config<||> ~> Service['sahara-api']
 
 }
