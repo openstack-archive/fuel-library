@@ -96,8 +96,16 @@ define vmware::cinder::vmdk(
     }
     'Debian': {
       $cinder_volume_default = "/etc/default/${cinder_volume_vmware}-${index}"
+      $cinder_volume_package = $::cinder::params::volume_package
       $src_init = "${cinder_volume_vmware}.conf"
       $dst_init = '/etc/init'
+      if ! defined(Package[$cinder_volume_package]) {
+        package { $cinder_volume_package:
+          ensure => 'present',
+          name   => $cinder_volume_package,
+        }
+      }
+      Package[$cinder_volume_package] -> Exec[$src_init]
       if ! defined(File[$cinder_volume_default]) {
         file { $cinder_volume_default:
           ensure  => present,
