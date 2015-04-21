@@ -17,7 +17,7 @@ class sahara (
   $db_host                      = 'localhost',
   $db_allowed_hosts             = ['localhost','%'],
 
-  $firewall_rule                = '201 sahara-all',
+  $firewall_rule                = '201 sahara-api',
   $use_neutron                  = false,
 
   $use_syslog                   = false,
@@ -64,6 +64,18 @@ class sahara (
     syslog_log_facility          => $syslog_log_facility,
   }
 
+  class { 'sahara::engine':
+    enabled                      => $enabled,
+    rpc_backend                  => $rpc_backend,
+    amqp_password                => $amqp_password,
+    amqp_user                    => $amqp_user,
+    amqp_host                    => $amqp_host,
+    amqp_port                    => $amqp_port,
+    amqp_hosts                   => $amqp_hosts,
+    rabbit_virtual_host          => $rabbit_virtual_host,
+    rabbit_ha_queues             => $rabbit_ha_queues,
+  }
+
   class { 'sahara::keystone::auth' :
     password                     => $keystone_password,
     auth_name                    => $keystone_user,
@@ -79,23 +91,12 @@ class sahara (
   if $enable_notifications {
     if $rpc_backend == 'rabbit' {
       class { 'sahara::notify::rabbitmq':
-        rabbit_password      => $amqp_password,
-        rabbit_userid        => $amqp_user,
-        rabbit_host          => $amqp_host,
-        rabbit_port          => $amqp_port,
-        rabbit_hosts         => $amqp_hosts,
-        rabbit_virtual_host  => $rabbit_virtual_host,
-        rabbit_ha_queues     => $rabbit_ha_queues,
+        enable_notifications => true,
       }
     }
 
     if $rpc_backend == 'qpid' {
       class { 'sahara::notify::qpid':
-        qpid_password  => $amqp_password,
-        qpid_username  => $amqp_user,
-        qpid_hostname  => $amqp_host,
-        qpid_port      => $amqp_port,
-        qpid_hosts     => $amqp_hosts,
       }
     }
   }
@@ -110,6 +111,7 @@ class sahara (
   Class['sahara::db::mysql'] ->
   Firewall[$firewall_rule] ->
   Class['sahara::keystone::auth'] ->
-  Class['sahara::api']
+  Class['sahara::api'] ->
+  Class['sahara::engine']
 
 }
