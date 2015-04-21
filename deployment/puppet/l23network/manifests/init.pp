@@ -49,8 +49,8 @@ class l23network (
       mode   => '0755',
     } -> Anchor['l23network::init']
   }
-  Class['l23network::l2'] -> File<| title == "${::l23network::params::interfaces_dir}" |>
-  Class['l23network::l2'] -> File<| title == "${::l23network::params::interfaces_file}" |>
+  Anchor['l23network::l2::init'] -> File<| title == "${::l23network::params::interfaces_dir}" |>
+  Anchor['l23network::l2::init'] -> File<| title == "${::l23network::params::interfaces_file}" |>
 
   # Centos interface up-n-down scripts
   if $::osfamily =~ /(?i)redhat/ {

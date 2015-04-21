@@ -30,5 +30,6 @@ define l23network::l3::route (
     }
     L3_ifconfig<||> -> L3_route<||>
   }
+  Anchor['l23network::init'] -> L3_route<||>
 
 }
