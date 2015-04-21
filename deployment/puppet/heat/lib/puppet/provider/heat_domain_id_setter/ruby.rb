@@ -93,7 +93,7 @@ def keystone_v2_authenticate(auth_url,
     if tenantName
         post_args['auth']['tenantName'] = tenantName
     end
-
+    auth_url.sub!('v3', 'v2.0')
     url = URI.parse("#{auth_url}/tokens")
     req = Net::HTTP::Post.new url.path
     req['content-type'] = 'application/json'

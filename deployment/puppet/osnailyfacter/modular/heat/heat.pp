@@ -107,7 +107,7 @@ class { 'heat::docker_resource' :
 }
 
 class { 'heat::keystone::domain' :
-  auth_url          => "http://${controller_node_address}:5000/v2.0",
+  auth_url          => "http://${controller_node_address}:35357/v2.0",
   keystone_admin    => 'heat',
   keystone_password => $heat_hash['user_password'],
   keystone_tenant   => 'services',
