@@ -9,6 +9,10 @@ describe 'l23network::l2::bond', :type => :define do
     :l23_os => 'ubuntu',
     :l3_fqdn_hostname => 'stupid_hostname',
   } }
+  let(:pre_condition) { [
+    "class {'l23network': }"
+  ] }
+
 
   context 'Just create a lnx-bond with two slave interfaces' do
     let(:params) do
@@ -21,7 +25,7 @@ describe 'l23network::l2::bond', :type => :define do
     end
 
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do

@@ -9,6 +9,10 @@ describe 'l23network::l2::port', :type => :define do
     :l23_os => 'ubuntu',
     :l3_fqdn_hostname => 'stupid_hostname',
   } }
+  let(:pre_condition) { [
+    "class {'l23network': }"
+  ] }
+
 
   context 'Port without anythyng' do
     let(:params) do
@@ -18,7 +22,7 @@ describe 'l23network::l2::port', :type => :define do
     end
 
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -31,9 +35,8 @@ describe 'l23network::l2::port', :type => :define do
     end
 
     it do
-      should contain_l2_port('eth4').only_with({
+      should contain_l2_port('eth4').with({
         'ensure'  => 'present',
-        'use_ovs' => nil,
       }).that_requires('L23_stored_config[eth4]')
     end
   end
@@ -62,9 +65,8 @@ describe 'l23network::l2::port', :type => :define do
     end
 
     it do
-      should contain_l2_port('eth4.102').only_with({
+      should contain_l2_port('eth4.102').with({
         'ensure'  => 'present',
-        'use_ovs'   => nil,
         'vlan_id'   => '102',
         'vlan_dev'  => 'eth4',
         'vlan_mode' => 'eth'
@@ -98,9 +100,8 @@ describe 'l23network::l2::port', :type => :define do
     end
 
     it do
-      should contain_l2_port('vlan102').only_with({
+      should contain_l2_port('vlan102').with({
         'ensure'  => 'present',
-        'use_ovs'   => nil,
         'vlan_id'   => '102',
         'vlan_dev'  => 'eth4',
         'vlan_mode' => 'vlan'
@@ -137,17 +138,15 @@ describe 'l23network::l2::port', :type => :define do
 
     it do
       should compile
-      should contain_l23_stored_config('eth2').only_with({
-        'use_ovs' => nil,
+      should contain_l23_stored_config('eth2').with({
         'method'  => nil,
         'ipaddr'  => nil,
         'gateway' => nil,
         'mtu'     => 9000,
       })
-      should contain_l2_port('eth2').only_with({
+      should contain_l2_port('eth2').with({
         'ensure'  => 'present',
         'mtu'     => 9000,
-        'use_ovs' => nil,
       }).that_requires('L23_stored_config[eth2]')
     end
   end
@@ -162,16 +161,14 @@ describe 'l23network::l2::port', :type => :define do
 
     it do
       should compile
-      should contain_l23_stored_config('eth2').only_with({
-        'use_ovs' => nil,
+      should contain_l23_stored_config('eth2').with({
         'method'  => nil,
         'ipaddr'  => nil,
         'gateway' => nil,
         'bridge'  => 'br-floating',
       })
-      should contain_l2_port('eth2').only_with({
+      should contain_l2_port('eth2').with({
         'ensure'  => 'present',
-        'use_ovs' => nil,
         'bridge'  => 'br-floating',
       }).that_requires('L23_stored_config[eth2]')
     end
@@ -193,8 +190,7 @@ describe 'l23network::l2::port', :type => :define do
 
     it do
       should compile
-      should contain_l23_stored_config('eth2').only_with({
-        'use_ovs' => nil,
+      should contain_l23_stored_config('eth2').with({
         'method'  => nil,
         'ipaddr'  => nil,
         'gateway' => nil,
@@ -206,9 +202,8 @@ describe 'l23network::l2::port', :type => :define do
             },
         },
       })
-      should contain_l2_port('eth2').only_with({
+      should contain_l2_port('eth2').with({
         'ensure'  => 'present',
-        'use_ovs' => nil,
         'vendor_specific' => {
             'aaa' => '1111',
             'bbb' => {

@@ -14,6 +14,10 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :ipaddr => 'none'
     } }
 
+    let(:pre_condition) { [
+      "class {'l23network': }"
+    ] }
+
     it do
       should compile
     end
