@@ -21,6 +21,10 @@ describe 'l23network', :type => :class do
       should contain_package('ethtool').with_ensure('present')
       should contain_package('ifenslave').with_ensure('present')
       should contain_package('vlan').with_ensure('present')
+      should contain_anchor('l23network::l2::init').that_comes_before('Anchor[l23network::init]')
+      should contain_anchor('l23network::l2::init').that_requires('Package[vlan]')
+      should contain_anchor('l23network::l2::init').that_requires('Package[ifenslave]')
+      should contain_anchor('l23network::l2::init').that_requires('Package[ethtool]')
     end
   end
 
@@ -57,7 +61,7 @@ describe 'l23network', :type => :class do
         'ensure' => 'running',
         'name'   => 'openvswitch-switch',
         'enable' => true
-      })
+      }).that_comes_before('Anchor[l23network::l2::init]')
     end
 
   end
