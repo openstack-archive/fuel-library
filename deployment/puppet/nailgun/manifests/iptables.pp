@@ -20,6 +20,7 @@ $chain                 = 'INPUT',
   firewall { '004 forward_admin_net':
     chain      => 'POSTROUTING',
     table      => 'nat',
+    proto      => 'all',
     source     => "${network_address}/${network_cidr}",
     outiface   => 'eth+',
     jump       => 'MASQUERADE',
