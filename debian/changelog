@@ -1,3 +1,9 @@
+fuel-library6.1 (6.1.0-1) precise; urgency=low
+
+  * Update version to 6.1.0
+
+ -- Matthew Mosesohn <mmosesohn@miirantis.com> Wed, 22 Apr 2015 14:44:00 +0300
+
 fuel-library6.1 (6.0.0-1) precise; urgency=low
 
   * Update code from upstream
