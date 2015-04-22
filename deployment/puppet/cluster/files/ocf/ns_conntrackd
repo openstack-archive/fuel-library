@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #
-#       An OCF RA for conntrackd
+#  An OCF RA for conntrackd in namespace
 #  http://conntrack-tools.netfilter.org/
 #
 # Copyright (c) 2011 Dominik Klein
@@ -144,7 +144,7 @@ get_veth_pair() {
     ocf_run ip link set dev $OCF_RESKEY_ns_interface netns $OCF_RESKEY_ns
     ocf_run ip netns exec $OCF_RESKEY_ns ip link set up dev $OCF_RESKEY_ns_interface
     ocf_run ip link set up dev $OCF_RESKEY_host_interface
-    ocf_run ip netns exec $OCF_RESKEY_ns ifconfig $OCF_RESKEY_ns_interface 10.0.0.${last_octet}/24
+    ocf_run ip netns exec $OCF_RESKEY_ns ip addr add 240.1.0.${last_octet}/24 dev $OCF_RESKEY_ns_interface
   fi
 
   add_to_bridge
