@@ -3,16 +3,17 @@ require 'shared-examples'
 manifest = 'murano/murano.pp'
 
 describe manifest do
-  shared_examples 'puppet catalogue' do
-    settings = Noop.fuel_settings
-    rabbit_user = settings['rabbit']['user'] || 'nova'
-    use_neutron = settings['quantum'].to_s
+  shared_examples 'catalog' do
+    rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
+    rabbit_password = Noop.hiera_structure 'rabbit/password'
+    use_neutron = Noop.hiera 'use_neutron'
+    enabled = Noop.hiera_structure 'murano/enabled'
 
-    if settings['murano']['enabled']
+    if enabled
       it 'should declare murano class correctly' do
         should contain_class('murano').with(
           'murano_os_rabbit_userid' => rabbit_user,
-          'murano_os_rabbit_passwd' => settings['rabbit']['password'],
+          'murano_os_rabbit_passwd' => rabbit_password,
           'use_neutron'             => use_neutron,
         )
       end
