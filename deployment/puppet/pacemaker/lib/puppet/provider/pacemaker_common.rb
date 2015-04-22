@@ -68,6 +68,12 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     REXML::XPath.match lrm, 'lrm_resources/lrm_resource'
   end
 
+  # get all 'rsc_location', 'rsc_order' and 'rsc_colocation' sections from CIB
+  # @return [Array<REXML::Element>] at /cib/configuration/constraints/*
+  def cib_section_constraints
+    REXML::XPath.match cib, '//constraints/*'
+  end
+
   # determine the status of a single operation
   # @param op [Hash<String => String>]
   # @return ['start','stop','master',nil]
@@ -222,6 +228,36 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
       @nodes_structure.store node_name, node
     end
     @nodes_structure
+  end
+
+  # decode a single constraint element to the data structure
+  # @param element [REXML::Element]
+  # @return [Hash<String => String>]
+  def decode_constraint(element)
+    return unless element.is_a? REXML::Element
+    return unless element.attributes['id']
+    return unless element.name
+
+    constraint_structure = attributes_to_hash element
+    constraint_structure.store 'type', element.name
+
+    constraint_structure
+  end
+
+  # location constraints found in the CIB
+  # filter them by the provided tag name
+  # @return [Hash<String => Hash>]
+  def constraint_locations
+    locations = {}
+    cib_section_constraints.each do |constraint|
+      constraint_structure = decode_constraint constraint
+      next unless constraint_structure
+      next unless constraint_structure['id']
+      next unless constraint_structure['type'] == 'rsc_location'
+      constraint_structure.delete 'type'
+      locations.store constraint_structure['id'], constraint_structure
+    end
+    locations
   end
 
   # get primitives configuration structure with primitives and their attributes
@@ -410,10 +446,18 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # @param primitive [String] the primitive's name
   # @param node [String] the node's name
   def constraint_location_remove(primitive, node)
-    id = "#{primitive}_on_#{node}"
+    id = "#{primitive}-on-#{node}"
     retry_command {
       pcs 'constraint', 'location', 'remove', id
     }
+  end
+
+  # check if location constraint exists
+  # @param primitive [String] the primitive's name
+  # @param node [String] the node's name
+  def constraint_location_exists?(primitive, node)
+    id = "#{primitive}-on-#{node}"
+    constraint_locations.key? id
   end
 
   # get a status of a primitive on the entire cluster
