@@ -36,6 +36,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     @primitives = nil
     @primitives_structure = nil
     @nodes_structure = nil
+    @node_ids = nil
   end
 
   # get lrm_rsc_ops section from lrm_resource section CIB section
@@ -53,6 +54,12 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     REXML::XPath.match cib, '//node_state'
   end
 
+  # get nodes CIB section
+  # @return [REXML::Element] at /cib/configuration/nodes
+  def cib_section_node_ids
+    REXML::XPath.match cib, '/cib/configuration/nodes/*'
+  end
+
   # get primitives CIB section
   # @return [Array<REXML::Element>] at /cib/configuration/resources/primitive
   def cib_section_primitives
@@ -66,6 +73,12 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   def cib_section_lrm_resources(lrm)
     return unless lrm.is_a? REXML::Element
     REXML::XPath.match lrm, 'lrm_resources/lrm_resource'
+  end
+
+  # get all 'rsc_location', 'rsc_order' and 'rsc_colocation' sections from CIB
+  # @return [Array<REXML::Element>] at /cib/configuration/constraints/*
+  def cib_section_constraints
+    REXML::XPath.match cib, '//constraints/*'
   end
 
   # determine the status of a single operation
@@ -222,6 +235,50 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
       @nodes_structure.store node_name, node
     end
     @nodes_structure
+  end
+
+  # decode a single constraint element to the data structure
+  # @param element [REXML::Element]
+  # @return [Hash<String => String>]
+  def decode_constraint(element)
+    return unless element.is_a? REXML::Element
+    return unless element.attributes['id']
+    return unless element.name
+
+    constraint_structure = attributes_to_hash element
+    constraint_structure.store 'type', element.name
+
+    constraint_structure
+  end
+
+  # location constraints found in the CIB
+  # filter them by the provided tag name
+  # @return [Hash<String => Hash>]
+  def constraint_locations
+    locations = {}
+    cib_section_constraints.each do |constraint|
+      constraint_structure = decode_constraint constraint
+      next unless constraint_structure
+      next unless constraint_structure['id']
+      next unless constraint_structure['type'] == 'rsc_location'
+      constraint_structure.delete 'type'
+      locations.store constraint_structure['id'], constraint_structure
+    end
+    locations
+  end
+
+  # the nodes structure
+  # uname => id
+  # @return [Hash<String => Hash>]
+  def node_ids
+    return @node_ids if @node_ids
+    @node_ids = {}
+    cib_section_node_ids.each do |node_block|
+      node = attributes_to_hash node_block
+      next unless node['id'] and node['uname']
+      @node_ids.store node['uname'], node['id']
+    end
+    @node_ids
   end
 
   # get primitives configuration structure with primitives and their attributes
@@ -410,10 +467,18 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # @param primitive [String] the primitive's name
   # @param node [String] the node's name
   def constraint_location_remove(primitive, node)
-    id = "#{primitive}_on_#{node}"
+    id = "#{primitive}-on-#{node}"
     retry_command {
       pcs 'constraint', 'location', 'remove', id
     }
+  end
+
+  # check if location constraint exists
+  # @param primitive [String] the primitive's name
+  # @param node [String] the node's name
+  def constraint_location_exists?(primitive, node)
+    id = "#{primitive}-on-#{node}"
+    constraint_locations.key? id
   end
 
   # get a status of a primitive on the entire cluster
