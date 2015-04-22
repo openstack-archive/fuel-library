@@ -84,6 +84,7 @@ describe Puppet::Provider::Pacemaker_common do
     it 'can produce nodes structure' do
       expect(@class.nodes).to be_a Hash
       expect(@class.nodes['node-1']['primitives']['p_heat-engine']['status']).to eq('start')
+      #puts @class.nodes.inspect
       #puts @class.get_cluster_debug_report
     end
 
@@ -184,8 +185,14 @@ describe Puppet::Provider::Pacemaker_common do
     end
 
     it 'can remove location constraint' do
-      @class.expects(:pcs).with 'constraint', 'location', 'remove', 'myprimitive_on_mynode'
+      @class.expects(:pcs).with 'constraint', 'location', 'remove', 'myprimitive-on-mynode'
       @class.constraint_location_remove 'myprimitive', 'mynode'
+    end
+
+    it 'can get the location structure from the CIB XML' do
+      expect(@class.constraint_locations).to be_a(Hash)
+      expect(@class.constraint_locations['vip__management_on_node-1']).to be_a(Hash)
+      expect(@class.constraint_locations['vip__management_on_node-1']['rsc']).to be_a String
     end
   end
 
@@ -215,6 +222,12 @@ describe Puppet::Provider::Pacemaker_common do
       @class.stubs(:cib_reset).returns true
       @class.stubs(:primitive_is_running?).with('myprimitive', nil).returns false
       @class.wait_for_stop 'myprimitive'
+    end
+  end
+
+  context 'node id functions' do
+    it 'can get the node ids structure' do
+      expect(@class.node_ids).to eq({"node-1"=>"1", "node-2"=>"2", "node-3"=>"3"})
     end
   end
 

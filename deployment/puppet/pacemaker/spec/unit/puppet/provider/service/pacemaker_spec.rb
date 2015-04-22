@@ -26,8 +26,9 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
     @class.stubs(:wait_for_stop).returns(true)
 
     @class.stubs(:disable_basic_service).returns(true)
-    @class.stubs(:get_primitive_puppet_status).returns(:started)
+    @class.stubs(:get_primitive_puppet_status).returns(:running)
     @class.stubs(:get_primitive_puppet_enable).returns(:true)
+    @class.stubs(:constraint_location_exists?).returns(true)
 
     @class.stubs(:primitive_is_managed?).returns(true)
     @class.stubs(:primitive_is_running?).returns(true)
@@ -84,6 +85,14 @@ describe Puppet::Type.type(:service).provider(:pacemaker) do
     it 'gets service status locally' do
       @class.expects(:get_primitive_puppet_status).with name, hostname
       @class.status
+    end
+
+    it 'counts a service as stopped if location constraint is missing' do
+      @class.stubs(:get_primitive_puppet_status).returns(:running)
+      @class.stubs(:constraint_location_exists?).returns(false)
+      expect(@class.status).to eq :stopped
+      @class.stubs(:constraint_location_exists?).returns(true)
+      expect(@class.status).to eq :running
     end
 
   end

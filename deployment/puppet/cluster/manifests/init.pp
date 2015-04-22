@@ -27,12 +27,7 @@ class cluster (
       }
     }
 
-    # NOTE(bogdando) dirty hack to make corosync with pacemaker service ver:1 working #1417972
-    exec { 'stop-pacemaker':
-      command     => 'service pacemaker stop || true',
-      path        => '/bin:/usr/bin/:/sbin:/usr/sbin',
-    }
-    File<| title == '/etc/corosync/corosync.conf' |> ~> Exec['stop-pacemaker'] ~> Service['corosync']
+    File<| title == '/etc/corosync/corosync.conf' |> -> Service['corosync']
 
     file { 'ocf-fuel-path':
       ensure  => directory,
