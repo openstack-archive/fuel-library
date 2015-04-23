@@ -205,6 +205,12 @@ class openstack::cinder(
     'database/max_overflow':  value => $max_overflow;
   }
 
+  # FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+  # Disable and replace it to upstream heartbeats in Kilo.
+  cinder_config {
+    'DEFAULT/rabbit_heartbeat': value => '520';
+  }
+
   if $keystone_enabled {
     cinder_config {
       'keystone_authtoken/auth_protocol':     value => $keystone_auth_protocol;
