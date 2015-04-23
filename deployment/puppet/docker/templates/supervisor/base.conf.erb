@@ -1,8 +1,8 @@
-[program:docker-ostf]
-command=dockerctl start ostf --attach
+[program:docker-<%= @title %>]
+command=docker start -a fuel-core-<%= @release %>-<%= @title %>
 numprocs=1
 numprocs_start=0
-priority=50
+priority=30
 autostart=true
 autorestart=true
 startsecs=10
@@ -16,9 +16,10 @@ stdout_logfile_maxbytes=50MB
 stdout_logfile_backups=10
 stdout_capture_maxbytes=0
 stdout_events_enabled=false
-stderr_logfile=/var/log/%(program_name)s-err.log
+stderr_logfile=/var/log/%(program_name)serr.log
 stderr_logfile_maxbytes=50MB
 stderr_logfile_backups=10
 stderr_capture_maxbytes=0
 stderr_events_enabled=false
 serverurl=AUTO
+
