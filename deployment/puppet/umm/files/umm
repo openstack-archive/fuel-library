@@ -17,8 +17,12 @@ Usage(){
 if [  ! "z$UMM" == "zyes" ] ; then
     case $1 in
 
-        "status" | "on" | "off" | "disable" )
+        "status" )
             echo "UMM disabled"
+            ;;
+        "on" | "off" | "disable" )
+            echo "MM already disabled"
+            exit 1
             ;;
         "enable" )
             sed -i 's/UMM=.*/UMM=yes/' /etc/umm.conf
@@ -62,19 +66,22 @@ else
                     fi
                 fi
             else
-                echo MM already off state
+                echo "MM already in off state"
+                exit 1
             fi
             ;;
         "enable" )
-                echo MM already enabled
+                echo "MM already enabled"
+                exit 1
             ;;
         "disable" )
             if [ -f $UMM_FLAG ] ; then
                 echo "Current state is $(cat $UMM_FLAG) switch off first "
+                exit 1
             else
                 sed -i 's/UMM=.*/UMM=no/' /etc/umm.conf
-                [ -f $UMM_DATA/UMM_ENFORCED ] && rm  $UMM_DATA/UMM_ENFORCED
-                [ -f $UMM_DATA/UMM_CMD ] &&  rm  $UMM_DATA/UMM_CMD
+                [ -f $UMM_DATA/UMM_ENFORCED ] && rm  $UMM_DATA/UMM_ENFORCED || true
+                [ -f $UMM_DATA/UMM_CMD ] &&  rm  $UMM_DATA/UMM_CMD || true
             fi
             ;;
         * )
