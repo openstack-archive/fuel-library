@@ -118,7 +118,7 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
             rc = 1
           end
         end
-        # add new route
+        # set default route
         if @resource[:gateway] != :absent
           cmdline = ['route', 'add', 'default', 'via', @resource[:gateway], 'dev', @resource[:interface]]
           if ![nil, :absent].include?(@property_flush[:gateway_metric]) and @property_flush[:gateway_metric].to_i > 0
@@ -127,9 +127,10 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
           begin
             rv = iproute(cmdline)
           rescue
-            warn("!!! Iproute can't setup new gateway.\n!!! May be you already have default gateway with same metric:")
-            rv = iproute('-f', 'inet', 'route', 'show')
-            warn("#{rv}\n\n")
+            warn("!!! There already is default gateway with same metric.\n!!! Overwriting it:")
+            route_table = iproute('-f', 'inet', 'route', 'show')
+            warn("#{route_table}")
+            rv = iproute(cmdline.map! { |x| x == 'add' ? ['replace'] : x }.flatten!)
           end
         end
       end
