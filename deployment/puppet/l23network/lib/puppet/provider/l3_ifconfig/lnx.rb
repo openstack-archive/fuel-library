@@ -105,7 +105,7 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
       end
 
       if !@property_flush[:gateway].nil? or !@property_flush[:gateway_metric].nil?
-        # clean all default gateways for this interface with any metrics
+        # clean all default gateways for interface
         cmdline = ['route', 'del', 'default', 'dev', @resource[:interface]]
         rc = 0
         while rc == 0
@@ -118,7 +118,8 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
             rc = 1
           end
         end
-        # add new route
+
+        # add new default route
         if @resource[:gateway] != :absent
           cmdline = ['route', 'add', 'default', 'via', @resource[:gateway], 'dev', @resource[:interface]]
           if ![nil, :absent].include?(@property_flush[:gateway_metric]) and @property_flush[:gateway_metric].to_i > 0
@@ -127,16 +128,11 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
           begin
             rv = iproute(cmdline)
           rescue
-            warn("!!! Iproute can't setup new gateway.\n!!! May be you already have default gateway with same metric:")
-            rv = iproute('-f', 'inet', 'route', 'show')
-            warn("#{rv}\n\n")
+            warn("!!! Iproute can not setup new gateway.\n!!! Maybe there already is default gateway with same metric:")
           end
         end
       end
 
-      # if ! @property_flush[:onboot].nil?
-      #   iproute('link', 'set', 'dev', @resource[:interface], 'up')
-      # end
       @property_hash = resource.to_hash
     end
   end
