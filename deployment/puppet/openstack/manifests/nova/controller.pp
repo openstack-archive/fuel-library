@@ -346,6 +346,12 @@ class openstack::nova::controller (
     nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
   }
 
+  # FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+  # Replace it to upstream heartbeats in Kilo
+  nova_config {
+    'DEFAULT/rabbit_heartbeat': value => '520';
+  }
+
   # a bunch of nova services that require no configuration
   class { [
     'nova::scheduler',
