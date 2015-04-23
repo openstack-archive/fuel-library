@@ -129,6 +129,13 @@ class openstack::network::neutron_agents (
       enabled        => true,
 
     }
+
+    # FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+    # Disable and replace it to upstream heartbeats in Kilo.
+    neutron_metadata_agent_config {
+      'DEFAULT/rabbit_heartbeat': value => '520';
+    } ~> Service<| title == 'neutron-metadata' |>
+
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-metadata' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-metadata' |>
     if $ha_agents {
@@ -146,6 +153,13 @@ class openstack::network::neutron_agents (
       manage_service  => true,
       enabled         => true,
     }
+
+    # FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+    # Disable and replace it to upstream heartbeats in Kilo.
+    neutron_dhcp_agent_config {
+      'DEFAULT/rabbit_heartbeat': value => '520';
+    } ~> Service<| title == 'neutron-dhcp-service' |>
+
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-dhcp-service' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-dhcp-service' |>
     if $ha_agents {
@@ -169,6 +183,13 @@ class openstack::network::neutron_agents (
       manage_service          => true,
       enabled                 => true,
     }
+
+    # FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+    # Disable and replace it to upstream heartbeats in Kilo.
+    neutron_l3_agent_config {
+      'DEFAULT/rabbit_heartbeat': value => '520';
+    } ~> Service<| title == 'neutron-l3' |>
+
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-l3' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-l3' |>
     if $ha_agents {

@@ -233,6 +233,12 @@ class openstack::network (
         neutron_config { 'DEFAULT/notification_driver': value => 'messaging' }
       }
 
+      # FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+      # Disable and replace it to upstream heartbeats in Kilo.
+      neutron_config {
+        'DEFAULT/rabbit_heartbeat': value => '520';
+      }
+
       if $agents {
         class {'openstack::network::neutron_agents':
           agents    => $agents,

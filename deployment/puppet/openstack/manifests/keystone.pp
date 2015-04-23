@@ -270,6 +270,12 @@ class openstack::keystone (
     }
   }
 
+  # FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+  # Disable and replace it to upstream heartbeats in Kilo.
+  keystone_config {
+    'DEFAULT/rabbit_heartbeat': value => '520';
+  }
+
   keystone_config {
     'DATABASE/max_pool_size':                          value => $max_pool_size;
     'DATABASE/max_retries':                            value => $max_retries;

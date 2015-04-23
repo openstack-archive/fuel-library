@@ -202,6 +202,12 @@ class openstack::glance (
     'DEFAULT/notification_strategy': value => 'rabbit';
   }
 
+  # FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+  # Disable and replace it to upstream heartbeats in Kilo.
+  glance_api_config {
+    'DEFAULT/rabbit_heartbeat': value => '520';
+  }
+
   # syslog additional settings default/use_syslog_rfc_format = true
   if $use_syslog {
     glance_api_config {

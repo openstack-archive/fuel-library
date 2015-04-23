@@ -215,6 +215,12 @@ if ($storage_hash['volumes_lvm']) {
   }
 }
 
+# FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+# Replace it to upstream heartbeats in Kilo
+nova_config {
+  'DEFAULT/rabbit_heartbeat': value => '520';
+}
+
 # Determine who should get the volume service
 
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
