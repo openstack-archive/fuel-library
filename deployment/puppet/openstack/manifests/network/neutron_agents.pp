@@ -131,6 +131,9 @@ class openstack::network::neutron_agents (
       enabled        => true,
 
     }
+
+    # TODO(bogdando) neutron_metadata_agent: Enable upstream version of AMQP heartbeats in Kilo.
+
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-metadata' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-metadata' |>
     if $ha_agents {
@@ -149,6 +152,9 @@ class openstack::network::neutron_agents (
       dnsmasq_config_file => $dnsmasq_config_file,
       enabled             => true,
     }
+
+    # TODO(bogdando) neutron_dhcp_agent: Enable upstream version of AMQP heartbeats in Kilo.
+
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-dhcp-service' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-dhcp-service' |>
     if $ha_agents {
@@ -185,6 +191,9 @@ class openstack::network::neutron_agents (
       manage_service          => true,
       enabled                 => true,
     }
+
+    # TODO(bogdando) neutron_l3_agent: Enable upstream version of AMQP heartbeats in Kilo.
+
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-l3' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-l3' |>
     if $ha_agents {

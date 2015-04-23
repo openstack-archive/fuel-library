@@ -237,6 +237,8 @@ class openstack::network (
         neutron_config { 'DEFAULT/notification_driver': value => 'messaging' }
       }
 
+      # TODO(bogdando) Enable upstream version of AMQP heartbeats in Kilo.
+
       if $agents {
         class {'openstack::network::neutron_agents':
           agents    => $agents,

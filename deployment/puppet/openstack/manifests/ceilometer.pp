@@ -159,6 +159,12 @@ class openstack::ceilometer (
     }
   }
 
+  # FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+  # Disable and replace it to upstream heartbeats in Kilo.
+  ceilometer_config {
+    'DEFAULT/rabbit_heartbeat': value => '520';
+  }
+
   Package<| title == $::ceilometer::params::alarm_package or
     title == 'ceilometer-common'|> ~>
   Service<| title == 'ceilometer-alarm-evaluator'|>
