@@ -204,6 +204,12 @@ class openstack::heat (
     }
   }
 
+  # FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+  # Disable and replace it to upstream heartbeats in Kilo.
+  heat_config {
+    'DEFAULT/rabbit_heartbeat': value => '520';
+  }
+
   $deps_routes_package_name     = 'python-routes'
   package { 'python-routes':
     ensure  => $ensure,

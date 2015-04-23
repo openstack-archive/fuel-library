@@ -72,6 +72,12 @@ if $sahara_hash['enabled'] {
   Haproxy_backend_status['sahara'] -> Class['sahara::templates::create_templates']
 }
 
+# FIXME(bogdando) Enable MOS specific AMQP heartbeats.
+# Disable and replace it to upstream heartbeats in Kilo.
+sahara_config {
+  'DEFAULT/rabbit_heartbeat': value => '520';
+}
+
 #########################
 
 class mysql::server {}
