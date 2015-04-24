@@ -98,6 +98,10 @@ define vmware::cinder::vmdk(
       $cinder_volume_default = "/etc/default/${cinder_volume_vmware}-${index}"
       $src_init = "${cinder_volume_vmware}.conf"
       $dst_init = '/etc/init'
+
+      ensure_packages($::cinder::params::volume_package)
+      Package[$::cinder::params::volume_package] -> Exec[$src_init]
+
       if ! defined(File[$cinder_volume_default]) {
         file { $cinder_volume_default:
           ensure  => present,
