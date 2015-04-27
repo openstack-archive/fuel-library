@@ -9,6 +9,10 @@ describe 'l23network::l2::patch', :type => :define do
     :l23_os => 'ubuntu',
     :l3_fqdn_hostname => 'stupid_hostname',
   } }
+  let(:pre_condition) { [
+    "class {'l23network': }"
+  ] }
+
 
   context 'Just a patch between two bridges' do
     let(:params) do
@@ -18,7 +22,7 @@ describe 'l23network::l2::patch', :type => :define do
     end
 
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -34,9 +38,8 @@ describe 'l23network::l2::patch', :type => :define do
     end
 
     it do
-      should contain_l2_patch('patch__br1--br2').only_with({
+      should contain_l2_patch('patch__br1--br2').with({
         'ensure'  => 'present',
-        'use_ovs' => nil,
         'bridges' => ['br1', 'br2'],
       }).that_requires('L23_stored_config[p_br1-0]')
     end

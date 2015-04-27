@@ -139,7 +139,7 @@ define l23network::l2::port (
     # this need for creating L2_port resource by ifup, if it allowed by OS
     L23_stored_config[$port_name] -> L2_port[$port_name]
 
-    K_mod<||> -> L2_port<||>
+    Anchor['l23network::init'] -> K_mod<||> -> L2_port<||>
   }
 }
 # vim: set ts=2 sw=2 et :
