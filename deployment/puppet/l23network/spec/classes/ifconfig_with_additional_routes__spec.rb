@@ -28,6 +28,23 @@ network_scheme:
 eof
 end
 
+let(:expected_routes) do
+  {
+      '192.168.210.0/24,metric:10' => {
+          'gateway' => '192.168.101.1',
+          'destination' => '192.168.210.0/24',
+          'metric' => '10'
+      },
+      '192.168.211.0/24' => {
+          'gateway' => '192.168.101.1',
+          'destination' => '192.168.211.0/24'
+      },
+      '192.168.212.0/24' => {
+          'gateway' => '192.168.101.1',
+          'destination' => '192.168.212.0/24'
+      }
+  }
+end
 
   context 'network scheme with endpoint, which contained additionat routes' do
     let(:title) { 'empty network scheme' }
@@ -59,13 +76,12 @@ end
       })
     end
 
-    # it do
-    #   should contain_l23_stored_config('eth2').with({
-    #     'ensure' => 'present',
-    #     'ipaddr' => '192.168.101.3/24',
-    #     'routes' => 'xxx',
-    #   })
-    # end
+    it 'should collect routes set' do
+      ral = catalogue.to_ral()
+      l23_stored_config_eth2 = ral.resource('l23_stored_config', 'eth2')
+      l23_stored_config_eth2.generate()
+      expect(l23_stored_config_eth2[:routes]).to eq(expected_routes)
+    end
 
     it do
       should contain_l3_route('192.168.210.0/24,metric:10').with({
