@@ -84,13 +84,16 @@ file { '/etc/supervisord.d':
   ensure  => directory,
 }
 
+class { 'docker::supervisor':
+  release => $::fuel_version['VERSION']['release'],
+  require => File["/etc/supervisord.d/${::fuel_version['VERSION']['release']}"],
+}
+
 file { "/etc/supervisord.d/${::fuel_version['VERSION']['release']}":
   ensure  => directory,
   require => File['/etc/supervisord.d'],
   owner   => root,
   group   => root,
-  recurse => true,
-  source  => 'puppet:///modules/docker/supervisor',
 }
 
 file { '/etc/supervisord.d/current':
