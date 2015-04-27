@@ -59,13 +59,13 @@ end
       })
     end
 
-    it do
-      should contain_l23_stored_config('eth2').with({
-        'ensure' => 'present',
-        'ipaddr' => '192.168.101.3/24',
-        'routes' => 'xxx',
-      })
-    end
+    # it do
+    #   should contain_l23_stored_config('eth2').with({
+    #     'ensure' => 'present',
+    #     'ipaddr' => '192.168.101.3/24',
+    #     'routes' => 'xxx',
+    #   })
+    # end
 
     it do
       should contain_l3_route('192.168.210.0/24,metric:10').with({
