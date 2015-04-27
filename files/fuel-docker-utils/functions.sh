@@ -552,11 +552,12 @@ function backup_containers {
     #Commit container as new image
     echo "Committing $container_name..."
     ${DOCKER} commit "$containerid" "${container_image}"
-    echo "Saving $container_name..."
-    ${DOCKER} save "${container_image}" > "${backup_dir}/${container_archive}"
-    echo "Cleaning up temporary image..."
-    ${DOCKER} rmi "${container_image}"
   done < <(${DOCKER} ps -aq)
+  echo "Saving containers to combined archive..."
+  images_to_save=$(${DOCKER} images | grep $image_suffix | cut -d' ' -f1)
+  ${DOCKER} save $images_to_save > "${backup_dir}/docker-images.tar"
+  echo "Cleaning up temporary images..."
+  ${DOCKER} rmi $images_to_save
 }
 
 function backup_system_dirs {
