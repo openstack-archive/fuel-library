@@ -314,15 +314,24 @@ Puppet::Type.newtype(:l23_stored_config) do
     # find routes, that should be applied while this interface UP
     if !['', 'none', 'absent'].include?(self[:ipaddr].to_s.downcase)
       l3_routes = self.catalog.resources.reject{|nnn| nnn.ref.split('[')[0]!='L3_route'}
-      our_network = IPAddr.new(self[:ipaddr].to_s.downcase)
+      my_network = IPAddr.new(self[:ipaddr].to_s.downcase) # only primary IP ADDR use !!!
+      my_route = {}
       l3_routes.each do |rou|
-        if our_network.include? rou[:gateway]
-          self[:routes] ||= {}
-          self[:routes][rou[:name]] = {
+        if my_network.include? rou[:gateway]
+          #self[:routes] = {} if self[:routes].nil?
+          my_route[rou[:name]] = {
             :gateway     => rou[:gateway],
             :destination => rou[:destination]
           }
-          self[:routes][rou[:name]][:metric] = rou[:metric] if !['', 'absent'].include? rou[:metric].to_s.downcase
+          my_route[rou[:name]][:metric] = rou[:metric] if !['', 'absent'].include? rou[:metric].to_s.downcase
+          debug("+++My route: #{my_route}")
+        end
+      end
+      if ! my_route.empty?
+        if self[:routes].nil?
+          self[:routes] = my_route
+        else
+          self[:routes].merge!(my_route)
         end
       end
     end
