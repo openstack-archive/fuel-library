@@ -12,5 +12,7 @@ gpgcheck=0
 #if $repo.get("priority")
 priority=$repo["priority"]
 #end if
+## FIXME Yum repositories contain 2 versions of ruby (1.8 and 2.1)
+exclude=ruby
 EOF
 #end for

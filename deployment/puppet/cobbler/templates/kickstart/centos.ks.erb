@@ -12,7 +12,7 @@ url --url=$repo["uri"]
 # REPOSITORIES FROM Nailgun
 #set $repos = $repo_setup["repos"][1:]
 #for $repo in $repos
-repo --name=$repo["name"] --baseurl=$repo["uri"]
+repo --name=$repo["name"] --baseurl=$repo["uri"] --excludepkg=ruby
 #end for
 #else
 # ALTERNATIVE REPOSITORIES (PRESET)
