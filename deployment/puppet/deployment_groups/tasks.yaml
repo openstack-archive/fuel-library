@@ -106,11 +106,17 @@
     strategy:
       type: parallel
 
+# Base os must be first role on node
 - id: base-os
   type: group
   role: [base-os]
   tasks: [hiera, globals]
-  required_for: [deploy_end]
+  required_for:
+    - deploy_end
+    - primary-controller
+    - controller
+    - primary-mongo
+    - mongo
   requires: [deploy_start]
   parameters:
     strategy:
