@@ -1,6 +1,7 @@
 notice('MODULAR: sahara.pp')
 
 $sahara_hash                = hiera('sahara')
+$access_admin               = hiera('access')
 $controller_node_address    = hiera('controller_node_address')
 $controller_node_public     = hiera('controller_node_public')
 $public_ip                  = hiera('public_vip', $controller_node_public)
@@ -52,6 +53,15 @@ if $sahara_hash['enabled'] {
     rabbit_ha_queues           => $rabbit_ha_queues,
   }
 
+  class { 'sahara::templates::create_templates' :
+    use_neutron   => $use_neutron,
+    auth_user     => $access_admin['user'],
+    auth_password => $access_admin['password'],
+    auth_tenant   => $access_admin['tenant'],
+    auth_uri      => "http://${management_ip}:5000/v2.0/",
+  }
+
+  Class['sahara'] -> Class['sahara::templates::create_templates']
 }
 
 #########################
