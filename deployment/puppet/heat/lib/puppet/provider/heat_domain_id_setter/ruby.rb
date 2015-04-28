@@ -164,9 +164,14 @@ Puppet::Type.type(:heat_domain_id_setter).provide(:ruby) do
     # - There are multiple matches, or
     # - There are zero matches
     def get_domain_id
-        RETRY_COUNT.times do
-            token = authenticate
-            domains = find_domain_by_name(token)
+        RETRY_COUNT.times do |n|
+            begin
+                domains = find_domain_by_name(authenticate)
+            rescue => e
+                debug "Request failed: '#{e.message}' Retry: '#{n}'"
+                sleep RETRY_SLEEP
+                next
+            end
 
             if domains.length == 1
                 return domains[0]['id']
@@ -174,7 +179,9 @@ Puppet::Type.type(:heat_domain_id_setter).provide(:ruby) do
                 name = domains[0]['name']
                 raise KeystoneAPIError, "Found multiple matches for domain name: '#{name}'"
             else
+                debug "Domain '#{@resource[:domain_name]}' not found! Retry: '#{n}'"
                 sleep RETRY_SLEEP
+                next
             end
         end
         raise KeystoneAPIError, "Unable to find domain with name: '#{@resource[:domain_name]}'"
