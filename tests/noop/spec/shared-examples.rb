@@ -37,6 +37,19 @@ def test_ubuntu_and_centos(manifest, force_manifest = false)
     os
   end
 
+  let(:catalog) do
+    catalog = subject
+    catalog = subject.call if subject.is_a? Proc
+    catalog
+  end
+
+  let(:file_resources) do
+   files = catalog.resources.select do |resource|
+      resource.type == 'File'
+   end
+   files
+  end
+
   shared_examples 'compile' do
     it do
       File.stubs(:exists?).with('/var/lib/astute/ceph/ceph').returns(true)
@@ -50,15 +63,56 @@ def test_ubuntu_and_centos(manifest, force_manifest = false)
     end
   end
 
+
+  shared_examples 'should_not_install_bin_files_with_puppet' do
+    it 'should not install binary files with puppet' do
+      p file_resources
+      binary_files=Regexp.new('^/bin|^/usr/bin|^/usr/local/bin|^/usr/sbin|^/sbin|^/usr/lib|^/usr/share')
+      bin_files=0
+      bin_files_array=[]
+      down_files=0
+      down_files_array=[]
+      file_resources.each do |resource|
+        next unless %w(present file directory).include? resource[:ensure] or not resource[:ensure]
+        if binary_files.match resource[:path]
+          bin_files+=1
+          bin_files_array << resource[:path].to_s
+        elsif binary_files.match resource[:title]
+          bin_files+=1
+          bin_files_array << resource[:title].to_s
+        elsif resource[:source]
+          down_files+=1
+          if !resource[:path].to_s.empty? ? resource[:path] : resource[:title]
+            down_files_array << resource[:path].to_s
+          else
+            down_files_array << resource[:title].to_s
+          end
+        end
+     end
+error_message_template = <<-eos
+<% if bin_files != 0 -%>
+You have <%= bin_files -%> binary files installed with puppet:
+<% bin_files_array.each do |file| -%>
+<%= file %>
+<% end -%>
+<% end -%>
+<% if down_files != 0 -%>
+You are downloading <%= down_files -%> binary files installed with puppet:
+<% down_files_array.each do |file| -%>
+<%= file %>
+<% end -%>
+<% end -%>
+eos
+     fail ERB.new(error_message_template,nil,'-').result(binding) if bin_files!=0 or down_files!=0
+ 
+    end
+  end
+
   shared_examples 'save_files_list' do
     it 'should save the list of file resources' do
-      catalog = subject
-      catalog = subject.call if subject.is_a? Proc
-      file_resources = {}
-      catalog.resources.each do |resource|
-        next unless resource.type == 'File'
+      files={}
+      file_resources.each do |resource|
         next unless %w(present file directory).include? resource[:ensure] or not resource[:ensure]
-
         if resource[:source]
           content = resource[:source]
         elsif resource[:content]
@@ -67,10 +121,10 @@ def test_ubuntu_and_centos(manifest, force_manifest = false)
           content = nil
         end
         next unless content
-        file_resources[resource[:path]] = content
-      end
-      if file_resources.any?
-        Noop.save_file_resources_list file_resources, manifest, os
+        files[resource[:path]] = content
+        if files.any?
+          Noop.save_file_resources_list files, manifest, os
+        end
       end
     end
   end
@@ -131,6 +185,7 @@ def test_ubuntu_and_centos(manifest, force_manifest = false)
       it_behaves_like 'generate' if ENV['SPEC_SPEC_GENERATE']
       it_behaves_like 'save_files_list' if ENV['SPEC_SAVE_FILE_RESOURCES']
       it_behaves_like 'save_packages_list'if ENV['SPEC_SAVE_PACKAGE_RESOURCES']
+      it_behaves_like 'should_not_install_bin_files_with_puppet' if ENV['SPEC_CHECK_FILES'] !~ /false/i
 
       begin
         it_behaves_like 'catalog'
@@ -153,6 +208,7 @@ def test_ubuntu_and_centos(manifest, force_manifest = false)
       it_behaves_like 'generate' if ENV['SPEC_SPEC_GENERATE']
       it_behaves_like 'save_files_list' if ENV['SPEC_SAVE_FILE_RESOURCES']
       it_behaves_like 'save_packages_list'if ENV['SPEC_SAVE_PACKAGE_RESOURCES']
+      it_behaves_like 'should_not_install_bin_files_with_puppet' if ENV['SPEC_CHECK_FILES'] !~ /false/i
 
       begin
         it_behaves_like 'catalog'
