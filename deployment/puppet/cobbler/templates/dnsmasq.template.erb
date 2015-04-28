@@ -37,4 +37,6 @@ dhcp-option=net:internal,option:router,<%= @dhcp_gateway %>
 pxe-service=net:#gpxe,x86PC,"Install",pxelinux,<%= @next_server %>
 dhcp-boot=net:internal,pxelinux.0,boothost,<%= @next_server %>
 
+dhcp-option-force=210,http://<%= @next_server %>/cobbler/boot/
+
 $insert_cobbler_system_definitions

@@ -159,6 +159,16 @@ class cobbler::server (
                 File['/etc/httpd/conf.d/']],
     notify  => Service[$cobbler_web_service],
   }
+  file { '/etc/httpd/conf.d/cobbler-tftp.conf':
+    source  => 'puppet:///modules/cobbler/cobbler-tftp.conf',
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    require => [File['/etc/httpd'],
+                File['/etc/httpd/conf/'],
+                File['/etc/httpd/conf.d/']],
+    notify  => Service[$cobbler_web_service],
+  }
 
   service { $cobbler_web_service:
     ensure     => running,
