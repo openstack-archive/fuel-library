@@ -13,17 +13,17 @@
       </cluster_property_set>
     </crm_config>
     <nodes>
-      <node id="node-1" uname="node-1">
+      <node id="1" uname="node-1">
         <instance_attributes id="nodes-node-1">
           <nvpair id="nodes-node-1-gtid" name="gtid" value="b65eb4b3-644a-11e4-afd3-9335a5b6ec3f:80680"/>
         </instance_attributes>
       </node>
-      <node id="node-2" uname="node-2">
+      <node id="2" uname="node-2">
         <instance_attributes id="nodes-node-2">
           <nvpair id="nodes-node-2-gtid" name="gtid" value="b65eb4b3-644a-11e4-afd3-9335a5b6ec3f:80645"/>
         </instance_attributes>
       </node>
-      <node id="node-3" uname="node-3"/>
+      <node id="3" uname="node-3"/>
     </nodes>
     <resources>
       <primitive class="ocf" id="vip__public" provider="mirantis" type="ns_IPaddr2">
@@ -294,7 +294,7 @@
     </constraints>
   </configuration>
   <status>
-    <node_state id="node-1" uname="node-1" in_ccm="true" crmd="online" join="member" expected="member" crm-debug-origin="do_state_transition">
+    <node_state id="1" uname="node-1" in_ccm="true" crmd="online" join="member" expected="member" crm-debug-origin="do_state_transition">
       <transient_attributes id="node-1">
         <instance_attributes id="status-node-1">
           <nvpair id="status-node-1-probe_complete" name="probe_complete" value="true"/>
@@ -308,7 +308,7 @@
           <nvpair id="status-node-1-rabbit-start-time" name="rabbit-start-time" value="1415184397"/>
         </instance_attributes>
       </transient_attributes>
-      <lrm id="node-1">
+      <lrm id="1">
         <lrm_resources>
           <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="neutron-agent-ovs" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_failure_0" operation_key="p_neutron-plugin-openvswitch-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="14:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;14:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="269" rc-code="0" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="17" queue-time="0" op-digest="424153f43b0852bb5bccdf71f34784d4"/>
@@ -367,7 +367,7 @@
         </lrm_resources>
       </lrm>
     </node_state>
-    <node_state id="node-2" uname="node-2" crmd="online" crm-debug-origin="do_update_resource" in_ccm="true" join="member" expected="member">
+    <node_state id="2" uname="node-2" crmd="online" crm-debug-origin="do_update_resource" in_ccm="true" join="member" expected="member">
       <transient_attributes id="node-2">
         <instance_attributes id="status-node-2">
           <nvpair id="status-node-2-probe_complete" name="probe_complete" value="true"/>
@@ -376,7 +376,7 @@
           <nvpair id="status-node-2-rabbit-start-time" name="rabbit-start-time" value="1415184812"/>
         </instance_attributes>
       </transient_attributes>
-      <lrm id="node-2">
+      <lrm id="2">
         <lrm_resources>
           <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="neutron-agent-ovs" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_0" operation_key="p_neutron-plugin-openvswitch-agent_monitor_0" operation="monitor" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="16:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:7;16:94:7:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="141" rc-code="7" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="29" queue-time="0" op-digest="424153f43b0852bb5bccdf71f34784d4"/>
@@ -425,7 +425,7 @@
         </lrm_resources>
       </lrm>
     </node_state>
-    <node_state id="node-3" uname="node-3" crmd="online" crm-debug-origin="do_state_transition" in_ccm="true" join="member" expected="member">
+    <node_state id="3" uname="node-3" crmd="online" crm-debug-origin="do_state_transition" in_ccm="true" join="member" expected="member">
       <transient_attributes id="node-3">
         <instance_attributes id="status-node-3">
           <nvpair id="status-node-3-probe_complete" name="probe_complete" value="true"/>
@@ -433,7 +433,7 @@
           <nvpair id="status-node-3-pingd" name="pingd" value="1000"/>
         </instance_attributes>
       </transient_attributes>
-      <lrm id="node-3">
+      <lrm id="3">
         <lrm_resources>
           <lrm_resource id="p_neutron-plugin-openvswitch-agent" type="neutron-agent-ovs" class="ocf" provider="mirantis">
             <lrm_rsc_op id="p_neutron-plugin-openvswitch-agent_last_0" operation_key="p_neutron-plugin-openvswitch-agent_stop_0" operation="stop" crm-debug-origin="build_active_RAs" crm_feature_set="3.0.7" transition-key="57:95:0:3bec3a94-918a-4c0c-9818-e588e618bdab" transition-magic="0:0;57:95:0:3bec3a94-918a-4c0c-9818-e588e618bdab" call-id="144" rc-code="0" op-status="0" interval="0" last-run="1415124890" last-rc-change="1415124890" exec-time="34" queue-time="0" op-digest="424153f43b0852bb5bccdf71f34784d4"/>

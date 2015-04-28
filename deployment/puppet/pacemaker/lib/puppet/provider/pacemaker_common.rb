@@ -36,6 +36,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     @primitives = nil
     @primitives_structure = nil
     @nodes_structure = nil
+    @node_ids = nil
   end
 
   # get lrm_rsc_ops section from lrm_resource section CIB section
@@ -51,6 +52,12 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # @return [REXML::Element] at /cib/status/node_state
   def cib_section_nodes_state
     REXML::XPath.match cib, '//node_state'
+  end
+
+  # get nodes CIB section
+  # @return [REXML::Element] at /cib/configuration/nodes
+  def cib_section_node_ids
+    REXML::XPath.match cib, '/cib/configuration/nodes/*'
   end
 
   # get primitives CIB section
@@ -222,6 +229,17 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
       @nodes_structure.store node_name, node
     end
     @nodes_structure
+  end
+
+  def node_ids
+    return @node_ids if @node_ids
+    @node_ids = {}
+    cib_section_node_ids.each do |node_block|
+      node = attributes_to_hash node_block
+      next unless node['id'] and node['uname']
+      @node_ids.store node['uname'], node['id']
+    end
+    @node_ids
   end
 
   # get primitives configuration structure with primitives and their attributes
