@@ -17,7 +17,6 @@ class sahara::api (
   $syslog_log_facility         = "LOG_LOCAL0",
   $log_dir                     = '/var/log/sahara',
   $log_file                    = '/var/log/sahara/api.log',
-  $templates_dir               = $sahara::params::templates_dir,
   $service_name                = $sahara::params::service_name,
   $package_name                = $sahara::params::package_name,
 ) inherits sahara::params {
@@ -110,33 +109,11 @@ class sahara::api (
     mode    => '0751',
   }
 
-  if $use_neutron {
-    $network_provider = "neutron"
-  } else {
-    $network_provider = "nova"
-  }
-
-  class { 'sahara::templates::create_templates':
-    network_provider => $network_provider,
-    templates_dir    => $templates_dir,
-    auth_user        => $keystone_user,
-    auth_password    => $keystone_password,
-    auth_tenant      => $keystone_tenant,
-    auth_uri         => $sahara_auth_uri,
-  }
-
   Package['sahara'] ->
   Sahara_config<||> ->
   Exec['sahara-db-manage'] ->
   File['sahara_log_dir'] ->
-  Service['sahara'] ->
-  Class['sahara::templates::create_templates']
-
-  if $use_neutron {
-     Neutron_network<||> -> Class['sahara::templates::create_templates']
-  } else {
-     Nova_network<||> -> Class['sahara::templates::create_templates']
-  }
+  Service['sahara']
 
   Package['sahara'] ~> Service['sahara']
   Sahara_config<||> ~> Service['sahara']
