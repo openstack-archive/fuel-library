@@ -1,7 +1,7 @@
 class docker::supervisor (
   $release = false,
   $containers = ['astute', 'cobbler', 'keystone', 'mcollective', 'nailgun',
-    'ostf', 'postgres', 'rabbitmq', 'rsync', 'rsyslog'],
+    'nginx', 'ostf', 'postgres', 'rabbitmq', 'rsync', 'rsyslog'],
 ) {
   # No empty release allowed
   validate_string($release)
