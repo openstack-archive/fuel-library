@@ -7,7 +7,6 @@ class nailgun::packages(
       package { $name : ensure => latest; }
     }
   }
-
   nailgun_safe_package { "iptables": }
   nailgun_safe_package { "supervisor": }
   nailgun_safe_package { "nginx": }
