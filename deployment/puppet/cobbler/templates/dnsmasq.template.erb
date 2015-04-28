@@ -13,7 +13,6 @@ server=/<%= @domain_name %>/
 <% end %>
 server=/<%= @dns_domain %>/
 resolv-file=/etc/dnsmasq.upstream
-dhcp-match=gpxe,175
 interface=<%= @dhcp_interface %>
 
 cache-size=1024
@@ -34,7 +33,6 @@ dhcp-option=6,<%= @name_server %>
 
 dhcp-range=internal,<%= @dhcp_start_address %>,<%= @dhcp_end_address %>,<%= @dhcp_netmask %>,<%= @lease_time %>
 dhcp-option=net:internal,option:router,<%= @dhcp_gateway %>
-pxe-service=net:#gpxe,x86PC,"Install",pxelinux,<%= @next_server %>
 dhcp-boot=net:internal,pxelinux.0,boothost,<%= @next_server %>
 
 $insert_cobbler_system_definitions
