@@ -39,7 +39,7 @@ class ceph (
       $rgw_log_file                       = '/var/log/ceph/radosgw.log',
       $rgw_use_keystone                   = true,
       $rgw_use_pki                        = false,
-      $rgw_keystone_url                   = "${cluster_node_address}:5000",
+      $rgw_keystone_url                   = "${cluster_node_address}:35357",
       $rgw_keystone_admin_token           = undef,
       $rgw_keystone_token_cache_size      = '10',
       $rgw_keystone_accepted_roles        = '_member_, Member, admin, swiftoperator',
