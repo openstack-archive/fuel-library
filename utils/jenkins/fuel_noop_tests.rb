@@ -461,7 +461,7 @@ module NoopTests
 
     show_results result
 
-    success
+    exit 1 unless success
   end
 
 end
