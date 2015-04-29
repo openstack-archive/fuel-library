@@ -30,6 +30,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       :bond_lacp_rate        => 'lacp_rate',
       :bond_xmit_hash_policy => 'xmit_hash_policy',
       :ethtool               => 'ETHTOOL_OPTS',
+      :routes		             => 'ROUTES',
     }
   end
   def property_mappings
@@ -111,6 +112,18 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       end
       hash
     end
+
+    route_filename = "/etc/sysconfig/network-scripts/route-#{dirty_iface_name}"
+    if File.exist?(route_filename)
+      route_file = open(route_filename, 'r')
+      rv = {}
+      while (line = route_file.gets)
+        rv[line.split(' ')[0]] = line
+      end
+      route_file.close
+      hash['ROUTES'] = rv
+    end
+
     if hash.has_key?('IPADDR')
       hash['IPADDR'] = "#{hash['IPADDR']}/#{hash['PREFIX']}"
       hash.delete('PREFIX')
@@ -213,6 +226,23 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     rv
   end
 
+  def self.mangle__routes(data)
+    rv = {}
+    data.each_pair do |k,v|
+      gateway = v.match(/via ((?:[0-9]{1,3}\.){3}[0-9]{1,3}) /)[1]
+      destination = k
+      rv[k] = { 'destination' => k ,
+                'gateway'     => gateway
+               }
+      if v.include? 'metric'
+        metric = v.match(/metric (\d+)/)[1]
+        p "DDD metric #{metric}"
+        rv[k]['metric'] = metric
+      end
+    end
+    return rv
+  end
+
   ###
   # Hash to file
 
@@ -263,6 +293,16 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
 
     if pairs['TYPE'] == :OVSBridge
       pairs['DEVICETYPE'] = 'ovs'
+    end
+
+    if pairs['ROUTES']
+      route_filename = "/etc/sysconfig/network-scripts/route-#{provider.name}"
+      route_file = open(route_filename, 'w')
+      pairs['ROUTES'].each do |route|
+        route_file.write(route)
+        route_file.write("\n")
+      end
+      pairs.delete('ROUTES')
     end
 
     pairs.each_pair do |key, val|
@@ -328,6 +368,18 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       rv = "#{section_key} #{provider.name} #{rv};"
     end
     return "\"#{rv}\""
+  end
+
+  def self.unmangle__routes(provider, val)
+    # should generate set of lines:
+    # "10.109.55.0/24 via 192.168.1.54  dev br-storage"
+    return [] if ['', 'absent'].include? val.to_s
+    rv = []
+    val.each_pair do |name, route|
+      metric = (route['metric'].nil?  ?  ''  :  " metric #{route['metric']}")
+      rv << "#{route['destination']} via #{route['gateway']}#{metric} dev #{provider.name}"
+    end
+    return rv
   end
 
 end
