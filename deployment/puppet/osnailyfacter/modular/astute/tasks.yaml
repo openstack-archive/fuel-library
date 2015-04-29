@@ -66,6 +66,11 @@
   parameters:
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_hooks.py --create_zones
     timeout: 180
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_hooks_pre.rb
+  test_post:
+    cmd: ruby -rubygems /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_hooks_post.rb
+
 
 - id: enable_nova_compute_service
   type: puppet
@@ -185,4 +190,3 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
-
