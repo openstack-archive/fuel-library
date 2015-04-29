@@ -30,6 +30,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       :bond_lacp_rate        => 'lacp_rate',
       :bond_xmit_hash_policy => 'xmit_hash_policy',
       :ethtool               => 'ETHTOOL_OPTS',
+      :routes		     => 'RRR',
     }
   end
   def property_mappings
@@ -230,6 +231,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     props    = {}
 
     property_mappings.keys.select{|v| ! properties_fake.include?(v)}.each do |type_name|
+      p "TTTTT type_name #{type_name}"
       val = provider.send(type_name)
       if val and val.to_s != 'absent'
         props[type_name] = val
@@ -263,6 +265,17 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
 
     if pairs['TYPE'] == :OVSBridge
       pairs['DEVICETYPE'] = 'ovs'
+    end
+
+    if pairs['RRR']
+      p " DDDD RRR #{pairs['RRR']}"
+      route_filename = "/etc/sysconfig/network-scripts/route-#{provider.name}"
+      route_file = open(route_filename, 'w')
+      pairs['RRR'].each do |route|
+        route_file.write(route)
+        route_file.write("\n")
+      end
+      pairs.delete('RRR')
     end
 
     pairs.each_pair do |key, val|
@@ -328,6 +341,18 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       rv = "#{section_key} #{provider.name} #{rv};"
     end
     return "\"#{rv}\""
+  end
+
+  def self.unmangle__routes(provider, val)
+    # should generate set of lines:
+    # "10.109.55.0/24 via 192.168.1.54  dev br-storage"
+    return [] if ['', 'absent'].include? data.to_s
+    rv = []
+    val.each_pair do |name, route|
+      metric = (route['metric'].nil?  ?  ''  :  "metric #{route['metric']} ")
+      rv << "#{route['destination']} via #{route['gateway']} #{metric} dev #{provider.name}"
+    end
+    return rv
   end
 
 end
