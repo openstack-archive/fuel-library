@@ -315,6 +315,13 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
     create_routes=[]
     full_ifconfig_order.each do |endpoint_name|
       if endpoints[endpoint_name]
+        # Makes the endpoint with gateway without any metric last in the order
+        if endpoints[endpoint_name][:gateway] and !endpoints[endpoint_name][:gateway_metric]
+          if full_ifconfig_order.last != endpoint_name
+            full_ifconfig_order.push(endpoint_name)
+            next
+          end
+        end
         resource_properties = { }
 
         # create resource
