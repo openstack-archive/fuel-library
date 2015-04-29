@@ -85,12 +85,19 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
     end
   end
 
-  def mongo_command(command, host, retries=4)
+  def mongo_command(command, host, retries=10)
     # Allow waiting for mongod to become ready
     # Wait for 2 seconds initially and double the delay at each retry
     wait = 2
+    args = Array.new
+    args << '--quiet'
+    args << ['--username', @resource[:admin_username]] if @resource[:admin_username]
+    args << ['--password', @resource[:admin_password]] if @resource[:admin_password]
+    args << ['--host', host]
+    args << ['--eval', "printjson(#{command})"]
+    args << @resource[:admin_database] if @resource[:admin_database]
     begin
-      output = self.mongo('--quiet', '--host', host, '--eval', "printjson(#{command})")
+      output = self.mongo(args.flatten)
     rescue Puppet::ExecutionFailure => e
       if e =~ /Error: couldn't connect to server/ and wait <= 2**max_wait
         info("Waiting #{wait} seconds for mongod to become available")

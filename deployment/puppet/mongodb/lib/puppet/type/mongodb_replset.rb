@@ -25,6 +25,21 @@ Puppet::Type.newtype(:mongodb_replset) do
     end
   end
 
+  newparam(:admin_username) do
+    desc "Administrator user login"
+    defaultto false
+  end
+
+  newparam(:admin_password) do
+    desc "Administrator user password"
+    defaultto false
+  end
+
+  newparam(:admin_database) do
+    desc "Connect to this database as an admin user."
+    defaultto false
+  end
+
   autorequire(:package) do
     'mongodb'
   end

@@ -48,11 +48,6 @@ class openstack::mongo_primary (
     quiet         => $quiet,
   } ->
 
-  class {'::mongodb::replset':
-    replset_setup   => $replset_setup,
-    replset_members => $ceilometer_replset_members,
-  } ->
-
   notify {"mongodb configuring databases" :} ->
 
   mongodb::db { $ceilometer_database:
@@ -85,8 +80,23 @@ class openstack::mongo_primary (
     admin_username => 'admin',
     admin_password => $ceilometer_db_password,
     admin_database => 'admin',
-  } ->
+  }
 
+  if $replset_setup {
+    mongodb_replset { 'ceilometer':
+      ensure         => present,
+      members        => suffix($ceilometer_replset_members, inline_template(":<%= @mongodb_port %>")),
+      admin_username => 'admin',
+      admin_password => $ceilometer_db_password,
+      admin_database => 'admin',
+    }
+
+    Mongodb::Db<||> ->
+    Mongodb_replset['ceilometer'] ->
+    Notify['mongodb primary finished']
+  }
+
+  Mongodb::Db<||> ->
   notify {"mongodb primary finished": }
 
 }
