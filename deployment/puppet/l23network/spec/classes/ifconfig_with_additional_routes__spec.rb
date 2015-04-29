@@ -102,6 +102,11 @@ end
         })
       end
     end
+
+    it 'should contain l3_clear_route' do
+      should contain_l3_clear_route('default').with ({ 'ensure'  => 'absent' })
+    end
+
   end
 
 end
