@@ -466,5 +466,7 @@ module NoopTests
 
 end
 
-NoopTests.main if __FILE__ == $0
+if __FILE__ == $0
+  exit 1 unless NoopTests.main
+end
 
