@@ -745,7 +745,8 @@ class PreseedPManager(object):
             "else rm -f /etc/udev/rules.d/$(basename $rules); "
             "fi; done")
         self.late("udevadm control --reload")
-        self.late("udevadm trigger")
+        # NOTE(agordeev): do subsystem match, otherwise it will stuck
+        self.late("udevadm trigger --subsystem-match=block")
         self.late("udevadm settle --quiet")
 
     def boot(self):
