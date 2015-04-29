@@ -313,6 +313,9 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
     # in order, defined by transformation
     debug("generate_network_config(): process endpoints")
     create_routes=[]
+    #Clear all default gateways
+    function_create_resources(['clear_routes', { 'default' => { 'ensure' => 'absent', 'require'=> [previous] } }])
+    previous = "clear_routes[default]"
     full_ifconfig_order.each do |endpoint_name|
       if endpoints[endpoint_name]
         resource_properties = { }
