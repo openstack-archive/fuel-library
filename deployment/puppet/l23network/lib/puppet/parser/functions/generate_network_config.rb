@@ -336,6 +336,17 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
             #todo(sv): more powerfull handler for 'nil' properties
           end
         end
+        #Clear default gateway
+        if resource_properties['gateway']
+          l3_resource_properties = { 'ensure' => 'absent', 'destination' => 'default' }
+          l3_resource_properties['metric'] = resource_properties['gateway_metric'] if resource_properties['gateway_metric']
+          gateway_name = L23network.get_route_resource_name('default', l3_resource_properties['metric'])
+          if previous
+             l3_resource_properties['require'] = [previous]
+             previous = "l3_clear_route[#{gateway_name}]"
+          end
+          function_create_resources(['l3_clear_route', { gateway_name => l3_resource_properties }])
+        end
         resource_properties['require'] = [previous] if previous
         # # set ipaddresses
         # #if endpoints[endpoint_name][:IP].empty?
