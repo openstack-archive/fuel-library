@@ -100,6 +100,15 @@ This script manages haproxy daemon with namespace support
 
 <parameters>
 
+<parameter name="dummy" unique="1">
+<longdesc lang="en">
+This is a dummy parameter.
+Pacemaker needs it to enable reload operation for the resource
+</longdesc>
+<shortdesc lang="en">Dummy parameter</shortdesc>
+<content type="boolean" default="false" />
+</parameter>
+
 <parameter name="ns">
 <longdesc lang="en">
 Name of network namespace.
