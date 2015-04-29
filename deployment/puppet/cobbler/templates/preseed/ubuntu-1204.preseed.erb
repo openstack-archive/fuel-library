@@ -138,7 +138,7 @@ d-i debian-installer/exit/poweroff boolean false
 d-i preseed/late_command string true && \
 $SNIPPET('ubuntu_repos_late')
 echo 'APT::Get::AllowUnauthenticated 1;' > /target/etc/apt/apt.conf.d/02mirantis-allow-unsigned && \
-echo 'Acquire::ForceIPv4 "true"' > /target/etc/apt/apt.conf.d/03force-ipv4 && \
+echo 'Acquire::ForceIPv4 "true";' > /target/etc/apt/apt.conf.d/03force-ipv4 && \
 in-target apt-get update; \
 in-target apt-get upgrade -y; \
 #if $fuel_version >= '6.0'
