@@ -100,6 +100,17 @@
     timeout: 3600
     cwd: /
 
+- id: configure_default_route
+  type: puppet
+  role: [primary-mongo, mongo, compute, ceph-osd, cinder, zabbix-server, base-os]
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/configure_default_route.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
+
 #PRE DEPLOYMENT
 - id: upload_core_repos
   type: upload_file
