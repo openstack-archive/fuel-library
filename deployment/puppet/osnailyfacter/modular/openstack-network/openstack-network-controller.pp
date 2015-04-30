@@ -139,10 +139,14 @@ if $network_provider == 'neutron' {
       tenant_name         => $keystone_admin_tenant,
       fallback_segment_id => $alt_fallback[0]
     }
+    # Required to use get_network_role_property
+    prepare_network_config($network_scheme)
+    $local_ip = get_network_role_property('neutron/mesh', 'ipaddr')
 
   } else {
     $enable_tunneling = false
     $tunnel_id_ranges = []
+    $local_ip = $internal_address
   }
   notify{ $tunnel_id_ranges:}
 
@@ -204,7 +208,7 @@ class { 'openstack::network':
 
   #ovs
   mechanism_drivers   => $mechanism_drivers,
-  local_ip            => $internal_address,
+  local_ip            => $local_ip,
   bridge_mappings     => $bridge_mappings,
   network_vlan_ranges => $vlan_range,
   enable_tunneling    => $enable_tunneling,
