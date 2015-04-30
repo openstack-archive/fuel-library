@@ -1,4 +1,5 @@
 require 'puppetx/l23_ethtool_name_commands_mapping'
+require 'fileutils'
 require File.join(File.dirname(__FILE__), 'l23_stored_config_base')
 
 class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored_config_base
@@ -22,6 +23,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       :bridge                => 'BRIDGE',
       :prefix                => 'PREFIX',
       :gateway               => 'GATEWAY',
+      :gateway_metric        => 'METRIC',
       :bond_master           => 'MASTER',
       :slave                 => 'SLAVE',
       :bond_mode             => 'mode',
@@ -113,7 +115,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       hash
     end
 
-    route_filename = "/etc/sysconfig/network-scripts/route-#{dirty_iface_name}"
+    route_filename = "#{self.script_directory}/route-#{dirty_iface_name}"
     if File.exist?(route_filename)
       route_file = open(route_filename, 'r')
       rv = {}
@@ -236,7 +238,6 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
                }
       if v.include? 'metric'
         metric = v.match(/metric (\d+)/)[1]
-        p "DDD metric #{metric}"
         rv[k]['metric'] = metric
       end
     end
@@ -296,13 +297,26 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     end
 
     if pairs['ROUTES']
-      route_filename = "/etc/sysconfig/network-scripts/route-#{provider.name}"
+      route_filename = "#{self.script_directory}/route-#{provider.name}"
       route_file = open(route_filename, 'w')
       pairs['ROUTES'].each do |route|
         route_file.write(route)
         route_file.write("\n")
       end
       pairs.delete('ROUTES')
+    end
+
+    # Delete default gateway from global network file
+    if pairs['GATEWAY']
+      global_network = '/etc/sysconfig/network'
+      temp_global_network = '/tmp/network'
+      File.open(temp_global_network, "w") do |out_file|
+        File.foreach(global_network) do |line|
+          out_file.puts line unless line.include? 'GATEWAY'
+        end
+      end
+      FileUtils.mv(temp_global_network, global_network)
+      FileUtils.rm_f(temp_global_network)
     end
 
     pairs.each_pair do |key, val|

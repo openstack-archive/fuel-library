@@ -32,6 +32,7 @@ define l23network::l2::port (
   $ensure                = present,
   $use_ovs               = $::l23network::use_ovs,
   $port                  = $name,
+  $if_type               = undef,
   $bridge                = undef,
   $onboot                = undef,
   $vlan_id               = undef,  # actually only for OVS workflow
@@ -106,7 +107,7 @@ define l23network::l2::port (
     }
     L23_stored_config <| title == $port_name |> {
       ensure          => $ensure,
-      if_type         => 'ethernet',
+      if_type         => $if_type,
       bridge          => $bridge,
       vlan_id         => $port_vlan_id,
       vlan_dev        => $port_vlan_dev,
