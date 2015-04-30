@@ -7,8 +7,11 @@ class heat_ha::engine inherits heat::engine {
     $ocf_script_template = 'heat/heat_engine_ubuntu.ocf.erb'    
   }
 
+  # migration-threshold is number of tries to
+  # start resource on each controller node
   $metadata = {
-    'resource-stickiness' => '1'
+    'resource-stickiness' => '1',
+    'migration-threshold' => '3'
   }
 
   $operations = {
