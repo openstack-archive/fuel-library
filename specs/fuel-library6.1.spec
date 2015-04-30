@@ -1,8 +1,8 @@
 %define name fuel-library6.1
 %define version 6.1.0
-%define release 1
+%{!?release: %define release 1}
 
-Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack 
+Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack
 Name: %{name}
 Version: %{version}
 Release: %{release}
