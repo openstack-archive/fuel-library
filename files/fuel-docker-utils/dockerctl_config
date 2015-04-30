@@ -14,7 +14,7 @@ ADMIN_IP="10.20.0.2"
 LOCAL_IP="127.0.0.1"
 
 #Version of Fuel to deploy
-VERSION=$(awk '/release/{gsub(/"/, "");print $2}' /etc/fuel/version.yaml || echo <%= @release %>)
+VERSION=$(awk '/release/{gsub(/"/, "");print $2}' /etc/fuel/version.yaml || echo 6.1)
 IMAGE_PREFIX="fuel"
 # busybox image for storage containers
 BUSYBOX_IMAGE="busybox.tar.gz"
