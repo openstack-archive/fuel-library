@@ -68,7 +68,7 @@ describe Puppet::Type.type(:haproxy_backend_status) do
     }.to raise_error
   end
 
-  it 'should accept correct retry count value' do
+  it 'should accept correct retry count, step and timeout value' do
     type = Puppet::Type.type(:haproxy_backend_status).new(
         {
             :name => 'test',
@@ -82,6 +82,38 @@ describe Puppet::Type.type(:haproxy_backend_status) do
               :name => 'test',
               :socket => '/var/run/haproxy.sock',
               :count => 'all',
+          })
+    }.to raise_error
+
+    type = Puppet::Type.type(:haproxy_backend_status).new(
+        {
+            :name => 'test',
+            :socket => '/var/run/haproxy.sock',
+            :step => '200',
+        })
+    expect(type[:step]).to eq(200)
+    expect {
+      Puppet::Type.type(:haproxy_backend_status).new(
+          {
+              :name => 'test',
+              :socket => '/var/run/haproxy.sock',
+              :step => 'all',
+          })
+    }.to raise_error
+
+    type = Puppet::Type.type(:haproxy_backend_status).new(
+        {
+            :name => 'test',
+            :socket => '/var/run/haproxy.sock',
+            :timeout => '200',
+        })
+    expect(type[:timeout]).to eq(200)
+    expect {
+      Puppet::Type.type(:haproxy_backend_status).new(
+          {
+              :name => 'test',
+              :socket => '/var/run/haproxy.sock',
+              :timeout => 'all',
           })
     }.to raise_error
   end
