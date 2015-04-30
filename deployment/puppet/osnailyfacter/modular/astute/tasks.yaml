@@ -91,7 +91,7 @@
 
 - id: public_vip_ping
   type: puppet
-  role: [primary-controller]
+  role: [primary-controller, controller]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   parameters:
