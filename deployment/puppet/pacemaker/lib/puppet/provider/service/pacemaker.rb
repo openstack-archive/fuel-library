@@ -86,6 +86,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
     Puppet.debug "Call: 'status' for Pacemaker service '#{name}' on node '#{hostname}'"
     cib_reset
     out = get_primitive_puppet_status name, hostname
+    out = :stopped unless constraint_location_exists? full_name, hostname
     Puppet.debug get_cluster_debug_report
     Puppet.debug "Return: '#{out}' (#{out.class})"
     out
