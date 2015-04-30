@@ -116,6 +116,7 @@ class nailgun::rabbitmq (
 
   # NOTE(bogdando) requires rabbitmq module >=4.0
   class { '::rabbitmq':
+    admin_enable            => false,
     repos_ensure            => false,
     package_provider        => 'yum',
     package_source          => undef,
