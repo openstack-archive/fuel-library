@@ -10,6 +10,7 @@ $controllers                    = hiera('controllers')
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
 $rabbit_hash                    = hiera('rabbit_hash', {})
+$network_scheme                 = hiera('network_scheme', {})
 
 $floating_hash = {}
 
@@ -279,9 +280,13 @@ if $network_provider == 'neutron' {
   if $neutron_settings['L2']['tunnel_id_ranges'] {
     $enable_tunneling = true
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
+    # Required to use get_network_role_property
+    prepare_network_config($network_scheme)
+    $local_ip = get_network_role_property('neutron/mesh', 'ipaddr')
   } else {
     $enable_tunneling = false
     $tunnel_id_ranges = []
+    $local_ip = $internal_address
   }
   notify{ $tunnel_id_ranges:}
   if $neutron_settings['L2']['mechanism_drivers'] {
@@ -311,7 +316,7 @@ class { 'openstack::network':
 
   # ovs
   mechanism_drivers   => $mechanism_drivers,
-  local_ip            => $internal_address,
+  local_ip            => $local_ip,
   bridge_mappings     => $bridge_mappings,
   network_vlan_ranges => $vlan_range,
   enable_tunneling    => $enable_tunneling,
