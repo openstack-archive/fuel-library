@@ -311,7 +311,7 @@ class { 'openstack::network':
 
   # ovs
   mechanism_drivers   => $mechanism_drivers,
-  local_ip            => $internal_address,
+  local_ip            => get_network_role_property('neutron/mesh', 'ipaddr'),
   bridge_mappings     => $bridge_mappings,
   network_vlan_ranges => $vlan_range,
   enable_tunneling    => $enable_tunneling,
