@@ -65,7 +65,7 @@ class openstack::nova::controller (
   $rabbitmq_bind_ip_address    = 'UNSET',
   $rabbitmq_bind_port          = '5672',
   $rabbitmq_cluster_nodes      = [],
-  $cluster_partition_handling  = 'autoheal',
+  $cluster_partition_handling  = 'pause_minority',
   # Database
   $db_type                     = 'mysql',
   # Glance
