@@ -52,7 +52,7 @@ describe 'l23network::l2::bond', :type => :define do
       it do
         should contain_l23_stored_config(slave).with({
           'ensure'      => 'present',
-          'if_type'     => 'ethernet',
+          'if_type'     => nil,
           'bond_master' => 'bond0',
         })
       end

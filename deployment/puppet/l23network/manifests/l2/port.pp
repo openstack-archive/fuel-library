@@ -32,6 +32,7 @@ define l23network::l2::port (
   $ensure                = present,
   $use_ovs               = $::l23network::use_ovs,
   $port                  = $name,
+  $if_type               = undef,
   $bridge                = undef,
   $onboot                = undef,
   $vlan_id               = undef,  # actually only for OVS workflow
@@ -104,9 +105,14 @@ define l23network::l2::port (
     if ! defined(L23_stored_config[$port_name]) {
       l23_stored_config { $port_name: }
     }
+    # if_type is not used on debian based distros at all
+    # on redhat based - is not strictly required. If the TYPE directive is not set,
+    # the device is treated as an Ethernet device
+    # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-networkscripts-interfaces_network-bridge.html
+
     L23_stored_config <| title == $port_name |> {
       ensure          => $ensure,
-      if_type         => 'ethernet',
+      if_type         => $if_type,
       bridge          => $bridge,
       vlan_id         => $port_vlan_id,
       vlan_dev        => $port_vlan_dev,
