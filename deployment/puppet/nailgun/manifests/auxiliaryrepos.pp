@@ -48,17 +48,21 @@ class nailgun::auxiliaryrepos(
   exec { 'create_ubuntu_repo_dirs':
     path    => '/bin:/sbin:/usr/bin:/usr/sbin',
     command => "bash -c \"mkdir -p ${ubuntu_dir}/pool/{main,restricted} ${ubuntu_dir}/dists/auxiliary/{main,restricted}/binary-amd64/\"",
-    creates => "${ubuntu_dir}/pool",
+    unless => "test -d ${ubuntu_dir}/pool && \
+      test -d ${ubuntu_dir}/dists/auxiliary/main/binary-amd64 && \
+      test -d ${ubuntu_dir}/dists/auxiliary/restricted/binary-amd64",
   }
 
   exec { 'create_ubuntu_repo_Packages':
     path    => '/bin:/sbin:/usr/bin:/usr/sbin',
     command => "bash -c \"touch ${ubuntu_dir}/dists/auxiliary/{main,restricted}/binary-amd64/Packages\"",
-    creates => "${ubuntu_dir}/dists/auxiliary/main/binary-amd64/Packages",
+    unless  => "test -f ${ubuntu_dir}/dists/auxiliary/main/binary-amd64/Packages && \
+      test -f ${ubuntu_dir}/dists/auxiliary/restricted/binary-amd64/Packages",
   }
 
   file { $release_files:
     ensure  => file,
+    replace => false,
     source  => 'puppet:///modules/nailgun/Release-auxiliary',
     mode    => '0644',
     owner   => 'root',
