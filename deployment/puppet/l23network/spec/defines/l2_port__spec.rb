@@ -27,11 +27,10 @@ describe 'l23network::l2::port', :type => :define do
 
     it do
       should contain_l23_stored_config('eth4').only_with({
+        'ensure'  => 'present',
         'use_ovs' => nil,
-        'method'  => nil,
-        'ipaddr'  => nil,
-        'gateway' => nil,
-      })
+        'if_type' => nil,
+          })
     end
 
     it do
@@ -54,10 +53,9 @@ describe 'l23network::l2::port', :type => :define do
 
     it do
       should contain_l23_stored_config('eth4.102').only_with({
+        'ensure'    => 'present',
+        'if_type'   => nil,
         'use_ovs'   => nil,
-        'method'    => nil,
-        'ipaddr'    => nil,
-        'gateway'   => nil,
         'vlan_id'   => '102',
         'vlan_dev'  => 'eth4',
         'vlan_mode' => 'eth'
@@ -66,7 +64,7 @@ describe 'l23network::l2::port', :type => :define do
 
     it do
       should contain_l2_port('eth4.102').with({
-        'ensure'  => 'present',
+        'ensure'    => 'present',
         'vlan_id'   => '102',
         'vlan_dev'  => 'eth4',
         'vlan_mode' => 'eth'
@@ -89,10 +87,9 @@ describe 'l23network::l2::port', :type => :define do
 
     it do
       should contain_l23_stored_config('vlan102').only_with({
+        'ensure'    => 'present',
+        'if_type'   => nil,
         'use_ovs'   => nil,
-        'method'    => nil,
-        'ipaddr'    => nil,
-        'gateway'   => nil,
         'vlan_id'   => '102',
         'vlan_dev'  => 'eth4',
         'vlan_mode' => 'vlan'
@@ -101,7 +98,7 @@ describe 'l23network::l2::port', :type => :define do
 
     it do
       should contain_l2_port('vlan102').with({
-        'ensure'  => 'present',
+        'ensure'    => 'present',
         'vlan_id'   => '102',
         'vlan_dev'  => 'eth4',
         'vlan_mode' => 'vlan'

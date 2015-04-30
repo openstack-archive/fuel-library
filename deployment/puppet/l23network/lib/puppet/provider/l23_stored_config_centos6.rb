@@ -22,6 +22,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       :bridge                => 'BRIDGE',
       :prefix                => 'PREFIX',
       :gateway               => 'GATEWAY',
+      :gateway_metric        => 'METRIC',
       :bond_master           => 'MASTER',
       :slave                 => 'SLAVE',
       :bond_mode             => 'mode',
@@ -113,7 +114,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       hash
     end
 
-    route_filename = "/etc/sysconfig/network-scripts/route-#{dirty_iface_name}"
+    route_filename = "#{self.script_directory}/route-#{dirty_iface_name}"
     if File.exist?(route_filename)
       route_file = open(route_filename, 'r')
       rv = {}
@@ -236,7 +237,6 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
                }
       if v.include? 'metric'
         metric = v.match(/metric (\d+)/)[1]
-        p "DDD metric #{metric}"
         rv[k]['metric'] = metric
       end
     end
@@ -296,13 +296,18 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     end
 
     if pairs['ROUTES']
-      route_filename = "/etc/sysconfig/network-scripts/route-#{provider.name}"
-      route_file = open(route_filename, 'w')
+      route_filename = "#{self.script_directory}/route-#{provider.name}"
+      route_content = ""
       pairs['ROUTES'].each do |route|
-        route_file.write(route)
-        route_file.write("\n")
+        route_content << "#{route}\n"
       end
+      self.write_file(route_filename, route_content)
       pairs.delete('ROUTES')
+    end
+
+    # Delete default gateway from global network file
+    if pairs['GATEWAY']
+      self.remove_line_from_file('/etc/sysconfig/network', /GATEWAY.*/)
     end
 
     pairs.each_pair do |key, val|
@@ -312,6 +317,21 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
     debug("format_file('#{filename}')::content: #{content.inspect}")
     content << ''
     content.join("\n")
+  end
+
+  def self.read_file(file)
+    File.read file
+  end
+
+  def self.write_file(file, content)
+    File.open(file, 'w') do |fp|
+      fp.write content
+    end
+  end
+
+  def self.remove_line_from_file(file, remove)
+    content = self.read_file(file).split("\n").reject { |line| remove === line }.join("\n") + "\n"
+    self.write_file file, content
   end
 
   def self.unmangle_properties(provider, props)
