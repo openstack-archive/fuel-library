@@ -92,8 +92,8 @@ Puppet::Type.type(:l3_route).provide(:lnx) do
 
   def destroy
     debug("DESTROY resource: #{@resource}")
-    cmd = ['--force', 'route', 'del', @resource[:destination], 'via', @resource[:gateway]]
-    cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
+    cmd = ['--force', 'route', 'del', @property_hash[:destination], 'via', @property_hash[:gateway]]
+    cmd << ['metric', @property_hash[:metric]] if @property_hash[:metric] != :absent && @property_hash[:metric].to_i > 0
     iproute(cmd)
     @property_hash.clear
   end
