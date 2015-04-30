@@ -38,6 +38,15 @@ Puppet::Type.newtype(:haproxy_backend_status) do
     end
   end
 
+  newparam(:timeout) do
+    desc 'How many times try to perform check?'
+    newvalues(/\d+/)
+    defaultto 5
+    munge do |n|
+      n.to_i
+    end
+  end
+
   def validate
     unless self[:socket].nil? ^ self[:url].nil?
       raise 'You should give either url or socket to get HAProxy status and not both!'
