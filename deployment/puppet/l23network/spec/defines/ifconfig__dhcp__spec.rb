@@ -29,7 +29,6 @@ describe 'l23network::l3::ifconfig', :type => :define do
         'method'         => 'dhcp',
         'ipaddr'         => 'dhcp',
         'gateway'        => nil,
-        'use_ovs'        => nil,
       })
     end
 
