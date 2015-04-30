@@ -9,14 +9,14 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
   # retry if operations fails
   # @return [String]
   def csv
-    @resource[:count].times do
+    @resource[:count].times do |n|
       begin
-        csv = Timeout::timeout(@resource[:step] * 3) do
+        csv = Timeout::timeout(@resource[:timeout]) do
           if @resource[:socket]
-            debug "Get CSV from socket '#{@resource[:socket]}'"
+            debug "Get CSV from socket: '#{@resource[:socket]}'"
             get_csv_unix
           else
-            debug "Get CSV from url '#{@resource[:url]}'"
+            debug "Get CSV from url: '#{@resource[:url]}'"
             get_csv_url
           end
         end
@@ -24,12 +24,13 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
       rescue
         nil
       end
+      debug "Could not get CSV. Retry: '#{n}'"
       sleep @resource[:step]
     end
     if @resource[:socket]
-      raise Puppet::Error, "Could not get CSV from socket #{@resource[:socket]}"
+      fail "Could not get CSV from socket: '#{@resource[:socket]}'"
     else
-      raise Puppet::Error, "Could not get CSV from url #{@resource[:url]}"
+      fail "Could not get CSV from url: '#{@resource[:url]}'"
     end
   end
 
@@ -46,14 +47,6 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
       status = fields[17]
       next unless name and type and status
       next unless type == 'BACKEND'
-      case status
-        when 'UP'
-          status = :up
-        when 'DOWN'
-          status = :down
-        else
-          next
-      end
       stats.store name, status
     end
     @stats = stats
@@ -67,18 +60,9 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
   # get the current backend status value
   # @return [:up, :down, :absent, :present]
   def ensure
-    debug "Call 'ensure' on HAProxy backend '#{@resource[:name]}'"
-    unless exists?
-      debug 'Return: absent'
-      return :absent
-    end
-
-    if [:present, :absent].include? @resource[:ensure]
-      debug 'Return: present'
-      return :present
-    end
-
+    debug 'Call: ensure'
     out = status
+    debug get_haproxy_debug_report
     debug "Return: #{out}"
     out
   end
@@ -86,13 +70,18 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
   # wait for backend status to change into specified value
   # @param value [:up, :down]
   def ensure=(value)
-    debug "Waiting for HAProxy backend '#{@resource[:name]}' to change status to '#{value}'"
+    debug "Call: ensure=(#{value})"
+    debug "Waiting for HAProxy backend: '#{@resource[:name]}' to change its status to: '#{value}'"
     @resource[:count].times do
       stats_reset
-      return true if self.ensure == value
+      if self.status == value
+        debug get_haproxy_debug_report
+        return true
+      end
       sleep @resource[:step]
     end
-    raise Puppet::Error, "Timeout waiting for HAProxy backend '#{@resource[:name]}' status to become '#{value}' after #{@resource[:count] * @resource[:step]} seconds!"
+    debug get_haproxy_debug_report
+    fail "Timeout waiting for HAProxy backend: '#{@resource[:name]}' status to become: '#{value}' after #{@resource[:count] * @resource[:step]} seconds!"
   end
 
   # check if backend exists
@@ -102,9 +91,15 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
   end
 
   # get backend status from stats structure
-  # @return [:up, :down]
+  # @return [:up, :down, :present, :absent]
   def status
-    stats.fetch @resource[:name], :absent
+    status = stats.fetch @resource[:name], nil
+    debug "Got status: '#{status}'"
+    return :absent unless status
+    return :present if [:present, :absent].include? @resource[:ensure]
+    return :up if status == 'UP'
+    return :down if status == 'DOWN'
+    :present
   end
 
   # get csv from HAProxy socket
@@ -124,7 +119,7 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
     rescue
       nil
     end
-    return nil unless csv and not csv.empty?
+    return unless csv and not csv.empty?
     csv
   end
 
@@ -137,8 +132,19 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
     rescue
       nil
     end
-    return nil unless csv and not csv.empty?
+    return unless csv and not csv.empty?
     csv
+  end
+
+  def get_haproxy_debug_report
+    return unless stats.is_a? Hash and stats.any?
+    max_backend_name_length = stats.keys.max_by { |k| k.length }.length
+    report = "\n"
+    report += "HAProxy Backends:\n"
+    stats.each do |backend, status|
+      report += "* #{backend.ljust max_backend_name_length} : #{status}\n"
+    end
+    report
   end
 
 end
