@@ -1,17 +1,18 @@
 # managed by puppet
 
-"<%= @logpath %>/atop*"
+"<%= @logpath %>/daily.log"
 {
-# This file is used for atop binary files rotation
-# Will keep binary files for last <%= @rotate %> days instead of 30 days provided by atop
+# This file handles the rotation of the daily.log file and also manages the
+# atop binary files. It will keep binary files for last <%= @rotate %> days
+# instead of 30 days provided by atop.
 # Do not modify its settings if not sure
   daily
   rotate <%= @rotate %>
   nocompress
   nocreate
   missingok
-  notifempty
   dateext
+  copytruncate
   sharedscripts
   lastaction
 <% if @osfamily == 'RedHat' -%>
@@ -22,14 +23,5 @@
     /bin/sh -c "find <%= @logpath %> -type f -name 'atop_*' -mtime +<%= @rotate %> -delete"
 <% end -%>
     /bin/ln -f -s <%= @logpath %>/atop_$(date +%Y%m%d) <%= @logpath %>/atop_current
-  endscript
-  postrotate
-<% if @osfamily == 'RedHat' -%>
-    /sbin/service atop restart 2>&1 >/dev/null
-<% elsif @osfamily == 'Debian' -%>
-    /usr/sbin/service atop restart 2>&1 >/dev/null
-<% else -%>
-    /bin/sh -c "service atop restart 2>&1 >/dev/null"
-<% end -%>
   endscript
 }
