@@ -55,10 +55,11 @@ class osnailyfacter::atop (
   }
 
   # This file is used for atop binary log rotations by (ana)cron
-  file { '/etc/logrotate.d/atop':
+  file { '/etc/cron.daily/atop_retention':
     owner   => 'root',
     group   => 'root',
-    mode    => '0644',
-    content => template('osnailyfacter/atop_logrotate.conf.erb'),
+    mode    => '0755',
+    content => template('osnailyfacter/atop_retention.erb'),
   }
+
 }
