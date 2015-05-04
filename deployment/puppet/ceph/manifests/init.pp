@@ -62,6 +62,10 @@ class ceph (
       # TODO: generate rbd_secret_uuid
       $rbd_secret_uuid                    = 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
 
+      # Cinder Backup settings
+      $cinder_backup_user                 = 'backups',
+      $cinder_backup_pool                 = 'backups',
+
       # Glance settings
       $glance_backend                     = 'ceph',
       $glance_user                        = 'images',
@@ -124,9 +128,15 @@ class ceph (
         keyring_owner => 'cinder',
       }
 
+      ceph::pool {$cinder_backup_pool:
+        user          => $cinder_backup_user,
+        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_backup_pool}, allow rx pool=${cinder_pool}'",
+        keyring_owner => 'cinder',
+      }
+
       Class['ceph::conf'] -> Class['ceph::mon'] ->
       Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] ->
-      Service['ceph']
+      Ceph::Pool[$cinder_backup_pool] -> Service['ceph']
 
       if ($::ceph::use_rgw) {
         include ceph::radosgw

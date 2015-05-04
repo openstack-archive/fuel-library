@@ -1,4 +1,5 @@
 # [use_syslog] Rather or not service should log to syslog. Optional. Defaults to false.
+
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [ceilometer] true if we use ceilometer
@@ -136,7 +137,6 @@ class openstack::cinder(
   }
 
   if $manage_volumes {
-
     ####### Disable upstart startup on install #######
     #NOTE(bogdando) ceph::backends::rbd creates override file as well
     if($::operatingsystem == 'Ubuntu' and $manage_volumes != 'ceph') {
@@ -149,7 +149,8 @@ class openstack::cinder(
       package_ensure => $::openstack_version['cinder'],
       enabled        => $enable_volumes,
     }
-    case $manage_volumes {
+
+   case $manage_volumes {
       true, 'iscsi': {
         if ($physical_volume) {
           class { 'lvm':
@@ -179,14 +180,20 @@ class openstack::cinder(
           Ceph::Pool<| title == $::ceph::cinder_pool |> ->
           Class['cinder::volume::rbd']
         }
-        class {'cinder::volume::rbd':
+
+        class { 'cinder::volume::rbd':
           rbd_pool        => $rbd_pool,
           rbd_user        => $rbd_user,
           rbd_secret_uuid => $rbd_secret_uuid,
         }
 
-        class {'cinder::backup':
-          enabled => true
+        class { 'cinder::backup':
+          enabled => true,
+        }
+
+        class { 'cinder::backup::ceph':
+          backup_ceph_user => 'backups',
+          backup_ceph_pool => 'backups',
         }
       }
     }
