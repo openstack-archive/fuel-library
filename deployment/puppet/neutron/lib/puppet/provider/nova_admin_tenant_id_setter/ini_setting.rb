@@ -22,6 +22,10 @@ end
 class KeystoneAPIError < KeystoneError
 end
 
+RETRY_COUNT = 10
+RETRY_SLEEP = 3
+
+
 # Provides common request handling semantics to the other methods in
 # this module.
 #
@@ -160,16 +164,25 @@ Puppet::Type.type(:nova_admin_tenant_id_setter).provide(:ruby) do
     # - There are multiple matches, or
     # - There are zero matches
     def get_tenant_id
-        token = authenticate
-        tenants = find_tenant_by_name(token)
-
-        if tenants.length == 1
-            return tenants[0]['id']
-        elsif tenants.length > 1
-            raise KeystoneAPIError, 'Found multiple matches for tenant name'
-        else
-            raise KeystoneAPIError, 'Unable to find matching tenant'
+      RETRY_COUNT.times do |n|
+        begin
+          tenants = find_tenant_by_name(authenticate)
+        rescue => e
+          debug "Request failed: '#{e.message}' Retry: '#{n}'"
+          sleep RETRY_SLEEP
+          next
         end
+        if tenants.length == 1
+          return tenants[0]['id']
+        elsif tenants.length > 1
+          name = tenants[0]['name']
+          raise KeystoneAPIError, "Found multiple matches for domain name: '#{name}'"
+        else
+          debug "Tenant '#{@resource[:domain_name]}' not found! Retry: '#{n}'"
+          sleep RETRY_SLEEP
+          next
+        end
+      end
     end
 
     def config
