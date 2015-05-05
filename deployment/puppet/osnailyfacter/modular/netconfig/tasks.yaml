@@ -11,3 +11,12 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
+
+- id: check_repo_access
+  type: puppet
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  required_for: [firewall, hosts]
+  requires: [netconfig]
+  parameters:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/check_repo_access.rb
+    timeout: 1200
