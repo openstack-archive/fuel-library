@@ -1,8 +1,8 @@
 %define name fuel-library6.1
-%define version 6.1.0
-%define release 1
+%{!?version: %define version 6.1.0}
+%{!?release: %define release 1}
 
-Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack 
+Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack
 Name: %{name}
 Version: %{version}
 Release: %{release}
@@ -93,8 +93,8 @@ done
 
 %package -n fuel-dockerctl
 Summary: Fuel project utilities for Docker container management tool
-Version: 6.1
-Release: 1
+Version: %{version}
+Release: %{release}
 Group: System Environment/Libraries
 License: GPLv2
 Provides: fuel-docker-utils
@@ -116,8 +116,8 @@ during Fuel All-in-One deployment toolkit installation
 
 %package -n fuel-misc
 Summary: Fuel project misc utilities
-Version: 6.1
-Release: 1
+Version: %{version}
+Release: %{release}
 Group: System Environment/Libraries
 License: Apache 2.0
 URL: http://github.com/stackforge/fuel-library
@@ -138,8 +138,8 @@ For further information go to http://wiki.openstack.org/Fuel
 
 %package -n fuel-ha-utils
 Summary: Fuel project HA utilities
-Version: 6.1
-Release: 1
+Version: %{version}
+Release: %{release}
 Group: System Environment/Libraries
 # FIXME(aglarendil): mixed license actually - need to figure out the best option
 License: GPLv2
