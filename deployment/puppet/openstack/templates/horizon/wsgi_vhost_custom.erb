@@ -3,7 +3,7 @@
   <IfModule mod_deflate.c>
     SetOutputFilter DEFLATE
     <IfModule mod_headers.c>
-      # Make sure proxies don’t deliver the wrong content
+      # Make sure proxies don't deliver the wrong content
       Header append Vary User-Agent env=!dont-vary
     </IfModule>
   </IfModule>
