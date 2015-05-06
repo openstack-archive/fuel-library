@@ -12,4 +12,5 @@ pcmk_nodes { 'pacemaker' :
   nodes => $corosync_nodes,
 }
 
+Service['corosync'] -> Pcmk_nodes<||>
 Pcmk_nodes<||> -> Service<| provider == 'pacemaker' |>
