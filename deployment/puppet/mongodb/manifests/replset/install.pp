@@ -1,6 +1,7 @@
 # PRIVATE CLASS: do not call directly
 class mongodb::replset::install (
     $replset_members = $mongodb::replset::replset_members,
+    $admin_password  = undef,
 )
 
 {
@@ -11,11 +12,13 @@ class mongodb::replset::install (
 
   notify { 'Create ReplicaSet ': }
 
-  define add_replset_members() {
+  define add_replset_members(
+    $admin_password = undef ) {
     $node_hostname = $name
     notify { "Member ${node_hostname}":; }
     exec { "add ${node_hostname}":
-      command   => "/bin/echo  \"rs.add(\\\"${node_hostname}\\\")\"| /usr/bin/mongo",
+      command  => "/bin/echo  \"rs.add(\\\"${node_hostname}\\\")\"| /usr/bin/mongo -u admin -p ${admin_password} admin",
+      unless   => "/usr/bin/mongo --eval \"printjson(rs.add(\\\"${node_hostname}\\\"))\"",
     }
   }
 
@@ -27,7 +30,8 @@ class mongodb::replset::install (
   } ->
 
   exec { 'rs.initiate':
-    command   => '/bin/echo "rs.initiate()"| /usr/bin/mongo',
+    command => '/bin/echo "rs.initiate()"| /usr/bin/mongo',
+    onlyif  => '/bin/echo "rs.status()"| /usr/bin/mongo | grep -q "run rs.initiate(...) if not yet done for the set"',
   } ->
 
   exec { 'rs.conf':
@@ -41,6 +45,8 @@ class mongodb::replset::install (
     provider  => 'shell',
   } ->
 
-  add_replset_members{ $replset_members:; }
+  add_replset_members{ $replset_members:
+    admin_password => $admin_password,
+  }
 
 }

@@ -44,6 +44,7 @@ class openstack::mongo_primary (
   class {'::mongodb::replset':
     replset_setup   => $replset_setup,
     replset_members => $ceilometer_replset_members,
+    admin_password  => $ceilometer_db_password,
   } ->
 
   notify {"mongodb configuring databases" :} ->
