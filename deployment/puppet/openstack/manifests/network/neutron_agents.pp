@@ -39,7 +39,6 @@ class openstack::network::neutron_agents (
   # dhcp-agent
   $resync_interval = 30,
   $use_namespaces = true,
-  $dnsmasq_config_file = '/etc/neutron/dnsmasq-neutron.conf',
 
   # l3-agent
   $metadata_port = 9697,
@@ -140,14 +139,12 @@ class openstack::network::neutron_agents (
   }
 
   if 'dhcp' in $agents {
-    $network_scheme = hiera('network_scheme')
     class { '::neutron::agents::dhcp':
-      debug               => $debug,
-      resync_interval     => $resync_interval,
-      use_namespaces      => $use_namespaces,
-      manage_service      => true,
-      dnsmasq_config_file => $dnsmasq_config_file,
-      enabled             => true,
+      debug           => $debug,
+      resync_interval => $resync_interval,
+      use_namespaces  => $use_namespaces,
+      manage_service  => true,
+      enabled         => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-dhcp-service' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-dhcp-service' |>
@@ -161,28 +158,6 @@ class openstack::network::neutron_agents (
         primary           => $ha_agents ? { 'primary' => true, default => false},
       }
     }
-    if $enable_tunneling {
-      $mgmt_iface = $network_scheme['endpoints']['br-mgmt']['vendor_specific']['phy_interfaces']
-      if $network_scheme['interfaces']["$mgmt_iface"]['mtu'] {
-        $mtu = $network_scheme['interfaces']["$mgmt_iface"]['mtu'] - 42
-      } else {
-        $mtu = 1458
-      }
-    } else {
-      $prv_iface = $network_scheme['endpoints']['br-prv']['vendor_specific']['phy_interfaces']
-      if $network_scheme['interfaces']["$prv_iface"]['mtu'] {
-        $mtu = $network_scheme['interfaces']["$prv_iface"]['mtu']
-      } else {
-        $mtu = 1500
-      }
-    }
-    file { '/etc/neutron/dnsmasq-neutron.conf':
-      owner   => 'root',
-      group   => 'root',
-      content => template('openstack/neutron/dnsmasq-neutron.conf.erb'),
-      require => File['/etc/neutron'],
-    } -> Neutron_dhcp_agent_config<||>
-    File['/etc/neutron/dnsmasq-neutron.conf'] ~> Service['neutron-dhcp-service']
   }
 
   if 'l3' in $agents {
