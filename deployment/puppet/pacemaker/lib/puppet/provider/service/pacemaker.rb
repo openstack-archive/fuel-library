@@ -5,7 +5,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   has_feature :enableable
   has_feature :refreshable
 
-  commands :uname => 'uname'
+  commands :crm_node => 'crm_node'
   commands :pcs => 'pcs'
   commands :crm_resource => 'crm_resource'
   commands :crm_attribute => 'crm_attribute'
@@ -14,8 +14,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
   # hostname of the current node
   # @return [String]
   def hostname
-    return @hostname if @hostname
-    @hostname = (uname '-n').chomp.strip
+    node_name
   end
 
   # original name passed from the type
@@ -180,7 +179,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
       type = Puppet::Type::Service.new param_hash
       @extra_provider = type.provider
     rescue => e
-      Puppet.warning "Could not get extra provider for Pacemaker primitive '#{name}': #{e.message}"
+      Puppet.info "Could not get extra provider for Pacemaker primitive '#{name}': #{e.message}"
       @extra_provider = nil
     end
   end
@@ -202,7 +201,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Pac
         Puppet.info "Basic service '#{extra_provider.name}' is stopped as reported by '#{extra_provider.class.name}' provider"
       end
     rescue => e
-      Puppet.warning "Could not disable basic service for Pacemaker primitive '#{name}' using '#{extra_provider.class.name}' provider: #{e.message}"
+      Puppet.info "Could not disable basic service for Pacemaker primitive '#{name}' using '#{extra_provider.class.name}' provider: #{e.message}"
     end
   end
 
