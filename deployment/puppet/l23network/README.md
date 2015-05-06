@@ -6,9 +6,12 @@ At this moment support Centos 6.3+ (RHEL6) and Ubuntu 12.04 or above.
 
 L23network module have a same behavior for both operation systems.
 
+**WARNING!!!** This is a L23network v1.1, it contains some incompatibles with earlier versions. *Be carefully*.
 
-Usage
------
+## Usage
+
+### Initializing 
+
 Place this module at /etc/puppet/modules/l23network or another directory with your puppet modules.
 
 Include L23network module and initialize it. It is recommended to do it on the early stage:
@@ -17,280 +20,522 @@ Include L23network module and initialize it. It is recommended to do it on the e
     stage {'netconfig':
       before  => Stage['main'],
     }
-    class {'l23network': stage=> 'netconfig'}
+    class { 'l23network':
+      use_ovs => true,
+      use_lnx => true,
+      stage   => 'netconfig'
+    }
 
-If you do not plan to use open vSwitch you can disable it:
+Initialization class 'l23network' has following incoming parameters and its default values:
 
-    class {'l23network': use_ovs=>false, stage=> 'netconfig'}
+    class { 'l23network':
+      use_ovs                   => false,
+      use_lnx                   => true,
+      install_ovs               => $use_ovs,
+      install_brtool            => $use_lnx,
+      install_ethtool           => $use_lnx,
+      install_bondtool          => $use_lnx,
+      install_vlantool          => $use_lnx,
+      ovs_modname               => undef,
+      ovs_datapath_package_name => undef,
+      ovs_common_package_name   => undef,
+    }
+
+For highly customized configurations you can redefine each of ones. For example, if you plan to use open vSwitch you should enable it:
+
+    class {'l23network': 
+      use_ovs=>true
+    }
 
 
-
-
-L2 network configuation (Open vSwitch only)
------------------------
+### L2 network features configuation
 
 Current layout is:
 * *bridges* -- A "Bridge" is a virtual ethernet L2 switch. You can plug ports into it.
-* *ports* -- A Port is an interface you plug into the bridge (switch). It's virtual.
-* *interface* -- A physical implementation of port.
+* *ports* -- A Port is an interface you plug into the bridge. It may be virtual or native interface.
 
 Then in your manifest you can either use it as a parameterized classes:
 
-    class {"l23network": }
-    
     l23network::l2::bridge{"br-mgmt": }
     l23network::l2::port{"eth0": bridge => "br-mgmt"}
-    l23network::l2::port{"mmm0": bridge => "br-mgmt"}
-    l23network::l2::port{"mmm1": bridge => "br-mgmt"}
     
-    l23network::l2::bridge{"br-ex": }
-    l23network::l2::port{"eth0": bridge => "br-ex"}
-    l23network::l2::port{"eth1": bridge => "br-ex", ifname_order_prefix='ovs'}
-    l23network::l2::port{"eee0": bridge => "br-ex", skip_existing => true}
-    l23network::l2::port{"eee1": bridge => "br-ex", type=>'internal'}
+    l23network::l2::bridge{"br-ex": provider => ovs }
+    l23network::l2::port{"eth1": bridge => "br-ex" }
+    l23network::l2::port{"ve0": bridge => "br-ex" }
+    l23network::l2::port{"ve1": bridge => "br-ex" }
 
-You can define a type for the port. Port types are:
-'system', 'internal', 'tap', 'gre', 'ipsec_gre', 'capwap', 'patch', 'null'.
-If you do not define type for port (or define '') then ovs-vsctl will work by default
-(see http://openvswitch.org/cgi-bin/ovsman.cgi?page=utilities%2Fovs-vsctl.8).
 
-You can use skip_existing option if you do not want to interrupt the configuration during adding of existing port or bridge.
+#### L2::Bridge
 
-L3 network configuration
-------------------------
+This resource implemented for configire of bridge.
 
-### Simple IP address definition, DHCP or address-less interfaces
-
-    l23network::l3::ifconfig {"eth0": ipaddr=>'192.168.1.1/24'}
-    l23network::l3::ifconfig {"xXxXxXx": 
-        interface => 'eth1',
-        ipaddr    => '192.168.2.1',
-        netmask   => '255.255.255.0'
+    l23network::l2::bridge { 'br1':
+      ensure          => present,
+      stp             => true,  # or false
+      vendor_specific => {
+        .....
+      },
+      provider        => lnx,
     }
+
+Non-obligatory fields:
+
+* *stp* -- enable/disable STP for bridge
+* *bpdu_forward* -- enable/disable BPDU forward on bridge
+* *bridge_id* -- bridge_id for STP protocol.
+* *vendor_specific* -- vendor_specific hash (see below)
+
+#### L2::Port
+
+Resource for configuring port L2 options. Only L2 options. For configuring
+L3 options -- use *L23network::l3::ifconfig* resource
+
+    l23network::l2::port { 'eth1':
+      mtu       => 9000,   # MTU value, unchanged if absent.
+      onboot    => true,   # whether port has UP state after setup or node boot
+      ethtool => {
+        .....
+      },
+      vendor_specific => {
+        .....
+      },
+      provider  => lnx
+    }
+
+    l23network::l2::port { 'eth1.101':
+      ensure    => present,
+      bridge    => 'br1',  # port can be a member of bridge. 
+                           # If no value given this property was unchanged, 
+                           # if given 'absent' port will be excluded from any
+                           # bridges.
+      onboot    => true,
+      provider  => lnx
+    }
+
+Alternative VLAN definition (not recommended for 'lnx' provider)
+
+    l23network::l2::port { 'vlan77':
+      vlan_id   => 77,
+      vlan_dev  => eth1,
+      provider  => lnx
+    }
+
+#### L2::Bond
+
+It's a special type of port. Designed for bonding two or more interfaces.
+Detail description of bonding feature you can read here:
+https://www.kernel.org/doc/Documentation/networking/bonding.txt
+If you plan use LACP -- we highly recommend do not use OVS.
+Also we don't recommend insert native linux bonds to OVS bridges. This case works, but leads many heavy diagnostic surprises.
+
+    l23network::l2::bond { 'bond0':
+      interfaces      => ['eth1', 'eth2'],
+      bridge          => 'br0',  # obligatory only for OVS provider
+      mtu             => 9000,
+      onboot          => true,
+      bond_properties => {  # bond configuration properties (see bonding.txt)
+        mode             => '803.1ad',
+        lacp_rate        => 'slow',
+        xmit_hash_policy => 'encap3+4'
+      },
+      interface_properties => {  # config properties for included ifaces
+        ethtool => {
+          .....
+        },
+      },
+      vendor_specific => {
+        .....
+      },
+      provider => lnx,
+    }
+
+Bond **mode** and **xmit_hash_policy** configuration has some differences for
+*lnx* and *ovs* providers:
+
+For *lnx* provider **mode** can be:
+
+* balance-rr  *(default)*
+* active-backup
+* balance-xor
+* broadcast
+* 802.3ad
+* balance-tlb
+* balance-alb
+
+For 802.3ad (LACP), balance-xor, balance-tlb and balance-alb cases should be
+defined **xmit_hash_policy** as one of:
+
+* layer2  *(default)*
+* layer2+3
+* layer3+4
+* encap2+3
+* encap3+4
+
+For *ovs* provider **mode** can be:
+
+* active-backup
+* balance-slb  *(default)*
+* balance-tcp
+
+Field **xmit_hash_policy** shouldn't use for any mode.
+For *balance-tcp* mode **lacp** bond-property should be set
+to 'active' or 'passive' value.
+
+While bond will created also will created ports, included to the bond. This
+ports will be created as slave ports for this bond with properties, listed in
+**interface_properties** field. If you want more flexibility, you can create
+this ports by *l23network::l2::port* resource and shouldn't define
+**interface_properties** field.
+
+**MTU** field, setted for bond interface will be passed to interfaces, included
+to the bond automatically.
+
+For some providers (ex: ovs) **bridge** field is obligatory.
+
+#### L2::Patch
+
+It's a patchcord for connecting two bridges. Architecture limitation: two
+bridges may be connected only by one patchcord. Name for patchcord interfaces
+calculated automatically and can't changed in configuration.
+
+OVS provider can connect OVS-to-OVS and OVS-to-LNX bridges. If you connect
+OVS-to-LNX bridges, you SHOULD put OVS bridge first in order.
+
+    l23network::l2::patch { 'patch__br0--br1':
+      bridges => ['br0','br1'],
+      vendor_specific => {
+        .....
+      },
+    }
+
+**Naming conviency**
+
+Each low-level puppet patchcord resource *l2_patch* has his name in
+'bridge__%bridge1%--%bridge2%' format, and bridges provided
+in alphabetical order for all providers. This resource also contain 'bridges'
+property.  It's a array of two bridge names.
+Order of names depends of provider implementation.
+For example, 'ovs' provider bridge names listed in alphabetical order for
+OVS-to-OVS connectivity, and ovs-bridge always first for OVS-to-LNX bridges
+connectivity.
+
+Each *L2_patch* instance contains read-only 'jacks' property. It's a array
+of two names of jacks, 'inserted' to each bridge. This property has the same
+ordering style, that a 'bridges' property for this provider.
+
+If patchcord connect two bridges different nature, the 'cross' flag will be
+setting to 'true'.
+
+#### Ethtool hash and offloading settings
+
+You can manage offloading and another options, controlled by ethtool utility,
+for any resources, that has *ethtool* hash as one of incoming properties.
+*Ethtool* field look like hash of hashes. Keys of the external hash -- are a
+section names from ethtool manual. Ones maps to an internal hashes. Internal
+hashes -- is a option to value mappings. Option names corresponds to ethtool
+output option naming. For example, you can see list of offloading options by
+executing 'ethtool -k eth0'.
+Ethtool options are pre-defined and stateful.
+All implemented sections and options you can see bellow:
+
+    ethtool => {
+      offload => {
+          rx-checksumming              => true or false,
+          tx-checksumming              => true or false,
+          scatter-gather               => true or false,
+          tcp-segmentation-offload     => true or false,
+          udp-fragmentation-offload    => true or false,
+          generic-segmentation-offload => true or false,
+          generic-receive-offload      => true or false,
+          large-receive-offload        => true or false,
+          rx-vlan-offload              => true or false,
+          tx-vlan-offload              => true or false,
+          ntuple-filters               => true or false,
+          receive-hashing              => true or false,
+          rx-fcs                       => true or false,
+          rx-all                       => true or false,
+          highdma                      => true or false,
+          rx-vlan-filter               => true or false,
+          fcoe-mtu                     => true or false,
+          l2-fwd-offload               => true or false,
+          loopback                     => true or false,
+          tx-nocache-copy              => true or false,
+          tx-gso-robust                => true or false,
+          tx-fcoe-segmentation         => true or false,
+          tx-gre-segmentation          => true or false,
+          tx-ipip-segmentation         => true or false,
+          tx-sit-segmentation          => true or false,
+          tx-udp_tnl-segmentation      => true or false,
+          tx-mpls-segmentation         => true or false,
+          tx-vlan-stag-hw-insert       => true or false,
+          rx-vlan-stag-hw-parse        => true or false,
+          rx-vlan-stag-filter          => true or false,
+      },
+      #settings => {
+      #   duplex => 'half',
+      #   mdix   => off
+      #}
+    }
+
+
+### L3 network configuration
+
+#### L3::Ifconfig
+
+Resource for configuring IP addresses on interface. Only L3 options.
+For configuring L2 options -- use corresponded L2 resource.
+
+    l23network::l3::ifconfig { 'eth1.101':
+      ensure           => present,
+      ipaddr           => ['192.168.10.3/24', '10.20.30.40/25'],
+      gateway          => '192.168.10.1',
+      gateway_metric   => 10,  # different Ifconfig resources should not has
+                               # gateways with same metrics
+      vendor_specific => {
+        .....
+      },
+    }
+
+**DHCP or address-less interfaces**
+
     l23network::l3::ifconfig {"eth2": ipaddr=>'dhcp'}
     l23network::l3::ifconfig {"eth3": ipaddr=>'none'}
 
-Option *ipaddr* can contains IP address, 'dhcp', or 'none' string. In this example we describe configuration of 4 network interfaces:
-* Interface *eth0* have short CIDR-notated form of IP address definition.
-* Interface *eth1* 
-* Interface *eth2* will be configured to use dhcp protocol. 
-* Interface *eth3* will be configured as interface without IP address. 
-  Often it's need for create "master" interface for 802.1q vlans (in native linux implementation) 
-  or as slave interface for bonding.
+Option *ipaddr* can contains array of IP addresses (even setup one ipaddr), 'dhcp', or 'none' string. 
 
-CIDR-notated form of IP address have more priority, that classic *ipaddr* and *netmask* definition. 
-If you ommited *natmask* and not used CIDR-notated form -- will be used 
-default *netmask* value as '255.255.255.0'.
+CIDR-notated form of IP address is required. 
 
-### Multiple IP addresses for one interface (aliases)
-
-    l23network::l3::ifconfig {"eth0": 
-      ipaddr => ['192.168.0.1/24', '192.168.1.1/24', '192.168.2.1/24']
-    }
-    
-You can pass list of CIDR-notated IP addresses to the *ipaddr* parameter for assign many IP addresses to one interface.
-In this case will be created aliases (not a subinterfaces). Array can contains one or more elements.
-
-### UP and DOWN interface order
-
-    l23network::l3::ifconfig {"eth1": 
-      ipaddr=>'192.168.1.1/24'
-    }
-    l23network::l3::ifconfig {"br-ex": 
-      ipaddr=>'192.168.10.1/24',
-      ifname_order_prefix='ovs'
-    }
-    l23network::l3::ifconfig {"aaa0": 
-      ipaddr=>'192.168.20.1/24', 
-      ifname_order_prefix='zzz'
-    }
-
-Centos and Ubuntu (at startup OS) start and configure network interfaces in alphabetical order 
-interface configuration file names. In example above we change configuration process order 
-by *ifname_order_prefix* keyword. We will have this order:
-
-    ifcfg-eth1
-    ifcfg-ovs-br-ex
-    ifcfg-zzz-aaa0
-
-And the OS will configure interfaces br-ex and aaa0 after eth0
-
-### Default gateway
+**Default gateway**
 
     l23network::l3::ifconfig {"eth1":
-        ipaddr                => '192.168.2.5/24',
-        gateway               => '192.168.2.1',
-        default_gateway       => true,
-        check_by_ping         => '8.8.8.8',
-        check_by_ping_timeout => '30'
+      ipaddr         => ['192.168.2.5/24'],
+      gateway        => '192.168.2.1',
+      gateway_metric => 10,
     }
 
-In this example we define default *gateway* and options for waiting that network stay up.
-Parameter *check_by_ping* define IP address, that will be pinged. Puppet will be blocked for waiting
-response for *check_by_ping_timeout* seconds.
-Parameter *check_by_ping* can be IP address, 'gateway', or 'none' string for disabling checking.
-By default gateway will be pinged.
+if *gateway_metric* omited, gateway will be setup without metric definition.
 
 
-### Additional routes
 
-    l23network::l3::ifconfig {"eth1":
-        ipaddr                => '192.168.2.5/24',
-        gateway               => '192.168.2.1',
-        other_nets            => ['10.20.20.0/24', '192.168.120.0/24']
-        check_by_ping         => '8.8.8.8',
-        check_by_ping_timeout => '30'
+## Network Scheme
+
+Network scheme is a hierarchical-based manner for define network topology for host. In following examples I use yaml format for represent it. 
+Main idea:
+  * when we got undeployed server we have some number of NICs. NICs, managed by puppet should be listed in *interfaces* section. It is giveg.
+  * The result of our network configuration process is a some network topology on the host and some interfaces with assignet IP addresses (or without IPs). It's a *endpoints*. 
+  * Interfaces become endpoints by successive *transformations*. I try explain how it works in the following document: [Transformations. How they work.](https://docs.google.com/document/d/12RvBjOYO83_yqeiAgxttrRaa90-8un80aEO8OzDlQ9Y)
+
+Example of typical network scheme:
+
+    ---
+    network_scheme:
+      version: 1.1
+      provider: lnx
+      interfaces:
+        eth1:
+          mtu: 7777
+        eth2:
+          mtu: 9000
+      transformations:
+        - action: add-br
+          name: br1
+        - action: add-port
+          name: eth1
+          bridge: br1
+        - action: add-br
+          name: br-mgmt
+        - action: add-port
+          name: eth1.101
+          bridge: br-mgmt
+        - action: add-br
+          name: br-ex
+        - action: add-port
+          name: eth1.102
+          bridge: br-ex
+        - action: add-br
+          name: br-storage
+        - action: add-port
+          name: eth1.103
+          bridge: br-storage
+        - action: add-br
+          name: br-prv
+          provider: ovs
+        - action: add-port
+          name: eth2
+          bridge: br-prv
+          provider: ovs
+      endpoints:
+        br-mgmt:
+          IP:
+            - 192.168.101.3/24
+          gateway: 192.168.101.1
+          gateway-metric: 100
+          routes:
+            - net: 192.168.210.0/24
+              via: 192.168.101.1
+            - net: 192.168.211.0/24
+              via: 192.168.101.1
+            - net: 192.168.212.0/24
+              via: 192.168.101.1
+        br-ex:
+          gateway: 192.168.102.1
+          IP:
+            - 192.168.102.3/24
+        br-storage:
+          IP:
+            - 192.168.103.3/24
+        br-prv:
+          IP: none
+      roles:
+        management: br-mgmt
+        ceph: br-mgmt
+        private: br-prv
+        fw-admin: br1
+        ex: br-ex
+        floating: br-ex
+        storage: br-storage
+
+
+Example of typical network scheme with bonds and disabling offloads:
+
+    ---
+    network_scheme:
+      version: "1.1"
+      provider: lnx
+      interfaces:
+        eth1:
+          mtu: 9000
+        eth2:
+        eth3:
+      transformations:
+        - action: add-br
+          name: br1
+        - action: add-port
+          bridge: br1
+          name: eth1
+          ethtool:
+            offload:
+              tcp-segmentation-offload: off
+              udp-fragmentation-offload: off
+              generic-segmentation-offload: off
+              generic-receive-offload: off
+              large-receive-offload: off
+        - action: add-br
+          name: br2
+        - action: add-bond
+          name: bond23
+          bridge: br2
+          interfaces:
+            - eth2
+            - eth3
+          mtu: 9000
+          interface_properties:
+            ethtool:
+              offload:
+                tcp-segmentation-offload: off
+                udp-fragmentation-offload: off
+          bond_properties:
+            mode: balance-rr
+            xmit_hash_policy: encap3+4
+            updelay: 10
+            downdelay: 40
+            use_carrier: 0
+        - action: add-br
+          name: br-mgmt
+        - action: add-port
+          name: bond23.101
+          bridge: br-mgmt
+        - action: add-br
+          name: br-ex
+        - action: add-port
+          name: bond23.102
+          bridge: br-ex
+        - action: add-br
+          name: br-storage
+        - action: add-port
+          name: bond23.103
+          bridge: br-storage
+      endpoints:
+        br-mgmt:
+          IP:
+            - 192.168.101.3/24
+          gateway: 192.168.101.1
+          gateway-metric: 100
+        br-ex:
+          gateway: 192.168.102.1
+          IP:
+            - 192.168.102.3/24
+        br-storage:
+          IP:
+            - 192.168.103.3/24
+      roles:
+        fw-admin: br1
+        ex: br-ex
+        management: br-mgmt
+        storage: br-storage
+
+
+## Vendor_specific hash
+
+**Vendor_specific** field - is a hash, empty by default,
+required only for plug-ins. It allows plugin developers not to change custom
+type code for adding non-standart parameters. Due to inheriting and extending
+puppet type (not the provider one), is a non-trivial task. Plugin developers
+may pass any data structures by this hash and its subhashes. All data from
+this hash pass to the provider transparently.
+
+
+## Debugging
+
+For debug purpose you can use following puppet calls for get prefetchable
+properties for existing resources. Please note, that bridges and bonds in linux
+are a port too, and present in l2_port output with corresponded flags
+(if_type).
+
+    # puppet resource -vd --trace l23_stored_config
+    # puppet resource -vd --trace l2_port
+    # puppet resource -vd --trace l2_bridge
+    # puppet resource -vd --trace l2_bond
+    # puppet resource -vd --trace l3_ifconfig
+    # puppet resource -vd --trace l3_route
+
+This commands may be fail before 1st configuration networking by L23network
+because some kernel modules may wasn't loaded or some command-line tools
+wasn't installed.
+
+
+## Internals
+
+Each L23network resource has interface trought puppet 'define' resource.
+This define may conains some non difficult logic, define provider for low-level resources and call two low level resources:
+  * *l23_stored_config* -- for modifying OS config files 
+  * low level resource for configuring it in runtime (e.x: *l2_bridge*)
+
+### L23_stored_config custom type
+
+This resource is implemented to manage interface config files. Each possible
+parameter should be described in resource type.
+
+This resource allows to forget about ERB templates, because in some cases
+(i.e.  bridge + port with same name + ip address for this port) we should
+modify config file content three times.
+
+    l23_stored_config { 'br1':
+      onboot   => true,
+      method   => manual,
+      mtu      => 1500,
+      ethtool => {
+        .....
+      },
+      provider => lnx_ubuntu
     }
 
-In this example we define the *gateway* as the next hop and *other_nets* as a
-list of networks that may be reached by this gateway.
+Place of config files location defined inside provider for corresponded
+operation system and provider. Provider name for l23_stored_config depends from operation system (may be with version) and network provider (native linux, ovs, etc...)
 
-### DNS-specific options
+## References
 
-    l23network::l3::ifconfig {"eth1":
-        ipaddr          => '192.168.2.5/24',
-        dns_nameservers => ['8.8.8.8','8.8.4.4'],
-        dns_search      => ['aaa.com','bbb.com'],
-        dns_domain      => 'qqq.com'
-    }
-
-Also we can specify DNS nameservers, and search list that will be inserted (by resolvconf lib) to /etc/resolv.conf .
-Option *dns_domain* implemented only in Ubuntu.
-
-### DHCP-specific options
-
-    l23network::l3::ifconfig {"eth2":
-        ipaddr          => 'dhcp',
-        dhcp_hostname   => 'compute312',
-        dhcp_nowait     => false,
-    }
-
-
-
-Bonding
--------
-### Using standart linux ifenslave bonding
-For bonding of two interfaces you need to:
-* Configure the bonded interfaces as 'none' (with no IP address)
-* Specify that interfaces depend on bond_master interface
-* Assign IP address to the bond-master interface
-* Specify bond-specific properties for bond_master interface (if you are not happy with defaults)
-
-For example (defaults included):   
-
-    l23network::l3::ifconfig {'bond0':
-        ipaddr          => '192.168.232.1',
-        netmask         => '255.255.255.0',
-        bond_mode       => 0,
-        bond_miimon     => 100,
-        bond_lacp_rate  => 1,
-    } ->
-    l23network::l3::ifconfig {'eth1': ipaddr=>'none', bond_master=>'bond0'} ->
-    l23network::l3::ifconfig {'eth2': ipaddr=>'none', bond_master=>'bond0'}
-
-
-More information about bonding of network interfaces you can find in manuals for you operation system:
-* https://help.ubuntu.com/community/UbuntuBonding
-* http://wiki.centos.org/TipsAndTricks/BondingInterfaces
-
-### Using Open vSwitch
-For bonding two interfaces you need:
-* Specify OVS bridge
-* Specify special resource "bond" and add it to bridge. Specify bond-specific parameters.
-* Assign IP address to the newly-created network interface (if need).
-
-In this example we add "eth1" and "eth2" interfaces to bridge "bridge0" as bond "bond1". 
-
-    l23network::l2::bridge{'bridge0': } ->
-    l23network::l2::bond{'bond1':
-        bridge     => 'bridge0',
-        ports      => ['eth1', 'eth2'],
-        properties => [
-           'lacp=active',
-           'other_config:lacp-time=fast'
-        ],
-    } ->
-    l23network::l3::ifconfig {'bond1':
-        ipaddr          => '192.168.232.1',
-        netmask         => '255.255.255.0',
-    }
-
-Open vSwitch provides a lot of parameter for different configurations. 
-We can specify them in "properties" option as list of parameter=value 
-(or parameter:key=value) strings.
-You can find more parameters in [open vSwitch documentation page](http://openvswitch.org/support/).
-
-
-
-802.1q vlan access ports
-------------------------
-### Using standart linux way
-
-We can use tagged vlans over ordinary network interfaces and over bonds. 
-L23networks module supports two types of vlan interface namings:
-* *vlanXXX* -- 802.1q tag XXX from the vlan interface name. You must specify the
-parent interface name in the **vlandev** parameter.
-* *eth0.XXX* -- 802.1q tag XXX and parent interface name from the vlan interface name
-
-If you are using 802.1q vlans over bonds it is strongly recommended to use the first one.
-
-In this example we can see both types:
-
-    l23network::l3::ifconfig {'vlan6':
-        ipaddr  => '192.168.6.1',
-        netmask => '255.255.255.0',
-        vlandev => 'bond0',
-    } 
-    l23network::l3::ifconfig {'vlan5': 
-        ipaddr  => 'none',
-        vlandev => 'bond0',
-    } 
-    L23network:L3:Ifconfig['bond0'] -> L23network:L3:Ifconfig['vlan6'] -> L23network:L3:Ifconfig['vlan5']
-
-    l23network::l3::ifconfig {'eth0':
-        ipaddr  => '192.168.0.5',
-        netmask => '255.255.255.0',
-        gateway => '192.168.0.1',
-    } ->
-    l23network::l3::ifconfig {'eth0.101':
-        ipaddr  => '192.168.101.1',
-        netmask => '255.255.255.0',
-    } ->
-    l23network::l3::ifconfig {'eth0.102':
-        ipaddr  => 'none',    
-    } 
-
-### Using open vSwitch
-In the open vSwitch all internal traffic is virtually tagged.
-To create a 802.1q tagged access port you need to specify a vlan tag when adding a port to the bridge. 
-In example above we create two ports with tags 10 and 20, and assign IP address to interface with tag 10:
-
-
-    l23network::l2::bridge{'bridge0': } ->
-    l23network::l2::port{'vl10':
-        bridge  => 'bridge0',
-        type    => 'internal',
-        port_properties => [
-            'vlan_id=10'
-        ],
-    } ->
-    l23network::l2::port{'vl20':
-        bridge  => 'bridge0',
-        type    => 'internal',
-        port_properties => [
-            'vlan_id=20'
-        ],
-    } ->
-    l23network::l3::ifconfig {'vl10':
-        ipaddr  => '192.168.101.1/24',
-    } ->
-    l23network::l3::ifconfig {'vl20':
-        ipaddr  => 'none',    
-    } 
-    
-You can get more details about vlans in open vSwitch at [open vSwitch documentation page](http://openvswitch.org/support/config-cookbooks/vlan-configuration-cookbook/).
-
-**IMPORTANT:** You can't use vlan interface names like vlanXXX if you don't want double-tagging of you network traffic.
+  * [Transformations. How they work.](https://docs.google.com/document/d/12RvBjOYO83_yqeiAgxttrRaa90-8un80aEO8OzDlQ9Y)
 
 ---
 When I started working on this module I was inspired by https://github.com/ekarlso/puppet-vswitch. Endre, big thanks...
