@@ -19,3 +19,13 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
+
+- id: ntp-check
+  type: puppet
+  role: [primary-controller, controller]
+  required_for: [ntp-server]
+  requires: [dns-client]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-check.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
