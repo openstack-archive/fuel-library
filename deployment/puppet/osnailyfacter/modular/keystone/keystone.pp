@@ -151,7 +151,6 @@ haproxy_backend_status { 'keystone-admin' :
   url     => $haproxy_stats_url,
 }
 
-Class['openstack::keystone'] -> Haproxy_backend_status<||>
 Service['keystone'] -> Haproxy_backend_status<||>
 
 case $::osfamily {
