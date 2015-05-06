@@ -37,14 +37,15 @@ node default {
     class {'docker::container': }
 
     class { 'nailgun::nginx':
-    production      => $production,
-    staticdir       => $staticdir,
-    templatedir     => $staticdir,
-    logdumpdir      => $logdumpdir,
-    ostf_host       => $ostf_host,
-    keystone_host   => $keystone_host,
-    nailgun_host    => $nailgun_host,
-    repo_root       => $repo_root,
-    service_enabled => false,
+      production      => $production,
+      staticdir       => $staticdir,
+      templatedir     => $staticdir,
+      logdumpdir      => $logdumpdir,
+      ostf_host       => $ostf_host,
+      keystone_host   => $keystone_host,
+      nailgun_host    => $nailgun_host,
+      repo_root       => $repo_root,
+      service_enabled => false,
+      ssl_enabled     => true,
   }
 }

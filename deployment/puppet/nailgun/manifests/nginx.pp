@@ -1,3 +1,10 @@
+# Class configures overall nginx for Nailgun
+#
+# Parameters
+#
+# [*ssl_enabled*]
+#   (optional) enables certificate generation for nginx SSL
+#
 class nailgun::nginx(
   $production = "production",
   $repo_root = "/var/www/nailgun",
@@ -8,6 +15,7 @@ class nailgun::nginx(
   $ostf_host = '127.0.0.1',
   $keystone_host = '127.0.0.1',
   $nailgun_host = '127.0.0.1',
+  $ssl_enabled = true,
   ) {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -39,6 +47,11 @@ class nailgun::nginx(
     repo_root => $repo_root,
     notify => Service["nginx"],
   }
+
+  if $ssl_enabled {
+    class { "nailgun::nginx-ssl": }
+  }
+
   class { "nailgun::nginx-service":
     service_enabled => $service_enabled,
   }
@@ -50,6 +63,7 @@ class nailgun::nginx(
     keystone_host => $keystone_host,
     nailgun_host  => $nailgun_host,
     notify        => Service["nginx"],
+    ssl_enabled   => $ssl_enabled,
   }
 }
 
