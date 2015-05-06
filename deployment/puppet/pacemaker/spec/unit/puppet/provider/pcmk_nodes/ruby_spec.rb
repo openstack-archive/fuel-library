@@ -79,6 +79,15 @@ nodelist.node.2.ring0_addr (str) = 192.168.0.3
     }
   end
 
+  let(:fqdn_nodes_data) do
+    {
+        'node-1.example.com' => "192.168.0.1",
+        'node-2.example.com' => "192.168.0.2",
+        'node-3.example.com' => "192.168.0.3",
+        'node-4.example.com' => "192.168.0.4",
+    }
+  end
+
   let(:existing_nodes) do
     %w(node-1 node-2 node-3)
   end
@@ -92,7 +101,7 @@ nodelist.node.2.ring0_addr (str) = 192.168.0.3
     provider.stubs(:node_ids).returns pacemaker_nodes_structure
     provider.stubs(:nodes).returns nodes_states
     provider.stubs(:constraint_locations).returns constraint_locations
-    provider.stubs(:nodes_data).returns nodes_data
+    provider.stubs(:node_name).returns 'node-1'
   end
 
   context 'data structures' do
@@ -129,12 +138,27 @@ nodelist.node.2.ring0_addr (str) = 192.168.0.3
 
     it 'removes unexpected pacemaker_nodes' do
       provider.expects(:remove_pacemaker_node).with('node-1')
+      provider.stubs(:add_pacemaker_node)
       provider.pacemaker_nodes = expected_nodes
     end
 
   end
 
-  context 'when a paceamker node is removed' do
+  context 'when adding a new pacemaker_node' do
+    it 'it adds a node record' do
+      provider.expects(:add_pacemaker_node_record).with('node-4', '4')
+      provider.stubs(:add_pacemaker_node_state)
+      provider.add_pacemaker_node 'node-4'
+    end
+
+    it 'adds a node_state record' do
+      provider.stubs(:add_pacemaker_node_record)
+      provider.expects(:add_pacemaker_node_state).with('node-4', '4')
+      provider.add_pacemaker_node 'node-4'
+    end
+  end
+
+  context 'when removing a paceamker_node' do
     before(:each) do
       provider.stubs(:remove_pacemaker_node_state)
       provider.stubs(:remove_pacemaker_node_record)
@@ -159,24 +183,59 @@ nodelist.node.2.ring0_addr (str) = 192.168.0.3
   end
 
   context 'when adding a new corosync_node' do
-    it 'can determine the highest corosync node number' do
-      expect(provider.highest_corosync_node_number).to eq 2
-    end
-
-    it 'can determine the highest pacemaker node id' do
-      expect(provider.highest_pacemaker_node_id).to eq 3
-    end
-
-    it 'adds a new corosync node with correct parameters' do
-      provider.expects(:add_corosync_node_record).with 3, "192.168.0.4", 4
+    it 'adds a new corosync node with the correct parameters' do
+      provider.expects(:add_corosync_node_record).with '3', "192.168.0.4", '4'
       provider.add_corosync_node 'node-4'
     end
   end
 
-  context 'when removing a corosync node' do
+  context 'when removing a corosync_node' do
     it 'removes a node with the correct number' do
       provider.expects(:remove_corosync_node_record).with '0'
       provider.remove_corosync_node 'node-1'
+    end
+  end
+
+  context 'FQDN and Hostname compatibility' do
+    let(:resource) do
+      Puppet::Type.type(:pcmk_nodes).new(
+          :name => 'paceamker',
+          :provider => :ruby,
+          :nodes => fqdn_nodes_data,
+      )
+    end
+
+    it 'can determine when the switch is needed' do
+      expect(provider.change_fqdn_to_name?).to eq true
+    end
+
+    it 'can rewrite fqdns in the node input data to the hostnames' do
+      provider.change_fqdn_to_name
+      expect(provider.resource[:nodes]).to eq nodes_data
+      expect(provider.corosync_nodes_structure).to eq(corosync_nodes_structure)
+    end
+  end
+
+  context 'generating new id and number' do
+    it 'can generate a new id and number for a node' do
+      node_4 = provider.generate_new_node 'node-4'
+      node_5 = provider.generate_new_node 'node-5'
+      node_6 = provider.generate_new_node 'node-6'
+      expect(node_4).to eq({"uanme"=>"node-4", "id"=>"4", "number"=>"3", "ring0_addr"=>"192.168.0.4"})
+      expect(node_5).to eq({"uanme"=>"node-5", "id"=>"5", "number"=>"4", "ring0_addr"=>nil})
+      expect(node_6).to eq({"uanme"=>"node-6", "id"=>"6", "number"=>"5", "ring0_addr"=>nil})
+    end
+
+    it 'can determine the highest corosync node number' do
+      expect(provider.next_corosync_node_number).to eq '3'
+      provider.stubs(:corosync_nodes_structure).returns({})
+      expect(provider.next_corosync_node_number).to eq '1'
+    end
+
+    it 'can determine the highest pacemaker node id' do
+      expect(provider.next_pacemaker_node_id).to eq '4'
+      provider.stubs(:corosync_nodes_structure).returns({})
+      expect(provider.next_pacemaker_node_id).to eq '1'
     end
   end
 

@@ -281,6 +281,13 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     @node_ids
   end
 
+  # check if a node is present in the cluster
+  # @param node [String] node name
+  # @return [TrueClass, FalseClass]
+  def node_in_cluster?(node)
+    node_ids.key? node
+  end
+
   # get primitives configuration structure with primitives and their attributes
   # @return [Hash<String => Hash>]
   def primitives
@@ -481,6 +488,13 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     constraint_locations.key? id
   end
 
+  # return the name of the current node
+  # @return [String]
+  def node_name
+    return @node_name if @node_name
+    @node_name = crm_node('-n').chomp.strip
+  end
+
   # get a status of a primitive on the entire cluster
   # of on a node if node name param given
   # @param primitive [String]
@@ -535,6 +549,14 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   # @return [String]
   def get_cluster_debug_report
     report = "\n"
+    report += "Nodes:\n"
+    node_ids.each do |name, id|
+      report += "#{id}: #{name}"
+      report += " (#{nodes[name]['crmd']})" if nodes.key? name
+      report += "\n"
+    end
+    report += "\n"
+    report += "Cluster status:\n"
     primitives_status_by_node.each do |primitive, data|
       primitive_name = primitive
       primitive_name = primitives[primitive]['name'] if primitives[primitive]['name']
@@ -665,11 +687,21 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
   def is_online?
     begin
       dc_version = crm_attribute '-q', '--type', 'crm_config', '--query', '--name', 'dc-version'
-      return false unless dc_version
-      return false if dc_version.empty?
-      return false unless cib_section_nodes_state
+      unless dc_version or dc_version.empty?
+        debug 'Cluster offline: could not get dc-version!'
+        return false
+      end
+      unless node_in_cluster? node_name
+        debug "Cluster offline: node '#{node_name}' is not in cluster: #{node_ids.keys.join ', '}!"
+        return false
+      end
+      unless cib_section_nodes_state and nodes.key? node_name
+        debug 'Cluster offline: could not get node_state CIB section!'
+        return false
+      end
       true
-    rescue Puppet::ExecutionFailure
+    rescue Puppet::ExecutionFailure => e
+      debug "Cluster offline: #{e.message}"
       false
     end
   end
