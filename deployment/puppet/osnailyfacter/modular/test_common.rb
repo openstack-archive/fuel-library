@@ -588,7 +588,6 @@ module TestCommon
       out.last == 0
     end
 
-    # reset mnemoization
     def self.reset
       @iptables_rules = nil
       @ips = nil
