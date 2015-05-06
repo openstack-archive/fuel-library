@@ -315,6 +315,7 @@ class openstack::keystone (
       internal_address => $internal_real,
     }
     Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
+    Haproxy_backend_status<||> -> Class['keystone::endpoint']
 
     # Configure Glance endpoint in Keystone
     if $glance {
@@ -325,6 +326,7 @@ class openstack::keystone (
         internal_address => $glance_internal_real,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['glance::keystone::auth']
+      Haproxy_backend_status<||> -> Class['glance::keystone::auth']
     }
 
     # Configure Nova endpoint in Keystone
@@ -336,6 +338,7 @@ class openstack::keystone (
         internal_address => $nova_internal_real,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
+      Haproxy_backend_status<||> -> Class['nova::keystone::auth']
     }
 
     # Configure Cinder endpoint in Keystone
@@ -347,6 +350,7 @@ class openstack::keystone (
         internal_address => $cinder_internal_real,
       }
      Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
+     Haproxy_backend_status<||> -> Class['cinder::keystone::auth']
     }
     if $neutron {
       class { 'neutron::keystone::auth':
@@ -356,6 +360,7 @@ class openstack::keystone (
         internal_address => $neutron_internal_real,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['neutron::keystone::auth']
+      Haproxy_backend_status<||> -> Class['neutron::keystone::auth']
     }
     if $ceilometer {
       class { 'ceilometer::keystone::auth':
@@ -365,6 +370,7 @@ class openstack::keystone (
         internal_address => $ceilometer_internal_real,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['ceilometer::keystone::auth']
+      Haproxy_backend_status<||> -> Class['ceilometer::keystone::auth']
     }
   }
 
