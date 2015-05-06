@@ -32,6 +32,9 @@ http {
     server_tokens off;
     #gzip  on;
 
+    #prefer server ciphers over client ones
+    ssl_prefer_server_ciphers on;
+
     # Load config files from the /etc/nginx/conf.d directory
     # The default server is in conf.d/default.conf
     include /etc/nginx/conf.d/*.conf;
