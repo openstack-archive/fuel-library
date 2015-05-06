@@ -8,6 +8,8 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ntp/ntp_post.rb
 
 - id: ntp-client
   type: puppet
