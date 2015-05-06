@@ -11,3 +11,12 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
+
+- id: connectivity_tests
+  type: shell
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  required_for: [firewall, hosts]
+  requires: [netconfig]
+  parameters:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/connectivity_tests.rb
+    timeout: 900
