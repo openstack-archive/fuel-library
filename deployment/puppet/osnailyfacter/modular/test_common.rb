@@ -4,6 +4,7 @@ require 'open-uri'
 require 'timeout'
 require 'facter'
 require 'socket'
+require 'resolv'
 
 module TestCommon
   # Run a shell command and return stdout and return code as an array
@@ -586,6 +587,57 @@ module TestCommon
         return false
       end
       out.last == 0
+    end
+
+    # try to resolve the provided hostname and return success
+    # @param host [String] the hostname to try and resolve
+    # @return [true, false]
+    def self.resolve?(host)
+      begin
+        out = Resolv.getaddress(host)
+      rescue
+        return false
+      end
+      true
+    end
+
+    # try and query an NTP host and return success
+    # @param host [String] the ntp hostname to try and talk to
+    # @return [true, false]
+    def self.ntp?(host)
+      # time since unix epoch, RFC 868
+      time_offset = 2208988800
+      # timeout to wait for a response
+      timeout = 10
+      # an ntp packet
+      # http://blog.mattcrampton.com/post/88291892461/query-an-ntp-server-from-python
+      ntp_msg = "\x1b" + ("\0" * 47)
+      # our UDP socket
+      sock = UDPSocket.new
+      begin
+        # open up a socket to connect to the ntp host
+        sock.connect(host, 'ntp')
+        # send our ntp message to the ntp server
+        sock.print ntp_msg
+        sock.flush
+        # read the response
+        read, write, error = IO.select [sock], nil, nil, timeout
+        if read.nil?
+          raise Timeout::Error
+        else
+          data, _ = sock.recvfrom(960)
+          # un pack the response
+          # https://github.com/zencoder/net-ntp/blob/master/lib/net/ntp/ntp.rb#L194
+          parsed_data = data.unpack("a C3   n B16 n B16 H8   N B32 N B32   N B32 N B32")
+          # attempt to parse the time we got back
+          Time.at(parsed_data[13] - time_offset)
+        end
+        sock.close if sock
+      rescue
+        sock.close if sock
+        return false
+      end
+      true
     end
 
     # reset mnemoization

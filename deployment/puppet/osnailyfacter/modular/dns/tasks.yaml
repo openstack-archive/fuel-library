@@ -7,6 +7,8 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-server.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/dns/dns_post.rb
 
 - id: dns-client
   type: puppet
