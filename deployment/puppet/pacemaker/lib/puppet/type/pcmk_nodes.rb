@@ -54,6 +54,22 @@ module Puppet
       end
     end
 
+    newparam(:add_pacemaker_nodes) do
+      defaultto true
+    end
+
+    newparam(:remove_pacemaker_nodes) do
+      defaultto true
+    end
+
+    newparam(:add_corosync_nodes) do
+      defaultto true
+    end
+
+    newparam(:remove_corosync_nodes) do
+      defaultto true
+    end
+
     def validate
       fail 'No corosync_nodes!' unless self[:corosync_nodes].is_a? Array and self[:corosync_nodes].any?
       fail 'No pacemaker_nodes!' unless self[:pacemaker_nodes].is_a? Array and self[:pacemaker_nodes].any?
