@@ -5,11 +5,11 @@
 Usage(){
     echo "Usage
 
-    umm status                               - check mm status
+    umm status                               - check MM status
     umm on [command to execute in mm mode]   - enforce MM mode.
     umm off [reboot]                         - continue boot or [reboot] into operational mode
-    umm enable                               - enable mm functionality
-    umm disable                              - disable mm functionality
+    umm enable                               - enable MM functionality
+    umm disable                              - disable MM functionality
 
 "
 }
@@ -17,8 +17,12 @@ Usage(){
 if [  ! "z$UMM" == "zyes" ] ; then
     case $1 in
 
-        "status" | "on" | "off" | "disable" )
-            echo "UMM disabled"
+        "status" )
+            echo "MM disabled"
+            ;;
+        "on" | "off" | "disable" )
+            echo "MM already disabled"
+            exit 1
             ;;
         "enable" )
             sed -i 's/UMM=.*/UMM=yes/' /etc/umm.conf
@@ -62,19 +66,22 @@ else
                     fi
                 fi
             else
-                echo MM already off state
+                echo "MM already in off state"
+                exit 1
             fi
             ;;
         "enable" )
-                echo MM already enabled
+                echo "MM already enabled"
+                exit 1
             ;;
         "disable" )
             if [ -f $UMM_FLAG ] ; then
                 echo "Current state is $(cat $UMM_FLAG) switch off first "
+                exit 1
             else
-                sed -i 's/UMM=.*/UMM=no/' /etc/umm.conf
                 [ -f $UMM_DATA/UMM_ENFORCED ] && rm  $UMM_DATA/UMM_ENFORCED
                 [ -f $UMM_DATA/UMM_CMD ] &&  rm  $UMM_DATA/UMM_CMD
+                sed -i 's/UMM=.*/UMM=no/' /etc/umm.conf
             fi
             ;;
         * )
