@@ -35,11 +35,6 @@ class anacron::config {
         source => 'puppet:///modules/anacron/0hourly',
       }
 
-      file { '/etc/cron.d/fuel-logrotate':
-        mode   => '0755',
-        source => 'puppet:///modules/anacron/logrotate',
-      }
-
       file { '/etc/cron.hourly/0anacron':
         mode   => '0755',
         source => 'puppet:///modules/anacron/0anacron-hourly',
@@ -55,11 +50,6 @@ class anacron::config {
       file { '/etc/cron.d/anacron':
         source => 'puppet:///modules/anacron/anacron-ubuntu',
       }
-
-      file { '/etc/cron.d/fuel-logrotate':
-        mode   => '0755',
-        source => 'puppet:///modules/anacron/logrotate-ubuntu',
-      }
     }
     default: {
       fail("Unsupported platform: ${::osfamily}/${::operatingsystem}")
@@ -70,11 +60,5 @@ class anacron::config {
     file { '/etc/cron.d/logrotate-debug':
       source => 'puppet:///modules/anacron/logrotate-debug'
     }
-  }
-
-  cron { 'fuel-logrotate':
-    command => '/etc/cron.d/fuel-logrotate',
-    user    => 'root',
-    minute  => '*/15',
   }
 }
