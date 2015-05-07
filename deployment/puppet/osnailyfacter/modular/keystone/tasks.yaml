@@ -11,3 +11,13 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_post.rb
+
+- id: keystone-workloads-collector
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/workloads_collector.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
