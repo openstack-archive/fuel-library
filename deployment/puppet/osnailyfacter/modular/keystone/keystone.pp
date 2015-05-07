@@ -129,6 +129,7 @@ class { 'openstack::workloads_collector':
   workloads_username   => $workloads_hash[username],
   workloads_password   => $workloads_hash[password],
   workloads_tenant     => $workloads_hash[tenant],
+  workloads_create_user=> $workloads_hash[create_user],
 }
 
 
