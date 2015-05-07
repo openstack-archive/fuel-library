@@ -6,13 +6,62 @@ require 'facter'
 require 'socket'
 
 module TestCommon
-  # Run a shell command and return stdout and return code as an array
-  # @param command [String] the command to run
-  # @return [Array<String,Numeric>] Stdout and return code
-  def self.run_command(command)
-    out = `#{command}`
-    code = $?.exitstatus
-    [out, code]
+  module Cmd
+    # Run a shell command and return stdout and return code as an array
+    # @param command [String] the command to run
+    # @return [Array<String,Numeric>] Stdout and return code
+    def self.run(command)
+      out = `#{command}`
+      code = $?.exitstatus
+      [out, code]
+    end
+
+    # set the OpenStack CLI auth data
+    def self.openstack_auth
+      ENV['LC_ALL']           = 'C'
+      ENV['OS_NO_CACHE']      = 'true'
+      ENV['OS_TENANT_NAME']   = TestCommon::Settings.access['tenant']
+      ENV['OS_USERNAME']      = TestCommon::Settings.access['user']
+      ENV['OS_PASSWORD']      = TestCommon::Settings.access['password']
+      ENV['OS_AUTH_URL']      = "http://#{TestCommon::Settings.management_vip}:5000/v2.0"
+      ENV['OS_AUTH_STRATEGY'] = 'keystone'
+      ENV['OS_REGION_NAME']   = 'RegionOne'
+      ENV['OS_ENDPOINT_TYPE'] = 'internalURL'
+    end
+
+    # run the openstack cli command with auth
+    # and parse the results into a structure
+    # @return [Array<Hash>]
+    def self.openstack_cli(command)
+      openstack_auth
+      out, code = run command
+      return [nil, code] unless code == 0
+      headers = nil
+      data = []
+      out.split("\n").each do |line|
+        next unless line.start_with? '|'
+        columns = line.split('|')
+        next unless columns.length > 2
+        columns = columns[1..-2].map do |column|
+          column.chomp.strip
+        end
+        unless headers
+          headers = columns
+          next
+        end
+        record = {}
+        field_number = 0
+        columns.each do |column|
+          header = headers[field_number]
+          next unless header
+          record[header] = column
+          field_number += 1
+        end
+        data << record if record.any?
+      end
+      data
+    end
+
   end
 
   module Settings
@@ -121,7 +170,7 @@ module TestCommon
     # @param cmd [String] the command to run
     # @return [true,false]
     def self.run_successful?(cmd)
-      out = TestCommon.run_command cmd
+      out = TestCommon::Cmd.run cmd
       out.last == 0
     end
 
@@ -137,7 +186,7 @@ module TestCommon
     def self.list
       return @process_list if @process_list
       @process_list = []
-      ps = TestCommon.run_command 'ps haxo cmd'
+      ps = TestCommon::Cmd.run 'ps haxo cmd'
       ps.first.split("\n").each do |cmd|
         @process_list << cmd
       end
@@ -159,7 +208,7 @@ module TestCommon
     def self.tree
       return @process_tree if @process_tree
       @process_tree = {}
-      ps = TestCommon.run_command 'ps haxo pid,ppid,cmd'
+      ps = TestCommon::Cmd.run 'ps haxo pid,ppid,cmd'
       ps.first.split("\n").each do |p|
         f = p.split
         pid = f.shift.to_i
@@ -274,7 +323,7 @@ module TestCommon
       command += %Q( --password='#{pass}') if pass
       command += %Q( --port='#{port}') if port
       command += %Q( --database='#{db}') if db
-      TestCommon.run_command command
+      TestCommon::Cmd.run command
     end
 
     # check if mysql can connect ot the server
@@ -319,7 +368,7 @@ module TestCommon
     def self.online?
       begin
         out = Timeout::timeout(5) do
-          TestCommon.run_command 'cibadmin -Q'
+          TestCommon::Cmd.run 'cibadmin -Q'
         end
       rescue
         return false
@@ -332,7 +381,7 @@ module TestCommon
     def self.primitives
       begin
         out = Timeout::timeout(5) do
-          TestCommon.run_command 'crm_resource -l'
+          TestCommon::Cmd.run 'crm_resource -l'
         end
       rescue
         return
@@ -369,7 +418,7 @@ module TestCommon
     def self.primitive_started?(primitive)
       primitive = clean_primitive_name primitive
       begin
-        out = TestCommon.run_command "crm_resource -r #{primitive} -W 2>&1"
+        out = TestCommon::Cmd.run "crm_resource -r #{primitive} -W 2>&1"
       rescue
         return
       end
@@ -416,7 +465,7 @@ module TestCommon
     # using the 'rpm' tool
     # @returns [String] packages
     def self.get_rpm_packages
-      out = TestCommon.run_command "rpm -qa --queryformat '%{NAME}|%{VERSION}-%{RELEASE}\n'"
+      out = TestCommon::Cmd.run "rpm -qa --queryformat '%{NAME}|%{VERSION}-%{RELEASE}\n'"
       out.first
     end
 
@@ -424,7 +473,7 @@ module TestCommon
     # using the 'dpkg-query' tool
     # @returns [String] packages
     def self.get_deb_packages
-      out = TestCommon.run_command "dpkg-query --show -f='${Package}|${Version}|${Status}\n'"
+      out = TestCommon::Cmd.run "dpkg-query --show -f='${Package}|${Version}|${Status}\n'"
       out.first
     end
 
@@ -499,7 +548,7 @@ module TestCommon
     # @param url [String] the url to check
     # @return [true,false]
     def self.url_accessible?(url)
-      out = TestCommon.run_command "curl --fail '#{url}' 1>/dev/null 2>/dev/null"
+      out = TestCommon::Cmd.run "curl --fail '#{url}' 1>/dev/null 2>/dev/null"
       out.last == 0
     end
 
@@ -533,7 +582,7 @@ module TestCommon
     # @return [Array<String>] the list of rule names
     def self.iptables_rules
       return @iptables_rules if @iptables_rules
-      output, code = TestCommon.run_command 'iptables-save'
+      output, code = TestCommon::Cmd.run 'iptables-save'
       return unless code == 0
       comments = []
       output.split("\n").each do |line|
@@ -549,7 +598,7 @@ module TestCommon
     # @return [Array<String>] the list of addresses
     def self.ips
       return @ips if @ips
-      ip_out, code = TestCommon.run_command 'ip addr'
+      ip_out, code = TestCommon::Cmd.run 'ip addr'
       return unless code == 0
       ips = []
       ip_out.split("\n").each do |line|
@@ -564,7 +613,7 @@ module TestCommon
     # @return [String] the default router ip
     def self.default_router
       return @default_router if @default_router
-      routes, code = TestCommon.run_command 'ip route'
+      routes, code = TestCommon::Cmd.run 'ip route'
       return unless code == 0
       routes.split("\n").each do |line|
         if line =~ /^default via ([\d\.]*)/
@@ -580,7 +629,7 @@ module TestCommon
     def self.ping?(host)
       begin
         out = Timeout::timeout(5) do
-          TestCommon.run_command "ping -q -c 1 -W 3 '#{host}'"
+          TestCommon::Cmd.run "ping -q -c 1 -W 3 '#{host}'"
         end
       rescue
         return false
@@ -699,7 +748,7 @@ else:
     # @return [true,false]
     def self.cronjob_exists?(user, cronjob)
       cmd = "crontab -u #{user} -l"
-      out = TestCommon.run_command cmd
+      out = TestCommon::Cmd.run cmd
       false unless out.last == 0
       out.first[/^\s*[^#]*#{cronjob}/].nil? == false
     end
