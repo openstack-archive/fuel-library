@@ -32,7 +32,6 @@ puppet-network
 qpid
 rpmcache
 rsyslog
-sahara
 ssh
 stdlib
 sysctl
