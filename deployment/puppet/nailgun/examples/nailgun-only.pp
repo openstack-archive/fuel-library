@@ -61,6 +61,11 @@ $mco_user = $::fuel_settings['mcollective']['user']
 $mco_password = $::fuel_settings['mcollective']['password']
 $mco_connector = "rabbitmq"
 
+$ntp_server_list = delete([$::fuel_settings['NTP1'], $::fuel_settings['NTP2'],
+  $::fuel_settings['NTP3']], '')
+$ntp_servers = join($ntp_server_list, ", ")
+
+
 #deprecated
 $puppet_master_hostname = "${::fuel_settings['HOSTNAME']}.${::fuel_settings['DNS_DOMAIN']}"
 
@@ -122,9 +127,9 @@ class { "nailgun::venv":
   keystone_nailgun_user => $::fuel_settings['keystone']['nailgun_user'],
   keystone_nailgun_pass => $::fuel_settings['keystone']['nailgun_password'],
 
-  dns_domain => $::fuel_settings['DNS_DOMAIN'],
+  dns_domain   => $::fuel_settings['DNS_DOMAIN'],
   dns_upstream => $::fuel_settings['DNS_UPSTREAM'],
-  ntp_upstream => "${::fuel_settings['NTP1']}, ${::fuel_settings['NTP2']}, ${::fuel_settings['NTP3']}",
+  ntp_upstream => $ntp_servers,
 }
 class { 'nailgun::uwsgi':
   production => $production,
