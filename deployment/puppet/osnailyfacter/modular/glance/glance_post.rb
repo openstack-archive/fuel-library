@@ -23,11 +23,7 @@ class GlancePostTest < Test::Unit::TestCase
   end
 
   def test_keystone_endpoint_list_run
-    ENV['OS_TENANT_NAME']="services"
-    ENV['OS_USERNAME']="glance"
-    ENV['OS_PASSWORD']="#{TestCommon::Settings.glance['user_password']}"
-    ENV['OS_AUTH_URL']="http://#{TestCommon::Settings.management_vip}:5000/v2.0"
-    ENV['OS_ENDPOINT_TYPE'] = "internalURL"
+    TestCommon::Cmd.openstack_auth
     cmd = 'glance image-list'
     assert TestCommon::Process.run_successful?(cmd), "Could not run '#{cmd}'!"
   end
