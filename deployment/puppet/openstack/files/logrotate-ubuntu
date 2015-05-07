@@ -12,7 +12,7 @@ mv status.clean status
 test -x /usr/sbin/logrotate || exit 0
 
 if ! pgrep logrotate &>/dev/null; then
-    nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/fuel.conf
+    nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/fuel.nodaily
     EXITVALUE=$?
 else
     /usr/bin/logger -t logrotate "WARNING another logrotate instance is already running, exiting"

@@ -56,6 +56,11 @@
   # force rotate if filesize exceeded <%= @maxsize %>
   maxsize <%= @maxsize %>
 
+  <% if @osfamily == 'Debian' %>
+  # https://bugs.launchpad.net/ubuntu/+source/logrotate/+bug/1278193
+  su root syslog
+  <% end %>
+
   postrotate
       /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
       reload rsyslog >/dev/null 2>&1 || true

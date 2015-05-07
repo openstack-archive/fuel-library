@@ -8,7 +8,7 @@ class openstack::logrotate (
   $debug    = false,
 ) {
   validate_re($rotation, 'daily|weekly|monthly')
-  $logrotatefile = '/etc/logrotate.d/fuel'
+  $logrotatefile = '/etc/logrotate.d/fuel.nodaily'
 
   if $role == 'server' {
     # Configure log rotation for master node and docker containers
@@ -32,14 +32,34 @@ class openstack::logrotate (
   class { '::anacron':
     debug => $debug,
   }
-  if $::osfamily == 'RedHat' {
-      # Due to bug in logrotate, it always returns 0. Use grep to detect errors
-      # in output; exit code 1 is considered success as no errors were emitted.
-      exec {'logrotate_check':
-        path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-        command => "logrotate ${logrotatefile} >& /tmp/logrotate && grep -q error /tmp/logrotate",
-        returns => 1,
-        require => File[$logrotatefile],
+
+  # Our custom cronjob overlaps with daily schedule, so we need to address it
+  exec { 'logrotate-tabooext':
+    command => 'sed -i "/^include/i tabooext + .nodaily" /etc/logrotate.conf',
+    path    => [ '/bin', '/usr/bin' ],
+    onlyif  => 'test -f /etc/logrotate.conf',
+    unless  => 'grep -q tabooext /etc/logrotate.conf',
+  }
+
+  case $::osfamily {
+    'RedHat': {
+        file { '/usr/bin/fuel-logrotate':
+          mode   => '0755',
+          source => 'puppet:///modules/openstack/logrotate',
+        }
     }
+    'Debian': {
+        file { '/usr/bin/fuel-logrotate':
+          mode   => '0755',
+          source => 'puppet:///modules/openstack/logrotate-ubuntu',
+        }
+    }
+  }
+
+  cron { 'fuel-logrotate':
+    command => '/usr/bin/fuel-logrotate',
+    user    => 'root',
+    minute  => '*/30',
+    require => File['/usr/bin/fuel-logrotate'],
   }
 }
