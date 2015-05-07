@@ -20,13 +20,7 @@ class KeystonePostTest < Test::Unit::TestCase
   end
 
   def test_keystone_endpoint_list_run
-    # Keystone doen't have a user, so we'd have to use the admin token, or use
-    # another user like nova.
-    ENV['OS_TENANT_NAME']="services"
-    ENV['OS_USERNAME']="nova"
-    ENV['OS_PASSWORD']="#{TestCommon::Settings.nova['user_password']}"
-    ENV['OS_AUTH_URL']="http://#{TestCommon::Settings.management_vip}:#{PUBLIC_PORT}/v2.0"
-    ENV['OS_ENDPOINT_TYPE'] = "internalURL"
+    TestCommon::Cmd.openstack_auth
     cmd = 'keystone endpoint-list'
     assert TestCommon::Process.run_successful?(cmd), "Could not run '#{cmd}'!"
   end

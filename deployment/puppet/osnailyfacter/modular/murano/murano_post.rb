@@ -25,4 +25,11 @@ class MuranoPostTest < Test::Unit::TestCase
     assert TestCommon::Network.url_accessible?(url), "Murano-api url '#{url}' is not accessible!"
   end
 
+  def test_murano_hash_core_library
+    murano_package_list = TestCommon::Cmd.openstack_cli 'murano package-list'
+    assert murano_package_list.is_a?(Array), 'Could not get a correct murano package-list!'
+    core_library = murano_package_list.find { |line| line['FQN'] == 'io.murano' and line['Name'] == 'Core library' }
+    assert core_library, 'Core library with io.murano not found in murano package-list!'
+  end
+
 end
