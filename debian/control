@@ -6,13 +6,19 @@ Build-Depends: debhelper (>= 7), python-all
 Standards-Version: 3.9.2
 
 Package: fuel-ha-utils
-Architecture: all 
+Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}, python-keystoneclient, python-neutronclient
 Description: Fuel Library HA utils
  .
 
 Package: fuel-misc
-Architecture: all 
+Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Misc Fuel library scripts
+ .
+
+Package: fuel-rabbit-fence
+Architecture: all
+Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, python-gobject-2, python-gobject, python-dbus, python-daemon
+Description: Fuel RabbitMQ fencing utilitites
  .
