@@ -12,6 +12,13 @@ describe manifest do
     }
 
     it do
+      expect(subject).to contain_cluster__virtual_ip_ping('vip__public').with(
+                             :name      => "vip__public",
+                             :host_list => "10.108.1.1",
+                         )
+    end
+
+    it do
       expect(subject).to contain_cs_resource('ping_vip__public').with(
                              :name            => "ping_vip__public",
                              :ensure          => "present",
@@ -39,10 +46,10 @@ describe manifest do
                              :name      => "loc_ping_vip__public",
                              :primitive => "vip__public",
                              :cib       => "ping_vip__public",
-                             :rules     => {"score"=>"-inf", "boolean"=>"", "expressions"=>[{"attribute"=>"not_defined", "operation"=>"pingd", "value"=>"or"}, {"attribute"=>"pingd", "operation"=>"lte", "value"=>"0"}]},
                              :before    => "Service[ping_vip__public]",
                          )
     end
+
 
   end
 
