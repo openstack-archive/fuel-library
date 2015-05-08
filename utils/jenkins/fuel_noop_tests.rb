@@ -21,7 +21,7 @@ require 'optparse'
 module NoopTests
   GLOBALS_SPEC = 'globals/globals_spec.rb'
   RSPEC_OPTIONS = '--format documentation --color --tty --backtrace'
-  ASTUTE_YAML_VAR = 'astute_filename'
+  ASTUTE_YAML_VAR = 'SPEC_ASTUTE_FILE_NAME'
   BUNDLE_DIR = '.bundled_gems'
   BUNDLE_VAR = 'GEM_HOME'
   GLOBALS_PREFIX = 'globals_yaml_for_'
@@ -42,7 +42,7 @@ module NoopTests
       opts.on('-i', '--individually', 'Run each spec individually') do
         @options[:run_individually] = true
       end
-      opts.on('-p', '--purge_globals', 'Purge globals yaml files') do
+      opts.on('-g', '--purge_globals', 'Purge globals yaml files') do
         @options[:purge_globals] = true
       end
       opts.on('-a', '--astute_yaml_dir DIR', 'Path to astute_yaml folder') do |dir|
@@ -56,13 +56,13 @@ module NoopTests
         @options[:list_specs] = true
       end
       opts.separator 'Filter options:'
-      opts.on('-s', '--specs SPEC1,SPEC2', Array, 'Run only these specs') do |specs|
+      opts.on('-s', '--specs SPEC1,SPEC2', Array, 'Run only these specs. Example: "hosts/hosts_spec.rb"') do |specs|
         @options[:filter_specs] = specs
       end
-      opts.on('-y', '--yamls YAML1,YAML2', Array, 'Run only these yamls') do |yamls|
+      opts.on('-y', '--yamls YAML1,YAML2', Array, 'Run only these yamls. Example: "novanet-primary-controller.yaml"') do |yamls|
         @options[:filter_yamls] = yamls
       end
-      opts.on('-e', '--examples STR1,STR2', Array, 'Run only these exemples') do |examples|
+      opts.on('-e', '--examples STR1,STR2', Array, 'Run only these exemples. Example: "should compile"') do |examples|
         @options[:filter_examples] = examples
       end
       opts.separator 'Debug options:'
@@ -97,8 +97,17 @@ module NoopTests
       opts.on('-R', '--test_centos', 'Run tests for CentOS facts') do
         ENV['SPEC_TEST_CENTOS'] = 'YES'
       end
+      opts.on('-r', '--rspec_debug', 'Show debug messages in rspec tests') do
+        ENV['SPEC_RSPEC_DEBUG'] = 'YES'
+      end
+      opts.on('-p', '--puppet_debug', 'Show Puppet debug messages') do
+        ENV['SPEC_PUPPET_DEBUG'] = 'YES'
+      end
+      opts.on('-b', '--puppet_binary_files', 'Check if Puppet installs binary files') do
+        ENV['SPEC_PUPPET_BINARY_FILES'] = 'YES'
+      end
       opts.on('-L', '--puppet_logs_dir DIR', 'Save Puppet logs in this directory') do |dir|
-        ENV['PUPPET_LOGS_DIR'] = dir
+        ENV['SPEC_PUPPET_LOGS_DIR'] = dir
         @options[:puppet_logs_dir] = dir
       end
     end
