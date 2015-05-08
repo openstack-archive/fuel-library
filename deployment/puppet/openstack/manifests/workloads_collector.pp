@@ -19,19 +19,23 @@ class openstack::workloads_collector(
   $enabled            = true,
   $workloads_username = 'workloads_collector',
   $workloads_tenant   = 'services',
+  $workloads_create_user = false
 ) {
 
-  validate_string($workloads_password)
+  if $workloads_create_user {
 
-  keystone_user { $workloads_username:
-    ensure          => present,
-    password        => $workloads_password,
-    enabled         => $enabled,
-    tenant          => $workloads_tenant,
-  }
+    validate_string($workloads_password)
 
-  keystone_user_role { "$workloads_username@$workloads_tenant":
-    ensure => present,
-    roles  => ['admin'],
+    keystone_user { $workloads_username:
+      ensure          => present,
+      password        => $workloads_password,
+      enabled         => $enabled,
+      tenant          => $workloads_tenant,
+    }
+
+    keystone_user_role { "$workloads_username@$workloads_tenant":
+      ensure => present,
+      roles  => ['admin'],
+    }
   }
 }
