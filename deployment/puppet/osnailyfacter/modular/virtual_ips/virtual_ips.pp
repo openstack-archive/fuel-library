@@ -102,13 +102,13 @@ if $public_int {
   $vips = $management_vips
 }
 
-file { 'ns-ipaddr2-ocf':
-  path   =>'/usr/lib/ocf/resource.d/fuel/ns_IPaddr2',
-  mode   => '0755',
-  owner  => 'root',
-  group  => 'root',
-  source => 'puppet:///modules/cluster/ocf/ns_IPaddr2',
-}
+#file { 'ns-ipaddr2-ocf':
+#  path   =>'/usr/lib/ocf/resource.d/fuel/ns_IPaddr2',
+#  mode   => '0755',
+#  owner  => 'root',
+#  group  => 'root',
+#  source => 'puppet:///modules/cluster/ocf/ns_IPaddr2',
+#}
 
 # Some topologies might need to keep the vips on the same node during
 # deploymenet. This would only need to be changed by hand.

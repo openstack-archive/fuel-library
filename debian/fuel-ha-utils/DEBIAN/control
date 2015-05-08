@@ -1,0 +1,10 @@
+Package: fuel-ha-utils
+Source: fuel-library6.1
+Version: 6.1.0-1
+Architecture: all
+Maintainer: Mirantis Product <product@mirantis.com>
+Installed-Size: 335
+Depends: python-keystoneclient, python-neutronclient
+Section: admin
+Priority: optional
+Description: Fuel Library HA utils

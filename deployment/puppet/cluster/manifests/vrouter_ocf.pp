@@ -8,12 +8,12 @@ class cluster::vrouter_ocf (
 ){
   $service_name = 'p_vrouter'
 
-  file {'/usr/lib/ocf/resource.d/fuel/ns_vrouter':
-    mode   => '0755',
-    owner  => root,
-    group  => root,
-    source => 'puppet:///modules/cluster/ocf/ns_vrouter',
-  }
+  #file {'/usr/lib/ocf/resource.d/fuel/ns_vrouter':
+  #  mode   => '0755',
+  #  owner  => root,
+  #  group  => root,
+  #  source => 'puppet:///modules/cluster/ocf/ns_vrouter',
+  #}
 
   if $primary_controller {
     cs_resource { $service_name:
@@ -47,11 +47,11 @@ class cluster::vrouter_ocf (
       },
     }
 
-  File['/usr/lib/ocf/resource.d/fuel/ns_vrouter'] -> Cs_resource[$service_name]
+    #  File['/usr/lib/ocf/resource.d/fuel/ns_vrouter'] -> Cs_resource[$service_name]
   Cs_resource[$service_name] -> Service[$service_name]
   }
 
-  File['/usr/lib/ocf/resource.d/fuel/ns_vrouter'] ~> Service[$service_name]
+  #File['/usr/lib/ocf/resource.d/fuel/ns_vrouter'] ~> Service[$service_name]
 
   service { $service_name:
     ensure     => 'running',

@@ -1,0 +1,1 @@
+misc:Depends=sysv-rc (>= 2.88dsf-24) | file-rc (>= 0.8.16)

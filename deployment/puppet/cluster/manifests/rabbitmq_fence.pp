@@ -49,7 +49,6 @@ class cluster::rabbitmq_fence(
     hasrestart => true,
   }
 
-  package { $packages: } ->
   service { $dbus_service_name:
     ensure     => running,
     enable     => true,
@@ -58,16 +57,6 @@ class cluster::rabbitmq_fence(
   service { 'corosync-notifyd':
     ensure     => running,
     enable     => true,
-  } ->
-
-  file { $init_name :
-    source => $init_source,
-    mode   => $init_mode,
-  } ->
-
-  file { '/usr/bin/rabbit-fence.py':
-    source  => 'puppet:///modules/cluster/rabbit-fence.py',
-    mode    => '0755',
   } ->
 
   service { 'rabbit-fence':

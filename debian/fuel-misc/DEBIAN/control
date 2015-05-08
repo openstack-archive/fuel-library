@@ -1,0 +1,9 @@
+Package: fuel-misc
+Source: fuel-library6.1
+Version: 6.1.0-1
+Architecture: all
+Maintainer: Mirantis Product <product@mirantis.com>
+Installed-Size: 34
+Section: admin
+Priority: optional
+Description: Misc Fuel library scripts
