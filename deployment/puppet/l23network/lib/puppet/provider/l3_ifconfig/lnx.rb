@@ -105,7 +105,7 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
       end
 
       if !@property_flush[:gateway].nil? or !@property_flush[:gateway_metric].nil?
-        # clean all default gateways for this interface with any metrics
+        # clean all default gateways for *THIS* interface (with any metrics)
         cmdline = ['route', 'del', 'default', 'dev', @resource[:interface]]
         rc = 0
         while rc == 0
@@ -118,8 +118,14 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
             rc = 1
           end
         end
-        # add new route
+
+        # add new default route
         if @resource[:gateway] != :absent
+          # WARNING!!!
+          # We shouldn't use 'ip route replace .....' here
+          # because *replace* can change gateway in context of another interface.
+          # Changing (or removing) gateway for another interface leads to some heavy-diagnostic cases.
+          # For manipulate gateways without interface context -- should be used l3_route resource.
           cmdline = ['route', 'add', 'default', 'via', @resource[:gateway], 'dev', @resource[:interface]]
           if ![nil, :absent].include?(@property_flush[:gateway_metric]) and @property_flush[:gateway_metric].to_i > 0
             cmdline << ['metric', @property_flush[:gateway_metric]]
@@ -127,16 +133,13 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
           begin
             rv = iproute(cmdline)
           rescue
-            warn("!!! Iproute can't setup new gateway.\n!!! May be you already have default gateway with same metric:")
+            warn("!!! Iproute can not setup new gateway.\n!!! May be default gateway with same metric already exists:")
             rv = iproute('-f', 'inet', 'route', 'show')
             warn("#{rv}\n\n")
           end
         end
       end
 
-      # if ! @property_flush[:onboot].nil?
-      #   iproute('link', 'set', 'dev', @resource[:interface], 'up')
-      # end
       @property_hash = resource.to_hash
     end
   end
