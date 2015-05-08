@@ -1,0 +1,10 @@
+Package: fuel-rabbit-fence
+Source: fuel-library6.1
+Version: 6.1.0-1
+Architecture: all
+Maintainer: Mirantis Product <product@mirantis.com>
+Installed-Size: 34
+Depends: sysv-rc (>= 2.88dsf-24) | file-rc (>= 0.8.16), dbus, dbus-python, pygobject2, python-daemon
+Section: admin
+Priority: optional
+Description: Fuel RabbitMQ fencing utilitites

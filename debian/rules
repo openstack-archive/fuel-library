@@ -7,4 +7,7 @@ override_dh_fixperms:
 	chmod 755 debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/*
 	dh_fixperms
 
+override_dh_install:
+	dh_install
+	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-server
 
