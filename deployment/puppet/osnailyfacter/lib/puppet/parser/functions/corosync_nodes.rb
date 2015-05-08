@@ -10,10 +10,14 @@ to be used in pcmk_nodes resource.
     nodes.each do |node|
       fqdn = node['fqdn']
       ip = node['internal_address']
+      uid = node['uid']
       role = node['role']
       next unless %w(primary-controller controller).include? role
       next unless ip and fqdn
-      corosync_nodes[fqdn] = ip
+      corosync_nodes[fqdn] = {
+          'id' => uid,
+          'ip' => ip,
+      }
     end
     corosync_nodes
   end
