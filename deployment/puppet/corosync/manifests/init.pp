@@ -38,11 +38,8 @@
 #   Use 'broadcast' to have broadcast instead
 #   Can be specified as an array to have multiple rings (multicast only).
 #
-# [*unicast_addresses*]
-#   An array of IP addresses that make up the cluster's members.  These are
-#   use if you are able to use multicast on your network and instead opt for
-#   the udpu transport.  You need a relatively recent version of Corosync to
-#   make this possible.
+# [*corosync_nodes*]
+#   { node_name => { 'ip' => '...', 'id' => '...' }}
 #
 # [*force_online*]
 #   True/false parameter specifying whether to force nodes that have been put
@@ -89,7 +86,7 @@ class corosync(
   $port              = $::corosync::params::port,
   $bind_address      = $::corosync::params::bind_address,
   $multicast_address = $::corosync::params::multicast_address,
-  $unicast_addresses = $::corosync::params::unicast_addresses,
+  $corosync_nodes    = $::corosync::params::corosync_nodes,
   $force_online      = $::corosync::params::force_online,
   $check_standby     = $::corosync::params::check_standby,
   $debug             = $::corosync::params::debug,
@@ -131,14 +128,14 @@ class corosync(
     default => $bind_address,
   }
 
-  if $unicast_addresses == 'UNSET' {
+  if $corosync_nodes == 'UNSET' {
     $corosync_conf = "${module_name}/corosync.conf.erb"
   } else {
     $corosync_conf = "${module_name}/corosync.conf.udpu.erb"
   }
 
   # $multicast_address is NOT required if $unicast_address is provided
-  if $multicast_address == 'UNSET' and $unicast_addresses == 'UNSET' {
+  if $multicast_address == 'UNSET' and $corosync_nodes == 'UNSET' {
       fail('You must provide a value for multicast_address')
   }
 
