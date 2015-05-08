@@ -38,8 +38,14 @@ describe 'the corosync_nodes function' do
 
   let(:corosync_nodes_hash) do
     {
-        "node-1.domain.tld" => "192.168.0.5",
-        "node-2.domain.tld" => "192.168.0.6",
+        "node-1.domain.tld" => {
+            "ip" => "192.168.0.5",
+            "id" => "1",
+        },
+        "node-2.domain.tld" => {
+            "ip" => "192.168.0.6",
+            "id" => "2",
+        }
     }
   end
 
