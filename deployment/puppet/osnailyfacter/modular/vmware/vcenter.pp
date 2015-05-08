@@ -8,6 +8,8 @@ $use_neutron = hiera('use_neutron', false)
 $ceilometer_hash = hiera('ceilometer',{})
 $debug = hiera('debug', false)
 
+echo($vcenter_hash)
+
 # vCenter integration
 if hiera('libvirt_type') == 'vcenter' {
   class { 'vmware' :
