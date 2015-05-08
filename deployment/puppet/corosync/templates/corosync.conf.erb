@@ -1,25 +1,25 @@
-<% if @corosync_version == '2' %>
+<% if @corosync_version == '2' -%>
 compatibility: whitetank
 
 quorum {
   provider: corosync_votequorum
-   <% if @unicast_addresses.length  == 2 %>
+   <% if @corosync_nodes.length  == 2 -%>
      two_node: 1
-   <% else %>
+   <% else -%>
      two_node: 0
-   <% end %>
+   <% end -%>
 }
 
 nodelist {
-  <% id = 0 %>
-  <% @unicast_addresses.each do |node| %>
+  <% @corosync_nodes.each do |name, node| -%>
   node {
-    ring0_addr: <%= node %>
-    nodeid: <%= id+=1 %>
+    # <%= name %>
+    ring0_addr: <%= node['ip'] %>
+    nodeid: <%= node['id'] %>
   }
-  <% end %>
+  <% end -%>
 }
-<% end %>
+<% end -%>
 
 totem {
   version:                             2
@@ -58,7 +58,7 @@ logging {
   to_syslog:       yes
   syslog_facility: daemon
   syslog_priority: info
-  debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
+  debug:           <%= @debug %>
   function_name:   on
   timestamp:       on
   logger_subsys {
