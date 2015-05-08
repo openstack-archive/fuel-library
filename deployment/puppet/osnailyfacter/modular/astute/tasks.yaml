@@ -181,7 +181,7 @@
   requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
   parameters:
-    cmd: ntpdate -u $(egrep '^server' /etc/ntp.conf | egrep -v '127\.127\.[0-9]+\.[0-9]+' | sed '/^#/d' | awk '{print $2}')
+    cmd: ntpdate -u $(egrep '^server' /etc/ntp.conf | egrep -v '127\.127\.[0-9]+\.[0-9]+' | sed '/^#/d' | awk '{print $2}' | head -1)
     retries: 10
     interval: 30
     timeout: 180
