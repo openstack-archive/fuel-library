@@ -61,10 +61,11 @@ $mco_user = $::fuel_settings['mcollective']['user']
 $mco_password = $::fuel_settings['mcollective']['password']
 $mco_connector = "rabbitmq"
 
-$ntp_server_list = delete([$::fuel_settings['NTP1'], $::fuel_settings['NTP2'],
-  $::fuel_settings['NTP3']], '')
-$ntp_servers = join($ntp_server_list, ", ")
+$ntp_server_list = delete(delete_undef_values([$::fuel_settings['NTP1'],
+  $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), '')
+$ntp_servers = join($ntp_server_list, ', ')
 
+$dns_upstream = regsubst($::fuel_settings['DNS_UPSTREAM'], ' ', ', ', 'G')
 
 #deprecated
 $puppet_master_hostname = "${::fuel_settings['HOSTNAME']}.${::fuel_settings['DNS_DOMAIN']}"
@@ -128,7 +129,7 @@ class { "nailgun::venv":
   keystone_nailgun_pass => $::fuel_settings['keystone']['nailgun_password'],
 
   dns_domain   => $::fuel_settings['DNS_DOMAIN'],
-  dns_upstream => $::fuel_settings['DNS_UPSTREAM'],
+  dns_upstream => $dns_upstream,
   ntp_upstream => $ntp_servers,
 }
 class { 'nailgun::uwsgi':
@@ -152,7 +153,7 @@ package { 'crontabs':
 service { 'crond':
   ensure => running,
   enable => true,
- }
+}
 
 cron { 'oswl_cleaner':
   ensure      => present,
