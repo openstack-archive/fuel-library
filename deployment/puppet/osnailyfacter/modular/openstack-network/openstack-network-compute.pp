@@ -210,6 +210,7 @@ if $network_provider == 'nova' {
   nova_config {
     'DEFAULT/linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
     'DEFAULT/linuxnet_ovs_integration_bridge': value => $neutron_integration_bridge;
+    'DEFAULT/network_device_mtu': value => '65000';
   }
 
   augeas { 'sysctl-net.bridge.bridge-nf-call-arptables':
