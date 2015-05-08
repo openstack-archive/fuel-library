@@ -1,0 +1,27 @@
+#!/bin/sh
+# managed by puppet
+# Clean non existent log file entries from status file
+cd /var/lib/logrotate
+test -e status || touch status
+head -1 status > status.clean
+sed 's/"//g' status | while read logfile date
+do
+    [ -e "$logfile" ] && echo "\"$logfile\" $date"
+done >> status.clean
+mv status.clean status
+test -x /usr/sbin/logrotate || exit 0
+
+if ! pgrep -x logrotate &>/dev/null; then
+    nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/fuel.nodaily
+    EXITVALUE=$?
+else
+    /usr/bin/logger -t logrotate "WARNING another logrotate instance is already running, exiting"
+    exit 1
+fi
+
+if [ $EXITVALUE != 0 ]; then
+    /usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE] (0 was expected)"
+fi
+
+exit $EXITVALUE
+

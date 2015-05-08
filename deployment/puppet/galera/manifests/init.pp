@@ -94,7 +94,7 @@ class galera (
   file { '/etc/my.cnf':
     ensure  => present,
     content => template('galera/my.cnf.erb'),
-    before  => File['mysql-wss-ocf']
+    #    before  => File['mysql-wss-ocf']
   }
 
   package { 'mysql-client':
@@ -156,7 +156,7 @@ class galera (
     ensure  => present,
     mode    => '0644',
     require => Package['MySQL-server'],
-    before  => File['mysql-wss-ocf']
+    #    before  => File['mysql-wss-ocf']
   }
 
 
@@ -191,27 +191,27 @@ class galera (
       },
     }
     Anchor['galera'] ->
-          File['mysql-wss-ocf'] ->
+    #File['mysql-wss-ocf'] ->
           Cs_resource["p_${service_name}"] ->
             Service['mysql'] ->
               Exec['wait-for-synced-state']
   } else {
     Anchor['galera'] ->
-          File['mysql-wss-ocf'] ->
+    #File['mysql-wss-ocf'] ->
           Service['mysql']
   }
 
-  file { 'mysql-wss-ocf':
-    path   => '/usr/lib/ocf/resource.d/fuel/mysql-wss',
-    mode   => '0755',
-    owner  => root,
-    group  => root,
-    source => 'puppet:///modules/galera/ocf/mysql-wss',
-  }
+  #file { 'mysql-wss-ocf':
+  # path   => '/usr/lib/ocf/resource.d/fuel/mysql-wss',
+  # mode   => '0755',
+  # owner  => root,
+  # group  => root,
+  # source => 'puppet:///modules/galera/ocf/mysql-wss',
+  #}
 
-  File<| title == 'ocf-fuel-path' |> -> File['mysql-wss-ocf']
+  #File<| title == 'ocf-fuel-path' |> -> File['mysql-wss-ocf']
 
-    Package['MySQL-server', 'galera'] -> File['mysql-wss-ocf']
+  #  Package['MySQL-server', 'galera'] -> File['mysql-wss-ocf']
 
   tweaks::ubuntu_service_override { 'mysql':
     package_name => 'MySQL-server',
