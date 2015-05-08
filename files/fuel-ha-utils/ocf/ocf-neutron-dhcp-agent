@@ -52,6 +52,7 @@ OCF_RESKEY_tenant_default="services"
 OCF_RESKEY_multiple_agents_default='true'
 OCF_RESKEY_rescheduling_tries_default=5
 OCF_RESKEY_rescheduling_interval_default=33
+OCF_RESKEY_remove_artifacts_on_stop_start_default='true'
 OCF_RESKEY_debug_default='false'
 
 
@@ -73,6 +74,7 @@ OCF_RESKEY_debug_default='false'
 : ${OCF_RESKEY_state_reports_timeout=${OCF_RESKEY_state_reports_timeout_default}}
 : ${OCF_RESKEY_rescheduling_tries=${OCF_RESKEY_rescheduling_tries_default}}
 : ${OCF_RESKEY_rescheduling_interval=${OCF_RESKEY_rescheduling_interval_default}}
+: ${OCF_RESKEY_remove_artifacts_on_stop_start=${OCF_RESKEY_remove_artifacts_on_stop_start_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 
 
@@ -81,12 +83,13 @@ OCF_RESKEY_debug_default='false'
 
 usage() {
     cat <<UEND
-        usage: $0 (start|stop|validate-all|meta-data|status|monitor)
+        usage: $0 (start|stop|reload|validate-all|meta-data|status|monitor)
 
         $0 manages an OpenStack DHCP Service (${OCF_RESKEY_binary}) process as an HA resource
 
         The 'start' operation starts the networking service.
         The 'stop' operation stops the networking service.
+        The 'reload' operation restarts the networking service without removing any artifacts
         The 'validate-all' operation reports whether the parameters are valid
         The 'meta-data' operation reports this RA's meta-data information
         The 'status' operation reports whether the networking service is running
@@ -109,6 +112,15 @@ creates a distributed neutron-dhcp-agent cluster.
 </longdesc>
 <shortdesc lang="en">Manages the OpenStack DHCP Service (${OCF_RESKEY_binary})</shortdesc>
 <parameters>
+
+<parameter name="dummy" unique="1">
+<longdesc lang="en">
+This is a dummy parameter.
+Pacemaker needs it to enable reload operation for the resource
+</longdesc>
+<shortdesc lang="en">Dummy parameter</shortdesc>
+<content type="boolean" default="false" />
+</parameter>
 
 <parameter name="binary" unique="0" required="0">
 <longdesc lang="en">
@@ -267,6 +279,15 @@ Additional parameters to pass on to the OpenStack DHCP Service (${OCF_RESKEY_bin
 <content type="string" />
 </parameter>
 
+<parameter name="cleanup_resources" unique="0" required="0">
+<longdesc lang="en">
+Clean up all resources created by Neutron DHCP agent, such as additional processes,
+network namespaces, created interfaces, on agent stop and start.
+</longdesc>
+<shortdesc lang="en">Clean up all resources created by DHCP agent on its start and stop</shortdesc>
+<content type="string" />
+</parameter>
+
 
 
 </parameters>
@@ -274,6 +295,7 @@ Additional parameters to pass on to the OpenStack DHCP Service (${OCF_RESKEY_bin
 <actions>
 <action name="start" timeout="20" />
 <action name="stop" timeout="20" />
+<action name="reload" timeout="30" />
 <action name="status" timeout="20" />
 <action name="monitor" timeout="30" interval="20" />
 <action name="validate-all" timeout="5" />
@@ -521,6 +543,9 @@ neutron_dhcp_agent_monitor() {
 
 neutron_dhcp_agent_start() {
     local rc
+    # This variable is overridden by reload operation
+    # to perform fast resource restart
+    local remove_artifacts_on_stop_start=${1:-$OCF_RESKEY_remove_artifacts_on_stop_start}
     neutron_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
@@ -528,9 +553,11 @@ neutron_dhcp_agent_start() {
         return $OCF_SUCCESS
     fi
 
-    clean_up
-    sleep 1
-    clean_up_namespaces
+    if ocf_is_true "$remove_artifacts_on_stop_start"; then
+        clean_up
+        sleep 1
+        clean_up_namespaces
+    fi
     rm -f $OCF_RESKEY_state_reports_file
 
     # run and detach to background agent as daemon.
@@ -571,14 +598,19 @@ neutron_dhcp_agent_start() {
 neutron_dhcp_agent_stop() {
     local rc
     local pid
+    # This variable is overridden by reload operation
+    # to perform fast resource restart
+    local remove_artifacts_on_stop_start=${1:-$OCF_RESKEY_remove_artifacts_on_stop_start}
 
     neutron_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-        clean_up
+        if ocf_is_true "$remove_artifacts_on_stop_start"; then
+            clean_up
+            sleep 1
+            clean_up_namespaces
+        fi
         ocf_log info "OpenStack DHCP Agent (${OCF_RESKEY_binary}) already stopped"
-        sleep 1
-        clean_up_namespaces
         return $OCF_SUCCESS
     fi
 
@@ -590,8 +622,12 @@ neutron_dhcp_agent_stop() {
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
         shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-6))
     fi
-    all_inside_ns_pids=`get_pid_list_for_ns_list $(get_ns_list)`
-    all_pids="$pid $all_inside_ns_pids"
+    if ocf_is_true "$remove_artifacts_on_stop_start"; then
+        all_inside_ns_pids=`get_pid_list_for_ns_list $(get_ns_list)`
+        all_pids="$pid $all_inside_ns_pids"
+    else
+        all_pids="$pid"
+    fi
     count=0
     alive=1
     while [ $alive -gt 0 ] && [ $count -lt $shutdown_timeout ]; do
@@ -635,15 +671,25 @@ neutron_dhcp_agent_stop() {
     ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid
 
-#   cleanup network interfaces
-    q-agent-cleanup.py --agent=dhcp --cleanup-ports
-    clean_up_namespaces
+    if ocf_is_true "$remove_artifacts_on_stop_start"; then
+        # cleanup network interfaces
+        q-agent-cleanup.py --agent=dhcp --cleanup-ports
+        clean_up_namespaces
+    fi
+
     if ! ocf_is_true "$OCF_RESKEY_multiple_agents" ; then
         q-agent-cleanup.py --agent=dhcp --remove-self ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log &
     fi
     sleep 3
 
     return $OCF_SUCCESS
+}
+
+
+neutron_dhcp_agent_reload() {
+    # Call stop and start without removing artifacts
+    neutron_dhcp_agent_stop false
+    neutron_dhcp_agent_start false
 }
 
 #######################################################################
@@ -664,6 +710,7 @@ umask 0022
 case "$1" in
   start)        neutron_dhcp_agent_start;;
   stop)         neutron_dhcp_agent_stop;;
+  reload)       neutron_dhcp_agent_reload;;
   status)       neutron_dhcp_agent_status;;
   monitor)      neutron_dhcp_agent_monitor;;
   validate-all) ;;
