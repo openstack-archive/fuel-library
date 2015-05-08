@@ -31,13 +31,9 @@ Puppet::Type.newtype(:zabbix_host) do
     desc 'Host groups to add the host to.'
     isrequired
 
-    validate do |value|
-      fail("groups is not an array") unless value.kind_of?(Array) or value.kind_of?(String)
-      fail("groups array is empty") if value.empty?
-      value.each do |item|
-        fail("group name is not a string") unless item.kind_of?(String)
-        fail("group name is empty") unless item =~ /.+/
-      end
+    munge do |value|
+      value = [value] unless value.is_a? Array
+      value
     end
   end
 
@@ -81,4 +77,13 @@ Puppet::Type.newtype(:zabbix_host) do
     end
   end
 
+  def validate
+    value = self[:groups]
+    fail("groups is not an array") unless value.kind_of?(Array) or value.kind_of?(String)
+    fail("groups array is empty") if value.empty?
+    value.each do |item|
+      fail("group name is not a string") unless item.kind_of?(String)
+      fail("group name is empty") unless item =~ /.+/
+    end
+  end
 end

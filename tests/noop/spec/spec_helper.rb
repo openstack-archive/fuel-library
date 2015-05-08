@@ -24,12 +24,17 @@ module Noop
     @fixtures_path = File.expand_path(File.join(__FILE__, '..', '..', 'fixtures'))
   end
 
+  def self.spec_path
+    return @spec_path if @spec_path
+    @spec_path = File.expand_path(File.join(__FILE__, '..', 'hosts'))
+  end
+
   def self.astute_yaml_name
-    ENV['astute_filename'] || 'novanet-primary-controller.yaml'
+    ENV['SPEC_ASTUTE_FILE_NAME'] || 'novanet-primary-controller.yaml'
   end
 
   def self.puppet_logs_dir
-    ENV['PUPPET_LOGS_DIR']
+    ENV['SPEC_PUPPET_LOGS_DIR']
   end
 
   def self.puppet_log_file
@@ -210,6 +215,7 @@ module Noop
   end
 
   def self.manifest=(manifest)
+    debug "Set manifest to: #{manifest} -> #{File.join self.modular_manifests_local_dir, manifest}"
     RSpec.configuration.manifest = File.join self.modular_manifests_local_dir, manifest
     @manifest = manifest
   end
@@ -243,7 +249,7 @@ module Noop
     File.join file_resources_lists_dir, file_name
   end
 
-  def self.save_file_resources_list(data, manifest, os)
+  def self.save_file_resources_list(data, os)
     begin
       file_path = file_resources_list_file manifest, os
       FileUtils.mkdir_p file_resources_lists_dir unless File.directory? file_resources_lists_dir
@@ -268,7 +274,7 @@ module Noop
     File.join package_resources_lists_dir, file_name
   end
 
-  def self.save_package_resources_list(data, manifest, os)
+  def self.save_package_resources_list(data, os)
     begin
       file_path = package_resources_list_file manifest, os
       FileUtils.mkdir_p package_resources_lists_dir unless File.directory? package_resources_lists_dir
@@ -316,6 +322,42 @@ module Noop
     end
   end
 
+  def self.debug(msg)
+    puts msg if ENV['SPEC_RSPEC_DEBUG']
+  end
+
+  def self.current_spec(example)
+    example_group = lambda do |metdata|
+      return example_group.call metdata[:example_group] if metdata[:example_group]
+      return example_group.call metdata[:parent_example_group] if metdata[:parent_example_group]
+      file_path = metdata[:absolute_file_path]
+      file_path = file_path.gsub "#{spec_path}/", ''
+      return file_path
+    end
+    example_group.call example.metadata
+  end
+
+  module Utils
+    def self.filter_nodes(hash, name, value)
+      hash.select do |it|
+        it[name] == value
+      end
+    end
+
+    def self.nodes_to_hash(hash, name, value)
+      result = {}
+      hash.each do |element|
+        result[element[name]] = element[value]
+      end
+      result
+    end
+
+    def self.ipsort (ips)
+      require 'rubygems'
+      require 'ipaddr'
+      ips.sort { |a,b| IPAddr.new( a ) <=> IPAddr.new( b ) }
+    end
+  end
 end
 
 # Add fixture lib dirs to LOAD_PATH. Work-around for PUP-3336
@@ -356,6 +398,8 @@ RSpec.configure do |c|
       end
     end
   end
+
+  c.mock_with :rspec
 
 end
 
