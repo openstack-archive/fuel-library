@@ -236,7 +236,7 @@ $SNIPPET('centos_authorized_keys')
 $SNIPPET('nailgun_repo')
 
 rpm -e --nodeps ruby
-yum install --exclude=ruby21* -y ruby rubygems
+yum install --exclude=ruby21*,ruby-2.1.1* -y ruby rubygems
 yum update -y --exclude --exclude=ruby*
 
 mkdir -p /etc/nailgun-agent/
