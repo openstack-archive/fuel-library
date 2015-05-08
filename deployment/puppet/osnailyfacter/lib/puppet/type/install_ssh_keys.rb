@@ -32,16 +32,14 @@ ENDOFDOC
   newparam :private_key_path do
     desc 'Path to private key in temporary location'
     validate do |value|
-      raise Puppet::Error, "#{value} does not look like PATH" unless value =~ /^\/\S/
-      raise Puppet::Error, "#{value} no such file" unless File.exists? value
+      fail "#{value}: does not look like PATH" unless value =~ /^\/\S/
     end
   end
 
   newparam :public_key_path do
     desc 'Path to public key in temporary location'
     validate do |value|
-      raise Puppet::Error, "#{value} does not look like PATH" unless value =~ /^\/\S/
-      raise Puppet::Error, "#{value} no such file" unless File.exists? value
+      fail "#{value}: does not look like PATH" unless value =~ /^\/\S/
     end
   end
 
@@ -51,7 +49,7 @@ ENDOFDOC
     defaultto 'id_rsa'
 
     validate do |value|
-      raise Puppet::Error, "Private key name is empty!" if value.empty?
+      fail "Private key name is empty!" if value.empty?
     end
   end
 
@@ -61,7 +59,7 @@ ENDOFDOC
     defaultto 'id_rsa.pub'
 
     validate do |value|
-      raise Puppet::Error, "Public key name is empty!" if value.empty?
+      fail "Public key name is empty!" if value.empty?
     end
   end
 
@@ -70,8 +68,8 @@ ENDOFDOC
     defaultto 'authorized_keys'
 
     validate do |value|
-      unless ['authorized_keys', 'authorized_keys2'].include? value
-        raise Puppet::Error, "#{value} it should be authorized_keys or authorized_keys2"
+      unless %w(authorized_keys authorized_keys2).include? value
+        fail "#{value}: should be authorized_keys or authorized_keys2"
       end
     end
   end
