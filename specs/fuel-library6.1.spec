@@ -13,6 +13,7 @@ Source0: %{name}-%{version}.tar.gz
 Provides: fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+Requires: fuel-misc
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
@@ -32,10 +33,12 @@ This package contains deployment manifests and code to execute provisioning of m
 mkdir -p %{buildroot}/etc/puppet/%{openstack_version}/modules/
 mkdir -p %{buildroot}/etc/puppet/%{openstack_version}/manifests/
 mkdir -p %{buildroot}/etc/profile.d/
+mkdir -p %{buildroot}/etc/init.d/
 mkdir -p %{buildroot}/etc/dockerctl
 mkdir -p %{buildroot}/usr/bin/
 mkdir -p %{buildroot}/usr/lib/
 mkdir -p %{buildroot}/usr/share/dockerctl
+mkdir -p %{buildroot}/sbin/
 mkdir -p %{buildroot}/sbin/
 cp -fr %{_builddir}/%{name}-%{version}/deployment/puppet/* %{buildroot}/etc/puppet/%{openstack_version}/modules/
 #FUEL DOCKERCTL UTILITY
@@ -46,6 +49,7 @@ install -m 0644 %{dockerctl_source}/dockerctl_config %{buildroot}/etc/dockerctl/
 install -m 0644 %{dockerctl_source}/functions.sh %{buildroot}/usr/share/dockerctl/functions
 #fuel-misc
 install -m 0755 %{files_source}/fuel-misc/centos_ifdown-local %{buildroot}/sbin/ifup-local
+install -m 0755 %{files_source}/fuel-misc/logrotate %{buildroot}/usr/bin/fuel-logrotate
 install -m 0755 %{files_source}/fuel-misc/centos_ifup-local  %{buildroot}/sbin/ifdown-local
 install -m 0755 %{files_source}/fuel-misc/haproxy-status.sh %{buildroot}/usr/bin/haproxy-status
 #fuel-ha-utils
@@ -55,6 +59,7 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/mysql-wss %{buildroot}/usr/lib
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_dns %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_dns
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/heat_engine_centos %{buildroot}/usr/lib/ocf/resource.d/fuel/heat-engine
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_ntp %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_ntp
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_vrouter %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_vrouter
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-ovs-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-ovs-agent
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-metadata-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-metadata-agent
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-dhcp-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-dhcp-agent
@@ -66,6 +71,8 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-alarm-evaluator %{b
 install -m 0755 %{files_source}/fuel-ha-utils/tools/q-agent-cleanup.py %{buildroot}/usr/bin/q-agent-cleanup.py
 install -m 0755 %{files_source}/fuel-ha-utils/tools/clustercheck %{buildroot}/usr/bin/clustercheck
 install -m 0644 %{files_source}/fuel-ha-utils/tools/wsrepclustercheckrc %{buildroot}/etc/wsrepclustercheckrc
+install -m 0755 %{files_source}/rabbit-fence/rabbit-fence.py %{buildroot}/usr/bin/rabbit-fence.py
+install -m 0755 %{files_source}/rabbit-fence/rabbit-fence.init %{buildroot}/etc/init.d/rabbit-fence
 #FIXME - may be we need to put this also into packages
 #install -m 0755 TEMPLATE /usr/local/bin/puppet-pull
 #install -m 0755 -d deployment/puppet/sahara/templates /usr/share/sahara/templates
@@ -135,7 +142,7 @@ For further information go to http://wiki.openstack.org/Fuel
 /sbin/ifup-local
 /sbin/ifdown-local
 /usr/bin/haproxy-status
-
+/usr/bin/fuel-logrotate
 %package -n fuel-ha-utils
 Summary: Fuel project HA utilities
 Version: %{version}
@@ -159,6 +166,31 @@ For further information go to http://wiki.openstack.org/Fuel
 /usr/bin/q-agent-cleanup.py
 /usr/bin/clustercheck
 %config(noreplace) /etc/wsrepclustercheckrc
+#
+
+%package -n fuel-rabbit-fence
+Summary: Fuel project RabbitMQ fencing utility
+Version: %{version}
+Release: %{release}
+Group: System Environment/Libraries
+# FIXME(aglarendil): mixed license actually - need to figure out the best option
+License: Apache 2.0
+URL: http://github.com/stackforge/fuel-library
+BuildArch: noarch
+Requires: dbus
+Requires: dbus-python
+Requires: pygobject2
+Requires: python-daemon
+BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+
+%description -n fuel-rabbit-fence
+A set of scripts for Fuel deployment utility HA RabbitMQ deployment
+For further information go to http://wiki.openstack.org/Fuel
+
+%files -n fuel-rabbit-fence
+%defattr(-,root,root)
+/usr/bin/rabbit-fence.py
+/etc/init.d/rabbit-fence
 #
 
 

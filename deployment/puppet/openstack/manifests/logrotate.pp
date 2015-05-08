@@ -41,25 +41,25 @@ class openstack::logrotate (
     unless  => 'grep -q tabooext /etc/logrotate.conf',
   }
 
-  case $::osfamily {
-    'RedHat': {
-        file { '/usr/bin/fuel-logrotate':
-          mode   => '0755',
-          source => 'puppet:///modules/openstack/logrotate',
-        }
-    }
-    'Debian': {
-        file { '/usr/bin/fuel-logrotate':
-          mode   => '0755',
-          source => 'puppet:///modules/openstack/logrotate-ubuntu',
-        }
-    }
-  }
+  #  case $::osfamily {
+  #  'RedHat': {
+  #      file { '/usr/bin/fuel-logrotate':
+  #        mode   => '0755',
+  #        source => 'puppet:///modules/openstack/logrotate',
+  #      }
+  #  }
+  #  'Debian': {
+  #      file { '/usr/bin/fuel-logrotate':
+  #        mode   => '0755',
+  #        source => 'puppet:///modules/openstack/logrotate-ubuntu',
+  #      }
+  #  }
+  #}
 
   cron { 'fuel-logrotate':
     command => '/usr/bin/fuel-logrotate',
     user    => 'root',
     minute  => '*/30',
-    require => File['/usr/bin/fuel-logrotate'],
+    #require => File['/usr/bin/fuel-logrotate'],
   }
 }
