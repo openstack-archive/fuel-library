@@ -5,7 +5,7 @@ class openstack::corosync (
   $stonith               = false,
   $quorum_policy         = 'ignore',
   $expected_quorum_votes = '2',
-  $unicast_addresses     = undef,
+  $corosync_nodes        = undef,
   $corosync_version      = '1',
   $packages              = ['corosync', 'pacemaker'],
 ) {
@@ -52,7 +52,7 @@ class openstack::corosync (
     enable_secauth    => $secauth,
     bind_address      => $bind_address,
     multicast_address => $multicast_address,
-    unicast_addresses => $unicast_addresses,
+    corosync_nodes    => $corosync_nodes,
     corosync_version  => $corosync_version,
     packages          => $packages,
     # NOTE(bogdando) debug is *too* verbose
