@@ -75,8 +75,9 @@ EOS
 
 
   change_to_vrouter = false
-  network_scheme[:endpoints].each do |endpoint, body|
-    change_to_vrouter = true if body[:gateway] == master_ip and endpoint == fw_admin_int
+
+  endpoints[management_int][:ipaddr].each do |ipnet|
+    change_to_vrouter = true if endpoints[fw_admin_int][:gateway] and IPAddr.new(ipnet).include?(IPAddr.new(management_vrouter_vip))
   end
 
   unless change_to_vrouter
