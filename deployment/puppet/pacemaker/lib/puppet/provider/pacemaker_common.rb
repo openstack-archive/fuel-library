@@ -276,7 +276,7 @@ class Puppet::Provider::Pacemaker_common < Puppet::Provider
     cib_section_node_ids.each do |node_block|
       node = attributes_to_hash node_block
       next unless node['id'] and node['uname']
-      @node_ids.store node['uname'], node['id']
+      @node_ids.store node['uname'], node
     end
     @node_ids
   end
