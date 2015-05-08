@@ -23,6 +23,10 @@ $primary_controller         = hiera('primary_controller')
 
 if $murano_hash['enabled'] {
 
+  if ! $use_neutron {
+    fail 'Murano requires Neutron! Nova-Network is not supported!'
+  }
+
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { ['murano_api', 'murano_engine']:
