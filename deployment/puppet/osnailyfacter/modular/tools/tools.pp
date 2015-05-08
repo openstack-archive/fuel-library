@@ -11,6 +11,7 @@ $tools = [
   'htop',
   'tcpdump',
   'strace',
+  'fuel-misc'
 ]
 
 package { $tools :

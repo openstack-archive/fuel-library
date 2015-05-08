@@ -73,12 +73,12 @@ if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
   include heat_ha::engine
 }
 
-file { '/usr/lib/ocf/resource.d/fuel' :
-  ensure => 'directory',
-  owner  => 'root',
-  group  => 'root',
-  mode   => '0755',
-}
+#file { '/usr/lib/ocf/resource.d/fuel' :
+#  ensure => 'directory',
+#  owner  => 'root',
+#  group  => 'root',
+#  mode   => '0755',
+#}
 
 #------------------------------
 

@@ -48,13 +48,13 @@ class cluster::dns_ocf ( $primary_controller ) {
     Cs_resource[$service_name] ~> Service[$service_name]
   }
 
-  file {'dns-ocf':
-    path   =>'/usr/lib/ocf/resource.d/fuel/ns_dns',
-    mode   => '0755',
-    owner  => root,
-    group  => root,
-    source => 'puppet:///modules/cluster/ocf/ns_dns',
-  } ~>
+  #  file {'dns-ocf':
+  #  path   =>'/usr/lib/ocf/resource.d/fuel/ns_dns',
+  #  mode   => '0755',
+  #  owner  => root,
+  #  group  => root,
+  #  source => 'puppet:///modules/cluster/ocf/ns_dns',
+  #} ~>
 
   service { $service_name:
     name       => $service_name,

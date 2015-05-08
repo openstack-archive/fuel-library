@@ -19,6 +19,7 @@ confdir="/etc/dockerctl"
 . "/usr/share/dockerctl/functions"
 DEBUG=true
 
+
 #Sets var nonopts
 declare -a nonopts
 parse_options "$@"
