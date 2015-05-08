@@ -38,7 +38,7 @@ $glance_vcenter_password        = $glance_hash['vc_password']
 $glance_vcenter_datacenter      = $glance_hash['vc_datacenter']
 $glance_vcenter_datastore       = $glance_hash['vc_datastore']
 $glance_vcenter_image_dir       = $glance_hash['vc_image_dir']
-
+$glance_vcenter_api_retry_count = '20'
 $glance_image_cache_max_size    = $glance_hash['image_cache_max_size']
 
 if ($storage_hash['images_ceph']) {
@@ -55,40 +55,41 @@ if ($storage_hash['images_ceph']) {
 ###############################################################################
 
 class { 'openstack::glance':
-  verbose                     => $verbose,
-  debug                       => $debug,
-  db_type                     => $db_type,
-  db_host                     => $db_host,
-  glance_db_user              => $glance_db_user,
-  glance_db_dbname            => $glance_db_dbname,
-  glance_db_password          => $glance_db_password,
-  glance_user_password        => $glance_user_password,
-  glance_vcenter_host         => $glance_vcenter_host,
-  glance_vcenter_user         => $glance_vcenter_user,
-  glance_vcenter_password     => $glance_vcenter_password,
-  glance_vcenter_datacenter   => $glance_vcenter_datacenter,
-  glance_vcenter_datastore    => $glance_vcenter_datastore,
-  glance_vcenter_image_dir    => $glance_vcenter_image_dir,
-  auth_uri                    => $auth_uri,
-  keystone_host               => $service_endpoint,
-  bind_host                   => $api_bind_address,
-  enabled                     => $enabled,
-  glance_backend              => $glance_backend,
-  registry_host               => $service_endpoint,
-  use_syslog                  => $use_syslog,
-  syslog_log_facility         => $syslog_log_facility,
-  glance_image_cache_max_size => $glance_image_cache_max_size,
-  max_retries                 => $max_retries,
-  max_pool_size               => $max_pool_size,
-  max_overflow                => $max_overflow,
-  idle_timeout                => $idle_timeout,
-  rabbit_password             => $rabbit_password,
-  rabbit_userid               => $rabbit_user,
-  rabbit_hosts                => $rabbit_hosts,
-  rabbit_virtual_host         => $rabbit_virtual_host,
-  known_stores                => $glance_known_stores,
-  ceilometer                  => $ceilometer_hash[enabled],
-}
+  verbose                        => $verbose,
+  debug                          => $debug,
+  db_type                        => $db_type,
+  db_host                        => $db_host,
+  glance_db_user                 => $glance_db_user,
+  glance_db_dbname               => $glance_db_dbname,
+  glance_db_password             => $glance_db_password,
+  glance_user_password           => $glance_user_password,
+  glance_vcenter_host            => $glance_vcenter_host,
+  glance_vcenter_user            => $glance_vcenter_user,
+  glance_vcenter_password        => $glance_vcenter_password,
+  glance_vcenter_datacenter      => $glance_vcenter_datacenter,
+  glance_vcenter_datastore       => $glance_vcenter_datastore,
+  glance_vcenter_image_dir       => $glance_vcenter_image_dir,
+  glance_vcenter_api_retry_count => $glance_vcenter_api_retry_count,
+  auth_uri                       => $auth_uri,
+  keystone_host                  => $service_endpoint,
+  bind_host                      => $api_bind_address,
+  enabled                        => $enabled,
+  glance_backend                 => $glance_backend,
+  registry_host                  => $service_endpoint,
+  use_syslog                     => $use_syslog,
+  syslog_log_facility            => $syslog_log_facility,
+  glance_image_cache_max_size    => $glance_image_cache_max_size,
+  max_retries                    => $max_retries,
+  max_pool_size                  => $max_pool_size,
+  max_overflow                   => $max_overflow,
+  idle_timeout                   => $idle_timeout,
+  rabbit_password                => $rabbit_password,
+  rabbit_userid                  => $rabbit_user,
+  rabbit_hosts                   => $rabbit_hosts,
+  rabbit_virtual_host            => $rabbit_virtual_host,
+  known_stores                   => $glance_known_stores,
+  ceilometer                     => $ceilometer_hash[enabled],
+ }
 
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {
