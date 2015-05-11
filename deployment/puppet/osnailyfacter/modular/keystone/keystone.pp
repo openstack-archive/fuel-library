@@ -64,7 +64,7 @@ $murano_settings_hash = hiera('murano_settings', {})
 if has_key($murano_settings_hash, 'murano_repo_url') {
   $murano_repo_url = $murano_settings_hash['murano_repo_url']
 } else {
-  $murano_repo_url = 'http://catalog.openstack.org'
+  $murano_repo_url = 'http://storage.apps.openstack.org'
 }
 
 ###############################################################################
