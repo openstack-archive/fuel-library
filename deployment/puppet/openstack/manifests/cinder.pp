@@ -168,13 +168,6 @@ class openstack::cinder(
           iser_ip_address => $iscsi_bind_host,
         }
       }
-      'vmdk': {
-        class {'cinder::volume::vmdk':
-          host_ip         => $::openstack::cinder::vmware_host_ip,
-          host_username   => $::openstack::cinder::vmware_host_username,
-          host_password   => $::openstack::cinder::vmware_host_password,
-        }
-      }
       'ceph': {
         if defined(Class['::ceph']) {
           Ceph::Pool<| title == $::ceph::cinder_pool |> ->
