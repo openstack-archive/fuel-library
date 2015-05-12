@@ -8,16 +8,18 @@
 # [*workloads_password*]
 #   (required) Password.
 # [*enabled*]
-#   (optional) Creates the user. Defaults to true.
+#   (optional) Is user enabled. Defaults to true.
 # [*workloads_user*]
-#   (optional) Defaults to 'workloads_collector'.
+#   (optional) Defaults to 'fuel_stats_user'.
 # [*tenant*]
 #   (optional) Defaults to 'services'.
+# [*create_user*]
+#   (optional) Is creation of user required. Defaults to false.
 #
 class openstack::workloads_collector(
   $workloads_password = false,
   $enabled            = true,
-  $workloads_username = 'workloads_collector',
+  $workloads_username = 'fuel_stats_user',
   $workloads_tenant   = 'services',
   $workloads_create_user = false
 ) {
