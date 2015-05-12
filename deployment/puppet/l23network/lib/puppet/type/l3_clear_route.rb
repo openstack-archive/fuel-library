@@ -46,6 +46,22 @@ Puppet::Type.newtype(:l3_clear_route) do
         ((val == :absent)  ?  :absent  :  val.to_i)
       end
     end
+
+    newproperty(:gateway) do
+      desc "Gateway"
+      newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)
+      validate do |val|
+        # gateway can't be "absent" by design
+        val.strip!
+        raise ArgumentError, "Invalid gateway: '#{val}'" if \
+           not val.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/) \
+           or not ($1.to_i >= 0  and  $1.to_i <= 255) \
+           or not ($2.to_i >= 0  and  $2.to_i <= 255) \
+           or not ($3.to_i >= 0  and  $3.to_i <= 255) \
+           or not ($4.to_i >= 0  and  $4.to_i <= 255)
+      end
+    end
+
 end
 
 # vim: set ts=2 sw=2 et :
