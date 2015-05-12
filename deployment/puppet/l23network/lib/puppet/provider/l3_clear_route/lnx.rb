@@ -4,6 +4,33 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx) do
   defaultfor :osfamily   => :linux
   commands   :ip         => 'ip'
 
+  # Function for debuging, is disabled by default
+  def show_ifconfig_resources
+    report = "\n"
+    ifconfigs = @resource.catalog.resources.select { |r| r.is_a? Puppet::Type.type(:l3_ifconfig) }
+    ifconfigs.each do |resource|
+      next unless resource.respond_to? :provider
+      class << resource.provider
+        attr_accessor :property_hash
+      end
+      report += "#{resource[:name]} -> #{resource.provider.property_hash.inspect}\n"
+    end
+    report
+  end
+
+  # Prefetching for l3_ifconfig resources
+  def prefetch_l3_ifconfig
+    ifconfigs = @resource.catalog.resources.select { |r| r.is_a? Puppet::Type.type(:l3_ifconfig) }
+    resources = {}
+    ifconfigs.each do |resource|
+      resources.store resource[:name], resource
+    end
+    debug "L3_clear_route prefetches l3_ifconfig resources: '#{resources.inspect}'"
+    provider = Puppet::Type.type(:l3_ifconfig).provider(:lnx)
+#    debug "Gateways before: #{show_ifconfig_resources}"
+    provider.prefetch resources
+#    debug "Gateways after: #{show_ifconfig_resources}"
+  end
 
   def self.prefetch(resources)
     interfaces = instances
@@ -77,6 +104,14 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx) do
     cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
     ip(cmd)
     @property_hash.clear
+    # Check whether puppet catalog has l3_ifconfig resources
+    # and if yes - run prefetch for them
+    @resource.catalog.resources.each do |resource|
+      if resource.is_a? Puppet::Type.type(:l3_ifconfig)
+        prefetch_l3_ifconfig
+        break
+      end
+    end
   end
 
   def initialize(value={})
