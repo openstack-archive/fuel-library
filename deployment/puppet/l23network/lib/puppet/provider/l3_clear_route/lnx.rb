@@ -4,6 +4,34 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx) do
   defaultfor :osfamily   => :linux
   commands   :ip         => 'ip'
 
+  def l3_ifconfig_resources
+    @resource.catalog.resources.select { |r| r.is_a? Puppet::Type.type(:l3_ifconfig) }
+  end
+
+  def show_ifconfig_resources
+    report = "\n"
+    l3_ifconfig_resources.each do |res|
+      next unless res.respond_to? :provider
+      class << res.provider
+        attr_accessor :property_hash
+      end
+      report += "#{res[:name]} -> #{res.provider.property_hash.inspect}\n"
+    end
+    report
+  end
+
+  def prefetch_l3_ifconfig
+    ifconfigs = @resource.catalog.resources.select { |r| r.is_a? Puppet::Type.type(:l3_ifconfig) }
+    resources = {}
+    ifconfigs.each do |r|
+      resources.store r[:name], r
+    end
+    debug "Prefetch l3_ifconfig resources: '#{resources.inspect}'"
+    provider = Puppet::Type.type(:l3_ifconfig).provider(:lnx)
+#    debug "Gateways before: #{show_ifconfig_resources}"
+    provider.prefetch resources
+#    debug "Gateways after: #{show_ifconfig_resources}"
+  end
 
   def self.prefetch(resources)
     interfaces = instances
@@ -77,6 +105,7 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx) do
     cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
     ip(cmd)
     @property_hash.clear
+    prefetch_l3_ifconfig
   end
 
   def initialize(value={})
