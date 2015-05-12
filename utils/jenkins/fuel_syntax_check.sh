@@ -24,7 +24,7 @@ function check_lint {
     return $?
   else
     exit_code=0
-    all_files=`find -name "*.pp"`
+    all_files=`find . -name "*.pp"`
     for x in $all_files; do
       puppet-lint \
           --no-80chars-check \
@@ -44,7 +44,7 @@ function check_lint {
 # Function that checks syntax
 function check_syntax {
   exit_code=0
-  all_files=`find -name "*.pp" -o -name "*.erb" -o -name "*.sh" -o -path "*/files/ocf/*"`
+  all_files=`find . -name "*.pp" -o -name "*.erb" -o -name "*.sh" -o -path "*/files/ocf/*"`
   for x in $all_files; do
     case $x in
       *.pp )
