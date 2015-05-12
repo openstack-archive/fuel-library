@@ -153,7 +153,7 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
       debug("FLUSH properties: #{@property_flush}")
       if !['', 'absent'].include? @property_flush[:mtu].to_s
         # 'absent' is a synonym 'do-not-touch' for MTU
-        @resource[:jacks].uniq.each do |iface|
+        @property_hash[:jacks].uniq.each do |iface|
           self.class.set_mtu(iface, @property_flush[:mtu])
         end
       end
