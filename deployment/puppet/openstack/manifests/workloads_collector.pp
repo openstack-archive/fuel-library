@@ -17,7 +17,7 @@
 class openstack::workloads_collector(
   $workloads_password = false,
   $enabled            = true,
-  $workloads_username = 'workloads_collector',
+  $workloads_username = 'fuel_stats_user',
   $workloads_tenant   = 'services',
   $workloads_create_user = false
 ) {
