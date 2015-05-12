@@ -25,6 +25,18 @@ Puppet::Type.newtype(:l2_patch) do
 
     newproperty(:jacks, :array_matching => :all) do
       desc "Patchcord jacks. Read-only. for debug purpose."
+
+      def should_to_s(value)
+        "#{value.join(':')}"
+      end
+
+      def is_to_s(value)
+        "#{value.join(':')}"
+      end
+
+      def insync?(value)
+        should_to_s(value) == should_to_s(should)
+      end
     end
 
     newproperty(:cross) do

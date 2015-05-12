@@ -58,6 +58,7 @@ define l23network::l2::patch (
       ensure          => $ensure,
       bridges         => $bridges,
       use_ovs         => $use_ovs,
+      jacks           => $patch_jacks_names,
       mtu             => $mtu,
       vendor_specific => $vendor_specific,
       provider        => $provider
