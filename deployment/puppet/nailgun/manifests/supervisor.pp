@@ -1,4 +1,5 @@
 class nailgun::supervisor(
+  $service_enabled = true,
   $nailgun_env,
   $ostf_env,
   $conf_file = "nailgun/supervisord.conf.erb",
@@ -33,8 +34,8 @@ class nailgun::supervisor(
   }
 
   service { "supervisord":
-    ensure => "running",
-    enable => true,
+    ensure => $service_enabled,
+    enable => $service_enabled,
     require => [
                 Package["supervisor"],
                 ],
