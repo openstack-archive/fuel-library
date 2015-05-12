@@ -4,13 +4,11 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx) do
   defaultfor :osfamily   => :linux
   commands   :ip         => 'ip'
 
-
   def self.prefetch(resources)
-    interfaces = instances
-    resources.keys.each do |name|
-      if provider = interfaces.find{ |ii| ii.name == name }
-        resources[name].provider = provider
-      end
+    instances.each do |provider|
+      name = provider.name.to_s
+      next unless resources.key? name
+      resources[name].provider = provider
     end
   end
 
@@ -36,9 +34,18 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx) do
         mask = [line[7]].pack('H*').unpack('B*')[0].count('1')
         dest = "#{dest_addr}/#{mask}"
       end
+      # whether route is local
+      if line[2] == '00000000'
+        gateway = nil
+        route_type = 'local'
+      else
+        gateway = [line[2]].pack('H*').unpack('C4').reverse.join('.')
+        route_type = nil
+      end
       rv << {
         :destination    => dest,
         :metric         => metric.to_i,
+        :gateway        => gateway,
       }
     end
     # this sort need for prioritize routes by metrics
@@ -62,7 +69,6 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx) do
     return rv
   end
 
-
   def exists?
     @property_hash[:ensure] == :present
   end
@@ -71,33 +77,54 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx) do
     info("\n Does not support 'ensure=present' \n It could be 'ensure=absent' ONLY!!! ")
   end
 
-  def destroy
-    debug("DESTROY resource: #{@resource}")
-    cmd = ['--force', 'route', 'del', @resource[:destination]]
-    cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
-    ip(cmd)
-    @property_hash.clear
+  def route_delete
+    cmd = [ '--force', 'route', 'delete', @property_hash[:destination] ]
+    cmd += [ 'via', @property_hash[:gateway] ]
+    cmd += [ 'metric', @property_hash[:metric] ] if @property_hash[:metric]
+    ip cmd
   end
 
-  def initialize(value={})
-    super(value)
-    @property_flush = {}
-    @old_property_hash = {}
-    @old_property_hash.merge! @property_hash
+  def destroy
+    debug "Call: destroy"
+    self.class.instances.each do |provider|
+      # we remove only routes with the same destination and metric as described one
+      next unless provider.destination == @resource[:destination] and provider.metric == @resource[:metric]
+      # we do not remove routes that have the same gateway as described one
+      next if provider.gateway == @resource[:gateway]
+      # other providers should remove their routes
+      provider.route_delete
+    end
   end
+
+  def flush
+    debug 'Call: flush'
+  end
+
   #-----------------------------------------------------------------
+
   def destination
-    @property_hash[:destination] || :absent
+    @property_hash[:destination]
   end
+
   def destination=(val)
     @property_flush[:destination] = val
   end
 
   def metric
-    @property_hash[:metric] || :absent
+    @property_hash[:metric]
   end
+
   def metric=(val)
     @property_flush[:metric] = val
   end
+
+  def gateway
+    @property_hash[:gateway]
+  end
+
+  def gateway=(val)
+    @property_flush[:gateway] = val
+  end
+
 end
 # vim: set ts=2 sw=2 et :
