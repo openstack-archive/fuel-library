@@ -18,7 +18,6 @@ def expected_backends
     swift
     heat-api
     heat-api-cfn
-    heat-api-cloudwatch
     nova-novncproxy
   )
   backends += %w(sahara) if TestCommon::Settings.sahara['enabled']

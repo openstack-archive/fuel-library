@@ -23,9 +23,6 @@ $sql_connection           = "mysql://${databse_user}:${database_password}@${$con
 
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {
-  tweaks::ubuntu_service_override { 'heat-api-cloudwatch':
-    package_name => 'heat-api-cloudwatch',
-  }
   tweaks::ubuntu_service_override { 'heat-api-cfn':
     package_name => 'heat-api-cfn',
   }
@@ -39,7 +36,6 @@ class { 'openstack::heat' :
 
   api_bind_host            => $internal_address,
   api_cfn_bind_host        => $internal_address,
-  api_cloudwatch_bind_host => $internal_address,
 
   keystone_host            => $controller_node_address,
   keystone_user            => 'heat',

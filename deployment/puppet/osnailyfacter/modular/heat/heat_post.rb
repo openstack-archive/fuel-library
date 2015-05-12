@@ -3,14 +3,12 @@ require File.join File.dirname(__FILE__), '../test_common.rb'
 PROCESSES = %w(
 heat-api
 heat-api-cfn
-heat-api-cloudwatch
 heat-engine
 )
 
 BACKENDS = %w(
 heat-api
 heat-api-cfn
-heat-api-cloudwatch
 )
 
 HOSTS = {
@@ -21,7 +19,6 @@ HOSTS = {
 PORTS = {
   'api' => 8004,
   'api-cfn' => 8003,
-  'api-cloudwatch' => 8000,
 }
 
 class HeatPostTest < Test::Unit::TestCase

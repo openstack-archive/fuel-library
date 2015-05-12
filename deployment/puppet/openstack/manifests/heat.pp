@@ -30,7 +30,6 @@ class openstack::heat (
   $heat_stack_user_role          = 'heat_stack_user',
   $heat_metadata_server_url      = false,
   $heat_waitcondition_server_url = false,
-  $heat_watch_server_url         = false,
   $auth_encryption_key           = '%ENCRYPTION_KEY%',
 
   $sql_connection                = false,
@@ -51,8 +50,6 @@ class openstack::heat (
   $api_bind_port                 = '8004',
   $api_cfn_bind_host             = '0.0.0.0',
   $api_cfn_bind_port             = '8000',
-  $api_cloudwatch_bind_host      = '0.0.0.0',
-  $api_cloudwatch_bind_port      = '8003',
 ){
 
   # No empty passwords allowed
@@ -81,30 +78,19 @@ class openstack::heat (
   } else {
     $waitcondition_server_url = "http://${external_ip}:${api_cfn_bind_port}/v1/waitcondition"
   }
-  if $heat_watch_server_url {
-    $watch_server_url         = $heat_watch_server_url
-  } else {
-    $watch_server_url         = "http://${external_ip}:${api_cloudwatch_bind_port}"
-  }
 
   # TODO(bogdando) clarify this config section (left from upstream presync state)
   heat_config {
     'DEFAULT/instance_connection_https_validate_certificates' : value => $ic_https_validate_certs;
     'DEFAULT/instance_connection_is_secure'                   : value => $ic_is_secure;
   }
-  Package<| title == 'heat-api-cfn' or title == 'heat-api-cloudwatch' |>
+  Package<| title == 'heat-api-cfn' |> ->
   Heat_config <|
      title == 'DEFAULT/instance_connection_https_validate_certificates' or
      title == 'DEFAULT/instance_connection_is_secure'
   |> ->
-  Service<| title == 'heat-api-cfn' or title == 'heat-api-cloudwatch' |>
+  Service<| title == 'heat-api-cfn' |>
 
-  # Firewall rules for APIs
-  firewall { '206 heat-api-cloudwatch' :
-    dport   => [ $api_cloudwatch_bind_port ],
-    proto   => 'tcp',
-    action  => 'accept',
-  } ->
   firewall { '205 heat-api-cfn' :
     dport   => [ $api_cfn_bind_port ],
     proto   => 'tcp',
@@ -216,7 +202,6 @@ class openstack::heat (
     heat_stack_user_role          => $heat_stack_user_role,
     heat_metadata_server_url      => $metadata_server_url,
     heat_waitcondition_server_url => $waitcondition_server_url,
-    heat_watch_server_url         => $watch_server_url,
   }
 
   # Install the heat APIs
@@ -228,11 +213,6 @@ class openstack::heat (
   class { 'heat::api_cfn' :
     bind_host                     => $api_cfn_bind_host,
     bind_port                     => $api_cfn_bind_port,
-    enabled                       => $enabled,
-  }
-  class { 'heat::api_cloudwatch' :
-    bind_host                     => $api_cloudwatch_bind_host,
-    bind_port                     => $api_cloudwatch_bind_port,
     enabled                       => $enabled,
   }
 
@@ -251,9 +231,5 @@ class openstack::heat (
   Package<| title == 'heat-api-cfn'|> ~> Service<| title == 'heat-api-cfn'|>
   if !defined(Service['heat-api-cfn']) {
     notify{ "Module ${module_name} cannot notify service heat-api-cfn on package update": }
-  }
-  Package<| title == 'heat-api-cloudwatch'|> ~> Service<| title == 'heat-api-cloudwatch'|>
-  if !defined(Service['heat-api-cloudwatch']) {
-    notify{ "Module ${module_name} cannot notify service heat-api-cloudwatch on package update": }
   }
 }
