@@ -141,9 +141,10 @@ class { "nailgun::client":
   keystone_pass => $::fuel_settings['FUEL_ACCESS']['password'],
 }
 class { "nailgun::supervisor":
-  nailgun_env   => $env_path,
-  ostf_env      => $env_path,
-  conf_file => "nailgun/supervisord.conf.nailgun.erb",
+  service_enabled => false,
+  nailgun_env     => $env_path,
+  ostf_env        => $env_path,
+  conf_file       => "nailgun/supervisord.conf.nailgun.erb",
 }
 
 package { 'crontabs':
