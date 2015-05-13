@@ -33,6 +33,44 @@ describe manifest do
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
     end
 
+    it 'should declare keystone::wsgi::apache class with 4 threads on 4 CPU system' do
+      should contain_class('keystone::wsgi::apache').with(
+        'threads' => '4',
+      )
+    end
+
+    it 'should declare keystone::wsgi::apache class with 24 threads on 48 CPU system' do
+      facts[:processorcount] = 48
+      should contain_class('keystone::wsgi::apache').with(
+        'threads' => '24',
+      )
+    end
+
+    it 'should setup keystone_wsgi_admin file properly' do
+      case facts[:operatingsystem]
+      when 'CentOS'
+        should contain_file('keystone_wsgi_admin').with(
+          'ensure'  => 'link',
+          'path'    => "/var/www/cgi-bin/keystone/admin",
+          'target'  => '/usr/share/keystone/keystone.wsgi',
+          'owner'   => 'keystone',
+          'group'   => 'keystone',
+          'mode'    => '0644',
+          'require' => "File[/var/www/cgi-bin/keystone]"
+        )
+      when 'Ubuntu'
+        should contain_file('keystone_wsgi_admin').with(
+          'ensure'  => 'file',
+          'path'    => "/usr/lib/cgi-bin/keystone/admin",
+          'source'  => 'puppet:///modules/keystone/httpd/keystone.py',
+          'owner'   => 'keystone',
+          'group'   => 'keystone',
+          'mode'    => '0644',
+          'require' => "File[/usr/lib/cgi-bin/keystone]"
+        )
+      end
+    end
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest

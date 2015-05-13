@@ -213,7 +213,7 @@ class openstack::keystone (
     debug               => $debug,
     catalog_type        => 'sql',
     admin_token         => $admin_token,
-    enabled             => $enabled,
+    enabled             => false,
     sql_connection      => $sql_conn,
     public_bind_host    => $public_bind_host,
     admin_bind_host     => $admin_bind_host,

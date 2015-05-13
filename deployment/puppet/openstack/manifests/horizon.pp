@@ -58,55 +58,9 @@ class openstack::horizon (
     $log_level_real = $log_level
   }
 
-  # Performance optimization for wsgi
-  if ($::memorysize_mb < 1200 or $::processorcount <= 3) {
-    $wsgi_processes = 2
-    $wsgi_threads = 9
-  } else {
-    $wsgi_processes = $::processorcount
-    $wsgi_threads = 15
-  }
-
-  # Performance optimization for Apache mpm
-  if $::memorysize_mb < 4100 {
-    $maxclients = 100
-  } else {
-    $maxclients = inline_template('<%= Integer(@memorysize_mb.to_i / 10) %>')
-  }
-
-  if $::processorcount <= 2 {
-    $startservers = 2
-  } else {
-    $startservers = $::processorcount
-  }
-
-  $maxrequestsperchild = 0
-  $threadsperchild     = 25
-  $minsparethreads     = 25
-  $serverlimit         = inline_template('<%= Integer(@maxclients.to_i / @threadsperchild.to_i) %>')
-  $maxsparethreads     = inline_template('<%= Integer(@maxclients.to_i / 2) %>')
-
-  # Define apache mpm
-  if $::osfamily == 'RedHat' {
-    $mpm_module = 'event'
-  } else {
-    $mpm_module = 'worker'
-  }
-
-  class { '::apache':
-    mpm_module    => false,
-    default_vhost => false,
-    servername    => $servername,
-  }
-
-  class { "::apache::mod::$mpm_module":
-    startservers        => $startservers,
-    maxclients          => $maxclients,
-    minsparethreads     => $minsparethreads,
-    maxsparethreads     => $maxsparethreads,
-    threadsperchild     => $threadsperchild,
-    maxrequestsperchild => $maxrequestsperchild,
-    serverlimit         => $serverlimit,
+  # Apache and listen ports
+  class { 'osnailyfacter::apache':
+    listen_ports => hiera_array('apache_ports', ['80', '8888']),
   }
 
   class { '::horizon':
@@ -131,14 +85,24 @@ class openstack::horizon (
     secure_cookies          => false,
   }
 
+  # Performance optimization for wsgi
+  if ($::memorysize_mb < 1200 or $::processorcount <= 3) {
+    $wsgi_processes = 2
+    $wsgi_threads = 9
+  } else {
+    $wsgi_processes = $::processorcount
+    $wsgi_threads = 15
+  }
+
   class { '::horizon::wsgi::apache':
     priority       => false,
-    bind_address   => "*",
+    bind_address   => $bind_address,
     wsgi_processes => $wsgi_processes,
     wsgi_threads   => $wsgi_threads,
     listen_ssl     => $use_ssl,
     extra_params      => {
       default_vhost   => true,
+      add_listen      => false,
       custom_fragment => template("openstack/horizon/wsgi_vhost_custom.erb"),
     },
   } ~>
