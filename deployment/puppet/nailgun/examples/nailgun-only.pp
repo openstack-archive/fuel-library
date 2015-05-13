@@ -12,6 +12,9 @@ $env_path = "/usr"
 $staticdir = "/usr/share/nailgun/static"
 
 Class["docker::container"] ->
+Class["nailgun::user"]
+
+Class["docker::container"] ->
 Class["nailgun::user"] ->
 Class["nailgun::packages"] ->
 Class["nailgun::venv"] ->
