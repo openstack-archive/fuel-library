@@ -394,18 +394,6 @@ neutron_mellanox:
   plugin: disabled
   vf_num: '16'
 nodes:
-- fqdn: node-133.test.domain.local
-  internal_address: 192.168.0.1
-  internal_netmask: 255.255.255.0
-  name: node-133
-  public_address: 172.16.0.2
-  public_netmask: 255.255.255.0
-  role: zabbix-server
-  storage_address: 192.168.1.1
-  storage_netmask: 255.255.255.0
-  swift_zone: '133'
-  uid: '133'
-  user_node_name: Untitled (74:27)
 - fqdn: node-135.test.domain.local
   internal_address: 192.168.0.2
   internal_netmask: 255.255.255.0
@@ -901,15 +889,6 @@ tasks:
   type: puppet
   uids:
   - '137'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 3600
-  type: puppet
-  uids:
-  - '137'
 test_vm_image:
   container_format: bare
   disk_format: qcow2
@@ -935,14 +914,3 @@ workloads_collector:
   password: MhdNr1K7
   tenant: services
   username: workloads_collector
-zabbix:
-  db_password: UmcIBNZQ
-  db_root_password: aFJ2D3iZ
-  metadata:
-    label: Zabbix Access
-    restrictions:
-    - action: hide
-      condition: not ('experimental' in version:feature_groups)
-    weight: 70
-  password: zabbix
-  username: admin
