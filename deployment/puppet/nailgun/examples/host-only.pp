@@ -1,5 +1,8 @@
 # Configuration of Fuel Master node only
 
+fdsjakfklasdjlfjasjdfkljasdlfkljasdkljflajlsdkf
+
+
 $fuel_settings = parseyaml($astute_settings_yaml)
 $fuel_version = parseyaml($fuel_version_yaml)
 
@@ -15,6 +18,8 @@ else {
 $ntp_servers = delete([$::fuel_settings['NTP1'], $::fuel_settings['NTP2'],
                       $::fuel_settings['NTP3']], "")
 
+Class['nailgun::client'] -> 
+Class['nailgun::packages'] 
 Class['nailgun::packages'] ->
 Class['nailgun::client'] ->
 Class['nailgun::host'] ->
