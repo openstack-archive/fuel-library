@@ -7,9 +7,14 @@ if is_hash($::fuel_version) and $::fuel_version['VERSION'] and $::fuel_version['
 else {
     $production = 'prod'
 }
+klfadsjfl;asdhfjkasdjkfhjkasdkfladsjkfhklsdjafljhasdjklfhasdjfhaskfm,
+sdlkghafjkhgkljasdfnjkghafsdjkhgjlsfkdhgljksdfhlk
 
 $env_path = "/usr"
 $staticdir = "/usr/share/nailgun/static"
+
+Class["docker::container"] ->
+Class["nailgun::user"]
 
 Class["docker::container"] ->
 Class["nailgun::user"] ->
