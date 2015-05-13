@@ -15,6 +15,8 @@
 #  $swift_store_create_container_on_put - Optional. Default: 'False'
 #
 #  $swift_store_large_object_size - Optional. Default: '5120'
+#
+#  $swift_store_endpoint_type - Optional. Default: 'internalURL'
 class glance::backend::swift(
   $swift_store_user,
   $swift_store_key,
@@ -22,7 +24,8 @@ class glance::backend::swift(
   $swift_store_container = 'glance',
   $swift_store_auth_version = '2',
   $swift_store_large_object_size = '5120',
-  $swift_store_create_container_on_put = false
+  $swift_store_create_container_on_put = false,
+  $swift_store_endpoint_type = 'internalURL'
 ) {
 
   glance_api_config {
@@ -36,6 +39,8 @@ class glance::backend::swift(
       value => $swift_store_create_container_on_put;
     'glance_store/swift_store_large_object_size':
       value => $swift_store_large_object_size;
+    'glance_store/swift_store_endpoint_type':
+      value => $swift_store_endpoint_type;
   }
 
   glance_cache_config {
