@@ -35,10 +35,10 @@ Facter.add("osd_devices_list") do
         if journals.length > 0
           osds.each { |osd|
             journal = journals.shift
-            if journal
-              devlink = %x{udevadm info -q property -n #{journal} | awk 'FS="=" {if ($1 == "DEVLINKS") print $2}'}
+            if journal.length > 0
+              devlink = %x{udevadm info -q property -n #{journal} | awk 'BEGIN {FS="="} {if ($1 == "DEVLINKS") print $2}'}
               devlink = devlink.split(' ')
-              journal = devlink.find { |s| s.include? 'by-id' } or journal
+              journal = (devlink.find { |s| s.include? 'by-id' } or journal)
               output << "#{osd}:#{journal}"
             else
               output << osd
