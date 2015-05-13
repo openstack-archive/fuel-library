@@ -73,10 +73,18 @@ define l23network::l2::port (
       }
     }
     /^([\w\-]+\d+)\.(\d+)/: {
-      $port_vlan_mode = 'eth'
-      $port_vlan_id   = $2
-      $port_vlan_dev  = $1
-      $port_name      = "${1}.${2}"
+      if $vlan_dev == false {
+        # special case for non-vlan devices witn naming like "aaaNNN.XXX"
+        $port_vlan_mode = undef
+        $port_vlan_id   = undef
+        $port_vlan_dev  = undef
+        $port_name      = $port
+      } else {
+        $port_vlan_mode = 'eth'
+        $port_vlan_id   = $2
+        $port_vlan_dev  = $1
+        $port_name      = "${1}.${2}"
+      }
     }
     default: {
       $port_vlan_mode = undef
