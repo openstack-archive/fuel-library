@@ -9,5 +9,10 @@ if !(member($roles, 'controller') or member($roles, 'primary-controller')) {
     servers        => [$management_vip],
     service_ensure => running,
     service_enable => true,
+    iburst_enable  => true,
+    tinker         => true,
+    panic          => 0,
+    stepout        => 5,
+    minpoll        => 3,
   }
 }
