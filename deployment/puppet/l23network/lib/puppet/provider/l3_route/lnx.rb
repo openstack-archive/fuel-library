@@ -4,169 +4,223 @@ require 'puppetx/l23_utils'
 
 Puppet::Type.type(:l3_route).provide(:lnx) do
   defaultfor :osfamily => :linux
-  commands   :iproute => 'ip'
+  commands :ip => 'ip'
 
+  # ip command with debug support
+  # @param args [Array<String>]
+  def ip_safe(*args)
+    if @resource[:debug]
+      debug (['ip'] + args).join ' '
+      return
+    end
+    ip *args
+  end
 
+  # prefetch catalog resources with discovered instances
+  # @param resources [Hash<String => Puppet::Type>]
   def self.prefetch(resources)
-    interfaces = instances
-    resources.keys.each do |name|
-      if provider = interfaces.find{ |ii| ii.name == name }
-        resources[name].provider = provider
+    instances.each do |provider|
+      resources.each do |name, resource|
+        next unless resource[:destination] == provider.destination
+        next unless resource[:metric] == provider.metric
+        provider.property_hash[:name] = name
+        debug "Resource was prefetched: #{provider.property_hash}"
+        resource.provider = provider
       end
     end
   end
 
-  def self.get_routes
-    # return array of hashes -- all defined routes.
-    rv = []
-    # cat /proc/net/route returns information about routing table in format:
-    # Iface Destination Gateway   Flags RefCnt Use Metric Mask    MTU Window IRTT
-    # eth0  00000000    0101010A  0003   0      0    0    00000000 0    0     0
-    # eth0  0001010A    00000000  0001   0      0    0    00FFFFFF 0    0     0
-    File.open('/proc/net/route').readlines.reject{|l| l.match(/^[Ii]face.+/) or l.match(/^(\r\n|\n|\s*)$|^$/)}.map{|l| l.split(/\s+/)}.each do |line|
-      #https://github.com/kwilczynski/facter-facts/blob/master/default_gateway.rb
-      iface = line[0]
-      metric = line[6]
-      # whether gateway is default
-      if line[1] == '00000000'
-        dest = 'default'
-        dest_addr = nil
-        mask = nil
-        route_type = 'default'
-      else
-        dest_addr = [line[1]].pack('H*').unpack('C4').reverse.join('.')
-        mask = [line[7]].pack('H*').unpack('B*')[0].count('1')
-        dest = "#{dest_addr}/#{mask}"
-      end
-      # whether route is local
-      if line[2] == '00000000'
-        gateway = nil
-        route_type = 'local'
-      else
-        gateway = [line[2]].pack('H*').unpack('C4').reverse.join('.')
-        route_type = nil
-      end
-      rv << {
-        :destination    => dest,
-        :gateway        => gateway,
-        :metric         => metric.to_i,
-        :type           => route_type,
-        :interface      => iface,
-      }
-    end
-    # this sort need for prioritize routes by metrics
-    return rv.sort_by{|r| r[:metric]||0}
-  end
-
+  # discover the existing routes and generate an array of provider instances
+  # @return [Array<Puppet::Provider>]
   def self.instances
-    rv = []
-    routes = get_routes()
+    instances = []
     routes.each do |route|
-      name = L23network.get_route_resource_name(route[:destination], route[:metric])
-      props = {
-        :ensure         => :present,
-        :name           => name,
-      }
-      props.merge! route
-      props.delete(:metric) if props[:metric] == 0
-      debug("PREFETCHED properties for '#{name}': #{props}")
-      rv << new(props)
+      route[:ensure] = :present
+      route[:name] = L23network.get_route_resource_name route[:destination], route[:metric]
+      debug "Found route: #{route.inspect}"
+      provider = self.new route
+      instances << provider
     end
-    return rv
+    return instances
   end
 
-  def exists?
+  # convert netmask to the cidr notation
+  # @return [String]
+  def self.unpack_ip(ip)
+    [ip].pack('H*').unpack('C4').reverse.join('.')
+  end
+
+  # convert ip to the cidr notation
+  # @return [String]
+  def self.unpack_mask(mask)
+    [mask].pack('H*').unpack('B*').first.count('1')
+  end
+
+  # read the routing table proc entry
+  # @return [String]
+  def self.routing_table
+    File.read '/proc/net/route'
+  end
+
+  # retrieves the current routing table
+  # return array of hashes - defined routes
+  # cat /proc/net/route returns information about routing table in format:
+  # Iface Destination Gateway   Flags RefCnt Use Metric Mask    MTU Window IRTT
+  # eth0  00000000    0101010A  0003   0      0    0    00000000 0    0     0
+  # eth0  0001010A    00000000  0001   0      0    0    00FFFFFF 0    0     0
+  # @return [Array<Hash>]
+  def self.routes
+    routes = []
+
+    routing_table.split("\n").each do |line|
+      next if line =~ %r(^[Ii]face.+)
+      next if line =~ %r(^(\r\n|\n|\s*)$|^$)
+      line = line.split
+
+      interface = line[0]
+      destination = line[1]
+      gateway = line[2]
+      metric = line[6]
+      mask = line[7]
+
+      # we don't care about link-local routes
+      next if gateway == '00000000'
+
+      # convert values
+      gateway_ip = unpack_ip gateway
+      destination_ip = unpack_ip destination
+      destination_mask = unpack_mask mask
+      destination_network = "#{destination_ip}/#{destination_mask}"
+
+      route = {
+          :destination => destination_network,
+          :gateway => gateway_ip,
+          :metric => metric,
+          :interface => interface,
+      }
+
+      routes << route
+    end
+
+    routes.sort_by! do |route|
+      route[:metric].to_i or 0
+    end
+
+    routes
+  end
+
+  # should this resource be present?
+  # @return <TrueClass,FalseClass>
+  def should_present?
+    @resource[:ensure] == :present
+  end
+
+  # is this resource present?
+  # @return <TrueClass,FalseClass>
+  def is_present?
     @property_hash[:ensure] == :present
   end
 
+  #####################################
+
+  def exists?
+    debug 'Call: exists?'
+    out = is_present?
+    debug "Return: '#{out}'"
+    out
+  end
+
   def create
-    debug("CREATE resource: #{@resource}")
-    @property_flush = {}.merge! @resource
-    #todo(sv): check accessability of gateway.
-    cmd = ['route', 'add', @resource[:destination], 'via', @resource[:gateway]]
-    cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
-    iproute(cmd)
-    @old_property_hash = {}
-    @old_property_hash.merge! @resource
-  end
-
-  def destroy
-    debug("DESTROY resource: #{@resource}")
-    cmd = ['--force', 'route', 'del', @property_hash[:destination], 'via', @property_hash[:gateway]]
-    cmd << ['metric', @property_hash[:metric]] if @property_hash[:metric] != :absent && @property_hash[:metric].to_i > 0
-    iproute(cmd)
-    @property_hash.clear
-  end
-
-  def initialize(value={})
-    super(value)
-    @property_flush = {}
-    @old_property_hash = {}
-    @old_property_hash.merge! @property_hash
+    debug 'Call: create'
+    @property_hash = {}
+    [:destination, :gateway, :metric, :interface, :vendor_specific].each do |property|
+      @property_hash[property] = @resource[property]
+    end
+    @property_hash[:ensure] == :absent
+    route_add
   end
 
   def flush
-    if ! @property_flush.empty?
-      debug("FLUSH properties: #{@property_flush}")
-      #
-      # FLUSH changed properties
-      if @property_flush.has_key? :gateway
-        # gateway can't be "absent" by design
-        #debug("RES: '#{@resource[:gateway]}', OLD:'#{@old_property_hash[:gateway]}', FLU:'#{@property_flush[:gateway]}'")
-        if @old_property_hash[:gateway] != @property_flush[:gateway]
-          cmd = ['route', 'change', @resource[:destination], 'via', @property_flush[:gateway]]
-          cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
-          iproute(cmd)
-        end
-      end
-
-      @property_hash = resource.to_hash
-    end
+    debug 'Call: flush'
+    route_change if is_present? and should_present?
   end
 
-  #-----------------------------------------------------------------
+  def destroy
+    debug 'Call: destroy'
+    route_delete
+    @property_hash = {}
+    @property_hash[:ensure] == :absent
+  end
+
+  #####################################
+
+  def route_delete
+    cmd = ['--force', 'route', 'delete', @property_hash[:destination]]
+    cmd += ['via', @property_hash[:gateway]]
+    cmd += ['metric', @property_hash[:metric]]
+    cmd += ['dev', @property_hash[:interface]] if @property_hash[:interface]
+    ip_safe cmd
+  end
+
+  def route_add
+    cmd = ['--force', 'route', 'add', @property_hash[:destination]]
+    cmd += ['via', @property_hash[:gateway]]
+    cmd += ['metric', @property_hash[:metric]]
+    cmd += ['dev', @property_hash[:interface]] if @property_hash[:interface]
+    ip_safe cmd
+  end
+
+  def route_change
+    cmd = ['--force', 'route', 'change', @property_hash[:destination]]
+    cmd += ['via', @property_hash[:gateway]]
+    cmd += ['metric', @property_hash[:metric]]
+    cmd += ['dev', @property_hash[:interface]] if @property_hash[:interface]
+    ip_safe cmd
+  end
+
+  #####################################
+
+  attr_accessor :property_hash
+
   def destination
-    @property_hash[:destination] || :absent
+    @property_hash[:destination]
   end
-  def destination=(val)
-    @property_flush[:destination] = val
+
+  def destination=(value)
+    @property_hash[:destination] = value
   end
 
   def gateway
-    @property_hash[:gateway] || :absent
+    @property_hash[:gateway]
   end
-  def gateway=(val)
-    @property_flush[:gateway] = val
+
+  def gateway=(value)
+    @property_hash[:gateway] = value
   end
 
   def metric
-    @property_hash[:metric] || :absent
+    @property_hash[:metric]
   end
-  def metric=(val)
-    @property_flush[:metric] = val
+
+  def metric=(value)
+    @property_hash[:metric] = value
   end
 
   def interface
-    @property_hash[:interface] || :absent
-  end
-  def interface=(val)
-    @property_flush[:interface] = val
+    @property_hash[:interface]
   end
 
-  def type
-    @property_hash[:type] || :absent
-  end
-  def type=(val)
-    @property_flush[:type] = val
+  def interface=(value)
+    @property_hash[:interface] = value
   end
 
   def vendor_specific
-    @property_hash[:vendor_specific] || :absent
+    @property_hash[:vendor_specific]
   end
-  def vendor_specific=(val)
-    nil
+
+  def vendor_specific=(value)
+    @property_hash[:vendor_specific] = value
   end
-  #-----------------------------------------------------------------
 
 end
 # vim: set ts=2 sw=2 et :
