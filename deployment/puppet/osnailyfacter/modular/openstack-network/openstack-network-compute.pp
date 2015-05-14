@@ -210,7 +210,6 @@ if $network_provider == 'nova' {
   nova_config {
     'DEFAULT/linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
     'DEFAULT/linuxnet_ovs_integration_bridge': value => $neutron_integration_bridge;
-    'DEFAULT/network_device_mtu': value => '65000';
   }
 
   augeas { 'sysctl-net.bridge.bridge-nf-call-arptables':
@@ -279,16 +278,21 @@ if $network_provider == 'neutron' {
   }
 
   if $neutron_settings['L2']['tunnel_id_ranges'] {
+    prepare_network_config($network_scheme)
     $enable_tunneling = true
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
-    # Required to use get_network_role_property
-    prepare_network_config($network_scheme)
     $local_ip = get_network_role_property('neutron/mesh', 'ipaddr')
+    $iface = get_network_role_property('neutron/mesh', 'phys_dev')
+    $net_mtu = get_transformation_property('mtu', $iface[0])
   } else {
+    prepare_network_config($network_scheme)
+    $iface = get_network_role_property('neutron/private', 'phys_dev')
+    $net_mtu = get_transformation_property('mtu', $iface[0])
     $enable_tunneling = false
     $tunnel_id_ranges = []
     $local_ip = $internal_address
   }
+
   notify{ $tunnel_id_ranges:}
   if $neutron_settings['L2']['mechanism_drivers'] {
       $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
@@ -307,9 +311,10 @@ if $network_provider == 'neutron' {
 }
 
 class { 'openstack::network':
-  network_provider  => $network_provider,
-  agents            => [$agent],
-  nova_neutron      => true,
+  network_provider => $network_provider,
+  agents           => [$agent],
+  nova_neutron     => true,
+  net_mtu          => $net_mtu,
 
   base_mac          => $base_mac,
   core_plugin       => $core_plugin,
