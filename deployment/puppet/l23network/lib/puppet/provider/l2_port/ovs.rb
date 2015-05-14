@@ -43,10 +43,12 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
     # set interface type
     if @resource[:type] and (@resource[:type].to_s != '' or @resource[:type].to_s != :absent)
       tt = "type=" + @resource[:type].to_s
+    elsif File.exist? "/sys/class/net/#{@resource[:interface]}"
+      tt = nil
     else
       tt = "type=internal"
     end
-    cmd += ['--', "set", "Interface", @resource[:interface], tt]
+    cmd += ['--', "set", "Interface", @resource[:interface], tt] if tt
     # executing OVS add-port command
     begin
       vsctl(cmd)
