@@ -126,8 +126,8 @@ class openstack::ceilometer (
       Package[$::ceilometer::params::agent_central_package_name] -> Class['ceilometer_ha::agent::central']
     }
     else {
-      Package[$::ceilometer::params::common_package_name] -> Service[$agent_central_service_name]
-      Package[$::ceilometer::params::agent_central_package_name] -> Service[$agent_central_service_name]
+      Package[$::ceilometer::params::common_package_name] -> Service[$::ceilometer::params::agent_central_service_name]
+      Package[$::ceilometer::params::agent_central_package_name] -> Service[$::ceilometer::params::agent_central_service_name]
     }
   }
 
