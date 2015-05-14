@@ -19,7 +19,7 @@ define murano::application_package (
     $murano_cli_cmd = "${murano_cli} package-import '${package_path}' --is-public --exists-action u"
   }
 
-  $murano_cli_pkgcheck = "${murano_cli} package-list 2>&1 | grep -q ${package_name}"
+  $murano_cli_pkgcheck = "${murano_cli} package-list 2>&1 | grep -q ' ${package_name} '"
 
   exec { "murano_import_package_${package_name}":
     path    => '/sbin:/usr/sbin:/bin:/usr/bin',
