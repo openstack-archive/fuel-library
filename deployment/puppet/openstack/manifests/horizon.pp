@@ -41,6 +41,8 @@ class openstack::horizon (
   $local_settings_template = 'openstack/horizon/local_settings.py.erb',
   $django_session_engine   = 'django.contrib.sessions.backends.cache',
   $servername              = $::hostname,
+  $cache_backend           = undef,
+  $cache_options           = undef
 ) {
 
   if $debug { #syslog and nondebug case
@@ -67,6 +69,8 @@ class openstack::horizon (
     bind_address            => $bind_address,
     cache_server_ip         => $cache_server_ip,
     cache_server_port       => $cache_server_port,
+    cache_backend           => $cache_backend,
+    cache_options           => $cache_options,
     secret_key              => $secret_key,
     swift                   => $swift,
     package_ensure          => $package_ensure,
