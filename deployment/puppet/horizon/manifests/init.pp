@@ -200,6 +200,8 @@ class horizon(
   $package_ensure          = 'present',
   $cache_server_ip         = '127.0.0.1',
   $cache_server_port       = '11211',
+  $cache_backend           = 'django.core.cache.backends.locmem.LocMemCache',
+  $cache_options           = undef,
   $swift                   = false,
   $horizon_app_links       = false,
   $keystone_url            = 'http://127.0.0.1:5000/v2.0',
