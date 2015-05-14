@@ -1,108 +1,177 @@
-# type for managing routes in runtime.
-
 require 'yaml'
+require 'ipaddr'
+require 'puppet/parameter/boolean'
+
+class IPAddr
+  def mask_length
+    @mask_addr.to_s(2).count '1'
+  end
+
+  def cidr
+    "#{to_s}/#{mask_length}"
+  end
+end
 
 Puppet::Type.newtype(:l3_route) do
-    @doc = "Manage a network routings."
-    desc @doc
+  desc 'Manage a network routings.'
 
-    ensurable
+  ensurable
 
-    newparam(:name) # workarround for following error:
-    # Error 400 on SERVER: Could not render to pson: undefined method `merge' for []:Array
-    # http://projects.puppetlabs.com/issues/5220
+  newparam(:name) do
+    desc 'The title of this route'
+  end
 
+  newproperty(:destination) do
+    desc 'Destination network'
 
-    newproperty(:destination) do
-      desc "Destination network"
-      validate do |val|
-        val.strip!
-        if val.to_s.downcase != 'default'
-          raise ArgumentError, "Invalid IP address: '#{val}'" if \
-            not val.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(\/(\d{1,2}))?$/) \
-            or not ($1.to_i >= 0  and  $1.to_i <= 255) \
-            or not ($2.to_i >= 0  and  $2.to_i <= 255) \
-            or not ($3.to_i >= 0  and  $3.to_i <= 255) \
-            or not ($4.to_i >= 0  and  $4.to_i <= 255) \
-            or not ($6.to_i >= 0  and  $6.to_i <= 32)
-        end
-      end
-
+    munge do |value|
+      value = '0.0.0.0/0' if value == 'default'
+      value = '0.0.0.0/0' if value == '0.0.0.0'
+      value = IPAddr.new value
+      value = value.cidr
+      value
     end
 
-    newproperty(:gateway) do
-      desc "Gateway"
-      newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)
-      validate do |val|
-        # gateway can't be "absent" by design
-        val.strip!
-        raise ArgumentError, "Invalid gateway: '#{val}'" if \
-           not val.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/) \
-           or not ($1.to_i >= 0  and  $1.to_i <= 255) \
-           or not ($2.to_i >= 0  and  $2.to_i <= 255) \
-           or not ($3.to_i >= 0  and  $3.to_i <= 255) \
-           or not ($4.to_i >= 0  and  $4.to_i <= 255)
-      end
+    validate do |value|
+      next if value == 'default'
+      fail "Destination '#{value}' is not an IP address!" unless @resource.is_ip? value
     end
 
-    newproperty(:metric) do
-      desc "Route metric"
-      newvalues(/^\d+$/, :absent, :none, :undef, :nil)
-      aliasvalue(:none,  :absent)
-      aliasvalue(:undef, :absent)
-      aliasvalue(:nil,   :absent)
-      aliasvalue(0,      :absent)
-      defaultto :absent
-      validate do |val|
-        min_metric = 0
-        max_metric = 65535
-        if ! (val.to_s == 'absent' or (min_metric .. max_metric).include?(val.to_i))
-          raise ArgumentError, "'#{val}' is not a valid metric (must be a integer value in range (#{min_metric} .. #{max_metric})"
-        end
-      end
-      munge do |val|
-        ((val == :absent)  ?  :absent  :  val.to_i)
-      end
+  end
+
+  newproperty(:gateway) do
+    desc 'Gateway'
+
+    validate do |value|
+      fail "Gateway '#{value}' is not an IP address!" unless @resource.is_ip? value
     end
 
-    newproperty(:interface) do
-      newvalues(/^[a-z_][0-9a-z\.\-\_]*[0-9a-z]$/)
-      desc "The interface name"
+  end
+
+  newproperty(:metric) do
+    desc 'Route metric'
+    newvalues %r(^\d+$)
+
+    defaultto { '0' }
+
+    validate do |value|
+      int_metric = value.to_i
+      fail 'Metric is not a number!' unless int_metric.to_s == value
+      min_metric = 0
+      max_metric = 65535
+      fail "Metric should be more then '#{min_metric}'!" unless int_metric >= min_metric
+      fail "Metric should be less then '#{max_metric}'!" unless int_metric <= max_metric
     end
 
-    newproperty(:vendor_specific) do
-      desc "Hash of vendor specific properties"
-      #defaultto {}  # no default value should be!!!
-      # provider-specific properties, can be validating only by provider.
-      validate do |val|
-        if ! val.is_a? Hash
-          fail("Vendor_specific should be a hash!")
-        end
-      end
+  end
 
-      munge do |value|
-        (value.empty?  ?  nil  :  L23network.reccursive_sanitize_hash(value))
-      end
+  newproperty(:interface) do
+    desc 'The interface name'
+    newvalues %r(^[a-z_][0-9a-z\.\-_]*[0-9a-z]$)
+  end
 
-      def should_to_s(value)
-        "\n#{value.to_yaml}\n"
-      end
+  newproperty(:vendor_specific) do
+    desc 'Hash of vendor specific properties'
 
-      def is_to_s(value)
-        "\n#{value.to_yaml}\n"
-      end
-
-      def insync?(value)
-        should_to_s(value) == should_to_s(should)
-      end
+    validate do |value|
+      fail 'Vendor_specific should be a hash!' unless value.is_a? Hash
     end
 
-    newproperty(:type) do
-      desc "RO field, type of route"
+    munge do |value|
+      break unless value.any?
+      L23network.reccursive_sanitize_hash value
     end
 
-    autorequire(:l2_port) do
-      [self[:interface]]
+    def should_to_s(value)
+      value.inspect
     end
+
+    def is_to_s(value)
+      value.inspect
+    end
+
+    def insync?(value)
+      should == value
+    end
+  end
+
+  newparam(:debug, :boolean => true, :parent => Puppet::Parameter::Boolean) do
+    desc %q(Don't actually do any changes)
+    defaultto { false }
+  end
+
+  newparam(:purge, :boolean => true, :parent => Puppet::Parameter::Boolean) do
+    desc %q(Purge other unmanaged routes to the same destination and with the same metric)
+    defaultto { false }
+  end
+
+  autorequire(:l2_port) do
+    [self[:interface]]
+  end
+
+  def is_ip?(value)
+    begin
+      ip = IPAddr.new value
+      ip.is_a? IPAddr
+    rescue
+      false
+    end
+  end
+
+  def generate
+    routes_to_remove = []
+    return routes_to_remove unless purge?
+    discovered_routes.each do |discovered_route|
+      # do not remove a route if the same route is managed by catalog
+      next if catalog_routes.find do |catalog_route|
+        catalog_route[:destination] == discovered_route.provider.destination and
+            catalog_route[:metric] == discovered_route.provider.metric
+      end
+      discovered_route[:ensure] = :absent
+      discovered_route[:debug] = self[:debug]
+      discovered_route[:purge] = false
+      debug "Generate #{discovered_route.inspect} to purge it!"
+      routes_to_remove << discovered_route
+    end
+    routes_to_remove
+  end
+
+  def inspect
+    route = "L3_route[#{self[:name]}]"
+    route += " (#{self[:destination]}, #{self[:metric]})" if
+        self[:destination] and self[:metric]
+    route += " [#{self.provider.destination}, #{self.provider.metric}]" if
+        self.provider and self.provider.destination and self.provider.metric
+    route
+  end
+
+  def catalog_resources
+    self.catalog.resources
+  end
+
+  def catalog_routes
+    catalog_resources.select do |resource|
+      resource.is_a? Puppet::Type.type :l3_route
+    end
+  end
+
+  def discovered_routes
+    self.class.instances.select do |resource|
+      # drop local-link routes
+      next false unless resource.provider.gateway
+      true
+    end
+  end
+
+  def validate
+    return unless self.catalog
+    duplicate = catalog_routes.find do |catalog_route|
+      catalog_route[:destination] == self[:destination] and
+          catalog_route[:metric] == self[:metric]
+    end
+    return unless duplicate
+    fail "#{duplicate.inspect} is a duplicate of #{self.inspect} because they have the same destination and metric!"
+  end
+
 end
 # vim: set ts=2 sw=2 et :
