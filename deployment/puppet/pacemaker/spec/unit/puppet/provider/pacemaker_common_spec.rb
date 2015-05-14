@@ -226,8 +226,16 @@ describe Puppet::Provider::Pacemaker_common do
   end
 
   context 'node id functions' do
+    let(:node_ids) do
+      {
+          "node-1" => {"id"=>"1", "uname"=>"node-1"},
+          "node-2" => {"id"=>"2", "uname"=>"node-2"},
+          "node-3" => {"id"=>"3", "uname"=>"node-3"},
+      }
+    end
+
     it 'can get the node ids structure' do
-      expect(@class.node_ids).to eq({"node-1"=>"1", "node-2"=>"2", "node-3"=>"3"})
+      expect(@class.node_ids).to eq node_ids
     end
   end
 
