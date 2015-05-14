@@ -111,7 +111,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             # do not remove bridge-based interface from his bridge
             case br_type
             when :ovs
-              ovs_vsctl(['del-port', br_name, @resource[:interface]])
+              self.class.ovs_vsctl(['del-port', br_name, @resource[:interface]])
             when :lnx
               brctl('delif', br_name, @resource[:interface])
             else
@@ -123,7 +123,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         if !@property_flush[:bridge].nil? and @property_flush[:bridge].to_sym != :absent
           case @bridges[@property_flush[:bridge]][:br_type]
           when :ovs
-            ovs_vsctl(['add-port', @property_flush[:bridge], @resource[:interface]])
+            self.class.ovs_vsctl(['add-port', @property_flush[:bridge], @resource[:interface]])
           when :lnx
             begin
               brctl('addif', @property_flush[:bridge], @resource[:interface])
