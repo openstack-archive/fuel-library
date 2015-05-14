@@ -161,18 +161,11 @@ class openstack::network::neutron_agents (
         primary           => $ha_agents ? { 'primary' => true, default => false},
       }
     }
-    if $enable_tunneling {
-      if $net_mtu {
-        $mtu = $net_mtu - 42
-      } else {
-        $mtu = 1458
-      }
+
+    if $net_mtu {
+      $mtu = $net_mtu
     } else {
-      if $net_mtu {
-        $mtu = $net_mtu
-      } else {
-        $mtu = 1500
-      }
+      $mtu = 1500
     }
     file { '/etc/neutron/dnsmasq-neutron.conf':
       owner   => 'root',

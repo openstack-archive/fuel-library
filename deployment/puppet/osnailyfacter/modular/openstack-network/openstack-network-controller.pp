@@ -132,10 +132,19 @@ if $network_provider == 'neutron' {
     $bridge_mappings = []
   }
 
+  # Required to use get_network_role_property
+  prepare_network_config($network_scheme)
+
   if $neutron_settings['L2']['tunnel_id_ranges'] {
-    prepare_network_config($network_scheme)
+    # tunneling_mode
+    $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
     $iface = get_network_role_property('neutron/mesh', 'phys_dev')
     $net_mtu = get_transformation_property('mtu', $iface[0])
+    if $net_mtu {
+      $mtu_for_virt_network = $net_mtu - 42
+    } else {
+      $mtu_for_virt_network = 1458
+    }
     $enable_tunneling = true
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
     $alt_fallback = split($neutron_settings['L2']['tunnel_id_ranges'], ':')
@@ -143,16 +152,14 @@ if $network_provider == 'neutron' {
       tenant_name         => $keystone_admin_tenant,
       fallback_segment_id => $alt_fallback[0]
     }
-    # Required to use get_network_role_property
-    $local_ip = get_network_role_property('neutron/mesh', 'ipaddr')
 
   } else {
-    prepare_network_config($network_scheme)
+    # vlan_mode
     $iface = get_network_role_property('neutron/private', 'phys_dev')
-    $net_mtu = get_transformation_property('mtu', $iface[0])
+    $mtu_for_virt_network = get_transformation_property('mtu', $iface[0])
     $enable_tunneling = false
+    $tunneling_ip = false
     $tunnel_id_ranges = []
-    $local_ip = $internal_address
   }
   notify{ $tunnel_id_ranges:}
 
@@ -211,17 +218,15 @@ class { 'openstack::network':
   base_mac            => $base_mac,
   core_plugin         => $core_plugin,
   service_plugins     => $service_plugins,
+  net_mtu             => $mtu_for_virt_network,
 
   #ovs
   mechanism_drivers   => $mechanism_drivers,
-  local_ip            => $local_ip,
+  local_ip            => $tunneling_ip,
   bridge_mappings     => $bridge_mappings,
   network_vlan_ranges => $vlan_range,
   enable_tunneling    => $enable_tunneling,
   tunnel_id_ranges    => $tunnel_id_ranges,
-
-  #dhcp
-  net_mtu             => $net_mtu,
 
   #Queue settings
   queue_provider  => hiera('queue_provider', 'rabbitmq'),
