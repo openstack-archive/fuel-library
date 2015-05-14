@@ -4,25 +4,28 @@ require 'puppetx/l23_utils'
 
 Puppet::Type.type(:l3_route).provide(:lnx) do
   defaultfor :osfamily => :linux
-  commands   :iproute => 'ip'
-
+  commands   :ip => 'ip'
 
   def self.prefetch(resources)
-    interfaces = instances
-    resources.keys.each do |name|
-      if provider = interfaces.find{ |ii| ii.name == name }
-        resources[name].provider = provider
+    instances.each do |provider|
+      resources.each do |name, resource|
+        next unless resources[:destination] == provider.destination
+        next unless resources[:gateway] == provider.gateway
+        next unless resources[:metric] == provider.metric
+        debug "L3_route '#{name}' prefetched!"
+        resource.provider = provider
       end
     end
   end
 
-  def self.get_routes
+  def self.routes
     # return array of hashes -- all defined routes.
     rv = []
     # cat /proc/net/route returns information about routing table in format:
     # Iface Destination Gateway   Flags RefCnt Use Metric Mask    MTU Window IRTT
     # eth0  00000000    0101010A  0003   0      0    0    00000000 0    0     0
     # eth0  0001010A    00000000  0001   0      0    0    00FFFFFF 0    0     0
+
     File.open('/proc/net/route').readlines.reject{|l| l.match(/^[Ii]face.+/) or l.match(/^(\r\n|\n|\s*)$|^$/)}.map{|l| l.split(/\s+/)}.each do |line|
       #https://github.com/kwilczynski/facter-facts/blob/master/default_gateway.rb
       iface = line[0]
@@ -49,124 +52,109 @@ Puppet::Type.type(:l3_route).provide(:lnx) do
       rv << {
         :destination    => dest,
         :gateway        => gateway,
-        :metric         => metric.to_i,
+        :metric         => metric,
         :type           => route_type,
         :interface      => iface,
       }
     end
     # this sort need for prioritize routes by metrics
-    return rv.sort_by{|r| r[:metric]||0}
+    return rv.sort_by {|r| r[:metric].to_i || 0 }
   end
 
   def self.instances
-    rv = []
-    routes = get_routes()
+    instances = []
     routes.each do |route|
-      name = L23network.get_route_resource_name(route[:destination], route[:metric])
-      props = {
-        :ensure         => :present,
-        :name           => name,
-      }
-      props.merge! route
-      props.delete(:metric) if props[:metric] == 0
-      debug("PREFETCHED properties for '#{name}': #{props}")
-      rv << new(props)
+      route[:ensure] = :present
+      route[:name] = L23network.get_route_resource_name route[:destination], route[:metric]
+      debug "PREFETCHED route: #{route.inspect}"
+      instances << new(route)
     end
-    return rv
+    return instances
   end
 
   def exists?
+    debug 'Call: exists?'
     @property_hash[:ensure] == :present
   end
 
   def create
-    debug("CREATE resource: #{@resource}")
-    @property_flush = {}.merge! @resource
-    #todo(sv): check accessability of gateway.
-    cmd = ['route', 'add', @resource[:destination], 'via', @resource[:gateway]]
-    cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
-    iproute(cmd)
-    @old_property_hash = {}
-    @old_property_hash.merge! @resource
+    debug 'Call: create'
+    @property_hash = {}
+    [:destination, :gateway, :metric, :vendor_specific].each do |property|
+      @property_hash[property] = @resource[property]
+    end
+    @property_hash
   end
 
   def destroy
-    debug("DESTROY resource: #{@resource}")
-    cmd = ['--force', 'route', 'del', @property_hash[:destination], 'via', @property_hash[:gateway]]
-    cmd << ['metric', @property_hash[:metric]] if @property_hash[:metric] != :absent && @property_hash[:metric].to_i > 0
-    iproute(cmd)
-    @property_hash.clear
+    debug 'Call: destroy'
+    @property_hash = {}
+    @property_hash[:ensure] = :absent
   end
 
-  def initialize(value={})
-    super(value)
-    @property_flush = {}
-    @old_property_hash = {}
-    @old_property_hash.merge! @property_hash
+  def route_delete
+    cmd = ['--force', 'route', 'delete', @property_hash[:destination]]
+    cmd += ['via', @property_hash[:gateway]]
+    cmd += ['metric', @property_hash[:metric]]
+    ip cmd
+  end
+
+  def route_add
+    cmd = ['--force', 'route', 'add', @property_hash[:destination]]
+    cmd += ['via', @property_hash[:gateway]]
+    cmd += ['metric', @property_hash[:metric]]
+    ip cmd
   end
 
   def flush
-    if ! @property_flush.empty?
-      debug("FLUSH properties: #{@property_flush}")
-      #
-      # FLUSH changed properties
-      if @property_flush.has_key? :gateway
-        # gateway can't be "absent" by design
-        #debug("RES: '#{@resource[:gateway]}', OLD:'#{@old_property_hash[:gateway]}', FLU:'#{@property_flush[:gateway]}'")
-        if @old_property_hash[:gateway] != @property_flush[:gateway]
-          cmd = ['route', 'change', @resource[:destination], 'via', @property_flush[:gateway]]
-          cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
-          iproute(cmd)
-        end
-      end
-
-      @property_hash = resource.to_hash
-    end
+    debug 'Call: flush'
+    p @property_hash
   end
 
-  #-----------------------------------------------------------------
+  #####################################
+
   def destination
-    @property_hash[:destination] || :absent
+    @property_hash[:destination]
   end
-  def destination=(val)
-    @property_flush[:destination] = val
+  def destination=(value)
+    @property_flush[:destination] = value
   end
 
   def gateway
-    @property_hash[:gateway] || :absent
+    @property_hash[:gateway]
   end
-  def gateway=(val)
-    @property_flush[:gateway] = val
+
+  def gateway=(value)
+    @property_flush[:gateway] = value
   end
 
   def metric
-    @property_hash[:metric] || :absent
+    @property_hash[:metric]
   end
-  def metric=(val)
-    @property_flush[:metric] = val
+
+  def metric=(value)
+    @property_flush[:metric] = value
   end
 
   def interface
-    @property_hash[:interface] || :absent
+    @property_hash[:interface]
   end
-  def interface=(val)
-    @property_flush[:interface] = val
+
+  def interface=(value)
+    @property_flush[:interface] = value
   end
 
   def type
-    @property_hash[:type] || :absent
-  end
-  def type=(val)
-    @property_flush[:type] = val
+    @property_hash[:type]
   end
 
   def vendor_specific
-    @property_hash[:vendor_specific] || :absent
+    @property_hash[:vendor_specific]
   end
-  def vendor_specific=(val)
-    nil
+
+  def vendor_specific=(value)
+    @property_hash[:vendor_specific] = value
   end
-  #-----------------------------------------------------------------
 
 end
 # vim: set ts=2 sw=2 et :
