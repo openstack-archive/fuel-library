@@ -16,6 +16,7 @@ let(:network_scheme) do
     eth2: {}
     eth3: {}
     eth4: {}
+    eth44: {}
   transformations:
     - action: add-br
       name: br-storage
@@ -45,6 +46,8 @@ let(:network_scheme) do
     - action: add-port
       name: bond0.102
       bridge: br-ex
+    - action: add-port
+      name: bond0.103
     - action: add-br
       name: br-floating
       provider: ovs
@@ -61,6 +64,11 @@ let(:network_scheme) do
       - br-prv
       - br-storage
       provider: ovs
+    - action: add-br
+      name: br44
+    - action: add-port
+      name: eth44
+      bridge: br44
   endpoints:
     eth0:
       IP: 'none'
@@ -80,6 +88,10 @@ let(:network_scheme) do
       IP: none
     br-prv:
       IP: none
+    br44:
+      IP: none
+    bond.103:
+      IP: none
   roles:
     admin: eth0
     ex: br-ex
@@ -88,6 +100,8 @@ let(:network_scheme) do
     neutron/floating: br-floating
     neutron/private: br-prv
     xxx: eth4
+    zzz: br44
+    bond_103: bond.103
 eof
 end
 
@@ -140,6 +154,15 @@ end
     it 'should return physical device name for untagged interface with simple transformation' do
       should run.with_params('xxx', 'phys_dev').and_return(['eth4'])
     end
+
+    it 'should return physical device name for subinterface of bond' do
+      should run.with_params('bond_103', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
+    end
+
+    it 'should return physical device name for endpoint with interface with long name, contains shot name of another interface' do
+      should run.with_params('zzz', 'phys_dev').and_return(['eth44'])
+    end
+
 
     it 'should return NIL for "non-existent" network role' do
       should run.with_params('non-existent', 'phys_dev').and_return(nil)
