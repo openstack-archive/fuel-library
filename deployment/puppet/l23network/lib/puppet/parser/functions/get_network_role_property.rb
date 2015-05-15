@@ -91,17 +91,7 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
     when 'IPADDR_NETMASK_PAIR'
       rv = (ipaddr_cidr.nil?  ?  [nil,nil]  :  [prepare_cidr(ipaddr_cidr)[0].to_s, IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s])
     when 'PHYS_DEV'
-      devices = L23network::Scheme.get_phys_dev_by_endpoint(interface, cfg[:interfaces], cfg[:transformations])
-      if devices.any? { |dev| /^bond/ =~ dev }
-        for i in 0..cfg[:transformations].size-1
-           transform = cfg[:transformations][i]
-           name = transform[:name]
-           if transform[:name] == devices[0]
-             devices.push(transform[:interfaces])
-           end
-        end
-      end
-      rv = devices.flatten
+      rv = L23network.get_phys_dev_by_transformation(interface, lookupvar('l3_fqdn_hostname'))
   end
 
   rv
