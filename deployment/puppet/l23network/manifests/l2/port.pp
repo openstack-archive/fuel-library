@@ -39,6 +39,7 @@ define l23network::l2::port (
   $vlan_dev              = undef,
   $mtu                   = undef,
   $ethtool               = undef,
+  $delay_while_up        = undef,
   $master                = undef,  # used for bonds automatically
   $slave                 = undef,  # used for bonds automatically
 # $type                  = undef,  # was '',
@@ -94,6 +95,10 @@ define l23network::l2::port (
     }
   }
 
+  if $delay_while_up and ! is_numeric($delay_while_up) {
+    fail("Delay for waiting after UP interface ${port} should be numeric, not an '$delay_while_up'.")
+  }
+
   # # implicitly create bridge, if it given and not exists
   # if $bridge {
   #   if !defined(L2_bridge[$bridge]) {
@@ -129,6 +134,7 @@ define l23network::l2::port (
       mtu             => $mtu,
       onboot          => $onboot,
       ethtool         => $ethtool,
+      delay_while_up  => $delay_while_up,
       vendor_specific => $vendor_specific,
       provider        => $config_provider
     }
@@ -155,5 +161,21 @@ define l23network::l2::port (
 
     Anchor['l23network::init'] -> K_mod<||> -> L2_port<||>
   }
+
+  if $::osfamily =~ /(?i)redhat/ {
+    if $delay_while_up {
+      file {"${::l23network::params::interfaces_dir}/interface-up-script-${port_name}":
+        ensure  => present,
+        owner   => 'root',
+        mode    => '0755',
+        content => template("l23network/centos_post_up.erb"),
+      } -> L23_stored_config <| title == $port_name |>
+    } else {
+      file {"${::l23network::params::interfaces_dir}/interface-up-script-${port_name}":
+        ensure  => absent,
+      } -> L23_stored_config <| title == $port_name |>
+    }
+  }
+
 }
 # vim: set ts=2 sw=2 et :

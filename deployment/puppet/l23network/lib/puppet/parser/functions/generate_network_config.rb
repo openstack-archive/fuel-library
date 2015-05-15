@@ -60,6 +60,7 @@ module L23network
         :vlan_id              => nil,
         :vlan_dev             => nil,
 #       :trunks               => [],
+        :delay_while_up       => nil,
         :vendor_specific      => nil,
         :provider             => def_provider
       }
@@ -70,6 +71,7 @@ module L23network
         :interfaces           => [],
 #       :vlan_id              => 0,
 #       :trunks               => [],
+        :delay_while_up       => nil,
         :bond_properties      => nil,
         :interface_properties => nil,
         :vendor_specific      => nil,
@@ -272,7 +274,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       # create puppet resources for transformations
       resource = res_factory[action]
       resource_properties = { }
-      debug("generate_network_config(): Transformation '#{trans[:name]}' will be produced as \n#{trans.to_yaml.gsub('!ruby/sym ',':')}")
+      debug("generate_network_config(): Transformation '#{trans[:name]}' will be produced as \n#{trans.to_yaml.gsub('!ruby/sym ','')}")
 
       trans.select{|k,v| k != :action}.each do |k,v|
         if ['Hash', 'Array'].include? v.class.to_s
@@ -319,7 +321,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
 
         # create resource
         resource = res_factory[:ifconfig]
-        debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with additional properties \n#{endpoints[endpoint_name].to_yaml.gsub('!ruby/sym ',':')}")
+        debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with additional properties \n#{endpoints[endpoint_name].to_yaml.gsub('!ruby/sym ','')}")
         # collect properties for creating endpoint resource
         endpoints[endpoint_name].each_pair do |k,v|
           if k.to_s.downcase == 'routes'
