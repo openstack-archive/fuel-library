@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe 'concat', :type => :define do
 
-  shared_examples 'concat' do |title, params, id| 
+  shared_examples 'concat' do |title, params, id|
     params = {} if params.nil?
     id = 'root' if id.nil?
 
@@ -84,7 +84,7 @@ describe 'concat', :type => :define do
             "-o \"#{concatdir}/#{safe_name}/fragments.concat.out\" " +
             "-d \"#{concatdir}/#{safe_name}\""
 
-      # flag order: fragdir, warnflag, forceflag, orderflag, newlineflag 
+      # flag order: fragdir, warnflag, forceflag, orderflag, newlineflag
       if p.has_key?(:warn)
         case p[:warn]
         when TrueClass
@@ -144,6 +144,7 @@ describe 'concat', :type => :define do
         should contain_exec("concat_#{title}").with({
           :alias   => "concat_#{fragdir}",
           :command => 'true',
+          :unless  => 'true',
           :path    => '/bin:/usr/bin',
         })
       end
@@ -164,7 +165,7 @@ describe 'concat', :type => :define do
         context title do
           let(:title) { title }
           it 'should fail' do
-            expect { should }.to raise_error(Puppet::Error, /is not an absolute path/)
+            should compile.and_raise_error(/is not an absolute path/)
           end
         end
       end
@@ -194,7 +195,7 @@ describe 'concat', :type => :define do
       let(:title) { '/etc/foo.bar' }
       let(:params) {{ :ensure => 'invalid' }}
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /#{Regexp.escape('does not match "^present$|^absent$"')}/)
+        should compile.and_raise_error(/#{Regexp.escape('does not match "^present$|^absent$"')}/)
       end
     end
   end # ensure =>
@@ -209,7 +210,7 @@ describe 'concat', :type => :define do
         let(:title) { '/etc/foo.bar' }
         let(:params) {{ :path => path }}
         it 'should fail' do
-          expect { should }.to raise_error(Puppet::Error, /is not an absolute path/)
+          should compile.and_raise_error(/is not an absolute path/)
         end
       end
     end
@@ -224,7 +225,7 @@ describe 'concat', :type => :define do
       let(:title) { '/etc/foo.bar' }
       let(:params) {{ :owner => false }}
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a string/)
+        should compile.and_raise_error(/is not a string/)
       end
     end
   end # owner =>
@@ -238,7 +239,7 @@ describe 'concat', :type => :define do
       let(:title) { '/etc/foo.bar' }
       let(:params) {{ :group => false }}
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a string/)
+        should compile.and_raise_error(/is not a string/)
       end
     end
   end # group =>
@@ -252,7 +253,7 @@ describe 'concat', :type => :define do
       let(:title) { '/etc/foo.bar' }
       let(:params) {{ :mode => false }}
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a string/)
+        should compile.and_raise_error(/is not a string/)
       end
     end
   end # mode =>
@@ -270,7 +271,7 @@ describe 'concat', :type => :define do
           it_behaves_like 'concat', '/etc/foo.bar', { :warn => warn }
 
           it 'should create a warning' do
-            pending('rspec-puppet support for testing warning()')
+            skip('rspec-puppet support for testing warning()')
           end
         end
       end
@@ -280,7 +281,7 @@ describe 'concat', :type => :define do
       let(:title) { '/etc/foo.bar' }
       let(:params) {{ :warn => 123 }}
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a string or boolean/)
+        should compile.and_raise_error(/is not a string or boolean/)
       end
     end
   end # warn =>
@@ -296,7 +297,7 @@ describe 'concat', :type => :define do
       let(:title) { '/etc/foo.bar' }
       let(:params) {{ :force => 123 }}
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a boolean/)
+        should compile.and_raise_error(/is not a boolean/)
       end
     end
   end # force =>
@@ -310,7 +311,7 @@ describe 'concat', :type => :define do
       let(:title) { '/etc/foo.bar' }
       let(:params) {{ :backup => false }}
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a string/)
+        should compile.and_raise_error(/is not a string/)
       end
     end
   end # backup =>
@@ -326,7 +327,7 @@ describe 'concat', :type => :define do
       let(:title) { '/etc/foo.bar' }
       let(:params) {{ :replace => 123 }}
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a boolean/)
+        should compile.and_raise_error(/is not a boolean/)
       end
     end
   end # replace =>
@@ -342,7 +343,7 @@ describe 'concat', :type => :define do
       let(:title) { '/etc/foo.bar' }
       let(:params) {{ :order => 'invalid' }}
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /#{Regexp.escape('does not match "^alpha$|^numeric$"')}/)
+        should compile.and_raise_error(/#{Regexp.escape('does not match "^alpha$|^numeric$"')}/)
       end
     end
   end # order =>
@@ -358,7 +359,7 @@ describe 'concat', :type => :define do
       let(:title) { '/etc/foo.bar' }
       let(:params) {{ :ensure_newline => 123 }}
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a boolean/)
+        should compile.and_raise_error(/is not a boolean/)
       end
     end
   end # ensure_newline =>
@@ -369,7 +370,7 @@ describe 'concat', :type => :define do
         it_behaves_like 'concat', '/etc/foo.bar', { :gnu => 'foo'}
 
         it 'should create a warning' do
-          pending('rspec-puppet support for testing warning()')
+          skip('rspec-puppet support for testing warning()')
         end
       end
     end
