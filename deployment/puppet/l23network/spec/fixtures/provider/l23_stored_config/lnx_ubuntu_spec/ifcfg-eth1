@@ -1,0 +1,4 @@
+auto eth1
+iface eth1 inet static
+address 169.254.0.1/24
+post-up sleep 25

@@ -51,6 +51,11 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
           :detect_re    => /(post-)?up\s+ethtool\s+(-\w+)\s+([\w\-]+)\s+(\w+)\s+(\w+)/,
           :detect_shift => 2,
       },
+      :delay_while_up  => {
+          # post-up sleep 10
+          :detect_re    => /(post-)?up\s+sleep\s+(\d+)/,
+          :detect_shift => 2,
+      },
     }
   end
   def collected_properties
@@ -301,6 +306,15 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     return rv
   end
 
+  def self.mangle__delay_while_up(data)
+    # incoming data is sleep delay
+    # if multiple sleeps present we should sum are delays
+    rv = 0
+    data.each do |record|
+      rv += record[0].to_i
+    end
+    return rv
+  end
 
   ###
   # Hash to file
@@ -433,6 +447,13 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       rv << "post-up ip route add #{rou['destination']} via #{rou['gateway']} #{mmm} | true # #{name}"
     end
     rv
+  end
+
+  def self.unmangle__delay_while_up(provider, data)
+    # should generate one line:
+    # "post-up sleep NN"
+    return [] if ['', 'absent'].include? data.to_s
+    ["post-up sleep #{data[0]}"]
   end
 
   def self.unmangle__ethtool(provider, data)
