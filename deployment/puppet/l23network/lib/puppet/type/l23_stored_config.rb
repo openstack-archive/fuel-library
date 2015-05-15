@@ -179,6 +179,26 @@ Puppet::Type.newtype(:l23_stored_config) do
     end
   end
 
+  newproperty(:delay_while_up) do
+    desc "Delay while interface stay UP"
+    newvalues(/^\d+$/, :absent, :none, :undef, :nil)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    aliasvalue(0,      :absent)
+    defaultto :absent
+    validate do |val|
+      min = 0
+      max = 600
+      if ! (val.to_s == 'absent' or (min .. max).include?(val.to_i))
+        raise ArgumentError, "'#{val}' is not a valid delay value."
+      end
+    end
+    munge do |val|
+      ((val == :absent)  ?  []  :  [val.to_i])
+    end
+  end
+
   newproperty(:bond_master) do
     desc "bond name for bonded interface"
     newvalues(/^[\w+\-]+$/, :none, :undef, :nil, :absent)
