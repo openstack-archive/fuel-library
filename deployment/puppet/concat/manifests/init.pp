@@ -75,7 +75,9 @@ define concat(
     fail('$warn is not a string or boolean')
   }
   validate_bool($force)
-  validate_string($backup)
+  if ! concat_is_bool($backup) and ! is_string($backup) {
+    fail('$backup must be string or bool!')
+  }
   validate_bool($replace)
   validate_re($order, '^alpha$|^numeric$')
   validate_bool($ensure_newline)
@@ -221,10 +223,12 @@ define concat(
       default   => '/bin:/usr/bin',
     }
 
+    # Need to have an unless here for idempotency.
     exec { "concat_${name}":
       alias   => "concat_${fragdir}",
       command => $absent_exec_command,
-      path    => $absent_exec_path
+      unless  => $absent_exec_command,
+      path    => $absent_exec_path,
     }
   }
 }
