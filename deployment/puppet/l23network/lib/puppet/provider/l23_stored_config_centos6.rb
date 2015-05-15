@@ -57,6 +57,7 @@ class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored
       :vlan_dev,
       :slave,
       :bonding_opts,
+      :delay_while_up,
     ]
   end
   def properties_fake

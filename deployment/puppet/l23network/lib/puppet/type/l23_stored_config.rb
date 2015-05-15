@@ -179,6 +179,19 @@ Puppet::Type.newtype(:l23_stored_config) do
     end
   end
 
+  newproperty(:delay_while_up) do
+    desc "Delay while interface stay UP"
+    newvalues(/^\d+$/, :absent, :none, :undef, :nil)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    aliasvalue(0,      :absent)
+    defaultto :absent
+    munge do |val|
+      ((val == :absent)  ?  :absent  :  [val.to_i])
+    end
+  end
+
   newproperty(:bond_master) do
     desc "bond name for bonded interface"
     newvalues(/^[\w+\-]+$/, :none, :undef, :nil, :absent)

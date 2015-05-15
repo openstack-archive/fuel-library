@@ -21,6 +21,7 @@ define l23network::l2::bond (
   $bridge                  = undef,
   $mtu                     = undef,
   $onboot                  = undef,
+  $delay_while_up          = undef,
 # $ethtool                 = undef,
   $bond_properties         = undef,  # bond configuration options
   $interface_properties    = undef,  # configuration options for included interfaces (mtu, ethtool, etc...)
@@ -115,6 +116,10 @@ define l23network::l2::bond (
     validate_array($interfaces)
   }
 
+  if $delay_while_up and ! is_numeric($delay_while_up) {
+    fail("Delay for waiting after UP interface ${port} should be numeric, not an '$delay_while_up'.")
+  }
+
   # Use $monolith_bond_providers list for prevent creating ports for monolith bonds
   $actual_provider_for_bond_interface = $provider ? {
     undef   => default_provider_for('L2_port'),
@@ -154,6 +159,7 @@ define l23network::l2::bond (
       bond_miimon           => $real_bond_properties[miimon],
       bond_lacp_rate        => $real_bond_properties[lacp_rate],
       bond_xmit_hash_policy => $real_bond_properties[xmit_hash_policy],
+      delay_while_up        => $delay_while_up,
       vendor_specific       => $vendor_specific,
       provider              => $config_provider
     }
@@ -176,6 +182,21 @@ define l23network::l2::bond (
 
     Anchor['l23network::init'] -> K_mod<||> -> L2_bond<||>
 
+  }
+
+  if $::osfamily =~ /(?i)redhat/ {
+    if $delay_while_up {
+      file {"${::l23network::params::interfaces_dir}/interface-up-script-${bond}":
+        ensure  => present,
+        owner   => 'root',
+        mode    => '0755',
+        content => template("l23network/centos_post_up.erb"),
+      } -> L23_stored_config <| title == $bond |>
+    } else {
+      file {"${::l23network::params::interfaces_dir}/interface-up-script-${bond}":
+        ensure  => absent,
+      } -> L23_stored_config <| title == $bond |>
+    }
   }
 
 }
