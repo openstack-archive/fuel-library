@@ -100,6 +100,15 @@ This script manages haproxy daemon with namespace support
 
 <parameters>
 
+<parameter name="dummy" unique="1">
+<longdesc lang="en">
+This is a dummy parameter.
+Pacemaker needs it to enable reload operation for the resource
+</longdesc>
+<shortdesc lang="en">Dummy parameter</shortdesc>
+<content type="boolean" default="false" />
+</parameter>
+
 <parameter name="ns">
 <longdesc lang="en">
 Name of network namespace.
@@ -330,6 +339,11 @@ set_ns_routing() {
     ocf_log debug "Creating NAT rule on the host system for traffic from IP: ${OCF_RESKEY_namespace_ip}"
     ocf_run iptables -t nat -A POSTROUTING -s "${OCF_RESKEY_namespace_ip}" -j MASQUERADE -m comment --comment "masquerade-for-haproxy-namespace"
   fi
+
+  ### Needed for ML2 routing ###
+  ocf_run sysctl -w net.ipv4.conf.${OCF_RESKEY_host_interface}.rp_filter=2
+  ocf_run $RUN_IN_NS sysctl -w net.ipv4.conf.all.rp_filter=2
+  ##############################
 
   if [[ "${OCF_RESKEY_other_networks}" != "false" ]] ; then
     for network in ${OCF_RESKEY_other_networks}

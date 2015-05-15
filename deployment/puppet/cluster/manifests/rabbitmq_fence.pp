@@ -23,6 +23,7 @@ class cluster::rabbitmq_fence(
       $init_name         = '/etc/init.d/rabbit-fence'
       $init_source       = 'puppet:///modules/cluster/rabbit-fence.init'
       $init_mode         = '0755'
+      $service_name      = 'rabbit-fence'
     }
     'Debian': {
       $packages          = [ 'python-gobject', 'python-gobject-2',
@@ -31,6 +32,7 @@ class cluster::rabbitmq_fence(
       $init_name         = '/etc/init/rabbit-fence.conf'
       $init_source       = 'puppet:///modules/cluster/rabbit-fence.upstart'
       $init_mode         = '0644'
+      $service_name      = 'fuel-rabbit-fence'
     }
     default: {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem:\
@@ -49,7 +51,6 @@ class cluster::rabbitmq_fence(
     hasrestart => true,
   }
 
-  package { $packages: } ->
   service { $dbus_service_name:
     ensure     => running,
     enable     => true,
@@ -60,19 +61,10 @@ class cluster::rabbitmq_fence(
     enable     => true,
   } ->
 
-  file { $init_name :
-    source => $init_source,
-    mode   => $init_mode,
-  } ->
-
-  file { '/usr/bin/rabbit-fence.py':
-    source  => 'puppet:///modules/cluster/rabbit-fence.py',
-    mode    => '0755',
-  } ->
-
   service { 'rabbit-fence':
-    enable     => $enabled,
-    ensure     => $enabled ? { true => running, false => stopped }
+    name   => $service_name,
+    enable => $enabled,
+    ensure => $enabled ? { true => running, false => stopped }
   }
 
   if $::osfamily == 'Debian' {
