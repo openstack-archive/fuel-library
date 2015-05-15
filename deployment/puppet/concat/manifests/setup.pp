@@ -19,10 +19,10 @@ class concat::setup {
   } else {
     fail ('$concat_basedir not defined. Try running again with pluginsync=true on the [master] and/or [main] section of your node\'s \'/etc/puppet/puppet.conf\'.')
   }
-  
+
   # owner and mode of fragment files (on windows owner and access rights should be inherited from concatdir and not explicitly set to avoid problems)
-  $fragment_owner = $osfamily ? { 'windows' => undef, default => $::id }
-  $fragment_mode  = $osfamily ? { 'windows' => undef, default => '0640' }
+  $fragment_owner = $::osfamily ? { 'windows' => undef, default => $::id }
+  $fragment_mode  = $::osfamily ? { 'windows' => undef, default => '0640' }
 
   $script_name = $::kernel ? {
     'windows' => 'concatfragments.rb',
@@ -31,9 +31,9 @@ class concat::setup {
 
   $script_path = "${concatdir}/bin/${script_name}"
 
-  $script_owner = $osfamily ? { 'windows' => undef, default => $::id }
+  $script_owner = $::osfamily ? { 'windows' => undef, default => $::id }
 
-  $script_mode = $osfamily ? { 'windows' => undef, default => '0755' }
+  $script_mode = $::osfamily ? { 'windows' => undef, default => '0755' }
 
   $script_command   = $::kernel ? {
     'windows' => "ruby.exe ${script_path}",
