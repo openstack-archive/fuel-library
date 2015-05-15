@@ -9,13 +9,7 @@ describe manifest do
     let (:interfaces) { interfaces }
     let (:vip_interfaces) { vip_interfaces }
 
-    it do
-      expect(subject).to contain_file('ns-ipaddr2-ocf').with(
-                             :path => '/usr/lib/ocf/resource.d/fuel/ns_IPaddr2',
-                         )
-    end
-
-    vip_interfaces.each do |interface|
+   vip_interfaces.each do |interface|
       it do
         expect(subject).to contain_cs_resource(interface).with(
                                :ensure => 'present',

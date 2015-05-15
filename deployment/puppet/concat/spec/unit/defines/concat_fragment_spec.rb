@@ -18,7 +18,7 @@ describe 'concat::fragment', :type => :define do
     fragdir          = "#{concatdir}/#{safe_target_name}"
     id               = 'root'
     if p[:ensure] == 'absent'
-      safe_ensure = p[:ensure] 
+      safe_ensure = p[:ensure]
     else
       safe_ensure = 'file'
     end
@@ -68,7 +68,7 @@ describe 'concat::fragment', :type => :define do
       let(:params) {{ :target => false }}
 
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a string/)
+        should compile.and_raise_error(/is not a string/)
       end
     end
   end # target =>
@@ -89,7 +89,7 @@ describe 'concat::fragment', :type => :define do
       let(:params) {{ :ensure => 'invalid', :target => '/etc/motd' }}
 
       it 'should create a warning' do
-        pending('rspec-puppet support for testing warning()')
+        skip('rspec-puppet support for testing warning()')
       end
     end
   end # ensure =>
@@ -110,7 +110,7 @@ describe 'concat::fragment', :type => :define do
       let(:params) {{ :content => false, :target => '/etc/motd' }}
 
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a string/)
+        should compile.and_raise_error(/is not a string/)
       end
     end
   end # content =>
@@ -131,7 +131,7 @@ describe 'concat::fragment', :type => :define do
       let(:params) {{ :source => false, :target => '/etc/motd' }}
 
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a string or an Array/)
+        should compile.and_raise_error(/is not a string or an Array/)
       end
     end
   end # source =>
@@ -152,7 +152,7 @@ describe 'concat::fragment', :type => :define do
       let(:params) {{ :order => false, :target => '/etc/motd' }}
 
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /is not a string/)
+        should compile.and_raise_error(/is not a string/)
       end
     end
   end # order =>
@@ -172,7 +172,7 @@ describe 'concat::fragment', :type => :define do
       end
 
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /#{Regexp.escape(error_msg)}/m)
+        should compile.and_raise_error(/#{Regexp.escape(error_msg)}/m)
       end
     end
 
@@ -188,7 +188,7 @@ describe 'concat::fragment', :type => :define do
       end
 
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /#{Regexp.escape(error_msg)}/m)
+        should compile.and_raise_error(/#{Regexp.escape(error_msg)}/m)
       end
     end
 
@@ -204,7 +204,7 @@ describe 'concat::fragment', :type => :define do
       end
 
       it 'should fail' do
-        expect { should }.to raise_error(Puppet::Error, /#{Regexp.escape(error_msg)}/m)
+        should compile.and_raise_error(/#{Regexp.escape(error_msg)}/m)
       end
     end
 
@@ -219,7 +219,7 @@ describe 'concat::fragment', :type => :define do
         }
 
         it 'should create a warning' do
-          pending('rspec-puppet support for testing warning()')
+          skip('rspec-puppet support for testing warning()')
         end
       end
     end # mode =>
@@ -232,7 +232,7 @@ describe 'concat::fragment', :type => :define do
         }
 
         it 'should create a warning' do
-          pending('rspec-puppet support for testing warning()')
+          skip('rspec-puppet support for testing warning()')
         end
       end
     end # owner =>
@@ -245,7 +245,7 @@ describe 'concat::fragment', :type => :define do
         }
 
         it 'should create a warning' do
-          pending('rspec-puppet support for testing warning()')
+          skip('rspec-puppet support for testing warning()')
         end
       end
     end # group =>
@@ -258,7 +258,7 @@ describe 'concat::fragment', :type => :define do
         }
 
         it 'should create a warning' do
-          pending('rspec-puppet support for testing warning()')
+          skip('rspec-puppet support for testing warning()')
         end
       end
     end # backup =>

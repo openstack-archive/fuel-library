@@ -36,7 +36,7 @@ describe 'concat::setup', :type => :class do
 
   context 'deprecated as a public class' do
     it 'should create a warning' do
-      pending('rspec-puppet support for testing warning()')
+      skip('rspec-puppet support for testing warning()')
     end
   end
 end
