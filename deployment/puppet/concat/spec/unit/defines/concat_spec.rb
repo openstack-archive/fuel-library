@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe 'concat', :type => :define do
 
-  shared_examples 'concat' do |title, params, id| 
+  shared_examples 'concat' do |title, params, id|
     params = {} if params.nil?
     id = 'root' if id.nil?
 
@@ -84,7 +84,7 @@ describe 'concat', :type => :define do
             "-o \"#{concatdir}/#{safe_name}/fragments.concat.out\" " +
             "-d \"#{concatdir}/#{safe_name}\""
 
-      # flag order: fragdir, warnflag, forceflag, orderflag, newlineflag 
+      # flag order: fragdir, warnflag, forceflag, orderflag, newlineflag
       if p.has_key?(:warn)
         case p[:warn]
         when TrueClass
@@ -144,6 +144,7 @@ describe 'concat', :type => :define do
         should contain_exec("concat_#{title}").with({
           :alias   => "concat_#{fragdir}",
           :command => 'true',
+          :unless  => 'true',
           :path    => '/bin:/usr/bin',
         })
       end
@@ -270,7 +271,7 @@ describe 'concat', :type => :define do
           it_behaves_like 'concat', '/etc/foo.bar', { :warn => warn }
 
           it 'should create a warning' do
-            pending('rspec-puppet support for testing warning()')
+            skip('rspec-puppet support for testing warning()')
           end
         end
       end
@@ -369,7 +370,7 @@ describe 'concat', :type => :define do
         it_behaves_like 'concat', '/etc/foo.bar', { :gnu => 'foo'}
 
         it 'should create a warning' do
-          pending('rspec-puppet support for testing warning()')
+          skip('rspec-puppet support for testing warning()')
         end
       end
     end
