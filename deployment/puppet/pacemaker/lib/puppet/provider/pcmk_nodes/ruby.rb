@@ -40,6 +40,18 @@ Puppet::Type.type(:pcmk_nodes).provide(:ruby, :parent => Puppet::Provider::Pacem
     end
   end
 
+  def crm_node_safe(*args)
+    if @resource[:debug]
+      debug (['crm_node'] + args).join ' '
+      return
+    end
+    begin
+      crm_node *args
+    rescue => e
+      info "Command failed: #{e.message}"
+    end
+  end
+
   ###################################
 
   def nodes_data
@@ -145,6 +157,7 @@ Puppet::Type.type(:pcmk_nodes).provide(:ruby, :parent => Puppet::Provider::Pacem
 
   def remove_pacemaker_node(node_name)
     debug "Remove pacemaker node: '#{node_name}'"
+    remove_pacemaker_crm_node node_name
     remove_pacemaker_node_record node_name
     remove_pacemaker_node_state node_name
     purge_node_locations node_name
@@ -156,6 +169,10 @@ Puppet::Type.type(:pcmk_nodes).provide(:ruby, :parent => Puppet::Provider::Pacem
     fail "Could not get all the data for the new pacemaker node '#{node_name}'!" unless node_id
     add_pacemaker_node_record node_name, node_id
     add_pacemaker_node_state node_name, node_id
+  end
+
+  def remove_pacemaker_crm_node(node_name)
+    crm_node_safe '--force', '--remove', node_name
   end
 
   def remove_pacemaker_node_record(node_name)

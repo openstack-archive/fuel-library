@@ -193,7 +193,13 @@ nodelist.node.2.ring0_addr (str) = 192.168.0.3
     before(:each) do
       provider.stubs(:remove_pacemaker_node_state)
       provider.stubs(:remove_pacemaker_node_record)
+      provider.stubs(:remove_pacemaker_crm_node)
       provider.stubs(:remove_location_constraint)
+    end
+
+    it 'removes the crm_node record' do
+      provider.expects(:remove_pacemaker_crm_node).with 'node-1'
+      provider.remove_pacemaker_node 'node-1'
     end
 
     it 'cleans out node record' do
