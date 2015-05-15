@@ -513,7 +513,7 @@ repo_setup:
   - priority: 20
     type: rpm
     name: MOS
-    uri: http://10.108.0.2:8080/2014.2-6.1/centos/x86_64
+    uri: http://mirror.fuel-infra.org/fwm/6.1/centos/os/x86_64
   metadata:
     restrictions:
     - action: hide

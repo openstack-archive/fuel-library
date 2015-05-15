@@ -395,7 +395,7 @@ repo_setup:
     section: main restricted
     suite: mos6.1
     type: deb
-    uri: http://10.108.0.2:8080/2014.2-6.1/ubuntu/x86_64
+    uri: http://mirror.fuel-infra.org/mos/ubuntu/
   - name: mos-updates
     priority: 1050
     section: main restricted
