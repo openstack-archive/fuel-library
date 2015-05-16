@@ -86,4 +86,6 @@ class rabbitmq::params {
   $environment_variables      = {}
   $config_variables           = {}
   $config_kernel_variables    = {}
+  $file_soft_limit            = 80000
+  $file_hard_limit            = 112640
 }
