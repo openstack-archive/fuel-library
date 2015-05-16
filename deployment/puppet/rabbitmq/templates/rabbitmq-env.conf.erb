@@ -3,3 +3,5 @@
 <%= key %>=<%= @environment_variables[key] %>
 <%- end -%>
 <%- end -%>
+
+[ -f /etc/default/rabbitmq-server ] && . /etc/default/rabbitmq-server
