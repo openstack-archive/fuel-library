@@ -98,7 +98,12 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
           else
             # add IP addresses
             adding_addresses.each do |ipaddr|
-              iproute('addr', 'add', ipaddr, 'dev', @resource[:interface])
+              begin
+                iproute('addr', 'add', ipaddr, 'dev', @resource[:interface])
+              rescue
+                rv = iproute('-o', 'addr', 'show', 'dev', @resource[:interface], 'to', "#{ipaddr.split('/')[0]}/32")
+                raise if ! rv.include? "inet #{ipaddr}"
+              end
             end
           end
         end
