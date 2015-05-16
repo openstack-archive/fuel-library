@@ -5,7 +5,14 @@ describe 'concat::setup', :type => :class do
   shared_examples 'setup' do |concatdir|
     concatdir = '/foo' if concatdir.nil?
 
-    let(:facts) {{ :concat_basedir => concatdir }}
+    let(:facts) do
+      {
+        :concat_basedir     => concatdir,
+        :caller_module_name => 'Test',
+        :osfamily           => 'Debian',
+        :id                 => 'root',
+      }
+    end
 
     it do
       should contain_file("#{concatdir}/bin/concatfragments.sh").with({
@@ -39,4 +46,48 @@ describe 'concat::setup', :type => :class do
       pending('rspec-puppet support for testing warning()')
     end
   end
+
+  context "on osfamily Solaris" do
+    concatdir = '/foo'
+    let(:facts) do
+      {
+        :concat_basedir     => concatdir,
+        :caller_module_name => 'Test',
+        :osfamily           => 'Solaris',
+        :id                 => 'root',
+      }
+    end
+
+    it do
+      should contain_file("#{concatdir}/bin/concatfragments.rb").with({
+        :ensure => 'file',
+        :owner  => 'root',
+        :mode   => '0755',
+        :source => 'puppet:///modules/concat/concatfragments.rb',
+        :backup => false,
+      })
+    end
+  end # on osfamily Solaris
+
+  context "on osfamily windows" do
+    concatdir = '/foo'
+    let(:facts) do
+      {
+        :concat_basedir     => concatdir,
+        :caller_module_name => 'Test',
+        :osfamily           => 'windows',
+        :id                 => 'batman',
+      }
+    end
+
+    it do
+      should contain_file("#{concatdir}/bin/concatfragments.rb").with({
+        :ensure => 'file',
+        :owner  => nil,
+        :mode   => nil,
+        :source => 'puppet:///modules/concat/concatfragments.rb',
+        :backup => false,
+      })
+    end
+  end # on osfamily windows
 end

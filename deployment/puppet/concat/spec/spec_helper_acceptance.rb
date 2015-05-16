@@ -2,11 +2,16 @@ require 'beaker-rspec/spec_helper'
 require 'beaker-rspec/helpers/serverspec'
 
 unless ENV['RS_PROVISION'] == 'no' or ENV['BEAKER_provision'] == 'no'
-  if hosts.first.is_pe?
-    install_pe
+  # This will install the latest available package on el and deb based
+  # systems fail on windows and osx, and install via gem on other *nixes
+  foss_opts = {:default_action => 'gem_install'}
+
+  if default.is_pe?; then
+    install_pe;
   else
-    install_puppet
+    install_puppet(foss_opts);
   end
+
   hosts.each do |host|
     on hosts, "mkdir -p #{host['distmoduledir']}"
   end
@@ -22,9 +27,26 @@ RSpec.configure do |c|
   # Configure all nodes in nodeset
   c.before :suite do
     # Install module and dependencies
-    puppet_module_install(:source => proj_root, :module_name => 'concat')
     hosts.each do |host|
-      on host, puppet('module','install','puppetlabs-stdlib'), { :acceptable_exit_codes => [0,1] }
+      if fact_on(host, 'osfamily') == 'windows'
+        pp = <<EOS
+  exec{'download-cert':
+    path => ['C:\Windows\System32\WindowsPowershell\v1.0','C:\Windows\Sysnative\WindowsPowershell\v1.0'],
+    command => 'powershell.exe -command "(New-Object System.Net.Webclient).DownloadString(\"https://forge.puppetlabs.com\")"',
+  }
+EOS
+        apply_manifest_on(host, pp)
+      end
+
+      on host, "mkdir -p #{host['distmoduledir']}/concat"
+      result = on host, "echo #{host['distmoduledir']}/concat"
+      target = result.raw_output.chomp
+
+      %w(files lib manifests metadata.json).each do |file|
+        scp_to host, "#{proj_root}/#{file}", target
+      end
+      #copy_module_to(host, :source => proj_root, :module_name => 'concat')
+      on host, puppet('module', 'install', 'puppetlabs-stdlib'), {:acceptable_exit_codes => [0, 1]}
     end
   end
 
