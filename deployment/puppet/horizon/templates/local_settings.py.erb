@@ -116,12 +116,17 @@ CACHES = {
     'default': {
         <% if @cache_server_ip %>
 #        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'horizon.backends.memcached.HorizonMemcache',
           <% if @cache_server_ip.kind_of?(Array) %>
             <%  split = ":" + @cache_server_port + "','" %>
         'LOCATION': [ <% @cache_server_ip.each do |ip| -%>'<%= ip -%>:<%= @cache_server_port -%>',<% end -%> ],
             <% else %>
         'LOCATION': '<%= @cache_server_ip %>:<%= @cache_server_port %>',
+        'OPTIONS': {
+            'SOCKET_TIMEOUT': 1,
+            'SERVER_RETRIES': 1,
+            'DEAD_RETRY': 1
+        }
           <% end %>
         <% else %>
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
