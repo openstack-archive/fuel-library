@@ -66,6 +66,26 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
     @old_property_hash.merge! @property_hash
   end
 
+  def interface_has_ip?(ipaddr)
+    self.class.get_if_addr_mappings.fetch(@resource[:interface], {}).fetch(:ipaddr, []).include? ipaddr
+  end
+
+  def interface_add_ip(ipaddr)
+    iproute('addr', 'add', ipaddr, 'dev', @resource[:interface])
+  end
+
+  def interface_del_ip(ipaddr)
+    iproute('--force', 'addr', 'del', ipaddr, 'dev', @resource[:interface])
+  end
+
+  def interface_flush_ip
+    iproute('--force', 'addr', 'flush', 'dev', @resource[:interface])
+  end
+
+  def interface_set_up
+    iproute('--force', 'link', 'set', 'dev', @resource[:interface], 'up')
+  end
+
   def flush
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
@@ -74,7 +94,7 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
       if ! @property_flush[:ipaddr].nil?
         if @property_flush[:ipaddr].include?(:absent)
           # flush all ip addresses from interface
-          iproute('--force', 'addr', 'flush', 'dev', @resource[:interface])
+          interface_flush_ip
           #todo(sv): check for existing dhclient for this interface and kill it
         elsif (@property_flush[:ipaddr] & [:dhcp, 'dhcp', 'DHCP']).any?
           # start dhclient on interface the same way as at boot time
@@ -85,25 +105,20 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
           # add-remove static IP addresses
           if !@old_property_hash.nil? and !@old_property_hash[:ipaddr].nil?
             (@old_property_hash[:ipaddr] - @property_flush[:ipaddr]).each do |ipaddr|
-              iproute('--force', 'addr', 'del', ipaddr, 'dev', @resource[:interface])
+              interface_del_ip ipaddr if interface_has_ip? ipaddr
             end
             adding_addresses = @property_flush[:ipaddr] - @old_property_hash[:ipaddr]
           else
             adding_addresses = @property_flush[:ipaddr]
           end
           if adding_addresses.include? :none
-            iproute('--force', 'link', 'set', 'dev', @resource[:interface], 'up')
+            interface_set_up
           elsif adding_addresses.include? :dhcp
             debug("!!! DHCP runtime configuration not implemented now !!!")
           else
             # add IP addresses
             adding_addresses.each do |ipaddr|
-              begin
-                iproute('addr', 'add', ipaddr, 'dev', @resource[:interface])
-              rescue
-                rv = iproute('-o', 'addr', 'show', 'dev', @resource[:interface], 'to', "#{ipaddr.split('/')[0]}/32")
-                raise if ! rv.include? "inet #{ipaddr}"
-              end
+              interface_add_ip ipaddr unless interface_has_ip? ipaddr
             end
           end
         end
