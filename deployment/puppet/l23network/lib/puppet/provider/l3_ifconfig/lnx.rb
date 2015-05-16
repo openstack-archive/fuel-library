@@ -98,7 +98,11 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
           else
             # add IP addresses
             adding_addresses.each do |ipaddr|
-              iproute('addr', 'add', ipaddr, 'dev', @resource[:interface])
+              begin
+                iproute('addr', 'add', ipaddr, 'dev', @resource[:interface])
+              rescue
+                warn("*** iproute can't assign '#{ipaddr}' to '#{@resource[:interface]}', because address assigned earlier by ifup event.")
+              end
             end
           end
         end
