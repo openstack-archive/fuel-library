@@ -72,40 +72,40 @@ if has_key($murano_settings_hash, 'murano_repo_url') {
 
 ####### KEYSTONE ###########
 class { 'openstack::keystone':
-  verbose                   => $verbose,
-  debug                     => $debug,
-  db_type                   => $db_type,
-  db_host                   => $db_host,
-  db_password               => $db_password,
-  db_name                   => $db_name,
-  db_user                   => $db_user,
-  admin_token               => $admin_token,
-  public_address            => $public_address,
-  internal_address          => $management_vip, # send traffic through HAProxy
-  admin_address             => $admin_address,
-  glance_user_password      => $glance_user_password,
-  nova_user_password        => $nova_user_password,
-  cinder                    => $cinder,
-  cinder_user_password      => $cinder_user_password,
-  neutron                   => $use_neutron,
-  neutron_user_password     => $neutron_user_password,
-  ceilometer                => $ceilometer,
-  ceilometer_user_password  => $ceilometer_user_password,
-  public_bind_host          => $public_bind_host,
-  admin_bind_host           => $admin_bind_host,
-  enabled                   => $enabled,
-  use_syslog                => $use_syslog,
-  syslog_log_facility       => $syslog_log_facility,
-  memcache_servers          => $memcache_servers,
-  memcache_server_port      => $memcache_server_port,
-  max_retries               => $max_retries,
-  max_pool_size             => $max_pool_size,
-  max_overflow              => $max_overflow,
-  rabbit_password           => $rabbit_password,
-  rabbit_userid             => $rabbit_user,
-  rabbit_hosts              => $rabbit_hosts,
-  rabbit_virtual_host       => $rabbit_virtual_host,
-  idle_timeout              => $idle_timeout,
+  verbose                  => $verbose,
+  debug                    => $debug,
+  db_type                  => $db_type,
+  db_host                  => $db_host,
+  db_password              => $db_password,
+  db_name                  => $db_name,
+  db_user                  => $db_user,
+  admin_token              => $admin_token,
+  public_address           => $public_address,
+  internal_address         => $management_vip, # send traffic through HAProxy
+  admin_address            => $admin_address,
+  glance_user_password     => $glance_user_password,
+  nova_user_password       => $nova_user_password,
+  cinder                   => $cinder,
+  cinder_user_password     => $cinder_user_password,
+  neutron                  => $use_neutron,
+  neutron_user_password    => $neutron_user_password,
+  ceilometer               => $ceilometer,
+  ceilometer_user_password => $ceilometer_user_password,
+  public_bind_host         => $public_bind_host,
+  admin_bind_host          => $admin_bind_host,
+  enabled                  => $enabled,
+  use_syslog               => $use_syslog,
+  syslog_log_facility      => $syslog_log_facility,
+  memcache_servers         => $memcache_servers,
+  memcache_server_port     => $memcache_server_port,
+  max_retries              => $max_retries,
+  max_pool_size            => $max_pool_size,
+  max_overflow             => $max_overflow,
+  rabbit_password          => $rabbit_password,
+  rabbit_userid            => $rabbit_user,
+  rabbit_hosts             => $rabbit_hosts,
+  rabbit_virtual_host      => $rabbit_virtual_host,
+  idle_timeout             => $idle_timeout,
 }
 
 ####### WSGI ###########
@@ -117,17 +117,18 @@ class { 'osnailyfacter::apache':
 # TODO: (adidenko) use file from package for Debian, when
 # https://review.fuel-infra.org/6251 is merged.
 class { 'keystone::wsgi::apache':
-  priority           => '05',
-  threads            => min($::processorcount, 24),
-  ssl                => $ssl,
+  priority => '05',
+  threads  => min(max($::processorcount,2), 24),
+  ssl      => $ssl,
+
   wsgi_script_ensure => $::osfamily ? {
-    'RedHat' => 'link',
-    default  => 'file',
+    'RedHat'       => 'link',
+    default        => 'file',
   },
   wsgi_script_source => $::osfamily ? {
-  #  'Debian' => '/usr/share/keystone/wsgi.py',
-    'RedHat' => '/usr/share/keystone/keystone.wsgi',
-    default  => undef,
+  # 'Debian'      => '/usr/share/keystone/wsgi.py',
+    'RedHat'       => '/usr/share/keystone/keystone.wsgi',
+    default        => undef,
   },
 }
 
@@ -141,19 +142,19 @@ class { 'keystone::roles::admin':
 }
 
 class { 'openstack::auth_file':
-  admin_user           => $admin_user,
-  admin_password       => $admin_password,
-  admin_tenant         => $admin_tenant,
-  controller_node      => $management_vip,
-  murano_repo_url      => $murano_repo_url,
+  admin_user      => $admin_user,
+  admin_password  => $admin_password,
+  admin_tenant    => $admin_tenant,
+  controller_node => $management_vip,
+  murano_repo_url => $murano_repo_url,
 }
 
 class { 'openstack::workloads_collector':
-  enabled              => $workloads_hash['enabled'],
-  workloads_username   => $workloads_hash['username'],
-  workloads_password   => $workloads_hash['password'],
-  workloads_tenant     => $workloads_hash['tenant'],
-  workloads_create_user=> $workloads_hash['create_user'],
+  enabled               => $workloads_hash['enabled'],
+  workloads_username    => $workloads_hash['username'],
+  workloads_password    => $workloads_hash['password'],
+  workloads_tenant      => $workloads_hash['tenant'],
+  workloads_create_user => $workloads_hash['create_user'],
 }
 
 Exec <| title == 'keystone-manage db_sync' |> ->
@@ -166,13 +167,13 @@ Class['openstack::workloads_collector']
 $haproxy_stats_url = "http://${management_vip}:10000/;csv"
 
 haproxy_backend_status { 'keystone-public' :
-  name    => 'keystone-1',
-  url     => $haproxy_stats_url,
+  name => 'keystone-1',
+  url  => $haproxy_stats_url,
 }
 
 haproxy_backend_status { 'keystone-admin' :
-  name    => 'keystone-2',
-  url     => $haproxy_stats_url,
+  name => 'keystone-2',
+  url  => $haproxy_stats_url,
 }
 
 Service['keystone'] -> Haproxy_backend_status<||>
@@ -186,11 +187,14 @@ case $::osfamily {
   'Debian': {
     $pymemcache_package_name      = 'python-memcache'
   }
+  default: {
+    fail("The ${::osfamily} operating system is not supported")
+  }
 }
 
 package { 'python-memcache' :
-  name   => $pymemcache_package_name,
   ensure => present,
+  name   => $pymemcache_package_name,
 }
 
 Package['python-memcache'] -> Nova::Generic_service <||>
@@ -201,4 +205,3 @@ if($::operatingsystem == 'Ubuntu') {
     package_name => 'keystone',
   }
 }
-
