@@ -79,6 +79,16 @@ if $queue_provider == 'rabbitmq' {
     }
   )
 
+  # Debian-based distributions don't support pam limits enforcement by default
+  if $::osfamily == 'Debian' {
+    file_line { 'pam_limits':
+      path => '/etc/pam.d/common-session',
+      line => 'session required	pam_limits.so',
+    }
+
+    File_line['pam_limits'] -> Class['::rabbitmq']
+  }
+
   class { '::rabbitmq':
     repos_ensure               => false,
     package_provider           => $package_provider,
@@ -102,6 +112,7 @@ if $queue_provider == 'rabbitmq' {
     config_kernel_variables    => $config_kernel_variables,
     config_variables           => $config_variables,
     environment_variables      => $environment_variables,
+    file_limit                 => 112640,
   }
 
   # Install rabbit-fence daemon

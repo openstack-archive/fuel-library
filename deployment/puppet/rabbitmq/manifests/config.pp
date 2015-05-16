@@ -36,6 +36,7 @@ class rabbitmq::config {
   $config_variables           = $rabbitmq::config_variables
   $config_kernel_variables    = $rabbitmq::config_kernel_variables
   $cluster_partition_handling = $rabbitmq::cluster_partition_handling
+  $file_limit                 = $rabbitmq::file_limit
   $default_env_variables      =  {
     'NODE_PORT'        => $port,
     'NODE_IP_ADDRESS'  => $node_ip_address
@@ -86,6 +87,14 @@ class rabbitmq::config {
     group   => '0',
     mode    => '0644',
     require => File['/etc/rabbitmq'],
+  }
+
+  file { '/etc/security/limits.d/rabbitmq-server.conf':
+    content => template('rabbitmq/limits.conf'),
+    owner   => '0',
+    group   => '0',
+    mode    => '0644',
+    notify  => Class['Rabbitmq::Service'],
   }
 
   if $config_cluster {
