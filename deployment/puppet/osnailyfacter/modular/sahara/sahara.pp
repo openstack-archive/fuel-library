@@ -53,6 +53,13 @@ if $sahara_hash['enabled'] {
     rabbit_ha_queues           => $rabbit_ha_queues,
   }
 
+  $haproxy_stats_url = "http://${management_ip}:10000/;csv"
+
+  haproxy_backend_status { 'sahara' :
+    name => 'sahara',
+    url  => $haproxy_stats_url,
+  }
+
   class { 'sahara::templates::create_templates' :
     use_neutron   => $use_neutron,
     auth_user     => $access_admin['user'],
@@ -61,7 +68,8 @@ if $sahara_hash['enabled'] {
     auth_uri      => "http://${management_ip}:5000/v2.0/",
   }
 
-  Class['sahara'] -> Class['sahara::templates::create_templates']
+  Class['sahara'] -> Haproxy_backend_status['sahara']
+  Haproxy_backend_status['sahara'] -> Class['sahara::templates::create_templates']
 }
 
 #########################
