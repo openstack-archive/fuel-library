@@ -375,7 +375,7 @@ block_client_access()
 {
     # do not add temporary RMQ blocking rule, if it is already exist
     # otherwise, try to add a blocking rule with max of 5 retries
-    tries=5
+    local tries=5
     until $(iptables -nvL | grep -q 'temporary RMQ block') || [[ $tries -eq 0 ]]; do
       ((tries--))
       iptables -I INPUT -p tcp -m tcp --dport ${OCF_RESKEY_node_port} -m state --state NEW,RELATED,ESTABLISHED \
@@ -476,7 +476,7 @@ kill_rmq_and_remove_pid() {
 }
 
 trim_var(){
-    string="$*"
+    local string="$*"
     echo ${string%% }
 }
 
@@ -802,6 +802,7 @@ start_rmq_server_app() {
     local startup_log="${OCF_RESKEY_log_dir}/startup_log"
     local startup_output
     local LH="${LL} start_rmq_server_app():"
+    local a
 
     #We are performing initial start check.
     #We are not ready to provide service.
@@ -932,6 +933,13 @@ get_monitor() {
     local scope
     local LH="${LL} get_monitor():"
     local status_master
+    local rabbit_running
+    local nodelist
+    local prev_rc
+    local max
+    local our_uptime
+    local node_uptime
+    local node_start_time
 
     get_status
     rc=$?
@@ -1050,8 +1058,6 @@ action_monitor() {
 
 action_start() {
     local rc=$OCF_ERR_GENERIC
-    local msg
-    local master_node
     local LH="${LL} start:"
 
     if [[ ${OCF_RESKEY_debug} == "true" ]] ; then
@@ -1151,6 +1157,7 @@ action_notify() {
     local rc=$OCF_ERR_GENERIC
     local rc2=$OCF_ERR_GENERIC
     local LH="${LL} notify:"
+    local nodelist
 
     if [[ ${OCF_RESKEY_debug} == "true" ]] ; then
         d=`date '+%Y%m%d %H:%M:%S'`
@@ -1242,7 +1249,6 @@ action_notify() {
 
 action_promote() {
     local rc=$OCF_ERR_GENERIC
-    local pid
     local LH="${LL} promote:"
 
     if [[ ${OCF_RESKEY_debug} == "true" ]] ; then
@@ -1340,7 +1346,6 @@ action_promote() {
 
 action_demote() {
     local rc=$OCF_ERR_GENERIC
-    local pid
     local LH="${LL} demote:"
 
     if [[ ${OCF_RESKEY_debug} == "true" ]] ; then
