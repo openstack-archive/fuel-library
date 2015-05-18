@@ -725,7 +725,7 @@ function rename_images {
   while read containername; do
     oldname=$containername
     newname=$(echo $containername | sed -n "s/_${timestamp}//p")
-    docker tag "$oldname" "$newname"
+    docker tag -f "$oldname" "$newname"
     docker rmi "$oldname"
   done < <(docker images | grep $timestamp | cut -d' ' -f1)
 }
