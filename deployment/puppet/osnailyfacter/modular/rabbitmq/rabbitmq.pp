@@ -79,6 +79,26 @@ if $queue_provider == 'rabbitmq' {
     }
   )
 
+  # Debian-based distributions don't support pam limits enforcement by default
+  if $::osfamily == 'Debian' {
+    file_line { 'pam_limits':
+      path   => '/etc/pam.d/common-session',
+      line   => 'session required        pam_limits.so',
+      before => Class['::rabbitmq'],
+    }
+  }
+
+  $file_soft_limit = 80000
+  $file_hard_limit = 112640
+
+  file { '/etc/security/limits.d/rabbitmq-server.conf':
+    content => template('osnailyfacter/rabbitmq-limits.conf.erb'),
+    owner   => '0',
+    group   => '0',
+    mode    => '0644',
+    before  => Class['::rabbitmq'],
+  }
+
   class { '::rabbitmq':
     repos_ensure               => false,
     package_provider           => $package_provider,
