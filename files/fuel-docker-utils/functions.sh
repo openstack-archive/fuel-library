@@ -91,17 +91,18 @@ function build_storage_containers {
 
 function retry_checker {
   tries=0
+  CHECK_RETRIES=80
   echo "checking with command \"$*\""
   until eval $*; do
      rc=$?
-     ((tries++))
+     let 'tries=tries+1'
      echo "try number $tries"
      echo "return code is $rc"
      if [ $tries -gt $CHECK_RETRIES ];then
         failure=1
      break
   fi
-     sleep 1
+     sleep 5
   done
 }
 
@@ -691,6 +692,7 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
   for container in $CONTAINER_SEQUENCE; do
     check_ready $container
   done
+  echo "Restore complete."
   #remove trap
   trap - EXIT
 }
