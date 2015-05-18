@@ -9,6 +9,9 @@ prepare_network_config($network_scheme)
 $sdn = generate_network_config()
 notify {"SDN": message=>"${sdn}" }
 
+#Set arp_accept to 1 by default #lp1456272
+sysctl::value { 'net.ipv4.conf.all.arp_accept':   value => '1'  }
+sysctl::value { 'net.ipv4.conf.default.arp_accept':   value => '1'  }
 
 # setting kernel reserved ports
 # defaults are 49000,35357,41055,58882
