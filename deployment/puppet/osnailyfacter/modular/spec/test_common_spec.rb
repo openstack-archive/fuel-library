@@ -2,6 +2,49 @@ require 'spec_helper'
 require File.join File.dirname(__FILE__), '../test_common.rb'
 
 describe TestCommon do
+  context TestCommon::Cmd do
+    let(:cli_data) do
+      <<-eos
++----------------------------------+----------+----------------+----------------------------------+
+|                id                |   name   |      type      |           description            |
++----------------------------------+----------+----------------+----------------------------------+
+| 5374e5389d364da28c984bc429c3e33a |  cinder  |     volume     |          Cinder Service          |
+| af3d223f30da4fe09cec7b857a204ba4 | cinderv2 |    volumev2    |        Cinder Service v2         |
+| 0640b5feb76948ee93a33ab4354bb2b8 |  glance  |     image      |     Openstack Image Service      |
+| 7923acaf138247269fb3ef12236c5c6a |   heat   | orchestration  | Openstack Orchestration Service  |
+| 27be38b78d57489eb54a6b41a630b443 | heat-cfn | cloudformation | Openstack Cloudformation Service |
+| b2ea93c019704ed4bbc0c4da8fff425b | keystone |    identity    |    OpenStack Identity Service    |
+| f8daa037416549b0a7bbdff67b0501b3 | neutron  |    network     |    Neutron Networking Service    |
+| d20f6c9b482642c8b3c92ea5c115f100 |   nova   |    compute     |    Openstack Compute Service     |
+| d8882e01181740e1b96b34dbf9b4dd77 | nova_ec2 |      ec2       |           EC2 Service            |
+| c9291f7d537141ffb6a560dd42e7d159 |  swift   |  object-store  |  Openstack Object-Store Service  |
+| b622a097b88e460ebea284bf04f65be5 | swift_s3 |       s3       |       Openstack S3 Service       |
++----------------------------------+----------+----------------+----------------------------------+
+      eos
+    end
+
+    let(:cli_data_parsed) do
+      [
+          {"id"=>"5374e5389d364da28c984bc429c3e33a", "name"=>"cinder", "type"=>"volume"},
+          {"id"=>"af3d223f30da4fe09cec7b857a204ba4", "name"=>"cinderv2", "type"=>"volumev2"},
+          {"id"=>"0640b5feb76948ee93a33ab4354bb2b8", "name"=>"glance", "type"=>"image"},
+          {"id"=>"7923acaf138247269fb3ef12236c5c6a", "name"=>"heat", "type"=>"orchestration"},
+          {"id"=>"27be38b78d57489eb54a6b41a630b443", "name"=>"heat-cfn", "type"=>"cloudformation"},
+          {"id"=>"b2ea93c019704ed4bbc0c4da8fff425b", "name"=>"keystone", "type"=>"identity"},
+          {"id"=>"f8daa037416549b0a7bbdff67b0501b3", "name"=>"neutron", "type"=>"network"},
+          {"id"=>"d20f6c9b482642c8b3c92ea5c115f100", "name"=>"nova", "type"=>"compute"},
+          {"id"=>"d8882e01181740e1b96b34dbf9b4dd77", "name"=>"nova_ec2", "type"=>"ec2"},
+          {"id"=>"c9291f7d537141ffb6a560dd42e7d159", "name"=>"swift", "type"=>"object-store"},
+          {"id"=>"b622a097b88e460ebea284bf04f65be5", "name"=>"swift_s3", "type"=>"s3"},
+      ]
+    end
+    it 'can run the OpenStack cli command and parse the results' do
+      expect(TestCommon::Cmd).to receive(:run).with('keystone service-list').and_return([cli_data, 0])
+      allow(TestCommon::Cmd).to receive(:openstack_auth)
+      expect(TestCommon::Cmd.openstack_cli 'keystone service-list').to eq cli_data_parsed
+    end
+  end
+
   context TestCommon::Settings do
     before :each do
       allow(subject.hiera).to receive(:lookup).with('id', nil, {}).and_return('1')
@@ -192,22 +235,22 @@ keystone-2,BACKEND,0,0,0,1,800,135,31659,695738,0,0,,0,0,0,0,UP,1,1,0,,0,347258,
     end
 
     before :each do
-      allow(TestCommon).to receive(:run_command).with('ps haxo cmd').and_return([short_ps, 0])
-      allow(TestCommon).to receive(:run_command).with('ps haxo pid,ppid,cmd').and_return([full_ps, 0])
+      allow(TestCommon::Cmd).to receive(:run).with('ps haxo cmd').and_return([short_ps, 0])
+      allow(TestCommon::Cmd).to receive(:run).with('ps haxo pid,ppid,cmd').and_return([full_ps, 0])
     end
 
     it 'can check if command runs successfully' do
-      allow(TestCommon).to receive(:run_command).with('/bin/true').and_return(['', 0])
-      allow(TestCommon).to receive(:run_command).with('/bin/false').and_return(['', 1])
+      allow(TestCommon::Cmd).to receive(:run).with('/bin/true').and_return(['', 0])
+      allow(TestCommon::Cmd).to receive(:run).with('/bin/false').and_return(['', 1])
       expect(subject.run_successful? '/bin/true').to eq true
       expect(subject.run_successful? '/bin/false').to eq false
     end
 
     it 'can check if a command can be found' do
       cmd = "which 'my_command' 1>/dev/null 2>/dev/null"
-      allow(TestCommon).to receive(:run_command).with(cmd).and_return(['', 0])
+      allow(TestCommon::Cmd).to receive(:run).with(cmd).and_return(['', 0])
       expect(subject.command_present? 'my_command').to eq true
-      allow(TestCommon).to receive(:run_command).with(cmd).and_return(['', 1])
+      allow(TestCommon::Cmd).to receive(:run).with(cmd).and_return(['', 1])
       expect(subject.command_present? 'my_command').to eq false
     end
 
@@ -237,7 +280,7 @@ nova
     it 'can form mysql queries without auth' do
       subject.no_auth
       cmd = %q(mysql --raw --skip-column-names --batch --execute='show databases')
-      expect(TestCommon).to receive(:run_command).with(cmd).and_return(['',0])
+      expect(TestCommon::Cmd).to receive(:run).with(cmd).and_return(['',0])
       subject.query 'show databases'
     end
 
@@ -248,7 +291,7 @@ nova
       subject.port = '123'
       subject.host = 'myhost'
       cmd = %q(mysql --raw --skip-column-names --batch --execute='show databases' --host='myhost' --user='user' --password='pass' --port='123' --database='mydb')
-      expect(TestCommon).to receive(:run_command).with(cmd).and_return(['',0])
+      expect(TestCommon::Cmd).to receive(:run).with(cmd).and_return(['',0])
       subject.query 'show databases'
     end
 
@@ -288,29 +331,29 @@ p_mysql:0
     end
 
     it 'can check if pacemaker is online' do
-      allow(TestCommon).to receive(:run_command).with('cibadmin -Q').and_return(['',0])
+      allow(TestCommon::Cmd).to receive(:run).with('cibadmin -Q').and_return(['',0])
       expect(subject.online?).to eq true
-      allow(TestCommon).to receive(:run_command).with('cibadmin -Q').and_return(['',1])
+      allow(TestCommon::Cmd).to receive(:run).with('cibadmin -Q').and_return(['',1])
       expect(subject.online?).to eq false
     end
 
     it 'can get the list of the primitives' do
-      allow(TestCommon).to receive(:run_command).with('crm_resource -l').and_return([crm_resource_l,0])
+      allow(TestCommon::Cmd).to receive(:run).with('crm_resource -l').and_return([crm_resource_l,0])
       expect(subject.primitives).to eq(%w(p_haproxy p_dns p_ntp p_mysql))
     end
 
     it 'can check if a primitive is present' do
-      allow(TestCommon).to receive(:run_command).with('crm_resource -l').and_return([crm_resource_l,0])
+      allow(TestCommon::Cmd).to receive(:run).with('crm_resource -l').and_return([crm_resource_l,0])
       expect(subject.primitive_present? 'p_dns').to eq true
       expect(subject.primitive_present? 'MISSING').to eq false
     end
 
     it 'can check if primitive is started' do
-      allow(TestCommon).to receive(:run_command).with('crm_resource -r p_haproxy -W 2>&1').and_return(['resource p_haproxy is running on: node-1',0])
+      allow(TestCommon::Cmd).to receive(:run).with('crm_resource -r p_haproxy -W 2>&1').and_return(['resource p_haproxy is running on: node-1',0])
       expect(subject.primitive_started? 'clone_p_haproxy').to eq true
-      allow(TestCommon).to receive(:run_command).with('crm_resource -r p_haproxy -W 2>&1').and_return(['resource p_haproxy is NOT running',0])
+      allow(TestCommon::Cmd).to receive(:run).with('crm_resource -r p_haproxy -W 2>&1').and_return(['resource p_haproxy is NOT running',0])
       expect(subject.primitive_started? 'clone_p_haproxy').to eq false
-      allow(TestCommon).to receive(:run_command).with('crm_resource -r MISSING -W 2>&1').and_return(['',1])
+      allow(TestCommon::Cmd).to receive(:run).with('crm_resource -r MISSING -W 2>&1').and_return(['',1])
       expect(subject.primitive_started? 'MISSING').to eq nil
     end
   end
@@ -449,9 +492,9 @@ default via 172.16.0.1 dev br-ex
     end
 
     it 'can check is the url is accessible' do
-      allow(TestCommon).to receive(:run_command).with("curl --fail 'http://localhost' 1>/dev/null 2>/dev/null").and_return(['',0])
+      allow(TestCommon::Cmd).to receive(:run).with("curl --fail 'http://localhost' 1>/dev/null 2>/dev/null").and_return(['',0])
       expect(subject.url_accessible? 'http://localhost').to eq true
-      allow(TestCommon).to receive(:run_command).with("curl --fail 'http://localhost' 1>/dev/null 2>/dev/null").and_return(['',1])
+      allow(TestCommon::Cmd).to receive(:run).with("curl --fail 'http://localhost' 1>/dev/null 2>/dev/null").and_return(['',1])
       expect(subject.url_accessible? 'http://localhost').to eq false
     end
 
@@ -463,27 +506,27 @@ default via 172.16.0.1 dev br-ex
     end
 
     it 'can get a list of the commented iptables rules' do
-      allow(TestCommon).to receive(:run_command).with('iptables-save').and_return([iptables_save,0])
+      allow(TestCommon::Cmd).to receive(:run).with('iptables-save').and_return([iptables_save,0])
       expect(subject.iptables_rules).to eq %w(ceilometer sahara-all heat-api)
       subject.reset
-      allow(TestCommon).to receive(:run_command).with('iptables-save').and_return([iptables_save,1])
+      allow(TestCommon::Cmd).to receive(:run).with('iptables-save').and_return([iptables_save,1])
       expect(subject.iptables_rules).to eq nil
     end
 
     it 'can get a list of IP addresses' do
-      allow(TestCommon).to receive(:run_command).with('ip addr').and_return([ip_a,0])
+      allow(TestCommon::Cmd).to receive(:run).with('ip addr').and_return([ip_a,0])
       expect(subject.ips).to eq %w(192.168.0.6 192.168.1.2)
     end
 
     it 'can get a default router' do
-      allow(TestCommon).to receive(:run_command).with('ip route').and_return([ip_r,0])
+      allow(TestCommon::Cmd).to receive(:run).with('ip route').and_return([ip_r,0])
       expect(subject.default_router).to eq '172.16.0.1'
     end
 
     it 'can check if a host is pingable' do
-      allow(TestCommon).to receive(:run_command).with("ping -q -c 1 -W 3 '127.0.0.1'").and_return(['',0])
+      allow(TestCommon::Cmd).to receive(:run).with("ping -q -c 1 -W 3 '127.0.0.1'").and_return(['',0])
       expect(subject.ping? '127.0.0.1').to eq true
-      allow(TestCommon).to receive(:run_command).with("ping -q -c 1 -W 3 '127.0.0.1'").and_return(['',1])
+      allow(TestCommon::Cmd).to receive(:run).with("ping -q -c 1 -W 3 '127.0.0.1'").and_return(['',1])
       expect(subject.ping? '127.0.0.1').to eq false
     end
   end
