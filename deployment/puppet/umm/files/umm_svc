@@ -6,7 +6,7 @@
 [ -f $UMM_FLAG ] && rm $UMM_FLAG
 
 # check if UMM enabled
-[  "z$UMM" == "zyes" ] || exit
+[  "$UMM" == "yes" ] || exit 0
 
 
 if [ -f $UMM_DATA/UMM_ENFORCED ] ; then
