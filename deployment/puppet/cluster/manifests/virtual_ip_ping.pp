@@ -23,6 +23,12 @@ define cluster::virtual_ip_ping (
     complex_type   => 'clone',
   }
 
+  service { ${vip_name}:
+    ensure   => 'running',
+    enable   => true,
+    provider => 'pacemaker'
+  }
+
   service { "ping_${vip_name}":
     ensure   => 'running',
     enable   => true,
@@ -52,8 +58,8 @@ define cluster::virtual_ip_ping (
     ],
   }
 
-  Service<| title == $vip_name |> ->
   Cs_resource["ping_${vip_name}"] ->
   Cs_rsc_location["loc_ping_${vip_name}"] ->
-  Service["ping_${vip_name}"]
+  Service["ping_${vip_name}"] ->
+  Service <| title == ${vip_name} |>
 }
