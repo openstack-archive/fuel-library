@@ -55,7 +55,7 @@
 - id: cinder-vmware
   type: group
   role: [cinder-vmware]
-  requires: [controller, cinder]
+  requires: [controller]
   required_for: [deploy_end]
   parameters:
     strategy:
