@@ -48,6 +48,7 @@ module L23network
 #       :bridge_id            => nil,
         :external_ids         => nil,
 #       :interface_properties => nil,
+        :delay_while_up       => nil,
         :vendor_specific      => nil,
         :provider             => def_provider
       }
@@ -278,6 +279,19 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           if trans[:mtu].nil?
             trans[:mtu] = L23network.get_property_for_transformation('MTU', devices[0], lookupvar('l3_fqdn_hostname'))
           end
+        end
+      end
+
+      # add default delay for bonds. 45 sec. for LACP bonds and 15 sec for another.
+      if (action == :bond) && trans[:bond_properties].is_a?(Hash) && trans[:delay_while_up].to_i == 0
+        delay_while_up = ( trans[:bond_properties][:mode]=='802.3ad'  ?  45  :  15  )
+        if ['', 'absent'].include? trans[:bridge].to_s
+          # bond not included to bridge. I.e. has IP address or subinterfaces and post-up has sense
+          trans[:delay_while_up] = delay_while_up
+        else
+          # bond included to bridge. I.e. has no IP address
+          bridge_res = findresource("L23network::L2::Bridge[#{trans[:bridge].to_s}]")
+          bridge_res[:delay_while_up] = delay_while_up if !bridge_res.nil?
         end
       end
 
