@@ -36,11 +36,11 @@ function. Must be of type String or Hash."
     end
     puts "Checking #{uri}"
     begin
-      out = Timeout::timeout(15) do
+      out = Timeout::timeout(180) do
         u = URI.parse(uri)
         http = Net::HTTP.new(u.host, u.port)
-        http.open_timeout = 5
-        http.read_timeout = 5
+        http.open_timeout = 60
+        http.read_timeout = 60
         request = Net::HTTP::Get.new(u.request_uri)
         response = http.request(request)
       end
