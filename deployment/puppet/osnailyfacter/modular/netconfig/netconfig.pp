@@ -27,3 +27,8 @@ class { 'openstack::keepalive' :
   tcpka_intvl     => '3',
   tcp_retries2    => '5',
 }
+
+# accept gratuitous ARP updates during IP fallover
+sysctl::value { 'net.ipv4.conf.all.arp_accept':   value => '1' }
+# increase network backlog for performance on fast networks
+sysctl::value { 'net.core.netdev_max_backlog':   value => '261144' }
