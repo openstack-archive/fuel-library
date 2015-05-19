@@ -231,7 +231,7 @@ function start_container {
     else
       # Clean up broken mounts if needed
       id=$(get_container_id $container_name)
-      umount -l $(grep "$id" /proc/mounts | awk '{print $2}' | sort -r) 2>/dev/null
+      grep "$id" /proc/mounts | awk '{print $2}' | sort -r | xargs --no-run-if-empty -n1 umount -l 2>/dev/null
       ${DOCKER} start $container_name
     fi
     post_start_hooks $1
@@ -654,7 +654,7 @@ function restore {
 finish or cancel them. Run \"fuel task list\" for more details." 1>&2
     exit 1
   fi
-  verify_disk_space "restore"
+  verify_disk_space "restore" "$fullrestore"
   backupfile=$1
   if [ -z "$backupfile" ]; then
     #TODO(mattymo): Parse BACKUP_DIR for lrz files
@@ -685,6 +685,7 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
   [ "$fullrestore" == "1" ] && restore_images "$restoredir"
   [ "$fullrestore" == "1" ] && rename_images "$timestamp"
   restore_systemdirs "$restoredir"
+  set +e
   echo "Starting containers..."
   start_container all
   enable_supervisor
@@ -747,12 +748,20 @@ function verify_disk_space {
     echo "Backup or restore operation not specified." 1>&2
     exit 1
   fi
-
-  #11gb free space required to backup and restore
-  (( required = 11 * 1024 * 1024 ))
+  fullbackup=1
+  statefulonly=0
+  if [[ "$2" != "$statefulonly" ]]; then
+    #2gb free space required for light backup
+    (( required  = 2 * 1024 * 1024 ))
+    spaceerror="Insufficient disk space to perform $1. At least 2gb must be free on /var partition."
+  else
+     #11gb free space required to backup and restore
+     (( required = 11 * 1024 * 1024 ))
+    spaceerror="Insufficient disk space to perform $1. At least 11gb must be free on /var partition."
+  fi
   avail=$(df /var | grep /var | awk '{print $4}')
   if (( avail < required )); then
-    echo "Insufficient disk space to perform $1. At least 11gb must be free on /var partition." 1>&2
+    echo "$spaceerror" 1>&2
     exit 1
   fi
 }
