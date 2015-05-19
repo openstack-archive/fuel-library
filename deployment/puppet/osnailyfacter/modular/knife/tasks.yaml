@@ -1,0 +1,23 @@
+- id: deploy-knife
+  type: puppet
+  groups: [knife]
+  required_for: [deploy_end]
+  requires: [netconfig]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/knife/deploy.pp
+    puppet_modules: /etc/puppet/modules
+    retries: 3
+    interval: 10
+    timeout: 180
+
+- id: run-knife-commands
+  type: shell
+  role: [knife]
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    cmd: bash /etc/puppet/modules/osnailyfacter/modular/knife/commands.sh
+    retries: 10
+    interval: 30
+    timeout: 180
+
