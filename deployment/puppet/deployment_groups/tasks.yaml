@@ -121,3 +121,13 @@
   parameters:
     strategy:
       type: parallel
+
+- id: knife
+  type: group
+  role: [knife]
+  required_for: [deploy_end]
+  requires: [deploy_start]
+  tasks: [hiera, globals, tools, logging, netconfig]
+  parameters:
+    strategy:
+      type: parallel

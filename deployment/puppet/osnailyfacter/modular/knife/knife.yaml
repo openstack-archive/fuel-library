@@ -1,0 +1,9 @@
+meta:
+  description: Installs check-knife
+  has_primary: false
+  name: Chef-knife
+name: knife
+volumes_roles_mapping:
+- allocate_size: min
+  id: os
+
