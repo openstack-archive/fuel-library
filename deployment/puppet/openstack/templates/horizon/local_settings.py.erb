@@ -114,9 +114,14 @@ SECRET_KEY = '<%= @secret_key %>'
 
 CACHES = {
     'default': {
-        <% if @cache_server_ip %>
-#        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+     <% if @cache_server_ip %>
+        <% if @cache_options and @cache_options.kind_of?(Array) %>
+        OPTIONS : {
+            <%= @cache_options.join(',') %>
+        }
+        <% end %>
+
+        'BACKEND': <%= @cache_backend %>
           <% if @cache_server_ip.kind_of?(Array) %>
             <%  split = ":" + @cache_server_port + "','" %>
         'LOCATION': [ <% @cache_server_ip.each do |ip| -%>'<%= ip -%>:<%= @cache_server_port -%>',<% end -%> ],
