@@ -84,6 +84,7 @@ Non-obligatory fields:
 * *bpdu_forward* -- enable/disable BPDU forward on bridge
 * *bridge_id* -- bridge_id for STP protocol.
 * *vendor_specific* -- vendor_specific hash (see below)
+* *delay_while_up* -- delay, in seconds, which will happens each time while node will boot after interface up.
 
 #### L2::Port
 
@@ -91,15 +92,15 @@ Resource for configuring port L2 options. Only L2 options. For configuring
 L3 options -- use *L23network::l3::ifconfig* resource
 
     l23network::l2::port { 'eth1':
-      mtu       => 9000,   # MTU value, unchanged if absent.
-      onboot    => true,   # whether port has UP state after setup or node boot
+      mtu     => 9000,   # MTU value, unchanged if absent.
+      onboot  => true,   # whether port has UP state after setup or node boot
       ethtool => {
         .....
       },
       vendor_specific => {
         .....
       },
-      provider  => lnx
+      provider => lnx
     }
 
     l23network::l2::port { 'eth1.101':
@@ -109,6 +110,7 @@ L3 options -- use *L23network::l3::ifconfig* resource
                            # if given 'absent' port will be excluded from any
                            # bridges.
       onboot    => true,
+      delay_while_up => 10
       provider  => lnx
     }
 
@@ -146,6 +148,7 @@ Also we don't recommend insert native linux bonds to OVS bridges. This case work
       vendor_specific => {
         .....
       },
+      delay_while_up => 45
       provider => lnx,
     }
 
@@ -189,6 +192,8 @@ this ports by *l23network::l2::port* resource and shouldn't define
 
 **MTU** field, setted for bond interface will be passed to interfaces, included
 to the bond automatically.
+
+I recommend use **delay_while_up** property, while configure LACP bonds, because such bonds may take some time for settle.
 
 For some providers (ex: ovs) **bridge** field is obligatory.
 
