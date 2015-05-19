@@ -271,6 +271,9 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         trans.merge! ports_properties[trans[:name].to_sym()]
       end
 
+      # add default delay (30 sec.) for all LACP bonds if delay not specifyed
+      trans[:delay_while_up] = 30 if (action == :bond) && trans[:bond_properties].is_a?(Hash) && trans[:bond_properties][:mode] == '802.3ad' && trans[:delay_while_up].to_i == 0
+
       # create puppet resources for transformations
       resource = res_factory[action]
       resource_properties = { }
