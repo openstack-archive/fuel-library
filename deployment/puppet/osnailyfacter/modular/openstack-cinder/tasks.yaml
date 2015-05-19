@@ -1,8 +1,8 @@
 - id: openstack-cinder
   type: puppet
-  groups: [primary-controller, controller]
+  groups: [primary-controller, controller, cinder-vmware]
   required_for: [deploy_end, openstack-controller]
-  requires: [rabbitmq, keystone]
+  requires: [rabbitmq, keystone, hiera, hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/openstack-cinder.pp
     puppet_modules: /etc/puppet/modules
