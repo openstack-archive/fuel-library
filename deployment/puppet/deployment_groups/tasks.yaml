@@ -121,3 +121,12 @@
   parameters:
     strategy:
       type: parallel
+
+- id: knife
+  type: group
+  role: [knife]
+  required_for: [deploy_end]
+  requires: [deploy_start]
+  parameters:
+    strategy:
+      type: parallel

@@ -1,6 +1,7 @@
 - id: netconfig
   type: puppet
-  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd,
+    zabbix-server, primary-mongo, mongo, knife]
   required_for: [deploy_end]
   requires: [tools]
   parameters:
@@ -14,7 +15,8 @@
 
 - id: connectivity_tests
   type: puppet
-  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo]
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd,
+    zabbix-server, primary-mongo, mongo]
   required_for: [firewall, hosts]
   requires: [netconfig]
   parameters:
