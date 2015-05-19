@@ -375,7 +375,7 @@ block_client_access()
 {
     # do not add temporary RMQ blocking rule, if it is already exist
     # otherwise, try to add a blocking rule with max of 5 retries
-    local tries=5
+    tries=5
     until $(iptables -nvL | grep -q 'temporary RMQ block') || [[ $tries -eq 0 ]]; do
       ((tries--))
       iptables -I INPUT -p tcp -m tcp --dport ${OCF_RESKEY_node_port} -m state --state NEW,RELATED,ESTABLISHED \
@@ -476,7 +476,7 @@ kill_rmq_and_remove_pid() {
 }
 
 trim_var(){
-    local string="$*"
+    string="$*"
     echo ${string%% }
 }
 
@@ -802,7 +802,6 @@ start_rmq_server_app() {
     local startup_log="${OCF_RESKEY_log_dir}/startup_log"
     local startup_output
     local LH="${LL} start_rmq_server_app():"
-    local a
 
     #We are performing initial start check.
     #We are not ready to provide service.
@@ -933,19 +932,11 @@ get_monitor() {
     local scope
     local LH="${LL} get_monitor():"
     local status_master
-    local rabbit_running
-    local nodelist
-    local prev_rc
-    local max
-    local our_uptime
-    local node_uptime
-    local node_start_time
 
     get_status
     rc=$?
     if [[ $rc == $OCF_NOT_RUNNING ]] ; then
         ocf_log info "${LH} get_status() returns ${rc}."
-        ocf_log info "${LH} ensuring this slave does not get promoted."
         master_score 0
         return $OCF_NOT_RUNNING
     elif [[ $rc == $OCF_SUCCESS ]] ; then
@@ -987,18 +978,13 @@ get_monitor() {
                     fi
                 fi
             done
-        else
-            # Rabbit app is not running, report the resource is not running as well
-            ocf_log err "${LH} rabbit app is not running!"
-            ocf_log info "${LH} ensuring this slave does not get promoted."
-            rc=$OCF_NOT_RUNNING
-            master_score 0
     fi
 
     if [[ $rc == $OCF_ERR_GENERIC ]]; then
         ocf_log info "${LH} get_status() returns generic error ${rc}"
         ocf_log info "${LH} ensuring this slave does not get promoted."
         master_score 0
+        return $OCF_ERR_GENERIC
     else
         ocf_log info "${LH} preparing to update master score for node"
         our_uptime=$(srv_uptime)
@@ -1064,6 +1050,8 @@ action_monitor() {
 
 action_start() {
     local rc=$OCF_ERR_GENERIC
+    local msg
+    local master_node
     local LH="${LL} start:"
 
     if [[ ${OCF_RESKEY_debug} == "true" ]] ; then
@@ -1163,7 +1151,6 @@ action_notify() {
     local rc=$OCF_ERR_GENERIC
     local rc2=$OCF_ERR_GENERIC
     local LH="${LL} notify:"
-    local nodelist
 
     if [[ ${OCF_RESKEY_debug} == "true" ]] ; then
         d=`date '+%Y%m%d %H:%M:%S'`
@@ -1255,6 +1242,7 @@ action_notify() {
 
 action_promote() {
     local rc=$OCF_ERR_GENERIC
+    local pid
     local LH="${LL} promote:"
 
     if [[ ${OCF_RESKEY_debug} == "true" ]] ; then
@@ -1352,6 +1340,7 @@ action_promote() {
 
 action_demote() {
     local rc=$OCF_ERR_GENERIC
+    local pid
     local LH="${LL} demote:"
 
     if [[ ${OCF_RESKEY_debug} == "true" ]] ; then
