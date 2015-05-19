@@ -27,3 +27,20 @@ class { 'openstack::keepalive' :
   tcpka_intvl     => '3',
   tcp_retries2    => '5',
 }
+
+# increase network backlog for performance on fast networks
+sysctl::value { 'net.core.netdev_max_backlog':   value => '261144' }
+
+L2_port<||> -> Sysfs_config_value<||>
+L3_ifconfig<||> -> Sysfs_config_value<||>
+L3_route<||> -> Sysfs_config_value<||>
+
+class { 'sysfs' :}
+
+sysfs_config_value { 'rps_cpus' :
+  ensure  => 'present',
+  name    => "${config_dir}/rps_cpus.conf",
+  value   => cpu_affinity_hex($::processorcount),
+  sysfs   => '/sys/class/net/*/queues/rx-*/rps_cpus',
+  exclude => '/sys/class/net/lo/*',
+}
