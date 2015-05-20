@@ -20,18 +20,12 @@ class cluster::rabbitmq_fence(
       $packages          = ['dbus', 'dbus-python',
                             'pygobject2', 'python-daemon' ]
       $dbus_service_name = 'messagebus'
-      $init_name         = '/etc/init.d/rabbit-fence'
-      $init_source       = 'puppet:///modules/cluster/rabbit-fence.init'
-      $init_mode         = '0755'
       $service_name      = 'rabbit-fence'
     }
     'Debian': {
       $packages          = [ 'python-gobject', 'python-gobject-2',
                              'python-dbus', 'python-daemon' ]
       $dbus_service_name = 'dbus'
-      $init_name         = '/etc/init/rabbit-fence.conf'
-      $init_source       = 'puppet:///modules/cluster/rabbit-fence.upstart'
-      $init_mode         = '0644'
       $service_name      = 'fuel-rabbit-fence'
     }
     default: {
@@ -61,10 +55,12 @@ class cluster::rabbitmq_fence(
     enable     => true,
   } ->
 
+  package { 'fuel-rabbit-fence': } ->
   service { 'rabbit-fence':
-    name   => $service_name,
-    enable => $enabled,
-    ensure => $enabled ? { true => running, false => stopped }
+    name    => $service_name,
+    enable  => $enabled,
+    ensure  => $enabled ? { true => running, false => stopped },
+    require => Package['rabbitmq-server'],
   }
 
   if $::osfamily == 'Debian' {
