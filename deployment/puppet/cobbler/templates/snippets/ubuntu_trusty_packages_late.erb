@@ -1,4 +1,4 @@
-#set $ubuntu_packages = ["acl", "openssh-server", "debconf-utils", "ntp", "ntpdate", "ruby-ipaddress", "ruby-netaddr", "ruby-openstack", "ruby-augeas", "ruby-stomp", "ruby-shadow", "ruby-json", "vim", "vlan", "curl", "anacron", "python-amqp", "nailgun-agent", "nailgun-mcagents", "lvm2", "nailgun-net-check", "puppet", "telnet", "gdisk", "daemonize", "rsync", "virt-what" ]
+#set $ubuntu_packages = ["acl", "openssh-server", "debconf-utils", "ntp", "ntpdate", "ruby-ipaddress", "ruby-netaddr", "ruby-openstack", "ruby-augeas", "ruby-stomp", "ruby-shadow", "ruby-json", "vim", "vlan", "curl", "anacron", "python-amqp", "nailgun-agent", "nailgun-mcagents", "lvm2", "nailgun-net-check", "puppet", "telnet", "gdisk", "daemonize", "rsync", "virt-what", "xfsprogs" ]
 #if $str($getVar('mco_auto_setup','')) == "1"
     #silent $ubuntu_packages.append("ruby-stomp")
     #silent $ubuntu_packages.append("mcollective")
