@@ -67,7 +67,7 @@ define cluster::corosync::cs_service (
   } else {
     tweaks::ubuntu_service_override { "${service_name}":
       package_name => $package_name,
-    }
+    } -> Service<| title=="${service_true_title}" |>
   }
 
   Service<| title=="${service_true_title}" |> {
