@@ -38,6 +38,7 @@ if $queue_provider == 'rabbitmq' {
   }
 
   $cluster_partition_handling = hiera('rabbit_cluster_partition_handling', 'autoheal')
+  $mnesia_table_loading_timeout = hiera('mnesia_table_loading_timeout', '10000')
   $rabbitmq_bind_ip_address   = hiera('rabbitmq_bind_ip_address','UNSET')
   # NOTE(bogdando) not a hash. Keep an indentation as is
   $rabbit_tcp_listen_options  = hiera('rabbit_tcp_listen_options',
@@ -65,6 +66,7 @@ if $queue_provider == 'rabbitmq' {
       'default_permissions'        => '[<<".*">>, <<".*">>, <<".*">>]',
       'tcp_listen_options'         => $rabbit_tcp_listen_options,
       'cluster_partition_handling' => $cluster_partition_handling,
+      'mnesia_table_loading_timeout' => $mnesia_table_loading_timeout,
     }
   )
   if $deployment_mode == 'ha_compact' {
