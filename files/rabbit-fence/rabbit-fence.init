@@ -13,9 +13,10 @@ prog="rabbit-fence"
 script="/usr/bin/${prog}.py"
 piddir="/var/run/rabbitmq"
 pidfile="${piddir}/${prog}.pid"
+user="rabbitmq"
 
 [ -x $script ] || exit 0
-[ -d $piddir ] || exit 0
+[ -d $piddir ] || (mkdir -p $piddir; chown -R $user $piddir)
 
 start() {
     exec $script
