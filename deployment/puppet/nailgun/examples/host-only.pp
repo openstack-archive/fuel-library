@@ -39,6 +39,7 @@ class { 'nailgun::host':
   monitord_user     => $::fuel_settings['keystone']['monitord_user'],
   monitord_password => $::fuel_settings['keystone']['monitord_password'],
   monitord_tenant   => 'services',
+  admin_iface       => $::fuel_settings['ADMIN_NETWORK']['interface'],
 }
 
 class { 'openstack::clocksync':
