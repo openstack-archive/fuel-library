@@ -118,7 +118,8 @@ class { 'osnailyfacter::apache':
 # https://review.fuel-infra.org/6251 is merged.
 class { 'keystone::wsgi::apache':
   priority => '05',
-  threads  => min(max($::processorcount,2), 24),
+  threads  => 1,
+  workers  => min(max($::processorcount,2), 24),
   ssl      => $ssl,
 
   wsgi_script_ensure => $::osfamily ? {
