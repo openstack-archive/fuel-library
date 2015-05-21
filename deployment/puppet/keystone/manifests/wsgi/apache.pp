@@ -167,8 +167,16 @@ class keystone::wsgi::apache (
     user      => 'keystone',
     group     => 'keystone',
     processes => $workers,
-    threads   => $threads
+    threads   => $threads,
   }
+
+
+  $wsgi_daemon_process_options_main = merge($wsgi_daemon_process_options,
+   {display-name => 'keystone-main'} )
+
+  $wsgi_daemon_process_options_admin = merge($wsgi_daemon_process_options,
+   {display-name => 'keystone-admin'} )
+
   $wsgi_script_aliases_main = hash([$public_path_real,"${::keystone::params::keystone_wsgi_script_path}/main"])
   $wsgi_script_aliases_admin = hash([$admin_path_real, "${::keystone::params::keystone_wsgi_script_path}/admin"])
 
@@ -195,7 +203,7 @@ class keystone::wsgi::apache (
     ssl_crl                     => $ssl_crl,
     ssl_certs_dir               => $ssl_certs_dir,
     wsgi_daemon_process         => 'keystone_main',
-    wsgi_daemon_process_options => $wsgi_daemon_process_options,
+    wsgi_daemon_process_options => $wsgi_daemon_process_options_main,
     wsgi_process_group          => 'keystone_main',
     wsgi_script_aliases         => $wsgi_script_aliases_main_real,
     require                     => [Class['apache::mod::wsgi'], File['keystone_wsgi_main']],
@@ -219,7 +227,7 @@ class keystone::wsgi::apache (
       ssl_crl                     => $ssl_crl,
       ssl_certs_dir               => $ssl_certs_dir,
       wsgi_daemon_process         => 'keystone_admin',
-      wsgi_daemon_process_options => $wsgi_daemon_process_options,
+      wsgi_daemon_process_options => $wsgi_daemon_process_options_admin,
       wsgi_process_group          => 'keystone_admin',
       wsgi_script_aliases         => $wsgi_script_aliases_admin,
       require                     => [Class['apache::mod::wsgi'], File['keystone_wsgi_admin']],
