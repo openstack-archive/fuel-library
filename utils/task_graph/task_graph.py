@@ -13,11 +13,11 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
+#
 # usage: task_graph.py [-h] [--workbook] [--clear_workbook] [--dot] [--png]
 #                      [--png_file PNG_FILE] [--open] [--debug]
 #                      [--filter FILTER] [--topology]
-#                      PLACE [PLACE ...]
+#                      [PLACE]
 #
 # positional arguments:
 #   PLACE                 The list of files of directories wheretasks can be
@@ -28,14 +28,14 @@
 #   --workbook, -w        Output the raw workbook
 #   --clear_workbook, -c  Output the clear workbook
 #   --dot, -D             Output the graph in dot format
-#   --png, -p             Write the graph in png format (default)
+#   --png, -p             Write the graph in png format
 #   --png_file PNG_FILE, -P PNG_FILE
 #                         Write graph image to this file
 #   --open, -o            Open the image after creation
 #   --debug, -d           Print debug messages
 #   --filter FILTER, -f FILTER
 #                         Filter tasks by this group or role
-#   --topology, -t        Show the tasks topology(possible execution order)
+#   --topology, -t        Show the tasks possible execution order (default)
 #
 # This tools can be used to create a task graph image. Just point it
 # at the folder where tasks.yaml files can be found.
@@ -117,8 +117,8 @@ class IO(object):
                             help='Output the graph in dot format')
         parser.add_argument("--png", "-p",
                             action="store_true",
-                            default=True,
-                            help='Write the graph in png format (default)')
+                            default=False,
+                            help='Write the graph in png format')
         parser.add_argument("--png_file", "-P",
                             type=str,
                             default='task_graph.png',
@@ -136,16 +136,16 @@ class IO(object):
                             default=None)
         parser.add_argument("--topology", "-t",
                             action="store_true",
-                            help="Show the tasks topology"
-                                 "(possible execution order)",
-                            default=False)
+                            help="Show the tasks possible execution order"
+                                 " (default)",
+                            default=True)
         parser.add_argument('places',
                             metavar='PLACE',
                             type=str,
-                            nargs='+',
+                            nargs='?',
                             help='The list of files of directories where'
                                  'tasks can be found',
-                            default=[])
+                            default=['.'])
 
         cls.args = parser.parse_args()
         return cls.args
@@ -173,20 +173,22 @@ class IO(object):
             return
 
         task_graph.process_data(filter=cls.args.filter)
-        task_graph.build_graph()
-
-        if cls.args.topology:
-            task_graph.show_topology()
-            return
 
         if cls.args.clear_workbook:
             IO.output(yaml.dump(task_graph.data))
             return
 
+        task_graph.build_graph()
+
         if cls.args.png:
             task_graph.create_image(cls.args.png_file)
             if cls.args.open:
                 cls.view_image(cls.args.png_file)
+            return
+
+        if cls.args.topology:
+            task_graph.show_topology()
+            return
 
 
 class TaskGraph(object):
@@ -245,6 +247,7 @@ class TaskGraph(object):
         return self.options['default_edge']
 
     def add_graph_node(self, id, options=None):
+        IO.debug('Add graph node: "%s"' % id)
         if id not in self.data:
             return
         if not options:
@@ -252,6 +255,7 @@ class TaskGraph(object):
         self.graph.add_node(id, options)
 
     def add_graph_edge(self, id_from, id_to, options=None):
+        IO.debug('Add graph edge: "%s" -> "%s"' % (id_from, id_to))
         if id_from not in self.data:
             return
         if id_to not in self.data:
@@ -261,7 +265,7 @@ class TaskGraph(object):
         self.graph.add_edge(id_from, id_to, options)
 
     @staticmethod
-    def filter_by_group(node, filter=None):
+    def filter_tasks(node, filter=None):
         # if group is not specified accept only the group tasks
         # and show only them on the graph/list
         # if there is a group, filter out group tasks
@@ -295,7 +299,7 @@ class TaskGraph(object):
                 node['requires'] = []
             if not 'required_for' in node:
                 node['required_for'] = []
-            if not self.filter_by_group(node, filter=filter):
+            if not self.filter_tasks(node, filter=filter):
                 continue
             self.data[node['id']] = node
 
