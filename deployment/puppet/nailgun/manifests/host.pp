@@ -10,6 +10,7 @@ $repo_root = '/var/www/nailgun',
 $monitord_user = 'monitd',
 $monitord_password = 'monitd',
 $monitord_tenant = 'services',
+$admin_iface = 'eth0',
 ) {
   #Enable cobbler's iptables rules even if Cobbler not called
   include cobbler::iptables
@@ -20,7 +21,9 @@ $monitord_tenant = 'services',
     state  => ['RELATED', 'ESTABLISHED'],
     action => 'accept',
   } ->
-  class { 'nailgun::iptables': }
+  class { 'nailgun::iptables':
+    admin_iface => $admin_iface,
+  }
 
   class { 'nailgun::auxiliaryrepos':
     repo_root  => $repo_root,
