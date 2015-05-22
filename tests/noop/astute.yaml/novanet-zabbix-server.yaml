@@ -60,6 +60,16 @@ external_ntp:
     label: Upstream NTP
     weight: 100
   ntp_list: 0.pool.ntp.org, 1.pool.ntp.org
+public_ssl:
+  metadata:
+    label: Public TLS
+    weight: 110
+  horizon: true
+  services: true
+  cert_source: self_signed
+  cert_data:
+    content: 'somedataaboutyourkeypair'
+  hostname: public.fuel.local
 fail_if_error: false
 fixed_network_range: 10.0.0.0/16
 floating_network_range:

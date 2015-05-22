@@ -1,0 +1,19 @@
+[ req ]
+default_bits = 2048
+default_keyfile = keyfile.key
+distinguished_name = req_distinguished_name
+prompt = no
+req_extensions = v3_req
+
+[ req_distinguished_name ]
+CN = US
+ST = California
+L = Mountain View
+O = Mirantis
+OU = Mirantis Deploy Team
+CN = ${ENV::SSL_CN_NAME}
+emailAddress = root@fuel.local
+
+[ v3_req ]
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
