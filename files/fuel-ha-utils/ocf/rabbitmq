@@ -970,26 +970,36 @@ get_monitor() {
 
     if [ $rabbit_running == $OCF_SUCCESS ]
         then
-            ocf_log info "${LH} rabbit app is running. checking if we are the part of healthy cluster"
-            prev_rc=$rc
-            nodelist=`crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$" | sed -e '/(null)/d'`
-            for node in $nodelist
-            do
-                ocf_log info "${LH} rabbit app is running. looking for master on $node"
-                is_master $node
-                status_master=$?
-                ocf_log info "${LH} fetched master attribute for $node. attr value is ${status_master}"
-                if [ $status_master -eq 0 ] ; then
-                    rc=$OCF_ERR_GENERIC
-                    ocf_log info "${LH} rabbit app is running. master is $node"
-                    if get_running_nodes | grep -q $(rabbit_node_name $node)
-                    then
-                        ocf_log info "${LH} rabbit app is running and is member of healthy cluster"
-                        rc=$prev_rc
-                        break
+            # Check if this node is running in the cluster
+            local this_node=`hostname`
+            local this_rabbit_node=$(rabbit_node_name $this_node)
+            get_running_nodes | grep -q $this_rabbit_node
+            local status_running_in_cluster=$?
+            if [ $status_running_in_cluster -ne 0 ] ; then
+                ocf_log err "${LH} rabbit node ${this_rabbit_node} is not running in cluster"
+                rc=$OCF_NOT_RUNNING
+            else
+                ocf_log info "${LH} rabbit app is running. checking if we are the part of healthy cluster"
+                prev_rc=$rc
+                nodelist=`crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$" | sed -e '/(null)/d'`
+                for node in $nodelist
+                do
+                    ocf_log info "${LH} rabbit app is running. looking for master on $node"
+                    is_master $node
+                    status_master=$?
+                    ocf_log info "${LH} fetched master attribute for $node. attr value is ${status_master}"
+                    if [ $status_master -eq 0 ] ; then
+                        rc=$OCF_ERR_GENERIC
+                        ocf_log info "${LH} rabbit app is running. master is $node"
+                        if get_running_nodes | grep -q $(rabbit_node_name $node)
+                        then
+                            ocf_log info "${LH} rabbit app is running and is member of healthy cluster"
+                            rc=$prev_rc
+                            break
+                        fi
                     fi
-                fi
-            done
+                done
+            fi
     fi
 
     if [[ $rc == $OCF_ERR_GENERIC ]]; then
