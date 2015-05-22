@@ -23,6 +23,7 @@ define ceph::osds::osd () {
     try_sleep => 10,
     tries     => 6,
     logoutput => true,
+    timeout   => 0,
     unless    => "ceph osd dump | grep -q \"osd.$(sed -nEe 's|${name}\ .*ceph-([0-9]+).*$|\1|p' /proc/mounts)\ up\ .*\ in\ \"",
   }
 
