@@ -1,0 +1,11 @@
+- id: ssl-keys-saving
+  type: puppet
+  groups: [primary-controller, controller]
+  requires: [firewall]
+  required_for: [deploy_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: python /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving_pre.rb
