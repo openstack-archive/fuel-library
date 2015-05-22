@@ -5,6 +5,7 @@ to be used in pcmk_nodes resource.
   EOS
   ) do |args|
     nodes = args[0]
+    roles = args[1] || %w(primary-controller controller)
     fail "You should provided 'nodes' structure!" unless nodes.is_a? Array and nodes.any?
     corosync_nodes = {}
     nodes.each do |node|
@@ -12,7 +13,7 @@ to be used in pcmk_nodes resource.
       ip = node['internal_address']
       uid = node['uid']
       role = node['role']
-      next unless %w(primary-controller controller).include? role
+      next unless roles.include? role
       next unless ip and fqdn
       corosync_nodes[fqdn] = {
           'id' => uid,

@@ -1,7 +1,8 @@
 notice('MODULAR: cluster.pp')
 
 $nodes = hiera('nodes')
-$corosync_nodes = corosync_nodes($nodes)
+$corosync_roles = hiera('corosync_roles',['primary-controller', 'controller'])
+$corosync_nodes = corosync_nodes($nodes,$corosync_roles)
 $internal_address = hiera('internal_address')
 
 class { 'cluster':
