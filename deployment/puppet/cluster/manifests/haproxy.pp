@@ -67,7 +67,6 @@ class cluster::haproxy (
 
   Package['haproxy'] -> Class['haproxy::base']
   Class['haproxy::base'] -> Class['cluster::haproxy_ocf']
-  Class['haproxy::base'] -> Haproxy::Service <||>
 
   if defined(Corosync::Service['pacemaker']) {
     Corosync::Service['pacemaker'] -> Class['cluster::haproxy_ocf']
