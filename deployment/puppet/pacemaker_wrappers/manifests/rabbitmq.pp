@@ -54,13 +54,13 @@ class pacemaker_wrappers::rabbitmq (
       'timeout' => '360'
     },
     'stop' => {
-      'timeout' => '60'
+      'timeout' => '120'
     },
     'promote' => {
       'timeout' => '120'
     },
     'demote' => {
-      'timeout' => '60'
+      'timeout' => '120'
     },
     'notify' => {
       'timeout' => '180'
