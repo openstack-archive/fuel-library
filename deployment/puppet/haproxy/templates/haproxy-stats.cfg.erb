@@ -1,0 +1,12 @@
+
+listen Stats
+<% Array(@stats_ipaddresses).uniq.each do |ip| -%>
+  bind <%= ip %>:<%= @stats_port %>
+<% end -%>
+  mode http
+  stats enable
+  stats uri /
+  stats refresh 5s
+  stats show-node
+  stats show-legends
+  stats hide-version
