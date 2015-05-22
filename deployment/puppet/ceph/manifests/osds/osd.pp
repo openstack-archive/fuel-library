@@ -21,8 +21,9 @@ define ceph::osds::osd () {
   exec { "ceph-deploy osd activate ${deploy_device_name}":
     command   => "ceph-deploy osd activate ${deploy_device_name}",
     try_sleep => 10,
-    tries     => 6,
+    tries     => 3,
     logoutput => true,
+    timeout   => 0,
     unless    => "ceph osd dump | grep -q \"osd.$(sed -nEe 's|${name}\ .*ceph-([0-9]+).*$|\1|p' /proc/mounts)\ up\ .*\ in\ \"",
   }
 
