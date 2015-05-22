@@ -81,6 +81,7 @@ define haproxy::listen (
   $bind                         = undef,
   $mode                         = undef,
   $collect_exported             = true,
+  $order                        = '20',
   $options                      = {
     'option'  => [
       'tcplog',
@@ -88,6 +89,7 @@ define haproxy::listen (
     ],
     'balance' => 'roundrobin'
   },
+  $use_include                  = $haproxy::params::use_include,
   # Deprecated
   $bind_options                 = '',
 ) {
@@ -109,10 +111,25 @@ define haproxy::listen (
     fail("An haproxy::backend resource was discovered with the same name (${name}) which is not supported")
   }
 
+  if $use_include {
+    $target         = "/etc/haproxy/conf.d/${order}-${name}.cfg"
+    $fragment_order = '00'
+
+    concat { $target:
+      owner  => '0',
+      group  => '0',
+      mode   => '0644',
+    }
+
+  } else {
+    $target         = $::haproxy::config_file
+    $fragment_order = "${order}-${name}-00"
+  }
+
   # Template uses: $name, $ipaddress, $ports, $options
   concat::fragment { "${name}_listen_block":
-    order   => "20-${name}-00",
-    target  => $::haproxy::config_file,
+    order   => $fragment_order,
+    target  => $target,
     content => template('haproxy/haproxy_listen_block.erb'),
   }
 
