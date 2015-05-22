@@ -150,6 +150,31 @@
     cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova mysql' -p /var/lib/fuel/keys/
     timeout: 180
 
+- id: generate_haproxy_keys
+  type: shell
+  role: master
+  requires: [pre_deployment_start]
+  condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'self_signed'"
+  required_for: [copy_haproxy_keys]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_haproxy_keys.sh -i {CLUSTER_ID} -h {CN_HOSTNAME} -o 'haproxy' -p /var/lib/fuel/keys/
+    timeout: 180
+
+- id: copy_haproxy_keys
+  type: copy_files
+  role: '*'
+  required_for: [pre_deployment_end]
+  requires: [generate_haproxy_keys]
+  condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'self_signed'"
+  parameters:
+    files:
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/haproxy/public_haproxy.pem
+        dst: /var/lib/astute/haproxy/public_haproxy.pem
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/haproxy/public_haproxy.crt
+        dst: /etc/pki/tls/certs/public_haproxy.pem
+    permissions: '0600'
+    dir_permissions: '0700'
+
 - id: sync_time
   type: shell
   role: '*'
