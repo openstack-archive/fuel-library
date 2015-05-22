@@ -503,6 +503,15 @@ external_ntp:
   metadata:
     weight: 100
     label: Upstream NTP
+public_ssl:
+  metadata:
+    label: Public TLS
+    weight: 110
+  horizon: true
+  services: true
+  cert_source: self_signed
+  cert_data: ''
+  hostname: public.fuel.local
 metadata:
   weight: 30
   label: Common
