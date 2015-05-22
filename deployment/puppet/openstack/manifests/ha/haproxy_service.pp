@@ -40,11 +40,12 @@ define openstack::ha::haproxy_service (
   }
 
   haproxy::listen { $name:
-    order     => $order,
-    ipaddress => $virtual_ips,
-    ports     => $listen_port,
-    options   => $haproxy_config_options,
-    mode      => $mode,
+    order       => $order,
+    ipaddress   => $virtual_ips,
+    ports       => $listen_port,
+    options     => $haproxy_config_options,
+    mode        => $mode,
+    use_include => true,
   }
 
   haproxy::balancermember { $name:
@@ -56,6 +57,7 @@ define openstack::ha::haproxy_service (
     options           => $balancermember_options,
     define_cookies    => $define_cookies,
     define_backups    => $define_backups,
+    use_include       => true,
   }
 
     # Dirty hack, due Puppet can't send notify between stages
