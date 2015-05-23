@@ -44,3 +44,11 @@ sysfs_config_value { 'rps_cpus' :
   sysfs   => '/sys/class/net/*/queues/rx-*/rps_cpus',
   exclude => '/sys/class/net/lo/*',
 }
+
+sysfs_config_value { 'xps_cpus' :
+  ensure  => 'present',
+  name    => "/etc/sysfs.d/xps_cpus.conf",
+  value   => cpu_affinity_hex($::processorcount),
+  sysfs   => '/sys/class/net/*/queues/tx-*/xps_cpus',
+  exclude => '/sys/class/net/lo/*',
+}
