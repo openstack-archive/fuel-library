@@ -33,16 +33,18 @@ describe manifest do
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
     end
 
-    it 'should declare keystone::wsgi::apache class with 4 threads on 4 CPU system' do
+    it 'should declare keystone::wsgi::apache class with 4 workers on 4 CPU system' do
       should contain_class('keystone::wsgi::apache').with(
-        'threads' => '4',
+        'threads' => '1',
+        'workers' => '4',
       )
     end
 
-    it 'should declare keystone::wsgi::apache class with 24 threads on 48 CPU system' do
+    it 'should declare keystone::wsgi::apache class with 24 workers on 48 CPU system' do
       facts[:processorcount] = 48
       should contain_class('keystone::wsgi::apache').with(
-        'threads' => '24',
+        'threads' => '1',
+        'workers' => '24',
       )
     end
 
