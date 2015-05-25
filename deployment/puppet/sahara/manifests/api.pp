@@ -17,14 +17,15 @@ class sahara::api (
   $syslog_log_facility         = "LOG_LOCAL0",
   $log_dir                     = '/var/log/sahara',
   $service_name                = $sahara::params::sahara_api_service_name,
-  $package_name                = $sahara::params::package_name,
+  $package_name                = $sahara::params::sahara_api_package_name,
 ) inherits sahara::params {
 
   validate_string($keystone_password)
 
-  package { 'sahara':
-    ensure => 'installed',
-    name   => $package_name,
+  package { 'sahara-api':
+    ensure =>  'installed',
+    name   =>  $package_name,
+    require => Package['sahara-common'],
   }
 
   if $enabled {
@@ -87,13 +88,13 @@ class sahara::api (
     mode    => '0751',
   }
 
-  Package['sahara'] ->
+  Package['sahara-api'] ->
   Sahara_config<||> ->
   Exec['sahara-db-manage'] ->
   File['sahara_log_dir'] ->
   Service['sahara-api'] ->
 
-  Package['sahara'] ~> Service['sahara-api']
+  Package['sahara-api'] ~> Service['sahara-api']
   Sahara_config<||> ~> Service['sahara-api']
 
 }

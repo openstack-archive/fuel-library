@@ -39,6 +39,11 @@ class sahara (
 
   $sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=60"
 
+  package { 'sahara-common':
+    ensure => $package_ensure,
+    name   => $::sahara::params::sahara_common_package_name,
+  }
+
   class { 'sahara::db::mysql':
     password                     => $db_password,
     dbname                       => $db_name,
@@ -110,6 +115,7 @@ class sahara (
   Class['mysql::server'] ->
   Class['sahara::db::mysql'] ->
   Firewall[$firewall_rule] ->
+  Package['sahara-common'] ->
   Class['sahara::keystone::auth'] ->
   Class['sahara::api'] ->
   Class['sahara::engine']

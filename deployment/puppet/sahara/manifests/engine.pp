@@ -9,6 +9,7 @@ class sahara::engine (
   $rabbit_virtual_host          = '/',
   $rabbit_ha_queues             = false,
   $service_name                 = $sahara::params::sahara_engine_service_name,
+  $package_name                 = $sahara::params::sahara_engine_package_name,
 ) inherits sahara::params {
 
   if $enabled {
@@ -17,13 +18,19 @@ class sahara::engine (
     $service_ensure = 'stopped'
   }
 
+  package { 'sahara-engine':
+    ensure  => 'installed',
+    name    => $package_name,
+    require => Package['sahara-api'],
+  }
+
   service { 'sahara-engine':
     ensure     => $service_ensure,
     name       => $service_name,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => Package['sahara'],
+    require    => Package['sahara-engine'],
   }
 
   if $rpc_backend == 'rabbit' {
@@ -48,7 +55,7 @@ class sahara::engine (
     }
   }
 
-  Package['sahara'] ~> Service['sahara-engine']
+  Package['sahara-engine'] ~> Service['sahara-engine']
   Sahara_config<||> ~> Service['sahara-engine']
 }
 

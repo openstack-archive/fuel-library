@@ -3,14 +3,18 @@ class sahara::params {
 
   case $::osfamily {
     'RedHat': {
-      $package_name  = 'openstack-sahara'
+      $sahara_common_package_name = 'openstack-sahara-common'
       $sahara_api_service_name  = 'openstack-sahara-api'
+      $sahara_api_package_name  = 'openstack-sahara-api'
       $sahara_engine_service_name = 'openstack-sahara-engine'
+      $sahara_engine_package_name = 'openstack-sahara-engine'
   }
     'Debian': {
-      $package_name  = 'sahara'
+      $sahara_common_package_name  = 'sahara-common'
       $sahara_api_service_name  = 'sahara-api'
+      $sahara_api_package_name  = 'sahara-api'
       $sahara_engine_service_name = 'sahara-engine'
+      $sahara_engine_package_name  = 'sahara-engine'
   }
   default: {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: \
