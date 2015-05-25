@@ -69,6 +69,7 @@ if $sahara_hash['enabled'] {
   }
 
   Class['sahara'] -> Haproxy_backend_status['sahara']
+  Service['sahara'] -> Haproxy_backend_status['sahara']
   Haproxy_backend_status['sahara'] -> Class['sahara::templates::create_templates']
 }
 
