@@ -65,7 +65,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     #rgw Keystone settings
     rgw_use_pki                      => false,
     rgw_use_keystone                 => true,
-    rgw_keystone_url                 => "${public_vip}:35357",
+    rgw_keystone_url                 => "${management_vip}:35357",
     rgw_keystone_admin_token         => $keystone_hash['admin_token'],
     rgw_keystone_token_cache_size    => '10',
     rgw_keystone_accepted_roles      => '_member_, Member, admin, swiftoperator',
