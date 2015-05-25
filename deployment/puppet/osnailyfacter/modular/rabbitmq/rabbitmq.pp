@@ -82,6 +82,7 @@ if $queue_provider == 'rabbitmq' {
   )
 
   class { '::rabbitmq':
+    admin_enable               => false,
     repos_ensure               => false,
     package_provider           => $package_provider,
     package_source             => undef,
