@@ -431,6 +431,16 @@ get_running_nodes() {
     return $?
 }
 
+start_app_maybe() {
+  local LH="${LL} start_app_maybe():"
+  su_rabbit_cmd "${OCF_RESKEY_ctl} start_app >>${startup_log} 2>&1"
+  local rc=$?
+  ocf_log info "${LH} The lazy start attempt for the rabbitmq app returned ${rc}"
+  return $rc
+}
+
+# Check if the given node has to join the cluster
+# Return 0, if it has to, otherwise return 1
 check_need_join_to() {
     local join_to=$(rabbit_node_name $1)
     local node
@@ -792,7 +802,10 @@ try_to_start_rmq_app() {
 
     ocf_log info "${LH} begin."
     ocf_log info "${LH} Execute start_app with timeout: ${TIMEOUT_ARG}"
-    su_rabbit_cmd "${OCF_RESKEY_ctl} start_app >>${startup_log} 2>&1"
+    # Do a lazy start attempt
+    # If the rabbit app cannot start, it is ok as it may be not ready yet.
+    start_app_maybe
+    ocf_log info "${LH} The lazy start attempt result is OK anyway"
     rc=$?
     if [[ $rc == 0 ]] ; then
         ocf_log info "${LH} start_app was successful."
@@ -1048,6 +1061,10 @@ get_monitor() {
             master_score 1000
         fi
     fi
+    # Do a lazy start attempt
+    # If the rabbit app cannot start, it is ok as it may be not ready yet.
+    start_app_maybe
+    ocf_log info "${LH} The lazy start attempt result is OK anyway"
     ocf_log info "${LH} get_monitor function ready to return ${rc}"
     return $rc
 }
@@ -1221,6 +1238,10 @@ action_notify() {
                 # Later this ex-master node will rejoin the cluster at post-start.
                 jjj_join ${OCF_RESKEY_CRM_meta_notify_promote_uname}
                 rc=$?
+                # Do a lazy start attempt
+                # If the rabbit app cannot start, it is ok as it may be not ready yet.
+                start_app_maybe
+                ocf_log info "${LH} The lazy start attempt result is OK anyway"
                 ocf_log info "${LH} post-promote end."
                 if [[ $rc == $OCF_ERR_GENERIC ]] ; then
                     ocf_log err "${LH} Failed to join the cluster on post-promote. The resource will be restarted."
@@ -1256,9 +1277,13 @@ action_notify() {
                       ocf_log warn "${LH} We are already clustered with node ${OCF_RESKEY_CRM_meta_notify_master_uname}"
                       rc2=$OCF_SUCCESS
                     fi
+                    # If the rabbit app cannot start here, report the resource as not running
+                    start_app_maybe
+                    local rc_started=$?
+                    [ $rc_started -eq 0 ] || ocf_log warn "${LH} The lazy start attempt result was expected to be successfull, but failed"
                     ocf_log info "${LH} post-start end."
-                    if [[ $rc2 == $OCF_ERR_GENERIC ]] ; then
-                        ocf_log warn "${LH} Failed to join the cluster on post-start. The resource will be restarted."
+                    if [ $rc2 -eq $OCF_ERR_GENERIC -o $rc_started -ne 0 ] ; then
+                        ocf_log warn "${LH} Failed to join the cluster and start rabbit app on post-start. The resource will be restarted."
                         ocf_log info "${LH} post-start end."
                         return $OCF_NOT_RUNNING
                     fi
