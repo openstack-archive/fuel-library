@@ -36,6 +36,10 @@ function. Must be of type String or Hash."
     end
     puts "Checking #{uri}"
     begin
+      #Add sleep before checking for repos
+      #as Ubuntu waits 32 seconds for the 
+      #bridge to become ready
+      sleep 32
       out = Timeout::timeout(180) do
         u = URI.parse(uri)
         http = Net::HTTP.new(u.host, u.port)
