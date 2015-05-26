@@ -449,6 +449,17 @@ get_alive_pacemaker_nodes_but()
     return $?
 }
 
+start_app_maybe() {
+  local LH="${LL} start_app_maybe():"
+  local startup_log="${1:-${OCF_RESKEY_log_dir}/startup_log}"
+  su_rabbit_cmd "${OCF_RESKEY_ctl} start_app >>${startup_log} 2>&1"
+  local rc=$?
+  ocf_log info "${LH} The lazy start attempt for the rabbitmq app returned ${rc}"
+  return $rc
+}
+
+# Check if the given node has to join the cluster
+# Return 0, if it has to, otherwise return 1
 check_need_join_to() {
     local join_to=$(rabbit_node_name $1)
     local node
@@ -810,7 +821,8 @@ try_to_start_rmq_app() {
 
     ocf_log info "${LH} begin."
     ocf_log info "${LH} Execute start_app with timeout: ${TIMEOUT_ARG}"
-    su_rabbit_cmd "${OCF_RESKEY_ctl} start_app >>${startup_log} 2>&1"
+    # Do a lazy start attempt and check if it was successfull, return an error otherwise
+    start_app_maybe
     rc=$?
     if [[ $rc == 0 ]] ; then
         ocf_log info "${LH} start_app was successful."
@@ -1075,6 +1087,10 @@ get_monitor() {
             master_score 1000
         fi
     fi
+    # Do a lazy start attempt
+    # If the rabbit app cannot start, it is ok as it may be not ready yet.
+    start_app_maybe
+    ocf_log info "${LH} The lazy start attempt result is OK anyway"
     ocf_log info "${LH} get_monitor function ready to return ${rc}"
     return $rc
 }
