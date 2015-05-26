@@ -1,10 +1,8 @@
 notice('MODULAR: openstack-cinder.pp')
 
-$cinder_hash                    = hiera('cinder', {})
+$cinder_hash                    = hiera_hash('cinder', {})
 $management_vip                 = hiera('management_vip')
 $queue_provider                 = hiera('queue_provider', 'rabbitmq')
-$cinder_db_user                 = hiera('cinder_db_user', 'cinder')
-$cinder_db_dbname               = hiera('cinder_db_dbname', 'cinder')
 $internal_address               = hiera('internal_address')
 $cinder_volume_group            = hiera('cinder_volume_group', 'cinder')
 $controller_nodes               = hiera('controller_nodes')
@@ -12,21 +10,44 @@ $nodes_hash                     = hiera('nodes', {})
 $storage_hash                   = hiera('storage', {})
 $storage_address                = hiera('storage_address')
 $ceilometer_hash                = hiera('ceilometer',{})
-$rabbit_hash                    = hiera('rabbit', {})
-
-$db_host                        = $management_vip
-$service_endpoint               = $management_vip
+$rabbit_hash                    = hiera_hash('rabbit_hash', {})
+$service_endpoint               = hiera('service_endpoint', $management_vip)
 $cinder_db_password             = $cinder_hash[db_password]
 $cinder_user_password           = $cinder_hash[user_password]
+$keystone_user                  = $cinder_hash['user'] ? {
+  default => $cinder_hash['user'],
+  undef   => 'cinder',
+}
+$keystone_tenant                = $cinder_hash['tenant'] ? {
+  default => $cinder_hash['tenant'],
+  undef   => 'services',
+}
+$db_host                        = $cinder_hash['db_host'] ? {
+  default => $cinder_hash['db_host'],
+  undef   => $management_vip,
+}
+$cinder_db_user                 = $cinder_hash['db_user'] ? {
+  default => $cinder_hash['db_user'],
+  undef   => 'cinder',
+}
+$cinder_db_name                 = $cinder_hash['db_name'] ? {
+  default => $cinder_hash['db_name'],
+  undef   => 'cinder',
+}
+
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
-if $internal_address in $controller_nodes {
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+}
+elsif $internal_address in $controller_nodes {
   # prefer local MQ broker if it exists on this node
   $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
 } else {
   $amqp_nodes = fqdn_rotate($controller_nodes)
 }
-$amqp_port = '5673'
+
+$amqp_port = hiera('amqp_port', '5673')
 $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 
 # Determine who should get the volume service
@@ -57,7 +78,7 @@ $openstack_version = {
 
 ######### Cinder Controller Services ########
 class {'openstack::cinder':
-  sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8&read_timeout=60",
+  sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
   queue_provider       => $queue_provider,
   amqp_hosts           => $amqp_hosts,
   amqp_user            => $rabbit_hash['user'],
@@ -71,6 +92,8 @@ class {'openstack::cinder':
   auth_host            => $service_endpoint,
   bind_host            => $internal_address,
   iscsi_bind_host      => $storage_address,
+  keystone_user        => $keystone_user,
+  keystone_tenant      => $keystone_tenant,
   cinder_user_password => $cinder_user_password,
   use_syslog           => hiera('use_syslog', true),
   verbose              => hiera('verbose', true),
