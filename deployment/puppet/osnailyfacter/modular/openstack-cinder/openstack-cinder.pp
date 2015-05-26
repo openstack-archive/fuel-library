@@ -1,6 +1,6 @@
 notice('MODULAR: openstack-cinder.pp')
 
-$cinder_hash                    = hiera('cinder', {})
+$cinder_hash                    = hiera_hash('cinder', {})
 $management_vip                 = hiera('management_vip')
 $queue_provider                 = hiera('queue_provider', 'rabbitmq')
 $cinder_db_user                 = hiera('cinder_db_user', 'cinder')
@@ -12,21 +12,29 @@ $nodes_hash                     = hiera('nodes', {})
 $storage_hash                   = hiera('storage', {})
 $storage_address                = hiera('storage_address')
 $ceilometer_hash                = hiera('ceilometer',{})
-$rabbit_hash                    = hiera('rabbit', {})
+$rabbit_hash                    = hiera_hash('rabbit_hash', {})
 
-$db_host                        = $management_vip
-$service_endpoint               = $management_vip
+$db_host                        = hiera('db_host', $management_vip)
+$service_endpoint               = hiera('service_endpoint', $management_vip)
 $cinder_db_password             = $cinder_hash[db_password]
 $cinder_user_password           = $cinder_hash[user_password]
+$keystone_user                  = $cinder_hash['user'] ? {
+  default => $cinder_hash['user'],
+  undef   => 'cinder',
+}
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
-if $internal_address in $controller_nodes {
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+}
+elsif $internal_address in $controller_nodes {
   # prefer local MQ broker if it exists on this node
   $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
 } else {
   $amqp_nodes = fqdn_rotate($controller_nodes)
 }
-$amqp_port = '5673'
+
+$amqp_port = hiera('amqp_port', '5673')
 $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 
 # Determine who should get the volume service
@@ -71,6 +79,7 @@ class {'openstack::cinder':
   auth_host            => $service_endpoint,
   bind_host            => $internal_address,
   iscsi_bind_host      => $storage_address,
+  keystone_user        => $keystone_user,
   cinder_user_password => $cinder_user_password,
   use_syslog           => hiera('use_syslog', true),
   verbose              => hiera('verbose', true),
