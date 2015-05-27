@@ -111,7 +111,7 @@ class { 'openstack::keystone':
 ####### WSGI ###########
 
 class { 'osnailyfacter::apache':
-  listen_ports => hiera_array('apache_ports', ['80', '8888']),
+  listen_ports => hiera_array('apache_ports', ['8888']),
 }
 
 # TODO: (adidenko) use file from package for Debian, when

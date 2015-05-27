@@ -6,7 +6,11 @@ class osnailyfacter::apache (
 
   define apache_port {
     apache::listen { $name: }
-    apache::namevirtualhost { "*:${name}": }
+    if $name =~ /:/ {
+      apache::namevirtualhost { "${name}": }
+    } else {
+      apache::namevirtualhost { "*:${name}": }
+    }
   }
 
   class { '::apache':

@@ -32,7 +32,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
   # Apache and listen ports
   class { 'osnailyfacter::apache':
-    listen_ports => hiera_array('apache_ports', ['80', '8888']),
+    listen_ports => hiera_array('apache_ports', ['8888']),
   }
   if ($::osfamily == 'Debian'){
     apache::mod {'rewrite': }

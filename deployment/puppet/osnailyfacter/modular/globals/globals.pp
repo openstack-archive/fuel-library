@@ -54,7 +54,6 @@ $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 
 $nova_report_interval           = hiera('nova_report_interval', 60)
 $nova_service_down_time         = hiera('nova_service_down_time', 180)
-$apache_ports                   = hiera_array('apache_ports', ['80', '8888', '5000', '35357'])
 
 $openstack_version = hiera('openstack_version',
   {
@@ -128,6 +127,13 @@ if $use_neutron {
   }
   $network_manager    = "nova.network.manager.${novanetwork_params['network_manager']}"
 }
+
+$apache_ports = hiera_array('apache_ports',[
+    '8888',
+    "${internal_address}:80",
+    "${internal_address}:5000",
+    "${internal_address}:35357",
+  ])
 
 if $deployment_mode == 'ha_compact' {
   $primary_controller            = $node_role ? { 'primary-controller' => true, default =>false }

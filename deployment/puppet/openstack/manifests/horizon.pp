@@ -62,7 +62,7 @@ class openstack::horizon (
 
   # Apache and listen ports
   class { 'osnailyfacter::apache':
-    listen_ports => hiera_array('apache_ports', ['80', '8888']),
+    listen_ports => hiera_array('apache_ports', ['8888']),
   }
 
   class { '::horizon':
