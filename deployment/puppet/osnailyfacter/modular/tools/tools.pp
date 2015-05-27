@@ -19,7 +19,19 @@ package { $tools :
 }
 
 package { 'cloud-init':
-   ensure => 'purged',
+  ensure => 'purged',
+}
+
+if !defined(Package['irqbalance']) {
+  package { 'irqbalance':
+    ensure => installed,
+  }
+}
+
+if !defined(Service['irqbalance']) {
+  service { 'irqbalance':
+    ensure => running,
+  }
 }
 
 $puppet = hiera('puppet')
