@@ -2,10 +2,13 @@
 class openstack::ha::nova {
 
   openstack::ha::haproxy_service { 'nova-api-1':
-    order           => '040',
-    listen_port     => 8773,
-    public          => true,
-    require_service => 'nova-api',
+    order                  => '040',
+    listen_port            => 8773,
+    public                 => true,
+    require_service        => 'nova-api',
+    haproxy_config_options => {
+        'timeout server'   => ['600s'], 
+    },
   }
 
   openstack::ha::haproxy_service { 'nova-api-2':
@@ -14,7 +17,8 @@ class openstack::ha::nova {
     public                 => true,
     require_service        => 'nova-api',
     haproxy_config_options => {
-        option => ['httpchk', 'httplog','httpclose'],
+        option             => ['httpchk', 'httplog','httpclose'],
+        'timeout server'   => ['600s'],
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
