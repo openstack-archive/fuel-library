@@ -7,7 +7,7 @@ class { 'l23network' :
 }
 prepare_network_config($network_scheme)
 $sdn = generate_network_config()
-notify {"SDN": message=>"${sdn}" }
+notify {'SDN': message => $sdn }
 
 #Set arp_accept to 1 by default #lp1456272
 sysctl::value { 'net.ipv4.conf.all.arp_accept':   value => '1'  }
@@ -25,10 +25,10 @@ class { 'openstack::reserved_ports': }
 # (note: overall check time frame should be lower then
 # nova_report_interval).
 class { 'openstack::keepalive' :
-  tcpka_time      => '30',
-  tcpka_probes    => '8',
-  tcpka_intvl     => '3',
-  tcp_retries2    => '5',
+  tcpka_time   => '30',
+  tcpka_probes => '8',
+  tcpka_intvl  => '3',
+  tcp_retries2 => '5',
 }
 
 # increase network backlog for performance on fast networks
@@ -42,7 +42,7 @@ class { 'sysfs' :}
 
 sysfs_config_value { 'rps_cpus' :
   ensure  => 'present',
-  name    => "/etc/sysfs.d/rps_cpus.conf",
+  name    => '/etc/sysfs.d/rps_cpus.conf',
   value   => cpu_affinity_hex($::processorcount),
   sysfs   => '/sys/class/net/*/queues/rx-*/rps_cpus',
   exclude => '/sys/class/net/lo/*',
@@ -50,8 +50,21 @@ sysfs_config_value { 'rps_cpus' :
 
 sysfs_config_value { 'xps_cpus' :
   ensure  => 'present',
-  name    => "/etc/sysfs.d/xps_cpus.conf",
+  name    => '/etc/sysfs.d/xps_cpus.conf',
   value   => cpu_affinity_hex($::processorcount),
   sysfs   => '/sys/class/net/*/queues/tx-*/xps_cpus',
   exclude => '/sys/class/net/lo/*',
+}
+
+if !defined(Package['irqbalance']) {
+  package { 'irqbalance':
+    ensure => installed,
+  }
+}
+
+if !defined(Service['irqbalance']) {
+  service { 'irqbalance':
+    ensure  => running,
+    require => Package['irqbalance'],
+  }
 }
