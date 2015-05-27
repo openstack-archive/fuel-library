@@ -977,7 +977,7 @@ get_monitor() {
     local status_master
     local rabbit_running
     local nodelist
-    local prev_rc
+    local rc2=$OCF_SUCCESS
     local max
     local our_uptime
     local node_uptime
@@ -1010,7 +1010,6 @@ get_monitor() {
     if [ $rabbit_running == $OCF_SUCCESS ]
         then
             ocf_log info "${LH} rabbit app is running. checking if we are the part of healthy cluster"
-            prev_rc=$rc
             nodelist=$(get_alive_pacemaker_nodes_but)
             for node in $nodelist
             do
@@ -1019,20 +1018,20 @@ get_monitor() {
                 status_master=$?
                 ocf_log info "${LH} fetched master attribute for $node. attr value is ${status_master}"
                 if [ $status_master -eq 0 ] ; then
-                    rc=$OCF_ERR_GENERIC
+                    rc2=$OCF_ERR_GENERIC
                     ocf_log info "${LH} rabbit app is running. master is $node"
                     if get_running_nodes | grep -q $(rabbit_node_name $node)
                     then
                         ocf_log info "${LH} rabbit app is running and is member of healthy cluster"
-                        rc=$prev_rc
                         break
                     fi
                 fi
             done
+            [ $rc2 -ne $OCF_ERR_GENERIC ] || ocf_log err "${LH} rabbit app is running out of the cluster"
     fi
 
     if [[ $rc == $OCF_ERR_GENERIC ]]; then
-        ocf_log info "${LH} get_status() returns generic error ${rc}"
+        ocf_log err "${LH} get_status() returns generic error ${rc}"
         ocf_log info "${LH} ensuring this slave does not get promoted."
         master_score 0
         return $OCF_ERR_GENERIC
@@ -1074,6 +1073,17 @@ get_monitor() {
             ocf_log info "${LH} we are the oldest node"
             master_score 1000
         fi
+    fi
+
+    # Check if the rabbitmqctl control plane is alive.
+    # The rabbit app may be not running and the command
+    # will return > 0, so we only check if the command execution
+    # has timed out (which is a code 137)
+    su_rabbit_cmd "${OCF_RESKEY_ctl} list_channels 2>&1 > /dev/null"
+    rc2=$?
+    if [ $rc2 -eq 137 -o $rc2 -eq 124 ]; then
+        ocf_log err "${LH} rabbitmqctl is not responding. The resource is failed."
+        return $OCF_ERR_GENERIC
     fi
     ocf_log info "${LH} get_monitor function ready to return ${rc}"
     return $rc
