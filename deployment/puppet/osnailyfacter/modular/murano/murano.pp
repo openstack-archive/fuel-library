@@ -99,6 +99,8 @@ if $murano_hash['enabled'] {
     murano_repo_url_string   => $murano_repo_url,
   }
 
+  include ::tweaks::apache_wrappers
+
 }
 
 ######################

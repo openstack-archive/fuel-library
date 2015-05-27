@@ -29,3 +29,4 @@ class { 'openstack::horizon':
   servername        => hiera('public_vip'),
 }
 
+include ::tweaks::apache_wrappers
