@@ -263,6 +263,7 @@ class openstack::glance (
   }
 
   # Configure cache pruner and cache cleaner
-  class { 'glance::cache::pruner': }
+  Class['glance::api'] ->
+  class { 'glance::cache::pruner': } ->
   class { 'glance::cache::cleaner': }
 }
