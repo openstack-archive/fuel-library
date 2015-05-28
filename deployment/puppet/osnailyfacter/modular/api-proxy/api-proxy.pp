@@ -9,3 +9,5 @@ class { 'osnailyfacter::apache':
 class {'osnailyfacter::apache_api_proxy':
   master_ip => hiera('master_ip'),
 }
+
+include ::tweaks::apache_wrappers
