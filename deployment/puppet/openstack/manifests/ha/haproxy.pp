@@ -4,6 +4,7 @@ class openstack::ha::haproxy (
   $public_virtual_ip,
   $internal_virtual_ip,
   $horizon_use_ssl          = false,
+  $services_use_ssl         = false,
   $neutron                  = false,
   $queue_provider           = 'rabbitmq',
   $custom_mysql_setup_class = 'galera',
@@ -35,32 +36,38 @@ class openstack::ha::haproxy (
   }
 
   class { 'openstack::ha::keystone':
+    public_ssl   => $services_use_ssl,
     server_names => hiera_array('keystone_names', $controllers_server_names),
     ipaddresses  => hiera_array('keystone_ipaddresses', $controllers_ipaddresses),
   }
 
   class { 'openstack::ha::nova':
+    public_ssl   => $services_use_ssl,
     server_names => hiera_array('nova_names', $controllers_server_names),
     ipaddresses  => hiera_array('nova_ipaddresses', $controllers_ipaddresses),
   }
 
   class { 'openstack::ha::heat':
+    public_ssl   => $services_use_ssl,
     server_names => hiera_array('heat_names', $controllers_server_names),
     ipaddresses  => hiera_array('heat_ipaddresses', $controllers_ipaddresses),
   }
 
   class { 'openstack::ha::glance':
+    public_ssl   => $services_use_ssl,
     server_names => hiera_array('glance_names', $controllers_server_names),
     ipaddresses  => hiera_array('glance_ipaddresses', $controllers_ipaddresses),
   }
 
   class { 'openstack::ha::cinder':
+    public_ssl   => $services_use_ssl,
     server_names => hiera_array('cinder_names', $controllers_server_names),
     ipaddresses  => hiera_array('cinder_ipaddresses', $controllers_ipaddresses),
   }
 
   if $neutron {
     class { 'openstack::ha::neutron':
+      public_ssl   => $services_use_ssl,
       server_names => hiera_array('neutron_names', $controllers_server_names),
       ipaddresses  => hiera_array('neutron_ipaddresses', $controllers_ipaddresses),
     }
@@ -76,6 +83,7 @@ class openstack::ha::haproxy (
 
   if $swift_proxies {
     class { 'openstack::ha::swift':
+      public_ssl => $services_use_ssl,
       server_names => hiera_array('swift_server_names', filter_hash($swift_proxies, 'name')),
       ipaddresses  => hiera_array('swift_ipaddresses', filter_hash($swift_proxies, 'storage_address')),
     }
@@ -83,6 +91,7 @@ class openstack::ha::haproxy (
 
   if $rgw_servers {
     class { 'openstack::ha::radosgw':
+      public_ssl => $services_use_ssl,
       server_names => hiera_array('radosgw_server_names', filter_hash($rgw_servers, 'name')),
       ipaddresses  => hiera_array('radosgw_ipaddresses', filter_hash($rgw_servers, 'internal_address')),
     }
@@ -90,6 +99,7 @@ class openstack::ha::haproxy (
 
   if $ceilometer {
     class { 'openstack::ha::ceilometer':
+      public_ssl => $services_use_ssl,
       server_names => hiera_array('ceilometer_names', $controllers_server_names),
       ipaddresses  => hiera_array('ceilometer_ipaddresses', $controllers_ipaddresses),
     }
@@ -97,6 +107,7 @@ class openstack::ha::haproxy (
 
   if $sahara {
      class { 'openstack::ha::sahara':
+      public_ssl => $services_use_ssl,
       server_names => hiera_array('sahara_names', $controllers_server_names),
       ipaddresses  => hiera_array('sahara_ipaddresses', $controllers_ipaddresses),
     }
@@ -104,6 +115,7 @@ class openstack::ha::haproxy (
 
   if $murano {
     class { 'openstack::ha::murano':
+      public_ssl => $services_use_ssl,
       server_names => hiera_array('murano_names', $controllers_server_names),
       ipaddresses  => hiera_array('murano_ipaddresses', $controllers_ipaddresses),
     }
