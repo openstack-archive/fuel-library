@@ -1,11 +1,14 @@
 # HA configuration for OpenStack Glance
-class openstack::ha::glance {
+class openstack::ha::glance (
+  $public_ssl = false,
+) {
 
   openstack::ha::haproxy_service { 'glance-api':
     # before neutron
     order                  => '080',
     listen_port            => 9292,
     public                 => true,
+    public_ssl             => $public_ssl,
     require_service        => 'glance-api',
     haproxy_config_options => {
         'option'         => ['httpchk', 'httplog','httpclose'],

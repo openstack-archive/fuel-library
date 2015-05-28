@@ -1,6 +1,7 @@
 # HA configuration for OpenStack Swift
 class openstack::ha::swift (
   $servers,
+  $public_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'swift':
@@ -13,5 +14,6 @@ class openstack::ha::swift (
         'option'         => ['httpchk', 'httplog', 'httpclose'],
     },
     balancermember_options => 'check port 49001 inter 15s fastinter 2s downinter 8s rise 3 fall 3',
+    public_ssl   => $public_ssl,
   }
 }
