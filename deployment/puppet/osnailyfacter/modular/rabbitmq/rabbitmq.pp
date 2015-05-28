@@ -126,8 +126,7 @@ if $queue_provider == 'rabbitmq' {
     class { 'pacemaker_wrappers::rabbitmq':
       command_timeout         => $command_timeout,
       debug                   => $debug,
-      #TODO(bogdando) make erlang cookie as a hiera(astute) value.
-      erlang_cookie           => 'EOKOWXQREETZSHFNTPEY',
+      erlang_cookie           => $erlang_cookie,
       before                  => Class['nova::rabbitmq'],
     }
   }
