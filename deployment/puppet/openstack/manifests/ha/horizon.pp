@@ -29,18 +29,21 @@ class openstack::ha::horizon (
 
   if $use_ssl {
     openstack::ha::haproxy_service { 'horizon-ssl':
-      order       => '017',
-      listen_port => 443,
-      public      => true,
-      internal    => false,
+      order               => '017',
+      listen_port         => 443,
+      balancermember_port => 80,
+      public              => true,
+      public_ssl          => $use_ssl,
+      internal            => false,
 
       haproxy_config_options => {
-        'option'      => ['ssl-hello-chk', 'tcpka'],
+        'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
         'stick-table' => 'type ip size 200k expire 30m',
         'stick'       => 'on src',
         'balance'     => 'source',
         'timeout'     => ['client 3h', 'server 3h'],
-        'mode'        => 'tcp',
+        'mode'        => 'http',
+        'reqadd'      => 'X-Forwarded-Proto:\ https',
       },
 
       balancermember_options => 'weight 1 check',

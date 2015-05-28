@@ -19,6 +19,7 @@ $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $deployment_mode            = hiera('deployment_mode')
+$public_ssl_hash            = hiera('public_ssl')
 
 #################################################################
 
@@ -41,6 +42,7 @@ if $sahara_hash['enabled'] {
     keystone_tenant            => 'services',
     auth_uri                   => "http://${service_endpoint}:5000/v2.0/",
     identity_uri               => "http://${service_endpoint}:35357/",
+    public_ssl                 => $public_ssl_hash['services'],
     use_neutron                => $use_neutron,
     syslog_log_facility        => $syslog_log_facility_sahara,
     debug                      => $debug,
