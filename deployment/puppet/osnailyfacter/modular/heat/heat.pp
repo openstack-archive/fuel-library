@@ -20,6 +20,7 @@ $databse_user             = 'heat'
 $databse_name             = 'heat'
 $read_timeout             = '60'
 $sql_connection           = "mysql://${databse_user}:${database_password}@${$controller_node_address}/${databse_name}?read_timeout=${read_timeout}"
+$ssl_hash                 = hiera('ssl')
 
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {
@@ -45,6 +46,8 @@ class { 'openstack::heat' :
   keystone_user            => 'heat',
   keystone_password        => $heat_hash['user_password'],
   keystone_tenant          => 'services',
+
+  public_ssl               => $ssl_hash['services'],
 
   keystone_ec2_uri         => "http://${controller_node_address}:5000/v2.0",
 

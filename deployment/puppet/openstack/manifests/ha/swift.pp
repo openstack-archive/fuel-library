@@ -1,6 +1,7 @@
 # HA configuration for OpenStack Swift
 class openstack::ha::swift (
   $servers,
+  $public_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'swift':
@@ -9,5 +10,6 @@ class openstack::ha::swift (
     server_names => filter_hash($servers, 'name'),
     ipaddresses  => filter_hash($servers, 'storage_address'),
     public       => true,
+    public_ssl   => $public_ssl,
   }
 }
