@@ -1,10 +1,13 @@
 # HA configuration for OpenStack Neutron
-class openstack::ha::neutron {
+class openstack::ha::neutron (
+  $public_ssl = false,
+) {
 
   openstack::ha::haproxy_service { 'neutron':
     order                  => '085',
     listen_port            => 9696,
     public                 => true,
+    public_ssl             => $public_ssl,
     define_backups         => false,
     #NOTE(bogdando) do not add require_service => 'neutron-server', will cause a loop
     haproxy_config_options => {

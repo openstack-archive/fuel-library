@@ -1,10 +1,13 @@
 # HA configuration for OpenStack Keystone
-class openstack::ha::keystone {
+class openstack::ha::keystone (
+  $public_ssl = false,
+) {
 
   openstack::ha::haproxy_service { 'keystone-1':
     order                  => '020',
     listen_port            => 5000,
     public                 => true,
+    public_ssl             => $public_ssl,
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],
     },
