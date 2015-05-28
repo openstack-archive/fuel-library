@@ -18,6 +18,7 @@ $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', false)
 $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $primary_controller         = hiera('primary_controller')
+$ssl_hash                   = hiera('ssl')
 
 #################################################################
 
@@ -85,6 +86,8 @@ if $murano_hash['enabled'] {
     murano_keystone_user     => 'murano',
     murano_keystone_password => $murano_hash['user_password'],
     murano_keystone_tenant   => 'services',
+
+    public_ssl               => $ssl_hash['services'],
 
     use_neutron              => $use_neutron,
 

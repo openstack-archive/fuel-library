@@ -32,6 +32,7 @@ class openstack::ha::horizon (
       order       => '017',
       listen_port => 443,
       public      => true,
+      public_ssl  => $use_ssl,
       internal    => false,
 
       haproxy_config_options => {
