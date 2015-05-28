@@ -45,10 +45,15 @@ $memcache_server_port  = hiera('memcache_server_port', '11211')
 $memcache_pool_maxsize = '100'
 $memcache_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('memcache_nodes'), 'mgmt/memcache')
 
+$public_ssl_hash = hiera('public_ssl')
+
 $public_port = '5000'
 $admin_port = '35357'
 $internal_port = '5000'
-$public_protocol = 'http'
+$public_protocol = $public_ssl_hash['services'] ? {
+  true    => 'https',
+  default => 'http',
+}
 
 $public_url = "${public_protocol}://${public_address}:${public_port}"
 $admin_url = "http://${admin_address}:${admin_port}"
@@ -96,7 +101,9 @@ class { 'openstack::keystone':
   db_user                  => $db_user,
   admin_token              => $admin_token,
   public_address           => $public_address,
-  internal_address         => $management_vip,
+  public_ssl               => $public_ssl_hash['services'],
+  public_hostname          => $public_ssl_hash['hostname'],
+  internal_address         => $management_vip, # send traffic through HAProxy
   admin_address            => $admin_address,
   glance_user_password     => $glance_user_password,
   nova_user_password       => $nova_user_password,
