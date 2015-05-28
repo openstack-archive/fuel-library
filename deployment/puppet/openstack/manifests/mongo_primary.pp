@@ -1,34 +1,39 @@
 # == Class: openstack::mongo_primary
 
-class openstack::mongo_primary (
-  $ceilometer_database          = "ceilometer",
-  $ceilometer_user              = "ceilometer",
-  $ceilometer_metering_secret   = undef,
-  $ceilometer_db_password       = "ceilometer",
-  $ceilometer_metering_secret   = "ceilometer",
-  $ceilometer_replset_members   = ['mongo2', 'mongo3'],
-  $mongodb_bind_address         = ['0.0.0.0'],
-  $mongodb_port                 = 27017,
-  $use_syslog                   = true,
-  $verbose                      = false,
-  $debug                        = false,
-  $replset                      = undef,
+class mongo_primary (
+  $auth                       = true,
+  $ceilometer_database        = "ceilometer",
+  $ceilometer_user            = "ceilometer",
+  $ceilometer_metering_secret = undef,
+  $ceilometer_db_password     = "ceilometer",
+  $ceilometer_metering_secret = "ceilometer",
+  $ceilometer_replset_members = ['127.0.0.1'],
+  $mongodb_bind_address       = ['127.0.0.1'],
+  $mongodb_port               = 27017,
+  $use_syslog                 = true,
+  $verbose                    = false,
+  $debug                      = false,
+  $logappend                  = true,
+  $journal                    = true,
+  $replset_name               = 'ceilometer',
+  $keyfile                    = '/etc/mongodb.key',
+  $oplog_size                 = '10240',
+  $fork                       = false,
+  $directoryperdb             = true,
+  $profile                    = "1",
 ) {
-  if $debug {
-    $set_parameter = 'logLevel=2'
-    $quiet         = false
+
+  if $verbose {
+    $verbositylevel = "vv"
   } else {
-    $set_parameter = 'logLevel=0'
-    $quiet         = true
+    $verbositylevel = "v"
   }
 
-
-  if size($ceilometer_replset_members) > 0 {
-    $replset_setup = true
-    $keyfile = '/etc/mongodb.key'
+  if $use_syslog {
+    $logpath = false
   } else {
-    $replset_setup = false
-    $keyfile = undef
+    # undef to use defaults
+    $logpath = undef
   }
 
   notify {"MongoDB params: $mongodb_bind_address" :} ->
@@ -37,32 +42,22 @@ class openstack::mongo_primary (
   } ->
 
   class {'::mongodb::server':
-    port          => $mongodb_port,
-    verbose       => $verbose,
-    use_syslog    => $use_syslog,
-    bind_ip       => $mongodb_bind_address,
-    auth          => true,
-    replset       => $replset,
-    keyfile       => $keyfile,
-    set_parameter => $set_parameter,
-    quiet         => $quiet,
+    port           => $mongodb_port,
+    verbose        => $verbose,
+    syslog         => $use_syslog,
+    logpath        => $logpath,
+    logappend      => $logappend,
+    journal        => $journal,
+    bind_ip        => $mongodb_bind_address,
+    auth           => $auth,
+    replset        => $replset_name,
+    keyfile        => $keyfile,
+    directoryperdb => $directoryperdb,
+    fork           => $fork,
+    profile        => $profile,
   } ->
 
-  class {'::mongodb::replset':
-    replset_setup   => $replset_setup,
-    replset_members => $ceilometer_replset_members,
-  } ->
-
-  notify {"mongodb configuring databases" :} ->
-
-  mongodb::db { $ceilometer_database:
-    user          => $ceilometer_user,
-    password      => $ceilometer_db_password,
-    roles         => [ 'readWrite', 'dbAdmin' ],
-    admin_username => 'admin',
-    admin_password => $ceilometer_db_password,
-    admin_database => 'admin',
-  } ->
+  notify {"mongodb configuring admin user" :} ->
 
   mongodb::db { 'admin':
     user         => 'admin',
@@ -82,11 +77,33 @@ class openstack::mongo_primary (
       'root',
       'restore',
     ],
-    admin_username => 'admin',
-    admin_password => $ceilometer_db_password,
-    admin_database => 'admin',
+  } ->
+
+  notify {"mongodb configuring ceilometer database" :} ->
+
+  mongodb::db { $ceilometer_database:
+    user          => $ceilometer_user,
+    password      => $ceilometer_db_password,
+    roles         => [ 'readWrite', 'dbAdmin' ],
   } ->
 
   notify {"mongodb primary finished": }
 
+  if $replset_name and is_string($replset_name) {
+    mongodb_conn_validator { 'check_alive':
+      server => $ceilometer_replset_members,
+      port   => $mongodb_port,
+    }
+
+    mongodb_replset { "$replset_name":
+      ensure         => present,
+      members        => suffix($ceilometer_replset_members, inline_template(":<%= @mongodb_port %>")),
+      admin_username => 'admin',
+      admin_password => $ceilometer_db_password,
+      admin_database => 'admin',
+      auth_enabled   => $auth,
+    }
+
+    Class['::mongodb::server'] -> Mongodb_conn_validator['check_alive'] -> Mongodb_replset["$replset_name"] -> Mongodb::Db['admin']
+  }
 }

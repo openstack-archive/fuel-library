@@ -61,11 +61,7 @@ if $ceilometer_hash['enabled'] {
     }
   } else {
     $mongo_hosts = mongo_hosts($nodes_hash)
-    if size(mongo_hosts($nodes_hash, 'array', 'mongo')) > 1 {
-      $mongo_replicaset = 'ceilometer'
-    } else {
-      $mongo_replicaset = undef
-    }
+    $mongo_replicaset = 'ceilometer'
   }
 }
 

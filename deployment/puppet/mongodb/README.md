@@ -19,9 +19,9 @@ Installs MongoDB on RHEL/Ubuntu/Debian from OS repo, or alternatively from
 
 ### Deprecation Warning ###
 
-This release is a major refactoring of the module which means that the API may
-have changed in backwards incompatible ways. If your project depends on the old API,
-please pin your dependencies to 0.3 version to ensure your environments don't break.
+This module is still in beta which means the API is subject to change in
+backwards incompatible ways. If your project depends on an old API, please pin
+your dependencies to the necessary version to ensure your environments don't break.
 
 The current module design is undergoing review for potential 1.0 release. We welcome
 any feedback with regard to the APIs and patterns used in this release.
@@ -45,6 +45,7 @@ For the 0.6 release, the MongoDB module now supports basic replicaset features
 * MongoDB configuration files.
 * MongoDB service.
 * MongoDB client.
+* MongoDB sharding support (mongos)
 * 10gen/mongodb apt/yum repository.
 
 ###Beginning with MongoDB
@@ -62,12 +63,21 @@ class {'::mongodb::server':
 
 For Red Hat family systems, the client can be installed in a similar fashion:
 
-```
-puppet class {'::mongodb::client':}
+```puppet
+class {'::mongodb::client':}
 ```
 
 Note that for Debian/Ubuntu family systems the client is installed with the 
 server. Using the client class will by default install the server.
+
+If one plans to configure sharding for a Mongo deployment, the module offer
+the `mongos` installation. `mongos` can be installed the following way :
+
+```puppet
+class {'::mongodb::mongos' :
+  configdb => ['configsvr1.example.com:27018'],
+}
+```
 
 Although most distros come with a prepacked MongoDB server we recommend to
 use the 10gen/MongoDB software repository, because most of the current OS
@@ -116,6 +126,7 @@ Unsafe plain text password could be used with 'password' parameter instead of 'p
 * `mongodb::server`: Installs and configure MongoDB
 * `mongodb::client`: Installs the MongoDB client shell (for Red Hat family systems)
 * `mongodb::globals`: Configure main settings in a global way
+* `mongodb::mongos`: Installs and configure Mongos server (for sharding support)
 
 ####Private classes
 * `mongodb::repo`: Manage 10gen/MongoDB software repository
@@ -125,6 +136,9 @@ Unsafe plain text password could be used with 'password' parameter instead of 'p
 * `mongodb::server::install`: Install MongoDB software packages
 * `mongodb::server::service`: Manages service
 * `mongodb::client::install`: Installs the MongoDB client software package
+* `mongodb::mongos::config`: Configures Mongos configuration files
+* `mongodb::mongos::install`: Install Mongos software packages
+* `mongodb::mongos::service`: Manages Mongos service
 
 ####Class: mongodb::globals
 *Note:* most server specific defaults should be overridden in the `mongodb::server`
@@ -155,6 +169,14 @@ This setting can be used to override the default status check command for
 your MongoDB service. If not specified, the module will use whatever service
 name is the default for your OS distro.
 
+##### `mongod_service_manage`
+This setting can be used to override the default management of the mongod service.
+By default the module will manage the mongod process.
+
+##### `mongos_service_manage`
+This setting can be used to override the default management of the mongos service.
+By default the module will manage the mongos process.
+
 #####`user`
 This setting can be used to override the default MongoDB user and owner of the
 service and related files in the file system. If not specified, the module will
@@ -164,6 +186,10 @@ use the default for your OS distro.
 This setting can be used to override the default MongoDB user group to be used
 for related files in the file system. If not specified, the module will use
 the default for your OS distro.
+
+#####`ipv6`
+This setting is used to configure MongoDB to turn on ipv6 support. If not specified
+and ipv6 address is passed to MongoDB bind_ip it will just fail.
 
 #####`bind_ip`
 This setting can be used to configure MonogDB process to bind to and listen
@@ -184,7 +210,7 @@ For more details about configuration parameters consult the
 [MongoDB Configuration File Options](http://docs.mongodb.org/manual/reference/configuration-options/).
 
 #####`ensure`
-enable or disable the service
+Used to ensure that the package is installed and the service is running, or that the package is absent/purged and the service is stopped. Valid values are true/false/present/absent/purged.
 
 #####`config`
 Path of the config file. If not specified, the module will use the default
@@ -202,6 +228,10 @@ If not specified, the module will use the default for your OS distro.
 Specify the path to a file name for the log file that will hold all diagnostic
 logging information. Unless specified, mongod will output all log information
 to the standard output.
+
+#####`ipv6`
+This setting has to be true to configure MongoDB to turn on ipv6 support. If not specified
+and ipv6 address is passed to MongoDB bind_ip it will just fail.
 
 #####`bind_ip`
 Set this option to configure the mongod or mongos process to bind to and listen
@@ -328,12 +358,26 @@ MMS identifier for mms monitoring. Default: None
 #####`mms_interval`
 MMS interval for mms monitoring. Default: None
 
+#####`configsvr`
+Use this setting to enable config server mode for mongod.
+
+#####`shardsvr`
+Use this setting to enable shard server mode for mongod.
+
 #####`replset`
 Use this setting to configure replication with replica sets. Specify a replica
 set name as an argument to this set. All hosts must have the same set name.
 
 #####`rest`
 Set to true to enable a simple REST interface. Default: false
+
+#####`quiet`
+Runs the mongod or mongos instance in a quiet mode that attempts to limit the 
+amount of output. This option suppresses : "output from database commands, including drop, dropIndexes, diagLogging, validate, and clean", "replication activity", "connection accepted events" and "connection closed events".
+Default: false
+
+> For production systems this option is **not** recommended as it may make tracking 
+problems during particular connections much more difficult.
 
 #####`slowms`
 Sets the threshold for mongod to consider a query “slow” for the database profiler.
@@ -343,6 +387,10 @@ Default: 100 ms
 Specify the path to a key file to store authentication information. This option
 is only useful for the connection between replica set members. Default: None
 
+#####'key'
+Specify the key contained within the keyfile. This option
+is only useful for the connection between replica set members. Default: None
+
 #####`master`
 Set to true to configure the current instance to act as master instance in a
 replication configuration. Default: False  *Note*: deprecated – use replica sets
@@ -350,6 +398,11 @@ replication configuration. Default: False  *Note*: deprecated – use replica se
 #####`set_parameter`
 Specify extra configuration file parameters (i.e.
 textSearchEnabled=true). Default: None
+
+#####`syslog`
+Sends all logging output to the host’s syslog system rather than to standard
+output or a log file. Default: None
+*Important*: You cannot use syslog with logpath.
 
 #####`slave`
 Set to true to configure the current instance to act as slave instance in a
@@ -365,6 +418,73 @@ replicate. Default: <>
 Used with the slave setting to specify the master instance from which
 this slave instance will replicate. Default: <>
 *Note*: deprecated – use replica sets
+
+#####`ssl`
+Set to true to enable ssl. Default: <>
+*Important*: You need to have ssl_key and ssl_ca set as well and files
+need to pre-exist on node.
+
+#####`ssl_key`
+Default: <>
+
+#####`ssl_ca`
+Default: <>
+
+
+#####`service_manage`
+Whether or not the MongoDB service resource should be part of the catalog.
+Default: true
+
+####Class: mongodb::mongos
+class. This class should only be used if you want to implement sharding within
+your mongodb deployment.
+
+This class allows you to configure the mongos daemon (responsible for routing)
+on your platform.
+
+#####`ensure`
+Used to ensure that the package is installed and the service is running, or that the package is absent/purged and the service is stopped. Valid values are true/false/present/absent/purged.
+
+#####`config`
+Path of the config file. If not specified, the module will use the default
+for your OS distro.
+
+#####`config_content`
+Path to the config template if the default doesn't match one needs.
+
+#####`configdb`
+Array of the config servers IP addresses the mongos should connect to.
+
+#####`service_manage`
+Whether or not the MongoDB sharding service resource should be part of the catalog.
+Default: true
+
+#####`service_name`
+This setting can be used to override the default Mongos service name. If not
+specified, the module will use whatever service name is the default for your OS distro.
+
+#####`service_provider`
+This setting can be used to override the default Mongos service provider. If
+not specified, the module will use whatever service provider is the default for
+your OS distro.
+
+#####`service_status`
+This setting can be used to override the default status check command for
+your Mongos service. If not specified, the module will use whatever service
+name is the default for your OS distro.
+
+#####`service_enable`
+This setting can be used to specify if the service should be enable at boot
+
+#####`service_ensure`
+This setting can be used to specify if the service should be running
+
+#####`package_ensure`
+This setting can be used to specify if puppet should install the package or not
+
+#####`package_name`
+This setting can be used to specify the name of the package that should be installed.
+If not specified, the module will use whatever service name is the default for your OS distro.
 
 ### Definitions
 
@@ -406,6 +526,7 @@ The maximum amount of two second tries to wait MongoDB startup. Default: 10
 
 ```puppet
 mongodb_user { testuser:
+  username      => 'testuser',
   ensure        => present,
   password_hash => mongodb_password('testuser', 'p@ssw0rd'),
   database      => testdb,
@@ -414,6 +535,9 @@ mongodb_user { testuser:
   require       => Class['mongodb::server'],
 }
 ```
+#####`username`
+Name of the mongodb user.
+
 #####`password_hash`
 Hex encoded md5 hash of "$username:mongo:$password".
 
@@ -430,13 +554,13 @@ The maximum amount of two second tries to wait MongoDB startup. Default: 10
 'mongodb_replset' can be used to create and manage MongoDB replicasets.
 
 ```puppet
-mongodb_replicaset { rsmain:
+mongodb_replset { rsmain:
   ensure  => present,
   members => ['host1:27017', 'host2:27017', 'host3:27017']
 }
 ```
 
-Ideally the ```mongodb_replicaset``` resource will be declared on the initial
+Ideally the ```mongodb_replset``` resource will be declared on the initial
 desired primary node (arbitrarily the first of the list) and this node will be
 processed once the secondary nodes are up. This will ensure all the nodes are
 in the first configuration of the replicaset, else it will require running
@@ -447,7 +571,29 @@ Array of 'host:port' of the replicaset members.
 
 It currently only adds members without options.
 
-## Limitation
+#### Provider: mongodb_shard
+'mongodb_shard' can be used to create and manage MongoDB shards.
+*Note:* Removing a shard is not yet supported. Shard can only be added.
+
+```puppet
+mongodb_shard { 'rsmain':
+  member => 'rsmain/host1:27017',
+  keys   => [{'rsmain.foo' => {'name' => 1}}],
+}
+```
+#####`member`
+Member of the shard in the form;
+
+* [hostname]
+* [hostname]:[port]
+* [replica-set-name]/[hostname]
+* [replica-set-name]/[hostname]:port
+
+#####`keys`
+Sharding keys for a specific database. This variable should be an array
+of sharding keys.
+
+## Limitations
 
 This module has been tested on:
 
@@ -455,10 +601,12 @@ This module has been tested on:
 * Debian 6.* (squeeze)
 * Ubuntu 12.04.2 (precise)
 * Ubuntu 10.04.4 LTS (lucid)
-* RHEL 5/6
-* CentOS 5/6
+* RHEL 5/6/7
+* CentOS 5/6/7
 
 For a full list of tested operating systems please have a look at the [.nodeset.xml](https://github.com/puppetlabs/puppetlabs-mongodb/blob/master/.nodeset.yml) definition.
+
+This module should support `service_ensure` separate from the `ensure` value on `Class[mongodb::server]` but it does not yet.
 
 ## Development
 

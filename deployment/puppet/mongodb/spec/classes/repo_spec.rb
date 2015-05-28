@@ -7,11 +7,12 @@ describe 'mongodb::repo', :type => :class do
       {
         :osfamily        => 'Debian',
         :operatingsystem => 'Debian',
+        :lsbdistid       => 'Debian',
       }
     end
 
     it {
-      should contain_class('mongodb::repo::apt')
+      is_expected.to contain_class('mongodb::repo::apt')
     }
   end
 
@@ -24,7 +25,7 @@ describe 'mongodb::repo', :type => :class do
     end
 
     it {
-      should contain_class('mongodb::repo::yum')
+      is_expected.to contain_class('mongodb::repo::yum')
     }
   end
 
