@@ -247,6 +247,7 @@ if $primary_controller {
       "OS_PASSWORD=${nova_hash['user_password']}",
       "OS_AUTH_URL=http://${service_endpoint}:5000/v2.0/",
       'OS_ENDPOINT_TYPE=internalURL',
+      "NOVA_ENDPOINT_TYPE=internalURL",
     ],
     command => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
     unless  => 'bash -c "nova flavor-list | grep -q m1.micro"',
