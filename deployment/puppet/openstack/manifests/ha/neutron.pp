@@ -2,12 +2,14 @@
 class openstack::ha::neutron (
   $server_names,
   $ipaddresses,
+  $public_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'neutron':
     order                  => '085',
     listen_port            => 9696,
     public                 => true,
+    public_ssl             => $public_ssl,
     define_backups         => false,
     server_names           => $server_names,
     ipaddresses            => $ipaddresses,
