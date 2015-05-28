@@ -269,6 +269,10 @@ class openstack::nova::controller (
     'DEFAULT/fping_path': value => $fping_path,
   }
 
+  nova_config {
+    'DEFAULT/cinder_catalog_info': value => 'volume:cinder:internalURL',
+  }
+
   class {'nova::quota':
     quota_instances                       => pick($nova_hash['quota_instances'], 100),
     quota_cores                           => pick($nova_hash['quota_cores'], 100),

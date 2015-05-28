@@ -7,6 +7,7 @@ $public_vip       = hiera('public_vip')
 $keystone_hash    = hiera('keystone_hash', {})
 $management_vip   = hiera('management_vip')
 $service_endpoint = hiera('service_endpoint')
+$public_ssl_hash  = hiera('public_ssl')
 
 if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
   $storage_hash['volumes_ceph'] or
@@ -45,6 +46,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   class { 'ceph::radosgw':
     # SSL
     use_ssl                          => false,
+    public_ssl                       => $public_ssl_hash['services'],
 
     # Ceph
     primary_mon                      => $primary_mon,
