@@ -12,6 +12,8 @@ class sahara (
   $region                       = 'RegionOne',
   $node_domain                  = 'novalocal',
 
+  $public_ssl                   = false,
+
   $db_password                  = 'sahara',
   $db_name                      = 'sahara',
   $db_user                      = 'sahara',
@@ -61,6 +63,10 @@ class sahara (
     password                     => $keystone_password,
     auth_name                    => $keystone_user,
     public_address               => $api_host,
+    public_protocol              => $public_ssl ? {
+      true    => 'https',
+      default => 'http',
+    },
     admin_address                => $keystone_host,
     internal_address             => $keystone_host,
     sahara_port                  => $api_port,
