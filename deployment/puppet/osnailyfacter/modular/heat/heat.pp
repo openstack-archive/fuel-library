@@ -34,6 +34,9 @@ if($::operatingsystem == 'Ubuntu') {
   }
 }
 
+# FIXME (sbog): rewrite this to use hiera
+$services_public_ssl = true
+
 class { 'openstack::heat' :
   external_ip              => $controller_node_public,
 
@@ -45,6 +48,8 @@ class { 'openstack::heat' :
   keystone_user            => 'heat',
   keystone_password        => $heat_hash['user_password'],
   keystone_tenant          => 'services',
+
+  public_ssl               => $services_public_ssl,
 
   keystone_ec2_uri         => "http://${controller_node_address}:5000/v2.0",
 

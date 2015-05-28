@@ -1,6 +1,7 @@
 # HA configuration for Ceph RADOS Gateway
 class openstack::ha::radosgw (
   $servers,
+  $public_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'radosgw':
@@ -10,6 +11,7 @@ class openstack::ha::radosgw (
     server_names        => filter_hash($servers, 'name'),
     ipaddresses         => filter_hash($servers, 'internal_address'),
     public              => true,
+    public_ssl          => $public_ssl,
 
     haproxy_config_options => {
       'option'         => ['httplog', 'httpchk GET /'],

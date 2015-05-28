@@ -19,11 +19,15 @@ if ($use_swift) {
   $rgw_servers = $controllers
 }
 
+# FIXME (sbog): rewrite to use hiera
+$services_use_ssl = true
+
 class { '::openstack::ha::haproxy':
       controllers              => $controllers,
       public_virtual_ip        => hiera('public_vip'),
       internal_virtual_ip      => hiera('management_vip'),
       horizon_use_ssl          => hiera('horizon_use_ssl', false),
+      services_use_ssl         => $services_use_ssl,
       neutron                  => $use_neutron,
       queue_provider           => 'rabbitmq',
       custom_mysql_setup_class => 'galera',

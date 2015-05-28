@@ -4,6 +4,7 @@ class openstack::ha::haproxy (
   $public_virtual_ip,
   $internal_virtual_ip,
   $horizon_use_ssl          = false,
+  $services_use_ssl         = false,
   $neutron                  = false,
   $queue_provider           = 'rabbitmq',
   $custom_mysql_setup_class = 'galera',
@@ -26,13 +27,13 @@ class openstack::ha::haproxy (
   }
 
   class { 'openstack::ha::horizon': use_ssl => $horizon_use_ssl }
-  class { 'openstack::ha::keystone': }
-  class { 'openstack::ha::nova': }
-  class { 'openstack::ha::heat': }
-  class { 'openstack::ha::glance': }
-  class { 'openstack::ha::cinder': }
+  class { 'openstack::ha::keystone': public_ssl => $services_use_ssl }
+  class { 'openstack::ha::nova': public_ssl => $services_use_ssl }
+  class { 'openstack::ha::heat': public_ssl => $services_use_ssl }
+  class { 'openstack::ha::glance': public_ssl => $services_use_ssl }
+  class { 'openstack::ha::cinder': public_ssl => $services_use_ssl }
 
-  if $neutron { class { 'openstack::ha::neutron': } }
+  if $neutron { class { 'openstack::ha::neutron': public_ssl => $services_use_ssl } }
 
   if $custom_mysql_setup_class == 'galera' {
     class { 'openstack::ha::mysqld':
@@ -40,9 +41,19 @@ class openstack::ha::haproxy (
     }
   }
 
-  if $swift_proxies { class { 'openstack::ha::swift':   servers => $swift_proxies } }
-  if $rgw_servers   { class { 'openstack::ha::radosgw': servers => $rgw_servers } }
-  if $ceilometer    { class { 'openstack::ha::ceilometer': } }
-  if $sahara        { class { 'openstack::ha::sahara': } }
-  if $murano        { class { 'openstack::ha::murano': } }
+  if $swift_proxies { 
+    class { 'openstack::ha::swift': 
+      servers    => $swift_proxies,
+      public_ssl => $services_use_ssl,
+    } 
+  }
+  if $rgw_servers   { 
+    class { 'openstack::ha::radosgw':
+      servers    => $rgw_servers,
+      public_ssl => $services_use_ssl,
+    }
+  }
+  if $ceilometer    { class { 'openstack::ha::ceilometer': public_ssl => $services_use_ssl } }
+  if $sahara        { class { 'openstack::ha::sahara': public_ssl => $services_use_ssl } }
+  if $murano        { class { 'openstack::ha::murano': public_ssl => $services_use_ssl } }
 }

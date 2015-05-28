@@ -66,9 +66,16 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     ring_min_part_hours     => $ring_min_part_hours,
   }
 
+# FIXME (sbog): rewrite this to use hiera
+$services_public_ssl = true
+
   class { 'swift::keystone::auth':
     password         => $swift_hash[user_password],
     public_address   => hiera('public_vip'),
+    public_protocol  => $services_public_ssl ? {
+      true    => 'https',
+      default => 'http',
+    },
     internal_address => $management_vip,
     admin_address    => $management_vip,
   }

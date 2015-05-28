@@ -51,6 +51,9 @@ $ceilometer = $ceilometer_hash['enabled']
 $enabled = true
 $ssl = false
 
+# FIXME (sbog): rewrite this to use hiera
+$services_public_ssl = true
+
 $rabbit_password     = $rabbit_hash['password']
 $rabbit_user         = $rabbit_hash['user']
 $rabbit_hosts        = split($amqp_hosts, ',')
@@ -81,6 +84,7 @@ class { 'openstack::keystone':
   db_user                  => $db_user,
   admin_token              => $admin_token,
   public_address           => $public_address,
+  public_ssl               => $services_public_ssl,
   internal_address         => $management_vip, # send traffic through HAProxy
   admin_address            => $admin_address,
   glance_user_password     => $glance_user_password,

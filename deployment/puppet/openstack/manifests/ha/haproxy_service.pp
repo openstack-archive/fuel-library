@@ -21,6 +21,9 @@ define openstack::ha::haproxy_service (
   $public                 = false,
   $internal               = true,
 
+  # by default don't use public ssl
+  $public_ssl             = false,
+
   # if defined, restart this service before registering it with HAProxy
   $require_service        = undef,
 
@@ -32,20 +35,39 @@ define openstack::ha::haproxy_service (
 ) {
 
   if $public and $internal {
-    $virtual_ips = [$public_virtual_ip, $internal_virtual_ip]
+    if $public_ssl {
+      $bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/haproxy.pem'],
+                "$internal_virtual_ip:$listen_port" => "" }
+    } else {
+      $virtual_ips = [$public_virtual_ip, $internal_virtual_ip]
+    }
   } elsif $internal {
     $virtual_ips = [$internal_virtual_ip]
   } elsif $public {
-    $virtual_ips = [$public_virtual_ip]
+    if $public_ssl {
+      $bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/haproxy.pem'] }
+    } else {
+      $virtual_ips = [$public_virtual_ip, $internal_virtual_ip]
+    }
   }
 
-  haproxy::listen { $name:
-    order       => $order,
-    ipaddress   => $virtual_ips,
-    ports       => $listen_port,
-    options     => $haproxy_config_options,
-    mode        => $mode,
-    use_include => true,
+  if $public_ssl {
+    haproxy::listen { $name:
+      order       => $order,
+      bind        => $bind,
+      options     => $haproxy_config_options,
+      mode        => $mode,
+      use_include => true,
+    }
+  } else {
+    haproxy::listen { $name:
+      order       => $order,
+      ipaddress   => $virtual_ips,
+      ports       => $listen_port,
+      options     => $haproxy_config_options,
+      mode        => $mode,
+      use_include => true,
+    }
   }
 
   haproxy::balancermember { $name:
