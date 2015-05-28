@@ -1,10 +1,13 @@
 # HA configuration for OpenStack Nova
-class openstack::ha::cinder {
+class openstack::ha::cinder (
+  $public_ssl = false,
+) {
 
   openstack::ha::haproxy_service { 'cinder-api':
     order                  => '070',
     listen_port            => 8776,
     public                 => true,
+    public_ssl             => $public_ssl,
     require_service        => 'cinder-api',
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],

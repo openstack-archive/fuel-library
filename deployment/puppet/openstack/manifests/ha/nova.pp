@@ -1,10 +1,13 @@
 # HA configuration for OpenStack Nova
-class openstack::ha::nova {
+class openstack::ha::nova (
+  $public_ssl = false,
+) {
 
   openstack::ha::haproxy_service { 'nova-api-1':
     order                  => '040',
     listen_port            => 8773,
     public                 => true,
+    public_ssl             => $public_ssl,
     require_service        => 'nova-api',
     haproxy_config_options => {
       'timeout server' => '600s',
@@ -15,6 +18,7 @@ class openstack::ha::nova {
     order                  => '050',
     listen_port            => 8774,
     public                 => true,
+    public_ssl             => $public_ssl,
     require_service        => 'nova-api',
     haproxy_config_options => {
         option           => ['httpchk', 'httplog', 'httpclose'],
@@ -37,6 +41,7 @@ class openstack::ha::nova {
     order           => '170',
     listen_port     => 6080,
     public          => true,
+    public_ssl      => $public_ssl,
     internal        => false,
     require_service => 'nova-vncproxy',
   }

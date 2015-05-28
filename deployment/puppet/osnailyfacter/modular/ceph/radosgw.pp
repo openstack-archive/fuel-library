@@ -6,6 +6,7 @@ $use_neutron    = hiera('use_neutron')
 $public_vip     = hiera('public_vip')
 $keystone_hash  = hiera('keystone', {})
 $management_vip = hiera('management_vip')
+$ssl_hash       = hiera('ssl')
 
 if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
   $storage_hash['volumes_ceph'] or
@@ -44,6 +45,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   class { 'ceph::radosgw':
     # SSL
     use_ssl                          => false,
+    public_ssl                       => $ssl_hash['services'],
 
     # Ceph
     primary_mon                      => $primary_mon,
