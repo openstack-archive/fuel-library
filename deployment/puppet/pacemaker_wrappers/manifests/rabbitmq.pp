@@ -50,7 +50,12 @@ class pacemaker_wrappers::rabbitmq (
       'interval' => '27',
       'timeout'  => '60'
     },
-    'start' => {
+    'monitor'           => {
+      'interval'        => '103',
+      'timeout'         => '60',
+      'OCF_CHECK_LEVEL' => '30'
+    },
+    'start'     => {
       'timeout' => '360'
     },
     'stop' => {
