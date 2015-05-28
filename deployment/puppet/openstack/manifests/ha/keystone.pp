@@ -2,6 +2,7 @@
 class openstack::ha::keystone (
   $server_names,
   $ipaddresses,
+  $public_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'keystone-1':
@@ -10,6 +11,7 @@ class openstack::ha::keystone (
     public                 => true,
     server_names           => $server_names,
     ipaddresses            => $ipaddresses,
+    public_ssl             => $public_ssl,
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],
     },
