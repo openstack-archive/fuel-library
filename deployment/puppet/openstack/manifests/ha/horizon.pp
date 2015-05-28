@@ -29,10 +29,12 @@ class openstack::ha::horizon (
 
   if $use_ssl {
     openstack::ha::haproxy_service { 'horizon-ssl':
-      order       => '017',
-      listen_port => 443,
-      public      => true,
-      internal    => false,
+      order               => '017',
+      listen_port         => 443,
+      balancermember_port => 80,
+      public              => true,
+      public_ssl          => $use_ssl,
+      internal            => false,
 
       haproxy_config_options => {
         'option'      => ['ssl-hello-chk', 'tcpka'],
