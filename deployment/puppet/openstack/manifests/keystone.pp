@@ -54,6 +54,8 @@ class openstack::keystone (
   $ceilometer_user_password,
   $neutron_user_password,
   $public_address,
+  $public_ssl                  = false,
+  $public_hostname             = false,
   $db_type                     = 'mysql',
   $db_user                     = 'keystone',
   $db_name                     = 'keystone',
@@ -214,6 +216,13 @@ class openstack::keystone (
     $token_driver = 'keystone.token.backends.sql.Token'
   }
 
+  if $public_ssl {
+    $public_endpoint = $public_hostname ? {
+      false => false,
+      default => "https://$public_hostname:5000",
+    }
+  }
+
   class { '::keystone':
     verbose               => $verbose,
     debug                 => $debug,
@@ -222,6 +231,7 @@ class openstack::keystone (
     enabled               => $enabled,
     database_connection   => $database_connection,
     public_bind_host      => $public_bind_host,
+    public_endpoint       => $public_endpoint,
     admin_bind_host       => $admin_bind_host,
     package_ensure        => $package_ensure,
     use_syslog            => $use_syslog,
@@ -333,6 +343,10 @@ class openstack::keystone (
         admin_address    => $glance_admin_real,
         internal_address => $glance_internal_real,
         region           => $region,
+        public_protocol  => $public_ssl ? {
+          true    => 'https',
+          default => 'http',
+        },
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['glance::keystone::auth']
       Haproxy_backend_status<||> -> Class['glance::keystone::auth']
@@ -346,6 +360,10 @@ class openstack::keystone (
         admin_address    => $nova_admin_real,
         internal_address => $nova_internal_real,
         region           => $region,
+        public_protocol  => $public_ssl ? {
+          true    => 'https',
+          default => 'http',
+        },
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
       Haproxy_backend_status<||> -> Class['nova::keystone::auth']
@@ -359,6 +377,10 @@ class openstack::keystone (
         admin_address    => $cinder_admin_real,
         internal_address => $cinder_internal_real,
         region           => $region,
+        public_protocol  => $public_ssl ? {
+          true    => 'https',
+          default => 'http',
+        },
       }
      Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
      Haproxy_backend_status<||> -> Class['cinder::keystone::auth']
@@ -370,6 +392,10 @@ class openstack::keystone (
         admin_address    => $neutron_admin_real,
         internal_address => $neutron_internal_real,
         region           => $region,
+        public_protocol  => $public_ssl ? {
+          true    => 'https',
+          default => 'http',
+        },
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['neutron::keystone::auth']
       Haproxy_backend_status<||> -> Class['neutron::keystone::auth']
@@ -381,6 +407,10 @@ class openstack::keystone (
         admin_address    => $ceilometer_admin_real,
         internal_address => $ceilometer_internal_real,
         region           => $region,
+        public_protocol  => $public_ssl ? {
+          true    => 'https',
+          default => 'http',
+        },
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['ceilometer::keystone::auth']
       Haproxy_backend_status<||> -> Class['ceilometer::keystone::auth']

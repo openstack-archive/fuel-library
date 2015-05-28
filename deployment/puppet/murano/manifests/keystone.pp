@@ -6,6 +6,7 @@ class murano::keystone (
   $tenant           = 'services',
   $email            = 'murano@localhost',
   $public_address   = '127.0.0.1',
+  $public_protocol  = 'http',
   $admin_address    = '127.0.0.1',
   $internal_address = '127.0.0.1',
   $region           = 'RegionOne',
@@ -33,7 +34,7 @@ class murano::keystone (
 
   keystone_endpoint { "$region/$user":
     ensure       => present,
-    public_url   => "http://${public_address}:${murano_api_port}",
+    public_url   => "${public_protocol}://${public_address}:${murano_api_port}",
     internal_url => "http://${internal_address}:${murano_api_port}",
     admin_url    => "http://${admin_address}:${murano_api_port}",
   }
