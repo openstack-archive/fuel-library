@@ -18,6 +18,7 @@ $use_syslog                 = hiera('use_syslog', false)
 $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $primary_controller         = hiera('primary_controller')
 $region                     = hiera('region', 'RegionOne')
+$public_ssl_hash            = hiera('public_ssl')
 
 #################################################################
 
@@ -86,6 +87,8 @@ if $murano_hash['enabled'] {
     murano_keystone_password => $murano_hash['user_password'],
     murano_keystone_tenant   => 'services',
     region                   => $region,
+
+    public_ssl               => $public_ssl_hash['services'],
 
     use_neutron              => $use_neutron,
 

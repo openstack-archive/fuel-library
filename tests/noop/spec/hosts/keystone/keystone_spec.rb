@@ -17,7 +17,7 @@ describe manifest do
     admin_token = Noop.hiera_structure 'keystone/admin_token'
     public_vip = Noop.hiera('public_vip')
     management_vip= Noop.hiera('management_vip')
-    public_url = "http://#{public_vip}:5000"
+    public_url = "https://#{public_vip}:5000"
     admin_url = "http://#{management_vip}:35357"
     internal_url = "http://#{management_vip}:5000"
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
