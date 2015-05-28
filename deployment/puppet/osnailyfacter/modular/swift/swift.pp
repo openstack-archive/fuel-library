@@ -10,6 +10,7 @@ $storage_address     = hiera('storage_address')
 $node                = hiera('node')
 $controllers         = hiera('controllers')
 $ring_min_part_hours = hiera('swift_ring_min_part_hours', 1)
+$ssl_hash            = hiera('ssl')
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -66,9 +67,14 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     ring_min_part_hours     => $ring_min_part_hours,
   }
 
+
   class { 'swift::keystone::auth':
     password         => $swift_hash[user_password],
     public_address   => hiera('public_vip'),
+    public_protocol  => $ssl_hash['services'] ? {
+      true    => 'https',
+      default => 'http',
+    },
     internal_address => $management_vip,
     admin_address    => $management_vip,
   }
