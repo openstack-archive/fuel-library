@@ -17,6 +17,30 @@ Puppet::Type.newtype(:mongodb_replset) do
     desc "The name of the replicaSet"
   end
 
+  newparam(:arbiter) do
+    desc "The replicaSet arbiter"
+  end
+
+  newparam(:admin_username) do
+    desc "Administrator user login"
+    defaultto false
+  end
+
+  newparam(:admin_password) do
+    desc "Administrator user password"
+    defaultto false
+  end
+
+  newparam(:admin_database) do
+    desc "Connect to this database as an admin user."
+    defaultto false
+  end
+
+  newparam(:auth_enabled) do
+    desc "Check authentication enabled"
+    defaultto false
+  end
+
   newproperty(:members, :array_matching => :all) do
     desc "The replicaSet members"
 
@@ -26,7 +50,7 @@ Puppet::Type.newtype(:mongodb_replset) do
   end
 
   autorequire(:package) do
-    'mongodb'
+    'mongodb_client'
   end
 
   autorequire(:service) do

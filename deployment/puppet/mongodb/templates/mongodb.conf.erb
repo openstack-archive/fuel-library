@@ -1,171 +1,134 @@
-# mongo.conf - generated from Puppet
+# mongodb.conf for MongoDB 2.6.x versions - generated from Puppet
 
-#where to log
-<% if @quiet -%>
-quiet = <%= @quiet %>
+# System Log
+
+<% if @logpath -%>
+systemLog.path: <%= @logpath %>
+systemLog.destination: file
+<% if @logappend -%>
+systemLog.logAppend: <%= @logappend %>
 <% end -%>
-<% if @use_syslog -%>
-syslog = true
-<% else -%>
-logpath=<%= @logpath %>
-<% end -%>
-logappend=<%= @logappend %>
-<% if @bind_ip -%>
-# Set this option to configure the mongod or mongos process to bind to and
-# listen for connections from applications on this address.
-# You may concatenate a list of comma separated values to bind mongod to multiple IP addresses.
-bind_ip = <%= @bind_ip.join(',') %>
-<% end -%>
-<% if @fork -%>
-# fork and run in background
-fork=<%= @fork %>
-<% end -%>
-port = <%= @port %>
-dbpath=<%= @dbpath %>
-<% if @pidfilepath -%>
-# location of pidfile
-pidfilepath = <%= @pidfilepath %>
-<% end -%>
-<% if @nojournal -%>
-# Disables write-ahead journaling
-nojournal = <%= @nojournal %>
-<% end -%>
-<% if @journal -%>
-# Enables journaling
-journal = <%= @journal %>
-<% end -%>
-<% if @cpu -%>
-# Enables periodic logging of CPU utilization and I/O wait
-cpu = <%= @cpu %>
-<% end -%>
-# Turn on/off security.  Off is currently the default
-<% if @noauth -%>
-noauth=<%= @noauth %>
-<% end -%>
-<% if @auth -%>
-auth=<%= @auth %>
+<% elsif @syslog -%>
+systemLog.destination: syslog
 <% end -%>
 <% if @verbose -%>
-# Verbose logging output.
-verbose = <%= @verbose %>
+systemLog.quiet: false
+<% else -%>
+systemLog.quiet: true
 <% end -%>
-<% if @verbositylevel -%>
-<%= @verbositylevel -%> = true
+<% if @verbositylevel == "v" -%>
+systemLog.verbosity: 1
+<% elsif @verbositylevel == "vv" -%>
+systemLog.verbosity: 2
+<% elsif @verbositylevel == "vvv" -%>
+systemLog.verbosity: 3
+<% elsif @verbositylevel == "vvvv" -%>
+systemLog.verbosity: 4
+<% elsif @verbositylevel == "vvvvv" -%>
+systemLog.verbosity: 5
 <% end -%>
-<% if @objcheck -%>
-# Inspect all client data for validity on receipt (useful for
-# developing drivers)
-objcheck = <%= @objcheck %>
+
+#Process Management
+<% if @fork -%>
+processManagement.fork: <%= @fork %>
 <% end -%>
-<% if @maxconns -%>
-maxConns = <%= @maxconns %>
+<% if @pidfilepath -%>
+processManagement.pidFilePath: <%= @pidfilepath %>
 <% end -%>
-<% if @quota -%>
-# Enable db quota management
-quota = <%= @quota %>
-<% if @quotafiles -%>
-quotaFiles = <%= @quotafiles %>
-<% end -%>
-<% end -%>
-<% if @diaglog -%>
-# Set oplogging level where n is
-#   0=off (default)
-#   1=W
-#   2=R
-#   3=both
-#   7=W+some reads
-diaglog  = <%= @diaglog %>
-<% end -%>
-<% if @oplog_size -%>
-# Specifies a maximum size in megabytes for the replication operation log
-oplogSize = <%= @oplog_size %>
-<% end -%>
-<% if @nohints -%>
-# Ignore query hints
-nohints = <%= @nohints %>
-<% end -%>
-<% if @nohttpinterface -%>
-# Disable the HTTP interface (Defaults to localhost:27018).
-nohttpinterface = <%= @nohttpinterface %>
-<% end -%>
-<% if @noscripting -%>
-# Turns off server-side scripting.  This will result in greatly limited
-# functionality
-noscripting = <%= @noscripting %>
-<% end -%>
-<% if @notablescan -%>
-# Turns off table scans.  Any query that would do a table scan fails.
-notablescan = <%= @notablescan %>
+
+#Storage
+storage.dbPath: <%= @dbpath %>
+<% if @nojournal -%>
+storage.journal.enabled: false
+<% elsif @journal -%>
+storage.journal.enabled: true
 <% end -%>
 <% if @noprealloc -%>
-# Disable data file preallocation.
-noprealloc = <%= @noprealloc %>
+storage.preallocDataFiles: <%= @noprealloc %>
 <% end -%>
 <% if @nssize -%>
-# Specify .ns file size for new databases in megabytes.
-nssize = <%= @nssize %>
-<% end -%>
-<% if @mms_token -%>
-# Accout token for Mongo monitoring server.
-mms-token = <%= @mms_token %>
-<% end -%>
-<% if @mms_name -%>
-# Server name for Mongo monitoring server.
-mms-name = <%= @mms_name %>
-<% end -%>
-<% if @mms_interval -%>
-# Ping interval for Mongo monitoring server.
-mms-interval = <%= @mms_interval %>
-<% end -%>
-<% if @slave -%>
-slave = <%= @slave %>
-<% end -%>
-<% if @source -%>
-source = <%= @source %>
-<% end -%>
-<% if @only -%>
-# Slave only: specify a single database to replicate
-only = <%= @only %>
-<% end -%>
-<% if @master -%>
-master = <%= @master %>
+storage.nsSize: <%= @nssize %>
 <% end -%>
 <% if @directoryperdb -%>
-# Alters the storage pattern of the data directory to store each database
-# files in a distinct folder.
-directoryperdb = <%= @directoryperdb %>
-<% end -%>
-<% if @replset -%>
-# Configure ReplicaSet membership
-replSet = <%= @replset %>
+storage.directoryPerDB: <%= @directoryperdb %>
 <% end -%>
 <% if @smallfiles -%>
-# Use a smaller default data file size.
-smallfiles = <%= @smallfiles %>
+storage.smallFiles: <%= @smallfiles %>
 <% end -%>
-<% if @rest -%>
-# Enable rest API (disabled by default)
-rest = <%= @rest %>
+<% if @quota -%>
+storage.quota.enforced: <%= @quota %>
+<% if @quotafiles -%>
+storage.quota.maxFilesPerDB: <%= @quotafiles %>
 <% end -%>
-<% if @profile -%>
-# Modify this value to changes the level of database profiling, which inserts
-# information about operation performance into output of mongod or the log file.
-#0 = Off. No profiling. default
-#1 = On. Only includes slow operations.
-#2 = On. Includes all operations.
-profile = <%= @profile %>
 <% end -%>
-<% if @slowms -%>
-# Sets the threshold in milliseconds for mongod to consider a query slow for the profiler.
-slowms = <%= @slowms %>
+
+
+#Security
+<% if @auth -%>
+security.authorization: enabled
+<% else -%>
+security.authorization: disabled
 <% end -%>
 <% if @keyfile -%>
-# Specify the path to a key file to store authentication information.
-keyFile = <%= @keyfile %>
+security.keyFile: <%= @keyfile %>
 <% end -%>
-<% if @directoryperdb -%>
-directoryperdb = <%= @directoryperdb %>
+<% if @noscripting -%>
+security.javascriptEnabled: <%= @noscripting %>
 <% end -%>
+
+
+# Net
+<% if @ipv6 -%>
+net.ipv6=<%= @ipv6 %>
+<% end -%>
+<% if @bind_ip -%>
+net.bindIp:  <%= Array(@bind_ip).join(',') %>
+<% end -%>
+<% if @port -%>
+net.port: <%= @port %>
+<% end -%>
+<% if @objcheck -%>
+net.wireObjectCheck: <%= @objcheck %>
+<% end -%>
+<% if @rest -%>
+net.http.RESTInterfaceEnabled: true
+<% end -%>
+<% if @maxconns -%>
+net.maxIncomingConnections: <%= @maxconns %>
+<% end -%>
+<% if @nohttpinterface -%>
+net.http.enabled: <%= @nohttpinterface %>
+<% end -%>
+
+#Replication
+<% if @replset -%>
+replication.replSetName: <%= @replset %>
+<% end -%>
+<% if @oplog_size -%>
+replication.oplogSizeMB: <%= @oplog_size %>
+<% end -%>
+
+# Sharding
+<% if @configsvr -%>
+sharding.clusterRole: configsvr
+<% end -%>
+<% if @shardsvr -%>
+sharding.clusterRole: shardsvr
+<% end -%>
+
+#Operation Profiling
+<% if @profile == "0" -%>
+operationProfiling.mode: off
+<% elsif @profile == "1" -%>
+operationProfiling.mode: slowOp
+<% elsif @profile == "2" -%>
+operationProfiling.mode: all
+<% end -%>
+<% if @slowms -%>
+operationProfiling.slowOpThresholdMs: <%= @slowms %>
+<% end -%>
+
+
 <% if @set_parameter -%>
-setParameter = <%= @set_parameter %>
+setParameter: <%= @set_parameter %>
 <% end -%>
