@@ -5,6 +5,8 @@ class openstack::heat (
   $external_ip                   = '127.0.0.1',
   $enabled                       = true,
 
+  $keystone_auth                 = true,
+  $create_heat_db                = true,
   $keystone_host                 = '127.0.0.1',
   $keystone_port                 = '35357',
   $keystone_service_port         = '5000',
@@ -114,55 +116,59 @@ class openstack::heat (
     dport   => [ $api_bind_port ],
     proto   => 'tcp',
     action  => 'accept',
-  } ->
+  }
 
   # Follow the Heat installation order
   # DB
-  class { 'heat::db::mysql':
-    password                      => $db_password,
-    dbname                        => $db_name,
-    user                          => $db_user,
-    host                          => $db_host,
-    allowed_hosts                 => $db_allowed_hosts,
+  if ($create_heat_db){
+    class { 'heat::db::mysql':
+      password                      => $db_password,
+      dbname                        => $db_name,
+      user                          => $db_user,
+      host                          => $db_host,
+      allowed_hosts                 => $db_allowed_hosts,
+      require                       => Firewall['204 heat-api'],
+    }
   }
 
-  # Auth
-  class { 'heat::keystone::auth' :
-    password                       => $keystone_password,
-    auth_name                      => $keystone_user,
-    public_address                 => $external_ip,
-    admin_address                  => $keystone_host,
-    internal_address               => $keystone_host,
-    port                           => '8004',
-    version                        => 'v1',
-    region                         => 'RegionOne',
-    tenant                         => 'services',
-    email                          => "${keystone_user}@localhost",
-    public_protocol                => 'http',
-    admin_protocol                 => 'http',
-    internal_protocol              => 'http',
-    configure_endpoint             => true,
+  if ($keystone_auth){
+    # Auth
+    class { 'heat::keystone::auth' :
+      password                       => $keystone_password,
+      auth_name                      => $keystone_user,
+      public_address                 => $external_ip,
+      admin_address                  => $keystone_host,
+      internal_address               => $keystone_host,
+      port                           => '8004',
+      version                        => 'v1',
+      region                         => 'RegionOne',
+      tenant                         => 'services',
+      email                          => "${keystone_user}@localhost",
+      public_protocol                => 'http',
+      admin_protocol                 => 'http',
+      internal_protocol              => 'http',
+      configure_endpoint             => true,
 
+    }
+    #TODO(bogdando) clarify this new to Fuel Heat auth cfn patterns
+    class { 'heat::keystone::auth_cfn' :
+      password                       => $keystone_password,
+      auth_name                      => "${keystone_user}-cfn",
+      service_type                   => 'cloudformation',
+      public_address                 => $external_ip,
+      admin_address                  => $keystone_host,
+      internal_address               => $keystone_host,
+      port                           => '8000',
+      version                        => 'v1',
+      region                         => 'RegionOne',
+      tenant                         => 'services',
+      email                          => "${keystone_user}-cfn@localhost",
+      public_protocol                => 'http',
+      admin_protocol                 => 'http',
+      internal_protocol              => 'http',
+      configure_endpoint             => true,
+    }
   }
-  #TODO(bogdando) clarify this new to Fuel Heat auth cfn patterns
-  class { 'heat::keystone::auth_cfn' :
-    password                       => $keystone_password,
-    auth_name                      => "${keystone_user}-cfn",
-    service_type                   => 'cloudformation',
-    public_address                 => $external_ip,
-    admin_address                  => $keystone_host,
-    internal_address               => $keystone_host,
-    port                           => '8000',
-    version                        => 'v1',
-    region                         => 'RegionOne',
-    tenant                         => 'services',
-    email                          => "${keystone_user}-cfn@localhost",
-    public_protocol                => 'http',
-    admin_protocol                 => 'http',
-    internal_protocol              => 'http',
-    configure_endpoint             => true,
-  }
-
   # Common configuration, logging and RPC
   class { '::heat':
     auth_uri                      => $auth_uri_real,
