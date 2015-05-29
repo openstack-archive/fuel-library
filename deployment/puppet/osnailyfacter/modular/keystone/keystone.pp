@@ -110,30 +110,30 @@ class { 'openstack::keystone':
 
 ####### WSGI ###########
 
-class { 'osnailyfacter::apache':
-  listen_ports => hiera_array('apache_ports', ['80', '8888']),
-}
+#class { 'osnailyfacter::apache':
+#  listen_ports => hiera_array('apache_ports', ['80', '8888']),
+#}
 
 # TODO: (adidenko) use file from package for Debian, when
 # https://review.fuel-infra.org/6251 is merged.
-class { 'keystone::wsgi::apache':
-  priority => '05',
-  threads  => 1,
-  workers  => min(max($::processorcount,2), 24),
-  ssl      => $ssl,
+#class { 'keystone::wsgi::apache':
+#  priority => '05',
+#  threads  => 1,
+#  workers  => min(max($::processorcount,2), 24),
+#  ssl      => $ssl,
 
-  wsgi_script_ensure => $::osfamily ? {
-    'RedHat'       => 'link',
-    default        => 'file',
-  },
-  wsgi_script_source => $::osfamily ? {
-  # 'Debian'      => '/usr/share/keystone/wsgi.py',
-    'RedHat'       => '/usr/share/keystone/keystone.wsgi',
-    default        => undef,
-  },
-}
+#  wsgi_script_ensure => $::osfamily ? {
+#    'RedHat'       => 'link',
+#    default        => 'file',
+#  },
+#  wsgi_script_source => $::osfamily ? {
+#  # 'Debian'      => '/usr/share/keystone/wsgi.py',
+#    'RedHat'       => '/usr/share/keystone/keystone.wsgi',
+#    default        => undef,
+#  },
+#}
 
-include ::tweaks::apache_wrappers
+#include ::tweaks::apache_wrappers
 
 ###############################################################################
 
