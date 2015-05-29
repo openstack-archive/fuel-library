@@ -52,6 +52,7 @@ class openstack::nova::controller (
   $segment_range               = '1:4094',
   $tenant_network_type         = 'gre',
   # Nova
+  $nova_user                   = 'nova',
   $nova_db_user                = 'nova',
   $nova_db_dbname              = 'nova',
   # RPC
@@ -302,6 +303,7 @@ class openstack::nova::controller (
   class { '::nova::api':
     enabled                              => $enabled,
     api_bind_address                     => $api_bind_address,
+    admin_user                           => $nova_user,
     admin_password                       => $nova_user_password,
     auth_host                            => $keystone_host,
     enabled_apis                         => $_enabled_apis,
