@@ -1,0 +1,56 @@
+#!/bin/bash
+#
+# Script to make a HAProxy capable of monitoring the Swift proxy backends status.
+# This script checks the given management VIP via ICMP and also performs a Swift
+# healthcheck via the given Swift endpoint with the given connect timeout.
+# Reports an HTTP 200 OK, if all of the results are OK.
+# If the healthcheck result was not OK or the Swift endpoint/VIP was not reachable,
+# it would report an HTTP 503 Error.
+#
+# Author: Bogdan Dobrelya <bdobrelia@mirantis.com>
+#
+
+if [[ $1 == '-h' || $1 == '--help' ]];then
+    echo "Usage: $0 <local_swift_endpoint> <management_vip> <connect_timeout>"
+    exit
+fi
+
+rc2=1
+result=ERROR
+
+# Remove trailing slash
+url=`echo $1 | sed 's#/*$##'`
+
+# Check for the management VIP avail.
+ping -c3 $2 2>&1 >/dev/null
+rc=$?
+
+# Also check for the swift healthcheck report via given endpoint url
+if [[ $rc == 0 ]]; then
+    result=`/usr/bin/curl --connect-timeout ${3} -XGET ${url}/healthcheck 2>/dev/null`
+    rc2=$?
+fi
+
+if [[ $result == "OK" && $rc == 0 && $rc2 == 0 ]] ; then
+    # Swift healthcheck is OK and endpoint is reachable
+    # return HTTP 200. Shell return-code is 0
+    echo -en "HTTP/1.1 200 OK\r\n"
+    echo -en "Content-Type: text/plain\r\n"
+    echo -en "Connection: close\r\n"
+    echo -en "Content-Length: 5\r\n"
+    echo -en "\r\n"
+    echo -en "OK.\r\n"
+    sleep 0.1
+    exit 0
+else
+    # Swift healthcheck failed or endpoint was not reachable,
+    # return HTTP 503. Shell return-code is 1
+    echo -en "HTTP/1.1 503 Service Unavailable\r\n"
+    echo -en "Content-Type: text/plain\r\n"
+    echo -en "Connection: close\r\n"
+    echo -en "Content-Length: 8\r\n"
+    echo -en "\r\n"
+    echo -en "Error.\r\n"
+    sleep 0.1
+    exit 1
+fi
