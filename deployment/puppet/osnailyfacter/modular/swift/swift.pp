@@ -1,6 +1,8 @@
 notice('MODULAR: swift.pp')
 
 $swift_hash          = hiera('swift_hash')
+$proxy_port          = hiera('proxy_port', '8080')
+$network_scheme      = hiera('network_scheme', {})
 $storage_hash        = hiera('storage_hash')
 $mp_hash             = hiera('mp')
 $management_vip      = hiera('management_vip')
@@ -50,6 +52,8 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   }
 
   $ring_part_power = calc_ring_part_power($controllers,$swift_hash['resize_value'])
+  $sto_net = $network_scheme['endpoints']['br-storage']['IP']
+  $man_net = $network_scheme['endpoints']['br-mgmt']['IP']
 
   class { 'openstack::swift::proxy':
     swift_user_password     => $swift_hash[user_password],
@@ -59,11 +63,19 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     controller_node_address => $management_vip,
     swift_local_net_ip      => $storage_address,
     master_swift_proxy_ip   => $master_swift_proxy_ip,
+    proxy_port              => $proxy_port,
     debug                   => $debug,
     verbose                 => $verbose,
     log_facility            => 'LOG_SYSLOG',
     ceilometer              => hiera('use_ceilometer'),
     ring_min_part_hours     => $ring_min_part_hours,
+  } ->
+
+  class { 'openstack::swift::status':
+    endpoint    => "http://${storage_address}:${proxy_port}",
+    vip         => $management_vip,
+    only_from   => "127.0.0.1 240.0.0.2 ${sto_net} ${man_net}"
+    con_timeout => 5,
   }
 
   class { 'swift::keystone::auth':
