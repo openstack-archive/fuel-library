@@ -84,6 +84,7 @@ class openstack::controller (
   $glance_db_password             = 'glance_pass',
   $glance_user_password           = 'glance_pass',
   # Required Nova
+  $nova_user                      = 'nova',
   $nova_db_password               = 'nova_pass',
   $nova_user_password             = 'nova_pass',
   # Required Ceilometer
@@ -269,6 +270,7 @@ class openstack::controller (
     segment_range               => $segment_range,
     tenant_network_type         => $tenant_network_type,
     # Nova
+    nova_user                   => $nova_user,
     nova_user_password          => $nova_user_password,
     nova_db_password            => $nova_db_password,
     nova_db_user                => $nova_db_user,
