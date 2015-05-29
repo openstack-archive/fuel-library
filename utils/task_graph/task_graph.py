@@ -172,15 +172,18 @@ class IO(object):
             IO.output(yaml.dump(task_graph.workbook))
             return
 
-        task_graph.process_data(filter=cls.args.filter)
+        task_graph.process_data()
+        task_graph.resolve_cross_links()
+        task_graph.filter_processed_data(filter=cls.args.filter)
+
+        if cls.args.clear_workbook:
+            IO.output(yaml.dump(task_graph.data))
+            return
+
         task_graph.build_graph()
 
         if cls.args.topology:
             task_graph.show_topology()
-            return
-
-        if cls.args.clear_workbook:
-            IO.output(yaml.dump(task_graph.data))
             return
 
         if cls.args.png:
@@ -245,6 +248,7 @@ class TaskGraph(object):
         return self.options['default_edge']
 
     def add_graph_node(self, id, options=None):
+        IO.debug('Add graph node: "%s"' % id)
         if id not in self.data:
             return
         if not options:
@@ -252,6 +256,7 @@ class TaskGraph(object):
         self.graph.add_node(id, options)
 
     def add_graph_edge(self, id_from, id_to, options=None):
+        IO.debug('Add graph edge: "%s" -> "%s"' % (id_from, id_to))
         if id_from not in self.data:
             return
         if id_to not in self.data:
@@ -261,51 +266,88 @@ class TaskGraph(object):
         self.graph.add_edge(id_from, id_to, options)
 
     @staticmethod
-    def filter_by_group(node, filter=None):
+    def filter_nodes(node, filter=None):
         # if group is not specified accept only the group tasks
         # and show only them on the graph/list
         # if there is a group, filter out group tasks
         # and show only normal tasks in this group
+
         type = node.get('type', None)
+
+        # accept only group if there is no filter
         if not filter:
             return type == 'group'
-        else:
-            if type == 'group':
-                return False
+
+        # drop groups if there is filter
+        if type == 'group':
+            return False
+
         # always accept 'stage' tasks
         if type == 'stage':
             return True
+
         # accept task only if it has matching group or role
         # or its group or role is set to 'any'
         if 'groups' in node:
             if ('*' in node['groups']) or (filter in node['groups']):
                 return True
-        if 'role' in node:
-            if ('*' in node['role']) or (filter in node['role']):
-                return True
         return False
 
-    def process_data(self, filter=None):
+    def process_data(self):
         for node in self.workbook:
-            if not type(node) is dict:
+            if not isinstance(node, dict):
                 continue
-            if not node.get('type', None) and node.get('id', None):
+            # id and type are mandatory
+            if not node.get('id', None):
                 continue
+            if not node.get('type', None):
+                continue
+            # requires and groups are mandatory
             if not 'requires' in node:
                 node['requires'] = []
-            if not 'required_for' in node:
-                node['required_for'] = []
-            if not self.filter_by_group(node, filter=filter):
-                continue
+            if not isinstance(node['requires'], list):
+                node['requires'] = [node['requires']]
+            if not 'groups' in node:
+                node['groups'] = []
+            if not isinstance(node['groups'], list):
+                node['groups'] = [node['groups']]
+            # add role to groups ad drop role
+            if 'role' in node:
+                if not isinstance(node['role'], list):
+                    node['role'] = [node['role']]
+                node['groups'] += node['role']
+                node.pop('role')
             self.data[node['id']] = node
 
+    def resolve_cross_links(self):
+        for node_id in self.data.keys():
+            node = self.data[node_id]
+            # resolve required_for to requires
+            # print node.get('required_for', None)
+            if 'required_for' in node:
+                for require_id in node['required_for']:
+                    IO.debug("Node: %s is required by node: %s" %
+                             (node_id, require_id))
+                    self.data[require_id]['requires'].append(node_id)
+                node.pop('required_for')
+            # resolve tasks to groups
+            if 'tasks' in node:
+                for task_id in node['tasks']:
+                    IO.debug("Node: %s is included to node: %s" %
+                             (task_id, node_id))
+                    self.data[task_id]['groups'].append(node_id)
+                node.pop('tasks')
+
+    def filter_processed_data(self, filter=None):
+        for node_id in self.data.keys():
+            if not self.filter_nodes(self.data[node_id], filter=filter):
+                self.data.pop(node_id)
+
     def build_graph(self):
-        for id in self.data.keys():
-            self.add_graph_node(id)
-            for link in self.data[id]['requires']:
-                self.add_graph_edge(link, id)
-            for link in self.data[id]['required_for']:
-                self.add_graph_edge(id, link)
+        for node_id in self.data.keys():
+            self.add_graph_node(node_id)
+            for link in self.data[node_id]['requires']:
+                self.add_graph_edge(link, node_id)
 
     @property
     def max_task_id_length(self):
