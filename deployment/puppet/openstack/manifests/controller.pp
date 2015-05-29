@@ -15,6 +15,7 @@
 # [glance_user_password] Glance service user password.
 # [nova_db_password] Nova DB password.
 # [nova_user_password] Nova service password.
+# [nova_user_tenant] Nova service tenant
 # [amqp_password] AMQP password.
 # [amqp_user] AMQP User.
 # [network_manager] Nova network manager to use.
@@ -84,8 +85,10 @@ class openstack::controller (
   $glance_db_password             = 'glance_pass',
   $glance_user_password           = 'glance_pass',
   # Required Nova
+  $nova_user                      = 'nova',
   $nova_db_password               = 'nova_pass',
   $nova_user_password             = 'nova_pass',
+  $nova_user_tenant               = 'services',
   # Required Ceilometer
   $ceilometer                     = false,
   $ceilometer_db_password         = 'ceilometer_pass',
@@ -269,7 +272,9 @@ class openstack::controller (
     segment_range               => $segment_range,
     tenant_network_type         => $tenant_network_type,
     # Nova
+    nova_user                   => $nova_user,
     nova_user_password          => $nova_user_password,
+    nova_user_tenant            => $nova_user_tenant,
     nova_db_password            => $nova_db_password,
     nova_db_user                => $nova_db_user,
     nova_db_dbname              => $nova_db_dbname,
