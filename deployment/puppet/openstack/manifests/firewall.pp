@@ -8,6 +8,7 @@ class openstack::firewall (
   $mysql_gcomm_port             = 4567,
   $galera_ist_port              = 4568,
   $galera_clustercheck_port     = 49000,
+  $swift_proxy_check_port       = 49001,
   $keystone_public_port         = 5000,
   $swift_proxy_port             = 8080,
   $swift_object_port            = 6000,
@@ -104,7 +105,8 @@ class openstack::firewall (
   }
 
   firewall {'103 swift':
-    port   => [$swift_proxy_port, $swift_object_port, $swift_container_port, $swift_account_port],
+    port   => [$swift_proxy_port, $swift_object_port, $swift_container_port,
+               $swift_account_port, $swift_proxy_check_port],
     proto  => 'tcp',
     action => 'accept',
   }
