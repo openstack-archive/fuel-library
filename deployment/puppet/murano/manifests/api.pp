@@ -164,25 +164,23 @@ class murano::api (
     }
 
     Murano_config<||> -> Exec['murano_manage_db_sync']
+    Exec['murano_manage_db_sync'] ~> Service['murano_api']
+    Exec['murano_manage_db_sync'] ~> Service['murano_engine']
 
-    murano::application_package{'io.murano':
+    murano::application_package { 'io.murano' :
       os_username  => $admin_user,
       os_password  => $admin_password,
       os_auth_url  => $keystone_auth_url,
       mandatory => true
     }
 
-    Exec['murano_manage_db_sync'] -> Murano::Application_package<| mandatory == true |>
+    Service['murano_api'] -> Murano::Application_package<| mandatory == true |>
   }
 
-  #Package['murano'] -> Service['murano_api']
   Murano_config<||> ~> Service['murano_api']
   Murano_paste_ini_config<||> ~> Service['murano_api']
-  Exec<| title == 'murano_manage_db_sync' |> ~> Service['murano_api']
 
-  #Package['murano'] -> Service['murano_engine']
   Murano_config<||> ~> Service['murano_engine']
   Murano_paste_ini_config<||> ~> Service['murano_engine']
-  Exec<| title == 'murano_manage_db_sync' |> ~> Service['murano_engine']
 
 }
