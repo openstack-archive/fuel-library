@@ -1,0 +1,11 @@
+- id: yum-proxy
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end, globals]
+  requires: [hiera]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/yum-proxy/yum-proxy.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 60
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/yum-proxy/yum-proxy_post.rb
