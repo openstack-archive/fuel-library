@@ -32,6 +32,9 @@ if($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'heat-api':
     package_name => 'heat-api',
   }
+  tweaks::ubuntu_service_override { 'heat-engine':
+    package_name => 'heat-engine',
+  }
 }
 
 class { 'openstack::heat' :
@@ -122,6 +125,23 @@ heat_config {
   'DEFAULT/deferred_auth_method'    : value => 'trusts';
   'DEFAULT/trusts_delegated_roles'  : value => '';
 }
+
+######################
+
+exec { 'wait_for_heat_config' :
+  command => 'sync && sleep 3',
+  provider => 'shell',
+}
+
+Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-api']
+Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-api-cfn']
+Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-api-cloudwatch']
+Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-engine']
+
+tweaks::ubuntu_service_override['heat-api']            -> Service['heat-api']
+tweaks::ubuntu_service_override['heat-api-cfn']        -> Service['heat-api-cfn']
+tweaks::ubuntu_service_override['heat-api-cloudwatch'] -> Service['heat-api-cloudwatch']
+tweaks::ubuntu_service_override['heat-engine']         -> Service['heat-engine']
 
 ######################
 
