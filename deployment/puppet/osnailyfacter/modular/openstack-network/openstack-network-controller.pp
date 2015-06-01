@@ -8,26 +8,25 @@ $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_ad
 $controller_nodes               = ipsort(values($controller_internal_addresses))
 $rabbit_hash                    = hiera('rabbit_hash', {})
 $internal_address               = hiera('internal_address')
-$service_endpoint               = hiera('management_vip')
-$nova_hash                      = hiera('nova', {})
+$management_vip                 = hiera('management_vip')
+$service_endpoint               = hiera('service_endpoint', $management_vip)
+$nova_hash                      = hiera_hash('nova', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $network_scheme                 = hiera('network_scheme', {})
 
 $floating_hash = {}
 
-# Neutron DB settings
-$neutron_db_user = 'neutron'
-$neutron_db_dbname = 'neutron'
-$db_host = hiera('management_vip')
-
 # amqp settings
-if $internal_address in $controller_nodes {
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+}
+elsif $internal_address in $controller_nodes {
   # prefer local MQ broker if it exists on this node
   $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
 } else {
   $amqp_nodes = fqdn_rotate($controller_nodes)
 }
-$amqp_port = '5673'
+$amqp_port = hiera('amqp_port', '5673')
 $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 
 class { 'l23network' :
@@ -37,10 +36,17 @@ class { 'l23network' :
 if $use_neutron {
   $network_provider      = 'neutron'
   $novanetwork_params    = {}
-  $neutron_config        = hiera('quantum_settings')
-  $neutron_db_password   = $neutron_config['database']['passwd']
-  $neutron_user_password = $neutron_config['keystone']['admin_password']
+  $neutron_config        = hiera_hash('quantum_settings')
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
+  # Neutron Keystone settings
+  $neutron_user_password = $neutron_config['keystone']['admin_password']
+  $keystone_user         = pick($neutron_config['keystone']['admin_user'], 'neutron')
+  $keystone_tenant       = pick($neutron_config['keystone']['admin_tenant'], 'services')
+  # Neutron DB settings
+  $neutron_db_password   = $neutron_config['database']['passwd']
+  $neutron_db_user       = pick($neutron_config['database']['user'], 'neutron')
+  $neutron_db_name       = pick($neutron_config['database']['name'], 'neutron')
+  $neutron_db_host       = pick($neutron_config['database']['host'], $management_vip)
   $base_mac              = $neutron_config['L2']['base_mac']
 } else {
   $network_provider   = 'nova'
@@ -61,7 +67,7 @@ $openstack_version = {
 }
 
 if $network_provider == 'neutron' {
-  $neutron_db_uri = "mysql://${neutron_db_user}:${neutron_db_password}@${db_host}/${neutron_db_dbname}?&read_timeout=60"
+  $neutron_db_uri = "mysql://${neutron_db_user}:${neutron_db_password}@${neutron_db_host}/${neutron_db_name}?&read_timeout=60"
   $neutron_server = true
 
   # We need to restart nova-api after making changes via nova_config
@@ -76,7 +82,7 @@ if $network_provider == 'neutron' {
   # FIXME(xarses) Nearly everything between here and the class
   # should be moved into osnaily or nailgun but will stay here
   # in the interum.
-  $neutron_settings = hiera('quantum_settings')
+  $neutron_settings = $neutron_config
   $nets = $neutron_settings['predefined_networks']
 
   if $primary_controller {
@@ -206,7 +212,10 @@ if $network_provider == 'neutron' {
 class { 'openstack::network':
   network_provider    => $network_provider,
   agents              => [$agent, 'metadata', 'dhcp', 'l3'],
-  ha_agents           => $primary_controller ? {true => 'primary', default  => 'slave'},
+  ha_agents           => $neutron_config['ha_agents'] ? {
+    default => $neutron_config['ha_agents'],
+    undef   => $primary_controller ? {true => 'primary', default  => 'slave'},
+  },
   verbose             => true,
   debug               => hiera('debug', true),
   use_syslog          => hiera('use_syslog', true),
@@ -235,10 +244,12 @@ class { 'openstack::network':
   amqp_password   => $rabbit_hash['password'],
 
   # keystone
-  admin_password  => $neutron_user_password,
-  auth_host       => $service_endpoint,
-  auth_url        => "http://${service_endpoint}:35357/v2.0",
-  neutron_url     => "http://${service_endpoint}:9696",
+  admin_password    => $neutron_user_password,
+  auth_host         => $service_endpoint,
+  auth_url          => "http://${service_endpoint}:35357/v2.0",
+  neutron_url       => "http://${service_endpoint}:9696",
+  admin_tenant_name => $keystone_tenant,
+  admin_username    => $keystone_user,
 
   # Ceilometer notifications
   ceilometer => $ceilometer_hash['enabled'],
@@ -248,17 +259,19 @@ class { 'openstack::network':
   metadata_ip     => $service_endpoint,
 
   #nova settings
-  private_interface   => $use_neutron ? { true=>false, default=>hiera('private_int', undef)},
-  public_interface    => hiera('public_int', undef),
-  fixed_range         => $use_neutron ? { true =>false, default =>hiera('fixed_network_range', undef)},
-  floating_range      => $use_neutron ? { true =>$floating_hash, default  =>false},
-  network_manager     => hiera('network_manager', undef),
-  network_config      => hiera('network_config', {}),
-  create_networks     => $primary_controller,
-  num_networks        => hiera('num_networks', undef),
-  network_size        => hiera('network_size', undef),
-  nameservers         => hiera('dns_nameservers', undef),
-  enable_nova_net     => false,  # just setup networks, but don't start nova-network service on controllers
-  nova_admin_password => $nova_hash[user_password],
-  nova_url            => "http://${service_endpoint}:8774/v2",
+  private_interface      => $use_neutron ? { true=>false, default=>hiera('private_int', undef)},
+  public_interface       => hiera('public_int', undef),
+  fixed_range            => $use_neutron ? { true =>false, default =>hiera('fixed_network_range', undef)},
+  floating_range         => $use_neutron ? { true =>$floating_hash, default  =>false},
+  network_manager        => hiera('network_manager', undef),
+  network_config         => hiera('network_config', {}),
+  create_networks        => $primary_controller,
+  num_networks           => hiera('num_networks', undef),
+  network_size           => hiera('network_size', undef),
+  nameservers            => hiera('dns_nameservers', undef),
+  enable_nova_net        => false,  # just setup networks, but don't start nova-network service on controllers
+  nova_admin_username    => $nova_hash['user'],
+  nova_admin_tenant_name => $nova_hash['tenant'],
+  nova_admin_password    => $nova_hash['user_password'],
+  nova_url               => "http://${service_endpoint}:8774/v2",
 }

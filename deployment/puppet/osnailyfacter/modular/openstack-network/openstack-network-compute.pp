@@ -1,9 +1,10 @@
 notice('MODULAR: openstack-network-compute.pp')
 
 $use_neutron                    = hiera('use_neutron', false)
-$nova_hash                      = hiera('nova', {})
+$nova_hash                      = hiera_hash('nova', {})
 $internal_address               = hiera('internal_address')
-$service_endpoint               = hiera('management_vip')
+$management_vip                 = hiera('management_vip')
+$service_endpoint               = hiera('service_endpoint', $management_vip)
 $public_int                     = hiera('public_int', undef)
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $controllers                    = hiera('controllers')
@@ -15,13 +16,16 @@ $network_scheme                 = hiera('network_scheme', {})
 $floating_hash = {}
 
 # amqp settings
-if $internal_address in $controller_nodes {
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+}
+elsif $internal_address in $controller_nodes {
   # prefer local MQ broker if it exists on this node
   $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
 } else {
   $amqp_nodes = fqdn_rotate($controller_nodes)
 }
-$amqp_port = '5673'
+$amqp_port = hiera('amqp_port', '5673')
 $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 
 class { 'l23network' :
@@ -31,11 +35,13 @@ class { 'l23network' :
 if $use_neutron {
   $network_provider      = 'neutron'
   $novanetwork_params    = {}
-  $neutron_config        = hiera('quantum_settings')
-  $neutron_db_password   = $neutron_config['database']['passwd']
-  $neutron_user_password = $neutron_config['keystone']['admin_password']
+  $neutron_config        = hiera_hash('quantum_settings')
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   $base_mac              = $neutron_config['L2']['base_mac']
+  # Neutron Keystone settings
+  $neutron_user_password = $neutron_config['keystone']['admin_password']
+  $keystone_user         = pick($neutron_config['keystone']['admin_user'], 'neutron')
+  $keystone_tenant       = pick($neutron_config['keystone']['admin_tenant'], 'services')
 } else {
   $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
@@ -349,9 +355,11 @@ class { 'openstack::network':
   amqp_password  => $rabbit_hash['password'],
 
   # keystone
-  admin_password => $neutron_user_password,
-  auth_url       => "http://${service_endpoint}:35357/v2.0",
-  neutron_url    => "http://${service_endpoint}:9696",
+  admin_password    => $neutron_user_password,
+  auth_url          => "http://${service_endpoint}:35357/v2.0",
+  neutron_url       => "http://${service_endpoint}:9696",
+  admin_tenant_name => $keystone_tenant,
+  admin_username    => $keystone_user,
 
   # metadata
   shared_secret  => undef,
