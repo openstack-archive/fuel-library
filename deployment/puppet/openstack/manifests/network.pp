@@ -71,18 +71,20 @@ class openstack::network (
   $private_interface,
   $public_interface,
   $fixed_range,
-  $floating_range       = false,
-  $network_manager      = 'nova.network.manager.FlatDHCPManager',
-  $network_config       = {},
-  $create_networks      = true,
-  $num_networks         = 1,
-  $network_size         = 255,
-  $nameservers          = undef,
-  $enable_nova_net      = false,
-  $integration_bridge   = undef, #'br-int'
-  $nova_neutron         = false, #Enable to run nova::network::neutron, usefull for computes and controllers, but not routers
-  $nova_admin_password  = 'secret',
-  $nova_url             = 'http://127.0.0.1:8774/v2',
+  $floating_range         = false,
+  $network_manager        = 'nova.network.manager.FlatDHCPManager',
+  $network_config         = {},
+  $create_networks        = true,
+  $num_networks           = 1,
+  $network_size           = 255,
+  $nameservers            = undef,
+  $enable_nova_net        = false,
+  $integration_bridge     = undef, #'br-int'
+  $nova_neutron           = false, #Enable to run nova::network::neutron, usefull for computes and controllers, but not routers
+  $nova_admin_username    = 'nova',
+  $nova_admin_tenant_name = 'services',
+  $nova_admin_password    = 'secret',
+  $nova_url               = 'http://127.0.0.1:8774/v2',
 
   # Neutron
   $neutron_server   = false,
@@ -203,8 +205,8 @@ class openstack::network (
         class { 'neutron::server::notifications':
           nova_url                => $nova_url,
           nova_admin_auth_url     => $auth_url,
-          nova_admin_username     => 'nova', # Default
-          nova_admin_tenant_name  => 'services', # Default
+          nova_admin_username     => $nova_admin_username,
+          nova_admin_tenant_name  => $nova_admin_tenant_name,
           nova_admin_password     => $nova_admin_password,
         }
 
