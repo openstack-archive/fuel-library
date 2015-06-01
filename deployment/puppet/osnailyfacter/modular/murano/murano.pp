@@ -101,6 +101,17 @@ if $murano_hash['enabled'] {
 
   include ::tweaks::apache_wrappers
 
+  if $primary_controller {
+    $haproxy_stats_url = "http://${management_ip}:10000/;csv"
+
+    haproxy_backend_status { 'murano' :
+      name => 'murano',
+      url  => $haproxy_stats_url,
+    }
+
+    Service['murano-api'] -> Haproxy_backend_status['murano'] -> Murano::Application_package <||>
+  }
+
 }
 
 ######################
