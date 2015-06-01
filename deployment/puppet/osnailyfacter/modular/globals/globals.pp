@@ -105,7 +105,7 @@ $storage_netmask               = get_network_role_property('storage', 'netmask')
 
 if $use_neutron {
   $novanetwork_params            = {}
-  $neutron_config                = hiera('quantum_settings')
+  $neutron_config                = hiera_hash('quantum_settings')
   $network_provider              = 'neutron'
   $neutron_db_password           = $neutron_config['database']['passwd']
   $neutron_user_password         = $neutron_config['keystone']['admin_password']
