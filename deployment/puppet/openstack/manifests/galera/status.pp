@@ -9,6 +9,10 @@
 # (optional) xinet.d bind address for clustercheck
 # Defaults to 0.0.0.0
 #
+# [*only_from*]
+# (optional) xinet.d only_from address for swiftcheck
+# Defaults to 127.0.0.1
+#
 # [*status_user*]
 # (optiona) The name of user to use for status checks
 # Defaults to false
@@ -44,6 +48,7 @@
 
 class openstack::galera::status (
   $address         = '0.0.0.0',
+  $only_from       = '127.0.0.1',
   $status_user     = false,
   $status_password = false,
   $status_allow    = '%',
@@ -115,6 +120,7 @@ class openstack::galera::status (
   xinetd::service { 'galeracheck':
     bind       => $address,
     port       => $port,
+    only_from  => $only_from,
     cps        => '512 10',
     per_source => 'UNLIMITED',
     server     => '/usr/bin/clustercheck',
