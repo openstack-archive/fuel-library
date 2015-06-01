@@ -13,6 +13,9 @@ require 'puppetx/l23_network_scheme'
 module L23network
   def self.default_offload_set
     {
+      'tx-checksumming'              => false,
+      'tx-vlan-offload'              => false,
+      'rx-vlan-offload'              => false,
       'generic-receive-offload'      => false,
       'generic-segmentation-offload' => false
     }
