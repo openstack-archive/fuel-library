@@ -7,6 +7,7 @@ $glance_hash          = hiera('glance')
 $nova_hash            = hiera('nova')
 $cinder_hash          = hiera('cinder')
 $internal_address     = hiera('internal_address')
+$network_scheme       = hiera('network_scheme', {})
 $neutron_db_password  = hiera('neutron_db_password', false)
 $controller_nodes     = hiera('controller_nodes')
 $use_syslog           = hiera('use_syslog', true)
@@ -51,6 +52,7 @@ $status_user              = 'clustercheck'
 $status_password          = $mysql_hash['wsrep_password']
 $backend_port             = '3307'
 $backend_timeout          = '10'
+$man_net                  = $network_scheme['endpoints']['br-mgmt']['IP']
 
 ###############################################################################
 
@@ -93,6 +95,7 @@ class { 'openstack::galera::status':
   backend_host            => $galera_node_address,
   backend_port            => $backend_port,
   backend_timeout         => $backend_timeout,
+  only_from               => "127.0.0.1 240.0.0.2 ${man_net}",
 }
 
 haproxy_backend_status { 'mysql' :
