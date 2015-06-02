@@ -12,6 +12,13 @@ Puppet::Type.type(:l23_stored_config).provide(:lnx_ubuntu, :parent => Puppet::Pr
 
   self.unlink_empty_files = true
 
+  def self.property_mappings
+    rv = super
+    rv.delete(:allow_dash)
+    return rv
+  end
+
+
   def self.check_if_provider(if_data)
     if if_data[:if_provider] == 'auto'
         if_data[:if_provider] = :lnx
@@ -20,6 +27,20 @@ Puppet::Type.type(:l23_stored_config).provide(:lnx_ubuntu, :parent => Puppet::Pr
         if_data[:if_provider] = nil
         false
     end
+  end
+
+  def self.iface_file_header(provider)
+    rv = []
+
+    # Add onboot interfaces
+    if provider.onboot
+      rv << "auto #{provider.name}"
+    end
+
+    # Add iface header
+    rv << "iface #{provider.name} inet #{provider.method}"
+
+    return rv, {}
   end
 
 end

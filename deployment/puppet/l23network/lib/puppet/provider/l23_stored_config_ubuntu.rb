@@ -16,6 +16,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       :method                => 'method',
       :name                  => 'iface',
       :onboot                => 'auto',
+      :allow_dash            => 'allow-',        # used only for ovs as 'allow-ovs' for bridges and 'allow-br-name' for ports
       :mtu                   => 'mtu',
       :bridge_ports          => 'bridge_ports',  # ports, members of bridge, fake property
       :bridge_stp            => 'bridge_stp',
@@ -77,6 +78,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   def self.properties_fake
     [
       :onboot,
+      :allow_dash,
       :name,
       :family,
       :method,
@@ -122,6 +124,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     hash['auto'] = false
     hash['if_provider'] = 'none'
     hash['if_type'] = :ethernet
+    hash['allow_dash'] = nil
     dirty_iface_name = nil
     if (m = filename.match(%r/ifcfg-(\S+)$/))
       # save iface name from file name. One will be used if iface name not defined inside config.
@@ -136,13 +139,17 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
         val = m[2].strip
         case key
           # Ubuntu has non-linear config format. Some options should be calculated evristically
-          when /(auto|allow-ovs)/
+          when /(auto|allow-\S)/
+              ooper = $1
               hash[$1] = true
-              hash['if_provider'] = $1  # temporary store additional data for self.check_if_provider
+              hash['if_provider'] = ooper  # temporary store additional data for self.check_if_provider
               if ! hash.has_key?('iface')
                 # setup iface name if it not given in iface directive
                 mm = val.split(/\s+/)
                 hash['iface'] = mm[0]
+              end
+              if ooper =~ /allow-(\S)/
+                hash['allow_dash'] = val
               end
           when /iface/
               mm = val.split(/\s+/)
@@ -319,6 +326,10 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
   ###
   # Hash to file
 
+  def self.iface_file_header(provider)
+    raise Puppet::Error, "self.iface_file_header(provider) Should be implemented in more specific class."
+  end
+
   def self.format_file(filename, providers)
     if providers.length == 0
       return ""
@@ -326,22 +337,11 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       raise Puppet::DevError, "Unable to support multiple interfaces [#{providers.map(&:name).join(',')}] in a single file #{filename}"
     end
 
-    content = []
     provider = providers[0]
-
-    # Add onboot interfaces
-    if provider.onboot
-      content << "#{property_mappings[:onboot]} #{provider.name}"
-    end
-
-    # Add iface header
-    content << "iface #{provider.name} inet #{provider.method}"
-
-    # Map everything to a flat hash
-    #props = (provider.options || {})
-    props    = {}
+    content, props = iface_file_header(provider)
 
     property_mappings.keys.select{|v| ! properties_fake.include?(v)}.each do |type_name|
+      next if props.has_key? type_name
       val = provider.send(type_name)
       if val and val.to_s != 'absent'
         props[type_name] = val
