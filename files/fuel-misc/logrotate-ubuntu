@@ -11,7 +11,7 @@ done >> status.clean
 mv status.clean status
 test -x /usr/sbin/logrotate || exit 0
 
-if ! pgrep -x logrotate &>/dev/null; then
+if ! pgrep -x logrotate >/dev/null 2>&1; then
     nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/fuel.nodaily
     EXITVALUE=$?
 else
