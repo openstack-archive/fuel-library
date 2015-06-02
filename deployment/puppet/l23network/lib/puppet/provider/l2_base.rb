@@ -38,14 +38,16 @@ class Puppet::Provider::L2_base < Puppet::Provider
     #     }
     #
     vlan_ifaces = {}
-    rc_c = /([\w+\.\-]+)\s*\|\s*(\d+)\s*\|\s*([\w+\-]+)/
-    File.open("/proc/net/vlan/config", "r").each do |line|
-      if (rv=line.match(rc_c))
-        vlan_ifaces[rv[1]] = {
-          :vlan_dev  => rv[3],
-          :vlan_id   => rv[2],
-          :vlan_mode => (rv[1].match('\.').nil?  ?  'vlan'  :  'eth'  )
-        }
+    if File.exist? '/proc/net/vlan'
+      rc_c = /([\w+\.\-]+)\s*\|\s*(\d+)\s*\|\s*([\w+\-]+)/
+      File.open("/proc/net/vlan/config", "r").each do |line|
+        if (rv=line.match(rc_c))
+          vlan_ifaces[rv[1]] = {
+            :vlan_dev  => rv[3],
+            :vlan_id   => rv[2],
+            :vlan_mode => (rv[1].match('\.').nil?  ?  'vlan'  :  'eth'  )
+          }
+        end
       end
     end
     return vlan_ifaces
