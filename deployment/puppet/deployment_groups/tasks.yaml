@@ -121,3 +121,12 @@
   parameters:
     strategy:
       type: parallel
+
+- id: kstn
+  type: group
+  role: [kstn]
+  tasks: [hiera, globals, tools, logging, netconfig, memcached]
+  required_for: [deploy_end]
+  parameters:
+    strategy:
+      type: parallel
