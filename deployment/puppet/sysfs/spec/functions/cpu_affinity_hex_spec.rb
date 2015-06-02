@@ -18,6 +18,15 @@ describe 'the cpu_affinity_hex function' do
     ).to eq '3'
   end
 
+  it 'should calculate HEX affinity value for more 32 cpu' do
+    expect(
+        scope.function_cpu_affinity_hex(%w(32))
+    ).to eq 'ffffffff'
+    expect(
+        scope.function_cpu_affinity_hex(%w(33))
+    ).to eq 'ffffffff'
+  end
+
   it 'should raise an error if there is less than 1 arguments' do
     expect {
       scope.function_cpu_affinity_hexs([])
@@ -27,6 +36,12 @@ describe 'the cpu_affinity_hex function' do
   it 'should raise an error if value is not integer' do
     expect {
       scope.function_cpu_affinity_hex(%w(abc))
+    }.to raise_error
+  end
+
+  it 'should raise an error if value is negative integer' do
+    expect {
+      scope.function_cpu_affinity_hex(%w(-1))
     }.to raise_error
   end
 
