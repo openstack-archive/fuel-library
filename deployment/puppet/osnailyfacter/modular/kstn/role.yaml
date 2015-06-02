@@ -1,0 +1,8 @@
+meta:
+  description: Installs Keystone + Horizon on a separate node
+  has_primary: false
+  name: kstn
+name: kstn
+volumes_roles_mapping:
+  - allocate_size: min
+    id: os
