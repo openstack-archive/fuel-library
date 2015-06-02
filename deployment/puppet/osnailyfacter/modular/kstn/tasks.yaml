@@ -1,0 +1,9 @@
+- id: keystone_att
+  type: puppet
+  groups: [kstn]
+  required_for: [deploy_end]
+  requires: [netconfig, memcached]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/kstn/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600

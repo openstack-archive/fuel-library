@@ -13,8 +13,7 @@ if $horizon_hash['secret_key'] {
 
 class { 'openstack::horizon':
   secret_key        => $secret_key,
-  cache_server_ip   => hiera('memcache_servers', $controller_nodes),
-
+  cache_server_ip   => $controller_nodes,
   package_ensure    => hiera('horizon_package_ensure', 'installed'),
   bind_address      => '*',
   cache_server_port => '11211',
