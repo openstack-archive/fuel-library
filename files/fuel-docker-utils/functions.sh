@@ -499,6 +499,7 @@ function backup {
   fi
 
   backup_id=$(date +%F_%H%M)
+  image_suffix="_${backup_id}"
   use_rsync=0
   #Sets backup_dir
   parse_backup_dir $1
@@ -573,7 +574,6 @@ function backup_system_dirs {
 function backup_containers {
 #Backs up all containers, regardless of being related to Fuel
 
-  image_suffix="_$1"
   purge_images=0
 
   [ $purge_images -eq 0 ] && rm -rf "$backup_dir"
