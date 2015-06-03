@@ -11,4 +11,9 @@ define swift::ringsync(
   rsync::get { "/etc/swift/${name}.builder":
     source  => "rsync://${ring_server}/swift_server/${name}.builder",
   }
+
+  rsync::get { "/etc/swift/backups/":
+    source    => "rsync://${ring_server}/swift_server/backups/",
+    recursive => true
+  }
 }
