@@ -41,25 +41,25 @@ class openstack::logrotate (
     unless  => 'grep -q tabooext /etc/logrotate.conf',
   }
 
-  #  case $::osfamily {
-  #  'RedHat': {
-  #      file { '/usr/bin/fuel-logrotate':
-  #        mode   => '0755',
-  #        source => 'puppet:///modules/openstack/logrotate',
-  #      }
-  #  }
-  #  'Debian': {
-  #      file { '/usr/bin/fuel-logrotate':
-  #        mode   => '0755',
-  #        source => 'puppet:///modules/openstack/logrotate-ubuntu',
-  #      }
-  #  }
-  #}
+  # TODO(bpiotrowski): replace with file_line
+  exec { 'logrotate-compress':
+    command => 'sed -i "s/^#compress/compress/" /etc/logrotate.conf',
+    path    => [ '/bin', '/usr/bin' ],
+    onlyif  => 'test -f /etc/logrotate.conf',
+    unless  => 'grep -q ^compress /etc/logrotate.conf',
+  }
+
+  exec { 'logrotate-delaycompress':
+    command => 'sed -i "/^compress/a delaycompress" /etc/logrotate.conf',
+    path    => [ '/bin', '/usr/bin' ],
+    onlyif  => 'test -f /etc/logrotate.conf',
+    unless  => 'grep -q delaycompress /etc/logrotate.conf',
+    require => Exec['logrotate-compress'],
+  }
 
   cron { 'fuel-logrotate':
     command => '/usr/bin/fuel-logrotate',
     user    => 'root',
     minute  => '*/30',
-    #require => File['/usr/bin/fuel-logrotate'],
   }
 }

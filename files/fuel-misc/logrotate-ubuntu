@@ -1,15 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 # managed by puppet
-# Clean non existent log file entries from status file
-cd /var/lib/logrotate
-test -e status || touch status
-head -1 status > status.clean
-sed 's/"//g' status | while read logfile date
-do
-    [ -e "$logfile" ] && echo "\"$logfile\" $date"
-done >> status.clean
-mv status.clean status
-test -x /usr/sbin/logrotate || exit 0
+
+exec 903>/var/lock/fuel-logrotate
+flock -n 903 || \
+    ( /usr/bin/logger -t logrotate "WARNING logrotate flock failed, exiting"; exit 1 )
 
 if ! pgrep -x logrotate >/dev/null 2>&1; then
     nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/fuel.nodaily
@@ -23,5 +17,6 @@ if [ $EXITVALUE != 0 ]; then
     /usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE] (0 was expected)"
 fi
 
+flock -u 903
 exit $EXITVALUE
 

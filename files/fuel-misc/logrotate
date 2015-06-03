@@ -1,8 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 # managed by puppet
 #
 # Due to bug in logrotate, it always returns 0. Use grep for detect errors;
 # exit code 1 is considered a success as no errors were found.
+
+exec 903>/var/lock/fuel-logrotate
+flock -n 903 || \
+    ( /usr/bin/logger -t logrotate "WARNING logrotate flock failed, exiting"; exit 1 )
 
 if ! pgrep -x logrotate >/dev/null 2>&1; then
     nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/fuel.nodaily >& /tmp/logrotate
@@ -18,4 +22,5 @@ if [ $EXITVALUE != 1 ]; then
     exit 1
 fi
 
+flock -u 903
 exit 0
