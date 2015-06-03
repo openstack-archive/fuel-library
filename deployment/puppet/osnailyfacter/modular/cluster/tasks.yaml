@@ -9,3 +9,4 @@
     timeout: 3600
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster/cluster_post.rb
+

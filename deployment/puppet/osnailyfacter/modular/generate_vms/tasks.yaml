@@ -1,0 +1,10 @@
+- id: generate_vms
+  type: puppet
+  groups: [kvm-virt]
+  requires: [netconfig]
+  required_for: [deploy_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/generate_vms/generate_vms.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
