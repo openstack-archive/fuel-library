@@ -6,6 +6,9 @@
 
 class openstack::ceilometer (
   $keystone_password   = 'ceilometer_pass',
+  $keystone_user       = 'ceilometer',
+  $keystone_tenant     = 'services',
+  $keystone_region     = 'RegionOne',
   $metering_secret     = 'ceilometer',
   $verbose             =  false,
   $use_syslog          =  false,
@@ -50,8 +53,11 @@ class openstack::ceilometer (
 
   # Configure authentication for agents
   class { '::ceilometer::agent::auth':
-    auth_url      => "http://${keystone_host}:5000/v2.0",
-    auth_password => $keystone_password,
+    auth_url         => "http://${keystone_host}:5000/v2.0",
+    auth_password    => $keystone_password,
+    auth_region      => $keystone_region,
+    auth_tenant_name => $keystone_tenant,
+    auth_user        => $keystone_user,
   }
 
   class { '::ceilometer::client': }
