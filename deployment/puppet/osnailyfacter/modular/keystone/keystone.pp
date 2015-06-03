@@ -20,6 +20,7 @@ $primary_controller    = hiera('primary_controller')
 $controller_nodes      = hiera('controller_nodes')
 $neutron_user_password = hiera('neutron_user_password', false)
 $workloads_hash        = hiera('workloads_collector', {})
+$ldap_hash             = hiera('ldap', {})
 
 $db_type     = 'mysql'
 $db_host     = $management_vip
@@ -206,5 +207,90 @@ Package['python-memcache'] -> Nova::Generic_service <||>
 if($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'keystone':
     package_name => 'keystone',
+  }
+}
+
+####### LDAP #######
+
+if $ldap_hash['enabled'] {
+  class { 'keystone::ldap' :
+    url                                 => $ldap_hash['url'],
+    user                                => $ldap_hash['user'],
+    password                            => $ldap_hash['password'],
+    suffix                              => $ldap_hash['suffix'],
+    query_scope                         => $ldap_hash['query_scope'],
+    page_size                           => $ldap_hash['page_size'],
+
+    user_tree_dn                        => $ldap_hash['user_tree_dn'],
+    user_filter                         => $ldap_hash['user_filter'],
+    user_objectclass                    => $ldap_hash['user_objectclass'],
+    user_id_attribute                   => $ldap_hash['user_id_attribute'],
+    user_name_attribute                 => $ldap_hash['user_name_attribute'],
+    user_mail_attribute                 => $ldap_hash['user_mail_attribute'],
+    user_enabled_attribute              => $ldap_hash['user_enabled_attribute'],
+    user_enabled_mask                   => $ldap_hash['user_enabled_mask'],
+    user_enabled_default                => $ldap_hash['user_enabled_default'],
+    user_attribute_ignore               => $ldap_hash['user_attribute_ignore'],
+    user_default_project_id_attribute   => $ldap_hash['user_default_project_id_attribute'],
+    user_allow_create                   => $ldap_hash['user_allow_create'],
+    user_allow_update                   => $ldap_hash['user_allow_update'],
+    user_allow_delete                   => $ldap_hash['user_allow_delete'],
+    user_pass_attribute                 => $ldap_hash['user_pass_attribute'],
+    user_enabled_emulation              => $ldap_hash['user_enabled_emulation'],
+    user_enabled_emulation_dn           => $ldap_hash['user_enabled_emulation_dn'],
+    user_additional_attribute_mapping   => $ldap_hash['user_additional_attribute_mapping'],
+
+    tenant_tree_dn                      => $ldap_hash['tenant_tree_dn'],
+    tenant_filter                       => $ldap_hash['tenant_filter'],
+    tenant_objectclass                  => $ldap_hash['tenant_objectclass'],
+    tenant_id_attribute                 => $ldap_hash['tenant_id_attribute'],
+    tenant_member_attribute             => $ldap_hash['tenant_member_attribute'],
+    tenant_desc_attribute               => $ldap_hash['tenant_desc_attribute'],
+    tenant_name_attribute               => $ldap_hash['tenant_name_attribute'],
+    tenant_enabled_attribute            => $ldap_hash['tenant_enabled_attribute'],
+    tenant_domain_id_attribute          => $ldap_hash['tenant_domain_id_attribute'],
+    tenant_attribute_ignore             => $ldap_hash['tenant_attribute_ignore'],
+    tenant_allow_create                 => $ldap_hash['tenant_allow_create'],
+    tenant_allow_update                 => $ldap_hash['tenant_allow_update'],
+    tenant_allow_delete                 => $ldap_hash['tenant_allow_delete'],
+    tenant_enabled_emulation            => $ldap_hash['tenant_enabled_emulation'],
+    tenant_enabled_emulation_dn         => $ldap_hash['tenant_enabled_emulation_dn'],
+    tenant_additional_attribute_mapping => $ldap_hash['tenant_additional_attribute_mapping'],
+
+    role_tree_dn                        => $ldap_hash['role_tree_dn'],
+    role_filter                         => $ldap_hash['role_filter'],
+    role_objectclass                    => $ldap_hash['role_objectclass'],
+    role_id_attribute                   => $ldap_hash['role_id_attribute'],
+    role_name_attribute                 => $ldap_hash['role_name_attribute'],
+    role_member_attribute               => $ldap_hash['role_member_attribute'],
+    role_attribute_ignore               => $ldap_hash['role_attribute_ignore'],
+    role_allow_create                   => $ldap_hash['role_allow_create'],
+    role_allow_update                   => $ldap_hash['role_allow_update'],
+    role_allow_delete                   => $ldap_hash['role_allow_delete'],
+    role_additional_attribute_mapping   => $ldap_hash['role_additional_attribute_mapping'],
+
+    group_tree_dn                       => $ldap_hash['group_tree_dn'],
+    group_filter                        => $ldap_hash['group_filter'],
+    group_objectclass                   => $ldap_hash['group_objectclass'],
+    group_id_attribute                  => $ldap_hash['group_id_attribute'],
+    group_name_attribute                => $ldap_hash['group_name_attribute'],
+    group_member_attribute              => $ldap_hash['group_member_attribute'],
+    group_desc_attribute                => $ldap_hash['group_desc_attribute'],
+    group_attribute_ignore              => $ldap_hash['group_attribute_ignore'],
+    group_allow_create                  => $ldap_hash['group_allow_create'],
+    group_allow_update                  => $ldap_hash['group_allow_update'],
+    group_allow_delete                  => $ldap_hash['group_allow_delete'],
+    group_additional_attribute_mapping  => $ldap_hash['group_additional_attribute_mapping'],
+
+    tenant_tree_dn                      => $ldap_hash['tenant_tree_dn'],
+    role_tree_dn                        => $ldap_hash['role_tree_dn'],
+
+    use_tls                             => $ldap_hash['use_tls'],
+    tls_cacertdir                       => $ldap_hash['tls_cacertdir'],
+    tls_cacertfile                      => $ldap_hash['tls_cacertfile'],
+    tls_req_cert                        => $ldap_hash['tls_req_cert'],
+
+    identity_driver                     => 'keystone.identity.backends.ldap.Identity',
+    assignment_driver                   => 'keystone.assignment.backends.sql.Assignment',
   }
 }
