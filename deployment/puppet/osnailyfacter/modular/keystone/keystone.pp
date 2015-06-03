@@ -15,11 +15,18 @@ $cinder_hash           = hiera_hash('cinder', {})
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $syslog_log_facility   = hiera('syslog_log_facility_keystone')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
-$amqp_hosts            = hiera('amqp_hosts')
 $primary_controller    = hiera('primary_controller')
 $controller_nodes      = hiera('controller_nodes')
 $neutron_user_password = hiera('neutron_user_password', false)
 $workloads_hash        = hiera_hash('workloads_collector', {})
+
+if hiera('amqp_hosts', false) {
+  $amqp_hosts             = hiera('amqp_hosts')
+} else {
+  $amqp_nodes             = hiera('amqp_nodes')
+  $amqp_port              = hiera('amqp_port', '5673')
+  $amqp_hosts             = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+}
 
 $db_type     = 'mysql'
 $db_host     = pick($keystone_hash['db_host'], $management_vip)
