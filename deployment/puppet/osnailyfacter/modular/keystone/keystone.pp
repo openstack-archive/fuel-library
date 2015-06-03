@@ -1,67 +1,76 @@
 notice('MODULAR: keystone.pp')
 
-$verbose               = hiera('verbose', true)
-$debug                 = hiera('debug', false)
-$use_neutron           = hiera('use_neutron')
-$use_syslog            = hiera('use_syslog', true)
-$keystone_hash         = hiera('keystone')
-$access_hash           = hiera('access')
-$management_vip        = hiera('management_vip')
-$public_vip            = hiera('public_vip')
-$internal_address      = hiera('internal_address')
-$glance_hash           = hiera('glance')
-$nova_hash             = hiera('nova')
-$cinder_hash           = hiera('cinder')
-$ceilometer_hash       = hiera('ceilometer')
-$syslog_log_facility   = hiera('syslog_log_facility_keystone')
-$rabbit_hash           = hiera('rabbit_hash')
-$amqp_hosts            = hiera('amqp_hosts')
-$primary_controller    = hiera('primary_controller')
-$controller_nodes      = hiera('controller_nodes')
-$neutron_user_password = hiera('neutron_user_password', false)
-$workloads_hash        = hiera('workloads_collector', {})
+$verbose                   = hiera('verbose', true)
+$debug                     = hiera('debug', false)
+$use_neutron               = hiera('use_neutron')
+$use_syslog                = hiera('use_syslog', true)
+$keystone_hash             = hiera_hash('keystone', {})
+$access_hash               = hiera('access')
+$management_vip            = hiera('management_vip')
+$public_vip                = hiera('public_vip')
+$internal_address          = hiera('internal_address')
+$glance_hash               = hiera_hash('glance', {})
+$nova_hash                 = hiera_hash('nova', {})
+$cinder_hash               = hiera_hash('cinder', {})
+$ceilometer_hash           = hiera_hash('ceilometer', {})
+$syslog_log_facility       = hiera('syslog_log_facility_keystone')
+$rabbit_hash               = hiera_hash('rabbit_hash', {})
+$amqp_hosts                = hiera('amqp_hosts')
+$primary_controller        = hiera('primary_controller')
+$controller_nodes          = hiera('controller_nodes')
+$neutron_user_password     = hiera('neutron_user_password', false)
+$workloads_hash            = hiera('workloads_collector', {})
 
-$db_type     = 'mysql'
-$db_host     = $management_vip
-$db_password = $keystone_hash['db_password']
-$db_name     = 'keystone'
-$db_user     = 'keystone'
+$db_type                   = 'mysql'
+$db_host                   = $keystone_hash['db_host'] ? {
+  default => $keystone_hash['db_host'],
+  undef   => $management_vip,
+}
+$db_name                   = $keystone_hash['db_name'] ? {
+  default => $keystone_hash['db_name'],
+  undef   => 'keystone',
+}
+$db_user                   = $keystone_hash['db_user'] ? {
+  default => $keystone_hash['db_user'],
+  undef   => 'keystone',
+}
+$db_password               = $keystone_hash['db_password']
 
-$admin_token    = $keystone_hash['admin_token']
-$admin_tenant   = $access_hash['tenant']
-$admin_email    = $access_hash['email']
-$admin_user     = $access_hash['user']
-$admin_password = $access_hash['password']
+$admin_token               = $keystone_hash['admin_token']
+$admin_tenant              = $access_hash['tenant']
+$admin_email               = $access_hash['email']
+$admin_user                = $access_hash['user']
+$admin_password            = $access_hash['password']
 
-$public_address   = $public_vip
-$admin_address    = $management_vip
-$public_bind_host = $internal_address
-$admin_bind_host  = $internal_address
+$public_address            = $public_vip
+$admin_address             = $management_vip
+$public_bind_host          = $internal_address
+$admin_bind_host           = $internal_address
 
-$memcache_servers     = $controller_nodes
-$memcache_server_port = '11211'
+$memcache_servers          = hiera('memcache_servers', $controller_nodes)
+$memcache_server_port      = hiera('memcache_server_port', '11211')
 
-$glance_user_password     = $glance_hash['user_password']
-$nova_user_password       = $nova_hash['user_password']
-$cinder_user_password     = $cinder_hash['user_password']
-$ceilometer_user_password = $ceilometer_hash['user_password']
+$glance_user_password      = $glance_hash['user_password']
+$nova_user_password        = $nova_hash['user_password']
+$cinder_user_password      = $cinder_hash['user_password']
+$ceilometer_user_password  = $ceilometer_hash['user_password']
 
-$cinder = true
-$ceilometer = $ceilometer_hash['enabled']
-$enabled = true
-$ssl = false
+$cinder                    = true
+$ceilometer                = $ceilometer_hash['enabled']
+$enabled                   = true
+$ssl                       = false
 
-$rabbit_password     = $rabbit_hash['password']
-$rabbit_user         = $rabbit_hash['user']
-$rabbit_hosts        = split($amqp_hosts, ',')
-$rabbit_virtual_host = '/'
+$rabbit_password           = $rabbit_hash['password']
+$rabbit_user               = $rabbit_hash['user']
+$rabbit_hosts              = split($amqp_hosts, ',')
+$rabbit_virtual_host       = '/'
 
-$max_pool_size = hiera('max_pool_size')
-$max_overflow  = hiera('max_overflow')
-$max_retries   = '-1'
-$idle_timeout  = '3600'
+$max_pool_size             = hiera('max_pool_size')
+$max_overflow              = hiera('max_overflow')
+$max_retries               = '-1'
+$idle_timeout              = '3600'
 
-$murano_settings_hash = hiera('murano_settings', {})
+$murano_settings_hash      = hiera('murano_settings', {})
 if has_key($murano_settings_hash, 'murano_repo_url') {
   $murano_repo_url = $murano_settings_hash['murano_repo_url']
 } else {
