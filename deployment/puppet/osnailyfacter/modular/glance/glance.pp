@@ -3,19 +3,20 @@ notice('MODULAR: glance.pp')
 $verbose               = hiera('verbose', true)
 $debug                 = hiera('debug', false)
 $management_vip        = hiera('management_vip')
-$glance_hash           = hiera('glance')
+$database_vip          = hiera('database_vip',$management_vip)
+$glance_hash           = hiera_hash('glance', {})
 $storage_hash          = hiera('storage')
 $internal_address      = hiera('internal_address')
 $use_syslog            = hiera('use_syslog', true)
 $syslog_log_facility   = hiera('syslog_log_facility_glance')
-$rabbit_hash           = hiera('rabbit_hash')
+$rabbit_hash           = hiera_hash('rabbit_hash', {})
 $amqp_hosts            = hiera('amqp_hosts')
 $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
-$ceilometer_hash       = hiera('ceilometer',{})
+$ceilometer_hash       = hiera_hash('ceilometer', {})
 
 $db_type                        = 'mysql'
-$db_host                        = $management_vip
+$db_host                        = $database_vip
 $service_endpoint               = $management_vip
 $api_bind_address               = $internal_address
 $enabled                        = true
@@ -28,8 +29,14 @@ $rabbit_user                    = $rabbit_hash['user']
 $rabbit_hosts                   = split($amqp_hosts, ',')
 $rabbit_virtual_host            = '/'
 
-$glance_db_user                 = 'glance'
-$glance_db_dbname               = 'glance'
+$glance_db_user                 = $glance_hash['db_user'] ? {
+     default  => $glance_hash['db_user'],
+     undef    => 'glance',
+}
+$glance_db_dbname               = $glance_hash['db_dbname'] ? {
+     default  => $glance_hash['db_dbname'],
+     undef    => 'glance',
+}
 $glance_db_password             = $glance_hash['db_password']
 $glance_user_password           = $glance_hash['user_password']
 $glance_vcenter_host            = $glance_hash['vc_host']
