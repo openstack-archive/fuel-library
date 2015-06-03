@@ -121,3 +121,11 @@
   parameters:
     strategy:
       type: parallel
+
+- id: kvm-virt
+  type: group
+  role: [kvm-virt]
+  required_for: [deploy_end]
+  parameters:
+    strategy:
+      type: parallel
