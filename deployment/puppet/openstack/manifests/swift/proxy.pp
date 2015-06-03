@@ -175,6 +175,11 @@ class openstack::swift::proxy (
       swift::ringsync { 'container': ring_server => $master_swift_proxy_ip }
     }
 
+    rsync::get { "/etc/swift/backups/":
+      source    => "rsync://${master_swift_proxy_ip}/swift_server/backups/",
+      recursive => true,
+    }
+
     Swift::Ringsync <| |> ~> Service["swift-proxy"]
   }
 }
