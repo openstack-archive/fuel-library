@@ -1322,8 +1322,9 @@ action_notify() {
                     fi
                     ocf_log info "${LH} post-start end."
                     if [[ $rc2 == $OCF_ERR_GENERIC ]] ; then
-                        ocf_log warn "${LH} Failed to join the cluster on post-start. The resource will be restarted."
+                        ocf_log warn "${LH} Failed to join the cluster on post-start. The mnesia will be reset and the resource will be restarted."
                         ocf_log info "${LH} post-start end."
+                        reset_mnesia
                         return $OCF_NOT_RUNNING
                     fi
                 fi
