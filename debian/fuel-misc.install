@@ -1,2 +1,2 @@
 files/fuel-misc/haproxy-status.sh /usr/bin
-files/fuel-misc/logrotate-ubuntu /usr/bin
+files/fuel-misc/logrotate /usr/bin
