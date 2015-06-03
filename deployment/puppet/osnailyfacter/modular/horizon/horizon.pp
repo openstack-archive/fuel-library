@@ -3,7 +3,7 @@ notice('MODULAR: horizon.pp')
 $controllers                    = hiera('controllers')
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
-$horizon_hash                   = hiera('horizon', {})
+$horizon_hash                   = hiera_hash('horizon', {})
 
 if $horizon_hash['secret_key'] {
   $secret_key = $horizon_hash['secret_key']
@@ -13,10 +13,10 @@ if $horizon_hash['secret_key'] {
 
 class { 'openstack::horizon':
   secret_key        => $secret_key,
-  cache_server_ip   => $controller_nodes,
+  cache_server_ip   => hiera('memcache_servers', $controller_nodes),
   package_ensure    => hiera('horizon_package_ensure', 'installed'),
   bind_address      => '*',
-  cache_server_port => '11211',
+  cache_server_port => hiera('memcache_server_port', '11211'),
   cache_backend     => 'horizon.backends.memcached.HorizonMemcached',
   cache_options     => ["'SOCKET_TIMEOUT': 1","'SERVER_RETRIES': 1","'DEAD_RETRY': 1"],
   neutron           => hiera('use_neutron'),
