@@ -9,3 +9,23 @@
     timeout: 3600
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster/cluster_post.rb
+
+
+- id: upload_vms_info
+  type: upload_files
+  role: [compute]
+  required_for: [create_vms]
+  requires: [netconfig]
+  parameters:
+    template_path: /etc/puppet/modules/cluster/template.xml
+    dst: /var/lib/vms/
+
+
+- id: create_vms
+  type: shell
+  groups: [compute]
+  requires: [upload_vms_info]
+  parameters:
+   cmd: sh /etc/puppet/modules/cluster/generate_vms.sh
+   timeout: 180
+
