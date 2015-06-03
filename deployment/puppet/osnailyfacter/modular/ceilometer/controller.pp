@@ -1,15 +1,12 @@
 notice('MODULAR: ceilometer/controller.pp')
 
-$verbose                  = hiera('verbose', true)
-$debug                    = hiera('debug', false)
-$use_syslog               = hiera('use_syslog', true)
-$syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
-$nodes_hash               = hiera('nodes')
-$storage_hash             = hiera('storage')
-$amqp_hosts               = hiera('amqp_hosts')
-$rabbit_hash              = hiera('rabbit_hash')
-$management_vip           = hiera('management_vip')
-$internal_address         = hiera('internal_address')
+if hiera('amqp_hosts', false) {
+  $amqp_hosts             = hiera('amqp_hosts')
+} else {
+  $amqp_nodes             = hiera('amqp_nodes')
+  $amqp_port              = hiera('amqp_port', '5673')
+  $amqp_hosts             = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+}
 
 $default_ceilometer_hash = {
   'enabled'         => false,
@@ -18,15 +15,29 @@ $default_ceilometer_hash = {
   'metering_secret' => 'ceilometer',
 }
 
+$verbose                  = hiera('verbose', true)
+$debug                    = hiera('debug', false)
+$use_syslog               = hiera('use_syslog', true)
+$syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
+$nodes_hash               = hiera('nodes')
+$storage_hash             = hiera('storage')
+$rabbit_hash              = hiera_hash('rabbit_hash')
+$management_vip           = hiera('management_vip')
+$internal_address         = hiera('internal_address')
+$mongo_roles              = hiera('mongo_roles', 'mongo')
+$region                   = hiera('region', 'RegionOne')
+$ceilometer_hash          = hiera_hash('ceilometer', $default_ceilometer_hash)
+$ceilometer_region        = pick($ceilometer_hash['region'], $region)
+
+
 $default_mongo_hash = {
   'enabled'         => false,
 }
 
-$ceilometer_hash          = hiera('ceilometer', $default_ceilometer_hash)
-$mongo_hash               = hiera('mongo', $default_mongo_hash)
+$mongo_hash               = hiera_hash('mongo', $default_mongo_hash)
 
 if $mongo_hash['enabled'] and $ceilometer_hash['enabled'] {
-  $exteranl_mongo_hash    = hiera('external_mongo')
+  $exteranl_mongo_hash    = hiera_hash('external_mongo')
   $ceilometer_db_user     = $exteranl_mongo_hash['mongo_user']
   $ceilometer_db_password = $exteranl_mongo_hash['mongo_password']
   $ceilometer_db_dbname   = $exteranl_mongo_hash['mongo_db_name']
@@ -47,9 +58,12 @@ $swift_rados_backend        = $storage_hash['objects_ceph']
 $amqp_password              = $rabbit_hash['password']
 $amqp_user                  = $rabbit_hash['user']
 $rabbit_ha_queues           = true
-$service_endpoint           = $management_vip
+$service_endpoint           = hiera('service_endpoint', $management_vip)
 $api_bind_address           = $internal_address
-$ha_mode                    = true
+$ha_mode                    = $ceilometer_hash['ha_mode'] ? {
+  undef   => true,
+  default => $ceilometer_hash['ha_mode']
+}
 
 if $ceilometer_hash['enabled'] {
   if $external_mongo {
@@ -60,8 +74,8 @@ if $ceilometer_hash['enabled'] {
       $mongo_replicaset = undef
     }
   } else {
-    $mongo_hosts = mongo_hosts($nodes_hash)
-    if size(mongo_hosts($nodes_hash, 'array', 'mongo')) > 1 {
+    $mongo_hosts = mongo_hosts($nodes_hash, 'string', $mongo_roles )
+    if size(mongo_hosts($nodes_hash, 'array', $mongo_roles)) > 1 {
       $mongo_replicaset = 'ceilometer'
     } else {
       $mongo_replicaset = undef
@@ -90,6 +104,9 @@ if ($ceilometer_enabled) {
     rabbit_ha_queues     => $rabbit_ha_queues,
     keystone_host        => $service_endpoint,
     keystone_password    => $ceilometer_user_password,
+    keystone_user        => $ceilometer_hash['user'],
+    keystone_tenant      => $ceilometer_hash['tenant'],
+    keystone_region      => $ceilometer_region,
     host                 => $api_bind_address,
     ha_mode              => $ha_mode,
     on_controller        => true,
