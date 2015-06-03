@@ -3,33 +3,36 @@ notice('MODULAR: glance.pp')
 $verbose               = hiera('verbose', true)
 $debug                 = hiera('debug', false)
 $management_vip        = hiera('management_vip')
-$glance_hash           = hiera('glance')
+$service_endpoint      = hiera('service_endpoint', $management_vip)
+$glance_hash           = hiera_hash('glance', {})
 $storage_hash          = hiera('storage')
 $internal_address      = hiera('internal_address')
 $use_syslog            = hiera('use_syslog', true)
 $syslog_log_facility   = hiera('syslog_log_facility_glance')
-$rabbit_hash           = hiera('rabbit_hash')
+$rabbit_hash           = hiera_hash('rabbit_hash', {})
 $amqp_hosts            = hiera('amqp_hosts')
 $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
-$ceilometer_hash       = hiera('ceilometer',{})
+$ceilometer_hash       = hiera_hash('ceilometer', {})
+$keystone_endpoint     = hiera('keystone_endpoint', $service_endpoint)
+$glance_endpoint       = hiera('glance_endpoint', $service_endpoint)
+
 
 $db_type                        = 'mysql'
-$db_host                        = $management_vip
-$service_endpoint               = $management_vip
+$db_host                        = pick($glance_hash['db_host'], $management_vip)
 $api_bind_address               = $internal_address
 $enabled                        = true
 $max_retries                    = '-1'
 $idle_timeout                   = '3600'
-$auth_uri                       = "http://${service_endpoint}:5000/"
+$auth_uri                       = "http://${keystone_endpoint}:5000/"
 
 $rabbit_password                = $rabbit_hash['password']
 $rabbit_user                    = $rabbit_hash['user']
 $rabbit_hosts                   = split($amqp_hosts, ',')
 $rabbit_virtual_host            = '/'
 
-$glance_db_user                 = 'glance'
-$glance_db_dbname               = 'glance'
+$glance_db_user                 = pick($glance_hash['db_user'], 'glance')
+$glance_db_dbname               = pick($glance_hash['db_name'], 'glance')
 $glance_db_password             = $glance_hash['db_password']
 $glance_user_password           = $glance_hash['user_password']
 $glance_vcenter_host            = $glance_hash['vc_host']
@@ -71,11 +74,11 @@ class { 'openstack::glance':
   glance_vcenter_image_dir       => $glance_vcenter_image_dir,
   glance_vcenter_api_retry_count => $glance_vcenter_api_retry_count,
   auth_uri                       => $auth_uri,
-  keystone_host                  => $service_endpoint,
+  keystone_host                  => $keystone_endpoint,
   bind_host                      => $api_bind_address,
   enabled                        => $enabled,
   glance_backend                 => $glance_backend,
-  registry_host                  => $service_endpoint,
+  registry_host                  => $glance_endpoint,
   use_syslog                     => $use_syslog,
   syslog_log_facility            => $syslog_log_facility,
   glance_image_cache_max_size    => $glance_image_cache_max_size,
