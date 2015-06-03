@@ -33,33 +33,36 @@ class openstack::logrotate (
     debug => $debug,
   }
 
-  # Our custom cronjob overlaps with daily schedule, so we need to address it
-  exec { 'logrotate-tabooext':
-    command => 'sed -i "/^include/i tabooext + .nodaily" /etc/logrotate.conf',
-    path    => [ '/bin', '/usr/bin' ],
-    onlyif  => 'test -f /etc/logrotate.conf',
-    unless  => 'grep -q tabooext /etc/logrotate.conf',
+  # TODO(aschultz): should move these to augeas when augeas is upgraded to
+  # >=1.4.0 because maxsize isn't supported until 1.4.0 which breaks everything.
+  File_line {
+    ensure => 'present',
+    path   => '/etc/logrotate.conf',
   }
-
-  #  case $::osfamily {
-  #  'RedHat': {
-  #      file { '/usr/bin/fuel-logrotate':
-  #        mode   => '0755',
-  #        source => 'puppet:///modules/openstack/logrotate',
-  #      }
-  #  }
-  #  'Debian': {
-  #      file { '/usr/bin/fuel-logrotate':
-  #        mode   => '0755',
-  #        source => 'puppet:///modules/openstack/logrotate-ubuntu',
-  #      }
-  #  }
-  #}
+  file_line { 'logrotate-tabooext':
+    line  => 'tabooext + .nodaily',
+    match => '^tabooext',
+  } ->
+  file_line { 'logrotate-compress':
+    line  => 'compress',
+    match => '^compress',
+  } ->
+  file_line { 'logrotate-delaycompress':
+    line  => 'delaycompress',
+    match => '^delaycompress',
+  } ->
+  file_line { 'logrotate-minsize':
+    line  => "minsize ${minsize}",
+    match => '^minsize',
+  } ->
+  file_line { 'logrotate-maxsize':
+    line   => "maxsize ${maxsize}",
+    match  => '^maxsize'
+  }
 
   cron { 'fuel-logrotate':
     command => '/usr/bin/fuel-logrotate',
     user    => 'root',
     minute  => '*/30',
-    #require => File['/usr/bin/fuel-logrotate'],
   }
 }
