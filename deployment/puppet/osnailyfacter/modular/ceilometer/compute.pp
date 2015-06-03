@@ -4,7 +4,6 @@ $verbose                  = hiera('verbose', true)
 $debug                    = hiera('debug', false)
 $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
-$amqp_hosts               = hiera('amqp_hosts')
 $rabbit_hash              = hiera('rabbit_hash')
 $management_vip           = hiera('management_vip')
 
@@ -15,8 +14,17 @@ $default_ceilometer_hash = {
   'metering_secret' => 'ceilometer',
 }
 
-$ceilometer_hash          = hiera('ceilometer', $default_ceilometer_hash)
+if hiera('amqp_hosts', false) {
+  $amqp_hosts             = hiera('amqp_hosts')
+} else {
+  $amqp_nodes             = hiera('amqp_nodes')
+  $amqp_port              = hiera('amqp_port', '5673')
+  $amqp_hosts             = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+}
 
+$region                     = hiera('region', 'RegionOne')
+$ceilometer_hash            = hiera_hash('ceilometer', $default_ceilometer_hash)
+$ceilometer_region          = pick($ceilometer_hash['region'], $region)
 $ceilometer_enabled         = $ceilometer_hash['enabled']
 $amqp_password              = $rabbit_hash['password']
 $amqp_user                  = $rabbit_hash['user']
@@ -33,6 +41,9 @@ if ($ceilometer_enabled) {
     amqp_hosts                     => $amqp_hosts,
     amqp_user                      => $amqp_user,
     amqp_password                  => $amqp_password,
+    keystone_user                  => $ceilometer_hash['user'],
+    keystone_tenant                => $ceilometer_hash['tenant'],
+    keystone_region                => $ceilometer_region,
     keystone_host                  => $service_endpoint,
     keystone_password              => $ceilometer_user_password,
     on_compute                     => true,
