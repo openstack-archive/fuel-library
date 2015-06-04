@@ -35,21 +35,58 @@ class galera::params {
   $innodb_flush_method     = 'O_DIRECT'
   $max_connections         = '4096'
 
-  case $::osfamily {
-    'RedHat': {
-      $libaio_package       = 'libaio'
-      $mysql_server_name    = 'MySQL-server-wsrep'
-      $mysql_client_name    = 'MySQL-client-wsrep'
-      $libgalera_prefix     = '/usr/lib64'
+  if ($::galera::use_percona) {
+    case $::osfamily {
+      'RedHat': {
+        if ($::galera::use_percona_packages) {
+          $mysql_server_name = 'Percona-XtraDB-Cluster-server-56'
+          $mysql_client_name = 'Percona-XtraDB-Cluster-client-56'
+          $libgalera_package = 'Percona-XtraDB-Cluster-galera-3'
+          $libgalera_prefix  = '/usr/lib64/galera3'
+        } else {
+          fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only supports Debian when not using the Percona packages")
+        }
+        $database_socket   = '/var/lib/mysql/mysql.sock'
+      }
+      'Debian': {
+        if ($::galera::use_percona_packages) {
+          $mysql_server_name = 'percona-xtradb-cluster-server-5.6'
+          $mysql_client_name = 'percona-xtradb-cluster-client-5.6'
+          $libgalera_package = 'percona-xtradb-cluster-galera-3.x'
+          $libgalera_prefix  = '/usr/lib/galera3'
+        } else {
+          $mysql_server_name = 'percona-xtradb-cluster-server-5.5'
+          $mysql_client_name = 'percona-xtradb-cluster-client-5.5'
+          $libgalera_package = 'percona-xtradb-cluster-galera-2.x'
+          $libgalera_prefix  = '/usr/lib'
+        }
+        $database_socket   = '/var/run/mysqld/mysqld.sock'
+      }
+      default: {
+        fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
+      }
     }
-    'Debian': {
-      $libaio_package       = 'libaio1'
-      $mysql_server_name    = 'mysql-server-wsrep-5.6'
-      $mysql_client_name    = 'mysql-client-5.6'
-      $libgalera_prefix     = '/usr/lib'
-    }
-    default: {
-      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
+  } else {
+    case $::osfamily {
+      'RedHat': {
+        $libaio_package    = 'libaio'
+        $mysql_server_name = 'MySQL-server-wsrep'
+        $mysql_client_name = 'MySQL-client-wsrep'
+        $libgalera_package = 'galera'
+        $libgalera_prefix  = '/usr/lib64/galera'
+        $database_socket   = '/var/lib/mysql/mysql.sock'
+      }
+      'Debian': {
+        $libaio_package    = 'libaio1'
+        $mysql_server_name = 'mysql-server-wsrep-5.6'
+        $mysql_client_name = 'mysql-client-5.6'
+        $libgalera_package = 'galera'
+        $libgalera_prefix  = '/usr/lib/galera'
+        $database_socket   = '/var/run/mysqld/mysqld.sock'
+      }
+      default: {
+        fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
+      }
     }
   }
 
