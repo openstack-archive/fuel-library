@@ -227,6 +227,32 @@ class mysql::server (
     }
 
   }
+  elsif ($custom_setup_class == 'percona') {
+    Class['galera'] -> Class['mysql::server']
+    class { 'galera':
+      cluster_name       => $galera_cluster_name,
+      primary_controller => $primary_controller,
+      node_address       => $galera_node_address,
+      node_addresses     => $galera_nodes,
+      skip_name_resolve  => $mysql_skip_name_resolve,
+      use_syslog         => $use_syslog,
+      wsrep_sst_password => $root_password,
+      use_percona        => true,
+    }
+  } elsif ($custom_setup_class == 'percona_packages') {
+    Class['galera'] -> Class['mysql::server']
+    class { 'galera':
+      cluster_name         => $galera_cluster_name,
+      primary_controller   => $primary_controller,
+      node_address         => $galera_node_address,
+      node_addresses       => $galera_nodes,
+      skip_name_resolve    => $mysql_skip_name_resolve,
+      use_syslog           => $use_syslog,
+      wsrep_sst_password   => $root_password,
+      use_percona          => true,
+      use_percona_packages => true
+    }
+  }
 
    else {
     require($custom_setup_class)

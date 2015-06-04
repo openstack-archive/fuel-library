@@ -51,7 +51,7 @@ wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + @gco
 <% else -%>
 wsrep_cluster_address="gcomm://<%= @node_addresses.first %>:<%= @gcomm_port.to_s %>?pc.wait_prim=no"
 <% end -%>
-wsrep_provider=<%= @libgalera_prefix %>/galera/libgalera_smm.so
+wsrep_provider=<%= @libgalera_prefix %>/libgalera_smm.so
 wsrep_cluster_name="<%= @cluster_name -%>"
 
 wsrep_slave_threads=<%= [[@processorcount.to_i*2, 4].max, 12].min %>
