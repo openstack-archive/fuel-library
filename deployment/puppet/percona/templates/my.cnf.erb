@@ -1,0 +1,17 @@
+# #[mysqld]
+# #datadir=/var/lib/mysql
+# #socket=/var/lib/mysql/mysql.sock
+# #user=mysql
+# # Disabling symbolic-links is recommended to prevent assorted security risks
+# #symbolic-links=0
+
+[mysqld_safe]
+<% if @use_syslog -%>
+syslog
+<% else -%>
+log-error=/var/log/mysqld.log
+<% end -%>
+
+# pid-file=/var/run/mysqld.pid
+
+!includedir /etc/mysql/conf.d/
