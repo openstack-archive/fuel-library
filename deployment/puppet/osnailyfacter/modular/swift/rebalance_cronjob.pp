@@ -1,11 +1,12 @@
 notice('MODULAR: swift/rebalance_cronjob.pp')
 
 $storage_hash        = hiera('storage_hash')
+$swift_master_role   = heira('swift_master_role', 'primary-controller')
 $ring_min_part_hours = hiera('swift_ring_min_part_hours', 1)
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
-  $master_swift_proxy_nodes = filter_nodes(hiera('nodes_hash'),'role','primary-controller')
+  $master_swift_proxy_nodes = filter_nodes(hiera('nodes_hash'),'role',$swift_master_role)
   $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
 
   # setup a cronjob to rebalance and repush rings periodically
