@@ -236,9 +236,29 @@ $SNIPPET('centos_authorized_keys')
 # PUTS IN IT ALL THE REPOSITORIES DEFINED IN ks_repo VARIABLE
 $SNIPPET('nailgun_repo')
 
+sleep_time="1"
+retry_count="10"
+
+yum_retry() {
+  retry="1"
+  while :; do
+    yum ${@}
+    if [ "${?}" -eq "0" ]; then
+      break
+    fi
+    retry=$((retry + 1))
+    if [ "${retry}" -gt "${retry_count}" ]; then
+      echo "Command failed: yum ${@}"
+      break
+    fi
+    sleep "${sleep_time}"
+  done
+}
+
+
 rpm -e --nodeps ruby
-yum install --exclude=ruby21*,ruby-2.1.1* -y ruby rubygems
-yum update -y --exclude --exclude=ruby*
+yum_retry install --exclude=ruby21*,ruby-2.1.1* -y ruby rubygems
+yum_retry update -y --exclude --exclude=ruby*
 
 mkdir -p /etc/nailgun-agent/
 cat > /etc/nailgun-agent/config.yaml << EOA
