@@ -52,8 +52,8 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   }
 
   $ring_part_power = calc_ring_part_power($controllers,$swift_hash['resize_value'])
-  $sto_net = $network_scheme['endpoints']['br-storage']['IP']
-  $man_net = $network_scheme['endpoints']['br-mgmt']['IP']
+  $sto_net = $network_scheme['endpoints'][$network_scheme['roles']['storage']]['IP']
+  $man_net = $network_scheme['endpoints'][$network_scheme['roles']['management']]['IP']
 
   class { 'openstack::swift::proxy':
     swift_user_password     => $swift_hash[user_password],
