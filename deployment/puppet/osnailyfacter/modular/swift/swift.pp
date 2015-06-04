@@ -1,6 +1,9 @@
 notice('MODULAR: swift.pp')
 
 $swift_hash          = hiera('swift_hash')
+$swift_master_role   = hiera('swift_master_role', 'primary-controller')
+$swift_nodes         = pick(hiera('swift_nodes', undef), hiera('controllers', undef))
+$primary_swift       = pick(heira('primary_swift', undef), heira('primary_controller', undef))
 $proxy_port          = hiera('proxy_port', '8080')
 $network_scheme      = hiera('network_scheme', {})
 $storage_hash        = hiera('storage_hash')
@@ -10,7 +13,6 @@ $debug               = hiera('debug', false)
 $verbose             = hiera('verbose')
 $storage_address     = hiera('storage_address')
 $node                = hiera('node')
-$controllers         = hiera('controllers')
 $ring_min_part_hours = hiera('swift_ring_min_part_hours', 1)
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
@@ -18,9 +20,9 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   if !(hiera('swift_partition', false)) {
     $swift_partition = '/var/lib/glance/node'
   }
-  $master_swift_proxy_nodes = filter_nodes(hiera('nodes_hash'),'role','primary-controller')
+  $master_swift_proxy_nodes = filter_nodes(hiera('nodes_hash'),'role',$swift_master_role)
   $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
-  if (hiera('primary_controller')) {
+  if ($primary_swift) {
     $primary_proxy = true
   } else {
     $primary_proxy = false
@@ -41,22 +43,23 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   }
   if $primary_proxy {
     ring_devices {'all':
-      storages => $controllers,
+      storages => $swift_nodes,
       require  => Class['swift'],
     }
   }
 
-  if !$swift_hash['resize_value']
-  {
-    $swift_hash['resize_value'] = 2
+  if has_key($swift_hash, 'resize_value') {
+    $resize_value = $swift_hash['resize_value']
+  } else {
+    $resize_value = 2
   }
 
-  $ring_part_power = calc_ring_part_power($controllers,$swift_hash['resize_value'])
+  $ring_part_power = calc_ring_part_power($swift_nodes,$resize_value)
   $sto_net = $network_scheme['endpoints'][$network_scheme['roles']['storage']]['IP']
   $man_net = $network_scheme['endpoints'][$network_scheme['roles']['management']]['IP']
 
   class { 'openstack::swift::proxy':
-    swift_user_password     => $swift_hash[user_password],
+    swift_user_password     => $swift_hash['user_password'],
     swift_proxies           => hiera('controller_internal_addresses'),
     ring_part_power         => $ring_part_power,
     primary_proxy           => $primary_proxy,
@@ -67,7 +70,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     debug                   => $debug,
     verbose                 => $verbose,
     log_facility            => 'LOG_SYSLOG',
-    ceilometer              => hiera('use_ceilometer'),
+    ceilometer              => hiera('use_ceilometer',false),
     ring_min_part_hours     => $ring_min_part_hours,
   } ->
 
@@ -79,7 +82,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   }
 
   class { 'swift::keystone::auth':
-    password         => $swift_hash[user_password],
+    password         => $swift_hash['user_password'],
     public_address   => hiera('public_vip'),
     internal_address => $management_vip,
     admin_address    => $management_vip,
