@@ -36,10 +36,10 @@ if $::operatingsystem == 'Ubuntu' {
     package_name => 'heat-engine',
   }
 
-  tweaks::ubuntu_service_override['heat-api']            -> Service['heat-api']
-  tweaks::ubuntu_service_override['heat-api-cfn']        -> Service['heat-api-cfn']
-  tweaks::ubuntu_service_override['heat-api-cloudwatch'] -> Service['heat-api-cloudwatch']
-  tweaks::ubuntu_service_override['heat-engine']         -> Service['heat-engine']
+  Tweaks::Ubuntu_service_override['heat-api']            -> Service['heat-api']
+  Tweaks::Ubuntu_service_override['heat-api-cfn']        -> Service['heat-api-cfn']
+  Tweaks::Ubuntu_service_override['heat-api-cloudwatch'] -> Service['heat-api-cloudwatch']
+  Tweaks::Ubuntu_service_override['heat-engine']         -> Service['heat-engine']
 }
 
 class { 'openstack::heat' :
