@@ -227,6 +227,19 @@ class mysql::server (
     }
 
   }
+  elsif ($custom_setup_class == 'percona')  {
+    Class['percona'] -> Class['mysql::server']
+    class { 'percona':
+      cluster_name       => $galera_cluster_name,
+      primary_controller => $primary_controller,
+      node_address       => $galera_node_address,
+      node_addresses     => $galera_nodes,
+      skip_name_resolve  => $mysql_skip_name_resolve,
+      use_syslog         => $use_syslog,
+      wsrep_sst_password => $root_password,
+    }
+
+  }
 
    else {
     require($custom_setup_class)
