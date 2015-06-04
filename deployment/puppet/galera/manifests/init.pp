@@ -48,42 +48,58 @@
 #  (optional) The method for state snapshot transfer between nodes
 #  Defaults to xtrabackup-v2
 #  xtrabackup, xtrabackup-v2, mysqldump are supported
-
+#
+# [*use_percona*]
+#  Boolean. Set this value to true if you want to use percona instead of
+#  the mysql packages.
+#
+# [*use_percona_packages*]
+#  Boolean. Set this value to true to use the Percona distrubuted packages.
+#  This requires that these packages are available via a repository for the
+#  system at install time. NOTE: use_percona must be set to true for this to
+#  be used.
+#
 class galera (
   $cluster_name         = 'openstack',
   $primary_controller   = false,
   $node_address         = $ipaddress_eth0,
   $setup_multiple_gcomm = true,
   $skip_name_resolve    = false,
-  $node_addresses       = $ipaddress_eth0,
+  $node_addresses       = [ $ipaddress_eth0 ],
   $use_syslog           = false,
   $gcomm_port           = '4567',
   $status_check         = true,
   $wsrep_sst_method     = 'xtrabackup-v2',
   $wsrep_sst_password   = undef,
+  $use_percona          = false,
+  $use_percona_packages = false,
   ) {
 
   include galera::params
 
-  anchor {'galera': }
+  validate_array($node_addresses)
+  validate_bool($use_percona)
+  validate_bool($use_percona_packages)
 
-  $mysql_user = $::galera::params::mysql_user
-  $mysql_password = $wsrep_sst_password ? {
+  anchor {'database-cluster': }
+
+  $mysql_user              = $::galera::params::mysql_user
+  $mysql_password          = $wsrep_sst_password ? {
     undef   => $::galera::params::mysql_password,
     default => $wsrep_sst_password
   }
-  $libgalera_prefix = $::galera::params::libgalera_prefix
-  $mysql_buffer_pool_size = $::galera::params::mysql_buffer_pool_size
-  $mysql_log_file_size = $::galera::params::mysql_log_file_size
-  $max_connections = $::galera::params::max_connections
-  $table_open_cache = $::galera::params::table_open_cache
-  $key_buffer_size = $::galera::params::key_buffer_size
+  $libgalera_prefix        = $::galera::params::libgalera_prefix
+  $mysql_buffer_pool_size  = $::galera::params::mysql_buffer_pool_size
+  $mysql_log_file_size     = $::galera::params::mysql_log_file_size
+  $max_connections         = $::galera::params::max_connections
+  $table_open_cache        = $::galera::params::table_open_cache
+  $key_buffer_size         = $::galera::params::key_buffer_size
   $myisam_sort_buffer_size = $::galera::params::myisam_sort_buffer_size
-  $wait_timeout = $::galera::params::wait_timeout
-  $open_files_limit= $::galera::params::open_files_limit
-  $datadir=$::mysql::params::datadir
-  $service_name=$::galera::params::service_name
-  $innodb_flush_method=$::galera::params::innodb_flush_method
+  $wait_timeout            = $::galera::params::wait_timeout
+  $open_files_limit        = $::galera::params::open_files_limit
+  $datadir                 = $::mysql::params::datadir
+  $service_name            = $::galera::params::service_name
+  $innodb_flush_method     = $::galera::params::innodb_flush_method
 
   package { ['wget',
               'perl']:
@@ -94,7 +110,24 @@ class galera (
   file { '/etc/my.cnf':
     ensure  => present,
     content => template('galera/my.cnf.erb'),
-    #    before  => File['mysql-wss-ocf']
+  }
+
+  if ($use_percona and $::operatingsystem == 'Ubuntu') {
+    # Disable service autostart
+    file { '/usr/sbin/policy-rc.d':
+      ensure  => present,
+      content => inline_template("#!/bin/sh\nexit 101\n"),
+      mode    => '0755',
+      before  => Package['MySQL-server']
+    }
+
+    #FIXME:
+    #Remove this after https://bugs.launchpad.net/bugs/1461304 will be fixed
+    file {'/etc/apt/apt.conf.d/99tmp':
+      ensure  => present,
+      content => inline_template("Dpkg::Options {\n\t\"--force-overwrite\";\n}"),
+      before  => Package['MySQL-server']
+    }
   }
 
   package { 'mysql-client':
@@ -109,13 +142,16 @@ class galera (
     before => Package['MySQL-server']
   }
 
-  package { $::galera::params::libaio_package:
-    ensure => present,
-    before => Package['galera', 'MySQL-server']
+  if !($use_percona) {
+    package { $::galera::params::libaio_package:
+      ensure => present,
+      before => Package['galera', 'MySQL-server']
+    }
   }
 
   package { 'galera':
     ensure => present,
+    name   => $::galera::params::libgalera_package,
     before => Package['MySQL-server']
   }
 
@@ -156,15 +192,12 @@ class galera (
     ensure  => present,
     mode    => '0644',
     require => Package['MySQL-server'],
-    #    before  => File['mysql-wss-ocf']
   }
 
 
   if $primary_controller {
-    $galera_socket = $::osfamily ? {
-      'RedHat' => '/var/lib/mysql/mysql.sock',
-      'Debian' => '/var/run/mysqld/mysqld.sock',
-    }
+    $galera_socket = $::galera::params::database_socket
+
     # TODO(bogdando) move to extras as a wrapper class
     cs_resource { "p_${service_name}":
       ensure          => present,
@@ -173,9 +206,9 @@ class galera (
       primitive_type  => 'mysql-wss',
       complex_type    => 'clone',
       parameters      => {
-        'test_user'   => "${mysql_user}",
-        'test_passwd' => "${mysql_password}",
-        'socket'      => "${galera_socket}",
+        'test_user'   => $mysql_user,
+        'test_passwd' => $mysql_password,
+        'socket'      => $galera_socket,
       },
       operations      => {
         'monitor' => {
@@ -190,28 +223,14 @@ class galera (
         },
       },
     }
-    Anchor['galera'] ->
-    #File['mysql-wss-ocf'] ->
-          Cs_resource["p_${service_name}"] ->
-            Service['mysql'] ->
-              Exec['wait-for-synced-state']
+    Anchor['database-cluster'] ->
+      Cs_resource["p_${service_name}"] ->
+        Service['mysql'] ->
+          Exec['wait-for-synced-state']
   } else {
-    Anchor['galera'] ->
-    #File['mysql-wss-ocf'] ->
-          Service['mysql']
+    Anchor['database-cluster'] ->
+      Service['mysql']
   }
-
-  #file { 'mysql-wss-ocf':
-  # path   => '/usr/lib/ocf/resource.d/fuel/mysql-wss',
-  # mode   => '0755',
-  # owner  => root,
-  # group  => root,
-  # source => 'puppet:///modules/galera/ocf/mysql-wss',
-  #}
-
-  #File<| title == 'ocf-fuel-path' |> -> File['mysql-wss-ocf']
-
-  #  Package['MySQL-server', 'galera'] -> File['mysql-wss-ocf']
 
   tweaks::ubuntu_service_override { 'mysql':
     package_name => 'MySQL-server',
@@ -224,9 +243,11 @@ class galera (
     provider => 'pacemaker',
   }
 
-  Service['mysql'] -> Anchor['galera-done']
+  Service['mysql'] -> Anchor['database-cluster-done']
 
+  # lint:ignore:quoted_booleans
   if $::galera_gcomm_empty == 'true' {
+    # lint:endignore
     #FIXME(bogdando): dirtyhack to pervert imperative puppet nature.
     if $::mysql_log_file_size_real != $mysql_log_file_size {
       # delete MySQL ib_logfiles, if log file size does not match the one
@@ -279,6 +300,20 @@ class galera (
     tries     => 60,
   }
 
+  if ($use_percona and $::operatingsystem == 'Ubuntu') {
+    #Clean tmp files:
+    exec { 'rm-policy-rc.d':
+      command => '/bin/rm /usr/sbin/policy-rc.d',
+    }
+    exec {'rm-99tmp':
+      command => '/bin/rm /etc/apt/apt.conf.d/99tmp',
+    }
+    Exec['wait-for-synced-state'] ->
+      Exec['rm-policy-rc.d']
+    Exec['wait-for-synced-state'] ->
+      Exec['rm-99tmp']
+  }
+
   File['/tmp/wsrep-init-file'] ->
     Service['mysql'] ->
       Exec['wait-initial-sync'] ->
@@ -286,5 +321,5 @@ class galera (
           Exec ['rm-init-file']
   Package['MySQL-server'] ~> Exec['wait-initial-sync']
 
-  anchor {'galera-done': }
+  anchor {'database-cluster-done': }
 }
