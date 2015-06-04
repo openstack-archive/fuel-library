@@ -33,6 +33,8 @@ $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
 $network_scheme                 = hiera('network_scheme', {})
 $controllers                    = hiera('controllers')
+$swift_proxies                  = hiera('swift_proxies', $controllers)
+$swift_master_role              = hiera('swift_master_role', 'primary-controller')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
@@ -255,9 +257,8 @@ if ($use_swift) {
   if !hiera('swift_partition', false) {
     $swift_partition = '/var/lib/glance/node'
   }
-  $swift_proxies            = $controllers
   $swift_local_net_ip       = $storage_address
-  $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
+  $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role',$swift_master_role)
   $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
   #$master_hostname         = $master_swift_proxy_nodes[0]['name']
   $swift_loopback = false
