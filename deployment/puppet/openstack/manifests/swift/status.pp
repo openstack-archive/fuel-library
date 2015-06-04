@@ -67,5 +67,6 @@ class openstack::swift::status (
     user        => 'nobody',
     group       => $group,
     flags       => 'IPv4',
+    require     => Augeas['swiftcheck'],
   }
 }
