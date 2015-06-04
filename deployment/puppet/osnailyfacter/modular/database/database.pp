@@ -88,6 +88,19 @@ class { 'openstack::db::mysql':
   use_syslog              => $use_syslog,
 }
 
+if ($custom_mysql_setup_class == 'percona_packages' and $::osfamily == 'RedHat') {
+  # This is a work around to prevent the conflict between the MySQL-shared-wsrep
+  # package (included as a dependency for MySQL-python) and the Percona shared
+  # package Percona-XtraDB-Cluster-shared-56. They both provide the libmysql
+  # client libraries. Since we are requiring the installation of the Percona
+  # package here before mysql::python, the python client is happey and the
+  # server installation won't fail due to the installation of our shared package
+  package { 'Percona-XtraDB-Cluster-shared-56':
+    ensure => 'present',
+    before => Class['mysql::python'],
+  }
+}
+
 class { 'openstack::galera::status':
   status_user             => $status_user,
   status_password         => $status_password,
