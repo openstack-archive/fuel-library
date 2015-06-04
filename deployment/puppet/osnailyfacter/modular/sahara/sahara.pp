@@ -1,5 +1,6 @@
 notice('MODULAR: sahara.pp')
 
+$primary_controller         = hiera('primary_controller')
 $sahara_hash                = hiera('sahara')
 $access_admin               = hiera('access')
 $controller_node_address    = hiera('controller_node_address')
@@ -60,17 +61,20 @@ if $sahara_hash['enabled'] {
     url  => $haproxy_stats_url,
   }
 
-  class { 'sahara::templates::create_templates' :
-    use_neutron   => $use_neutron,
-    auth_user     => $access_admin['user'],
-    auth_password => $access_admin['password'],
-    auth_tenant   => $access_admin['tenant'],
-    auth_uri      => "http://${management_ip}:5000/v2.0/",
+  if $primary_controller {
+    class { 'sahara::templates::create_templates' :
+      use_neutron   => $use_neutron,
+      auth_user     => $access_admin['user'],
+      auth_password => $access_admin['password'],
+      auth_tenant   => $access_admin['tenant'],
+      auth_uri      => "http://${management_ip}:5000/v2.0/",
+    }
+
+    Haproxy_backend_status['sahara'] -> Class['sahara::templates::create_templates']
   }
 
   Class['sahara'] -> Haproxy_backend_status['sahara']
   Service['sahara'] -> Haproxy_backend_status['sahara']
-  Haproxy_backend_status['sahara'] -> Class['sahara::templates::create_templates']
 }
 
 #########################
