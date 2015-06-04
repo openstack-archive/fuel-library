@@ -52,7 +52,7 @@ $status_user              = 'clustercheck'
 $status_password          = $mysql_hash['wsrep_password']
 $backend_port             = '3307'
 $backend_timeout          = '10'
-$man_net                  = $network_scheme['endpoints']['br-mgmt']['IP']
+$man_net                  = $network_scheme['endpoints'][$network_scheme['roles']['management']]['IP']
 
 ###############################################################################
 
