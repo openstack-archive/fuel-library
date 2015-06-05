@@ -127,6 +127,7 @@ class openstack::galera::status (
     user       => 'nobody',
     group      => $group,
     flags      => 'IPv4',
-    #require    => File['/usr/bin/clustercheck'],
+    require    => Augeas['galeracheck'],
+    #require   => File['/usr/bin/clustercheck'],
   }
 }
