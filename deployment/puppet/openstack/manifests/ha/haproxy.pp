@@ -66,7 +66,7 @@ class openstack::ha::haproxy (
     }
   }
 
-  if $custom_mysql_setup_class == 'galera' or $custom_mysql_setup_class == 'percona' {
+  if ($custom_mysql_setup_class in ['galera', 'percona', 'percona_packages']) {
     class { 'openstack::ha::mysqld':
       is_primary_controller => $is_primary_controller,
       server_names          => hiera_array('mysqld_names', $controllers_server_names),
