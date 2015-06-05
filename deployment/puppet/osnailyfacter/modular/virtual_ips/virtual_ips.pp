@@ -4,9 +4,18 @@ $internal_int                = hiera('internal_int')
 $public_int                  = hiera('public_int',  undef)
 $primary_controller_nodes    = hiera('primary_controller_nodes', false)
 $network_scheme              = hiera('network_scheme', {})
-$vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
-$vip_public_cidr_netmask     = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 $use_neutron                 = hiera('use_neutron', false)
+
+if ( hiera('vip_management_cidr_netmask', false ){
+  $vip_management_cidr_netmask = hiera('vip_management_cidr_netmask')
+} else {
+  $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
+}
+if ( hiera('vip_public_cidr_netmask', false ){
+  $vip_public_cidr_netmask     = hiera('vip_public_cidr_netmask')
+} else {
+  $vip_public_cidr_netmask     = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
+}
 
 # todo:(sv): temporary commented. Will be uncommented while 'multiple-l2-network' feature re-implemented
 # if $use_neutron {
