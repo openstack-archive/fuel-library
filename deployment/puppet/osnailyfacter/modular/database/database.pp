@@ -8,7 +8,7 @@ $nova_hash            = hiera('nova')
 $cinder_hash          = hiera('cinder')
 $internal_address     = hiera('internal_address')
 $network_scheme       = hiera('network_scheme', {})
-$neutron_db_password  = hiera('neutron_db_password', false)
+$neutron_hash         = hiera('neutron_config', {})
 $controller_nodes     = hiera('controller_nodes')
 $use_syslog           = hiera('use_syslog', true)
 $primary_controller   = hiera('primary_controller')
@@ -39,6 +39,7 @@ $cinder_db_password     = $cinder_hash['db_password']
 
 $neutron_db_user        = 'neutron'
 $neutron_db_dbname      = 'neutron'
+$neutron_db_password    = $neutron_hash['database']['passwd']
 
 $enabled                  = true
 $allowed_hosts            = [ '%', $::hostname ]
