@@ -18,20 +18,20 @@ $rabbit_hash           = hiera('rabbit_hash')
 $amqp_hosts            = hiera('amqp_hosts')
 $primary_controller    = hiera('primary_controller')
 $controller_nodes      = hiera('controller_nodes')
-$neutron_user_password = hiera('neutron_user_password', false)
+$neutron_hash          = hiera('neutron_config', {})
 $workloads_hash        = hiera('workloads_collector', {})
 
 $db_type     = 'mysql'
 $db_host     = $management_vip
-$db_password = $keystone_hash['db_password']
+$db_password = structure($keystone_hash, 'db_password')
 $db_name     = 'keystone'
 $db_user     = 'keystone'
 
-$admin_token    = $keystone_hash['admin_token']
-$admin_tenant   = $access_hash['tenant']
-$admin_email    = $access_hash['email']
-$admin_user     = $access_hash['user']
-$admin_password = $access_hash['password']
+$admin_token    = structure($keystone_hash, 'admin_token')
+$admin_tenant   = structure($access_hash, 'tenant')
+$admin_email    = structure($access_hash, 'email')
+$admin_user     = structure($access_hash, 'user')
+$admin_password = structure($access_hash, 'password')
 
 $public_address   = $public_vip
 $admin_address    = $management_vip
@@ -41,18 +41,28 @@ $admin_bind_host  = $internal_address
 $memcache_servers     = $controller_nodes
 $memcache_server_port = '11211'
 
-$glance_user_password     = $glance_hash['user_password']
-$nova_user_password       = $nova_hash['user_password']
-$cinder_user_password     = $cinder_hash['user_password']
-$ceilometer_user_password = $ceilometer_hash['user_password']
+$glance_user_name         = structure($glance_hash, 'user_name', 'glance')
+$glance_user_password     = structure($glance_hash, 'user_password')
 
-$cinder = true
-$ceilometer = $ceilometer_hash['enabled']
-$enabled = true
-$ssl = false
+$nova_user_name           = structure($nova_hash['user_name'], 'nova')
+$nova_user_password       = structure($nova_hash['user_password'])
 
-$rabbit_password     = $rabbit_hash['password']
-$rabbit_user         = $rabbit_hash['user']
+$cinder_user_name         = structure($cinder_hash['user_name'], 'cinder')
+$cinder_user_password     = structure($cinder_hash['user_password'])
+
+$ceilometer_user_name     = structure($ceilometer_hash['user_name'], 'ceilometer')
+$ceilometer_user_password = structure($ceilometer_hash['user_password'])
+
+$neutron_user_name        = structure($neutron_hash, 'keystone/admin_name', 'neutron')
+$neutron_user_password    = structure($neutron_hash, 'keystone/admin_password')
+
+$ceilometer = structure($ceilometer_hash, 'enabled')
+$cinder     = true
+$enabled    = true
+$ssl        = false
+
+$rabbit_password     = structure($rabbit_hash, 'password')
+$rabbit_user         = structure($rabbit_hash, 'user')
 $rabbit_hosts        = split($amqp_hosts, ',')
 $rabbit_virtual_host = '/'
 
@@ -62,11 +72,7 @@ $max_retries   = '-1'
 $idle_timeout  = '3600'
 
 $murano_settings_hash = hiera('murano_settings', {})
-if has_key($murano_settings_hash, 'murano_repo_url') {
-  $murano_repo_url = $murano_settings_hash['murano_repo_url']
-} else {
-  $murano_repo_url = 'http://storage.apps.openstack.org'
-}
+$murano_repo_url = structure($murano_settings_hash, 'murano_repo_url', 'http://storage.apps.openstack.org')
 
 ###############################################################################
 
@@ -83,13 +89,18 @@ class { 'openstack::keystone':
   public_address           => $public_address,
   internal_address         => $management_vip, # send traffic through HAProxy
   admin_address            => $admin_address,
+  glance_user_name         => $glance_user_name,
   glance_user_password     => $glance_user_password,
+  nova_user_name           => $nova_user_name,
   nova_user_password       => $nova_user_password,
   cinder                   => $cinder,
+  cinder_user_name         => $cinder_user_name,
   cinder_user_password     => $cinder_user_password,
   neutron                  => $use_neutron,
+  neutron_user_name        => $neutron_user_name,
   neutron_user_password    => $neutron_user_password,
   ceilometer               => $ceilometer,
+  ceilometer_user_name     => $ceilometer_user_name,
   ceilometer_user_password => $ceilometer_user_password,
   public_bind_host         => $public_bind_host,
   admin_bind_host          => $admin_bind_host,
@@ -153,11 +164,11 @@ class { 'openstack::auth_file':
 }
 
 class { 'openstack::workloads_collector':
-  enabled               => $workloads_hash['enabled'],
-  workloads_username    => $workloads_hash['username'],
-  workloads_password    => $workloads_hash['password'],
-  workloads_tenant      => $workloads_hash['tenant'],
-  workloads_create_user => $workloads_hash['create_user'],
+  enabled               => structure($workloads_hash, 'enabled'),
+  workloads_username    => structure($workloads_hash, 'username'),
+  workloads_password    => structure($workloads_hash, 'password'),
+  workloads_tenant      => structure($workloads_hash, 'tenant'),
+  workloads_create_user => structure($workloads_hash, 'create_user'),
 }
 
 Exec <| title == 'keystone-manage db_sync' |> ->
