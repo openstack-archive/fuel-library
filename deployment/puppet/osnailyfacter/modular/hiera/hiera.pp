@@ -36,7 +36,7 @@ $hiera_config_content = inline_template('
 
 :yaml:
   :datadir: <%= @data_dir %>
-
+:merge_behavior: deeper
 :logger: noop
 ')
 
