@@ -179,8 +179,7 @@ Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
       node_group['count'] = node_group['count'].to_i if node_group['count']
     end
     if present?
-      destroy if @property_hash[:id]
-      connection.create_cluster_template options
+      connection.create_cluster_template options unless @property_hash[:id]
     end
   end
 

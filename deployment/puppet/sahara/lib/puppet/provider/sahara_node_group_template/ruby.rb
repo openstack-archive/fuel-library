@@ -209,8 +209,7 @@ Puppet::Type.type(:sahara_node_group_template).provide(:ruby) do
     debug 'Call: flush'
     options = @property_hash.reject { |k, v| [:id, :ensure].include? k }
     if present?
-      destroy if @property_hash[:id]
-      connection.create_node_group_template options
+      connection.create_node_group_template options unless @property_hash[:id]
     end
   end
 
