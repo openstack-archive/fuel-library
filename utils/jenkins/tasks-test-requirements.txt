@@ -1,1 +1,2 @@
 fuel-tasks-validator==6.1.0
+jsonschema==2.4.0
