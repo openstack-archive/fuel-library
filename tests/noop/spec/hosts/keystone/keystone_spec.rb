@@ -73,6 +73,10 @@ describe manifest do
     #   end
     # end
 
+  it 'uses default system users names if bot overriden'
+
+  it 'uses provides system users names'
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
