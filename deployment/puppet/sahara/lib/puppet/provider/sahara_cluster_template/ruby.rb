@@ -148,11 +148,6 @@ Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
     @property_hash[:node_groups] = value
   end
 
-  def destroy
-    debug 'Call: destroy'
-    connection.delete_cluster_template @property_hash[:id] if @property_hash[:id]
-  end
-
   def create
     debug 'Call: create'
     @property_hash = {
@@ -179,8 +174,7 @@ Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
       node_group['count'] = node_group['count'].to_i if node_group['count']
     end
     if present?
-      destroy if @property_hash[:id]
-      connection.create_cluster_template options
+      connection.create_cluster_template options unless @property_hash[:id]
     end
   end
 

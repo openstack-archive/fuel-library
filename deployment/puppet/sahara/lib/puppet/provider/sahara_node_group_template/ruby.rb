@@ -185,11 +185,6 @@ Puppet::Type.type(:sahara_node_group_template).provide(:ruby) do
     @property_hash[:auto_security_group] = value
   end
 
-  def destroy
-    debug 'Call: destroy'
-    connection.delete_node_group_template @property_hash[:id] if @property_hash[:id]
-  end
-
   def create
     debug 'Call: create'
     @property_hash = {
@@ -209,8 +204,7 @@ Puppet::Type.type(:sahara_node_group_template).provide(:ruby) do
     debug 'Call: flush'
     options = @property_hash.reject { |k, v| [:id, :ensure].include? k }
     if present?
-      destroy if @property_hash[:id]
-      connection.create_node_group_template options
+      connection.create_node_group_template options unless if @property_hash[:id]
     end
   end
 
