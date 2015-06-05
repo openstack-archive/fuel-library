@@ -34,7 +34,7 @@ class openstack::ha::haproxy (
 
   if $neutron { class { 'openstack::ha::neutron': } }
 
-  if $custom_mysql_setup_class == 'galera' {
+  if $custom_mysql_setup_class == 'galera' or $custom_mysql_setup_class == 'percona' {
     class { 'openstack::ha::mysqld':
       is_primary_controller => $is_primary_controller,
     }
