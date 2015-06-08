@@ -50,7 +50,8 @@ class pacemaker_wrappers::rabbitmq (
       'interval' => '27',
       'timeout'  => '60'
     },
-    'monitor'           => {
+    'monitor:Slave'  => {
+      'role'            => 'Slave',
       'interval'        => '103',
       'timeout'         => '60',
       'OCF_CHECK_LEVEL' => '30'
