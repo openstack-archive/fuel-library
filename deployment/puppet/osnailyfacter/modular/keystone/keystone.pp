@@ -40,6 +40,7 @@ $admin_bind_host  = $internal_address
 
 $memcache_servers     = $controller_nodes
 $memcache_server_port = '11211'
+$memcache_pool_maxsize = 100
 
 $glance_user_password     = $glance_hash['user_password']
 $nova_user_password       = $nova_hash['user_password']
@@ -98,6 +99,7 @@ class { 'openstack::keystone':
   syslog_log_facility      => $syslog_log_facility,
   memcache_servers         => $memcache_servers,
   memcache_server_port     => $memcache_server_port,
+  memcache_pool_maxsize    => $memcache_pool_maxsize,
   max_retries              => $max_retries,
   max_pool_size            => $max_pool_size,
   max_overflow             => $max_overflow,
