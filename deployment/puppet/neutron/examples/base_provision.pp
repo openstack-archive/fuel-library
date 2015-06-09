@@ -30,8 +30,8 @@ keystone_tenant { 'demo':
 }
 
 neutron_network { 'private':
-  ensure          => present,
-  tenant_name     => 'demo',
+  ensure      => present,
+  tenant_name => 'demo',
 }
 
 neutron_subnet { 'private_subnet':
