@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# Resource script for vrouter namespace support
+# Resource script for IP namespace support
 #
-# Description:  Manages vrouter namespace as an OCF resource in
+# Description:  Manages IP namespaces as an OCF resource in
 #               an High Availability setup
 #
 # Vrouter OCF script's Author: Mirantis
@@ -10,7 +10,7 @@
 #
 #  usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}
 #
-#  The "start" arg starts vrouter.
+#  The "start" arg starts namespace.
 #
 #  The "stop" arg stops it.
 #
@@ -30,23 +30,13 @@
 
 OCF_ROOT_default="/usr/lib/ocf"
 
-OCF_RESKEY_ns_default="vrouter"
 OCF_RESKEY_other_networks_default=false
-OCF_RESKEY_host_interface_default="vrouter-host"
-OCF_RESKEY_namespace_interface_default="vr-ns"
-OCF_RESKEY_host_ip_default="240.0.0.5"
-OCF_RESKEY_namespace_ip_default="240.0.0.6"
 OCF_RESKEY_network_mask_default="30"
 OCF_RESKEY_route_metric_default="10000"
 
 : ${OCF_ROOT=${OCF_ROOT_default}}
 
-: ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
 : ${OCF_RESKEY_other_networks=${OCF_RESKEY_other_networks_default}}
-: ${OCF_RESKEY_host_interface=${OCF_RESKEY_host_interface_default}}
-: ${OCF_RESKEY_namespace_interface=${OCF_RESKEY_namespace_interface_default}}
-: ${OCF_RESKEY_host_ip=${OCF_RESKEY_host_ip_default}}
-: ${OCF_RESKEY_namespace_ip=${OCF_RESKEY_namespace_ip_default}}
 : ${OCF_RESKEY_network_mask=${OCF_RESKEY_network_mask_default}}
 : ${OCF_RESKEY_route_metric=${OCF_RESKEY_route_metric_default}}
 
@@ -74,21 +64,24 @@ meta_data()
 cat <<END
 <?xml version="1.0"?>
 <!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
-<resource-agent name="vrouter">
+<resource-agent name="IPnamespace">
 <version>1.0</version>
 <longdesc lang="en">
-This script manages vrouter daemon with namespace support
+This script manages IP namespaces
 </longdesc>
-<shortdesc lang="en">Manages an vrouter daemon inside an namespace</shortdesc>
+<shortdesc lang="en">Manages IP namespaces</shortdesc>
+
 <parameters>
+
 <parameter name="ns">
 <longdesc lang="en">
 Name of network namespace.
 Should be present.
 </longdesc>
-<shortdesc lang="en">Name of network namespace.</shortdesc>
-<content type="string" default="${OCF_RESKEY_ns_default}"/>
+<shortdesc lang="en">Name of network namespace</shortdesc>
+<content type="string"/>
 </parameter>
+
 <parameter name="other_networks">
 <longdesc lang="en">
 Additional routes that should be added to this resource. Routes will be added via value namespace_interface.
@@ -96,22 +89,25 @@ Additional routes that should be added to this resource. Routes will be added vi
 <shortdesc lang="en">List of addtional routes to add routes for.</shortdesc>
 <content type="string" default="$OCF_RESKEY_other_networks_default"/>
 </parameter>
+
 <parameter name="host_interface">
 <longdesc lang="en">
 The host part of the interface pair used to connect the namespace to the network
 For example, "vrouter-host"
 </longdesc>
 <shortdesc lang="en">The name of the host interface used for namespace</shortdesc>
-<content type="string" default="${OCF_RESKEY_host_interface_default}" />
+<content type="string"/>
 </parameter>
+
 <parameter name="namespace_interface">
 <longdesc lang="en">
 The namespace part of the interface pair used to connect the namespace to the network
 For example, "vr-ns"
 </longdesc>
 <shortdesc lang="en">The name of the namespace interface used for namespace</shortdesc>
-<content type="string" default="${OCF_RESKEY_namespace_interface_default}" />
+<content type="string"/>
 </parameter>
+
 <parameter name="host_ip">
 <longdesc lang="en">
 The IP address used by the host interface. Must be from the same subnet as namesapce IP
@@ -120,8 +116,9 @@ Should not collide with any IP addresses already used in your network.
 For example, "240.0.0.5"
 </longdesc>
 <shortdesc lang="en">Host interface IP address</shortdesc>
-<content type="string" default="${OCF_RESKEY_host_ip_default}" />
+<content type="string"/>
 </parameter>
+
 <parameter name="namespace_ip">
 <longdesc lang="en">
 The IP address used by the namespace interface. Must be from the same subnet as host IP
@@ -130,8 +127,9 @@ Should not collide with any IP addresses already used in your network.
 For example, "240.0.0.6"
 </longdesc>
 <shortdesc lang="en">Namespace interface IP address</shortdesc>
-<content type="string" default="${OCF_RESKEY_namespace_ip_default}" />
+<content type="string"/>
 </parameter>
+
 <parameter name="network_mask">
 <longdesc lang="en">
 The network mask length used to determine subnet of the host
@@ -141,6 +139,7 @@ For example, "30"
 <shortdesc lang="en">Network mask length</shortdesc>
 <content type="string" default="${OCF_RESKEY_network_mask_default}" />
 </parameter>
+
 <parameter name="route_metric">
 <longdesc lang="en">
 The metric value of the default route set for the pipe
@@ -155,7 +154,9 @@ For example, "1000"
 <shortdesc lang="en">Namespace default route metric</shortdesc>
 <content type="string" default="${OCF_RESKEY_route_metric_default}" />
 </parameter>
+
 </parameters>
+
 <actions>
 <action name="start" timeout="20s"/>
 <action name="stop" timeout="20s"/>
@@ -169,131 +170,173 @@ END
 exit $OCF_SUCCESS
 }
 
-check_ns() {
-  local LH="${LL} check_ns():"
-  local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
-  ocf_log debug "${LH} recieved netns list: ${ns}"
-  [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
+set_ns() {
+  local rc
+
+  ip netns list | grep -qw "$OCF_RESKEY_ns"
+  rc=$?
+  ocf_log debug "Recieved netns list: $OCF_RESKEY_ns"
+  [ $rc -eq 0 ] && return $OCF_SUCCESS
+
+  ocf_run ip netns add $OCF_RESKEY_ns
+  ocf_run $RUN_IN_NS ip link set up dev lo
+  ocf_log debug "Added netns $OCF_RESKEY_ns and set up lo"
+
   return $OCF_SUCCESS
 }
 
-get_ns() {
+set_ns_ip() {
   local rc
-  local LH="${LL} get_ns():"
-  check_ns && return $OCF_SUCCESS
-
-  ocf_run ip netns add $OCF_RESKEY_ns
-  rc=$?
-  ocf_run $RUN_IN_NS ip link set up dev lo
-  ocf_log debug "${LH} added netns ${OCF_RESKEY_ns} and set up lo"
-
-  return $rc
-}
-
-set_ns_routing() {
-  nsip() {
-    ip netns exec "${OCF_RESKEY_ns}" ip ${@}
-  }
 
   # create host-ns veth pair unless it's present
-  ip link | grep -q "${OCF_RESKEY_host_interface}:"
-  if [ $? -gt 0 ]; then
-    ocf_log debug "Creating host interface: ${OCF_RESKEY_host_interface} and namespace interface: ${OCF_RESKEY_namespace_interface}"
-    ocf_run ip link add "${OCF_RESKEY_host_interface}" type veth peer name "${OCF_RESKEY_namespace_interface}"
+  ip link | grep -qw "$OCF_RESKEY_host_interface"
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    ocf_log debug "Creating host interface: $OCF_RESKEY_host_interface and namespace interface: $OCF_RESKEY_namespace_interface"
+    ocf_run ip link add "$OCF_RESKEY_host_interface" type veth peer name "$OCF_RESKEY_namespace_interface"
   else
     return $OCF_SUCCESS
   fi
 
   # move the ns part to the namespace
-  ip link | grep -q "${OCF_RESKEY_namespace_interface}:"
-  if [ $? -eq 0 ]; then
-    ocf_log debug "Moving interface: ${OCF_RESKEY_namespace_interface} to namespace: ${OCF_RESKEY_ns}"
-    ocf_run ip link set dev "${OCF_RESKEY_namespace_interface}" netns "${OCF_RESKEY_ns}"
+  ip link | grep -qw "$OCF_RESKEY_namespace_interface"
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    ocf_log debug "Moving interface: $OCF_RESKEY_namespace_interface to namespace: $OCF_RESKEY_ns"
+    ocf_run ip link set dev "$OCF_RESKEY_namespace_interface" netns "$OCF_RESKEY_ns"
   fi
 
   # up the host part
-  ocf_log debug "Bringing up host interface: ${OCF_RESKEY_host_interface}"
-  ocf_run ip link set "${OCF_RESKEY_host_interface}" up
-
-  # set host part's ip
-  ip addr show dev "${OCF_RESKEY_host_interface}" | grep -q "inet ${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}"
-  if [ $? -gt 0 ]; then
-    ocf_log debug "Setting host interface: ${OCF_RESKEY_host_interface} IP to: ${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}"
-    ocf_run ip addr add "${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}" dev "${OCF_RESKEY_host_interface}"
-  fi
+  ocf_log debug "Bringing up host interface: $OCF_RESKEY_host_interface"
+  ocf_run ip link set "$OCF_RESKEY_host_interface" up
 
   # up the ns part
-  ocf_log debug "Bringing up the namespace interface: ${OCF_RESKEY_namespace_interface}"
-  ocf_run nsip link set "${OCF_RESKEY_namespace_interface}" up
+  ocf_log debug "Bringing up the namespace interface: $OCF_RESKEY_namespace_interface"
+  ocf_run $RUN_IN_NS ip link set "$OCF_RESKEY_namespace_interface" up
+
+  # set host part's ip
+  ip addr show dev "$OCF_RESKEY_host_interface" | grep -q "inet ${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}"
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    ocf_log debug "Setting host interface: $OCF_RESKEY_host_interface IP to: ${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}"
+    ocf_run ip addr add "${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}" dev "$OCF_RESKEY_host_interface"
+  fi
 
   # set ns part's ip
-  nsip addr show dev "${OCF_RESKEY_namespace_interface}" | grep -q "inet ${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}"
-  if [ $? -gt 0 ]; then
-    ocf_log debug "Setting namespace interface: ${OCF_RESKEY_namespace_interface} IP to: ${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}"
-    ocf_run nsip addr add "${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}" dev "${OCF_RESKEY_namespace_interface}"
+  $RUN_IN_NS ip addr show dev "$OCF_RESKEY_namespace_interface" | grep -q "inet ${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}"
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    ocf_log debug "Setting namespace interface: $OCF_RESKEY_namespace_interface IP to: ${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}"
+    ocf_run $RUN_IN_NS ip addr add "${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}" dev "$OCF_RESKEY_namespace_interface"
   fi
 
   # set default gateway inside ns
-  nsip route list | grep -q "default via ${OCF_RESKEY_host_ip}"
-  if [ $? -gt 0 ]; then
-    ocf_log debug "Creating default route inside the namespace to ${OCF_RESKEY_host_ip} with metric ${OCF_RESKEY_route_metric}"
-    ocf_run nsip route add default via "${OCF_RESKEY_host_ip}" metric "${OCF_RESKEY_route_metric}"
+  $RUN_IN_NS ip route list | grep -q "default via $OCF_RESKEY_host_ip"
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    ocf_log debug "Creating default route inside the namespace to $OCF_RESKEY_host_ip with metric ${OCF_RESKEY_route_metric}"
+    ocf_run $RUN_IN_NS ip route add default via "$OCF_RESKEY_host_ip" metric "${OCF_RESKEY_route_metric}"
   fi
 
   # set masquerade on host node
-  iptables -t nat -L | grep -q masquerade-for-vrouter-namespace
-  if [ $? -gt 0 ]; then
-    ocf_log debug "Creating NAT rule on the host system for traffic from IP: ${OCF_RESKEY_namespace_ip}"
-    ocf_run iptables -t nat -A POSTROUTING -s "${OCF_RESKEY_namespace_ip}" -j MASQUERADE -m comment --comment "masquerade-for-vrouter-namespace"
+  iptables -t nat -L | grep -qw masquerade-for-${OCF_RESKEY_ns}-namespace
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    ocf_log debug "Creating NAT rule on the host system for traffic from IP: $OCF_RESKEY_namespace_ip"
+    ocf_run iptables -t nat -A POSTROUTING -s "$OCF_RESKEY_namespace_ip" -j MASQUERADE -m comment --comment "masquerade-for-${OCF_RESKEY_ns}-namespace"
   fi
 
   ### Needed for ML2 routing ###
-  ocf_run sysctl -w net.ipv4.conf.${OCF_RESKEY_host_interface}.rp_filter=2
-  ocf_run $RUN_IN_NS sysctl -w net.ipv4.conf.all.rp_filter=2
+  local host_rp=`sysctl -n net.ipv4.conf.${OCF_RESKEY_host_interface}.rp_filter`
+  if [ $host_rp -ne 2 ]; then
+    ocf_log debug "Setting rp_filter to 2 for: $OCF_RESKEY_host_interface"
+    ocf_run sysctl -w net.ipv4.conf.${OCF_RESKEY_host_interface}.rp_filter=2
+  fi
+
+  local ns_rp=`$RUN_IN_NS sysctl -n net.ipv4.conf.all.rp_filter`
+  if [ $ns_rp -ne 2 ]; then
+    ocf_log debug "Setting rp_filter in $OCF_RESKEY_ns to 2 for all"
+    ocf_run $RUN_IN_NS sysctl -w net.ipv4.conf.all.rp_filter=2
+  fi
   ##############################
 
-  if [[ "${OCF_RESKEY_other_networks}" != "false" ]] ; then
+  if [ -z "${OCF_RESKEY_other_networks}" ] ; then
     for network in ${OCF_RESKEY_other_networks}
     do
-      ocf_log debug "Adding route on the host system to ${network}: ${OCF_RESKEY_namespace_ip}"
-      ocf_run $RUN_IN_NS ip route replace ${network} via ${OCF_RESKEY_host_ip} metric 10000
+      ocf_log debug "Adding route on the host system to $network via $OCF_RESKEY_host_ip"
+      ocf_run $RUN_IN_NS ip route replace $network via $OCF_RESKEY_host_ip metric 10000
     done
   fi
 }
 
-vrouter_status() {
-  get_ns || return $OCF_NOT_RUNNING
-  set_ns_routing
+ns_status() {
+    $RUN_IN_NS ping -qc4 $OCF_RESKEY_host_ip 2>&1 >/dev/null
+    ping=$?
+
+    if [ "$ping" -eq 0 ]; then
+      return $OCF_SUCCESS
+    else
+      return $OCF_NOT_RUNNING
+    fi
 }
 
-vrouter_start()
+ns_start()
 {
-  get_ns
-  set_ns_routing
-        return $OCF_SUCCESS
+  set_ns
+  set_ns_ip
 }
 
-vrouter_stop()
+ns_stop()
 {
-        ocf_log debug "Vrouter was stopped, namespaces still exist"
+  ocf_log debug "Deleting namespace $OCF_RESKEY_ns"
+  ip netns delete $OCF_RESKEY_ns
   return $OCF_SUCCESS
 }
 
-vrouter_monitor()
+ns_monitor()
 {
-  vrouter_status
+  ns_status
 }
 
-vrouter_validate_all()
+ns_validate_all()
 {
-  get_ns
+  # Do we have namespace name?
+  if [ -z "${OCF_RESKEY_ns}" ]; then
+    ocf_exit_reason "Namespace name is not defined"
+    return $OCF_ERR_ARGS
+  fi
+
+  # Do we have host interface?
+  if [ -z "${OCF_RESKEY_host_interface}" ]; then
+    ocf_exit_reason "Host interface is not defined"
+    return $OCF_ERR_ARGS
+  fi
+
+  # Do we have namespace interface?
+  if [ -z "${OCF_RESKEY_namespace_interface}" ]; then
+    ocf_exit_reason "Namespace interface is not defined"
+    return $OCF_ERR_ARGS
+  fi
+
+  # Do we have host ip?
+  if [ -z "${OCF_RESKEY_host_ip}" ]; then
+    ocf_exit_reason "Host IP is not defined"
+    return $OCF_ERR_ARGS
+  fi
+
+  # Do we have host namespace ip?
+  if [ -z "${OCF_RESKEY_namespace_ip}" ]; then
+    ocf_exit_reason "Namespace IP is not defined"
+    return $OCF_ERR_ARGS
+  fi
+
   return $OCF_SUCCESS
 }
 
-vrouter_restart()
+ns_restart()
 {
-  vrouter_stop
-  vrouter_start
+  ns_stop
+  ns_start
 }
 
 #
@@ -307,23 +350,25 @@ fi
 umask 0022
 export LL="${OCF_RESOURCE_INSTANCE}:"
 
+ns_validate_all || exit $?
+
 case $1 in
-  start) vrouter_start
+  start) ns_start
   ;;
 
-  stop) vrouter_stop
+  stop) ns_stop
   ;;
 
-  restart) vrouter_restart
+  restart) ns_restart
   ;;
 
-  status)  vrouter_status
+  status)  ns_status
   ;;
 
-  monitor) vrouter_monitor
+  monitor) ns_monitor
   ;;
 
-  validate-all) vrouter_validate_all
+  validate-all) ns_validate_all
   ;;
 
   meta-data) meta_data
