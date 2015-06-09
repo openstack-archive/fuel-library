@@ -1,0 +1,145 @@
+#
+#
+# 	Common helper functions for the NS OCF Resource Agents supplied
+# 	by heartbeat.
+#
+# Copyright (c) 2015 Mirantis
+#         All Rights Reserved.
+#
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+
+# Build version: $Format:%H$
+
+# This was common throughout all legacy Heartbeat agents
+unset LC_ALL; export LC_ALL
+unset LANGUAGE; export LANGUAGE
+
+__SCRIPT_NAME=`basename $0`
+
+if [ -z "$OCF_ROOT" ]; then
+    : ${OCF_ROOT=@OCF_ROOT_DIR@}
+fi
+
+if [ "$OCF_FUNCTIONS_DIR" = ${OCF_ROOT}/resource.d/heartbeat ]; then  # old
+	unset OCF_FUNCTIONS_DIR
+fi
+
+: ${OCF_FUNCTIONS_DIR:=${OCF_ROOT}/lib/heartbeat}
+
+. ${OCF_FUNCTIONS_DIR}/ocf-binaries
+. ${OCF_FUNCTIONS_DIR}/ocf-returncodes
+. ${OCF_FUNCTIONS_DIR}/ocf-directories
+. ${OCF_FUNCTIONS_DIR}/ocf-rarun
+
+# Define OCF_RESKEY_CRM_meta_interval in case it isn't already set,
+# to make sure that ocf_is_probe() always works
+: ${OCF_RESKEY_CRM_meta_interval=0}
+
+check_ns() {
+  local rc
+  local ns=`ip netns list | grep -qw "%NSNAME%"`
+  rc=$?
+  ocf_log debug "Recieved netns list: ${ns}"
+  [ $rc -ne 0 ] && return $OCF_ERR_GENERIC
+  return $OCF_SUCCESS
+}
+
+get_ns() {
+  local rc
+  check_ns && return $OCF_SUCCESS
+
+  ocf_run ip netns add %NSNAME%
+  rc=$?
+  ocf_run ip netns exec %NSNAME% ip link set up dev lo
+  ocf_log debug "Added netns %NSNAME% and set up lo"
+
+  return $rc
+}
+
+set_ns_routing() {
+  local rc
+  nsip() {
+    ip netns exec "${OCF_RESKEY_ns}" ip ${@}
+  }
+
+  # create host-ns veth pair unless it's present
+  ip link | grep -qw "%HOSTINTERFACE%"
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    ocf_log debug "Creating host interface: %HOSTINTERFACE% and namespace interface: %NSINTERFACE%"
+    ocf_run ip link add "%HOSTINTERFACE%" type veth peer name "%NSINTERFACE%"
+  else
+    return $OCF_SUCCESS
+  fi
+
+  # move the ns part to the namespace
+  ip link | grep -q "${OCF_RESKEY_namespace_interface}:"
+  if [ $? -eq 0 ]; then
+    ocf_log debug "Moving interface: ${OCF_RESKEY_namespace_interface} to namespace: ${OCF_RESKEY_ns}"
+    ocf_run ip link set dev "${OCF_RESKEY_namespace_interface}" netns "${OCF_RESKEY_ns}"
+  fi
+
+  # up the host part
+  ocf_log debug "Bringing up host interface: ${OCF_RESKEY_host_interface}"
+  ocf_run ip link set "${OCF_RESKEY_host_interface}" up
+
+  # set host part's ip
+  ip addr show dev "${OCF_RESKEY_host_interface}" | grep -q "inet ${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}"
+  if [ $? -gt 0 ]; then
+    ocf_log debug "Setting host interface: ${OCF_RESKEY_host_interface} IP to: ${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}"
+    ocf_run ip addr add "${OCF_RESKEY_host_ip}/${OCF_RESKEY_network_mask}" dev "${OCF_RESKEY_host_interface}"
+  fi
+
+  # up the ns part
+  ocf_log debug "Bringing up the namespace interface: ${OCF_RESKEY_namespace_interface}"
+  ocf_run nsip link set "${OCF_RESKEY_namespace_interface}" up
+
+  # set ns part's ip
+  nsip addr show dev "${OCF_RESKEY_namespace_interface}" | grep -q "inet ${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}"
+  if [ $? -gt 0 ]; then
+    ocf_log debug "Setting namespace interface: ${OCF_RESKEY_namespace_interface} IP to: ${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}"
+    ocf_run nsip addr add "${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}" dev "${OCF_RESKEY_namespace_interface}"
+  fi
+
+  # set default gateway inside ns
+  nsip route list | grep -q "default via ${OCF_RESKEY_host_ip}"
+  if [ $? -gt 0 ]; then
+    ocf_log debug "Creating default route inside the namespace to ${OCF_RESKEY_host_ip} with metric ${OCF_RESKEY_route_metric}"
+    ocf_run nsip route add default via "${OCF_RESKEY_host_ip}" metric "${OCF_RESKEY_route_metric}"
+  fi
+
+  # set masquerade on host node
+  iptables -t nat -L | grep -q masquerade-for-vrouter-namespace
+  if [ $? -gt 0 ]; then
+    ocf_log debug "Creating NAT rule on the host system for traffic from IP: ${OCF_RESKEY_namespace_ip}"
+    ocf_run iptables -t nat -A POSTROUTING -s "${OCF_RESKEY_namespace_ip}" -j MASQUERADE -m comment --comment "masquerade-for-vrouter-namespace"
+  fi
+
+  ### Needed for ML2 routing ###
+  ocf_run sysctl -w net.ipv4.conf.${OCF_RESKEY_host_interface}.rp_filter=2
+  ocf_run $RUN_IN_NS sysctl -w net.ipv4.conf.all.rp_filter=2
+  ##############################
+
+  if [[ "${OCF_RESKEY_other_networks}" != "false" ]] ; then
+    for network in ${OCF_RESKEY_other_networks}
+    do
+      ocf_log debug "Adding route on the host system to ${network}: ${OCF_RESKEY_namespace_ip}"
+      ocf_run $RUN_IN_NS ip route replace ${network} via ${OCF_RESKEY_host_ip} metric 10000
+    done
+  fi
+}
+
