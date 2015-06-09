@@ -2,6 +2,8 @@
 class neutron::params {
 
   if($::osfamily == 'Redhat') {
+    $nobody_user_group    = 'nobody'
+
     $package_name       = 'openstack-neutron'
     $server_package     = false
     $server_service     = 'neutron-server'
@@ -22,9 +24,19 @@ class neutron::params {
     $linuxbridge_server_package = 'openstack-neutron-linuxbridge'
     $linuxbridge_config_file    = '/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini'
 
+    $sriov_nic_agent_service = 'neutron-sriov-nic-agent'
+    $sriov_nic_agent_package = 'openstack-neutron-sriov-nic-agent'
+
     $cisco_server_package  = 'openstack-neutron-cisco'
     $cisco_config_file     = '/etc/neutron/plugins/cisco/cisco_plugins.ini'
     $cisco_ml2_config_file = '/etc/neutron/plugins/ml2/ml2_conf_cisco.ini'
+
+    $midonet_server_package = 'python-neutron-plugin-midonet'
+    $midonet_config_file    = '/etc/neutron/plugins/midonet/midonet.ini'
+
+    $plumgrid_plugin_package    = 'openstack-neutron-plumgrid'
+    $plumgrid_pythonlib_package = 'plumgrid-pythonlib'
+    $plumgrid_config_file       = '/etc/neutron/plugins/plumgrid/plumgrid.ini'
 
     $nvp_server_package = 'openstack-neutron-nicira'
 
@@ -33,7 +45,7 @@ class neutron::params {
 
     $dnsmasq_packages   = ['dnsmasq', 'dnsmasq-utils']
 
-    $lbaas_agent_package = false
+    $lbaas_agent_package = 'openstack-neutron-lbaas'
     $lbaas_agent_service = 'neutron-lbaas-agent'
 
     $haproxy_package   = 'haproxy'
@@ -43,13 +55,17 @@ class neutron::params {
 
     $vpnaas_agent_package = 'openstack-neutron-vpn-agent'
     $vpnaas_agent_service = 'neutron-vpn-agent'
-    $openswan_package     = 'openswan'
+    if $::operatingsystemrelease =~ /^7.*/ or $::operatingsystem == 'Fedora' {
+      $openswan_package     = 'libreswan'
+    } else {
+      $openswan_package     = 'openswan'
+    }
 
     $l3_agent_package   = false
     $l3_agent_service   = 'neutron-l3-agent'
-    # TODO(bogdando) contribute change to upstream:
-    #   new metadata_agent_package param
-    $metadata_agent_package = false
+
+    $fwaas_package      = 'openstack-neutron-fwaas'
+
     $metadata_agent_service = 'neutron-metadata-agent'
 
     $cliff_package      = 'python-cliff'
@@ -57,6 +73,8 @@ class neutron::params {
     $kernel_headers     = "linux-headers-${::kernelrelease}"
 
   } elsif($::osfamily == 'Debian') {
+
+    $nobody_user_group    = 'nogroup'
 
     $package_name       = 'neutron-common'
     $server_package     = 'neutron-server'
@@ -82,9 +100,19 @@ class neutron::params {
     $linuxbridge_server_package = 'neutron-plugin-linuxbridge'
     $linuxbridge_config_file    = '/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini'
 
+    $sriov_nic_agent_service = 'neutron-plugin-sriov-agent'
+    $sriov_nic_agent_package = 'neutron-plugin-sriov-agent'
+
     $cisco_server_package  = 'neutron-plugin-cisco'
     $cisco_config_file     = '/etc/neutron/plugins/cisco/cisco_plugins.ini'
     $cisco_ml2_config_file = '/etc/neutron/plugins/ml2/ml2_conf_cisco.ini'
+
+    $midonet_server_package = 'python-neutron-plugin-midonet'
+    $midonet_config_file    = '/etc/neutron/plugins/midonet/midonet.ini'
+
+    $plumgrid_plugin_package    = 'neutron-plugin-plumgrid'
+    $plumgrid_pythonlib_package = 'plumgrid-pythonlib'
+    $plumgrid_config_file       = '/etc/neutron/plugins/plumgrid/plumgrid.ini'
 
     $nvp_server_package = 'neutron-plugin-nicira'
 
@@ -113,6 +141,8 @@ class neutron::params {
 
     $l3_agent_package   = 'neutron-l3-agent'
     $l3_agent_service   = 'neutron-l3-agent'
+
+    $fwaas_package      = 'python-neutron-fwaas'
 
     $cliff_package      = 'python-cliff'
     $kernel_headers     = "linux-headers-${::kernelrelease}"
