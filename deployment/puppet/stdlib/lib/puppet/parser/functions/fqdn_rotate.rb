@@ -12,10 +12,9 @@ Rotates an array a random number of times based on a nodes fqdn.
       "given (#{arguments.size} for 1)") if arguments.size < 1
 
     value = arguments[0]
-    klass = value.class
     require 'digest/md5'
 
-    unless [Array, String].include?(klass)
+    unless value.is_a?(Array) || value.is_a?(String)
       raise(Puppet::ParseError, 'fqdn_rotate(): Requires either ' +
         'array or string to work with')
     end
@@ -32,8 +31,20 @@ Rotates an array a random number of times based on a nodes fqdn.
 
     elements = result.size
 
-    srand(Digest::MD5.hexdigest([lookupvar('::fqdn'),arguments].join(':')).hex)
-    rand(elements).times {
+    seed = Digest::MD5.hexdigest([lookupvar('::fqdn'),arguments].join(':')).hex
+    # deterministic_rand() was added in Puppet 3.2.0; reimplement if necessary
+    if Puppet::Util.respond_to?(:deterministic_rand)
+      offset = Puppet::Util.deterministic_rand(seed, elements).to_i
+    else
+      if defined?(Random) == 'constant' && Random.class == Class
+        offset = Random.new(seed).rand(elements)
+      else
+        srand(seed)
+        offset = rand(elements)
+        srand()
+      end
+    end
+    offset.times {
        result.push result.shift
     }
 
