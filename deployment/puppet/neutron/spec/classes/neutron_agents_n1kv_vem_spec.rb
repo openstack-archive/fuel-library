@@ -3,11 +3,13 @@ require 'spec_helper'
 describe 'neutron::agents::n1kv_vem' do
 
   let :facts do
-    { :osfamily => 'RedHat' }
+    { :operatingsystem           => 'RedHat',
+      :operatingsystemrelease    => '7',
+      :osfamily => 'RedHat' }
   end
 
   it 'should have a n1kv-vem config file' do
-    should contain_file('/etc/n1kv/n1kv.conf').with(
+    is_expected.to contain_file('/etc/n1kv/n1kv.conf').with(
       :ensure  => 'present',
       :owner   => 'root',
       :group   => 'root',
@@ -16,10 +18,10 @@ describe 'neutron::agents::n1kv_vem' do
   end
 
   it 'install n1kv-vem' do
-    should contain_package('libnl').with_before('Package[nexus1000v]')
-    should contain_package('openvswitch').with_before('Package[nexus1000v]')
-    should contain_package('nexus1000v').with_notify('Service[nexus1000v]')
-    should contain_service('nexus1000v').with_ensure('running')
+    is_expected.to contain_package('libnl').with_before(['Package[nexus1000v]'])
+    is_expected.to contain_service('openvswitch').with_notify(['Package[nexus1000v]'])
+    is_expected.to contain_package('nexus1000v').with_notify(['Service[nexus1000v]'])
+    is_expected.to contain_service('nexus1000v').with_ensure('running')
   end
 
   context 'with local file vem rpm' do
@@ -30,9 +32,9 @@ describe 'neutron::agents::n1kv_vem' do
     end
 
     it 'verify dependency' do
-      should contain_package('nexus1000v').with_source('/var/n1kv/vem.rpm')
-      should contain_file('/var/n1kv/vem.rpm').that_requires('File[/var/n1kv]')
-      should contain_file('/var/n1kv/vem.rpm').with(
+      is_expected.to contain_package('nexus1000v').with_source('/var/n1kv/vem.rpm')
+      is_expected.to contain_file('/var/n1kv/vem.rpm').that_requires('File[/var/n1kv]')
+      is_expected.to contain_file('/var/n1kv/vem.rpm').with(
         :owner   => 'root',
         :group   => 'root',
         :mode    => '0664'
@@ -48,8 +50,8 @@ describe 'neutron::agents::n1kv_vem' do
     end
 
     it 'verify dependency' do
-      should contain_package('nexus1000v').without_source
-      should contain_yumrepo('cisco-vem-repo').with(
+      is_expected.to contain_package('nexus1000v').without_source
+      is_expected.to contain_yumrepo('cisco-vem-repo').with(
         :baseurl  => 'http://www.cisco.com/repo',
         :enabled => 1
       )
@@ -57,7 +59,7 @@ describe 'neutron::agents::n1kv_vem' do
   end
 
   it 'execute reread config upon config change' do
-    should contain_exec('vemcmd reread config') \
+    is_expected.to contain_exec('vemcmd reread config') \
       .that_subscribes_to('File[/etc/n1kv/n1kv.conf]')
   end
 
@@ -66,22 +68,28 @@ describe 'neutron::agents::n1kv_vem' do
     {
       :n1kv_vsm_ip        => '9.0.0.1',
       :n1kv_vsm_domain_id => 900,
-      :host_mgmt_intf     => 'eth9'
+      :host_mgmt_intf     => 'eth9',
+      :portdb             => 'ovs',
+      :fastpath_flood     => 'enable'
     }
     end
     it do
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .with_content(/^l3control-ipaddr 9.0.0.1/)
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .with_content(/^switch-domain 900/)
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .with_content(/^host-mgmt-intf eth9/)
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
+        .with_content(/^portdb ovs/)
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .without_content(/^phys/)
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .without_content(/^virt/)
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .with_content(/^node-type compute/)
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
+        .with_content(/^fastpath-flood enable/)
     end
   end
 
@@ -92,10 +100,38 @@ describe 'neutron::agents::n1kv_vem' do
     }
     end
     it do
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .with_content(/^node-type network/)
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .without_content(/^node-type compute/)
+    end
+  end
+
+  context 'verify portdb' do
+    let :params do
+    {
+      :portdb             => 'vem',
+    }
+    end
+    it do
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
+        .with_content(/^portdb vem/)
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
+        .without_content(/^portdb ovs/)
+    end
+  end
+
+  context 'verify fastpath_flood' do
+    let :params do
+    {
+      :fastpath_flood     => 'disable',
+    }
+    end
+    it do
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
+        .with_content(/^fastpath-flood disable/)
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
+        .without_content(/^fastpath-flood enable/)
     end
   end
 
@@ -108,9 +144,9 @@ describe 'neutron::agents::n1kv_vem' do
     }
     end
     it do
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .with_content(/^phys eth1 profile prof1/)
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .with_content(/^phys eth2 profile prof2/)
     end
 
@@ -131,9 +167,9 @@ describe 'neutron::agents::n1kv_vem' do
     }
     end
     it do
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .with_content(/^virt vtep1 profile profint mode dhcp/)
-      should contain_file('/etc/n1kv/n1kv.conf') \
+      is_expected.to contain_file('/etc/n1kv/n1kv.conf') \
         .with_content(/^virt vtep2 profile profint mode static/)
     end
 
@@ -146,7 +182,7 @@ describe 'neutron::agents::n1kv_vem' do
     }
     end
     it 'should not start/stop service' do
-      should contain_service('nexus1000v').without_ensure
+      is_expected.to contain_service('nexus1000v').without_ensure
     end
   end
 
@@ -158,7 +194,7 @@ describe 'neutron::agents::n1kv_vem' do
     }
     end
     it 'should stop service' do
-      should contain_service('nexus1000v').with_ensure('stopped')
+      is_expected.to contain_service('nexus1000v').with_ensure('stopped')
     end
   end
 
@@ -169,12 +205,12 @@ describe 'neutron::agents::n1kv_vem' do
     }
     end
     it do
-      should contain_sysctl__value('net.ipv4.conf.default.rp_filter').with_value('2')
-      should contain_sysctl__value('net.ipv4.conf.all.rp_filter').with_value('2')
-      should contain_sysctl__value('net.ipv4.conf.default.arp_ignore').with_value('1')
-      should contain_sysctl__value('net.ipv4.conf.all.arp_ignore').with_value('1')
-      should contain_sysctl__value('net.ipv4.conf.all.arp_announce').with_value('2')
-      should contain_sysctl__value('net.ipv4.conf.default.arp_announce').with_value('2')
+      is_expected.to contain_sysctl__value('net.ipv4.conf.default.rp_filter').with_value('2')
+      is_expected.to contain_sysctl__value('net.ipv4.conf.all.rp_filter').with_value('2')
+      is_expected.to contain_sysctl__value('net.ipv4.conf.default.arp_ignore').with_value('1')
+      is_expected.to contain_sysctl__value('net.ipv4.conf.all.arp_ignore').with_value('1')
+      is_expected.to contain_sysctl__value('net.ipv4.conf.all.arp_announce').with_value('2')
+      is_expected.to contain_sysctl__value('net.ipv4.conf.default.arp_announce').with_value('2')
     end
   end
 

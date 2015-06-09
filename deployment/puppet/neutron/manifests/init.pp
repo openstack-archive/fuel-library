@@ -85,12 +85,21 @@
 #   (optional) Enables network namespaces
 #   Defaults to false
 #
+# [*api_extensions_path*]
+#   (optional) Specify additional paths for API extensions that the
+#   module in use needs to load.
+#   Defaults to undef
+#
 # [*report_interval*]
 #   (optional) Seconds between nodes reporting state to server; should be less than
 #   agent_down_time, best if it is half or less than agent_down_time.
 #   agent_down_time is a config for neutron-server, set by class neutron::server
 #   report_interval is a config for neutron agents, set by class neutron
 #   Defaults to: 30
+#
+# [memcache_servers]
+#   List of memcache servers in format of server:port.
+#   Optional. Defaults to false. Example: ['localhost:11211']
 #
 # [*control_exchange*]
 #   (optional) What RPC queue/exchange to use
@@ -132,7 +141,7 @@
 #   (optional) SSL version to use (valid only if SSL enabled).
 #   Valid values are TLSv1, SSLv23 and SSLv3. SSLv2 may be
 #   available on some distributions.
-#   Defaults to 'SSLv3'
+#   Defaults to 'TLSv1'
 #
 # [*kombu_reconnect_delay*]
 #   (optional) The amount of time to wait before attempting to reconnect
@@ -189,6 +198,16 @@
 #   If set to boolean false, it will not log to any directory
 #   Defaults to /var/log/neutron
 #
+# [*state_path*]
+#   (optional) Where to store state files. This directory must be writable
+#   by the user executing the agent
+#   Defaults to: /var/lib/neutron
+#
+# [*lock_path*]
+#   (optional) Where to store lock files. This directory must be writeable
+#   by the user executing the agent
+#   Defaults to: /var/lib/neutron/lock
+#
 class neutron (
   $enabled                     = true,
   $package_ensure              = 'present',
@@ -209,8 +228,10 @@ class neutron (
   $allow_pagination            = false,
   $allow_sorting               = false,
   $allow_overlapping_ips       = false,
+  $api_extensions_path         = undef,
   $root_helper                 = 'sudo neutron-rootwrap /etc/neutron/rootwrap.conf',
   $report_interval             = '30',
+  $memcache_servers            = false,
   $control_exchange            = 'neutron',
   $rpc_backend                 = 'neutron.openstack.common.rpc.impl_kombu',
   $rabbit_password             = false,
@@ -223,7 +244,7 @@ class neutron (
   $kombu_ssl_ca_certs          = undef,
   $kombu_ssl_certfile          = undef,
   $kombu_ssl_keyfile           = undef,
-  $kombu_ssl_version           = 'SSLv3',
+  $kombu_ssl_version           = 'TLSv1',
   $kombu_reconnect_delay       = '1.0',
   $qpid_hostname               = 'localhost',
   $qpid_port                   = '5672',
@@ -246,11 +267,14 @@ class neutron (
   $log_facility                = 'LOG_USER',
   $log_file                    = false,
   $log_dir                     = '/var/log/neutron',
+  $state_path                  = '/var/lib/neutron',
+  $lock_path                   = '/var/lib/neutron/lock',
 ) {
 
-  include neutron::params
+  include ::neutron::params
 
   Package['neutron'] -> Neutron_config<||>
+  Package['neutron'] -> Nova_Admin_Tenant_Id_Setter<||>
 
   if $use_ssl {
     if !$cert_file {
@@ -278,16 +302,18 @@ class neutron (
     fail('The kombu_ssl_certfile and kombu_ssl_keyfile parameters must be used together')
   }
 
+  if $memcache_servers {
+    validate_array($memcache_servers)
+  }
+
   File {
     require => Package['neutron'],
     owner   => 'root',
     group   => 'neutron',
-    mode    => '0640',
   }
 
   file { '/etc/neutron':
-    ensure  => directory,
-    mode    => '0750',
+    ensure => directory,
   }
 
   file { '/etc/neutron/neutron.conf': }
@@ -295,6 +321,7 @@ class neutron (
   package { 'neutron':
     ensure => $package_ensure,
     name   => $::neutron::params::package_name,
+    tag    => 'openstack',
   }
 
   neutron_config {
@@ -315,6 +342,9 @@ class neutron (
     'DEFAULT/allow_overlapping_ips':   value => $allow_overlapping_ips;
     'DEFAULT/control_exchange':        value => $control_exchange;
     'DEFAULT/rpc_backend':             value => $rpc_backend;
+    'DEFAULT/api_extensions_path':     value => $api_extensions_path;
+    'DEFAULT/state_path':              value => $state_path;
+    'DEFAULT/lock_path':               value => $lock_path;
     'agent/root_helper':               value => $root_helper;
     'agent/report_interval':           value => $report_interval;
   }
@@ -357,60 +387,71 @@ class neutron (
     }
   }
 
+  if $memcache_servers {
+    neutron_config {
+      'DEFAULT/memcached_servers':  value => join($memcache_servers, ',');
+    }
+  } else {
+    neutron_config {
+      'DEFAULT/memcached_servers':  ensure => absent;
+    }
+  }
+
+
   if $rpc_backend == 'neutron.openstack.common.rpc.impl_kombu' {
     if ! $rabbit_password {
       fail('When rpc_backend is rabbitmq, you must set rabbit password')
     }
     if $rabbit_hosts {
-      neutron_config { 'DEFAULT/rabbit_hosts':     value  => join($rabbit_hosts, ',') }
-      neutron_config { 'DEFAULT/rabbit_ha_queues': value  => true }
+      neutron_config { 'oslo_messaging_rabbit/rabbit_hosts':     value  => join($rabbit_hosts, ',') }
+      neutron_config { 'oslo_messaging_rabbit/rabbit_ha_queues': value  => true }
     } else  {
-      neutron_config { 'DEFAULT/rabbit_host':      value => $rabbit_host }
-      neutron_config { 'DEFAULT/rabbit_port':      value => $rabbit_port }
-      neutron_config { 'DEFAULT/rabbit_hosts':     value => "${rabbit_host}:${rabbit_port}" }
-      neutron_config { 'DEFAULT/rabbit_ha_queues': value => false }
+      neutron_config { 'oslo_messaging_rabbit/rabbit_host':      value => $rabbit_host }
+      neutron_config { 'oslo_messaging_rabbit/rabbit_port':      value => $rabbit_port }
+      neutron_config { 'oslo_messaging_rabbit/rabbit_hosts':     value => "${rabbit_host}:${rabbit_port}" }
+      neutron_config { 'oslo_messaging_rabbit/rabbit_ha_queues': value => false }
     }
 
     neutron_config {
-      'DEFAULT/rabbit_userid':         value => $rabbit_user;
-      'DEFAULT/rabbit_password':       value => $rabbit_password, secret => true;
-      'DEFAULT/rabbit_virtual_host':   value => $rabbit_virtual_host;
-      'DEFAULT/rabbit_use_ssl':        value => $rabbit_use_ssl;
-      'DEFAULT/kombu_reconnect_delay': value => $kombu_reconnect_delay;
+      'oslo_messaging_rabbit/rabbit_userid':         value => $rabbit_user;
+      'oslo_messaging_rabbit/rabbit_password':       value => $rabbit_password, secret => true;
+      'oslo_messaging_rabbit/rabbit_virtual_host':   value => $rabbit_virtual_host;
+      'oslo_messaging_rabbit/rabbit_use_ssl':        value => $rabbit_use_ssl;
+      'oslo_messaging_rabbit/kombu_reconnect_delay': value => $kombu_reconnect_delay;
     }
 
     if $rabbit_use_ssl {
 
       if $kombu_ssl_ca_certs {
-        neutron_config { 'DEFAULT/kombu_ssl_ca_certs': value => $kombu_ssl_ca_certs; }
+        neutron_config { 'oslo_messaging_rabbit/kombu_ssl_ca_certs': value => $kombu_ssl_ca_certs; }
       } else {
-        neutron_config { 'DEFAULT/kombu_ssl_ca_certs': ensure => absent; }
+        neutron_config { 'oslo_messaging_rabbit/kombu_ssl_ca_certs': ensure => absent; }
       }
 
       if $kombu_ssl_certfile or $kombu_ssl_keyfile {
         neutron_config {
-          'DEFAULT/kombu_ssl_certfile': value => $kombu_ssl_certfile;
-          'DEFAULT/kombu_ssl_keyfile':  value => $kombu_ssl_keyfile;
+          'oslo_messaging_rabbit/kombu_ssl_certfile': value => $kombu_ssl_certfile;
+          'oslo_messaging_rabbit/kombu_ssl_keyfile':  value => $kombu_ssl_keyfile;
         }
       } else {
         neutron_config {
-          'DEFAULT/kombu_ssl_certfile': ensure => absent;
-          'DEFAULT/kombu_ssl_keyfile':  ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_certfile': ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_keyfile':  ensure => absent;
         }
       }
 
       if $kombu_ssl_version {
-        neutron_config { 'DEFAULT/kombu_ssl_version':  value => $kombu_ssl_version; }
+        neutron_config { 'oslo_messaging_rabbit/kombu_ssl_version':  value => $kombu_ssl_version; }
       } else {
-        neutron_config { 'DEFAULT/kombu_ssl_version':  ensure => absent; }
+        neutron_config { 'oslo_messaging_rabbit/kombu_ssl_version':  ensure => absent; }
       }
 
     } else {
       neutron_config {
-        'DEFAULT/kombu_ssl_ca_certs': ensure => absent;
-        'DEFAULT/kombu_ssl_certfile': ensure => absent;
-        'DEFAULT/kombu_ssl_keyfile':  ensure => absent;
-        'DEFAULT/kombu_ssl_version':  ensure => absent;
+        'oslo_messaging_rabbit/kombu_ssl_ca_certs': ensure => absent;
+        'oslo_messaging_rabbit/kombu_ssl_certfile': ensure => absent;
+        'oslo_messaging_rabbit/kombu_ssl_keyfile':  ensure => absent;
+        'oslo_messaging_rabbit/kombu_ssl_version':  ensure => absent;
       }
     }
 

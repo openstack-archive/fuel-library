@@ -15,10 +15,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# neutron::plugins::ml2::drivers used by neutron::plugins::ml2
+# neutron::plugins::ml2::type_driver used by neutron::plugins::ml2
 #
 
-define neutron::plugins::ml2::driver (
+define neutron::plugins::ml2::type_driver (
   $flat_networks,
   $tunnel_id_ranges,
   $network_vlan_ranges,

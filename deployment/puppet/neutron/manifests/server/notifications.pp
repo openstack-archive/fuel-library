@@ -57,7 +57,7 @@
 # [*nova_region_name*]
 #   (optional) Name of nova region to use. Useful if keystone manages more than
 #   one region.
-#   Defaults to 'RegionOne'
+#   Defaults to undef
 #
 
 class neutron::server::notifications (
@@ -70,7 +70,7 @@ class neutron::server::notifications (
   $nova_admin_tenant_name             = 'services',
   $nova_admin_tenant_id               = undef,
   $nova_admin_password                = false,
-  $nova_region_name                   = 'RegionOne',
+  $nova_region_name                   = undef,
 ) {
 
   # Depend on the specified keystone_user resource, if it exists.
@@ -80,7 +80,7 @@ class neutron::server::notifications (
     fail('nova_admin_password must be set.')
   }
 
-  if ! ( $nova_admin_tenant_id or $nova_admin_tenant_name ) {
+  if ! ($nova_admin_tenant_id or $nova_admin_tenant_name) {
     fail('You must provide either nova_admin_tenant_name or nova_admin_tenant_id.')
   }
 
@@ -92,7 +92,16 @@ class neutron::server::notifications (
     'DEFAULT/nova_admin_auth_url':                value => $nova_admin_auth_url;
     'DEFAULT/nova_admin_username':                value => $nova_admin_username;
     'DEFAULT/nova_admin_password':                value => $nova_admin_password, secret => true;
-    'DEFAULT/nova_region_name':                   value => $nova_region_name;
+  }
+
+  if $nova_region_name {
+    neutron_config {
+      'DEFAULT/nova_region_name': value => $nova_region_name;
+    }
+  } else {
+    neutron_config {
+      'DEFAULT/nova_region_name': ensure => absent;
+    }
   }
 
   if $nova_admin_tenant_id {
