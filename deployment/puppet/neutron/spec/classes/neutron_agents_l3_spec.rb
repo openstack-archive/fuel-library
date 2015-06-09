@@ -7,22 +7,28 @@ describe 'neutron::agents::l3' do
   end
 
   let :default_params do
-    { :package_ensure               => 'present',
-      :enabled                      => true,
-      :debug                        => false,
-      :external_network_bridge      => 'br-ex',
-      :use_namespaces               => true,
-      :interface_driver             => 'neutron.agent.linux.interface.OVSInterfaceDriver',
-      :router_id                    => nil,
-      :gateway_external_network_id  => nil,
-      :handle_internal_only_routers => true,
-      :metadata_port                => '9697',
-      :send_arp_for_ha              => '3',
-      :periodic_interval            => '40',
-      :periodic_fuzzy_delay         => '5',
-      :enable_metadata_proxy        => true,
-      :network_device_mtu           => nil,
-      :router_delete_namespaces     => false }
+    { :package_ensure                   => 'present',
+      :enabled                          => true,
+      :debug                            => false,
+      :external_network_bridge          => 'br-ex',
+      :use_namespaces                   => true,
+      :interface_driver                 => 'neutron.agent.linux.interface.OVSInterfaceDriver',
+      :router_id                        => nil,
+      :gateway_external_network_id      => nil,
+      :handle_internal_only_routers     => true,
+      :metadata_port                    => '9697',
+      :send_arp_for_ha                  => '3',
+      :periodic_interval                => '40',
+      :periodic_fuzzy_delay             => '5',
+      :enable_metadata_proxy            => true,
+      :network_device_mtu               => nil,
+      :router_delete_namespaces         => false,
+      :ha_enabled                       => false,
+      :ha_vrrp_auth_type                => 'PASS',
+      :ha_vrrp_auth_password            => nil,
+      :ha_vrrp_advert_int               => '3',
+      :agent_mode                       => 'legacy',
+      :allow_automatic_l3agent_failover => false }
   end
 
   let :params do
@@ -51,6 +57,7 @@ describe 'neutron::agents::l3' do
       should contain_neutron_l3_agent_config('DEFAULT/enable_metadata_proxy').with_value(p[:enable_metadata_proxy])
       should contain_neutron_l3_agent_config('DEFAULT/network_device_mtu').with_ensure('absent')
       should contain_neutron_l3_agent_config('DEFAULT/router_delete_namespaces').with_value(p[:router_delete_namespaces])
+      should contain_neutron_l3_agent_config('DEFAULT/allow_automatic_l3agent_failover').with_value(p[:allow_automatic_l3agent_failover])
     end
 
     it 'installs neutron l3 agent package' do
@@ -81,6 +88,27 @@ describe 'neutron::agents::l3' do
       end
       it 'should not start/stop service' do
         should contain_service('neutron-l3').without_ensure
+      end
+    end
+
+    context 'with DVR' do
+      before :each do
+        params.merge!(:agent_mode => 'dvr')
+      end
+      it 'should enable DVR mode' do
+        should contain_neutron_l3_agent_config('DEFAULT/agent_mode').with_value(p[:agent_mode])
+      end
+    end
+
+    context 'with HA routers' do
+      before :each do
+        params.merge!(:ha_enabled            => true,
+                      :ha_vrrp_auth_password => 'secrete')
+      end
+      it 'should configure VRRP' do
+        should contain_neutron_l3_agent_config('DEFAULT/ha_vrrp_auth_type').with_value(p[:ha_vrrp_auth_type])
+        should contain_neutron_l3_agent_config('DEFAULT/ha_vrrp_auth_password').with_value(p[:ha_vrrp_auth_password])
+        should contain_neutron_l3_agent_config('DEFAULT/ha_vrrp_advert_int').with_value(p[:ha_vrrp_advert_int])
       end
     end
   end

@@ -60,24 +60,32 @@
 #   (optional) Number of backlog requests to configure the metadata server socket with.
 #   Defaults to 4096
 #
+# [*metadata_memory_cache_ttl*]
+#   (optional) Specifies time in seconds a metadata cache entry is valid in
+#   memory caching backend.
+#   Set to 0 will cause cache entries to never expire.
+#   Set to undef or false to disable cache.
+#   Defaults to 5
+#
 
 class neutron::agents::metadata (
   $auth_password,
   $shared_secret,
-  $package_ensure   = 'present',
-  $enabled          = true,
-  $manage_service   = true,
-  $debug            = false,
-  $auth_tenant      = 'services',
-  $auth_user        = 'neutron',
-  $auth_url         = 'http://localhost:35357/v2.0',
-  $auth_insecure    = false,
-  $auth_ca_cert     = undef,
-  $auth_region      = 'RegionOne',
-  $metadata_ip      = '127.0.0.1',
-  $metadata_port    = '8775',
-  $metadata_workers = $::processorcount,
-  $metadata_backlog = '4096'
+  $package_ensure            = 'present',
+  $enabled                   = true,
+  $manage_service            = true,
+  $debug                     = false,
+  $auth_tenant               = 'services',
+  $auth_user                 = 'neutron',
+  $auth_url                  = 'http://localhost:35357/v2.0',
+  $auth_insecure             = false,
+  $auth_ca_cert              = undef,
+  $auth_region               = 'RegionOne',
+  $metadata_ip               = '127.0.0.1',
+  $metadata_port             = '8775',
+  $metadata_workers          = $::processorcount,
+  $metadata_backlog          = '4096',
+  $metadata_memory_cache_ttl = 5,
   ) {
 
   include neutron::params
@@ -99,6 +107,16 @@ class neutron::agents::metadata (
     'DEFAULT/metadata_proxy_shared_secret':   value => $shared_secret;
     'DEFAULT/metadata_workers':               value => $metadata_workers;
     'DEFAULT/metadata_backlog':               value => $metadata_backlog;
+  }
+
+  if $metadata_memory_cache_ttl {
+    neutron_metadata_agent_config {
+      'DEFAULT/cache_url':                    value => "memory://?default_ttl=${metadata_memory_cache_ttl}";
+    }
+  } else {
+    neutron_metadata_agent_config {
+      'DEFAULT/cache_url':                   ensure => absent;
+    }
   }
 
   if $auth_ca_cert {
