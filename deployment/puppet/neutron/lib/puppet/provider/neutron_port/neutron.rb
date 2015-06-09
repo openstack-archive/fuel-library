@@ -13,7 +13,6 @@ Puppet::Type.type(:neutron_port).provide(
   #TODO No security group support
 
   commands :neutron => "neutron"
-  commands :keystone => 'keystone'
 
   mk_resource_methods
 
