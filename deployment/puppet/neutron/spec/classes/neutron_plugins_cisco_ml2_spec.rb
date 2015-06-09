@@ -24,13 +24,14 @@ describe 'neutron::plugins::ml2::cisco::nexus' do
   end
 
   let :facts do
-    { :osfamily => 'Debian' }
+    { :operatingsystem         => 'default',
+      :operatingsystemrelease  => 'default',
+      :osfamily                => 'Debian'
+    }
   end
 
   context 'fail when missing nexus_config' do
-    it 'should fails to configure cisco nexus driver' do
-      expect { subject }.to raise_error(Puppet::Error, /No nexus config specified/)
-    end
+    it_raises 'a Puppet::Error', /No nexus config specified/
   end
 
   context 'when using cisco' do
@@ -52,8 +53,9 @@ describe 'neutron::plugins::ml2::cisco::nexus' do
     end
 
     it 'installs ncclient package' do
-      should contain_package('python-ncclient').with(
-        :ensure => 'installed'
+      is_expected.to contain_package('python-ncclient').with(
+        :ensure => 'installed',
+        :tag    => 'openstack'
       )
     end
 
