@@ -10,7 +10,6 @@ describe 'swift::proxy::authtoken' do
 
   let :pre_condition do
     '
-      include concat::setup
       concat { "/etc/swift/proxy-server.conf": }
     '
   end
