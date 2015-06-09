@@ -47,7 +47,7 @@
 # username=admin
 # password=mySecretPassword
 
-<% nexus_config.each do |switch_hostname, switch_data| %>
+<% @nexus_config.each do |switch_hostname, switch_data| %>
 [ML2_MECH_CISCO_NEXUS:<%= switch_data['ip_address'] %>]
 <%- switch_data['servers'].each do|host_name, port| -%>
 <%=host_name-%>=<%= port %>

@@ -14,6 +14,12 @@ describe 'neutron::plugins::nvp' do
         :package_ensure => 'present'}
   end
 
+  let :default_facts do
+    { :operatingsystem           => 'default',
+      :operatingsystemrelease    => 'default'
+    }
+  end
+
   let :params do
     {
         :default_tz_uuid => '0344130f-1add-4e86-b36e-ad1c44fe40dc',
@@ -31,21 +37,22 @@ describe 'neutron::plugins::nvp' do
       default_params.merge(params)
     end
 
-    it { should contain_class('neutron::params') }
+    it { is_expected.to contain_class('neutron::params') }
 
     it 'should have' do
-      should contain_package('neutron-plugin-nvp').with(
+      is_expected.to contain_package('neutron-plugin-nvp').with(
                  :name   => platform_params[:nvp_server_package],
-                 :ensure => p[:package_ensure]
+                 :ensure => p[:package_ensure],
+                 :tag    => 'openstack'
              )
     end
 
     it 'should configure neutron.conf' do
-      should contain_neutron_config('DEFAULT/core_plugin').with_value('neutron.plugins.nicira.NeutronPlugin.NvpPluginV2')
+      is_expected.to contain_neutron_config('DEFAULT/core_plugin').with_value('neutron.plugins.nicira.NeutronPlugin.NvpPluginV2')
     end
 
     it 'should create plugin symbolic link' do
-      should contain_file('/etc/neutron/plugin.ini').with(
+      is_expected.to contain_file('/etc/neutron/plugin.ini').with(
         :ensure  => 'link',
         :target  => '/etc/neutron/plugins/nicira/nvp.ini',
         :require => 'Package[neutron-plugin-nvp]'
@@ -53,13 +60,13 @@ describe 'neutron::plugins::nvp' do
     end
 
     it 'should configure nvp.ini' do
-      should contain_neutron_plugin_nvp('DEFAULT/default_tz_uuid').with_value(p[:default_tz_uuid])
-      should contain_neutron_plugin_nvp('nvp/metadata_mode').with_value(p[:metadata_mode])
-      should contain_neutron_plugin_nvp('DEFAULT/nvp_controllers').with_value(p[:nvp_controllers].join(','))
-      should contain_neutron_plugin_nvp('DEFAULT/nvp_user').with_value(p[:nvp_user])
-      should contain_neutron_plugin_nvp('DEFAULT/nvp_password').with_value(p[:nvp_password])
-      should contain_neutron_plugin_nvp('DEFAULT/nvp_password').with_secret( true )
-      should_not contain_neutron_plugin_nvp('DEFAULT/default_l3_gw_service_uuid').with_value(p[:default_l3_gw_service_uuid])
+      is_expected.to contain_neutron_plugin_nvp('DEFAULT/default_tz_uuid').with_value(p[:default_tz_uuid])
+      is_expected.to contain_neutron_plugin_nvp('nvp/metadata_mode').with_value(p[:metadata_mode])
+      is_expected.to contain_neutron_plugin_nvp('DEFAULT/nvp_controllers').with_value(p[:nvp_controllers].join(','))
+      is_expected.to contain_neutron_plugin_nvp('DEFAULT/nvp_user').with_value(p[:nvp_user])
+      is_expected.to contain_neutron_plugin_nvp('DEFAULT/nvp_password').with_value(p[:nvp_password])
+      is_expected.to contain_neutron_plugin_nvp('DEFAULT/nvp_password').with_secret( true )
+      is_expected.not_to contain_neutron_plugin_nvp('DEFAULT/default_l3_gw_service_uuid').with_value(p[:default_l3_gw_service_uuid])
     end
 
     context 'configure nvp with optional params' do
@@ -68,7 +75,7 @@ describe 'neutron::plugins::nvp' do
       end
 
       it 'should configure nvp.ini' do
-        should contain_neutron_plugin_nvp('DEFAULT/default_l3_gw_service_uuid').with_value(params[:default_l3_gw_service_uuid])
+        is_expected.to contain_neutron_plugin_nvp('DEFAULT/default_l3_gw_service_uuid').with_value(params[:default_l3_gw_service_uuid])
       end
     end
 
@@ -78,16 +85,15 @@ describe 'neutron::plugins::nvp' do
           rabbit_password => 'passw0rd',
           core_plugin     => 'foo' }"
       end
-      it 'should fail to configure nvp because core_plugin should contain NvpPluginV2 class' do
-        expect { subject }.to raise_error(Puppet::Error, /nvp plugin should be the core_plugin in neutron.conf/)
-      end
+
+      it_raises 'a Puppet::Error', /nvp plugin should be the core_plugin in neutron.conf/
     end
   end
 
   begin
     context 'on Debian platforms' do
       let :facts do
-        {:osfamily => 'Debian'}
+        default_facts.merge({:osfamily => 'Debian'})
       end
 
       let :platform_params do
@@ -99,7 +105,7 @@ describe 'neutron::plugins::nvp' do
 
     context 'on RedHat platforms' do
       let :facts do
-        {:osfamily => 'RedHat'}
+        default_facts.merge({:osfamily => 'RedHat'})
       end
 
       let :platform_params do
