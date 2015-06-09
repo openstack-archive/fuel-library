@@ -53,7 +53,7 @@ class neutron::agents::vpnaas (
   $ipsec_status_check_interval = '60'
 ) {
 
-  include neutron::params
+  include ::neutron::params
 
   Neutron_config<||>              ~> Service['neutron-vpnaas-service']
   Neutron_vpnaas_agent_config<||> ~> Service['neutron-vpnaas-service']
@@ -94,8 +94,9 @@ class neutron::agents::vpnaas (
     Package['neutron']            -> Package['neutron-vpnaas-agent']
     Package['neutron-vpnaas-agent'] -> Neutron_vpnaas_agent_config<||>
     package { 'neutron-vpnaas-agent':
-      ensure  => $package_ensure,
-      name    => $::neutron::params::vpnaas_agent_package,
+      ensure => $package_ensure,
+      name   => $::neutron::params::vpnaas_agent_package,
+      tag    => 'openstack',
     }
   } else {
     Package['neutron'] -> Neutron_vpnaas_agent_config<||>
