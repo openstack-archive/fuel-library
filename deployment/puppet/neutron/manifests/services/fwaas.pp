@@ -43,25 +43,31 @@ class neutron::services::fwaas (
   $vpnaas_agent_package = false
 ) {
 
-  include neutron::params
+  include ::neutron::params
 
   if ($::osfamily == 'Debian') {
     # Debian platforms
     if $vpnaas_agent_package {
-      ensure_resource( 'package', $::neutron::params::vpnaas_agent_package,
-        { 'ensure' => $neutron::package_ensure })
+      ensure_resource( 'package', $::neutron::params::vpnaas_agent_package, {
+        'ensure' => $neutron::package_ensure,
+        'tag'    => 'openstack'
+      })
       Package[$::neutron::params::vpnaas_agent_package] -> Neutron_fwaas_service_config<||>
     }
     else {
-      ensure_resource( 'package', $::neutron::params::l3_agent_package,
-        { 'ensure' => $neutron::package_ensure })
-      Package[$::neutron::params::l3_agent_package] -> Neutron_fwaas_service_config<||>
+      ensure_resource( 'package', $::neutron::params::fwaas_package, {
+        'ensure' => $neutron::package_ensure,
+        'tag'    => 'openstack'
+      })
+      Package[$::neutron::params::fwaas_package] -> Neutron_fwaas_service_config<||>
     }
   } elsif($::osfamily == 'Redhat') {
     # RH platforms
-    ensure_resource( 'package', $::neutron::params::package_name,
-      { 'ensure' => $neutron::package_ensure })
-    Package[$::neutron::params::package_name] -> Neutron_fwaas_service_config<||>
+    ensure_resource( 'package', $::neutron::params::fwaas_package, {
+      'ensure' => $neutron::package_ensure,
+      'tag'    => 'openstack'
+    })
+    Package[$::neutron::params::fwaas_package] -> Neutron_fwaas_service_config<||>
   }
 
   neutron_fwaas_service_config {

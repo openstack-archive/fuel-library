@@ -30,7 +30,7 @@ class neutron::plugins::nvp (
   $package_ensure    = 'present'
 ) {
 
-  include neutron::params
+  include ::neutron::params
 
   Package['neutron'] -> Package['neutron-plugin-nvp']
   Package['neutron-plugin-nvp'] -> Neutron_plugin_nvp<||>
@@ -38,8 +38,9 @@ class neutron::plugins::nvp (
   Package['neutron-plugin-nvp'] -> Service<| title == 'neutron-server' |>
 
   package { 'neutron-plugin-nvp':
-    ensure  => $package_ensure,
-    name    => $::neutron::params::nvp_server_package
+    ensure => $package_ensure,
+    name   => $::neutron::params::nvp_server_package,
+    tag    => 'openstack',
   }
 
   validate_array($nvp_controllers)

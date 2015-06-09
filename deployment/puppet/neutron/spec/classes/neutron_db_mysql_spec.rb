@@ -10,34 +10,39 @@ describe 'neutron::db::mysql' do
     { :password => 'passw0rd',
     }
   end
-  let :facts do
-      { :osfamily => 'Debian' }
+
+  let :default_facts do
+    { :operatingsystem           => 'default',
+      :operatingsystemrelease    => 'default'
+    }
   end
 
 
   context 'on Debian platforms' do
     let :facts do
-      { :osfamily => 'Debian' }
+      default_facts.merge({ :osfamily => 'Debian' })
     end
 
-    it { should contain_openstacklib__db__mysql('neutron').with(
+    it { is_expected.to contain_openstacklib__db__mysql('neutron').with(
       :user          => 'neutron',
       :password_hash => '*74B1C21ACE0C2D6B0678A5E503D2A60E8F9651A3',
       :host          => '127.0.0.1',
-      :charset       => 'utf8'
+      :charset       => 'utf8',
+      :collate       => 'utf8_general_ci',
      ) }
   end
 
   context 'on RedHat platforms' do
     let :facts do
-      { :osfamily => 'RedHat' }
+      default_facts.merge({ :osfamily => 'RedHat' })
     end
 
-    it { should contain_openstacklib__db__mysql('neutron').with(
+    it { is_expected.to contain_openstacklib__db__mysql('neutron').with(
       :user          => 'neutron',
       :password_hash => '*74B1C21ACE0C2D6B0678A5E503D2A60E8F9651A3',
       :host          => '127.0.0.1',
-      :charset       => 'utf8'
+      :charset       => 'utf8',
+      :collate       => 'utf8_general_ci',
      ) }
   end
 

@@ -2,6 +2,12 @@ require 'spec_helper'
 
 describe 'neutron::keystone::auth' do
 
+  let :default_facts do
+    { :operatingsystem           => 'default',
+      :operatingsystemrelease    => 'default'
+    }
+  end
+
   describe 'with default class parameters' do
     let :params do
       {
@@ -10,28 +16,28 @@ describe 'neutron::keystone::auth' do
       }
     end
 
-    it { should contain_keystone_user('neutron').with(
+    it { is_expected.to contain_keystone_user('neutron').with(
       :ensure   => 'present',
       :password => 'neutron_password',
       :tenant   => 'foobar'
     ) }
 
-    it { should contain_keystone_user_role('neutron@foobar').with(
+    it { is_expected.to contain_keystone_user_role('neutron@foobar').with(
       :ensure  => 'present',
-      :roles   => 'admin'
+      :roles   => ['admin']
     )}
 
-    it { should contain_keystone_service('neutron').with(
+    it { is_expected.to contain_keystone_service('neutron').with(
       :ensure      => 'present',
       :type        => 'network',
       :description => 'Neutron Networking Service'
     ) }
 
-    it { should contain_keystone_endpoint('RegionOne/neutron').with(
+    it { is_expected.to contain_keystone_endpoint('RegionOne/neutron').with(
       :ensure       => 'present',
-      :public_url   => "http://127.0.0.1:9696/",
-      :admin_url    => "http://127.0.0.1:9696/",
-      :internal_url => "http://127.0.0.1:9696/"
+      :public_url   => "http://127.0.0.1:9696",
+      :admin_url    => "http://127.0.0.1:9696",
+      :internal_url => "http://127.0.0.1:9696"
     ) }
 
   end
@@ -42,7 +48,7 @@ describe 'neutron::keystone::auth' do
     end
 
     let :facts do
-      { :osfamily => 'Debian' }
+      default_facts.merge({ :osfamily => 'Debian' })
     end
 
     let :params do
@@ -52,49 +58,48 @@ describe 'neutron::keystone::auth' do
       }
     end
 
-    it { should contain_keystone_endpoint('RegionOne/neutron').with_notify('Service[neutron-server]') }
+    it { is_expected.to contain_keystone_endpoint('RegionOne/neutron').with_notify(['Service[neutron-server]']) }
   end
 
-  describe 'when overriding public_protocol, public_port and public address' do
-
+  describe 'with endpoint URL parameters' do
     let :params do
       {
-        :password         => 'neutron_password',
-        :public_protocol  => 'https',
-        :public_port      => '80',
-        :public_address   => '10.10.10.10',
-        :port             => '81',
-        :internal_address => '10.10.10.11',
-        :admin_address    => '10.10.10.12'
+        :password     => 'neutron_password',
+        :public_url   => 'https://10.10.10.10:80',
+        :internal_url => 'https://10.10.10.11:81',
+        :admin_url    => 'https://10.10.10.12:81'
       }
     end
 
-    it { should contain_keystone_endpoint('RegionOne/neutron').with(
+    it { is_expected.to contain_keystone_endpoint('RegionOne/neutron').with(
       :ensure       => 'present',
-      :public_url   => "https://10.10.10.10:80/",
-      :internal_url => "http://10.10.10.11:81/",
-      :admin_url    => "http://10.10.10.12:81/"
+      :public_url   => 'https://10.10.10.10:80',
+      :internal_url => 'https://10.10.10.11:81',
+      :admin_url    => 'https://10.10.10.12:81'
     ) }
-
   end
 
-  describe 'when overriding admin_protocol and internal_protocol' do
-
+  describe 'with deprecated endpoint parameters' do
     let :params do
       {
         :password          => 'neutron_password',
-        :admin_protocol    => 'https',
+        :public_protocol   => 'https',
+        :public_port       => '80',
+        :public_address    => '10.10.10.10',
+        :port              => '81',
         :internal_protocol => 'https',
+        :internal_address  => '10.10.10.11',
+        :admin_protocol    => 'https',
+        :admin_address     => '10.10.10.12'
       }
     end
 
-    it { should contain_keystone_endpoint('RegionOne/neutron').with(
+    it { is_expected.to contain_keystone_endpoint('RegionOne/neutron').with(
       :ensure       => 'present',
-      :public_url   => "http://127.0.0.1:9696/",
-      :admin_url    => "https://127.0.0.1:9696/",
-      :internal_url => "https://127.0.0.1:9696/"
+      :public_url   => "https://10.10.10.10:80",
+      :internal_url => "https://10.10.10.11:81",
+      :admin_url    => "https://10.10.10.12:81"
     ) }
-
   end
 
   describe 'when overriding auth name' do
@@ -106,13 +111,13 @@ describe 'neutron::keystone::auth' do
       }
     end
 
-    it { should contain_keystone_user('neutrony') }
+    it { is_expected.to contain_keystone_user('neutrony') }
 
-    it { should contain_keystone_user_role('neutrony@services') }
+    it { is_expected.to contain_keystone_user_role('neutrony@services') }
 
-    it { should contain_keystone_service('neutrony') }
+    it { is_expected.to contain_keystone_service('neutrony') }
 
-    it { should contain_keystone_endpoint('RegionOne/neutrony') }
+    it { is_expected.to contain_keystone_endpoint('RegionOne/neutrony') }
 
   end
 
@@ -125,10 +130,66 @@ describe 'neutron::keystone::auth' do
       }
     end
 
-    it { should contain_keystone_user('neutron') }
-    it { should contain_keystone_user_role('neutron@services') }
-    it { should contain_keystone_service('neutron_service') }
-    it { should contain_keystone_endpoint('RegionOne/neutron_service') }
+    it { is_expected.to contain_keystone_user('neutron') }
+    it { is_expected.to contain_keystone_user_role('neutron@services') }
+    it { is_expected.to contain_keystone_service('neutron_service') }
+    it { is_expected.to contain_keystone_endpoint('RegionOne/neutron_service') }
+
+  end
+
+  describe 'when disabling user configuration' do
+
+    let :params do
+      {
+        :password       => 'neutron_password',
+        :configure_user => false
+      }
+    end
+
+    it { is_expected.not_to contain_keystone_user('neutron') }
+
+    it { is_expected.to contain_keystone_user_role('neutron@services') }
+
+    it { is_expected.to contain_keystone_service('neutron').with(
+      :ensure      => 'present',
+      :type        => 'network',
+      :description => 'Neutron Networking Service'
+    ) }
+
+  end
+
+  describe 'when disabling user and user role configuration' do
+
+    let :params do
+      {
+        :password            => 'neutron_password',
+        :configure_user      => false,
+        :configure_user_role => false
+      }
+    end
+
+    it { is_expected.not_to contain_keystone_user('neutron') }
+
+    it { is_expected.not_to contain_keystone_user_role('neutron@services') }
+
+    it { is_expected.to contain_keystone_service('neutron').with(
+      :ensure      => 'present',
+      :type        => 'network',
+      :description => 'Neutron Networking Service'
+    ) }
+
+  end
+
+  describe 'when disabling endpoint configuration' do
+
+    let :params do
+      {
+        :password           => 'neutron_password',
+        :configure_endpoint => false
+      }
+    end
+
+    it { is_expected.to_not contain_keystone_endpoint('RegionOne/neutron') }
 
   end
 
