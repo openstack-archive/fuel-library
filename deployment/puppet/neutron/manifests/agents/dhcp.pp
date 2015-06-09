@@ -29,6 +29,10 @@
 # [*interface_driver*]
 #   (optional) Defaults to 'neutron.agent.linux.interface.OVSInterfaceDriver'.
 #
+# [*dhcp_domain*]
+#   (optional) domain to use for building the hostnames
+#   Defaults to 'openstacklocal'
+#
 # [*dhcp_driver*]
 #   (optional) Defaults to 'neutron.agent.linux.dhcp.Dnsmasq'.
 #
@@ -69,6 +73,7 @@ class neutron::agents::dhcp (
   $state_path             = '/var/lib/neutron',
   $resync_interval        = 30,
   $interface_driver       = 'neutron.agent.linux.interface.OVSInterfaceDriver',
+  $dhcp_domain            = 'openstacklocal',
   $dhcp_driver            = 'neutron.agent.linux.dhcp.Dnsmasq',
   $root_helper            = 'sudo neutron-rootwrap /etc/neutron/rootwrap.conf',
   $use_namespaces         = true,
@@ -78,7 +83,7 @@ class neutron::agents::dhcp (
   $enable_metadata_network  = false
 ) {
 
-  include neutron::params
+  include ::neutron::params
 
   Neutron_config<||>            ~> Service['neutron-dhcp-service']
   Neutron_dhcp_agent_config<||> ~> Service['neutron-dhcp-service']
@@ -87,6 +92,9 @@ class neutron::agents::dhcp (
     /\.Dnsmasq/: {
       Package[$::neutron::params::dnsmasq_packages] -> Package<| title == 'neutron-dhcp-agent' |>
       ensure_packages($::neutron::params::dnsmasq_packages)
+    }
+    /^midonet.*/: {
+      ensure_packages($::neutron::params::midonet_server_package)
     }
     default: {
       fail("Unsupported dhcp_driver ${dhcp_driver}")
@@ -110,6 +118,7 @@ class neutron::agents::dhcp (
     'DEFAULT/state_path':             value => $state_path;
     'DEFAULT/resync_interval':        value => $resync_interval;
     'DEFAULT/interface_driver':       value => $interface_driver;
+    'DEFAULT/dhcp_domain':            value => $dhcp_domain;
     'DEFAULT/dhcp_driver':            value => $dhcp_driver;
     'DEFAULT/use_namespaces':         value => $use_namespaces;
     'DEFAULT/root_helper':            value => $root_helper;
@@ -131,8 +140,9 @@ class neutron::agents::dhcp (
     Package['neutron-dhcp-agent'] -> Neutron_config<||>
     Package['neutron-dhcp-agent'] -> Neutron_dhcp_agent_config<||>
     package { 'neutron-dhcp-agent':
-      ensure  => $package_ensure,
-      name    => $::neutron::params::dhcp_agent_package,
+      ensure => $package_ensure,
+      name   => $::neutron::params::dhcp_agent_package,
+      tag    => 'openstack',
     }
   } else {
     # Some platforms (RedHat) do not provide a neutron DHCP agent package.

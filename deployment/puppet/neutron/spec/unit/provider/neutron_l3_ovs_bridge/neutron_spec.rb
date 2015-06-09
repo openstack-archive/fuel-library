@@ -22,7 +22,7 @@ describe provider_class do
 
     it 'should return an empty array for no matches' do
       provider.expects(:ip).returns('')
-      provider.bridge_ip_addresses.should eql []
+      expect(provider.bridge_ip_addresses).to eql []
     end
 
     it 'should return an array of addresses if matches are found' do
@@ -34,7 +34,7 @@ describe provider_class do
        valid_lft forever preferred_lft forever
 EOT
       provider.expects(:ip).returns(output)
-      provider.bridge_ip_addresses.should eql ['172.24.4.225/28']
+      expect(provider.bridge_ip_addresses).to eql ['172.24.4.225/28']
     end
 
   end
@@ -44,7 +44,7 @@ EOT
     it 'should return true if the gateway ip is present' do
       provider.expects(:bridge_ip_addresses).returns(['a'])
       provider.expects(:gateway_ip).returns('a')
-      provider.exists?.should eql true
+      expect(provider.exists?).to eql true
     end
 
   end

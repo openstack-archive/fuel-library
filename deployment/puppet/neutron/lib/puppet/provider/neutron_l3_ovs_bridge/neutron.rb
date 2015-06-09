@@ -42,7 +42,7 @@ Puppet::Type.type(:neutron_l3_ovs_bridge).provide(:neutron) do
 
   def create
     ip('addr', 'add', gateway_ip, 'dev', @resource[:name])
-    ip('link', 'set', @resource[:name], 'up')
+    ip('link', 'set', 'dev', @resource[:name], 'up')
     @property_hash[:ensure] = :present
   end
 
