@@ -12,7 +12,6 @@ Puppet::Type.type(:neutron_subnet).provide(
   EOT
 
   commands :neutron => 'neutron'
-  commands :keystone => 'keystone'
 
   mk_resource_methods
 
@@ -70,7 +69,7 @@ Puppet::Type.type(:neutron_subnet).provide(
     host_routes = []
     return [] if values.empty?
     for value in Array(values)
-      matchdata = /\{\s*"destination"\s*:\s*"(.*)"\s*,\s*"nexthop"\s*:\s*"(.*)"\s*\}/.match(value)
+      matchdata = /\{\s*"destination"\s*:\s*"(.*)"\s*,\s*"nexthop"\s*:\s*"(.*)"\s*\}/.match(value.gsub(/\\"/,'"'))
       destination = matchdata[1]
       nexthop = matchdata[2]
       host_routes << "destination=#{destination},nexthop=#{nexthop}"

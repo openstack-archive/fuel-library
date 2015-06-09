@@ -24,11 +24,11 @@ describe provider_class do
     end
 
     it 'should return the correct router name' do
-      provider.router_name.should eql('router')
+      expect(provider.router_name).to eql('router')
     end
 
     it 'should return the correct subnet name' do
-      provider.subnet_name.should eql('subnet')
+      expect(provider.subnet_name).to eql('subnet')
     end
 
   end
