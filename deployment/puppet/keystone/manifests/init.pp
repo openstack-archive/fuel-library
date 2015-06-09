@@ -206,7 +206,7 @@ class keystone(
   $rabbit_virtual_host   = '/',
   $notification_driver   = false,
   $notification_topics   = false,
-  $control_exchange      = false
+  $control_exchange      = false,
 ) {
 
   if ! $catalog_driver {
