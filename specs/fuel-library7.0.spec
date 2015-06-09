@@ -1,5 +1,5 @@
-%define name fuel-library6.1
-%{!?version: %define version 6.1.0}
+%define name fuel-library7.0
+%{!?version: %define version 7.0.0}
 %{!?release: %define release 1}
 
 Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack
@@ -17,7 +17,7 @@ Requires: fuel-misc
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
-%define openstack_version 2014.2.2-6.1
+%define openstack_version 2014.2.2-7.0
 
 %description
 
@@ -234,5 +234,5 @@ For further information go to http://wiki.openstack.org/Fuel
 rm -rf ${buildroot}
 
 %changelog
-* Tue Sep 10 2013 Vladimir Kuklin <vkuklin@mirantis.com> - 6.1
+* Tue Jun 9 2015 Igor Shishkin <ishishkin@mirantis.com> - 7.0
 - Create spec
