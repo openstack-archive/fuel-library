@@ -1,7 +1,7 @@
 neutron
 ===================================
 
-4.0.0 - 2014.1.0 - Icehouse
+5.1.0 - 2014.2 - Juno
 
 #### Table of Contents
 
@@ -17,7 +17,7 @@ neutron
 Overview
 --------
 
-The neutron module is a part of [Stackforge](https://github.com/stackforge), an effort by the Openstack infrastructure team to provide continuous integration testing and code review for Openstack and Openstack community projects not part of the core software. The module itself is used to flexibly configure and manage the newtork service for Openstack.
+The neutron module is a part of [Stackforge](https://github.com/stackforge), an effort by the Openstack infrastructure team to provide continuous integration testing and code review for Openstack and Openstack community projects not part of the core software. The module itself is used to flexibly configure and manage the network service for Openstack.
 
 Module Description
 ------------------
@@ -60,10 +60,13 @@ class { 'neutron::server':
     sql_connection  => 'mysql://neutron:neutron_sql_secret@127.0.0.1/neutron?charset=utf8',
 }
 
-# enable the Open VSwitch plugin server
-class { 'neutron::plugins::ovs':
-    tenant_network_type => 'gre',
-    network_vlan_ranges => 'physnet:1000:2000',
+# ml2 plugin with vxlan as ml2 driver and ovs as mechanism driver
+class { '::neutron::plugins::ml2':
+  type_drivers         => ['vxlan'],
+  tenant_network_types => ['vxlan'],
+  vxlan_group          => '239.1.1.1',
+  mechanism_drivers    => ['openvswitch'],
+  vni_ranges           => ['0:300']
 }
 ```
 
@@ -98,9 +101,11 @@ Limitations
 
 This module supports the following neutron plugins:
 
-* Open vSwitch
-* linuxbridge
-* cisco-neutron
+* Open vSwitch with ML2
+* linuxbridge with ML2
+* cisco-neutron with and without ML2
+* NVP
+* PLUMgrid
 
 The following platforms are supported:
 
@@ -108,6 +113,18 @@ The following platforms are supported:
 * Debian (Wheezy)
 * RHEL 6
 * Fedora 18
+
+Beaker-Rspec
+------------
+
+This module has beaker-rspec tests
+
+To run:
+
+```shell
+bundle install
+bundle exec rspec spec/acceptance
+```
 
 Development
 -----------
@@ -122,6 +139,95 @@ The github [contributor graph](https://github.com/stackforge/puppet-neutron/grap
 
 Release Notes
 -------------
+
+**5.1.0**
+
+* Fix l3_ha enablement
+* spec: pin rspec-puppet to 1.0.1
+* Switch to TLSv1
+* Support SR-IOV mechanism driver in ML2
+* Implement better nova_admin_tenant_id_setter exists? method
+* OVS Agent with ML2: fix symlink on RH plateforms
+* Adding portdb and fastpath_flood to n1kv.conf
+* Make cisco plugin symlink coherent
+* Fix status messages checks for neutron provider
+* Make neutron_plugin_ml2 before db-sync
+* Pin puppetlabs-concat to 1.2.1 in fixtures
+* change default MySQL collate to utf8_general_ci
+* Fix neutron file_line dependency
+* Corrects "ip link set" command
+* Adding vxlan network type support for neutron ML2 plug-in
+* Raise puppet error, if nova-api unavailable
+* Do not run neutron-ovs-cleanup for each Puppet run
+* Unescape value in parse_allocation_pool
+* Fix neutron_network for --router:external setting
+* Add MidoNet plugin support
+* Allow l3_ha to be turned back off after it has been enabled
+* Update .gitreview file for project rename
+* Fix support for auth_uri setting in neutron provider
+* Reduce neutron API timeout to 10 seconds
+
+**5.0.0**
+
+* Stable Juno release
+* Added neutron::policy to control policy.json
+* Added parameter allow_automatic_l3agent_failover to neutron::agents::l3
+* Added parameter metadata_memory_cache_ttl to neutron::agents::metadata
+* Added l3_ext as a provider_network_type property for neutron_network type
+* Changed user_group parameter in neutron::agents::lbaas to have different defaults depending on operating system
+* Changed openswan package to libreswan for RHEL 7 for vpnaas
+* Ensured neutron package was installed before nova_admin_tenant_id_setter is called
+* Added api_extensions_path parameter to neutron class
+* Added database tuning parameters
+* Changed management of file lines in /etc/default/neutron-server only for Ubuntu
+* Add parameters to enable DVR and HA support in neutron::agents::l3 for Juno
+* Fixed meaning of manage_service parameter in neutron::agents::ovs
+* Made keystone user creation optional when creating a service
+* Fixed the enable_dhcp property of neutron_subnet
+* Added the ability to override the keystone service name in neutron::keystone::auth
+* Fixed bug in parsing allocation pools in neutron_subnet type
+* Added relationship to refresh neutron-server when nova_admin_tenant_id_setter changes
+* Migrated the neutron::db::mysql class to use openstacklib::db::mysql and deprecated the mysql_module parameter
+* Fixed the relationship between the HA proxy package and the neutron-lbaas-agent package
+* Added kombu_reconnect_delay parameter to neutron class
+* Fixed plugin.ini error when cisco class is used
+* Fixed relationship between vs_pridge types and the neutron-plugin-ovs service
+* Added neutron::agents::n1kv_vem to deploy N1KV VEM
+* Added SSL support for nova_admin_tenant_id_setter
+* Fixed relationship between neutron-server package and neutron_plugin_ml2 types
+* Stopped puppet from trying to manage the ovs cleanup service
+* Deprecated the network_device_mtu parameter in neutron::agents::l3 and moved it to the neutron class
+* Added vpnaas_agent_package parameter to neutron::services::fwaas to install the vpnaas agent package
+
+**4.3.0**
+
+* Added parameter to specify number of RPC workers to spawn
+* Added ability to manage Neutron ML2 plugin
+* Fixed ssl parameter requirements when using kombu and rabbit
+* Added ability to hide secret neutron configs from logs and fixed password leaking
+* Added neutron plugin config file specification in neutron-server config
+* Fixed installation of ML2 plugin on Ubuntu
+* Added support for Cisco ML2 Mech Driver
+* Fixed quotas parameters in neutron config
+* Added parameter to configure dhcp_agent_notification in neutron config
+* Added class for linuxbridge support
+* Fixed neutron-server restart
+* Undeprecated enable_security_group parameter
+
+**4.2.0**
+
+* Added ml2/ovs support.
+* Added multi-region support.
+* Set default metadata backlog to 4096.
+* Fixed neutron-server refresh bug.
+
+**4.1.0**
+
+* Added parameter to set veth MTU.
+* Added RabbitMQ SSL support.
+* Added support for '' as a valid value for gateway_ip.
+* Fixed potential OVS resource duplication.
+* Pinned major gems.
 
 **4.0.0**
 

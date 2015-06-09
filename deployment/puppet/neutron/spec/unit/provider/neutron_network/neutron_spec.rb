@@ -46,7 +46,14 @@ describe provider_class do
 
     it 'should call net-update to change router_external' do
       provider.expects(:auth_neutron).with('net-update',
-                                           '--router:external=True',
+                                           '--router:external=False',
+                                           net_name)
+      provider.router_external=('False')
+    end
+
+    it 'should call net-update to change router_external' do
+      provider.expects(:auth_neutron).with('net-update',
+                                           '--router:external',
                                            net_name)
       provider.router_external=('True')
     end
