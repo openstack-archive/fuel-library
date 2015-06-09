@@ -70,11 +70,8 @@ class haproxy (
 ) inherits haproxy::params {
 
   package { $package_name:
-    ensure  => $enable ? {
-      true  => present,
-      false => absent,
-    },
-    alias   => 'haproxy',
+    ensure => $enable,
+    alias  => 'haproxy',
   }
 
   if $enable {
@@ -83,7 +80,6 @@ class haproxy (
     Package['haproxy'] ->
     Class['haproxy::base'] ->
     Haproxy::Service <||>
-
 
     if $manage_service {
       Class['haproxy::base'] -> Service['haproxy']
@@ -102,10 +98,7 @@ class haproxy (
 
   if $manage_service {
     service { 'haproxy':
-      ensure     => $enable ? {
-        true  => running,
-        false => stopped,
-      },
+      ensure     => $enable,
       enable     => $enable,
       name       => 'haproxy',
       hasrestart => true,
