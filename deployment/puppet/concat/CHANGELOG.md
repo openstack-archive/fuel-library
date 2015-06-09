@@ -1,21 +1,96 @@
-2014-05-14 1.1.0
+##2015-06-02 - Supported Release 1.2.3
+###Summary
 
-Summary
+This release includes a README fix to document correct behavior of fragment target parameter.
+
+####Bugfixes
+
+- README Fix to correctly document how a fragment $target param should work.
+
+##2015-05-12 - Supported Release 1.2.2
+###Summary
+
+This release includes a bugfix.
+
+####Bugfixes
+- Fixes a bug introduced by MODULES-1700, in handling default retrieval of fragment backup parameter.
+
+##2015-04-14 - Supported Release 1.2.1
+###Summary
+
+This release includes bugfixes, test improvements, and a rewritten README.
+
+####Bugfixes
+
+- Verifies existence of $is_pe before using it.
+- Adds validation for $order param to not allow restricted characters.
+- Sets the group id on Fragments for versions of Facter that contain the $gid fact.
+- Sets the script group to 0 if the script is owned by root.
+- Explicitly sets script and concat directories to the same owner and group.
+- Re-adds support for fragment backup, so that static compiler can work with filebucket (MODULES-1700).
+
+##2015-02-17 - Supported Release 1.2.0
+###Summary
+
+This release includes a number of bugfixes and adds support for running a validation command when using puppet >= 3.5.0.
+
+####Features
+- Support running a validation command for Puppet >= 3.5.0
+
+####Bugfixes
+- Reset poisoned defaults from Exec
+- Use concatfragments.rb on AIX since it doesn't support print0
+- Make sure ruby is in the path for PE (MODULES-1456)
+- Fix missing method for check_is_owned_by for windows (MODULES-1764)
+- Fix sort by numeric
+
+##2014-10-28 - Supported Release 1.1.2
+###Summary
+
+This release includes bugfixes and test improvements. The module was tested against SLES10 and SLES12 and found to work against those platforms with no module improvements. Metadata was updated to include those as supported platforms.
+
+####Bugfixes
+- newline didn't work for Windows and Solaris. This has been fixed.
+- Install certs on Windows for acceptance tests
+- Update tests to work with strict variables (no module updates were required)
+- Update tests to work on Windows
+- Fix typo in CHANGELOG.md
+
+##2014-09-10 - Supported Release 1.1.1
+###Summary
+
+This is a bugfix release, and the first supported release of the 1.1.x series.
+
+####Bugfixes
+- Make the `$order` parameter default to a string and be validated as an integer
+  or a string
+- Use the ruby script on Solaris to not break Sol10 support
+- Add quotes to the ruby script location for Windows
+- Fix typos in README.md
+- Make regex in concat::setup case-insensitive to make it work on Windows
+- Make sure concat fragments are always replaced
+- Fix validation to allow `$backup` to be a boolean
+- Remove dependency on stdlib 4.x
+- Fix for lack of idempotency with `ensure => 'absent'`
+- Fix tests and spec_helper
+- Synchronized files for more consistency across modules via modulesync
+
+##2014-05-14 - Release 1.1.0
+###Summary
 
 This release is primarily a bugfix release since 1.1.0-rc1.
 
-Features:
+####Features
 - Improved testing, with tests moved to beaker
 
-Bugfixes:
+####Bugfixes
 - No longer attempts to set fragment owner and mode on Windows
 - Fix numeric sorting
 - Fix incorrect quoting
 - Fix newlines
 
-2014-01-03 1.1.0-rc1
-
-Summary:
+##2014-01-03 - Release 1.1.0-rc1
+###Summary
 
 This release of concat was 90% written by Joshua Hoblitt, and the module team
 would like to thank him for the huge amount of work he put into this release.
@@ -33,49 +108,104 @@ warnings and we'll be aggressively moving for a 2.0 to remove those too.
 For further information on deprecations, please read:
 https://github.com/puppetlabs/puppetlabs-concat/blob/master/README.md#api-deprecations
 
-Removed:
+####Removed
 - Puppet 0.24 support.
 - Filebucket backup of all file resources except the target concatenated file.
 - Default owner/user/group values.
 - Purging of long unused /usr/local/bin/concatfragments.sh
 
-Features:
+###Features
 - Windows support via a ruby version of the concat bash script.
 - Huge amount of acceptance testing work added.
 - Documentation (README) completely rewritten.
 - New parameters in concat:
  - `ensure`: Controls if the file should be present/absent at all.
-- Remove requirement to include concat::setup in manifests.
-- Made `gnu` parameter deprecated.
-- Added parameter validation.
+ - Remove requirement to include concat::setup in manifests.
+ - Made `gnu` parameter deprecated.
+ - Added parameter validation.
 
-Bugfixes:
-- Ensure concat::setup runs before concat::fragment in all cases.
-- Pluginsync references updated for modern Puppet.
-- Fix incorrect group parameter.
-- Use $owner instead of $id to avoid confusion with $::id
-- Compatibility fixes for Puppet 2.7/ruby 1.8.7
-- Use LC_ALL=C instead of LANG=C
-- Always exec the concatfragments script as root when running as root.
-- Syntax and other cleanup changes.
+###Bugfixes
+ - Ensure concat::setup runs before concat::fragment in all cases.
+ - Pluginsync references updated for modern Puppet.
+ - Fix incorrect group parameter.
+ - Use $owner instead of $id to avoid confusion with $::id
+ - Compatibility fixes for Puppet 2.7/ruby 1.8.7
+ - Use LC_ALL=C instead of LANG=C
+ - Always exec the concatfragments script as root when running as root.
+ - Syntax and other cleanup changes.
 
-2013-08-09 1.0.0
+##2014-06-25 - Supported Release 1.0.4
+###Summary
 
-Summary:
+This release has test fixes.
+
+####Features
+- Added test support for OSX.
+
+####Bugfixes
+
+####Known bugs
+
+* Not supported on Windows.
+
+##2014-06-04 - Release 1.0.3
+###Summary
+
+This release adds compatibility for PE3.3 and fixes tests.
+
+####Features
+- Added test support for Ubuntu Trusty.
+
+####Bugfixes
+
+####Known bugs
+
+*Not supported on Windows.
+
+##2014-03-04 - Supported Release 1.0.2
+###Summary
+
+This is a supported release. No functional changes were made from 1.0.1.
+
+####Features
+- Huge amount of tests backported from 1.1.
+- Documentation rewrite.
+
+####Bugfixes
+
+####Known Bugs
+
+* Not supported on Windows.
+
+
+##2014-02-12 - 1.0.1
+###Summary
+
+Minor bugfixes for sorting of fragments and ordering of resources.
+
+####Bugfixes
+- LANG => C replaced with LC_ALL => C to reduce spurious recreation of
+fragments.
+- Corrected pluginsync documentation.
+- Ensure concat::setup always runs before fragments.
+
+
+##2013-08-09 - 1.0.0
+###Summary
 
 Many new features and bugfixes in this release, and if you're a heavy concat
 user you should test carefully before upgrading.  The features should all be
 backwards compatible but only light testing has been done from our side before
 this release.
 
-Features:
+####Features
 - New parameters in concat:
  - `replace`: specify if concat should replace existing files.
  - `ensure_newline`: controls if fragments should contain a newline at the end.
 - Improved README documentation.
 - Add rspec:system tests (rake spec:system to test concat)
 
-Bugfixes
+####Bugfixes
 - Gracefully handle \n in a fragment resource name.
 - Adding more helpful message for 'pluginsync = true'
 - Allow passing `source` and `content` directly to file resource, rather than
@@ -85,7 +215,7 @@ defining resource defaults.
 - Allow WARNMSG to contain/start with '#'.
 - Replace while-read pattern with for-do in order to support Solaris.
 
-CHANGELOG:
+####CHANGELOG:
 - 2010/02/19 - initial release
 - 2010/03/12 - add support for 0.24.8 and newer
              - make the location of sort configurable
