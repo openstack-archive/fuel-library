@@ -31,9 +31,9 @@ define haproxy::service (
     $fragment_order = '00'
 
     concat { $target:
-      owner  => '0',
-      group  => '0',
-      mode   => '0644',
+      owner => '0',
+      group => '0',
+      mode  => '0644',
     }
 
   } else {
