@@ -40,6 +40,18 @@ $glance_vcenter_datastore       = $glance_hash['vc_datastore']
 $glance_vcenter_image_dir       = $glance_hash['vc_image_dir']
 $glance_vcenter_api_retry_count = '20'
 $glance_image_cache_max_size    = $glance_hash['image_cache_max_size']
+$glance_show_image_direct_url   = $glance_hash['show_image_direct_url'] ? {
+  default => $glance_hash['show_image_direct_url'],
+  undef   => true,
+}
+$glance_pipeline                = $glance_hash['pipeline'] ? {
+  default => $glance_hash['pipeline'],
+  undef   => 'keystone+cachemanagement',
+}
+$glance_large_object_size       = $glance_hash['large_object_size'] ? {
+  default => $glance_hash['large_object_size'],
+  undef   => '5120',
+}
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -50,6 +62,7 @@ if ($storage_hash['images_ceph']) {
 } else {
   $glance_backend = 'swift'
   $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
+  $swift_store_large_object_size = $glance_large_object_size
 }
 
 ###############################################################################
@@ -77,6 +90,9 @@ class { 'openstack::glance':
   glance_backend                 => $glance_backend,
   registry_host                  => $service_endpoint,
   use_syslog                     => $use_syslog,
+  show_image_direct_url          => $glance_show_image_direct_url,
+  swift_store_large_object_size  => $swift_store_large_object_size,
+  pipeline                       => $glance_pipeline,
   syslog_log_facility            => $syslog_log_facility,
   glance_image_cache_max_size    => $glance_image_cache_max_size,
   max_retries                    => $max_retries,
