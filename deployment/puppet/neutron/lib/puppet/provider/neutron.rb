@@ -26,13 +26,21 @@ class Puppet::Provider::Neutron < Puppet::Provider
   end
 
   def self.get_neutron_credentials
-    auth_keys = ['auth_host', 'auth_port', 'auth_protocol',
-                 'admin_tenant_name', 'admin_user', 'admin_password']
+    auth_keys = ['admin_tenant_name', 'admin_user', 'admin_password']
+    deprecated_auth_url = ['auth_host', 'auth_port', 'auth_protocol']
     conf = neutron_conf
     if conf and conf['keystone_authtoken'] and
-        auth_keys.all?{|k| !conf['keystone_authtoken'][k].nil?}
+        auth_keys.all?{|k| !conf['keystone_authtoken'][k].nil?} and
+        ( deprecated_auth_url.all?{|k| !conf['keystone_authtoken'][k].nil?} or
+        !conf['keystone_authtoken']['auth_uri'].nil? )
       creds = Hash[ auth_keys.map \
                    { |k| [k, conf['keystone_authtoken'][k].strip] } ]
+      if !conf['keystone_authtoken']['auth_uri'].nil?
+        creds['auth_uri'] = conf['keystone_authtoken']['auth_uri']
+      else
+        q = conf['keystone_authtoken']
+        creds['auth_uri'] = "#{q['auth_protocol']}://#{q['auth_host']}:#{q['auth_port']}/v2.0/"
+      end
       if conf['DEFAULT'] and !conf['DEFAULT']['nova_region_name'].nil?
         creds['nova_region_name'] = conf['DEFAULT']['nova_region_name']
       end
@@ -54,7 +62,11 @@ correctly configured.")
 
   def self.get_auth_endpoint
     q = neutron_credentials
-    "#{q['auth_protocol']}://#{q['auth_host']}:#{q['auth_port']}/v2.0/"
+    if q['auth_uri'].nil?
+      return "#{q['auth_protocol']}://#{q['auth_host']}:#{q['auth_port']}/v2.0/"
+    else
+      return "#{q['auth_uri']}".strip
+    end
   end
 
   def self.neutron_conf
@@ -70,14 +82,13 @@ correctly configured.")
       :OS_AUTH_URL    => self.auth_endpoint,
       :OS_USERNAME    => q['admin_user'],
       :OS_TENANT_NAME => q['admin_tenant_name'],
-      :OS_PASSWORD    => q['admin_password'],
-      :OS_ENDPOINT_TYPE => 'internalURL'
+      :OS_PASSWORD    => q['admin_password']
     }
     if q.key?('nova_region_name')
       authenv[:OS_REGION_NAME] = q['nova_region_name']
     end
     rv = nil
-    timeout = 120
+    timeout = 10
     end_time = Time.now.to_i + timeout
     loop do
       begin
@@ -101,8 +112,7 @@ correctly configured.")
           break
         else
           wait = end_time - current_time
-          Puppet::debug("Non-fatal error: \"#{e.message}\"")
-          notice("Neutron API not avalaible. Wait up to #{wait} sec.")
+          notice("Unable to complete neutron request due to non-fatal error: \"#{e.message}\". Retrying for #{wait} sec.")
         end
         sleep(2)
         # Note(xarses): Don't remove, we know that there is one of the
@@ -125,10 +135,8 @@ correctly configured.")
     ids = []
     list = auth_neutron("#{type}-list", '--format=csv',
                         '--column=id', '--quote=none')
-    # NOTE(bogdando) contribute change to upstream #1384101:
-    #   raise Puppet exception, if resources list is empty
     if list.nil?
-      raise(Puppet::ExecutionFailure, "Can't prefetch #{type}-list Neutron or Keystone API is not avalaible.")
+      raise(Puppet::ExecutionFailure, "Can't retrieve #{type}-list because Neutron or Keystone API is not available.")
     end
 
     (list.split("\n")[1..-1] || []).compact.collect do |line|
@@ -140,11 +148,10 @@ correctly configured.")
   def self.get_neutron_resource_attrs(type, id)
     attrs = {}
     net = auth_neutron("#{type}-show", '--format=shell', id)
-    # NOTE(bogdando) contribute change to upstream #1384101:
-    #   raise Puppet exception, if list of resources' attributes is empty
     if net.nil?
-      raise(Puppet::ExecutionFailure, "Can't prefetch #{type}-show Neutron or Keystone API is not avalaible.")
+      raise(Puppet::ExecutionFailure, "Can't retrieve #{type}-show because Neutron or Keystone API is not available.")
     end
+
     last_key = nil
     (net.split("\n") || []).compact.collect do |line|
       if line.include? '='

@@ -22,25 +22,25 @@
 #
 # sudo pcs constraint colocation add neutron_server_service with neutron_vip
 
-class { 'neutron':
+class { '::neutron':
   verbose               => true,
   allow_overlapping_ips => true,
   service_plugins       => [ 'dhcp', 'l3' ]
 }
 
-class { 'neutron::server':
+class { '::neutron::server':
   enabled           => false,
   manage_service    => false,
   keystone_password => 'password',
   connection        => 'mysql://neutron:password@192.168.1.1/neutron',
 }
 
-class { 'neutron::agents::dhcp':
+class { '::neutron::agents::dhcp':
   enabled        => false,
   manage_service => false,
 }
 
-class { 'neutron::agents::l3':
+class { '::neutron::agents::l3':
   enabled        => false,
   manage_service => false,
 }

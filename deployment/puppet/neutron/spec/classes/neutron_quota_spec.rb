@@ -28,6 +28,12 @@ describe 'neutron::quota' do
       :quota_vip                 => 10 }
   end
 
+  let :facts do
+    { :operatingsystem           => 'default',
+      :operatingsystemrelease    => 'default'
+    }
+  end
+
   shared_examples_for 'neutron quota' do
     let :params_hash do
       default_params.merge(params)
@@ -35,7 +41,7 @@ describe 'neutron::quota' do
 
     it 'configures quota in neutron.conf' do
       params_hash.each_pair do |config,value|
-        should contain_neutron_config("quotas/#{config}").with_value( value )
+        is_expected.to contain_neutron_config("quotas/#{config}").with_value( value )
       end
     end
   end
