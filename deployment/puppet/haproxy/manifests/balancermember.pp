@@ -102,18 +102,22 @@ define haproxy::balancermember (
   $define_backups = false,
   $use_include    = $haproxy::params::use_include,
 ) {
+  $custom_order = $use_include ? {
+    true  => "01-${name}",
+    false => "${order}-${listening_service}-01-${name}",
+  }
+
+  $custom_target = $use_include ? {
+    true  => "/etc/haproxy/conf.d/${order}-${name}.cfg",
+    false => '/etc/haproxy/haproxy.cfg',
+  }
+
   # Template uses $ipaddresses, $server_names, $ports, $options,
   # $define_cookies, $define_backups
   concat::fragment { "haproxy_${listening_service}_balancermember_${name}":
     ensure  => $ensure,
-    order   => $use_include ? {
-      true  => "01-${name}",
-      false => "${order}-${listening_service}-01-${name}",
-    },
-    target  => $use_include ? {
-      true  => "/etc/haproxy/conf.d/${order}-${name}.cfg",
-      false => '/etc/haproxy/haproxy.cfg',
-    },
+    order   => $custom_order,
+    target  => $custom_target,
     content => template('haproxy/haproxy_balancermember.erb'),
   }
 }

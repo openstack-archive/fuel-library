@@ -36,7 +36,6 @@ define swift::storage::server(
   }
 
   include "swift::storage::${type}"
-  include concat::setup
 
   validate_re($name, '^\d+$')
   validate_re($type, '^object|container|account$')
