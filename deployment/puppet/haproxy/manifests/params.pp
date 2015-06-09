@@ -5,7 +5,7 @@
 #  extended by changing package names and configuration file paths.
 #
 class haproxy::params {
-  case $osfamily {
+  case $::osfamily {
     Redhat: {
       $global_options   = {
         'log'     => "${::ipaddress} local0",
@@ -64,7 +64,7 @@ class haproxy::params {
       $package_name     = 'haproxy'
       $use_include      = false
     }
-    default: { fail("The $::osfamily operating system is not supported with the haproxy module") }
+    default: { fail("The ${::osfamily} operating system is not supported with the haproxy module") }
   }
   $use_stats = true
   $stats_port = '10000'

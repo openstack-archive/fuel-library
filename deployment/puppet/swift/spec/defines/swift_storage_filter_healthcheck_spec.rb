@@ -12,8 +12,7 @@ describe 'swift::storage::filter::healthcheck' do
   end
 
   let :pre_condition do
-    'class { "concat::setup": }
-     concat { "/etc/swift/dummy-server.conf": }'
+     'concat { "/etc/swift/dummy-server.conf": }'
   end
 
   let :fragment_file do

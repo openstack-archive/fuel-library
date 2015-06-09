@@ -9,8 +9,7 @@ describe 'swift::proxy::swauth' do
   end
 
   let :pre_condition do
-    'class { "concat::setup": }
-     concat { "/etc/swift/proxy-server.conf": }'
+    'concat { "/etc/swift/proxy-server.conf": }'
   end
 
   let :fragment_file do
