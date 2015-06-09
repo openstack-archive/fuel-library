@@ -81,6 +81,15 @@ virt <%= port%> profile <%= params['profile']%> mode static address <%= params['
 # uvem-ovs-brname n1kvdvs
 uvem-ovs-brname br-int
 
+# TAG: portdb
+# Description: PortDB (ovs|vem)
+# Optional: YES.
+# Default: ovs
+# restart_on_modify: Yes
+# Format:
+# portdb vem
+portdb <%= @portdb %>
+
 # TAG: node-type
 # Description: Type of Node: 'compute' (or) 'neutron'
 # Optional: YES.
@@ -150,3 +159,11 @@ node-type <%= @node_type %>
 # restart_on_modify: Yes
 # Format: dp-thread-socket-rrnglen <0..16384>
 # Note: 0 - disables memory map I/O
+
+# TAG: fastpath-flood
+# Description: Enable flood of broadcast and unknown pkts in KLM
+# Optional: YES
+# Default: disable
+# restart_on_modify: Yes
+# Format: fastpath-flood <enable|disable>
+fastpath-flood <%= @fastpath_flood %>
