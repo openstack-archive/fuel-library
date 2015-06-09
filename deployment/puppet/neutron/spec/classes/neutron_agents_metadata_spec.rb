@@ -60,6 +60,7 @@ describe 'neutron::agents::metadata' do
       should contain_neutron_metadata_agent_config('DEFAULT/metadata_workers').with(:value => facts[:processorcount])
       should contain_neutron_metadata_agent_config('DEFAULT/metadata_backlog').with(:value => params[:metadata_backlog])
       should contain_neutron_metadata_agent_config('DEFAULT/metadata_proxy_shared_secret').with(:value => params[:shared_secret])
+      should contain_neutron_metadata_agent_config('DEFAULT/cache_url').with(:value => 'memory://?default_ttl=5')
     end
   end
 

@@ -121,6 +121,7 @@ describe 'neutron' do
       should contain_neutron_config('DEFAULT/allow_pagination').with_value(false)
       should contain_neutron_config('DEFAULT/allow_sorting').with_value(false)
       should contain_neutron_config('DEFAULT/allow_overlapping_ips').with_value(false)
+      should contain_neutron_config('DEFAULT/api_extensions_path').with_value(nil)
       should contain_neutron_config('DEFAULT/control_exchange').with_value('neutron')
       should contain_neutron_config('agent/root_helper').with_value('sudo neutron-rootwrap /etc/neutron/rootwrap.conf')
       should contain_neutron_config('agent/report_interval').with_value('30')

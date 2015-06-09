@@ -2,6 +2,8 @@
 class neutron::params {
 
   if($::osfamily == 'Redhat') {
+    $nobody_user_group    = 'nobody'
+
     $package_name       = 'openstack-neutron'
     $server_package     = false
     $server_service     = 'neutron-server'
@@ -43,13 +45,15 @@ class neutron::params {
 
     $vpnaas_agent_package = 'openstack-neutron-vpn-agent'
     $vpnaas_agent_service = 'neutron-vpn-agent'
-    $openswan_package     = 'openswan'
+    if $::operatingsystemrelease =~ /^7.*/ {
+      $openswan_package     = 'libreswan'
+    } else {
+      $openswan_package     = 'openswan'
+    }
 
     $l3_agent_package   = false
     $l3_agent_service   = 'neutron-l3-agent'
-    # TODO(bogdando) contribute change to upstream:
-    #   new metadata_agent_package param
-    $metadata_agent_package = false
+
     $metadata_agent_service = 'neutron-metadata-agent'
 
     $cliff_package      = 'python-cliff'
@@ -57,6 +61,8 @@ class neutron::params {
     $kernel_headers     = "linux-headers-${::kernelrelease}"
 
   } elsif($::osfamily == 'Debian') {
+
+    $nobody_user_group    = 'nogroup'
 
     $package_name       = 'neutron-common'
     $server_package     = 'neutron-server'

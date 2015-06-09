@@ -105,6 +105,18 @@
 # [*retry_interval*]
 #   DEPRECATED: Use database_retry_interval instead.
 #
+# [*database_min_pool_size*]
+#   (optional) Minimum number of SQL connections to keep open in a pool.
+#   Defaults to: 1
+#
+# [*database_max_pool_size*]
+#   (optional) Maximum number of SQL connections to keep open in a pool.
+#   Defaults to: 10
+#
+# [*database_max_overflow*]
+#   (optional) If set, use this value for max_overflow with sqlalchemy.
+#   Defaults to: 20
+#
 # [*sync_db*]
 #   (optional) Run neutron-db-manage on api nodes after installing the package.
 #   Defaults to false
@@ -132,14 +144,6 @@
 #   report_interval is a config for neutron agents, set by class neutron
 #   Defaults to: 75
 #
-# [*state_path*]
-#   (optional) Where to store dnsmasq state files. This directory must be
-#   writable by the user executing the agent. Defaults to '/var/lib/neutron'.
-#
-# [*lock_path*]
-#   (optional) Where to store dnsmasq lock files. This directory must be
-#   writable by the user executing the agent. Defaults to '/var/lib/neutron/lock'.
-#
 # [*router_scheduler_driver*]
 #   (optional) Driver to use for scheduling router to a default L3 agent. Could be:
 #   neutron.scheduler.l3_agent_scheduler.ChanceScheduler to schedule a router in a random way
@@ -149,52 +153,94 @@
 # [*mysql_module*]
 #   (optional) Deprecated. Does nothing.
 #
+# [*router_distributed*]
+#   (optional) Setting the "router_distributed" flag to "True" will default to the creation
+#   of distributed tenant routers.
+#   Also can be the type of the router on the create request (admin-only attribute).
+#   Defaults to false
+#
+# [*l3_ha*]
+#   (optional) Enable high availability for virtual routers.
+#   Defaults to false
+#
+# [*max_l3_agents_per_router*]
+#   (optional) Maximum number of l3 agents which a HA router will be scheduled on. If set to '0', a router will be scheduled on every agent.
+#   Defaults to '3'
+#
+# [*min_l3_agents_per_router*]
+#   (optional) Minimum number of l3 agents which a HA router will be scheduled on.
+#   Defaults to '2'
+#
+# [*l3_ha_net_cidr*]
+#   (optional) CIDR of the administrative network if HA mode is enabled.
+#   Defaults to '169.254.192.0/18'
+#
 class neutron::server (
-  $package_ensure          = 'present',
-  $enabled                 = true,
-  $manage_service          = true,
-  $auth_password           = false,
-  $auth_type               = 'keystone',
-  $auth_host               = 'localhost',
-  $auth_port               = '35357',
-  $auth_admin_prefix       = false,
-  $auth_tenant             = 'services',
-  $auth_user               = 'neutron',
-  $auth_protocol           = 'http',
-  $auth_uri                = false,
-  $database_connection     = 'sqlite:////var/lib/neutron/ovs.sqlite',
-  $database_max_retries    = 10,
-  $database_idle_timeout   = 3600,
-  $database_retry_interval = 10,
-  $sync_db                 = false,
-  $api_workers             = $::processorcount,
-  $rpc_workers             = $::processorcount,
-  $agent_down_time         = '75',
-  $state_path              = '/var/lib/neutron',
-  $lock_path               = '/var/lib/neutron/lock',
-  $router_scheduler_driver = 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
+  $package_ensure           = 'present',
+  $enabled                  = true,
+  $manage_service           = true,
+  $auth_password            = false,
+  $auth_type                = 'keystone',
+  $auth_host                = 'localhost',
+  $auth_port                = '35357',
+  $auth_admin_prefix        = false,
+  $auth_tenant              = 'services',
+  $auth_user                = 'neutron',
+  $auth_protocol            = 'http',
+  $auth_uri                 = false,
+  $database_connection      = 'sqlite:////var/lib/neutron/ovs.sqlite',
+  $database_max_retries     = 10,
+  $database_idle_timeout    = 3600,
+  $database_retry_interval  = 10,
+  $database_min_pool_size   = 1,
+  $database_max_pool_size   = 10,
+  $database_max_overflow    = 20,
+  $sync_db                  = false,
+  $api_workers              = $::processorcount,
+  $rpc_workers              = $::processorcount,
+  $agent_down_time          = '75',
+  $router_scheduler_driver  = 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
+  $router_distributed       = false,
+  $l3_ha                    = false,
+  $max_l3_agents_per_router = 3,
+  $min_l3_agents_per_router = 2,
+  $l3_ha_net_cidr           = '169.254.192.0/18',
   # DEPRECATED PARAMETERS
-  # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel
-  $mysql_module            = '0.9',
-  $sql_connection          = undef,
-  $connection              = undef,
-  $sql_max_retries         = undef,
-  $max_retries             = undef,
-  $sql_idle_timeout        = undef,
-  $idle_timeout            = undef,
-  $sql_reconnect_interval  = undef,
-  $retry_interval          = undef,
-  $log_dir                 = undef,
-  $log_file                = undef,
-  $report_interval         = undef,
+  $mysql_module             = undef,
+  $sql_connection           = undef,
+  $connection               = undef,
+  $sql_max_retries          = undef,
+  $max_retries              = undef,
+  $sql_idle_timeout         = undef,
+  $idle_timeout             = undef,
+  $sql_reconnect_interval   = undef,
+  $retry_interval           = undef,
+  $log_dir                  = undef,
+  $log_file                 = undef,
+  $report_interval          = undef,
 ) {
 
   include neutron::params
+  include neutron::policy
   require keystone::python
 
   Nova_admin_tenant_id_setter<||> ~> Service['neutron-server']
   Neutron_config<||>     ~> Service['neutron-server']
   Neutron_api_config<||> ~> Service['neutron-server']
+  Class['neutron::policy'] ~> Service['neutron-server']
+
+  if $l3_ha {
+    if $min_l3_agents_per_router <= $max_l3_agents_per_router or $max_l3_agents_per_router == '0' {
+      neutron_config {
+        'DEFAULT/ha_enabled':               value => true;
+        'DEFAULT/max_l3_agents_per_router': value => $max_l3_agents_per_router;
+        'DEFAULT/min_l3_agents_per_router': value => $min_l3_agents_per_router;
+        'DEFAULT/l3_ha_net_cidr':           value => $l3_ha_net_cidr;
+      }
+    } else {
+      fail('min_l3_agents_per_router should be less than or equal to max_l3_agents_per_router.')
+    }
+  }
 
   if $mysql_module {
     warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
@@ -256,14 +302,8 @@ class neutron::server (
 
   case $database_connection_real {
     /mysql:\/\/\S+:\S+@\S+\/\S+/: {
-      # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel.
-      #   we cannot remove deprecated mysql_module for now
-      if ($mysql_module >= 2.2) {
-        require 'mysql::bindings'
-        require 'mysql::bindings::python'
-      } else {
-        require 'mysql::python'
-      }
+      require 'mysql::bindings'
+      require 'mysql::bindings::python'
     }
     /postgresql:\/\/\S+:\S+@\S+\/\S+/: {
       $backend_package = 'python-psycopg2'
@@ -289,15 +329,8 @@ class neutron::server (
       path        => '/usr/bin',
       before      => Service['neutron-server'],
       require     => Neutron_config['database/connection'],
-      refreshonly => true,
-      tries       => 10,
-      # TODO(bogdando) contribute change to upstream:
-      #   new try_sleep param for sleep driven development (SDD)
-      try_sleep   => 20,
+      refreshonly => true
     }
-    #NOTE(bogdando) contribute change to upstream #1384133
-    Neutron_config<||> -> Exec['neutron-db-sync']
-    Exec['neutron-db-sync'] -> Service['neutron-server']
   }
 
   neutron_config {
@@ -305,18 +338,21 @@ class neutron::server (
     'DEFAULT/rpc_workers':             value => $rpc_workers;
     'DEFAULT/agent_down_time':         value => $agent_down_time;
     'DEFAULT/router_scheduler_driver': value => $router_scheduler_driver;
-    'DEFAULT/state_path':              value => $state_path;
-    'DEFAULT/lock_path':               value => $lock_path;
+    'DEFAULT/router_distributed':      value => $router_distributed;
     'database/connection':             value => $database_connection_real, secret => true;
     'database/idle_timeout':           value => $database_idle_timeout_real;
     'database/retry_interval':         value => $database_retry_interval_real;
     'database/max_retries':            value => $database_max_retries_real;
+    'database/min_pool_size':          value => $database_min_pool_size;
+    'database/max_pool_size':          value => $database_max_pool_size;
+    'database/max_overflow':           value => $database_max_overflow;
   }
 
   if ($::neutron::params::server_package) {
     Package['neutron-server'] -> Neutron_api_config<||>
     Package['neutron-server'] -> Neutron_config<||>
     Package['neutron-server'] -> Service['neutron-server']
+    Package['neutron-server'] -> Class['neutron::policy']
     package { 'neutron-server':
       ensure => $package_ensure,
       name   => $::neutron::params::server_package,
@@ -324,6 +360,7 @@ class neutron::server (
   } else {
     # Some platforms (RedHat) does not provide a neutron-server package.
     # The neutron api config file is provided by the neutron package.
+    Package['neutron'] -> Class['neutron::policy']
     Package['neutron'] -> Neutron_api_config<||>
   }
 
