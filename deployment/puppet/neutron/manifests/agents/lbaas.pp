@@ -21,7 +21,7 @@
 #   (optional) Defaults to 'neutron.agent.linux.interface.OVSInterfaceDriver'.
 #
 # [*device_driver*]
-#   (optional) Defaults to 'neutron.services.loadbalancer.drivers.haproxy.namespace_driver.HaproxyNSDriver'.
+#   (optional) Defaults to 'neutron_lbaas.services.loadbalancer.drivers.haproxy.namespace_driver.HaproxyNSDriver'.
 #
 # [*use_namespaces*]
 #   (optional) Allow overlapping IP (Must have kernel build with
@@ -29,7 +29,8 @@
 #   Defaults to true.
 #
 # [*user_group*]
-#   (optional) The user group. Defaults to nogroup.
+#   (optional) The user group.
+#   Defaults to $::neutron::params::nobody_user_group
 #
 # [*manage_haproxy_package*]
 #   (optional) Whether to manage the haproxy package.
@@ -42,13 +43,13 @@ class neutron::agents::lbaas (
   $manage_service         = true,
   $debug                  = false,
   $interface_driver       = 'neutron.agent.linux.interface.OVSInterfaceDriver',
-  $device_driver          = 'neutron.services.loadbalancer.drivers.haproxy.namespace_driver.HaproxyNSDriver',
+  $device_driver          = 'neutron_lbaas.services.loadbalancer.drivers.haproxy.namespace_driver.HaproxyNSDriver',
   $use_namespaces         = true,
-  $user_group             = 'nogroup',
+  $user_group             = $::neutron::params::nobody_user_group,
   $manage_haproxy_package = true,
 ) {
 
-  include neutron::params
+  include ::neutron::params
 
   Neutron_config<||>             ~> Service['neutron-lbaas-service']
   Neutron_lbaas_agent_config<||> ~> Service['neutron-lbaas-service']
@@ -76,20 +77,14 @@ class neutron::agents::lbaas (
     'haproxy/user_group':         value => $user_group;
   }
 
-  if $::neutron::params::lbaas_agent_package {
-    Package['neutron']            -> Package['neutron-lbaas-agent']
-    Package['neutron-lbaas-agent'] -> Neutron_config<||>
-    Package['neutron-lbaas-agent'] -> Neutron_lbaas_agent_config<||>
-    package { 'neutron-lbaas-agent':
-      ensure  => $package_ensure,
-      name    => $::neutron::params::lbaas_agent_package,
-    }
-  } else {
-    # Some platforms (RedHat) do not provide a neutron LBaaS agent package.
-    # The neutron LBaaS agent config file is provided by the neutron package.
-    Package['neutron'] -> Neutron_lbaas_agent_config<||>
+  Package['neutron']            -> Package['neutron-lbaas-agent']
+  Package['neutron-lbaas-agent'] -> Neutron_config<||>
+  Package['neutron-lbaas-agent'] -> Neutron_lbaas_agent_config<||>
+  package { 'neutron-lbaas-agent':
+    ensure => $package_ensure,
+    name   => $::neutron::params::lbaas_agent_package,
+    tag    => 'openstack',
   }
-
   if $manage_service {
     if $enabled {
       $service_ensure = 'running'

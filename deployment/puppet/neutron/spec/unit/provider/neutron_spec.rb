@@ -28,6 +28,10 @@ describe Puppet::Provider::Neutron do
     /Neutron types will not work/
   end
 
+  let :exec_error do
+    /Neutron or Keystone API is not available/
+  end
+
   after :each do
     klass.reset
   end
@@ -61,7 +65,7 @@ describe Puppet::Provider::Neutron do
     it 'should use specified host/port/protocol in the auth endpoint' do
       conf = {'keystone_authtoken' => credential_hash}
       klass.expects(:neutron_conf).returns(conf)
-      klass.get_auth_endpoint.should == auth_endpoint
+      expect(klass.get_auth_endpoint).to eq(auth_endpoint)
     end
 
     it 'should find region_name if specified' do
@@ -105,12 +109,18 @@ describe Puppet::Provider::Neutron do
     end
 
     ['[Errno 111] Connection refused',
-     '(HTTP 400)'].reverse.each do |valid_message|
+     '400-{\'message\': \'\'}',
+     '(HTTP 400)',
+     '503 Service Unavailable',
+     '504 Gateway Time-out',
+     'Maximum attempts reached',
+     'Unauthorized: bad credentials',
+     'Max retries exceeded'].reverse.each do |valid_message|
       it "should retry when neutron cli returns with error #{valid_message}" do
         klass.expects(:get_neutron_credentials).with().returns({})
-        klass.expects(:sleep).with(10).returns(nil)
+        klass.expects(:sleep).with(2).returns(nil)
         klass.expects(:neutron).twice.with(['test_retries']).raises(
-          Exception, valid_message).then.returns('')
+          Puppet::ExecutionFailure, valid_message).then.returns('')
         klass.auth_neutron('test_retries')
       end
     end
@@ -127,7 +137,22 @@ describe Puppet::Provider::Neutron do
       EOT
       klass.expects(:auth_neutron).returns(output)
       result = klass.list_neutron_resources('foo')
-      result.should eql(['net1', 'net2'])
+      expect(result).to eql(['net1', 'net2'])
+    end
+
+    it 'should return empty list when there are no neutron resources' do
+      output = <<-EOT
+      EOT
+      klass.stubs(:auth_neutron).returns(output)
+      result = klass.list_neutron_resources('foo')
+      expect(result).to eql([])
+    end
+
+    it 'should fail if resources list is nil' do
+      klass.stubs(:auth_neutron).returns(nil)
+      expect do
+        klass.list_neutron_resources('foo')
+      end.to raise_error(Puppet::Error, exec_error)
     end
 
   end
@@ -137,7 +162,7 @@ describe Puppet::Provider::Neutron do
     it 'should parse single-valued attributes into a key-value pair' do
       klass.expects(:auth_neutron).returns('admin_state_up="True"')
       result = klass.get_neutron_resource_attrs('foo', 'id')
-      result.should eql({"admin_state_up" => 'True'})
+      expect(result).to eql({"admin_state_up" => 'True'})
     end
 
     it 'should parse multi-valued attributes into a key-list pair' do
@@ -148,7 +173,7 @@ subnet3"
       EOT
       klass.expects(:auth_neutron).returns(output)
       result = klass.get_neutron_resource_attrs('foo', 'id')
-      result.should eql({"subnets" => ['subnet1', 'subnet2', 'subnet3']})
+      expect(result).to eql({"subnets" => ['subnet1', 'subnet2', 'subnet3']})
     end
 
   end
@@ -164,7 +189,7 @@ subnet3"
                                         '--format=csv',
                                         router)
       result = klass.list_router_ports(router)
-      result.should eql([])
+      expect(result).to eql([])
     end
 
     it 'should handle several ports' do
@@ -192,7 +217,7 @@ subnet3"
         with('router-port-list', '--format=csv', router).
         returns(output)
       result = klass.list_router_ports(router)
-      result.should eql(expected)
+      expect(result).to eql(expected)
     end
 
   end
@@ -213,7 +238,7 @@ tenant_id="3056a91768d948d399f1d79051a7f221"
         'name'           => 'foo',
         'tenant_id'      => '3056a91768d948d399f1d79051a7f221',
       }
-      klass.parse_creation_output(data).should == expected
+      expect(klass.parse_creation_output(data)).to eq(expected)
     end
 
   end

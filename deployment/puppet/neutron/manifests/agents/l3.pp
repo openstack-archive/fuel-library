@@ -76,54 +76,99 @@
 #   (optional) namespaces can be deleted cleanly on the host running the L3 agent
 #   Defaults to False
 #
+# [*ha_enabled*]
+#   (optional) Enabled or not HA for L3 agent.
+#   Defaults to false
+#
+# [*ha_vrrp_auth_type*]
+#   (optional) VRRP authentication type. Can be AH or PASS.
+#   Defaults to "PASS"
+#
+# [*ha_vrrp_auth_password*]
+#   (optional) VRRP authentication password. Required if ha_enabled = true.
+#   Defaults to undef
+#
+# [*ha_vrrp_advert_int*]
+#   (optional) The advertisement interval in seconds.
+#   Defaults to '2'
+#
+# [*agent_mode*]
+#   (optional) The working mode for the agent.
+#   'legacy': default behavior (without DVR)
+#   'dvr': enable DVR for an L3 agent running on compute node (DVR in production)
+#   'dvr_snat': enable DVR with centralized SNAT support (DVR for single-host, for testing only)
+#   Defaults to 'legacy'
+#
+# [*allow_automatic_l3agent_failover*]
+#   DEPRECATED: Has no effect in this class. Use the same parameter in neutron::server instead.
+#
 class neutron::agents::l3 (
-  $package_ensure               = 'present',
-  $enabled                      = true,
-  $manage_service               = true,
-  $debug                        = false,
-  $external_network_bridge      = 'br-ex',
-  $use_namespaces               = true,
-  $interface_driver             = 'neutron.agent.linux.interface.OVSInterfaceDriver',
-  $router_id                    = undef,
-  $gateway_external_network_id  = undef,
-  $handle_internal_only_routers = true,
-  $metadata_port                = '9697',
-  $send_arp_for_ha              = '3',
-  $periodic_interval            = '40',
-  $periodic_fuzzy_delay         = '5',
-  $enable_metadata_proxy        = true,
-  $network_device_mtu           = undef,
-  $router_delete_namespaces     = false
+  $package_ensure                   = 'present',
+  $enabled                          = true,
+  $manage_service                   = true,
+  $debug                            = false,
+  $external_network_bridge          = 'br-ex',
+  $use_namespaces                   = true,
+  $interface_driver                 = 'neutron.agent.linux.interface.OVSInterfaceDriver',
+  $router_id                        = undef,
+  $gateway_external_network_id      = undef,
+  $handle_internal_only_routers     = true,
+  $metadata_port                    = '9697',
+  $send_arp_for_ha                  = '3',
+  $periodic_interval                = '40',
+  $periodic_fuzzy_delay             = '5',
+  $enable_metadata_proxy            = true,
+  $network_device_mtu               = undef,
+  $router_delete_namespaces         = false,
+  $ha_enabled                       = false,
+  $ha_vrrp_auth_type                = 'PASS',
+  $ha_vrrp_auth_password            = undef,
+  $ha_vrrp_advert_int               = '3',
+  $agent_mode                       = 'legacy',
+  # DEPRECATED PARAMETERS
+  $allow_automatic_l3agent_failover = false,
 ) {
 
-  include neutron::params
+  include ::neutron::params
 
   Neutron_config<||>          ~> Service['neutron-l3']
   Neutron_l3_agent_config<||> ~> Service['neutron-l3']
 
+  if $allow_automatic_l3agent_failover {
+    notice('parameter allow_automatic_l3agent_failover is deprecated, use parameter in neutron::server instead')
+  }
+
+  if $ha_enabled {
+    neutron_l3_agent_config {
+      'DEFAULT/ha_vrrp_auth_type':     value => $ha_vrrp_auth_type;
+      'DEFAULT/ha_vrrp_auth_password': value => $ha_vrrp_auth_password;
+      'DEFAULT/ha_vrrp_advert_int':    value => $ha_vrrp_advert_int;
+    }
+  }
+
   neutron_l3_agent_config {
-    'DEFAULT/debug':                        value => $debug;
-    'DEFAULT/external_network_bridge':      value => $external_network_bridge;
-    'DEFAULT/use_namespaces':               value => $use_namespaces;
-    'DEFAULT/interface_driver':             value => $interface_driver;
-    'DEFAULT/router_id':                    value => $router_id;
-    'DEFAULT/gateway_external_network_id':  value => $gateway_external_network_id;
-    'DEFAULT/handle_internal_only_routers': value => $handle_internal_only_routers;
-    'DEFAULT/metadata_port':                value => $metadata_port;
-    'DEFAULT/send_arp_for_ha':              value => $send_arp_for_ha;
-    'DEFAULT/periodic_interval':            value => $periodic_interval;
-    'DEFAULT/periodic_fuzzy_delay':         value => $periodic_fuzzy_delay;
-    'DEFAULT/enable_metadata_proxy':        value => $enable_metadata_proxy;
-    'DEFAULT/router_delete_namespaces':     value => $router_delete_namespaces;
+    'DEFAULT/debug':                            value => $debug;
+    'DEFAULT/external_network_bridge':          value => $external_network_bridge;
+    'DEFAULT/use_namespaces':                   value => $use_namespaces;
+    'DEFAULT/interface_driver':                 value => $interface_driver;
+    'DEFAULT/router_id':                        value => $router_id;
+    'DEFAULT/gateway_external_network_id':      value => $gateway_external_network_id;
+    'DEFAULT/handle_internal_only_routers':     value => $handle_internal_only_routers;
+    'DEFAULT/metadata_port':                    value => $metadata_port;
+    'DEFAULT/send_arp_for_ha':                  value => $send_arp_for_ha;
+    'DEFAULT/periodic_interval':                value => $periodic_interval;
+    'DEFAULT/periodic_fuzzy_delay':             value => $periodic_fuzzy_delay;
+    'DEFAULT/enable_metadata_proxy':            value => $enable_metadata_proxy;
+    'DEFAULT/router_delete_namespaces':         value => $router_delete_namespaces;
+    'DEFAULT/agent_mode':                       value => $agent_mode;
   }
 
   if $network_device_mtu {
-    warning('The neutron::l3_agent::newtork_device_mtu parameter is deprecated, use neutron::newtork_device_mtu instead.')
+    warning('The neutron::agents::l3::network_device_mtu parameter is deprecated, use neutron::network_device_mtu instead.')
     neutron_l3_agent_config {
       'DEFAULT/network_device_mtu':           value => $network_device_mtu;
     }
   } else {
-    warning('The neutron::l3_agent::newtork_device_mtu parameter is deprecated, use neutron::newtork_device_mtu instead.')
     neutron_l3_agent_config {
       'DEFAULT/network_device_mtu':           ensure => absent;
     }
@@ -135,6 +180,7 @@ class neutron::agents::l3 (
       ensure  => $package_ensure,
       name    => $::neutron::params::l3_agent_package,
       require => Package['neutron'],
+      tag     => 'openstack',
     }
   } else {
     # Some platforms (RedHat) does not provide a neutron L3 agent package.

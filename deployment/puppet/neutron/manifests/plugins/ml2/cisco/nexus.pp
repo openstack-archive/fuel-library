@@ -33,6 +33,7 @@ class neutron::plugins::ml2::cisco::nexus (
   # and install it manually
   package { 'python-ncclient':
     ensure => installed,
+    tag    => 'openstack',
   } ~> Service['neutron-server']
 
   Neutron_plugin_ml2<||> ->
