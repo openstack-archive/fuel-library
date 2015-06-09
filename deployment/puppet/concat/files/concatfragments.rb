@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 # Script to concat files to a config file.
 #
 # Given a directory like this:
@@ -39,12 +40,13 @@ require 'optparse'
 require 'fileutils'
 
 settings = {
-  :outfile => "",
-  :workdir => "",
-  :test    => false,
-  :force   => false,
-  :warn    => "",
-  :sortarg => ""
+    :outfile => "",
+    :workdir => "",
+    :test => false,
+    :force => false,
+    :warn => "",
+    :sortarg => "",
+    :newline => false
 }
 
 OptionParser.new do |opts|
@@ -75,6 +77,10 @@ OptionParser.new do |opts|
 
   opts.on("-n", "--sort", "Sort the output numerically rather than the default alpha sort") do
     settings[:sortarg] = "-n"
+  end
+
+  opts.on("-l", "--line", "Append a newline") do
+    settings[:newline] = true
   end
 end.parse!
 
@@ -110,16 +116,26 @@ end
 Dir.chdir(settings[:workdir])
 
 if settings[:warn].empty?
-  File.open("fragments.concat", 'w') {|f| f.write("") }
+  File.open("fragments.concat", 'w') { |f| f.write("") }
 else
-  File.open("fragments.concat", 'w') {|f| f.write("#{settings[:warn]}\n") }
+  File.open("fragments.concat", 'w') { |f| f.write("#{settings[:warn]}\n") }
 end
 
 # find all the files in the fragments directory, sort them numerically and concat to fragments.concat in the working dir
 open('fragments.concat', 'a') do |f|
-  Dir.entries("fragments").sort.each{ |entry|
+  fragments = Dir.entries("fragments").sort
+  if settings[:sortarg] == '-n'
+    fragments = fragments.sort_by { |v| v.split('_').map(&:to_i) }
+  end
+  fragments.each { |entry|
     if File.file?(File.join("fragments", entry))
-	  f << File.read(File.join("fragments", entry))
+      f << File.read(File.join("fragments", entry))
+
+      # append a newline if we were asked to (invoked with -l)
+      if settings[:newline]
+        f << "\n"
+      end
+
     end
   }
 end

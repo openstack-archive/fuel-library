@@ -34,7 +34,7 @@
 #
 # === Actions:
 # * Creates fragment directories if it didn't exist already
-# * Executes the concatfragments.sh script to build the final file, this
+# * Executes the concatfragments.rb script to build the final file, this
 #   script will create directory/fragments.concat.   Execution happens only
 #   when:
 #   * The directory changes
@@ -64,6 +64,7 @@ define concat(
   $replace        = true,
   $order          = 'alpha',
   $ensure_newline = false,
+  $validate_cmd   = undef,
   $gnu            = undef
 ) {
   validate_re($ensure, '^present$|^absent$')
@@ -75,10 +76,15 @@ define concat(
     fail('$warn is not a string or boolean')
   }
   validate_bool($force)
-  validate_string($backup)
+  if ! concat_is_bool($backup) and ! is_string($backup) {
+    fail('$backup must be string or bool!')
+  }
   validate_bool($replace)
   validate_re($order, '^alpha$|^numeric$')
   validate_bool($ensure_newline)
+  if $validate_cmd and ! is_string($validate_cmd) {
+    fail('$validate_cmd must be a string')
+  }
   if $gnu {
     warning('The $gnu parameter to concat is deprecated and has no effect')
   }
@@ -93,6 +99,7 @@ define concat(
   $default_warn_message = '# This file is managed by Puppet. DO NOT EDIT.'
   $bool_warn_message    = 'Using stringified boolean values (\'true\', \'yes\', \'on\', \'false\', \'no\', \'off\') to represent boolean true/false as the $warn parameter to concat is deprecated and will be treated as the warning message in a future release'
 
+  # lint:ignore:quoted_booleans
   case $warn {
     true: {
       $warn_message = $default_warn_message
@@ -112,6 +119,7 @@ define concat(
       $warn_message = $warn
     }
   }
+  # lint:endignore
 
   $warnmsg_escaped = regsubst($warn_message, '\'', '\'\\\'\'', 'G')
   $warnflag = $warnmsg_escaped ? {
@@ -135,7 +143,13 @@ define concat(
   }
 
   File {
-    backup  => false,
+    backup  => $backup,
+  }
+
+  # reset poisoned Exec defaults
+  Exec {
+    user  => undef,
+    group => undef,
   }
 
   if $ensure == 'present' {
@@ -176,11 +190,29 @@ define concat(
       backup  => $backup,
     }
 
+    # Only newer versions of puppet 3.x support the validate_cmd parameter
+    if $validate_cmd {
+      File[$name] {
+        validate_cmd => $validate_cmd,
+      }
+    }
+
     # remove extra whitespace from string interpolation to make testing easier
     $command = strip(regsubst("${script_command} -o \"${fragdir}/${concat_name}\" -d \"${fragdir}\" ${warnflag} ${forceflag} ${orderflag} ${newlineflag}", '\s+', ' ', 'G'))
 
+    # make sure ruby is in the path for PE
+    if defined('$is_pe') and $::is_pe {
+      if $::kernel == 'windows' {
+        $command_path = "${::env_windows_installdir}/bin:${::path}"
+      } else {
+        $command_path = "/opt/puppet/bin:${::path}"
+      }
+    } else {
+      $command_path = $::path
+    }
+
     # if puppet is running as root, this exec should also run as root to allow
-    # the concatfragments.sh script to potentially be installed in path that
+    # the concatfragments.rb script to potentially be installed in path that
     # may not be accessible by a target non-root owner.
     exec { "concat_${name}":
       alias     => "concat_${fragdir}",
@@ -188,7 +220,7 @@ define concat(
       notify    => File[$name],
       subscribe => File[$fragdir],
       unless    => "${command} -t",
-      path      => $::path,
+      path      => $command_path,
       require   => [
         File[$fragdir],
         File["${fragdir}/fragments"],
@@ -211,10 +243,12 @@ define concat(
       backup => $backup,
     }
 
+    # lint:ignore:quoted_booleans
     $absent_exec_command = $::kernel ? {
       'windows' => 'cmd.exe /c exit 0',
       default   => 'true',
     }
+    # lint:endignore
 
     $absent_exec_path = $::kernel ? {
       'windows' => $::path,
