@@ -16,8 +16,6 @@ describe 'haproxy::base', :type => :class do
             { :osfamily => osfamily }.merge default_facts
           end
 
-          it { should contain_class('concat::setup') }
-
           it 'should set up /etc/haproxy/haproxy.cfg as a concat resource' do
             subject.should contain_concat('/etc/haproxy/haproxy.cfg').with(
               'owner'  => '0',

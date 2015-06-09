@@ -55,7 +55,6 @@ describe 'ssh::server' do
               'hasstatus'  => true
             )}
 
-            it { should contain_class('concat::setup') }
             it { should contain_concat('/etc/ssh/sshd_config') }
             it { should contain_concat__fragment('global config').with(
               :target  => '/etc/ssh/sshd_config',
