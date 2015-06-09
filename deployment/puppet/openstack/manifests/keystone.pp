@@ -64,6 +64,7 @@ class openstack::keystone (
   $admin_address               = false,
   $memcache_servers            = false,
   $memcache_server_port        = false,
+  $memcache_pool_maxsize       = false,
   $glance_public_address       = false,
   $glance_internal_address     = false,
   $glance_admin_address        = false,
@@ -225,6 +226,7 @@ class openstack::keystone (
     rabbit_hosts        => $rabbit_hosts,
     rabbit_virtual_host => $rabbit_virtual_host,
     memcache_servers    => $memcache_servers_real,
+    memcache_pool_maxsize => $memcache_pool_maxsize,
     token_driver        => $token_driver,
     token_provider      => 'keystone.token.providers.uuid.Provider',
     notification_driver => $notification_driver,
@@ -271,6 +273,7 @@ class openstack::keystone (
   }
 
   keystone_config {
+    'memcache/pool_maxsize':                           value => $memcache_pool_maxsize;
     'DATABASE/max_pool_size':                          value => $max_pool_size;
     'DATABASE/max_retries':                            value => $max_retries;
     'DATABASE/max_overflow':                           value => $max_overflow;
