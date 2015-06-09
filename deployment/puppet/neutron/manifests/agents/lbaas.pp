@@ -29,7 +29,8 @@
 #   Defaults to true.
 #
 # [*user_group*]
-#   (optional) The user group. Defaults to nogroup.
+#   (optional) The user group.
+#   Defaults to $::neutron::params::nobody_user_group
 #
 # [*manage_haproxy_package*]
 #   (optional) Whether to manage the haproxy package.
@@ -44,7 +45,7 @@ class neutron::agents::lbaas (
   $interface_driver       = 'neutron.agent.linux.interface.OVSInterfaceDriver',
   $device_driver          = 'neutron.services.loadbalancer.drivers.haproxy.namespace_driver.HaproxyNSDriver',
   $use_namespaces         = true,
-  $user_group             = 'nogroup',
+  $user_group             = $::neutron::params::nobody_user_group,
   $manage_haproxy_package = true,
 ) {
 

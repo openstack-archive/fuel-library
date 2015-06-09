@@ -85,6 +85,11 @@
 #   (optional) Enables network namespaces
 #   Defaults to false
 #
+# [*api_extensions_path*]
+#   (optional) Specify additional paths for API extensions that the
+#   module in use needs to load.
+#   Defaults to undef
+#
 # [*report_interval*]
 #   (optional) Seconds between nodes reporting state to server; should be less than
 #   agent_down_time, best if it is half or less than agent_down_time.
@@ -209,6 +214,7 @@ class neutron (
   $allow_pagination            = false,
   $allow_sorting               = false,
   $allow_overlapping_ips       = false,
+  $api_extensions_path         = undef,
   $root_helper                 = 'sudo neutron-rootwrap /etc/neutron/rootwrap.conf',
   $report_interval             = '30',
   $control_exchange            = 'neutron',
@@ -251,6 +257,7 @@ class neutron (
   include neutron::params
 
   Package['neutron'] -> Neutron_config<||>
+  Package['neutron'] -> Nova_Admin_Tenant_Id_Setter<||>
 
   if $use_ssl {
     if !$cert_file {
@@ -315,6 +322,7 @@ class neutron (
     'DEFAULT/allow_overlapping_ips':   value => $allow_overlapping_ips;
     'DEFAULT/control_exchange':        value => $control_exchange;
     'DEFAULT/rpc_backend':             value => $rpc_backend;
+    'DEFAULT/api_extensions_path':     value => $api_extensions_path;
     'agent/root_helper':               value => $root_helper;
     'agent/report_interval':           value => $report_interval;
   }

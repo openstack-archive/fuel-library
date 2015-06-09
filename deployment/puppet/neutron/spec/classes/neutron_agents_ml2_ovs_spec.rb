@@ -7,18 +7,19 @@ describe 'neutron::agents::ml2::ovs' do
   end
 
   let :default_params do
-    { :package_ensure       => 'present',
-      :enabled              => true,
-      :bridge_uplinks       => [],
-      :bridge_mappings      => [],
-      :integration_bridge   => 'br-int',
-      :enable_tunneling     => false,
-      :local_ip             => false,
-      :tunnel_bridge        => 'br-tun',
-      :polling_interval     => 2,
-      :l2_population        => false,
-      :arp_responder        => false,
-      :firewall_driver      => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver' }
+    { :package_ensure             => 'present',
+      :enabled                    => true,
+      :bridge_uplinks             => [],
+      :bridge_mappings            => [],
+      :integration_bridge         => 'br-int',
+      :enable_tunneling           => false,
+      :local_ip                   => false,
+      :tunnel_bridge              => 'br-tun',
+      :polling_interval           => 2,
+      :l2_population              => false,
+      :arp_responder              => false,
+      :enable_distributed_routing => false,
+      :firewall_driver            => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver' }
   end
 
   let :params do
@@ -90,6 +91,16 @@ describe 'neutron::agents::ml2::ovs' do
       end
     end
 
+    context 'when enabling DVR' do
+      before :each do
+        params.merge!(:enable_distributed_routing => true,
+                      :l2_population              => true )
+      end
+      it 'should enable DVR' do
+        should contain_neutron_plugin_ml2('agent/enable_distributed_routing').with_value(true)
+      end
+    end
+
     context 'when supplying bridge mappings for provider networks' do
       before :each do
         params.merge!(:bridge_uplinks => ['br-ex:eth2'],:bridge_mappings => ['default:br-ex'])
@@ -149,6 +160,18 @@ describe 'neutron::agents::ml2::ovs' do
         it 'should perform vxlan network configuration' do
           should contain_neutron_plugin_ml2('agent/tunnel_types').with_value(params[:tunnel_types])
           should contain_neutron_plugin_ml2('agent/vxlan_udp_port').with_value(params[:vxlan_udp_port])
+        end
+      end
+
+      context 'when l2 population is disabled and DVR enabled' do
+        before :each do
+          params.merge!(:enable_distributed_routing => true,
+                        :l2_population              => false )
+        end
+        it 'should fail' do
+          expect do
+            subject
+          end.to raise_error(Puppet::Error, /L2 population must be enabled when DVR is enabled/)
         end
       end
     end

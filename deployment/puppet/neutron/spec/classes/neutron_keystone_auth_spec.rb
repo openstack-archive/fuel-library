@@ -132,4 +132,47 @@ describe 'neutron::keystone::auth' do
 
   end
 
+  describe 'when disabling user configuration' do
+
+    let :params do
+      {
+        :password       => 'neutron_password',
+        :configure_user => false
+      }
+    end
+
+    it { should_not contain_keystone_user('neutron') }
+
+    it { should contain_keystone_user_role('neutron@services') }
+
+    it { should contain_keystone_service('neutron').with(
+      :ensure      => 'present',
+      :type        => 'network',
+      :description => 'Neutron Networking Service'
+    ) }
+
+  end
+
+  describe 'when disabling user and user role configuration' do
+
+    let :params do
+      {
+        :password            => 'neutron_password',
+        :configure_user      => false,
+        :configure_user_role => false
+      }
+    end
+
+    it { should_not contain_keystone_user('neutron') }
+
+    it { should_not contain_keystone_user_role('neutron@services') }
+
+    it { should contain_keystone_service('neutron').with(
+      :ensure      => 'present',
+      :type        => 'network',
+      :description => 'Neutron Networking Service'
+    ) }
+
+  end
+
 end

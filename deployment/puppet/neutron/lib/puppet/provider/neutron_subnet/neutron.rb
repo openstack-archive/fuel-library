@@ -12,7 +12,6 @@ Puppet::Type.type(:neutron_subnet).provide(
   EOT
 
   commands :neutron => 'neutron'
-  commands :keystone => 'keystone'
 
   mk_resource_methods
 

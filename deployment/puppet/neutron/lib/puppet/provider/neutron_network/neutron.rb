@@ -12,7 +12,6 @@ Puppet::Type.type(:neutron_network).provide(
   EOT
 
   commands :neutron => 'neutron'
-  commands :keystone => 'keystone'
 
   mk_resource_methods
 
@@ -54,15 +53,13 @@ Puppet::Type.type(:neutron_network).provide(
   def create
     network_opts = Array.new
 
-    if @resource[:shared] =~ /true/i
+    if @resource[:shared]
       network_opts << '--shared'
     end
 
     if @resource[:tenant_name]
       tenant_id = self.class.get_tenant_id(model.catalog,
                                            @resource[:tenant_name])
-      notice("***N*** neutron_network::create *** tenant_id='#{tenant_id.inspect}'")
-
       network_opts << "--tenant_id=#{tenant_id}"
     elsif @resource[:tenant_id]
       network_opts << "--tenant_id=#{@resource[:tenant_id]}"

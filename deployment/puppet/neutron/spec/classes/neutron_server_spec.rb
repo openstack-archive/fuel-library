@@ -12,22 +12,28 @@ describe 'neutron::server' do
   end
 
   let :default_params do
-    { :package_ensure          => 'present',
-      :enabled                 => true,
-      :auth_type               => 'keystone',
-      :auth_host               => 'localhost',
-      :auth_port               => '35357',
-      :auth_tenant             => 'services',
-      :auth_user               => 'neutron',
-      :database_connection     => 'sqlite:////var/lib/neutron/ovs.sqlite',
-      :database_max_retries    => '10',
-      :state_path              => '/var/lib/neutron',
-      :lock_path               => '/var/lib/neutron/lock',
-      :database_idle_timeout   => '3600',
-      :database_retry_interval => '10',
-      :sync_db                 => false,
-      :agent_down_time         => '75',
-      :router_scheduler_driver => 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
+    { :package_ensure           => 'present',
+      :enabled                  => true,
+      :auth_type                => 'keystone',
+      :auth_host                => 'localhost',
+      :auth_port                => '35357',
+      :auth_tenant              => 'services',
+      :auth_user                => 'neutron',
+      :database_connection      => 'sqlite:////var/lib/neutron/ovs.sqlite',
+      :database_max_retries     => '10',
+      :database_idle_timeout    => '3600',
+      :database_retry_interval  => '10',
+      :database_min_pool_size   => '1',
+      :database_max_pool_size   => '10',
+      :database_max_overflow    => '20',
+      :sync_db                  => false,
+      :agent_down_time          => '75',
+      :router_scheduler_driver  => 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
+      :router_distributed       => false,
+      :l3_ha                    => false,
+      :max_l3_agents_per_router => '3',
+      :min_l3_agents_per_router => '2',
+      :l3_ha_net_cidr           => '169.254.192.0/18'
     }
   end
 
@@ -42,9 +48,13 @@ describe 'neutron::server' do
       should contain_neutron_config('database/max_retries').with_value(p[:database_max_retries])
       should contain_neutron_config('database/idle_timeout').with_value(p[:database_idle_timeout])
       should contain_neutron_config('database/retry_interval').with_value(p[:database_retry_interval])
+      should contain_neutron_config('database/min_pool_size').with_value(p[:database_min_pool_size])
+      should contain_neutron_config('database/max_pool_size').with_value(p[:database_max_pool_size])
+      should contain_neutron_config('database/max_overflow').with_value(p[:database_max_overflow])
     end
 
     it { should contain_class('neutron::params') }
+    it { should contain_class('neutron::policy') }
 
     it 'configures authentication middleware' do
       should contain_neutron_api_config('filter:authtoken/auth_host').with_value(p[:auth_host]);
@@ -86,8 +96,6 @@ describe 'neutron::server' do
       should contain_neutron_config('DEFAULT/rpc_workers').with_value(facts[:processorcount])
       should contain_neutron_config('DEFAULT/agent_down_time').with_value(p[:agent_down_time])
       should contain_neutron_config('DEFAULT/router_scheduler_driver').with_value(p[:router_scheduler_driver])
-      should contain_neutron_config('DEFAULT/state_path').with_value(p[:state_path])
-      should contain_neutron_config('DEFAULT/lock_path').with_value(p[:lock_path])
     end
 
     context 'with manage_service as false' do
@@ -96,6 +104,48 @@ describe 'neutron::server' do
       end
       it 'should not start/stop service' do
         should contain_service('neutron-server').without_ensure
+      end
+    end
+
+    context 'with DVR enabled' do
+      before :each do
+        params.merge!(:router_distributed => true)
+      end
+      it 'should enable DVR' do
+        should contain_neutron_config('DEFAULT/router_distributed').with_value(true)
+      end
+    end
+
+    context 'with HA routers enabled' do
+      before :each do
+        params.merge!(:l3_ha => true)
+      end
+      it 'should enable HA routers' do
+        should contain_neutron_config('DEFAULT/ha_enabled').with_value(true)
+        should contain_neutron_config('DEFAULT/max_l3_agents_per_router').with_value('3')
+        should contain_neutron_config('DEFAULT/min_l3_agents_per_router').with_value('2')
+        should contain_neutron_config('DEFAULT/l3_ha_net_cidr').with_value('169.254.192.0/18')
+      end
+    end
+
+    context 'with HA routers enabled with unlimited l3 agents per router' do
+      before :each do
+        params.merge!(:l3_ha                    => true,
+                      :max_l3_agents_per_router => '0' )
+      end
+      it 'should enable HA routers' do
+        should contain_neutron_config('DEFAULT/max_l3_agents_per_router').with_value('0')
+      end
+    end
+
+    context 'with HA routers enabled and wrong parameters' do
+      before :each do
+        params.merge!(:l3_ha                    => true,
+                      :max_l3_agents_per_router => '2',
+                      :min_l3_agents_per_router => '3' )
+      end
+      it 'should fail to configure HA routerd' do
+        expect { subject }.to raise_error(Puppet::Error, /min_l3_agents_per_router should be less than or equal to max_l3_agents_per_router./)
       end
     end
   end
