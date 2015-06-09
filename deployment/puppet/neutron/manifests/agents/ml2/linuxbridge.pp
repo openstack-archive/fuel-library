@@ -71,10 +71,10 @@ class neutron::agents::ml2::linuxbridge (
   validate_array($tunnel_types)
   validate_array($physical_interface_mappings)
 
-  include neutron::params
+  include ::neutron::params
 
-  Package['neutron-plugin-linuxbridge-agent'] -> Neutron_plugin_linuxbridge<||>
-  Neutron_plugin_linuxbridge<||> ~> Service['neutron-plugin-linuxbridge-agent']
+  Package['neutron-plugin-linuxbridge-agent'] -> Neutron_agent_linuxbridge<||>
+  Neutron_agent_linuxbridge<||> ~> Service['neutron-plugin-linuxbridge-agent']
 
   if ('vxlan' in $tunnel_types) {
 
@@ -83,30 +83,30 @@ class neutron::agents::ml2::linuxbridge (
     }
 
     if $vxlan_group {
-      neutron_plugin_linuxbridge { 'vxlan/vxlan_group': value => $vxlan_group }
+      neutron_agent_linuxbridge { 'vxlan/vxlan_group': value => $vxlan_group }
     } else {
-      neutron_plugin_linuxbridge { 'vxlan/vxlan_group': ensure => absent }
+      neutron_agent_linuxbridge { 'vxlan/vxlan_group': ensure => absent }
     }
 
     if $vxlan_ttl {
-      neutron_plugin_linuxbridge { 'vxlan/vxlan_ttl': value => $vxlan_ttl }
+      neutron_agent_linuxbridge { 'vxlan/vxlan_ttl': value => $vxlan_ttl }
     } else {
-      neutron_plugin_linuxbridge { 'vxlan/vxlan_ttl': ensure => absent }
+      neutron_agent_linuxbridge { 'vxlan/vxlan_ttl': ensure => absent }
     }
 
     if $vxlan_tos {
-      neutron_plugin_linuxbridge { 'vxlan/vxlan_tos': value => $vxlan_tos }
+      neutron_agent_linuxbridge { 'vxlan/vxlan_tos': value => $vxlan_tos }
     } else {
-      neutron_plugin_linuxbridge { 'vxlan/vxlan_tos': ensure => absent }
+      neutron_agent_linuxbridge { 'vxlan/vxlan_tos': ensure => absent }
     }
 
-    neutron_plugin_linuxbridge {
+    neutron_agent_linuxbridge {
       'vxlan/enable_vxlan':  value => true;
       'vxlan/local_ip':      value => $local_ip;
       'vxlan/l2_population': value => $l2_population;
     }
   } else {
-    neutron_plugin_linuxbridge {
+    neutron_agent_linuxbridge {
       'vxlan/enable_vxlan':  value  => false;
       'vxlan/local_ip':      ensure => absent;
       'vxlan/vxlan_group':   ensure => absent;
@@ -114,29 +114,31 @@ class neutron::agents::ml2::linuxbridge (
     }
   }
 
-  neutron_plugin_linuxbridge {
+  neutron_agent_linuxbridge {
     'agent/polling_interval':                   value => $polling_interval;
     'linux_bridge/physical_interface_mappings': value => join($physical_interface_mappings, ',');
   }
 
   if $firewall_driver {
-    neutron_plugin_linuxbridge { 'securitygroup/firewall_driver': value => $firewall_driver }
+    neutron_agent_linuxbridge { 'securitygroup/firewall_driver': value => $firewall_driver }
   } else {
-    neutron_plugin_linuxbridge { 'securitygroup/firewall_driver': ensure => absent }
+    neutron_agent_linuxbridge { 'securitygroup/firewall_driver': ensure => absent }
   }
 
   if $::neutron::params::linuxbridge_agent_package {
     package { 'neutron-plugin-linuxbridge-agent':
-      ensure  => $package_ensure,
-      name    => $::neutron::params::linuxbridge_agent_package,
+      ensure => $package_ensure,
+      name   => $::neutron::params::linuxbridge_agent_package,
+      tag    => 'openstack',
     }
   } else {
     # Some platforms (RedHat) do not provide a separate
     # neutron plugin linuxbridge agent package.
     if ! defined(Package['neutron-plugin-linuxbridge-agent']) {
       package { 'neutron-plugin-linuxbridge-agent':
-        ensure  => $package_ensure,
-        name    => $::neutron::params::linuxbridge_server_package,
+        ensure => $package_ensure,
+        name   => $::neutron::params::linuxbridge_server_package,
+        tag    => 'openstack',
       }
     }
   }
