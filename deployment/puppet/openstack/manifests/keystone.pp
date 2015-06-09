@@ -64,6 +64,7 @@ class openstack::keystone (
   $admin_address               = false,
   $memcache_servers            = false,
   $memcache_server_port        = false,
+  $memcache_pool_maxsize       = false,
   $glance_public_address       = false,
   $glance_internal_address     = false,
   $glance_admin_address        = false,
@@ -272,6 +273,7 @@ class openstack::keystone (
   }
 
   keystone_config {
+    'memcache/pool_maxsize':                           value => $memcache_pool_maxsize;
     'DATABASE/max_pool_size':                          value => $max_pool_size;
     'DATABASE/max_retries':                            value => $max_retries;
     'DATABASE/max_overflow':                           value => $max_overflow;
