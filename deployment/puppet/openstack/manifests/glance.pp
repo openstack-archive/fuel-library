@@ -59,6 +59,9 @@ class openstack::glance (
   $debug                          = false,
   $enabled                        = true,
   $use_syslog                     = false,
+  $show_image_direct_url          = true,
+  $swift_store_large_object_size  = '5120',
+  $pipeline                       = 'keystone+cachemanagement',
   # Facility is common for all glance services
   $syslog_log_facility            = 'LOG_LOCAL2',
   $glance_image_cache_max_size    = '10737418240',
@@ -110,8 +113,8 @@ class openstack::glance (
     use_syslog            => $use_syslog,
     log_facility          => $syslog_log_facility,
     sql_idle_timeout      => $idle_timeout,
-    show_image_direct_url => true,
-    pipeline              => 'keystone+cachemanagement',
+    show_image_direct_url => $show_image_direct_url,
+    pipeline              => $pipeline,
     known_stores          => $known_stores,
   }
 
@@ -236,6 +239,7 @@ class openstack::glance (
         swift_store_user => "services:glance",
         swift_store_key=> $glance_user_password,
         swift_store_create_container_on_put => "True",
+        swift_store_large_object_size => $swift_store_large_object_size,
         swift_store_auth_address => "http://${keystone_host}:5000/v2.0/"
       }
     }
