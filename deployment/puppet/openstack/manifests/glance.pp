@@ -38,8 +38,10 @@
 
 class openstack::glance (
   $db_host                        = 'localhost',
-  $glance_user_password           = false,
   $glance_db_password             = false,
+  $glance_user                    = 'glance',
+  $glance_user_password           = false,
+  $glance_tenant                  = 'services',
   $bind_host                      = '127.0.0.1',
   $keystone_host                  = '127.0.0.1',
   $registry_host                  = '127.0.0.1',
@@ -59,6 +61,9 @@ class openstack::glance (
   $debug                          = false,
   $enabled                        = true,
   $use_syslog                     = false,
+  $show_image_direct_url          = true,
+  $swift_store_large_object_size  = '5120',
+  $pipeline                       = 'keystone+cachemanagement',
   # Facility is common for all glance services
   $syslog_log_facility            = 'LOG_LOCAL2',
   $glance_image_cache_max_size    = '10737418240',
@@ -101,17 +106,17 @@ class openstack::glance (
     auth_type             => 'keystone',
     auth_port             => '35357',
     auth_host             => $keystone_host,
-    keystone_tenant       => 'services',
-    keystone_user         => 'glance',
+    keystone_user         => $glance_user,
     keystone_password     => $glance_user_password,
+    keystone_tenant       => $glance_tenant,
     sql_connection        => $sql_connection,
     enabled               => $enabled,
     registry_host         => $registry_host,
     use_syslog            => $use_syslog,
     log_facility          => $syslog_log_facility,
     sql_idle_timeout      => $idle_timeout,
-    show_image_direct_url => true,
-    pipeline              => 'keystone+cachemanagement',
+    show_image_direct_url => $show_image_direct_url,
+    pipeline              => $pipeline,
     known_stores          => $known_stores,
   }
 
@@ -148,9 +153,9 @@ class openstack::glance (
     auth_host           => $keystone_host,
     auth_port           => '35357',
     auth_type           => 'keystone',
-    keystone_tenant     => 'services',
-    keystone_user       => 'glance',
+    keystone_user       => $glance_user,
     keystone_password   => $glance_user_password,
+    keystone_tenant     => $glance_tenant,
     sql_connection      => $sql_connection,
     enabled             => $enabled,
     use_syslog          => $use_syslog,
@@ -233,9 +238,10 @@ class openstack::glance (
         notify{ "Module ${module_name} cannot notify service glance-api on package swift update": }
       }
       class { "glance::backend::$glance_backend":
-        swift_store_user => "services:glance",
+        swift_store_user => "${glance_tenant}:${glance_user}",
         swift_store_key=> $glance_user_password,
         swift_store_create_container_on_put => "True",
+        swift_store_large_object_size => $swift_store_large_object_size,
         swift_store_auth_address => "http://${keystone_host}:5000/v2.0/"
       }
     }
