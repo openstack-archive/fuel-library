@@ -1,0 +1,8 @@
+- id: updates-sync
+  type: shell
+  groups: []
+  requires: []
+  required_for: []
+  parameters:
+    cmd: bash /usr/local/bin/puppet-pull
+    timeout: 180
