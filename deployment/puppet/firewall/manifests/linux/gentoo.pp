@@ -1,7 +1,7 @@
-# = Class: firewall::linux::archlinux
+# = Class: firewall::linux::gentoo
 #
 # Manages `iptables` and `ip6tables` services, and creates files used for
-# persistence, on Arch Linux systems.
+# persistence, on Gentoo Linux systems.
 #
 # == Parameters:
 #
@@ -13,7 +13,7 @@
 #   Enable parameter passed onto Service[] resources.
 #   Default: true
 #
-class firewall::linux::archlinux (
+class firewall::linux::gentoo (
   $ensure       = 'running',
   $enable       = true,
   $service_name = $::firewall::params::service_name,
@@ -21,7 +21,7 @@ class firewall::linux::archlinux (
 ) inherits ::firewall::params {
   if $package_name {
     package { $package_name:
-      ensure => $ensure,
+      ensure => present,
     }
   }
 
@@ -31,12 +31,12 @@ class firewall::linux::archlinux (
     hasstatus => true,
   }
 
-  file { '/etc/iptables/iptables.rules':
+  file { '/var/lib/iptables/rules-save':
     ensure => present,
     before => Service[$service_name],
   }
 
-  file { '/etc/iptables/ip6tables.rules':
+  file { '/var/lib/iptables/rules-save6':
     ensure => present,
     before => Service[$service_name],
   }

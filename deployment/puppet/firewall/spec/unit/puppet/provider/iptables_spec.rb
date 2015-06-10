@@ -21,6 +21,10 @@ describe 'iptables provider detection' do
   before :each do
     # Reset the default provider
     Puppet::Type.type(:firewall).defaultprovider = nil
+
+    # Stub confine facts
+    allow(Facter.fact(:kernel)).to receive(:value).and_return('Linux')
+    allow(Facter.fact(:operatingsystem)).to receive(:value).and_return('Debian')
   end
 
   it "should default to iptables provider if /sbin/iptables[-save] exists" do
@@ -32,7 +36,7 @@ describe 'iptables provider detection' do
 
     # Every other command should return false so we don't pick up any
     # other providers
-    allow(exists).to receive(:which).with() { |value|
+    allow(exists).to receive(:which) { |value|
       ! ["iptables","iptables-save"].include?(value)
     }.and_return false
 
@@ -224,7 +228,7 @@ describe 'iptables provider' do
           it "the parameter '#{param_name.to_s}' should match #{param_value.inspect}" do
             # booleans get cludged to string "true"
             if param_value == true then
-              expect(resource[param_name]).to be_true
+              expect(resource[param_name]).to be_truthy
             else
               expect(resource[param_name]).to eq(data[:params][param_name])
             end
@@ -308,6 +312,27 @@ describe 'iptables provider' do
 
     it 'fails when modifying the chain' do
       expect { instance.chain = "OUTPUT" }.to raise_error(/is not supported/)
+    end
+  end
+
+  describe 'when inverting rules' do
+    let(:resource) {
+      Puppet::Type.type(:firewall).new({
+        :name  => '040 partial invert',
+        :table       => 'filter',
+        :action      => 'accept',
+        :chain       => 'nova-compute-FORWARD',
+        :source      => '0.0.0.0/32',
+        :destination => '255.255.255.255/32',
+        :sport       => ['! 78','79','http'],
+        :dport       => ['77','! 76'],
+        :proto       => 'udp',
+      })
+    }
+    let(:instance) { provider.new(resource) }
+
+    it 'fails when not all array items are inverted' do
+      expect { instance.insert }.to raise_error Puppet::Error, /but '79', '80' are not prefixed/
     end
   end
 
