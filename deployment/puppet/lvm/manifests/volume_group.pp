@@ -1,13 +1,20 @@
-define lvm::volume_group(
+# == Define: lvm::volume_group
+#
+define lvm::volume_group (
   $physical_volumes,
   $ensure           = present,
   $logical_volumes  = {},
 ) {
+
   validate_hash($logical_volumes)
+
+  if ($name == undef) {
+    fail("lvm::volume_group \$name can't be undefined")
+  }
 
   physical_volume { $physical_volumes:
     ensure => $ensure,
-  }
+  } ->
 
   volume_group { $name:
     ensure           => $ensure,
