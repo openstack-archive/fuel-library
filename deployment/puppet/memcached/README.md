@@ -33,6 +33,7 @@ If you find this module useful, send some bitcoins to 1Na3YFUmdxKxJLiuRXQYJU2kiN
 
 * $package_ensure = 'present'
 * $logfile = '/var/log/memcached.log'
+* $pidfile = '/var/run/memcached.pid' (Debian family only, set to false to disable pidfile)
 * $max_memory = false
 * $item_size = false
 * $lock_memory = false (WARNING: good if used intelligently, google for -k key)
@@ -47,3 +48,5 @@ If you find this module useful, send some bitcoins to 1Na3YFUmdxKxJLiuRXQYJU2kiN
 * $install_dev = false (TRUE if 'libmemcached-dev' package should be installed)
 * $processorcount = $::processorcount
 * $service_restart = true (restart service after configuration changes, false to prevent restarts)
+* $use_sasl = false (start memcached with SASL support)
+* $large_mem_pages = false (try to use large memory pages)

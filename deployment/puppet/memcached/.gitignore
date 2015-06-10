@@ -1,4 +1,5 @@
 pkg/
 *.swp
-/metadata.json
 .forge-releng/
+Gemfile.lock
+vendor/

@@ -59,7 +59,9 @@ describe 'memcached' do
       :user            => 'nobody',
       :max_connections => '8192',
       :install_dev     => false,
-      :processorcount  => 1
+      :processorcount  => 1,
+      :use_sasl        => false,
+      :large_mem_pages => false,
     }
   end
 
@@ -76,7 +78,9 @@ describe 'memcached' do
       :user            => 'somebdy',
       :max_connections => '8193',
       :verbosity       => 'vvv',
-      :processorcount  => 3
+      :processorcount  => 3,
+      :use_sasl        => true,
+      :large_mem_pages => true,
     },
     {
       :package_ensure  => 'present',
@@ -91,6 +95,22 @@ describe 'memcached' do
       :verbosity       => 'vvv',
       :install_dev     => true,
       :processorcount  => 1
+    },
+    {
+      :listen_ip       => '',
+    },
+    {
+      :pidfile         => false,
+    },
+    {
+      :pidfile         => '/var/log/memcached.pid',
+    },
+    {
+      :package_ensure  => 'absent',
+      :install_dev     => true
+    },
+    {
+      :service_manage => false
     }
   ].each do |param_set|
     describe "when #{param_set == {} ? "using default" : "specifying"} class parameters" do
@@ -133,12 +153,23 @@ describe 'memcached' do
             'group'   => 'root'
           )}
 
-          it { should contain_service("memcached").with(
-            'ensure'     => 'running',
-            'enable'     => true,
-            'hasrestart' => true,
-            'hasstatus'  => false
-          )}
+          it { 
+            if param_hash[:service_manage] == false
+              should_not contain_service('memcached')
+            elsif param_hash[:package_ensure] == 'absent'
+              should contain_service("memcached").with(
+                'ensure'     => 'stopped',
+                'enable'     => false
+              )
+            else
+              should contain_service("memcached").with(
+                'ensure'     => 'running',
+                'enable'     => true,
+                'hasrestart' => true,
+                'hasstatus'  => false
+              )
+            end
+          }
 
           it 'should compile the template based on the class parameters' do
             content = param_value(
@@ -149,7 +180,6 @@ describe 'memcached' do
             )
             expected_lines = [
               "logfile #{param_hash[:logfile]}",
-              "-l #{param_hash[:listen_ip]}",
               "-p #{param_hash[:tcp_port]}",
               "-U #{param_hash[:udp_port]}",
               "-u #{param_hash[:user]}",
@@ -165,11 +195,23 @@ describe 'memcached' do
             else
               expected_lines.push("-m 950")
             end
+            if(param_hash[:listen_ip] != '')
+              expected_lines.push("-l #{param_hash[:listen_ip]}")
+            end
             if(param_hash[:lock_memory])
               expected_lines.push("-k")
             end
+            if(param_hash[:pidfile])
+              expected_lines.push("-P #{param_hash[:pidfile]}")
+            end
             if(param_hash[:verbosity])
               expected_lines.push("-vvv")
+            end
+            if(param_hash[:use_sasl])
+              expected_lines.push("-S")
+            end
+            if(param_hash[:large_mem_pages])
+              expected_lines.push("-L")
             end
             (content.split("\n") & expected_lines).should =~ expected_lines
           end
@@ -185,3 +227,5 @@ describe 'memcached' do
     end
   end
 end
+
+# vim: expandtab shiftwidth=2 softtabstop=2

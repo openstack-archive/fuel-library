@@ -1,0 +1,28 @@
+<%-
+result = []
+if @verbosity
+  result << '-' + @verbosity.to_s
+end
+if @lock_memory
+  result << '-k'
+end
+if @listen_ip
+  result << '-l ' + @listen_ip
+end
+if @tcp_port
+  result << '-p ' + @tcp_port.to_s
+end
+if @udp_port
+  result << '-U ' + @udp_port.to_s
+end
+if @item_size
+  result << '-I ' + @item_size.to_s
+end
+result << '-t ' + @processorcount
+if @max_connections 
+  result << '-c ' + @max_connections
+end
+if @logfile
+  result << '>> ' + @logfile + ' 2>&1'
+end -%>
+c:\memcached\memcached.exe -d runservice <%= result.join(' ') %>

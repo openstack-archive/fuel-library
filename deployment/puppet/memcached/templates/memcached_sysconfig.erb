@@ -1,9 +1,4 @@
-PORT="<%= @tcp_port %>"
-USER="<%= @user %>"
-MAXCONN="<%= @max_connections %>"
-<% Puppet::Parser::Functions.function('memcached_max_memory') -%>
-CACHESIZE="<%= scope.function_memcached_max_memory([@max_memory]) %>"
-OPTIONS="<%
+<%-
 result = []
 if @verbosity
   result << '-' + @verbosity.to_s
@@ -20,8 +15,43 @@ end
 if @item_size
   result << '-I ' + @item_size.to_s
 end
-result << '-t ' + @processorcount
-if @logfile
+result << '-t ' + @processorcount.to_s
+
+# log to syslog via logger
+if @syslog && @logfile.empty?
+	result << '2>&1 |/bin/logger &'
+# log to log file
+elsif !@logfile.empty? && !@syslog
   result << '>> ' + @logfile + ' 2>&1'
 end
--%><%= result.join(' ') -%>"
+-%>
+<%- if scope['osfamily'] != 'Suse' -%>
+PORT="<%= @tcp_port %>"
+USER="<%= @user %>"
+MAXCONN="<%= @max_connections %>"
+<% Puppet::Parser::Functions.function('memcached_max_memory') -%>
+CACHESIZE="<%= scope.function_memcached_max_memory([@max_memory]) %>"
+OPTIONS="<%= result.join(' ') %>"
+<%- else -%>
+MEMCACHED_PARAMS="<%= result.join(' ') %>"
+
+## Path:        Network/WWW/Memcached
+## Description: username memcached should run as
+## Type:        string
+## Default:     "memcached"
+## Config:      memcached
+#
+# username memcached should run as
+#
+MEMCACHED_USER="<%= @user %>"
+
+## Path:        Network/WWW/Memcached
+## Description: group memcached should be run as
+## Type:        string
+## Default:     "memcached"
+## Config:      memcached
+#
+# group memcached should be run as
+#
+MEMCACHED_GROUP="<%= @user %>"
+<%- end -%>
