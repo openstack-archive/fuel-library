@@ -9,7 +9,7 @@ class ssh::server(
   include ssh::server::config
   include ssh::server::service
 
-  File[$ssh::params::sshd_config] ~> Service[$ssh::params::service_name]
+  Concat[$ssh::params::sshd_config] ~> Service[$ssh::params::service_name]
 
   anchor { 'ssh::server::start': }
   anchor { 'ssh::server::end': }

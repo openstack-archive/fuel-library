@@ -29,7 +29,6 @@ class haproxy::base (
   $use_stats        = $haproxy::params::use_stats,
   $stats_port       = $haproxy::params::stats_port,
 ) inherits haproxy::params {
-  include concat::setup
 
   concat { '/etc/haproxy/haproxy.cfg':
     owner  => '0',
