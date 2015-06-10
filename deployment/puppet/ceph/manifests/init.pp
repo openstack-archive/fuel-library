@@ -116,27 +116,27 @@ class ceph (
       include ceph::mon
 
       # DO NOT SPLIT ceph auth command lines! See http://tracker.ceph.com/issues/3279
-      ceph::pool {$glance_pool:
-        user          => $glance_user,
-        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${glance_pool}'",
-        keyring_owner => 'glance',
-      }
-
-      ceph::pool {$cinder_pool:
-        user          => $cinder_user,
-        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}'",
-        keyring_owner => 'cinder',
-      }
-
-      ceph::pool {$cinder_backup_pool:
-        user          => $cinder_backup_user,
-        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_backup_pool}, allow rx pool=${cinder_pool}'",
-        keyring_owner => 'cinder',
-      }
+#      ceph::pool {$glance_pool:
+#        user          => $glance_user,
+#        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${glance_pool}'",
+#        keyring_owner => 'glance',
+#      }
+#
+#      ceph::pool {$cinder_pool:
+#        user          => $cinder_user,
+#        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}'",
+#        keyring_owner => 'cinder',
+#      }
+#
+#      ceph::pool {$cinder_backup_pool:
+#        user          => $cinder_backup_user,
+#        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_backup_pool}, allow rx pool=${cinder_pool}'",
+#        keyring_owner => 'cinder',
+#      }
 
       Class['ceph::conf'] -> Class['ceph::mon'] ->
-      Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] ->
-      Ceph::Pool[$cinder_backup_pool] -> Service['ceph']
+#      Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] -> Ceph::Pool[$cinder_backup_pool] ->
+       Service['ceph']
 
       if ($::ceph::use_rgw) {
         include ceph::radosgw
@@ -157,11 +157,11 @@ class ceph (
     }
 
     'compute': {
-      ceph::pool {$compute_pool:
-        user          => $compute_user,
-        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}'",
-        keyring_owner => 'nova',
-      }
+#      ceph::pool {$compute_pool:
+#        user          => $compute_user,
+#        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}'",
+#        keyring_owner => 'nova',
+#      }
 
       include ceph::nova_compute
 
@@ -172,7 +172,7 @@ class ceph (
       }
 
       Class['ceph::conf'] ->
-      Ceph::Pool[$compute_pool] ->
+#      Ceph::Pool[$compute_pool] ->
       Class['ceph::nova_compute'] ~>
       Service[$::ceph::params::service_nova_compute]
     }
