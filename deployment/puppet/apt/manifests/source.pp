@@ -1,93 +1,85 @@
 # source.pp
 # add an apt source
-
 define apt::source(
-  $comment           = $name,
-  $ensure            = present,
-  $location          = '',
-  $release           = 'UNDEF',
-  $repos             = 'main',
-  $include_src       = true,
-  $include_deb       = true,
-  $required_packages = false,
-  $key               = undef,
-  $key_server        = 'keyserver.ubuntu.com',
-  $key_content       = undef,
-  $key_source        = undef,
-  $pin               = false,
-  $architecture      = undef,
-  $trusted_source    = false,
+  $location       = undef,
+  $comment        = $name,
+  $ensure         = present,
+  $release        = $::apt::xfacts['lsbdistcodename'],
+  $repos          = 'main',
+  $include        = {},
+  $key            = undef,
+  $pin            = undef,
+  $architecture   = undef,
+  $allow_unsigned = false,
 ) {
+  validate_string($architecture, $comment, $location, $repos)
+  validate_bool($allow_unsigned)
+  validate_hash($include)
 
-  include apt::params
-  include apt::update
+  unless $release {
+    fail('lsbdistcodename fact not available: release parameter required')
+  }
 
-  validate_string($architecture)
-  validate_bool($trusted_source)
+  if $ensure == 'present' and ! $location {
+    fail('cannot create a source entry without specifying a location')
+  }
 
-  $sources_list_d = $apt::params::sources_list_d
-  $provider       = $apt::params::provider
+  $_before = Apt::Setting["list-${title}"]
+  $_include = merge($::apt::include_defaults, $include)
 
-  if $release == 'UNDEF' {
-    if $::lsbdistcodename == undef {
-      fail('lsbdistcodename fact not available: release parameter required')
+  if $key {
+    if is_hash($key) {
+      unless $key['id'] {
+        fail('key hash must contain at least an id entry')
+      }
+      $_key = merge($::apt::source_key_defaults, $key)
     } else {
-      $release_real = $::lsbdistcodename
+      validate_string($key)
+      $_key = $key
     }
-  } else {
-    $release_real = $release
   }
 
-  file { "${name}.list":
+  apt::setting { "list-${name}":
     ensure  => $ensure,
-    path    => "${sources_list_d}/${name}.list",
-    owner   => root,
-    group   => root,
-    mode    => '0644',
     content => template('apt/_header.erb', 'apt/source.list.erb'),
-    notify  => Exec['apt_update'],
   }
 
-
-  if ($pin != false) {
-    # Get the host portion out of the url so we can pin to origin
-    $url_split = split($location, '/')
-    $host      = $url_split[2]
-
-    apt::pin { $name:
-      ensure   => $ensure,
-      priority => $pin,
-      before   => File["${name}.list"],
-      origin   => $host,
+  if $pin {
+    if is_hash($pin) {
+      $_pin = merge($pin, { 'ensure' => $ensure, 'before' => $_before })
+    } elsif (is_numeric($pin) or is_string($pin)) {
+      $url_split = split($location, '/')
+      $host      = $url_split[2]
+      $_pin = {
+        'ensure'   => $ensure,
+        'priority' => $pin,
+        'before'   => $_before,
+        'origin'   => $host,
+      }
+    } else {
+      fail('Received invalid value for pin parameter')
     }
-  }
-
-  if ($required_packages != false) and ($ensure == 'present') {
-    exec { "Required packages: '${required_packages}' for ${name}":
-      command     => "${provider} -y install ${required_packages}",
-      logoutput   => 'on_failure',
-      refreshonly => true,
-      tries       => 3,
-      try_sleep   => 1,
-      subscribe   => File["${name}.list"],
-      before      => Exec['apt_update'],
-    }
+    create_resources('apt::pin', { "${name}" => $_pin })
   }
 
   # We do not want to remove keys when the source is absent.
   if $key and ($ensure == 'present') {
-    apt::key { "Add key: ${key} from Apt::Source ${title}":
-      ensure      => present,
-      key         => $key,
-      key_server  => $key_server,
-      key_content => $key_content,
-      key_source  => $key_source,
-      before      => File["${name}.list"],
+    if is_hash($_key) {
+      apt::key { "Add key: ${_key['id']} from Apt::Source ${title}":
+        ensure  => present,
+        id      => $_key['id'],
+        server  => $_key['server'],
+        content => $_key['content'],
+        source  => $_key['source'],
+        options => $_key['options'],
+        before  => $_before,
+      }
+    } else {
+      apt::key { "Add key: ${_key} from Apt::Source ${title}":
+        ensure => present,
+        id     => $_key,
+        before => $_before,
+      }
     }
-  }
-
-  # Need anchor to provide containment for dependencies.
-  anchor { "apt::source::${name}":
-    require => Class['apt::update'],
   }
 }

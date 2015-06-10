@@ -12,24 +12,28 @@ describe 'apt class' do
     it 'should work with no errors' do
       pp = <<-EOS
       class { 'apt':
-        always_apt_update    => true,
-        disable_keys         => true,
-        purge_sources_list   => true,
-        purge_sources_list_d => true,
-        purge_preferences    => true,
-        purge_preferences_d  => true,
-        update_timeout       => '400',
-        update_tries         => '3',
-        sources              => {
-          'puppetlabs' => {
-            'ensure'     => present,
-            'location'   => 'http://apt.puppetlabs.com',
-            'repos'      => 'main',
-            'key'        => '47B320EB4C7C375AA9DAE1A01054B7A24BD6EC30',
-            'key_server' => 'pgp.mit.edu',
-          }
+        update => {
+          'frequency' => 'always',
+          'timeout'   => '400',
+          'tries'     => '3',
         },
-        fancy_progress       => true,
+        purge => {
+          'sources.list'   => true,
+          'sources.list.d' => true,
+          'preferences'    => true,
+          'preferences.d'  => true,
+        },
+        sources => {
+          'puppetlabs' => {
+            'ensure'   => present,
+            'location' => 'http://apt.puppetlabs.com',
+            'repos'    => 'main',
+            'key'      => {
+              'id'     => '47B320EB4C7C375AA9DAE1A01054B7A24BD6EC30',
+              'server' => 'pgp.mit.edu',
+            },
+          },
+        },
       }
       EOS
 

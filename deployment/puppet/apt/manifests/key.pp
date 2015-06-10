@@ -7,7 +7,7 @@
 #
 # === Parameters
 #
-# [*key*]
+# [*id*]
 #   _default_: +$title+, the title/name of the resource
 #
 #   Is a GPG key ID or full key fingerprint. This value is validated with
@@ -23,14 +23,14 @@
 #   * +present+
 #   * +absent+
 #
-# [*key_content*]
+# [*content*]
 #   _default_: +undef+
 #
 #   This parameter can be used to pass in a GPG key as a
 #   string in case it cannot be fetched from a remote location
 #   and using a file resource is for other reasons inconvenient.
 #
-# [*key_source*]
+# [*source*]
 #   _default_: +undef+
 #
 #   This parameter can be used to pass in the location of a GPG
@@ -38,80 +38,78 @@
 #   * +URL+: ftp, http or https
 #   * +path+: absolute path to a file on the target system.
 #
-# [*key_server*]
+# [*server*]
 #   _default_: +undef+
 #
 #   The keyserver from where to fetch our GPG key. It can either be a domain
-#   name or url. It defaults to
-#   undef which results in apt_key's default keyserver being used,
-#   currently +keyserver.ubuntu.com+.
+#   name or url. It defaults to +keyserver.ubuntu.com+.
 #
-# [*key_options*]
+# [*options*]
 #   _default_: +undef+
 #
 #   Additional options to pass on to `apt-key adv --keyserver-options`.
 define apt::key (
-  $key         = $title,
-  $ensure      = present,
-  $key_content = undef,
-  $key_source  = undef,
-  $key_server  = undef,
-  $key_options = undef,
+  $id      = $title,
+  $ensure  = present,
+  $content = undef,
+  $source  = undef,
+  $server  = $::apt::keyserver,
+  $options = undef,
 ) {
 
-  validate_re($key, ['\A(0x)?[0-9a-fA-F]{8}\Z', '\A(0x)?[0-9a-fA-F]{16}\Z', '\A(0x)?[0-9a-fA-F]{40}\Z'])
+  validate_re($id, ['\A(0x)?[0-9a-fA-F]{8}\Z', '\A(0x)?[0-9a-fA-F]{16}\Z', '\A(0x)?[0-9a-fA-F]{40}\Z'])
   validate_re($ensure, ['\Aabsent|present\Z',])
 
-  if $key_content {
-    validate_string($key_content)
+  if $content {
+    validate_string($content)
   }
 
-  if $key_source {
-    validate_re($key_source, ['\Ahttps?:\/\/', '\Aftp:\/\/', '\A\/\w+'])
+  if $source {
+    validate_re($source, ['\Ahttps?:\/\/', '\Aftp:\/\/', '\A\/\w+'])
   }
 
-  if $key_server {
-    validate_re($key_server,['\A((hkp|http|https):\/\/)?([a-z\d])([a-z\d-]{0,61}\.)+[a-z\d]+(:\d{2,5})?$'])
+  if $server {
+    validate_re($server,['\A((hkp|http|https):\/\/)?([a-z\d])([a-z\d-]{0,61}\.)+[a-z\d]+(:\d{2,5})?$'])
   }
 
-  if $key_options {
-    validate_string($key_options)
+  if $options {
+    validate_string($options)
   }
 
   case $ensure {
     present: {
-      if defined(Anchor["apt_key ${key} absent"]){
-        fail("key with id ${key} already ensured as absent")
+      if defined(Anchor["apt_key ${id} absent"]){
+        fail("key with id ${id} already ensured as absent")
       }
 
-      if !defined(Anchor["apt_key ${key} present"]) {
+      if !defined(Anchor["apt_key ${id} present"]) {
         apt_key { $title:
-          ensure            => $ensure,
-          id                => $key,
-          source            => $key_source,
-          content           => $key_content,
-          server            => $key_server,
-          keyserver_options => $key_options,
+          ensure  => $ensure,
+          id      => $id,
+          source  => $source,
+          content => $content,
+          server  => $server,
+          options => $options,
         } ->
-        anchor { "apt_key ${key} present": }
+        anchor { "apt_key ${id} present": }
       }
     }
 
     absent: {
-      if defined(Anchor["apt_key ${key} present"]){
-        fail("key with id ${key} already ensured as present")
+      if defined(Anchor["apt_key ${id} present"]){
+        fail("key with id ${id} already ensured as present")
       }
 
-      if !defined(Anchor["apt_key ${key} absent"]){
+      if !defined(Anchor["apt_key ${id} absent"]){
         apt_key { $title:
-          ensure            => $ensure,
-          id                => $key,
-          source            => $key_source,
-          content           => $key_content,
-          server            => $key_server,
-          keyserver_options => $key_options,
+          ensure  => $ensure,
+          id      => $id,
+          source  => $source,
+          content => $content,
+          server  => $server,
+          options => $options,
         } ->
-        anchor { "apt_key ${key} absent": }
+        anchor { "apt_key ${id} absent": }
       }
     }
 

@@ -8,7 +8,7 @@ describe 'apt_has_updates fact' do
     before {
       Facter.fact(:osfamily).expects(:value).at_least(1).returns 'RedHat'
     }
-    it { should be_nil }
+    it { is_expected.to be_nil }
   end
 
   describe 'on Debian based distro missing update-notifier-common' do
@@ -17,7 +17,7 @@ describe 'apt_has_updates fact' do
       File.stubs(:executable?) # Stub all other calls
       File.expects(:executable?).with('/usr/lib/update-notifier/apt-check').returns false
     }
-    it { should be_nil }
+    it { is_expected.to be_nil }
   end
 
   describe 'on Debian based distro with broken packages' do
@@ -28,7 +28,7 @@ describe 'apt_has_updates fact' do
       File.expects(:executable?).with('/usr/lib/update-notifier/apt-check').returns true
       Facter::Util::Resolution.expects(:exec).with('/usr/lib/update-notifier/apt-check 2>&1').returns "E: Error: BrokenCount > 0"
     }
-    it { should be_nil }
+    it { is_expected.to be_nil }
   end
 
   describe 'on Debian based distro with unknown error with semicolons' do
@@ -39,7 +39,7 @@ describe 'apt_has_updates fact' do
       File.expects(:executable?).with('/usr/lib/update-notifier/apt-check').returns true
       Facter::Util::Resolution.expects(:exec).with('/usr/lib/update-notifier/apt-check 2>&1').returns "E: Unknown Error: 'This error contains something that could be parsed like 4;3' (10)"
     }
-    it { should be_nil }
+    it { is_expected.to be_nil }
   end
 
   describe 'on Debian based distro' do
@@ -50,7 +50,7 @@ describe 'apt_has_updates fact' do
       File.expects(:executable?).with('/usr/lib/update-notifier/apt-check').returns true
       Facter::Util::Resolution.expects(:exec).with('/usr/lib/update-notifier/apt-check 2>&1').returns "4;3"
     }
-    it { should be true }
+    it { is_expected.to be true }
   end
 end
 

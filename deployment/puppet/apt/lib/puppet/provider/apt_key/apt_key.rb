@@ -141,7 +141,14 @@ Puppet::Type.type(:apt_key).provide(:apt_key) do
       if File.executable? command(:gpg)
         extracted_key = execute(["#{command(:gpg)} --with-fingerprint --with-colons #{file.path} | awk -F: '/^fpr:/ { print $10 }'"], :failonfail => false)
         extracted_key = extracted_key.chomp
-        if extracted_key != name
+
+        found_match = false
+        extracted_key.each_line do |line|
+          if line.chomp == name
+            found_match = true
+          end
+        end
+        if not found_match
           fail("The id in your manifest #{resource[:name]} and the fingerprint from content/source do not match. Please check there is not an error in the id or check the content/source is legitimate.")
         end
       else
@@ -161,8 +168,8 @@ Puppet::Type.type(:apt_key).provide(:apt_key) do
       # Breaking up the command like this is needed because it blows up
       # if --recv-keys isn't the last argument.
       command.push('adv', '--keyserver', resource[:server])
-      unless resource[:keyserver_options].nil?
-        command.push('--keyserver-options', resource[:keyserver_options])
+      unless resource[:options].nil?
+        command.push('--keyserver-options', resource[:options])
       end
       command.push('--recv-keys', resource[:id])
     elsif resource[:content]

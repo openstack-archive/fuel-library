@@ -8,7 +8,7 @@ describe 'apt_package_updates fact' do
     before { 
       Facter.fact(:apt_has_updates).stubs(:value).returns false
     }
-    it { should be nil }
+    it { is_expected.to be nil }
   end
 
   describe 'when apt has updates' do
@@ -22,9 +22,9 @@ describe 'apt_package_updates fact' do
     }
     it {
       if Facter.version < '2.0.0'
-        should == 'puppet-common,linux-generic,linux-image-generic'
+        is_expected.to eq('puppet-common,linux-generic,linux-image-generic')
       else
-        should == ['puppet-common', 'linux-generic', 'linux-image-generic']
+        is_expected.to eq(['puppet-common', 'linux-generic', 'linux-image-generic'])
       end
     }
   end

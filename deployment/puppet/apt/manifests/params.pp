@@ -1,95 +1,161 @@
 class apt::params {
+
+  if $::osfamily != 'Debian' {
+    fail('This module only works on Debian or derivatives like Ubuntu')
+  }
+
+  # prior to puppet 3.5.0, defined couldn't test if a variable was defined
+  # strict variables wasn't added until 3.5.0, so this should be fine.
+  if versioncmp($::puppetversion, '3.5.0') < 0 {
+    $xfacts = {
+      'lsbdistcodename'     => $::lsbdistcodename,
+      'lsbdistrelease'      => $::lsbdistrelease,
+      'lsbmajdistrelease'   => $::lsbmajdistrelease,
+      'lsbdistdescription'  => $::lsbdistdescription,
+      'lsbminordistrelease' => $::lsbminordistrelease,
+      'lsbdistid'           => $::lsbdistid,
+    }
+  } else {
+    # Strict variables facts lookup compatibility
+    $xfacts = {
+      'lsbdistcodename' => defined('$lsbdistcodename') ? {
+        true    => $::lsbdistcodename,
+        default => undef,
+      },
+      'lsbdistrelease' => defined('$lsbdistrelease') ? {
+        true    => $::lsbdistrelease,
+        default => undef,
+      },
+      'lsbmajdistrelease' => defined('$lsbmajdistrelease') ? {
+        true    => $::lsbmajdistrelease,
+        default => undef,
+      },
+      'lsbdistdescription' => defined('$lsbdistdescription') ? {
+        true    => $::lsbdistdescription,
+        default => undef,
+      },
+      'lsbminordistrelease' => defined('$lsbminordistrelease') ? {
+        true    => $::lsbminordistrelease,
+        default => undef,
+      },
+      'lsbdistid' => defined('$lsbdistid') ? {
+        true    => $::lsbdistid,
+        default => undef,
+      },
+    }
+  }
+
   $root           = '/etc/apt'
   $provider       = '/usr/bin/apt-get'
+  $sources_list   = "${root}/sources.list"
   $sources_list_d = "${root}/sources.list.d"
-  $apt_conf_d     = "${root}/apt.conf.d"
+  $conf_d         = "${root}/apt.conf.d"
+  $preferences    = "${root}/preferences"
   $preferences_d  = "${root}/preferences.d"
+  $keyserver      = 'keyserver.ubuntu.com'
 
-  case $::lsbdistid {
-    'ubuntu', 'debian': {
-      $distid = $::lsbdistid
-      $distcodename = $::lsbdistcodename
+  $config_files = {
+    'conf'   => {
+      'path' => $conf_d,
+      'ext'  => '',
+    },
+    'pref'   => {
+      'path' => $preferences_d,
+      'ext'  => '',
+    },
+    'list'   => {
+      'path' => $sources_list_d,
+      'ext'  => '.list',
     }
-    'linuxmint': {
-      if $::lsbdistcodename == 'debian' {
-        $distid = 'debian'
-        $distcodename = 'wheezy'
-      } else {
-        $distid = 'ubuntu'
-        $distcodename = $::lsbdistcodename ? {
-          'qiana'  => 'trusty',
-          'petra'  => 'saucy',
-          'olivia' => 'raring',
-          'nadia'  => 'quantal',
-          'maya'   => 'precise',
+  }
+
+  $update_defaults = {
+    'frequency' => 'reluctantly',
+    'timeout'   => undef,
+    'tries'     => undef,
+  }
+
+  $proxy_defaults = {
+    'host'  => undef,
+    'port'  => 8080,
+    'https' => false,
+  }
+
+  $purge_defaults = {
+    'sources.list'   => false,
+    'sources.list.d' => false,
+    'preferences'    => false,
+    'preferences.d'  => false,
+  }
+
+  $source_key_defaults = {
+    'server'  => $keyserver,
+    'options' => undef,
+    'content' => undef,
+    'source'  => undef,
+  }
+
+  $include_defaults = {
+    'deb' => true,
+    'src' => false,
+  }
+
+  case $xfacts['lsbdistid'] {
+    'debian': {
+      case $xfacts['lsbdistcodename'] {
+        'squeeze': {
+          $backports = {
+            'location' => 'http://backports.debian.org/debian-backports',
+            'key'      => 'A1BD8E9D78F7FE5C3E65D8AF8B48AD6246925553',
+            'repos'    => 'main contrib non-free',
+          }
+        }
+        default: {
+          $backports = {
+            'location' => 'http://ftp.debian.org/debian/',
+            'key'      => 'A1BD8E9D78F7FE5C3E65D8AF8B48AD6246925553',
+            'repos'    => 'main contrib non-free',
+          }
+        }
+      }
+
+      $ppa_options = undef
+      $ppa_package = undef
+
+    }
+    'ubuntu': {
+      $backports = {
+        'location' => 'http://archive.ubuntu.com/ubuntu',
+        'key'      => '630239CC130E1A7FD81A27B140976EAF437D05B5',
+        'repos'    => 'main universe multiverse restricted',
+      }
+
+      case $xfacts['lsbdistcodename'] {
+        'lucid': {
+          $ppa_options        = undef
+          $ppa_package        = 'python-software-properties'
+        }
+        'precise': {
+          $ppa_options        = '-y'
+          $ppa_package        = 'python-software-properties'
+        }
+        'trusty', 'utopic', 'vivid': {
+          $ppa_options        = '-y'
+          $ppa_package        = 'software-properties-common'
+        }
+        default: {
+          $ppa_options        = '-y'
+          $ppa_package        = 'python-software-properties'
         }
       }
     }
-    'Cumulus Networks': {
-      $distid = 'debian'
-      $distcodename = $::lsbdistcodename
-    }
-    '': {
+    undef: {
       fail('Unable to determine lsbdistid, is lsb-release installed?')
     }
     default: {
-      fail("Unsupported lsbdistid (${::lsbdistid})")
-    }
-  }
-  case $distid {
-    'debian': {
-      case $distcodename {
-        'squeeze': {
-          $backports_location = 'http://backports.debian.org/debian-backports'
-          $legacy_origin       = true
-          $origins             = ['${distro_id} oldstable', #lint:ignore:single_quote_string_with_variables
-                                  '${distro_id} ${distro_codename}-security', #lint:ignore:single_quote_string_with_variables
-                                  '${distro_id} ${distro_codename}-lts'] #lint:ignore:single_quote_string_with_variables
-        }
-        'wheezy': {
-          $backports_location = 'http://ftp.debian.org/debian/'
-          $legacy_origin      = false
-          $origins            = ['origin=Debian,archive=stable,label=Debian-Security',
-                                  'origin=Debian,archive=oldstable,label=Debian-Security']
-        }
-        default: {
-          $backports_location = 'http://http.debian.net/debian/'
-          $legacy_origin      = false
-          $origins            = ['origin=Debian,archive=stable,label=Debian-Security']
-        }
-      }
-    }
-    'ubuntu': {
-      case $distcodename {
-        'lucid': {
-          $backports_location = 'http://us.archive.ubuntu.com/ubuntu'
-          $ppa_options        = undef
-          $ppa_package        = 'python-software-properties'
-          $legacy_origin      = true
-          $origins            = ['${distro_id} ${distro_codename}-security'] #lint:ignore:single_quote_string_with_variables
-        }
-        'precise': {
-          $backports_location = 'http://us.archive.ubuntu.com/ubuntu'
-          $ppa_options        = '-y'
-          $ppa_package        = 'python-software-properties'
-          $legacy_origin      = true
-          $origins            = ['${distro_id}:${distro_codename}-security'] #lint:ignore:single_quote_string_with_variables
-        }
-        'trusty', 'utopic', 'vivid': {
-          $backports_location = 'http://us.archive.ubuntu.com/ubuntu'
-          $ppa_options        = '-y'
-          $ppa_package        = 'software-properties-common'
-          $legacy_origin      = true
-          $origins            = ['${distro_id}:${distro_codename}-security'] #lint:ignore:single_quote_string_with_variables
-        }
-        default: {
-          $backports_location = 'http://old-releases.ubuntu.com/ubuntu'
-          $ppa_options        = '-y'
-          $ppa_package        = 'python-software-properties'
-          $legacy_origin      = true
-          $origins            = ['${distro_id}:${distro_codename}-security'] #lint:ignore:single_quote_string_with_variables
-        }
-      }
+      $ppa_options = undef
+      $ppa_package = undef
+      $backports   = undef
     }
   }
 }
