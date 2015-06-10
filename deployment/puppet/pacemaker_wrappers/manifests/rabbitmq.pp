@@ -42,18 +42,18 @@ class pacemaker_wrappers::rabbitmq (
   $operations      = {
     'monitor' => {
       'interval' => '30',
-      'timeout'  => '60'
+      'timeout'  => '180'
     },
     'monitor:Master' => { # name:role
       'role' => 'Master',
       # should be non-intercectable with interval from ordinary monitor
       'interval' => '27',
-      'timeout'  => '60'
+      'timeout'  => '180'
     },
     'monitor:Slave'  => {
       'role'            => 'Slave',
       'interval'        => '103',
-      'timeout'         => '60',
+      'timeout'         => '180',
       'OCF_CHECK_LEVEL' => '30'
     },
     'start'     => {
