@@ -1,9 +1,10 @@
 require 'spec_helper_acceptance'
 
 describe 'symbolic name' do
+  basedir = default.tmpdir('concat')
   pp = <<-EOS
     concat { 'not_abs_path':
-      path => '/tmp/concat/file',
+      path => '#{basedir}/file',
     }
 
     concat::fragment { '1':
@@ -20,13 +21,15 @@ describe 'symbolic name' do
   EOS
 
   it 'applies the manifest twice with no stderr' do
-    expect(apply_manifest(pp, :catch_failures => true).stderr).to eq("")
-    expect(apply_manifest(pp, :catch_changes => true).stderr).to eq("")
+    apply_manifest(pp, :catch_failures => true)
+    apply_manifest(pp, :catch_changes => true)
   end
 
-  describe file('/tmp/concat/file') do
+  describe file("#{basedir}/file") do
     it { should be_file }
-    it { should contain '1' }
-    it { should contain '2' }
+    its(:content) {
+      should match '1'
+      should match '2'
+    }
   end
 end
