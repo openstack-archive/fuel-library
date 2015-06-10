@@ -14,7 +14,6 @@ describe 'swift::proxy::keystone' do
 
   let :pre_condition do
     '
-      include concat::setup
       concat { "/etc/swift/proxy-server.conf": }
     '
   end

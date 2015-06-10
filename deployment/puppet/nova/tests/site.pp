@@ -104,7 +104,6 @@ node rabbitmq {
 }
 
 node puppetmaster {
-  class { 'concat::setup': }
   class { 'mysql::server':
     config_hash => {'bind_address' => '127.0.0.1'}
   }

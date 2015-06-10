@@ -10,7 +10,6 @@ class cluster::haproxy (
   $debug              = false,
   $other_networks     = false,
 ) {
-  include ::concat::setup
   include ::haproxy::params
 
   package { 'haproxy': }
