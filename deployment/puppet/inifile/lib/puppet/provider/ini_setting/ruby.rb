@@ -94,9 +94,25 @@ Puppet::Type.type(:ini_setting).provide(:ruby) do
     end
   end
 
+  def section_prefix
+    if resource.class.validattr?(:section_prefix)
+      resource[:section_prefix] || '['
+    else
+      '['
+    end
+  end
+
+  def section_suffix
+    if resource.class.validattr?(:section_suffix)
+      resource[:section_suffix] || ']'
+    else
+      ']'
+    end
+  end
+
   private
   def ini_file
-    @ini_file ||= Puppet::Util::IniFile.new(file_path, separator)
+    @ini_file ||= Puppet::Util::IniFile.new(file_path, separator, section_prefix, section_suffix)
   end
 
 end

@@ -1,3 +1,37 @@
+##2015-06-09 - Supported Releases 1.3.0
+###Summary
+
+This is primarily a feature release, but also includes test fixes, documentation updates and synchronization of files with modulesync.
+
+####Features
+- Synchronized files using modulesync
+- Improved documentation
+- Allow changing key value separator beyond indentation
+- Adding the ability to change regex match for $section in inifile
+
+####Bugfixes
+- pin beaker-rspec for windows testing
+- pin rspec gems for testing
+- Adds default values for section
+- Fixed names containing spaces
+
+##2014-11-11 - Supported Releases 1.2.0
+###Summary
+
+This is primarily a bugfix release, but also includes documentation updates and synchronization of files with modulesync.
+
+####Features
+- Synchronized files using modulesync
+- Improved documentation with a warning about old, manually installed inifile with PE3.3+
+
+####Bugfixes
+- Fix issue where single character settings were not being saved
+
+##2014-09-30 - Supported Releases 1.1.4
+###Summary
+
+This release includes documentation and test updates.
+
 ##2014-07-15 - Supported Release 1.1.3
 ###Summary
 

@@ -26,10 +26,12 @@ baz =
 
 foo= foovalue2
 baz=bazvalue
+ ; commented = out setting
     #another comment
  ; yet another comment
  zot = multi word value
  xyzzy['thing1']['thing2']=xyzzyvalue
+ l=git log
       EOS
       template.split("\n")
     }
@@ -45,13 +47,19 @@ baz=bazvalue
     end
 
     it "should expose settings for sections" do
-      subject.get_value("section1", "foo").should == "foovalue"
-      subject.get_value("section1", "bar").should == "barvalue"
-      subject.get_value("section1", "baz").should == ""
-      subject.get_value("section2", "foo").should == "foovalue2"
-      subject.get_value("section2", "baz").should == "bazvalue"
-      subject.get_value("section2", "zot").should == "multi word value"
-      subject.get_value("section2", "xyzzy['thing1']['thing2']").should == "xyzzyvalue"
+      subject.get_settings("section1").should == {
+        "bar" => "barvalue",
+        "baz" => "",
+        "foo" => "foovalue"
+      }
+
+      subject.get_settings("section2").should == {
+        "baz" => "bazvalue",
+        "foo" => "foovalue2",
+        "l" => "git log",
+        "xyzzy['thing1']['thing2']" => "xyzzyvalue",
+        "zot" => "multi word value"
+      }
     end
 
   end
@@ -217,6 +225,63 @@ disabled = test_value
         '',
         'monitor:///var/log/*.log'
       ]
+    end
+  end
+
+  context 'KDE Configuration with braces in setting names' do
+    let(:sample_content) do
+      template = <<-EOS
+      [khotkeys]
+_k_friendly_name=khotkeys
+{5465e8c7-d608-4493-a48f-b99d99fdb508}=Print,none,PrintScreen
+{d03619b6-9b3c-48cc-9d9c-a2aadb485550}=Search,none,Search
+EOS
+      template.split("\n")
+    end
+
+    it "should expose settings for sections" do
+      subject.get_value("khotkeys", "{5465e8c7-d608-4493-a48f-b99d99fdb508}").should == "Print,none,PrintScreen"
+      subject.get_value("khotkeys", "{d03619b6-9b3c-48cc-9d9c-a2aadb485550}").should == "Search,none,Search"
+    end
+  end
+
+  context 'Configuration with colons in setting names' do
+    let(:sample_content) do
+      template = <<-EOS
+      [Drive names]
+A:=5.25" Floppy
+B:=3.5" Floppy
+C:=Winchester
+EOS
+      template.split("\n")
+    end
+
+    it "should expose settings for sections" do
+      subject.get_value("Drive names", "A:").should eq '5.25" Floppy'
+      subject.get_value("Drive names", "B:").should eq '3.5" Floppy'
+      subject.get_value("Drive names", "C:").should eq 'Winchester'
+    end
+  end
+
+  context 'Configuration with spaces in setting names' do
+    let(:sample_content) do
+      template = <<-EOS
+      [global]
+        # log files split per-machine:
+        log file = /var/log/samba/log.%m
+
+        kerberos method = system keytab
+        passdb backend = tdbsam
+        security = ads
+EOS
+      template.split("\n")
+    end
+
+    it "should expose settings for sections" do
+      subject.get_value("global", "log file").should eq '/var/log/samba/log.%m'
+      subject.get_value("global", "kerberos method").should eq 'system keytab'
+      subject.get_value("global", "passdb backend").should eq 'tdbsam'
+      subject.get_value("global", "security").should eq 'ads'
     end
   end
 end

@@ -4,36 +4,38 @@ tmpdir = default.tmpdir('tmp')
 
 describe 'ini_subsetting resource' do
   after :all do
-    shell("rm #{tmpdir}/*.ini", :acceptable_exit_codes => [0,1,2])
+    shell("rm #{tmpdir}/*.ini", :acceptable_exit_codes => [0, 1, 2])
   end
 
-  shared_examples 'has_content' do |path,pp,content|
+  shared_examples 'has_content' do |path, pp, content|
     before :all do
-      shell("rm #{path}", :acceptable_exit_codes => [0,1,2])
+      shell("rm #{path}", :acceptable_exit_codes => [0, 1, 2])
     end
     after :all do
-      shell("cat #{path}", :acceptable_exit_codes => [0,1,2])
-      shell("rm #{path}", :acceptable_exit_codes => [0,1,2])
+      shell("cat #{path}", :acceptable_exit_codes => [0, 1, 2])
+      shell("rm #{path}", :acceptable_exit_codes => [0, 1, 2])
     end
 
     it 'applies the manifest twice' do
       apply_manifest(pp, :catch_failures => true)
-      apply_manifest(pp, :catch_changes  => true)
+      apply_manifest(pp, :catch_changes => true)
     end
 
     describe file(path) do
       it { should be_file }
-      it { should contain(content) }
+      its(:content) {
+        should match content
+      }
     end
   end
 
-  shared_examples 'has_error' do |path,pp,error|
+  shared_examples 'has_error' do |path, pp, error|
     before :all do
-      shell("rm #{path}", :acceptable_exit_codes => [0,1,2])
+      shell("rm #{path}", :acceptable_exit_codes => [0, 1, 2])
     end
     after :all do
-      shell("cat #{path}", :acceptable_exit_codes => [0,1,2])
-      shell("rm #{path}", :acceptable_exit_codes => [0,1,2])
+      shell("cat #{path}", :acceptable_exit_codes => [0, 1, 2])
+      shell("rm #{path}", :acceptable_exit_codes => [0, 1, 2])
     end
 
     it 'applies the manifest and gets a failure message' do
@@ -63,19 +65,19 @@ describe 'ini_subsetting resource' do
         setting    => 'key',
         subsetting => 'beta',
         value      => 'trons',
+        require    => Ini_subsetting['ensure => present for alpha'],
       }
       EOS
 
       it 'applies the manifest twice' do
         apply_manifest(pp, :catch_failures => true)
-        apply_manifest(pp, :catch_changes  => true)
+        apply_manifest(pp, :catch_changes => true)
       end
 
       describe file("#{tmpdir}/ini_subsetting.ini") do
         it { should be_file }
-        #XXX Solaris 10 doesn't support multi-line grep
-        it("should contain [one]\nkey = alphabet betatrons", :unless => fact('osfamily') == 'Solaris') {
-          should contain("[one]\nkey = alphabet betatrons")
+        its(:content) {
+          should match /\[one\]\nkey = alphabet betatrons/
         }
       end
     end
@@ -101,27 +103,27 @@ describe 'ini_subsetting resource' do
 
       it 'applies the manifest twice' do
         apply_manifest(pp, :catch_failures => true)
-        apply_manifest(pp, :catch_changes  => true)
+        apply_manifest(pp, :catch_changes => true)
       end
 
       describe file("#{tmpdir}/ini_subsetting.ini") do
         it { should be_file }
-        it { should contain('[one]') }
-        it { should contain('key = betatrons') }
-        it { should_not contain('alphabet') }
+        its(:content) {
+          should match /\[one\]/
+          should match /key = betatrons/
+          should_not match /alphabet/
+        }
       end
     end
   end
 
   describe 'subsetting_separator' do
     {
-      ""                                => "two = twinethree foobar",
-      #"subsetting_separator => '',"     => "two = twinethreefoobar", # breaks regex
-      "subsetting_separator => ',',"    => "two = twinethree,foobar",
-      "subsetting_separator => '   ',"  => "two = twinethree   foobar",
-      "subsetting_separator => ' == '," => "two = twinethree == foobar",
-      "subsetting_separator => '=',"    => "two = twinethree=foobar",
-      #"subsetting_separator => '---',"  => "two = twinethree---foobar", # breaks regex
+        ""                                => /two = twinethree foobar/,
+        "subsetting_separator => ',',"    => /two = twinethree,foobar/,
+        "subsetting_separator => '   ',"  => /two = twinethree   foobar/,
+        "subsetting_separator => ' == '," => /two = twinethree == foobar/,
+        "subsetting_separator => '=',"    => /two = twinethree=foobar/,
     }.each do |parameter, content|
       context "with \"#{parameter}\" makes \"#{content}\"" do
         pp = <<-EOS
@@ -132,6 +134,7 @@ describe 'ini_subsetting resource' do
           subsetting => 'twine',
           value      => 'three',
           path       => "#{tmpdir}/subsetting_separator.ini",
+          before     => Ini_subsetting['foobar'],
           #{parameter}
         }
         ini_subsetting { "foobar":
@@ -152,10 +155,10 @@ describe 'ini_subsetting resource' do
 
   describe 'quote_char' do
     {
-      ['-Xmx']         => 'args=""',
-      ['-Xmx', '256m'] => 'args=-Xmx256m',
-      ['-Xmx', '512m'] => 'args="-Xmx512m"',
-      ['-Xms', '256m'] => 'args="-Xmx256m -Xms256m"',
+        ['-Xmx']         => /args=""/,
+        ['-Xmx', '256m'] => /args=-Xmx256m/,
+        ['-Xmx', '512m'] => /args="-Xmx512m"/,
+        ['-Xms', '256m'] => /args="-Xmx256m -Xms256m"/,
     }.each do |parameter, content|
       context %Q{with '#{parameter.first}' #{parameter.length > 1 ? '=> \'' << parameter[1] << '\'' : 'absent'} makes '#{content}'} do
         path = File.join(tmpdir, 'ini_subsetting.ini')
@@ -164,8 +167,8 @@ describe 'ini_subsetting resource' do
           shell(%Q{echo '[java]\nargs=-Xmx256m' > #{path}})
         end
         after :all do
-          shell("cat #{path}", :acceptable_exit_codes => [0,1,2])
-          shell("rm #{path}", :acceptable_exit_codes => [0,1,2])
+          shell("cat #{path}", :acceptable_exit_codes => [0, 1, 2])
+          shell("rm #{path}", :acceptable_exit_codes => [0, 1, 2])
         end
 
         pp = <<-EOS
@@ -182,12 +185,14 @@ describe 'ini_subsetting resource' do
 
         it 'applies the manifest twice' do
           apply_manifest(pp, :catch_failures => true)
-          apply_manifest(pp, :catch_changes  => true)
+          apply_manifest(pp, :catch_changes => true)
         end
 
         describe file("#{tmpdir}/ini_subsetting.ini") do
           it { should be_file }
-          it { should contain(content) }
+          its(:content) {
+            should match content
+          }
         end
       end
     end

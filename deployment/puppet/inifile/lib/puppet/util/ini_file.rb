@@ -5,11 +5,17 @@ module Puppet
 module Util
   class IniFile
 
-    @@SECTION_REGEX = /^\s*\[([^\]]*)\]\s*$/
-    @@SETTING_REGEX = /^(\s*)([^\[#;][\w\d\.\\\/\-\s\[\]\']*[\w\d\.\\\/\-\]])([ \t]*=[ \t]*)([\S\s]*?)\s*$/
-    @@COMMENTED_SETTING_REGEX = /^(\s*)[#;]+(\s*)([^\[]*[\w\d\.\\\/\-]+[\w\d\.\\\/\-\[\]\']+)([ \t]*=[ \t]*)([\S\s]*?)\s*$/
+    def initialize(path, key_val_separator = ' = ', section_prefix = '[', section_suffix = ']')
 
-    def initialize(path, key_val_separator = ' = ')
+      k_v_s = key_val_separator.strip
+
+      @section_prefix = section_prefix
+      @section_suffix = section_suffix
+
+      @@SECTION_REGEX = section_regex
+      @@SETTING_REGEX = /^(\s*)([^#;\s]|[^#;\s].*?[^\s#{k_v_s}])(\s*#{k_v_s}\s*)(.*)\s*$/
+      @@COMMENTED_SETTING_REGEX = /^(\s*)[#;]+(\s*)(.*?[^\s#{k_v_s}])(\s*#{k_v_s}[ \t]*)(.*)\s*$/
+
       @path = path
       @key_val_separator = key_val_separator
       @section_names = []
@@ -17,6 +23,26 @@ module Util
       if File.file?(@path)
         parse_file
       end
+    end
+
+    def section_regex
+      # Only put in prefix/suffix if they exist
+      # Also, if the prefix is '', the negated
+      # set match should be a match all instead.
+      r_string = '^\s*'
+      r_string += Regexp.escape(@section_prefix)
+      r_string += '('
+      if @section_prefix != ''
+        r_string += '[^'
+        r_string += Regexp.escape(@section_prefix)
+        r_string += ']'
+      else
+        r_string += '.'
+      end
+      r_string += '*)'
+      r_string += Regexp.escape(@section_suffix)
+      r_string += '\s*$'
+      /#{r_string}/
     end
 
     def section_names
@@ -104,7 +130,7 @@ module Util
           whitespace_buffer = []
 
           if (section.is_new_section?) && (! section.is_global?)
-            fh.puts("\n[#{section.name}]")
+            fh.puts("\n#{@section_prefix}#{section.name}#{@section_suffix}")
           end
 
           if ! section.is_new_section?
