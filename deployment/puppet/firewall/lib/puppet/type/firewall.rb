@@ -22,17 +22,19 @@ Puppet::Type.newtype(:firewall) do
     `chain` or `jump` parameters, the firewall resource will autorequire
     those firewallchain resources.
 
-    If Puppet is managing the iptables or iptables-persistent packages, and
-    the provider is iptables or ip6tables, the firewall resource will
+    If Puppet is managing the iptables, iptables-persistent, or iptables-services packages,
+    and the provider is iptables or ip6tables, the firewall resource will
     autorequire those packages to ensure that any required binaries are
     installed.
   EOS
 
+  feature :connection_limiting, "Connection limiting features."
   feature :hop_limiting, "Hop limiting features."
   feature :rate_limiting, "Rate limiting features."
   feature :recent_limiting, "The netfilter recent module"
   feature :snat, "Source NATing"
   feature :dnat, "Destination NATing"
+  feature :netmap, "NET MAPping"
   feature :interface_match, "Interface matching"
   feature :icmp_match, "Matching ICMP types"
   feature :owner, "Matching owners"
@@ -40,7 +42,8 @@ Puppet::Type.newtype(:firewall) do
   feature :reject_type, "The ability to control reject messages"
   feature :log_level, "The ability to control the log level"
   feature :log_prefix, "The ability to add prefixes to log messages"
-  feature :mark, "Set the netfilter mark value associated with the packet"
+  feature :mark, "Match or Set the netfilter mark value associated with the packet"
+  feature :mss, "Match a given TCP MSS value or range."
   feature :tcp_flags, "The ability to match on particular TCP flag settings"
   feature :pkttype, "Match a packet type"
   feature :socket, "Match open sockets"
@@ -52,8 +55,8 @@ Puppet::Type.newtype(:firewall) do
   feature :isfirstfrag, "Match the first fragment of a fragmented ipv6 packet"
   feature :ipsec_policy, "Match IPsec policy"
   feature :ipsec_dir, "Match IPsec policy direction"
-  feature :addrtype, "The ability match on source or destination address type"
-  feature :mac, "The ability match on source or destination MAC address"
+  feature :mask, "Ability to match recent rules based on the ipv4 mask"
+  feature :ipset, "Match against specified ipset list"
 
   # provider specific features
   feature :iptables, "The provider provides iptables features."
@@ -135,10 +138,25 @@ Puppet::Type.newtype(:firewall) do
 
           src_range => '192.168.1.1-192.168.1.10'
 
-      The source IP range is must in 'IP1-IP2' format.
+      The source IP range must be in 'IP1-IP2' format.
     EOS
 
-    newvalues(/^((25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)-((25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)/)
+    validate do |value|
+      if matches = /^([^\-\/]+)-([^\-\/]+)$/.match(value)
+        start_addr = matches[1]
+        end_addr = matches[2]
+
+        [start_addr, end_addr].each do |addr|
+          begin
+            @resource.host_to_ip(addr)
+          rescue Exception
+            self.fail("Invalid IP address \"#{addr}\" in range \"#{value}\"")
+          end
+        end
+      else
+        raise(ArgumentError, "The source IP range must be in 'IP1-IP2' format.")
+      end
+    end
   end
 
   newproperty(:destination) do
@@ -170,10 +188,25 @@ Puppet::Type.newtype(:firewall) do
 
           dst_range => '192.168.1.1-192.168.1.10'
 
-      The destination IP range is must in 'IP1-IP2' format.
+      The destination IP range must be in 'IP1-IP2' format.
     EOS
 
-    newvalues(/^((25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)-((25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)/)
+    validate do |value|
+      if matches = /^([^\-\/]+)-([^\-\/]+)$/.match(value)
+        start_addr = matches[1]
+        end_addr = matches[2]
+
+        [start_addr, end_addr].each do |addr|
+          begin
+            @resource.host_to_ip(addr)
+          rescue Exception
+            self.fail("Invalid IP address \"#{addr}\" in range \"#{value}\"")
+          end
+        end
+      else
+        raise(ArgumentError, "The destination IP range must be in 'IP1-IP2' format.")
+      end
+    end
   end
 
   newproperty(:sport, :array_matching => :all) do
@@ -324,8 +357,17 @@ Puppet::Type.newtype(:firewall) do
       *tcp*.
     EOS
 
-    newvalues(:tcp, :udp, :icmp, :"ipv6-icmp", :esp, :ah, :vrrp, :igmp, :ipencap, :ospf, :gre, :all)
+    newvalues(*[:tcp, :udp, :icmp, :"ipv6-icmp", :esp, :ah, :vrrp, :igmp, :ipencap, :ipv4, :ipv6, :ospf, :gre, :cbt, :all].collect do |proto|
+      [proto, "! #{proto}".to_sym]
+    end.flatten)
     defaultto "tcp"
+  end
+  
+  # tcp-specific
+  newproperty(:mss) do
+    desc <<-EOS
+      Match a given TCP MSS value or range.
+    EOS
   end
 
   # tcp-specific
@@ -425,16 +467,24 @@ Puppet::Type.newtype(:firewall) do
   # Interface specific matching properties
   newproperty(:iniface, :required_features => :interface_match) do
     desc <<-EOS
-      Input interface to filter on.
+      Input interface to filter on.  Supports interface alias like eth0:0.
+      To negate the match try this:
+
+            iniface => '! lo',
+
     EOS
-    newvalues(/^[a-zA-Z0-9\-\._\+]+$/)
+    newvalues(/^!?\s?[a-zA-Z0-9\-\._\+\:]+$/)
   end
 
   newproperty(:outiface, :required_features => :interface_match) do
     desc <<-EOS
-      Output interface to filter on.
+      Output interface to filter on.  Supports interface alias like eth0:0.
+     To negate the match try this:
+
+           outiface => '! lo',
+
     EOS
-    newvalues(/^[a-zA-Z0-9\-\._\+]+$/)
+    newvalues(/^!?\s?[a-zA-Z0-9\-\._\+\:]+$/)
   end
 
   # NAT specific properties
@@ -455,6 +505,12 @@ Puppet::Type.newtype(:firewall) do
   newproperty(:toports, :required_features => :dnat) do
     desc <<-EOS
       For DNAT this is the port that will replace the destination port.
+    EOS
+  end
+
+  newproperty(:to, :required_features => :netmap) do
+    desc <<-EOS
+      For NETMAP this will replace the destination IP
     EOS
   end
 
@@ -607,6 +663,50 @@ Puppet::Type.newtype(:firewall) do
   end
 
 
+  # Connection mark
+  newproperty(:connmark, :required_features => :mark) do
+    desc <<-EOS
+      Match the Netfilter mark value associated with the packet.  Accepts either of:
+      mark/mask or mark.  These will be converted to hex if they are not already.
+    EOS
+    munge do |value|
+      int_or_hex = '[a-fA-F0-9x]'
+      match = value.to_s.match("(#{int_or_hex}+)(/)?(#{int_or_hex}+)?")
+      mark = @resource.to_hex32(match[1])
+
+      # Values that can't be converted to hex.
+      # Or contain a trailing slash with no mask.
+      if mark.nil? or (mark and match[2] and match[3].nil?)
+        raise ArgumentError, "MARK value must be integer or hex between 0 and 0xffffffff"
+      end
+
+      # There should not be a mask on connmark
+      unless match[3].nil?
+        raise ArgumentError, "iptables does not support masks on MARK match rules"
+      end
+      value = mark
+
+      value
+    end
+  end
+
+  # Connection limiting properties
+  newproperty(:connlimit_above, :required_features => :connection_limiting) do
+    desc <<-EOS
+      Connection limiting value for matched connections above n.
+    EOS
+    newvalue(/^\d+$/)
+  end
+
+  newproperty(:connlimit_mask, :required_features => :connection_limiting) do
+    desc <<-EOS
+      Connection limiting by subnet mask for matched connections.
+      IPv4: 0-32
+      IPv6: 0-128
+    EOS
+    newvalue(/^\d+$/)
+  end
+
   # Hop limiting properties
   newproperty(:hop_limit, :required_features => :hop_limiting) do
     desc <<-EOS
@@ -638,6 +738,46 @@ Puppet::Type.newtype(:firewall) do
       only, as iptables does not accept multiple uid in a single
       statement.
     EOS
+    def insync?(is)
+      require 'etc'
+
+      # The following code allow us to take into consideration unix mappings
+      # between string usernames and UIDs (integers). We also need to ignore
+      # spaces as they are irrelevant with respect to rule sync.
+
+      # Remove whitespace
+      is = is.gsub(/\s+/,'')
+      should = @should.first.to_s.gsub(/\s+/,'')
+
+      # Keep track of negation, but remove the '!'
+      is_negate = ''
+      should_negate = ''
+      if is.start_with?('!')
+        is = is.gsub(/^!/,'')
+        is_negate = '!'
+      end
+      if should.start_with?('!')
+        should = should.gsub(/^!/,'')
+        should_negate = '!'
+      end
+
+      # If 'should' contains anything other than digits,
+      # we assume that we have to do a lookup to convert
+      # to UID
+      unless should[/[0-9]+/] == should
+        should = Etc.getpwnam(should).uid
+      end
+
+      # If 'is' contains anything other than digits,
+      # we assume that we have to do a lookup to convert
+      # to UID
+      unless is[/[0-9]+/] == is
+        is = Etc.getpwnam(is).uid
+      end
+
+      return "#{is_negate}#{is}" == "#{should_negate}#{should}"
+    end
+
   end
 
   newproperty(:gid, :required_features => :owner) do
@@ -646,6 +786,36 @@ Puppet::Type.newtype(:firewall) do
       only, as iptables does not accept multiple gid in a single
       statement.
     EOS
+  end
+
+  # match mark
+  newproperty(:match_mark, :required_features => :mark) do
+    desc <<-EOS
+      Match the Netfilter mark value associated with the packet.  Accepts either of:
+      mark/mask or mark.  These will be converted to hex if they are not already.
+    EOS
+    munge do |value|
+      mark_regex = %r{\A((?:0x)?[0-9A-F]+)(/)?((?:0x)?[0-9A-F]+)?\z}i
+      match = value.to_s.match(mark_regex)
+      if match.nil?
+        raise ArgumentError, "Match MARK value must be integer or hex between 0 and 0xffffffff"
+      end
+      mark = @resource.to_hex32(match[1])
+
+      # Values that can't be converted to hex.
+      # Or contain a trailing slash with no mask.
+      if mark.nil? or (mark and match[2] and match[3].nil?)
+        raise ArgumentError, "Match MARK value must be integer or hex between 0 and 0xffffffff"
+      end
+
+      # There should not be a mask on match_mark
+      unless match[3].nil?
+        raise ArgumentError, "iptables does not support masks on MARK match rules"
+      end
+      value = mark
+
+      value
+    end
   end
 
   newproperty(:set_mark, :required_features => :mark) do
@@ -688,6 +858,20 @@ Puppet::Type.newtype(:firewall) do
 
       value
     end
+  end
+
+  newproperty(:clamp_mss_to_pmtu, :required_features => :iptables) do
+    desc <<-EOS
+      Sets the clamp mss to pmtu flag.
+    EOS
+
+    newvalues(:true, :false)
+  end
+
+  newproperty(:set_mss, :required_features => :iptables) do
+    desc <<-EOS
+      Sets the TCP MSS value for packets.
+    EOS
   end
 
   newproperty(:pkttype, :required_features => :pkttype) do
@@ -779,6 +963,8 @@ Puppet::Type.newtype(:firewall) do
       attribute. When used, this will cause entries older than 'seconds' to be
       purged.  Must be boolean true.
     EOS
+
+    newvalues(:true, :false)
   end
 
   newproperty(:rhitcount, :required_features => :recent_limiting) do
@@ -839,31 +1025,106 @@ Puppet::Type.newtype(:firewall) do
   end
 
   newproperty(:ipsec_policy, :required_features => :ipsec_policy) do
-	  desc <<-EOS
-	  	 Sets the ipsec policy type
-	  EOS
+    desc <<-EOS
+       Sets the ipsec policy type. May take a combination of arguments for any flags that can be passed to `--pol ipsec` such as: `--strict`, `--reqid 100`, `--next`, `--proto esp`, etc.
+    EOS
 
-	  newvalues(:none, :ipsec)
+    newvalues(:none, :ipsec)
   end
 
   newproperty(:ipsec_dir, :required_features => :ipsec_dir) do
-	  desc <<-EOS
-	  	 Sets the ipsec policy direction
-	  EOS
+    desc <<-EOS
+       Sets the ipsec policy direction
+    EOS
 
-	  newvalues(:in, :out)
+    newvalues(:in, :out)
   end
 
-  newproperty(:mac_source, :required_features => :mac) do
+  newproperty(:stat_mode) do
     desc <<-EOS
-      Match the source MAC address of the packet.
+      Set the matching mode for statistic matching. Supported modes are `random` and `nth`.
+    EOS
+
+    newvalues(:nth, :random)
+  end
+
+  newproperty(:stat_every) do
+    desc <<-EOS
+      Match one packet every nth packet. Requires `stat_mode => 'nth'`
+    EOS
+
+    validate do |value|
+      unless value =~ /^\d+$/
+        raise ArgumentError, <<-EOS
+          stat_every value must be a digit
+        EOS
+      end
+
+      unless value.to_i > 0
+        raise ArgumentError, <<-EOS
+          stat_every value must be larger than 0
+        EOS
+      end
+    end
+  end
+
+  newproperty(:stat_packet) do
+    desc <<-EOS
+      Set the initial counter value for the nth mode. Must be between 0 and the value of `stat_every`. Defaults to 0. Requires `stat_mode => 'nth'`
+    EOS
+
+    newvalues(/^\d+$/)
+  end
+
+  newproperty(:stat_probability) do
+    desc <<-EOS
+      Set the probability from 0 to 1 for a packet to be randomly matched. It works only with `stat_mode => 'random'`.
+    EOS
+
+    validate do |value|
+      unless value =~ /^([01])\.(\d+)$/
+        raise ArgumentError, <<-EOS
+          stat_probability must be between 0.0 and 1.0
+        EOS
+      end
+
+      if $1.to_i == 1 && $2.to_i != 0
+        raise ArgumentError, <<-EOS
+          start_probability must be between 0.0 and 1.0
+        EOS
+      end
+    end
+  end
+
+  newproperty(:mask, :required_features => :mask) do
+    desc <<-EOS
+      Sets the mask to use when `recent` is enabled.
     EOS
   end
 
-  newproperty(:mac_destination, :required_features => :mac) do
+  newproperty(:gateway, :required_features => :iptables) do
     desc <<-EOS
-      Match the destination MAC address of the packet.
+      The TEE target will clone a packet and redirect this clone to another
+      machine on the local network segment. gateway is the target host's IP.
     EOS
+  end
+
+  newproperty(:ipset, :required_features => :ipset) do
+    desc <<-EOS
+      Matches against the specified ipset list.
+      Requires ipset kernel module.
+      The value is the name of the blacklist, followed by a space, and then
+      'src' and/or 'dst' separated by a comma.
+      For example: 'blacklist src,dst'
+    EOS
+  end
+
+  newproperty(:checksum_fill, :required_features => :iptables) do
+    desc <<-EOS
+      Compute and fill missing packet checksums.
+    EOS
+
+    newvalues(:true, :false)
   end
 
   newparam(:line) do
@@ -871,6 +1132,129 @@ Puppet::Type.newtype(:firewall) do
       Read-only property for caching the rule line.
     EOS
   end
+
+  newproperty(:mac_source) do
+    desc <<-EOS
+      MAC Source
+    EOS
+    newvalues(/^([0-9a-f]{2}[:]){5}([0-9a-f]{2})$/i)
+  end
+
+  newproperty(:physdev_in, :required_features => :iptables) do
+    desc <<-EOS
+      Match if the packet is entering a bridge from the given interface.
+    EOS
+    newvalues(/^[a-zA-Z0-9\-\._\+]+$/)
+  end
+
+  newproperty(:physdev_out, :required_features => :iptables) do
+    desc <<-EOS
+      Match if the packet is leaving a bridge via the given interface.
+    EOS
+    newvalues(/^[a-zA-Z0-9\-\._\+]+$/)
+  end
+
+  newproperty(:physdev_is_bridged, :required_features => :iptables) do
+    desc <<-EOS
+      Match if the packet is transversing a bridge.
+    EOS
+    newvalues(:true, :false)
+  end
+
+  newproperty(:date_start, :required_features => :iptables) do
+    desc <<-EOS
+      Only match during the given time, which must be in ISO 8601 "T" notation.
+      The possible time range is 1970-01-01T00:00:00 to 2038-01-19T04:17:07
+    EOS
+  end
+
+  newproperty(:date_stop, :required_features => :iptables) do
+    desc <<-EOS
+      Only match during the given time, which must be in ISO 8601 "T" notation.
+      The possible time range is 1970-01-01T00:00:00 to 2038-01-19T04:17:07
+    EOS
+  end
+
+  newproperty(:time_start, :required_features => :iptables) do
+    desc <<-EOS
+      Only match during the given daytime. The possible time range is 00:00:00 to 23:59:59.
+      Leading zeroes are allowed (e.g. "06:03") and correctly interpreted as base-10.
+    EOS
+
+    munge do |value|
+      if value =~ /^([0-9]):/
+        value = "0#{value}"
+      end
+
+      if value =~ /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/
+        value = "#{value}:00"
+      end
+
+      value
+    end
+  end
+
+  newproperty(:time_stop, :required_features => :iptables) do
+    desc <<-EOS
+      Only match during the given daytime. The possible time range is 00:00:00 to 23:59:59.
+      Leading zeroes are allowed (e.g. "06:03") and correctly interpreted as base-10.
+    EOS
+
+    munge do |value|
+      if value =~ /^([0-9]):/
+        value = "0#{value}"
+      end
+
+      if value =~ /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/
+        value = "#{value}:00"
+      end
+
+      value
+    end
+  end
+
+  newproperty(:month_days, :required_features => :iptables) do
+    desc <<-EOS
+      Only match on the given days of the month. Possible values are 1 to 31.
+      Note that specifying 31 will of course not match on months which do not have a 31st day;
+      the same goes for 28- or 29-day February.
+    EOS
+
+    validate do |value|
+      month = value.to_i
+      if month >= 1 and month <=31
+        value
+      else
+        raise ArgumentError,
+          "month_days must be in the range of 1-31"
+      end
+    end
+  end
+
+  newproperty(:week_days, :required_features => :iptables) do
+    desc <<-EOS
+      Only match on the given weekdays. Possible values are Mon, Tue, Wed, Thu, Fri, Sat, Sun.
+    EOS
+
+    newvalues(:Mon, :Tue, :Wed, :Thu, :Fri, :Sat, :Sun)
+  end
+
+  newproperty(:time_contiguous, :required_features => :iptables) do
+    desc <<-EOS
+      When time_stop is smaller than time_start value, match this as a single time period instead distinct intervals.
+    EOS
+
+    newvalues(:true, :false)
+  end
+
+  newproperty(:kernel_timezone, :required_features => :iptables) do
+    desc <<-EOS
+      Use the kernel timezone instead of UTC to determine whether a packet meets the time regulations.
+    EOS
+
+    newvalues(:true, :false)
+  end
+
 
   autorequire(:firewallchain) do
     reqs = []
@@ -898,7 +1282,7 @@ Puppet::Type.newtype(:firewall) do
   autorequire(:package) do
     case value(:provider)
     when :iptables, :ip6tables
-      %w{iptables iptables-persistent}
+      %w{iptables iptables-persistent netfilter-persistent iptables-services}
     else
       []
     end
@@ -934,20 +1318,6 @@ Puppet::Type.newtype(:firewall) do
 
     # Now we analyse the individual properties to make sure they apply to
     # the correct combinations.
-    if value(:iniface)
-      unless value(:chain).to_s =~ /INPUT|FORWARD|PREROUTING/
-        self.fail "Parameter iniface only applies to chains " \
-          "INPUT,FORWARD,PREROUTING"
-      end
-    end
-
-    if value(:outiface)
-      unless value(:chain).to_s =~ /OUTPUT|FORWARD|POSTROUTING/
-        self.fail "Parameter outiface only applies to chains " \
-          "OUTPUT,FORWARD,POSTROUTING"
-      end
-    end
-
     if value(:uid)
       unless value(:chain).to_s =~ /OUTPUT|POSTROUTING/
         self.fail "Parameter uid only applies to chains " \
@@ -964,10 +1334,9 @@ Puppet::Type.newtype(:firewall) do
 
     if value(:set_mark)
       unless value(:jump).to_s  =~ /MARK/ &&
-             value(:chain).to_s =~ /PREROUTING|OUTPUT/ &&
              value(:table).to_s =~ /mangle/
         self.fail "Parameter set_mark only applies to " \
-          "the PREROUTING or OUTPUT chain of the mangle table and when jump => MARK"
+          "the mangle table and when jump => MARK"
       end
     end
 
@@ -976,6 +1345,18 @@ Puppet::Type.newtype(:firewall) do
         self.fail "[%s] Parameter dport only applies to sctp, tcp and udp " \
           "protocols. Current protocol is [%s] and dport is [%s]" %
           [value(:name), should(:proto), should(:dport)]
+      end
+    end
+
+    if value(:jump).to_s == "TCPMSS"
+      unless value(:set_mss) || value(:clamp_mss_to_pmtu)
+        self.fail "When using jump => TCPMSS, the set_mss or clamp_mss_to_pmtu property is required"
+      end
+    end
+
+    if value(:jump).to_s == "TEE"
+      unless value(:gateway)
+        self.fail "When using jump => TEE, the gateway property is required"
       end
     end
 
@@ -995,14 +1376,7 @@ Puppet::Type.newtype(:firewall) do
       end
 
       unless value(:tosource)
-        self.fail "Parameter jump => DNAT must have tosource parameter"
-      end
-    end
-
-    if value(:jump).to_s == "REDIRECT"
-      unless value(:toports)
-        self.fail "Parameter jump => REDIRECT missing mandatory toports " \
-          "parameter"
+        self.fail "Parameter jump => SNAT must have tosource parameter"
       end
     end
 
@@ -1025,5 +1399,38 @@ Puppet::Type.newtype(:firewall) do
     if value(:action) && value(:jump)
       self.fail "Only one of the parameters 'action' and 'jump' can be set"
     end
+
+    if value(:connlimit_mask) && ! value(:connlimit_above)
+      self.fail "Parameter 'connlimit_mask' requires 'connlimit_above'"
+    end
+
+    if value(:mask) && ! value(:recent)
+      self.fail "Mask can only be set if recent is enabled."
+    end
+
+    [:stat_packet, :stat_every, :stat_probability].each do |param|
+      if value(param) && ! value(:stat_mode)
+        self.fail "Parameter '#{param.to_s}' requires 'stat_mode' to be set"
+      end
+    end
+
+    if value(:stat_packet) && value(:stat_mode) != :nth
+      self.fail "Parameter 'stat_packet' requires 'stat_mode' to be set to 'nth'"
+    end
+
+    if value(:stat_every) && value(:stat_mode) != :nth
+      self.fail "Parameter 'stat_every' requires 'stat_mode' to be set to 'nth'"
+    end
+
+    if value(:stat_probability) && value(:stat_mode) != :random
+      self.fail "Parameter 'stat_probability' requires 'stat_mode' to be set to 'random'"
+    end
+
+    if value(:checksum_fill)
+      unless value(:jump).to_s == "CHECKSUM" && value(:table).to_s == "mangle"
+        self.fail "Parameter checksum_fill requires jump => CHECKSUM and table => mangle"
+      end
+    end
+
   end
 end

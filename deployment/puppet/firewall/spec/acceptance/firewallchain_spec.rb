@@ -1,6 +1,6 @@
 require 'spec_helper_acceptance'
 
-describe 'puppet resource firewallchain command:' do
+describe 'puppet resource firewallchain command:', :unless => UNSUPPORTED_PLATFORMS.include?(fact('osfamily')) do
   before :all do
     iptables_flush_all_tables
   end
@@ -14,7 +14,9 @@ describe 'puppet resource firewallchain command:' do
         EOS
         # Run it twice and test for idempotency
         apply_manifest(pp, :catch_failures => true)
-        apply_manifest(pp, :catch_changes => true)
+        unless fact('selinux') == 'true'
+          apply_manifest(pp, :catch_changes => true)
+        end
       end
 
       it 'finds the chain' do
@@ -33,7 +35,9 @@ describe 'puppet resource firewallchain command:' do
         EOS
         # Run it twice and test for idempotency
         apply_manifest(pp, :catch_failures => true)
-        apply_manifest(pp, :catch_changes => true)
+        unless fact('selinux') == 'true'
+          apply_manifest(pp, :catch_changes => true)
+        end
       end
 
       it 'fails to find the chain' do
@@ -112,7 +116,9 @@ describe 'puppet resource firewallchain command:' do
         EOS
         # Run it twice and test for idempotency
         apply_manifest(pp, :catch_failures => true)
-        apply_manifest(pp, :catch_changes => true)
+        unless fact('selinux') == 'true'
+          apply_manifest(pp, :catch_changes => true)
+        end
       end
 
       it 'finds the chain' do
