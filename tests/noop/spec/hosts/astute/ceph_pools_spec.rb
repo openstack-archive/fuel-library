@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'ceph/compute.pp'
+manifest = 'astute/ceph_pools.pp'
 
 describe manifest do
   test_ubuntu_and_centos manifest
