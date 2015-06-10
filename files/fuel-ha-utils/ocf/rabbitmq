@@ -286,6 +286,7 @@ rmq_setup_env() {
     RMQ_START_TIME="${MNESIA_FILES}/ocf_server_start_time.txt"
     MASTER_FLAG_FILE="${MNESIA_FILES}/ocf_master_for_${OCF_RESOURCE_INSTANCE}"
     THIS_PCMK_NODE=`crm_node -n`
+    TOTALVMEM=`free -mt | awk '/Total:/ {print $2}'`
     # check and make PID file dir
     local PID_DIR=$( dirname $OCF_RESKEY_pid_file )
     if [ ! -d ${PID_DIR} ] ; then
@@ -1104,13 +1105,41 @@ get_monitor() {
     # Check if the rabbitmqctl control plane is alive.
     # The rabbit app may be not running and the command
     # will return > 0, so we only check if the command execution
-    # has timed out (which is a code 137)
+    # has timed out (which is a code 137 or 124)
     su_rabbit_cmd "${OCF_RESKEY_ctl} list_channels 2>&1 > /dev/null"
     rc2=$?
     if [ $rc2 -eq 137 -o $rc2 -eq 124 ]; then
         ocf_log err "${LH} rabbitmqctl is not responding. The resource is failed."
         return $OCF_ERR_GENERIC
     fi
+
+    # NOTE: The check level > 20 assumes the rabbit app is running healthy
+    if [ "$OCF_CHECK_LEVEL" -gt 20 ]; then
+        # Check if the list of all queues is available,
+        # also report some queues stats and total virtual memory.
+        # If list_queueus has timed out (which is a code 137 or 124) or exited>0,
+        # return generic error as it likely means a dead end situation
+        # when rabbitmq cluster is running with blocked publishing due
+        # to high memory watermark exceeded.
+
+        local queues=`su_rabbit_cmd "${OCF_RESKEY_ctl} -q list_queues memory messages consumer_utilisation"`
+        rc2=$?
+        if [ $rc2 -eq 137 -o $rc2 -eq 124 ]; then
+            ocf_log err "${LH} rabbitmqctl list_queues is not responding. The resource is failed."
+            return $OCF_ERR_GENERIC
+        elif [ $rc2 -ne 0 ]; then
+            ocf_log err "${LH} Cannot get the list of queues. The resource is failed."
+            return $OCF_ERR_GENERIC
+        else
+            local q_c=`echo -e "${queues}" | wc -l`
+            local m_kb=`echo -e "${queues}" | awk -v sum=0 '{sum+=$1} END {print sum}'`
+            local mem=$(( $m_kb / 1024 ))
+            local mes=`echo -e "${queues}" | awk -v sum=0 '{sum+=$2} END {print sum}'`
+            local c_u=`echo -e "${queues}" | awk -v sum=0 -v cnt=${q_c} '{sum+=$3} END {print (sum+1)/(cnt+1)}'`
+            ocf_log info "${LH} RabbitMQ consumes ${mem}m of ${TOTALVMEM}m virtual memory available and running ${q_c} queues containing ${mes} messages total with an average consumer utilization of ${c_u}"
+        fi
+    fi
+
     ocf_log info "${LH} get_monitor function ready to return ${rc}"
     return $rc
 }
