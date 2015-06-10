@@ -8,6 +8,31 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/enable_quorum.rb
     timeout: 180
 
+- id: ceph-compute
+  type: puppet
+  role: [compute]
+  requires: [ceph_create_pools]
+  required_for: [post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/compute_post.rb
+
+- id: ceph_create_pools
+  type: puppet
+  role: [primary-controller, controller]
+  requires: [post_deployment_start]
+  required_for: [ceph_ready_check]
+  condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/ceph_pools.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
+
 - id: ceph_ready_check
   type: shell
   role: [primary-controller]
