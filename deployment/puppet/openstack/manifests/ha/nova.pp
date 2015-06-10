@@ -1,11 +1,16 @@
 # HA configuration for OpenStack Nova
-class openstack::ha::nova {
+class openstack::ha::nova (
+  $server_names,
+  $ipaddresses,
+) {
 
   openstack::ha::haproxy_service { 'nova-api-1':
     order                  => '040',
     listen_port            => 8773,
     public                 => true,
     require_service        => 'nova-api',
+    server_names           => $server_names,
+    ipaddresses            => $ipaddresses,
     haproxy_config_options => {
       'timeout server' => '600s',
     },

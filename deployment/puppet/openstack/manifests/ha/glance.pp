@@ -1,5 +1,8 @@
 # HA configuration for OpenStack Glance
-class openstack::ha::glance {
+class openstack::ha::glance (
+  $server_names,
+  $ipaddresses,
+) {
 
   openstack::ha::haproxy_service { 'glance-api':
     # before neutron
@@ -7,6 +10,8 @@ class openstack::ha::glance {
     listen_port            => 9292,
     public                 => true,
     require_service        => 'glance-api',
+    server_names           => $server_names,
+    ipaddresses            => $ipaddresses,
     haproxy_config_options => {
         'option'         => ['httpchk', 'httplog','httpclose'],
         'timeout server' => '11m',

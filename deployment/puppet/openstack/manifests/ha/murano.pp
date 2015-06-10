@@ -1,11 +1,16 @@
 # HA configuration for OpenStack Murano
-class openstack::ha::murano {
+class openstack::ha::murano (
+  $server_names,
+  $ipaddresses,
+) {
 
   openstack::ha::haproxy_service { 'murano':
     order           => '180',
     listen_port     => 8082,
     public          => true,
     require_service => 'murano_api',
+    server_names    => $server_names,
+    ipaddresses     => $ipaddresses,
   }
 
   openstack::ha::haproxy_service { 'murano_rabbitmq':

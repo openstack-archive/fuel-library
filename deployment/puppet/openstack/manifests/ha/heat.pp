@@ -1,11 +1,16 @@
 # HA configuration for OpenStack Nova
-class openstack::ha::heat {
+class openstack::ha::heat (
+  $server_names,
+  $ipaddresses,
+) {
 
   openstack::ha::haproxy_service { 'heat-api':
     order                  => '160',
     listen_port            => 8004,
     public                 => true,
     require_service        => 'heat-api',
+    server_names           => $server_names,
+    ipaddresses            => $ipaddresses,
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],
     },
