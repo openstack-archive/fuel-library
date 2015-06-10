@@ -28,6 +28,7 @@ describe manifest do
       should contain_keystone_config('cache/backend').with(:value => 'keystone.cache.memcache_pool')
       should contain_keystone_config('cache/memcache_servers').with(:value => memcached_servers)
       should contain_keystone_config('cache/memcache_dead_retry').with(:value => '30')
+      should contain_keystone_config('memcache/dead_retry').with(:value => '30')
       should contain_keystone_config('cache/memcache_socket_timeout').with(:value => '1')
       should contain_keystone_config('cache/memcache_pool_maxsize').with(:value => '1000')
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
