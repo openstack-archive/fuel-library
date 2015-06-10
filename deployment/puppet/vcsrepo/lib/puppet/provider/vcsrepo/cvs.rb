@@ -3,10 +3,9 @@ require File.join(File.dirname(__FILE__), '..', 'vcsrepo')
 Puppet::Type.type(:vcsrepo).provide(:cvs, :parent => Puppet::Provider::Vcsrepo) do
   desc "Supports CVS repositories/workspaces"
 
-  optional_commands   :cvs => 'cvs'
-  defaultfor :cvs => :exists
-  has_features :gzip_compression, :reference_tracking, :modules
-  
+  commands :cvs => 'cvs'
+  has_features :gzip_compression, :reference_tracking, :modules, :cvs_rsh, :user
+
   def create
     if !@resource.value(:source)
       create_repository(@resource.value(:path))
@@ -28,26 +27,26 @@ Puppet::Type.type(:vcsrepo).provide(:cvs, :parent => Puppet::Provider::Vcsrepo) 
   def working_copy_exists?
     File.directory?(File.join(@resource.value(:path), 'CVS'))
   end
-  
+
   def destroy
     FileUtils.rm_rf(@resource.value(:path))
   end
 
-  def latest? 
-    debug "Checking for updates because 'ensure => latest'"
+  def latest?
+    Puppet.debug "Checking for updates because 'ensure => latest'"
     at_path do
       # We cannot use -P to prune empty dirs, otherwise
       # CVS would report those as "missing", regardless
       # if they have contents or updates.
-      is_current = (cvs('-nq', 'update', '-d').strip == "")
-      if (!is_current) then debug "There are updates available on the checkout's current branch/tag." end
+      is_current = (runcvs('-nq', 'update', '-d').strip == "")
+      if (!is_current) then Puppet.debug "There are updates available on the checkout's current branch/tag." end
       return is_current
     end
   end
-  
+
   def latest
     # CVS does not have a conecpt like commit-IDs or change
-    # sets, so we can only have the current branch name (or the 
+    # sets, so we can only have the current branch name (or the
     # requested one, if that differs) as the "latest" revision.
     should = @resource.value(:revision)
     current = self.revision
@@ -63,14 +62,14 @@ Puppet::Type.type(:vcsrepo).provide(:cvs, :parent => Puppet::Provider::Vcsrepo) 
       else
         @rev = 'HEAD'
       end
-      debug "Checkout is on branch/tag '#{@rev}'"
+      Puppet.debug "Checkout is on branch/tag '#{@rev}'"
     end
     return @rev
   end
 
   def revision=(desired)
     at_path do
-      cvs('update', '-dr', desired, '.')
+      runcvs('update', '-dr', desired, '.')
       update_owner
       @rev = desired
     end
@@ -94,7 +93,7 @@ Puppet::Type.type(:vcsrepo).provide(:cvs, :parent => Puppet::Provider::Vcsrepo) 
         args.push('-r', @resource.value(:revision))
       end
       args.push('-d', basename, module_name)
-      cvs(*args)
+      runcvs(*args)
     end
   end
 
@@ -109,7 +108,7 @@ Puppet::Type.type(:vcsrepo).provide(:cvs, :parent => Puppet::Provider::Vcsrepo) 
   end
 
   def create_repository(path)
-    cvs('-d', path, 'init')
+    runcvs('-d', path, 'init')
   end
 
   def update_owner
@@ -117,5 +116,20 @@ Puppet::Type.type(:vcsrepo).provide(:cvs, :parent => Puppet::Provider::Vcsrepo) 
       set_ownership
     end
   end
-                  
+
+  def runcvs(*args)
+    if @resource.value(:cvs_rsh)
+      Puppet.debug "Using CVS_RSH = " + @resource.value(:cvs_rsh)
+      e = { :CVS_RSH => @resource.value(:cvs_rsh) }
+    else
+      e = {}
+    end
+
+    if @resource.value(:user) and @resource.value(:user) != Facter['id'].value
+      Puppet.debug "Running as user " + @resource.value(:user)
+      Puppet::Util::Execution.execute([:cvs, *args], :uid => @resource.value(:user), :custom_environment => e)
+    else
+      Puppet::Util::Execution.execute([:cvs, *args], :custom_environment => e)
+    end
+  end
 end

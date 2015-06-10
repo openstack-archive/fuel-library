@@ -3,11 +3,11 @@ require File.join(File.dirname(__FILE__), '..', 'vcsrepo')
 Puppet::Type.type(:vcsrepo).provide(:svn, :parent => Puppet::Provider::Vcsrepo) do
   desc "Supports Subversion repositories"
 
-  optional_commands :svn      => 'svn',
-           :svnadmin => 'svnadmin'
+  commands :svn      => 'svn',
+           :svnadmin => 'svnadmin',
+           :svnlook  => 'svnlook'
 
-  defaultfor :svn => :exists
-  has_features :filesystem_types, :reference_tracking, :basic_auth
+  has_features :filesystem_types, :reference_tracking, :basic_auth, :configuration, :conflict
 
   def create
     if !@resource.value(:source)
@@ -21,7 +21,15 @@ Puppet::Type.type(:vcsrepo).provide(:svn, :parent => Puppet::Provider::Vcsrepo) 
   end
 
   def working_copy_exists?
-    File.directory?(File.join(@resource.value(:path), '.svn'))
+    if File.directory?(@resource.value(:path))
+      # :path is an svn checkout
+      return true if File.directory?(File.join(@resource.value(:path), '.svn'))
+      if File.file?(File.join(@resource.value(:path), 'format'))
+        # :path is an svn server
+        return true if svnlook('uuid', @resource.value(:path))
+      end
+    end
+    false
   end
 
   def exists?
@@ -34,14 +42,10 @@ Puppet::Type.type(:vcsrepo).provide(:svn, :parent => Puppet::Provider::Vcsrepo) 
 
   def latest?
     at_path do
-      if self.revision < self.latest then
-        return false
-      else
-        return true
-      end
+      (self.revision >= self.latest) and (@resource.value(:source) == self.sourceurl)
     end
   end
-  
+
   def buildargs
     args = ['--non-interactive']
     if @resource.value(:basic_auth_username) && @resource.value(:basic_auth_password)
@@ -49,25 +53,50 @@ Puppet::Type.type(:vcsrepo).provide(:svn, :parent => Puppet::Provider::Vcsrepo) 
       args.push('--password', @resource.value(:basic_auth_password))
       args.push('--no-auth-cache')
     end
-    return args
+
+    if @resource.value(:force)
+      args.push('--force')
+    end
+
+    if @resource.value(:configuration)
+      args.push('--config-dir', @resource.value(:configuration))
+    end
+
+    args
   end
 
   def latest
     args = buildargs.push('info', '-r', 'HEAD')
     at_path do
-      svn(*args)[/^Last Changed Rev:\s+(\d+)/m, 1]
+      svn(*args)[/^Revision:\s+(\d+)/m, 1]
     end
   end
-  
+
+  def sourceurl
+    args = buildargs.push('info')
+    at_path do
+      svn(*args)[/^URL:\s+(\S+)/m, 1]
+    end
+  end
+
   def revision
     args = buildargs.push('info')
     at_path do
-      svn(*args)[/^Last Changed Rev:\s+(\d+)/m, 1]
+      svn(*args)[/^Revision:\s+(\d+)/m, 1]
     end
   end
 
   def revision=(desired)
-    args = buildargs.push('update', '-r', desired)
+    args = if @resource.value(:source)
+             buildargs.push('switch', '-r', desired, @resource.value(:source))
+           else
+             buildargs.push('update', '-r', desired)
+           end
+
+    if @resource.value(:conflict)
+      args.push('--accept', @resource.value(:conflict))
+    end
+
     at_path do
       svn(*args)
     end
