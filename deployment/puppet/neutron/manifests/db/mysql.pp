@@ -47,7 +47,6 @@ class neutron::db::mysql (
 
   validate_string($password)
 
-
   ::openstacklib::db::mysql { 'neutron':
     user          => $user,
     password_hash => mysql_password($password),

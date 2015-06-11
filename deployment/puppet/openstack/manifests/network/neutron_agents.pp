@@ -23,6 +23,7 @@ class openstack::network::neutron_agents (
   $bridge_mappings      = [],
   $network_vlan_ranges  = ['physnet1:1000:2999'],
   $local_ip             = false,
+  $tunnel_types         = [],
 
   # ML2 settings
   $type_drivers          = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
@@ -55,32 +56,6 @@ class openstack::network::neutron_agents (
   $auth_region       = 'RegionOne',
 ) {
 
-  if 'ovs' in $agents {
-    class { '::neutron::plugins::ovs':
-      tunnel_id_ranges    => $tunnel_id_ranges[0],
-      tenant_network_type => $tenant_network_types[0],
-      network_vlan_ranges => $network_vlan_ranges[0],
-    }
-    class { '::neutron::agents::ovs':
-      integration_bridge  => $integration_bridge,
-      tunnel_bridge       => $tunnel_bridge,
-      bridge_mappings     => $bridge_mappings,
-      enable_tunneling    => $enable_tunneling,
-      local_ip            => $local_ip,
-      manage_service      => true,
-      enabled             => true,
-    }
-    Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-ovs-agent-service' |>
-    Service<| title == 'neutron-server' |> -> Service<| title == 'ovs-cleanup-service' |>
-    Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-ovs-agent-service' |>
-
-    if $ha_agents {
-      class {'cluster::neutron::ovs':
-        primary => $ha_agents ? { 'primary' => true, default => false},
-      }
-    }
-  }
-
   if 'ml2-ovs' in $agents {
     class { 'neutron::plugins::ml2':
       type_drivers          => $type_drivers,
@@ -98,6 +73,7 @@ class openstack::network::neutron_agents (
       bridge_mappings     => $bridge_mappings,
       enable_tunneling    => $enable_tunneling,
       local_ip            => $local_ip,
+      tunnel_types        => $tunnel_types,
       manage_service      => true,
       enabled             => true,
     }
