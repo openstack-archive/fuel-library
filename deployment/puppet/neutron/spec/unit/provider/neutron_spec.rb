@@ -28,6 +28,10 @@ describe Puppet::Provider::Neutron do
     /Neutron types will not work/
   end
 
+  let :exec_error do
+    /Neutron or Keystone API is not avalaible/
+  end
+
   after :each do
     klass.reset
   end
@@ -83,6 +87,7 @@ describe Puppet::Provider::Neutron do
         :OS_USERNAME    => credential_hash['admin_user'],
         :OS_TENANT_NAME => credential_hash['admin_tenant_name'],
         :OS_PASSWORD    => credential_hash['admin_password'],
+        :OS_ENDPOINT_TYPE => 'internalURL',
       }
       klass.expects(:get_neutron_credentials).with().returns(credential_hash)
       klass.expects(:withenv).with(authenv)
@@ -95,6 +100,7 @@ describe Puppet::Provider::Neutron do
         :OS_USERNAME    => credential_hash['admin_user'],
         :OS_TENANT_NAME => credential_hash['admin_tenant_name'],
         :OS_PASSWORD    => credential_hash['admin_password'],
+        :OS_ENDPOINT_TYPE => 'internalURL',
         :OS_REGION_NAME => 'REGION_NAME',
       }
 
@@ -108,9 +114,9 @@ describe Puppet::Provider::Neutron do
      '(HTTP 400)'].reverse.each do |valid_message|
       it "should retry when neutron cli returns with error #{valid_message}" do
         klass.expects(:get_neutron_credentials).with().returns({})
-        klass.expects(:sleep).with(10).returns(nil)
+        klass.expects(:sleep).with(2).returns(nil)
         klass.expects(:neutron).twice.with(['test_retries']).raises(
-          Exception, valid_message).then.returns('')
+          Puppet::ExecutionFailure, valid_message).then.returns('')
         klass.auth_neutron('test_retries')
       end
     end
@@ -128,6 +134,21 @@ describe Puppet::Provider::Neutron do
       klass.expects(:auth_neutron).returns(output)
       result = klass.list_neutron_resources('foo')
       result.should eql(['net1', 'net2'])
+    end
+
+    it 'should return empty list when there are no neutron resources' do
+      output = <<-EOT
+      EOT
+      klass.stubs(:auth_neutron).returns(output)
+      result = klass.list_neutron_resources('foo')
+      result.should eql([])
+    end
+
+    it 'should fail if resources list is nil' do
+      klass.stubs(:auth_neutron).returns(nil)
+      expect do
+        klass.list_neutron_resources('foo')
+      end.to raise_error(Puppet::Error, exec_error)
     end
 
   end

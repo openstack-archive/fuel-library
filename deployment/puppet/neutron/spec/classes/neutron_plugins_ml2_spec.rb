@@ -193,7 +193,7 @@ describe 'neutron::plugins::ml2' do
           :path    => '/etc/default/neutron-server',
           :match   => '^NEUTRON_PLUGIN_CONFIG=(.*)$',
           :line    => 'NEUTRON_PLUGIN_CONFIG=/etc/neutron/plugin.ini',
-          :require => ['File[/etc/neutron/plugin.ini]']
+          :require => ['File[/etc/default/neutron-server]', 'File[/etc/neutron/plugin.ini]']
         )
       end
     end

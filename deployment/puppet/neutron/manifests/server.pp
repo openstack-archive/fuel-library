@@ -331,6 +331,8 @@ class neutron::server (
       require     => Neutron_config['database/connection'],
       refreshonly => true
     }
+    #NOTE(bogdando) contribute change to upstream #1384133
+    Neutron_config<||> -> Exec['neutron-db-sync']
   }
 
   neutron_config {

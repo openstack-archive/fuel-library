@@ -95,11 +95,11 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
             params.merge!(:tenant_name => 'bad_tenant_name')
         end
 
-        it 'should receive an api error' do
+        it 'should pass an api error' do
             resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
             provider = provider_class.new(resource)
             expect(provider.exists?).to be_false
-            expect { provider.create }.to raise_error KeystoneAPIError, /Unable to find matching tenant/
+            expect { provider.create }.not_to raise_error()
         end
     end
 
@@ -124,7 +124,8 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
             resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
             provider = provider_class.new(resource)
             expect(provider.exists?).to be_false
-            expect { provider.create }.to raise_error KeystoneAPIError, /Found multiple matches for tenant name/
+            expect { provider.create }.to raise_error KeystoneAPIError, /Found multiple matches for domain name: 'multiple_matches_tenant'/
+
         end
     end
 
@@ -137,11 +138,11 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
                           :headers => {})
         end
 
-        it 'should receive an authentication error' do
+        it 'should pass an authentication error' do
             resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
             provider = provider_class.new(resource)
             expect(provider.exists?).to be_false
-            expect { provider.create }.to raise_error KeystoneAPIError
+            expect { provider.create }.not_to raise_error()
         end
     end
 
@@ -151,11 +152,11 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
             stub_request(:post, "http://127.0.0.1:35357/v2.0/tokens").to_raise Errno::ECONNREFUSED
         end
 
-        it 'should receive a connection error' do
+        it 'should pass a connection error' do
             resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
             provider = provider_class.new(resource)
             expect(provider.exists?).to be_false
-            expect { provider.create }.to raise_error KeystoneConnectionError
+            expect { provider.create }.not_to raise_error
         end
     end
 
@@ -165,11 +166,11 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
             stub_request(:post, "http://127.0.0.1:35357/v2.0/tokens").to_raise SocketError, 'getaddrinfo: Name or service not known'
         end
 
-        it 'should receive a connection error' do
+        it 'should pass a connection error' do
             resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
             provider = provider_class.new(resource)
             expect(provider.exists?).to be_false
-            expect { provider.create }.to raise_error KeystoneConnectionError
+            expect { provider.create }.not_to raise_error()
         end
     end
 
