@@ -294,7 +294,11 @@ class neutron::server (
       path        => '/usr/bin',
       before      => Service['neutron-server'],
       subscribe   => Neutron_config['database/connection'],
-      refreshonly => true
+      refreshonly => true,
+      tries       => 10,
+      # TODO(bogdando) contribute change to upstream:
+      #   new try_sleep param for sleep driven development (SDD)
+      try_sleep   => 20,
     }
     Neutron_config<||> ~> Exec['neutron-db-sync']
   }

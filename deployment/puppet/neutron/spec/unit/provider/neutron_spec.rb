@@ -83,10 +83,11 @@ describe Puppet::Provider::Neutron do
 
     it 'should set auth credentials in the environment' do
       authenv = {
-        :OS_AUTH_URL    => auth_endpoint,
-        :OS_USERNAME    => credential_hash['admin_user'],
-        :OS_TENANT_NAME => credential_hash['admin_tenant_name'],
-        :OS_PASSWORD    => credential_hash['admin_password'],
+        :OS_AUTH_URL      => auth_endpoint,
+        :OS_USERNAME      => credential_hash['admin_user'],
+        :OS_TENANT_NAME   => credential_hash['admin_tenant_name'],
+        :OS_PASSWORD      => credential_hash['admin_password'],
+        :OS_ENDPOINT_TYPE => 'internalURL',
       }
       klass.expects(:get_neutron_credentials).with().returns(credential_hash)
       klass.expects(:withenv).with(authenv)
@@ -95,11 +96,12 @@ describe Puppet::Provider::Neutron do
 
     it 'should set region in the environment if needed' do
       authenv = {
-        :OS_AUTH_URL    => auth_endpoint,
-        :OS_USERNAME    => credential_hash['admin_user'],
-        :OS_TENANT_NAME => credential_hash['admin_tenant_name'],
-        :OS_PASSWORD    => credential_hash['admin_password'],
-        :OS_REGION_NAME => 'REGION_NAME',
+        :OS_AUTH_URL      => auth_endpoint,
+        :OS_USERNAME      => credential_hash['admin_user'],
+        :OS_TENANT_NAME   => credential_hash['admin_tenant_name'],
+        :OS_PASSWORD      => credential_hash['admin_password'],
+        :OS_ENDPOINT_TYPE => 'internalURL',
+        :OS_REGION_NAME   => 'REGION_NAME',
       }
 
       cred_hash = credential_hash.merge({'nova_region_name' => 'REGION_NAME'})
