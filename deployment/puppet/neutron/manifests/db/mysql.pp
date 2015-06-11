@@ -47,16 +47,43 @@ class neutron::db::mysql (
 
   validate_string($password)
 
+  if ($mysql_module >= 2.2) {
+    ::openstacklib::db::mysql { 'neutron':
+      user          => $user,
+      password_hash => mysql_password($password),
+      dbname        => $dbname,
+      host          => $host,
+      charset       => $charset,
+      collate       => $collate,
+      allowed_hosts => $allowed_hosts,
+    }
+    ::Openstacklib::Db::Mysql['neutron'] ~> Service <| title == 'neutron-server' |>
+    ::Openstacklib::Db::Mysql['neutron'] ~> Exec <| title == 'neutron-db-sync' |>
+  } else {
+    require mysql::python
 
-  ::openstacklib::db::mysql { 'neutron':
-    user          => $user,
-    password_hash => mysql_password($password),
-    dbname        => $dbname,
-    host          => $host,
-    charset       => $charset,
-    collate       => $collate,
-    allowed_hosts => $allowed_hosts,
+    mysql::db { $dbname:
+      user         => $user,
+      password     => $password,
+      host         => $host,
+      charset      => $charset,
+      require      => Class['mysql::config'],
+    }
   }
-  ::Openstacklib::Db::Mysql['neutron'] ~> Service <| title == 'neutron-server' |>
-  ::Openstacklib::Db::Mysql['neutron'] ~> Exec <| title == 'neutron-db-sync' |>
+
+  # Check allowed_hosts to avoid duplicate resource declarations
+  if is_array($allowed_hosts) and delete($allowed_hosts,$host) != [] {
+    $real_allowed_hosts = delete($allowed_hosts,$host)
+  } elsif is_string($allowed_hosts) and ($allowed_hosts != $host) {
+    $real_allowed_hosts = $allowed_hosts
+  }
+
+  if $real_allowed_hosts {
+    neutron::db::mysql::host_access { $real_allowed_hosts:
+      user          => $user,
+      password      => $password,
+      database      => $dbname,
+      mysql_module  => $mysql_module,
+    }
+  }
 }
