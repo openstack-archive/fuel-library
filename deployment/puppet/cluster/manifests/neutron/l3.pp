@@ -18,9 +18,6 @@ define cluster::neutron::l3 (
 
   require cluster::neutron
 
-  neutron_config{'DEFAULT/allow_automatic_l3agent_failover':
-    value => true
-  }
   $csr_metadata = undef
   $csr_complex_type    = 'clone'
   $csr_ms_metadata     = { 'interleave' => 'true' }
