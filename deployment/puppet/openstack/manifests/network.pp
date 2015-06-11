@@ -189,6 +189,7 @@ class openstack::network (
           database_max_retries    => -1,
 
           agent_down_time => 15,
+          allow_automatic_l3agent_failover => true,
 
           api_workers => min($::processorcount + 0, 50 + 0),
           rpc_workers => min($::processorcount + 0, 50 + 0),
