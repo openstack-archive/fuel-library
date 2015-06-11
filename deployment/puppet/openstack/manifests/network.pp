@@ -4,7 +4,7 @@
 class openstack::network (
   # asdf = {} #Trick to color editor
   $network_provider = 'neutron',
-  $agents           = ['ml2-ovs'], # ovs, ml2-ovs metadata dhcp l3
+  $agents           = ['ml2-ovs'], # ml2-ovs metadata dhcp l3
   $ha_agents        = false,
 
   $verbose             = false,
@@ -20,6 +20,7 @@ class openstack::network (
   $bridge_mappings      = [],
   $network_vlan_ranges  = ['physnet2:1000:2999'],
   $local_ip             = false,
+  $tunnel_types         = [],
 
   # dhcp
   $net_mtu = undef,
@@ -189,6 +190,7 @@ class openstack::network (
           database_max_retries    => -1,
 
           agent_down_time => 15,
+          allow_automatic_l3agent_failover => true,
 
           api_workers => min($::processorcount + 0, 50 + 0),
           rpc_workers => min($::processorcount + 0, 50 + 0),
@@ -258,6 +260,7 @@ class openstack::network (
           network_vlan_ranges   => $network_vlan_ranges,
           bridge_mappings       => $bridge_mappings,
           local_ip              => $local_ip,
+          tunnel_types          => $tunnel_types,
 
           #ML2 only
           type_drivers          => $type_drivers,

@@ -87,6 +87,7 @@ describe Puppet::Provider::Neutron do
         :OS_USERNAME    => credential_hash['admin_user'],
         :OS_TENANT_NAME => credential_hash['admin_tenant_name'],
         :OS_PASSWORD    => credential_hash['admin_password'],
+        :OS_ENDPOINT_TYPE => 'internalURL',
       }
       klass.expects(:get_neutron_credentials).with().returns(credential_hash)
       klass.expects(:withenv).with(authenv)
@@ -99,6 +100,7 @@ describe Puppet::Provider::Neutron do
         :OS_USERNAME    => credential_hash['admin_user'],
         :OS_TENANT_NAME => credential_hash['admin_tenant_name'],
         :OS_PASSWORD    => credential_hash['admin_password'],
+        :OS_ENDPOINT_TYPE => 'internalURL',
         :OS_REGION_NAME => 'REGION_NAME',
       }
 
