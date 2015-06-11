@@ -1,0 +1,10 @@
+fixtures:
+  repositories:
+    aviator: git://github.com/aimonb/puppet_aviator.git
+    mysql: git://github.com/puppetlabs/puppetlabs-mysql.git
+    stdlib: git://github.com/puppetlabs/puppetlabs-stdlib.git
+    rabbitmq:
+      repo: 'git://github.com/puppetlabs/puppetlabs-rabbitmq'
+      ref: 'origin/4.x'
+  symlinks:
+    'openstacklib': "#{source_dir}"
