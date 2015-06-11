@@ -17,7 +17,6 @@ describe 'concat::fragment', :type => :define do
     concatdir        = '/var/lib/puppet/concat'
     fragdir          = "#{concatdir}/#{safe_target_name}"
     id               = 'root'
-    gid              = 'root'
     if p[:ensure] == 'absent'
       safe_ensure = p[:ensure] 
     else
@@ -29,7 +28,6 @@ describe 'concat::fragment', :type => :define do
       {
         :concat_basedir => concatdir,
         :id             => id,
-        :gid            => gid,
         :osfamily       => 'Debian',
         :path           => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
         :is_pe          => false,
@@ -46,7 +44,6 @@ describe 'concat::fragment', :type => :define do
       should contain_file("#{fragdir}/fragments/#{p[:order]}_#{safe_name}").with({
         :ensure  => safe_ensure,
         :owner   => id,
-        :group   => gid,
         :mode    => '0640',
         :source  => p[:source],
         :content => p[:content],
