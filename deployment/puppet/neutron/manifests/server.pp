@@ -266,8 +266,13 @@ class neutron::server (
 
   case $database_connection {
     /mysql:\/\/\S+:\S+@\S+\/\S+/: {
-      require 'mysql::bindings'
-      require 'mysql::bindings::python'
+      # TODO (skolekonov): This workaround should be removed after mysql module upgrade
+      if ($mysql_module >= 2.2) {
+        require 'mysql::bindings'
+        require 'mysql::bindings::python'
+      } else {
+        require 'mysql::python'
+      }
     }
     /postgresql:\/\/\S+:\S+@\S+\/\S+/: {
       $backend_package = 'python-psycopg2'
