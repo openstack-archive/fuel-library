@@ -54,6 +54,25 @@ describe manifest do
           'changes' => "set net.bridge.bridge-nf-call-ip6tables '1'",
         ).that_comes_before('Service[libvirt]')
       end
+
+      neutron_config =  Noop.node_hash['quantum_settings']
+      if neutron_config && neutron_config.has_key?('L2') && neutron_config['L2'].has_key?('tunnel_id_ranges')
+        tunnel_types = ['gre']
+        it 'should configure tunnel_types for neutron' do
+           should contain_class('openstack::network').with(
+             'tunnel_types' => tunnel_types,
+           )
+           should contain_class_neutron_agent_ovs('agent/tunnel_types').with(
+             'value' => join(tunnel_types, ','),
+           )
+        end
+      elsif neutron_config && neutron_config.has_key?('L2') && !neutron_config['L2'].has_key?('tunnel_id_ranges')
+          it 'should declare openstack::network with tunnel_types set to []' do
+            should contain_class('openstack::network').with(
+              'tunnel_types' => [],
+            )
+          end
+      end
     else
       it 'should configure multi_host, send_arp_for_ha, metadata_host in nova.conf for nova-network' do
         should contain_nova_config('DEFAULT/multi_host').with(
@@ -64,6 +83,11 @@ describe manifest do
         )
         should contain_nova_config('DEFAULT/metadata_host').with(
           'value' => internal_address,
+        )
+      end
+      it 'should declare openstack::network with neutron disabled' do
+        should contain_class('openstack::network').with(
+          'neutron_server' => 'false',
         )
       end
     end
