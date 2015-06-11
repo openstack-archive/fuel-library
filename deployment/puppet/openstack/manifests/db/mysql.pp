@@ -149,6 +149,7 @@ class openstack::db::mysql (
         password      => $neutron_db_password,
         dbname        => $neutron_db_dbname,
         allowed_hosts => $allowed_hosts,
+        mysql_module  => '0.9',
       }
     }
   }
