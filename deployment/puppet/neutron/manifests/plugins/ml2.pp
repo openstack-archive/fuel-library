@@ -187,5 +187,4 @@ class neutron::plugins::ml2 (
   }
 
   Neutron_plugin_ml2<||> ~> Exec<| title == 'neutron-db-sync' |>
-
 }
