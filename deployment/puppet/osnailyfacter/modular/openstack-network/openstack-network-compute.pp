@@ -293,6 +293,7 @@ if $network_provider == 'neutron' {
   if $neutron_settings['L2']['tunnel_id_ranges'] {
     # tunneling_mode
     $enable_tunneling = true
+    $tunnel_types = ['gre']
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
     $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
     $iface = get_network_role_property('neutron/mesh', 'phys_dev')
@@ -307,6 +308,7 @@ if $network_provider == 'neutron' {
     $iface = get_network_role_property('neutron/private', 'phys_dev')
     $mtu_for_virt_network = get_transformation_property('mtu', $iface[0])
     $enable_tunneling = false
+    $tunnel_types = []
     $tunneling_ip = false
     $tunnel_id_ranges = []
   }
@@ -345,6 +347,7 @@ class { 'openstack::network':
   network_vlan_ranges => $vlan_range,
   enable_tunneling    => $enable_tunneling,
   tunnel_id_ranges    => $tunnel_id_ranges,
+  tunnel_types        => $tunnel_types,
 
   verbose             => true,
   debug               => hiera('debug', true),
