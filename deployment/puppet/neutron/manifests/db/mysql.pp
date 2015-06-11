@@ -41,12 +41,11 @@ class neutron::db::mysql (
   $mysql_module  = undef,
 ) {
 
-  if $mysql_module {
-    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
-  }
+#  if $mysql_module {
+#    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
+#  }
 
   validate_string($password)
-
 
   ::openstacklib::db::mysql { 'neutron':
     user          => $user,
@@ -56,6 +55,8 @@ class neutron::db::mysql (
     charset       => $charset,
     collate       => $collate,
     allowed_hosts => $allowed_hosts,
+    # TODO (skolekonov) Remove temporary workaround for compatibility with old MySQL module
+    mysql_module  => $mysql_module,
   }
   ::Openstacklib::Db::Mysql['neutron'] ~> Service <| title == 'neutron-server' |>
   ::Openstacklib::Db::Mysql['neutron'] ~> Exec <| title == 'neutron-db-sync' |>
