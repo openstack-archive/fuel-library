@@ -1,0 +1,36 @@
+--- 
+  http_interactions: 
+    - request: 
+        method: get
+        uri: "http://192.168.11.4:35357/v2.0/tenants"
+        body: 
+          encoding: US-ASCII
+          string: ""
+        headers: 
+          Content-Type: 
+            - application/json
+          User-Agent: 
+            - "Faraday v0.8.8"
+          X-Auth-Token: 
+            - sosp-kyl
+      response: 
+        status: 
+          code: 200
+          message: 
+        headers: 
+          vary: 
+            - X-Auth-Token
+          content-type: 
+            - application/json
+          content-length: 
+            - "491"
+          date: 
+            - "Tue, 30 Sep 2014 06:59:48 GMT"
+          connection: 
+            - close
+        body: 
+          encoding: UTF-8
+          string: "{\x22tenants_links\x22: [], \x22tenants\x22: [{\x22description\x22: \x22Test tenant\x22, \x22enabled\x22: true, \x22id\x22: \x2234e463e2bab24f78990ca864e4a28ba2\x22, \x22name\x22: \x22test2\x22}, {\x22description\x22: \x22Tenant for the openstack services\x22, \x22enabled\x22: true, \x22id\x22: \x2268c8fcf77aff4b409cc158c0f6cbff7b\x22, \x22name\x22: \x22services\x22}, {\x22description\x22: \x22Test tenant\x22, \x22enabled\x22: true, \x22id\x22: \x22c330f1bc663648df9c1e7835a1e7a955\x22, \x22name\x22: \x22test\x22}, {\x22description\x22: \x22admin tenant\x22, \x22enabled\x22: true, \x22id\x22: \x22c518b36fa220499b85ba9a71014ce2a5\x22, \x22name\x22: \x22admin\x22}]}"
+        http_version: 
+      recorded_at: "Tue, 30 Sep 2014 06:59:48 GMT"
+  recorded_with: "VCR 2.9.3"
