@@ -45,13 +45,13 @@ describe 'neutron::agents::ml2::ovs' do
       should contain_neutron_plugin_ml2('ovs/local_ip').with_ensure('absent')
     end
 
-    it 'configures vs_bridge' do
-      should contain_vs_bridge(p[:integration_bridge]).with(
-        :ensure  => 'present',
-        :before => 'Service[neutron-ovs-agent-service]'
-      )
-      should_not contain_vs_brige(p[:integration_bridge])
-    end
+#    it 'configures vs_bridge' do
+#      should contain_vs_bridge(p[:integration_bridge]).with(
+#        :ensure  => 'present',
+#        :before => 'Service[neutron-ovs-agent-service]'
+#      )
+#      should_not contain_vs_brige(p[:integration_bridge])
+#    end
 
     it 'installs neutron ovs agent package' do
       if platform_params.has_key?(:ovs_agent_package)
@@ -101,27 +101,27 @@ describe 'neutron::agents::ml2::ovs' do
       end
     end
 
-    context 'when supplying bridge mappings for provider networks' do
-      before :each do
-        params.merge!(:bridge_uplinks => ['br-ex:eth2'],:bridge_mappings => ['default:br-ex'])
-      end
+#    context 'when supplying bridge mappings for provider networks' do
+#      before :each do
+#        params.merge!(:bridge_uplinks => ['br-ex:eth2'],:bridge_mappings => ['default:br-ex'])
+#      end
 
-      it 'configures bridge mappings' do
-        should contain_neutron_plugin_ml2('ovs/bridge_mappings')
-      end
+#      it 'configures bridge mappings' do
+#        should contain_neutron_plugin_ml2('ovs/bridge_mappings')
+#      end
 
-      it 'should configure bridge mappings' do
-        should contain_neutron__plugins__ovs__bridge(params[:bridge_mappings].join(',')).with(
-          :before => 'Service[neutron-ovs-agent-service]'
-        )
-      end
+#      it 'should configure bridge mappings' do
+#        should contain_neutron__plugins__ovs__bridge(params[:bridge_mappings].join(',')).with(
+#          :before => 'Service[neutron-ovs-agent-service]'
+#        )
+#      end
 
-      it 'should configure bridge uplinks' do
-        should contain_neutron__plugins__ovs__port(params[:bridge_uplinks].join(',')).with(
-          :before => 'Service[neutron-ovs-agent-service]'
-        )
-      end
-    end
+#      it 'should configure bridge uplinks' do
+#        should contain_neutron__plugins__ovs__port(params[:bridge_uplinks].join(',')).with(
+#          :before => 'Service[neutron-ovs-agent-service]'
+#        )
+#      end
+#    end
 
     context 'when enabling tunneling' do
       context 'without local ip address' do
@@ -142,10 +142,10 @@ describe 'neutron::agents::ml2::ovs' do
           should contain_neutron_plugin_ml2('ovs/enable_tunneling').with_value(true)
           should contain_neutron_plugin_ml2('ovs/tunnel_bridge').with_value(default_params[:tunnel_bridge])
           should contain_neutron_plugin_ml2('ovs/local_ip').with_value('127.0.0.1')
-          should contain_vs_bridge(default_params[:tunnel_bridge]).with(
-            :ensure  => 'present',
-            :before => 'Service[neutron-ovs-agent-service]'
-          )
+#          should contain_vs_bridge(default_params[:tunnel_bridge]).with(
+#            :ensure  => 'present',
+#            :before => 'Service[neutron-ovs-agent-service]'
+#          )
         end
       end
 

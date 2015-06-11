@@ -206,7 +206,9 @@ class neutron::server (
   $min_l3_agents_per_router = 2,
   $l3_ha_net_cidr           = '169.254.192.0/18',
   # DEPRECATED PARAMETERS
-  $mysql_module             = undef,
+  # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel
+  $mysql_module            = '0.9',
+  #$mysql_module             = undef,
   $sql_connection           = undef,
   $connection               = undef,
   $sql_max_retries          = undef,
@@ -302,8 +304,14 @@ class neutron::server (
 
   case $database_connection_real {
     /mysql:\/\/\S+:\S+@\S+\/\S+/: {
-      require 'mysql::bindings'
-      require 'mysql::bindings::python'
+      # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel.
+      #   we cannot remove deprecated mysql_module for now
+      if ($mysql_module >= 2.2) {
+        require 'mysql::bindings'
+        require 'mysql::bindings::python'
+      } else {
+        require 'mysql::python'
+      }
     }
     /postgresql:\/\/\S+:\S+@\S+\/\S+/: {
       $backend_package = 'python-psycopg2'
@@ -331,6 +339,8 @@ class neutron::server (
       require     => Neutron_config['database/connection'],
       refreshonly => true
     }
+    #NOTE(bogdando) contribute change to upstream #1384133
+    Neutron_config<||> -> Exec['neutron-db-sync']
   }
 
   neutron_config {

@@ -38,24 +38,53 @@ class neutron::db::mysql (
   $charset       = 'utf8',
   $collate       = 'utf8_unicode_ci',
   $cluster_id    = 'localzone',
-  $mysql_module  = undef,
+  $mysql_module  = '0.9',
+#  $mysql_module  = undef,
 ) {
 
-  if $mysql_module {
-    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
-  }
+#  if $mysql_module {
+#    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
+#  }
 
   validate_string($password)
 
+  if ($mysql_module >= 2.2) {
+    ::openstacklib::db::mysql { 'neutron':
+      user          => $user,
+      password_hash => mysql_password($password),
+      dbname        => $dbname,
+      host          => $host,
+      charset       => $charset,
+      collate       => $collate,
+      allowed_hosts => $allowed_hosts,
+    }
+    ::Openstacklib::Db::Mysql['neutron'] ~> Service <| title == 'neutron-server' |>
+  } else {
+    require mysql::python
 
-  ::openstacklib::db::mysql { 'neutron':
-    user          => $user,
-    password_hash => mysql_password($password),
-    dbname        => $dbname,
-    host          => $host,
-    charset       => $charset,
-    collate       => $collate,
-    allowed_hosts => $allowed_hosts,
+    mysql::db { $dbname:
+      user         => $user,
+      password     => $password,
+      host         => $host,
+      charset      => $charset,
+      require      => Class['mysql::config'],
+    }
   }
-  ::Openstacklib::Db::Mysql['neutron'] ~> Service <| title == 'neutron-server' |>
+
+  # Check allowed_hosts to avoid duplicate resource declarations
+  if is_array($allowed_hosts) and delete($allowed_hosts,$host) != [] {
+    $real_allowed_hosts = delete($allowed_hosts,$host)
+  } elsif is_string($allowed_hosts) and ($allowed_hosts != $host) {
+    $real_allowed_hosts = $allowed_hosts
+  }
+
+  if $real_allowed_hosts {
+    neutron::db::mysql::host_access { $real_allowed_hosts:
+      user          => $user,
+      password      => $password,
+      database      => $dbname,
+      mysql_module  => $mysql_module,
+    }
+  }
+
 }
