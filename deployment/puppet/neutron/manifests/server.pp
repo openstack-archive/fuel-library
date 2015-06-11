@@ -230,6 +230,8 @@ class neutron::server (
   $report_interval                  = undef,
   $state_path                       = undef,
   $lock_path                        = undef,
+  # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel
+  $mysql_module                     = '0.9',
 ) {
 
   include ::neutron::params
@@ -266,8 +268,14 @@ class neutron::server (
 
   case $database_connection {
     /mysql:\/\/\S+:\S+@\S+\/\S+/: {
-      require 'mysql::bindings'
-      require 'mysql::bindings::python'
+      # TODO(bogdando) undone the change once puppet-openstacklibs supported in Fuel.
+      #   we cannot remove deprecated mysql_module for now
+      if ($mysql_module >= 2.2) {
+        require 'mysql::bindings'
+        require 'mysql::bindings::python'
+      } else {
+        require 'mysql::python'
+      }
     }
     /postgresql:\/\/\S+:\S+@\S+\/\S+/: {
       $backend_package = 'python-psycopg2'
