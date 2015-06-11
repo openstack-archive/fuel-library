@@ -16,6 +16,7 @@ class openstack::network (
   $enable_tunneling     = false,
   $tunnel_bridge        = 'br-tun',
   $tunnel_id_ranges     = ['20:100'],
+  $tunnel_types         = false,
   $integration_bridge   = 'br-int',
   $bridge_mappings      = [],
   $network_vlan_ranges  = ['physnet2:1000:2999'],
@@ -256,6 +257,7 @@ class openstack::network (
           tunnel_id_ranges      => $tunnel_id_ranges,
           tenant_network_types  => $tenant_network_types,
           network_vlan_ranges   => $network_vlan_ranges,
+          tunnel_types          => $tunnel_types,
           bridge_mappings       => $bridge_mappings,
           local_ip              => $local_ip,
 

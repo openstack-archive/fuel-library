@@ -87,6 +87,7 @@ describe Puppet::Provider::Neutron do
         :OS_USERNAME    => credential_hash['admin_user'],
         :OS_TENANT_NAME => credential_hash['admin_tenant_name'],
         :OS_PASSWORD    => credential_hash['admin_password'],
+        :OS_ENDPOINT_TYPE => 'internalURL',
       }
       klass.expects(:get_neutron_credentials).with().returns(credential_hash)
       klass.expects(:withenv).with(authenv)
@@ -99,6 +100,7 @@ describe Puppet::Provider::Neutron do
         :OS_USERNAME    => credential_hash['admin_user'],
         :OS_TENANT_NAME => credential_hash['admin_tenant_name'],
         :OS_PASSWORD    => credential_hash['admin_password'],
+        :OS_ENDPOINT_TYPE => 'internalURL',
         :OS_REGION_NAME => 'REGION_NAME',
       }
 
@@ -146,6 +148,21 @@ describe Puppet::Provider::Neutron do
       klass.stubs(:auth_neutron).returns(output)
       result = klass.list_neutron_resources('foo')
       expect(result).to eql([])
+    end
+
+    it 'should fail if resources list is nil' do
+      klass.stubs(:auth_neutron).returns(nil)
+      expect do
+        klass.list_neutron_resources('foo')
+      end.to raise_error(Puppet::Error, exec_error)
+    end
+
+    it 'should return empty list when there are no neutron resources' do
+      output = <<-EOT
+      EOT
+      klass.stubs(:auth_neutron).returns(output)
+      result = klass.list_neutron_resources('foo')
+      result.should eql([])
     end
 
     it 'should fail if resources list is nil' do

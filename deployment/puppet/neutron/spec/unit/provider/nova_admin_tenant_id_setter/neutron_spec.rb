@@ -137,7 +137,7 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
             resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
             provider = provider_class.new(resource)
             expect(provider.exists?).to be_falsey
-            expect { provider.create }.to raise_error KeystoneAPIError, /Found multiple matches for tenant name/
+            expect { provider.create }.to raise_error KeystoneAPIError, /Found multiple matches for domain name: 'multiple_matches_tenant'/
         end
     end
 
