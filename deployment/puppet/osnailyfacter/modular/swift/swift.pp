@@ -1,5 +1,6 @@
 notice('MODULAR: swift.pp')
 
+<<<<<<< HEAD
 $swift_hash           = hiera_hash('swift_hash')
 $swift_master_role    = hiera('swift_master_role', 'primary-controller')
 $swift_nodes          = pick(hiera('swift_nodes', undef), hiera('controllers', undef))
@@ -25,6 +26,7 @@ $keystone_user        = pick($swift_hash['user'], 'swift')
 $keystone_password    = pick($swift_hash['user_password'], 'passsword')
 $keystone_tenant      = pick($swift_hash['tenant'], 'services')
 $keystone_protocol    = pick($swift_hash['auth_protocol'], 'http')
+$region               = hiera('region', 'RegionOne')
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -96,6 +98,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       class { 'swift::keystone::auth':
         password         => $swift_hash['user_password'],
         public_address   => hiera('public_vip'),
+        region           => $region,
         internal_address => $management_vip,
         admin_address    => $management_vip,
       }
