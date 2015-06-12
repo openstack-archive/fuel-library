@@ -352,6 +352,7 @@ class { 'openstack::network':
   admin_password => $neutron_user_password,
   auth_url       => "http://${service_endpoint}:35357/v2.0",
   neutron_url    => "http://${service_endpoint}:9696",
+  region         => hiera('region', 'RegionOne'),
 
   # metadata
   shared_secret  => undef,

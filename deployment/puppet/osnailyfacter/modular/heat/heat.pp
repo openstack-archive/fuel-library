@@ -18,6 +18,7 @@ $internal_address         = hiera('internal_address')
 $database_password        = $heat_hash['db_password']
 $databse_user             = 'heat'
 $databse_name             = 'heat'
+$region                   = hira('region', 'RegionOne')
 $read_timeout             = '60'
 $sql_connection           = "mysql://${databse_user}:${database_password}@${$controller_node_address}/${databse_name}?read_timeout=${read_timeout}"
 

@@ -81,6 +81,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   class { 'swift::keystone::auth':
     password         => $swift_hash[user_password],
     public_address   => hiera('public_vip'),
+    region           => hira('region', 'RegionOne'),
     internal_address => $management_vip,
     admin_address    => $management_vip,
   }
