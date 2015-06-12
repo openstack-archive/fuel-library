@@ -18,6 +18,7 @@ $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $deployment_mode            = hiera('deployment_mode')
+$region                     = hiera('region', 'RegionOne')
 
 #################################################################
 
@@ -38,6 +39,7 @@ if $sahara_hash['enabled'] {
     keystone_user              => 'sahara',
     keystone_password          => $sahara_hash['user_password'],
     keystone_tenant            => 'services',
+    region                     => $region,
     auth_uri                   => "http://${management_ip}:5000/v2.0/",
     identity_uri               => "http://${management_ip}:35357/",
     use_neutron                => $use_neutron,

@@ -14,6 +14,7 @@ $rabbit_hash                    = hiera('rabbit_hash', {})
 $network_scheme                 = hiera('network_scheme', {})
 $keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
 $neutron_endpoint               = hiera('neutron_endpoint', $service_endpoint)
+$region                         = hiera('region', 'RegionOne')
 
 $floating_hash = {}
 
@@ -362,6 +363,7 @@ class { 'openstack::network':
   neutron_url       => "http://${neutron_endpoint}:9696",
   admin_tenant_name => $keystone_tenant,
   admin_username    => $keystone_user,
+  region            => $region,
 
   # metadata
   shared_secret  => undef,

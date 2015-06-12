@@ -8,6 +8,7 @@ define murano::application_package (
   $os_tenant_name   = 'admin',
   $os_username      = 'admin',
   $os_password      = 'ChangeMe',
+  $os_region        = 'RegionOne',
   $os_auth_url      = 'http://127.0.0.1:5000/v2.0/',
   $mandatory        = false,
 ) {
@@ -28,6 +29,7 @@ define murano::application_package (
       "OS_USERNAME=${os_username}",
       "OS_PASSWORD=${os_password}",
       "OS_AUTH_URL=${os_auth_url}",
+      "OS_REGION_NAME=${os_region}",
       'OS_ENDPOINT_TYPE=internalURL'
     ],
     command => $murano_cli_cmd,
