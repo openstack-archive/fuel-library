@@ -217,6 +217,7 @@ class openstack::network (
             "OS_USERNAME=${admin_username}",
             "OS_PASSWORD=${admin_password}",
             "OS_AUTH_URL=${auth_url}",
+            "OS_REGION_NAME=${region}",
             'OS_ENDPOINT_TYPE=internalURL',
           ],
           tries     => 30,

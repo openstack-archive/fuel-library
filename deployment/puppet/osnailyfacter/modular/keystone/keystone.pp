@@ -32,6 +32,7 @@ $admin_tenant   = $access_hash['tenant']
 $admin_email    = $access_hash['email']
 $admin_user     = $access_hash['user']
 $admin_password = $access_hash['password']
+$region         = hiera('region', 'RegionOne')
 
 $public_address   = $public_vip
 $admin_address    = $management_vip
@@ -97,6 +98,7 @@ class { 'openstack::keystone':
   enabled                  => $enabled,
   use_syslog               => $use_syslog,
   syslog_log_facility      => $syslog_log_facility,
+  region                   => $region,
   memcache_servers         => $memcache_servers,
   memcache_server_port     => $memcache_server_port,
   memcache_pool_maxsize    => $memcache_pool_maxsize,

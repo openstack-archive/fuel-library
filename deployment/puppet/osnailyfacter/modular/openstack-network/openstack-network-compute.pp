@@ -362,6 +362,7 @@ class { 'openstack::network':
   neutron_url       => "http://${neutron_endpoint}:9696",
   admin_tenant_name => $keystone_tenant,
   admin_username    => $keystone_user,
+  region            => hiera('region', 'RegionOne'),
 
   # metadata
   shared_secret  => undef,

@@ -48,10 +48,11 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 
   if !$swift_hash['resize_value']
   {
-    $swift_hash['resize_value'] = 2
+    $ring_part_power = calc_ring_part_power($controllers,2)
+  } else {
+    $ring_part_power = calc_ring_part_power($controllers,$swift_hash['resize_value'])
   }
 
-  $ring_part_power = calc_ring_part_power($controllers,$swift_hash['resize_value'])
   $sto_net = $network_scheme['endpoints'][$network_scheme['roles']['storage']]['IP']
   $man_net = $network_scheme['endpoints'][$network_scheme['roles']['management']]['IP']
 
@@ -81,6 +82,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   class { 'swift::keystone::auth':
     password         => $swift_hash[user_password],
     public_address   => hiera('public_vip'),
+    region           => hiera('region', 'RegionOne'),
     internal_address => $management_vip,
     admin_address    => $management_vip,
   }
