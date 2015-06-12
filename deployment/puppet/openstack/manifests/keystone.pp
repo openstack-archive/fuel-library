@@ -90,6 +90,7 @@ class openstack::keystone (
   $use_syslog                  = false,
   $syslog_log_facility         = 'LOG_LOCAL7',
   $idle_timeout                = '200',
+  $region                      = 'RegionOne',
   $rabbit_hosts                = false,
   $rabbit_password             = 'guest',
   $rabbit_userid               = 'guest',
@@ -316,6 +317,7 @@ class openstack::keystone (
       public_address   => $public_address,
       admin_address    => $admin_real,
       internal_address => $internal_real,
+      region           => $region,
     }
     Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
     Haproxy_backend_status<||> -> Class['keystone::endpoint']
@@ -327,6 +329,7 @@ class openstack::keystone (
         public_address   => $glance_public_real,
         admin_address    => $glance_admin_real,
         internal_address => $glance_internal_real,
+        region           => $region,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['glance::keystone::auth']
       Haproxy_backend_status<||> -> Class['glance::keystone::auth']
@@ -339,6 +342,7 @@ class openstack::keystone (
         public_address   => $nova_public_real,
         admin_address    => $nova_admin_real,
         internal_address => $nova_internal_real,
+        region           => $region,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
       Haproxy_backend_status<||> -> Class['nova::keystone::auth']
@@ -351,6 +355,7 @@ class openstack::keystone (
         public_address   => $cinder_public_real,
         admin_address    => $cinder_admin_real,
         internal_address => $cinder_internal_real,
+        region           => $region,
       }
      Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
      Haproxy_backend_status<||> -> Class['cinder::keystone::auth']
@@ -361,6 +366,7 @@ class openstack::keystone (
         public_address   => $neutron_public_real,
         admin_address    => $neutron_admin_real,
         internal_address => $neutron_internal_real,
+        region           => $region,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['neutron::keystone::auth']
       Haproxy_backend_status<||> -> Class['neutron::keystone::auth']
@@ -371,6 +377,7 @@ class openstack::keystone (
         public_address   => $ceilometer_public_real,
         admin_address    => $ceilometer_admin_real,
         internal_address => $ceilometer_internal_real,
+        region           => $region,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['ceilometer::keystone::auth']
       Haproxy_backend_status<||> -> Class['ceilometer::keystone::auth']
