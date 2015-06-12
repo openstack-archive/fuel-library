@@ -13,6 +13,7 @@ class murano (
   $murano_keystone_user                  = 'murano',
   $murano_keystone_password              = 'swordfish',
   $murano_keystone_signing_dir           = '/tmp/keystone-signing-muranoapi',
+  $region                                = 'RegionOne',
   # murano
   $use_syslog                            = false,
   $debug                                 = false,

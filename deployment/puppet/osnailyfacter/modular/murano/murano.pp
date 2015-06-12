@@ -18,6 +18,7 @@ $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', false)
 $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $primary_controller         = hiera('primary_controller')
+$region                     = hiera('region', 'RegionOne')
 
 #################################################################
 
@@ -54,7 +55,7 @@ if $murano_hash['enabled'] {
     $murano_repo_url = 'http://storage.apps.openstack.org'
   }
 
-  class { 'murano' :
+  class { '::murano' :
     murano_package_name      => $murano_package_name,
     murano_api_host          => $management_ip,
 
@@ -85,6 +86,7 @@ if $murano_hash['enabled'] {
     murano_keystone_user     => 'murano',
     murano_keystone_password => $murano_hash['user_password'],
     murano_keystone_tenant   => 'services',
+    region                   => $region,
 
     use_neutron              => $use_neutron,
 

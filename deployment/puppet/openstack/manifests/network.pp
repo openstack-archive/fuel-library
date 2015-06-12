@@ -183,6 +183,7 @@ class openstack::network (
           auth_protocol => $auth_protocol,
           auth_password => $admin_password,
           auth_tenant   => $admin_tenant_name,
+          auth_region   => $auth_region,
           auth_user     => $admin_username,
           auth_uri      => $auth_url,
 
@@ -195,6 +196,7 @@ class openstack::network (
           api_workers => min($::processorcount + 0, 50 + 0),
           rpc_workers => min($::processorcount + 0, 50 + 0),
         }
+
         tweaks::ubuntu_service_override { "$::neutron::params::server_service":
           package_name => $::neutron::params::server_package ? {
               false   => $::neutron::params::package_name,
@@ -208,6 +210,7 @@ class openstack::network (
           nova_admin_username     => $nova_admin_username,
           nova_admin_tenant_name  => $nova_admin_tenant_name,
           nova_admin_password     => $nova_admin_password,
+          nova_region_name        => $region,
         }
 
         # In Juno Neutron API ready for answer not yet when server starts.
@@ -217,6 +220,7 @@ class openstack::network (
             "OS_USERNAME=${admin_username}",
             "OS_PASSWORD=${admin_password}",
             "OS_AUTH_URL=${auth_url}",
+            "OS_REGION_NAME=${region}",
             'OS_ENDPOINT_TYPE=internalURL',
           ],
           tries     => 30,
@@ -250,6 +254,7 @@ class openstack::network (
           admin_tenant_name => $admin_tenant_name,
           admin_username    => $admin_username,
           auth_url          => $auth_url,
+          auth_region       => $region,
 
           #ovs
           tunnel_bridge         => $tunnel_bridge,
