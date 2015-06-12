@@ -50,6 +50,7 @@ class vmware::network::nova (
   $nova_password = $nova_hash['user_password']
   $management_vip = hiera('management_vip')
   $auth_url = "http://${management_vip}:5000/v2.0"
+  $region = hiera('region', 'RegionOne')
 
   cs_resource { 'p_vcenter_nova_network':
     ensure          => present,
@@ -64,6 +65,7 @@ class vmware::network::nova (
       user                  => $nova_user,
       password              => $nova_password,
       auth_url              => $auth_url,
+      region                => $region,
       config                => $nova_network_config,
       additional_parameters => "--config-file=${nova_network_config_ha}",
     },
