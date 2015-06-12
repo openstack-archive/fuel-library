@@ -7,7 +7,7 @@ Standards-Version: 3.9.2
 
 Package: fuel-ha-utils
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, python-keystoneclient, python-neutronclient
+Depends: ${misc:Depends}, ${shlibs:Depends}, python-keystoneclient, python-neutronclient, iputils-arping
 Description: Fuel Library HA utils
  .
 
