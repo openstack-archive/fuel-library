@@ -38,6 +38,7 @@ $nova_db_user                   = pick($nova_hash['db_user'], 'nova')
 $keystone_user                  = pick($nova_hash['user'], 'nova')
 $keystone_tenant                = pick($nova_hash['tenant'], 'services')
 $glance_api_servers             = hiera('glance_api_servers', "$management_vip:9292")
+$region                         = hiera('region', 'RegionOne')
 
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
@@ -247,6 +248,7 @@ if $primary_controller {
       "OS_PASSWORD=${nova_hash['user_password']}",
       "OS_AUTH_URL=http://${service_endpoint}:5000/v2.0/",
       'OS_ENDPOINT_TYPE=internalURL',
+      "OS_REGION_NAME=${region}",
     ],
     command => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
     unless  => 'bash -c "nova flavor-list | grep -q m1.micro"',

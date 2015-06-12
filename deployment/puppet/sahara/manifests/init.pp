@@ -9,6 +9,7 @@ class sahara (
   $keystone_user                = 'sahara',
   $keystone_tenant              = 'services',
   $keystone_password            = 'sahara',
+  $region                       = 'RegionOne',
   $node_domain                  = 'novalocal',
 
   $db_password                  = 'sahara',
@@ -63,7 +64,7 @@ class sahara (
     admin_address                => $keystone_host,
     internal_address             => $keystone_host,
     sahara_port                  => $api_port,
-    region                       => 'RegionOne',
+    region                       => $region,
     tenant                       => $keystone_tenant,
     email                        => 'sahara-team@localhost',
   }
