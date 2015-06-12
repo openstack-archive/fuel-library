@@ -239,6 +239,7 @@ class { 'openstack::network':
   auth_host       => $service_endpoint,
   auth_url        => "http://${service_endpoint}:35357/v2.0",
   neutron_url     => "http://${service_endpoint}:9696",
+  region          => hiera('region', 'RegionOne'),
 
   # Ceilometer notifications
   ceilometer => $ceilometer_hash['enabled'],

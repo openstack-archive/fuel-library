@@ -89,6 +89,7 @@ class openstack::keystone (
   $use_syslog                  = false,
   $syslog_log_facility         = 'LOG_LOCAL7',
   $idle_timeout                = '200',
+  $region                      = 'RegionOne',
   $rabbit_hosts                = false,
   $rabbit_password             = 'guest',
   $rabbit_userid               = 'guest',
@@ -208,105 +209,105 @@ class openstack::keystone (
     $token_driver = 'keystone.token.backends.sql.Token'
   }
 
-  class { '::keystone':
-    verbose             => $verbose,
-    debug               => $debug,
-    catalog_type        => 'sql',
-    admin_token         => $admin_token,
-    enabled             => $enabled,
-    sql_connection      => $sql_conn,
-    public_bind_host    => $public_bind_host,
-    admin_bind_host     => $admin_bind_host,
-    package_ensure      => $package_ensure,
-    use_syslog          => $use_syslog,
-    idle_timeout        => $idle_timeout,
-    rabbit_password     => $rabbit_password,
-    rabbit_userid       => $rabbit_userid,
-    rabbit_hosts        => $rabbit_hosts,
-    rabbit_virtual_host => $rabbit_virtual_host,
-    memcache_servers    => $memcache_servers_real,
-    token_driver        => $token_driver,
-    token_provider      => 'keystone.token.providers.uuid.Provider',
-    notification_driver => $notification_driver,
-    notification_topics => $notification_topics,
-  }
-
-  if $::operatingsystem == 'Ubuntu' {
-   if $service_provider == 'pacemaker' {
-      tweaks::ubuntu_service_override { 'keystone':
-        package_name => 'keystone',
-      }
-      exec { 'remove-keystone-bootblockr':
-        command => 'rm -rf /etc/init/keystone.override',
-        path    => ['/bin', '/usr/bin'],
-        require => Package['keystone']
-      }
-    }
-  }
-
-  if $memcache_servers {
-    Service<| title == 'memcached' |> -> Service<| title == 'keystone'|>
-    keystone_config {
-      'token/caching':                      value => 'false';
-      'cache/enabled':                      value => 'true';
-      'cache/backend':                      value => 'keystone.cache.memcache_pool';
-      'cache/memcache_servers':             value => join($memcache_servers_real, ',');
-      'cache/memcache_dead_retry':          value => '30';
-      'cache/memcache_socket_timeout':      value => '1';
-      'cache/memcache_pool_maxsize':        value => '1000';
-      'cache/memcache_pool_unused_timeout': value => '60';
-      'memcache/dead_retry':                value => '30';
-      'revoke/driver':                      value => 'keystone.contrib.revoke.backends.sql.Revoke';
-     }
-  }
-
-  Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
-  if !defined(Service['keystone']) {
-    notify{ "Module ${module_name} cannot notify service keystone on package update": }
-  }
-
-  if $use_syslog {
-    keystone_config {
-      'DEFAULT/use_syslog_rfc_format':  value  => true;
-    }
-  }
-
-  keystone_config {
-    'DATABASE/max_pool_size':                          value => $max_pool_size;
-    'DATABASE/max_retries':                            value => $max_retries;
-    'DATABASE/max_overflow':                           value => $max_overflow;
-    'identity/driver':                                 value =>"keystone.identity.backends.sql.Identity";
-    'policy/driver':                                   value =>"keystone.policy.backends.sql.Policy";
-    'ec2/driver':                                      value =>"keystone.contrib.ec2.backends.sql.Ec2";
-    'filter:debug/paste.filter_factory':               value =>"keystone.common.wsgi:Debug.factory";
-    'filter:token_auth/paste.filter_factory':          value =>"keystone.middleware:TokenAuthMiddleware.factory";
-    'filter:admin_token_auth/paste.filter_factory':    value =>"keystone.middleware:AdminTokenAuthMiddleware.factory";
-    'filter:xml_body/paste.filter_factory':            value =>"keystone.middleware:XmlBodyMiddleware.factory";
-    'filter:json_body/paste.filter_factory':           value =>"keystone.middleware:JsonBodyMiddleware.factory";
-    'filter:user_crud_extension/paste.filter_factory': value =>"keystone.contrib.user_crud:CrudExtension.factory";
-    'filter:crud_extension/paste.filter_factory':      value =>"keystone.contrib.admin_crud:CrudExtension.factory";
-    'filter:ec2_extension/paste.filter_factory':       value =>"keystone.contrib.ec2:Ec2Extension.factory";
-    'filter:s3_extension/paste.filter_factory':        value =>"keystone.contrib.s3:S3Extension.factory";
-    'filter:url_normalize/paste.filter_factory':       value =>"keystone.middleware:NormalizingFilter.factory";
-    'filter:stats_monitoring/paste.filter_factory':    value =>"keystone.contrib.stats:StatsMiddleware.factory";
-    'filter:stats_reporting/paste.filter_factory':     value =>"keystone.contrib.stats:StatsExtension.factory";
-    'app:public_service/paste.app_factory':            value =>"keystone.service:public_app_factory";
-    'app:admin_service/paste.app_factory':             value =>"keystone.service:admin_app_factory";
-    'pipeline:public_api/pipeline':                    value =>"stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug ec2_extension user_crud_extension public_service";
-    'pipeline:admin_api/pipeline':                     value =>"stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug stats_reporting ec2_extension s3_extension crud_extension admin_service";
-    'app:public_version_service/paste.app_factory':    value =>"keystone.service:public_version_app_factory";
-    'app:admin_version_service/paste.app_factory':     value =>"keystone.service:admin_version_app_factory";
-    'pipeline:public_version_api/pipeline':            value =>"stats_monitoring url_normalize xml_body public_version_service";
-    'pipeline:admin_version_api/pipeline':             value =>"stats_monitoring url_normalize xml_body admin_version_service";
-    'composite:main/use':                              value =>"egg:Paste#urlmap";
-    'composite:main//v2.0':                            value =>"public_api";
-    'composite:main//':                                value =>"public_version_api";
-    'composite:admin/use':                             value =>"egg:Paste#urlmap";
-    'composite:admin//v2.0':                           value =>"admin_api";
-    'composite:admin//':                               value =>"admin_version_api";
-  }
-
   if ($enabled) {
+    class { '::keystone':
+      verbose             => $verbose,
+      debug               => $debug,
+      catalog_type        => 'sql',
+      admin_token         => $admin_token,
+      enabled             => $enabled,
+      sql_connection      => $sql_conn,
+      public_bind_host    => $public_bind_host,
+      admin_bind_host     => $admin_bind_host,
+      package_ensure      => $package_ensure,
+      use_syslog          => $use_syslog,
+      idle_timeout        => $idle_timeout,
+      rabbit_password     => $rabbit_password,
+      rabbit_userid       => $rabbit_userid,
+      rabbit_hosts        => $rabbit_hosts,
+      rabbit_virtual_host => $rabbit_virtual_host,
+      memcache_servers    => $memcache_servers_real,
+      token_driver        => $token_driver,
+      token_provider      => 'keystone.token.providers.uuid.Provider',
+      notification_driver => $notification_driver,
+      notification_topics => $notification_topics,
+    }
+
+    if $::operatingsystem == 'Ubuntu' {
+     if $service_provider == 'pacemaker' {
+        tweaks::ubuntu_service_override { 'keystone':
+          package_name => 'keystone',
+        }
+        exec { 'remove-keystone-bootblockr':
+          command => 'rm -rf /etc/init/keystone.override',
+          path    => ['/bin', '/usr/bin'],
+          require => Package['keystone']
+        }
+      }
+    }
+
+    if $memcache_servers {
+      Service<| title == 'memcached' |> -> Service<| title == 'keystone'|>
+      keystone_config {
+        'token/caching':                      value => 'false';
+        'cache/enabled':                      value => 'true';
+        'cache/backend':                      value => 'keystone.cache.memcache_pool';
+        'cache/memcache_servers':             value => join($memcache_servers_real, ',');
+        'cache/memcache_dead_retry':          value => '30';
+        'cache/memcache_socket_timeout':      value => '1';
+        'cache/memcache_pool_maxsize':        value => '1000';
+        'cache/memcache_pool_unused_timeout': value => '60';
+        'memcache/dead_retry':                value => '30';
+        'revoke/driver':                      value => 'keystone.contrib.revoke.backends.sql.Revoke';
+       }
+    }
+
+    Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
+    if !defined(Service['keystone']) {
+      notify{ "Module ${module_name} cannot notify service keystone on package update": }
+    }
+
+    if $use_syslog {
+      keystone_config {
+        'DEFAULT/use_syslog_rfc_format':  value  => true;
+      }
+    }
+
+    keystone_config {
+      'DATABASE/max_pool_size':                          value => $max_pool_size;
+      'DATABASE/max_retries':                            value => $max_retries;
+      'DATABASE/max_overflow':                           value => $max_overflow;
+      'identity/driver':                                 value =>"keystone.identity.backends.sql.Identity";
+      'policy/driver':                                   value =>"keystone.policy.backends.sql.Policy";
+      'ec2/driver':                                      value =>"keystone.contrib.ec2.backends.sql.Ec2";
+      'filter:debug/paste.filter_factory':               value =>"keystone.common.wsgi:Debug.factory";
+      'filter:token_auth/paste.filter_factory':          value =>"keystone.middleware:TokenAuthMiddleware.factory";
+      'filter:admin_token_auth/paste.filter_factory':    value =>"keystone.middleware:AdminTokenAuthMiddleware.factory";
+      'filter:xml_body/paste.filter_factory':            value =>"keystone.middleware:XmlBodyMiddleware.factory";
+      'filter:json_body/paste.filter_factory':           value =>"keystone.middleware:JsonBodyMiddleware.factory";
+      'filter:user_crud_extension/paste.filter_factory': value =>"keystone.contrib.user_crud:CrudExtension.factory";
+      'filter:crud_extension/paste.filter_factory':      value =>"keystone.contrib.admin_crud:CrudExtension.factory";
+      'filter:ec2_extension/paste.filter_factory':       value =>"keystone.contrib.ec2:Ec2Extension.factory";
+      'filter:s3_extension/paste.filter_factory':        value =>"keystone.contrib.s3:S3Extension.factory";
+      'filter:url_normalize/paste.filter_factory':       value =>"keystone.middleware:NormalizingFilter.factory";
+      'filter:stats_monitoring/paste.filter_factory':    value =>"keystone.contrib.stats:StatsMiddleware.factory";
+      'filter:stats_reporting/paste.filter_factory':     value =>"keystone.contrib.stats:StatsExtension.factory";
+      'app:public_service/paste.app_factory':            value =>"keystone.service:public_app_factory";
+      'app:admin_service/paste.app_factory':             value =>"keystone.service:admin_app_factory";
+      'pipeline:public_api/pipeline':                    value =>"stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug ec2_extension user_crud_extension public_service";
+      'pipeline:admin_api/pipeline':                     value =>"stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug stats_reporting ec2_extension s3_extension crud_extension admin_service";
+      'app:public_version_service/paste.app_factory':    value =>"keystone.service:public_version_app_factory";
+      'app:admin_version_service/paste.app_factory':     value =>"keystone.service:admin_version_app_factory";
+      'pipeline:public_version_api/pipeline':            value =>"stats_monitoring url_normalize xml_body public_version_service";
+      'pipeline:admin_version_api/pipeline':             value =>"stats_monitoring url_normalize xml_body admin_version_service";
+      'composite:main/use':                              value =>"egg:Paste#urlmap";
+      'composite:main//v2.0':                            value =>"public_api";
+      'composite:main//':                                value =>"public_version_api";
+      'composite:admin/use':                             value =>"egg:Paste#urlmap";
+      'composite:admin//v2.0':                           value =>"admin_api";
+      'composite:admin//':                               value =>"admin_version_api";
+    }
+
     # Setup the admin user
 
     # Setup the Keystone Identity Endpoint
@@ -314,9 +315,28 @@ class openstack::keystone (
       public_address   => $public_address,
       admin_address    => $admin_real,
       internal_address => $internal_real,
+      region           => $region,
     }
     Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
     Haproxy_backend_status<||> -> Class['keystone::endpoint']
+
+    # It is necessary to have the admin_token defined for any of the keystone
+    # providers to function So we need to create one and then we can remove
+    # it later.
+
+    if !($enabled) AND (
+          $glance OR $nova OR $cinder OR $neutron OR $ceilometer)
+    {
+      file { '/etc/keystone': ensure => 'directory'}
+      keystone_config {'DEFAULT/admin_token'  value => $admin_token}
+      Keystone_config <||> -> Keystone_endpoint <||>
+      Keystone_config <||> -> Keystone_service <||>
+      Keystone_config <||> -> Keystone_role <||>
+      Keystone_config <||> -> Keystone_tenant <||>
+      Keystone_config <||> -> Keystone_user <||>
+      Keystone_config <||> -> Keystone_user_role <||>
+
+    }
 
     # Configure Glance endpoint in Keystone
     if $glance {
@@ -325,6 +345,7 @@ class openstack::keystone (
         public_address   => $glance_public_real,
         admin_address    => $glance_admin_real,
         internal_address => $glance_internal_real,
+        region           => $region,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['glance::keystone::auth']
       Haproxy_backend_status<||> -> Class['glance::keystone::auth']
@@ -337,6 +358,7 @@ class openstack::keystone (
         public_address   => $nova_public_real,
         admin_address    => $nova_admin_real,
         internal_address => $nova_internal_real,
+        region           => $region,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
       Haproxy_backend_status<||> -> Class['nova::keystone::auth']
@@ -349,6 +371,7 @@ class openstack::keystone (
         public_address   => $cinder_public_real,
         admin_address    => $cinder_admin_real,
         internal_address => $cinder_internal_real,
+        region           => $region,
       }
      Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
      Haproxy_backend_status<||> -> Class['cinder::keystone::auth']
@@ -359,6 +382,7 @@ class openstack::keystone (
         public_address   => $neutron_public_real,
         admin_address    => $neutron_admin_real,
         internal_address => $neutron_internal_real,
+        region           => $region,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['neutron::keystone::auth']
       Haproxy_backend_status<||> -> Class['neutron::keystone::auth']
@@ -369,6 +393,7 @@ class openstack::keystone (
         public_address   => $ceilometer_public_real,
         admin_address    => $ceilometer_admin_real,
         internal_address => $ceilometer_internal_real,
+        region           => $region,
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['ceilometer::keystone::auth']
       Haproxy_backend_status<||> -> Class['ceilometer::keystone::auth']

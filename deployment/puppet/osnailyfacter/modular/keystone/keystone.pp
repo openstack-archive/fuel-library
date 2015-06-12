@@ -32,6 +32,7 @@ $admin_tenant   = $access_hash['tenant']
 $admin_email    = $access_hash['email']
 $admin_user     = $access_hash['user']
 $admin_password = $access_hash['password']
+$region         = $hiera('region', 'RegionOne')
 
 $public_address   = $public_vip
 $admin_address    = $management_vip

@@ -13,6 +13,7 @@ class openstack::heat (
   $keystone_tenant               = 'services',
   $keystone_password             = false,
   $keystone_ec2_uri              = false,
+  $region                        = 'RegionOne'
   $auth_uri                      = false,
 
   $verbose                       = false,
@@ -135,7 +136,7 @@ class openstack::heat (
     internal_address               => $keystone_host,
     port                           => '8004',
     version                        => 'v1',
-    region                         => 'RegionOne',
+    region                         => $region,
     tenant                         => 'services',
     email                          => "${keystone_user}@localhost",
     public_protocol                => 'http',
@@ -154,7 +155,7 @@ class openstack::heat (
     internal_address               => $keystone_host,
     port                           => '8000',
     version                        => 'v1',
-    region                         => 'RegionOne',
+    region                         => $region,
     tenant                         => 'services',
     email                          => "${keystone_user}-cfn@localhost",
     public_protocol                => 'http',

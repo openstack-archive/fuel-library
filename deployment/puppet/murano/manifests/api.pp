@@ -12,6 +12,7 @@ class murano::api (
     $admin_tenant_name          = 'admin',
     $admin_user                 = 'admin',
     $admin_password             = 'admin',
+    $region                     = 'RegionOne',
     $signing_dir                = '/tmp/keystone-signing-muranoapi',
     $bind_host                  = '0.0.0.0',
     $bind_port                  = '8082',
@@ -171,7 +172,8 @@ class murano::api (
       os_username  => $admin_user,
       os_password  => $admin_password,
       os_auth_url  => $keystone_auth_url,
-      mandatory => true
+      region       => $region,
+      mandatory => true,
     }
 
     Service['murano_api'] -> Murano::Application_package<| mandatory == true |>
