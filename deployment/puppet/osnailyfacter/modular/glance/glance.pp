@@ -14,9 +14,9 @@ $amqp_hosts            = hiera('amqp_hosts')
 $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
 $ceilometer_hash       = hiera_hash('ceilometer', {})
+$region                = hiera('region','RegionOne')
 $keystone_endpoint     = hiera('keystone_endpoint', $service_endpoint)
 $glance_endpoint       = hiera('glance_endpoint', $service_endpoint)
-
 
 $db_type                        = 'mysql'
 $db_host                        = pick($glance_hash['db_host'], $management_vip)
@@ -75,6 +75,7 @@ class { 'openstack::glance':
   glance_vcenter_api_retry_count => $glance_vcenter_api_retry_count,
   auth_uri                       => $auth_uri,
   keystone_host                  => $keystone_endpoint,
+  region                         => $region,
   bind_host                      => $api_bind_address,
   enabled                        => $enabled,
   glance_backend                 => $glance_backend,
