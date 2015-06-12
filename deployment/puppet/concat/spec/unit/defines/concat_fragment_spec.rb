@@ -46,13 +46,16 @@ describe 'concat::fragment', :type => :define do
       should contain_file("#{fragdir}/fragments/#{p[:order]}_#{safe_name}").with({
         :ensure  => safe_ensure,
         :owner   => id,
-        :group   => gid,
         :mode    => '0640',
         :source  => p[:source],
         :content => p[:content],
         :alias   => "concat_fragment_#{title}",
         :backup  => 'puppet',
       })
+      if (Gem::Version.new(Puppet.version) >= Gem::Version.new('3.5'))
+        should contain_file("#{fragdir}/fragments/#{p[:order]}_#{safe_name}").with_group(gid)
+      end
+
     end
   end
 
