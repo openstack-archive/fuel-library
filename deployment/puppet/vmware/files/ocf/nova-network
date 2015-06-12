@@ -241,8 +241,8 @@ nova_network_cleanup() {
     fi
 
     count=0
-    alive=1
-    dnsmasq_pids=$(pgrep dnsmasq)
+    alive=$(ls /var/lib/nova/networks/*.pid | wc -l)
+    dnsmasq_pids=$(cat /var/lib/nova/networks/*.pid)
     while [ $alive -gt 0 ] && [ $count -lt $shutdown_timeout ]; do
         ocf_run kill -s TERM $dnsmasq_pids
 
@@ -265,11 +265,10 @@ nova_network_cleanup() {
 
         if [ $alive -gt 0 ] ; then
             dnsmasq_pids=$np
+            ocf_log debug "dnsmasq processes started by nova-network still hasn't stopped yet. Waiting ..."
         fi
 
         ((count+=$iteration_time))
-
-        ocf_log debug "dnsmasq processes started by nova-network still hasn't stopped yet. Waiting ..."
     done
 
     if [ $alive -gt 0 ] ; then
