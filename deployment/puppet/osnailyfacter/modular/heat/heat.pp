@@ -25,6 +25,7 @@ $database_user            = pick($heat_hash['db_user'], 'heat')
 $database_name            = hiera('heat_db_name', 'heat')
 $read_timeout             = '60'
 $sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}?read_timeout=${read_timeout}"
+$region                   = hiera('region', 'RegionOne')
 
 ####### Disable upstart startup on install #######
 if $::operatingsystem == 'Ubuntu' {
@@ -51,16 +52,13 @@ class { 'openstack::heat' :
   external_ip              => $controller_node_public,
   keystone_auth            => pick($heat_hash['keystone_auth'], true),
   create_heat_db           => pick($heat_hash['create_heat_db'], true),
-  api_bind_host            => $internal_address,
-  api_cfn_bind_host        => $internal_address,
-  api_cloudwatch_bind_host => $internal_address,
 
   keystone_host            => $service_endpoint,
   keystone_user            => $keystone_user,
   keystone_password        => $heat_hash['user_password'],
   keystone_tenant          => $keystone_tenant,
-
   keystone_ec2_uri         => "http://${service_endpoint}:5000/v2.0",
+  region                   => $region,
 
   rpc_backend              => 'heat.openstack.common.rpc.impl_kombu',
   amqp_hosts               => split($amqp_hosts, ','),
@@ -81,6 +79,10 @@ class { 'openstack::heat' :
   syslog_log_facility      => $syslog_log_facility_heat,
 
   auth_encryption_key      => $heat_hash['auth_encryption_key'],
+
+  api_bind_host            => $internal_address,
+  api_cfn_bind_host        => $internal_address,
+  api_cloudwatch_bind_host => $internal_address,
 }
 
 if hiera('heat_ha_engine', true){

@@ -15,6 +15,7 @@ $verbose             = hiera('verbose')
 $storage_address     = hiera('storage_address')
 $node                = hiera('node')
 $ring_min_part_hours = hiera('swift_ring_min_part_hours', 1)
+$region              = hiera('region', 'RegionOne')
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -85,6 +86,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   class { 'swift::keystone::auth':
     password         => $swift_hash['user_password'],
     public_address   => hiera('public_vip'),
+    region           => $region,
     internal_address => $management_vip,
     admin_address    => $management_vip,
   }
