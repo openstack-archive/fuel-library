@@ -32,6 +32,7 @@ $ceilometer_hash                = hiera('ceilometer',{})
 $mongo_hash                     = hiera('mongo', {})
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash                 = hiera('workloads_collector', {})
+$region                         = hiera('region', 'RegionOne')
 
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
@@ -302,6 +303,7 @@ if $primary_controller {
       "OS_PASSWORD=${nova_hash['user_password']}",
       "OS_AUTH_URL=http://${management_vip}:5000/v2.0/",
       'OS_ENDPOINT_TYPE=internalURL',
+      "OS_REGION_NAME=${region}",
     ],
     command => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
     unless  => 'bash -c "nova flavor-list | grep -q m1.micro"',
