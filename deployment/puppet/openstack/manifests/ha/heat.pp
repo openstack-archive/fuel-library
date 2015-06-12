@@ -14,7 +14,7 @@ class openstack::ha::heat {
 
   openstack::ha::haproxy_service { 'heat-api-cfn':
     order                  => '161',
-    listen_port            => 8003,
+    listen_port            => 8000,
     public                 => true,
     require_service        => 'heat-api',
     haproxy_config_options => {
@@ -25,7 +25,7 @@ class openstack::ha::heat {
 
   openstack::ha::haproxy_service { 'heat-api-cloudwatch':
     order                  => '162',
-    listen_port            => 8000,
+    listen_port            => 8003,
     public                 => true,
     require_service        => 'heat-api',
     haproxy_config_options => {
