@@ -16,6 +16,7 @@ $network_scheme                 = hiera('network_scheme', {})
 $nova_endpoint                  = hiera('nova_endpoint', $management_vip)
 $keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
+$region                         = hiera('region', 'RegionOne')
 
 $floating_hash = {}
 
@@ -253,6 +254,7 @@ class { 'openstack::network':
   neutron_url       => "http://${neutron_endpoint}:9696",
   admin_tenant_name => $keystone_tenant,
   admin_username    => $keystone_user,
+  region            => $region,
 
   # Ceilometer notifications
   ceilometer => $ceilometer_hash['enabled'],
