@@ -46,6 +46,7 @@ class openstack::glance (
   $keystone_host                  = '127.0.0.1',
   $registry_host                  = '127.0.0.1',
   $auth_uri                       = "http://127.0.0.1:5000/",
+  $region                         = 'RegionOne',
   $db_type                        = 'mysql',
   $glance_db_user                 = 'glance',
   $glance_db_dbname               = 'glance',
@@ -130,6 +131,7 @@ class openstack::glance (
     'DEFAULT/scrub_time':                 value => "43200";
     'DEFAULT/scrubber_datadir':           value => "/var/lib/glance/scrubber";
     'DEFAULT/image_cache_dir':            value => "/var/lib/glance/image-cache/";
+    'DEFAULT/auth_region':                value => $region;
     'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-glance';
     'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-glance';
   }
@@ -143,6 +145,7 @@ class openstack::glance (
     'DEFAULT/image_cache_stall_time':                 value => "86400";
     'DEFAULT/image_cache_invalid_entry_grace_period': value => "3600";
     'DEFAULT/image_cache_max_size':                   value => $glance_image_cache_max_size;
+    'DEFAULT/os_region_name':                         value => $region;
   }
 
   # Install and configure glance-registry
@@ -242,7 +245,8 @@ class openstack::glance (
         swift_store_key=> $glance_user_password,
         swift_store_create_container_on_put => "True",
         swift_store_large_object_size => $swift_store_large_object_size,
-        swift_store_auth_address => "http://${keystone_host}:5000/v2.0/"
+        swift_store_auth_address => "http://${keystone_host}:5000/v2.0/",
+        swift_store_region => $region,
       }
     }
     'rbd', 'ceph': {
