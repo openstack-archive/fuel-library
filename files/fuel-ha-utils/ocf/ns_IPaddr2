@@ -502,6 +502,9 @@ ip_prepare() {
   ocf_run $RUN_IN_NS ip addr replace "$OCF_RESKEY_ip/$OCF_RESKEY_cidr_netmask" dev $OCF_RESKEY_ns_veth
   [[ $? != 0 ]] && return $OCF_ERR_GENERIC
 
+  # notify neighbours - I'am here!
+  ocf_run $RUN_IN_NS arping -q -U $OCF_RESKEY_ip -I $OCF_RESKEY_ns_veth -w 1 -c 10 || true
+
   # modify route in base system
   ovs-vsctl show | grep $OCF_RESKEY_ns_veth
   if [[ $? != 0 ]] ; then
