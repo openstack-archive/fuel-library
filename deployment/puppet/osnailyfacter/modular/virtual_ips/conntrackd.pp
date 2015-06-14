@@ -69,4 +69,12 @@ if $operatingsystem == 'Ubuntu' {
     enable   => true,
     provider => 'pacemaker',
   }
+
+  # Workaround to ensure log is rotated properly
+  file_line { 'logrotate-conntrackd':
+    line    => 'copytruncate',
+    match   => '^copytruncate',
+    after   => 'missingok',
+    require => Package[$conntrackd_package],
+  }
 }
