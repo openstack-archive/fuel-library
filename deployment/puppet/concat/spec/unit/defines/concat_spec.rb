@@ -382,21 +382,24 @@ describe 'concat', :type => :define do
     end
   end # ensure_newline =>
 
-  context 'validate_cmd =>' do
-    context '/usr/bin/test -e %' do
-      it_behaves_like 'concat', '/etc/foo.bar', { :validate_cmd => '/usr/bin/test -e %' }
-    end
+  # validate_cmd is only in puppet 3.5
+  if (Gem::Version.new(Puppet.version) >= Gem::Version.new('3.5'))
+    context 'validate_cmd =>' do
+      context '/usr/bin/test -e %' do
+        it_behaves_like 'concat', '/etc/foo.bar', { :validate_cmd => '/usr/bin/test -e %' }
+      end
 
-    [ 1234, true ].each do |cmd|
-      context cmd do
-        let(:title) { '/etc/foo.bar' }
-        let(:params) {{ :validate_cmd => cmd }}
-        it 'should fail' do
-          expect { should }.to raise_error(Puppet::Error, /\$validate_cmd must be a string/)
+      [ 1234, true ].each do |cmd|
+        context cmd do
+          let(:title) { '/etc/foo.bar' }
+          let(:params) {{ :validate_cmd => cmd }}
+          it 'should fail' do
+            expect { should }.to raise_error(Puppet::Error, /\$validate_cmd must be a string/)
+          end
         end
       end
-    end
-  end # validate_cmd =>
+    end # validate_cmd =>
+  end
 
   describe 'deprecated parameter' do
     context 'gnu =>' do
