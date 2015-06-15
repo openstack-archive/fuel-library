@@ -5,26 +5,30 @@ class mongodb::server::install {
 
   case $package_ensure {
     true:     {
-      $_package_ensure = 'present'
+      $my_package_ensure = 'present'
       $file_ensure     = 'directory'
     }
     false:    {
-      $_package_ensure = 'purged'
+      $my_package_ensure = 'absent'
       $file_ensure     = 'absent'
     }
     'absent': {
-      $_package_ensure = 'purged'
+      $my_package_ensure = 'absent'
+      $file_ensure     = 'absent'
+    }
+    'purged': {
+      $my_package_ensure = 'purged'
       $file_ensure     = 'absent'
     }
     default:  {
-      $_package_ensure = $package_ensure
+      $my_package_ensure = $package_ensure
       $file_ensure     = 'present'
     }
   }
 
   package { 'mongodb_server':
-    ensure => $_package_ensure,
-    name   => $package_name,
-    tag    => 'mongodb',
+    ensure  => $my_package_ensure,
+    name    => $package_name,
+    tag     => 'mongodb',
   }
 }
