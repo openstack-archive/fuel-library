@@ -28,6 +28,7 @@ class haproxy::base (
   $use_include      = $haproxy::params::use_include,
   $use_stats        = $haproxy::params::use_stats,
   $stats_port       = $haproxy::params::stats_port,
+  $stats_ipaddresses       = $haproxy::params::stats_ipaddresses
 ) inherits haproxy::params {
   include concat::setup
 
