@@ -1,5 +1,8 @@
 
-listen Stats *:<%= @stats_port %>
+listen Stats
+<% Array(@stats_ipaddresses).uniq.each do |ip| -%>
+  bind <%= ip %>:<%= @stats_port %>
+<% end -%>
   mode http
   stats enable
   stats uri /
