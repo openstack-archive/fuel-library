@@ -46,7 +46,7 @@ class cluster::haproxy_ocf (
           'timeout'  => '60'
         },
         'start'   => {
-          'timeout' => '30'
+          'timeout' => '60'
         },
         'stop'    => {
           'timeout' => '60'
