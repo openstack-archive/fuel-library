@@ -46,7 +46,7 @@ class mongodb (
   $logpath         = $mongodb::params::logpath,
   $logappend       = true,
   $fork            = $mongodb::params::fork,
-  $port            = 27017,
+  $port            = undef,
   $dbpath          = $mongodb::params::dbpath,
   $journal         = undef,
   $nojournal       = undef,
@@ -55,7 +55,6 @@ class mongodb (
   $noauth          = undef,
   $auth            = undef,
   $verbose         = undef,
-  $use_syslog      = true,
   $objcheck        = undef,
   $quota           = undef,
   $oplog           = undef, #deprecated it's on if replica set
@@ -73,6 +72,8 @@ class mongodb (
   $only            = undef,
   $master          = undef,
   $source          = undef,
+  $configsvr       = undef,
+  $shardsvr        = undef,
   $replset         = undef,
   $rest            = undef,
   $quiet           = undef,
@@ -91,12 +92,12 @@ class mongodb (
   }
 
   if $oplog {
-    fail("Parameter is no longer supported. On replica set Oplog is enabled by default.")
+    fail('Parameter is no longer supported. On replica set Oplog is enabled by default.')
   }
 
-  notify { "An attempt has been made below to automatically apply your custom
+  notify { 'An attempt has been made below to automatically apply your custom
     settings to mongodb::server. Please verify this works in a safe test
-    environment.": }
+    environment.': }
 
   class { 'mongodb::server':
     package_name    => $packagename,
@@ -111,7 +112,6 @@ class mongodb (
     cpu             => $cpu,
     noauth          => $noauth,
     verbose         => $verbose,
-    use_syslog      => $use_syslog,
     objcheck        => $objcheck,
     quota           => $quota,
     oplog_size      => $oplog_size,
@@ -128,6 +128,8 @@ class mongodb (
     only            => $only,
     master          => $master,
     source          => $source,
+    configsvr       => $configsvr,
+    shardsvr        => $shardsvr,
     replset         => $replset,
     rest            => $rest,
     quiet           => $quiet,
