@@ -9,6 +9,7 @@ class cluster::haproxy (
   $primary_controller = false,
   $debug              = false,
   $other_networks     = false,
+  $stats_ipaddresses  = ['127.0.0.1']
 ) {
   include ::concat::setup
   include ::haproxy::params
@@ -52,9 +53,10 @@ class cluster::haproxy (
   }
 
   class { 'haproxy::base':
-    global_options   => $global_options,
-    defaults_options => $defaults_options,
-    use_include      => true,
+    global_options    => $global_options,
+    defaults_options  => $defaults_options,
+    stats_ipaddresses => $stats_ipaddresses,
+    use_include       => true,
   }
 
   class { 'cluster::haproxy_ocf':

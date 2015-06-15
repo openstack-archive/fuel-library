@@ -68,4 +68,5 @@ class haproxy::params {
   }
   $use_stats = true
   $stats_port = '10000'
+  $stats_ipaddresses = ['127.0.0.1']
 }
