@@ -8,4 +8,5 @@ class { 'cluster::haproxy':
   primary_controller => hiera('primary_controller'),
   debug              => hiera('debug', false),
   other_networks     => direct_networks($network_scheme['endpoints']),
+  stats_ipaddresses  => [hiera('management_vip'),'127.0.0.1']
 }
