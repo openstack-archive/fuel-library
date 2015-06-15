@@ -26,7 +26,7 @@ Puppet::Type.newtype(:mongodb_replset) do
   end
 
   autorequire(:package) do
-    'mongodb'
+    'mongodb_client'
   end
 
   autorequire(:service) do

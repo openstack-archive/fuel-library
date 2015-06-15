@@ -7,6 +7,7 @@ describe 'mongodb::repo', :type => :class do
       {
         :osfamily        => 'Debian',
         :operatingsystem => 'Debian',
+        :lsbdistid       => 'Debian',
       }
     end
 

@@ -1,26 +1,40 @@
-Puppet::Type.type(:mongodb_database).provide(:mongodb) do
-  require File.join(File.dirname(__FILE__), '..', 'common.rb')
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'mongodb'))
+Puppet::Type.type(:mongodb_database).provide(:mongodb, :parent => Puppet::Provider::Mongodb) do
+
   desc "Manages MongoDB database."
+
   defaultfor :kernel => 'Linux'
-  include MongoCommon
+
+  def self.instances
+    require 'json'
+    dbs = JSON.parse mongo_eval('printjson(db.getMongo().getDBs())')
+
+    dbs['databases'].collect do |db|
+      new(:name   => db['name'],
+          :ensure => :present)
+    end
+  end
+
+  # Assign prefetched dbs based on name.
+  def self.prefetch(resources)
+    dbs = instances
+    resources.keys.each do |name|
+      if provider = dbs.find { |db| db.name == name }
+        resources[name].provider = provider
+      end
+    end
+  end
 
   def create
-    Puppet.debug "mongo_database: #{@resource[:name]} create"
-    mongo('db.dummyData.insert({"created_by_puppet": 1})', @resource[:name])
+    mongo_eval('db.dummyData.insert({"created_by_puppet": 1})', @resource[:name])
   end
 
   def destroy
-    Puppet.debug "mongo_database: #{@resource[:name]} destroy"
-    mongo('db.dropDatabase()', @resource[:name])
+    mongo_eval('db.dropDatabase()', @resource[:name])
   end
 
   def exists?
-    Puppet.debug "mongo_database: '#{@resource[:name]}' exists?"
-    block_until_mongodb(@resource[:tries])
-    current_databases = mongo('db.getMongo().getDBNames()').strip.split(',')
-    exists = current_databases.include?(@resource[:name])
-    Puppet.debug "mongo_database: '#{@resource[:name]}' all: #{current_databases.inspect} '#{@resource[:name]}' exists? #{exists}"
-    exists
+    !(@property_hash[:ensure] == :absent or @property_hash[:ensure].nil?)
   end
 
 end
