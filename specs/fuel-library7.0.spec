@@ -105,6 +105,9 @@ done
 /etc/puppet/%{openstack_version}/modules/
 /etc/puppet/%{openstack_version}/manifests/
 
+#
+#fuel-dockerctl package
+#
 %package -n fuel-dockerctl
 Summary: Fuel project utilities for Docker container management tool
 Version: %{version}
@@ -128,6 +131,9 @@ during Fuel All-in-One deployment toolkit installation
 
 %config(noreplace) /etc/dockerctl/config
 
+#
+#fuel-misc package
+#
 %package -n fuel-misc
 Summary: Fuel project misc utilities
 Version: %{version}
@@ -143,13 +149,15 @@ A set of scripts for Fuel deployment utility
 For further information go to http://wiki.openstack.org/Fuel
 
 %files -n fuel-misc
-
-#fuel-misc
 %defattr(-,root,root)
 /sbin/ifup-local
 /sbin/ifdown-local
 /usr/bin/haproxy-status
 /usr/bin/fuel-logrotate
+
+#
+#fuel-ha-utils package
+#
 %package -n fuel-ha-utils
 Summary: Fuel project HA utilities
 Version: %{version}
@@ -174,8 +182,10 @@ For further information go to http://wiki.openstack.org/Fuel
 /usr/bin/clustercheck
 /usr/bin/swiftcheck
 %config(noreplace) /etc/wsrepclustercheckrc
-#
 
+#
+#fuel-rabbit-fence package
+#
 %package -n fuel-rabbit-fence
 Summary: Fuel project RabbitMQ fencing utility
 Version: %{version}
@@ -199,8 +209,10 @@ For further information go to http://wiki.openstack.org/Fuel
 %defattr(-,root,root)
 /usr/bin/rabbit-fence.py
 /etc/init.d/rabbit-fence
-#
 
+#
+#fuel-notify package
+#
 %package -n fuel-notify
 Summary: Fuel disk space monitor
 Version: %{version}
@@ -223,8 +235,6 @@ based on monit.
 For further information go to http://wiki.openstack.org/Fuel
 
 %files -n fuel-notify
-
-#fuel-misc
 %defattr(-,root,root)
 /usr/bin/fuel_notify.py
 %config(noreplace) /etc/fuel/free_disk_space_check.yaml
