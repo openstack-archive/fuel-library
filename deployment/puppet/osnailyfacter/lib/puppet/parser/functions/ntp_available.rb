@@ -36,7 +36,9 @@ EOS
       # read the response
       read, write, error = IO.select [sock], nil, nil, timeout
       if read.nil?
-        raise Timeout::Error
+        # no response (timeout)
+        sock.close if sock
+        return false
       else
         data, _ = sock.recvfrom(960)
         # un pack the response
