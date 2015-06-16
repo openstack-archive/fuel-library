@@ -62,7 +62,7 @@ if $sahara_hash['enabled'] {
   }
 
   if $primary_controller {
-    class { 'sahara::templates::create_templates' :
+    class { 'sahara_templates::create_templates' :
       use_neutron   => $use_neutron,
       auth_user     => $access_admin['user'],
       auth_password => $access_admin['password'],
@@ -70,7 +70,7 @@ if $sahara_hash['enabled'] {
       auth_uri      => "http://${management_ip}:5000/v2.0/",
     }
 
-    Haproxy_backend_status['sahara'] -> Class['sahara::templates::create_templates']
+    Haproxy_backend_status['sahara'] -> Class['sahara_templates::create_templates']
   }
 
   Class['sahara'] -> Haproxy_backend_status['sahara']
