@@ -5,8 +5,15 @@ if ! [ -d "$WORKSPACE" ] ; then
   exit 1
 fi
 
+# determine the location of this script
+export SCRIPT_PATH=$(cd `dirname $0` && pwd -P)
+# determine the fuel-library base directory
+export FUEL_LIBRARY_PATH=$(cd "${SCRIPT_PATH}/../.." && pwd -P)
+# put us in the library directory so our git and find functions work correctly
+cd $FUEL_LIBRARY_PATH
+
 if [ -z "$PUPPET_GEM_VERSION" ] ; then
-  PUPPET_GEM_VERSION='~> 3.4.0'
+  export PUPPET_GEM_VERSION='~> 3.4.0'
 fi
 
 # Check for bundle and exit if failed
@@ -21,10 +28,14 @@ function check_lint {
   if grep -qs puppet-lint Gemfile ; then
     bundle install
     bundle exec rake lint --trace
-    return $?
+    RETURNVAL=$?
+    if [ "${RETURNVAL}" -ne "0" ]; then
+        echo "FAILED rake lint, return value was ${RETURNVAL}"
+    fi
+    return $RETURNVAL
   else
     exit_code=0
-    all_files=`find -name "*.pp"`
+    all_files=`find . -name "*.pp"`
     for x in $all_files; do
       puppet-lint \
           --no-80chars-check \
@@ -37,6 +48,9 @@ function check_lint {
           --no-class_inherits_from_params_class-check \
           --with-filename $x || let exit_code=1
     done
+    if [ "${exit_code}" -eq "1" ]; then
+        echo "FAILED lint check for ${x}"
+    fi
     return $exit_code
   fi
 }
@@ -44,7 +58,7 @@ function check_lint {
 # Function that checks syntax
 function check_syntax {
   exit_code=0
-  all_files=`find -name "*.pp" -o -name "*.erb" -o -name "*.sh" -o -path "*/files/ocf/*"`
+  all_files=`find . -name "*.pp" -o -name "*.erb" -o -name "*.sh" -o -path "*/files/ocf/*"`
   for x in $all_files; do
     case $x in
       *.pp )
@@ -73,7 +87,9 @@ function check_syntax {
         esac
         ;;
     esac
-    if [ "$?" -ne "0" ] ; then
+    RETURNVAL=$?
+    if [ "${RETURNVAL}" -ne "0" ] ; then
+      echo "FAILED checking ${x}, return code was ${RETURNVAL}"
       exit_code=1
     fi
   done
