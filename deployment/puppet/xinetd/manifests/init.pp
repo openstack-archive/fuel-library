@@ -13,11 +13,13 @@ class xinetd (
   $confdir            = $xinetd::params::confdir,
   $conffile           = $xinetd::params::conffile,
   $package_name       = $xinetd::params::package_name,
+  $package_ensure     = $xinetd::params::package_ensure,
   $service_name       = $xinetd::params::service_name,
   $service_restart    = $xinetd::params::service_restart,
   $service_status     = $xinetd::params::service_status,
   $service_hasrestart = $xinetd::params::service_hasrestart,
   $service_hasstatus  = $xinetd::params::service_hasstatus,
+  $purge_confdir      = false,
 ) inherits xinetd::params {
 
   File {
@@ -30,6 +32,8 @@ class xinetd (
   file { $confdir:
     ensure  => directory,
     mode    => '0755',
+    recurse => $purge_confdir,
+    purge   => $purge_confdir,
   }
 
   # Template uses:
@@ -41,7 +45,7 @@ class xinetd (
   }
 
   package { $package_name:
-    ensure => installed,
+    ensure => $package_ensure,
     before => Service[$service_name],
   }
 
