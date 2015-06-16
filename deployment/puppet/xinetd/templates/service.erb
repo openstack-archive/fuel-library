@@ -51,4 +51,7 @@ service <%= @service_name %>
 <% if @log_type -%>
         log_type        = <%= @log_type %>
 <% end -%>
+<% if @nice -%>
+        nice            = <%= @nice %>
+<% end -%>
 }
