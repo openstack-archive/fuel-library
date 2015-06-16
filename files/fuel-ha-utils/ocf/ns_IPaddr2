@@ -523,7 +523,7 @@ ip_prepare() {
     ocf_run $RUN_IN_NS ip route replace default via $OCF_RESKEY_gateway metric $OCF_RESKEY_gateway_metric
   fi
   ARGS="-i 200 -r 5 -p $SENDARPPIDFILE $OCF_RESKEY_nic $OCF_RESKEY_ip auto not_used not_used"
-  ($SENDARP $ARGS || ocf_log err "Could not send gratuitous arps")& >&2
+  ($RUN_IN_NS $SENDARP $ARGS || ocf_log err "Could not send gratuitous arps")& >&2
   return $OCF_SUCCESS
 }
 
