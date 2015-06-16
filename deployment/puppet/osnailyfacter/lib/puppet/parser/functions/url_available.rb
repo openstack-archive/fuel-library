@@ -93,10 +93,6 @@ function. Must be of type String or Hash."
     end
   end
 
-  #Add sleep before checking for repos
-  #as Ubuntu waits 32 seconds for the
-  #bridge to become ready
-  sleep 32
   # if passed an array, iterate through the array an check each element
   if url.instance_of? Array
     url.each do |u|
