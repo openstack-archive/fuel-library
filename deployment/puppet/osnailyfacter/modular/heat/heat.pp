@@ -127,11 +127,6 @@ class { 'heat::keystone::domain' :
 
 Class['heat'] -> Class['heat::keystone::domain'] ~> Service<| title == 'heat-engine' |>
 
-heat_config {
-  'DEFAULT/deferred_auth_method'    : value => 'trusts';
-  'DEFAULT/trusts_delegated_roles'  : value => '';
-}
-
 ######################
 
 exec { 'wait_for_heat_config' :
