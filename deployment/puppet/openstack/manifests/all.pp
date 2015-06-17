@@ -463,7 +463,8 @@ class openstack::all (
   ######## Horizon ########
   if ($horizon) {
     class { 'memcached':
-      listen_ip => '0.0.0.0',
+      listen_ip  => '0.0.0.0',
+      max_memory => '50%',
     }
 
     class { 'openstack::horizon':
