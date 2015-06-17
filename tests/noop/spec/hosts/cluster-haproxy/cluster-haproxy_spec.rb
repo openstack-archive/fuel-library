@@ -7,6 +7,7 @@ describe manifest do
 
     networks = []
     endpoints = Noop.hiera_structure 'network_scheme/endpoints'
+    management_vip = Noop.hiera 'management_vip'
     endpoints.each{ |k,v|
       if v['IP'].is_a?(Array)
         v['IP'].each { |ip|
@@ -24,6 +25,14 @@ describe manifest do
       should contain_class('cluster::haproxy').with(
         'other_networks' => networks.join(' '),
       )
+    end
+    it "should contain stats fragment and listen only on lo and #{management_vip}" do
+        should contain_concat__fragment('haproxy-stats').with_content(
+            %r{\n\s*bind\s+127\.0\.0\.1:10000\s*$\n}
+        )
+        should contain_concat__fragment('haproxy-stats').with_content(
+            %r{\n\s*bind\s+#{management_vip}:10000\s*\n}
+        )
     end
 
   end
