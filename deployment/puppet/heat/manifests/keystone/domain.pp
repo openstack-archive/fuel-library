@@ -41,6 +41,7 @@ class heat::keystone::domain (
   include heat::params
 
   $cmd_evn = [
+    "OS_TENANT_NAME=${keystone_tenant}",
     "OS_USERNAME=${keystone_admin}",
     "OS_PASSWORD=${keystone_password}",
     "OS_AUTH_URL=${auth_url}",
@@ -53,8 +54,6 @@ class heat::keystone::domain (
     command     => 'heat-keystone-setup-domain &>/dev/null',
     environment => $cmd_evn,
     require     => Package['heat-common'],
-    tries       => 10,
-    try_sleep   => 3
   }
 
   heat_domain_id_setter { 'heat_domain_id':

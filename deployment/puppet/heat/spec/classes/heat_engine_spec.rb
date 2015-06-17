@@ -4,11 +4,15 @@ describe 'heat::engine' do
 
   let :default_params do
     { :enabled                       => true,
+      :manage_service                => true,
       :heat_stack_user_role          => 'heat_stack_user',
       :heat_metadata_server_url      => 'http://127.0.0.1:8000',
       :heat_waitcondition_server_url => 'http://127.0.0.1:8000/v1/waitcondition',
       :heat_watch_server_url         => 'http://128.0.0.1:8003',
       :engine_life_check_timeout     => '2',
+      :trusts_delegated_roles        => ['heat_stack_owner'],
+      :deferred_auth_method          => 'trusts',
+      :configure_delegated_roles     => true,
     }
   end
 
@@ -23,6 +27,9 @@ describe 'heat::engine' do
         :heat_waitcondition_server_url => 'http://127.0.0.1:8000/v1/waitcondition',
         :heat_watch_server_url         => 'http://128.0.0.1:8003',
         :engine_life_check_timeout     => '2',
+        :trusts_delegated_roles        => ['role1', 'role2'],
+        :deferred_auth_method          => 'trusts',
+        :configure_delegated_roles     => true,
       }
     ].each do |new_params|
       describe 'when #{param_set == {} ? "using default" : "specifying"} parameters'
@@ -38,7 +45,7 @@ describe 'heat::engine' do
       it { should contain_package('heat-engine').with_name(os_params[:package_name]) }
 
       it { should contain_service('heat-engine').with(
-        :ensure     => expected_params[:enabled] ? 'running' : 'stopped',
+        :ensure     => (expected_params[:manage_service] && expected_params[:enabled]) ? 'running' : 'stopped',
         :name       => os_params[:service_name],
         :enable     => expected_params[:enabled],
         :hasstatus  => 'true',
@@ -55,6 +62,37 @@ describe 'heat::engine' do
       it { should contain_heat_config('DEFAULT/heat_waitcondition_server_url').with_value( expected_params[:heat_waitcondition_server_url] ) }
       it { should contain_heat_config('DEFAULT/heat_watch_server_url').with_value( expected_params[:heat_watch_server_url] ) }
       it { should contain_heat_config('DEFAULT/engine_life_check_timeout').with_value( expected_params[:engine_life_check_timeout] ) }
+      it { should contain_heat_config('DEFAULT/trusts_delegated_roles').with_value( expected_params[:trusts_delegated_roles] ) }
+      it { should contain_heat_config('DEFAULT/deferred_auth_method').with_value( expected_params[:deferred_auth_method] ) }
+
+      it 'configures delegated roles' do
+        should contain_keystone_role("role1").with(
+          :ensure  => 'present'
+        )
+        should contain_keystone_role("role2").with(
+          :ensure  => 'present'
+        )
+      end
+    end
+
+    context 'with disabled service managing' do
+      before do
+        params.merge!({
+          :manage_service => false,
+          :enabled        => false })
+      end
+
+      it { should contain_service('heat-engine').with(
+        :ensure     => nil,
+        :name       => os_params[:service_name],
+        :enable     => false,
+        :hasstatus  => 'true',
+        :hasrestart => 'true',
+        :require    => [ 'File[/etc/heat/heat.conf]',
+                         'Package[heat-common]',
+                         'Package[heat-engine]'],
+        :subscribe  => 'Exec[heat-dbsync]'
+      ) }
     end
   end
 

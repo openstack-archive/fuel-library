@@ -1,7 +1,7 @@
 puppet-heat
 =============
 
-4.0.0 - 2014.1.0 - Icehouse
+5.0.0 - 2014.2.0 - Juno
 
 #### Table of Contents
 
@@ -51,7 +51,7 @@ extra functionality through types and providers.
 Limitations
 -----------
 
-The Heat Openstack service depends on a sqlalchemy database. If you are using puppetlabs-mysql to achieve this, there is a parameter called mysql_module that can be used to swap between the two supported versions: 0.9 and 2.2. This is needed because the puppetlabs-mysql module was rewritten and the custom type names have changed between versions.
+None
 
 Development
 -----------
@@ -67,6 +67,29 @@ Contributors
 
 Release Notes
 -------------
+
+**5.0.0**
+
+* Stable Juno release
+* Added heat::policy to control policy.json
+* Deprecated the sql_connection parameter for database_connection parameter
+* Adds parameters to configure deferred authentication method in heat::engine in accordance with new Juno defaults
+* Bumped stdlib dependency to >=4.0.0
+* Added parameters to control whether to configure users
+* Added manage_service parameters to various classes to control whether the service was managed, as well as added enabled parameters where not already present
+* Added the ability to override the keystone service name in keystone::auth
+* Migrated the heat::db::mysql class to use openstacklib::db::mysql and deprecated the mysql_module parameter
+
+**4.2.0**
+
+* Added ability to hide secret type parameters from logs
+* Fixed database resource relationships
+* Added class for extended logging options
+* Fixed ssl parameter requirements when using kombu and rabbit
+
+**4.1.0**
+
+* Added SSL endpoint support.
 
 **4.0.0**
 

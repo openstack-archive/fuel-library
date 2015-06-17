@@ -1,0 +1,39 @@
+{
+  "name": "stackforge-heat",
+  "version": "5.0.0",
+  "author": "eNovance and StackForge Contributors",
+  "summary": "Puppet module for OpenStack Heat",
+  "license": "Apache License 2.0",
+  "source": "git://github.com/stackforge/puppet-heat.git",
+  "project_page": "https://launchpad.net/puppet-heat",
+  "issues_url": "https://bugs.launchpad.net/puppet-heat",
+  "requirements": [
+    { "name": "pe","version_requirement": "3.x" },
+    { "name": "puppet","version_requirement": "3.x" }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "Debian",
+      "operatingsystemrelease": ["7"]
+    },
+    {
+      "operatingsystem": "Fedora",
+      "operatingsystemrelease": ["20"]
+    },
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": ["6.5","7"]
+    },
+    {
+      "operatingsystem": "Ubuntu",
+      "operatingsystemrelease": ["12.04","14.04"]
+    }
+  ],
+  "description": "Installs and configures OpenStack Heat (Orchestration).",
+  "dependencies": [
+    { "name": "puppetlabs/inifile", "version_requirement": ">=1.0.0 <2.0.0" },
+    { "name": "stackforge/keystone", "version_requirement": ">=5.0.0 <6.0.0" },
+    { "name": "puppetlabs/stdlib", "version_requirement": ">=4.0.0 <5.0.0" },
+    { "name": "stackforge/openstacklib", "version_requirement": ">=5.0.0" }
+  ]
+}

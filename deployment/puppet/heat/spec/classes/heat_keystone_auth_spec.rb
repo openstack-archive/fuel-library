@@ -4,21 +4,22 @@ describe 'heat::keystone::auth' do
 
   let :params do
     {
-      :password           => 'heat-passw0rd',
-      :email              => 'heat@localhost',
-      :auth_name          => 'heat',
-      :configure_endpoint => true,
-      :service_type       => 'orchestration',
-      :public_address     => '127.0.0.1',
-      :admin_address      => '127.0.0.1',
-      :internal_address   => '127.0.0.1',
-      :port               => '8004',
-      :version            => 'v1',
-      :region             => 'RegionOne',
-      :tenant             => 'services',
-      :public_protocol    => 'http',
-      :admin_protocol     => 'http',
-      :internal_protocol  => 'http',
+      :password                  => 'heat-passw0rd',
+      :email                     => 'heat@localhost',
+      :auth_name                 => 'heat',
+      :configure_endpoint        => true,
+      :service_type              => 'orchestration',
+      :public_address            => '127.0.0.1',
+      :admin_address             => '127.0.0.1',
+      :internal_address          => '127.0.0.1',
+      :port                      => '8004',
+      :version                   => 'v1',
+      :region                    => 'RegionOne',
+      :tenant                    => 'services',
+      :public_protocol           => 'http',
+      :admin_protocol            => 'http',
+      :internal_protocol         => 'http',
+      :configure_delegated_roles => false,
     }
   end
 
@@ -85,5 +86,108 @@ describe 'heat::keystone::auth' do
     end
 
     it_configures 'heat keystone auth'
+  end
+
+  context 'when overriding service name' do
+    before do
+      params.merge!({
+        :service_name => 'heat_service'
+      })
+    end
+    it 'configures correct user name' do
+      should contain_keystone_user('heat')
+    end
+    it 'configures correct user role' do
+      should contain_keystone_user_role('heat@services')
+    end
+    it 'configures correct service name' do
+      should contain_keystone_service('heat_service')
+    end
+    it 'configures correct endpoint name' do
+      should contain_keystone_endpoint('RegionOne/heat_service')
+    end
+  end
+
+  context 'when disabling user configuration' do
+    before do
+      params.merge!( :configure_user => false )
+    end
+
+    it { should_not contain_keystone_user('heat') }
+    it { should contain_keystone_user_role('heat@services') }
+
+    it { should contain_keystone_service('heat').with(
+      :ensure       => 'present',
+      :type         => 'orchestration',
+      :description  => 'Openstack Orchestration Service'
+    )}
+  end
+
+  context 'when disabling user and role configuration' do
+    before do
+      params.merge!(
+        :configure_user       => false,
+        :configure_user_role  => false
+      )
+    end
+
+    it { should_not contain_keystone_user('heat') }
+    it { should_not contain_keystone_user_role('heat@services') }
+
+    it { should contain_keystone_service('heat').with(
+      :ensure       => 'present',
+      :type         => 'orchestration',
+      :description  => 'Openstack Orchestration Service'
+    )}
+  end
+
+  context 'when configuring delegated roles' do
+    let :pre_condition do
+      "class { 'heat::engine':
+         auth_encryption_key       => 'abcdef',
+         configure_delegated_roles => false,
+       }
+      "
+    end
+
+    let :facts do
+      { :osfamily => 'Debian' }
+    end
+
+    before do
+      params.merge!({
+        :configure_delegated_roles => true,
+      })
+    end
+    it 'configures delegated roles' do
+      should contain_keystone_role("heat_stack_owner").with(
+        :ensure  => 'present'
+      )
+    end
+  end
+
+  describe 'with deprecated and new params both set' do
+    let :pre_condition do
+      "class { 'heat::engine':
+         auth_encryption_key => 'abcdef',
+       }
+      "
+    end
+
+    let :facts do
+      { :osfamily => 'Debian' }
+    end
+
+    let :params do
+      {
+        :configure_delegated_roles => true,
+        :password                  => 'something',
+      }
+    end
+    it 'should fail with deprecated and new params both set' do
+        expect {
+            should compile
+        }.to raise_error Puppet::Error, /both heat::engine and heat::keystone::auth are both trying to configure delegated roles/
+    end
   end
 end

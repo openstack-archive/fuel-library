@@ -21,9 +21,6 @@ end
 class KeystoneAPIError < KeystoneError
 end
 
-RETRY_COUNT = 10
-RETRY_SLEEP = 3
-
 # Provides common request handling semantics to the other methods in
 # this module.
 #
@@ -33,7 +30,13 @@ RETRY_SLEEP = 3
 #   A parsed URL (returned from URI.parse)
 def handle_request(req, url)
     begin
-        res = Net::HTTP.start(url.host, url.port) {|http|
+        # There is issue with ipv6 where address has to be in brackets, this causes the
+        # underlying ruby TCPSocket to fail. Net::HTTP.new will fail without brackets on
+        # joining the ipv6 address with :port or passing brackets to TCPSocket. It was
+        # found that if we use Net::HTTP.start with url.hostname the incriminated code
+        # won't be hit.
+        use_ssl = url.scheme == "https" ? true : false
+        res = Net::HTTP.start(url.hostname, url.port, {:use_ssl => use_ssl}) {|http|
             http.request(req)
         }
 
@@ -93,7 +96,7 @@ def keystone_v2_authenticate(auth_url,
     if tenantName
         post_args['auth']['tenantName'] = tenantName
     end
-    auth_url.sub!('v3', 'v2.0')
+
     url = URI.parse("#{auth_url}/tokens")
     req = Net::HTTP::Post.new url.path
     req['content-type'] = 'application/json'
@@ -164,37 +167,23 @@ Puppet::Type.type(:heat_domain_id_setter).provide(:ruby) do
     # - There are multiple matches, or
     # - There are zero matches
     def get_domain_id
-        RETRY_COUNT.times do |n|
-            begin
-                domains = find_domain_by_name(authenticate)
-            rescue => e
-                debug "Request failed: '#{e.message}' Retry: '#{n}'"
-                sleep RETRY_SLEEP
-                next
-            end
+        token = authenticate
+        domains = find_domain_by_name(token)
 
-            if domains.length == 1
-                return domains[0]['id']
-            elsif domains.length > 1
-                name = domains[0]['name']
-                raise KeystoneAPIError, "Found multiple matches for domain name: '#{name}'"
-            else
-                debug "Domain '#{@resource[:domain_name]}' not found! Retry: '#{n}'"
-                sleep RETRY_SLEEP
-                next
-            end
+        if domains.length == 1
+            return domains[0]['id']
+        elsif domains.length > 1
+            name = domains[0]['name']
+            raise KeystoneAPIError, 'Found multiple matches for domain name "#{name}"'
+        else
+            raise KeystoneAPIError, 'Unable to find matching domain'
         end
-        raise KeystoneAPIError, "Unable to find domain with name: '#{@resource[:domain_name]}'"
     end
 
     def config
-        domain_id = get_domain_id
         Puppet::Type.type(:heat_config).new(
-            {:name => 'DEFAULT/stack_user_domain', :value => "#{domain_id}"}
-        ).provider.create
-        Puppet::Type.type(:heat_config).new(
-            {:name => 'DEFAULT/stack_user_domain_id', :value => "#{domain_id}"}
-        ).provider.create
+            {:name => 'DEFAULT/stack_user_domain', :value => "#{get_domain_id}"}
+        ).create
     end
 
 end

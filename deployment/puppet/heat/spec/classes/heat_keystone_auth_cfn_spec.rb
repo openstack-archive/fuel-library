@@ -78,4 +78,58 @@ describe 'heat::keystone::auth_cfn' do
 
     it_configures 'heat keystone auth'
   end
+
+  context 'when overriding service name' do
+    before do
+      params.merge!({
+        :service_name => 'heat-cfn_service'
+      })
+    end
+    it 'configures correct user name' do
+      should contain_keystone_user('heat-cfn')
+    end
+    it 'configures correct user role' do
+      should contain_keystone_user_role('heat-cfn@services')
+    end
+    it 'configures correct service name' do
+      should contain_keystone_service('heat-cfn_service')
+    end
+    it 'configures correct endpoint name' do
+      should contain_keystone_endpoint('RegionOne/heat-cfn_service')
+    end
+  end
+
+  context 'when disabling user configuration' do
+    before do
+      params.merge!( :configure_user => false )
+    end
+
+    it { should_not contain_keystone_user('heat_cfn') }
+    it { should contain_keystone_user_role('heat-cfn@services') }
+
+    it { should contain_keystone_service('heat-cfn').with(
+      :ensure       => 'present',
+      :type         => 'cloudformation',
+      :description  => 'Openstack Cloudformation Service'
+    )}
+  end
+
+  context 'when disabling user and role configuration' do
+    before do
+      params.merge!(
+        :configure_user       => false,
+        :configure_user_role  => false
+      )
+    end
+
+    it { should_not contain_keystone_user('heat_cfn') }
+    it { should_not contain_keystone_user_role('heat-cfn@services') }
+
+    it { should contain_keystone_service('heat-cfn').with(
+      :ensure       => 'present',
+      :type         => 'cloudformation',
+      :description  => 'Openstack Cloudformation Service'
+    )}
+  end
+
 end
