@@ -21,8 +21,7 @@ $nova_hash             = hiera_hash('nova', {})
 $cinder_hash           = hiera_hash('cinder', {})
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $syslog_log_facility   = hiera('syslog_log_facility_keystone')
-$rabbit_hash           = hiera_hash('rabbit_hash', {})
-$neutron_user_password = hiera('neutron_user_password', false)
+$rabbit_hash           = hiera_hash('rabbit', {})
 $workloads_hash        = hiera_hash('workloads_collector', {})
 
 $db_type     = 'mysql'
@@ -71,14 +70,15 @@ $ssl = false
 $vhost_limit_request_field_size = 'LimitRequestFieldSize 81900'
 
 $rabbit_password     = $rabbit_hash['password']
-$rabbit_user         = $rabbit_hash['user']
+$rabbit_user         = pick($rabbit_hash['user'], 'nova')
 $rabbit_hosts        = split(hiera('amqp_hosts',''), ',')
 $rabbit_virtual_host = '/'
 
-$max_pool_size = hiera('max_pool_size')
-$max_overflow  = hiera('max_overflow')
-$max_retries   = '-1'
-$database_idle_timeout  = '3600'
+$sql_alchemy_hash      = hiera_hash('sql_alchemy', {})
+$max_pool_size         = pick($sql_alchemy_hash['max_pool_size'], '20')
+$max_overflow          = pick($sql_alchemy_hash['max_overflow'], '20')
+$max_retries           = pick($sql_alchemy_hash['max_retries'], '-1')
+$idle_timeout          = pick($sql_alchemy_hash['idle_timeout'], '3600')
 
 $murano_settings_hash = hiera('murano_settings', {})
 if has_key($murano_settings_hash, 'murano_repo_url') {
@@ -120,7 +120,7 @@ class { 'openstack::keystone':
   rabbit_userid            => $rabbit_user,
   rabbit_hosts             => $rabbit_hosts,
   rabbit_virtual_host      => $rabbit_virtual_host,
-  database_idle_timeout    => $database_idle_timeout,
+  database_idle_timeout    => $idle_timeout,
   revoke_driver            => $revoke_driver,
   public_url               => $public_url,
   admin_url                => $admin_url,
