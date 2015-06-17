@@ -10,7 +10,8 @@ describe manifest do
 
     if use_neutron
       neutron_db_user = 'neutron'
-      neutron_db_password = Noop.hiera'neutron_db_password'
+      neutron_config = Noop.hiera 'neutron_config'
+      neutron_db_password = neutron_config.fetch('database', {}).fetch('passwd', nil)
       neutron_db_dbname = 'neutron'
 
       it 'should declare neutron::db::mysql class with user,password,dbname' do

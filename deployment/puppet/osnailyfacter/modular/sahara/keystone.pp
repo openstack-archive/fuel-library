@@ -1,6 +1,6 @@
 notice('MODULAR: sahara/keystone.pp')
 
-$sahara_hash     = hiera_hash('sahara_hash', {})
+$sahara_hash     = hiera_hash('sahara', {})
 $public_ssl_hash = hiera('public_ssl')
 $public_address  = hiera('public_vip')
 $admin_address   = hiera('management_vip')

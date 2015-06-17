@@ -4,7 +4,6 @@ $network_scheme = hiera_hash('network_scheme', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
-
 $verbose               = hiera('verbose', true)
 $debug                 = hiera('debug', false)
 $management_vip        = hiera('management_vip')
@@ -14,23 +13,25 @@ $glance_hash           = hiera_hash('glance', {})
 $storage_hash          = hiera('storage')
 $use_syslog            = hiera('use_syslog', true)
 $syslog_log_facility   = hiera('syslog_log_facility_glance')
-$rabbit_hash           = hiera_hash('rabbit_hash', {})
-$max_pool_size         = hiera('max_pool_size')
-$max_overflow          = hiera('max_overflow')
+$rabbit_hash           = hiera_hash('rabbit', {})
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
 $glance_endpoint       = $management_vip
+
+$sql_alchemy_hash      = hiera_hash('sql_alchemy', {})
+$max_pool_size         = pick($sql_alchemy_hash['max_pool_size'], '20')
+$max_overflow          = pick($sql_alchemy_hash['max_overflow'], '20')
+$max_retries           = pick($sql_alchemy_hash['max_retries'], '-1')
+$idle_timeout          = pick($sql_alchemy_hash['idle_timeout'], '3600')
 
 $db_type                        = 'mysql'
 $db_host                        = pick($glance_hash['db_host'], $database_vip)
 $api_bind_address               = get_network_role_property('glance/api', 'ipaddr')
 $enabled                        = true
-$max_retries                    = '-1'
-$idle_timeout                   = '3600'
 $auth_uri                       = "http://${service_endpoint}:5000/"
 
 $rabbit_password                = $rabbit_hash['password']
-$rabbit_user                    = $rabbit_hash['user']
+$rabbit_user                    = pick($rabbit_hash['user'], 'nova')
 $rabbit_hosts                   = split(hiera('amqp_hosts',''), ',')
 $rabbit_virtual_host            = '/'
 
@@ -106,7 +107,7 @@ class { 'openstack::glance':
   rabbit_hosts                   => $rabbit_hosts,
   rabbit_virtual_host            => $rabbit_virtual_host,
   known_stores                   => $glance_known_stores,
-  ceilometer                     => $ceilometer_hash[enabled],
+  ceilometer                     => $ceilometer_hash['enabled'],
  }
 
 ####### Disable upstart startup on install #######
