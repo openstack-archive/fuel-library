@@ -12,9 +12,6 @@ $cinder_backup_pool       = 'backups'
 # Glance settings
 $glance_user              = 'images'
 $glance_pool              = 'images'
-#Nova Compute settings
-$compute_user             = 'compute'
-$compute_pool             = 'compute'
 
 
 Exec { path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
@@ -46,15 +43,7 @@ ceph::pool {$cinder_backup_pool:
   pgp_num       => $osd_pool_default_pg_num,
 }
 
-ceph::pool {$compute_pool:
-  user          => $compute_user,
-  acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}'",
-  keyring_owner => 'nova',
-  pg_num        => $osd_pool_default_pg_num,
-  pgp_num       => $osd_pool_default_pg_num,
-}
-
-Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] -> Ceph::Pool[$cinder_backup_pool] -> Ceph::Pool[$compute_pool]
+Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] -> Ceph::Pool[$cinder_backup_pool]
 
 if ($storage_hash['volumes_ceph']) {
   include ::cinder::params
