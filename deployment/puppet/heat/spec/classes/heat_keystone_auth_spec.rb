@@ -86,4 +86,58 @@ describe 'heat::keystone::auth' do
 
     it_configures 'heat keystone auth'
   end
+
+  context 'when overriding service name' do
+    before do
+      params.merge!({
+        :service_name => 'heat_service'
+      })
+    end
+    it 'configures correct user name' do
+      should contain_keystone_user('heat')
+    end
+    it 'configures correct user role' do
+      should contain_keystone_user_role('heat@services')
+    end
+    it 'configures correct service name' do
+      should contain_keystone_service('heat_service')
+    end
+    it 'configures correct endpoint name' do
+      should contain_keystone_endpoint('RegionOne/heat_service')
+    end
+  end
+
+  context 'when disabling user configuration' do
+    before do
+      params.merge!( :configure_user => false )
+    end
+
+    it { should_not contain_keystone_user('heat') }
+    it { should contain_keystone_user_role('heat@services') }
+
+    it { should contain_keystone_service('heat').with(
+      :ensure       => 'present',
+      :type         => 'orchestration',
+      :description  => 'Openstack Orchestration Service'
+    )}
+  end
+
+  context 'when disabling user and role configuration' do
+    before do
+      params.merge!(
+        :configure_user       => false,
+        :configure_user_role  => false
+      )
+    end
+
+    it { should_not contain_keystone_user('heat') }
+    it { should_not contain_keystone_user_role('heat@services') }
+
+    it { should contain_keystone_service('heat').with(
+      :ensure       => 'present',
+      :type         => 'orchestration',
+      :description  => 'Openstack Orchestration Service'
+    )}
+  end
+
 end

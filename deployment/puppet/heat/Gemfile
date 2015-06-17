@@ -2,7 +2,8 @@ source 'https://rubygems.org'
 
 group :development, :test do
   gem 'puppetlabs_spec_helper', :require => false
-  gem 'puppet-lint', '~> 0.3.2'
+  gem 'puppet-lint', '~> 1.1'
+  gem 'puppet-lint-param-docs', '1.1.0'
   gem 'rake', '10.1.1'
 end
 
