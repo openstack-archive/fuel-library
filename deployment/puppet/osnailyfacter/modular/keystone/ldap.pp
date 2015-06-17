@@ -1,0 +1,117 @@
+notice('MODULAR: keystone-ldap.pp')
+
+$debug     = hiera('debug', false)
+$ldap_hash = hiera_hash('ldap', {})
+
+if structure($ldap_hash, 'enabled', false) {
+
+  if $debug {
+    keystone_config { 'ldap/debug_level' : value => '4095' }
+  }
+
+  class { 'keystone::ldap' :
+    url                                 => structure($ldap_hash, 'url'),
+    user                                => structure($ldap_hash, 'user'),
+    password                            => structure($ldap_hash, 'password'),
+    suffix                              => structure($ldap_hash, 'suffix'),
+    query_scope                         => structure($ldap_hash, 'query_scope', 'sub'),
+    page_size                           => structure($ldap_hash, 'page_size', '0'),
+
+    user_tree_dn                        => structure($ldap_hash, 'user_tree_dn'),
+    user_filter                         => structure($ldap_hash, 'user_filter', ''),
+    user_objectclass                    => structure($ldap_hash, 'user_objectclass', 'person'),
+    user_id_attribute                   => structure($ldap_hash, 'user_id_attribute', 'cn'),
+    user_name_attribute                 => structure($ldap_hash, 'user_name_attribute', 'sAMAccountName'),
+    user_mail_attribute                 => structure($ldap_hash, 'user_mail_attribute', 'mail'),
+    user_enabled_attribute              => structure($ldap_hash, 'user_enabled_attribute', 'userAccountControl'),
+    user_enabled_mask                   => structure($ldap_hash, 'user_enabled_mask', '2'),
+    user_enabled_default                => structure($ldap_hash, 'user_enabled_default', '512'),
+    user_enabled_invert                 => structure($ldap_hash, 'user_enabled_invert', false),
+    user_attribute_ignore               => structure($ldap_hash, 'user_attribute_ignore', 'default_project_id,tenants,password'),
+    user_default_project_id_attribute   => structure($ldap_hash, 'user_default_project_id_attribute'),
+    user_allow_create                   => structure($ldap_hash, 'user_allow_create', false),
+    user_allow_update                   => structure($ldap_hash, 'user_allow_update', false),
+    user_allow_delete                   => structure($ldap_hash, 'user_allow_delete', false),
+    user_pass_attribute                 => structure($ldap_hash, 'user_pass_attribute', ''),
+    user_enabled_emulation              => structure($ldap_hash, 'user_enabled_emulation', false),
+    user_enabled_emulation_dn           => structure($ldap_hash, 'user_enabled_emulation_dn', ''),
+    user_additional_attribute_mapping   => structure($ldap_hash, 'user_additional_attribute_mapping', ''),
+
+    tenant_tree_dn                      => structure($ldap_hash, 'tenant_tree_dn'),
+    project_tree_dn                     => structure($ldap_hash, 'project_tree_dn'),
+    tenant_filter                       => structure($ldap_hash, 'tenant_filter'),
+    project_filter                      => structure($ldap_hash, 'project_filter'),
+    tenant_objectclass                  => structure($ldap_hash, 'tenant_objectclass'),
+    project_objectclass                 => structure($ldap_hash, 'project_objectclass'),
+    tenant_id_attribute                 => structure($ldap_hash, 'tenant_id_attribute'),
+    project_id_attribute                => structure($ldap_hash, 'project_id_attribute'),
+    tenant_member_attribute             => structure($ldap_hash, 'tenant_member_attribute'),
+    project_member_attribute            => structure($ldap_hash, 'project_member_attribute'),
+    tenant_desc_attribute               => structure($ldap_hash, 'tenant_desc_attribute'),
+    project_desc_attribute              => structure($ldap_hash, 'project_desc_attribute'),
+    tenant_name_attribute               => structure($ldap_hash, 'tenant_name_attribute'),
+    project_name_attribute              => structure($ldap_hash, 'project_name_attribute'),
+    tenant_enabled_attribute            => structure($ldap_hash, 'tenant_enabled_attribute'),
+    project_enabled_attribute           => structure($ldap_hash, 'project_enabled_attribute'),
+    tenant_domain_id_attribute          => structure($ldap_hash, 'tenant_domain_id_attribute'),
+    project_domain_id_attribute         => structure($ldap_hash, 'project_domain_id_attribute'),
+    tenant_attribute_ignore             => structure($ldap_hash, 'tenant_attribute_ignore'),
+    project_attribute_ignore            => structure($ldap_hash, 'project_attribute_ignore'),
+    tenant_allow_create                 => structure($ldap_hash, 'tenant_allow_create'),
+    project_allow_create                => structure($ldap_hash, 'project_allow_create'),
+    tenant_allow_update                 => structure($ldap_hash, 'tenant_allow_update'),
+    project_allow_update                => structure($ldap_hash, 'project_allow_update'),
+    tenant_allow_delete                 => structure($ldap_hash, 'tenant_allow_delete'),
+    project_allow_delete                => structure($ldap_hash, 'project_allow_delete'),
+    tenant_enabled_emulation            => structure($ldap_hash, 'tenant_enabled_emulation'),
+    project_enabled_emulation           => structure($ldap_hash, 'project_enabled_emulation'),
+    tenant_enabled_emulation_dn         => structure($ldap_hash, 'tenant_enabled_emulation_dn'),
+    project_enabled_emulation_dn        => structure($ldap_hash, 'project_enabled_emulation_dn'),
+    tenant_additional_attribute_mapping => structure($ldap_hash, 'tenant_additional_attribute_mapping'),
+
+    role_tree_dn                        => structure($ldap_hash, 'role_tree_dn'),
+    role_filter                         => structure($ldap_hash, 'role_filter'),
+    role_objectclass                    => structure($ldap_hash, 'role_objectclass'),
+    role_id_attribute                   => structure($ldap_hash, 'role_id_attribute'),
+    role_name_attribute                 => structure($ldap_hash, 'role_name_attribute'),
+    role_member_attribute               => structure($ldap_hash, 'role_member_attribute'),
+    role_attribute_ignore               => structure($ldap_hash, 'role_attribute_ignore'),
+    role_allow_create                   => structure($ldap_hash, 'role_allow_create'),
+    role_allow_update                   => structure($ldap_hash, 'role_allow_update'),
+    role_allow_delete                   => structure($ldap_hash, 'role_allow_delete'),
+    role_additional_attribute_mapping   => structure($ldap_hash, 'role_additional_attribute_mapping'),
+
+    group_tree_dn                       => structure($ldap_hash, 'group_tree_dn'),
+    group_filter                        => structure($ldap_hash, 'group_filter'),
+    group_objectclass                   => structure($ldap_hash, 'group_objectclass'),
+    group_id_attribute                  => structure($ldap_hash, 'group_id_attribute'),
+    group_name_attribute                => structure($ldap_hash, 'group_name_attribute'),
+    group_member_attribute              => structure($ldap_hash, 'group_member_attribute'),
+    group_desc_attribute                => structure($ldap_hash, 'group_desc_attribute'),
+    group_attribute_ignore              => structure($ldap_hash, 'group_attribute_ignore'),
+    group_allow_create                  => structure($ldap_hash, 'group_allow_create'),
+    group_allow_update                  => structure($ldap_hash, 'group_allow_update'),
+    group_allow_delete                  => structure($ldap_hash, 'group_allow_delete'),
+    group_additional_attribute_mapping  => structure($ldap_hash, 'group_additional_attribute_mapping'),
+
+    use_tls                             => structure($ldap_hash, 'use_tls', false),
+    tls_cacertdir                       => structure($ldap_hash, 'tls_cacertdir'),
+    tls_cacertfile                      => structure($ldap_hash, 'tls_cacertfile'),
+    tls_req_cert                        => structure($ldap_hash, 'tls_req_cert'),
+
+    use_pool                            => structure($ldap_hash, 'use_pool', true),
+    pool_size                           => structure($ldap_hash, 'pool_size', '10'),
+    pool_retry_max                      => structure($ldap_hash, 'pool_retry_max', '3'),
+    pool_retry_delay                    => structure($ldap_hash, 'pool_retry_delay', '0.1'),
+    pool_connection_timeout             => structure($ldap_hash, 'pool_connection_timeout', '-1'),
+    pool_connection_lifetime            => structure($ldap_hash, 'pool_connection_lifetime', '600'),
+    use_auth_pool                       => structure($ldap_hash, 'use_auth_pool', true),
+    auth_pool_size                      => structure($ldap_hash, 'auth_pool_size', '100'),
+    auth_pool_connection_lifetime       => structure($ldap_hash, 'auth_pool_connection_lifetime', '60'),
+
+    identity_driver                     => structure($ldap_hash, 'identity_driver', 'keystone.identity.backends.ldap.Identity'),
+    assignment_driver                   => structure($ldap_hash, 'assignment_driver', 'keystone.assignment.backends.sql.Assignment'),
+    credential_driver                   => structure($ldap_hash, 'credential_driver', 'keystone.credential.backends.sql.Credential'),
+  }
+
+}
