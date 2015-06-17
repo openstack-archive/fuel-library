@@ -53,6 +53,11 @@ class openstack::keystone (
   $ceilometer_user_password,
   $neutron_user_password,
   $public_address,
+  $glance_user_name            = 'glance',
+  $nova_user_name              = 'nova',
+  $cinder_user_name            = 'cinder',
+  $ceilometer_user_name        = 'ceilometer',
+  $neutron_user_name           = 'neutron',
   $db_type                     = 'mysql',
   $db_user                     = 'keystone',
   $db_name                     = 'keystone',
@@ -321,6 +326,7 @@ class openstack::keystone (
     # Configure Glance endpoint in Keystone
     if $glance {
       class { 'glance::keystone::auth':
+        auth_name        => $glance_user_name,
         password         => $glance_user_password,
         public_address   => $glance_public_real,
         admin_address    => $glance_admin_real,
@@ -333,6 +339,7 @@ class openstack::keystone (
     # Configure Nova endpoint in Keystone
     if $nova {
       class { 'nova::keystone::auth':
+        auth_name        => $nova_user_name,
         password         => $nova_user_password,
         public_address   => $nova_public_real,
         admin_address    => $nova_admin_real,
@@ -345,6 +352,7 @@ class openstack::keystone (
     # Configure Cinder endpoint in Keystone
     if $cinder {
       class { 'cinder::keystone::auth':
+        auth_name        => $cinder_user_name,
         password         => $cinder_user_password,
         public_address   => $cinder_public_real,
         admin_address    => $cinder_admin_real,
@@ -355,6 +363,7 @@ class openstack::keystone (
     }
     if $neutron {
       class { 'neutron::keystone::auth':
+        auth_name        => $neutron_user_name,
         password         => $neutron_user_password,
         public_address   => $neutron_public_real,
         admin_address    => $neutron_admin_real,
@@ -365,6 +374,7 @@ class openstack::keystone (
     }
     if $ceilometer {
       class { 'ceilometer::keystone::auth':
+        auth_name        => $ceilometer_user_name,
         password         => $ceilometer_user_password,
         public_address   => $ceilometer_public_real,
         admin_address    => $ceilometer_admin_real,
