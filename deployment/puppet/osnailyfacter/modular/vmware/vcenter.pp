@@ -1,7 +1,7 @@
 notice('MODULAR: vmware/vcenter.pp')
 
 $use_vcenter = hiera('use_vcenter', false)
-$vcenter_hash = hiera('vcenter_hash')
+$vcenter_hash = hiera_hash('vcenter', {})
 $controller_node_public = hiera('controller_node_public')
 $use_neutron = hiera('use_neutron', false)
 $ceilometer_hash = hiera('ceilometer',{})

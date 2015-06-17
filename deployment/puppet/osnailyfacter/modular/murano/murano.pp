@@ -2,10 +2,10 @@ notice('MODULAR: murano.pp')
 
 prepare_network_config(hiera('network_scheme', {}))
 
-$murano_hash                = hiera_hash('murano_hash', {})
+$murano_hash                = hiera_hash('murano', {})
 $murano_settings_hash       = hiera_hash('murano_settings', {})
-$rabbit_hash                = hiera_hash('rabbit_hash', {})
-$heat_hash                  = hiera_hash('heat_hash', {})
+$rabbit_hash                = hiera_hash('rabbit', {})
+$heat_hash                  = hiera_hash('heat', {})
 $neutron_config             = hiera_hash('neutron_config', {})
 $node_role                  = hiera('node_role')
 $public_ip                  = hiera('public_vip')
@@ -84,7 +84,7 @@ if $murano_hash['enabled'] {
     keystone_tenant     => $tenant,
     identity_uri        => "http://${service_endpoint}:35357/",
     use_neutron         => $use_neutron,
-    rabbit_os_user      => $rabbit_hash['user'],
+    rabbit_os_user      => pick($rabbit_hash['user'], 'nova'),
     rabbit_os_password  => $rabbit_hash['password'],
     rabbit_os_port      => $amqp_port,
     rabbit_os_host      => split($amqp_hosts, ','),
