@@ -1,40 +1,68 @@
 # == Class: openstack::mongo_secondary
 
 class openstack::mongo_secondary (
-  $ceilometer_database          = "ceilometer",
-  $ceilometer_user              = "ceilometer",
-  $ceilometer_metering_secret   = undef,
-  $ceilometer_db_password       = "ceilometer",
-  $ceilometer_metering_secret   = "ceilometer",
-  $mongodb_port                 = 27017,
-  $mongodb_bind_address         = ['0.0.0.0'],
-  $replset                      = undef,
-  $use_syslog                   = true,
-  $verbose                      = false,
-  $debug                        = false,
+  $auth                       = true,
+  $ceilometer_database        = "ceilometer",
+  $ceilometer_user            = "ceilometer",
+  $ceilometer_metering_secret = undef,
+  $ceilometer_db_password     = "ceilometer",
+  $ceilometer_metering_secret = "ceilometer",
+  $mongodb_bind_address       = ['127.0.0.1'],
+  $mongodb_port               = 27017,
+  $use_syslog                 = true,
+  $verbose                    = false,
+  $debug                      = false,
+  $logappend                  = true,
+  $journal                    = true,
+  $replset_name               = undef,
+  $keyfile                    = '/etc/mongodb.key',
+  $key                        = undef,
+  $oplog_size                 = '10240',
+  $fork                       = false,
+  $directoryperdb             = true,
+  $profile                    = "1",
 ) {
 
-  if $debug {
-    $set_parameter = 'logLevel=2'
-    $quiet         = false
+  if $verbose {
+    $verbositylevel = "vv"
   } else {
-    $set_parameter = 'logLevel=0'
-    $quiet         = true
+    $verbositylevel = "v"
   }
+
+  if $use_syslog {
+    $logpath = false
+  } else {
+    # undef to use defaults
+    $logpath = undef
+  }
+
+  if $key {
+    $key_content = $key
+  } else {
+    $key_content = file('/var/lib/astute/mongodb/mongodb.key')
+  }
+
+  class {'::mongodb::firewall': } ->
 
   notify {"MongoDB params: $mongodb_bind_address": } ->
 
   class {'::mongodb::client':
   } ->
+
   class {'::mongodb::server':
-    port          => $mongodb_port,
-    verbose       => $verbose,
-    use_syslog    => $use_syslog,
-    bind_ip       => $mongodb_bind_address,
-    replset       => $replset,
-    auth          => true,
-    keyfile       => '/etc/mongodb.key',
-    set_parameter => $set_parameter,
-    quiet         => $quiet,
+    port           => $mongodb_port,
+    verbose        => $verbose,
+    syslog         => $use_syslog,
+    logpath        => $logpath,
+    logappend      => $logappend,
+    journal        => $journal,
+    bind_ip        => $mongodb_bind_address,
+    auth           => $auth,
+    replset        => $replset_name,
+    keyfile        => $keyfile,
+    key            => $key_content,
+    directoryperdb => $directoryperdb,
+    fork           => $fork,
+    profile        => $profile,
   }
 }
