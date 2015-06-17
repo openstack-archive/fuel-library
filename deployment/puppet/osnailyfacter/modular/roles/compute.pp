@@ -21,17 +21,17 @@ $debug                          = hiera('debug', true)
 $use_monit                      = false
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $nodes_hash                     = hiera('nodes', {})
-$storage_hash                   = hiera_hash('storage_hash', {})
+$storage_hash                   = hiera_hash('storage', {})
 $vcenter_hash                   = hiera('vcenter', {})
-$nova_hash                      = hiera_hash('nova_hash', {})
-$nova_custom_hash               = hiera_hash('nova_custom_hash', {})
-$mysql_hash                     = hiera_hash('mysql_hash', {})
-$rabbit_hash                    = hiera_hash('rabbit_hash', {})
-$glance_hash                    = hiera_hash('glance_hash', {})
-$keystone_hash                  = hiera_hash('keystone_hash', {})
-$swift_hash                     = hiera_hash('swift_hash', {})
-$cinder_hash                    = hiera_hash('cinder_hash', {})
-$ceilometer_hash                = hiera_hash('ceilometer_hash',{})
+$nova_hash                      = hiera_hash('nova', {})
+$nova_custom_hash               = hiera_hash('nova_custom', {})
+$mysql_hash                     = hiera_hash('mysql', {})
+$rabbit_hash                    = hiera_hash('rabbit', {})
+$glance_hash                    = hiera_hash('glance', {})
+$keystone_hash                  = hiera_hash('keystone', {})
+$swift_hash                     = hiera_hash('swift', {})
+$cinder_hash                    = hiera_hash('cinder', {})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
 $access_hash                    = hiera('access', {})
 $controllers                    = hiera('controllers')
 $swift_proxies                  = hiera('swift_proxies')
@@ -51,7 +51,7 @@ $nova_rate_limits               = hiera('nova_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
 $glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
-
+$rabbit_ha_queues               = hiera('rabbit_ha_queues', true)
 
 $block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
 $block_device_allocate_retries_interval = hiera('block_device_allocate_retries_interval', 3)
@@ -109,10 +109,6 @@ if $primary_controller {
   }
 }
 
-if !$rabbit_hash['user'] {
-  $rabbit_hash['user'] = 'nova'
-}
-
 $floating_hash = {}
 
 ##CALCULATED PARAMETERS
@@ -132,15 +128,15 @@ $memcache_ipaddrs = ipsort(values(get_node_to_ipaddr_map_by_network_role(hiera_h
 $roles = $network_metadata['nodes'][$node_name]['node_roles']
 $mountpoints = filter_hash($mp_hash,'point')
 
-# SQLAlchemy backend configuration
-$max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
+$sql_alchemy_hash      = hiera_hash('sql_alchemy', {})
+$max_pool_size         = pick($sql_alchemy_hash['max_pool_size'], '20')
+$max_overflow          = pick($sql_alchemy_hash['max_overflow'], '20')
+$max_retries           = pick($sql_alchemy_hash['max_retries'], '-1')
+$idle_timeout          = pick($sql_alchemy_hash['idle_timeout'], '3600')
 
 if ($storage_hash['volumes_lvm']) {
   nova_config { 'keymgr/fixed_key':
-    value => $cinder_hash[fixed_key];
+    value => $cinder_hash['fixed_key'];
   }
 }
 
@@ -242,10 +238,10 @@ class { 'openstack::compute':
   network_manager             => hiera('network_manager', undef),
   network_config              => hiera('network_config', {}),
   multi_host                  => $multi_host,
-  database_connection         => "mysql://nova:${nova_hash[db_password]}@${management_vip}/nova?read_timeout=60",
+  database_connection         => "mysql://nova:${nova_hash['db_password']}@${management_vip}/nova?read_timeout=60",
   queue_provider              => $queue_provider,
   amqp_hosts                  => hiera('amqp_hosts',''),
-  amqp_user                   => $rabbit_hash['user'],
+  amqp_user                   => pick($rabbit_hash['user'], 'nova'),
   amqp_password               => $rabbit_hash['password'],
   rabbit_ha_queues            => $rabbit_ha_queues,
   auto_assign_floating_ip     => $auto_assign_floating_ip,
@@ -258,17 +254,17 @@ class { 'openstack::compute':
   cinder_volume_group         => "cinder",
   vnc_enabled                 => true,
   manage_volumes              => $manage_volumes,
-  nova_user_password          => $nova_hash[user_password],
+  nova_user_password          => $nova_hash['user_password'],
   nova_hash                   => $nova_hash,
   cache_server_ip             => $memcache_ipaddrs,
   service_endpoint            => $service_endpoint,
   cinder                      => true,
   cinder_iscsi_bind_addr      => get_network_role_property('cinder/iscsi', 'ipaddr'),
-  cinder_user_password        => $cinder_hash[user_password],
-  cinder_db_password          => $cinder_hash[db_password],
-  ceilometer                  => $ceilometer_hash[enabled],
-  ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
-  ceilometer_user_password    => $ceilometer_hash[user_password],
+  cinder_user_password        => $cinder_hash['user_password'],
+  cinder_db_password          => $cinder_hash['db_password'],
+  ceilometer                  => $ceilometer_hash['enabled'],
+  ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
+  ceilometer_user_password    => $ceilometer_hash['user_password'],
   db_host                     => $management_vip,
   network_provider            => $network_provider,
   neutron_user_password       => $use_neutron ? { true=>$neutron_config['keystone']['admin_password'], default=>undef},
@@ -280,7 +276,7 @@ class { 'openstack::compute':
   nova_rate_limits            => $nova_rate_limits,
   nova_report_interval        => $nova_report_interval,
   nova_service_down_time      => $nova_service_down_time,
-  state_path                  => $nova_hash[state_path],
+  state_path                  => $nova_hash['state_path'],
   neutron_settings            => $neutron_config,
   storage_hash                => $storage_hash,
 }

@@ -8,9 +8,12 @@ describe manifest do
     # TODO All this stuff should be moved to shared examples controller* tests.
     glance_config = Noop.hiera_structure 'glance'
     storage_config = Noop.hiera_structure 'storage'
-    max_pool_size = Noop.hiera('max_pool_size')
-    max_overflow = Noop.hiera('max_overflow')
-    max_retries = '-1'
+
+    max_pool_size = Noop.hiera_structure 'sql_alchemy/max_pool_size', '20'
+    max_overflow  = Noop.hiera_structure 'sql_alchemy/max_overflow', '20'
+    max_retries   = Noop.hiera_structure 'sql_alchemy/max_retries', '-1'
+    idle_timeout  = Noop.hiera_structure 'sql_alchemy/idle_timeout', '3600'
+
     use_syslog = Noop.hiera('use_syslog', 'true')
     region = Noop.hiera('region', 'RegionOne')
     if glance_config && glance_config.has_key?('pipeline')

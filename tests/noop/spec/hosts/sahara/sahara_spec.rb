@@ -6,45 +6,45 @@ describe manifest do
   shared_examples 'catalog' do
 
     use_neutron          = Noop.hiera 'use_neutron'
-    rabbit_user          = Noop.hiera_structure 'rabbit_hash/user'
-    rabbit_password      = Noop.hiera_structure 'rabbit_hash/password'
-    ceilometer_enabled   = Noop.hiera_structure 'ceilometer_hash/enabled'
-    auth_user            = Noop.hiera_structure 'access_hash/user'
-    auth_password        = Noop.hiera_structure 'access_hash/password'
-    auth_tenant          = Noop.hiera_structure 'access_hash/tenant'
-    primary_controller   = Noop.hiera('primary_controller')
-    service_endpoint     = Noop.hiera('service_endpoint')
-    public_vip           = Noop.hiera('public_vip')
-    internal_address     = Noop.hiera('internal_address')
-    database_vip         = Noop.hiera('database_vip', internal_address)
-    amqp_port            = Noop.hiera('amqp_port')
-    amqp_hosts           = Noop.hiera('amqp_hosts')
-    debug                = Noop.hiera('debug', false)
-    verbose              = Noop.hiera('verbose', true)
-    use_syslog           = Noop.hiera('use_syslog', true)
-    log_facility_sahara  = Noop.hiera('syslog_log_facility_sahara')
-    rabbit_ha_queues     = Noop.hiera('rabbit_ha_queues')
-    public_ssl           = Noop.hiera_structure('public_ssl/services')
+    rabbit_user          = Noop.hiera_structure 'rabbit/user', 'nova'
+    rabbit_password      = Noop.hiera_structure 'rabbit/password'
+    ceilometer_enabled   = Noop.hiera_structure 'ceilometer/enabled'
+    auth_user            = Noop.hiera_structure 'access/user'
+    auth_password        = Noop.hiera_structure 'access/password'
+    auth_tenant          = Noop.hiera_structure 'access/tenant'
+    primary_controller   = Noop.hiera 'primary_controller'
+    service_endpoint     = Noop.hiera 'service_endpoint'
+    public_vip           = Noop.hiera 'public_vip'
+    internal_address     = Noop.hiera 'internal_address'
+    database_vip         = Noop.hiera 'database_vip', internal_address
+    amqp_port            = Noop.hiera 'amqp_port'
+    amqp_hosts           = Noop.hiera 'amqp_hosts'
+    debug                = Noop.hiera 'debug', false
+    verbose              = Noop.hiera 'verbose', true
+    use_syslog           = Noop.hiera 'use_syslog', true
+    log_facility_sahara  = Noop.hiera 'syslog_log_facility_sahara'
+    rabbit_ha_queues     = Noop.hiera 'rabbit_ha_queues'
+    public_ssl           = Noop.hiera_structure 'public_ssl/services'
 
     firewall_rule   = '201 sahara-api'
     api_bind_port   = '8386'
     api_bind_host   = internal_address
     api_workers     = '4'
-    sahara_plugins  = [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ]
+    sahara_plugins  = %w(ambari cdh mapr spark vanilla)
     if public_ssl
-      public_address  = Noop.hiera_structure('public_ssl/hostname')
+      public_address  = Noop.hiera_structure 'public_ssl/hostname'
       public_protocol = 'https'
     else
       public_address  = public_vip
       public_protocol = 'http'
     end
-    sahara_user     = Noop.hiera_structure('sahara_hash/user', 'sahara')
-    sahara_password = Noop.hiera_structure('sahara_hash/user_password')
-    tenant          = Noop.hiera_structure('sahara_hash/tenant', 'services')
-    db_user         = Noop.hiera_structure('sahara_hash/db_user', 'sahara')
-    db_name         = Noop.hiera_structure('sahara_hash/db_name', 'sahara')
-    db_password     = Noop.hiera_structure('sahara_hash/db_password')
-    db_host         = Noop.hiera_structure('sahara_hash/db_host', database_vip)
+    sahara_user     = Noop.hiera_structure 'sahara/user', 'sahara'
+    sahara_password = Noop.hiera_structure 'sahara/user_password'
+    tenant          = Noop.hiera_structure 'sahara/tenant', 'services'
+    db_user         = Noop.hiera_structure 'sahara/db_user', 'sahara'
+    db_name         = Noop.hiera_structure 'sahara/db_name', 'sahara'
+    db_password     = Noop.hiera_structure 'sahara/db_password'
+    db_host         = Noop.hiera_structure 'sahara/db_host', database_vip
     read_timeout    = '60'
     sql_connection  = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
 
