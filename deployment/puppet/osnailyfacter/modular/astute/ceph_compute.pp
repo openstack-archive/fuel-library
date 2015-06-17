@@ -1,15 +1,23 @@
 notice('MODULAR: astute/ceph_compute.pp')
 
-$storage_hash                   = hiera('storage', {})
-$controllers                    = hiera('controllers')
-$use_neutron                    = hiera('use_neutron')
-$nodes_hash                     = hiera('nodes', {})
-$public_vip                     = hiera('public_vip')
-$management_vip                 = hiera('management_vip')
-$use_syslog                     = hiera('use_syslog', true)
-$syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
-$keystone_hash                  = hiera('keystone', {})
-$internal_address               = hiera('internal_address')
+$storage_hash             = hiera('storage', {})
+$controllers              = hiera('controllers')
+$use_neutron              = hiera('use_neutron')
+$nodes_hash               = hiera('nodes', {})
+$public_vip               = hiera('public_vip')
+$management_vip           = hiera('management_vip')
+$use_syslog               = hiera('use_syslog', true)
+$syslog_log_facility_ceph = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
+$keystone_hash            = hiera('keystone', {})
+$internal_address         = hiera('internal_address')
+# Cinder settings
+$cinder_pool              = 'volumes'
+# Glance settings
+$glance_pool              = 'images'
+#Nova Compute settings
+$compute_user             = 'compute'
+$compute_pool             = 'compute'
+
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -69,16 +77,24 @@ if $use_ceph {
 
   service { $::ceph::params::service_nova_compute :}
 
+  ceph::pool {$compute_pool:
+    user          => $compute_user,
+    acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}'",
+    keyring_owner => 'nova',
+    pg_num        => $storage_hash['pg_num'],
+    pgp_num       => $storage_hash['pg_num'],
+  }
 
   include ceph::nova_compute
 
-  if ($ephemeral_ceph) {
+  if ($storage_hash['ephemeral_ceph']) {
      include ceph::ephemeral
      Class['ceph::conf'] -> Class['ceph::ephemeral'] ~>
      Service[$::ceph::params::service_nova_compute]
   }
 
   Class['ceph::conf'] ->
+  Ceph::Pool[$compute_pool] ->
   Class['ceph::nova_compute'] ~>
   Service[$::ceph::params::service_nova_compute]
 
