@@ -1,14 +1,14 @@
 notice('MODULAR: openstack-network-compute.pp')
 
 $use_neutron                    = hiera('use_neutron', false)
-$nova_hash                      = hiera_hash('nova_hash', {})
+$nova_hash                      = hiera_hash('nova', {})
 $internal_address               = hiera('internal_address')
 $management_vip                 = hiera('management_vip')
 $service_endpoint               = hiera('service_endpoint')
 $public_int                     = hiera('public_int', undef)
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $controllers                    = hiera('controllers')
-$rabbit_hash                    = hiera_hash('rabbit_hash', {})
+$rabbit_hash                    = hiera_hash('rabbit', {})
 $network_scheme                 = hiera('network_scheme', {})
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
@@ -381,7 +381,7 @@ class { 'openstack::network':
   # queue settings
   queue_provider => hiera('queue_provider', 'rabbitmq'),
   amqp_hosts     => split(hiera('amqp_hosts', ''), ','),
-  amqp_user      => $rabbit_hash['user'],
+  amqp_user      => pick($rabbit_hash['user'], 'nova'),
   amqp_password  => $rabbit_hash['password'],
 
   # keystone

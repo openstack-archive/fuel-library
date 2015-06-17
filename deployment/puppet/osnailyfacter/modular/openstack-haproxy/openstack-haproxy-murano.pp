@@ -1,6 +1,6 @@
 notice('MODULAR: openstack-haproxy-murano.pp')
 
-$murano_hash        = hiera_hash('murano_hash',{})
+$murano_hash        = hiera_hash('murano',{})
 # NOT enabled by default
 $use_murano         = pick($murano_hash['enabled'], false)
 $public_ssl_hash    = hiera('public_ssl')
