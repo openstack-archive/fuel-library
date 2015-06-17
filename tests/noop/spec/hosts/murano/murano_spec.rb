@@ -4,36 +4,37 @@ manifest = 'murano/murano.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+    murano_user                = Noop.hiera_structure 'murano/user', 'murano'
+    murano_password            = Noop.hiera_structure 'murano/user_password'
+    tenant                     = Noop.hiera_structure 'murano/tenant', 'services'
+    rabbit_os_user             = Noop.hiera_structure 'rabbit/user', 'nova'
+    rabbit_os_password         = Noop.hiera_structure 'rabbit/password'
+    rabbit_own_password        = Noop.hiera_structure 'heat/rabbit_password'
+    node_role                  = Noop.hiera 'node_role'
+    public_vip                 = Noop.hiera 'public_vip'
+    management_vip             = Noop.hiera 'management_vip'
+    internal_address           = Noop.hiera 'internal_address'
+    region                     = Noop.hiera 'region', 'RegionOne'
+    use_neutron                = Noop.hiera 'use_neutron', false
+    service_endpoint           = Noop.hiera 'service_endpoint', management_vip
+    syslog_log_facility_murano = Noop.hiera 'syslog_log_facility_murano'
+    debug                      = Noop.hiera 'debug', false
+    verbose                    = Noop.hiera 'verbose', true
+    use_syslog                 = Noop.hiera 'use_syslog', true
+    rabbit_ha_queues           = Noop.hiera 'rabbit_ha_queues'
+    amqp_port                  = Noop.hiera 'amqp_port'
+    amqp_hosts                 = Noop.hiera 'amqp_hosts'
+    public_ssl                 = Noop.hiera_structure 'public_ssl/services'
 
-    murano_user                = Noop.hiera_structure('murano_hash/user', 'murano')
-    murano_password            = Noop.hiera_structure('murano_hash/user_password')
-    tenant                     = Noop.hiera_structure('murano_hash/tenant', 'services')
-    rabbit_os_user             = Noop.hiera_structure('rabbit_hash/user')
-    rabbit_os_password         = Noop.hiera_structure('rabbit_hash/password')
-    rabbit_own_password        = Noop.hiera_structure('heat_hash/rabbit_password')
-    node_role                  = Noop.hiera('node_role')
-    public_ip                  = Noop.hiera('public_vip')
-    management_ip              = Noop.hiera('management_vip')
-    internal_address           = Noop.hiera('internal_address')
-    region                     = Noop.hiera('region', 'RegionOne')
-    use_neutron                = Noop.hiera('use_neutron', false)
-    service_endpoint           = Noop.hiera('service_endpoint', management_ip)
-    syslog_log_facility_murano = Noop.hiera('syslog_log_facility_murano')
-    debug                      = Noop.hiera('debug', false)
-    verbose                    = Noop.hiera('verbose', true)
-    use_syslog                 = Noop.hiera('use_syslog', true)
-    rabbit_ha_queues           = Noop.hiera('rabbit_ha_queues')
-    amqp_port                  = Noop.hiera('amqp_port')
-    amqp_hosts                 = Noop.hiera('amqp_hosts')
-    public_ssl                 = Noop.hiera_structure('public_ssl/services')
+    db_user                    = Noop.hiera_structure 'murano/db_user', 'murano'
+    db_name                    = Noop.hiera_structure 'murano/db_name', 'murano'
+    db_host                    = Noop.hiera_structure 'murano/db_host', management_vip
+    db_password                = Noop.hiera_structure 'murano/db_password'
 
-    db_user                    = Noop.hiera_structure('murano_hash/db_user', 'murano')
-    db_name                    = Noop.hiera_structure('murano_hash/db_name', 'murano')
-    db_host                    = Noop.hiera_structure('murano_hash/db_host', management_ip)
-    db_password                = Noop.hiera_structure('murano_hash/db_password')
+    predefined_networks        = Noop.hiera_structure 'neutron_config/predefined_networks'
 
-    predefined_networks        = Noop.hiera_structure('neutron_config/predefined_networks')
-    repository_url             = Noop.hiera_structure('murano_settings/murano_repo_url')
+    default_repository_url     = 'http://storage.apps.openstack.org'
+    apps_repository            = Noop.hiera_structure 'murano_settings/murano_repo_url', default_repository_url
 
     api_bind_port              = '8082'
     api_bind_host              = internal_address
@@ -44,23 +45,25 @@ describe manifest do
     sql_connection             = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
 
     if public_ssl
-        public_protocol = 'https'
-        public_address  = Noop.hiera_structure('public_ssl/hostname')
+      public_protocol = 'https'
+      public_address  = Noop.hiera_structure 'public_ssl/hostname'
     else
-        public_protocol = 'http'
-        public_address  = public_ip
+      public_protocol = 'http'
+      public_address  = public_vip
     end
 
-    if use_neutron
-      external_network = PuppetlabsSpec::PuppetInternals.scope.function_get_ext_net_name([predefined_networks])
-    else
-      external_network = nil
+    let(:scope) do
+      scope = PuppetlabsSpec::PuppetInternals.scope
+      Puppet::Parser::Functions.autoloader.loadall
+      scope
     end
 
-    if repository_url
-      apps_repository = repository_url
-    else
-      apps_repository = 'http://storage.apps.openstack.org'
+    let(:external_network) do
+      if use_neutron
+        scope.function_get_ext_net_name [ predefined_networks ]
+      else
+        nil
+      end
     end
 
     it 'should declare murano class correctly' do
@@ -81,7 +84,7 @@ describe manifest do
                  'rabbit_os_port'      => amqp_port,
                  'rabbit_os_host'      => amqp_hosts.split(','),
                  'rabbit_ha_queues'    => rabbit_ha_queues,
-                 'rabbit_own_host'     => public_ip,
+                 'rabbit_own_host'     => public_vip,
                  'rabbit_own_port'     => '55572',
                  'rabbit_own_user'     => 'murano',
                  'rabbit_own_password' => rabbit_own_password,
