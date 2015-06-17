@@ -18,7 +18,7 @@ $rabbit_hash           = hiera('rabbit_hash')
 $amqp_hosts            = hiera('amqp_hosts')
 $primary_controller    = hiera('primary_controller')
 $controller_nodes      = hiera('controller_nodes')
-$neutron_user_password = hiera('neutron_user_password', false)
+$neutron_hash          = hiera('neutron_config', {})
 $workloads_hash        = hiera('workloads_collector', {})
 
 $db_type     = 'mysql'
@@ -45,6 +45,7 @@ $glance_user_password     = $glance_hash['user_password']
 $nova_user_password       = $nova_hash['user_password']
 $cinder_user_password     = $cinder_hash['user_password']
 $ceilometer_user_password = $ceilometer_hash['user_password']
+$neutron_user_password    = $neutron_hash['keystone']['admin_password']
 
 $cinder = true
 $ceilometer = $ceilometer_hash['enabled']
