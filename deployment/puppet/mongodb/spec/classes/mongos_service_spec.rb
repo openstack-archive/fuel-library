@@ -10,10 +10,10 @@ describe 'mongodb::mongos::service', :type => :class do
       }
     end
 
-    let :pre_condition do          
+    let :pre_condition do
       "class { 'mongodb::mongos':
        }"
-    end 
+    end
 
     describe 'include init script' do
       it { should contain_file('/etc/init.d/mongos') }

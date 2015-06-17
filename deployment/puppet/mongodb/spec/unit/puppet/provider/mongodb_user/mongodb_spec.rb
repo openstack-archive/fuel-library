@@ -49,14 +49,14 @@ describe Puppet::Type.type(:mongodb_user).provider(:mongodb) do
       }
       EOS
 
-      provider.expects(:mongo_eval).with("db.runCommand(#{cmd_json})", 'new_database')
+      provider.expects(:mongo_eval).with("db.runCommand(#{cmd_json})", 'new_database', [])
       provider.create
     end
   end
 
   describe 'destroy' do
     it 'removes a user' do
-      provider.expects(:mongo_eval).with("db.dropUser('new_user')")
+      provider.expects(:mongo_eval).with("db.dropUser('new_user')", [])
       provider.destroy
     end
   end
@@ -83,7 +83,7 @@ describe Puppet::Type.type(:mongodb_user).provider(:mongodb) do
       }
       EOS
       provider.expects(:mongo_eval).
-        with("db.runCommand(#{cmd_json})", 'new_database')
+        with("db.runCommand(#{cmd_json})", 'new_database', [])
       provider.password_hash=("newpass")
     end
   end
@@ -101,21 +101,21 @@ describe Puppet::Type.type(:mongodb_user).provider(:mongodb) do
     end
 
     it 'grant a role' do
-      provider.expects(:mongo_eval).with("db.getSiblingDB('new_database').grantRolesToUser('new_user', [\"role3\"])")
+      provider.expects(:mongo_eval).with("db.getSiblingDB('new_database').grantRolesToUser('new_user', [\"role3\"])", [])
       provider.roles=(['role1', 'role2', 'role3'])
     end
 
     it 'revokes a role' do
       provider.expects(:mongo_eval).
-        with("db.getSiblingDB('new_database').revokeRolesFromUser('new_user', [\"role1\"])")
+        with("db.getSiblingDB('new_database').revokeRolesFromUser('new_user', [\"role1\"])", [])
       provider.roles=(['role2'])
     end
 
     it 'exchanges a role' do
       provider.expects(:mongo_eval).
-        with("db.getSiblingDB('new_database').revokeRolesFromUser('new_user', [\"role1\"])")
+        with("db.getSiblingDB('new_database').revokeRolesFromUser('new_user', [\"role1\"])", [] )
       provider.expects(:mongo_eval).
-        with("db.getSiblingDB('new_database').grantRolesToUser('new_user', [\"role3\"])")
+        with("db.getSiblingDB('new_database').grantRolesToUser('new_user', [\"role3\"])", [])
 
       provider.roles=(['role2', 'role3'])
     end
