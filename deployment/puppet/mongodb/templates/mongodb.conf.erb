@@ -8,6 +8,9 @@ logpath=<%= @logpath %>
 logappend=<%= @logappend %>
 <% end -%>
 <% end -%>
+<% if @ipv6 -%>
+ipv6=<%= @ipv6 %>
+<% end -%>
 <% if @bind_ip -%>
 # Set this option to configure the mongod or mongos process to bind to and
 # listen for connections from applications on this address.
@@ -84,7 +87,7 @@ oplogSize = <%= @oplog_size %>
 # Ignore query hints
 nohints = <%= @nohints %>
 <% end -%>
-<% if @nohttpinterface -%>
+<% if ! @nohttpinterface.nil? -%>
 # Disable the HTTP interface (Defaults to localhost:27018).
 nohttpinterface = <%= @nohttpinterface %>
 <% end -%>

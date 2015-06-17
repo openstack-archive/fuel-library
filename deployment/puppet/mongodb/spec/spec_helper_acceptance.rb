@@ -26,7 +26,7 @@ RSpec.configure do |c|
 
   # Configure all nodes in nodeset
   c.before :suite do
-    hosts.each do |host| 
+    hosts.each do |host|
       copy_module_to(host, :source => proj_root, :module_name => 'mongodb')
     end
     on hosts, 'puppet module install puppetlabs-stdlib'

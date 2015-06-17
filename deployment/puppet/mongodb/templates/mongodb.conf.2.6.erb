@@ -78,10 +78,15 @@ security.javascriptEnabled: <%= @noscripting %>
 
 
 # Net
+<% if @ipv6 -%>
+net.ipv6=<%= @ipv6 %>
+<% end -%>
 <% if @bind_ip -%>
 net.bindIp:  <%= Array(@bind_ip).join(',') %>
 <% end -%>
-net.port: <%= @port || 27017 %>
+<% if @port -%>
+net.port: <%= @port %>
+<% end -%>
 <% if @objcheck -%>
 net.wireObjectCheck: <%= @objcheck %>
 <% end -%>
@@ -91,8 +96,8 @@ net.http.RESTInterfaceEnabled: true
 <% if @maxconns -%>
 net.maxIncomingConnections: <%= @maxconns %>
 <% end -%>
-<% if @nohttpinterface -%>
-net.http.enabled: <%= @nohttpinterface %>
+<% if ! @nohttpinterface.nil? -%>
+net.http.enabled: <%= ! @nohttpinterface %>
 <% end -%>
 
 #Replication
@@ -101,6 +106,14 @@ replication.replSetName: <%= @replset %>
 <% end -%>
 <% if @oplog_size -%>
 replication.oplogSizeMB: <%= @oplog_size %>
+<% end -%>
+
+# Sharding
+<% if @configsvr -%>
+sharding.clusterRole: configsvr
+<% end -%>
+<% if @shardsvr -%>
+sharding.clusterRole: shardsvr
 <% end -%>
 
 #Operation Profiling
