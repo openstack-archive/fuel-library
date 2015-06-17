@@ -1,6 +1,6 @@
 notice('MODULAR: murano/keystone.pp')
 
-$murano_hash                = hiera_hash('murano_hash', {})
+$murano_hash                = hiera_hash('murano', {})
 $public_ip                  = hiera('public_vip')
 $management_ip              = hiera('management_vip')
 $service_endpoint           = hiera('service_endpoint')
