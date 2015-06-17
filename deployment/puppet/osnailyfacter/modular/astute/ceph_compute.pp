@@ -72,7 +72,7 @@ if $use_ceph {
 
   include ceph::nova_compute
 
-  if ($ephemeral_ceph) {
+  if ($storage_hash['ephemeral_ceph']) {
      include ceph::ephemeral
      Class['ceph::conf'] -> Class['ceph::ephemeral'] ~>
      Service[$::ceph::params::service_nova_compute]
