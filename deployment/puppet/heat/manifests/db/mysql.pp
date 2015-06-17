@@ -56,15 +56,29 @@ class heat::db::mysql(
 
   validate_string($password)
 
-  ::openstacklib::db::mysql { 'heat':
-    user          => $user,
-    password_hash => mysql_password($password),
-    dbname        => $dbname,
-    host          => $host,
-    charset       => $charset,
-    collate       => $collate,
-    allowed_hosts => $allowed_hosts,
-  }
 
-  ::Openstacklib::Db::Mysql['heat'] ~> Exec<| title == 'heat-dbsync' |>
+  # This workaround should be removed after mysql module upgrade
+  if ($mysql_module >= 2.2) {
+    ::openstacklib::db::mysql { 'heat':
+      user          => $user,
+      password_hash => mysql_password($password),
+      dbname        => $dbname,
+      host          => $host,
+      charset       => $charset,
+      collate       => $collate,
+      allowed_hosts => $allowed_hosts,
+    }
+
+    ::Openstacklib::Db::Mysql['heat'] ~> Exec<| title == 'heat-dbsync' |>
+  } else {
+    mysql::db { $dbname:
+      user     => $user,
+      password => $password,
+      host     => $host,
+      charset  => $charset,
+      require  => Class['mysql::config'],
+    }
+
+    Mysql::Db["$dbname"] ~> Exec<| title == 'heat-dbsync' |>
+  }
 }
