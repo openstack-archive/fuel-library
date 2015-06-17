@@ -386,13 +386,14 @@
 #
 # Copyright 2012 Puppetlabs Inc, unless otherwise noted.
 #
-class keystone::ldap(
+class keystone_fuel::ldap_domain (
   $url                                 = undef,
   $user                                = undef,
   $password                            = undef,
   $suffix                              = undef,
   $query_scope                         = undef,
   $page_size                           = undef,
+  $debug_level                         = undef,
   $user_tree_dn                        = undef,
   $user_filter                         = undef,
   $user_objectclass                    = undef,
@@ -664,11 +665,6 @@ class keystone::ldap(
     $project_additional_attribute_mapping_real = $project_additional_attribute_mapping
   }
 
-  $ldap_packages = ['python-ldap', 'python-ldappool']
-  package { $ldap_packages:
-      ensure => present,
-  }
-
   # check for some common driver name mistakes
   if ($assignment_driver != undef) {
       if ! ($assignment_driver =~ /^keystone.assignment.backends.*Assignment$/) {
@@ -688,92 +684,93 @@ class keystone::ldap(
       }
   }
 
-  if ($tls_cacertdir != undef) {
-    file { $tls_cacertdir:
-      ensure => directory
-    }
+  Keystone_config {
+    provider => 'ini_setting_domain',
   }
 
+  $domain = $name
+
   keystone_config {
-    'ldap/url':                                  value => $url;
-    'ldap/user':                                 value => $user;
-    'ldap/password':                             value => $password, secret => true;
-    'ldap/suffix':                               value => $suffix;
-    'ldap/query_scope':                          value => $query_scope;
-    'ldap/page_size':                            value => $page_size;
-    'ldap/user_tree_dn':                         value => $user_tree_dn;
-    'ldap/user_filter':                          value => $user_filter;
-    'ldap/user_objectclass':                     value => $user_objectclass;
-    'ldap/user_id_attribute':                    value => $user_id_attribute;
-    'ldap/user_name_attribute':                  value => $user_name_attribute;
-    'ldap/user_mail_attribute':                  value => $user_mail_attribute;
-    'ldap/user_enabled_attribute':               value => $user_enabled_attribute;
-    'ldap/user_enabled_mask':                    value => $user_enabled_mask;
-    'ldap/user_enabled_default':                 value => $user_enabled_default;
-    'ldap/user_enabled_invert':                  value => $user_enabled_invert;
-    'ldap/user_attribute_ignore':                value => $user_attribute_ignore;
-    'ldap/user_default_project_id_attribute':    value => $user_default_project_id_attribute;
-    'ldap/user_allow_create':                    value => $user_allow_create;
-    'ldap/user_allow_update':                    value => $user_allow_update;
-    'ldap/user_allow_delete':                    value => $user_allow_delete;
-    'ldap/user_pass_attribute':                  value => $user_pass_attribute;
-    'ldap/user_enabled_emulation':               value => $user_enabled_emulation;
-    'ldap/user_enabled_emulation_dn':            value => $user_enabled_emulation_dn;
-    'ldap/user_additional_attribute_mapping':    value => $user_additional_attribute_mapping;
-    'ldap/project_tree_dn':                      value => $project_tree_dn_real;
-    'ldap/project_filter':                       value => $project_filter_real;
-    'ldap/project_objectclass':                  value => $project_objectclass_real;
-    'ldap/project_id_attribute':                 value => $project_id_attribute_real;
-    'ldap/project_member_attribute':             value => $project_member_attribute_real;
-    'ldap/project_desc_attribute':               value => $project_desc_attribute_real;
-    'ldap/project_name_attribute':               value => $project_name_attribute_real;
-    'ldap/project_enabled_attribute':            value => $project_enabled_attribute_real;
-    'ldap/project_attribute_ignore':             value => $project_attribute_ignore_real;
-    'ldap/project_domain_id_attribute':          value => $project_domain_id_attribute_real;
-    'ldap/project_allow_create':                 value => $project_allow_create_real;
-    'ldap/project_allow_update':                 value => $project_allow_update_real;
-    'ldap/project_allow_delete':                 value => $project_allow_delete_real;
-    'ldap/project_enabled_emulation':            value => $project_enabled_emulation_real;
-    'ldap/project_enabled_emulation_dn':         value => $project_enabled_emulation_dn_real;
-    'ldap/project_additional_attribute_mapping': value => $project_additional_attribute_mapping_real;
-    'ldap/role_tree_dn':                         value => $role_tree_dn;
-    'ldap/role_filter':                          value => $role_filter;
-    'ldap/role_objectclass':                     value => $role_objectclass;
-    'ldap/role_id_attribute':                    value => $role_id_attribute;
-    'ldap/role_name_attribute':                  value => $role_name_attribute;
-    'ldap/role_member_attribute':                value => $role_member_attribute;
-    'ldap/role_attribute_ignore':                value => $role_attribute_ignore;
-    'ldap/role_allow_create':                    value => $role_allow_create;
-    'ldap/role_allow_update':                    value => $role_allow_update;
-    'ldap/role_allow_delete':                    value => $role_allow_delete;
-    'ldap/role_additional_attribute_mapping':    value => $role_additional_attribute_mapping;
-    'ldap/group_tree_dn':                        value => $group_tree_dn;
-    'ldap/group_filter':                         value => $group_filter;
-    'ldap/group_objectclass':                    value => $group_objectclass;
-    'ldap/group_id_attribute':                   value => $group_id_attribute;
-    'ldap/group_name_attribute':                 value => $group_name_attribute;
-    'ldap/group_member_attribute':               value => $group_member_attribute;
-    'ldap/group_desc_attribute':                 value => $group_desc_attribute;
-    'ldap/group_attribute_ignore':               value => $group_attribute_ignore;
-    'ldap/group_allow_create':                   value => $group_allow_create;
-    'ldap/group_allow_update':                   value => $group_allow_update;
-    'ldap/group_allow_delete':                   value => $group_allow_delete;
-    'ldap/group_additional_attribute_mapping':   value => $group_additional_attribute_mapping;
-    'ldap/use_tls':                              value => $use_tls;
-    'ldap/tls_cacertdir':                        value => $tls_cacertdir;
-    'ldap/tls_cacertfile':                       value => $tls_cacertfile;
-    'ldap/tls_req_cert':                         value => $tls_req_cert;
-    'ldap/use_pool':                             value => $use_pool;
-    'ldap/pool_size':                            value => $pool_size;
-    'ldap/pool_retry_max':                       value => $pool_retry_max;
-    'ldap/pool_retry_delay':                     value => $pool_retry_delay;
-    'ldap/pool_connection_timeout':              value => $pool_connection_timeout;
-    'ldap/pool_connection_lifetime':             value => $pool_connection_lifetime;
-    'ldap/use_auth_pool':                        value => $use_auth_pool;
-    'ldap/auth_pool_size':                       value => $auth_pool_size;
-    'ldap/auth_pool_connection_lifetime':        value => $auth_pool_connection_lifetime;
-    'identity/driver':                           value => $identity_driver;
-    'credential/driver':                         value => $credential_driver;
-    'assignment/driver':                         value => $assignment_driver;
+    "${domain}/ldap/url":                                  value => $url;
+    "${domain}/ldap/user":                                 value => $user;
+    "${domain}/ldap/password":                             value => $password, secret => true;
+    "${domain}/ldap/suffix":                               value => $suffix;
+    "${domain}/ldap/query_scope":                          value => $query_scope;
+    "${domain}/ldap/page_size":                            value => $page_size;
+    "${domain}/ldap/debug_level":                          value => $debug_level;
+    "${domain}/ldap/user_tree_dn":                         value => $user_tree_dn;
+    "${domain}/ldap/user_filter":                          value => $user_filter;
+    "${domain}/ldap/user_objectclass":                     value => $user_objectclass;
+    "${domain}/ldap/user_id_attribute":                    value => $user_id_attribute;
+    "${domain}/ldap/user_name_attribute":                  value => $user_name_attribute;
+    "${domain}/ldap/user_mail_attribute":                  value => $user_mail_attribute;
+    "${domain}/ldap/user_enabled_attribute":               value => $user_enabled_attribute;
+    "${domain}/ldap/user_enabled_mask":                    value => $user_enabled_mask;
+    "${domain}/ldap/user_enabled_default":                 value => $user_enabled_default;
+    "${domain}/ldap/user_enabled_invert":                  value => $user_enabled_invert;
+    "${domain}/ldap/user_attribute_ignore":                value => $user_attribute_ignore;
+    "${domain}/ldap/user_default_project_id_attribute":    value => $user_default_project_id_attribute;
+    "${domain}/ldap/user_allow_create":                    value => $user_allow_create;
+    "${domain}/ldap/user_allow_update":                    value => $user_allow_update;
+    "${domain}/ldap/user_allow_delete":                    value => $user_allow_delete;
+    "${domain}/ldap/user_pass_attribute":                  value => $user_pass_attribute;
+    "${domain}/ldap/user_enabled_emulation":               value => $user_enabled_emulation;
+    "${domain}/ldap/user_enabled_emulation_dn":            value => $user_enabled_emulation_dn;
+    "${domain}/ldap/user_additional_attribute_mapping":    value => $user_additional_attribute_mapping;
+    "${domain}/ldap/project_tree_dn":                      value => $project_tree_dn_real;
+    "${domain}/ldap/project_filter":                       value => $project_filter_real;
+    "${domain}/ldap/project_objectclass":                  value => $project_objectclass_real;
+    "${domain}/ldap/project_id_attribute":                 value => $project_id_attribute_real;
+    "${domain}/ldap/project_member_attribute":             value => $project_member_attribute_real;
+    "${domain}/ldap/project_desc_attribute":               value => $project_desc_attribute_real;
+    "${domain}/ldap/project_name_attribute":               value => $project_name_attribute_real;
+    "${domain}/ldap/project_enabled_attribute":            value => $project_enabled_attribute_real;
+    "${domain}/ldap/project_attribute_ignore":             value => $project_attribute_ignore_real;
+    "${domain}/ldap/project_domain_id_attribute":          value => $project_domain_id_attribute_real;
+    "${domain}/ldap/project_allow_create":                 value => $project_allow_create_real;
+    "${domain}/ldap/project_allow_update":                 value => $project_allow_update_real;
+    "${domain}/ldap/project_allow_delete":                 value => $project_allow_delete_real;
+    "${domain}/ldap/project_enabled_emulation":            value => $project_enabled_emulation_real;
+    "${domain}/ldap/project_enabled_emulation_dn":         value => $project_enabled_emulation_dn_real;
+    "${domain}/ldap/project_additional_attribute_mapping": value => $project_additional_attribute_mapping_real;
+    "${domain}/ldap/role_tree_dn":                         value => $role_tree_dn;
+    "${domain}/ldap/role_filter":                          value => $role_filter;
+    "${domain}/ldap/role_objectclass":                     value => $role_objectclass;
+    "${domain}/ldap/role_id_attribute":                    value => $role_id_attribute;
+    "${domain}/ldap/role_name_attribute":                  value => $role_name_attribute;
+    "${domain}/ldap/role_member_attribute":                value => $role_member_attribute;
+    "${domain}/ldap/role_attribute_ignore":                value => $role_attribute_ignore;
+    "${domain}/ldap/role_allow_create":                    value => $role_allow_create;
+    "${domain}/ldap/role_allow_update":                    value => $role_allow_update;
+    "${domain}/ldap/role_allow_delete":                    value => $role_allow_delete;
+    "${domain}/ldap/role_additional_attribute_mapping":    value => $role_additional_attribute_mapping;
+    "${domain}/ldap/group_tree_dn":                        value => $group_tree_dn;
+    "${domain}/ldap/group_filter":                         value => $group_filter;
+    "${domain}/ldap/group_objectclass":                    value => $group_objectclass;
+    "${domain}/ldap/group_id_attribute":                   value => $group_id_attribute;
+    "${domain}/ldap/group_name_attribute":                 value => $group_name_attribute;
+    "${domain}/ldap/group_member_attribute":               value => $group_member_attribute;
+    "${domain}/ldap/group_desc_attribute":                 value => $group_desc_attribute;
+    "${domain}/ldap/group_attribute_ignore":               value => $group_attribute_ignore;
+    "${domain}/ldap/group_allow_create":                   value => $group_allow_create;
+    "${domain}/ldap/group_allow_update":                   value => $group_allow_update;
+    "${domain}/ldap/group_allow_delete":                   value => $group_allow_delete;
+    "${domain}/ldap/group_additional_attribute_mapping":   value => $group_additional_attribute_mapping;
+    "${domain}/ldap/use_tls":                              value => $use_tls;
+    "${domain}/ldap/tls_cacertdir":                        value => $tls_cacertdir;
+    "${domain}/ldap/tls_cacertfile":                       value => $tls_cacertfile;
+    "${domain}/ldap/tls_req_cert":                         value => $tls_req_cert;
+    "${domain}/ldap/use_pool":                             value => $use_pool;
+    "${domain}/ldap/pool_size":                            value => $pool_size;
+    "${domain}/ldap/pool_retry_max":                       value => $pool_retry_max;
+    "${domain}/ldap/pool_retry_delay":                     value => $pool_retry_delay;
+    "${domain}/ldap/pool_connection_timeout":              value => $pool_connection_timeout;
+    "${domain}/ldap/pool_connection_lifetime":             value => $pool_connection_lifetime;
+    "${domain}/ldap/use_auth_pool":                        value => $use_auth_pool;
+    "${domain}/ldap/auth_pool_size":                       value => $auth_pool_size;
+    "${domain}/ldap/auth_pool_connection_lifetime":        value => $auth_pool_connection_lifetime;
+    "${domain}/identity/driver":                           value => $identity_driver;
+    "${domain}/credential/driver":                         value => $credential_driver;
+    "${domain}/assignment/driver":                         value => $assignment_driver;
   }
 }

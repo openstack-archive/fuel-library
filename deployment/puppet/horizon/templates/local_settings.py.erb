@@ -41,13 +41,13 @@ SESSION_COOKIE_SECURE = True
 # NOTE: The version should be formatted as it appears in the URL for the
 # service API. For example, The identity service APIs have inconsistent
 # use of the decimal point, so valid options would be "2.0" or "3".
-# OPENSTACK_API_VERSIONS = {
-#     "identity": 3
-# }
+OPENSTACK_API_VERSIONS = {
+  "identity": <%= @api_version %>
+}
 
 # Set this to True if running on multi-domain model. When this is enabled, it
 # will require user to enter the Domain name in addition to username for login.
-# OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = False
+OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = <%= @multidomain ? 'True' : 'False' %>
 
 # Overrides the default domain used when running on single-domain model
 # with Keystone V3. All entities will be created in the default domain.
@@ -159,7 +159,7 @@ if (!@keystone_scheme.nil?) || (!@keystone_host.nil?) || (!@keystone_port.nil?)
     @keystone_scheme ||= "http"
     @keystone_host ||= "127.0.0.1"
     @keystone_port ||= "5000"
-    @keystone_url = "#{@keystone_scheme}://#{@keystone_host}:#{@keystone_port}/v2.0"
+    @keystone_url = "#{@keystone_scheme}://#{@keystone_host}:#{@keystone_port}/#{@api_version}"
 end
 -%>
 OPENSTACK_KEYSTONE_URL = "<%= @keystone_url %>"

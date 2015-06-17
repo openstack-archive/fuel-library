@@ -230,6 +230,9 @@ class horizon(
   $file_upload_temp_dir    = '/tmp',
   $policy_files_path       = undef,
   $policy_files            = undef,
+  $multidomain             = false,
+  $api_version             = '2.0', # or '3'
+
   # DEPRECATED PARAMETERS
   $can_set_mount_point     = undef,
   $keystone_host           = undef,

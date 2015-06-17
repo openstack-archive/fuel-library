@@ -43,6 +43,8 @@ class openstack::horizon (
   $servername              = $::hostname,
   $cache_backend           = undef,
   $cache_options           = undef
+  $multidomain             = false,
+  $api_version             = '2.0',
 ) {
 
   if $debug { #syslog and nondebug case
@@ -87,6 +89,8 @@ class openstack::horizon (
     django_session_engine   => $django_session_engine,
     allowed_hosts           => '*',
     secure_cookies          => false,
+    multidomain             => $multidomain,
+    api_version             => $api_version,
   }
 
   # Performance optimization for wsgi

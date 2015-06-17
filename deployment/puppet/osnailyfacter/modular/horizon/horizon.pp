@@ -29,4 +29,11 @@ class { 'openstack::horizon':
   servername        => hiera('public_vip'),
 }
 
+if $horizon_hash['multidomain'] {
+  Class['openstack::horizon'] {
+    multidomain => true,
+    api_version => '3',
+  }
+}
+
 include ::tweaks::apache_wrappers
