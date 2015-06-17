@@ -28,7 +28,7 @@ $storage_hash                   = hiera_hash('storage', {})
 $nova_hash                      = hiera_hash('nova', {})
 $nova_config_hash               = hiera_hash('nova_config', {})
 $api_bind_address               = get_network_role_property('nova/api', 'ipaddr')
-$rabbit_hash                    = hiera_hash('rabbit_hash', {})
+$rabbit_hash                    = hiera_hash('rabbit', {})
 $ceilometer_hash                = hiera_hash('ceilometer',{})
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash                 = hiera_hash('workloads_collector', {})
@@ -61,11 +61,11 @@ if $use_neutron {
   $novanetwork_params = hiera('novanetwork_parameters')
 }
 
-# SQLAlchemy backend configuration
-$max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
+$sql_alchemy_hash      = hiera_hash('sql_alchemy', {})
+$max_pool_size         = pick($sql_alchemy_hash['max_pool_size'], '20')
+$max_overflow          = pick($sql_alchemy_hash['max_overflow'], '20')
+$max_retries           = pick($sql_alchemy_hash['max_retries'], '-1')
+$idle_timeout          = pick($sql_alchemy_hash['idle_timeout'], '3600')
 
 # TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
 $hiera_openstack_version = hiera('openstack_version')
@@ -106,14 +106,14 @@ class { '::openstack::controller':
   primary_controller             => $primary_controller,
   novnc_address                  => $api_bind_address,
   nova_db_user                   => $nova_db_user,
-  nova_db_password               => $nova_hash[db_password],
+  nova_db_password               => $nova_hash['db_password'],
   nova_user                      => $keystone_user,
-  nova_user_password             => $nova_hash[user_password],
+  nova_user_password             => $nova_hash['user_password'],
   nova_user_tenant               => $keystone_tenant,
   nova_hash                      => $nova_hash,
   queue_provider                 => 'rabbitmq',
   amqp_hosts                     => hiera('amqp_hosts',''),
-  amqp_user                      => $rabbit_hash['user'],
+  amqp_user                      => pick($rabbit_hash['user'], 'nova'),
   amqp_password                  => $rabbit_hash['password'],
   rabbit_ha_queues               => true,
   cache_server_ip                => $memcache_ipaddrs,
@@ -122,7 +122,7 @@ class { '::openstack::controller':
   service_endpoint               => $service_endpoint,
   neutron_metadata_proxy_secret  => $neutron_metadata_proxy_secret,
   cinder                         => true,
-  ceilometer                     => $ceilometer_hash[enabled],
+  ceilometer                     => $ceilometer_hash['enabled'],
   use_syslog                     => $use_syslog,
   syslog_log_facility_nova       => $syslog_log_facility_nova,
   nova_rate_limits               => $nova_rate_limits,
@@ -178,11 +178,11 @@ if $primary_controller {
     nova_floating_range { $floating_ips_range:
       ensure          => 'present',
       pool            => 'nova',
-      username        => $access_hash[user],
-      api_key         => $access_hash[password],
+      username        => $access_hash['user'],
+      api_key         => $access_hash['password'],
       auth_method     => 'password',
       auth_url        => "http://${service_endpoint}:5000/v2.0/",
-      authtenant_name => $access_hash[tenant],
+      authtenant_name => $access_hash['tenant'],
       api_retries     => 10,
     }
     Haproxy_backend_status['nova-api'] -> Nova_floating_range <| |>

@@ -2,11 +2,11 @@ notice('MODULAR: sahara.pp')
 
 prepare_network_config(hiera('network_scheme', {}))
 
-$access_admin               = hiera_hash('access_hash', {})
-$sahara_hash                = hiera_hash('sahara_hash', {})
-$rabbit_hash                = hiera_hash('rabbit_hash', {})
+$access_admin               = hiera_hash('access', {})
+$sahara_hash                = hiera_hash('sahara', {})
+$rabbit_hash                = hiera_hash('rabbit', {})
 $public_ssl_hash            = hiera('public_ssl')
-$ceilometer_hash            = hiera_hash('ceilometer_hash', {})
+$ceilometer_hash            = hiera_hash('ceilometer', {})
 $primary_controller         = hiera('primary_controller')
 $public_vip                 = hiera('public_vip')
 $database_vip               = hiera('database_vip', undef)
@@ -70,7 +70,7 @@ if $sahara_hash['enabled'] {
     admin_user          => $sahara_user,
     admin_password      => $sahara_password,
     admin_tenant_name   => $tenant,
-    rabbit_userid       => $rabbit_hash['user'],
+    rabbit_userid       => pick($rabbit_hash['user'], 'nova'),
     rabbit_password     => $rabbit_hash['password'],
     rabbit_ha_queues    => $rabbit_ha_queues,
     rabbit_port         => $amqp_port,

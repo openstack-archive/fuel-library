@@ -5,13 +5,13 @@ manifest = 'murano/murano.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    murano_user                = Noop.hiera_structure('murano_hash/user', 'murano')
-    murano_password            = Noop.hiera_structure('murano_hash/user_password')
-    murano_enabled             = Noop.hiera_structure('murano_hash/enabled')
-    tenant                     = Noop.hiera_structure('murano_hash/tenant', 'services')
-    rabbit_os_user             = Noop.hiera_structure('rabbit_hash/user')
-    rabbit_os_password         = Noop.hiera_structure('rabbit_hash/password')
-    rabbit_own_password        = Noop.hiera_structure('heat_hash/rabbit_password')
+    murano_user                = Noop.hiera_structure('murano/user', 'murano')
+    murano_password            = Noop.hiera_structure('murano/user_password')
+    murano_enabled             = Noop.hiera_structure('murano/enabled')
+    tenant                     = Noop.hiera_structure('murano/tenant', 'services')
+    rabbit_os_user             = Noop.hiera_structure('rabbit/user', 'nova')
+    rabbit_os_password         = Noop.hiera_structure('rabbit/password')
+    rabbit_own_password        = Noop.hiera_structure('heat/rabbit_password')
     node_role                  = Noop.hiera('node_role')
     public_ip                  = Noop.hiera('public_vip')
     management_ip              = Noop.hiera('management_vip')
@@ -28,10 +28,10 @@ describe manifest do
     amqp_hosts                 = Noop.hiera('amqp_hosts')
     public_ssl                 = Noop.hiera_structure('public_ssl/services')
 
-    db_user                    = Noop.hiera_structure('murano_hash/db_user', 'murano')
-    db_name                    = Noop.hiera_structure('murano_hash/db_name', 'murano')
-    db_host                    = Noop.hiera_structure('murano_hash/db_host', management_ip)
-    db_password                = Noop.hiera_structure('murano_hash/db_password')
+    db_user                    = Noop.hiera_structure('murano/db_user', 'murano')
+    db_name                    = Noop.hiera_structure('murano/db_name', 'murano')
+    db_host                    = Noop.hiera_structure('murano/db_host', management_ip)
+    db_password                = Noop.hiera_structure('murano/db_password')
 
     predefined_networks        = Noop.hiera_structure('neutron_config/predefined_networks')
     repository_url             = Noop.hiera_structure('murano_settings/murano_repo_url')

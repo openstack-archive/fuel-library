@@ -14,16 +14,16 @@ $debug                          = hiera('debug', true)
 $use_monit                      = false
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $nodes_hash                     = hiera('nodes', {})
-$storage_hash                   = hiera_hash('storage_hash', {})
-$vcenter_hash                   = hiera('vcenter', {})
-$nova_hash                      = hiera_hash('nova_hash', {})
-$mysql_hash                     = hiera_hash('mysql_hash', {})
-$rabbit_hash                    = hiera_hash('rabbit_hash', {})
-$glance_hash                    = hiera_hash('glance_hash', {})
-$keystone_hash                  = hiera_hash('keystone_hash', {})
-$cinder_hash                    = hiera_hash('cinder_hash', {})
-$ceilometer_hash                = hiera_hash('ceilometer_hash',{})
-$access_hash                    = hiera('access', {})
+$storage_hash                   = hiera_hash('storage', {})
+$vcenter_hash                   = hiera_hash('vcenter', {})
+$nova_hash                      = hiera_hash('nova', {})
+$mysql_hash                     = hiera_hash('mysql', {})
+$rabbit_hash                    = hiera_hash('rabbit', {})
+$glance_hash                    = hiera_hash('glance', {})
+$keystone_hash                  = hiera_hash('keystone', {})
+$cinder_hash                    = hiera_hash('cinder', {})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
+$access_hash                    = hiera_hash('access', {})
 $network_scheme                 = hiera_hash('network_scheme')
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
@@ -38,8 +38,9 @@ $syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOC
 $syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL0')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
+$syslog_log_level               = hiera('syslog_log_level_ceph', 'info')
 
-$cinder_db_password             = $cinder_hash[db_password]
+$cinder_db_password             = $cinder_hash['db_password']
 $keystone_user                  = pick($cinder_hash['user'], 'cinder')
 $keystone_tenant                = pick($cinder_hash['tenant'], 'services')
 $db_host                        = pick($cinder_hash['db_host'], hiera('database_vip'))
@@ -103,10 +104,6 @@ if $primary_controller {
   }
 }
 
-if !$rabbit_hash['user'] {
-  $rabbit_hash['user'] = 'nova'
-}
-
 if ! $use_neutron {
   $floating_ips_range = hiera('floating_network_range')
 }
@@ -138,11 +135,11 @@ $controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
-# SQLAlchemy backend configuration
-$max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
+$sql_alchemy_hash      = hiera_hash('sql_alchemy', {})
+$max_pool_size         = pick($sql_alchemy_hash['max_pool_size'], '20')
+$max_overflow          = pick($sql_alchemy_hash['max_overflow'], '20')
+$max_retries           = pick($sql_alchemy_hash['max_retries'], '-1')
+$idle_timeout          = pick($sql_alchemy_hash['idle_timeout'], '3600')
 
 # Determine who should get the volume service
 
@@ -277,7 +274,7 @@ class { 'openstack::cinder':
   bind_host            => $bind_host,
   queue_provider       => $queue_provider,
   amqp_hosts           => hiera('amqp_hosts',''),
-  amqp_user            => $rabbit_hash['user'],
+  amqp_user            => pick($rabbit_hash['user'], 'nova'),
   amqp_password        => $rabbit_hash['password'],
   rabbit_ha_queues     => hiera('rabbit_ha_queues', false),
   volume_group         => 'cinder',
@@ -288,7 +285,7 @@ class { 'openstack::cinder':
   iscsi_bind_host      => $storage_address,
   keystone_user        => $keystone_user,
   keystone_tenant      => $keystone_tenant,
-  cinder_user_password => $cinder_hash[user_password],
+  cinder_user_password => $cinder_hash['user_password'],
   syslog_log_facility  => $syslog_log_facility_cinder,
   debug                => $debug,
   verbose              => $verbose,
@@ -297,7 +294,7 @@ class { 'openstack::cinder':
   max_pool_size        => $max_pool_size,
   max_overflow         => $max_overflow,
   idle_timeout         => $idle_timeout,
-  ceilometer           => $ceilometer_hash[enabled],
+  ceilometer           => $ceilometer_hash['enabled'],
   vmware_host_ip       => $vcenter_hash['host_ip'],
   vmware_host_username => $vcenter_hash['vc_user'],
   vmware_host_password => $vcenter_hash['vc_password'],
@@ -310,7 +307,7 @@ cinder_config { 'DEFAULT/nova_catalog_info':
 }
 
 cinder_config { 'keymgr/fixed_key':
-  value => $cinder_hash[fixed_key];
+  value => $cinder_hash['fixed_key'];
 }
 
 # FIXME(bogdando) replace service_path and action to systemd, once supported

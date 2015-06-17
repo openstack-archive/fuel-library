@@ -6,13 +6,13 @@ describe manifest do
   shared_examples 'catalog' do
 
     use_neutron          = Noop.hiera 'use_neutron'
-    rabbit_user          = Noop.hiera_structure 'rabbit_hash/user'
-    rabbit_password      = Noop.hiera_structure 'rabbit_hash/password'
-    sahara_enabled       = Noop.hiera_structure 'sahara_hash/enabled'
-    ceilometer_enabled   = Noop.hiera_structure 'ceilometer_hash/enabled'
-    auth_user            = Noop.hiera_structure 'access_hash/user'
-    auth_password        = Noop.hiera_structure 'access_hash/password'
-    auth_tenant          = Noop.hiera_structure 'access_hash/tenant'
+    rabbit_user          = Noop.hiera_structure 'rabbit/user', 'nova'
+    rabbit_password      = Noop.hiera_structure 'rabbit/password'
+    sahara_enabled       = Noop.hiera_structure 'sahara/enabled'
+    ceilometer_enabled   = Noop.hiera_structure 'ceilometer/enabled'
+    auth_user            = Noop.hiera_structure 'access/user'
+    auth_password        = Noop.hiera_structure 'access/password'
+    auth_tenant          = Noop.hiera_structure 'access/tenant'
     primary_controller   = Noop.hiera('primary_controller')
     service_endpoint     = Noop.hiera('service_endpoint')
     public_vip           = Noop.hiera('public_vip')
@@ -39,13 +39,13 @@ describe manifest do
         public_address  = public_vip
         public_protocol = 'http'
       end
-      sahara_user     = Noop.hiera_structure('sahara_hash/user', 'sahara')
-      sahara_password = Noop.hiera_structure('sahara_hash/user_password')
-      tenant          = Noop.hiera_structure('sahara_hash/tenant', 'services')
-      db_user         = Noop.hiera_structure('sahara_hash/db_user', 'sahara')
-      db_name         = Noop.hiera_structure('sahara_hash/db_name', 'sahara')
-      db_password     = Noop.hiera_structure('sahara_hash/db_password')
-      db_host         = Noop.hiera_structure('sahara_hash/db_host', database_vip)
+      sahara_user     = Noop.hiera_structure('sahara/user', 'sahara')
+      sahara_password = Noop.hiera_structure('sahara/user_password')
+      tenant          = Noop.hiera_structure('sahara/tenant', 'services')
+      db_user         = Noop.hiera_structure('sahara/db_user', 'sahara')
+      db_name         = Noop.hiera_structure('sahara/db_name', 'sahara')
+      db_password     = Noop.hiera_structure('sahara/db_password')
+      db_host         = Noop.hiera_structure('sahara/db_host', database_vip)
       read_timeout    = '60'
       sql_connection  = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
 

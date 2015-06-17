@@ -77,7 +77,6 @@ module TestCommon
     # @return [String,Array,Hash,nil] found value or nil if not found
     def self.lookup(key, default=nil)
       key = key.to_s
-      key = 'rabbit_hash' if key == 'rabbit'
       @keys = {} unless @keys
       return @keys[key] if @keys[key]
       @keys[key] = hiera.lookup key, default, {}
