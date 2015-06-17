@@ -14,6 +14,7 @@ class openstack::heat (
   $keystone_password             = false,
   $keystone_ec2_uri              = false,
   $auth_uri                      = false,
+  $trusts_delegated_roles        = [],
 
   $verbose                       = false,
   $debug                         = false,
@@ -56,20 +57,13 @@ class openstack::heat (
 ){
 
   # No empty passwords allowed
-  validate_string($keystone_password)
   validate_string($amqp_password)
-  validate_string($db_password)
 
   # Generate values logic
   if $keystone_ec2_uri {
     $keystone_ec2_uri_real    = $keystone_ec2_uri
   } else {
     $keystone_ec2_uri_real    = "${keystone_protocol}://${keystone_host}:${keystone_port}/v2.0/ec2tokens"
-  }
-  if $auth_uri {
-    $auth_uri_real            = $auth_uri
-  } else {
-    $auth_uri_real            = "${keystone_protocol}://${keystone_host}:${keystone_service_port}/v2.0"
   }
   if $heat_metadata_server_url {
     $metadata_server_url      = $heat_metadata_server_url
@@ -99,6 +93,13 @@ class openstack::heat (
   |> ->
   Service<| title == 'heat-api-cfn' or title == 'heat-api-cloudwatch' |>
 
+  # Syslog configuration
+  if $use_syslog {
+    heat_config {
+      'DEFAULT/use_syslog_rfc_format': value => true;
+    }
+  }
+
   # Firewall rules for APIs
   firewall { '206 heat-api-cloudwatch' :
     dport   => [ $api_cloudwatch_bind_port ],
@@ -119,75 +120,82 @@ class openstack::heat (
   # Follow the Heat installation order
   # DB
   class { 'heat::db::mysql':
-    password                      => $db_password,
-    dbname                        => $db_name,
-    user                          => $db_user,
-    host                          => $db_host,
-    allowed_hosts                 => $db_allowed_hosts,
+    password      => $db_password,
+    dbname        => $db_name,
+    user          => $db_user,
+    host          => $db_host,
+    allowed_hosts => $db_allowed_hosts,
+
+    # This workaround should be removed after mysql module sync
+    mysql_module  => 0.9,
   }
 
   # Auth
   class { 'heat::keystone::auth' :
-    password                       => $keystone_password,
-    auth_name                      => $keystone_user,
-    public_address                 => $external_ip,
-    admin_address                  => $keystone_host,
-    internal_address               => $keystone_host,
-    port                           => '8004',
-    version                        => 'v1',
-    region                         => 'RegionOne',
-    tenant                         => 'services',
-    email                          => "${keystone_user}@localhost",
-    public_protocol                => 'http',
-    admin_protocol                 => 'http',
-    internal_protocol              => 'http',
-    configure_endpoint             => true,
-
+    password               => $keystone_password,
+    auth_name              => $keystone_user,
+    public_address         => $external_ip,
+    admin_address          => $keystone_host,
+    internal_address       => $keystone_host,
+    port                   => '8004',
+    version                => 'v1',
+    region                 => 'RegionOne',
+    tenant                 => 'services',
+    email                  => "${keystone_user}@localhost",
+    public_protocol        => 'http',
+    admin_protocol         => 'http',
+    internal_protocol      => 'http',
+    configure_endpoint     => true,
+    trusts_delegated_roles => $trusts_delegated_roles,
   }
+
   #TODO(bogdando) clarify this new to Fuel Heat auth cfn patterns
   class { 'heat::keystone::auth_cfn' :
-    password                       => $keystone_password,
-    auth_name                      => "${keystone_user}-cfn",
-    service_type                   => 'cloudformation',
-    public_address                 => $external_ip,
-    admin_address                  => $keystone_host,
-    internal_address               => $keystone_host,
-    port                           => '8000',
-    version                        => 'v1',
-    region                         => 'RegionOne',
-    tenant                         => 'services',
-    email                          => "${keystone_user}-cfn@localhost",
-    public_protocol                => 'http',
-    admin_protocol                 => 'http',
-    internal_protocol              => 'http',
-    configure_endpoint             => true,
+    password           => $keystone_password,
+    auth_name          => "${keystone_user}-cfn",
+    service_type       => 'cloudformation',
+    public_address     => $external_ip,
+    admin_address      => $keystone_host,
+    internal_address   => $keystone_host,
+    port               => '8000',
+    version            => 'v1',
+    region             => 'RegionOne',
+    tenant             => 'services',
+    email              => "${keystone_user}-cfn@localhost",
+    public_protocol    => 'http',
+    admin_protocol     => 'http',
+    internal_protocol  => 'http',
+    configure_endpoint => true,
   }
 
   # Common configuration, logging and RPC
   class { '::heat':
-    auth_uri                      => $auth_uri_real,
-    keystone_ec2_uri              => $keystone_ec2_uri_real,
-    keystone_host                 => $keystone_host,
-    keystone_port                 => $keystone_port,
-    keystone_protocol             => $keystone_protocol,
-    keystone_user                 => $keystone_user,
-    keystone_tenant               => $keystone_tenant,
-    keystone_password             => $keystone_password,
+    auth_uri              => $auth_uri,
+    keystone_ec2_uri      => $keystone_ec2_uri_real,
+    keystone_host         => $keystone_host,
+    keystone_port         => $keystone_port,
+    keystone_protocol     => $keystone_protocol,
+    keystone_user         => $keystone_user,
+    keystone_tenant       => $keystone_tenant,
+    keystone_password     => $keystone_password,
 
-    sql_connection                => $sql_connection,
-    database_idle_timeout         => $idle_timeout,
+    sql_connection        => $sql_connection,
+    database_idle_timeout => $idle_timeout,
 
-    rpc_backend                   => $rpc_backend,
-    rabbit_hosts                  => $amqp_hosts,
-    rabbit_userid                 => $amqp_user,
-    rabbit_password               => $amqp_password,
-    rabbit_virtual_host           => $rabbit_virtualhost,
+    rpc_backend           => $rpc_backend,
+    rabbit_hosts          => $amqp_hosts,
+    rabbit_userid         => $amqp_user,
+    rabbit_password       => $amqp_password,
+    rabbit_virtual_host   => $rabbit_virtualhost,
 
-    log_dir                       => $log_dir,
-    verbose                       => $verbose,
-    debug                         => $debug,
-    use_syslog                    => $use_syslog,
-    log_facility                  => $syslog_log_facility,
+    log_dir               => $log_dir,
+    verbose               => $verbose,
+    debug                 => $debug,
+    use_syslog            => $use_syslog,
+    log_facility          => $syslog_log_facility,
+
+    # This workaround should be removed after mysql module sync
+    mysql_module                  => 0.3,
   }
 
   heat_config {
@@ -197,19 +205,6 @@ class openstack::heat (
     'DATABASE/max_retries':        value => $max_retries;
   }
 
-  # Syslog configuration
-  if $use_syslog {
-    heat_config {
-      'DEFAULT/use_syslog_rfc_format': value => true;
-    }
-  }
-
-  $deps_routes_package_name     = 'python-routes'
-  package { 'python-routes':
-    ensure  => $ensure,
-    name    => $deps_routes_package_name,
-  } ->  Package <| title == 'heat-api' |>
-
   # Engine
   class { 'heat::engine' :
     auth_encryption_key           => $auth_encryption_key,
@@ -217,43 +212,26 @@ class openstack::heat (
     heat_metadata_server_url      => $metadata_server_url,
     heat_waitcondition_server_url => $waitcondition_server_url,
     heat_watch_server_url         => $watch_server_url,
+    trusts_delegated_roles        => $trusts_delegated_roles,
   }
 
   # Install the heat APIs
   class { 'heat::api':
-    bind_host                     => $api_bind_host,
-    bind_port                     => $api_bind_port,
-    enabled                       => $enabled,
+    bind_host => $api_bind_host,
+    bind_port => $api_bind_port,
+    enabled   => $enabled,
   }
   class { 'heat::api_cfn' :
-    bind_host                     => $api_cfn_bind_host,
-    bind_port                     => $api_cfn_bind_port,
-    enabled                       => $enabled,
+    bind_host => $api_cfn_bind_host,
+    bind_port => $api_cfn_bind_port,
+    enabled   => $enabled,
   }
   class { 'heat::api_cloudwatch' :
-    bind_host                     => $api_cloudwatch_bind_host,
-    bind_port                     => $api_cloudwatch_bind_port,
-    enabled                       => $enabled,
+    bind_host => $api_cloudwatch_bind_host,
+    bind_port => $api_cloudwatch_bind_port,
+    enabled   => $enabled,
   }
 
   # Client
   class { 'heat::client' :  }
-
-  # Patching openstack related notifications
-  Package<| title == 'heat-engine'|> ~> Service<| title == 'heat-engine'|>
-  if !defined(Service['heat-engine']) {
-    notify{ "Module ${module_name} cannot notify service heat-engine on package update": }
-  }
-  Package<| title == 'heat-api'|> ~> Service<| title == 'heat-api'|>
-  if !defined(Service['heat-api']) {
-    notify{ "Module ${module_name} cannot notify service heat-api on package update": }
-  }
-  Package<| title == 'heat-api-cfn'|> ~> Service<| title == 'heat-api-cfn'|>
-  if !defined(Service['heat-api-cfn']) {
-    notify{ "Module ${module_name} cannot notify service heat-api-cfn on package update": }
-  }
-  Package<| title == 'heat-api-cloudwatch'|> ~> Service<| title == 'heat-api-cloudwatch'|>
-  if !defined(Service['heat-api-cloudwatch']) {
-    notify{ "Module ${module_name} cannot notify service heat-api-cloudwatch on package update": }
-  }
 }
