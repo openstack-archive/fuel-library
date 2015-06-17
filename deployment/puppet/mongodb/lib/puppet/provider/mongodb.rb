@@ -28,7 +28,7 @@ class Puppet::Provider::Mongodb < Puppet::Provider
   end
 
   # Mongo Command Wrapper
-  def self.mongo_eval(cmd, db = 'admin')
+  def self.mongo_eval(cmd, db = 'admin', admin_credentials=nil)
     if mongorc_file
         cmd = mongorc_file + cmd
     end
@@ -50,14 +50,19 @@ class Puppet::Provider::Mongodb < Puppet::Provider
       port = config['port']
     end
 
-    out = mongo([db, '--quiet', '--port', port, '--eval', cmd])
+    # Required if auth is enabled
+    if admin_credentials
+      out = mongo([admin_credentials, '--quiet', '--port', port, '--eval', "use #{db}; #{cmd}"])
+    else
+      out = mongo([db, '--quiet', '--port', port, '--eval', cmd])
+    end
 
     out.gsub!(/ObjectId\(([^)]*)\)/, '\1')
     out
   end
 
-  def mongo_eval(cmd, db = 'admin')
-    self.class.mongo_eval(cmd, db)
+  def mongo_eval(cmd, db = 'admin', admin_credentials=nil)
+    self.class.mongo_eval(cmd, db, admin_credentials)
   end
 
   # Mongo Version checker
