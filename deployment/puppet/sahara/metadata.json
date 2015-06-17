@@ -1,0 +1,37 @@
+{
+  "name": "stackforge-sahara",
+  "version": "5.0.0",
+  "author": "Red Hat and StackForge Contributors",
+  "summary": "Puppet module for OpenStack Sahara",
+  "license": "Apache-2.0",
+  "source": "git://github.com/stackforge/puppet-sahara.git",
+  "project_page": "https://launchpad.net/puppet-sahara",
+  "issues_url": "https://bugs.launchpad.net/puppet-sahara",
+  "requirements": [
+    { "name": "pe","version_requirement": "3.x" },
+    { "name": "puppet","version_requirement": "3.x" }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "Fedora",
+      "operatingsystemrelease": ["20"]
+    },
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": ["7"]
+    },
+    {
+      "operatingsystem": "Debian",
+      "operatingsystemrelease": ["8"]
+    }
+  ],
+  "description": "Installs and configures OpenStack Sahara (Data Processing).",
+  "dependencies": [
+    { "name": "duritong/sysctl", "version_requirement": ">=0.0.1 <1.0.0" },
+    { "name": "stackforge/keystone", "version_requirement": ">=5.0.0 <6.0.0" },
+    { "name": "puppetlabs/inifile", "version_requirement": ">=5.0.0 <6.0.0" },
+    { "name": "puppetlabs/stdlib", "version_requirement": ">=4.0.0 <5.0.0" },
+    { "name": "puppetlabs/postgresql", "version_requirement": ">=3.0.0" },
+    { "name": "stackforge/openstacklib", "version_requirement": ">=5.0.0" }
+  ]
+}
