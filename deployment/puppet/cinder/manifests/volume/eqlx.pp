@@ -15,7 +15,7 @@
 #
 # [*san_thin_provision*]
 #   (optional) Whether or not to use thin provisioning for volumes.
-#   Defaults to false
+#   Defaults to true
 #
 # [*eqlx_group_name*]
 #   (optional) The CLI prompt message without '>'.
@@ -49,7 +49,7 @@ class cinder::volume::eqlx (
   $san_ip,
   $san_login,
   $san_password,
-  $san_thin_provision          = false,
+  $san_thin_provision          = true,
   $eqlx_group_name             = 'group-0',
   $eqlx_pool                   = 'default',
   $eqlx_use_chap               = false,
