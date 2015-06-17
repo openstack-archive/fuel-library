@@ -1,35 +1,53 @@
 # == Class: openstack::mongo_primary
 
 class openstack::mongo_primary (
-  $ceilometer_database          = "ceilometer",
-  $ceilometer_user              = "ceilometer",
-  $ceilometer_metering_secret   = undef,
-  $ceilometer_db_password       = "ceilometer",
-  $ceilometer_metering_secret   = "ceilometer",
-  $ceilometer_replset_members   = ['mongo2', 'mongo3'],
-  $mongodb_bind_address         = ['0.0.0.0'],
-  $mongodb_port                 = 27017,
-  $use_syslog                   = true,
-  $verbose                      = false,
-  $debug                        = false,
-  $replset                      = undef,
+  $auth                       = true,
+  $ceilometer_database        = "ceilometer",
+  $ceilometer_user            = "ceilometer",
+  $ceilometer_metering_secret = undef,
+  $ceilometer_db_password     = "ceilometer",
+  $ceilometer_metering_secret = "ceilometer",
+  $ceilometer_replset_members = ['127.0.0.1'],
+  $mongodb_bind_address       = ['127.0.0.1'],
+  $mongodb_port               = 27017,
+  $use_syslog                 = true,
+  $verbose                    = false,
+  $debug                      = false,
+  $logappend                  = true,
+  $journal                    = true,
+  $replset_name               = 'ceilometer',
+  $keyfile                    = '/etc/mongodb.key',
+  $key                        = undef,
+  $oplog_size                 = '10240',
+  $fork                       = false,
+  $directoryperdb             = true,
+  $profile                    = "1",
+  $dbpath                     = '/var/lib/mongo/mongodb',
+  $mongo_version              = undef,
 ) {
+
   if $debug {
-    $set_parameter = 'logLevel=2'
-    $quiet         = false
+    $verbositylevel = "vv"
   } else {
-    $set_parameter = 'logLevel=0'
-    $quiet         = true
+    $verbositylevel = "v"
   }
 
-
-  if size($ceilometer_replset_members) > 0 {
-    $replset_setup = true
-    $keyfile = '/etc/mongodb.key'
+  if $use_syslog {
+    $logpath = false
   } else {
-    $replset_setup = false
-    $keyfile = undef
+    # undef to use defaults
+    $logpath = undef
   }
+
+  if $key {
+    $key_content = $key
+  } else {
+    $key_content = file('/var/lib/astute/mongodb/mongodb.key')
+  }
+
+  class {'::mongodb::globals':
+    version => $mongo_version,
+  } ->
 
   notify {"MongoDB params: $mongodb_bind_address" :} ->
 
@@ -37,56 +55,59 @@ class openstack::mongo_primary (
   } ->
 
   class {'::mongodb::server':
-    port          => $mongodb_port,
-    verbose       => $verbose,
-    use_syslog    => $use_syslog,
-    bind_ip       => $mongodb_bind_address,
-    auth          => true,
-    replset       => $replset,
-    keyfile       => $keyfile,
-    set_parameter => $set_parameter,
-    quiet         => $quiet,
+    package_ensure => true,
+    port           => $mongodb_port,
+    verbose        => $verbose,
+    verbositylevel => $verbositylevel,
+    syslog         => $use_syslog,
+    logpath        => $logpath,
+    logappend      => $logappend,
+    journal        => $journal,
+    bind_ip        => $mongodb_bind_address,
+    auth           => $auth,
+    replset        => $replset_name,
+    keyfile        => $keyfile,
+    key            => $key_content,
+    directoryperdb => $directoryperdb,
+    fork           => $fork,
+    profile        => $profile,
+    oplog_size     => $oplog_size,
+    dbpath         => $dbpath,
+    config_content => $config_content,
+    create_admin   => true,
+    admin_username => 'admin',
+    admin_password => $ceilometer_db_password,
+    admin_roles    => ['userAdmin', 'readWrite', 'dbAdmin',
+                       'dbAdminAnyDatabase', 'readAnyDatabase',
+                       'readWriteAnyDatabase', 'userAdminAnyDatabase',
+                       'clusterAdmin', 'clusterManager', 'clusterMonitor',
+                       'hostManager', 'root', 'restore'],
   } ->
 
-  class {'::mongodb::replset':
-    replset_setup   => $replset_setup,
-    replset_members => $ceilometer_replset_members,
-  } ->
-
-  notify {"mongodb configuring databases" :} ->
+  notify {"mongodb configuring ceilometer database" :} ->
 
   mongodb::db { $ceilometer_database:
-    user          => $ceilometer_user,
-    password      => $ceilometer_db_password,
-    roles         => [ 'readWrite', 'dbAdmin' ],
-    admin_username => 'admin',
-    admin_password => $ceilometer_db_password,
-    admin_database => 'admin',
-  } ->
-
-  mongodb::db { 'admin':
-    user         => 'admin',
-    password     => $ceilometer_db_password,
-    roles        => [
-      'userAdmin',
-      'readWrite',
-      'dbAdmin',
-      'dbAdminAnyDatabase',
-      'readAnyDatabase',
-      'readWriteAnyDatabase',
-      'userAdminAnyDatabase',
-      'clusterAdmin',
-      'clusterManager',
-      'clusterMonitor',
-      'hostManager',
-      'root',
-      'restore',
-    ],
-    admin_username => 'admin',
-    admin_password => $ceilometer_db_password,
-    admin_database => 'admin',
+    user           => $ceilometer_user,
+    password       => $ceilometer_db_password,
+    roles          => [ 'readWrite', 'dbAdmin' ],
   } ->
 
   notify {"mongodb primary finished": }
 
+  if $replset_name and is_string($replset_name) {
+    mongodb_conn_validator { 'check_alive':
+      server => $ceilometer_replset_members,
+      port   => $mongodb_port,
+    }
+
+    $members = suffix($ceilometer_replset_members, inline_template(":<%= @mongodb_port %>"))
+    $sets = { "${replset_name}" => { auth_enabled => $auth, members => $members } }
+
+    class {'::mongodb::replset':
+      sets => $sets,
+    }
+
+    Class['::mongodb::server'] -> Mongodb_conn_validator['check_alive'] -> Mongodb::Db["$ceilometer_database"]
+
+  }
 }
