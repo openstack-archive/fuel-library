@@ -21,12 +21,12 @@ describe 'mongodb::server::config', :type => :class do
         :group  => 'root'
       })
 
-      should contain_file('/etc/mongod.conf').with_content(/^dbpath=\/var\/lib\/mongo/)
-      should contain_file('/etc/mongod.conf').with_content(/bind_ip\s=\s0\.0\.0\.0/)
-      should contain_file('/etc/mongod.conf').with_content(/^port = 29017$/)
-      should contain_file('/etc/mongod.conf').with_content(/^logappend=true/)
-      should contain_file('/etc/mongod.conf').with_content(/^logpath=\/var\/log\/mongo\/mongod\.log/)
-      should contain_file('/etc/mongod.conf').with_content(/^fork=true/)
+      should contain_file('/etc/mongod.conf').with_content(/^storage.dbPath:\s\/var\/lib\/mongo/)
+      should contain_file('/etc/mongod.conf').with_content(/net.bindIp:\s\s0\.0\.0\.0/)
+      should contain_file('/etc/mongod.conf').with_content(/^net.port:\s29017$/)
+      should contain_file('/etc/mongod.conf').with_content(/^systemLog.logAppend:\strue/)
+      should contain_file('/etc/mongod.conf').with_content(/^systemLog.path:\s\/var\/log\/mongo\/mongod\.log/)
+      should contain_file('/etc/mongod.conf').with_content(/^processManagement.fork:\strue/)
     }
   end
 
@@ -43,7 +43,7 @@ describe 'mongodb::server::config', :type => :class do
     let(:pre_condition) { ["class mongodb::server { $config = '/etc/mongod.conf' $dbpath = '/var/lib/mongo' $ensure = present $bind_ip = ['127.0.0.1', '10.1.1.13']}", "include mongodb::server"]}
 
     it {
-      should contain_file('/etc/mongod.conf').with_content(/bind_ip\s=\s127\.0\.0\.1\,10\.1\.1\.13/)
+      should contain_file('/etc/mongod.conf').with_content(/net.bindIp:\s\s127\.0\.0\.1\,10\.1\.1\.13/)
     }
   end
 
@@ -51,15 +51,15 @@ describe 'mongodb::server::config', :type => :class do
     let(:pre_condition) { ["class mongodb::server { $config = '/etc/mongod.conf' $auth = true $dbpath = '/var/lib/mongo' $ensure = present }", "include mongodb::server"]}
 
     it {
-      should contain_file('/etc/mongod.conf').with_content(/^auth=true/)
+      should contain_file('/etc/mongod.conf').with_content(/^security.authorization:\senabled/)
     }
   end
-  
+
   describe 'when specifying set_parameter value' do
     let(:pre_condition) { ["class mongodb::server { $config = '/etc/mongod.conf' $set_parameter = 'textSearchEnable=true' $dbpath = '/var/lib/mongo' $ensure = present }", "include mongodb::server"]}
 
     it {
-      should contain_file('/etc/mongod.conf').with_content(/^setParameter = textSearchEnable=true/)
+      should contain_file('/etc/mongod.conf').with_content(/^setParameter:\stextSearchEnable=true/)
     }
   end
 
@@ -69,7 +69,7 @@ describe 'mongodb::server::config', :type => :class do
       let (:facts) { { :architecture => 'i686' } }
 
       it {
-        should contain_file('/etc/mongod.conf').with_content(/^journal = true/)
+        should contain_file('/etc/mongod.conf').with_content(/^storage.journal.enabled:\strue/)
       }
     end
   end
@@ -80,7 +80,7 @@ describe 'mongodb::server::config', :type => :class do
     context 'true and without quotafiles' do
       let(:pre_condition) { ["class mongodb::server { $config = '/etc/mongod.conf' $dbpath = '/var/lib/mongo' $ensure = present $quota = true }", "include mongodb::server"]}
       it {
-        should contain_file('/etc/mongod.conf').with_content(/^quota = true/)
+        should contain_file('/etc/mongod.conf').with_content(/^storage.quota.enforced:\strue/)
       }
     end
 
@@ -88,8 +88,8 @@ describe 'mongodb::server::config', :type => :class do
       let(:pre_condition) { ["class mongodb::server { $config = '/etc/mongod.conf' $dbpath = '/var/lib/mongo' $ensure = present $quota = true $quotafiles = 1 }", "include mongodb::server"]}
 
       it {
-        should contain_file('/etc/mongod.conf').with_content(/quota = true/)
-        should contain_file('/etc/mongod.conf').with_content(/quotaFiles = 1/)
+        should contain_file('/etc/mongod.conf').with_content(/storage.quota.enforced:\strue/)
+        should contain_file('/etc/mongod.conf').with_content(/storage.quota.maxFilesPerDB:\s1/)
       }
     end
   end
@@ -99,7 +99,7 @@ describe 'mongodb::server::config', :type => :class do
       let(:pre_condition) { ["class mongodb::server { $config = '/etc/mongod.conf' $dbpath = '/var/lib/mongo' $ensure = present $syslog = true }", "include mongodb::server"]}
 
       it {
-        should contain_file('/etc/mongod.conf').with_content(/^syslog = true/)
+        should contain_file('/etc/mongod.conf').with_content(/^systemLog.destination:\ssyslog/)
       }
     end
 

@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
+
 manifest = 'roles/mongo_primary.pp'
 
 describe manifest do
@@ -8,6 +9,91 @@ describe manifest do
       return 'key' if vals.first == '/var/lib/astute/mongodb/mongodb.key'
       raise Puppet::ParseError, "Could not find any files from #{vals.join(", ")}"
     end
+  end
+
+  shared_examples 'catalog' do
+
+    debug = Noop.hiera 'debug'
+    use_syslog = Noop.hiera 'use_syslog'
+    ceilometer_hash = Noop.hiera_structure 'ceilometer'
+    nodes_hash = Noop.hiera_structure 'nodes'
+    #ceilometer_hosts = mongo_hosts(nodes_hash, 'array')
+
+    it 'should configure MongoDB only with replica set' do
+      should contain_class('mongodb::server').with('replset' => 'ceilometer')
+    end
+
+    it 'should configure MongoDB with authentication enabled' do
+      should contain_class('mongodb::server').with('auth' => 'true')
+    end
+
+    it 'should configure verbosity level for MongoDB' do
+      if debug
+        should contain_class('mongodb::server').with('verbositylevel' => 'vv')
+      else
+        should contain_class('mongodb::server').with('verbositylevel' => 'v')
+      end
+    end
+
+    it 'should create keyfile for replica setup' do
+      should contain_class('mongodb::server').with('keyfile' => '/etc/mongodb.key')
+    end
+
+    it 'should not write logs to file if syslog is enabled' do
+      if use_syslog
+        should contain_class('mongodb::server').with('logpath' => 'false')
+      end
+    end
+
+    it 'should configure oplog size for local database' do
+      should contain_class('mongodb::server').with('oplog_size' => '10240')
+    end
+
+    it 'should capture data regarding performance' do
+      should contain_class('mongodb::server').with('profile' => '1')
+   end
+
+    it 'should store each database in separate directory' do
+      should contain_class('mongodb::server').with('directoryperdb' => 'true')
+    end
+
+    #it 'should configure admin user and database' do
+    #  should contain_mongodb_db('admin').with(
+    #    'user'     => 'admin',
+    #    'password' => ceilometer_hash['db_password'],
+    #    'roles'    => ['userAdmin','readWrite','dbAdmin','dbAdminAnyDatabase',
+    #                   'readAnyDatabase','readWriteAnyDatabase','userAdminAnyDatabase',
+    #                   'clusterAdmin','clusterManager','clusterMonitor',
+    #                   'hostManager','root','restore'],
+    #  )
+    #end
+
+    #it 'should configure ceilometer user and database' do
+    #  should contain_mongodb_db('ceilometer').with(
+    #    'user'     => 'ceilometer',
+    #    'password' => ceilometer_hash['db_password'],
+    #    'roles'    => [ 'readWrite', 'dbAdmin' ],
+    #  )
+    #end
+
+    #it 'should check connection to mongo hosts before configuring replica' do
+    #  should contain_mongodb_conn_validator('check_alive').with(
+    #    'server' => ceilometer_hosts,
+    #    'port'   => '27017',
+    #  )
+    #end
+
+    #it 'should configure replica set' do
+    #  should contain_mongodb_replset('ceilometer').with(
+    #    'ensure'         => 'present',
+    #    'members'        => suffix(ceilometer_hosts, inline_template(":27107")),
+    #    'admin_username' => 'admin',
+    #    'admin_password' => ceilometer_hash['db_password'],
+    #    'admin_database' => 'admin',
+    #    'auth_enabled'   => 'true',
+    #  )
+    #end
+
   end
 
   test_ubuntu_and_centos manifest
