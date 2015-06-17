@@ -79,6 +79,7 @@ class mongodb (
   $quiet           = undef,
   $slowms          = undef,
   $keyfile         = undef,
+  $key             = undef,
   $bind_ip         = undef,
   $pidfilepath     = undef
 ) inherits mongodb::params {
@@ -135,6 +136,7 @@ class mongodb (
     quiet           => $quiet,
     slowms          => $slowms,
     keyfile         => $keyfile,
+    key             => $key,
     bind_ip         => $bind_ip,
     pidfilepath     => $pidfilepath,
   }
