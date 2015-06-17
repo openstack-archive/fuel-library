@@ -3,7 +3,7 @@ notice('MODULAR: openstack-haproxy-nova.pp')
 $nova_hash = hiera_hash('nova', {})
 # enabled by default
 $use_nova = pick($nova_hash['enabled'], true)
-$public_ssl_hash = hiera('public_ssl')
+$public_ssl_hash = hiera_hash('public_ssl', {})
 
 $nova_api_address_map = get_node_to_ipaddr_map_by_network_role(hiera('nova_api_nodes'), 'nova/api')
 

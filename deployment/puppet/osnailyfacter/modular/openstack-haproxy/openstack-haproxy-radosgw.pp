@@ -3,8 +3,7 @@ notice('MODULAR: openstack-haproxy-radosgw.pp')
 $network_metadata = hiera_hash('network_metadata')
 $storage_hash     = hiera_hash('storage', {})
 $rgw_servers      = hiera('rgw_servers', hiera('controllers'))
-$public_ssl_hash  = hiera('public_ssl')
-
+$public_ssl_hash  = hiera_hash('public_ssl', {})
 
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
   $use_swift = true

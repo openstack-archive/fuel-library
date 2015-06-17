@@ -1,10 +1,10 @@
 notice('MODULAR: openstack-haproxy-sahara.pp')
 
-$sahara_hash        = hiera_hash('sahara_hash',{})
+$sahara_hash        = hiera_hash('sahara', {})
 # NOT enabled by default
 $use_sahara         = pick($sahara_hash['enabled'], false)
-$public_ssl_hash    = hiera('public_ssl')
-$network_metadata   = hiera_hash('network_metadata')
+$public_ssl_hash    = hiera_hash('public_ssl', {})
+$network_metadata   = hiera_hash('network_metadata', {})
 $sahara_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, hiera('sahara_roles')), 'sahara/api')
 
 if ($use_sahara) {

@@ -15,8 +15,8 @@ describe manifest do
     else
       public_protocol = 'http'
     end
-    murano_password = Noop.hiera_structure('murano_hash/user_password')
-    tenant          = Noop.hiera_structure('murano_hash/tenant', 'services')
+    murano_password = Noop.hiera_structure('murano/user_password')
+    tenant          = Noop.hiera_structure('murano/tenant', 'services')
     region          = Noop.hiera('region', 'RegionOne')
     public_url      = "#{public_protocol}://#{public_address}:#{api_bind_port}"
     admin_url       = "http://#{service_endpoint}:#{api_bind_port}"

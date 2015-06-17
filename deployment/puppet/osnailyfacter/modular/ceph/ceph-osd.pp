@@ -9,15 +9,16 @@ $verbose                   = true
 $debug                     = hiera('debug', true)
 $use_monit                 = false
 $auto_assign_floating_ip   = hiera('auto_assign_floating_ip', false)
-$storage_hash              = hiera('storage', {})
-$keystone_hash             = hiera('keystone', {})
-$access_hash               = hiera('access', {})
-$network_scheme            = hiera_hash('network_scheme')
+$storage_hash              = hiera_hash('storage', {})
+$keystone_hash             = hiera_hash('keystone', {})
+$access_hash               = hiera_hash('access', {})
+$network_scheme            = hiera_hash('network_scheme', {})
+$syslog_hash               = hiera_hash('syslog', {})
 $neutron_mellanox          = hiera('neutron_mellanox', false)
-$syslog_hash               = hiera('syslog', {})
 $use_syslog                = hiera('use_syslog', true)
-$mon_address_map           = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 $ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')
+
+$mon_address_map           = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 $primary_mons              = keys($ceph_primary_monitor_node)
 $primary_mon               = $ceph_primary_monitor_node[$primary_mons[0]]['name']
 prepare_network_config($network_scheme)

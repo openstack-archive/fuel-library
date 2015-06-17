@@ -8,6 +8,8 @@ describe manifest do
     # TODO All this stuff should be moved to shared examples controller* tests.
 
     nodes = Noop.hiera 'nodes'
+    memcache_roles = Noop.hiera 'memcache_roles'
+    network_metadata = Noop.hiera 'network_metadata'
     internal_address = Noop.node_hash['internal_address']
     primary_controller_nodes = Noop::Utils.filter_nodes(nodes,'role','primary-controller')
     controllers = primary_controller_nodes + Noop::Utils.filter_nodes(nodes,'role','controller')

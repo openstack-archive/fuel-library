@@ -2,13 +2,13 @@ notice('MODULAR: openstack-network-controller.pp')
 
 $use_neutron                    = hiera('use_neutron', false)
 $primary_controller             = hiera('primary_controller')
-$access_hash                    = hiera('access', {})
+$access_hash                    = hiera_hash('access', {})
 $controllers                    = hiera('controllers')
-$rabbit_hash                    = hiera('rabbit_hash', {})
+$rabbit_hash                    = hiera_hash('rabbit', {})
 $management_vip                 = hiera('management_vip')
 $service_endpoint               = hiera('service_endpoint')
 $nova_hash                      = hiera_hash('nova', {})
-$ceilometer_hash                = hiera('ceilometer',{})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
 $network_scheme                 = hiera('network_scheme', {})
 $nova_endpoint                  = hiera('nova_endpoint', $management_vip)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
@@ -50,7 +50,7 @@ if $use_neutron {
   $isolated_metadata  = false
 }
 
-$keystone_admin_tenant = $access_hash[tenant]
+$keystone_admin_tenant = $access_hash['tenant']
 
 $openstack_version = {
   'keystone'   => 'installed',
@@ -267,7 +267,7 @@ class { 'openstack::network':
   queue_provider  => hiera('queue_provider', 'rabbitmq'),
   amqp_hosts      => split(hiera('amqp_hosts', ''), ','),
 
-  amqp_user       => $rabbit_hash['user'],
+  amqp_user       => pick($rabbit_hash['user'], 'nova'),
   amqp_password   => $rabbit_hash['password'],
 
   # keystone

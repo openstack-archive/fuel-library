@@ -1,10 +1,10 @@
 notice('MODULAR: openstack-haproxy-murano.pp')
 
-$murano_hash        = hiera_hash('murano_hash',{})
+$murano_hash        = hiera_hash('murano', {})
 # NOT enabled by default
 $use_murano         = pick($murano_hash['enabled'], false)
-$public_ssl_hash    = hiera('public_ssl')
-$network_metadata   = hiera_hash('network_metadata')
+$public_ssl_hash    = hiera_hash('public_ssl', {})
+$network_metadata   = hiera_hash('network_metadata', {})
 $murano_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, hiera('murano_roles')), 'murano/api')
 
 if ($use_murano) {

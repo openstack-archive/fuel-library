@@ -1,11 +1,10 @@
 notice('MODULAR: openstack-haproxy-glance.pp')
 
-$network_metadata = hiera_hash('network_metadata')
+$network_metadata = hiera_hash('network_metadata', {})
 $glance_hash      = hiera_hash('glance', {})
 # enabled by default
 $use_glance       = pick($glance_hash['enabled'], true)
-$public_ssl_hash  = hiera('public_ssl')
-
+$public_ssl_hash  = hiera_hash('public_ssl', {})
 
 #todo(sv): change to 'glance' as soon as glance as node-role was ready
 $glances_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']), 'glance/api')

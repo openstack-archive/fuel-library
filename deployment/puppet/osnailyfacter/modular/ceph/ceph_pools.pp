@@ -1,6 +1,6 @@
 notice('MODULAR: ceph/ceph_pools')
 
-$storage_hash             = hiera('storage', {})
+$storage_hash             = hiera_hash('storage', {})
 $osd_pool_default_pg_num  = $storage_hash['pg_num']
 $osd_pool_default_pgp_num = $storage_hash['pg_num']
 # Cinder settings

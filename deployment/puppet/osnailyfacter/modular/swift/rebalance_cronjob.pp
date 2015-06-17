@@ -4,7 +4,7 @@ $network_metadata = hiera_hash('network_metadata')
 # $network_scheme   = hiera_hash('network_scheme')
 # prepare_network_config($network_scheme)
 
-$storage_hash        = hiera('storage_hash')
+$storage_hash        = hiera_hash('storage', {})
 $swift_master_role   = hiera('swift_master_role', 'primary-controller')
 $ring_min_part_hours = hiera('swift_ring_min_part_hours', 1)
 

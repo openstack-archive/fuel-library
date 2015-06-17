@@ -4,7 +4,7 @@ $network_metadata = hiera_hash('network_metadata')
 $horizon_hash = hiera_hash('horizon', {})
 # enabled by default
 $use_horizon = pick($horizon_hash['enabled'], true)
-$public_ssl_hash = hiera('public_ssl')
+$public_ssl_hash = hiera_hash('public_ssl', {})
 
 $horizon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('horizon_nodes'), 'horizon')
 if ($use_horizon) {

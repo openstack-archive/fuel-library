@@ -1,7 +1,7 @@
 notice('MODULAR: logging.pp')
 
-$base_syslog_hash = hiera('base_syslog_hash')
-$syslog_hash      = hiera('syslog_hash')
+$base_syslog_hash = hiera_hash('base_syslog', {})
+$syslog_hash      = hiera_hash('syslog', {})
 $use_syslog       = hiera('use_syslog', true)
 $debug            = hiera('debug', false)
 

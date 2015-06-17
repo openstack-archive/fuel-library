@@ -3,11 +3,7 @@ notice('MODULAR: heat.pp')
 prepare_network_config(hiera('network_scheme', {}))
 $management_vip           = hiera('management_vip')
 $heat_hash                = hiera_hash('heat', {})
-$rabbit_hash              = hiera_hash('rabbit_hash', {})
-$max_retries              = hiera('max_retries')
-$max_pool_size            = hiera('max_pool_size')
-$max_overflow             = hiera('max_overflow')
-$idle_timeout             = hiera('idle_timeout')
+$rabbit_hash              = hiera_hash('rabbit', {})
 $service_endpoint         = hiera('service_endpoint')
 $debug                    = hiera('debug', false)
 $verbose                  = hiera('verbose', true)
@@ -24,7 +20,13 @@ $database_name            = hiera('heat_db_name', 'heat')
 $read_timeout             = '60'
 $sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}?read_timeout=${read_timeout}"
 $region                   = hiera('region', 'RegionOne')
-$public_ssl_hash          = hiera('public_ssl')
+$public_ssl_hash          = hiera_hash('public_ssl', {})
+
+$sql_alchemy_hash      = hiera_hash('sql_alchemy', {})
+$max_pool_size         = pick($sql_alchemy_hash['max_pool_size'], '20')
+$max_overflow          = pick($sql_alchemy_hash['max_overflow'], '20')
+$max_retries           = pick($sql_alchemy_hash['max_retries'], '-1')
+$idle_timeout          = pick($sql_alchemy_hash['idle_timeout'], '3600')
 
 ####### Disable upstart startup on install #######
 if $::operatingsystem == 'Ubuntu' {
@@ -62,7 +64,7 @@ class { 'openstack::heat' :
   public_ssl               => $public_ssl_hash['services'],
   rpc_backend              => 'heat.openstack.common.rpc.impl_kombu',
   amqp_hosts               => split(hiera('amqp_hosts',''), ','),
-  amqp_user                => $rabbit_hash['user'],
+  amqp_user                => pick($rabbit_hash['user'], 'nova'),
   amqp_password            => $rabbit_hash['password'],
   sql_connection           => $sql_connection,
   db_host                  => $db_host,

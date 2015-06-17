@@ -1,12 +1,13 @@
 notice('MODULAR: ceph/radosgw.pp')
 
-$storage_hash     = hiera('storage', {})
+$storage_hash     = hiera_hash('storage', {})
+$public_ssl_hash  = hiera_hash('public_ssl', {})
+$keystone_hash    = hiera_hash('keystone', {})
 $use_neutron      = hiera('use_neutron')
 $public_vip       = hiera('public_vip')
-$keystone_hash    = hiera('keystone', {})
 $management_vip   = hiera('management_vip')
 $service_endpoint = hiera('service_endpoint')
-$public_ssl_hash  = hiera('public_ssl')
+
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 
 if ($storage_hash['volumes_ceph'] or
@@ -20,13 +21,14 @@ if ($storage_hash['volumes_ceph'] or
 
 if $use_ceph and $storage_hash['objects_ceph'] {
   $ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')
+  $network_scheme            = hiera_hash('network_scheme', {})
   $primary_mons              = keys($ceph_primary_monitor_node)
   $primary_mon               = $ceph_primary_monitor_node[$primary_mons[0]]['name']
 
   # We don't use the ceph/radosgw role here (see openstack::ha::haproxy)
   # because we listen on *, therfor the only selection can be done on
   # the haproxy backend selection
-  prepare_network_config(hiera_hash('network_scheme'))
+  prepare_network_config($network_scheme)
   $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
   $ceph_public_network  = get_network_role_property('ceph/public', 'network')
 

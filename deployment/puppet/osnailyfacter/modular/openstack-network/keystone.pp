@@ -2,7 +2,7 @@ notice('MODULAR: openstack-network/keystone.pp')
 
 $neutron_hash        = hiera_hash('quantum_settings', {})
 $public_vip          = hiera('public_vip')
-$public_ssl_hash     = hiera('public_ssl')
+$public_ssl_hash     = hiera_hash('public_ssl', {})
 $public_address      = $public_ssl_hash['services'] ? {
   true    => $public_ssl_hash['hostname'],
   default => $public_vip,

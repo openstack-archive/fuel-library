@@ -46,7 +46,8 @@ class vmware::network::nova (
 
 
   $nova_user = 'nova'
-  $nova_hash = hiera('nova')
+  # TODO: hiera should not be used outside granular tasks!
+  $nova_hash = hiera_hash('nova')
   $nova_password = $nova_hash['user_password']
   $management_vip = hiera('management_vip')
   $auth_url = "http://${management_vip}:5000/v2.0"

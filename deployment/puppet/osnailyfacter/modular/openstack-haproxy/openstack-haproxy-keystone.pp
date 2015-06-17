@@ -4,7 +4,7 @@ $network_metadata = hiera_hash('network_metadata')
 $keystone_hash    = hiera_hash('keystone', {})
 # enabled by default
 $use_keystone = pick($keystone_hash['enabled'], true)
-$public_ssl_hash = hiera('public_ssl')
+$public_ssl_hash = hiera_hash('public_ssl', {})
 
 #todo(sv): change to 'keystone' as soon as keystone as node-role was ready    
 $keystones_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']), 'keystone/api')

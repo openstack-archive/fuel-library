@@ -1,6 +1,6 @@
 notice('MODULAR: keystone/workloads_collector.pp')
 
-$workloads_hash        = hiera('workloads_collector', {})
+$workloads_hash        = hiera_hash('workloads_collector', {})
 
 class { 'openstack::workloads_collector':
   enabled               => $workloads_hash['enabled'],

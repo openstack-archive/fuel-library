@@ -1,6 +1,6 @@
 notice('MODULAR: keystone/workloads_collector.pp')
 
-$workloads_hash = hiera('workloads_collector', {})
+$workloads_hash = hiera_hash('workloads_collector', {})
 
 $workloads_username = $workloads_hash['username']
 $workloads_tenant = $workloads_hash['tenant']
