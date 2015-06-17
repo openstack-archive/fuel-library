@@ -4,7 +4,7 @@ $verbose                  = hiera('verbose', true)
 $debug                    = hiera('debug', false)
 $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
-$rabbit_hash              = hiera_hash('rabbit_hash')
+$rabbit_hash              = hiera_hash('rabbit', {})
 $management_vip           = hiera('management_vip')
 
 $default_ceilometer_hash = {
@@ -15,11 +15,11 @@ $default_ceilometer_hash = {
 }
 
 $region                     = hiera('region', 'RegionOne')
-$ceilometer_hash            = hiera_hash('ceilometer_hash', $default_ceilometer_hash)
+$ceilometer_hash            = hiera_hash('ceilometer', $default_ceilometer_hash)
 $ceilometer_region          = pick($ceilometer_hash['region'], $region)
 $ceilometer_enabled         = $ceilometer_hash['enabled']
 $amqp_password              = $rabbit_hash['password']
-$amqp_user                  = $rabbit_hash['user']
+$amqp_user                  = pick($rabbit_hash['user'], 'nova')
 $service_endpoint           = $management_vip
 $ceilometer_user_password   = $ceilometer_hash['user_password']
 $ceilometer_metering_secret = $ceilometer_hash['metering_secret']

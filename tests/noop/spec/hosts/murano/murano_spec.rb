@@ -8,7 +8,7 @@ describe manifest do
     murano_user                = Noop.hiera_structure('murano_hash/user', 'murano')
     murano_password            = Noop.hiera_structure('murano_hash/user_password')
     tenant                     = Noop.hiera_structure('murano_hash/tenant', 'services')
-    rabbit_os_user             = Noop.hiera_structure('rabbit_hash/user')
+    rabbit_os_user             = Noop.hiera_structure('rabbit_hash/user', 'nova')
     rabbit_os_password         = Noop.hiera_structure('rabbit_hash/password')
     rabbit_own_password        = Noop.hiera_structure('heat_hash/rabbit_password')
     node_role                  = Noop.hiera('node_role')
