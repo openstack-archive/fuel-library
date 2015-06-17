@@ -1,7 +1,7 @@
 puppet-heat
 =============
 
-4.0.0 - 2014.1.0 - Icehouse
+5.1.0 - 2014.2 - Juno
 
 #### Table of Contents
 
@@ -51,7 +51,19 @@ extra functionality through types and providers.
 Limitations
 -----------
 
-The Heat Openstack service depends on a sqlalchemy database. If you are using puppetlabs-mysql to achieve this, there is a parameter called mysql_module that can be used to swap between the two supported versions: 0.9 and 2.2. This is needed because the puppetlabs-mysql module was rewritten and the custom type names have changed between versions.
+None
+
+Beaker-Rspec
+------------
+
+This module has beaker-rspec tests
+
+To run:
+
+``shell
+bundle install
+bundle exec rspec spec/acceptance
+``
 
 Development
 -----------
@@ -67,6 +79,43 @@ Contributors
 
 Release Notes
 -------------
+
+**5.1.0**
+
+* Switch to TLSv1
+* spec: pin rspec-puppet to 1.0.1
+* Implement Keystone domain creation
+* Run dbsync when engine is upgraded
+* db: Added postgresql backend using openstacklib helper
+* Rework delegated roles
+* Pin puppetlabs-concat to 1.2.1 in fixtures
+* change default MySQL collate to utf8_general_ci
+* added option to configure flavor in heat.conf
+* Fix ipv6 support
+* Update .gitreview file for project rename
+
+**5.0.0**
+
+* Stable Juno release
+* Added heat::policy to control policy.json
+* Deprecated the sql_connection parameter for database_connection parameter
+* Adds parameters to configure deferred authentication method in heat::engine in accordance with new Juno defaults
+* Bumped stdlib dependency to >=4.0.0
+* Added parameters to control whether to configure users
+* Added manage_service parameters to various classes to control whether the service was managed, as well as added enabled parameters where not already present
+* Added the ability to override the keystone service name in keystone::auth
+* Migrated the heat::db::mysql class to use openstacklib::db::mysql and deprecated the mysql_module parameter
+
+**4.2.0**
+
+* Added ability to hide secret type parameters from logs
+* Fixed database resource relationships
+* Added class for extended logging options
+* Fixed ssl parameter requirements when using kombu and rabbit
+
+**4.1.0**
+
+* Added SSL endpoint support.
 
 **4.0.0**
 

@@ -1,3 +1,5 @@
+# == Class: heat::params
+#
 # Parameters for puppet-heat
 #
 class heat::params {
