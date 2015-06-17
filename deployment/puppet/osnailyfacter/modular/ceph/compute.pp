@@ -1,4 +1,4 @@
-notice('MODULAR: astute/ceph_compute.pp')
+notice('MODULAR: ceph/compute.pp')
 
 $storage_hash                   = hiera('storage', {})
 $controllers                    = hiera('controllers')
@@ -66,24 +66,6 @@ if $use_ceph {
     ephemeral_ceph           => $storage_hash['ephemeral_ceph']
   }
 
-
   service { $::ceph::params::service_nova_compute :}
-
-
-  include ceph::nova_compute
-
-  if ($ephemeral_ceph) {
-     include ceph::ephemeral
-     Class['ceph::conf'] -> Class['ceph::ephemeral'] ~>
-     Service[$::ceph::params::service_nova_compute]
-  }
-
-  Class['ceph::conf'] ->
-  Class['ceph::nova_compute'] ~>
-  Service[$::ceph::params::service_nova_compute]
-
-  Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-         cwd  => '/root',
-  }
 
 }
