@@ -39,7 +39,7 @@ class mongodb::server::service {
   }
 
   if $service_ensure {
-    mongodb_conn_validator { "mongodb":
+    mongodb_conn_validator { 'mongodb':
       server  => $bind_ip,
       port    => $port_real,
       timeout => '240',

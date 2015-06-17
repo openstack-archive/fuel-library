@@ -24,8 +24,8 @@ class mongodb::mongos::install (
 
   if !defined(Package[$package_name]) {
     package { 'mongodb_mongos':
-      ensure  => $my_package_ensure,
-      name    => $package_name,
+      ensure => $my_package_ensure,
+      name   => $package_name,
     }
   }
 
