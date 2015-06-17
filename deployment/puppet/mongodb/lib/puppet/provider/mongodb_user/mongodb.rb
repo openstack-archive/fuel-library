@@ -5,6 +5,18 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
 
   defaultfor :kernel => 'Linux'
 
+  def authorization
+    authorization = Array.new
+    authorization << ['--username', @resource[:admin_username]] if @resource[:admin_username]
+    authorization << ['--password', @resource[:admin_password]] if @resource[:admin_password]
+    authorization << @resource[:admin_database] if @resource[:admin_database]
+    authorization
+  end
+
+  def auth_enabled
+    @resource[:auth_enabled]
+  end
+
   def self.instances
     require 'json'
 
@@ -62,7 +74,11 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
         :roles => @resource[:roles]
       }
 
-      mongo_eval("db.addUser(#{user.to_json})", @resource[:database])
+      if auth_enabled
+        mongo_eval("db.addUser(#{user.to_json})", @resource[:database], authorization)
+      else
+        mongo_eval("db.addUser(#{user.to_json})", @resource[:database])
+      end
     else
       cmd_json=<<-EOS.gsub(/^\s*/, '').gsub(/$\n/, '')
       {
@@ -74,7 +90,11 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
       }
       EOS
 
-      mongo_eval("db.runCommand(#{cmd_json})", @resource[:database])
+      if auth_enabled
+        mongo_eval("db.runCommand(#{cmd_json})", @resource[:database], authorization)
+      else
+        mongo_eval("db.runCommand(#{cmd_json})", @resource[:database])
+      end
     end
 
     @property_hash[:ensure] = :present
@@ -89,9 +109,14 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
 
   def destroy
     if mongo_24?
-      mongo_eval("db.removeUser('#{@resource[:username]}')")
+      destroy_command = 'removeUser'
     else
-      mongo_eval("db.dropUser('#{@resource[:username]}')")
+      destroy_command = 'dropUser'
+    end
+    if auth_enabled
+      mongo_eval("db.#{destroy_command}('#{@resource[:username]}')", authorization)
+    else
+      mongo_eval("db.#{destroy_command}('#{@resource[:username]}')")
     end
   end
 
@@ -108,21 +133,28 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
     }
     EOS
 
-    mongo_eval("db.runCommand(#{cmd_json})", @resource[:database])
+    if auth_enabled
+      mongo_eval("db.runCommand(#{cmd_json})", @resource[:database], authorization)
+    else
+      mongo_eval("db.runCommand(#{cmd_json})", @resource[:database])
+    end
   end
 
   def roles=(roles)
+    if auth_enabled
+      admin_credentials = authorization if authorization != []
+    end
     if mongo_24?
-      mongo_eval("db.system.users.update({user:'#{@resource[:username]}'}, { $set: {roles: #{@resource[:roles].to_json}}})")
+      mongo_eval("db.system.users.update({user:'#{@resource[:username]}'}, { $set: {roles: #{@resource[:roles].to_json}}})", admin_credentials)
     else
       grant = roles-@resource[:roles]
       if grant.length > 0
-        mongo_eval("db.getSiblingDB('#{@resource[:database]}').grantRolesToUser('#{@resource[:username]}', #{grant. to_json})")
+        mongo_eval("db.getSiblingDB('#{@resource[:database]}').grantRolesToUser('#{@resource[:username]}', #{grant. to_json})", admin_credentials)
       end
 
       revoke = @resource[:roles]-roles
       if revoke.length > 0
-        mongo_eval("db.getSiblingDB('#{@resource[:database]}').revokeRolesFromUser('#{@resource[:username]}', #{revoke.to_json})")
+        mongo_eval("db.getSiblingDB('#{@resource[:database]}').revokeRolesFromUser('#{@resource[:username]}', #{revoke.to_json})", admin_credentials)
       end
     end
   end

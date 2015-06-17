@@ -71,12 +71,10 @@ if $ceilometer_hash['enabled'] {
       $mongo_replicaset = undef
     }
   } else {
-    $mongo_hosts = mongo_hosts($nodes_hash, 'string', $mongo_roles )
-    if size(mongo_hosts($nodes_hash, 'array', $mongo_roles)) > 1 {
-      $mongo_replicaset = 'ceilometer'
-    } else {
-      $mongo_replicaset = undef
-    }
+    $mongo_nodes = mongo_hosts($nodes_hash, 'array')
+    $mongo_hosts = inline_template("<%= @mongo_nodes.map {|x| x }.join ',' %>")
+    # MongoDB is alsways configured with replica set
+    $mongo_replicaset = 'ceilometer'
   }
 }
 

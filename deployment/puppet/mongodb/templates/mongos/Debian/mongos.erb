@@ -28,20 +28,20 @@
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: An object/document-oriented database
-# Description:       MongoDB is a high-performance, open source, schema-free 
+# Description:       MongoDB is a high-performance, open source, schema-free
 #                    document-oriented data store that's easy to deploy, manage
 #                    and use. It's network accessible, written in C++ and offers
 #                    the following features:
-#                    
+#
 #                       * Collection oriented storage - easy storage of object-
 #                         style data
 #                       * Full index support, including on inner objects
 #                       * Query profiling
 #                       * Replication and fail-over support
-#                       * Efficient storage of binary data including large 
+#                       * Efficient storage of binary data including large
 #                         objects (e.g. videos)
 #                       * Automatic partitioning for cloud-level scalability
-#                    
+#
 #                    High performance, scalability, and reasonable depth of
 #                    functionality are the goals for the project.
 ### END INIT INFO
@@ -189,7 +189,7 @@ case "$1" in
             # NOTE: Some servers might die some time after they start,
             # this code will detect this issue if STARTTIME is set
             # to a reasonable value
-            [ -n "$STARTTIME" ] && sleep $STARTTIME # Wait some time 
+            [ -n "$STARTTIME" ] && sleep $STARTTIME # Wait some time
             if  running ;  then
                 # It's ok, the server started and is running
                 log_end_msg 0
