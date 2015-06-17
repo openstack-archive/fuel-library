@@ -14,7 +14,7 @@ describe 'cinder' do
     end
 
     it { should contain_class('cinder::params') }
-    it { should contain_class('mysql::python') }
+    it { should contain_class('mysql::bindings::python') }
 
     it 'should contain default config' do
       should contain_cinder_config('DEFAULT/rpc_backend').with(
@@ -52,6 +52,17 @@ describe 'cinder' do
       should contain_cinder_config('database/idle_timeout').with(
         :value => '3600'
       )
+      should contain_cinder_config('database/min_pool_size').with(
+        :value => '1'
+      )
+      should contain_cinder_config('database/max_pool_size').with_ensure('absent')
+      should contain_cinder_config('database/max_retries').with(
+        :value => '10'
+      )
+      should contain_cinder_config('database/retry_interval').with(
+        :value => '10'
+      )
+      should contain_cinder_config('database/max_overflow').with_ensure('absent')
       should contain_cinder_config('DEFAULT/verbose').with(
         :value => false
       )
@@ -184,6 +195,46 @@ describe 'cinder' do
     it { should contain_cinder_config('DEFAULT/qpid_sasl_mechanisms').with_value('DIGEST-MD5 GSSAPI PLAIN') }
   end
 
+  describe 'with SSL enabled' do
+    let :params do
+      req_params.merge!({
+        :rabbit_use_ssl     => true,
+        :kombu_ssl_ca_certs => '/path/to/ssl/ca/certs',
+        :kombu_ssl_certfile => '/path/to/ssl/cert/file',
+        :kombu_ssl_keyfile  => '/path/to/ssl/keyfile',
+        :kombu_ssl_version  => 'SSLv3'
+      })
+    end
+
+    it do
+      should contain_cinder_config('DEFAULT/rabbit_use_ssl').with_value('true')
+      should contain_cinder_config('DEFAULT/kombu_ssl_ca_certs').with_value('/path/to/ssl/ca/certs')
+      should contain_cinder_config('DEFAULT/kombu_ssl_certfile').with_value('/path/to/ssl/cert/file')
+      should contain_cinder_config('DEFAULT/kombu_ssl_keyfile').with_value('/path/to/ssl/keyfile')
+      should contain_cinder_config('DEFAULT/kombu_ssl_version').with_value('SSLv3')
+    end
+  end
+
+  describe 'with SSL disabled' do
+    let :params do
+      req_params.merge!({
+        :rabbit_use_ssl     => false,
+        :kombu_ssl_ca_certs => 'undef',
+        :kombu_ssl_certfile => 'undef',
+        :kombu_ssl_keyfile  => 'undef',
+        :kombu_ssl_version  => 'SSLv3'
+      })
+    end
+
+    it do
+      should contain_cinder_config('DEFAULT/rabbit_use_ssl').with_value('false')
+      should contain_cinder_config('DEFAULT/kombu_ssl_ca_certs').with_ensure('absent')
+      should contain_cinder_config('DEFAULT/kombu_ssl_certfile').with_ensure('absent')
+      should contain_cinder_config('DEFAULT/kombu_ssl_keyfile').with_ensure('absent')
+      should contain_cinder_config('DEFAULT/kombu_ssl_version').with_ensure('absent')
+    end
+  end
+
   describe 'with syslog disabled' do
     let :params do
       req_params
@@ -254,4 +305,54 @@ describe 'cinder' do
     it { should_not contain_class('mysql::bindings') }
     it { should_not contain_class('mysql::bindings::python') }
   end
+
+  describe 'with SSL socket options set' do
+    let :params do
+      {
+        :use_ssl         => true,
+        :cert_file       => '/path/to/cert',
+        :ca_file         => '/path/to/ca',
+        :key_file        => '/path/to/key',
+        :rabbit_password => 'guest',
+      }
+    end
+
+    it { should contain_cinder_config('DEFAULT/ssl_ca_file').with_value('/path/to/ca') }
+    it { should contain_cinder_config('DEFAULT/ssl_cert_file').with_value('/path/to/cert') }
+    it { should contain_cinder_config('DEFAULT/ssl_key_file').with_value('/path/to/key') }
+  end
+
+  describe 'with SSL socket options set to false' do
+    let :params do
+      {
+        :use_ssl         => false,
+        :cert_file       => false,
+        :ca_file         => false,
+        :key_file        => false,
+        :rabbit_password => 'guest',
+      }
+    end
+
+    it { should contain_cinder_config('DEFAULT/ssl_ca_file').with_ensure('absent') }
+    it { should contain_cinder_config('DEFAULT/ssl_cert_file').with_ensure('absent') }
+    it { should contain_cinder_config('DEFAULT/ssl_key_file').with_ensure('absent') }
+  end
+
+  describe 'with SSL socket options set wrongly configured' do
+    let :params do
+      {
+        :use_ssl         => true,
+        :ca_file         => '/path/to/ca',
+        :key_file        => '/path/to/key',
+        :rabbit_password => 'guest',
+      }
+    end
+
+    it 'should raise an error' do
+      expect {
+        should compile
+      }.to raise_error Puppet::Error, /The cert_file parameter is required when use_ssl is set to true/
+    end
+  end
+
 end

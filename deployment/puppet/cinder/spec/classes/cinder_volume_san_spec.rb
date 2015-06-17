@@ -30,6 +30,11 @@ describe 'cinder::volume::san' do
         should contain_cinder_config("DEFAULT/#{config}").with_value( value )
       end
     end
+
+    it 'marks san_password as secret' do
+      should contain_cinder_config('DEFAULT/san_password').with_secret( true )
+    end
+
   end
 
 
