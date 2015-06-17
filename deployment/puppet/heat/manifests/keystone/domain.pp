@@ -54,7 +54,10 @@ class heat::keystone::domain (
     command     => 'heat-keystone-setup-domain',
     environment => $cmd_evn,
     require     => Package['heat-common'],
-    logoutput   => 'on_failure'
+    logoutput   => 'on_failure',
+    # TODO (iberezovskiy): propose upstream patch for retries
+    tries       => 10,
+    try_sleep   => 3
   }
 
   heat_domain_id_setter { 'heat_domain_id':
