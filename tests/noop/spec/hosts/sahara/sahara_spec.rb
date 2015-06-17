@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
 
     use_neutron          = Noop.hiera 'use_neutron'
-    rabbit_user          = Noop.hiera_structure 'rabbit_hash/user'
+    rabbit_user          = Noop.hiera_structure 'rabbit_hash/user', 'nova'
     rabbit_password      = Noop.hiera_structure 'rabbit_hash/password'
     ceilometer_enabled   = Noop.hiera_structure 'ceilometer_hash/enabled'
     auth_user            = Noop.hiera_structure 'access_hash/user'
