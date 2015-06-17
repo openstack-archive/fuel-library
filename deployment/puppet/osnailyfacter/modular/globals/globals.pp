@@ -107,8 +107,6 @@ if $use_neutron {
   $novanetwork_params            = {}
   $neutron_config                = hiera_hash('quantum_settings')
   $network_provider              = 'neutron'
-  $neutron_db_password           = $neutron_config['database']['passwd']
-  $neutron_user_password         = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   $base_mac                      = $neutron_config['L2']['base_mac']
 } else {
