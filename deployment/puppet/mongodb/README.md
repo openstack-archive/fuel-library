@@ -371,6 +371,10 @@ Default: 100 ms
 Specify the path to a key file to store authentication information. This option
 is only useful for the connection between replica set members. Default: None
 
+#####`key`
+Specify the key contained within the keyfile. This option
+is only useful for the connection between replica set members. Default: None
+
 #####`master`
 Set to true to configure the current instance to act as master instance in a
 replication configuration. Default: False  *Note*: deprecated – use replica sets

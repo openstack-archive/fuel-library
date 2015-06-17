@@ -55,6 +55,7 @@ class mongodb::server (
   $quiet           = undef,
   $slowms          = undef,
   $keyfile         = undef,
+  $key             = undef,
   $set_parameter   = undef,
   $syslog          = undef,
   $config_content  = undef,
