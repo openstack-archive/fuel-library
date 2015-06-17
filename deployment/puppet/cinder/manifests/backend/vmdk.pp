@@ -67,7 +67,7 @@ define cinder::backend::vmdk (
     "${name}/volume_driver":                      value => 'cinder.volume.drivers.vmware.vmdk.VMwareVcVmdkDriver';
     "${name}/vmware_host_ip":                     value => $host_ip;
     "${name}/vmware_host_username":               value => $host_username;
-    "${name}/vmware_host_password":               value => $host_password;
+    "${name}/vmware_host_password":               value => $host_password, secret => true;
     "${name}/vmware_volume_folder":               value => $volume_folder;
     "${name}/vmware_api_retry_count":             value => $api_retry_count;
     "${name}/vmware_max_object_retrieval":        value => $max_object_retrieval;
@@ -81,10 +81,7 @@ define cinder::backend::vmdk (
     }
   }
 
-  if ! defined(Package['python-suds']) {
-    package { 'python-suds':
-      ensure   => present
-      }
+  package { 'python-suds':
+    ensure   => present
   }
-
 }
