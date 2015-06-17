@@ -5,18 +5,18 @@ prepare_network_config(hiera('network_scheme', {}))
 $internal_address               = get_network_role_property('cinder/api', 'ipaddr')
 $storage_address                = get_network_role_property('cinder/iscsi', 'ipaddr')
 
-$cinder_hash                    = hiera_hash('cinder_hash', {})
+$cinder_hash                    = hiera_hash('cinder', {})
 $management_vip                 = hiera('management_vip')
 $queue_provider                 = hiera('queue_provider', 'rabbitmq')
 $cinder_volume_group            = hiera('cinder_volume_group', 'cinder')
 $controller_nodes               = hiera('controller_nodes')
 $nodes_hash                     = hiera('nodes', {})
 $storage_hash                   = hiera_hash('storage', {})
-$ceilometer_hash                = hiera_hash('ceilometer_hash',{})
-$rabbit_hash                    = hiera_hash('rabbit_hash', {})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
+$rabbit_hash                    = hiera_hash('rabbit', {})
 $service_endpoint               = hiera('service_endpoint')
-$cinder_db_password             = $cinder_hash[db_password]
-$cinder_user_password           = $cinder_hash[user_password]
+$cinder_db_password             = $cinder_hash['db_password']
+$cinder_user_password           = $cinder_hash['user_password']
 $keystone_user                  = pick($cinder_hash['user'], 'cinder')
 $keystone_tenant                = pick($cinder_hash['tenant'], 'services')
 $db_host                        = pick($cinder_hash['db_host'], hiera('database_vip'))
@@ -36,11 +36,11 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = false
 }
 
-# SQLAlchemy backend configuration
-$max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
+$sql_alchemy_hash      = hiera_hash('sql_alchemy', {})
+$max_pool_size         = pick($sql_alchemy_hash['max_pool_size'], '20')
+$max_overflow          = pick($sql_alchemy_hash['max_overflow'], '20')
+$max_retries           = pick($sql_alchemy_hash['max_retries'], '-1')
+$idle_timeout          = pick($sql_alchemy_hash['idle_timeout'], '3600')
 
 $keystone_auth_protocol = 'http'
 $keystone_auth_host = $service_endpoint
@@ -62,7 +62,7 @@ class {'openstack::cinder':
   sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
   queue_provider       => $queue_provider,
   amqp_hosts           => hiera('amqp_hosts',''),
-  amqp_user            => $rabbit_hash['user'],
+  amqp_user            => pick($rabbit_hash['user'], 'nova'),
   amqp_password        => $rabbit_hash['password'],
   rabbit_ha_queues     => true,
   volume_group         => $cinder_volume_group,
@@ -87,7 +87,7 @@ class {'openstack::cinder':
   max_pool_size        => $max_pool_size,
   max_overflow         => $max_overflow,
   idle_timeout         => $idle_timeout,
-  ceilometer           => $ceilometer_hash[enabled],
+  ceilometer           => $ceilometer_hash['enabled'],
 } # end class
 
 ####### Disable upstart startup on install #######

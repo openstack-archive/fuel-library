@@ -11,14 +11,11 @@ if $queue_provider == 'rabbitmq' {
   $debug           = hiera('debug', false)
   $deployment_mode = hiera('deployment_mode', 'ha_compact')
   $amqp_port       = hiera('amqp_port', '5673')
-  $rabbit_hash     = hiera_hash('rabbit_hash',
-    {
-      'user'     => false,
-      'password' => false,
-    }
-  )
+  $rabbit_hash     = hiera_hash('rabbit')
   $enabled         = pick($rabbit_hash['enabled'], true)
   $use_pacemaker   = pick($rabbit_hash['pacemaker'], true)
+  $rabbit_user     = pick($rabbit_hash['user'], 'nova')
+  $rabbit_password = $rabbit_hash['password']
 
   case $::osfamily {
     'RedHat': {
@@ -102,8 +99,8 @@ if $queue_provider == 'rabbitmq' {
       service_manage             => true,
       port                       => $amqp_port,
       delete_guest_user          => true,
-      default_user               => $rabbit_hash['user'],
-      default_pass               => $rabbit_hash['password'],
+      default_user               => $rabbit_user,
+      default_pass               => $rabbit_password,
       # NOTE(bogdando) set to true and uncomment the lines below, if puppet should create a cluster
       # We don't want it as far as OCF script creates the cluster
       config_cluster             => false,
