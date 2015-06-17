@@ -21,6 +21,9 @@ end
 class KeystoneAPIError < KeystoneError
 end
 
+RETRY_COUNT = 10
+RETRY_SLEEP = 3
+
 # Provides common request handling semantics to the other methods in
 # this module.
 #
@@ -97,6 +100,7 @@ def heat_handle_requests(auth_url,
         post_args['auth']['tenantName'] = tenantName
     end
 
+    auth_url.sub!('v3', 'v2.0')
     url = URI.parse("#{auth_url}/tokens")
     req = Net::HTTP::Post.new url.path
     req['content-type'] = 'application/json'
@@ -167,17 +171,26 @@ Puppet::Type.type(:heat_domain_id_setter).provide(:ruby) do
     # - There are multiple matches, or
     # - There are zero matches
     def get_domain_id
-        token = authenticate
-        domains = find_domain_by_name(token)
+        RETRY_COUNT.times do |n|
+            begin
+                domains = find_domain_by_name(authenticate)
+            rescue => e
+                debug "Request failed: '#{e.message}' Retry: '#{n}'"
+                sleep RETRY_SLEEP
+                next
+            end
 
-        if domains.length == 1
-            return domains[0]['id']
-        elsif domains.length > 1
-            name = domains[0]['name']
-            raise KeystoneAPIError, 'Found multiple matches for domain name "#{name}"'
-        else
-            raise KeystoneAPIError, 'Unable to find matching domain'
+            if domains.length == 1
+                return domains[0]['id']
+            elsif domains.length > 1
+                name = domains[0]['name']
+                raise KeystoneAPIError, 'Found multiple matches for domain name "#{name}"'
+            else
+                debug "Domain '#{@resource[:domain_name]}' not found! Retry: '#{n}'"
+                sleep RETRY_SLEEP
+            end
         end
+        raise KeystoneAPIError, "Unable to find domain with name: '#{@resource[:domain_name]}'"
     end
 
     def config
