@@ -481,8 +481,10 @@ class heat(
     case $database_connection_real {
       /^mysql:\/\//: {
         $backend_package = false
-        require mysql::bindings
-        require mysql::bindings::python
+        # This workaround should be removed after mysql module sync
+        require mysql::python
+        #require mysql::bindings
+        #require mysql::bindings::python
       }
       /^postgresql:\/\//: {
         $backend_package = 'python-psycopg2'
