@@ -19,9 +19,9 @@ define mongodb::db (
 ) {
 
   mongodb_database { $name:
-    ensure   => present,
-    tries    => $tries,
-    require  => Class['mongodb::server'],
+    ensure  => present,
+    tries   => $tries,
+    require => Class['mongodb::server'],
   }
 
   if $password_hash {

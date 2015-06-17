@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'roles/mongo.pp'
+manifest = 'roles/mongo_primary.pp'
 
 describe manifest do
   before (:each) do
@@ -10,11 +10,6 @@ describe manifest do
     end
   end
 
-  shared_examples 'catalog' do
-    it do
-      should contain_file('/etc/mongodb.key').with_content('key')
-    end
-  end
   test_ubuntu_and_centos manifest
 end
 
