@@ -1,10 +1,12 @@
 class heat_ha::engine inherits heat::engine {
+  include heat::params
+
   $primitive_type  = 'heat-engine'
 
-  #  if $::osfamily == 'RedHat' {    
-  #  $ocf_script_template = 'heat/heat_engine_centos.ocf.erb'    
-  #} else {    
-  #  $ocf_script_template = 'heat/heat_engine_ubuntu.ocf.erb'    
+  #  if $::osfamily == 'RedHat' {
+  #  $ocf_script_template = 'heat/heat_engine_centos.ocf.erb'
+  #} else {
+  #  $ocf_script_template = 'heat/heat_engine_ubuntu.ocf.erb'
   #}
 
   # migration-threshold is number of tries to
@@ -31,7 +33,7 @@ class heat_ha::engine inherits heat::engine {
     'interleave' => true,
   }
 
-  pacemaker_wrappers::service { $service_name :
+  pacemaker_wrappers::service { $::heat::params::engine_service_name :
     primitive_type      => $primitive_type,
     metadata            => $metadata,
     complex_type        => 'clone',
