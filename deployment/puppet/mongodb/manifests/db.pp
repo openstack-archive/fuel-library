@@ -12,16 +12,26 @@
 #
 define mongodb::db (
   $user,
-  $password_hash = false,
-  $password      = false,
-  $roles         = ['dbAdmin'],
-  $tries         = 10,
+  $password_hash  = false,
+  $password       = false,
+  $roles          = ['dbAdmin'],
+  $tries          = 10,
+  $admin_username = undef,
+  $admin_password = undef,
+  $admin_host     = undef,
+  $admin_database = undef,
+  $auth_enabled   = false,
 ) {
 
   mongodb_database { $name:
-    ensure   => present,
-    tries    => $tries,
-    require  => Class['mongodb::server'],
+    admin_username => $admin_username,
+    admin_password => $admin_password,
+    admin_host     => $admin_host,
+    admin_database => $admin_database,
+    auth_enabled   => $auth_enabled,
+    ensure         => 'present',
+    tries          => $tries,
+    require        => Class['mongodb::server'],
   }
 
   if $password_hash {
@@ -33,11 +43,16 @@ define mongodb::db (
   }
 
   mongodb_user { $user:
-    ensure        => present,
-    password_hash => $hash,
-    database      => $name,
-    roles         => $roles,
-    require       => Mongodb_database[$name],
+    ensure         => present,
+    password_hash  => $hash,
+    database       => $name,
+    roles          => $roles,
+    admin_username => $admin_username,
+    admin_password => $admin_password,
+    admin_host     => $admin_host,
+    admin_database => $admin_database,
+    auth_enabled   => $auth_enabled,
+    require        => Mongodb_database[$name],
   }
 
 }

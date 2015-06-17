@@ -85,6 +85,18 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
     mongo_command("rs.remove(\"#{host}\")", master)
   end
 
+  def authorization
+    authorization = Array.new
+    authorization << ['--username', @resource[:admin_username]] if @resource[:admin_username]
+    authorization << ['--password', @resource[:admin_password]] if @resource[:admin_password]
+    authorization << @resource[:admin_database] if @resource[:admin_database]
+    authorization
+  end
+
+  def auth_enabled
+    @resource[:auth_enabled]
+  end
+
   def master_host(hosts)
     hosts.each do |host|
       status = db_ismaster(host)
@@ -161,6 +173,7 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
   end
 
   def alive_members(hosts)
+    alive = []
     hosts.select do |host|
       begin
         Puppet.debug "Checking replicaset member #{host} ..."
@@ -176,9 +189,17 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
           # This node is alive and supposed to be a member of our set
           Puppet.debug "Host #{self.name} is available for replset #{status['set']}"
           true
+          alive.push(host)
         elsif status.has_key?('info')
           Puppet.debug "Host #{self.name} is alive but unconfigured: #{status['info']}"
           true
+          alive.push(host)
+        end
+
+        if auth_enabled and status.has_key?('errmsg') and (status['errmsg'].include? "unauthorized" or status['errmsg'].include? "not authorized")
+          # Host is available, but authentication is required to execute commands
+          Puppet.warning "Host #{host} is available, but you are unauthorized because of auth is enabled: #{auth_enabled}"
+          alive.push(host)
         end
       rescue Puppet::ExecutionFailure
         Puppet.warning "Can't connect to replicaset member #{host}."
@@ -186,6 +207,7 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
         false
       end
     end
+    alive
   end
 
   def set_members
@@ -240,19 +262,23 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
     end
   end
 
-  def mongo_command(command, host, retries=4)
-    self.class.mongo_command(command,host,retries)
+def mongo_command(command, host, retries=10)
+    self.class.mongo_command(command,host,retries, authorization, auth_enabled)
   end
 
-  def self.mongo_command(command, host=nil, retries=4)
+  def self.mongo_command(command, host=nil, retries=10, authorization=Array.new, auth_enabled)
+    if auth_enabled and command != 'rs.status()'
+      # If authentication is enabled we can execute command only from localhost
+      host = '127.0.0.1'
+    end
     # Allow waiting for mongod to become ready
     # Wait for 2 seconds initially and double the delay at each retry
     wait = 2
+    args = Array.new
+    args << '--quiet'
+    args << ['--host',host] if host
+    args << ['--eval',"printjson(#{command})"]
     begin
-      args = Array.new
-      args << '--quiet'
-      args << ['--host',host] if host
-      args << ['--eval',"printjson(#{command})"]
       output = mongo(args.flatten)
     rescue Puppet::ExecutionFailure => e
       if e =~ /Error: couldn't connect to server/ and wait <= 2**max_wait
@@ -260,6 +286,8 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
         sleep wait
         wait *= 2
         retry
+      elsif e =~ /not authorized/ and wait <= 2**max_wait
+        args << authorization if authorization
       else
         raise
       end

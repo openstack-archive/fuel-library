@@ -1,6 +1,9 @@
 require 'yaml'
 class Puppet::Provider::Mongodb < Puppet::Provider
 
+RETRY_COUNT = 10
+RETRY_SLEEP = 3
+
   # Without initvars commands won't work.
   initvars
   commands :mongo => 'mongo'
@@ -28,7 +31,9 @@ class Puppet::Provider::Mongodb < Puppet::Provider
   end
 
   # Mongo Command Wrapper
-  def self.mongo_eval(cmd, db = 'admin')
+  def self.mongo_eval(cmd, db = 'admin', admin_credentials=[])
+    # Use required database in all commands
+    cmd = "db = db.getSiblingDB('#{db}'); " + cmd
     if mongorc_file
         cmd = mongorc_file + cmd
     end
@@ -50,14 +55,35 @@ class Puppet::Provider::Mongodb < Puppet::Provider
       port = config['port']
     end
 
-    out = mongo([db, '--quiet', '--port', port, '--eval', cmd])
+    # Required if auth is enabled
+    if admin_credentials != []
+      run_command = [admin_credentials, '--quiet', '--port', port, '--eval', cmd]
+    else
+      run_command = [db, '--quiet', '--port', port, '--eval', cmd]
+    end
+
+    out = nil
+    RETRY_COUNT.times do |n|
+      begin
+        out = mongo(run_command)
+      rescue => e
+        debug "Request failed: '#{e.message}' Retry: '#{n}'"
+        sleep RETRY_SLEEP
+        next
+      end
+      break
+    end
+
+    if !out
+      fail "Could not evalute MongoDB shell command: #{cmd}"
+    end
 
     out.gsub!(/ObjectId\(([^)]*)\)/, '\1')
     out
   end
 
-  def mongo_eval(cmd, db = 'admin')
-    self.class.mongo_eval(cmd, db)
+  def mongo_eval(cmd, db = 'admin', admin_credentials=[])
+    self.class.mongo_eval(cmd, db, admin_credentials)
   end
 
   # Mongo Version checker
