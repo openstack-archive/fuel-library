@@ -42,9 +42,6 @@ module NoopTests
       opts.on('-i', '--individually', 'Run each spec individually') do
         @options[:run_individually] = true
       end
-      opts.on('-g', '--purge_globals', 'Purge globals yaml files') do
-        @options[:purge_globals] = true
-      end
       opts.on('-a', '--astute_yaml_dir DIR', 'Path to astute_yaml folder') do |dir|
         @options[:astute_yaml_dir] = dir
         ENV['SPEC_YAML_DIR'] = dir
@@ -291,6 +288,14 @@ module NoopTests
   # @param [String] astute_yaml YAML file
   def self.globals(astute_yaml)
     globals_file = File.join astute_yaml_directory, GLOBALS_PREFIX + astute_yaml
+    if File.file? globals_file
+      begin
+        File.unlink globals_file
+        debug "Globals file  was removed: '#{globals_file}'"
+      rescue => e
+        debug "Could not remove globals file: '#{globals_file}'! (#{e.message})"
+      end
+    end
     rspec spec_path(GLOBALS_SPEC)
   end
 
@@ -446,18 +451,6 @@ module NoopTests
     end
   end
 
-  # remove all globals yaml files
-  def self.purge_globals
-    Dir.new(astute_yaml_directory).each do |file|
-      path = File.join astute_yaml_directory, file
-      next unless File.file? path
-      next unless file.start_with? GLOBALS_PREFIX
-      next unless file.end_with? '.yaml'
-      debug "Remove: '#{path}'"
-      File.unlink path
-    end
-  end
-
   # the main function
   def self.main
     if options[:console]
@@ -488,14 +481,8 @@ module NoopTests
       exit 0
     end
 
-    if options[:purge_globals]
-      purge_globals
-      exit 0
-    end
-
-    # run librarian-puppet update to prepare the library
     if options[:update_librarian_puppet]
-        prepare_library
+      prepare_library
     end
 
     success, result = for_every_astute_yaml do
