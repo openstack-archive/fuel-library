@@ -1,3 +1,5 @@
 domain=<%= scope.lookupvar('::domain') %>
 server=/<%= scope.lookupvar('::domain') %>/<%= @master_ip %>
 resolv-file=/etc/resolv.dnsmasq.conf
+bind-interfaces
+listen-address=<%= @management_vrouter_vip %>
