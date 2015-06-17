@@ -70,6 +70,7 @@ class { 'openstack::heat' :
   sql_connection           => $sql_connection,
   db_host                  => $db_host,
   db_password              => $database_password,
+  db_allowed_hosts         => [ '%', $::hostname ],
   max_retries              => $max_retries,
   max_pool_size            => $max_pool_size,
   max_overflow             => $max_overflow,
@@ -126,11 +127,6 @@ class { 'heat::keystone::domain' :
 }
 
 Class['heat'] -> Class['heat::keystone::domain'] ~> Service<| title == 'heat-engine' |>
-
-heat_config {
-  'DEFAULT/deferred_auth_method'    : value => 'trusts';
-  'DEFAULT/trusts_delegated_roles'  : value => '';
-}
 
 ######################
 

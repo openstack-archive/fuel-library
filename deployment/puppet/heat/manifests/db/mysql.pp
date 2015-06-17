@@ -64,6 +64,8 @@ class heat::db::mysql(
     charset       => $charset,
     collate       => $collate,
     allowed_hosts => $allowed_hosts,
+    # TODO (iberezovskiy) Remove temporary workaround for compatibility with old MySQL module
+    mysql_module  => $mysql_module,
   }
 
   ::Openstacklib::Db::Mysql['heat'] ~> Exec<| title == 'heat-dbsync' |>
