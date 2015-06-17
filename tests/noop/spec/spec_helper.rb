@@ -370,6 +370,14 @@ module Noop
     @puppet_scope
   end
 
+  def self.resource_parameter_value(resource_type, resource_name, parameter)
+    catalog = subject
+    catalog = subject.call if subject.is_a? Proc
+    resource = catalog.resource resource_type, resource_name
+    raise "No resource type: '#{resource_type}' name: '#{resource_name}' in catalog!" unless resource
+    resource[parameter.to_sym]
+  end
+
   def self.debug(msg)
     puts msg if ENV['SPEC_PUPPET_DEBUG']
   end
