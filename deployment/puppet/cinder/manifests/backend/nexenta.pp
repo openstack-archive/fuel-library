@@ -47,7 +47,7 @@ define cinder::backend::nexenta (
   cinder_config {
     "${name}/volume_backend_name":         value => $volume_backend_name;
     "${name}/nexenta_user":                value => $nexenta_user;
-    "${name}/nexenta_password":            value => $nexenta_password;
+    "${name}/nexenta_password":            value => $nexenta_password, secret => true;
     "${name}/nexenta_host":                value => $nexenta_host;
     "${name}/nexenta_volume":              value => $nexenta_volume;
     "${name}/nexenta_target_prefix":       value => $nexenta_target_prefix;
