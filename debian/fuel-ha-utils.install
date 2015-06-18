@@ -1,0 +1,2 @@
+usr/lib/ocf/resource.d/mirantis
+usr/bin/q-agent-cleanup.py
