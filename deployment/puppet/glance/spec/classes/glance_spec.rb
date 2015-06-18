@@ -25,7 +25,7 @@ describe 'glance' do
 
       let :params do param_set end
 
-      it { should contain_file('/etc/glance/').with(
+      it { is_expected.to contain_file('/etc/glance/').with(
         'ensure'  => 'directory',
         'owner'   => 'glance',
         'mode'    => '0770'
@@ -40,7 +40,7 @@ describe 'glance' do
     end
     let(:params) { default_params }
 
-    it {should_not contain_package('glance')}
+    it { is_expected.to_not contain_package('glance') }
   end
 
   describe 'on RedHat platforms' do
@@ -49,7 +49,9 @@ describe 'glance' do
     end
     let(:params) { default_params }
 
-    it { should contain_package('openstack-glance')}
+    it { is_expected.to contain_package('openstack-glance').with(
+        :tag => ['openstack'],
+    )}
   end
 
 end
