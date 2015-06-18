@@ -105,6 +105,7 @@ class openstack::cinder(
         debug                 => $debug,
         database_idle_timeout => $idle_timeout,
         control_exchange      => 'cinder',
+        mysql_module          => '0.3',
       }
       cinder_config {
         'DEFAULT/kombu_reconnect_delay': value => '5.0';
@@ -196,13 +197,6 @@ class openstack::cinder(
     cinder_config {
       'DEFAULT/use_syslog_rfc_format': value => true;
     }
-  }
-
-  # additional cinder configuration
-  cinder_config {
-    'database/max_pool_size': value => $max_pool_size;
-    'database/max_retries':   value => $max_retries;
-    'database/max_overflow':  value => $max_overflow;
   }
 
   if $keystone_enabled {
