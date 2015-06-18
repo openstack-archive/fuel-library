@@ -7,6 +7,11 @@
 #  [*keystone_password*]
 #    (required) The keystone password for administrative user
 #
+#  [*package_ensure*]
+#    (optional) Ensure state for package. Defaults to 'present'.  On RedHat
+#    platforms this setting is ignored and the setting from the glance class is
+#    used because there is only one glance package.
+#
 #  [*verbose*]
 #    (optional) Enable verbose logs (true|false). Defaults to false.
 #
@@ -29,31 +34,32 @@
 #    If set to boolean false, it will not log to any directory.
 #    Defaults to '/var/log/glance'
 #
-#  [*sql_connection*]
-#    (optional) SQL connection string.
-#    Defaults to 'sqlite:///var/lib/glance/glance.sqlite'.
+# [*database_connection*]
+#   (optional) Connection url to connect to nova database.
+#   Defaults to 'sqlite:///var/lib/glance/glance.sqlite'
 #
-#  [*sql_idle_timeout*]
-#    (optional) SQL connections idle timeout. Defaults to '3600'.
+# [*database_idle_timeout*]
+#   (optional) Timeout before idle db connections are reaped.
+#   Defaults to 3600
 #
 #  [*auth_type*]
 #    (optional) Authentication type. Defaults to 'keystone'.
 #
 #  [*auth_host*]
-#    (optional) Address of the admin authentication endpoint.
+#    (optional) DEPRECATED Address of the admin authentication endpoint.
 #    Defaults to '127.0.0.1'.
 #
 #  [*auth_port*]
-#    (optional) Port of the admin authentication endpoint. Defaults to '35357'.
+#    (optional) DEPRECATED Port of the admin authentication endpoint. Defaults to '35357'.
 #
 #  [*auth_admin_prefix*]
-#    (optional) path part of the auth url.
+#    (optional) DEPRECATED path part of the auth url.
 #    This allow admin auth URIs like http://auth_host:35357/keystone/admin.
 #    (where '/keystone/admin' is auth_admin_prefix)
 #    Defaults to false for empty. If defined, should be a string with a leading '/' and no trailing '/'.
 #
 #  [*auth_protocol*]
-#    (optional) Protocol to communicate with the admin authentication endpoint.
+#    (optional) DEPRECATED Protocol to communicate with the admin authentication endpoint.
 #    Defaults to 'http'. Should be 'http' or 'https'.
 #
 #  [*auth_uri*]
@@ -61,6 +67,7 @@
 #
 #  [*identity_uri*]
 #    (optional) Complete admin Identity API endpoint.
+#    Defaults to: false
 #
 #  [*keystone_tenant*]
 #    (optional) administrative tenant name to connect to keystone.
@@ -70,6 +77,11 @@
 #    (optional) administrative user name to connect to keystone.
 #    Defaults to 'glance'.
 #
+#  [*pipeline*]
+#    (optional) Partial name of a pipeline in your paste configuration
+#     file with the service name removed.
+#     Defaults to 'keystone'.
+#
 #  [*use_syslog*]
 #    (optional) Use syslog for logging.
 #    Defaults to false.
@@ -78,8 +90,13 @@
 #    (optional) Syslog facility to receive log lines.
 #    Defaults to LOG_USER.
 #
+#  [*manage_service*]
+#    (optional) If Puppet should manage service startup / shutdown.
+#    Defaults to true.
+#
 #  [*enabled*]
-#    (optional) Should the service be enabled. Defaults to true.
+#    (optional) Should the service be enabled.
+#    Defaults to true.
 #
 #  [*purge_config*]
 #    (optional) Whether to create only the specified config values in
@@ -98,52 +115,64 @@
 #   (optional) CA certificate file to use to verify connecting clients
 #   Defaults to false, not set
 #
+# [*sync_db*]
+#   (Optional) Run db sync on the node.
+#   Defaults to true
+#
 #  [*mysql_module*]
-#  (optional) The version of puppet-mysql to use. Tested versions
-#  include 0.9 and 2.2
-#  Defaults to '0.9'
+#  (optional) Deprecated. Does nothing.
 #
 class glance::registry(
   $keystone_password,
-  $verbose           = false,
-  $debug             = false,
-  $bind_host         = '0.0.0.0',
-  $bind_port         = '9191',
-  $log_file          = '/var/log/glance/registry.log',
-  $log_dir           = '/var/log/glance',
-  $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
-  $sql_idle_timeout  = '3600',
-  $auth_type         = 'keystone',
-  $auth_host         = '127.0.0.1',
-  $auth_port         = '35357',
-  $auth_admin_prefix = false,
-  $auth_uri          = false,
-  $identity_uri      = false,
-  $auth_protocol     = 'http',
-  $keystone_tenant   = 'services',
-  $keystone_user     = 'glance',
-  $pipeline          = 'keystone',
-  $use_syslog        = false,
-  $log_facility      = 'LOG_USER',
-  $enabled           = true,
-  $purge_config      = false,
-  $cert_file         = false,
-  $key_file          = false,
-  $ca_file           = false,
-  $mysql_module      = '0.9',
+  $package_ensure        = 'present',
+  $verbose               = false,
+  $debug                 = false,
+  $bind_host             = '0.0.0.0',
+  $bind_port             = '9191',
+  $log_file              = '/var/log/glance/registry.log',
+  $log_dir               = '/var/log/glance',
+  $database_connection   = 'sqlite:///var/lib/glance/glance.sqlite',
+  $database_idle_timeout = 3600,
+  $auth_type             = 'keystone',
+  $auth_uri              = false,
+  $identity_uri          = false,
+  $keystone_tenant       = 'services',
+  $keystone_user         = 'glance',
+  $pipeline              = 'keystone',
+  $use_syslog            = false,
+  $log_facility          = 'LOG_USER',
+  $manage_service        = true,
+  $enabled               = true,
+  $purge_config          = false,
+  $cert_file             = false,
+  $key_file              = false,
+  $ca_file               = false,
+  $sync_db               = true,
+  # DEPRECATED PARAMETERS
+  $mysql_module          = undef,
+  $auth_host             = '127.0.0.1',
+  $auth_port             = '35357',
+  $auth_admin_prefix     = false,
+  $auth_protocol         = 'http',
 ) inherits glance {
 
   require keystone::python
 
-  validate_re($sql_connection, '(sqlite|mysql|postgresql):\/\/(\S+:\S+@\S+\/\S+)?')
+  if $mysql_module {
+    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
+  }
 
   if ( $glance::params::api_package_name != $glance::params::registry_package_name ) {
-    ensure_packages([$glance::params::registry_package_name])
+    ensure_packages( [$glance::params::registry_package_name],
+      {
+        ensure => $package_ensure,
+        tag    => ['openstack'],
+      }
+    )
   }
 
   Package[$glance::params::registry_package_name] -> File['/etc/glance/']
   Package[$glance::params::registry_package_name] -> Glance_registry_config<||>
-  Package[$glance::params::registry_package_name] ~> Service['glance-registry']
 
   Glance_registry_config<||> ~> Exec<| title == 'glance-manage db_sync' |>
   Glance_registry_config<||> ~> Service['glance-registry']
@@ -157,18 +186,21 @@ class glance::registry(
     require => Class['glance']
   }
 
-  if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-    if ($mysql_module >= 2.2) {
-      require mysql::bindings::python
+  if $database_connection {
+    if($database_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+      require 'mysql::bindings'
+      require 'mysql::bindings::python'
+    } elsif($database_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+
+    } elsif($database_connection =~ /sqlite:\/\//) {
+
     } else {
-      require mysql::python
+      fail("Invalid db connection ${database_connection}")
     }
-  } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
-
-  } elsif($sql_connection =~ /sqlite:\/\//) {
-
-  } else {
-    fail("Invalid db connection ${sql_connection}")
+    glance_registry_config {
+      'database/connection':   value => $database_connection, secret => true;
+      'database/idle_timeout': value => $database_idle_timeout;
+    }
   }
 
   glance_registry_config {
@@ -178,9 +210,10 @@ class glance::registry(
     'DEFAULT/bind_port': value => $bind_port;
   }
 
-  glance_registry_config {
-    'DEFAULT/sql_connection':   value => $sql_connection;
-    'DEFAULT/sql_idle_timeout': value => $sql_idle_timeout;
+  if $identity_uri {
+    glance_registry_config { 'keystone_authtoken/identity_uri': value => $identity_uri; }
+  } else {
+    glance_registry_config { 'keystone_authtoken/identity_uri': ensure => absent; }
   }
 
   if $auth_uri {
@@ -189,30 +222,45 @@ class glance::registry(
     glance_registry_config { 'keystone_authtoken/auth_uri': value => "${auth_protocol}://${auth_host}:5000/"; }
   }
 
-  # auth config
-  if $identity_uri {
-    glance_registry_config { 'keystone_authtoken/identity_uri':  value => $identity_uri; }
-  } else {
-    if $auth_admin_prefix {
-      glance_registry_config { 'keystone_authtoken/identity_uri':  value => "${auth_protocol}://${auth_host}:${auth_port}/${auth_admin_prefix}"; }
+  # if both auth_uri and identity_uri are set we skip these deprecated settings entirely
+  if !$auth_uri or !$identity_uri {
+
+    if $auth_host {
+      warning('The auth_host parameter is deprecated. Please use auth_uri and identity_uri instead.')
+      glance_registry_config { 'keystone_authtoken/auth_host': value => $auth_host; }
     } else {
-      glance_registry_config { 'keystone_authtoken/identity_uri':  value => "${auth_protocol}://${auth_host}:${auth_port}/"; }
+      glance_registry_config { 'keystone_authtoken/auth_host': ensure => absent; }
     }
-  }
 
-  glance_registry_config {
-    'keystone_authtoken/auth_host':     value => $auth_host;
-    'keystone_authtoken/auth_port':     value => $auth_port;
-    'keystone_authtoken/auth_protocol': value => $auth_protocol;
-  }
-
-  if $auth_admin_prefix {
-    validate_re($auth_admin_prefix, '^(/.+[^/])?$')
-    glance_registry_config {
-      'keystone_authtoken/auth_admin_prefix': value => $auth_admin_prefix;
+    if $auth_port {
+      warning('The auth_port parameter is deprecated. Please use auth_uri and identity_uri instead.')
+      glance_registry_config { 'keystone_authtoken/auth_port': value => $auth_port; }
+    } else {
+      glance_registry_config { 'keystone_authtoken/auth_port': ensure => absent; }
     }
+
+    if $auth_protocol {
+      warning('The auth_protocol parameter is deprecated. Please use auth_uri and identity_uri instead.')
+      glance_registry_config { 'keystone_authtoken/auth_protocol': value => $auth_protocol; }
+    } else {
+      glance_registry_config { 'keystone_authtoken/auth_protocol': ensure => absent; }
+    }
+
+    if $auth_admin_prefix {
+      warning('The auth_admin_prefix  parameter is deprecated. Please use auth_uri and identity_uri instead.')
+      validate_re($auth_admin_prefix, '^(/.+[^/])?$')
+      glance_registry_config {
+        'keystone_authtoken/auth_admin_prefix': value => $auth_admin_prefix;
+      }
+    } else {
+      glance_registry_config { 'keystone_authtoken/auth_admin_prefix': ensure => absent; }
+    }
+
   } else {
     glance_registry_config {
+      'keystone_authtoken/auth_host': ensure => absent;
+      'keystone_authtoken/auth_port': ensure => absent;
+      'keystone_authtoken/auth_protocol': ensure => absent;
       'keystone_authtoken/auth_admin_prefix': ensure => absent;
     }
   }
@@ -234,7 +282,7 @@ class glance::registry(
     glance_registry_config {
       'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
       'keystone_authtoken/admin_user'       : value => $keystone_user;
-      'keystone_authtoken/admin_password'   : value => $keystone_password;
+      'keystone_authtoken/admin_password'   : value => $keystone_password, secret => true;
     }
   }
 
@@ -308,8 +356,7 @@ class glance::registry(
           '/etc/glance/glance-registry-paste.ini']:
   }
 
-  if $enabled {
-
+  if $sync_db {
     Exec['glance-manage db_sync'] ~> Service['glance-registry']
 
     exec { 'glance-manage db_sync':
@@ -320,9 +367,16 @@ class glance::registry(
       logoutput   => on_failure,
       subscribe   => [Package[$glance::params::registry_package_name], File['/etc/glance/glance-registry.conf']],
     }
-    $service_ensure = 'running'
+  }
+
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
   } else {
-    $service_ensure = 'stopped'
+    warning('Execution of db_sync does not depend on $manage_service or $enabled anymore. Please use sync_db instead.')
   }
 
   service { 'glance-registry':
