@@ -2,7 +2,6 @@ notice('MODULAR: compute.pp')
 
 # Pulling hiera
 $internal_int                   = hiera('internal_int')
-$public_int                     = hiera('public_int', undef)
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
 $internal_address               = hiera('internal_address')
@@ -10,44 +9,26 @@ $primary_controller             = hiera('primary_controller')
 $storage_address                = hiera('storage_address')
 $use_neutron                    = hiera('use_neutron', false)
 $cinder_nodes_array             = hiera('cinder_nodes', [])
-$sahara_hash                    = hiera('sahara', {})
-$murano_hash                    = hiera('murano', {})
-$heat_hash                      = hiera('heat', {})
-$mp_hash                        = hiera('mp')
+$sahara_hash                    = hiera_hash('sahara', {})
+$murano_hash                    = hiera_hash('murano', {})
+$heat_hash                      = hiera_hash('heat', {})
 $verbose                        = true
 $debug                          = hiera('debug', true)
 $use_monit                      = false
-$mongo_hash                     = hiera('mongo', {})
+$mongo_hash                     = hiera_hash('mongo', {})
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $nodes_hash                     = hiera('nodes', {})
-$storage_hash                   = hiera('storage', {})
-$vcenter_hash                   = hiera('vcenter', {})
-$nova_hash                      = hiera('nova', {})
-$mysql_hash                     = hiera('mysql', {})
-$rabbit_hash                    = hiera('rabbit', {})
-$glance_hash                    = hiera('glance', {})
-$keystone_hash                  = hiera('keystone', {})
-$swift_hash                     = hiera('swift', {})
-$cinder_hash                    = hiera('cinder', {})
-$ceilometer_hash                = hiera('ceilometer',{})
-$access_hash                    = hiera('access', {})
-$network_scheme                 = hiera('network_scheme', {})
+$storage_hash                   = hiera_hash('storage', {})
+$nova_hash                      = hiera_hash('nova', {})
+$rabbit_hash                    = hiera_hash('rabbit', {})
+$cinder_hash                    = hiera_hash('cinder', {})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
+$network_scheme                 = hiera_hash('network_scheme', {})
 $controllers                    = hiera('controllers')
-$swift_proxies                  = hiera('swift_proxies', $controllers)
-$swift_master_role              = hiera('swift_master_role', 'primary-controller')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
-$syslog_hash                    = hiera('syslog', {})
-$base_syslog_hash               = hiera('base_syslog', {})
 $use_syslog                     = hiera('use_syslog', true)
-$syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
-$syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
 $syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 $syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
-$syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
-$syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL0')
-$syslog_log_facility_heat       = hiera('syslog_log_facility_heat','LOG_LOCAL0')
-$syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
-$syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
 $nova_rate_limits               = hiera('nova_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
@@ -55,19 +36,7 @@ $nova_service_down_time         = hiera('nova_service_down_time')
 $block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
 $block_device_allocate_retries_interval = hiera('block_device_allocate_retries_interval', 3)
 
-# TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
-$hiera_openstack_version = hiera('openstack_version')
-$openstack_version = {
-  'keystone'   => 'installed',
-  'glance'     => 'installed',
-  'horizon'    => 'installed',
-  'nova'       => 'installed',
-  'novncproxy' => 'installed',
-  'cinder'     => 'installed',
-}
-
 $queue_provider='rabbitmq'
-$custom_mysql_setup_class='galera'
 
 # Do the stuff
 if $neutron_mellanox {
@@ -76,7 +45,6 @@ if $neutron_mellanox {
   $mellanox_mode = 'disabled'
 }
 
-
 class { 'l23network' :
   use_ovs => $use_neutron
 }
@@ -84,7 +52,7 @@ class { 'l23network' :
 if $use_neutron {
   $novanetwork_params        = {}
   $network_provider          = 'neutron'
-  $neutron_config            = hiera('quantum_settings')
+  $neutron_config            = hiera_hash('quantum_settings', {})
   $neutron_db_password       = $neutron_config['database']['passwd']
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
@@ -122,19 +90,6 @@ if !$ceilometer_hash {
 }
 
 
-if $primary_controller {
-  if ($mellanox_mode == 'ethernet') {
-    $test_vm_pkg = 'cirros-testvm-mellanox'
-  } else {
-    $test_vm_pkg = 'cirros-testvm'
-  }
-  package { 'cirros-testvm' :
-    ensure => 'installed',
-    name   => $test_vm_pkg,
-  }
-}
-
-
 if $ext_mongo {
   $mongo_hosts = $ext_mongo_hash['hosts_ip']
   if $ext_mongo_hash['mongo_replset'] {
@@ -159,18 +114,12 @@ $floating_hash = {}
 
 ##CALCULATED PARAMETERS
 
-
 ##NO NEED TO CHANGE
 
 $node = filter_nodes($nodes_hash, 'name', $::hostname)
 if empty($node) {
   fail("Node $::hostname is not defined in the hash structure")
 }
-
-# get cidr netmasks for VIPs
-$primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-$vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
-$vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 
 #todo:(sv): temporary commented. Will be uncommented while
 #           'multiple-l2-network' feature re-implemented
@@ -181,37 +130,24 @@ $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_
 
 ##TODO: simply parse nodes array
 $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
-$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
-$controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
 $controller_hostnames = keys($controller_internal_addresses)
 $controller_nodes = ipsort(values($controller_internal_addresses))
-$controller_node_public  = $public_vip
-$controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
-$mountpoints = filter_hash($mp_hash,'point')
 
 # AMQP client configuration
-if $internal_address in $controller_nodes {
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+}
+elsif $internal_address in $controller_nodes {
   # prefer local MQ broker if it exists on this node
   $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
 } else {
   $amqp_nodes = fqdn_rotate($controller_nodes)
 }
 
-$amqp_port = '5673'
+$amqp_port = hiera('amqp_port', '5673')
 $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 $rabbit_ha_queues = true
-
-# RabbitMQ server configuration
-$rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
-$rabbitmq_bind_port = $amqp_port
-$rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames
-
-# SQLAlchemy backend configuration
-$max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
 
 $cinder_iscsi_bind_addr = $storage_address
 
@@ -231,44 +167,6 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'ceph'
 } else {
   $manage_volumes = false
-}
-
-#Determine who should be the default backend
-
-if ($storage_hash['images_ceph']) {
-  $glance_backend = 'ceph'
-  $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
-} elsif ($storage_hash['images_vcenter']) {
-  $glance_backend = 'vmware'
-  $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
-} else {
-  $glance_backend = 'swift'
-  $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
-}
-
-# Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
-if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
-  $use_swift = true
-} else {
-  $use_swift = false
-}
-
-if ($use_swift) {
-  if !hiera('swift_partition', false) {
-    $swift_partition = '/var/lib/glance/node'
-  }
-  $swift_local_net_ip       = $storage_address
-  $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role',$swift_master_role)
-  $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
-  #$master_hostname         = $master_swift_proxy_nodes[0]['name']
-  $swift_loopback = false
-  if $primary_controller {
-    $primary_proxy = true
-  } else {
-    $primary_proxy = false
-  }
-} elsif ($storage_hash['objects_ceph']) {
-  $rgw_servers = $controllers
 }
 
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
@@ -292,7 +190,7 @@ if $use_monit_real {
   $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
   case $::osfamily {
     'RedHat' : {
-       $service_path   = '/sbin/service'
+      $service_path   = '/sbin/service'
     }
     'Debian' : {
       $service_path    = '/usr/sbin/service'
@@ -329,7 +227,7 @@ if ($::mellanox_mode == 'ethernet') {
 # FIXME(bogdando) This should be changed once the host aggregates implemented, bp disable-new-computes
 class { 'openstack::compute':
   enabled                     => false,
-  public_interface            => $public_int ? { undef=>'', default=>$public_int},
+  public_interface            => hiera($public_int, ''),
   private_interface           => $use_neutron ? { true=>false, default=>hiera('private_int', undef)},
   internal_address            => $internal_address,
   libvirt_type                => hiera('libvirt_type', undef),
@@ -349,7 +247,7 @@ class { 'openstack::compute':
   vncserver_listen            => '0.0.0.0',
   debug                       => $debug,
   verbose                     => $verbose,
-  cinder_volume_group         => "cinder",
+  cinder_volume_group         => 'cinder',
   vnc_enabled                 => true,
   manage_volumes              => $manage_volumes,
   nova_user_password          => $nova_hash[user_password],
@@ -381,8 +279,8 @@ class { 'openstack::compute':
 #TODO: PUT this configuration stanza into nova class
 nova_config { 'DEFAULT/resume_guests_state_on_host_boot': value => hiera('resume_guests_state_on_host_boot')}
 nova_config { 'DEFAULT/use_cow_images': value => hiera('use_cow_images')}
-nova_config { 'libvirt/libvirt_inject_key': value => 'true'}
-nova_config { 'libvirt/libvirt_inject_password': value => 'true'}
+nova_config { 'libvirt/libvirt_inject_key': value => true}
+nova_config { 'libvirt/libvirt_inject_password': value => true}
 nova_config { 'libvirt/libvirt_inject_partition': value => '-1'}
 
 # LP: #1280399
