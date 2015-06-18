@@ -17,19 +17,19 @@
 #     DEFAULT/bar:
 #       value: barValue
 #
-# [**api_config**]
+# [*api_config*]
 #   (optional) Allow configuration of glance-api.conf configurations.
 #
-# [**api_paste_ini_config**]
+# [*api_paste_ini_config*]
 #   (optional) Allow configuration of glance-api-paste.ini configurations.
 #
-# [**registry_config**]
+# [*registry_config*]
 #   (optional) Allow configuration of glance-registry.conf configurations.
 #
-# [**registry_paste_ini_config**]
+# [*registry_paste_ini_config*]
 #   (optional) Allow configuration of glance-registry-paste.ini configurations.
 #
-# [**cache_config**]
+# [*cache_config*]
 #   (optional) Allow configuration of glance-cache.conf configurations.
 #
 #   NOTE: The configuration MUST NOT be already handled by this module
