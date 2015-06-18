@@ -1,0 +1,42 @@
+#!/usr/bin/make -f
+export DH_VERBOSE=1
+
+install:
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+
+	#fuel-library
+	mkdir -p $(CURDIR)/debian/tmp/etc/puppet/2014.2-6.0/modules/
+	mkdir -p $(CURDIR)/debian/tmp/etc/puppet/2014.2-6.0/manifests/
+	mkdir -p $(CURDIR)/debian/tmp/usr/bin/
+	mkdir -p $(CURDIR)/debian/tmp/usr/lib/
+	cp -fr %{_builddir}/%{name}-%{version}/deployment/puppet/* $(CURDIR)/debian/tmp/etc/puppet/2014.2-6.0/modules/
+
+	#fuel-ha-utils
+	install -d -m 0755 $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/cluster/files/ns_haproxy $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/ns_haproxy
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/cluster/files/ns_IPaddr2 $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/ns_IPaddr2
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/cluster/files/ocf/neutron-agent-ovs $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/neutron-agent-ovs
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/cluster/files/ocf/neutron-agent-metadata $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/neutron-agent-metadata
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/cluster/files/ocf/neutron-agent-dhcp $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/neutron-agent-dhcp
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/cluster/files/ocf/neutron-agent-l3 $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/neutron-agent-l3
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/cluster/files/q-agent-cleanup.py $(CURDIR)/debian/tmp/usr/bin/q-agent-cleanup.py
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/galera/files/ocf/mysql-wss $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/mysql-wss
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/heat/templates/heat_engine_centos.ocf.erb $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/heat-engine
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/nova/files/ocf/rabbitmq $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/rabbitmq-server
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/cluster/files/ocf/ceilometer-agent-central $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/ceilometer-agent-central
+	install -m 0755 %{_builddir}/%{name}-%{version}/deployment/puppet/cluster/files/ocf/ceilometer-alarm-evaluator $(CURDIR)/debian/tmp/usr/lib/ocf/resource.d/mirantis/ceilometer-alarm-evaluator
+
+	dh_install --list-missing -s --sourcedir=debian/tmp
+	dh_compress
+	dh_fixperms
+	dh_makeshlibs -V
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+.PHONY: install
