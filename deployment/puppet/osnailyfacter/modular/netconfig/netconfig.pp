@@ -68,3 +68,12 @@ if !defined(Service['irqbalance']) {
     require => Package['irqbalance'],
   }
 }
+
+# We need to wait at least 30 seconds for the bridges and other interfaces to
+# come up after being created.  This should allow for all interfaces to be up
+# and ready for traffic before proceeding with further deploy steps. LP#1458954
+exec { 'wait-for-interfaces':
+  path    => '/usr/bin:/bin',
+  command => 'sleep 32',
+  require => Class['l23network'],
+}
