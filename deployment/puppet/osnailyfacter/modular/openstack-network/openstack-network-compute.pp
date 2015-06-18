@@ -10,7 +10,6 @@ $controllers                    = hiera('controllers')
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
 $rabbit_hash                    = hiera('rabbit_hash', {})
-$network_scheme                 = hiera('network_scheme', {})
 
 $floating_hash = {}
 
@@ -210,7 +209,6 @@ if $network_provider == 'nova' {
   nova_config {
     'DEFAULT/linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
     'DEFAULT/linuxnet_ovs_integration_bridge': value => $neutron_integration_bridge;
-    'DEFAULT/network_device_mtu':              value => '65000';
   }
 
   augeas { 'sysctl-net.bridge.bridge-nf-call-arptables':
@@ -278,30 +276,13 @@ if $network_provider == 'neutron' {
     $bridge_mappings = []
   }
 
-  # Required to use get_network_role_property
-  prepare_network_config($network_scheme)
-
   if $neutron_settings['L2']['tunnel_id_ranges'] {
-    # tunneling_mode
     $enable_tunneling = true
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
-    $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
-    $iface = get_network_role_property('neutron/mesh', 'phys_dev')
-    $net_mtu = get_transformation_property('mtu', $iface[0])
-    if $net_mtu {
-      $mtu_for_virt_network = $net_mtu - 42
-    } else {
-      $mtu_for_virt_network = 1458
-    }
   } else {
-    # vlan mode
-    $iface = get_network_role_property('neutron/private', 'phys_dev')
-    $mtu_for_virt_network = get_transformation_property('mtu', $iface[0])
     $enable_tunneling = false
-    $tunneling_ip = false
     $tunnel_id_ranges = []
   }
-
   notify{ $tunnel_id_ranges:}
   if $neutron_settings['L2']['mechanism_drivers'] {
       $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
@@ -320,10 +301,9 @@ if $network_provider == 'neutron' {
 }
 
 class { 'openstack::network':
-  network_provider => $network_provider,
-  agents           => [$agent],
-  nova_neutron     => true,
-  net_mtu          => $mtu_for_virt_network,
+  network_provider  => $network_provider,
+  agents            => [$agent],
+  nova_neutron      => true,
 
   base_mac          => $base_mac,
   core_plugin       => $core_plugin,
@@ -331,7 +311,7 @@ class { 'openstack::network':
 
   # ovs
   mechanism_drivers   => $mechanism_drivers,
-  local_ip            => $tunneling_ip,
+  local_ip            => $internal_address,
   bridge_mappings     => $bridge_mappings,
   network_vlan_ranges => $vlan_range,
   enable_tunneling    => $enable_tunneling,
