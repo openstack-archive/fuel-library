@@ -9,48 +9,46 @@ describe 'glance::registry' do
 
   let :default_params do
     {
-      :verbose           => false,
-      :debug             => false,
-      :bind_host         => '0.0.0.0',
-      :bind_port         => '9191',
-      :log_file          => '/var/log/glance/registry.log',
-      :log_dir           => '/var/log/glance',
-      :sql_connection    => 'sqlite:///var/lib/glance/glance.sqlite',
-      :sql_idle_timeout  => '3600',
-      :enabled           => true,
-      :auth_type         => 'keystone',
-      :auth_host         => '127.0.0.1',
-      :auth_port         => '35357',
-      :auth_protocol     => 'http',
-      :auth_uri          => 'http://127.0.0.1:5000/',
-      :identity_uri      => 'http://127.0.0.1:35357/',
-      :keystone_tenant   => 'services',
-      :keystone_user     => 'glance',
-      :keystone_password => 'ChangeMe',
-      :purge_config      => false,
-      :mysql_module      => '0.9'
+      :verbose                => false,
+      :debug                  => false,
+      :bind_host              => '0.0.0.0',
+      :bind_port              => '9191',
+      :log_file               => '/var/log/glance/registry.log',
+      :log_dir                => '/var/log/glance',
+      :database_connection    => 'sqlite:///var/lib/glance/glance.sqlite',
+      :database_idle_timeout  => '3600',
+      :enabled                => true,
+      :manage_service         => true,
+      :auth_type              => 'keystone',
+      :auth_host              => '127.0.0.1',
+      :auth_port              => '35357',
+      :auth_protocol          => 'http',
+      :auth_uri               => 'http://127.0.0.1:5000/',
+      :keystone_tenant        => 'services',
+      :keystone_user          => 'glance',
+      :keystone_password      => 'ChangeMe',
+      :purge_config           => false,
     }
   end
 
   [
     {:keystone_password => 'ChangeMe'},
     {
-      :verbose           => true,
-      :debug             => true,
-      :bind_host         => '127.0.0.1',
-      :bind_port         => '9111',
-      :sql_connection    => 'sqlite:///var/lib/glance.sqlite',
-      :sql_idle_timeout  => '360',
-      :enabled           => false,
-      :auth_type         => 'keystone',
-      :auth_host         => '127.0.0.1',
-      :auth_port         => '35357',
-      :auth_protocol     => 'http',
-      :auth_uri          => 'http://127.0.0.1:5000/',
-      :identity_uri      => 'http://127.0.0.1:35357/',
-      :keystone_tenant   => 'admin',
-      :keystone_user     => 'admin',
-      :keystone_password => 'ChangeMe',
+      :verbose                => true,
+      :debug                  => true,
+      :bind_host              => '127.0.0.1',
+      :bind_port              => '9111',
+      :database_connection    => 'sqlite:///var/lib/glance.sqlite',
+      :database_idle_timeout  => '360',
+      :enabled                => false,
+      :auth_type              => 'keystone',
+      :auth_host              => '127.0.0.1',
+      :auth_port              => '35357',
+      :auth_protocol          => 'http',
+      :auth_uri               => 'http://127.0.0.1:5000/',
+      :keystone_tenant        => 'admin',
+      :keystone_user          => 'admin',
+      :keystone_password      => 'ChangeMe',
     }
   ].each do |param_set|
 
@@ -66,7 +64,7 @@ describe 'glance::registry' do
       it { should contain_class 'glance::registry' }
 
       it { should contain_service('glance-registry').with(
-          'ensure'     => param_hash[:enabled] ? 'running' : 'stopped',
+          'ensure'     => (param_hash[:manage_service] && param_hash[:enabled]) ? 'running' : 'stopped',
           'enable'     => param_hash[:enabled],
           'hasstatus'  => true,
           'hasrestart' => true,
@@ -92,10 +90,14 @@ describe 'glance::registry' do
          'debug',
          'bind_port',
          'bind_host',
-         'sql_connection',
-         'sql_idle_timeout'
         ].each do |config|
           should contain_glance_registry_config("DEFAULT/#{config}").with_value(param_hash[config.intern])
+        end
+        [
+         'database_connection',
+         'database_idle_timeout',
+        ].each do |config|
+          should contain_glance_registry_config("database/#{config.gsub(/database_/,'')}").with_value(param_hash[config.intern])
         end
         [
          'auth_host',
@@ -110,9 +112,29 @@ describe 'glance::registry' do
           should contain_glance_registry_config("keystone_authtoken/admin_tenant_name").with_value(param_hash[:keystone_tenant])
           should contain_glance_registry_config("keystone_authtoken/admin_user").with_value(param_hash[:keystone_user])
           should contain_glance_registry_config("keystone_authtoken/admin_password").with_value(param_hash[:keystone_password])
+          should contain_glance_registry_config("keystone_authtoken/admin_password").with_value(param_hash[:keystone_password]).with_secret(true)
         end
       end
     end
+  end
+
+  describe 'with disabled service managing' do
+    let :params do
+      {
+        :keystone_password => 'ChangeMe',
+        :manage_service => false,
+        :enabled        => false,
+      }
+    end
+
+    it { should contain_service('glance-registry').with(
+          'ensure'     => nil,
+          'enable'     => false,
+          'hasstatus'  => true,
+          'hasrestart' => true,
+          'subscribe'  => 'File[/etc/glance/glance-registry.conf]',
+          'require'    => 'Class[Glance]'
+      )}
   end
 
   describe 'with overridden pipeline' do
@@ -267,6 +289,20 @@ describe 'glance::registry' do
       it { should contain_glance_registry_config('DEFAULT/ca_file').with_value('/tmp/ca_file') }
       it { should contain_glance_registry_config('DEFAULT/cert_file').with_value('/tmp/cert_file') }
       it { should contain_glance_registry_config('DEFAULT/key_file').with_value('/tmp/key_file') }
+    end
+  end
+
+  describe 'with deprecated sql parameters' do
+    let :params do
+      default_params.merge({
+        :sql_connection   => 'mysql://user:pass@db/db',
+        :sql_idle_timeout => '30'
+      })
+    end
+
+    it 'configures database' do
+      should contain_glance_registry_config('database/connection').with_value('mysql://user:pass@db/db')
+      should contain_glance_registry_config('database/idle_timeout').with_value('30')
     end
   end
 

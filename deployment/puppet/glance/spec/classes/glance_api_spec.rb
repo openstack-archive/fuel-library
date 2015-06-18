@@ -11,58 +11,62 @@ describe 'glance::api' do
 
   let :default_params do
     {
-      :verbose               => false,
-      :debug                 => false,
-      :bind_host             => '0.0.0.0',
-      :bind_port             => '9292',
-      :registry_host         => '0.0.0.0',
-      :registry_port         => '9191',
-      :log_file              => '/var/log/glance/api.log',
-      :log_dir               => '/var/log/glance',
-      :auth_type             => 'keystone',
-      :enabled               => true,
-      :backlog               => '4096',
-      :workers               => '7',
-      :auth_host             => '127.0.0.1',
-      :auth_port             => '35357',
-      :auth_protocol         => 'http',
-      :auth_uri              => 'http://127.0.0.1:5000/',
-      :identity_uri          => 'http://127.0.0.1:35357/',
-      :keystone_tenant       => 'services',
-      :keystone_user         => 'glance',
-      :keystone_password     => 'ChangeMe',
-      :sql_idle_timeout      => '3600',
-      :sql_connection        => 'sqlite:///var/lib/glance/glance.sqlite',
-      :show_image_direct_url => false,
-      :purge_config          => false,
-      :mysql_module          => '0.9',
-      :known_stores          => false,
+      :verbose                  => false,
+      :debug                    => false,
+      :bind_host                => '0.0.0.0',
+      :bind_port                => '9292',
+      :registry_host            => '0.0.0.0',
+      :registry_port            => '9191',
+      :registry_client_protocol => 'http',
+      :log_file                 => '/var/log/glance/api.log',
+      :log_dir                  => '/var/log/glance',
+      :auth_type                => 'keystone',
+      :enabled                  => true,
+      :manage_service           => true,
+      :backlog                  => '4096',
+      :workers                  => '7',
+      :auth_host                => '127.0.0.1',
+      :auth_port                => '35357',
+      :auth_protocol            => 'http',
+      :auth_uri                 => 'http://127.0.0.1:5000/',
+      :keystone_tenant          => 'services',
+      :keystone_user            => 'glance',
+      :keystone_password        => 'ChangeMe',
+      :database_idle_timeout    => '3600',
+      :database_connection      => 'sqlite:///var/lib/glance/glance.sqlite',
+      :show_image_direct_url    => false,
+      :purge_config             => false,
+      :known_stores             => false,
+      :image_cache_dir          => '/var/lib/glance/image-cache',
+      :os_region_name           => 'RegionOne',
     }
   end
 
   [{:keystone_password => 'ChangeMe'},
    {
-      :verbose               => true,
-      :debug                 => true,
-      :bind_host             => '127.0.0.1',
-      :bind_port             => '9222',
-      :registry_host         => '127.0.0.1',
-      :registry_port         => '9111',
-      :auth_type             => 'not_keystone',
-      :enabled               => false,
-      :backlog               => '4095',
-      :workers               => '5',
-      :auth_host             => '127.0.0.2',
-      :auth_port             => '35358',
-      :auth_protocol         => 'https',
-      :auth_uri              => 'https://127.0.0.2:5000/v2.0/',
-      :identity_uri          => 'https://127.0.0.2:35358/',
-      :keystone_tenant       => 'admin2',
-      :keystone_user         => 'admin2',
-      :keystone_password     => 'ChangeMe2',
-      :sql_idle_timeout      => '36002',
-      :sql_connection        => 'mysql:///var:lib@glance/glance',
-      :show_image_direct_url => true
+      :verbose                  => true,
+      :debug                    => true,
+      :bind_host                => '127.0.0.1',
+      :bind_port                => '9222',
+      :registry_host            => '127.0.0.1',
+      :registry_port            => '9111',
+      :registry_client_protocol => 'https',
+      :auth_type                => 'not_keystone',
+      :enabled                  => false,
+      :backlog                  => '4095',
+      :workers                  => '5',
+      :auth_host                => '127.0.0.2',
+      :auth_port                => '35358',
+      :auth_protocol            => 'https',
+      :auth_uri                 => 'https://127.0.0.2:5000/v2.0/',
+      :keystone_tenant          => 'admin2',
+      :keystone_user            => 'admin2',
+      :keystone_password        => 'ChangeMe2',
+      :database_idle_timeout    => '36002',
+      :database_connection      => 'mysql:///var:lib@glance/glance',
+      :show_image_direct_url    => true,
+      :image_cache_dir          => '/tmp/glance',
+      :os_region_name           => 'RegionOne2',
     }
   ].each do |param_set|
 
@@ -77,9 +81,10 @@ describe 'glance::api' do
       end
 
       it { should contain_class 'glance' }
+      it { should contain_class 'glance::policy' }
 
       it { should contain_service('glance-api').with(
-        'ensure'     => param_hash[:enabled] ? 'running': 'stopped',
+        'ensure'     => (param_hash[:manage_service] && param_hash[:enabled]) ? 'running': 'stopped',
         'enable'     => param_hash[:enabled],
         'hasstatus'  => true,
         'hasrestart' => true
@@ -93,7 +98,9 @@ describe 'glance::api' do
           'bind_port',
           'registry_host',
           'registry_port',
-          'show_image_direct_url'
+          'registry_client_protocol',
+          'show_image_direct_url',
+          'os_region_name',
         ].each do |config|
           should contain_glance_api_config("DEFAULT/#{config}").with_value(param_hash[config.intern])
         end
@@ -104,15 +111,17 @@ describe 'glance::api' do
           'verbose',
           'debug',
           'registry_host',
-          'registry_port'
+          'registry_port',
+          'os_region_name',
         ].each do |config|
           should contain_glance_cache_config("DEFAULT/#{config}").with_value(param_hash[config.intern])
         end
       end
 
       it 'should config db' do
-        should contain_glance_api_config('DEFAULT/sql_connection').with_value(param_hash[:sql_connection])
-        should contain_glance_api_config('DEFAULT/sql_idle_timeout').with_value(param_hash[:sql_idle_timeout])
+        should contain_glance_api_config('database/connection').with_value(param_hash[:database_connection])
+        should contain_glance_api_config('database/connection').with_value(param_hash[:database_connection]).with_secret(true)
+        should contain_glance_api_config('database/idle_timeout').with_value(param_hash[:database_idle_timeout])
       end
 
       it 'should have  no ssl options' do
@@ -135,15 +144,36 @@ describe 'glance::api' do
       it 'should configure itself for keystone if that is the auth_type' do
         if params[:auth_type] == 'keystone'
           should contain('paste_deploy/flavor').with_value('keystone+cachemanagement')
+
           ['admin_tenant_name', 'admin_user', 'admin_password'].each do |config|
             should contain_glance_api_config("keystone_authtoken/#{config}").with_value(param_hash[config.intern])
           end
+          should contain_glance_api_config('keystone_authtoken/admin_password').with_value(param_hash[:keystone_password]).with_secret(true)
+
           ['admin_tenant_name', 'admin_user', 'admin_password'].each do |config|
             should contain_glance_cache_config("keystone_authtoken/#{config}").with_value(param_hash[config.intern])
           end
+          should contain_glance_cache_config('keystone_authtoken/admin_password').with_value(param_hash[:keystone_password]).with_secret(true)
         end
       end
     end
+  end
+
+  describe 'with disabled service managing' do
+    let :params do
+      {
+        :keystone_password => 'ChangeMe',
+        :manage_service => false,
+        :enabled        => false,
+      }
+    end
+
+    it { should contain_service('glance-api').with(
+        'ensure'     => nil,
+        'enable'     => false,
+        'hasstatus'  => true,
+        'hasrestart' => true
+      ) }
   end
 
   describe 'with overridden pipeline' do
@@ -305,6 +335,20 @@ describe 'glance::api' do
     end
 
     it { should contain_glance_api_config('glance_store/stores').with_value("glance.store.filesystem.Store,glance.store.http.Store") }
+  end
+
+  describe 'with deprecated sql parameters' do
+    let :params do
+      default_params.merge({
+        :sql_connection   => 'mysql://user:pass@db/db',
+        :sql_idle_timeout => '30'
+      })
+    end
+
+    it 'configures database' do
+      should contain_glance_api_config('database/connection').with_value('mysql://user:pass@db/db')
+      should contain_glance_api_config('database/idle_timeout').with_value('30')
+    end
   end
 
   describe 'on Debian platforms' do

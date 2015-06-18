@@ -14,6 +14,6 @@ class glance::backend::file(
   }
 
   glance_cache_config {
-    'DEFAULT/filesystem_store_datadir': value => $filesystem_store_datadir;
+    'glance_store/filesystem_store_datadir': value => $filesystem_store_datadir;
   }
 }

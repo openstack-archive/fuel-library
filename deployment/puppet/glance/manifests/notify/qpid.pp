@@ -15,7 +15,7 @@ class glance::notify::qpid(
     'DEFAULT/qpid_port':         value => $qpid_port;
     'DEFAULT/qpid_protocol':     value => $qpid_protocol;
     'DEFAULT/qpid_username':     value => $qpid_username;
-    'DEFAULT/qpid_password':     value => $qpid_password;
+    'DEFAULT/qpid_password':     value => $qpid_password, secret => true;
   }
 
 }

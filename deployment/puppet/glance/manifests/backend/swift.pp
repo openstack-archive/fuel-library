@@ -15,8 +15,6 @@
 #  $swift_store_create_container_on_put - Optional. Default: 'False'
 #
 #  $swift_store_large_object_size - Optional. Default: '5120'
-#
-#  $swift_store_endpoint_type - Optional. Default: 'internalURL'
 class glance::backend::swift(
   $swift_store_user,
   $swift_store_key,
@@ -24,8 +22,7 @@ class glance::backend::swift(
   $swift_store_container = 'glance',
   $swift_store_auth_version = '2',
   $swift_store_large_object_size = '5120',
-  $swift_store_create_container_on_put = false,
-  $swift_store_endpoint_type = 'internalURL'
+  $swift_store_create_container_on_put = false
 ) {
 
   glance_api_config {
@@ -33,22 +30,20 @@ class glance::backend::swift(
     'glance_store/swift_store_user':         value => $swift_store_user;
     'glance_store/swift_store_key':          value => $swift_store_key;
     'glance_store/swift_store_auth_address': value => $swift_store_auth_address;
-    'glance_store/swift_store_container':    value => $swift_store_container;
-    'glance_store/swift_store_auth_version': value => $swift_store_auth_version;
-    'glance_store/swift_store_create_container_on_put':
+    'DEFAULT/swift_store_container':         value => $swift_store_container;
+    'DEFAULT/swift_store_auth_version':      value => $swift_store_auth_version;
+    'DEFAULT/swift_store_create_container_on_put':
       value => $swift_store_create_container_on_put;
-    'glance_store/swift_store_large_object_size':
+    'DEFAULT/swift_store_large_object_size':
       value => $swift_store_large_object_size;
-    'glance_store/swift_store_endpoint_type':
-      value => $swift_store_endpoint_type;
   }
 
   glance_cache_config {
-    'DEFAULT/swift_store_user':         value => $swift_store_user;
-    'DEFAULT/swift_store_key':          value => $swift_store_key;
-    'DEFAULT/swift_store_auth_address': value => $swift_store_auth_address;
-    'DEFAULT/swift_store_container':    value => $swift_store_container;
-    'DEFAULT/swift_store_auth_version': value => $swift_store_auth_version;
+    'glance_store/swift_store_user':         value => $swift_store_user;
+    'glance_store/swift_store_key':          value => $swift_store_key;
+    'glance_store/swift_store_auth_address': value => $swift_store_auth_address;
+    'DEFAULT/swift_store_container':         value => $swift_store_container;
+    'DEFAULT/swift_store_auth_version':      value => $swift_store_auth_version;
     'DEFAULT/swift_store_create_container_on_put':
       value => $swift_store_create_container_on_put;
     'DEFAULT/swift_store_large_object_size':

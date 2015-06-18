@@ -1,4 +1,4 @@
- #
+#
 # configures the storage backend for glance
 # as a rbd instance
 #
@@ -12,6 +12,12 @@
 #
 #  $show_image_direct_url - Optional. Enables direct COW from glance to rbd
 #  DEPRECATED, use show_image_direct_url in glance::api
+#
+#  [*package_ensure*]
+#      (optional) Desired ensure state of packages.
+#      accepts latest or specific versions.
+#      Defaults to present.
+#
 
 class glance::backend::rbd(
   $rbd_store_user         = undef,
@@ -19,6 +25,7 @@ class glance::backend::rbd(
   $rbd_store_pool         = 'images',
   $rbd_store_chunk_size   = '8',
   $show_image_direct_url  = undef,
+  $package_ensure         = 'present',
 ) {
   include glance::params
 
@@ -27,15 +34,15 @@ class glance::backend::rbd(
   }
 
   glance_api_config {
-    'glance_store/rbd_store_ceph_conf':  value => $rbd_store_ceph_conf;
-    'glance_store/rbd_store_user':       value => $rbd_store_user;
-    'glance_store/rbd_store_pool':       value => $rbd_store_pool;
-    'glance_store/rbd_store_chunk_size': value => $rbd_store_chunk_size;
-    'glance_store/default_store':        value => 'rbd';
+    'DEFAULT/rbd_store_ceph_conf':    value => $rbd_store_ceph_conf;
+    'DEFAULT/rbd_store_user':         value => $rbd_store_user;
+    'DEFAULT/rbd_store_pool':         value => $rbd_store_pool;
+    'DEFAULT/rbd_store_chunk_size':   value => $rbd_store_chunk_size;
+    'glance_store/default_store':     value => 'rbd';
   }
 
   package { 'python-ceph':
-    ensure => 'present',
+    ensure => $package_ensure,
     name   => $::glance::params::pyceph_package_name,
   }
 

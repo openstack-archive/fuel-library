@@ -98,6 +98,45 @@ describe 'glance::keystone::auth' do
     it { should_not contain_keystone_endpoint('glance') }
   end
 
+  describe 'when disabling user configuration' do
+    let :params do
+      {
+        :configure_user => false,
+        :password       => 'pass',
+      }
+    end
+
+    it { should_not contain_keystone_user('glance') }
+
+    it { should contain_keystone_user_role('glance@services') }
+
+    it { should contain_keystone_service('glance').with(
+      :ensure      => 'present',
+      :type        => 'image',
+      :description => 'Openstack Image Service'
+    ) }
+  end
+
+  describe 'when disabling user and user role configuration' do
+    let :params do
+      {
+        :configure_user      => false,
+        :configure_user_role => false,
+        :password            => 'pass',
+      }
+    end
+
+    it { should_not contain_keystone_user('glance') }
+
+    it { should_not contain_keystone_user_role('glance@services') }
+
+    it { should contain_keystone_service('glance').with(
+      :ensure      => 'present',
+      :type        => 'image',
+      :description => 'Openstack Image Service'
+    ) }
+  end
+
   describe 'when configuring glance-api and the keystone endpoint' do
     let :pre_condition do
       "class { 'glance::api': keystone_password => 'test' }"
@@ -116,4 +155,21 @@ describe 'glance::keystone::auth' do
 
     it { should contain_keystone_endpoint('RegionOne/glance').with_notify('Service[glance-api]') }
     end
+
+  describe 'when overriding service name' do
+
+    let :params do
+      {
+        :service_name => 'glance_service',
+        :password     => 'pass'
+      }
+    end
+
+    it { should contain_keystone_user('glance') }
+    it { should contain_keystone_user_role('glance@services') }
+    it { should contain_keystone_service('glance_service') }
+    it { should contain_keystone_endpoint('RegionOne/glance_service') }
+
+  end
+
 end

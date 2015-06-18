@@ -15,7 +15,7 @@ describe 'glance::backend::file' do
   end
 
   it 'configures glance-cache.conf' do
-    should contain_glance_cache_config('DEFAULT/filesystem_store_datadir').with_value('/var/lib/glance/images/')
+    should contain_glance_cache_config('glance_store/filesystem_store_datadir').with_value('/var/lib/glance/images/')
   end
 
   describe 'when overriding datadir' do
@@ -28,7 +28,7 @@ describe 'glance::backend::file' do
     end
 
     it 'configures glance-cache.conf' do
-      should contain_glance_cache_config('DEFAULT/filesystem_store_datadir').with_value('/tmp/')
+      should contain_glance_cache_config('glance_store/filesystem_store_datadir').with_value('/tmp/')
     end
   end
 end

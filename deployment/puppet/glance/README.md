@@ -1,7 +1,7 @@
 glance
 =======
 
-4.0.0 - 2014.1.0 - Icehouse
+5.0.0 - 2014.2.0 - Juno
 
 #### Table of Contents
 
@@ -118,8 +118,6 @@ Limitations
 
 * Only supports configuring the file, swift and rbd storage backends.
 
-* The Glance Openstack service depends on a sqlalchemy database. If you are using puppetlabs-mysql to achieve this, there is a parameter called mysql_module that can be used to swap between the two supported versions: 0.9 and 2.2. This is needed because the puppetlabs-mysql module was rewritten and the custom type names have changed between versions.
-
 Development
 -----------
 
@@ -134,6 +132,38 @@ Contributors
 
 Release Notes
 -------------
+
+**5.0.0**
+
+* Stable Juno release
+* Added ceilometer::policy to control policy.json
+* Fixed bug in glance_image type
+* Added parameter os_region_name to glance::api
+* Added support for vSphere datastore backend
+* Updated the calls to the glance command-line utility
+* Added parameter swift_store_large_object_size to glance::backend::swift
+* Bumped stdlib dependency to >=4.0.0
+* Added parameter command_options to glance::cache::cleaner and glance::cache::pruner
+* Added parameter package_ensure to glance::backend::rbd
+* Added parameter manage_service to various classes
+* Added parameters to control whether to configure users
+* Migrated the glance::db::mysql class to use openstacklib::db::mysql and deprecated the mysql_module parameter
+* Added parameter registery_client_protocol to glance::api
+* Fixed ssl parameter requirements for kombu and rabbit
+
+**4.2.0**
+
+* Added ability to hide secret type parameters from logs
+
+**4.1.0**
+
+* Added multiple rabbit hosts support.
+* Added image_cache_dir parameter.
+* Deprecated old SQL parameters.
+* Fixed the Glance add_image parser for new client.
+* Fixed values in get_glance_image_attrs.
+* Fixed 'could not find user glance' bug.
+* Pinned major gems.
 
 **4.0.0**
 

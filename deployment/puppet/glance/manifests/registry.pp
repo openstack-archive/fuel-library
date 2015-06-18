@@ -29,12 +29,21 @@
 #    If set to boolean false, it will not log to any directory.
 #    Defaults to '/var/log/glance'
 #
-#  [*sql_connection*]
-#    (optional) SQL connection string.
-#    Defaults to 'sqlite:///var/lib/glance/glance.sqlite'.
+# [*sql_idle_timeout*]
+#   (optional) Deprecated. Use database_idle_timeout instead
+#   Defaults to false
 #
-#  [*sql_idle_timeout*]
-#    (optional) SQL connections idle timeout. Defaults to '3600'.
+# [*sql_connection*]
+#   (optional) Deprecated. Use database_connection instead.
+#   Defaults to false
+#
+# [*database_connection*]
+#   (optional) Connection url to connect to nova database.
+#   Defaults to 'sqlite:///var/lib/glance/glance.sqlite'
+#
+# [*database_idle_timeout*]
+#   (optional) Timeout before idle db connections are reaped.
+#   Defaults to 3600
 #
 #  [*auth_type*]
 #    (optional) Authentication type. Defaults to 'keystone'.
@@ -59,9 +68,6 @@
 #  [*auth_uri*]
 #    (optional) Complete public Identity API endpoint.
 #
-#  [*identity_uri*]
-#    (optional) Complete admin Identity API endpoint.
-#
 #  [*keystone_tenant*]
 #    (optional) administrative tenant name to connect to keystone.
 #    Defaults to 'services'.
@@ -78,8 +84,13 @@
 #    (optional) Syslog facility to receive log lines.
 #    Defaults to LOG_USER.
 #
+#  [*manage_service*]
+#    (optional) If Puppet should manage service startup / shutdown.
+#    Defaults to true.
+#
 #  [*enabled*]
-#    (optional) Should the service be enabled. Defaults to true.
+#    (optional) Should the service be enabled.
+#    Defaults to true.
 #
 #  [*purge_config*]
 #    (optional) Whether to create only the specified config values in
@@ -99,43 +110,46 @@
 #   Defaults to false, not set
 #
 #  [*mysql_module*]
-#  (optional) The version of puppet-mysql to use. Tested versions
-#  include 0.9 and 2.2
-#  Defaults to '0.9'
+#  (optional) Deprecated. Does nothing.
 #
 class glance::registry(
   $keystone_password,
-  $verbose           = false,
-  $debug             = false,
-  $bind_host         = '0.0.0.0',
-  $bind_port         = '9191',
-  $log_file          = '/var/log/glance/registry.log',
-  $log_dir           = '/var/log/glance',
-  $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
-  $sql_idle_timeout  = '3600',
-  $auth_type         = 'keystone',
-  $auth_host         = '127.0.0.1',
-  $auth_port         = '35357',
-  $auth_admin_prefix = false,
-  $auth_uri          = false,
-  $identity_uri      = false,
-  $auth_protocol     = 'http',
-  $keystone_tenant   = 'services',
-  $keystone_user     = 'glance',
-  $pipeline          = 'keystone',
-  $use_syslog        = false,
-  $log_facility      = 'LOG_USER',
-  $enabled           = true,
-  $purge_config      = false,
-  $cert_file         = false,
-  $key_file          = false,
-  $ca_file           = false,
-  $mysql_module      = '0.9',
+  $verbose               = false,
+  $debug                 = false,
+  $bind_host             = '0.0.0.0',
+  $bind_port             = '9191',
+  $log_file              = '/var/log/glance/registry.log',
+  $log_dir               = '/var/log/glance',
+  $database_connection   = 'sqlite:///var/lib/glance/glance.sqlite',
+  $database_idle_timeout = 3600,
+  $auth_type             = 'keystone',
+  $auth_host             = '127.0.0.1',
+  $auth_port             = '35357',
+  $auth_admin_prefix     = false,
+  $auth_uri              = false,
+  $auth_protocol         = 'http',
+  $keystone_tenant       = 'services',
+  $keystone_user         = 'glance',
+  $pipeline              = 'keystone',
+  $use_syslog            = false,
+  $log_facility          = 'LOG_USER',
+  $manage_service        = true,
+  $enabled               = true,
+  $purge_config          = false,
+  $cert_file             = false,
+  $key_file              = false,
+  $ca_file               = false,
+  # DEPRECATED PARAMETERS
+  $mysql_module          = undef,
+  $sql_idle_timeout      = false,
+  $sql_connection        = false,
 ) inherits glance {
 
   require keystone::python
 
-  validate_re($sql_connection, '(sqlite|mysql|postgresql):\/\/(\S+:\S+@\S+\/\S+)?')
+  if $mysql_module {
+    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
+  }
 
   if ( $glance::params::api_package_name != $glance::params::registry_package_name ) {
     ensure_packages([$glance::params::registry_package_name])
@@ -143,7 +157,6 @@ class glance::registry(
 
   Package[$glance::params::registry_package_name] -> File['/etc/glance/']
   Package[$glance::params::registry_package_name] -> Glance_registry_config<||>
-  Package[$glance::params::registry_package_name] ~> Service['glance-registry']
 
   Glance_registry_config<||> ~> Exec<| title == 'glance-manage db_sync' |>
   Glance_registry_config<||> ~> Service['glance-registry']
@@ -157,18 +170,35 @@ class glance::registry(
     require => Class['glance']
   }
 
-  if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-    if ($mysql_module >= 2.2) {
-      require mysql::bindings::python
-    } else {
-      require mysql::python
-    }
-  } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
-
-  } elsif($sql_connection =~ /sqlite:\/\//) {
-
+  if $sql_connection {
+    warning('The sql_connection parameter is deprecated, use database_connection instead.')
+    $database_connection_real = $sql_connection
   } else {
-    fail("Invalid db connection ${sql_connection}")
+    $database_connection_real = $database_connection
+  }
+
+  if $sql_idle_timeout {
+    warning('The sql_idle_timeout parameter is deprecated, use database_idle_timeout instead.')
+    $database_idle_timeout_real = $sql_idle_timeout
+  } else {
+    $database_idle_timeout_real = $database_idle_timeout
+  }
+
+  if $database_connection_real {
+    if($database_connection_real =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+      require 'mysql::bindings'
+      require 'mysql::bindings::python'
+    } elsif($database_connection_real =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+
+    } elsif($database_connection_real =~ /sqlite:\/\//) {
+
+    } else {
+      fail("Invalid db connection ${database_connection_real}")
+    }
+    glance_registry_config {
+      'database/connection':   value => $database_connection_real, secret => true;
+      'database/idle_timeout': value => $database_idle_timeout_real;
+    }
   }
 
   glance_registry_config {
@@ -178,11 +208,6 @@ class glance::registry(
     'DEFAULT/bind_port': value => $bind_port;
   }
 
-  glance_registry_config {
-    'DEFAULT/sql_connection':   value => $sql_connection;
-    'DEFAULT/sql_idle_timeout': value => $sql_idle_timeout;
-  }
-
   if $auth_uri {
     glance_registry_config { 'keystone_authtoken/auth_uri': value => $auth_uri; }
   } else {
@@ -190,16 +215,6 @@ class glance::registry(
   }
 
   # auth config
-  if $identity_uri {
-    glance_registry_config { 'keystone_authtoken/identity_uri':  value => $identity_uri; }
-  } else {
-    if $auth_admin_prefix {
-      glance_registry_config { 'keystone_authtoken/identity_uri':  value => "${auth_protocol}://${auth_host}:${auth_port}/${auth_admin_prefix}"; }
-    } else {
-      glance_registry_config { 'keystone_authtoken/identity_uri':  value => "${auth_protocol}://${auth_host}:${auth_port}/"; }
-    }
-  }
-
   glance_registry_config {
     'keystone_authtoken/auth_host':     value => $auth_host;
     'keystone_authtoken/auth_port':     value => $auth_port;
@@ -234,7 +249,7 @@ class glance::registry(
     glance_registry_config {
       'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
       'keystone_authtoken/admin_user'       : value => $keystone_user;
-      'keystone_authtoken/admin_password'   : value => $keystone_password;
+      'keystone_authtoken/admin_password'   : value => $keystone_password, secret => true;
     }
   }
 
@@ -308,21 +323,23 @@ class glance::registry(
           '/etc/glance/glance-registry-paste.ini']:
   }
 
-  if $enabled {
 
-    Exec['glance-manage db_sync'] ~> Service['glance-registry']
+  if $manage_service {
+    if $enabled {
+      Exec['glance-manage db_sync'] ~> Service['glance-registry']
 
-    exec { 'glance-manage db_sync':
-      command     => $::glance::params::db_sync_command,
-      path        => '/usr/bin',
-      user        => 'glance',
-      refreshonly => true,
-      logoutput   => on_failure,
-      subscribe   => [Package[$glance::params::registry_package_name], File['/etc/glance/glance-registry.conf']],
+      exec { 'glance-manage db_sync':
+        command     => $::glance::params::db_sync_command,
+        path        => '/usr/bin',
+        user        => 'glance',
+        refreshonly => true,
+        logoutput   => on_failure,
+        subscribe   => [Package[$glance::params::registry_package_name], File['/etc/glance/glance-registry.conf']],
+      }
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
     }
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
   }
 
   service { 'glance-registry':
