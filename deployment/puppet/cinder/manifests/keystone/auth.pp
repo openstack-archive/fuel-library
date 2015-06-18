@@ -23,6 +23,13 @@
 # [*configure_endpoint_v2*]
 #   Should Cinder v2 endpoint be configured? Optional. Defaults to 'true'.
 #
+# [*configure_user*]
+#   Should the service user be configured? Optional. Defaults to 'true'.
+#
+# [*configure_user_role*]
+#   Should the admin role be configured for the service user?
+#   Optional. Defaults to 'true'.
+#
 # [*service_type*]
 #    Type of service. Optional. Defaults to 'volume'.
 #
@@ -67,6 +74,8 @@ class cinder::keystone::auth (
   $tenant                = 'services',
   $configure_endpoint    = true,
   $configure_endpoint_v2 = true,
+  $configure_user        = true,
+  $configure_user_role   = true,
   $service_type          = 'volume',
   $service_type_v2       = 'volumev2',
   $public_address        = '127.0.0.1',
@@ -80,18 +89,24 @@ class cinder::keystone::auth (
   $internal_protocol     = 'http'
 ) {
 
-  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'cinder-api' |>
+  if $configure_user {
+    keystone_user { $auth_name:
+      ensure   => present,
+      password => $password,
+      email    => $email,
+      tenant   => $tenant,
+    }
+  }
 
-  keystone_user { $auth_name:
-    ensure   => present,
-    password => $password,
-    email    => $email,
-    tenant   => $tenant,
+  if $configure_user_role {
+    Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'cinder-api' |>
+
+    keystone_user_role { "${auth_name}@${tenant}":
+      ensure => present,
+      roles  => 'admin',
+    }
   }
-  keystone_user_role { "${auth_name}@${tenant}":
-    ensure  => present,
-    roles   => 'admin',
-  }
+
   keystone_service { $auth_name:
     ensure      => present,
     type        => $service_type,
@@ -115,8 +130,8 @@ class cinder::keystone::auth (
     keystone_endpoint { "${region}/${auth_name_v2}":
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${port}/v2/%(tenant_id)s",
-      admin_url    => "http://${admin_address}:${port}/v2/%(tenant_id)s",
-      internal_url => "http://${internal_address}:${port}/v2/%(tenant_id)s",
+      admin_url    => "${admin_protocol}://${admin_address}:${port}/v2/%(tenant_id)s",
+      internal_url => "${internal_protocol}://${internal_address}:${port}/v2/%(tenant_id)s",
     }
   }
 }

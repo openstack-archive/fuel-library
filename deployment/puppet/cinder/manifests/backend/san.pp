@@ -68,7 +68,7 @@ define cinder::backend::san (
     "${name}/san_thin_provision":  value => $san_thin_provision;
     "${name}/san_ip":              value => $san_ip;
     "${name}/san_login":           value => $san_login;
-    "${name}/san_password":        value => $san_password;
+    "${name}/san_password":        value => $san_password, secret => true;
     "${name}/san_private_key":     value => $san_private_key;
     "${name}/san_clustername":     value => $san_clustername;
     "${name}/san_ssh_port":        value => $san_ssh_port;
