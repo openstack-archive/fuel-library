@@ -1,4 +1,4 @@
-class sahara::templates::create_templates (
+class sahara_templates::create_templates (
   $auth_uri         = 'http://127.0.0.1:5000/v2.0/',
   $auth_user        = 'sahara',
   $auth_tenant      = 'services',
