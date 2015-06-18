@@ -10,28 +10,28 @@ $primary_controller             = hiera('primary_controller')
 $storage_address                = hiera('storage_address')
 $use_neutron                    = hiera('use_neutron', false)
 $cinder_nodes_array             = hiera('cinder_nodes', [])
-$sahara_hash                    = hiera('sahara', {})
-$murano_hash                    = hiera('murano', {})
-$heat_hash                      = hiera('heat', {})
+$sahara_hash                    = hiera_hash('sahara', {})
+$murano_hash                    = hiera_hash('murano', {})
+$heat_hash                      = hiera_hash('heat', {})
 $mp_hash                        = hiera('mp')
 $verbose                        = true
 $debug                          = hiera('debug', true)
 $use_monit                      = false
-$mongo_hash                     = hiera('mongo', {})
+$mongo_hash                     = hiera_hash('mongo', {})
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $nodes_hash                     = hiera('nodes', {})
-$storage_hash                   = hiera('storage', {})
-$vcenter_hash                   = hiera('vcenter', {})
-$nova_hash                      = hiera('nova', {})
-$mysql_hash                     = hiera('mysql', {})
-$rabbit_hash                    = hiera('rabbit', {})
-$glance_hash                    = hiera('glance', {})
-$keystone_hash                  = hiera('keystone', {})
-$swift_hash                     = hiera('swift', {})
-$cinder_hash                    = hiera('cinder', {})
-$ceilometer_hash                = hiera('ceilometer',{})
-$access_hash                    = hiera('access', {})
-$network_scheme                 = hiera('network_scheme', {})
+$storage_hash                   = hiera_hash('storage', {})
+$vcenter_hash                   = hiera_hash('vcenter', {})
+$nova_hash                      = hiera_hash('nova', {})
+$mysql_hash                     = hiera_hash('mysql', {})
+$rabbit_hash                    = hiera_hash('rabbit', {})
+$glance_hash                    = hiera_hash('glance', {})
+$keystone_hash                  = hiera_hash('keystone', {})
+#$swift_hash                     = hiera_hash('swift', {})
+$cinder_hash                    = hiera_hash('cinder', {})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
+$access_hash                    = hiera_hash('access', {})
+$network_scheme                 = hiera_hash('network_scheme', {})
 $controllers                    = hiera('controllers')
 $swift_proxies                  = hiera('swift_proxies', $controllers)
 $swift_master_role              = hiera('swift_master_role', 'primary-controller')
@@ -84,7 +84,7 @@ class { 'l23network' :
 if $use_neutron {
   $novanetwork_params        = {}
   $network_provider          = 'neutron'
-  $neutron_config            = hiera('quantum_settings')
+  $neutron_config            = hiera_hash('quantum_settings', {})
   $neutron_db_password       = $neutron_config['database']['passwd']
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
@@ -169,8 +169,16 @@ if empty($node) {
 
 # get cidr netmasks for VIPs
 $primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-$vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
-$vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
+if ( hiera('vip_management_cidr_netmask', false )){
+  $vip_management_cidr_netmask = hiera('vip_management_cidr_netmask')
+} else {
+  $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
+}
+if ( hiera('vip_public_cidr_netmask', false )){
+  $vip_public_cidr_netmask     = hiera('vip_public_cidr_netmask')
+} else {
+  $vip_public_cidr_netmask     = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
+}
 
 #todo:(sv): temporary commented. Will be uncommented while
 #           'multiple-l2-network' feature re-implemented
@@ -191,14 +199,17 @@ $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
 # AMQP client configuration
-if $internal_address in $controller_nodes {
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+}
+elsif $internal_address in $controller_nodes {
   # prefer local MQ broker if it exists on this node
   $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
 } else {
   $amqp_nodes = fqdn_rotate($controller_nodes)
 }
 
-$amqp_port = '5673'
+$amqp_port = hiera('amqp_port', '5673')
 $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 $rabbit_ha_queues = true
 
@@ -233,43 +244,45 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = false
 }
 
-#Determine who should be the default backend
 
-if ($storage_hash['images_ceph']) {
-  $glance_backend = 'ceph'
-  $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
-} elsif ($storage_hash['images_vcenter']) {
-  $glance_backend = 'vmware'
-  $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
-} else {
-  $glance_backend = 'swift'
-  $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
-}
-
-# Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
-if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
-  $use_swift = true
-} else {
-  $use_swift = false
-}
-
-if ($use_swift) {
-  if !hiera('swift_partition', false) {
-    $swift_partition = '/var/lib/glance/node'
-  }
-  $swift_local_net_ip       = $storage_address
-  $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role',$swift_master_role)
-  $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
-  #$master_hostname         = $master_swift_proxy_nodes[0]['name']
-  $swift_loopback = false
-  if $primary_controller {
-    $primary_proxy = true
-  } else {
-    $primary_proxy = false
-  }
-} elsif ($storage_hash['objects_ceph']) {
-  $rgw_servers = $controllers
-}
+##Determine who should be the default backend
+#
+#if ($storage_hash['images_ceph']) {
+#  $glance_backend = 'ceph'
+#  $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
+#} elsif ($storage_hash['images_vcenter']) {
+#  $glance_backend = 'vmware'
+#  $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
+#} else {
+#  $glance_backend = 'swift'
+#  $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
+#}
+#
+## Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
+#if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
+#  $use_swift = true
+#} else {
+#  $use_swift = false
+#}
+#
+#if ($use_swift) {
+#  if !hiera('swift_partition', false) {
+#    $swift_partition = '/var/lib/glance/node'
+#  }
+#  $swift_proxies            = $controllers
+#  $swift_local_net_ip       = $storage_address
+#  $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
+#  $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
+#  #$master_hostname         = $master_swift_proxy_nodes[0]['name']
+#  $swift_loopback = false
+#  if $primary_controller {
+#    $primary_proxy = true
+#  } else {
+#    $primary_proxy = false
+#  }
+#} elsif ($storage_hash['objects_ceph']) {
+#  $rgw_servers = $controllers
+#}
 
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
 #   we delegate all of the monitor functions to RA instead of monit.
