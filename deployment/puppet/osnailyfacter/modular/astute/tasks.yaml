@@ -13,20 +13,23 @@
   role: [primary-controller]
   condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
   requires: [post_deployment_start]
-  required_for: [restart_rados, upload_cirros]
+  required_for: [enable_rados, upload_cirros]
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/ceph_ready_check.rb
     timeout: 1800
 
-- id: restart_rados
-  type: shell
+- id: enable_rados
+  type: puppet
   role: [primary-controller, controller]
   condition: "settings:storage.objects_ceph.value == true"
   requires: [post_deployment_start]
   required_for: [upload_cirros, post_deployment_end]
   parameters:
-    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/restart_rados.sh
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/enable_rados.pp
+    puppet_modules: /etc/puppet/modules
     timeout: 180
+    cwd: /
+
 
 - id: upload_cirros
   type: shell
