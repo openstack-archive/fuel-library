@@ -1,7 +1,7 @@
 cinder
 =======
 
-4.0.0 - 2014.1.0 - Icehouse
+5.0.0 - 2014.2.0 - Juno
 
 #### Table of Contents
 
@@ -163,7 +163,6 @@ Limitations
 
 * Setup of storage nodes is limited to Linux and LVM, i.e. Puppet won't configure a Nexenta appliance but nova can be configured to use the Nexenta driver with Class['cinder::volume::nexenta'].
 
-* The Cinder Openstack service depends on a sqlalchemy database. If you are using puppetlabs-mysql to achieve this, there is a parameter called mysql_module that can be used to swap between the two supported versions: 0.9 and 2.2. This is needed because the puppetlabs-mysql module was rewritten and the custom type names have changed between versions.
 Development
 -----------
 
@@ -178,6 +177,41 @@ Contributors
 
 Release Notes
 -------------
+
+**5.0.0**
+
+* Stable Juno release
+* Added class to manage policy.json
+* Changed the default value of the san_thin_provision parameter for eqlx
+* Added database tuning parameters
+* Made keystone user creation optional when creating a service
+* Added ability to hide secrets from logs
+* Added parameters for netapp and and cinder-api workers
+* Corrected the package name for cinder backup
+* Added support for the EMC VNX direct driver
+* Migrated the mysql backend to use openstacklib::db::mysql
+* Added support for availability zones
+
+**4.2.0**
+
+* Added parameters to set cinder volume driver
+* Added class for extended logging options
+* Added option to specify endpoint protocol
+* Fixed cinder type path issues
+* Added option to specify cinder volume path
+* Fixed targetcli package dependency on target service
+* Fixed os version fact comparison for RedHat-based operating systems
+  for specifying service provider
+* Added option to configure os_region_name in the cinder config
+
+**4.1.0**
+
+* Added Cinder v2 endpoint support.
+* Added SSL support for Cinder API.
+* Added RabbitMQ SSL support.
+* Moved default_volume_type to cinder::api
+* Removed warnings for existing Cinder volumes.
+* Pinned major gems.
 
 **4.0.0**
 
