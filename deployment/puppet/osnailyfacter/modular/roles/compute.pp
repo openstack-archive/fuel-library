@@ -10,28 +10,28 @@ $primary_controller             = hiera('primary_controller')
 $storage_address                = hiera('storage_address')
 $use_neutron                    = hiera('use_neutron', false)
 $cinder_nodes_array             = hiera('cinder_nodes', [])
-$sahara_hash                    = hiera('sahara', {})
-$murano_hash                    = hiera('murano', {})
-$heat_hash                      = hiera('heat', {})
+$sahara_hash                    = hiera_hash('sahara', {})
+$murano_hash                    = hiera_hash('murano', {})
+$heat_hash                      = hiera_hash('heat', {})
 $mp_hash                        = hiera('mp')
 $verbose                        = true
 $debug                          = hiera('debug', true)
 $use_monit                      = false
-$mongo_hash                     = hiera('mongo', {})
+$mongo_hash                     = hiera_hash('mongo', {})
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
-$nodes_hash                     = hiera('nodes', {})
-$storage_hash                   = hiera('storage', {})
-$vcenter_hash                   = hiera('vcenter', {})
-$nova_hash                      = hiera('nova', {})
-$mysql_hash                     = hiera('mysql', {})
-$rabbit_hash                    = hiera('rabbit', {})
-$glance_hash                    = hiera('glance', {})
-$keystone_hash                  = hiera('keystone', {})
-$swift_hash                     = hiera('swift', {})
-$cinder_hash                    = hiera('cinder', {})
-$ceilometer_hash                = hiera('ceilometer',{})
-$access_hash                    = hiera('access', {})
-$network_scheme                 = hiera('network_scheme', {})
+$nodes_hash                     = hiera('nodes', [])
+$storage_hash                   = hiera_hash('storage', {})
+$vcenter_hash                   = hiera_hash('vcenter', {})
+$nova_hash                      = hiera_hash('nova', {})
+$mysql_hash                     = hiera_hash('mysql', {})
+$rabbit_hash                    = hiera_hash('rabbit', {})
+$glance_hash                    = hiera_hash('glance', {})
+$keystone_hash                  = hiera_hash('keystone', {})
+$swift_hash                     = hiera_hash('swift', {})
+$cinder_hash                    = hiera_hash('cinder', {})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
+$access_hash                    = hiera_hash('access', {})
+$network_scheme                 = hiera_hash('network_scheme', {})
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
@@ -82,7 +82,7 @@ class { 'l23network' :
 if $use_neutron {
   $novanetwork_params        = {}
   $network_provider          = 'neutron'
-  $neutron_config            = hiera('quantum_settings')
+  $neutron_config            = hiera_hash('quantum_settings', {})
   $neutron_db_password       = $neutron_config['database']['passwd']
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
@@ -189,14 +189,17 @@ $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
 # AMQP client configuration
-if $internal_address in $controller_nodes {
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+} 
+elsif $internal_address in $controller_nodes {
   # prefer local MQ broker if it exists on this node
   $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
 } else {
   $amqp_nodes = fqdn_rotate($controller_nodes)
 }
 
-$amqp_port = '5673'
+$amqp_port = hiera('amqp_port', '5673')
 $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 $rabbit_ha_queues = true
 
