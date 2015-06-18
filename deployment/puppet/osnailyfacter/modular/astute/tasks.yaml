@@ -45,14 +45,17 @@
     timeout: 1800
 
 - id: restart_rados
-  type: shell
+  type: puppet
   role: [primary-controller, controller]
   condition: "settings:storage.objects_ceph.value == true"
   requires: [post_deployment_start]
   required_for: [upload_cirros, post_deployment_end]
   parameters:
-    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/restart_rados.sh
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/restart_rados.pp
+    puppet_modules: /etc/puppet/modules
     timeout: 180
+    cwd: /
+
 
 - id: upload_cirros
   type: shell
