@@ -1,0 +1,18 @@
+Source: fuel-library6.0
+Section: admin
+Priority: optional
+Maintainer: Mirantis Product <product@mirantis.com>
+Build-Depends: debhelper (>= 7), python-all
+Standards-Version: 3.9.2
+
+Package: fuel-ha-utils6.0
+Architecture: all
+Depends: ${misc:Depends}, python-keystoneclient, python-neutronclient
+Description: Fuel Library HA utils
+ .
+
+Package: fuel-library6.0
+Architecture: all
+Depends: ${misc:Depends}, sysfsutils, procps, lvm2, dpkg, iptables, rsync, rsyslog, openssh-client, openssh-server
+Description: Fuel Library puppet modules
+ .
