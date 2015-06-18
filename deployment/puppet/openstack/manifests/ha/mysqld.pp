@@ -1,8 +1,10 @@
 # HA configuration for MySQL/Galera for OpenStack
 class openstack::ha::mysqld (
   $is_primary_controller = false,
-  $before_start = false
-){
+  $before_start = false,
+  $server_names,
+  $ipaddresses,
+) {
 
   openstack::ha::haproxy_service { 'mysqld':
     order               => '110',
@@ -10,7 +12,8 @@ class openstack::ha::mysqld (
     balancermember_port => 3307,
     define_backups      => true,
     before_start        => $before_start,
-
+    server_names        => $server_names,
+    ipaddresses         => $ipaddresses,
     haproxy_config_options => {
       'option'         => ['httpchk', 'tcplog','clitcpka','srvtcpka'],
       'balance'        => 'leastconn',

@@ -1,6 +1,8 @@
 # HA configuration for OpenStack Horizon
 class openstack::ha::horizon (
   $use_ssl = false,
+  $server_names,
+  $ipaddresses,
 ) {
 
   openstack::ha::haproxy_service { 'horizon':
@@ -9,6 +11,8 @@ class openstack::ha::horizon (
     public         => true,
     internal       => false,
     define_cookies => true,
+    server_names   => $server_names,
+    ipaddresses    => $ipaddresses,
 
     haproxy_config_options => {
       'option'  => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
