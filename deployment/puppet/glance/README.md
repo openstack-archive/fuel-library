@@ -1,7 +1,7 @@
 glance
 =======
 
-4.0.0 - 2014.1.0 - Icehouse
+5.1.0 - 2014.2 - Juno
 
 #### Table of Contents
 
@@ -17,21 +17,21 @@ glance
 Overview
 --------
 
-The glance module is a part of [Stackforge](https://github.com/stackfoge), an effort by the Openstack infrastructure team to provide continuous integration testing and code review for Openstack and Openstack community projects not part of the core software.  The module its self is used to flexibly configure and manage the image service for Openstack.
+The glance module is a part of [Stackforge](https://github.com/stackfoge), an effort by the OpenStack infrastructure team to provide continuous integration testing and code review for OpenStack and OpenStack community projects not part of the core software.  The module its self is used to flexibly configure and manage the image service for OpenStack.
 
 Module Description
 ------------------
 
 The glance module is a thorough attempt to make Puppet capable of managing the entirety of glance.  This includes manifests to provision such things as keystone endpoints, RPC configurations specific to glance, and database connections.  Types are shipped as part of the glance module to assist in manipulation of configuration files.
 
-This module is tested in combination with other modules needed to build and leverage an entire Openstack software stack.  These modules can be found, all pulled together in the [openstack module](https://github.com/stackfoge/puppet-openstack).
+This module is tested in combination with other modules needed to build and leverage an entire OpenStack software stack.  These modules can be found, all pulled together in the [openstack module](https://github.com/stackfoge/puppet-openstack).
 
 Setup
 -----
 
 **What the glance module affects**
 
-* glance, the image service for Openstack.
+* glance, the image service for OpenStack.
 
 ### Installing glance
 
@@ -45,19 +45,19 @@ To utilize the glance module's functionality you will need to declare multiple r
 
 ```puppet
 class { 'glance::api':
-  verbose           => true,
-  keystone_tenant   => 'services',
-  keystone_user     => 'glance',
-  keystone_password => '12345',
-  sql_connection    => 'mysql://glance:12345@127.0.0.1/glance',
+  verbose             => true,
+  keystone_tenant     => 'services',
+  keystone_user       => 'glance',
+  keystone_password   => '12345',
+  database_connection => 'mysql://glance:12345@127.0.0.1/glance',
 }
 
 class { 'glance::registry':
-  verbose           => true,
-  keystone_tenant   => 'services',
-  keystone_user     => 'glance',
-  keystone_password => '12345',
-  sql_connection    => 'mysql://glance:12345@127.0.0.1/glance',
+  verbose             => true,
+  keystone_tenant     => 'services',
+  keystone_user       => 'glance',
+  keystone_password   => '12345',
+  database_connection => 'mysql://glance:12345@127.0.0.1/glance',
 }
 
 class { 'glance::backend::file': }
@@ -118,7 +118,23 @@ Limitations
 
 * Only supports configuring the file, swift and rbd storage backends.
 
-* The Glance Openstack service depends on a sqlalchemy database. If you are using puppetlabs-mysql to achieve this, there is a parameter called mysql_module that can be used to swap between the two supported versions: 0.9 and 2.2. This is needed because the puppetlabs-mysql module was rewritten and the custom type names have changed between versions.
+Beaker-Rspec
+------------
+
+This module has beaker-rspec tests
+
+To run the tests on the default vagrant node:
+
+To run:
+
+```shell
+bundle install
+bundle exec rspec spec/acceptance
+```
+
+For more information on writing and running beaker-rspec tests visit the documentation:
+
+* https://github.com/puppetlabs/beaker/wiki/How-to-Write-a-Beaker-Test-for-a-Module
 
 Development
 -----------
@@ -134,6 +150,57 @@ Contributors
 
 Release Notes
 -------------
+
+**5.1.0**
+
+* Service Validation for Glance-API
+* Switch to TLSv1
+* spec: pin rspec-puppet to 1.0.1
+* Makes kombu_ssl_* parameters optional when rabbit_use_ssl => true
+* Allow overriding package ensure for glance-registry
+* Move rbd related options into glance_store section
+* Pin puppetlabs-concat to 1.2.1 in fixtures
+* change default MySQL collate to utf8_general_ci
+* Add openstack tag to glance packages
+* Correctly munge glance_image is_public property
+* Create a sync_db boolean for Glance
+* Command parameter to sync the correct Database
+* Fix catalog compilation when not configuring endpoint
+* Add $notification_driver parameter to notify::rabbitmq
+* Fix is_public munge
+* Update .gitreview file for project rename
+
+**5.0.0**
+
+* Stable Juno release
+* Added ceilometer::policy to control policy.json
+* Fixed bug in glance_image type
+* Added parameter os_region_name to glance::api
+* Added support for vSphere datastore backend
+* Updated the calls to the glance command-line utility
+* Added parameter swift_store_large_object_size to glance::backend::swift
+* Bumped stdlib dependency to >=4.0.0
+* Added parameter command_options to glance::cache::cleaner and glance::cache::pruner
+* Added parameter package_ensure to glance::backend::rbd
+* Added parameter manage_service to various classes
+* Added parameters to control whether to configure users
+* Migrated the glance::db::mysql class to use openstacklib::db::mysql and deprecated the mysql_module parameter
+* Added parameter registery_client_protocol to glance::api
+* Fixed ssl parameter requirements for kombu and rabbit
+
+**4.2.0**
+
+* Added ability to hide secret type parameters from logs
+
+**4.1.0**
+
+* Added multiple rabbit hosts support.
+* Added image_cache_dir parameter.
+* Deprecated old SQL parameters.
+* Fixed the Glance add_image parser for new client.
+* Fixed values in get_glance_image_attrs.
+* Fixed 'could not find user glance' bug.
+* Pinned major gems.
 
 **4.0.0**
 
