@@ -21,10 +21,10 @@ Puppet::Type.type(:glance_image).provide(
       new(
         :ensure           => :present,
         :name             => attrs['name'],
-        :is_public        => attrs['public'],
-        :container_format => attrs['container format'],
+        :is_public        => attrs['is_public'],
+        :container_format => attrs['container_format'],
         :id               => attrs['id'],
-        :disk_format      => attrs['disk format']
+        :disk_format      => attrs['disk_format']
       )
     end
   end
@@ -43,12 +43,10 @@ Puppet::Type.type(:glance_image).provide(
   end
 
   def create
-    stdin = nil
     if resource[:source]
       # copy_from cannot handle file://
       if resource[:source] =~ /^\// # local file
-        location = "< #{resource[:source]}"
-        stdin = true
+        location = "--file=#{resource[:source]}"
       else
         location = "--copy-from=#{resource[:source]}"
       end
@@ -59,11 +57,7 @@ Puppet::Type.type(:glance_image).provide(
     else
       raise(Puppet::Error, "Must specify either source or location")
     end
-    if stdin
-      result = auth_glance_stdin('image-create', "--name=#{resource[:name]}", "--is-public=#{resource[:is_public]}", "--container-format=#{resource[:container_format]}", "--disk-format=#{resource[:disk_format]}", location)
-    else
-      results = auth_glance('image-create', "--name=#{resource[:name]}", "--is-public=#{resource[:is_public]}", "--container-format=#{resource[:container_format]}", "--disk-format=#{resource[:disk_format]}", location)
-    end
+    results = auth_glance('image-create', "--name=#{resource[:name]}", "--is-public=#{resource[:is_public]}", "--container-format=#{resource[:container_format]}", "--disk-format=#{resource[:disk_format]}", location)
 
     id = nil
 
@@ -96,10 +90,6 @@ Puppet::Type.type(:glance_image).provide(
   def destroy
     auth_glance('image-delete', id)
     @property_hash[:ensure] = :absent
-  end
-
-  def location=(value)
-    auth_glance('image-update', id, "--location=#{value}")
   end
 
   def is_public=(value)
