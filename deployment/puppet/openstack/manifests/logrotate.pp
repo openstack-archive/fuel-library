@@ -28,17 +28,13 @@ class openstack::logrotate (
     }
   }
 
-  # Configure (ana)cron for fuel custom hourly logrotations
-  class { '::anacron':
-    debug => $debug,
-  }
-
   # TODO(aschultz): should move these to augeas when augeas is upgraded to
   # >=1.4.0 because maxsize isn't supported until 1.4.0 which breaks everything.
   File_line {
     ensure => 'present',
     path   => '/etc/logrotate.conf',
   }
+
   # We're  using after here to place these options above the include
   # /etc/logrotate.d as file_line does not have a before option.
   file_line { 'logrotate-tabooext':
@@ -62,14 +58,20 @@ class openstack::logrotate (
     after => '^delaycompress',
   } ->
   file_line { 'logrotate-maxsize':
-    line   => "maxsize ${maxsize}",
-    match  => '^maxsize',
+    line  => "maxsize ${maxsize}",
+    match => '^maxsize',
     after => '^minsize',
+  }
+
+  if $debug {
+    $interval = '10'
+  } else {
+    $interval = '30'
   }
 
   cron { 'fuel-logrotate':
     command => '/usr/bin/fuel-logrotate',
     user    => 'root',
-    minute  => '*/30',
+    minute  => "*/${interval}",
   }
 }
