@@ -15,7 +15,10 @@ $network_scheme                 = hiera('network_scheme', {})
 $floating_hash = {}
 
 # amqp settings
-if $internal_address in $controller_nodes {
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+}
+elsif $internal_address in $controller_nodes {
   # prefer local MQ broker if it exists on this node
   $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
 } else {
@@ -31,14 +34,14 @@ class { 'l23network' :
 if $use_neutron {
   $network_provider      = 'neutron'
   $novanetwork_params    = {}
-  $neutron_config        = hiera('quantum_settings')
+  $neutron_config        = hiera_hash('quantum_settings')
   $neutron_db_password   = $neutron_config['database']['passwd']
   $neutron_user_password = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   $base_mac              = $neutron_config['L2']['base_mac']
 } else {
   $network_provider   = 'nova'
-  $floating_ips_range = hiera('floating_network_range')
+  $floating_ips_range = hiera_hash('floating_network_range')
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
 }
