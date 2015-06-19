@@ -194,7 +194,7 @@ class heat(
       }
     }
 
-    if size($rabbit_hosts) > 1 {
+    if $rabbit_hosts {
       heat_config { 'DEFAULT/rabbit_ha_queues': value => true }
     } else {
       heat_config { 'DEFAULT/rabbit_ha_queues': value => false }
