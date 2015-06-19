@@ -57,7 +57,7 @@ class { 'openstack::heat' :
   keystone_ec2_uri         => "http://${controller_node_address}:5000/v2.0",
 
   rpc_backend              => 'heat.openstack.common.rpc.impl_kombu',
-  amqp_hosts               => [$amqp_hosts],
+  amqp_hosts               => split($amqp_hosts, ',')
   amqp_user                => $rabbit_hash['user'],
   amqp_password            => $rabbit_hash['password'],
 
