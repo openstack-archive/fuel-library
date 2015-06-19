@@ -16,18 +16,12 @@ class cluster::neutron::dhcp (
 
   require cluster::neutron
 
-  if $multiple_agents {
-    Neutron_config<| name == 'DEFAULT/dhcp_agents_per_network' |> {
-      value => $agents_per_net
-    }
-    $csr_metadata = undef
-    $csr_complex_type    = 'clone'
-    $csr_ms_metadata     = { 'interleave' => 'true' }
-  } else {
-    $csr_metadata        = { 'resource-stickiness' => '1' }
-    $csr_complex_type    = undef
-    $csr_ms_metadata     = undef
+  Neutron_config<| name == 'DEFAULT/dhcp_agents_per_network' |> {
+    value => $agents_per_net
   }
+  $csr_metadata = undef
+  $csr_complex_type    = 'clone'
+  $csr_ms_metadata     = { 'interleave' => 'true' }
 
   $dhcp_agent_package = $::neutron::params::dhcp_agent_package ? {
     false   => $::neutron::params::package_name,
@@ -56,17 +50,6 @@ class cluster::neutron::dhcp (
     service_title   => 'neutron-dhcp-service',
     primary         => $primary,
     hasrestart      => false,
-  }
-
-  if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {
-    cluster::corosync::cs_with_service {'dhcp-and-ovs':
-      first   => "clone_p_${::neutron::params::ovs_agent_service}",
-      second  => $multiple_agents ? {
-                    false   => "p_${::neutron::params::dhcp_agent_service}",
-                    default => "clone_p_${::neutron::params::dhcp_agent_service}"
-                 },
-      require => Cluster::Corosync::Cs_service['ovs','dhcp']
-    }
   }
 
 }

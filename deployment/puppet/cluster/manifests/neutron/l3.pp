@@ -18,18 +18,12 @@ define cluster::neutron::l3 (
 
   require cluster::neutron
 
-  if $multiple_agents {
-    neutron_config{'DEFAULT/allow_automatic_l3agent_failover':
-      value => true
-    }
-    $csr_metadata = undef
-    $csr_complex_type    = 'clone'
-    $csr_ms_metadata     = { 'interleave' => 'true' }
-  } else {
-    $csr_metadata        = { 'resource-stickiness' => '1' }
-    $csr_complex_type    = undef
-    $csr_ms_metadata     = undef
+  neutron_config{'DEFAULT/allow_automatic_l3agent_failover':
+    value => true
   }
+  $csr_metadata = undef
+  $csr_complex_type    = 'clone'
+  $csr_ms_metadata     = { 'interleave' => 'true' }
 
   $l3_agent_package = $::neutron::params::l3_agent_package ? {
     false   => $::neutron::params::package_name,
@@ -60,30 +54,5 @@ define cluster::neutron::l3 (
     service_title   => 'neutron-l3',
     primary         => $primary,
     hasrestart      => false,
-  }
-
-  if ( 'ovs' in $ha_agents or 'ml2-ovs' in $ha_agents ) {
-    cluster::corosync::cs_with_service {'l3-and-ovs':
-      first   => "clone_p_${::neutron::params::ovs_agent_service}",
-      second  => $multiple_agents ? {
-                    false   => "p_${::neutron::params::l3_agent_service}",
-                    default => "clone_p_${::neutron::params::l3_agent_service}"
-                 },
-      require => Cluster::Corosync::Cs_service['ovs','l3'],
-    }
-  }
-
-  if ! $multiple_agents {
-    if 'dhcp' in $ha_agents {
-      cs_rsc_colocation { 'l3-keepaway-dhcp':
-        ensure     => present,
-        score      => '-100',
-        primitives => [
-          "p_${::neutron::params::dhcp_agent_service}",
-          "p_${::neutron::params::l3_agent_service}"
-        ],
-        require => Cluster::Corosync::Cs_service['dhcp','l3'],
-      }
-    }
   }
 }
