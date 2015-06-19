@@ -2600,7 +2600,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Fuel OS Linux:proc.num[].last(0)}&gt;300</expression>
+            <expression>{Template Fuel OS Linux:proc.num[].last(0)}&gt;500</expression>
             <name>Too many processes on {HOST.NAME}</name>
             <url/>
             <status>0</status>
