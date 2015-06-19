@@ -186,17 +186,13 @@ class heat(
       heat_config { 'DEFAULT/rabbit_hosts':
         value => join($rabbit_hosts, ',')
       }
+      heat_config { 'DEFAULT/rabbit_ha_queues': value => true }
     } else {
       heat_config { 'DEFAULT/rabbit_host': value => $rabbit_host }
       heat_config { 'DEFAULT/rabbit_port': value => $rabbit_port }
       heat_config { 'DEFAULT/rabbit_hosts':
         value => "${rabbit_host}:${rabbit_port}"
       }
-    }
-
-    if size($rabbit_hosts) > 1 {
-      heat_config { 'DEFAULT/rabbit_ha_queues': value => true }
-    } else {
       heat_config { 'DEFAULT/rabbit_ha_queues': value => false }
     }
 
