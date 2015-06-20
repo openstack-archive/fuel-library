@@ -54,6 +54,11 @@ if $murano_hash['enabled'] {
     $murano_repo_url = 'http://storage.apps.openstack.org'
   }
 
+  # add murano rabbitmq port to the reserved ports list LP#1467024
+  class { 'openstack::reserved_ports':
+    ports => '49000,49001,35357,41055,58882,55572'
+  }
+
   class { 'murano' :
     murano_package_name      => $murano_package_name,
     murano_api_host          => $management_ip,
