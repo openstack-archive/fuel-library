@@ -216,8 +216,14 @@ $memcache_servers = values(get_node_to_ipaddr_map_by_network_role(get_nodes_hash
 $swift_master_role   = 'primary-controller'
 $swift_nodes         = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 $swift_proxies       = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-$swift_proxy_caches  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']) # memcache for swift
+# memcache for swift
+$swift_proxy_caches  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 $is_primary_swift_proxy = $primary_controller
+
+
+# Define ceph-related variables
+$ceph_monitors = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$ceph_rgw_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
