@@ -25,30 +25,30 @@
 # sudo pcs constraint colocation add nova_api_service with nova_vip
 # sudo pcs constraint colocation add nova_novncproxy_service with nova_vip
 
-class { 'nova': }
+class { '::nova': }
 
-class { 'nova::api':
-  enabled           => false,
-  manage_service    => false,
-  admin_password    => 'PASSWORD',
+class { '::nova::api':
+  enabled        => false,
+  manage_service => false,
+  admin_password => 'PASSWORD',
 }
 
-class { 'nova::conductor':
+class { '::nova::conductor':
   enabled        => false,
   manage_service => false,
 }
 
-class { 'nova::consoleauth':
+class { '::nova::consoleauth':
   enabled        => false,
   manage_service => false,
 }
 
-class { 'nova::scheduler':
+class { '::nova::scheduler':
   enabled        => false,
   manage_service => false,
 }
 
-class { 'nova::vncproxy':
+class { '::nova::vncproxy':
   enabled        => false,
   manage_service => false,
 }

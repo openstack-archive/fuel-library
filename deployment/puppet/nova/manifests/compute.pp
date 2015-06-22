@@ -8,6 +8,10 @@
 #   (optional) Whether to enable the nova-compute service
 #   Defaults to false
 #
+# [*heal_instance_info_cache_interval*]
+#   (optional) Controls how often the instance info should be updated.
+#    Defaults to '60' , to disable you can set the value to zero.
+#
 # [*manage_service*]
 #   (optional) Whether to start/stop the service
 #   Defaults to true
@@ -38,7 +42,11 @@
 #
 # [*vncproxy_path*]
 #   (optional) The path at the end of the uri for communication with the VNC proxy server
-#   Defaults to './vnc_auto.html'
+#   Defaults to '/vnc_auto.html'
+#
+# [*vnc_keymap*]
+#   (optional) The keymap to use with VNC (ls -alh /usr/share/qemu/keymaps to list available keymaps)
+#   Defaults to 'en-us'
 #
 # [*force_config_drive*]
 #   (optional) Whether to force the config drive to be attached to all VMs
@@ -65,9 +73,23 @@
 #   Time period must be hour, day, month or year
 #   Defaults to 'month'
 #
+#  [*force_raw_images*]
+#   (optional) Force backing images to raw format.
+#   Defaults to true
+#
+#  [*reserved_host_memory*]
+#   Reserved host memory
+#   The amount of memory in MB reserved for the host.
+#   Defaults to '512'
+#
+#  [*compute_manager*]
+#   Compute manager
+#   The driver that will manage the running instances.
+#   Defaults to nova.compute.manager.ComputeManager
+#
 #  [*default_availability_zone*]
 #   (optional) Default compute node availability zone.
-#   Defaults to undef
+#   Defaults to nova
 #
 #  [*default_schedule_zone*]
 #   (optional) Availability zone to use when user doesn't specify one.
@@ -75,7 +97,14 @@
 #
 #  [*internal_service_availability_zone*]
 #   (optional) The availability zone to show internal services under.
+#   Defaults to internal
+#
+#  [*pci_passthrough*]
+#   (optional) Pci passthrough hash in format of:
 #   Defaults to undef
+#   Example
+#  "[ { 'vendor_id':'1234','product_id':'5678' },
+#     { 'vendor_id':'4321','product_id':'8765','physical_network':'default' } ] "
 #
 class nova::compute (
   $enabled                            = false,
@@ -87,39 +116,47 @@ class nova::compute (
   $vncproxy_protocol                  = 'http',
   $vncproxy_port                      = '6080',
   $vncproxy_path                      = '/vnc_auto.html',
+  $vnc_keymap                         = 'en-us',
   $force_config_drive                 = false,
   $virtio_nic                         = false,
   $neutron_enabled                    = true,
   $network_device_mtu                 = undef,
   $instance_usage_audit               = false,
   $instance_usage_audit_period        = 'month',
-  $default_availability_zone          = undef,
+  $force_raw_images                   = true,
+  $reserved_host_memory               = '512',
+  $compute_manager                    = 'nova.compute.manager.ComputeManager',
+  $default_availability_zone          = 'nova',
   $default_schedule_zone              = undef,
-  $internal_service_availability_zone = undef,
+  $internal_service_availability_zone = 'internal',
+  $heal_instance_info_cache_interval  = '60',
+  $pci_passthrough                    = undef,
 ) {
 
-  include nova::params
-  include stdlib
+  include ::nova::params
+
+  nova_config {
+    'DEFAULT/reserved_host_memory_mb':           value => $reserved_host_memory;
+    'DEFAULT/compute_manager':                   value => $compute_manager;
+    'DEFAULT/heal_instance_info_cache_interval': value => $heal_instance_info_cache_interval;
+  }
 
   if ($vnc_enabled) {
-    if ($vncproxy_host) {
-      $vncproxy_base_url = "${vncproxy_protocol}://${vncproxy_host}:${vncproxy_port}${vncproxy_path}"
-      # config for vnc proxy
-      nova_config {
-        'DEFAULT/novncproxy_base_url': value => $vncproxy_base_url;
-      }
-    }
+    include ::nova::vncproxy::common
   }
 
   nova_config {
     'DEFAULT/vnc_enabled':                   value => $vnc_enabled;
     'DEFAULT/vncserver_proxyclient_address': value => $vncserver_proxyclient_address;
+    'DEFAULT/vnc_keymap':                    value => $vnc_keymap;
   }
 
   if $neutron_enabled != true {
     # Install bridge-utils if we use nova-network
-    ensure_packages('bridge-utils')
-    Package <| title == 'bridge-utils' |> -> Nova::Generic_service['compute']
+    package { 'bridge-utils':
+      ensure => present,
+      before => Nova::Generic_service['compute'],
+    }
   }
 
   nova::generic_service { 'compute':
@@ -164,22 +201,28 @@ class nova::compute (
     }
   }
 
-  if $default_availability_zone {
-    nova_config {
-      'DEFAULT/default_availability_zone':value => $default_availability_zone;
-    }
+  package { 'pm-utils':
+    ensure => present,
+  }
+
+  nova_config {
+    'DEFAULT/force_raw_images': value => $force_raw_images;
+  }
+
+  nova_config {
+    'DEFAULT/default_availability_zone':          value => $default_availability_zone;
+    'DEFAULT/internal_service_availability_zone': value => $internal_service_availability_zone;
   }
 
   if $default_schedule_zone {
     nova_config {
-      'DEFAULT/default_schedule_zone':value => $default_schedule_zone;
+      'DEFAULT/default_schedule_zone': value => $default_schedule_zone;
     }
   }
 
-  if $internal_service_availability_zone {
+  if ($pci_passthrough) {
     nova_config {
-      'DEFAULT/internal_service_availability_zone':value => $internal_service_availability_zone;
+      'DEFAULT/pci_passthrough_whitelist': value => check_array_of_hash($pci_passthrough);
     }
   }
-
 }
