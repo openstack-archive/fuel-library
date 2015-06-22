@@ -166,7 +166,12 @@ if $use_neutron {
 }
 
 $primary_controller            = $node_role ? { 'primary-controller' => true, default =>false }
+
+# primary controller nodes is taken using nodes, will be deprecated in near feature, DO NOT USE IT ANYMORE !!
 $primary_controller_nodes      = filter_nodes($nodes_hash,'role','primary-controller')
+# primary_controller_node from network_metadada
+$primary_controller_node       = get_nodes_hash_by_roles($network_metadata, ['primary-controller'])
+
 $controllers                   = concat($primary_controller_nodes,
                                         filter_nodes($nodes_hash,'role','controller')
 )
@@ -222,6 +227,11 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
 } else {
   $manage_volumes = false
 }
+
+# Define ceph-related variables
+$ceph_primary_monitor_node = get_nodes_hash_by_roles($network_metadata, ['primary-controller'])
+$ceph_monitor_nodes        = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$ceph_rgw_nodes            = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
 #Determine who should be the default backend
 if ($storage_hash['images_ceph']) {
