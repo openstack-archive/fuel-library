@@ -1,47 +1,57 @@
+# == Class: keystone::db::postgresql
 #
-# implements postgresql backend for keystone
+# Class that configures postgresql for keystone
+# Requires the Puppetlabs postgresql module.
 #
-# This class can be used to create tables, users and grant
-# privelege for a postgresql keystone database.
-#
-# Requires Puppetlabs Postgresql module.
-#
-# [*Parameters*]
-#
-# [password] Password that will be used for the keystone db user.
-#   Optional. Defaults to: 'keystone_default_password'
-#
-# [dbname] Name of keystone database. Optional. Defaults to keystone.
-#
-# [user] Name of keystone user. Optional. Defaults to keystone.
-#
-# == Dependencies
-#   Class['postgresql::server']
-#
-# == Examples
 # == Authors
 #
+#   Stackforge Contributors puppet-openstack@puppetlabs.com
 #   Etienne Pelletier epelletier@morphlabs.com
 #
 # == Copyright
 #
+# Copyright 2013-2014 Stackforge Contributors
 # Copyright 2012 Etienne Pelletier, unless otherwise noted.
+#
+# === Parameters
+#
+# [*password*]
+#   (Required) Password to connect to the database.
+#
+# [*dbname*]
+#   (Optional) Name of the database.
+#   Defaults to 'keystone'.
+#
+# [*user*]
+#   (Optional) User to connect to the database.
+#   Defaults to 'keystone'.
+#
+#  [*encoding*]
+#    (Optional) The charset to use for the database.
+#    Default to undef.
+#
+#  [*privileges*]
+#    (Optional) Privileges given to the database user.
+#    Default to 'ALL'
 #
 class keystone::db::postgresql(
   $password,
-  $dbname        = 'keystone',
-  $user          = 'keystone'
+  $dbname     = 'keystone',
+  $user       = 'keystone',
+  $encoding   = undef,
+  $privileges = 'ALL',
 ) {
 
   Class['keystone::db::postgresql'] -> Service<| title == 'keystone' |>
 
-  require postgresql::python
-
-  postgresql::db { $dbname:
-    user      => $user,
-    password  => $password,
+  ::openstacklib::db::postgresql { 'keystone':
+    password_hash => postgresql_password($user, $password),
+    dbname        => $dbname,
+    user          => $user,
+    encoding      => $encoding,
+    privileges    => $privileges,
   }
 
-  Postgresql::Server::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
+  ::Openstacklib::Db::Postgresql['keystone'] ~> Exec<| title == 'keystone-manage db_sync' |>
 
 }
