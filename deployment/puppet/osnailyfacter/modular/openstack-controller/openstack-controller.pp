@@ -33,6 +33,15 @@ $mongo_hash                     = hiera('mongo', {})
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash                 = hiera('workloads_collector', {})
 
+####### DB Settings #######
+$enabled          = true
+$db_type          = 'mysql'
+$db_host          = $management_vip
+$nova_db_user     = 'nova'
+$nova_db_dbname   = 'nova'
+$nova_db_password = $nova_hash['db_password']
+$db_allowed_hosts = [ '%', $::hostname ]
+
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
 $controller_hostnames           = keys($controller_internal_addresses)
@@ -161,6 +170,21 @@ if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
 } else {
   $multi_host = true
 }
+
+####### Create MySQL database #######
+class mysql::server {}
+class mysql::config {}
+
+include mysql::server
+include mysql::config
+
+class { 'nova::db::mysql':
+  user          => $nova_db_user,
+  password      => $nova_db_password,
+  dbname        => $nova_db_dbname,
+  allowed_hosts => $db_allowed_hosts,
+}
+Class['nova::db::mysql'] -> Class['openstack::controller']
 
 class { '::openstack::controller':
   private_interface              => $use_neutron ? { true=>false, default=>hiera('private_int')},

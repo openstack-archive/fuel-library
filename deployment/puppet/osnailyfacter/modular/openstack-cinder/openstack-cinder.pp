@@ -12,14 +12,18 @@ $storage_address                = hiera('storage_address')
 $ceilometer_hash                = hiera('ceilometer',{})
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $service_endpoint               = hiera('service_endpoint', $management_vip)
-$cinder_db_password             = $cinder_hash[db_password]
-$cinder_user_password           = $cinder_hash[user_password]
+$cinder_user_password           = $cinder_hash['user_password']
 $keystone_user                  = pick($cinder_hash['user'], 'cinder')
 $keystone_tenant                = pick($cinder_hash['tenant'], 'services')
+$roles                          = node_roles($nodes_hash, hiera('uid'))
+
+$enabled                        = true
+$db_type                        = 'mysql'
 $db_host                        = pick($cinder_hash['db_host'], $management_vip)
 $cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
-$roles                          = node_roles($nodes_hash, hiera('uid'))
+$cinder_db_password             = $cinder_hash['db_password']
+$allowed_hosts                  = [ '%', $::hostname ]
 
 if hiera('amqp_nodes', false) {
   $amqp_nodes = hiera('amqp_nodes')
@@ -58,6 +62,20 @@ $openstack_version = {
   'nova'       => 'installed',
   'novncproxy' => 'installed',
   'cinder'     => 'installed',
+}
+
+####### Create MySQL database #######
+class mysql::server {}
+class mysql::config {}
+
+include mysql::server
+include mysql::config
+
+class { 'cinder::db::mysql':
+    user          => $cinder_db_user,
+    password      => $cinder_db_password,
+    dbname        => $cinder_db_dbname,
+    allowed_hosts => $allowed_hosts,
 }
 
 ######### Cinder Controller Services ########
