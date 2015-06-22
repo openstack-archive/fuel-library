@@ -7,7 +7,7 @@
 # [*fixed_range*]
 #   (required) The IPv4 CIDR for the network
 #
-# [flat_interface]
+# [*flat_interface*]
 #   (optional) Interface that flat network will use for bridging
 #   Defaults to undef
 #
@@ -15,7 +15,7 @@
 #   (optional) The interface to use for public traffic
 #   Defaults to undef
 #
-# [flat_network_bridge]
+# [*flat_network_bridge*]
 #   (optional) The name of the bridge to use
 #   Defaults to 'br100'
 #

@@ -3,34 +3,44 @@
 # Class that configures postgresql for nova
 # Requires the Puppetlabs postgresql module.
 #
-# === Parameters:
+# === Parameters
 #
 # [*password*]
-#   Password to use to connect to postgresql
+#   (Required) Password to connect to the database.
 #
 # [*dbname*]
-#   (optional) Name of the database to create for nova
-#   Defaults to 'nova'
+#   (Optional) Name of the database.
+#   Defaults to 'nova'.
 #
 # [*user*]
-#   (optional) Name of the user to connect to postgresql
-#   Defaults to 'nova'
+#   (Optional) User to connect to the database.
+#   Defaults to 'nova'.
+#
+#  [*encoding*]
+#    (Optional) The charset to use for the database.
+#    Default to undef.
+#
+#  [*privileges*]
+#    (Optional) Privileges given to the database user.
+#    Default to 'ALL'
 #
 class nova::db::postgresql(
   $password,
-  $dbname = 'nova',
-  $user   = 'nova'
+  $dbname     = 'nova',
+  $user       = 'nova',
+  $encoding   = undef,
+  $privileges = 'ALL',
 ) {
 
-  require 'postgresql::python'
-
-  Postgresql::Server::Db[$dbname] -> Anchor<| title == 'nova-start' |>
-  Postgresql::Server::Db[$dbname] ~> Exec<| title == 'nova-db-sync' |>
-  Package['python-psycopg2'] -> Exec<| title == 'nova-db-sync' |>
-
-  postgresql::server::db { $dbname:
-    user     => $user,
-    password => $password,
+  ::openstacklib::db::postgresql { 'nova':
+    password_hash => postgresql_password($user, $password),
+    dbname        => $dbname,
+    user          => $user,
+    encoding      => $encoding,
+    privileges    => $privileges,
   }
+
+  ::Openstacklib::Db::Postgresql['nova'] ~> Exec<| title == 'nova-db-sync' |>
+  ::Openstacklib::Db::Postgresql['nova'] -> Anchor<| title == 'nova-start' |>
 
 }
