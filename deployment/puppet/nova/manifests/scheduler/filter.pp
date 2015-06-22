@@ -40,7 +40,7 @@
 #   (optional) Ignore hosts that have too many instances
 #   Defaults to '50'
 #
-# [*ram_allocation_ratio:*]
+# [*ram_allocation_ratio*]
 #   (optional) Virtual ram to physical ram allocation ratio
 #   Defaults to '1.5'
 #
@@ -49,7 +49,7 @@
 #   Defaults to 'nova.scheduler.filters.all_filters'
 #
 # [*scheduler_default_filters*]
-#   (optional) A comma separated list of filters to be used by default
+#   (optional) An array of filters to be used by default
 #   Defaults to false
 #
 # [*scheduler_weight_classes*]
