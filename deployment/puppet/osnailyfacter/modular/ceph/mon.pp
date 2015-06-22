@@ -35,8 +35,8 @@ if $use_ceph {
 
   if ($use_neutron) {
     prepare_network_config(hiera('network_scheme', {}))
-    $ceph_cluster_network = get_network_role_property('storage', 'cidr')
-    $ceph_public_network  = get_network_role_property('management', 'cidr')
+    $ceph_cluster_network = get_network_role_property('ceph/replication', 'cidr')
+    $ceph_public_network  = get_network_role_property('ceph/public', 'cidr')
   } else {
     $ceph_cluster_network = hiera('storage_network_range')
     $ceph_public_network = hiera('management_network_range')
