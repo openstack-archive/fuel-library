@@ -1,14 +1,10 @@
+# LP#1408531
+File.expand_path('../..', File.dirname(__FILE__)).tap { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
+File.expand_path('../../../../openstacklib/lib', File.dirname(__FILE__)).tap { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
+
 Puppet::Type.newtype(:keystone_user) do
 
-  desc <<-EOT
-    This is currently used to model the creation of
-    keystone users.
-
-    It currently requires that both the password
-    as well as the tenant are specified.
-  EOT
-
-# TODO support description??
+  desc 'Type for managing keystone users.'
 
   ensurable
 
@@ -16,16 +12,19 @@ Puppet::Type.newtype(:keystone_user) do
     newvalues(/\S+/)
   end
 
-  newparam(:ignore_default_tenant, :boolean => true) do
-    newvalues(:true, :false)
-    defaultto false
+  newparam(:ignore_default_tenant) do
+    newvalues(/(t|T)rue/, /(f|F)alse/, true, false)
+    defaultto(false)
+    munge do |value|
+      value.to_s.downcase.to_sym
+    end
   end
 
   newproperty(:enabled) do
-    newvalues(/(t|T)rue/, /(f|F)alse/)
-    defaultto('True')
+    newvalues(/(t|T)rue/, /(f|F)alse/, true, false)
+    defaultto(true)
     munge do |value|
-      value.to_s.capitalize
+      value.to_s.downcase.to_sym
     end
   end
 
@@ -53,7 +52,7 @@ Puppet::Type.newtype(:keystone_user) do
   end
 
   newproperty(:email) do
-    newvalues(/\S+@\S+/)
+    newvalues(/^(\S+@\S+)|$/)
   end
 
   newproperty(:id) do
@@ -62,11 +61,11 @@ Puppet::Type.newtype(:keystone_user) do
     end
   end
 
-  newproperty(:manage_password) do
-    newvalues(/(t|T)rue/, /(f|F)alse/)
-    defaultto('True')
+  newparam(:replace_password) do
+    newvalues(/(t|T)rue/, /(f|F)alse/, true, false)
+    defaultto(true)
     munge do |value|
-      value.to_s.capitalize
+      value.to_s.downcase.to_sym
     end
   end
 
@@ -78,5 +77,4 @@ Puppet::Type.newtype(:keystone_user) do
   autorequire(:service) do
     ['keystone']
   end
-
 end
