@@ -37,9 +37,11 @@ if $use_ceph {
     prepare_network_config(hiera_hash('network_scheme'))
     $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
     $ceph_public_network  = get_network_role_property('ceph/public', 'network')
+    $mon_addr = get_network_role_property('ceph/replication', 'ipaddr')
   } else {
     $ceph_cluster_network = hiera('storage_network_range')
     $ceph_public_network = hiera('management_network_range')
+    $mon_addr = $::internal_address
   }
 
   class {'ceph':
@@ -48,6 +50,7 @@ if $use_ceph {
                                                  'controller', 'ceph-mon'], 'name'),
     mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller',
                                                  'controller', 'ceph-mon'], 'internal_address'),
+    mon_addr                 => $mon_addr,
     cluster_node_address     => $public_vip,
     osd_pool_default_size    => $storage_hash['osd_pool_size'],
     osd_pool_default_pg_num  => $storage_hash['pg_num'],

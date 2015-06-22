@@ -25,6 +25,11 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     prepare_network_config(hiera_hash('network_scheme'))
     $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
     $ceph_public_network  = get_network_role_property('ceph/public', 'network')
+
+    # We don't use the ceph/radosgw role here (see openstack::ha::haproxy)
+    # because we listen on *, therfor the only selection can be done on
+    # the haproxy backend selection
+
   } else {
     $ceph_cluster_network = hiera('storage_network_range')
     $ceph_public_network = hiera('management_network_range')
