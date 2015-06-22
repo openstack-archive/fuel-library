@@ -1,4 +1,4 @@
-# == Class: nova::schedule
+# == Class: nova::scheduler
 #
 # Install and manage nova scheduler
 #
@@ -22,7 +22,8 @@ class nova::scheduler(
   $ensure_package = 'present'
 ) {
 
-  include nova::params
+  include ::nova::db
+  include ::nova::params
 
   nova::generic_service { 'scheduler':
     enabled        => $enabled,

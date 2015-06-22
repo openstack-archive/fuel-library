@@ -2,7 +2,7 @@
 # Copyright (C) 2013 eNovance SAS <licensing@enovance.com>
 #
 # Author: Emilien Macchi <emilien.macchi@enovance.com>
-#         François Charlier <francois.charlier@enovance.com>
+#         Francois Charlier <francois.charlier@enovance.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -55,43 +55,44 @@ describe 'nova::cells' do
 
   shared_examples_for 'nova-cells' do
 
-    it { should contain_class('nova::params') }
+    it { is_expected.to contain_class('nova::params') }
 
     it 'installs nova-cells package' do
-      should contain_package('nova-cells').with(
+      is_expected.to contain_package('nova-cells').with(
         :ensure => 'present',
-        :name   => platform_params[:cells_package_name]
+        :name   => platform_params[:cells_package_name],
+        :tag    => ['openstack']
       )
     end
 
     it 'configures nova-cells service' do
-      should contain_service('nova-cells').with(
+      is_expected.to contain_service('nova-cells').with(
         :ensure     => 'running',
         :name       => platform_params[:cells_service_name]
       )
     end
 
     it 'configures cell' do
-      should contain_nova_config('cells/bandwidth_update_interval').with(:value => '600')
-      should contain_nova_config('cells/call_timeout').with(:value => '60')
-      should contain_nova_config('cells/capabilities').with(:value => 'hypervisor=xenserver;kvm,os=linux;windows')
-      should contain_nova_config('cells/db_check_interval').with(:value => '60')
-      should contain_nova_config('cells/driver').with(:value => 'nova.cells.rpc_driver.CellsRPCDriver')
-      should contain_nova_config('cells/instance_updated_at_threshold').with(:value => '3600')
-      should contain_nova_config('cells/instance_update_num_instances').with(:value => '1')
-      should contain_nova_config('cells/manager').with(:value => 'nova.cells.manager.CellsManager')
-      should contain_nova_config('cells/max_hop_count').with(:value => '10')
-      should contain_nova_config('cells/mute_child_interval').with(:value => '300')
-      should contain_nova_config('cells/mute_weight_multiplier').with(:value => '-10.0')
-      should contain_nova_config('cells/mute_weight_value').with(:value => '1000.0')
-      should contain_nova_config('cells/ram_weight_multiplier').with(:value => '10.0')
-      should contain_nova_config('cells/reserve_percent').with(:value => '10.0')
-      should contain_nova_config('cells/rpc_driver_queue_base').with(:value => 'cells.intercell')
-      should contain_nova_config('cells/scheduler_filter_classes').with(:value => 'nova.cells.filters.all_filters')
-      should contain_nova_config('cells/scheduler_retries').with(:value => '10')
-      should contain_nova_config('cells/scheduler_retry_delay').with(:value => '2')
-      should contain_nova_config('cells/scheduler_weight_classes').with(:value => 'nova.cells.weights.all_weighers')
-      should contain_nova_config('cells/scheduler').with(:value => 'nova.cells.scheduler.CellsScheduler')
+      is_expected.to contain_nova_config('cells/bandwidth_update_interval').with(:value => '600')
+      is_expected.to contain_nova_config('cells/call_timeout').with(:value => '60')
+      is_expected.to contain_nova_config('cells/capabilities').with(:value => 'hypervisor=xenserver;kvm,os=linux;windows')
+      is_expected.to contain_nova_config('cells/db_check_interval').with(:value => '60')
+      is_expected.to contain_nova_config('cells/driver').with(:value => 'nova.cells.rpc_driver.CellsRPCDriver')
+      is_expected.to contain_nova_config('cells/instance_updated_at_threshold').with(:value => '3600')
+      is_expected.to contain_nova_config('cells/instance_update_num_instances').with(:value => '1')
+      is_expected.to contain_nova_config('cells/manager').with(:value => 'nova.cells.manager.CellsManager')
+      is_expected.to contain_nova_config('cells/max_hop_count').with(:value => '10')
+      is_expected.to contain_nova_config('cells/mute_child_interval').with(:value => '300')
+      is_expected.to contain_nova_config('cells/mute_weight_multiplier').with(:value => '-10.0')
+      is_expected.to contain_nova_config('cells/mute_weight_value').with(:value => '1000.0')
+      is_expected.to contain_nova_config('cells/ram_weight_multiplier').with(:value => '10.0')
+      is_expected.to contain_nova_config('cells/reserve_percent').with(:value => '10.0')
+      is_expected.to contain_nova_config('cells/rpc_driver_queue_base').with(:value => 'cells.intercell')
+      is_expected.to contain_nova_config('cells/scheduler_filter_classes').with(:value => 'nova.cells.filters.all_filters')
+      is_expected.to contain_nova_config('cells/scheduler_retries').with(:value => '10')
+      is_expected.to contain_nova_config('cells/scheduler_retry_delay').with(:value => '2')
+      is_expected.to contain_nova_config('cells/scheduler_weight_classes').with(:value => 'nova.cells.weights.all_weighers')
+      is_expected.to contain_nova_config('cells/scheduler').with(:value => 'nova.cells.scheduler.CellsScheduler')
     end
   end
 
@@ -104,8 +105,9 @@ describe 'nova::cells' do
     let :expected_params do
       default_params.merge(params)
     end
-    it { should contain_nova_config('cells/name').with_value(expected_params[:cell_name]) }
-    it { should contain_nova_config('DEFAULT/compute_api_class').with_value('nova.compute.cells_api.ComputeCellsAPI')}
+    it { is_expected.to contain_nova_config('cells/name').with_value(expected_params[:cell_name]) }
+    it { is_expected.to contain_nova_config('DEFAULT/compute_api_class').with_value('nova.compute.cells_api.ComputeCellsAPI')}
+    it { is_expected.to contain_nova_config('cells/cell_type').with_value('api')}
     it_configures 'nova-cells'
   end
 
@@ -119,7 +121,7 @@ describe 'nova::cells' do
     let :expected_params do
       default_params.merge(params)
     end
-    it { should contain_service(platform_params[:cells_service_name]).without_ensure }
+    it { is_expected.to contain_service(platform_params[:cells_service_name]).without_ensure }
   end
 
   shared_examples_for 'a child cell' do
@@ -131,8 +133,9 @@ describe 'nova::cells' do
     let :expected_params do
       default_params.merge(params)
     end
-    it { should contain_nova_config('cells/name').with_value(expected_params[:cell_name]) }
-    it { should contain_nova_config('DEFAULT/quota_driver').with_value('nova.quota.NoopQuotaDriver')}
+    it { is_expected.to contain_nova_config('cells/name').with_value(expected_params[:cell_name]) }
+    it { is_expected.to contain_nova_config('DEFAULT/quota_driver').with_value('nova.quota.NoopQuotaDriver')}
+    it { is_expected.to contain_nova_config('cells/cell_type').with_value('compute')}
     it_configures 'nova-cells'
   end
 

@@ -9,11 +9,11 @@ describe 'nova::network::flat' do
       }
     end
 
-    it { should contain_nova_config('DEFAULT/network_manager').with_value('nova.network.manager.FlatManager') }
-    it { should_not contain_nova_config('DEFAULT/public_interface') }
-    it { should contain_nova_config('DEFAULT/fixed_range').with_value('10.0.0.0/32') }
-    it { should contain_nova_config('DEFAULT/flat_network_bridge').with_value('br100') }
-    it { should contain_nova_config('DEFAULT/flat_interface').with_value(nil) }
+    it { is_expected.to contain_nova_config('DEFAULT/network_manager').with_value('nova.network.manager.FlatManager') }
+    it { is_expected.to_not contain_nova_config('DEFAULT/public_interface') }
+    it { is_expected.to contain_nova_config('DEFAULT/fixed_range').with_value('10.0.0.0/32') }
+    it { is_expected.to contain_nova_config('DEFAULT/flat_network_bridge').with_value('br100') }
+    it { is_expected.to contain_nova_config('DEFAULT/flat_interface').with_value(nil) }
   end
 
   describe 'when overriding class parameters' do
@@ -27,10 +27,10 @@ describe 'nova::network::flat' do
       }
     end
 
-    it { should contain_nova_config('DEFAULT/public_interface').with_value('eth0') }
-    it { should contain_nova_config('DEFAULT/flat_network_bridge').with_value('br1001') }
-    it { should contain_nova_config('DEFAULT/fixed_range').with_value('10.0.0.0/32') }
-    it { should contain_nova_config('DEFAULT/flat_interface').with_value('eth1') }
+    it { is_expected.to contain_nova_config('DEFAULT/public_interface').with_value('eth0') }
+    it { is_expected.to contain_nova_config('DEFAULT/flat_network_bridge').with_value('br1001') }
+    it { is_expected.to contain_nova_config('DEFAULT/fixed_range').with_value('10.0.0.0/32') }
+    it { is_expected.to contain_nova_config('DEFAULT/flat_interface').with_value('eth1') }
 
   end
 
