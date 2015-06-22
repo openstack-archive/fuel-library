@@ -22,7 +22,7 @@ class nova::cert(
   $ensure_package = 'present'
 ) {
 
-  include nova::params
+  include ::nova::params
 
   nova::generic_service { 'cert':
     enabled        => $enabled,

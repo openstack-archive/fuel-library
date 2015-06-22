@@ -1,8 +1,11 @@
 # == Class: nova::network
 #
-# Manages nova-network. Note that
-# Nova-network is not receiving upstream patches any more
-# and Neutron should be used in its place
+# Manages nova-network.
+#
+# An OpenStack deployment that includes compute and networking will use either
+# nova-network or Neutron.  Neutron is newer and nova-network is the legacy
+# networking support built directly into Nova.  However, nova-network is still
+# fully supported, is not feature frozen, and is not yet officially deprecated.
 #
 # === Parameters:
 #
@@ -22,6 +25,10 @@
 #   (optional) Number of networks that fixed range network should be
 #   split into.
 #   Defaults to 1
+#
+# [*network_size*]
+#   (optional) Number of addresses in each private subnet.
+#   Defaults to 255
 #
 # [*floating_range*]
 #   (optional) Range of floating ip addresses to create.
@@ -64,11 +71,10 @@ class nova::network(
   $config_overrides  = {},
   $create_networks   = true,
   $ensure_package    = 'present',
-  $install_service   = true,
-  $nameservers       = ['8.8.8.8','8.8.4.4']
+  $install_service   = true
 ) {
 
-  include nova::params
+  include ::nova::params
 
   # forward all ipv4 traffic
   # this is required for the vms to pass through the gateways
@@ -77,16 +83,7 @@ class nova::network(
     path => $::path
   }
 
-  # NOTE(bogdando) contribute change to upstream #1384145
-  if !defined(Sysctl::Value['net.ipv4.ip_forward']) {
-    sysctl::value { 'net.ipv4.ip_forward':
-      value => '1'
-    }
-  } else {
-    Sysctl::Value<| name == 'net.ipv4.ip_forward' |> {
-      value => '1'
-    }
-  }
+  ensure_resource('sysctl::value', 'net.ipv4.ip_forward', { value => '1' })
 
   if $floating_range {
     nova_config { 'DEFAULT/floating_range':   value => $floating_range }
@@ -110,11 +107,10 @@ class nova::network(
 
   if $create_networks {
     nova::manage::network { 'nova-vm-net':
-      network       => $fixed_range,
-      num_networks  => $num_networks,
-      network_size  => $network_size,
-      nameservers   => $nameservers,
-      vlan_start    => $vlan_start,
+      network      => $fixed_range,
+      num_networks => $num_networks,
+      network_size => $network_size,
+      vlan_start   => $vlan_start,
     }
     if $floating_range {
       nova::manage::floating { 'nova-vm-floating':

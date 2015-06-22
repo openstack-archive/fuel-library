@@ -57,6 +57,11 @@
 #   and not the Identity service API IP and port.
 #   Defaults to 'http://127.0.0.1:35357/v2.0'
 #
+# [*network_api_class*]
+#   (optional) The full class name of the network API class.
+#   The default configures Nova to use Neutron for the network API.
+#   Defaults to 'nova.network.neutronv2.api.API'
+#
 # [*security_group_api*]
 #   (optional) The full class name of the security API class.
 #   The default configures Nova to use Neutron for security groups.
@@ -82,6 +87,10 @@
 #   notification is not being used.
 #   Defaults to '300'
 #
+# [*dhcp_domain*]
+#   (optional) domain to use for building the hostnames
+#   Defaults to 'novalocal'
+#
 class nova::network::neutron (
   $neutron_admin_password,
   $neutron_auth_strategy           = 'keystone',
@@ -95,35 +104,38 @@ class nova::network::neutron (
   $neutron_ovs_bridge              = 'br-int',
   $neutron_extension_sync_interval = '600',
   $neutron_ca_certificates_file    = undef,
+  $network_api_class               = 'nova.network.neutronv2.api.API',
   $security_group_api              = 'neutron',
   $firewall_driver                 = 'nova.virt.firewall.NoopFirewallDriver',
   $vif_plugging_is_fatal           = true,
-  $vif_plugging_timeout            = '300'
+  $vif_plugging_timeout            = '300',
+  $dhcp_domain                     = 'novalocal',
 ) {
 
   nova_config {
-    'DEFAULT/neutron_auth_strategy':           value => $neutron_auth_strategy;
-    'DEFAULT/network_api_class':               value => 'nova.network.neutronv2.api.API';
-    'DEFAULT/neutron_url':                     value => $neutron_url;
-    'DEFAULT/neutron_url_timeout':             value => $neutron_url_timeout;
-    'DEFAULT/neutron_admin_tenant_name':       value => $neutron_admin_tenant_name;
-    'DEFAULT/neutron_default_tenant_id':       value => $neutron_default_tenant_id;
-    'DEFAULT/neutron_region_name':             value => $neutron_region_name;
-    'DEFAULT/neutron_admin_username':          value => $neutron_admin_username;
-    'DEFAULT/neutron_admin_password':          value => $neutron_admin_password, secret => true;
-    'DEFAULT/neutron_admin_auth_url':          value => $neutron_admin_auth_url;
-    'DEFAULT/neutron_ovs_bridge':              value => $neutron_ovs_bridge;
-    'DEFAULT/neutron_extension_sync_interval': value => $neutron_extension_sync_interval;
-    'DEFAULT/security_group_api':              value => $security_group_api;
-    'DEFAULT/firewall_driver':                 value => $firewall_driver;
-    'DEFAULT/vif_plugging_is_fatal':           value => $vif_plugging_is_fatal;
-    'DEFAULT/vif_plugging_timeout':            value => $vif_plugging_timeout;
+    'DEFAULT/dhcp_domain':             value => $dhcp_domain;
+    'DEFAULT/firewall_driver':         value => $firewall_driver;
+    'DEFAULT/network_api_class':       value => $network_api_class;
+    'DEFAULT/security_group_api':      value => $security_group_api;
+    'DEFAULT/vif_plugging_is_fatal':   value => $vif_plugging_is_fatal;
+    'DEFAULT/vif_plugging_timeout':    value => $vif_plugging_timeout;
+    'neutron/auth_strategy':           value => $neutron_auth_strategy;
+    'neutron/url':                     value => $neutron_url;
+    'neutron/url_timeout':             value => $neutron_url_timeout;
+    'neutron/admin_tenant_name':       value => $neutron_admin_tenant_name;
+    'neutron/default_tenant_id':       value => $neutron_default_tenant_id;
+    'neutron/region_name':             value => $neutron_region_name;
+    'neutron/admin_username':          value => $neutron_admin_username;
+    'neutron/admin_password':          value => $neutron_admin_password, secret => true;
+    'neutron/admin_auth_url':          value => $neutron_admin_auth_url;
+    'neutron/ovs_bridge':              value => $neutron_ovs_bridge;
+    'neutron/extension_sync_interval': value => $neutron_extension_sync_interval;
   }
 
   if ! $neutron_ca_certificates_file {
-    nova_config { 'DEFAULT/neutron_ca_certificates_file': ensure => absent }
+    nova_config { 'neutron/ca_certificates_file': ensure => absent }
   } else {
-    nova_config { 'DEFAULT/neutron_ca_certificates_file': value => $neutron_ca_certificates_file }
+    nova_config { 'neutron/ca_certificates_file': value => $neutron_ca_certificates_file }
   }
 
 }
