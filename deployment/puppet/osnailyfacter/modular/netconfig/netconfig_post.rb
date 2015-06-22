@@ -40,7 +40,7 @@ class NetconfigPostTest < Test::Unit::TestCase
   end
 
   def rps_cpus
-    Dir.glob('/sys/class/net/*/queues/rx-*/rps_cpus').reject { |node| node.start_with? '/sys/class/net/lo' }
+    Dir.glob('/sys/class/net/eth*/queues/rx-*/rps_cpus')
   end
 
   def test_rps_cpus_set
