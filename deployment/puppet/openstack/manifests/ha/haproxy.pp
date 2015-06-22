@@ -92,9 +92,10 @@ class openstack::ha::haproxy (
   }
 
   if $rgw_servers {
+    $rgw_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_rgw_nodes'), 'ceph/radosgw')
     class { 'openstack::ha::radosgw':
-      server_names => hiera_array('radosgw_server_names', filter_hash($rgw_servers, 'name')),
-      ipaddresses  => hiera_array('radosgw_ipaddresses', filter_hash($rgw_servers, 'internal_address')),
+      server_names => hiera_array('radosgw_server_names', keys($rgw_address_map)),
+      ipaddresses  => hiera_array('radosgw_ipaddresses', values($rgw_address_map)),
     }
   }
 

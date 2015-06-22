@@ -1,83 +1,33 @@
 notice('MODULAR: ceph-osd.pp')
 
 # Pulling hiera
-$internal_int                   = hiera('internal_int')
-$public_int                     = hiera('public_int', undef)
-$public_vip                     = hiera('public_vip')
-$management_vip                 = hiera('management_vip')
-$internal_address               = hiera('internal_address')
-$primary_controller             = hiera('primary_controller')
-$storage_address                = hiera('storage_address')
-$use_neutron                    = hiera('use_neutron', false)
-$sahara_hash                    = hiera('sahara', {})
-$murano_hash                    = hiera('murano', {})
-$heat_hash                      = hiera('heat', {})
-$mp_hash                        = hiera('mp')
-$verbose                        = true
-$debug                          = hiera('debug', true)
-$use_monit                      = false
-$mongo_hash                     = hiera('mongo', {})
-$auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
-$nodes_hash                     = hiera('nodes', {})
-$storage_hash                   = hiera('storage', {})
-$vcenter_hash                   = hiera('vcenter', {})
-$nova_hash                      = hiera('nova', {})
-$mysql_hash                     = hiera('mysql', {})
-$rabbit_hash                    = hiera('rabbit', {})
-$glance_hash                    = hiera('glance', {})
-$keystone_hash                  = hiera('keystone', {})
-$swift_hash                     = hiera('swift', {})
-$ceilometer_hash                = hiera('ceilometer',{})
-$access_hash                    = hiera('access', {})
-$network_scheme                 = hiera_hash('network_scheme')
-$controllers                    = hiera('controllers')
-$neutron_mellanox               = hiera('neutron_mellanox', false)
-$syslog_hash                    = hiera('syslog', {})
-$base_syslog_hash               = hiera('base_syslog', {})
-$use_syslog                     = hiera('use_syslog', true)
-$syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
-$syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
-$syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
-$syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
-$syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL0')
-$syslog_log_facility_heat       = hiera('syslog_log_facility_heat','LOG_LOCAL0')
-$syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
-$syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
-$syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
-
-# TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
-$hiera_openstack_version = hiera('openstack_version')
-$openstack_version = {
-  'keystone'   => 'installed',
-  'glance'     => 'installed',
-  'horizon'    => 'installed',
-  'nova'       => 'installed',
-  'novncproxy' => 'installed',
-  'cinder'     => 'installed',
-}
-
-$queue_provider='rabbitmq'
-$custom_mysql_setup_class='galera'
-
-#################################################################
-$primary_mons   = $controllers
-$primary_mon    = $controllers[0]['name']
-
-if ($use_neutron) {
-  prepare_network_config($network_scheme)
-  $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
-  $ceph_public_network  = get_network_role_property('ceph/public', 'network')
-} else {
-  $ceph_cluster_network = hiera('storage_network_range')
-  $ceph_public_network = hiera('management_network_range')
-}
+$public_vip                = hiera('public_vip')
+$management_vip            = hiera('management_vip')
+$use_neutron               = hiera('use_neutron', false)
+$mp_hash                   = hiera('mp')
+$verbose                   = true
+$debug                     = hiera('debug', true)
+$use_monit                 = false
+$auto_assign_floating_ip   = hiera('auto_assign_floating_ip', false)
+$storage_hash              = hiera('storage', {})
+$keystone_hash             = hiera('keystone', {})
+$access_hash               = hiera('access', {})
+$network_scheme            = hiera_hash('network_scheme')
+$neutron_mellanox          = hiera('neutron_mellanox', false)
+$syslog_hash               = hiera('syslog', {})
+$use_syslog                = hiera('use_syslog', true)
+$mon_address_map           = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
+$ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')
+$primary_mons              = keys($ceph_primary_monitor_node)
+$primary_mon               = $ceph_primary_monitor_node[$primary_mons[0]]['name']
+prepare_network_config($network_scheme)
+$ceph_cluster_network      = get_network_role_property('ceph/replication', 'network')
+$ceph_public_network       = get_network_role_property('ceph/public', 'network')
 
 class {'ceph':
   primary_mon              => $primary_mon,
-  mon_hosts                => nodes_with_roles($nodes_hash, ['primary-controller',
-                                               'controller', 'ceph-mon'], 'name'),
-  mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller',
-                                               'controller', 'ceph-mon'], 'internal_address'),
+  mon_hosts                => keys($mon_address_map),
+  mon_ip_addresses         => values($mon_address_map),
   cluster_node_address     => $controller_node_public,
   osd_pool_default_size    => $storage_hash['osd_pool_size'],
   osd_pool_default_pg_num  => $storage_hash['pg_num'],
@@ -90,8 +40,8 @@ class {'ceph':
   cluster_network          => $ceph_cluster_network,
   public_network           => $ceph_public_network,
   use_syslog               => $use_syslog,
-  syslog_log_level         => $syslog_log_level,
-  syslog_log_facility      => $syslog_log_facility_ceph,
+  syslog_log_level         => hiera('syslog_log_level_ceph', 'info'),
+  syslog_log_facility      => hiera('syslog_log_facility_ceph','LOG_LOCAL0'),
   rgw_keystone_admin_token => $keystone_hash['admin_token'],
   ephemeral_ceph           => $storage_hash['ephemeral_ceph'],
 }
