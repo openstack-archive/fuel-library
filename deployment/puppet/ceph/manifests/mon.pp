@@ -1,7 +1,9 @@
 # setup Ceph monitors
 class ceph::mon (
-  $mon_hosts        = $::ceph::mon_hosts,
-  $mon_ip_addresses = $::ceph::mon_ip_addresses,
+  $mon_hosts            = $::ceph::mon_hosts,
+  $mon_ip_addresses     = $::ceph::mon_ip_addresses,
+  $mon_addr             = $::ceph::mon_addr,
+  $node_hostname         = $::ceph::node_hostname,
 ) {
 
   firewall {'010 ceph-mon allow':
@@ -12,9 +14,9 @@ class ceph::mon (
   }
 
   exec {'ceph-deploy mon create':
-    command   => "ceph-deploy mon create ${::hostname}:${::internal_address}",
+    command   => "ceph-deploy mon create ${node_hostname}:${mon_addr}",
     logoutput => true,
-    unless    => "ceph mon stat | grep ${::internal_address}",
+    unless    => "ceph mon stat | grep ${mon_addr}",
   }
 
   exec {'Wait for Ceph quorum':
@@ -28,7 +30,7 @@ class ceph::mon (
   }
 
   exec {'ceph-deploy gatherkeys':
-    command => "ceph-deploy gatherkeys ${::hostname}",
+    command => "ceph-deploy gatherkeys ${node_hostname}",
     creates => ['/root/ceph.bootstrap-mds.keyring',
                 '/root/ceph.bootstrap-osd.keyring',
                 '/root/ceph.client.admin.keyring',
@@ -40,7 +42,7 @@ class ceph::mon (
   Exec['Wait for Ceph quorum']   ->
   Exec['ceph-deploy gatherkeys']
 
-  if $::hostname == $::ceph::primary_mon {
+  if $node_hostname == $::ceph::primary_mon {
 
     # After the primary monitor has established a quorum, it is safe to
     # add other monitors to ceph.conf. All other Ceph nodes will get

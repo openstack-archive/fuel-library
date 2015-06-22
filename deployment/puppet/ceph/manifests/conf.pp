@@ -1,9 +1,13 @@
 # create new conf on primary Ceph MON, pull conf on all other nodes
-class ceph::conf {
-  if $::hostname == $::ceph::primary_mon {
+class ceph::conf (
+  $mon_addr       = $::ceph::mon_addr,
+  $node_hostname  = $::ceph::node_hostname,
+
+) {
+  if $node_hostname == $::ceph::primary_mon {
 
     exec {'ceph-deploy new':
-      command   => "ceph-deploy new ${::hostname}:${::internal_address}",
+      command   => "ceph-deploy new ${node_hostname}:${mon_addr}",
       cwd       => '/etc/ceph',
       logoutput => true,
       creates   => '/etc/ceph/ceph.conf',
