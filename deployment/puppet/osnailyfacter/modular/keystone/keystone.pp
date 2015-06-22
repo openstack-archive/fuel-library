@@ -21,11 +21,13 @@ $controller_nodes      = hiera('controller_nodes')
 $neutron_user_password = hiera('neutron_user_password', false)
 $workloads_hash        = hiera('workloads_collector', {})
 
-$db_type     = 'mysql'
-$db_host     = $management_vip
-$db_password = $keystone_hash['db_password']
-$db_name     = 'keystone'
-$db_user     = 'keystone'
+$enabled          = true
+$db_type          = 'mysql'
+$db_host          = $management_vip
+$db_user          = 'keystone'
+$db_name          = 'keystone'
+$db_password      = $keystone_hash['db_password']
+$db_allowed_hosts = [ '%', $::hostname ]
 
 $admin_token    = $keystone_hash['admin_token']
 $admin_tenant   = $access_hash['tenant']
@@ -49,7 +51,6 @@ $ceilometer_user_password = $ceilometer_hash['user_password']
 
 $cinder = true
 $ceilometer = $ceilometer_hash['enabled']
-$enabled = true
 $ssl = false
 
 $rabbit_password     = $rabbit_hash['password']
@@ -69,9 +70,23 @@ if has_key($murano_settings_hash, 'murano_repo_url') {
   $murano_repo_url = 'http://storage.apps.openstack.org'
 }
 
+####### Create MySQL database #######
+class mysql::server {}
+class mysql::config {}
+
+include mysql::server
+include mysql::config
+
+class { 'keystone::db::mysql':
+  user          => $db_user,
+  password      => $db_password,
+  dbname        => $db_name,
+  allowed_hosts => $db_allowed_hosts,
+}
+Class['keystone::db::mysql'] -> Class['openstack::keystone']
+
 ###############################################################################
 
-####### KEYSTONE ###########
 class { 'openstack::keystone':
   verbose                  => $verbose,
   debug                    => $debug,
