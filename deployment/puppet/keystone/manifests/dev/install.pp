@@ -1,6 +1,12 @@
 #
 # Installs keystone from source. This is not yet fully implemented
 #
+# == Parameters
+#
+# [*source_dir*]
+#   (optional) The source dire for dev installation
+#   Defaults to '/usr/local/keystone'
+#
 # == Dependencies
 # == Examples
 # == Authors
