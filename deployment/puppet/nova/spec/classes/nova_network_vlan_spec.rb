@@ -10,14 +10,14 @@ describe 'nova::network::vlan' do
       }
     end
 
-    it { should contain_nova_config('DEFAULT/network_manager').with_value('nova.network.manager.VlanManager') }
-    it { should_not contain_nova_config('DEFAULT/public_interface') }
-    it { should contain_nova_config('DEFAULT/fixed_range').with_value('10.0.0.0/32') }
-    it { should contain_nova_config('DEFAULT/vlan_start').with_value('300') }
-    it { should contain_nova_config('DEFAULT/vlan_interface').with_value('eth1') }
-    it { should contain_nova_config('DEFAULT/force_dhcp_release').with_value(true) }
-    it { should contain_nova_config('DEFAULT/dhcpbridge').with_value('/usr/bin/nova-dhcpbridge') }
-    it { should contain_nova_config('DEFAULT/dhcpbridge_flagfile').with_value('/etc/nova/nova.conf') }
+    it { is_expected.to contain_nova_config('DEFAULT/network_manager').with_value('nova.network.manager.VlanManager') }
+    it { is_expected.to_not contain_nova_config('DEFAULT/public_interface') }
+    it { is_expected.to contain_nova_config('DEFAULT/fixed_range').with_value('10.0.0.0/32') }
+    it { is_expected.to contain_nova_config('DEFAULT/vlan_start').with_value('300') }
+    it { is_expected.to contain_nova_config('DEFAULT/vlan_interface').with_value('eth1') }
+    it { is_expected.to contain_nova_config('DEFAULT/force_dhcp_release').with_value(true) }
+    it { is_expected.to contain_nova_config('DEFAULT/dhcpbridge').with_value('/usr/bin/nova-dhcpbridge') }
+    it { is_expected.to contain_nova_config('DEFAULT/dhcpbridge_flagfile').with_value('/etc/nova/nova.conf') }
 
   end
 
@@ -35,13 +35,13 @@ describe 'nova::network::vlan' do
       }
     end
 
-    it { should contain_nova_config('DEFAULT/network_manager').with_value('nova.network.manager.VlanManager') }
-    it { should contain_nova_config('DEFAULT/public_interface').with_value('eth0') }
-    it { should contain_nova_config('DEFAULT/fixed_range').with_value('10.0.0.0/32') }
-    it { should contain_nova_config('DEFAULT/vlan_start').with_value('100') }
-    it { should contain_nova_config('DEFAULT/vlan_interface').with_value('eth1') }
-    it { should contain_nova_config('DEFAULT/force_dhcp_release').with_value(false) }
-    it { should contain_nova_config('DEFAULT/dhcpbridge').with_value('/usr/bin/dhcpbridge') }
-    it { should contain_nova_config('DEFAULT/dhcpbridge_flagfile').with_value('/etc/nova/nova-dhcp.conf') }
+    it { is_expected.to contain_nova_config('DEFAULT/network_manager').with_value('nova.network.manager.VlanManager') }
+    it { is_expected.to contain_nova_config('DEFAULT/public_interface').with_value('eth0') }
+    it { is_expected.to contain_nova_config('DEFAULT/fixed_range').with_value('10.0.0.0/32') }
+    it { is_expected.to contain_nova_config('DEFAULT/vlan_start').with_value('100') }
+    it { is_expected.to contain_nova_config('DEFAULT/vlan_interface').with_value('eth1') }
+    it { is_expected.to contain_nova_config('DEFAULT/force_dhcp_release').with_value(false) }
+    it { is_expected.to contain_nova_config('DEFAULT/dhcpbridge').with_value('/usr/bin/dhcpbridge') }
+    it { is_expected.to contain_nova_config('DEFAULT/dhcpbridge_flagfile').with_value('/etc/nova/nova-dhcp.conf') }
   end
 end
