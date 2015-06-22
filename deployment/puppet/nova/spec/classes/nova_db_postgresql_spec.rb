@@ -1,26 +1,32 @@
 require 'spec_helper'
 
 describe 'nova::db::postgresql' do
-  let :required_params do
-    { :password => "qwerty" }
+
+  let :req_params do
+    { :password => 'pw' }
+  end
+
+  let :pre_condition do
+    'include postgresql::server'
   end
 
   context 'on a RedHat osfamily' do
     let :facts do
       {
-        :postgres_default_version => '8.4',
-        :osfamily => 'RedHat'
+        :osfamily                 => 'RedHat',
+        :operatingsystemrelease   => '7.0',
+        :concat_basedir => '/var/lib/puppet/concat'
       }
     end
 
     context 'with only required parameters' do
       let :params do
-        required_params
+        req_params
       end
 
-      it { should contain_postgresql__db('nova').with(
-        :user        => 'nova',
-        :password    => 'qwerty'
+      it { is_expected.to contain_postgresql__server__db('nova').with(
+        :user     => 'nova',
+        :password => 'md557ae0608fad632bf0155cb9502a6b454'
       )}
     end
 
@@ -29,19 +35,21 @@ describe 'nova::db::postgresql' do
   context 'on a Debian osfamily' do
     let :facts do
       {
-        :postgres_default_version => '8.4',
-        :osfamily => 'Debian'
+        :operatingsystemrelease => '7.8',
+        :operatingsystem        => 'Debian',
+        :osfamily               => 'Debian',
+        :concat_basedir => '/var/lib/puppet/concat'
       }
     end
 
     context 'with only required parameters' do
       let :params do
-        required_params
+        req_params
       end
 
-      it { should contain_postgresql__db('nova').with(
-        :user        => 'nova',
-        :password    => 'qwerty'
+      it { is_expected.to contain_postgresql__server__db('nova').with(
+        :user     => 'nova',
+        :password => 'md557ae0608fad632bf0155cb9502a6b454'
       )}
     end
 

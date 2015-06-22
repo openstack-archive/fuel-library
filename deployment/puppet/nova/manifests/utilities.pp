@@ -13,9 +13,9 @@ class nova::utilities {
     }
 
     file {'guestfs.seed':
-      ensure       => present,
-      path         => '/var/run/guestfs.seed',
-      content      => 'libguestfs0 libguestfs/update-appliance boolean true'
+      ensure  => present,
+      path    => '/var/run/guestfs.seed',
+      content => 'libguestfs0 libguestfs/update-appliance boolean true'
     }
   }
 }

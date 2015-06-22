@@ -23,8 +23,8 @@ describe provider_class do
       {:name => 'DEFAULT/foo', :value => 'bar'}
     )
     provider = provider_class.new(resource)
-    provider.section.should == 'DEFAULT'
-    provider.setting.should == 'foo'
+    expect(provider.section).to eq('DEFAULT')
+    expect(provider.setting).to eq('foo')
   end
 
   it 'should allow setting to be set explicitly' do
@@ -32,7 +32,7 @@ describe provider_class do
       {:name => 'dude/foo', :value => 'bar'}
     )
     provider = provider_class.new(resource)
-    provider.section.should == 'dude'
-    provider.setting.should == 'foo'
+    expect(provider.section).to eq('dude')
+    expect(provider.setting).to eq('foo')
   end
 end

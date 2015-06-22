@@ -17,14 +17,14 @@ describe 'nova::config' do
   end
 
   it 'configures arbitrary nova configurations' do
-    should contain_nova_config('DEFAULT/foo').with_value('fooValue')
-    should contain_nova_config('DEFAULT/bar').with_value('barValue')
-    should contain_nova_config('DEFAULT/baz').with_ensure('absent')
+    is_expected.to contain_nova_config('DEFAULT/foo').with_value('fooValue')
+    is_expected.to contain_nova_config('DEFAULT/bar').with_value('barValue')
+    is_expected.to contain_nova_config('DEFAULT/baz').with_ensure('absent')
   end
 
   it 'configures arbitrary nova api-paste configurations' do
-    should contain_nova_paste_api_ini('DEFAULT/foo2').with_value('fooValue')
-    should contain_nova_paste_api_ini('DEFAULT/bar2').with_value('barValue')
-    should contain_nova_paste_api_ini('DEFAULT/baz2').with_ensure('absent')
+    is_expected.to contain_nova_paste_api_ini('DEFAULT/foo2').with_value('fooValue')
+    is_expected.to contain_nova_paste_api_ini('DEFAULT/bar2').with_value('barValue')
+    is_expected.to contain_nova_paste_api_ini('DEFAULT/baz2').with_ensure('absent')
   end
 end
