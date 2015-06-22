@@ -15,13 +15,13 @@ describe 'nova::objectstore' do
       :name         => 'nova-objectstore',
       :package_name => 'nova-objectstore',
       :service_name => 'nova-objectstore' }
-    it { should contain_nova_config('DEFAULT/s3_listen').with_value('0.0.0.0') }
+    it { is_expected.to contain_nova_config('DEFAULT/s3_listen').with_value('0.0.0.0') }
 
     context 'with custom bind parameter' do
       let :params do
         { :bind_address => '192.168.0.1'}
       end
-      it { should contain_nova_config('DEFAULT/s3_listen').with_value('192.168.0.1') }
+      it { is_expected.to contain_nova_config('DEFAULT/s3_listen').with_value('192.168.0.1') }
     end
 
   end
@@ -35,13 +35,13 @@ describe 'nova::objectstore' do
       :name         => 'nova-objectstore',
       :package_name => 'openstack-nova-objectstore',
       :service_name => 'openstack-nova-objectstore' }
-    it { should contain_nova_config('DEFAULT/s3_listen').with_value('0.0.0.0')}
+    it { is_expected.to contain_nova_config('DEFAULT/s3_listen').with_value('0.0.0.0')}
 
     context 'with custom bind parameter' do
       let :params do
         { :bind_address => '192.168.0.1'}
       end
-      it { should contain_nova_config('DEFAULT/s3_listen').with_value('192.168.0.1') }
+      it { is_expected.to contain_nova_config('DEFAULT/s3_listen').with_value('192.168.0.1') }
     end
 
   end
