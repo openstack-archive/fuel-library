@@ -2,7 +2,8 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
   defaultfor :osfamily => :linux
   commands   :iproute => 'ip',
              :ifup    => 'ifup',
-             :ifdown  => 'ifdown'
+             :ifdown  => 'ifdown',
+             :arping  => 'arping'
 
 
   def self.prefetch(resources)
@@ -98,12 +99,30 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
           else
             # add IP addresses
             adding_addresses.each do |ipaddr|
+              # Check whether IP address is already used
+              begin
+                arping('-D', '-c 32', '-w 5', '-I', @resource[:interface], ipaddr.split('/')[0])
+              rescue Exception => e
+                _errmsg = nil
+                e.message.split(/\n/).each do |line|
+                  line =~ /reply\s+from\s+(\d+\.\d+\.\d+\.\d+)/i
+                  if $1
+                    _errmsg = line
+                    break
+                  end
+                end
+                raise if _errmsg.nil?
+                warn("There is IP duplication for IP address #{ipaddr} on interface #{@resource[:interface]}!!!\n#{_errmsg}")
+              end
+              # Set IP address
               begin
                 iproute('addr', 'add', ipaddr, 'dev', @resource[:interface])
               rescue
                 rv = iproute('-o', 'addr', 'show', 'dev', @resource[:interface], 'to', "#{ipaddr.split('/')[0]}/32")
                 raise if ! rv.include? "inet #{ipaddr}"
               end
+              # Send Gratuitous ARP to update all neighbours
+              arping('-U', '-c 32', '-w 5', '-I', @resource[:interface], ipaddr.split('/')[0])
             end
           end
         end
@@ -112,15 +131,15 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
       if !@property_flush[:gateway].nil? or !@property_flush[:gateway_metric].nil?
         # clean all default gateways for *THIS* interface (with any metrics)
         cmdline = ['route', 'del', 'default', 'dev', @resource[:interface]]
-        rc = 0
-        while rc == 0
+
+        while true
           # we should remove route repeatedly for prevent situation
           # when has multiple default routes through the same router,
           # but with different metrics
           begin
             iproute(cmdline)
           rescue
-            rc = 1
+            break
           end
         end
 
