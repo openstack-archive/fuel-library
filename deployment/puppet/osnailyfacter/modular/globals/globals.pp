@@ -223,6 +223,10 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = false
 }
 
+# Define ceph-related variables
+$ceph_monitor_nodes  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$ceph_rgw_nodes      = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+
 #Determine who should be the default backend
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
