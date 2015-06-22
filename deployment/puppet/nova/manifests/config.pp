@@ -20,6 +20,13 @@
 #   NOTE: The configuration MUST NOT be already handled by this module
 #   or Puppet catalog compilation will fail with duplicate resources.
 #
+# [*nova_paste_api_ini*]
+#   (optional) Allow configuration of arbitrary Nova paste api configurations.
+#   The value is an hash of nova_paste_api_ini resources. Example:
+#   { 'DEFAULT/foo' => { value => 'fooValue'},
+#     'DEFAULT/bar' => { value => 'barValue'}
+#   }
+#
 class nova::config (
   $nova_config        = {},
   $nova_paste_api_ini = {},

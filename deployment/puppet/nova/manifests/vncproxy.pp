@@ -24,17 +24,26 @@
 #   (optional) The state of the nova-novncproxy package
 #   Defaults to 'present'
 #
+# [*vncproxy_protocol*]
+#   (optional) The protocol to communicate with the VNC proxy server
+#   Defaults to 'http'
+#
+# [*vncproxy_path*]
+#   (optional) The path at the end of the uri for communication with the VNC
+#   proxy server
+#   Defaults to '/vnc_auto.html'
+#
 class nova::vncproxy(
-  $enabled        = false,
-  $manage_service = true,
-  $host           = '0.0.0.0',
-  $port           = '6080',
-  $ensure_package = 'present'
+  $enabled           = false,
+  $manage_service    = true,
+  $vncproxy_protocol = 'http',
+  $host              = '0.0.0.0',
+  $port              = '6080',
+  $vncproxy_path     = '/vnc_auto.html',
+  $ensure_package    = 'present'
 ) {
 
-  include nova::params
-
-  # TODO make this work on Fedora
+  include ::nova::params
 
   # See http://nova.openstack.org/runnova/vncconsole.html for more details.
 
@@ -42,6 +51,8 @@ class nova::vncproxy(
     'DEFAULT/novncproxy_host': value => $host;
     'DEFAULT/novncproxy_port': value => $port;
   }
+
+  include ::nova::vncproxy::common
 
   if ! defined(Package['python-numpy']) {
     package { 'python-numpy':

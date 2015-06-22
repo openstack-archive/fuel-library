@@ -1,7 +1,7 @@
 nova
 ====
 
-4.0.0 - 2014.1.0 - Icehouse
+5.1.0 - 2014.2 - Juno
 
 #### Table of Contents
 
@@ -39,7 +39,7 @@ Setup
 
 ### Beginning with nova
 
-To utilize the nova module's functionality you will need to declare multiple resources.  The following is a modified excerpt from the [openstack module](https://github.com/stackfoge/puppet-openstack).  This is not an exhaustive list of all the components needed, we recommend you consult and understand the [openstack module](https://github.com/stackfoge/puppet-openstack) and the [core openstack](http://docs.openstack.org) documentation.
+To utilize the nova module's functionality you will need to declare multiple resources.  The following is a modified excerpt from the [openstack module](https://github.com/stackforge/puppet-openstack).  This is not an exhaustive list of all the components needed, we recommend you consult and understand the [openstack module](https://github.com/stackforge/puppet-openstack) and the [core openstack](http://docs.openstack.org) documentation.
 
 ```puppet
 class { 'nova':
@@ -74,7 +74,6 @@ Limitations
 
 * Supports libvirt, xenserver and vmware compute drivers.
 * Tested on EL and Debian derivatives.
-* The Nova Openstack service depends on a sqlalchemy database. If you are using puppetlabs-mysql to achieve this, there is a parameter called mysql_module that can be used to swap between the two supported versions: 0.9 and 2.2. This is needed because the puppetlabs-mysql module was rewritten and the custom type names have changed between versions.
 
 Development
 -----------
@@ -83,6 +82,23 @@ Developer documentation for the entire puppet-openstack project.
 
 * https://wiki.openstack.org/wiki/Puppet-openstack#Developer_documentation
 
+
+Beaker-Rspec
+------------
+
+This module has beaker-rspec tests
+
+To run the tests on the default vagrant node:
+
+```shell
+bundle install
+bundle exec rspec spec/acceptance
+```
+
+For more information on writing and running beaker-rspec tests visit the documentation:
+
+* https://github.com/puppetlabs/beaker/wiki/How-to-Write-a-Beaker-Test-for-a-Module
+
 Contributors
 ------------
 
@@ -90,6 +106,88 @@ Contributors
 
 Release Notes
 -------------
+
+**5.1.0**
+
+* move setting of novncproxy_base_url
+* Added parameters for availability zones configuration
+* crontab: ensure nova-common is installed before
+* Correct docs on format for nova::policy data
+* Allow libvirt secret key setting from param
+* Fix behaviour of 'set-secret-value virsh' exec
+* MySQL: change default MySQL collate to utf8_general_ci
+* Pin puppetlabs-concat to 1.2.1 in fixtures
+* Make group on /var/log/nova OS specific
+* IPv6 support for migration check.
+* Database: add slave_connection support
+* Correct references to ::nova::rabbit_* variables
+* Add optional network_api_class parameter to nova::network::neutron class
+* Add Nova Aggregate support
+* rpc_backend: simplify parameters
+* supporting lxc cpu mode Fixing the default cpu_mode from None to none
+* virsh returns a list of secret uuids, not keyring names
+* Pin fixtures for stables branches
+* Add serialproxy configuration
+* Switch to TLSv1 as SSLv3 is considered insecure and is disabled by default
+* Disable file injection when using RBD as compute ephemeral storage
+* Add PCI Passthrough/SR-IOV support
+* Add Ironic support into nova puppet modules
+* spec: pin rspec-puppet to 1.0.1
+* Correct section for cell_type nova.conf parameter
+* crontab: ensure the script is run with shell
+* Configure database parameters on the right nodes
+
+**5.0.0**
+
+* Stable Juno release
+* Added tags to all nova packages
+* Added parameter dhcp_domain to nova class
+* Updated the [glance] and [neutron] section parameters for Juno
+* Fixed potential duplicate declaration errors for sysctl::value in nova::network
+* Fixed dependency cycle in nova::migration::libvirt
+* Updated the libvirtd init script path for Debian
+* Added parameters for nova service validation to nova::api
+* Added nova::policy to control policy.json
+* Fixed the rabbit_virtual_host default in nova::cells
+* Bumped stdlib dependency to >=4.0.0
+* Added force_raw_images parameter to nova::compute class
+* Replaced usage of the keyword type with the string 'type' since type is a reserved keyword in puppet 3.7
+* Added parameter ec2_workers to nova::api
+* Fixed bug in usage of --vlan versus --vlan_start in nova_network provider
+* Added parameter rabbit_ha_queues to nova class
+* Added parameter pool to nova_floating type
+* Added parameters to control whether to configure keystone users
+* Added nova::cron::archive_deleted_rows class to create a crontab for archiving deleted database rows
+* Changed the keystone_service to only be configured if the endpoint is to be configured
+* Added parameter keystone_ec2_url to nova::api
+* Added the ability to override the keystone service name in ceilometer::keystone::auth
+* Removed dynamic scoping of File resources in nova class
+* Add parameter workers to in nova::conductor and deprecate conductor_workers in nova::api
+* Update nova quota parameters for Juno
+* Migrated the ceilometer::db::mysql class to use openstacklib::db::mysql and deprecated the mysql_module parameter
+* Removed deprecation notice for sectionless nova_config names
+* Added parameter vnc_keymap in nova::compute
+* Added parameter osapi_v3 to nova::api
+
+**4.2.0**
+
+* Added option to configure libvirt service name via class parameters
+* Added support for multiple SSL APIs
+* Added option to configure os_region_name in the nova config
+* Corrected resource dependencies on the nova user
+* Fixed os version fact comparison for RedHat-based operating systems
+  for specifying service provider
+* Fixed ssl parameter requirements when using kombu and rabbit
+* Added class for extended logging options
+
+**4.1.0**
+
+* Added API v3 endpoint support.
+* Added configuration of rbd keyring name.
+* Added support for run Nova SSL endpoints.
+* Updated RabbitMQ dependency.
+* Updated mysql charset to UTF8.
+* Pinned major gems.
 
 **4.0.0**
 
@@ -162,7 +260,7 @@ Release Notes
 
 **2.0.0**
 
-* Upstream is now part of stackfoge.
+* Upstream is now part of stackforge.
 * The ini_file type is now used by nova_config.
 * Support for nova-conductor added.
 * Networks can now be labeled by Class['nova::manage::network'].

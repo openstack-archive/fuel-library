@@ -32,9 +32,9 @@ describe 'nova::migration::libvirt' do
   shared_examples_for 'nova migration with libvirt' do
 
     it 'configure libvirtd.conf' do
-      should contain_file_line('/etc/libvirt/libvirtd.conf listen_tls').with(:line => 'listen_tls = 0')
-      should contain_file_line('/etc/libvirt/libvirtd.conf listen_tcp').with(:line => 'listen_tcp = 1')
-      should contain_file_line('/etc/libvirt/libvirtd.conf auth_tcp').with(:line => 'auth_tcp = "none"')
+      is_expected.to contain_file_line('/etc/libvirt/libvirtd.conf listen_tls').with(:line => 'listen_tls = 0')
+      is_expected.to contain_file_line('/etc/libvirt/libvirtd.conf listen_tcp').with(:line => 'listen_tcp = 1')
+      is_expected.to contain_file_line('/etc/libvirt/libvirtd.conf auth_tcp').with(:line => 'auth_tcp = "none"')
     end
 
   end
@@ -45,7 +45,7 @@ describe 'nova::migration::libvirt' do
     end
 
     it_configures 'nova migration with libvirt'
-    it { should contain_file_line('/etc/default/libvirt-bin libvirtd opts').with(:line => 'libvirtd_opts="-d -l"') }
+    it { is_expected.to contain_file_line('/etc/default/libvirt-bin libvirtd opts').with(:line => 'libvirtd_opts="-d -l"') }
   end
 
   context 'on RedHat platforms' do
@@ -54,7 +54,7 @@ describe 'nova::migration::libvirt' do
     end
 
     it_configures 'nova migration with libvirt'
-    it { should contain_file_line('/etc/sysconfig/libvirtd libvirtd args').with(:line => 'LIBVIRTD_ARGS="--listen"') }
+    it { is_expected.to contain_file_line('/etc/sysconfig/libvirtd libvirtd args').with(:line => 'LIBVIRTD_ARGS="--listen"') }
   end
 
 end
