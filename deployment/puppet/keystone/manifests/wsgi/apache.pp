@@ -46,14 +46,40 @@
 #     Optional. Defaults to 1
 #
 #   [*ssl_cert*]
+#     (optional) Path to SSL certificate
+#     Default to apache::vhost 'ssl_*' defaults.
+#
 #   [*ssl_key*]
+#     (optional) Path to SSL key
+#     Default to apache::vhost 'ssl_*' defaults.
+#
 #   [*ssl_chain*]
+#     (optional) SSL chain
+#     Default to apache::vhost 'ssl_*' defaults.
+#
 #   [*ssl_ca*]
+#     (optional) Path to SSL certificate authority
+#     Default to apache::vhost 'ssl_*' defaults.
+#
 #   [*ssl_crl_path*]
+#     (optional) Path to SSL certificate revocation list
+#     Default to apache::vhost 'ssl_*' defaults.
+#
 #   [*ssl_crl*]
+#     (optional) SSL certificate revocation list name
+#     Default to apache::vhost 'ssl_*' defaults.
+#
 #   [*ssl_certs_dir*]
 #     apache::vhost ssl parameters.
 #     Optional. Default to apache::vhost 'ssl_*' defaults.
+#
+# [*priority*]
+#   (optional) The priority for the vhost.
+#   Defaults to '10'
+#
+# [*threads*]
+#   (optional) The number of threads for the vhost.
+#   Defaults to $::processorcount
 #
 # == Dependencies
 #
@@ -72,41 +98,40 @@
 #
 # == Authors
 #
-#   François Charlier <francois.charlier@enovance.com>
+#   Francois Charlier <francois.charlier@enovance.com>
 #
 # == Copyright
 #
 #   Copyright 2013 eNovance <licensing@enovance.com>
 #
 class keystone::wsgi::apache (
-  $servername         = $::fqdn,
-  $public_port        = 5000,
-  $admin_port         = 35357,
-  $bind_host          = undef,
-  $public_path        = '/',
-  $admin_path         = '/',
-  $ssl                = true,
-  $workers            = 1,
-  $ssl_cert           = undef,
-  $ssl_key            = undef,
-  $ssl_chain          = undef,
-  $ssl_ca             = undef,
-  $ssl_crl_path       = undef,
-  $ssl_crl            = undef,
-  $ssl_certs_dir      = undef,
-  $threads            = $::processorcount,
-  $priority           = '10',
-  $wsgi_script_ensure = 'file',
-  $wsgi_script_source = undef,
+  $servername    = $::fqdn,
+  $public_port   = 5000,
+  $admin_port    = 35357,
+  $bind_host     = undef,
+  $public_path   = '/',
+  $admin_path    = '/',
+  $ssl           = true,
+  $workers       = 1,
+  $ssl_cert      = undef,
+  $ssl_key       = undef,
+  $ssl_chain     = undef,
+  $ssl_ca        = undef,
+  $ssl_crl_path  = undef,
+  $ssl_crl       = undef,
+  $ssl_certs_dir = undef,
+  $threads       = $::processorcount,
+  $priority      = '10',
 ) {
 
-  include keystone::params
+  include ::keystone::params
   include ::apache
   include ::apache::mod::wsgi
-  include keystone::db::sync
+  if $ssl {
+    include ::apache::mod::ssl
+  }
 
-  Exec <| title == 'keystone-manage pki_setup' |> ~> Service['httpd']
-  Exec <| title == 'keystone-manage db_sync' |> ~> Service['httpd']
+  Package['keystone'] -> Package['httpd']
   Package['keystone'] ~> Service['httpd']
   Keystone_config <| |> ~> Service['httpd']
   Service['httpd'] -> Keystone_endpoint <| |>
@@ -134,41 +159,44 @@ class keystone::wsgi::apache (
     require => Package['httpd'],
   }
 
-  $wsgi_files = {
-    'keystone_wsgi_admin' => {
-      'path' => "${::keystone::params::keystone_wsgi_script_path}/admin",
-    },
-    'keystone_wsgi_main'  => {
-      'path' => "${::keystone::params::keystone_wsgi_script_path}/main",
-    },
+  file { 'keystone_wsgi_admin':
+    ensure  => file,
+    path    => "${::keystone::params::keystone_wsgi_script_path}/admin",
+    source  => $::keystone::params::keystone_wsgi_script_source,
+    owner   => 'keystone',
+    group   => 'keystone',
+    mode    => '0644',
+    # source file provided by keystone package
+    require => [File[$::keystone::params::keystone_wsgi_script_path], Package['keystone']],
   }
 
-  $wsgi_file_defaults = {
-    'ensure'  => $wsgi_script_ensure,
-    'owner'   => 'keystone',
-    'group'   => 'keystone',
-    'mode'    => '0644',
-    'require' => File[$::keystone::params::keystone_wsgi_script_path],
+  file { 'keystone_wsgi_main':
+    ensure  => file,
+    path    => "${::keystone::params::keystone_wsgi_script_path}/main",
+    source  => $::keystone::params::keystone_wsgi_script_source,
+    owner   => 'keystone',
+    group   => 'keystone',
+    mode    => '0644',
+    # source file provided by keystone package
+    require => [File[$::keystone::params::keystone_wsgi_script_path], Package['keystone']],
   }
 
-  $wsgi_script_source_real = $wsgi_script_source ? {
-    default => $wsgi_script_source,
-    undef   => $::keystone::params::keystone_wsgi_script_source,
+  $wsgi_daemon_process_options_main = {
+    user         => 'keystone',
+    group        => 'keystone',
+    processes    => $workers,
+    threads      => $threads,
+    display-name => 'keystone-main',
   }
 
-  case $wsgi_script_ensure {
-    default: { $wsgi_file_source = { 'source' => $wsgi_script_source_real } }
-    'link':  { $wsgi_file_source = { 'target' => $wsgi_script_source_real } }
+  $wsgi_daemon_process_options_admin = {
+    user         => 'keystone',
+    group        => 'keystone',
+    processes    => $workers,
+    threads      => $threads,
+    display-name => 'keystone-admin',
   }
 
-  create_resources('file', $wsgi_files, merge($wsgi_file_defaults, $wsgi_file_source))
-
-  $wsgi_daemon_process_options = {
-    user      => 'keystone',
-    group     => 'keystone',
-    processes => $workers,
-    threads   => $threads
-  }
   $wsgi_script_aliases_main = hash([$public_path_real,"${::keystone::params::keystone_wsgi_script_path}/main"])
   $wsgi_script_aliases_admin = hash([$admin_path_real, "${::keystone::params::keystone_wsgi_script_path}/admin"])
 
@@ -178,7 +206,8 @@ class keystone::wsgi::apache (
     $wsgi_script_aliases_main_real = $wsgi_script_aliases_main
   }
 
-  apache::vhost { 'keystone_wsgi_main':
+  ::apache::vhost { 'keystone_wsgi_main':
+    ensure                      => 'present',
     servername                  => $servername,
     ip                          => $bind_host,
     port                        => $public_port,
@@ -195,14 +224,15 @@ class keystone::wsgi::apache (
     ssl_crl                     => $ssl_crl,
     ssl_certs_dir               => $ssl_certs_dir,
     wsgi_daemon_process         => 'keystone_main',
-    wsgi_daemon_process_options => $wsgi_daemon_process_options,
+    wsgi_daemon_process_options => $wsgi_daemon_process_options_main,
     wsgi_process_group          => 'keystone_main',
     wsgi_script_aliases         => $wsgi_script_aliases_main_real,
-    require                     => [Class['apache::mod::wsgi'], File['keystone_wsgi_main']],
+    require                     => File['keystone_wsgi_main'],
   }
 
   if $public_port != $admin_port {
-    apache::vhost { 'keystone_wsgi_admin':
+    ::apache::vhost { 'keystone_wsgi_admin':
+      ensure                      => 'present',
       servername                  => $servername,
       ip                          => $bind_host,
       port                        => $admin_port,
@@ -219,10 +249,10 @@ class keystone::wsgi::apache (
       ssl_crl                     => $ssl_crl,
       ssl_certs_dir               => $ssl_certs_dir,
       wsgi_daemon_process         => 'keystone_admin',
-      wsgi_daemon_process_options => $wsgi_daemon_process_options,
+      wsgi_daemon_process_options => $wsgi_daemon_process_options_admin,
       wsgi_process_group          => 'keystone_admin',
       wsgi_script_aliases         => $wsgi_script_aliases_admin,
-      require                     => [Class['apache::mod::wsgi'], File['keystone_wsgi_admin']],
+      require                     => File['keystone_wsgi_admin'],
     }
   }
 }
