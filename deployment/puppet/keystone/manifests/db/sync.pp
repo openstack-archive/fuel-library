@@ -9,4 +9,6 @@ class keystone::db::sync {
     subscribe   => [Package['keystone'], Keystone_config['database/connection']],
     require     => User['keystone'],
   }
+
+  Exec['keystone-manage db_sync'] ~> Service<| title == 'keystone' |>
 }
