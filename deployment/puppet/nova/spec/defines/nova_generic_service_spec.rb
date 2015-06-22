@@ -22,11 +22,14 @@ describe 'nova::generic_service' do
       'foo'
     end
 
-    it { should contain_service('nova-foo').with(
+    it { is_expected.to contain_service('nova-foo').with(
       'name'    => 'food',
       'ensure'  => 'running',
-      'enable'  => true,
-      'require' => ['Package[nova-common]', 'Package[foo]']
+      'enable'  => true
+    )}
+
+    it { is_expected.to contain_service('nova-foo').that_requires(
+      ['Package[nova-common]', 'Package[nova-foo]']
     )}
   end
 end

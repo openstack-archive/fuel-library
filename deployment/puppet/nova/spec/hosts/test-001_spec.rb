@@ -9,11 +9,11 @@ describe 'test-001.example.org' do
 
     # Bug #1278452
     it 'nova::consoleauth and nova::spicehtml5proxy do not conflict' do
-      should contain_class('nova::consoleauth')
-      should contain_class('nova::spicehtml5proxy')
+      is_expected.to contain_class('nova::consoleauth')
+      is_expected.to contain_class('nova::spicehtml5proxy')
 
-      should contain_nova__generic_service('consoleauth')
-      should contain_nova__generic_service('spicehtml5proxy')
+      is_expected.to contain_nova__generic_service('consoleauth')
+      is_expected.to contain_nova__generic_service('spicehtml5proxy')
     end
   end
 end
