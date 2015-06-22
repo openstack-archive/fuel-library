@@ -17,6 +17,8 @@ $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
 $internal_address         = hiera('internal_address')
+
+$enabled                  = true
 $database_password        = $heat_hash['db_password']
 $keystone_user            = pick($heat_hash['user'], 'heat')
 $keystone_tenant          = pick($heat_hash['tenant'], 'services')
@@ -145,8 +147,8 @@ Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-api-cloudwatch
 Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-engine']
 
 ######################
-
 class mysql::server {}
 class mysql::config {}
+
 include mysql::server
 include mysql::config
