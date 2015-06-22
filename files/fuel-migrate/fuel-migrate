@@ -1,0 +1,352 @@
+#!/bin/bash
+
+set -e
+
+
+config_bundle="\
+fvm_disk_size fvm_name fvm_ram fvm_cpu migrate_log fuel_astute dkvm_folder admin_net_br admin_net_b_type \
+other_net_briges s_base dst_disk os_swap os_root os_var os_varlibdocker os_varlog fm_reboot"
+
+work_bundle="dkvm_ip admin_net_ip_bs dkvm_uri admin_net_ip admin_net_if admin_net_nm src_disk"
+
+descr_fm_reboot="If yes script automaticaly restart source fuel for sync data. By default fm_reboot=yes"
+descr_fuel_astute="Path to fuel config. By default fuel_astute=/etc/fuel/astute.yaml"
+descr_fvm_disk_size="Whole size of destination vm disk. paseesd directly into qemu-img. By default fvm_disk_size=100g"
+
+usage(){
+
+[ ! -z "$1" ] && echo $1
+echo -e "
+Usage:
+
+\t$(basename $0) DESTINATION_COMPUTE [ OPTIONS ]
+
+\tDESTINATION_COMPUTE:\r\t\t\t\tName or IP of copute node where VM will be created
+
+\tOPTIONS:
+
+$(var_describe $config_bundle)
+"
+exit 1
+}
+
+
+var_describe(){
+    local dn
+    until [ -z $1 ] ; do
+        dn=descr_$1
+        echo -e "\t--$1\r\t\t\t\t${!dn}"
+        shift
+    done
+}
+
+
+mytrim(){
+    echo $1
+}
+
+yaml_var(){
+    local fn=$1
+    local py_var=""
+    shift
+    until [ -z $1 ] ; do
+        py_var="$py_var['$1']"
+        shift
+    done
+    if [ ! -z "py_cmd" ] ; then
+        python -c "import yaml; a = yaml.load(open('$fn', 'r')); print a$py_var"
+    fi
+}
+
+
+
+save_vars(){
+    echo "# Saved at $(date) ">$fuel_migrate_vars
+    until [ -z "$1" ] ; do
+        [ ! -z ${!1} ] && echo "$1=\"$(mytrim ${!1})\"" >>$fuel_migrate_vars
+        shift
+    done
+}
+
+ifases(){
+    until [ -z $1 ] ; do
+        echo "     <interface type='bridge'>
+      <source bridge='$2'/>
+      <target dev='vfm_$1'/>"
+      [ ! -z $3 ] && echo $3
+        echo "     <model type='virtio'/>
+    </interface>"
+        shift
+        shift
+        shift
+    done
+}
+
+
+create_vm(){
+
+    virsh -c ${dkvm_uri} destroy ${fvm_name} || true
+    virsh -c ${dkvm_uri} undefine ${fvm_name} || true
+    ssh ${dkvm_ip} qemu-img create -f raw ${dkvm_folder}/${fvm_name}.img ${fvm_disk_size}
+    IFS=","
+    cat >/tmp/vm.xml <<EOF
+<domain type='kvm'>
+  <name>${fvm_name}</name>
+  <memory unit='MiB'>${fvm_ram}</memory>
+  <vcpu >${fvm_cpu}</vcpu>
+  <os>
+    <type arch='x86_64' >hvm</type>
+    <boot dev='hd'/>
+    <boot dev='network'/>
+ </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='raw' cache='writeback' io='native'/>
+      <source file='${dkvm_folder}/${fvm_name}.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <controller type='usb' index='0'>
+    </controller>
+    <controller type='ide' index='0'>
+    </controller>
+
+    <interface type='bridge'>
+      <source bridge='${admin_net_br}'/>
+      <target dev='vfm_${admin_net_if}'/>"
+      ${admin_net_b_type}
+      <model type='virtio'/>
+    </interface>
+$(ifases $other_net_briges)
+    <input type='mouse' bus='ps2'/>
+    <graphics type='vnc' autoport='yes' listen='0.0.0.0'/>
+    <video>
+      <model type='cirrus' />
+    </video>
+    <memballoon model='virtio'>
+    </memballoon>
+  </devices>
+</domain>
+EOF
+    IFS=" "
+    virsh -c ${dkvm_uri} define /tmp/vm.xml
+    virsh -c ${dkvm_uri} start ${fvm_name}
+    fvm_admin_mac=$(virsh -c ${dkvm_uri}  domiflist ${fvm_name} | awk "/vfm_${admin_net_if}/ { print \$5}")
+
+    while [ -z $admin_net_ip_bs ] ; do
+        admin_net_ip_bs=$(mytrim $(fuel node | awk -F'|' "/${fvm_admin_mac}/ {print \$5}"))
+        sleep 10
+    done
+
+}
+
+clone_part_str(){
+    lastsec=$(( $3 * ${src_bs} / ${dst_bs}))
+    [ $1 == "$pcount" ] &&  lastsec=""
+    echo " -n$1:$(( $2 * ${src_bs} / ${dst_bs})):${lastsec} -t $1:$6 -c $1:$7"
+}
+
+
+mark_dst_disk(){
+
+    ssh $admin_net_ip_bs sgdisk -o $dst_disk
+    src_bs=$(sgdisk -p $src_disk | awk  '/Logical sector size: / {print $4}')
+    dst_bs=$(ssh $admin_net_ip_bs sgdisk -p $dst_disk | awk  '/Logical sector size: / {print $4}')
+    pcount=$(sgdisk -p $src_disk | tail -n 1 | awk '{print $1}')
+    tstr="-a 1 "
+    sgdisk -p $src_disk | sed -n '/^ /p' >/tmp/fuel_migrate.tmp
+    while read part ; do
+        tstr="$tstr  $(clone_part_str $part)"
+        export tstr
+    done </tmp/fuel_migrate.tmp
+    ssh $admin_net_ip_bs "sgdisk $dst_disk $tstr"
+
+}
+
+
+mk_lvs_fs(){
+
+# to-do get current fuel data
+
+    ssh $admin_net_ip_bs vgcreate os ${dst_disk}4
+    ssh $admin_net_ip_bs lvcreate os -n root -L ${os_root}
+    ssh $admin_net_ip_bs lvcreate os -n swap -L ${os_swap}
+    ssh $admin_net_ip_bs lvcreate os -n var -l${os_var}free
+    ssh $admin_net_ip_bs lvcreate os -n varlibdocker -l${os_varlibdocker}free
+    ssh $admin_net_ip_bs lvcreate os -n varlog -l${os_varlog}free
+    ssh $admin_net_ip_bs  "mkfs.ext4 /dev/os/root; mkfs.ext4 /dev/os/var; mkfs.ext4  /dev/os/varlog; mkfs.ext4  /dev/os/varlibdocker; mkswap /dev/os/swap"
+
+}
+
+
+rsync_vol(){
+    ssh $admin_net_ip_bs "mkdir -p ${s_base}${1};"
+    ssh $admin_net_ip_bs "mount -t ext4 -o  user_xattr,acl  ${2} ${s_base}${1}"
+    # Why -X doesn't work ?!!
+    time  rsync -z -axAHS --numeric-ids ${1}/ $admin_net_ip_bs:${s_base}${1}/
+}
+
+
+rsync_data(){
+
+    dd if=${src_disk}1 | ssh $admin_net_ip_bs "dd of=${dst_disk}1"
+    dd if=${src_disk}2 | ssh $admin_net_ip_bs "dd of=${dst_disk}2"
+    dd if=${src_disk}3 | ssh $admin_net_ip_bs "dd of=${dst_disk}3"
+
+    rsync_vol / /dev/os/root
+    rsync_vol /var /dev/os/var
+#    rsync_vol /var/lib/docker /dev/os/varlibdocker
+    rsync_vol /var/log /dev/os/varlog
+}
+
+stop_services(){
+    UPSTART=
+    [ -x /sbin/initctl ] && UPSTART=yes
+    runlevel=6
+    for i in /etc/rc${runlevel}.d/K* ; do
+        # Check if the subsystem is already up.
+        subsys=${i#/etc/rc${runlevel}.d/K??}
+        [ -f /var/lock/subsys/$subsys -o -f /var/lock/subsys/${subsys}.init ] || continue
+        [ "$subsys" == "sshd" ] && continue
+        [ "$subsys" == "network" ] && continue
+
+        # Bring the subsystem down.
+        [ -n "$UPSTART" ] && initctl emit --quiet stopping JOB=$subsys
+        $i stop
+        [ -n "$UPSTART" ] && initctl emit --quiet stopped JOB=$subsys
+    done
+}
+
+
+
+fix_config(){
+    ssh $admin_net_ip_bs mount -o bind /dev/ ${s_base}/dev/
+    ssh $admin_net_ip_bs mount ${dst_disk}3  ${s_base}/boot/
+    ssh $admin_net_ip_bs chroot ${s_base} grub-install --recheck ${dst_disk}
+    ssh $admin_net_ip_bs cp  /etc/udev/rules.d/70-persistent-net.rules  ${s_base}/etc/udev/rules.d/70-persistent-net.rules
+    ssh $admin_net_ip_bs umount ${s_base}/var/log ${s_base}/var/lib/docker ${s_base}/var ${s_base}/boot ${s_base}/dev ${s_base} || true
+}
+
+fix_udev_rule(){
+    fvm_admin_mac=$(virsh -c ${dkvm_uri}  domiflist ${fvm_name} | awk "/vfm_${admin_net_if}/ { print \$5}")
+    ssh $admin_net_ip_bs "sed -i -e 's/\(${fvm_admin_mac}.* NAME=\"\)[^\"]*\(\".*\)/\1${admin_net_if}\2/' /etc/udev/rules.d/70-persistent-net.rules"
+    until [ -z $1 ] ; do
+        vfm_mac=$(virsh -c ${dkvm_uri}  domiflist ${fvm_name} | awk "/vfm_$1/ { print \$5}")
+        ssh $admin_net_ip_bs "sed -i -e 's/\(${vfm_mac}.* NAME=\"\)[^\"]*\(\".*\)/\1${1}\2/' /etc/udev/rules.d/70-persistent-net.rules"
+        shift || true
+        shift || true
+        shift || true
+    done
+}
+
+
+set_log(){
+    if [ ! -z "$migrate_log" ] ; then
+        exec 1>>$migrate_log
+        exec 2>&1
+    fi
+    set -x
+}
+
+
+fuel_migrate_vars=/root/migrate.var
+
+
+if [ "$1" == "start" ] && [ -f $fuel_migrate_vars ] ; then
+
+    source $fuel_migrate_vars
+    set_log
+    mv -f $fuel_migrate_vars $fuel_migrate_vars.old
+    ifup $admin_net_if
+    /etc/init.d/network start
+    /etc/init.d/sshd start
+    rsync_data
+    fix_config
+    rm -f /etc/rc3.d/S00fuel_migrate
+    ssh -tt $admin_net_ip_bs "reboot"
+    /etc/init.d/network stop
+    ifconfig $admin_net_if $admin_net_ip_bs netmask $admin_net_nm
+    while true ; do sleep 60 ; done
+
+else
+
+    [ -z $1 ] && usage
+    dkvm_ip=$(ssh $1 echo \$SSH_CONNECTION)
+    dkvm_ip=$(echo $dkvm_ip | awk '{print $3}')
+    shift
+    for i in "$@" ; do
+        if [ ${i:0:2} == "--" ] ; then
+            vname=${i:2}
+            vvalue=${vname#*=}
+            vname=${vname%=*}
+            [ "$vvalue" == "$vname" ] && vvalue=yes
+            if  echo " $config_bundle " | grep " $vname " >/dev/null ; then
+                eval ${vname%=*}=${vvalue}
+            else
+                usage "Invalid options $i"
+            fi
+        else
+            usage "Invalid options $i"
+        fi
+
+    done
+    set_log
+    date
+
+    #migrate_log=/root/migrate.log
+
+    fuel_astute=${fuel_astute:-/etc/fuel/astute.yaml}
+    dkvm_ip=${dkvm_ip:?Destination compute not set}
+    dkvm_folder=${dkvm_folder:-/var/lib/nova/}
+
+    fvm_disk_size=${fvm_disk_size:-100g}
+    fvm_name=${fvm_name:-fuel_master}
+    fvm_ram=${fvm_ram:-2048}
+    fvm_cpu=${fvm_cpu:-2}
+
+    dkvm_uri=qemu+ssh://root@${dkvm_ip}/system
+
+    admin_net_ip=$(yaml_var $fuel_astute ADMIN_NETWORK ipaddress)
+    admin_net_if=$(yaml_var $fuel_astute ADMIN_NETWORK interface)
+    admin_net_nm=$(yaml_var $fuel_astute ADMIN_NETWORK netmask)
+    admin_net_br=${admin_net_br:-br-fw-admin}
+
+    #admin_net_b_type="<virtualport type='openvswitch'/>"
+    #other_net_briges="eth2,br2,<virtualport type='openvswitch'>,eth1,br1,,eth5,virbr1,"
+    #other_net_briges="eth1,br-ex,"
+
+    #admin_net_ip_bs=
+
+    s_base=/tmp/root
+
+    fm_reboot=${fm_reboot:-yes}
+
+    src_disk=$(mount | awk '/\/boot / { gsub (substr($1,length($1)),"",$1); print $1 } \')
+    dst_disk=${dst_disk:-/dev/vda}
+
+    [ -z $os_swap ] && os_swap=$((${fvm_ram}*2))
+    [ -z $os_root ] && os_root=$(lvdisplay --units g -C --noheadings -o lv_size /dev/os/root)
+
+    os_var=${os_var:-20%}
+    os_varlibdocker=${os_varlibdocker:-30%}
+    os_varlog=${os_varlog:-100%}
+
+    create_vm
+    IFS=","
+    fix_udev_rule $other_net_briges
+    IFS=" "
+    mark_dst_disk
+    mk_lvs_fs
+
+    save_vars $config_bundle $work_bundle
+
+    ln -fsv $(readlink -e $0) /etc/rc3.d/S00fuel_migrate
+    [ "$fm_reboot" == "yes" ] && reboot
+fi
