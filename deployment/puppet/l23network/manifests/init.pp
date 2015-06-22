@@ -58,10 +58,10 @@ class l23network (
     Anchor <| title == 'l23network::l2::centos_upndown_scripts' |> -> Anchor['l23network::init']
   }
 
+  #install extra tools
+  ensure_packages($::l23network::params::extra_tools)
 
   Anchor['l23network::l2::init'] -> Anchor['l23network::init']
   anchor { 'l23network::init': }
 
 }
-#
-###
