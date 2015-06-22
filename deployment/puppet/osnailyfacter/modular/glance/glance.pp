@@ -14,11 +14,17 @@ $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
 $ceilometer_hash       = hiera('ceilometer',{})
 
-$db_type                        = 'mysql'
-$db_host                        = $management_vip
+####### DB Settings #######
+$enabled          = true
+$db_type          = 'mysql'
+$db_host          = $management_vip
+$db_user          = 'glance'
+$db_dbname        = 'glance'
+$db_password      = $glance_hash['db_password']
+$db_allowed_hosts = [ '%', $::hostname ]
+
 $service_endpoint               = $management_vip
 $api_bind_address               = $internal_address
-$enabled                        = true
 $max_retries                    = '-1'
 $idle_timeout                   = '3600'
 $auth_uri                       = "http://${service_endpoint}:5000/"
@@ -28,9 +34,6 @@ $rabbit_user                    = $rabbit_hash['user']
 $rabbit_hosts                   = split($amqp_hosts, ',')
 $rabbit_virtual_host            = '/'
 
-$glance_db_user                 = 'glance'
-$glance_db_dbname               = 'glance'
-$glance_db_password             = $glance_hash['db_password']
 $glance_user_password           = $glance_hash['user_password']
 $glance_vcenter_host            = $glance_hash['vc_host']
 $glance_vcenter_user            = $glance_hash['vc_user']
@@ -52,16 +55,30 @@ if ($storage_hash['images_ceph']) {
   $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
 }
 
-###############################################################################
+####### Create MySQL database #######
+class mysql::server {}
+class mysql::config {}
 
+include mysql::server
+include mysql::config
+
+class { 'glance::db::mysql':
+  user          => $db_user,
+  password      => $db_password,
+  dbname        => $db_dbname,
+  allowed_hosts => $db_allowed_hosts,
+}
+Class['glance::db::mysql'] -> Class['openstack::glance']
+
+######### Glance Controller Services ########
 class { 'openstack::glance':
   verbose                        => $verbose,
   debug                          => $debug,
   db_type                        => $db_type,
   db_host                        => $db_host,
-  glance_db_user                 => $glance_db_user,
-  glance_db_dbname               => $glance_db_dbname,
-  glance_db_password             => $glance_db_password,
+  glance_db_user                 => $db_user,
+  glance_db_dbname               => $db_dbname,
+  glance_db_password             => $db_password,
   glance_user_password           => $glance_user_password,
   glance_vcenter_host            => $glance_vcenter_host,
   glance_vcenter_user            => $glance_vcenter_user,
@@ -96,7 +113,7 @@ glance_api_config {
 }
 
 ####### Disable upstart startup on install #######
-if($::operatingsystem == 'Ubuntu') {
+if ($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'glance-api':
     package_name => 'glance-api',
   }
