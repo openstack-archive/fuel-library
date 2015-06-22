@@ -33,6 +33,15 @@ $mongo_hash                     = hiera('mongo', {})
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash                 = hiera('workloads_collector', {})
 
+####### DB Settings #######
+$enabled          = true
+$db_type          = 'mysql'
+$db_host          = $management_vip
+$nova_db_dbname   = 'nova'
+$nova_db_user     = 'nova'
+$nova_db_password = $nova_hash['db_password']
+$db_allowed_hosts = [ '%', $::hostname ]
+
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
 $controller_hostnames           = keys($controller_internal_addresses)
@@ -46,13 +55,15 @@ class { 'l23network' :
 }
 
 if $use_neutron {
-  $network_provider          = 'neutron'
-  $novanetwork_params        = {}
-  $neutron_config            = hiera('quantum_settings')
-  $neutron_db_password       = $neutron_config['database']['passwd']
-  $neutron_user_password     = $neutron_config['keystone']['admin_password']
+  $network_provider              = 'neutron'
+  $novanetwork_params            = {}
+  $neutron_config                = hiera('quantum_settings')
+  $neutron_db_dbname             = 'neutron'
+  $neutron_db_user               = 'neutron'
+  $neutron_user_password         = $neutron_config['keystone']['admin_password']
+  $neutron_db_password           = $neutron_config['database']['passwd']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
-  $base_mac                  = $neutron_config['L2']['base_mac']
+  $base_mac                      = $neutron_config['L2']['base_mac']
 } else {
   $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
@@ -162,6 +173,31 @@ if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
   $multi_host = true
 }
 
+####### Create MySQL database #######
+class mysql::server {}
+class mysql::config {}
+
+include mysql::server
+include mysql::config
+
+class { 'nova::db::mysql':
+  user          => $nova_db_user,
+  password      => $nova_db_password,
+  dbname        => $nova_db_dbname,
+  allowed_hosts => $db_allowed_hosts,
+}
+Class['nova::db::mysql'] -> Class['openstack::controller']
+
+if $use_neutron {
+  class { 'neutron::db::mysql':
+    user          => $neutron_db_user,
+    password      => $neutron_db_password,
+    dbname        => $neutron_db_dbname,
+    allowed_hosts => $db_allowed_hosts,
+  }
+  Class['neutron::db::mysql'] -> Class['openstack::controller']
+}
+
 class { '::openstack::controller':
   private_interface              => $use_neutron ? { true=>false, default=>hiera('private_int')},
   public_interface               => hiera('public_int', undef),
@@ -224,9 +260,9 @@ class { '::openstack::controller':
   glance_backend                 => $glance_backend,
   known_stores                   => $glance_known_stores,
   #require                        => Service['keepalived'],
-  neutron_db_user                => 'neutron',
+  neutron_db_user                => $neutron_db_user,
   neutron_db_password            => $neutron_db_password,
-  neutron_db_dbname              => 'neutron',
+  neutron_db_dbname              => $neutron_db_dbname,
   neutron_user_password          => $neutron_user_password,
   neutron_metadata_proxy_secret  => $neutron_metadata_proxy_secret,
   neutron_ha_agents              => $primary_controller ? {true => 'primary', default  => 'slave'},
