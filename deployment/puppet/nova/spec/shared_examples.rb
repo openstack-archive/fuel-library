@@ -1,6 +1,6 @@
 shared_examples_for "a Puppet::Error" do |description|
   it "with message matching #{description.inspect}" do
-    expect { should have_class_count(1) }.to raise_error(Puppet::Error, description)
+    expect { is_expected.to have_class_count(1) }.to raise_error(Puppet::Error, description)
   end
 end
 
@@ -8,12 +8,13 @@ shared_examples 'generic nova service' do |service|
 
   context 'with default parameters' do
     it 'installs package and service' do
-      should contain_package(service[:name]).with({
+      is_expected.to contain_package(service[:name]).with({
         :name   => service[:package_name],
         :ensure => 'present',
-        :notify => "Service[#{service[:name]}]"
+        :notify => "Service[#{service[:name]}]",
+        :tag    => ['openstack']
       })
-      should contain_service(service[:name]).with({
+      is_expected.to contain_service(service[:name]).with({
         :name      => service[:service_name],
         :ensure    => 'stopped',
         :hasstatus => true,
@@ -29,12 +30,12 @@ shared_examples 'generic nova service' do |service|
     end
 
     it 'installs package and service' do
-      should contain_package(service[:name]).with({
+      is_expected.to contain_package(service[:name]).with({
         :name   => service[:package_name],
         :ensure => '2012.1-2',
         :notify => "Service[#{service[:name]}]"
       })
-      should contain_service(service[:name]).with({
+      is_expected.to contain_service(service[:name]).with({
         :name      => service[:service_name],
         :ensure    => 'running',
         :hasstatus => true,
@@ -50,7 +51,7 @@ shared_examples 'generic nova service' do |service|
     end
 
     it 'does not control service state' do
-      should contain_service(service[:name]).without_ensure
+      is_expected.to contain_service(service[:name]).without_ensure
     end
   end
 end

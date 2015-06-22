@@ -20,7 +20,7 @@ describe 'nova::manage::network' do
         :network => '10.0.0.0/24'
       }
     end
-    it { should contain_nova_network('foo').with(
+    it { is_expected.to contain_nova_network('foo').with(
       :ensure       => 'present',
       :network      => '10.0.0.0/24',
       :label        => 'novanetwork',
@@ -35,7 +35,7 @@ describe 'nova::manage::network' do
         :num_networks => 2
       }
     end
-    it { should contain_nova_network('foo').with(
+    it { is_expected.to contain_nova_network('foo').with(
       :network      => '10.0.0.0/20',
       :num_networks => 2
     ) }
@@ -48,7 +48,7 @@ describe 'nova::manage::network' do
         :project => 'foo'
       }
     end
-    it { should contain_nova_network('foo').with(
+    it { is_expected.to contain_nova_network('foo').with(
       :network => '10.0.0.0/20',
       :project => 'foo'
     ) }

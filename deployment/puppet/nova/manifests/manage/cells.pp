@@ -2,7 +2,7 @@
 # Copyright (C) 2013 eNovance SAS <licensing@enovance.com>
 #
 # Author: Emilien Macchi <emilien.macchi@enovance.com>
-#         François Charlier <francois.charlier@enovance.com>
+#         Francois Charlier <francois.charlier@enovance.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
