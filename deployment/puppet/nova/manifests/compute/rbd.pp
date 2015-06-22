@@ -38,15 +38,28 @@
 #   Required to use cephx.
 #   Default to false.
 #
+# [*libvirt_rbd_secret_key*]
+#   (optional) The cephx key to use as key for the libvirt secret,
+#   it must be base64 encoded; when not provided this key will be
+#   requested to the ceph cluster, which assumes the node is
+#   provided of the client.admin keyring as well.
+#   Default to undef.
+#
+# [*rbd_keyring*]
+#   (optional) The keyring name to use when retrieving the RBD secret
+#   Default to 'client.nova'
+#
 
 class nova::compute::rbd (
   $libvirt_rbd_user,
   $libvirt_rbd_secret_uuid      = false,
+  $libvirt_rbd_secret_key       = undef,
   $libvirt_images_rbd_pool      = 'rbd',
   $libvirt_images_rbd_ceph_conf = '/etc/ceph/ceph.conf',
+  $rbd_keyring                  = 'client.nova',
 ) {
 
-  include nova::params
+  include ::nova::params
 
   nova_config {
     'libvirt/images_type':          value => 'rbd';
@@ -61,7 +74,8 @@ class nova::compute::rbd (
     }
 
     file { '/etc/nova/secret.xml':
-      content => template('nova/secret.xml-compute.erb')
+      content => template('nova/secret.xml-compute.erb'),
+      require => Class['::nova']
     }
 
     exec { 'get-or-set virsh secret':
@@ -70,8 +84,14 @@ class nova::compute::rbd (
       require => File['/etc/nova/secret.xml']
     }
 
+    if $libvirt_rbd_secret_key {
+      $libvirt_key = $libvirt_rbd_secret_key
+    } else {
+      $libvirt_key = "$(ceph auth get-key ${rbd_keyring})"
+    }
     exec { 'set-secret-value virsh':
-      command => '/usr/bin/virsh secret-set-value --secret $(cat /etc/nova/virsh.secret) --base64 $(ceph auth get-key client.nova)',
+      command => "/usr/bin/virsh secret-set-value --secret ${libvirt_rbd_secret_uuid} --base64 ${libvirt_key}",
+      unless  => "/usr/bin/virsh secret-get-value ${libvirt_rbd_secret_uuid}",
       require => Exec['get-or-set virsh secret']
     }
 
