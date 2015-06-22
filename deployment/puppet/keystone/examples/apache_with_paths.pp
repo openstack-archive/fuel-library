@@ -20,31 +20,32 @@
 
 Exec { logoutput => 'on_failure' }
 
-class { 'mysql::server': }
-class { 'keystone::db::mysql':
+class { '::mysql::server': }
+class { '::keystone::db::mysql':
   password => 'keystone',
 }
-class { 'keystone':
-  verbose        => true,
-  debug          => true,
-  sql_connection => 'mysql://keystone_admin:keystone@127.0.0.1/keystone',
-  catalog_type   => 'sql',
-  admin_token    => 'admin_token',
-  enabled        => true,
+class { '::keystone':
+  verbose             => true,
+  debug               => true,
+  database_connection => 'mysql://keystone_admin:keystone@127.0.0.1/keystone',
+  catalog_type        => 'sql',
+  admin_token         => 'admin_token',
+  enabled             => true,
 }
-class { 'keystone::roles::admin':
+class { '::keystone::cron::token_flush': }
+class { '::keystone::roles::admin':
   email    => 'test@puppetlabs.com',
   password => 'ChangeMe',
 }
-class { 'keystone::endpoint':
-  public_url    => "https://${::fqdn}:443/main/",
-  admin_address => "https://${::fqdn}:443/admin/",
+class { '::keystone::endpoint':
+  public_url => "https://${::fqdn}:443/main/",
+  admin_url  => "https://${::fqdn}:443/admin/",
 }
 
 keystone_config { 'ssl/enable': ensure  => absent }
 
-include apache
-class { 'keystone::wsgi::apache':
+include ::apache
+class { '::keystone::wsgi::apache':
   ssl         => true,
   public_port => 443,
   admin_port  => 443,
