@@ -1,3 +1,7 @@
+# LP#1408531
+File.expand_path('../..', File.dirname(__FILE__)).tap { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
+File.expand_path('../../../../openstacklib/lib', File.dirname(__FILE__)).tap { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
+
 Puppet::Type.newtype(:keystone_role) do
 
   desc <<-EOT
@@ -21,5 +25,4 @@ Puppet::Type.newtype(:keystone_role) do
   autorequire(:service) do
     ['keystone']
   end
-
 end
