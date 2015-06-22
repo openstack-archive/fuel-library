@@ -1,15 +1,13 @@
 notice('MODULAR: astute/ceph_compute.pp')
 
+$mon_address_map          = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 $storage_hash             = hiera('storage', {})
-$controllers              = hiera('controllers')
 $use_neutron              = hiera('use_neutron')
-$nodes_hash               = hiera('nodes', {})
 $public_vip               = hiera('public_vip')
 $management_vip           = hiera('management_vip')
 $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_ceph = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $keystone_hash            = hiera('keystone', {})
-$internal_address         = hiera('internal_address')
 # Cinder settings
 $cinder_pool              = 'volumes'
 # Glance settings
@@ -27,8 +25,7 @@ if ($storage_hash['images_ceph']) {
   $glance_backend = 'swift'
 }
 
-if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
-  $storage_hash['volumes_ceph'] or
+if ($storage_hash['volumes_ceph'] or
   $storage_hash['images_ceph'] or
   $storage_hash['objects_ceph']
 ) {
@@ -38,8 +35,9 @@ if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
 }
 
 if $use_ceph {
-  $primary_mons   = $controllers
-  $primary_mon    = $controllers[0]['name']
+  $primary_controller_node = hiera('primary_controller_node')
+  $primary_mons            = keys($primary_controller_node)
+  $primary_mon             = $primary_controller_node[$primary_mons[0]]['name']
 
   if ($use_neutron) {
     prepare_network_config(hiera_hash('network_scheme'))
@@ -52,10 +50,8 @@ if $use_ceph {
 
   class {'ceph':
     primary_mon              => $primary_mon,
-    mon_hosts                => nodes_with_roles($nodes_hash, ['primary-controller',
-                                                 'controller', 'ceph-mon'], 'name'),
-    mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller',
-                                                 'controller', 'ceph-mon'], 'internal_address'),
+    mon_hosts                => keys($mon_address_map),
+    mon_ip_addresses         => values($mon_address_map),
     cluster_node_address     => $public_vip,
     osd_pool_default_size    => $storage_hash['osd_pool_size'],
     osd_pool_default_pg_num  => $storage_hash['pg_num'],
