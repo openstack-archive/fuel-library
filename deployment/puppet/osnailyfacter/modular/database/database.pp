@@ -2,8 +2,6 @@ notice('MODULAR: database.pp')
 
 $neutron              = hiera('use_neutron')
 $mysql_hash           = hiera('mysql')
-$keystone_hash        = hiera('keystone')
-$glance_hash          = hiera('glance')
 $nova_hash            = hiera('nova')
 $cinder_hash          = hiera('cinder')
 $internal_address     = hiera('internal_address')
@@ -20,14 +18,6 @@ $haproxy_stats_url   = "http://${management_vip}:${haproxy_stats_port}/;csv"
 $mysql_root_password    = $mysql_hash['root_password']
 $mysql_bind_address     = '0.0.0.0'
 $mysql_account_security = true
-
-$keystone_db_user       = 'keystone'
-$keystone_db_dbname     = 'keystone'
-$keystone_db_password   = $keystone_hash['db_password']
-
-$glance_db_user         = 'glance'
-$glance_db_dbname       = 'glance'
-$glance_db_password     = $glance_hash['db_password']
 
 $nova_db_user           = 'nova'
 $nova_db_dbname         = 'nova'
@@ -60,12 +50,6 @@ class { 'openstack::db::mysql':
   mysql_root_password     => $mysql_root_password,
   mysql_bind_address      => $mysql_bind_address,
   mysql_account_security  => $mysql_account_security,
-  keystone_db_user        => $keystone_db_user,
-  keystone_db_password    => $keystone_db_password,
-  keystone_db_dbname      => $keystone_db_dbname,
-  glance_db_user          => $glance_db_user,
-  glance_db_password      => $glance_db_password,
-  glance_db_dbname        => $glance_db_dbname,
   nova_db_user            => $nova_db_user,
   nova_db_password        => $nova_db_password,
   nova_db_dbname          => $nova_db_dbname,
