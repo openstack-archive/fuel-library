@@ -2,7 +2,8 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
   defaultfor :osfamily => :linux
   commands   :iproute => 'ip',
              :ifup    => 'ifup',
-             :ifdown  => 'ifdown'
+             :ifdown  => 'ifdown',
+             :arping  => 'arping'
 
 
   def self.prefetch(resources)
@@ -98,6 +99,11 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx) do
           else
             # add IP addresses
             adding_addresses.each do |ipaddr|
+              begin
+                arping('-q', '-c 2', '-w 3', '-D', '-I', @resource[:interface], ipaddr.split('/')[0])
+              rescue
+                raise "There is IP duplication for IP address #{ipaddr} on interface #{@resource[:interface]}!!!"
+              end
               begin
                 iproute('addr', 'add', ipaddr, 'dev', @resource[:interface])
               rescue
