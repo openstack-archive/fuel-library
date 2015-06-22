@@ -23,11 +23,11 @@ describe 'nova::network' do
       { :osfamily => 'Debian' }
     end
 
-    it { should contain_sysctl__value('net.ipv4.ip_forward').with_value('1') }
+    it { is_expected.to contain_sysctl__value('net.ipv4.ip_forward').with_value('1') }
 
     describe 'when installing service' do
 
-      it { should contain_package('nova-network').with(
+      it { is_expected.to contain_package('nova-network').with(
         'name'   => 'nova-network',
         'ensure' => 'present',
         'notify' => 'Service[nova-network]'
@@ -37,7 +37,7 @@ describe 'nova::network' do
         let :params do
           default_params.merge(:enabled => true)
         end
-        it { should contain_service('nova-network').with(
+        it { is_expected.to contain_service('nova-network').with(
           'name'      => 'nova-network',
           'ensure'    => 'running',
           'hasstatus' => true,
@@ -45,7 +45,7 @@ describe 'nova::network' do
         )}
       end
       describe 'when enabled is set to false' do
-        it { should contain_service('nova-network').with(
+        it { is_expected.to contain_service('nova-network').with(
           'name'      => 'nova-network',
           'ensure'    => 'stopped',
           'hasstatus' => true,
@@ -59,8 +59,8 @@ describe 'nova::network' do
         default_params.merge(:install_service => false)
       end
 
-      it { should_not contain_package('nova-network') }
-      it { should_not contain_service('nova-network') }
+      it { is_expected.to_not contain_package('nova-network') }
+      it { is_expected.to_not contain_service('nova-network') }
 
     end
 
@@ -68,21 +68,21 @@ describe 'nova::network' do
       let :params do
         default_params.merge(:create_networks => false)
       end
-      it { should_not contain_nova__manage__network('nova-vm-net') }
-      it { should_not contain_nova__manage__floating('nova-vm-floating') }
+      it { is_expected.to_not contain_nova__manage__network('nova-vm-net') }
+      it { is_expected.to_not contain_nova__manage__floating('nova-vm-floating') }
     end
 
     describe 'when creating networks' do
-      it { should contain_nova__manage__network('nova-vm-net').with(
+      it { is_expected.to contain_nova__manage__network('nova-vm-net').with(
         :network      => '10.0.0.0/32',
         :num_networks => '1'
       ) }
-      it { should_not contain__nova__manage__floating('nova-vm-floating') }
+      it { is_expected.to_not contain__nova__manage__floating('nova-vm-floating') }
       describe 'when number of networks is set' do
         let :params do
           default_params.merge(:num_networks => '2')
         end
-        it { should contain_nova__manage__network('nova-vm-net').with(
+        it { is_expected.to contain_nova__manage__network('nova-vm-net').with(
           :num_networks => '2'
         ) }
       end
@@ -90,8 +90,8 @@ describe 'nova::network' do
         let :params do
           default_params.merge(:floating_range => '10.0.0.0/30')
         end
-        it { should contain_nova_config('DEFAULT/floating_range').with_value('10.0.0.0/30') }
-        it { should contain_nova__manage__floating('nova-vm-floating').with_network('10.0.0.0/30') }
+        it { is_expected.to contain_nova_config('DEFAULT/floating_range').with_value('10.0.0.0/30') }
+        it { is_expected.to contain_nova__manage__floating('nova-vm-floating').with_network('10.0.0.0/30') }
       end
     end
     describe 'when configuring networks' do
@@ -99,7 +99,7 @@ describe 'nova::network' do
         let :params do
           default_params.merge(:network_manager => 'nova.network.manager.FlatDHCPManager')
         end
-        it { should contain_class('nova::network::flatdhcp').with(
+        it { is_expected.to contain_class('nova::network::flatdhcp').with(
           :fixed_range          => '10.0.0.0/32',
           :public_interface     => nil,
           :flat_interface       => 'eth1',
@@ -128,7 +128,7 @@ describe 'nova::network' do
               }
             )
           end
-          it { should contain_class('nova::network::flatdhcp').with(
+          it { is_expected.to contain_class('nova::network::flatdhcp').with(
             :fixed_range          => '10.0.0.0/32',
             :public_interface     => 'eth0',
             :flat_interface       => 'eth1',
@@ -146,7 +146,7 @@ describe 'nova::network' do
         let :params do
           default_params.merge(:network_manager => 'nova.network.manager.FlatManager')
         end
-        it { should contain_class('nova::network::flat').with(
+        it { is_expected.to contain_class('nova::network::flat').with(
           :fixed_range         => '10.0.0.0/32',
           :public_interface    => nil,
           :flat_interface      => 'eth1',
@@ -162,7 +162,7 @@ describe 'nova::network' do
               }
             )
           end
-          it { should contain_class('nova::network::flat').with(
+          it { is_expected.to contain_class('nova::network::flat').with(
             :public_interface    => 'eth0',
             :flat_network_bridge => 'br400'
           ) }
@@ -172,7 +172,7 @@ describe 'nova::network' do
         let :params do
           default_params.merge(:network_manager => 'nova.network.manager.VlanManager')
         end
-        it { should contain_class('nova::network::vlan').with(
+        it { is_expected.to contain_class('nova::network::vlan').with(
           :fixed_range         => '10.0.0.0/32',
           :public_interface    => nil,
           :vlan_interface      => 'eth1',
@@ -195,7 +195,7 @@ describe 'nova::network' do
       let :params do
         default_params.merge(:ensure_package => '2012.1-2')
       end
-      it { should contain_package('nova-network').with(
+      it { is_expected.to contain_package('nova-network').with(
         'ensure' => '2012.1-2'
       )}
     end
@@ -204,12 +204,12 @@ describe 'nova::network' do
     let :facts do
       { :osfamily => 'RedHat' }
     end
-    it { should contain_service('nova-network').with(
+    it { is_expected.to contain_service('nova-network').with(
       'name'      => 'openstack-nova-network',
       'ensure'    => 'stopped',
       'hasstatus' => true,
       'enable'    => false
     )}
-    it { should contain_package('nova-network').with_name('openstack-nova-network') }
+    it { is_expected.to contain_package('nova-network').with_name('openstack-nova-network') }
   end
 end

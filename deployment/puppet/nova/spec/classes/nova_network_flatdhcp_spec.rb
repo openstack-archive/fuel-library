@@ -10,16 +10,16 @@ describe 'nova::network::flatdhcp' do
       }
     end
 
-    it { should contain_nova_config('DEFAULT/network_manager').with_value('nova.network.manager.FlatDHCPManager') }
-    it { should_not contain_nova_config('DEFAULT/public_interface') }
-    it { should contain_nova_config('DEFAULT/fixed_range').with_value('10.0.0.0/32') }
-    it { should contain_nova_config('DEFAULT/flat_interface').with_value('eth1') }
-    it { should contain_nova_config('DEFAULT/flat_interface').with_value('eth1') }
-    it { should contain_nova_config('DEFAULT/flat_network_bridge').with_value('br100') }
-    it { should contain_nova_config('DEFAULT/force_dhcp_release').with_value(true) }
-    it { should contain_nova_config('DEFAULT/flat_injected').with_value(false) }
-    it { should contain_nova_config('DEFAULT/dhcpbridge').with_value('/usr/bin/nova-dhcpbridge') }
-    it { should contain_nova_config('DEFAULT/dhcpbridge_flagfile').with_value('/etc/nova/nova.conf') }
+    it { is_expected.to contain_nova_config('DEFAULT/network_manager').with_value('nova.network.manager.FlatDHCPManager') }
+    it { is_expected.to_not contain_nova_config('DEFAULT/public_interface') }
+    it { is_expected.to contain_nova_config('DEFAULT/fixed_range').with_value('10.0.0.0/32') }
+    it { is_expected.to contain_nova_config('DEFAULT/flat_interface').with_value('eth1') }
+    it { is_expected.to contain_nova_config('DEFAULT/flat_interface').with_value('eth1') }
+    it { is_expected.to contain_nova_config('DEFAULT/flat_network_bridge').with_value('br100') }
+    it { is_expected.to contain_nova_config('DEFAULT/force_dhcp_release').with_value(true) }
+    it { is_expected.to contain_nova_config('DEFAULT/flat_injected').with_value(false) }
+    it { is_expected.to contain_nova_config('DEFAULT/dhcpbridge').with_value('/usr/bin/nova-dhcpbridge') }
+    it { is_expected.to contain_nova_config('DEFAULT/dhcpbridge_flagfile').with_value('/etc/nova/nova.conf') }
   end
 
   describe 'when overriding class parameters' do
@@ -37,12 +37,12 @@ describe 'nova::network::flatdhcp' do
       }
     end
 
-    it { should contain_nova_config('DEFAULT/public_interface').with_value('eth0') }
-    it { should contain_nova_config('DEFAULT/flat_network_bridge').with_value('br1001') }
-    it { should contain_nova_config('DEFAULT/force_dhcp_release').with_value(false) }
-    it { should contain_nova_config('DEFAULT/flat_injected').with_value(true) }
-    it { should contain_nova_config('DEFAULT/dhcpbridge').with_value('/usr/bin/dhcpbridge') }
-    it { should contain_nova_config('DEFAULT/dhcpbridge_flagfile').with_value('/etc/nova/nova-dhcp.conf') }
+    it { is_expected.to contain_nova_config('DEFAULT/public_interface').with_value('eth0') }
+    it { is_expected.to contain_nova_config('DEFAULT/flat_network_bridge').with_value('br1001') }
+    it { is_expected.to contain_nova_config('DEFAULT/force_dhcp_release').with_value(false) }
+    it { is_expected.to contain_nova_config('DEFAULT/flat_injected').with_value(true) }
+    it { is_expected.to contain_nova_config('DEFAULT/dhcpbridge').with_value('/usr/bin/dhcpbridge') }
+    it { is_expected.to contain_nova_config('DEFAULT/dhcpbridge_flagfile').with_value('/etc/nova/nova-dhcp.conf') }
 
   end
 

@@ -18,7 +18,7 @@ define nova::generic_service(
   $ensure_package = 'present'
 ) {
 
-  include nova::params
+  include ::nova::params
 
   $nova_title = "nova-${name}"
   # ensure that the service is only started after
@@ -32,12 +32,21 @@ define nova::generic_service(
   # I need to mark that ths package should be
   # installed before nova_config
   if ($package_name) {
-    if !defined(Package[$package_name]) {
+    if !defined(Package[$nova_title]) and !defined(Package[$package_name]) {
       package { $nova_title:
         ensure => $ensure_package,
         name   => $package_name,
         notify => Service[$nova_title],
+        tag    => ['openstack'],
       }
+    }
+
+    if $service_name {
+      # Do the dependency relationship here in case the package
+      # has been defined elsewhere, either as Package[$nova_title]
+      # or Package[$package_name]
+      Package<| title == $nova_title |> -> Service[$nova_title]
+      Package<| title == $package_name |> -> Service[$nova_title]
     }
   }
 
@@ -54,9 +63,8 @@ define nova::generic_service(
       ensure    => $service_ensure,
       name      => $service_name,
       enable    => $enabled,
-      hasstatus  => true,
-      hasrestart => true,
-      require   => [Package['nova-common'], Package[$package_name]],
+      hasstatus => true,
+      require   => [Package['nova-common']],
     }
   }
 }
