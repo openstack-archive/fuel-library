@@ -5,8 +5,10 @@ class ceph (
       # General settings
       $mon_hosts,
       $mon_ip_addresses,
-      $cluster_node_address               = $::ipaddress, #This should be the cluster service address
-      $primary_mon                        = $::hostname, #This should be the first controller
+      $cluster_node_address               = $::ipaddress, # This should be the cluster service address
+      $primary_mon                        = $::hostname,  # This should be the first controller
+      $mon_addr                           = $::ipaddress, # This needs to be replaced with the address we want to bind the mon to (if this is a mon)
+      $node_hostname                      = $::hostname,
       $osd_devices                        = split($::osd_devices_list, ' '),
       $use_ssl                            = false,
       $use_rgw                            = false,
@@ -39,7 +41,7 @@ class ceph (
       $rgw_log_file                       = '/var/log/ceph/radosgw.log',
       $rgw_use_keystone                   = true,
       $rgw_use_pki                        = false,
-      $rgw_keystone_url                   = "${cluster_node_address}:35357",
+      $rgw_keystone_url                   = "${cluster_node_address}:35357", #"fix my formatting.
       $rgw_keystone_admin_token           = undef,
       $rgw_keystone_token_cache_size      = '10',
       $rgw_keystone_accepted_roles        = '_member_, Member, admin, swiftoperator',
