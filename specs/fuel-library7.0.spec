@@ -86,6 +86,10 @@ install -m 0755 %{files_source}/rabbit-fence/rabbit-fence.init %{buildroot}/etc/
 install -m 0644 %{files_source}/fuel-notify/monit-free-space.conf %{buildroot}/etc/monit.d/monit-free-space.conf
 install -m 0644 %{files_source}/fuel-notify/free_disk_space_check.yaml %{buildroot}/etc/fuel/free_disk_space_check.yaml
 install -m 0755 %{files_source}/fuel-notify/fuel_notify.py %{buildroot}/usr/bin/fuel_notify.py
+#fuel-migrate
+install -m 0755 %{files_source}/fuel-migrate/fuel-migrate %{buildroot}/usr/bin/fuel-migrate
+
+
 
 %post -p /bin/bash
 #Update puppet manifests symlinks to the latest version
@@ -200,6 +204,30 @@ For further information go to http://wiki.openstack.org/Fuel
 /usr/bin/rabbit-fence.py
 /etc/init.d/rabbit-fence
 #
+
+%package -n fuel-migrate
+Summary: Fuel migrate utility
+Version: %{version}
+Release: %{release}
+Group: System Environment/Libraries
+# FIXME(aglarendil): mixed license actually - need to figure out the best option
+License: Apache 2.0
+URL: http://github.com/stackforge/fuel-library
+BuildArch: noarch
+Requires: dbus
+Requires: dbus-python
+Requires: pygobject2
+Requires: python-daemon
+BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+
+%description -n fuel-migrate
+Script for migrate Fuel master into vm
+
+%files -n fuel-migrate
+%defattr(-,root,root)
+/usr/bin/fuel-migrate
+#
+
 
 %package -n fuel-notify
 Summary: Fuel disk space monitor
