@@ -7,7 +7,6 @@
 #
 # [*libvirt_virt_type*]
 #   (optional) Libvirt domain type. Options are: kvm, lxc, qemu, uml, xen
-#   Replaces libvirt_type
 #   Defaults to 'kvm'
 #
 # [*vncserver_listen*]
@@ -20,9 +19,9 @@
 #
 # [*libvirt_cpu_mode*]
 #   (optional) The libvirt CPU mode to configure.  Possible values
-#   include custom, host-model, None, host-passthrough.
+#   include custom, host-model, none, host-passthrough.
 #   Defaults to 'host-model' if libvirt_virt_type is set to either
-#   kvm or qemu, otherwise defaults to 'None'.
+#   kvm or qemu, otherwise defaults to 'none'.
 #
 # [*libvirt_disk_cachemodes*]
 #   (optional) A list of cachemodes for different disk types, e.g.
@@ -30,6 +29,20 @@
 #   If an empty list is specified, the disk_cachemodes directive
 #   will be removed from nova.conf completely.
 #   Defaults to an empty list
+#
+# [*libvirt_inject_password*]
+#   (optional) Inject the admin password at boot time, without an agent.
+#   Defaults to false
+#
+# [*libvirt_inject_key*]
+#   (optional) Inject the ssh public key at boot time.
+#   Defaults to false
+#
+# [*libvirt_inject_partition*]
+#   (optional) The partition to inject to : -2 => disable, -1 => inspect
+#   (libguestfs only), 0 => not partitioned, >0 => partition
+#   number (integer value)
+#   Defaults to -2
 #
 # [*remove_unused_base_images*]
 #   (optional) Should unused base images be removed?
@@ -61,40 +74,38 @@
 #   how many seconds it will be removed.
 #   Defaults to undef
 #
-
+# [*libvirt_service_name*]
+#   (optional) libvirt service name.
+#   Defaults to $::nova::params::libvirt_service_name
+#
 class nova::compute::libvirt (
   $libvirt_virt_type                          = 'kvm',
   $vncserver_listen                           = '127.0.0.1',
   $migration_support                          = false,
   $libvirt_cpu_mode                           = false,
   $libvirt_disk_cachemodes                    = [],
+  $libvirt_inject_password                    = false,
+  $libvirt_inject_key                         = false,
+  $libvirt_inject_partition                   = -2,
   $remove_unused_base_images                  = undef,
   $remove_unused_kernels                      = undef,
   $remove_unused_resized_minimum_age_seconds  = undef,
   $remove_unused_original_minimum_age_seconds = undef,
-  # DEPRECATED PARAMETER
-  $libvirt_type                               = false
-) {
+  $libvirt_service_name                       = $::nova::params::libvirt_service_name,
+) inherits nova::params {
 
-  include nova::params
+  include ::nova::params
 
   Service['libvirt'] -> Service['nova-compute']
 
-  if $libvirt_type {
-    warning ('The libvirt_type parameter is deprecated, use libvirt_virt_type instead.')
-    $libvirt_virt_type_real = $libvirt_type
-  } else {
-    $libvirt_virt_type_real = $libvirt_virt_type
-  }
-
   # libvirt_cpu_mode has different defaults depending on hypervisor.
   if !$libvirt_cpu_mode {
-    case $libvirt_virt_type_real {
+    case $libvirt_virt_type {
       'kvm','qemu': {
         $libvirt_cpu_mode_real = 'host-model'
       }
       default: {
-        $libvirt_cpu_mode_real = 'None'
+        $libvirt_cpu_mode_real = 'none'
       }
     }
   } else {
@@ -102,10 +113,11 @@ class nova::compute::libvirt (
   }
 
   if($::osfamily == 'Debian') {
-    package { "nova-compute-${libvirt_virt_type_real}":
+    package { "nova-compute-${libvirt_virt_type}":
       ensure  => present,
       before  => Package['nova-compute'],
-      require => User['nova'],
+      require => Package['nova-common'],
+      tag     => ['openstack'],
     }
   }
 
@@ -113,17 +125,17 @@ class nova::compute::libvirt (
     service { 'messagebus':
       ensure   => running,
       enable   => true,
+      name     => $::nova::params::messagebus_service_name,
       provider => $::nova::params::special_service_provider,
     }
     Package['libvirt'] -> Service['messagebus'] -> Service['libvirt']
-
   }
 
   if $migration_support {
-    if $vncserver_listen != '0.0.0.0' {
-      fail('For migration support to work, you MUST set vncserver_listen to \'0.0.0.0\'')
+    if $vncserver_listen != '0.0.0.0' and $vncserver_listen != '::0' {
+      fail('For migration support to work, you MUST set vncserver_listen to \'0.0.0.0\' or \'::0\'')
     } else {
-      class { 'nova::migration::libvirt': }
+      class { '::nova::migration::libvirt': }
     }
   }
 
@@ -135,7 +147,7 @@ class nova::compute::libvirt (
   service { 'libvirt' :
     ensure   => running,
     enable   => true,
-    name     => $::nova::params::libvirt_service_name,
+    name     => $libvirt_service_name,
     provider => $::nova::params::special_service_provider,
     require  => Package['libvirt'],
   }
@@ -143,8 +155,11 @@ class nova::compute::libvirt (
   nova_config {
     'DEFAULT/compute_driver':   value => 'libvirt.LibvirtDriver';
     'DEFAULT/vncserver_listen': value => $vncserver_listen;
-    'libvirt/virt_type':        value => $libvirt_virt_type_real;
+    'libvirt/virt_type':        value => $libvirt_virt_type;
     'libvirt/cpu_mode':         value => $libvirt_cpu_mode_real;
+    'libvirt/inject_password':  value => $libvirt_inject_password;
+    'libvirt/inject_key':       value => $libvirt_inject_key;
+    'libvirt/inject_partition': value => $libvirt_inject_partition;
   }
 
   if size($libvirt_disk_cachemodes) > 0 {

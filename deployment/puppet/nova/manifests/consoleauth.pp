@@ -25,7 +25,7 @@ class nova::consoleauth(
   $ensure_package = 'present'
 ) {
 
-  include nova::params
+  include ::nova::params
 
   nova::generic_service { 'consoleauth':
     enabled        => $enabled,
@@ -33,7 +33,7 @@ class nova::consoleauth(
     package_name   => $::nova::params::consoleauth_package_name,
     service_name   => $::nova::params::consoleauth_service_name,
     ensure_package => $ensure_package,
-    require        => User['nova'],
+    require        => Package['nova-common'],
   }
 
 }
