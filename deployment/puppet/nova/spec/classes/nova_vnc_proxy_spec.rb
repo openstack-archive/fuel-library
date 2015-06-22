@@ -15,19 +15,20 @@ describe 'nova::vncproxy' do
       { :osfamily => 'Debian' }
     end
 
-    it { should contain_package('python-numpy').with(
+    it { is_expected.to contain_package('python-numpy').with(
       :ensure => 'present',
       :name   => 'python-numpy'
     )}
 
-    it { should contain_nova_config('DEFAULT/novncproxy_host').with(:value => '0.0.0.0') }
-    it { should contain_nova_config('DEFAULT/novncproxy_port').with(:value => '6080') }
+    it { is_expected.to contain_nova_config('DEFAULT/novncproxy_host').with(:value => '0.0.0.0') }
+    it { is_expected.to contain_nova_config('DEFAULT/novncproxy_port').with(:value => '6080') }
+    it { is_expected.to contain_nova_config('DEFAULT/novncproxy_base_url').with(:value => 'http://0.0.0.0:6080/vnc_auto.html') }
 
-    it { should contain_package('nova-vncproxy').with(
+    it { is_expected.to contain_package('nova-vncproxy').with(
       :name   => 'nova-novncproxy',
       :ensure => 'present'
     ) }
-    it { should contain_service('nova-vncproxy').with(
+    it { is_expected.to contain_service('nova-vncproxy').with(
       :name      => 'nova-novncproxy',
       :hasstatus => true,
       :ensure    => 'running'
@@ -39,14 +40,14 @@ describe 'nova::vncproxy' do
           :manage_service => false
         }
       end
-      it { should contain_service('nova-vncproxy').without_ensure }
+      it { is_expected.to contain_service('nova-vncproxy').without_ensure }
     end
 
     describe 'with package version' do
       let :params do
         {:ensure_package => '2012.1-2'}
       end
-      it { should contain_package('nova-vncproxy').with(
+      it { is_expected.to contain_package('nova-vncproxy').with(
         'ensure' => '2012.1-2'
       )}
     end
@@ -57,11 +58,11 @@ describe 'nova::vncproxy' do
       let :facts do
         { :osfamily => 'Debian', :operatingsystem => 'Debian' }
       end
-      it { should contain_package('nova-vncproxy').with(
+      it { is_expected.to contain_package('nova-vncproxy').with(
         :name   => "nova-consoleproxy",
         :ensure => 'present'
       )}
-      it { should contain_service('nova-vncproxy').with(
+      it { is_expected.to contain_service('nova-vncproxy').with(
         :name      => 'nova-novncproxy',
         :hasstatus => true,
         :ensure    => 'running'
@@ -75,10 +76,12 @@ describe 'nova::vncproxy' do
       { :osfamily => 'Redhat' }
     end
 
-    it { should contain_package('python-numpy').with(
+    it { is_expected.to contain_package('python-numpy').with(
       :name   => 'numpy',
       :ensure => 'present'
     )}
+
+    it { is_expected.to compile.with_all_deps }
 
   end
 

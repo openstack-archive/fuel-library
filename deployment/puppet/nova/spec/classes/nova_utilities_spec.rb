@@ -8,12 +8,12 @@ describe 'nova::utilities' do
     end
 
     it 'installes utilities' do
-      should contain_package('unzip').with_ensure('present')
-      should contain_package('screen').with_ensure('present')
-      should contain_package('parted').with_ensure('present')
-      should contain_package('curl').with_ensure('present')
-      should contain_package('euca2ools').with_ensure('present')
-      should contain_package('libguestfs-tools').with_ensure('present')
+      is_expected.to contain_package('unzip').with_ensure('present')
+      is_expected.to contain_package('screen').with_ensure('present')
+      is_expected.to contain_package('parted').with_ensure('present')
+      is_expected.to contain_package('curl').with_ensure('present')
+      is_expected.to contain_package('euca2ools').with_ensure('present')
+      is_expected.to contain_package('libguestfs-tools').with_ensure('present')
     end
   end
 end

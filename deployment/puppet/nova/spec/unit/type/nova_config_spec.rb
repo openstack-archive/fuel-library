@@ -4,43 +4,46 @@ describe 'Puppet::Type.type(:nova_config)' do
   before :each do
     @nova_config = Puppet::Type.type(:nova_config).new(:name => 'DEFAULT/foo', :value => 'bar')
   end
+
   it 'should require a name' do
     expect {
       Puppet::Type.type(:nova_config).new({})
     }.to raise_error(Puppet::Error, 'Title or name must be provided')
   end
+
   it 'should not expect a name with whitespace' do
     expect {
       Puppet::Type.type(:nova_config).new(:name => 'f oo')
-    }.to raise_error(Puppet::Error, /Invalid nova_config/)
+    }.to raise_error(Puppet::Error, /Parameter name failed/)
   end
+
   it 'should fail when there is no section' do
     expect {
       Puppet::Type.type(:nova_config).new(:name => 'foo')
-    }.to raise_error(Puppet::Error, /entries without sections are no longer supported/)
+    }.to raise_error(Puppet::Error, /Parameter name failed/)
   end
+
   it 'should not require a value when ensure is absent' do
     Puppet::Type.type(:nova_config).new(:name => 'DEFAULT/foo', :ensure => :absent)
   end
-  it 'should require a value when ensure is present' do
-    expect {
-      Puppet::Type.type(:nova_config).new(:name => 'DEFAULT/foo', :ensure => :present)
-    }.to raise_error(Puppet::Error, /Property value must be set/)
-  end
+
   it 'should accept a valid value' do
     @nova_config[:value] = 'bar'
-    @nova_config[:value].should == 'bar'
+    expect(@nova_config[:value]).to eq('bar')
   end
+
   it 'should not accept a value with whitespace' do
     @nova_config[:value] = 'b ar'
-    @nova_config[:value].should == 'b ar'
+    expect(@nova_config[:value]).to eq('b ar')
   end
+
   it 'should accept valid ensure values' do
     @nova_config[:ensure] = :present
-    @nova_config[:ensure].should == :present
+    expect(@nova_config[:ensure]).to eq(:present)
     @nova_config[:ensure] = :absent
-    @nova_config[:ensure].should == :absent
+    expect(@nova_config[:ensure]).to eq(:absent)
   end
+
   it 'should not accept invalid ensure values' do
     expect {
       @nova_config[:ensure] = :latest
