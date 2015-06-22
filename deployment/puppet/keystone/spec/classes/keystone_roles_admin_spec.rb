@@ -11,26 +11,27 @@ describe 'keystone::roles::admin' do
       }
     end
 
-    it { should contain_keystone_tenant('services').with(
+    it { is_expected.to contain_keystone_tenant('services').with(
       :ensure      => 'present',
       :enabled     => true,
       :description => 'Tenant for the openstack services'
     )}
-    it { should contain_keystone_tenant('openstack').with(
+    it { is_expected.to contain_keystone_tenant('openstack').with(
       :ensure      => 'present',
       :enabled     => true,
       :description => 'admin tenant'
     )}
-    it { should contain_keystone_user('admin').with(
-      :ensure      => 'present',
-      :enabled     => true,
-      :tenant      => 'openstack',
-      :email       => 'foo@bar',
-      :password    => 'ChangeMe'
+    it { is_expected.to contain_keystone_user('admin').with(
+      :ensure                 => 'present',
+      :enabled                => true,
+      :tenant                 => 'openstack',
+      :email                  => 'foo@bar',
+      :password               => 'ChangeMe',
+      :ignore_default_tenant  => 'false'
     )}
-    it { should contain_keystone_role('admin').with_ensure('present') }
-    it { should contain_keystone_user_role('admin@openstack').with(
-      :roles  => 'admin',
+    it { is_expected.to contain_keystone_role('admin').with_ensure('present') }
+    it { is_expected.to contain_keystone_user_role('admin@openstack').with(
+      :roles  => ['admin'],
       :ensure => 'present'
     )}
 
@@ -40,36 +41,68 @@ describe 'keystone::roles::admin' do
 
     let :params do
       {
-        :admin          => 'admin',
-        :email          => 'foo@baz',
-        :password       => 'foo',
-        :admin_tenant   => 'admin',
-        :service_tenant => 'foobar'
+        :admin                  => 'admin',
+        :email                  => 'foo@baz',
+        :password               => 'foo',
+        :admin_tenant           => 'admin',
+        :admin_roles            => ['admin', 'heat_stack_owner'],
+        :service_tenant         => 'foobar',
+        :ignore_default_tenant  => 'true',
+        :admin_tenant_desc      => 'admin something else',
+        :service_tenant_desc    => 'foobar description',
       }
     end
 
-    it { should contain_keystone_tenant('foobar').with(
+    it { is_expected.to contain_keystone_tenant('foobar').with(
       :ensure  => 'present',
       :enabled => true,
-      :description => 'Tenant for the openstack services'
+      :description => 'foobar description'
     )}
-    it { should contain_keystone_tenant('admin').with(
+    it { is_expected.to contain_keystone_tenant('admin').with(
       :ensure      => 'present',
       :enabled     => true,
-      :description => 'admin tenant'
+      :description => 'admin something else'
     )}
-    it { should contain_keystone_user('admin').with(
-      :ensure      => 'present',
-      :enabled     => true,
-      :tenant      => 'admin',
-      :email       => 'foo@baz',
-      :password    => 'foo'
+    it { is_expected.to contain_keystone_user('admin').with(
+      :ensure                 => 'present',
+      :enabled                => true,
+      :tenant                 => 'admin',
+      :email                  => 'foo@baz',
+      :password               => 'foo',
+      :ignore_default_tenant  => 'true'
     )}
-    it { should contain_keystone_user_role('admin@admin').with(
-      :roles  => 'admin',
+    it { is_expected.to contain_keystone_user_role('admin@admin').with(
+      :roles  => ['admin', 'heat_stack_owner'],
       :ensure => 'present'
     )}
 
+  end
+
+  describe 'when disabling user configuration' do
+    before do
+      let :params do
+        {
+          :configure_user => false
+        }
+      end
+
+      it { is_expected.to_not contain_keystone_user('keystone') }
+      it { is_expected.to contain_keystone_user_role('keystone@openstack') }
+    end
+  end
+
+  describe 'when disabling user and role configuration' do
+    before do
+      let :params do
+        {
+          :configure_user       => false,
+          :configure_user_role  => false
+        }
+      end
+
+      it { is_expected.to_not contain_keystone_user('keystone') }
+      it { is_expected.to_not contain_keystone_user_role('keystone@openstack') }
+    end
   end
 
 end
