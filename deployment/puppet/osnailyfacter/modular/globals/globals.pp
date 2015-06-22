@@ -153,10 +153,6 @@ if $deployment_mode == 'ha_compact' {
 # AMQP configuration
 $queue_provider = hiera('queue_provider','rabbitmq')
 
-if !$rabbit_hash['user'] {
-$rabbit_hash['user'] = 'nova'
-}
-
 if $deployment_mode == 'ha_compact' {
   $amqp_port              = '5673'
   $amqp_hosts             = amqp_hosts($controller_nodes, $amqp_port, $internal_address)
@@ -169,18 +165,6 @@ if $deployment_mode == 'ha_compact' {
   $rabbitmq_cluster_nodes = [ $controller[0]['name'] ]
   $rabbit_ha_queues       = false
 }
-
-# MySQL and SQLAlchemy backend configuration
-$custom_mysql_setup_class = hiera('custom_mysql_setup_class', 'galera')
-$max_pool_size            = hiera('max_pool_size', min($::processorcount * 5 + 0, 30 + 0))
-$max_overflow             = hiera('max_overflow', min($::processorcount * 5 + 0, 60 + 0))
-$max_retries              = hiera('max_retries', '-1')
-$idle_timeout             = hiera('idle_timeout','3600')
-$nova_db_password         = $nova_hash['db_password']
-$cinder_iscsi_bind_addr   = $storage_address
-$sql_connection           = "mysql://nova:${nova_db_password}@${controller_node_address}/nova?read_timeout = 6 0"
-$mirror_type              = hiera('mirror_type', 'external')
-$multi_host               = hiera('multi_host', true)
 
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
