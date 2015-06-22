@@ -39,18 +39,18 @@ class nova::qpid(
     $service_ensure = 'running'
 
     qpid_user { $user:
-      password  => $password,
-      file      => $file,
-      realm     => $realm,
-      provider  => 'saslpasswd2',
-      require   => Class['qpid::server'],
+      password => $password,
+      file     => $file,
+      realm    => $realm,
+      provider => 'saslpasswd2',
+      require  => Class['qpid::server'],
     }
 
   } else {
     $service_ensure = 'stopped'
   }
 
-  class { 'qpid::server':
+  class { '::qpid::server':
     service_ensure => $service_ensure
   }
 

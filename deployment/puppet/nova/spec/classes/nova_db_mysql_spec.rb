@@ -20,20 +20,20 @@ describe 'nova::db::mysql' do
         required_params
       end
 
-      it { should contain_mysql__db('nova').with(
-        :user        => 'nova',
-        :password    => 'qwerty',
-        :charset     => 'latin1',
-        :require     => "Class[Mysql::Config]"
+      it { is_expected.to contain_openstacklib__db__mysql('nova').with(
+        :user          => 'nova',
+        :password_hash => '*AA1420F182E88B9E5F874F6FBE7459291E8F4601',
+        :charset       => 'utf8',
+        :collate       => 'utf8_general_ci',
       )}
     end
 
     context 'when overriding charset' do
       let :params do
-        { :charset => 'utf8' }.merge(required_params)
+        { :charset => 'latin1' }.merge(required_params)
       end
 
-      it { should contain_mysql__db('nova').with_charset(params[:charset]) }
+      it { is_expected.to contain_openstacklib__db__mysql('nova').with_charset(params[:charset]) }
     end
   end
 
@@ -47,20 +47,20 @@ describe 'nova::db::mysql' do
         required_params
       end
 
-      it { should contain_mysql__db('nova').with(
-        :user        => 'nova',
-        :password    => 'qwerty',
-        :charset     => 'latin1',
-        :require     => "Class[Mysql::Config]"
+      it { is_expected.to contain_openstacklib__db__mysql('nova').with(
+        :user          => 'nova',
+        :password_hash => '*AA1420F182E88B9E5F874F6FBE7459291E8F4601',
+        :charset       => 'utf8',
+        :collate       => 'utf8_general_ci',
       )}
     end
 
     context 'when overriding charset' do
       let :params do
-        { :charset => 'utf8' }.merge(required_params)
+        { :charset => 'latin1' }.merge(required_params)
       end
 
-      it { should contain_mysql__db('nova').with_charset(params[:charset]) }
+      it { is_expected.to contain_openstacklib__db__mysql('nova').with_charset(params[:charset]) }
     end
   end
 
@@ -75,16 +75,6 @@ describe 'nova::db::mysql' do
       }
     end
 
-    it {should_not contain_nova__db__mysql__host_access("127.0.0.1").with(
-      :user     => 'nova',
-      :password => 'novapass',
-      :database => 'nova'
-    )}
-    it {should contain_nova__db__mysql__host_access("%").with(
-      :user     => 'nova',
-      :password => 'novapass',
-      :database => 'nova'
-    )}
   end
 
   describe "overriding allowed_hosts param to string" do
@@ -98,11 +88,6 @@ describe 'nova::db::mysql' do
       }
     end
 
-    it {should contain_nova__db__mysql__host_access("192.168.1.1").with(
-      :user     => 'nova',
-      :password => 'novapass2',
-      :database => 'nova'
-    )}
   end
 
   describe "overriding allowed_hosts param equals to host param " do
@@ -116,10 +101,5 @@ describe 'nova::db::mysql' do
       }
     end
 
-    it {should_not contain_nova__db__mysql__host_access("127.0.0.1").with(
-      :user     => 'nova',
-      :password => 'novapass2',
-      :database => 'nova'
-    )}
   end
 end
