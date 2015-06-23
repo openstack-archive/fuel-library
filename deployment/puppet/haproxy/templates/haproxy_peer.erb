@@ -1,0 +1,3 @@
+<% Array(@ipaddresses).zip(Array(@server_names)).each do |ipaddress,host| -%>
+  peer <%= host %> <%= ipaddress %>:<%= @port %>
+<% end -%>
