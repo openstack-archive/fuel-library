@@ -70,6 +70,7 @@ class openstack::db::mysql (
     $custom_setup_class      = undef,
     $use_syslog              = false,
     $debug                   = false,
+    $mysql_module            = '0.3',
 ) {
 
   if $custom_setup_class {
@@ -112,6 +113,7 @@ class openstack::db::mysql (
       password      => $keystone_db_password,
       dbname        => $keystone_db_dbname,
       allowed_hosts => $allowed_hosts,
+      mysql_module  => $mysql_module,
     }
 
     # Create the Glance db
