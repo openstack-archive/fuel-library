@@ -7,3 +7,13 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/openstack-controller.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+
+- id: nova-db
+  type: puppet
+  groups: [primary-controller]
+  required_for: [openstack-controller]
+  requires: [database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/nova_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
