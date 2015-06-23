@@ -68,3 +68,18 @@ if !defined(Service['irqbalance']) {
     require => Package['irqbalance'],
   }
 }
+
+# This is dirty hack which restart nova-network during redeployment
+# For more details https://bugs.launchpad.net/fuel/+bug/1467259
+include ::nova::params
+
+$nova_network_service = $::nova::params::network_service_name
+
+if !hiera('use_neutron') {
+  exec {'nova-network-restart':
+     command => "service ${nova_network_service} restart",
+     path    => '/sbin:/usr/sbin:/bin:/usr/bin',
+     onlyif  => 'ps ax | grep -q nova-networ[k]' #restart nova-network service if process exists
+  }
+  L3_ifconfig<||> ->Exec['nova-network-restart']
+}
