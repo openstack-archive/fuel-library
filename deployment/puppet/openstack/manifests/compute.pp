@@ -61,7 +61,7 @@ class openstack::compute (
   $nova_user_password,
   # Network
   # DB
-  $sql_connection                 = false,
+  $database_connection            = false,
   # Nova
   $purge_nova_config              = false,
   # RPC
@@ -130,6 +130,7 @@ class openstack::compute (
   $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
   $storage_hash                   = {},
   $neutron_settings               = {},
+  $install_bridge_utils           = false,
 ) {
 
   #
@@ -144,7 +145,6 @@ class openstack::compute (
     }
   }
 
-  $final_sql_connection = $sql_connection
   $glance_connection = $glance_api_servers
 
   case $::osfamily {
@@ -242,7 +242,7 @@ class openstack::compute (
   class { 'nova':
       install_utilities      => false,
       ensure_package         => $::openstack_version['nova'],
-      sql_connection         => $sql_connection,
+      database_connection    => $database_connection,
       rpc_backend            => $rpc_backend,
       #FIXME(bogdando) we have to split amqp_hosts until all modules synced
       rabbit_hosts           => split($amqp_hosts, ','),
@@ -259,7 +259,6 @@ class openstack::compute (
       service_down_time      => $nova_service_down_time,
       notify_on_state_change => $notify_on_state_change,
       memcached_servers      => $memcached_addresses,
-      nova_shell             => '/bin/bash',
   }
 
   if str2bool($::is_virtual) {
@@ -288,6 +287,7 @@ class openstack::compute (
     vncproxy_host                 => $vncproxy_host,
     #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
     neutron_enabled               => ($network_provider == 'neutron'),
+    install_bridge_utils          => $install_bridge_utils,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
   }
@@ -311,22 +311,23 @@ class openstack::compute (
   # modify the libvirt_disk_cachemodes in that case.
   if ($storage_hash['ephemeral_ceph'] or $storage_hash['volumes_ceph']) {
       $disk_cachemodes = ['"network=writeback,block=none"']
+      $libvirt_inject_partition = '-2'
   } else {
     if $::osfamily == 'RedHat' {
-      nova_config { 'libvirt/inject_partition': value => '-1'; }
-      }
-    else {
-      nova_config { 'libvirt/inject_partition': value => '1'; }
+      $libvirt_inject_partition = '-1'
+    } else {
+      $libvirt_inject_partition = '1'
     }
     $disk_cachemodes = ['"file=directsync,block=none"']
   }
 
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
-    libvirt_virt_type       => $libvirt_type,
-    libvirt_cpu_mode        => $libvirt_cpu_mode,
-    libvirt_disk_cachemodes => $disk_cachemodes,
-    vncserver_listen        => $vncserver_listen,
+    libvirt_virt_type        => $libvirt_type,
+    libvirt_cpu_mode         => $libvirt_cpu_mode,
+    libvirt_disk_cachemodes  => $disk_cachemodes,
+    libvirt_inject_partition => $libvirt_inject_partition,
+    vncserver_listen         => $vncserver_listen,
   }
 
   # From legacy libvirt.pp
