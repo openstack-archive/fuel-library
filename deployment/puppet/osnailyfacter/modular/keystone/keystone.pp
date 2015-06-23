@@ -4,28 +4,33 @@ $verbose               = hiera('verbose', true)
 $debug                 = hiera('debug', false)
 $use_neutron           = hiera('use_neutron')
 $use_syslog            = hiera('use_syslog', true)
-$keystone_hash         = hiera('keystone')
-$access_hash           = hiera('access')
 $management_vip        = hiera('management_vip')
 $public_vip            = hiera('public_vip')
 $internal_address      = hiera('internal_address')
-$glance_hash           = hiera('glance')
-$nova_hash             = hiera('nova')
-$cinder_hash           = hiera('cinder')
-$ceilometer_hash       = hiera('ceilometer')
 $syslog_log_facility   = hiera('syslog_log_facility_keystone')
-$rabbit_hash           = hiera('rabbit_hash')
 $amqp_hosts            = hiera('amqp_hosts')
 $primary_controller    = hiera('primary_controller')
 $controller_nodes      = hiera('controller_nodes')
 $neutron_user_password = hiera('neutron_user_password', false)
-$workloads_hash        = hiera('workloads_collector', {})
 
-$db_type     = 'mysql'
-$db_host     = $management_vip
-$db_password = $keystone_hash['db_password']
-$db_name     = 'keystone'
-$db_user     = 'keystone'
+$keystone_hash         = hiera_hash('keystone', {})
+$access_hash           = hiera_hash('access', {})
+$workloads_hash        = hiera_hash('workloads_collector', {})
+$mysql_hash            = hiera_hash('mysql', {})
+$glance_hash           = hiera_hash('glance', {})
+$nova_hash             = hiera_hash('nova', {})
+$cinder_hash           = hiera_hash('cinder', {})
+$ceilometer_hash       = hiera_hash('ceilometer', {})
+$rabbit_hash           = hiera_hash('rabbit_hash', {})
+
+$enabled          = true
+$db_type          = 'mysql'
+$db_host          = structure($mysql_hash,    'db_host', $management_vip)
+$db_user          = structure($keystone_hash, 'db_user', 'keystone')
+$db_name          = structure($keystone_hash, 'db_name', 'keystone')
+$db_password      = structure($keystone_hash, 'db_password')
+
+$db_allowed_hosts = [ '%', $::hostname ]
 
 $admin_token    = $keystone_hash['admin_token']
 $admin_tenant   = $access_hash['tenant']
@@ -49,7 +54,6 @@ $ceilometer_user_password = $ceilometer_hash['user_password']
 
 $cinder = true
 $ceilometer = $ceilometer_hash['enabled']
-$enabled = true
 $ssl = false
 
 $rabbit_password     = $rabbit_hash['password']
@@ -69,9 +73,23 @@ if has_key($murano_settings_hash, 'murano_repo_url') {
   $murano_repo_url = 'http://storage.apps.openstack.org'
 }
 
+####### Create MySQL database #######
+class mysql::server {}
+class mysql::config {}
+
+include mysql::server
+include mysql::config
+
+class { 'keystone::db::mysql':
+  user          => $db_user,
+  password      => $db_password,
+  dbname        => $db_name,
+  allowed_hosts => $db_allowed_hosts,
+}
+Class['keystone::db::mysql'] -> Class['openstack::keystone']
+
 ###############################################################################
 
-####### KEYSTONE ###########
 class { 'openstack::keystone':
   verbose                  => $verbose,
   debug                    => $debug,

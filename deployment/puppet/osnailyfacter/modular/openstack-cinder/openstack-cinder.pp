@@ -1,33 +1,38 @@
 notice('MODULAR: openstack-cinder.pp')
 
-$cinder_hash                    = hiera('cinder', {})
 $management_vip                 = hiera('management_vip')
 $queue_provider                 = hiera('queue_provider', 'rabbitmq')
-$cinder_db_user                 = hiera('cinder_db_user', 'cinder')
-$cinder_db_dbname               = hiera('cinder_db_dbname', 'cinder')
 $internal_address               = hiera('internal_address')
 $cinder_volume_group            = hiera('cinder_volume_group', 'cinder')
 $controller_nodes               = hiera('controller_nodes')
-$nodes_hash                     = hiera('nodes', {})
-$storage_hash                   = hiera('storage', {})
 $storage_address                = hiera('storage_address')
-$ceilometer_hash                = hiera('ceilometer',{})
-$rabbit_hash                    = hiera('rabbit', {})
+$amqp_hosts                     = hiera('amqp_hosts')
+$nodes_hash                     = hiera('nodes')
 
-$db_host                        = $management_vip
+$storage_hash                   = hiera_hash('storage', {})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
+$rabbit_hash                    = hiera_hash('rabbit', {})
+$cinder_hash                    = hiera_hash('cinder', {})
+$mysql_hash                     = hiera_hash('mysql', {})
+
+$enabled     = true
+
+####### DB Settings #######
+$db_type     = 'mysql'
+$db_password = structure($cinder_hash, 'db_password')
+$db_host     = structure($mysql_hash,  'db_host', $management_vip)
+$db_user     = structure($cinder_hash, 'db_user', 'cinder')
+$db_name     = structure($cinder_hash, 'db_name', 'cinder')
+$db_timeout  = structure($cinder_hash, 'db_timeout', '60')
+$db_charset  = structure($cinder_hash, 'db_charset', 'utf8')
+
+$db_allowed_hosts = [ '%', $::hostname ]
+
 $service_endpoint               = $management_vip
-$cinder_db_password             = $cinder_hash[db_password]
-$cinder_user_password           = $cinder_hash[user_password]
+$cinder_user_password           = $cinder_hash['user_password']
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
-if $internal_address in $controller_nodes {
-  # prefer local MQ broker if it exists on this node
-  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
-} else {
-  $amqp_nodes = fqdn_rotate($controller_nodes)
-}
 $amqp_port = '5673'
-$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
@@ -55,9 +60,24 @@ $openstack_version = {
   'cinder'     => 'installed',
 }
 
+####### Create MySQL database
+class mysql::server {}
+class mysql::config {}
+
+include mysql::server
+include mysql::config
+
+class { 'cinder::db::mysql':
+  user          => $db_user,
+  password      => $db_password,
+  dbname        => $db_name,
+  allowed_hosts => $db_allowed_hosts,
+}
+Class['cinder::db::mysql'] -> Class['openstack::cinder']
+
 ######### Cinder Controller Services ########
 class {'openstack::cinder':
-  sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8&read_timeout=60",
+  sql_connection       => "mysql://${db_user}:${db_password}@${db_host}/${db_name}?charset=${db_charset}&read_timeout=${db_timeout}",
   queue_provider       => $queue_provider,
   amqp_hosts           => $amqp_hosts,
   amqp_user            => $rabbit_hash['user'],
@@ -66,7 +86,7 @@ class {'openstack::cinder':
   volume_group         => $cinder_volume_group,
   physical_volume      => undef,
   manage_volumes       => $manage_volumes,
-  enabled              => true,
+  enabled              => $enabled,
   glance_api_servers   => "${service_endpoint}:9292",
   auth_host            => $service_endpoint,
   bind_host            => $internal_address,
@@ -81,8 +101,8 @@ class {'openstack::cinder':
   max_pool_size        => $max_pool_size,
   max_overflow         => $max_overflow,
   idle_timeout         => $idle_timeout,
-  ceilometer           => $ceilometer_hash[enabled],
-} # end class
+  ceilometer           => $ceilometer_hash['enabled'],
+}
 
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {

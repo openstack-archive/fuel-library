@@ -10,31 +10,14 @@ $primary_controller             = hiera('primary_controller')
 $storage_address                = hiera('storage_address')
 $use_neutron                    = hiera('use_neutron', false)
 $cinder_nodes_array             = hiera('cinder_nodes', [])
-$sahara_hash                    = hiera('sahara', {})
-$murano_hash                    = hiera('murano', {})
-$heat_hash                      = hiera('heat', {})
 $mp_hash                        = hiera('mp')
 $verbose                        = true
 $debug                          = hiera('debug', true)
 $use_monit                      = false
-$mongo_hash                     = hiera('mongo', {})
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
-$nodes_hash                     = hiera('nodes', {})
-$storage_hash                   = hiera('storage', {})
-$vcenter_hash                   = hiera('vcenter', {})
-$nova_hash                      = hiera('nova', {})
-$mysql_hash                     = hiera('mysql', {})
-$rabbit_hash                    = hiera('rabbit', {})
-$glance_hash                    = hiera('glance', {})
-$keystone_hash                  = hiera('keystone', {})
-$cinder_hash                    = hiera('cinder', {})
-$ceilometer_hash                = hiera('ceilometer',{})
-$access_hash                    = hiera('access', {})
 $network_scheme                 = hiera('network_scheme', {})
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
-$syslog_hash                    = hiera('syslog', {})
-$base_syslog_hash               = hiera('base_syslog', {})
 $use_syslog                     = hiera('use_syslog', true)
 $syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
 $syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
@@ -46,6 +29,24 @@ $syslog_log_facility_heat       = hiera('syslog_log_facility_heat','LOG_LOCAL0')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
+
+$sahara_hash                    = hiera_hash('sahara', {})
+$murano_hash                    = hiera_hash('murano', {})
+$heat_hash                      = hiera_hash('heat', {})
+$nodes_hash                     = hiera_hash('nodes', {})
+$storage_hash                   = hiera_hash('storage', {})
+$vcenter_hash                   = hiera_hash('vcenter', {})
+$nova_hash                      = hiera_hash('nova', {})
+$mysql_hash                     = hiera_hash('mysql', {})
+$rabbit_hash                    = hiera_hash('rabbit', {})
+$glance_hash                    = hiera_hash('glance', {})
+$keystone_hash                  = hiera_hash('keystone', {})
+$cinder_hash                    = hiera_hash('cinder', {})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
+$access_hash                    = hiera_hash('access', {})
+$mongo_hash                     = hiera_hash('mongo', {})
+$syslog_hash                    = hiera_hash('syslog', {})
+$base_syslog_hash               = hiera_hash('base_syslog', {})
 
 # TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
 $hiera_openstack_version = hiera('openstack_version')
@@ -328,12 +329,19 @@ if member($roles, 'controller') or member($roles, 'primary-controller') {
   $bind_host = false
 }
 
+$db_password = structure($cinder_hash, 'db_password')
+$db_host     = structure($mysql_hash,  'db_host', $management_vip)
+$db_user     = structure($cinder_hash, 'db_user', 'cinder')
+$db_name     = structure($cinder_hash, 'db_name', 'cinder')
+$db_timeout  = structure($cinder_hash, 'db_timeout', '60')
+$db_charset  = structure($cinder_hash, 'db_charset', 'utf8')
+
 # NOTE(bogdando) deploy cinder volume node with disabled cinder-volume
 #   service #LP1398817. The orchestration will start and enable it back
 #   after the deployment is done.
 class { 'openstack::cinder':
   enable_volumes       => false,
-  sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${management_vip}/cinder?charset=utf8&read_timeout=60",
+  sql_connection       => "mysql://${db_user}:${db_password}@${db_host}/${db_name}?charset=${db_charset}&read_timeout=${db_timeout}",
   glance_api_servers   => "${management_vip}:9292",
   bind_host            => $bind_host,
   queue_provider       => $queue_provider,
@@ -347,7 +355,7 @@ class { 'openstack::cinder':
   enabled              => true,
   auth_host            => $management_vip,
   iscsi_bind_host      => $storage_address,
-  cinder_user_password => $cinder_hash[user_password],
+  cinder_user_password => $cinder_hash['user_password'],
   syslog_log_facility  => $syslog_log_facility_cinder,
   debug                => $debug,
   verbose              => $verbose,
@@ -356,7 +364,7 @@ class { 'openstack::cinder':
   max_pool_size        => $max_pool_size,
   max_overflow         => $max_overflow,
   idle_timeout         => $idle_timeout,
-  ceilometer           => $ceilometer_hash[enabled],
+  ceilometer           => $ceilometer_hash['enabled'],
   vmware_host_ip       => $vcenter_hash['host_ip'],
   vmware_host_username => $vcenter_hash['vc_user'],
   vmware_host_password => $vcenter_hash['vc_password']
@@ -367,13 +375,13 @@ cinder_config { 'DEFAULT/nova_catalog_info':
 }
 
 cinder_config { 'keymgr/fixed_key':
-  value => $cinder_hash[fixed_key];
+  value => $cinder_hash['fixed_key'];
 }
 
 # FIXME(bogdando) replace service_path and action to systemd, once supported
 if $use_monit_real {
   monit::process { $cinder_volume_name :
-    ensure        => running,
+    ensure        => 'running',
     matching      => '/usr/bin/python /usr/bin/cinder-volume',
     start_command => "${service_path} ${cinder_volume_name} restart",
     stop_command  => "${service_path} ${cinder_volume_name} stop",
