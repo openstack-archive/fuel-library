@@ -33,6 +33,18 @@ describe manifest do
         )
       end
     end
+
+    if !use_neutron
+      nameservers = Noop.hiera 'dns_nameservers'
+      if nameservers
+        it 'should declare nova::network with nameservers' do
+          should contain_class('nova::network').with(
+            'nameservers' => nameservers,
+          )
+        end
+      end
+    end
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
