@@ -62,6 +62,7 @@ class keystone::db::mysql(
   $allowed_hosts = undef
 ) {
 
+  if ($mysql_module >= 2.2) {
   if $mysql_module {
     warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
   }
@@ -79,4 +80,39 @@ class keystone::db::mysql(
   }
 
   ::Openstacklib::Db::Mysql['keystone'] ~> Exec<| title == 'keystone-manage db_sync' |>
+
+  } else {
+
+    Class['keystone::db::mysql'] -> Exec<| title == 'keystone-manage db_sync' |>
+    Class['keystone::db::mysql'] -> Service<| title == 'keystone' |>
+    Mysql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
+
+    require mysql::python
+
+    mysql::db { $dbname:
+      user     => $user,
+      password => $password,
+      host     => $host,
+      charset  => $charset,
+      require  => Class['mysql::config'],
+    }
+  # Check allowed_hosts to avoid duplicate resource declarations
+  if is_array($allowed_hosts) and delete($allowed_hosts,$host) != [] {
+    $real_allowed_hosts = delete($allowed_hosts,$host)
+  } elsif is_string($allowed_hosts) and ($allowed_hosts != $host) {
+    $real_allowed_hosts = $allowed_hosts
+  }
+
+    if $real_allowed_hosts {
+      keystone::db::mysql::host_access { $real_allowed_hosts:
+        user          => $user,
+        password      => $password,
+        database      => $dbname,
+        mysql_module  => $mysql_module,
+      }
+
+      Keystone::Db::Mysql::Host_access[$real_allowed_hosts] -> Exec<| title == 'keystone-manage db_sync' |>
+    }
+  }
+
 }

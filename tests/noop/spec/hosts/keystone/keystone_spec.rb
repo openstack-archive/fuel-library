@@ -15,12 +15,22 @@ describe manifest do
     controller_nodes = Noop::Utils.ipsort(controller_internal_addresses.values)
     memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }.join(',')
     admin_token = Noop.hiera_structure 'keystone/admin_token'
+    public_url = Noop.hiera_structure 'keystone/public_url'
+    admin_url = Noop.hiera_structure 'keystone/admin_url'
+    internal_url = Noop.hiera_structure 'keystone/internal_url'
 
     it 'should declare keystone class with admin_token' do
       should contain_class('keystone').with(
         'admin_token' => admin_token,
       )
     end
+
+    it 'should declare keystone class with public_url,admin_url,internal_url' do
+        should contain_class('keystone').with('public_url' => public_url)
+        should contain_class('keystone').with('admin_url' => admin_url)
+        should contain_class('keystone').with('internal_url' => internal_url)
+    end
+
 
     it 'should configure memcache_pool keystone cache backend' do
       should contain_keystone_config('token/caching').with(:value => 'false')
