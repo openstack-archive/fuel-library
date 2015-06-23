@@ -51,6 +51,7 @@ describe 'keystone' do
       'signing_keyfile'       => '/etc/keystone/ssl/private/signing_key.pem',
       'signing_ca_certs'      => '/etc/keystone/ssl/certs/ca.pem',
       'signing_ca_key'        => '/etc/keystone/ssl/private/cakey.pem',
+      'mysql_module'          => '0.9',
       'rabbit_host'           => 'localhost',
       'rabbit_password'       => 'guest',
       'rabbit_userid'         => 'guest',
