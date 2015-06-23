@@ -479,7 +479,6 @@ class keystone(
   if $mysql_module {
     warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
   }
-
   if ($admin_endpoint and 'v2.0' in $admin_endpoint) {
     warning('Version string /v2.0/ should not be included in keystone::admin_endpoint')
   }
