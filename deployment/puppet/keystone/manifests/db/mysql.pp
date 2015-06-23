@@ -70,7 +70,10 @@ class keystone::db::mysql(
 
   ::openstacklib::db::mysql { 'keystone':
     user          => $user,
-    password_hash => mysql_password($password),
+#password is required to provide
+#compatibility with old mysql
+    password      => $password,
+#    password_hash => mysql_password($password),
     dbname        => $dbname,
     host          => $host,
     charset       => $charset,
