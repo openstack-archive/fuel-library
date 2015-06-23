@@ -11,7 +11,7 @@ describe 'cinder::qpid' do
 
     it 'should contain all of the default resources' do
 
-      should contain_class('qpid::server').with(
+      is_expected.to contain_class('qpid::server').with(
         :service_ensure    => 'running',
         :port              => '5672'
       )
@@ -20,7 +20,7 @@ describe 'cinder::qpid' do
 
     it 'should contain user' do
 
-      should contain_qpid_user('guest').with(
+      is_expected.to contain_qpid_user('guest').with(
         :password => 'guest',
         :file     => '/var/lib/qpidd/qpidd.sasldb',
         :realm    => 'OPENSTACK',
@@ -40,8 +40,8 @@ describe 'cinder::qpid' do
 
     it 'should be disabled' do
 
-      should_not contain_qpid_user('guest')
-      should contain_class('qpid::server').with(
+      is_expected.to_not contain_qpid_user('guest')
+      is_expected.to contain_class('qpid::server').with(
         :service_ensure    => 'stopped'
       )
 
