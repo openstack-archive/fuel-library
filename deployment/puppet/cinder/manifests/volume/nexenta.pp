@@ -28,6 +28,12 @@
 # [*nexenta_sparse*]
 #   (optional) Flag to create sparse volumes. Defaults to true.
 #
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'nexenta_backend/param1' => { 'value' => value1 } }
+#
 class cinder::volume::nexenta (
   $nexenta_user,
   $nexenta_password,
@@ -36,7 +42,8 @@ class cinder::volume::nexenta (
   $nexenta_target_prefix        = 'iqn:',
   $nexenta_target_group_prefix  = 'cinder/',
   $nexenta_blocksize            = '8k',
-  $nexenta_sparse               = true
+  $nexenta_sparse               = true,
+  $extra_options                = {},
 ) {
 
   cinder::backend::nexenta { 'DEFAULT':
@@ -48,5 +55,6 @@ class cinder::volume::nexenta (
     nexenta_target_group_prefix => $nexenta_target_group_prefix,
     nexenta_blocksize           => $nexenta_blocksize,
     nexenta_sparse              => $nexenta_sparse,
+    extra_options               => $extra_options,
   }
 }

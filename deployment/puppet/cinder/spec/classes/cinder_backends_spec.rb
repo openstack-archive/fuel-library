@@ -45,22 +45,19 @@ describe 'cinder::backends' do
       end
 
       it 'configures cinder.conf with default params' do
-        should contain_cinder_config('DEFAULT/enabled_backends').with_value(p[:enabled_backends].join(','))
-        should contain_cinder_config('DEFAULT/default_volume_type').with_ensure('absent')
+        is_expected.to contain_cinder_config('DEFAULT/enabled_backends').with_value(p[:enabled_backends].join(','))
       end
     end
 
     context 'configure cinder with a default volume type' do
       before :each do
         params.merge!(
-         :enabled_backends => ['lowcost', 'regular', 'premium'],
+         :enabled_backends    => ['foo', 'bar'],
          :default_volume_type => 'regular'
         )
       end
 
-      it 'configures cinder.conf with default params' do
-        should contain_cinder_config('DEFAULT/default_volume_type').with_value('regular')
-      end
+      it_raises 'a Puppet::Error', /The default_volume_type parameter is deprecated in this class, you should declare it in cinder::api./
     end
 
   end
