@@ -1,4 +1,14 @@
 # bridge.pp
+#
+# === Parameters:
+#
+# [*ip*]
+#  (mandatory) IP address of the bridge interface.
+#
+# [*netmask*]
+#  (optional) Netmask of the bridge interface.
+#  Defaults to '255.255.255.0' (/24).
+#
 define nova::network::bridge (
   $ip,
   $netmask = '255.255.255.0'

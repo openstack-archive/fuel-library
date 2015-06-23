@@ -60,6 +60,11 @@
 #   (optional) Whether to use Neutron for networking of VMs
 #   Defaults to true
 #
+# [*install_bridge_utils*]
+#   (optional) Whether to install the bridge-utils package or not.
+#   Applicable only for cases when Neutron was disabled
+#   Defaults to true
+#
 # [*network_device_mtu*]
 #   (optional) The MTU size for the interfaces managed by nova
 #   Defaults to undef
@@ -120,6 +125,7 @@ class nova::compute (
   $force_config_drive                 = false,
   $virtio_nic                         = false,
   $neutron_enabled                    = true,
+  $install_bridge_utils               = true,
   $network_device_mtu                 = undef,
   $instance_usage_audit               = false,
   $instance_usage_audit_period        = 'month',
@@ -151,7 +157,7 @@ class nova::compute (
     'DEFAULT/vnc_keymap':                    value => $vnc_keymap;
   }
 
-  if $neutron_enabled != true {
+  if $neutron_enabled != true and $install_bridge_utils {
     # Install bridge-utils if we use nova-network
     package { 'bridge-utils':
       ensure => present,

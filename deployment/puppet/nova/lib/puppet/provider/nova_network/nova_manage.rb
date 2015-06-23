@@ -27,6 +27,7 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
     {
       # this needs to be converted from a project name to an id
       :project          => '--project_id',
+      :dns1             => '--dns1',
       :dns2             => '--dns2',
       :gateway          => '--gateway',
       :bridge           => '--bridge',
