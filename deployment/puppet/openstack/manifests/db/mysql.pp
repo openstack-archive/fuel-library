@@ -120,6 +120,8 @@ class openstack::db::mysql (
       password      => $glance_db_password,
       dbname        => $glance_db_dbname,
       allowed_hosts => $allowed_hosts,
+      # TODO (degorenko): This workaround should be removed after mysql module sync
+      mysql_module  => 0.3,
     }
 
     # Create the Nova db
