@@ -67,7 +67,7 @@ class murano (
   $murano_repo_url_string                = undef,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::dashboard']
+  Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::dashboard']
 
   User['murano'] -> Class['murano::api'] -> File <| title == $murano_log_dir |>
 
@@ -105,14 +105,6 @@ class murano (
     owner  => 'murano',
     group  => 'murano',
     mode   => '0750',
-  }
-
-  class { 'murano::db::mysql':
-    password                             => $murano_db_password,
-    dbname                               => $murano_db_name,
-    user                                 => $murano_db_user,
-    dbhost                               => $murano_db_host,
-    allowed_hosts                        => $murano_db_allowed_hosts,
   }
 
   class { 'murano::python_muranoclient':
