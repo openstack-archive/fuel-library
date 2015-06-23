@@ -79,11 +79,5 @@ if $sahara_hash['enabled'] {
 
 #########################
 
-class mysql::server {}
-class mysql::config {}
-
-include mysql::server
-include mysql::config
-
 class openstack::firewall {}
 include openstack::firewall

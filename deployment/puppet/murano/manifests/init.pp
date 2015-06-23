@@ -24,16 +24,16 @@ class murano (
   $murano_api_host                       = '127.0.0.1',
   # rabbit configuration
   # NOTE:
-  #  Murano uses separate rabbitmq server for communication with agents.
-  #   This server is launched on each controller node and uses port 55572.
-  #  Separate rabbitmq is used to address security concern that instances
-  #   managed by Murano have access to the 'system' RabbitMQ and thus could
-  #   have access to OpenStack internal data.
+  # Murano uses separate rabbitmq server for communication with agents.
+  # This server is launched on each controller node and uses port 55572.
+  # Separate rabbitmq is used to address security concern that instances
+  # managed by Murano have access to the 'system' RabbitMQ and thus could
+  # have access to OpenStack internal data.
   # murano_rabbit_ha_hosts is used by murano-api and works with oslo.messaging
   $murano_rabbit_ha_hosts                = '127.0.0.1:5672',
   $murano_rabbit_ha_queues               = false,
   # murano_rabbit_host and murano_rabbit_port are used by murano-engine,
-  #   which communicates with rabbitmq directly.
+  # which communicates with rabbitmq directly.
   $murano_rabbit_host                    = '127.0.0.1',
   $murano_rabbit_port                    = '55572',
   $murano_rabbit_ssl                     = false,
@@ -67,7 +67,10 @@ class murano (
   $murano_repo_url_string                = undef,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::dashboard']
+  Class['murano::murano_rabbitmq'] ->
+    Class['murano::keystone'] ->
+      Class['murano::python_muranoclient'] ->
+        Class['murano::api'] -> Class['murano::dashboard']
 
   User['murano'] -> Class['murano::api'] -> File <| title == $murano_log_dir |>
 
@@ -107,64 +110,57 @@ class murano (
     mode   => '0750',
   }
 
-  class { 'murano::db::mysql':
-    password                             => $murano_db_password,
-    dbname                               => $murano_db_name,
-    user                                 => $murano_db_user,
-    dbhost                               => $murano_db_host,
-    allowed_hosts                        => $murano_db_allowed_hosts,
-  }
-
   class { 'murano::python_muranoclient':
   }
 
   class { 'murano::api' :
-    use_syslog                           => $use_syslog,
-    debug                                => $debug,
-    verbose                              => $verbose,
-    log_file                             => "${murano_log_dir}/murano.log",
-    syslog_log_facility                  => $syslog_log_facility,
+    use_syslog             => $use_syslog,
+    debug                  => $debug,
+    verbose                => $verbose,
+    log_file               => "${murano_log_dir}/murano.log",
+    syslog_log_facility    => $syslog_log_facility,
 
-    auth_host                            => $murano_keystone_host,
-    auth_port                            => $murano_keystone_port,
-    auth_protocol                        => $murano_keystone_protocol,
-    admin_tenant_name                    => $murano_keystone_tenant,
-    admin_user                           => $murano_keystone_user,
-    admin_password                       => $murano_keystone_password,
-    signing_dir                          => $murano_keystone_signing_dir,
+    auth_host              => $murano_keystone_host,
+    auth_port              => $murano_keystone_port,
+    auth_protocol          => $murano_keystone_protocol,
+    admin_tenant_name      => $murano_keystone_tenant,
+    admin_user             => $murano_keystone_user,
+    admin_password         => $murano_keystone_password,
+    signing_dir            => $murano_keystone_signing_dir,
 
-    bind_host                            => $murano_bind_host,
-    bind_port                            => $murano_bind_port,
+    bind_host              => $murano_bind_host,
+    bind_port              => $murano_bind_port,
 
-    api_host                             => $murano_api_host,
+    api_host               => $murano_api_host,
 
-    rabbit_host                          => $murano_rabbit_host,
-    rabbit_port                          => $murano_rabbit_port,
-    rabbit_ha_hosts                      => $murano_rabbit_ha_hosts,
-    rabbit_ha_queues                     => $murano_rabbit_ha_queues,
-    rabbit_use_ssl                       => $murano_rabbit_ssl,
-    rabbit_ca_certs                      => $murano_rabbit_ca_certs,
-    os_rabbit_userid                     => $murano_os_rabbit_userid,
-    os_rabbit_password                   => $murano_os_rabbit_passwd,
-    murano_rabbit_userid                 => $murano_own_rabbit_userid,
-    murano_rabbit_password               => $murano_own_rabbit_passwd,
-    rabbit_virtual_host                  => $murano_rabbit_virtual_host,
+    rabbit_host            => $murano_rabbit_host,
+    rabbit_port            => $murano_rabbit_port,
+    rabbit_ha_hosts        => $murano_rabbit_ha_hosts,
+    rabbit_ha_queues       => $murano_rabbit_ha_queues,
+    rabbit_use_ssl         => $murano_rabbit_ssl,
+    rabbit_ca_certs        => $murano_rabbit_ca_certs,
+    os_rabbit_userid       => $murano_os_rabbit_userid,
+    os_rabbit_password     => $murano_os_rabbit_passwd,
+    murano_rabbit_userid   => $murano_own_rabbit_userid,
+    murano_rabbit_password => $murano_own_rabbit_passwd,
+    rabbit_virtual_host    => $murano_rabbit_virtual_host,
 
-    murano_db_password                   => $murano_db_password,
-    murano_db_name                       => $murano_db_name,
-    murano_db_user                       => $murano_db_user,
-    murano_db_host                       => $murano_db_host,
+    murano_db_password     => $murano_db_password,
+    murano_db_name         => $murano_db_name,
+    murano_db_user         => $murano_db_user,
+    murano_db_host         => $murano_db_host,
 
-    primary_controller                   => $primary_controller,
+    primary_controller     => $primary_controller,
 
-    use_neutron                          => $use_neutron,
-    default_router                       => 'murano-default-router',
-    external_network                     => $external_network,
+    use_neutron            => $use_neutron,
+    default_router         => 'murano-default-router',
+    external_network       => $external_network,
   }
 
-  class { 'murano::dashboard' :
-    settings_py       => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
-    repo_url_string   => $murano_repo_url_string,
+  $dashboard = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py'
+  class { 'murano::dashboard':
+    settings_py     => $dashboard,
+    repo_url_string => $murano_repo_url_string,
   }
 
   class { 'murano::murano_rabbitmq' :
