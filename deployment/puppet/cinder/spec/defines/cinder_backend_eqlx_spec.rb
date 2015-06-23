@@ -24,13 +24,26 @@ describe 'cinder::backend::eqlx' do
 
   describe 'eqlx volume driver' do
     it 'configure eqlx volume driver' do
-      should contain_cinder_config(
+      is_expected.to contain_cinder_config(
         "#{config_group_name}/volume_driver").with_value(
         'cinder.volume.drivers.eqlx.DellEQLSanISCSIDriver')
       params.each_pair do |config,value|
-        should contain_cinder_config(
+        is_expected.to contain_cinder_config(
           "#{config_group_name}/#{config}").with_value(value)
       end
     end
   end
+
+  describe 'eqlx backend with additional configuration' do
+    before :each do
+      params.merge!({:extra_options => {'eqlx-1/param1' => {'value' => 'value1'}}})
+    end
+
+    it 'configure eqlx backend with additional configuration' do
+      should contain_cinder_config('eqlx-1/param1').with({
+        :value => 'value1',
+      })
+    end
+  end
+
 end

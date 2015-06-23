@@ -10,8 +10,8 @@ describe 'cinder::volume' do
     {:osfamily => 'Debian'}
   end
 
-  it { should contain_package('cinder-volume').with_ensure('present') }
-  it { should contain_service('cinder-volume').with(
+  it { is_expected.to contain_package('cinder-volume').with_ensure('present') }
+  it { is_expected.to contain_service('cinder-volume').with(
       'hasstatus' => true
   )}
 
@@ -20,7 +20,7 @@ describe 'cinder::volume' do
       { 'manage_service' => false }
     end
     it 'should not change the state of the service' do
-      should contain_service('cinder-volume').without_ensure
+      is_expected.to contain_service('cinder-volume').without_ensure
     end
   end
 end
