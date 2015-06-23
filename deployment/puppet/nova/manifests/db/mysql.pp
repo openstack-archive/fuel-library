@@ -61,6 +61,8 @@ class nova::db::mysql(
     charset       => $charset,
     collate       => $collate,
     allowed_hosts => $allowed_hosts,
+    # TODO (iberezovskiy): This workaround should be removed after mysql module sync
+    mysql_module  => $mysql_module,
   }
 
   ::Openstacklib::Db::Mysql['nova'] ~> Exec<| title == 'nova-db-sync' |>
