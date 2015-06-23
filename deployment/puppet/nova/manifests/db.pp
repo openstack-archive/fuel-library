@@ -44,8 +44,11 @@ class nova::db (
 
   if $database_connection_real {
     if($database_connection_real =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-      require 'mysql::bindings'
-      require 'mysql::bindings::python'
+    # TODO (iberezovskiy): This woraround should be removed
+    # after mysql module upgrade
+    #  require 'mysql::bindings'
+    #  require 'mysql::bindings::python'
+    require 'mysql::python'
     } elsif($database_connection_real =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
     } elsif($database_connection_real =~ /sqlite:\/\//) {
