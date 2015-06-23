@@ -39,14 +39,6 @@ class sahara (
 
   $sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=60"
 
-  class { 'sahara::db::mysql':
-    password                     => $db_password,
-    dbname                       => $db_name,
-    user                         => $db_user,
-    dbhost                       => $db_host,
-    allowed_hosts                => $db_allowed_hosts,
-  }
-
   class { 'sahara::api':
     enabled                      => $enabled,
     auth_uri                     => $auth_uri,
@@ -106,8 +98,6 @@ class sahara (
     action  => 'accept',
   }
 
-  Class['mysql::server'] ->
-  Class['sahara::db::mysql'] ->
   Firewall[$firewall_rule] ->
   Class['sahara::keystone::auth'] ->
   Class['sahara::api']

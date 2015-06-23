@@ -116,12 +116,8 @@ if $murano_hash['enabled'] {
 
 ######################
 
-class mysql::server {}
-class mysql::config {}
 class rabbitmq::service {}
 class openstack::firewall {}
-include mysql::server
-include mysql::config
 include rabbitmq::service
 include openstack::firewall
 
