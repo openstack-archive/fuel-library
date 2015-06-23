@@ -1,20 +1,23 @@
-# ==Define: cinder::vmware
+# == Define: cinder::vmware
 #
 # Creates vmdk specific disk file type & clone type.
 #
 # === Parameters
 #
 # [*os_password*]
-#   (required) The keystone tenant:username password.
+#   (Required) The keystone tenant:username password.
 #
 # [*os_tenant_name*]
-#   (optional) The keystone tenant name. Defaults to 'admin'.
+#   (Optional) The keystone tenant name.
+#   Defaults to 'admin'.
 #
 # [*os_username*]
-#   (optional) The keystone user name. Defaults to 'admin.
+#   (Optional) The keystone user name.
+#   Defaults to 'admin.
 #
 # [*os_auth_url*]
-#   (optional) The keystone auth url. Defaults to 'http://127.0.0.1:5000/v2.0/'.
+#   (Optional) The keystone auth url.
+#   Defaults to 'http://127.0.0.1:5000/v2.0/'.
 #
 class cinder::vmware (
   $os_password,
