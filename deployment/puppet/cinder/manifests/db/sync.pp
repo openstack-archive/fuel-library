@@ -1,7 +1,7 @@
 #
 class cinder::db::sync {
 
-  include cinder::params
+  include ::cinder::params
 
   exec { 'cinder-manage db_sync':
     command     => $::cinder::params::db_sync_command,

@@ -15,7 +15,7 @@
 #
 # [*san_thin_provision*]
 #   (optional) Whether or not to use thin provisioning for volumes.
-#   Defaults to false
+#   Defaults to true
 #
 # [*volume_backend_name*]
 #   (optional) The backend name.
@@ -49,11 +49,17 @@
 #   (optional) The maximum retry count for reconnection.
 #   Defaults to 5
 #
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'eqlx_backend/param1' => { 'value' => value1 } }
+#
 define cinder::backend::eqlx (
   $san_ip,
   $san_login,
   $san_password,
-  $san_thin_provision   = false,
+  $san_thin_provision   = true,
   $volume_backend_name  = $name,
   $eqlx_group_name      = 'group-0',
   $eqlx_pool            = 'default',
@@ -62,13 +68,14 @@ define cinder::backend::eqlx (
   $eqlx_chap_password   = '12345',
   $eqlx_cli_timeout     = 30,
   $eqlx_cli_max_retries = 5,
+  $extra_options        = {},
 ) {
   cinder_config {
     "${name}/volume_backend_name":  value => $volume_backend_name;
     "${name}/volume_driver":        value => 'cinder.volume.drivers.eqlx.DellEQLSanISCSIDriver';
     "${name}/san_ip":               value => $san_ip;
     "${name}/san_login":            value => $san_login;
-    "${name}/san_password":         value => $san_password;
+    "${name}/san_password":         value => $san_password, secret => true;
     "${name}/san_thin_provision":   value => $san_thin_provision;
     "${name}/eqlx_group_name":      value => $eqlx_group_name;
     "${name}/eqlx_use_chap":        value => $eqlx_use_chap;
@@ -80,7 +87,10 @@ define cinder::backend::eqlx (
   if(str2bool($eqlx_use_chap)) {
     cinder_config {
       "${name}/eqlx_chap_login":      value => $eqlx_chap_login;
-      "${name}/eqlx_chap_password":   value => $eqlx_chap_password;
+      "${name}/eqlx_chap_password":   value => $eqlx_chap_password, secret => true;
     }
   }
+
+  create_resources('cinder_config', $extra_options)
+
 }

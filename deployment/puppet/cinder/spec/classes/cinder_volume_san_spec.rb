@@ -7,7 +7,8 @@ describe 'cinder::volume::san' do
       :san_ip          => '127.0.0.1',
       :san_login       => 'cluster_operator',
       :san_password    => '007',
-      :san_clustername => 'storage_cluster' }
+      :san_clustername => 'storage_cluster',
+    }
   end
 
   let :default_params do
@@ -27,13 +28,31 @@ describe 'cinder::volume::san' do
 
     it 'configures cinder volume driver' do
       params_hash.each_pair do |config,value|
-        should contain_cinder_config("DEFAULT/#{config}").with_value( value )
+        is_expected.to contain_cinder_config("DEFAULT/#{config}").with_value( value )
       end
     end
+
+    it 'marks san_password as secret' do
+      is_expected.to contain_cinder_config('DEFAULT/san_password').with_secret( true )
+    end
+
   end
 
 
   context 'with parameters' do
     it_configures 'a san volume driver'
+  end
+
+  context 'san volume driver with additional configuration' do
+    before :each do
+      params.merge!({:extra_options => { 'san_backend/param1' => {'value' => 'value1'}}})
+    end
+
+    it 'configure san volume with additional configuration' do
+      should contain_cinder__backend__san('DEFAULT').with({
+        :extra_options => {'san_backend/param1' => {'value' => 'value1'}}
+      })
+    end
+
   end
 end
