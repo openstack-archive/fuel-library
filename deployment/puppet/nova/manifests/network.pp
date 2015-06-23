@@ -59,6 +59,10 @@
 #   (optional) Whether to install and enable the service
 #   Defaults to true
 #
+# [*nameservers*]
+#   (optional) DNS servers
+#   Defaults to ['8.8.8.8', '8.8.4.4']
+#
 class nova::network(
   $private_interface = undef,
   $fixed_range       = '10.0.0.0/8',
@@ -71,7 +75,8 @@ class nova::network(
   $config_overrides  = {},
   $create_networks   = true,
   $ensure_package    = 'present',
-  $install_service   = true
+  $install_service   = true,
+  $nameservers       = ['8.8.8.8', '8.8.4.4'],
 ) {
 
   include ::nova::params
@@ -111,6 +116,8 @@ class nova::network(
       num_networks => $num_networks,
       network_size => $network_size,
       vlan_start   => $vlan_start,
+      dns1         => $nameservers[0],
+      dns2         => $nameservers[1],
     }
     if $floating_range {
       nova::manage::floating { 'nova-vm-floating':

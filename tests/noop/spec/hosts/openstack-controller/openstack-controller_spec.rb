@@ -5,6 +5,13 @@ manifest = 'openstack-controller/openstack-controller.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    service_endpoint = Noop.hiera 'service_endpoint'
+    if service_endpoint
+      keystone_host = service_endpoint
+    else
+      keystone_host = Noop.hiera 'management_vip'
+    end
+
     # TODO All this stuff should be moved to shared examples controller* tests.
 
     # Nova config options
@@ -16,6 +23,19 @@ describe manifest do
     it 'nova config should have service_down_time set to 180' do
       should contain_nova_config('DEFAULT/service_down_time').with(
         'value' => '180',
+      )
+    end
+
+    keystone_ec2_url = "http://#{keystone_host}:5000/v2.0/ec2tokens"
+    it 'should declare class nova::api with keystone_ec2_url' do
+      should contain_class('nova::api').with(
+        'keystone_ec2_url' => keystone_ec2_url,
+      )
+    end
+
+    it 'should configure keystone_ec2_url for nova api service' do
+      should contain_nova_config('DEFAULT/keystone_ec2_url').with(
+        'value' => keystone_ec2_url,
       )
     end
 
