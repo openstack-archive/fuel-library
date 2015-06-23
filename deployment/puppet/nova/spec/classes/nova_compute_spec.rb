@@ -123,6 +123,20 @@ describe 'nova::compute' do
       end
     end
 
+    context 'with install_bridge_utils set to false' do
+      let :params do
+        { :install_bridge_utils => false }
+      end
+
+      it 'does not install bridge-utils package for nova-network' do
+        is_expected.to_not contain_package('bridge-utils').with(
+          :ensure => 'present',
+          :before => 'Nova::Generic_service[compute]'
+        )
+      end
+
+    end
+
     context 'with vnc_enabled set to false' do
       let :params do
         { :vnc_enabled => false }

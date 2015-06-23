@@ -261,18 +261,18 @@ The openstack::compute class deploys the following services:
   An openstack compute class can be configured as follows:
 
     class { 'openstack::compute':
-      private_interface  => 'eth1',
-      internal_address   => $ipaddress_eth0,
-      libvirt_type       => 'kvm',
-      fixed_range        => '10.0.0.0/24',
-      network_manager    => 'nova.network.manager.FlatDHCPManager',
-      multi_host         => false,
-      sql_connection     => 'mysql://nova:nova_db_passwd@192.168.101.10/nova',
-      rabbit_host        => '192.168.101.10',
-      glance_api_servers => '192.168.101.10:9292',
-      vncproxy_host      => '192.168.101.10',
-      vnc_enabled        => true,
-      manage_volumes     => true,
+      private_interface   => 'eth1',
+      internal_address    => $ipaddress_eth0,
+      libvirt_type        => 'kvm',
+      fixed_range         => '10.0.0.0/24',
+      network_manager     => 'nova.network.manager.FlatDHCPManager',
+      multi_host          => false,
+      database_connection => 'mysql://nova:nova_db_passwd@192.168.101.10/nova',
+      rabbit_host         => '192.168.101.10',
+      glance_api_servers  => '192.168.101.10:9292',
+      vncproxy_host       => '192.168.101.10',
+      vnc_enabled         => true,
+      manage_volumes      => true,
     }
 
   For more information on the parameters, check out the inline documentation in
