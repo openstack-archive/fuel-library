@@ -278,8 +278,10 @@
 #   (string value)
 #   Defaults to '/C=US/ST=Unset/L=Unset/O=Unset/CN=localhost'
 #
-# [*mysql_module*]
-#   (optional) Deprecated. Does nothing.
+#   [*mysql_module*]
+#   (optional) The mysql puppet module version to use
+#   Tested versions include 0.9 and 2.2
+#   Default to '0.9'
 #
 # [*validate_service*]
 #   (optional) Whether to validate keystone connections after
@@ -480,8 +482,11 @@ class keystone(
     warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
   }
 
-  if ($admin_endpoint and 'v2.0' in $admin_endpoint) {
-    warning('Version string /v2.0/ should not be included in keystone::admin_endpoint')
+  if $sql_connection {
+    warning('The sql_connection parameter is deprecated, use database_connection instead.')
+    $database_connection_real = $sql_connection
+  } else {
+    $database_connection_real = $database_connection
   }
 
   if ($public_endpoint and 'v2.0' in $public_endpoint) {
@@ -631,10 +636,14 @@ class keystone(
     }
   }
 
-  if($database_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-    require 'mysql::bindings'
-    require 'mysql::bindings::python'
-  } elsif($database_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+  if($database_connection_real =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+    if ($mysql_module >= 2.2) {
+      require 'mysql::bindings'
+      require 'mysql::bindings::python'
+    } else {
+      require 'mysql::python'
+    }
+  } elsif($database_connection_real =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
   } elsif($database_connection =~ /sqlite:\/\//) {
 

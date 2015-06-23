@@ -1,4 +1,5 @@
-# The keystone::db::mysql class implements mysql backend for keystone
+#
+# implements mysql backend for keystone
 #
 # This class can be used to create tables, users and grant
 # privelege for a mysql keystone database.
@@ -38,6 +39,10 @@
 #
 # [*mysql_module*]
 #   (Optional) Does nothing.
+#   [*mysql_module*]
+#   (optional) The mysql puppet module version to use
+#   Tested versions include 0.9 and 2.2
+#   Default to '0.9'
 #
 # == Dependencies
 #   Class['mysql::server']
@@ -62,21 +67,48 @@ class keystone::db::mysql(
   $allowed_hosts = undef
 ) {
 
-  if $mysql_module {
-    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
+  Class['keystone::db::mysql'] -> Exec<| title == 'keystone-manage db_sync' |>
+  Class['keystone::db::mysql'] -> Service<| title == 'keystone' |>
+  Mysql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
+
+  if ($mysql_module >= 2.2) {
+    mysql::db { $dbname:
+      user     => $user,
+      password => $password,
+      host     => $host,
+      charset  => $charset,
+      collate  => $collate,
+      require  => Class['mysql::server'],
+    }
+  } else {
+    require mysql::python
+
+    mysql::db { $dbname:
+      user     => $user,
+      password => $password,
+      host     => $host,
+      charset  => $charset,
+      require  => Class['mysql::config'],
+    }
   }
 
-  validate_string($password)
-
-  ::openstacklib::db::mysql { 'keystone':
-    user          => $user,
-    password_hash => mysql_password($password),
-    dbname        => $dbname,
-    host          => $host,
-    charset       => $charset,
-    collate       => $collate,
-    allowed_hosts => $allowed_hosts,
+  # Check allowed_hosts to avoid duplicate resource declarations
+  if is_array($allowed_hosts) and delete($allowed_hosts,$host) != [] {
+    $real_allowed_hosts = delete($allowed_hosts,$host)
+  } elsif is_string($allowed_hosts) and ($allowed_hosts != $host) {
+    $real_allowed_hosts = $allowed_hosts
   }
 
-  ::Openstacklib::Db::Mysql['keystone'] ~> Exec<| title == 'keystone-manage db_sync' |>
+  if $real_allowed_hosts {
+    keystone::db::mysql::host_access { $real_allowed_hosts:
+      user          => $user,
+      password      => $password,
+      database      => $dbname,
+      mysql_module  => $mysql_module,
+    }
+
+    Keystone::Db::Mysql::Host_access[$real_allowed_hosts] -> Exec<| title == 'keystone-manage db_sync' |>
+
+  }
+
 }
