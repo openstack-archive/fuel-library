@@ -50,7 +50,6 @@ if $::operatingsystem == 'Ubuntu' {
 class { 'openstack::heat' :
   external_ip              => $controller_node_public,
   keystone_auth            => pick($heat_hash['keystone_auth'], true),
-  create_heat_db           => pick($heat_hash['create_heat_db'], true),
   api_bind_host            => $internal_address,
   api_cfn_bind_host        => $internal_address,
   api_cloudwatch_bind_host => $internal_address,

@@ -6,7 +6,6 @@ class openstack::heat (
   $enabled                       = true,
 
   $keystone_auth                 = true,
-  $create_heat_db                = true,
   $keystone_host                 = '127.0.0.1',
   $keystone_port                 = '35357',
   $keystone_service_port         = '5000',
@@ -96,39 +95,26 @@ class openstack::heat (
   }
   Package<| title == 'heat-api-cfn' or title == 'heat-api-cloudwatch' |>
   Heat_config <|
-     title == 'DEFAULT/instance_connection_https_validate_certificates' or
-     title == 'DEFAULT/instance_connection_is_secure'
+    title == 'DEFAULT/instance_connection_https_validate_certificates' or
+    title == 'DEFAULT/instance_connection_is_secure'
   |> ->
   Service<| title == 'heat-api-cfn' or title == 'heat-api-cloudwatch' |>
 
   # Firewall rules for APIs
   firewall { '206 heat-api-cloudwatch' :
-    dport   => [ $api_cloudwatch_bind_port ],
-    proto   => 'tcp',
-    action  => 'accept',
+    dport  => [ $api_cloudwatch_bind_port ],
+    proto  => 'tcp',
+    action => 'accept',
   } ->
   firewall { '205 heat-api-cfn' :
-    dport   => [ $api_cfn_bind_port ],
-    proto   => 'tcp',
-    action  => 'accept',
+    dport  => [ $api_cfn_bind_port ],
+    proto  => 'tcp',
+    action => 'accept',
   } ->
   firewall { '204 heat-api' :
-    dport   => [ $api_bind_port ],
-    proto   => 'tcp',
-    action  => 'accept',
-  }
-
-  # Follow the Heat installation order
-  # DB
-  if ($create_heat_db){
-    class { 'heat::db::mysql':
-      password                      => $db_password,
-      dbname                        => $db_name,
-      user                          => $db_user,
-      host                          => $db_host,
-      allowed_hosts                 => $db_allowed_hosts,
-      require                       => Firewall['204 heat-api'],
-    }
+    dport  => [ $api_bind_port ],
+    proto  => 'tcp',
+    action => 'accept',
   }
 
   if ($keystone_auth){
