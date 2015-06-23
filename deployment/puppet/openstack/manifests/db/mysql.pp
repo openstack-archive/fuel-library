@@ -128,6 +128,8 @@ class openstack::db::mysql (
       password      => $nova_db_password,
       dbname        => $nova_db_dbname,
       allowed_hosts => $allowed_hosts,
+      # TODO (iberezovskiy): This workaround should be removed after mysql module upgrade
+      mysql_module  => '0.9',
     }
 
     # create cinder db
