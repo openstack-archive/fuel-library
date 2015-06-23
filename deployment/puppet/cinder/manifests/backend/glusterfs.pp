@@ -28,6 +28,12 @@
 #   (optional) The config file to store the given $glusterfs_shares.
 #   Defaults to '/etc/cinder/shares.conf'
 #
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'glusterfs_backend/param1' => { 'value' => value1 } }
+#
 # === Examples
 #
 # cinder::backend::glusterfs { 'myGluster':
@@ -40,7 +46,8 @@ define cinder::backend::glusterfs (
   $glusterfs_disk_util        = false,
   $glusterfs_sparsed_volumes  = undef,
   $glusterfs_mount_point_base = undef,
-  $glusterfs_shares_config    = '/etc/cinder/shares.conf'
+  $glusterfs_shares_config    = '/etc/cinder/shares.conf',
+  $extra_options              = {},
 ) {
 
   if $glusterfs_disk_util {
@@ -63,4 +70,7 @@ define cinder::backend::glusterfs (
     "${name}/glusterfs_sparsed_volumes":  value => $glusterfs_sparsed_volumes;
     "${name}/glusterfs_mount_point_base": value => $glusterfs_mount_point_base;
   }
+
+  create_resources('cinder_config', $extra_options)
+
 }

@@ -39,9 +39,9 @@ describe 'cinder::glance' do
     end
 
     it 'configures cinder.conf with default params' do
-      should contain_cinder_config('DEFAULT/glance_api_version').with_value(p[:glance_api_version])
-      should contain_cinder_config('DEFAULT/glance_num_retries').with_value(p[:glance_num_retries])
-      should contain_cinder_config('DEFAULT/glance_api_insecure').with_value(p[:glance_api_insecure])
+      is_expected.to contain_cinder_config('DEFAULT/glance_api_version').with_value(p[:glance_api_version])
+      is_expected.to contain_cinder_config('DEFAULT/glance_num_retries').with_value(p[:glance_num_retries])
+      is_expected.to contain_cinder_config('DEFAULT/glance_api_insecure').with_value(p[:glance_api_insecure])
     end
 
      context 'configure cinder with one glance server' do
@@ -49,7 +49,7 @@ describe 'cinder::glance' do
         params.merge!(:glance_api_servers => '10.0.0.1:9292')
        end
        it 'should configure one glance server' do
-         should contain_cinder_config('DEFAULT/glance_api_servers').with_value(p[:glance_api_servers])
+         is_expected.to contain_cinder_config('DEFAULT/glance_api_servers').with_value(p[:glance_api_servers])
        end
      end
 
@@ -58,7 +58,7 @@ describe 'cinder::glance' do
         params.merge!(:glance_api_servers => ['10.0.0.1:9292','10.0.0.2:9292'])
        end
        it 'should configure two glance servers' do
-         should contain_cinder_config('DEFAULT/glance_api_servers').with_value(p[:glance_api_servers].join(','))
+         is_expected.to contain_cinder_config('DEFAULT/glance_api_servers').with_value(p[:glance_api_servers].join(','))
        end
      end
   end

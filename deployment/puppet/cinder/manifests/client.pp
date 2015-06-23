@@ -4,17 +4,19 @@
 #
 # === Parameters
 #
-# [*ensure*]
-#   Ensure state for package. Defaults to 'present'.
+# [*package_ensure*]
+#   (Optional) Ensure state for package.
+#   Defaults to 'present'.
 #
 class cinder::client(
   $package_ensure = 'present'
 ) {
 
-  include cinder::params
+  include ::cinder::params
 
   package { 'python-cinderclient':
     ensure => $package_ensure,
     name   => $::cinder::params::client_package,
+    tag    => 'openstack',
   }
 }
