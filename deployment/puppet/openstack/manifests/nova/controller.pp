@@ -265,7 +265,7 @@ class openstack::nova::controller (
     quota_metadata_items                  => 1024,
     quota_max_injected_files              => 50,
     quota_max_injected_file_content_bytes => 102400,
-    quota_max_injected_file_path_bytes    => 4096,
+    quota_injected_file_path_length       => 4096,
     quota_driver                          => $nova_quota_driver
   }
 
@@ -310,6 +310,7 @@ class openstack::nova::controller (
     neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_shared_secret,
     require                              => Package['nova-common'],
     osapi_compute_workers                => min($::processorcount + 0, 50 + 0),
+    keystone_ec2_url                     => "http://${keystone_host}:5000/v2.0/ec2tokens",
   }
 
   # From legacy init.pp
@@ -327,7 +328,6 @@ class openstack::nova::controller (
   nova_config {
     'DEFAULT/allow_resize_to_same_host':  value => true;
     'DEFAULT/api_paste_config':           value => '/etc/nova/api-paste.ini';
-    'DEFAULT/keystone_ec2_url':           value => "http://${keystone_host}:5000/v2.0/ec2tokens";
     'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-nova';
     'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-nova';
   }
