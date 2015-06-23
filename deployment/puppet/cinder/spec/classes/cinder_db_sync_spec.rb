@@ -5,7 +5,7 @@ describe 'cinder::db::sync' do
   let :facts do
     {:osfamily => 'Debian'}
   end
-  it { should contain_exec('cinder-manage db_sync').with(
+  it { is_expected.to contain_exec('cinder-manage db_sync').with(
     :command     => 'cinder-manage db sync',
     :path        => '/usr/bin',
     :user        => 'cinder',

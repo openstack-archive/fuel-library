@@ -18,10 +18,11 @@
 #     DEFAULT/bar:
 #       value: barValue
 #
-# [**cinder_config**]
+# [*cinder_config*]
 #   (optional) Allow configuration of cinder.conf configurations.
+#   Defaults to empty hash'{}'
 #
-# [**api_paste_ini_config**]
+# [*api_paste_ini_config*]
 #   (optional) Allow configuration of /etc/cinder/api-paste.ini configurations.
 #
 #   NOTE: The configuration MUST NOT be already handled by this module

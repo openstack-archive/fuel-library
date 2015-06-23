@@ -15,15 +15,15 @@ describe 'cinder::backend::glusterfs' do
     end
 
     it 'configures glusterfs volume driver' do
-      should contain_cinder_config('mygluster/volume_driver').with_value(
+      is_expected.to contain_cinder_config('mygluster/volume_driver').with_value(
         'cinder.volume.drivers.glusterfs.GlusterfsDriver')
-      should contain_cinder_config('mygluster/glusterfs_shares_config').with_value(
+      is_expected.to contain_cinder_config('mygluster/glusterfs_shares_config').with_value(
         '/etc/cinder/other_shares.conf')
-      should contain_cinder_config('mygluster/glusterfs_sparsed_volumes').with_value(
+      is_expected.to contain_cinder_config('mygluster/glusterfs_sparsed_volumes').with_value(
         true)
-      should contain_cinder_config('mygluster/glusterfs_mount_point_base').with_value(
+      is_expected.to contain_cinder_config('mygluster/glusterfs_mount_point_base').with_value(
         '/cinder_mount_point')
-      should contain_file('/etc/cinder/other_shares.conf').with(
+      is_expected.to contain_file('/etc/cinder/other_shares.conf').with(
         :content => "10.10.10.10:/volumes\n10.10.10.11:/volumes\n",
         :require => 'Package[cinder]',
         :notify  => 'Service[cinder-volume]'
@@ -36,9 +36,20 @@ describe 'cinder::backend::glusterfs' do
           :glusterfs_disk_util => 'foo',
         })
       end
-      it 'should fails' do
-        expect { subject }.to raise_error(Puppet::Error, /glusterfs_disk_util is removed in Icehouse./)
+      it_raises 'a Puppet::Error', /glusterfs_disk_util is removed in Icehouse./
+    end
+
+    context 'glusterfs backend with additional configuration' do
+      before do
+        params.merge!({:extra_options => {'mygluster/param1' => { 'value' => 'value1' }}})
       end
+
+      it 'configure glusterfs backend with additional configuration' do
+        should contain_cinder_config('mygluster/param1').with({
+          :value => 'value1'
+        })
+      end
+
     end
   end
 
