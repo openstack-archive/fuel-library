@@ -7,3 +7,13 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/openstack-cinder.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1200
+
+- id: cinder_db
+  type: puppet
+  groups: [primary-controller]
+  required_for: [openstack-cinder]
+  requires: [database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/cinder_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1200
