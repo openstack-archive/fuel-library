@@ -5,17 +5,20 @@
 # === Parameters
 #
 # [*quota_volumes*]
-#   (optional) Number of volumes allowed per project. Defaults to 10.
+#   (Optional) Number of volumes allowed per project.
+#   Defaults to '10'.
 #
 # [*quota_snapshots*]
-#   (optional) Number of volume snapshots allowed per project. Defaults to 10.
+#   (Optional) Number of volume snapshots allowed per project.
+#   Defaults to '10'.
 #
 # [*quota_gigabytes*]
-#   (optional) Number of volume gigabytes (snapshots are also included)
-#   allowed per project. Defaults to 1000.
+#   (Optional) Number of volume gigabytes (snapshots are also included)
+#   allowed per project.
+#   Defaults to 1000.
 #
 # [*quota_driver*]
-#   (optional) Default driver to use for quota checks.
+#   (Optional) Default driver to use for quota checks.
 #   Defaults to 'cinder.quota.DbQuotaDriver'.
 #
 class cinder::quota (

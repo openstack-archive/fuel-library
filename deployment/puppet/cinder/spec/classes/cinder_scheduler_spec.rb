@@ -10,15 +10,17 @@ describe 'cinder::scheduler' do
 
     describe 'with default parameters' do
 
-      it { should contain_class('cinder::params') }
+      it { is_expected.to contain_class('cinder::params') }
+      it { is_expected.to contain_cinder_config('DEFAULT/scheduler_driver').with_ensure('absent') }
 
-      it { should contain_package('cinder-scheduler').with(
-        :name      => 'cinder-scheduler',
-        :ensure    => 'present',
-        :before    => 'Service[cinder-scheduler]'
+      it { is_expected.to contain_package('cinder-scheduler').with(
+        :name   => 'cinder-scheduler',
+        :ensure => 'present',
+        :before => ['Cinder_config[DEFAULT/scheduler_driver]','Service[cinder-scheduler]'],
+        :tag    => 'openstack',
       ) }
 
-      it { should contain_service('cinder-scheduler').with(
+      it { is_expected.to contain_service('cinder-scheduler').with(
         :name      => 'cinder-scheduler',
         :enable    => true,
         :ensure    => 'running',
@@ -35,8 +37,8 @@ describe 'cinder::scheduler' do
         }
       end
 
-      it { should contain_cinder_config('DEFAULT/scheduler_driver').with_value('cinder.scheduler.filter_scheduler.FilterScheduler') }
-      it { should contain_package('cinder-scheduler').with_ensure('present') }
+      it { is_expected.to contain_cinder_config('DEFAULT/scheduler_driver').with_value('cinder.scheduler.filter_scheduler.FilterScheduler') }
+      it { is_expected.to contain_package('cinder-scheduler').with_ensure('present') }
     end
 
     describe 'with manage_service false' do
@@ -45,7 +47,7 @@ describe 'cinder::scheduler' do
         }
       end
       it 'should not change the state of the service' do
-        should contain_service('cinder-scheduler').without_ensure
+        is_expected.to contain_service('cinder-scheduler').without_ensure
       end
     end
   end
@@ -59,9 +61,9 @@ describe 'cinder::scheduler' do
 
     describe 'with default parameters' do
 
-      it { should contain_class('cinder::params') }
+      it { is_expected.to contain_class('cinder::params') }
 
-      it { should contain_service('cinder-scheduler').with(
+      it { is_expected.to contain_service('cinder-scheduler').with(
         :name    => 'openstack-cinder-scheduler',
         :enable  => true,
         :ensure  => 'running',
@@ -75,7 +77,7 @@ describe 'cinder::scheduler' do
         { :scheduler_driver => 'cinder.scheduler.filter_scheduler.FilterScheduler' }
       end
 
-      it { should contain_cinder_config('DEFAULT/scheduler_driver').with_value('cinder.scheduler.filter_scheduler.FilterScheduler') }
+      it { is_expected.to contain_cinder_config('DEFAULT/scheduler_driver').with_value('cinder.scheduler.filter_scheduler.FilterScheduler') }
     end
   end
 end

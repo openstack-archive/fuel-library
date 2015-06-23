@@ -46,6 +46,12 @@
 # [*ssh_min_pool_conn*]
 #   (optional) Maximum ssh connections in the pool.
 #
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'san_backend/param1' => { 'value' => value1 } }
+#
 define cinder::backend::san (
   $volume_driver,
   $volume_backend_name = $name,
@@ -59,7 +65,8 @@ define cinder::backend::san (
   $san_is_local        = false,
   $ssh_conn_timeout    = 30,
   $ssh_min_pool_conn   = 1,
-  $ssh_max_pool_conn   = 5
+  $ssh_max_pool_conn   = 5,
+  $extra_options       = {},
 ) {
 
   cinder_config {
@@ -68,7 +75,7 @@ define cinder::backend::san (
     "${name}/san_thin_provision":  value => $san_thin_provision;
     "${name}/san_ip":              value => $san_ip;
     "${name}/san_login":           value => $san_login;
-    "${name}/san_password":        value => $san_password;
+    "${name}/san_password":        value => $san_password, secret => true;
     "${name}/san_private_key":     value => $san_private_key;
     "${name}/san_clustername":     value => $san_clustername;
     "${name}/san_ssh_port":        value => $san_ssh_port;
@@ -77,4 +84,7 @@ define cinder::backend::san (
     "${name}/ssh_min_pool_conn":   value => $ssh_min_pool_conn;
     "${name}/ssh_max_pool_conn":   value => $ssh_max_pool_conn;
   }
+
+  create_resources('cinder_config', $extra_options)
+
 }

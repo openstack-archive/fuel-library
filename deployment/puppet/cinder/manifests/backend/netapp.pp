@@ -11,17 +11,17 @@
 #
 # [*netapp_password*]
 #   (required) Password for the administrative user account specified in the
-#   netapp_login parameter.
+#   netapp_login option.
 #
 # [*netapp_server_hostname*]
 #   (required) The hostname (or IP address) for the storage system or proxy
 #   server.
 #
 # [*netapp_server_port*]
-#   (optional) The TCP port to use for communication with ONTAPI on the
-#   storage system. Traditionally, port 80 is used for HTTP and port 443 is
-#   used for HTTPS; however, this value should be changed if an alternate
-#   port has been configured on the storage system or proxy server.
+#   (optional) The TCP port to use for communication with the storage
+#   system or proxy. If not specified, Data ONTAP drivers will use 80
+#   for HTTP and 443 for HTTPS; E-Series will use 8080 for HTTP and
+#   8443 for HTTPS.
 #   Defaults to 80
 #
 # [*netapp_size_multiplier*]
@@ -32,46 +32,48 @@
 #
 # [*netapp_storage_family*]
 #   (optional) The storage family type used on the storage system; valid values
-#   are ontap_7mode for using Data ONTAP operating in 7-Mode or ontap_cluster
+#   are ontap_7mode for using Data ONTAP operating in 7-Mode, ontap_cluster
 #   for using clustered Data ONTAP, or eseries for NetApp E-Series.
 #   Defaults to ontap_cluster
 #
 # [*netapp_storage_protocol*]
 #   (optional) The storage protocol to be used on the data path with the storage
-#   system; valid values are iscsi or nfs.
+#   system. Valid values are iscsi, fc, nfs.
 #   Defaults to nfs
 #
 # [*netapp_transport_type*]
-#   (optional) The transport protocol used when communicating with ONTAPI on the
-#   storage system or proxy server. Valid values are http or https.
+#   (optional) The transport protocol used when communicating with the storage
+#   system or proxy server. Valid values are http or https.
 #   Defaults to http
 #
 # [*netapp_vfiler*]
 #   (optional) The vFiler unit on which provisioning of block storage volumes
 #   will be done. This parameter is only used by the driver when connecting to
-#   an instance with a storage family of Data ONTAP operating in 7-Mode and the
-#   storage protocol selected is iSCSI. Only use this parameter when utilizing
-#   the MultiStore feature on the NetApp storage system.
-#   Defaults to ''
+#   an instance with a storage family of Data ONTAP operating in 7-Mode. Only
+#   use this parameter when utilizing the MultiStore feature on the NetApp
+#   storage system.
+#   Defaults to undef
 #
 # [*netapp_volume_list*]
 #   (optional) This parameter is only utilized when the storage protocol is
-#   configured to use iSCSI. This parameter is used to restrict provisioning to
-#   the specified controller volumes. Specify the value of this parameter to be
-#   a comma separated list of NetApp controller volume names to be used for
-#   provisioning.
-#   Defaults to ''
+#   configured to use iSCSI or FC. This parameter is used to restrict
+#   provisioning to the specified controller volumes. Specify the value of
+#   this parameter to be a comma separated list of NetApp controller volume
+#   names to be used for provisioning.
+#   Defaults to undef
 #
 # [*netapp_vserver*]
-#   (optional) This parameter specifies the virtual storage server (Vserver)
+#   (optional) This option specifies the virtual storage server (Vserver)
 #   name on the storage cluster on which provisioning of block storage volumes
-#   should occur. If using the NFS storage protocol, this parameter is mandatory
-#   for storage service catalog support (utilized by Cinder volume type
-#   extra_specs support). If this parameter is specified, the exports belonging
-#   to the Vserver will only be used for provisioning in the future. Block
-#   storage volumes on exports not belonging to the Vserver specified by
-#   this parameter will continue to function normally.
-#   Defaults to ''
+#   should occur.
+#   Defaults to undef
+#
+# [*netapp_partner_backend_name*]
+#   (optional) The name of the config.conf stanza for a Data ONTAP (7-mode)
+#   HA partner.  This option is only used by the driver when connecting to an
+#   instance with a storage family of Data ONTAP operating in 7-Mode, and it is
+#   required if the storage protocol selected is FC.
+#   Defaults to undef
 #
 # [*expiry_thres_minutes*]
 #   (optional) This parameter specifies the threshold for last access time for
@@ -94,15 +96,25 @@
 #   last M minutes, where M is the value of the expiry_thres_minutes parameter.
 #   Defaults to 60
 #
+# [*nfs_shares*]
+#   (optional) Array of NFS exports in the form of host:/share; will be written into
+#    file specified in nfs_shares_config
+#    Defaults to undef
+#
 # [*nfs_shares_config*]
 #   (optional) File with the list of available NFS shares
-#   Defaults to ''
+#   Defaults to '/etc/cinder/shares.conf'
+#
+# [*nfs_mount_options*]
+#   (optional) Mount options passed to the nfs client. See section
+#   of the nfs man page for details.
+#   Defaults to undef
 #
 # [*netapp_copyoffload_tool_path*]
 #   (optional) This option specifies the path of the NetApp Copy Offload tool
 #   binary. Ensure that the binary has execute permissions set which allow the
 #   effective user of the cinder-volume process to execute the file.
-#   Defaults to ''
+#   Defaults to undef
 #
 # [*netapp_controller_ips*]
 #   (optional) This option is only utilized when the storage family is
@@ -110,18 +122,24 @@
 #   specified controllers. Specify the value of this option to be a comma
 #   separated list of controller hostnames or IP addresses to be used for
 #   provisioning.
-#   Defaults to ''
+#   Defaults to undef
 #
 # [*netapp_sa_password*]
 #   (optional) Password for the NetApp E-Series storage array.
-#   Defaults to ''
+#   Defaults to undef
 #
 # [*netapp_storage_pools*]
 #   (optional) This option is used to restrict provisioning to the specified
 #   storage pools. Only dynamic disk pools are currently supported. Specify the
 #   value of this option to be a comma separated list of disk pool names to be
 #   used for provisioning.
-#   Defaults to ''
+#   Defaults to undef
+#
+# [*netapp_eseries_host_type*]
+#   (optional) This option is used to define how the controllers in the
+#   E-Series storage array will work with the particular operating system on
+#   the hosts that are connected to it.
+#   Defaults to 'linux_dm_mp'
 #
 # [*netapp_webservice_path*]
 #   (optional) This option is used to specify the path to the E-Series proxy
@@ -130,6 +148,12 @@
 #   options to create the URL used by the driver to connect to the proxy
 #   application.
 #   Defaults to '/devmgr/v2'
+#
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'netapp_backend/param1' => { 'value' => value1 } }
 #
 # === Examples
 #
@@ -160,42 +184,77 @@ define cinder::backend::netapp (
   $netapp_storage_family        = 'ontap_cluster',
   $netapp_storage_protocol      = 'nfs',
   $netapp_transport_type        = 'http',
-  $netapp_vfiler                = '',
-  $netapp_volume_list           = '',
-  $netapp_vserver               = '',
+  $netapp_vfiler                = undef,
+  $netapp_volume_list           = undef,
+  $netapp_vserver               = undef,
+  $netapp_partner_backend_name  = undef,
   $expiry_thres_minutes         = '720',
   $thres_avl_size_perc_start    = '20',
   $thres_avl_size_perc_stop     = '60',
-  $nfs_shares_config            = '',
-  $netapp_copyoffload_tool_path = '',
-  $netapp_controller_ips        = '',
-  $netapp_sa_password           = '',
-  $netapp_storage_pools         = '',
+  $nfs_shares                   = undef,
+  $nfs_shares_config            = '/etc/cinder/shares.conf',
+  $nfs_mount_options            = undef,
+  $netapp_copyoffload_tool_path = undef,
+  $netapp_controller_ips        = undef,
+  $netapp_sa_password           = undef,
+  $netapp_storage_pools         = undef,
+  $netapp_eseries_host_type     = 'linux_dm_mp',
   $netapp_webservice_path       = '/devmgr/v2',
+  $extra_options                = {},
 ) {
 
-  cinder_config {
-    "${volume_backend_name}/volume_backend_name":          value => $volume_backend_name;
-    "${volume_backend_name}/volume_driver":                value => 'cinder.volume.drivers.netapp.common.NetAppDriver';
-    "${volume_backend_name}/netapp_login":                 value => $netapp_login;
-    "${volume_backend_name}/netapp_password":              value => $netapp_password, secret => true;
-    "${volume_backend_name}/netapp_server_hostname":       value => $netapp_server_hostname;
-    "${volume_backend_name}/netapp_server_port":           value => $netapp_server_port;
-    "${volume_backend_name}/netapp_size_multiplier":       value => $netapp_size_multiplier;
-    "${volume_backend_name}/netapp_storage_family":        value => $netapp_storage_family;
-    "${volume_backend_name}/netapp_storage_protocol":      value => $netapp_storage_protocol;
-    "${volume_backend_name}/netapp_transport_type":        value => $netapp_transport_type;
-    "${volume_backend_name}/netapp_vfiler":                value => $netapp_vfiler;
-    "${volume_backend_name}/netapp_volume_list":           value => $netapp_volume_list;
-    "${volume_backend_name}/netapp_vserver":               value => $netapp_vserver;
-    "${volume_backend_name}/expiry_thres_minutes":         value => $expiry_thres_minutes;
-    "${volume_backend_name}/thres_avl_size_perc_start":    value => $thres_avl_size_perc_start;
-    "${volume_backend_name}/thres_avl_size_perc_stop":     value => $thres_avl_size_perc_stop;
-    "${volume_backend_name}/nfs_shares_config":            value => $nfs_shares_config;
-    "${volume_backend_name}/netapp_copyoffload_tool_path": value => $netapp_copyoffload_tool_path;
-    "${volume_backend_name}/netapp_controller_ips":        value => $netapp_controller_ips;
-    "${volume_backend_name}/netapp_sa_password":           value => $netapp_sa_password;
-    "${volume_backend_name}/netapp_storage_pools":         value => $netapp_storage_pools;
-    "${volume_backend_name}/netapp_webservice_path":       value => $netapp_webservice_path;
+  if $nfs_shares {
+    validate_array($nfs_shares)
+    file {$nfs_shares_config:
+      content => join($nfs_shares, "\n"),
+      require => Package['cinder'],
+      notify  => Service['cinder-volume']
+    }
   }
+
+  if $nfs_mount_options {
+    cinder_config {
+      "${name}/nfs_mount_options": value => $nfs_mount_options;
+    }
+  } else {
+    cinder_config {
+      "${name}/nfs_mount_options": ensure => absent;
+    }
+  }
+
+  cinder_config {
+    "${name}/volume_backend_name":          value => $volume_backend_name;
+    "${name}/volume_driver":                value => 'cinder.volume.drivers.netapp.common.NetAppDriver';
+    "${name}/netapp_login":                 value => $netapp_login;
+    "${name}/netapp_password":              value => $netapp_password, secret => true;
+    "${name}/netapp_server_hostname":       value => $netapp_server_hostname;
+    "${name}/netapp_server_port":           value => $netapp_server_port;
+    "${name}/netapp_size_multiplier":       value => $netapp_size_multiplier;
+    "${name}/netapp_storage_family":        value => $netapp_storage_family;
+    "${name}/netapp_storage_protocol":      value => $netapp_storage_protocol;
+    "${name}/netapp_transport_type":        value => $netapp_transport_type;
+    "${name}/netapp_vfiler":                value => $netapp_vfiler;
+    "${name}/netapp_volume_list":           value => $netapp_volume_list;
+    "${name}/netapp_vserver":               value => $netapp_vserver;
+    "${name}/netapp_partner_backend_name":  value => $netapp_partner_backend_name;
+    "${name}/expiry_thres_minutes":         value => $expiry_thres_minutes;
+    "${name}/thres_avl_size_perc_start":    value => $thres_avl_size_perc_start;
+    "${name}/thres_avl_size_perc_stop":     value => $thres_avl_size_perc_stop;
+    "${name}/nfs_shares_config":            value => $nfs_shares_config;
+    "${name}/netapp_copyoffload_tool_path": value => $netapp_copyoffload_tool_path;
+    "${name}/netapp_controller_ips":        value => $netapp_controller_ips;
+    "${name}/netapp_sa_password":           value => $netapp_sa_password, secret => true;
+    "${name}/netapp_storage_pools":         value => $netapp_storage_pools;
+    "${name}/netapp_eseries_host_type":     value => $netapp_eseries_host_type;
+    "${name}/netapp_webservice_path":       value => $netapp_webservice_path;
+  }
+
+  if $netapp_storage_family == 'eseries' {
+    cinder_config {
+      "${name}/use_multipath_for_image_xfer": value => true;
+    }
+  }
+
+  create_resources('cinder_config', $extra_options)
+
 }

@@ -5,20 +5,19 @@
 # === Parameters
 #
 # [*enabled_backends*]
-#   (required) a list of ini sections to enable.
-#     This should contain names used in ceph::backend::* resources.
-#     Example: ['volume1', 'volume2', 'sata3']
+#   (Required) a list of ini sections to enable.
+#   This should contain names used in ceph::backend::* resources.
+#   Example: ['volume1', 'volume2', 'sata3']
+#
+# === Deprecated Parameters
 #
 # [*default_volume_type*]
-#   (optional) default volume type to use.
-#   This should contain the name of the default volume type to use.
-#   If not configured, it produces an error when creating a volume
-#   without specifying a type.
-#   Defaults to 'false'.
+#   (Deprecated) Does nothing.
 #
 # Author: Andrew Woodward <awoodward@mirantis.com>
 class cinder::backends (
   $enabled_backends    = undef,
+  # DEPRECATED
   $default_volume_type = false
   ){
 
@@ -28,13 +27,7 @@ class cinder::backends (
   }
 
   if $default_volume_type {
-    cinder_config {
-      'DEFAULT/default_volume_type': value => $default_volume_type;
-    }
-  } else {
-    cinder_config {
-      'DEFAULT/default_volume_type': ensure => absent;
-    }
+    fail('The default_volume_type parameter is deprecated in this class, you should declare it in cinder::api.')
   }
 
 }
