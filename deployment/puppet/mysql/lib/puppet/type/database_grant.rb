@@ -29,6 +29,10 @@ Puppet::Type.newtype(:database_grant) do
     desc "The primary key: either user@host for global privilges or user@host/database for database specific privileges"
   end
 
+  newparam(:defaults_file) do
+    desc "MySQL config file with options. Will be used for connection"
+  end
+
   newproperty(:privileges, :array_matching => :all) do
     desc "The privileges the user should have. The possible values are implementation dependent."
 

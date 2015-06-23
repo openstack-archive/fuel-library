@@ -22,4 +22,8 @@ Puppet::Type.newtype(:database_user) do
     newvalue(/\w+/)
   end
 
+  newparam(:defaults_file) do
+    desc "MySQL config file with options. Will be used for connection"
+  end
+
 end
