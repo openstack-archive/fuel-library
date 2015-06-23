@@ -49,6 +49,12 @@
 #   (optional) The name for the folder in the VC datacenter that will contain cinder volumes.
 #   Defaults to 'cinder-volumes'.
 #
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'vmdk_backend/param1' => { 'value' => value1 } }
+#
 define cinder::backend::vmdk (
   $host_ip,
   $host_username,
@@ -59,7 +65,8 @@ define cinder::backend::vmdk (
   $max_object_retrieval        = 100,
   $task_poll_interval          = 5,
   $image_transfer_timeout_secs = 7200,
-  $wsdl_location               = undef
+  $wsdl_location               = undef,
+  $extra_options               = {},
   ) {
 
   cinder_config {
@@ -67,7 +74,7 @@ define cinder::backend::vmdk (
     "${name}/volume_driver":                      value => 'cinder.volume.drivers.vmware.vmdk.VMwareVcVmdkDriver';
     "${name}/vmware_host_ip":                     value => $host_ip;
     "${name}/vmware_host_username":               value => $host_username;
-    "${name}/vmware_host_password":               value => $host_password;
+    "${name}/vmware_host_password":               value => $host_password, secret => true;
     "${name}/vmware_volume_folder":               value => $volume_folder;
     "${name}/vmware_api_retry_count":             value => $api_retry_count;
     "${name}/vmware_max_object_retrieval":        value => $max_object_retrieval;
@@ -81,10 +88,10 @@ define cinder::backend::vmdk (
     }
   }
 
-  if ! defined(Package['python-suds']) {
-    package { 'python-suds':
-      ensure   => present
-      }
+  package { 'python-suds':
+    ensure   => present
   }
+
+  create_resources('cinder_config', $extra_options)
 
 }

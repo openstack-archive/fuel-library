@@ -39,28 +39,29 @@ describe 'cinder::backup' do
       default_params.merge(params)
     end
 
-    it { should contain_class('cinder::params') }
+    it { is_expected.to contain_class('cinder::params') }
 
     it 'installs cinder backup package' do
       if platform_params.has_key?(:backup_package)
-        should contain_package('cinder-backup').with(
+        is_expected.to contain_package('cinder-backup').with(
           :name   => platform_params[:backup_package],
-          :ensure => 'present'
+          :ensure => 'present',
+          :tag    => 'openstack'
         )
-        should contain_package('cinder-backup').with_before(/Cinder_config\[.+\]/)
-        should contain_package('cinder-backup').with_before(/Service\[cinder-backup\]/)
+        is_expected.to contain_package('cinder-backup').with_before(/Cinder_config\[.+\]/)
+        is_expected.to contain_package('cinder-backup').with_before(/Service\[cinder-backup\]/)
       end
     end
 
     it 'ensure cinder backup service is running' do
-      should contain_service('cinder-backup').with('hasstatus' => true)
+      is_expected.to contain_service('cinder-backup').with('hasstatus' => true)
     end
 
     it 'configures cinder.conf' do
-      should contain_cinder_config('DEFAULT/backup_topic').with_value(p[:backup_topic])
-      should contain_cinder_config('DEFAULT/backup_manager').with_value(p[:backup_manager])
-      should contain_cinder_config('DEFAULT/backup_api_class').with_value(p[:backup_api_class])
-      should contain_cinder_config('DEFAULT/backup_name_template').with_value(p[:backup_name_template])
+      is_expected.to contain_cinder_config('DEFAULT/backup_topic').with_value(p[:backup_topic])
+      is_expected.to contain_cinder_config('DEFAULT/backup_manager').with_value(p[:backup_manager])
+      is_expected.to contain_cinder_config('DEFAULT/backup_api_class').with_value(p[:backup_api_class])
+      is_expected.to contain_cinder_config('DEFAULT/backup_name_template').with_value(p[:backup_name_template])
     end
 
     context 'when overriding backup_name_template' do
@@ -68,7 +69,7 @@ describe 'cinder::backup' do
         params.merge!(:backup_name_template => 'foo-bar-%s')
       end
       it 'should replace default parameter with new value' do
-        should contain_cinder_config('DEFAULT/backup_name_template').with_value(p[:backup_name_template])
+        is_expected.to contain_cinder_config('DEFAULT/backup_name_template').with_value(p[:backup_name_template])
       end
     end
   end
@@ -92,7 +93,7 @@ describe 'cinder::backup' do
     end
 
     let :platform_params do
-      { :backup_service => 'cinder-backup' }
+      { :backup_service => 'opentack-cinder-backup' }
     end
 
     it_configures 'cinder backup'
