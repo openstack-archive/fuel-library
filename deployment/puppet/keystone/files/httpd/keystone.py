@@ -13,7 +13,8 @@
 #    under the License.
 
 #
-# This file was copied from https://github.com/openstack/keystone/raw/0b676730347c76c7f64a67c1ad0135663e99c4fc/httpd/keystone.py
+# This file was copied from
+# https://github.com/openstack/keystone/raw/0b676730347c76c7f64a67c1ad0135663e99c4fc/httpd/keystone.py
 # It's only required for platforms on which it is not packaged yet.
 # It should be removed when available everywhere in a package.
 #
