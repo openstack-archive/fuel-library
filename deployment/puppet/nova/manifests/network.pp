@@ -71,7 +71,8 @@ class nova::network(
   $config_overrides  = {},
   $create_networks   = true,
   $ensure_package    = 'present',
-  $install_service   = true
+  $install_service   = true,
+  $nameservers       = ['8.8.8.8', '8.8.4.4'],
 ) {
 
   include ::nova::params
@@ -111,6 +112,8 @@ class nova::network(
       num_networks => $num_networks,
       network_size => $network_size,
       vlan_start   => $vlan_start,
+      dns1         => $nameservers[0],
+      dns2         => $nameservers[1],
     }
     if $floating_range {
       nova::manage::floating { 'nova-vm-floating':
