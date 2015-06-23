@@ -7,8 +7,6 @@ class murano::db::mysql(
   $allowed_hosts = undef,
 ) {
 
-  include 'murano::params'
-
   mysql::db { $dbname :
     user     => $user,
     password => $password,
