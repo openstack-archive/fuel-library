@@ -42,6 +42,18 @@ $memcache_servers      = hiera('memcache_servers', $controller_nodes)
 $memcache_server_port  = hiera('memcache_server_port', '11211')
 $memcache_pool_maxsize = '100'
 
+$public_port = '5000'
+$admin_port = '35357'
+$internal_port = '5000'
+$public_protocol = 'https'
+
+
+$public_url = "${public_protocol}://${public_address}:${public_port}"
+$admin_url = "http://${admin_address}:${admin_port}"
+$internal_url = "http://${internal_address}:${internal_port}"
+
+$revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
+
 $glance_user_password     = $glance_hash['user_password']
 $nova_user_password       = $nova_hash['user_password']
 $cinder_user_password     = $cinder_hash['user_password']
@@ -60,7 +72,7 @@ $rabbit_virtual_host = '/'
 $max_pool_size = hiera('max_pool_size')
 $max_overflow  = hiera('max_overflow')
 $max_retries   = '-1'
-$idle_timeout  = '3600'
+$database_idle_timeout  = '3600'
 
 $murano_settings_hash = hiera('murano_settings', {})
 if has_key($murano_settings_hash, 'murano_repo_url') {
@@ -107,7 +119,11 @@ class { 'openstack::keystone':
   rabbit_userid            => $rabbit_user,
   rabbit_hosts             => $rabbit_hosts,
   rabbit_virtual_host      => $rabbit_virtual_host,
-  idle_timeout             => $idle_timeout,
+  database_idle_timeout    => $database_idle_timeout,
+  revoke_driver            => $revoke_driver,
+  public_url               => $public_url,
+  admin_url                => $admin_url,
+  internal_url             => $internal_url,
 }
 
 ####### WSGI ###########
@@ -184,25 +200,6 @@ haproxy_backend_status { 'keystone-admin' :
 Service['keystone'] -> Haproxy_backend_status<||>
 Service<| title == 'httpd' |> -> Haproxy_backend_status<||>
 Haproxy_backend_status<||> -> Class['keystone::roles::admin']
-
-case $::osfamily {
-  'RedHat': {
-    $pymemcache_package_name      = 'python-memcached'
-  }
-  'Debian': {
-    $pymemcache_package_name      = 'python-memcache'
-  }
-  default: {
-    fail("The ${::osfamily} operating system is not supported")
-  }
-}
-
-package { 'python-memcache' :
-  ensure => present,
-  name   => $pymemcache_package_name,
-}
-
-Package['python-memcache'] -> Nova::Generic_service <||>
 
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {
