@@ -16,22 +16,24 @@ $syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LO
 $management_vip                 = hiera('management_vip')
 $public_vip                     = hiera('public_vip')
 $storage_address                = hiera('storage_address')
-$sahara_hash                    = hiera('sahara', {})
-$cinder_hash                    = hiera('cinder', {})
-$nodes_hash                     = hiera('nodes', {})
-$mysql_hash                     = hiera('mysql', {})
-$controllers                    = hiera('controllers')
-$access_hash                    = hiera('access', {})
-$keystone_hash                  = hiera('keystone', {})
-$glance_hash                    = hiera('glance', {})
-$storage_hash                   = hiera('storage', {})
-$nova_hash                      = hiera('nova', {})
-$internal_address               = hiera('internal_address')
-$rabbit_hash                    = hiera('rabbit', {})
-$ceilometer_hash                = hiera('ceilometer',{})
-$mongo_hash                     = hiera('mongo', {})
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
-$workloads_hash                 = hiera('workloads_collector', {})
+$amqp_hosts                     = hiera('amqp_hosts')
+
+$sahara_hash                    = hiera_hash('sahara', {})
+$cinder_hash                    = hiera_hash('cinder', {})
+$nodes_hash                     = hiera_hash('nodes', {})
+$mysql_hash                     = hiera_hash('mysql', {})
+$controllers                    = hiera_hash('controllers')
+$access_hash                    = hiera_hash('access', {})
+$keystone_hash                  = hiera_hash('keystone', {})
+$glance_hash                    = hiera_hash('glance', {})
+$storage_hash                   = hiera_hash('storage', {})
+$nova_hash                      = hiera_hash('nova', {})
+$internal_address               = hiera_hash('internal_address')
+$rabbit_hash                    = hiera_hash('rabbit', {})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
+$mongo_hash                     = hiera_hash('mongo', {})
+$workloads_hash                 = hiera_hash('workloads_collector', {})
 
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
@@ -60,14 +62,7 @@ if $use_neutron {
   $novanetwork_params = hiera('novanetwork_parameters')
 }
 
-if $internal_address in $controller_nodes {
-  # prefer local MQ broker if it exists on this node
-  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
-} else {
-  $amqp_nodes = fqdn_rotate($controller_nodes)
-}
 $amqp_port = '5673'
-$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 
 # RabbitMQ server configuration
 $rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
@@ -162,6 +157,29 @@ if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
   $multi_host = true
 }
 
+#### MySQL ####
+
+####### DB Settings #######
+$db_type          = 'mysql'
+$db_password      = structure($cinder_hash, 'db_password')
+$db_host          = structure($mysql_hash,  'db_host', $management_vip)
+$db_user          = structure($cinder_hash, 'db_user', 'cinder')
+$db_name          = structure($cinder_hash, 'db_name', 'cinder')
+$db_allowed_hosts = [ '%', $::hostname ]
+
+$nova_user_password = structure($nodes_hash, 'user_password')
+
+class { 'nova::db::mysql':
+  user          => $db_user,
+  password      => $db_password,
+  dbname        => $db_name,
+  allowed_hosts => $db_allowed_hosts,
+}
+
+Class['nova::db::mysql'] -> Class['openstack::controller']
+
+# TODO: openstack::controller -> openstack::nova::controller
+
 class { '::openstack::controller':
   private_interface              => $use_neutron ? { true=>false, default=>hiera('private_int')},
   public_interface               => hiera('public_int', undef),
@@ -179,34 +197,30 @@ class { '::openstack::controller':
   verbose                        => true,
   debug                          => hiera('debug', true),
   auto_assign_floating_ip        => hiera('auto_assign_floating_ip', false),
-  mysql_root_password            => $mysql_hash[root_password],
   custom_mysql_setup_class       => 'galera',
   galera_cluster_name            => 'openstack',
   primary_controller             => $primary_controller,
   galera_node_address            => $internal_address,
   galera_nodes                   => $controller_nodes,
-  status_check                   => true,
-  status_user                    => 'clustercheck',
-  status_password                => $mysql_hash[wsrep_password],
   backend_port                   => '3307',
   backend_timeout                => '10',
   novnc_address                  => $internal_address,
   mysql_skip_name_resolve        => true,
-  keystone_db_password           => $keystone_hash[db_password],
-  keystone_admin_token           => $keystone_hash[admin_token],
-  keystone_admin_tenant          => $access_hash[tenant],
-  glance_db_password             => $glance_hash[db_password],
-  glance_user_password           => $glance_hash[user_password],
   glance_api_servers             => "$management_vip:9292",
-  glance_image_cache_max_size    => $glance_hash[image_cache_max_size],
+  glance_image_cache_max_size    => $glance_hash['image_cache_max_size'],
   glance_vcenter_host            => $storage_hash['vc_host'],
   glance_vcenter_user            => $storage_hash['vc_user'],
   glance_vcenter_password        => $storage_hash['vc_password'],
   glance_vcenter_datacenter      => $storage_hash['vc_datacenter'],
   glance_vcenter_datastore       => $storage_hash['vc_datastore'],
   glance_vcenter_image_dir       => $storage_hash['vc_image_dir'],
-  nova_db_password               => $nova_hash[db_password],
-  nova_user_password             => $nova_hash[user_password],
+
+  db_host                        => $db_host,
+  nova_db_password               => $db_password,
+  nova_db_user                   => $db_user,
+  nova_db_dbname                 => $db_name,
+  nova_user_password             => $nova_user_password,
+
   queue_provider                 => 'rabbitmq',
   amqp_hosts                     => $amqp_hosts,
   amqp_user                      => $rabbit_hash['user'],
@@ -219,15 +233,9 @@ class { '::openstack::controller':
   memcached_bind_address         => $internal_address,
   export_resources               => false,
   api_bind_address               => $internal_address,
-  db_host                        => $management_vip,
   service_endpoint               => $management_vip,
   glance_backend                 => $glance_backend,
   known_stores                   => $glance_known_stores,
-  #require                        => Service['keepalived'],
-  neutron_db_user                => 'neutron',
-  neutron_db_password            => $neutron_db_password,
-  neutron_db_dbname              => 'neutron',
-  neutron_user_password          => $neutron_user_password,
   neutron_metadata_proxy_secret  => $neutron_metadata_proxy_secret,
   neutron_ha_agents              => $primary_controller ? {true => 'primary', default  => 'slave'},
   segment_range                  => undef,
@@ -236,18 +244,16 @@ class { '::openstack::controller':
   #
   cinder                         => true,
   cinder_iscsi_bind_addr         => $cinder_iscsi_bind_addr,
-  cinder_user_password           => $cinder_hash[user_password],
-  cinder_db_password             => $cinder_hash[db_password],
   manage_volumes                 => $manage_volumes,
   nv_physical_volume             => undef,
   cinder_volume_group            => 'cinder',
   #
-  ceilometer                     => $ceilometer_hash[enabled],
+  ceilometer                     => $ceilometer_hash['enabled'],
   ceilometer_db_user             => $ceilometer_db_user,
   ceilometer_db_password         => $ceilometer_db_password,
-  ceilometer_user_password       => $ceilometer_hash[user_password],
-  ceilometer_metering_secret     => $ceilometer_hash[metering_secret],
-  ceilometer_db_dbname           => $ceilometer_db_dbname,
+  ceilometer_user_password       => $ceilometer_hash['user_password'],
+  ceilometer_metering_secret     => $ceilometer_hash['metering_secret'],
+  ceilometer_db_dbname           => $ceilometer_db_name,
   ceilometer_db_type             => 'mongodb',
   ceilometer_db_host             => $mongo_hosts,
   swift_rados_backend            => $storage_hash['objects_ceph'],
@@ -274,6 +280,7 @@ class { '::openstack::controller':
   max_pool_size                  => $max_pool_size,
   max_overflow                   => $max_overflow,
   idle_timeout                   => $idle_timeout,
+  openstack_version              => $openstack_version,
 }
 
 package { 'socat': ensure => present }
@@ -299,7 +306,7 @@ if $primary_controller {
     environment => [
       "OS_TENANT_NAME=services",
       "OS_USERNAME=nova",
-      "OS_PASSWORD=${nova_hash['user_password']}",
+      "OS_PASSWORD=${nova_user_password}",
       "OS_AUTH_URL=http://${management_vip}:5000/v2.0/",
       'OS_ENDPOINT_TYPE=internalURL',
     ],
@@ -316,11 +323,11 @@ if $primary_controller {
     nova_floating_range { $floating_ips_range:
       ensure          => 'present',
       pool            => 'nova',
-      username        => $access_hash[user],
-      api_key         => $access_hash[password],
+      username        => $access_hash['user'],
+      api_key         => $access_hash['password'],
       auth_method     => 'password',
       auth_url        => "http://${management_vip}:5000/v2.0/",
-      authtenant_name => $access_hash[tenant],
+      authtenant_name => $access_hash['tenant'],
       api_retries     => 10,
     }
     Haproxy_backend_status['nova-api'] -> Nova_floating_range <| |>

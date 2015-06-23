@@ -2,9 +2,7 @@ notice('MODULAR: heat.pp')
 
 $controller_node_public   = hiera('controller_node_public')
 $controller_node_address  = hiera('controller_node_address')
-$heat_hash                = hiera('heat')
 $amqp_hosts               = hiera('amqp_hosts')
-$rabbit_hash              = hiera('rabbit_hash')
 $max_retries              = hiera('max_retries')
 $max_pool_size            = hiera('max_pool_size')
 $max_overflow             = hiera('max_overflow')
@@ -15,11 +13,21 @@ $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
 $internal_address         = hiera('internal_address')
-$database_password        = $heat_hash['db_password']
-$databse_user             = 'heat'
-$databse_name             = 'heat'
-$read_timeout             = '60'
-$sql_connection           = "mysql://${databse_user}:${database_password}@${$controller_node_address}/${databse_name}?read_timeout=${read_timeout}"
+$management_vip           = hiera('management_vip')
+
+$heat_hash                = hiera_hash('heat', {})
+$rabbit_hash              = hiera_hash('rabbit_hash', {})
+$mysql_hash               = hiera_hash('mysql', {})
+
+$enabled     = true
+$db_password = structure($heat_hash,  'db_password')
+$db_host     = structure($mysql_hash, 'db_host', $management_vip)
+$db_user     = structure($heat_hash,  'db_user', 'heat')
+$db_name     = structure($heat_hash,  'db_name', 'heat')
+$db_timeout  = structure($heat_hash,  'db_timeout', '60')
+$db_charset  = structure($heat_hash,  'db_charset', 'utf8')
+
+$sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?charset=${db_charset}&read_timeout=${db_timeout}"
 
 ####### Disable upstart startup on install #######
 if $::operatingsystem == 'Ubuntu' {
@@ -62,8 +70,10 @@ class { 'openstack::heat' :
   amqp_password            => $rabbit_hash['password'],
 
   sql_connection           => $sql_connection,
-  db_host                  => $controller_node_address,
-  db_password              => $database_password,
+  db_host                  => $db_host,
+  db_user                  => $db_user,
+  db_name                  => $db_name,
+  db_password              => $db_password,
   max_retries              => $max_retries,
   max_pool_size            => $max_pool_size,
   max_overflow             => $max_overflow,
@@ -144,8 +154,8 @@ Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-api-cloudwatch
 Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-engine']
 
 ######################
-
 class mysql::server {}
 class mysql::config {}
+
 include mysql::server
 include mysql::config
