@@ -85,7 +85,8 @@ class nova::params {
       $compute_service_name         = 'nova-compute'
       $conductor_service_name       = 'nova-conductor'
       $consoleauth_service_name     = 'nova-consoleauth'
-      $libvirt_service_name         = 'libvirt-bin'
+      # Workaround for bug LP #1469308
+      $libvirt_service_name         = 'libvirtd'
       $network_service_name         = 'nova-network'
       $objectstore_service_name     = 'nova-objectstore'
       $scheduler_service_name       = 'nova-scheduler'
@@ -107,7 +108,9 @@ class nova::params {
         default: {
           $spicehtml5proxy_package_name = 'nova-spiceproxy'
           $spicehtml5proxy_service_name = 'nova-spiceproxy'
-          $vncproxy_package_name    = 'nova-novncproxy'
+          # Workadroung for bug LP #1468230
+          #$vncproxy_package_name    = 'nova-novncproxy'
+          $vncproxy_package_name    = 'nova-consoleproxy'
           # some of the services need to be started form the special upstart provider
           $special_service_provider = 'upstart'
           $nova_log_group               = 'adm'
