@@ -479,9 +479,15 @@ class keystone(
   if $mysql_module {
     warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
   }
-
+  if ($mysql_module >= 2.2){
   if ($admin_endpoint and 'v2.0' in $admin_endpoint) {
     warning('Version string /v2.0/ should not be included in keystone::admin_endpoint')
+  }
+  }
+
+  if $sql_connection {
+    warning('The sql_connection parameter is deprecated, use database_connection instead.')
+    $database_connection = $sql_connection
   }
 
   if ($public_endpoint and 'v2.0' in $public_endpoint) {
@@ -632,8 +638,12 @@ class keystone(
   }
 
   if($database_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+  if ($mysql_module >= 2.2) {
     require 'mysql::bindings'
     require 'mysql::bindings::python'
+  } else {
+    require 'mysql::python'
+  }
   } elsif($database_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
   } elsif($database_connection =~ /sqlite:\/\//) {
