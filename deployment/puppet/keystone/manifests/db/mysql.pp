@@ -53,12 +53,12 @@
 #
 class keystone::db::mysql(
   $password,
+  $mysql_module,
   $dbname        = 'keystone',
   $user          = 'keystone',
   $host          = '127.0.0.1',
   $charset       = 'utf8',
   $collate       = 'utf8_general_ci',
-  $mysql_module  = undef,
   $allowed_hosts = undef
 ) {
 
@@ -76,6 +76,7 @@ class keystone::db::mysql(
     charset       => $charset,
     collate       => $collate,
     allowed_hosts => $allowed_hosts,
+    mysql_module  => $mysql_module,
   }
 
   ::Openstacklib::Db::Mysql['keystone'] ~> Exec<| title == 'keystone-manage db_sync' |>
