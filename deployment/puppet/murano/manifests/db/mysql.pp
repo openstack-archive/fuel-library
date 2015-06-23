@@ -1,3 +1,4 @@
+#
 class murano::db::mysql(
   $password      = 'murano',
   $dbname        = 'murano',
@@ -7,9 +8,7 @@ class murano::db::mysql(
   $allowed_hosts = undef,
 ) {
 
-  include 'murano::params'
-
-  mysql::db { $dbname :
+  mysql::db { $dbname:
     user     => $user,
     password => $password,
     host     => $dbhost,
@@ -19,9 +18,9 @@ class murano::db::mysql(
 
   if $allowed_hosts {
     murano::db::mysql::host_access { $allowed_hosts:
-      user      => $user,
-      password  => $password,
-      database  => $dbname,
+      user     => $user,
+      password => $password,
+      database => $dbname,
     }
   }
 
