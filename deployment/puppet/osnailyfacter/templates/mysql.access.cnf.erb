@@ -1,0 +1,6 @@
+<%- %w(mysql client mysqldump mysqladmin mysqlcheck).each do |section| %>
+[<%= section %>]
+user     = '<%= @mysql_database_user %>'
+password = '<%= @mysql_database_password %>'
+host     = '<%= @mysql_database_host %>'
+<%- end %>

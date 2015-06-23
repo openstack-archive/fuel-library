@@ -3,8 +3,6 @@ notice('MODULAR: openstack-cinder.pp')
 $cinder_hash                    = hiera('cinder', {})
 $management_vip                 = hiera('management_vip')
 $queue_provider                 = hiera('queue_provider', 'rabbitmq')
-$cinder_db_user                 = hiera('cinder_db_user', 'cinder')
-$cinder_db_dbname               = hiera('cinder_db_dbname', 'cinder')
 $internal_address               = hiera('internal_address')
 $cinder_volume_group            = hiera('cinder_volume_group', 'cinder')
 $controller_nodes               = hiera('controller_nodes')
@@ -14,9 +12,16 @@ $storage_address                = hiera('storage_address')
 $ceilometer_hash                = hiera('ceilometer',{})
 $rabbit_hash                    = hiera('rabbit', {})
 
-$db_host                        = $management_vip
+####### DB Settings #######
+$enabled          = true
+$db_type          = 'mysql'
+$db_host          = $management_vip
+$db_user          = hiera('cinder_db_user', 'cinder')
+$db_dbname        = hiera('cinder_db_dbname', 'cinder')
+$db_password      = $cinder_hash[db_password]
+$db_allowed_hosts = [ '%', $::hostname ]
+
 $service_endpoint               = $management_vip
-$cinder_db_password             = $cinder_hash[db_password]
 $cinder_user_password           = $cinder_hash[user_password]
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
@@ -55,9 +60,24 @@ $openstack_version = {
   'cinder'     => 'installed',
 }
 
+####### Create MySQL database
+class mysql::server {}
+class mysql::config {}
+
+include mysql::server
+include mysql::config
+
+class { 'cinder::db::mysql':
+  user          => $db_user,
+  password      => $db_password,
+  dbname        => $db_dbname,
+  allowed_hosts => $db_allowed_hosts,
+}
+Class['cinder::db::mysql'] -> Class['openstack::cinder']
+
 ######### Cinder Controller Services ########
 class {'openstack::cinder':
-  sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8&read_timeout=60",
+  sql_connection       => "mysql://${db_user}:${db_password}@${db_host}/${db_dbname}?charset=utf8&read_timeout=60",
   queue_provider       => $queue_provider,
   amqp_hosts           => $amqp_hosts,
   amqp_user            => $rabbit_hash['user'],

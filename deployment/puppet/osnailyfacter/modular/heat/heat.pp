@@ -15,11 +15,13 @@ $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
 $internal_address         = hiera('internal_address')
+
+$enabled                  = true
 $database_password        = $heat_hash['db_password']
-$databse_user             = 'heat'
-$databse_name             = 'heat'
+$database_user            = 'heat'
+$database_name            = 'heat'
 $read_timeout             = '60'
-$sql_connection           = "mysql://${databse_user}:${database_password}@${$controller_node_address}/${databse_name}?read_timeout=${read_timeout}"
+$sql_connection           = "mysql://${database_user}:${database_password}@${$controller_node_address}/${database_name}?read_timeout=${read_timeout}"
 
 ####### Disable upstart startup on install #######
 if $::operatingsystem == 'Ubuntu' {
@@ -144,8 +146,8 @@ Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-api-cloudwatch
 Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-engine']
 
 ######################
-
 class mysql::server {}
 class mysql::config {}
+
 include mysql::server
 include mysql::config
