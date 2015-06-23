@@ -33,11 +33,11 @@
 #   A value of zero disables cloning
 #   Defaults to '5'
 #
-# [*glance_api_version*]
-#   (optional) DEPRECATED: Use cinder::glance Class instead.
-#   Glance API version. (Defaults to '2')
-#   Setting this parameter cause a duplicate resource declaration
-#   with cinder::glance
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'rbd_backend/param1' => { 'value' => value1 } }
 #
 class cinder::volume::rbd (
   $rbd_pool,
@@ -47,8 +47,7 @@ class cinder::volume::rbd (
   $rbd_secret_uuid                  = false,
   $volume_tmp_dir                   = false,
   $rbd_max_clone_depth              = '5',
-  # DEPRECATED PARAMETERS
-  $glance_api_version               = undef,
+  $extra_options                    = {},
 ) {
 
   cinder::backend::rbd { 'DEFAULT':
@@ -59,6 +58,6 @@ class cinder::volume::rbd (
     rbd_secret_uuid                  => $rbd_secret_uuid,
     volume_tmp_dir                   => $volume_tmp_dir,
     rbd_max_clone_depth              => $rbd_max_clone_depth,
-    glance_api_version               => $glance_api_version,
+    extra_options                    => $extra_options,
   }
 }

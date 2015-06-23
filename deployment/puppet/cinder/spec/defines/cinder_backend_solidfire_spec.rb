@@ -17,14 +17,27 @@ describe 'cinder::backend::solidfire' do
 
   describe 'solidfire volume driver' do
     it 'configure solidfire volume driver' do
-      should contain_cinder_config('solidfire/volume_driver').with_value(
-        'cinder.volume.drivers.solidfire.SolidFire')
-      should contain_cinder_config('solidfire/san_ip').with_value(
+      is_expected.to contain_cinder_config('solidfire/volume_driver').with_value(
+        'cinder.volume.drivers.solidfire.SolidFireDriver')
+      is_expected.to contain_cinder_config('solidfire/san_ip').with_value(
         '127.0.0.2')
-      should contain_cinder_config('solidfire/san_login').with_value(
+      is_expected.to contain_cinder_config('solidfire/san_login').with_value(
         'solidfire')
-      should contain_cinder_config('solidfire/san_password').with_value(
+      is_expected.to contain_cinder_config('solidfire/san_password').with_value(
         'password')
     end
   end
+
+  describe 'solidfire backend with additional configuration' do
+    before :each do
+      params.merge!({:extra_options => {'solidfire/param1' => {'value' => 'value1'}}})
+    end
+
+    it 'configure solidfire backend with additional configuration' do
+      should contain_cinder_config('solidfire/param1').with({
+        :value => 'value1',
+      })
+    end
+  end
+
 end
