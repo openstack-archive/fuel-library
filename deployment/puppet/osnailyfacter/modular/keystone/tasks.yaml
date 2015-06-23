@@ -11,3 +11,13 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_post.rb
+
+- id: keystone-db
+  type: puppet
+  groups: [primary-controller]
+  required_for: [keystone]
+  requires: [database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
