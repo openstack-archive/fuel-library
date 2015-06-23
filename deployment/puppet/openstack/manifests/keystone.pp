@@ -37,13 +37,14 @@
 # class { 'openstack::keystone':
 #   db_host               => '127.0.0.1',
 #   keystone_db_password  => 'changeme',
-#   keystone_admin_token  => '12345',
-#   admin_email           => 'root@localhost',
 #   admin_password        => 'changeme',
 #   public_address        => '192.168.1.1',
 #  }
 
 class openstack::keystone (
+  $public_url,
+  $admin_url,
+  $internal_url,
   $db_host,
   $db_password,
   $admin_token,
@@ -89,8 +90,8 @@ class openstack::keystone (
   $package_ensure              = present,
   $use_syslog                  = false,
   $syslog_log_facility         = 'LOG_LOCAL7',
-  $idle_timeout                = '200',
   $region                      = 'RegionOne',
+  $database_idle_timeout       = '200',
   $rabbit_hosts                = false,
   $rabbit_password             = 'guest',
   $rabbit_userid               = 'guest',
@@ -98,11 +99,15 @@ class openstack::keystone (
   $max_pool_size               = '10',
   $max_overflow                = '30',
   $max_retries                 = '-1',
+  $mysql_module                = '0.3',
+  $token_caching               = false,
+  $cache_backend               = 'keystone.cache.memcache_pool',
+  $revoke_driver               = false,
 ) {
 
   # Install and configure Keystone
   if $db_type == 'mysql' {
-    $sql_conn = "mysql://${$db_user}:${db_password}@${db_host}/${db_name}?read_timeout=60"
+    $database_connection = "mysql://${$db_user}:${db_password}@${db_host}/${db_name}?read_timeout=60"
   } else {
     fail("db_type ${db_type} is not supported")
   }
@@ -211,26 +216,30 @@ class openstack::keystone (
   }
 
   class { '::keystone':
-    verbose             => $verbose,
-    debug               => $debug,
-    catalog_type        => 'sql',
-    admin_token         => $admin_token,
-    enabled             => $enabled,
-    sql_connection      => $sql_conn,
-    public_bind_host    => $public_bind_host,
-    admin_bind_host     => $admin_bind_host,
-    package_ensure      => $package_ensure,
-    use_syslog          => $use_syslog,
-    idle_timeout        => $idle_timeout,
-    rabbit_password     => $rabbit_password,
-    rabbit_userid       => $rabbit_userid,
-    rabbit_hosts        => $rabbit_hosts,
-    rabbit_virtual_host => $rabbit_virtual_host,
-    memcache_servers    => $memcache_servers_real,
-    token_driver        => $token_driver,
-    token_provider      => 'keystone.token.providers.uuid.Provider',
-    notification_driver => $notification_driver,
-    notification_topics => $notification_topics,
+    verbose               => $verbose,
+    debug                 => $debug,
+    catalog_type          => 'sql',
+    admin_token           => $admin_token,
+    enabled               => $enabled,
+    database_connection   => $database_connection,
+    public_bind_host      => $public_bind_host,
+    admin_bind_host       => $admin_bind_host,
+    package_ensure        => $package_ensure,
+    use_syslog            => $use_syslog,
+    database_idle_timeout => $database_idle_timeout,
+    rabbit_password       => $rabbit_password,
+    rabbit_userid         => $rabbit_userid,
+    rabbit_hosts          => $rabbit_hosts,
+    rabbit_virtual_host   => $rabbit_virtual_host,
+    memcache_servers      => $memcache_servers_real,
+    token_driver          => $token_driver,
+    token_provider        => 'keystone.token.providers.uuid.Provider',
+    notification_driver   => $notification_driver,
+    notification_topics   => $notification_topics,
+    mysql_module          => $mysql_module,
+    token_caching         => $token_caching,
+    cache_backend         => $cache_backend,
+    revoke_driver         => $revoke_driver,
   }
 
   if $::operatingsystem == 'Ubuntu' {
@@ -249,16 +258,12 @@ class openstack::keystone (
   if $memcache_servers {
     Service<| title == 'memcached' |> -> Service<| title == 'keystone'|>
     keystone_config {
-      'token/caching':                      value => 'false';
-      'cache/enabled':                      value => 'true';
-      'cache/backend':                      value => 'keystone.cache.memcache_pool';
       'cache/memcache_servers':             value => join($memcache_servers_real, ',');
       'cache/memcache_dead_retry':          value => '30';
       'cache/memcache_socket_timeout':      value => '1';
       'cache/memcache_pool_maxsize':        value => '1000';
       'cache/memcache_pool_unused_timeout': value => '60';
       'memcache/dead_retry':                value => '30';
-      'revoke/driver':                      value => 'keystone.contrib.revoke.backends.sql.Revoke';
      }
   }
 
@@ -314,10 +319,10 @@ class openstack::keystone (
 
     # Setup the Keystone Identity Endpoint
     class { 'keystone::endpoint':
-      public_address   => $public_address,
-      admin_address    => $admin_real,
-      internal_address => $internal_real,
-      region           => $region,
+      public_url   => $public_url,
+      admin_url    => $admin_url,
+      internal_url => $internal_url,
+      region       => $region,
     }
     Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
     Haproxy_backend_status<||> -> Class['keystone::endpoint']
