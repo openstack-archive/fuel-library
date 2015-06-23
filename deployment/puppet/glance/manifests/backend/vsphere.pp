@@ -69,15 +69,15 @@ class glance::backend::vsphere(
   $vcenter_api_retry_count = '10',
 ) {
   glance_api_config {
-    'DEFAULT/default_store': value             => 'vsphere';
-    'DEFAULT/vmware_api_insecure': value       => $vcenter_api_insecure;
-    'DEFAULT/vmware_server_host': value        => $vcenter_host;
-    'DEFAULT/vmware_server_username': value    => $vcenter_user;
-    'DEFAULT/vmware_server_password': value    => $vcenter_password;
-    'DEFAULT/vmware_datastore_name': value     => $vcenter_datastore;
-    'DEFAULT/vmware_store_image_dir': value    => $vcenter_image_dir;
-    'DEFAULT/vmware_task_poll_interval': value => $vcenter_task_poll_interval;
-    'DEFAULT/vmware_api_retry_count': value    => $vcenter_api_retry_count;
-    'DEFAULT/vmware_datacenter_path': value    => $vcenter_datacenter;
+    'glance_store/default_store': value             => 'vsphere';
+    'glance_store/vmware_api_insecure': value       => $vcenter_api_insecure;
+    'glance_store/vmware_server_host': value        => $vcenter_host;
+    'glance_store/vmware_server_username': value    => $vcenter_user;
+    'glance_store/vmware_server_password': value    => $vcenter_password;
+    'glance_store/vmware_datastore_name': value     => $vcenter_datastore;
+    'glance_store/vmware_store_image_dir': value    => $vcenter_image_dir;
+    'glance_store/vmware_task_poll_interval': value => $vcenter_task_poll_interval;
+    'glance_store/vmware_api_retry_count': value    => $vcenter_api_retry_count;
+    'glance_store/vmware_datacenter_path': value    => $vcenter_datacenter;
   }
 }

@@ -104,14 +104,14 @@ class openstack::glance (
     keystone_tenant       => 'services',
     keystone_user         => 'glance',
     keystone_password     => $glance_user_password,
-    sql_connection        => $sql_connection,
+    database_connection   => $sql_connection,
     enabled               => $enabled,
     registry_host         => $registry_host,
     use_syslog            => $use_syslog,
     log_facility          => $syslog_log_facility,
-    sql_idle_timeout      => $idle_timeout,
+    database_idle_timeout => $idle_timeout,
     show_image_direct_url => true,
-    pipeline              => 'keystone+cachemanagement',
+    pipeline              => 'keystone',
     known_stores          => $known_stores,
   }
 
