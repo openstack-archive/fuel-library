@@ -15,7 +15,7 @@
 #
 # [*san_thin_provision*]
 #   (optional) Whether or not to use thin provisioning for volumes.
-#   Defaults to false
+#   Defaults to true
 #
 # [*eqlx_group_name*]
 #   (optional) The CLI prompt message without '>'.
@@ -45,11 +45,17 @@
 #   (optional) The maximum retry count for reconnection.
 #   Defaults to 5
 #
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'eqlx_backend/param1' => { 'value' => value1 } }
+#
 class cinder::volume::eqlx (
   $san_ip,
   $san_login,
   $san_password,
-  $san_thin_provision          = false,
+  $san_thin_provision          = true,
   $eqlx_group_name             = 'group-0',
   $eqlx_pool                   = 'default',
   $eqlx_use_chap               = false,
@@ -57,6 +63,7 @@ class cinder::volume::eqlx (
   $eqlx_chap_password          = '12345',
   $eqlx_cli_timeout            = 30,
   $eqlx_cli_max_retries        = 5,
+  $extra_options               = {},
 ) {
   cinder::backend::eqlx { 'DEFAULT':
     san_ip               => $san_ip,
@@ -70,5 +77,6 @@ class cinder::volume::eqlx (
     eqlx_chap_password   => $eqlx_chap_password,
     eqlx_cli_timeout     => $eqlx_cli_timeout,
     eqlx_cli_max_retries => $eqlx_cli_max_retries,
+    extra_options        => $extra_options,
   }
 }
