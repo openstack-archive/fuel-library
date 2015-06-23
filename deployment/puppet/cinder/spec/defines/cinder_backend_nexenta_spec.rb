@@ -32,8 +32,21 @@ describe 'cinder::backend::nexenta' do
 
     it 'configures nexenta volume driver' do
       params_hash.each_pair do |config, value|
-        should contain_cinder_config("nexenta/#{config}").with_value(value)
+        is_expected.to contain_cinder_config("nexenta/#{config}").with_value(value)
       end
     end
   end
+
+  context 'nexenta backend with additional configuration' do
+    before do
+      params.merge!({:extra_options => {'nexenta/param1' => { 'value' => 'value1' }}})
+    end
+
+    it 'configure nexenta backend with additional configuration' do
+      should contain_cinder_config('nexenta/param1').with({
+        :value => 'value1'
+      })
+    end
+  end
+
 end
