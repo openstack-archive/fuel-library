@@ -41,13 +41,13 @@ describe 'cinder::backup::ceph' do
     end
 
     it 'configures cinder.conf' do
-      should contain_cinder_config('DEFAULT/backup_driver').with_value('cinder.backup.drivers.ceph')
-      should contain_cinder_config('DEFAULT/backup_ceph_conf').with_value(p[:backup_ceph_conf])
-      should contain_cinder_config('DEFAULT/backup_ceph_user').with_value(p[:backup_ceph_user])
-      should contain_cinder_config('DEFAULT/backup_ceph_chunk_size').with_value(p[:backup_ceph_chunk_size])
-      should contain_cinder_config('DEFAULT/backup_ceph_pool').with_value(p[:backup_ceph_pool])
-      should contain_cinder_config('DEFAULT/backup_ceph_stripe_unit').with_value(p[:backup_ceph_stripe_unit])
-      should contain_cinder_config('DEFAULT/backup_ceph_stripe_count').with_value(p[:backup_ceph_stripe_count])
+      is_expected.to contain_cinder_config('DEFAULT/backup_driver').with_value('cinder.backup.drivers.ceph')
+      is_expected.to contain_cinder_config('DEFAULT/backup_ceph_conf').with_value(p[:backup_ceph_conf])
+      is_expected.to contain_cinder_config('DEFAULT/backup_ceph_user').with_value(p[:backup_ceph_user])
+      is_expected.to contain_cinder_config('DEFAULT/backup_ceph_chunk_size').with_value(p[:backup_ceph_chunk_size])
+      is_expected.to contain_cinder_config('DEFAULT/backup_ceph_pool').with_value(p[:backup_ceph_pool])
+      is_expected.to contain_cinder_config('DEFAULT/backup_ceph_stripe_unit').with_value(p[:backup_ceph_stripe_unit])
+      is_expected.to contain_cinder_config('DEFAULT/backup_ceph_stripe_count').with_value(p[:backup_ceph_stripe_count])
     end
 
     context 'when overriding default parameters' do
@@ -60,12 +60,12 @@ describe 'cinder::backup::ceph' do
         params.merge!(:backup_ceph_stripe_count => '67')
       end
       it 'should replace default parameters with new values' do
-        should contain_cinder_config('DEFAULT/backup_ceph_conf').with_value(p[:backup_ceph_conf])
-        should contain_cinder_config('DEFAULT/backup_ceph_user').with_value(p[:backup_ceph_user])
-        should contain_cinder_config('DEFAULT/backup_ceph_chunk_size').with_value(p[:backup_ceph_chunk_size])
-        should contain_cinder_config('DEFAULT/backup_ceph_pool').with_value(p[:backup_ceph_pool])
-        should contain_cinder_config('DEFAULT/backup_ceph_stripe_unit').with_value(p[:backup_ceph_stripe_unit])
-        should contain_cinder_config('DEFAULT/backup_ceph_stripe_count').with_value(p[:backup_ceph_stripe_count])
+        is_expected.to contain_cinder_config('DEFAULT/backup_ceph_conf').with_value(p[:backup_ceph_conf])
+        is_expected.to contain_cinder_config('DEFAULT/backup_ceph_user').with_value(p[:backup_ceph_user])
+        is_expected.to contain_cinder_config('DEFAULT/backup_ceph_chunk_size').with_value(p[:backup_ceph_chunk_size])
+        is_expected.to contain_cinder_config('DEFAULT/backup_ceph_pool').with_value(p[:backup_ceph_pool])
+        is_expected.to contain_cinder_config('DEFAULT/backup_ceph_stripe_unit').with_value(p[:backup_ceph_stripe_unit])
+        is_expected.to contain_cinder_config('DEFAULT/backup_ceph_stripe_count').with_value(p[:backup_ceph_stripe_count])
       end
     end
   end
