@@ -91,10 +91,6 @@ class { 'openstack::glance':
   ceilometer                     => $ceilometer_hash[enabled],
  }
 
-glance_api_config {
-  'keystone_authtoken/token_cache_time': value => '-1';
-}
-
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'glance-api':
