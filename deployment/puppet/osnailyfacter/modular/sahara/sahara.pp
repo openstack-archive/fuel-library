@@ -1,23 +1,25 @@
 notice('MODULAR: sahara.pp')
 
 $primary_controller         = hiera('primary_controller')
-$sahara_hash                = hiera('sahara')
 $access_admin               = hiera('access')
 $controller_node_address    = hiera('controller_node_address')
 $controller_node_public     = hiera('controller_node_public')
-$public_ip                  = hiera('public_vip', $controller_node_public)
-$management_ip              = hiera('management_vip', $controller_node_address)
+$public_vip                 = hiera('public_vip', $controller_node_public)
+$management_vip             = hiera('management_vip', $controller_node_address)
 $use_neutron                = hiera('use_neutron', false)
 $syslog_log_facility_sahara = hiera('syslog_log_facility_sahara')
-$ceilometer_hash            = hiera('ceilometer')
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', true)
-$rabbit_hash                = hiera('rabbit_hash')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $deployment_mode            = hiera('deployment_mode')
+
+$sahara_hash                = hiera_hash('sahara', {})
+$rabbit_hash                = hiera_hash('rabbit', {})
+$mysql_hash                 = hiera_hash('mysql', {})
+$ceilometer_hash            = hiera_hash('ceilometer', {})
 
 #################################################################
 
@@ -30,16 +32,25 @@ if $sahara_hash['enabled'] {
     }
   }
 
+  $db_password      = structure($sahara_hash, 'db_password')
+  $db_host          = structure($mysql_hash,  'db_host', $management_vip)
+  $db_user          = structure($sahara_hash, 'db_user', 'sahara')
+  $db_name          = structure($sahara_hash, 'db_name', 'sahara')
+  $db_allowed_hosts = ['localhost','%']
+
   class { 'sahara' :
-    api_host                   => $public_ip,
-    db_password                => $sahara_hash['db_password'],
-    db_host                    => $management_ip,
-    keystone_host              => $management_ip,
+    api_host                   => $public_vip,
+    db_user                    => $db_user,
+    db_name                    => $db_name,
+    db_password                => $db_password,
+    db_host                    => $db_host,
+    db_allowed_hosts           => $db_allowed_hosts,
+    keystone_host              => $management_vip,
     keystone_user              => 'sahara',
     keystone_password          => $sahara_hash['user_password'],
     keystone_tenant            => 'services',
-    auth_uri                   => "http://${management_ip}:5000/v2.0/",
-    identity_uri               => "http://${management_ip}:35357/",
+    auth_uri                   => "http://${management_vip}:5000/v2.0/",
+    identity_uri               => "http://${management_vip}:35357/",
     use_neutron                => $use_neutron,
     syslog_log_facility        => $syslog_log_facility_sahara,
     debug                      => $debug,
@@ -47,14 +58,14 @@ if $sahara_hash['enabled'] {
     use_syslog                 => $use_syslog,
     enable_notifications       => $ceilometer_hash['enabled'],
     rpc_backend                => 'rabbit',
-    amqp_password              => $rabbit_hash['password'],
-    amqp_user                  => $rabbit_hash['user'],
+    amqp_password              => structure($rabbit_hash, 'password'),
+    amqp_user                  => structure($rabbit_hash, 'user', 'nova'),
     amqp_port                  => $amqp_port,
     amqp_hosts                 => $amqp_hosts,
     rabbit_ha_queues           => $rabbit_ha_queues,
   }
 
-  $haproxy_stats_url = "http://${management_ip}:10000/;csv"
+  $haproxy_stats_url = "http://${management_vip}:10000/;csv"
 
   haproxy_backend_status { 'sahara' :
     name => 'sahara',
@@ -67,7 +78,7 @@ if $sahara_hash['enabled'] {
       auth_user     => $access_admin['user'],
       auth_password => $access_admin['password'],
       auth_tenant   => $access_admin['tenant'],
-      auth_uri      => "http://${management_ip}:5000/v2.0/",
+      auth_uri      => "http://${management_vip}:5000/v2.0/",
     }
 
     Haproxy_backend_status['sahara'] -> Class['sahara_templates::create_templates']

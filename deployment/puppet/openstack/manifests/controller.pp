@@ -1,85 +1,9 @@
-# This can be used to build out the simplest openstack controller
-#
-# === Parameters
-#
-# [public_interface] Public interface used to route public traffic. Required.
-# [public_address] Public address for public endpoints. Required.
-# [private_interface] Interface used for vm networking connectivity. Required.
-# [internal_address] Internal address used for management. Required.
-# [mysql_root_password] Root password for mysql server.
-# [admin_email] Admin email.
-# [admin_password] Admin password.
-# [keystone_db_password] Keystone database password.
-# [keystone_admin_token] Admin token for keystone.
-# [glance_db_password] Glance DB password.
-# [glance_user_password] Glance service user password.
-# [nova_db_password] Nova DB password.
-# [nova_user_password] Nova service password.
-# [amqp_password] AMQP password.
-# [amqp_user] AMQP User.
-# [network_manager] Nova network manager to use.
-# [fixed_range] Range of ipv4 network for vms.
-# [floating_range] Floating ip range to create.
-# [create_networks] Rather network and floating ips should be created.
-# [num_networks] Number of networks that fixed range should be split into.
-# [multi_host] Rather node should support multi-host networking mode for HA.
-#   Optional. Defaults to false.
-# [auto_assign_floating_ip] Rather configured to automatically allocate and
-#   assign a floating IP address to virtual instances when they are launched.
-#   Defaults to false.
-# [network_config] Hash that can be used to pass implementation specifc
-#   network settings. Optioal. Defaults to {}
-# [verbose] Rather to print more verbose (INFO+) output. Optional. Defaults to false.
-# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option.
-#   Optional. Defaults to false.
-# [export_resources] Rather to export resources.
-# Horizon related config - assumes puppetlabs-horizon code
-# [secret_key]          secret key to encode cookies, …
-# [cache_server_ip]     local memcached instance ip
-# [cache_server_port]   local memcached instance port
-# [swift]               (bool) is swift installed
-# [neutron]             (bool) is neutron installed
-#   The next is an array of arrays, that can be used to add call-out links to the dashboard for other apps.
-#   There is no specific requirement for these apps to be for monitoring, that's just the defacto purpose.
-#   Each app is defined in two parts, the display name, and the URI
-# [horizon_app_links]     array as in '[ ["Nagios","http://nagios_addr:port/path"],["Ganglia","http://ganglia_addr"] ]'
-# [enabled] Whether services should be enabled. This parameter can be used to
-#   implement services in active-passive modes for HA. Optional. Defaults to true.
-# [use_syslog] Rather or not service should log to syslog. Optional. Defaults to false.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
-#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [max_retries] number of reconnects to Sqlalchemy db backend. Defaults -1.
-# [max_pool_size] QueuePool setting for Sqlalchemy db backend. Defaults 10.
-# [max_overflow] QueuePool setting for Sqlalchemy db backend. Defaults 30.
-# [idle_timeout] QueuePool setting for Sqlalchemy db backend. Defaults 3600.
-#
-# === Examples
-#
-# class { 'openstack::controller':
-#   public_address       => '192.168.0.3',
-#   mysql_root_password  => 'changeme',
-#   allowed_hosts        => ['127.0.0.%', '192.168.1.%'],
-#   admin_email          => 'my_email@mw.com',
-#   admin_password       => 'my_admin_password',
-#   keystone_db_password => 'changeme',
-#   keystone_admin_token => '12345',
-#   glance_db_password   => 'changeme',
-#   glance_user_password => 'changeme',
-#   nova_db_password     => 'changeme',
-#   nova_user_password   => 'changeme',
-#   secret_key           => 'dummy_secret_key',
-# }
-#
 class openstack::controller (
   # Required Network
   $public_address,
   $public_interface,
   $private_interface,
-  # Required Database
-  $mysql_root_password            = 'sql_pass',
   $custom_mysql_setup_class       = undef,
-  $keystone_db_password           = 'keystone_pass',
-  $keystone_admin_token           = 'keystone_admin_token',
   # Required Glance
   $glance_db_password             = 'glance_pass',
   $glance_user_password           = 'glance_pass',
@@ -129,18 +53,9 @@ class openstack::controller (
   $mysql_account_security         = true,
   $mysql_bind_address             = '0.0.0.0',
   $allowed_hosts                  = [ '%', $::hostname ],
-  $status_check                   = false,
-  $status_user                    = false,
-  $status_password                = false,
   $backend_port                   = false,
   $backend_timeout                = false,
-  # Keystone
-  $keystone_db_user               = 'keystone',
-  $keystone_db_dbname             = 'keystone',
-  $keystone_admin_tenant          = 'admin',
   # Glance
-  $glance_db_user                 = 'glance',
-  $glance_db_dbname               = 'glance',
   $glance_api_servers             = undef,
   $glance_image_cache_max_size    = '10737418240',
   $known_stores                   = false,
@@ -167,11 +82,7 @@ class openstack::controller (
   $verbose                        = false,
   $debug                          = false,
   $export_resources               = true,
-  # if the cinder management components should be installed
-  $cinder_user_password           = 'cinder_user_pass',
-  $cinder_db_password             = 'cinder_db_pass',
-  $cinder_db_user                 = 'cinder',
-  $cinder_db_dbname               = 'cinder',
+
   $cinder_iscsi_bind_addr         = false,
   $cinder_volume_group            = 'cinder-volumes',
 
@@ -217,6 +128,7 @@ class openstack::controller (
   $max_pool_size                  = '50',
   $max_overflow                   = '30',
   $idle_timeout                   = '3600',
+  $openstack_version              = {},
 ) {
 
 
@@ -295,7 +207,7 @@ class openstack::controller (
     exported_resources          => $export_resources,
     enabled_apis                => $enabled_apis,
     api_bind_address            => $api_bind_address,
-    ensure_package              => $::openstack_version['nova'],
+    ensure_package              => $openstack_version['nova'],
     use_syslog                  => $use_syslog,
     syslog_log_facility         => $syslog_log_facility_nova,
     syslog_log_facility_neutron => $syslog_log_facility_neutron,
