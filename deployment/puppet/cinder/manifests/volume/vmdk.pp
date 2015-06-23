@@ -45,7 +45,12 @@
 #   (optional) The name for the folder in the VC datacenter that will contain cinder volumes.
 #   Defaults to 'cinder-volumes'.
 #
-
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'vmdk_backend/param1' => { 'value' => value1 } }
+#
 class cinder::volume::vmdk(
   $host_ip,
   $host_username,
@@ -55,7 +60,8 @@ class cinder::volume::vmdk(
   $max_object_retrieval        = 100,
   $task_poll_interval          = 5,
   $image_transfer_timeout_secs = 7200,
-  $wsdl_location               = undef
+  $wsdl_location               = undef,
+  $extra_options               = {},
 ) {
 
   cinder::backend::vmdk { 'DEFAULT':
@@ -68,5 +74,6 @@ class cinder::volume::vmdk(
     task_poll_interval          => $task_poll_interval,
     image_transfer_timeout_secs => $image_transfer_timeout_secs,
     wsdl_location               => $wsdl_location,
+    extra_options               => $extra_options,
   }
 }

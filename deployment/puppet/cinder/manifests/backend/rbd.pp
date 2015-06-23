@@ -38,11 +38,11 @@
 #   A value of zero disables cloning
 #   Defaults to '5'
 #
-# [*glance_api_version*]
-#   (optional) DEPRECATED: Use cinder::glance Class instead.
-#   Glance API version. (Defaults to '2')
-#   Setting this parameter cause a duplicate resource declaration
-#   with cinder::glance
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'rbd_backend/param1' => { 'value' => value1 } }
 #
 define cinder::backend::rbd (
   $rbd_pool,
@@ -53,15 +53,10 @@ define cinder::backend::rbd (
   $rbd_secret_uuid                  = false,
   $volume_tmp_dir                   = false,
   $rbd_max_clone_depth              = '5',
-  # DEPRECATED PARAMETERS
-  $glance_api_version               = undef,
+  $extra_options                    = {},
 ) {
 
-  include cinder::params
-
-  if $glance_api_version {
-    warning('The glance_api_version parameter is deprecated, use glance_api_version of cinder::glance class instead.')
-  }
+  include ::cinder::params
 
   cinder_config {
     "${name}/volume_backend_name":              value => $volume_backend_name;
@@ -71,7 +66,6 @@ define cinder::backend::rbd (
     "${name}/rbd_pool":                         value => $rbd_pool;
     "${name}/rbd_max_clone_depth":              value => $rbd_max_clone_depth;
     "${name}/rbd_flatten_volume_from_snapshot": value => $rbd_flatten_volume_from_snapshot;
-    "${name}/host":                             value => "rbd:${rbd_pool}";
   }
 
   if $rbd_secret_uuid {
@@ -86,15 +80,19 @@ define cinder::backend::rbd (
     cinder_config {"${name}/volume_tmp_dir": ensure => absent;}
   }
 
+  create_resources('cinder_config', $extra_options)
+
   case $::osfamily {
     'Debian': {
       $override_line    = "env CEPH_ARGS=\"--id ${rbd_user}\""
+      $override_match   = '^env CEPH_ARGS='
     }
     'RedHat': {
       $override_line    = "export CEPH_ARGS=\"--id ${rbd_user}\""
+      $override_match   = '^export CEPH_ARGS='
     }
     default: {
-      fail("unsuported osfamily ${::osfamily}, currently Debian and Redhat are the only supported platforms")
+      fail("unsupported osfamily ${::osfamily}, currently Debian and Redhat are the only supported platforms")
     }
   }
 
@@ -104,6 +102,7 @@ define cinder::backend::rbd (
   ensure_resource('file_line', 'set initscript env', {
     line   => $override_line,
     path   => $::cinder::params::ceph_init_override,
+    match  => $override_match,
     notify => Service['cinder-volume']
   })
 

@@ -14,35 +14,35 @@ describe 'cinder::keystone::auth' do
 
     it 'should contain auth info' do
 
-      should contain_keystone_user('cinder').with(
+      is_expected.to contain_keystone_user('cinder').with(
         :ensure   => 'present',
         :password => 'pw',
         :email    => 'cinder@localhost',
         :tenant   => 'services'
       )
-      should contain_keystone_user_role('cinder@services').with(
+      is_expected.to contain_keystone_user_role('cinder@services').with(
         :ensure  => 'present',
-        :roles   => 'admin'
+        :roles   => ['admin']
       )
-      should contain_keystone_service('cinder').with(
+      is_expected.to contain_keystone_service('cinder').with(
         :ensure      => 'present',
         :type        => 'volume',
         :description => 'Cinder Service'
       )
-      should contain_keystone_service('cinderv2').with(
+      is_expected.to contain_keystone_service('cinderv2').with(
         :ensure      => 'present',
         :type        => 'volumev2',
         :description => 'Cinder Service v2'
       )
 
     end
-    it { should contain_keystone_endpoint('RegionOne/cinder').with(
+    it { is_expected.to contain_keystone_endpoint('RegionOne/cinder').with(
       :ensure       => 'present',
       :public_url   => 'http://127.0.0.1:8776/v1/%(tenant_id)s',
       :admin_url    => 'http://127.0.0.1:8776/v1/%(tenant_id)s',
       :internal_url => 'http://127.0.0.1:8776/v1/%(tenant_id)s'
     ) }
-    it { should contain_keystone_endpoint('RegionOne/cinderv2').with(
+    it { is_expected.to contain_keystone_endpoint('RegionOne/cinderv2').with(
       :ensure       => 'present',
       :public_url   => 'http://127.0.0.1:8776/v2/%(tenant_id)s',
       :admin_url    => 'http://127.0.0.1:8776/v2/%(tenant_id)s',
@@ -66,25 +66,88 @@ describe 'cinder::keystone::auth' do
       )
      end
 
-    it { should contain_keystone_endpoint('RegionThree/cinder').with(
+    it { is_expected.to contain_keystone_endpoint('RegionThree/cinder').with(
       :ensure       => 'present',
       :public_url   => 'https://10.0.42.1:4242/v42/%(tenant_id)s',
       :admin_url    => 'https://10.0.42.2:4242/v42/%(tenant_id)s',
       :internal_url => 'https://10.0.42.3:4242/v42/%(tenant_id)s'
     )}
 
+    it { is_expected.to contain_keystone_endpoint('RegionThree/cinderv2').with(
+      :ensure       => 'present',
+      :public_url   => 'https://10.0.42.1:4242/v2/%(tenant_id)s',
+      :admin_url    => 'https://10.0.42.2:4242/v2/%(tenant_id)s',
+      :internal_url => 'https://10.0.42.3:4242/v2/%(tenant_id)s'
+    )}
   end
 
 
-  describe 'when endpoint should not be configured' do
+  describe 'when endpoint is_expected.to not be configured' do
     let :params do
       req_params.merge(
         :configure_endpoint    => false,
         :configure_endpoint_v2 => false
       )
     end
-    it { should_not contain_keystone_endpoint('RegionOne/cinder') }
-    it { should_not contain_keystone_endpoint('RegionOne/cinderv2') }
+    it { is_expected.to_not contain_keystone_endpoint('RegionOne/cinder') }
+    it { is_expected.to_not contain_keystone_endpoint('RegionOne/cinderv2') }
+  end
+
+  describe 'when user is_expected.to not be configured' do
+    let :params do
+      req_params.merge(
+        :configure_user => false
+      )
+    end
+
+    it { is_expected.to_not contain_keystone_user('cinder') }
+
+    it { is_expected.to contain_keystone_user_role('cinder@services') }
+
+    it { is_expected.to contain_keystone_service('cinder').with(
+        :ensure      => 'present',
+        :type        => 'volume',
+        :description => 'Cinder Service'
+    ) }
+
+  end
+
+  describe 'when user and user role is_expected.to not be configured' do
+    let :params do
+      req_params.merge(
+        :configure_user      => false,
+        :configure_user_role => false
+      )
+    end
+
+    it { is_expected.to_not contain_keystone_user('cinder') }
+
+    it { is_expected.to_not contain_keystone_user_role('cinder@services') }
+
+    it { is_expected.to contain_keystone_service('cinder').with(
+        :ensure      => 'present',
+        :type        => 'volume',
+        :description => 'Cinder Service'
+    ) }
+
+  end
+
+  describe 'when overriding service names' do
+
+    let :params do
+      req_params.merge(
+        :service_name    => 'cinder_service',
+        :service_name_v2 => 'cinder_service_v2',
+      )
+    end
+
+    it { should contain_keystone_user('cinder') }
+    it { should contain_keystone_user_role('cinder@services') }
+    it { should contain_keystone_service('cinder_service') }
+    it { should contain_keystone_service('cinder_service_v2') }
+    it { should contain_keystone_endpoint('RegionOne/cinder_service') }
+    it { should contain_keystone_endpoint('RegionOne/cinder_service_v2') }
+
   end
 
 end
