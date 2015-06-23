@@ -25,7 +25,9 @@ define nova::manage::network (
   $num_networks = 1,
   $network_size = 255,
   $vlan_start   = undef,
-  $project      = undef
+  $project      = undef,
+  $dns1         = '8.8.8.8',
+  $dns2         = '8.8.4.4',
 ) {
 
   File['/etc/nova/nova.conf'] -> Nova_network[$name]
@@ -39,6 +41,8 @@ define nova::manage::network (
     network_size => $network_size,
     project      => $project,
     vlan_start   => $vlan_start,
+    dns1         => $dns1,
+    dns2         => $dns2,
   }
 
 }
