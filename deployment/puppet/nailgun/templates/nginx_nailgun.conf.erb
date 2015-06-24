@@ -24,6 +24,7 @@ server {
     }
 
     location /dump {
+        internal;
         alias <%= @logdumpdir %>;
     }
 
@@ -43,7 +44,7 @@ server {
 
     location /api {
         include uwsgi_params;
-        uwsgi_pass <%= @nailgun_host %>:8001; 
+        uwsgi_pass <%= @nailgun_host %>:8001;
         client_max_body_size 100m;
     }
 }
