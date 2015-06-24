@@ -1,8 +1,8 @@
-# [use_syslog] Rather or not service should log to syslog. Optional. Defaults to false.
+# [*use_syslog*] Rather or not service should log to syslog. Optional. Defaults to false.
 
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
+# [*syslog_log_facility*] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [ceilometer] true if we use ceilometer
+# [*ceilometer*] true if we use ceilometer
 
 class openstack::cinder(
   $sql_connection,
@@ -64,9 +64,9 @@ class openstack::cinder(
   }
 
   if $queue_provider == 'rabbitmq' and $rabbit_ha_queues {
-    Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
-    Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
-    Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-scheduler' |>
+    Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
+    Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
+    Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-scheduler' |>
   }
 
   case $queue_provider {
@@ -90,21 +90,26 @@ class openstack::cinder(
         $rabbit_host_array = split($amqp_hosts, ':')
       }
       class { '::cinder':
-        package_ensure        => $::openstack_version['cinder'],
-        rpc_backend           => 'cinder.openstack.common.rpc.impl_kombu',
-        rabbit_host           => $rabbit_host_array[0],
-        rabbit_port           => $rabbit_host_array[1],
-        rabbit_hosts          => $rabbit_hosts_real,
-        rabbit_userid         => $amqp_user,
-        rabbit_password       => $amqp_password,
-        rabbit_virtual_host   => $rabbit_virtual_host,
-        database_connection   => $sql_connection,
-        verbose               => $verbose,
-        use_syslog            => $use_syslog,
-        log_facility          => $syslog_log_facility,
-        debug                 => $debug,
-        database_idle_timeout => $idle_timeout,
-        control_exchange      => 'cinder',
+        package_ensure         => $::openstack_version['cinder'],
+        rpc_backend            => 'cinder.openstack.common.rpc.impl_kombu',
+        rabbit_host            => $rabbit_host_array[0],
+        rabbit_port            => $rabbit_host_array[1],
+        rabbit_hosts           => $rabbit_hosts_real,
+        rabbit_userid          => $amqp_user,
+        rabbit_password        => $amqp_password,
+        rabbit_virtual_host    => $rabbit_virtual_host,
+        database_connection    => $sql_connection,
+        verbose                => $verbose,
+        use_syslog             => $use_syslog,
+        log_facility           => $syslog_log_facility,
+        debug                  => $debug,
+        database_idle_timeout  => $idle_timeout,
+        database_max_pool_size => $max_pool_size,
+        database_max_retries   => $max_retries,
+        database_max_overflow  => $max_overflow,
+        control_exchange       => 'cinder',
+      # This workaround should be removed after mysql module upgrade 
+        mysql_module           => '0.3',
       }
       cinder_config {
         'DEFAULT/kombu_reconnect_delay': value => '5.0';
@@ -199,13 +204,6 @@ class openstack::cinder(
     }
   }
 
-  # additional cinder configuration
-  cinder_config {
-    'database/max_pool_size': value => $max_pool_size;
-    'database/max_retries':   value => $max_retries;
-    'database/max_overflow':  value => $max_overflow;
-  }
-
   if $keystone_enabled {
     cinder_config {
       'keystone_authtoken/auth_protocol':     value => $keystone_auth_protocol;
@@ -220,6 +218,6 @@ class openstack::cinder(
   }
 
   if $ceilometer {
-    class { "cinder::ceilometer": }
+    class { 'cinder::ceilometer': }
   }
 }
