@@ -446,6 +446,7 @@ class cinder (
     }
   }
 
+# This workaround should be removed after mysql module upgrade
   if($database_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
     require 'mysql::bindings'
     require 'mysql::bindings::python'

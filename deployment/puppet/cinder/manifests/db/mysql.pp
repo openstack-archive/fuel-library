@@ -50,9 +50,9 @@ class cinder::db::mysql (
   $mysql_module  = undef,
 ) {
 
-  if $mysql_module {
-    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
-  }
+#  if $mysql_module {
+#    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
+#  }
 
   validate_string($password)
 
@@ -64,7 +64,8 @@ class cinder::db::mysql (
     charset       => $charset,
     collate       => $collate,
     allowed_hosts => $allowed_hosts,
+    # TODO (myatsenko) Remove temporary workaround for compatibility with old MySQL module
+    mysql_module  => $mysql_module,
   }
-
   ::Openstacklib::Db::Mysql['cinder'] ~> Exec<| title == 'cinder-manage db_sync' |>
 }
