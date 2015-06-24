@@ -71,7 +71,7 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_IPaddr2 %{buildroot}/usr/li
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-central %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-agent-central
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-alarm-evaluator %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator
 install -m 0755 %{files_source}/fuel-ha-utils/tools/q-agent-cleanup.py %{buildroot}/usr/bin/q-agent-cleanup.py
-install -m 0755 %{files_source}/fuel-ha-utils/tools/clustercheck %{buildroot}/usr/bin/clustercheck
+install -m 0755 %{files_source}/fuel-ha-utils/tools/galeracheck %{buildroot}/usr/bin/galeracheck
 install -m 0755 %{files_source}/fuel-ha-utils/tools/swiftcheck %{buildroot}/usr/bin/swiftcheck
 install -m 0644 %{files_source}/fuel-ha-utils/tools/wsrepclustercheckrc %{buildroot}/etc/wsrepclustercheckrc
 install -m 0755 %{files_source}/rabbit-fence/rabbit-fence.py %{buildroot}/usr/bin/rabbit-fence.py
@@ -171,7 +171,7 @@ For further information go to http://wiki.openstack.org/Fuel
 %defattr(-,root,root)
 /usr/lib/ocf/resource.d/fuel
 /usr/bin/q-agent-cleanup.py
-/usr/bin/clustercheck
+/usr/bin/galeracheck
 /usr/bin/swiftcheck
 %config(noreplace) /etc/wsrepclustercheckrc
 #
