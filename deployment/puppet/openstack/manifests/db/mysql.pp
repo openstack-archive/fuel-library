@@ -139,6 +139,8 @@ class openstack::db::mysql (
         password      => $cinder_db_password,
         dbname        => $cinder_db_dbname,
         allowed_hosts => $allowed_hosts,
+      # This workaround should be removed after mysql module upgrade 
+        mysql_module  => $mysql_module,
       }
     }
 
