@@ -56,15 +56,45 @@ class cinder::db::mysql (
 
   validate_string($password)
 
-  ::openstacklib::db::mysql { 'cinder':
-    user          => $user,
-    password_hash => mysql_password($password),
-    dbname        => $dbname,
-    host          => $host,
-    charset       => $charset,
-    collate       => $collate,
-    allowed_hosts => $allowed_hosts,
-  }
+#This workaround should be removed after mysql module upgrade
+  if ($mysql_module >= 2.2) {
+    ::openstacklib::db::mysql { 'cinder':
+      user          => $user,
+      password_hash => mysql_password($password),
+      dbname        => $dbname,
+      host          => $host,
+      charset       => $charset,
+      collate       => $collate,
+      allowed_hosts => $allowed_hosts,
+   }
 
   ::Openstacklib::Db::Mysql['cinder'] ~> Exec<| title == 'cinder-manage db_sync' |>
+} else {
+      Database[$dbname] ~> Exec<| title == 'cinder-manage db_sync' |>
+
+      mysql::db { $dbname:
+      user     => $user,
+      password => $password,
+      host     => $host,
+      charset  => $charset,
+      require  => Class['mysql::config'],
+   }
+ }
+
+# Check allowed_hosts to avoid duplicate resource declarations
+  if is_array($allowed_hosts) and delete($allowed_hosts,$host) != [] {
+    $real_allowed_hosts = delete($allowed_hosts,$host)
+  } elsif is_string($allowed_hosts) and ($allowed_hosts != $host) {
+    $real_allowed_hosts = $allowed_hosts
+  }
+
+  if $real_allowed_hosts {
+    cinder::db::mysql::host_access { $real_allowed_hosts:
+      user          => $user,
+      password      => $password,
+      database      => $dbname,
+      mysql_module  => $mysql_module,
+    }
+  }
+
 }
