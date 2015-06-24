@@ -47,7 +47,7 @@ class cinder::db::mysql (
   $collate       = 'utf8_general_ci',
   $cluster_id    = 'localzone',
   # DEPRECATED
-  $mysql_module  = undef,
+  $mysql_module  = '0.3',
 ) {
 
   if $mysql_module {
@@ -56,15 +56,30 @@ class cinder::db::mysql (
 
   validate_string($password)
 
-  ::openstacklib::db::mysql { 'cinder':
-    user          => $user,
-    password_hash => mysql_password($password),
-    dbname        => $dbname,
-    host          => $host,
-    charset       => $charset,
-    collate       => $collate,
-    allowed_hosts => $allowed_hosts,
-  }
+#This workaround should be removed after mysql module upgrade
+  if ($mysql_module >= 2.2) {
+    ::openstacklib::db::mysql { 'cinder':
+      user          => $user,
+      password_hash => mysql_password($password),
+      dbname        => $dbname,
+      host          => $host,
+      charset       => $charset,
+      collate       => $collate,
+      allowed_hosts => $allowed_hosts,
+   }
 
   ::Openstacklib::Db::Mysql['cinder'] ~> Exec<| title == 'cinder-manage db_sync' |>
+} else {
+      Database[$dbname] ~> Exec<| title == 'cinder-manage db_sync' |>
+
+      mysql::db { $dbname:
+      user     => $user,
+      password => $password,
+      host     => $host,
+      charset  => $charset,
+      require  => Class['mysql::config'],
+   }
+
+ }
+
 }

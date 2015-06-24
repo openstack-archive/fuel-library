@@ -64,9 +64,9 @@ class openstack::cinder(
   }
 
   if $queue_provider == 'rabbitmq' and $rabbit_ha_queues {
-    Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
-    Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
-    Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-scheduler' |>
+    Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
+    Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
+    Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-scheduler' |>
   }
 
   case $queue_provider {
@@ -104,6 +104,9 @@ class openstack::cinder(
         log_facility          => $syslog_log_facility,
         debug                 => $debug,
         database_idle_timeout => $idle_timeout,
+        database_max_pool_size => $max_pool_size,
+        database_max_retries  => $max_retries,
+        database_max_overflow => $max_overflow,
         control_exchange      => 'cinder',
       }
       cinder_config {
@@ -196,13 +199,6 @@ class openstack::cinder(
     cinder_config {
       'DEFAULT/use_syslog_rfc_format': value => true;
     }
-  }
-
-  # additional cinder configuration
-  cinder_config {
-    'database/max_pool_size': value => $max_pool_size;
-    'database/max_retries':   value => $max_retries;
-    'database/max_overflow':  value => $max_overflow;
   }
 
   if $keystone_enabled {

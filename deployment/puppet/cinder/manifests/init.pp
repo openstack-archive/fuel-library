@@ -262,7 +262,7 @@ class cinder (
   $enable_v1_api               = true,
   $enable_v2_api               = true,
   # DEPRECATED PARAMETERS
-  $mysql_module                = undef,
+  $mysql_module                = '0.3',
 ) {
 
   include ::cinder::params
@@ -446,9 +446,14 @@ class cinder (
     }
   }
 
+# This workaround should be removed after mysql module upgrade
   if($database_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-    require 'mysql::bindings'
-    require 'mysql::bindings::python'
+    if ($mysql_module >= 2.2) {
+      require 'mysql::bindings'
+      require 'mysql::bindings::python'
+    } else {
+      require 'mysql::python'
+  }
   } elsif($database_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
   } elsif($database_connection =~ /sqlite:\/\//) {
