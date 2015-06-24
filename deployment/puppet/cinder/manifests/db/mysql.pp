@@ -64,7 +64,9 @@ class cinder::db::mysql (
     charset       => $charset,
     collate       => $collate,
     allowed_hosts => $allowed_hosts,
-  }
+    }
 
   ::Openstacklib::Db::Mysql['cinder'] ~> Exec<| title == 'cinder-manage db_sync' |>
+
 }
+
