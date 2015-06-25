@@ -31,6 +31,7 @@
 # [max_pool_size] SQLAlchemy backend related. Default 10.
 # [max_overflow] SQLAlchemy backend related.  Default 30.
 # [max_retries] SQLAlchemy backend related. Default -1.
+# [multi_domain] Enable multi-domain support.
 #
 # === Example
 #
@@ -97,6 +98,10 @@ class openstack::keystone (
   $max_pool_size               = '10',
   $max_overflow                = '30',
   $max_retries                 = '-1',
+  $multi_domain                = false,
+  $ldap                        = false,
+  $domain_heat                 = 'heat',
+  $domain_driver               = 'keystone.identity.backends.sql.Identity'
 ) {
 
   # Install and configure Keystone
@@ -272,12 +277,31 @@ class openstack::keystone (
     }
   }
 
+    if $ldap {
+       if $multi_domain {
+         openstack::heat_domain { "$domain_heat":
+           domain_driver => "$domain_driver",
+         }
+       }
+       keystone_config {
+         'identity/driver':                                value => 'keystone.identity.backends.ldap.Identity';
+         'identity/default_domain_id':                     value => 'default';
+         'identity/domain_specific_drivers_enabled':       value => 'true';
+         'identity/domain_config_dir':                     value => '/etc/keystone/domains';
+       }
+    } else {
+       keystone_config {
+         'identity/driver':                                value => 'keystone.identity.backends.sql.Identity';
+         'identity/default_domain_id':                     value => 'default';
+         'identity/domain_specific_drivers_enabled':       value => 'false';
+       }
+    }
+
   keystone_config {
     'memcache/pool_maxsize':                           value => $memcache_pool_maxsize;
     'DATABASE/max_pool_size':                          value => $max_pool_size;
     'DATABASE/max_retries':                            value => $max_retries;
     'DATABASE/max_overflow':                           value => $max_overflow;
-    'identity/driver':                                 value =>"keystone.identity.backends.sql.Identity";
     'policy/driver':                                   value =>"keystone.policy.backends.sql.Policy";
     'ec2/driver':                                      value =>"keystone.contrib.ec2.backends.sql.Ec2";
     'filter:debug/paste.filter_factory':               value =>"keystone.common.wsgi:Debug.factory";
