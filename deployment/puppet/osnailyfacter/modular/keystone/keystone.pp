@@ -21,6 +21,11 @@ $controller_nodes      = hiera('controller_nodes')
 $neutron_user_password = hiera('neutron_user_password', false)
 $workloads_hash        = hiera_hash('workloads_collector', {})
 
+$multi_domain          = pick($keystone_hash['multi_domain'], false)
+$ldap                  = pick($keystone_hash['ldap'], false)
+$domain_heat           = pick($keystone_hash['domain_heat'], 'heat')
+$domain_driver         = pick($keystone_hash['domain_driver'], 'keystone.identity.backends.sql.Identity')
+
 $db_type     = 'mysql'
 $db_host     = pick($keystone_hash['db_host'], $management_vip)
 $db_password = $keystone_hash['db_password']
@@ -108,6 +113,10 @@ class { 'openstack::keystone':
   rabbit_hosts             => $rabbit_hosts,
   rabbit_virtual_host      => $rabbit_virtual_host,
   idle_timeout             => $idle_timeout,
+  multi_domain             => $multi_domain,
+  ldap                     => $ldap,
+  domain_heat              => $domain_heat,
+  domain_driver            => $domain_driver,
 }
 
 ####### WSGI ###########
