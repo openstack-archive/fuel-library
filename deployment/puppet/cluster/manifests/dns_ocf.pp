@@ -41,7 +41,7 @@ class cluster::dns_ocf ( $primary_controller ) {
       score      => 'INFINITY',
       primitives => [
         "clone_${service_name}",
-        "clone_p_vrouter"
+        "clone_p_ns_vrouter"
       ],
     }
 

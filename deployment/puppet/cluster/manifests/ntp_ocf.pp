@@ -43,7 +43,7 @@ class cluster::ntp_ocf ( ) {
     score      => 'INFINITY',
     primitives => [
       "clone_${service_name}",
-      "clone_p_vrouter"
+      "clone_p_ns_vrouter"
     ],
   }
 

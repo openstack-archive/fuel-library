@@ -28,7 +28,6 @@ class cluster::haproxy_ocf (
       parameters      => {
         'ns'             => 'haproxy',
         'debug'          => $debug,
-        'other_networks' => "'$other_networks'",
       },
       operations      => {
         'monitor' => {
@@ -60,9 +59,18 @@ class cluster::haproxy_ocf (
           "clone_${service_name}"
       ],
     }
+    cs_rsc_colocation { 'haproxy-with-ns':
+      ensure     => present,
+      score      => 'INFINITY',
+      primitives => [
+          "clone_${service_name}",
+          'clone_p_ns_haproxy'
+      ],
+    }
 
     Cs_resource[$service_name] -> Cs_rsc_colocation['vip_public-with-haproxy'] -> Service[$service_name]
     Cs_resource[$service_name] -> Cs_rsc_colocation['vip_management-with-haproxy'] -> Service[$service_name]
+    Cs_resource[$service_name] -> Cs_rsc_colocation['haproxy-with-ns'] -> Service[$service_name]
   }
 
   if ($::osfamily == 'Debian') {
