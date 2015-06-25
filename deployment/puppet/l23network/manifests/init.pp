@@ -19,6 +19,11 @@ class l23network (
   include stdlib
   include ::l23network::params
 
+  # Disable ubuntu hotplug feature
+  class { 'l23network::ubuntu_hotplug':}
+
+  Class['l23network::l2'] -> Class['l23network::ubuntu_hotplug']
+
   class { 'l23network::l2':
     use_ovs          => $use_ovs,
     use_lnx          => $use_lnx,
