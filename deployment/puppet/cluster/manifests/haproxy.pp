@@ -8,7 +8,6 @@ class cluster::haproxy (
   $haproxy_maxrewrite = '1024',
   $primary_controller = false,
   $debug              = false,
-  $other_networks     = false,
   $stats_ipaddresses  = ['127.0.0.1']
 ) {
   include ::concat::setup
@@ -62,7 +61,6 @@ class cluster::haproxy (
   class { 'cluster::haproxy_ocf':
     primary_controller => $primary_controller,
     debug              => $debug,
-    other_networks     => $other_networks,
   }
 
   Package['haproxy'] -> Class['haproxy::base']

@@ -179,7 +179,7 @@ ntp_start()
   fi
 
   # run the ntp binary
-        ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -g -c ${CONF_FILE}
+  ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -g -c ${CONF_FILE}
   if [ $? -ne 0 ]; then
     ocf_log err "Error. ntp daemon returned error $?."
     return $OCF_ERR_GENERIC
@@ -227,6 +227,12 @@ ntp_validate_all()
     return $OCF_ERR_ARGS
   fi
 
+  ocf_run ip netns list | grep -w $OCF_RESKEY_ns
+  if [[ $? != 0 ]] ; then
+    ocf_exit_reason "Namespace $OCF_RESKEY_config does not exist"
+    return $OCF_ERR_GENERIC
+  fi
+
   if  grep -v "^#" "$CONF_FILE" | grep "pidfile" > /dev/null ; then
     :
   else
@@ -251,6 +257,8 @@ if [ $# -ne 1 ]; then
   usage
   exit $OCF_ERR_ARGS
 fi
+
+ntp_validate_all
 
 case $1 in
   start) ntp_start
