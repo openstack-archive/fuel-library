@@ -21,10 +21,16 @@ describe manifest do
       end
     }
 
-    it "should delcare cluster::haproxy with other_networks set to #{networks.join(' ')}" do
-      should contain_class('cluster::haproxy').with(
+    it "should declare class cluster::namespace_ocf" do 
+      should contain_cluster__namespace_ocf('haproxy').with( 
+        'host_ip'        => '240.0.0.1', 
+        'namespace_ip'   => '240.0.0.2', 
         'other_networks' => networks.join(' '),
-      )
+      ).that_comes_before('Class[cluster::haproxy]') 
+    end
+
+    it "should delcare cluster::haproxy " do
+      should contain_class('cluster::haproxy')
     end
     it "should contain stats fragment and listen only on lo and #{management_vip}" do
         should contain_concat__fragment('haproxy-stats').with_content(

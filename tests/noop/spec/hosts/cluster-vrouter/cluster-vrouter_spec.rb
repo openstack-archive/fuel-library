@@ -19,10 +19,12 @@ describe manifest do
       end
     }
 
-    it "should delcare cluster::vrouter_ocf with other_networks set to #{networks.join(' ')}" do
-      should contain_class('cluster::vrouter_ocf').with(
+    it "should declare class cluster::namespace_ocf" do
+      should contain_cluster__namespace_ocf('vrouter').with(
+        'host_ip'        => '240.0.0.5',
+        'namespace_ip'   => '240.0.0.6',
         'other_networks' => networks.join(' '),
-      )
+      ).that_comes_before('Class[cluster::haproxy]')
     end
 
   end
