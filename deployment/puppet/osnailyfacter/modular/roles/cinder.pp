@@ -27,7 +27,7 @@ $mysql_hash                     = hiera('mysql', {})
 $rabbit_hash                    = hiera('rabbit', {})
 $glance_hash                    = hiera('glance', {})
 $keystone_hash                  = hiera('keystone', {})
-$cinder_hash                    = hiera('cinder', {})
+$cinder_hash                    = hiera_hash('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
 $network_scheme                 = hiera('network_scheme', {})
@@ -46,6 +46,16 @@ $syslog_log_facility_heat       = hiera('syslog_log_facility_heat','LOG_LOCAL0')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
+
+$cinder_db_password             = $cinder_hash[db_password]
+$keystone_user                  = pick($cinder_hash['user'], 'cinder')
+$keystone_tenant                = pick($cinder_hash['tenant'], 'services')
+$db_host                        = pick($cinder_hash['db_host'], $management_vip)
+$cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
+$cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
+
+$service_endpoint               = hiera('service_endpoint', $management_vip)
+$glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
 
 # TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
 $hiera_openstack_version = hiera('openstack_version')
@@ -186,14 +196,17 @@ $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
 # AMQP client configuration
-if $internal_address in $controller_nodes {
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+}
+elsif $internal_address in $controller_nodes {
   # prefer local MQ broker if it exists on this node
   $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
 } else {
   $amqp_nodes = fqdn_rotate($controller_nodes)
 }
 
-$amqp_port = '5673'
+$amqp_port = hiera('amqp_port', '5673')
 $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 $rabbit_ha_queues = true
 
@@ -333,8 +346,8 @@ if member($roles, 'controller') or member($roles, 'primary-controller') {
 #   after the deployment is done.
 class { 'openstack::cinder':
   enable_volumes       => false,
-  sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${management_vip}/cinder?charset=utf8&read_timeout=60",
-  glance_api_servers   => "${management_vip}:9292",
+  sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
+  glance_api_servers   => $glance_api_servers,
   bind_host            => $bind_host,
   queue_provider       => $queue_provider,
   amqp_hosts           => $amqp_hosts,
@@ -345,8 +358,10 @@ class { 'openstack::cinder':
   manage_volumes       => $manage_volumes,
   iser                 => $storage_hash['iser'],
   enabled              => true,
-  auth_host            => $management_vip,
+  auth_host            => $service_endpoint,
   iscsi_bind_host      => $storage_address,
+  keystone_user        => $keystone_user,
+  keystone_tenant      => $keystone_tenant,
   cinder_user_password => $cinder_hash[user_password],
   syslog_log_facility  => $syslog_log_facility_cinder,
   debug                => $debug,
