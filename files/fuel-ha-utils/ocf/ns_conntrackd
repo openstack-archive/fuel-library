@@ -102,14 +102,14 @@ END
 
 meta_expect()
 {
-        local what=$1 whatvar=OCF_RESKEY_CRM_meta_${1//-/_} op=$2 expect=$3
-        local val=${!whatvar}
-        if [[ -n $val ]]; then
-                # [, not [[, or it won't work ;)
-                [ $val $op $expect ] && return
-        fi
-        ocf_exit_reason "meta parameter misconfigured, expected $what $op $expect, but found ${val:-unset}."
-        exit $OCF_ERR_CONFIGURED
+  local what=$1 whatvar=OCF_RESKEY_CRM_meta_${1//-/_} op=$2 expect=$3
+  local val=${!whatvar}
+  if [[ -n $val ]]; then
+    # [, not [[, or it won't work ;)
+    [ $val $op $expect ] && return
+  fi
+  ocf_exit_reason "meta parameter misconfigured, expected $what $op $expect, but found ${val:-unset}."
+  exit $OCF_ERR_CONFIGURED
 }
 
 conntrackd_is_master() {
@@ -131,9 +131,7 @@ add_to_bridge() {
 }
 
 get_veth_pair() {
-  ip netns list | grep "$OCF_RESKEY_ns"
-
-  [[ $? != 0 ]] && ip netns add $OCF_RESKEY_ns && ip netns exec $OCF_RESKEY_ns ip link set up dev lo
+  local rc
 
   ocf_run ip netns exec $OCF_RESKEY_ns ip link show $OCF_RESKEY_ns_interface 2>/dev/null
   rc=$?
@@ -155,7 +153,6 @@ get_veth_pair() {
 }
 
 conntrackd_monitor() {
-
   get_veth_pair
 
   rc=$OCF_NOT_RUNNING
@@ -173,12 +170,12 @@ conntrackd_monitor() {
     if conntrackd_is_master; then
       rc=$OCF_RUNNING_MASTER
       # Restore master setting on probes
-                  if [ $OCF_RESKEY_CRM_meta_interval -eq 0 ]; then
+      if [ $OCF_RESKEY_CRM_meta_interval -eq 0 ]; then
         conntrackd_set_master_score $master_score
       fi
     else
       # Restore master setting on probes
-                  if [ $OCF_RESKEY_CRM_meta_interval -eq 0 ]; then
+      if [ $OCF_RESKEY_CRM_meta_interval -eq 0 ]; then
         conntrackd_set_master_score $slave_score
       fi
     fi
@@ -187,10 +184,10 @@ conntrackd_monitor() {
 }
 
 conntrackd_start() {
-        rc=$OCF_ERR_GENERIC
+  rc=$OCF_ERR_GENERIC
 
-        # Keep trying to start the resource;
-        # wait for the CRM to time us out if this fails
+  # Keep trying to start the resource;
+  # wait for the CRM to time us out if this fails
   while :; do
     conntrackd_monitor
     status=$?
@@ -225,29 +222,28 @@ conntrackd_start() {
 }
 
 conntrackd_stop() {
-        rc=$OCF_ERR_GENERIC
+  rc=$OCF_ERR_GENERIC
 
-        # Keep trying to bring down the resource;
-        # wait for the CRM to time us out if this fails
-        while :; do
-                conntrackd_monitor
-                status=$?
-                case "$status" in
-                $OCF_SUCCESS|$OCF_ERR_GENERIC)
+  # Keep trying to bring down the resource;
+  # wait for the CRM to time us out if this fails
+  while :; do
+    conntrackd_monitor
+    status=$?
+    case "$status" in
+    $OCF_SUCCESS|$OCF_ERR_GENERIC)
       ocf_log info "Stopping conntrackd"
-                        ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -k
-                        ;;
-                $OCF_NOT_RUNNING)
-                        rc=$OCF_SUCCESS
-                        break
-                        ;;
-                $OCF_RUNNING_MASTER)
-                        ocf_log warn "conntrackd still master"
+      ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -k
       ;;
-                esac
-        done
-        return $rc
-
+    $OCF_NOT_RUNNING)
+      rc=$OCF_SUCCESS
+      break
+      ;;
+    $OCF_RUNNING_MASTER)
+      ocf_log warn "conntrackd still master"
+      ;;
+    esac
+  done
+  return $rc
 }
 
 conntrackd_validate_all() {
@@ -256,9 +252,16 @@ conntrackd_validate_all() {
     ocf_exit_reason "Config FILE $OCF_RESKEY_config does not exist"
     return $OCF_ERR_INSTALLED
   fi
-        meta_expect master-node-max = 1
-        meta_expect master-max = 1
-        meta_expect clone-node-max = 1
+
+  ocf_run ip netns list | grep -w $OCF_RESKEY_ns
+  if [[ $? != 0 ]] ; then
+    ocf_exit_reason "Namespace $OCF_RESKEY_config does not exist"
+    return $OCF_ERR_GENERIC
+  fi
+
+  meta_expect master-node-max = 1
+  meta_expect master-max = 1
+  meta_expect clone-node-max = 1
 
   return $OCF_SUCCESS
 }
@@ -290,11 +293,11 @@ conntrackd_demote() {
     # -n = request a resync from the others
     for parm in t n; do
       if ! ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm; then
-                          ocf_exit_reason "$OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm failed during demote."
-                          rc=$OCF_ERR_GENERIC
-                          break
-                  fi
-          done
+        ocf_exit_reason "$OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm failed during demote."
+        rc=$OCF_ERR_GENERIC
+        break
+      fi
+    done
     ha_pseudo_resource $statefile stop
     conntrackd_set_master_score $slave_score
   fi
@@ -323,7 +326,7 @@ conntrackd_notify() {
 }
 
 conntrackd_usage() {
-        cat <<EOF
+  cat <<EOF
 usage: $0 {start|stop|promote|demote|monitor|validate-all|meta-data}
 Expects to have a fully populated OCF RA-compliant environment set.
 EOF

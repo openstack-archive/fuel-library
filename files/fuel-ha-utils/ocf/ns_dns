@@ -134,25 +134,7 @@ END
 exit $OCF_SUCCESS
 }
 
-check_ns() {
-  local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
-  [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
-  return $OCF_SUCCESS
-}
-
-get_ns() {
-  local rc
-  check_ns && return $OCF_SUCCESS
-
-  ocf_run ip netns add $OCF_RESKEY_ns
-  rc=$?
-  ocf_run $RUN_IN_NS ip link set up dev lo
-
-  return $rc
-}
-
 get_variables() {
-        get_ns
   CONF_FILE="${OCF_RESKEY_conffile}"
   COMMAND="$RUN ${OCF_RESKEY_binpath}"
   PIDFILE="${OCF_RESKEY_pidfile}"
@@ -197,7 +179,7 @@ dnsmasq_start()
   fi
 
   # run the dnsmasq binary
-        ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} --conf-file=${CONF_FILE} --pid-file="${PIDFILE}"
+  ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} --conf-file=${CONF_FILE} --pid-file="${PIDFILE}"
   if [ $? -ne 0 ]; then
     ocf_log err "Error. dnsmasq daemon returned error $?."
     return $OCF_ERR_GENERIC
@@ -245,6 +227,12 @@ dnsmasq_validate_all()
     return $OCF_ERR_ARGS
   fi
 
+  ocf_run ip netns list | grep -w $OCF_RESKEY_ns
+  if [[ $? != 0 ]] ; then
+    ocf_exit_reason "Namespace $OCF_RESKEY_config does not exist"
+    return $OCF_ERR_GENERIC
+  fi
+
   if  grep -v "^#" "$CONF_FILE" | grep "pidfile" > /dev/null ; then
     :
   else
@@ -269,6 +257,8 @@ if [ $# -ne 1 ]; then
   usage
   exit $OCF_ERR_ARGS
 fi
+
+dnsmasq_validate_all || exit $?
 
 case $1 in
   start) dnsmasq_start
