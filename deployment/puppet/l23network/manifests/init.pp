@@ -19,6 +19,12 @@ class l23network (
   include stdlib
   include ::l23network::params
 
+  # Disable interface hotplug feature
+  class { 'l23network::interface_hotplug':}
+
+  Class['l23network::interface_hotplug'] -> Class['l23network::l2']
+  Class['l23network::interface_hotplug'] -> L23_stored_config<||>
+
   class { 'l23network::l2':
     use_ovs          => $use_ovs,
     use_lnx          => $use_lnx,
