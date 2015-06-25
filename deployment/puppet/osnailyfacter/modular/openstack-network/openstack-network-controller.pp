@@ -13,9 +13,9 @@ $service_endpoint               = hiera('service_endpoint', $management_vip)
 $nova_hash                      = hiera_hash('nova', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $network_scheme                 = hiera('network_scheme', {})
-$nova_endpoint                  = hiera('nova_endpoint', $service_endpoint)
+$nova_endpoint                  = hiera('nova_endpoint', $management_vip)
 $keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
-$neutron_endpoint               = hiera('neutron_endpoint', $service_endpoint)
+$neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 
 $floating_hash = {}
 
