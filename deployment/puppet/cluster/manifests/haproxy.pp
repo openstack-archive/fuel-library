@@ -62,7 +62,6 @@ class cluster::haproxy (
   class { 'cluster::haproxy_ocf':
     primary_controller => $primary_controller,
     debug              => $debug,
-    other_networks     => $other_networks,
   }
 
   Package['haproxy'] -> Class['haproxy::base']
