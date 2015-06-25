@@ -31,6 +31,11 @@
 # [max_pool_size] SQLAlchemy backend related. Default 10.
 # [max_overflow] SQLAlchemy backend related.  Default 30.
 # [max_retries] SQLAlchemy backend related. Default -1.
+# [use_ldap] Enable LDAP authentication.
+# [domain_heat] Specify domain for heat. Defaults to heat.
+# [domain_driver] Driver for heat keystone identity. Defaults to keystone.identity.backends.sql.Identity.
+# [multi_domain] Enable multi-domain support. Default false.
+# [token_provider] Allow to determine token provider [uuid,pki,pkiz]. Default keystone.token.providers.uuid.Provider.
 #
 # === Example
 #
@@ -97,6 +102,11 @@ class openstack::keystone (
   $max_pool_size               = '10',
   $max_overflow                = '30',
   $max_retries                 = '-1',
+  $multi_domain                = false,
+  $use_ldap                    = false,
+  $domain_heat                 = 'heat',
+  $domain_driver               = 'keystone.identity.backends.sql.Identity',
+  $token_provider              = 'keystone.token.providers.uuid.Provider',
 ) {
 
   # Install and configure Keystone
@@ -227,7 +237,7 @@ class openstack::keystone (
     rabbit_virtual_host => $rabbit_virtual_host,
     memcache_servers    => $memcache_servers_real,
     token_driver        => $token_driver,
-    token_provider      => 'keystone.token.providers.uuid.Provider',
+    token_provider      => $token_provider,
     notification_driver => $notification_driver,
     notification_topics => $notification_topics,
   }
@@ -272,12 +282,31 @@ class openstack::keystone (
     }
   }
 
+  if $use_ldap {
+    if $multi_domain {
+      openstack::keystone_domains { $domain_heat:
+        domain_driver => $domain_driver,
+      }
+      keystone_config {
+        'identity/default_domain_id':                    value => 'default';
+        'identity/domain_specific_drivers_enabled':      value => 'true';
+        'identity/domain_config_dir':                    value => '/etc/keystone/domains';
+      }
+    }
+    keystone_config {
+      'identity/driver':                               value => 'keystone.identity.backends.ldap.Identity';
+    }
+  } else {
+    keystone_config {
+      'identity/driver':                               value => 'keystone.identity.backends.sql.Identity';
+    }
+  }
+
   keystone_config {
     'memcache/pool_maxsize':                           value => $memcache_pool_maxsize;
     'DATABASE/max_pool_size':                          value => $max_pool_size;
     'DATABASE/max_retries':                            value => $max_retries;
     'DATABASE/max_overflow':                           value => $max_overflow;
-    'identity/driver':                                 value =>"keystone.identity.backends.sql.Identity";
     'policy/driver':                                   value =>"keystone.policy.backends.sql.Policy";
     'ec2/driver':                                      value =>"keystone.contrib.ec2.backends.sql.Ec2";
     'filter:debug/paste.filter_factory':               value =>"keystone.common.wsgi:Debug.factory";
