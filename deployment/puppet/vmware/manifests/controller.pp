@@ -21,7 +21,6 @@ class vmware::controller (
   $api_retry_count = 5,
   $datastore_regex = undef,
   $amqp_port = '5673',
-  $compute_driver = 'vmwareapi.VMwareVCDriver',
   $ensure_package = 'present',
   $maximum_objects = 100,
   $nova_conf = '/etc/nova/nova.conf',
@@ -54,11 +53,6 @@ class vmware::controller (
       name    => 'binutils',
     }
   }
-
-  # Split provided string with cluster names and enumerate items.
-  # Index is used to form file names on host system, e.g.
-  # /etc/sysconfig/nova-compute-vmware-0
-  $vsphere_clusters = vmware_index($vcenter_cluster)
 
   if ($::operaringsystem == 'Ubuntu') {
     $libvirt_type = hiera('libvirt_type')
@@ -102,7 +96,7 @@ class vmware::controller (
   # Enable metadata service on Controller node
   # Set correct parameter for vnc access
   nova_config {
-    'DEFAULT/enabled_apis': value => 'ec2,osapi_compute,metadata';
+    'DEFAULT/enabled_apis':        value => 'ec2,osapi_compute,metadata';
     'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html";
   } -> Service['nova-compute']
 
