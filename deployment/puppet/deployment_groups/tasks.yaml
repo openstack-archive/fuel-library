@@ -70,6 +70,15 @@
     strategy:
       type: parallel
 
+- id: compute-vmware
+  type: group
+  role: [compute-vmware]
+  requires: [controller]
+  required_for: [deploy_end]
+  parameters:
+    strategy:
+      type: parallel
+
 - id: zabbix-server
   type: group
   role: [zabbix-server]
