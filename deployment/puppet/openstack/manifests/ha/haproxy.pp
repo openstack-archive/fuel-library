@@ -60,9 +60,10 @@ class openstack::ha::haproxy (
     ipaddresses  => hiera_array('glance_ipaddresses', values($glances_address_map)),
   }
 
+  $cinder_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('cinder_nodes'), 'cinder/api')
   class { 'openstack::ha::cinder':
-    server_names => hiera_array('cinder_names', $controllers_server_names),
-    ipaddresses  => hiera_array('cinder_ipaddresses', $controllers_ipaddresses),
+    server_names => hiera_array('cinder_names', keys($cinder_address_map)),
+    ipaddresses  => hiera_array('cinder_ipaddresses', values($cinder_address_map)),
   }
 
   if $neutron {
