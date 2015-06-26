@@ -1,9 +1,12 @@
 notice('MODULAR: openstack-cinder.pp')
 
+$network_scheme                 = hiera('network_scheme', {})
+prepare_network_config($network_scheme)
+$internal_address               = get_network_role_property('cinder/api', 'ipaddr')
+
 $cinder_hash                    = hiera_hash('cinder', {})
 $management_vip                 = hiera('management_vip')
 $queue_provider                 = hiera('queue_provider', 'rabbitmq')
-$internal_address               = hiera('internal_address')
 $cinder_volume_group            = hiera('cinder_volume_group', 'cinder')
 $controller_nodes               = hiera('controller_nodes')
 $nodes_hash                     = hiera('nodes', {})
