@@ -3,7 +3,7 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [controller_remaining_tasks]
-  condition: "settings:common.libvirt_type.value == 'vcenter' or settings:common.use_vcenter.value == true"
+  condition: "settings:common.use_vcenter.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/vcenter.pp
     puppet_modules: /etc/puppet/modules
@@ -14,7 +14,7 @@
   groups: [cinder-vmware]
   required_for: [deploy_end]
   requires: [openstack-cinder]
-  condition: "settings:common.libvirt_type.value == 'vcenter' or settings:common.use_vcenter.value == true"
+  condition: "settings:common.use_vcenter.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/cinder-vmware.pp
     puppet_modules: /etc/puppet/modules
@@ -23,3 +23,14 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/vmware/cinder-vmware_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/vmware/cinder-vmware_post.rb
+
+- id: top-role-compute-vmware
+  type: puppet
+  groups: [compute-vmware]
+  required_for: [deploy_end]
+  requires: [top-role-compute]
+  condition: "settings:common.use_vcenter.value == true"
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/compute-vmware.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180
