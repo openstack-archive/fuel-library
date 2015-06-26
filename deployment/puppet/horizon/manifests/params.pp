@@ -14,11 +14,11 @@ class horizon::params {
       $config_file                 = '/etc/openstack-dashboard/local_settings'
       $httpd_config_file           = '/etc/httpd/conf.d/openstack-dashboard.conf'
       $httpd_listen_config_file    = '/etc/httpd/conf/httpd.conf'
-      $root_url                    = '/dashboard'
+      $root_url                    = '/horizon'
       $apache_user                 = 'apache'
       $apache_group                = 'apache'
-      $wsgi_user                   = 'dashboard'
-      $wsgi_group                  = 'dashboard'
+      $wsgi_user                   = 'horizon'
+      $wsgi_group                  = 'horizon'
     }
     'Debian': {
       $http_service                = 'apache2'
