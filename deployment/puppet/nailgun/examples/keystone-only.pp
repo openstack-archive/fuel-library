@@ -20,7 +20,7 @@ case $production {
     class { 'keystone':
       admin_token      => $::fuel_settings['keystone']['admin_token'],
       catalog_type     => 'sql',
-      sql_connection   => "postgresql://${::fuel_settings['postgres']['keystone_user']}:${::fuel_settings['postgres']['keystone_password']}@${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/${::fuel_settings['postgres']['keystone_dbname']}",
+      database_connection   => "postgresql://${::fuel_settings['postgres']['keystone_user']}:${::fuel_settings['postgres']['keystone_password']}@${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/${::fuel_settings['postgres']['keystone_dbname']}",
       token_expiration => 86400,
       token_provider   => 'keystone.token.providers.uuid.Provider',
     }
@@ -81,9 +81,9 @@ case $production {
 
     # Keystone Endpoint
     class { 'keystone::endpoint':
-      public_address   => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-      admin_address    => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-      internal_address => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+      public_url   => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:5000",
+      admin_url    => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:35357",
+      internal_url => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:5000",
     }
 
     # Nailgun
