@@ -62,7 +62,7 @@ Puppet::Type.newtype(:keystone_user) do
     end
   end
 
-  newproperty(:manage_password) do
+  newproperty(:replace_password) do
     newvalues(/(t|T)rue/, /(f|F)alse/)
     defaultto('True')
     munge do |value|

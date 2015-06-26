@@ -95,7 +95,7 @@ Puppet::Type.type(:keystone_user).provide(
   end
 
   def password=(value)
-    if resource[:manage_password] == 'True'
+    if resource[:replace_password] == 'True'
       auth_keystone('user-password-update', '--pass', value, user_hash[resource[:name]][:id])
     end
   end
@@ -137,12 +137,12 @@ Puppet::Type.type(:keystone_user).provide(
     )
   end
 
-  def manage_password
-    user_hash[resource[:name]][:manage_password]
+  def replace_password
+    user_hash[resource[:name]][:replace_password]
   end
 
-  def manage_password=(value)
-    user_hash[resource[:name]][:manage_password]
+  def replace_password=(value)
+    user_hash[resource[:name]][:replace_password]
   end
 
   def id
@@ -155,14 +155,14 @@ Puppet::Type.type(:keystone_user).provide(
       hash = {}
       list_keystone_objects('user', 4).each do |user|
         password = 'nil'
-        manage_password = 'True',
+        replace_password = 'True',
         hash[user[1]] = {
           :id              => user[0],
           :enabled         => user[2],
           :email           => user[3],
           :name            => user[1],
           :password        => password,
-          :manage_password => manage_password,
+          :replace_password => replace_password,
         }
       end
       hash

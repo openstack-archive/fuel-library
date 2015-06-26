@@ -60,7 +60,7 @@ describe provider_class do
           :tenant          => 'foo2',
           :email           => 'foo@foo.com',
           :password        => 'passwd',
-          :manage_password => 'False',
+          :replace_password => 'False',
         }
       )
     end
