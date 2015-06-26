@@ -87,6 +87,7 @@ class openstack::horizon (
     django_session_engine   => $django_session_engine,
     allowed_hosts           => '*',
     secure_cookies          => false,
+    compress_offline        => false,
   }
 
   # Performance optimization for wsgi
