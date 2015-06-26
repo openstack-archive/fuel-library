@@ -39,7 +39,7 @@
 
 - id: vcenter_compute_zones_create
   type: shell
-  role: [primary-controller]
+  role: [primary-controller, compute-vmware]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   condition: "settings:common.use_vcenter.value == true"
