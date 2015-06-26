@@ -28,25 +28,22 @@
 
 class vmware (
   $vcenter_settings = undef,
-  $vcenter_user = 'user',
+  $vcenter_user     = 'user',
   $vcenter_password = 'password',
-  $vcenter_host_ip = '10.10.10.10',
-  $vcenter_cluster = 'cluster',
-  $vcenter_datastore_regex = undef,
-  $vlan_interface = undef,
-  $use_quantum = false,
-  $vnc_address = '0.0.0.0',
-  $ceilometer = false,
-  $debug = false,
+  $vcenter_host_ip  = '10.10.10.10',
+  $vcenter_cluster  = 'cluster',
+  $vlan_interface   = undef,
+  $use_quantum      = false,
+  $vnc_address      = '0.0.0.0',
+  $ceilometer       = false,
+  $debug            = false,
 )
 {
   class { 'vmware::controller':
     vcenter_settings => $vcenter_settings,
-    datastore_regex  => $vcenter_datastore_regex,
     vcenter_user     => $vcenter_user,
     vcenter_password => $vcenter_password,
     vcenter_host_ip  => $vcenter_host_ip,
-    vcenter_cluster  => $vcenter_cluster,
     vlan_interface   => $vlan_interface,
     use_quantum      => $use_quantum,
     vnc_address      => $vnc_address,
