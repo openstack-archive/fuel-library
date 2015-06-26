@@ -39,7 +39,6 @@ $access_hash                    = hiera_hash('access', {})
 $mp_hash                        = hiera('mp', {})
 
 $node_role                      = hiera('role')
-$cinder_nodes_array             = hiera('cinder_nodes', [])
 $dns_nameservers                = hiera('dns_nameservers', [])
 $use_ceilometer                 = $ceilometer_hash['enabled']
 $use_neutron                    = hiera('quantum', false)
@@ -182,7 +181,6 @@ $max_overflow             = hiera('max_overflow', min($::processorcount * 5 + 0,
 $max_retries              = hiera('max_retries', '-1')
 $idle_timeout             = hiera('idle_timeout','3600')
 $nova_db_password         = $nova_hash['db_password']
-$cinder_iscsi_bind_addr   = get_network_role_property('cinder/iscsi', 'ipaddr')
 $sql_connection           = "mysql://nova:${nova_db_password}@${database_vip}/nova?read_timeout = 6 0"
 $mirror_type              = hiera('mirror_type', 'external')
 $multi_host               = hiera('multi_host', true)
@@ -221,6 +219,10 @@ $swift_master_role   = 'primary-controller'
 $swift_proxies       = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 $swift_proxy_caches  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']) # memcache for swift
 $is_primary_swift_proxy = $primary_controller
+
+# Define cinder-related variables
+# todo: use special node-roles instead controllers in the future
+$cinder_nodes           = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
