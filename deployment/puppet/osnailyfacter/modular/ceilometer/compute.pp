@@ -28,7 +28,7 @@ $ceilometer_region          = pick($ceilometer_hash['region'], $region)
 $ceilometer_enabled         = $ceilometer_hash['enabled']
 $amqp_password              = $rabbit_hash['password']
 $amqp_user                  = $rabbit_hash['user']
-$service_endpoint           = $management_vip
+$service_endpoint           = hiera('service_endpoint', $management_vip)
 $ceilometer_user_password   = $ceilometer_hash['user_password']
 $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
 
