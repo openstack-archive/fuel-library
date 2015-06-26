@@ -1,18 +1,13 @@
 notice('MODULAR: cinder.pp')
 
 # Pulling hiera
-$internal_int                   = hiera('internal_int')
-$public_int                     = hiera('public_int', undef)
+prepare_network_config(hiera('network_scheme', {}))
+$internal_address               = get_network_role_property('cinder/api', 'ipaddr')
+$storage_address                = get_network_role_property('cinder/iscsi', 'ipaddr')
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
-$internal_address               = hiera('internal_address')
 $primary_controller             = hiera('primary_controller')
-$storage_address                = hiera('storage_address')
 $use_neutron                    = hiera('use_neutron', false)
-$cinder_nodes_array             = hiera('cinder_nodes', [])
-$sahara_hash                    = hiera('sahara', {})
-$murano_hash                    = hiera('murano', {})
-$heat_hash                      = hiera('heat', {})
 $mp_hash                        = hiera('mp')
 $verbose                        = true
 $debug                          = hiera('debug', true)
@@ -86,10 +81,6 @@ if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
   $use_ceph = true
 } else {
   $use_ceph = false
-}
-
-class { 'l23network' :
-  use_ovs => $use_neutron
 }
 
 if $use_neutron {
@@ -177,13 +168,6 @@ $primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller'
 $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
 $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 
-#todo:(sv): temporary commented. Will be uncommented while
-#           'multiple-l2-network' feature re-implemented
-# if $use_neutron {
-#   $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
-# }
-
-
 ##TODO: simply parse nodes array
 $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
 $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
@@ -220,8 +204,6 @@ $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
 $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
 $max_retries = '-1'
 $idle_timeout = '3600'
-
-$cinder_iscsi_bind_addr = $storage_address
 
 # Determine who should get the volume service
 
