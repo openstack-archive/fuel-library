@@ -1,6 +1,7 @@
 notice('MODULAR: compute.pp')
 
 # Pulling hiera
+prepare_network_config(hiera('network_scheme', {}))
 $internal_int                   = hiera('internal_int')
 $public_int                     = hiera('public_int', undef)
 $public_vip                     = hiera('public_vip')
@@ -9,7 +10,6 @@ $internal_address               = hiera('internal_address')
 $primary_controller             = hiera('primary_controller')
 $storage_address                = hiera('storage_address')
 $use_neutron                    = hiera('use_neutron', false)
-$cinder_nodes_array             = hiera('cinder_nodes', [])
 $sahara_hash                    = hiera('sahara', {})
 $murano_hash                    = hiera('murano', {})
 $heat_hash                      = hiera('heat', {})
@@ -213,8 +213,6 @@ $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
 $max_retries = '-1'
 $idle_timeout = '3600'
 
-$cinder_iscsi_bind_addr = $storage_address
-
 if ($storage_hash['volumes_lvm']) {
   nova_config { 'keymgr/fixed_key':
     value => $cinder_hash[fixed_key];
@@ -356,7 +354,7 @@ class { 'openstack::compute':
   cache_server_ip             => $controller_nodes,
   service_endpoint            => $management_vip,
   cinder                      => true,
-  cinder_iscsi_bind_addr      => $cinder_iscsi_bind_addr,
+  cinder_iscsi_bind_addr      => get_network_role_property('cinder/iscsi', 'ipaddr'),
   cinder_user_password        => $cinder_hash[user_password],
   cinder_db_password          => $cinder_hash[db_password],
   ceilometer                  => $ceilometer_hash[enabled],
