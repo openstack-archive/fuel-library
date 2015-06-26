@@ -62,6 +62,10 @@ describe Puppet::Parser::Functions.function(:get_network_role_property) do
       should run.with_params('management', 'cidr').and_return('10.20.1.11/25')
     end
 
+    it 'should return cidr-notated network address for "management" network role' do
+      should run.with_params('management', 'network').and_return('10.20.1.0/25')
+    end
+
     it 'should return netmask for "management" network role' do
       should run.with_params('management', 'netmask').and_return('255.255.255.128')
     end

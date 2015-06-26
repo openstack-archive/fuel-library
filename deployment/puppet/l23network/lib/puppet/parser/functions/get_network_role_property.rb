@@ -14,13 +14,14 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
     This function get get network the network_role name and mode --
     and return information about network role.
 
-    ex: get_network_role_property('admin', 'interface')
+    ex: get_network_role_property('network/role', 'ipaddr')
 
     You can use following modes:
       interface -- network interface for the network_role
       ipaddr -- IP address for the network_role
       cidr -- CIDR-notated IP addr and mask for the network_role
-      netmask -- string, contains dotted nemmask
+      network -- CIDR-notated NETWORK addr and mask for the network_role
+      netmask -- string, contains dotted netmask
       ipaddr_netmask_pair -- list of ipaddr and netmask
       phys_dev -- physical device name mapped to the network with the selected network_role
 
@@ -84,6 +85,8 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
   case mode
     when 'CIDR'
       rv = ipaddr_cidr
+    when 'NETWORK'
+      rv = "#{IPAddr.new(ipaddr_cidr)}/#{prepare_cidr(ipaddr_cidr)[1]}"
     when 'NETMASK'
       rv = (ipaddr_cidr.nil?  ?  nil  :  IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s)
     when 'IPADDR'
