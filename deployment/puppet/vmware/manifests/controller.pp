@@ -12,29 +12,31 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+# vmware::controller deploys nova-compute service and configures it for use
+# with vmwareapi.VCDriver (vCenter server as hypervisor) on OpenStack controller
+# nodes.  Nova-compute is configured to work under Pacemaker supervision.
+#
+# Variables:
+# vcenter_settings       -
+# vcenter_host_ip        - vCenter server hostname or IP address
+# vcenter_user           - username for vCenter server
+# vcenter_password       - password for $vcenter_user
+# vlan_interface         - VLAN interface on which networks will be provisioned
+#                          if VLANManager is used for nova-network
+# vnc_address            - IP address on which VNC server will be listening on
+# use_quantum            - shows if neutron is enabled
+
 # modules needed: nova
 # limitations:
 # - only one vcenter supported
-
 class vmware::controller (
   $vcenter_settings = undef,
-  $api_retry_count = 5,
-  $datastore_regex = undef,
-  $amqp_port = '5673',
-  $compute_driver = 'vmwareapi.VMwareVCDriver',
-  $ensure_package = 'present',
-  $maximum_objects = 100,
-  $nova_conf = '/etc/nova/nova.conf',
-  $task_poll_interval = 5.0,
-  $vcenter_cluster = 'cluster',
-  $vcenter_host_ip = '10.10.10.10',
-  $vcenter_user = 'user',
+  $vcenter_host_ip  = '10.10.10.10',
+  $vcenter_user     = 'user',
   $vcenter_password = 'password',
-  $vlan_interface = undef,
-  $vnc_address = '0.0.0.0',
-  $use_linked_clone = true,
-  $use_quantum = false,
-  $wsdl_location = undef
+  $vlan_interface   = undef,
+  $vnc_address      = '0.0.0.0',
+  $use_quantum      = false,
 )
 {
   include nova::params
@@ -55,11 +57,6 @@ class vmware::controller (
     }
   }
 
-  # Split provided string with cluster names and enumerate items.
-  # Index is used to form file names on host system, e.g.
-  # /etc/sysconfig/nova-compute-vmware-0
-  $vsphere_clusters = vmware_index($vcenter_cluster)
-
   if ($::operaringsystem == 'Ubuntu') {
     $libvirt_type = hiera('libvirt_type')
     $compute_package_name = "nova-compute-${libvirt_type}"
@@ -68,8 +65,8 @@ class vmware::controller (
   }
 
   package { 'nova-compute':
-    name   => $compute_package_name,
     ensure => 'present',
+    name   => $compute_package_name,
   }
 
   service { 'nova-compute':
@@ -94,7 +91,6 @@ class vmware::controller (
   File['vcenter-nova-compute-ocf']->
   Vmware::Compute::Ha<||>->
 
-  # network configuration
   class { 'vmware::network':
     use_quantum => $use_quantum,
   }
@@ -102,7 +98,7 @@ class vmware::controller (
   # Enable metadata service on Controller node
   # Set correct parameter for vnc access
   nova_config {
-    'DEFAULT/enabled_apis': value => 'ec2,osapi_compute,metadata';
+    'DEFAULT/enabled_apis':        value => 'ec2,osapi_compute,metadata';
     'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html";
   } -> Service['nova-compute']
 
@@ -114,4 +110,3 @@ class vmware::controller (
     ensure => present
   }
 }
-
