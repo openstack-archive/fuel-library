@@ -3,12 +3,10 @@ notice('MODULAR: openstack-controller.pp')
 $nova_rate_limits               = hiera('nova_rate_limits')
 $primary_controller             = hiera('primary_controller')
 $use_neutron                    = hiera('use_neutron', false)
-$cinder_rate_limits             = hiera('cinder_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
 $use_syslog                     = hiera('use_syslog', true)
 $syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
-$syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
 $syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 $syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
 $syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
@@ -17,7 +15,6 @@ $management_vip                 = hiera('management_vip')
 $public_vip                     = hiera('public_vip')
 $storage_address                = hiera('storage_address')
 $sahara_hash                    = hiera_hash('sahara', {})
-$cinder_hash                    = hiera_hash('cinder', {})
 $nodes_hash                     = hiera('nodes', {})
 $mysql_hash                     = hiera_hash('mysql', {})
 $controllers                    = hiera('controllers')
@@ -44,7 +41,6 @@ $region                         = hiera('region', 'RegionOne')
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
 $controller_hostnames           = keys($controller_internal_addresses)
-$cinder_iscsi_bind_addr         = $storage_address
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
 $floating_hash = {}
@@ -81,18 +77,6 @@ if ($storage_hash['images_ceph']) {
 } else {
   $glance_backend = 'swift'
   $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
-}
-
-# Determine who should get the volume service
-
-if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
-  $manage_volumes = 'iscsi'
-} elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
-  $manage_volumes = 'vmdk'
-} elsif ($storage_hash['volumes_ceph']) {
-  $manage_volumes = 'ceph'
-} else {
-  $manage_volumes = false
 }
 
 if !$ceilometer_hash {
