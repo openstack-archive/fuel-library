@@ -4,6 +4,7 @@ class ceph::keystone (
   $pub_protocol         = 'http',
   $adm_ip               = $::ceph::rgw_adm_ip,
   $int_ip               = $::ceph::rgw_int_ip,
+  $int_protocol         = 'http',
   $region               = 'RegionOne',
   $swift_endpoint_port  = $::ceph::swift_endpoint_port,
 ) {
@@ -17,6 +18,6 @@ class ceph::keystone (
     ensure       => present,
     public_url   => "${pub_protocol}://${pub_ip}:${swift_endpoint_port}/swift/v1",
     admin_url    => "http://${adm_ip}:${swift_endpoint_port}/swift/v1",
-    internal_url => "http://${int_ip}:${swift_endpoint_port}/swift/v1",
+    internal_url => "${int_protocol}://${int_ip}:${swift_endpoint_port}/swift/v1",
   }
 }

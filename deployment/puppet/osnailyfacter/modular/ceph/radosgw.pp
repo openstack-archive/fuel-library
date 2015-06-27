@@ -7,6 +7,7 @@ $public_vip       = hiera('public_vip')
 $keystone_hash    = hiera('keystone', {})
 $management_vip   = hiera('management_vip')
 $public_ssl_hash  = hiera('public_ssl')
+$internal_ssl_hash = hiera('internal_ssl')
 
 if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
   $storage_hash['volumes_ceph'] or
@@ -46,6 +47,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     # SSL
     use_ssl                          => false,
     public_ssl                       => $public_ssl_hash['services'],
+    internal_ssl                     => $internal_ssl_hash['enable'],
 
     # Ceph
     primary_mon                      => $primary_mon,

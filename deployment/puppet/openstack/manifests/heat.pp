@@ -12,6 +12,7 @@ class openstack::heat (
   $keystone_service_port         = '5000',
   $keystone_protocol             = 'http',
   $public_ssl                    = false,
+  $internal_ssl                  = false,
   $keystone_user                 = 'heat',
   $keystone_tenant               = 'services',
   $keystone_password             = false,
@@ -150,7 +151,10 @@ class openstack::heat (
         default => 'http',
       },
       admin_protocol                 => 'http',
-      internal_protocol              => 'http',
+      internal_protocol              => $internal_ssl ? {
+        true    => 'https',
+        default => 'http',
+      },
       configure_endpoint             => true,
 
     }
@@ -172,7 +176,10 @@ class openstack::heat (
         default => 'http',
       },
       admin_protocol                 => 'http',
-      internal_protocol              => 'http',
+      internal_protocol              => $internal_ssl ? {
+        true    => 'https',
+        default => 'http',
+      },
       configure_endpoint             => true,
     }
   }

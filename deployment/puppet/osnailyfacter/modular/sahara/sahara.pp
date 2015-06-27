@@ -19,6 +19,7 @@ $amqp_hosts                 = hiera('amqp_hosts')
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $deployment_mode            = hiera('deployment_mode')
 $public_ssl_hash            = hiera('public_ssl')
+$internal_ssl_hash          = hiera('internal_ssl')
 
 #################################################################
 
@@ -31,17 +32,26 @@ if $sahara_hash['enabled'] {
     }
   }
 
+  $auth_proto = $internal_ssl_hash['enable'] ? {
+    true    => 'https',
+    default => 'http',
+  }
+
   class { 'sahara' :
     api_host                   => $public_ip,
     db_password                => $sahara_hash['db_password'],
     db_host                    => $management_ip,
-    keystone_host              => $management_ip,
+    keystone_host              => $inernal_ssl_hash['enable'] ? {
+      true    => $internal_ssl_hash['hostname'],
+      default => $management_ip,
+    },
     keystone_user              => 'sahara',
     keystone_password          => $sahara_hash['user_password'],
     keystone_tenant            => 'services',
-    auth_uri                   => "http://${management_ip}:5000/v2.0/",
+    auth_uri                   => "${auth_proto}://${management_ip}:5000/v2.0/",
     identity_uri               => "http://${management_ip}:35357/",
     public_ssl                 => $public_ssl_hash['services'],
+    internal_ssl               => $public_ssl_hash['enable'],
     use_neutron                => $use_neutron,
     syslog_log_facility        => $syslog_log_facility_sahara,
     debug                      => $debug,
@@ -69,7 +79,7 @@ if $sahara_hash['enabled'] {
       auth_user     => $access_admin['user'],
       auth_password => $access_admin['password'],
       auth_tenant   => $access_admin['tenant'],
-      auth_uri      => "http://${management_ip}:5000/v2.0/",
+      auth_uri      => "${auth_proto}://${management_ip}:5000/v2.0/",
     }
 
     Haproxy_backend_status['sahara'] -> Class['sahara_templates::create_templates']

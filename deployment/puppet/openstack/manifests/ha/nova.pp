@@ -3,6 +3,7 @@ class openstack::ha::nova (
   $server_names,
   $ipaddresses,
   $public_ssl = false,
+  $internal_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'nova-api-1':
@@ -10,6 +11,7 @@ class openstack::ha::nova (
     listen_port            => 8773,
     public                 => true,
     public_ssl             => $public_ssl,
+    internal_ssl           => $internal_ssl,
     require_service        => 'nova-api',
     server_names           => $server_names,
     ipaddresses            => $ipaddresses,
@@ -23,6 +25,7 @@ class openstack::ha::nova (
     listen_port            => 8774,
     public                 => true,
     public_ssl             => $public_ssl,
+    internal_ssl           => $internal_ssl,
     require_service        => 'nova-api',
     haproxy_config_options => {
         option           => ['httpchk', 'httplog', 'httpclose'],
@@ -34,6 +37,7 @@ class openstack::ha::nova (
   openstack::ha::haproxy_service { 'nova-metadata-api':
     order                  => '060',
     listen_port            => 8775,
+    internal_ssl           => $internal_ssl,
     require_service        => 'nova-api',
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],

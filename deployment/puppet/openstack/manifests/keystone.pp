@@ -55,6 +55,7 @@ class openstack::keystone (
   $public_address,
   $public_ssl                  = false,
   $public_hostname             = false,
+  $internal_ssl                = false,
   $db_type                     = 'mysql',
   $db_user                     = 'keystone',
   $db_name                     = 'keystone',
@@ -329,7 +330,10 @@ class openstack::keystone (
         default => 'http',
       },
       admin_address    => $admin_real,
-      internal_address => $internal_real,
+      internal_url     => $internal_ssl ? {
+        true    => "https://$internal_real:5000",
+        default => "http:://$internal_real:5000",
+      },
     }
     Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
     Haproxy_backend_status<||> -> Class['keystone::endpoint']
@@ -342,6 +346,10 @@ class openstack::keystone (
         admin_address    => $glance_admin_real,
         internal_address => $glance_internal_real,
         public_protocol  => $public_ssl ? {
+          true    => 'https',
+          default => 'http',
+        },
+        internal_protocol  => $internal_ssl ? {
           true    => 'https',
           default => 'http',
         },
@@ -361,6 +369,10 @@ class openstack::keystone (
           true    => 'https',
           default => 'http',
         },
+        internal_protocol  => $internal_ssl ? {
+          true    => 'https',
+          default => 'http',
+        },
       }
       Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
       Haproxy_backend_status<||> -> Class['nova::keystone::auth']
@@ -377,6 +389,10 @@ class openstack::keystone (
           true    => 'https',
           default => 'http',
         },
+        internal_protocol  => $internal_ssl ? {
+          true    => 'https',
+          default => 'http',
+        },
       }
      Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
      Haproxy_backend_status<||> -> Class['cinder::keystone::auth']
@@ -388,6 +404,10 @@ class openstack::keystone (
         admin_address    => $neutron_admin_real,
         internal_address => $neutron_internal_real,
         public_protocol  => $public_ssl ? {
+          true    => 'https',
+          default => 'http',
+        },
+        internal_protocol  => $internal_ssl ? {
           true    => 'https',
           default => 'http',
         },
