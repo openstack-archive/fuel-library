@@ -6,12 +6,21 @@ ENV['LANG'] = 'C'
 hiera = Hiera.new(:config => '/etc/hiera.yaml')
 test_vm_images = hiera.lookup 'test_vm_image', {}, {}
 glanced = hiera.lookup 'glance', {} , {}
-auth_addr = hiera.lookup 'internal_address', nil, {}
+internal_ssl = hiera.lookup 'internal_ssl', {}, {}
+if internal_ssl['enable']
+  auth_proto = 'https'
+  auth_addr = internal_ssl['hostname']
+else
+  auth_proto = 'http'
+  auth_addr = hiera.lookup 'internal_address', nil, {}
+end
+
+puts "Auth URL is #{auth_proto}://#{auth_addr}:5000/v2.0"
 
 ENV['OS_TENANT_NAME']="services"
 ENV['OS_USERNAME']="glance"
 ENV['OS_PASSWORD']="#{glanced['user_password']}"
-ENV['OS_AUTH_URL']="http://#{auth_addr}:5000/v2.0"
+ENV['OS_AUTH_URL']="#{auth_proto}://#{auth_addr}:5000/v2.0"
 ENV['OS_ENDPOINT_TYPE'] = "internalURL"
 
 raise 'Not test_vm_image data!' unless [Array, Hash].include?(test_vm_images.class) && test_vm_images.any?

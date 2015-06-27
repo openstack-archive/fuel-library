@@ -3,7 +3,11 @@ notice('MODULAR: glance.pp')
 $verbose               = hiera('verbose', true)
 $debug                 = hiera('debug', false)
 $management_vip        = hiera('management_vip')
-$service_endpoint      = hiera('service_endpoint', $management_vip)
+$internal_ssl_hash     = hiera('internal_ssl')
+$service_endpoint      = hiera('service_endpoint', $internal_ssl_hash['enable'] ? {
+  true    => $internal_ssl_hash['hostname'],
+  default => $management_vip,
+})
 $glance_hash           = hiera_hash('glance', {})
 $storage_hash          = hiera('storage')
 $internal_address      = hiera('internal_address')
@@ -17,14 +21,16 @@ $ceilometer_hash       = hiera_hash('ceilometer', {})
 $keystone_endpoint     = hiera('keystone_endpoint', $service_endpoint)
 $glance_endpoint       = hiera('glance_endpoint', $service_endpoint)
 
-
 $db_type                        = 'mysql'
 $db_host                        = pick($glance_hash['db_host'], $management_vip)
 $api_bind_address               = $internal_address
 $enabled                        = true
 $max_retries                    = '-1'
 $idle_timeout                   = '3600'
-$auth_uri                       = "http://${keystone_endpoint}:5000/"
+$auth_uri                       = $internal_ssl_hash['enable'] ? {
+  true    => "https://${keystone_endpoint}:5000/",
+  default => "http://${keystone_endpoint}:5000/",
+}
 
 $rabbit_password                = $rabbit_hash['password']
 $rabbit_user                    = $rabbit_hash['user']
@@ -74,7 +80,11 @@ class { 'openstack::glance':
   glance_vcenter_image_dir       => $glance_vcenter_image_dir,
   glance_vcenter_api_retry_count => $glance_vcenter_api_retry_count,
   auth_uri                       => $auth_uri,
-  keystone_host                  => $keystone_endpoint,
+  internal_ssl                   => $internal_ssl_hash['enable'],
+  keystone_host                  => $internal_ssl_hash['enable'] ? {
+    true    => $internal_ssl_hash['hostname'],
+    default => $service_endpoint,
+  },
   bind_host                      => $api_bind_address,
   enabled                        => $enabled,
   glance_backend                 => $glance_backend,
