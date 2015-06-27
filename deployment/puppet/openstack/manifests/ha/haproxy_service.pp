@@ -24,6 +24,9 @@ define openstack::ha::haproxy_service (
   # by default don't use public ssl
   $public_ssl             = false,
 
+  #and don't use internal ssl
+  $internal_ssl           = false,
+
   # if defined, restart this service before registering it with HAProxy
   $require_service        = undef,
 
@@ -35,14 +38,24 @@ define openstack::ha::haproxy_service (
 ) {
 
   if $public and $internal {
-    if $public_ssl {
+    if $public_ssl and $internal_ssl {
+      $bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/public_haproxy.pem'],
+                "$internal_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/internal_haproxy.pem'] }
+    } elsif $public_ssl {
       $bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/public_haproxy.pem'],
                 "$internal_virtual_ip:$listen_port" => "" }
+    } elsif $internal_ssl {
+      $bind = { "$public_virtual_ip:$listen_port" => "",
+                "$internal_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/internal_haproxy.pem'] }
     } else {
       $virtual_ips = [$public_virtual_ip, $internal_virtual_ip]
     }
   } elsif $internal {
-    $virtual_ips = [$internal_virtual_ip]
+    if $internal_ssl {
+      $bind = { "$internal_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/internal_haproxy.pem'] }
+    } else {
+      $virtual_ips = [$internal_virtual_ip]
+    }
   } elsif $public {
     if $public_ssl {
       $bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/public_haproxy.pem'] }
@@ -51,7 +64,7 @@ define openstack::ha::haproxy_service (
     }
   }
 
-  if $public_ssl {
+  if $public_ssl or $internal_ssl {
     haproxy::listen { $name:
       order       => $order,
       bind        => $bind,
