@@ -7,6 +7,7 @@ $murano_hash                    = hiera('murano', {})
 $storage_hash                   = hiera('storage', {})
 $controllers                    = hiera('controllers')
 $public_ssl_hash                = hiera('public_ssl')
+$internal_ssl_hash              = hiera('internal_ssl')
 
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
   $use_swift = true
@@ -22,10 +23,17 @@ if ($use_swift) {
 
 class { '::openstack::ha::haproxy':
       controllers              => $controllers,
-      public_virtual_ip        => hiera('public_vip'),
-      internal_virtual_ip      => hiera('management_vip'),
+      public_virtual_ip        => $public_ssl_hash['horizon'] or $public_ssl_hash['services'] ? {
+        true    => $public_ssl_hash['hostname'],
+        default => hiera('public_vip'),
+      },
+      internal_virtual_ip      => $internal_ssl_hash['enable'] ? {
+        true    => $internal_ssl_hash['hostname'],
+        defaule => hiera('management_vip'),
+      },
       horizon_use_ssl          => $public_ssl_hash['horizon'],
       services_use_ssl         => $public_ssl_hash['services'],
+      internal_ssl             => $internal_ssl_hash['enable'],
       neutron                  => $use_neutron,
       queue_provider           => 'rabbitmq',
       custom_mysql_setup_class => 'galera',

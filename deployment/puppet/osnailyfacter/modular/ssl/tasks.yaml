@@ -2,7 +2,7 @@
   type: puppet
   groups: [primary-controller, controller]
   requires: [firewall]
-  condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'user_uploaded'"
+  condition: "((settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'user_uploaded') or (settings:internal_ssl.enable.value == true or settings:admin_ssl.enable.value == true)"
   required_for: [deploy_end]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving.pp
@@ -15,7 +15,7 @@
   type: puppet
   groups: [primary-controller, controller]
   requires: [firewall, ssl-keys-saving]
-  condition: "settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true"
+  condition: "settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true or settings:internal_ssl.enable.value == true or settings:admin_ssl.enable.value == true"
   required_for: [deploy_end]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_add_trust_chain.pp
