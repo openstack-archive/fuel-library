@@ -5,6 +5,7 @@ class sahara::keystone::auth (
   $public_protocol  = 'http',
   $admin_address    = '127.0.0.1',
   $internal_address = '127.0.0.1',
+  $internal_protocol = 'http',
   $sahara_port      = '8386',
   $region           = 'RegionOne',
   $tenant           = 'services',
@@ -27,7 +28,7 @@ class sahara::keystone::auth (
   keystone_endpoint { "$region/$auth_name":
     ensure       => present,
     public_url   => "${public_protocol}://${public_address}:${sahara_port}/v1.1/%(tenant_id)s",
-    internal_url => "http://${internal_address}:${sahara_port}/v1.1/%(tenant_id)s",
+    internal_url => "${internal_protocol}://${internal_address}:${sahara_port}/v1.1/%(tenant_id)s",
     admin_url    => "http://${admin_address}:${sahara_port}/v1.1/%(tenant_id)s",
   }
 

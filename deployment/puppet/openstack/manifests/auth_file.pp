@@ -42,6 +42,7 @@ class openstack::auth_file(
   $keystone_admin_token     = undef,
   $admin_user               = 'admin',
   $admin_tenant             = 'openstack',
+  $auth_proto               = 'http',
   $region_name              = 'RegionOne',
   $use_no_cache             = true,
   $cinder_endpoint_type     = 'internalURL',

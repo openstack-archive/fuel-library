@@ -9,6 +9,7 @@ $controllers                    = hiera('controllers')
 $haproxy_nodes                  = hiera('haproxy_nodes', $controllers)
 
 $public_ssl_hash                = hiera('public_ssl')
+$internal_ssl_hash              = hiera('internal_ssl')
 
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
   $use_swift = true
@@ -28,6 +29,7 @@ class { '::openstack::ha::haproxy':
       internal_virtual_ip      => hiera('management_vip'),
       horizon_use_ssl          => $public_ssl_hash['horizon'],
       services_use_ssl         => $public_ssl_hash['services'],
+      internal_ssl             => $internal_ssl_hash['enable'],
       neutron                  => $use_neutron,
       queue_provider           => 'rabbitmq',
       custom_mysql_setup_class => hiera('custom_mysql_setup_class','galera'),
