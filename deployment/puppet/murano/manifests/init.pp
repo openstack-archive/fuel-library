@@ -15,6 +15,7 @@ class murano (
   $murano_keystone_signing_dir           = '/tmp/keystone-signing-muranoapi',
   $region                                = 'RegionOne',
   $public_ssl                            = false,
+  $internal_ssl                          = false,
   # murano
   $use_syslog                            = false,
   $debug                                 = false,
@@ -184,6 +185,10 @@ class murano (
       default => 'http',
     },
     internal_address => $internal_address,
+    internal_protocol => $internal_ssl ? {
+      true    => 'https',
+      default => 'http',
+    },
     murano_api_port  => $murano_bind_port,
   }
 

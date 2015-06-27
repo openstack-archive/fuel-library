@@ -20,6 +20,7 @@ $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $primary_controller         = hiera('primary_controller')
 $region                     = hiera('region', 'RegionOne')
 $public_ssl_hash            = hiera('public_ssl')
+$internal_ssl_hash          = hiera('internal_ssl')
 
 #################################################################
 
@@ -84,12 +85,19 @@ if $murano_hash['enabled'] {
     murano_db_password       => $murano_hash['db_password'],
 
     murano_keystone_host     => $management_ip,
+    murano_keystone_protocol => $internal_ssl_hash['enable'] ? {
+      true    => 'https',
+      default => 'http',
+    },
     murano_keystone_user     => 'murano',
     murano_keystone_password => $murano_hash['user_password'],
     murano_keystone_tenant   => 'services',
     region                   => $region,
 
     public_ssl               => $public_ssl_hash['services'],
+
+    public_ssl               => $public_ssl_hash['services'],
+    internal_ssl             => $internal_ssl_hash['enable'],
 
     use_neutron              => $use_neutron,
 

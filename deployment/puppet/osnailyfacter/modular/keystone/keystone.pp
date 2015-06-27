@@ -54,6 +54,7 @@ $enabled = true
 $ssl = false
 
 $public_ssl_hash = hiera('public_ssl')
+$internal_ssl_hash = hiera('internal_ssl')
 
 $rabbit_password     = $rabbit_hash['password']
 $rabbit_user         = $rabbit_hash['user']
@@ -87,7 +88,11 @@ class { 'openstack::keystone':
   public_address           => $public_address,
   public_ssl               => $public_ssl_hash['services'],
   public_hostname          => $public_ssl_hash['hostname'],
-  internal_address         => $management_vip, # send traffic through HAProxy
+  internal_ssl             => $internal_ssl_hash['enable'],
+  internal_address         => $internal_ssl_hash['enable'] ? {
+    true    => $internal_ssl_hash['hostname'],
+    default => $management_vip, # send traffic through HAProxy
+  },
   admin_address            => $admin_address,
   glance_user_password     => $glance_user_password,
   nova_user_password       => $nova_user_password,
@@ -157,7 +162,14 @@ class { 'openstack::auth_file':
   admin_password  => $admin_password,
   admin_tenant    => $admin_tenant,
   region_name     => $region,
-  controller_node => $management_vip,
+  auth_proto      => $internal_ssl_hash['enable'] ? {
+    true    => 'https',
+    default => 'http',
+  },
+  controller_node => $internal_ssl_hash['enable'] ? {
+    true    => $internal_ssl_hash['hostname'],
+    default => $management_vip,
+  },
   murano_repo_url => $murano_repo_url,
 }
 

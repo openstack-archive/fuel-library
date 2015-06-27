@@ -3,6 +3,7 @@ class openstack::ha::swift (
   $server_names,
   $ipaddresses,
   $public_ssl = false,
+  $internal_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'swift':
@@ -16,5 +17,6 @@ class openstack::ha::swift (
     },
     balancermember_options => 'check port 49001 inter 15s fastinter 2s downinter 8s rise 3 fall 3',
     public_ssl   => $public_ssl,
+    internal_ssl => $internal_ssl,
   }
 }

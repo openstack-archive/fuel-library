@@ -3,6 +3,7 @@ class openstack::ha::neutron (
   $server_names,
   $ipaddresses,
   $public_ssl = false,
+  $internal_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'neutron':
@@ -10,6 +11,7 @@ class openstack::ha::neutron (
     listen_port            => 9696,
     public                 => true,
     public_ssl             => $public_ssl,
+    internal_ssl           => $internal_ssl,
     define_backups         => false,
     server_names           => $server_names,
     ipaddresses            => $ipaddresses,

@@ -116,7 +116,7 @@ class cinder::keystone::auth (
       ensure       => present,
       public_url   => "${public_protocol}://${public_address}:${port}/v2/%(tenant_id)s",
       admin_url    => "http://${admin_address}:${port}/v2/%(tenant_id)s",
-      internal_url => "http://${internal_address}:${port}/v2/%(tenant_id)s",
+      internal_url => "${internal_protocol}://${internal_address}:${port}/v2/%(tenant_id)s",
     }
   }
 }
