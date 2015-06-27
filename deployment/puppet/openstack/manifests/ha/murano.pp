@@ -3,6 +3,7 @@ class openstack::ha::murano (
   $server_names,
   $ipaddresses,
   $public_ssl = false,
+  $internal_ssl => false,
 ) {
 
   openstack::ha::haproxy_service { 'murano':
@@ -10,6 +11,7 @@ class openstack::ha::murano (
     listen_port     => 8082,
     public          => true,
     public_ssl      => $public_ssl,
+    internal_ssl    => $internal_ssl,
     require_service => 'murano_api',
     server_names    => $server_names,
     ipaddresses     => $ipaddresses,

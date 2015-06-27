@@ -3,6 +3,7 @@ class openstack::ha::sahara (
   $server_names,
   $ipaddresses,
   $public_ssl = false,
+  $internal_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'sahara':
@@ -10,6 +11,7 @@ class openstack::ha::sahara (
     listen_port     => 8386,
     public          => true,
     public_ssl      => $public_ssl,
+    internal_ssl    => $internal_ssl,
     require_service => 'sahara-api',
     server_names    => $server_names,
     ipaddresses     => $ipaddresses,

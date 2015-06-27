@@ -17,6 +17,7 @@ class openstack::cinder(
   $physical_volume        = undef,
   $manage_volumes         = false,
   $iser                   = false,
+  $internal_ssl           = false,
   $enabled                = true,
   $enable_volumes         = true,
   $purge_cinder_config    = true,
@@ -59,6 +60,7 @@ class openstack::cinder(
 
   class {'cinder::glance':
     glance_api_servers => $glance_api_servers,
+    glance_api_ssl_compression => $internal_ssl,
     # Glance API v2 is required for Ceph RBD backend
     glance_api_version => '2',
   }

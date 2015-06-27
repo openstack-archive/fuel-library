@@ -12,6 +12,7 @@ class ceph::radosgw (
   $rgw_user    = $::ceph::params::user_httpd,
   $use_ssl     = $::ceph::use_ssl,
   $public_ssl  = false,
+  $internal_ssl = false,
   $primary_mon = $::ceph::primary_mon,
 
   # RadosGW settings
@@ -143,6 +144,10 @@ class ceph::radosgw (
     },
     adm_ip              => $adm_ip,
     int_ip              => $int_ip,
+    int_protocol        => $internal_ssl ? {
+      true    => 'https',
+      default => 'http',
+    },
     swift_endpoint_port => $swift_endpoint_port,
   }
 
