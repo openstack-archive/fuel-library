@@ -11,7 +11,11 @@ $storage_hash                   = hiera('storage', {})
 $storage_address                = hiera('storage_address')
 $ceilometer_hash                = hiera('ceilometer',{})
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
-$service_endpoint               = hiera('service_endpoint', $management_vip)
+$internal_ssl_hash              = hiera('internal_ssl')
+$service_endpoint               = hiera('service_endpoint', $internal_ssl_hash['enable'] ? {
+  true    => $internal_ssl_hash['hostname'],
+  default => $management_vip,
+})
 $cinder_db_password             = $cinder_hash[db_password]
 $cinder_user_password           = $cinder_hash[user_password]
 $keystone_user                  = pick($cinder_hash['user'], 'cinder')
@@ -20,6 +24,9 @@ $db_host                        = pick($cinder_hash['db_host'], $management_vip)
 $cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
 $roles                          = node_roles($nodes_hash, hiera('uid'))
+$keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
+$glance_endpoint                = hiera('glance_endpoint', $service_endpoint)
+
 
 if hiera('amqp_nodes', false) {
   $amqp_nodes = hiera('amqp_nodes')
@@ -72,7 +79,8 @@ class {'openstack::cinder':
   physical_volume      => undef,
   manage_volumes       => $manage_volumes,
   enabled              => true,
-  glance_api_servers   => "${service_endpoint}:9292",
+  glance_api_servers   => "${glance_endpoint}:9292",
+  internal_ssl         => $internal_ssl_hash['enable'],
   auth_host            => $service_endpoint,
   bind_host            => $internal_address,
   iscsi_bind_host      => $storage_address,
