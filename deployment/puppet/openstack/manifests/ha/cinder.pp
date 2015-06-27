@@ -3,6 +3,7 @@ class openstack::ha::cinder (
   $server_names,
   $ipaddresses,
   $public_ssl = false,
+  $internal_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'cinder-api':
@@ -10,6 +11,7 @@ class openstack::ha::cinder (
     listen_port            => 8776,
     public                 => true,
     public_ssl             => $public_ssl,
+    internal_ssl           => $internal_ssl,
     require_service        => 'cinder-api',
     server_names           => $server_names,
     ipaddresses            => $ipaddresses,

@@ -13,6 +13,7 @@ class sahara (
   $node_domain                  = 'novalocal',
 
   $public_ssl                   = false,
+  $internal_ssl                 = false,
 
   $db_password                  = 'sahara',
   $db_name                      = 'sahara',
@@ -69,6 +70,10 @@ class sahara (
     },
     admin_address                => $keystone_host,
     internal_address             => $keystone_host,
+    internal_protocol            => $internal_ssl ? {
+      true    => 'https',
+      default => 'http',
+    },
     sahara_port                  => $api_port,
     region                       => $region,
     tenant                       => $keystone_tenant,

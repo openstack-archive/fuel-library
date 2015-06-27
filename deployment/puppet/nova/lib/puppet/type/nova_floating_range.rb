@@ -51,7 +51,7 @@ Puppet::Type.newtype(:nova_floating_range) do
     desc 'URL to keystone authorization http://192.168.1.1:5000/v2.0/'
 
     validate do |value|
-      raise Puppet::Error, "#{value} does not look like URL" unless value =~ /^https?:\/\/\S+:\d{1,5}\/v[\d\.]{1,5}\//
+      raise Puppet::Error, "#{value} does not look like URL" unless value =~ /^https?:\/\/\S+/
     end
   end
 

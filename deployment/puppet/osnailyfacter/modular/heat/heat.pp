@@ -10,7 +10,11 @@ $max_retries              = hiera('max_retries')
 $max_pool_size            = hiera('max_pool_size')
 $max_overflow             = hiera('max_overflow')
 $idle_timeout             = hiera('idle_timeout')
-$service_endpoint         = hiera('service_endpoint', $management_vip)
+$internal_ssl_hash        = hiera('internal_ssl')
+$service_endpoint         = hiera('service_endpoint', $internal_ssl_hash['enable'] ? {
+  true    => $internal_ssl_hash['hostname'],
+  default => $management_vip,
+})
 $debug                    = hiera('debug', false)
 $verbose                  = hiera('verbose', true)
 $use_syslog               = hiera('use_syslog', true)
@@ -60,9 +64,18 @@ class { 'openstack::heat' :
   keystone_user            => $keystone_user,
   keystone_password        => $heat_hash['user_password'],
   keystone_tenant          => $keystone_tenant,
-  keystone_ec2_uri         => "http://${service_endpoint}:5000/v2.0",
   region                   => $region,
+
+  auth_uri                 => $internal_ssl_hash['enable'] ? {
+    true    => "https://${service_endpoint}:5000/v2.0",
+    default => "http://${service_endpoint}:5000/v2.0",
+  },
+  keystone_ec2_uri         => $internal_ssl_hash['enable'] ? {
+    true    => "https://${service_endpoint}:5000/v2.0",
+    default => "http://${service_endpoint}:5000/v2.0",
+  },
   public_ssl               => $public_ssl_hash['services'],
+  internal_ssl             => $internal_ssl_hash['enable'],
 
   rpc_backend              => 'heat.openstack.common.rpc.impl_kombu',
   amqp_hosts               => split($amqp_hosts, ','),

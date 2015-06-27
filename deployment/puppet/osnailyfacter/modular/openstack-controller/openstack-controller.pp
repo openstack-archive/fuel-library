@@ -37,7 +37,11 @@ $db_host                        = pick($nova_hash['db_host'], $management_vip)
 $nova_db_user                   = pick($nova_hash['db_user'], 'nova')
 $keystone_user                  = pick($nova_hash['user'], 'nova')
 $keystone_tenant                = pick($nova_hash['tenant'], 'services')
-$glance_api_servers             = hiera('glance_api_servers', "$management_vip:9292")
+$internal_ssl_hash              = hiera('internal_ssl')
+$glance_api_servers             = hiera('glance_api_servers', $internal_ssl_hash['enable'] ? {
+  true    => "https://${internal_ssl_hash['hostname']}:9292",
+  default => "$management_vip:9292",
+})
 $region                         = hiera('region', 'RegionOne')
 
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
@@ -45,6 +49,7 @@ $controller_nodes               = ipsort(values($controller_internal_addresses))
 $controller_hostnames           = keys($controller_internal_addresses)
 $cinder_iscsi_bind_addr         = $storage_address
 $roles                          = node_roles($nodes_hash, hiera('uid'))
+
 
 $floating_hash = {}
 
@@ -172,6 +177,16 @@ if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
   $multi_host = true
 }
 
+# TODO(sbog): remove this after python-glanceclient>0.16 will be merged
+exec { 'uninstall_latest_glanceclient':
+  command => 'pip uninstall -y python-glanceclient',
+  path => ["/usr/bin", "/usr/sbin"],
+} ->
+exec { 'install_latest_glanceclient':
+  command => 'pip install python-glanceclient==0.17.1',
+  path => ["/usr/bin", "/usr/sbin"],
+} ->
+
 class { '::openstack::controller':
   private_interface              => $use_neutron ? { true=>false, default=>hiera('private_int')},
   public_interface               => hiera('public_int', undef),
@@ -240,15 +255,19 @@ if $primary_controller {
 
   Class['nova::api'] -> Haproxy_backend_status['nova-api']
 
+  $nova_auth_url = $internal_ssl_hash['enable'] ? {
+    true    => "https://${internal_ssl_hash['hostname']}:5000/v2.0/",
+    default => "http://${service_endpoint}:5000/v2.0/"
+  }
   exec { 'create-m1.micro-flavor' :
     path    => '/sbin:/usr/sbin:/bin:/usr/bin',
     environment => [
       "OS_TENANT_NAME=${keystone_tenant}",
       "OS_USERNAME=${keystone_user}",
       "OS_PASSWORD=${nova_hash['user_password']}",
-      "OS_AUTH_URL=http://${service_endpoint}:5000/v2.0/",
-      'OS_ENDPOINT_TYPE=internalURL',
       "OS_REGION_NAME=${region}",
+      "OS_AUTH_URL=${nova_auth_url}",
+      "OS_ENDPOINT_TYPE=internalURL",
       "NOVA_ENDPOINT_TYPE=internalURL",
     ],
     command => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
@@ -267,7 +286,10 @@ if $primary_controller {
       username        => $access_hash[user],
       api_key         => $access_hash[password],
       auth_method     => 'password',
-      auth_url        => "http://${management_vip}:5000/v2.0/",
+      auth_url        => $internal_ssl_hash['enable'] ? {
+        true    => "https://${management_vip}:5000/v2.0",
+        default => "http://${management_vip}:5000/v2.0/",
+      },
       authtenant_name => $access_hash[tenant],
       api_retries     => 10,
     }

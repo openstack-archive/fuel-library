@@ -26,7 +26,8 @@ $keystone_password    = pick($swift_hash['user_password'], 'passsword')
 $keystone_tenant      = pick($swift_hash['tenant'], 'services')
 $keystone_protocol    = pick($swift_hash['auth_protocol'], 'http')
 $region               = hiera('region', 'RegionOne')
-$public_ssl_hash     = hiera('public_ssl')
+$public_ssl_hash      = hiera('public_ssl')
+$internal_ssl_hash    = hiera('internal_ssl')
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -104,6 +105,10 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
           default => 'http',
         },
         internal_address => $management_vip,
+        internal_protocol  => $internal_ssl_hash['enable'] ? {
+          true    => 'https',
+          default => 'http',
+        },
         admin_address    => $management_vip,
       }
     }
