@@ -13,10 +13,22 @@ $service_endpoint               = hiera('service_endpoint', $management_vip)
 $nova_hash                      = hiera_hash('nova', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $network_scheme                 = hiera('network_scheme', {})
-$nova_endpoint                  = hiera('nova_endpoint', $management_vip)
-$keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
-$neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
+
+$internal_ssl_hash              = hiera('internal_ssl')
+$nova_endpoint                  = hiera('nova_endpoint', $internal_ssl_hash['enable'] ? {
+  true    => $internal_ssl_hash['hostname'],
+  default => $management_vip,
+})
+$keystone_endpoint              = hiera('keystone_endpoint', $internal_ssl_hash['enable'] ? {
+  true    => $internal_ssl_hash['hostname'],
+  default => $service_endpoint,
+})
+$neutron_endpoint               = hiera('neutron_endpoint', $internal_ssl_hash['enable'] ? {
+  true    => $internal_ssl_hash['hostname'],
+  default => $management_vip,
+})
+
 
 $floating_hash = {}
 
@@ -251,7 +263,10 @@ class { 'openstack::network':
   admin_password    => $neutron_user_password,
   auth_host         => $keystone_endpoint,
   auth_url          => "http://${keystone_endpoint}:35357/v2.0",
-  neutron_url       => "http://${neutron_endpoint}:9696",
+  neutron_url       => $internal_ssl_hash['enable'] ? {
+    true    => "https://${neutron_endpoint}:9696",
+    default => "http://${neutron_endpoint}:9696",
+  },
   admin_tenant_name => $keystone_tenant,
   admin_username    => $keystone_user,
   region            => $region,
@@ -278,5 +293,8 @@ class { 'openstack::network':
   nova_admin_username    => $nova_hash['user'],
   nova_admin_tenant_name => $nova_hash['tenant'],
   nova_admin_password    => $nova_hash['user_password'],
-  nova_url               => "http://${nova_endpoint}:8774/v2",
+  nova_url               => $internal_ssl_hash['enable'] ? {
+    true    => "https://${nova_endpoint}:8774/v2",
+    default => "http://${nova_endpoint}:8774/v2",
+  }
 }

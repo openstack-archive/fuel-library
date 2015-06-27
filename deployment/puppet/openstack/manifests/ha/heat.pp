@@ -3,6 +3,7 @@ class openstack::ha::heat (
   $server_names,
   $ipaddresses,
   $public_ssl = false,
+  $internal_ssl = false,
 ) {
 
   openstack::ha::haproxy_service { 'heat-api':
@@ -10,6 +11,7 @@ class openstack::ha::heat (
     listen_port            => 8004,
     public                 => true,
     public_ssl             => $public_ssl,
+    internal_ssl           => $internal_ssl,
     require_service        => 'heat-api',
     server_names           => $server_names,
     ipaddresses            => $ipaddresses,
@@ -24,6 +26,7 @@ class openstack::ha::heat (
     listen_port            => 8000,
     public                 => true,
     public_ssl             => $public_ssl,
+    internal_ssl           => $internal_ssl,
     require_service        => 'heat-api',
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],
@@ -36,6 +39,7 @@ class openstack::ha::heat (
     listen_port            => 8003,
     public                 => true,
     public_ssl             => $public_ssl,
+    internal_ssl           => $internal_ssl,
     require_service        => 'heat-api',
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],

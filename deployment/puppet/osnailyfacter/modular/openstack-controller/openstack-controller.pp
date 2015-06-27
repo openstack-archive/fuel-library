@@ -46,6 +46,8 @@ $controller_hostnames           = keys($controller_internal_addresses)
 $cinder_iscsi_bind_addr         = $storage_address
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
+$internal_ssl_hash              = hiera('internal_ssl')
+
 $floating_hash = {}
 
 class { 'l23network' :
@@ -240,15 +242,19 @@ if $primary_controller {
 
   Class['nova::api'] -> Haproxy_backend_status['nova-api']
 
+  $nova_auth_url = $internal_ssl_hash['enable'] ? {
+    true    => "https://${internal_ssl_hash['hostname']}:5000/v2.0/",
+    default => "http://${service_endpoint}:5000/v2.0/"
+  }
   exec { 'create-m1.micro-flavor' :
     path    => '/sbin:/usr/sbin:/bin:/usr/bin',
     environment => [
       "OS_TENANT_NAME=${keystone_tenant}",
       "OS_USERNAME=${keystone_user}",
       "OS_PASSWORD=${nova_hash['user_password']}",
-      "OS_AUTH_URL=http://${service_endpoint}:5000/v2.0/",
-      'OS_ENDPOINT_TYPE=internalURL',
       "OS_REGION_NAME=${region}",
+      "OS_AUTH_URL=${nova_auth_url}",
+      "OS_ENDPOINT_TYPE=internalURL",
       "NOVA_ENDPOINT_TYPE=internalURL",
     ],
     command => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
