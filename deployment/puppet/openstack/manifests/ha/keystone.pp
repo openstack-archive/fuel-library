@@ -51,8 +51,14 @@ class openstack::ha::keystone (
   }
 
   openstack::ha::haproxy_service { 'keystone-2':
-    order       => '030',
-    listen_port => 35357,
-    public      => false,
+    order                  => '030',
+    listen_port            => 35357,
+    public                 => false,
+    server_names           => $server_names,
+    ipaddresses            => $ipaddresses,
+    haproxy_config_options => {
+        option => ['httpchk', 'httplog','httpclose'],
+    },
+    balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
 }
