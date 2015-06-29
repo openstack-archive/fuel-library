@@ -70,7 +70,7 @@ $openstack_version = {
 
 $enabled_apis = 'metadata'
 $public_interface = $public_int ? { undef=>'', default=>$public_int}
-$libvirt_vif_driver = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver'
+$libvirt_vif_driver = pick($nova_hash['libvirt_vif_driver'], 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver')
 $neutron_integration_bridge = 'br-int'
 $neutron_settings = $neutron_config
 
