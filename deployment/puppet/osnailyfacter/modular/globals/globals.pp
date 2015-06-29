@@ -1,15 +1,25 @@
 notice('MODULAR: globals.pp')
-#FIXME(bogdando) make all evaluations/hardcode to come from a hiera
-# For example, assume it is already calculated and use just:
-#   $roles=hiera('roles')
-# instead of:
-#   $roles = node_roles($nodes_hash, hiera('uid'))
 
 $fuel_settings = parseyaml($astute_settings_yaml)
 
-$nodes_hash                     = hiera('nodes', {})
+$node = regsubst(hiera('fqdn', $::hostname), '\..*$', '')
+if empty($node) {
+  fail("Node hostname is not defined in the astute.yaml")
+}
+$network_scheme = hiera_hash('network_scheme', {})
+if empty($network_scheme) {
+  fail("Network_scheme not given in the astute.yaml")
+}
+$network_metadata = hiera_hash('network_metadata', {})
+if empty($node) {
+  fail("Network_metadata not given in the astute.yaml")
+}
+prepare_network_config($network_scheme)
+
+
+$nodes_hash                     = hiera('nodes', {})  ##NODES!!!
 $deployment_mode                = hiera('deployment_mode', 'ha_compact')
-$roles                          = hiera('roles', node_roles($nodes_hash, hiera('uid')))
+$roles                          = $network_metadata['nodes'][$node]['network_roles']
 $storage_hash                   = hiera('storage', {})
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
@@ -33,13 +43,10 @@ $cinder_nodes_array             = hiera('cinder_nodes', [])
 $dns_nameservers                = hiera('dns_nameservers', [])
 $use_ceilometer                 = $ceilometer_hash['enabled']
 $use_neutron                    = hiera('quantum', false)
-$network_scheme                 = hiera('network_scheme', {})
 $verbose                        = true
 $debug                          = hiera('debug', false)
 $use_monit                      = false
 $master_ip                      = hiera('master_ip')
-$management_network_range       = hiera('management_network_range')
-
 $use_syslog                     = hiera('use_syslog', true)
 $syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
 $syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
@@ -93,7 +100,6 @@ if empty($node) {
 }
 $default_gateway = hiera('default_gateway', $node[0]['default_gateway'])
 
-prepare_network_config($network_scheme)
 $internal_int                  = get_network_role_property('management', 'interface')
 $public_int                    = get_network_role_property('ex', 'interface')
 $internal_address              = get_network_role_property('management', 'ipaddr')
@@ -102,6 +108,8 @@ $public_address                = get_network_role_property('ex', 'ipaddr')
 $public_netmask                = get_network_role_property('ex', 'netmask')
 $storage_address               = get_network_role_property('storage', 'ipaddr')
 $storage_netmask               = get_network_role_property('storage', 'netmask')
+$public_vip                    = $network_metadata['vips']['public_vip']
+$management_vip                = $network_metadata['vips']['management_vip']
 
 if $use_neutron {
   $novanetwork_params            = {}
@@ -111,6 +119,7 @@ if $use_neutron {
   $neutron_user_password         = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   $base_mac                      = $neutron_config['L2']['base_mac']
+  $management_network_range      = get_network_role_property('mgmt/vip', 'network')
 } else {
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
@@ -126,7 +135,8 @@ if $use_neutron {
       'vlan_start'      => $vlan_start,
     }
   }
-  $network_manager    = "nova.network.manager.${novanetwork_params['network_manager']}"
+  $network_manager          = "nova.network.manager.${novanetwork_params['network_manager']}"
+  $management_network_range = hiera('management_network_range')
 }
 
 if $deployment_mode == 'ha_compact' {
@@ -177,8 +187,8 @@ $max_overflow             = hiera('max_overflow', min($::processorcount * 5 + 0,
 $max_retries              = hiera('max_retries', '-1')
 $idle_timeout             = hiera('idle_timeout','3600')
 $nova_db_password         = $nova_hash['db_password']
-$cinder_iscsi_bind_addr   = $storage_address
-$sql_connection           = "mysql://nova:${nova_db_password}@${controller_node_address}/nova?read_timeout = 6 0"
+$cinder_iscsi_bind_addr   = get_network_role_property('cinder/iscsi', 'ipaddr')
+$sql_connection           = "mysql://nova:${nova_db_password}@${management_vip}/nova?read_timeout = 6 0"
 $mirror_type              = hiera('mirror_type', 'external')
 $multi_host               = hiera('multi_host', true)
 
@@ -204,6 +214,13 @@ if ($storage_hash['images_ceph']) {
   $glance_backend = 'file'
   $glance_known_stores = false
 }
+
+# Define swift-related variables
+$swift_master_role   = 'primary-controller'
+$swift_nodes         = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$swift_proxies       = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$swift_proxy_caches  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']) # memcache for swift
+$is_primary_swift_proxy = $primary_controller
 
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
