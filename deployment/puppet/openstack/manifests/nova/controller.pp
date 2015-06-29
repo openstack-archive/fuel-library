@@ -31,6 +31,7 @@ class openstack::nova::controller (
   # Nova Required
   $nova_user_password,
   $nova_db_password,
+  $nova_hash                   = {},
   $primary_controller          = false,
   $ha_mode                     = false,
   # Network
@@ -202,7 +203,9 @@ class openstack::nova::controller (
   # From legacy ceilometer notifications for nova
   if ($ceilometer) {
     $notify_on_state_change = 'vm_and_task_state'
-    $notification_driver = 'messaging'
+    $notification_driver = concat(['messaging'], pick($nova_hash['notification_driver'], []))
+  } else {
+    $notification_driver = pick($nova_hash['notification_driver'], [])
   }
 
   class { 'nova':
@@ -224,6 +227,7 @@ class openstack::nova::controller (
     report_interval        => $nova_report_interval,
     service_down_time      => $nova_service_down_time,
     notify_on_state_change => $notify_on_state_change,
+    notify_api_faults      => $nova_hash['notify_api_faults'],
     notification_driver    => $notification_driver,
     memcached_servers      => $memcached_addresses,
   }
@@ -257,15 +261,17 @@ class openstack::nova::controller (
   }
 
   class {'nova::quota':
-    quota_instances                       => 100,
-    quota_cores                           => 100,
-    quota_volumes                         => 100,
-    quota_gigabytes                       => 1000,
-    quota_floating_ips                    => 100,
-    quota_metadata_items                  => 1024,
-    quota_max_injected_files              => 50,
-    quota_max_injected_file_content_bytes => 102400,
-    quota_max_injected_file_path_bytes    => 4096,
+    quota_instances                       => pick($nova_hash['quota_instances'], 100),
+    quota_cores                           => pick($nova_hash['quota_cores'], 100),
+    quota_volumes                         => pick($nova_hash['quota_volumes'], 100),
+    quota_gigabytes                       => pick($nova_hash['quota_gigabytes'], 1000),
+    quota_floating_ips                    => pick($nova_hash['quota_floating_ips'], 100),
+    quota_metadata_items                  => pick($nova_hash['quota_metadata_items'], 1024),
+    quota_max_injected_files              => pick($nova_hash['quota_max_injected_files'], 50),
+    quota_max_injected_file_content_bytes => pick($nova_hash['quota_max_injected_file_content_bytes'], 102400),
+    quota_max_injected_file_path_bytes    => pick($nova_hash['quota_max_injected_file_path_bytes'], 4096),
+    quota_security_groups                 => pick($nova_hash['quota_security_groups'], 10),
+    quota_key_pairs                       => pick($nova_hash['quota_key_pairs'], 10),
     quota_driver                          => $nova_quota_driver
   }
 
@@ -304,6 +310,9 @@ class openstack::nova::controller (
     api_bind_address                     => $api_bind_address,
     admin_password                       => $nova_user_password,
     auth_host                            => $keystone_host,
+    auth_protocol                        => pick($nova_hash['auth_protocol'], 'http'),
+    auth_version                         => pick($nova_hash['auth_version'], false),
+    admin_tenant_name                    => pick($nova_hash['admin_tenant_name'], 'services'),
     enabled_apis                         => $_enabled_apis,
     ensure_package                       => $ensure_package,
     ratelimits                           => $nova_rate_limits_string,
@@ -325,7 +334,7 @@ class openstack::nova::controller (
   }
 
   nova_config {
-    'DEFAULT/allow_resize_to_same_host':  value => true;
+    'DEFAULT/allow_resize_to_same_host':  value => pick(nova_hash['allow_resize_to_same_host'], true);
     'DEFAULT/api_paste_config':           value => '/etc/nova/api-paste.ini';
     'DEFAULT/keystone_ec2_url':           value => "http://${keystone_host}:5000/v2.0/ec2tokens";
     'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-nova';
