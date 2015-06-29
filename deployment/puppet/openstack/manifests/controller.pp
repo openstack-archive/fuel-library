@@ -90,6 +90,7 @@ class openstack::controller (
   $nova_db_password               = 'nova_pass',
   $nova_user_password             = 'nova_pass',
   $nova_user_tenant               = 'services',
+  $nova_hash                      = {},
   # Required Ceilometer
   $ceilometer                     = false,
   $ceilometer_db_password         = 'ceilometer_pass',
@@ -280,6 +281,7 @@ class openstack::controller (
     nova_db_user                => $nova_db_user,
     nova_db_dbname              => $nova_db_dbname,
     nova_quota_driver           => $nova_quota_driver,
+    nova_hash                   => $nova_hash,
     # RPC
     queue_provider              => $queue_provider,
     amqp_hosts                  => $amqp_hosts,
@@ -318,6 +320,15 @@ class openstack::controller (
     ha_mode                     => $ha_mode,
     ceilometer                  => $ceilometer,
     neutron_metadata_proxy_shared_secret => $network_provider ? {'nova'=>undef, 'neutron'=>$neutron_metadata_proxy_secret },
+  }
+
+  $nova_config_hash = {
+    'DEFAULT/force_raw_images' => { value => $nova_hash['force_raw_images'] },
+    'conductor/use_local'      => { value => $nova_hash['use_local'] },
+  }
+
+  class {'nova::config':
+    nova_config => $nova_config_hash,
   }
 
   ####### Disable upstart startup on install #######
