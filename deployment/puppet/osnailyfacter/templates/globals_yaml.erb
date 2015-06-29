@@ -14,8 +14,8 @@
 <% globals.store "controller", @controller -%>
 <% globals.store "controller_hostnames", @controller_hostnames -%>
 <% globals.store "controller_internal_addresses", @controller_internal_addresses -%>
-<% globals.store "controller_node_address", @controller_node_address -%>
-<% globals.store "controller_node_public", @controller_node_public -%>
+<% globals.store "controller_node_address", @managenent_vip -%>
+<% globals.store "controller_node_public", @public_vip -%>
 <% globals.store "controller_nodes", @controller_nodes -%>
 <% globals.store "controller_public_addresses", @controller_public_addresses -%>
 <% globals.store "controller_storage_addresses", @controller_storage_addresses -%>
@@ -100,4 +100,11 @@
 <% globals.store "vcenter_hash", @vcenter_hash -%>
 <% globals.store "verbose", @verbose -%>
 <% globals.store "vlan_start", @vlan_start -%>
+<% globals.store "managenent_vip", @managenent_vip -%>
+<% globals.store "public_vip", @public_vip -%>
+<% globals.store "swift_master_role", @swift_master_role -%>
+<% globals.store "swift_nodes", @swift_nodes -%>
+<% globals.store "swift_proxies", @swift_proxies -%>
+<% globals.store "is_primary_swift_proxy", @is_primary_swift_proxy -%>
+
 <%= YAML.dump globals %>
