@@ -26,6 +26,7 @@ $keystone_hash                  = hiera_hash('keystone', {})
 $glance_hash                    = hiera_hash('glance', {})
 $storage_hash                   = hiera_hash('storage', {})
 $nova_hash                      = hiera_hash('nova', {})
+$nova_config_hash               = hiera_hash('nova_config', {})
 $internal_address               = hiera('internal_address')
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $ceilometer_hash                = hiera_hash('ceilometer',{})
@@ -197,6 +198,7 @@ class { '::openstack::controller':
   nova_user                      => $keystone_user,
   nova_user_password             => $nova_hash[user_password],
   nova_user_tenant               => $keystone_tenant,
+  nova_hash                      => $nova_hash,
   queue_provider                 => 'rabbitmq',
   amqp_hosts                     => $amqp_hosts,
   amqp_user                      => $rabbit_hash['user'],
@@ -285,11 +287,11 @@ if $sahara_hash['enabled'] {
 }
 
 class { '::nova::scheduler::filter':
-  cpu_allocation_ratio       => '8.0',
-  disk_allocation_ratio      => '1.0',
-  ram_allocation_ratio       => '1.0',
-  scheduler_host_subset_size => '30',
-  scheduler_default_filters  => concat($scheduler_default_filters, [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])
+  cpu_allocation_ratio       => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
+  disk_allocation_ratio      => pick($nova_hash['disk_allocation_ratio'], '1.0'),
+  ram_allocation_ratio       => pick($nova_hash['ram_allocation_ratio'], '1.0'),
+  scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
+  scheduler_default_filters  => concat($scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]))
 }
 
 # From logasy filter.pp

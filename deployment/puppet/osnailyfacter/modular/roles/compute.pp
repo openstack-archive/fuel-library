@@ -22,7 +22,8 @@ $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $nodes_hash                     = hiera('nodes', {})
 $storage_hash                   = hiera('storage', {})
 $vcenter_hash                   = hiera('vcenter', {})
-$nova_hash                      = hiera('nova', {})
+$nova_hash                      = hiera_hash('nova', {})
+$nova_custom_hash               = hiera_hash('nova_custom_hash', {})
 $mysql_hash                     = hiera('mysql', {})
 $rabbit_hash                    = hiera('rabbit', {})
 $glance_hash                    = hiera('glance', {})
@@ -353,6 +354,7 @@ class { 'openstack::compute':
   vnc_enabled                 => true,
   manage_volumes              => $manage_volumes,
   nova_user_password          => $nova_hash[user_password],
+  nova_hash                   => $nova_hash,
   cache_server_ip             => $controller_nodes,
   service_endpoint            => $management_vip,
   cinder                      => true,
@@ -378,16 +380,20 @@ class { 'openstack::compute':
   storage_hash                => $storage_hash,
 }
 
-#TODO: PUT this configuration stanza into nova class
-nova_config { 'DEFAULT/resume_guests_state_on_host_boot': value => hiera('resume_guests_state_on_host_boot')}
-nova_config { 'DEFAULT/use_cow_images': value => hiera('use_cow_images')}
-nova_config { 'libvirt/libvirt_inject_key': value => 'true'}
-nova_config { 'libvirt/libvirt_inject_password': value => 'true'}
-nova_config { 'libvirt/libvirt_inject_partition': value => '-1'}
+$nova_config_hash = {
+  'DEFAULT/resume_guests_state_on_host_boot'       => { value => hiera('resume_guests_state_on_host_boot', 'False') },
+  'DEFAULT/use_cow_images'                         => { value => hiera('use_cow_images', 'True') },
+  'DEFAULT/block_device_allocate_retries'          => { value => $block_device_allocate_retries },
+  'DEFAULT/block_device_allocate_retries_interval' => { value => $block_device_allocate_retries_interval },
+  'libvirt/libvirt_inject_key'                     => { value => 'true' },
+  'libvirt/libvirt_inject_password'                => { value => 'true' },
+}
 
-# LP: #1280399
-nova_config { 'DEFAULT/block_device_allocate_retries': value => $block_device_allocate_retries }
-nova_config { 'DEFAULT/block_device_allocate_retries_interval': value => $block_device_allocate_retries_interval }
+$nova_complete_hash = merge($nova_config_hash, $nova_custom_hash)
+
+class {'nova::config':
+  nova_config => $nova_complete_hash,
+}
 
 # Configure monit watchdogs
 # FIXME(bogdando) replace service_path and action to systemd, once supported
