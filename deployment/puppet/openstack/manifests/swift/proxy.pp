@@ -2,7 +2,8 @@
 class openstack::swift::proxy (
   $swift_user_password                = 'swift_pass',
   $swift_hash_suffix                  = 'swift_secret',
-  $swift_local_net_ip                 = $::ipaddress_eth0,
+  $swift_api_local_ipaddr             = $::ipaddress_eth0,
+  $swift_storage_local_ipaddr         = $::ipaddress_eth0,
   $ring_part_power                    = 18,
   $ring_replicas                      = 3,
   $ring_min_part_hours                = 1,
@@ -83,7 +84,7 @@ class openstack::swift::proxy (
   }
 
   class { '::swift::proxy':
-    proxy_local_net_ip       => $swift_local_net_ip,
+    proxy_local_net_ip       => $swift_api_local_ipaddr,
     pipeline                 => $new_proxy_pipeline,
     port                     => $proxy_port,
     workers                  => $proxy_workers,
@@ -153,7 +154,7 @@ class openstack::swift::proxy (
 
     # sets up an rsync db that can be used to sync the ring DB
     class { 'swift::ringserver':
-      local_net_ip => $swift_local_net_ip,
+      local_net_ip => $swift_storage_local_ipaddr,
     }
 
     # resource ordering
