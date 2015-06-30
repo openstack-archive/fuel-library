@@ -34,11 +34,7 @@ class openstack::swift::proxy (
   $ratelimit_rate_buffer_seconds      = 5,
   $ratelimit_account_ratelimit        = 0,
   $package_ensure                     = 'present',
-  $controller_node_address            = '10.0.0.1',
-  $swift_proxies                      = {
-    '127.0.0.1' => '127.0.0.1'
-  }
-  ,
+  $swift_proxies_cache                = ['127.0.0.1'],
   $primary_proxy                      = false,
   $swift_devices                      = undef,
   $master_swift_proxy_ip              = undef,
@@ -48,6 +44,11 @@ class openstack::swift::proxy (
   $verbose                            = true,
   $log_facility                       = 'LOG_LOCAL1',
   $ceilometer                         = false,
+  $admin_user                         = 'swift',
+  $admin_tenant_name                  = 'services',
+  $admin_password                     = 'password',
+  $auth_host                          = '10.0.0.1',
+  $auth_protocol                      = 'http',
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -101,7 +102,7 @@ class openstack::swift::proxy (
   '::swift::proxy::slo',]:
   }
 
-  $cache_addresses = inline_template("<%= @swift_proxies.values.uniq.sort.collect {|ip| ip + ':11211' }.join ',' %>")
+  $cache_addresses = inline_template("<%= @swift_proxies_cache.uniq.sort.collect {|ip| ip + ':11211' }.join ',' %>")
 
   class { '::swift::proxy::cache': memcache_servers => split($cache_addresses, ',') }
 
@@ -114,8 +115,9 @@ class openstack::swift::proxy (
   }
 
   class { '::swift::proxy::s3token':
-    auth_host => $controller_node_address,
-    auth_port => '35357',
+    auth_host     => $auth_host,
+    auth_port     => '35357',
+    auth_protocol => $auth_protocol,
   }
 
   class { '::swift::proxy::keystone':
@@ -123,10 +125,11 @@ class openstack::swift::proxy (
   }
 
   class { '::swift::proxy::authtoken':
-    admin_user        => 'swift',
-    admin_tenant_name => 'services',
-    admin_password    => $swift_user_password,
-    auth_host         => $controller_node_address,
+    admin_user        => $admin_user,
+    admin_tenant_name => $admin_tenant_name,
+    admin_password    => $admin_password,
+    auth_host         => $auth_host,
+    auth_protocol     => $auth_protocol,
   }
 
   if $primary_proxy {
@@ -159,8 +162,7 @@ class openstack::swift::proxy (
     Swift::Ringbuilder::Create<||> ->
     Ring_devices<||> ~>
     Swift::Ringbuilder::Rebalance <||>
-
- } else {
+  } else {
     validate_string($master_swift_proxy_ip)
 
     if member($rings, 'account') and ! defined(Swift::Ringsync['account']) {
