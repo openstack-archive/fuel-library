@@ -17,3 +17,13 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/cinder_db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1200
+
+- id: openstack-cinder-endpoint
+  type: puppet
+  groups: [primary-controller]
+  required_for: [openstack-cinder]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/openstack-cinder-endpoint.pp
+    puppet_modules: /etc/puppet/modules/
+    timeout: 1800
