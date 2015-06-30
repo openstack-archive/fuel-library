@@ -111,6 +111,13 @@ class ceph (
     }
   }
 
+  if hiera('role') =~ /controller|ceph/ {
+    # Ensure /var/lib/ceph in the updatedb PRUNEPATH
+    exec {"sed -i -Ee 's|(PRUNEPATHS *= *\"[^\"]*)|\\1 /var/lib/ceph|' /etc/updatedb.conf":
+      unless => "test ! -f /etc/updatedb.conf || grep 'PRUNEPATHS *= *.*/var/lib/ceph.*' /etc/updatedb.conf"
+    }
+  }
+
   case hiera('role') {
     'primary-controller', 'controller', 'ceph-mon': {
       include ceph::mon
