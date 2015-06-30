@@ -1,4 +1,4 @@
-notice('MODULAR: glance_db.pp')
+notice('MODULAR: glance/db.pp')
 
 $glance_hash    = hiera_hash('glance', {})
 $mysql_hash     = hiera_hash('mysql', {})
