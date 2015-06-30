@@ -1,4 +1,4 @@
-notice('MODULAR: neutron_db.pp')
+notice('MODULAR: openstack-network/db.pp')
 
 $use_neutron    = hiera('use_neutron', false)
 $neutron_hash   = hiera_hash('quantum_settings', {})
