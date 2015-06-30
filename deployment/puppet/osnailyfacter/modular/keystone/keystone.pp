@@ -13,7 +13,7 @@ $use_syslog            = hiera('use_syslog', true)
 $keystone_hash         = hiera_hash('keystone', {})
 $access_hash           = hiera_hash('access',{})
 $management_vip        = hiera('management_vip')
-$database_vip          = hiera('database_vip')
+$database_vip          = hiera('database_vip', $management_vip)
 $public_vip            = hiera('public_vip')
 $glance_hash           = hiera_hash('glance', {})
 $nova_hash             = hiera_hash('nova', {})
@@ -50,28 +50,17 @@ $memcache_server_port  = hiera('memcache_server_port', '11211')
 $memcache_pool_maxsize = '100'
 $memcache_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('memcache_nodes'), 'mgmt/memcache')
 
+$public_port     = '5000'
+$admin_port      = '35357'
+$internal_port   = '5000'
+$public_protocol = 'http'
 
-$public_port = '5000'
-$admin_port = '35357'
-$internal_port = '5000'
-$public_protocol = $public_ssl_hash['services'] ? {
-  true    => 'https',
-  default => 'http',
-}
-
-$public_url = "${public_protocol}://${public_address}:${public_port}"
-$admin_url = "http://${admin_address}:${admin_port}"
+$public_url   = "${public_protocol}://${public_address}:${public_port}"
+$admin_url    = "http://${admin_address}:${admin_port}"
 $internal_url = "http://${management_vip}:${internal_port}"
 
 $revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
 
-$glance_user_password     = $glance_hash['user_password']
-$nova_user_password       = $nova_hash['user_password']
-$cinder_user_password     = $cinder_hash['user_password']
-$ceilometer_user_password = $ceilometer_hash['user_password']
-
-$cinder = true
-$ceilometer = $ceilometer_hash['enabled']
 $enabled = true
 $ssl = false
 
@@ -107,16 +96,8 @@ class { 'openstack::keystone':
   public_address           => $public_address,
   public_ssl               => $public_ssl_hash['services'],
   public_hostname          => $public_ssl_hash['hostname'],
-  internal_address         => $management_vip, # send traffic through HAProxy
+  internal_address         => $management_vip,
   admin_address            => $admin_address,
-  glance_user_password     => $glance_user_password,
-  nova_user_password       => $nova_user_password,
-  cinder                   => $cinder,
-  cinder_user_password     => $cinder_user_password,
-  neutron                  => $use_neutron,
-  neutron_user_password    => $neutron_user_password,
-  ceilometer               => $ceilometer,
-  ceilometer_user_password => $ceilometer_user_password,
   public_bind_host         => $local_address_for_bind,
   admin_bind_host          => $local_address_for_bind,
   enabled                  => $enabled,
@@ -217,7 +198,7 @@ Service<| title == 'httpd' |> -> Haproxy_backend_status<||>
 Haproxy_backend_status<||> -> Class['keystone::roles::admin']
 
 ####### Disable upstart startup on install #######
-if($::operatingsystem == 'Ubuntu') {
+if ($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'keystone':
     package_name => 'keystone',
   }
