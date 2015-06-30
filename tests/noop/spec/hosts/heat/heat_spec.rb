@@ -7,10 +7,7 @@ describe manifest do
 
     use_syslog = Noop.hiera 'use_syslog'
 
-    it 'should set empty trusts_delegated_roles for heat authentication and engine' do
-      should contain_class('heat::keystone::auth').with(
-        'trusts_delegated_roles' => [],
-      )
+    it 'should set empty trusts_delegated_roles for heat engine' do
       should contain_class('heat::engine').with(
         'trusts_delegated_roles' => [],
       )

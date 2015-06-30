@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'openstack-network/neutron_db.pp'
+manifest = 'openstack-network/db.pp'
 
 describe manifest do
   #TODO: uncomment in neutron module adaptation patch

@@ -1,4 +1,4 @@
-notice('MODULAR: nova_db.pp')
+notice('MODULAR: openstack-controller/db.pp')
 
 $nova_hash      = hiera_hash('nova', {})
 $mysql_hash     = hiera_hash('mysql', {})
