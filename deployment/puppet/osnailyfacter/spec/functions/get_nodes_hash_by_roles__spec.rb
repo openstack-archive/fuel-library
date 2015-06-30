@@ -7,18 +7,18 @@ YAML.load("
 ---
   nodes:
     node-55:
-      network_roles:
+      node_roles:
         - controller
         - mongo
         - cinder
     node-66:
-      network_roles:
+      node_roles:
         - compute
         - cinder
         - xxx
         - yyy
     node-77:
-      network_roles:
+      node_roles:
         - mongo
         - cinder
         - xxx

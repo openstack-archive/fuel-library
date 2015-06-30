@@ -12,7 +12,7 @@ EOS
     raise(Puppet::ParseError, "#{errmsg}: 2nd argument should be an list of roles") if !roles.is_a?(Array)
     nodes = n_metadata['nodes']
     nodes.reject do |node_name|
-      (roles & nodes[node_name]['network_roles']).empty?
+      (roles & nodes[node_name]['node_roles']).empty?
     end
   end
 end
