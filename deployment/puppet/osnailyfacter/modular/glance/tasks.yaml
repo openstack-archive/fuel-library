@@ -11,3 +11,13 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/glance/glance_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/glance/glance_post.rb
+
+- id: glance-endpoint
+  type: puppet
+  groups: [primary-controller]
+  required_for: [glance]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/glance/glance_endpoint.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
