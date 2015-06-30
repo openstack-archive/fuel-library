@@ -1,4 +1,4 @@
-notice('MODULAR: sahara_db.pp')
+notice('MODULAR: sahara/db.pp')
 
 $sahara_hash    = hiera_hash('sahara', {})
 $sahara_enabled = pick($sahara_hash['enabled'], false)
