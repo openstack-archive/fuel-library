@@ -7,6 +7,10 @@ from openstack_dashboard import exceptions
 DEBUG = <%= @django_debug.to_s.capitalize %>
 TEMPLATE_DEBUG = DEBUG
 
+# WEBROOT is the location relative to Webserver root
+# should end with a slash.
+WEBROOT = '<%= scope.lookupvar("horizon::params::root_url") %>/'
+
 # Required for Django 1.5.
 # If horizon is running in production (DEBUG is False), set this
 # with the list of host/domain names that the application can serve.
@@ -354,13 +358,6 @@ LOGGING = {
             'formatter': 'normal',
         },
     },
-<%
-if scope.lookupvar('::openstack::horizon::use_syslog')
-   log_handler = 'syslog'
-else
-   log_handler = 'file'
-end
-%>
     'loggers': {
         # Logging from django.db.backends is VERY verbose, send to null
         # by default.

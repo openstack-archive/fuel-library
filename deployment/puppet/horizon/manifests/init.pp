@@ -34,6 +34,13 @@
 #  [*package_ensure*]
 #    (optional) Package ensure state. Defaults to 'present'.
 #
+#  [*cache_backend*]
+#   (optional) Horizon cache backend.
+#   Defaults to: 'django.core.cache.backends.memcached.MemcachedCache'
+#
+#  [*cache_options*]
+#   (optional) Cache backend options.
+#
 #  [*cache_server_ip*]
 #    (optional) Memcached IP address. Can be a string, or an array.
 #    Defaults to '127.0.0.1'.
@@ -216,6 +223,8 @@ class horizon(
   $secret_key,
   $fqdn                                = undef,
   $package_ensure                      = 'present',
+  $cache_backend                       = 'django.core.cache.backends.memcached.MemcachedCache',
+  $cache_options                       = undef,
   $cache_server_ip                     = '127.0.0.1',
   $cache_server_port                   = '11211',
   $horizon_app_links                   = false,
