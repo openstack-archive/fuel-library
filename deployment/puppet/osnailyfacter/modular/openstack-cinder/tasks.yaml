@@ -8,12 +8,22 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1200
 
-- id: cinder_db
+- id: cinder-db
   type: puppet
   groups: [primary-controller]
   required_for: [openstack-cinder]
   requires: [database]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/cinder_db.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1200
+
+- id: cinder-keystone
+  type: puppet
+  groups: [primary-controller]
+  required_for: [openstack-cinder]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/keystone.pp
+    puppet_modules: /etc/puppet/modules/
+    timeout: 600
