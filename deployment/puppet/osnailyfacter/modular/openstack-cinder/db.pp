@@ -1,4 +1,4 @@
-notice('MODULAR: cinder_db.pp')
+notice('MODULAR: cinder/db.pp')
 
 $cinder_hash    = hiera_hash('cinder', {})
 $mysql_hash     = hiera_hash('mysql', {})

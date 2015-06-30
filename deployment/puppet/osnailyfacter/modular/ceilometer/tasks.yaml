@@ -25,3 +25,13 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute_post.rb
+
+- id: ceilometer-endpoint
+  type: puppet
+  groups: [primary-controller]
+  required_for: [ceilometer-controller]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/endpoint.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
