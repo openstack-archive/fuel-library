@@ -6,12 +6,13 @@ ENV['LANG'] = 'C'
 hiera = Hiera.new(:config => '/etc/hiera.yaml')
 test_vm_images = hiera.lookup 'test_vm_image', {}, {}
 glanced = hiera.lookup 'glance', {} , {}
-internal_addr = hiera.lookup 'internal_address', nil, {}
+public_addr = hiera.loopup 'public_vip'
+internal_addr = hiera.lookup 'management_vip', "#{public_addr}", {}
 auth_addr = hiera.lookup 'service_endpoint', "#{internal_addr}", {}
 tenant_name = glanced['tenant'].nil? ? "services" : glanced['tenant']
 user_name = glanced['user'].nil? ? "glance" : glanced['user']
 endpoint_type = glanced['endpoint_type'].nil? ? "internalURL" : glanced['endpoint_type']
-region_name = hiera.lookup 'region', nil, {}
+region_name = hiera.lookup 'region', 'RegionOne', {}
 
 ENV['OS_TENANT_NAME']="#{tenant_name}"
 ENV['OS_USERNAME']="#{user_name}"
