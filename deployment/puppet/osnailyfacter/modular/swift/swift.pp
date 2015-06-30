@@ -37,22 +37,22 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   $master_swift_proxy_nodes      = get_nodes_hash_by_roles($network_metadata, [$swift_master_role])
   $master_swift_proxy_nodes_list = values($master_swift_proxy_nodes)
   $master_swift_proxy_ip         = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', '')
-  $master_swift_replication_ip       = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', '')
+  $master_swift_replication_ip   = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', '')
 
   if ($deploy_swift_storage){
     class { 'openstack::swift::storage_node':
-      storage_type          => false,
-      loopback_size         => '5243780',
-      storage_mnt_base_dir  => $swift_partition,
-      storage_devices       => filter_hash($mp_hash,'point'),
-      swift_zone            => $master_swift_proxy_nodes_list[0]['swift_zone'],
-      swift_local_net_ip    => $swift_storage_ipaddr,
+      storage_type                => false,
+      loopback_size               => '5243780',
+      storage_mnt_base_dir        => $swift_partition,
+      storage_devices             => filter_hash($mp_hash,'point'),
+      swift_zone                  => $master_swift_proxy_nodes_list[0]['swift_zone'],
+      swift_local_net_ip          => $swift_storage_ipaddr,
       master_swift_proxy_ip       => $master_swift_proxy_ip,
       master_swift_replication_ip => $master_swift_replication_ip,
-      sync_rings            => ! $is_primary_swift_proxy,
-      debug                 => $debug,
-      verbose               => $verbose,
-      log_facility          => 'LOG_SYSLOG',
+      sync_rings                  => ! $is_primary_swift_proxy,
+      debug                       => $debug,
+      verbose                     => $verbose,
+      log_facility                => 'LOG_SYSLOG',
     }
   }
 
@@ -63,48 +63,38 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     }
   }
 
-  if ($deploy_swift_proxy){
+  if $deploy_swift_proxy {
     $resize_value = pick($swift_hash['resize_value'], 2)
     $ring_part_power = calc_ring_part_power($swift_nodes,$resize_value)
     $sto_net = get_network_role_property('swift/replication', 'network')
     $man_net = get_network_role_property('swift/api', 'network')
 
     class { 'openstack::swift::proxy':
-      swift_user_password     => $swift_hash['user_password'],
-      swift_proxies_cache     => $memcaches_addr_list,
-      ring_part_power         => $ring_part_power,
-      primary_proxy           => $is_primary_swift_proxy,
+      swift_user_password            => $swift_hash['user_password'],
+      swift_proxies_cache            => $memcaches_addr_list,
+      ring_part_power                => $ring_part_power,
+      primary_proxy                  => $is_primary_swift_proxy,
       swift_proxy_local_ipaddr       => $swift_api_ipaddr,
       swift_replication_local_ipaddr => $swift_storage_ipaddr,
       master_swift_proxy_ip          => $master_swift_proxy_ip,
       master_swift_replication_ip    => $master_swift_replication_ip,
-      proxy_port              => $proxy_port,
-      debug                   => $debug,
-      verbose                 => $verbose,
-      log_facility            => 'LOG_SYSLOG',
-      ceilometer              => hiera('use_ceilometer',false),
-      ring_min_part_hours     => $ring_min_part_hours,
-      admin_user              => $keystone_user,
-      admin_tenant_name       => $keystone_tenant,
-      admin_password          => $keystone_password,
-      auth_host               => $service_endpoint,
-      auth_protocol           => $keystone_protocol,
+      proxy_port                     => $proxy_port,
+      debug                          => $debug,
+      verbose                        => $verbose,
+      log_facility                   => 'LOG_SYSLOG',
+      ceilometer                     => hiera('use_ceilometer',false),
+      ring_min_part_hours            => $ring_min_part_hours,
+      admin_user                     => $keystone_user,
+      admin_tenant_name              => $keystone_tenant,
+      admin_password                 => $keystone_password,
+      auth_host                      => $service_endpoint,
+      auth_protocol                  => $keystone_protocol,
     } ->
     class { 'openstack::swift::status':
       endpoint    => "http://${swift_api_ipaddr}:${proxy_port}",
       vip         => $management_vip,
       only_from   => "127.0.0.1 240.0.0.2 ${sto_net} ${man_net}",
       con_timeout => 5
-    }
-
-    if ($create_keystone_auth){
-      class { 'swift::keystone::auth':
-        password         => $swift_hash['user_password'],
-        public_address   => $public_vip,
-        region           => $region,
-        internal_address => $management_vip,
-        admin_address    => $management_vip,
-      }
     }
   }
 }
@@ -120,4 +110,3 @@ include ceilometer
 # need to add this stub here.
 class memcached {}
 include memcached
-

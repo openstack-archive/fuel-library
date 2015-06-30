@@ -1,6 +1,6 @@
-notice('MODULAR: cinder_db.pp')
+notice('MODULAR: heat/db.pp')
 
-$cinder_hash    = hiera_hash('cinder', {})
+$heat_hash      = hiera_hash('heat', {})
 $mysql_hash     = hiera_hash('mysql', {})
 $management_vip = hiera('management_vip', undef)
 $database_vip   = hiera('database_vip', undef)
@@ -9,14 +9,14 @@ $mysql_root_user     = pick($mysql_hash['root_user'], 'root')
 $mysql_db_create     = pick($mysql_hash['db_create'], true)
 $mysql_root_password = $mysql_hash['root_password']
 
-$db_user     = pick($cinder_hash['db_user'], 'cinder')
-$db_name     = pick($cinder_hash['db_name'], 'cinder')
-$db_password = pick($cinder_hash['db_password'], $mysql_root_password)
+$db_user     = pick($heat_hash['db_user'], 'heat')
+$db_name     = pick($heat_hash['db_name'], 'heat')
+$db_password = pick($heat_hash['db_password'], $mysql_root_password)
 
-$db_host          = pick($cinder_hash['db_host'], $database_vip, $management_vip, 'localhost')
-$db_create        = pick($cinder_hash['db_create'], $mysql_db_create)
-$db_root_user     = pick($cinder_hash['root_user'], $mysql_root_user)
-$db_root_password = pick($cinder_hash['root_password'], $mysql_root_password)
+$db_host          = pick($heat_hash['db_host'], $database_vip, $management_vip, 'localhost')
+$db_create        = pick($heat_hash['db_create'], $mysql_db_create)
+$db_root_user     = pick($heat_hash['root_user'], $mysql_root_user)
+$db_root_password = pick($heat_hash['root_password'], $mysql_root_password)
 
 $allowed_hosts = [ $::hostname, 'localhost', '127.0.0.1', '%' ]
 
@@ -24,7 +24,7 @@ validate_string($mysql_root_user)
 
 if $db_create {
 
-  class { 'cinder::db::mysql':
+  class { 'heat::db::mysql':
     user          => $db_user,
     password      => $db_password,
     dbname        => $db_name,
@@ -37,7 +37,7 @@ if $db_create {
     db_password => $db_root_password,
   }
 
-  Class['osnailyfacter::mysql_access'] -> Class['cinder::db::mysql']
+  Class['osnailyfacter::mysql_access'] -> Class['heat::db::mysql']
 
 }
 
