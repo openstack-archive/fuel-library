@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'glance/glance_db.pp'
+manifest = 'glance/db.pp'
 
 describe manifest do
   shared_examples 'catalog' do
