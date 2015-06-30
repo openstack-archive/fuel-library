@@ -1,4 +1,4 @@
-notice('MODULAR: keystone_db.pp')
+notice('MODULAR: keystone/db.pp')
 
 $node_name = hiera('node_name')
 $network_metadata = hiera_hash('network_metadata', {})
