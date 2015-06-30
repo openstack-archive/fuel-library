@@ -8,8 +8,6 @@
 # [db_host] Host where DB resides. Required.
 # [keystone_db_password] Password for keystone DB. Required.
 # [keystone_admin_token]. Auth token for keystone admin. Required.
-# [glance_user_password] Auth password for glance user. Required.
-# [nova_user_password] Auth password for nova user. Required.
 # [public_address] Public address where keystone can be accessed. Required.
 # [db_type] Type of DB used. Currently only supports mysql. Optional. Defaults to  'mysql'
 # [keystone_db_user] Name of keystone db user. Optional. Defaults to  'keystone'
@@ -21,8 +19,6 @@
 # [admin_bind_host] Address that keystone binds to. Optional. Defaults to  '0.0.0.0'
 # [internal_address] Internal address for keystone. Optional. Defaults to  $public_address
 # [admin_address] Keystone admin address. Optional. Defaults to  $internal_address
-# [glance] Set up glance endpoints and auth. Optional. Defaults to  true
-# [nova] Set up nova endpoints and auth. Optional. Defaults to  true
 # [enabled] If the service is active (true) or passive (false).
 #   Optional. Defaults to  true
 # [use_syslog] Rather or not service should log to syslog. Optional. Default to false.
@@ -47,11 +43,6 @@ class openstack::keystone (
   $db_host,
   $db_password,
   $admin_token,
-  $glance_user_password,
-  $nova_user_password,
-  $cinder_user_password,
-  $ceilometer_user_password,
-  $neutron_user_password,
   $public_address,
   $db_type                     = 'mysql',
   $db_user                     = 'keystone',
@@ -65,26 +56,6 @@ class openstack::keystone (
   $memcache_servers            = false,
   $memcache_server_port        = false,
   $memcache_pool_maxsize       = false,
-  $glance_public_address       = false,
-  $glance_internal_address     = false,
-  $glance_admin_address        = false,
-  $nova_public_address         = false,
-  $nova_internal_address       = false,
-  $nova_admin_address          = false,
-  $cinder_public_address       = false,
-  $cinder_internal_address     = false,
-  $cinder_admin_address        = false,
-  $neutron_public_address      = false,
-  $neutron_internal_address    = false,
-  $neutron_admin_address       = false,
-  $ceilometer_public_address   = false,
-  $ceilometer_internal_address = false,
-  $ceilometer_admin_address    = false,
-  $glance                      = true,
-  $nova                        = true,
-  $cinder                      = true,
-  $ceilometer                  = true,
-  $neutron                     = true,
   $enabled                     = true,
   $package_ensure              = present,
   $use_syslog                  = false,
@@ -118,81 +89,7 @@ class openstack::keystone (
   } else {
     $admin_real = $internal_real
   }
-  if($glance_public_address) {
-    $glance_public_real = $glance_public_address
-  } else {
-    $glance_public_real = $public_address
-  }
-  if($glance_internal_address) {
-    $glance_internal_real = $glance_internal_address
-  } else {
-    $glance_internal_real = $internal_real
-  }
-  if($glance_admin_address) {
-    $glance_admin_real = $glance_admin_address
-  } else {
-    $glance_admin_real = $admin_real
-  }
-  if($nova_public_address) {
-    $nova_public_real = $nova_public_address
-  } else {
-    $nova_public_real = $public_address
-  }
-  if($nova_internal_address) {
-    $nova_internal_real = $nova_internal_address
-  } else {
-    $nova_internal_real = $internal_real
-  }
-  if($nova_admin_address) {
-    $nova_admin_real = $nova_admin_address
-  } else {
-    $nova_admin_real = $admin_real
-  }
-  if($cinder_public_address) {
-    $cinder_public_real = $cinder_public_address
-  } else {
-    $cinder_public_real = $public_address
-  }
-  if($cinder_internal_address) {
-    $cinder_internal_real = $cinder_internal_address
-  } else {
-    $cinder_internal_real = $internal_real
-  }
-  if($cinder_admin_address) {
-    $cinder_admin_real = $cinder_admin_address
-  } else {
-    $cinder_admin_real = $admin_real
-  }
-  if($neutron_public_address) {
-    $neutron_public_real = $neutron_public_address
-  } else {
-    $neutron_public_real = $public_address
-  }
-  if($neutron_internal_address) {
-    $neutron_internal_real = $neutron_internal_address
-  } else {
-    $neutron_internal_real = $internal_real
-  }
-  if($neutron_admin_address) {
-    $neutron_admin_real = $neutron_admin_address
-  } else {
-    $neutron_admin_real = $admin_real
-  }
-  if($ceilometer_public_address) {
-    $ceilometer_public_real = $ceilometer_public_address
-  } else {
-    $ceilometer_public_real = $public_address
-  }
-  if($ceilometer_internal_address) {
-    $ceilometer_internal_real = $ceilometer_internal_address
-  } else {
-    $ceilometer_internal_real = $internal_real
-  }
-  if($ceilometer_admin_address) {
-    $ceilometer_admin_real = $ceilometer_admin_address
-  } else {
-    $ceilometer_admin_real = $admin_real
-  }
+
   if($ceilometer) {
     $notification_driver = 'messaging'
     $notification_topics = 'notifications'
@@ -309,72 +206,14 @@ class openstack::keystone (
   }
 
   if ($enabled) {
-    # Setup the admin user
-
     # Setup the Keystone Identity Endpoint
     class { 'keystone::endpoint':
       public_address   => $public_address,
       admin_address    => $admin_real,
       internal_address => $internal_real,
     }
+
     Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
     Haproxy_backend_status<||> -> Class['keystone::endpoint']
-
-    # Configure Glance endpoint in Keystone
-    if $glance {
-      class { 'glance::keystone::auth':
-        password         => $glance_user_password,
-        public_address   => $glance_public_real,
-        admin_address    => $glance_admin_real,
-        internal_address => $glance_internal_real,
-      }
-      Exec <| title == 'keystone-manage db_sync' |> -> Class['glance::keystone::auth']
-      Haproxy_backend_status<||> -> Class['glance::keystone::auth']
-    }
-
-    # Configure Nova endpoint in Keystone
-    if $nova {
-      class { 'nova::keystone::auth':
-        password         => $nova_user_password,
-        public_address   => $nova_public_real,
-        admin_address    => $nova_admin_real,
-        internal_address => $nova_internal_real,
-      }
-      Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
-      Haproxy_backend_status<||> -> Class['nova::keystone::auth']
-    }
-
-    # Configure Cinder endpoint in Keystone
-    if $cinder {
-      class { 'cinder::keystone::auth':
-        password         => $cinder_user_password,
-        public_address   => $cinder_public_real,
-        admin_address    => $cinder_admin_real,
-        internal_address => $cinder_internal_real,
-      }
-     Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
-     Haproxy_backend_status<||> -> Class['cinder::keystone::auth']
-    }
-    if $neutron {
-      class { 'neutron::keystone::auth':
-        password         => $neutron_user_password,
-        public_address   => $neutron_public_real,
-        admin_address    => $neutron_admin_real,
-        internal_address => $neutron_internal_real,
-      }
-      Exec <| title == 'keystone-manage db_sync' |> -> Class['neutron::keystone::auth']
-      Haproxy_backend_status<||> -> Class['neutron::keystone::auth']
-    }
-    if $ceilometer {
-      class { 'ceilometer::keystone::auth':
-        password         => $ceilometer_user_password,
-        public_address   => $ceilometer_public_real,
-        admin_address    => $ceilometer_admin_real,
-        internal_address => $ceilometer_internal_real,
-      }
-      Exec <| title == 'keystone-manage db_sync' |> -> Class['ceilometer::keystone::auth']
-      Haproxy_backend_status<||> -> Class['ceilometer::keystone::auth']
-    }
   }
-
 }
