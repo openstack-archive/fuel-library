@@ -23,7 +23,6 @@ class horizon::params {
     'Debian': {
       $http_service                = 'apache2'
       $config_file                 = '/etc/openstack-dashboard/local_settings.py'
-      $httpd_config_file           = '/etc/apache2/conf-available/openstack-dashboard.conf'
       $httpd_listen_config_file    = '/etc/apache2/ports.conf'
       $root_url                    = '/horizon'
       $apache_user                 = 'www-data'
@@ -33,9 +32,11 @@ class horizon::params {
       case $::operatingsystem {
         'Debian': {
             $package_name          = 'openstack-dashboard-apache'
+            $httpd_config_file     = '/etc/apache2/sites-available/openstack-dashboard.conf'
         }
         default: {
             $package_name          = 'openstack-dashboard'
+            $httpd_config_file     = '/etc/apache2/conf-available/openstack-dashboard.conf'
         }
       }
     }

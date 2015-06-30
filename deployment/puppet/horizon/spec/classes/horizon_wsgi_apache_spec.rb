@@ -29,18 +29,18 @@ describe 'horizon::wsgi::apache' do
 
     context 'with default parameters' do
       it 'configures apache' do
-        should contain_class('horizon::params')
-        should contain_class('apache')
-        should contain_class('apache::mod::wsgi')
-        should contain_service('httpd').with_name(platforms_params[:http_service])
-        should contain_file(platforms_params[:httpd_config_file])
-        should contain_package('horizon').with_ensure('present')
-        should contain_apache__vhost('horizon_vhost').with(
+        is_expected.to contain_class('horizon::params')
+        is_expected.to contain_class('apache')
+        is_expected.to contain_class('apache::mod::wsgi')
+        is_expected.to contain_service('httpd').with_name(platforms_params[:http_service])
+        is_expected.to contain_file(platforms_params[:httpd_config_file])
+        is_expected.to contain_package('horizon').with_ensure('present')
+        is_expected.to contain_apache__vhost('horizon_vhost').with(
           'servername'           => 'some.host.tld',
           'access_log_file'      => 'horizon_access.log',
           'error_log_file'       => 'horizon_error.log',
           'priority'             => '15',
-          'serveraliases'        => '*',
+          'serveraliases'        => ['*'],
           'docroot'              => '/var/www/',
           'ssl'                  => 'false',
           'redirectmatch_status' => 'permanent',
@@ -62,18 +62,18 @@ describe 'horizon::wsgi::apache' do
       end
 
       it 'configures apache' do
-        should contain_class('horizon::params')
-        should contain_class('apache')
-        should contain_class('apache::mod::wsgi')
-        should contain_service('httpd').with_name(platforms_params[:http_service])
-        should contain_file(platforms_params[:httpd_config_file])
-        should contain_package('horizon').with_ensure('present')
-        should contain_apache__vhost('horizon_vhost').with(
+        is_expected.to contain_class('horizon::params')
+        is_expected.to contain_class('apache')
+        is_expected.to contain_class('apache::mod::wsgi')
+        is_expected.to contain_service('httpd').with_name(platforms_params[:http_service])
+        is_expected.to contain_file(platforms_params[:httpd_config_file])
+        is_expected.to contain_package('horizon').with_ensure('present')
+        is_expected.to contain_apache__vhost('horizon_vhost').with(
           'servername'           => 'some.host.tld',
           'access_log_file'      => 'horizon_access.log',
           'error_log_file'       => 'horizon_error.log',
           'priority'             => params[:priority],
-          'serveraliases'        => '*',
+          'serveraliases'        => ['*'],
           'docroot'              => '/var/www/',
           'ssl'                  => 'false',
           'redirectmatch_status' => 'permanent',
@@ -100,14 +100,14 @@ describe 'horizon::wsgi::apache' do
 
       context 'with required parameters' do
         it 'configures apache for SSL' do
-          should contain_class('apache::mod::ssl')
+          is_expected.to contain_class('apache::mod::ssl')
         end
-        it { should contain_apache__vhost('horizon_ssl_vhost').with(
+        it { is_expected.to contain_apache__vhost('horizon_ssl_vhost').with(
           'servername'             => 'some.host.tld',
           'access_log_file'        => 'horizon_ssl_access.log',
           'error_log_file'         => 'horizon_ssl_error.log',
           'priority'               => '15',
-          'serveraliases'          => '*',
+          'serveraliases'          => ['*'],
           'docroot'                => '/var/www/',
           'ssl'                    => 'true',
           'ssl_cert'               => '/etc/pki/tls/certs/httpd.crt',
@@ -121,12 +121,12 @@ describe 'horizon::wsgi::apache' do
           'wsgi_script_aliases'    => { platforms_params[:root_url] => '/usr/share/openstack-dashboard/openstack_dashboard/wsgi/django.wsgi' }
         )}
 
-        it { should contain_apache__vhost('horizon_vhost').with(
+        it { is_expected.to contain_apache__vhost('horizon_vhost').with(
           'servername'           => 'some.host.tld',
           'access_log_file'      => 'horizon_access.log',
           'error_log_file'       => 'horizon_error.log',
           'priority'             => '15',
-          'serveraliases'        => '*',
+          'serveraliases'        => ['*'],
           'docroot'              => '/var/www/',
           'ssl'                  => 'false',
           'redirectmatch_status' => 'permanent',
@@ -167,7 +167,7 @@ describe 'horizon::wsgi::apache' do
         end
 
         it 'configures apache' do
-          should contain_apache__vhost('horizon_vhost').with(
+          is_expected.to contain_apache__vhost('horizon_vhost').with(
             'add_listen' => false,
             'docroot'    => '/tmp'
           )
@@ -201,8 +201,19 @@ describe 'horizon::wsgi::apache' do
 
     it_behaves_like 'apache for horizon'
     it {
-      should contain_class('apache::mod::wsgi').with(:wsgi_socket_prefix => '/var/run/wsgi')
+      is_expected.to contain_class('apache::mod::wsgi').with(:wsgi_socket_prefix => '/var/run/wsgi')
     }
+    it 'configures webroot alias' do
+      if (Gem::Version.new(Puppet.version) >= Gem::Version.new('4.0'))
+        is_expected.to contain_apache__vhost('horizon_vhost').with(
+          'aliases' => [{'alias' => '/dashboard/static', 'path' => '/usr/share/openstack-dashboard/static'}],
+        )
+      else
+        is_expected.to contain_apache__vhost('horizon_vhost').with(
+          'aliases' => [['alias', '/dashboard/static'], ['path', '/usr/share/openstack-dashboard/static']],
+        )
+      end
+    end
   end
 
   context 'on Debian platforms' do
@@ -226,5 +237,16 @@ describe 'horizon::wsgi::apache' do
     end
 
     it_behaves_like 'apache for horizon'
+    it 'configures webroot alias' do
+      if (Gem::Version.new(Puppet.version) >= Gem::Version.new('4.0'))
+        is_expected.to contain_apache__vhost('horizon_vhost').with(
+          'aliases' => [{'alias' => '/horizon/static', 'path' => '/usr/share/openstack-dashboard/static'}],
+        )
+      else
+        is_expected.to contain_apache__vhost('horizon_vhost').with(
+          'aliases' => [['alias', '/horizon/static'], ['path', '/usr/share/openstack-dashboard/static']],
+        )
+      end
+    end
   end
 end

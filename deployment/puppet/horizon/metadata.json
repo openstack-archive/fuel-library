@@ -1,10 +1,10 @@
 {
   "name": "stackforge-horizon",
-  "version": "5.0.0",
-  "author": "Puppet Labs and StackForge Contributors",
+  "version": "5.1.0",
+  "author": "Puppet Labs and OpenStack Contributors",
   "summary": "Puppet module for OpenStack Horizon",
-  "license": "Apache License 2.0",
-  "source": "git://github.com/stackforge/puppet-horizon.git",
+  "license": "Apache-2.0",
+  "source": "git://github.com/openstack/puppet-horizon.git",
   "project_page": "https://launchpad.net/puppet-horizon",
   "issues_url": "https://bugs.launchpad.net/puppet-horizon",
   "requirements": [
