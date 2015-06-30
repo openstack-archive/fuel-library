@@ -18,6 +18,6 @@
   required_for: [murano]
   requires: [database]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/murano_db.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/db.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 1800
