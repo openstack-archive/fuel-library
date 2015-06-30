@@ -118,9 +118,14 @@ SECRET_KEY = '<%= @secret_key %>'
 
 CACHES = {
     'default': {
+    <% if @cache_options.kind_of?(Hash) %>
+        'OPTIONS': {
+        <% @cache_options.sort.each do |opt_name,opt_val| -%>
+        '<%= opt_name -%>': <%= opt_val -%>,
+        <% end -%>},
+        <% end -%>
         <% if @cache_server_ip %>
-#        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': '<%= @cache_backend %>',
           <% if @cache_server_ip.kind_of?(Array) %>
             <%  split = ":" + @cache_server_port + "','" %>
         'LOCATION': [ <% @cache_server_ip.each do |ip| -%>'<%= ip -%>:<%= @cache_server_port -%>',<% end -%> ],
@@ -589,3 +594,14 @@ IRONIC_DISCOVERD_URL = "<%= @tuskar_ui_ironic_discoverd_url %>"
 UNDERCLOUD_ADMIN_PASSWORD = "<%= @tuskar_ui_undercloud_admin_password %>"
 DEPLOYMENT_MODE = "<%= @tuskar_ui_deployment_mode %>"
 <% end %>
+
+# Horizon doesn't know status of nova quotas. As result user may change
+# nova quotas in horizon UI, while actually they are turned off in nova. To avoid such
+# confusion ENABLED_QUOTA_GROUPS option were added. LP: 1286099, 1332457
+ENABLED_QUOTA_GROUPS = {
+<% if scope.lookupvar('::openstack::horizon::nova_quota') %>
+    'nova': True
+<% else %>
+    'nova': False
+<% end %>
+}
