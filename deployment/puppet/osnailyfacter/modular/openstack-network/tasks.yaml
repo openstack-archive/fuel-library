@@ -11,6 +11,7 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-controller_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-controller_post.rb
+
 - id: openstack-network-compute
   type: puppet
   groups: [compute]
@@ -24,3 +25,13 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute_post.rb
+
+- id: openstack-network-endpoint
+  type: puppet
+  groups: [primary-controller]
+  required_for: [openstack-network]
+  requires: [keystone]
+  parameters:
+      puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-endpoint.pp
+      puppet_modules: /etc/puppet/modules
+      timeout: 1800
