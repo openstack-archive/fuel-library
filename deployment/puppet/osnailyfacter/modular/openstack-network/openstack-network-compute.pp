@@ -13,7 +13,7 @@ $controller_nodes               = ipsort(values($controller_internal_addresses))
 $rabbit_hash                    = hiera('rabbit_hash', {})
 $network_scheme                 = hiera('network_scheme', {})
 $keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
-$neutron_endpoint               = hiera('neutron_endpoint', $service_endpoint)
+$neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 
 $floating_hash = {}
 
