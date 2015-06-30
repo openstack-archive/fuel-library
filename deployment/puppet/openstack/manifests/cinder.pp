@@ -153,13 +153,6 @@ class openstack::cinder(
 
     case $manage_volumes {
       true, 'iscsi': {
-        if ($physical_volume) {
-          class { 'lvm':
-            vg     => $volume_group,
-            pv     => $physical_volume,
-            before => Service['cinder-volume'],
-          }
-        }
         class { 'cinder::volume::iscsi':
           iscsi_ip_address => $iscsi_bind_host,
           volume_group     => $volume_group,
