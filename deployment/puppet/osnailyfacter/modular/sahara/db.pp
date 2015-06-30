@@ -1,6 +1,7 @@
-notice('MODULAR: nova_db.pp')
+notice('MODULAR: sahara/db.pp')
 
-$nova_hash      = hiera_hash('nova', {})
+$sahara_hash    = hiera_hash('sahara', {})
+$sahara_enabled = pick($sahara_hash['enabled'], false)
 $mysql_hash     = hiera_hash('mysql', {})
 $management_vip = hiera('management_vip', undef)
 $database_vip   = hiera('database_vip', undef)
@@ -9,24 +10,24 @@ $mysql_root_user     = pick($mysql_hash['root_user'], 'root')
 $mysql_db_create     = pick($mysql_hash['db_create'], true)
 $mysql_root_password = $mysql_hash['root_password']
 
-$db_user     = pick($nova_hash['db_user'], 'nova')
-$db_name     = pick($nova_hash['db_name'], 'nova')
-$db_password = pick($nova_hash['db_password'], $mysql_root_password)
+$db_user     = pick($sahara_hash['db_user'], 'sahara')
+$db_name     = pick($sahara_hash['db_name'], 'sahara')
+$db_password = pick($sahara_hash['db_password'], $mysql_root_password)
 
-$db_host       = pick($nova_hash['db_host'], $database_vip, $management_vip, 'localhost')
-$db_create     = pick($nova_hash['db_create'], $mysql_db_create)
-$db_root_user     = pick($nova_hash['root_user'], $mysql_root_user)
-$db_root_password = pick($nova_hash['root_password'], $mysql_root_password)
+$db_host          = pick($sahara_hash['db_host'], $database_vip, $management_vip, 'localhost')
+$db_create        = pick($sahara_hash['db_create'], $mysql_db_create)
+$db_root_user     = pick($sahara_hash['root_user'], $mysql_root_user)
+$db_root_password = pick($sahara_hash['root_password'], $mysql_root_password)
 
 $allowed_hosts = [ $::hostname, 'localhost', '127.0.0.1', '%' ]
 
 validate_string($mysql_root_user)
 
-if $db_create {
+if $sahara_enabled and $db_create {
 
   include mysql
 
-  class { 'nova::db::mysql':
+  class { 'sahara::db::mysql':
     user          => $db_user,
     password      => $db_password,
     dbname        => $db_name,
@@ -41,7 +42,7 @@ if $db_create {
 
   Class['mysql'] ->
     Class['osnailyfacter::mysql_access'] ->
-      Class['nova::db::mysql']
+      Class['sahara::db::mysql']
 
 }
 
@@ -49,3 +50,5 @@ class mysql::config {}
 include mysql::config
 class mysql::server {}
 include mysql::server
+class sahara::api {}
+include sahara::api
