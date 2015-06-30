@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'openstack-cinder/cinder_db.pp'
+manifest = 'openstack-cinder/db.pp'
 
 describe manifest do
   shared_examples 'catalog' do
