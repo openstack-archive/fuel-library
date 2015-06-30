@@ -111,6 +111,14 @@ class ceph (
     }
   }
 
+  # Ensure /var/lib/ceph in the updatedb PRUNEPATH
+  if hiera('role') =~ /controller|ceph/ and !("/var/lib/ceph" in split($::updatedb_prunepaths, ' ')) {
+    augeas {"/etc/updatedb.conf":
+      context => '/files/etc/updatedb.conf',
+      changes => "set PRUNEPATHS '\"$::updatedb_prunepaths /var/lib/ceph\"'",
+    }
+  }
+
   case hiera('role') {
     'primary-controller', 'controller', 'ceph-mon': {
       include ceph::mon
