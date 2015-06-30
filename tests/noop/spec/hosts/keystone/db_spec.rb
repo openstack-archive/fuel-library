@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'keystone/keystone_db.pp'
+manifest = 'keystone/db.pp'
+
 describe manifest do
   shared_examples 'catalog' do
     keystone_db_user = 'keystone'

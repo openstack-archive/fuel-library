@@ -5,7 +5,6 @@ class openstack::heat (
   $external_ip                   = '127.0.0.1',
   $enabled                       = true,
 
-  $keystone_auth                 = true,
   $keystone_host                 = '127.0.0.1',
   $keystone_port                 = '35357',
   $keystone_service_port         = '5000',
@@ -119,44 +118,6 @@ class openstack::heat (
     action => 'accept',
   }
 
-  if ($keystone_auth){
-    # Auth
-    class { 'heat::keystone::auth' :
-      password                       => $keystone_password,
-      auth_name                      => $keystone_user,
-      public_address                 => $external_ip,
-      admin_address                  => $keystone_host,
-      internal_address               => $keystone_host,
-      port                           => '8004',
-      version                        => 'v1',
-      region                         => $region,
-      tenant                         => $keystone_tenant,
-      email                          => "${keystone_user}@localhost",
-      public_protocol                => 'http',
-      admin_protocol                 => 'http',
-      internal_protocol              => 'http',
-      configure_endpoint             => true,
-      trusts_delegated_roles         => $trusts_delegated_roles,
-    }
-    #todo(bogdando) clarify this new to fuel heat auth cfn patterns
-    class { 'heat::keystone::auth_cfn' :
-      password                       => $keystone_password,
-      auth_name                      => "${keystone_user}-cfn",
-      service_type                   => 'cloudformation',
-      public_address                 => $external_ip,
-      admin_address                  => $keystone_host,
-      internal_address               => $keystone_host,
-      port                           => '8000',
-      version                        => 'v1',
-      region                         => $region,
-      tenant                         => $keystone_tenant,
-      email                          => "${keystone_user}-cfn@localhost",
-      public_protocol                => 'http',
-      admin_protocol                 => 'http',
-      internal_protocol              => 'http',
-      configure_endpoint             => true,
-    }
-  }
   # Common configuration, logging and RPC
   class { '::heat':
     auth_uri              => $auth_uri,
