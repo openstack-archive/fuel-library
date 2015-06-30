@@ -2,23 +2,17 @@ notice('MODULAR: keystone.pp')
 
 $verbose               = hiera('verbose', true)
 $debug                 = hiera('debug', false)
-$use_neutron           = hiera('use_neutron')
 $use_syslog            = hiera('use_syslog', true)
 $keystone_hash         = hiera_hash('keystone', {})
 $access_hash           = hiera_hash('access',{})
 $management_vip        = hiera('management_vip')
 $public_vip            = hiera('public_vip')
 $internal_address      = hiera('internal_address')
-$glance_hash           = hiera_hash('glance', {})
-$nova_hash             = hiera_hash('nova', {})
-$cinder_hash           = hiera_hash('cinder', {})
-$ceilometer_hash       = hiera_hash('ceilometer', {})
 $syslog_log_facility   = hiera('syslog_log_facility_keystone')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $amqp_hosts            = hiera('amqp_hosts')
 $primary_controller    = hiera('primary_controller')
 $controller_nodes      = hiera('controller_nodes')
-$neutron_user_password = hiera('neutron_user_password', false)
 $workloads_hash        = hiera_hash('workloads_collector', {})
 
 $db_type     = 'mysql'
@@ -48,19 +42,12 @@ $admin_port = '35357'
 $internal_port = '5000'
 $public_protocol = 'http'
 
+$revoke_driver  = 'keystone.contrib.revoke.backends.sql.Revoke'
+
 $public_url = "${public_protocol}://${public_address}:${public_port}"
 $admin_url = "http://${admin_address}:${admin_port}"
 $internal_url = "http://${internal_address}:${internal_port}"
 
-$revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
-
-$glance_user_password     = $glance_hash['user_password']
-$nova_user_password       = $nova_hash['user_password']
-$cinder_user_password     = $cinder_hash['user_password']
-$ceilometer_user_password = $ceilometer_hash['user_password']
-
-$cinder = true
-$ceilometer = $ceilometer_hash['enabled']
 $enabled = true
 $ssl = false
 
@@ -85,46 +72,38 @@ if has_key($murano_settings_hash, 'murano_repo_url') {
 
 ####### KEYSTONE ###########
 class { 'openstack::keystone':
-  verbose                  => $verbose,
-  debug                    => $debug,
-  db_type                  => $db_type,
-  db_host                  => $db_host,
-  db_password              => $db_password,
-  db_name                  => $db_name,
-  db_user                  => $db_user,
-  admin_token              => $admin_token,
-  public_address           => $public_address,
-  internal_address         => $management_vip, # send traffic through HAProxy
-  admin_address            => $admin_address,
-  glance_user_password     => $glance_user_password,
-  nova_user_password       => $nova_user_password,
-  cinder                   => $cinder,
-  cinder_user_password     => $cinder_user_password,
-  neutron                  => $use_neutron,
-  neutron_user_password    => $neutron_user_password,
-  ceilometer               => $ceilometer,
-  ceilometer_user_password => $ceilometer_user_password,
-  public_bind_host         => $public_bind_host,
-  admin_bind_host          => $admin_bind_host,
-  enabled                  => $enabled,
-  use_syslog               => $use_syslog,
-  syslog_log_facility      => $syslog_log_facility,
-  region                   => $region,
-  memcache_servers         => $memcache_servers,
-  memcache_server_port     => $memcache_server_port,
-  memcache_pool_maxsize    => $memcache_pool_maxsize,
-  max_retries              => $max_retries,
-  max_pool_size            => $max_pool_size,
-  max_overflow             => $max_overflow,
-  rabbit_password          => $rabbit_password,
-  rabbit_userid            => $rabbit_user,
-  rabbit_hosts             => $rabbit_hosts,
-  rabbit_virtual_host      => $rabbit_virtual_host,
-  database_idle_timeout    => $database_idle_timeout,
-  revoke_driver            => $revoke_driver,
-  public_url               => $public_url,
-  admin_url                => $admin_url,
-  internal_url             => $internal_url,
+  verbose               => $verbose,
+  debug                 => $debug,
+  db_type               => $db_type,
+  db_host               => $db_host,
+  db_password           => $db_password,
+  db_name               => $db_name,
+  db_user               => $db_user,
+  admin_token           => $admin_token,
+  public_address        => $public_address,
+  internal_address      => $management_vip, # send traffic through HAProxy
+  admin_address         => $admin_address,
+  public_bind_host      => $public_bind_host,
+  admin_bind_host       => $admin_bind_host,
+  enabled               => $enabled,
+  use_syslog            => $use_syslog,
+  syslog_log_facility   => $syslog_log_facility,
+  region                => $region,
+  memcache_servers      => $memcache_servers,
+  memcache_server_port  => $memcache_server_port,
+  memcache_pool_maxsize => $memcache_pool_maxsize,
+  max_retries           => $max_retries,
+  max_pool_size         => $max_pool_size,
+  max_overflow          => $max_overflow,
+  rabbit_password       => $rabbit_password,
+  rabbit_userid         => $rabbit_user,
+  rabbit_hosts          => $rabbit_hosts,
+  rabbit_virtual_host   => $rabbit_virtual_host,
+  database_idle_timeout => $database_idle_timeout,
+  revoke_driver         => $revoke_driver,
+  public_url            => $public_url,
+  admin_url             => $admin_url,
+  internal_url          => $internal_url,
 }
 
 ####### WSGI ###########
@@ -204,7 +183,7 @@ Service<| title == 'httpd' |> -> Haproxy_backend_status<||>
 Haproxy_backend_status<||> -> Class['keystone::roles::admin']
 
 ####### Disable upstart startup on install #######
-if($::operatingsystem == 'Ubuntu') {
+if ($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'keystone':
     package_name => 'keystone',
   }

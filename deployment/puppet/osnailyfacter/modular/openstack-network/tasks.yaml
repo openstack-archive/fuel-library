@@ -35,3 +35,13 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/neutron_db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+
+- id: openstack-network-endpoint
+  type: puppet
+  groups: [primary-controller]
+  required_for: [openstack-network]
+  requires: [keystone]
+  parameters:
+      puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-endpoint.pp
+      puppet_modules: /etc/puppet/modules
+      timeout: 1800
