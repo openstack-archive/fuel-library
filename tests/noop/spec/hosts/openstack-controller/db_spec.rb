@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'openstack-controller/nova_db.pp'
+manifest = 'openstack-controller/db.pp'
 
 describe manifest do
   shared_examples 'catalog' do

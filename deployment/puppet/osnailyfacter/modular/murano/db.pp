@@ -1,4 +1,4 @@
-notice('MODULAR: murano_db.pp')
+notice('MODULAR: murano/db.pp')
 
 $murano_hash    = hiera_hash('murano', {})
 $murano_enabled = pick($murano_hash['enabled'], false)
