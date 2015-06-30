@@ -24,11 +24,9 @@ class openstack::horizon (
   $bind_address            = '127.0.0.1',
   $cache_server_ip         = '127.0.0.1',
   $cache_server_port       = '11211',
-  $swift                   = false,
   $neutron                 = false,
   $horizon_app_links       = undef,
-  $keystone_host           = '127.0.0.1',
-  $keystone_scheme         = 'http',
+  $keystone_url            = 'http://127.0.0.1:5000/v2.0/',
   $keystone_default_role   = '_member_',
   $verbose                 = false,
   $debug                   = false,
@@ -38,11 +36,11 @@ class openstack::horizon (
   $use_syslog              = false,
   $log_level               = 'WARNING',
   $nova_quota              = false,
-  $local_settings_template = 'openstack/horizon/local_settings.py.erb',
   $django_session_engine   = 'django.contrib.sessions.backends.cache',
   $servername              = $::hostname,
   $cache_backend           = undef,
-  $cache_options           = undef
+  $cache_options           = undef,
+  $log_handler             = 'file',
 ) {
 
   if $debug { #syslog and nondebug case
@@ -72,21 +70,19 @@ class openstack::horizon (
     cache_backend           => $cache_backend,
     cache_options           => $cache_options,
     secret_key              => $secret_key,
-    swift                   => $swift,
     package_ensure          => $package_ensure,
     horizon_app_links       => $horizon_app_links,
-    keystone_host           => $keystone_host,
-    keystone_scheme         => $keystone_scheme,
+    keystone_url            => $keystone_url,
     keystone_default_role   => $keystone_default_role,
     django_debug            => $django_debug,
     api_result_limit        => $api_result_limit,
     listen_ssl              => $use_ssl,
     log_level               => $log_level_real,
-    local_settings_template => $local_settings_template,
     configure_apache        => false,
     django_session_engine   => $django_session_engine,
     allowed_hosts           => '*',
     secure_cookies          => false,
+    log_handler             => $log_handler,
   }
 
   # Performance optimization for wsgi

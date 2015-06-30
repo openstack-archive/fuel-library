@@ -32,7 +32,7 @@ describe 'horizon' do
           )
       }
       it { is_expected.to contain_exec('refresh_horizon_django_cache').with({
-          :command     => '/usr/share/openstack-dashboard/manage.py collectstatic --noinput --clear && /usr/share/openstack-dashboard/manage.py compress --force',
+          :command     => '/usr/share/openstack-dashboard/manage.py collectstatic --noinput && /usr/share/openstack-dashboard/manage.py compress --force',
           :refreshonly => true,
       })}
       it { is_expected.to contain_concat(platforms_params[:config_file]).that_notifies('Exec[refresh_horizon_django_cache]') }
@@ -83,6 +83,8 @@ describe 'horizon' do
     context 'with overridden parameters' do
       before do
         params.merge!({
+          :cache_backend           => 'horizon.backends.memcached.HorizonMemcached',
+          :cache_options           => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
           :cache_server_ip         => '10.0.0.1',
           :django_session_engine   => 'django.contrib.sessions.backends.cache',
           :keystone_default_role   => 'SwiftOperator',
@@ -110,6 +112,10 @@ describe 'horizon' do
           'CSRF_COOKIE_SECURE = True',
           'SESSION_COOKIE_SECURE = True',
           "SECRET_KEY = 'elj1IWiLoWHgcyYxFVLj7cM5rGOOxWl0'",
+          "                'DEAD_RETRY': 1,",
+          "                'SERVER_RETRIES': 1,",
+          "                'SOCKET_TIMEOUT': 1,",
+          "        'BACKEND': 'horizon.backends.memcached.HorizonMemcached',",
           "        'LOCATION': '10.0.0.1:11211',",
           'SESSION_ENGINE = "django.contrib.sessions.backends.cache"',
           'OPENSTACK_KEYSTONE_URL = "https://keystone.example.com:4682"',
