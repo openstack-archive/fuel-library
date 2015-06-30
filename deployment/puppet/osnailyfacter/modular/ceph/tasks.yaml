@@ -115,3 +115,14 @@
     timeout: 180
     cwd: /
 
+- id: updatedb
+  type: puppet
+  role: [primary-controller, controller, ceph-osd]
+  condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/updatedb.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 60
+    cwd: /
