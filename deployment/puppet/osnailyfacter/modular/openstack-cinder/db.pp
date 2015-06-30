@@ -1,6 +1,6 @@
-notice('MODULAR: keystone_db.pp')
+notice('MODULAR: cinder/db.pp')
 
-$keystone_hash  = hiera_hash('keystone', {})
+$cinder_hash    = hiera_hash('cinder', {})
 $mysql_hash     = hiera_hash('mysql', {})
 $management_vip = hiera('management_vip', undef)
 $database_vip   = hiera('database_vip', undef)
@@ -9,20 +9,22 @@ $mysql_root_user     = pick($mysql_hash['root_user'], 'root')
 $mysql_db_create     = pick($mysql_hash['db_create'], true)
 $mysql_root_password = $mysql_hash['root_password']
 
-$db_user     = pick($keystone_hash['db_user'], 'keystone')
-$db_name     = pick($keystone_hash['db_name'], 'keystone')
-$db_password = pick($keystone_hash['db_password'], $mysql_root_password)
+$db_user     = pick($cinder_hash['db_user'], 'cinder')
+$db_name     = pick($cinder_hash['db_name'], 'cinder')
+$db_password = pick($cinder_hash['db_password'], $mysql_root_password)
 
-$db_host          = pick($keystone_hash['db_host'], $database_vip, $management_vip, 'localhost')
-$db_create        = pick($keystone_hash['db_create'], $mysql_db_create)
-$db_root_user     = pick($keystone_hash['root_user'], $mysql_root_user)
-$db_root_password = pick($keystone_hash['root_password'], $mysql_root_password)
+$db_host          = pick($cinder_hash['db_host'], $database_vip, $management_vip, 'localhost')
+$db_create        = pick($cinder_hash['db_create'], $mysql_db_create)
+$db_root_user     = pick($cinder_hash['root_user'], $mysql_root_user)
+$db_root_password = pick($cinder_hash['root_password'], $mysql_root_password)
 
 $allowed_hosts = [ $::hostname, 'localhost', '127.0.0.1', '%' ]
 
+validate_string($mysql_root_user)
+
 if $db_create {
 
-  class { 'keystone::db::mysql':
+  class { 'cinder::db::mysql':
     user          => $db_user,
     password      => $db_password,
     dbname        => $db_name,
@@ -35,7 +37,7 @@ if $db_create {
     db_password => $db_root_password,
   }
 
-  Class['osnailyfacter::mysql_access'] -> Class['keystone::db::mysql']
+  Class['osnailyfacter::mysql_access'] -> Class['cinder::db::mysql']
 
 }
 
