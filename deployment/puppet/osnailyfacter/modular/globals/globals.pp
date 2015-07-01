@@ -214,3 +214,8 @@ file { '/etc/hiera/globals.yaml' :
   group   => 'root',
   content => template('osnailyfacter/globals_yaml.erb')
 }
+
+$cinder_node_hash   = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$cinder_address_map = get_node_to_ipaddr_map_by_network_role($cinder_node_hash, 'cinder/api')
+$cinder_names       = keys($cinder_address_map)
+$cinder_ipaddresses = values($cinder_address_map)
