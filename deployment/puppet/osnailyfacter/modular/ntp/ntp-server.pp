@@ -1,11 +1,9 @@
 notice('MODULAR: ntp-server.pp')
 
-$ntp_servers            = hiera('external_ntp')
-$management_vrouter_vip = hiera('management_vrouter_vip')
+$ntp_servers        = hiera('external_ntp')
 
 class { 'ntp':
   servers        => strip(split($ntp_servers['ntp_list'], ',')),
-  interfaces     => [$management_vrouter_vip],
   service_enable => false,
   service_ensure => stopped,
   iburst_enable  => true,
