@@ -11,7 +11,7 @@
 
 - id: ntp-client
   type: puppet
-  role: [primary-mongo, mongo, primary-controller, controller, compute, ceph-osd, cinder, cinder-vmware, zabbix-server]
+  role: [primary-mongo, mongo, compute, ceph-osd, cinder, cinder-vmware, zabbix-server]
   requires: [dns-client]
   required_for: [post_deployment_end]
   parameters:
