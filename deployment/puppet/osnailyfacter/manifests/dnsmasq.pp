@@ -10,16 +10,11 @@
 # [*$master_ip*]
 # Ip address of fuel master node
 #
-# [*$management_vrouter_vip*]
-#
-# IP address of management interface in vrouter namespace
-#
 # === Examples
 #
 #  class { osnailyfacter::dnsmasq:
-#    external_dns           => [ 'pool.ntp.org', 'ntp.local.company.com' ],
-#    master_ip              => '1.1.1.1',
-#    management_vrouter_vip => '1.2.3.4'
+#    external_dns => [ 'pool.ntp.org', 'ntp.local.company.com' ],
+#    master_ip    => '1.1.1.1'
 #  }
 #
 # === Authors
@@ -32,8 +27,7 @@
 #
 class osnailyfacter::dnsmasq (
   $external_dns,
-  $master_ip,
-  $management_vrouter_vip,
+  $master_ip
 ) {
   $package_name = $osfamily ? {
     /(RedHat|CentOS)/ => 'dnsmasq',
