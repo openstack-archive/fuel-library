@@ -90,9 +90,6 @@ class ceph (
          cwd  => '/root',
   }
 
-  # Re-enable ceph::yum if not using a Fuel iso with Ceph packages
-  #include ceph::yum
-
   if hiera('role') =~ /controller|ceph|compute|cinder/ {
     # the regex above includes all roles that require ceph.conf
     include ceph::ssh
@@ -137,8 +134,6 @@ class ceph (
         Class['ceph::conf'] -> Class['ceph::osds'] ~> Service['ceph']
       }
     }
-
-    'ceph-mds': { include ceph::mds }
 
     default: {}
   }
