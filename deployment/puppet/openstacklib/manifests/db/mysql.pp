@@ -37,7 +37,11 @@
 #    string or array of strings; optional; default to 'ALL'
 
 define openstacklib::db::mysql (
-  $password_hash,
+#Temp mysql_module vars that needed untill mysql module is synced
+# do hardcode mysql_module=0.3 to avoid adding it to all modules
+  $mysql_module   = '0.3',
+  $password,
+#  $password_hash,
   $dbname         = $title,
   $user           = $title,
   $host           = '127.0.0.1',
@@ -55,13 +59,24 @@ define openstacklib::db::mysql (
     collate => $collate,
     require => [ Class['mysql::server'], Class['mysql::client'] ],
   }
+  } else {
+
+    require mysql::python
+    mysql::db { $dbname:
+      user     => $user,
+      password => mysql_password($password),
+      host     => $host,
+      charset  => $charset,
+      require  => Class['mysql::config'],
+    }
+  }
 
   $allowed_hosts_list = unique(concat(any2array($allowed_hosts), [$host]))
   $real_allowed_hosts = prefix($allowed_hosts_list, "${dbname}_")
 
   openstacklib::db::mysql::host_access { $real_allowed_hosts:
     user          => $user,
-    password_hash => $password_hash,
+    password_hash => mysql_password($password),
     database      => $dbname,
     privileges    => $privileges,
   }
