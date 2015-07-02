@@ -1,6 +1,7 @@
 notice('MODULAR: virtual_ips.pp')
 
-$internal_int                = hiera('internal_int')
+prepare_network_config(hiera('network_scheme', {}))
+$mgmt_int                    = get_network_role_property('mgmt/vip', 'interface')
 $public_int                  = hiera('public_int',  undef)
 $primary_controller_nodes    = hiera('primary_controller_nodes', false)
 $network_scheme              = hiera('network_scheme', {})
@@ -10,7 +11,7 @@ $deploy_vrouter              = hiera('deploy_vrouter', true)
 if ( hiera('vip_management_cidr_netmask', false )){
   $vip_management_cidr_netmask = hiera('vip_management_cidr_netmask')
 } else {
-  $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
+  $vip_management_cidr_netmask = netmask_to_cidr(get_network_role_property($mgmt_int, 'netmask'))
 }
 if ( hiera('vip_public_cidr_netmask', false )){
   $vip_public_cidr_netmask     = hiera('vip_public_cidr_netmask')
@@ -20,22 +21,22 @@ if ( hiera('vip_public_cidr_netmask', false )){
 
 # todo:(sv): temporary commented. Will be uncommented while 'multiple-l2-network' feature re-implemented
 # if $use_neutron {
-#   ip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
+#   ip_mgmt_other_nets = join($network_scheme['endpoints']["$mgmt_int"]['other_nets'], ' ')
 # }
 
 $management_vip_data = {
-  namespace            => 'haproxy',
-  nic                  => $internal_int,
-  base_veth            => "${internal_int}-hapr",
-  ns_veth              => "hapr-m",
-  ip                   => hiera('management_vip'),
-  cidr_netmask         => $vip_management_cidr_netmask,
-  gateway              => 'none',
-  gateway_metric       => '0',
-  bridge               => $network_scheme['roles']['management'],
-  other_networks       => $vip_mgmt_other_nets,
-  with_ping            => false,
-  ping_host_list       => "",
+  namespace      => 'haproxy',
+  nic            => $mgmt_int,
+  base_veth      => "${mgmt_int}-hapr",
+  ns_veth        => "hapr-m",
+  ip             => hiera('management_vip'),
+  cidr_netmask   => $vip_management_cidr_netmask,
+  gateway        => 'none',
+  gateway_metric => '0',
+  bridge         => $mgmt_int,
+  other_networks => $vip_mgmt_other_nets,
+  with_ping      => false,
+  ping_host_list => "",
 }
 
 cluster::virtual_ip { 'management' :
@@ -45,18 +46,18 @@ cluster::virtual_ip { 'management' :
 
 if $deploy_vrouter {
   $management_vrouter_vip_data = {
-    namespace            => 'vrouter',
-    nic                  => $internal_int,
-    base_veth            => "${internal_int}-vrouter",
-    ns                   => 'vrouter',
-    ns_veth              => 'vr-mgmt',
-    ip                   => hiera('management_vrouter_vip'),
-    cidr_netmask         => $vip_management_cidr_netmask,
-    gateway              => 'none',
-    gateway_metric       => '0',
-    bridge               => $network_scheme['roles']['management'],
-    tie_with_ping        => false,
-    ping_host_list       => "",
+    namespace      => 'vrouter',
+    nic            => $mgmt_int,
+    base_veth      => "${mgmt_int}-vrouter",
+    ns             => 'vrouter',
+    ns_veth        => 'vr-mgmt',
+    ip             => hiera('management_vrouter_vip'),
+    cidr_netmask   => $vip_management_cidr_netmask,
+    gateway        => 'none',
+    gateway_metric => '0',
+    bridge         => $mgmt_int,
+    tie_with_ping  => false,
+    ping_host_list => "",
   }
 
   cluster::virtual_ip { 'management_vrouter' :
@@ -126,14 +127,6 @@ if $public_int {
 } else {
   $vips = $management_vips
 }
-
-#file { 'ns-ipaddr2-ocf':
-#  path   =>'/usr/lib/ocf/resource.d/fuel/ns_IPaddr2',
-#  mode   => '0755',
-#  owner  => 'root',
-#  group  => 'root',
-#  source => 'puppet:///modules/cluster/ocf/ns_IPaddr2',
-#}
 
 # Some topologies might need to keep the vips on the same node during
 # deploymenet. This would only need to be changed by hand.
