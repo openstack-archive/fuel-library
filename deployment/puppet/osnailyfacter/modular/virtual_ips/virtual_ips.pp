@@ -2,8 +2,7 @@ notice('MODULAR: virtual_ips.pp')
 
 prepare_network_config(hiera('network_scheme', {}))
 $mgmt_int                    = get_network_role_property('mgmt/vip', 'interface')
-$public_int                  = hiera('public_int',  undef)
-$primary_controller_nodes    = hiera('primary_controller_nodes', false)
+$public_int                  = get_network_role_property('public/vip', 'interface')
 $network_scheme              = hiera('network_scheme', {})
 $use_neutron                 = hiera('use_neutron', false)
 $deploy_vrouter              = hiera('deploy_vrouter', true)
@@ -16,7 +15,7 @@ if ( hiera('vip_management_cidr_netmask', false )){
 if ( hiera('vip_public_cidr_netmask', false )){
   $vip_public_cidr_netmask     = hiera('vip_public_cidr_netmask')
 } else {
-  $vip_public_cidr_netmask     = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
+  $vip_public_cidr_netmask     = netmask_to_cidr(get_network_role_property('public/vip', 'netmask'))
 }
 
 # todo:(sv): temporary commented. Will be uncommented while 'multiple-l2-network' feature re-implemented
@@ -78,17 +77,17 @@ if $public_int {
   #   vip_publ_other_nets = join($network_scheme['endpoints']["$public_int"]['other_nets'], ' ')
   # }
 
-  $public_vip_data = {
-    namespace            => 'haproxy',
-    nic                  => $public_int,
-    base_veth            => "${public_int}-hapr",
-    ns_veth              => 'hapr-p',
-    ip                   => hiera('public_vip'),
-    cidr_netmask         => $vip_public_cidr_netmask,
-    gateway              => $network_scheme['endpoints']['br-ex']['gateway'],
-    gateway_metric       => '10',
-    bridge               => $network_scheme['roles']['ex'],
-    other_networks       => $vip_publ_other_nets,
+  $public_vip_data  = {
+    namespace      => 'haproxy',
+    nic            => $public_int,
+    base_veth      => "${public_int}-hapr",
+    ns_veth        => 'hapr-p',
+    ip             => hiera('public_vip'),
+    cidr_netmask   => $vip_public_cidr_netmask,
+    gateway        => $network_scheme['endpoints'][$public_int]['gateway'],
+    gateway_metric => '10',
+    bridge         => $public_int,
+    other_networks => $vip_publ_other_nets,
   }
 
   cluster::virtual_ip { 'public' :
@@ -105,9 +104,9 @@ if $public_int {
       ns                      => 'vrouter',
       ip                      => hiera('public_vrouter_vip'),
       cidr_netmask            => $vip_public_cidr_netmask,
-      gateway                 => $network_scheme['endpoints']['br-ex']['gateway'],
+      gateway                 => $network_scheme['endpoints'][$public_int]['gateway'],
       gateway_metric          => '0',
-      bridge                  => $network_scheme['roles']['ex'],
+      bridge                  => $public_int,
       ns_iptables_start_rules => "iptables -t nat -A POSTROUTING -o vr-ex -j MASQUERADE",
       ns_iptables_stop_rules  => "iptables -t nat -D POSTROUTING -o vr-ex -j MASQUERADE",
       collocation             => 'management_vrouter',
