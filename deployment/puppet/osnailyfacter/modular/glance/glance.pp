@@ -34,7 +34,9 @@ $rabbit_virtual_host            = '/'
 $glance_db_user                 = pick($glance_hash['db_user'], 'glance')
 $glance_db_dbname               = pick($glance_hash['db_name'], 'glance')
 $glance_db_password             = $glance_hash['db_password']
+$glance_user                    = pick($glance_hash['user'],'glance')
 $glance_user_password           = $glance_hash['user_password']
+$glance_tenant                  = pick($glance_hash['tenant'],'services')
 $glance_vcenter_host            = $glance_hash['vc_host']
 $glance_vcenter_user            = $glance_hash['vc_user']
 $glance_vcenter_password        = $glance_hash['vc_password']
@@ -43,6 +45,9 @@ $glance_vcenter_datastore       = $glance_hash['vc_datastore']
 $glance_vcenter_image_dir       = $glance_hash['vc_image_dir']
 $glance_vcenter_api_retry_count = '20'
 $glance_image_cache_max_size    = $glance_hash['image_cache_max_size']
+$glance_show_image_direct_url   = pick($glance_hash['show_image_direct_url'], true)
+$glance_pipeline                = pick($glance_hash['pipeline'], 'keystone+cachemanagement')
+$glance_large_object_size       = pick($glance_hash['large_object_size'], '5120')
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -53,6 +58,7 @@ if ($storage_hash['images_ceph']) {
 } else {
   $glance_backend = 'swift'
   $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
+  $swift_store_large_object_size = $glance_large_object_size
 }
 
 ###############################################################################
@@ -65,7 +71,9 @@ class { 'openstack::glance':
   glance_db_user                 => $glance_db_user,
   glance_db_dbname               => $glance_db_dbname,
   glance_db_password             => $glance_db_password,
+  glance_user                    => $glance_user,
   glance_user_password           => $glance_user_password,
+  glance_tenant                  => $glance_tenant,
   glance_vcenter_host            => $glance_vcenter_host,
   glance_vcenter_user            => $glance_vcenter_user,
   glance_vcenter_password        => $glance_vcenter_password,
@@ -80,6 +88,9 @@ class { 'openstack::glance':
   glance_backend                 => $glance_backend,
   registry_host                  => $glance_endpoint,
   use_syslog                     => $use_syslog,
+  show_image_direct_url          => $glance_show_image_direct_url,
+  swift_store_large_object_size  => $swift_store_large_object_size,
+  pipeline                       => $glance_pipeline,
   syslog_log_facility            => $syslog_log_facility,
   glance_image_cache_max_size    => $glance_image_cache_max_size,
   max_retries                    => $max_retries,
