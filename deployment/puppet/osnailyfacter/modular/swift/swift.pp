@@ -18,6 +18,7 @@ $ring_min_part_hours  = hiera('swift_ring_min_part_hours', 1)
 $deploy_swift_storage = hiera('deploy_swift_storage', true)
 $deploy_swift_proxy   = hiera('deploy_swift_proxy', true)
 $create_keystone_auth = pick($swift_hash['create_keystone_auth'], true)
+$max_header_size      = hiera('max_header_size', '8192')
 #Keystone settings
 $service_endpoint     = hiera('service_endpoint', $management_vip)
 $keystone_endpoint    = hiera('keystone_endpoint', $service_endpoint)
@@ -49,6 +50,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       debug                 => $debug,
       verbose               => $verbose,
       log_facility          => 'LOG_SYSLOG',
+      max_header_size       => $max_header_size,
     }
   }
   if $primary_proxy {
@@ -66,23 +68,24 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     $man_net = $network_scheme['endpoints'][$network_scheme['roles']['management']]['IP']
 
     class { 'openstack::swift::proxy':
-      swift_user_password     => $swift_hash['user_password'],
-      swift_proxies_cache     => $swift_proxies_cache,
-      ring_part_power         => $ring_part_power,
-      primary_proxy           => $primary_proxy,
-      swift_local_net_ip      => $storage_address,
-      master_swift_proxy_ip   => $master_swift_proxy_ip,
-      proxy_port              => $proxy_port,
-      debug                   => $debug,
-      verbose                 => $verbose,
-      log_facility            => 'LOG_SYSLOG',
-      ceilometer              => hiera('use_ceilometer',false),
-      ring_min_part_hours     => $ring_min_part_hours,
-      admin_user              => $keystone_user,
-      admin_tenant_name       => $keystone_tenant,
-      admin_password          => $keystone_password,
-      auth_host               => $keystone_endpoint,
-      auth_protocol           => $keystone_protocol,
+      swift_user_password   => $swift_hash['user_password'],
+      swift_proxies_cache   => $swift_proxies_cache,
+      ring_part_power       => $ring_part_power,
+      primary_proxy         => $primary_proxy,
+      swift_local_net_ip    => $storage_address,
+      master_swift_proxy_ip => $master_swift_proxy_ip,
+      proxy_port            => $proxy_port,
+      debug                 => $debug,
+      verbose               => $verbose,
+      log_facility          => 'LOG_SYSLOG',
+      ceilometer            => hiera('use_ceilometer',false),
+      ring_min_part_hours   => $ring_min_part_hours,
+      admin_user            => $keystone_user,
+      admin_tenant_name     => $keystone_tenant,
+      admin_password        => $keystone_password,
+      auth_host             => $keystone_endpoint,
+      auth_protocol         => $keystone_protocol,
+      max_header_size       => $max_header_size,
     } ->
 
     class { 'openstack::swift::status':
