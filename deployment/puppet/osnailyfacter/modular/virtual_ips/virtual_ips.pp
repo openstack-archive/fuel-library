@@ -6,6 +6,7 @@ $primary_controller_nodes    = hiera('primary_controller_nodes', false)
 $network_scheme              = hiera('network_scheme', {})
 $use_neutron                 = hiera('use_neutron', false)
 $deploy_vrouter              = hiera('deploy_vrouter', true)
+prepare_network_config(hiera('network_scheme', {}))
 
 if ( hiera('vip_management_cidr_netmask', false )){
   $vip_management_cidr_netmask = hiera('vip_management_cidr_netmask')
@@ -24,18 +25,18 @@ if ( hiera('vip_public_cidr_netmask', false )){
 # }
 
 $management_vip_data = {
-  namespace            => 'haproxy',
-  nic                  => $internal_int,
-  base_veth            => "${internal_int}-hapr",
-  ns_veth              => "hapr-m",
-  ip                   => hiera('management_vip'),
-  cidr_netmask         => $vip_management_cidr_netmask,
-  gateway              => 'none',
-  gateway_metric       => '0',
-  bridge               => $network_scheme['roles']['management'],
-  other_networks       => $vip_mgmt_other_nets,
-  with_ping            => false,
-  ping_host_list       => "",
+  namespace      => 'haproxy',
+  nic            => $internal_int,
+  base_veth      => "${internal_int}-hapr",
+  ns_veth        => "hapr-m",
+  ip             => hiera('management_vip'),
+  cidr_netmask   => $vip_management_cidr_netmask,
+  gateway        => 'none',
+  gateway_metric => '0',
+  bridge         => get_network_role_property('mgmt/vip', 'interface'),
+  other_networks => $vip_mgmt_other_nets,
+  with_ping      => false,
+  ping_host_list => "",
 }
 
 cluster::virtual_ip { 'management' :
@@ -45,18 +46,18 @@ cluster::virtual_ip { 'management' :
 
 if $deploy_vrouter {
   $management_vrouter_vip_data = {
-    namespace            => 'vrouter',
-    nic                  => $internal_int,
-    base_veth            => "${internal_int}-vrouter",
-    ns                   => 'vrouter',
-    ns_veth              => 'vr-mgmt',
-    ip                   => hiera('management_vrouter_vip'),
-    cidr_netmask         => $vip_management_cidr_netmask,
-    gateway              => 'none',
-    gateway_metric       => '0',
-    bridge               => $network_scheme['roles']['management'],
-    tie_with_ping        => false,
-    ping_host_list       => "",
+    namespace      => 'vrouter',
+    nic            => $internal_int,
+    base_veth      => "${internal_int}-vrouter",
+    ns             => 'vrouter',
+    ns_veth        => 'vr-mgmt',
+    ip             => hiera('management_vrouter_vip'),
+    cidr_netmask   => $vip_management_cidr_netmask,
+    gateway        => 'none',
+    gateway_metric => '0',
+    bridge         => get_network_role_property('mgmt/vip', 'interface'),
+    tie_with_ping  => false,
+    ping_host_list => "",
   }
 
   cluster::virtual_ip { 'management_vrouter' :
