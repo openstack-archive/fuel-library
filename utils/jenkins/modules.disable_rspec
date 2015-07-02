@@ -28,6 +28,7 @@ nova
 ntp
 openssl
 openstack
+openstacklib
 operatingsystem
 osnailyfacter
 pacemaker_wrappers
