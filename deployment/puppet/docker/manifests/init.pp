@@ -14,7 +14,7 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   "/var/log/docker-logs/nginx", "/var/log/docker-logs/ntpstats",
   "/var/log/docker-logs/puppet", "/var/log/docker-logs/rabbitmq",
   "/var/log/docker-logs/supervisor",
-  "/var/lib/fuel", "/var/lib/fuel/keys",
+  "/var/lib/fuel", "/var/lib/fuel/keys", "/var/lib/fuel/ibp",
   "/var/lib/fuel/container_data",
   "/var/lib/fuel/container_data/${release}",
   ]
