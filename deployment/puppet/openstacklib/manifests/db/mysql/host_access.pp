@@ -18,6 +18,8 @@
 #    the privileges to grant to this user
 #
 define openstacklib::db::mysql::host_access (
+# Temp mysql_module variable untill mysql is up to date
+  $mysql_module = '0.3',
   $user,
   $password_hash,
   $database,
@@ -27,15 +29,30 @@ define openstacklib::db::mysql::host_access (
 
   $host = inline_template('<%= @title.split("_").last %>')
 
-  mysql_user { "${user}@${host}":
-    password_hash => $password_hash,
-    require       => Mysql_database[$database],
-  }
+  if ($mysql_module >= 2.2) {
+    mysql_user { "${user}@${host}":
+      password_hash => $password_hash,
+      require       => Mysql_database[$database],
+    }
 
-  mysql_grant { "${user}@${host}/${database}.*":
-    privileges => $privileges,
-    table      => "${database}.*",
-    require    => Mysql_user["${user}@${host}"],
-    user       => "${user}@${host}",
+    mysql_grant { "${user}@${host}/${database}.*":
+      privileges => $privileges,
+      table      => "${database}.*",
+      require    => Mysql_user["${user}@${host}"],
+      user       => "${user}@${host}",
+    }
+  }
+  else {
+    database_user { "${user}@${host}":
+      password_hash => $password_hash,
+      provider      => 'mysql',
+      require       => Database[$database],
+    }
+    database_grant { "${user}@${host}/${database}":
+      # TODO figure out which privileges to grant.
+      privileges => 'all',
+      provider   => 'mysql',
+      require    => Database_user["${user}@${host}"]
+    }
   }
 }
