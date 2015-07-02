@@ -179,7 +179,7 @@ ntp_start()
   fi
 
   # run the ntp binary
-        ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -g -c ${CONF_FILE}
+  ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -4 -g -c ${CONF_FILE}
   if [ $? -ne 0 ]; then
     ocf_log err "Error. ntp daemon returned error $?."
     return $OCF_ERR_GENERIC
