@@ -46,11 +46,15 @@ class openstack::swift::storage_node (
   $qpid_user                  = 'nova',
   $qpid_nodes                 = ['127.0.0.1'],
   $log_facility               = 'LOG_LOCAL2',
+  $max_header_size            = '8192',
   ) {
   if !defined(Class['swift']) {
     class { 'swift':
       swift_hash_suffix => $swift_hash_suffix,
       package_ensure    => $package_ensure,
+    }->
+    swift_config { 'swift-constraints/max_header_size':
+      value => $max_header_size
     }
   }
 
@@ -116,7 +120,7 @@ class openstack::swift::storage_node (
     if member($rings, 'container') and !defined(Swift::Ringsync['container']) {
       swift::ringsync { 'container': ring_server => $master_swift_proxy_ip }
     }
-    Swift::Ringsync <| |> ~> Class["swift::storage::all"]
+    Swift::Ringsync <| |> ~> Class['swift::storage::all']
   }
 
 }

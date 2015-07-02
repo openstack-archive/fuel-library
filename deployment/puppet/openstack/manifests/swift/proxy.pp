@@ -49,11 +49,15 @@ class openstack::swift::proxy (
   $admin_password                     = 'password',
   $auth_host                          = '10.0.0.1',
   $auth_protocol                      = 'http',
+  $max_header_size                    = '8192',
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
       swift_hash_suffix => $swift_hash_suffix,
       package_ensure    => $package_ensure,
+    }->
+    swift_config { 'swift-constraints/max_header_size':
+      value => $max_header_size
     }
   }
 
@@ -177,11 +181,11 @@ class openstack::swift::proxy (
       swift::ringsync { 'container': ring_server => $master_swift_proxy_ip }
     }
 
-    rsync::get { "/etc/swift/backups/":
+    rsync::get { '/etc/swift/backups/':
       source    => "rsync://${master_swift_proxy_ip}/swift_server/backups/",
       recursive => true,
     }
 
-    Swift::Ringsync <| |> ~> Service["swift-proxy"]
+    Swift::Ringsync <| |> ~> Service['swift-proxy']
   }
 }
