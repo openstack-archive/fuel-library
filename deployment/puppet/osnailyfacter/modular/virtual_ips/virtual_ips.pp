@@ -78,17 +78,19 @@ if $public_int {
   #   vip_publ_other_nets = join($network_scheme['endpoints']["$public_int"]['other_nets'], ' ')
   # }
 
-  $public_vip_data = {
-    namespace            => 'haproxy',
-    nic                  => $public_int,
-    base_veth            => "${public_int}-hapr",
-    ns_veth              => 'hapr-p',
-    ip                   => hiera('public_vip'),
-    cidr_netmask         => $vip_public_cidr_netmask,
-    gateway              => $network_scheme['endpoints']['br-ex']['gateway'],
-    gateway_metric       => '10',
-    bridge               => $network_scheme['roles']['ex'],
-    other_networks       => $vip_publ_other_nets,
+  $network_role_int =  get_network_role_property('public/vip', 'interface')
+
+  $public_vip_data  = {
+    namespace      => 'haproxy',
+    nic            => $public_int,
+    base_veth      => "${public_int}-hapr",
+    ns_veth        => 'hapr-p',
+    ip             => hiera('public_vip'),
+    cidr_netmask   => $vip_public_cidr_netmask,
+    gateway        => $network_scheme['endpoints'][$network_role_int]['gateway'],
+    gateway_metric => '10',
+    bridge         => $network_role_int,
+    other_networks => $vip_publ_other_nets,
   }
 
   cluster::virtual_ip { 'public' :
@@ -105,9 +107,9 @@ if $public_int {
       ns                      => 'vrouter',
       ip                      => hiera('public_vrouter_vip'),
       cidr_netmask            => $vip_public_cidr_netmask,
-      gateway                 => $network_scheme['endpoints']['br-ex']['gateway'],
+      gateway                 => $network_scheme['endpoints'][$network_role_int]['gateway'],
       gateway_metric          => '0',
-      bridge                  => $network_scheme['roles']['ex'],
+      bridge                  => $network_role_int,
       ns_iptables_start_rules => "iptables -t nat -A POSTROUTING -o vr-ex -j MASQUERADE",
       ns_iptables_stop_rules  => "iptables -t nat -D POSTROUTING -o vr-ex -j MASQUERADE",
       collocation             => 'management_vrouter',
