@@ -1,0 +1,6 @@
+# List of modules with disabled 'rake lint' check.
+# Such modules will be checked with 'puppet-lint' command.
+apache
+ntp
+postgresql
+staging
