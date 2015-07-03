@@ -153,7 +153,7 @@ describe 'glance::api' do
 
       it 'is_expected.to configure itself for keystone if that is the auth_type' do
         if params[:auth_type] == 'keystone'
-          is_expected.to contain('paste_deploy/flavor').with_value('keystone+cachemanagement')
+          is_expected.to contain('paste_deploy/flavor').with_value('keystone')
 
           ['admin_tenant_name', 'admin_user', 'admin_password'].each do |config|
             is_expected.to contain_glance_api_config("keystone_authtoken/#{config}").with_value(param_hash[config.intern])
