@@ -1,0 +1,2 @@
+class mysql::bindings {
+}
