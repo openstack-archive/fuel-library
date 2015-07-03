@@ -63,7 +63,7 @@ class openstack::glance (
   $use_syslog                     = false,
   $show_image_direct_url          = true,
   $swift_store_large_object_size  = '5120',
-  $pipeline                       = 'keystone+cachemanagement',
+  $pipeline                       = 'keystone',
   # Facility is common for all glance services
   $syslog_log_facility            = 'LOG_LOCAL2',
   $glance_image_cache_max_size    = '10737418240',
@@ -81,7 +81,6 @@ class openstack::glance (
   $rabbit_notification_exchange   = 'glance',
   $rabbit_notification_topic      = 'notifications',
   $amqp_durable_queues            = false,
-  $control_exchange               = 'glance',
   $known_stores                   = false,
   $rbd_store_user                 = 'images',
   $rbd_store_pool                 = 'images',
@@ -109,66 +108,59 @@ class openstack::glance (
     keystone_user         => $glance_user,
     keystone_password     => $glance_user_password,
     keystone_tenant       => $glance_tenant,
-    sql_connection        => $sql_connection,
+    database_connection   => $sql_connection,
     enabled               => $enabled,
     registry_host         => $registry_host,
     use_syslog            => $use_syslog,
     log_facility          => $syslog_log_facility,
-    sql_idle_timeout      => $idle_timeout,
+    database_idle_timeout => $idle_timeout,
     show_image_direct_url => $show_image_direct_url,
     pipeline              => $pipeline,
     known_stores          => $known_stores,
   }
 
   glance_api_config {
-    'DEFAULT/control_exchange':           value => $control_exchange;
-    'DEFAULT/sql_max_pool_size':          value => $max_pool_size;
-    'DEFAULT/sql_max_retries':            value => $max_retries;
-    'DEFAULT/sql_max_overflow':           value => $max_overflow;
-    'DEFAULT/registry_client_protocol':   value => "http";
-    'DEFAULT/delayed_delete':             value => "False";
-    'DEFAULT/scrub_time':                 value => "43200";
-    'DEFAULT/scrubber_datadir':           value => "/var/lib/glance/scrubber";
-    'DEFAULT/image_cache_dir':            value => "/var/lib/glance/image-cache/";
-    'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-glance';
-    'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-glance';
+    'database/sql_max_pool_size':          value => $max_pool_size;
+    'database/sql_max_retries':            value => $max_retries;
+    'database/sql_max_overflow':           value => $max_overflow;
+    'DEFAULT/delayed_delete':              value => "False";
+    'DEFAULT/scrub_time':                  value => "43200";
+    'DEFAULT/scrubber_datadir':            value => "/var/lib/glance/scrubber";
+    'keystone_authtoken/signing_dir':      value => '/tmp/keystone-signing-glance';
+    'keystone_authtoken/token_cache_time': value => '-1';
   }
+
   glance_cache_config {
-    'DEFAULT/sql_max_pool_size':                      value => $max_pool_size;
-    'DEFAULT/sql_max_retries':                        value => $max_retries;
-    'DEFAULT/sql_max_overflow':                       value => $max_overflow;
     'DEFAULT/use_syslog':                             value => $use_syslog;
     'DEFAULT/image_cache_dir':                        value => "/var/lib/glance/image-cache/";
     'DEFAULT/log_file':                               value => "/var/log/glance/image-cache.log";
     'DEFAULT/image_cache_stall_time':                 value => "86400";
-    'DEFAULT/image_cache_invalid_entry_grace_period': value => "3600";
     'DEFAULT/image_cache_max_size':                   value => $glance_image_cache_max_size;
   }
 
   # Install and configure glance-registry
   class { 'glance::registry':
-    verbose             => $verbose,
-    debug               => $debug,
-    bind_host           => $bind_host,
-    auth_host           => $keystone_host,
-    auth_port           => '35357',
-    auth_type           => 'keystone',
-    keystone_user       => $glance_user,
-    keystone_password   => $glance_user_password,
-    keystone_tenant     => $glance_tenant,
-    sql_connection      => $sql_connection,
-    enabled             => $enabled,
-    use_syslog          => $use_syslog,
-    log_facility        => $syslog_log_facility,
-    sql_idle_timeout    => $idle_timeout,
+    verbose               => $verbose,
+    debug                 => $debug,
+    bind_host             => $bind_host,
+    auth_host             => $keystone_host,
+    auth_port             => '35357',
+    auth_type             => 'keystone',
+    keystone_user         => $glance_user,
+    keystone_password     => $glance_user_password,
+    keystone_tenant       => $glance_tenant,
+    database_connection   => $sql_connection,
+    enabled               => $enabled,
+    use_syslog            => $use_syslog,
+    log_facility          => $syslog_log_facility,
+    database_idle_timeout => $idle_timeout,
   }
 
   glance_registry_config {
-    'DEFAULT/sql_max_pool_size':          value => $max_pool_size;
-    'DEFAULT/sql_max_retries':            value => $max_retries;
-    'DEFAULT/sql_max_overflow':           value => $max_overflow;
-    'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-glance';
-    'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-glance';
+    'database/sql_max_pool_size':     value => $max_pool_size;
+    'database/sql_max_retries':       value => $max_retries;
+    'database/sql_max_overflow':      value => $max_overflow;
+    'keystone_authtoken/signing_dir': value => '/tmp/keystone-signing-glance';
   }
 
   # puppet-glance assumes rabbit_hosts is an array of [node:port, node:port]
@@ -202,10 +194,6 @@ class openstack::glance (
     rabbit_notification_topic    => $rabbit_notification_topic,
     amqp_durable_queues          => $amqp_durable_queues,
     notification_driver          => $notification_driver,
-  }
-
-  glance_api_config {
-    'DEFAULT/notification_strategy': value => 'rabbit';
   }
 
   # syslog additional settings default/use_syslog_rfc_format = true
