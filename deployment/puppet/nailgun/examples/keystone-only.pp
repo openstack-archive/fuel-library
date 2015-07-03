@@ -17,7 +17,20 @@ case $production {
 
     class {'docker::container': }
 
+    if $::osfamily == 'Redhat' {
+      # Master node on CentOS 6.5 uses keystone-juno package
+      package {'keystone-juno':
+        ensure => 'present',
+      }
+      $keystone_package_ensure = 'absent'
+
+      Package['keystone-juno'] -> Class['keystone']
+    } else {
+      $keystone_package_ensure = 'present'
+    }
+
     class { 'keystone':
+      package_ensure   => $keystone_package_ensure,
       admin_token      => $::fuel_settings['keystone']['admin_token'],
       catalog_type     => 'sql',
       database_connection   => "postgresql://${::fuel_settings['postgres']['keystone_user']}:${::fuel_settings['postgres']['keystone_password']}@${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/${::fuel_settings['postgres']['keystone_dbname']}",
