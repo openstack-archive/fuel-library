@@ -122,6 +122,7 @@ class openstack::db::mysql (
       password      => $glance_db_password,
       dbname        => $glance_db_dbname,
       allowed_hosts => $allowed_hosts,
+      mysql_module  => $mysql_module,
     }
 
     # Create the Nova db
