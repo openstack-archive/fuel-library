@@ -35,18 +35,17 @@ describe manifest do
     end
     it 'should declare glance:db::mysql class with user,password,dbname' do
         should contain_class('glance::db::mysql').with(
-            'user' => glance_db_user,
-            'password' => glance_db_password,
-            'dbname' => glance_db_dbname,
+            'user'          => glance_db_user,
+            'password'      => glance_db_password,
+            'dbname'        => glance_db_dbname,
             'allowed_hosts' => allowed_hosts,
         )
     end
-    #TODO: uncomment in glance module adaptation patch
-#    allowed_hosts.each do |host|
-#      it "should define openstacklib::db::mysql::host_access for #{glance_db_dbname} DB for #{host}" do
-#        should contain_openstacklib__db__mysql__host_access("#{glance_db_dbname}_#{host}")
-#      end
-#    end
+    allowed_hosts.each do |host|
+      it "should define openstacklib::db::mysql::host_access for #{glance_db_dbname} DB for #{host}" do
+        should contain_openstacklib__db__mysql__host_access("#{glance_db_dbname}_#{host}")
+      end
+    end
     it 'should declare nova::db::mysql class with user,password,dbname' do
         should contain_class('nova::db::mysql').with(
             'user' => nova_db_user,

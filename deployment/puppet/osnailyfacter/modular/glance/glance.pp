@@ -46,7 +46,7 @@ $glance_vcenter_image_dir       = $glance_hash['vc_image_dir']
 $glance_vcenter_api_retry_count = '20'
 $glance_image_cache_max_size    = $glance_hash['image_cache_max_size']
 $glance_show_image_direct_url   = pick($glance_hash['show_image_direct_url'], true)
-$glance_pipeline                = pick($glance_hash['pipeline'], 'keystone+cachemanagement')
+$glance_pipeline                = pick($glance_hash['pipeline'], 'keystone')
 $glance_large_object_size       = pick($glance_hash['large_object_size'], '5120')
 
 if ($storage_hash['images_ceph']) {
@@ -104,10 +104,6 @@ class { 'openstack::glance':
   known_stores                   => $glance_known_stores,
   ceilometer                     => $ceilometer_hash[enabled],
  }
-
-glance_api_config {
-  'keystone_authtoken/token_cache_time': value => '-1';
-}
 
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {
