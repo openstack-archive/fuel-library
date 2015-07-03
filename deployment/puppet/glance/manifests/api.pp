@@ -274,8 +274,13 @@ class glance::api(
 
   if $database_connection {
     if($database_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-      require 'mysql::bindings'
-      require 'mysql::bindings::python'
+      # TODO (degorenko): This workaround should be removed after mysql module upgrade
+      if ($mysql_module >= 2.2) {
+        require 'mysql::bindings'
+        require 'mysql::bindings::python'
+      } else {
+        require 'mysql::python'
+      }
     } elsif($database_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
     } elsif($database_connection =~ /sqlite:\/\//) {

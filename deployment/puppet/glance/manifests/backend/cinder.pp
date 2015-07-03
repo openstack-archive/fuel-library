@@ -68,32 +68,32 @@ class glance::backend::cinder(
   }
 
   glance_api_config {
-    'DEFAULT/cinder_api_insecure':         value => $cinder_api_insecure;
-    'DEFAULT/cinder_catalog_info':         value => $cinder_catalog_info;
-    'DEFAULT/cinder_http_retries':         value => $cinder_http_retries;
-    'glance_store/default_store':          value => 'cinder';
+    'glance_store/cinder_api_insecure': value => $cinder_api_insecure;
+    'glance_store/cinder_catalog_info': value => $cinder_catalog_info;
+    'glance_store/cinder_http_retries': value => $cinder_http_retries;
+    'glance_store/default_store':       value => 'cinder';
   }
 
   glance_cache_config {
-    'DEFAULT/cinder_api_insecure':         value => $cinder_api_insecure;
-    'DEFAULT/cinder_catalog_info':         value => $cinder_catalog_info;
-    'DEFAULT/cinder_http_retries':         value => $cinder_http_retries;
+    'glance_store/cinder_api_insecure': value => $cinder_api_insecure;
+    'glance_store/cinder_catalog_info': value => $cinder_catalog_info;
+    'glance_store/cinder_http_retries': value => $cinder_http_retries;
   }
 
   if $cinder_endpoint_template {
-    glance_api_config { 'DEFAULT/cinder_endpoint_template':   value => $cinder_endpoint_template; }
-    glance_cache_config { 'DEFAULT/cinder_endpoint_template': value => $cinder_endpoint_template; }
+    glance_api_config { 'glance_store/cinder_endpoint_template':   value => $cinder_endpoint_template; }
+    glance_cache_config { 'glance_store/cinder_endpoint_template': value => $cinder_endpoint_template; }
   } else {
-    glance_api_config { 'DEFAULT/cinder_endpoint_template':   ensure => absent; }
-    glance_cache_config { 'DEFAULT/cinder_endpoint_template': ensure => absent; }
+    glance_api_config { 'glance_store/cinder_endpoint_template':   ensure => absent; }
+    glance_cache_config { 'glance_store/cinder_endpoint_template': ensure => absent; }
   }
 
   if $cinder_ca_certificates_file {
-    glance_api_config { 'DEFAULT/cinder_ca_certificates_file':   value => $cinder_ca_certificates_file; }
-    glance_cache_config { 'DEFAULT/cinder_ca_certificates_file': value => $cinder_ca_certificates_file; }
+    glance_api_config { 'glance_store/cinder_ca_certificates_file':   value => $cinder_ca_certificates_file; }
+    glance_cache_config { 'glance_store/cinder_ca_certificates_file': value => $cinder_ca_certificates_file; }
   } else {
-    glance_api_config { 'DEFAULT/cinder_ca_certificates_file':   ensure => absent; }
-    glance_cache_config { 'DEFAULT/cinder_ca_certificates_file': ensure => absent; }
+    glance_api_config { 'glance_store/cinder_ca_certificates_file':   ensure => absent; }
+    glance_cache_config { 'glance_store/cinder_ca_certificates_file': ensure => absent; }
   }
 
 }

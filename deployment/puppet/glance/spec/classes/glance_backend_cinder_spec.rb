@@ -32,18 +32,18 @@ describe 'glance::backend::cinder' do
 
       it 'configures glance-api.conf' do
         is_expected.to contain_glance_api_config('glance_store/default_store').with_value('cinder')
-        is_expected.to contain_glance_api_config('DEFAULT/cinder_api_insecure').with_value(false)
-        is_expected.to contain_glance_api_config('DEFAULT/cinder_catalog_info').with_value('volume:cinder:publicURL')
-        is_expected.to contain_glance_api_config('DEFAULT/cinder_http_retries').with_value('3')
-        is_expected.to contain_glance_api_config('DEFAULT/cinder_ca_certificates_file').with(:ensure => 'absent')
-        is_expected.to contain_glance_api_config('DEFAULT/cinder_endpoint_template').with(:ensure => 'absent')
+        is_expected.to contain_glance_api_config('glance_store/cinder_api_insecure').with_value(false)
+        is_expected.to contain_glance_api_config('glance_store/cinder_catalog_info').with_value('volume:cinder:publicURL')
+        is_expected.to contain_glance_api_config('glance_store/cinder_http_retries').with_value('3')
+        is_expected.to contain_glance_api_config('glance_store/cinder_ca_certificates_file').with(:ensure => 'absent')
+        is_expected.to contain_glance_api_config('glance_store/cinder_endpoint_template').with(:ensure => 'absent')
       end
       it 'configures glance-cache.conf' do
-        is_expected.to contain_glance_cache_config('DEFAULT/cinder_api_insecure').with_value(false)
-        is_expected.to contain_glance_cache_config('DEFAULT/cinder_catalog_info').with_value('volume:cinder:publicURL')
-        is_expected.to contain_glance_cache_config('DEFAULT/cinder_http_retries').with_value('3')
-        is_expected.to contain_glance_cache_config('DEFAULT/cinder_ca_certificates_file').with(:ensure => 'absent')
-        is_expected.to contain_glance_cache_config('DEFAULT/cinder_endpoint_template').with(:ensure => 'absent')
+        is_expected.to contain_glance_cache_config('glance_store/cinder_api_insecure').with_value(false)
+        is_expected.to contain_glance_cache_config('glance_store/cinder_catalog_info').with_value('volume:cinder:publicURL')
+        is_expected.to contain_glance_cache_config('glance_store/cinder_http_retries').with_value('3')
+        is_expected.to contain_glance_cache_config('glance_store/cinder_ca_certificates_file').with(:ensure => 'absent')
+        is_expected.to contain_glance_cache_config('glance_store/cinder_endpoint_template').with(:ensure => 'absent')
       end
     end
 
@@ -59,18 +59,18 @@ describe 'glance::backend::cinder' do
       end
       it 'configures glance-api.conf' do
         is_expected.to contain_glance_api_config('glance_store/default_store').with_value('cinder')
-        is_expected.to contain_glance_api_config('DEFAULT/cinder_api_insecure').with_value(true)
-        is_expected.to contain_glance_api_config('DEFAULT/cinder_ca_certificates_file').with_value('/etc/ssh/ca.crt')
-        is_expected.to contain_glance_api_config('DEFAULT/cinder_catalog_info').with_value('volume:cinder:internalURL')
-        is_expected.to contain_glance_api_config('DEFAULT/cinder_endpoint_template').with_value('http://srv-foo:8776/v1/%(project_id)s')
-        is_expected.to contain_glance_api_config('DEFAULT/cinder_http_retries').with_value('10')
+        is_expected.to contain_glance_api_config('glance_store/cinder_api_insecure').with_value(true)
+        is_expected.to contain_glance_api_config('glance_store/cinder_ca_certificates_file').with_value('/etc/ssh/ca.crt')
+        is_expected.to contain_glance_api_config('glance_store/cinder_catalog_info').with_value('volume:cinder:internalURL')
+        is_expected.to contain_glance_api_config('glance_store/cinder_endpoint_template').with_value('http://srv-foo:8776/v1/%(project_id)s')
+        is_expected.to contain_glance_api_config('glance_store/cinder_http_retries').with_value('10')
       end
       it 'configures glance-cache.conf' do
-        is_expected.to contain_glance_cache_config('DEFAULT/cinder_api_insecure').with_value(true)
-        is_expected.to contain_glance_cache_config('DEFAULT/cinder_ca_certificates_file').with_value('/etc/ssh/ca.crt')
-        is_expected.to contain_glance_cache_config('DEFAULT/cinder_catalog_info').with_value('volume:cinder:internalURL')
-        is_expected.to contain_glance_cache_config('DEFAULT/cinder_endpoint_template').with_value('http://srv-foo:8776/v1/%(project_id)s')
-        is_expected.to contain_glance_cache_config('DEFAULT/cinder_http_retries').with_value('10')
+        is_expected.to contain_glance_cache_config('glance_store/cinder_api_insecure').with_value(true)
+        is_expected.to contain_glance_cache_config('glance_store/cinder_ca_certificates_file').with_value('/etc/ssh/ca.crt')
+        is_expected.to contain_glance_cache_config('glance_store/cinder_catalog_info').with_value('volume:cinder:internalURL')
+        is_expected.to contain_glance_cache_config('glance_store/cinder_endpoint_template').with_value('http://srv-foo:8776/v1/%(project_id)s')
+        is_expected.to contain_glance_cache_config('glance_store/cinder_http_retries').with_value('10')
       end
     end
 
