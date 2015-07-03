@@ -1,4 +1,34 @@
 #!/bin/bash
+
+usage="$(basename "$0") [-h] [-m MODULE] [-a] -- runs syntax check for puppet modules, by default runs tests only for changed modules.
+
+where:
+    -h                    show this help text
+    -a|--all              run syntax/linting tests for all modules
+    -m|--module MODULE    run suntax/linting tests for specified module
+"
+while [[ $# > 0 ]] ; do
+  key="$1"
+
+  case $key in
+  -a|--all)
+    ALL='1'
+    ;;
+  -m|--modules)
+    MODULES="$MODULES $2"
+    shift # past argument
+    ;;
+  -h|--help)
+    echo "$usage" >&2
+    exit 0
+    ;;
+    *)
+          # unknown option
+    ;;
+  esac
+  shift # past argument or value
+done
+
 # Some basic checks
 if ! [ -d "$WORKSPACE" ] ; then
   echo "ERROR: WORKSPACE not found"
@@ -19,15 +49,13 @@ fi
 # Check for bundle and exit if failed
 bundle --version || exit 1
 
-export GEM_HOME=$WORKSPACE/.bundled_gems
-
 # Function that runs lint check for puppet manifests
 function check_lint {
   MODULE=`basename $(pwd)`
 
   if grep -qs puppet-lint Gemfile ; then
-    bundle install
-    bundle exec rake lint --trace
+    GEM_HOME=$WORKSPACE/.bundled_gems bundle install
+    GEM_HOME=$WORKSPACE/.bundled_gems bundle exec rake lint --trace
     RETURNVAL=$?
     if [ "${RETURNVAL}" -ne "0" ]; then
         echo "FAILED rake lint, return value was ${RETURNVAL}"
@@ -98,8 +126,17 @@ function check_syntax {
 
 # Iterate over the changed modules and run syntax checks for them
 failed_modules=""
-modules=$(git diff --name-only HEAD~ | grep -o 'deployment/puppet/[^/]*/' | sort -u)
-git diff --name-only HEAD~ &>/dev/null || exit 1
+
+if [ "$ALL" == '1' ] ; then
+  modules=`ls -d $WORKSPACE/deployment/puppet/*`
+elif ! [ -z "$MODULES" ] ; then
+  modules=$MODULES
+else
+  git diff --name-only HEAD~ &>/dev/null || exit 1
+  modules=$(git diff --name-only HEAD~ | grep -o 'deployment/puppet/[^/]*/' | sort -u)
+fi
+
+echo "Checking modules: $modules"
 
 for mod in $modules; do
   if [ -d $mod ] ; then
