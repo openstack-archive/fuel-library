@@ -5,32 +5,26 @@ $management_network_range = hiera('management_network_range')
 $controller_nodes         = hiera('controller_nodes')
 $use_syslog               = hiera('use_syslog', true)
 $primary_controller       = hiera('primary_controller')
-$management_vip           = hiera('management_vip')
-$database_vip             = hiera('database_vip', undef)
 $mysql_hash               = hiera_hash('mysql', {})
-
-$haproxy_stats_port   = '10000'
-$haproxy_stats_url    = "http://${management_vip}:${haproxy_stats_port}/;csv"
 
 $mysql_database_password  = $mysql_hash['root_password']
 $mysql_database_enabled   = pick($mysql_hash['enabled'], true)
-$mysql_db_host            = pick($database_vip, $management_vip, 'localhost')
 
 $mysql_bind_address       = '0.0.0.0'
 
-$enabled                  = true
 $galera_cluster_name      = 'openstack'
-$galera_node_address      = $internal_address
-$galera_nodes             = $controller_nodes
 $mysql_skip_name_resolve  = true
-$custom_setup_class       = 'galera'
+$custom_setup_class       = pick($mysql_hash['custom_setup_class'], 'galera')
 
-$status_user              = 'clustercheck'
+$status_user              = hiera('galera_cluster_name', 'openstack')
 $status_password          = $mysql_hash['wsrep_password']
 $backend_port             = '3307'
 $backend_timeout          = '10'
 
 #############################################################################
+validate_string($status_password)
+validate_string($mysql_database_password)
+validate_string($status_password)
 
 if $mysql_database_enabled {
 
@@ -46,6 +40,10 @@ if $mysql_database_enabled {
     $config_hash_real = { }
   }
 
+  package { 'socat':
+    ensure => 'present',
+  }
+
   class { 'mysql::server':
     bind_address            => '0.0.0.0',
     etc_root_password       => true,
@@ -53,19 +51,13 @@ if $mysql_database_enabled {
     old_root_password       => '',
     galera_cluster_name     => $galera_cluster_name,
     primary_controller      => $primary_controller,
-    galera_node_address     => $galera_node_address,
-    galera_nodes            => $galera_nodes,
-    enabled                 => $enabled,
+    galera_node_address     => $internal_address,
+    galera_nodes            => $controller_nodes,
+    enabled                 => $mysql_database_enabled,
     custom_setup_class      => $custom_setup_class,
     mysql_skip_name_resolve => $mysql_skip_name_resolve,
     use_syslog              => $use_syslog,
     config_hash             => $config_hash_real,
-  }
-
-  class { 'osnailyfacter::mysql_access':
-    db_user     => 'root',
-    db_password => $mysql_database_password,
-    db_host     => $mysql_db_host,
   }
 
   class { 'osnailyfacter::mysql_root':
@@ -79,20 +71,15 @@ if $mysql_database_enabled {
   class { 'openstack::galera::status':
     status_user     => $status_user,
     status_password => $status_password,
-    status_allow    => $galera_node_address,
-    backend_host    => $galera_node_address,
+    status_allow    => $internal_address,
+    backend_host    => $internal_address,
     backend_port    => $backend_port,
     backend_timeout => $backend_timeout,
     only_from       => "127.0.0.1 240.0.0.2 ${management_network_range}",
   }
 
-  haproxy_backend_status { 'mysql' :
-    name => 'mysqld',
-    url  => $haproxy_stats_url,
-  }
-
-  package { 'socat':
-    ensure => 'present'
+  class { 'osnailyfacter::mysql_access':
+    db_password => $mysql_database_password,
   }
 
   Package['socat'] ->
@@ -100,7 +87,6 @@ if $mysql_database_enabled {
       Class['osnailyfacter::mysql_root'] ->
         Exec['initial_access_config'] ->
           Class['openstack::galera::status'] ->
-            Haproxy_backend_status['mysql'] ->
-              Class['osnailyfacter::mysql_access']
+            Class['osnailyfacter::mysql_access']
 
 }
