@@ -2,6 +2,7 @@
 class openstack::swift::storage_node (
   $swift_zone,
   $swift_hash_suffix          = 'swift_secret',
+  $swift_max_header_size      = '32768',
   $swift_local_net_ip         = $::ipaddress_eth0,
   $storage_type               = 'loopback',
   $storage_base_dir           = '/srv/loopback-device',
@@ -51,6 +52,7 @@ class openstack::swift::storage_node (
     class { 'swift':
       swift_hash_suffix => $swift_hash_suffix,
       package_ensure    => $package_ensure,
+      max_header_size   => $swift_max_header_size,
     }
   }
 
