@@ -33,14 +33,14 @@ class openstack::ha::keystone (
 
   # defaults for any haproxy_service within this class
   Openstack::Ha::Haproxy_service {
-    internal_virtual_ip => $internal_virtual_ip,
-    ipaddresses         => $ipaddresses,
-    public_virtual_ip   => $public_virtual_ip,
-    server_names        => $server_names,
+    internal_virtual_ip    => $internal_virtual_ip,
+    ipaddresses            => $ipaddresses,
+    public_virtual_ip      => $public_virtual_ip,
+    server_names           => $server_names,
     haproxy_config_options => {
       option => ['httpchk', 'httplog','httpclose'],
     },
-    balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
+    balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 150 fall 3',
   }
 
   openstack::ha::haproxy_service { 'keystone-1':
@@ -51,8 +51,8 @@ class openstack::ha::keystone (
   }
 
   openstack::ha::haproxy_service { 'keystone-2':
-    order       => '030',
-    listen_port => 35357,
-    public      => false,
+    order                  => '030',
+    listen_port            => 35357,
+    public                 => false,
   }
 }
