@@ -78,11 +78,17 @@ describe manifest do
              'tunnel_types' => tunnel_types ? tunnel_types.join(",") : "",
            )
         end
+        describe 'get_network_role_property' do
+          it { should run.with_params('neutron/mesh') }
+        end
       elsif neutron_config && neutron_config.has_key?('L2') && !neutron_config['L2'].has_key?('tunnel_id_ranges')
           it 'should declare openstack::network with tunnel_types set to []' do
             should contain_class('openstack::network').with(
               'tunnel_types' => [],
             )
+          end
+          describe 'get_network_role_property' do
+            it { should run.with_params('neutron/private') }
           end
       end
     else
