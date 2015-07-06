@@ -2,6 +2,7 @@
 class openstack::swift::proxy (
   $swift_user_password                = 'swift_pass',
   $swift_hash_suffix                  = 'swift_secret',
+  $swift_max_header_size              = '32768',
   $swift_local_net_ip                 = $::ipaddress_eth0,
   $ring_part_power                    = 18,
   $ring_replicas                      = 3,
@@ -54,6 +55,7 @@ class openstack::swift::proxy (
     class { 'swift':
       swift_hash_suffix => $swift_hash_suffix,
       package_ensure    => $package_ensure,
+      max_header_size   => $swift_max_header_size,
     }
   }
 
