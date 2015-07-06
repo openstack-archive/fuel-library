@@ -87,8 +87,9 @@ if $network_provider == 'neutron' {
   # in the interum.
   $neutron_settings = $neutron_config
   $nets = $neutron_settings['predefined_networks']
+  $create_predefined_networks = pick($neutron_settings['create_predefined_networks'], true)
 
-  if $primary_controller {
+  if $primary_controller and $create_predefined_networks {
 
     Service<| title == 'neutron-server' |> ->
       Openstack::Network::Create_network <||>
