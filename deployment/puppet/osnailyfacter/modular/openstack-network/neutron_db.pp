@@ -27,6 +27,8 @@ validate_string($mysql_root_user)
 
 if $use_neutron and $db_create {
 
+  include mysql
+
   class { 'neutron::db::mysql':
     user          => $db_user,
     password      => $db_password,
@@ -40,7 +42,9 @@ if $use_neutron and $db_create {
     db_password => $db_root_password,
   }
 
-  Class['osnailyfacter::mysql_access'] -> Class['neutron::db::mysql']
+  Class['mysql'] ->
+    Class['osnailyfacter::mysql_access'] ->
+      Class['neutron::db::mysql']
 
 }
 

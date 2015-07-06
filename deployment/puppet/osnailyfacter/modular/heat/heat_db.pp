@@ -24,6 +24,8 @@ validate_string($mysql_root_user)
 
 if $db_create {
 
+  include mysql
+
   class { 'heat::db::mysql':
     user          => $db_user,
     password      => $db_password,
@@ -37,7 +39,9 @@ if $db_create {
     db_password => $db_root_password,
   }
 
-  Class['osnailyfacter::mysql_access'] -> Class['heat::db::mysql']
+  Class['mysql'] ->
+    Class['osnailyfacter::mysql_access'] ->
+      Class['heat::db::mysql']
 
 }
 
