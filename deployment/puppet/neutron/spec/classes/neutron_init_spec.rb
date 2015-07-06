@@ -116,6 +116,7 @@ describe 'neutron' do
       should contain_neutron_config('DEFAULT/dhcp_lease_duration').with_value(86400)
       should contain_neutron_config('DEFAULT/dhcp_agents_per_network').with_value(1)
       should contain_neutron_config('DEFAULT/network_device_mtu').with_ensure('absent')
+      should contain_neutron_config('DEFAULT/advertise_mtu').with_value(true)
       should contain_neutron_config('DEFAULT/dhcp_agent_notification').with_value(true)
       should contain_neutron_config('DEFAULT/allow_bulk').with_value(true)
       should contain_neutron_config('DEFAULT/allow_pagination').with_value(false)
@@ -386,15 +387,15 @@ describe 'neutron' do
 
   end
 
-  shared_examples_for 'with network_device_mtu defined' do
+  shared_examples_for 'with advertise_mtu defined' do
     before do
       params.merge!(
-        :network_device_mtu => 9000
+        :advertise_mtu => true
       )
     end
 
     it do
-      should contina_neutron_config('DEFAULT/network_device_mtu').with_value(params[:newtork_device_mtu])
+      should contain_neutron_config('DEFAULT/advertise_mtu').with_value(params[:advertise_mtu])
     end
   end
 

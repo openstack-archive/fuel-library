@@ -61,9 +61,9 @@
 #   This enables redundant DHCP agents for configured networks.
 #   Defaults to 1
 #
-# [*network_device_mtu*]
-#   (optional) The MTU size for the interfaces managed by neutron
-#   Defaults to undef
+# [*advertise_mtu*]
+#   (optional) VMs will receive DHCP and RA MTU option when the network's preferred MTU is known
+#   Defaults to true
 #
 # [*dhcp_agent_notification*]
 #   (optional) Allow sending resource operation notification to DHCP agent.
@@ -203,7 +203,7 @@ class neutron (
   $mac_generation_retries      = 16,
   $dhcp_lease_duration         = 86400,
   $dhcp_agents_per_network     = 1,
-  $network_device_mtu          = undef,
+  $advertise_mtu               = true,
   $dhcp_agent_notification     = true,
   $allow_bulk                  = true,
   $allow_pagination            = false,
@@ -338,16 +338,11 @@ class neutron (
     }
   }
 
-  if $network_device_mtu {
-    neutron_config {
-      'DEFAULT/network_device_mtu':           value => $network_device_mtu;
-    }
-  } else {
-    neutron_config {
-      'DEFAULT/network_device_mtu':           ensure => absent;
-    }
+  # MTU selection and advertisement
+  neutron_config {
+    'DEFAULT/advertise_mtu':      value  => $advertise_mtu;
+    'DEFAULT/network_device_mtu': ensure => absent;
   }
-
 
   if $service_plugins {
     if is_array($service_plugins) {
