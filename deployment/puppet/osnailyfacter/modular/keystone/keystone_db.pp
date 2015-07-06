@@ -22,6 +22,8 @@ $allowed_hosts = [ $::hostname, 'localhost', '127.0.0.1', '%' ]
 
 if $db_create {
 
+  include mysql
+
   class { 'keystone::db::mysql':
     user          => $db_user,
     password      => $db_password,
@@ -35,7 +37,9 @@ if $db_create {
     db_password => $db_root_password,
   }
 
-  Class['osnailyfacter::mysql_access'] -> Class['keystone::db::mysql']
+  Class['mysql'] ->
+    Class['osnailyfacter::mysql_access'] ->
+      Class['keystone::db::mysql']
 
 }
 
