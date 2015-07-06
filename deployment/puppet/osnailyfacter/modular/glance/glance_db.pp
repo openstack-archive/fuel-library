@@ -2,8 +2,8 @@ notice('MODULAR: glance_db.pp')
 
 $glance_hash    = hiera_hash('glance', {})
 $mysql_hash     = hiera_hash('mysql', {})
-$management_vip = hiera('management_vip', undef)
-$database_vip   = hiera('database_vip', undef)
+$management_vip = hiera('management_vip')
+$database_vip   = hiera('database_vip')
 
 $mysql_root_user     = pick($mysql_hash['root_user'], 'root')
 $mysql_db_create     = pick($mysql_hash['db_create'], true)
@@ -21,8 +21,11 @@ $db_root_password = pick($glance_hash['root_password'], $mysql_root_password)
 $allowed_hosts = [ hiera('node_name'), 'localhost', '127.0.0.1', '%' ]
 
 validate_string($mysql_root_user)
+validate_string($database_vip)
+
 
 if $db_create {
+  include mysql
 
   class { 'glance::db::mysql':
     user          => $db_user,
@@ -37,8 +40,9 @@ if $db_create {
     db_password => $db_root_password,
   }
 
-  Class['osnailyfacter::mysql_access'] -> Class['glance::db::mysql']
-
+  Class['mysql'] ->
+    Class['osnailyfacter::mysql_access'] ->
+      Class['glance::db::mysql']
 }
 
 class mysql::config {}
