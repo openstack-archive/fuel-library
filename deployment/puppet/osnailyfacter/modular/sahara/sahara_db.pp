@@ -25,6 +25,8 @@ validate_string($mysql_root_user)
 
 if $sahara_enabled and $db_create {
 
+  include mysql
+
   class { 'sahara::db::mysql':
     user          => $db_user,
     password      => $db_password,
@@ -38,7 +40,9 @@ if $sahara_enabled and $db_create {
     db_password => $db_root_password,
   }
 
-  Class['osnailyfacter::mysql_access'] -> Class['sahara::db::mysql']
+  Class['mysql'] ->
+    Class['osnailyfacter::mysql_access'] ->
+      Class['sahara::db::mysql']
 
 }
 

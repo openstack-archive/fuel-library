@@ -2,8 +2,7 @@ notice('MODULAR: glance_db.pp')
 
 $glance_hash    = hiera_hash('glance', {})
 $mysql_hash     = hiera_hash('mysql', {})
-$management_vip = hiera('management_vip', undef)
-$database_vip   = hiera('database_vip', undef)
+$management_vip = hiera('management_vip')
 
 $mysql_root_user     = pick($mysql_hash['root_user'], 'root')
 $mysql_db_create     = pick($mysql_hash['db_create'], true)
@@ -17,12 +16,29 @@ $db_host          = pick($glance_hash['db_host'], $database_vip, $management_vip
 $db_create        = pick($glance_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($glance_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($glance_hash['root_password'], $mysql_root_password)
+$db_ha_balancer   = pick($glance_hash['db_ha_balancer'], 'haproxy')
+$database_ha_vip  = pick($glance_hash['db_ha_vip'], $management_vip)
 
 $allowed_hosts = [ $::hostname, 'localhost', '127.0.0.1', '%' ]
 
 validate_string($mysql_root_user)
+validate_string($database_vip)
+
+if $db_ha_balancer == 'haproxy' {
+  $haproxy_stats_port   = pick($glance_hash['haproxy_stats_port'],'10000')
+  $haproxy_stats_url    = pick($glance_hash['haproxy_stats_url'], "http://${$database_ha_vip}:${haproxy_stats_port}/;csv")
+
+  haproxy_backend_status { 'mysql':
+    name => 'mysqld',
+    url  => $haproxy_stats_url,
+  }
+
+  Haproxy_backend_status['mysql'] ->
+    Class['glance::db::mysql']
+}
 
 if $db_create {
+  include mysql
 
   class { 'glance::db::mysql':
     user          => $db_user,
@@ -37,8 +53,9 @@ if $db_create {
     db_password => $db_root_password,
   }
 
-  Class['osnailyfacter::mysql_access'] -> Class['glance::db::mysql']
-
+  Class['mysql'] ->
+    Class['osnailyfacter::mysql_access'] ->
+      Class['glance::db::mysql']
 }
 
 class mysql::config {}
