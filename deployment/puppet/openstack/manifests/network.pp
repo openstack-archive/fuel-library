@@ -153,7 +153,6 @@ class openstack::network (
         rabbit_port             => $amqp_port,
         rabbit_password         => $amqp_password,
         kombu_reconnect_delay   => '5.0',
-        network_device_mtu      => $net_mtu,
       }
 
       if $nova_neutron {
