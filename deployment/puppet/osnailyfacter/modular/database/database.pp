@@ -6,11 +6,11 @@ $controller_nodes         = hiera('controller_nodes')
 $use_syslog               = hiera('use_syslog', true)
 $primary_controller       = hiera('primary_controller')
 $management_vip           = hiera('management_vip')
-$database_vip             = hiera('database_vip', undef)
+$database_vip             = hiera('database_vip', $management_vip)
 $mysql_hash               = hiera_hash('mysql', {})
 
-$haproxy_stats_port   = '10000'
-$haproxy_stats_url    = "http://${management_vip}:${haproxy_stats_port}/;csv"
+$haproxy_stats_port   = hiera('haproxy_stats_port','10000')
+$haproxy_stats_url    = hiera('haproxy_stats_url',"http://${database_vip}:${haproxy_stats_port}/;csv")
 
 $mysql_database_password  = $mysql_hash['root_password']
 $mysql_database_enabled   = pick($mysql_hash['enabled'], true)
@@ -31,6 +31,7 @@ $backend_port             = '3307'
 $backend_timeout          = '10'
 
 #############################################################################
+validate_string($database_vip)
 
 if $mysql_database_enabled {
 
