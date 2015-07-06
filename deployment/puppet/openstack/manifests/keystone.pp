@@ -257,11 +257,11 @@ class openstack::keystone (
     Service<| title == 'memcached' |> -> Service<| title == 'keystone'|>
     keystone_config {
       'cache/memcache_servers':             value => join($memcache_servers_real, ',');
-      'cache/memcache_dead_retry':          value => '30';
+      'cache/memcache_dead_retry':          value => '300';
       'cache/memcache_socket_timeout':      value => '1';
       'cache/memcache_pool_maxsize':        value => '1000';
       'cache/memcache_pool_unused_timeout': value => '60';
-      'memcache/dead_retry':                value => '30';
+      'memcache/dead_retry':                value => '300';
      }
   }
 
