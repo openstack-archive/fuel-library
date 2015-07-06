@@ -147,13 +147,7 @@ if $network_provider == 'neutron' {
   if $neutron_settings['L2']['tunnel_id_ranges'] {
     # tunneling_mode
     $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
-    $iface = get_network_role_property('neutron/mesh', 'phys_dev')
-    $net_mtu = get_transformation_property('mtu', $iface[0])
-    if $net_mtu {
-      $mtu_for_virt_network = $net_mtu - 42
-    } else {
-      $mtu_for_virt_network = 1458
-    }
+    $net_role_property = 'neutron/mesh'
     $enable_tunneling = true
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
     $alt_fallback = split($neutron_settings['L2']['tunnel_id_ranges'], ':')
@@ -164,13 +158,16 @@ if $network_provider == 'neutron' {
 
   } else {
     # vlan_mode
-    $iface = get_network_role_property('neutron/private', 'phys_dev')
-    $mtu_for_virt_network = get_transformation_property('mtu', $iface[0])
+    $net_role_property = 'neutron/private'
     $enable_tunneling = false
     $tunneling_ip = false
     $tunnel_id_ranges = []
   }
   notify{ $tunnel_id_ranges:}
+
+  # Get MTU setting for virtual/tenants network
+  $iface = get_network_role_property($net_role_property, 'phys_dev')
+  $mtu_for_virt_network = get_transformation_property('mtu', $iface[0])
 
   if $neutron_settings['L2']['mechanism_drivers'] {
       $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
