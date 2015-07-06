@@ -40,7 +40,6 @@ class openstack::network::neutron_agents (
   # dhcp-agent
   $resync_interval = 30,
   $use_namespaces = true,
-  $dnsmasq_config_file = '/etc/neutron/dnsmasq-neutron.conf',
   $net_mtu = undef,
   $isolated_metadata = false,
 
@@ -58,6 +57,11 @@ class openstack::network::neutron_agents (
 ) {
 
   if 'ml2-ovs' in $agents {
+    if $net_mtu {
+      $bridge_vm = get_network_role_property('neutron/private', 'interface')
+      $physnet_mtus = regsubst(grep($bridge_mappings, $bridge_vm), $bridge_vm, "${net_mtu}")
+    }
+
     class { 'neutron::plugins::ml2':
       type_drivers          => $type_drivers,
       tenant_network_types  => $tenant_network_types,
@@ -67,6 +71,8 @@ class openstack::network::neutron_agents (
       tunnel_id_ranges      => $tunnel_id_ranges,
       vxlan_group           => $vxlan_group,
       vni_ranges            => $vni_ranges,
+      physnet_mtus          => $physnet_mtus,
+      path_mtu              => $net_mtu,
     }
     class { 'neutron::agents::ml2::ovs':
       integration_bridge  => $integration_bridge,
@@ -139,19 +145,6 @@ class openstack::network::neutron_agents (
         primary           => $ha_agents ? { 'primary' => true, default => false},
       }
     }
-
-    if $net_mtu {
-      $mtu = $net_mtu
-    } else {
-      $mtu = 1500
-    }
-    file { '/etc/neutron/dnsmasq-neutron.conf':
-      owner   => 'root',
-      group   => 'root',
-      content => template('openstack/neutron/dnsmasq-neutron.conf.erb'),
-      require => File['/etc/neutron'],
-    } -> Neutron_dhcp_agent_config<||>
-    File['/etc/neutron/dnsmasq-neutron.conf'] ~> Service['neutron-dhcp-service']
   }
 
   if 'l3' in $agents {
