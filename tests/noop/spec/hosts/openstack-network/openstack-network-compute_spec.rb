@@ -70,18 +70,22 @@ describe manifest do
       neutron_config =  Noop.hiera_structure 'quantum_settings'
       if neutron_config && neutron_config.has_key?('L2') && neutron_config['L2'].has_key?('tunnel_id_ranges')
         tunnel_types = ['gre']
-        it 'should configure tunnel_types for neutron' do
+        let (:net_mtu) { 1500 }
+        it 'should configure tunnel_types for neutron and set net_mtu' do
            should contain_class('openstack::network').with(
              'tunnel_types' => tunnel_types,
+             'net_mtu'      => net_mtu,
            )
            should contain_class('neutron::agents::ml2::ovs').with(
              'tunnel_types' => tunnel_types ? tunnel_types.join(",") : "",
            )
         end
       elsif neutron_config && neutron_config.has_key?('L2') && !neutron_config['L2'].has_key?('tunnel_id_ranges')
-          it 'should declare openstack::network with tunnel_types set to []' do
+          let (:net_mtu) { 9000 }
+          it 'should declare openstack::network with tunnel_types set to [] and set net_mtu' do
             should contain_class('openstack::network').with(
               'tunnel_types' => [],
+              'net_mtu'      => net_mtu,
             )
           end
       end
