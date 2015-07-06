@@ -13,7 +13,7 @@ class openstack::ha::keystone (
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],
     },
-    balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
+    balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 150 fall 3',
 
   }
 
@@ -24,7 +24,7 @@ class openstack::ha::keystone (
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],
     },
-    balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
+    balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 150 fall 3',
 
   }
 }
