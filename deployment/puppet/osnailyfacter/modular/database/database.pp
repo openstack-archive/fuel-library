@@ -6,11 +6,11 @@ $controller_nodes         = hiera('controller_nodes')
 $use_syslog               = hiera('use_syslog', true)
 $primary_controller       = hiera('primary_controller')
 $management_vip           = hiera('management_vip')
-$database_vip             = hiera('database_vip', undef)
+$database_vip             = hiera('database_vip', $management_vip)
 $mysql_hash               = hiera_hash('mysql', {})
 
-$haproxy_stats_port   = '10000'
-$haproxy_stats_url    = "http://${management_vip}:${haproxy_stats_port}/;csv"
+$haproxy_stats_port   = hiera('haproxy_stats_port','10000')
+$haproxy_stats_url    = hiera('haproxy_stats_url',"http://${database_vip}:${haproxy_stats_port}/;csv")
 
 $mysql_database_password  = $mysql_hash['root_password']
 $mysql_database_enabled   = pick($mysql_hash['enabled'], true)
@@ -18,19 +18,21 @@ $mysql_db_host            = pick($database_vip, $management_vip, 'localhost')
 
 $mysql_bind_address       = '0.0.0.0'
 
-$enabled                  = true
 $galera_cluster_name      = 'openstack'
 $galera_node_address      = $internal_address
 $galera_nodes             = $controller_nodes
 $mysql_skip_name_resolve  = true
-$custom_setup_class       = 'galera'
+$custom_setup_class       = pick($mysql_hash['custom_setup_class'], 'galera')
 
-$status_user              = 'clustercheck'
+$status_user              = hiera('galera_cluster_name', 'openstack')
 $status_password          = $mysql_hash['wsrep_password']
 $backend_port             = '3307'
 $backend_timeout          = '10'
 
 #############################################################################
+validate_string($status_password)
+validate_string($mysql_database_password)
+validate_string($database_vip)
 
 if $mysql_database_enabled {
 
@@ -55,7 +57,7 @@ if $mysql_database_enabled {
     primary_controller      => $primary_controller,
     galera_node_address     => $galera_node_address,
     galera_nodes            => $galera_nodes,
-    enabled                 => $enabled,
+    enabled                 => $mysql_database_enabled,
     custom_setup_class      => $custom_setup_class,
     mysql_skip_name_resolve => $mysql_skip_name_resolve,
     use_syslog              => $use_syslog,
