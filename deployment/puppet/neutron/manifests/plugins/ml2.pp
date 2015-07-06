@@ -100,6 +100,16 @@
 #   and if admin state management is desired.
 #   Defaults to false.
 #
+# [*physnet_mtus*]
+#   (optional) For L2 mechanism drivers, per-physical network MTU setting.
+#   Defaults to 1500.
+#
+# [*path_mtu*]
+#   (optional) For L3 mechanism drivers, determines the maximum permissible
+#   size of an unfragmented packet travelling from and to addresses where
+#   encapsulated traffic is sent.
+#   Defaults to 1500.
+#
 
 class neutron::plugins::ml2 (
   $type_drivers              = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
@@ -114,6 +124,8 @@ class neutron::plugins::ml2 (
   $package_ensure            = 'present',
   $supported_pci_vendor_devs = ['15b3:1004', '8086:10ca'],
   $sriov_agent_required      = false,
+  $physnet_mtus              = undef,
+  $path_mtu                  = 1500,
 ) {
 
   include ::neutron::params
@@ -183,7 +195,18 @@ class neutron::plugins::ml2 (
     'ml2/type_drivers':                     value => join($type_drivers, ',');
     'ml2/tenant_network_types':             value => join($tenant_network_types, ',');
     'ml2/mechanism_drivers':                value => join($mechanism_drivers, ',');
+    'ml2/path_mtu':                         value => $path_mtu;
     'securitygroup/enable_security_group':  value => $enable_security_group;
+  }
+
+  if empty($physnet_mtus) {
+    neutron_plugin_ml2 {
+      'ml2/physical_network_mtus': ensure => absent;
+    }
+  } else {
+    neutron_plugin_ml2 {
+      'ml2/physical_network_mtus': value => $physnet_mtus;
+    }
   }
 
   Neutron_plugin_ml2<||> ~> Exec<| title == 'neutron-db-sync' |>
