@@ -15,8 +15,8 @@ $data                = [
   'class/%{calling_class}',
   'module/%{calling_module}',
   'nodes',
+  'astute',
   'globals',
-  'astute'
 ]
 $astute_data_file    = '/etc/astute.yaml'
 $hiera_main_config   = '/etc/hiera.yaml'
