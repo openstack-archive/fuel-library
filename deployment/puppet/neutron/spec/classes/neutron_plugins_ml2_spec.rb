@@ -37,6 +37,8 @@ describe 'neutron::plugins::ml2' do
       :tunnel_id_ranges      => ['20:100'],
       :vxlan_group           => '224.0.0.1',
       :vni_ranges            => ['10:100'],
+      :path_mtu              => 1500,
+      :physnet_mtus          => '',
       :package_ensure        => 'present' }
   end
 
@@ -65,6 +67,8 @@ describe 'neutron::plugins::ml2' do
       is_expected.to contain_neutron_plugin_ml2('ml2/type_drivers').with_value(p[:type_drivers].join(','))
       is_expected.to contain_neutron_plugin_ml2('ml2/tenant_network_types').with_value(p[:tenant_network_types].join(','))
       is_expected.to contain_neutron_plugin_ml2('ml2/mechanism_drivers').with_value(p[:mechanism_drivers].join(','))
+      is_expected.to contain_neutron_plugin_ml2('ml2/path_mtu').with_value(1500)
+      is_expected.to contain_neutron_plugin_ml2('ml2/physical_network_mtus').with_ensure('absent')
     end
 
     it 'creates plugin symbolic link' do
@@ -168,6 +172,26 @@ describe 'neutron::plugins::ml2' do
       end
 
       it_raises  'a Puppet::Error', /vni ranges are invalid./
+    end
+
+    context 'with path_mtu set' do
+      before :each do
+        params.merge(:path_mtu => '9000')
+      end
+
+      it 'should set the path_mtu on the ml2 plugin' do
+        should contain_neutron_plugin_ml2('ml2/path_mtu').with_value(params[:path_mtu])
+      end
+    end
+
+    context 'with physnet_mtus set' do
+      before :each do
+        params.merge(:physnet_mtus => 'physnet1:9000')
+      end
+
+      it 'should set the physical_network_mtus on the ml2 plugin' do
+        should contain_neutron_plugin_ml2('ml2/physical_network_mtus').with_value(params[:physnet_mtus])
+      end
     end
 
     context 'when overriding package ensure state' do
