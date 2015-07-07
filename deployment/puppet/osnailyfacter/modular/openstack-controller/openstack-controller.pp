@@ -67,22 +67,10 @@ if $use_neutron {
   $novanetwork_params = hiera('novanetwork_parameters')
 }
 
-if hiera('amqp_nodes', false) {
-  $amqp_nodes = hiera('amqp_nodes')
-}
-elsif $internal_address in $controller_nodes {
-  # prefer local MQ broker if it exists on this node
-  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
-} else {
-  $amqp_nodes = fqdn_rotate($controller_nodes)
-}
-$amqp_port = hiera('amqp_port', '5673')
-$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
-
 # RabbitMQ server configuration
 $rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
-$rabbitmq_bind_port = $amqp_port
-$rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames
+$rabbitmq_bind_port = hiera('amqp_port', '5673')
+$rabbitmq_cluster_nodes = hiera_array('rabbitmq_cluster_nodes')
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -198,7 +186,7 @@ class { '::openstack::controller':
   nova_user_password             => $nova_hash[user_password],
   nova_user_tenant               => $keystone_tenant,
   queue_provider                 => 'rabbitmq',
-  amqp_hosts                     => $amqp_hosts,
+  amqp_hosts                     => hiera('amqp_hosts',''),
   amqp_user                      => $rabbit_hash['user'],
   amqp_password                  => $rabbit_hash['password'],
   rabbit_ha_queues               => true,
