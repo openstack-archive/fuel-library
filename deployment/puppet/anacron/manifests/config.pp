@@ -20,10 +20,6 @@ class anacron::config {
       file { '/etc/cron.d/0hourly':
         source => 'puppet:///modules/anacron/0hourly',
       }
-      file { '/etc/cron.hourly/logrotate':
-        mode   => '0755',
-        source => 'puppet:///modules/anacron/logrotate-hourly',
-      }
       file { '/etc/cron.hourly/0anacron':
         mode   => '0755',
         source => 'puppet:///modules/anacron/0anacron-hourly',
@@ -38,12 +34,9 @@ class anacron::config {
       file { '/etc/cron.d/anacron':
         source => 'puppet:///modules/anacron/anacron-ubuntu',
       }
-      file { '/etc/cron.hourly/logrotate':
-        mode   => '0755',
-        source => 'puppet:///modules/anacron/logrotate-hourly-ubuntu',
-      }
     }
   }
+
   if $::anacron::debug {
     file { '/etc/cron.d/logrotate-debug':
        source => 'puppet:///modules/anacron/logrotate-debug'
