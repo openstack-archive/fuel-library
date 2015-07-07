@@ -43,7 +43,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       loopback_size         => '5243780',
       storage_mnt_base_dir  => $swift_partition,
       storage_devices       => filter_hash($mp_hash,'point'),
-      swift_zone            => $node[0]['swift_zone'],
+      swift_zone            => $node['swift_zone'],
       swift_local_net_ip    => $storage_address,
       master_swift_proxy_ip => $master_swift_proxy_ip,
       sync_rings            => ! $primary_proxy,
