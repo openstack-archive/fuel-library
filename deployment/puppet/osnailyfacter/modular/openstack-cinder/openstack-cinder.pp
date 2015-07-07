@@ -21,19 +21,6 @@ $cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
-if hiera('amqp_nodes', false) {
-  $amqp_nodes = hiera('amqp_nodes')
-}
-elsif $internal_address in $controller_nodes {
-  # prefer local MQ broker if it exists on this node
-  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
-} else {
-  $amqp_nodes = fqdn_rotate($controller_nodes)
-}
-
-$amqp_port = hiera('amqp_port', '5673')
-$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
-
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
@@ -64,7 +51,7 @@ $openstack_version = {
 class {'openstack::cinder':
   sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
   queue_provider       => $queue_provider,
-  amqp_hosts           => $amqp_hosts,
+  amqp_hosts           => hiera('amqp_hosts',''),
   amqp_user            => $rabbit_hash['user'],
   amqp_password        => $rabbit_hash['password'],
   rabbit_ha_queues     => true,

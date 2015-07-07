@@ -10,7 +10,6 @@ $internal_address      = hiera('internal_address')
 $use_syslog            = hiera('use_syslog', true)
 $syslog_log_facility   = hiera('syslog_log_facility_glance')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
-$amqp_hosts            = hiera('amqp_hosts')
 $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
 $ceilometer_hash       = hiera_hash('ceilometer', {})
@@ -28,7 +27,7 @@ $auth_uri                       = "http://${keystone_endpoint}:5000/"
 
 $rabbit_password                = $rabbit_hash['password']
 $rabbit_user                    = $rabbit_hash['user']
-$rabbit_hosts                   = split($amqp_hosts, ',')
+$rabbit_hosts                   = split(hiera('amqp_hosts',''), ',')
 $rabbit_virtual_host            = '/'
 
 $glance_db_user                 = pick($glance_hash['db_user'], 'glance')
