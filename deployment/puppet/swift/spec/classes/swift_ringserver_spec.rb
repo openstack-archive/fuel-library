@@ -25,11 +25,11 @@ describe 'swift::ringserver' do
     end
 
     it 'does not create the rsync::server class' do
-      should compile
+      is_expected.to compile
     end
 
     it 'contain the swift_server rsync block' do
-      should contain_rsync__server__module('swift_server').with({
+      is_expected.to contain_rsync__server__module('swift_server').with({
         'path'            => '/etc/swift',
         'lock_file'       => '/var/lock/swift_server.lock',
         'uid'             => 'swift',
@@ -64,7 +64,7 @@ describe 'swift::ringserver' do
     end
 
     it 'does create the rsync::server class' do
-      should contain_class('rsync::server').with({
+      is_expected.to contain_class('rsync::server').with({
         'use_xinetd' => 'true',
         'address'    => '127.0.0.1',
         'use_chroot' => 'no'
@@ -72,7 +72,7 @@ describe 'swift::ringserver' do
     end
 
     it 'contain the swift_server rsync block' do
-      should contain_rsync__server__module('swift_server').with({
+      is_expected.to contain_rsync__server__module('swift_server').with({
         'path'            => '/etc/swift',
         'lock_file'       => '/var/lock/swift_server.lock',
         'uid'             => 'swift',

@@ -15,7 +15,7 @@ describe 'swift::storage::disk' do
     }
   end
 
-  it { should contain_swift__storage__xfs('sdb').with(
+  it { is_expected.to contain_swift__storage__xfs('sdb').with(
     :device       => '/dev/sdb',
     :mnt_base_dir => '/srv/node',
     :byte_size    => '1024',

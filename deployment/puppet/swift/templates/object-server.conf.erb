@@ -4,7 +4,17 @@ bind_ip = <%= @storage_local_net_ip %>
 bind_port = <%= @bind_port %>
 mount_check = <%= @mount_check %>
 user = <%= @user %>
+log_name = <%= @log_name %>
 log_facility = <%= @log_facility %>
+log_level = <%= @log_level %>
+log_address = <%= @log_address %>
+<% if @log_udp_host -%>
+# If set, log_udp_host will override log_address
+log_udp_host = <%= @log_udp_host -%>
+<% end %>
+<% if @log_udp_host and @log_udp_port -%>
+log_udp_port = <%= @log_udp_port -%>
+<% end %>
 workers = <%= @workers %>
 
 [pipeline:main]

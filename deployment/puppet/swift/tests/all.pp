@@ -11,11 +11,11 @@ Exec { logoutput => true }
 package { 'curl': ensure => present }
 
 
-class { 'memcached':
+class { '::memcached':
   listen_ip => $swift_local_net_ip,
 }
 
-class { 'swift':
+class { '::swift':
   # not sure how I want to deal with this shared secret
   swift_hash_suffix => $swift_shared_secret,
   package_ensure    => latest,
@@ -23,8 +23,8 @@ class { 'swift':
 
 # === Configure Storage
 
-class { 'swift::storage':
-  storage_local_net_ip => $swift_local_net_ip
+class { '::swift::storage':
+  storage_local_net_ip => $swift_local_net_ip,
 }
 
 # create xfs partitions on a loopback device and mounts them
@@ -44,7 +44,7 @@ swift::storage::node { '2':
   require              => Swift::Storage::Loopback[2] ,
 }
 
-class { 'swift::ringbuilder':
+class { '::swift::ringbuilder':
   part_power     => '18',
   replicas       => '1',
   min_part_hours => 1,
@@ -53,10 +53,10 @@ class { 'swift::ringbuilder':
 
 
 # TODO should I enable swath in the default config?
-class { 'swift::proxy':
+class { '::swift::proxy':
   proxy_local_net_ip => $swift_local_net_ip,
   pipeline           => ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
   account_autocreate => true,
   require            => Class['swift::ringbuilder'],
 }
-class { ['swift::proxy::healthcheck', 'swift::proxy::cache', 'swift::proxy::tempauth']: }
+class { ['::swift::proxy::healthcheck', '::swift::proxy::cache', '::swift::proxy::tempauth']: }

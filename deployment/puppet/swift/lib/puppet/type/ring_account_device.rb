@@ -1,15 +1,19 @@
 Puppet::Type.newtype(:ring_account_device) do
   require 'ipaddr'
+  require 'uri'
 
   ensurable
 
   newparam(:name, :namevar => true) do
     validate do |value|
-      address = value.split(':')
-      raise(Puppet::Error, "invalid name #{value}, should contain address:port/device") unless address.size == 2
-      port_device = address[1].split('/')
-      raise(Puppet::Error, "namevar should contain a device") unless port_device.size == 2
-      IPAddr.new(address[0])
+      # we have to have URI Scheme so we just add http:// and ignore it later
+      uri = URI('http://' + value)
+      address = uri.host
+      port_device = uri.port
+      if ['','/'].include?(uri.path)
+        raise(Puppet::Error, "namevar should contain a device")
+      end
+      IPAddr.new(address)
     end
   end
 

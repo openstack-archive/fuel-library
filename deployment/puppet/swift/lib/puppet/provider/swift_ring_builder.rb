@@ -8,6 +8,14 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
     end
   end
 
+  def self.address_string(address)
+    ip = IPAddr.new(address)
+    if ip.ipv6?
+     '[' + ip.to_s + ']'
+    else
+      ip.to_s
+    end
+  end
 
   def self.lookup_ring
     object_hash = {}
@@ -30,7 +38,8 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
           # Swift 1.8+ output example:
           if row =~ /^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+\S+\s+\d+\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s*((-|\s-?)?\d+\.\d+)\s*(\S*)/
 
-            object_hash["#{$4}:#{$5}/#{$6}"] = {
+            address = address_string("#{$4}")
+            object_hash["#{address}:#{$5}/#{$6}"] = {
               :id          => $1,
               :region      => $2,
               :zone        => $3,
@@ -43,7 +52,8 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
           # Swift 1.8.0 output example:
           elsif row =~ /^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s*((-|\s-?)?\d+\.\d+)\s*(\S*)/
 
-            object_hash["#{$4}:#{$5}/#{$6}"] = {
+            address = address_string("#{$4}")
+            object_hash["#{address}:#{$5}/#{$6}"] = {
               :id          => $1,
               :region      => $2,
               :zone        => $3,
@@ -55,7 +65,8 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
            # This regex is for older swift versions
           elsif row =~ /^\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(\S*)$/
 
-            object_hash["#{$3}:#{$4}/#{$5}"] = {
+            address = address_string("#{$3}")
+            object_hash["#{address}:#{$4}/#{$5}"] = {
               :id          => $1,
               :region      => 'none',
               :zone        => $2,

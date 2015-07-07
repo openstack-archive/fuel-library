@@ -13,7 +13,7 @@ describe 'swift::storage::mount' do
       }
     end
 
-    it { should contain_mount('/srv/node/dans_mount_point').with(
+    it { is_expected.to contain_mount('/srv/node/dans_mount_point').with(
       :ensure  => 'present',
       :device  => '/dev/sda',
       :fstype  => 'xfs',
@@ -32,7 +32,7 @@ describe 'swift::storage::mount' do
       }
     end
 
-    it { should contain_mount('/srv/node/dans_mount_point').with(
+    it { is_expected.to contain_mount('/srv/node/dans_mount_point').with(
       :device  => '/dev/sda',
       :options => 'noatime,nodiratime,nobarrier,loop,logbufs=8'
     )}
@@ -52,7 +52,7 @@ describe 'swift::storage::mount' do
       }
     end
 
-    it { should contain_exec("restorecon_mount_dans_mount_point").with(
+    it { is_expected.to contain_exec("restorecon_mount_dans_mount_point").with(
       {:command     => "restorecon /srv/node/dans_mount_point",
        :path        => ['/usr/sbin', '/sbin'],
        :refreshonly => true}

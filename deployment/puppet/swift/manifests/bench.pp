@@ -1,4 +1,70 @@
+# == Class: swift::bench
+#
 # Configure swift-bench.conf for swift performance bench
+#
+# === Parameters:
+#
+# [*auth_url*]
+#   Defaults to 'http://localhost:8080/auth/v1.0'
+#
+# [*swift_user*]
+#   Defaults to 'test:tester'
+#
+# [*swift_key*]
+#   Defaults to 'testing'
+#
+# [*auth_version*]
+#   Defaults to '1.0'
+#
+# [*log_level*]
+#   Defaults to 'INFO'
+#
+# [*test_timeout*]
+#   Defaults to '10'
+#
+# [*put_concurrency*]
+#   (optional) Configure PUT concurrency
+#   Defaults to '10'
+#
+# [*get_concurrency*]
+#   (optional) Configure GET concurrency
+#   Defaults to '10',
+#
+# [*del_concurrency*]
+#   (optional) Configure DELETE concurrency
+#   Defaults to '10',
+#
+# [*lower_object_size*]
+#   If object_sources is not set and lower_object_size != upper_object_size,
+#   each PUT will randomly select an object size between the two values. Units
+#   are bytes.
+#   Defaults to '10'
+#
+# [*upper_object_size*]
+#   If object_sources is not set and lower_object_size != upper_object_size,
+#   each PUT will randomly select an object size between the two values. Units
+#   are bytes.
+#   Defaults to '10'
+#
+# [*object_size*]
+#   If object_sources is not set and lower_object_size == upper_object_size,
+#   every object PUT will contain this many bytes.
+#   Defaults to '1'
+#
+# [*num_objects*]
+#   Defaults to '1000'
+#
+# [*num_gets*]
+#   Defaults to '10000'
+#
+# [*num_containers*]
+#   Defaults to '20'
+#
+# [*delete*]
+#   Should swift-bench benchmark DELETEing the created objects and then delete
+#   all created containers?
+#   Defaults to 'yes'
+#
 class swift::bench (
   $auth_url          = 'http://localhost:8080/auth/v1.0',
   $swift_user        = 'test:tester',

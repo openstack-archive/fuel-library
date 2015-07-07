@@ -12,11 +12,12 @@ class swift::client (
   $ensure = 'present'
 ) {
 
-  include swift::params
+  include ::swift::params
 
   package { 'swiftclient':
     ensure => $ensure,
     name   => $::swift::params::client_package,
+    tag    => 'openstack',
   }
 
 }

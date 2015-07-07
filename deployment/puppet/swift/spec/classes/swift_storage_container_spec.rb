@@ -1,54 +1,101 @@
 require 'spec_helper'
+
 describe 'swift::storage::container' do
-
-  let :facts do
-    {
-      :operatingsystem => 'Ubuntu',
-      :osfamily        => 'Debian'
-    }
-  end
-
   let :pre_condition do
-    "class { 'ssh::server::install': }
-     class { 'swift': swift_hash_suffix => 'foo' }
+    "class { 'swift': swift_hash_suffix => 'foo' }
      class { 'swift::storage': storage_local_net_ip => '10.0.0.1' }"
   end
 
-  let :default_params do
-    {:package_ensure => 'present'}
+  let :params do
+    { :package_ensure => 'present',
+      :enabled        => true,
+      :manage_service => true }
   end
 
-  [{},
-   {:package_ensure => 'latest'}
-  ].each do |param_set|
-    describe "when #{param_set == {} ? "using default" : "specifying"} class parameters" do
-      let :param_hash do
-        default_params.merge(param_set)
+  shared_examples_for 'swift-storage-container' do
+    [{},
+     {:package_ensure => 'latest'}
+    ].each do |param_set|
+      describe "when #{param_set == {} ? "using default" : "specifying"} class parameters" do
+        before do
+          params.merge!(param_set)
+        end
+
+        it { is_expected.to contain_swift__storage__generic('container').with_package_ensure(params[:package_ensure]) }
       end
-      let :params do
-        param_set
+    end
+
+
+    [{ :enabled => true, :manage_service => true },
+     { :enabled => false, :manage_service => true }].each do |param_hash|
+      context "when service is_expected.to be #{param_hash[:enabled] ? 'enabled' : 'disabled'}" do
+        before do
+          params.merge!(param_hash)
+        end
+
+        it 'configures services' do
+          platform_params[:service_names].each do |service_alias, service_name|
+            is_expected.to contain_service(service_alias).with(
+              :name    => service_name,
+              :ensure  => (param_hash[:manage_service] && param_hash[:enabled]) ? 'running' : 'stopped',
+              :enable  => param_hash[:enabled]
+            )
+          end
+        end
       end
-      it { should contain_swift__storage__generic('container').with_package_ensure(param_hash[:package_ensure]) }
-      it 'should have some other services' do
-        ['swift-container-updater', 'swift-container-auditor'].each do |service|
-          should contain_service(service).with(
-            :ensure   => 'running',
-            :enable   => true,
-            :provider => 'upstart',
-            :require  => 'Package[swift-container]'
+    end
+
+    context 'with disabled service managing' do
+      before do
+        params.merge!({
+          :manage_service => false,
+          :enabled        => false })
+      end
+
+      it 'configures services' do
+        platform_params[:service_names].each do |service_alias, service_name|
+          is_expected.to contain_service(service_alias).with(
+            :ensure    => nil,
+            :name      => service_name,
+            :enable    => false
           )
         end
-        should contain_service('swift-container-sync').with(
+      end
+    end
+  end
+
+  context 'on Debian platforms' do
+    let :facts do
+      {:operatingsystem => 'Ubuntu',
+       :osfamily        => 'Debian' }
+
+    end
+
+    let :platform_params do
+      { :service_names => {
+          'swift-container'            => 'swift-container',
+          'swift-container-replicator' => 'swift-container-replicator',
+          'swift-container-updater'    => 'swift-container-updater',
+          'swift-container-auditor'    => 'swift-container-auditor'
+        }
+      }
+    end
+
+    it_configures 'swift-storage-container'
+
+    context 'Ubuntu specific resources' do
+      it 'configures sync' do
+        is_expected.to contain_service('swift-container-sync').with(
           :ensure   => 'running',
           :enable   => true,
           :provider => 'upstart',
           :require  => ['File[/etc/init/swift-container-sync.conf]', 'File[/etc/init.d/swift-container-sync]']
         )
-        should contain_file('/etc/init/swift-container-sync.conf').with(
+        is_expected.to contain_file('/etc/init/swift-container-sync.conf').with(
           :source  => 'puppet:///modules/swift/swift-container-sync.conf.upstart',
           :require => 'Package[swift-container]'
         )
-        should contain_file('/etc/init.d/swift-container-sync').with(
+        is_expected.to contain_file('/etc/init.d/swift-container-sync').with(
           :ensure => 'link',
           :target => '/lib/init/upstart-job'
         )
@@ -56,29 +103,31 @@ describe 'swift::storage::container' do
     end
   end
 
-  describe 'on rhel' do
+  context 'on RedHat platforms' do
     let :facts do
-      {
-        :operatingsystem => 'RedHat',
-        :osfamily        => 'RedHat',
-        :concat_basedir => '/var/lib/puppet/concat'
-      }
-    end
-    it 'should have some support services' do
-      ['swift-container-updater', 'swift-container-auditor'].each do |service|
-        should contain_service(service).with(
-          :name     => "openstack-#{service}",
-          :ensure   => 'running',
-          :enable   => true,
-          :require  => 'Package[swift-container]'
-        )
-      end
+      { :osfamily        => 'RedHat',
+        :operatingsystem => 'RedHat' }
     end
 
-    describe 'configuration file' do
+    let :platform_params do
+      { :service_names => {
+          'swift-container'            => 'openstack-swift-container',
+          'swift-container-replicator' => 'openstack-swift-container-replicator',
+          'swift-container-updater'    => 'openstack-swift-container-updater',
+          'swift-container-auditor'    => 'openstack-swift-container-auditor'
+        }
+      }
+    end
+
+    it_configures 'swift-storage-container'
+
+    context 'RedHat specific resources' do
+      before do
+        params.merge!({ :allowed_sync_hosts => ['127.0.0.1', '10.1.0.1', '10.1.0.2'] })
+      end
+
       let :pre_condition do
-        "class { 'ssh::server::install': }
-         class { 'swift': swift_hash_suffix => 'foo' }
+         "class { 'swift': swift_hash_suffix => 'foo' }
          class { 'swift::storage::all': storage_local_net_ip => '10.0.0.1' }"
       end
 
@@ -86,18 +135,9 @@ describe 'swift::storage::container' do
         "/var/lib/puppet/concat/_etc_swift_container-server.conf/fragments/00_swift-container-6001"
       end
 
-      it { should contain_file(fragment_file).with_content(/^allowed_sync_hosts = 127.0.0.1$/) }
-
-      describe 'with allowed_sync_hosts' do
-
-        let :params do
-          { :allowed_sync_hosts => ['127.0.0.1', '10.1.0.1', '10.1.0.2'], }
-        end
-
-        it {
-          should contain_file(fragment_file).with_content(/^allowed_sync_hosts = 127.0.0.1,10.1.0.1,10.1.0.2$/)
-        }
-      end
+      it {
+        is_expected.to contain_file(fragment_file).with_content(/^allowed_sync_hosts = 127.0.0.1,10.1.0.1,10.1.0.2$/)
+      }
     end
   end
 end
