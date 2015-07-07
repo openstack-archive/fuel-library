@@ -13,10 +13,21 @@
 # ATTENTION: You should not use the disk that your Operating System
 #            is installed on (typically /dev/sda/).
 #
-# =Parameters=
-# $base_dir = '/dev', assumes local disk devices
-# $mnt_base_dir = '/srv/node', base directory where disks are mounted to
-# $byte_size = '1024', block size for the disk.  For very large partitions, this should be larger
+# === Parameters:
+#
+# [*base_dir*]
+#   (optional) The directory where the flat files will be stored that house
+#   the file system to be loop back mounted.
+#   Defaults to '/dev', assumes local disk devices
+#
+# [*mnt_base_dir*]
+#   (optional) The directory where the flat files that store the file system
+#   to be loop back mounted are actually mounted at.
+#   Defaults to '/srv/node', base directory where disks are mounted to
+#
+# [*byte_size*]
+#   (optional) The byte size that dd uses when it creates the file system.
+#   Defaults to '1024', block size for the disk.  For very large partitions, this should be larger
 #
 # =Example=
 #
@@ -31,7 +42,7 @@
 #   }
 #
 # TODO(yuxcer): maybe we can remove param $base_dir
-
+#
 define swift::storage::disk(
   $base_dir     = '/dev',
   $mnt_base_dir = '/srv/node',
@@ -47,9 +58,9 @@ define swift::storage::disk(
   }
 
   exec { "create_partition_label-${name}":
-    command     => "parted -s ${base_dir}/${name} mklabel gpt",
-    path        => ['/usr/bin/', '/sbin','/bin'],
-    onlyif      => ["test -b ${base_dir}/${name}","parted ${base_dir}/${name} print|tail -1|grep 'Error'"],
+    command => "parted -s ${base_dir}/${name} mklabel gpt",
+    path    => ['/usr/bin/', '/sbin','/bin'],
+    onlyif  => ["test -b ${base_dir}/${name}","parted ${base_dir}/${name} print|tail -1|grep 'Error'"],
   }
 
   swift::storage::xfs { $name:

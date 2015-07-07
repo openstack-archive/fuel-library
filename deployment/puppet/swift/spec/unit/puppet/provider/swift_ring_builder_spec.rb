@@ -27,26 +27,26 @@ Devices:    id  region  zone      ip address  port      replication ip  replicat
 '
     )
     resources = provider_class.lookup_ring
-    resources['192.168.101.13:6002/1'].should_not be_nil
-    resources['192.168.101.14:6002/1'].should_not be_nil
-    resources['192.168.101.15:6002/1'].should_not be_nil
-    resources['192.168.101.16:6002/1'].should_not be_nil
+    expect(resources['192.168.101.13:6002/1']).to_not be_nil
+    expect(resources['192.168.101.14:6002/1']).to_not be_nil
+    expect(resources['192.168.101.15:6002/1']).to_not be_nil
+    expect(resources['192.168.101.16:6002/1']).to_not be_nil
 
-    resources['192.168.101.13:6002/1'][:id].should eql '1'
-    resources['192.168.101.13:6002/1'][:region].should eql '1'
-    resources['192.168.101.13:6002/1'][:zone].should eql '1'
-    resources['192.168.101.13:6002/1'][:weight].should eql '1.00'
-    resources['192.168.101.13:6002/1'][:partitions].should eql '262144'
-    resources['192.168.101.13:6002/1'][:balance].should eql '0.00'
-    resources['192.168.101.13:6002/1'][:meta].should eql ''
+    expect(resources['192.168.101.13:6002/1'][:id]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:region]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:zone]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:weight]).to eql '1.00'
+    expect(resources['192.168.101.13:6002/1'][:partitions]).to eql '262144'
+    expect(resources['192.168.101.13:6002/1'][:balance]).to eql '0.00'
+    expect(resources['192.168.101.13:6002/1'][:meta]).to eql ''
 
-    resources['192.168.101.14:6002/1'][:id].should eql '2'
-    resources['192.168.101.14:6002/1'][:region].should eql '1'
-    resources['192.168.101.14:6002/1'][:zone].should eql '2'
-    resources['192.168.101.14:6002/1'][:weight].should eql '1.00'
-    resources['192.168.101.14:6002/1'][:partitions].should eql '262144'
-    resources['192.168.101.14:6002/1'][:balance].should eql '200.00'
-    resources['192.168.101.14:6002/1'][:meta].should eql 'm2'
+    expect(resources['192.168.101.14:6002/1'][:id]).to eql '2'
+    expect(resources['192.168.101.14:6002/1'][:region]).to eql '1'
+    expect(resources['192.168.101.14:6002/1'][:zone]).to eql '2'
+    expect(resources['192.168.101.14:6002/1'][:weight]).to eql '1.00'
+    expect(resources['192.168.101.14:6002/1'][:partitions]).to eql '262144'
+    expect(resources['192.168.101.14:6002/1'][:balance]).to eql '200.00'
+    expect(resources['192.168.101.14:6002/1'][:meta]).to eql 'm2'
   end
 
   it 'should be able to lookup the local ring and build an object 1.8.0' do
@@ -65,26 +65,26 @@ Devices:    id  region  zone      ip address  port      name weight partitions b
 '
     )
     resources = provider_class.lookup_ring
-    resources['192.168.101.13:6002/1'].should_not be_nil
-    resources['192.168.101.14:6002/1'].should_not be_nil
-    resources['192.168.101.15:6002/1'].should_not be_nil
-    resources['192.168.101.16:6002/1'].should_not be_nil
+    expect(resources['192.168.101.13:6002/1']).to_not be_nil
+    expect(resources['192.168.101.14:6002/1']).to_not be_nil
+    expect(resources['192.168.101.15:6002/1']).to_not be_nil
+    expect(resources['192.168.101.16:6002/1']).to_not be_nil
 
-    resources['192.168.101.13:6002/1'][:id].should eql '1'
-    resources['192.168.101.13:6002/1'][:region].should eql '1'
-    resources['192.168.101.13:6002/1'][:zone].should eql '1'
-    resources['192.168.101.13:6002/1'][:weight].should eql '1.00'
-    resources['192.168.101.13:6002/1'][:partitions].should eql '262144'
-    resources['192.168.101.13:6002/1'][:balance].should eql '0.00'
-    resources['192.168.101.13:6002/1'][:meta].should eql ''
+    expect(resources['192.168.101.13:6002/1'][:id]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:region]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:zone]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:weight]).to eql '1.00'
+    expect(resources['192.168.101.13:6002/1'][:partitions]).to eql '262144'
+    expect(resources['192.168.101.13:6002/1'][:balance]).to eql '0.00'
+    expect(resources['192.168.101.13:6002/1'][:meta]).to eql ''
 
-    resources['192.168.101.14:6002/1'][:id].should eql '2'
-    resources['192.168.101.14:6002/1'][:region].should eql '1'
-    resources['192.168.101.14:6002/1'][:zone].should eql '2'
-    resources['192.168.101.14:6002/1'][:weight].should eql '1.00'
-    resources['192.168.101.14:6002/1'][:partitions].should eql '262144'
-    resources['192.168.101.14:6002/1'][:balance].should eql '200.00'
-    resources['192.168.101.14:6002/1'][:meta].should eql 'm2'
+    expect(resources['192.168.101.14:6002/1'][:id]).to eql '2'
+    expect(resources['192.168.101.14:6002/1'][:region]).to eql '1'
+    expect(resources['192.168.101.14:6002/1'][:zone]).to eql '2'
+    expect(resources['192.168.101.14:6002/1'][:weight]).to eql '1.00'
+    expect(resources['192.168.101.14:6002/1'][:partitions]).to eql '262144'
+    expect(resources['192.168.101.14:6002/1'][:balance]).to eql '200.00'
+    expect(resources['192.168.101.14:6002/1'][:meta]).to eql 'm2'
   end
 
   it 'should be able to lookup the local ring and build an object 1.7' do
@@ -102,25 +102,25 @@ Devices:    id  region  zone      ip address  port      name weight partitions b
 '
     )
     resources = provider_class.lookup_ring
-    resources['192.168.101.13:6002/1'].should_not be_nil
-    resources['192.168.101.14:6002/1'].should_not be_nil
-    resources['192.168.101.15:6002/1'].should_not be_nil
+    expect(resources['192.168.101.13:6002/1']).to_not be_nil
+    expect(resources['192.168.101.14:6002/1']).to_not be_nil
+    expect(resources['192.168.101.15:6002/1']).to_not be_nil
 
-    resources['192.168.101.13:6002/1'][:id].should eql '1'
-    resources['192.168.101.13:6002/1'][:region].should eql '1'
-    resources['192.168.101.13:6002/1'][:zone].should eql '1'
-    resources['192.168.101.13:6002/1'][:weight].should eql '1.00'
-    resources['192.168.101.13:6002/1'][:partitions].should eql '262144'
-    resources['192.168.101.13:6002/1'][:balance].should eql '0.00'
-    resources['192.168.101.13:6002/1'][:meta].should eql ''
+    expect(resources['192.168.101.13:6002/1'][:id]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:region]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:zone]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:weight]).to eql '1.00'
+    expect(resources['192.168.101.13:6002/1'][:partitions]).to eql '262144'
+    expect(resources['192.168.101.13:6002/1'][:balance]).to eql '0.00'
+    expect(resources['192.168.101.13:6002/1'][:meta]).to eql ''
 
-    resources['192.168.101.14:6002/1'][:id].should eql '2'
-    resources['192.168.101.14:6002/1'][:region].should eql '1'
-    resources['192.168.101.14:6002/1'][:zone].should eql '2'
-    resources['192.168.101.14:6002/1'][:weight].should eql '1.00'
-    resources['192.168.101.14:6002/1'][:partitions].should eql '262144'
-    resources['192.168.101.14:6002/1'][:balance].should eql '0.00'
-    resources['192.168.101.14:6002/1'][:meta].should eql ''
+    expect(resources['192.168.101.14:6002/1'][:id]).to eql '2'
+    expect(resources['192.168.101.14:6002/1'][:region]).to eql '1'
+    expect(resources['192.168.101.14:6002/1'][:zone]).to eql '2'
+    expect(resources['192.168.101.14:6002/1'][:weight]).to eql '1.00'
+    expect(resources['192.168.101.14:6002/1'][:partitions]).to eql '262144'
+    expect(resources['192.168.101.14:6002/1'][:balance]).to eql '0.00'
+    expect(resources['192.168.101.14:6002/1'][:meta]).to eql ''
   end
 
   it 'should be able to lookup the local ring and build an object legacy' do
@@ -137,24 +137,24 @@ Devices:    id  zone      ip address  port      name weight partitions balance m
 '
     )
     resources = provider_class.lookup_ring
-    resources['192.168.101.15:6002/1'].should_not be_nil
-    resources['192.168.101.13:6002/1'].should_not be_nil
-    resources['192.168.101.14:6002/1'].should_not be_nil
+    expect(resources['192.168.101.15:6002/1']).to_not be_nil
+    expect(resources['192.168.101.13:6002/1']).to_not be_nil
+    expect(resources['192.168.101.14:6002/1']).to_not be_nil
 
-    resources['192.168.101.13:6002/1'][:id].should eql '1'
-    resources['192.168.101.13:6002/1'][:region].should eql 'none'
-    resources['192.168.101.13:6002/1'][:zone].should eql '1'
-    resources['192.168.101.13:6002/1'][:weight].should eql '1.00'
-    resources['192.168.101.13:6002/1'][:partitions].should eql '262144'
-    resources['192.168.101.13:6002/1'][:balance].should eql '0.00'
-    resources['192.168.101.13:6002/1'][:meta].should eql ''
+    expect(resources['192.168.101.13:6002/1'][:id]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:region]).to eql 'none'
+    expect(resources['192.168.101.13:6002/1'][:zone]).to eql '1'
+    expect(resources['192.168.101.13:6002/1'][:weight]).to eql '1.00'
+    expect(resources['192.168.101.13:6002/1'][:partitions]).to eql '262144'
+    expect(resources['192.168.101.13:6002/1'][:balance]).to eql '0.00'
+    expect(resources['192.168.101.13:6002/1'][:meta]).to eql ''
 
-    resources['192.168.101.14:6002/1'][:id].should eql '2'
-    resources['192.168.101.14:6002/1'][:region].should eql 'none'
-    resources['192.168.101.14:6002/1'][:zone].should eql '2'
-    resources['192.168.101.14:6002/1'][:weight].should eql '1.00'
-    resources['192.168.101.14:6002/1'][:partitions].should eql '262144'
-    resources['192.168.101.14:6002/1'][:balance].should eql '0.00'
-    resources['192.168.101.14:6002/1'][:meta].should eql ''
+    expect(resources['192.168.101.14:6002/1'][:id]).to eql '2'
+    expect(resources['192.168.101.14:6002/1'][:region]).to eql 'none'
+    expect(resources['192.168.101.14:6002/1'][:zone]).to eql '2'
+    expect(resources['192.168.101.14:6002/1'][:weight]).to eql '1.00'
+    expect(resources['192.168.101.14:6002/1'][:partitions]).to eql '262144'
+    expect(resources['192.168.101.14:6002/1'][:balance]).to eql '0.00'
+    expect(resources['192.168.101.14:6002/1'][:meta]).to eql ''
   end
 end

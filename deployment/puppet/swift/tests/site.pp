@@ -52,16 +52,16 @@ $swift_verbose                 = hiera('verbose', 'True')
 # This node can be used to deploy a keystone service.
 # This service only contains the credentials for authenticating
 # swift
-node swift-keystone {
+node 'swift-keystone' {
 
   # set up mysql server
-  class { 'mysql::server':
+  class { '::mysql::server':
     config_hash => {
       # the priv grant fails on precise if I set a root password
       # TODO I should make sure that this works
       # 'root_password' => $mysql_root_password,
-      'bind_address'  => '0.0.0.0'
-    }
+      'bind_address' => '0.0.0.0',
+    },
   }
 
   keystone_config {
@@ -69,7 +69,7 @@ node swift-keystone {
   }
 
   # set up all openstack databases, users, grants
-  class { 'keystone::db::mysql':
+  class { '::keystone::db::mysql':
     password => $swift_keystone_db_password,
   }
 
@@ -83,29 +83,17 @@ node swift-keystone {
   }
 
   # Setup the Keystone Identity Endpoint
-  class { 'keystone::endpoint': }
+  class { '::keystone::endpoint': }
 
   # set up keystone admin users
-  class { 'keystone::roles::admin':
+  class { '::keystone::roles::admin':
     email    => $swift_keystone_admin_email,
     password => $swift_keystone_admin_password,
   }
   # configure the keystone service user and endpoint
-  class { 'swift::keystone::auth':
-    password        => $swift_admin_password,
-    public_address  => $swift_proxy_node,
-  }
-
-}
-
-
-node swift_base  {
-
-
-  class { 'swift':
-    # not sure how I want to deal with this shared secret
-    swift_hash_suffix => $swift_shared_secret,
-    package_ensure    => latest,
+  class { '::swift::keystone::auth':
+    password       => $swift_admin_password,
+    public_address => $swift_proxy_node,
   }
 
 }
@@ -118,7 +106,13 @@ node swift_base  {
 # they would need to be replaced with something that create and mounts xfs
 # partitions
 #
-node /swift-storage/ inherits swift_base {
+node /swift-storage/ {
+
+  class { '::swift':
+    # not sure how I want to deal with this shared secret
+    swift_hash_suffix => $swift_shared_secret,
+    package_ensure    => latest,
+  }
 
   # create xfs partitions on a loopback device and mount them
   swift::storage::loopback { ['1', '2']:
@@ -128,39 +122,39 @@ node /swift-storage/ inherits swift_base {
   }
 
   # install all swift storage servers together
-  class { 'swift::storage::all':
+  class { '::swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
   }
 
   # specify endpoints per device to be added to the ring specification
   @@ring_object_device { "${swift_local_net_ip}:6000/1":
-    zone        => $swift_zone,
-    weight      => 1,
+    zone   => $swift_zone,
+    weight => 1,
   }
 
   @@ring_object_device { "${swift_local_net_ip}:6000/2":
-    zone        => $swift_zone,
-    weight      => 1,
+    zone   => $swift_zone,
+    weight => 1,
   }
 
   @@ring_container_device { "${swift_local_net_ip}:6001/1":
-    zone        => $swift_zone,
-    weight      => 1,
+    zone   => $swift_zone,
+    weight => 1,
   }
 
   @@ring_container_device { "${swift_local_net_ip}:6001/2":
-    zone        => $swift_zone,
-    weight      => 1,
+    zone   => $swift_zone,
+    weight => 1,
   }
   # TODO should device be changed to volume
   @@ring_account_device { "${swift_local_net_ip}:6002/1":
-    zone        => $swift_zone,
-    weight      => 1,
+    zone   => $swift_zone,
+    weight => 1,
   }
 
   @@ring_account_device { "${swift_local_net_ip}:6002/2":
-    zone        => $swift_zone,
-    weight      => 1,
+    zone   => $swift_zone,
+    weight => 1,
   }
 
   # collect resources for synchronizing the ring databases
@@ -169,18 +163,23 @@ node /swift-storage/ inherits swift_base {
 }
 
 
-node /swift-proxy/ inherits swift_base {
+node /swift-proxy/ {
 
+  class { '::swift':
+    # not sure how I want to deal with this shared secret
+    swift_hash_suffix => $swift_shared_secret,
+    package_ensure    => latest,
+  }
 
   # curl is only required so that I can run tests
   package { 'curl': ensure => present }
 
-  class { 'memcached':
+  class { '::memcached':
     listen_ip => '127.0.0.1',
   }
 
   # specify swift proxy and all of its middlewares
-  class { 'swift::proxy':
+  class { '::swift::proxy':
     proxy_local_net_ip => $swift_local_net_ip,
     pipeline           => [
       'bulk',
@@ -194,8 +193,7 @@ node /swift-proxy/ inherits swift_base {
       'keystone',
       'account_quotas',
       'container_quotas',
-      'proxy-server'
-    ],
+      'proxy-server'],
     account_autocreate => true,
     # TODO where is the  ringbuilder class?
     require            => Class['swift::ringbuilder'],
@@ -203,35 +201,35 @@ node /swift-proxy/ inherits swift_base {
 
   # configure all of the middlewares
   class { [
-    'swift::proxy::account_quotas',
-    'swift::proxy::catch_errors',
-    'swift::proxy::container_quotas',
-    'swift::proxy::healthcheck',
-    'swift::proxy::cache',
-    'swift::proxy::swift3',
+    '::swift::proxy::account_quotas',
+    '::swift::proxy::catch_errors',
+    '::swift::proxy::container_quotas',
+    '::swift::proxy::healthcheck',
+    '::swift::proxy::cache',
+    '::swift::proxy::swift3',
   ]: }
-  class { 'swift::proxy::bulk':
+  class { '::swift::proxy::bulk':
     max_containers_per_extraction => 10000,
     max_failed_extractions        => 1000,
     max_deletes_per_request       => 10000,
     yield_frequency               => 60,
   }
-  class { 'swift::proxy::ratelimit':
+  class { '::swift::proxy::ratelimit':
     clock_accuracy         => 1000,
     max_sleep_time_seconds => 60,
     log_sleep_time_seconds => 0,
     rate_buffer_seconds    => 5,
-    account_ratelimit      => 0
+    account_ratelimit      => 0,
   }
-  class { 'swift::proxy::s3token':
+  class { '::swift::proxy::s3token':
     # assume that the controller host is the swift api server
-    auth_host     => $swift_keystone_node,
-    auth_port     => '35357',
+    auth_host => $swift_keystone_node,
+    auth_port => '35357',
   }
-  class { 'swift::proxy::keystone':
+  class { '::swift::proxy::keystone':
     operator_roles => ['admin', 'SwiftOperator'],
   }
-  class { 'swift::proxy::authtoken':
+  class { '::swift::proxy::authtoken':
     admin_user        => 'swift',
     admin_tenant_name => 'services',
     admin_password    => $swift_admin_password,
@@ -246,7 +244,7 @@ node /swift-proxy/ inherits swift_base {
   Ring_account_device <<| |>>
 
   # create the ring
-  class { 'swift::ringbuilder':
+  class { '::swift::ringbuilder':
     # the part power should be determined by assuming 100 partitions per drive
     part_power     => '18',
     replicas       => '3',
@@ -255,19 +253,18 @@ node /swift-proxy/ inherits swift_base {
   }
 
   # sets up an rsync db that can be used to sync the ring DB
-  class { 'swift::ringserver':
+  class { '::swift::ringserver':
     local_net_ip => $swift_local_net_ip,
   }
 
   # exports rsync gets that can be used to sync the ring files
   @@swift::ringsync { ['account', 'object', 'container']:
-    ring_server => $swift_local_net_ip
+    ring_server => $swift_local_net_ip,
   }
 
   # deploy a script that can be used for testing
-  class { 'swift::test_file':
+  class { '::swift::test_file':
     auth_server => $swift_keystone_node,
     password    => $swift_keystone_admin_password,
   }
 }
-

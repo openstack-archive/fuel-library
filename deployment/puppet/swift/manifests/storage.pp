@@ -5,7 +5,7 @@
 #   - installs required packages
 #
 # == Parameters
-#  [*storeage_local_net_ip*] ip address that the swift servers should
+#  [*storage_local_net_ip*] ip address that the swift servers should
 #    bind to. Required.
 # == Dependencies
 #
@@ -24,7 +24,7 @@ class swift::storage(
 ) {
 
   if !defined(Class['rsync::server']){
-    class{ 'rsync::server':
+    class{ '::rsync::server':
       use_xinetd => true,
       address    => $storage_local_net_ip,
       use_chroot => 'no',

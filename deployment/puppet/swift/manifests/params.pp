@@ -1,3 +1,5 @@
+# == Class: swift::params
+#
 class swift::params {
   case $::osfamily {
     'Debian': {

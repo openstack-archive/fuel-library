@@ -29,9 +29,9 @@ describe 'swift::ringbuilder::create' do
               param_set
             end
 
-            it { should contain_exec("create_#{type}").with(
+            it { is_expected.to contain_exec("create_#{type}").with(
               {:command => "swift-ring-builder /etc/swift/#{type}.builder create #{param_hash[:part_power]} #{param_hash[:replicas]} #{param_hash[:min_part_hours]}",
-               :path    => '/usr/bin',
+               :path    =>  ['/usr/bin'],
                :creates => "/etc/swift/#{type}.builder" }
             )}
           end
@@ -44,7 +44,7 @@ describe 'swift::ringbuilder::create' do
       'invalid'
     end
     it 'should raise an error' do
-      expect { subject }.to raise_error(Puppet::Error)
+      expect { catalogue }.to raise_error(Puppet::Error)
     end
   end
 

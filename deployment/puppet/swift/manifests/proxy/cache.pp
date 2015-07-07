@@ -23,7 +23,7 @@ class swift::proxy::cache(
 ) {
 
   # require the memcached class if its on the same machine
-  if $memcache_servers =~ /^127\.0\.0\.1/ {
+  if grep(any2array($memcache_servers), '^127\.0\.0\.1') {
     Class['memcached'] -> Class['swift::proxy::cache']
   }
 
