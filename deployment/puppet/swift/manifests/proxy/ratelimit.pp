@@ -1,21 +1,32 @@
+# == Class: swift::proxy::ratelimit
 #
 # Configure swift ratelimit.
 #
 # See Swift's ratelimit documentation for more detail about the values.
 #
-# == Parameters
-#  [clock_accuracy] The accuracy of swift proxy servers' clocks.
+# === Parameters
+#
+# [*clock_accuracy*]
+#   (optional) The accuracy of swift proxy servers' clocks.
 #   1000 is 1ms max difference. No rate should be higher than this.
-#   Optional. Defaults to 1000
-#  [max_sleep_time_seconds] Time before the app returns a 498 response.
-#   Optional. Defaults to 60.
-#  [log_sleep_time_seconds] if >0, enables logging of sleeps longer than
+#   Defaults to 1000
+#
+# [*max_sleep_time_seconds*]
+#   (optional) Time before the app returns a 498 response.
+#   Defaults to 60.
+#
+# [*log_sleep_time_seconds*]
+#   (optional) if >0, enables logging of sleeps longer than
 #   the value.
-#   Optional. Defaults to 0.
-#  [rate_buffer_seconds] Time in second the rate counter can skip.
-#   Optional. Defaults to 5.
-#  [account_ratelimit] if >0, limits PUT and DELETE requests to containers
-#   Optional. Defaults to 0.
+#   Defaults to 0.
+#
+# [*rate_buffer_seconds*]
+#   (optional) Time in second the rate counter can skip.
+#   Defaults to 5.
+#
+# [*account_ratelimit*]
+#   (optional) if >0, limits PUT and DELETE requests to containers
+#   Defaults to 0.
 #
 # == Dependencies
 #

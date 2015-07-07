@@ -4,14 +4,14 @@ describe 'swift::keystone::dispersion' do
 
   describe 'with default class parameters' do
 
-    it { should contain_keystone_user('dispersion').with(
+    it { is_expected.to contain_keystone_user('dispersion').with(
       :ensure   => 'present',
       :password => 'dispersion_password',
       :email    => 'swift@localhost',
       :tenant   => 'services'
     ) }
 
-    it { should contain_keystone_user_role('dispersion@services').with(
+    it { is_expected.to contain_keystone_user_role('dispersion@services').with(
       :ensure  => 'present',
       :roles   => 'admin',
       :require => 'Keystone_user[dispersion]'
@@ -29,14 +29,14 @@ describe 'swift::keystone::dispersion' do
       }
     end
 
-    it { should contain_keystone_user('bar').with(
+    it { is_expected.to contain_keystone_user('bar').with(
       :ensure   => 'present',
       :password => 'foo',
       :email    => 'bar@example.com',
       :tenant   => 'dummyTenant'
     ) }
 
-    it { should contain_keystone_user_role('bar@dummyTenant') }
+    it { is_expected.to contain_keystone_user_role('bar@dummyTenant') }
 
   end
 

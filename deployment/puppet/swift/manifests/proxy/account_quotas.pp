@@ -17,7 +17,6 @@
 #
 # Configure Swift Account Quotas
 #
-
 class swift::proxy::account_quotas() {
   concat::fragment { 'swift_account_quotas':
     target  => '/etc/swift/proxy-server.conf',

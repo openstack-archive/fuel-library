@@ -2,7 +2,7 @@
 # Configure swift recon.
 #
 # == Parameters
-#  [cache_path] The path for recon cache
+#  [*cache_path*] The path for recon cache
 #    Optional. Defaults to '/var/cache/swift/'
 #
 # == Dependencies
@@ -12,7 +12,7 @@
 # == Authors
 #
 #   Dan Bode dan@puppetlabs.com
-#   François Charlier fcharlier@ploup.net
+#   Francois Charlier fcharlier@ploup.net
 #
 # == Copyright
 #

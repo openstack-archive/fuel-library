@@ -17,7 +17,6 @@
 #
 # Configure Swift Container Quotas
 #
-
 class swift::proxy::container_quotas() {
   concat::fragment { 'swift_container_quotas':
     target  => '/etc/swift/proxy-server.conf',

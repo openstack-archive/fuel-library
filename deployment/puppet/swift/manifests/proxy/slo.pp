@@ -40,7 +40,6 @@
 #
 # Copyright 2014 UnitedStack licensing@unitedstack.com
 #
-
 class swift::proxy::slo (
   $max_manifest_segments       = '1000',
   $max_manifest_size           = '2097152',

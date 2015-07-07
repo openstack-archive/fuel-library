@@ -7,7 +7,7 @@ describe 'swift::storage::loopback' do
     'dans_disk'
   end
 
-  it { should contain_swift__storage__xfs('dans_disk').with(
+  it { is_expected.to contain_swift__storage__xfs('dans_disk').with(
     :device       => '/srv/loopback-device/dans_disk',
     :mnt_base_dir => '/srv/node',
     :byte_size    => '1024',
