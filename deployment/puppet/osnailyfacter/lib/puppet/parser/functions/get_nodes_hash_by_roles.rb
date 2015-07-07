@@ -11,7 +11,8 @@ EOS
     raise(Puppet::ParseError, "#{errmsg}: 1st argument should be a valid network_metadata hash") if !n_metadata.has_key?('nodes')
     raise(Puppet::ParseError, "#{errmsg}: 2nd argument should be an list of node roles") if !roles.is_a?(Array)
     nodes = n_metadata['nodes']
-    nodes.reject do |node_name|
+    # Using unrequired node_property bellow -- is a workaround for ruby 1.8
+    nodes.reject do |node_name, node_property|
       (roles & nodes[node_name]['node_roles']).empty?
     end
   end
