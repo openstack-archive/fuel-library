@@ -75,9 +75,10 @@ class openstack::ha::haproxy (
   }
 
   if $swift_proxies {
+    $swift_proxies_address_map = get_node_to_ipaddr_map_by_network_role($swift_proxies, 'swift/api')
     class { 'openstack::ha::swift':
-      server_names => hiera_array('swift_server_names', filter_hash($swift_proxies, 'name')),
-      ipaddresses  => hiera_array('swift_ipaddresses', filter_hash($swift_proxies, 'storage_address')),
+      server_names => keys($swift_proxies_address_map),
+      ipaddresses  => values($swift_proxies_address_map),
     }
   }
 
