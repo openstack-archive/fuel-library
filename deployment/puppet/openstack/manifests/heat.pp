@@ -14,6 +14,7 @@ class openstack::heat (
   $keystone_tenant               = 'services',
   $keystone_password             = false,
   $keystone_ec2_uri              = false,
+  $region                        = 'RegionOne',
   $auth_uri                      = false,
 
   $verbose                       = false,
@@ -127,8 +128,8 @@ class openstack::heat (
       internal_address               => $keystone_host,
       port                           => '8004',
       version                        => 'v1',
-      region                         => 'RegionOne',
-      tenant                         => 'services',
+      region                         => $region,
+      tenant                         => $keystone_tenant,
       email                          => "${keystone_user}@localhost",
       public_protocol                => 'http',
       admin_protocol                 => 'http',
@@ -136,7 +137,7 @@ class openstack::heat (
       configure_endpoint             => true,
 
     }
-    #TODO(bogdando) clarify this new to Fuel Heat auth cfn patterns
+    #todo(bogdando) clarify this new to fuel heat auth cfn patterns
     class { 'heat::keystone::auth_cfn' :
       password                       => $keystone_password,
       auth_name                      => "${keystone_user}-cfn",
@@ -146,8 +147,8 @@ class openstack::heat (
       internal_address               => $keystone_host,
       port                           => '8000',
       version                        => 'v1',
-      region                         => 'RegionOne',
-      tenant                         => 'services',
+      region                         => $region,
+      tenant                         => $keystone_tenant,
       email                          => "${keystone_user}-cfn@localhost",
       public_protocol                => 'http',
       admin_protocol                 => 'http',
@@ -184,6 +185,7 @@ class openstack::heat (
 
   heat_config {
     'DEFAULT/notification_driver': value => 'heat.openstack.common.notifier.rpc_notifier';
+    'DEFAULT/region_name_for_services': value => $region;
     'DATABASE/max_pool_size':      value => $max_pool_size;
     'DATABASE/max_overflow':       value => $max_overflow;
     'DATABASE/max_retries':        value => $max_retries;

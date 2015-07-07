@@ -25,6 +25,7 @@ $database_user            = pick($heat_hash['db_user'], 'heat')
 $database_name            = hiera('heat_db_name', 'heat')
 $read_timeout             = '60'
 $sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}?read_timeout=${read_timeout}"
+$region                   = hiera('region', 'RegionOne')
 
 ####### Disable upstart startup on install #######
 if $::operatingsystem == 'Ubuntu' {
@@ -58,8 +59,8 @@ class { 'openstack::heat' :
   keystone_user            => $keystone_user,
   keystone_password        => $heat_hash['user_password'],
   keystone_tenant          => $keystone_tenant,
-
   keystone_ec2_uri         => "http://${service_endpoint}:5000/v2.0",
+  region                   => $region,
 
   rpc_backend              => 'heat.openstack.common.rpc.impl_kombu',
   amqp_hosts               => split($amqp_hosts, ','),

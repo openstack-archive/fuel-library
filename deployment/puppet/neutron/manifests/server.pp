@@ -48,6 +48,11 @@
 #   (where '/keystone' is the admin prefix)
 #   Defaults to false for empty. If defined, should be a string with a leading '/' and no trailing '/'.
 #
+# [*auth_region*]
+#  (optional) The authentication region. Note this value is case-sensitive and
+#  must match the endpoint region defined in Keystone.
+#  Defaults to undef
+#
 # [*auth_tenant*]
 #   (optional) The tenant of the auth user
 #   Defaults to services
@@ -154,6 +159,7 @@ class neutron::server (
   $enabled                 = true,
   $manage_service          = true,
   $auth_password           = false,
+  $auth_region             = undef,
   $auth_type               = 'keystone',
   $auth_host               = 'localhost',
   $auth_port               = '35357',
@@ -383,6 +389,11 @@ class neutron::server (
         }
       }
 
+      if $auth_region {
+        neutron_config {
+          'keystone_authtoken/auth_region': value => $auth_region;
+        }
+      }
     }
 
   }
