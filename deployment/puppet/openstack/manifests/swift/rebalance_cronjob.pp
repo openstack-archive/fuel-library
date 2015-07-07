@@ -4,7 +4,7 @@
 #
 # === Parameters
 #
-#  [*master_swift_proxy_ip*]
+#  [*master_swift_replication_ip*]
 #    (required) IP of swift proxy master
 #
 #  [*primary_proxy*]
@@ -21,7 +21,7 @@
 #
 
 class openstack::swift::rebalance_cronjob(
-  $master_swift_proxy_ip,
+  $master_swift_replication_ip,
   $primary_proxy         = false,
   $rings                 = ['account', 'object', 'container'],
   $ring_rebalance_period = 23,
