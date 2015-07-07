@@ -21,9 +21,10 @@ file { $logconf :
     notify  => Class["::rsyslog::service"],
 }
 
-class {"::openstack::logrotate":
-  role           => 'server',
-  rotation       => 'weekly',
-  keep           => '4',
-  limitsize      => '100M',
+class { '::openstack::logrotate':
+  role     => 'server',
+  rotation => 'weekly',
+  keep     => '4',
+  minsize  => '10M',
+  maxsize  => '100M',
 }

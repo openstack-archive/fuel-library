@@ -1,61 +1,74 @@
 # managed by puppet
 
-"/var/log/kern.log"
-"/var/log/debug"
-"/var/log/syslog"
-"/var/log/daemon.log"
-"/var/log/auth.log"
+"/var/lib/docker/containers/*/*.log"
+"/var/log/astute/*.log"
 "/var/log/audit/audit.log"
-"/var/log/user.log"
-"/var/log/mail.log"
+"/var/log/auth.log"
+"/var/log/cobbler/*.log"
 "/var/log/cron.log"
+"/var/log/daemon.log"
+"/var/log/debug"
 "/var/log/docker"
 "/var/log/docker-*.log"
-"/var/log/lxc/*.log"
-"/var/log/fuelmenu.log"
-"/var/log/nailgun-agent.log"
-"/var/log/nailgun/*.log"
-"/var/log/astute/*.log"
-"/var/log/ostf*.log"
-"/var/log/httpd/*"
-"/var/log/nginx/*.log"
-"/var/log/rabbitmq/*"
-"/var/log/cobbler/*.log"
-"/var/log/dump.log"
-"/var/log/remote/*-*/*.log"
-"/var/log/remote/*-*/*/*.log"
-"/var/log/docker-logs/dnsmasq.log"
 "/var/log/docker-logs/astute/*.log"
 "/var/log/docker-logs/cobbler/*.log"
-"/var/log/docker-logs/ostf/*.log"
+"/var/log/docker-logs/dnsmasq.log"
 "/var/log/docker-logs/httpd/*.log"
-"/var/log/docker-logs/nginx/*.log"
-"/var/log/docker-logs/rabbitmq/*.log"
-"/var/log/docker-logs/nailgun/*.log"
-"/var/log/docker-logs/dump.log"
 "/var/log/docker-logs/mcollective.log"
 "/var/log/docker-logs/messages"
+"/var/log/docker-logs/nailgun/*.log"
+"/var/log/docker-logs/nginx/*.log"
 "/var/log/docker-logs/ostf*.log"
+"/var/log/docker-logs/ostf/*.log"
+"/var/log/docker-logs/rabbitmq/*.log"
+"/var/log/docker-logs/rsync.log"
+"/var/log/docker-logs/shotgun.log"
+"/var/log/fuelmenu.log"
+"/var/log/httpd/*"
+"/var/log/kern.log"
+"/var/log/lxc/*.log"
+"/var/log/mail.log"
+"/var/log/nailgun-agent.log"
+"/var/log/nailgun/*.log"
+"/var/log/nginx/*.log"
+"/var/log/ostf*.log"
+"/var/log/rabbitmq/*"
+"/var/log/remote/[1-9]*/*.log"
+"/var/log/remote/[1-9]*/*/*.log"
+"/var/log/shotgun.log"
+"/var/log/syslog"
+"/var/log/user.log"
 {
-# This file is used for daily log rotations, do not use size options here
+  # pass whole regexp to {pre,post}rotate scripts
   sharedscripts
-  <%= @rotation %>
-  # rotate only if 30M size or bigger
-  minsize 30M
+
   # truncate file, do not delete & recreate
   copytruncate
-  # keep logs for <%= @keep %> rotations
-  rotate <%= @keep %>
-  # compression will be postponed to the next rotation, if uncommented
-  # delaycompress
+
+  # compress rotated files with gzip
   compress
+
   # ignore missing files
   missingok
+
   # do not rotate empty files
   notifempty
+
+  # logrotate allows to use only year, month, day and unix epoch
+  dateformat -%Y%m%d-%s
+
+  # number of rotated files to keep
+  rotate <%= @keep %>
+
+  # do not rotate files unless both size and time conditions are met
+  <%= @rotation %>
+  minsize <%= @minsize %>
+
+  # force rotate if filesize exceeded <%= @maxsize %>
+  maxsize <%= @maxsize %>
+
   postrotate
-      # issue HUPing for all rsyslog pids including ones in the docker containers, if any.
-      /usr/bin/pkill -HUP rsyslogd 2> /dev/null 2> /dev/null || true
-      reload rsyslog >/dev/null 2>&1 || true
+      # send SIGHUP to all rsyslog instances, including ones in containers
+      /usr/bin/pkill -HUP rsyslogd 2>/dev/null || true
   endscript
 }

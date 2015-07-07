@@ -1,47 +1,68 @@
 # managed by puppet
 
-"/var/log/nailgun-agent.log"
-"/var/log/*-all.log"
-"/var/log/corosync.log"
-"/var/log/kern.log"
-"/var/log/debug"
-"/var/log/syslog"
-"/var/log/daemon.log"
-"/var/log/auth.log"
 "/var/log/audit/audit.log"
-"/var/log/user.log"
-"/var/log/mail.log"
-"/var/log/cron.log"
-"/var/log/dashboard.log"
-"/var/log/pacemaker.log"
+"/var/log/ceilometer/*.log"
+"/var/log/cinder/*.log"
+"/var/log/glance/*.log"
+"/var/log/heat/*.log"
+"/var/log/keystone/*.log"
+"/var/log/murano/*.log"
 "/var/log/neutron/*.log"
 "/var/log/nova/*.log"
-"/var/log/keystone/*.log"
-"/var/log/glance/*.log"
-"/var/log/cinder/*.log"
+"/var/log/sahara/*.log"
+"/var/log/*-all.log"
+"/var/log/auth.log"
+"/var/log/corosync.log" "/var/log/cron.log"
+"/var/log/daemon.log"
+"/var/log/dashboard.log"
+"/var/log/debug"
+"/var/log/kern.log"
+"/var/log/mail.log"
+"/var/log/messages"
 "/var/log/mongod.log"
 "/var/log/mysqld.log"
-"/var/log/murano/*.log"
-"/var/log/heat/*.log"
-"/var/log/sahara/*.log"
-"/var/log/ceilometer/*.log"
+"/var/log/nailgun-agent.log"
+"/var/log/pacemaker.log"
+"/var/log/sudo.log"
+"/var/log/syslog"
+"/var/log/user.log"
 {
-# This file is used for daily log rotations, do not use size options here
+  # pass whole regexp to {pre,post}rotate scripts
   sharedscripts
-  <%= @rotation %>
-  # rotate only if 30M size or bigger
-  minsize 30M
+
   # truncate file, do not delete & recreate
   copytruncate
-  # keep logs for <%= @keep %> rotations
-  rotate <%= @keep %>
-  # compression will be postponed to the next rotation, if uncommented
-  # delaycompress
+
+  # compress rotated files with gzip
   compress
+
+  # postpone compression to the next rotation
+  delaycompress
+
   # ignore missing files
   missingok
+
   # do not rotate empty files
   notifempty
+
+  # logrotate allows to use only year, month, day and unix epoch
+  dateformat -%Y%m%d-%s
+
+  # number of rotated files to keep
+  rotate <%= @keep %>
+
+  # do not rotate files unless both size and time conditions are met
+  <%= @rotation %>
+  minsize <%= @minsize %>
+
+  # force rotate if filesize exceeded <%= @maxsize %>
+  maxsize <%= @maxsize %>
+
+  <% if @osfamily == 'Debian' %>
+  # https://bugs.launchpad.net/ubuntu/+source/logrotate/+bug/1278193
+  su root syslog
+  <% end %>
+
   postrotate
       /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
       reload rsyslog >/dev/null 2>&1 || true

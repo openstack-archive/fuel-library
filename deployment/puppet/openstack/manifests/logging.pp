@@ -18,22 +18,23 @@
 #   (rabbit does not support syslog, imfile is used for log capturing)
 #
 class openstack::logging (
-    $role                           = 'client',
-    $log_remote                     = true,
-    $log_local                      = false,
-    $log_auth_local                 = false,
-    $rotation                       = 'daily',
-    $keep                           = '7',
-    $limitsize                      = '300M',
-    $rservers                       = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
-    $port                           = '514',
-    $proto                          = 'udp',
-    $show_timezone                  = false,
-    $virtual                        = false,
-    $rabbit_log_level               = 'NOTICE',
-    $production                     = 'prod',
-    $escapenewline                  = false,
-    $debug                          = false,
+  $role             = 'client',
+  $log_remote       = true,
+  $log_local        = false,
+  $log_auth_local   = false,
+  $rotation         = 'daily',
+  $keep             = '7',
+  $minsize          = '10M',
+  $maxsize          = '100M',
+  $rservers         = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+  $port             = '514',
+  $proto            = 'udp',
+  $show_timezone    = false,
+  $virtual          = false,
+  $rabbit_log_level = 'NOTICE',
+  $production       = 'prod',
+  $escapenewline    = false,
+  $debug            = false,
 ) {
 
   validate_re($proto, 'tcp|udp|both')
@@ -248,12 +249,13 @@ class openstack::logging (
   }
 
   # Configure log rotation
-  class {"::openstack::logrotate":
-    role           => $role,
-    rotation       => $rotation,
-    keep           => $keep,
-    limitsize      => $limitsize,
-    debug          => $debug,
+  class { '::openstack::logrotate':
+    role     => $role,
+    rotation => $rotation,
+    keep     => $keep,
+    minsize  => $minsize,
+    maxsize  => $maxsize,
+    debug    => $debug,
   }
 
   # Deprecated stuff handling section

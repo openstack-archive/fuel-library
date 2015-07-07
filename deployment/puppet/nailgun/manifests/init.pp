@@ -98,15 +98,15 @@ class nailgun(
                Class["nailgun::nginx-nailgun"],
                ],
   }
-  class {openstack::logging:
+  class { '::openstack::logging':
     role           => 'server',
     log_remote     => false,
     log_local      => true,
     log_auth_local => true,
     rotation       => 'weekly',
     keep           => '4',
-    # should be > 30M
-    limitsize      => '100M',
+    minsize        => '5M',
+    maxsize        => '20M',
     port           => '514',
     # listen both TCP and UDP
     proto          => 'both',

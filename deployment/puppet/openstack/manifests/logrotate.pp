@@ -1,66 +1,85 @@
 #
 class openstack::logrotate (
-    $role           = 'client',
-    $rotation       = 'daily',
-    $keep           = '7',
-    $limitsize      = '300M',
-    $debug          = false,
+  $role     = 'client',
+  $rotation = 'weekly',
+  $keep     = '7',
+  $minsize  = '30M',
+  $maxsize  = '100M',
+  $debug    = false,
 ) {
   validate_re($rotation, 'daily|weekly|monthly')
+  $logrotatefile = '/etc/logrotate.d/fuel.nodaily'
 
   if $role == 'server' {
-  # configure logs rotation both for host OS and docker containers of rsylog server role
-    # This file is used for daily/weekly/monthly log rotations
-    file { "/etc/logrotate.d/10-fuel-docker.conf":
-      owner => 'root',
-      group => 'root',
-      mode  => '0644',
-      content => template("openstack/10-fuel-docker.conf.erb"),
+    # Configure log rotation for master node and docker containers
+    file { $logrotatefile:
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0644',
+      content => template('openstack/10-fuel-docker.conf.erb'),
     }
-    # This file is used for hourly log rotations by (ana)cron
-    file { "/etc/logrotate.d/20-fuel-docker.conf":
-      owner => 'root',
-      group => 'root',
-      mode  => '0644',
-      content => template("openstack/20-fuel-docker.conf.erb"),
-    }
-
-    $logrotatefile = '/etc/logrotate.d/20-fuel-docker.conf'
   } else {
-  # configure logrotation for rsylog client role
-    # This file is used for daily/weekly/monthly log rotations
-    file { "/etc/logrotate.d/10-fuel.conf":
-      owner => 'root',
-      group => 'root',
-      mode  => '0644',
-      content => template("openstack/10-fuel.conf.erb"),
+    # Configure log rotation for other nodes
+    file { $logrotatefile:
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0644',
+      content => template('openstack/10-fuel.conf.erb'),
     }
-
-    # This file is used for hourly log rotations by (ana)cron
-    file { "/etc/logrotate.d/20-fuel.conf":
-      owner => 'root',
-      group => 'root',
-      mode  => '0644',
-      content => template("openstack/20-fuel.conf.erb"),
-    }
-
-    $logrotatefile = '/etc/logrotate.d/20-fuel.conf'
   }
 
-# Configure (ana)cron for fuel custom hourly logrotations
-  class { '::anacron': 
-    debug => $debug,
+  # TODO(aschultz): should move these to augeas when augeas is upgraded to
+  # >=1.4.0 because maxsize isn't supported until 1.4.0 which breaks everything.
+  File_line {
+    ensure => 'present',
+    path   => '/etc/logrotate.conf',
   }
-  case $osfamily {
-    'RedHat': {
-     # Due to bug existing, logrotate always returns 0. Use grep for detect errors:
-     # would return 1 (considered as normal result), if logrotate returns no errors, return 0, if any.
-     exec {'logrotate_check':
-      path    => ["/usr/bin", "/usr/sbin", "/sbin", "/bin"],
-      command => "logrotate $logrotatefile >& /tmp/logrotate && grep -q error /tmp/logrotate",
-      returns => 1,
-      require => File[$logrotatefile],
-   }
+
+  # We're  using after here to place these options above the include
+  # /etc/logrotate.d as file_line does not have a before option.
+  file_line { 'logrotate-tabooext':
+    line  => 'tabooext + .nodaily',
+    match => '^tabooext',
+    after => '^create',
+  } ->
+  file_line { 'logrotate-compress':
+    line  => 'compress',
+    match => '^compress',
+    after => '^tabooext',
+  } ->
+  file_line { 'logrotate-delaycompress':
+    line  => 'delaycompress',
+    match => '^delaycompress',
+    after => '^compress',
+  } ->
+  file_line { 'logrotate-minsize':
+    line  => "minsize ${minsize}",
+    match => '^minsize',
+    after => '^delaycompress',
+  } ->
+  file_line { 'logrotate-maxsize':
+    line  => "maxsize ${maxsize}",
+    match => '^maxsize',
+    after => '^minsize',
   }
- }
+
+  if $debug {
+    $interval = '10'
+  } else {
+    $interval = '30'
+  }
+
+  file { '/usr/bin/fuel-logrotate':
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+    source => 'puppet:///modules/openstack/fuel-logrotate',
+  }
+
+  cron { 'fuel-logrotate':
+    command => '/usr/bin/fuel-logrotate',
+    user    => 'root',
+    minute  => "*/${interval}",
+    require => File['/usr/bin/fuel-logrotate'],
+  }
 }
