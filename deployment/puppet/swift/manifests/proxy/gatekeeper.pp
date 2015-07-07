@@ -35,12 +35,11 @@
 #
 # Copyright 2014 UnitedStack licensing@unitedstack.com
 #
-
 class swift::proxy::gatekeeper(
   $log_name     = 'gatekeeper',
   $log_facility = 'LOG_LOCAL0',
   $log_level    = 'INFO',
-  $log_headers  = 'false',
+  $log_headers  = false,
   $log_address  = '/dev/log'
 ) {
 

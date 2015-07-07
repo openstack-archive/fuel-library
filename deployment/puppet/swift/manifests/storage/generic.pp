@@ -2,9 +2,20 @@
 # needed to deploy each type of storage server.
 #
 # == Parameters
-#  [*package_ensure*] The desired ensure state of the swift storage packages.
-#    Optional. Defaults to present.
-#  [*service_provider*] The provider to use for the service
+#  [*enabled*]
+#    (optional) Should the service be enabled.
+#    Defaults to true
+#
+#  [*manage_service*]
+#    (optional) Whether the service should be managed by Puppet.
+#    Defaults to true.
+#
+#  [*package_ensure*]
+#    (optional) The desired ensure state of the swift storage packages.
+#    Defaults to present.
+#
+#  [*service_provider*]
+#    (optional) The provider to use for the service
 #
 # == Dependencies
 #  Requires Class[swift::storage]
@@ -18,13 +29,16 @@
 #
 # Copyright 2011 Puppetlabs Inc, unless otherwise noted.
 define swift::storage::generic(
+  $manage_service   = true,
+  $enabled          = true,
   $package_ensure   = 'present',
   $service_provider = $::swift::params::service_provider
 ) {
 
-  include swift::params
+  include ::swift::params
 
   Class['swift::storage'] -> Swift::Storage::Generic[$name]
+  Swift_config<| |> ~> Service["swift-${name}"]
 
   validate_re($name, '^object|container|account$')
 
@@ -33,6 +47,7 @@ define swift::storage::generic(
     # this is a way to dynamically build the variables to lookup
     # sorry its so ugly :(
     name   => inline_template("<%= scope.lookupvar('::swift::params::${name}_package_name') %>"),
+    tag    => 'openstack',
     before => Service["swift-${name}", "swift-${name}-replicator"],
   }
 
@@ -42,31 +57,30 @@ define swift::storage::generic(
     group  => 'swift',
   }
 
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
+  }
+
   service { "swift-${name}":
-    ensure    => running,
+    ensure    => $service_ensure,
     name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_service_name') %>"),
-    enable    => true,
+    enable    => $enabled,
     hasstatus => true,
     provider  => $service_provider,
     subscribe => Package["swift-${name}"],
   }
-
-  if $::osfamily == "RedHat" {
-    $service_name = "openstack-swift-${name}-replicator"
-  } else {
-    $service_name = "swift-${name}-replicator"
-  }
-
 
   service { "swift-${name}-replicator":
-    ensure    => running,
+    ensure    => $service_ensure,
     name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_replicator_service_name') %>"),
-    enable    => true,
+    enable    => $enabled,
     hasstatus => true,
     provider  => $service_provider,
     subscribe => Package["swift-${name}"],
   }
-
-  Package["swift-${name}"] ~> Service["swift-${name}-replicator"]
 
 }

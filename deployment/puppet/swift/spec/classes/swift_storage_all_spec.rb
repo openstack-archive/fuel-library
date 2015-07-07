@@ -5,17 +5,13 @@ describe 'swift::storage::all' do
 
   let :facts do
     {
-      :concat_basedir  => '/tmp/',
       :operatingsystem => 'Ubuntu',
-      :osfamily        => 'Debian',
-      :concat_basedir  => '/tmp/foo'
+      :osfamily        => 'Debian'
     }
   end
 
   let :pre_condition do
-    "class { 'swift': swift_hash_suffix => 'changeme' }
-     include ssh::server::install
-    "
+    "class { 'swift': swift_hash_suffix => 'changeme' }"
   end
 
   let :default_params do
@@ -29,9 +25,7 @@ describe 'swift::storage::all' do
   end
 
   describe 'when an internal network ip is not specified' do
-    it 'should fail' do
-      expect { subject }.to raise_error(Puppet::Error, /Must pass storage_local_net_ip/)
-    end
+    it_raises 'a Puppet::Error', /Must pass storage_local_net_ip/
   end
 
   [{  :storage_local_net_ip => '127.0.0.1' },
@@ -59,21 +53,21 @@ describe 'swift::storage::all' do
       end
 
       ['object', 'container', 'account'].each do |type|
-        it { should contain_package("swift-#{type}").with_ensure('present') }
-        it { should contain_service("swift-#{type}").with(
+        it { is_expected.to contain_package("swift-#{type}").with_ensure('present') }
+        it { is_expected.to contain_service("swift-#{type}").with(
           {:provider  => 'upstart',
            :ensure    => 'running',
            :enable    => true,
            :hasstatus => true
           })}
-        it { should contain_service("swift-#{type}-replicator").with(
+        it { is_expected.to contain_service("swift-#{type}-replicator").with(
           {:provider  => 'upstart',
            :ensure    => 'running',
            :enable    => true,
            :hasstatus => true
           }
         )}
-        it { should contain_file("/etc/swift/#{type}-server/").with(
+        it { is_expected.to contain_file("/etc/swift/#{type}-server/").with(
           {:ensure => 'directory',
            :owner  => 'swift',
            :group  => 'swift'}
@@ -87,24 +81,24 @@ describe 'swift::storage::all' do
         }
       end
 
-      it { should contain_swift__storage__server(param_hash[:account_port]).with(
+      it { is_expected.to contain_swift__storage__server(param_hash[:account_port]).with(
         {:type => 'account',
          :config_file_path => 'account-server.conf',
-         :pipeline => param_hash[:account_pipeline] || 'account-server' }.merge(storage_server_defaults)
+         :pipeline => param_hash[:account_pipeline] || ['account-server'] }.merge(storage_server_defaults)
       )}
-      it { should contain_swift__storage__server(param_hash[:object_port]).with(
+      it { is_expected.to contain_swift__storage__server(param_hash[:object_port]).with(
         {:type => 'object',
          :config_file_path => 'object-server.conf',
-         :pipeline => param_hash[:object_pipeline] || 'object-server' }.merge(storage_server_defaults)
+         :pipeline => param_hash[:object_pipeline] || ['object-server'] }.merge(storage_server_defaults)
       )}
-      it { should contain_swift__storage__server(param_hash[:container_port]).with(
+      it { is_expected.to contain_swift__storage__server(param_hash[:container_port]).with(
         {:type => 'container',
          :config_file_path => 'container-server.conf',
-         :pipeline => param_hash[:container_pipeline] || 'container-server',
+         :pipeline => param_hash[:container_pipeline] || ['container-server'],
          :allow_versions => param_hash[:allow_versions] || false }.merge(storage_server_defaults)
       )}
 
-      it { should contain_class('rsync::server').with(
+      it { is_expected.to contain_class('rsync::server').with(
         {:use_xinetd => true,
          :address    => param_hash[:storage_local_net_ip],
          :use_chroot => 'no'
@@ -118,8 +112,7 @@ describe 'swift::storage::all' do
     let :facts do
       {
         :operatingsystem => 'Debian',
-        :osfamily        => 'Debian',
-        :concat_basedir  => '/tmp/foo'
+        :osfamily        => 'Debian'
       }
     end
 
@@ -141,14 +134,14 @@ describe 'swift::storage::all' do
           param_set
         end
         ['object', 'container', 'account'].each do |type|
-          it { should contain_package("swift-#{type}").with_ensure('present') }
-          it { should contain_service("swift-#{type}").with(
+          it { is_expected.to contain_package("swift-#{type}").with_ensure('present') }
+          it { is_expected.to contain_service("swift-#{type}").with(
             {:provider  => nil,
               :ensure    => 'running',
               :enable    => true,
               :hasstatus => true
             })}
-            it { should contain_service("swift-#{type}-replicator").with(
+            it { is_expected.to contain_service("swift-#{type}-replicator").with(
               {:provider  => nil,
                 :ensure    => 'running',
                 :enable    => true,

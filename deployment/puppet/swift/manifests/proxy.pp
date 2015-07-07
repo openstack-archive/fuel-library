@@ -6,40 +6,97 @@
 #
 # Installs and configures the swift proxy node.
 #
-# [*Parameters*]
+# == Parameters
 #
-# [*proxy_local_net_ip*] The address that the proxy will bind to.
-#   Required.
-# [*port*] The port to which the proxy server will bind.
-#   Optional. Defaults to 8080.
-# [*pipeline*] The list of elements of the swift proxy pipeline.
-#   Currently supports healthcheck, cache, proxy-server, and
-#   one of the following auth_types: tempauth, swauth, keystone.
-#   Each of the specified elements also need to be declared externally
-#   as a puppet class with the exception of proxy-server.
-#   Optional. Defaults to ['healthcheck', 'cache', 'tempauth', 'proxy-server']
-# [*workers*] Number of threads to process requests.
-#  Optional. Defaults to the number of processors.
-# [*allow_account_management*]
-#   Rather or not requests through this proxy can create and
-#   delete accounts. Optional. Defaults to true.
-# [*account_autocreate*] Rather accounts should automatically be created.
-#  Has to be set to true for tempauth. Optional. Defaults to true.
-# [*read_affinity*]
-#  Configures the read affinity of proxy-server. Optional. Defaults to undef.
-# [*write_affinity*]
-#  Configures the write affinity of proxy-server. Optional. Defaults to undef.
-# [*write_affinity_node_count*]
-#  Configures write_affinity_node_count for proxy-server.
-#  Optional but requires write_affinity to be set. Defaults to undef.
-# [*package_ensure*] Ensure state of the swift proxy package.
-#   Optional. Defaults to present.
-# [*log_name*]
-#  Configures log_name for swift proxy-server.
-#  Optional. Defaults to proxy-server
-# [*node_timeout*]
-#  Configures swift proxy-server node timeout
-#  Optional. Defaults to 90
+#  [*proxy_local_net_ip*]
+#    The address that the proxy will bind to.
+#
+#  [*port*]
+#    (optional) The port to which the proxy server will bind.
+#    Defaults to 8080.
+#
+#  [*pipeline*]
+#    (optional) The list of elements of the swift proxy pipeline.
+#    Currently supports healthcheck, cache, proxy-server, and
+#    one of the following auth_types: tempauth, swauth, keystone.
+#    Each of the specified elements also need to be declared externally
+#    as a puppet class with the exception of proxy-server.
+#    Defaults to ['healthcheck', 'cache', 'tempauth', 'proxy-server']
+#
+#  [*workers*]
+#    (optional) Number of threads to process requests.
+#    Defaults to the number of processors.
+#
+#  [*allow_account_management*]
+#    (optional) Rather or not requests through this proxy can create and
+#    delete accounts.
+#    Defaults to true.
+#
+#  [*account_autocreate*]
+#    (optional) Rather accounts should automatically be created.
+#    Has to be set to true for tempauth.
+#    Defaults to true.
+#
+#  [*log_headers*]
+#    (optional) If True, log headers in each request
+#    Defaults to False.
+#
+#  [*log_udp_host*]
+#    (optional) If not set, the UDP receiver for syslog is disabled.
+#    Defaults to an empty string
+#
+#  [*log_udp_port*]
+#    (optional) Port value for UDP receiver, if enabled.
+#    Defaults to an empty string
+#
+#  [*log_address*]
+#    (optional) Location where syslog sends the logs to.
+#    Defaults to '/dev/log'.
+#
+#  [*log_level*]
+#    (optional) Log level.
+#    Defaults to 'INFO'.
+#
+#  [*log_facility*]
+#    (optional) Log level
+#    Defaults to 'LOG_LOCAL1'.
+#
+#  [*log_handoffs*]
+#     (optional) If True, the proxy will log whenever it has to failover to a handoff node
+#     Defaults to true.
+#
+#  [*read_affinity*]
+#    (optional) Configures the read affinity of proxy-server.
+#    Defaults to undef.
+#
+#  [*write_affinity*]
+#    (optional) Configures the write affinity of proxy-server.
+#    Defaults to undef.
+#
+#  [*write_affinity_node_count*]
+#    (optional) Configures write_affinity_node_count for proxy-server.
+#    Optional but requires write_affinity to be set.
+#    Defaults to undef.
+#
+#  [*node_timeout*]
+#    (optional) Configures node_timeout for swift proxy-server
+#    Defaults to undef.
+#
+#  [*enabled*]
+#    (optional) Should the service be enabled.
+#    Defaults to true
+#
+#  [*manage_service*]
+#    (optional) Whether the service should be managed by Puppet.
+#    Defaults to true.
+#
+#  [*package_ensure*]
+#    (optional) Ensure state of the swift proxy package.
+#    Defaults to present.
+#
+#  [*log_name*]
+#    Configures log_name for swift proxy-server.
+#    Optional. Defaults to proxy-server
 #
 # == Examples
 #
@@ -53,28 +110,32 @@
 #
 class swift::proxy(
   $proxy_local_net_ip,
-  $port = '8080',
-  $pipeline = ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
-  $workers = $::processorcount,
-  $allow_account_management = true,
-  $account_autocreate = true,
-  $log_headers = 'False',
-  $log_udp_host = '',
-  $log_udp_port = '',
-  $log_address = '/dev/log',
-  $log_level = 'INFO',
-  $log_facility = 'LOG_LOCAL1',
-  $log_handoffs = true,
-  $log_name = 'proxy-server',
-  $read_affinity = undef,
-  $write_affinity = undef,
+  $port                      = '8080',
+  $pipeline                  = ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
+  $workers                   = $::processorcount,
+  $allow_account_management  = true,
+  $account_autocreate        = true,
+  $log_headers               = 'False',
+  $log_udp_host              = undef,
+  $log_udp_port              = undef,
+  $log_address               = '/dev/log',
+  $log_level                 = 'INFO',
+  $log_facility              = 'LOG_LOCAL1',
+  $log_handoffs              = true,
+  $log_name                  = 'proxy-server',
+  $read_affinity             = undef,
+  $write_affinity            = undef,
   $write_affinity_node_count = undef,
-  $node_timeout = '90',
-  $package_ensure = 'present'
+  $node_timeout              = undef,
+  $manage_service            = true,
+  $enabled                   = true,
+  $package_ensure            = 'present'
 ) {
 
-  include swift::params
-  include concat::setup
+  include ::swift::params
+  include ::concat::setup
+
+  Swift_config<| |> ~> Service['swift-proxy']
 
   validate_bool($account_autocreate)
   validate_bool($allow_account_management)
@@ -102,9 +163,14 @@ class swift::proxy(
     fail('account_autocreate must be set to true when auth_type is tempauth')
   }
 
+  if ($log_udp_port and !$log_udp_host) {
+    fail ('log_udp_port requires log_udp_host to be set')
+  }
+
   package { 'swift-proxy':
     ensure => $package_ensure,
     name   => $::swift::params::proxy_package_name,
+    tag    => 'openstack',
   }
 
   concat { '/etc/swift/proxy-server.conf':
@@ -134,10 +200,18 @@ class swift::proxy(
     before  => Class[$required_classes],
   }
 
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
+  }
+
   service { 'swift-proxy':
-    ensure    => running,
+    ensure    => $service_ensure,
     name      => $::swift::params::proxy_service_name,
-    enable    => true,
+    enable    => $enabled,
     provider  => $::swift::params::service_provider,
     hasstatus => true,
     subscribe => Concat['/etc/swift/proxy-server.conf'],

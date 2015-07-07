@@ -6,8 +6,7 @@ describe 'swift::proxy::cache' do
     {
       :operatingsystem => 'Ubuntu',
       :osfamily        => 'Debian',
-      :processorcount  => 1,
-      :concat_basedir  => '/var/lib/puppet/concat',
+      :processorcount  => 1
     }
   end
 
@@ -21,12 +20,12 @@ describe 'swift::proxy::cache' do
     "/var/lib/puppet/concat/_etc_swift_proxy-server.conf/fragments/23_swift_cache"
   end
 
-  it { should contain_file(fragment_file).with_content(/[filter:cache]/) }
-  it { should contain_file(fragment_file).with_content(/use = egg:swift#memcache/) }
+  it { is_expected.to contain_file(fragment_file).with_content(/[filter:cache]/) }
+  it { is_expected.to contain_file(fragment_file).with_content(/use = egg:swift#memcache/) }
 
   describe 'with defaults' do
 
-    it { should contain_file(fragment_file).with_content(/memcache_servers = 127\.0\.0\.1:11211/) }
+    it { is_expected.to contain_file(fragment_file).with_content(/memcache_servers = 127\.0\.0\.1:11211/) }
 
   end
 
@@ -36,7 +35,7 @@ describe 'swift::proxy::cache' do
       {:memcache_servers => '10.0.0.1:1'}
     end
 
-    it { should contain_file(fragment_file).with_content(/memcache_servers = 10\.0\.0\.1:1/) }
+    it { is_expected.to contain_file(fragment_file).with_content(/memcache_servers = 10\.0\.0\.1:1/) }
 
   end
 
@@ -46,7 +45,7 @@ describe 'swift::proxy::cache' do
       {:memcache_servers => ['10.0.0.1:1', '10.0.0.2:2']}
     end
 
-    it { should contain_file(fragment_file).with_content(/memcache_servers = 10\.0\.0\.1:1,10\.0\.0\.2:2/) }
+    it { is_expected.to contain_file(fragment_file).with_content(/memcache_servers = 10\.0\.0\.1:1,10\.0\.0\.2:2/) }
 
   end
 

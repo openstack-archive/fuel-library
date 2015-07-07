@@ -3,9 +3,7 @@ require 'spec_helper'
 describe 'swift::proxy::s3token' do
 
   let :facts do
-    {
-      :concat_basedir => '/var/lib/puppet/concat'
-    }
+    {}
   end
 
   let :pre_condition do
@@ -17,14 +15,14 @@ describe 'swift::proxy::s3token' do
     "/var/lib/puppet/concat/_etc_swift_proxy-server.conf/fragments/28_swift_s3token"
   end
 
-  it { should contain_class('keystone::python') }
+  it { is_expected.to contain_class('keystone::python') }
 
   describe "when using default parameters" do
     it 'should build the fragment with correct parameters' do
-      verify_contents(subject, fragment_file,
+      verify_contents(catalogue, fragment_file,
         [
           '[filter:s3token]',
-          'paste.filter_factory = keystoneclient.middleware.s3_token:filter_factory',
+          'paste.filter_factory = keystonemiddleware.s3_token:filter_factory',
           'auth_port = 35357',
           'auth_protocol = http',
           'auth_host = 127.0.0.1'
@@ -42,10 +40,10 @@ describe 'swift::proxy::s3token' do
       }
     end
     it 'should build the fragment with correct parameters' do
-      verify_contents(subject, fragment_file,
+      verify_contents(catalogue, fragment_file,
         [
           '[filter:s3token]',
-          'paste.filter_factory = keystoneclient.middleware.s3_token:filter_factory',
+          'paste.filter_factory = keystonemiddleware.s3_token:filter_factory',
           'auth_port = 4212',
           'auth_protocol = https',
           'auth_host = 1.2.3.4'

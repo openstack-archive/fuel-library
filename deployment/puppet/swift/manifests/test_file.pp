@@ -38,6 +38,6 @@ class swift::test_file (
 ) {
   file { '/tmp/swift_test_file.rb':
     mode    => '0755',
-    content => template('swift/swift_keystone_test.erb')
+    content => template('swift/swift_keystone_test.erb'),
   }
 }
