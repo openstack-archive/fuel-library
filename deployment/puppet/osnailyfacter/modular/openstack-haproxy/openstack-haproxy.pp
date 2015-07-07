@@ -15,7 +15,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 }
 
 if ($use_swift) {
-  $swift_proxies = hiera('swift_proxies', $haproxy_nodes)
+  $swift_proxies = hiera_hash('swift_proxies', undef)
 } elsif ($storage_hash['objects_ceph']) {
   $rgw_servers = hiera('rgw_servers', $controllers)
 }
