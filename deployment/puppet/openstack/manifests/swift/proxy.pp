@@ -2,7 +2,8 @@
 class openstack::swift::proxy (
   $swift_user_password                = 'swift_pass',
   $swift_hash_suffix                  = 'swift_secret',
-  $swift_local_net_ip                 = $::ipaddress_eth0,
+  $swift_proxy_local_ipaddr           = $::ipaddress_eth0,
+  $swift_replication_local_ipaddr     = $::ipaddress_eth0,
   $ring_part_power                    = 18,
   $ring_replicas                      = 3,
   $ring_min_part_hours                = 1,
@@ -38,6 +39,7 @@ class openstack::swift::proxy (
   $primary_proxy                      = false,
   $swift_devices                      = undef,
   $master_swift_proxy_ip              = undef,
+  $master_swift_replication_ip        = undef,
   $collect_exported                   = false,
   $rings                              = ['account', 'object', 'container'],
   $debug                              = false,
@@ -83,7 +85,7 @@ class openstack::swift::proxy (
   }
 
   class { '::swift::proxy':
-    proxy_local_net_ip       => $swift_local_net_ip,
+    proxy_local_net_ip       => $swift_proxy_local_ipaddr,
     pipeline                 => $new_proxy_pipeline,
     port                     => $proxy_port,
     workers                  => $proxy_workers,
@@ -153,7 +155,7 @@ class openstack::swift::proxy (
 
     # sets up an rsync db that can be used to sync the ring DB
     class { 'swift::ringserver':
-      local_net_ip => $swift_local_net_ip,
+      local_net_ip => $swift_replication_local_ipaddr,
     }
 
     # resource ordering
@@ -163,22 +165,22 @@ class openstack::swift::proxy (
     Ring_devices<||> ~>
     Swift::Ringbuilder::Rebalance <||>
   } else {
-    validate_string($master_swift_proxy_ip)
+    validate_string($master_swift_replication_ip)
 
     if member($rings, 'account') and ! defined(Swift::Ringsync['account']) {
-      swift::ringsync { 'account': ring_server => $master_swift_proxy_ip }
+      swift::ringsync { 'account': ring_server => $master_swift_replication_ip }
     }
 
     if member($rings, 'object') and ! defined(Swift::Ringsync['object']) {
-      swift::ringsync { 'object': ring_server => $master_swift_proxy_ip }
+      swift::ringsync { 'object': ring_server => $master_swift_replication_ip }
     }
 
     if member($rings, 'container') and ! defined(Swift::Ringsync['container']) {
-      swift::ringsync { 'container': ring_server => $master_swift_proxy_ip }
+      swift::ringsync { 'container': ring_server => $master_swift_replication_ip }
     }
 
     rsync::get { "/etc/swift/backups/":
-      source    => "rsync://${master_swift_proxy_ip}/swift_server/backups/",
+      source    => "rsync://${master_swift_replication_ip}/swift_server/backups/",
       recursive => true,
     }
 
