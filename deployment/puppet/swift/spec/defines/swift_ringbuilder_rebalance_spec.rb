@@ -9,8 +9,14 @@ describe 'swift::ringbuilder::rebalance' do
         it { is_expected.to contain_exec("rebalance_#{type}").with(
           {:command     => "swift-ring-builder /etc/swift/#{type}.builder rebalance",
            :path        => ['/usr/bin'],
-           :refreshonly => true}
+           :refreshonly => true,
+           :returns     => [0,1]}
         )}
+        it { is_expected.to contain_exec("hours_passed_#{type}").with(
+          {:command     => "swift-ring-builder /etc/swift/#{type}.builder pretend_min_part_hours_passed",
+           :path        => ['/usr/bin'],
+           :refreshonly => true}
+        ).that_comes_before("Exec[rebalance_#{type}]")}
       end
     end
   end
@@ -24,8 +30,14 @@ describe 'swift::ringbuilder::rebalance' do
     it { is_expected.to contain_exec("rebalance_object").with(
       {:command     => "swift-ring-builder /etc/swift/object.builder rebalance 999",
        :path        => ['/usr/bin'],
-       :refreshonly => true}
+       :refreshonly => true,
+       :returns     => [0,1]}
     )}
+    it { is_expected.to contain_exec("hours_passed_object").with(
+      {:command     => "swift-ring-builder /etc/swift/object.builder pretend_min_part_hours_passed",
+       :path        => ['/usr/bin'],
+       :refreshonly => true}
+    ).that_comes_before("Exec[rebalance_object]")}
   end
   describe 'with an invalid seed' do
     let :title do
