@@ -17,6 +17,8 @@ firewall {'004 remote puppet ':
   require => Class['openstack::firewall'],
 }
 
+
+prepare_network_config(hiera_hash('network_scheme'))
 class { 'openstack::firewall' :
-  nova_vnc_ip_range => hiera('management_network_range'),
+  nova_vnc_ip_range => get_network_role_property('mgmt/vip', 'network'),
 }
