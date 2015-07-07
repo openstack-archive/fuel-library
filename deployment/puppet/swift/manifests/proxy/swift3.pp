@@ -3,6 +3,12 @@
 #
 # == Dependencies
 #
+# == Parameters
+#
+# [*ensure*]
+#   Enable or not ceilometer fragment
+#   Defaults to 'present'
+#
 # == Examples
 #
 # == Authors
@@ -18,11 +24,12 @@ class swift::proxy::swift3(
   $ensure = 'present'
 ) {
 
-  include swift::params
+  include ::swift::params
 
   package { 'swift-plugin-s3':
     ensure => $ensure,
     name   => $::swift::params::swift3,
+    tag    => 'openstack',
   }
 
   concat::fragment { 'swift_swift3':

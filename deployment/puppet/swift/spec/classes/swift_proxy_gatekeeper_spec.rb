@@ -3,9 +3,7 @@ require 'spec_helper'
 describe 'swift::proxy::gatekeeper' do
 
   let :facts do
-    {
-      :concat_basedir => '/var/lib/puppet/concat'
-    }
+    {}
   end
 
   let :pre_condition do
@@ -19,7 +17,7 @@ describe 'swift::proxy::gatekeeper' do
 
   describe "when using default parameters" do
     it 'should build the fragment with correct parameters' do
-      verify_contents(subject, fragment_file,
+      verify_contents(catalogue, fragment_file,
         [
           '[filter:gatekeeper]',
           'use = egg:swift#gatekeeper',
@@ -42,7 +40,7 @@ describe 'swift::proxy::gatekeeper' do
       }
     end
     it 'should build the fragment with correct parameters' do
-      verify_contents(subject, fragment_file,
+      verify_contents(catalogue, fragment_file,
         [
           '[filter:gatekeeper]',
           'use = egg:swift#gatekeeper',

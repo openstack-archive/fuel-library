@@ -3,9 +3,7 @@ require 'spec_helper'
 describe 'swift::proxy::crossdomain' do
 
   let :facts do
-    {
-      :concat_basedir => '/var/lib/puppet/concat'
-    }
+    {}
   end
 
   let :pre_condition do
@@ -19,7 +17,7 @@ describe 'swift::proxy::crossdomain' do
 
   describe "when using default parameters" do
     it 'should build the fragment with correct parameters' do
-      verify_contents(subject, fragment_file,
+      verify_contents(catalogue, fragment_file,
         [
           '[filter:crossdomain]',
           'use = egg:swift#crossdomain',
@@ -37,7 +35,7 @@ describe 'swift::proxy::crossdomain' do
       }
     end
     it 'should build the fragment with correct parameters' do
-      verify_contents(subject, fragment_file,
+      verify_contents(catalogue, fragment_file,
         [
           '[filter:crossdomain]',
           'use = egg:swift#crossdomain',

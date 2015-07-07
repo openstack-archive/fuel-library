@@ -28,8 +28,8 @@ describe 'swift::dispersion' do
     {}
   end
 
-  it { should contain_file('/etc/swift/dispersion.conf').with(
-    :ensure  => 'present',
+  it { is_expected.to contain_file('/etc/swift/dispersion.conf').with(
+    :ensure  => 'file',
     :owner   => 'swift',
     :group   => 'swift',
     :mode    => '0660',
@@ -40,34 +40,34 @@ describe 'swift::dispersion' do
     let (:p) { default_params.merge!(params) }
 
     it 'depends on swift package' do
-      should contain_package('swift').with_before(/Swift_dispersion_config\[.+\]/)
+      is_expected.to contain_package('swift').with_before(/Swift_dispersion_config\[.+\]/)
     end
 
     it 'configures dispersion.conf' do
-      should contain_swift_dispersion_config(
+      is_expected.to contain_swift_dispersion_config(
         'dispersion/auth_url').with_value(p[:auth_url])
-      should contain_swift_dispersion_config(
+      is_expected.to contain_swift_dispersion_config(
         'dispersion/auth_version').with_value(p[:auth_version])
-      should contain_swift_dispersion_config(
+      is_expected.to contain_swift_dispersion_config(
         'dispersion/auth_user').with_value("#{p[:auth_tenant]}:#{p[:auth_user]}")
-      should contain_swift_dispersion_config(
+      is_expected.to contain_swift_dispersion_config(
         'dispersion/auth_key').with_value(p[:auth_pass])
-      should contain_swift_dispersion_config(
+      is_expected.to contain_swift_dispersion_config(
         'dispersion/endpoint_type').with_value(p[:endpoint_type])
-      should contain_swift_dispersion_config(
+      is_expected.to contain_swift_dispersion_config(
         'dispersion/swift_dir').with_value(p[:swift_dir])
-      should contain_swift_dispersion_config(
+      is_expected.to contain_swift_dispersion_config(
         'dispersion/dispersion_coverage').with_value(p[:coverage])
-      should contain_swift_dispersion_config(
+      is_expected.to contain_swift_dispersion_config(
         'dispersion/retries').with_value(p[:retries])
-      should contain_swift_dispersion_config(
+      is_expected.to contain_swift_dispersion_config(
         'dispersion/concurrency').with_value(p[:concurrency])
-      should contain_swift_dispersion_config(
+      is_expected.to contain_swift_dispersion_config(
         'dispersion/dump_json').with_value(p[:dump_json])
     end
 
     it 'triggers swift-dispersion-populate' do
-      should contain_exec('swift-dispersion-populate').with(
+      is_expected.to contain_exec('swift-dispersion-populate').with(
         :path      => ['/bin', '/usr/bin'],
         :subscribe => 'File[/etc/swift/dispersion.conf]',
         :onlyif    => "swift -A #{p[:auth_url]} -U #{p[:auth_tenant]}:#{p[:auth_user]} -K #{p[:auth_pass]} -V #{p[:auth_version]} stat | grep 'Account: '",
