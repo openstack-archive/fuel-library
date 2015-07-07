@@ -148,25 +148,22 @@ $controller_node_public        = $public_vip
 $controller_node_address       = $management_vip
 $mountpoints                   = filter_hash($mp_hash,'point')
 
+$controllers_hash = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+
 # AMQP configuration
 $queue_provider = hiera('queue_provider','rabbitmq')
 
 if !$rabbit_hash['user'] {
-$rabbit_hash['user'] = 'nova'
+  $rabbit_hash['user'] = 'nova'
 }
 
-if $deployment_mode == 'ha_compact' {
-  $amqp_port              = '5673'
-  $amqp_hosts             = amqp_hosts($controller_nodes, $amqp_port, $internal_address)
-  $rabbit_ha_queues       = true
-  $rabbitmq_cluster_nodes = $controller_hostnames
-} else {
-  # simple multinode (deprecated)
-  $amqp_port              = '5672'
-  $amqp_hosts             = amqp_hosts($controller_node_address, $amqp_port)
-  $rabbitmq_cluster_nodes = [ $controller[0]['name'] ]
-  $rabbit_ha_queues       = false
-}
+# todo(sv): switch from 'controller' nodes to 'rmq' nodes as soon as it was implemented as additional node-role
+$amqp_nodes = ipsort(values(get_node_to_ipaddr_map_by_network_role($controllers_hash, 'mgmt/messaging')))
+
+$amqp_port              = '5673'
+$amqp_hosts             = amqp_hosts($amqp_nodes, $amqp_port, get_network_role_property('mgmt/messaging', 'ipaddr'))
+$rabbit_ha_queues       = true
+$rabbitmq_cluster_nodes = keys($controllers_hash)
 
 # MySQL and SQLAlchemy backend configuration
 $custom_mysql_setup_class = hiera('custom_mysql_setup_class', 'galera')
