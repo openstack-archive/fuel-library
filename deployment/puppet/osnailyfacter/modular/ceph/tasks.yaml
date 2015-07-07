@@ -1,3 +1,44 @@
+# PRE_DEPLOYMENT Tasks
+#
+
+- id: copy_keys_ceph
+  type: copy_files
+  role: '*'
+  required_for: [pre_deployment_end]
+  requires: [generate_keys_ceph]
+  parameters:
+    files:
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph.pub
+        dst: /var/lib/astute/ceph/ceph.pub
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph
+        dst: /var/lib/astute/ceph/ceph
+    permissions: '0600'
+    dir_permissions: '0700'
+
+- id: generate_keys_ceph
+  type: shell
+  role: master
+  requires: [pre_deployment_start]
+  required_for: [copy_keys_ceph]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -s 'ceph' -p /var/lib/fuel/keys/
+    timeout: 180
+
+
+#
+# DEPLOYMENT Tasks
+#
+
+- id: top-role-ceph-osd
+  type: puppet
+  groups: [ceph-osd]
+  required_for: [deploy_end]
+  requires: [hosts, firewall]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph-osd.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
 - id: ceph-radosgw
   type: puppet
   groups: [primary-controller, controller]
@@ -33,3 +74,31 @@
     timeout: 3600
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/compute_post.rb
+
+#
+# POST_DEPLOYMENT Tasks
+#
+
+- id: ceph_ready_check
+  type: shell
+  role: [primary-controller]
+  condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
+  requires: [post_deployment_start]
+  required_for: [enable_rados, upload_cirros]
+  parameters:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_ready_check.rb
+    timeout: 1800
+
+- id: enable_rados
+  type: puppet
+  role: [primary-controller, controller]
+  condition: "settings:storage.objects_ceph.value == true"
+  requires: [post_deployment_start]
+  required_for: [upload_cirros, post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/enable_rados.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180
+    cwd: /
+
+

@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'astute/enable_rados.pp'
+manifest = 'ceph/enable_rados.pp'
 
 describe manifest do
   shared_examples 'catalog' do
