@@ -14,14 +14,6 @@ $default_ceilometer_hash = {
   'metering_secret' => 'ceilometer',
 }
 
-if hiera('amqp_hosts', false) {
-  $amqp_hosts             = hiera('amqp_hosts')
-} else {
-  $amqp_nodes             = hiera('amqp_nodes')
-  $amqp_port              = hiera('amqp_port', '5673')
-  $amqp_hosts             = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
-}
-
 $region                     = hiera('region', 'RegionOne')
 $ceilometer_hash            = hiera_hash('ceilometer', $default_ceilometer_hash)
 $ceilometer_region          = pick($ceilometer_hash['region'], $region)
@@ -38,7 +30,7 @@ if ($ceilometer_enabled) {
     debug                          => $debug,
     use_syslog                     => $use_syslog,
     syslog_log_facility            => $syslog_log_facility,
-    amqp_hosts                     => $amqp_hosts,
+    amqp_hosts                     => hiera('amqp_hosts',''),
     amqp_user                      => $amqp_user,
     amqp_password                  => $amqp_password,
     keystone_user                  => $ceilometer_hash['user'],
