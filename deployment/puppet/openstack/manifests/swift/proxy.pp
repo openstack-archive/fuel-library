@@ -68,8 +68,6 @@ class openstack::swift::proxy (
     $log_level = 'WARNING'
   }
 
-  #FIXME(bogdando) the memcached class must be included in catalog if swift node is a standalone!
-
   if $ceilometer {
     $new_proxy_pipeline = split(
       inline_template(
@@ -133,6 +131,9 @@ class openstack::swift::proxy (
   }
 
   if $primary_proxy {
+    # we need to exec swift ringrebuilder commands under swift user
+    Exec { user => 'swift' }
+
     # collect all of the resources that are needed
     # to balance the ring
     if $collect_exported {
@@ -157,8 +158,8 @@ class openstack::swift::proxy (
     }
 
     # resource ordering
-    Anchor <| title == 'rebalance_end' |> -> Service['swift-proxy']
-    Anchor <| title == 'rebalance_end' |> -> Swift::Storage::Generic <| |>
+    Swift::Ringbuilder::Rebalance <||> -> Service['swift-proxy']
+    Swift::Ringbuilder::Rebalance <||> -> Swift::Storage::Generic <| |>
     Swift::Ringbuilder::Create<||> ->
     Ring_devices<||> ~>
     Swift::Ringbuilder::Rebalance <||>
