@@ -1,12 +1,17 @@
 notice('MODULAR: glance.pp')
 
+$network_scheme = hiera_hash('network_scheme', {})
+$network_metadata = hiera_hash('network_metadata', {})
+prepare_network_config($network_scheme)
+
+
 $verbose               = hiera('verbose', true)
 $debug                 = hiera('debug', false)
 $management_vip        = hiera('management_vip')
+$database_vip          = hiera('database_vip')
 $service_endpoint      = hiera('service_endpoint', $management_vip)
 $glance_hash           = hiera_hash('glance', {})
 $storage_hash          = hiera('storage')
-$internal_address      = hiera('internal_address')
 $use_syslog            = hiera('use_syslog', true)
 $syslog_log_facility   = hiera('syslog_log_facility_glance')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
@@ -15,11 +20,11 @@ $max_overflow          = hiera('max_overflow')
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
 $keystone_endpoint     = hiera('keystone_endpoint', $service_endpoint)
-$glance_endpoint       = hiera('glance_endpoint', $service_endpoint)
+$glance_endpoint       = hiera('glance_endpoint', $service_endpoint)  # in most cases it's a service_endpoint
 
 $db_type                        = 'mysql'
-$db_host                        = pick($glance_hash['db_host'], $management_vip)
-$api_bind_address               = $internal_address
+$db_host                        = pick($glance_hash['db_host'], $database_vip)
+$api_bind_address               = get_network_role_property('glance/api', 'ipaddr')
 $enabled                        = true
 $max_retries                    = '-1'
 $idle_timeout                   = '3600'

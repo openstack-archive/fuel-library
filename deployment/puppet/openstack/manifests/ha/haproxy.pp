@@ -53,9 +53,11 @@ class openstack::ha::haproxy (
     ipaddresses  => hiera_array('heat_ipaddresses', $controllers_ipaddresses),
   }
 
+  #todo(sv): change to 'glance' as soon as glance as node-role was ready
+  $glances_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']), 'glance/api')
   class { 'openstack::ha::glance':
-    server_names => hiera_array('glance_names', $controllers_server_names),
-    ipaddresses  => hiera_array('glance_ipaddresses', $controllers_ipaddresses),
+    server_names => hiera_array('glance_names', keys($glances_address_map)),
+    ipaddresses  => hiera_array('glance_ipaddresses', values($glances_address_map)),
   }
 
   class { 'openstack::ha::cinder':

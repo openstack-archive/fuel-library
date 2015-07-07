@@ -24,6 +24,8 @@ class openstack::ha::glance (
     order                  => '090',
     listen_port            => 9191,
     require_service        => 'glance-registry',
+    server_names           => $server_names,
+    ipaddresses            => $ipaddresses,
     haproxy_config_options => {
         'timeout server' => '11m',
     },
