@@ -210,7 +210,7 @@ if ($storage_hash['images_ceph']) {
 # Define swift-related variables
 # todo(sv): use special node-roles instead controllers in the future
 $swift_master_role   = 'primary-controller'
-#$swift_nodes         = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$swift_nodes         = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 $swift_proxies       = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 $swift_proxy_caches  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']) # memcache for swift
 $is_primary_swift_proxy = $primary_controller
