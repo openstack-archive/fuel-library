@@ -15,7 +15,6 @@ $cinder_hash           = hiera_hash('cinder', {})
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $syslog_log_facility   = hiera('syslog_log_facility_keystone')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
-$amqp_hosts            = hiera('amqp_hosts')
 $primary_controller    = hiera('primary_controller')
 $controller_nodes      = hiera('controller_nodes')
 $neutron_user_password = hiera('neutron_user_password', false)
@@ -66,7 +65,7 @@ $ssl = false
 
 $rabbit_password     = $rabbit_hash['password']
 $rabbit_user         = $rabbit_hash['user']
-$rabbit_hosts        = split($amqp_hosts, ',')
+$rabbit_hosts        = split(hiera('amqp_hosts',''), ',')
 $rabbit_virtual_host = '/'
 
 $max_pool_size = hiera('max_pool_size')
