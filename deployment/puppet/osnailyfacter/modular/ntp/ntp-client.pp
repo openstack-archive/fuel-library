@@ -1,12 +1,13 @@
 notice('MODULAR: ntp-client.pp')
 
 $management_vrouter_vip  = hiera('management_vrouter_vip')
+$ntp_servers             = hiera_array('ntp_servers', [$management_vrouter_vip])
 $nodes_hash              = hiera('nodes', {})
 $roles                   = node_roles($nodes_hash, hiera('uid'))
 
 
 class { 'ntp':
-  servers        => [$management_vrouter_vip],
+  servers        => $ntp_servers,
   service_ensure => 'running',
   service_enable => true,
   iburst_enable  => true,
