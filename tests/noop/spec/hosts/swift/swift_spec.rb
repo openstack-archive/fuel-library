@@ -5,7 +5,7 @@ manifest = 'swift/swift.pp'
 describe manifest do
   shared_examples 'catalog' do
     role = Noop.hiera 'role'
-    storage_hash = Noop.hiera['storage']
+    storage_hash = Noop.hiera 'storage'
     nodes = Noop.hiera 'nodes'
     primary_controller_nodes = Noop::Utils.filter_nodes(nodes,'role','primary-controller')
     controllers = primary_controller_nodes + Noop::Utils.filter_nodes(nodes,'role','controller')
@@ -25,13 +25,27 @@ describe manifest do
             should contain_exec("rebalance_#{ring}").with(
               'command' => "swift-ring-builder /etc/swift/#{ring}.builder rebalance",
               'user'    => 'swift',
+              'returns' => [0,1],
             ).that_requires("Exec[hours_passed_#{ring}]")
             should contain_exec("create_#{ring}").with(
               'user'    => 'swift',
             )
           end
         end
+        ['account', 'object', 'container'].each do | ring |
+          it "should define swift::ringbuilder::rebalance[#{ring}] before Service[swift-proxy]" do
+            should contain_swift__ringbuilder__rebalance(ring).that_comes_before('Service[swift-proxy]')
+          end
+        end
+        ['account', 'object', 'container'].each do | ring |
+          ['account', 'object', 'container'].each do | storage |
+            it "should define swift::ringbuilder::rebalance[#{ring}] before swift::storage::generic[#{storage}]" do
+              should contain_swift__ringbuilder__rebalance(ring).that_comes_before("Swift::Storage::Generic[#{storage}]")
+            end
+          end
+        end
       end
+
       it 'should create /etc/swift/backups directory with correct ownership' do
         should contain_file('/etc/swift/backups').with(
           'ensure' => 'directory',

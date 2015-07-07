@@ -1,0 +1,5 @@
+[filter:dlo]
+use = egg:swift#dlo
+rate_limit_after_segment = <%= @rate_limit_after_segment %>
+rate_limit_segments_per_sec = <%= @rate_limit_segments_per_sec %>
+max_get_time = <%= @max_get_time %>
