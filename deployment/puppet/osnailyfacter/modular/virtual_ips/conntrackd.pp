@@ -71,9 +71,12 @@ if $operatingsystem == 'Ubuntu' {
   }
 
   # Workaround to ensure log is rotated properly
-  file { '/etc/logrotate.d/conntrackd':
-    content => template('openstack/95-conntrackd.conf.erb'),
+  file_line { 'logrotate-conntrackd':
+    path    => '/etc/logrotate.d/conntrackd',
+    ensure  => 'present',
+    line    => '    copytruncate',
+    match   => '^\s*copytruncate',
+    after   => 'missingok',
+    require => Package[$conntrackd_package],
   }
-
-  Package[$conntrackd_package] -> File['/etc/logrotate.d/conntrackd']
 }
