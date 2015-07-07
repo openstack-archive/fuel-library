@@ -30,7 +30,7 @@ $keystone_hash                  = hiera('keystone', {})
 $cinder_hash                    = hiera_hash('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
-$network_scheme                 = hiera('network_scheme', {})
+$network_scheme                 = hiera_hash('network_scheme')
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
@@ -93,9 +93,9 @@ class { 'l23network' :
 }
 
 if $use_neutron {
-  $neutron_config            = hiera('quantum_settings')
+  $neutron_config = hiera('quantum_settings')
 } else {
-  $neutron_config     = {}
+  $neutron_config = {}
 }
 
 if !$ceilometer_hash {
@@ -275,9 +275,9 @@ if ($use_ceph and !$storage_hash['volumes_lvm']) {
   $primary_mon    = $controllers[0]['name']
 
   if ($use_neutron) {
-    prepare_network_config($network_scheme)
-    $ceph_cluster_network = get_network_role_property('storage', 'cidr')
-    $ceph_public_network  = get_network_role_property('management', 'cidr')
+    prepare_network_config(hiera_hash('network_scheme'))
+    $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
+    $ceph_public_network  = get_network_role_property('ceph/public', 'network')
   } else {
     $ceph_cluster_network = hiera('storage_network_range')
     $ceph_public_network = hiera('management_network_range')
