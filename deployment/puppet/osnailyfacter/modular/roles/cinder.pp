@@ -195,26 +195,6 @@ $controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
-# AMQP client configuration
-if hiera('amqp_nodes', false) {
-  $amqp_nodes = hiera('amqp_nodes')
-}
-elsif $internal_address in $controller_nodes {
-  # prefer local MQ broker if it exists on this node
-  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
-} else {
-  $amqp_nodes = fqdn_rotate($controller_nodes)
-}
-
-$amqp_port = hiera('amqp_port', '5673')
-$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
-$rabbit_ha_queues = true
-
-# RabbitMQ server configuration
-$rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
-$rabbitmq_bind_port = $amqp_port
-$rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames
-
 # SQLAlchemy backend configuration
 $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
 $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
@@ -350,7 +330,7 @@ class { 'openstack::cinder':
   glance_api_servers   => $glance_api_servers,
   bind_host            => $bind_host,
   queue_provider       => $queue_provider,
-  amqp_hosts           => $amqp_hosts,
+  amqp_hosts           => hiera('amqp_hosts',''),
   amqp_user            => $rabbit_hash['user'],
   amqp_password        => $rabbit_hash['password'],
   rabbit_ha_queues     => $rabbit_ha_queues,
