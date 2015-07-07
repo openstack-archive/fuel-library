@@ -14,6 +14,7 @@ class openstack::swift::storage_node (
   $package_ensure             = 'present',
   $loopback_size              = '1048756',
   $master_swift_proxy_ip,
+  $master_swift_replication_ip,
   $rings                      = [
     'account',
     'object',
@@ -104,19 +105,19 @@ class openstack::swift::storage_node (
     log_name => 'swift-account-server',
   }
 
-  validate_string($master_swift_proxy_ip)
+  validate_string($master_swift_replication_ip)
 
   if $sync_rings {
     if member($rings, 'account') and !defined(Swift::Ringsync['account']) {
-      swift::ringsync { 'account': ring_server => $master_swift_proxy_ip }
+      swift::ringsync { 'account': ring_server => $master_swift_replication_ip }
     }
 
     if member($rings, 'object') and !defined(Swift::Ringsync['object']) {
-      swift::ringsync { 'object': ring_server => $master_swift_proxy_ip }
+      swift::ringsync { 'object': ring_server => $master_swift_replication_ip }
     }
 
     if member($rings, 'container') and !defined(Swift::Ringsync['container']) {
-      swift::ringsync { 'container': ring_server => $master_swift_proxy_ip }
+      swift::ringsync { 'container': ring_server => $master_swift_replication_ip }
     }
     Swift::Ringsync <| |> ~> Class["swift::storage::all"]
   }
