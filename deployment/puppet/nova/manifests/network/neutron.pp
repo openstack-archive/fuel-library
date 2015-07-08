@@ -110,8 +110,10 @@ class nova::network::neutron (
   $vif_plugging_is_fatal           = true,
   $vif_plugging_timeout            = '300',
   $dhcp_domain                     = 'novalocal',
+  $separate_nova                   = false,
 ) {
 
+  if (!$separate_nova){
   nova_config {
     'DEFAULT/dhcp_domain':             value => $dhcp_domain;
     'DEFAULT/firewall_driver':         value => $firewall_driver;
@@ -130,6 +132,7 @@ class nova::network::neutron (
     'neutron/admin_auth_url':          value => $neutron_admin_auth_url;
     'neutron/ovs_bridge':              value => $neutron_ovs_bridge;
     'neutron/extension_sync_interval': value => $neutron_extension_sync_interval;
+  }
   }
 
   if ! $neutron_ca_certificates_file {
