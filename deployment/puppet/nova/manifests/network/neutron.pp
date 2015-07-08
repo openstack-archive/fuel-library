@@ -131,7 +131,7 @@ class nova::network::neutron (
     'neutron/ovs_bridge':              value => $neutron_ovs_bridge;
     'neutron/extension_sync_interval': value => $neutron_extension_sync_interval;
   }
-
+  
   if ! $neutron_ca_certificates_file {
     nova_config { 'neutron/ca_certificates_file': ensure => absent }
   } else {
