@@ -41,9 +41,6 @@
 #  [*cache_server_port*]
 #    (optional) Memcached port. Defaults to '11211'.
 #
-#  [*swift*]
-#    (optional) Enable Swift interface extension. Defaults to false.
-#
 #  [*horizon_app_links*]
 #    (optional) Array of arrays that can be used to add call-out links
 #    to the dashboard for other apps. There is no specific requirement
@@ -53,22 +50,6 @@
 #
 #  [*keystone_url*]
 #    (optional) Full url of keystone public endpoint. (Defaults to 'http://127.0.0.1:5000/v2.0')
-#    Use this parameter in favor of keystone_host, keystone_port and keystone_scheme.
-#
-#  [*keystone_scheme*]
-#    (optional) DEPRECATED: Use keystone_url instead.
-#    Scheme of the Keystone service. (Defaults to 'http')
-#    Setting this parameter overrides keystone_url parameter.
-#
-#  [*keystone_host*]
-#    (optional) DEPRECATED: Use keystone_url instead.
-#    IP address of the Keystone service. (Defaults to '127.0.0.1')
-#    Setting this parameter overrides keystone_url parameter.
-#
-#  [*keystone_port*]
-#    (optional) DEPRECATED: Use keystone_url instead.
-#    Port of the Keystone service. (Defaults to 5000)
-#    Setting this parameter overrides keystone_url parameter.
 #
 #  [*keystone_default_role*]
 #    (optional) Default Keystone role for new users. Defaults to '_member_'.
@@ -92,6 +73,9 @@
 #  [*api_result_limit*]
 #    (optional) Maximum number of Swift containers/objects to display
 #    on a single page. Defaults to 1000.
+#
+#  [*log_handler*]
+#    (optional) Log handler. Defaults to 'file'
 #
 #  [*log_level*]
 #    (optional) Log level. Defaults to 'INFO'. WARNING: Setting this to
@@ -118,6 +102,12 @@
 #      Works only with Xen Hypervisor.
 #      Defaults to 'False'.
 #
+#  [*cinder_options*]
+#    (optional) A hash of parameters to enable features specific to
+#    Cinder.  These include:
+#    'enable_backup': Boolean to enable or disable Cinders's backup feature.
+#      Defaults to False.
+#
 #  [*neutron_options*]
 #    (optional) A hash of parameters to enable features specific to
 #    Neutron.  These include:
@@ -131,6 +121,11 @@
 #      security groups.  Defaults to True.
 #    'enable_vpn': Boolean to enable or disable Neutron's VPNaaS feature.
 #      Defaults to False.
+#    'enable_distributed_router': Boolean to enable or disable Neutron
+#      distributed virtual router (DVR) feature in the Router panel.
+#      Defaults to False.
+#    'enable_ha_router': Enable or disable HA (High Availability) mode in
+#      Neutron virtual router in the Router panel.  Defaults to False.
 #    'profile_support':  A string indiciating which plugin-specific
 #      profiles to enable.  Defaults to 'None', other options include
 #      'cisco'.
@@ -168,6 +163,18 @@
 #    Specify an absolute pathname.
 #    Defaults to /tmp
 #
+# [*policy_files_path*]
+#   (Optional) The path to the policy files
+#   Defaults to undef.
+#
+# [*policy_files*]
+#   (Optional) Policy files
+#   Defaults to undef.
+#
+# [*can_set_mount_point*]
+#   (Optional) DEPRECATED
+#   Defaults to 'undef'.
+#
 #  [*secure_cookies*]
 #    (optional) Enables security settings for cookies. Useful when using
 #    https on public sites. See: http://docs.openstack.org/developer/horizon/topics/deployment.html#secure-site-recommendations
@@ -177,16 +184,27 @@
 #    (optional) Selects the session engine for Django to use.
 #    Defaults to undefined - will not add entry to local settings.
 #
-# === Deprecation notes
+#  [*tuskar_ui*]
+#    (optional) Boolean to enable Tuskar-UI related configuration (http://tuskar-ui.readthedocs.org/)
+#    Defaults to false
 #
-# If any value is provided for keystone_scheme, keystone_host, or
-# keystone_port parameters; keystone_url will be completely ignored. Also
-# can_set_mount_point is deprecated.
+#  [*tuskar_ui_ironic_discoverd_url*]
+#    (optional) Tuskar-UI - Ironic Discoverd API endpoint
+#    Defaults to 'http://127.0.0.1:5050'
+#
+#  [*tuskar_ui_undercloud_admin_password*]
+#    (optional) Tuskar-UI - Undercloud admin password used to authenticate admin user in Tuskar-UI.
+#    It is required by Heat to perform certain actions.
+#    Defaults to undefined
+#
+#  [*tuskar_ui_deployment_mode*]
+#    (optional) Tuskar-UI - Deployment mode ('poc' or 'scale')
+#    Defaults to 'scale'
 #
 # === Examples
 #
 #  class { 'horizon':
-#    secret       => 's3cr3t',
+#    secret_key       => 's3cr3t',
 #    keystone_url => 'https://10.0.0.10:5000/v2.0',
 #    available_regions => [
 #      ['http://region-1.example.com:5000/v2.0', 'Region-1'],
@@ -196,82 +214,55 @@
 #
 class horizon(
   $secret_key,
-  $fqdn                    = undef,
-  $package_ensure          = 'present',
-  $cache_server_ip         = '127.0.0.1',
-  $cache_server_port       = '11211',
-  $cache_backend           = 'django.core.cache.backends.locmem.LocMemCache',
-  $cache_options           = undef,
-  $swift                   = false,
-  $horizon_app_links       = false,
-  $keystone_url            = 'http://127.0.0.1:5000/v2.0',
-  $keystone_default_role   = '_member_',
-  $django_debug            = 'False',
-  $openstack_endpoint_type = undef,
-  $secondary_endpoint_type = undef,
-  $available_regions       = undef,
-  $api_result_limit        = 1000,
-  $log_level               = 'INFO',
-  $help_url                = 'http://docs.openstack.org',
-  $local_settings_template = 'horizon/local_settings.py.erb',
-  $configure_apache        = true,
-  $bind_address            = undef,
-  $servername              = $::fqdn,
-  $server_aliases          = $::fqdn,
-  $allowed_hosts           = $::fqdn,
-  $listen_ssl              = false,
-  $ssl_redirect            = true,
-  $horizon_cert            = undef,
-  $horizon_key             = undef,
-  $horizon_ca              = undef,
-  $compress_offline        = true,
-  $hypervisor_options      = {},
-  $neutron_options         = {},
-  $file_upload_temp_dir    = '/tmp',
-  $policy_files_path       = undef,
-  $policy_files            = undef,
+  $fqdn                                = undef,
+  $package_ensure                      = 'present',
+  $cache_server_ip                     = '127.0.0.1',
+  $cache_server_port                   = '11211',
+  $horizon_app_links                   = false,
+  $keystone_url                        = 'http://127.0.0.1:5000/v2.0',
+  $keystone_default_role               = '_member_',
+  $django_debug                        = 'False',
+  $openstack_endpoint_type             = undef,
+  $secondary_endpoint_type             = undef,
+  $available_regions                   = undef,
+  $api_result_limit                    = 1000,
+  $log_handler                         = 'file',
+  $log_level                           = 'INFO',
+  $help_url                            = 'http://docs.openstack.org',
+  $local_settings_template             = 'horizon/local_settings.py.erb',
+  $configure_apache                    = true,
+  $bind_address                        = undef,
+  $servername                          = $::fqdn,
+  $server_aliases                      = $::fqdn,
+  $allowed_hosts                       = $::fqdn,
+  $listen_ssl                          = false,
+  $ssl_redirect                        = true,
+  $horizon_cert                        = undef,
+  $horizon_key                         = undef,
+  $horizon_ca                          = undef,
+  $compress_offline                    = true,
+  $hypervisor_options                  = {},
+  $cinder_options                      = {},
+  $neutron_options                     = {},
+  $file_upload_temp_dir                = '/tmp',
+  $policy_files_path                   = undef,
+  $policy_files                        = undef,
+  $tuskar_ui                           = false,
+  $tuskar_ui_ironic_discoverd_url      = 'http://127.0.0.1:5050',
+  $tuskar_ui_undercloud_admin_password = undef,
+  $tuskar_ui_deployment_mode           = 'scale',
   # DEPRECATED PARAMETERS
-  $can_set_mount_point     = undef,
-  $keystone_host           = undef,
-  $keystone_port           = undef,
-  $keystone_scheme         = undef,
-  $vhost_extra_params      = undef,
-  $secure_cookies          = false,
-  $django_session_engine   = undef,
+  $can_set_mount_point                 = undef,
+  $vhost_extra_params                  = undef,
+  $secure_cookies                      = false,
+  $django_session_engine               = undef,
 ) {
 
   include ::horizon::params
 
-  if $swift {
-    warning('swift parameter is deprecated and has no effect.')
-  }
-
-  if $keystone_scheme {
-    warning('The keystone_scheme parameter is deprecated, use keystone_url instead.')
-  }
-
-  if $keystone_host {
-    warning('The keystone_host parameter is deprecated, use keystone_url instead.')
-  }
-
-  if $keystone_port {
-    warning('The keystone_port parameter is deprecated, use keystone_url instead.')
-  }
-
-  # Default options for the OPENSTACK_HYPERVISOR_FEATURES section. These will
-  # be merged with user-provided options when the local_settings.py.erb
-  # template is interpolated. Also deprecates can_set_mount_point.
-  if $can_set_mount_point {
-    warning('The can_set_mount_point parameter is deprecated, use hypervisor_options instead.')
-    $hypervisor_defaults = {
-      'can_set_mount_point' => $can_set_mount_point,
-      'can_set_password'    => false
-    }
-  } else {
-    $hypervisor_defaults = {
-      'can_set_mount_point' => true,
-      'can_set_password'    => false
-    }
+  $hypervisor_defaults = {
+    'can_set_mount_point' => true,
+    'can_set_password'    => false,
   }
 
   if $fqdn {
@@ -283,30 +274,44 @@ class horizon(
     $final_server_aliases = $server_aliases
   }
 
+  # Default options for the OPENSTACK_CINDER_FEATURES section. These will
+  # be merged with user-provided options when the local_settings.py.erb
+  # template is interpolated.
+  $cinder_defaults = {
+    'enable_backup'         => false,
+  }
 
   # Default options for the OPENSTACK_NEUTRON_NETWORK section.  These will
   # be merged with user-provided options when the local_settings.py.erb
   # template is interpolated.
   $neutron_defaults = {
-    'enable_lb'             => false,
-    'enable_firewall'       => false,
-    'enable_quotas'         => true,
-    'enable_security_group' => true,
-    'enable_vpn'            => false,
-    'profile_support'       => 'None'
+    'enable_lb'                 => false,
+    'enable_firewall'           => false,
+    'enable_quotas'             => true,
+    'enable_security_group'     => true,
+    'enable_vpn'                => false,
+    'enable_distributed_router' => false,
+    'enable_ha_router'          => false,
+    'profile_support'           => 'None',
   }
 
   Service <| title == 'memcached' |> -> Class['horizon']
 
   package { 'horizon':
-    ensure  => $package_ensure,
-    name    => $::horizon::params::package_name,
+    ensure => $package_ensure,
+    name   => $::horizon::params::package_name,
+    tag    => 'openstack',
   }
 
-  file { $::horizon::params::config_file:
-    content => template($local_settings_template),
+  concat { $::horizon::params::config_file:
     mode    => '0644',
     require => Package['horizon'],
+  }
+
+  concat::fragment { 'local_settings.py':
+    target  => $::horizon::params::config_file,
+    content => template($local_settings_template),
+    order   => '50',
   }
 
   package { 'python-lesscpy':
@@ -314,17 +319,17 @@ class horizon(
   }
 
   exec { 'refresh_horizon_django_cache':
-    command     => "${::horizon::params::manage_py} compress",
+    command     => "${::horizon::params::manage_py} collectstatic --noinput --clear && ${::horizon::params::manage_py} compress --force",
     refreshonly => true,
     require     => [Package['python-lesscpy'], Package['horizon']],
   }
 
   if $compress_offline {
-    File[$::horizon::params::config_file] ~> Exec['refresh_horizon_django_cache']
+    Concat[$::horizon::params::config_file] ~> Exec['refresh_horizon_django_cache']
   }
 
   if $configure_apache {
-    class { 'horizon::wsgi::apache':
+    class { '::horizon::wsgi::apache':
       bind_address   => $bind_address,
       servername     => $servername,
       server_aliases => $final_server_aliases,
@@ -342,8 +347,12 @@ class horizon(
       ensure => directory,
       owner  => $::horizon::params::wsgi_user,
       group  => $::horizon::params::wsgi_group,
-      mode   => '0755'
+      mode   => '0755',
     }
   }
 
+  $tuskar_ui_deployment_mode_allowed_values = ['scale', 'poc']
+  if ! (member($tuskar_ui_deployment_mode_allowed_values, $tuskar_ui_deployment_mode)) {
+    fail("'${$tuskar_ui_deployment_mode}' is not correct value for tuskar_ui_deployment_mode parameter. It must be either 'scale' or 'poc'.")
+  }
 }

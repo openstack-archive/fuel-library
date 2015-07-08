@@ -7,6 +7,10 @@ from openstack_dashboard import exceptions
 DEBUG = <%= @django_debug.to_s.capitalize %>
 TEMPLATE_DEBUG = DEBUG
 
+# WEBROOT is the location relative to Webserver root
+# should end with a slash.
+WEBROOT = '<%= scope.lookupvar("horizon::params::root_url") %>/'
+
 # Required for Django 1.5.
 # If horizon is running in production (DEBUG is False), set this
 # with the list of host/domain names that the application can serve.
@@ -115,9 +119,8 @@ SECRET_KEY = '<%= @secret_key %>'
 CACHES = {
     'default': {
         <% if @cache_server_ip %>
-        #'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
+#        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-
           <% if @cache_server_ip.kind_of?(Array) %>
             <%  split = ":" + @cache_server_port + "','" %>
         'LOCATION': [ <% @cache_server_ip.each do |ip| -%>'<%= ip -%>:<%= @cache_server_port -%>',<% end -%> ],
@@ -154,14 +157,6 @@ AVAILABLE_REGIONS = [
 ]
 <% end -%>
 
-<%
-if (!@keystone_scheme.nil?) || (!@keystone_host.nil?) || (!@keystone_port.nil?)
-    @keystone_scheme ||= "http"
-    @keystone_host ||= "127.0.0.1"
-    @keystone_port ||= "5000"
-    @keystone_url = "#{@keystone_scheme}://#{@keystone_host}:#{@keystone_port}/v2.0"
-end
--%>
 OPENSTACK_KEYSTONE_URL = "<%= @keystone_url %>"
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "<%= @keystone_default_role %>"
 
@@ -194,6 +189,13 @@ OPENSTACK_HYPERVISOR_FEATURES = {
     'can_set_password': <%= @hypervisor_options['can_set_password'].to_s.capitalize %>,
 }
 
+# The OPENSTACK_CINDER_FEATURES settings can be used to enable optional
+# # services provided by cinder that is not exposed by its extension API.
+OPENSTACK_CINDER_FEATURES = {
+    <%- @cinder_options = @cinder_defaults.merge(@cinder_options) -%>
+    'enable_backup': <%= @cinder_options['enable_backup'].to_s.capitalize %>,
+}
+
 # The OPENSTACK_NEUTRON_NETWORK settings can be used to enable optional
 # services provided by neutron. Options currenly available are load
 # balancer service, security groups, quotas, VPN service.
@@ -204,6 +206,8 @@ OPENSTACK_NEUTRON_NETWORK = {
     'enable_quotas': <%= @neutron_options['enable_quotas'].to_s.capitalize %>,
     'enable_security_group': <%= @neutron_options['enable_security_group'].to_s.capitalize %>,
     'enable_vpn': <%= @neutron_options['enable_vpn'].to_s.capitalize %>,
+    'enable_distributed_router': <%= @neutron_options['enable_distributed_router'].to_s.capitalize %>,
+    'enable_ha_router': <%= @neutron_options['enable_ha_router'].to_s.capitalize %>,
     # The profile_support option is used to detect if an externa lrouter can be
     # configured via the dashboard. When using specific plugins the
     # profile_support can be turned on if needed.
@@ -291,7 +295,7 @@ POLICY_FILES_PATH = '/etc/openstack-dashboard'
 # Map of local copy of service policy files
 <% if @policy_files.kind_of?(Hash) %>
 POLICY_FILES = {
-<% @policy_files.each do |service_name,filename| -%>
+<% @policy_files.sort.each do |service_name,filename| -%>
     '<%= service_name -%>': '<%= filename -%>',
 <% end -%>
 } # POLICY_FILES
@@ -321,6 +325,9 @@ LOGGING = {
             'format': '%(asctime)s %(process)d %(levelname)s %(name)s '
                       '%(message)s'
         },
+        'normal': {
+            'format': 'dashboard-%(name)s: %(levelname)s %(message)s'
+        },
     },
     'handlers': {
         'null': {
@@ -338,6 +345,13 @@ LOGGING = {
             'filename': '<%= scope.lookupvar("horizon::params::logdir") %>/horizon.log',
             'formatter': 'verbose',
         },
+        'syslog': {
+            'level': '<%= @log_level %>',
+            'facility': 'local1',
+            'class': 'logging.handlers.SysLogHandler',
+            'address': '/dev/log',
+            'formatter': 'normal',
+        }
     },
     'loggers': {
         # Logging from django.db.backends is VERY verbose, send to null
@@ -352,98 +366,98 @@ LOGGING = {
         },
         'horizon': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'openstack_dashboard': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'novaclient': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'cinderclient': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'keystoneclient': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'glanceclient': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'neutronclient': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'heatclient': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'ceilometerclient': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'troveclient': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'swiftclient': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'openstack_auth': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'nose.plugins.manager': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
         },
         'django': {
             # 'handlers': ['console'],
-            'handlers': ['file'],
+            'handlers': ['<%= @log_handler %>'],
             # 'level': 'DEBUG',
             'level': '<%= @log_level %>',
             'propagate': False,
@@ -569,3 +583,9 @@ COMPRESS_OFFLINE = <%= @compress_offline.to_s.capitalize %>
 # so we add this option to change the directory where uploaded files are temporarily
 # stored until they are loaded into Glance.
 FILE_UPLOAD_TEMP_DIR = '<%= @file_upload_temp_dir %>'
+
+<% if @tuskar_ui %>
+IRONIC_DISCOVERD_URL = "<%= @tuskar_ui_ironic_discoverd_url %>"
+UNDERCLOUD_ADMIN_PASSWORD = "<%= @tuskar_ui_undercloud_admin_password %>"
+DEPLOYMENT_MODE = "<%= @tuskar_ui_deployment_mode %>"
+<% end %>

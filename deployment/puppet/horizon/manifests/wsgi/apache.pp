@@ -4,41 +4,61 @@
 #
 # === Parameters
 #
-#  [*bind_address*]
-#    (optional) Bind address in Apache for Horizon. (Defaults to '0.0.0.0')
+# [*bind_address*]
+#   (optional) Bind address in Apache for Horizon. (Defaults to '0.0.0.0')
 #
-#  [*server_aliases*]
-#    (optional) List of names which should be defined as ServerAlias directives
-#    in vhost.conf.
-#    Defaults to ::fqdn.
+# [*fqdn*]
+#   (Optional) Fqdn
+#   Defaults to undef.
 #
-#  [*listen_ssl*]
-#    (optional) Enable SSL support in Apache. (Defaults to false)
+# [*servername*]
+#   (Optional) Server Name
+#   Defaults to ::fqdn.
 #
-#  [*horizon_cert*]
-#    (required with listen_ssl) Certificate to use for SSL support.
+# [*ssl_redirect*]
+#   (Optional) Enable SSL Redirect
+#   Defaults to 'true'.
 #
-#  [*horizon_key*]
-#    (required with listen_ssl) Private key to use for SSL support.
+# [*server_aliases*]
+#   (optional) List of names which should be defined as ServerAlias directives
+#   in vhost.conf.
+#   Defaults to ::fqdn.
 #
-#  [*horizon_ca*]
-#    (required with listen_ssl) CA certificate to use for SSL support.
+# [*listen_ssl*]
+#   (optional) Enable SSL support in Apache. (Defaults to false)
 #
-#  [*wsgi_processes*]
-#    (optional) Number of Horizon processes to spawn
-#    Defaults to '3'
+# [*horizon_cert*]
+#   (required with listen_ssl) Certificate to use for SSL support.
 #
-#  [*wsgi_threads*]
-#    (optional) Number of thread to run in a Horizon process
-#    Defaults to '10'
+# [*horizon_key*]
+#   (required with listen_ssl) Private key to use for SSL support.
 #
-#  [*priority*]
-#    (optional) The apache vhost priority.
-#    Defaults to '15'. To set Horizon as the primary vhost, change to '10'.
+# [*horizon_ca*]
+#   (required with listen_ssl) CA certificate to use for SSL support.
 #
-#  [*extra_params*]
-#    (optional) A hash of extra paramaters for apache::wsgi class.
-#    Defaults to {}
+# [*wsgi_processes*]
+#   (optional) Number of Horizon processes to spawn
+#   Defaults to '3'
+#
+# [*wsgi_threads*]
+#   (optional) Number of thread to run in a Horizon process
+#   Defaults to '10'
+#
+# [*priority*]
+#   (optional) The apache vhost priority.
+#   Defaults to '15'. To set Horizon as the primary vhost, change to '10'.
+#
+# [*vhost_conf_name*]
+#   (Optional) Description
+#   Defaults to 'horizon_vhost'.
+#
+# [*vhost_ssl_conf_name*]
+#   (Optional) Description
+#   Defaults to 'horizon_ssl_vhost'.
+#
+# [*extra_params*]
+#   (optional) A hash of extra paramaters for apache::wsgi class.
+#   Defaults to {}
 class horizon::wsgi::apache (
   $bind_address        = undef,
   $fqdn                = undef,
@@ -81,7 +101,7 @@ class horizon::wsgi::apache (
 # - ${priority}-${vhost_conf_name}.conf
 # - ${priority}-${vhost_ssl_conf_name}.conf
 #",
-    require => Package[$::horizon::params::package_name]
+    require => Package['horizon'],
   }
 
 
@@ -125,44 +145,45 @@ class horizon::wsgi::apache (
   }
 
   file { $::horizon::params::logdir:
-    ensure       => directory,
-    owner        => $unix_user,
-    group        => $unix_group,
-    before       => Service[$::horizon::params::http_service],
-    mode         => '0751',
-    require      => Package['horizon']
+    ensure  => directory,
+    owner   => $unix_user,
+    group   => $unix_group,
+    before  => Service[$::horizon::params::http_service],
+    mode    => '0751',
+    require => Package['horizon'],
   }
 
   file { "${::horizon::params::logdir}/horizon.log":
-    ensure       => file,
-    owner        => $unix_user,
-    group        => $unix_group,
-    before       => Service[$::horizon::params::http_service],
-    mode         => '0640',
-    require      => [ File[$::horizon::params::logdir], Package['horizon'] ],
+    ensure  => file,
+    owner   => $unix_user,
+    group   => $unix_group,
+    before  => Service[$::horizon::params::http_service],
+    mode    => '0640',
+    require => [ File[$::horizon::params::logdir], Package['horizon'] ],
   }
 
   $default_vhost_conf_no_ip = {
-    servername           => $servername,
-    serveraliases        => os_any2array($final_server_aliases),
-    docroot              => '/var/www/',
-    access_log_file      => 'horizon_access.log',
-    error_log_file       => 'horizon_error.log',
-    priority             => $priority,
-    aliases              => [
-      { alias => '/static', path => '/usr/share/openstack-dashboard/static' }
-    ],
-    port                 => 80,
-    ssl_cert             => $horizon_cert,
-    ssl_key              => $horizon_key,
-    ssl_ca               => $horizon_ca,
-    wsgi_script_aliases  => hash([$::horizon::params::root_url, $::horizon::params::django_wsgi]),
-    wsgi_daemon_process  => $::horizon::params::wsgi_group,
+    servername                  => $servername,
+    serveraliases               => os_any2array($final_server_aliases),
+    docroot                     => '/var/www/',
+    access_log_file             => 'horizon_access.log',
+    error_log_file              => 'horizon_error.log',
+    priority                    => $priority,
+    aliases                     => [{
+      alias => "${$::horizon::params::root_url}/static",
+      path  => '/usr/share/openstack-dashboard/static',
+    }],
+    port                        => 80,
+    ssl_cert                    => $horizon_cert,
+    ssl_key                     => $horizon_key,
+    ssl_ca                      => $horizon_ca,
+    wsgi_script_aliases         => hash([$::horizon::params::root_url, $::horizon::params::django_wsgi]),
+    wsgi_daemon_process         => $::horizon::params::wsgi_group,
     wsgi_daemon_process_options => {
-      processes    => $wsgi_processes,
-      threads      => $wsgi_threads,
-      user         => $unix_user,
-      group        => $unix_group,
+      processes                 => $wsgi_processes,
+      threads                   => $wsgi_threads,
+      user                      => $unix_user,
+      group                     => $unix_group,
     },
     wsgi_import_script   => $::horizon::params::django_wsgi,
     wsgi_process_group   => $::horizon::params::wsgi_group,
