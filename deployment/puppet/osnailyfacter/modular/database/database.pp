@@ -103,4 +103,12 @@ if $mysql_database_enabled {
             Haproxy_backend_status['mysql'] ->
               Class['osnailyfacter::mysql_access']
 
+} else {
+  include mysql::params
+  $client_package_name = $mysql::params::client_package_name
+
+  package { 'mysql-client':
+    ensure => 'installed',
+    name   => $client_package_name,
+  }
 }
