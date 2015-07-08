@@ -3,10 +3,11 @@ require 'spec_helper'
 describe 'glance::client' do
 
   shared_examples 'glance client' do
-    it { should contain_class('glance::params') }
-    it { should contain_package('python-glanceclient').with(
+    it { is_expected.to contain_class('glance::params') }
+    it { is_expected.to contain_package('python-glanceclient').with(
         :name   => 'python-glanceclient',
-        :ensure => 'present'
+        :ensure => 'present',
+        :tag    => ['openstack'],
       )
     }
   end

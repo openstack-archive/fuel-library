@@ -1,4 +1,4 @@
-class { 'glance::registry':
+class { '::glance::registry':
   debug   => true,
   verbose => true,
 }

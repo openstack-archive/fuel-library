@@ -1,1 +1,1 @@
-class { 'glance': }
+class { '::glance': }
