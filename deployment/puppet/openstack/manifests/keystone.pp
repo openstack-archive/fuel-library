@@ -258,6 +258,7 @@ class openstack::keystone (
       'cache/memcache_pool_maxsize':        value => '1000';
       'cache/memcache_pool_unused_timeout': value => '60';
       'memcache/dead_retry':                value => '30';
+      'memcache/socket_timeout':            value => '1';
       'revoke/driver':                      value => 'keystone.contrib.revoke.backends.sql.Revoke';
      }
   }
