@@ -46,6 +46,7 @@ describe manifest do
       should contain_keystone_config('cache/memcache_pool_maxsize').with(:value => '1000')
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
       should contain_keystone_config('memcache/dead_retry').with(:value => '30')
+      should contain_keystone_config('memcache/socket_timeout').with(:value => '1')
     end
 
     it 'should configure revoke_driver for keystone' do
