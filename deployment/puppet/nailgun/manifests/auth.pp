@@ -62,8 +62,8 @@ class nailgun::auth(
 
   keystone_endpoint { "$region/nailgun":
     ensure       => present,
-    public_url   => "http://${public_address_real}:${port}/api",
-    admin_url    => "http://${admin_address_real}:${port}/api",
-    internal_url => "http://${internal_address_real}:${port}/api",
+    public_url   => "http://${public_address_real}:${port}/api/v2.0",
+    admin_url    => "http://${admin_address_real}:${port}/api/v2.0",
+    internal_url => "http://${internal_address_real}:${port}/api/v2.0",
   }
 }

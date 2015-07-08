@@ -42,7 +42,7 @@ server {
         root <%= @staticdir %>;
     }
 
-    location /api {
+    location /api/v2.0 {
         include uwsgi_params;
         uwsgi_pass <%= @nailgun_host %>:8001;
         client_max_body_size 100m;
