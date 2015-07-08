@@ -219,6 +219,37 @@ $swift_proxies       = get_nodes_hash_by_roles($network_metadata, ['primary-cont
 $swift_proxy_caches  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']) # memcache for swift
 $is_primary_swift_proxy = $primary_controller
 
+# HAProxy configuration
+case $node_role {
+  /(db|database)/: {
+    $haproxy_roles = ['primary-db','db','database','primary-database']
+    $stats_vip = hiera('database_vip', $management_vip)
+  }
+  /keystone/: {
+    $stats_vip = hiera('service_endpoint', $management_vip)
+    $haproxy_nodes_ips = nodes_with_roles($nodes_hash, ['primary-keystone',
+      'keystone'], 'internal_address')
+    $haproxy_nodes_names = nodes_with_roles($nodes_hash, ['primary-keystone',
+      'keystone'], 'name')
+  }
+  default: {
+    $stats_vip = $management_vip
+    $haproxy_nodes_ips = nodes_with_roles($nodes_hash, ['primary-controller',
+      'controller'], 'internal_address')
+    $haproxy_nodes_names = nodes_with_roles($nodes_hash, ['primary-controller',
+      'keystone'], 'name')
+  }
+}
+if $node_role =~ /primary/ {
+  $haproxy_primary = true
+}
+$haproxy_hash = {
+  stats_vip   => $stats_vip,
+  primary     => $haproxy_primary,
+  nodes_ips   => nodes_with_roles($nodes_hash, $haproxy_roles, 'internal_address'),
+  nodes_names => nodes_with_roles($nodes_hash, $haproxy_roles, 'name')
+}
+
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
 file { '/etc/hiera/globals.yaml' :
