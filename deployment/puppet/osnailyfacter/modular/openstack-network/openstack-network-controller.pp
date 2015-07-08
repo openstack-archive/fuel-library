@@ -17,6 +17,7 @@ $nova_endpoint                  = hiera('nova_endpoint', $management_vip)
 $keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
+$neutron_agents                 = hiera_array('neutron_agents', ['metadata', 'dhcp', 'l3'])
 
 $floating_hash = {}
 
@@ -217,7 +218,7 @@ if $network_provider == 'neutron' {
 
 class { 'openstack::network':
   network_provider    => $network_provider,
-  agents              => [$agent, 'metadata', 'dhcp', 'l3'],
+  agents              => [$agent, $neutron_agents],
   ha_agents           => $neutron_config['ha_agents'] ? {
     default => $neutron_config['ha_agents'],
     undef   => $primary_controller ? {true => 'primary', default  => 'slave'},
