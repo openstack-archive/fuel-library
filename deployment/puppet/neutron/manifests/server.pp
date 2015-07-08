@@ -52,6 +52,11 @@
 #   (where '/keystone' is the admin prefix)
 #   Defaults to false for empty. If defined, should be a string with a leading '/' and no trailing '/'.
 #
+# [*auth_region*]
+#  (optional) The authentication region. Note this value is case-sensitive and
+#  must match the endpoint region defined in Keystone.
+#  Defaults to undef
+#
 # [*auth_tenant*]
 #   (optional) The tenant of the auth user
 #   Defaults to services
@@ -196,6 +201,7 @@ class neutron::server (
   $manage_service                   = true,
   $service_name                     = $::neutron::params::server_service,
   $auth_password                    = false,
+  $auth_region                      = undef,
   $auth_type                        = 'keystone',
   $auth_tenant                      = 'services',
   $auth_user                        = 'neutron',
@@ -294,7 +300,11 @@ class neutron::server (
       path        => '/usr/bin',
       before      => Service['neutron-server'],
       subscribe   => Neutron_config['database/connection'],
-      refreshonly => true
+      refreshonly => true,
+      tries       => 10,
+      # TODO(bogdando) contribute change to upstream:
+      #   new try_sleep param for sleep driven development (SDD)
+      try_sleep   => 20,
     }
     Neutron_config<||> ~> Exec['neutron-db-sync']
   }
@@ -462,6 +472,12 @@ class neutron::server (
         $auth_uri_real = $auth_uri
       } elsif $auth_host and $auth_protocol and $auth_port {
         $auth_uri_real = "${auth_protocol}://${auth_host}:5000/"
+      }
+
+      if $auth_region {
+        neutron_config {
+          'keystone_authtoken/auth_region': value => $auth_region;
+        }
       }
 
       neutron_config {
