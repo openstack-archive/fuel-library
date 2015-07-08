@@ -1,3 +1,4 @@
+# == Class: cinder::params
 #
 class cinder::params {
 
@@ -40,13 +41,20 @@ class cinder::params {
     $ceph_init_override = '/etc/sysconfig/openstack-cinder-volume'
     $lio_package_name   = 'targetcli'
 
-    if $::operatingsystem == 'RedHat' and $::operatingsystemrelease >= 7 {
-      $iscsi_helper = 'lioadm'
-    } else {
-      $iscsi_helper = 'tgtadm'
+    case $::operatingsystem {
+      'RedHat', 'CentOS', 'Scientific', 'OracleLinux': {
+        if (versioncmp($::operatingsystemmajrelease, '7') >= 0) {
+          $iscsi_helper = 'lioadm'
+        } else {
+          $iscsi_helper = 'tgtadm'
+        }
+      }
+      default: {
+        $iscsi_helper = 'lioadm'
+      }
     }
 
   } else {
-    fail("unsuported osfamily ${::osfamily}, currently Debian and Redhat are the only supported platforms")
+    fail("unsupported osfamily ${::osfamily}, currently Debian and Redhat are the only supported platforms")
   }
 }
