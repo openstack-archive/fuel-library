@@ -84,6 +84,7 @@ case $production {
       public_url   => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:5000",
       admin_url    => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:35357",
       internal_url => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:5000",
+      version      => 'keystone/v2.0',
     }
 
     # Nailgun
