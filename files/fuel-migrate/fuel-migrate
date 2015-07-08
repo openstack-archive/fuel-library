@@ -136,10 +136,19 @@ ifaces(){
 # Create destination VM
 create_vm(){
     cecho "Create VM ${fvm_name} on ${dkvm_ip}"
-    if virsh -c "${dkvm_uri}" list --all | grep -q " ${fvm_name} " && [[ "${del_vm}" == "yes" ]] ; then
+    # check is kvm present
+    virsh -c "${dkvm_uri}" list
+    # check is vm is present
+    vm_state="$(virsh -c "${dkvm_uri}" list --all | awk "/ ${fvm_name} / {print \$3}")"
+    if [[ "${del_vm}" == "yes" ]] ; then
         # destroy vm if it exist
-        virsh -c "${dkvm_uri}" destroy "${fvm_name}" || true
-        virsh -c "${dkvm_uri}" undefine "${fvm_name}"
+        [[ "$vm_state" ==  "running" ]] &&  virsh -c "${dkvm_uri}" destroy "${fvm_name}"
+        [[ ! -z "$vm_state" ]] && virsh -c "${dkvm_uri}" undefine "${fvm_name}"
+    else
+        if [[ ! -z "$vm_state" ]] ; then
+            echo "${fvm_name}  already exist on ${dkvm_ip} "
+            exit 1
+        fi
     fi
     # create disk
     ssh "${dkvm_ip}" qemu-img create -f raw "${dkvm_folder}/${fvm_name}.img" "${fvm_disk_size}"
