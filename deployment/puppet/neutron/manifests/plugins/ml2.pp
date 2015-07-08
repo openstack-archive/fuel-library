@@ -42,7 +42,7 @@
 #   entrypoints to be loaded from the neutron.ml2.mechanism_drivers namespace.
 #   Should be an array that can have these elements:
 #   logger, test, linuxbridge, openvswitch, hyperv, ncs, arista, cisco_nexus,
-#   l2population.
+#   l2population, sriovnicswitch
 #   Default to ['openvswitch', 'linuxbridge'].
 #
 # [*flat_networks*]
@@ -88,21 +88,35 @@
 #   It should be false when you use nova security group.
 #   Defaults to true.
 #
+# [*supported_pci_vendor_devs*]
+#   (optional) Supported PCI vendor devices, defined by
+#   vendor_id:product_id according to the PCI ID
+#   Repository. Should be an array of devices.
+#   Defaults to ['15b3:1004', '8086:10ca'] (Intel & Mellanox SR-IOV capable NICs)
+#
+# [*sriov_agent_required*]
+#   (optional) SRIOV neutron agent is required for port binding.
+#   Only set to true if SRIOV network adapters support VF link state setting
+#   and if admin state management is desired.
+#   Defaults to false.
+#
 
 class neutron::plugins::ml2 (
-  $type_drivers          = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
-  $tenant_network_types  = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
-  $mechanism_drivers     = ['openvswitch', 'linuxbridge'],
-  $flat_networks         = ['*'],
-  $network_vlan_ranges   = ['physnet1:1000:2999'],
-  $tunnel_id_ranges      = ['20:100'],
-  $vxlan_group           = '224.0.0.1',
-  $vni_ranges            = ['10:100'],
-  $enable_security_group = true,
-  $package_ensure        = 'present'
+  $type_drivers              = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
+  $tenant_network_types      = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
+  $mechanism_drivers         = ['openvswitch', 'linuxbridge'],
+  $flat_networks             = ['*'],
+  $network_vlan_ranges       = ['physnet1:1000:2999'],
+  $tunnel_id_ranges          = ['20:100'],
+  $vxlan_group               = '224.0.0.1',
+  $vni_ranges                = ['10:100'],
+  $enable_security_group     = true,
+  $package_ensure            = 'present',
+  $supported_pci_vendor_devs = ['15b3:1004', '8086:10ca'],
+  $sriov_agent_required      = false,
 ) {
 
-  include neutron::params
+  include ::neutron::params
 
   Neutron_plugin_ml2<||> ~> Service<| title == 'neutron-server' |>
 
@@ -118,21 +132,22 @@ class neutron::plugins::ml2 (
       line    => 'NEUTRON_PLUGIN_CONFIG=/etc/neutron/plugin.ini',
       require => File['/etc/default/neutron-server','/etc/neutron/plugin.ini'],
     }
-    File_line['/etc/default/neutron-server:NEUTRON_PLUGIN_CONFIG']
+    Package<| title == 'neutron-server' |>
+    -> File_line['/etc/default/neutron-server:NEUTRON_PLUGIN_CONFIG']
     ~> Service<| title == 'neutron-server' |>
   }
 
   # In RH, the link is used to start Neutron process but in Debian, it's used only
   # to manage database synchronization.
   file {'/etc/neutron/plugin.ini':
-    ensure  => link,
-    target  => '/etc/neutron/plugins/ml2/ml2_conf.ini'
+    ensure => link,
+    target => '/etc/neutron/plugins/ml2/ml2_conf.ini'
   }
   file {'/etc/default/neutron-server':
-    ensure   => present,
-    owner    => 'root',
-    group    => 'root',
-    mode     => '0644'
+    ensure => present,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0644'
   }
 
   # Some platforms do not have a dedicated ml2 plugin package
@@ -140,6 +155,7 @@ class neutron::plugins::ml2 (
     package { 'neutron-plugin-ml2':
       ensure => $package_ensure,
       name   => $::neutron::params::ml2_server_package,
+      tag    => 'openstack',
     }
     Package['neutron-plugin-ml2'] -> Neutron_plugin_ml2<||>
     Package['neutron-plugin-ml2'] -> File['/etc/neutron/plugin.ini']
@@ -150,12 +166,17 @@ class neutron::plugins::ml2 (
     Package['neutron'] -> File['/etc/default/neutron-server']
   }
 
-  neutron::plugins::ml2::driver { $type_drivers:
+  neutron::plugins::ml2::type_driver { $type_drivers:
     flat_networks       => $flat_networks,
     tunnel_id_ranges    => $tunnel_id_ranges,
     network_vlan_ranges => $network_vlan_ranges,
     vni_ranges          => $vni_ranges,
     vxlan_group         => $vxlan_group,
+  }
+
+  neutron::plugins::ml2::mech_driver { $mechanism_drivers:
+    supported_pci_vendor_devs => $supported_pci_vendor_devs,
+    sriov_agent_required      => $sriov_agent_required,
   }
 
   neutron_plugin_ml2 {
@@ -165,8 +186,6 @@ class neutron::plugins::ml2 (
     'securitygroup/enable_security_group':  value => $enable_security_group;
   }
 
-
-  #NOTE(bogdando) contribute change to upstream #1384119:
-  Neutron_plugin_ml2<||> -> Exec<| title == 'neutron-db-sync' |>
+  Neutron_plugin_ml2<||> ~> Exec<| title == 'neutron-db-sync' |>
 
 }

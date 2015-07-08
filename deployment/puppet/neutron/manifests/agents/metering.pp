@@ -62,7 +62,7 @@ class neutron::agents::metering (
   $report_interval  = '300'
 ) {
 
-  include neutron::params
+  include ::neutron::params
 
   Neutron_config<||>                ~> Service['neutron-metering-service']
   Neutron_metering_agent_config<||> ~> Service['neutron-metering-service']
@@ -83,8 +83,9 @@ class neutron::agents::metering (
     Package['neutron-metering-agent'] -> Neutron_config<||>
     Package['neutron-metering-agent'] -> Neutron_metering_agent_config<||>
     package { 'neutron-metering-agent':
-      ensure  => $package_ensure,
-      name    => $::neutron::params::metering_agent_package,
+      ensure => $package_ensure,
+      name   => $::neutron::params::metering_agent_package,
+      tag    => 'openstack',
     }
   } else {
     # Default dependency if the system does not provide a neutron metering agent package.
