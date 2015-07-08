@@ -17,12 +17,11 @@ describe manifest do
         'allowed_hosts' => allowed_hosts,
       )
     end
-    #TODO: uncomment in keystone module adaptation patch
-#    allowed_hosts.each do |host|
-#      it "should define openstacklib::db::mysql::host_access for #{cinder_db_dbname} DB for #{host}" do
-#        should contain_openstacklib__db__mysql__host_access("#{cinder_db_dbname}_#{host}")
-#      end
-#    end
+    allowed_hosts.each do |host|
+      it "should define openstacklib::db::mysql::host_access for #{cinder_db_dbname} DB for #{host}" do
+        should contain_openstacklib__db__mysql__host_access("#{cinder_db_dbname}_#{host}")
+      end
+    end
   end # end of shared_examples
   test_ubuntu_and_centos manifest
 end
