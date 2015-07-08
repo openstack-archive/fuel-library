@@ -5,6 +5,11 @@ manifest = 'openstack-controller/openstack-controller.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    use_neutron = Noop.hiera 'use_neutron'
+    if !use_neutron
+      floating_ips_range = Noop.hiera 'floating_network_range'
+      access_hash  = Noop.hiera_structure 'access'
+    end
     service_endpoint = Noop.hiera 'service_endpoint'
     if service_endpoint
       keystone_host = service_endpoint
@@ -44,6 +49,22 @@ describe manifest do
       should contain_nova_config('DEFAULT/quota_injected_file_path_length').with(
         'value' => '4096',
       )
+    end
+
+    if floating_ips_range && access_hash
+      floating_ips_range.each do |ips_range|
+        it "should configure nova floating IP range for #{ips_range}" do
+          should contain_nova_floating_range(ips_range).with(
+            'ensure'      => 'present',
+            'pool'        => 'nova',
+            'username'    => access_hash['user'],
+            'api_key'     => access_hash['password'],
+            'auth_method' => 'password',
+            'auth_url'    => "http://#{keystone_host}:5000/v2.0/",
+            'api_retries' => '10',
+          )
+        end
+      end
     end
 
   end # end of shared_examples
