@@ -17,6 +17,7 @@ $nova_endpoint                  = hiera('nova_endpoint', $management_vip)
 $keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
+$neutron_agents                 = hiera_array('neutron_agents', ['metadata', 'dhcp', 'l3'])
 
 $floating_hash = {}
 
@@ -42,6 +43,9 @@ if $use_neutron {
   $novanetwork_params    = {}
   $neutron_config        = hiera_hash('quantum_settings')
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
+  $neutron_server_enable         = pick($neutron_config['neutron_server_enable'], true)
+  $nova_neutron                  = pick($neutron_config['nova_neutron'], true)
+
   # Neutron Keystone settings
   $neutron_user_password = $neutron_config['keystone']['admin_password']
   $keystone_user         = pick($neutron_config['keystone']['admin_user'], 'neutron')
@@ -76,12 +80,16 @@ if $network_provider == 'neutron' {
 
   # We need to restart nova-api after making changes via nova_config
   # so we need to declare the service and notify it
-  include ::nova::params
-  service { 'nova-api':
-    ensure => 'running',
-    name   => $::nova::params::api_service_name,
+  if ($nova_neutron){
+    include ::nova::params
+    service { 'nova-api':
+      ensure => 'running',
+      name   => $::nova::params::api_service_name,
+    }
+
+    nova_config { 'DEFAULT/default_floating_pool': value => 'net04_ext' }
+    Nova_config<| |> ~> Service['nova-api']
   }
-  Nova_config<| |> ~> Service['nova-api']
 
   # FIXME(xarses) Nearly everything between here and the class
   # should be moved into osnaily or nailgun but will stay here
@@ -110,7 +118,7 @@ if $network_provider == 'neutron' {
     }
 
   }
-  nova_config { 'DEFAULT/default_floating_pool': value => 'net04_ext' }
+
   $pnets = $neutron_settings['L2']['phys_nets']
   if $pnets['physnet1'] {
     $physnet1 = "physnet1:${pnets['physnet1']['bridge']}"
@@ -217,7 +225,7 @@ if $network_provider == 'neutron' {
 
 class { 'openstack::network':
   network_provider    => $network_provider,
-  agents              => [$agent, 'metadata', 'dhcp', 'l3'],
+  agents              => flatten([$agent, $neutron_agents]),
   ha_agents           => $neutron_config['ha_agents'] ? {
     default => $neutron_config['ha_agents'],
     undef   => $primary_controller ? {true => 'primary', default  => 'slave'},
@@ -227,13 +235,14 @@ class { 'openstack::network':
   use_syslog          => hiera('use_syslog', true),
   syslog_log_facility => hiera('syslog_log_facility_neutron', 'LOG_LOCAL4'),
 
-  neutron_server      => $neutron_server,
-  neutron_db_uri      => $neutron_db_uri,
-  nova_neutron        => true,
-  base_mac            => $base_mac,
-  core_plugin         => $core_plugin,
-  service_plugins     => $service_plugins,
-  net_mtu             => $mtu_for_virt_network,
+  neutron_server        => $neutron_server,
+  neutron_server_enable => $neutron_server_enable,
+  neutron_db_uri        => $neutron_db_uri,
+  nova_neutron          => $nova_neutron,
+  base_mac              => $base_mac,
+  core_plugin           => $core_plugin,
+  service_plugins       => $service_plugins,
+  net_mtu               => $mtu_for_virt_network,
 
   #ovs
   mechanism_drivers   => $mechanism_drivers,
