@@ -95,6 +95,8 @@ class openstack::network (
   $base_mac         = 'fa:16:3e:00:00:00',
   $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin',
   $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin'],
+
+  $neutron_server_enable = true,
   )
 {
 
@@ -200,6 +202,8 @@ class openstack::network (
 
           api_workers => min($::processorcount + 0, 50 + 0),
           rpc_workers => min($::processorcount + 0, 50 + 0),
+
+          enabled     => $neutron_server_enable,
         }
 
         tweaks::ubuntu_service_override { "$::neutron::params::server_service":
