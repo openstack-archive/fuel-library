@@ -1,13 +1,195 @@
-- id: openstack-haproxy
+#- id: openstack-haproxy
+#  type: puppet
+#  groups: [primary-controller, controller]
+#  required_for: [deploy_end]
+#  requires: [cluster-haproxy]
+#  parameters:
+#    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy.pp
+#    puppet_modules: /etc/puppet/modules
+#    timeout: 3600
+#  test_pre:
+#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+#  test_post:
+#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_post.rb
+#
+- id: openstack-haproxy-horizon
   type: puppet
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [cluster-haproxy]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-horizon.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
   test_pre:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_post.rb
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-horizon_post.rb
+
+- id: openstack-haproxy-keystone
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-keystone_post.rb
+
+- id: openstack-haproxy-nova
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-nova.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-nova_post.rb
+
+- id: openstack-haproxy-heat
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-heat.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-heat_post.rb
+
+- id: openstack-haproxy-glance
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-glance.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-glance_post.rb
+
+- id: openstack-haproxy-cinder
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-cinder.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-cinder_post.rb
+
+- id: openstack-haproxy-neutron
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-neutron.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-neutron_post.rb
+
+- id: openstack-haproxy-mysqld
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-mysqld.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-mysqld_post.rb
+
+- id: openstack-haproxy-swift
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-swift.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-swift_post.rb
+
+- id: openstack-haproxy-radosgw
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-radosgw.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-radosgw_post.rb
+
+- id: openstack-haproxy-ceilometer
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-ceilometer.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-ceilometer_post.rb
+
+- id: openstack-haproxy-sahara
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-sahara.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-sahara_post.rb
+
+- id: openstack-haproxy-murano
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-murano.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-murano_post.rb
