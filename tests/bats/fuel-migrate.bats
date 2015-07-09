@@ -104,3 +104,13 @@ NTP1: 0.pool.ntp.org
     [ "${lines[0]}" = " -n1:17:24576 -t 1:EF02 -c 1:primary" ]
 
 }
+
+@test "Check timeout" {
+    max_worktime=3
+    start_time=$(date +%s)
+    run timeout
+    [ $status -eq 0 ]
+    sleep $(( ${max_worktime} + 1 ))
+    run timeout
+    [ $status -eq 1 ]
+}
