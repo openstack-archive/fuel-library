@@ -126,4 +126,9 @@ $admin_iface = 'eth0',
     command => "sed -i -e 's|http://\(.*\):8000\(.*\)|https://\1:8443\2|g' /etc/issue",
     onlyif  => 'grep -q 8000 /etc/issue',
   }
+
+  service { 'acpid':
+    ensure => 'running',
+    enable => true,
+  }
 }
