@@ -42,6 +42,7 @@ class openstack::network::neutron_agents (
   $use_namespaces = true,
   $dnsmasq_config_file = '/etc/neutron/dnsmasq-neutron.conf',
   $net_mtu = undef,
+  $enable_isolated_metadata = true,
 
   # l3-agent
   $metadata_port = 9697,
@@ -118,12 +119,13 @@ class openstack::network::neutron_agents (
 
   if 'dhcp' in $agents {
     class { '::neutron::agents::dhcp':
-      debug               => $debug,
-      resync_interval     => $resync_interval,
-      use_namespaces      => $use_namespaces,
-      manage_service      => true,
-      dnsmasq_config_file => $dnsmasq_config_file,
-      enabled             => true,
+      debug                    => $debug,
+      resync_interval          => $resync_interval,
+      use_namespaces           => $use_namespaces,
+      manage_service           => true,
+      dnsmasq_config_file      => $dnsmasq_config_file,
+      enable_isolated_metadata => $enable_isolated_metadata,
+      enabled                  => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-dhcp-service' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-dhcp-service' |>

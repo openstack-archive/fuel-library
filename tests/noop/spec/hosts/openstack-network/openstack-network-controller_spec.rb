@@ -24,6 +24,12 @@ describe manifest do
         )
       end
 
+      it 'should declare neutron::agents::dhcp with isolated metadata enabled' do
+        should contain_class('neutron::agents::dhcp').with(
+         'enable_isolated_metadata' => 'true',
+        )
+      end
+
       it 'should pass auth region to openstack::network' do
         should contain_class('openstack::network').with(
          'region' => 'RegionOne',
