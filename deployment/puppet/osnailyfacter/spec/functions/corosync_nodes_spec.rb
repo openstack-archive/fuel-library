@@ -3,37 +3,44 @@ require 'spec_helper'
 describe 'the corosync_nodes function' do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
 
+  let(:network_role) { 'mgmt/corosync' }
   let(:nodes) do
-    [
-        {
-            "fqdn" => "node-1.domain.tld",
-            "internal_address" => "192.168.0.5",
-            "internal_netmask" => "255.255.255.0",
-            "name" => "node-1",
-            "public_address" => "172.16.0.6",
-            "public_netmask" => "255.255.255.0",
-            "role" => "primary-controller",
-            "storage_address" => "192.168.1.1",
-            "storage_netmask" => "255.255.255.0",
-            "swift_zone" => "1",
-            "uid" => "1",
-            "user_node_name" => "Untitled (01:01)"
-        },
-        {
-            "fqdn" => "node-2.domain.tld",
-            "internal_address" => "192.168.0.6",
-            "internal_netmask" => "255.255.255.0",
-            "name" => "node-2",
-            "public_address" => "172.16.0.7",
-            "public_netmask" => "255.255.255.0",
-            "role" => "primary-controller",
-            "storage_address" => "192.168.1.2",
-            "storage_netmask" => "255.255.255.0",
-            "swift_zone" => "2",
-            "uid" => "2",
-            "user_node_name" => "Untitled (01:02)"
+    {
+        'node-1' => {
+          'swift_zone' => '1',
+          'uid' => '1',
+          'fqdn' => 'node-1.domain.tld',
+          'network_roles' => {
+             'keystone/api' => '192.168.0.4',
+             'neutron/api' => '192.168.0.4',
+             'mgmt/database' => '192.168.0.4',
+             'mgmt/corosync' => '192.168.0.5',
+             'sahara/api' => '192.168.0.4',
+             'heat/api' => '192.168.0.4',
+             'ceilometer/api' => '192.168.0.4',
+             'ex' => '10.109.1.4',
+             'ceph/public' => '192.168.0.4',
+             'ceph/radosgw' => '10.109.1.4',
+             },
+          },
+        'node-2' => {
+          'swift_zone' => '1',
+          'uid' => '2',
+          'fqdn' => 'node-2.domain.tld',
+          'network_roles' => {
+             'keystone/api' => '192.168.0.4',
+             'neutron/api' => '192.168.0.4',
+             'mgmt/database' => '192.168.0.4',
+             'mgmt/corosync' => '192.168.0.6',
+             'sahara/api' => '192.168.0.4',
+             'heat/api' => '192.168.0.4',
+             'ceilometer/api' => '192.168.0.4',
+             'ex' => '10.109.1.4',
+             'ceph/public' => '192.168.0.4',
+             'ceph/radosgw' => '10.109.1.4',
+             },
+          },
         }
-    ]
   end
 
   let(:corosync_nodes_hash) do
@@ -63,7 +70,7 @@ describe 'the corosync_nodes function' do
 
   it 'should return corosync_nodes hash' do
     expect(
-        scope.function_corosync_nodes([nodes])
+        scope.function_corosync_nodes([nodes, network_role])
     ).to eq corosync_nodes_hash
   end
 
