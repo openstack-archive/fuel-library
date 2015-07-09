@@ -1,5 +1,11 @@
 notice('MODULAR: keystone.pp')
 
+$network_scheme = hiera_hash('network_scheme', {})
+$network_metadata = hiera_hash('network_metadata', {})
+prepare_network_config($network_scheme)
+
+$node_name = hiera('node_name')
+
 $verbose               = hiera('verbose', true)
 $debug                 = hiera('debug', false)
 $use_neutron           = hiera('use_neutron')
@@ -7,8 +13,8 @@ $use_syslog            = hiera('use_syslog', true)
 $keystone_hash         = hiera_hash('keystone', {})
 $access_hash           = hiera_hash('access',{})
 $management_vip        = hiera('management_vip')
+$database_vip          = hiera('database_vip')
 $public_vip            = hiera('public_vip')
-$internal_address      = hiera('internal_address')
 $glance_hash           = hiera_hash('glance', {})
 $nova_hash             = hiera_hash('nova', {})
 $cinder_hash           = hiera_hash('cinder', {})
@@ -16,13 +22,11 @@ $ceilometer_hash       = hiera_hash('ceilometer', {})
 $syslog_log_facility   = hiera('syslog_log_facility_keystone')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $amqp_hosts            = hiera('amqp_hosts')
-$primary_controller    = hiera('primary_controller')
-$controller_nodes      = hiera('controller_nodes')
 $neutron_user_password = hiera('neutron_user_password', false)
 $workloads_hash        = hiera_hash('workloads_collector', {})
 
 $db_type     = 'mysql'
-$db_host     = pick($keystone_hash['db_host'], $management_vip)
+$db_host     = pick($keystone_hash['db_host'], $database_vip)
 $db_password = $keystone_hash['db_password']
 $db_name     = pick($keystone_hash['db_name'], 'keystone')
 $db_user     = pick($keystone_hash['db_user'], 'keystone')
@@ -34,12 +38,12 @@ $admin_user     = $access_hash['user']
 $admin_password = $access_hash['password']
 $region         = hiera('region', 'RegionOne')
 
-$public_address   = $public_vip
-$admin_address    = $management_vip
-$public_bind_host = $internal_address
-$admin_bind_host  = $internal_address
+$public_address         = $public_vip
+$admin_address          = $management_vip
+$internal_address       = $management_vip
+$local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
-$memcache_servers      = hiera('memcache_servers', $controller_nodes)
+$memcache_servers      = hiera('memcache_servers')
 $memcache_server_port  = hiera('memcache_server_port', '11211')
 $memcache_pool_maxsize = '100'
 
@@ -94,18 +98,17 @@ class { 'openstack::keystone':
   db_user                  => $db_user,
   admin_token              => $admin_token,
   public_address           => $public_address,
-  internal_address         => $management_vip, # send traffic through HAProxy
+  internal_address         => $internal_address,
   admin_address            => $admin_address,
   glance_user_password     => $glance_user_password,
   nova_user_password       => $nova_user_password,
   cinder                   => $cinder,
   cinder_user_password     => $cinder_user_password,
-  neutron                  => $use_neutron,
   neutron_user_password    => $neutron_user_password,
   ceilometer               => $ceilometer,
   ceilometer_user_password => $ceilometer_user_password,
-  public_bind_host         => $public_bind_host,
-  admin_bind_host          => $admin_bind_host,
+  public_bind_host         => $local_address_for_bind,
+  admin_bind_host          => $local_address_for_bind,
   enabled                  => $enabled,
   use_syslog               => $use_syslog,
   syslog_log_facility      => $syslog_log_facility,
