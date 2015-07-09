@@ -209,6 +209,9 @@ $swift_proxies       = get_nodes_hash_by_roles($network_metadata, ['primary-cont
 $swift_proxy_caches  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']) # memcache for swift
 $is_primary_swift_proxy = $primary_controller
 
+#todo use special node-roles for corosync instead of controllers in the future
+$corosync_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
 file { '/etc/hiera/globals.yaml' :
