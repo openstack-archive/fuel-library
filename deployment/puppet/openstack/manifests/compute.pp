@@ -311,15 +311,11 @@ class openstack::compute (
   # modify the libvirt_disk_cachemodes in that case.
   if ($storage_hash['ephemeral_ceph'] or $storage_hash['volumes_ceph']) {
     $disk_cachemodes = ['"network=writeback,block=none"']
-    $libvirt_inject_partition = '-2'
   } else {
-    if $::osfamily == 'RedHat' {
-      $libvirt_inject_partition = '-1'
-    } else {
-      $libvirt_inject_partition = '1'
-    }
     $disk_cachemodes = ['"file=directsync,block=none"']
   }
+  # Use defaults for inject_partition
+  $libvirt_inject_partition = '-2'
 
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':

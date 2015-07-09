@@ -5,8 +5,6 @@ manifest = 'roles/compute.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-   storage_hash = Noop.hiera_structure 'storage'
-
    it 'should declare class nova::compute with install_bridge_utils set to false' do
       should contain_class('nova::compute').with(
         'install_bridge_utils' => false,
@@ -14,13 +12,8 @@ describe manifest do
     end
 
     it 'should configure libvirt_inject_partition for compute node' do
-      if storage_hash['ephemeral_ceph'] || storage_hash['volumes_ceph']
-        libvirt_inject_partition = '-2'
-      elsif facts[:operatingsystem] == 'CentOS'
-        libvirt_inject_partition = '-1'
-      else
-        libvirt_inject_partition = '1'
-      end
+      # Related-bug #1472520
+      libvirt_inject_partition = '-2'
       should contain_class('nova::compute::libvirt').with(
         'libvirt_inject_partition' => libvirt_inject_partition,
       )
