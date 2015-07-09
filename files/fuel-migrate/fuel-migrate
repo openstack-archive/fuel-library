@@ -3,9 +3,9 @@
 set -e
 config_bundle="fvm_disk_size fvm_name fvm_ram fvm_cpu migrate_log fuel_astute  dkvm_folder \
     admin_net_br admin_net_b_type other_net_bridges os_swap os_root  os_var os_varlibdocker \
-    os_varlog fm_reboot del_vm"
+    os_varlog fm_reboot del_vm max_worktime"
 work_bundle="dkvm_ip admin_net_ip_bs dkvm_uri admin_net_ip admin_net_if   admin_net_nm \
-    src_disk dst_disk s_base"
+    src_disk dst_disk s_base start_time"
 
 
 
@@ -34,6 +34,7 @@ descr_os_var="Size for the var volume. By default 20% of the remaining free spac
 descr_os_varlibdocker="Size of varlibdocker volume. By default 30% of the remaining free space."
 descr_os_varlog="Size of varlog volume. By default 100% of the remaining free space."
 descr_del_vm="Remove destination VM if it already exists? 'yes' or 'no'. Default is 'no'"
+descr_max_worktime="Timeout for entire migration process in seconds. Default is 7200"
 
 indent="\t\t\t\t"
 wtw="$(($(stty size | awk  '{print $2}') - 32 ))"
@@ -197,8 +198,9 @@ EOF
     fvm_admin_mac="$(virsh -c "${dkvm_uri}"  domiflist "${fvm_name}" | awk "/vfm_${admin_net_if}/ { print \$5}")"
     #wait until vm up
     while [[ -z "${admin_net_ip_bs}" ]] ; do
-        admin_net_ip_bs="$(mytrim $(fuel node | awk -F'|' "/${fvm_admin_mac}/ {print \$5}"))"
+        timeout
         sleep 10
+        admin_net_ip_bs="$(mytrim $(fuel node | awk -F'|' "/${fvm_admin_mac}/ {print \$5}"))"
     done
 
 }
@@ -305,11 +307,20 @@ set_log(){
     set -x
 }
 
+timeout(){
+    if [[ "$(( $(date +%s) - ${start_time} ))" -ge "$max_worktime" ]] ; then
+        echo "Timeout !"
+        return 1
+    fi
+    return 0
+}
+
 # Stop script execution if script is sourced
 [[ "${BASH_SOURCE[0]}" != "${0}" ]] && return
 
 
 fuel_migrate_vars=/root/fuel-migrate.var
+banner_file="c-msg.sh"
 
 if [[ "$1" == "start" ]] && [[ -f "$fuel_migrate_vars" ]] ; then
 
@@ -332,14 +343,61 @@ if [[ "$1" == "start" ]] && [[ -f "$fuel_migrate_vars" ]] ; then
     cecho "Source fuelmaster can be obtained by ssh ${admin_net_ip_bs}"
     ifconfig "$admin_net_if" "${admin_net_ip_bs}" netmask "$admin_net_nm"
 
-#   In this place admin should decide, what he(she) have to do with source node.
-# We can't exit because in this case fuel come back to normal work we will have 2 
-# identical servers running at the same time with the same IP.
+    until ssh -tt ${admin_net_ip} ls ; do
+        timeout  || reboot
+        sleep 20
+    done
+
+
+    cat >/tmp/${banner_file} <<EOF
+#!/bin/bash
+echo "
+
+                     Congratulation! You are on cloned Fuel now!
+
+    The migration tasks have completed. The clone should be up and functioning
+correctly. You should now check the new system and inspect the log stored in
+${migrate_log}.
+
+    After the reboot of the Fuel master, it may require additional time before
+it becomes fully operational. Please allow at least 10 minutes for the system
+to become active.
+
+    The source Fuel master is still up in maintenance mode. Once you have
+verified that the new Fuel master is functioning correctly, you can shut down
+or wipe the original Fuel master. The source Fuel master can be reached by
+using ssh to ${admin_net_ip_bs}. Should you want to wipe the disk for bootstraping,
+you may do so by running the following:
+
+# ssh ${admin_net_ip_bs} dd if=/dev/zero of=/dev/null count=1024 bs=1024 conv=fdatasync
+# ssh ${admin_net_ip_bs} reboot -f
+
+    To disable this message, run:
+
+# rm /etc/profile.d/${banner_file}
+
+    If the new Fuel master is not functioning correctly, you may return the
+source Fuel master back into an operational state by running:
+
+# ssh ${admin_net_ip_bs} reboot && ssh -tt ${dkvm_ip} virsh destroy ${fvm_name}
+
+    This command will reboot the source Fuel master and remove the new
+Fuel master clone. To prevent IP conflict, this command should be as indicated.
+If you are performing this command over ssh, your session may hang and you may
+need to reestablish your ssh connection.
+
+
+"
+EOF
+
+    chmod +x /tmp/${banner_file}
+    rsync /tmp/${banner_file} ${admin_net_ip}:/etc/profile.d/${banner_file}
+    # refresh log on destination node
+    rsync ${migrate_log} ${admin_net_ip}:${migrate_log}
 
     while true ; do sleep 3600 ; done
 
 else
-
     [[ -z $1 ]] && usage
     dkvm_ip="$(ssh $1 echo \$SSH_CONNECTION)"
     dkvm_ip="$(echo $dkvm_ip | awk '{print $3}')"
@@ -364,10 +422,12 @@ else
     migrate_log="${migrate_log:-/var/log/fuel-migrate.log}"
     set_log
     date
+    start_time=$(date +%s)
+
     # trap unexpected exit
     trap "{ set +x ; cecho \"ERROR: look at ${migrate_log}\"; tail ${migrate_log} >&6; exit ; }" EXIT
 
-
+    max_worktime="${max_worktime:-7200}"
     fuel_astute="${fuel_astute:-/etc/fuel/astute.yaml}"
     dkvm_ip="${dkvm_ip:?Destination compute not set}"
     dkvm_folder="${dkvm_folder:-/var/lib/nova/}"
