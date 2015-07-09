@@ -1,7 +1,7 @@
 notice('MODULAR: tools.pp')
 
+class { 'osnailyfacter::acpid': }
 class { 'osnailyfacter::atop': }
-
 class { 'osnailyfacter::ssh': }
 
 $tools = [
