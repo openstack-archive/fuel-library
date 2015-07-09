@@ -239,6 +239,9 @@ if ($storage_hash['images_ceph']) {
 # todo(sv): change to 'memcache' as soon as this node role was ready
 $memcache_servers = values(get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']), 'mgmt/memcache'))
 
+#todo use special node-roles for corosync instead of controllers in the future
+$corosync_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+
 # Define swift-related variables
 # todo(sv): use special node-roles instead controllers in the future
 $swift_master_role   = 'primary-controller'
