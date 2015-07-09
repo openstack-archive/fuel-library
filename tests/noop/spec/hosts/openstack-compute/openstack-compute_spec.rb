@@ -19,6 +19,12 @@ describe manifest do
       elsif facts[:operatingsystem] == 'CentOS'
         libvirt_inject_partition = '-1'
       else
+        should contain_k_mod('nbd').with('ensure' => 'present')
+
+        should contain_file_line('nbd_on_boot').with(
+          'path' => '/etc/modules',
+          'line' => 'nbd',
+        )
         libvirt_inject_partition = '1'
       end
       should contain_class('nova::compute::libvirt').with(

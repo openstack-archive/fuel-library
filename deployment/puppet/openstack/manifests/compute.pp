@@ -316,6 +316,14 @@ class openstack::compute (
     if $::osfamily == 'RedHat' {
       $libvirt_inject_partition = '-1'
     } else {
+      # Enable module by default on each compute node
+      k_mod {'nbd':
+        ensure => 'present'
+      }
+      file_line {'nbd_on_boot':
+        path => '/etc/modules',
+        line => 'nbd',
+      }
       $libvirt_inject_partition = '1'
     }
     $disk_cachemodes = ['"file=directsync,block=none"']
