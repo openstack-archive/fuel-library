@@ -45,7 +45,7 @@ class mysql::password (
     File['mysql_password'] -> Database_grant <| provider=='mysql' |>
     File['mysql_password'] -> Database_user <| provider=='mysql' |>
 
-    Anchor <| title == 'galera' |> -> Class['mysql::password'] -> Anchor <| title == 'galera-done' |>
+    Anchor <| title == 'database-cluster' |> -> Class['mysql::password'] -> Anchor <| title == 'database-cluster-done' |>
     Exec <| title == 'wait-for-synced-state' |> -> Exec['set_mysql_rootpw']
     Exec <| title == 'wait-initial-sync' |> -> Exec['set_mysql_rootpw']
 
