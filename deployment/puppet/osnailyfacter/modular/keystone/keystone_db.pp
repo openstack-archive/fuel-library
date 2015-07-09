@@ -1,5 +1,8 @@
 notice('MODULAR: keystone_db.pp')
 
+$node_name = hiera('node_name')
+$network_metadata = hiera_hash('network_metadata', {})
+
 $keystone_hash  = hiera_hash('keystone', {})
 $mysql_hash     = hiera_hash('mysql', {})
 $management_vip = hiera('management_vip', undef)
@@ -13,12 +16,12 @@ $db_user     = pick($keystone_hash['db_user'], 'keystone')
 $db_name     = pick($keystone_hash['db_name'], 'keystone')
 $db_password = pick($keystone_hash['db_password'], $mysql_root_password)
 
-$db_host          = pick($keystone_hash['db_host'], $database_vip, $management_vip, 'localhost')
+$db_host          = pick($keystone_hash['db_host'], $database_vip, 'localhost')
 $db_create        = pick($keystone_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($keystone_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($keystone_hash['root_password'], $mysql_root_password)
 
-$allowed_hosts = [ $::hostname, 'localhost', '127.0.0.1', '%' ]
+$allowed_hosts = [ $node_name, 'localhost', '127.0.0.1', '%' ]
 
 if $db_create {
 
@@ -34,8 +37,6 @@ if $db_create {
     db_user     => $db_root_user,
     db_password => $db_root_password,
   }
-
-  Class['osnailyfacter::mysql_access'] -> Class['keystone::db::mysql']
 
 }
 
