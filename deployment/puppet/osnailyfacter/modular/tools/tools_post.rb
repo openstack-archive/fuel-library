@@ -1,6 +1,7 @@
 require File.join File.dirname(__FILE__), '../test_common.rb'
 
 TOOLS = %w(
+acpid
 screen
 tmux
 man
