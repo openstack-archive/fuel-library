@@ -116,4 +116,9 @@ $admin_iface = 'eth0',
     mode    => '0755',
   }
 
+  service { 'acpid':
+    ensure => 'running',
+    enable => true,
+  }
+
 }

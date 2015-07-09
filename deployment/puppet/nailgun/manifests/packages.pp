@@ -20,4 +20,5 @@ class nailgun::packages(
   nailgun_safe_package { "python-fuelclient": }
   nailgun_safe_package { "screen": }
   nailgun_safe_package { "fuel-migrate": }
+  nailgun_safe_package { "acpid": }
 }
