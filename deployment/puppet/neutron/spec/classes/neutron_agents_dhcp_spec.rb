@@ -23,7 +23,7 @@ describe 'neutron::agents::dhcp' do
       :use_namespaces         => true,
       :dnsmasq_config_file    => nil,
       :dhcp_delete_namespaces => false,
-      :enable_isolated_metadata => false,
+      :enable_isolated_metadata => true,
       :enable_metadata_network  => false }
   end
 

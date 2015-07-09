@@ -56,7 +56,7 @@
 #
 # [*enable_isolated_metadata*]
 #   (optional) enable metadata support on isolated networks.
-#   Defaults to false.
+#   Defaults to true.
 #
 # [*enable_metadata_network*]
 #   (optional) Allows for serving metadata requests coming from a dedicated metadata
@@ -79,7 +79,7 @@ class neutron::agents::dhcp (
   $use_namespaces         = true,
   $dnsmasq_config_file    = undef,
   $dhcp_delete_namespaces = false,
-  $enable_isolated_metadata = false,
+  $enable_isolated_metadata = true,
   $enable_metadata_network  = false
 ) {
 
@@ -165,3 +165,4 @@ class neutron::agents::dhcp (
     require => Class['neutron'],
   }
 }
+
