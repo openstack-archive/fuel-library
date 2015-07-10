@@ -176,6 +176,12 @@ class openstack::ceilometer (
   }
 
   if ($on_compute) {
+    # Our libvirt-bin package (1.2.9 version) creates 'libvirt' group
+    if (versioncmp($::libvirt_package_version, '1.2.9') >= 0) {
+      User<| name == 'ceilometer' |> {
+        groups => ['nova', 'libvirt'],
+      }
+    }
     # Install compute agent
     class { 'ceilometer::agent::compute':
       enabled => true,
