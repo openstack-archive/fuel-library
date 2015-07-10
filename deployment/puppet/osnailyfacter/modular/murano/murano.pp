@@ -78,7 +78,7 @@ if $murano_hash['enabled'] {
     murano_own_rabbit_passwd => $heat_hash['rabbit_password'],
 
 
-    murano_db_host           => $management_ip,
+    murano_db_host           => pick(hiera('database_vip'), hiera('management_vip')),
     murano_db_password       => $murano_hash['db_password'],
 
     murano_keystone_host     => $management_ip,
