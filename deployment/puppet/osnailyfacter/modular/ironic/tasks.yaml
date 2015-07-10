@@ -1,0 +1,84 @@
+- id: ironic
+  type: puppet
+  groups: [primary-controller, controller, ironic-conductor]
+  required_for: [openastack-controller]
+  requires: [openstack-haproxy, database, rabbitmq]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/ironic.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ironic/ironic_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ironic/ironic_post.rb
+
+- id: ironic-db
+  type: puppet
+  groups: [primary-controller]
+  required_for: [ironic]
+  requires: [database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/ironic_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-haproxy
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [ironic]
+  requires: [openstack-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/haproxy.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: ironic-keystone
+  type: puppet
+  groups: [primary-controller]
+  required_for: [ironic]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: ironic-api
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [ironic]
+  requires: [ironic-keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/api.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: ironic-tftp
+  type: puppet
+  groups: [ironic-conductor]
+  required_for: [ironic]
+  requires: [top-role-compute]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/tftp.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: ironic-conductor
+  type: puppet
+  groups: [ironic-conductor]
+  required_for: [ironic]
+  requires: [top-role-compute]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/conductor.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: ironic-compute
+  type: puppet
+  groups: [ironic-conductor]
+  required_for: [ironic]
+  requires: [top-role-compute]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+

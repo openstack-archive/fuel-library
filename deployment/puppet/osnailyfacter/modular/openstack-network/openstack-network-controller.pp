@@ -17,6 +17,7 @@ $nova_endpoint                  = hiera('nova_endpoint', $management_vip)
 $keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
+$ironic_hash                    = hiera_hash('ironic', {})
 
 $floating_hash = {}
 
@@ -88,6 +89,7 @@ if $network_provider == 'neutron' {
   # in the interum.
   $neutron_settings = $neutron_config
   $nets = $neutron_settings['predefined_networks']
+  $ironic_net_name = 'baremetal'
 
   if $primary_controller {
 
@@ -108,7 +110,11 @@ if $network_provider == 'neutron' {
       external_network => 'net04_ext',
       tenant_name      => $keystone_admin_tenant
     }
-
+    if $ironic_hash['enabled'] {
+      openstack::network::create_network{$ironic_net_name:
+        netdata => $nets[$ironic_net_name]
+      }
+    }
   }
   nova_config { 'DEFAULT/default_floating_pool': value => 'net04_ext' }
   $pnets = $neutron_settings['L2']['phys_nets']
@@ -132,7 +138,22 @@ if $network_provider == 'neutron' {
     $vlan_range = []
   }
 
-  if $physnet1 and $physnet2 {
+  if $pnets['physnet-brmtl'] {
+    $physnet_brmtl = "physnet-brmtl:${pnets['physnet-brmtl']['bridge']}"
+    $flat_networks = ['physnet-brmtl']
+    notify{ $physnet_brmtl:}
+  } else {
+    $flat_networks = undef
+  }
+
+  # TODO: get this shit better
+  if $physnet1 and $physnet2 and $physnet-brmtl {
+    $bridge_mappings = [$physnet1, $physnet2, $physnet-brmtl]
+  } elsif $physnet1 and $physnet_brmtl {
+    $bridge_mappings = [$physnet1, $physnet_brmtl]
+  } elsif $physnet2 and $physnet_brmtl {
+    $bridge_mappings = [$physnet2, $physnet_brmtl]
+  } elsif $physnet1 and $physnet2 {
     $bridge_mappings = [$physnet1, $physnet2]
   } elsif $physnet1 {
     $bridge_mappings = [$physnet1]
