@@ -1,6 +1,7 @@
 notice('MODULAR: database.pp')
 
-$internal_address         = hiera('internal_address')
+prepare_network_config(hiera('network_scheme', {}))
+$internal_address         = get_network_role_property('mgmt/database', 'ipaddr')
 $management_network_range = hiera('management_network_range')
 $controller_nodes         = hiera('controller_nodes')
 $use_syslog               = hiera('use_syslog', true)
