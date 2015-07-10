@@ -1,8 +1,7 @@
 notice('MODULAR: database.pp')
 
-$internal_address         = hiera('internal_address')
+prepare_network_config(hiera('network_scheme', {}))
 $management_network_range = hiera('management_network_range')
-$controller_nodes         = hiera('controller_nodes')
 $use_syslog               = hiera('use_syslog', true)
 $primary_controller       = hiera('primary_controller')
 $management_vip           = hiera('management_vip')
@@ -20,8 +19,8 @@ $mysql_bind_address       = '0.0.0.0'
 
 $enabled                  = true
 $galera_cluster_name      = 'openstack'
-$galera_node_address      = $internal_address
-$galera_nodes             = $controller_nodes
+$galera_node_address      = get_network_role_property('mgmt/database', 'ipaddr')
+$galera_nodes             = keys(get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database'))
 $mysql_skip_name_resolve  = true
 $custom_setup_class       = 'galera'
 
