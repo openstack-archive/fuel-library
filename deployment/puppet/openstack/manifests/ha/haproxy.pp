@@ -73,10 +73,11 @@ class openstack::ha::haproxy (
   }
 
   if ($custom_mysql_setup_class in ['galera', 'percona', 'percona_packages']) {
+    $database_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database')
     class { 'openstack::ha::mysqld':
       is_primary_controller => $is_primary_controller,
-      server_names          => hiera_array('mysqld_names', $controllers_server_names),
-      ipaddresses           => hiera_array('mysqld_ipaddresses', $controllers_ipaddresses),
+      server_names          => hiera_array('mysqld_names', keys($database_address_map)),
+      ipaddresses           => hiera_array('mysqld_ipaddresses', values($database_address_map)),
     }
   }
 
