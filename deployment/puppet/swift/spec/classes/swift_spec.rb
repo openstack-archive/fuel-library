@@ -3,7 +3,10 @@ require 'spec_helper'
 describe 'swift' do
 
   let :params do
-    {:swift_hash_suffix => 'string'}
+    {
+      :swift_hash_suffix => 'string',
+      :max_header_size   => '16384',
+    }
   end
 
   let :facts do
@@ -54,6 +57,10 @@ describe 'swift' do
     it 'configures swift.conf' do
       should contain_swift_config(
         'swift-hash/swift_hash_path_suffix').with_value('string')
+    end
+    it 'configures swift.conf' do
+      should contain_swift_config(
+        'swift-constraints/max_header_size').with_value('16384')
     end
     it {should contain_package('swift').with_ensure('present')}
   end

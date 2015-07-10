@@ -11,6 +11,10 @@
 # [*client_package_ensure*] The ensure state for the swift client package.
 #   (Optional) Defaults to present.
 #
+# [*max_header_size*] Max HTTP header size for incoming requests for all swift
+#   services. Recommended size is 32768 for PKI keystone tokens.
+#   (Optional) Defaults to 8192
+#
 # == Dependencies
 #
 #   Class['ssh::server::install']
@@ -27,6 +31,7 @@ class swift(
   $swift_hash_suffix,
   $package_ensure        = 'present',
   $client_package_ensure = 'present',
+  $max_header_size       = '8192',
 ) {
 
   include swift::params
@@ -79,5 +84,8 @@ class swift(
 
   swift_config { 'swift-hash/swift_hash_path_suffix':
     value => $swift_hash_suffix
+  }
+  swift_config { 'swift-constraints/max_header_size':
+    value => $max_header_size,
   }
 }
