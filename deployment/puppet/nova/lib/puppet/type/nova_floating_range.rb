@@ -1,3 +1,12 @@
+# Return back nova floating IP range support
+# commit a88bc1906a6670c672d145508a1aa516682db28b
+# TODO (iberezovskiy): rework this change using one of the following ways:
+#   1. Get rid of usage of custom ruby-openstack and ruby-netaddr packages and propose
+#      this patch to upstream module
+#   2. Move floating ip range support out of nova module
+#   3. Merge new functions to nova_floating provider and use it in deployment
+#      (also with proposed patch to upstream)
+
 Puppet::Type.newtype(:nova_floating_range) do
 
   @doc = 'Manage creation/deletion of nova floating ip ranges.'
