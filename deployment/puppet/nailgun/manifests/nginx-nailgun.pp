@@ -1,9 +1,16 @@
+# Class configures nginx for nailgun
+#
+# Parameters:
+# [*ssl_enabled*]
+#  (optional) enables SSL for nailgun UI part
+#
 class nailgun::nginx-nailgun(
   $staticdir,
   $logdumpdir,
   $nailgun_host = '127.0.0.1',
   $ostf_host = '127.0.0.1',
   $keystone_host = '127.0.0.1',
+  $ssl_enabled = false,
   ) {
 
   file { '/etc/nginx/conf.d/nailgun.conf':
