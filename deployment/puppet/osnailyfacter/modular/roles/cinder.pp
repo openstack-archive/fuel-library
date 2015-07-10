@@ -45,7 +45,7 @@ $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $cinder_db_password             = $cinder_hash[db_password]
 $keystone_user                  = pick($cinder_hash['user'], 'cinder')
 $keystone_tenant                = pick($cinder_hash['tenant'], 'services')
-$db_host                        = pick($cinder_hash['db_host'], $management_vip)
+$db_host                        = pick($cinder_hash['db_host'], hiera('database_vip'), $management_vip)
 $cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
 
