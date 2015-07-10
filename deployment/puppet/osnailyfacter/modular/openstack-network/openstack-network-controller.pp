@@ -37,7 +37,7 @@ if $use_neutron {
   $neutron_db_password   = $neutron_config['database']['passwd']
   $neutron_db_user       = pick($neutron_config['database']['user'], 'neutron')
   $neutron_db_name       = pick($neutron_config['database']['name'], 'neutron')
-  $neutron_db_host       = pick($neutron_config['database']['host'], $management_vip)
+  $neutron_db_host       = pick($neutron_config['database']['host'], hiera('database_vip'), $management_vip)
   $base_mac              = $neutron_config['L2']['base_mac']
 } else {
   $network_provider   = 'nova'
