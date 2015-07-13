@@ -232,7 +232,7 @@ class openstack::keystone (
     rabbit_virtual_host   => $rabbit_virtual_host,
     memcache_servers      => $memcache_servers_real,
     token_driver          => $token_driver,
-    token_provider        => 'keystone.token.providers.uuid.Provider',
+    token_provider        => 'keystone.token.providers.fernet.Provider',
     notification_driver   => $notification_driver,
     notification_topics   => $notification_topics,
     token_caching         => $token_caching,

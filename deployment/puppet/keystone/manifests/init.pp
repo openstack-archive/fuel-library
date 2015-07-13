@@ -409,10 +409,11 @@ class keystone(
   $catalog_type           = 'sql',
   $catalog_driver         = false,
   $catalog_template_file  = '/etc/keystone/default_catalog.templates',
-  $token_provider         = 'keystone.token.providers.uuid.Provider',
+  $token_provider         = 'keystone.token.providers.fernet.Provider',
   $token_driver           = 'keystone.token.persistence.backends.sql.Token',
   $token_expiration       = 3600,
   $revoke_driver          = 'keystone.contrib.revoke.backends.sql.Revoke',
+  $revoke_id              = false,
   $public_endpoint        = false,
   $admin_endpoint         = false,
   $enable_ssl             = false,
@@ -431,7 +432,7 @@ class keystone(
   $enabled                = true,
   $database_connection    = 'sqlite:////var/lib/keystone/keystone.db',
   $database_idle_timeout  = '200',
-  $enable_pki_setup       = true,
+  $enable_pki_setup       = false,
   $signing_certfile       = '/etc/keystone/ssl/certs/signing_cert.pem',
   $signing_keyfile        = '/etc/keystone/ssl/private/signing_key.pem',
   $signing_ca_certs       = '/etc/keystone/ssl/certs/ca.pem',
@@ -464,7 +465,7 @@ class keystone(
   $admin_workers          = max($::processorcount, 2),
   $public_workers         = max($::processorcount, 2),
   $sync_db                = true,
-  $enable_fernet_setup    = false,
+  $enable_fernet_setup    = true,
   $fernet_key_repository  = '/etc/keystone/fernet-keys',
   $fernet_max_active_keys = undef,
   # DEPRECATED PARAMETERS
@@ -905,6 +906,9 @@ class keystone(
       notify      => Service[$service_name],
       subscribe   => [Package['keystone'], Keystone_config['fernet_tokens/key_repository']],
     }
+ 
+   keystone_config {'token/revoke_by_id': value => $revoke_id}
+
   }
 
   if $fernet_key_repository {
