@@ -3,21 +3,35 @@ require 'shared-examples'
 manifest = 'cluster-vrouter/cluster-vrouter.pp'
 
 describe manifest do
-  shared_examples 'puppet catalogue' do
-    settings = Noop.fuel_settings
+  shared_examples 'catalog' do
     networks = []
-    settings['network_scheme']['endpoints'].each{ |k,v|
-      if v['IP'].is_a?(Array)
-        v['IP'].each { |ip|
-          networks << IPAddr.new(ip).to_s + "/" + ip.split('/')[1]
-        }
+    endpoints = Noop.hiera_structure 'network_scheme/endpoints'
+    management_vip = Noop.hiera 'management_vip'
+    filter = nil
+
+    class IPAddr
+      def mask_length
+        @mask_addr.to_s(2).count '1'
       end
-      if v.has_key?('routes') and v['routes'].is_a?(Array)
-        v['routes'].each { |route|
-          networks << route['net']
-        }
+
+      def cidr
+        "#{to_s}/#{mask_length}"
       end
-    }
+    end
+
+    endpoints.each do |interface, parameters|
+      next unless parameters.has_key? 'IP' and parameters['IP'].is_a? Array
+      next if filter and interface != filter
+      parameters['IP'].each do |ip|
+        next unless ip
+        networks << IPAddr.new(ip).cidr
+      end
+      next unless parameters.has_key? 'routes' and parameters['routes'].is_a? Array
+      parameters['routes'].each do |route|
+        next unless route.has_key? 'net'
+        networks << IPAddr.new(route['net']).cidr
+      end
+    end
 
     it "should delcare cluster::vrouter_ocf with other_networks set to #{networks.join(' ')}" do
       should contain_class('cluster::vrouter_ocf').with(
