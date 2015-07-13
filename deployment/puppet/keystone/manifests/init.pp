@@ -413,6 +413,7 @@ class keystone(
   $token_driver           = 'keystone.token.persistence.backends.sql.Token',
   $token_expiration       = 3600,
   $revoke_driver          = 'keystone.contrib.revoke.backends.sql.Revoke',
+  $revoke_id              = true,
   $public_endpoint        = false,
   $admin_endpoint         = false,
   $enable_ssl             = false,
@@ -905,6 +906,9 @@ class keystone(
       notify      => Service[$service_name],
       subscribe   => [Package['keystone'], Keystone_config['fernet_tokens/key_repository']],
     }
+ 
+   keystone_config {'token/revoke_by_id': value => $revoke_id}
+
   }
 
   if $fernet_key_repository {
