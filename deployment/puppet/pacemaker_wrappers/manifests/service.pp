@@ -4,6 +4,7 @@ define pacemaker_wrappers::service (
   $primitive_class     = 'ocf',
   $primitive_provider  = 'fuel',
   $primitive_type      = undef,
+  $prefix              = true,
 
   $parameters          = undef,
   $operations          = undef,
@@ -22,7 +23,11 @@ define pacemaker_wrappers::service (
 ) {
 
   $service_name     = $title
-  $primitive_name   = "p_${service_name}"
+  if $prefix {
+    $primitive_name   = "p_${service_name}"
+  } else {
+    $primitive_name   = $service_name
+  }
   $ocf_script_name  = "${service_name}-ocf-file"
   $ocf_handler_name = "ocf_handler_${service_name}"
 
