@@ -1,3 +1,29 @@
+# PRE_DEPLOYMENT Tasks$
+#
+
+- id: copy_fernet_keys
+  type: copy_files
+  role: [primary-controller, controller]
+  required_for: [pre_deployment_end]
+  requires: [generate_keys]
+  parameters:
+    files:
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/fernet-keys/0
+        dst: /var/lib/astute/keystone/0
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/fernet-keys/1
+        dst: /var/lib/astute/keystone/1
+    permissions: '0600'
+    dir_permissions: '0700'
+
+- id: generate_fernet_keys
+  type: shell
+  role: master
+  requires: [pre_deployment_start]
+  required_for: [copy_fernet_keys]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -f '0 1' -p /var/lib/fuel/keys/
+    timeout: 180
+
 - id: keystone
   type: puppet
   groups: [primary-controller, controller]
@@ -21,3 +47,4 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
