@@ -4,19 +4,55 @@ directly attached to the host
 EOS
 ) do |argv|
   endpoints = argv[0]
+  filter  = argv[1]
+  format  = argv[2]
+  netmask = argv[3]
   networks = []
 
-  endpoints.each{ |k,v|
-    if v.has_key?('IP') and v['IP'].is_a?(Array)
-      v['IP'].each { |ip|
-        networks << IPAddr.new(ip).to_s + "/" + ip.split('/')[1]
-      }
+  class IPAddr
+    def mask_length
+      @mask_addr.to_s(2).count '1'
     end
-    if v.has_key?('routes') and v['routes'].is_a?(Array)
-      v['routes'].each { |route|
-        networks << route['net']
-      }
+
+    def cidr_to_netmask(cidr)
+      IPAddr.new('255.255.255.255').mask(cidr).to_s
     end
-  }
-  return networks.join(' ')
+
+    def cidr
+      "#{to_s}/#{mask_length}"
+    end
+
+    def netmask
+       cidr = "#{mask_length}"
+      "#{to_s}/#{cidr_to_netmask(cidr)}"
+    end
+  end
+
+  endpoints.each do |interface, parameters|
+    next unless parameters.has_key? 'IP' and parameters['IP'].is_a? Array
+    next if filter and interface != filter
+    parameters['IP'].each do |ip|
+      next unless ip
+      if netmask and netmask == 'netmask'
+        networks << IPAddr.new(ip).netmask
+      else
+        networks << IPAddr.new(ip).cidr
+      end
+    end
+    next unless parameters.has_key? 'routes' and parameters['routes'].is_a? Array
+    parameters['routes'].each do |route|
+      next unless route.has_key? 'net'
+      if netmask and netmask == 'netmask'
+        networks << IPAddr.new(route['net']).netmask
+      else
+        networks << IPAddr.new(route['net']).cidr
+      end
+    end
+  end
+  if format and format == 'array'
+    return networks
+  else
+    return networks.join(' ')
+  end
 end
+
