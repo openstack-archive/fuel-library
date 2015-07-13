@@ -32,8 +32,8 @@ OCF_ROOT_default="/usr/lib/ocf"
 
 OCF_RESKEY_ns_default="vrouter"
 OCF_RESKEY_other_networks_default=false
-OCF_RESKEY_host_interface_default="vrouter-host"
-OCF_RESKEY_namespace_interface_default="vr-ns"
+OCF_RESKEY_host_interface_default="vr-host-base"
+OCF_RESKEY_namespace_interface_default="vr-host-ns"
 OCF_RESKEY_host_ip_default="240.0.0.5"
 OCF_RESKEY_namespace_ip_default="240.0.0.6"
 OCF_RESKEY_network_mask_default="30"
