@@ -32,6 +32,10 @@
 #   filtering this address from `wsrep_cluster_address` to avoid these
 #   problems.
 #
+# [*gcache_factor*]
+#   The gcache factor is based on cluster node's count.
+#   Used in config template for `wsrep_provider_option`.
+#
 # [*setup_multiple_gcomm*]
 #   Should gcomm address contain multiple nodes or not.
 #
@@ -66,6 +70,7 @@ class galera (
   $setup_multiple_gcomm = true,
   $skip_name_resolve    = false,
   $node_addresses       = [ $ipaddress_eth0 ],
+  $gcache_factor        = 0,
   $use_syslog           = false,
   $gcomm_port           = '4567',
   $status_check         = true,
