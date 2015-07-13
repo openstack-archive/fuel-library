@@ -60,6 +60,7 @@ wsrep_sst_method=<%= @wsrep_sst_method %>
 wsrep_sst_auth=<%= @mysql_user %>:<%= @mysql_password %>
 <% end -%>
 wsrep_node_address=<%= @node_address %>
+wsrep_provider_options="gcache.size = <%= [256, @gcache_factor*64, 2048].sort[1] %>M"
 
 <% if @wsrep_sst_method =~ /xtrabackup/ -%>
 [xtrabackup]
