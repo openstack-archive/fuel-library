@@ -35,6 +35,9 @@ class galera::params {
   $innodb_flush_method     = 'O_DIRECT'
   $max_connections         = '4096'
 
+  # Get gcache factor
+  $gcache_factor           = count(unique(filter_hash(hiera('nodes'), 'uid')))
+
   if ($::galera::use_percona) {
     case $::osfamily {
       'RedHat': {
