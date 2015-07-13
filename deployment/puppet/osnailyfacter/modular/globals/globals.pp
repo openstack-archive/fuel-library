@@ -158,14 +158,14 @@ $rabbit_hash['user'] = 'nova'
 }
 
 if $deployment_mode == 'ha_compact' {
-  $amqp_port              = '5673'
-  $amqp_hosts             = amqp_hosts($controller_nodes, $amqp_port, $internal_address)
+  $amqp_port              = hiera('amqp_port', '5673')
+  $amqp_hosts             = hiera('amqp_hosts', amqp_hosts($controller_nodes, $amqp_port, $internal_address))
   $rabbit_ha_queues       = true
   $rabbitmq_cluster_nodes = $controller_hostnames
 } else {
   # simple multinode (deprecated)
-  $amqp_port              = '5672'
-  $amqp_hosts             = amqp_hosts($controller_node_address, $amqp_port)
+  $amqp_port              = hiera('amqp_port', '5672')
+  $amqp_hosts             = hiera('amqp_hosts', amqp_hosts($controller_node_address, $amqp_port))
   $rabbitmq_cluster_nodes = [ $controller[0]['name'] ]
   $rabbit_ha_queues       = false
 }

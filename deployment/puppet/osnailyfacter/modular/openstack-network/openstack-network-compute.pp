@@ -18,18 +18,22 @@ $region                         = hiera('region', 'RegionOne')
 
 $floating_hash = {}
 
-# amqp settings
-if hiera('amqp_nodes', false) {
-  $amqp_nodes = hiera('amqp_nodes')
-}
-elsif $internal_address in $controller_nodes {
-  # prefer local MQ broker if it exists on this node
-  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
-} else {
-  $amqp_nodes = fqdn_rotate($controller_nodes)
-}
+# amqp configuration
 $amqp_port = hiera('amqp_port', '5673')
-$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+if hiera('amqp_hosts', false) {
+  $amqp_hosts = hiera('amqp_hosts')
+} else {
+  # backwards compatibility
+  if hiera('amqp_nodes', false) {
+    $amqp_nodes = hiera('amqp_nodes')
+  } elsif $internal_address in $controller_nodes {
+    # prefer local MQ broker if it exists on this node
+    $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
+  } else {
+    $amqp_nodes = fqdn_rotate($controller_nodes)
+  }
+  $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+}
 
 class { 'l23network' :
   use_ovs => $use_neutron

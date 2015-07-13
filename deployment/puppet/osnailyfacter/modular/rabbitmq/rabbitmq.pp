@@ -1,9 +1,10 @@
 notice('MODULAR: rabbitmq.pp')
 
 $queue_provider = hiera('queue_provider', 'rabbitmq')
+$rabbit_hash    = hiera_hash('rabbit_hash', {})
 
 if $queue_provider == 'rabbitmq' {
-  $enabled         = true
+  $enabled         = pick($rabbit_hash['enabled'], true)
   $erlang_cookie   = hiera('erlang_cookie', 'EOKOWXQREETZSHFNTPEY')
   $version         = hiera('rabbit_version', '3.3.5')
   $debug           = hiera('debug', false)
@@ -82,48 +83,48 @@ if $queue_provider == 'rabbitmq' {
     }
   )
 
-  class { '::rabbitmq':
-    admin_enable               => false,
-    repos_ensure               => false,
-    package_provider           => $package_provider,
-    package_source             => undef,
-    service_ensure             => 'running',
-    service_manage             => true,
-    port                       => $amqp_port,
-    delete_guest_user          => true,
-    default_user               => $rabbit_hash['user'],
-    default_pass               => $rabbit_hash['password'],
-    # NOTE(bogdando) set to true and uncomment the lines below, if puppet should create a cluster
-    # We don't want it as far as OCF script creates the cluster
-    config_cluster             => false,
-    #erlang_cookie              => $erlang_cookie,
-    #wipe_db_on_cookie_change   => true,
-    #cluster_nodes              => $rabbitmq_cluster_nodes,
-    #cluster_node_type          => 'disc',
-    #cluster_partition_handling => $cluster_partition_handling,
-    version                    => $version,
-    node_ip_address            => $rabbitmq_bind_ip_address,
-    config_kernel_variables    => $config_kernel_variables,
-    config_variables           => $config_variables,
-    environment_variables      => $environment_variables,
-  }
+  if ($enabled) {
+    class { '::rabbitmq':
+      admin_enable               => false,
+      repos_ensure               => false,
+      package_provider           => $package_provider,
+      package_source             => undef,
+      service_ensure             => 'running',
+      service_manage             => true,
+      port                       => $amqp_port,
+      delete_guest_user          => true,
+      default_user               => $rabbit_hash['user'],
+      default_pass               => $rabbit_hash['password'],
+      # NOTE(bogdando) set to true and uncomment the lines below, if puppet should create a cluster
+      # We don't want it as far as OCF script creates the cluster
+      config_cluster             => false,
+      #erlang_cookie              => $erlang_cookie,
+      #wipe_db_on_cookie_change   => true,
+      #cluster_nodes              => $rabbitmq_cluster_nodes,
+      #cluster_node_type          => 'disc',
+      #cluster_partition_handling => $cluster_partition_handling,
+      version                    => $version,
+      node_ip_address            => $rabbitmq_bind_ip_address,
+      config_kernel_variables    => $config_kernel_variables,
+      config_variables           => $config_variables,
+      environment_variables      => $environment_variables,
+    }
 
-  # Install rabbit-fence daemon
-  class { 'cluster::rabbitmq_fence':
-    enabled => true,
-    require => Class['::rabbitmq']
-  }
+    # Install rabbit-fence daemon
+    class { 'cluster::rabbitmq_fence':
+      enabled => $enabled,
+      require => Class['::rabbitmq']
+    }
 
-  class { 'nova::rabbitmq':
-    enabled                    => $enabled,
-    # Do not install rabbitmq from nova classes
-    rabbitmq_class             => false,
-    userid                     => $rabbit_hash['user'],
-    password                   => $rabbit_hash['password'],
-    require                    => Class['::rabbitmq'],
-  }
+    class { 'nova::rabbitmq':
+      enabled        => $enabled,
+      # Do not install rabbitmq from nova classes
+      rabbitmq_class => false,
+      userid         => $rabbit_hash['user'],
+      password       => $rabbit_hash['password'],
+      require        => Class['::rabbitmq'],
+    }
 
-  if $enabled {
     class { 'pacemaker_wrappers::rabbitmq':
       command_timeout         => $command_timeout,
       debug                   => $debug,
@@ -131,4 +132,5 @@ if $queue_provider == 'rabbitmq' {
       before                  => Class['nova::rabbitmq'],
     }
   }
+
 }
