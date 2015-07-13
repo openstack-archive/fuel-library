@@ -67,7 +67,7 @@ $openstack_version = {
   'cinder'     => 'installed',
 }
 
-$queue_provider='rabbitmq'
+$queue_provider = hiera('queue_provider', 'rabbitmq')
 $custom_mysql_setup_class='galera'
 
 # Do the stuff
@@ -191,22 +191,23 @@ $controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
-# AMQP client configuration
-if $internal_address in $controller_nodes {
-  # prefer local MQ broker if it exists on this node
-  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
+# amqp configuration
+$amqp_port = hiera('amqp_port', '5673')
+if hiera('amqp_hosts', false) {
+  $amqp_hosts = hiera('amqp_hosts')
 } else {
-  $amqp_nodes = fqdn_rotate($controller_nodes)
+  # backwards compatibility
+  if hiera('amqp_nodes', false) {
+    $amqp_nodes = hiera('amqp_nodes')
+  } elsif $internal_address in $controller_nodes {
+    # prefer local MQ broker if it exists on this node
+    $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
+  } else {
+    $amqp_nodes = fqdn_rotate($controller_nodes)
+  }
+  $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
 }
-
-$amqp_port = '5673'
-$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
-$rabbit_ha_queues = true
-
-# RabbitMQ server configuration
-$rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
-$rabbitmq_bind_port = $amqp_port
-$rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames
+$rabbit_ha_queues = hiera('rabbit_ha_queues', true)
 
 # SQLAlchemy backend configuration
 $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
