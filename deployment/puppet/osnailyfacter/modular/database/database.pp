@@ -8,6 +8,10 @@ $mysql_hash               = hiera_hash('mysql', {})
 $management_vip           = hiera('management_vip')
 $database_vip             = hiera('database_vip', $management_vip)
 
+$network_scheme  = hiera('network_scheme', {})
+$direct_networks = split(direct_networks($network_scheme['endpoints'], 'br-mgmt', 'netmask'), ' ')
+$access_networks = flatten(['localhost', '127.0.0.1', $direct_networks])
+
 $haproxy_stats_port   = '10000'
 $haproxy_stats_url    = "http://${database_vip}:${haproxy_stats_port}/;csv"
 
@@ -71,8 +75,10 @@ if $enabled {
     config_hash             => $config_hash_real,
   }
 
-  class { 'osnailyfacter::mysql_root':
-    password => $mysql_database_password,
+  class { 'osnailyfacter::mysql_access':
+    user            => 'root',
+    password        => $mysql_database_password,
+    access_networks => $direct_networks,
   }
 
   exec { 'initial_access_config':

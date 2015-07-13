@@ -1,43 +1,50 @@
-# == Class osnailyfacter::mysql_access
+# == Class definition osnailyfacter::mysql_access
 #
-# Class that configures .my.cnf for services
+# Class for mysql grant permissions
 #
-# === Parameters:
+# [*user*]
+# Mysql username
 #
-# [*db_user*]
-#  (optional) The mysql user to create
-#  Defaults to 'root'
+# [*password*]
+#  Password to use with user
 #
-# [*db_password*]
-#  Password to use for db_user
+# [*access_networks*]
+#  Array of specific IPs or Networks or Hostnames
+#  to access the database with user
 #
-# [*db_host*]
-#  (optional) The IP address of the mysql server
-#  Defaults to '127.0.0.1'
-#
-class osnailyfacter::mysql_access (
-  $ensure      = 'present',
-  $db_user     = 'root',
-  $db_password = '',
-  $db_host     = 'localhost',
+define osnailyfacter::mysql_access (
+  $user           = $name,
+  $password       = '',
+  $other_networks = '',
 ) {
-  $default_file_path = '/root/.my.cnf'
-  $host_file_path = "/root/.my.${db_host}.cnf"
 
-  file { "${db_host}-mysql-access":
-    ensure  => $ensure,
-    path    => $host_file_path,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0640',
-    content => template('osnailyfacter/mysql.access.cnf.erb')
+  Exec {
+    path    => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+    creates => '/root/.my.cnf',
   }
 
-  if $ensure == 'present' {
-    file { 'default-mysql-access-link':
-      ensure => 'symlink',
-      path   => $default_file_path,
-      target => $host_file_path,
+  define mysql_grant ( $user ) {
+    exec { "mysql_root_${name}":
+      command => "mysql -NBe \"grant all on *.* to \'${user}\'@\'${name}\' with grant option\"",
+      before  => Exec['mysql_root_password'],
+      require => Exec['mysql_drop_test'],
     }
   }
+
+  mysql_grant { $network_array:
+    user => $user,
+  }
+
+  exec { 'mysql_drop_test' :
+    command => "mysql -NBe \"drop database if exists test\"",
+  }
+
+  exec { 'mysql_root_password' :
+    command => "mysql -NBe \"update mysql.user set password = password('${password}') where user = \'${user}\'\"",
+  } ->
+
+  exec { 'mysql_flush_privileges' :
+    command => "mysql -NBe \"flush privileges\"",
+  }
+
 }
