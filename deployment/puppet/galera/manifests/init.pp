@@ -100,6 +100,7 @@ class galera (
   $datadir                 = $::mysql::params::datadir
   $service_name            = $::galera::params::service_name
   $innodb_flush_method     = $::galera::params::innodb_flush_method
+  $gcache_factor           = $::galera::params::gcache_factor
 
   package { ['wget',
               'perl']:
