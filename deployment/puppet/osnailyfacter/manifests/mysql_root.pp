@@ -5,8 +5,13 @@
 # [*password*]
 #  Password to use with root user
 #
+# [*other_networks*]
+#  List of specific IPs or Networks to access
+#  the database
+#
 class osnailyfacter::mysql_root (
   $password = '',
+  $other_networks = '',
 ) {
 
   Exec {
@@ -18,9 +23,14 @@ class osnailyfacter::mysql_root (
     command => "mysql -NBe \"drop database if exists test\"",
   } ->
 
-  exec { 'mysql_root_%' :
-    command => "mysql -NBe \"grant all on *.* to 'root'@'%' with grant option\"",
-  } ->
+  define mysql_for_other_networks () {
+    exec { "mysql_root_${name}" :
+      command => "mysql -NBe \"grant all on *.* to 'root'@'${name}' with grant option\"",
+      before  => Exec['mysql_flush_privileges'],
+    }
+  }
+
+  mysql_for_other_networks { $other_networks: }
 
   exec { 'mysql_root_localhost' :
     command => "mysql -NBe \"grant all on *.* to 'root'@'localhost' with grant option\"",
