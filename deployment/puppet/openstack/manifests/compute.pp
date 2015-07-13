@@ -79,7 +79,8 @@ class openstack::compute (
   # VNC
   $vnc_enabled                    = true,
   $vncproxy_host                  = undef,
-  $vncserver_listen               = $internal_address,
+  $vncserver_listen               = '0.0.0.0',
+  $migration_support              = false,
   # General
   $enabled                        = true,
   $multi_host                     = false,
@@ -335,6 +336,7 @@ class openstack::compute (
     libvirt_cpu_mode         => $libvirt_cpu_mode,
     libvirt_disk_cachemodes  => $disk_cachemodes,
     libvirt_inject_partition => $libvirt_inject_partition,
+    migration_support        => $migration_support,
     vncserver_listen         => $vncserver_listen,
   }
 
