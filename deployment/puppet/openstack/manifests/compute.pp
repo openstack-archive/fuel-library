@@ -343,6 +343,9 @@ class openstack::compute (
     libvirt_inject_partition                   => $libvirt_inject_partition,
     vncserver_listen                           => $vncserver_listen,
     remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
+    # Workaround for bug LP #1469308
+    # also service name for Ubuntu and Centos is the same.
+    libvirt_service_name     => "libvirtd",
   }
 
   # From legacy libvirt.pp
