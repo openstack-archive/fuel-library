@@ -79,7 +79,8 @@ class openstack::compute (
   # VNC
   $vnc_enabled                    = true,
   $vncproxy_host                  = undef,
-  $vncserver_listen               = $internal_address,
+  $vncserver_listen               = '0.0.0.0',
+  $migration_support              = false,
   # General
   $enabled                        = true,
   $multi_host                     = false,
@@ -342,6 +343,7 @@ class openstack::compute (
     libvirt_disk_cachemodes                    => $disk_cachemodes,
     libvirt_inject_partition                   => $libvirt_inject_partition,
     vncserver_listen                           => $vncserver_listen,
+    migration_support                          => $migration_support,
     remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
     # Workaround for bug LP #1469308
     # also service name for Ubuntu and Centos is the same.
