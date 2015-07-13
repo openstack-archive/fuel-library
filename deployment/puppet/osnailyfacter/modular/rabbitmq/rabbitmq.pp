@@ -75,9 +75,16 @@ if $queue_provider == 'rabbitmq' {
     } else {
     $rabbit_pid_file                   = '/var/run/rabbitmq/pid'
   }
+
+  if $physicalprocessorcount > 2  {
+     $thread_pool_calc = $physicalprocessorcount * 12
+  } else {
+     $thread_pool_calc = 30
+  }
+
   $environment_variables = hiera('rabbit_environment_variables',
     {
-      'SERVER_ERL_ARGS'     => '"+K true +A30 +P 1048576"',
+      'SERVER_ERL_ARGS'     => "+K true +A${thread_pool_calc} +P 1048576",
       'PID_FILE'            => $rabbit_pid_file,
     }
   )
