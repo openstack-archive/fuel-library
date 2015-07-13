@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 export PATH='/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'
 export OCF_ROOT='<%= @ocf_root_path %>'
 export OCF_RA_VERSION_MAJOR='1'
@@ -104,6 +104,17 @@ ACTION="${1}"
 # set default action to monitor
 if [ "${ACTION}" = '' ]; then
   ACTION='monitor'
+fi
+
+# alias status to monitor
+if [ "${ACTION}" = 'status' ]; then
+  ACTION='monitor'
+fi
+
+# view defined OCF parameters
+if [ "${ACTION}" = 'params' ]; then
+  env | grep 'OCF_'
+  exit 0
 fi
 
 if [ "${DEBUG}" = '1' ]; then
