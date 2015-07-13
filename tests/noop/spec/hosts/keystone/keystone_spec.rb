@@ -64,6 +64,9 @@ describe manifest do
       should contain_keystone_config('token/caching').with(:value => 'false')
     end
 
+    it 'should contain keystone config with fernet tokens' do
+      should contain_keystone_config('token/provider').with(:value => 'keystone.token.providers.fernet.Provider')
+    end
     # it 'should declare keystone::wsgi::apache class with 4 workers on 4 CPU system' do
     #   should contain_class('keystone::wsgi::apache').with(
     #     'threads' => '1',
