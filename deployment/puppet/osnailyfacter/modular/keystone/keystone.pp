@@ -58,6 +58,8 @@ $public_protocol = $public_ssl_hash['services'] ? {
   default => 'http',
 }
 
+$token_provider = 'keystone.token.providers.fernet.Provider'
+
 $public_url   = "${public_protocol}://${public_address}:${public_port}"
 $admin_url    = "http://${admin_address}:${admin_port}"
 $internal_url = "http://${management_vip}:${internal_port}"
@@ -122,6 +124,7 @@ class { 'openstack::keystone':
   public_url               => $public_url,
   admin_url                => $admin_url,
   internal_url             => $internal_url,
+  token_provider           => $token_provider,
 }
 
 ####### WSGI ###########
