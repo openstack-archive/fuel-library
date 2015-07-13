@@ -21,18 +21,22 @@ $cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
-if hiera('amqp_nodes', false) {
-  $amqp_nodes = hiera('amqp_nodes')
-}
-elsif $internal_address in $controller_nodes {
-  # prefer local MQ broker if it exists on this node
-  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
-} else {
-  $amqp_nodes = fqdn_rotate($controller_nodes)
-}
-
+# amqp configuration
 $amqp_port = hiera('amqp_port', '5673')
-$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+if hiera('amqp_hosts', false) {
+  $amqp_hosts = hiera('amqp_hosts')
+} else {
+  # backwards compatibility
+  if hiera('amqp_nodes', false) {
+    $amqp_nodes = hiera('amqp_nodes')
+  } elsif $internal_address in $controller_nodes {
+    # prefer local MQ broker if it exists on this node
+    $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
+  } else {
+    $amqp_nodes = fqdn_rotate($controller_nodes)
+  }
+  $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+}
 
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
