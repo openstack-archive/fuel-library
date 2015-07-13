@@ -111,3 +111,9 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 class ceilometer {}
 include ceilometer
 
+# Class[Swift::Proxy::Cache] requires Class[Memcached] if memcache_servers
+# contains 127.0.0.1. But we're deploying memcached in another task. So we
+# need to add this stub here.
+class memcached {}
+include memcached
+

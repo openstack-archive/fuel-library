@@ -45,6 +45,9 @@ describe 'swift' do
     it {is_expected.to contain_file('/var/lib/swift').with(
       {:ensure => 'directory'}.merge(file_defaults)
     )}
+    it {is_expected.to contain_file('/etc/swift/backups').with(
+      {:ensure => 'directory'}.merge(file_defaults)
+    )}
     it {is_expected.to contain_file('/etc/swift/swift.conf').with(
       { :ensure => 'file',
         :mode   => '0660'
