@@ -15,7 +15,6 @@
 #
 # Copyright 2012 eNovance licensing@enovance.com
 #
-
 class swift::proxy::staticweb() {
 
   concat::fragment { 'swift-proxy-staticweb':

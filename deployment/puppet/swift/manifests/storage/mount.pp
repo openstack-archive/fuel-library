@@ -3,6 +3,24 @@
 #   swift::storage::mount
 #
 #
+# === Parameters:
+#
+# [*device*]
+#   (mandatory) An array of devices (prefixed or not by /dev)
+#
+# [*mnt_base_dir*]
+#   (optional) The directory where the flat files that store the file system
+#   to be loop back mounted are actually mounted at.
+#   Defaults to '/srv/node', base directory where disks are mounted to
+#
+# [*loopback*]
+#   (optional) Define if the device must be mounted as a loopback or not
+#   Defaults to false.
+#
+# [*fstype*]
+#   (optional) The filesystem type.
+#   Defaults to 'xfs'.
+#
 define swift::storage::mount(
   $device,
   $mnt_base_dir = '/srv/node',
@@ -35,7 +53,7 @@ define swift::storage::mount(
     device  => $device,
     fstype  => $fstype,
     options => "${options},${fsoptions}",
-    require => File["${mnt_base_dir}/${name}"]
+    require => File["${mnt_base_dir}/${name}"],
   }
 
   # double checks to make sure that things are mounted
@@ -58,11 +76,11 @@ define swift::storage::mount(
   # mounting in linux and puppet is broken and non-atomic
   # we have to mount, check mount with executing command,
   # fix ownership and on selinux systems fix context.
-  # It would be definetly nice if passing options uid=,gid=
+  # It would be definitely nice if passing options uid=,gid=
   # would be possible as context is. But, as there already is
   # chown command we'll just restorecon on selinux enabled
   # systems :(
-  if ($::selinux == 'true') {
+  if (str2bool($::selinux) == true) {
     exec { "restorecon_mount_${name}":
       command     => "restorecon ${mnt_base_dir}/${name}",
       path        => ['/usr/sbin', '/sbin'],

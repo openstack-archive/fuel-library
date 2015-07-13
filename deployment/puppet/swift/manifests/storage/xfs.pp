@@ -1,8 +1,21 @@
-# [*title*]
 #
-# [*byte_size*] Byte size to use for every inode in the created filesystem.
-#  It is recommened to use 1024 to ensure that the metadata can fit in a single inode.
+# === Parameters:
 #
+# [*device*]
+#   (mandatory) An array of devices (prefixed or not by /dev)
+#
+# [*mnt_base_dir*]
+#   (optional) The directory where the flat files that store the file system
+#   to be loop back mounted are actually mounted at.
+#   Defaults to '/srv/node', base directory where disks are mounted to
+#
+# [*byte_size*]
+#   (optional) Byte size to use for every inode in the created filesystem.
+#   Defaults to '1024'. It is recommened to use 1024 to ensure that the metadata can fit in a single inode.
+#
+# [*loopback*]
+#   (optional) Define if the device must be mounted as a loopback or not
+#   Defaults to false.
 #
 # Sample usage:
 #
@@ -22,7 +35,7 @@ define swift::storage::xfs(
   $loopback     = false
 ) {
 
-  include swift::xfs
+  include ::swift::xfs
 
   if $device == '' {
     $target_device = "/dev/${name}"
@@ -50,10 +63,10 @@ define swift::storage::xfs(
   }
 
   swift::storage::mount { $name:
-    device         => $target_device,
-    mnt_base_dir   => $mnt_base_dir,
-    subscribe      => Exec["mkfs-${name}"],
-    loopback       => $loopback,
+    device       => $target_device,
+    mnt_base_dir => $mnt_base_dir,
+    subscribe    => Exec["mkfs-${name}"],
+    loopback     => $loopback,
   }
 
 }

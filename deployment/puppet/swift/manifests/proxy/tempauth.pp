@@ -1,3 +1,5 @@
+# == class: swift::proxy::tempauth
+#
 class swift::proxy::tempauth() {
 
   concat::fragment { 'swift-proxy-swauth':

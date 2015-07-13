@@ -13,7 +13,7 @@ describe 'swift::test_file' do
     end
 
     it 'should create a reasonable test file' do
-      verify_contents(subject, '/tmp/swift_test_file.rb',
+      verify_contents(catalogue, '/tmp/swift_test_file.rb',
         [
           'proxy_local_net_ip="127.0.0.1"',
           "user='openstack:admin'",
@@ -36,7 +36,7 @@ describe 'swift::test_file' do
     end
 
     it 'should create a configured test file' do
-      verify_contents(subject, '/tmp/swift_test_file.rb',
+      verify_contents(catalogue, '/tmp/swift_test_file.rb',
         [
           'proxy_local_net_ip="127.0.0.2"',
           "user='tenant:user'",

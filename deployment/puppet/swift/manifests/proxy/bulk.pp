@@ -37,7 +37,6 @@
 # while its processing the request.
 # Default to 60.
 #
-
 class swift::proxy::bulk(
   $max_containers_per_extraction = '10000',
   $max_failed_extractions        = '1000',

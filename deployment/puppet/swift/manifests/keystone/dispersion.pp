@@ -17,11 +17,18 @@
 #  String. The user's password.
 #  Optional. Defaults to 'dispersion_password'.
 #
+# [*email*]
+#   (Optional) The email address for the swift service user
+#   Defaults to 'swift@localhost'
+#
+# [*tenant*]
+#   (Optional) The tenant to use for the swift service user
+#   Defaults to 'services'
+#
 # === Authors
 #
-# François Charlier fcharlier@ploup.net
+# Francois Charlier fcharlier@ploup.net
 #
-
 class swift::keystone::dispersion(
   $auth_user = 'dispersion',
   $auth_pass = 'dispersion_password',
@@ -39,6 +46,6 @@ class swift::keystone::dispersion(
   keystone_user_role { "${auth_user}@${tenant}":
     ensure  => present,
     roles   => 'admin',
-    require => Keystone_user[$auth_user]
+    require => Keystone_user[$auth_user],
   }
 }
