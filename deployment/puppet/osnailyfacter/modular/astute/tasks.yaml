@@ -107,7 +107,6 @@
     dst: /etc/puppet
     timeout: 180
 
-
 - id: clear_nodes_info
   type: shell
   role: '*'

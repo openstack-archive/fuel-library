@@ -27,6 +27,7 @@
 # [max_pool_size] SQLAlchemy backend related. Default 10.
 # [max_overflow] SQLAlchemy backend related.  Default 30.
 # [max_retries] SQLAlchemy backend related. Default -1.
+# [revoke_id] Revoke token by token identifier. Setting revoke_by_id to true enables various forms of enumerating tokens.
 #
 # === Example
 #
@@ -62,6 +63,8 @@ class openstack::keystone (
   $enabled                     = true,
   $package_ensure              = present,
   $use_syslog                  = false,
+  $enable_pki_setup            = false,
+  $enable_fernet_setup         = true,
   $syslog_log_facility         = 'LOG_LOCAL7',
   $region                      = 'RegionOne',
   $database_idle_timeout       = '200',
@@ -74,7 +77,9 @@ class openstack::keystone (
   $max_retries                 = '-1',
   $token_caching               = false,
   $cache_backend               = 'keystone.cache.memcache_pool',
+  $token_provider              = undef,
   $revoke_driver               = false,
+  $revoke_id                   = false,
 ) {
 
   # Install and configure Keystone
@@ -139,7 +144,7 @@ class openstack::keystone (
       rabbit_virtual_host   => $rabbit_virtual_host,
       memcache_servers      => $memcache_servers_real,
       token_driver          => $token_driver,
-      token_provider        => 'keystone.token.providers.uuid.Provider',
+      token_provider        => $token_provider,
       notification_driver   => $notification_driver,
       notification_topics   => $notification_topics,
       token_caching         => $token_caching,
