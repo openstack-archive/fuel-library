@@ -63,6 +63,8 @@ class mcollective::rabbitmq (
       {keepalive, true}
     ]'
 
+  $thread_pool_calc = $processorcount*12
+
   # NOTE(bogdando) this requires rabbitmq>=4.0 module
   class { '::rabbitmq':
     admin_enable            => false,
@@ -88,7 +90,7 @@ class mcollective::rabbitmq (
       'tcp_listen_options'          => $rabbit_tcp_listen_options,
     },
     environment_variables   => {
-      'SERVER_ERL_ARGS'      => '"+K true +A30 +P 1048576"',
+      'SERVER_ERL_ARGS'      => "+K true +A${thread_pool_calc} +P 1048576",
     },
   }
 

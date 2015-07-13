@@ -176,8 +176,9 @@ class openstack::nova::controller (
     #   we have to define autoheal as a config_variables instead of a parameter.
     'cluster_partition_handling'   => $cluster_partition_handling,
   }
+  $thread_pool_calc = $processorcount*12
   $environment_variables       = {
-    'SERVER_ERL_ARGS'       => '"+K true +A30 +P 1048576"',
+    'SERVER_ERL_ARGS'       => "+K true +A${thread_pool_calc} +P 1048576",
     'PID_FILE'              => $rabbit_pid_file,
   }
 
