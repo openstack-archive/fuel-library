@@ -194,7 +194,9 @@ if $network_provider == 'nova' {
   service { 'libvirt' :
     ensure   => running,
     enable   => true,
-    name     => $::nova::params::libvirt_service_name,
+    # Workaround for bug LP #1469308
+    # also service name for Ubuntu and Centos is the same.
+    name     => 'libvirtd',
     provider => $::nova::params::special_service_provider,
   }
 

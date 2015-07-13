@@ -336,6 +336,9 @@ class openstack::compute (
     libvirt_disk_cachemodes  => $disk_cachemodes,
     libvirt_inject_partition => $libvirt_inject_partition,
     vncserver_listen         => $vncserver_listen,
+    # Workaround for bug LP #1469308
+    # also service name for Ubuntu and Centos is the same.
+    libvirt_service_name     => "libvirtd",
   }
 
   # From legacy libvirt.pp
