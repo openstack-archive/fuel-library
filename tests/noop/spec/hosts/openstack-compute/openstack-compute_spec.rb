@@ -32,6 +32,12 @@ describe manifest do
       )
     end
 
+    it 'should enable migration support for libvirt with vncserver listen on 0.0.0.0' do
+      should contain_class('nova::compute::libvirt').with('migration_support' => true)
+      should contain_class('nova::compute::libvirt').with('vncserver_listen' => '0.0.0.0')
+      should contain_class('nova::migration::libvirt')
+    end
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
