@@ -150,30 +150,28 @@
     cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova mysql' -p /var/lib/fuel/keys/
     timeout: 180
 
-- id: generate_haproxy_keys
-  type: shell
-  role: master
-  requires: [pre_deployment_start]
-  condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'self_signed'"
-  required_for: [copy_haproxy_keys]
-  parameters:
-    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_haproxy_keys.sh -i {CLUSTER_ID} -h {CN_HOSTNAME} -o 'haproxy' -p /var/lib/fuel/keys/
-    timeout: 180
-
-- id: copy_haproxy_keys
+- id: copy_fernet_keys
   type: copy_files
-  role: '*'
-  required_for: [pre_deployment_end]
-  requires: [generate_haproxy_keys]
-  condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'self_signed'"
+  role: [primary-controller, controller]
+  required_for: [post_deployment_end]
+  requires: [generate_keys]
   parameters:
     files:
-      - src: /var/lib/fuel/keys/{CLUSTER_ID}/haproxy/public_haproxy.pem
-        dst: /var/lib/astute/haproxy/public_haproxy.pem
-      - src: /var/lib/fuel/keys/{CLUSTER_ID}/haproxy/public_haproxy.crt
-        dst: /etc/pki/tls/certs/public_haproxy.pem
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/fernet-keys/0
+        dst: /etc/keystone/fernet-keys/0
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/fernet-keys/1
+        dst: /etc/keystone/fernet-keys/1
     permissions: '0600'
     dir_permissions: '0700'
+
+- id: generate_fernet_keys
+  type: shell
+  role: master
+  requires: [post_deployment_start]
+  required_for: [copy_fernet_keys]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -f '0 1' -p /var/lib/fuel/keys/
+    timeout: 180
 
 - id: sync_time
   type: shell
