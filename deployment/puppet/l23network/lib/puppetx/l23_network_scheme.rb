@@ -7,6 +7,9 @@ module L23network
     def self.get_config(h)
       @network_scheme_hash[h.to_sym]
     end
+    def self.has_config?
+      @network_scheme_hash.is_a? Hash
+    end
   end
 
   def self.get_phys_dev_by_transformation(trans_name, host_name)
