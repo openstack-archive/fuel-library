@@ -25,6 +25,9 @@ $galera_nodes             = $controller_nodes
 $mysql_skip_name_resolve  = true
 $custom_setup_class       = 'galera'
 
+# Get galera gcache factor based on cluster node's count
+$galera_gcache_factor     = count(unique(filter_hash(hiera('nodes', []), 'uid')))
+
 $status_user              = 'clustercheck'
 $status_password          = $mysql_hash['wsrep_password']
 $backend_port             = '3307'
@@ -55,6 +58,7 @@ if $mysql_database_enabled {
     primary_controller      => $primary_controller,
     galera_node_address     => $galera_node_address,
     galera_nodes            => $galera_nodes,
+    galera_gcache_factor    => $galera_gcache_factor,
     enabled                 => $enabled,
     custom_setup_class      => $custom_setup_class,
     mysql_skip_name_resolve => $mysql_skip_name_resolve,
