@@ -68,10 +68,6 @@ if $use_neutron {
   $novanetwork_params = hiera('novanetwork_parameters')
 }
 
-# RabbitMQ server configuration
-$rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
-$rabbitmq_bind_port = hiera('amqp_port', '5673')
-
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
   $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]

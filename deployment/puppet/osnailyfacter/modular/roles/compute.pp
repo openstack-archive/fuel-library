@@ -67,7 +67,7 @@ $openstack_version = {
   'cinder'     => 'installed',
 }
 
-$queue_provider='rabbitmq'
+$queue_provider = hiera('queue_provider', 'rabbitmq')
 $custom_mysql_setup_class='galera'
 
 # Do the stuff
@@ -190,11 +190,6 @@ $controller_node_public  = $public_vip
 $controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
-
-# RabbitMQ server configuration
-$rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
-$rabbitmq_bind_port = $amqp_port
-$rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames
 
 # SQLAlchemy backend configuration
 $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)

@@ -26,7 +26,6 @@ class { '::openstack::ha::haproxy':
       internal_virtual_ip      => hiera('management_vip'),
       horizon_use_ssl          => hiera('horizon_use_ssl', false),
       neutron                  => $use_neutron,
-      queue_provider           => 'rabbitmq',
       custom_mysql_setup_class => hiera('custom_mysql_setup_class','galera'),
       swift_proxies            => $swift_proxies,
       rgw_servers              => $rgw_servers,
