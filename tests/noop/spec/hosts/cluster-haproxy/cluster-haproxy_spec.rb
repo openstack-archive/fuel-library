@@ -26,17 +26,7 @@ describe manifest do
         'other_networks' => networks.join(' '),
       )
     end
-    it "should contain stats fragment and listen only on lo and #{management_vip}" do
-        should contain_concat__fragment('haproxy-stats').with_content(
-            %r{\n\s*bind\s+127\.0\.0\.1:10000\s*$\n}
-        )
-        should contain_concat__fragment('haproxy-stats').with_content(
-            %r{\n\s*bind\s+#{management_vip}:10000\s*\n}
-        )
-    end
-
   end
-
   test_ubuntu_and_centos manifest
 end
 

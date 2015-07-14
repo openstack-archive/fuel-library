@@ -31,6 +31,9 @@ class openstack::ha::haproxy (
   $network_metadata = hiera_hash('network_metadata')
 
   $horizon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('horizon_nodes'), 'horizon')
+
+  class { 'openstack::ha::stats': }
+
   class { 'openstack::ha::horizon':
     use_ssl      => $horizon_use_ssl,
     server_names => hiera_array('horizon_names', keys($horizon_address_map)),
