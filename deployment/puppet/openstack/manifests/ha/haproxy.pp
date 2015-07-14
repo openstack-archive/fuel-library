@@ -30,6 +30,8 @@ class openstack::ha::haproxy (
 
   $network_metadata = hiera_hash('network_metadata')
 
+  class { 'openstack::ha::stats': }
+
   class { 'openstack::ha::horizon':
     use_ssl      => $horizon_use_ssl,
     server_names => hiera_array('horizon_names', $controllers_server_names),
