@@ -41,9 +41,9 @@ $public_address         = $public_vip
 $admin_address          = $management_vip
 $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
-$memcache_servers      = hiera('memcache_servers')
 $memcache_server_port  = hiera('memcache_server_port', '11211')
 $memcache_pool_maxsize = '100'
+$memcache_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('memcache_nodes'), 'mgmt/memcache')
 
 $public_port = '5000'
 $admin_port = '35357'
@@ -112,7 +112,7 @@ class { 'openstack::keystone':
   use_syslog               => $use_syslog,
   syslog_log_facility      => $syslog_log_facility,
   region                   => $region,
-  memcache_servers         => $memcache_servers,
+  memcache_servers         => values($memcache_address_map),
   memcache_server_port     => $memcache_server_port,
   memcache_pool_maxsize    => $memcache_pool_maxsize,
   max_retries              => $max_retries,
