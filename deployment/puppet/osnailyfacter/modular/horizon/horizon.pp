@@ -1,11 +1,9 @@
 notice('MODULAR: horizon.pp')
 
-$controllers                    = hiera('controllers')
-$controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
-$controller_nodes               = ipsort(values($controller_internal_addresses))
-$horizon_hash                   = hiera_hash('horizon', {})
-$management_vip                 = hiera('management_vip')
-$service_endpoint               = hiera('service_endpoint')
+prepare_network_config(hiera('network_scheme', {}))
+$horizon_hash         = hiera_hash('horizon', {})
+$service_endpoint     = hiera('service_endpoint')
+$memcache_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('memcache_nodes'), 'mgmt/memcache')
 
 if $horizon_hash['secret_key'] {
   $secret_key = $horizon_hash['secret_key']
@@ -21,7 +19,7 @@ $keystone_url = "${keystone_scheme}://${keystone_host}:${keystone_port}/${keysto
 
 class { 'openstack::horizon':
   secret_key        => $secret_key,
-  cache_server_ip   => hiera('memcache_servers', $controller_nodes),
+  cache_server_ip   => ipsort(values($memcache_address_map)),
   package_ensure    => hiera('horizon_package_ensure', 'installed'),
   bind_address      => '*',
   cache_server_port => hiera('memcache_server_port', '11211'),
