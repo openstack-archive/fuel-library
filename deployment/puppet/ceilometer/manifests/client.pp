@@ -9,11 +9,12 @@ class ceilometer::client (
   $ensure = 'present'
 ) {
 
-  include ceilometer::params
+  include ::ceilometer::params
 
   package { 'python-ceilometerclient':
     ensure => $ensure,
     name   => $::ceilometer::params::client_package_name,
+    tag    => 'openstack',
   }
 
 }

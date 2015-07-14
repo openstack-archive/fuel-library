@@ -13,17 +13,20 @@ describe 'ceilometer::db' do
         :sync_db             => true }
     end
 
-    it { should contain_class('ceilometer::params') }
+    it { is_expected.to contain_class('ceilometer::params') }
 
     it 'installs python-mongodb package' do
-      should contain_package('ceilometer-backend-package').with(
+      is_expected.to contain_package('ceilometer-backend-package').with(
         :ensure => 'present',
-        :name => 'python-pymongo')
-      should contain_ceilometer_config('database/connection').with_value('mongodb://localhost:1234/ceilometer')
+        :name   => 'python-pymongo',
+        :tag    => 'openstack'
+      )
+      is_expected.to contain_ceilometer_config('database/connection').with_value('mongodb://localhost:1234/ceilometer')
+      is_expected.to contain_ceilometer_config('database/connection').with_value( params[:database_connection] ).with_secret(true)
     end
 
     it 'runs ceilometer-dbsync' do
-      should contain_exec('ceilometer-dbsync').with(
+      is_expected.to contain_exec('ceilometer-dbsync').with(
         :command     => 'ceilometer-dbsync --config-file=/etc/ceilometer/ceilometer.conf',
         :path        => '/usr/bin',
         :refreshonly => 'true',
@@ -33,12 +36,11 @@ describe 'ceilometer::db' do
     end
   end
 
-  # Fedora > 18 has python-pymongo too
   context 'on Redhat platforms' do
     let :facts do
       { :osfamily => 'Redhat',
         :operatingsystem => 'Fedora',
-        :operatingsystemrelease => 18
+        :operatingsystemrelease => 21
       }
     end
 
@@ -47,17 +49,18 @@ describe 'ceilometer::db' do
         :sync_db             => false }
     end
 
-    it { should contain_class('ceilometer::params') }
+    it { is_expected.to contain_class('ceilometer::params') }
 
     it 'installs pymongo package' do
-      should contain_package('ceilometer-backend-package').with(
+      is_expected.to contain_package('ceilometer-backend-package').with(
         :ensure => 'present',
         :name => 'python-pymongo')
-      should contain_ceilometer_config('database/connection').with_value('mongodb://localhost:1234/ceilometer')
+      is_expected.to contain_ceilometer_config('database/connection').with_value('mongodb://localhost:1234/ceilometer')
+      is_expected.to contain_ceilometer_config('database/connection').with_value( params[:database_connection] ).with_secret(true)
     end
 
     it 'runs ceilometer-dbsync' do
-      should contain_exec('ceilometer-dbsync').with(
+      is_expected.to contain_exec('ceilometer-dbsync').with(
         :command     => '/bin/true',
         :path        => '/usr/bin',
         :refreshonly => 'true',
@@ -81,16 +84,16 @@ describe 'ceilometer::db' do
         :sync_db             => true }
     end
 
-    it { should contain_class('ceilometer::params') }
+    it { is_expected.to contain_class('ceilometer::params') }
 
     it 'installs pymongo package' do
-      should contain_package('ceilometer-backend-package').with(
+      is_expected.to contain_package('ceilometer-backend-package').with(
         :ensure => 'present',
         :name => 'python-pymongo')
     end
 
     it 'runs ceilometer-dbsync' do
-      should contain_exec('ceilometer-dbsync').with(
+      is_expected.to contain_exec('ceilometer-dbsync').with(
         :command     => 'ceilometer-dbsync --config-file=/etc/ceilometer/ceilometer.conf',
         :path        => '/usr/bin',
         :refreshonly => 'true',
@@ -114,17 +117,15 @@ describe 'ceilometer::db' do
         :sync_db             => false }
     end
 
-    it { should contain_class('ceilometer::params') }
+    it { is_expected.to contain_class('ceilometer::params') }
 
     it 'installs pymongo package' do
-      should contain_package('ceilometer-backend-package').with(
-        :ensure => 'present',
-        :name => 'python-sqlite2')
-      should contain_ceilometer_config('database/connection').with_value('sqlite:///var/lib/ceilometer.db')
+      is_expected.to contain_ceilometer_config('database/connection').with_value('sqlite:///var/lib/ceilometer.db')
+      is_expected.to contain_ceilometer_config('database/connection').with_value( params[:database_connection] ).with_secret(true)
     end
 
     it 'runs ceilometer-dbsync' do
-      should contain_exec('ceilometer-dbsync').with(
+      is_expected.to contain_exec('ceilometer-dbsync').with(
         :command     => '/bin/true',
         :path        => '/usr/bin',
         :refreshonly => 'true',
@@ -145,16 +146,16 @@ describe 'ceilometer::db' do
         :sync_db             => true }
     end
 
-    it { should contain_class('ceilometer::params') }
+    it { is_expected.to contain_class('ceilometer::params') }
 
     it 'installs python-mongodb package' do
-      should contain_package('ceilometer-backend-package').with(
+      is_expected.to contain_package('ceilometer-backend-package').with(
         :ensure => 'present',
         :name => 'python-pysqlite2')
     end
 
     it 'runs ceilometer-dbsync' do
-      should contain_exec('ceilometer-dbsync').with(
+      is_expected.to contain_exec('ceilometer-dbsync').with(
         :command     => 'ceilometer-dbsync --config-file=/etc/ceilometer/ceilometer.conf',
         :path        => '/usr/bin',
         :refreshonly => 'true',

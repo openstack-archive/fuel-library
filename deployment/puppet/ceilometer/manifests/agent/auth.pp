@@ -49,7 +49,7 @@ class ceilometer::agent::auth (
     'service_credentials/os_auth_url'    : value => $auth_url;
     'service_credentials/os_region_name' : value => $auth_region;
     'service_credentials/os_username'    : value => $auth_user;
-    'service_credentials/os_password'    : value => $auth_password;
+    'service_credentials/os_password'    : value => $auth_password, secret => true;
     'service_credentials/os_tenant_name' : value => $auth_tenant_name;
   }
 

@@ -26,6 +26,10 @@
 #   Should be a valid integer
 #   Defaults to '-1' to disable TTL and keep forever the datas.
 #
+#  [*enable_cron*]
+#    (optional) Whether to configure a crontab entry to run the expiry.
+#    Defaults to true.
+#
 #  [*minute*]
 #    (optional) Defaults to '1'.
 #
@@ -44,6 +48,7 @@
 
 class ceilometer::expirer (
   $time_to_live   = '-1',
+  $enable_cron    = True,
   $minute         = 1,
   $hour           = 0,
   $monthday       = '*',
@@ -51,7 +56,7 @@ class ceilometer::expirer (
   $weekday        = '*',
 ) {
 
-  include ceilometer::params
+  include ::ceilometer::params
 
   Package<| title == 'ceilometer-common' |> -> Class['ceilometer::expirer']
 
@@ -59,16 +64,17 @@ class ceilometer::expirer (
     'database/time_to_live': value => $time_to_live;
   }
 
-  cron { 'ceilometer-expirer':
-    command     => $ceilometer::params::expirer_command,
-    environment => 'PATH=/bin:/usr/bin:/usr/sbin',
-    user        => 'ceilometer',
-    minute      => $minute,
-    hour        => $hour,
-    monthday    => $monthday,
-    month       => $month,
-    weekday     => $weekday
+  if $enable_cron {
+    cron { 'ceilometer-expirer':
+      command     => $ceilometer::params::expirer_command,
+      environment => 'PATH=/bin:/usr/bin:/usr/sbin SHELL=/bin/sh',
+      user        => 'ceilometer',
+      minute      => $minute,
+      hour        => $hour,
+      monthday    => $monthday,
+      month       => $month,
+      weekday     => $weekday
+    }
   }
-
 
 }
