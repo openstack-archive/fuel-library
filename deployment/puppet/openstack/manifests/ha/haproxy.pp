@@ -28,10 +28,11 @@ class openstack::ha::haproxy (
     internal_virtual_ip => $internal_virtual_ip,
   }
 
+  $horizon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('horizon_nodes'), 'horizon')
   class { 'openstack::ha::horizon':
     use_ssl      => $horizon_use_ssl,
-    server_names => hiera_array('horizon_names', $controllers_server_names),
-    ipaddresses  => hiera_array('horizon_ipaddresses', $controllers_ipaddresses),
+    server_names => hiera_array('horizon_names', keys($horizon_address_map)),
+    ipaddresses  => hiera_array('horizon_ipaddresses', values($horizon_address_map)),
   }
 
   class { 'openstack::ha::keystone':
