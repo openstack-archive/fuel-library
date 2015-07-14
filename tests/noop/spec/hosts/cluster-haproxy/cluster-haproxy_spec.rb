@@ -25,6 +25,5 @@ describe manifest do
     end
 
   end
-
   test_ubuntu_and_centos manifest
 end
