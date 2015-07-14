@@ -156,6 +156,7 @@ $SNIPPET('ubuntu_mcollective_config') && \
 $SNIPPET('ntp_to_masternode_ubuntu')
 echo "nf_conntrack_ipv4" >> /target/etc/modules && \
 echo "nf_conntrack_ipv6" >> /target/etc/modules && \
+echo "nf_conntrack_proto_gre" >> /target/etc/modules && \
 echo "net.nf_conntrack_max=1048576" >> /target/etc/sysctl.conf && \
 mkdir -p /target/etc/nailgun-agent && \
 #set nailgun_agent_conf = '/target/etc/nailgun-agent/config.yaml'
