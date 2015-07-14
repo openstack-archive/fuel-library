@@ -1,0 +1,25 @@
+- id: ssl-keys-saving
+  type: puppet
+  groups: [primary-controller, controller]
+  requires: [firewall]
+  condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'user_uploaded'"
+  required_for: [deploy_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving_pre.rb
+
+- id: ssl-add-trust-chain
+  type: puppet
+  groups: [primary-controller, controller]
+  requires: [firewall, ssl-keys-saving]
+  condition: "settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true"
+  required_for: [deploy_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_add_trust_chain.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving_pre.rb
