@@ -1,9 +1,7 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'openstack-haproxy/openstack-haproxy.pp'
+manifest = 'openstack-haproxy/openstack-haproxy-stats.pp'
 
 describe manifest do
-  shared_examples 'catalog' do
   test_ubuntu_and_centos manifest
 end
-
