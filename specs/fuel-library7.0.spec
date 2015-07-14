@@ -54,6 +54,7 @@ install -m 0755 %{files_source}/fuel-misc/centos_ifdown-local %{buildroot}/sbin/
 install -m 0755 %{files_source}/fuel-misc/logrotate %{buildroot}/usr/bin/fuel-logrotate
 install -m 0755 %{files_source}/fuel-misc/centos_ifup-local  %{buildroot}/sbin/ifdown-local
 install -m 0755 %{files_source}/fuel-misc/haproxy-status.sh %{buildroot}/usr/bin/haproxy-status
+install -m 0755 %{files_source}/fuel-misc/generate_vms.sh %{buildroot}/usr/bin/generate_vms.sh
 #fuel-ha-utils
 install -d -m 0755 %{buildroot}/usr/lib/ocf/resource.d/fuel
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_haproxy %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_haproxy
@@ -153,6 +154,7 @@ For further information go to http://wiki.openstack.org/Fuel
 /sbin/ifup-local
 /sbin/ifdown-local
 /usr/bin/haproxy-status
+/usr/bin/generate_vms.sh
 /usr/bin/fuel-logrotate
 %package -n fuel-ha-utils
 Summary: Fuel project HA utilities
