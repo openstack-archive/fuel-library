@@ -38,6 +38,28 @@ descr_max_worktime="Timeout for entire migration process in seconds. Default is 
 
 indent="\t\t\t\t"
 wtw="$(($(stty size | awk  '{print $2}') - 32 ))"
+lockfile_dir=/tmp
+fd=200
+banner_file="c-msg.sh"
+prog_name=$(basename $0)
+fuel_migrate_vars=/root/fuel-migrate.var
+
+
+file_lock() {
+    # create lock file
+
+    eval "exec $fd>$lockfile_dir/$prog_name.lock"
+
+    # acquier the lock
+    if flock -n $fd ; then
+        return 0
+    else
+        echo "Only one instance of $prog_name can run at one time."
+        return 1
+    fi
+
+}
+
 
 usage(){
 
@@ -45,7 +67,7 @@ usage(){
 echo -e "
 Usage:
 
-\t$(basename $0) DESTINATION_COMPUTE [ OPTIONS ]
+\t$prog_name DESTINATION_COMPUTE [ OPTIONS ]
 
 \tDESTINATION_COMPUTE:\r${indent}Name or IP of compute node where VM will be created
 
@@ -326,10 +348,10 @@ timeout(){
 
 # Stop script execution if script is sourced
 [[ "${BASH_SOURCE[0]}" != "${0}" ]] && return
-
-
-fuel_migrate_vars=/root/fuel-migrate.var
-banner_file="c-msg.sh"
+# Show usage if run without parameters.
+[[ -z $1 ]] && usage
+# Check if already running
+file_lock
 
 if [[ "$1" == "start" ]] && [[ -f "$fuel_migrate_vars" ]] ; then
 
@@ -407,7 +429,6 @@ EOF
     while true ; do sleep 3600 ; done
 
 else
-    [[ -z $1 ]] && usage
     dkvm_ip="$(ssh $1 echo \$SSH_CONNECTION)"
     dkvm_ip="$(echo $dkvm_ip | awk '{print $3}')"
     shift
