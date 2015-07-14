@@ -114,3 +114,20 @@ NTP1: 0.pool.ntp.org
     run timeout
     [ $status -eq 1 ]
 }
+
+@test "Check second run lock" {
+    lockfile_dir=/tmp
+    fd=200
+    prog_name=fuel-migrate
+
+    run file_lock
+    [ $status -eq 0 ]
+
+# run close all descriptors
+    file_lock
+    fd=201
+    run file_lock
+    [ $status -eq 1 ]
+
+
+}
