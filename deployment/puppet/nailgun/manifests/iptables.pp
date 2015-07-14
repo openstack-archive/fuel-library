@@ -138,8 +138,8 @@ $chain                 = 'INPUT',
 
   firewall { '024 rsyslog':
     chain   => $chain,
-    port    => $rsync_port,
-    proto   => 'tcp',
+    port    => $rsyslog_port,
+    proto   => 'all',
     iniface => $admin_iface,
     action  => 'accept',
   }
