@@ -66,7 +66,7 @@ class haproxy::params {
     default: { fail("The ${::osfamily} operating system is not supported with the haproxy module") }
   }
   $use_include = false
-  $use_stats = true
+  $use_stats = false
   $stats_port = '10000'
   $stats_ipaddresses = ['127.0.0.1']
 }
