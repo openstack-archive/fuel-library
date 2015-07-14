@@ -4,12 +4,13 @@ describe 'ceilometer::client' do
 
   shared_examples_for 'ceilometer client' do
 
-    it { should contain_class('ceilometer::params') }
+    it { is_expected.to contain_class('ceilometer::params') }
 
     it 'installs ceilometer client package' do
-      should contain_package('python-ceilometerclient').with(
+      is_expected.to contain_package('python-ceilometerclient').with(
         :ensure => 'present',
-        :name   => platform_params[:client_package_name]
+        :name   => platform_params[:client_package_name],
+        :tag    => 'openstack',
       )
     end
   end

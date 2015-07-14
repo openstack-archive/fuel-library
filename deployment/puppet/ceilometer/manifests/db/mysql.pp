@@ -21,65 +21,40 @@
 #    Optional. Defaults to undef.
 #
 #  [*charset*]
-#    the database charset. Optional. Defaults to 'latin1'
+#    the database charset. Optional. Defaults to 'utf8'
 #
 #  [*collate*]
-#    the database collation. Optional. Defaults to 'latin1_swedish_ci'
+#    the database collation. Optional. Defaults to 'utf8_general_ci'
 #
 #  [*mysql_module*]
-#    (optional) Mysql module version to use. Tested versions
-#    are 0.9 and 2.2
-#    Defaults to '0.9'
+#    (optional) Deprecated. Does nothing.
 #
 class ceilometer::db::mysql(
   $password      = false,
   $dbname        = 'ceilometer',
   $user          = 'ceilometer',
-  $host          = 'localhost',
+  $host          = '127.0.0.1',
   $allowed_hosts = undef,
-  $charset       = 'latin1',
-  $collate       = 'latin1_swedish_ci',
-  $mysql_module  = '0.9',
+  $charset       = 'utf8',
+  $collate       = 'utf8_general_ci',
+  $mysql_module  = undef,
 ) {
+
+  if $mysql_module {
+    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
+  }
 
   validate_string($password)
 
-  Class['mysql::server'] -> Class['ceilometer::db::mysql']
-  Class['ceilometer::db::mysql'] -> Exec<| title == 'ceilometer-dbsync' |>
-  Mysql::Db[$dbname] ~> Exec<| title == 'ceilometer-dbsync' |>
-
-  if $mysql_module >= 2.2 {
-    mysql::db { $dbname:
-      user         => $user,
-      password     => $password,
-      host         => $host,
-      charset      => $charset,
-      collate      => $collate,
-      require      => Class['mysql::server'],
-    }
-  } else {
-    mysql::db { $dbname:
-      user         => $user,
-      password     => $password,
-      host         => $host,
-      charset      => $charset,
-      require      => Class['mysql::config'],
-    }
+  ::openstacklib::db::mysql { 'ceilometer':
+    user          => $user,
+    password_hash => mysql_password($password),
+    dbname        => $dbname,
+    host          => $host,
+    charset       => $charset,
+    collate       => $collate,
+    allowed_hosts => $allowed_hosts,
   }
 
-  # Check allowed_hosts to avoid duplicate resource declarations
-  if is_array($allowed_hosts) and delete($allowed_hosts,$host) != [] {
-    $real_allowed_hosts = delete($allowed_hosts,$host)
-  } elsif is_string($allowed_hosts) and ($allowed_hosts != $host) {
-    $real_allowed_hosts = $allowed_hosts
-  }
-
-  if $real_allowed_hosts {
-    ceilometer::db::mysql::host_access { $real_allowed_hosts:
-      user         => $user,
-      password     => $password,
-      database     => $dbname,
-      mysql_module => $mysql_module,
-    }
-  }
+  ::Openstacklib::Db::Mysql['ceilometer'] ~> Exec<| title == 'ceilometer-dbsync' |>
 }

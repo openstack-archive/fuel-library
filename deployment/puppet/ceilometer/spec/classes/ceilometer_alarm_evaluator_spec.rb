@@ -12,42 +12,34 @@ describe 'ceilometer::alarm::evaluator' do
       :partition_rpc_topic   => 'alarm_partition_coordination',
       :record_history        => true,
       :enabled               => true,
+      :manage_service        => true,
     }
   end
 
   shared_examples_for 'ceilometer-alarm-evaluator' do
-    it { should contain_class('ceilometer::params') }
+    it { is_expected.to contain_class('ceilometer::params') }
 
     it 'installs ceilometer-alarm package' do
-      should contain_package(platform_params[:alarm_evaluator_package_name]).with_before('Service[ceilometer-alarm-evaluator]')
-      should contain_package(platform_params[:alarm_evaluator_package_name]).with(
+      is_expected.to contain_package(platform_params[:alarm_evaluator_package_name]).with_before(['Service[ceilometer-alarm-evaluator]'])
+      is_expected.to contain_package(platform_params[:alarm_evaluator_package_name]).with(
         :ensure => 'present',
-        :name   => platform_params[:alarm_evaluator_package_name]
+        :name   => platform_params[:alarm_evaluator_package_name],
+        :tag    => 'openstack'
       )
     end
 
     it 'ensures ceilometer-common is installed before the service' do
-      should contain_package('ceilometer-common').with(
+      is_expected.to contain_package('ceilometer-common').with(
         :before => /Service\[ceilometer-alarm-evaluator\]/
       )
     end
 
-    it 'configures ceilometer-alarm-evaluator service' do
-      should contain_service('ceilometer-alarm-evaluator').with(
-        :ensure     => 'running',
-        :name       => platform_params[:alarm_evaluator_service_name],
-        :enable     => true,
-        :hasstatus  => true,
-        :hasrestart => true
-      )
-    end
-
-
     it 'configures alarm evaluator' do
-      should contain_ceilometer_config('alarm/evaluation_interval').with_value( params[:evaluation_interval] )
-      should contain_ceilometer_config('alarm/evaluation_service').with_value( params[:evaluation_service] )
-      should contain_ceilometer_config('alarm/partition_rpc_topic').with_value( params[:partition_rpc_topic] )
-      should contain_ceilometer_config('alarm/record_history').with_value( params[:record_history] )
+      is_expected.to contain_ceilometer_config('alarm/evaluation_interval').with_value( params[:evaluation_interval] )
+      is_expected.to contain_ceilometer_config('alarm/evaluation_service').with_value( params[:evaluation_service] )
+      is_expected.to contain_ceilometer_config('alarm/partition_rpc_topic').with_value( params[:partition_rpc_topic] )
+      is_expected.to contain_ceilometer_config('alarm/record_history').with_value( params[:record_history] )
+      is_expected.to_not contain_ceilometer_config('coordination/backend_url')
     end
 
     context 'when overriding parameters' do
@@ -55,22 +47,60 @@ describe 'ceilometer::alarm::evaluator' do
         params.merge!(:evaluation_interval => 80,
                       :partition_rpc_topic => 'alarm_partition_coordination',
                       :record_history      => false,
-                      :evaluation_service  => 'ceilometer.alarm.service.SingletonTestAlarmService')
+                      :evaluation_service  => 'ceilometer.alarm.service.SingletonTestAlarmService',
+                      :coordination_url     => 'redis://localhost:6379')
       end
-      it { should contain_ceilometer_config('alarm/evaluation_interval').with_value(params[:evaluation_interval]) }
-      it { should contain_ceilometer_config('alarm/evaluation_service').with_value(params[:evaluation_service]) }
-      it { should contain_ceilometer_config('alarm/record_history').with_value(params[:record_history]) }
-      it { should contain_ceilometer_config('alarm/partition_rpc_topic').with_value(params[:partition_rpc_topic])  }
+      it { is_expected.to contain_ceilometer_config('alarm/evaluation_interval').with_value(params[:evaluation_interval]) }
+      it { is_expected.to contain_ceilometer_config('alarm/evaluation_service').with_value(params[:evaluation_service]) }
+      it { is_expected.to contain_ceilometer_config('alarm/record_history').with_value(params[:record_history]) }
+      it { is_expected.to contain_ceilometer_config('alarm/partition_rpc_topic').with_value(params[:partition_rpc_topic])  }
+      it { is_expected.to contain_ceilometer_config('coordination/backend_url').with_value( params[:coordination_url]) }
     end
 
-      context 'when override the evaluation interval with a non numeric value' do
+    context 'when override the evaluation interval with a non numeric value' do
+      before do
+        params.merge!(:evaluation_interval => 'NaN')
+      end
+
+      it { expect { is_expected.to contain_ceilometer_config('alarm/evaluation_interval') }.to\
+        raise_error(Puppet::Error, /validate_re\(\): .* does not match/) }
+    end
+
+    [{:enabled => true}, {:enabled => false}].each do |param_hash|
+      context "when service should be #{param_hash[:enabled] ? 'enabled' : 'disabled'}" do
         before do
-          params.merge!(:evaluation_interval => 'NaN')
+          params.merge!(param_hash)
         end
 
-        it { expect { should contain_ceilometer_config('alarm/evaluation_interval') }.to\
-          raise_error(Puppet::Error, /validate_re\(\): .* does not match/) }
+        it 'configures ceilometer-alarm-evaluator service' do
+          is_expected.to contain_service('ceilometer-alarm-evaluator').with(
+            :ensure     => (params[:manage_service] && params[:enabled]) ? 'running' : 'stopped',
+            :name       => platform_params[:alarm_evaluator_service_name],
+            :enable     => params[:enabled],
+            :hasstatus  => true,
+            :hasrestart => true
+          )
+        end
       end
+    end
+
+    context 'with disabled service managing' do
+      before do
+        params.merge!({
+          :manage_service => false,
+          :enabled        => false })
+      end
+
+      it 'configures ceilometer-alarm-evaluator service' do
+        is_expected.to contain_service('ceilometer-alarm-evaluator').with(
+          :ensure     => nil,
+          :name       => platform_params[:alarm_evaluator_service_name],
+          :enable     => false,
+          :hasstatus  => true,
+          :hasrestart => true
+        )
+      end
+    end
   end
 
   context 'on Debian platforms' do

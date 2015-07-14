@@ -3,8 +3,12 @@
 #  ceilometer base package & configuration
 #
 # == parameters
+#
 #  [*metering_secret*]
 #    secret key for signing messages. Mandatory.
+#  [*notification_topics*]
+#    AMQP topic used for OpenStack notifications (list value)
+#    Defaults to 'notifications'
 #  [*package_ensure*]
 #    ensure state for package. Optional. Defaults to 'present'
 #  [*debug*]
@@ -53,7 +57,7 @@
 #    (optional) SSL version to use (valid only if SSL enabled).
 #    Valid values are TLSv1, SSLv23 and SSLv3. SSLv2 may be
 #    available on some distributions.
-#    Defaults to 'SSLv3'
+#    Defaults to 'TLSv1'
 #
 # [*qpid_hostname*]
 # [*qpid_port*]
@@ -70,7 +74,6 @@
 # [*qpid_reconnect_interval_max*]
 # (optional) various QPID options
 #
-
 class ceilometer(
   $metering_secret     = false,
   $notification_topics = ['notifications'],
@@ -91,7 +94,7 @@ class ceilometer(
   $kombu_ssl_ca_certs  = undef,
   $kombu_ssl_certfile  = undef,
   $kombu_ssl_keyfile   = undef,
-  $kombu_ssl_version   = 'SSLv3',
+  $kombu_ssl_version   = 'TLSv1',
   $qpid_hostname = 'localhost',
   $qpid_port = 5672,
   $qpid_username = 'guest',
@@ -109,7 +112,20 @@ class ceilometer(
 
   validate_string($metering_secret)
 
-  include ceilometer::params
+  include ::ceilometer::params
+
+  if $kombu_ssl_ca_certs and !$rabbit_use_ssl {
+    fail('The kombu_ssl_ca_certs parameter requires rabbit_use_ssl to be set to true')
+  }
+  if $kombu_ssl_certfile and !$rabbit_use_ssl {
+    fail('The kombu_ssl_certfile parameter requires rabbit_use_ssl to be set to true')
+  }
+  if $kombu_ssl_keyfile and !$rabbit_use_ssl {
+    fail('The kombu_ssl_keyfile parameter requires rabbit_use_ssl to be set to true')
+  }
+  if ($kombu_ssl_certfile and !$kombu_ssl_keyfile) or ($kombu_ssl_keyfile and !$kombu_ssl_certfile) {
+    fail('The kombu_ssl_certfile and kombu_ssl_keyfile parameters must be used together')
+  }
 
   File {
     require => Package['ceilometer-common'],
@@ -128,21 +144,22 @@ class ceilometer(
   }
 
   file { '/etc/ceilometer/':
-    ensure  => directory,
-    owner   => 'ceilometer',
-    group   => 'ceilometer',
-    mode    => '0750',
+    ensure => directory,
+    owner  => 'ceilometer',
+    group  => 'ceilometer',
+    mode   => '0750',
   }
 
   file { '/etc/ceilometer/ceilometer.conf':
-    owner   => 'ceilometer',
-    group   => 'ceilometer',
-    mode    => '0640',
+    owner => 'ceilometer',
+    group => 'ceilometer',
+    mode  => '0640',
   }
 
   package { 'ceilometer-common':
     ensure => $package_ensure,
     name   => $::ceilometer::params::common_package_name,
+    tag    => 'openstack',
   }
 
   Package['ceilometer-common'] -> Ceilometer_config<||>
@@ -150,64 +167,67 @@ class ceilometer(
   if $rpc_backend == 'ceilometer.openstack.common.rpc.impl_kombu' {
 
     if $rabbit_hosts {
-      ceilometer_config { 'DEFAULT/rabbit_host': ensure => absent }
-      ceilometer_config { 'DEFAULT/rabbit_port': ensure => absent }
-      ceilometer_config { 'DEFAULT/rabbit_hosts':
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_host': ensure => absent }
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_port': ensure => absent }
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_hosts':
         value => join($rabbit_hosts, ',')
       }
       } else {
-      ceilometer_config { 'DEFAULT/rabbit_host': value => $rabbit_host }
-      ceilometer_config { 'DEFAULT/rabbit_port': value => $rabbit_port }
-      ceilometer_config { 'DEFAULT/rabbit_hosts':
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_host': value => $rabbit_host }
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_port': value => $rabbit_port }
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_hosts':
         value => "${rabbit_host}:${rabbit_port}"
       }
     }
 
       if size($rabbit_hosts) > 1 {
-        ceilometer_config { 'DEFAULT/rabbit_ha_queues': value => true }
+        ceilometer_config { 'oslo_messaging_rabbit/rabbit_ha_queues': value => true }
       } else {
-        ceilometer_config { 'DEFAULT/rabbit_ha_queues': value => false }
+        ceilometer_config { 'oslo_messaging_rabbit/rabbit_ha_queues': value => false }
       }
 
       ceilometer_config {
-        'DEFAULT/rabbit_userid'          : value => $rabbit_userid;
-        'DEFAULT/rabbit_password'        : value => $rabbit_password;
-        'DEFAULT/rabbit_virtual_host'    : value => $rabbit_virtual_host;
-        'DEFAULT/rabbit_use_ssl'         : value => $rabbit_use_ssl;
+        'oslo_messaging_rabbit/rabbit_userid'          : value => $rabbit_userid;
+        'oslo_messaging_rabbit/rabbit_password'        : value => $rabbit_password, secret => true;
+        'oslo_messaging_rabbit/rabbit_virtual_host'    : value => $rabbit_virtual_host;
+        'oslo_messaging_rabbit/rabbit_use_ssl'         : value => $rabbit_use_ssl;
       }
 
       if $rabbit_use_ssl {
-        if $kombu_ssl_ca_certs {
-          ceilometer_config { 'DEFAULT/kombu_ssl_ca_certs': value => $kombu_ssl_ca_certs }
-        } else {
-          ceilometer_config { 'DEFAULT/kombu_ssl_ca_certs': ensure => absent}
-        }
 
-        if $kombu_ssl_certfile {
-          ceilometer_config { 'DEFAULT/kombu_ssl_certfile': value => $kombu_ssl_certfile }
-        } else {
-          ceilometer_config { 'DEFAULT/kombu_ssl_certfile': ensure => absent}
-        }
+      if $kombu_ssl_ca_certs {
+        ceilometer_config { 'oslo_messaging_rabbit/kombu_ssl_ca_certs': value => $kombu_ssl_ca_certs; }
+      } else {
+        ceilometer_config { 'oslo_messaging_rabbit/kombu_ssl_ca_certs': ensure => absent; }
+      }
 
-        if $kombu_ssl_keyfile {
-          ceilometer_config { 'DEFAULT/kombu_ssl_keyfile': value => $kombu_ssl_keyfile }
-        } else {
-          ceilometer_config { 'DEFAULT/kombu_ssl_keyfile': ensure => absent}
-        }
-
-        if $kombu_ssl_version {
-          ceilometer_config { 'DEFAULT/kombu_ssl_version': value => $kombu_ssl_version }
-        } else {
-          ceilometer_config { 'DEFAULT/kombu_ssl_version': ensure => absent}
+      if $kombu_ssl_certfile or $kombu_ssl_keyfile {
+        ceilometer_config {
+          'oslo_messaging_rabbit/kombu_ssl_certfile': value => $kombu_ssl_certfile;
+          'oslo_messaging_rabbit/kombu_ssl_keyfile':  value => $kombu_ssl_keyfile;
         }
       } else {
         ceilometer_config {
-          'DEFAULT/kombu_ssl_ca_certs': ensure => absent;
-          'DEFAULT/kombu_ssl_certfile': ensure => absent;
-          'DEFAULT/kombu_ssl_keyfile':  ensure => absent;
-          'DEFAULT/kombu_ssl_version':  ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_certfile': ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_keyfile':  ensure => absent;
         }
       }
+
+      if $kombu_ssl_version {
+        ceilometer_config { 'oslo_messaging_rabbit/kombu_ssl_version':  value => $kombu_ssl_version; }
+      } else {
+        ceilometer_config { 'oslo_messaging_rabbit/kombu_ssl_version':  ensure => absent; }
+      }
+
+      } else {
+        ceilometer_config {
+          'oslo_messaging_rabbit/kombu_ssl_ca_certs': ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_certfile': ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_keyfile':  ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_version':  ensure => absent;
+        }
+      }
+
   }
 
   if $rpc_backend == 'ceilometer.openstack.common.rpc.impl_qpid' {
@@ -216,7 +236,7 @@ class ceilometer(
       'DEFAULT/qpid_hostname'              : value => $qpid_hostname;
       'DEFAULT/qpid_port'                  : value => $qpid_port;
       'DEFAULT/qpid_username'              : value => $qpid_username;
-      'DEFAULT/qpid_password'              : value => $qpid_password;
+      'DEFAULT/qpid_password'              : value => $qpid_password, secret => true;
       'DEFAULT/qpid_heartbeat'             : value => $qpid_heartbeat;
       'DEFAULT/qpid_protocol'              : value => $qpid_protocol;
       'DEFAULT/qpid_tcp_nodelay'           : value => $qpid_tcp_nodelay;
@@ -233,7 +253,7 @@ class ceilometer(
   # Once we got here, we can act as an honey badger on the rpc used.
   ceilometer_config {
     'DEFAULT/rpc_backend'            : value => $rpc_backend;
-    'publisher/metering_secret'      : value => $metering_secret;
+    'publisher/metering_secret'      : value => $metering_secret, secret => true;
     'DEFAULT/debug'                  : value => $debug;
     'DEFAULT/verbose'                : value => $verbose;
     'DEFAULT/notification_topics'    : value => join($notification_topics, ',');

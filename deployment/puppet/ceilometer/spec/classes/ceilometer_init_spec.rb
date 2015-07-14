@@ -67,17 +67,17 @@ describe 'ceilometer' do
 
   shared_examples_for 'a ceilometer base installation' do
 
-    it { should contain_class('ceilometer::params') }
+    it { is_expected.to contain_class('ceilometer::params') }
 
     it 'configures ceilometer group' do
-      should contain_group('ceilometer').with(
+      is_expected.to contain_group('ceilometer').with(
         :name    => 'ceilometer',
         :require => 'Package[ceilometer-common]'
       )
     end
 
     it 'configures ceilometer user' do
-      should contain_user('ceilometer').with(
+      is_expected.to contain_user('ceilometer').with(
         :name    => 'ceilometer',
         :gid     => 'ceilometer',
         :system  => true,
@@ -86,7 +86,7 @@ describe 'ceilometer' do
     end
 
     it 'configures ceilometer configuration folder' do
-      should contain_file('/etc/ceilometer/').with(
+      is_expected.to contain_file('/etc/ceilometer/').with(
         :ensure  => 'directory',
         :owner   => 'ceilometer',
         :group   => 'ceilometer',
@@ -96,7 +96,7 @@ describe 'ceilometer' do
     end
 
     it 'configures ceilometer configuration file' do
-      should contain_file('/etc/ceilometer/ceilometer.conf').with(
+      is_expected.to contain_file('/etc/ceilometer/ceilometer.conf').with(
         :owner   => 'ceilometer',
         :group   => 'ceilometer',
         :mode    => '0640',
@@ -105,49 +105,51 @@ describe 'ceilometer' do
     end
 
     it 'installs ceilometer common package' do
-      should contain_package('ceilometer-common').with(
+      is_expected.to contain_package('ceilometer-common').with(
         :ensure => 'present',
-        :name   => platform_params[:common_package_name]
+        :name   => platform_params[:common_package_name],
+        :tag    => 'openstack'
       )
     end
 
     it 'configures required metering_secret' do
-      should contain_ceilometer_config('publisher/metering_secret').with_value('metering-s3cr3t')
+      is_expected.to contain_ceilometer_config('publisher/metering_secret').with_value('metering-s3cr3t')
+      is_expected.to contain_ceilometer_config('publisher/metering_secret').with_value( params[:metering_secret] ).with_secret(true)
     end
 
     context 'without the required metering_secret' do
       before { params.delete(:metering_secret) }
-      it { expect { should raise_error(Puppet::Error) } }
+      it { expect { is_expected.to raise_error(Puppet::Error) } }
     end
 
     it 'configures debug and verbosity' do
-      should contain_ceilometer_config('DEFAULT/debug').with_value( params[:debug] )
-      should contain_ceilometer_config('DEFAULT/verbose').with_value( params[:verbose] )
+      is_expected.to contain_ceilometer_config('DEFAULT/debug').with_value( params[:debug] )
+      is_expected.to contain_ceilometer_config('DEFAULT/verbose').with_value( params[:verbose] )
     end
 
     it 'configures logging directory by default' do
-      should contain_ceilometer_config('DEFAULT/log_dir').with_value( params[:log_dir] )
+      is_expected.to contain_ceilometer_config('DEFAULT/log_dir').with_value( params[:log_dir] )
     end
 
     context 'with logging directory disabled' do
       before { params.merge!( :log_dir => false) }
 
-      it { should contain_ceilometer_config('DEFAULT/log_dir').with_ensure('absent') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/log_dir').with_ensure('absent') }
     end
 
     it 'configures notification_topics' do
-      should contain_ceilometer_config('DEFAULT/notification_topics').with_value('notifications')
+      is_expected.to contain_ceilometer_config('DEFAULT/notification_topics').with_value('notifications')
     end
 
     it 'configures syslog to be disabled by default' do
-      should contain_ceilometer_config('DEFAULT/use_syslog').with_value('false')
+      is_expected.to contain_ceilometer_config('DEFAULT/use_syslog').with_value('false')
     end
 
     context 'with syslog enabled' do
       before { params.merge!( :use_syslog => 'true' ) }
 
-      it { should contain_ceilometer_config('DEFAULT/use_syslog').with_value('true') }
-      it { should contain_ceilometer_config('DEFAULT/syslog_log_facility').with_value('LOG_USER') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/use_syslog').with_value('true') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/syslog_log_facility').with_value('LOG_USER') }
     end
 
     context 'with syslog enabled and custom settings' do
@@ -156,15 +158,15 @@ describe 'ceilometer' do
        :log_facility => 'LOG_LOCAL0'
       ) }
 
-      it { should contain_ceilometer_config('DEFAULT/use_syslog').with_value('true') }
-      it { should contain_ceilometer_config('DEFAULT/syslog_log_facility').with_value('LOG_LOCAL0') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/use_syslog').with_value('true') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/syslog_log_facility').with_value('LOG_LOCAL0') }
     end
 
     context 'with overriden notification_topics parameter' do
       before { params.merge!( :notification_topics => ['notifications', 'custom']) }
 
       it 'configures notification_topics' do
-        should contain_ceilometer_config('DEFAULT/notification_topics').with_value('notifications,custom')
+        is_expected.to contain_ceilometer_config('DEFAULT/notification_topics').with_value('notifications,custom')
       end
     end
   end
@@ -172,108 +174,131 @@ describe 'ceilometer' do
   shared_examples_for 'rabbit without HA support (with backward compatibility)' do
 
     it 'configures rabbit' do
-      should contain_ceilometer_config('DEFAULT/rabbit_userid').with_value( params[:rabbit_userid] )
-      should contain_ceilometer_config('DEFAULT/rabbit_password').with_value( params[:rabbit_password] )
-      should contain_ceilometer_config('DEFAULT/rabbit_virtual_host').with_value( params[:rabbit_virtual_host] )
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_userid').with_value( params[:rabbit_userid] )
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_password').with_value( params[:rabbit_password] )
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_password').with_value( params[:rabbit_password] ).with_secret(true)
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_virtual_host').with_value( params[:rabbit_virtual_host] )
     end
 
-    it { should contain_ceilometer_config('DEFAULT/rabbit_host').with_value( params[:rabbit_host] ) }
-    it { should contain_ceilometer_config('DEFAULT/rabbit_port').with_value( params[:rabbit_port] ) }
-    it { should contain_ceilometer_config('DEFAULT/rabbit_hosts').with_value( "#{params[:rabbit_host]}:#{params[:rabbit_port]}" ) }
-    it { should contain_ceilometer_config('DEFAULT/rabbit_ha_queues').with_value('false') }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_host').with_value( params[:rabbit_host] ) }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_port').with_value( params[:rabbit_port] ) }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_hosts').with_value( "#{params[:rabbit_host]}:#{params[:rabbit_port]}" ) }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_ha_queues').with_value('false') }
+
   end
 
   shared_examples_for 'rabbit without HA support (without backward compatibility)' do
 
     it 'configures rabbit' do
-      should contain_ceilometer_config('DEFAULT/rabbit_userid').with_value( params[:rabbit_userid] )
-      should contain_ceilometer_config('DEFAULT/rabbit_password').with_value( params[:rabbit_password] )
-      should contain_ceilometer_config('DEFAULT/rabbit_virtual_host').with_value( params[:rabbit_virtual_host] )
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_userid').with_value( params[:rabbit_userid] )
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_password').with_value( params[:rabbit_password] )
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_password').with_value( params[:rabbit_password] ).with_secret(true)
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_virtual_host').with_value( params[:rabbit_virtual_host] )
     end
 
-    it { should contain_ceilometer_config('DEFAULT/rabbit_host').with_ensure('absent') }
-    it { should contain_ceilometer_config('DEFAULT/rabbit_port').with_ensure('absent') }
-    it { should contain_ceilometer_config('DEFAULT/rabbit_hosts').with_value( params[:rabbit_hosts].join(',') ) }
-    it { should contain_ceilometer_config('DEFAULT/rabbit_ha_queues').with_value('false') }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_host').with_ensure('absent') }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_port').with_ensure('absent') }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_hosts').with_value( params[:rabbit_hosts].join(',') ) }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_ha_queues').with_value('false') }
+
   end
 
   shared_examples_for 'rabbit with HA support' do
 
     it 'configures rabbit' do
-      should contain_ceilometer_config('DEFAULT/rabbit_userid').with_value( params[:rabbit_userid] )
-      should contain_ceilometer_config('DEFAULT/rabbit_password').with_value( params[:rabbit_password] )
-      should contain_ceilometer_config('DEFAULT/rabbit_virtual_host').with_value( params[:rabbit_virtual_host] )
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_userid').with_value( params[:rabbit_userid] )
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_password').with_value( params[:rabbit_password] )
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_password').with_value( params[:rabbit_password] ).with_secret(true)
+      is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_virtual_host').with_value( params[:rabbit_virtual_host] )
     end
 
-    it { should contain_ceilometer_config('DEFAULT/rabbit_host').with_ensure('absent') }
-    it { should contain_ceilometer_config('DEFAULT/rabbit_port').with_ensure('absent') }
-    it { should contain_ceilometer_config('DEFAULT/rabbit_hosts').with_value( params[:rabbit_hosts].join(',') ) }
-    it { should contain_ceilometer_config('DEFAULT/rabbit_ha_queues').with_value('true') }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_host').with_ensure('absent') }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_port').with_ensure('absent') }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_hosts').with_value( params[:rabbit_hosts].join(',') ) }
+    it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_ha_queues').with_value('true') }
+
   end
 
   shared_examples_for 'rabbit with SSL support' do
     context "with default parameters" do
-      it { should contain_ceilometer_config('DEFAULT/rabbit_use_ssl').with_value('false') }
-      it { should contain_ceilometer_config('DEFAULT/kombu_ssl_ca_certs').with_ensure('absent') }
-      it { should contain_ceilometer_config('DEFAULT/kombu_ssl_certfile').with_ensure('absent') }
-      it { should contain_ceilometer_config('DEFAULT/kombu_ssl_keyfile').with_ensure('absent') }
-      it { should contain_ceilometer_config('DEFAULT/kombu_ssl_version').with_ensure('absent') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_use_ssl').with_value('false') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_ca_certs').with_ensure('absent') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_certfile').with_ensure('absent') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_keyfile').with_ensure('absent') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_version').with_ensure('absent') }
     end
 
-    context "with SSL enabled" do
-      before { params.merge!( :rabbit_use_ssl => 'true' ) }
-      it { should contain_ceilometer_config('DEFAULT/rabbit_use_ssl').with_value('true') }
-      it { should contain_ceilometer_config('DEFAULT/kombu_ssl_ca_certs').with_ensure('absent') }
-      it { should contain_ceilometer_config('DEFAULT/kombu_ssl_certfile').with_ensure('absent') }
-      it { should contain_ceilometer_config('DEFAULT/kombu_ssl_keyfile').with_ensure('absent') }
-      it { should contain_ceilometer_config('DEFAULT/kombu_ssl_version').with_value('SSLv3') }
+    context "with SSL enabled with kombu" do
+      before { params.merge!(
+        :rabbit_use_ssl     => 'true',
+        :kombu_ssl_ca_certs => '/path/to/ca.crt',
+        :kombu_ssl_certfile => '/path/to/cert.crt',
+        :kombu_ssl_keyfile  => '/path/to/cert.key',
+        :kombu_ssl_version  => 'TLSv1'
+      ) }
 
-      context "with ca_certs" do
-        before { params.merge!( :kombu_ssl_ca_certs => '/path/to/ca.crt' ) }
-        it { should contain_ceilometer_config('DEFAULT/kombu_ssl_ca_certs').with_value('/path/to/ca.crt') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_use_ssl').with_value('true') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_ca_certs').with_value('/path/to/ca.crt') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_certfile').with_value('/path/to/cert.crt') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_keyfile').with_value('/path/to/cert.key') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_version').with_value('TLSv1') }
+    end
+
+    context "with SSL enabled without kombu" do
+      before { params.merge!(
+        :rabbit_use_ssl     => 'true'
+      ) }
+
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/rabbit_use_ssl').with_value('true') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_ca_certs').with_ensure('absent') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_certfile').with_ensure('absent') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_keyfile').with_ensure('absent') }
+      it { is_expected.to contain_ceilometer_config('oslo_messaging_rabbit/kombu_ssl_version').with_value('TLSv1') }
+    end
+
+    context "with SSL wrongly configured" do
+      context 'with kombu_ssl_ca_certs parameter' do
+        before { params.merge!(:kombu_ssl_ca_certs => '/path/to/ca.crt') }
+        it_raises 'a Puppet::Error', /The kombu_ssl_ca_certs parameter requires rabbit_use_ssl to be set to true/
       end
 
-      context "with certfile" do
-        before { params.merge!( :kombu_ssl_certfile => '/path/to/cert.crt' ) }
-        it { should contain_ceilometer_config('DEFAULT/kombu_ssl_certfile').with_value('/path/to/cert.crt') }
+      context 'with kombu_ssl_certfile parameter' do
+        before { params.merge!(:kombu_ssl_certfile => '/path/to/ssl/cert/file') }
+        it_raises 'a Puppet::Error', /The kombu_ssl_certfile parameter requires rabbit_use_ssl to be set to true/
       end
 
-      context "with keyfile" do
-        before { params.merge!( :kombu_ssl_keyfile => '/path/to/cert.key' ) }
-        it { should contain_ceilometer_config('DEFAULT/kombu_ssl_keyfile').with_value('/path/to/cert.key') }
-      end
-
-      context "with version" do
-        before { params.merge!( :kombu_ssl_version => 'TLSv1' ) }
-        it { should contain_ceilometer_config('DEFAULT/kombu_ssl_version').with_value('TLSv1') }
+      context 'with kombu_ssl_keyfile parameter' do
+        before { params.merge!(:kombu_ssl_keyfile => '/path/to/ssl/keyfile') }
+        it_raises 'a Puppet::Error', /The kombu_ssl_keyfile parameter requires rabbit_use_ssl to be set to true/
       end
     end
   end
 
   shared_examples_for 'qpid support' do
     context("with default parameters") do
-      it { should contain_ceilometer_config('DEFAULT/qpid_reconnect').with_value(true) }
-      it { should contain_ceilometer_config('DEFAULT/qpid_reconnect_timeout').with_value('0') }
-      it { should contain_ceilometer_config('DEFAULT/qpid_reconnect_limit').with_value('0') }
-      it { should contain_ceilometer_config('DEFAULT/qpid_reconnect_interval_min').with_value('0') }
-      it { should contain_ceilometer_config('DEFAULT/qpid_reconnect_interval_max').with_value('0') }
-      it { should contain_ceilometer_config('DEFAULT/qpid_reconnect_interval').with_value('0') }
-      it { should contain_ceilometer_config('DEFAULT/qpid_heartbeat').with_value('60') }
-      it { should contain_ceilometer_config('DEFAULT/qpid_protocol').with_value('tcp') }
-      it { should contain_ceilometer_config('DEFAULT/qpid_tcp_nodelay').with_value(true) }
-      end
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_reconnect').with_value(true) }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_reconnect_timeout').with_value('0') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_reconnect_limit').with_value('0') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_reconnect_interval_min').with_value('0') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_reconnect_interval_max').with_value('0') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_reconnect_interval').with_value('0') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_heartbeat').with_value('60') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_protocol').with_value('tcp') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_tcp_nodelay').with_value(true) }
+    end
 
     context("with mandatory parameters set") do
-      it { should contain_ceilometer_config('DEFAULT/rpc_backend').with_value('ceilometer.openstack.common.rpc.impl_qpid') }
-      it { should contain_ceilometer_config('DEFAULT/qpid_hostname').with_value( params[:qpid_hostname] ) }
-      it { should contain_ceilometer_config('DEFAULT/qpid_port').with_value( params[:qpid_port] ) }
-      it { should contain_ceilometer_config('DEFAULT/qpid_username').with_value( params[:qpid_username]) }
-      it { should contain_ceilometer_config('DEFAULT/qpid_password').with_value(params[:qpid_password]) }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/rpc_backend').with_value('ceilometer.openstack.common.rpc.impl_qpid') }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_hostname').with_value( params[:qpid_hostname] ) }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_port').with_value( params[:qpid_port] ) }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_username').with_value( params[:qpid_username]) }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_password').with_value(params[:qpid_password]) }
+      it { is_expected.to contain_ceilometer_config('DEFAULT/qpid_password').with_value( params[:qpid_password] ).with_secret(true) }
     end
 
     context("failing if the rpc_backend is not present") do
       before { params.delete( :rpc_backend) }
-      it { expect { should raise_error(Puppet::Error) } }
+      it { expect { is_expected.to raise_error(Puppet::Error) } }
     end
   end
 
