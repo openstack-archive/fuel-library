@@ -28,6 +28,12 @@ class openstack::ha::haproxy (
     internal_virtual_ip => $internal_virtual_ip,
   }
 
+  class { 'openstack::ha::stats':
+    use_ssl      => $horizon_use_ssl,
+    server_names => hiera_array('horizon_names', $controllers_server_names),
+    ipaddresses  => hiera_array('horizon_ipaddresses', $controllers_ipaddresses),
+  }
+
   class { 'openstack::ha::horizon':
     use_ssl      => $horizon_use_ssl,
     server_names => hiera_array('horizon_names', $controllers_server_names),
