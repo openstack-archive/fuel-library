@@ -9,7 +9,7 @@
 #   vip
 #
 # [*ipaddresses*]
-#   (required) Array. This is an array of ipaddresses for the backend services
+#   (optional) Array. This is an array of ipaddresses for the backend services
 #   to be loadbalanced
 #
 # [*order*]
@@ -21,7 +21,7 @@
 #   vip
 #
 # [*server_names*]
-#   (required) Array. This is an array of server names for the haproxy service
+#   (optional) Array. This is an array of server names for the haproxy service
 #
 # [*balancemember_options*]
 #   (optional) String or Array. Options for the balancermember configuration.
@@ -70,11 +70,11 @@
 #   Defaults to false.
 define openstack::ha::haproxy_service (
   $internal_virtual_ip,
-  $ipaddresses,
+  $ipaddresses            = undef,
   $listen_port,
   $order,
   $public_virtual_ip,
-  $server_names,
+  $server_names           = undef,
   $balancermember_options = 'check',
   $balancermember_port    = $listen_port,
   $before_start           = false,
@@ -133,28 +133,30 @@ define openstack::ha::haproxy_service (
     }
   }
 
-  # Add balancer memeber to HAProxy
-  haproxy::balancermember { $name:
-    order             => $order,
-    listening_service => $name,
-    server_names      => $server_names,
-    ipaddresses       => $ipaddresses,
-    ports             => $balancermember_port,
-    options           => $balancermember_options,
-    define_cookies    => $define_cookies,
-    define_backups    => $define_backups,
-    use_include       => true,
+  if $ipaddresses and $server_names {
+    haproxy::balancermember { $name:
+      order             => $order,
+      listening_service => $name,
+      server_names      => $server_names,
+      ipaddresses       => $ipaddresses,
+      ports             => $balancermember_port,
+      options           => $balancermember_options,
+      define_cookies    => $define_cookies,
+      define_backups    => $define_backups,
+      use_include       => true,
+      before            => Exec["haproxy restart for ${name}"],
+    }
   }
 
   # Dirty hack, due Puppet can't send notify between stages
   exec { "haproxy restart for ${name}":
-    command   => 'export OCF_ROOT="/usr/lib/ocf"; (ip netns list | grep haproxy) && ip netns exec haproxy /usr/lib/ocf/resource.d/fuel/ns_haproxy restart',
-    path      => '/usr/bin:/usr/sbin:/bin:/sbin',
-    logoutput => true,
-    provider  => 'shell',
-    tries     => 10,
-    try_sleep => 10,
-    returns   => [0, ''],
-    require   => [Haproxy::Listen[$name], Haproxy::Balancermember[$name]],
+    command     => 'export OCF_ROOT="/usr/lib/ocf"; (ip netns list | grep haproxy) && ip netns exec haproxy /usr/lib/ocf/resource.d/fuel/ns_haproxy restart',
+    path        => '/usr/bin:/usr/sbin:/bin:/sbin',
+    logoutput   => true,
+    provider    => 'shell',
+    tries       => 10,
+    try_sleep   => 10,
+    returns     => [0, ''],
+    require     => Haproxy::Listen[$name],
   }
 }
