@@ -1,0 +1,14 @@
+# Configuration for Haproxy Stats page
+class openstack::ha::stats (
+  $use_ssl = false,
+) {
+  openstack::ha::haproxy_service { 'stats':
+    order          => '015',
+    listen_port    => '10000',
+    haproxy_config_options => {
+      'stats' => ['enable', 'uri /', 'refresh 5s', 'show-node', 'show-legends', 'hide-version'],
+      'mode'  => 'http',
+    },
+  }
+}
+
