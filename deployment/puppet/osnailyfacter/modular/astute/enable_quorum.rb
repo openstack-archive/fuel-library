@@ -3,21 +3,38 @@ require 'rubygems'
 require 'hiera'
 require 'timeout'
 
+HIERA_CONFIG  = '/etc/puppet/hiera.yaml'
+DEFAULT_COROSYNC_ROLES = %w(controller primary-controller)
+
 RETRY_COUNT   = 5
 RETRY_WAIT    = 1
 RETRY_TIMEOUT = 10
 
-def get_nodes
-  hiera = Hiera.new(:config => '/etc/puppet/hiera.yaml')
-  nodes_array = hiera.lookup 'nodes', [], {}
+def hiera
+  return $hiera if $hiera
+  $hiera = Hiera.new(:config => HIERA_CONFIG)
+  Hiera.logger = "noop"
+  $hiera
+end
+
+def nodes
+  nodes_array = hiera.lookup 'nodes', [], {}, nil, :array
   raise 'Invalid nodes data!' unless nodes_array.is_a? Array
   nodes_array
 end
 
-def get_controller_nodes
-  get_nodes.select {|n|
-    ['controller', 'primary-controller'].include? n['role']
-  }.size
+def corosync_roles
+  return $corosync_roles if $corosync_roles
+  $corosync_roles = hiera.lookup 'corosync_roles', DEFAULT_COROSYNC_ROLES, {}, nil, :array
+  raise 'Invalid corosync_roles!' unless $corosync_roles.is_a? Array
+  $corosync_roles
+end
+
+def corosync_nodes_count
+  return $corosync_nodes_count if $corosync_nodes_count
+  $corosync_nodes_count = nodes.select do |node|
+    corosync_roles.include? node['role']
+  end.size
 end
 
 def set_quorum_policy(value)
@@ -55,15 +72,12 @@ end
 
 ##############
 
-controller_nodes = get_controller_nodes
-current_quorum_policy = get_quorum_policy
+puts "Controller nodes found: '#{corosync_nodes_count}'"
 
-puts "Controller nodes found: '#{controller_nodes}'"
-
-if controller_nodes > 2
-  set_quorum_policy 'stop' unless current_quorum_policy == 'stop'
+if corosync_nodes_count > 2
+  set_quorum_policy 'stop' unless get_quorum_policy == 'stop'
 else
-  set_quorum_policy 'ignore' unless current_quorum_policy == 'ignore'
+  set_quorum_policy 'ignore' unless get_quorum_policy == 'ignore'
 end
 
 puts "Current no-quorum-policy is: '#{get_quorum_policy}'"
