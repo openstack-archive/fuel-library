@@ -209,7 +209,7 @@ if ($storage_hash['images_ceph']) {
 
 # Define memcached-related variables:
 # todo(sv): change to 'memcache' as soon as this node role was ready
-$memcache_servers = values(get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']), 'mgmt/memcache'))
+$memcache_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
 # Define swift-related variables
 # todo(sv): use special node-roles instead controllers in the future
