@@ -1,11 +1,13 @@
 notice('MODULAR: horizon.pp')
 
+prepare_network_config(hiera('network_scheme', {}))
 $controllers                    = hiera('controllers')
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
 $horizon_hash                   = hiera_hash('horizon', {})
 $management_vip                 = hiera('management_vip')
 $service_endpoint               = hiera('service_endpoint')
+$bind_address                   = get_network_role_property('horizon', 'ipaddr')
 
 if $horizon_hash['secret_key'] {
   $secret_key = $horizon_hash['secret_key']
@@ -23,7 +25,7 @@ class { 'openstack::horizon':
   secret_key        => $secret_key,
   cache_server_ip   => hiera('memcache_servers', $controller_nodes),
   package_ensure    => hiera('horizon_package_ensure', 'installed'),
-  bind_address      => '*',
+  bind_address      => $bind_address,
   cache_server_port => hiera('memcache_server_port', '11211'),
   cache_backend     => 'django.core.cache.backends.memcached.MemcachedCache',
   neutron           => hiera('use_neutron'),
