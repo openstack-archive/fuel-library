@@ -11,8 +11,8 @@ describe 'ceilometer::config' do
   end
 
     it 'with [api] options ceilometer_config ' do
-      should contain_ceilometer_config('api/host').with_value('0.0.0.0')
-      should contain_ceilometer_config('api/port').with_value('8777')
+      is_expected.to contain_ceilometer_config('api/host').with_value('0.0.0.0')
+      is_expected.to contain_ceilometer_config('api/port').with_value('8777')
     end
 
   describe 'with [rpc_notifier2] options ceilometer_config' do
@@ -22,7 +22,7 @@ describe 'ceilometer::config' do
       })
     end
     it 'should configure rpc_notifier2 topics correctly' do
-      should contain_ceilometer_config('rpc_notifier2/topics').with_value('notifications')
+      is_expected.to contain_ceilometer_config('rpc_notifier2/topics').with_value('notifications')
     end
 
   end

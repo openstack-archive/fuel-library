@@ -11,9 +11,8 @@ describe 'ceilometer::db::mysql' do
       :dbname       => 'ceilometer',
       :user         => 'ceilometer',
       :host         => 'localhost',
-      :charset      => 'latin1',
-      :collate      => 'latin1_swedish_ci',
-      :mysql_module => '0.9',
+      :charset      => 'utf8',
+      :collate      => 'utf8_general_ci',
     }
   end
 
@@ -21,16 +20,15 @@ describe 'ceilometer::db::mysql' do
 
     context 'when omiting the required parameter password' do
       before { params.delete(:password) }
-      it { expect { should raise_error(Puppet::Error) } }
+      it { expect { is_expected.to raise_error(Puppet::Error) } }
     end
 
     it 'creates a mysql database' do
-      should contain_mysql__db( params[:dbname] ).with(
-        :user     => params[:user],
-        :password => params[:password],
-        :host     => params[:host],
-        :charset  => params[:charset],
-        :require  => 'Class[Mysql::Config]'
+      is_expected.to contain_openstacklib__db__mysql( params[:dbname] ).with(
+        :user          => params[:user],
+        :password_hash => '*58C036CDA51D8E8BBBBF2F9EA5ABF111ADA444F0',
+        :host          => params[:host],
+        :charset       => params[:charset]
       )
     end
   end
@@ -62,16 +60,6 @@ describe 'ceilometer::db::mysql' do
       }
     end
 
-    it {should_not contain_ceilometer__db__mysql__host_access("localhost").with(
-      :user     => 'ceilometer',
-      :password => 'ceilometerpass',
-      :database => 'ceilometer'
-    )}
-    it {should contain_ceilometer__db__mysql__host_access("%").with(
-      :user     => 'ceilometer',
-      :password => 'ceilometerpass',
-      :database => 'ceilometer'
-    )}
   end
 
   describe "overriding allowed_hosts param to string" do
@@ -85,11 +73,6 @@ describe 'ceilometer::db::mysql' do
       }
     end
 
-    it {should contain_ceilometer__db__mysql__host_access("192.168.1.1").with(
-      :user     => 'ceilometer',
-      :password => 'ceilometerpass2',
-      :database => 'ceilometer'
-    )}
   end
 
   describe "overriding allowed_hosts param equals to host param " do
@@ -103,10 +86,5 @@ describe 'ceilometer::db::mysql' do
       }
     end
 
-    it {should_not contain_ceilometer__db__mysql__host_access("localhost").with(
-      :user     => 'ceilometer',
-      :password => 'ceilometerpass2',
-      :database => 'ceilometer'
-    )}
   end
 end

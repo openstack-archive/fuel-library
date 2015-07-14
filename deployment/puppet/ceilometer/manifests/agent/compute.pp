@@ -1,23 +1,36 @@
-# The ceilometer::agent::compute class installs the ceilometer compute agent
+#The ceilometer::agent::compute class installs the ceilometer compute agent
 # Include this class on all nova compute nodes
 #
 # == Parameters
 #  [*enabled*]
-#    should the service be started or not
-#    Optional. Defaults to true
+#    (optional) Should the service be enabled.
+#    Defaults to true.
+#
+#  [*manage_service*]
+#    (optional)  Whether the service should be managed by Puppet.
+#    Defaults to true.
+#
+# [*package_ensure*]
+#   (optional) ensure state for package.
+#   Defaults to 'present'
 #
 class ceilometer::agent::compute (
+  $manage_service   = true,
   $enabled          = true,
+  $package_ensure   = 'present',
 ) inherits ceilometer {
 
-  include ceilometer::params
+  warning('This class is deprecated. Please use ceilometer::agent::polling with compute namespace instead.')
+
+  include ::ceilometer::params
 
   Ceilometer_config<||> ~> Service['ceilometer-agent-compute']
 
   Package['ceilometer-agent-compute'] -> Service['ceilometer-agent-compute']
   package { 'ceilometer-agent-compute':
-    ensure => installed,
+    ensure => $package_ensure,
     name   => $::ceilometer::params::agent_compute_package_name,
+    tag    => 'openstack',
   }
 
   if $::ceilometer::params::libvirt_group {
@@ -30,13 +43,15 @@ class ceilometer::agent::compute (
     }
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
   }
 
-  Package['ceilometer-common'] -> Service['ceilometer-agent-compute']
+  Package <| title == 'nova-common' |> -> Package['ceilometer-common'] -> Service['ceilometer-agent-compute']
   service { 'ceilometer-agent-compute':
     ensure     => $service_ensure,
     name       => $::ceilometer::params::agent_compute_service_name,

@@ -10,17 +10,19 @@
 #    enable dbsync.
 #
 #  [*mysql_module*]
-#    (optional) Mysql puppet module version to use. Tested versions
-#    are 0.9 and 2.2
-#    Defaults to '0.9
+#    (optional) Deprecated. Does nothing.
 #
 class ceilometer::db (
   $database_connection = 'mysql://ceilometer:ceilometer@localhost/ceilometer',
   $sync_db             = true,
-  $mysql_module        = '0.9',
+  $mysql_module        = undef,
 ) {
 
-  include ceilometer::params
+  include ::ceilometer::params
+
+  if $mysql_module {
+    warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
+  }
 
   Package<| title == 'ceilometer-common' |> -> Class['ceilometer::db']
 
@@ -31,13 +33,10 @@ class ceilometer::db (
     /^mysql:\/\//: {
       $backend_package = false
 
-      if ($mysql_module >= 2.2) {
-        include mysql::bindings::python
-      } else {
-        include mysql::python
-      }
+      include ::mysql::bindings::python
+      Package<| title == 'python-mysqldb' |> -> Class['ceilometer::db']
     }
-    /^postgres:\/\//: {
+    /^postgresql:\/\//: {
       $backend_package = $::ceilometer::params::psycopg_package_name
     }
     /^mongodb:\/\//: {
@@ -61,11 +60,12 @@ class ceilometer::db (
     package {'ceilometer-backend-package':
       ensure => present,
       name   => $backend_package,
+      tag    => 'openstack',
     }
   }
 
   ceilometer_config {
-    'database/connection': value => $database_connection;
+    'database/connection': value => $database_connection, secret => true;
   }
 
   Ceilometer_config['database/connection'] ~> Exec['ceilometer-dbsync']
