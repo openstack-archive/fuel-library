@@ -294,7 +294,7 @@ module OpenStack
       @proxy_port = options[:proxy_port]
       @authok = false
       @http = {}
-      @quantum_version = 'v2.0' if @service_type == 'network'
+      @quantum_version = '/v2.0' if @service_type == 'network'
     end
   end
 end
