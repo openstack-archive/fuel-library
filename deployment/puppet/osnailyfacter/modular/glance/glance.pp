@@ -19,8 +19,7 @@ $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
-$keystone_endpoint     = hiera('keystone_endpoint', $service_endpoint)
-$glance_endpoint       = hiera('glance_endpoint', $service_endpoint)  # in most cases it's a service_endpoint
+$glance_endpoint       = hiera('glance_endpoint', $management_vip)
 
 $db_type                        = 'mysql'
 $db_host                        = pick($glance_hash['db_host'], $database_vip)
@@ -28,7 +27,7 @@ $api_bind_address               = get_network_role_property('glance/api', 'ipadd
 $enabled                        = true
 $max_retries                    = '-1'
 $idle_timeout                   = '3600'
-$auth_uri                       = "http://${keystone_endpoint}:5000/"
+$auth_uri                       = "http://${service_endpoint}:5000/"
 
 $rabbit_password                = $rabbit_hash['password']
 $rabbit_user                    = $rabbit_hash['user']
@@ -86,7 +85,7 @@ class { 'openstack::glance':
   glance_vcenter_image_dir       => $glance_vcenter_image_dir,
   glance_vcenter_api_retry_count => $glance_vcenter_api_retry_count,
   auth_uri                       => $auth_uri,
-  keystone_host                  => $keystone_endpoint,
+  keystone_host                  => $service_endpoint,
   region                         => $region,
   bind_host                      => $api_bind_address,
   enabled                        => $enabled,

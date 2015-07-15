@@ -26,7 +26,6 @@ $deploy_swift_proxy      = hiera('deploy_swift_proxy', true)
 $create_keystone_auth    = pick($swift_hash['create_keystone_auth'], true)
 #Keystone settings
 $service_endpoint        = hiera('service_endpoint', $management_vip)
-$keystone_endpoint       = hiera('keystone_endpoint', $service_endpoint)
 $keystone_user           = pick($swift_hash['user'], 'swift')
 $keystone_password       = pick($swift_hash['user_password'], 'passsword')
 $keystone_tenant         = pick($swift_hash['tenant'], 'services')
@@ -88,7 +87,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       admin_user              => $keystone_user,
       admin_tenant_name       => $keystone_tenant,
       admin_password          => $keystone_password,
-      auth_host               => $keystone_endpoint,
+      auth_host               => $service_endpoint,
       auth_protocol           => $keystone_protocol,
     } ->
     class { 'openstack::swift::status':
