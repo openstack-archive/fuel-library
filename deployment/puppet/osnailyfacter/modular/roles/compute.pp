@@ -336,6 +336,7 @@ class { 'openstack::compute':
   glance_api_servers          => "${management_vip}:9292",
   vncproxy_host               => $public_vip,
   vncserver_listen            => '0.0.0.0',
+  migration_support           => true,
   debug                       => $debug,
   verbose                     => $verbose,
   cinder_volume_group         => "cinder",
