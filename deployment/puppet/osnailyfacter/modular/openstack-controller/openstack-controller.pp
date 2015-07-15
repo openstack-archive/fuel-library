@@ -33,7 +33,7 @@ $ceilometer_hash                = hiera_hash('ceilometer',{})
 $mongo_hash                     = hiera_hash('mongo', {})
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash                 = hiera_hash('workloads_collector', {})
-$service_endpoint               = hiera('service_endpoint', $management_vip)
+$service_endpoint               = hiera('service_endpoint')
 $db_host                        = pick($nova_hash['db_host'], $management_vip)
 $nova_db_user                   = pick($nova_hash['db_user'], 'nova')
 $keystone_user                  = pick($nova_hash['user'], 'nova')
@@ -255,7 +255,7 @@ if $primary_controller {
       username        => $access_hash[user],
       api_key         => $access_hash[password],
       auth_method     => 'password',
-      auth_url        => "http://${management_vip}:5000/v2.0/",
+      auth_url        => "http://${service_endpoint}:5000/v2.0/",
       authtenant_name => $access_hash[tenant],
       api_retries     => 10,
     }

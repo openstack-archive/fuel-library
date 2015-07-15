@@ -50,7 +50,7 @@ $swift_rados_backend        = $storage_hash['objects_ceph']
 $amqp_password              = $rabbit_hash['password']
 $amqp_user                  = $rabbit_hash['user']
 $rabbit_ha_queues           = true
-$service_endpoint           = hiera('service_endpoint', $management_vip)
+$service_endpoint           = hiera('service_endpoint')
 $api_bind_address           = $internal_address
 $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
 

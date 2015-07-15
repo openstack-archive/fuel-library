@@ -11,7 +11,7 @@ $storage_hash                   = hiera('storage', {})
 $storage_address                = hiera('storage_address')
 $ceilometer_hash                = hiera('ceilometer',{})
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
-$service_endpoint               = hiera('service_endpoint', $management_vip)
+$service_endpoint               = hiera('service_endpoint')
 $cinder_db_password             = $cinder_hash[db_password]
 $cinder_user_password           = $cinder_hash[user_password]
 $keystone_user                  = pick($cinder_hash['user'], 'cinder')
@@ -20,6 +20,7 @@ $db_host                        = pick($cinder_hash['db_host'], $management_vip)
 $cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
 $roles                          = node_roles($nodes_hash, hiera('uid'))
+$glance_api_servers             = hiera('glance_api_servers'), "${management_vip}:9292")
 
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
@@ -59,7 +60,7 @@ class {'openstack::cinder':
   physical_volume      => undef,
   manage_volumes       => $manage_volumes,
   enabled              => true,
-  glance_api_servers   => "${service_endpoint}:9292",
+  glance_api_servers   => $glance_api_servers,
   auth_host            => $service_endpoint,
   bind_host            => $internal_address,
   iscsi_bind_host      => $storage_address,

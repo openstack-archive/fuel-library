@@ -5,6 +5,7 @@ $internal_int                   = hiera('internal_int')
 $public_int                     = hiera('public_int', undef)
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
+$service_endpoint               = hiera('service_endpoint')
 $internal_address               = hiera('internal_address')
 $primary_controller             = hiera('primary_controller')
 $storage_address                = hiera('storage_address')
@@ -52,6 +53,8 @@ $syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LO
 $nova_rate_limits               = hiera('nova_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
+$glance_api_servers             = hiera('glance_api_servers'), "${management_vip}:9292")
+
 
 $block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
 $block_device_allocate_retries_interval = hiera('block_device_allocate_retries_interval', 3)
@@ -333,7 +336,7 @@ class { 'openstack::compute':
   amqp_password               => $rabbit_hash['password'],
   rabbit_ha_queues            => $rabbit_ha_queues,
   auto_assign_floating_ip     => $auto_assign_floating_ip,
-  glance_api_servers          => "${management_vip}:9292",
+  glance_api_servers          => $glance_api_servers,
   vncproxy_host               => $public_vip,
   vncserver_listen            => '0.0.0.0',
   debug                       => $debug,
@@ -344,7 +347,7 @@ class { 'openstack::compute':
   nova_user_password          => $nova_hash[user_password],
   nova_hash                   => $nova_hash,
   cache_server_ip             => $controller_nodes,
-  service_endpoint            => $management_vip,
+  service_endpoint            => $service_endpoint,
   cinder                      => true,
   cinder_iscsi_bind_addr      => $cinder_iscsi_bind_addr,
   cinder_user_password        => $cinder_hash[user_password],
