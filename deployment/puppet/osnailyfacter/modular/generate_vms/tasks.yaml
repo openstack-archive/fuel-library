@@ -1,6 +1,6 @@
 - id: generate_vms
   type: puppet
-  groups: [kvm-virt]
+  groups: [virt]
   requires: [netconfig]
   required_for: [deploy_end]
   parameters:
