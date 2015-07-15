@@ -136,13 +136,19 @@ if $network_provider == 'neutron' {
     $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
     $iface = get_network_role_property('neutron/mesh', 'phys_dev')
     $net_mtu = get_transformation_property('mtu', $iface[0])
-    if $net_mtu {
-      $mtu_for_virt_network = $net_mtu - 42
-    } else {
-      $mtu_for_virt_network = 1458
-    }
     $enable_tunneling = true
-    $tunnel_types = ['gre']
+    if $neutron_settings['L2']['segmentation_type'] == 'gre' {
+      $tunnel_types = ['gre']
+      $mtu_offset = 42
+    } else {
+      $tunnel_types = ['vxlan']
+      $mtu_offset = 50
+    }
+    if $net_mtu {
+      $mtu_for_virt_network = $net_mtu - $mtu_offset
+    } else {
+      $mtu_for_virt_network = 1500 - $mtu_offset
+    }
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
     $alt_fallback = split($neutron_settings['L2']['tunnel_id_ranges'], ':')
     Openstack::Network::Create_network {
@@ -228,6 +234,7 @@ class { 'openstack::network':
   network_vlan_ranges => $vlan_range,
   enable_tunneling    => $enable_tunneling,
   tunnel_id_ranges    => $tunnel_id_ranges,
+  vni_ranges          => $tunnel_id_ranges,
   tunnel_types        => $tunnel_types,
 
   #Queue settings

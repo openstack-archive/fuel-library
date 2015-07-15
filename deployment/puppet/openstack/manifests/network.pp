@@ -27,7 +27,7 @@ class openstack::network (
 
   # ML2 settings
   $type_drivers          = ['local', 'flat', 'vlan', 'gre', 'vxlan'],
-  $tenant_network_types  = ['flat', 'vlan', 'gre'],
+  $tenant_network_types  = ['flat', 'vlan', 'vxlan'],
   $mechanism_drivers     = ['openvswitch', 'linuxbridge'],
   $flat_networks         = ['*'],
   $vxlan_group           = '224.0.0.1',
