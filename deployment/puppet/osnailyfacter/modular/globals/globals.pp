@@ -107,6 +107,7 @@ $storage_netmask               = get_network_role_property('storage', 'netmask')
 $public_vip                    = $network_metadata['vips']['public_vip']
 $management_vip                = $network_metadata['vips']['management_vip']
 $database_vip                  = pick($network_metadata['vips']['database'], $management_vip)
+$service_endpoint              = pick($network_metadata['vips']['service_endpoint'],  $management_vip)
 
 if $use_neutron {
   $novanetwork_params            = {}
