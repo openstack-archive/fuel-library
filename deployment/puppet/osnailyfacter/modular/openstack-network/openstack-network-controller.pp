@@ -88,10 +88,12 @@ if $network_provider == 'neutron' {
       Openstack::Network::Create_router <||>
 
     openstack::network::create_network{'net04':
-      netdata => $nets['net04']
+      netdata           => $nets['net04'],
+      segmentation_type => $neutron_settings['L2']['segmentation_type'],
     } ->
     openstack::network::create_network{'net04_ext':
-      netdata => $nets['net04_ext']
+      netdata           => $nets['net04_ext'],
+      segmentation_type => $neutron_settings['L2']['segmentation_type'],
     } ->
     openstack::network::create_router{'router04':
       internal_network => 'net04',
@@ -135,18 +137,26 @@ if $network_provider == 'neutron' {
   # Required to use get_network_role_property
   prepare_network_config($network_scheme)
 
-  if $neutron_settings['L2']['tunnel_id_ranges'] {
+  if $neutron_settings['L2']['segmentation_type'] != 'vlan' {
     # tunneling_mode
     $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
     $iface = get_network_role_property('neutron/mesh', 'phys_dev')
     $net_mtu = get_transformation_property('mtu', $iface[0])
-    if $net_mtu {
-      $mtu_for_virt_network = $net_mtu - 42
-    } else {
-      $mtu_for_virt_network = 1458
-    }
     $enable_tunneling = true
-    $tunnel_types = ['gre']
+    if $neutron_settings['L2']['use_gre_for_tun'] {
+      $tunnel_types = ['gre']
+      $tenant_network_types  = ['flat', 'vlan', 'gre']
+      $mtu_offset = 42
+    } else {
+      $tenant_network_types  = ['flat', 'vlan', 'vxlan']
+      $tunnel_types = ['vxlan']
+      $mtu_offset = 50
+    }
+    if $net_mtu {
+      $mtu_for_virt_network = $net_mtu - $mtu_offset
+    } else {
+      $mtu_for_virt_network = 1500 - $mtu_offset
+    }
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
     $alt_fallback = split($neutron_settings['L2']['tunnel_id_ranges'], ':')
     Openstack::Network::Create_network {
@@ -226,13 +236,15 @@ class { 'openstack::network':
   net_mtu             => $mtu_for_virt_network,
 
   #ovs
-  mechanism_drivers   => $mechanism_drivers,
-  local_ip            => $tunneling_ip,
-  bridge_mappings     => $bridge_mappings,
-  network_vlan_ranges => $vlan_range,
-  enable_tunneling    => $enable_tunneling,
-  tunnel_id_ranges    => $tunnel_id_ranges,
-  tunnel_types        => $tunnel_types,
+  mechanism_drivers    => $mechanism_drivers,
+  local_ip             => $tunneling_ip,
+  bridge_mappings      => $bridge_mappings,
+  network_vlan_ranges  => $vlan_range,
+  enable_tunneling     => $enable_tunneling,
+  tunnel_id_ranges     => $tunnel_id_ranges,
+  vni_ranges           => $tunnel_id_ranges,
+  tunnel_types         => $tunnel_types,
+  tenant_network_types => $tenant_network_types,
 
   #Queue settings
   queue_provider  => hiera('queue_provider', 'rabbitmq'),
