@@ -104,9 +104,16 @@ $public_address                = get_network_role_property('ex', 'ipaddr')
 $public_netmask                = get_network_role_property('ex', 'netmask')
 $storage_address               = get_network_role_property('storage', 'ipaddr')
 $storage_netmask               = get_network_role_property('storage', 'netmask')
-$public_vip                    = $network_metadata['vips']['public_vip']
-$management_vip                = $network_metadata['vips']['management_vip']
-$database_vip                  = pick($network_metadata['vips']['database'], $management_vip)
+
+#todo(sv): It's a workaround. After merge some part to Nailgun and change CI ISO we should use just $network_metadata['vips']['VIP_NAME']['ipaddr']
+$public_vip                    = pick($network_metadata['vips']['public_vip']['ipaddr'], $network_metadata['vips']['public_vip'])
+$management_vip                = pick($network_metadata['vips']['management_vip']['ipaddr'], $network_metadata['vips']['management_vip'])
+if is_hash($network_metadata['vips']['database']) {
+  $database_vip                = $network_metadata['vips']['database']['ipaddr']
+} else {
+  $database_vip                = pick($network_metadata['vips']['database'], $management_vip)
+}
+#todo(sv): end of workaround
 
 if $use_neutron {
   $novanetwork_params            = {}
