@@ -1,6 +1,7 @@
 # == Class: sahara::notify::rabbitmq
 #
 #  RabbitMQ broker configuration for Sahara
+#  Deprecated class
 #
 # === Parameters
 #
@@ -104,6 +105,10 @@ class sahara::notify::rabbitmq(
   $kombu_ssl_ca_certs    = undef,
   $kombu_reconnect_delay = '1.0',
 ) {
+
+  warning('This class is deprecated. Use sahara::init for configuration rpc options instead')
+  warning('This class is deprecated. Use sahara::notify for configuration ceilometer notifications instead')
+
   if $rabbit_use_ssl {
 
     if $kombu_ssl_ca_certs {
@@ -125,9 +130,9 @@ class sahara::notify::rabbitmq(
     }
 
     if $kombu_ssl_version {
-      sahara_config { 'oslo_messaging_rabbit/kombu_ssl_version':  value => $kombu_ssl_version; }
+      sahara_config { 'oslo_messaging_rabbit/kombu_ssl_version': value => $kombu_ssl_version; }
     } else {
-      sahara_config { 'oslo_messaging_rabbit/kombu_ssl_version':  ensure => absent; }
+      sahara_config { 'oslo_messaging_rabbit/kombu_ssl_version': ensure => absent; }
     }
 
   } else {
@@ -154,20 +159,20 @@ class sahara::notify::rabbitmq(
   }
 
   sahara_config {
-    'oslo_messaging_rabbit/rpc_backend': value => 'rabbit';
-    'DEFAULT/amqp_durable_queues': value => $durable_queues;
-    'oslo_messaging_rabbit/rabbit_use_ssl': value => $rabbit_use_ssl;
-    'oslo_messaging_rabbit/rabbit_userid': value => $rabbit_userid;
+    'DEFAULT/rpc_backend':                         value => 'rabbit';
+    'oslo_messaging_rabbit/amqp_durable_queues':   value => $durable_queues;
+    'oslo_messaging_rabbit/rabbit_use_ssl':        value => $rabbit_use_ssl;
+    'oslo_messaging_rabbit/rabbit_userid':         value => $rabbit_userid;
     'oslo_messaging_rabbit/rabbit_password':
       value => $rabbit_password,
       secret => true;
-    'oslo_messaging_rabbit/rabbit_login_method': value => $rabbit_login_method;
-    'oslo_messaging_rabbit/rabbit_virtual_host': value => $rabbit_virtual_host;
+    'oslo_messaging_rabbit/rabbit_login_method':   value => $rabbit_login_method;
+    'oslo_messaging_rabbit/rabbit_virtual_host':   value => $rabbit_virtual_host;
     'oslo_messaging_rabbit/rabbit_retry_interval': value => $rabbit_retry_interval;
-    'oslo_messaging_rabbit/rabbit_retry_backoff': value => $rabbit_retry_backoff;
-    'oslo_messaging_rabbit/rabbit_max_retries': value => $rabbit_max_retries;
-    'DEFAULT/notification_topics': value => $notification_topics;
-    'DEFAULT/control_exchange': value => $control_exchange;
+    'oslo_messaging_rabbit/rabbit_retry_backoff':  value => $rabbit_retry_backoff;
+    'oslo_messaging_rabbit/rabbit_max_retries':    value => $rabbit_max_retries;
+    'DEFAULT/notification_topics':                 value => $notification_topics;
+    'DEFAULT/control_exchange':                    value => $control_exchange;
     'oslo_messaging_rabbit/kombu_reconnect_delay': value => $kombu_reconnect_delay;
   }
 }

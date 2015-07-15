@@ -76,23 +76,27 @@ describe 'basic sahara' do
         public_url => "https://${::fqdn}:5000/",
         admin_url  => "https://${::fqdn}:35357/",
       }
-
-      # Sahara resources
-      class { '::sahara':
-        database_connection => 'mysql://sahara:a_big_secret@127.0.0.1/sahara?charset=utf8',
-        keystone_password   => 'a_big_secret',
-      }
       class { '::sahara::db::mysql':
         password => 'a_big_secret',
+      }
+      # Sahara resources
+      class { '::sahara':
+        rabbit_userid       => 'sahara',
+        rabbit_password     => 'an_even_bigger_secret',
+        rabbit_host         => '127.0.0.1',
+        database_connection => 'mysql://sahara:a_big_secret@127.0.0.1/sahara?charset=utf8',
+        admin_password      => 'a_big_secret',
+      }
+      class { '::sahara::api':
+      }
+      class { '::sahara::engine':
       }
       class { '::sahara::keystone::auth':
         password => 'a_big_secret',
       }
       class { '::sahara::client': }
-      class { '::sahara::notify::rabbitmq':
-        rabbit_userid       => 'sahara',
-        rabbit_password     => 'an_even_bigger_secret',
-        rabbit_host         => '127.0.0.1',
+      class { '::sahara::notify':
+        enable_notifications => true,
       }
       EOS
 
