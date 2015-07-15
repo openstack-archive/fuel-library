@@ -14,7 +14,7 @@ class sahara_templates::create_templates (
     auth_tenant_name => $auth_tenant,
     neutron => $use_neutron,
     debug => true,
-    require => Service['sahara'],
+    require => Service['sahara-api'],
   }
 
   Sahara_cluster_template {
@@ -25,7 +25,7 @@ class sahara_templates::create_templates (
     auth_tenant_name => $auth_tenant,
     neutron => $use_neutron,
     debug => true,
-    require => Service['sahara'],
+    require => Service['sahara-api'],
   }
 
   Sahara_node_group_template<||> -> Sahara_cluster_template<||>
