@@ -61,8 +61,52 @@ $openstack_version = {
 }
 
 if $network_provider == 'neutron' {
+  # Required to use get_network_role_property
+  prepare_network_config($network_scheme)
+
   $neutron_db_uri = "mysql://${neutron_db_user}:${neutron_db_password}@${neutron_db_host}/${neutron_db_name}?&read_timeout=60"
   $neutron_server = true
+
+  if $neutron_config['L2']['segmentation_type'] != 'vlan' {
+    # tunneling_mode
+    $net_role_property = 'neutron/mesh'
+    $tunneling_ip = get_network_role_property($net_role_property, 'ipaddr')
+    $iface = get_network_role_property($net_role_property, 'phys_dev')
+    $net_mtu = get_transformation_property('mtu', $iface[0])
+    $enable_tunneling = true
+    if $neutron_config['L2']['use_gre_for_tun'] {
+      $network_type = 'gre'
+      $mtu_offset = 42
+    } else {
+      $network_type = 'vxlan'
+      $mtu_offset = 50
+    }
+    if $net_mtu {
+      $mtu_for_virt_network = $net_mtu - $mtu_offset
+    } else {
+      $mtu_for_virt_network = 1500 - $mtu_offset
+    }
+    $tunnel_types = [$network_type]
+    $tenant_network_types  = ['flat', 'vlan', $network_type]
+    $tunnel_id_ranges = [$neutron_config['L2']['tunnel_id_ranges']]
+    $alt_fallback = split($neutron_config['L2']['tunnel_id_ranges'], ':')
+    Openstack::Network::Create_network {
+      tenant_name         => $keystone_admin_tenant,
+      fallback_segment_id => $alt_fallback[0]
+    }
+
+  } else {
+    # vlan_mode
+    $net_role_property = 'neutron/private'
+    $iface = get_network_role_property($net_role_property, 'phys_dev')
+    $mtu_for_virt_network = get_transformation_property('mtu', $iface[0])
+    $enable_tunneling = false
+    $network_type = 'vlan'
+    $tenant_network_types  = ['flat', 'vlan']
+    $tunnel_types = []
+    $tunneling_ip = false
+    $tunnel_id_ranges = []
+  }
 
   # We need to restart nova-api after making changes via nova_config
   # so we need to declare the service and notify it
@@ -76,8 +120,7 @@ if $network_provider == 'neutron' {
   # FIXME(xarses) Nearly everything between here and the class
   # should be moved into osnaily or nailgun but will stay here
   # in the interum.
-  $neutron_settings = $neutron_config
-  $nets = $neutron_settings['predefined_networks']
+  $nets = $neutron_config['predefined_networks']
 
   if $primary_controller and $nets and !empty($nets) {
 
@@ -88,10 +131,12 @@ if $network_provider == 'neutron' {
       Openstack::Network::Create_router <||>
 
     openstack::network::create_network{'net04':
-      netdata => $nets['net04']
+      netdata           => $nets['net04'],
+      segmentation_type => $network_type,
     } ->
     openstack::network::create_network{'net04_ext':
-      netdata => $nets['net04_ext']
+      netdata           => $nets['net04_ext'],
+      segmentation_type => 'local',
     } ->
     openstack::network::create_router{'router04':
       internal_network => 'net04',
@@ -101,7 +146,7 @@ if $network_provider == 'neutron' {
 
   }
   nova_config { 'DEFAULT/default_floating_pool': value => 'net04_ext' }
-  $pnets = $neutron_settings['L2']['phys_nets']
+  $pnets = $neutron_config['L2']['phys_nets']
   if $pnets['physnet1'] {
     $physnet1 = "physnet1:${pnets['physnet1']['bridge']}"
     notify{ $physnet1:}
@@ -132,51 +177,16 @@ if $network_provider == 'neutron' {
     $bridge_mappings = []
   }
 
-  # Required to use get_network_role_property
-  prepare_network_config($network_scheme)
-
-  if $neutron_settings['L2']['tunnel_id_ranges'] {
-    # tunneling_mode
-    $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
-    $net_role_property = 'neutron/mesh'
-    $enable_tunneling = true
-    $tunnel_types = ['gre']
-    $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
-    $alt_fallback = split($neutron_settings['L2']['tunnel_id_ranges'], ':')
-    Openstack::Network::Create_network {
-      tenant_name         => $keystone_admin_tenant,
-      fallback_segment_id => $alt_fallback[0]
-    }
-
-  } else {
-    # vlan_mode
-    $net_role_property = 'neutron/private'
-    $enable_tunneling = false
-    $tunnel_types = []
-    $tunneling_ip = false
-    $tunnel_id_ranges = []
-  }
-  notify{ $tunnel_id_ranges:}
-
-  # Get MTU setting for virtual/tenants network
-  $iface = get_network_role_property($net_role_property, 'phys_dev')
-  $mtu_for_virt_network = get_transformation_property('mtu', $iface[0])
-
-  if $neutron_settings['L2']['mechanism_drivers'] {
-      $mechanism_drivers = split($neutron_settings['L2']['mechanism_drivers'], ',')
+  if $neutron_config['L2']['mechanism_drivers'] {
+      $mechanism_drivers = split($neutron_config['L2']['mechanism_drivers'], ',')
   } else {
       $mechanism_drivers = ['openvswitch']
   }
 
-  if $neutron_settings['L2']['provider'] == 'ovs' {
-    $core_plugin      = 'openvswitch'
-    $service_plugins  = ['router', 'firewall', 'metering']
-    $agent            = 'ovs'
-  } else {
-    $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
-    $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin','neutron.services.metering.metering_plugin.MeteringPlugin']
-    $agent            = 'ml2-ovs'
-  }
+  $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
+  $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin','neutron.services.metering.metering_plugin.MeteringPlugin']
+  $agent            = 'ml2-ovs'
+
 
 } else {
   $neutron_server = false
@@ -223,13 +233,15 @@ class { 'openstack::network':
   net_mtu             => $mtu_for_virt_network,
 
   #ovs
-  mechanism_drivers   => $mechanism_drivers,
-  local_ip            => $tunneling_ip,
-  bridge_mappings     => $bridge_mappings,
-  network_vlan_ranges => $vlan_range,
-  enable_tunneling    => $enable_tunneling,
-  tunnel_id_ranges    => $tunnel_id_ranges,
-  tunnel_types        => $tunnel_types,
+  mechanism_drivers    => $mechanism_drivers,
+  local_ip             => $tunneling_ip,
+  bridge_mappings      => $bridge_mappings,
+  network_vlan_ranges  => $vlan_range,
+  enable_tunneling     => $enable_tunneling,
+  tunnel_id_ranges     => $tunnel_id_ranges,
+  vni_ranges           => $tunnel_id_ranges,
+  tunnel_types         => $tunnel_types,
+  tenant_network_types => $tenant_network_types,
 
   #Queue settings
   queue_provider  => hiera('queue_provider', 'rabbitmq'),
