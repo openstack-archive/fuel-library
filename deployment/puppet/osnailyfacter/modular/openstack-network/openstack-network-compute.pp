@@ -282,7 +282,7 @@ if $network_provider == 'neutron' {
   if $neutron_settings['L2']['tunnel_id_ranges'] {
     # tunneling_mode
     $enable_tunneling = true
-    $tunnel_types = ['gre']
+    $tunnel_types = ['vxlan']
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
     $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
     $iface = get_network_role_property('neutron/mesh', 'phys_dev')
@@ -335,7 +335,7 @@ class { 'openstack::network':
   bridge_mappings     => $bridge_mappings,
   network_vlan_ranges => $vlan_range,
   enable_tunneling    => $enable_tunneling,
-  tunnel_id_ranges    => $tunnel_id_ranges,
+  vni_ranges          => $tunnel_id_ranges,
   tunnel_types        => $tunnel_types,
 
   verbose             => true,

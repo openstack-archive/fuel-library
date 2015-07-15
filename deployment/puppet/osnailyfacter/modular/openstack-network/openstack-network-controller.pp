@@ -143,7 +143,7 @@ if $network_provider == 'neutron' {
       $mtu_for_virt_network = 1458
     }
     $enable_tunneling = true
-    $tunnel_types = ['gre']
+    $tunnel_types = ['vxlan']
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
     $alt_fallback = split($neutron_settings['L2']['tunnel_id_ranges'], ':')
     Openstack::Network::Create_network {
@@ -228,7 +228,7 @@ class { 'openstack::network':
   bridge_mappings     => $bridge_mappings,
   network_vlan_ranges => $vlan_range,
   enable_tunneling    => $enable_tunneling,
-  tunnel_id_ranges    => $tunnel_id_ranges,
+  vni_ranges          => $tunnel_id_ranges,
   tunnel_types        => $tunnel_types,
 
   #Queue settings
