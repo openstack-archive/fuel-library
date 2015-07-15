@@ -70,7 +70,8 @@ if $use_neutron {
 
 # RabbitMQ server configuration
 $rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
-$rabbitmq_bind_port = hiera('amqp_port', '5673')
+$rabbitmq_bind_port = $amqp_port
+$rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames	
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -274,13 +275,14 @@ if $sahara_hash['enabled'] {
 }
 
 class { '::nova::scheduler::filter':
-  cpu_allocation_ratio       => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
-  disk_allocation_ratio      => pick($nova_hash['disk_allocation_ratio'], '1.0'),
-  ram_allocation_ratio       => pick($nova_hash['ram_allocation_ratio'], '1.0'),
-  scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
-  scheduler_default_filters  => concat($scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]))
+  cpu_allocation_ratio            => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
+  disk_allocation_ratio           => pick($nova_hash['disk_allocation_ratio'], '1.0'),
+  ram_allocation_ratio            => pick($nova_hash['ram_allocation_ratio'], '1.0'),
+  scheduler_host_subset_size      => pick($nova_hash['scheduler_host_subset_size'], '30'),
+  scheduler_default_filters       => concat($scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])),
+  scheduler_host_manager          => $scheduler_host_manager,
+  scheduler_use_baremetal_filters => $scheduler_use_baremetal_filters,
 }
-
 # From logasy filter.pp
 nova_config {
   'DEFAULT/ram_weight_multiplier':        value => '1.0'

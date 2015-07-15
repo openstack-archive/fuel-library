@@ -287,16 +287,17 @@ class openstack::compute (
     vnc_enabled                   => $vnc_enabled,
     vncserver_proxyclient_address => $internal_address,
     vncproxy_host                 => $vncproxy_host,
+    #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
     vncproxy_protocol             => $nova_hash['vncproxy_protocol'],
     vncproxy_port                 => $nova_hash['vncproxy_port'],
     force_config_drive            => $nova_hash['force_config_drive'],
-    #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
     neutron_enabled               => ($network_provider == 'neutron'),
     install_bridge_utils          => $install_bridge_utils,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
     default_availability_zone     => $nova_hash['default_availability_zone'],
     default_schedule_zone         => $nova_hash['default_schedule_zone'],
+    reserved_host_memory          => $reserved_host_memory,
   }
 
   nova_config {
@@ -337,17 +338,17 @@ class openstack::compute (
   }
 
   # Configure libvirt for nova-compute
-  class { 'nova::compute::libvirt':
-    libvirt_virt_type                          => $libvirt_type,
-    libvirt_cpu_mode                           => $libvirt_cpu_mode,
-    libvirt_disk_cachemodes                    => $disk_cachemodes,
-    libvirt_inject_partition                   => $libvirt_inject_partition,
-    vncserver_listen                           => $vncserver_listen,
-    migration_support                          => $migration_support,
-    remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
-    # Workaround for bug LP #1469308
-    # also service name for Ubuntu and Centos is the same.
-    libvirt_service_name     => "libvirtd",
+  class { 'nova::compute::libvirt':	  class { 'nova::compute::libvirt':	336
+    libvirt_virt_type                          => $libvirt_type,	    libvirt_virt_type        => $libvirt_type,	337
+    libvirt_cpu_mode                           => $libvirt_cpu_mode,	    libvirt_cpu_mode         => $libvirt_cpu_mode,	338
+    libvirt_disk_cachemodes                    => $disk_cachemodes,	    libvirt_disk_cachemodes  => $disk_cachemodes,	339
+    libvirt_inject_partition                   => $libvirt_inject_partition,	    libvirt_inject_partition => $libvirt_inject_partition,	340
+    vncserver_listen                           => $vncserver_listen,	    vncserver_listen         => $vncserver_listen,	341
+    migration_support                          => $migration_support,		
+    remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),		
+    # Workaround for bug LP #1469308 		
+    # also service name for Ubuntu and Centos is the same. 		
+    libvirt_service_name     => "libvirtd",		
   }
 
   # From legacy libvirt.pp
