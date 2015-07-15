@@ -235,6 +235,10 @@ if ($storage_hash['images_ceph']) {
   $glance_known_stores = false
 }
 
+# Define ceilometer-related variables:
+# todo: use special node-roles instead controllers in the future
+$ceilometer_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+
 # Define memcached-related variables:
 # todo(sv): change to 'memcache' as soon as this node role was ready
 $memcache_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
