@@ -4,6 +4,8 @@ $controllers                    = hiera('controllers')
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
 $controller_nodes               = ipsort(values($controller_internal_addresses))
 $horizon_hash                   = hiera_hash('horizon', {})
+$management_vip                 = hiera('management_vip')
+$service_endpoint               = hiera('service_endpoint', $management_vip)
 
 if $horizon_hash['secret_key'] {
   $secret_key = $horizon_hash['secret_key']
@@ -12,7 +14,7 @@ if $horizon_hash['secret_key'] {
 }
 
 $keystone_scheme = 'http'
-$keystone_host = hiera('management_vip')
+$keystone_host = $service_endpoint
 $keystone_port = '5000'
 $keystone_api = 'v2.0'
 $keystone_url = "${keystone_scheme}://${keystone_host}:${keystone_port}/${keystone_api}"

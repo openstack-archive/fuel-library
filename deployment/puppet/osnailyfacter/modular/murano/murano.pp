@@ -5,8 +5,9 @@ $murano_settings_hash       = hiera('murano_settings', {})
 $openstack_version          = hiera('openstack_version')
 $controller_node_address    = hiera('controller_node_address')
 $controller_node_public     = hiera('controller_node_public')
-$public_ip                  = hiera('public_vip', $controller_node_public)
-$management_ip              = hiera('management_vip', $controller_node_address)
+$public_vip                 = hiera('public_vip', $controller_node_public)
+$management_vip             = hiera('management_vip', $controller_node_address)
+$service_endpoint           = hiera('service_endpoint', $management_vip)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $rabbit_hash                = hiera('rabbit_hash')
 $heat_hash                  = hiera('heat')
@@ -56,7 +57,7 @@ if $murano_hash['enabled'] {
 
   class { '::murano' :
     murano_package_name      => $murano_package_name,
-    murano_api_host          => $management_ip,
+    murano_api_host          => $management_vip,
 
   # Controller adresses (for endpoints)
     admin_address            => $controller_node_address,
@@ -69,7 +70,7 @@ if $murano_hash['enabled'] {
   #    'separate' rabbitmq directly (without oslo.messaging).
   #   * murano_rabbit_ha_hosts / murano_rabbit_ha_queues are required for murano-api which
   #     communicates with 'system' RabbitMQ and uses oslo.messaging.
-    murano_rabbit_host       => $public_ip,
+    murano_rabbit_host       => $public_vip,
     murano_rabbit_ha_hosts   => hiera('amqp_hosts',''),
     murano_rabbit_ha_queues  => $rabbit_ha_queues,
     murano_os_rabbit_userid  => $rabbit_hash['user'],
@@ -78,10 +79,10 @@ if $murano_hash['enabled'] {
     murano_own_rabbit_passwd => $heat_hash['rabbit_password'],
 
 
-    murano_db_host           => $management_ip,
+    murano_db_host           => $management_vip,
     murano_db_password       => $murano_hash['db_password'],
 
-    murano_keystone_host     => $management_ip,
+    murano_keystone_host     => $service_endpoint,
     murano_keystone_user     => 'murano',
     murano_keystone_password => $murano_hash['user_password'],
     murano_keystone_tenant   => 'services',
@@ -103,7 +104,7 @@ if $murano_hash['enabled'] {
   include ::tweaks::apache_wrappers
 
   if $primary_controller {
-    $haproxy_stats_url = "http://${management_ip}:10000/;csv"
+    $haproxy_stats_url = "http://${management_vip}:10000/;csv"
 
     haproxy_backend_status { 'murano' :
       name => 'murano',
