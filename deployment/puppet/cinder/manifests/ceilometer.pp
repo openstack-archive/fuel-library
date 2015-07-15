@@ -12,7 +12,7 @@
 
 
 class cinder::ceilometer (
-  $notification_driver = 'cinder.openstack.common.notifier.rpc_notifier'
+  $notification_driver = 'messagingv2'
 ) {
 
   cinder_config {

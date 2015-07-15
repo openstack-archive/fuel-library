@@ -1,19 +1,14 @@
 notice('MODULAR: openstack-haproxy-ceilometer.pp')
 
-$ceilometer_hash     = hiera_hash('ceilometer',{})
+$ceilometer_hash         = hiera_hash('ceilometer',{})
 # NOT enabled by default
-$use_ceilometer      = pick($ceilometer_hash['enabled'], false)
-$public_ssl_hash     = hiera('public_ssl')
-
-$controllers              = hiera('controllers')
-$controllers_server_names = filter_hash($controllers, 'name')
-$controllers_ipaddresses  = filter_hash($controllers, 'internal_address')
+$use_ceilometer          = pick($ceilometer_hash['enabled'], false)
+$public_ssl_hash         = hiera('public_ssl')
+$ceilometer_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceilometer_nodes'), 'ceilometer/api')
 
 if ($use_ceilometer) {
-  $server_names        = pick(hiera_array('ceilometer_names', undef),
-                              $controllers_server_names)
-  $ipaddresses         = pick(hiera_array('ceilometer_ipaddresses', undef),
-                              $controllers_ipaddresses)
+  $server_names        = hiera_array('ceilometer_names', keys($ceilometer_address_map))
+  $ipaddresses         = hiera_array('ceilometer_ipaddresses', values($ceilometer_address_map))
   $public_virtual_ip   = hiera('public_vip')
   $internal_virtual_ip = hiera('management_vip')
 
