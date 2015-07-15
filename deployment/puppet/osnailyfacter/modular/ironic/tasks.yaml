@@ -1,0 +1,40 @@
+- id: ironic-api
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [openstack-controller]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/ironic.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-db
+  type: puppet
+  groups: [primary-controller]
+  required_for: [ironic-api]
+  requires: [database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/ironic_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-auth
+  type: puppet
+  groups: [primary-controller]
+  required_for: [ironic-api]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/ironic_auth.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-vips
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [ironic-api]
+  requires: [cluster]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/ironic_vips.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+

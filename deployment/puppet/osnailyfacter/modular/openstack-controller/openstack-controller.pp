@@ -273,14 +273,23 @@ if $sahara_hash['enabled'] {
   $scheduler_default_filters = []
 }
 
-class { '::nova::scheduler::filter':
-  cpu_allocation_ratio       => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
-  disk_allocation_ratio      => pick($nova_hash['disk_allocation_ratio'], '1.0'),
-  ram_allocation_ratio       => pick($nova_hash['ram_allocation_ratio'], '1.0'),
-  scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
-  scheduler_default_filters  => concat($scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]))
+if $ironic_hash['enabled'] {
+  $scheduler_host_manager = 'nova.scheduler.ironic_host_manager.IronicHostManager'
+  $scheduler_use_baremetal_filters = true
+} else {
+  $scheduler_host_manager = 'nova.scheduler.host_manager.HostManager'
+  $scheduler_use_baremetal_filters = false
 }
 
+class { '::nova::scheduler::filter':
+  cpu_allocation_ratio            => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
+  disk_allocation_ratio           => pick($nova_hash['disk_allocation_ratio'], '1.0'),
+  ram_allocation_ratio            => pick($nova_hash['ram_allocation_ratio'], '1.0'),
+  scheduler_host_subset_size      => pick($nova_hash['scheduler_host_subset_size'], '30'),
+  scheduler_default_filters       => concat($scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])),
+  scheduler_host_manager          => $scheduler_host_manager,
+  scheduler_use_baremetal_filters => $scheduler_use_baremetal_filters,
+}
 # From logasy filter.pp
 nova_config {
   'DEFAULT/ram_weight_multiplier':        value => '1.0'
