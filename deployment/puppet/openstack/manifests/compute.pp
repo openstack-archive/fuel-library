@@ -133,6 +133,7 @@ class openstack::compute (
   $storage_hash                   = {},
   $neutron_settings               = {},
   $install_bridge_utils           = false,
+  $reserved_host_memory           = undef,
 ) {
 
   #
@@ -297,6 +298,7 @@ class openstack::compute (
     instance_usage_audit_period   => $instance_usage_audit_period,
     default_availability_zone     => $nova_hash['default_availability_zone'],
     default_schedule_zone         => $nova_hash['default_schedule_zone'],
+    reserved_host_memory          => $reserved_host_memory,
   }
 
   nova_config {
