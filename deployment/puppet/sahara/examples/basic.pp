@@ -20,25 +20,25 @@ class { '::sahara::db::mysql':
   password => 'a_big_secret',
 }
 
-# And connect a message bus
-class { '::sahara::notify::rabbitmq':
-  rabbit_password => 'guest',
-  rabbit_use_ssl  => false,
-}
-
 # Then the common class
 class { '::sahara':
   database_connection => 'mysql://sahara:a_big_secret@127.0.0.1:3306/sahara',
   verbose             => true,
   debug               => true,
-  keystone_username   => 'admin',
-  keystone_password   => 'secrets_everywhere',
-  keystone_tenant     => 'admin',
-  keystone_url        => 'http://127.0.0.1:5000/v2.0/',
-  identity_url        => 'http://127.0.0.1:35357/',
-  service_host        => '0.0.0.0',
-  service_port        => 8386,
+  admin_user          => 'admin',
+  admin_password      => 'secrets_everywhere',
+  admin_tenant_name   => 'admin',
+  auth_uri            => 'http://127.0.0.1:5000/v2.0/',
+  identity_uri        => 'http://127.0.0.1:35357/',
   use_floating_ips    => true,
+}
+
+# Install API server
+class { '::sahara::api':
+}
+
+# Install Engine server
+class { '::sahara::engine':
 }
 
 # Finally, make it accessible
