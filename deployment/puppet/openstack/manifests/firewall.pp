@@ -42,6 +42,7 @@ class openstack::firewall (
   $nrpe_server_port             = 5666,
   $ceilometer_port              = 8777,
   $mongodb_port                 = 27017,
+  $vxlan_udp_port               = 4789,
 ) {
 
 #  file {"iptables":
@@ -245,6 +246,12 @@ class openstack::firewall (
     proto   => 'gre',
     action  => 'accept',
  }
+
+  firewall {'340 vxlan_udp_port':
+    port => $vxlan_udp_port,
+    proto => 'udp',
+    action => 'accept',
+  }
 
   firewall { '999 drop all other requests':
     proto  => 'all',
