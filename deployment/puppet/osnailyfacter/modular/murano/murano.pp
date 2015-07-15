@@ -7,7 +7,6 @@ $controller_node_address    = hiera('controller_node_address')
 $controller_node_public     = hiera('controller_node_public')
 $public_ip                  = hiera('public_vip', $controller_node_public)
 $management_ip              = hiera('management_vip', $controller_node_address)
-$amqp_hosts                 = hiera('amqp_hosts')
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $rabbit_hash                = hiera('rabbit_hash')
 $heat_hash                  = hiera('heat')
@@ -71,7 +70,7 @@ if $murano_hash['enabled'] {
   #   * murano_rabbit_ha_hosts / murano_rabbit_ha_queues are required for murano-api which
   #     communicates with 'system' RabbitMQ and uses oslo.messaging.
     murano_rabbit_host       => $public_ip,
-    murano_rabbit_ha_hosts   => $amqp_hosts,
+    murano_rabbit_ha_hosts   => hiera('amqp_hosts',''),
     murano_rabbit_ha_queues  => $rabbit_ha_queues,
     murano_os_rabbit_userid  => $rabbit_hash['user'],
     murano_os_rabbit_passwd  => $rabbit_hash['password'],

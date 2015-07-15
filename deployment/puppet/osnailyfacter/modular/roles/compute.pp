@@ -191,18 +191,6 @@ $controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
-# AMQP client configuration
-if $internal_address in $controller_nodes {
-  # prefer local MQ broker if it exists on this node
-  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
-} else {
-  $amqp_nodes = fqdn_rotate($controller_nodes)
-}
-
-$amqp_port = '5673'
-$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
-$rabbit_ha_queues = true
-
 # RabbitMQ server configuration
 $rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
 $rabbitmq_bind_port = $amqp_port
@@ -340,7 +328,7 @@ class { 'openstack::compute':
   multi_host                  => $multi_host,
   database_connection         => "mysql://nova:${nova_hash[db_password]}@${management_vip}/nova?read_timeout=60",
   queue_provider              => $queue_provider,
-  amqp_hosts                  => $amqp_hosts,
+  amqp_hosts                  => hiera('amqp_hosts',''),
   amqp_user                   => $rabbit_hash['user'],
   amqp_password               => $rabbit_hash['password'],
   rabbit_ha_queues            => $rabbit_ha_queues,
