@@ -38,7 +38,7 @@ $db_host                        = pick($nova_hash['db_host'], $management_vip)
 $nova_db_user                   = pick($nova_hash['db_user'], 'nova')
 $keystone_user                  = pick($nova_hash['user'], 'nova')
 $keystone_tenant                = pick($nova_hash['tenant'], 'services')
-$glance_api_servers             = hiera('glance_api_servers', "$management_vip:9292")
+$glance_api_servers             = hiera('glance_api_servers', "$service_endpoint:9292")
 $region                         = hiera('region', 'RegionOne')
 
 $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
@@ -255,7 +255,7 @@ if $primary_controller {
       username        => $access_hash[user],
       api_key         => $access_hash[password],
       auth_method     => 'password',
-      auth_url        => "http://${management_vip}:5000/v2.0/",
+      auth_url        => "http://${service_endpoint}:5000/v2.0/",
       authtenant_name => $access_hash[tenant],
       api_retries     => 10,
     }

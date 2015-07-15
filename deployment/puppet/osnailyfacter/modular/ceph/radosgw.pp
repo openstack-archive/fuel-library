@@ -1,11 +1,12 @@
 notice('MODULAR: ceph/radosgw.pp')
 
-$storage_hash   = hiera('storage', {})
-$controllers    = hiera('controllers')
-$use_neutron    = hiera('use_neutron')
-$public_vip     = hiera('public_vip')
-$keystone_hash  = hiera('keystone', {})
-$management_vip = hiera('management_vip')
+$storage_hash     = hiera('storage', {})
+$controllers      = hiera('controllers')
+$use_neutron      = hiera('use_neutron')
+$public_vip       = hiera('public_vip')
+$keystone_hash    = hiera('keystone', {})
+$management_vip   = hiera('management_vip')
+$service_endpoint = hiera('service_endpoint', $management_vip)
 
 if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
   $storage_hash['volumes_ceph'] or
@@ -65,7 +66,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     #rgw Keystone settings
     rgw_use_pki                      => false,
     rgw_use_keystone                 => true,
-    rgw_keystone_url                 => "${management_vip}:35357",
+    rgw_keystone_url                 => "${service_endpoint}:35357",
     rgw_keystone_admin_token         => $keystone_hash['admin_token'],
     rgw_keystone_token_cache_size    => '10',
     rgw_keystone_accepted_roles      => '_member_, Member, admin, swiftoperator',

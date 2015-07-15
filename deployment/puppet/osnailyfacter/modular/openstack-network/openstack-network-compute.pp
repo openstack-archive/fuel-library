@@ -12,7 +12,6 @@ $controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_ad
 $controller_nodes               = ipsort(values($controller_internal_addresses))
 $rabbit_hash                    = hiera('rabbit_hash', {})
 $network_scheme                 = hiera('network_scheme', {})
-$keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
 
@@ -101,7 +100,7 @@ if $network_provider == 'nova' {
       admin_password       => $nova_hash[user_password],
       enabled_apis         => $enabled_apis,
       api_bind_address     => $internal_address,
-      auth_host            => $keystone_endpoint,
+      auth_host            => $service_endpoint,
       ratelimits           => hiera('nova_rate_limits'),
       # NOTE(bogdando) 1 api worker for compute node is enough
       osapi_compute_workers => 1,
@@ -351,7 +350,7 @@ class { 'openstack::network':
 
   # keystone
   admin_password    => $neutron_user_password,
-  auth_url          => "http://${keystone_endpoint}:35357/v2.0",
+  auth_url          => "http://${service_endpoint}:35357/v2.0",
   neutron_url       => "http://${neutron_endpoint}:9696",
   admin_tenant_name => $keystone_tenant,
   admin_username    => $keystone_user,
