@@ -26,7 +26,6 @@ $keystone_hash                  = hiera_hash('keystone', {})
 $glance_hash                    = hiera_hash('glance', {})
 $storage_hash                   = hiera_hash('storage', {})
 $nova_hash                      = hiera_hash('nova', {})
-$nova_config_hash               = hiera_hash('nova_config', {})
 $internal_address               = hiera('internal_address')
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $ceilometer_hash                = hiera_hash('ceilometer',{})
@@ -68,9 +67,22 @@ if $use_neutron {
   $novanetwork_params = hiera('novanetwork_parameters')
 }
 
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+}
+elsif $internal_address in $controller_nodes {
+  # prefer local MQ broker if it exists on this node
+  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
+} else {
+  $amqp_nodes = fqdn_rotate($controller_nodes)
+}
+$amqp_port = hiera('amqp_port', '5673')
+$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+
 # RabbitMQ server configuration
 $rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
-$rabbitmq_bind_port = hiera('amqp_port', '5673')
+$rabbitmq_bind_port = $amqp_port
+$rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -185,9 +197,8 @@ class { '::openstack::controller':
   nova_user                      => $keystone_user,
   nova_user_password             => $nova_hash[user_password],
   nova_user_tenant               => $keystone_tenant,
-  nova_hash                      => $nova_hash,
   queue_provider                 => 'rabbitmq',
-  amqp_hosts                     => hiera('amqp_hosts',''),
+  amqp_hosts                     => $amqp_hosts,
   amqp_user                      => $rabbit_hash['user'],
   amqp_password                  => $rabbit_hash['password'],
   rabbit_ha_queues               => true,
@@ -274,11 +285,13 @@ if $sahara_hash['enabled'] {
 }
 
 class { '::nova::scheduler::filter':
-  cpu_allocation_ratio       => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
-  disk_allocation_ratio      => pick($nova_hash['disk_allocation_ratio'], '1.0'),
-  ram_allocation_ratio       => pick($nova_hash['ram_allocation_ratio'], '1.0'),
-  scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
-  scheduler_default_filters  => concat($scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]))
+  cpu_allocation_ratio            => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
+  disk_allocation_ratio           => pick($nova_hash['disk_allocation_ratio'], '1.0'),
+  ram_allocation_ratio            => pick($nova_hash['ram_allocation_ratio'], '1.0'),
+  scheduler_host_subset_size      => pick($nova_hash['scheduler_host_subset_size'], '30'),
+  scheduler_default_filters       => concat($scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])),
+  scheduler_host_manager          => $scheduler_host_manager,
+  scheduler_use_baremetal_filters => $scheduler_use_baremetal_filters,
 }
 
 # From logasy filter.pp
