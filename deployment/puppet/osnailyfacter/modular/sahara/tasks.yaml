@@ -1,6 +1,7 @@
 - id: sahara
   type: puppet
   groups: [primary-controller, controller]
+  condition: "settings:additional_components.sahara.value == true"
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-network, horizon]
   parameters:
@@ -16,8 +17,19 @@
   type: puppet
   groups: [primary-controller]
   required_for: [sahara]
+  condition: "settings:additional_components.sahara.value == true"
   requires: [database]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/sahara/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: sahara-keystone
+  type: puppet
+  groups: [primary-controller]
+  required_for: [sahara]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/sahara/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
