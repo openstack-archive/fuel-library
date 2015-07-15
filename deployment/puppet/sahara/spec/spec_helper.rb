@@ -4,3 +4,4 @@ RSpec.configure do |config|
   config.mock_with :rspec
 end
 
+at_exit { RSpec::Puppet::Coverage.report! }
