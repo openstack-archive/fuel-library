@@ -1,6 +1,7 @@
 # == Class: sahara::notify::qpid
 #
 #  Qpid broker configuration for Sahara
+#  Deprecated class
 #
 # === Parameters
 #
@@ -56,28 +57,6 @@
 #   (Optional) The default exchange to scope topics.
 #   Defaults to 'openstack'.
 #
-#  [*kombu_ssl_version*]
-#    (optional) SSL version to use (valid only if SSL enabled).
-#    Valid values are TLSv1, SSLv23 and SSLv3. SSLv2 may be
-#    available on some distributions.
-#    Defaults to 'TLSv1'
-#
-# [*kombu_ssl_keyfile*]
-#   (Optional) SSL key file (valid only if SSL enabled).
-#   Defaults to undef.
-#
-# [*kombu_ssl_certfile*]
-#   (Optional) SSL cert file (valid only if SSL enabled).
-#   Defaults to undef.
-#
-# [*kombu_ssl_ca_certs*]
-#   (optional) SSL certification authority file (valid only if SSL enabled).
-#   Defaults to undef.
-#
-# [*kombu_reconnect_delay*]
-#   (Optional) Backoff on cancel notification (valid only if SSL enabled).
-#   Defaults to '1.0'; floating-point value.
-#
 class sahara::notify::qpid(
   $durable_queues         = false,
   $qpid_hostname          = 'localhost',
@@ -92,59 +71,29 @@ class sahara::notify::qpid(
   $qpid_topology_version  = 2,
   $notification_topics    = 'notifications',
   $control_exchange       = 'openstack',
-  $kombu_ssl_version      = 'TLSv1',
-  $kombu_ssl_keyfile      = undef,
-  $kombu_ssl_certfile     = undef,
-  $kombu_ssl_ca_certs     = undef,
-  $kombu_reconnect_delay  = '1.0',
 ) {
-  if $qpid_protocol == 'ssl' {
-    if !$kombu_ssl_keyfile {
-      fail('kombu_ssl_keyfile must be set when using SSL in qpid')
-    }
-    if !$kombu_ssl_certfile {
-      fail('kombu_ssl_certfile must be set when using SSL in qpid')
-    }
-    if !$kombu_ssl_ca_certs {
-      fail('kombu_ca_certs must be set when using SSL in qpid')
-    }
-    sahara_config {
-      'DEFAULT/kombu_ssl_version': value => $kombu_ssl_version;
-      'DEFAULT/kombu_ssl_keyfile': value => $kombu_ssl_keyfile;
-      'DEFAULT/kombu_ssl_certfile': value => $kombu_ssl_certfile;
-      'DEFAULT/kombu_ssl_ca_certs': value => $kombu_ssl_ca_certs;
-      'DEFAULT/kombu_reconnect_delay': value => $kombu_reconnect_delay;
-    }
-  } elsif $qpid_protocol == 'tcp' {
-    sahara_config {
-      'DEFAULT/kombu_ssl_version': ensure => absent;
-      'DEFAULT/kombu_ssl_keyfile': ensure => absent;
-      'DEFAULT/kombu_ssl_certfile': ensure => absent;
-      'DEFAULT/kombu_ssl_ca_certs': ensure => absent;
-      'DEFAULT/kombu_reconnect_delay': ensure => absent;
-    }
-  } else {
-    fail("valid qpid_protocol settings are 'tcp' and 'ssl' only")
-  }
+
+  warning('This class is deprecated. Use sahara::init for configuration rpc options instead')
+  warning('This class is deprecated. Use sahara::notify for configuration ceilometer notifications instead')
 
   sahara_config {
-    'DEFAULT/rpc_backend': value => 'qpid';
-    'DEFAULT/qpid_hosts': value => '$qpid_hostname:$qpid_port';
+    'DEFAULT/rpc_backend':                        value => 'qpid';
+    'oslo_messaging_qpid/qpid_hosts':             value => '$qpid_hostname:$qpid_port';
 
-    'DEFAULT/amqp_durable_queues': value => $durable_queues;
-    'DEFAULT/qpid_hostname': value => $qpid_hostname;
-    'DEFAULT/qpid_port': value => $qpid_port;
-    'DEFAULT/qpid_username': value => $qpid_username;
-    'DEFAULT/qpid_password':
+    'oslo_messaging_qpid/amqp_durable_queues':    value => $durable_queues;
+    'oslo_messaging_qpid/qpid_hostname':          value => $qpid_hostname;
+    'oslo_messaging_qpid/qpid_port':              value => $qpid_port;
+    'oslo_messaging_qpid/qpid_username':          value => $qpid_username;
+    'oslo_messaging_qpid/qpid_password':
       value => $qpid_password,
       secret => true;
-    'DEFAULT/qpid_sasl_mechanisms': value => $qpid_sasl_mechanisms;
-    'DEFAULT/qpid_heartbeat': value => $qpid_heartbeat;
-    'DEFAULT/qpid_protocol': value => $qpid_protocol;
-    'DEFAULT/qpid_tcp_nodelay': value => $qpid_tcp_nodelay;
-    'DEFAULT/qpid_receiver_capacity': value => $qpid_receiver_capacity;
-    'DEFAULT/qpid_topology_version': value => $qpid_topology_version;
-    'DEFAULT/notification_topics': value => $notification_topics;
-    'DEFAULT/control_exchange': value => $control_exchange;
+    'oslo_messaging_qpid/qpid_sasl_mechanisms':   value => $qpid_sasl_mechanisms;
+    'oslo_messaging_qpid/qpid_heartbeat':         value => $qpid_heartbeat;
+    'oslo_messaging_qpid/qpid_protocol':          value => $qpid_protocol;
+    'oslo_messaging_qpid/qpid_tcp_nodelay':       value => $qpid_tcp_nodelay;
+    'oslo_messaging_qpid/qpid_receiver_capacity': value => $qpid_receiver_capacity;
+    'oslo_messaging_qpid/qpid_topology_version':  value => $qpid_topology_version;
+    'DEFAULT/notification_topics':                value => $notification_topics;
+    'DEFAULT/control_exchange':                   value => $control_exchange;
   }
 }
