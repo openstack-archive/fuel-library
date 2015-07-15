@@ -51,8 +51,10 @@ $amqp_password              = $rabbit_hash['password']
 $amqp_user                  = $rabbit_hash['user']
 $rabbit_ha_queues           = true
 $service_endpoint           = hiera('service_endpoint', $management_vip)
-$api_bind_address           = $internal_address
 $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
+
+prepare_network_config(hiera('network_scheme', {}))
+$api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
 
 if $ceilometer_hash['enabled'] {
   if $external_mongo {
