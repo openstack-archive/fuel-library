@@ -278,25 +278,40 @@ if $network_provider == 'neutron' {
   # Required to use get_network_role_property
   prepare_network_config($network_scheme)
 
-  if $neutron_settings['L2']['tunnel_id_ranges'] {
+  if $neutron_settings['L2']['segmentation_type'] != 'vlan' {
     # tunneling_mode
-    $enable_tunneling = true
-    $tunnel_types = ['gre']
-    $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
-    $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
     $net_role_property = 'neutron/mesh'
+    $tunneling_ip = get_network_role_property($net_role_property, 'ipaddr')
+    $iface = get_network_role_property($net_role_property, 'phys_dev')
+    $net_mtu = get_transformation_property('mtu', $iface[0])
+    $enable_tunneling = true
+    if $neutron_config['L2']['use_gre_for_tun'] {
+      $network_type = 'gre'
+      $mtu_offset = 42
+    } else {
+      $network_type = 'vxlan'
+      $mtu_offset = 50
+    }
+    if $net_mtu {
+      $mtu_for_virt_network = $net_mtu - $mtu_offset
+    } else {
+      $mtu_for_virt_network = 1500 - $mtu_offset
+    }
+    $tunnel_types = [$network_type]
+    $tenant_network_types  = ['flat', 'vlan', $network_type]
+    $tunnel_id_ranges = [$neutron_config['L2']['tunnel_id_ranges']]
   } else {
-    # vlan mode
+    # vlan_mode
     $net_role_property = 'neutron/private'
+    $iface = get_network_role_property($net_role_property, 'phys_dev')
+    $mtu_for_virt_network = get_transformation_property('mtu', $iface[0])
     $enable_tunneling = false
+    $network_type = 'vlan'
+    $tenant_network_types  = ['flat', 'vlan']
     $tunnel_types = []
     $tunneling_ip = false
     $tunnel_id_ranges = []
   }
-
-  # Get MTU setting for virtual/tenants network
-  $iface = get_network_role_property($net_role_property, 'phys_dev')
-  $mtu_for_virt_network = get_transformation_property('mtu', $iface[0])
 
   notify{ $tunnel_id_ranges:}
   if $neutron_settings['L2']['mechanism_drivers'] {
@@ -305,14 +320,9 @@ if $network_provider == 'neutron' {
       $mechanism_drivers = ['openvswitch']
   }
 
-  if $neutron_settings['L2']['provider'] == 'ovs' {
-    $core_plugin      = 'openvswitch'
-    $agent            = 'ovs'
-  } else {
-    # by default we use ML2 plugin
-    $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
-    $agent            = 'ml2-ovs'
-  }
+  # by default we use ML2 plugin
+  $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
+  $agent            = 'ml2-ovs'
 }
 
 class { 'openstack::network':
@@ -326,13 +336,15 @@ class { 'openstack::network':
   service_plugins   => undef,
 
   # ovs
-  mechanism_drivers   => $mechanism_drivers,
-  local_ip            => $tunneling_ip,
-  bridge_mappings     => $bridge_mappings,
-  network_vlan_ranges => $vlan_range,
-  enable_tunneling    => $enable_tunneling,
-  tunnel_id_ranges    => $tunnel_id_ranges,
-  tunnel_types        => $tunnel_types,
+  mechanism_drivers    => $mechanism_drivers,
+  local_ip             => $tunneling_ip,
+  bridge_mappings      => $bridge_mappings,
+  network_vlan_ranges  => $vlan_range,
+  enable_tunneling     => $enable_tunneling,
+  tunnel_id_ranges     => $tunnel_id_ranges,
+  vni_ranges           => $tunnel_id_ranges,
+  tunnel_types         => $tunnel_types,
+  tenant_network_types => $tenant_network_types,
 
   verbose             => true,
   debug               => hiera('debug', true),
