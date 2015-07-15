@@ -51,13 +51,24 @@ describe manifest do
       neutron_config =  Noop.hiera_structure 'quantum_settings'
 
       if neutron_config && neutron_config.has_key?('L2') && neutron_config['L2'].has_key?('tunnel_id_ranges')
-        tunnel_types = ['gre']
+        segmentation_type = neutron_config['L2']['segmentation_type']
+        tunnel_types = [segmentation_type]
+        tunnel_id_ranges = [neutron_config['L2']['tunnel_id_ranges']]
+        tenant_network_types  = ['flat', 'vlan', segmentation_type]
         it 'should configure tunnel_types for neutron' do
            should contain_class('openstack::network').with(
-             'tunnel_types' => tunnel_types,
+             'tunnel_types'         => tunnel_types,
+             'tunnel_id_ranges'     => tunnel_id_ranges,
+             'vni_ranges'           => tunnel_id_ranges,
+             'tenant_network_types' => tenant_network_types,
+           )
+           should contain_class('neutron::plugins::ml2').with(
+             'tunnel_id_ranges'     => tunnel_id_ranges,
+             'vni_ranges'           => tunnel_id_ranges,
+             'tenant_network_types' => tenant_network_types,
            )
            should contain_class('neutron::agents::ml2::ovs').with(
-             'tunnel_types' => tunnel_types ? tunnel_types.join(",") : "",
+             'tunnel_types'     => tunnel_types ? tunnel_types.join(",") : "",
            )
         end
       elsif neutron_config && neutron_config.has_key?('L2') && !neutron_config['L2'].has_key?('tunnel_id_ranges')

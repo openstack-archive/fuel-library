@@ -281,15 +281,23 @@ if $network_provider == 'neutron' {
   if $neutron_settings['L2']['tunnel_id_ranges'] {
     # tunneling_mode
     $enable_tunneling = true
-    $tunnel_types = ['gre']
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
     $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
     $iface = get_network_role_property('neutron/mesh', 'phys_dev')
     $net_mtu = get_transformation_property('mtu', $iface[0])
-    if $net_mtu {
-      $mtu_for_virt_network = $net_mtu - 42
+    if $neutron_settings['L2']['segmentation_type'] == 'gre' {
+      $tunnel_types = ['gre']
+      $tenant_network_types  = ['flat', 'vlan', 'gre']
+      $mtu_offset = 42
     } else {
-      $mtu_for_virt_network = 1458
+      $tunnel_types = ['vxlan']
+      $tenant_network_types  = ['flat', 'vlan', 'vxlan']
+      $mtu_offset = 50
+    }
+    if $net_mtu {
+      $mtu_for_virt_network = $net_mtu - $mtu_offset
+    } else {
+      $mtu_for_virt_network = 1500 - $mtu_offset
     }
   } else {
     # vlan mode
@@ -329,13 +337,15 @@ class { 'openstack::network':
   service_plugins   => undef,
 
   # ovs
-  mechanism_drivers   => $mechanism_drivers,
-  local_ip            => $tunneling_ip,
-  bridge_mappings     => $bridge_mappings,
-  network_vlan_ranges => $vlan_range,
-  enable_tunneling    => $enable_tunneling,
-  tunnel_id_ranges    => $tunnel_id_ranges,
-  tunnel_types        => $tunnel_types,
+  mechanism_drivers    => $mechanism_drivers,
+  local_ip             => $tunneling_ip,
+  bridge_mappings      => $bridge_mappings,
+  network_vlan_ranges  => $vlan_range,
+  enable_tunneling     => $enable_tunneling,
+  tunnel_id_ranges     => $tunnel_id_ranges,
+  vni_ranges           => $tunnel_id_ranges,
+  tunnel_types         => $tunnel_types,
+  tenant_network_types => $tenant_network_types,
 
   verbose             => true,
   debug               => hiera('debug', true),
