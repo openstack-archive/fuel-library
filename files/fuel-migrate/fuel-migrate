@@ -175,7 +175,7 @@ create_vm(){
   <on_crash>restart</on_crash>
   <devices>
     <disk type='file' device='disk'>
-      <driver name='qemu' type='raw' cache='writeback' io='native'/>
+      <driver name='qemu' type='raw' cache='writeback'/>
       <source file='${dkvm_folder}/${fvm_name}.img'/>
       <target dev='vda' bus='virtio'/>
     </disk>
