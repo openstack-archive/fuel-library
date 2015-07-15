@@ -109,10 +109,11 @@ class openstack::ha::haproxy (
   }
 
   if $ceilometer {
+    $ceilometer_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceilometer_nodes'), 'ceilometer/api')
     class { 'openstack::ha::ceilometer':
       public_ssl => $services_use_ssl,
-      server_names => hiera_array('ceilometer_names', $controllers_server_names),
-      ipaddresses  => hiera_array('ceilometer_ipaddresses', $controllers_ipaddresses),
+      server_names  => hiera_array('ceilometer_names', keys($ceilometer_address_map)),
+      ipaddresses   => hiera_array('ceilometer_ipaddresses', values($ceilometer_address_map)),
     }
   }
 
