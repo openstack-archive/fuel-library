@@ -201,7 +201,7 @@ network_metadata:
       user_node_name: Untitled (6a:e7)
       node_roles:
         - compute
-        - kvm-virt
+        - virt
       name: node-128
     node-129:
       swift_zone: '1'
@@ -481,7 +481,7 @@ nodes:
   name: node-128
   public_address: 172.16.0.2
   public_netmask: 255.255.255.0
-  role: kvm-virt
+  role: virt
   storage_address: 192.168.1.2
   storage_netmask: 255.255.255.0
   swift_zone: '128'
@@ -661,7 +661,7 @@ repo_setup:
     type: deb
     uri: http://mirror.fuel-infra.org/mos/ubuntu/
 resume_guests_state_on_host_boot: true
-role: kvm-virt
+role: virt
 sahara:
   db_password: f0jl4v47
   enabled: false

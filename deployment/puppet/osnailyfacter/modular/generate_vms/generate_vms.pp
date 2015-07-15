@@ -43,7 +43,6 @@ vm_config { $vms:
 
 exec { 'generate_vms':
   command     => "/usr/bin/generate_vms.sh ${libvirt_dir} ${template_dir}",
-  onlyif      => "test `virsh -q list | wc -l` -lt 1",
   refreshonly => true,
   path        => ['/usr/sbin', '/usr/bin' , '/sbin', '/bin'],
   notify      => Service[$libvirt_service_name],
