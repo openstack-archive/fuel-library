@@ -1,6 +1,7 @@
 #Not a docstring
 define openstack::network::create_network (
   $netdata,
+  $segmentation_type,
   $tenant_name   = 'admin',
   $fallback_segment_id = 1
   )
@@ -26,8 +27,23 @@ define openstack::network::create_network (
   } else {
     $physnet = false
   }
+
+  if $netdata['L2']['router_ext'] {
+     $network_type = 'local'
+  } else {
+     if $segmentation_type == 'vlan' {
+        $network_type = 'vlan'
+     } else {
+       if $netdata['L2']['use_gre_for_tun'] {
+          $network_type = 'gre'
+       } else {
+          $network_type = 'vxlan'
+       }
+     }
+  }
+
   notify {"${name} ::: physnet ${physnet}":}
-  notify {"${name} ::: network_type ${netdata['L2']['network_type']}":}
+  notify {"${name} ::: network_type $network_type":}
   notify {"${name} ::: router_ext ${netdata['L2']['router_ext']}":}
   notify {"${name} ::: tenant ${netdata['tenant']}":}
   notify {"${name} ::: shared ${$netdata['shared']}":}
@@ -35,7 +51,7 @@ define openstack::network::create_network (
   neutron_network { $name:
     ensure                    => present,
     provider_physical_network => $physnet,
-    provider_network_type     => $netdata['L2']['network_type'],
+    provider_network_type     => $network_type,
     provider_segmentation_id  => $segment_id,
     router_external           => $netdata['L2']['router_ext'],
     tenant_name               => $tenant_name,
