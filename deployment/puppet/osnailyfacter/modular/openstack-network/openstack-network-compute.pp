@@ -278,13 +278,19 @@ if $network_provider == 'neutron' {
   # Required to use get_network_role_property
   prepare_network_config($network_scheme)
 
-  if $neutron_settings['L2']['tunnel_id_ranges'] {
+  if $neutron_settings['L2']['segmentation_type'] != 'vlan' {
     # tunneling_mode
     $enable_tunneling = true
-    $tunnel_types = ['gre']
     $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
     $tunneling_ip = get_network_role_property('neutron/mesh', 'ipaddr')
     $net_role_property = 'neutron/mesh'
+    if $neutron_settings['L2']['use_gre_for_tun'] {
+      $network_type = 'gre'
+    } else {
+      $network_type = 'vxlan'
+    }
+    $tunnel_types = [$network_type]
+    $tenant_network_types  = ['flat', 'vlan', $network_type]
   } else {
     # vlan mode
     $net_role_property = 'neutron/private'
@@ -292,6 +298,7 @@ if $network_provider == 'neutron' {
     $tunnel_types = []
     $tunneling_ip = false
     $tunnel_id_ranges = []
+    $tenant_network_types  = ['flat', 'vlan']
   }
 
   # Get MTU setting for virtual/tenants network
@@ -305,14 +312,9 @@ if $network_provider == 'neutron' {
       $mechanism_drivers = ['openvswitch']
   }
 
-  if $neutron_settings['L2']['provider'] == 'ovs' {
-    $core_plugin      = 'openvswitch'
-    $agent            = 'ovs'
-  } else {
-    # by default we use ML2 plugin
-    $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
-    $agent            = 'ml2-ovs'
-  }
+  # by default we use ML2 plugin
+  $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin'
+  $agent            = 'ml2-ovs'
 }
 
 class { 'openstack::network':
@@ -326,13 +328,15 @@ class { 'openstack::network':
   service_plugins   => undef,
 
   # ovs
-  mechanism_drivers   => $mechanism_drivers,
-  local_ip            => $tunneling_ip,
-  bridge_mappings     => $bridge_mappings,
-  network_vlan_ranges => $vlan_range,
-  enable_tunneling    => $enable_tunneling,
-  tunnel_id_ranges    => $tunnel_id_ranges,
-  tunnel_types        => $tunnel_types,
+  mechanism_drivers    => $mechanism_drivers,
+  local_ip             => $tunneling_ip,
+  bridge_mappings      => $bridge_mappings,
+  network_vlan_ranges  => $vlan_range,
+  enable_tunneling     => $enable_tunneling,
+  tunnel_id_ranges     => $tunnel_id_ranges,
+  vni_ranges           => $tunnel_id_ranges,
+  tunnel_types         => $tunnel_types,
+  tenant_network_types => $tenant_network_types,
 
   verbose             => true,
   debug               => hiera('debug', true),
