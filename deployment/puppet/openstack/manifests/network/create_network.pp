@@ -1,6 +1,7 @@
 #Not a docstring
 define openstack::network::create_network (
   $netdata,
+  $segmentation_type,
   $tenant_name   = 'admin',
   $fallback_segment_id = 1
   )
@@ -8,7 +9,7 @@ define openstack::network::create_network (
 
   # FIXME(xarses): clean up sanitization and move business logic to nailgun
 
-  if $netdata['L2']['network_type'] in ['vlan', 'gre', 'vxlan'] {
+  if $segmentation_type in ['vlan', 'gre', 'vxlan'] {
     if $netdata['L2']['segment_id'] =~ /^$/ {
       $segment_id = $fallback_segment_id
     } else {
@@ -26,8 +27,9 @@ define openstack::network::create_network (
   } else {
     $physnet = false
   }
+
   notify {"${name} ::: physnet ${physnet}":}
-  notify {"${name} ::: network_type ${netdata['L2']['network_type']}":}
+  notify {"${name} ::: network_type $segmentation_type":}
   notify {"${name} ::: router_ext ${netdata['L2']['router_ext']}":}
   notify {"${name} ::: tenant ${netdata['tenant']}":}
   notify {"${name} ::: shared ${$netdata['shared']}":}
@@ -35,7 +37,7 @@ define openstack::network::create_network (
   neutron_network { $name:
     ensure                    => present,
     provider_physical_network => $physnet,
-    provider_network_type     => $netdata['L2']['network_type'],
+    provider_network_type     => $segmentation_type,
     provider_segmentation_id  => $segment_id,
     router_external           => $netdata['L2']['router_ext'],
     tenant_name               => $tenant_name,
