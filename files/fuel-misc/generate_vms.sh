@@ -47,7 +47,7 @@ create_vm_disks() {
       continue
     fi
 
-    qemu-img create -f $DISK_FORMAT $DISK_PATH $DISK_SIZE
+    qemu-img create -f $DISK_FORMAT $DISK_PATH $DISK_SIZE || exit 2
 
   done
 }
@@ -85,18 +85,20 @@ do
   VM_NAME=$(basename $TEMPLATE_XML | cut -f1 -d".")
   DST_XML=${LIBVIRT_DIR}/${VM_NAME}.xml
 
+  #Copy VMs xml file to libvirt and ensure autostart
+  if ! [[ -h "${LIBVIRT_DIR}/autostart/$VM_NAME.xml" ]]; then
+    ln -s $DST_XML ${LIBVIRT_DIR}/autostart/
+  fi
+  cp -f $TEMPLATE_XML $DST_XML
+
   #Create disks for VMs
-  create_vm_disks $VM_NAME $TEMPLATE_XML
+  create_vm_disks $VM_NAME $DST_XML
 
   #Verify cpu settings
-  verify_cpu $VM_NAME $TEMPLATE_XML
+  verify_cpu $VM_NAME $DST_XML
 
   #Verify memory settings
-  verify_mem $VM_NAME $TEMPLATE_XML
-
-  #Copy VMs xml file to libvirt and ensure autostart
-  ln -s $DST_XML ${LIBVIRT_DIR}/autostart/
-  cp -f $TEMPLATE_XML $DST_XML
+  verify_mem $VM_NAME $DST_XML
 
 done
 
