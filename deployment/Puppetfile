@@ -7,3 +7,17 @@
 # repository, see https://tickets.puppetlabs.com/browse/FORGE-27
 # and https://github.com/drrb/puppet-library
 forge "https://forgeapi.puppetlabs.com"
+
+# pull in openstack-ironic module
+mod 'openstack-ironic', '6.0.0'
+
+exclusion 'puppetlabs-apt'
+exclusion 'puppetlabs-apache'
+exclusion 'puppetlabs-concat'
+exclusion 'puppetlabs-inifile'
+exclusion 'puppetlabs-mysql'
+exclusion 'puppetlabs-postgresql'
+exclusion 'puppetlabs-rabbitmq'
+exclusion 'puppetlabs-stdlib'
+exclusion 'openstack-keystone'
+exclusion 'openstack-openstacklib'
