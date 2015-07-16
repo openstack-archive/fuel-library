@@ -104,10 +104,39 @@ $public_address                = get_network_role_property('ex', 'ipaddr')
 $public_netmask                = get_network_role_property('ex', 'netmask')
 $storage_address               = get_network_role_property('storage', 'ipaddr')
 $storage_netmask               = get_network_role_property('storage', 'netmask')
-$public_vip                    = $network_metadata['vips']['public_vip']
-$management_vip                = $network_metadata['vips']['management_vip']
-$database_vip                  = pick($network_metadata['vips']['database'], $management_vip)
-$service_endpoint              = pick($network_metadata['vips']['service_endpoint'],  $management_vip)
+#todo(sv): It's a workaround. After merge some part to Nailgun and change CI ISO we should use just $network_metadata['vips']['VIP_NAME']['ipaddr']
+#todo(sv): Also some VIPs was renamed
+if is_hash($network_metadata['vips']['public']) {
+  $public_vip                  = $network_metadata['vips']['public']['ipaddr']
+} else {
+  $public_vip                  = $network_metadata['vips']['public_vip']
+}
+if is_hash($network_metadata['vips']['management']) {
+  $management_vip                  = $network_metadata['vips']['management']['ipaddr']
+} else {
+  $management_vip                  = $network_metadata['vips']['management_vip']
+}
+if is_hash($network_metadata['vips']['database']) {
+  $database_vip                = $network_metadata['vips']['database']['ipaddr']
+} else {
+  $database_vip                = pick($network_metadata['vips']['database'], $management_vip)
+}
+if is_hash($network_metadata['vips']['vrouter_pub']) {
+  $public_vrouter_vip          = $network_metadata['vips']['vrouter_pub']['ipaddr']
+} else {
+  $public_vrouter_vip          = $network_metadata['vips']['public_vrouter_vip']
+}
+if is_hash($network_metadata['vips']['vrouter']) {
+  $management_vrouter_vip      = $network_metadata['vips']['vrouter']['ipaddr']
+} else {
+  $management_vrouter_vip      = $network_metadata['vips']['management_vrouter_vip']
+}
+if is_hash($network_metadata['vips']['service_endpoint']) {
+  $service_endpoint            = $network_metadata['vips']['service_endpoint']['ipaddr']
+} else {
+  $service_endpoint            = pick($network_metadata['vips']['service_endpoint'],  $management_vip)
+}
+#todo(sv): end of workaround
 
 if $use_neutron {
   $novanetwork_params            = {}
