@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+#^syntax detection
+# See https://github.com/bodepd/librarian-puppet-simple for additional docs
+#
+# Important information for fuel-library:
+# With librarian-puppet-simple you *must* remove the existing folder from the
+# repo prior to trying to run librarian-puppet as it will not remove the folder
+# for you and you may run into some errors.
+#
+############
+# Examples #
+############
+# From git repo
+#  mod 'stdlib',
+#    :git => 'https://github.com/puppetlabs/puppetlabs-stdlib.git',
+#    :ref => '4.6.x'
+#
+# From tarbal
+#  mod 'stdlib',
+#    :tarbal => 'https://forgeapi.puppetlabs.com/v3/files/puppetlabs-stdlib-4.6.0.tar.gz'
+#
+#
