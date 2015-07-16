@@ -1,24 +1,18 @@
 notice('MODULAR: swift/rebalance_cronjob.pp')
 
-$network_metadata = hiera_hash('network_metadata')
-# $network_scheme   = hiera_hash('network_scheme')
-# prepare_network_config($network_scheme)
-
 $storage_hash        = hiera('storage_hash')
 $swift_master_role   = hiera('swift_master_role', 'primary-controller')
 $ring_min_part_hours = hiera('swift_ring_min_part_hours', 1)
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
-  $master_swift_replication_nodes      = get_nodes_hash_by_roles($network_metadata, [$swift_master_role])
-  $master_swift_replication_nodes_list = values($master_swift_replication_nodes)
-  $master_swift_replication_ip         = $master_swift_replication_nodes_list[0]['network_roles']['swift/replication']
-
+  $master_swift_proxy_nodes = filter_nodes(hiera('nodes_hash'),'role',$swift_master_role)
+  $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
 
   # setup a cronjob to rebalance and repush rings periodically
   class { 'openstack::swift::rebalance_cronjob':
-    ring_rebalance_period       => min($ring_min_part_hours * 2, 23),
-    master_swift_replication_ip => $master_swift_replication_ip,
-    primary_proxy               => hiera('is_primary_swift_proxy'),
+    ring_rebalance_period => min($ring_min_part_hours * 2, 23),
+    master_swift_proxy_ip => $master_swift_proxy_ip,
+    primary_proxy         => hiera('primary_controller'),
   }
 }

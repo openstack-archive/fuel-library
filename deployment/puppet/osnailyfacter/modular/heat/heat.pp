@@ -4,6 +4,7 @@ $controller_node_public   = hiera('controller_node_public')
 $controller_node_address  = hiera('controller_node_address')
 $management_vip           = hiera('management_vip')
 $heat_hash                = hiera_hash('heat', {})
+$amqp_hosts               = hiera('amqp_hosts')
 $rabbit_hash              = hiera_hash('rabbit_hash', {})
 $max_retries              = hiera('max_retries')
 $max_pool_size            = hiera('max_pool_size')
@@ -62,7 +63,7 @@ class { 'openstack::heat' :
   region                   => $region,
 
   rpc_backend              => 'heat.openstack.common.rpc.impl_kombu',
-  amqp_hosts               => split(hiera('amqp_hosts',''), ','),
+  amqp_hosts               => split($amqp_hosts, ','),
   amqp_user                => $rabbit_hash['user'],
   amqp_password            => $rabbit_hash['password'],
 

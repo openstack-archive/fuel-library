@@ -28,19 +28,15 @@ class openstack::ha::haproxy (
     internal_virtual_ip => $internal_virtual_ip,
   }
 
-  $network_metadata = hiera_hash('network_metadata')
-
   class { 'openstack::ha::horizon':
     use_ssl      => $horizon_use_ssl,
     server_names => hiera_array('horizon_names', $controllers_server_names),
     ipaddresses  => hiera_array('horizon_ipaddresses', $controllers_ipaddresses),
   }
 
-  #todo(sv): change to 'keystone' as soon as keystone as node-role was ready
-  $keystones_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']), 'keystone/api')
   class { 'openstack::ha::keystone':
-    server_names => hiera_array('keystone_names', keys($keystones_address_map)),
-    ipaddresses  => hiera_array('keystone_ipaddresses', values($keystones_address_map)),
+    server_names => hiera_array('keystone_names', $controllers_server_names),
+    ipaddresses  => hiera_array('keystone_ipaddresses', $controllers_ipaddresses),
   }
 
   class { 'openstack::ha::nova':
@@ -53,11 +49,9 @@ class openstack::ha::haproxy (
     ipaddresses  => hiera_array('heat_ipaddresses', $controllers_ipaddresses),
   }
 
-  #todo(sv): change to 'glance' as soon as glance as node-role was ready
-  $glances_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']), 'glance/api')
   class { 'openstack::ha::glance':
-    server_names => hiera_array('glance_names', keys($glances_address_map)),
-    ipaddresses  => hiera_array('glance_ipaddresses', values($glances_address_map)),
+    server_names => hiera_array('glance_names', $controllers_server_names),
+    ipaddresses  => hiera_array('glance_ipaddresses', $controllers_ipaddresses),
   }
 
   class { 'openstack::ha::cinder':
@@ -81,10 +75,9 @@ class openstack::ha::haproxy (
   }
 
   if $swift_proxies {
-    $swift_proxies_address_map = get_node_to_ipaddr_map_by_network_role($swift_proxies, 'swift/api')
     class { 'openstack::ha::swift':
-      server_names => hiera_array('swift_server_names', keys($swift_proxies_address_map)),
-      ipaddresses  => hiera_array('swift_ipaddresses', values($swift_proxies_address_map)),
+      server_names => hiera_array('swift_server_names', filter_hash($swift_proxies, 'name')),
+      ipaddresses  => hiera_array('swift_ipaddresses', filter_hash($swift_proxies, 'storage_address')),
     }
   }
 

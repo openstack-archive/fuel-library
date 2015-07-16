@@ -80,8 +80,9 @@ class openstack::cinder(
         # ::cinder module accepts rabbit_host and rabbit_port and then
         # makes "rabbit_host:rabbit_port" from it. So we need to split
         # our aqmp_hosts or provide defaults
-        $rabbit_host_array = [undef,undef]
-      } else {
+        $rabbit_host_array = ['127.0.0.1', '5672']
+      }
+      else {
         $rabbit_hosts_real = false
         # ::cinder module accepts rabbit_host and rabbit_port and then
         # makes "rabbit_host:rabbit_port" from it. So we need to split
