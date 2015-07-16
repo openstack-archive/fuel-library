@@ -1,0 +1,14 @@
+source 'https://rubygems.org'
+# this is used to bundle install librarian puppet for the deployment folder
+
+group :development, :test do
+  gem 'librarian-puppet-simple', :require => false
+end
+
+if puppetversion = ENV['PUPPET_GEM_VERSION']
+  gem 'puppet', puppetversion, :require => false
+else
+  gem 'puppet', :require => false
+end
+
+# vim:ft=ruby
