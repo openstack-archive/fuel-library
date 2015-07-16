@@ -142,7 +142,7 @@ network_metadata:
         mgmt/api: 192.168.0.1
         storage: 192.168.1.1
         mgmt/corosync: 192.168.0.1
-        cinder/api: 192.168.248.2
+        cinder/api: 192.168.0.1
         public/vip:
         swift/replication: 192.168.1.1
         mgmt/messaging: 192.168.0.1
@@ -183,7 +183,7 @@ network_metadata:
         mgmt/api: 192.168.0.2
         storage: 192.168.1.2
         mgmt/corosync: 192.168.0.2
-        cinder/api: 192.168.248.2
+        cinder/api: 192.168.0.2
         public/vip: 172.16.0.2
         swift/replication: 192.168.1.2
         mgmt/messaging: 192.168.0.2
@@ -224,7 +224,7 @@ network_metadata:
         mgmt/api: 192.168.0.3
         storage: 192.168.1.3
         mgmt/corosync: 192.168.0.3
-        cinder/api: 192.168.248.2
+        cinder/api: 192.168.0.3
         public/vip: 172.16.0.3
         swift/replication: 192.168.1.3
         mgmt/messaging: 192.168.0.3
@@ -265,7 +265,7 @@ network_metadata:
         mgmt/api: 192.168.0.4
         storage: 192.168.1.4
         mgmt/corosync: 192.168.0.4
-        cinder/api: 192.168.248.2
+        cinder/api: 192.168.0.4
         public/vip: 172.16.0.4
         swift/replication: 192.168.1.4
         mgmt/messaging: 192.168.0.4
@@ -292,38 +292,38 @@ network_metadata:
       uid: '132'
       fqdn: node-132.test.domain.local
       network_roles:
-        keystone/api: 192.168.0.4
-        neutron/api: 192.168.0.4
-        mgmt/database: 192.168.0.4
-        sahara/api: 192.168.0.4
-        heat/api: 192.168.0.4
-        ceilometer/api: 192.168.0.4
+        keystone/api: 192.168.0.5
+        neutron/api: 192.168.0.5
+        mgmt/database: 192.168.0.5
+        sahara/api: 192.168.0.5
+        heat/api: 192.168.0.5
+        ceilometer/api: 192.168.0.5
         ex:
-        ceph/public: 192.168.0.4
+        ceph/public: 192.168.0.5
         ceph/radosgw:
-        management: 192.168.0.4
-        swift/api: 192.168.0.4
-        mgmt/api: 192.168.0.4
-        storage: 192.168.1.2
-        mgmt/corosync: 192.168.0.4
-        cinder/api: 192.168.248.2
+        management: 192.168.0.5
+        swift/api: 192.168.0.5
+        mgmt/api: 192.168.0.5
+        storage: 192.168.1.5
+        mgmt/corosync: 192.168.0.5
+        cinder/api: 192.168.0.5
         public/vip:
-        swift/replication: 192.168.1.2
-        mgmt/messaging: 192.168.0.4
-        neutron/mesh: 192.168.0.4
-        admin/pxe: 10.109.0.9
-        mongo/db: 192.168.0.4
+        swift/replication: 192.168.1.5
+        mgmt/messaging: 192.168.0.5
+        neutron/mesh: 192.168.0.5
+        admin/pxe: 10.108.0.4
+        mongo/db: 192.168.0.5
         neutron/private:
         neutron/floating:
-        fw-admin: 10.109.0.9
-        glance/api: 192.168.0.4
-        mgmt/vip: 192.168.0.4
-        murano/api: 192.168.0.4
-        nova/api: 192.168.0.4
-        horizon: 192.168.0.4
-        mgmt/memcache: 192.168.0.4
-        cinder/iscsi: 192.168.248.2
-        ceph/replication: 192.168.1.2
+        fw-admin: 10.108.0.4
+        glance/api: 192.168.0.5
+        mgmt/vip: 192.168.0.5
+        murano/api: 192.168.0.5
+        nova/api: 192.168.0.5
+        horizon: 192.168.0.5
+        mgmt/memcache: 192.168.0.5
+        cinder/iscsi: 192.168.1.5
+        ceph/replication: 192.168.1.5
       user_node_name: Untitled (6a:e7)
       node_roles:
         - compute
