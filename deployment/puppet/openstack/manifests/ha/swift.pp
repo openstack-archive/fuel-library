@@ -24,6 +24,7 @@ class openstack::ha::swift (
   $ipaddresses,
   $public_virtual_ip,
   $server_names,
+  $baremetal_virtual_ip = false,
 ) {
 
   # defaults for any haproxy_service within this class
@@ -32,15 +33,25 @@ class openstack::ha::swift (
     ipaddresses         => $ipaddresses,
     public_virtual_ip   => $public_virtual_ip,
     server_names        => $server_names,
+    haproxy_config_options => {
+      'option' => ['httpchk', 'httplog', 'httpclose'],
+    },
+    balancermember_options => 'check port 49001 inter 15s fastinter 2s downinter 8s rise 3 fall 3',
   }
 
   openstack::ha::haproxy_service { 'swift':
     order                  => '120',
     listen_port            => 8080,
     public                 => true,
-    haproxy_config_options => {
-      'option' => ['httpchk', 'httplog', 'httpclose'],
-    },
-    balancermember_options => 'check port 49001 inter 15s fastinter 2s downinter 8s rise 3 fall 3',
+  }
+
+  if $baremetal_virtual_ip {
+    openstack::ha::haproxy_service { 'swift-baremetal':
+      order                  => '125',
+      listen_port            => 8080,
+      public_virtual_ip      => false,
+      internal_virtual_ip    => $baremetal_virtual_ip,
+    }
   }
 }
+
