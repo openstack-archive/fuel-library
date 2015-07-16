@@ -1,15 +1,16 @@
 notice('MODULAR: mongo.pp')
 
+prepare_network_config(hiera('network_scheme', {}))
+$bind_address     = get_network_role_property('mongo/db', 'ipaddr')
 $use_syslog       = hiera('use_syslog', true)
 $debug            = hiera('debug', false)
-$internal_address = hiera('internal_address')
 $nodes_hash       = hiera('nodes', {})
-$roles            = node_roles($nodes_hash, hiera('uid'))
+$roles            = hiera('roles')
 
 ####################################################################
 
 class { 'openstack::mongo_secondary':
-  mongodb_bind_address        => [ '127.0.0.1', $internal_address ],
+  mongodb_bind_address        => [ '127.0.0.1', $bind_address ],
   use_syslog                  => $use_syslog,
   debug                       => $debug,
   replset                     => 'ceilometer',
