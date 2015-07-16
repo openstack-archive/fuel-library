@@ -133,6 +133,7 @@ class openstack::compute (
   $storage_hash                   = {},
   $neutron_settings               = {},
   $install_bridge_utils           = false,
+  $compute_driver                 = undef,
 ) {
 
   #
@@ -345,6 +346,7 @@ class openstack::compute (
     vncserver_listen                           => $vncserver_listen,
     migration_support                          => $migration_support,
     remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
+    compute_driver                             => $compute_driver,
     # Workaround for bug LP #1469308
     # also service name for Ubuntu and Centos is the same.
     libvirt_service_name     => "libvirtd",
