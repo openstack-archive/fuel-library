@@ -13,6 +13,7 @@ Source0: %{name}-%{version}.tar.gz
 Provides: fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+BuildRequires: ruby21 >= 2.1
 Requires: fuel-misc
 
 %define files_source %{_builddir}/%{name}-%{version}/files
@@ -28,6 +29,14 @@ This package contains deployment manifests and code to execute provisioning of m
 
 %prep
 %setup -cq
+
+%build
+if test -x %{_builddir}/%{name}-%{version}/deployment/update_modules.sh; then
+  # need bundler installed to run update_modules.sh     35
+  gem install bundler --no-ri --no-rdoc --user-install    36
+  PATH="$(ruby -rubygems -e 'puts Gem.user_dir')/bin:$PATH"
+  %{_builddir}/%{name}-%{version}/deployment/update_modules.sh
+fi
 
 %install
 mkdir -p %{buildroot}/etc/puppet/%{openstack_version}/modules/
