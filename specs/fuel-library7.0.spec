@@ -29,6 +29,11 @@ This package contains deployment manifests and code to execute provisioning of m
 %prep
 %setup -cq
 
+%build
+if test -x %{_builddir}/%{name}-%{version}/deployment/update_modules.sh; then
+  %{_builddir}/%{name}-%{version}/deployment/update_modules.sh
+fi
+
 %install
 mkdir -p %{buildroot}/etc/puppet/%{openstack_version}/modules/
 mkdir -p %{buildroot}/etc/puppet/%{openstack_version}/manifests/
