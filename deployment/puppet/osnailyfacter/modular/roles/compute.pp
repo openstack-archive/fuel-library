@@ -17,7 +17,6 @@ $mp_hash                        = hiera('mp')
 $verbose                        = true
 $debug                          = hiera('debug', true)
 $use_monit                      = false
-$mongo_hash                     = hiera('mongo', {})
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $nodes_hash                     = hiera('nodes', {})
 $storage_hash                   = hiera('storage', {})
@@ -47,7 +46,6 @@ $syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
 $syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
 $syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL0')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
-$syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
 $nova_rate_limits               = hiera('nova_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
@@ -98,32 +96,6 @@ if $use_neutron {
   $novanetwork_params = hiera('novanetwork_parameters')
 }
 
-if !$ceilometer_hash {
-  $ceilometer_hash = {
-    enabled => false,
-    db_password => 'ceilometer',
-    user_password => 'ceilometer',
-    metering_secret => 'ceilometer',
-  }
-  $ext_mongo = false
-} else {
-  # External mongo integration
-  if $mongo_hash['enabled'] {
-    $ext_mongo_hash = hiera('external_mongo')
-    $ceilometer_db_user = $ext_mongo_hash['mongo_user']
-    $ceilometer_db_password = $ext_mongo_hash['mongo_password']
-    $ceilometer_db_name = $ext_mongo_hash['mongo_db_name']
-    $ext_mongo = true
-  } else {
-    $ceilometer_db_user = 'ceilometer'
-    $ceilometer_db_password = $ceilometer_hash['db_password']
-    $ceilometer_db_name = 'ceilometer'
-    $ext_mongo = false
-    $ext_mongo_hash = {}
-  }
-}
-
-
 if $primary_controller {
   if ($mellanox_mode == 'ethernet') {
     $test_vm_pkg = 'cirros-testvm-mellanox'
@@ -133,23 +105,6 @@ if $primary_controller {
   package { 'cirros-testvm' :
     ensure => 'installed',
     name   => $test_vm_pkg,
-  }
-}
-
-
-if $ext_mongo {
-  $mongo_hosts = $ext_mongo_hash['hosts_ip']
-  if $ext_mongo_hash['mongo_replset'] {
-    $mongo_replicaset = $ext_mongo_hash['mongo_replset']
-  } else {
-    $mongo_replicaset = undef
-  }
-} elsif $ceilometer_hash['enabled'] {
-  $mongo_hosts = mongo_hosts($nodes_hash)
-  if size(mongo_hosts($nodes_hash, 'array', 'mongo')) > 1 {
-    $mongo_replicaset = 'ceilometer'
-  } else {
-    $mongo_replicaset = undef
   }
 }
 
