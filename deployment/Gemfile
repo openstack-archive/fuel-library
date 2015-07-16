@@ -1,0 +1,17 @@
+source 'https://rubygems.org'
+# this is used to bundle install librarian puppet for the deployment folder
+
+# NOTE: that after the build system no longer runs on ruby 1.8.7 we can removei
+# these version constraints on the these modules.
+group :development, :test do
+  gem 'librarian-puppet', "~> 1.0.0" if RUBY_VERSION < "1.9.3"
+  gem 'highline', "~> 1.6.21" if RUBY_VERSION < "1.9.3"
+end
+
+if puppetversion = ENV['PUPPET_GEM_VERSION']
+  gem 'puppet', puppetversion, :require => false
+else
+  gem 'puppet', :require => false
+end
+
+# vim:ft=ruby
