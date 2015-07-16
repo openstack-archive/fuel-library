@@ -19,6 +19,9 @@ define openstack::network::create_network (
   if $netdata['L3']['floating'] {
     $alloc = split($netdata['L3']['floating'], ':')
     $allocation_pools = "start=${alloc[0]},end=${alloc[1]}"
+  } elsif $netdata['L3']['allocation_pool'] {
+    $alloc = split($netdata['L3']['allocation_pool'], ':')
+    $allocation_pools = "start=${alloc[0]},end=${alloc[1]}"
   }
 
   if $netdata['L2']['physnet'] {
