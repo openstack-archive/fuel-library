@@ -30,7 +30,7 @@ $keystone_hash                  = hiera('keystone', {})
 $cinder_hash                    = hiera_hash('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
-$network_scheme                 = hiera_hash('network_scheme')
+$network_scheme                 = hiera('network_scheme', {})
 $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
@@ -93,9 +93,9 @@ class { 'l23network' :
 }
 
 if $use_neutron {
-  $neutron_config = hiera('quantum_settings')
+  $neutron_config            = hiera('quantum_settings')
 } else {
-  $neutron_config = {}
+  $neutron_config     = {}
 }
 
 if !$ceilometer_hash {
@@ -195,6 +195,26 @@ $controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
+# AMQP client configuration
+if hiera('amqp_nodes', false) {
+  $amqp_nodes = hiera('amqp_nodes')
+}
+elsif $internal_address in $controller_nodes {
+  # prefer local MQ broker if it exists on this node
+  $amqp_nodes = concat(['127.0.0.1'], fqdn_rotate(delete($controller_nodes, $internal_address)))
+} else {
+  $amqp_nodes = fqdn_rotate($controller_nodes)
+}
+
+$amqp_port = hiera('amqp_port', '5673')
+$amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+$rabbit_ha_queues = true
+
+# RabbitMQ server configuration
+$rabbitmq_bind_ip_address = 'UNSET'              # bind RabbitMQ to 0.0.0.0
+$rabbitmq_bind_port = $amqp_port
+$rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames
+
 # SQLAlchemy backend configuration
 $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
 $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
@@ -275,9 +295,9 @@ if ($use_ceph and !$storage_hash['volumes_lvm']) {
   $primary_mon    = $controllers[0]['name']
 
   if ($use_neutron) {
-    prepare_network_config(hiera_hash('network_scheme'))
-    $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
-    $ceph_public_network  = get_network_role_property('ceph/public', 'network')
+    prepare_network_config($network_scheme)
+    $ceph_cluster_network = get_network_role_property('storage', 'cidr')
+    $ceph_public_network  = get_network_role_property('management', 'cidr')
   } else {
     $ceph_cluster_network = hiera('storage_network_range')
     $ceph_public_network = hiera('management_network_range')
@@ -330,10 +350,10 @@ class { 'openstack::cinder':
   glance_api_servers   => $glance_api_servers,
   bind_host            => $bind_host,
   queue_provider       => $queue_provider,
-  amqp_hosts           => hiera('amqp_hosts',''),
+  amqp_hosts           => $amqp_hosts,
   amqp_user            => $rabbit_hash['user'],
   amqp_password        => $rabbit_hash['password'],
-  rabbit_ha_queues     => hiera('rabbit_ha_queues', false),
+  rabbit_ha_queues     => $rabbit_ha_queues,
   volume_group         => 'cinder',
   manage_volumes       => $manage_volumes,
   iser                 => $storage_hash['iser'],
