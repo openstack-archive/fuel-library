@@ -29,6 +29,16 @@ describe manifest do
          'auth_region' => 'RegionOne',
         )
       end
+
+      ironic_enabled = Noop.hiera_structure 'ironic/enabled'
+
+      if ironic_enabled
+        it 'should contain openstack::network with flat_networks' do
+          should contain_class('openstack::network').with(
+            'flat_networks' => ['physnet-ironic'],
+          )
+        end
+      end
     else
       it 'should declare openstack::network with neutron_server parameter set to false' do
         should contain_class('openstack::network').with(

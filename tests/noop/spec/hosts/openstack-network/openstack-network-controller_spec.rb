@@ -9,6 +9,7 @@ describe manifest do
 
     use_neutron = Noop.hiera 'use_neutron'
     ceilometer_enabled = Noop.hiera_structure 'ceilometer/enabled'
+    ironic_enabled = Noop.hiera_structure 'ironic/enabled'
 
     # Network
     if use_neutron
@@ -89,6 +90,13 @@ describe manifest do
               'net_mtu'      => nil,
             )
           end
+      end
+      if ironic_enabled
+        it 'should contain openstack::network with flat_networks' do
+          should contain_class('openstack::network').with(
+            'flat_networks' => ['physnet-ironic'],
+          )
+        end
       end
     else
       it 'should declare openstack::network with neutron disabled' do
