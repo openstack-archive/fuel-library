@@ -38,6 +38,12 @@ describe manifest do
       should contain_class('nova::migration::libvirt')
     end
 
+    it 'should declare class nova::compute with reserved_host_memory set to undef' do
+      should contain_class('nova::compute').with(
+        'reserved_host_memory' => nil,
+      )
+    end
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
