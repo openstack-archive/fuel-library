@@ -56,39 +56,57 @@
 #   (optional) Which weight class names to use for weighing hosts
 #   Defaults to 'nova.scheduler.weights.all_weighers'
 #
+# [*baremetal_scheduler_default_filters*]
+#   (optional) An array of filters to be used by default for baremetal hosts
+#   Defaults to undef
+#
+# [*scheduler_use_baremetal_filters*]
+#   (optional) Use baremetal_scheduler_default_filters or not.
+#   Defaults to false
+#
 class nova::scheduler::filter (
-  $scheduler_host_manager       = 'nova.scheduler.host_manager.HostManager',
-  $scheduler_max_attempts       = '3',
-  $scheduler_host_subset_size   = '1',
-  $cpu_allocation_ratio         = '16.0',
-  $disk_allocation_ratio        = '1.0',
-  $max_io_ops_per_host          = '8',
-  $max_instances_per_host       = '50',
-  $ram_allocation_ratio         = '1.5',
-  $isolated_images              = false,
-  $isolated_hosts               = false,
-  $scheduler_available_filters  = 'nova.scheduler.filters.all_filters',
-  $scheduler_default_filters    = false,
-  $scheduler_weight_classes     = 'nova.scheduler.weights.all_weighers',
+  $scheduler_host_manager              = 'nova.scheduler.host_manager.HostManager',
+  $scheduler_max_attempts              = '3',
+  $scheduler_host_subset_size          = '1',
+  $cpu_allocation_ratio                = '16.0',
+  $disk_allocation_ratio               = '1.0',
+  $max_io_ops_per_host                 = '8',
+  $max_instances_per_host              = '50',
+  $ram_allocation_ratio                = '1.5',
+  $isolated_images                     = false,
+  $isolated_hosts                      = false,
+  $scheduler_available_filters         = 'nova.scheduler.filters.all_filters',
+  $scheduler_default_filters           = false,
+  $scheduler_weight_classes            = 'nova.scheduler.weights.all_weighers',
+  $baremetal_scheduler_default_filters = undef,
+  $scheduler_use_baremetal_filters     = false,
 ) {
 
   nova_config {
-    'DEFAULT/scheduler_host_manager':       value => $scheduler_host_manager;
-    'DEFAULT/scheduler_max_attempts':       value => $scheduler_max_attempts;
-    'DEFAULT/scheduler_host_subset_size':   value => $scheduler_host_subset_size;
-    'DEFAULT/cpu_allocation_ratio':         value => $cpu_allocation_ratio;
-    'DEFAULT/disk_allocation_ratio':        value => $disk_allocation_ratio;
-    'DEFAULT/max_io_ops_per_host':          value => $max_io_ops_per_host;
-    'DEFAULT/max_instances_per_host':       value => $max_instances_per_host;
-    'DEFAULT/ram_allocation_ratio':         value => $ram_allocation_ratio;
-    'DEFAULT/scheduler_available_filters':  value => $scheduler_available_filters;
-    'DEFAULT/scheduler_weight_classes':     value => $scheduler_weight_classes
+    'DEFAULT/scheduler_host_manager':          value => $scheduler_host_manager;
+    'DEFAULT/scheduler_max_attempts':          value => $scheduler_max_attempts;
+    'DEFAULT/scheduler_host_subset_size':      value => $scheduler_host_subset_size;
+    'DEFAULT/cpu_allocation_ratio':            value => $cpu_allocation_ratio;
+    'DEFAULT/disk_allocation_ratio':           value => $disk_allocation_ratio;
+    'DEFAULT/max_io_ops_per_host':             value => $max_io_ops_per_host;
+    'DEFAULT/max_instances_per_host':          value => $max_instances_per_host;
+    'DEFAULT/ram_allocation_ratio':            value => $ram_allocation_ratio;
+    'DEFAULT/scheduler_available_filters':     value => $scheduler_available_filters;
+    'DEFAULT/scheduler_weight_classes':        value => $scheduler_weight_classes;
+    'DEFAULT/scheduler_use_baremetal_filters': value => $scheduler_use_baremetal_filters;
   }
   if ($scheduler_default_filters)  {
-    nova_config { 'DEFAULT/scheduler_default_filters':  value => join($scheduler_default_filters,',')
+    nova_config { 'DEFAULT/scheduler_default_filters': value => join($scheduler_default_filters,',')
     }
   } else {
-    nova_config  { 'DEFAULT/scheduler_default_filters': ensure => absent
+    nova_config { 'DEFAULT/scheduler_default_filters': ensure => absent
+    }
+  }
+  if ($baremetal_scheduler_default_filters)  {
+    nova_config { 'DEFAULT/baremetal_scheduler_default_filters': value => join($baremetal_scheduler_default_filters,',')
+    }
+  } else {
+    nova_config { 'DEFAULT/baremetal_scheduler_default_filters': ensure => absent
     }
   }
   if ($isolated_images) {
