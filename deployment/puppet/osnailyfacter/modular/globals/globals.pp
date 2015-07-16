@@ -267,6 +267,11 @@ $is_primary_swift_proxy = $primary_controller
 # todo: use special node-roles instead controllers in the future
 $database_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
+# Define mongo-related variables
+if $mongo_hash['enabled'] {
+  $mongo_nodes  = get_nodes_hash_by_roles($network_metadata, ['primary-mongo', 'mongo'])
+}
+
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
 file { '/etc/hiera/globals.yaml' :
