@@ -24,6 +24,7 @@ module NoopTests
   ASTUTE_YAML_VAR = 'SPEC_ASTUTE_FILE_NAME'
   BUNDLE_DIR = '.bundled_gems'
   BUNDLE_VAR = 'GEM_HOME'
+  LIBRARIAN_TMP = '.librarian_tmp'
   GLOBALS_PREFIX = 'globals_yaml_for_'
   PUPPET_GEM_VERSION = '~> 3.4.0'
   TEST_LIBRARY_DIR = 'spec/hosts'
@@ -110,6 +111,9 @@ module NoopTests
         ENV['SPEC_PUPPET_LOGS_DIR'] = dir
         @options[:puppet_logs_dir] = dir
       end
+      opts.on('-u', '--update-librarian-puppet', 'Run librarian-puppet update in the deployment directory prior to testing') do
+        @options[:update_librarian_puppet] = true
+      end
     end
     optparse.parse!
     @options
@@ -159,6 +163,12 @@ module NoopTests
     File.expand_path File.join File.dirname(__FILE__), '..', '..', 'deployment', 'puppet', 'osnailyfacter', 'modular'
   end
 
+  # the base directory that houses all the puppet module directory
+  # @return [String]
+  def self.deployment_directory
+    File.expand_path File.join File.dirname(__FILE__), '..', '..', 'deployment'
+  end
+
   # LISTERS #
 
   # find all modular task files
@@ -206,6 +216,16 @@ module NoopTests
   def self.inside_noop_tests_directory
     current_directory = Dir.pwd
     Dir.chdir noop_tests_directory
+    result = yield
+    Dir.chdir current_directory if current_directory
+    result
+  end
+
+  # run the clode block inside the deployment driectory
+  # and then return back
+  def self.inside_deployment_directory
+    current_directory = Dir.pwd
+    Dir.chdir deployment_directory
     result = yield
     Dir.chdir current_directory if current_directory
     result
@@ -369,6 +389,20 @@ module NoopTests
     end
   end
 
+  # run librarian-puppet to fetch modules as necessary
+  def self.prepare_library
+    # these are needed to ensure we have the correctly bundle
+    ENV['PUPPET_GEM_VERSION'] = PUPPET_GEM_VERSION unless ENV['PUPPET_GEM_VERSION']
+    ENV['BUNDLE_DIR'] = File.join workspace, BUNDLE_DIR
+    ENV['LIBRARIAN_TMP'] = File.join workspace, LIBRARIAN_TMP
+    inside_deployment_directory do
+      puts "-> Starting update_modules script"
+      system './update_modules.sh -b -v'
+      raise 'Unable to update upstream puppet modules using librarian-puppet' if $?.exitstatus != 0
+      puts "-> Finished update_modules script"
+    end
+  end
+
   # add color codes to a line
   # @param [Integer] code Color code
   # @param [String] string Text string
@@ -456,6 +490,11 @@ module NoopTests
     if options[:purge_globals]
       purge_globals
       exit 0
+    end
+
+    # run librarian-puppet update to prepare the library
+    if options[:update_librarian_puppet]
+        prepare_library
     end
 
     success, result = for_every_astute_yaml do
