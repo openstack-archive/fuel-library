@@ -38,6 +38,19 @@ describe manifest do
       should contain_class('nova::migration::libvirt')
     end
 
+    it 'should declare class nova::compute::libvirt with compute_driver set to libvirt.LibvirtDriver by default' do
+      should contain_class('nova::compute::libvirt').with(
+        'compute_driver' => 'libvirt.LibvirtDriver',
+      )
+    end
+
+    it 'should declare class nova::compute::libvirt with compute_driver set to ironic.IronicDriver' do
+      compute_driver = 'ironic.IronicDriver'
+      should contain_class('nova::compute::libvirt').with(
+        'compute_driver' => 'ironic.IronicDriver',
+      )
+    end
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
