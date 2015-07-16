@@ -17,6 +17,7 @@ group :development, :test do
   gem 'puppet-lint-numericvariable'
 
   gem 'beaker-rspec', :require => false
+  gem 'beaker-puppet_install_helper', :require => false
   gem 'json'
   gem 'webmock'
 end
