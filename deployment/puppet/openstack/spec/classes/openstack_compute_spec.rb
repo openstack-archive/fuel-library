@@ -34,7 +34,8 @@ describe 'openstack::compute' do
         :enabled                        => true,
         :vnc_enabled                    => true,
         :vncserver_proxyclient_address  => '0.0.0.0',
-        :vncproxy_host                  => false
+        :vncproxy_host                  => false,
+        :reserved_host_memory           => nil
       )
       should contain_class('nova::compute::libvirt').with(
         :libvirt_type     => 'kvm',
@@ -65,19 +66,20 @@ describe 'openstack::compute' do
   describe "when overriding parameters, but not enabling multi-host or volume management" do
     let :override_params do
       {
-        :private_interface   => 'eth1',
-        :internal_address    => '127.0.0.1',
-        :public_interface    => 'eth2',
-        :database_connection => 'mysql://user:passwd@host/name',
-        :nova_user_password  => 'nova_pass',
-        :rabbit_host         => 'my_host',
-        :rabbit_password     => 'my_rabbit_pw',
-        :rabbit_user         => 'my_rabbit_user',
-        :glance_api_servers  => ['controller:9292'],
-        :libvirt_type        => 'qemu',
-        :vncproxy_host       => '127.0.0.2',
-        :vnc_enabled         => false,
-        :verbose             => true,
+        :private_interface    => 'eth1',
+        :internal_address     => '127.0.0.1',
+        :public_interface     => 'eth2',
+        :database_connection  => 'mysql://user:passwd@host/name',
+        :nova_user_password   => 'nova_pass',
+        :rabbit_host          => 'my_host',
+        :rabbit_password      => 'my_rabbit_pw',
+        :rabbit_user          => 'my_rabbit_user',
+        :glance_api_servers   => ['controller:9292'],
+        :libvirt_type         => 'qemu',
+        :vncproxy_host        => '127.0.0.2',
+        :vnc_enabled          => false,
+        :verbose              => true,
+        :reserved_host_memory => '1024',
       }
     end
     let :params do
@@ -97,7 +99,8 @@ describe 'openstack::compute' do
         :enabled                        => true,
         :vnc_enabled                    => false,
         :vncserver_proxyclient_address  => '127.0.0.1',
-        :vncproxy_host                  => '127.0.0.2'
+        :vncproxy_host                  => '127.0.0.2',
+        :reserved_host_memory           => '1024'
       )
       should contain_class('nova::compute::libvirt').with(
         :libvirt_type     => 'qemu',
