@@ -12,10 +12,6 @@ if $neutron_mellanox {
   $mellanox_mode = 'disabled'
 }
 
-class { 'l23network' :
-  use_ovs => $use_neutron
-}
-
 if $primary_controller {
   if ($mellanox_mode == 'ethernet') {
     $test_vm_pkg = 'cirros-testvm-mellanox'

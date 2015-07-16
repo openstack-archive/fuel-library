@@ -1,12 +1,13 @@
 notice('MODULAR: mongo_primary.pp')
 
-$use_syslog       = hiera('use_syslog', true)
-$debug            = hiera('debug', false)
-$internal_address = hiera('internal_address')
-$ceilometer_hash  = hiera('ceilometer')
-$nodes_hash       = hiera('nodes')
-$roles            = node_roles($nodes_hash, hiera('uid'))
-$replset_name     = 'ceilometer'
+prepare_network_config(hiera('network_scheme', {}))
+$mongo_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('mongo_nodes'), 'mongo/db')
+$bind_address      = get_network_role_property('mongo/db', 'ipaddr')
+$use_syslog        = hiera('use_syslog', true)
+$debug             = hiera('debug', false)
+$ceilometer_hash   = hiera('ceilometer')
+$roles             = hiera('roles')
+$replset_name      = 'ceilometer'
 
 ####################################################################
 firewall {'120 mongodb':
@@ -19,7 +20,7 @@ class { 'openstack::mongo_primary':
   mongodb_bind_address       => [ '127.0.0.1', $internal_address ],
   ceilometer_metering_secret => $ceilometer_hash['metering_secret'],
   ceilometer_db_password     => $ceilometer_hash['db_password'],
-  ceilometer_replset_members => mongo_hosts($nodes_hash, 'array'),
+  ceilometer_replset_members  => values($mongo_address_map),
   replset_name               => $replset_name,
   mongo_version              => '2.6.10',
   use_syslog                 => $use_syslog,
