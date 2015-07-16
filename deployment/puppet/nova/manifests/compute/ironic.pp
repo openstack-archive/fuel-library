@@ -29,13 +29,17 @@
 #   The url for Ironic api endpoint.
 #   Defaults to 'http://127.0.0.1:6385/v1'
 #
-
+# [*compute_driver*]
+#   (optional) Compute driver.
+#   Defaults to 'ironic.IronicDriver'
+#
 class nova::compute::ironic (
   $admin_user           = 'admin',
   $admin_passwd         = 'ironic',
   $admin_url            = 'http://127.0.0.1:35357/v2.0',
   $admin_tenant_name    = 'services',
   $api_endpoint         = 'http://127.0.0.1:6385/v1',
+  $compute_driver       = 'ironic.IronicDriver'
 ) {
 
   nova_config {
@@ -44,6 +48,6 @@ class nova::compute::ironic (
     'ironic/admin_url':                 value => $admin_url;
     'ironic/admin_tenant_name':         value => $admin_tenant_name;
     'ironic/api_endpoint':              value => $api_endpoint;
-    'DEFAULT/compute_driver':           value => 'nova.virt.ironic.IronicDriver';
+    'DEFAULT/compute_driver':           value => $compute_driver;
   }
 }
