@@ -38,7 +38,8 @@ describe 'openstack::compute' do
       )
       should contain_class('nova::compute::libvirt').with(
         :libvirt_type     => 'kvm',
-        :vncserver_listen => '0.0.0.0'
+        :vncserver_listen => '0.0.0.0',
+        :compute_driver   => 'libvirt.LibvirtDriver'
       )
       should contain_nova_config('multi_host').with( :value => 'False' )
       should contain_nova_config('send_arp_for_ha').with( :value => 'False' )
@@ -78,6 +79,7 @@ describe 'openstack::compute' do
         :vncproxy_host       => '127.0.0.2',
         :vnc_enabled         => false,
         :verbose             => true,
+        :compute_driver      => 'ironic.IronicDriver',
       }
     end
     let :params do
@@ -101,7 +103,8 @@ describe 'openstack::compute' do
       )
       should contain_class('nova::compute::libvirt').with(
         :libvirt_type     => 'qemu',
-        :vncserver_listen => '127.0.0.1'
+        :vncserver_listen => '127.0.0.1',
+        :compute_driver   => 'ironic.IronicDriver'
       )
       should contain_nova_config('multi_host').with( :value => 'False' )
       should contain_nova_config('send_arp_for_ha').with( :value => 'False' )
