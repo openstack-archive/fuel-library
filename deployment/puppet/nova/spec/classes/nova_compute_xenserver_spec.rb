@@ -26,4 +26,14 @@ describe 'nova::compute::xenserver' do
       )
     end
   end
+
+  context 'with overridden parameters' do
+    before do
+      params.merge!({:compute_driver => 'xenapi.FoobarDriver'})
+    end
+
+    it 'configures xenapi in nova.conf' do
+      is_expected.to contain_nova_config('DEFAULT/compute_driver').with_value('xenapi.FoobarDriver')
+    end
+  end
 end
