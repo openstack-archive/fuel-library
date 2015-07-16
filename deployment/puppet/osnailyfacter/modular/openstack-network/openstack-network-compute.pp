@@ -265,7 +265,19 @@ if $network_provider == 'neutron' {
     $vlan_range = []
   }
 
-  if $physnet1 and $physnet2 {
+  if $pnets['physnet-ironic'] {
+    $physnet_ironic = "physnet-ironic:${pnets['physnet-ironic']['bridge']}"
+    $flat_networks  = ['physnet-ironic']
+    notify{ $physnet_ironic:}
+  }
+
+  if $physnet1 and $physnet2 and $physnet-ironic {
+    $bridge_mappings = [$physnet1, $physnet2, $physnet-ironic]
+  } elsif $physnet1 and $physnet_ironic {
+    $bridge_mappings = [$physnet1, $physnet_ironic]
+  } elsif $physnet2 and $physnet_ironic {
+    $bridge_mappings = [$physnet2, $physnet_ironic]
+  } elsif $physnet1 and $physnet2 {
     $bridge_mappings = [$physnet1, $physnet2]
   } elsif $physnet1 {
     $bridge_mappings = [$physnet1]
@@ -333,6 +345,7 @@ class { 'openstack::network':
   enable_tunneling    => $enable_tunneling,
   tunnel_id_ranges    => $tunnel_id_ranges,
   tunnel_types        => $tunnel_types,
+  flat_networks       => $flat_networks,
 
   verbose             => true,
   debug               => hiera('debug', true),
