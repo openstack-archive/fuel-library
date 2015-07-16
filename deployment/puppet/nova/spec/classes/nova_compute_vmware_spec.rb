@@ -14,7 +14,8 @@ describe 'nova::compute::vmware' do
      :maximum_objects => 100,
      :task_poll_interval => 10.5,
      :use_linked_clone => false,
-     :wsdl_location => 'http://127.0.0.1:8080/vmware/SDK/wsdl/vim25/vimService.wsdl'}
+     :wsdl_location => 'http://127.0.0.1:8080/vmware/SDK/wsdl/vim25/vimService.wsdl',
+     :compute_driver => 'vmwareapi.FoobarDriver' }
   end
 
   it 'configures vmwareapi in nova.conf' do
@@ -42,6 +43,7 @@ describe 'nova::compute::vmware' do
     end
 
     it 'configures vmwareapi in nova.conf' do
+      is_expected.to contain_nova_config('DEFAULT/compute_driver').with_value(params[:compute_driver])
       is_expected.to contain_nova_config('VMWARE/api_retry_count').with_value(params[:api_retry_count])
       is_expected.to contain_nova_config('VMWARE/maximum_objects').with_value(params[:maximum_objects])
       is_expected.to contain_nova_config('VMWARE/task_poll_interval').with_value(params[:task_poll_interval])

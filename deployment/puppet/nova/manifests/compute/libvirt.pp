@@ -78,6 +78,10 @@
 #   (optional) libvirt service name.
 #   Defaults to $::nova::params::libvirt_service_name
 #
+# [*compute_driver*]
+#   (optional) Compute driver.
+#   Defaults to 'libvirt.LibvirtDriver'
+#
 class nova::compute::libvirt (
   $libvirt_virt_type                          = 'kvm',
   $vncserver_listen                           = '127.0.0.1',
@@ -92,6 +96,7 @@ class nova::compute::libvirt (
   $remove_unused_resized_minimum_age_seconds  = undef,
   $remove_unused_original_minimum_age_seconds = undef,
   $libvirt_service_name                       = $::nova::params::libvirt_service_name,
+  $compute_driver                             = 'libvirt.LibvirtDriver'
 ) inherits nova::params {
 
   include ::nova::params
@@ -153,7 +158,7 @@ class nova::compute::libvirt (
   }
 
   nova_config {
-    'DEFAULT/compute_driver':   value => 'libvirt.LibvirtDriver';
+    'DEFAULT/compute_driver':   value => $compute_driver;
     'DEFAULT/vncserver_listen': value => $vncserver_listen;
     'libvirt/virt_type':        value => $libvirt_virt_type;
     'libvirt/cpu_mode':         value => $libvirt_cpu_mode_real;
