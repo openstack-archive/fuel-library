@@ -67,7 +67,15 @@ describe manifest do
         end
       end
     end
-
+    ironic_enabled = Noop.hiera_structure 'ironic/enabled'
+    if ironic_enabled
+      it 'should declare nova::scheduler::filter class with scheduler_host_manager' do
+        should contain_class('openstack::ha::ironic').with(
+          'scheduler_host_manager' => 'nova.scheduler.ironic_host_manager.IronicHostManager',
+          'scheduler_use_baremetal_filters' => 'true'
+        )
+      end
+    end
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
