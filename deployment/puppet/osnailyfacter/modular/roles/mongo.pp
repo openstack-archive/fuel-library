@@ -1,11 +1,11 @@
 notice('MODULAR: mongo.pp')
 
-$use_syslog       = hiera('use_syslog', true)
-$debug            = hiera('debug', false)
-$internal_address = hiera('internal_address')
-$nodes_hash       = hiera('nodes', {})
-$roles            = node_roles($nodes_hash, hiera('uid'))
-$replset_name     = 'ceilometer'
+prepare_network_config(hiera('network_scheme', {}))
+$mongo_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('mongo_nodes'), 'mongo/db')
+$bind_address      = get_network_role_property('mongo/db', 'ipaddr')
+$use_syslog        = hiera('use_syslog', true)
+$debug             = hiera('debug', false)
+$roles             = hiera('roles')
 
 ####################################################################
 firewall {'120 mongodb':
