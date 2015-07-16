@@ -6,7 +6,13 @@ describe manifest do
   shared_examples 'catalog' do
 
    storage_hash = Noop.hiera_structure 'storage'
+   ironic_enabled = Noop.hiera_structure 'ironic/enabled'
 
+   if ironic_enabled
+     compute_driver = 'ironic.IronicDriver'
+   else
+     compute_driver = 'libvirt.LibvirtDriver'
+   end
    it 'should declare class nova::compute with install_bridge_utils set to false' do
       should contain_class('nova::compute').with(
         'install_bridge_utils' => false,
