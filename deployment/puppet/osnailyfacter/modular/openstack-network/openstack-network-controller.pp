@@ -28,6 +28,9 @@ if $use_neutron {
   $novanetwork_params    = {}
   $neutron_config        = hiera_hash('quantum_settings')
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
+  #todo(sv): default value set to false as soon as Nailgun/UI part be ready
+  $isolated_metadata     = pick($neutron_config['metadata']['isolated_metadata'], true)
+
   # Neutron Keystone settings
   $neutron_user_password = $neutron_config['keystone']['admin_password']
   $keystone_user         = pick($neutron_config['keystone']['admin_user'], 'neutron')
@@ -43,6 +46,7 @@ if $use_neutron {
   $floating_ips_range = hiera('floating_network_range')
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
+  $isolated_metadata  = false
 }
 
 $keystone_admin_tenant = $access_hash[tenant]
@@ -250,8 +254,9 @@ class { 'openstack::network':
   ceilometer => $ceilometer_hash['enabled'],
 
   #metadata
-  shared_secret   => $neutron_metadata_proxy_secret,
-  metadata_ip     => $nova_endpoint,
+  shared_secret     => $neutron_metadata_proxy_secret,
+  metadata_ip       => $nova_endpoint,
+  isolated_metadata => $isolated_metadata,
 
   #nova settings
   private_interface      => $use_neutron ? { true=>false, default=>hiera('private_int', undef)},

@@ -35,7 +35,8 @@ class openstack::network (
 
   # metadata-agent
   $shared_secret,
-  $metadata_ip      = '127.0.0.1',
+  $metadata_ip       = '127.0.0.1',
+  $isolated_metadata = false,
 
   # dhcp-agent
   $resync_interval  = 30,
@@ -277,8 +278,9 @@ class openstack::network (
           vni_ranges            => $vni_ranges,
 
           #metadata-agent
-          shared_secret => $shared_secret,
-          metadata_ip   => $metadata_ip,
+          shared_secret     => $shared_secret,
+          metadata_ip       => $metadata_ip,
+          isolated_metadata => $isolated_metadata,
 
           #dhcp-agent
           resync_interval => $resync_interval,
