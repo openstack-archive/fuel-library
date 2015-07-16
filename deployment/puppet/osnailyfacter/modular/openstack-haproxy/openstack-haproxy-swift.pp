@@ -1,6 +1,7 @@
 notice('MODULAR: openstack-haproxy-swift.pp')
 
-$storage_hash = hiera_hash('storage', {})
+$storage_hash  = hiera_hash('storage', {})
+$ironic_hash   = hiera_hash('ironic', {})
 
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
   $use_swift = true
@@ -8,24 +9,31 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   $use_swift = false
 }
 
-if ($use_swift) {
-  $swift_proxies_address_map = get_node_to_ipaddr_map_by_network_role($swift_proxies, 'swift/api')
+if $ironic_hash['enabled'] {
+  $baremetal_virtual_ip = hiera('baremetal_vip')
+} else {
+  $baremetal_virtual_ip = false
+}
 
-  $swift_proxies       = hiera('swift_proxies', undef)
+if ($use_swift) {
+  $swift_proxies = hiera('swift_proxies', $haproxy_nodes)
+
   $haproxy_nodes       = pick(hiera('haproxy_nodes', undef),
                               hiera('controllers', undef))
-  $server_names        = pick(hiera_array('swift_server_names', keys($swift_proxies_address_map)),
+  $server_names        = pick(hiera_array('swift_server_names', undef),
                               filter_hash(pick($swift_proxies, $haproxy_nodes), 'name'))
-  $ipaddresses         = pick(hiera_array('swift_ipaddresses', values($swift_proxies_address_map)),
-                              filter_hash(pick($swift_proxies, $haproxy_nodes), 'storage_address'))
+  $ipaddresses         = pick(hiera_array('swift_ipaddresses', undef),
+                              filter_hash($haproxy_nodes, 'storage_address'))
   $public_virtual_ip   = hiera('public_vip')
   $internal_virtual_ip = hiera('management_vip')
 
   # configure swift ha proxy
   class { '::openstack::ha::swift':
-    internal_virtual_ip => $internal_virtual_ip,
-    ipaddresses         => $ipaddresses,
-    public_virtual_ip   => $public_virtual_ip,
-    server_names        => $server_names,
+    internal_virtual_ip  => $internal_virtual_ip,
+    ipaddresses          => $ipaddresses,
+    public_virtual_ip    => $public_virtual_ip,
+    server_names         => $server_names,
+    baremetal_virtual_ip => $baremetal_virtual_ip,
   }
 }
+

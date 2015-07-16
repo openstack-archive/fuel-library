@@ -3,6 +3,7 @@ class openstack::ha::haproxy (
   $controllers,
   $public_virtual_ip,
   $internal_virtual_ip,
+  $baremetal_virtual_ip     = false,
   $horizon_use_ssl          = false,
   $neutron                  = false,
   $queue_provider           = 'rabbitmq',
