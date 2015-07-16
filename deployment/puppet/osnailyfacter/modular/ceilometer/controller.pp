@@ -1,5 +1,13 @@
 notice('MODULAR: ceilometer/controller.pp')
 
+if hiera('amqp_hosts', false) {
+  $amqp_hosts             = hiera('amqp_hosts')
+} else {
+  $amqp_nodes             = hiera('amqp_nodes')
+  $amqp_port              = hiera('amqp_port', '5673')
+  $amqp_hosts             = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+}
+
 $default_ceilometer_hash = {
   'enabled'         => false,
   'db_password'     => 'ceilometer',
@@ -87,7 +95,7 @@ if ($ceilometer_enabled) {
     db_dbname            => $ceilometer_db_dbname,
     swift_rados_backend  => $swift_rados_backend,
     metering_secret      => $ceilometer_metering_secret,
-    amqp_hosts           => hiera('amqp_hosts',''),
+    amqp_hosts           => $amqp_hosts,
     amqp_user            => $amqp_user,
     amqp_password        => $amqp_password,
     rabbit_ha_queues     => $rabbit_ha_queues,
