@@ -12,14 +12,17 @@ describe 'nova::scheduler::filter' do
   it { is_expected.to contain_nova_config('DEFAULT/ram_allocation_ratio').with_value('1.5') }
   it { is_expected.to contain_nova_config('DEFAULT/scheduler_available_filters').with_value('nova.scheduler.filters.all_filters') }
   it { is_expected.to contain_nova_config('DEFAULT/scheduler_weight_classes').with_value('nova.scheduler.weights.all_weighers') }
+  it { is_expected.to contain_nova_config('DEFAULT/scheduler_use_baremetal_filters').with_value(false) }
 
   describe 'when overriding params' do
 
     let :params do
-      {:scheduler_max_attempts     => '4',
-       :isolated_images            => ['ubuntu1','centos2'],
-       :isolated_hosts             => ['192.168.1.2','192.168.1.3'],
-       :scheduler_default_filters  => ['RetryFilter','AvailabilityZoneFilter','RamFilter']
+      {:scheduler_max_attempts               => '4',
+       :isolated_images                      => ['ubuntu1','centos2'],
+       :isolated_hosts                       => ['192.168.1.2','192.168.1.3'],
+       :scheduler_default_filters            => ['RetryFilter','AvailabilityZoneFilter','RamFilter'],
+       :scheduler_use_baremetal_filters      => true,
+       :baremetal_scheduler_default_filters  => ['ExactRamFilter','ExactDiskFilter','ExactCoreFilter']
       }
     end
 
@@ -27,6 +30,8 @@ describe 'nova::scheduler::filter' do
   it { is_expected.to contain_nova_config('DEFAULT/isolated_images').with_value('ubuntu1,centos2') }
   it { is_expected.to contain_nova_config('DEFAULT/isolated_hosts').with_value('192.168.1.2,192.168.1.3') }
   it { is_expected.to contain_nova_config('DEFAULT/scheduler_default_filters').with_value('RetryFilter,AvailabilityZoneFilter,RamFilter') }
+  it { is_expected.to contain_nova_config('DEFAULT/scheduler_use_baremetal_filters').with_value(true) }
+  it { is_expected.to contain_nova_config('DEFAULT/baremetal_scheduler_default_filters').with_value('ExactRamFilter,ExactDiskFilter,ExactCoreFilter') }
 
   end
 

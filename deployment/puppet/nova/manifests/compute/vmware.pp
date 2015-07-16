@@ -43,21 +43,25 @@
 #   default location for bug work-arounds.
 #   Defaults to None.
 #
-
+# [*compute_driver*]
+#   (optional) Compute driver.
+#   Defaults to 'vmwareapi.VMwareVCDriver'
+#
 class nova::compute::vmware(
   $host_ip,
   $host_username,
   $host_password,
   $cluster_name,
-  $api_retry_count=5,
-  $maximum_objects=100,
-  $task_poll_interval=5.0,
-  $use_linked_clone=true,
-  $wsdl_location=undef
+  $api_retry_count = 5,
+  $maximum_objects = 100,
+  $task_poll_interval = 5.0,
+  $use_linked_clone = true,
+  $wsdl_location = undef,
+  $compute_driver = 'vmwareapi.VMwareVCDriver'
 ) {
 
   nova_config {
-    'DEFAULT/compute_driver':      value => 'vmwareapi.VMwareVCDriver';
+    'DEFAULT/compute_driver':      value => $compute_driver;
     'VMWARE/host_ip':              value => $host_ip;
     'VMWARE/host_username':        value => $host_username;
     'VMWARE/host_password':        value => $host_password;
