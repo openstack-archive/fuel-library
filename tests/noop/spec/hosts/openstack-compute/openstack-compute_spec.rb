@@ -38,6 +38,10 @@ describe manifest do
       should contain_class('nova::migration::libvirt')
     end
 
+    it 'nova config should have proper compute_driver' do
+      should contain_nova_config('DEFAULT/compute_driver').with(:value => 'libvirt.LibvirtDriver')
+    end
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
