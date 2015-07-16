@@ -294,10 +294,10 @@ network_metadata:
         - primary-controller
       name: node-137
   vips:
-    management_vrouter_vip: 192.168.0.6
-    management_vip: 192.168.0.5
-    public_vip: 172.16.0.6
-    public_vrouter_vip: 172.16.0.7
+    vrouter: 192.168.0.6
+    management: 192.168.0.5
+    public: 172.16.0.6
+    vrouter_pub: 172.16.0.7
 network_scheme:
   endpoints:
     br-ex:
