@@ -47,6 +47,7 @@
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [ssh_private_key] path to private ssh key temporary location on this server where it was uploaded or generated
 # [ssh_public_key] path to public ssh key temporary location on this server where it was uploaded or generated
+# [compute_driver] Driver to use for controlling virtualization.
 #
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
@@ -133,6 +134,7 @@ class openstack::compute (
   $storage_hash                   = {},
   $neutron_settings               = {},
   $install_bridge_utils           = false,
+  $compute_driver                 = undef,
 ) {
 
   #
@@ -345,6 +347,7 @@ class openstack::compute (
     vncserver_listen                           => $vncserver_listen,
     migration_support                          => $migration_support,
     remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
+    compute_driver                             => $compute_driver,
     # Workaround for bug LP #1469308
     # also service name for Ubuntu and Centos is the same.
     libvirt_service_name     => "libvirtd",
