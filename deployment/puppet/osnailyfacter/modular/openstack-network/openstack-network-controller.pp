@@ -9,12 +9,11 @@ $controller_nodes               = ipsort(values($controller_internal_addresses))
 $rabbit_hash                    = hiera('rabbit_hash', {})
 $internal_address               = hiera('internal_address')
 $management_vip                 = hiera('management_vip')
-$service_endpoint               = hiera('service_endpoint', $management_vip)
+$service_endpoint               = hiera('service_endpoint')
 $nova_hash                      = hiera_hash('nova', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $network_scheme                 = hiera('network_scheme', {})
 $nova_endpoint                  = hiera('nova_endpoint', $management_vip)
-$keystone_endpoint              = hiera('keystone_endpoint', $service_endpoint)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
 
@@ -240,8 +239,8 @@ class { 'openstack::network':
 
   # keystone
   admin_password    => $neutron_user_password,
-  auth_host         => $keystone_endpoint,
-  auth_url          => "http://${keystone_endpoint}:35357/v2.0",
+  auth_host         => $service_endpoint,
+  auth_url          => "http://${service_endpoint}:35357/v2.0",
   neutron_url       => "http://${neutron_endpoint}:9696",
   admin_tenant_name => $keystone_tenant,
   admin_username    => $keystone_user,

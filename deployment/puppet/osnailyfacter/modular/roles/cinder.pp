@@ -54,7 +54,7 @@ $db_host                        = pick($cinder_hash['db_host'], $management_vip)
 $cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
 
-$service_endpoint               = hiera('service_endpoint', $management_vip)
+$service_endpoint               = hiera('service_endpoint')
 $glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
 
 # TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
