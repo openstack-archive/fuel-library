@@ -17,15 +17,20 @@
 #   (optional) This parameter was removed in Diablo and does nothing.
 #   Defaults to false
 #
+# [*compute_driver*]
+#   (optional) Compute driver.
+#   Defaults to 'xenapi.XenAPIDriver'
+#
 class nova::compute::xenserver(
   $xenapi_connection_url,
   $xenapi_connection_username,
   $xenapi_connection_password,
-  $xenapi_inject_image=false
+  $xenapi_inject_image = false,
+  $compute_driver = 'xenapi.XenAPIDriver'
 ) {
 
   nova_config {
-    'DEFAULT/compute_driver':             value => 'xenapi.XenAPIDriver';
+    'DEFAULT/compute_driver':             value => $compute_driver;
     'DEFAULT/connection_type':            value => 'xenapi';
     'DEFAULT/xenapi_connection_url':      value => $xenapi_connection_url;
     'DEFAULT/xenapi_connection_username': value => $xenapi_connection_username;
