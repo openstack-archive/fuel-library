@@ -269,11 +269,9 @@ module NoopTests
   end
 
   # run the globals task for the given yaml file
-  # if there is no globals yaml already present
   # @param [String] astute_yaml YAML file
   def self.globals(astute_yaml)
     globals_file = File.join astute_yaml_directory, GLOBALS_PREFIX + astute_yaml
-    return true if File.file? globals_file
     rspec spec_path(GLOBALS_SPEC)
   end
 
