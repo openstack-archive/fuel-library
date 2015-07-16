@@ -16,11 +16,10 @@ $storage_hash             = hiera('storage')
 $rabbit_hash              = hiera_hash('rabbit_hash')
 $management_vip           = hiera('management_vip')
 $internal_address         = hiera('internal_address')
-$mongo_roles              = hiera('mongo_roles', 'mongo')
 $region                   = hiera('region', 'RegionOne')
 $ceilometer_hash          = hiera_hash('ceilometer', $default_ceilometer_hash)
 $ceilometer_region        = pick($ceilometer_hash['region'], $region)
-
+$mongo_address_map        = get_node_to_ipaddr_map_by_network_role(hiera_hash('mongo_nodes'), 'mongo/db')
 
 $default_mongo_hash = {
   'enabled'         => false,
@@ -65,10 +64,12 @@ if $ceilometer_hash['enabled'] {
       $mongo_replicaset = undef
     }
   } else {
-    $mongo_nodes = mongo_hosts($nodes_hash, 'array')
-    $mongo_hosts = join($mongo_nodes, ',')
-    # MongoDB is alsways configured with replica set
-    $mongo_replicaset = 'ceilometer'
+    $mongo_hosts = join(values($mongo_address_map), ',')
+    if size(values($mongo_address_map)) > 1 {
+      $mongo_replicaset = 'ceilometer'
+    } else {
+      $mongo_replicaset = undef
+    }
   }
 }
 

@@ -10,7 +10,6 @@ $syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL
 $syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 $syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
 $syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
-$syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
 $management_vip                 = hiera('management_vip')
 $public_vip                     = hiera('public_vip')
 $storage_address                = hiera('storage_address')
@@ -27,7 +26,6 @@ $nova_config_hash               = hiera_hash('nova_config', {})
 $internal_address               = hiera('internal_address')
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $ceilometer_hash                = hiera_hash('ceilometer',{})
-$mongo_hash                     = hiera_hash('mongo', {})
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash                 = hiera_hash('workloads_collector', {})
 $service_endpoint               = hiera('service_endpoint')
@@ -77,47 +75,6 @@ if ($storage_hash['images_ceph']) {
 } else {
   $glance_backend = 'swift'
   $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
-}
-
-if !$ceilometer_hash {
-  $ceilometer_hash = {
-    enabled         => false,
-    db_password     => 'ceilometer',
-    user_password   => 'ceilometer',
-    metering_secret => 'ceilometer',
-  }
-  $ext_mongo = false
-} else {
-  # External mongo integration
-  if $mongo_hash['enabled'] {
-    $ext_mongo_hash         = hiera('external_mongo')
-    $ceilometer_db_user     = $ext_mongo_hash['mongo_user']
-    $ceilometer_db_password = $ext_mongo_hash['mongo_password']
-    $ceilometer_db_name     = $ext_mongo_hash['mongo_db_name']
-    $ext_mongo              = true
-  } else {
-    $ceilometer_db_user     = 'ceilometer'
-    $ceilometer_db_password = $ceilometer_hash['db_password']
-    $ceilometer_db_name     = 'ceilometer'
-    $ext_mongo              = false
-    $ext_mongo_hash         = {}
-  }
-}
-
-if $ext_mongo {
-  $mongo_hosts = $ext_mongo_hash['hosts_ip']
-  if $ext_mongo_hash['mongo_replset'] {
-    $mongo_replicaset = $ext_mongo_hash['mongo_replset']
-  } else {
-    $mongo_replicaset = undef
-  }
-} elsif $ceilometer_hash['enabled'] {
-  $mongo_hosts = mongo_hosts($nodes_hash)
-  if size(mongo_hosts($nodes_hash, 'array', 'mongo')) > 1 {
-    $mongo_replicaset = 'ceilometer'
-  } else {
-    $mongo_replicaset = undef
-  }
 }
 
 # SQLAlchemy backend configuration

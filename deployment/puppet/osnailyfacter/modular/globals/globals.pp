@@ -28,7 +28,8 @@ $murano_hash                    = hiera('murano', {})
 $heat_hash                      = hiera_hash('heat', {})
 $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera_hash('nova', {})
-$mysql_hash                     = hiera('mysql', {})
+$mysql_hash                     = hiera('mysql', {}
+$mongo_hash                     = hiera_hash('mongo', {})
 $rabbit_hash                    = hiera('rabbit', {})
 $glance_hash                    = hiera_hash('glance', {})
 $keystone_hash                  = hiera_hash('keystone', {})
@@ -266,6 +267,11 @@ $is_primary_swift_proxy = $primary_controller
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future
 $database_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+
+# Define mongo-related variables
+if $mongo_hash['enabled'] {
+  $mongo_nodes  = get_nodes_hash_by_roles($network_metadata, ['primary-mongo', 'mongo'])
+}
 
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
