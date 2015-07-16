@@ -48,6 +48,12 @@ describe manifest do
       should contain_nova_config('DEFAULT/compute_driver').with(:value => 'libvirt.LibvirtDriver')
     end
 
+    it 'should declare class nova::compute with reserved_host_memory set to 512' do
+      should contain_class('nova::compute').with(
+        'reserved_host_memory' => '512',
+      )
+    end
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
