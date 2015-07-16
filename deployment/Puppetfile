@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+#^syntax detection
+# See https://github.com/rodjek/librarian-puppet for additional resources on
+# to configure this file.
+
+# The location to pull forge modules from. This could be a local
+# repository, see https://tickets.puppetlabs.com/browse/FORGE-27
+# and https://github.com/drrb/puppet-library
+forge "https://forgeapi.puppetlabs.com"
