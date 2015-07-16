@@ -33,7 +33,6 @@ class cluster::haproxy (
 
   $defaults_options = {
     'log'     => 'global',
-    'stats'   => 'enable',
     'maxconn' => '8000',
     'mode'   => 'http',
     'retries' => '3',

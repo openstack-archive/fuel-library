@@ -34,6 +34,11 @@ describe manifest do
             %r{\n\s*bind\s+#{management_vip}:10000\s*\n}
         )
     end
+    it "should not contain stats enable for defaults and global section" do
+        should contain_concat__fragment('haproxy-base').without_content(
+            %r{\n\s*stats\s+enable\s*$\n}
+        )
+    end
 
   end
 
