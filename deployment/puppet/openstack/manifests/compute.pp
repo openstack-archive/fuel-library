@@ -48,6 +48,7 @@
 # [ssh_private_key] path to private ssh key temporary location on this server where it was uploaded or generated
 # [ssh_public_key] path to public ssh key temporary location on this server where it was uploaded or generated
 # [compute_driver] Driver to use for controlling virtualization.
+# [reserved_host_memory] Amount of memory in MB to reserve for the host
 #
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
@@ -135,6 +136,7 @@ class openstack::compute (
   $neutron_settings               = {},
   $install_bridge_utils           = false,
   $compute_driver                 = 'libvirt.LibvirtDriver',
+  $reserved_host_memory           = undef,
 ) {
 
   #
@@ -299,6 +301,7 @@ class openstack::compute (
     instance_usage_audit_period   => $instance_usage_audit_period,
     default_availability_zone     => $nova_hash['default_availability_zone'],
     default_schedule_zone         => $nova_hash['default_schedule_zone'],
+    reserved_host_memory          => $reserved_host_memory,
   }
 
   nova_config {
