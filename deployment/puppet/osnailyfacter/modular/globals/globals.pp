@@ -98,12 +98,15 @@ $default_gateway = get_default_gateways()
 
 $internal_int                  = get_network_role_property('management', 'interface')
 $public_int                    = get_network_role_property('ex', 'interface')
+$baremetal_int                 = get_network_role_property('baremetal', 'interface')
 $internal_address              = get_network_role_property('management', 'ipaddr')
 $internal_netmask              = get_network_role_property('management', 'netmask')
 $public_address                = get_network_role_property('ex', 'ipaddr')
 $public_netmask                = get_network_role_property('ex', 'netmask')
 $storage_address               = get_network_role_property('storage', 'ipaddr')
 $storage_netmask               = get_network_role_property('storage', 'netmask')
+$baremetal_address             = get_network_role_property('baremetal', 'ipaddr')
+$baremetal_netmask             = get_network_role_property('baremetal', 'netmask')
 #todo(sv): It's a workaround. After merge some part to Nailgun and change CI ISO we should use just $network_metadata['vips']['VIP_NAME']['ipaddr']
 #todo(sv): Also some VIPs was renamed
 if is_hash($network_metadata['vips']['public']) {
@@ -135,11 +138,6 @@ if is_hash($network_metadata['vips']['service_endpoint']) {
   $service_endpoint            = $network_metadata['vips']['service_endpoint']['ipaddr']
 } else {
   $service_endpoint            = pick($network_metadata['vips']['service_endpoint'],  $management_vip)
-}
-if is_hash($network_metadata['vips']['baremetal']) {
-  $baremetal_vip                  = $network_metadata['vips']['baremetal']['ipaddr']
-} else {
-  $baremetal_vip                  = pick($network_metadata['vips']['baremetal'], $management_vip)
 }
 #todo(sv): end of workaround
 
