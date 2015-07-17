@@ -339,18 +339,20 @@ class openstack::compute (
   }
 
   # Configure libvirt for nova-compute
-  class { 'nova::compute::libvirt':
-    libvirt_virt_type                          => $libvirt_type,
-    libvirt_cpu_mode                           => $libvirt_cpu_mode,
-    libvirt_disk_cachemodes                    => $disk_cachemodes,
-    libvirt_inject_partition                   => $libvirt_inject_partition,
-    vncserver_listen                           => $vncserver_listen,
-    migration_support                          => $migration_support,
-    remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
-    compute_driver                             => $compute_driver,
-    # Workaround for bug LP #1469308
-    # also service name for Ubuntu and Centos is the same.
-    libvirt_service_name     => "libvirtd",
+  if ($compute_driver == 'libvirt.LibvirtDriver') {
+    class { 'nova::compute::libvirt':
+      libvirt_virt_type                          => $libvirt_type,
+      libvirt_cpu_mode                           => $libvirt_cpu_mode,
+      libvirt_disk_cachemodes                    => $disk_cachemodes,
+      libvirt_inject_partition                   => $libvirt_inject_partition,
+      vncserver_listen                           => $vncserver_listen,
+      migration_support                          => $migration_support,
+      remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
+      compute_driver                             => $compute_driver,
+      # Workaround for bug LP #1469308
+      # also service name for Ubuntu and Centos is the same.
+      libvirt_service_name     => "libvirtd",
+    }
   }
 
   # From legacy libvirt.pp
