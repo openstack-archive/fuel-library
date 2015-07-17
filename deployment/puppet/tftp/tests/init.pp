@@ -1,0 +1,3 @@
+class { 'tftp':
+  address => $::ipaddress,
+}
