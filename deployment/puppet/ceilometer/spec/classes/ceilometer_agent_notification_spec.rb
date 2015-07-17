@@ -27,31 +27,62 @@ describe 'ceilometer::agent::notification' do
   end
 
   let :params do
-    { :ack_on_event_error => true,
+    { :manage_service     => true,
+      :enabled            => true,
+      :ack_on_event_error => true,
       :store_events       => false }
   end
 
   shared_examples_for 'ceilometer-agent-notification' do
 
-    it { should contain_class('ceilometer::params') }
+    it { is_expected.to contain_class('ceilometer::params') }
 
     it 'installs ceilometer agent notification package' do
-      should contain_package(platform_params[:agent_notification_package_name])
-    end
-
-    it 'configures ceilometer agent notification service' do
-      should contain_service('ceilometer-agent-notification').with(
-        :ensure     => 'running',
-        :name       => platform_params[:agent_notification_service_name],
-        :enable     => true,
-        :hasstatus  => true,
-        :hasrestart => true
+      is_expected.to contain_package(platform_params[:agent_notification_package_name]).with(
+        :ensure => 'present',
+        :tag    => 'openstack'
       )
     end
 
     it 'configures notifications parameters in ceilometer.conf' do
-      should contain_ceilometer_config('notification/ack_on_event_error').with_value( params[:ack_on_event_error] )
-      should contain_ceilometer_config('notification/store_events').with_value( params[:store_events] )
+      is_expected.to contain_ceilometer_config('notification/ack_on_event_error').with_value( params[:ack_on_event_error] )
+      is_expected.to contain_ceilometer_config('notification/store_events').with_value( params[:store_events] )
+    end
+
+    [{:enabled => true}, {:enabled => false}].each do |param_hash|
+      context "when service should be #{param_hash[:enabled] ? 'enabled' : 'disabled'}" do
+        before do
+          params.merge!(param_hash)
+        end
+
+        it 'configures ceilometer agent notification service' do
+          is_expected.to contain_service('ceilometer-agent-notification').with(
+            :ensure     => (params[:manage_service] && params[:enabled]) ? 'running' : 'stopped',
+            :name       => platform_params[:agent_notification_service_name],
+            :enable     => params[:enabled],
+            :hasstatus  => true,
+            :hasrestart => true
+          )
+        end
+      end
+    end
+
+    context 'with disabled service managing' do
+      before do
+        params.merge!({
+          :manage_service => false,
+          :enabled        => false })
+      end
+
+      it 'configures ceilometer-agent-notification service' do
+        is_expected.to contain_service('ceilometer-agent-notification').with(
+          :ensure     => nil,
+          :name       => platform_params[:agent_notification_service_name],
+          :enable     => false,
+          :hasstatus  => true,
+          :hasrestart => true
+        )
+      end
     end
 
   end
@@ -72,6 +103,70 @@ describe 'ceilometer::agent::notification' do
   context 'on RedHat platforms' do
     let :facts do
       { :osfamily => 'RedHat' }
+    end
+
+    let :platform_params do
+      { :agent_notification_package_name => 'openstack-ceilometer-notification',
+        :agent_notification_service_name => 'openstack-ceilometer-notification' }
+    end
+
+    it_configures 'ceilometer-agent-notification'
+  end
+
+  context 'on RHEL 7' do
+    let :facts do
+      { :osfamily                  => 'RedHat',
+        :operatingsystem           => 'RedHat',
+        :operatingsystemmajrelease => 7
+      }
+    end
+
+    let :platform_params do
+      { :agent_notification_package_name => 'openstack-ceilometer-notification',
+        :agent_notification_service_name => 'openstack-ceilometer-notification' }
+    end
+
+    it_configures 'ceilometer-agent-notification'
+  end
+
+  context 'on CentOS 7' do
+    let :facts do
+      { :osfamily                  => 'RedHat',
+        :operatingsystem           => 'CentOS',
+        :operatingsystemmajrelease => 7
+      }
+    end
+
+    let :platform_params do
+      { :agent_notification_package_name => 'openstack-ceilometer-notification',
+        :agent_notification_service_name => 'openstack-ceilometer-notification' }
+    end
+
+    it_configures 'ceilometer-agent-notification'
+  end
+
+  context 'on Scientific 7' do
+    let :facts do
+      { :osfamily                  => 'RedHat',
+        :operatingsystem           => 'Scientific',
+        :operatingsystemmajrelease => 7
+      }
+    end
+
+    let :platform_params do
+      { :agent_notification_package_name => 'openstack-ceilometer-notification',
+        :agent_notification_service_name => 'openstack-ceilometer-notification' }
+    end
+
+    it_configures 'ceilometer-agent-notification'
+  end
+
+  context 'on Fedora 20' do
+    let :facts do
+      { :osfamily               => 'RedHat',
+        :operatingsystem        => 'Fedora',
+        :operatingsystemrelease => 20
+      }
     end
 
     let :platform_params do

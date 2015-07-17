@@ -19,19 +19,20 @@ describe 'ceilometer::agent::auth' do
   shared_examples_for 'ceilometer-agent-auth' do
 
     it 'configures authentication' do
-      should contain_ceilometer_config('service_credentials/os_auth_url').with_value('http://localhost:5000/v2.0')
-      should contain_ceilometer_config('service_credentials/os_region_name').with_value('RegionOne')
-      should contain_ceilometer_config('service_credentials/os_username').with_value('ceilometer')
-      should contain_ceilometer_config('service_credentials/os_password').with_value('password')
-      should contain_ceilometer_config('service_credentials/os_tenant_name').with_value('services')
-      should contain_ceilometer_config('service_credentials/os_cacert').with(:ensure => 'absent')
+      is_expected.to contain_ceilometer_config('service_credentials/os_auth_url').with_value('http://localhost:5000/v2.0')
+      is_expected.to contain_ceilometer_config('service_credentials/os_region_name').with_value('RegionOne')
+      is_expected.to contain_ceilometer_config('service_credentials/os_username').with_value('ceilometer')
+      is_expected.to contain_ceilometer_config('service_credentials/os_password').with_value('password')
+      is_expected.to contain_ceilometer_config('service_credentials/os_password').with_value(params[:auth_password]).with_secret(true)
+      is_expected.to contain_ceilometer_config('service_credentials/os_tenant_name').with_value('services')
+      is_expected.to contain_ceilometer_config('service_credentials/os_cacert').with(:ensure => 'absent')
     end
 
     context 'when overriding parameters' do
       before do
         params.merge!(:auth_cacert => '/tmp/dummy.pem')
       end
-      it { should contain_ceilometer_config('service_credentials/os_cacert').with_value(params[:auth_cacert]) }
+      it { is_expected.to contain_ceilometer_config('service_credentials/os_cacert').with_value(params[:auth_cacert]) }
     end
 
   end
