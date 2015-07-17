@@ -1,19 +1,10 @@
-# This installs a MongoDB replica set configuration tool
-# foe now works only winhout auth
-class mongodb::replset (
-  $replset_setup         = $mongodb::params::replset_setup,
-  $replset_members       = undef,
+# Wrapper class useful for hiera based deployments
 
-) inherits mongodb::params {
+class mongodb::replset(
+  $sets = undef
+) {
 
-  if ($replset_setup  == true) {
-    anchor { 'before-mongodb-replset' :}
-    ->
-    class { 'mongodb::replset::install': 
-      require  => Class['mongodb::server', 'mongodb::client'],
-    }
-    ->
-    anchor { 'after-mongodb-replset' :}
+  if $sets {
+    create_resources(mongodb_replset, $sets)
   }
-
 }

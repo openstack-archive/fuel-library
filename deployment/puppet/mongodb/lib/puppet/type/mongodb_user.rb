@@ -10,42 +10,18 @@ Puppet::Type.newtype(:mongodb_user) do
   end
 
   newparam(:name, :namevar=>true) do
+    desc "The name of the resource."
+  end
+
+  newproperty(:username) do
     desc "The name of the user."
+    defaultto { @resource[:name] }
   end
 
-  newparam(:admin_username) do
-    desc "Administrator user login"
-    defaultto 'admin'
-  end
-
-  newparam(:admin_password) do
-    desc "Administrator user password"
-  end
-
-  newparam(:admin_host) do
-    desc "Connect to this host as an admin user"
-    defaultto 'localhost'
-  end
-
-  newparam(:admin_port) do
-    desc "Connect to this port as an admin user"
-    defaultto '27017'
-  end
-
-  newparam(:mongo_path) do
-    desc "Path to mongo binary"
-    defaultto '/usr/bin/mongo'
-  end
-
-  newparam(:admin_database) do
-    desc "Connect to this database as an admin user"
-    defaultto 'admin'
-  end
-
-  newparam(:database) do
+  newproperty(:database) do
     desc "The user's target database."
     defaultto do
-      fail("Parameter 'database' must be set")
+      fail("Parameter 'database' must be set") if provider.database == :absent
     end
     newvalues(/^\w+$/)
   end
@@ -77,13 +53,13 @@ Puppet::Type.newtype(:mongodb_user) do
   newproperty(:password_hash) do
     desc "The password hash of the user. Use mongodb_password() for creating hash."
     defaultto do
-      fail("Property 'password_hash' must be set. Use mongodb_password() for creating hash.")
+      fail("Property 'password_hash' must be set. Use mongodb_password() for creating hash.") if provider.database == :absent
     end
     newvalue(/^\w+$/)
   end
 
   autorequire(:package) do
-    'mongodb'
+    'mongodb_client'
   end
 
   autorequire(:service) do

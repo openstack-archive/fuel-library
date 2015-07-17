@@ -1,36 +1,36 @@
 # mongo.conf - generated from Puppet
 
+
+<% if @logpath -%>
 #where to log
-<% if @quiet -%>
-quiet = <%= @quiet %>
-<% end -%>
-<% if @use_syslog -%>
-syslog = true
-<% else -%>
 logpath=<%= @logpath %>
-<% end -%>
+<% if @logappend -%>
 logappend=<%= @logappend %>
+<% end -%>
+<% end -%>
 <% if @bind_ip -%>
 # Set this option to configure the mongod or mongos process to bind to and
 # listen for connections from applications on this address.
 # You may concatenate a list of comma separated values to bind mongod to multiple IP addresses.
-bind_ip = <%= @bind_ip.join(',') %>
+bind_ip = <%= Array(@bind_ip).join(',') %>
 <% end -%>
 <% if @fork -%>
 # fork and run in background
 fork=<%= @fork %>
 <% end -%>
+<% if @port -%>
 port = <%= @port %>
+<% end -%>
 dbpath=<%= @dbpath %>
 <% if @pidfilepath -%>
 # location of pidfile
-pidfilepath = <%= @pidfilepath %>
+pidfilepath=<%= @pidfilepath %>
 <% end -%>
-<% if @nojournal -%>
+<% if @nojournal and not @journal -%>
 # Disables write-ahead journaling
 nojournal = <%= @nojournal %>
 <% end -%>
-<% if @journal -%>
+<% if @journal and not @nojournal -%>
 # Enables journaling
 journal = <%= @journal %>
 <% end -%>
@@ -39,10 +39,10 @@ journal = <%= @journal %>
 cpu = <%= @cpu %>
 <% end -%>
 # Turn on/off security.  Off is currently the default
-<% if @noauth -%>
+<% if @noauth and not @auth -%>
 noauth=<%= @noauth %>
 <% end -%>
-<% if @auth -%>
+<% if @auth and not @noauth -%>
 auth=<%= @auth %>
 <% end -%>
 <% if @verbose -%>
@@ -135,6 +135,14 @@ master = <%= @master %>
 # files in a distinct folder.
 directoryperdb = <%= @directoryperdb %>
 <% end -%>
+<% if @configsvr -%>
+# Is the mongod instance a configuration server
+configsvr = <%= @configsvr %>
+<% end -%>
+<% if @shardsvr -%>
+# Is the mongod instance a shard server
+shardsvr = <%= @shardsvr %>
+<% end -%>
 <% if @replset -%>
 # Configure ReplicaSet membership
 replSet = <%= @replset %>
@@ -163,9 +171,17 @@ slowms = <%= @slowms %>
 # Specify the path to a key file to store authentication information.
 keyFile = <%= @keyfile %>
 <% end -%>
-<% if @directoryperdb -%>
-directoryperdb = <%= @directoryperdb %>
-<% end -%>
 <% if @set_parameter -%>
 setParameter = <%= @set_parameter %>
+<% end -%>
+<% if @syslog -%>
+syslog = <%= @syslog %>
+<% end -%>
+<% if @quiet -%>
+quiet = <%= @quiet %>
+<% end -%>
+<% if @ssl -%>
+sslOnNormalPorts = true
+sslPEMKeyFile = <%= @ssl_key %>
+sslCAFile = <%= @ssl_ca %>
 <% end -%>
