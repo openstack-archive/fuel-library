@@ -14,7 +14,7 @@ class ceph::mon (
   exec {'ceph-deploy mon create':
     command   => "ceph-deploy mon create ${::hostname}:${::internal_address}",
     logoutput => true,
-    unless    => "ceph mon stat | grep ${::internal_address}",
+    unless    => "ceph mon dump | grep -E '^[0-9]+: +${::internal_address}:.* mon\\.${::hostname}\$'",
   }
 
   exec {'Wait for Ceph quorum':
