@@ -709,7 +709,7 @@ murano_settings:
       condition: settings:additional_components.murano.value == false
     weight: 20
     label: Murano Settings
-role: primary-controller
+role: ironic
 external_mongo:
   mongo_db_name: ceilometer
   mongo_replset: ''
