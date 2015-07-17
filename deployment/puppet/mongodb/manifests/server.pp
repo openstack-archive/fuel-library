@@ -8,6 +8,7 @@ class mongodb::server (
   $config           = $mongodb::params::config,
   $dbpath           = $mongodb::params::dbpath,
   $pidfilepath      = $mongodb::params::pidfilepath,
+  $rcfile           = $mongodb::params::rcfile,
 
   $service_provider = $mongodb::params::service_provider,
   $service_name     = $mongodb::params::service_name,
@@ -29,6 +30,11 @@ class mongodb::server (
   $cpu             = undef,
   $auth            = false,
   $noauth          = undef,
+  $create_admin    = false,
+  $admin_username  = undef,
+  $admin_password  = undef,
+  $admin_roles     = ['dbAdmin', 'dbOwner', 'userAdmin', 'userAdminAnyDatabase'],
+  $store_creds     = $mongodb::params::store_creds,
   $verbose         = undef,
   $verbositylevel  = undef,
   $objcheck        = undef,
@@ -55,6 +61,7 @@ class mongodb::server (
   $quiet           = undef,
   $slowms          = undef,
   $keyfile         = undef,
+  $key             = undef,
   $set_parameter   = undef,
   $syslog          = undef,
   $config_content  = undef,
@@ -86,5 +93,25 @@ class mongodb::server (
     class { 'mongodb::server::config': }->
     class { 'mongodb::server::install': }->
     anchor { 'mongodb::server::end': }
+  }
+
+  if $create_admin {
+    mongodb_user { $admin_username:
+      ensure        => present,
+      username      => $admin_username,
+      password_hash => mongodb_password($admin_username, $admin_password),
+      database      => 'admin',
+      roles         => $admin_roles,
+      tries         => 10,
+      tag           => 'admin'
+    }
+
+    if $replset {
+      # You can't create users before replica set initialization
+      Class['mongodb::replset'] -> Mongodb_user <| tag == 'admin' |>
+    }
+
+    # Make sure admin user created first
+    Mongodb_user <| tag == 'admin' |> -> Mongodb_user <| tag != 'admin' |>
   }
 }

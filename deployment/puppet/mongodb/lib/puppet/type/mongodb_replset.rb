@@ -17,6 +17,11 @@ Puppet::Type.newtype(:mongodb_replset) do
     desc "The name of the replicaSet"
   end
 
+  newparam(:auth_enabled) do
+    desc "Check authentication enabled"
+    defaultto false
+  end
+
   newproperty(:members, :array_matching => :all) do
     desc "The replicaSet members"
 
