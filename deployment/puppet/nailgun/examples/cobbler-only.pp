@@ -76,7 +76,7 @@ node default {
 
     cobbler_user       => $cobbler_user,
     cobbler_password   => $cobbler_password,
-    server             => '127.0.0.1',
+    server             => $cobbler_host,
     name_server        => $cobbler_host,
     next_server        => $cobbler_host,
 
