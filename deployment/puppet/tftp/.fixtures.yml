@@ -1,0 +1,5 @@
+fixtures:
+  repositories:
+    "xinetd": "git://github.com/puppetlabs/puppetlabs-xinetd.git"
+  symlinks:
+    "tftp": "#{source_dir}"
