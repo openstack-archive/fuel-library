@@ -249,10 +249,6 @@ if ($storage_hash['images_ceph']) {
 # todo(sv): change to 'memcache' as soon as this node role was ready
 $memcache_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
-# Define corosync-related variables
-#todo use special node-roles for corosync instead of controllers in the future
-$corosync_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-
 # Define cinder-related variables
 # todo: use special node-roles instead controllers in the future
 $cinder_nodes           = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])

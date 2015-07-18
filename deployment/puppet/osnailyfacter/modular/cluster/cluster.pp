@@ -1,7 +1,10 @@
 notice('MODULAR: cluster.pp')
 
 prepare_network_config(hiera('network_scheme'))
-$corosync_nodes = corosync_nodes(hiera('corosync_nodes'), 'mgmt/corosync')
+# We do not take corosync_roles from globals.pp because of
+# it is better to have it here for plugin developers
+$corosync_roles = hiera('corosync_roles',['primary-controller', 'controller'])
+$corosync_nodes = corosync_nodes(get_nodes_hash_by_roles(hiera('network_metadata'), $corosync_roles), 'mgmt/corosync')
 
 class { 'cluster':
   internal_address => get_network_role_property('mgmt/corosync', 'ipaddr'),
