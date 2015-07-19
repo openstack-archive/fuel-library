@@ -10,3 +10,4 @@ puppet/ntp
 puppet/apache
 puppet/firewall
 puppet/xinetd
+puppet/cinder
