@@ -13,3 +13,6 @@ mod 'puppetlabs-stdlib', '4.6.0'
 
 # Pull in puppetlabs-concat
 mod 'puppetlabs-concat', '1.2.3'
+
+# Pull in puppetlabs-apt
+mod 'puppetlabs-apt', '1.8.0'
