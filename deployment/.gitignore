@@ -8,3 +8,4 @@ puppet/inifile
 puppet/ssh
 puppet/ntp
 puppet/apache
+puppet/firewall
