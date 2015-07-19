@@ -5,3 +5,4 @@ Puppetfile.lock
 puppet/stdlib
 puppet/concat
 puppet/inifile
+puppet/xinetd
