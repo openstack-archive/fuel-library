@@ -9,3 +9,4 @@ puppet/xinetd
 puppet/ssh
 puppet/ntp
 puppet/apache
+puppet/firewall

@@ -55,3 +55,8 @@ mod 'ntp',
 mod 'apache',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-apache.git',
     :ref => '1.3.0'
+
+# Pull in puppetlabs-firewall
+mod 'firewall',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-firewall.git',
+    :ref => '1.2.0'
