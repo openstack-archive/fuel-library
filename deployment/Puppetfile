@@ -35,3 +35,9 @@ mod 'concat',
 mod 'apache',
     :git => 'https://github.com/puppetlabs/puppetlabs-apache.git',
     :ref => '1.3.0'
+
+# Pull in openstack-cinder
+mod 'cinder',
+    :git => 'https://github.com/openstack/puppet-cinder.git',
+    :ref => '6.0.0'
+
