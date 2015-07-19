@@ -35,3 +35,8 @@ mod 'concat',
 mod 'inifile',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-inifile.git',
     :ref => '1.1.3'
+
+# Pull in saz-ssh
+mod 'ssh',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/saz-ssh.git',
+    :ref => 'v2.8.1'
