@@ -13,3 +13,6 @@ mod 'puppetlabs-stdlib', '4.6.0'
 
 # Pull in puppetlabs-concat
 mod 'puppetlabs-concat', '1.2.3'
+
+# Pull in saz-ssh
+mod 'saz-ssh', '2.8.1'
