@@ -7,3 +7,6 @@
 # repository, see https://tickets.puppetlabs.com/browse/FORGE-27
 # and https://github.com/drrb/puppet-library
 forge "https://forgeapi.puppetlabs.com"
+
+# Pull in puppetlabs-stdlib
+mod 'puppetlabs-stdlib', '4.6.0'
