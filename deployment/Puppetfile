@@ -55,3 +55,8 @@ mod 'ntp',
 mod 'apache',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-apache.git',
     :ref => '1.3.0'
+
+# Pull in puppetlabs-apt
+mod 'apt',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-apt.git',
+    :ref => '1.8.0'
