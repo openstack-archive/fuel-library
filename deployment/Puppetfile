@@ -25,3 +25,8 @@
 mod 'stdlib',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-stdlib.git',
     :ref => '4.6.0'
+
+# Pull in puppetlabs-xinetd
+mod 'xinetd',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-xinetd.git',
+    :ref => '1.5.0'
