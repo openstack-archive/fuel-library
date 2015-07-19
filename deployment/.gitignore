@@ -8,3 +8,4 @@ puppet/inifile
 puppet/xinetd
 puppet/ssh
 puppet/ntp
+puppet/apache
