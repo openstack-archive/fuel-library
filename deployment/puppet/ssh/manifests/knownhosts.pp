@@ -1,3 +1,0 @@
-class ssh::knownhosts {
-  Sshkey <<| |>>
-}
