@@ -10,3 +10,6 @@ forge "https://forgeapi.puppetlabs.com"
 
 # Pull in puppetlabs-stdlib
 mod 'puppetlabs-stdlib', '4.6.0'
+
+# Pull in puppetlabs-concat
+mod 'puppetlabs-concat', '1.2.3'
