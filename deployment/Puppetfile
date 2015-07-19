@@ -11,12 +11,17 @@
 # Examples #
 ############
 # From git repo
-#  mod "puppetlabs/stdlib",
+#  mod "stdlib",
 #    :git => 'https://github.com/puppetlabs/puppetlabs-stdlib.git',
 #    :ref => '4.6.x'
 #
 # From tarbal
-#  mod "puppetlabs/stdlib",
+#  mod "stdlib",
 #    :tarbal => 'https://forgeapi.puppetlabs.com/v3/files/puppetlabs-stdlib-4.6.0.tar.gz'
 #
 #
+
+# Pull in puppetlabs-stdlib
+mod 'stdlib',
+    :git => 'https://github.com/puppetlabs/puppetlabs-stdlib.git',
+    :ref => '4.6.0'
