@@ -30,3 +30,8 @@ mod 'stdlib',
 mod 'concat',
     :git => 'https://github.com/puppetlabs/puppetlabs-concat.git',
     :ref => '1.2.3'
+
+# Pull in puppetlabs-ntp
+mod 'ntp',
+    :git => 'https://github.com/puppetlabs/puppetlabs-ntp.git',
+    :ref => '4.0.0'
