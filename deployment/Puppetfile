@@ -65,3 +65,8 @@ mod 'xinetd',
 mod 'cinder',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/openstack-cinder.git',
     :ref => '6.0.0'
+
+# Pull in puppetlabs-apt
+mod 'apt',
+    :git => 'https://github.com/puppetlabs/puppetlabs-apt.git',
+    :ref => '1.8.0'

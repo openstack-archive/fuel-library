@@ -11,3 +11,4 @@ puppet/apache
 puppet/firewall
 puppet/xinetd
 puppet/cinder
+puppet/apt
