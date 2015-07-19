@@ -25,3 +25,8 @@
 mod 'stdlib',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-stdlib.git',
     :ref => '4.6.0'
+
+# Pull in puppetlabs-firewall
+mod 'firewall',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-firewall.git',
+    :ref => '1.2.0'
