@@ -3,3 +3,4 @@ Puppetfile.lock
 
 # add modules being managed via librarian-puppet under here
 puppet/stdlib
+puppet/xinetd
