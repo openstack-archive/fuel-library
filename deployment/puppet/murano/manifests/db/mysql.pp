@@ -1,95 +1,58 @@
-# == Class murano::db::mysql
+# == Class: murano::db::mysql
 #
-# Class that configures mysql for sahara
+# The murano::db::mysql class creates a MySQL database for murano.
+# It must be used on the MySQL server.
 #
-# === Parameters:
+# === Parameters
 #
 # [*password*]
-#   Password to use for the murano user
+#   (Required) Password to connect to the database.
 #
 # [*dbname*]
-#   (optional) The name of the database
-#   Defaults to 'murano'
+#   (Optional) Name of the database.
+#   Defaults to 'murano'.
 #
 # [*user*]
-#   (optional) The mysql user to create
-#   Defaults to 'murano'
+#   (Optional) User to connect to the database.
+#   Defaults to 'murano'.
 #
 # [*host*]
-#   (optional) The IP address of the mysql server
+#   (Optional) The default source host user is allowed to connect from.
 #   Defaults to '127.0.0.1'
 #
+# [*allowed_hosts*]
+#   (Optional) Other hosts the user is allowed to connect from.
+#   Defaults to 'undef'.
+#
 # [*charset*]
-#   (optional) The charset to use for the murano database
-#   Defaults to 'utf8'
+#   (Optional) The database charset.
+#   Defaults to 'utf8'.
 #
 # [*collate*]
-#   (optional) The collate to use for the morano database
-#   Defaults to 'utf8_general_ci'
-#
-# [*allowed_hosts*]
-#   (optional) Additional hosts that are allowed to access this DB
-#   Defaults to undef
-#
-# [*cluster_id*]
-#   (optional) Deprecated. Does nothing
-#   Defaults to 'localzone'
-#
-# [*mysql_module*]
-#   (optional) Mysql puppet module version to use. Tested versions
-#   are 0.9 and 2.2.
-#   Defaults to '0.9'
+#   (Optional) Charset collate of murano database.
+#    Defaults to 'utf8_general_ci'.
 #
 class murano::db::mysql(
-  $password      = 'murano',
+  $password,
   $dbname        = 'murano',
   $user          = 'murano',
-  $dbhost        = '127.0.0.1',
+  $host          = '127.0.0.1',
+  $allowed_hosts = undef,
   $charset       = 'utf8',
   $collate       = 'utf8_general_ci',
-  $allowed_hosts = undef,
-  $mysql_module  = '0.9'
 ) {
 
-  if ($mysql_module >= 2.2) {
-    mysql::db { $dbname:
-      user     => $user,
-      password => $password,
-      host     => $dbhost,
-      charset  => $charset,
-      collate  => $collate,
-      require  => Class['mysql::server'],
-    }
-  } else {
-    require 'mysql::python'
+  validate_string($password)
 
-    mysql::db { $dbname:
-      user     => $user,
-      password => $password,
-      host     => $dbhost,
-      charset  => $charset,
-      require  => Class['mysql::config'],
-    }
+  ::openstacklib::db::mysql{ 'murano':
+    user          => $user,
+    password_hash => mysql_password($password),
+    dbname        => $dbname,
+    host          => $host,
+    charset       => $charset,
+    collate       => $collate,
+    allowed_hosts => $allowed_hosts,
   }
 
-  # Check allowed_hosts to avoid duplicate resource declarations
-  if is_array($allowed_hosts) and delete($allowed_hosts,$dbhost) != [] {
-    $real_allowed_hosts = delete($allowed_hosts,$dbhost)
-  } elsif is_string($allowed_hosts) and ($allowed_hosts != $dbhost) {
-    $real_allowed_hosts = $allowed_hosts
-  }
-
-  if $real_allowed_hosts {
-    murano::db::mysql::host_access { $real_allowed_hosts:
-      user         => $user,
-      password     => $password,
-      database     => $dbname,
-      mysql_module => $mysql_module,
-    }
-  }
-
-  Database[$dbname] -> Class['murano::api']
-  Database_user["${user}@${dbhost}"] -> Class['murano::api']
-  Database_grant["${user}@${dbhost}/${dbname}"] -> Class['murano::api']
-
+  ::Openstacklib::Db::Mysql['murano'] ~> Exec<| title == 'murano-dbmanage' |>
 }
