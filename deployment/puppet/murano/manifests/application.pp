@@ -1,6 +1,50 @@
-# Import of murano based base application
-
-define murano::application_package (
+# == Class: murano::application
+#
+#  murano application importer
+#
+# === Parameters
+#
+# [*package_name*]
+#  (Optional) Application package name
+#  Defaults to $title
+#
+# [*package_category*]
+#  (Optional) Application category
+#  Defaults to ''
+#
+# [*murano_cli*]
+#  (Optional) Executable name for murano CLI
+#  Defaults to 'murano'
+#
+# [*runas_user*]
+#  (Optional) User to execute murano CLI
+#  Defaults to 'root'
+#
+# [*os_tenant_name*]
+#  (Optional) Keystone tenant for murano
+#  Defaults to 'admin'
+#
+# [*os_username*]
+#  (Optional) Keystone username for murano
+#  Defaults to 'admin'
+#
+# [*os_password*]
+#  (Optional) Keystone password for murano
+#  Defaults to 'ChangeMe'
+#
+# [*os_region*]
+#  (Optional) Keystone region for murano
+#  Defaults to 'RegionOne'
+#
+# [*os_auth_url*]
+#  (Optional) Keystone public identity URL
+#  Defaults to 'http://127.0.0.1:5000/v2.0/'
+#
+# [*mandatory*]
+#  (Optional) Is this package mandatory
+#  Defaults to false
+#
+define murano::application (
   $package_name     = $title,
   $package_category = '',
   $murano_cli       = 'murano',
@@ -12,6 +56,7 @@ define murano::application_package (
   $os_auth_url      = 'http://127.0.0.1:5000/v2.0/',
   $mandatory        = false,
 ) {
+
   $package_path="/var/cache/murano/meta/${package_name}.zip"
 
   if $package_category {
