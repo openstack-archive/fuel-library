@@ -58,10 +58,12 @@ describe 'nova::compute::libvirt' do
           :remove_unused_kernels                      => true,
           :remove_unused_resized_minimum_age_seconds  => 3600,
           :remove_unused_original_minimum_age_seconds => 3600,
-          :libvirt_service_name                       => 'custom_service'
+          :libvirt_service_name                       => 'custom_service',
+          :compute_driver                             => 'libvirt.FoobarDriver',
         }
       end
 
+      it { is_expected.to contain_nova_config('DEFAULT/compute_driver').with_value('libvirt.FoobarDriver')}
       it { is_expected.to contain_nova_config('libvirt/virt_type').with_value('qemu')}
       it { is_expected.to contain_nova_config('libvirt/cpu_mode').with_value('host-passthrough')}
       it { is_expected.to contain_nova_config('libvirt/disk_cachemodes').with_value('file=directsync,block=none')}
