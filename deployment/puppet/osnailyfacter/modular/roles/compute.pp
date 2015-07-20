@@ -337,6 +337,15 @@ if $use_monit_real {
   }
 }
 
+# Create missing rootwrap directory for default Nova installation. See LP #1465460
+file {['/usr/share/nova/', '/usr/share/nova/rootwrap']:
+  ensure  => directory,
+  mode    => '0700',
+  owner   => 'root',
+  group   => 'root',
+  require => Class['::nova'],
+}
+
 ########################################################################
 
 
