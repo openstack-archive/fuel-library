@@ -1,28 +1,48 @@
+# == Class: murano::params
+#
 # Parameters for puppet-murano
-
+#
 class murano::params {
-
-  # package names
-  $murano_package_name              = $::murano::murano_package_name
-  $murano_dashboard_package_name    = 'murano-dashboard'
-  $python_muranoclient_package_name = 'python-muranoclient'
-
-  # service names
-  $murano_api_service_name          = 'openstack-murano-api'
-  $murano_engine_service_name       = 'openstack-murano-engine'
-  $default_repo_url_string          = "MURANO_REPO_URL = 'http://catalog.openstack.org'"
-  $default_url_string               = "MURANO_API_URL = 'http://127.0.0.1:8082'"
+  $dbmanage_command         = 'murano-db-manage --config-file /etc/murano/murano.conf upgrade'
+  $default_external_network = 'public'
+  $rabbit_service_name      = 'rabbit-server-murano'
 
   case $::osfamily {
     'RedHat': {
-      $local_settings_path = '/etc/openstack-dashboard/local_settings'
+      # package names
+      $api_package_name          = 'openstack-murano-api'
+      $common_package_name       = 'openstack-murano-common'
+      $engine_package_name       = 'openstack-murano-engine'
+      $pythonclient_package_name = 'openstack-python-muranoclient'
+      $dashboard_package_name    = 'openstack-murano-dashboard'
+      # service names
+      $api_service_name          = 'murano-api'
+      $engine_service_name       = 'murano-engine'
+      # dashboard config file
+      $local_settings_path       = '/etc/openstack-dashboard/local_settings'
+      # rabbitmq init params
+      $init_script_file          = 'rabbitmq-init-centos.erb'
+      $init_install_cmd          = "chkconfig --add '/etc/init.d/${rabbit_service_name}'"
     }
     'Debian': {
-      $local_settings_path = '/etc/openstack-dashboard/local_settings.py'
+      # package names
+      $api_package_name          = 'murano-api'
+      $common_package_name       = 'murano-common'
+      $engine_package_name       = 'murano-engine'
+      $pythonclient_package_name = 'python-muranoclient'
+      $dashboard_package_name    = 'murano-dashboard'
+      # service names
+      $api_service_name          = 'murano-api'
+      $engine_service_name       = 'murano-engine'
+      # dashboard config file
+      $local_settings_path       = '/etc/openstack-dashboard/local_settings.py'
+      # rabbitmq init params
+      $init_script_file          = 'rabbitmq-init-ubuntu.erb'
+      $init_install_cmd          = "update-rc.d '${rabbit_service_name}' defaults"
     }
     default: {
-      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
+      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}"
+      )
     }
   }
-
 }

@@ -1,190 +1,253 @@
-# Class murano
+# == Class: murano
 #
 #  murano base package & configuration
-
-class murano (
-  # package
-  $murano_package_name                   = 'murano',
-  # keystone
-  $murano_keystone_host                  = '127.0.0.1',
-  $murano_keystone_port                  = '5000',
-  $murano_keystone_protocol              = 'http',
-  $murano_keystone_tenant                = 'services',
-  $murano_keystone_user                  = 'murano',
-  $murano_keystone_password              = 'swordfish',
-  $murano_keystone_signing_dir           = '/tmp/keystone-signing-muranoapi',
-  $region                                = 'RegionOne',
-  $public_ssl                            = false,
-  # murano
-  $use_syslog                            = false,
-  $debug                                 = false,
-  $verbose                               = false,
-  $syslog_log_facility                   = 'LOG_LOCAL0',
-  $murano_log_dir                        = '/var/log/murano',
-  $murano_log_file                       = '/var/log/murano/murano.log',
-  $murano_data_dir                       = '/var/cache/murano',
-  $murano_api_host                       = '127.0.0.1',
-  # rabbit configuration
-  # NOTE:
-  # Murano uses separate rabbitmq server for communication with agents.
-  # This server is launched on each controller node and uses port 55572.
-  # Separate rabbitmq is used to address security concern that instances
-  # managed by Murano have access to the 'system' RabbitMQ and thus could
-  # have access to OpenStack internal data.
-  # murano_rabbit_ha_hosts is used by murano-api and works with oslo.messaging
-  $murano_rabbit_ha_hosts                = '127.0.0.1:5672',
-  $murano_rabbit_ha_queues               = false,
-  # murano_rabbit_host and murano_rabbit_port are used by murano-engine,
-  # which communicates with rabbitmq directly.
-  $murano_rabbit_host                    = '127.0.0.1',
-  $murano_rabbit_port                    = '55572',
-  $murano_rabbit_ssl                     = false,
-  $murano_rabbit_ca_certs                = '',
-  $murano_os_rabbit_userid               = 'guest',
-  $murano_os_rabbit_passwd               = 'guest',
-  $murano_own_rabbit_userid              = 'murano',
-  $murano_own_rabbit_passwd              = 'murano',
-  $murano_rabbit_virtual_host            = '/',
-  # murano-api.conf
-  $murano_bind_host                      = '0.0.0.0',
-  $murano_bind_port                      = '8082',
-  $murano_log_file                       = '/var/log/murano/murano-api.log',
-  #$murano_database_auto_create           = true,
-  # mysql
-  $murano_db_password                    = 'murano',
-  $murano_db_name                        = 'murano',
-  $murano_db_user                        = 'murano',
-  $murano_db_host                        = 'localhost',
-  $murano_db_allowed_hosts               = ['localhost','%'],
-  # neutron
-  $use_neutron                           = false,
-  $neutron_settings                      = {},
-  # Other parameters
-  $primary_controller                    = true,
-  # Controller addresses
-  $admin_address                         = '127.0.0.1',
-  $public_address                        = '127.0.0.1',
-  $internal_address                      = '127.0.0.1',
-  $external_network                      = 'net04_ext',
-  $murano_repo_url_string                = undef,
+#
+# === Parameters
+#
+# [*package_ensure*]
+#  (Optional) Ensure state for package
+#  Defaults to 'present'
+#
+# [*verbose*]
+#  (Optional) Should the service log verbose messages
+#  Defaults to false
+#
+# [*debug*]
+#  (Optional) Should the service log debug messages
+#  Defaults to false
+#
+# [*use_syslog*]
+#  (Optional) Should the service use Syslog
+#  Defaults to false
+#
+# [*log_facility*]
+#  (Optional) Syslog facility to recieve logs
+#  Defaults to 'LOG_LOCAL0'
+#
+# [*log_dir*]
+#  (Optional) Directory to store logs
+#  Defaults to '/var/log/murano'
+#
+# [*data_dir*]
+#  (Optional) Directory to store data
+#  Defaults to '/var/cache/murano'
+#
+# [*notification_driver*]
+#  (Optional) Notification driver to use
+#  Defaults to 'messagingv2'
+#
+# [*rabbit_os_host*]
+#  (Optional) Host for openstack rabbit server
+#  Defaults to '127.0.0.1'
+#
+# [*rabbit_os_port*]
+#  (Optional) Port for openstack rabbit server
+#  Defaults to '5672'
+#
+# [*rabbit_os_user*]
+#  (Optional) Username for openstack rabbit server
+#  Defaults to 'guest'
+#
+# [*rabbit_os_password*]
+#  (Optional) Password for openstack rabbit server
+#  Defaults to 'guest'
+#
+# [*rabbit_ha_queues*]
+#  (Optional) Should murano api use ha queues
+#  Defaults to 'guest'
+#
+# [*rabbit_own_host*]
+#  (Optional) Host for murano rabbit server
+#  Defaults to '127.0.0.1'
+#
+# [*rabbit_own_port*]
+#  (Optional) Port for murano rabbit server
+#  Defaults to '5672'
+#
+# [*rabbit_own_user*]
+#  (Optional) Username for murano rabbit server
+#  Defaults to 'guest'
+#
+# [*rabbit_own_password*]
+#  (Optional) Password for murano rabbit server
+#  Defaults to 'guest'
+#
+# [*service_host*]
+#  (Optional) Host for murano to listen on
+#  Defaults to '0.0.0.0'
+#
+# [*service_port*]
+#  (Optional) Port for murano to listen on
+#  Defaults to 8082
+#
+# [*database_connection*]
+#  (Optional) Database for murano
+#  Defaults to 'mysql://murano:secrete@localhost:3306/murano'
+#
+# == keystone authentication options
+#
+# [*keystone_username*]
+#  (Optional) Username for murano credentials
+#  Defaults to 'admin'
+#
+# [*keystone_password*]
+#  (Required) Password for murano credentials
+#  Defaults to false
+#
+# [*keystone_tenant*]
+#  (Optional) Tenant for keystone_username
+#  Defaults to 'admin'
+#
+# [*keystone_region*]
+#  (Optional) Region for keystone
+#  Defaults to 'RegionOne'
+#
+# [*keystone_uri*]
+#  (Optional) Public identity endpoint
+#  Defaults to 'http://127.0.0.1:5000/v2.0/'
+#
+# [*keystone_signing_dir*]
+#  (Optional) Directory used to cache files related to PKI tokens
+#  Defaults to '/tmp/keystone-signing-muranoapi'
+#
+# [*identity_uri*]
+#  (Optional) Admin identity endpoint
+#  Defaults to 'http://127.0.0.1:35357/'#
+#
+# [*use_neutron*]
+#  (Optional) Whether to use neutron
+#  Defaults to false
+#
+# [*external_network*]
+#  (Optional) Name of the external Neutron network
+#  which will be use by Murano
+#  Defaults to undef
+#
+# [*default_router*]
+#  (Optional) Router name for Murano networks
+#  Defaults to 'murano-default-router'
+#
+class murano(
+  $keystone_password,
+  $package_ensure       = 'present',
+  $verbose              = false,
+  $debug                = false,
+  $use_syslog           = false,
+  $log_facility         = 'LOG_LOCAL0',
+  $log_dir              = '/var/log/murano',
+  $data_dir             = '/var/cache/murano',
+  $notification_driver  = 'messagingv2',
+  $rabbit_os_host       = '127.0.0.1',
+  $rabbit_os_port       = '5672',
+  $rabbit_os_user       = 'guest',
+  $rabbit_os_password   = 'guest',
+  $rabbit_ha_queues     = false,
+  $rabbit_own_host      = '127.0.0.1',
+  $rabbit_own_port      = '5672',
+  $rabbit_own_user      = 'guest',
+  $rabbit_own_password  = 'guest',
+  $service_host         = '127.0.0.1',
+  $service_port         = '8082',
+  $database_connection  = 'mysql://murano:secrete@localhost:3306/murano',
+  $keystone_username    = 'admin',
+  $keystone_tenant      = 'admin',
+  $keystone_region      = 'RegionOne',
+  $keystone_uri         = 'http://127.0.0.1:5000/v2.0/',
+  $keystone_signing_dir = '/tmp/keystone-signing-muranoapi',
+  $identity_uri         = 'http://127.0.0.1:35357/',
+  $use_neutron          = false,
+  $external_network     = undef,
+  $default_router       = 'murano-default-router',
 ) {
 
-  Class['murano::murano_rabbitmq'] ->
-    Class['murano::keystone'] ->
-      Class['murano::python_muranoclient'] ->
-        Class['murano::api'] -> Class['murano::dashboard']
+  include ::murano::params
+  include ::murano::policy
 
-  User['murano'] -> Class['murano::api'] -> File <| title == $murano_log_dir |>
+  validate_string($keystone_password)
 
-  $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
-
-  group { 'murano':
-    ensure => present,
-    system => true,
+  package { 'murano-common':
+    ensure => $package_ensure,
+    name   => $::murano::params::common_package_name,
+    tag    => ['openstack'],
   }
 
-  $murano_user_shell = $::osfamily ? {
-    'RedHat' => '/sbin/nologin',
-    'Debian' => '/usr/sbin/nologin',
-    default  => '/sbin/nologin',
+  validate_re($database_connection, '(sqlite|mysql|postgresql):\/\/(\S+:\S+@\S+\/\S+)?')
+
+  case $database_connection {
+    /^mysql:\/\//: {
+      require mysql::bindings
+      require mysql::bindings::python
+    }
+    /^postgresql:\/\//: {
+      require postgresql::lib::python
+    }
+    /^sqlite:\/\//: {
+      fail('murano does not support sqlite!')
+    }
+    default: {
+      fail('Unsupported db backend configured')
+    }
   }
 
-  user { 'murano':
-    ensure  => present,
-    comment => 'Murano User',
-    gid     => 'murano',
-    system  => true,
-    shell   => $murano_user_shell,
-    require => Group['murano'],
+  if $use_syslog {
+    murano_config {
+      'DEFAULT/use_syslog'           : value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility'  : value => $log_facility;
+    }
   }
 
-  file { $murano_data_dir:
-    ensure => directory,
-    owner  => 'murano',
-    group  => 'murano',
-    mode   => '0755',
+  if $use_neutron {
+    if $external_network {
+      $neutron_external_network = $external_network
+    } else {
+      $neutron_external_network = $::murano::params::default_external_network
+    }
+
+    murano_config {
+      'networking/external_network' : value => $neutron_external_network;
+      'networking/router_name'      : value => $default_router;
+      'networking/create_router'    : value => true;
+    }
   }
 
-  file { $murano_log_dir:
-    ensure => directory,
-    owner  => 'murano',
-    group  => 'murano',
-    mode   => '0750',
+  murano_config {
+    'DEFAULT/verbose'                       : value => $verbose;
+    'DEFAULT/debug'                         : value => $debug;
+    'DEFAULT/log_dir'                       : value => $log_dir;
+    'DEFAULT/notification_driver'           : value => $notification_driver;
+
+    'murano/url'                            : value => "http://${service_host}:${service_port}";
+
+    'database/connection'                   : value => $database_connection;
+
+    'oslo_messaging_rabbit/rabbit_userid'   : value => $rabbit_os_user;
+    'oslo_messaging_rabbit/rabbit_password' : value => $rabbit_os_password;
+    'oslo_messaging_rabbit/rabbit_hosts'    : value => $rabbit_os_host;
+    'oslo_messaging_rabbit/rabbit_port'     : value => $rabbit_os_port;
+    'oslo_messaging_rabbit/rabbit_ha_queues': value => $rabbit_ha_queues;
+
+    'rabbitmq/login'                        : value => $rabbit_own_user;
+    'rabbitmq/password'                     : value => $rabbit_own_password;
+    'rabbitmq/host'                         : value => $rabbit_own_host;
+    'rabbitmq/port'                         : value => $rabbit_own_port;
   }
 
-  class { 'murano::python_muranoclient':
+  murano_config {
+    'keystone_authtoken/auth_uri'           : value => $keystone_uri;
+    'keystone_authtoken/admin_user'         : value => $keystone_username;
+    'keystone_authtoken/admin_tenant_name'  : value => $keystone_tenant;
+    'keystone_authtoken/admin_password'     : value => $keystone_password;
+    'keystone_authtoken/signing_dir'        : value => $keystone_signing_dir;
+    'keystone_authtoken/identity_uri'       : value => $identity_uri;
   }
 
-  class { 'murano::api' :
-    use_syslog             => $use_syslog,
-    debug                  => $debug,
-    verbose                => $verbose,
-    log_file               => "${murano_log_dir}/murano.log",
-    syslog_log_facility    => $syslog_log_facility,
-
-    auth_host              => $murano_keystone_host,
-    auth_port              => $murano_keystone_port,
-    auth_protocol          => $murano_keystone_protocol,
-    admin_tenant_name      => $murano_keystone_tenant,
-    admin_user             => $murano_keystone_user,
-    admin_password         => $murano_keystone_password,
-    signing_dir            => $murano_keystone_signing_dir,
-
-    bind_host              => $murano_bind_host,
-    bind_port              => $murano_bind_port,
-
-    api_host               => $murano_api_host,
-
-    rabbit_host            => $murano_rabbit_host,
-    rabbit_port            => $murano_rabbit_port,
-    rabbit_ha_hosts        => $murano_rabbit_ha_hosts,
-    rabbit_ha_queues       => $murano_rabbit_ha_queues,
-    rabbit_use_ssl         => $murano_rabbit_ssl,
-    rabbit_ca_certs        => $murano_rabbit_ca_certs,
-    os_rabbit_userid       => $murano_os_rabbit_userid,
-    os_rabbit_password     => $murano_os_rabbit_passwd,
-    murano_rabbit_userid   => $murano_own_rabbit_userid,
-    murano_rabbit_password => $murano_own_rabbit_passwd,
-    rabbit_virtual_host    => $murano_rabbit_virtual_host,
-
-    murano_db_password     => $murano_db_password,
-    murano_db_name         => $murano_db_name,
-    murano_db_user         => $murano_db_user,
-    murano_db_host         => $murano_db_host,
-
-    primary_controller     => $primary_controller,
-
-    use_neutron            => $use_neutron,
-    default_router         => 'murano-default-router',
-    external_network       => $external_network,
+  exec { 'murano-dbmanage':
+    command     => $::murano::params::dbmanage_command,
+    path        => '/usr/bin',
+    user        => 'murano',
+    refreshonly => true,
+    subscribe   => [Package['murano-common'], Murano_config['database/connection']],
+    logoutput   => on_failure,
   }
-
-  $dashboard = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py'
-  class { 'murano::dashboard':
-    settings_py     => $dashboard,
-    repo_url_string => $murano_repo_url_string,
-  }
-
-  class { 'murano::murano_rabbitmq' :
-    rabbit_user        => $murano_own_rabbit_userid,
-    rabbit_password    => $murano_own_rabbit_passwd,
-    rabbit_vhost       => $murano_rabbit_virtual_host,
-    rabbitmq_main_port => $murano_rabbit_port,
-  }
-
-
-  class { 'murano::keystone':
-    tenant           => $murano_keystone_tenant,
-    user             => $murano_keystone_user,
-    password         => $murano_keystone_password,
-    admin_address    => $admin_address,
-    public_address   => $public_address,
-    public_protocol  => $public_ssl ? {
-      true    => 'https',
-      default => 'http',
-    },
-    internal_address => $internal_address,
-    murano_api_port  => $murano_bind_port,
-  }
-
 }
