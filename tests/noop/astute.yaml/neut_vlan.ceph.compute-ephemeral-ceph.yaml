@@ -822,4 +822,5 @@ external_ntp:
   metadata:
     weight: 100
     label: Host OS NTP Servers
-openstack_version_prev: 
+openstack_version_prev:
+reinstall_node: true

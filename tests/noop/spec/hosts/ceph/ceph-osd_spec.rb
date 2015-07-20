@@ -23,3 +23,19 @@ describe manifest do
   test_ubuntu_and_centos manifest
 end
 
+describe manifest do
+  shared_examples 'catalog' do
+    storage_hash = Noop.hiera 'storage'
+    reinstall_node = Noop.hiera 'reinstall_node'
+
+    if (storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['object_ceph'])
+      if (reinstall_node)
+        it { should contain_ceph__osds__osd('/dev/svv').with(
+             'use_prepared_devices'  => reinstall_node,
+             )
+           }
+      end
+    end
+
+  test_reinstall_node manifest
+end

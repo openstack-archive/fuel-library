@@ -1,6 +1,19 @@
-# prepare and bring online the devices listed in $::ceph::osd_devices
+# == Class: ceph::osd
+#
+# Prepare and bring online the OSD devices
+#
+# ==== Parameters
+#
+# [*devices*]
+# (optional) Array. This is the list of OSD devices identified by the facter.
+#
+# [*use_prepared_devices*]
+# (optional) Boolean. Tells if OSD devices are prepared in advance. Defaults to
+# the value defined in the class 'ceph'.
+#
 class ceph::osds (
   $devices = $::ceph::osd_devices,
+  $use_prepared_devices = $::ceph::use_prepared_devices
 ){
 
   firewall { '011 ceph-osd allow':
@@ -10,6 +23,8 @@ class ceph::osds (
     action => accept,
   } ->
 
-  ceph::osds::osd{ $devices: }
+  ceph::osds::osd{ $devices:
+    use_prepared_devices => $use_prepared_devices
+  }
 
 }
