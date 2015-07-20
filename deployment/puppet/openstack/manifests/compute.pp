@@ -419,7 +419,7 @@ on packages update": }
 
   file_line { 'no_qemu_selinux':
     path    => '/etc/libvirt/qemu.conf',
-    line    => 'security_driver="none"',
+    line    => 'security_driver = "none"',
     require => Package[$::nova::params::libvirt_package_name],
     notify  => Service['libvirt']
   }
