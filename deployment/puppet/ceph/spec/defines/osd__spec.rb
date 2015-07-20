@@ -2,11 +2,12 @@ require 'spec_helper'
 
 describe 'ceph::osds::osd', :type => :define do
   let :facts do
-    { :hostname => 'test.example', }
+    { :hostname => 'test.example' }
   end
 
   context 'Simple test' do
     let(:title) { '/dev/svv' }
+    let(:params) {{ :use_prepared_devices => false }}
 
     it { should contain_exec("ceph-deploy osd prepare test.example:/dev/svv").with(
       'command'   => 'ceph-deploy osd prepare test.example:/dev/svv',
@@ -15,7 +16,7 @@ describe 'ceph::osds::osd', :type => :define do
       'tries'     => 2,
       'try_sleep' => 1,
       'logoutput' => true,
-      'unless'    => "grep -q /dev/svv /proc/mounts",
+      'unless'    => "ceph-disk list | grep -q '/dev/svv .*ceph data, active'",
       )
     }
     it { should contain_exec("ceph-deploy osd activate test.example:/dev/svv").with(
@@ -24,13 +25,14 @@ describe 'ceph::osds::osd', :type => :define do
       'tries'     => 3,
       'logoutput' => true,
       'timeout'   => 0,
-      'unless'    => "ceph osd dump | grep -q \"osd.$(sed -nEe 's|/dev/svv\\ .*ceph-([0-9]+).*$|\\1|p' /proc/mounts)\\ up\\ .*\\ in\\ \"",
+      'onlyif'    => "ceph-disk list | grep -q '/dev/svv .*ceph data, prepared'",
     )
     }
   end
 
   context 'Simple test with journal' do
     let(:title) { '/dev/sdd:/dev/journal' }
+    let(:params) {{ :use_prepared_devices => false }}
     it { should contain_exec("ceph-deploy osd prepare test.example:/dev/sdd:/dev/journal").with(
       'command'   => 'ceph-deploy osd prepare test.example:/dev/sdd:/dev/journal',
       'returns'   => 0,
@@ -38,7 +40,7 @@ describe 'ceph::osds::osd', :type => :define do
       'tries'     => 2,
       'try_sleep' => 1,
       'logoutput' => true,
-      'unless'    => "grep -q /dev/sdd /proc/mounts",
+      'unless'    => "ceph-disk list | grep -q '/dev/sdd .*ceph data, active'",
       )
     }
     it { should contain_exec("ceph-deploy osd activate test.example:/dev/sdd:/dev/journal").with(
@@ -47,7 +49,7 @@ describe 'ceph::osds::osd', :type => :define do
       'tries'     => 3,
       'logoutput' => true,
       'timeout'   => 0,
-      'unless'    => "ceph osd dump | grep -q \"osd.$(sed -nEe 's|/dev/sdd\\ .*ceph-([0-9]+).*$|\\1|p' /proc/mounts)\\ up\\ .*\\ in\\ \"",
+      'onlyif'    => "ceph-disk list | grep -q '/dev/sdd .*ceph data, prepared'",
       )
     }
   end
