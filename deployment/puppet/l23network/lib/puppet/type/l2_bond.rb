@@ -11,7 +11,7 @@ Puppet::Type.newtype(:l2_bond) do
       desc "The bond name"
       #
       validate do |val|
-        if not val =~ /^[a-z_][\w\.\-]*[0-9a-z]$/
+        if not val =~ /^\w[\w+\-]*\w$/
           fail("Invalid bond name: '#{val}'")
         end
       end
@@ -60,7 +60,7 @@ Puppet::Type.newtype(:l2_bond) do
 
     newproperty(:slaves, :array_matching => :all) do
       desc "What bridge to use"
-      newvalues(/^[a-z][0-9a-z\-\_]*[0-9a-z]$/, :absent, :none, :undef, :nil)
+      newvalues(/^\w[\w+\-\.]*\w$/, :absent, :none, :undef, :nil)
       aliasvalue(:none,  :absent)
       aliasvalue(:undef, :absent)
       aliasvalue(:nil,   :absent)
