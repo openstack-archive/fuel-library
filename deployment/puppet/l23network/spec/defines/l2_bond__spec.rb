@@ -70,6 +70,53 @@ describe 'l23network::l2::bond', :type => :define do
     end
   end
 
+  context 'Just create a lnx-bond with two vlan subinterfaces as slave interfaces' do
+    let(:params) do
+      {
+        :name            => 'bond0',
+        :interfaces      => ['eth3.101', 'eth4.102'],
+        :bond_properties => {},
+        :provider => 'lnx'
+      }
+    end
+
+    it do
+      should compile.with_all_deps
+    end
+
+    it do
+      should contain_l23_stored_config('bond0').with({
+        'ensure'      => 'present',
+        'if_type'     => 'bond',
+        'bond_mode'   => 'balance-rr',
+        'bond_slaves' => ['eth3.101', 'eth4.102'],
+        'bond_miimon' => '100',
+      })
+    end
+
+    ['eth3.101', 'eth4.102'].each do |slave|
+      it do
+        should contain_l23_stored_config(slave).with({
+          'ensure'      => 'present',
+          'if_type'     => nil,
+          'bond_master' => 'bond0',
+        })
+      end
+
+      it do
+        should contain_l2_port(slave).with({
+          'ensure'   => 'present',
+          'provider' => 'lnx',
+        }).that_requires("L23_stored_config[#{slave}]")
+      end
+
+      it do
+        should contain_l2_port(slave).that_requires('L2_bond[bond0]')
+      end
+    end
+  end
+
+
   context 'Just create a lnx-bond with specific MTU' do
     let(:params) do
       {
