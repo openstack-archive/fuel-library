@@ -7,3 +7,8 @@
 # repository, see https://tickets.puppetlabs.com/browse/FORGE-27
 # and https://github.com/drrb/puppet-library
 forge "https://forgeapi.puppetlabs.com"
+
+# pull in puppetlabs-tftp module
+mod 'puppetlabs-tftp', '0.2.3'
+
+exclusion 'puppetlabs/xinetd'
