@@ -37,7 +37,6 @@ $syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCA
 $syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
 $syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
 $syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL0')
-$syslog_log_facility_heat       = hiera('syslog_log_facility_heat','LOG_LOCAL0')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')

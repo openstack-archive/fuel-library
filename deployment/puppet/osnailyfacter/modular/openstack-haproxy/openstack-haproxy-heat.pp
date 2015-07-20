@@ -1,19 +1,15 @@
 notice('MODULAR: openstack-haproxy-heat.pp')
 
-$heat_hash = hiera_hash('heat', {})
+$heat_hash        = hiera_hash('heat', {})
 # enabled by default
-$use_heat = pick($heat_hash['enabled'], true)
-$public_ssl_hash = hiera('public_ssl')
-
-$controllers              = hiera('controllers')
-$controllers_server_names = filter_hash($controllers, 'name')
-$controllers_ipaddresses  = filter_hash($controllers, 'internal_address')
+$use_heat         = pick($heat_hash['enabled'], true)
+$public_ssl_hash  = hiera('public_ssl')
+$network_metadata = hiera_hash('network_metadata')
+$heat_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, hiera('heat_roles')), 'heat/api')
 
 if ($use_heat) {
-  $server_names        = pick(hiera_array('heat_names', undef),
-                              $controllers_server_names)
-  $ipaddresses         = pick(hiera_array('heat_ipaddresses', undef),
-                              $controllers_ipaddresses)
+  $server_names        = hiera_array('heat_names',keys($heat_address_map))
+  $ipaddresses         = hiera_array('heat_ipaddresses', values($heat_address_map))
   $public_virtual_ip   = hiera('public_vip')
   $internal_virtual_ip = hiera('management_vip')
 
@@ -23,6 +19,6 @@ if ($use_heat) {
     ipaddresses         => $ipaddresses,
     public_virtual_ip   => $public_virtual_ip,
     server_names        => $server_names,
-    public_ssl    => $public_ssl_hash['services'],
+    public_ssl          => $public_ssl_hash['services'],
   }
 }
