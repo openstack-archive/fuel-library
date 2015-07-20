@@ -13,3 +13,6 @@ mod 'puppetlabs-stdlib', '4.6.0'
 
 # Pull in puppetlabs-xinetd
 mod 'puppetlabs-xinetd', '1.5.0'
+
+# pull in puppetlabs-tftp module
+mod 'puppetlabs-tftp', '0.2.3'
