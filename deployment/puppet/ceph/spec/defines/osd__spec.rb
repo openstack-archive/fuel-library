@@ -2,7 +2,8 @@ require 'spec_helper'
 
 describe 'ceph::osds::osd', :type => :define do
   let :facts do
-    { :hostname => 'test.example', }
+    { :hostname => 'test.example',
+      :reinstall_node => false }
   end
 
   context 'Simple test' do
@@ -15,7 +16,7 @@ describe 'ceph::osds::osd', :type => :define do
       'tries'     => 2,
       'try_sleep' => 1,
       'logoutput' => true,
-      'unless'    => "grep -q /dev/svv /proc/mounts",
+      'unless'    => "ceph-disk list | grep -q '/dev/svv .*ceph data, active'",
       )
     }
     it { should contain_exec("ceph-deploy osd activate test.example:/dev/svv").with(
@@ -24,7 +25,7 @@ describe 'ceph::osds::osd', :type => :define do
       'tries'     => 3,
       'logoutput' => true,
       'timeout'   => 0,
-      'unless'    => "ceph osd dump | grep -q \"osd.$(sed -nEe 's|/dev/svv\\ .*ceph-([0-9]+).*$|\\1|p' /proc/mounts)\\ up\\ .*\\ in\\ \"",
+      'onlyif'    => "ceph-disk list | grep -q '/dev/svv .*ceph data, prepared'",
     )
     }
   end
