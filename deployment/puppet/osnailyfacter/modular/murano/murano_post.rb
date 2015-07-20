@@ -11,7 +11,7 @@ class MuranoPostTest < Test::Unit::TestCase
   end
 
   def test_murano_haproxy_backend_online
-    assert TestCommon::HAProxy.backend_up?('murano'), 'Murano HAProxy backend is not up!'
+    assert TestCommon::HAProxy.backend_up?('murano-api'), 'Murano HAProxy backend is not up!'
   end
 
   def test_murano_rabbitmq_haproxy_backend_online

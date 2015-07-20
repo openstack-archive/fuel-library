@@ -1,129 +1,134 @@
 notice('MODULAR: murano.pp')
 
-$murano_hash                = hiera('murano')
-$murano_settings_hash       = hiera('murano_settings', {})
-$openstack_version          = hiera('openstack_version')
-$controller_node_address    = hiera('controller_node_address')
-$controller_node_public     = hiera('controller_node_public')
-$public_vip                 = hiera('public_vip', $controller_node_public)
-$management_vip             = hiera('management_vip', $controller_node_address)
-$service_endpoint           = hiera('service_endpoint')
-$rabbit_ha_queues           = hiera('rabbit_ha_queues')
-$rabbit_hash                = hiera('rabbit_hash')
-$heat_hash                  = hiera('heat')
+$murano_hash                = hiera_hash('murano_hash', {})
+$rabbit_hash                = hiera_hash('rabbit_hash', {})
+$heat_hash                  = hiera_hash('heat_hash', {})
+$neutron_config             = hiera_hash('neutron_config', {})
+$primary_controller         = hiera('primary_controller')
+$public_ip                  = hiera('public_vip')
+$management_ip              = hiera('management_vip')
+$internal_address           = hiera('internal_address')
+$region                     = hiera('region', 'RegionOne')
 $use_neutron                = hiera('use_neutron', false)
-$neutron_config             = hiera('neutron_config', {})
+$service_endpoint           = hiera('service_endpoint', $management_ip)
+$syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
-$use_syslog                 = hiera('use_syslog', false)
-$syslog_log_facility_murano = hiera('syslog_log_facility_murano')
-$primary_controller         = hiera('primary_controller')
-$region                     = hiera('region', 'RegionOne')
-$public_ssl_hash            = hiera('public_ssl')
+$use_syslog                 = hiera('use_syslog', true)
+$rabbit_ha_queues           = hiera('rabbit_ha_queues')
+$amqp_port                  = hiera('amqp_port')
+$amqp_hosts                 = hiera('amqp_hosts')
+$public_ssl                 = hiera_hash('public_ssl', {})
 
 #################################################################
 
-if $murano_hash['enabled'] {
-
-  if ! $use_neutron {
-    fail 'Murano requires Neutron! Nova-Network is not supported!'
-  }
-
-  ####### Disable upstart startup on install #######
-  if($::operatingsystem == 'Ubuntu') {
-    tweaks::ubuntu_service_override { ['murano_api', 'murano_engine']:
-      package_name => 'murano',
-    }
-  }
-
-  #NOTE(mattymo): Backward compatibility for Icehouse
-  case $openstack_version {
-    /201[1-3]\./: {
-      fail("Unsupported OpenStack version: ${openstack_version}")
-    }
-    /2014\.1\./: {
-      $murano_package_name              = 'murano-api'
-    }
-    default: {
-      $murano_package_name              = 'murano'
-    }
-  }
-
-  $external_network = get_ext_net_name($neutron_config['predefined_networks'])
-  if has_key($murano_settings_hash, 'murano_repo_url') {
-    $murano_repo_url = $murano_settings_hash['murano_repo_url']
-  } else {
-    $murano_repo_url = 'http://storage.apps.openstack.org'
-  }
-
-  class { '::murano' :
-    murano_package_name      => $murano_package_name,
-    murano_api_host          => $management_vip,
-
-  # Controller adresses (for endpoints)
-    admin_address            => $controller_node_address,
-    public_address           => $controller_node_public,
-    internal_address         => $controller_node_address,
-
-  # Murano uses two RabbitMQ - one from OpenStack and another one installed on each controller.
-  #   The second instance is used for communication with agents.
-  #   * murano_rabbit_host provides address for murano-engine which communicates with this
-  #    'separate' rabbitmq directly (without oslo.messaging).
-  #   * murano_rabbit_ha_hosts / murano_rabbit_ha_queues are required for murano-api which
-  #     communicates with 'system' RabbitMQ and uses oslo.messaging.
-    murano_rabbit_host       => $public_vip,
-    murano_rabbit_ha_hosts   => hiera('amqp_hosts',''),
-    murano_rabbit_ha_queues  => $rabbit_ha_queues,
-    murano_os_rabbit_userid  => $rabbit_hash['user'],
-    murano_os_rabbit_passwd  => $rabbit_hash['password'],
-    murano_own_rabbit_userid => 'murano',
-    murano_own_rabbit_passwd => $heat_hash['rabbit_password'],
-
-
-    murano_db_host           => pick(hiera('database_vip'), hiera('management_vip')),
-    murano_db_password       => $murano_hash['db_password'],
-
-    murano_keystone_host     => $service_endpoint,
-    murano_keystone_user     => 'murano',
-    murano_keystone_password => $murano_hash['user_password'],
-    murano_keystone_tenant   => 'services',
-    region                   => $region,
-
-    public_ssl               => $public_ssl_hash['services'],
-
-    use_neutron              => $use_neutron,
-
-    use_syslog               => $use_syslog,
-    debug                    => $debug,
-    verbose                  => $verbose,
-    syslog_log_facility      => $syslog_log_facility_murano,
-
-    primary_controller       => $primary_controller,
-    external_network         => $external_network,
-
-    murano_repo_url_string   => $murano_repo_url,
-  }
-
-  include ::tweaks::apache_wrappers
-
-  if $primary_controller {
-    $haproxy_stats_url = "http://${management_vip}:10000/;csv"
-
-    haproxy_backend_status { 'murano' :
-      name => 'murano',
-      url  => $haproxy_stats_url,
-    }
-
-    Service<| title == 'murano_api'|> -> Haproxy_backend_status['murano'] -> Murano::Application_package <||>
-  }
-
+$public_protocol = pick($public_ssl['services'], false) ? {
+  true    => 'https',
+  default => 'http',
 }
 
-######################
+$public_address = pick($public_ssl['services'], false) ? {
+  true    => pick($public_ssl['hostname']),
+  default => $public_ip,
+}
 
-class rabbitmq::service {}
+$firewall_rule  = '202 murano-api'
+
+$api_bind_port  = '8082'
+$api_bind_host  = $internal_address
+
+$murano_user    = pick($murano_hash['user'], 'murano')
+$tenant         = pick($murano_hash['tenant'], 'services')
+$internal_url   = "http://${service_endpoint}:${api_bind_port}"
+$db_user        = pick($murano_hash['db_user'], 'murano')
+$db_name        = pick($murano_hash['db_name'], 'murano')
+$db_password    = pick($murano_hash['db_password'])
+$db_host        = pick($murano_hash['db_host'], $management_ip)
+$read_timeout   = '60'
+$sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
+
+####### Disable upstart startup on install #######
+if($::operatingsystem == 'Ubuntu') {
+  tweaks::ubuntu_service_override { ['murano-api', 'murano-engine']:
+    package_name => 'murano',
+  }
+}
+
+firewall { $firewall_rule :
+  dport  => $api_bind_port,
+  proto  => 'tcp',
+  action => 'accept',
+}
+
+class { 'murano' :
+  verbose             => $verbose,
+  debug               => $debug,
+  use_syslog          => $use_syslog,
+  log_facility        => $syslog_log_facility_murano,
+  database_connection => $sql_connection,
+  keystone_uri        => "${public_protocol}://${public_address}:5000/v2.0/",
+  keystone_username   => $murano_user,
+  keystone_password   => $murano_hash['user_password'],
+  keystone_tenant     => $tenant,
+  identity_uri        => "http://${service_endpoint}:35357/",
+  use_neutron         => $use_neutron,
+  rabbit_os_user      => $rabbit_hash['user'],
+  rabbit_os_password  => $rabbit_hash['password'],
+  rabbit_os_port      => $amqp_port,
+  rabbit_os_host      => split($amqp_hosts, ','),
+  rabbit_ha_queues    => $rabbit_ha_queues,
+  rabbit_own_host     => $public_ip,
+  rabbit_own_port     => '55572',
+  rabbit_own_user     => 'murano',
+  rabbit_own_password => $heat_hash['rabbit_password'],
+  service_host        => $api_bind_host,
+  service_port        => $api_bind_port,
+  external_network    => get_ext_net_name($neutron_config['predefined_networks']),
+}
+
+class { 'murano::api':
+  host => $api_bind_host,
+  port => $api_bind_port,
+}
+
+class { 'murano::engine': }
+
+class { 'murano::client': }
+
+class { 'murano::dashboard':
+  api_url => $internal_url,
+}
+
+class { 'murano::rabbitmq':
+  rabbit_user     => 'murano',
+  rabbit_password => $heat_hash['rabbit_password'],
+  rabbit_port     => '55572',
+}
+
+$haproxy_stats_url = "http://${management_ip}:10000/;csv"
+
+haproxy_backend_status { 'murano-api' :
+  name => 'murano-api',
+  url  => $haproxy_stats_url,
+}
+
+if $primary_controller {
+  murano::application { 'io.murano' :
+    os_tenant_name => $tenant,
+    os_username    => $murano_user,
+    os_password    => $murano_hash['user_password'],
+    os_auth_url    => "${public_protocol}://${public_address}:5000/v2.0/",
+    os_region      => $region,
+    mandatory      => true,
+  }
+
+  Service['murano-api'] -> Murano::Application<| mandatory == true |>
+}
+
+Firewall[$firewall_rule] -> Class['murano::api']
+Service['murano-api'] -> Haproxy_backend_status['murano-api']
+
+#########################
+
 class openstack::firewall {}
-include rabbitmq::service
 include openstack::firewall
-
-file { '/etc/openstack-dashboard/local_settings' :}
