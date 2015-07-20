@@ -287,6 +287,7 @@ class nova(
   $periodic_interval        = '60',
   $report_interval          = '10',
   $rootwrap_config          = '/etc/nova/rootwrap.conf',
+  $rootwrap_dir             = '/usr/share/nova/rootwrap',
   $use_ssl                  = false,
   $enabled_ssl_apis         = ['ec2', 'metadata', 'osapi_compute'],
   $ca_file                  = false,
@@ -634,6 +635,15 @@ class nova(
   else {
     nova_config {
       'DEFAULT/os_region_name':       ensure => absent;
+    }
+  }
+  
+  if $rootwrap_dir {
+    file {['/usr/share/nova/', '/usr/share/nova/rootwrap']':
+      ensure => directory,
+      mode   => '0700',
+      owner  => root,
+      group  => root,
     }
   }
 

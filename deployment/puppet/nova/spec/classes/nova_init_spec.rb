@@ -34,6 +34,13 @@ describe 'nova' do
           :group   => 'nova',
           :require => 'Package[nova-common]'
         )
+        is_expected.to contain_file('/usr/share/nova/rootwrap').with(
+          :ensure  => 'directory',
+          :mode    => '0700',
+          :owner   => 'root',
+          :group   => 'root',
+          :require => 'Package[nova-common]'
+        )
       end
 
       it 'configures rootwrap' do
