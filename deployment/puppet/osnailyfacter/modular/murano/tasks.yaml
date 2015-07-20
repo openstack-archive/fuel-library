@@ -1,6 +1,7 @@
 - id: murano
   type: puppet
   groups: [primary-controller, controller]
+  condition: "settings:murano.enabled.value == true"
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [heat, horizon]
   parameters:
@@ -15,9 +16,21 @@
 - id: murano-db
   type: puppet
   groups: [primary-controller]
+  condition: "settings:murano.enabled.value == true"
   required_for: [murano]
   requires: [database]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: murano-keystone
+  type: puppet
+  groups: [primary-controller]
+  condition: "settings:murano.enabled.value == true"
+  required_for: [murano]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
