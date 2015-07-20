@@ -1,6 +1,10 @@
 #
 # Define: cinder::backend::iscsi
-# Parameters:
+#
+# === Parameters:
+#
+# [*iscsi_ip_address*]
+#   (Required) The IP address that the iSCSI daemon is listening on
 #
 # [*volume_backend_name*]
 #   (optional) Allows for the volume_backend_name to be separate of $name.
@@ -10,9 +14,21 @@
 #   (Optional) Driver to use for volume creation
 #   Defaults to 'cinder.volume.drivers.lvm.LVMVolumeDriver'.
 #
+# [*volume_group*]
+#   (Optional) Name for the VG that will contain exported volumes
+#   Defaults to 'cinder-volumes'.
+#
 # [*volumes_dir*]
 #   (Optional) Volume configuration file storage directory
 #   Defaults to '/var/lib/cinder/volumes'.
+#
+# [*iscsi_helper*]
+#   (Optional) iSCSI target user-land tool to use.
+#   Defaults to '$::cinder::params::iscsi_helper'.
+#
+# [*iscsi_protocol*]
+#   (Optional) Protocol to use as iSCSI driver
+#   Defaults to 'iscsi'.
 #
 # [*extra_options*]
 #   (optional) Hash of extra options to pass to the backend stanza

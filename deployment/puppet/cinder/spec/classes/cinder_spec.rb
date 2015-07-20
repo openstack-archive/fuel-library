@@ -41,20 +41,6 @@ describe 'cinder' do
       is_expected.to contain_cinder_config('DEFAULT/log_dir').with(:value => '/var/log/cinder')
     end
 
-    it { is_expected.to contain_file('/etc/cinder/cinder.conf').with(
-      :owner   => 'cinder',
-      :group   => 'cinder',
-      :mode    => '0600',
-      :require => 'Package[cinder]'
-    ) }
-
-    it { is_expected.to contain_file('/etc/cinder/api-paste.ini').with(
-      :owner   => 'cinder',
-      :group   => 'cinder',
-      :mode    => '0600',
-      :require => 'Package[cinder]'
-    ) }
-
   end
   describe 'with modified rabbit_hosts' do
     let :params do
