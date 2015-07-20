@@ -5,7 +5,6 @@ $network_metadata = hiera_hash('network_metadata', {})
 
 $keystone_hash  = hiera_hash('keystone', {})
 $mysql_hash     = hiera_hash('mysql', {})
-$management_vip = hiera('management_vip', undef)
 $database_vip   = hiera('database_vip', undef)
 
 $mysql_root_user     = pick($mysql_hash['root_user'], 'root')
@@ -25,6 +24,8 @@ $allowed_hosts = [ $node_name, 'localhost', '127.0.0.1', '%' ]
 
 if $db_create {
 
+  include mysql
+
   class { 'keystone::db::mysql':
     user          => $db_user,
     password      => $db_password,
@@ -37,6 +38,11 @@ if $db_create {
     db_user     => $db_root_user,
     db_password => $db_root_password,
   }
+
+  Class['mysql'] ->
+    Class['osnailyfacter::mysql_access'] ->
+      Class['keystone::db::mysql']
+
 
 }
 
