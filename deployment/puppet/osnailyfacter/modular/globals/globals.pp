@@ -280,6 +280,10 @@ $heat_roles = ['primary-controller', 'controller']
 # todo: use special node-roles instead controllers in the future
 $database_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
+# Define neutron-related variables:
+# todo: use special node-roles instead controllers in the future
+$neutron_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
 file { '/etc/hiera/globals.yaml' :
