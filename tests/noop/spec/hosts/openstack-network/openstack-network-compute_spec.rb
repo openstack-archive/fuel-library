@@ -38,11 +38,15 @@ describe manifest do
     end
 
     if use_neutron
-      it 'should create /etc/libvirt/qemu.conf file that notifies libvirt service' do
-        should contain_file('/etc/libvirt/qemu.conf').with(
-          'ensure' => 'present',
-          'source' => 'puppet:///modules/nova/libvirt_qemu.conf',
-        ).that_notifies('Service[libvirt]')
+      it 'should configure libvirt for qemu' do
+        should contain_file_line('clear_emulator_capabilities').with(
+          'path'    => '/etc/libvirt/qemu.conf',
+          'line'    => 'clear_emulator_capabilities = 0',
+        )
+        should contain_file_line('no_qemu_selinux').with(
+          'path'    => '/etc/libvirt/qemu.conf',
+          'line'    => 'security_driver = "none"',
+       )
       end
       it 'should configure linuxnet_interface_driver and linuxnet_ovs_integration_bridge' do
         should contain_nova_config('DEFAULT/linuxnet_interface_driver').with(
