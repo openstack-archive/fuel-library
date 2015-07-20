@@ -91,6 +91,7 @@ class openstack::network (
   # Neutron
   $neutron_server   = false,
   $neutron_db_uri   = undef,
+  $bind_host        = '0.0.0.0',
   $base_mac         = 'fa:16:3e:00:00:00',
   $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin',
   $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin'],
@@ -140,6 +141,7 @@ class openstack::network (
         debug                   => $debug,
         use_syslog              => $use_syslog,
         log_facility            => $syslog_log_facility,
+        bind_host               => $bind_host,
         base_mac                => $base_mac,
         core_plugin             => $core_plugin,
         service_plugins         => $neutron_server ? {false => undef, default => $service_plugins},
