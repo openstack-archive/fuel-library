@@ -110,7 +110,7 @@
 - id: base-os
   type: group
   role: [base-os]
-  tasks: [hiera, globals]
+  tasks: [hiera, globals, logging]
   required_for:
     - deploy_end
     - primary-controller
