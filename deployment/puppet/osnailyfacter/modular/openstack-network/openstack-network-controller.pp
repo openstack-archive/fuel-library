@@ -4,10 +4,7 @@ $use_neutron                    = hiera('use_neutron', false)
 $primary_controller             = hiera('primary_controller')
 $access_hash                    = hiera('access', {})
 $controllers                    = hiera('controllers')
-$controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
-$controller_nodes               = ipsort(values($controller_internal_addresses))
 $rabbit_hash                    = hiera('rabbit_hash', {})
-$internal_address               = hiera('internal_address')
 $management_vip                 = hiera('management_vip')
 $service_endpoint               = hiera('service_endpoint')
 $nova_hash                      = hiera_hash('nova', {})
@@ -66,6 +63,8 @@ if $network_provider == 'neutron' {
 
   $neutron_db_uri = "mysql://${neutron_db_user}:${neutron_db_password}@${neutron_db_host}/${neutron_db_name}?&read_timeout=60"
   $neutron_server = true
+  $neutron_local_address_for_bind = get_network_role_property('neutron/api', 'ipaddr')
+  $floating_bridge = get_network_role_property('neutron/floating', 'phys_dev')
 
   if $neutron_config['L2']['segmentation_type'] != 'vlan' {
     # tunneling_mode
@@ -191,6 +190,8 @@ if $network_provider == 'neutron' {
 } else {
   $neutron_server = false
   $neutron_db_uri = undef
+  $neutron_local_address_for_bind = undef
+  $floating_bridge = undef
 
   case hiera('network_manager', undef) {
     'nova.network.manager.VlanManager': {
@@ -231,6 +232,7 @@ class { 'openstack::network':
   core_plugin         => $core_plugin,
   service_plugins     => $service_plugins,
   net_mtu             => $mtu_for_virt_network,
+  bind_host           => $neutron_local_address_for_bind,
 
   #ovs
   mechanism_drivers    => $mechanism_drivers,
@@ -242,6 +244,8 @@ class { 'openstack::network':
   vni_ranges           => $tunnel_id_ranges,
   tunnel_types         => $tunnel_types,
   tenant_network_types => $tenant_network_types,
+
+  floating_bridge      => $floating_bridge,
 
   #Queue settings
   queue_provider  => hiera('queue_provider', 'rabbitmq'),

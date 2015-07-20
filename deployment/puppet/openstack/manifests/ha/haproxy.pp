@@ -73,11 +73,12 @@ class openstack::ha::haproxy (
     public_ssl   => $services_use_ssl,
   }
 
+  $neutron_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('neutron_nodes'), 'neutron/api')
   if $neutron {
     class { 'openstack::ha::neutron':
       public_ssl   => $services_use_ssl,
-      server_names => hiera_array('neutron_names', $controllers_server_names),
-      ipaddresses  => hiera_array('neutron_ipaddresses', $controllers_ipaddresses),
+      server_names => hiera_array('neutron_names', keys($neutron_address_map)),
+      ipaddresses  => hiera_array('neutron_ipaddresses', values($neutron_address_map)),
     }
   }
 
