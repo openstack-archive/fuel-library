@@ -52,10 +52,11 @@ class openstack::ha::haproxy (
     ipaddresses  => hiera_array('nova_ipaddresses', $controllers_ipaddresses),
   }
 
+  $heat_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, hiera('heat_roles')), 'heat/api')
   class { 'openstack::ha::heat':
     public_ssl   => $services_use_ssl,
-    server_names => hiera_array('heat_names', $controllers_server_names),
-    ipaddresses  => hiera_array('heat_ipaddresses', $controllers_ipaddresses),
+    server_names => hiera_array('heat_names', keys($heat_address_map)),
+    ipaddresses  => hiera_array('heat_ipaddresses', values($heat_address_map)),
   }
 
   #todo(sv): change to 'glance' as soon as glance as node-role was ready
