@@ -636,6 +636,13 @@ class nova(
       'DEFAULT/os_region_name':       ensure => absent;
     }
   }
+  
+  file {['/usr/share/nova/', '/usr/share/nova/rootwrap']:
+      ensure => directory,
+      mode   => '0700',
+      owner  => root,
+      group  => root,
+  }
 
   exec { 'post-nova_config':
     command     => '/bin/echo "Nova config has changed"',
