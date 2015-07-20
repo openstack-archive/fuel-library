@@ -7,7 +7,7 @@ class MuranoPreTest < Test::Unit::TestCase
   end
 
   def test_haproxy_murano_backend_present
-    assert TestCommon::HAProxy.backend_present?('murano'), 'No murano haproxy backend!'
+    assert TestCommon::HAProxy.backend_present?('murano-api'), 'No murano haproxy backend!'
   end
 
   def test_horizon_haproxy_backend_online
