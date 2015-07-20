@@ -30,6 +30,7 @@ $nova_config_hash               = hiera_hash('nova_config', {})
 $api_bind_address               = get_network_role_property('nova/api', 'ipaddr')
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $ceilometer_hash                = hiera_hash('ceilometer',{})
+$ironic_hash                    = hiera_hash('ironic', {})
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash                 = hiera_hash('workloads_collector', {})
 $service_endpoint               = hiera('service_endpoint')
@@ -200,12 +201,19 @@ if $sahara_hash['enabled'] {
   $scheduler_default_filters = []
 }
 
+if $ironic_hash['enabled'] {
+  $scheduler_host_manager          = 'nova.scheduler.ironic_host_manager.IronicHostManager'
+  $scheduler_use_baremetal_filters = true
+}
+
 class { '::nova::scheduler::filter':
-  cpu_allocation_ratio       => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
-  disk_allocation_ratio      => pick($nova_hash['disk_allocation_ratio'], '1.0'),
-  ram_allocation_ratio       => pick($nova_hash['ram_allocation_ratio'], '1.0'),
-  scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
-  scheduler_default_filters  => concat($scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]))
+  cpu_allocation_ratio            => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
+  disk_allocation_ratio           => pick($nova_hash['disk_allocation_ratio'], '1.0'),
+  ram_allocation_ratio            => pick($nova_hash['ram_allocation_ratio'], '1.0'),
+  scheduler_host_subset_size      => pick($nova_hash['scheduler_host_subset_size'], '30'),
+  scheduler_default_filters       => concat($scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])),
+  scheduler_host_manager          => $scheduler_host_manager,
+  scheduler_use_baremetal_filters => $scheduler_use_baremetal_filters,
 }
 
 # From logasy filter.pp
