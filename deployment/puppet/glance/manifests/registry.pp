@@ -150,10 +150,10 @@ class glance::registry(
   $sync_db               = true,
   # DEPRECATED PARAMETERS
   $mysql_module          = undef,
-  $auth_host             = '127.0.0.1',
-  $auth_port             = '35357',
+  $auth_host             = undef,
+  $auth_port             = undef,
   $auth_admin_prefix     = false,
-  $auth_protocol         = 'http',
+  $auth_protocol         = undef,
 ) inherits glance {
 
   require keystone::python

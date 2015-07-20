@@ -225,11 +225,11 @@ class glance::api(
   $validation_options       = {},
   # DEPRECATED PARAMETERS
   $mysql_module             = undef,
-  $auth_host                = '127.0.0.1',
+  $auth_host                = undef,
   $auth_url                 = 'http://localhost:5000/v2.0',
-  $auth_port                = '35357',
+  $auth_port                = undef,
   $auth_admin_prefix        = false,
-  $auth_protocol            = 'http',
+  $auth_protocol            = undef,
 ) inherits glance {
 
   include ::glance::policy
