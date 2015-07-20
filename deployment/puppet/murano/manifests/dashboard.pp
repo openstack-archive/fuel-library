@@ -1,19 +1,43 @@
-# Installs & configure the murano dashboard
-
-class murano::dashboard (
-  $settings_py                    = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
-  $modify_config                  = '/usr/bin/modify-horizon-config.sh',
-  $collect_static_script          = '/usr/share/openstack-dashboard/manage.py',
-  $murano_log_file                = '/var/log/murano/murano-dashboard.log',
-  $murano_url_string              = $::murano::params::default_url_string,
-  $repo_url_string                = $::murano::params::default_repo_url_string,
-  $local_settings                 = $::murano::params::local_settings_path,
+# == Class: murano::dashboard
+#
+#  murano dashboard package
+#
+# === Parameters
+#
+# [*package_ensure*]
+#  (Optional) Ensure state for package
+#  Defaults to 'present'
+#
+# [*api_url*]
+#  (Optional) API url for murano-dashboard
+#  Defaults to 'http://127.0.0.1:8082'
+#
+# [*repo_url*]
+#  (Optional) Application repository URL for murano-dashboard
+#  Defaults to 'http://storage.apps.openstack.org'
+#
+# [*settings_py*]
+#  (Optional) Path to horizon settings
+#  Defaults to '/usr/share/openstack-dashboard/openstack_dashboard/settings.py'
+#
+# [*modify_config*]
+#  (Optional) Path to modify-horizon-config script
+#  Defaults to '/usr/bin/modify-horizon-config.sh'
+#
+# [*collect_static_script*]
+#  (Optional) Path to horizon manage utility
+#  Defaults to '/usr/share/openstack-dashboard/manage.py'
+#
+class murano::dashboard(
+  $package_ensure        = 'present',
+  $api_url               = 'http://127.0.0.1:8082',
+  $repo_url              = 'http://storage.apps.openstack.org',
+  $settings_py           = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
+  $modify_config         = '/usr/bin/modify-horizon-config.sh',
+  $collect_static_script = '/usr/share/openstack-dashboard/manage.py',
 ) {
 
   include murano::params
-  include horizon::params
-
-  $package_name = $::murano::params::murano_dashboard_package_name
 
   $apache_user = $::osfamily ? {
     'RedHat' => 'apache',
@@ -21,13 +45,18 @@ class murano::dashboard (
     default  => 'www-data',
   }
 
+  package { 'murano-dashboard':
+    ensure => $package_ensure,
+    name   => $::murano::params::dashboard_package_name,
+  }
+
   File_line {
     ensure => 'present',
   }
 
   file_line { 'murano_url' :
-    path    => $local_settings,
-    line    => $murano_url_string,
+    path    => $::murano::params::local_settings_path,
+    line    => "MURANO_API_URL = '${api_url}'",
   }
 
   file { $modify_config :
@@ -46,7 +75,7 @@ class murano::dashboard (
     environment => [
       "HORIZON_CONFIG=${settings_py}",
       "MURANO_SSL_ENABLED=False",
-      "MURANO_REPO_URL=${repo_url_string}",
+      "MURANO_REPO_URL=${repo_url}",
       "USE_KEYSTONE_ENDPOINT=True",
       "USE_SQLITE_BACKEND=False",
       "APACHE_USER=${apache_user}",
@@ -62,20 +91,7 @@ class murano::dashboard (
     ],
   }
 
-  file { $murano_log_file :
-    ensure => present,
-    mode   => '0755',
-    owner  => $apache_user,
-    group  => 'root',
-  }
-
-  package { 'murano_dashboard':
-    ensure => present,
-    name   => $package_name,
-  }
-
-  Package['murano_dashboard'] -> File[$modify_config] -> Exec['clean_horizon_config'] -> Exec['fix_horizon_config'] -> Exec['django_collectstatic'] -> File[$murano_log_file] -> File <| title == "${::horizon::params::logdir}/horizon.log" |> -> Service <| title == 'httpd' |>
-  Package['murano_dashboard'] ~> Service <| title == 'httpd' |>
+  Package['murano-dashboard'] -> File[$modify_config] -> Exec['clean_horizon_config'] -> Exec['fix_horizon_config'] -> Exec['django_collectstatic'] -> Service <| title == 'httpd' |>
+  Package['murano-dashboard'] ~> Service <| title == 'httpd' |>
   Exec['fix_horizon_config'] ~> Service <| title == 'httpd' |>
-
 }
