@@ -136,6 +136,11 @@ if is_hash($network_metadata['vips']['service_endpoint']) {
 } else {
   $service_endpoint            = pick($network_metadata['vips']['service_endpoint'],  $management_vip)
 }
+if is_hash($network_metadata['vips']['baremetal']) {
+  $baremetal_vip                  = $network_metadata['vips']['baremetal']['ipaddr']
+} else {
+  $baremetal_vip                  = pick($network_metadata['vips']['baremetal'], $management_vip)
+}
 #todo(sv): end of workaround
 
 if $use_neutron {
