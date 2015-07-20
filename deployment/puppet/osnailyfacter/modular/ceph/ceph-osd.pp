@@ -44,6 +44,7 @@ class {'ceph':
   syslog_log_facility      => hiera('syslog_log_facility_ceph','LOG_LOCAL0'),
   rgw_keystone_admin_token => $keystone_hash['admin_token'],
   ephemeral_ceph           => $storage_hash['ephemeral_ceph'],
+  use_prepared_devices     => hiera('reinstall_node', false),
 }
 
 $osd_devices = split($::osd_devices_list, ' ')

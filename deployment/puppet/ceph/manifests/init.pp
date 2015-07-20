@@ -12,6 +12,7 @@ class ceph (
       $osd_devices                        = split($::osd_devices_list, ' '),
       $use_ssl                            = false,
       $use_rgw                            = false,
+      $use_prepared_devices               = false,
 
       # ceph.conf Global settings
       $auth_supported                     = 'cephx',
