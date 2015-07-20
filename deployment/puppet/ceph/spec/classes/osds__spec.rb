@@ -19,7 +19,7 @@ describe 'ceph::osds', :type => :class do
   end
 
   context 'Class ceph::osds with devices and journals' do
-    let (:params) {{ :devices => ['/dev/sdc1:/dev/sdc2', '/dev/sdd1:/dev/sdd2' ] }}
+    let (:params) {{ :devices => ['/dev/sdc1:/dev/sdc2', '/dev/sdd1:/dev/sdd2'] }}
 
     it { should contain_firewall('011 ceph-osd allow') }
     it { should contain_ceph__osds__osd('/dev/sdc1:/dev/sdc2') }

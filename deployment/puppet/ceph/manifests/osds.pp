@@ -1,4 +1,12 @@
-# prepare and bring online the devices listed in $::ceph::osd_devices
+# == Class: ceph::osd
+#
+# Prepare and bring online the OSD devices
+#
+# ==== Parameters
+#
+# [*devices*]
+# (optional) Array. This is the list of OSD devices identified by the facter.
+#
 class ceph::osds (
   $devices = $::ceph::osd_devices,
 ){
