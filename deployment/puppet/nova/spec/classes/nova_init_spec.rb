@@ -38,6 +38,12 @@ describe 'nova' do
 
       it 'configures rootwrap' do
         is_expected.to contain_nova_config('DEFAULT/rootwrap_config').with_value('/etc/nova/rootwrap.conf')
+        is_expected.to contain_file('/usr/share/nova/rootwrap').with(
+          :ensure  => 'directory',
+          :mode    => '0700',
+          :owner   => 'root',
+          :group   => 'root',
+        )
       end
 
       it { is_expected.to contain_exec('networking-refresh').with(
