@@ -1,6 +1,7 @@
 # prepare and bring online the devices listed in $::ceph::osd_devices
 class ceph::osds (
   $devices = $::ceph::osd_devices,
+  $use_prepared_devices = $::ceph::use_prepared_devices,
 ){
 
   firewall { '011 ceph-osd allow':
