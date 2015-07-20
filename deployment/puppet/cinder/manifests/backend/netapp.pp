@@ -5,6 +5,10 @@
 #
 # === Parameters
 #
+# [*volume_backend_name*]
+#   (optional) The name of the cinder::backend::netapp ressource
+#   Defaults to $name.
+#
 # [*netapp_login*]
 #   (required) Administrative user account name used to access the storage
 #   system or proxy server.

@@ -46,6 +46,10 @@
 # [*ssh_min_pool_conn*]
 #   (optional) Maximum ssh connections in the pool.
 #
+# [*ssh_max_pool_conn*]
+#   (Optional) Maximum ssh connections in the pool.
+#   Defaults to '5'.
+#
 # [*extra_options*]
 #   (optional) Hash of extra options to pass to the backend stanza
 #   Defaults to: {}
