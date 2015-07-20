@@ -1,188 +1,67 @@
-# Installs & configure the heat API and Engine services
-# TODO: refactor manifest to place each service in own manifest for next release
-
-class murano::api (
-    $use_syslog                 = false,
-    $syslog_log_facility        = 'LOG_LOCAL0',
-    $verbose                    = false,
-    $debug                      = false,
-    $auth_host                  = '127.0.0.1',
-    $auth_port                  = '35357',
-    $auth_protocol              = 'http',
-    $admin_tenant_name          = 'admin',
-    $admin_user                 = 'admin',
-    $admin_password             = 'admin',
-    $region                     = 'RegionOne',
-    $signing_dir                = '/tmp/keystone-signing-muranoapi',
-    $bind_host                  = '0.0.0.0',
-    $bind_port                  = '8082',
-    $api_host                   = 'localhost',
-    $log_file                   = '/var/log/murano/murano.log',
-    # rabbit_host and rabbit_port are required for
-    #   murano-engine rabbitmq section. It doesn't use oslo.messaging yet.
-    $rabbit_host                = '127.0.0.1',
-    $rabbit_port                = '5672',
-    # rabbit_hosts and rabbit_ha_queues are required for
-    #    murano-api rabbitmq configuration via oslo.messaging.
-    $rabbit_ha_hosts            = '127.0.0.1:5672',
-    $rabbit_ha_queues           = false,
-    $rabbit_use_ssl             = false,
-    $rabbit_ca_certs            = '',
-    $os_rabbit_userid           = 'guest',
-    $os_rabbit_password         = 'guest',
-    $murano_rabbit_userid       = 'murano',
-    $murano_rabbit_password     = 'murano',
-    $rabbit_virtual_host        = '/',
-    $notification_driver        = 'messagingv2',
-    $firewall_rule_name         = '202 murano-api',
-    $murano_db_user             = 'murano',
-    $murano_db_password         = 'murano',
-    $murano_db_host             = 'localhost',
-    $murano_db_name             = 'murano',
-
-    $murano_user                = 'murano',
-    $stats_period               = '5',
-
-    $primary_controller         = true,
-
-    $use_neutron                = false,
-    $default_router             = 'murano-default-router',
-    $external_network           = 'net04_ext',
+# == Class: murano::api
+#
+#  murano api package & service
+#
+# === Parameters
+#
+# [*manage_service*]
+#  (Optional) Should the service be enabled
+#  Defaults to true
+#
+# [*enabled*]
+#  (Optional) Whether the service should be managed by Puppet
+#  Defaults to true
+#
+# [*package_ensure*]
+#  (Optional) Ensure state for package
+#  Defaults to 'present'
+#
+class murano::api(
+  $manage_service      = true,
+  $enabled             = true,
+  $package_ensure      = 'present',
+  $host                = '127.0.0.1',
+  $port                = 8082,
 ) {
 
-  $database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}?read_timeout=60"
-  $keystone_auth_url = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
-  $murano_api_url = "http://${api_host}:${bind_port}"
+  include ::murano
+  include ::murano::params
+  include ::murano::policy
 
-  include murano::params
+  Murano_config<||> ~> Service['murano-api']
+  Package<| title == 'murano-common' |> -> Package['murano-api']
+  Exec['murano-dbmanage'] -> Service['murano-api']
+  Class['murano::policy'] -> Service['murano-api']
 
-  package { 'murano':
-    ensure => installed,
-    name   => $::murano::params::murano_package_name,
-  }
-
-  service { 'murano_api':
-    ensure     => 'running',
-    name       => $::murano::params::murano_api_service_name,
-    enable     => true,
-    hasstatus  => true,
-    hasrestart => true,
-  }
-
-  service { 'murano_engine':
-    ensure     => 'running',
-    name       => $::murano::params::murano_engine_service_name,
-    enable     => true,
-    hasstatus  => true,
-    hasrestart => true,
-  }
-
-  Package<| title == 'murano'|> ~> Service<| title == 'murano_api'|>
-  Package<| title == 'murano'|> ~> Service<| title == 'murano_engine'|>
-
-  if !defined(Service['murano_api']) {
-    notify{ "Module ${module_name} cannot notify service murano-api on package update": }
-  }
-
-  if !defined(Service['murano_engine']) {
-    notify{ "Module ${module_name} cannot notify service murano-engine on package update": }
-  }
-
-  if $use_syslog {
-    murano_config {
-      'DEFAULT/use_syslog'           : value => true;
-      'DEFAULT/use_syslog_rfc_format': value => true;
-      'DEFAULT/syslog_log_facility'  : value => $syslog_log_facility;
-    }
-  }
-
-  if $use_neutron {
-    murano_config {
-      'networking/external_network' : value => $external_network;
-      'networking/router_name'      : value => $default_router;
-      'networking/create_router'    : value => true;
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
     }
   }
 
   murano_config {
-    'DEFAULT/verbose'                       : value => $verbose;
-    'DEFAULT/debug'                         : value => $debug;
-    'DEFAULT/bind_host'                     : value => $bind_host;
-    'DEFAULT/bind_port'                     : value => $bind_port;
-    'DEFAULT/log_file'                      : value => $log_file;
-    # oslo.messaging configuration (for murano-api).
-    'DEFAULT/rabbit_hosts'                  : value => $rabbit_ha_hosts;
-    'DEFAULT/rabbit_ha_queues'              : value => $rabbit_ha_queues;
-    'DEFAULT/rabbit_use_ssl'                : value => $rabbit_use_ssl;
-    'DEFAULT/rabbit_userid'                 : value => $os_rabbit_userid;
-    'DEFAULT/rabbit_password'               : value => $os_rabbit_password;
-    'DEFAULT/rabbit_virtual_host'           : value => $rabbit_virtual_host;
-    'DEFAULT/kombu_ssl_ca_certs'            : value => $rabbit_ca_certs;
-    'DEFAULT/notification_driver'           : value => $notification_driver;
-    # Direct RabbitMQ client configuration (for murano-engine).
-    # FIXME(dteselkin): murano-engine doesn't support oslo.messaging yet
-    #    so additional configuration is required.
-    'rabbitmq/host'                         : value => $rabbit_host;
-    'rabbitmq/port'                         : value => $rabbit_port;
-    'rabbitmq/ssl'                          : value => $rabbit_use_ssl;
-    'rabbitmq/login'                        : value => $murano_rabbit_userid;
-    'rabbitmq/password'                     : value => $murano_rabbit_password;
-    'rabbitmq/virtual_host'                 : value => $rabbit_virtual_host;
-    'rabbitmq/ca_certs'                     : value => $rabbit_ca_certs;
-
-    'database/connection'                   : value => $database_connection;
-
-    'murano/url'                            : value => $murano_api_url;
-
-    'keystone/auth_url'                     : value => $keystone_auth_url;
-
-    'keystone_authtoken/auth_uri'           : value => $keystone_auth_url;
-    'keystone_authtoken/auth_host'          : value => $auth_host;
-    'keystone_authtoken/auth_port'          : value => $auth_port;
-    'keystone_authtoken/auth_protocol'      : value => $auth_protocol;
-    'keystone_authtoken/admin_tenant_name'  : value => $admin_tenant_name;
-    'keystone_authtoken/admin_user'         : value => $admin_user;
-    'keystone_authtoken/admin_password'     : value => $admin_password;
-    'keystone_authtoken/signing_dir'        : value => $signing_dir;
+    'DEFAULT/bind_host'                     : value => $host;
+    'DEFAULT/bind_port'                     : value => $port;
   }
 
-  firewall { $firewall_rule_name :
-    dport   => [ $bind_port ],
-    proto   => 'tcp',
-    action  => 'accept',
+  package { 'murano-api':
+    ensure => $package_ensure,
+    name   => $::murano::params::api_package_name,
   }
 
-  Package['murano'] -> Murano_config<||>
-
-  if $primary_controller {
-    $murano_manage = '/usr/bin/murano-db-manage'
-    exec { 'murano_manage_db_sync':
-      path    => [ '/usr/bin' ],
-      command => "$murano_manage --config-file=/etc/murano/murano.conf upgrade",
-      user    => $murano_user,
-      group   => $murano_user,
-      onlyif  => "test -f $murano_manage",
-    }
-
-    Murano_config<||> -> Exec['murano_manage_db_sync']
-    Exec['murano_manage_db_sync'] ~> Service['murano_api']
-    Exec['murano_manage_db_sync'] ~> Service['murano_engine']
-
-    murano::application_package { 'io.murano' :
-      os_username  => $admin_user,
-      os_password  => $admin_password,
-      os_auth_url  => $keystone_auth_url,
-      os_region    => $region,
-      mandatory    => true,
-    }
-
-    Service['murano_api'] -> Murano::Application_package<| mandatory == true |>
+  service { 'murano-api':
+    ensure     => $service_ensure,
+    name       => $::murano::params::api_service_name,
+    enable     => $enabled,
+    hasstatus  => true,
+    hasrestart => true,
+    subscribe  => Exec['murano-dbmanage'],
   }
 
-  Murano_config<||> ~> Service['murano_api']
-  Murano_paste_ini_config<||> ~> Service['murano_api']
+  Package<| title == 'murano-api'|> ~> Service<| title == 'murano-api'|>
 
-  Murano_config<||> ~> Service['murano_engine']
-  Murano_paste_ini_config<||> ~> Service['murano_engine']
-
+  Murano_config<||> ~> Service['murano-api']
+  Murano_paste_ini_config<||> ~> Service['murano-api']
 }
