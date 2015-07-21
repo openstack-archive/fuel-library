@@ -363,6 +363,14 @@
 #   (Optional) Number of maximum active Fernet keys. Integer > 0.
 #   Defaults to undef
 #
+# [*default_domain*]
+#   (optional) When Keystone v3 support is enabled, v2 clients will need
+#   to have a domain assigned for certain operations.  For example,
+#   doing a user create operation must have a domain associated with it.
+#   This is the domain which will be used if a domain is needed and not
+#   explicitly set in the request.
+#   Defaults to undef (will use built-in Keystone default)
+#
 # == Dependencies
 #  None
 #
@@ -467,6 +475,7 @@ class keystone(
   $enable_fernet_setup    = false,
   $fernet_key_repository  = '/etc/keystone/fernet-keys',
   $fernet_max_active_keys = undef,
+  $default_domain         = undef,
   # DEPRECATED PARAMETERS
   $mysql_module           = undef,
   $compute_port           = undef,
@@ -927,4 +936,27 @@ class keystone(
     }
   }
 
+  if $default_domain {
+    keystone_domain { $default_domain:
+      ensure     => present,
+      enabled    => true,
+      is_default => true,
+      require    => File['/etc/keystone/keystone.conf'],
+      notify     => Exec['restart_keystone'],
+    }
+    # Update this code when https://bugs.launchpad.net/keystone/+bug/1472285 is addressed.
+    # 1/ Keystone needs to be started before creating the default domain
+    # 2/ Once the default domain is created, we can query Keystone to get the default domain ID
+    # 3/ The Keystone_domain provider has in charge of doing the query and configure keystone.conf
+    # 4/ After such a change, we need to restart Keystone service.
+    # restart_keystone exec is doing 4/, it restart Keystone if we have a new default domain setted
+    # and if we manage the service to be enabled.
+    if $manage_service and $enabled {
+      exec { 'restart_keystone':
+        path        => ['/usr/sbin', '/usr/bin', '/sbin', '/bin/'],
+        command     => "service ${service_name} restart",
+        refreshonly => true,
+      }
+    }
+  }
 }

@@ -7,7 +7,7 @@ Puppet::Type.type(:keystone_service).provide(
 
   desc "Provider to manage keystone services."
 
-  @credentials = Puppet::Provider::Openstack::CredentialsV2_0.new
+  @credentials = Puppet::Provider::Openstack::CredentialsV3.new
 
   def initialize(value={})
     super(value)
@@ -15,20 +15,17 @@ Puppet::Type.type(:keystone_service).provide(
   end
 
   def create
-    properties = ['--name']
-    properties << resource[:name]
-    if resource[:description]
-      properties << '--description'
-      properties << resource[:description]
+    if resource[:type]
+      properties = [resource[:type]]
+      properties << '--name' << resource[:name]
+      if resource[:description]
+        properties << '--description' << resource[:description]
+      end
+      self.class.request('service', 'create', properties)
+      @property_hash[:ensure] = :present
+    else
+      raise(Puppet::Error, 'The type is mandatory for creating a keystone service')
     end
-    raise(Puppet::Error, 'The service type is mandatory') unless resource[:type]
-    properties << resource[:type]
-    self.class.request('service', 'create', properties)
-    @property_hash[:ensure] = :present
-  end
-
-  def exists?
-    @property_hash[:ensure] == :present
   end
 
   def destroy
@@ -36,20 +33,24 @@ Puppet::Type.type(:keystone_service).provide(
     @property_hash.clear
   end
 
-  def description=(value)
-    @property_flush[:description] = value
+  def exists?
+    @property_hash[:ensure] == :present
   end
 
   def description
     @property_hash[:description]
   end
 
-  def type=(value)
-    @property_flush[:type] = value
+  def description=(value)
+    @property_flush[:description] = value
   end
 
   def type
     @property_hash[:type]
+  end
+
+  def type=(value)
+    @property_flush[:type] = value
   end
 
   def id
@@ -79,9 +80,11 @@ Puppet::Type.type(:keystone_service).provide(
   end
 
   def flush
-    if ! @property_flush.empty?
-      destroy
-      create
+    options = []
+    if @property_flush && !@property_flush.empty?
+      options << "--description=#{resource[:description]}" if @property_flush[:description]
+      options << "--type=#{resource[:type]}" if @property_flush[:type]
+      self.class.request('service', 'set', [@property_hash[:id]] + options) unless options.empty?
       @property_flush.clear
     end
   end
