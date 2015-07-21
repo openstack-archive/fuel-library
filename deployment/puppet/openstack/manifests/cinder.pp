@@ -208,6 +208,8 @@ class openstack::cinder(
   }
 
   if $ceilometer {
-    class { 'cinder::ceilometer': }
+    class { 'cinder::ceilometer':
+      notification_driver => 'messagingv2'
+    }
   }
 }
