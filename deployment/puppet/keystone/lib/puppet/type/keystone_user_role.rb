@@ -2,6 +2,8 @@
 File.expand_path('../..', File.dirname(__FILE__)).tap { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
 File.expand_path('../../../../openstacklib/lib', File.dirname(__FILE__)).tap { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
 
+require 'puppet/provider/keystone/util'
+
 Puppet::Type.newtype(:keystone_user_role) do
 
   desc <<-EOT
@@ -31,11 +33,29 @@ Puppet::Type.newtype(:keystone_user_role) do
   end
 
   autorequire(:keystone_tenant) do
-    self[:name].rpartition('@').last
+    proj, dom = Util.split_domain(self[:name].rpartition('@').last)
+    rv = nil
+    if proj # i.e. not ::domain
+      rv = self[:name].rpartition('@').last
+    end
+    rv
   end
 
   autorequire(:keystone_role) do
     self[:roles]
+  end
+
+  autorequire(:keystone_domain) do
+    rv = []
+    userdom = Util.split_domain(self[:name].rpartition('@').first)[1]
+    if userdom
+      rv << userdom
+    end
+    projectdom = Util.split_domain(self[:name].rpartition('@').last)[1]
+    if projectdom
+      rv << projectdom
+    end
+    rv
   end
 
   # we should not do anything until the keystone service is started
