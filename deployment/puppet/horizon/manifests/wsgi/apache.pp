@@ -203,7 +203,6 @@ class horizon::wsgi::apache (
   ensure_resource('apache::vhost', $vhost_conf_name, merge ($default_vhost_conf, $extra_params, {
     redirectmatch_regexp => $redirect_match,
     redirectmatch_dest   => $redirect_url,
-    setenvif             => ['X-Forwarded-Proto https HTTPS=1'],
   }))
   ensure_resource('apache::vhost', $vhost_ssl_conf_name, merge ($default_vhost_conf, $extra_params, {
     access_log_file      => 'horizon_ssl_access.log',

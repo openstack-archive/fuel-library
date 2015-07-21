@@ -123,18 +123,16 @@ CACHES = {
         <% @cache_options.sort.each do |opt_name,opt_val| -%>
         '<%= opt_name -%>': <%= opt_val -%>,
         <% end -%>},
-        <% end -%>
-        <% if @cache_server_ip %>
-        'BACKEND': '<%= @cache_backend %>',
+    <% end -%>
+    'BACKEND': '<%= @cache_backend %>',
+    <% if @cache_server_ip %>
           <% if @cache_server_ip.kind_of?(Array) %>
             <%  split = ":" + @cache_server_port + "','" %>
         'LOCATION': [ <% @cache_server_ip.each do |ip| -%>'<%= ip -%>:<%= @cache_server_port -%>',<% end -%> ],
-            <% else %>
+          <% else %>
         'LOCATION': '<%= @cache_server_ip %>:<%= @cache_server_port %>',
           <% end %>
-        <% else %>
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
-        <% end %>
+    <% end %>
     }
 }
 
@@ -166,7 +164,7 @@ OPENSTACK_KEYSTONE_URL = "<%= @keystone_url %>"
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "<%= @keystone_default_role %>"
 
 # Disable SSL certificate checks (useful for self-signed certificates):
-OPENSTACK_SSL_NO_VERIFY = True
+# OPENSTACK_SSL_NO_VERIFY = True
 
 # The CA certificate to use to verify SSL connections
 # OPENSTACK_SSL_CACERT = '/path/to/cacert.pem'
@@ -596,12 +594,12 @@ DEPLOYMENT_MODE = "<%= @tuskar_ui_deployment_mode %>"
 <% end %>
 
 # Horizon doesn't know status of nova quotas. As result user may change
-# nova quotas in horizon UI, while actually they are turned off in nova. To avoid such
-# confusion ENABLED_QUOTA_GROUPS option were added. LP: 1286099, 1332457
+# # nova quotas in horizon UI, while actually they are turned off in nova. To avoid such
+# # confusion ENABLED_QUOTA_GROUPS option were added. LP: 1286099, 1332457
 ENABLED_QUOTA_GROUPS = {
-<% if scope.lookupvar('::openstack::horizon::nova_quota') %>
+  <% if scope.lookupvar('::openstack::horizon::nova_quota') %>
     'nova': True
-<% else %>
+  <% else %>
     'nova': False
-<% end %>
+  <% end %>
 }
