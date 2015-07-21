@@ -43,8 +43,12 @@ class Puppet::Provider::Openstack::Credentials
   end
 
   def unset
-    list = KEYS.delete_if { |key, val| key == :identity_api_version }
-    list.each { |key, val| self.set(key, '') if self.class.defined?("@#{key}".to_sym) }
+    KEYS.each do |key|
+      if key != :identity_api_version &&
+        self.instance_variable_defined?("@#{key}")
+        set(key, '')
+      end
+    end
   end
 
   def version
