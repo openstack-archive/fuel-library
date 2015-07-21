@@ -2,7 +2,7 @@ notice('MODULAR: heat/keystone.pp')
 
 $heat_hash         = hiera_hash('heat', {})
 $public_address    = hiera('public_vip')
-$internal_address  = hiera('management_vip', $public_address)
+$admin_address     = hiera('management_vip')
 $region            = pick($heat_hash['region'], 'RegionOne')
 $public_ssl_hash   = hiera('public_ssl')
 $public_protocol   = $public_ssl_hash['services'] ? {
@@ -25,8 +25,8 @@ class { '::heat::keystone::auth' :
   password               => $password,
   auth_name              => $auth_name,
   public_address         => $public_address,
-  admin_address          => $internal_address,
-  internal_address       => $internal_address,
+  admin_address          => $admin_address,
+  internal_address       => $admin_address,
   port                   => '8004',
   version                => 'v1',
   region                 => $region,
@@ -44,8 +44,8 @@ class { '::heat::keystone::auth_cfn' :
   auth_name          => "${auth_name}-cfn",
   service_type       => 'cloudformation',
   public_address     => $public_address,
-  admin_address      => $internal_address,
-  internal_address   => $internal_address,
+  admin_address      => $admin_address,
+  internal_address   => $admin_address,
   port               => '8000',
   version            => 'v1',
   region             => $region,
