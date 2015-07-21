@@ -1,8 +1,8 @@
 notice('MODULAR: heat.pp')
 
-$controller_node_public   = hiera('controller_node_public')
-$controller_node_address  = hiera('controller_node_address')
+prepare_network_config(hiera('network_scheme', {}))
 $management_vip           = hiera('management_vip')
+$public_vip               = hiera('public_vip')
 $heat_hash                = hiera_hash('heat', {})
 $rabbit_hash              = hiera_hash('rabbit_hash', {})
 $max_retries              = hiera('max_retries')
@@ -15,7 +15,7 @@ $verbose                  = hiera('verbose', true)
 $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
-$internal_address         = hiera('internal_address')
+$bind_address             = get_network_role_property('heat/api', 'ipaddr')
 $database_password        = $heat_hash['db_password']
 $keystone_user            = pick($heat_hash['user'], 'heat')
 $keystone_tenant          = pick($heat_hash['tenant'], 'services')
@@ -48,12 +48,12 @@ if $::operatingsystem == 'Ubuntu' {
   Tweaks::Ubuntu_service_override['heat-engine']         -> Service['heat-engine']
 }
 
-class { '::openstack::heat' :
-  external_ip              => $controller_node_public,
-  api_bind_host            => $internal_address,
-  api_cfn_bind_host        => $internal_address,
-  api_cloudwatch_bind_host => $internal_address,
-
+class { 'openstack::heat' :
+  external_ip              => $public_vip,
+  keystone_auth            => pick($heat_hash['keystone_auth'], true),
+  api_bind_host            => $bind_address,
+  api_cfn_bind_host        => $bind_address,
+  api_cloudwatch_bind_host => $bind_address,
   keystone_host            => $service_endpoint,
   keystone_user            => $keystone_user,
   keystone_password        => $heat_hash['user_password'],
@@ -61,12 +61,10 @@ class { '::openstack::heat' :
   keystone_ec2_uri         => "http://${service_endpoint}:5000/v2.0",
   region                   => $region,
   public_ssl               => $public_ssl_hash['services'],
-
   rpc_backend              => 'heat.openstack.common.rpc.impl_kombu',
   amqp_hosts               => split(hiera('amqp_hosts',''), ','),
   amqp_user                => $rabbit_hash['user'],
   amqp_password            => $rabbit_hash['password'],
-
   sql_connection           => $sql_connection,
   db_host                  => $db_host,
   db_password              => $database_password,
@@ -74,12 +72,10 @@ class { '::openstack::heat' :
   max_pool_size            => $max_pool_size,
   max_overflow             => $max_overflow,
   idle_timeout             => $idle_timeout,
-
   debug                    => $debug,
   verbose                  => $verbose,
   use_syslog               => $use_syslog,
   syslog_log_facility      => $syslog_log_facility_heat,
-
   auth_encryption_key      => $heat_hash['auth_encryption_key'],
 }
 
