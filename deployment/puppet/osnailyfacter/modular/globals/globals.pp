@@ -294,3 +294,5 @@ file { '/etc/hiera/globals.yaml' :
   group   => 'root',
   content => template('osnailyfacter/globals_yaml.erb')
 }
+
+$compute_name_prefix_for_live_migration = hiera('compute_name_prefix_for_live_migration', 'live-migration-for-')
