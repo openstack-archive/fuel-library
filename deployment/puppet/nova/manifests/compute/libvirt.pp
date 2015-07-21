@@ -144,9 +144,27 @@ class nova::compute::libvirt (
     }
   }
 
+  if $::osfamily == 'RedHat' {
+    package { 'libvirt-nwfilter':
+      ensure => present,
+      name   => $::nova::params::libvirt_nwfilter_package_name,
+      before => Service['libvirt'],
+    }
+    case $libvirt_virt_type {
+      'qemu': {
+        $libvirt_package_name_real = "${::nova::params::libvirt_daemon_package_prefix}kvm"
+      }
+      default: {
+        $libvirt_package_name_real = "${::nova::params::libvirt_daemon_package_prefix}${libvirt_virt_type}"
+      }
+    }
+  } else {
+    $libvirt_package_name_real = $::nova::params::libvirt_package_name
+  }
+
   package { 'libvirt':
     ensure => present,
-    name   => $::nova::params::libvirt_package_name,
+    name   => $libvirt_package_name_real,
   }
 
   service { 'libvirt' :

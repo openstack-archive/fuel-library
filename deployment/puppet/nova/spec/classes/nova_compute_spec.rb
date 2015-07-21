@@ -121,6 +121,7 @@ describe 'nova::compute' do
           :before => 'Nova::Generic_service[compute]'
         )
       end
+
     end
 
     context 'with install_bridge_utils set to false' do
