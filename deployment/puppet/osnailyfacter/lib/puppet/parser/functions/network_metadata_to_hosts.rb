@@ -6,13 +6,18 @@ module Puppet::Parser::Functions
   newfunction(:network_metadata_to_hosts, :type => :rvalue, :doc => <<-EOS
               convert network_metadata hash to
               hash for puppet `host` create_resources call
+
+              Call network_metadata_to_hosts(network_metadata, 'network/role', 'optional_prefix')
     EOS
   ) do |args|
-    hosts=Hash.new
-    nodes=args[0].fetch('nodes', {})
+    hosts = Hash.new
+    nodes = args[0].fetch('nodes', {})
+    network_role = (args[1].to_s == ''  ?  'mgmt/vip'  :  args[1].to_s)
+    prefix = args[2].to_s
     nodes.each do |name, props|
-      hosts[props['fqdn']]={:ip=>props['network_roles']['mgmt/vip'],:host_aliases=>[name]}
-      notice("Generating host entry #{name} #{props['network_roles']['mgmt/vip']} #{props['fqdn']}")
+      fqdn = "#{prefix}#{props['fqdn']}"
+      hosts[fqdn]={:ip=>props['network_roles'][network_role],:host_aliases=>["#{prefix}#{name}"]}
+      notice("Generating host entry #{name} #{props['network_roles'][network_role]} #{props['fqdn']}")
     end
     return hosts
   end
