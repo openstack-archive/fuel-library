@@ -1,3 +1,24 @@
+##2015-07-08 - 6.0.0
+###Summary
+
+This is a backwards-incompatible major release for OpenStack Kilo.
+
+####Backwards-incompatible changes
+- Remove some old deprecated parameters
+
+####Features
+- Puppet 4.x support
+- Sort policy files in local_settings.py
+- Add support for Neutron DVR and L3 HA options
+- Collect static files before compressing them
+- Add support to add Tuskar-ui config to local_settings
+- Add support for WEBROOT in local_settings
+- Add 'log_handler' parameter
+
+####Maintenance
+- Acceptance tests with Beaker
+- Fix spec tests for RSpec 3.x and Puppet 4.x
+
 ##2015-06-17 - 5.1.0
 ###Summary
 

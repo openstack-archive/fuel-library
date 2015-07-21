@@ -36,7 +36,7 @@
 #
 #  [*cache_backend*]
 #   (optional) Horizon cache backend.
-#   Defaults to: 'django.core.cache.backends.memcached.MemcachedCache'
+#   Defaults: 'django.core.cache.backends.locmem.LocMemCache'
 #
 #  [*cache_options*]
 #   (optional) A hash of parameters to enable specific cache options.
@@ -44,7 +44,7 @@
 #
 #  [*cache_server_ip*]
 #    (optional) Memcached IP address. Can be a string, or an array.
-#    Defaults to '127.0.0.1'.
+#    Defaults to undef.
 #
 #  [*cache_server_port*]
 #    (optional) Memcached port. Defaults to '11211'.
@@ -224,9 +224,9 @@ class horizon(
   $secret_key,
   $fqdn                                = undef,
   $package_ensure                      = 'present',
-  $cache_backend                       = 'django.core.cache.backends.memcached.MemcachedCache',
+  $cache_backend                       = 'django.core.cache.backends.locmem.LocMemCache',
   $cache_options                       = undef,
-  $cache_server_ip                     = '127.0.0.1',
+  $cache_server_ip                     = undef,
   $cache_server_port                   = '11211',
   $horizon_app_links                   = false,
   $keystone_url                        = 'http://127.0.0.1:5000/v2.0',
