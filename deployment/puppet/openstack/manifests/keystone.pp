@@ -126,7 +126,7 @@ class openstack::keystone (
       debug                 => $debug,
       catalog_type          => 'sql',
       admin_token           => $admin_token,
-      enabled               => $enabled,
+      enabled               => false,
       database_connection   => $database_connection,
       public_bind_host      => $public_bind_host,
       admin_bind_host       => $admin_bind_host,
