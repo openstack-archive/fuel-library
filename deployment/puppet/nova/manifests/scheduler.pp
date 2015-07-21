@@ -16,10 +16,15 @@
 #   (optional) The state of the scheduler package
 #   Defaults to 'present'
 #
+# [*scheduler_driver*]
+#   (optional) Default driver to use for the scheduler
+#   Defaults to 'nova.scheduler.filter_scheduler.FilterScheduler'
+#
 class nova::scheduler(
-  $enabled        = false,
-  $manage_service = true,
-  $ensure_package = 'present'
+  $enabled          = false,
+  $manage_service   = true,
+  $ensure_package   = 'present',
+  $scheduler_driver = 'nova.scheduler.filter_scheduler.FilterScheduler',
 ) {
 
   include ::nova::db
@@ -32,5 +37,11 @@ class nova::scheduler(
     service_name   => $::nova::params::scheduler_service_name,
     ensure_package => $ensure_package,
   }
+
+  nova_config {
+    'DEFAULT/scheduler_driver': value => $scheduler_driver;
+  }
+
+  Nova_config['DEFAULT/scheduler_driver'] ~> Service <| title == 'nova-scheduler' |>
 
 }
