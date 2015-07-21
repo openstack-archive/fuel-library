@@ -447,7 +447,7 @@ haproxy_kill()
   while [ $count -gt 0 ]; do
     if [ -d /proc/${PID}/ ] ; then
       ocf_log debug "${LH} Stopping haproxy daemon with SIGTERM... "
-      ocf_run kill "${PID}"
+      ocf_run pkill -g "${PID}"
       rc=$?
       if [ $rc -eq 0 -a ! -d /proc/${PID}/ ]; then
         ocf_log debug "${LH} Stopped haproxy daemon with SIGTERM"
@@ -467,17 +467,18 @@ haproxy_stop()
 {
         local rc
         local LH="${LL} haproxy_stop():"
-	get_variables
-	if haproxy_status ; then
-		PID="`${RUN} cat ${PIDFILE}`"
-                if [ -z "${PID}" -o "${PID}" -eq "1" -o ! -d /proc/${PID}/ ]; then
-                  ocf_log err "${LH} Cannot stop haproxy (PID=${PID})"
+        get_variables
+        local pid=$(cat $PIDFILE 2>/dev/null)
+        local pgrp=$(ps -o pgid= ${pid})
+        if haproxy_status ; then
+                if [ -z "${pgrp}" -o "${pgrp}" -eq "1" -o ! -d /proc/${pgrp}/ ]; then
+                  ocf_log err "${LH} Cannot stop haproxy (PID=${pgrp})"
                   return $OCF_ERR_GENERIC
                 fi
-		haproxy_kill "${PID}"
+                haproxy_kill "${pgrp}"
                 rc=$?
-                if [ $rc -ne 0 -a -d /proc/${PID}/ ]; then
-                        ocf_run kill -SIGKILL "${PID}"
+                if [ $rc -ne 0 -a -d /proc/${pgrp}/ ]; then
+                        ocf_run pkill -SIGKILL -g "${pgrp}"
                         ocf_log err "${LH} Failed to stop haproxy daemon gracefully. Killed with SIGKILL"
                         rc=$?
                         if [ $rc -ne 0 ]; then
@@ -485,11 +486,11 @@ haproxy_stop()
                                 return $OCF_ERR_GENERIC
                         fi
                 fi
-                ocf_log debug "Delete pid file: ${PIDFILE} with content ${PID}"
+                ocf_log debug "Delete pid file: ${PIDFILE} with content ${pgrp}"
                 rm -f "${PIDFILE}"
-	fi
-	ocf_log info "Stopped haproxy daemon."
-	return $OCF_SUCCESS
+        fi
+        ocf_log info "Stopped haproxy daemon."
+        return $OCF_SUCCESS
 }
 
 haproxy_monitor()
