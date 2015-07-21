@@ -260,6 +260,7 @@ nova:
   db_password: vrjHFPzC
   user_password: Ekj3FTCt
   state_path: "/var/lib/nova"
+compute_name_prefix_for_live_migration: live-migration-for-
 master_ip: 10.109.5.2
 priority: 200
 external_dns:
