@@ -353,7 +353,7 @@ if member($roles, 'compute') {
     port        => $libvirt_migration_ports,
     proto       => 'tcp',
     action      => 'accept',
-    source_nets => $management_nets,
+    source_nets => get_routable_networks_for_network_role($network_scheme, 'nova/migration'),
   }
 }
 
