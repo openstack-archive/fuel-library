@@ -1,6 +1,6 @@
 {
-  "name": "stackforge-openstacklib",
-  "version": "5.1.0",
+  "name": "openstack-openstacklib",
+  "version": "6.0.0",
   "author": "Puppet Labs and OpenStack Contributors",
   "summary": "Puppet OpenStack Libraries",
   "license": "Apache-2.0",
@@ -34,7 +34,7 @@
     { "name": "puppetlabs/apache", "version_requirement": ">=1.0.0 <2.0.0" },
     { "name": "puppetlabs/mysql", "version_requirement": ">=3.0.0 <4.0.0" },
     { "name": "puppetlabs/stdlib", "version_requirement": ">=4.0.0 <5.0.0" },
-    { "name": "puppetlabs/rabbitmq", "version_requirement": ">=2.0.2 <4.0.0" },
+    { "name": "puppetlabs/rabbitmq", "version_requirement": ">=2.0.2 <6.0.0" },
     { "name": "puppetlabs/postgresql", "version_requirement": ">=3.3.0 <4.0.0" }
   ]
 }
