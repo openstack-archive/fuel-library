@@ -1,6 +1,6 @@
 {
-  "name": "stackforge-horizon",
-  "version": "5.1.0",
+  "name": "openstack-horizon",
+  "version": "6.0.0",
   "author": "Puppet Labs and OpenStack Contributors",
   "summary": "Puppet module for OpenStack Horizon",
   "license": "Apache-2.0",
