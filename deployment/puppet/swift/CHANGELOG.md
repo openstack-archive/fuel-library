@@ -1,3 +1,37 @@
+##2015-07-08 - 6.0.0
+###Summary
+
+This is a backwards-incompatible major release for OpenStack Kilo.
+
+####Backwards-incompatible changes
+- Remove deprecated class (swift::proxy::proxy-logging)
+- Use keystonemiddleware instead of client
+- Removal of SSH Components
+
+####Features
+- Puppet 4.x support
+- Allow setting reseller_prefix for keystone filter
+- Add manage_service feature
+- Refactorise Keystone resources management
+- Add seed parameter to ringbuilder::rebalance
+- Add support for identity_uri
+- Provide a mean to change the default rsync chmod
+- Add ability to override service name for service catalog
+- Add node_timeout parameter for proxy-server.conf
+- Full ipv6 support
+- Tag all Swift packages
+- Notify services if swift.conf is modified
+- Add rsyslog logging support to object-server
+- Handle both string and array for memcache param
+- Introduce public_url(_s3), internal_url(_s3) and admin_url(_s3)
+- Add max_header_size field for PKI tokens
+
+####Bugfixes
+- Fix swift::proxy::ceilometer
+
+####Maintenance
+- Acceptance tests with Beaker
+
 ##2015-06-17 - 5.1.0
 ###Summary
 
