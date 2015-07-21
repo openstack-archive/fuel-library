@@ -17,6 +17,10 @@ describe manifest do
       Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'management'
     end
 
+    let(:nova_migration_nets) do
+      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'nova/migration'
+    end
+
     let(:storage_nets) do
       Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'storage'
     end
@@ -138,7 +142,7 @@ describe manifest do
       end
 
       it 'should allow libvirt vm migration' do
-        management_nets.each do |source|
+        nova_migration_nets.each do |source|
           should contain_firewall("119 libvirt-migration from #{source}").with(
             'port'        => [ '49152-49215' ],
             'proto'       => 'tcp',
