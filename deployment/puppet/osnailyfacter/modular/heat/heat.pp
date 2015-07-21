@@ -42,15 +42,14 @@ if $::operatingsystem == 'Ubuntu' {
     package_name => 'heat-engine',
   }
 
-  tweaks::ubuntu_service_override['heat-api']            -> Service['heat-api']
-  tweaks::ubuntu_service_override['heat-api-cfn']        -> Service['heat-api-cfn']
-  tweaks::ubuntu_service_override['heat-api-cloudwatch'] -> Service['heat-api-cloudwatch']
-  tweaks::ubuntu_service_override['heat-engine']         -> Service['heat-engine']
+  Tweaks::Ubuntu_service_override['heat-api']            -> Service['heat-api']
+  Tweaks::Ubuntu_service_override['heat-api-cfn']        -> Service['heat-api-cfn']
+  Tweaks::Ubuntu_service_override['heat-api-cloudwatch'] -> Service['heat-api-cloudwatch']
+  Tweaks::Ubuntu_service_override['heat-engine']         -> Service['heat-engine']
 }
 
-class { 'openstack::heat' :
+class { '::openstack::heat' :
   external_ip              => $controller_node_public,
-  keystone_auth            => pick($heat_hash['keystone_auth'], true),
   api_bind_host            => $internal_address,
   api_cfn_bind_host        => $internal_address,
   api_cloudwatch_bind_host => $internal_address,
@@ -86,7 +85,7 @@ class { 'openstack::heat' :
 
 if hiera('heat_ha_engine', true){
   if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
-    include heat_ha::engine
+    include ::heat_ha::engine
   }
 }
 
