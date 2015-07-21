@@ -69,10 +69,6 @@
 #   List of roles;
 #   string; optional: default to ['admin']
 #
-# [*domain*]
-#   User domain (keystone v3), not implemented yet.
-#   string; optional: default to undef
-#
 # [*email*]
 #   Service email;
 #   string; optional: default to '$auth_name@localhost'
@@ -93,6 +89,20 @@
 #   Whether to create the service.
 #   string; optional: default to True
 #
+# [*user_domain*]
+#   (Optional) Domain for $auth_name
+#   Defaults to undef (use the keystone server default domain)
+#
+# [*project_domain*]
+#   (Optional) Domain for $tenant (project)
+#   Defaults to undef (use the keystone server default domain)
+#
+# [*default_domain*]
+#   (Optional) Domain for $auth_name and $tenant (project)
+#   If keystone_user_domain is not specified, use $keystone_default_domain
+#   If keystone_project_domain is not specified, use $keystone_default_domain
+#   Defaults to undef
+#
 define keystone::resource::service_identity(
   $admin_url             = false,
   $internal_url          = false,
@@ -104,7 +114,6 @@ define keystone::resource::service_identity(
   $configure_user        = true,
   $configure_user_role   = true,
   $configure_service     = true,
-  $domain                = undef,
   $email                 = "${name}@localhost",
   $region                = 'RegionOne',
   $service_name          = undef,
@@ -112,19 +121,32 @@ define keystone::resource::service_identity(
   $tenant                = 'services',
   $ignore_default_tenant = false,
   $roles                 = ['admin'],
+  $user_domain           = undef,
+  $project_domain        = undef,
+  $default_domain        = undef,
 ) {
-
-  if $domain {
-    warning('Keystone domains are not yet managed by puppet-keystone.')
-  }
-
   if $service_name == undef {
     $service_name_real = $auth_name
   } else {
     $service_name_real = $service_name
   }
 
+  if $user_domain == undef {
+    $user_domain_real = $default_domain
+  } else {
+    $user_domain_real = $user_domain
+  }
+
   if $configure_user {
+    if $user_domain_real {
+      # We have to use ensure_resource here and hope for the best, because we have
+      # no way to know if the $user_domain is the same domain passed as the
+      # $default_domain parameter to class keystone.
+      ensure_resource('keystone_domain', $user_domain_real, {
+        'ensure'  => 'present',
+        'enabled' => true,
+      })
+    }
     ensure_resource('keystone_user', $auth_name, {
       'ensure'                => 'present',
       'enabled'               => true,
@@ -132,6 +154,7 @@ define keystone::resource::service_identity(
       'email'                 => $email,
       'tenant'                => $tenant,
       'ignore_default_tenant' => $ignore_default_tenant,
+      'domain'                => $user_domain_real,
     })
   }
 
@@ -140,9 +163,6 @@ define keystone::resource::service_identity(
       'ensure' => 'present',
       'roles'  => $roles,
     })
-    if $configure_user {
-      Keystone_user[$auth_name] -> Keystone_user_role["${auth_name}@${tenant}"]
-    }
   }
 
   if $configure_service {

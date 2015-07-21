@@ -93,6 +93,7 @@ describe 'keystone' do
       'rabbit_host'           => '127.0.0.1',
       'rabbit_password'       => 'openstack',
       'rabbit_userid'         => 'admin',
+      'default_domain'        => 'other_domain',
     }
 
   httpd_params = {'service_name' => 'httpd'}.merge(default_params)
@@ -210,6 +211,10 @@ describe 'keystone' do
       else
         is_expected.to contain_keystone_config('DEFAULT/public_workers').with_value('2')
       end
+    end
+
+    if param_hash['default_domain']
+      it { is_expected.to contain_keystone_domain(param_hash['default_domain']).with(:is_default => true) }
     end
   end
 
@@ -842,6 +847,32 @@ describe 'keystone' do
       it { is_expected.to contain_keystone_config('paste_deploy/config_file').with_value(
           '/usr/share/keystone/keystone-paste.ini'
       )}
+    end
+  end
+
+  describe 'when configuring default domain' do
+    describe 'with default config' do
+      let :params do
+        default_params
+      end
+      it { is_expected.to_not contain_exec('restart_keystone') }
+    end
+    describe 'with default domain and service is managed and enabled' do
+      let :params do
+        default_params.merge({
+          'default_domain'=> 'test',
+        })
+      end
+      it { is_expected.to contain_exec('restart_keystone') }
+    end
+    describe 'with default domain and service is not managed' do
+      let :params do
+        default_params.merge({
+          'default_domain' => 'test',
+          'manage_service' => false,
+        })
+      end
+      it { is_expected.to_not contain_exec('restart_keystone') }
     end
   end
 

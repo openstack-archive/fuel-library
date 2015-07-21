@@ -22,6 +22,20 @@
 # [*version*]
 #   (optional) API version for endpoint. Appended to all endpoint urls. (Defaults to 'v2.0')
 #
+# [*user_domain*]
+#   (Optional) Domain for $auth_name
+#   Defaults to undef (use the keystone server default domain)
+#
+# [*project_domain*]
+#   (Optional) Domain for $tenant (project)
+#   Defaults to undef (use the keystone server default domain)
+#
+# [*default_domain*]
+#   (Optional) Domain for $auth_name and $tenant (project)
+#   If keystone_user_domain is not specified, use $keystone_default_domain
+#   If keystone_project_domain is not specified, use $keystone_default_domain
+#   Defaults to undef
+#
 # === Examples
 #
 #  class { 'keystone::endpoint':
@@ -36,6 +50,9 @@ class keystone::endpoint (
   $admin_url         = 'http://127.0.0.1:35357',
   $version           = 'v2.0',
   $region            = 'RegionOne',
+  $user_domain       = undef,
+  $project_domain    = undef,
+  $default_domain    = undef,
 ) {
 
   $public_url_real = "${public_url}/${version}"
@@ -56,6 +73,9 @@ class keystone::endpoint (
     admin_url           => $admin_url_real,
     internal_url        => $internal_url_real,
     region              => $region,
+    user_domain         => $user_domain,
+    project_domain      => $project_domain,
+    default_domain      => $default_domain,
   }
 
 }
