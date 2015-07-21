@@ -460,60 +460,6 @@ check_local_reports() {
     return $OCF_SUCCESS
 }
 
-get_ns_list() {
-    local rv=`ip netns list | grep -Ee "^qdhcp-.*"`
-    echo $rv
-}
-
-get_pid_list_for_ns_list() {
-    # Parameters contain namespace names for searching pids
-    local ns_list="$@"
-    local pids=`for netns in $ns_list ; do ip netns pids $netns ; done`
-    echo $pids
-}
-
-clean_up() {
-    # kill processes inside network namespaces
-    ns_list=`get_ns_list`
-
-    # kill all proceses from all dhcp-agent's net.namespaces, that using ip
-    count=3  # we will try kill process 3 times
-    while [ $count -gt 0 ]; do
-        # we can't use ps, because ps can't select processes for given network namespace
-        inside_ns_pids=`get_pid_list_for_ns_list "$ns_list"`
-        if [ -z "$inside_ns_pids" ] ; then
-            break
-        fi
-        ocf_run kill $inside_ns_pids
-        sleep 1
-        ((count--))
-    done
-
-    # kill all remaining proceses, that not died by simple kill
-    inside_ns_pids=`get_pid_list_for_ns_list "$ns_list"`
-    if [ ! -z "$inside_ns_pids" ] ; then
-        for ns_pid in $inside_ns_pids ; do
-          ocf_run kill -9 $ns_pid
-        done
-    fi
-
-    # cleanup network interfaces
-    q-agent-cleanup.py --agent=dhcp --cleanup-ports
-}
-
-clean_up_namespaces() {
-    # kill unnided network namespaces.
-    #
-    # Be carefully. In each network namespace shouldn't be any processes
-    # using network!!! use clean_up before it
-    ns_list=`get_ns_list`
-    if [ ! -z "$ns_list" ] ; then
-        for ns_name in $ns_list ; do
-          ocf_run ip --force netns del $ns_name
-        done
-    fi
-}
-
 neutron_dhcp_agent_monitor() {
     local rc
     local pid
@@ -554,9 +500,7 @@ neutron_dhcp_agent_start() {
     fi
 
     if ocf_is_true "$remove_artifacts_on_stop_start"; then
-        clean_up
-        sleep 1
-        clean_up_namespaces
+        neutron-netns-cleanup --agent-type=dhcp --force --config-file $OCF_RESKEY_config --config-file=$OCF_RESKEY_plugin_config
     fi
     rm -f $OCF_RESKEY_state_reports_file
 
@@ -606,9 +550,7 @@ neutron_dhcp_agent_stop() {
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
         if ocf_is_true "$remove_artifacts_on_stop_start"; then
-            clean_up
-            sleep 1
-            clean_up_namespaces
+            neutron-netns-cleanup --agent-type=dhcp --force --config-file $OCF_RESKEY_config --config-file=$OCF_RESKEY_plugin_config
         fi
         ocf_log info "OpenStack DHCP Agent (${OCF_RESKEY_binary}) already stopped"
         return $OCF_SUCCESS
@@ -622,12 +564,9 @@ neutron_dhcp_agent_stop() {
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
         shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-6))
     fi
-    if ocf_is_true "$remove_artifacts_on_stop_start"; then
-        all_inside_ns_pids=`get_pid_list_for_ns_list $(get_ns_list)`
-        all_pids="$pid $all_inside_ns_pids"
-    else
-        all_pids="$pid"
-    fi
+
+    all_pids="$pid"
+
     count=0
     alive=1
     while [ $alive -gt 0 ] && [ $count -lt $shutdown_timeout ]; do
@@ -672,9 +611,7 @@ neutron_dhcp_agent_stop() {
     rm -f $OCF_RESKEY_pid
 
     if ocf_is_true "$remove_artifacts_on_stop_start"; then
-        # cleanup network interfaces
-        q-agent-cleanup.py --agent=dhcp --cleanup-ports
-        clean_up_namespaces
+        neutron-netns-cleanup --agent-type=dhcp --force --config-file $OCF_RESKEY_config --config-file=$OCF_RESKEY_plugin_config
     fi
 
     if ! ocf_is_true "$OCF_RESKEY_multiple_agents" ; then
