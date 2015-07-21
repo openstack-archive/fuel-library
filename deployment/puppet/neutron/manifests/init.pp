@@ -32,7 +32,13 @@
 # [*core_plugin*]
 #   (optional) Neutron plugin provider
 #   Defaults to openvswitch
-#   Could be bigswitch, brocade, cisco, embrane, hyperv, linuxbridge, midonet, ml2, mlnx, nec, nicira, plumgrid, ryu
+#   Could be bigswitch, brocade, cisco, embrane, hyperv, linuxbridge, midonet, ml2, mlnx, nec, nicira, plumgrid, ryu, opencontrail (full path)
+#
+#   Example for opencontrail:
+#
+#     class {'neutron' :
+#       core_plugin => 'neutron.plugins.opencontrail.contrail_plugin:NeutronPluginContrailCoreV2'
+#     }
 #
 # [*service_plugins*]
 #   (optional) Advanced service modules.

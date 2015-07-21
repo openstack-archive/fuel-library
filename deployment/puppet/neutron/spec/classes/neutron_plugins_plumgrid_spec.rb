@@ -13,7 +13,10 @@ describe 'neutron::plugins::plumgrid' do
     :director_server_port => '443',
     :servertimeout        => '99',
     :connection           => 'http://127.0.0.1:35357/v2.0',
-    :controller_priv_host    => '127.0.0.1'
+    :controller_priv_host => '127.0.0.1',
+    :auth_protocol        => 'http',
+    :nova_metadata_ip     => '127.0.0.1',
+    :nova_metadata_port   => '8775',
   }
   end
 
@@ -58,10 +61,13 @@ describe 'neutron::plugins::plumgrid' do
       is_expected.to contain_neutron_plumlib_plumgrid('keystone_authtoken/admin_user').with_value('admin')
       is_expected.to contain_neutron_plumlib_plumgrid('keystone_authtoken/admin_password').with_value(params[:admin_password])
       is_expected.to contain_neutron_plumlib_plumgrid('keystone_authtoken/admin_tenant_name').with_value('admin')
-      auth_uri = "http://" + params[:controller_priv_host] + ":" + "35357/v2.0";
+      auth_uri = params[:auth_protocol] + "://" + params[:controller_priv_host] + ":" + "35357/v2.0";
       is_expected.to contain_neutron_plumlib_plumgrid('keystone_authtoken/auth_uri').with_value(auth_uri)
       is_expected.to contain_neutron_plumlib_plumgrid('PLUMgridMetadata/enable_pg_metadata').with_value('True')
       is_expected.to contain_neutron_plumlib_plumgrid('PLUMgridMetadata/metadata_mode').with_value('local')
+      is_expected.to contain_neutron_plumlib_plumgrid('PLUMgridMetadata/nova_metadata_ip').with_value(params[:nova_metadata_ip])
+      is_expected.to contain_neutron_plumlib_plumgrid('PLUMgridMetadata/nova_metadata_port').with_value(params[:nova_metadata_port])
+      is_expected.to contain_neutron_plumlib_plumgrid('PLUMgridMetadata/metadata_proxy_shared_secret').with_value(params[:metadata_proxy_shared_secret])
     end
 
   end
