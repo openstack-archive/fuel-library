@@ -66,9 +66,9 @@ if $glance_internal_ssl {
 
 $vncproxy_protocol                      = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', [$nova_hash['vncproxy_protocol'], 'http'])
 $vncproxy_host                          = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'hostname', [$public_vip])
-
 $db_host                                = pick($nova_hash['db_host'], $database_vip)
-
+$migration_prefix                       = hiera('compute_name_prefix_for_live_migration')
+$migration_url                          = hiera('nova_migration_url',"qemu+tcp://${migration_prefix}%s/system")
 $block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
 $block_device_allocate_retries_interval = hiera('block_device_allocate_retries_interval', 3)
 
@@ -308,6 +308,7 @@ $nova_config_hash = {
   'DEFAULT/block_device_allocate_retries_interval' => { value => $block_device_allocate_retries_interval },
   'libvirt/libvirt_inject_key'                     => { value => 'true' },
   'libvirt/libvirt_inject_password'                => { value => 'true' },
+  'libvirt/live_migration_uri'                     => { value => $migration_url },
 }
 
 $nova_complete_hash = merge($nova_config_hash, $nova_custom_hash)

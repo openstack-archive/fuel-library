@@ -348,12 +348,24 @@ if member($roles, 'compute') {
     action      => 'accept',
     source_nets => $management_nets,
   }
+  openstack::firewall::multi_net {'118 libvirt':
+    port        => $libvirt_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => get_routable_networks_for_network_role($network_scheme, 'nova/migration'),
+  }
 
   openstack::firewall::multi_net {'119 libvirt-migration':
     port        => $libvirt_migration_ports,
     proto       => 'tcp',
     action      => 'accept',
     source_nets => $management_nets,
+  }
+  openstack::firewall::multi_net {'119 libvirt-migration':
+    port        => $libvirt_migration_ports,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => get_routable_networks_for_network_role($network_scheme, 'nova/migration'),
   }
 }
 

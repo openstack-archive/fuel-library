@@ -17,6 +17,7 @@ let(:network_metadata) {"""
         mgmt/database: 10.88.0.6
         mgmt/vip: 10.88.0.6
         sahara/api: 10.88.0.6
+        nova/migration: 10.77.0.6
       user_node_name: CO22
       node_roles:
       - compute
@@ -33,6 +34,7 @@ let(:network_metadata) {"""
         sahara/api: 10.88.0.7
         heat/api: 10.88.0.7
         ceilometer/api: 10.88.0.7
+        nova/migration: 10.77.0.7
         ex: 10.88.1.132
       user_node_name: CNT21
       node_roles:
@@ -49,6 +51,7 @@ let(:network_metadata) {"""
         sahara/api: 10.88.0.8
         ceilometer/api: 10.88.0.8
         mgmt/vip: 10.88.0.8
+        nova/migration: 10.77.0.8
       user_node_name: CO23
       node_roles:
       - compute
@@ -100,11 +103,19 @@ let(:network_metadata) {"""
     expect(subject).to eq scope.method('function_network_metadata_to_hosts')
   end
 
-  it 'should return hash for creating set of "host" puppet resources by create_resources()' do
+  it 'should return hash for creating ordinary set of "host" puppet resources by create_resources()' do
     expect(scope.function_network_metadata_to_hosts([YAML.load(network_metadata)])).to eq({
       'node-6.domain.local' => {:ip => '10.88.0.8', :host_aliases => ['node-6']},
       'node-5.domain.local' => {:ip => '10.88.0.6', :host_aliases => ['node-5']},
       'node-4.domain.local' => {:ip => '10.88.0.7', :host_aliases => ['node-4']},
+    })
+  end
+
+  it 'should return hash for creating prefixed set of "host" puppet resources by create_resources()' do
+    expect(scope.function_network_metadata_to_hosts([YAML.load(network_metadata), 'nova/migration', 'xxx-'])).to eq({
+      'xxx-node-6.domain.local' => {:ip => '10.77.0.8', :host_aliases => ['xxx-node-6']},
+      'xxx-node-5.domain.local' => {:ip => '10.77.0.6', :host_aliases => ['xxx-node-5']},
+      'xxx-node-4.domain.local' => {:ip => '10.77.0.7', :host_aliases => ['xxx-node-4']},
     })
   end
 
