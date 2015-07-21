@@ -19,6 +19,7 @@ group :development, :test do
   gem 'json'
   gem 'webmock'
   gem 'beaker-rspec', :require => false
+  gem 'beaker-puppet_install_helper', :require => false
 end
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']
