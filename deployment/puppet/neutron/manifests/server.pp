@@ -53,9 +53,9 @@
 #   Defaults to false for empty. If defined, should be a string with a leading '/' and no trailing '/'.
 #
 # [*auth_region*]
-#  (optional) The authentication region. Note this value is case-sensitive and
-#  must match the endpoint region defined in Keystone.
-#  Defaults to undef
+#   (optional) The authentication region. Note this value is case-sensitive and
+#   must match the endpoint region defined in Keystone.
+#   Defaults to undef
 #
 # [*auth_tenant*]
 #   (optional) The tenant of the auth user

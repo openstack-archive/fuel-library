@@ -29,6 +29,10 @@
 #   (required) Whether or not to enable the OVS Agent
 #   Defaults to true
 #
+# [*manage_service*]
+#   (optional) Whether to start/stop the service
+#   Defaults to true
+#
 # [*bridge_uplinks*]
 #   (optional) List of interfaces to connect to the bridge when doing
 #   bridge mapping.
@@ -91,9 +95,6 @@
 class neutron::agents::ml2::ovs (
   $package_ensure             = 'present',
   $enabled                    = true,
-  # TODO(bogdando) contribute change to upstream:
-  #   new manage_service param is required for pacemaker OCF control plane.
-  #   perhaps, could be removed once pacemaker wrappers implemented
   $manage_service             = true,
   $bridge_uplinks             = [],
   $bridge_mappings            = [],
@@ -174,20 +175,7 @@ class neutron::agents::ml2::ovs (
     neutron_agent_ovs { 'securitygroup/firewall_driver': ensure => absent }
   }
 
-  # TODO(skolekonov) contribute change to upstream:
-  #    do not create ovs bridges from manifests
-  #    as Neutron handles them itself
-  #    https://review.openstack.org/#/c/168848/
-  #vs_bridge { $integration_bridge:
-  #  ensure => present,
-  #  before => Service['neutron-ovs-agent-service'],
-  #}
-
   if $enable_tunneling {
-  #  vs_bridge { $tunnel_bridge:
-  #    ensure => present,
-  #    before => Service['neutron-ovs-agent-service'],
-  # }
     neutron_agent_ovs {
       'ovs/enable_tunneling': value => true;
       'ovs/tunnel_bridge':    value => $tunnel_bridge;
@@ -233,9 +221,6 @@ class neutron::agents::ml2::ovs (
     }
   }
 
-  # TODO(bogdando) contribute change to upstream:
-  #   new manage_service param is required for pacemaker OCF control plane
-  #   perhaps, could be removed once pacemaker wrappers implemented
   if $manage_service {
     if $enabled {
       $service_ensure = 'running'

@@ -69,10 +69,10 @@ Puppet::Type.type(:neutron_subnet).provide(
     host_routes = []
     return [] if values.empty?
     for value in Array(values)
-      matchdata = /\{\s*"destination"\s*:\s*"(.*)"\s*,\s*"nexthop"\s*:\s*"(.*)"\s*\}/.match(value.gsub(/\\"/,'"'))
-      destination = matchdata[1]
-      nexthop = matchdata[2]
-      host_routes << "destination=#{destination},nexthop=#{nexthop}"
+      matchdata = /\{\s*"nexthop"\s*:\s*"(.*)"\s*,\s*"destination"\s*:\s*"(.*)"\s*\}/.match(value.gsub(/\\"/,'"'))
+      nexthop = matchdata[1]
+      destination = matchdata[2]
+      host_routes << "nexthop=#{nexthop},destination=#{destination}"
     end
     return host_routes
   end
@@ -126,7 +126,7 @@ Puppet::Type.type(:neutron_subnet).provide(
     end
 
     if @resource[:tenant_name]
-      tenant_id = self.class.get_tenant_id(model.catalog,
+      tenant_id = self.class.get_tenant_id(@resource.catalog,
                                            @resource[:tenant_name])
       opts << "--tenant_id=#{tenant_id}"
     elsif @resource[:tenant_id]

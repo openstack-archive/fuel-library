@@ -9,6 +9,7 @@ describe 'neutron::agents::ml2::linuxbridge' do
   let :default_params do
     { :package_ensure   => 'present',
       :enabled          => true,
+      :manage_service   => true,
       :tunnel_types     => [],
       :local_ip         => false,
       :vxlan_group      => '224.0.0.1',
@@ -64,6 +65,15 @@ describe 'neutron::agents::ml2::linuxbridge' do
           :ensure  => 'running',
           :require => 'Class[Neutron]'
         )
+      end
+
+      context 'with manage_service as false' do
+        before :each do
+          params.merge!(:manage_service => false)
+        end
+        it 'should not start/stop service' do
+          is_expected.to contain_service('neutron-plugin-linuxbridge-agent').without_ensure
+        end
       end
 
       it 'does not configre VXLAN tunneling' do
