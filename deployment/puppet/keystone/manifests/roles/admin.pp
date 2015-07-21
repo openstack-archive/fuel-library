@@ -51,7 +51,19 @@
 #
 # [*configure_user_role*]
 #   Optional. Should the admin role be configured for the admin user?
-#   Defaulst to 'true'.
+#   Defaults to 'true'.
+#
+# [*admin_user_domain*]
+#   Optional.  Domain of the admin user
+#   Defaults to undef (undef will resolve to class keystone $default_domain)
+#
+# [*admin_project_domain*]
+#   Optional.  Domain of the admin tenant
+#   Defaults to undef (undef will resolve to class keystone $default_domain)
+#
+# [*service_project_domain*]
+#   Optional.  Domain for $service_tenant
+#   Defaults to undef (undef will resolve to class keystone $default_domain)
 #
 # == Dependencies
 # == Examples
@@ -75,17 +87,55 @@ class keystone::roles::admin(
   $service_tenant_desc    = 'Tenant for the openstack services',
   $configure_user         = true,
   $configure_user_role    = true,
+  $admin_user_domain      = undef,
+  $admin_project_domain   = undef,
+  $service_project_domain = undef,
 ) {
+
+  if $service_project_domain {
+    if $service_project_domain != $admin_user_domain {
+      if $service_project_domain != $admin_project_domain {
+        keystone_domain { $service_project_domain:
+          ensure  => present,
+          enabled => true,
+        }
+      }
+    }
+  }
+
+  if $admin_project_domain {
+    if $admin_project_domain != $admin_user_domain {
+      if $service_project_domain != $admin_project_domain {
+        keystone_domain { $admin_project_domain:
+          ensure  => present,
+          enabled => true,
+        }
+      }
+    }
+  }
+
+  if $admin_user_domain {
+    if $admin_project_domain != $admin_user_domain {
+      if $service_project_domain != $admin_user_domain {
+        keystone_domain { $admin_user_domain:
+          ensure  => present,
+          enabled => true,
+        }
+      }
+    }
+  }
 
   keystone_tenant { $service_tenant:
     ensure      => present,
     enabled     => true,
     description => $service_tenant_desc,
+    domain      => $service_project_domain,
   }
   keystone_tenant { $admin_tenant:
     ensure      => present,
     enabled     => true,
     description => $admin_tenant_desc,
+    domain      => $admin_project_domain,
   }
   keystone_role { 'admin':
     ensure => present,
@@ -98,6 +148,7 @@ class keystone::roles::admin(
       tenant                => $admin_tenant,
       email                 => $email,
       password              => $password,
+      domain                => $admin_user_domain,
       ignore_default_tenant => $ignore_default_tenant,
     }
   }

@@ -32,12 +32,7 @@ describe provider_class do
 
       describe '#create' do
         it 'creates a role' do
-          provider.class.stubs(:openstack)
-                        .with('role', 'list', '--quiet', '--format', 'csv', [])
-                        .returns('"ID","Name"
-"1cb05cfed7c24279be884ba4f6520262","foo"
-')
-          provider.class.stubs(:openstack)
+          provider.class.expects(:openstack)
                         .with('role', 'create', '--format', 'shell', 'foo')
                         .returns('name="foo"')
           provider.create
@@ -47,10 +42,7 @@ describe provider_class do
 
       describe '#destroy' do
         it 'destroys a role' do
-          provider.class.stubs(:openstack)
-                        .with('role', 'list', '--quiet', '--format', 'csv', [])
-                        .returns('"ID","Name"')
-          provider.class.stubs(:openstack)
+          provider.class.expects(:openstack)
                         .with('role', 'delete', [])
           provider.destroy
           expect(provider.exists?).to be_falsey
@@ -61,9 +53,6 @@ describe provider_class do
       describe '#exists' do
         context 'when role does not exist' do
           subject(:response) do
-            provider.class.stubs(:openstack)
-                          .with('role', 'list', '--quiet', '--format', 'csv', [])
-                        .returns('"ID","Name"')
             response = provider.exists?
           end
           it { is_expected.to be_falsey }
@@ -72,7 +61,7 @@ describe provider_class do
 
       describe '#instances' do
         it 'finds every role' do
-          provider.class.stubs(:openstack)
+          provider.class.expects(:openstack)
                         .with('role', 'list', '--quiet', '--format', 'csv', [])
                         .returns('"ID","Name"
 "1cb05cfed7c24279be884ba4f6520262","foo"

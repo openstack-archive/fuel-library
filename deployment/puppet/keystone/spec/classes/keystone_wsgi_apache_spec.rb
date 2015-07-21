@@ -208,6 +208,35 @@ describe 'keystone::wsgi::apache' do
 
       it_raises 'a Puppet::Error', /When using the same port for public & private endpoints, public_path and admin_path should be different\./
     end
+
+    describe 'when overriding parameters using symlink and custom file source' do
+      let :params do
+        {
+          :wsgi_script_ensure => 'link',
+          :wsgi_script_source => '/opt/keystone/httpd/keystone.py',
+        }
+      end
+
+      it { is_expected.to contain_file('keystone_wsgi_admin').with(
+        'ensure'  => 'link',
+        'path'    => "#{platform_parameters[:wsgi_script_path]}/admin",
+        'target'  => '/opt/keystone/httpd/keystone.py',
+        'owner'   => 'keystone',
+        'group'   => 'keystone',
+        'mode'    => '0644',
+        'require' => ["File[#{platform_parameters[:wsgi_script_path]}]", "Package[keystone]"]
+      )}
+
+      it { is_expected.to contain_file('keystone_wsgi_main').with(
+        'ensure'  => 'link',
+        'path'    => "#{platform_parameters[:wsgi_script_path]}/main",
+        'target'  => '/opt/keystone/httpd/keystone.py',
+        'owner'   => 'keystone',
+        'group'   => 'keystone',
+        'mode'    => '0644',
+        'require' => ["File[#{platform_parameters[:wsgi_script_path]}]", "Package[keystone]"]
+      )}
+    end
   end
 
   context 'on RedHat platforms' do
