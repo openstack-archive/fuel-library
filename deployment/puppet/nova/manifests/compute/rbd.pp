@@ -49,6 +49,11 @@
 #   (optional) The keyring name to use when retrieving the RBD secret
 #   Default to 'client.nova'
 #
+# [*ephemeral_storage*]
+#   (optional) Wether or not to use the rbd driver for the nova
+#   ephemeral storage or for the cinder volumes only.
+#   Defaults to true.
+#
 
 class nova::compute::rbd (
   $libvirt_rbd_user,
@@ -57,15 +62,13 @@ class nova::compute::rbd (
   $libvirt_images_rbd_pool      = 'rbd',
   $libvirt_images_rbd_ceph_conf = '/etc/ceph/ceph.conf',
   $rbd_keyring                  = 'client.nova',
+  $ephemeral_storage            = true,
 ) {
 
   include ::nova::params
 
   nova_config {
-    'libvirt/images_type':          value => 'rbd';
-    'libvirt/images_rbd_pool':      value => $libvirt_images_rbd_pool;
-    'libvirt/images_rbd_ceph_conf': value => $libvirt_images_rbd_ceph_conf;
-    'libvirt/rbd_user':             value => $libvirt_rbd_user;
+    'libvirt/rbd_user': value => $libvirt_rbd_user;
   }
 
   if $libvirt_rbd_secret_uuid {
@@ -95,6 +98,19 @@ class nova::compute::rbd (
       require => Exec['get-or-set virsh secret']
     }
 
+  }
+
+  if $ephemeral_storage {
+    nova_config {
+      'libvirt/images_type':          value => 'rbd';
+      'libvirt/images_rbd_pool':      value => $libvirt_images_rbd_pool;
+      'libvirt/images_rbd_ceph_conf': value => $libvirt_images_rbd_ceph_conf;
+    }
+  } else {
+    nova_config {
+      'libvirt/images_rbd_pool':      ensure => absent;
+      'libvirt/images_rbd_ceph_conf': ensure => absent;
+    }
   }
 
 }
