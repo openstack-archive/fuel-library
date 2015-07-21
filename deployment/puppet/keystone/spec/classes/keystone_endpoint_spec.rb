@@ -48,4 +48,19 @@ describe 'keystone::endpoint' do
       )
     end
   end
+
+  describe 'with domain parameters' do
+
+    let :params do
+      { :user_domain    => 'userdomain',
+        :project_domain => 'projectdomain',
+        :default_domain => 'defaultdomain' }
+    end
+
+    it { is_expected.to contain_keystone__resource__service_identity('keystone').with(
+      :user_domain    => 'userdomain',
+      :project_domain => 'projectdomain',
+      :default_domain => 'defaultdomain'
+    )}
+  end
 end
