@@ -11,7 +11,7 @@ if $queue_provider == 'rabbitmq' {
   $debug           = hiera('debug', false)
   $deployment_mode = hiera('deployment_mode', 'ha_compact')
   $amqp_port       = hiera('amqp_port', '5673')
-  $rabbit_hash     = hiera('rabbit_hash',
+  $rabbit_hash     = hiera_hash('rabbit_hash',
     {
       'user'     => false,
       'password' => false,
