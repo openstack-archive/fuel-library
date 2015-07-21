@@ -53,12 +53,14 @@ Puppet::Type.type(:neutron_network).provide(
   def create
     network_opts = Array.new
 
+    #TODO(skolekonov) Contribute the change to upstream
+    #  Check whether shared is true or not this way
     if @resource[:shared] =~ /true/i
       network_opts << '--shared'
     end
 
     if @resource[:tenant_name]
-      tenant_id = self.class.get_tenant_id(model.catalog,
+      tenant_id = self.class.get_tenant_id(@resource.catalog,
                                            @resource[:tenant_name])
       notice("***N*** neutron_network::create *** tenant_id='#{tenant_id.inspect}'")
       network_opts << "--tenant_id=#{tenant_id}"

@@ -51,18 +51,6 @@ describe 'neutron::agents::ml2::ovs' do
       is_expected.to contain_neutron_agent_ovs('ovs/local_ip').with_ensure('absent')
     end
 
-# TODO(skolekonov) contribute change to upstream:
-#    do not create ovs bridges from manifests
-#    as Neutron handles them itself
-#    https://review.openstack.org/#/c/168848/
-#    it 'configures vs_bridge' do
-#      is_expected.to contain_vs_bridge(p[:integration_bridge]).with(
-#        :ensure  => 'present',
-#        :before => 'Service[neutron-ovs-agent-service]'
-#      )
-#      is_expected.not_to contain_vs_brige(p[:integration_bridge])
-#    end
-
     it 'installs neutron ovs agent package' do
       if platform_params.has_key?(:ovs_agent_package)
         is_expected.to contain_package('neutron-ovs-agent').with(
@@ -82,6 +70,15 @@ describe 'neutron::agents::ml2::ovs' do
         :ensure  => 'running',
         :require => 'Class[Neutron]'
       )
+    end
+
+    context 'with manage_service as false' do
+      before :each do
+        params.merge!(:manage_service => false)
+      end
+      it 'should not start/stop service' do
+        is_expected.to contain_service('neutron-ovs-agent-service').without_ensure
+      end
     end
 
     context 'when supplying a firewall driver' do
@@ -155,14 +152,6 @@ describe 'neutron::agents::ml2::ovs' do
           is_expected.to contain_neutron_agent_ovs('ovs/enable_tunneling').with_value(true)
           is_expected.to contain_neutron_agent_ovs('ovs/tunnel_bridge').with_value(default_params[:tunnel_bridge])
           is_expected.to contain_neutron_agent_ovs('ovs/local_ip').with_value('127.0.0.1')
-# TODO(skolekonov) contribute change to upstream:
-#    do not create ovs bridges from manifests
-#    as Neutron handles them itself
-#    https://review.openstack.org/#/c/168848/
-#          is_expected.to contain_vs_bridge(default_params[:tunnel_bridge]).with(
-#            :ensure  => 'present',
-#            :before => 'Service[neutron-ovs-agent-service]'
-#          )
         end
       end
 

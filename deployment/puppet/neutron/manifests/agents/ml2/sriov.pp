@@ -29,6 +29,10 @@
 #   (required) Whether or not to enable the OVS Agent
 #   Defaults to true
 #
+# [*manage_service*]
+#   (optional) Whether to start/stop the service
+#   Defaults to true
+#
 # [*physical_device_mappings*]
 #   (optional) List of <physical_network>:<physical device>
 #   All physical networks listed in network_vlan_ranges
@@ -50,6 +54,7 @@
 class neutron::agents::ml2::sriov (
   $package_ensure             = 'present',
   $enabled                    = true,
+  $manage_service             = true,
   $physical_device_mappings   = [],
   $polling_interval           = 2,
   $exclude_devices            = [],
@@ -73,10 +78,12 @@ class neutron::agents::ml2::sriov (
     tag    => 'openstack',
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
   }
 
   service { 'neutron-sriov-nic-agent-service':
