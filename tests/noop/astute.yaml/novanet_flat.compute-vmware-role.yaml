@@ -255,6 +255,7 @@ nova:
   db_password: vrjHFPzC
   user_password: Ekj3FTCt
   state_path: "/var/lib/nova"
+compute_name_prefix_for_live_migration: live-migration-for-
 master_ip: 10.109.5.2
 priority: 200
 external_dns:
@@ -341,19 +342,19 @@ repo_setup:
   - name: ubuntu
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty
     type: deb
   - name: ubuntu-updates
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty-updates
     type: deb
   - name: ubuntu-security
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty-security
     type: deb
   - name: mos
@@ -631,4 +632,4 @@ external_ntp:
   metadata:
     weight: 100
     label: Host OS NTP Servers
-openstack_version_prev: 
+openstack_version_prev:
