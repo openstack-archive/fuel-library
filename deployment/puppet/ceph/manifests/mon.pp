@@ -52,15 +52,7 @@ class ceph::mon (
       'global/mon_initial_members': value => join($mon_hosts, ' ');
     }
 
-    # Has to be an exec: Puppet can't reload a service without declaring
-    # an ordering relationship.
-    exec {'reload Ceph for HA':
-      command   => 'service ceph reload',
-      subscribe => [Ceph_conf['global/mon_host'], Ceph_conf['global/mon_initial_members']]
-    }
-
     Exec['ceph-deploy gatherkeys'] ->
-    Ceph_conf[['global/mon_host', 'global/mon_initial_members']] ->
-    Exec['reload Ceph for HA']
+    Ceph_conf[['global/mon_host', 'global/mon_initial_members']]
   }
 }

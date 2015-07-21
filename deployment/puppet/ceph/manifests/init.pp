@@ -99,29 +99,19 @@ class ceph (
   }
 
   if hiera('role') =~ /controller|ceph/ {
-    service {'ceph':
-      ensure  => 'running',
-      enable  => true,
-      require => Class['ceph::conf']
-    }
-    Package<| title == 'ceph' |> ~> Service<| title == 'ceph' |>
-    if !defined(Service['ceph']) {
-      notify{ "Module ${module_name} cannot notify service ceph on packages update": }
-    }
+    Package<| title == 'ceph' |>
   }
 
   case hiera('role') {
     'primary-controller', 'controller', 'ceph-mon': {
       include ceph::mon
 
-      Class['ceph::conf'] -> Class['ceph::mon'] ->
-      Service['ceph']
+      Class['ceph::conf'] -> Class['ceph::mon']
 
       if ($::ceph::use_rgw) {
         include ceph::radosgw
         Class['ceph::mon'] ->
-        Class['ceph::radosgw'] ~>
-        Service['ceph']
+        Class['ceph::radosgw']
         if defined(Class['::keystone']){
           Class['::keystone'] -> Class['ceph::radosgw']
         }
@@ -131,7 +121,7 @@ class ceph (
     'ceph-osd': {
       if ! empty($osd_devices) {
         include ceph::osds
-        Class['ceph::conf'] -> Class['ceph::osds'] ~> Service['ceph']
+        Class['ceph::conf'] -> Class['ceph::osds']
       }
     }
 
