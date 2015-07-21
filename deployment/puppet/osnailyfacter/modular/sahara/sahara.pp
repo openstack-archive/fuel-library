@@ -1,7 +1,7 @@
 notice('MODULAR: sahara.pp')
 
 $primary_controller         = hiera('primary_controller')
-$sahara_hash                = hiera('sahara')
+$sahara_hash                = hiera_hash('sahara_hash')
 $access_admin               = hiera('access')
 $controller_node_address    = hiera('controller_node_address')
 $controller_node_public     = hiera('controller_node_public')
@@ -14,12 +14,12 @@ $ceilometer_hash            = hiera('ceilometer')
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', true)
-$rabbit_hash                = hiera('rabbit_hash')
+$rabbit_hash                = hiera_hash('rabbit_hash')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $deployment_mode            = hiera('deployment_mode')
-$public_ssl_hash            = hiera('public_ssl')
+$public_ssl_hash            = hiera_hash('public_ssl')
 
 #################################################################
 

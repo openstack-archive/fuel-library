@@ -1,8 +1,8 @@
 notice('MODULAR: murano/db.pp')
 
-$murano_hash    = hiera_hash('murano', {})
+$murano_hash    = hiera_hash('murano_hash', {})
 $murano_enabled = pick($murano_hash['enabled'], false)
-$mysql_hash     = hiera_hash('mysql', {})
+$mysql_hash     = hiera_hash('mysql_hash', {})
 $management_vip = hiera('management_vip', undef)
 $database_vip   = hiera('database_vip', undef)
 
