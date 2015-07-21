@@ -2,6 +2,7 @@ require 'puppet/util/inifile'
 require 'puppet/provider/openstack'
 require 'puppet/provider/openstack/auth'
 require 'puppet/provider/openstack/credentials'
+require 'puppet/provider/keystone/util'
 
 class Puppet::Provider::Keystone < Puppet::Provider::Openstack
 
@@ -28,6 +29,31 @@ class Puppet::Provider::Keystone < Puppet::Provider::Openstack
 
   def self.admin_endpoint
     @admin_endpoint ||= get_admin_endpoint
+  end
+
+  # use the domain in this order:
+  # 1 - the domain name specified in the resource definition - resource[:domain]
+  # 2 - the domain name part of the resource name/title e.g. user_name::user_domain
+  #     if passed in by name_and_domain above
+  # 3 - use the specified default_domain_name
+  # 4 - lookup the default domain
+  # 5 - use 'Default' - the "default" default domain if no other one is configured
+  # Usage: name_and_domain(resource[:name], resource[:domain], default_domain_name)
+  def self.name_and_domain(namedomstr, domain_from_resource=nil, default_domain_name=nil)
+    name, domain = Util.split_domain(namedomstr)
+    ret = [name]
+    if domain_from_resource
+      ret << domain_from_resource
+    elsif domain
+      ret << domain
+    elsif default_domain_name
+      ret << default_domain_name
+    elsif default_domain
+      ret << default_domain
+    else
+      ret << 'Default'
+    end
+    ret
   end
 
   def self.admin_token
@@ -80,8 +106,8 @@ class Puppet::Provider::Keystone < Puppet::Provider::Openstack
 
   def self.request(service, action, properties=nil)
     super
-    rescue Puppet::Error::OpenstackAuthInputError => error
-      request_by_service_token(service, action, error, properties)
+  rescue Puppet::Error::OpenstackAuthInputError => error
+    request_by_service_token(service, action, error, properties)
   end
 
   def self.request_by_service_token(service, action, error, properties=nil)
@@ -94,6 +120,31 @@ class Puppet::Provider::Keystone < Puppet::Provider::Openstack
 
   def self.ini_filename
     INI_FILENAME
+  end
+
+  def self.default_domain
+    domain_hash[default_domain_id]
+  end
+
+  def self.domain_hash
+    return @domain_hash if @domain_hash
+    list = request('domain', 'list')
+    @domain_hash = Hash[list.collect{|domain| [domain[:id], domain[:name]]}]
+    @domain_hash
+  end
+
+  def self.domain_name_from_id(id)
+    domain_hash[id]
+  end
+
+  def self.default_domain_id
+    return @default_domain_id if @default_domain_id
+    if keystone_file and keystone_file['identity'] and keystone_file['identity']['default_domain_id']
+      @default_domain_id = "#{keystone_file['identity']['default_domain_id'].strip}"
+    else
+      @default_domain_id = 'default'
+    end
+    @default_domain_id
   end
 
   def self.keystone_file

@@ -10,7 +10,7 @@ describe provider_class do
     ENV['OS_USERNAME']     = 'test'
     ENV['OS_PASSWORD']     = 'abc123'
     ENV['OS_PROJECT_NAME'] = 'test'
-    ENV['OS_AUTH_URL']     = 'http://127.0.0.1:35357/v2.0'
+    ENV['OS_AUTH_URL']     = 'http://127.0.0.1:5000/v3'
   end
 
   describe 'when managing a service' do
@@ -41,7 +41,7 @@ describe provider_class do
 "1cb05cfed7c24279be884ba4f6520262","foo","foo","foo"
 ')
           provider.class.stubs(:openstack)
-                        .with('service', 'create', '--format', 'shell', ['--name', 'foo', '--description', 'foo', 'foo'])
+                        .with('service', 'create', '--format', 'shell', ['foo', '--name', 'foo', '--description', 'foo'])
                         .returns('description="foo"
 enabled="True"
 id="8f0dd4c0abc44240998fbb3f5089ecbf"

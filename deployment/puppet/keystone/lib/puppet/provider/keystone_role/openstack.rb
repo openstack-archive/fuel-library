@@ -7,7 +7,7 @@ Puppet::Type.type(:keystone_role).provide(
 
   desc 'Provider for keystone roles.'
 
-  @credentials = Puppet::Provider::Openstack::CredentialsV2_0.new
+  @credentials = Puppet::Provider::Openstack::CredentialsV3.new
 
   def initialize(value={})
     super(value)
