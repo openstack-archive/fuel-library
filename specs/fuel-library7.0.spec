@@ -80,7 +80,6 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-alarm-evaluator %{b
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/nova-compute %{buildroot}/usr/lib/ocf/resource.d/fuel/nova-compute
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/nova-network %{buildroot}/usr/lib/ocf/resource.d/fuel/nova-network
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-compute %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-agent-compute
-install -m 0755 %{files_source}/fuel-ha-utils/tools/q-agent-cleanup.py %{buildroot}/usr/bin/q-agent-cleanup.py
 install -m 0755 %{files_source}/fuel-ha-utils/tools/galeracheck %{buildroot}/usr/bin/galeracheck
 install -m 0755 %{files_source}/fuel-ha-utils/tools/swiftcheck %{buildroot}/usr/bin/swiftcheck
 install -m 0644 %{files_source}/fuel-ha-utils/tools/wsrepclustercheckrc %{buildroot}/etc/wsrepclustercheckrc
@@ -185,7 +184,6 @@ For further information go to http://wiki.openstack.org/Fuel
 %files -n fuel-ha-utils
 %defattr(-,root,root)
 /usr/lib/ocf/resource.d/fuel
-/usr/bin/q-agent-cleanup.py
 /usr/bin/galeracheck
 /usr/bin/swiftcheck
 %config(noreplace) /etc/wsrepclustercheckrc
