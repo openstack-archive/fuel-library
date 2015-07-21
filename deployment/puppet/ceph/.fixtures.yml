@@ -1,0 +1,7 @@
+fixtures:
+  repositories:
+    firewall:
+      repo: "git://github.com/puppetlabs/puppetlabs-firewall"
+      ref: "1.0.2"
+  symlinks:
+    "ceph": "#{source_dir}"
