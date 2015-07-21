@@ -5,15 +5,11 @@ $nova_hash = hiera_hash('nova', {})
 $use_nova = pick($nova_hash['enabled'], true)
 $public_ssl_hash = hiera('public_ssl')
 
-$controllers              = hiera('controllers')
-$controllers_server_names = filter_hash($controllers, 'name')
-$controllers_ipaddresses  = filter_hash($controllers, 'internal_address')
+$nova_api_address_map = get_node_to_ipaddr_map_by_network_role(hiera('nova_api_nodes'), 'nova/api')
 
 if ($use_nova) {
-  $server_names        = pick(hiera_array('nova_names', undef),
-                              $controllers_server_names)
-  $ipaddresses         = pick(hiera_array('nova_ipaddresses', undef),
-                              $controllers_ipaddresses)
+  $server_names        = hiera_array('nova_names', keys($nova_api_address_map))
+  $ipaddresses         = hiera_array('nova_ipaddresses', values($nova_api_address_map))
   $public_virtual_ip   = hiera('public_vip')
   $internal_virtual_ip = hiera('management_vip')
 
