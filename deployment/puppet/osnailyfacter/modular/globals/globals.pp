@@ -283,6 +283,7 @@ $database_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controlle
 # Define Nova-API variables:
 # todo: use special node-roles instead controllers in the future
 $nova_api_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$compute_name_prefix_for_live_migration = hiera('compute_name_prefix_for_live_migration', 'live-migration-for-')
 
 
 # save all these global variables into hiera yaml file for later use
