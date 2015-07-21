@@ -1,14 +1,14 @@
 fixtures:
   repositories:
     'cinder': 'git://github.com/stackforge/puppet-cinder.git'
+    'concat':
+      'repo': 'git://github.com/puppetlabs/puppetlabs-concat.git'
+      'ref': '1.2.1'
     'inifile':  'git://github.com/puppetlabs/puppetlabs-inifile'
     'keystone': 'git://github.com/stackforge/puppet-keystone.git'
-    'mysql':
-      repo: 'git://github.com/puppetlabs/puppetlabs-mysql.git'
-      ref: 'origin/0.x'
-    'postgresql':
-      repo: "git://github.com/puppetlabs/puppet-postgresql.git"
-      ref: '2.5.0'
+    'mysql': 'git://github.com/puppetlabs/puppetlabs-mysql.git'
+    'openstacklib': 'git://github.com/stackforge/puppet-openstacklib.git'
+    'postgresql': 'git://github.com/puppetlabs/puppet-postgresql.git'
     'qpid': 'git://github.com/dprince/puppet-qpid.git'
     'rabbitmq':
       repo: 'git://github.com/puppetlabs/puppetlabs-rabbitmq'
