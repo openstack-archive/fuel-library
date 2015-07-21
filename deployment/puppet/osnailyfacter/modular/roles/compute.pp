@@ -1,15 +1,17 @@
 notice('MODULAR: compute.pp')
 
+$network_scheme = hiera_hash('network_scheme', {})
+$network_metadata = hiera_hash('network_metadata', {})
+prepare_network_config($network_scheme)
+
 # Pulling hiera
-prepare_network_config(hiera('network_scheme', {}))
-$internal_int                   = hiera('internal_int')
+$node_name                      = hiera('node_name')
 $public_int                     = hiera('public_int', undef)
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
 $service_endpoint               = hiera('service_endpoint')
-$internal_address               = hiera('internal_address')
+$internal_address               = get_network_role_property('nova/api', 'ipaddr')
 $primary_controller             = hiera('primary_controller')
-$storage_address                = hiera('storage_address')
 $use_neutron                    = hiera('use_neutron', false)
 $sahara_hash                    = hiera('sahara', {})
 $murano_hash                    = hiera('murano', {})
@@ -33,9 +35,8 @@ $swift_hash                     = hiera('swift', {})
 $cinder_hash                    = hiera('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera('access', {})
-$network_scheme                 = hiera('network_scheme', {})
 $controllers                    = hiera('controllers')
-$swift_proxies                  = hiera('swift_proxies', $controllers)
+$swift_proxies                  = hiera('swift_proxies')
 $swift_master_role              = hiera('swift_master_role', 'primary-controller')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
@@ -166,16 +167,6 @@ $floating_hash = {}
 
 ##NO NEED TO CHANGE
 
-$node = filter_nodes($nodes_hash, 'name', $::hostname)
-if empty($node) {
-  fail("Node $::hostname is not defined in the hash structure")
-}
-
-# get cidr netmasks for VIPs
-$primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-$vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
-$vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
-
 #todo:(sv): temporary commented. Will be uncommented while
 #           'multiple-l2-network' feature re-implemented
 # if $use_neutron {
@@ -184,14 +175,8 @@ $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_
 
 
 ##TODO: simply parse nodes array
-$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
-$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
-$controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
-$controller_hostnames = keys($controller_internal_addresses)
-$controller_nodes = ipsort(values($controller_internal_addresses))
-$controller_node_public  = $public_vip
-$controller_node_address = $management_vip
-$roles = node_roles($nodes_hash, hiera('uid'))
+$memcache_ipaddrs = ipsort(values(get_node_to_ipaddr_map_by_network_role(hiera_hash('memcache_nodes'),'mgmt/memcache')))
+$roles = $network_metadata['nodes'][$node_name]['node_roles']
 $mountpoints = filter_hash($mp_hash,'point')
 
 # SQLAlchemy backend configuration
@@ -236,24 +221,6 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   $use_swift = true
 } else {
   $use_swift = false
-}
-
-if ($use_swift) {
-  if !hiera('swift_partition', false) {
-    $swift_partition = '/var/lib/glance/node'
-  }
-  $swift_local_net_ip       = $storage_address
-  $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role',$swift_master_role)
-  $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['storage_address']
-  #$master_hostname         = $master_swift_proxy_nodes[0]['name']
-  $swift_loopback = false
-  if $primary_controller {
-    $primary_proxy = true
-  } else {
-    $primary_proxy = false
-  }
-} elsif ($storage_hash['objects_ceph']) {
-  $rgw_servers = $controllers
 }
 
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
@@ -340,7 +307,7 @@ class { 'openstack::compute':
   manage_volumes              => $manage_volumes,
   nova_user_password          => $nova_hash[user_password],
   nova_hash                   => $nova_hash,
-  cache_server_ip             => $controller_nodes,
+  cache_server_ip             => $memcache_ipaddrs,
   service_endpoint            => $service_endpoint,
   cinder                      => true,
   cinder_iscsi_bind_addr      => get_network_role_property('cinder/iscsi', 'ipaddr'),

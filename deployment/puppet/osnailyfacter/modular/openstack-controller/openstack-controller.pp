@@ -1,5 +1,9 @@
 notice('MODULAR: openstack-controller.pp')
 
+$network_scheme = hiera_hash('network_scheme', {})
+$network_metadata = hiera_hash('network_metadata', {})
+prepare_network_config($network_scheme)
+
 $nova_rate_limits               = hiera('nova_rate_limits')
 $primary_controller             = hiera('primary_controller')
 $use_neutron                    = hiera('use_neutron', false)
@@ -24,7 +28,7 @@ $glance_hash                    = hiera_hash('glance', {})
 $storage_hash                   = hiera_hash('storage', {})
 $nova_hash                      = hiera_hash('nova', {})
 $nova_config_hash               = hiera_hash('nova_config', {})
-$internal_address               = hiera('internal_address')
+$api_bind_address               = get_network_role_property('nova/api', 'ipaddr')
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $ceilometer_hash                = hiera_hash('ceilometer',{})
 $mongo_hash                     = hiera_hash('mongo', {})
@@ -44,10 +48,6 @@ $controller_hostnames           = keys($controller_internal_addresses)
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
 $floating_hash = {}
-
-class { 'l23network' :
-  use_ovs => $use_neutron
-}
 
 if $use_neutron {
   $network_provider          = 'neutron'
@@ -159,7 +159,7 @@ class { '::openstack::controller':
   auto_assign_floating_ip        => hiera('auto_assign_floating_ip', false),
   glance_api_servers             => $glance_api_servers,
   primary_controller             => $primary_controller,
-  novnc_address                  => $internal_address,
+  novnc_address                  => $api_bind_address,
   nova_db_user                   => $nova_db_user,
   nova_db_password               => $nova_hash[db_password],
   nova_user                      => $keystone_user,
@@ -172,7 +172,7 @@ class { '::openstack::controller':
   amqp_password                  => $rabbit_hash['password'],
   rabbit_ha_queues               => true,
   cache_server_ip                => $controller_nodes,
-  api_bind_address               => $internal_address,
+  api_bind_address               => $api_bind_address,
   db_host                        => $db_host,
   service_endpoint               => $service_endpoint,
   neutron_metadata_proxy_secret  => $neutron_metadata_proxy_secret,
