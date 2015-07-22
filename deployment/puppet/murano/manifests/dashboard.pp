@@ -91,7 +91,13 @@ class murano::dashboard(
     ],
   }
 
-  Package['murano-dashboard'] -> File[$modify_config] -> Exec['clean_horizon_config'] -> Exec['fix_horizon_config'] -> Exec['django_collectstatic'] -> Service <| title == 'httpd' |>
+  Package['murano-dashboard'] ->
+    File[$modify_config] ->
+      Exec['clean_horizon_config'] ->
+        Exec['fix_horizon_config'] ->
+          Exec['django_collectstatic'] ->
+            Service <| title == 'httpd' |>
+
   Package['murano-dashboard'] ~> Service <| title == 'httpd' |>
   Exec['fix_horizon_config'] ~> Service <| title == 'httpd' |>
 }
