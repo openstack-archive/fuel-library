@@ -19,7 +19,8 @@ $internal_address         = hiera('internal_address')
 $region                   = hiera('region', 'RegionOne')
 $ceilometer_hash          = hiera_hash('ceilometer', $default_ceilometer_hash)
 $ceilometer_region        = pick($ceilometer_hash['region'], $region)
-$mongo_address_map        = get_node_to_ipaddr_map_by_network_role(hiera_hash('mongo_nodes'), 'mongo/db')
+$mongo_nodes              = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('mongo_roles'))
+$mongo_address_map        = get_node_to_ipaddr_map_by_network_role($mongo_nodes, 'mongo/db')
 
 $default_mongo_hash = {
   'enabled'         => false,
