@@ -273,6 +273,9 @@ $swift_proxies       = get_nodes_hash_by_roles($network_metadata, ['primary-cont
 $swift_proxy_caches  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']) # memcache for swift
 $is_primary_swift_proxy = $primary_controller
 
+# Define murano-related variables
+$murano_roles = ['primary-controller', 'controller']
+
 # Define heat-related variables:
 $heat_roles = ['primary-controller', 'controller']
 
