@@ -1,11 +1,12 @@
 notice('MODULAR: mongo_primary.pp')
 
 prepare_network_config(hiera('network_scheme', {}))
-$mongo_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('mongo_nodes'), 'mongo/db')
+$mongo_nodes       = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('mongo_roles'))
+$mongo_address_map = get_node_to_ipaddr_map_by_network_role($mongo_nodes, 'mongo/db')
 $bind_address      = get_network_role_property('mongo/db', 'ipaddr')
 $use_syslog        = hiera('use_syslog', true)
 $debug             = hiera('debug', false)
-$ceilometer_hash   = hiera('ceilometer')
+$ceilometer_hash   = hiera_hash('ceilometer_hash')
 $roles             = hiera('roles')
 $replset_name      = 'ceilometer'
 $mongodb_port      = hiera('mongodb_port', '27017')
