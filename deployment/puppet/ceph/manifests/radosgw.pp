@@ -50,6 +50,15 @@ class ceph::radosgw (
     ensure  => 'installed',
   }
 
+  # needed to ensure that the service will start on boot LP#1466552
+  service { $::service::params::service_radosgw:
+    # NOTE: we do not use the ensure property defined because we want to let
+    # astute (re)start in the post deployment action.
+    ensure  => undef,
+    enable  => true,
+    require => Package[$::ceph::params::package_radosgw],
+  }
+
   if !(defined('horizon') or
        defined($::ceph::params::package_httpd) or
        defined($::ceph::params::service_httpd) ) {
