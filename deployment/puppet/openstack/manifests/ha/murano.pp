@@ -40,7 +40,7 @@ class openstack::ha::murano (
     public              => true,
   }
 
-  openstack::ha::haproxy_service { 'murano':
+  openstack::ha::haproxy_service { 'murano-api':
     order           => '180',
     listen_port     => 8082,
     public_ssl      => $public_ssl,
