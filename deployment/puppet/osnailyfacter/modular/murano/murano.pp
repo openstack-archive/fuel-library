@@ -1,5 +1,7 @@
 notice('MODULAR: murano.pp')
 
+prepare_network_config(hiera('network_scheme', {}))
+
 $murano_hash                = hiera_hash('murano_hash', {})
 $murano_settings_hash       = hiera_hash('murano_settings', {})
 $rabbit_hash                = hiera_hash('rabbit_hash', {})
@@ -8,7 +10,7 @@ $neutron_config             = hiera_hash('neutron_config', {})
 $node_role                  = hiera('node_role')
 $public_ip                  = hiera('public_vip')
 $management_ip              = hiera('management_vip')
-$internal_address           = hiera('internal_address')
+$bind_address               = get_network_role_property('murano/api', 'ipaddr')
 $region                     = hiera('region', 'RegionOne')
 $use_neutron                = hiera('use_neutron', false)
 $service_endpoint           = hiera('service_endpoint', $management_ip)
@@ -36,7 +38,7 @@ $public_address = pick($public_ssl['services'], false) ? {
 $firewall_rule  = '202 murano-api'
 
 $api_bind_port  = '8082'
-$api_bind_host  = $internal_address
+$api_bind_host  = $bind_address
 
 $murano_user    = pick($murano_hash['user'], 'murano')
 $tenant         = pick($murano_hash['tenant'], 'services')
