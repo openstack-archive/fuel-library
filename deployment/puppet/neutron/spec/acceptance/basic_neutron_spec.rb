@@ -20,17 +20,9 @@ describe 'basic neutron' do
         }
         'RedHat': {
           class { '::openstack_extras::repo::redhat::redhat':
-            # Kilo is not GA yet, so let's use the testing repo
-            manage_rdo => false,
-            repo_hash  => {
-              'rdo-kilo-testing' => {
-                'baseurl'  => 'https://repos.fedorapeople.org/repos/openstack/openstack-kilo/testing/el7/',
-                # packages are not GA so not signed
-                'gpgcheck' => '0',
-                'priority' => 97,
-              },
-            },
+            release => 'kilo',
           }
+          package { 'openstack-selinux': ensure => 'latest' }
           $package_provider = 'yum'
         }
         default: {
@@ -42,7 +34,6 @@ describe 'basic neutron' do
 
       class { '::rabbitmq':
         delete_guest_user => true,
-        erlang_cookie     => 'secrete',
         package_provider  => $package_provider,
       }
 

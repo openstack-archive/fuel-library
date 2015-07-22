@@ -316,6 +316,20 @@ describe 'neutron::server' do
     end
   end
 
+  describe "with custom auth region" do
+    let :facts do
+      default_facts.merge({ :osfamily => 'RedHat' })
+    end
+    before do
+      params.merge!({
+        :auth_region => 'MyRegion',
+      })
+    end
+    it 'configures auth_region' do
+      is_expected.to contain_neutron_config('keystone_authtoken/auth_region').with_value('MyRegion');
+    end
+  end
+
   context 'on Debian platforms' do
     let :facts do
       default_facts.merge(

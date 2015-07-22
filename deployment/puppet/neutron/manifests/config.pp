@@ -60,6 +60,9 @@
 # [**plugin_plumgrid_config**]
 #   (optional) Manage configuration of plugins/plumgrid/plumgrid.ini
 #
+# [**plugin_opencontrail_config**]
+#   (optional) Manage configuration of plugins/opencontrail/ContrailPlugin.ini
+#
 # [**plugin_ml2_config**]
 #   (optional) Manage configuration of ml2_conf.ini
 #
@@ -84,6 +87,7 @@ class neutron::config (
   $plugin_cisco_config           = {},
   $plugin_midonet_config         = {},
   $plugin_plumgrid_config        = {},
+  $plugin_opencontrail_config    = {},
   $plugin_ml2_config             = {},
   $plugin_ovs_config             = {},
 ) {
@@ -102,6 +106,7 @@ class neutron::config (
   validate_hash($plugin_cisco_config)
   validate_hash($plugin_midonet_config)
   validate_hash($plugin_plumgrid_config)
+  validate_hash($plugin_opencontrail_config)
   validate_hash($plugin_ml2_config)
   validate_hash($plugin_ovs_config)
 
@@ -118,6 +123,7 @@ class neutron::config (
   create_resources('neutron_plugin_cisco', $plugin_cisco_config)
   create_resources('neutron_plugin_midonet', $plugin_midonet_config)
   create_resources('neutron_plugin_plumgrid', $plugin_plumgrid_config)
+  create_resources('neutron_plugin_opencontrail', $plugin_opencontrail_config)
   create_resources('neutron_plugin_ml2', $plugin_ml2_config)
   create_resources('neutron_plugin_ovs', $plugin_ovs_config)
 }

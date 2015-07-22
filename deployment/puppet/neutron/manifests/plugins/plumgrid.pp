@@ -23,17 +23,32 @@
 # [*controller_priv_host*]
 #   Controller private host IP
 #   Defaults to 127.0.0.1
+# [*auth_protocol*]
+#   Authorization protocol
+#   Defaults to http
+# [*nova_metadata_ip*]
+#   Nova metadata IP
+#   Defaults to 127.0.0.1
+# [*nova_metadata_port*]
+#   Nova metadata port
+#   Defaults to 8775
+# [*metadata_proxy_shared_secret*]
+#   Neutron metadata shared secret key
 
 class neutron::plugins::plumgrid (
-  $director_server       = '127.0.0.1',
-  $director_server_port  = '443',
-  $username              = undef,
-  $password              = undef,
-  $servertimeout         = '99',
-  $connection            = 'http://127.0.0.1:35357/v2.0',
-  $admin_password        = undef,
-  $controller_priv_host  = '127.0.0.1',
-  $package_ensure        = 'present'
+  $director_server              = '127.0.0.1',
+  $director_server_port         = '443',
+  $username                     = undef,
+  $password                     = undef,
+  $servertimeout                = '99',
+  $connection                   = 'http://127.0.0.1:35357/v2.0',
+  $admin_password               = undef,
+  $controller_priv_host         = '127.0.0.1',
+  $auth_protocol                = 'http',
+  $nova_metadata_ip             = '127.0.0.1',
+  $nova_metadata_port           = '8775',
+  $metadata_proxy_shared_secret = undef,
+  $package_ensure               = 'present'
 ) {
 
   include ::neutron::params
@@ -98,11 +113,14 @@ class neutron::plugins::plumgrid (
   }
 
   neutron_plumlib_plumgrid {
-    'keystone_authtoken/admin_user' :       value => 'admin';
-    'keystone_authtoken/admin_password':    value => $admin_password, secret =>true;
-    'keystone_authtoken/auth_uri':          value => "http://${controller_priv_host}:35357/v2.0";
-    'keystone_authtoken/admin_tenant_name': value => 'admin';
-    'PLUMgridMetadata/enable_pg_metadata' : value => 'True';
-    'PLUMgridMetadata/metadata_mode':       value => 'local';
+    'keystone_authtoken/admin_user' :                value => 'admin';
+    'keystone_authtoken/admin_password':             value => $admin_password, secret =>true;
+    'keystone_authtoken/auth_uri':                   value => "${auth_protocol}://${controller_priv_host}:35357/v2.0";
+    'keystone_authtoken/admin_tenant_name':          value => 'admin';
+    'PLUMgridMetadata/enable_pg_metadata' :          value => 'True';
+    'PLUMgridMetadata/metadata_mode':                value => 'local';
+    'PLUMgridMetadata/nova_metadata_ip':             value => $nova_metadata_ip;
+    'PLUMgridMetadata/nova_metadata_port':           value => $nova_metadata_port;
+    'PLUMgridMetadata/metadata_proxy_shared_secret': value => $metadata_proxy_shared_secret;
   }
 }

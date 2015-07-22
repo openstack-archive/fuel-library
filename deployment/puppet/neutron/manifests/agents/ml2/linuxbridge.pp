@@ -12,6 +12,10 @@
 #   (required) Whether or not to enable the agent.
 #   Defaults to true.
 #
+# [*manage_service*]
+#   (optional) Whether to start/stop the service
+#   Defaults to true
+#
 # [*tunnel_types*]
 #   (optional) List of types of tunnels to use when utilizing tunnels.
 #   Supported tunnel types are: vxlan.
@@ -57,6 +61,7 @@
 class neutron::agents::ml2::linuxbridge (
   $package_ensure   = 'present',
   $enabled          = true,
+  $manage_service   = true,
   $tunnel_types     = [],
   $local_ip         = false,
   $vxlan_group      = '224.0.0.1',
@@ -143,10 +148,12 @@ class neutron::agents::ml2::linuxbridge (
     }
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
   }
 
   service { 'neutron-plugin-linuxbridge-agent':
