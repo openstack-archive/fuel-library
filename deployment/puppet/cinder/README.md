@@ -1,7 +1,7 @@
 cinder
 =======
 
-5.1.0 - 2014.2 - Juno
+6.0.0 - 2015.1 - Kilo
 
 #### Table of Contents
 
@@ -12,19 +12,18 @@ cinder
 5. [Limitations - OS compatibility, etc.](#limitations)
 6. [Development - Guide for contributing to the module](#development)
 7. [Contributors - Those with commits](#contributors)
-8. [Release Notes - Notes on the most recent updates to the module](#release-notes)
 
 Overview
 --------
 
-The cinder module is a part of [Stackforge](https://github.com/stackfoge), an effort by the Openstack infrastructure team to provide continuous integration testing and code review for Openstack and Openstack community projects not part of the core software.  The module its self is used to flexibly configure and manage the block storage service for Openstack.
+The cinder module is a part of [OpenStack](https://github.com/openstack), an effort by the Openstack infrastructure team to provide continuous integration testing and code review for Openstack and Openstack community projects as part of the core software.  The module its self is used to flexibly configure and manage the block storage service for Openstack.
 
 Module Description
 ------------------
 
 The cinder module is a thorough attempt to make Puppet capable of managing the entirety of cinder.  This includes manifests to provision such things as keystone endpoints, RPC configurations specific to cinder, and database connections.  Types are shipped as part of the cinder module to assist in manipulation of configuration files.
 
-This module is tested in combination with other modules needed to build and leverage an entire Openstack software stack.  These modules can be found, all pulled together in the [openstack module](https://github.com/stackfoge/puppet-openstack).
+This module is tested in combination with other modules needed to build and leverage an entire Openstack software stack.  These modules can be found, all pulled together in the [openstack module](https://github.com/stackforge/puppet-openstack).
 
 Setup
 -----
@@ -39,7 +38,7 @@ Setup
 
 ### Beginning with cinder
 
-To utilize the cinder module's functionality you will need to declare multiple resources.  The following is a modified excerpt from the [openstack module](https://github.com/stackfoge/puppet-openstack).  This is not an exhaustive list of all the components needed, we recommend you consult and understand the [openstack module](https://github.com/stackforge/puppet-openstack) and the [core openstack](http://docs.openstack.org) documentation.
+To utilize the cinder module's functionality you will need to declare multiple resources.  The following is a modified excerpt from the [openstack module](https://github.com/stackforge/puppet-openstack).  This is not an exhaustive list of all the components needed, we recommend you consult and understand the [openstack module](https://github.com/stackforge/puppet-openstack) and the [core openstack](http://docs.openstack.org) documentation.
 
 **Define a cinder control node**
 
@@ -185,128 +184,4 @@ Developer documentation for the entire puppet-openstack project.
 Contributors
 ------------
 
-* https://github.com/stackforge/puppet-cinder/graphs/contributors
-
-Release Notes
--------------
-
-**5.1.0**
-
-* Service Validation for Cinder-API
-* Automates generation of NFS config file
-* spec: pin rspec-puppet to 1.0.1
-* Switch to using the new SolidFire driver name
-* Makes kombu_ssl_* parameters optional when rabbit_use_ssl => true
-* Switch to TLSv1
-* Create type-key only if it doesn't exist
-* use lioadm on Fedora
-* Pin puppetlabs-concat to 1.2.1 in fixtures
-* Add nfs_mount_options variable when backend is NetApp
-* Change default MySQL collate to utf8_general_ci
-* Add configuration helpers for Quobyte
-* Implement HP 3par iscsi backend module
-* Update .gitreview file for project rename
-
-**5.0.0**
-
-* Stable Juno release
-* Added class to manage policy.json
-* Changed the default value of the san_thin_provision parameter for eqlx
-* Added database tuning parameters
-* Made keystone user creation optional when creating a service
-* Added ability to hide secrets from logs
-* Added parameters for netapp and and cinder-api workers
-* Corrected the package name for cinder backup
-* Added support for the EMC VNX direct driver
-* Migrated the mysql backend to use openstacklib::db::mysql
-* Added support for availability zones
-
-**4.2.0**
-
-* Added parameters to set cinder volume driver
-* Added class for extended logging options
-* Added option to specify endpoint protocol
-* Fixed cinder type path issues
-* Added option to specify cinder volume path
-* Fixed targetcli package dependency on target service
-* Fixed os version fact comparison for RedHat-based operating systems
-  for specifying service provider
-* Added option to configure os_region_name in the cinder config
-
-**4.1.0**
-
-* Added Cinder v2 endpoint support.
-* Added SSL support for Cinder API.
-* Added RabbitMQ SSL support.
-* Moved default_volume_type to cinder::api
-* Removed warnings for existing Cinder volumes.
-* Pinned major gems.
-
-**4.0.0**
-
-* Stable Icehouse release.
-* Updated NetApp unified driver config options.
-* Updated support for latest RabbitMQ module.
-* Added Glance support.
-* Added GlusterFS driver support.
-* Added region support.
-* Added support for MySQL module (>= 2.2).
-* Added support for Swift and Ceph backup backend.
-* Added cinder::config to handle additional custom options.
-* Refactored duplicate code for single and multiple backends.
-* Removed control exchange flag.
-* Removed deprecated cinder::base class.
-
-**3.1.1**
-
-* Fixed resource duplication bug.
-
-**3.1.0**
-
-* Added default_volume_type as a Cinder API parameter.
-* Added parameter for endpoint procols.
-* Deprecated glance_api_version.
-* Added support for VMDK.
-* Added support for Cinder multi backend.
-* Added support for https authentication endpoints.
-* Replaced pip with native package manager (VMDK).
-
-**3.0.0**
-
-* Major release for OpenStack Havana.
-* Added support for SolidFire.
-* Added support for ceilometer.
-* Fixed bug for cinder-volume requirement.
-
-**2.2.0**
-
-* Added support for rate limiting via api-paste.ini
-* Added support to configure control_exchange.
-* Added parameter check to enable or disable db_sync.
-* Added syslog support.
-* Added default auth_uri setting for auth token.
-* Set package defaults to present.
-* Fixed a bug to create empty init script when necessary.
-* Various lint fixes.
-
-**2.1.0**
-
-* Added configuration of Cinder quotas.
-* Added support for NetApp direct driver backend.
-* Added support for ceph backend.
-* Added support for SQL idle timeout.
-* Added support for RabbitMQ clustering with single IP.
-* Fixed allowed_hosts/database connection bug.
-* Fixed lvm2 setup failure for Ubuntu.
-* Removed unnecessary mysql::server dependency.
-* Pinned RabbitMQ and database module versions.
-* Various lint and bug fixes.
-
-**2.0.0**
-
-* Upstream is now part of stackfoge.
-* Nexenta, NFS, and SAN support added as cinder volume drivers.
-* Postgres support added.
-* The Apache Qpid and the RabbitMQ message brokers available as RPC backends.
-* Configurability of scheduler_driver.
-* Various cleanups and bug fixes.
+* https://github.com/openstack/puppet-cinder/graphs/contributors

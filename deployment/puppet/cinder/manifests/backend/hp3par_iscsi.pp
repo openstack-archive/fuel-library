@@ -36,6 +36,9 @@
 #   (optional) Setup cinder-volume to use HP 3par volume driver.
 #   Defaults to 'cinder.volume.drivers.san.hp.hp_3par_iscsi.HP3PARISCSIDriver'
 #
+# [*hp3par_iscsi_chap_enabled*]
+#   (required) setting to false by default
+#
 # [*hp3par_iscsi_chap_enabled
 #   (required) setting to false by default
 #

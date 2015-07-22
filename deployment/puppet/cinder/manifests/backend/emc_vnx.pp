@@ -10,6 +10,9 @@
 #   (optional) Allows for the volume_backend_name to be separate of $name.
 #   Defaults to: $name
 #
+# [*iscsi_ip_address*]
+#   (Required) The IP address that the iSCSI daemon is listening on
+#
 # [*san_ip*]
 #   (required) IP address of SAN controller.
 #

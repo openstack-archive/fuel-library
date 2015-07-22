@@ -22,7 +22,7 @@
 #   e.g., socket error, etc.
 #   Defaults to 10.
 #
-# [*$max_object_retrieval*]
+# [*max_object_retrieval*]
 #   (optional) The maximum number of ObjectContent data objects that should
 #   be returned in a single result. A positive value will cause
 #   the operation to suspend the retrieval when the count of
