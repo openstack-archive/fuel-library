@@ -2,7 +2,7 @@ notice('MODULAR: swift/keystone.pp')
 
 $swift_hash       = hiera_hash('swift', {})
 $public_address   = hiera('public_vip')
-$internal_address = hiera('management_vip', $public_address)
+$admin_address    = hiera('management_vip')
 $region           = pick($swift_hash['region'], 'RegionOne')
 $public_ssl_hash  = hiera('public_ssl')
 $public_protocol  = $public_ssl_hash['services'] ? {
@@ -26,7 +26,7 @@ class { '::swift::keystone::auth':
   service_name       => $service_name,
   public_address     => $public_address,
   public_protocol    => $public_protocol,
-  admin_address      => $internal_address,
-  internal_address   => $internal_address,
+  admin_address      => $admin_address,
+  internal_address   => $admin_address,
   region             => $region,
 }

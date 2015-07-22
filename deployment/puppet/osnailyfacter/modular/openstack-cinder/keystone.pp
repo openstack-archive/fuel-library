@@ -2,7 +2,7 @@ notice('MODULAR: cinder/keystone.pp')
 
 $cinder_hash      = hiera_hash('cinder', {})
 $public_address   = hiera('public_vip')
-$internal_address = hiera('internal_address', $public_address)
+$admin_address    = hiera('management_vip')
 $region           = pick($cinder_hash['region'], 'RegionOne')
 
 $password            = $cinder_hash['user_password']
@@ -24,7 +24,7 @@ class { '::cinder::keystone::auth':
   configure_user_role => $configure_user_role,
   service_name        => $service_name,
   public_address      => $public_address,
-  admin_address       => $internal_address,
-  internal_address    => $internal_address,
+  admin_address       => $admin_address,
+  internal_address    => $admin_address,
   region              => $region,
 }

@@ -1,10 +1,9 @@
 notice('MODULAR: ceilometer/keystone.pp')
 
-$ceilometer_hash  = hiera_hash('ceilometer', {})
-$public_address   = hiera('public_vip')
-$internal_address = hiera('management_vip', $public_address)
-$region           = pick($ceilometer_hash['region'], 'RegionOne')
-
+$ceilometer_hash     = hiera_hash('ceilometer', {})
+$public_address      = hiera('public_vip')
+$admin_address       = hiera('management_vip')
+$region              = pick($ceilometer_hash['region'], 'RegionOne')
 $password            = $ceilometer_hash['user_password']
 $auth_name           = pick($ceilometer_hash['auth_name'], 'ceilometer')
 $configure_endpoint  = pick($ceilometer_hash['configure_endpoint'], true)
@@ -24,7 +23,7 @@ class { '::ceilometer::keystone::auth':
   configure_user_role => $configure_user_role,
   service_name        => $service_name,
   public_address      => $public_address,
-  admin_address       => $internal_address,
-  internal_address    => $internal_address,
+  admin_address       => $admin_address,
+  internal_address    => $admin_address,
   region              => $region,
 }
