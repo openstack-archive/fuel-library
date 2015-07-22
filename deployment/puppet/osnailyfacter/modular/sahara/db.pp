@@ -1,5 +1,6 @@
 notice('MODULAR: sahara/db.pp')
 
+$node_name      = hiera('node_name')
 $sahara_hash    = hiera_hash('sahara_hash', {})
 $sahara_enabled = pick($sahara_hash['enabled'], false)
 $mysql_hash     = hiera_hash('mysql_hash', {})
@@ -14,12 +15,12 @@ $db_user     = pick($sahara_hash['db_user'], 'sahara')
 $db_name     = pick($sahara_hash['db_name'], 'sahara')
 $db_password = pick($sahara_hash['db_password'], $mysql_root_password)
 
-$db_host          = pick($sahara_hash['db_host'], $database_vip, $management_vip, 'localhost')
+$db_host          = pick($sahara_hash['db_host'], $database_vip, 'localhost')
 $db_create        = pick($sahara_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($sahara_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($sahara_hash['root_password'], $mysql_root_password)
 
-$allowed_hosts = [ $::hostname, 'localhost', '127.0.0.1', '%' ]
+$allowed_hosts = [ $node_name, 'localhost', '127.0.0.1', '%' ]
 
 validate_string($mysql_root_user)
 

@@ -1,5 +1,7 @@
 notice('MODULAR: sahara.pp')
 
+prepare_network_config(hiera('network_scheme', {}))
+
 $access_admin               = hiera_hash('access_hash', {})
 $sahara_hash                = hiera_hash('sahara_hash', {})
 $rabbit_hash                = hiera_hash('rabbit_hash', {})
@@ -7,8 +9,8 @@ $public_ssl_hash            = hiera('public_ssl')
 $ceilometer_hash            = hiera_hash('ceilometer_hash', {})
 $primary_controller         = hiera('primary_controller')
 $public_vip                 = hiera('public_vip')
-$internal_address           = hiera('internal_address')
-$database_vip               = hiera('database_vip', $internal_address)
+$database_vip               = hiera('database_vip', undef)
+$management_vip             = hiera('management_vip')
 $use_neutron                = hiera('use_neutron', false)
 $service_endpoint           = hiera('service_endpoint')
 $syslog_log_facility_sahara = hiera('syslog_log_facility_sahara')
@@ -23,7 +25,7 @@ $amqp_hosts                 = hiera('amqp_hosts')
 
 $firewall_rule   = '201 sahara-api'
 $api_bind_port   = '8386'
-$api_bind_host   = $internal_address
+$api_bind_host   = get_network_role_property('sahara/api', 'ipaddr')
 $api_workers     = '4'
 $public_address = $public_ssl_hash['services'] ? {
   true    => $public_ssl_hash['hostname'],
@@ -92,7 +94,7 @@ if $ceilometer_hash['enabled'] {
   }
 }
 
-$haproxy_stats_url = "http://${database_vip}:10000/;csv"
+$haproxy_stats_url = "http://${management_vip}:10000/;csv"
 
 haproxy_backend_status { 'sahara' :
   name => 'sahara',

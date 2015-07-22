@@ -276,6 +276,9 @@ $is_primary_swift_proxy = $primary_controller
 # Define heat-related variables:
 $heat_roles = ['primary-controller', 'controller']
 
+# Define sahara-related variable
+$sahara_roles = ['primary-controller', 'controller']
+
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future
 $database_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])

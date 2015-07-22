@@ -1,19 +1,15 @@
 notice('MODULAR: openstack-haproxy-sahara.pp')
 
-$sahara_hash     = hiera_hash('sahara',{})
+$sahara_hash        = hiera_hash('sahara_hash',{})
 # NOT enabled by default
-$use_sahara      = pick($sahara_hash['enabled'], false)
-$public_ssl_hash = hiera('public_ssl')
-
-$controllers              = hiera('controllers')
-$controllers_server_names = filter_hash($controllers, 'name')
-$controllers_ipaddresses  = filter_hash($controllers, 'internal_address')
+$use_sahara         = pick($sahara_hash['enabled'], false)
+$public_ssl_hash    = hiera('public_ssl')
+$network_metadata   = hiera_hash('network_metadata')
+$sahara_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, hiera('sahara_roles')), 'sahara/api')
 
 if ($use_sahara) {
-  $server_names        = pick(hiera_array('sahara_names', undef),
-                              $controllers_server_names)
-  $ipaddresses         = pick(hiera_array('sahara_ipaddresses', undef),
-                              $controllers_ipaddresses)
+  $server_names        = hiera_array('sahara_names',keys($sahara_address_map))
+  $ipaddresses         = hiera_array('sahara_ipaddresses', values($sahara_address_map))
   $public_virtual_ip   = hiera('public_vip')
   $internal_virtual_ip = hiera('management_vip')
 
