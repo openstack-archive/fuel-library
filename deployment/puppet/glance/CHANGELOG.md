@@ -1,3 +1,31 @@
+##2015-07-08 - 6.0.0
+###Summary
+
+This is a backwards-incompatible major release for OpenStack Kilo.
+
+####Backwards-incompatible changes
+- Move rabbit/kombu settings to oslo_messaging_rabbit section
+- Remove sql_connection and sql_idle_timeout deprecated parameters
+- api: change default pipeline
+- Separate api and registry packages for Red Hat
+- python-ceph no longer exists in el7, use python-rbd
+
+####Features
+- Puppet 4.x support
+- Refactorise Keystone resources management
+- Migrate postgresql backend to use openstacklib::db::postgresql
+- Add support for identity_uri
+- Service Validation for Glance-API
+- Create a sync_db boolean for Glance
+- make service description configurable
+
+####Bugfixes
+- Fix API/Registry ensure for Ubuntu
+
+####Maintenance
+- Acceptance tests with Beaker
+- Fix spec tests for RSpec 3.x and Puppet 4.x
+
 ##2015-06-17 - 5.1.0
 ###Summary
 
