@@ -1,5 +1,7 @@
 notice('MODULAR: murano.pp')
 
+prepare_network_config(hiera('network_scheme', {}))
+
 $murano_hash                = hiera_hash('murano_hash', {})
 $murano_settings_hash       = hiera_hash('murano_settings', {})
 $rabbit_hash                = hiera_hash('rabbit_hash', {})
@@ -7,11 +9,10 @@ $heat_hash                  = hiera_hash('heat_hash', {})
 $neutron_config             = hiera_hash('neutron_config', {})
 $node_role                  = hiera('node_role')
 $public_ip                  = hiera('public_vip')
-$management_ip              = hiera('management_vip')
-$internal_address           = hiera('internal_address')
+$database_ip                = hiera('database_vip', undef)
 $region                     = hiera('region', 'RegionOne')
 $use_neutron                = hiera('use_neutron', false)
-$service_endpoint           = hiera('service_endpoint', $management_ip)
+$service_endpoint           = hiera('service_endpoint')
 $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
@@ -36,7 +37,7 @@ $public_address = pick($public_ssl['services'], false) ? {
 $firewall_rule  = '202 murano-api'
 
 $api_bind_port  = '8082'
-$api_bind_host  = $internal_address
+$api_bind_host  = get_network_role_property('murano/api', 'ipaddr')
 
 $murano_user    = pick($murano_hash['user'], 'murano')
 $tenant         = pick($murano_hash['tenant'], 'services')
@@ -44,7 +45,7 @@ $internal_url   = "http://${service_endpoint}:${api_bind_port}"
 $db_user        = pick($murano_hash['db_user'], 'murano')
 $db_name        = pick($murano_hash['db_name'], 'murano')
 $db_password    = pick($murano_hash['db_password'])
-$db_host        = pick($murano_hash['db_host'], $management_ip)
+$db_host        = pick($murano_hash['db_host'], $database_ip)
 $read_timeout   = '60'
 $sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
 
@@ -115,7 +116,7 @@ class { 'murano::rabbitmq':
   rabbit_port     => '55572',
 }
 
-$haproxy_stats_url = "http://${management_ip}:10000/;csv"
+$haproxy_stats_url = "http://${database_ip}:10000/;csv"
 
 haproxy_backend_status { 'murano-api' :
   name => 'murano-api',
