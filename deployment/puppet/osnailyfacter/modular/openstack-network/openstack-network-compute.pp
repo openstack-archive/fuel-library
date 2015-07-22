@@ -8,8 +8,6 @@ $service_endpoint               = hiera('service_endpoint')
 $public_int                     = hiera('public_int', undef)
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $controllers                    = hiera('controllers')
-$controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
-$controller_nodes               = ipsort(values($controller_internal_addresses))
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $network_scheme                 = hiera('network_scheme', {})
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
@@ -170,8 +168,6 @@ if $network_provider == 'nova' {
     name   => 'binutils',
     ensure => 'installed',
   }
-
-
 
 } else {
   # Neutron
