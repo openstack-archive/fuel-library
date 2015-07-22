@@ -25,6 +25,18 @@
 #   Defaults to the value of auth_name_v3, but must differ from the value
 #   of service_name.
 #
+# [*service_description*]
+#   (optional) Description for keystone service.
+#   Defaults to 'Openstack Compute Service'.
+#
+# [*service_description_v3*]
+#   (optional) Description for keystone v3 service.
+#   Defaults to 'Openstack Compute Service v3'.
+#
+# [*service_description_ec2*]
+#   (optional) Description for keystone ec2 service.
+#   Defaults to 'EC2 Service'.
+#
 # [*public_url*]
 #   (optional) The endpoint's public url. (Defaults to 'http://127.0.0.1:8774/v2/%(tenant_id)s')
 #   This url should *not* contain any version or trailing '/'.
@@ -140,37 +152,40 @@
 #
 class nova::keystone::auth(
   $password,
-  $auth_name              = 'nova',
-  $auth_name_v3           = 'novav3',
-  $service_name           = undef,
-  $service_name_v3        = undef,
-  $region                 = 'RegionOne',
-  $tenant                 = 'services',
-  $email                  = 'nova@localhost',
-  $public_url             = 'http://127.0.0.1:8774/v2/%(tenant_id)s',
-  $internal_url           = 'http://127.0.0.1:8774/v2/%(tenant_id)s',
-  $admin_url              = 'http://127.0.0.1:8774/v2/%(tenant_id)s',
-  $public_url_v3          = 'http://127.0.0.1:8774/v3',
-  $internal_url_v3        = 'http://127.0.0.1:8774/v3',
-  $admin_url_v3           = 'http://127.0.0.1:8774/v3',
-  $ec2_public_url         = 'http://127.0.0.1:8773/services/Cloud',
-  $ec2_internal_url       = 'http://127.0.0.1:8773/services/Cloud',
-  $ec2_admin_url          = 'http://127.0.0.1:8773/services/Admin',
-  $configure_ec2_endpoint = true,
-  $configure_endpoint     = true,
-  $configure_endpoint_v3  = true,
-  $configure_user         = true,
-  $configure_user_role    = true,
+  $auth_name               = 'nova',
+  $auth_name_v3            = 'novav3',
+  $service_name            = undef,
+  $service_name_v3         = undef,
+  $service_description     = 'Openstack Compute Service',
+  $service_description_v3  = 'Openstack Compute Service v3',
+  $service_description_ec2 = 'EC2 Service',
+  $region                  = 'RegionOne',
+  $tenant                  = 'services',
+  $email                   = 'nova@localhost',
+  $public_url              = 'http://127.0.0.1:8774/v2/%(tenant_id)s',
+  $internal_url            = 'http://127.0.0.1:8774/v2/%(tenant_id)s',
+  $admin_url               = 'http://127.0.0.1:8774/v2/%(tenant_id)s',
+  $public_url_v3           = 'http://127.0.0.1:8774/v3',
+  $internal_url_v3         = 'http://127.0.0.1:8774/v3',
+  $admin_url_v3            = 'http://127.0.0.1:8774/v3',
+  $ec2_public_url          = 'http://127.0.0.1:8773/services/Cloud',
+  $ec2_internal_url        = 'http://127.0.0.1:8773/services/Cloud',
+  $ec2_admin_url           = 'http://127.0.0.1:8773/services/Admin',
+  $configure_ec2_endpoint  = true,
+  $configure_endpoint      = true,
+  $configure_endpoint_v3   = true,
+  $configure_user          = true,
+  $configure_user_role     = true,
   # DEPRECATED PARAMETERS
-  $compute_version        = undef,
-  $compute_port           = undef,
-  $ec2_port               = undef,
-  $public_protocol        = undef,
-  $public_address         = undef,
-  $admin_protocol         = undef,
-  $admin_address          = undef,
-  $internal_protocol      = undef,
-  $internal_address       = undef,
+  $compute_version         = undef,
+  $compute_port            = undef,
+  $ec2_port                = undef,
+  $public_protocol         = undef,
+  $public_address          = undef,
+  $admin_protocol          = undef,
+  $admin_address           = undef,
+  $internal_protocol       = undef,
+  $internal_address        = undef,
 ) {
 
   if $compute_version {
@@ -310,7 +325,7 @@ class nova::keystone::auth(
     configure_user_role => $configure_user_role,
     configure_endpoint  => $configure_endpoint,
     service_type        => 'compute',
-    service_description => 'Openstack Compute Service',
+    service_description => $service_description,
     service_name        => $real_service_name,
     region              => $region,
     auth_name           => $auth_name,
@@ -328,7 +343,7 @@ class nova::keystone::auth(
     configure_endpoint  => $configure_endpoint_v3,
     configure_service   => $configure_endpoint_v3,
     service_type        => 'computev3',
-    service_description => 'Openstack Compute Service v3',
+    service_description => $service_description_v3,
     service_name        => $real_service_name_v3,
     region              => $region,
     auth_name           => $auth_name_v3,
@@ -343,7 +358,7 @@ class nova::keystone::auth(
     configure_endpoint  => $configure_ec2_endpoint,
     configure_service   => $configure_ec2_endpoint,
     service_type        => 'ec2',
-    service_description => 'EC2 Service',
+    service_description => $service_description_ec2,
     service_name        => "${real_service_name}_ec2",
     region              => $region,
     auth_name           => "${auth_name}_ec2",

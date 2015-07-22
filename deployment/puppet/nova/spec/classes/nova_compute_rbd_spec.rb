@@ -26,7 +26,8 @@ describe 'nova::compute::rbd' do
     { :libvirt_rbd_user             => 'nova',
       :libvirt_rbd_secret_uuid      => false,
       :libvirt_images_rbd_pool      => 'rbd',
-      :libvirt_images_rbd_ceph_conf => '/etc/ceph/ceph.conf' }
+      :libvirt_images_rbd_ceph_conf => '/etc/ceph/ceph.conf',
+      :ephemeral_storage            => true }
   end
 
   shared_examples_for 'nova compute rbd' do
@@ -101,6 +102,42 @@ describe 'nova::compute::rbd' do
       it 'set libvirt secret key from passed key' do
         is_expected.to contain_exec('set-secret-value virsh').with(
           :command => "/usr/bin/virsh secret-set-value --secret #{params[:libvirt_rbd_secret_uuid]} --base64 #{params[:libvirt_rbd_secret_key]}"
+        )
+      end
+    end
+
+    context 'when using cephx but disabling ephemeral storage' do
+      before :each do
+        params.merge!(
+          :libvirt_rbd_secret_uuid      => 'UUID',
+          :rbd_keyring                  => 'client.rbd_test',
+          :ephemeral_storage            => false
+        )
+      end
+
+      it 'should only set user and secret_uuid in nova.conf ' do
+          should_not contain_nova_config('libvirt/images_rbd_pool').with_value('rbd')
+          should_not contain_nova_config('libvirt/images_rbd_ceph_conf').with_value('/etc/ceph/ceph.conf')
+          should contain_nova_config('libvirt/rbd_user').with_value('nova')
+          should contain_nova_config('libvirt/rbd_secret_uuid').with_value('UUID')
+      end
+
+      it 'configure ceph on compute nodes' do
+        verify_contents(catalogue, '/etc/nova/secret.xml', [
+          "<secret ephemeral=\'no\' private=\'no\'>",
+          "  <usage type=\'ceph\'>",
+          "    <name>client.rbd_test secret</name>",
+          "  </usage>",
+          "  <uuid>UUID</uuid>",
+          "</secret>"
+        ])
+        is_expected.to contain_exec('get-or-set virsh secret').with(
+          :command =>  '/usr/bin/virsh secret-define --file /etc/nova/secret.xml | /usr/bin/awk \'{print $2}\' | sed \'/^$/d\' > /etc/nova/virsh.secret',
+          :creates => '/etc/nova/virsh.secret',
+          :require => 'File[/etc/nova/secret.xml]'
+        )
+        is_expected.to contain_exec('set-secret-value virsh').with(
+          :command => "/usr/bin/virsh secret-set-value --secret UUID --base64 $(ceph auth get-key client.rbd_test)"
         )
       end
     end
