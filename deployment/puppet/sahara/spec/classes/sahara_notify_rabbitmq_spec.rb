@@ -17,7 +17,7 @@ describe 'sahara::notify::rabbitmq' do
     it { is_expected.to contain_sahara_config('oslo_messaging_rabbit/rabbit_port').with_value('5672') }
     it { is_expected.to contain_sahara_config('oslo_messaging_rabbit/rabbit_hosts').with_value('localhost:5672') }
     it { is_expected.to contain_sahara_config('oslo_messaging_rabbit/rabbit_ha_queues').with_value('false') }
-    it { is_expected.to contain_sahara_config('DEFAULT/amqp_durable_queues').with_value('false') }
+    it { is_expected.to contain_sahara_config('oslo_messaging_rabbit/amqp_durable_queues').with_value('false') }
     it { is_expected.to contain_sahara_config('oslo_messaging_rabbit/rabbit_virtual_host').with_value('/') }
     it { is_expected.to contain_sahara_config('DEFAULT/control_exchange').with_value('openstack') }
     it { is_expected.to contain_sahara_config('DEFAULT/notification_topics').with_value('notifications') }
@@ -101,7 +101,7 @@ describe 'sahara::notify::rabbitmq' do
     it { is_expected.to contain_sahara_config('oslo_messaging_rabbit/rabbit_host').with_value('localhost2') }
     it { is_expected.to contain_sahara_config('oslo_messaging_rabbit/rabbit_port').with_value('5673') }
     it { is_expected.to contain_sahara_config('oslo_messaging_rabbit/rabbit_hosts').with_value('localhost2:5673') }
-    it { is_expected.to contain_sahara_config('DEFAULT/amqp_durable_queues').with_value('true') }
+    it { is_expected.to contain_sahara_config('oslo_messaging_rabbit/amqp_durable_queues').with_value('true') }
   end
 
   describe 'when passing params for multiple rabbit hosts' do
@@ -120,13 +120,4 @@ describe 'sahara::notify::rabbitmq' do
     it { is_expected.to_not contain_sahara_config('oslo_messaging_rabbit/rabbit_host') }
   end
 
-  describe 'when using deprecated params' do
-    let :params do
-      {
-        :durable_queues  => true,
-        :rabbit_password        => 'pass'
-      }
-    end
-    it { is_expected.to contain_sahara_config('DEFAULT/amqp_durable_queues').with_value('true') }
-  end
 end
