@@ -100,7 +100,10 @@ describe 'Puppet::Type.type(:heat_keystone_domain_id_setter)' do
             resource = Puppet::Type::Heat_domain_id_setter.new(params)
             provider = provider_class.new(resource)
             expect(provider.exists?).to be_falsey
-            expect { provider.create }.to raise_error KeystoneAPIError, /Unable to find matching domain/
+            provider.expects(:find_domain_by_name).times(10).raises(
+              KeystoneAPIError, "Unable to find matching domain").returns('')
+            provider.expects(:sleep).times(10).with(3).returns(nil)
+            expect { provider.create }.to raise_error KeystoneAPIError, /Unable to find domain with name: '#{params[:domain_name]}'/
         end
     end
 
@@ -156,7 +159,7 @@ describe 'Puppet::Type.type(:heat_keystone_domain_id_setter)' do
             resource = Puppet::Type::Heat_domain_id_setter.new(params)
             provider = provider_class.new(resource)
             expect(provider.exists?).to be_falsey
-            expect { provider.create }.to raise_error KeystoneConnectionError
+            expect { provider.create }.to raise_error KeystoneAPIError
         end
     end
 
@@ -170,7 +173,7 @@ describe 'Puppet::Type.type(:heat_keystone_domain_id_setter)' do
             resource = Puppet::Type::Heat_domain_id_setter.new(params)
             provider = provider_class.new(resource)
             expect(provider.exists?).to be_falsey
-            expect { provider.create }.to raise_error KeystoneConnectionError
+            expect { provider.create }.to raise_error KeystoneAPIError
         end
     end
 
