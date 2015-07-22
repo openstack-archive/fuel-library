@@ -17,7 +17,7 @@ Requires: fuel-misc
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
-%define openstack_version 2014.2.2-7.0
+%define openstack_version 2015.1.0-7.0
 
 %description
 
