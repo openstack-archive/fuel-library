@@ -30,7 +30,6 @@ $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera_hash('nova', {})
 $mysql_hash                     = hiera('mysql', {})
 $rabbit_hash                    = hiera_hash('rabbit', {})
-$mongo_hash                     = hiera_hash('mongo', {})
 $glance_hash                    = hiera_hash('glance', {})
 $keystone_hash                  = hiera_hash('keystone', {})
 $swift_hash                     = hiera('swift', {})
@@ -285,7 +284,7 @@ $database_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controlle
 $nova_api_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
 # Define mongo-related variables
-$mongo_nodes  = get_nodes_hash_by_roles($network_metadata, ['primary-mongo', 'mongo'])
+$mongo_roles  = ['primary-mongo', 'mongo']
 
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
