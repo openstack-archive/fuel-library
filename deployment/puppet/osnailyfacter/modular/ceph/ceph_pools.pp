@@ -18,29 +18,31 @@ Exec { path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
        cwd     => '/root',
 }
 
+$per_pool_pg_nums = $storage_hash['per_pool_pg_nums']
+
 # DO NOT SPLIT ceph auth command lines! See http://tracker.ceph.com/issues/3279
 ceph::pool {$glance_pool:
   user          => $glance_user,
   acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${glance_pool}'",
   keyring_owner => 'glance',
-  pg_num        => $osd_pool_default_pg_num,
-  pgp_num       => $osd_pool_default_pg_num,
+  pg_num        => $per_pool_pg_nums[$glance_pool],
+  pgp_num       => $per_pool_pg_nums[$glance_pool],
 }
 
 ceph::pool {$cinder_pool:
   user          => $cinder_user,
   acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}'",
   keyring_owner => 'cinder',
-  pg_num        => $osd_pool_default_pg_num,
-  pgp_num       => $osd_pool_default_pg_num,
+  pg_num        => $per_pool_pg_nums[$cinder_pool],
+  pgp_num       => $per_pool_pg_nums[$cinder_pool],
 }
 
 ceph::pool {$cinder_backup_pool:
   user          => $cinder_backup_user,
   acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_backup_pool}, allow rx pool=${cinder_pool}'",
   keyring_owner => 'cinder',
-  pg_num        => $osd_pool_default_pg_num,
-  pgp_num       => $osd_pool_default_pg_num,
+  pg_num        => $per_pool_pg_nums[$cinder_backup_pool],
+  pgp_num       => $per_pool_pg_nums[$cinder_backup_pool],
 }
 
 Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] -> Ceph::Pool[$cinder_backup_pool]
