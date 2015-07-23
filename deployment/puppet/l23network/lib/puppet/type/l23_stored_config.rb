@@ -194,7 +194,7 @@ Puppet::Type.newtype(:l23_stored_config) do
 
   newproperty(:bond_master) do
     desc "bond name for bonded interface"
-    newvalues(/^[\w+\-]+$/, :none, :undef, :nil, :absent)
+    newvalues(/^\w[\w+\-]*\w$/, :none, :undef, :nil, :absent)
     aliasvalue(:none,  :absent)
     aliasvalue(:undef, :absent)
     aliasvalue(:nil,   :absent)
@@ -203,7 +203,7 @@ Puppet::Type.newtype(:l23_stored_config) do
 
   newproperty(:bond_slaves, :array_matching => :all) do
     desc "slave ports for bond interface"
-    newvalues(/^[\w+\-]+$/, :false, :none, :undef, :nil, :absent)
+    newvalues(/^\w[\w+\-\.]*\w$/, :false, :none, :undef, :nil, :absent)
     #aliasvalue(:absent, :none)  # none is a valid config value
     aliasvalue(:false, :none)
     aliasvalue(:undef, :absent)
