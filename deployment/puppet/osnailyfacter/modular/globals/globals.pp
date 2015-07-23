@@ -30,7 +30,6 @@ $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera_hash('nova', {})
 $mysql_hash                     = hiera('mysql', {})
 $rabbit_hash                    = hiera_hash('rabbit', {})
-$mongo_hash                     = hiera_hash('mongo', {})
 $glance_hash                    = hiera_hash('glance', {})
 $keystone_hash                  = hiera_hash('keystone', {})
 $swift_hash                     = hiera('swift', {})
@@ -291,7 +290,7 @@ $database_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controlle
 $nova_api_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
 # Define mongo-related variables
-$mongo_nodes  = get_nodes_hash_by_roles($network_metadata, ['primary-mongo', 'mongo'])
+$mongo_roles = ['primary-mongo', 'mongo']
 
 # Define neutron-related variables:
 # todo: use special node-roles instead controllers in the future
