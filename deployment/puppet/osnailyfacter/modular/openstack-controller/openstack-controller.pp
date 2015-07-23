@@ -195,9 +195,15 @@ nova_config {
 }
 
 if $sahara_hash['enabled'] {
-  $scheduler_default_filters = [ 'DifferentHostFilter' ]
+  $nova_scheduler_default_filters = [ 'DifferentHostFilter' ]
+  if $storage_hash['volumes_lvm'] {
+    $cinder_scheduler_filters = [ 'InstanceLocalityFilter' ]
+  } else {
+    $cinder_scheduler_filters = []
+  }
 } else {
-  $scheduler_default_filters = []
+  $nova_scheduler_default_filters = []
+  $cinder_scheduler_filters = []
 }
 
 class { '::nova::scheduler::filter':
@@ -205,7 +211,11 @@ class { '::nova::scheduler::filter':
   disk_allocation_ratio      => pick($nova_hash['disk_allocation_ratio'], '1.0'),
   ram_allocation_ratio       => pick($nova_hash['ram_allocation_ratio'], '1.0'),
   scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
-  scheduler_default_filters  => concat($scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]))
+  scheduler_default_filters  => concat($nova_scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]))
+}
+
+class { 'cinder::scheduler::filter':
+  scheduler_default_filters => concat($cinder_scheduler_filters, [ 'AvailabilityZoneFilter', 'CapacityFilter', 'CapabilitiesFilter' ])
 }
 
 # From logasy filter.pp
