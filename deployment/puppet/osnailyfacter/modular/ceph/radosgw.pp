@@ -7,6 +7,7 @@ $keystone_hash    = hiera('keystone', {})
 $management_vip   = hiera('management_vip')
 $service_endpoint = hiera('service_endpoint')
 $public_ssl_hash  = hiera('public_ssl')
+$radosgw_large_pool_name = ".rgw"
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 
 if ($storage_hash['volumes_ceph'] or
@@ -93,6 +94,8 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     rgw_keystone_revocation_interval => '1000000',
     rgw_nss_db_path                  => '/etc/ceph/nss',
     rgw_s3_auth_use_keystone         => hiera('rgw_s3_auth_use_keystone', true),
+    rgw_large_pool_name              => $radosgw_large_pool_name,
+    rgw_large_pool_pg_nums           => pick($storage_hash['per_pool_pg_nums'][$radosgw_large_pool_name], '512'),
 
     #rgw Log settings
     use_syslog                       => hiera('use_syslog', true),
