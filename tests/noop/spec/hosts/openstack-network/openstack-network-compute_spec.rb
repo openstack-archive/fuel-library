@@ -110,7 +110,8 @@ describe manifest do
              'tunnel_id_ranges'     => tunnel_id_ranges,
              'vni_ranges'           => tunnel_id_ranges,
              'tenant_network_types' => tenant_network_types,
-             'net_mtu'              => '1450',
+             'net_mtu'              => 1500,
+             'network_device_mtu'   => 1450,
            )
            should contain_class('neutron::plugins::ml2').with(
              'tunnel_id_ranges'     => tunnel_id_ranges,
@@ -124,8 +125,9 @@ describe manifest do
       else
           it 'should declare openstack::network with tunnel_types set to [] and set net_mtu' do
             should contain_class('openstack::network').with(
-              'tunnel_types' => [],
-              'net_mtu'      => nil,
+              'tunnel_types'       => [],
+              'net_mtu'            => 1500,
+              'network_device_mtu' => 1500,
             )
           end
       end

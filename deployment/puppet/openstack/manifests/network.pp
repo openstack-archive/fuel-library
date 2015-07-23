@@ -100,15 +100,16 @@ class openstack::network (
   $nova_url               = 'http://127.0.0.1:8774/v2',
 
   # Neutron
-  $neutron_server   = false,
-  $neutron_db_uri   = undef,
-  $bind_host        = '0.0.0.0',
-  $base_mac         = 'fa:16:3e:00:00:00',
-  $core_plugin      = 'neutron.plugins.ml2.plugin.Ml2Plugin',
-  $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin'],
-  $dvr              = false,
-  $l2_population    = false,
+  $neutron_server        = false,
+  $neutron_db_uri        = undef,
+  $bind_host             = '0.0.0.0',
+  $base_mac              = 'fa:16:3e:00:00:00',
+  $core_plugin           = 'neutron.plugins.ml2.plugin.Ml2Plugin',
+  $service_plugins       = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin'],
+  $dvr                   = false,
+  $l2_population         = false,
   $neutron_server_enable = true,
+  $network_device_mtu    = undef,
   )
 {
 
@@ -170,7 +171,7 @@ class openstack::network (
         rabbit_port             => $amqp_port,
         rabbit_password         => $amqp_password,
         kombu_reconnect_delay   => '5.0',
-        network_device_mtu      => $net_mtu,
+        network_device_mtu      => $network_device_mtu,
       }
 
       if $nova_neutron {
