@@ -19,8 +19,8 @@ describe manifest do
       it { should contain_class('ceph::conf') }
 
       it { should contain_ceph__pool('compute').with(
-          'pg_num'        => storage_hash['pg_num'],
-          'pgp_num'       => storage_hash['pg_num'],)
+          'pg_num'        => storage_hash['per_pool_pg_nums']['compute'],
+          'pgp_num'       => storage_hash['per_pool_pg_nums']['compute'],)
         }
 
       it { should contain_ceph__pool('compute').that_requires('Class[ceph::conf]') }
