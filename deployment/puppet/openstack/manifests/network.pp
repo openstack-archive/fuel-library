@@ -108,6 +108,7 @@ class openstack::network (
   $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin'],
   $dvr              = false,
   $l2_population    = false,
+  $network_device_mtu = undef,
   )
 {
 
@@ -169,7 +170,7 @@ class openstack::network (
         rabbit_port             => $amqp_port,
         rabbit_password         => $amqp_password,
         kombu_reconnect_delay   => '5.0',
-        network_device_mtu      => $net_mtu,
+        network_device_mtu      => $network_device_mtu,
       }
 
       if $nova_neutron {
