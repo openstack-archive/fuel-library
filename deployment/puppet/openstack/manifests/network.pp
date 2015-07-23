@@ -108,6 +108,7 @@ class openstack::network (
   $service_plugins  = ['neutron.services.l3_router.l3_router_plugin.L3RouterPlugin'],
   $dvr              = false,
   $l2_population    = false,
+  $neutron_server_enable = true,
   )
 {
 
@@ -215,6 +216,7 @@ class openstack::network (
           rpc_workers => min($::processorcount + 0, 50 + 0),
 
           router_distributed => $dvr,
+          enabled     => $neutron_server_enable,
         }
 
         tweaks::ubuntu_service_override { "$::neutron::params::server_service":
