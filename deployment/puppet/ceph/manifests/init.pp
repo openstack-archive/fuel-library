@@ -57,6 +57,9 @@ class ceph (
   $rgw_adm_ip                         = $cluster_node_address,
   $rgw_int_ip                         = $cluster_node_address,
 
+  $rgw_large_pool_name                = '.rgw',
+  $rgw_large_pool_pg_nums             = '512',
+
 # Cinder settings
   $volume_driver                      = 'cinder.volume.drivers.rbd.RBDDriver',
   $glance_api_version                 = '2',
