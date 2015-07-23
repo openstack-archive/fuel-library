@@ -7,7 +7,7 @@ describe manifest do
     storage_hash = Noop.hiera 'storage'
     ceph_monitor_nodes = Noop.hiera 'ceph_monitor_nodes'
 
-    if (storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph'])
+    if (storage_hash['images_ceph'] or storage_hash['objects_ceph'])
       rgw_id = 'radosgw.gateway'
       rgw_s3_auth_use_keystone = Noop.hiera 'rgw_s3_auth_use_keystone', true
 

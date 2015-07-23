@@ -837,6 +837,7 @@ storage:
   per_pool_pg_nums:
     default_pg_num: 256
     cinder_volume: 2048
+    volumes: 64
     compute: 1024
     backups: 512
     ".rgw": 512

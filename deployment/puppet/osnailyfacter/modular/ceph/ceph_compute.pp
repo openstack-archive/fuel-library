@@ -44,6 +44,8 @@ if $use_ceph {
   $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
   $ceph_public_network  = get_network_role_property('ceph/public', 'network')
 
+  $per_pool_pg_nums = $storage_hash['per_pool_pg_nums']
+
   class {'ceph':
     primary_mon              => $primary_mon,
     mon_hosts                => keys($mon_address_map),
@@ -73,8 +75,8 @@ if $use_ceph {
     user          => $compute_user,
     acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}'",
     keyring_owner => 'nova',
-    pg_num        => $storage_hash['pg_num'],
-    pgp_num       => $storage_hash['pg_num'],
+    pg_num        => pick($per_pool_pg_nums[$compute_pool], '1024'),
+    pgp_num       => pick($per_pool_pg_nums[$compute_pool], '1024'),
   }
 
   include ceph::nova_compute
