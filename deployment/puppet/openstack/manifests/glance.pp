@@ -45,7 +45,7 @@ class openstack::glance (
   $bind_host                      = '127.0.0.1',
   $keystone_host                  = '127.0.0.1',
   $registry_host                  = '127.0.0.1',
-  $auth_uri                       = "http://127.0.0.1:5000/",
+  $auth_uri                       = 'http://127.0.0.1:5000/',
   $region                         = 'RegionOne',
   $db_type                        = 'mysql',
   $glance_db_user                 = 'glance',
@@ -96,6 +96,9 @@ class openstack::glance (
     'mysql': {
       $sql_connection = "mysql://${glance_db_user}:${glance_db_password}@${db_host}/${glance_db_dbname}?read_timeout=60"
     }
+    default: {
+      fail("Wronf db_type: ${db_type}")
+    }
   }
 
   # Install and configure glance-api
@@ -106,6 +109,7 @@ class openstack::glance (
     auth_type             => 'keystone',
     auth_port             => '35357',
     auth_host             => $keystone_host,
+    auth_url              => $auth_uri,
     keystone_user         => $glance_user,
     keystone_password     => $glance_user_password,
     keystone_tenant       => $glance_tenant,
@@ -124,9 +128,9 @@ class openstack::glance (
     'database/sql_max_pool_size':          value => $max_pool_size;
     'database/sql_max_retries':            value => $max_retries;
     'database/sql_max_overflow':           value => $max_overflow;
-    'DEFAULT/delayed_delete':              value => "False";
-    'DEFAULT/scrub_time':                  value => "43200";
-    'DEFAULT/scrubber_datadir':            value => "/var/lib/glance/scrubber";
+    'DEFAULT/delayed_delete':              value => 'False';
+    'DEFAULT/scrub_time':                  value => '43200';
+    'DEFAULT/scrubber_datadir':            value => '/var/lib/glance/scrubber';
     'DEFAULT/auth_region':                 value => $region;
     'keystone_authtoken/signing_dir':      value => '/tmp/keystone-signing-glance';
     'keystone_authtoken/token_cache_time': value => '-1';
@@ -134,9 +138,9 @@ class openstack::glance (
 
   glance_cache_config {
     'DEFAULT/use_syslog':                             value => $use_syslog;
-    'DEFAULT/image_cache_dir':                        value => "/var/lib/glance/image-cache/";
-    'DEFAULT/log_file':                               value => "/var/log/glance/image-cache.log";
-    'DEFAULT/image_cache_stall_time':                 value => "86400";
+    'DEFAULT/image_cache_dir':                        value => '/var/lib/glance/image-cache/';
+    'DEFAULT/log_file':                               value => '/var/log/glance/image-cache.log';
+    'DEFAULT/image_cache_stall_time':                 value => '86400';
     'DEFAULT/image_cache_max_size':                   value => $glance_image_cache_max_size;
     'DEFAULT/os_region_name':                         value => $region;
   }
@@ -217,9 +221,9 @@ class openstack::glance (
     'swift': {
       if !defined(Package['swift']) {
         include ::swift::params
-        package { "swift":
+        package { 'swift':
+          ensure => present,
           name   => $::swift::params::package_name,
-          ensure =>present
         }
       }
       Package['swift'] ~> Service['glance-api']
@@ -228,24 +232,24 @@ class openstack::glance (
       if !defined(Service['glance-api']) {
         notify{ "Module ${module_name} cannot notify service glance-api on package swift update": }
       }
-      class { "glance::backend::swift":
-        swift_store_user => "${glance_tenant}:${glance_user}",
-        swift_store_key=> $glance_user_password,
-        swift_store_create_container_on_put => "True",
-        swift_store_large_object_size => $swift_store_large_object_size,
-        swift_store_auth_address => "http://${keystone_host}:5000/v2.0/",
-        swift_store_region => $region,
+      class { 'glance::backend::swift':
+        swift_store_user                    => "${glance_tenant}:${glance_user}",
+        swift_store_key                     => $glance_user_password,
+        swift_store_create_container_on_put => 'True',
+        swift_store_large_object_size       => $swift_store_large_object_size,
+        swift_store_auth_address            => "http://${keystone_host}:5000/v2.0/",
+        swift_store_region                  => $region,
       }
     }
     'rbd', 'ceph': {
       Ceph::Pool<| title == $::ceph::glance_pool |> ->
-      class { "glance::backend::rbd":
+      class { 'glance::backend::rbd':
         rbd_store_user => $rbd_store_user,
         rbd_store_pool => $rbd_store_pool,
       }
     }
     'vmware': {
-      class { "glance::backend::vsphere":
+      class { 'glance::backend::vsphere':
           vcenter_host            => $glance_vcenter_host,
           vcenter_user            => $glance_vcenter_user,
           vcenter_password        => $glance_vcenter_password,
@@ -256,7 +260,7 @@ class openstack::glance (
       }
     }
     default: {
-      class { "glance::backend::$glance_backend": }
+      class { "glance::backend::${glance_backend}": }
     }
   }
 
