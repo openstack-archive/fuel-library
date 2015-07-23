@@ -13,7 +13,7 @@ describe manifest do
     end
     ceph_tuning_settings = Noop.hiera 'ceph_tuning_settings'
 
-    if (storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph'])
+    if (storage_hash['images_ceph'] or storage_hash['objects_ceph'])
       it { should contain_class('ceph').with(
            'mon_hosts'                => ceph_monitor_nodes.keys,
            'osd_pool_default_size'    => storage_hash['osd_pool_size'],
