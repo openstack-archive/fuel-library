@@ -20,11 +20,24 @@ $admin_url       = "http://${admin_address}:${api_bind_port}/v1.1/%(tenant_id)s"
 class { 'sahara::keystone::auth':
   auth_name    => $sahara_user,
   password     => $sahara_password,
-  service_type => 'data_processing',
+  service_type => 'data-processing',
   service_name => $service_name,
   region       => $region,
   tenant       => $tenant,
   public_url   => $public_url,
   admin_url    => $admin_url,
   internal_url => $admin_url,
+}
+
+keystone_service { 'sahara-old':
+  ensure      => present,
+  type        => 'data_processing',
+  description => 'OpenStack Data Processing',
+}
+
+keystone_endpoint { "$region/sahara-old":
+  ensure       => present,
+  public_url   => $public_url,
+  internal_url => $admin_url,
+  admin_url    => $admin_url,
 }
