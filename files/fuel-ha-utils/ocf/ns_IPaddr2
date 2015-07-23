@@ -299,7 +299,7 @@ ip_validate() {
 find_interface() {
     local ipaddr="$1"
     local netmask="$2"
-    [[ -z $netmask ]] || ipaddr="$ipaddr/$netmask"
+    [[ -z netmask ]] || ipaddr="$ipaddr/$netmask"
 
     #
     # List interfaces but exclude FreeS/WAN ipsecN virtual interfaces
@@ -316,7 +316,7 @@ find_interface_in_ns() {
     local ns="$1"
     local ipaddr="$2"
     local netmask="$3"
-    [[ -z $netmask ]] || ipaddr="$ipaddr/$netmask"
+    [[ -z netmask ]] || ipaddr="$ipaddr/$netmask"
 
     #
     # List interfaces but exclude FreeS/WAN ipsecN virtual interfaces
@@ -388,7 +388,7 @@ get_first_ip_mask_for_if() {
     local iface="$1"
     local ns="$2"
     local RUN=''
-    [[ -z $ns ]] && RUN=$RUN_IN_NS
+    [[ -z ns ]] && RUN=$RUN_IN_NS
     local addr=`$RUN ip -o -f inet a show dev $iface \
                  | sed -re '1!d; s|.*\s([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+).*|\1|'`
     local rc=$?
