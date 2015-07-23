@@ -52,27 +52,26 @@ class vmware::controller (
       refreshonly => true,
     }
     package { 'nova-common':
-      ensure  => 'installed',
-      name    => 'binutils',
+      ensure => 'installed',
+      name   => 'binutils',
     }
   }
 
-  if ($::operaringsystem == 'Ubuntu') {
-    $libvirt_type = hiera('libvirt_type')
-    $compute_package_name = "nova-compute-${libvirt_type}"
-  } else {
-    $compute_package_name = $::nova::params::compute_package_name
+  package { 'nova-compute':
+    ensure => present,
+    name   => $::nova::params::compute_package_name,
   }
 
-  package { 'nova-compute':
-    ensure => 'present',
-    name   => $compute_package_name,
+  if ($::operatingsystem == 'Ubuntu') {
+    tweaks::ubuntu_service_override { 'nova-compute':
+      package_name => $::nova::params::compute_package_name,
+    }
   }
 
   service { 'nova-compute':
+    ensure => stopped,
     name   => $::nova::params::compute_service_name,
-    ensure => 'stopped',
-    enable => false
+    enable => 'false'
   }
 
   file { 'vcenter-nova-compute-ocf':
