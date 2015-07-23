@@ -69,6 +69,69 @@ describe 'keystone::resource::service_identity' do
       it { expect { is_expected.to raise_error(Puppet::Error) } }
     end
 
+    context 'with user domain' do
+      let :params do
+        required_params.merge({:user_domain => 'userdomain'})
+      end
+      it { is_expected.to contain_keystone_domain('userdomain').with(
+        :ensure   => 'present',
+      )}
+      it { is_expected.to contain_keystone_user(title).with(
+        :ensure   => 'present',
+        :password => 'secrete',
+        :email    => 'neutron@localhost',
+        :tenant   => 'services',
+        :domain   => 'userdomain',
+      )}
+      it { is_expected.to contain_keystone_user_role("#{title}@services").with(
+        :ensure => 'present',
+        :roles  => ['admin'],
+      )}
+    end
+    context 'with user and project domain' do
+      let :params do
+        required_params.merge({
+          :user_domain => 'userdomain',
+          :project_domain => 'projdomain',
+        })
+      end
+      it { is_expected.to contain_keystone_user(title).with(
+        :ensure   => 'present',
+        :password => 'secrete',
+        :email    => 'neutron@localhost',
+        :tenant   => 'services',
+        :domain   => 'userdomain',
+      )}
+      it { is_expected.to contain_keystone_domain('userdomain').with(
+        :ensure   => 'present',
+      )}
+      it { is_expected.to contain_keystone_user_role("#{title}@services").with(
+        :ensure => 'present',
+        :roles  => ['admin'],
+      )}
+    end
+    context 'with default domain only' do
+      let :params do
+        required_params.merge({
+          :default_domain => 'defaultdomain',
+        })
+      end
+      it { is_expected.to contain_keystone_user(title).with(
+        :ensure   => 'present',
+        :password => 'secrete',
+        :email    => 'neutron@localhost',
+        :tenant   => 'services',
+        :domain   => 'defaultdomain',
+      )}
+      it { is_expected.to contain_keystone_domain('defaultdomain').with(
+        :ensure   => 'present',
+      )}
+      it { is_expected.to contain_keystone_user_role("#{title}@services").with(
+        :ensure => 'present',
+        :roles  => ['admin'],
+      )}
+    end
+
   end
 
   context 'on a Debian osfamily' do
