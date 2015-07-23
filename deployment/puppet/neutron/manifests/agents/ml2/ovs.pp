@@ -126,7 +126,7 @@ class neutron::agents::ml2::ovs (
   # L2 population is not required when tunneling is disabled, see
   # change I96695dc623b4ea37d3ef1384eb9ac9c1384d3da3
   if $enable_tunneling and $enable_distributed_routing and ! $l2_population {
-    fail('L2 population must be enabled when DVR is enabled')
+    fail('L2 population must be enabled when DVR and tunneling are enabled')
   }
 
   Package['neutron-ovs-agent'] -> Neutron_agent_ovs<||>

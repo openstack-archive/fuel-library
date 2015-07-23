@@ -169,14 +169,30 @@ describe 'neutron::agents::ml2::ovs' do
         end
       end
 
-      context 'when l2 population is disabled and DVR enabled' do
+      context 'when l2 population is disabled and DVR and tunneling enabled' do
         before :each do
           params.merge!(:enable_distributed_routing => true,
-                        :l2_population              => false )
+                        :l2_population              => false,
+                        :enable_tunneling           => true,
+                        :local_ip                   => '127.0.0.1' )
         end
 
-        it_raises 'a Puppet::Error', /L2 population must be enabled when DVR is enabled/
+        it_raises 'a Puppet::Error', /L2 population must be enabled when DVR and tunneling are enabled/
       end
+
+      context 'when DVR is enabled and l2 population and tunneling are disabled' do
+        before :each do
+          params.merge!(:enable_distributed_routing => true,
+                        :l2_population              => false,
+                        :enable_tunneling           => false )
+        end
+
+        it 'should enable DVR without L2 population' do
+          is_expected.to contain_neutron_agent_ovs('agent/enable_distributed_routing').with_value(true)
+          is_expected.to contain_neutron_agent_ovs('agent/l2_population').with_value(false)
+        end
+      end
+
     end
   end
 
