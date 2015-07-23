@@ -78,20 +78,11 @@ class vmware::controller (
     enable => false
   }
 
-  file { 'vcenter-nova-compute-ocf':
-    path   => '/usr/lib/ocf/resource.d/fuel/nova-compute',
-    source => 'puppet:///modules/vmware/ocf/nova-compute',
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-  }
-
   # Create nova-compute per vsphere cluster
   create_resources(vmware::compute::ha, parse_vcenter_settings($vcenter_settings))
 
   Package['nova-compute']->
   Service['nova-compute']->
-  File['vcenter-nova-compute-ocf']->
   Vmware::Compute::Ha<||>->
 
   # network configuration

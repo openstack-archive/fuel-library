@@ -71,6 +71,9 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/rabbitmq %{buildroot}/usr/lib/
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_IPaddr2 %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_IPaddr2
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-central %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-agent-central
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-alarm-evaluator %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/nova-compute %{buildroot}/usr/lib/ocf/resource.d/fuel/nova-compute
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/nova-network %{buildroot}/usr/lib/ocf/resource.d/fuel/nova-network
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-compute %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-agent-compute
 install -m 0755 %{files_source}/fuel-ha-utils/tools/q-agent-cleanup.py %{buildroot}/usr/bin/q-agent-cleanup.py
 install -m 0755 %{files_source}/fuel-ha-utils/tools/galeracheck %{buildroot}/usr/bin/galeracheck
 install -m 0755 %{files_source}/fuel-ha-utils/tools/swiftcheck %{buildroot}/usr/bin/swiftcheck

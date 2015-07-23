@@ -27,17 +27,8 @@ class vmware::ceilometer (
     ensure => present
   }
 
-  file { 'ceilometer-agent-compute-ocf':
-    path   =>'/usr/lib/ocf/resource.d/fuel/ceilometer-agent-compute',
-    mode   => '0755',
-    owner  => root,
-    group  => root,
-    source => 'puppet:///modules/vmware/ocf/ceilometer-agent-compute',
-  }
-
   create_resources(vmware::ceilometer::ha, parse_vcenter_settings($vcenter_settings))
 
   Package['ceilometer-agent-compute']->
-  File['ceilometer-agent-compute-ocf']->
   Vmware::Ceilometer::Ha<||>
 }
