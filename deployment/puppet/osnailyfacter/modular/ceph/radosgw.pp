@@ -52,6 +52,9 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     adm_ip                           => $management_vip,
     int_ip                           => $management_vip,
 
+    # pools
+    per_pool_pg_nums                 => $storage_hash['per_pool_pg_nums'],
+
     # RadosGW settings
     rgw_host                         => $::hostname,
     rgw_port                         => '6780',
