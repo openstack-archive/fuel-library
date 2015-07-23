@@ -280,7 +280,7 @@ if $network_provider == 'neutron' {
     $net_role_property = 'neutron/mesh'
     $tunneling_ip = get_network_role_property($net_role_property, 'ipaddr')
     $iface = get_network_role_property($net_role_property, 'phys_dev')
-    $net_mtu = get_transformation_property('mtu', $iface[0])
+    $phys_net_mtu = get_transformation_property('mtu', $iface[0])
     $enable_tunneling = true
     if $neutron_config['L2']['use_gre_for_tun'] {
       $network_type = 'gre'
@@ -289,10 +289,10 @@ if $network_provider == 'neutron' {
       $network_type = 'vxlan'
       $mtu_offset = 50
     }
-    if $net_mtu {
-      $mtu_for_virt_network = $net_mtu - $mtu_offset
+    if $phys_net_mtu {
+      $overlay_net_mtu = $phys_net_mtu - $mtu_offset
     } else {
-      $mtu_for_virt_network = 1500 - $mtu_offset
+      $overlay_net_mtu = 1500 - $mtu_offset
     }
     $tunnel_types = [$network_type]
     $tenant_network_types  = ['flat', 'vlan', $network_type]
@@ -301,7 +301,8 @@ if $network_provider == 'neutron' {
     # vlan_mode
     $net_role_property = 'neutron/private'
     $iface = get_network_role_property($net_role_property, 'phys_dev')
-    $mtu_for_virt_network = get_transformation_property('mtu', $iface[0])
+    $phys_net_mtu = get_transformation_property('mtu', $iface[0])
+    $overlay_net_mtu = pick($phys_net_mtu, 1500)
     $enable_tunneling = false
     $network_type = 'vlan'
     $tenant_network_types  = ['flat', 'vlan']
@@ -333,10 +334,11 @@ if $network_provider == 'neutron' {
 }
 
 class { 'openstack::network':
-  network_provider  => $network_provider,
-  agents            => $agents,
-  nova_neutron      => true,
-  net_mtu           => $mtu_for_virt_network,
+  network_provider   => $network_provider,
+  agents             => $agents,
+  nova_neutron       => true,
+  net_mtu            => pick($phys_net_mtu, 1500),
+  network_device_mtu => $overlay_net_mtu,
 
   base_mac          => $base_mac,
   core_plugin       => $core_plugin,
