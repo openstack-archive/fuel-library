@@ -64,45 +64,55 @@ describe manifest do
       should contain_keystone_config('token/caching').with(:value => 'false')
     end
 
-    # it 'should declare keystone::wsgi::apache class with 4 workers on 4 CPU system' do
-    #   should contain_class('keystone::wsgi::apache').with(
-    #     'threads' => '1',
-    #     'workers' => '4',
-    #   )
-    # end
-    #
-    # it 'should declare keystone::wsgi::apache class with 24 workers on 48 CPU system' do
-    #   facts[:processorcount] = 48
-    #   should contain_class('keystone::wsgi::apache').with(
-    #     'threads' => '1',
-    #     'workers' => '24',
-    #   )
-    # end
-    #
-    # it 'should setup keystone_wsgi_admin file properly' do
-    #   case facts[:operatingsystem]
-    #   when 'CentOS'
-    #     should contain_file('keystone_wsgi_admin').with(
-    #       'ensure'  => 'link',
-    #       'path'    => "/var/www/cgi-bin/keystone/admin",
-    #       'target'  => '/usr/share/keystone/keystone.wsgi',
-    #       'owner'   => 'keystone',
-    #       'group'   => 'keystone',
-    #       'mode'    => '0644',
-    #       'require' => "File[/var/www/cgi-bin/keystone]"
-    #     )
-    #   when 'Ubuntu'
-    #     should contain_file('keystone_wsgi_admin').with(
-    #       'ensure'  => 'file',
-    #       'path'    => "/usr/lib/cgi-bin/keystone/admin",
-    #       'source'  => 'puppet:///modules/keystone/httpd/keystone.py',
-    #       'owner'   => 'keystone',
-    #       'group'   => 'keystone',
-    #       'mode'    => '0644',
-    #       'require' => "File[/usr/lib/cgi-bin/keystone]"
-    #     )
-    #   end
-    # end
+     it 'should declare keystone::wsgi::apache class with 4 workers on 4 CPU system' do
+       should contain_class('keystone::wsgi::apache').with(
+         'threads' => '1',
+         'workers' => '4',
+       )
+     end
+
+     it 'should declare keystone::wsgi::apache class with 24 workers on 48 CPU system' do
+       facts[:processorcount] = 48
+       should contain_class('keystone::wsgi::apache').with(
+         'threads' => '1',
+         'workers' => '24',
+       )
+     end
+
+     it 'should setup keystone_wsgi_admin file properly' do
+       case facts[:operatingsystem]
+       when 'CentOS'
+         should contain_file('keystone_wsgi_admin').with(
+           'ensure'  => 'link',
+           'path'    => "/var/www/cgi-bin/keystone/admin",
+           'target'  => '/usr/share/keystone/keystone.wsgi',
+           'owner'   => 'keystone',
+           'group'   => 'keystone',
+           'mode'    => '0644',
+         )
+       when 'Ubuntu'
+         should contain_file('keystone_wsgi_admin').with(
+           'ensure'  => 'file',
+           'path'    => "/usr/lib/cgi-bin/keystone/admin",
+           'source'  => 'puppet:///modules/keystone/httpd/keystone.py',
+           'owner'   => 'keystone',
+           'group'   => 'keystone',
+           'mode'    => '0644',
+         )
+       end
+     end
+
+     it 'should not run keystone service' do
+       should contain_service('keystone').with(
+         'ensure' => 'stopped',
+       )
+     end
+     it 'should configure apache to listen 5000 keystone port' do
+       should contain_apache__listen('5000')
+     end
+     it 'should configure apache to listen 35357 keystone port' do
+       should contain_apache__listen('35357')
+     end
 
   end # end of shared_examples
 
