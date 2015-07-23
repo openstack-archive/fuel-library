@@ -45,9 +45,12 @@ class ceph::radosgw (
   $syslog_level                     = $::ceph::syslog_log_level,
 ) {
 
-  $keyring_path     = "/etc/ceph/keyring.${rgw_id}"
-  $radosgw_auth_key = "client.${rgw_id}"
-  $dir_httpd_root   = '/var/www/radosgw'
+  $keyring_path            = "/etc/ceph/keyring.${rgw_id}"
+  $radosgw_auth_key        = "client.${rgw_id}"
+  $dir_httpd_root          = '/var/www/radosgw'
+  $radosgw_large_pool_name = ".rgw"
+  $rgw_large_pool_pg_nums  = hiera('storage', {})[$radosgw_large_pool_name]
+
 
   package { [$::ceph::params::package_radosgw,
              $::ceph::params::package_fastcgi,
@@ -214,6 +217,11 @@ class ceph::radosgw (
     creates => $keyring_path
   }
 
+  exec { "Create ${radosgw_large_pool_name} pool":
+    command => "ceph -n ${radosgw_auth_key} osd pool create ${radosgw_large_pool_name} ${rgw_large_pool_pg_nums} ${rgw_large_pool_pg_nums}",
+    unless  => "rados lspools | grep '^${radosgw_large_pool_name}$'",
+  }
+
   file { $keyring_path: mode => '0640', }
 
   Ceph_conf <||> ->
@@ -233,6 +241,7 @@ class ceph::radosgw (
   Exec["ceph create ${radosgw_auth_key}"] ->
   Exec["Populate ${radosgw_auth_key} keyring"] ->
   File[$keyring_path] ->
+  Exec["Create ${radosgw_large_pool_name} pool"] ->
   Firewall['012 RadosGW allow'] ~>
   Service ['httpd']
 }
