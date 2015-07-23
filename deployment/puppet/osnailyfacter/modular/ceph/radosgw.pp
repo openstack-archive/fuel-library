@@ -83,3 +83,10 @@ if $use_ceph and $storage_hash['objects_ceph'] {
          cwd  => '/root',
   }
 }
+
+# Workaround to ensure log is rotated properly on CentOS. See LP #1465749
+if ($::osfamily == 'RedHat'){
+  file { '/etc/logrotate.d/radosgw':
+  content => template('openstack/100-radosgw.conf.erb'),
+  }
+}
