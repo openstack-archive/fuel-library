@@ -3,6 +3,7 @@
   groups: [primary-controller, controller]
   required_for: [openstack-controller, swift]
   requires: [mongo, primary-mongo, openstack-haproxy]
+  condition: "settings:additional_components.ceilometer.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller.pp
     puppet_modules: /etc/puppet/modules
@@ -17,6 +18,7 @@
   groups: [compute]
   required_for: [deploy_end]
   requires: [ceilometer-controller, top-role-compute]
+  condition: "settings:additional_components.ceilometer.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute.pp
     puppet_modules: /etc/puppet/modules
@@ -30,6 +32,7 @@
   type: puppet
   groups: [primary-controller]
   required_for: [ceilometer-controller]
+  condition: "settings:additional_components.ceilometer.value == true"
   requires: [keystone]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/keystone.pp
