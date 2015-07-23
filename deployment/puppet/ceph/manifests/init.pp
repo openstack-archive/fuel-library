@@ -24,7 +24,7 @@ class ceph (
       $cluster_network                    = undef,
       $public_network                     = undef,
 
-      #ceph.conf osd settings
+      # ceph.conf osd settings
       $osd_max_backfills                  = '1',
       $osd_recovery_max_active            = '1',
 
@@ -56,6 +56,9 @@ class ceph (
       $rgw_pub_ip                         = $cluster_node_address,
       $rgw_adm_ip                         = $cluster_node_address,
       $rgw_int_ip                         = $cluster_node_address,
+
+      $rgw_large_pool_name                = ".rgw",
+      $rgw_large_pool_pg_nums             = 512,
 
       # Cinder settings
       $volume_driver                      = 'cinder.volume.drivers.rbd.RBDDriver',
