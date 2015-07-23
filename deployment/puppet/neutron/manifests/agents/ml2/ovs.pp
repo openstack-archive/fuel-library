@@ -122,7 +122,10 @@ class neutron::agents::ml2::ovs (
     fail('Local ip for ovs agent must be set when tunneling is enabled')
   }
 
-  if $enable_distributed_routing and ! $l2_population {
+  # TODO(skolekonov) contribute the change to upstream:
+  # L2 population is not required when tunneling is disabled, see
+  # change I96695dc623b4ea37d3ef1384eb9ac9c1384d3da3
+  if $enable_tunneling and $enable_distributed_routing and ! $l2_population {
     fail('L2 population must be enabled when DVR is enabled')
   }
 
