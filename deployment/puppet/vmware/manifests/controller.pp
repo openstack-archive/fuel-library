@@ -52,27 +52,25 @@ class vmware::controller (
       refreshonly => true,
     }
     package { 'nova-common':
-      ensure  => 'installed',
-      name    => 'binutils',
+      ensure => 'installed',
+      name   => 'binutils',
     }
   }
 
-  if ($::operaringsystem == 'Ubuntu') {
-    $libvirt_type = hiera('libvirt_type')
-    $compute_package_name = "nova-compute-${libvirt_type}"
-  } else {
-    $compute_package_name = $::nova::params::compute_package_name
-  }
-
   package { 'nova-compute':
-    ensure => 'present',
-    name   => $compute_package_name,
+    ensure => present,
+    name   => $::nova::params::compute_package_name,
   }
 
+  tweaks::ubuntu_service_override { 'nova-compute':
+    package_name => $::nova::params::compute_package_name,
+  }
+
+  $libvirt_type = hiera('libvirt_type')
   service { 'nova-compute':
-    name   => $::nova::params::compute_service_name,
-    ensure => 'stopped',
-    enable => false
+    ensure => stopped,
+    name   => "nova-compute-${libvirt_type}",
+    enable => 'false'
   }
 
   # Create nova-compute per vsphere cluster
