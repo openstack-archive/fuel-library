@@ -35,6 +35,8 @@ class ceph::radosgw (
   $rgw_keystone_accepted_roles      = $::ceph::rgw_keystone_accepted_roles,
   $rgw_keystone_revocation_interval = $::ceph::rgw_keystone_revocation_interval,
   $rgw_nss_db_path                  = $::ceph::rgw_nss_db_path,
+  $rgw_large_pool_name              = $::ceph::rgw_large_pool_name,
+  $rgw_large_pool_pg_nums           = $::ceph::rgw_large_pool_pg_nums,
   $pub_ip                           = $::ceph::rgw_pub_ip,
   $adm_ip                           = $::ceph::rgw_adm_ip,
   $int_ip                           = $::ceph::rgw_int_ip,
@@ -46,9 +48,9 @@ class ceph::radosgw (
   $syslog_level                     = $::ceph::syslog_log_level,
 ) {
 
-  $keyring_path     = "/etc/ceph/keyring.${rgw_id}"
-  $radosgw_auth_key = "client.${rgw_id}"
-  $dir_httpd_root   = '/var/www/radosgw'
+  $keyring_path            = "/etc/ceph/keyring.${rgw_id}"
+  $radosgw_auth_key        = "client.${rgw_id}"
+  $dir_httpd_root          = '/var/www/radosgw'
 
   package { [$::ceph::params::package_radosgw,
              $::ceph::params::package_fastcgi,
@@ -216,6 +218,11 @@ class ceph::radosgw (
     creates => $keyring_path
   }
 
+  exec { "Create ${rgw_large_pool_name} pool":
+    command => "ceph -n ${radosgw_auth_key} osd pool create ${rgw_large_pool_name} ${rgw_large_pool_pg_nums} ${rgw_large_pool_pg_nums}",
+    unless  => "rados lspools | grep '^${rgw_large_pool_name}$'",
+  }
+
   file { $keyring_path: mode => '0640', }
 
   Ceph_conf <||> ->
@@ -235,6 +242,7 @@ class ceph::radosgw (
   Exec["ceph create ${radosgw_auth_key}"] ->
   Exec["Populate ${radosgw_auth_key} keyring"] ->
   File[$keyring_path] ->
+  Exec["Create ${rgw_large_pool_name} pool"] ->
   Firewall['012 RadosGW allow'] ~>
   Service ['httpd']
 }
