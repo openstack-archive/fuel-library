@@ -57,16 +57,14 @@ class vmware::controller (
     }
   }
 
-  if ($::operaringsystem == 'Ubuntu') {
-    $libvirt_type = hiera('libvirt_type')
-    $compute_package_name = "nova-compute-${libvirt_type}"
-  } else {
-    $compute_package_name = $::nova::params::compute_package_name
+  $libvirt_type = hiera('libvirt_type')
+  tweaks::ubuntu_service_override { 'nova-compute':
+    package_name => "nova-compute-${libvirt_type}",
   }
 
   package { 'nova-compute':
     ensure => 'present',
-    name   => $compute_package_name,
+    name   => $::nova::params::compute_package_name,
   }
 
   service { 'nova-compute':
