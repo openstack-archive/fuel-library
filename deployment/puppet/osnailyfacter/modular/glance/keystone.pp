@@ -2,6 +2,11 @@ notice('MODULAR: glance/keystone.pp')
 
 $glance_hash         = hiera_hash('glance', {})
 $public_address      = hiera('public_vip')
+$public_ssl_hash     = hiera('public_ssl')
+$public_protocol     = $public_ssl_hash['services'] ? {
+  true    => 'https',
+  default => 'http',
+}
 $admin_address       = hiera('management_vip')
 $region              = pick($glance_hash['region'], 'RegionOne')
 $password            = $glance_hash['user_password']
@@ -23,6 +28,7 @@ class { '::glance::keystone::auth':
   configure_user_role => $configure_user_role,
   service_name        => $service_name,
   public_address      => $public_address,
+  public_protocol     => $public_protocol,
   admin_address       => $admin_address,
   internal_address    => $admin_address,
   region              => $region,
