@@ -58,6 +58,7 @@ class { 'sahara' :
   verbose             => $verbose,
   debug               => $debug,
   use_syslog          => $use_syslog,
+  plugins             => [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ],
   log_facility        => $syslog_log_facility_sahara,
   database_connection => $sql_connection,
   auth_uri            => "${public_protocol}://${public_address}:5000/v2.0/",
@@ -99,18 +100,17 @@ haproxy_backend_status { 'sahara' :
   url  => $haproxy_stats_url,
 }
 
-# Temporarily disable as workaround for bug 1476324
-#if $primary_controller {
-#  class { 'sahara_templates::create_templates' :
-#    use_neutron   => $use_neutron,
-#    auth_user     => $access_admin['user'],
-#    auth_password => $access_admin['password'],
-#    auth_tenant   => $access_admin['tenant'],
-#    auth_uri      => "${public_protocol}://${public_address}:5000/v2.0/",
-#  }
-#
-#  Haproxy_backend_status['sahara'] -> Class['sahara_templates::create_templates']
-#}
+if $primary_controller {
+  class { 'sahara_templates::create_templates' :
+    use_neutron   => $use_neutron,
+    auth_user     => $access_admin['user'],
+    auth_password => $access_admin['password'],
+    auth_tenant   => $access_admin['tenant'],
+    auth_uri      => "${public_protocol}://${public_address}:5000/v2.0/",
+  }
+
+  Haproxy_backend_status['sahara'] -> Class['sahara_templates::create_templates']
+}
 
 Firewall[$firewall_rule] -> Class['sahara::api']
 Service['sahara-api'] -> Haproxy_backend_status['sahara']

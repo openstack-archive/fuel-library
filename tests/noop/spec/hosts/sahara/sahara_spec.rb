@@ -30,6 +30,7 @@ describe manifest do
     api_bind_port   = '8386'
     api_bind_host   = internal_address
     api_workers     = '4'
+    sahara_plugins  = [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ]
     if public_ssl
       public_address  = Noop.hiera_structure('public_ssl/hostname')
       public_protocol = 'https'
@@ -51,6 +52,7 @@ describe manifest do
       should contain_class('sahara').with(
         'auth_uri'            => "#{public_protocol}://#{public_address}:5000/v2.0/",
         'identity_uri'        => "http://#{service_endpoint}:35357/",
+        'plugins'             => sahara_plugins,
         'rpc_backend'         => 'rabbit',
         'use_neutron'         => use_neutron,
         'admin_user'          => sahara_user,
@@ -95,18 +97,17 @@ describe manifest do
       end
     end
 
-# Temporarily disable as workaround for bug 1476324
-#    if primary_controller
-#      it 'should declare sahara_templates class correctly' do
-#        should contain_class('sahara_templates::create_templates').with(
-#        'use_neutron'   => use_neutron,
-#        'auth_uri'      => "http://#{management_ip}:5000/v2.0/",
-#        'auth_password' => auth_password,
-#        'auth_user'     => auth_user,
-#        'auth_tenant'   => auth_tenant,
-#        )
-#      end
-#    end
+    if primary_controller
+      it 'should declare sahara_templates class correctly' do
+        should contain_class('sahara_templates::create_templates').with(
+        'use_neutron'   => use_neutron,
+        'auth_uri'      => "#{public_protocol}://#{public_address}:5000/v2.0/",
+        'auth_password' => auth_password,
+        'auth_user'     => auth_user,
+        'auth_tenant'   => auth_tenant,
+        )
+      end
+    end
   end
   test_ubuntu_and_centos manifest
 end
