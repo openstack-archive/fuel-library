@@ -27,7 +27,7 @@ describe manifest do
       should contain_class('sahara::keystone::auth').with(
         'auth_name'    => sahara_user,
         'password'     => sahara_password,
-        'service_type' => 'data_processing',
+        'service_type' => 'data-processing',
         'service_name' => service_name,
         'region'       => region,
         'tenant'       => tenant,
@@ -35,6 +35,20 @@ describe manifest do
         'admin_url'    => admin_url,
         'internal_url' => internal_url,
       )
+    end
+
+    it 'should declare old sahara endpoint' do
+     should contain_keystone_service('sahara-old').with(
+       'ensure'      => 'present',
+       'type'        => 'data_processing',
+       'description' => 'OpenStack Data Processing',
+     )
+     should contain_keystone_endpoint("#{region}/sahara-old").with(
+       'ensure'       => 'present',
+       'public_url'   => public_url,
+       'internal_url' => admin_url,
+       'admin_url'    => admin_url,
+     )
     end
   end
   test_ubuntu_and_centos manifest
