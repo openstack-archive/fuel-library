@@ -72,6 +72,10 @@ class vmware::controller (
     ensure => 'present',
   }
 
+  tweaks::ubuntu_service_override { 'nova-compute':
+    package_name => 'nova-compute'
+  }
+
   service { 'nova-compute':
     name   => $::nova::params::compute_service_name,
     ensure => 'stopped',
