@@ -28,6 +28,9 @@ class ceph (
       $osd_max_backfills                  = '1',
       $osd_recovery_max_active            = '1',
 
+      # PG settings
+      $per_pool_pg_nums                   = {},
+
       #RBD client settings
       $rbd_cache                          = true,
       $rbd_cache_writethrough_until_flush = true,
