@@ -24,9 +24,14 @@ class ceph (
       $cluster_network                    = undef,
       $public_network                     = undef,
 
-      #ceph.conf osd settings
+      # ceph.conf osd settings
       $osd_max_backfills                  = '1',
       $osd_recovery_max_active            = '1',
+
+      # PG per pool settings
+      # dict {str: int}, maps pool name
+      # to PG count in this pool
+      $per_pool_pg_nums                   = {},
 
       #RBD client settings
       $rbd_cache                          = true,
