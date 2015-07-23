@@ -28,3 +28,15 @@ class { 'sahara::keystone::auth':
   admin_url    => $admin_url,
   internal_url => $admin_url,
 }
+
+class { 'sahara::keystone::auth':
+  auth_name    => $sahara_user,
+  password     => $sahara_password,
+  service_type => 'data-processing',
+  service_name => $service_name,
+  region       => $region,
+  tenant       => $tenant,
+  public_url   => $public_url,
+  admin_url    => $admin_url,
+  internal_url => $admin_url,
+}
