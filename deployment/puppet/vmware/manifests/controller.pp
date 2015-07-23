@@ -72,6 +72,10 @@ class vmware::controller (
     ensure => 'present',
   }
 
+  tweaks::ubuntu_service_override { 'nova-compute':
+    package_name => $::nova::params::compute_package_name
+  }
+
   service { 'nova-compute':
     name   => $::nova::params::compute_service_name,
     ensure => 'stopped',
@@ -90,6 +94,7 @@ class vmware::controller (
   create_resources(vmware::compute::ha, parse_vcenter_settings($vcenter_settings))
 
   Package['nova-compute']->
+  Tweaks::Ubuntu_service_override['nova-compute']->
   Service['nova-compute']->
   File['vcenter-nova-compute-ocf']->
   Vmware::Compute::Ha<||>->
