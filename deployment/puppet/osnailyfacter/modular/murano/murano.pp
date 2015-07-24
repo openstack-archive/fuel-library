@@ -21,7 +21,7 @@ $use_syslog                 = hiera('use_syslog', true)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
-$public_ssl                 = hiera_hash('public_ssl', {})
+$public_ssl                 = hiera('public_ssl')
 
 #################################################################
 
@@ -150,13 +150,13 @@ if $murano_hash['enabled'] {
     Haproxy_backend_status['murano-api'] -> Murano::Application['io.murano']
 
     Service['murano-api'] -> Murano::Application<| mandatory == true |>
-  } else {
-    notice("Node Role: ${node_role}")
   }
 
   Firewall[$firewall_rule] -> Class['murano::api']
   Service['murano-api'] -> Haproxy_backend_status['murano-api']
+
 }
+
 #########################
 
 class openstack::firewall {}
