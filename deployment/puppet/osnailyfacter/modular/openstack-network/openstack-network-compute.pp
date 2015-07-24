@@ -184,16 +184,15 @@ if $network_provider == 'nova' {
   }
 
   # script called by qemu needs to manipulate the tap device
-  file { '/etc/libvirt/qemu.conf':
-    ensure => present,
-    notify => Service['libvirt'],
-    source => 'puppet:///modules/nova/libvirt_qemu.conf',
+  file_line { 'clear_emulator_capabilities':
+    path    => '/etc/libvirt/qemu.conf',
+    line    => 'clear_emulator_capabilities = 0',
+    notify  => Service['libvirt']
   }
 
   file_line { 'no_qemu_selinux':
     path    => '/etc/libvirt/qemu.conf',
-    line    => 'security_driver="none"',
-    require => File['/etc/libvirt/qemu.conf'],
+    line    => 'security_driver = "none"',
     notify  => Service['libvirt']
   }
 
