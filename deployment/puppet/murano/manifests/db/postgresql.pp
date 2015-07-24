@@ -34,7 +34,7 @@ class murano::db::postgresql(
 
   Class['murano::db::postgresql'] -> Service<| title == 'murano' |>
 
-  ::openstacklib::db::postgresql { 'murano':
+  openstacklib::db::postgresql { 'murano':
     password_hash => postgresql_password($user, $password),
     dbname        => $dbname,
     user          => $user,
@@ -42,6 +42,6 @@ class murano::db::postgresql(
     privileges    => $privileges,
   }
 
-  ::Openstacklib::Db::Postgresql['murano'] ~> Exec<| title == 'murano-dbmanage' |>
+  Openstacklib::Db::Postgresql['murano'] ~> Exec<| title == 'murano-dbmanage' |>
 
 }

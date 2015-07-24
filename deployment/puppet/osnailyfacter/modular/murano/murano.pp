@@ -124,20 +124,16 @@ haproxy_backend_status { 'murano-api' :
   url  => $haproxy_stats_url,
 }
 
-if ($node_role == 'primary-controller') {
-  murano::application { 'io.murano' :
-    os_tenant_name => $tenant,
-    os_username    => $murano_user,
-    os_password    => $murano_hash['user_password'],
-    os_auth_url    => "${public_protocol}://${public_address}:5000/v2.0/",
-    os_region      => $region,
-    mandatory      => true,
-  }
-
-  Service['murano-api'] -> Murano::Application<| mandatory == true |>
-} else {
-  notice("Node Role: ${node_role}")
+murano::application { 'io.murano' :
+  os_tenant_name => $tenant,
+  os_username    => $murano_user,
+  os_password    => $murano_hash['user_password'],
+  os_auth_url    => "${public_protocol}://${public_address}:5000/v2.0/",
+  os_region      => $region,
+  mandatory      => true,
 }
+
+Service['murano-api'] -> Murano::Application<| mandatory == true |>
 
 Firewall[$firewall_rule] -> Class['murano::api']
 Service['murano-api'] -> Haproxy_backend_status['murano-api']
