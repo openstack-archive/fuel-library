@@ -1,5 +1,8 @@
 define ceph::osds::osd () {
 
+  # ${name} format is DISK[:JOURNAL]
+  $params = split($name, ':')
+  $data_device_name = $params[0]
   $deploy_device_name = "${::hostname}:${name}"
 
   exec { "ceph-deploy osd prepare ${deploy_device_name}":
@@ -15,7 +18,7 @@ define ceph::osds::osd () {
     tries     => 2, # This is necessary because of race for mon creating keys
     try_sleep => 1,
     logoutput => true,
-    unless    => "grep -q ${name} /proc/mounts",
+    unless    => "grep -q ${data_device_name} /proc/mounts",
   } ->
 
   exec { "ceph-deploy osd activate ${deploy_device_name}":
@@ -24,7 +27,7 @@ define ceph::osds::osd () {
     tries     => 3,
     logoutput => true,
     timeout   => 0,
-    unless    => "ceph osd dump | grep -q \"osd.$(sed -nEe 's|${name}\\ .*ceph-([0-9]+).*$|\\1|p' /proc/mounts)\\ up\\ .*\\ in\\ \"",
+    unless    => "ceph osd dump | grep -q \"osd.$(sed -nEe 's|${data_device_name}\\ .*ceph-([0-9]+).*$|\\1|p' /proc/mounts)\\ up\\ .*\\ in\\ \"",
   }
 
 }
