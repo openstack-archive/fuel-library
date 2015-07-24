@@ -28,6 +28,14 @@
 #  (Optional) Path to horizon manage utility
 #  Defaults to '/usr/share/openstack-dashboard/manage.py'
 #
+# [*metadata_dir*]
+#  (Optional) Directory to store murano dashboard metadata cache
+#  Defaults to '/var/cache/muranodashboard-cache'
+#
+# [*max_file_size*]
+#  (Optional) Maximum allowed filesize to upload
+#  Defaults to '5'
+#
 class murano::dashboard(
   $package_ensure        = 'present',
   $api_url               = 'http://127.0.0.1:8082',
@@ -35,6 +43,8 @@ class murano::dashboard(
   $settings_py           = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
   $modify_config         = '/usr/bin/modify-horizon-config.sh',
   $collect_static_script = '/usr/share/openstack-dashboard/manage.py',
+  $metadata_dir          = '/var/cache/muranodashboard-cache',
+  $max_file_size         = '5',
 ) {
 
   include ::murano::params
@@ -57,30 +67,46 @@ class murano::dashboard(
   file_line { 'murano_url' :
     path => $::murano::params::local_settings_path,
     line => "MURANO_API_URL = '${api_url}'",
+    tag  => 'patch-horizon-config',
   }
 
-  file { $modify_config :
-    ensure => present,
-    mode   => '0755',
-    owner  => 'root',
-    group  => 'root',
+  file_line { 'murano_repo_url':
+    path => $::murano::params::local_settings_path,
+    line => "MURANO_REPO_URL = '${repo_url}'",
+    tag  => 'patch-horizon-config',
+  }
+
+  file_line { 'murano_max_file_size':
+    path => $::murano::params::local_settings_path,
+    line => "MAX_FILE_SIZE_MB = '${max_file_size}'",
+    tag  => 'patch-horizon-config',
+  }
+
+  file_line { 'murano_metadata_dir':
+    path => $::murano::params::local_settings_path,
+    line => "METADATA_CACHE_DIR = '${metadata_dir}'",
+    tag  => 'patch-horizon-config',
+  }
+
+  file_line { 'murano_dashboard_logging':
+    path => $::murano::params::local_settings_path,
+    line => "LOGGING['loggers']['muranodashboard'] = {'handlers': ['syslog'], 'level': 'DEBUG'}",
+    tag  => 'patch-horizon-config',
+  }
+
+  file_line { 'murano_client_logging':
+    path => $::murano::params::local_settings_path,
+    line => "LOGGING['loggers']['muranoclient'] = {'handlers': ['syslog'], 'level': 'ERROR'}",
+    tag  => 'patch-horizon-config',
   }
 
   exec { 'clean_horizon_config':
     command => "${modify_config} uninstall",
-  }
-
-  exec { 'fix_horizon_config':
-    command     => "${modify_config} install",
-    environment => [
-      "HORIZON_CONFIG=${settings_py}",
-      'MURANO_SSL_ENABLED=False',
-      "MURANO_REPO_URL=${repo_url}",
-      'USE_KEYSTONE_ENDPOINT=True',
-      'USE_SQLITE_BACKEND=False',
-      "APACHE_USER=${apache_user}",
-      "APACHE_GROUP=${apache_user}",
+    onlyif  => [
+      "test -f ${modify_config}",
+      "grep MURANO_CONFIG_SECTION_BEGIN ${settings_py}",
     ],
+    path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
   }
 
   exec { 'django_collectstatic':
@@ -89,9 +115,18 @@ class murano::dashboard(
       "APACHE_USER=${apache_user}",
       "APACHE_GROUP=${apache_user}",
     ],
+    refreshonly => true,
   }
 
-  Package['murano-dashboard'] -> File[$modify_config] -> Exec['clean_horizon_config'] -> Exec['fix_horizon_config'] -> Exec['django_collectstatic'] -> Service <| title == 'httpd' |>
+  File_line <| tag == 'patch-horizon-config' |> -> Service <| title == 'httpd' |>
+
+  Package['murano-dashboard'] ->
+    Exec['clean_horizon_config'] ->
+      Service <| title == 'httpd' |>
+
+  Package['murano-dashboard'] ->
+    Exec['django_collectstatic'] ->
+      Service <| title == 'httpd' |>
+
   Package['murano-dashboard'] ~> Service <| title == 'httpd' |>
-  Exec['fix_horizon_config'] ~> Service <| title == 'httpd' |>
 }
