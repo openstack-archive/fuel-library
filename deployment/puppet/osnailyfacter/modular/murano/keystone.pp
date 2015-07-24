@@ -4,20 +4,24 @@ $murano_hash                = hiera_hash('murano_hash', {})
 $public_ip                  = hiera('public_vip')
 $management_ip              = hiera('management_vip')
 $service_endpoint           = hiera('service_endpoint', $management_ip)
-$public_ssl_hash            = hiera('public_ssl')
+$public_ssl                 = hiera('public_ssl')
 $region                     = hiera('region', 'RegionOne')
 
 
-if $public_ssl_hash['services'] {
-  $public_protocol = 'https'
-} else {
-  $public_protocol = 'http'
+$public_protocol = $public_ssl['services'] ? {
+  true    => 'https',
+  default => 'http',
+}
+
+$public_address = $public_ssl['services'] ? {
+  true    => $public_ssl['hostname'],
+  default => $public_ip,
 }
 
 $api_bind_port  = '8082'
 
 $tenant         = pick($murano_hash['tenant'], 'services')
-$public_url     = "${public_protocol}://${public_ip}:${api_bind_port}"
+$public_url     = "${public_protocol}://${public_address}:${api_bind_port}"
 $admin_url      = "http://${service_endpoint}:${api_bind_port}"
 $internal_url   = "http://${service_endpoint}:${api_bind_port}"
 
