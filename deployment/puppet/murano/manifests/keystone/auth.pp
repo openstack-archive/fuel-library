@@ -53,47 +53,47 @@
 #
 # [*version*]
 #   (optional) DEPRECATED: Use public_url, internal_url and admin_url instead.
-#   API version endpoint. (Defaults to 'v1.1')
+#   API version endpoint. (Defaults to 'undef')
 #   Setting this parameter overrides public_url, internal_url and admin_url parameters.
 #
 # [*port*]
 #   (optional) DEPRECATED: Use public_url, internal_url and admin_url instead.
-#   Default port for endpoints. (Defaults to 8082)
+#   Default port for endpoints. (Defaults to 'undef')
 #   Setting this parameter overrides public_url, internal_url and admin_url parameters.
 #
 # [*public_port*]
 #   (optional) DEPRECATED: Use public_url instead.
-#   Default port for endpoints. (Defaults to $port)
+#   Default port for endpoints. (Defaults to 'undef')
 #   Setting this parameter overrides public_url parameter.
 #
 # [*public_protocol*]
 #   (optional) DEPRECATED: Use public_url instead.
-#   Protocol for public endpoint. (Defaults to 'http')
+#   Protocol for public endpoint. (Defaults to 'undef')
 #   Setting this parameter overrides public_url parameter.
 #
 # [*public_address*]
 #   (optional) DEPRECATED: Use public_url instead.
-#   Public address for endpoint. (Defaults to '127.0.0.1')
+#   Public address for endpoint. (Defaults to 'undef')
 #   Setting this parameter overrides public_url parameter.
 #
 # [*internal_protocol*]
 #   (optional) DEPRECATED: Use internal_url instead.
-#   Protocol for internal endpoint. (Defaults to 'http')
+#   Protocol for internal endpoint. (Defaults to 'undef')
 #   Setting this parameter overrides internal_url parameter.
 #
 # [*internal_address*]
 #   (optional) DEPRECATED: Use internal_url instead.
-#   Internal address for endpoint. (Defaults to '127.0.0.1')
+#   Internal address for endpoint. (Defaults to 'undef')
 #   Setting this parameter overrides internal_url parameter.
 #
 # [*admin_protocol*]
 #   (optional) DEPRECATED: Use admin_url instead.
-#   Protocol for admin endpoint. (Defaults to 'http')
+#   Protocol for admin endpoint. (Defaults to 'undef')
 #   Setting this parameter overrides admin_url parameter.
 #
 # [*admin_address*]
 #   (optional) DEPRECATED: Use admin_url instead.
-#   Admin address for endpoint. (Defaults to '127.0.0.1')
+#   Admin address for endpoint. (Defaults to 'undef')
 #   Setting this parameter overrides admin_url parameter.
 #
 # === Deprecation notes
