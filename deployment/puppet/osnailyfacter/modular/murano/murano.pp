@@ -21,7 +21,7 @@ $use_syslog                 = hiera('use_syslog', true)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
-$public_ssl                 = hiera_hash('public_ssl', {})
+$public_ssl                 = hiera('public_ssl')
 
 #################################################################
 
@@ -125,24 +125,22 @@ if $murano_hash['enabled'] {
     url  => $haproxy_stats_url,
   }
 
-  if ($node_role == 'primary-controller') {
-    murano::application { 'io.murano' :
-      os_tenant_name => $tenant,
-      os_username    => $murano_user,
-      os_password    => $murano_hash['user_password'],
-      os_auth_url    => "${public_protocol}://${public_address}:5000/v2.0/",
-      os_region      => $region,
-      mandatory      => true,
-    }
-
-    Service['murano-api'] -> Murano::Application<| mandatory == true |>
-  } else {
-    notice("Node Role: ${node_role}")
+  murano::application { 'io.murano' :
+    os_tenant_name => $tenant,
+    os_username    => $murano_user,
+    os_password    => $murano_hash['user_password'],
+    os_auth_url    => "${public_protocol}://${public_address}:5000/v2.0/",
+    os_region      => $region,
+    mandatory      => true,
   }
+
+  Service['murano-api'] -> Murano::Application<| mandatory == true |>
 
   Firewall[$firewall_rule] -> Class['murano::api']
   Service['murano-api'] -> Haproxy_backend_status['murano-api']
+
 }
+
 #########################
 
 class openstack::firewall {}
