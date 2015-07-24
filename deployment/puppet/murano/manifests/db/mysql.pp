@@ -44,7 +44,7 @@ class murano::db::mysql(
 
   validate_string($password)
 
-  ::openstacklib::db::mysql{ 'murano':
+  openstacklib::db::mysql{ 'murano':
     user          => $user,
     password_hash => mysql_password($password),
     dbname        => $dbname,
@@ -54,5 +54,5 @@ class murano::db::mysql(
     allowed_hosts => $allowed_hosts,
   }
 
-  ::Openstacklib::Db::Mysql['murano'] ~> Exec<| title == 'murano-dbmanage' |>
+  Openstacklib::Db::Mysql['murano'] ~> Exec<| title == 'murano-dbmanage' |>
 }
