@@ -4,7 +4,7 @@ manifest = 'murano/keystone.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    public_address       = Noop.hiera('public_vip')
+    public_ip            = Noop.hiera('public_vip')
     internal_address     = Noop.hiera('management_vip', public_address)
     service_endpoint     = Noop.hiera('service_endpoint', internal_address)
     public_ssl           = Noop.hiera_structure('public_ssl/services')
@@ -12,8 +12,10 @@ describe manifest do
     api_bind_port   = '8082'
     if public_ssl
       public_protocol = 'https'
+      public_address = Noop.hiera_structure('public_ssl/hostname')
     else
       public_protocol = 'http'
+      public_address = public_ip
     end
     murano_password = Noop.hiera_structure('murano_hash/user_password')
     tenant          = Noop.hiera_structure('murano_hash/tenant', 'services')
