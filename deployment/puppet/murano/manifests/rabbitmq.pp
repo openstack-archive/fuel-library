@@ -66,6 +66,7 @@ class murano::rabbitmq(
   exec { 'install_init_script' :
     command => $::murano::params::init_install_cmd,
     path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
+    unless  => "test -f /etc/init.d/${::murano::params::rabbit_service_name}"
   }
 
   service { 'rabbitmq-server-murano' :
@@ -113,18 +114,18 @@ class murano::rabbitmq(
   }
 
   File['rabbitmq_config'] ->
-  File['init_script'] ->
-  Exec['install_init_script'] ->
-  Service['rabbitmq-server-murano']
+    File['init_script'] ->
+      Exec['install_init_script'] ->
+        Service['rabbitmq-server-murano']
 
   Firewall[$firewall_rule_name] -> Service['rabbitmq-server-murano']
   File['rabbitmq_config'] ~> Service['rabbitmq-server-murano']
   File['init_script'] ~> Service['rabbitmq-server-murano']
 
   Service['rabbitmq-server-murano'] ->
-  Exec['remove_murano_guest'] ->
-  Exec['create_murano_user'] ->
-  Exec['create_murano_vhost'] ->
-  Exec['set_murano_user_permissions']
+    Exec['remove_murano_guest'] ->
+      Exec['create_murano_user'] ->
+        Exec['create_murano_vhost'] ->
+          Exec['set_murano_user_permissions']
 
 }
