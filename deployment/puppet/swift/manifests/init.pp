@@ -66,6 +66,7 @@ class swift(
   }
   file { '/etc/swift/backups':
     ensure => directory,
+    mode   => '2770',
   }
   file { '/etc/swift/swift.conf':
     ensure => file,
