@@ -7,6 +7,7 @@ $public_protocol     = $public_ssl_hash['services'] ? {
   true    => 'https',
   default => 'http',
 }
+$admin_protocol      = 'http'
 $admin_address       = hiera('management_vip')
 $region              = pick($nova_hash['region'], 'RegionOne')
 
@@ -18,19 +19,30 @@ $configure_user_role = pick($nova_hash['configure_user_role'], true)
 $service_name        = pick($nova_hash['service_name'], 'nova')
 $tenant              = pick($nova_hash['tenant'], 'services')
 
+$compute_port    = '8774'
+$compute_version = 'v2'
+$public_url      = "${public_protocol}://${public_address}:${compute_port}/${compute_version}/%(tenant_id)s"
+$admin_url       = "${admin_protocol}://${admin_address}:${compute_port}/${compute_version}/%(tenant_id)s"
+
+$ec2_public_url   = "${public_protocol}://${public_address}:8773/services/Cloud"
+$ec2_internal_url = "${admin_protocol}://${admin_address}:8773/services/Cloud"
+$ec2_admin_url    = "${admin_protocol}://${admin_address}:8773/services/Admin"
+
 validate_string($public_address)
 validate_string($password)
 
 class { '::nova::keystone::auth':
-  password            => $password,
-  auth_name           => $auth_name,
-  configure_endpoint  => $configure_endpoint,
-  configure_user      => $configure_user,
-  configure_user_role => $configure_user_role,
-  service_name        => $service_name,
-  public_address      => $public_address,
-  public_protocol     => $public_protocol,
-  admin_address       => $admin_address,
-  internal_address    => $admin_address,
-  region              => $region,
+  password               => $password,
+  auth_name              => $auth_name,
+  configure_endpoint     => $configure_endpoint,
+  configure_user         => $configure_user,
+  configure_user_role    => $configure_user_role,
+  service_name           => $service_name,
+  public_url             => $public_url,
+  internal_url           => $admin_url,
+  admin_url              => $admin_url,
+  region                 => $region,
+  ec2_public_url         => $ec2_public_url,
+  ec2_internal_url       => $ec2_internal_url,
+  ec2_admin_url          => $ec2_admin_url,
 }
