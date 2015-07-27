@@ -128,6 +128,11 @@ class openstack::network (
 
   case $network_provider {
     'nova': {
+      $floating_ips_range       = hiera('floating_network_range')
+      $floating_ips_range_split = split($floating_ips_range, '-')
+      $nova_range_start         = $floating_ips_range_split[0]
+      $nova_range_end           = $floating_ips_range_split[1]
+
       class { 'nova::network':
         ensure_package    => $::openstack_version['nova'],
         private_interface => $private_interface,
@@ -139,6 +144,8 @@ class openstack::network (
         create_networks   => $create_networks,
         num_networks      => $num_networks,
         network_size      => $network_size,
+        allowed_start     => $nova_range_start,
+        allowed_end       => $nova_range_end,
         nameservers       => $nameservers,
         enabled           => $enable_nova_net,
         install_service   => $enable_nova_net,

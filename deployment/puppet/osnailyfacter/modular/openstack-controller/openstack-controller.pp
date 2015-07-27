@@ -57,7 +57,6 @@ if $use_neutron {
   $base_mac                  = $neutron_config['L2']['base_mac']
 } else {
   $network_provider   = 'nova'
-  $floating_ips_range = hiera('floating_network_range')
   $neutron_config     = {}
   $novanetwork_params = hiera('novanetwork_parameters')
 }
@@ -174,20 +173,6 @@ if $primary_controller {
   }
 
   Haproxy_backend_status <| |>    -> Exec<| title == 'create-m1.micro-flavor' |>
-
-  if ! $use_neutron {
-    nova_floating_range { $floating_ips_range:
-      ensure          => 'present',
-      pool            => 'nova',
-      username        => $access_hash[user],
-      api_key         => $access_hash[password],
-      auth_method     => 'password',
-      auth_url        => "http://${service_endpoint}:5000/v2.0/",
-      authtenant_name => $access_hash[tenant],
-      api_retries     => 10,
-    }
-    Haproxy_backend_status['nova-api'] -> Nova_floating_range <| |>
-  }
 }
 
 nova_config {
