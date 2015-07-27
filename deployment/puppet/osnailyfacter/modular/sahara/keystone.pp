@@ -2,7 +2,7 @@ notice('MODULAR: sahara/keystone.pp')
 
 $sahara_hash     = hiera_hash('sahara_hash', {})
 $public_ssl_hash = hiera('public_ssl')
-$public_address  = hiera('public_vip')
+$public_vip      = hiera('public_vip')
 $admin_address   = hiera('management_vip')
 $api_bind_port   = '8386'
 $sahara_user     = pick($sahara_hash['user'], 'sahara')
@@ -10,6 +10,10 @@ $sahara_password = pick($sahara_hash['user_password'])
 $tenant          = pick($sahara_hash['tenant'], 'services')
 $region          = pick($sahara_hash['region'], 'RegionOne')
 $service_name    = pick($sahara_hash['service_name'], 'sahara')
+$public_address = $public_ssl_hash['services'] ? {
+  true    => $public_ssl_hash['hostname'],
+  default => $public_vip,
+}
 $public_protocol = $public_ssl_hash['services'] ? {
   true    => 'https',
   default => 'http',
