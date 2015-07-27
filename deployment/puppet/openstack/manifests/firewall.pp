@@ -1,5 +1,5 @@
-
 class openstack::firewall (
+  $public_network,
   $ssh_port                     = 22,
   $http_port                    = 80,
   $https_port                   = 443,
@@ -85,7 +85,6 @@ class openstack::firewall (
     proto  => 'tcp',
     action => 'accept',
   }
-
 
   firewall { '100 http':
     port   => [$http_port, $https_port],
@@ -212,6 +211,7 @@ class openstack::firewall (
     port   => $libvirt_port,
     proto  => 'tcp',
     action => 'accept',
+    source => "! ${public_network}",
   }
 
   firewall {'119 libvirt migration':

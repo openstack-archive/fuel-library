@@ -1,5 +1,8 @@
 notice('MODULAR: firewall.pp')
 
+$network_scheme               = hiera('network_scheme', {})
+$public_network               = $network_scheme['endpoints']['br-ex']['IP']
+
 # Workaround for fuel bug with firewall
 firewall {'003 remote rabbitmq ':
   sport   => [ 4369, 5672, 41055, 55672, 61613 ],
@@ -36,5 +39,6 @@ firewall {'006 reject non-local rabbitmq admin':
 
 prepare_network_config(hiera_hash('network_scheme'))
 class { 'openstack::firewall' :
+  public_network    => $public_network,
   nova_vnc_ip_range => get_network_role_property('mgmt/vip', 'network'),
 }
