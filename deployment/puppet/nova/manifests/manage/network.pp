@@ -23,6 +23,14 @@
 #   (optional) Project that network should be associated with
 #   Defaults to undef
 #
+# [*allowed_start*]
+#   (optional) Start of allowed addresses for instances
+#   Defaults to undef
+#
+# [*allowed_end*]
+#   (optional) End of allowed addresses for instances
+#   Defaults to undef
+#
 # [*dns1*]
 #   (optional) First DNS server
 #   Defaults to '8.8.8.8'
@@ -33,28 +41,32 @@
 #
 define nova::manage::network (
   $network,
-  $label        = 'novanetwork',
-  $num_networks = 1,
-  $network_size = 255,
-  $vlan_start   = undef,
-  $project      = undef,
-  $dns1         = '8.8.8.8',
-  $dns2         = '8.8.4.4',
+  $label         = 'novanetwork',
+  $num_networks  = 1,
+  $network_size  = 255,
+  $vlan_start    = undef,
+  $project       = undef,
+  $allowed_start = undef,
+  $allowed_end   = undef,
+  $dns1          = '8.8.8.8',
+  $dns2          = '8.8.4.4',
 ) {
 
   File['/etc/nova/nova.conf'] -> Nova_network[$name]
   Exec<| title == 'nova-db-sync' |> -> Nova_network[$name]
 
   nova_network { $name:
-    ensure       => present,
-    network      => $network,
-    label        => $label,
-    num_networks => $num_networks,
-    network_size => $network_size,
-    project      => $project,
-    vlan_start   => $vlan_start,
-    dns1         => $dns1,
-    dns2         => $dns2,
+    ensure        => present,
+    network       => $network,
+    label         => $label,
+    num_networks  => $num_networks,
+    network_size  => $network_size,
+    project       => $project,
+    vlan_start    => $vlan_start,
+    allowed_start => $allowed_start,
+    allowed_end   => $allowed_end,
+    dns1          => $dns1,
+    dns2          => $dns2,
   }
 
 }

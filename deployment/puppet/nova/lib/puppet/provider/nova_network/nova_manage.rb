@@ -2,7 +2,7 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
 
   desc "Manage nova network"
 
-  optional_commands :nova_manage => 'nova-manage'
+  optional_commands :nova_manage => 'nova-manage', :nova => 'nova'
 
   # I need to setup caching and what-not to make this lookup performance not suck
   def self.instances
@@ -31,18 +31,19 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
       :dns2             => '--dns2',
       :gateway          => '--gateway',
       :bridge           => '--bridge',
-      :vlan_start       => '--vlan_start'
+      :vlan_start       => '--vlan_start',
+      :allowed_start    => '--allowed-start',
+      :allowed_end      => '--allowed-end',
     }.each do |param, opt|
       if resource[param]
         optional_opts.push(opt).push(resource[param])
       end
     end
 
-    nova_manage('network', 'create',
+    nova('network-create',
       resource[:label],
+      '--fixed-range-v4',
       resource[:name],
-      resource[:num_networks],
-      resource[:network_size],
       optional_opts
     )
   end
