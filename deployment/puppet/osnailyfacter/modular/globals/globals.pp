@@ -1,5 +1,10 @@
 notice('MODULAR: globals.pp')
 
+$globals_yaml_file = '/etc/hiera/globals.yaml'
+
+# remove cached globals values before anything else
+remove_file($globals_yaml_file)
+
 $network_scheme = hiera_hash('network_scheme', {})
 if empty($network_scheme) {
   fail("Network_scheme not given in the astute.yaml")
@@ -298,7 +303,7 @@ $neutron_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller
 
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
-file { '/etc/hiera/globals.yaml' :
+file { $globals_yaml_file :
   ensure  => 'present',
   mode    => '0644',
   owner   => 'root',
