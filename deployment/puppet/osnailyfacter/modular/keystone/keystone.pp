@@ -15,6 +15,7 @@ $access_hash           = hiera_hash('access',{})
 $management_vip        = hiera('management_vip')
 $database_vip          = hiera('database_vip', $management_vip)
 $public_vip            = hiera('public_vip')
+$service_endpoint      = hiera('service_endpoint')
 $glance_hash           = hiera_hash('glance', {})
 $nova_hash             = hiera_hash('nova', {})
 $cinder_hash           = hiera_hash('cinder', {})
@@ -43,7 +44,7 @@ $public_address  = $public_ssl_hash['services'] ? {
   default => $public_vip,
 }
 
-$admin_address          = $management_vip
+$admin_address          = $service_endpoint
 $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
 $memcache_server_port  = hiera('memcache_server_port', '11211')
@@ -60,7 +61,7 @@ $public_protocol = $public_ssl_hash['services'] ? {
 
 $public_url   = "${public_protocol}://${public_address}:${public_port}"
 $admin_url    = "http://${admin_address}:${admin_port}"
-$internal_url = "http://${management_vip}:${internal_port}"
+$internal_url = "http://${service_endpoint}:${internal_port}"
 
 $revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
 
@@ -99,7 +100,7 @@ class { 'openstack::keystone':
   public_address           => $public_address,
   public_ssl               => $public_ssl_hash['services'],
   public_hostname          => $public_ssl_hash['hostname'],
-  internal_address         => $management_vip,
+  internal_address         => $service_endpoint,
   admin_address            => $admin_address,
   public_bind_host         => $local_address_for_bind,
   admin_bind_host          => $local_address_for_bind,
@@ -165,7 +166,7 @@ class { 'openstack::auth_file':
   admin_password  => $admin_password,
   admin_tenant    => $admin_tenant,
   region_name     => $region,
-  controller_node => $management_vip,
+  controller_node => $service_endpoint,
   murano_repo_url => $murano_repo_url,
 }
 
@@ -184,7 +185,7 @@ Class['openstack::auth_file']
 Class['keystone::roles::admin'] ->
 Class['openstack::workloads_collector']
 
-$haproxy_stats_url = "http://${management_vip}:10000/;csv"
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
 haproxy_backend_status { 'keystone-public' :
   name => 'keystone-1',
