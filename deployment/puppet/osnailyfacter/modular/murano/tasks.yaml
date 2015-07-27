@@ -18,7 +18,7 @@
   groups: [primary-controller]
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
-  requires: [database]
+  requires: [hiera, globals, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/db.pp
     puppet_modules: /etc/puppet/modules
@@ -29,7 +29,7 @@
   groups: [primary-controller]
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
-  requires: [keystone]
+  requires: [hiera, globals, keystone]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/keystone.pp
     puppet_modules: /etc/puppet/modules

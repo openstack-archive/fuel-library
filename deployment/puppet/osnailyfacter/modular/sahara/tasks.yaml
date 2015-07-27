@@ -18,7 +18,7 @@
   groups: [primary-controller]
   required_for: [sahara]
   condition: "settings:additional_components.sahara.value == true"
-  requires: [database]
+  requires: [hiera, globals, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/sahara/db.pp
     puppet_modules: /etc/puppet/modules
@@ -28,7 +28,7 @@
   type: puppet
   groups: [primary-controller]
   required_for: [sahara]
-  requires: [keystone]
+  requires: [hiera, globals, keystone]
   condition: "settings:additional_components.sahara.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/sahara/keystone.pp
