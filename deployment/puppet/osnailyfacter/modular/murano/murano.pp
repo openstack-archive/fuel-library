@@ -141,8 +141,3 @@ if ($node_role == 'primary-controller') {
 
 Firewall[$firewall_rule] -> Class['murano::api']
 Service['murano-api'] -> Haproxy_backend_status['murano-api']
-
-#########################
-
-class openstack::firewall {}
-include openstack::firewall
