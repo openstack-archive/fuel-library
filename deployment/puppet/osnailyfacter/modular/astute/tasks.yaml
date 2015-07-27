@@ -138,6 +138,10 @@
         dst: /var/lib/astute/mysql/mysql
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/mongodb/mongodb.key
         dst: /var/lib/astute/mongodb/mongodb.key
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph.pub
+        dst: /var/lib/astute/ceph/ceph.pub
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph
+        dst: /var/lib/astute/ceph/ceph
     permissions: '0600'
     dir_permissions: '0700'
 
@@ -174,6 +178,15 @@
         dst: /etc/pki/tls/certs/public_haproxy.pem
     permissions: '0600'
     dir_permissions: '0700'
+
+- id: generate_ceph_keys
+  type: shell
+  role: master
+  requires: [pre_deployment_start]
+  required_for: [copy_keys]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -s 'ceph' -p /var/lib/fuel/keys/
+    timeout: 180
 
 - id: sync_time
   type: shell

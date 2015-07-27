@@ -1,30 +1,3 @@
-# PRE_DEPLOYMENT Tasks
-#
-
-- id: copy_keys_ceph
-  type: copy_files
-  role: '*'
-  required_for: [pre_deployment_end]
-  requires: [generate_keys_ceph]
-  parameters:
-    files:
-      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph.pub
-        dst: /var/lib/astute/ceph/ceph.pub
-      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph
-        dst: /var/lib/astute/ceph/ceph
-    permissions: '0600'
-    dir_permissions: '0700'
-
-- id: generate_keys_ceph
-  type: shell
-  role: master
-  requires: [pre_deployment_start]
-  required_for: [copy_keys_ceph]
-  parameters:
-    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -s 'ceph' -p /var/lib/fuel/keys/
-    timeout: 180
-
-
 #
 # DEPLOYMENT Tasks
 #
