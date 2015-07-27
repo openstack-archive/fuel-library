@@ -75,6 +75,7 @@ class openstack::keystone (
   $token_caching               = false,
   $cache_backend               = 'keystone.cache.memcache_pool',
   $revoke_driver               = false,
+  $ceilometer                  = false,
 ) {
 
   # Install and configure Keystone
@@ -98,7 +99,7 @@ class openstack::keystone (
   }
 
   if $ceilometer {
-    $notification_driver = 'messaging'
+    $notification_driver = 'messagingv2'
     $notification_topics = 'notifications'
   } else {
     $notification_driver = false

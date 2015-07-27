@@ -24,6 +24,7 @@ describe manifest do
     internal_url = "http://#{management_vip}:5000"
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
+    ceilometer_hash = Noop.hiera_structure 'ceilometer'
 
     it 'should declare keystone class with admin_token' do
       should contain_class('keystone').with(
@@ -112,6 +113,12 @@ describe manifest do
      end
      it 'should configure apache to listen 35357 keystone port' do
        should contain_apache__listen('35357')
+     end
+
+     if ceilometer_hash and ceilometer_hash['enabled']
+       it 'should configure notification driver' do
+         should contain_keystone_config('DEFAULT/notification_driver').with(:value => 'messagingv2')
+       end
      end
 
   end # end of shared_examples

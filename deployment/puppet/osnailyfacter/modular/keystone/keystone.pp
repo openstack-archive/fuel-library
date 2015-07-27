@@ -123,6 +123,7 @@ class { 'openstack::keystone':
   public_url               => $public_url,
   admin_url                => $admin_url,
   internal_url             => $internal_url,
+  ceilometer               => $ceilometer_hash['enabled'],
 }
 
 ####### WSGI ###########
