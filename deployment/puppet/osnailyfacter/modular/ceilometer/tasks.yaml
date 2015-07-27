@@ -17,7 +17,7 @@
   type: puppet
   groups: [compute]
   required_for: [deploy_end]
-  requires: [ceilometer-controller, top-role-compute]
+  requires: [hiera, globals, netconfig, ceilometer-controller, top-role-compute]
   condition: "settings:additional_components.ceilometer.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute.pp
@@ -33,7 +33,7 @@
   groups: [primary-controller]
   required_for: [ceilometer-controller]
   condition: "settings:additional_components.ceilometer.value == true"
-  requires: [keystone]
+  requires: [hiera, globals, netconfig, keystone]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/keystone.pp
     puppet_modules: /etc/puppet/modules
