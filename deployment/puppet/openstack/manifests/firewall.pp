@@ -1,4 +1,3 @@
-
 class openstack::firewall (
   $ssh_port                     = 22,
   $http_port                    = 80,
@@ -85,7 +84,6 @@ class openstack::firewall (
     proto  => 'tcp',
     action => 'accept',
   }
-
 
   firewall { '100 http':
     port   => [$http_port, $https_port],
@@ -208,10 +206,14 @@ class openstack::firewall (
     action => 'accept',
   }
 
+  prepare_network_config(hiera_hash('network_scheme'))
+  $libvirt_network = get_network_role_property('nova/migration', 'network')
+
   firewall {'118 libvirt':
     port   => $libvirt_port,
     proto  => 'tcp',
     action => 'accept',
+    source => "${libvirt_network}",
   }
 
   firewall {'119 libvirt migration':
