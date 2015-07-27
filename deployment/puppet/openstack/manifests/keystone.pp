@@ -98,7 +98,7 @@ class openstack::keystone (
   }
 
   if $ceilometer {
-    $notification_driver = 'messaging'
+    $notification_driver = 'messagingv2'
     $notification_topics = 'notifications'
   } else {
     $notification_driver = false
