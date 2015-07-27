@@ -4,14 +4,16 @@ manifest = 'sahara/keystone.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    public_address       = Noop.hiera('public_vip')
+    public_vip           = Noop.hiera('public_vip')
     internal_address     = Noop.hiera('management_vip', public_address)
     public_ssl           = Noop.hiera_structure('public_ssl/services')
 
     api_bind_port   = '8386'
     if public_ssl
+      public_address  = Noop.hiera_structure('public_ssl/hostname')
       public_protocol = 'https'
     else
+      public_address  = public_vip
       public_protocol = 'http'
     end
     sahara_user     = Noop.hiera_structure('sahara_hash/user', 'sahara')

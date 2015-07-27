@@ -10,6 +10,10 @@ $sahara_password = pick($sahara_hash['user_password'])
 $tenant          = pick($sahara_hash['tenant'], 'services')
 $region          = pick($sahara_hash['region'], 'RegionOne')
 $service_name    = pick($sahara_hash['service_name'], 'sahara')
+$public_address = $public_ssl_hash['services'] ? {
+  true    => $public_ssl_hash['hostname'],
+  default => $public_vip,
+}
 $public_protocol = $public_ssl_hash['services'] ? {
   true    => 'https',
   default => 'http',
