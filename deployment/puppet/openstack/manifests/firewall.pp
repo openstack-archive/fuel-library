@@ -1,4 +1,3 @@
-
 class openstack::firewall (
   $ssh_port                     = 22,
   $http_port                    = 80,
@@ -61,6 +60,9 @@ class openstack::firewall (
 #    }
 #  }
 
+  $network_scheme               = hiera('network_scheme', {})
+  $public_network               = $network_scheme['endpoints']['br-ex']['IP']
+
   class {'::firewall':}
 
   firewall { "000 accept all icmp requests":
@@ -85,7 +87,6 @@ class openstack::firewall (
     proto  => 'tcp',
     action => 'accept',
   }
-
 
   firewall { '100 http':
     port   => [$http_port, $https_port],
@@ -212,6 +213,7 @@ class openstack::firewall (
     port   => $libvirt_port,
     proto  => 'tcp',
     action => 'accept',
+    source => "! ${public_network}",
   }
 
   firewall {'119 libvirt migration':
