@@ -164,7 +164,10 @@ OPENSTACK_KEYSTONE_URL = "<%= @keystone_url %>"
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "<%= @keystone_default_role %>"
 
 # Disable SSL certificate checks (useful for self-signed certificates):
-# OPENSTACK_SSL_NO_VERIFY = True
+# OPENSTACK_SSL_NO_VERIFY = False
+<% if @ssl_no_verify %>
+OPENSTACK_SSL_NO_VERIFY = True
+<% end -%>
 
 # The CA certificate to use to verify SSL connections
 # OPENSTACK_SSL_CACERT = '/path/to/cacert.pem'
