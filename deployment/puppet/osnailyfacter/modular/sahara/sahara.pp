@@ -116,8 +116,3 @@ if $primary_controller {
 
 Firewall[$firewall_rule] -> Class['sahara::api']
 Service['sahara-api'] -> Haproxy_backend_status['sahara']
-
-#########################
-
-class openstack::firewall {}
-include openstack::firewall
