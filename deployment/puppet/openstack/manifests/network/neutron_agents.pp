@@ -146,6 +146,7 @@ class openstack::network::neutron_agents (
       manage_service           => true,
       dnsmasq_config_file      => $dnsmasq_config_file,
       enable_isolated_metadata => $isolated_metadata,
+      dhcp_delete_namespaces   => true,
       enabled                  => true,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-dhcp-service' |>
@@ -164,13 +165,14 @@ class openstack::network::neutron_agents (
 
   if 'l3' in $agents {
     class { '::neutron::agents::l3':
-      debug                   => $debug,
-      metadata_port           => $metadata_port,
-      send_arp_for_ha         => $send_arp_for_ha,
-      external_network_bridge => $external_network_bridge,
-      manage_service          => true,
-      enabled                 => true,
-      agent_mode              => $agent_mode,
+      debug                    => $debug,
+      metadata_port            => $metadata_port,
+      send_arp_for_ha          => $send_arp_for_ha,
+      external_network_bridge  => $external_network_bridge,
+      manage_service           => true,
+      enabled                  => true,
+      router_delete_namespaces => true,
+      agent_mode               => $agent_mode,
     }
     Service<| title == 'neutron-server' |> -> Service<| title == 'neutron-l3' |>
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-l3' |>
