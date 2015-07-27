@@ -6,6 +6,8 @@ $service_endpoint        = hiera('service_endpoint')
 $memcache_address_map    = get_node_to_ipaddr_map_by_network_role(hiera_hash('memcache_nodes'), 'mgmt/memcache')
 $bind_address            = get_network_role_property('horizon', 'ipaddr')
 $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
+$public_ssl              = hiera('public_ssl')
+$ssl_no_verify           = $public_ssl['horizon']
 
 if $horizon_hash['secret_key'] {
   $secret_key = $horizon_hash['secret_key']
@@ -34,6 +36,7 @@ class { 'openstack::horizon':
   neutron           => hiera('use_neutron'),
   keystone_url      => $keystone_url,
   use_ssl           => hiera('horizon_use_ssl', false),
+  ssl_no_verify     => $ssl_no_verify,
   verbose           => hiera('verbose', true),
   debug             => hiera('debug'),
   use_syslog        => hiera('use_syslog', true),

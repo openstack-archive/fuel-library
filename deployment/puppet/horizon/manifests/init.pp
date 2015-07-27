@@ -147,6 +147,9 @@
 #  [*listen_ssl*]
 #    (optional) Enable SSL support in Apache. (Defaults to false)
 #
+#  [*ssl_no_verify*]
+#    (optionsl) Disable SSL hostname verifying. (Defaults to false)
+#
 #  [*ssl_redirect*]
 #    (optional) Whether to redirect http to https
 #    Defaults to True
@@ -246,6 +249,7 @@ class horizon(
   $server_aliases                      = $::fqdn,
   $allowed_hosts                       = $::fqdn,
   $listen_ssl                          = false,
+  $ssl_no_verify                       = false,
   $ssl_redirect                        = true,
   $horizon_cert                        = undef,
   $horizon_key                         = undef,
