@@ -50,7 +50,7 @@ describe manifest do
 
     it 'should declare sahara class correctly' do
       should contain_class('sahara').with(
-        'auth_uri'            => "#{public_protocol}://#{public_address}:5000/v2.0/",
+        'auth_uri'            => "http://#{service_endpoint}:5000/v2.0/",
         'identity_uri'        => "http://#{service_endpoint}:35357/",
         'plugins'             => sahara_plugins,
         'rpc_backend'         => 'rabbit',
