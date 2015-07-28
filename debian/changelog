@@ -1,6 +1,9 @@
-fuel-library6.0 (6.0.0-1) trusty; urgency=low
+fuel-library6.0 (6.0.0-2) trusty; urgency=low
+
+  * MOS6.0-MU1
+
+ -- Alexander Nevenchannyy <anevenchannyy@mirantis.com>  Thu, 28 Jul 2015 06:48:00 +0300
 
   * Initial commit
 
  -- Alexander Nevenchannyy <anevenchannyy@mirantis.com>  Thu, 18 Jun 2015 19:16:00 +0300
-
