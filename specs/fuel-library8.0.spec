@@ -155,6 +155,7 @@ License: Apache 2.0
 URL: http://github.com/stackforge/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+Requires: socat
 
 %description -n fuel-misc
 A set of scripts for Fuel deployment utility

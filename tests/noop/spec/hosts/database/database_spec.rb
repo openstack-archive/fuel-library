@@ -40,7 +40,6 @@ describe manifest do
     it { should contain_class('osnailyfacter::mysql_access') }
     it { should contain_class('openstack::galera::status').that_comes_before('Haproxy_backend_status[mysql]') }
     it { should contain_haproxy_backend_status('mysql').that_comes_before('Class[osnailyfacter::mysql_access]') }
-    it { should contain_package('socat').that_comes_before('Class[mysql::server]') }
 
   end
   test_ubuntu_and_centos manifest
