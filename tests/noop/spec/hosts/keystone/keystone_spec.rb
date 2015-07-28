@@ -114,6 +114,9 @@ describe manifest do
      it 'should configure apache to listen 35357 keystone port' do
        should contain_apache__listen('35357')
      end
+    it 'should contain keystone config with fernet tokens' do
+      should contain_keystone_config('token/provider').with(:value => 'keystone.token.providers.fernet.Provider')
+    end
 
      if ceilometer_hash and ceilometer_hash['enabled']
        it 'should configure notification driver' do
