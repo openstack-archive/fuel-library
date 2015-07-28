@@ -24,9 +24,36 @@ $allowed_hosts = [ $node_name, 'localhost', '127.0.0.1', '%' ]
 
 validate_string($mysql_root_user)
 
+# TODO: clean the mess with custom_setup_class, galera::params and percona hardcodes
+# in galera::params. Meanwhile we have to do some crazy stubs and calculations here.
+$custom_setup_class = hiera('mysql_custom_setup_class', 'galera')
+
+class galera (
+  $use_percona          = false,
+  $use_percona_packages = false,
+){
+  # do nothing here, it's a stub
+}
+
 if $sahara_enabled and $db_create {
 
-  include mysql
+  if ($custom_setup_class == 'percona') {
+    class { 'galera':
+      use_percona          => true,
+    }
+  } elsif ($custom_setup_class == 'percona_packages') {
+    class { 'galera':
+      use_percona          => true,
+      use_percona_packages => true
+    }
+  }
+
+  # Now that we have correct 'galera' class stub with needed variables in its scope,
+  # we can include galera::params and get proper $::galera::params::mysql_client_name
+  include ::galera::params
+  class { 'mysql':
+    package_name => $::galera::params::mysql_client_name,
+  }
 
   class { 'sahara::db::mysql':
     user          => $db_user,

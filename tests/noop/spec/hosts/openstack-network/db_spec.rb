@@ -8,6 +8,17 @@ describe manifest do
     use_neutron = Noop.hiera 'use_neutron'
     allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
 
+    it 'should install proper mysql-client' do
+      if facts[:osfamily] == 'RedHat'
+        pkg_name = 'MySQL-client-wsrep'
+      elsif facts[:osfamily] == 'Debian'
+        pkg_name = 'mysql-client-5.6'
+      end
+      should contain_package('mysql-client').with(
+        'name' => pkg_name,
+      )
+    end
+
     if use_neutron
       neutron_db_user = 'neutron'
       neutron_db_password = Noop.hiera'neutron_db_password'
