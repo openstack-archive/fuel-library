@@ -34,11 +34,6 @@ define cluster::neutron::l3 (
       'debug'           => $debug,
       'syslog'          => $syslog,
       'plugin_config'   => $plugin_config,
-      'os_auth_url'     => $auth_url,
-      'tenant'          => $admin_tenant_name,
-      'username'        => $admin_username,
-      'password'        => $admin_password,
-      'multiple_agents' => $multiple_agents
     },
     csr_metadata        => $csr_metadata,
     csr_complex_type    => $csr_complex_type,
