@@ -9,6 +9,7 @@ describe manifest do
 
     use_neutron = Noop.hiera 'use_neutron'
     ceilometer_enabled = Noop.hiera_structure 'ceilometer/enabled'
+    service_endpoint   = Noop.hiera_structure 'service_endpoint'
 
     # Network
     if use_neutron
@@ -63,6 +64,12 @@ describe manifest do
       it 'should configure auth region for neutron-agents' do
         should contain_class('openstack::network::neutron_agents').with(
          'auth_region' => 'RegionOne',
+        )
+      end
+
+      it 'should configure identity uri for neutron' do
+        should contain_class('openstack::network').with(
+         'identity_uri' => "http://#{service_endpoint}:35357",
         )
       end
 
