@@ -7,13 +7,7 @@ define cluster::neutron::l3 (
   $plugin_config   = '/etc/neutron/l3_agent.ini',
   $primary         = false,
   $ha_agents       = ['ovs', 'metadata', 'dhcp', 'l3'],
-  $multiple_agents = true,
 
-  #keystone settings
-  $admin_password    = 'asdf123',
-  $admin_tenant_name = 'services',
-  $admin_username    = 'neutron',
-  $auth_url          = 'http://localhost:35357/v2.0'
 ) {
 
   require cluster::neutron
@@ -34,11 +28,6 @@ define cluster::neutron::l3 (
       'debug'           => $debug,
       'syslog'          => $syslog,
       'plugin_config'   => $plugin_config,
-      'os_auth_url'     => $auth_url,
-      'tenant'          => $admin_tenant_name,
-      'username'        => $admin_username,
-      'password'        => $admin_password,
-      'multiple_agents' => $multiple_agents
     },
     csr_metadata        => $csr_metadata,
     csr_complex_type    => $csr_complex_type,
