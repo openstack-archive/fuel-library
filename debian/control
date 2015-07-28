@@ -13,7 +13,7 @@ Description: Fuel Library HA utils
 
 Package: fuel-misc
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}, socat
 Description: Misc Fuel library scripts
  .
 
