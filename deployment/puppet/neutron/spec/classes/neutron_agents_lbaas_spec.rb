@@ -16,7 +16,7 @@ describe 'neutron::agents::lbaas' do
       :debug            => false,
       :interface_driver => 'neutron.agent.linux.interface.OVSInterfaceDriver',
       :device_driver    => 'neutron_lbaas.services.loadbalancer.drivers.haproxy.namespace_driver.HaproxyNSDriver',
-      :use_namespaces   => true,
+      :use_namespaces   => nil,
       :manage_haproxy_package  => true
     }
   end
@@ -42,7 +42,6 @@ describe 'neutron::agents::lbaas' do
       is_expected.to contain_neutron_lbaas_agent_config('DEFAULT/debug').with_value(p[:debug]);
       is_expected.to contain_neutron_lbaas_agent_config('DEFAULT/interface_driver').with_value(p[:interface_driver]);
       is_expected.to contain_neutron_lbaas_agent_config('DEFAULT/device_driver').with_value(p[:device_driver]);
-      is_expected.to contain_neutron_lbaas_agent_config('DEFAULT/use_namespaces').with_value(p[:use_namespaces]);
       is_expected.to contain_neutron_lbaas_agent_config('haproxy/user_group').with_value(platform_params[:nobody_user_group]);
     end
 
@@ -72,6 +71,15 @@ describe 'neutron::agents::lbaas' do
       end
       it 'should not start/stop service' do
         is_expected.to contain_service('neutron-lbaas-service').without_ensure
+      end
+    end
+
+    context 'with use_namespaces as false' do
+      before :each do
+        params.merge!(:use_namespaces => false)
+      end
+      it 'should set use_namespaces option' do
+        is_expected.to contain_neutron_lbaas_agent_config('DEFAULT/use_namespaces').with_value(p[:use_namespaces])
       end
     end
   end

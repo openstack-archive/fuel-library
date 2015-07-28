@@ -11,7 +11,7 @@ describe 'neutron::agents::l3' do
       :enabled                          => true,
       :debug                            => false,
       :external_network_bridge          => 'br-ex',
-      :use_namespaces                   => true,
+      :use_namespaces                   => nil,
       :interface_driver                 => 'neutron.agent.linux.interface.OVSInterfaceDriver',
       :router_id                        => nil,
       :gateway_external_network_id      => nil,
@@ -50,7 +50,6 @@ describe 'neutron::agents::l3' do
     it 'configures l3_agent.ini' do
       is_expected.to contain_neutron_l3_agent_config('DEFAULT/debug').with_value(p[:debug])
       is_expected.to contain_neutron_l3_agent_config('DEFAULT/external_network_bridge').with_value(p[:external_network_bridge])
-      is_expected.to contain_neutron_l3_agent_config('DEFAULT/use_namespaces').with_value(p[:use_namespaces])
       is_expected.to contain_neutron_l3_agent_config('DEFAULT/interface_driver').with_value(p[:interface_driver])
       is_expected.to contain_neutron_l3_agent_config('DEFAULT/router_id').with_value(p[:router_id])
       is_expected.to contain_neutron_l3_agent_config('DEFAULT/gateway_external_network_id').with_value(p[:gateway_external_network_id])
@@ -114,6 +113,15 @@ describe 'neutron::agents::l3' do
         is_expected.to contain_neutron_l3_agent_config('DEFAULT/ha_vrrp_auth_type').with_value(p[:ha_vrrp_auth_type])
         is_expected.to contain_neutron_l3_agent_config('DEFAULT/ha_vrrp_auth_password').with_value(p[:ha_vrrp_auth_password])
         is_expected.to contain_neutron_l3_agent_config('DEFAULT/ha_vrrp_advert_int').with_value(p[:ha_vrrp_advert_int])
+      end
+    end
+
+    context 'with use_namespaces as false' do
+      before :each do
+        params.merge!(:use_namespaces => false)
+      end
+      it 'should set use_namespaces option' do
+        is_expected.to contain_neutron_l3_agent_config('DEFAULT/use_namespaces').with_value(p[:use_namespaces])
       end
     end
   end

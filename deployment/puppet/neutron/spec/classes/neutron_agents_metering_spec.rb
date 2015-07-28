@@ -37,7 +37,7 @@ describe 'neutron::agents::metering' do
       :enabled          => true,
       :debug            => false,
       :interface_driver => 'neutron.agent.linux.interface.OVSInterfaceDriver',
-      :use_namespaces   => true,
+      :use_namespaces   => nil,
       :measure_interval => '30',
       :report_interval  => '300'
     }
@@ -59,7 +59,6 @@ describe 'neutron::agents::metering' do
     it 'configures metering_agent.ini' do
       is_expected.to contain_neutron_metering_agent_config('DEFAULT/debug').with_value(p[:debug]);
       is_expected.to contain_neutron_metering_agent_config('DEFAULT/interface_driver').with_value(p[:interface_driver]);
-      is_expected.to contain_neutron_metering_agent_config('DEFAULT/use_namespaces').with_value(p[:use_namespaces]);
       is_expected.to contain_neutron_metering_agent_config('DEFAULT/measure_interval').with_value(p[:measure_interval]);
       is_expected.to contain_neutron_metering_agent_config('DEFAULT/report_interval').with_value(p[:report_interval]);
     end
@@ -94,6 +93,15 @@ describe 'neutron::agents::metering' do
       end
       it 'should not start/stop service' do
         is_expected.to contain_service('neutron-metering-service').without_ensure
+      end
+    end
+
+    context 'with use_namespaces as false' do
+      before :each do
+        params.merge!(:use_namespaces => false)
+      end
+      it 'should set use_namespaces option' do
+        is_expected.to contain_neutron_metering_agent_config('DEFAULT/use_namespaces').with_value(p[:use_namespaces])
       end
     end
   end

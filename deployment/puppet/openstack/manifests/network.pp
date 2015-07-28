@@ -51,7 +51,6 @@ class openstack::network (
 
   # dhcp-agent
   $resync_interval  = 30,
-  $use_namespaces   = true,
 
   # l3-agent
   $metadata_port            = 8775,
@@ -70,10 +69,8 @@ class openstack::network (
   $admin_password    = 'asdf123',
   $admin_tenant_name = 'services',
   $admin_username    = 'neutron',
-  $auth_host         = 'localhost',
-  $auth_port         = '35357',
-  $auth_protocol     = 'http',
   $auth_url          = 'http://127.0.0.1:5000/v2.0',
+  $identity_uri      = 'http://127.0.0.1:35357',
   $region            = 'RegionOne',
   $neutron_url       = 'http://127.0.0.1:9696',
 
@@ -197,14 +194,12 @@ class openstack::network (
         class { '::neutron::server':
           sync_db       =>  $ha_agents ? {'primary' => true, false => true, default => false},
 
-          auth_host     => $auth_host,
-          auth_port     => $auth_port,
-          auth_protocol => $auth_protocol,
           auth_password => $admin_password,
           auth_tenant   => $admin_tenant_name,
           auth_region   => $region,
           auth_user     => $admin_username,
           auth_uri      => $auth_url,
+          identity_uri  => $identity_uri,
 
           database_retry_interval => 2,
           database_connection     => $neutron_db_uri,
@@ -315,7 +310,6 @@ class openstack::network (
 
           #dhcp-agent
           resync_interval => $resync_interval,
-          use_namespaces  => $use_namespaces,
           net_mtu         => $net_mtu,
 
           #l3-agent
