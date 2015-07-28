@@ -1,8 +1,12 @@
 notice('MODULAR: cinder/keystone.pp')
 
 $cinder_hash         = hiera_hash('cinder', {})
-$public_address      = hiera('public_vip')
 $public_ssl_hash     = hiera('public_ssl')
+$public_vip          = hiera('public_vip')
+$public_address      = $public_ssl_hash['services'] ? {
+  true    => $public_ssl_hash['hostname'],
+  default => $public_vip,
+}
 $public_protocol     = $public_ssl_hash['services'] ? {
   true    => 'https',
   default => 'http',
