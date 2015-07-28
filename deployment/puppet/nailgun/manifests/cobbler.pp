@@ -2,6 +2,7 @@
 class nailgun::cobbler(
   $cobbler_user                  = 'cobbler',
   $cobbler_password              = 'cobbler',
+  $bootstrap_flavor              = 'centos',
   $centos_repos,
   $production,
   $gem_source,
@@ -33,6 +34,12 @@ class nailgun::cobbler(
 
   #Set real_server so Cobbler identifies its own IP correctly in Docker
   $real_server = $next_server
+
+  $bootstrap_profile = $bootstrap_flavor ? {
+    /(?i)centos/                 => 'bootstrap',
+    /(?i)ubuntu/                 => 'ubuntu_bootstrap',
+    default                      => 'bootstrap',
+  }
 
   class { '::cobbler':
     server             => $server,
@@ -149,6 +156,16 @@ class nailgun::cobbler(
         kernel    => "${repo_root}/bootstrap/linux",
         initrd    => "${repo_root}/bootstrap/initramfs.img",
         arch      => 'x86_64',
+        breed     => 'redhat',
+        osversion => 'rhel6',
+        ksmeta    => '',
+        require   => Class['::cobbler::server'],
+      }
+
+      cobbler_distro { 'ubuntu_bootstrap':
+        kernel    => "${repo_root}/bootstrap/ubuntu/linux",
+        initrd    => "${repo_root}/bootstrap/ubuntu/initramfs.img",
+        arch      => 'x86_64',
         breed     => 'ubuntu',
         osversion => 'trusty',
         ksmeta    => '',
@@ -159,26 +176,36 @@ class nailgun::cobbler(
         distro    => 'bootstrap',
         menu      => true,
         kickstart => '',
-        kopts     => "boot=live toram components fetch=http://${server}:8080/bootstrap/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts     => "biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['bootstrap'],
       }
 
+      cobbler_profile { 'ubuntu_bootstrap':
+        distro    => 'ubuntu_bootstrap',
+        menu      => true,
+        kickstart => '',
+        kopts     => "boot=live toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        ksmeta    => '',
+        server    => $real_server,
+        require   => Cobbler_distro['ubuntu_bootstrap'],
+      }
+
       if str2bool($::is_virtual) {  class { 'cobbler::checksum_bootpc': } }
 
       exec { 'cobbler_system_add_default':
-        command => 'cobbler system add --name=default \
-                    --profile=bootstrap --netboot-enabled=True',
+        command => "cobbler system add --name=default \
+                    --profile=${bootstrap_profile} --netboot-enabled=True",
         onlyif  => 'test -z `cobbler system find --name=default`',
-        require => Cobbler_profile['bootstrap'],
+        require => Cobbler_profile[$bootstrap_profile],
       }
 
       exec { 'cobbler_system_edit_default':
-        command => 'cobbler system edit --name=default \
-                    --profile=bootstrap --netboot-enabled=True',
-        onlyif  => 'test ! -z `cobbler system find --name=default`',
-        require => Cobbler_profile['bootstrap'],
+        command => "cobbler system edit --name=default \
+                    --profile=${bootstrap_profile} --netboot-enabled=True",
+        unless => "cobbler system report --name default 2>/dev/null | grep -q -E '^Profile\s*:\*s${bootstrap_profile}'"
+        require => Cobbler_profile[$bootstrap_profile],
       }
 
       exec { 'nailgun_cobbler_sync':
