@@ -9,6 +9,16 @@ describe manifest do
     nova_db_dbname = 'nova'
     allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
 
+    it 'should install proper mysql-client' do
+      if facts[:osfamily] == 'RedHat'
+        pkg_name = 'MySQL-client-wsrep'
+      elsif facts[:osfamily] == 'Debian'
+        pkg_name = 'mysql-client-5.6'
+      end
+      should contain_package('mysql-client').with(
+        'name' => pkg_name,
+      )
+    end
     it 'should declare nova::db::mysql class with user,password,dbname' do
       should contain_class('nova::db::mysql').with(
         'user' => nova_db_user,

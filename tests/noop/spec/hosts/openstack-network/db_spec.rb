@@ -13,6 +13,17 @@ describe manifest do
       neutron_db_password = Noop.hiera'neutron_db_password'
       neutron_db_dbname = 'neutron'
 
+      it 'should install proper mysql-client' do
+        if facts[:osfamily] == 'RedHat'
+          pkg_name = 'MySQL-client-wsrep'
+        elsif facts[:osfamily] == 'Debian'
+          pkg_name = 'mysql-client-5.6'
+        end
+        should contain_package('mysql-client').with(
+          'name' => pkg_name,
+        )
+      end
+
       it 'should declare neutron::db::mysql class with user,password,dbname' do
         should contain_class('neutron::db::mysql').with(
           'user' => neutron_db_user,
