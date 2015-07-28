@@ -42,6 +42,12 @@ $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
 $max_retries = '-1'
 $idle_timeout = '3600'
 
+$keystone_auth_protocol = 'http'
+$keystone_auth_host = $service_endpoint
+$service_port = '5000'
+$auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+$identity_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+
 $openstack_version = {
   'keystone'   => 'installed',
   'glance'     => 'installed',
@@ -69,6 +75,8 @@ class {'openstack::cinder':
   iscsi_bind_host      => $storage_address,
   keystone_user        => $keystone_user,
   keystone_tenant      => $keystone_tenant,
+  auth_uri             => $auth_uri,
+  identity_uri         => $identity_uri,
   cinder_user_password => $cinder_user_password,
   use_syslog           => hiera('use_syslog', true),
   verbose              => hiera('verbose', true),
