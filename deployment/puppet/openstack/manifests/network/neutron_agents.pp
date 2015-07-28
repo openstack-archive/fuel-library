@@ -51,7 +51,6 @@ class openstack::network::neutron_agents (
 
   # dhcp-agent
   $resync_interval = 30,
-  $use_namespaces = true,
   $net_mtu = undef,
   $isolated_metadata = false,
 
@@ -142,7 +141,6 @@ class openstack::network::neutron_agents (
     class { '::neutron::agents::dhcp':
       debug                    => $debug,
       resync_interval          => $resync_interval,
-      use_namespaces           => $use_namespaces,
       manage_service           => true,
       dnsmasq_config_file      => $dnsmasq_config_file,
       enable_isolated_metadata => $isolated_metadata,
