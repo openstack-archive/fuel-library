@@ -23,11 +23,6 @@
 # [*device_driver*]
 #   (optional) Defaults to 'neutron_lbaas.services.loadbalancer.drivers.haproxy.namespace_driver.HaproxyNSDriver'.
 #
-# [*use_namespaces*]
-#   (optional) Allow overlapping IP (Must have kernel build with
-#   CONFIG_NET_NS=y and iproute2 package that supports namespaces).
-#   Defaults to true.
-#
 # [*user_group*]
 #   (optional) The user group.
 #   Defaults to $::neutron::params::nobody_user_group
@@ -37,6 +32,14 @@
 #   Disable this if you are using the puppetlabs-haproxy module
 #   Defaults to true
 #
+# === Deprecated Parameters
+#
+# [*use_namespaces*]
+#   (optional) Deprecated. 'True' value will be enforced in future releases.
+#   Allow overlapping IP (Must have kernel build with
+#   CONFIG_NET_NS=y and iproute2 package that supports namespaces).
+#   Defaults to undef.
+#
 class neutron::agents::lbaas (
   $package_ensure         = present,
   $enabled                = true,
@@ -44,9 +47,10 @@ class neutron::agents::lbaas (
   $debug                  = false,
   $interface_driver       = 'neutron.agent.linux.interface.OVSInterfaceDriver',
   $device_driver          = 'neutron_lbaas.services.loadbalancer.drivers.haproxy.namespace_driver.HaproxyNSDriver',
-  $use_namespaces         = true,
   $user_group             = $::neutron::params::nobody_user_group,
   $manage_haproxy_package = true,
+  # DEPRECATED PARAMETERS
+  $use_namespaces         = undef,
 ) {
 
   include ::neutron::params
@@ -73,8 +77,14 @@ class neutron::agents::lbaas (
     'DEFAULT/debug':              value => $debug;
     'DEFAULT/interface_driver':   value => $interface_driver;
     'DEFAULT/device_driver':      value => $device_driver;
-    'DEFAULT/use_namespaces':     value => $use_namespaces;
     'haproxy/user_group':         value => $user_group;
+  }
+
+  if $use_namespaces != undef {
+    warning('The use_namespaces parameter is deprecated and will be removed in future releases')
+    neutron_lbaas_agent_config {
+      'DEFAULT/use_namespaces':   value => $use_namespaces;
+    }
   }
 
   Package['neutron']            -> Package['neutron-lbaas-agent']

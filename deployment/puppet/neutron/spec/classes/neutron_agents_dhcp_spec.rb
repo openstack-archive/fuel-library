@@ -20,7 +20,7 @@ describe 'neutron::agents::dhcp' do
       :dhcp_domain            => 'openstacklocal',
       :dhcp_driver            => 'neutron.agent.linux.dhcp.Dnsmasq',
       :root_helper            => 'sudo neutron-rootwrap /etc/neutron/rootwrap.conf',
-      :use_namespaces         => true,
+      :use_namespaces         => nil,
       :dnsmasq_config_file    => nil,
       :dhcp_delete_namespaces => false,
       :enable_isolated_metadata => false,
@@ -50,7 +50,6 @@ describe 'neutron::agents::dhcp' do
       is_expected.to contain_neutron_dhcp_agent_config('DEFAULT/dhcp_domain').with_value(p[:dhcp_domain]);
       is_expected.to contain_neutron_dhcp_agent_config('DEFAULT/dhcp_driver').with_value(p[:dhcp_driver]);
       is_expected.to contain_neutron_dhcp_agent_config('DEFAULT/root_helper').with_value(p[:root_helper]);
-      is_expected.to contain_neutron_dhcp_agent_config('DEFAULT/use_namespaces').with_value(p[:use_namespaces]);
       is_expected.to contain_neutron_dhcp_agent_config('DEFAULT/dhcp_delete_namespaces').with_value(p[:dhcp_delete_namespaces]);
       is_expected.to contain_neutron_dhcp_agent_config('DEFAULT/enable_isolated_metadata').with_value(p[:enable_isolated_metadata]);
       is_expected.to contain_neutron_dhcp_agent_config('DEFAULT/enable_metadata_network').with_value(p[:enable_metadata_network]);
@@ -115,6 +114,15 @@ describe 'neutron::agents::dhcp' do
       end
 
       it_raises 'a Puppet::Error', /enable_metadata_network to true requires enable_isolated_metadata also enabled./
+    end
+
+    context 'with use_namespaces as false' do
+      before :each do
+        params.merge!(:use_namespaces => false)
+      end
+      it 'should set use_namespaces option' do
+        is_expected.to contain_neutron_dhcp_agent_config('DEFAULT/use_namespaces').with_value(p[:use_namespaces])
+      end
     end
   end
 

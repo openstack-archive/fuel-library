@@ -8,7 +8,7 @@ describe manifest do
     # TODO All this stuff should be moved to shared examples controller* tests.
 
     internal_address = Noop.node_hash['internal_address']
-    use_neutron = Noop.hiera 'use_neutron'
+    use_neutron      = Noop.hiera 'use_neutron'
 
     # Network
     if use_neutron
