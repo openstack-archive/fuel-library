@@ -36,9 +36,9 @@ if $queue_provider == 'rabbitmq' {
   }
 
   if ($debug) {
-    $rabbit_levels = '[connection,debug,info,error]'
+    $rabbit_levels = '[connection,info]'
   } else {
-    $rabbit_levels = '[connection,info,error]'
+    $rabbit_levels = '[connection,debug]'
   }
 
   $cluster_partition_handling   = hiera('rabbit_cluster_partition_handling', 'autoheal')
