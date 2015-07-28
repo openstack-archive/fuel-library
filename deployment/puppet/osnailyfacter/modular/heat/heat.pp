@@ -111,6 +111,15 @@ class { 'heat::docker_resource' :
   package_name => $docker_resource_package_name,
 }
 
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+haproxy_backend_status { 'keystone-admin' :
+  name  => 'keystone-2',
+  count => '200',
+  step  => '6',
+  url   => $haproxy_stats_url,
+}
+
 class { 'heat::keystone::domain' :
   auth_url          => "http://${service_endpoint}:35357/v2.0",
   keystone_admin    => $keystone_user,
@@ -121,7 +130,10 @@ class { 'heat::keystone::domain' :
   domain_password   => $heat_hash['user_password'],
 }
 
-Class['heat'] -> Class['heat::keystone::domain'] ~> Service<| title == 'heat-engine' |>
+Class['heat'] ->
+Haproxy_backend_status['keystone-admin'] ->
+Class['heat::keystone::domain'] ~>
+Service<| title == 'heat-engine' |>
 
 ######################
 
