@@ -4,14 +4,7 @@ class cluster::neutron::dhcp (
   $primary    = false,
   $ha_agents  = ['ovs', 'metadata', 'dhcp', 'l3'],
   $amqp_server_port  = 5673,
-  $multiple_agents   = true,
   $agents_per_net    = 2,      # Value, recommended by Neutron team.
-
-  #keystone settings
-  $admin_password    = 'asdf123',
-  $admin_tenant_name = 'services',
-  $admin_username    = 'neutron',
-  $auth_url          = 'http://localhost:35357/v2.0'
 ) {
 
   require cluster::neutron
@@ -31,14 +24,6 @@ class cluster::neutron::dhcp (
   #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'dhcp':
     ocf_script      => 'ocf-neutron-dhcp-agent',
-    csr_parameters  => {
-      'os_auth_url'      => $auth_url,
-      'tenant'           => $admin_tenant_name,
-      'username'         => $admin_username,
-      'password'         => $admin_password,
-      'multiple_agents'  => $multiple_agents,
-      'amqp_server_port' => $amqp_server_port
-    },
     csr_metadata        => $csr_metadata,
     csr_complex_type    => $csr_complex_type,
     csr_ms_metadata     => $csr_ms_metadata,
