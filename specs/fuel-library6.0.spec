@@ -1,6 +1,6 @@
 %define name fuel-library6.0
 %{!?version: %define version 6.0.0}
-%{!?release: %define release 1}
+%{!?release: %define release 2}
 
 Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack
 Name: %{name}
@@ -85,5 +85,8 @@ For further information go to http://wiki.openstack.org/Fuel
 rm -rf ${buildroot}
 
 %changelog
+* Wed Jun 28 2015 Alexander Nevenchannyy <anevenchannyy@mirantis.com> - 6.0
+- MOS-6.0-MU1
+
 * Wed Jun 17 2015 Alexander Nevenchannyy <anevenchannyy@mirantis.com> - 6.0
 - Create spec
