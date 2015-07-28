@@ -34,8 +34,8 @@ class openstack::cinder(
   $max_retries            = '-1',
   $keystone_enabled       = true,
   $keystone_tenant        = 'services',
-  $keystone_auth_port     = '35357',
-  $keystone_auth_protocol = 'http',
+  $auth_uri               = false,
+  $identity_uri           = false,
   $keystone_user          = 'cinder',
   $ceilometer             = false,
   $vmware_host_ip         = '10.10.10.10',
@@ -126,7 +126,8 @@ class openstack::cinder(
     class { 'cinder::api':
       keystone_enabled   => $keystone_enabled,
       package_ensure     => $::openstack_version['cinder'],
-      keystone_auth_host => $auth_host,
+      auth_uri           => $auth_uri,
+      identity_uri       => $identity_uri,
       keystone_user      => $keystone_user,
       keystone_tenant    => $keystone_tenant,
       keystone_password  => $cinder_user_password,
@@ -197,9 +198,8 @@ class openstack::cinder(
 
   if $keystone_enabled {
     cinder_config {
-      'keystone_authtoken/auth_protocol':     value => $keystone_auth_protocol;
-      'keystone_authtoken/auth_host':         value => $auth_host;
-      'keystone_authtoken/auth_port':         value => $keystone_auth_port;
+      'keystone_authtoken/auth_uri':          value => $auth_uri;
+      'keystone_authtoken/identity_uri':      value => $identity_uri;
       'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
       'keystone_authtoken/admin_user':        value => $keystone_user;
       'keystone_authtoken/admin_password':    value => $cinder_user_password;
