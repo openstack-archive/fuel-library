@@ -1,6 +1,6 @@
 ## NB: This must work with Ruby 1.8!
 
-# This provider permits the stack_user_domain parameter in heat.conf
+# This provider permits the stack_user_domain_id parameter in heat.conf
 # to be set by providing a domain_name to the Puppet module and
 # using the Keystone REST API to translate the name into the corresponding
 # UUID.
@@ -195,7 +195,7 @@ Puppet::Type.type(:heat_domain_id_setter).provide(:ruby) do
 
     def config
         Puppet::Type.type(:heat_config).new(
-            {:name => 'DEFAULT/stack_user_domain', :value => "#{get_domain_id}"}
+            {:name => 'DEFAULT/stack_user_domain_id', :value => "#{get_domain_id}"}
         ).create
     end
 
