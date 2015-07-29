@@ -8,14 +8,17 @@ describe manifest do
       contain_class('nova::keystone::auth')
     end
 
-    if Noop.hiera_structure 'public_ssl/services'
+  public_vip           = Noop.hiera('public_vip')
+  admin_address        = Noop.hiera('management_vip')
+  public_ssl           = Noop.hiera_structure('public_ssl/services')
+
+    if public_ssl
+      public_address  = Noop.hiera_structure('public_ssl/hostname')
       public_protocol = 'https'
     else
+      public_address  = public_vip
       public_protocol = 'http'
     end
-
-    public_address   = Noop.hiera('public_vip')
-    admin_address    = Noop.hiera('management_vip')
 
     public_url   = "#{public_protocol}://#{public_address}:8774/v2/%(tenant_id)s"
     admin_url    = "http://#{admin_address}:8774/v2/%(tenant_id)s"
