@@ -208,3 +208,26 @@ if ($::operatingsystem == 'Ubuntu') {
     package_name => 'keystone',
   }
 }
+
+if defined(Apache::Vhost['keystone_wsgi_main']) {
+  file_line { 'Set LimitRequestFieldSize for keystone-apache-main':
+    ensure  => present,
+    path    => '/etc/apache2/sites-available/05-keystone_wsgi_main.conf',
+    line    => '  LimitRequestFieldSize 81900',
+    after   => '</Directory>',
+    require => Class['keystone::wsgi::apache'],
+    notify  => Service['apache2'],
+  }
+}
+
+if defined(Apache::Vhost['keystone_wsgi_admin']) {
+  file_line { 'Set LimitRequestFieldSize for keystone-apache-admin':
+    ensure  => present,
+    path    => '/etc/apache2/sites-available/05-keystone_wsgi_admin.conf',
+    line    => '  LimitRequestFieldSize 81900',
+    after   => '</Directory>',
+    require => Class['keystone::wsgi::apache'],
+    notify  => Service['apache2'],
+  }
+}
+
