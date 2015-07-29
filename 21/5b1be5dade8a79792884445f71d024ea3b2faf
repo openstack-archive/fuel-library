@@ -1,0 +1,13 @@
+Verified+2: Jenkins
+Code-Review+1: Yaroslav Lobankov <ylobankov@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+2: Aleksandr Didenko <adidenko@mirantis.com>
+Workflow+1: Aleksandr Didenko <adidenko@mirantis.com>
+Code-Review+2: Sergii Golovatiuk <sgolovatiuk@mirantis.com>
+Code-Review+1: Maksym Yatsenko <myatsenko@mirantis.com>
+Code-Review+1: Vasyl Saienko <vsaienko@mirantis.com>
+Submitted-by: Jenkins
+Submitted-at: Wed, 29 Jul 2015 14:48:02 +0000
+Reviewed-on: https://review.openstack.org/206109
+Project: stackforge/fuel-library
+Branch: refs/heads/master
