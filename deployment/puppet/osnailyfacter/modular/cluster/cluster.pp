@@ -1,5 +1,8 @@
 notice('MODULAR: cluster.pp')
 
+if empty(intersection(hiera_array('roles'),hiera_array('corosync_roles'))) {
+    fail('The node role is not in corosync roles')
+
 prepare_network_config(hiera_hash('network_scheme'))
 
 $corosync_nodes = corosync_nodes(
