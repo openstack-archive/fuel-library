@@ -67,8 +67,9 @@ describe manifest do
 
      it 'should declare keystone::wsgi::apache class with 4 workers on 4 CPU system' do
        should contain_class('keystone::wsgi::apache').with(
-         'threads' => '1',
-         'workers' => '4',
+         'threads'               => '1',
+         'workers'               => '4',
+         'vhost_custom_fragment' => 'LimitRequestFieldSize 81900',
        )
      end
 
