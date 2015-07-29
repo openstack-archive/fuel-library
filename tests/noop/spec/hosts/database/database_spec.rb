@@ -18,10 +18,14 @@ describe manifest do
       scope.function_direct_networks [endpoints, 'br-mgmt', 'netmask']
     end
 
+    let(:access_networks) do
+      access_networks = ['localhost', '127.0.0.1', '240.0.0.0/255.255.0.0'] + other_networks.split(' ')
+    end
+
     it "should delcare osnailyfacter::mysql_user with correct other_networks" do
       expect(subject).to contain_class('osnailyfacter::mysql_user').with(
         'user'            => 'root',
-        'access_networks' => other_networks,
+        'access_networks' => access_networks,
       ).that_comes_before('Exec[initial_access_config]')
     end
 
