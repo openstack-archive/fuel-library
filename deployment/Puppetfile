@@ -20,3 +20,8 @@
 #    :tarbal => 'https://forgeapi.puppetlabs.com/v3/files/puppetlabs-stdlib-4.6.0.tar.gz'
 #
 #
+
+# Pull in openstack-ironic
+mod 'ironic',
+  :git => 'https://github.com/openstack/puppet-ironic.git',
+  :ref => '6.0.0'
