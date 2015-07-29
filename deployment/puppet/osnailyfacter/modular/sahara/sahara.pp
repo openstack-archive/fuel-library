@@ -63,7 +63,7 @@ class { 'sahara' :
   plugins             => [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ],
   log_facility        => $syslog_log_facility_sahara,
   database_connection => $sql_connection,
-  auth_uri            => "${public_protocol}://${public_address}:5000/v2.0/",
+  auth_uri            => "http://${service_endpoint}:5000/v2.0/",
   identity_uri        => "http://${service_endpoint}:35357/",
   rpc_backend         => 'rabbit',
   use_neutron         => $use_neutron,
