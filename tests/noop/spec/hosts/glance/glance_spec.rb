@@ -26,9 +26,9 @@ describe manifest do
     end
 
     it 'should configure glance api config' do
-      should contain_glance_api_config('database/sql_max_pool_size').with_value(max_pool_size)
-      should contain_glance_api_config('database/sql_max_overflow').with_value(max_overflow)
-      should contain_glance_api_config('database/sql_max_retries').with_value(max_retries)
+      should contain_glance_api_config('database/max_pool_size').with_value(max_pool_size)
+      should contain_glance_api_config('database/max_overflow').with_value(max_overflow)
+      should contain_glance_api_config('database/max_retries').with_value(max_retries)
       should contain_glance_api_config('DEFAULT/delayed_delete').with_value('False')
       should contain_glance_api_config('DEFAULT/scrub_time').with_value('43200')
       should contain_glance_api_config('DEFAULT/scrubber_datadir').with_value('/var/lib/glance/scrubber')
@@ -50,9 +50,9 @@ describe manifest do
     end
 
     it 'should configure glance registry config' do
-      should contain_glance_registry_config('database/sql_max_pool_size').with_value(max_pool_size)
-      should contain_glance_registry_config('database/sql_max_overflow').with_value(max_overflow)
-      should contain_glance_registry_config('database/sql_max_retries').with_value(max_retries)
+      should contain_glance_registry_config('database/max_pool_size').with_value(max_pool_size)
+      should contain_glance_registry_config('database/max_overflow').with_value(max_overflow)
+      should contain_glance_registry_config('database/max_retries').with_value(max_retries)
       should contain_glance_registry_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
     end
 
