@@ -22,7 +22,15 @@ describe Puppet::Type.type(:mongodb_replset).provider(:mongo) do
   let(:provider) { described_class.new(resource) }
 
   describe '#create' do
-    it 'should create a replicaset' do
+    before :each do
+      tmp = Tempfile.new('test')
+      @mongodconffile = tmp.path
+      provider.class.stubs(:get_mongod_conf_file).returns(@mongodconffile)
+      File.stubs(:exists?).with('/root/.mongorc.js').returns(true)
+      File.stubs(:exist?).with('/root/.mongorc.js').returns(true)
+    end
+
+    xit 'should create a replicaset' do
       provider.class.stubs(:get_replset_properties)
       provider.stubs(:alive_members).returns(valid_members)
       provider.expects('rs_initiate').with("{ _id: \"rs_test\", members: [ { _id: 0, host: \"mongo1:27017\" },{ _id: 1, host: \"mongo2:27017\" },{ _id: 2, host: \"mongo3:27017\" } ] }", "mongo1:27017").returns(
@@ -31,6 +39,14 @@ describe Puppet::Type.type(:mongodb_replset).provider(:mongo) do
       provider.create
       provider.flush
     end
+
+    it 'raises an error when no member is available' do
+      provider.stubs('primary?').returns(false)
+      provider.class.stubs(:alive_members).returns([])
+      provider.class.stubs(:mongo).returns('{}')
+      provider.create
+      expect { provider.flush }.to raise_error(Puppet::Error, "Can't connect to any member of replicaset #{resource[:name]}.")
+    end
   end
 
   describe '#exists?' do
@@ -38,6 +54,8 @@ describe Puppet::Type.type(:mongodb_replset).provider(:mongo) do
       tmp = Tempfile.new('test')
       @mongodconffile = tmp.path
       provider.class.stubs(:get_mongod_conf_file).returns(@mongodconffile)
+      File.stubs(:exists?).with('/root/.mongorc.js').returns(true)
+      File.stubs(:exist?).with('/root/.mongorc.js').returns(true)
     end
     describe 'when the replicaset does not exist' do
       it 'returns false' do
@@ -74,6 +92,8 @@ EOT
       tmp = Tempfile.new('test')
       @mongodconffile = tmp.path
       provider.class.stubs(:get_mongod_conf_file).returns(@mongodconffile)
+      File.stubs(:exists?).with('/root/.mongorc.js').returns(true)
+      File.stubs(:exist?).with('/root/.mongorc.js').returns(true)
     end
     it 'returns the members of a configured replicaset' do
       provider.class.stubs(:mongo).returns(<<EOT)
@@ -106,6 +126,8 @@ EOT
       tmp = Tempfile.new('test')
       @mongodconffile = tmp.path
       provider.class.stubs(:get_mongod_conf_file).returns(@mongodconffile)
+      File.stubs(:exists?).with('/root/.mongorc.js').returns(true)
+      File.stubs(:exist?).with('/root/.mongorc.js').returns(true)
     end
     before :each do
       provider.class.stubs(:mongo).returns(<<EOT)
@@ -128,37 +150,38 @@ EOT
 
     it 'adds missing members to an existing replicaset' do
       provider.stubs(:rs_status).returns({ "set" => "rs_test" })
-      provider.expects('rs_add').times(2).returns({ 'ok' => 1 })
+      provider.expects('primary?').times(1)
       provider.members=(valid_members)
       provider.flush
     end
 
-    it 'raises an error when the master host is not available' do
-      provider.stubs(:rs_status).returns({ "set" => "rs_test" })
-      provider.stubs(:db_ismaster).returns({ "primary" => false })
+   it 'raises an error when the master host is not available' do
+      provider.stubs('primary?').returns(true)
+      provider.create
+      expect { provider.flush }.to raise_error(Puppet::Error, "Can't find master host for replicaset #{resource[:name]}.")
+    end
+
+
+   it 'raises an error when the master host is not available' do
+      provider.stubs('primary?').returns(true)
+      provider.stubs('master_host').returns(false)
       provider.members=(valid_members)
       expect { provider.flush }.to raise_error(Puppet::Error, "Can't find master host for replicaset #{resource[:name]}.")
     end
 
     it 'raises an error when at least one member is not running with --replSet' do
+      provider.stubs('primary?').returns(true)
       provider.stubs(:rs_status).returns({ "ok" => 0, "errmsg" => "not running with --replSet" })
       provider.members=(valid_members)
       expect { provider.flush }.to raise_error(Puppet::Error, /is not supposed to be part of a replicaset\.$/)
     end
 
     it 'raises an error when at least one member is configured with another replicaset name' do
+      provider.stubs('primary?').returns(true)
       provider.stubs(:rs_status).returns({ "set" => "rs_another" })
       provider.members=(valid_members)
       expect { provider.flush }.to raise_error(Puppet::Error, /is already part of another replicaset\.$/)
     end
 
-    it 'raises an error when no member is available' do
-      provider.class.stubs(:mongo_command).raises(Puppet::ExecutionFailure, <<EOT)
-Fri Jan 10 20:20:33.995 Error: couldn't connect to server localhost:9999 at src/mongo/shell/mongo.js:147
-exception: connect failed
-EOT
-      provider.members=(valid_members)
-      expect { provider.flush }.to raise_error(Puppet::Error, "Can't connect to any member of replicaset #{resource[:name]}.")
-    end
-  end
+  end #members=
 end
