@@ -3,6 +3,10 @@ require 'puppet/provider/openstack/credentials'
 module Puppet::Provider::Openstack::Auth
 
   RCFILENAME = "#{ENV['HOME']}/openrc"
+  #FIXME(mattymo): LP #1479763
+  unless File.exists?(RCFILENAME)
+    RCFILENAME = '/root/openrc'
+  end
 
   def get_os_vars_from_env
     env = {}
