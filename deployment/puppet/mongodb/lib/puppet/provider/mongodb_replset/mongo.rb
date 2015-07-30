@@ -66,7 +66,7 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
   private
 
   def db_ismaster(host)
-    mongo_command("db.isMaster()", host)
+    mongo_command('db.isMaster()', host)
   end
 
   def rs_initiate(conf, master)
@@ -74,15 +74,15 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
   end
 
   def rs_status(host)
-    mongo_command("rs.status()", host)
+    mongo_command('rs.status()', host)
   end
 
   def rs_add(host, master)
-    mongo_command("rs.add(\"#{host}\")", master)
+    mongo_command("rs.add('#{host}')", master)
   end
 
   def rs_remove(host, master)
-    mongo_command("rs.remove(\"#{host}\")", master)
+    mongo_command("rs.remove('#{host}')", master)
   end
 
   def auth_enabled
@@ -144,7 +144,6 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
   end
 
   def self.get_replset_properties
-
     conn_string = get_conn_string
     output = mongo_command('rs.conf()', conn_string)
     if output['members']
@@ -178,6 +177,7 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
           Puppet.warning "Host #{host} is available, but you are unauthorized because of authentication is enabled: #{auth_enabled}"
           alive.push(host)
         end
+
         if status.has_key?('set')
           if status['set'] != self.name
             raise Puppet::Error, "Can't configure replicaset #{self.name}, host #{host} is already part of another replicaset."
@@ -198,6 +198,29 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
     alive
   end
 
+  def primary?(hosts)
+    hosts.select do |host|
+      status = rs_status(host)
+      return false unless status['members']
+      primary = status['members'].each{|member|  break member.value?('PRIMARY')}
+      return true if primary
+    end
+  end
+
+  def alive_hosts
+    if ! @property_flush[:members].empty?
+      # Find the alive members so we don't try to add dead members to the replset
+      alive_hosts = alive_members(@property_flush[:members])
+      raise Puppet::Error, "Can't connect to any member of replicaset #{self.name}." if alive_hosts.empty?
+      dead_hosts  = @property_flush[:members] - alive_hosts
+      Puppet.debug "Alive members: #{alive_hosts.inspect}"
+      Puppet.debug "Dead members: #{dead_hosts.inspect}" unless dead_hosts.empty?
+    else
+      alive_hosts = []
+    end
+    alive_hosts
+  end
+
   def set_members
     if @property_flush[:ensure] == :absent
       # TODO: I don't know how to remove a node from a replset; unimplemented
@@ -208,36 +231,12 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
       return
     end
 
-    if ! @property_flush[:members].empty?
-      # Find the alive members so we don't try to add dead members to the replset
-      alive_hosts = alive_members(@property_flush[:members])
-      dead_hosts  = @property_flush[:members] - alive_hosts
-      raise Puppet::Error, "Can't connect to any member of replicaset #{self.name}." if alive_hosts.empty?
-      Puppet.debug "Alive members: #{alive_hosts.inspect}"
-      Puppet.debug "Dead members: #{dead_hosts.inspect}" unless dead_hosts.empty?
-    else
-      alive_hosts = []
-    end
-
-    if @property_flush[:ensure] == :present and @property_hash[:ensure] != :present
-      Puppet.debug "Initializing the replset #{self.name}"
-
-      # Create a replset configuration
-      hostconf = alive_hosts.each_with_index.map do |host,id|
-        "{ _id: #{id}, host: \"#{host}\" }"
-      end.join(',')
-      conf = "{ _id: \"#{self.name}\", members: [ #{hostconf} ] }"
-
-      # Set replset members with the first host as the master
-      output = rs_initiate(conf, alive_hosts[0])
-      if output['ok'] == 0
-        raise Puppet::Error, "rs.initiate() failed for replicaset #{self.name}: #{output['errmsg']}"
-      end
-    else
+    if primary?(@property_flush[:members])
       # Add members to an existing replset
-      if master = master_host(alive_hosts)
+      alive = alive_members(@property_flush[:members])
+      if master = master_host(alive)
         current_hosts = db_ismaster(master)['hosts']
-        newhosts = alive_hosts - current_hosts
+        newhosts = alive - current_hosts
         newhosts.each do |host|
           output = rs_add(host, master)
           if output['ok'] == 0
@@ -246,6 +245,22 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
         end
       else
         raise Puppet::Error, "Can't find master host for replicaset #{self.name}."
+      end
+    else
+      if (@property_flush[:ensure] == :present) && (@property_hash[:ensure] != :present)
+        Puppet.debug "Initializing the replset #{self.name}"
+        # Create a replset configuration
+        alive = alive_hosts
+        hostconf = alive.each_with_index.map do |host,id|
+          "{ _id: #{id}, host: '#{host}'}"
+        end.join(',')
+        conf = "{ _id: '#{self.name}', members: [ #{hostconf} ] }"
+
+        # Set replset members with the first host as the master
+        output = rs_initiate(conf, alive[0])
+        if output['ok'] == 0
+          raise Puppet::Error, "rs.initiate() failed for replicaset #{self.name}: #{output['errmsg']}"
+        end
       end
     end
   end
@@ -268,8 +283,15 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
     begin
       args = Array.new
       args << '--quiet'
-      args << ['--host',host] if host
-      args << ['--eval',"printjson(#{command})"]
+      if host
+        args << ['--host',host]
+        # Load authorization before each command
+        raise Puppet::Error, '/root/.mongorc.js is not exist' unless File.exist?('/root/.mongorc.js')
+        printjson = "load('/root/.mongorc.js'); printjson(#{command})" if host
+      else
+        printjson ||= "printjson(#{command})"
+      end
+      args << ['--eval', printjson ]
       output = mongo(args.flatten)
     rescue Puppet::ExecutionFailure => e
       if e =~ /Error: couldn't connect to server/ and wait <= 2**max_wait
@@ -285,9 +307,11 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
     # Dirty hack to remove JavaScript objects
     output.gsub!(/ISODate\((.+?)\)/, '\1 ')
     output.gsub!(/Timestamp\((.+?)\)/, '[\1]')
+    output.gsub!(/ObjectId\((.+?)\)/, '[\1]')
+    output.gsub!(/^Error\:.+/, '')
 
     #Hack to avoid non-json empty sets
-    output = "{}" if output == "null\n"
+    output = '{}' if output == "null\n"
 
     JSON.parse(output)
   end

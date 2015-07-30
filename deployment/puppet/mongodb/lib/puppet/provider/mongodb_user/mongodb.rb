@@ -14,7 +14,7 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
       allusers = []
 
       dbs.each do |db|
-        users = JSON.parse mongo_eval('printjson(db.system.users.find().toArray())', db)
+        users = JSON.parse mongo_eval('rs.slaveOk(); printjson(db.system.users.find().toArray())', db)
 
         allusers += users.collect do |user|
             new(:name          => user['_id'],
@@ -27,7 +27,7 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
       end
       return allusers
     else
-      users = JSON.parse mongo_eval('printjson(db.system.users.find().toArray())')
+      users = JSON.parse mongo_eval('rs.slaveOk(); printjson(db.system.users.find().toArray())')
 
       users.collect do |user|
           new(:name          => user['_id'],
