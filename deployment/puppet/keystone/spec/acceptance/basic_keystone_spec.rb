@@ -118,6 +118,34 @@ describe 'basic keystone server with resources' do
       # Run it twice and test for idempotency
       apply_manifest(pp, :catch_failures => true)
       apply_manifest(pp, :catch_changes => true)
+
+      # Add openrc and ensure functionality
+      shell("cat > /root/openrc << EOF
+export OS_USERNAME='admin'
+export OS_PASSWORD='a_big_secret'
+export OS_PROJECT_NAME='openstack'
+export OS_USER_DOMAIN_NAME='default_domain'
+export OS_PROJECT_DOMAIN_NAME='default_domain'
+export OS_AUTH_URL='http://127.0.0.1:5000/v2.0/'
+EOF")
+      apply_manifest(pp, :catch_failures => true)
+
+      # Add v2.0 env and ensure functionality
+      ENV["OS_AUTH_URL"] = "http://127.0.0.1:5000/v2.0/"
+      ENV["OS_PROJECT_NAME"] = "admin"
+      ENV["OS_USERNAME"] = "admin"
+      ENV["OS_PASSWORD"] = "a_big_secret"
+      apply_manifest(pp, :catch_failures => true)
+
+      # Add v3 env and ensure functionality
+      ENV["OS_USERNAME"] = "adminv3"
+      ENV["OS_PASSWORD"] = "a_big_secret"
+      ENV["OS_PROJECT_NAME"] = "openstackv3"
+      ENV["OS_USER_DOMAIN_NAME"] = "admin_domain"
+      ENV["OS_PROJECT_DOMAIN_NAME"] = 'admin_domain'
+      ENV["OS_AUTH_URL"] = "http://127.0.0.1:5000/v3/"
+      ENV["OS_IDENTITY_API_VERSION"] = "3"
+      apply_manifest(pp, :catch_failures => true)
     end
 
     describe port(5000) do
