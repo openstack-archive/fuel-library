@@ -7,13 +7,35 @@ describe manifest do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
 
+    network_metadata     = Noop.hiera 'network_metadata'
+    memcache_roles       = Noop.hiera 'memcache_roles'
+    memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
+
+    let(:scope) do
+      scope = PuppetlabsSpec::PuppetInternals.scope
+      Puppet::Parser::Functions.autoloader.loadall unless scope.respond_to? :get_nodes_hash_by_roles
+      Puppet::Parser::Functions.autoloader.loadall unless scope.respond_to? :get_node_to_ipaddr_map_by_network_role
+      scope
+    end
+
+    let(:memcache_nodes) do
+      scope.function_get_nodes_hash_by_roles [network_metadata, memcache_roles]
+    end
+
+    let(:memcache_address_map) do
+      scope.function_get_node_to_ipaddr_map_by_network_role [memcache_nodes, 'mgmt/memcache']
+    end
+
+    let (:memcache_servers) do
+      memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }
+    end
+
     nodes = Noop.hiera 'nodes'
     internal_address = Noop.node_hash['internal_address']
     primary_controller_nodes = Noop::Utils.filter_nodes(nodes,'role','primary-controller')
     controllers = primary_controller_nodes + Noop::Utils.filter_nodes(nodes,'role','controller')
     controller_internal_addresses = Noop::Utils.nodes_to_hash(controllers,'name','internal_address')
     controller_nodes = Noop::Utils.ipsort(controller_internal_addresses.values)
-    memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }.join(',')
     admin_token = Noop.hiera_structure 'keystone/admin_token'
     public_vip = Noop.hiera('public_vip')
     management_vip= Noop.hiera('management_vip')
@@ -43,7 +65,7 @@ describe manifest do
       should contain_keystone_config('token/caching').with(:value => 'false')
       should contain_keystone_config('cache/enabled').with(:value => 'true')
       should contain_keystone_config('cache/backend').with(:value => 'keystone.cache.memcache_pool')
-      should contain_keystone_config('cache/memcache_servers').with(:value => memcached_servers)
+      should contain_keystone_config('cache/memcache_servers').with(:value => memcache_servers)
       should contain_keystone_config('cache/memcache_dead_retry').with(:value => '300')
       should contain_keystone_config('cache/memcache_socket_timeout').with(:value => '1')
       should contain_keystone_config('cache/memcache_pool_maxsize').with(:value => '1000')
