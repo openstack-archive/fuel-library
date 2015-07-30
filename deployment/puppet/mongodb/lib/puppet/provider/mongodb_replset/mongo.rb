@@ -86,7 +86,29 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
   end
 
   def auth_enabled
-    @resource[:auth_enabled]
+    self.class.auth_enabled
+  end
+
+  def self.auth_enabled
+    File.open(get_mongod_conf_file) do |fp|
+      fp.each do |line|
+        if !line.start_with?('#')
+          key, value = line.chomp.split(/:\s*/)
+          if key.to_s.include? 'security.authorization' and value.to_s == 'enabled'
+            return true
+          end
+        end
+      end
+    end
+    return false
+  end
+
+  def self.load_rcfile
+    if File.exists? '/root/.mongorc.js'
+      return 'load("/root/.mongorc.js");'
+    else
+      return ''
+    end
   end
 
   def master_host(hosts)
@@ -106,6 +128,21 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
       file = '/etc/mongodb.conf'
     end
     file
+  end
+
+  def self.get_bind_ips
+    bind_ips = []
+    File.open(get_mongod_conf_file) do |fp|
+      fp.each do |line|
+        if !line.start_with?('#')
+          key, value = line.chomp.split(/:\s*/)
+          if key.to_s.include? 'net.bindIp'
+            bind_ips = value.to_s.split(',')
+          end
+        end
+      end
+    end
+    return bind_ips
   end
 
   def self.get_conn_string
@@ -164,6 +201,19 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
     props
   end
 
+  def current_host(host)
+    self.class.current_host(host)
+  end
+
+  def self.current_host(host)
+    get_bind_ips.each do |ip|
+      if host.split(':')[0] == ip
+        return true
+      end
+    end
+    return false
+  end
+
   def alive_members(hosts)
     alive = []
     hosts.select do |host|
@@ -174,17 +224,20 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
           raise Puppet::Error, "Can't configure replicaset #{self.name}, host #{host} is not supposed to be part of a replicaset."
         end
 
-        if auth_enabled and status.has_key?('errmsg') and (status['errmsg'].include? "unauthorized" or status['errmsg'].include? "not authorized")
+        if auth_enabled and current_host(host) and status.has_key?('errmsg') and (status['errmsg'].include? "unauthorized" or status['errmsg'].include? "not authorized")
           Puppet.warning "Host #{host} is available, but you are unauthorized because of authentication is enabled: #{auth_enabled}"
           alive.push(host)
         end
+
         if status.has_key?('set')
           if status['set'] != self.name
             raise Puppet::Error, "Can't configure replicaset #{self.name}, host #{host} is already part of another replicaset."
           end
 
-          # This node is alive and supposed to be a member of our set
+          # This node is alive and it's configured with our replica
+          # So, we do not need to start new initialization
           Puppet.debug "Host #{self.name} is available for replset #{status['set']}"
+          @property_hash[:ensure] = :present
           alive.push(host)
         elsif status.has_key?('info')
           Puppet.debug "Host #{self.name} is alive but unconfigured: #{status['info']}"
@@ -251,40 +304,51 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
   end
 
   def mongo_command(command, host, retries=4)
-    self.class.mongo_command(command,host,retries, auth_enabled)
+    self.class.mongo_command(command,host,retries)
   end
 
-  def self.mongo_command(command, host=nil, retries=4, auth_enabled=false)
-    if auth_enabled and command.include? "rs.initiate"
-      # We can't setup replica from any hosts except localhost
-      # if authentication is enabled
-      # User can't be created before replica set initialization
-      # So we can't use user credentials for auth
-      host = '127.0.0.1'
+  def self.mongo_command(command, host=nil, retries=4)
+    auth = ''
+    if auth_enabled
+      auth = load_rcfile
     end
     # Allow waiting for mongod to become ready
     # Wait for 2 seconds initially and double the delay at each retry
     wait = 2
-    begin
-      args = Array.new
-      args << '--quiet'
-      args << ['--host',host] if host
-      args << ['--eval',"printjson(#{command})"]
-      output = mongo(args.flatten)
-    rescue Puppet::ExecutionFailure => e
-      if e =~ /Error: couldn't connect to server/ and wait <= 2**max_wait
-        info("Waiting #{wait} seconds for mongod to become available")
-        sleep wait
-        wait *= 2
-        retry
+    output = ''
+    retries.times do |n|
+      begin
+        args = Array.new
+        args << '--quiet'
+        args << ['--host',host] if host
+        args << ['--eval',"#{auth} printjson(#{command})"]
+        output = mongo(args.flatten)
+      rescue Puppet::ExecutionFailure => e
+        if e =~ /Error: couldn't connect to server/ and wait <= 2**max_wait
+          info("Waiting #{wait} seconds for mongod to become available")
+          sleep wait
+          wait *= 2
+          retry
+        else
+          raise
+        end
+      end
+      if output.to_s.include? 'not authorized'
+        if auth_enabled and current_host(host)
+          # We are current host. We can't execute commands from any bind ip except localhost
+          # if authentication is enabled. We have to use localhost in this case.
+          # http://docs.mongodb.org/manual/core/authentication/#localhost-exception
+          host = '127.0.0.1'
+        end
       else
-        raise
+        break
       end
     end
 
     # Dirty hack to remove JavaScript objects
     output.gsub!(/ISODate\((.+?)\)/, '\1 ')
     output.gsub!(/Timestamp\((.+?)\)/, '[\1]')
+    output.gsub!(/ObjectId\(([^)]*)\)/, '\1')
 
     #Hack to avoid non-json empty sets
     output = "{}" if output == "null\n"
