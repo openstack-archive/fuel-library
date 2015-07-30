@@ -8,35 +8,39 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
   def self.instances
     require 'json'
 
-    if mongo_24?
-      dbs = JSON.parse mongo_eval('printjson(db.getMongo().getDBs()["databases"].map(function(db){return db["name"]}))') || 'admin'
+    if mongo_eval('db.isMaster().ismaster').to_s.strip == 'true'
+      if mongo_24?
+        dbs = JSON.parse mongo_eval('printjson(db.getMongo().getDBs()["databases"].map(function(db){return db["name"]}))') || 'admin'
 
-      allusers = []
+        allusers = []
 
-      dbs.each do |db|
-        users = JSON.parse mongo_eval('rs.slaveOk(); printjson(db.system.users.find().toArray())', db)
+        dbs.each do |db|
+          users = JSON.parse mongo_eval('printjson(db.system.users.find().toArray())', db)
 
-        allusers += users.collect do |user|
+          allusers += users.collect do |user|
+              new(:name          => user['_id'],
+                  :ensure        => :present,
+                  :username      => user['user'],
+                  :database      => db,
+                  :roles         => user['roles'].sort,
+                  :password_hash => user['pwd'])
+          end
+        end
+        return allusers
+      else
+        users = JSON.parse mongo_eval('printjson(db.system.users.find().toArray())')
+        users.collect do |user|
             new(:name          => user['_id'],
                 :ensure        => :present,
                 :username      => user['user'],
-                :database      => db,
-                :roles         => user['roles'].sort,
-                :password_hash => user['pwd'])
+                :database      => user['db'],
+                :roles         => from_roles(user['roles'], user['db']),
+                :password_hash => user['credentials']['MONGODB-CR'])
         end
       end
-      return allusers
     else
-      users = JSON.parse mongo_eval('rs.slaveOk(); printjson(db.system.users.find().toArray())')
-
-      users.collect do |user|
-          new(:name          => user['_id'],
-              :ensure        => :present,
-              :username      => user['user'],
-              :database      => user['db'],
-              :roles         => from_roles(user['roles'], user['db']),
-              :password_hash => user['credentials']['MONGODB-CR'])
-      end
+      Puppet.warning 'Impossible to get users info from slave'
+      users = []
     end
   end
 
@@ -53,28 +57,30 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
   mk_resource_methods
 
   def create
+    if mongo_eval('db.isMaster().ismaster').to_s.strip == 'true'
+      if mongo_24?
+        user = {
+          :user => @resource[:username],
+          :pwd => @resource[:password_hash],
+          :roles => @resource[:roles]
+        }
 
+        mongo_eval("db.addUser(#{user.to_json})", @resource[:database])
+      else
+        cmd_json=<<-EOS.gsub(/^\s*/, '').gsub(/$\n/, '')
+        {
+          "createUser": "#{@resource[:username]}",
+          "pwd": "#{@resource[:password_hash]}",
+          "customData": {"createdBy": "Puppet Mongodb_user['#{@resource[:name]}']"},
+          "roles": #{@resource[:roles].to_json},
+          "digestPassword": false
+        }
+        EOS
 
-    if mongo_24?
-      user = {
-        :user => @resource[:username],
-        :pwd => @resource[:password_hash],
-        :roles => @resource[:roles]
-      }
-
-      mongo_eval("db.addUser(#{user.to_json})", @resource[:database])
+        mongo_eval("db.runCommand(#{cmd_json})", @resource[:database])
+      end
     else
-      cmd_json=<<-EOS.gsub(/^\s*/, '').gsub(/$\n/, '')
-      {
-        "createUser": "#{@resource[:username]}",
-        "pwd": "#{@resource[:password_hash]}",
-        "customData": {"createdBy": "Puppet Mongodb_user['#{@resource[:name]}']"},
-        "roles": #{@resource[:roles].to_json},
-        "digestPassword": false
-      }
-      EOS
-
-      mongo_eval("db.runCommand(#{cmd_json})", @resource[:database])
+      Puppet.warning 'Impossible to add user from slave'
     end
 
     @property_hash[:ensure] = :present
@@ -88,10 +94,14 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
 
 
   def destroy
-    if mongo_24?
-      mongo_eval("db.removeUser('#{@resource[:username]}')")
+    if mongo_eval('db.isMaster().ismaster') == 'true'
+      if mongo_24?
+        mongo_eval("db.removeUser('#{@resource[:username]}')")
+      else
+        mongo_eval("db.dropUser('#{@resource[:username]}')")
+      end
     else
-      mongo_eval("db.dropUser('#{@resource[:username]}')")
+      Puppet.warning 'Impossible to delete user from slave'
     end
   end
 
@@ -112,18 +122,22 @@ Puppet::Type.type(:mongodb_user).provide(:mongodb, :parent => Puppet::Provider::
   end
 
   def roles=(roles)
-    if mongo_24?
-      mongo_eval("db.system.users.update({user:'#{@resource[:username]}'}, { $set: {roles: #{@resource[:roles].to_json}}})")
-    else
-      grant = roles-@resource[:roles]
-      if grant.length > 0
-        mongo_eval("db.getSiblingDB('#{@resource[:database]}').grantRolesToUser('#{@resource[:username]}', #{grant. to_json})")
-      end
+    if mongo_eval('db.isMaster().ismaster') == 'true'
+      if mongo_24?
+        mongo_eval("db.system.users.update({user:'#{@resource[:username]}'}, { $set: {roles: #{@resource[:roles].to_json}}})")
+      else
+        grant = roles-@resource[:roles]
+        if grant.length > 0
+          mongo_eval("db.getSiblingDB('#{@resource[:database]}').grantRolesToUser('#{@resource[:username]}', #{grant. to_json})")
+        end
 
-      revoke = @resource[:roles]-roles
-      if revoke.length > 0
-        mongo_eval("db.getSiblingDB('#{@resource[:database]}').revokeRolesFromUser('#{@resource[:username]}', #{revoke.to_json})")
+        revoke = @resource[:roles]-roles
+        if revoke.length > 0
+          mongo_eval("db.getSiblingDB('#{@resource[:database]}').revokeRolesFromUser('#{@resource[:username]}', #{revoke.to_json})")
+        end
       end
+    else
+      Puppet.warning 'Impossible to add user from slave'
     end
   end
 
