@@ -32,6 +32,7 @@ describe Puppet::Type.type(:mongodb_database).provider(:mongodb) do
   let(:provider) { resource.provider }
 
   before :each do
+    provider.stubs(:mongo_eval).with('db.isMaster().ismaster').returns('true')
     provider.class.stubs(:mongo_eval).with('printjson(db.getMongo().getDBs())').returns(raw_dbs)
   end
 
@@ -39,6 +40,7 @@ describe Puppet::Type.type(:mongodb_database).provider(:mongodb) do
 
   describe 'self.instances' do
     it 'returns an array of dbs' do
+      provider.class.stubs(:mongo_eval).with('db.isMaster().ismaster').returns('true')
       dbs = provider.class.instances.collect {|x| x.name }
       expect(parsed_dbs).to match_array(dbs)
     end
@@ -60,6 +62,7 @@ describe Puppet::Type.type(:mongodb_database).provider(:mongodb) do
 
   describe 'exists?' do
     it 'checks if database exists' do
+      provider.class.stubs(:mongo_eval).with('db.isMaster().ismaster').returns('true')
       instance.exists?
     end
   end

@@ -55,6 +55,10 @@ describe manifest do
       should contain_class('mongodb::server').with('directoryperdb' => 'true')
     end
 
+    it 'should create mongorc file' do
+      should contain_file('mongorc').with('ensure' => 'present', 'path' => "#{Dir.home('root')}/.mongorc.js")
+    end
+
   end
 
   test_ubuntu_and_centos manifest

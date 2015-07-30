@@ -7,11 +7,16 @@ Puppet::Type.type(:mongodb_database).provide(:mongodb, :parent => Puppet::Provid
 
   def self.instances
     require 'json'
-    dbs = JSON.parse mongo_eval('printjson(db.getMongo().getDBs())')
+    if mongo_eval('db.isMaster().ismaster').to_s.strip == 'true'
+      dbs = JSON.parse mongo_eval('printjson(db.getMongo().getDBs())')
 
-    dbs['databases'].collect do |db|
-      new(:name   => db['name'],
-          :ensure => :present)
+      dbs['databases'].collect do |db|
+        new(:name   => db['name'],
+            :ensure => :present)
+      end
+    else
+      Puppet.warning 'Impossible to get databases from slave'
+      dbs = []
     end
   end
 
@@ -26,11 +31,15 @@ Puppet::Type.type(:mongodb_database).provide(:mongodb, :parent => Puppet::Provid
   end
 
   def create
-    mongo_eval('db.dummyData.insert({"created_by_puppet": 1})', @resource[:name])
+    if mongo_eval('db.isMaster().ismaster').to_s.strip == 'true'
+      mongo_eval('db.dummyData.insert({"created_by_puppet": 1})', @resource[:name])
+    end
   end
 
   def destroy
-    mongo_eval('db.dropDatabase()', @resource[:name])
+    if mongo_eval('db.isMaster().ismaster').to_s.strip == 'true'
+      mongo_eval('db.dropDatabase()', @resource[:name])
+    end
   end
 
   def exists?
