@@ -24,7 +24,9 @@ $allowed_hosts = [ $node_name, 'localhost', '127.0.0.1', '%' ]
 
 if $db_create {
 
-  include mysql
+  class { 'galera::client':
+    custom_setup_class => hiera('mysql_custom_setup_class', 'galera'),
+  }
 
   class { 'keystone::db::mysql':
     user          => $db_user,
@@ -39,7 +41,7 @@ if $db_create {
     db_password => $db_root_password,
   }
 
-  Class['mysql'] ->
+  Class['galera::client'] ->
     Class['osnailyfacter::mysql_access'] ->
       Class['keystone::db::mysql']
 

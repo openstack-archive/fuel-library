@@ -25,7 +25,9 @@ validate_string($database_vip)
 
 
 if $db_create {
-  include mysql
+  class { 'galera::client':
+    custom_setup_class => hiera('mysql_custom_setup_class', 'galera'),
+  }
 
   class { 'glance::db::mysql':
     user          => $db_user,
@@ -40,7 +42,7 @@ if $db_create {
     db_password => $db_root_password,
   }
 
-  Class['mysql'] ->
+  Class['galera::client'] ->
     Class['osnailyfacter::mysql_access'] ->
       Class['glance::db::mysql']
 }
