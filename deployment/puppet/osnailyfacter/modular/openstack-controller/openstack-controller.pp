@@ -40,9 +40,8 @@ $keystone_tenant                = pick($nova_hash['tenant'], 'services')
 $glance_api_servers             = hiera('glance_api_servers', "$management_vip:9292")
 $region                         = hiera('region', 'RegionOne')
 
-$controller_internal_addresses  = nodes_to_hash($controllers,'name','internal_address')
-$controller_nodes               = ipsort(values($controller_internal_addresses))
-$controller_hostnames           = keys($controller_internal_addresses)
+$memcache_nodes                 = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
+$memcache_ipaddrs               = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 
 $floating_hash = {}
@@ -117,7 +116,7 @@ class { '::openstack::controller':
   amqp_user                      => $rabbit_hash['user'],
   amqp_password                  => $rabbit_hash['password'],
   rabbit_ha_queues               => true,
-  cache_server_ip                => $controller_nodes,
+  cache_server_ip                => $memcache_ipaddrs,
   api_bind_address               => $api_bind_address,
   db_host                        => $db_host,
   service_endpoint               => $service_endpoint,
@@ -156,7 +155,7 @@ if $primary_controller {
   Class['nova::api'] -> Haproxy_backend_status['nova-api']
 
   exec { 'create-m1.micro-flavor' :
-    path    => '/sbin:/usr/sbin:/bin:/usr/bin',
+    path        => '/sbin:/usr/sbin:/bin:/usr/bin',
     environment => [
       "OS_TENANT_NAME=${keystone_tenant}",
       "OS_USERNAME=${keystone_user}",
@@ -166,11 +165,11 @@ if $primary_controller {
       "OS_REGION_NAME=${region}",
       "NOVA_ENDPOINT_TYPE=internalURL",
     ],
-    command => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
-    unless  => 'bash -c "nova flavor-list | grep -q m1.micro"',
-    tries => 10,
+    command   => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
+    unless    => 'bash -c "nova flavor-list | grep -q m1.micro"',
+    tries     => 10,
     try_sleep => 2,
-    require => Class['nova'],
+    require   => Class['nova'],
   }
 
   Haproxy_backend_status <| |>    -> Exec<| title == 'create-m1.micro-flavor' |>
