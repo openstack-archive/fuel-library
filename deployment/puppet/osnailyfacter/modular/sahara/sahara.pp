@@ -27,7 +27,6 @@ if $sahara_hash['enabled'] {
   $firewall_rule   = '201 sahara-api'
   $api_bind_port   = '8386'
   $api_bind_host   = get_network_role_property('sahara/api', 'ipaddr')
-  $api_workers     = '4'
   $public_address = $public_ssl_hash['services'] ? {
     true    => $public_ssl_hash['hostname'],
     default => $public_vip,
@@ -79,9 +78,8 @@ if $sahara_hash['enabled'] {
   }
 
   class { 'sahara::api':
-    api_workers => $api_workers,
-    host        => $api_bind_host,
-    port        => $api_bind_port,
+    host => $api_bind_host,
+    port => $api_bind_port,
   }
 
   class { 'sahara::engine':

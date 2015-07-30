@@ -31,7 +31,6 @@ describe manifest do
       firewall_rule   = '201 sahara-api'
       api_bind_port   = '8386'
       api_bind_host   = internal_address
-      api_workers     = '4'
       sahara_plugins  = [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ]
       if public_ssl
         public_address  = Noop.hiera_structure('public_ssl/hostname')
@@ -75,9 +74,8 @@ describe manifest do
 
       it 'should declare sahara::api class correctly' do
         should contain_class('sahara::api').with(
-          'api_workers' => api_workers,
-          'host'        => api_bind_host,
-          'port'        => api_bind_port,
+          'host' => api_bind_host,
+          'port' => api_bind_port,
         )
       end
 
