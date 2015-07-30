@@ -19,13 +19,6 @@ if $operatingsystem == 'Ubuntu' {
     content => template('cluster/conntrackd.conf.erb'),
   } ->
 
-  #    file { '/usr/lib/ocf/resource.d/fuel/ns_conntrackd':
-  #  mode   => '0755',
-  #  owner  => root,
-  #  group  => root,
-  #  source => 'puppet:///modules/cluster/ocf/ns_conntrackd',
-  #} ->
-
   cs_resource {'p_conntrackd':
     ensure => present,
     primitive_class => 'ocf',

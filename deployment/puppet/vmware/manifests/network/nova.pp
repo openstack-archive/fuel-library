@@ -89,14 +89,6 @@ class vmware::network::nova (
     }
   }
 
-  file { 'vcenter-nova-network-ocf':
-    path  => '/usr/lib/ocf/resource.d/fuel/nova-network',
-    source => 'puppet:///modules/vmware/ocf/nova-network',
-    owner => 'root',
-    group => 'root',
-    mode => '0755',
-  }
-
   service { 'p_vcenter_nova_network':
     ensure => 'running',
     enable => true,
@@ -120,7 +112,6 @@ class vmware::network::nova (
   Anchor['vcenter-nova-network-start']->
   Package['nova-network']->
   Service['nova-network']->
-  File['vcenter-nova-network-ocf']->
   File["${nova_network_config_dir}"]->
   File["${nova_network_config_ha}"]->
   Cs_resource['p_vcenter_nova_network']->

@@ -11,16 +11,6 @@ class cluster::haproxy_ocf (
 
   $service_name = 'p_haproxy'
 
-  #file {'haproxy-ocf':
-  #  path   =>'/usr/lib/ocf/resource.d/fuel/ns_haproxy',
-  #  mode   => '0755',
-  #  owner  => root,
-  #   group  => root,
-  #   source => 'puppet:///modules/cluster/ocf/ns_haproxy',
-  #  }
-  #Anchor['haproxy'] -> File['haproxy-ocf']
-  #File<| title == 'ocf-fuel-path' |> -> File['haproxy-ocf']
-
   if $primary_controller {
     cs_resource { $service_name:
       ensure          => present,
@@ -71,11 +61,8 @@ class cluster::haproxy_ocf (
       ],
     }
 
-    #    File['haproxy-ocf'] -> Cs_resource[$service_name]
     Cs_resource[$service_name] -> Cs_rsc_colocation['vip_public-with-haproxy'] -> Service[$service_name]
     Cs_resource[$service_name] -> Cs_rsc_colocation['vip_management-with-haproxy'] -> Service[$service_name]
-    #} else {
-    # File['haproxy-ocf'] -> Service[$service_name]
   }
 
   if ($::osfamily == 'Debian') {
