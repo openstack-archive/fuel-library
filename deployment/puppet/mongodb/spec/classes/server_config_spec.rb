@@ -27,13 +27,6 @@ describe 'mongodb::server::config', :type => :class do
       should contain_file('/etc/mongod.conf').with_content(/^logappend=true/)
       should contain_file('/etc/mongod.conf').with_content(/^logpath=\/var\/log\/mongo\/mongod\.log/)
       should contain_file('/etc/mongod.conf').with_content(/^fork=true/)
-
-      is_expected.to contain_file('/root/.mongorc.js').with({
-        'ensure' => 'present',
-        'owner'  => 'root',
-        'group'  => 'root',
-        'mode'   => '0644'
-      })
     }
   end
 
@@ -119,16 +112,6 @@ describe 'mongodb::server::config', :type => :class do
       }
     end
 
-  end
-
-  describe 'with store_creds' do
-    context 'false' do
-      let(:pre_condition) { ["class mongodb::server { $config = '/etc/mongod.conf' $dbpath = '/var/lib/mongo' $rcfile = '/root/.mongorc.js' $ensure = present $store_creds = false  }", "include mongodb::server"]}
-
-      it {
-        is_expected.to contain_file('/root/.mongorc.js').with_ensure('absent')
-      }
-    end
   end
 
 end

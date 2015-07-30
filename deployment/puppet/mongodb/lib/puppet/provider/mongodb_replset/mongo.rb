@@ -201,10 +201,12 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
   def primary?(hosts)
     hosts.select do |host|
       status = rs_status(host)
-      return false unless status['members']
-      primary = status['members'].each{|member|  break member.value?('PRIMARY')}
-      return true if primary
+      if status['members']
+        primary = status['members'].each{|member|  break member['stateStr'] == 'PRIMARY'}
+        return true if primary
+      end
     end
+    return false
   end
 
   def alive_hosts
@@ -231,7 +233,7 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
       return
     end
 
-    if primary?(@property_flush[:members])
+    if primary?(alive_hosts)
       # Add members to an existing replset
       alive = alive_members(@property_flush[:members])
       if master = master_host(alive)
