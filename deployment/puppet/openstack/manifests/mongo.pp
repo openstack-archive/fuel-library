@@ -45,6 +45,14 @@ class openstack::mongo (
     $key_content = file('/var/lib/astute/mongodb/mongodb.key')
   }
 
+  file { "${::root_home}/.mongorc.js":
+    ensure  => present,
+    content => template('openstack/mongorc.js.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+  } ->
+
   class {'::mongodb::globals':
     version => $mongo_version,
   } ->
@@ -74,14 +82,20 @@ class openstack::mongo (
     oplog_size     => $oplog_size,
     dbpath         => $dbpath,
     config_content => $config_content,
-    create_admin   => true,
-    admin_username => 'admin',
-    admin_password => $ceilometer_db_password,
-    admin_roles    => ['userAdmin', 'readWrite', 'dbAdmin',
+  } ->
+
+  mongodb_user { 'admin':
+    ensure        => present,
+    username      => 'admin',
+    password_hash => mongodb_password('admin', $ceilometer_db_password),
+    database      => 'admin',
+    roles         => ['userAdmin', 'readWrite', 'dbAdmin',
                        'dbAdminAnyDatabase', 'readAnyDatabase',
                        'readWriteAnyDatabase', 'userAdminAnyDatabase',
                        'clusterAdmin', 'clusterManager', 'clusterMonitor',
                        'hostManager', 'root', 'restore'],
+    tries         => 10,
+    tag           => 'admin'
   } ->
 
   notify {"mongodb configuring ceilometer database" :} ->
@@ -92,7 +106,7 @@ class openstack::mongo (
     roles          => [ 'readWrite', 'dbAdmin' ],
   } ->
 
-  notify {"mongodb primary finished": }
+  notify {"mongodb finished": }
 
   if $replset_name and is_string($replset_name) {
     mongodb_conn_validator { 'check_alive':
@@ -107,7 +121,6 @@ class openstack::mongo (
       sets => $sets,
     }
 
-    Class['::mongodb::server'] -> Mongodb_conn_validator['check_alive'] -> Mongodb::Db["$ceilometer_database"]
-
+    Class['::mongodb::server'] -> Mongodb_conn_validator['check_alive'] -> Class['::mongodb::replset'] -> Mongodb_user['admin']
   }
 }

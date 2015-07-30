@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
+
 manifest = 'roles/mongo.pp'
 
 describe manifest do
@@ -54,7 +55,6 @@ describe manifest do
     it 'should store each database in separate directory' do
       should contain_class('mongodb::server').with('directoryperdb' => 'true')
     end
-
   end
 
   test_ubuntu_and_centos manifest
