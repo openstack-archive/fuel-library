@@ -11,16 +11,7 @@ class Puppet::Provider::Keystone < Puppet::Provider::Openstack
   INI_FILENAME = '/etc/keystone/keystone.conf'
 
   def self.get_endpoint
-    endpoint = nil
-    if ENV['OS_AUTH_URL']
-      endpoint = ENV['OS_AUTH_URL']
-    else
-      endpoint = get_os_vars_from_rcfile(rc_filename)['OS_AUTH_URL']
-      unless endpoint
-        # This is from legacy but seems wrong, we want auth_url not url!
-        endpoint = get_admin_endpoint
-      end
-    end
+    endpoint = @credentials.auth_url
     unless endpoint
       raise(Puppet::Error::OpenstackAuthInputError, 'Could not find auth url to check user password.')
     end
