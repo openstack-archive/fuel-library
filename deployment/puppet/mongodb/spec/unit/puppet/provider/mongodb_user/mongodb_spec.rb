@@ -24,7 +24,7 @@ describe Puppet::Type.type(:mongodb_user).provider(:mongodb) do
   let(:provider) { resource.provider }
 
   before :each do
-     provider.class.stubs(:mongo_eval).with('printjson(db.system.users.find().toArray())').returns(raw_users)
+     provider.class.stubs(:mongo_eval).with('rs.slaveOk(); printjson(db.system.users.find().toArray())').returns(raw_users)
      provider.class.stubs(:mongo_version).returns('2.6.x')
   end
 
