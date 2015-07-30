@@ -1,4 +1,4 @@
-notice('MODULAR: mongo_primary.pp')
+notice('MODULAR: mongo.pp')
 
 prepare_network_config(hiera('network_scheme', {}))
 $mongo_nodes       = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('mongo_roles'))
