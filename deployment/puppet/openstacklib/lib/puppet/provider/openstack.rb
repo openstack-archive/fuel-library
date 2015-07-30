@@ -16,6 +16,7 @@ class Puppet::Provider::Openstack < Puppet::Provider
   # with underscores instead of spaces
   def self.request(service, action, properties, credentials=nil)
     env = credentials ? credentials.to_env : {}
+    p env
     Puppet::Util.withenv(env) do
       rv = nil
       timeout = 10
