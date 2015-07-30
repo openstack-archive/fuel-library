@@ -19,6 +19,9 @@ class Puppet::Provider::Openstack::Credentials
     if self.class.defined?(key.to_sym)
       self.instance_variable_set("@#{key}".to_sym, val)
     end
+    if key == "auth_url"
+      set(:auth_url, auth_url_version)
+    end
   end
 
   def set?
@@ -54,6 +57,13 @@ class Puppet::Provider::Openstack::Credentials
   def version
     self.class.to_s.sub(/.*V/,'').sub('_','.')
   end
+
+  def auth_url_version
+    url = @auth_url.split('/')[0..-2]
+    url << "v" + version
+    url.join '/'
+  end
+
 end
 
 class Puppet::Provider::Openstack::CredentialsV2_0 < Puppet::Provider::Openstack::Credentials
