@@ -180,8 +180,8 @@ class { 'openstack::workloads_collector':
 }
 
 Exec <| title == 'keystone-manage db_sync' |> ->
+Class['openstack::auth_file'] ->
 Class['keystone::roles::admin'] ->
-Class['openstack::auth_file']
 
 Class['keystone::roles::admin'] ->
 Class['openstack::workloads_collector']
