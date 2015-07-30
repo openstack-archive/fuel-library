@@ -235,8 +235,7 @@ if ($storage_hash['images_ceph']) {
 $ceilometer_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
 # Define memcached-related variables:
-# todo(sv): change to 'memcache' as soon as this node role was ready
-$memcache_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$memcache_roles = hiera('memcache_roles', ['primary-controller', 'controller'])
 
 # Define node roles, that will carry corosync/pacemaker
 $corosync_roles = hiera_array('corosync_roles', ['primary-controller', 'controller'])
