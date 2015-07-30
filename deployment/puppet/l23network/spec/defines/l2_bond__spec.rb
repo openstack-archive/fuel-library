@@ -38,16 +38,6 @@ describe 'l23network::l2::bond', :type => :define do
       })
     end
 
-    # it do
-    #   should contain_l2_bond('bond0').with_ensure('present')
-    #   should contain_l2_bond('bond0').with_bond_properties({
-    #       :mode             => "balance-rr",
-    #       :miimon           => "100",
-    #       :lacp_rate        => "slow",
-    #       :xmit_hash_policy => "layer2"
-    #   })
-    # end
-
     ['eth3', 'eth4'].each do |slave|
       it do
         should contain_l23_stored_config(slave).with({
@@ -58,14 +48,14 @@ describe 'l23network::l2::bond', :type => :define do
       end
 
       it do
+        should contain_l2_port(slave)
+      end
+
+      it do
         should contain_l2_port(slave).with({
           'ensure'   => 'present',
           'provider' => 'lnx',
         }).that_requires("L23_stored_config[#{slave}]")
-      end
-
-      it do
-        should contain_l2_port(slave).that_requires('L2_bond[bond0]')
       end
     end
   end
@@ -104,14 +94,14 @@ describe 'l23network::l2::bond', :type => :define do
       end
 
       it do
+        should contain_l2_port(slave)
+      end
+
+      it do
         should contain_l2_port(slave).with({
           'ensure'   => 'present',
           'provider' => 'lnx',
         }).that_requires("L23_stored_config[#{slave}]")
-      end
-
-      it do
-        should contain_l2_port(slave).that_requires('L2_bond[bond0]')
       end
     end
   end
