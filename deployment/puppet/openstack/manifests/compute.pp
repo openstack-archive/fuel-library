@@ -306,7 +306,7 @@ class openstack::compute (
   }
 
   nova_config {
-    'DEFAULT/cinder_catalog_info': value => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL')
+    'cinder/catalog_info': value => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL')
   }
 
   if $use_syslog {
