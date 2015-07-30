@@ -3,7 +3,10 @@
 # Configure OCF service for NTP managed by corosync/pacemaker
 #
 class cluster::ntp_ocf ( ) {
-  $service_name = 'p_ntp'
+  include ntp::params
+
+  $basic_service_name = $ntp::params::service_name
+  $service_name = "p_${basic_service_name}"
 
   cs_resource { $service_name:
     ensure          => present,
@@ -35,7 +38,7 @@ class cluster::ntp_ocf ( ) {
     },
   } ->
 
-  cs_rsc_colocation { 'ntp-with-vrouter-ns':
+  cs_rsc_colocation { 'ntpd-with-vrouter-ns':
     ensure     => present,
     score      => 'INFINITY',
     primitives => [
