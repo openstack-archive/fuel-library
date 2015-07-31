@@ -265,6 +265,11 @@ $heat_roles = ['primary-controller', 'controller']
 # Define sahara-related variable
 $sahara_roles = ['primary-controller', 'controller']
 
+# Define ceilometer-releated parameters
+if !$ceilometer_hash['event_time_to_live'] { $ceilometer_hash['event_time_to_live'] = '604800'}
+if !$ceilometer_hash['metering_time_to_live'] { $ceilometer_hash['metering_time_to_live'] = '604800' }
+if !$ceilometer_hash['http_timeout'] { $ceilometer_hash['http_timeout'] = '600' }
+
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future
 $database_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
