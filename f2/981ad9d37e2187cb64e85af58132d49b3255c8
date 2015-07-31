@@ -1,0 +1,9 @@
+Verified+2: Jenkins
+Code-Review+2: Bogdan Dobrelya <bdobrelia@mirantis.com>
+Workflow+1: Bogdan Dobrelya <bdobrelia@mirantis.com>
+Code-Review+2: Aleksandr Didenko <adidenko@mirantis.com>
+Submitted-by: Jenkins
+Submitted-at: Fri, 31 Jul 2015 13:58:06 +0000
+Reviewed-on: https://review.openstack.org/207895
+Project: stackforge/fuel-library
+Branch: refs/heads/master
