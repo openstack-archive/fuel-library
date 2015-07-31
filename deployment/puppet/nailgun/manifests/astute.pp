@@ -4,8 +4,15 @@ class nailgun::astute(
   $rabbitmq_astute_user = 'naily',
   $rabbitmq_astute_password = 'naily',
   $version,
+  $bootstrap_flavor = 'centos',
   $gem_source = "http://rubygems.org/",
   ){
+
+  $bootstrap_profile = $bootstrap_flavor ? {
+    /(?i)centos/                 => 'bootstrap',
+    /(?i)ubuntu/                 => 'ubuntu_bootstrap',
+    default                      => 'bootstrap',
+  }
 
   # exec { 'install-astute-gem':
   #   command => "gem install astute --source $gem_source --version $version --no-ri --no-rdoc",
