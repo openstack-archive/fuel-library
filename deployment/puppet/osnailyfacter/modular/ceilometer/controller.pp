@@ -45,6 +45,9 @@ if $mongo_hash['enabled'] and $ceilometer_hash['enabled'] {
 $ceilometer_enabled         = $ceilometer_hash['enabled']
 $ceilometer_user_password   = $ceilometer_hash['user_password']
 $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
+$event_time_to_live         = pick($ceilometer_hash['event_time_to_live'], '604800')
+$metering_time_to_live      = pick($ceilometer_hash['metering_time_to_live'], '604800')
+$ceilometer_http_timeout    = pick($ceilometer_hash['http_timeout'], '600')
 $ceilometer_db_type         = 'mongodb'
 $swift_rados_backend        = $storage_hash['objects_ceph']
 $amqp_password              = $rabbit_hash['password']
@@ -75,30 +78,33 @@ if $ceilometer_hash['enabled'] {
 
 if ($ceilometer_enabled) {
   class { 'openstack::ceilometer':
-    verbose              => $verbose,
-    debug                => $debug,
-    use_syslog           => $use_syslog,
-    syslog_log_facility  => $syslog_log_facility,
-    db_type              => $ceilometer_db_type,
-    db_host              => $mongo_hosts,
-    db_user              => $ceilometer_db_user,
-    db_password          => $ceilometer_db_password,
-    db_dbname            => $ceilometer_db_dbname,
-    swift_rados_backend  => $swift_rados_backend,
-    metering_secret      => $ceilometer_metering_secret,
-    amqp_hosts           => hiera('amqp_hosts',''),
-    amqp_user            => $amqp_user,
-    amqp_password        => $amqp_password,
-    rabbit_ha_queues     => $rabbit_ha_queues,
-    keystone_host        => $service_endpoint,
-    keystone_password    => $ceilometer_user_password,
-    keystone_user        => $ceilometer_hash['user'],
-    keystone_tenant      => $ceilometer_hash['tenant'],
-    keystone_region      => $ceilometer_region,
-    host                 => $api_bind_address,
-    ha_mode              => $ha_mode,
-    on_controller        => true,
-    ext_mongo            => $external_mongo,
-    mongo_replicaset     => $mongo_replicaset,
+    verbose               => $verbose,
+    debug                 => $debug,
+    use_syslog            => $use_syslog,
+    syslog_log_facility   => $syslog_log_facility,
+    db_type               => $ceilometer_db_type,
+    db_host               => $mongo_hosts,
+    db_user               => $ceilometer_db_user,
+    db_password           => $ceilometer_db_password,
+    db_dbname             => $ceilometer_db_dbname,
+    swift_rados_backend   => $swift_rados_backend,
+    metering_secret       => $ceilometer_metering_secret,
+    amqp_hosts            => hiera('amqp_hosts',''),
+    amqp_user             => $amqp_user,
+    amqp_password         => $amqp_password,
+    rabbit_ha_queues      => $rabbit_ha_queues,
+    keystone_host         => $service_endpoint,
+    keystone_password     => $ceilometer_user_password,
+    keystone_user         => $ceilometer_hash['user'],
+    keystone_tenant       => $ceilometer_hash['tenant'],
+    keystone_region       => $ceilometer_region,
+    host                  => $api_bind_address,
+    ha_mode               => $ha_mode,
+    on_controller         => true,
+    ext_mongo             => $external_mongo,
+    mongo_replicaset      => $mongo_replicaset,
+    event_time_to_live    => $event_time_to_live,
+    metering_time_to_live => $metering_time_to_live,
+    http_timeout          => $ceilometer_http_timeout,
   }
 }
