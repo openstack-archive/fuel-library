@@ -25,6 +25,13 @@ describe manifest do
       it 'should configure OS ENDPOINT TYPE for ceilometer' do
         should contain_ceilometer_config('service_credentials/os_endpoint_type').with(:value => 'internalURL')
       end
+      it 'should configure time to live for events and meters' do
+        should contain_ceilometer_config('database/event_time_to_live').with(:value => '604800')
+        should contain_ceilometer_config('database/metering_time_to_live').with(:value => '604800')
+      end
+      it 'should configure timeout for HTTP requests' do
+        should contain_ceilometer_config('DEFAULT/http_timeout').with(:value => '600')
+      end
     end
 
   end # end of shared_examples
