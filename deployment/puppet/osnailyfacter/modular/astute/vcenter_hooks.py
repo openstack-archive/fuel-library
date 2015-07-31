@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #    Copyright 2015 Mirantis, Inc.
@@ -86,7 +86,8 @@ def main():
                       services in corresponding availability zones")
     (options, args) = parser.parse_args()
 
-    nova = Client(VERSION, USERNAME, PASSWORD, PROJECT_ID, AUTH_URL)
+    nova = Client(VERSION, USERNAME, PASSWORD, PROJECT_ID, AUTH_URL,
+                  endpoint_url='internalURL')
     vcenter_settings = get_data_from_hiera('vcenter')
 
     if options.create_zones:
