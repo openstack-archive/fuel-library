@@ -23,7 +23,6 @@ $ceilometer_hash       = hiera_hash('ceilometer', {})
 $syslog_log_facility   = hiera('syslog_log_facility_keystone')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $neutron_user_password = hiera('neutron_user_password', false)
-$workloads_hash        = hiera_hash('workloads_collector', {})
 
 $db_type     = 'mysql'
 $db_host     = pick($keystone_hash['db_host'], $database_vip)
@@ -175,20 +174,9 @@ class { 'openstack::auth_file':
   murano_repo_url => $murano_repo_url,
 }
 
-class { 'openstack::workloads_collector':
-  enabled               => $workloads_hash['enabled'],
-  workloads_username    => $workloads_hash['username'],
-  workloads_password    => $workloads_hash['password'],
-  workloads_tenant      => $workloads_hash['tenant'],
-  workloads_create_user => $workloads_hash['create_user'],
-}
-
 Exec <| title == 'keystone-manage db_sync' |> ->
 Class['keystone::roles::admin'] ->
 Class['openstack::auth_file']
-
-Class['keystone::roles::admin'] ->
-Class['openstack::workloads_collector']
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
