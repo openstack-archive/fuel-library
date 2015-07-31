@@ -270,7 +270,7 @@ class openstack::nova::controller (
   }
 
   nova_config {
-    'DEFAULT/cinder_catalog_info': value => 'volume:cinder:internalURL',
+    'cinder/catalog_info': value => 'volume:cinder:internalURL',
   }
 
   class {'nova::quota':

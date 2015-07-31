@@ -23,8 +23,8 @@ describe manifest do
         'value' => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST',
       )
     end
-    it 'nova config should have proper cinder_catalog_info' do
-      should contain_nova_config('DEFAULT/cinder_catalog_info').with(
+    it 'nova config should have proper catalog_info' do
+      should contain_nova_config('cinder/catalog_info').with(
         'value' => 'volume:cinder:internalURL'
       )
     end
