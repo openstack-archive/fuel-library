@@ -9,6 +9,9 @@ else {
     $production = 'prod'
 }
 
+$bootstrap_settings = pick(::$fuel_settings['BOOTSTRAP', {})
+$bootstrap_flavor = pick($bootstrap_settings['flavor'], 'centos')
+
 if $production == 'prod'{
   $env_path = "/usr"
   $staticdir = "/usr/share/nailgun/static"
@@ -47,6 +50,7 @@ node default {
     rabbitmq_astute_user     => $rabbitmq_astute_user,
     rabbitmq_astute_password => $rabbitmq_astute_password,
     version                  => '0.1.0',
+    bootstrap_flavor         => $bootstrap_flavor,
   }
   package { "supervisor": } ->
   class { "nailgun::supervisor":
