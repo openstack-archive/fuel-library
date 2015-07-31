@@ -107,6 +107,7 @@ class openstack::horizon (
     extra_params      => {
       default_vhost   => true,
       add_listen      => false,
+      setenvif        => 'X-Forwarded-Proto https HTTPS=1',
       custom_fragment => template("openstack/horizon/wsgi_vhost_custom.erb"),
     },
   } ~>
