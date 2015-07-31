@@ -4,6 +4,17 @@
 #
 # == parameters
 #
+#  [*http_timeout*]
+#    timeout seconds for HTTP requests
+#     Defaults to 600
+#  [*event_time_to_live*]
+#    number of seconds that events are kept in the database for
+#    (<= 0 means forever)
+#    Defaults to -1
+#  [*metering_time_to_live*]
+#    number of seconds that samples are kept in the database for
+#    (<= 0 means forever)
+#    Defaults to -1
 #  [*metering_secret*]
 #    secret key for signing messages. Mandatory.
 #  [*notification_topics*]
@@ -75,6 +86,9 @@
 # (optional) various QPID options
 #
 class ceilometer(
+  $http_timeout          = '600',
+  $event_time_to_live    = '-1',
+  $metering_time_to_live = '-1',
   $metering_secret     = false,
   $notification_topics = ['notifications'],
   $package_ensure      = 'present',
@@ -252,11 +266,24 @@ class ceilometer(
 
   # Once we got here, we can act as an honey badger on the rpc used.
   ceilometer_config {
+    'DEFAULT/http_timeout'           : value => $http_timeout;
     'DEFAULT/rpc_backend'            : value => $rpc_backend;
     'publisher/metering_secret'      : value => $metering_secret, secret => true;
     'DEFAULT/debug'                  : value => $debug;
     'DEFAULT/verbose'                : value => $verbose;
     'DEFAULT/notification_topics'    : value => join($notification_topics, ',');
+  }
+
+  if $event_time_to_live != '-1' {
+    ceilometer_config {
+      'database/event_time_to_live' : value => $event_time_to_live;
+    }
+  }
+
+  if $metering_time_to_live != '-1' {
+    ceilometer_config {
+      'database/metering_time_to_live' : value => $event_time_to_live;
+    }
   }
 
   # Log configuration

@@ -34,21 +34,25 @@ class openstack::ceilometer (
   $ext_mongo           = false,
   # ttl is 1 week (3600*24*7)
   $time_to_live        = '604800',
+  $http_timeout        = '600',
 ) {
 
   # Add the base ceilometer class & parameters
   # This class is required by ceilometer agents & api classes
   # The metering_secret parameter is mandatory
   class { '::ceilometer':
-    package_ensure      => 'present',
-    rabbit_hosts        => split($amqp_hosts, ','),
-    rabbit_userid       => $amqp_user,
-    rabbit_password     => $amqp_password,
-    metering_secret     => $metering_secret,
-    verbose             => $verbose,
-    debug               => $debug,
-    use_syslog          => $use_syslog,
-    log_facility        => $syslog_log_facility,
+    http_timeout          => $http_timeout,
+    event_time_to_live    => $time_to_live,
+    metering_time_to_live => $time_to_live,
+    package_ensure        => 'present',
+    rabbit_hosts          => split($amqp_hosts, ','),
+    rabbit_userid         => $amqp_user,
+    rabbit_password       => $amqp_password,
+    metering_secret       => $metering_secret,
+    verbose               => $verbose,
+    debug                 => $debug,
+    use_syslog            => $use_syslog,
+    log_facility          => $syslog_log_facility,
   }
 
   # Configure authentication for agents
