@@ -90,6 +90,8 @@ class ceph (
          cwd  => '/root',
   }
 
+  Ceph_conf <||> ~> Service['ceph']
+
   if hiera('role') =~ /controller|ceph|compute|cinder/ {
     # the regex above includes all roles that require ceph.conf
     include ceph::ssh
@@ -120,8 +122,7 @@ class ceph (
       if ($::ceph::use_rgw) {
         include ceph::radosgw
         Class['ceph::mon'] ->
-        Class['ceph::radosgw'] ~>
-        Service['ceph']
+        Class['ceph::radosgw']
         if defined(Class['::keystone']){
           Class['::keystone'] -> Class['ceph::radosgw']
         }
@@ -131,7 +132,7 @@ class ceph (
     'ceph-osd': {
       if ! empty($osd_devices) {
         include ceph::osds
-        Class['ceph::conf'] -> Class['ceph::osds'] ~> Service['ceph']
+        Class['ceph::conf'] -> Class['ceph::osds']
       }
     }
 
