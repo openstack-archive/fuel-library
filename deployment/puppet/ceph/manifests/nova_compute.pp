@@ -9,6 +9,13 @@ class ceph::nova_compute (
     content => template('ceph/secret.erb')
   }
 
+  if !defined(Service['libvirt'] ) {
+    service { 'libvirt':
+      name   => $::ceph::params::libvirt_service_name,
+      ensure => 'running',
+    }
+  }
+
   exec {'Set Ceph RBD secret for Nova':
     # TODO: clean this command up
     command => "virsh secret-set-value --secret $( \
@@ -24,5 +31,5 @@ class ceph::nova_compute (
   }
 
   File['/root/secret.xml'] ->
-  Exec['Set Ceph RBD secret for Nova']
+  Service['libvirt'] -> Exec['Set Ceph RBD secret for Nova']
 }

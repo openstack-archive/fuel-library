@@ -16,6 +16,7 @@ class ceph::params {
       $dir_httpd_conf             = '/etc/httpd/conf/'
       $dir_httpd_sites            = '/etc/httpd/conf.d/'
       $dir_httpd_ssl              = '/etc/httpd/ssl/'
+      $libvirt_service_name       = 'libvirtd'
 
       package { ['ceph', 'redhat-lsb-core','ceph-deploy',]:
         ensure => installed,
@@ -40,6 +41,7 @@ class ceph::params {
       $dir_httpd_conf             = '/etc/httpd/conf/'
       $dir_httpd_sites            = '/etc/apache2/sites-available/'
       $dir_httpd_ssl              = '/etc/apache2/ssl/'
+      $libvirt_service_name       = 'libvirtd'
 
       package { ['ceph','ceph-deploy', ]:
         ensure => installed,
