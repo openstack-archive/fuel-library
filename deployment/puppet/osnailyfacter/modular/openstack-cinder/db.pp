@@ -13,7 +13,7 @@ $db_user     = pick($cinder_hash['db_user'], 'cinder')
 $db_name     = pick($cinder_hash['db_name'], 'cinder')
 $db_password = pick($cinder_hash['db_password'], $mysql_root_password)
 
-$db_host          = pick($cinder_hash['db_host'], $database_vip, $management_vip, 'localhost')
+$db_host          = pick($cinder_hash['db_host'], $database_vip)
 $db_create        = pick($cinder_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($cinder_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($cinder_hash['root_password'], $mysql_root_password)

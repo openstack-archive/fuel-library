@@ -9,6 +9,7 @@ $node_name                      = hiera('node_name')
 $public_int                     = hiera('public_int', undef)
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
+$database_vip                   = hiera('database_vip')
 $service_endpoint               = hiera('service_endpoint')
 $internal_address               = get_network_role_property('nova/api', 'ipaddr')
 $primary_controller             = hiera('primary_controller')
@@ -52,6 +53,7 @@ $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
 $glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
 
+$db_host                        = pick($nova_hash['db_host'], $database_vip)
 
 $block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
 $block_device_allocate_retries_interval = hiera('block_device_allocate_retries_interval', 3)
@@ -242,7 +244,7 @@ class { 'openstack::compute':
   network_manager             => hiera('network_manager', undef),
   network_config              => hiera('network_config', {}),
   multi_host                  => $multi_host,
-  database_connection         => "mysql://nova:${nova_hash[db_password]}@${management_vip}/nova?read_timeout=60",
+  database_connection         => "mysql://nova:${nova_hash[db_password]}@${db_host}/nova?read_timeout=60",
   queue_provider              => $queue_provider,
   amqp_hosts                  => hiera('amqp_hosts',''),
   amqp_user                   => $rabbit_hash['user'],
@@ -269,7 +271,7 @@ class { 'openstack::compute':
   ceilometer                  => $ceilometer_hash[enabled],
   ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
   ceilometer_user_password    => $ceilometer_hash[user_password],
-  db_host                     => $management_vip,
+  db_host                     => $db_host,
   network_provider            => $network_provider,
   neutron_user_password       => $use_neutron ? { true=>$neutron_config['keystone']['admin_password'], default=>undef},
   base_mac                    => $base_mac,

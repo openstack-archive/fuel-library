@@ -15,7 +15,7 @@ $db_user     = pick($sahara_hash['db_user'], 'sahara')
 $db_name     = pick($sahara_hash['db_name'], 'sahara')
 $db_password = pick($sahara_hash['db_password'], $mysql_root_password)
 
-$db_host          = pick($sahara_hash['db_host'], $database_vip, 'localhost')
+$db_host          = pick($sahara_hash['db_host'], $database_vip)
 $db_create        = pick($sahara_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($sahara_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($sahara_hash['root_password'], $mysql_root_password)
