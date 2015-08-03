@@ -13,7 +13,7 @@ $db_user     = pick($nova_hash['db_user'], 'nova')
 $db_name     = pick($nova_hash['db_name'], 'nova')
 $db_password = pick($nova_hash['db_password'], $mysql_root_password)
 
-$db_host       = pick($nova_hash['db_host'], $database_vip, $management_vip, 'localhost')
+$db_host       = pick($nova_hash['db_host'], $database_vip)
 $db_create     = pick($nova_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($nova_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($nova_hash['root_password'], $mysql_root_password)

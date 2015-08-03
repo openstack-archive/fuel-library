@@ -17,7 +17,7 @@ $db_user     = pick($neutron_db['db_user'], 'neutron')
 $db_name     = pick($neutron_db['db_name'], 'neutron')
 $db_password = pick($neutron_db['passwd'], $mysql_root_password)
 
-$db_host          = pick($neutron_db['db_host'], $database_vip, 'localhost')
+$db_host          = pick($neutron_db['db_host'], $database_vip)
 $db_create        = pick($neutron_db['db_create'], $mysql_db_create)
 $db_root_user     = pick($neutron_db['root_user'], $mysql_root_user)
 $db_root_password = pick($neutron_db['root_password'], $mysql_root_password)
