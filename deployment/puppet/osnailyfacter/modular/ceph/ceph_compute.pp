@@ -15,7 +15,9 @@ $glance_pool              = 'images'
 #Nova Compute settings
 $compute_user             = 'compute'
 $compute_pool             = 'compute'
-
+# Workaround for bug LP #1469308
+# also service name for Ubuntu and Centos is the same.
+$libvirt_service_name = 'libvirtd'
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -88,6 +90,11 @@ if $use_ceph {
   Ceph::Pool[$compute_pool] ->
   Class['ceph::nova_compute'] ~>
   Service[$::ceph::params::service_nova_compute]
+
+  service { 'libvirtd':
+    name   => $libvirt_service_name,
+    ensure => 'running',
+  } -> Class['ceph::nova_compute']
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
          cwd  => '/root',
