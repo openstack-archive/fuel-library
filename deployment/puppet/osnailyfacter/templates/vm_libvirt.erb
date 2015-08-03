@@ -6,7 +6,13 @@
     <type arch='x86_64' machine='pc-i440fx-trusty'>hvm</type>
     <boot dev='network'/>
     <boot dev='hd'/>
+    <smbios mode='sysinfo'/>
   </os>
+  <sysinfo type='smbios'>
+    <system>
+      <entry name='sku'>cluster-<%= @details['cluster-id'] %></entry>
+    </system>
+  </sysinfo>
   <features>
     <acpi/>
     <apic/>

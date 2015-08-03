@@ -9,6 +9,8 @@ $vms = hiera_array('vms_conf')
 
 define vm_config {
   $details = $name
+  $details['cluster-id'] = hiera('deployment_id')
+
   $id = $details['id']
 
   file { "${template_dir}/${id}_vm.xml":
