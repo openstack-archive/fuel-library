@@ -34,6 +34,7 @@ class openstack::ceilometer (
   $ext_mongo           = false,
   # ttl is 1 week (3600*24*7)
   $time_to_live        = '604800',
+  $os_endpoint_type    = 'internalURL',
 ) {
 
   # Add the base ceilometer class & parameters
@@ -87,6 +88,9 @@ class openstack::ceilometer (
           }
        }
     }
+
+    ceilometer_config { 'service_credentials/os_endpoint_type': value => $os_endpoint_type} ->
+    Service<| title == 'ceilometer-agent-central'|>
 
     class { '::ceilometer::db':
       database_connection => $current_database_connection,
@@ -188,7 +192,7 @@ class openstack::ceilometer (
     class { 'ceilometer::agent::compute':
       enabled => true,
     }
-    ceilometer_config { 'service_credentials/os_endpoint_type': value => 'internalURL'} ->
+    ceilometer_config { 'service_credentials/os_endpoint_type': value => $os_endpoint_type} ->
     Service<| title == 'ceilometer-agent-compute'|>
   }
 }
