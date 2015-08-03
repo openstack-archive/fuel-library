@@ -8,6 +8,7 @@ module Puppet::Parser::Functions
     end
 
     bridges = arguments[0]
+    provider_name = arguments[1]
     # name shouldn't depend from bridge order
     L23network.get_pair_of_jack_names(bridges)
   end
