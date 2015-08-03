@@ -43,6 +43,17 @@ Puppet::Type.newtype(:l2_patch) do
       desc "Cross-system patch. Read-only. for debug purpose."
     end
 
+    newparam(:vlan_ids, :array_matching => :all) do
+      desc "Array of 802.1q vlan IDs for patchcopd ends. Actual only for OVS implementations"
+      defaultto [0,0]
+      #
+      validate do |vals|
+        vals.each do |val|
+          fail("Wrong 802.1q tag. Tag must be an integer in 2..4094 interval") if (val < 0 or val > 4094)
+        end
+      end
+    end
+
     newproperty(:mtu) do
       desc "The Maximum Transmission Unit size to use for the interface"
       newvalues(/^\d+$/, :absent, :none, :undef, :nil)
