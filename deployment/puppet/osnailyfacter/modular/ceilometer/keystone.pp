@@ -2,6 +2,7 @@ notice('MODULAR: ceilometer/keystone.pp')
 
 $ceilometer_hash     = hiera_hash('ceilometer', {})
 $public_vip          = hiera('public_vip')
+$admin_address       = hiera('management_vip')
 $public_ssl_hash     = hiera('public_ssl')
 $public_address      = $public_ssl_hash['services'] ? {
   true    => $public_ssl_hash['hostname'],
@@ -11,7 +12,6 @@ $public_protocol     = $public_ssl_hash['services'] ? {
   true    => 'https',
   default => 'http',
 }
-$admin_address       = hiera('management_vip')
 $region              = pick($ceilometer_hash['region'], 'RegionOne')
 $password            = $ceilometer_hash['user_password']
 $auth_name           = pick($ceilometer_hash['auth_name'], 'ceilometer')
