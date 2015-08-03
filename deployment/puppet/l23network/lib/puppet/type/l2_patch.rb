@@ -24,7 +24,7 @@ Puppet::Type.newtype(:l2_patch) do
     end
 
     newproperty(:jacks, :array_matching => :all) do
-      desc "Patchcord jacks. Read-only. for debug purpose."
+      desc "Patchcord jacks. Read-only. for debug and internal usage only."
 
       def should_to_s(value)
         "#{value.join(':')}"
@@ -35,12 +35,34 @@ Puppet::Type.newtype(:l2_patch) do
       end
 
       def insync?(value)
-        should_to_s(value) == should_to_s(should)
+        should_to_s(value.sort) == should_to_s(should.sort)
       end
     end
 
     newproperty(:cross) do
       desc "Cross-system patch. Read-only. for debug purpose."
+    end
+
+    #newparam(:vlan_ids) do #, :array_matching => :all) do
+    newproperty(:vlan_ids, :array_matching => :all) do
+      desc "Array of 802.1q vlan IDs for patchcords ends. Actual only for OVS implementations"
+      defaultto [0,0]
+
+      validate do |val|
+        fail("Wrong 802.1q tag. Tag must be an integer in 2..4094 interval") if (val.to_i < 0 or val.to_i > 4094)
+      end
+
+      def should_to_s(value)
+        "#{value.join(':')}"
+      end
+      def is_to_s(value)
+        "#{value.join(':')}"
+      end
+
+      def insync?(value)
+        value == should
+      end
+
     end
 
     newproperty(:mtu) do
