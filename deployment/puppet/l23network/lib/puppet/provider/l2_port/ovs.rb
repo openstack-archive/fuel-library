@@ -82,7 +82,7 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
           vsctl('set', 'Port', @resource[:interface], "tag=#{@property_flush[:vlan_id].to_i}")
         else
           # remove 802.1q tag
-          vsctl('set', 'Port', @resource[:interface], "tag='[]'")
+          vsctl('set', 'Port', @resource[:interface], "tag=[]")
         end
       end
       @property_hash = resource.to_hash

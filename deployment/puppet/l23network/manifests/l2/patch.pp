@@ -6,14 +6,19 @@
 # [*bridges*]
 #   Bridges that will be connected.
 #
-# [*peers*]
-#   Patch port names for both bridges. must be array of two strings.
+# [*mtu*]
+#   Specify MTU value for patchcord.
+#
+# [*vlan_ids*]
+#   Specify 802.1q tag for each end of patchcord. Must be array of 2 integers.
+#   Default [0,0] -- untagged
 #
 define l23network::l2::patch (
   $bridges,
   $use_ovs         = $::l23network::use_ovs,
   $ensure          = present,
   $mtu             = undef,
+  $vlan_ids        = undef,
   $vendor_specific = undef,
   $provider        = undef,
 ) {
@@ -27,7 +32,7 @@ define l23network::l2::patch (
   # Architecture limitation.
   # We can't create more one patch between same bridges.
   $patch_name = get_patch_name($bridges)
-  $patch_jacks_names = get_pair_of_jack_names($bridges)
+  $patch_jacks_names = get_pair_of_jack_names($bridges, $provider)
 
   if ! defined(L2_patch[$patch_name]) {
     if $provider {
@@ -59,6 +64,7 @@ define l23network::l2::patch (
       bridges         => $bridges,
       use_ovs         => $use_ovs,
       jacks           => $patch_jacks_names,
+      vlan_ids        => $vlan_ids,
       mtu             => $mtu,
       vendor_specific => $vendor_specific,
       provider        => $provider
