@@ -9,11 +9,11 @@
 #   vip
 #
 # [*public_virtual_ip*]
-#   (required) String. This is the ipaddress to be used for the external facing
+#   (optional) String. This is the ipaddress to be used for the external facing
 #   vip
 #
 class openstack::ha::stats ( $internal_virtual_ip,
-                             $public_virtual_ip ) {
+		             $public_virtual_ip = undef ) {
   openstack::ha::haproxy_service { 'stats':
     public_virtual_ip      => $public_virtual_ip,
     internal_virtual_ip    => $internal_virtual_ip,
@@ -25,4 +25,3 @@ class openstack::ha::stats ( $internal_virtual_ip,
     },
   }
 }
-
