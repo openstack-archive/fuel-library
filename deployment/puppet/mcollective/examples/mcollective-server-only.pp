@@ -17,3 +17,5 @@ class { "mcollective::server":
     host     => $::mco_host,
     stomp    => false,
 }
+
+class { 'nailgun::mcollective': }
