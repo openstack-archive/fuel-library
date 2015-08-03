@@ -2,7 +2,6 @@ notice('MODULAR: heat.pp')
 
 prepare_network_config(hiera('network_scheme', {}))
 $management_vip           = hiera('management_vip')
-$public_vip               = hiera('public_vip')
 $heat_hash                = hiera_hash('heat', {})
 $rabbit_hash              = hiera_hash('rabbit_hash', {})
 $max_retries              = hiera('max_retries')
@@ -49,7 +48,7 @@ if $::operatingsystem == 'Ubuntu' {
 }
 
 class { 'openstack::heat' :
-  external_ip              => $public_vip,
+  external_ip              => $management_vip,
   keystone_auth            => pick($heat_hash['keystone_auth'], true),
   api_bind_host            => $bind_address,
   api_cfn_bind_host        => $bind_address,
