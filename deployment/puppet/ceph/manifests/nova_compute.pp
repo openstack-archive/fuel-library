@@ -1,12 +1,20 @@
 # configure the nova_compute parts if present
 class ceph::nova_compute (
-  $rbd_secret_uuid     = $::ceph::rbd_secret_uuid,
-  $user                = $::ceph::compute_user,
-  $compute_pool        = $::ceph::compute_pool,
-) {
+  $rbd_secret_uuid      = $::ceph::rbd_secret_uuid,
+  $user                 = $::ceph::compute_user,
+  $compute_pool         = $::ceph::compute_pool,
+  $libvirt_service_name = $::libvirt::params::libvirt_service_name,
+) inherits ceph::params {
 
   file {'/root/secret.xml':
     content => template('ceph/secret.erb')
+  }
+
+  if !defined(Service['libvirt'] ) {
+    service { 'libvirt':
+      name   => $libvirt_service_name,
+      ensure => 'running',
+    }
   }
 
   exec {'Set Ceph RBD secret for Nova':
@@ -24,5 +32,5 @@ class ceph::nova_compute (
   }
 
   File['/root/secret.xml'] ->
-  Exec['Set Ceph RBD secret for Nova']
+  Service['libvirt'] -> Exec['Set Ceph RBD secret for Nova']
 }
