@@ -8,8 +8,8 @@ describe manifest do
       contain_class('cinder::keystone::auth')
     end
 
-  public_vip           = Noop.hiera('public_vip')
-  public_ssl           = Noop.hiera_structure('public_ssl/services')
+    public_vip = Noop.hiera('public_vip')
+    public_ssl = Noop.hiera_structure('public_ssl/services')
 
   if public_ssl
     public_address  = Noop.hiera_structure('public_ssl/hostname')
@@ -19,6 +19,10 @@ describe manifest do
     public_protocol = 'http'
   end
   admin_address = Noop.hiera 'management_vip'
+  public_url    = "#{public_protocol}://#{public_address}:8776/v1/%(tenant_id)s"
+  admin_url     = "http://#{admin_address}:8776/v1/%(tenant_id)s"
+  public_url_v2 = "#{public_protocol}://#{public_address}:8776/v2/%(tenant_id)s"
+  admin_url_v2  = "http://#{admin_address}:8776/v2/%(tenant_id)s"
 
   password = Noop.hiera_structure 'cinder/user_password'
   auth_name = Noop.hiera_structure 'cinder/auth_name', 'cinder'
@@ -34,10 +38,12 @@ describe manifest do
       'configure_endpoint' => configure_endpoint,
       'configure_user'     => configure_user,
       'service_name'       => service_name,
-      'public_address'     => public_address,
-      'public_protocol'    => public_protocol,
-      'admin_address'      => admin_address,
-      'internal_address'   => admin_address,
+      'public_url'         => public_url,
+      'internal_url'       => admin_url,
+      'admin_url'          => admin_url,
+      'public_url_v2'      => public_url_v2,
+      'internal_url_v2'    => admin_url_v2,
+      'admin_url_v2'       => admin_url_v2,
       'region'             => region,
     )
   end
