@@ -34,6 +34,16 @@ if ($storage_hash['volumes_ceph'] or
   $use_ceph = false
 }
 
+if $::operatingsystem == 'Ubuntu' {
+  # Our libvirt-bin deb package (1.2.9 version) creates 'libvirtd' service on Ubuntu
+  if (versioncmp($::libvirt_package_version, '1.2.9') >= 0) {
+    $libvirt_service_name = 'libvirtd'
+  }
+}else {
+  include nova::params
+  $libvirt_service_name = $::nova::params::libvirt_service_name
+}
+
 if $use_ceph {
   $ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')
   $primary_mons              = keys($ceph_primary_monitor_node)
@@ -76,7 +86,9 @@ if $use_ceph {
     pgp_num       => $storage_hash['pg_num'],
   }
 
-  include ceph::nova_compute
+  class {'::ceph::nova_compute':
+    libvirt_service_name => $libvirt_service_name,
+  }
 
   if ($storage_hash['ephemeral_ceph']) {
      include ceph::ephemeral
