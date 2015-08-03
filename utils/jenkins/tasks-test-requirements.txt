@@ -1,1 +1,1 @@
-fuel-tasks-validator==6.1.0
+-e git://git.openstack.org/stackforge/fuel-tasklib#egg=fuel-tasklib
