@@ -43,25 +43,28 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
         # process 'cross' patch between OVS and LNX bridge
         peer = lnx_port_br_mapping[jack[:name]]
         next if peer.nil?
-        _bridges = [jack[:bridge], peer[:bridge]]  # no sort here!!! architecture limitation -- ovs brodge always first!
-        _tails   = [jack[:name], jack[:name]]
-        mtu      = File.open("/sys/class/net/#{jack[:name]}/mtu").read.chomp.to_i
+        _bridges  = [jack[:bridge], peer[:bridge]]  # no sort here!!! architecture limitation -- ovs brodge always first!
+        _tails    = [jack[:name], jack[:name]]
+        _vlan_ids = [(jack[:vlan_id].to_i or 0), 0]
+        mtu       = File.open("/sys/class/net/#{jack[:name]}/mtu").read.chomp.to_i
       else
         # process patch between two OVS bridges
         next if jack[:peer].nil?
         found_peer = jacks.select{|j| j[:name]==jack[:peer]}
         next if found_peer.empty?
         peer = found_peer[0]
-        _bridges = [jack[:bridge], peer[:bridge]].sort
-        _tails   = ([jack[:bridge], peer[:bridge]] == _bridges  ?  [jack[:name], peer[:name]]  :  [peer[:name], jack[:name]])
+        _bridges  = [jack[:bridge], peer[:bridge]].sort
+        _tails    = ([jack[:bridge], peer[:bridge]] == _bridges  ?  [jack[:name], peer[:name]]  :  [peer[:name], jack[:name]])
+        _vlan_ids = [(jack[:vlan_id].to_i or 0), (peer[:vlan_id].to_i or 0)]
       end
       props = {
         :ensure   => :present,
         :name     => L23network.get_patch_name([jack[:bridge],peer[:bridge]]),
         :bridges  => _bridges,
         :jacks    => _tails,
-        :mtu      => mtu,
+        :mtu      => mtu.to_s,
         :cross    => jack[:cross],
+        :vlan_ids => _vlan_ids.map{|x| x.to_s},
         :provider => 'ovs'
       }
       debug("PREFETCH properties for '#{props[:name]}': #{props}")
@@ -157,6 +160,22 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
           self.class.set_mtu(iface, @property_flush[:mtu])
         end
       end
+      if @property_flush.has_key? :vlan_ids
+        real_jack_count = @property_hash[:jacks].uniq.length
+        (0..real_jack_count-1).each do |i|
+          tag = @property_flush[:vlan_ids][i].to_i
+          if tag != 0
+            # set 802.1q tag to port
+            vsctl('set', 'Port', @property_hash[:jacks][i], "tag=#{tag}")
+          else
+            # remove 802.1q tag from port
+            vsctl('set', 'Port', @property_hash[:jacks][i], "tag=[]")
+          end
+        end
+        if real_jack_count == 1 and @property_hash[:vlan_ids][1] != @property_flush[:vlan_ids][1]
+          warn("You try to change vlan_id for LNX jack of cross-patch-cord, but it's impossible!")
+        end
+      end
       @property_hash = resource.to_hash
     end
   end
@@ -168,6 +187,13 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
   end
   def bridges=(val)
     @property_flush[:bridges] = self.class.get_bridges_order_for_patch(val)
+  end
+
+  def vlan_ids
+    @property_hash[:vlan_ids]
+  end
+  def vlan_ids=(val)
+    @property_flush[:vlan_ids] = val
   end
 
   def jacks

@@ -30,9 +30,8 @@ module L23network
     13
   end
 
-  def self.get_ovs_jack_name(bridge)
-    # bridges should be an array of two string
-    tail = bridge[0..ovs_jack_name_len-1]
+  def self.get_ovs_jack_name(bridge_name)
+    tail = bridge_name[0..ovs_jack_name_len-1]
     "p_#{tail}"
   end
 
@@ -40,13 +39,13 @@ module L23network
     11
   end
 
-  def self.get_lnx_jack_name(bridge, num=0)
-    # bridges should be an array of two string
-    tail = bridge[0..lnx_jack_name_len-1]
+  def self.get_lnx_jack_name(bridge_name, num=0)
+    tail = bridge_name[0..lnx_jack_name_len-1]
     "p_#{tail}-#{num}"
   end
 
-  def self.get_pair_of_jack_names(bridges)
+  def self.get_pair_of_jack_names(bridges, provider_name='')
+    # ideally, bridges should be an array of two string
     if bridges.is_a? String
       j1 = get_lnx_jack_name(bridges,0)
       j2 = get_lnx_jack_name(bridges,1)
@@ -54,8 +53,13 @@ module L23network
       j1 = get_lnx_jack_name(bridges[0],0)
       j2 = get_lnx_jack_name(bridges[0],1)
     else
-      j1 = get_lnx_jack_name(bridges[0],0)
-      j2 = get_lnx_jack_name(bridges[1],1)
+      if provider_name == 'ovs'
+        j1 = get_ovs_jack_name(bridges[0])
+        j2 = get_ovs_jack_name(bridges[1])
+      else
+        j1 = get_lnx_jack_name(bridges[0],0)
+        j2 = get_lnx_jack_name(bridges[1],1)
+      end
     end
     return [j1, j2]
   end
