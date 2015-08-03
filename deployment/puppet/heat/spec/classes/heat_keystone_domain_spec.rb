@@ -18,17 +18,7 @@ describe 'heat::keystone::domain' do
       is_expected.to contain_heat_config('DEFAULT/stack_domain_admin').with_value(params[:domain_admin])
       is_expected.to contain_heat_config('DEFAULT/stack_domain_admin_password').with_value(params[:domain_password])
       is_expected.to contain_heat_config('DEFAULT/stack_domain_admin_password').with_secret(true)
-    end
-
-    it 'should configure heat domain id' do
-      is_expected.to contain_heat_domain_id_setter('heat_domain_id').with(
-        :ensure           => 'present',
-        :domain_name      => params[:domain_name],
-        :auth_url         => params[:auth_url],
-        :auth_username    => params[:keystone_admin],
-        :auth_password    => params[:keystone_password],
-        :auth_tenant_name => params[:keystone_tenant]
-      )
+      is_expected.to contain_heat_config('DEFAULT/stack_user_domain_name').with_value(params[:domain_name])
     end
 
     it 'should exec helper script' do
