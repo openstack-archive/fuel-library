@@ -68,6 +68,8 @@ $revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
 $enabled = true
 $ssl = false
 
+$vhost_limit_request_field_size = 'LimitRequestFieldSize 81900'
+
 $rabbit_password     = $rabbit_hash['password']
 $rabbit_user         = $rabbit_hash['user']
 $rabbit_hosts        = split(hiera('amqp_hosts',''), ',')
@@ -133,10 +135,11 @@ class { 'osnailyfacter::apache':
 }
 
 class { 'keystone::wsgi::apache':
-  priority => '05',
-  threads  => 1,
-  workers  => min(max($::processorcount,2), 24),
-  ssl      => $ssl,
+  priority              => '05',
+  threads               => 1,
+  workers               => min(max($::processorcount,2), 24),
+  ssl                   => $ssl,
+  vhost_custom_fragment => $vhost_limit_request_field_size,
 
   wsgi_script_ensure => $::osfamily ? {
     'RedHat'       => 'link',
