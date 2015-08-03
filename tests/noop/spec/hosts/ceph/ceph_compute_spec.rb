@@ -22,6 +22,7 @@ describe manifest do
       it { should contain_ceph__pool('compute').that_requires('Class[ceph::conf]') }
       it { should contain_ceph__pool('compute').that_comes_before('Class[ceph::nova_compute]') }
       it { should contain_class('ceph::nova_compute').that_requires('Ceph::Pool[compute]') }
+      it { should contain_exec('Set Ceph RBD secret for Nova').that_requires('Service[libvirt]')}
 
       if storage_hash['ephemeral_ceph']
         it { should contain_class('ceph::ephemeral') }
