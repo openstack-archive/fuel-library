@@ -81,6 +81,7 @@ module L23network
       when "add-patch" then {
         :name            => "unnamed", # calculated later
         :bridges         => [],
+        :vlan_ids        => [0, 0],
         :mtu             => nil,
         :vendor_specific => nil,
         :provider        => def_provider
