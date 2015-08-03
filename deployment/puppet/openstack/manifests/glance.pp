@@ -125,9 +125,9 @@ class openstack::glance (
   }
 
   glance_api_config {
-    'database/sql_max_pool_size':          value => $max_pool_size;
-    'database/sql_max_retries':            value => $max_retries;
-    'database/sql_max_overflow':           value => $max_overflow;
+    'database/max_pool_size':              value => $max_pool_size;
+    'database/max_retries':                value => $max_retries;
+    'database/max_overflow':               value => $max_overflow;
     'DEFAULT/delayed_delete':              value => 'False';
     'DEFAULT/scrub_time':                  value => '43200';
     'DEFAULT/scrubber_datadir':            value => '/var/lib/glance/scrubber';
@@ -164,9 +164,9 @@ class openstack::glance (
   }
 
   glance_registry_config {
-    'database/sql_max_pool_size':     value => $max_pool_size;
-    'database/sql_max_retries':       value => $max_retries;
-    'database/sql_max_overflow':      value => $max_overflow;
+    'database/max_pool_size':         value => $max_pool_size;
+    'database/max_retries':           value => $max_retries;
+    'database/max_overflow':          value => $max_overflow;
     'keystone_authtoken/signing_dir': value => '/tmp/keystone-signing-glance';
   }
 
