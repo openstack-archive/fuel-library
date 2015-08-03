@@ -30,3 +30,8 @@ mod 'stdlib',
 mod 'concat',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-concat.git',
     :ref => '1.2.3'
+
+# Pull in puppetlabs-inifile
+mod 'inifile',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-inifile.git',
+    :ref => '1.1.3'
