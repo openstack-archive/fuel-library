@@ -22,6 +22,9 @@ describe manifest do
           'on_controller'    => 'true',
         )
       end
+      it 'should configure OS ENDPOINT TYPE for ceilometer' do
+        should contain_ceilometer_config('service_credentials/os_endpoint_type').with(:value => 'internalURL')
+      end
     end
 
   end # end of shared_examples
