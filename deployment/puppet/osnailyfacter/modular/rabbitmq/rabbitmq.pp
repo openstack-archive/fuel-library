@@ -77,6 +77,9 @@ if $queue_provider == 'rabbitmq' {
       'mnesia_table_loading_timeout' => $mnesia_table_loading_timeout,
     }
   )
+
+  $thread_pool_calc = min(100,max(12*$physicalprocessorcount,30))
+
   if $deployment_mode == 'ha_compact' {
     $rabbit_pid_file                   = '/var/run/rabbitmq/p_pid'
     } else {
@@ -84,7 +87,7 @@ if $queue_provider == 'rabbitmq' {
   }
   $environment_variables = hiera('rabbit_environment_variables',
     {
-      'SERVER_ERL_ARGS'     => '"+K true +A30 +P 1048576"',
+      'SERVER_ERL_ARGS'     => "\"+K true +A${thread_pool_calc} +P 1048576\"",
       'PID_FILE'            => $rabbit_pid_file,
     }
   )
