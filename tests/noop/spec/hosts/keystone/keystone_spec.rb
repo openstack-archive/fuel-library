@@ -11,19 +11,12 @@ describe manifest do
     memcache_roles       = Noop.hiera 'memcache_roles'
     memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
 
-    let(:scope) do
-      scope = PuppetlabsSpec::PuppetInternals.scope
-      Puppet::Parser::Functions.autoloader.loadall unless scope.respond_to? :get_nodes_hash_by_roles
-      Puppet::Parser::Functions.autoloader.loadall unless scope.respond_to? :get_node_to_ipaddr_map_by_network_role
-      scope
-    end
-
     let(:memcache_nodes) do
-      scope.function_get_nodes_hash_by_roles [network_metadata, memcache_roles]
+      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
     end
 
     let(:memcache_address_map) do
-      scope.function_get_node_to_ipaddr_map_by_network_role [memcache_nodes, 'mgmt/memcache']
+      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
     end
 
     let (:memcache_servers) do
