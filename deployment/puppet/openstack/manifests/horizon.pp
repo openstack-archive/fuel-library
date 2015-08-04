@@ -43,6 +43,7 @@ class openstack::horizon (
   $cache_backend           = undef,
   $cache_options           = undef,
   $log_handler             = 'file',
+  $custom_theme_path       = undef,
 ) {
 
   if $debug { #syslog and nondebug case
@@ -87,6 +88,7 @@ class openstack::horizon (
     secure_cookies          => false,
     log_handler             => $log_handler,
     neutron_options         => $neutron_options,
+    custom_theme_path       => $custom_theme_path,
   }
 
   # Performance optimization for wsgi
