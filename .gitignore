@@ -29,3 +29,5 @@ Gemfile.lock
 /rdoc
 
 task_graph.png
+
+*.log
