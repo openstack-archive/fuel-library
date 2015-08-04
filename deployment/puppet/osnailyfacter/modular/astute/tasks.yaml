@@ -103,8 +103,8 @@
   required_for: [pre_deployment_end]
   requires: [upload_core_repos]
   parameters:
-    src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/
-    dst: /etc/puppet
+    src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/modules/
+    dst: /etc/puppet/modules
     timeout: 180
 
 
