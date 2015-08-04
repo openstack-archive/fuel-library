@@ -75,21 +75,30 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       # FLUSH changed properties
       if @property_flush.has_key? :bond_master
         bond = @old_property_hash[:bond_master]
+        if self.class.ipaddr_exist? @resource[:interface]
+          # remove all IP addresses from member of bond. This should be done on device in UP state
+          iproute('addr', 'flush', 'dev', @resource[:interface])
+        end
         # putting interface to the down-state, because add/remove upped interface impossible. undocumented kern.behavior.
-        iproute('--force', 'link', 'set', 'dev', @resource[:interface], 'down')
-        if bond and bond != :absent
+        iproute('--force', 'link', 'set', 'down', 'dev', @resource[:interface])
+        if bond and bond != :absent and File.exist?("/sys/class/net/#{@resource[:interface]}/master/bonding/slaves")
           # remove interface from bond, if one included to it
           debug("Remove interface '#{@resource[:interface]}' from bond '#{bond}'.")
           File.open("/sys/class/net/#{@resource[:interface]}/master/bonding/slaves", "a") {|f| f << "-#{@resource[:interface]}"}
         end
         if ! @property_flush[:bond_master].nil? and @property_flush[:bond_master] != :absent
           # add interface as slave to bond
-          debug("Add interface '#{@resource[:interface]}' to bond '#{@property_flush[:bond_master]}'.")
-          File.open("/sys/class/net/#{@property_flush[:bond_master]}/bonding/slaves", "a") {|f| f << "+#{@resource[:interface]}"}
+          if File.exist? "/sys/class/net/#{@property_flush[:bond_master]}/bonding/slaves"
+            # If port is bond member and bond still doesn't exist we skip the adding to bond action
+            # Bond will do it by itself during bond creation
+            debug("Add interface '#{@resource[:interface]}' to bond '#{@property_flush[:bond_master]}'.")
+            File.open("/sys/class/net/#{@property_flush[:bond_master]}/bonding/slaves", "a") {|f| f << "+#{@resource[:interface]}"}
+          end
         else
           # port no more member of any bonds
           @property_flush[:port_type] = nil
         end
+        iproute('--force', 'link', 'set', 'up', 'dev', @resource[:interface])
       end
       if @property_flush.has_key? :bridge
         # get actual bridge-list. We should do it here,
