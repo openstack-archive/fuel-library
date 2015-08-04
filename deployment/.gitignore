@@ -6,3 +6,4 @@ puppet/stdlib
 puppet/concat
 puppet/inifile
 puppet/xinetd
+puppet/ssh
