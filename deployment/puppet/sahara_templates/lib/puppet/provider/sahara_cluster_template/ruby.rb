@@ -1,6 +1,10 @@
-require 'rubygems'
-require 'openstack'
-require File.join File.dirname(__FILE__), '../sahara_openstack.rb'
+begin
+  require 'rubygems'
+  require 'openstack'
+  require File.join File.dirname(__FILE__), '../sahara_openstack.rb'
+rescue LoadError => e
+  puts e.message
+end
 
 Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
   attr_accessor :property_hash

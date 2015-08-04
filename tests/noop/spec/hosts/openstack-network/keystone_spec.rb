@@ -13,7 +13,7 @@ describe manifest do
       public_address  = public_vip
       public_protocol = 'http'
     end
-    admin_address       = Noop.hiera_structure('management_vip')
+    admin_address       = Noop.hiera('management_vip')
     admin_protocol      = 'http'
     region              = Noop.hiera_structure('quantum_settings/region', 'RegionOne')
     password            = Noop.hiera_structure('quantum_settings/keystone/admin_password')

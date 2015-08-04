@@ -20,6 +20,7 @@ group :development, :test do
   gem 'beaker-puppet_install_helper', :require => false
   gem 'json'
   gem 'webmock'
+  gem 'openstack'
 end
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']

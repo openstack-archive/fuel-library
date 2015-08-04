@@ -3,19 +3,19 @@ require 'shared-examples'
 manifest = 'roles/mongo.pp'
 
 describe manifest do
-  before (:each) do
-    Puppet::Parser::Functions::newfunction(:file, :arity => -2, :type => :rvalue) do |vals|
-      return 'key' if vals.first == '/var/lib/astute/mongodb/mongodb.key'
-      raise Puppet::ParseError, "Could not find any files from #{vals.join(", ")}"
+
+  before(:each) do
+    Noop.puppet_function_load :file
+    MockFunction.new(:file) do |function|
+      allow(function).to receive(:call).with(['/var/lib/astute/mongodb/mongodb.key']).and_return('key')
     end
   end
 
   shared_examples 'catalog' do
-
     debug = Noop.hiera 'debug'
     use_syslog = Noop.hiera 'use_syslog'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
-    nodes_hash = Noop.hiera_structure 'nodes'
+    nodes_hash = Noop.hiera 'nodes'
 
     it 'should configure MongoDB only with replica set' do
       should contain_class('mongodb::server').with('replset' => 'ceilometer')

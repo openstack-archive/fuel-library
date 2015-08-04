@@ -8,19 +8,9 @@ describe manifest do
       Noop.hiera('network_scheme', {}).fetch('endpoints', {})
     end
 
-    let(:scope) do
-      scope = PuppetlabsSpec::PuppetInternals.scope
-      Puppet::Parser::Functions.autoloader.loadall unless scope.respond_to? :function_direct_networks
-      scope
-    end
-
-    let(:other_networks) do
-      scope.function_direct_networks [endpoints]
-    end
-
     it "should delcare cluster::haproxy with correct other_networks" do
       expect(subject).to contain_class('cluster::haproxy').with(
-        'other_networks' => other_networks,
+        'other_networks' => Noop.puppet_function('direct_networks', endpoints),
       )
     end
 

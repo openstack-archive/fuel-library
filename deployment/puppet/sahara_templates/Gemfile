@@ -1,14 +1,14 @@
 source 'https://rubygems.org'
 
 group :development, :test do
-  gem 'puppetlabs_spec_helper'
-  gem 'puppet-lint', '~> 0.3.2'
-  gem 'rspec-puppet', '~> 2.0.0'
-  gem 'rspec-puppet-utils', '~> 2.0.0'
+  gem 'puppetlabs_spec_helper', :require => false
+  gem 'rspec-puppet', '~> 2.1.0', :require => false
+
+  gem 'beaker-rspec', :require => false
+  gem 'beaker-puppet_install_helper', :require => false
+  gem 'json'
+  gem 'webmock'
   gem 'openstack', :require => false
-  gem 'netaddr'
-  gem 'deep_merge'
-  gem 'pry', :require => false
 end
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']
@@ -16,6 +16,3 @@ if puppetversion = ENV['PUPPET_GEM_VERSION']
 else
   gem 'puppet', :require => false
 end
-
-# vim:ft=ruby
-
