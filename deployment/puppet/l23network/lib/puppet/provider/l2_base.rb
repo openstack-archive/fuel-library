@@ -597,6 +597,17 @@ class Puppet::Provider::L2_base < Puppet::Provider
     end
   end
 
+  def self.ipaddr_exist?(if_name)
+    rv = false
+    iproute('-o', 'addr', 'show', 'dev', if_name).split(/\n+/).map{|l| l.split(/\s+/)}.each do |line|
+      if line[2].match(/^inet\d?$/)
+        rv=true
+        break
+      end
+    end
+    return rv
+  end
+
   # ---------------------------------------------------------------------------
 
   def self.get_ethtool_name_commands_mapping

@@ -90,6 +90,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             iproute('link', 'set', 'dev', slave, 'down')  # need by kernel requirements by design. undocumented :(
             debug("Add interface '#{slave}' to bond '#{@resource[:bond]}'")
             File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "+#{slave}"}
+            iproute('link', 'set', 'dev', slave, 'up')
           end
         end
       end
