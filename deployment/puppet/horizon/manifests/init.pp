@@ -270,6 +270,7 @@ class horizon(
   $vhost_extra_params                  = undef,
   $secure_cookies                      = false,
   $django_session_engine               = undef,
+  $custom_theme_path                   = undef,
 ) {
 
   include ::horizon::params
