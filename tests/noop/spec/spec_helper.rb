@@ -113,6 +113,8 @@ module Noop
     false
   end
 
+  ## Hiera ##
+
   def self.hiera_config
     {
         :backends=> [
@@ -137,7 +139,7 @@ module Noop
     hiera_object.lookup key, default, {}
   end
 
-  def self.hiera_structure(key, default=nil)
+  def self.hiera_structure(key, default=nil, separator='/')
     path_lookup = lambda do |data, path, default_value|
       break default_value unless data
       break data unless path.is_a? Array and path.any?
@@ -154,11 +156,13 @@ module Noop
       path_lookup.call data[key], path, default_value
     end
 
-    path = key.split '/'
+    path = key.split separator
     key = path.shift
     data = hiera key
     path_lookup.call data, path, default
   end
+
+  ## Overrides ##
 
   def self.hiera_puppet_override
     class << HieraPuppet
@@ -167,6 +171,18 @@ module Noop
       end
     end
   end
+
+  def self.puppet_debug_override
+    Puppet::Util::Log.level = :debug
+    Puppet::Util::Log.newdestination(:console)
+  end
+
+  def self.setup_overrides
+    hiera_puppet_override
+    puppet_debug_override if ENV['SPEC_PUPPET_DEBUG']
+  end
+
+  ## Facts ##
 
   def self.ubuntu_facts
     {
@@ -206,6 +222,8 @@ module Noop
     }
   end
 
+  ## Manifest processing ##
+
   def self.modular_manifests_node_dir
     '/etc/puppet/modules/osnailyfacter/modular'
   end
@@ -227,6 +245,8 @@ module Noop
   def self.manifest
     @manifest
   end
+
+  ## Test selections ##
 
   def self.test_ubuntu?
     return true unless ENV['SPEC_TEST_UBUNTU'] or ENV['SPEC_TEST_CENTOS']
@@ -288,13 +308,18 @@ module Noop
     end
   end
 
+  ## Catalog helpers ##
+  # TODO: move to Utils
+
   def self.show_catalog(subject)
     catalog = subject
     catalog = subject.call if subject.is_a? Proc
+    puts '===== catalog show start ====='
     catalog.resources.each do |resource|
       puts '=' * 70
       puts resource.to_manifest
     end
+    puts '===== catalog show end ====='
   end
 
   def self.resource_test_template(binding)
@@ -313,6 +338,7 @@ module Noop
   end
 
   def self.catalog_to_spec(subject)
+    puts '===== spec generate start ====='
     catalog = subject
     catalog = subject.call if subject.is_a? Proc
     catalog.resources.each do |resource|
@@ -320,10 +346,32 @@ module Noop
       next if resource.type == 'Class' and %w(Settings main).include? resource.title.to_s
       puts resource_test_template binding
     end
+    puts '===== spec generate end ====='
+  end
+
+  def self.resource_parameter_value(subject, resource_type, resource_name, parameter)
+    catalog = subject
+    catalog = subject.call if subject.is_a? Proc
+    resource = catalog.resource resource_type, resource_name
+    fail "No resource type: '#{resource_type}' name: '#{resource_name}' in the catalog!" unless resource
+    resource[parameter.to_sym]
+  end
+
+  def self.puppet_function(name, *args)
+    name = name.to_sym
+    @puppet_scope = PuppetlabsSpec::PuppetInternals.scope unless @puppet_scope
+    Puppet::Parser::Functions.autoloader.load name unless Puppet::Parser::Functions.autoloader.loaded? name
+    function_name = "function_#{name}".to_sym
+    fail "Could not load Puppet function '#{name}'!" unless Puppet::Parser::Functions.autoloader.loaded? name or @puppet_scope.respond_to? function_name
+    @puppet_scope.send function_name, args
+  end
+
+  def self.puppet_scope
+    @puppet_scope
   end
 
   def self.debug(msg)
-    puts msg if ENV['SPEC_RSPEC_DEBUG']
+    puts msg if ENV['SPEC_PUPPET_DEBUG']
   end
 
   def self.current_spec(example)
@@ -335,6 +383,8 @@ module Noop
     end
     example_group.call example.metadata
   end
+
+  ## Misc utils ##
 
   module Utils
     def self.filter_nodes(hash, name, value)
@@ -379,28 +429,9 @@ RSpec.configure do |c|
     Facter::Util::Loader.any_instance.stubs(:load_all)
     Facter.clear
     Facter.clear_messages
-
-    # Puppet logs creation
-    if Noop.puppet_logs_dir
-      Puppet::Util::Log.newdestination(Noop.puppet_log_file)
-      Puppet::Util::Log.level = :debug
-    end
-  end
-
-  c.after :each do
-    # Puppet logs cleanup
-    if Noop.puppet_logs_dir
-      Puppet::Util::Log.close_all
-      # Remove puppet log if there are no compilation errors
-      unless example.exception
-        File.unlink Noop.puppet_log_file if File.file? Noop.puppet_log_file
-      end
-    end
   end
 
   c.mock_with :rspec
 
 end
-
-Noop.hiera_puppet_override
 
