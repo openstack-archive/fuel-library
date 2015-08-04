@@ -283,6 +283,9 @@ EXTERNAL_MONITORING = <%= @horizon_app_links %>
 #     'key': my_awesome_callback_method,
 #     'reverse': False,
 # }
+<% if @custom_theme_path %>
+    CUSTOM_THEME_PATH = <%= @custom_theme_path %>
+<% end %>
 
 # The Horizon Policy Enforcement engine uses these values to load per service
 # policy rule files. The content of these files should match the files the
