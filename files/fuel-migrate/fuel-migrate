@@ -5,7 +5,7 @@ config_bundle="fvm_disk_size fvm_name fvm_ram fvm_cpu migrate_log fuel_astute  d
     admin_net_br admin_net_b_type other_net_bridges os_swap os_root  os_var os_varlibdocker \
     os_varlog fm_reboot del_vm max_worktime"
 work_bundle="dkvm_ip admin_net_ip_bs dkvm_uri admin_net_ip admin_net_if   admin_net_nm \
-    src_disk dst_disk s_base start_time"
+    src_disk dst_disk s_base start_time fvm_admin_mac admin_net_mac"
 
 
 
@@ -309,7 +309,8 @@ fix_config(){
     ssh "${admin_net_ip_bs}" "mount ${dst_disk}3  ${s_base}/boot/"
     ssh "${admin_net_ip_bs}" "chroot ${s_base} grub-install --recheck ${dst_disk}"
     # fix configs
-    ssh "${admin_net_ip_bs}" "sed  -i '/HWADDR=/d' ${s_base}/etc/sysconfig/network-scripts/ifcfg-*"
+    ssh "${admin_net_ip_bs}" "sed -i '/HWADDR=/d' ${s_base}/etc/sysconfig/network-scripts/ifcfg-*"
+    ssh "${admin_net_ip_bs}" "sed -i 's/${admin_net_mac}/${fvm_admin_mac}/' ${s_base}${fuel_astute}"
     ssh "${admin_net_ip_bs}" "cp  /etc/udev/rules.d/70-persistent-net.rules  ${s_base}/etc/udev/rules.d/70-persistent-net.rules"
     ssh "${admin_net_ip_bs}" "umount ${s_base}/var/log ${s_base}/var/lib/docker ${s_base}/var ${s_base}/boot ${s_base}/dev ${s_base}" || true
 }
@@ -472,6 +473,7 @@ else
     admin_net_ip="$(yaml_var $fuel_astute ADMIN_NETWORK ipaddress)"
     admin_net_if="$(yaml_var $fuel_astute ADMIN_NETWORK interface)"
     admin_net_nm="$(yaml_var $fuel_astute ADMIN_NETWORK netmask)"
+    admin_net_mac="$(yaml_var $fuel_astute ADMIN_NETWORK mac)"
     admin_net_br="${admin_net_br:-br-fw-admin}"
     s_base=/tmp/root
     fm_reboot="${fm_reboot:-yes}"
