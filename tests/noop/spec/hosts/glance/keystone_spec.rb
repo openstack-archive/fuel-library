@@ -15,13 +15,14 @@ describe manifest do
       public_address  = public_vip
       public_protocol = 'http'
     end
-    auth_name           = Noop.hiera_structure('glance_hash/auth_name', 'glance')
-    password            = Noop.hiera_structure('glance_hash/user_password')
-    configure_endpoint  = Noop.hiera_structure('glance_hash/configure_endpoint', true)
-    configure_user      = Noop.hiera_structure('glance_hash/configure_user', true)
-    configure_user_role = Noop.hiera_structure('glance_hash/configure_user_role', true)
-    region              = Noop.hiera_structure('glance_hash/region', 'RegionOne')
-    service_name        = Noop.hiera_structure('glance_hash/service_name', 'glance')
+
+    auth_name           = Noop.hiera_structure('glance/auth_name', 'glance')
+    password            = Noop.hiera_structure('glance/user_password')
+    configure_endpoint  = Noop.hiera_structure('glance/configure_endpoint', true)
+    configure_user      = Noop.hiera_structure('glance/configure_user', true)
+    configure_user_role = Noop.hiera_structure('glance/configure_user_role', true)
+    region              = Noop.hiera_structure('glance/region', 'RegionOne')
+    service_name        = Noop.hiera_structure('glance/service_name', 'glance')
     public_url          = "#{public_protocol}://#{public_address}:9292"
     admin_url           = "http://#{admin_address}:9292"
 
@@ -31,7 +32,7 @@ describe manifest do
         'password'            => password,
         'configure_endpoint'  => configure_endpoint,
         'configure_user'      => configure_user,
-        'configure_user_role' => configure_user,
+        'configure_user_role' => configure_user_role,
         'service_name'        => service_name,
         'public_url'          => public_url,
         'admin_url'           => admin_url,

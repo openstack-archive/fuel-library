@@ -3,31 +3,43 @@ require 'puppetx/l23_hash_tools'
 
 module Puppet::Parser::Functions
   newfunction(:generate_vips) do |args|
+    debug 'Call: generate_vips'
+
     network_metadata = function_hiera_hash ['network_metadata']
     raise Puppet::ParseError, 'Missing or incorrect network_metadata in Hiera!' unless network_metadata.is_a? Hash
+
     this_node_role = function_hiera ['role']
     raise Puppet::ParseError, "Could not get this node's role from Hiera!" if this_node_role.empty?
 
+    network_scheme   = function_hiera_hash ['network_scheme']
+    raise Puppet::ParseError, 'Missing or incorrect network_scheme in Hiera!' unless network_scheme.is_a? Hash
+
     default_node_roles = %w(controller primary-controller)
 
-    # prepare network configuration if it was not prepared
     unless L23network::Scheme.has_config?
-      network_scheme   = function_hiera_hash ['network_scheme']
-      raise Puppet::ParseError, 'Missing or incorrect network_scheme in Hiera!' unless network_scheme.is_a? Hash
+      debug 'Running "prepare_network_config"'
       function_prepare_network_config [ network_scheme ]
     end
 
     vips = network_metadata.fetch 'vips', {}
 
+    debug "VIPS structure: #{vips.inspect}"
+
     vips.each do |name, parameters|
+
+      debug "Processing VIP: '#{name}' with parameters: #{parameters.inspect}"
       network_role = parameters['network_role']
 
-      # skip vip without network role defined
-      next unless network_role
+      unless network_role
+        debug "Skipping vip: '#{name}' because it's 'network_role' parameter is not defined!"
+        next
+      end
       node_roles = parameters.fetch 'node_roles', default_node_roles
 
-      # skip vip if vip is not enables on thie node
-      next unless node_roles.include? this_node_role
+      unless node_roles.include? this_node_role
+        debug "Skipping vip: '#{name}' because it's 'node_roles' parameter doesn't include this node's role: #{this_node_role}!"
+        next
+      end
 
       # create a hash of vip parameters
       vip = {}
@@ -62,7 +74,7 @@ module Puppet::Parser::Functions
       # TODO: get_network_role_property should support gateway and metric
       # gateway = function_get_network_role_property [network_role, 'gateway']
       # gateway_metric = function_get_network_role_property [network_role, 'gateway_metric']
-      
+
       gateway = network_scheme.fetch('endpoints', {}).fetch(vip['nic'], {}).fetch('gateway', nil) unless vip['gateway']
 
       if gateway
