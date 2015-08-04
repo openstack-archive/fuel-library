@@ -34,6 +34,7 @@ describe manifest do
       should contain_class('nova::keystone::auth').with('ec2_public_url' => ec2_public_url)
       should contain_class('nova::keystone::auth').with('ec2_admin_url' => ec2_admin_url)
       should contain_class('nova::keystone::auth').with('ec2_internal_url' => ec2_internal_url)
+      should contain_class('nova::keystone::auth').with('configure_endpoint_v3' => false)
     end
   end
 
