@@ -66,6 +66,7 @@ define cinder::backend::rbd (
     "${name}/rbd_pool":                         value => $rbd_pool;
     "${name}/rbd_max_clone_depth":              value => $rbd_max_clone_depth;
     "${name}/rbd_flatten_volume_from_snapshot": value => $rbd_flatten_volume_from_snapshot;
+    "${name}/host":                             value => "rbd:${rbd_pool}";
   }
 
   if $rbd_secret_uuid {
