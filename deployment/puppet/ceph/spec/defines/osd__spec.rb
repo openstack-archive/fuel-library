@@ -31,8 +31,25 @@ describe 'ceph::osds::osd', :type => :define do
 
   context 'Simple test with journal' do
     let(:title) { '/dev/sdd:/dev/journal' }
-    it { should contain_exec("ceph-deploy osd prepare test.example:/dev/sdd:/dev/journal") }
-    it { should contain_exec("ceph-deploy osd activate test.example:/dev/sdd:/dev/journal") }
+    it { should contain_exec("ceph-deploy osd prepare test.example:/dev/sdd:/dev/journal").with(
+      'command'   => 'ceph-deploy osd prepare test.example:/dev/sdd:/dev/journal',
+      'returns'   => 0,
+      'timeout'   => 0,
+      'tries'     => 2,
+      'try_sleep' => 1,
+      'logoutput' => true,
+      'unless'    => "grep -q /dev/sdd /proc/mounts",
+      )
+    }
+    it { should contain_exec("ceph-deploy osd activate test.example:/dev/sdd:/dev/journal").with(
+      'command'   => 'ceph-deploy osd activate test.example:/dev/sdd:/dev/journal',
+      'try_sleep' => 10,
+      'tries'     => 3,
+      'logoutput' => true,
+      'timeout'   => 0,
+      'unless'    => "ceph osd dump | grep -q \"osd.$(sed -nEe 's|/dev/sdd\\ .*ceph-([0-9]+).*$|\\1|p' /proc/mounts)\\ up\\ .*\\ in\\ \"",
+      )
+    }
   end
 
 end
