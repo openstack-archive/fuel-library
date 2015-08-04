@@ -3,7 +3,7 @@ notice('MODULAR: murano/keystone.pp')
 $murano_hash                = hiera_hash('murano_hash', {})
 $public_ip                  = hiera('public_vip')
 $management_ip              = hiera('management_vip')
-$service_endpoint           = hiera('service_endpoint', $management_ip)
+$service_endpoint           = hiera('service_endpoint')
 $public_ssl_hash            = hiera('public_ssl')
 $region                     = hiera('region', 'RegionOne')
 
