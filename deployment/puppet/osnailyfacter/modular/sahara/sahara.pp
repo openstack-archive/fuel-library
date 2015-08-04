@@ -102,6 +102,11 @@ if $sahara_hash['enabled'] {
   }
 
   if $primary_controller {
+    haproxy_backend_status { 'keystone' :
+      name  => 'keystone-1',
+      url   => $haproxy_stats_url,
+    }
+
     class { 'sahara_templates::create_templates' :
       use_neutron   => $use_neutron,
       auth_user     => $access_admin['user'],
@@ -110,7 +115,9 @@ if $sahara_hash['enabled'] {
       auth_uri      => "${public_protocol}://${public_address}:5000/v2.0/",
     }
 
-    Haproxy_backend_status['sahara'] -> Class['sahara_templates::create_templates']
+    Haproxy_backend_status['keystone'] ->
+      Haproxy_backend_status['sahara'] ->
+        Class['sahara_templates::create_templates']
   }
 
   Firewall[$firewall_rule] -> Class['sahara::api']

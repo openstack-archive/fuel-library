@@ -107,6 +107,9 @@ describe manifest do
           'auth_tenant'   => auth_tenant,
           )
         end
+
+        it { should contain_haproxy_backend_status('keystone').that_comes_before('Haproxy_backend_status[sahara]') }
+        it { should contain_haproxy_backend_status('sahara').that_comes_before('Class[sahara_templates::create_templates]') }
       end
     end
   end
