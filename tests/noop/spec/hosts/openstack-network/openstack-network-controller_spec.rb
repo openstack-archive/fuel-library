@@ -9,7 +9,7 @@ describe manifest do
 
     use_neutron = Noop.hiera 'use_neutron'
     ceilometer_enabled = Noop.hiera_structure 'ceilometer/enabled'
-    service_endpoint   = Noop.hiera_structure 'service_endpoint'
+    service_endpoint   = Noop.hiera 'service_endpoint'
 
     # Network
     if use_neutron
