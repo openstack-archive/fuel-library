@@ -9,7 +9,7 @@ describe 'cinder::volume::rbd' do
       :rbd_ceph_conf                    => '/foo/boo/zoo/ceph.conf',
       :rbd_flatten_volume_from_snapshot => true,
       :volume_tmp_dir                   => '/foo/tmp',
-      :rbd_max_clone_depth              => '0'
+      :rbd_max_clone_depth              => '0',
     }
   end
 
@@ -34,6 +34,7 @@ describe 'cinder::volume::rbd' do
       is_expected.to contain_cinder_config('DEFAULT/rbd_pool').with_value(req_params[:rbd_pool])
       is_expected.to contain_cinder_config('DEFAULT/rbd_user').with_value(req_params[:rbd_user])
       is_expected.to contain_cinder_config('DEFAULT/rbd_secret_uuid').with_value(req_params[:rbd_secret_uuid])
+      is_expected.to contain_cinder_config('DEFAULT/host').with_value('rbd:'"#{req_params[:rbd_pool]}")
       is_expected.to contain_file('/etc/init/cinder-volume.override').with(:ensure => 'present')
       is_expected.to contain_file_line('set initscript env').with(
         :line    => /env CEPH_ARGS=\"--id test\"/,
