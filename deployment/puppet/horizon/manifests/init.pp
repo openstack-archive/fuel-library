@@ -222,6 +222,9 @@
 #      ['http://region-2.example.com:5000/v2.0', 'Region-2']
 #    ]
 #  }
+#  [*custom_theme_path*]
+#  The directory location for the theme (e.g., "static/themes/blue")
+#  Default to undefined
 #
 class horizon(
   $secret_key,
@@ -265,6 +268,7 @@ class horizon(
   $tuskar_ui_ironic_discoverd_url      = 'http://127.0.0.1:5050',
   $tuskar_ui_undercloud_admin_password = undef,
   $tuskar_ui_deployment_mode           = 'scale',
+  $custom_theme_path                   = undef,
   # DEPRECATED PARAMETERS
   $can_set_mount_point                 = undef,
   $vhost_extra_params                  = undef,
