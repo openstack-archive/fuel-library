@@ -28,12 +28,15 @@ describe manifest do
     ec2_admin_url    = "http://#{admin_address}:8773/services/Admin"
 
     it 'class nova::keystone::auth should  contain correct *_url' do
-      should contain_class('nova::keystone::auth').with('public_url' => public_url)
-      should contain_class('nova::keystone::auth').with('admin_url' => admin_url)
-      should contain_class('nova::keystone::auth').with('internal_url' => admin_url)
-      should contain_class('nova::keystone::auth').with('ec2_public_url' => ec2_public_url)
-      should contain_class('nova::keystone::auth').with('ec2_admin_url' => ec2_admin_url)
-      should contain_class('nova::keystone::auth').with('ec2_internal_url' => ec2_internal_url)
+      should contain_class('nova::keystone::auth').with(
+        'public_url'            => public_url,
+        'admin_url'             => admin_url,
+        'internal_url'          => admin_url,
+        'ec2_public_url'        => ec2_public_url,
+        'ec2_admin_url'         => ec2_admin_url,
+        'ec2_internal_url'      => ec2_internal_url,
+        'configure_endpoint_v3' => false
+      )
     end
   end
 
