@@ -11,12 +11,20 @@ define l23network::l2::bond_interface (
   include ::l23network::params
   include ::stdlib
 
+  if $bond == 'none' {
+    $master = undef
+    $slave  = false
+  } else {
+    $master = $bond
+    $slave  = true
+  }
+
   if ! defined(L23network::L2::Port[$name]) {
     $additional_properties = {
       use_ovs  => $use_ovs,
       mtu      => is_integer($interface_properties[mtu]) ? {false=>$mtu, default=>$interface_properties[mtu]},
-      master   => $bond,
-      slave    => true,
+      master   => $master,
+      slave    => $slave,
       provider => $provider
     }
 
@@ -26,8 +34,8 @@ define l23network::l2::bond_interface (
   } else {
     L23network::L2::Port<| title == $name |> {
       use_ovs  => $use_ovs,
-      master   => $bond,
-      slave    => true
+      master   => $master,
+      slave    => $slave
     }
   }
   if $provider == 'ovs' {

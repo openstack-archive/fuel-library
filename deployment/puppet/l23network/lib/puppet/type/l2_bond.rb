@@ -115,7 +115,6 @@ Puppet::Type.newtype(:l2_bond) do
       #defaultto {}
       # provider-specific hash, validating only by type.
       validate do |val|
-        #puts "l2_bond validate got '#{val.inspect}'"
         if ! val.is_a? Hash
           fail("Interface_properties should be a hash!")
         end
