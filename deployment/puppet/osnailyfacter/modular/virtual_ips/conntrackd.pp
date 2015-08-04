@@ -51,8 +51,9 @@ if $operatingsystem == 'Ubuntu' {
     },
   }
 
+  # TODO: vip__vrouter_pub should not be hardcoded here
   cs_colocation { 'conntrackd-with-public-vip':
-    primitives => [ 'master_p_conntrackd:Master', 'vip__public_vrouter' ],
+    primitives => [ 'master_p_conntrackd:Master', 'vip__vrouter_pub' ],
   }
 
   File['/etc/conntrackd/conntrackd.conf'] -> Cs_resource['p_conntrackd'] -> Service['p_conntrackd'] -> Cs_colocation['conntrackd-with-public-vip']

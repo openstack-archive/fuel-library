@@ -13,6 +13,6 @@ EOS
         "given (#{arguments.size} for 1)")
     end
 
-    return IPAddr.new(arguments[0]).to_i.to_s(2).count("1")
+    return IPAddr.new(arguments[0]).to_i.to_s(2).count("1").to_s
   end
 end
