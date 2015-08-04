@@ -54,7 +54,7 @@ describe manifest do
       end
 
       if use_neutron
-        external_network = PuppetlabsSpec::PuppetInternals.scope.function_get_ext_net_name([predefined_networks])
+        external_network = Noop.puppet_function 'get_ext_net_name', predefined_networks
       else
         external_network = nil
       end
