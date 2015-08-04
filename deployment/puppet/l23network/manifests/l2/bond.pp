@@ -74,13 +74,11 @@ define l23network::l2::bond (
 
   # calculate string representation for lacp_rate
   if $bond_mode == '802.3ad' {
-    if ! $bond_properties[lacp_rate] {
-      # default value by design https://www.kernel.org/doc/Documentation/networking/bonding.txt
-      $lacp_rate = $lacp_rates[0]
-    } elsif is_integer($bond_properties[lacp_rate]) and $bond_properties[lacp_rate] < size($lacp_rates) {
+    if is_integer($bond_properties[lacp_rate]) and $bond_properties[lacp_rate] < size($lacp_rates) {
       $lacp_rate = $lacp_rates[$bond_properties[lacp_rate]]
     } else {
-      $lacp_rate = $bond_properties[lacp_rate]
+      # default value by design https://www.kernel.org/doc/Documentation/networking/bonding.txt
+      $lacp_rate = pick($bond_properties[lacp_rate], $lacp_rates[0])
     }
   }
 
@@ -127,7 +125,15 @@ define l23network::l2::bond (
   }
   $eee = default_provider_for('L2_port')
 
-  if ! member($actual_monolith_bond_providers, $actual_provider_for_bond_interface) {
+  if member($actual_monolith_bond_providers, $actual_provider_for_bond_interface) {
+    # just interfaces in UP state should be presented
+    l23network::l2::bond_interface{ $interfaces:
+      bond                 => 'none',
+      mtu                  => $mtu,
+      interface_properties => $interface_properties,
+      ensure               => $ensure,
+    }
+  } else {
     l23network::l2::bond_interface{ $interfaces:
       bond                 => $bond,
       mtu                  => $mtu,
