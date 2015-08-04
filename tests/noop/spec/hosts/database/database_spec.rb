@@ -8,14 +8,8 @@ describe manifest do
       Noop.hiera('network_scheme', {}).fetch('endpoints', {})
     end
 
-    let(:scope) do
-      scope = PuppetlabsSpec::PuppetInternals.scope
-      Puppet::Parser::Functions.autoloader.loadall unless scope.respond_to? :function_direct_networks
-      scope
-    end
-
     let(:other_networks) do
-      scope.function_direct_networks [endpoints, 'br-mgmt', 'netmask']
+      Noop.puppet_function 'direct_networks', endpoints, 'br-mgmt', 'netmask'
     end
 
     let(:access_networks) do
