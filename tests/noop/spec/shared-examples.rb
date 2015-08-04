@@ -1,6 +1,6 @@
 shared_examples 'compile' do
   it do
-    should compile
+    expect(subject).to compile
   end
 end
 
@@ -120,6 +120,7 @@ end
 ###############################################################################
 
 def test_ubuntu_and_centos(manifest_file, force_manifest = false)
+
   # check if task is present in the task list
   unless force_manifest or Noop.manifest_present? manifest_file
     Noop.debug "Manifest '#{manifest_file}' is not enabled on the node '#{Noop.hostname}'. Skipping tests."
@@ -128,7 +129,14 @@ def test_ubuntu_and_centos(manifest_file, force_manifest = false)
 
   # set manifest file
   before(:all) do
+    GC.disable
     Noop.manifest = manifest_file
+  end
+
+  after(:each) do
+    GC.enable
+    GC.start
+    GC.disable
   end
 
   let(:os_name) do
@@ -152,6 +160,9 @@ def test_ubuntu_and_centos(manifest_file, force_manifest = false)
 
   if Noop.test_ubuntu?
     context 'on Ubuntu platforms' do
+      before(:all) do
+        Noop.setup_overrides
+      end
       let(:facts) { Noop.ubuntu_facts }
       it_behaves_like 'OS'
     end
@@ -159,6 +170,9 @@ def test_ubuntu_and_centos(manifest_file, force_manifest = false)
 
   if Noop.test_centos?
     context 'on CentOS platforms' do
+      before(:all) do
+        Noop.setup_overrides
+      end
       let(:facts) { Noop.centos_facts }
       it_behaves_like 'OS'
     end
