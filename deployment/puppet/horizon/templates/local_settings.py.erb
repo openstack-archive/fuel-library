@@ -284,6 +284,16 @@ EXTERNAL_MONITORING = <%= @horizon_app_links %>
 #     'reverse': False,
 # }
 
+# CUSTOM_THEME_PATH allows to set to the directory location for the
+# theme (e.g., "static/themes/blue"). The path can either be
+# relative to the openstack_dashboard directory or an absolute path
+# to an accessible location on the file system.
+# If not specified, the default CUSTOM_THEME_PATH is
+# static/themes/default.
+<% if @custom_theme_path %>
+CUSTOM_THEME_PATH = '<%= @custom_theme_path %>'
+<% end %>
+
 # The Horizon Policy Enforcement engine uses these values to load per service
 # policy rule files. The content of these files should match the files the
 # OpenStack services are using to determine role based access control in the

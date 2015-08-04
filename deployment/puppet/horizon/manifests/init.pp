@@ -212,6 +212,10 @@
 #    (optional) Tuskar-UI - Deployment mode ('poc' or 'scale')
 #    Defaults to 'scale'
 #
+#  [*custom_theme_path*]
+#    (optional) The directory location for the theme (e.g., "static/themes/blue")
+#    Default to undefined
+#
 # === Examples
 #
 #  class { 'horizon':
@@ -265,6 +269,7 @@ class horizon(
   $tuskar_ui_ironic_discoverd_url      = 'http://127.0.0.1:5050',
   $tuskar_ui_undercloud_admin_password = undef,
   $tuskar_ui_deployment_mode           = 'scale',
+  $custom_theme_path                   = undef,
   # DEPRECATED PARAMETERS
   $can_set_mount_point                 = undef,
   $vhost_extra_params                  = undef,
