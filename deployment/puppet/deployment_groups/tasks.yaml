@@ -92,7 +92,7 @@
 - id: mongo
   type: group
   role: [mongo]
-  requires: [zabbix-server]
+  requires: [primary-mongo]
   required_for: [deploy_end, primary-controller, controller]
   parameters:
     strategy:
@@ -101,7 +101,7 @@
 - id: primary-mongo
   type: group
   role: [primary-mongo]
-  requires: [mongo]
+  requires: [zabbix-server]
   required_for: [deploy_end, primary-controller, controller]
   parameters:
     strategy:
