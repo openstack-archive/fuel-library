@@ -86,6 +86,10 @@
 #    (optional) Use syslog for logging.
 #    Defaults to false.
 #
+#  [*use_stderr*]
+#    (optional) Log output to standard error
+#    Defaults to true
+#
 #  [*log_facility*]
 #    (optional) Syslog facility to receive log lines.
 #    Defaults to LOG_USER.
@@ -140,6 +144,7 @@ class glance::registry(
   $keystone_user         = 'glance',
   $pipeline              = 'keystone',
   $use_syslog            = false,
+  $use_stderr            = true,
   $log_facility          = 'LOG_USER',
   $manage_service        = true,
   $enabled               = true,
@@ -204,10 +209,11 @@ class glance::registry(
   }
 
   glance_registry_config {
-    'DEFAULT/verbose':   value => $verbose;
-    'DEFAULT/debug':     value => $debug;
-    'DEFAULT/bind_host': value => $bind_host;
-    'DEFAULT/bind_port': value => $bind_port;
+    'DEFAULT/verbose':    value => $verbose;
+    'DEFAULT/debug':      value => $debug;
+    'DEFAULT/use_stderr': value => $use_stderr;
+    'DEFAULT/bind_host':  value => $bind_host;
+    'DEFAULT/bind_port':  value => $bind_port;
   }
 
   if $identity_uri {

@@ -19,6 +19,9 @@ describe manifest do
       it 'should configure timeout for HTTP requests' do
         should contain_ceilometer_config('DEFAULT/http_timeout').with(:value => http_timeout)
       end
+      it 'should disable use_stderr option' do
+        should contain_ceilometer_config('DEFAULT/use_stderr').with(:value => 'false')
+      end
     end
   end # end of shared_examples
 

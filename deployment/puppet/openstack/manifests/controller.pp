@@ -205,6 +205,7 @@ class openstack::controller (
   $manage_volumes                 = false,
   $nv_physical_volume             = undef,
   $use_syslog                     = false,
+  $use_stderr                     = true,
   $syslog_log_facility_ceilometer = 'LOG_LOCAL0',
   $syslog_log_facility_glance     = 'LOG_LOCAL2',
   $syslog_log_facility_cinder     = 'LOG_LOCAL3',
