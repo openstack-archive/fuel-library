@@ -183,6 +183,24 @@ if $network_provider == 'nova' {
     provider => $::nova::params::special_service_provider,
   }
 
+  exec { 'destroy_libvirt_default_network':
+    command => 'virsh net-destroy default',
+    onlyif  => 'virsh net-info default | grep -qE "Active:.* yes"',
+    path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
+    tries   => 3,
+    require => Service['libvirt'],
+  }
+
+  exec { 'undefine_libvirt_default_network':
+    command => 'virsh net-undefine default',
+    onlyif  => 'virsh net-info default 2>&1 > /dev/null',
+    path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
+    tries   => 3,
+    require => Exec['destroy_libvirt_default_network'],
+  }
+
+  Service['libvirt'] ~> Exec['destroy_libvirt_default_network']
+
   # script called by qemu needs to manipulate the tap device
   file_line { 'clear_emulator_capabilities':
     path    => '/etc/libvirt/qemu.conf',

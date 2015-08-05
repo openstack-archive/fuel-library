@@ -38,6 +38,24 @@ describe manifest do
     end
 
     if use_neutron
+      it 'should remove default libvirt network' do
+        should contain_exec('destroy_libvirt_default_network').with(
+          'command' => 'virsh net-destroy default',
+          'onlyif'  => 'virsh net-info default | grep -qE "Active:.* yes"',
+          'path'    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
+          'tries'   => 3,
+          'require' => 'Service[libvirt]',
+        )
+
+        should contain_exec('undefine_libvirt_default_network').with(
+          'command' => 'virsh net-undefine default',
+          'onlyif'  => 'virsh net-info default 2>&1 > /dev/null',
+          'path'    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
+          'tries'   => 3,
+          'require' => 'Exec[destroy_libvirt_default_network]',
+        )
+      end
+
       it 'should configure libvirt for qemu' do
         should contain_file_line('clear_emulator_capabilities').with(
           'path'    => '/etc/libvirt/qemu.conf',
