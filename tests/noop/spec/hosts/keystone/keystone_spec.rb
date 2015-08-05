@@ -86,21 +86,30 @@ describe manifest do
       should contain_keystone_config('token/caching').with(:value => 'false')
     end
 
-     it 'should declare keystone::wsgi::apache class with 4 workers on 4 CPU system' do
+     it 'should declare keystone::wsgi::apache class with 4 threads on 4 CPU system' do
        should contain_class('keystone::wsgi::apache').with(
-         'threads'               => '1',
-         'workers'               => '4',
+         'threads'               => '4',
+         'workers'               => '1',
          'vhost_custom_fragment' => 'LimitRequestFieldSize 81900',
        )
      end
 
-     it 'should declare keystone::wsgi::apache class with 24 workers on 48 CPU system' do
+     it 'should declare keystone::wsgi::apache class with 24 threads on 48 CPU system' do
        facts[:processorcount] = 48
        should contain_class('keystone::wsgi::apache').with(
-         'threads' => '1',
-         'workers' => '24',
+         'threads' => '24',
+         'workers' => '1',
        )
      end
+
+     it 'should declare keystone::wsgi::apache class with 2 threads on 1 CPU system' do
+       facts[:processorcount] = 1
+       should contain_class('keystone::wsgi::apache').with(
+         'threads' => '2',
+         'workers' => '1',
+       )
+     end
+
 
      it 'should setup keystone_wsgi_admin file properly' do
        case facts[:operatingsystem]
