@@ -130,9 +130,10 @@ $floating_hash = {}
 
 
 ##TODO: simply parse nodes array
-$memcache_ipaddrs = ipsort(values(get_node_to_ipaddr_map_by_network_role(hiera_hash('memcache_nodes'),'mgmt/memcache')))
-$roles = $network_metadata['nodes'][$node_name]['node_roles']
-$mountpoints = filter_hash($mp_hash,'point')
+$memcache_nodes   = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
+$memcache_ipaddrs = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
+$roles            = $network_metadata['nodes'][$node_name]['node_roles']
+$mountpoints      = filter_hash($mp_hash,'point')
 
 # SQLAlchemy backend configuration
 $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
