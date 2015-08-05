@@ -35,6 +35,7 @@ $controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
+$use_stderr                     = hiera('use_stderr', false)
 $use_syslog                     = hiera('use_syslog', true)
 $syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
 $syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
@@ -351,6 +352,7 @@ class { 'openstack::cinder':
   syslog_log_facility  => $syslog_log_facility_cinder,
   debug                => $debug,
   verbose              => $verbose,
+  use_stderr           => $use_stderr,
   use_syslog           => $use_syslog,
   max_retries          => $max_retries,
   max_pool_size        => $max_pool_size,
