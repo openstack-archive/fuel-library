@@ -56,6 +56,6 @@ class openstack::ha::mysqld (
       'timeout server' => '28801s',
       'timeout client' => '28801s'
     },
-    balancermember_options => 'check port 49000 inter 15s fastinter 2s downinter 1s rise 3 fall 3',
+    balancermember_options => 'check port 49000 inter 20s fastinter 2s downinter 2s rise 3 fall 3',
   }
 }
