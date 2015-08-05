@@ -332,7 +332,9 @@ class openstack::nova::controller (
     ratelimits                           => $nova_rate_limits_string,
     neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_shared_secret,
     require                              => Package['nova-common'],
-    osapi_compute_workers                => min($::processorcount + 0, 50 + 0),
+    osapi_compute_workers                => min(max($::physicalprocessorcount, 2), 16),
+    ec2_workers                          => min(max($::physicalprocessorcount, 2), 16),
+    metadata_workers                     => min(max($::physicalprocessorcount, 2), 16),
     keystone_ec2_url                     => "http://${keystone_host}:5000/v2.0/ec2tokens",
   }
 
@@ -361,8 +363,9 @@ class openstack::nova::controller (
   }
 
   class {'::nova::conductor':
-    enabled => $enabled,
+    enabled        => $enabled,
     ensure_package => $ensure_package,
+    workers        => min(max($::physicalprocessorcount, 2), 16),
   }
 
   if $auto_assign_floating_ip {
