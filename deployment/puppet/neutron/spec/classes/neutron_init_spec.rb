@@ -6,6 +6,7 @@ describe 'neutron' do
     { :package_ensure        => 'present',
       :verbose               => false,
       :debug                 => false,
+      :use_stderr            => true,
       :core_plugin           => 'linuxbridge',
       :rabbit_host           => '127.0.0.1',
       :rabbit_port           => 5672,
@@ -119,6 +120,7 @@ describe 'neutron' do
 
     it 'configures neutron.conf' do
       is_expected.to contain_neutron_config('DEFAULT/verbose').with_value( params[:verbose] )
+      is_expected.to contain_neutron_config('DEFAULT/use_stderr').with_value( params[:use_stderr] )
       is_expected.to contain_neutron_config('DEFAULT/bind_host').with_value('0.0.0.0')
       is_expected.to contain_neutron_config('DEFAULT/bind_port').with_value('9696')
       is_expected.to contain_neutron_config('DEFAULT/auth_strategy').with_value('keystone')
