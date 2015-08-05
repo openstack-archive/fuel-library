@@ -7,6 +7,7 @@ $cinder_rate_limits             = hiera('cinder_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
 $use_syslog                     = hiera('use_syslog', true)
+$use_stderr                     = hiera('use_stderr', false)
 $syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
 $syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
 $syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
@@ -257,6 +258,7 @@ class { '::openstack::controller':
   # turn on SWIFT_ENABLED option for Horizon dashboard
   swift                          => $glance_backend ? { 'swift' => true, default  => false },
   use_syslog                     => $use_syslog,
+  use_stderr                     => $use_stderr,
   syslog_log_facility_glance     => $syslog_log_facility_glance,
   syslog_log_facility_cinder     => $syslog_log_facility_cinder,
   syslog_log_facility_nova       => $syslog_log_facility_nova,

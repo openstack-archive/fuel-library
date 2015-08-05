@@ -340,6 +340,7 @@ class { 'openstack::network':
   verbose             => true,
   debug               => hiera('debug', true),
   use_syslog          => hiera('use_syslog', true),
+  use_stderr          => hiera('use_stderr', false),
   syslog_log_facility => hiera('syslog_log_facility_neutron', 'LOG_LOCAL4'),
 
   # queue settings

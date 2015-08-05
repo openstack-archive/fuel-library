@@ -3,6 +3,7 @@ notice('MODULAR: ceilometer/controller.pp')
 $verbose                  = hiera('verbose', true)
 $debug                    = hiera('debug', false)
 $use_syslog               = hiera('use_syslog', true)
+$use_stderr               = hiera('use_stderr', false)
 $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
 $nodes_hash               = hiera('nodes')
 $storage_hash             = hiera('storage')
@@ -76,6 +77,7 @@ if ($ceilometer_enabled) {
     verbose              => $verbose,
     debug                => $debug,
     use_syslog           => $use_syslog,
+    use_stderr           => $use_stderr,
     syslog_log_facility  => $syslog_log_facility,
     db_type              => $ceilometer_db_type,
     db_host              => $mongo_hosts,

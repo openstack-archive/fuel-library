@@ -10,6 +10,12 @@ describe manifest do
     internal_address = Noop.node_hash['internal_address']
     use_neutron = Noop.hiera 'use_neutron'
 
+    it 'should declare openstack::network with use_stderr disabled' do
+      should contain_class('openstack::network').with(
+        'use_stderr' => 'false',
+      )
+    end
+
     # Network
     if use_neutron
       it 'should declare openstack::network with neutron_server parameter set to false' do

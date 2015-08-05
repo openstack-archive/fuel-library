@@ -6,6 +6,7 @@ describe 'neutron' do
     { :package_ensure        => 'present',
       :verbose               => false,
       :debug                 => false,
+      :use_stderr            => true,
       :core_plugin           => 'linuxbridge',
       :rabbit_host           => '127.0.0.1',
       :rabbit_port           => 5672,
@@ -46,6 +47,7 @@ describe 'neutron' do
       it 'configures logging' do
         should contain_neutron_config('DEFAULT/log_file').with_ensure('absent')
         should contain_neutron_config('DEFAULT/log_dir').with_value(params[:log_dir])
+        should contain_neutron_config('DEFAULT/use_stderr').with_value(params[:use_stderr])
       end
 
     end

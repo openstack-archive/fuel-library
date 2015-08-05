@@ -84,6 +84,10 @@
 #   (optional) Use syslog for logging
 #   Defaults to false
 #
+# [*use_stderr*]
+#   (optional) Use stderr for logging
+#   Defaults to true
+#
 # [*log_facility*]
 #   (optional) Syslog facility to receive log lines
 #   Defaults to LOG_USER
@@ -135,6 +139,7 @@ class heat(
   $sql_connection              = false,
   $database_idle_timeout       = 3600,
   $use_syslog                  = false,
+  $use_stderr                  = true,
   $log_facility                = 'LOG_USER',
   $mysql_module                = '0.9',
 ) {
@@ -272,6 +277,7 @@ class heat(
     'DEFAULT/rpc_backend'                  : value => $rpc_backend;
     'DEFAULT/debug'                        : value => $debug;
     'DEFAULT/verbose'                      : value => $verbose;
+    'DEFAULT/use_stderr'                   : value => $use_stderr;
     'ec2authtoken/auth_uri'                : value => $keystone_ec2_uri;
     'keystone_authtoken/auth_host'         : value => $keystone_host;
     'keystone_authtoken/auth_port'         : value => $keystone_port;
