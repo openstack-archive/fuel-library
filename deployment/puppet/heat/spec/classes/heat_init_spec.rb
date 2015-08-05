@@ -7,6 +7,7 @@ describe 'heat' do
       :package_ensure        => 'present',
       :verbose               => 'False',
       :debug                 => 'False',
+      :use_stderr            => 'True',
       :log_dir               => '/var/log/heat',
       :rabbit_host           => '127.0.0.1',
       :rabbit_port           => 5672,
@@ -117,6 +118,10 @@ describe 'heat' do
     it 'configures debug and verbose' do
       should contain_heat_config('DEFAULT/debug').with_value( params[:debug] )
       should contain_heat_config('DEFAULT/verbose').with_value( params[:verbose] )
+    end
+
+    it 'configures use_stderr option' do
+      is_expected.to contain_heat_config('DEFAULT/use_stderr').with_value( params[:use_stderr] )
     end
 
     it 'configures auth_uri' do
