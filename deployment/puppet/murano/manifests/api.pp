@@ -3,6 +3,7 @@
 
 class murano::api (
     $use_syslog                 = false,
+    $use_stderr                 = true,
     $syslog_log_facility        = 'LOG_LOCAL0',
     $verbose                    = false,
     $debug                      = false,
@@ -106,6 +107,7 @@ class murano::api (
   murano_config {
     'DEFAULT/verbose'                       : value => $verbose;
     'DEFAULT/debug'                         : value => $debug;
+    'DEFAULT/use_stderr'                    : value => $use_stderr;
     'DEFAULT/bind_host'                     : value => $bind_host;
     'DEFAULT/bind_port'                     : value => $bind_port;
     'DEFAULT/log_file'                      : value => $log_file;
