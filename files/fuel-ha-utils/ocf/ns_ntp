@@ -47,11 +47,10 @@ OCF_RESKEY_extraconf_default=""
 
 USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
-RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
-if [[ -z $OCF_RESKEY_ns ]] ; then
-  RUN=''
+if [ -n "${OCF_RESKEY_ns}" ]; then
+  RUN="ip netns exec ${OCF_RESKEY_ns} "
 else
-  RUN="$RUN_IN_NS "
+  RUN=''
 fi
 
 ##########################################################################
@@ -136,7 +135,7 @@ exit $OCF_SUCCESS
 
 get_variables() {
   CONF_FILE="${OCF_RESKEY_conffile}"
-  COMMAND="$RUN ${OCF_RESKEY_binpath}"
+  COMMAND="${RUN} ${OCF_RESKEY_binpath}"
   PIDFILE="${OCF_RESKEY_pidfile}"
 }
 
@@ -148,21 +147,30 @@ ntp_status() {
     PID="`cat ${PIDFILE}`"
     if [ -n "${PID}" ]; then
       # check if process exists
-      if $RUN ps -p "${PID}" | grep -q ntp; then
+      if ps -p "${PID}" | grep -q ntp; then
+        if [ -n "${OCF_RESKEY_ns}" ]; then
+          NS=`ip netns identify "${PID}"`
+          if [ "${NS}" != "${OCF_RESKEY_ns}" ]; then
+            # ntp is running with the correct pid
+            # but not in the right network namespace
+            ocf_log info "ntp daemon running in a wrong namespace."
+            return "${OCF_ERR_GENERIC}"
+          fi
+        fi
         ocf_log info "ntp daemon running"
-        return $OCF_SUCCESS
+        return "${OCF_SUCCESS}"
       else
         ocf_log info "ntp daemon is not running but pid file exists"
-        return $OCF_NOT_RUNNING
+        return "${OCF_NOT_RUNNING}"
       fi
     else
       ocf_log err "PID file empty!"
-      return $OCF_ERR_GENERIC
+      return "${OCF_ERR_GENERIC}"
     fi
   fi
   # ntp is not running
   ocf_log info "ntp daemon is not running"
-  return $OCF_NOT_RUNNING
+  return "${OCF_NOT_RUNNING}"
 }
 
 ntp_start()
@@ -170,44 +178,46 @@ ntp_start()
   get_variables
   # if ntp is running return success
   ntp_status
-  retVal=$?
-  if [ $retVal -eq $OCF_SUCCESS ]; then
-    return $OCF_SUCCESS
-  elif [ $retVal -ne $OCF_NOT_RUNNING ]; then
+  rc="${?}"
+  if [ "${rc}" -eq "${OCF_SUCCESS}" ]; then
+    return "${OCF_SUCCESS}"
+  elif [ "${rc}" -ne "${OCF_NOT_RUNNING}" ]; then
     ocf_log err "Error. Unknown status."
-    return $OCF_ERR_GENERIC
+    return "${OCF_ERR_GENERIC}"
   fi
 
   # run the ntp binary
-  ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -4 -g -c ${CONF_FILE}
-  if [ $? -ne 0 ]; then
+  ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -4 -g -c "${CONF_FILE}"
+  if [ "${?}" -ne "0" ]; then
     ocf_log err "Error. ntp daemon returned error $?."
-    return $OCF_ERR_GENERIC
+    return "${OCF_ERR_GENERIC}"
   fi
 
   ocf_log info "Started ntp daemon."
-  return $OCF_SUCCESS
+  return "${OCF_SUCCESS}"
 }
 
 ntp_stop()
 {
   get_variables
-  if ntp_status ; then
-    PID="`${RUN} cat ${PIDFILE}`"
+  ntp_status
+  rc="${?}"
+  if [ "${rc}" -eq "${OCF_SUCCESS}" -o "${rc}" -eq "${OCF_ERR_GENERIC}" ]; then
+    PID="`cat ${PIDFILE}`"
     if [ -n "${PID}" ] ; then
       kill "${PID}"
-      if [ $? -ne 0 ]; then
+      if [ "${?}" -ne "0" ]; then
         kill -SIGKILL "${PID}"
-        if [ $? -ne 0 ]; then
+        if [ "${?}" -ne "0" ]; then
           ocf_log err "Error. Could not stop ntp daemon."
-          return $OCF_ERR_GENERIC
+          return "${OCF_ERR_GENERIC}"
         fi
       fi
       rm -f "${PIDFILE}"
     fi
   fi
   ocf_log info "Stopped ntp daemon."
-  return $OCF_SUCCESS
+  return "${OCF_SUCCESS}"
 }
 
 ntp_monitor()
@@ -218,23 +228,23 @@ ntp_monitor()
 ntp_validate_all()
 {
   get_variables
-  if [ -n "$OCF_RESKEY_binpath" -a ! -x "$OCF_RESKEY_binpath" ]; then
+  if [ -n "${OCF_RESKEY_binpath}" -a ! -x "${OCF_RESKEY_binpath}" ]; then
     ocf_log err "Binary path $OCF_RESKEY_binpath does not exist."
-    return $OCF_ERR_ARGS
+    return "${OCF_ERR_ARGS}"
   fi
-  if [ -n "$OCF_RESKEY_conffile" -a ! -f "$OCF_RESKEY_conffile" ]; then
+  if [ -n "${OCF_RESKEY_conffile}" -a ! -f "${OCF_RESKEY_conffile}" ]; then
     ocf_log err "Config file $OCF_RESKEY_conffile does not exist."
-    return $OCF_ERR_ARGS
+    return "${OCF_ERR_ARGS}"
   fi
 
-  if  grep -v "^#" "$CONF_FILE" | grep "pidfile" > /dev/null ; then
+  if  grep -v '^#' "${CONF_FILE}" | grep 'pidfile' > /dev/null ; then
     :
   else
-    ocf_log err "Error. \"pidfile\" entry required in the ntp config file by ntp OCF RA."
-    return $OCF_ERR_GENERIC
+    ocf_log err "Error. 'pidfile' entry required in the ntp config file by ntp OCF RA."
+    return "${OCF_ERR_GENERIC}"
   fi
 
-  return $OCF_SUCCESS
+  return "${OCF_SUCCESS}"
 }
 
 ntp_restart()
@@ -249,7 +259,7 @@ ntp_restart()
 
 if [ $# -ne 1 ]; then
   usage
-  exit $OCF_ERR_ARGS
+  exit "${OCF_ERR_ARGS}"
 fi
 
 case $1 in
@@ -274,9 +284,9 @@ case $1 in
   meta-data) meta_data
   ;;
 
-  usage) usage; exit $OCF_SUCCESS
+  usage) usage; exit "${OCF_SUCCESS}"
   ;;
 
-  *) usage; exit $OCF_ERR_UNIMPLEMENTED
+  *) usage; exit "${OCF_ERR_UNIMPLEMENTED}"
   ;;
 esac
