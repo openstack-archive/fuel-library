@@ -1,5 +1,7 @@
 notice('MODULAR: api-proxy.pp')
 
+$limit_request_field_size = hiera('limit_request_field_size', '81900')
+
 # Apache and listen ports
 class { 'osnailyfacter::apache':
   listen_ports => hiera_array('apache_ports', ['80', '8888']),
@@ -7,7 +9,8 @@ class { 'osnailyfacter::apache':
 
 # API proxy vhost
 class {'osnailyfacter::apache_api_proxy':
-  master_ip => hiera('master_ip'),
+  master_ip                => hiera('master_ip'),
+  limit_request_field_size => $limit_request_field_size,
 }
 
 include ::tweaks::apache_wrappers
