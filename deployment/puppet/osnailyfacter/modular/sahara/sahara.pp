@@ -17,6 +17,7 @@ $syslog_log_facility_sahara = hiera('syslog_log_facility_sahara')
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', true)
+$use_stderr                 = hiera('use_stderr', false)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
@@ -60,6 +61,7 @@ if $sahara_hash['enabled'] {
     verbose             => $verbose,
     debug               => $debug,
     use_syslog          => $use_syslog,
+    use_stderr          => $use_stderr,
     plugins             => [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ],
     log_facility        => $syslog_log_facility_sahara,
     database_connection => $sql_connection,

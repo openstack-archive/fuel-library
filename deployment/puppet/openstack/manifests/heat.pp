@@ -1,5 +1,7 @@
 #
 #TODO(bogdando) sync extended qpid rpc backend configuration here as well
+# [use_stderr] Rather or not service should send output to stderr. Optional. Defaults to true.
+#
 
 class openstack::heat (
   $external_ip                   = '127.0.0.1',
@@ -22,6 +24,7 @@ class openstack::heat (
   $verbose                       = false,
   $debug                         = false,
   $use_syslog                    = false,
+  $use_stderr                    = true,
   $syslog_log_facility           = 'LOG_LOCAL0',
   $log_dir                       = '/var/log/heat',
 
@@ -145,6 +148,7 @@ class openstack::heat (
     verbose               => $verbose,
     debug                 => $debug,
     use_syslog            => $use_syslog,
+    use_stderr            => $use_stderr,
     log_facility          => $syslog_log_facility,
   }
 

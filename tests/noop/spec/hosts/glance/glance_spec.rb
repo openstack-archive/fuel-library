@@ -12,6 +12,7 @@ describe manifest do
     max_overflow = Noop.hiera('max_overflow')
     max_retries = '-1'
     use_syslog = Noop.hiera('use_syslog', 'true')
+    use_stderr = Noop.hiera('use_stderr', 'false')
     region = Noop.hiera('region', 'RegionOne')
     if glance_config && glance_config.has_key?('pipeline')
        pipeline = glance_config['pipeline']
@@ -27,6 +28,7 @@ describe manifest do
 
     it 'should configure glance api config' do
       should contain_glance_api_config('database/max_pool_size').with_value(max_pool_size)
+      should contain_glance_api_config('DEFAULT/use_stderr').with_value(use_stderr)
       should contain_glance_api_config('database/max_overflow').with_value(max_overflow)
       should contain_glance_api_config('database/max_retries').with_value(max_retries)
       should contain_glance_api_config('DEFAULT/delayed_delete').with_value('False')
@@ -50,6 +52,7 @@ describe manifest do
     end
 
     it 'should configure glance registry config' do
+      should contain_glance_registry_config('DEFAULT/use_stderr').with_value(use_stderr)
       should contain_glance_registry_config('database/max_pool_size').with_value(max_pool_size)
       should contain_glance_registry_config('database/max_overflow').with_value(max_overflow)
       should contain_glance_registry_config('database/max_retries').with_value(max_retries)

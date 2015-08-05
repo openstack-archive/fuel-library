@@ -13,6 +13,7 @@ $service_endpoint      = hiera('service_endpoint')
 $glance_hash           = hiera_hash('glance', {})
 $storage_hash          = hiera('storage')
 $use_syslog            = hiera('use_syslog', true)
+$use_stderr            = hiera('use_stderr', false)
 $syslog_log_facility   = hiera('syslog_log_facility_glance')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $max_pool_size         = hiera('max_pool_size')
@@ -92,6 +93,7 @@ class { 'openstack::glance':
   glance_backend                 => $glance_backend,
   registry_host                  => $glance_endpoint,
   use_syslog                     => $use_syslog,
+  use_stderr                     => $use_stderr,
   show_image_direct_url          => $glance_show_image_direct_url,
   swift_store_large_object_size  => $swift_store_large_object_size,
   pipeline                       => $glance_pipeline,

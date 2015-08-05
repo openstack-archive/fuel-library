@@ -40,6 +40,7 @@ describe 'cinder' do
       is_expected.to contain_cinder_config('DEFAULT/api_paste_config').with(:value => '/etc/cinder/api-paste.ini')
       is_expected.to contain_cinder_config('DEFAULT/log_dir').with(:value => '/var/log/cinder')
       is_expected.to contain_cinder_config('DEFAULT/lock_path').with(:value => '/var/lock/cinder')
+      is_expected.to contain_cinder_config('DEFAULT/use_stderr').with(:value => true)
     end
 
   end

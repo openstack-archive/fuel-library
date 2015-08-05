@@ -136,6 +136,10 @@
 #   (Optional) Use syslog for logging.
 #   Defaults to false.
 #
+# [*use_stderr*]
+#   (optional) Log output to standard error
+#   Defaults to true
+#
 # [*log_facility*]
 #   (Optional) Syslog facility to receive log lines.
 #   Defaults to LOG_USER.
@@ -228,6 +232,7 @@ class heat(
   $database_connection         = 'sqlite:////var/lib/heat/heat.sqlite',
   $database_idle_timeout       = 3600,
   $use_syslog                  = false,
+  $use_stderr                  = true,
   $log_facility                = 'LOG_USER',
   $flavor                      = undef,
   $region_name                 = undef,
@@ -450,6 +455,7 @@ class heat(
     'DEFAULT/rpc_backend'                  : value => $rpc_backend;
     'DEFAULT/debug'                        : value => $debug;
     'DEFAULT/verbose'                      : value => $verbose;
+    'DEFAULT/use_stderr'                   : value => $use_stderr;
     'ec2authtoken/auth_uri'                : value => $keystone_ec2_uri;
     'keystone_authtoken/admin_tenant_name' : value => $keystone_tenant;
     'keystone_authtoken/admin_user'        : value => $keystone_user;

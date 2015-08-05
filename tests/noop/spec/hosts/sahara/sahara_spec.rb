@@ -60,6 +60,7 @@ describe manifest do
           'verbose'             => verbose,
           'debug'               => debug,
           'use_syslog'          => use_syslog,
+          'use_stderr'          => 'false',
           'log_facility'        => log_facility_sahara,
           'database_connection' => sql_connection,
           'admin_password'      => sahara_password,
