@@ -3,6 +3,8 @@
 #
 # Installs and configures Ceilometer
 #
+# [use_stderr] Rather or not service should send output to stderr. Optional. Defaults to true.
+#
 
 class openstack::ceilometer (
   $keystone_password   = 'ceilometer_pass',
@@ -12,6 +14,7 @@ class openstack::ceilometer (
   $metering_secret     = 'ceilometer',
   $verbose             =  false,
   $use_syslog          =  false,
+  $use_stderr          =  true,
   $syslog_log_facility = 'LOG_LOCAL0',
   $debug               =  false,
   $db_type             = 'mysql',
@@ -49,6 +52,7 @@ class openstack::ceilometer (
     verbose             => $verbose,
     debug               => $debug,
     use_syslog          => $use_syslog,
+    use_stderr          => $use_stderr,
     log_facility        => $syslog_log_facility,
   }
 
