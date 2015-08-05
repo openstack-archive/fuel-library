@@ -115,6 +115,7 @@ class openstack::glance (
     keystone_tenant       => $glance_tenant,
     database_connection   => $sql_connection,
     enabled               => $enabled,
+    workers               => min(max($::physicalprocessorcount, 2), 16),
     registry_host         => $registry_host,
     use_syslog            => $use_syslog,
     log_facility          => $syslog_log_facility,

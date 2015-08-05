@@ -24,7 +24,7 @@ myisam_sort_buffer_size=<%= @myisam_sort_buffer_size %>
 wait_timeout=<%= @wait_timeout %>
 open_files_limit=<%= @open_files_limit %>
 table_open_cache=<%= @table_open_cache %>
-key_buffer_size=<%= @key_buffer_size %>
+key_buffer=<%= @key_buffer_size %>
 max_allowed_packet=256M
 query_cache_size=0
 query_cache_type=0
@@ -44,7 +44,7 @@ innodb_flush_log_at_trx_commit=2
 innodb_flush_method=<%= @innodb_flush_method %>
 innodb_doublewrite=0
 innodb_autoinc_lock_mode=2
-innodb_locks_unsafe_for_binlog=1
+transaction-isolation=READ-COMMITTED
 
 <% if @setup_multiple_gcomm -%>
 wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + @gcomm_port.to_s }.join ',' %>?pc.wait_prim=no"
