@@ -9,7 +9,8 @@ class openstack::network (
 
   $verbose             = false,
   $debug               = false,
-  $use_syslog          = flase,
+  $use_syslog          = false,
+  $use_stderr          = true,
   $syslog_log_facility = 'LOG_USER',
 
   # ovs
@@ -135,6 +136,7 @@ class openstack::network (
         verbose                 => $verbose,
         debug                   => $debug,
         use_syslog              => $use_syslog,
+        use_stderr              => $use_stderr,
         log_facility            => $syslog_log_facility,
         base_mac                => $base_mac,
         core_plugin             => $core_plugin,

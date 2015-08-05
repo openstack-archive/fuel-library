@@ -171,6 +171,10 @@
 #   (optional) Use syslog for logging
 #   Defaults to false
 #
+# [*use_stderr*]
+#   (optional) Use stderr for logging
+#   Defaults to true
+#
 # [*log_facility*]
 #   (optional) Syslog facility to receive log lines.
 #   Defaults to 'LOG_USER'
@@ -280,6 +284,7 @@ class nova(
   #$root_helper = $::nova::params::root_helper,
   $monitoring_notifications = false,
   $use_syslog               = false,
+  $use_stderr               = true,
   $log_facility             = 'LOG_USER',
   $install_utilities        = true,
   $mysql_module             = '0.9',
@@ -583,6 +588,7 @@ class nova(
   nova_config {
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/debug':               value => $debug;
+    'DEFAULT/use_stderr':          value => $use_stderr;
     'DEFAULT/rpc_backend':         value => $rpc_backend;
     'DEFAULT/notification_driver': value => $notification_driver_real;
     'DEFAULT/notification_topics': value => $notification_topics;

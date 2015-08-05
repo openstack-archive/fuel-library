@@ -19,6 +19,8 @@
 #     Defaults to False.
 #   [use_syslog] Use syslog for logging. Optional.
 #     Defaults to False.
+#   [use_stderr] Use stderr for logging. Optional.
+#     Defaults to True.
 #   [log_facility] Syslog facility to receive log lines. Optional.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
@@ -171,6 +173,7 @@ class keystone(
   $log_dir               = '/var/log/keystone',
   $log_file              = false,
   $use_syslog            = false,
+  $use_stderr            = true,
   $log_facility          = 'LOG_USER',
   $catalog_type          = 'sql',
   $catalog_driver        = false,
@@ -273,6 +276,7 @@ class keystone(
     'DEFAULT/compute_port':     value => $compute_port;
     'DEFAULT/verbose':          value => $verbose;
     'DEFAULT/debug':            value => $debug;
+    'DEFAULT/use_stderr':       value => $use_stderr;
   }
 
   # Endpoint configuration

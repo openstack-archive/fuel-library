@@ -8,6 +8,12 @@ describe manifest do
     # TODO All this stuff should be moved to shared examples controller* tests.
 
     # Nova config options
+    it 'nova config should have use_stderr set to false' do
+      should contain_nova_config('DEFAULT/use_stderr').with(
+        'value' => 'false',
+      )
+    end
+
     it 'nova config should have report_interval set to 60' do
       should contain_nova_config('DEFAULT/report_interval').with(
         'value' => '60',
