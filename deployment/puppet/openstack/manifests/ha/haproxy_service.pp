@@ -5,7 +5,7 @@
 # === Parameters
 #
 # [*internal_virtual_ip*]
-#   (required) String. This is the ipaddress to be used for the internal facing
+#   (required) Array or Single value. This is the ipaddress to be used for the internal facing
 #   vip
 #
 # [*ipaddresses*]
@@ -17,7 +17,7 @@
 #   vip
 #
 # [*public_virtual_ip*]
-#   (required) String. This is the ipaddress to be used for the external facing
+#   (optional) String. This is the ipaddress to be used for the external facing
 #   vip
 #
 # [*server_names*]
@@ -72,7 +72,7 @@ define openstack::ha::haproxy_service (
   $internal_virtual_ip,
   $listen_port,
   $order,
-  $public_virtual_ip,
+  $public_virtual_ip      = undef,
   $balancermember_options = 'check',
   $balancermember_port    = $listen_port,
   $before_start           = false,
@@ -96,41 +96,30 @@ define openstack::ha::haproxy_service (
 
   if $public and $internal {
     if $public_ssl {
-      $bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/public_haproxy.pem'],
-                "$internal_virtual_ip:$listen_port" => "" }
+      $bind = merge({ "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/public_haproxy.pem'] },
+              array_to_hash(suffix(flatten([$internal_virtual_ip]), ":${listen_port}"), ""))
     } else {
-      $virtual_ips = [$public_virtual_ip, $internal_virtual_ip]
+      $bind = array_to_hash(suffix(flatten([$internal_virtual_ip, $public_virtual_ip]), ":${listen_port}"), "")
     }
   } elsif $internal {
-    $virtual_ips = [$internal_virtual_ip]
+    $bind = array_to_hash(suffix(flatten([$internal_virtual_ip]), ":${listen_port}"), "")
   } elsif $public {
     if $public_ssl {
       $bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/public_haproxy.pem'] }
     } else {
-      $virtual_ips = [$public_virtual_ip]
+      $bind = array_to_hash(suffix(flatten([$public_virtual_ip]), ":${listen_port}"), "")
     }
   } else {
     fail('At least one of $public or $internal must be set to true')
   }
 
   # Configure HAProxy to listen
-  if $public_ssl {
-    haproxy::listen { $name:
-      order       => $order,
-      bind        => $bind,
-      options     => $haproxy_config_options,
-      mode        => $mode,
-      use_include => true,
-    }
-  } else {
-    haproxy::listen { $name:
-      order       => $order,
-      ipaddress   => $virtual_ips,
-      ports       => $listen_port,
-      options     => $haproxy_config_options,
-      mode        => $mode,
-      use_include => true,
-    }
+  haproxy::listen { $name:
+    order       => $order,
+    bind        => $bind,
+    options     => $haproxy_config_options,
+    mode        => $mode,
+    use_include => true,
   }
 
   if $ipaddresses and $server_names {
