@@ -14,6 +14,10 @@ describe manifest do
   it { should contain_package('python-amqp') }
   it { should contain_class('openstack::cinder') }
 
+  it 'should disable use_stderr option' do
+    should contain_cinder_config('DEFAULT/use_stderr').with(:value => 'false')
+  end
+
   end
   test_ubuntu_and_centos manifest
 end

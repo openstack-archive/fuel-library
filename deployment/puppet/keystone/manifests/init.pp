@@ -41,6 +41,10 @@
 #   (optional) Use syslog for logging.
 #   Defaults to false.
 #
+# [*use_stderr*]
+#   (optional) Log output to standard error
+#   Defaults to true
+#
 # [*log_facility*]
 #   (optional) Syslog facility to receive log lines.
 #   Defaults to 'LOG_USER'.
@@ -413,6 +417,7 @@ class keystone(
   $log_dir                = '/var/log/keystone',
   $log_file               = false,
   $use_syslog             = false,
+  $use_stderr             = true,
   $log_facility           = 'LOG_USER',
   $catalog_type           = 'sql',
   $catalog_driver         = false,
@@ -568,6 +573,7 @@ class keystone(
     'DEFAULT/admin_port':       value => $admin_port;
     'DEFAULT/verbose':          value => $verbose;
     'DEFAULT/debug':            value => $debug;
+    'DEFAULT/use_stderr':       value => $use_stderr;
   }
 
   if $compute_port {
