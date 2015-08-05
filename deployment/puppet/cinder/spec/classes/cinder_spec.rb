@@ -58,6 +58,9 @@ describe 'cinder' do
       should contain_cinder_config('DEFAULT/debug').with(
         :value => false
       )
+      should contain_cinder_config('DEFAULT/use_stderr').with(
+        :value => true
+      )
       should contain_cinder_config('DEFAULT/storage_availability_zone').with(
         :value => 'nova'
       )

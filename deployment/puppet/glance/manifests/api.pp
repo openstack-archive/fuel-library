@@ -113,6 +113,10 @@
 #   (optional) Use syslog for logging.
 #   Defaults to false.
 #
+# [*use_stderr*]
+#   (optional) Use stderr for logging
+#   Defaults to true
+#
 # [*log_facility*]
 #   (optional) Syslog facility to receive log lines.
 #   Defaults to 'LOG_USER'.
@@ -176,6 +180,7 @@ class glance::api(
   $sql_idle_timeout      = '3600',
   $sql_connection        = 'sqlite:///var/lib/glance/glance.sqlite',
   $use_syslog            = false,
+  $use_stderr            = true,
   $log_facility          = 'LOG_USER',
   $show_image_direct_url = false,
   $purge_config          = false,
@@ -235,6 +240,7 @@ class glance::api(
   glance_api_config {
     'DEFAULT/verbose':               value => $verbose;
     'DEFAULT/debug':                 value => $debug;
+    'DEFAULT/use_stderr':            value => $use_stderr;
     'DEFAULT/bind_host':             value => $bind_host;
     'DEFAULT/bind_port':             value => $bind_port;
     'DEFAULT/backlog':               value => $backlog;
