@@ -46,6 +46,7 @@
 # [enabled] Whether services should be enabled. This parameter can be used to
 #   implement services in active-passive modes for HA. Optional. Defaults to true.
 # [use_syslog] Rather or not service should log to syslog. Optional. Defaults to false.
+# [use_stderr] Rather or not service should log to stderr. Optional. Defaults to true.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [max_retries] number of reconnects to Sqlalchemy db backend. Defaults -1.
@@ -200,6 +201,7 @@ class openstack::controller (
   $manage_volumes                 = false,
   $nv_physical_volume             = undef,
   $use_syslog                     = false,
+  $use_stderr                     = true,
   $syslog_log_facility_ceilometer = 'LOG_LOCAL0',
   $syslog_log_facility_glance     = 'LOG_LOCAL2',
   $syslog_log_facility_cinder     = 'LOG_LOCAL3',
@@ -296,6 +298,7 @@ class openstack::controller (
     enabled_apis                => $enabled_apis,
     api_bind_address            => $api_bind_address,
     ensure_package              => $::openstack_version['nova'],
+    use_stderr                  => $use_stderr,
     use_syslog                  => $use_syslog,
     syslog_log_facility         => $syslog_log_facility_nova,
     syslog_log_facility_neutron => $syslog_log_facility_neutron,

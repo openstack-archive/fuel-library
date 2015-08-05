@@ -15,6 +15,7 @@ class murano (
   $murano_keystone_signing_dir           = '/tmp/keystone-signing-muranoapi',
   # murano
   $use_syslog                            = false,
+  $use_stderr                            = true,
   $debug                                 = false,
   $verbose                               = false,
   $syslog_log_facility                   = 'LOG_LOCAL0',
@@ -121,6 +122,7 @@ class murano (
   class { 'murano::api' :
     use_syslog                           => $use_syslog,
     debug                                => $debug,
+    use_stderr                           => $use_stderr,
     verbose                              => $verbose,
     log_file                             => "${murano_log_dir}/murano.log",
     syslog_log_facility                  => $syslog_log_facility,

@@ -3,6 +3,7 @@ notice('MODULAR: ceilometer/compute.pp')
 $verbose                  = hiera('verbose', true)
 $debug                    = hiera('debug', false)
 $use_syslog               = hiera('use_syslog', true)
+$use_stderr               = hiera('use_stderr', false)
 $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
 $amqp_hosts               = hiera('amqp_hosts')
 $rabbit_hash              = hiera('rabbit_hash')
@@ -29,6 +30,7 @@ if ($ceilometer_enabled) {
     verbose                        => $verbose,
     debug                          => $debug,
     use_syslog                     => $use_syslog,
+    use_stderr                     => $use_stderr,
     syslog_log_facility            => $syslog_log_facility,
     amqp_hosts                     => $amqp_hosts,
     amqp_user                      => $amqp_user,
