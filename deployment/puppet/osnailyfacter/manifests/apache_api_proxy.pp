@@ -1,6 +1,17 @@
-# Proxy realization via apache
+# == Class osnailyfacter::apache_api_proxy
+#
+# Class for proxy realization using apache
+#
+# [*master_ip*]
+# (required) String. IP address of master node.
+#
+# [*max_header_size*]
+# (optional) String. Set the limit on the allowed size
+#  of an HTTP request header field.
+#
 class osnailyfacter::apache_api_proxy(
   $master_ip,
+  $max_header_size = '8190',
 ) {
 
   # Allow connection to the apache for ostf tests
