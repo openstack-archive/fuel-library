@@ -27,6 +27,15 @@ $centos_repos =
 $ostf_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $keystone_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $nailgun_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
+# Limit HTTP traffic (per client) to reserve some bandwidth for DHCP
+# and TFTP traffic. The restriction applies to /bootstrap location only.
+# The default value is enough for booting 200 nodes via a 10Gb link:
+# 9 Gb/sec / 200 nodes ~ 5 MB/sec per a node (and 1Gb/sec is reserved
+# to avoid excessive collisions which kill UDP traffic).
+# Unfortunately this means a bootstrap node is going to download its root
+# image for almost 40 sec.
+$bootstrap_settings = pick($::fuel_settings['BOOTSTRAP'], {})
+$bootstrap_limit_rate = pick($bootstrap_settings['limit_rate'], '5M')
 
 $repo_root = "/var/www/nailgun"
 
@@ -47,5 +56,6 @@ node default {
       repo_root       => $repo_root,
       service_enabled => false,
       ssl_enabled     => true,
+      bootstrap_limit_rate => $bootstrap_limit_rate,
   }
 }

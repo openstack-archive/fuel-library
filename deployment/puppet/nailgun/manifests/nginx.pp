@@ -16,6 +16,9 @@ class nailgun::nginx(
   $keystone_host = '127.0.0.1',
   $nailgun_host = '127.0.0.1',
   $ssl_enabled = false,
+  # per client limit of HTTP traffic for /bootstrap. Useful to reserve some
+  # bandwidth for DHCP and TFTP traffic.
+  $bootstrap_limit_rate = '0',
   ) {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -46,6 +49,7 @@ class nailgun::nginx(
   class { "nailgun::nginx-repo":
     repo_root => $repo_root,
     notify => Service["nginx"],
+    bootstrap_limit_rate => $bootstrap_limit_rate,
   }
 
   if $ssl_enabled {
