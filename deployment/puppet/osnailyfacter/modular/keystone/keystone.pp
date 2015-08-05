@@ -143,8 +143,8 @@ class { 'osnailyfacter::apache':
 
 class { 'keystone::wsgi::apache':
   priority              => '05',
-  threads               => 1,
-  workers               => min(max($::processorcount,2), 24),
+  threads               => 3,
+  workers               => min($::processorcount, 6),
   ssl                   => $ssl,
   vhost_custom_fragment => $vhost_limit_request_field_size,
 
