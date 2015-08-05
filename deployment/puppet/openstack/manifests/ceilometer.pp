@@ -12,6 +12,7 @@ class openstack::ceilometer (
   $metering_secret     = 'ceilometer',
   $verbose             =  false,
   $use_syslog          =  false,
+  $use_stderr          =  false,
   $syslog_log_facility = 'LOG_LOCAL0',
   $debug               =  false,
   $db_type             = 'mysql',
@@ -49,6 +50,7 @@ class openstack::ceilometer (
     verbose             => $verbose,
     debug               => $debug,
     use_syslog          => $use_syslog,
+    use_stderr          => $use_stderr,
     log_facility        => $syslog_log_facility,
   }
 

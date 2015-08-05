@@ -22,6 +22,7 @@ class openstack::heat (
   $verbose                       = false,
   $debug                         = false,
   $use_syslog                    = false,
+  $use_stderr                    = false,
   $syslog_log_facility           = 'LOG_LOCAL0',
   $log_dir                       = '/var/log/heat',
 
@@ -145,6 +146,7 @@ class openstack::heat (
     verbose               => $verbose,
     debug                 => $debug,
     use_syslog            => $use_syslog,
+    use_stderr            => $use_stderr,
     log_facility          => $syslog_log_facility,
   }
 

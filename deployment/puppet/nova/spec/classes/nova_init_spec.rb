@@ -67,6 +67,7 @@ describe 'nova' do
       it 'configures various things' do
         is_expected.to contain_nova_config('DEFAULT/verbose').with_value(false)
         is_expected.to contain_nova_config('DEFAULT/debug').with_value(false)
+        is_expected.to contain_nova_config('DEFAULT/use_stderr').with_value(true)
         is_expected.to contain_nova_config('DEFAULT/log_dir').with_value('/var/log/nova')
         is_expected.to contain_nova_config('DEFAULT/state_path').with_value('/var/lib/nova')
         is_expected.to contain_nova_config('DEFAULT/lock_path').with_value(platform_params[:lock_path])

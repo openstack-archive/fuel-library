@@ -60,6 +60,7 @@ if $sahara_hash['enabled'] {
     verbose             => $verbose,
     debug               => $debug,
     use_syslog          => $use_syslog,
+    use_stderr          => false,
     plugins             => [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ],
     log_facility        => $syslog_log_facility_sahara,
     database_connection => $sql_connection,

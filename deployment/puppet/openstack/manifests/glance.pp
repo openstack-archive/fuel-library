@@ -62,6 +62,7 @@ class openstack::glance (
   $debug                          = false,
   $enabled                        = true,
   $use_syslog                     = false,
+  $use_stderr                     = true,
   $show_image_direct_url          = true,
   $swift_store_large_object_size  = '5120',
   $pipeline                       = 'keystone',
@@ -117,6 +118,7 @@ class openstack::glance (
     enabled               => $enabled,
     registry_host         => $registry_host,
     use_syslog            => $use_syslog,
+    use_stderr            => $use_stderr,
     log_facility          => $syslog_log_facility,
     database_idle_timeout => $idle_timeout,
     show_image_direct_url => $show_image_direct_url,
@@ -159,6 +161,7 @@ class openstack::glance (
     database_connection   => $sql_connection,
     enabled               => $enabled,
     use_syslog            => $use_syslog,
+    use_stderr            => $use_stderr,
     log_facility          => $syslog_log_facility,
     database_idle_timeout => $idle_timeout,
   }

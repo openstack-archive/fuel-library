@@ -76,6 +76,7 @@ if $murano_hash['enabled'] {
     verbose             => $verbose,
     debug               => $debug,
     use_syslog          => $use_syslog,
+    use_stderr          => false,
     log_facility        => $syslog_log_facility_murano,
     database_connection => $sql_connection,
     keystone_uri        => "${public_protocol}://${public_address}:5000/v2.0/",

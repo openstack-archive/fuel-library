@@ -145,6 +145,10 @@ describe 'ceilometer' do
       is_expected.to contain_ceilometer_config('DEFAULT/use_syslog').with_value('false')
     end
 
+    it 'configures use_stderr to be enabled by default' do
+      is_expected.to contain_ceilometer_config('DEFAULT/use_stderr').with_value('true')
+    end
+
     context 'with syslog enabled' do
       before { params.merge!( :use_syslog => 'true' ) }
 
