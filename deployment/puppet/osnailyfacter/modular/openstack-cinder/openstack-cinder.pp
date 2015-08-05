@@ -73,6 +73,7 @@ class {'openstack::cinder':
   iscsi_bind_host      => $storage_address,
   cinder_user_password => $cinder_user_password,
   use_syslog           => hiera('use_syslog', true),
+  use_stderr           => hiera('use_stderr', false),
   verbose              => hiera('verbose', true),
   debug                => hiera('debug', true),
   syslog_log_facility  => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
