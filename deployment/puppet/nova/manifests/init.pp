@@ -172,6 +172,10 @@
 #   (optional) Use syslog for logging
 #   Defaults to false
 #
+# [*use_stderr*]
+#   (optional) Log output to standard error
+#   Defaults to true
+#
 # [*log_facility*]
 #   (optional) Syslog facility to receive log lines.
 #   Defaults to 'LOG_USER'
@@ -295,6 +299,7 @@ class nova(
   $nova_public_key          = undef,
   $nova_private_key         = undef,
   $use_syslog               = false,
+  $use_stderr               = true,
   $log_facility             = 'LOG_USER',
   $install_utilities        = true,
   $notification_driver      = [],
@@ -594,6 +599,7 @@ class nova(
   nova_config {
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/debug':               value => $debug;
+    'DEFAULT/use_stderr':          value => $use_stderr;
     'DEFAULT/rpc_backend':         value => $rpc_backend;
     'DEFAULT/notification_driver': value => $notification_driver_real;
     'DEFAULT/notification_topics': value => $notification_topics;

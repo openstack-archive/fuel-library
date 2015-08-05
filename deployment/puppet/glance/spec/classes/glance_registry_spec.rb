@@ -11,6 +11,7 @@ describe 'glance::registry' do
     {
       :verbose                => false,
       :debug                  => false,
+      :use_stderr             => true,
       :bind_host              => '0.0.0.0',
       :bind_port              => '9191',
       :log_file               => '/var/log/glance/registry.log',
@@ -97,6 +98,7 @@ describe 'glance::registry' do
         [
          'verbose',
          'debug',
+         'use_stderr',
          'bind_port',
          'bind_host',
         ].each do |config|

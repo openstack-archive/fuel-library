@@ -20,6 +20,10 @@
 #   (Optional) Use syslog for logging.
 #   Defaults to false.
 #
+# [*use_stderr*]
+#   (optional) Log output to standard error
+#   Defaults to true
+#
 # [*database_connection*]
 #    Url used to connect to database.
 #    (Optional) Defaults to
@@ -263,6 +267,7 @@ class cinder (
   $log_dir                     = '/var/log/cinder',
   $verbose                     = false,
   $debug                       = false,
+  $use_stderr                  = true,
   $storage_availability_zone   = 'nova',
   $default_availability_zone   = false,
   $enable_v1_api               = true,
@@ -411,6 +416,7 @@ class cinder (
     'database/retry_interval':           value => $database_retry_interval;
     'DEFAULT/verbose':                   value => $verbose;
     'DEFAULT/debug':                     value => $debug;
+    'DEFAULT/use_stderr':                value => $use_stderr;
     'DEFAULT/api_paste_config':          value => $api_paste_config;
     'DEFAULT/rpc_backend':               value => $rpc_backend;
     'DEFAULT/storage_availability_zone': value => $storage_availability_zone;

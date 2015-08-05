@@ -18,6 +18,7 @@ $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', true)
+$use_stderr                 = hiera('use_stderr', false)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
@@ -76,6 +77,7 @@ if $murano_hash['enabled'] {
     verbose             => $verbose,
     debug               => $debug,
     use_syslog          => $use_syslog,
+    use_stderr          => $use_stderr,
     log_facility        => $syslog_log_facility_murano,
     database_connection => $sql_connection,
     keystone_uri        => "${public_protocol}://${public_address}:5000/v2.0/",

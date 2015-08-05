@@ -11,6 +11,7 @@ $idle_timeout             = hiera('idle_timeout')
 $service_endpoint         = hiera('service_endpoint')
 $debug                    = hiera('debug', false)
 $verbose                  = hiera('verbose', true)
+$use_stderr               = hiera('use_stderr', false)
 $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
@@ -74,6 +75,7 @@ class { 'openstack::heat' :
   debug                    => $debug,
   verbose                  => $verbose,
   use_syslog               => $use_syslog,
+  use_stderr               => $use_stderr,
   syslog_log_facility      => $syslog_log_facility_heat,
   auth_encryption_key      => $heat_hash['auth_encryption_key'],
 }
