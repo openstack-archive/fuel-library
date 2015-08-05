@@ -10,6 +10,7 @@ $use_neutron                    = hiera('use_neutron', false)
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
 $use_syslog                     = hiera('use_syslog', true)
+$use_stderr                     = hiera('use_stderr', false)
 $syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
 $syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 $syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
@@ -124,6 +125,7 @@ class { '::openstack::controller':
   cinder                         => true,
   ceilometer                     => $ceilometer_hash[enabled],
   use_syslog                     => $use_syslog,
+  use_stderr                     => $use_stderr,
   syslog_log_facility_nova       => $syslog_log_facility_nova,
   nova_rate_limits               => $nova_rate_limits,
   nova_report_interval           => $nova_report_interval,

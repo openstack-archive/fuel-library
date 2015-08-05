@@ -22,6 +22,10 @@ describe manifest do
     should contain_cinder_config('DEFAULT/auth_strategy').with(:value  => 'keystone')
   end
 
+  it 'should disable use_stderr option' do
+    should contain_cinder_config('DEFAULT/use_stderr').with(:value => 'false')
+  end
+
   end
   test_ubuntu_and_centos manifest
 end

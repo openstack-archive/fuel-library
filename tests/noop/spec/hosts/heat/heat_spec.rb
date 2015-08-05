@@ -20,6 +20,10 @@ describe manifest do
       should contain_heat_config('DEFAULT/use_syslog_rfc_format').with(:value => use_syslog)
     end
 
+    it 'should disable use_stderr for heat' do
+      should contain_heat_config('DEFAULT/use_stderr').with(:value => 'false')
+    end
+
     it 'should configure region name for heat' do
       region = Noop.hiera 'region'
       if !region

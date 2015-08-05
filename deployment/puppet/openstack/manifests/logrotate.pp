@@ -28,6 +28,11 @@ class openstack::logrotate (
     }
   }
 
+  #Upstart logs are managed by fuel logrotate file
+  file { "/etc/logrotate.d/upstart":
+    ensure  => absent,
+  }
+
   # TODO(aschultz): should move these to augeas when augeas is upgraded to
   # >=1.4.0 because maxsize isn't supported until 1.4.0 which breaks everything.
   File_line {

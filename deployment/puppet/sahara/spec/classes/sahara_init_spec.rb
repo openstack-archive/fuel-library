@@ -7,7 +7,8 @@ describe 'sahara' do
 
   let :params do
     {
-      :admin_password => 'secrete'
+      :admin_password => 'secrete',
+      :use_stderr     => 'true'
     }
   end
 
@@ -23,6 +24,7 @@ describe 'sahara' do
        it { is_expected.to contain_sahara_config('DEFAULT/use_neutron').with_value('false') }
        it { is_expected.to contain_sahara_config('DEFAULT/use_floating_ips').with_value('true') }
        it { is_expected.to contain_sahara_config('DEFAULT/plugins').with_value('vanilla,hdp,spark,cdh') }
+       it { is_expected.to contain_sahara_config('DEFAULT/use_stderr').with_value('true') }
     end
 
     context 'with passing params' do

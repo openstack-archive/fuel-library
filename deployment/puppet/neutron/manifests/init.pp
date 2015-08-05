@@ -210,6 +210,10 @@
 #   (optional) Use syslog for logging
 #   Defaults to false
 #
+# [*use_stderr*]
+#   (optional) Log output to standard error
+#   Defaults to true
+#
 # [*log_facility*]
 #   (optional) Syslog facility to receive log lines
 #   Defaults to LOG_USER
@@ -292,6 +296,7 @@ class neutron (
   $key_file                           = false,
   $ca_file                            = false,
   $use_syslog                         = false,
+  $use_stderr                         = true,
   $log_facility                       = 'LOG_USER',
   $log_file                           = false,
   $log_dir                            = '/var/log/neutron',
@@ -355,6 +360,7 @@ class neutron (
   neutron_config {
     'DEFAULT/verbose':                 value => $verbose;
     'DEFAULT/debug':                   value => $debug;
+    'DEFAULT/use_stderr':              value => $use_stderr;
     'DEFAULT/bind_host':               value => $bind_host;
     'DEFAULT/bind_port':               value => $bind_port;
     'DEFAULT/auth_strategy':           value => $auth_strategy;
