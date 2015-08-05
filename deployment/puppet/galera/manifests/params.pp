@@ -33,7 +33,7 @@ class galera::params {
   $table_open_cache        = '10000'
   $open_files_limit        = '102400'
   $innodb_flush_method     = 'O_DIRECT'
-  $max_connections         = '4096'
+  $max_connections         = '8192'
 
   if ($::galera::use_percona) {
     case $::osfamily {
