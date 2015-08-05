@@ -11,6 +11,7 @@ describe 'glance::registry' do
     {
       :verbose           => false,
       :debug             => false,
+      :use_stderr        => true,
       :bind_host         => '0.0.0.0',
       :bind_port         => '9191',
       :log_file          => '/var/log/glance/registry.log',
@@ -252,6 +253,12 @@ describe 'glance::registry' do
     it { should contain_glance_registry_config('DEFAULT/ca_file').with_ensure('absent')}
     it { should contain_glance_registry_config('DEFAULT/cert_file').with_ensure('absent')}
     it { should contain_glance_registry_config('DEFAULT/key_file').with_ensure('absent')}
+  end
+
+  describe 'with use_stderr enabled (default)' do
+    let(:params) { default_params }
+
+    it { should contain_glance_registry_config('DEFAULT/use_stderr').with_value('true')}
   end
 
   describe 'with ssl options' do

@@ -18,6 +18,9 @@
 #  [*use_syslog*]
 #    (optional) Use syslog for logging
 #    Defaults to false
+#  [*use_stderr*]
+#    (optional) Use stderr for logging
+#    Defaults to true
 #  [*log_facility*]
 #    (optional) Syslog facility to receive log lines.
 #    Defaults to 'LOG_USER'
@@ -79,6 +82,7 @@ class ceilometer(
   $log_dir             = '/var/log/ceilometer',
   $verbose             = false,
   $use_syslog          = false,
+  $use_stderr          = true,
   $log_facility        = 'LOG_USER',
   $rpc_backend         = 'ceilometer.openstack.common.rpc.impl_kombu',
   $rabbit_host         = '127.0.0.1',
@@ -236,6 +240,7 @@ class ceilometer(
     'publisher/metering_secret'      : value => $metering_secret;
     'DEFAULT/debug'                  : value => $debug;
     'DEFAULT/verbose'                : value => $verbose;
+    'DEFAULT/use_stderr'             : value => $use_stderr;
     'DEFAULT/notification_topics'    : value => join($notification_topics, ',');
   }
 

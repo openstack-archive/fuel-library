@@ -10,6 +10,12 @@ describe manifest do
     use_neutron = Noop.hiera 'use_neutron'
     ceilometer_enabled = Noop.hiera_structure 'ceilometer/enabled'
 
+    it 'should declare openstack::network with use_stderr disabled' do
+      should contain_class('openstack::network').with(
+        'use_stderr' => 'false',
+      )
+    end
+
     # Network
     if use_neutron
       it 'should declare openstack::network with neutron enabled' do
