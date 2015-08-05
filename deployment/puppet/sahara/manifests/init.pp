@@ -21,6 +21,7 @@ class sahara (
   $use_neutron                  = false,
 
   $use_syslog                   = false,
+  $use_stderr                   = true,
   $debug                        = false,
   $verbose                      = false,
   $syslog_log_facility          = 'LOG_LOCAL0',
@@ -60,6 +61,7 @@ class sahara (
     use_neutron                  => $use_neutron,
     debug                        => $debug,
     use_syslog                   => $use_syslog,
+    use_stderr                   => $use_stderr,
     verbose                      => $verbose,
     syslog_log_facility          => $syslog_log_facility,
   }

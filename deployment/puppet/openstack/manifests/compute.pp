@@ -43,6 +43,7 @@
 #  [nova_volumes] Name of volume group in which nova-volume will create logical volumes.
 #    Optional. Defaults to nova-volumes.
 # [use_syslog] Rather or not service should log to syslog. Optional.
+# [use_stderr] Rather or not service should log to stderr. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [ssh_private_key] path to private ssh key temporary location on this server where it was uploaded or generated
@@ -116,6 +117,7 @@ class openstack::compute (
   $cinder_iscsi_bind_addr         = false,
   $db_host                        = '127.0.0.1',
   $use_syslog                     = false,
+  $use_stderr                     = true,
   $syslog_log_facility            = 'LOG_LOCAL6',
   $syslog_log_facility_neutron    = 'LOG_LOCAL4',
   $syslog_log_facility_ceilometer = 'LOG_LOCAL0',
@@ -253,6 +255,7 @@ class openstack::compute (
       verbose                => $verbose,
       debug                  => $debug,
       use_syslog             => $use_syslog,
+      use_stderr             => $use_stderr,
       log_facility           => $syslog_log_facility,
       state_path             => $state_path,
       report_interval        => $nova_report_interval,

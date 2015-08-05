@@ -20,6 +20,7 @@ describe manifest do
           'amqp_password'    => rabbit_password,
           'rabbit_ha_queues' => rabbit_ha_queues,
           'on_controller'    => 'true',
+          'use_stderr'       => 'false',
         )
       end
     end

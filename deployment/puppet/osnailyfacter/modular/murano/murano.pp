@@ -16,8 +16,7 @@ $neutron_config             = hiera('neutron_config', {})
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', false)
-$syslog_log_facility_murano = hiera('syslog_log_facility_murano')
-$primary_controller         = hiera('primary_controller')
+$use_stderr                 = hiera('use_stderr', false)
 
 #################################################################
 
@@ -89,6 +88,7 @@ if $murano_hash['enabled'] {
     use_neutron              => $use_neutron,
 
     use_syslog               => $use_syslog,
+    use_stderr               => $use_stderr,
     debug                    => $debug,
     verbose                  => $verbose,
     syslog_log_facility      => $syslog_log_facility_murano,
