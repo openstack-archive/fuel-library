@@ -1,5 +1,7 @@
 class nailgun::nginx-repo(
   $repo_root = "/var/www/nailgun",
+  # set to reserve some bandwidth for DHCP/TFTP traffic
+  $bootstrap_limit_rate = 0,
   ){
 
   file { "/etc/nginx/conf.d/repo.conf":

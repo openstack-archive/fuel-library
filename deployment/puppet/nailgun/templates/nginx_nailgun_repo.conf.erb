@@ -14,6 +14,12 @@ server {
         root <%= @repo_root %>;
     }
 
+    location /bootstrap {
+        autoindex on;
+        root <%= @repo_root %>;
+        limit_rate <%= @bootstrap_limit_rate %>;
+    }
+
     location ~ /\.ht {
         deny  all;
     }
