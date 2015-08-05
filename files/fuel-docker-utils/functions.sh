@@ -503,6 +503,7 @@ function backup {
   use_rsync=0
   #Sets backup_dir
   parse_backup_dir $1
+  [[ $use_rsync -eq 1 ]] && ssh_copy_id
   mkdir -p $SYSTEM_DIRS $backup_dir
   [[ "$backup_dir" =~ var ]] && [[ "$fullbackup" == "1" ]] && verify_disk_space "backup"
   if check_nailgun_tasks; then
@@ -529,6 +530,18 @@ function backup_fail {
   exit_code=$?
   echo "Backup failed!" 1>&2
   exit $exit_code
+}
+
+function ssh_copy_id {
+  user_hostname=$(cut -d":" -f1 <<< "$rsync_dest")
+  if [[ ! -f ~/.ssh/id_rsa.pub ]]; then
+    echo "private key not found"
+    echo "create private key with ssh-keygen"
+    ssh-keygen -t rsa -b 2048 -N '' -f ~/.ssh/id_rsa
+  fi
+  ssh-copy-id $user_hostname
+  #remove duplicate keys
+  ssh $user_hostname "sed -i \"\\\$!{/$(whoami)@$(hostname)/d;}\" ~/.ssh/authorized_keys"
 }
 
 function parse_backup_dir {
