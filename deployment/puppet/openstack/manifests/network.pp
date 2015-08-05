@@ -208,8 +208,8 @@ class openstack::network (
           agent_down_time => 15,
           allow_automatic_l3agent_failover => true,
 
-          api_workers => min($::processorcount + 0, 50 + 0),
-          rpc_workers => min($::processorcount + 0, 50 + 0),
+          api_workers => min(max($::physicalprocessorcount, 2), 16),
+          rpc_workers => min(max($::physicalprocessorcount, 2), 16),
 
           router_distributed => $dvr,
           enabled     => $neutron_server_enable,

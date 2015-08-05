@@ -44,7 +44,7 @@ innodb_flush_log_at_trx_commit=2
 innodb_flush_method=<%= @innodb_flush_method %>
 innodb_doublewrite=0
 innodb_autoinc_lock_mode=2
-innodb_locks_unsafe_for_binlog=1
+transaction-isolation=READ-COMMITTED
 
 <% if @setup_multiple_gcomm -%>
 wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + @gcomm_port.to_s }.join ',' %>?pc.wait_prim=no"

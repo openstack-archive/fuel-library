@@ -132,7 +132,8 @@ class openstack::cinder(
       keystone_tenant    => $keystone_tenant,
       keystone_password  => $cinder_user_password,
       bind_host          => $bind_host,
-      ratelimits         => $cinder_rate_limits
+      ratelimits         => $cinder_rate_limits,
+      service_workers    => min(max($::physicalprocessorcount, 2), 16),
     }
 
     class { 'cinder::scheduler':
