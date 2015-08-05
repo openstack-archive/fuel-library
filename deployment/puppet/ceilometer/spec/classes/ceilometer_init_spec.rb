@@ -9,6 +9,7 @@ describe 'ceilometer' do
       :debug              => 'False',
       :log_dir            => '/var/log/ceilometer',
       :verbose            => 'False',
+      :use_stderr         => 'True',
     }
   end
 
@@ -123,6 +124,10 @@ describe 'ceilometer' do
     it 'configures debug and verbosity' do
       should contain_ceilometer_config('DEFAULT/debug').with_value( params[:debug] )
       should contain_ceilometer_config('DEFAULT/verbose').with_value( params[:verbose] )
+    end
+
+    it 'configures use_stderr option' do
+      is_expected.to contain_ceilometer_config('DEFAULT/use_stderr').with_value( params[:use_stderr] )
     end
 
     it 'configures logging directory by default' do

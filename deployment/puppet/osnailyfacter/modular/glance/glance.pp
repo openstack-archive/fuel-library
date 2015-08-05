@@ -7,6 +7,7 @@ $glance_hash           = hiera('glance')
 $storage_hash          = hiera('storage')
 $internal_address      = hiera('internal_address')
 $use_syslog            = hiera('use_syslog', true)
+$use_stderr            = hiera('use_stderr', false)
 $syslog_log_facility   = hiera('syslog_log_facility_glance')
 $rabbit_hash           = hiera('rabbit_hash')
 $amqp_hosts            = hiera('amqp_hosts')
@@ -77,6 +78,7 @@ class { 'openstack::glance':
   glance_backend                 => $glance_backend,
   registry_host                  => $service_endpoint,
   use_syslog                     => $use_syslog,
+  use_stderr                     => $use_stderr,
   syslog_log_facility            => $syslog_log_facility,
   glance_image_cache_max_size    => $glance_image_cache_max_size,
   max_retries                    => $max_retries,

@@ -14,6 +14,7 @@ class sahara::api (
   $debug                       = false,
   $verbose                     = false,
   $use_syslog                  = false,
+  $use_stderr                  = true,
   $syslog_log_facility         = "LOG_LOCAL0",
   $log_dir                     = '/var/log/sahara',
   $log_file                    = '/var/log/sahara/api.log',
@@ -59,6 +60,7 @@ class sahara::api (
     'database/max_retries'                 : value => '-1';
     'DEFAULT/verbose'                      : value => $verbose;
     'DEFAULT/debug'                        : value => $debug;
+    'DEFAULT/use_stderr'                   : value => $use_stderr;
   }
 
   sahara_config {

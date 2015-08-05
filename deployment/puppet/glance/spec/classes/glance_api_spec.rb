@@ -13,6 +13,7 @@ describe 'glance::api' do
     {
       :verbose               => false,
       :debug                 => false,
+      :use_stderr            => true,
       :bind_host             => '0.0.0.0',
       :bind_port             => '9292',
       :registry_host         => '0.0.0.0',
@@ -89,6 +90,7 @@ describe 'glance::api' do
         [
           'verbose',
           'debug',
+          'use_stderr',
           'bind_host',
           'bind_port',
           'registry_host',

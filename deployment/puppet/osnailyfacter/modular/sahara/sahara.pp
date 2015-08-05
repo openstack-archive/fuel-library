@@ -14,6 +14,7 @@ $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', true)
 $rabbit_hash                = hiera('rabbit_hash')
+$use_stderr                 = hiera('use_stderr', false)
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
@@ -45,6 +46,7 @@ if $sahara_hash['enabled'] {
     debug                      => $debug,
     verbose                    => $verbose,
     use_syslog                 => $use_syslog,
+    use_stderr                 => $use_stderr,
     enable_notifications       => $ceilometer_hash['enabled'],
     rpc_backend                => 'rabbit',
     amqp_password              => $rabbit_hash['password'],
