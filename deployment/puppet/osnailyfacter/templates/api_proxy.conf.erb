@@ -2,6 +2,7 @@
   ProxyVia On
   AllowCONNECT 443 563
   HostnameLookups off
+  LimitRequestFieldSize <%= @limit_request_field_size %>
   <Proxy *>
     Order Deny,Allow
     <% if @master_ip.kind_of?(Array) -%>
