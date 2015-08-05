@@ -9,8 +9,8 @@ class tweaks::apache_wrappers (
     default  => fail("Unsupported osfamily: ${::osfamily}"),
   }
 
-  $start_command = "service ${service_name} start || sleep ${timeout} && service ${service_name} start"
-  $stop_command  = "service ${service_name} stop || sleep ${timeout} && service ${service_name} stop"
+  $start_command = "/usr/sbin/service ${service_name} start || (/bin/sleep ${timeout} && /usr/sbin/service ${service_name} start)"
+  $stop_command  = "/usr/sbin/service ${service_name} stop || (/bin/sleep ${timeout} && /usr/sbin/service ${service_name} stop)"
 
   disable_garbage_collector()
 
