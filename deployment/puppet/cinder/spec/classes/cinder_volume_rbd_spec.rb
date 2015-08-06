@@ -34,6 +34,7 @@ describe 'cinder::volume::rbd' do
       is_expected.to contain_cinder_config('DEFAULT/rbd_pool').with_value(req_params[:rbd_pool])
       is_expected.to contain_cinder_config('DEFAULT/rbd_user').with_value(req_params[:rbd_user])
       is_expected.to contain_cinder_config('DEFAULT/rbd_secret_uuid').with_value(req_params[:rbd_secret_uuid])
+      is_expected.to contain_cinder_config('DEFAULT/host').with_value('rbd:'"#{req_params[:rbd_pool]}")
       is_expected.to contain_file('/etc/init/cinder-volume.override').with(:ensure => 'present')
       is_expected.to contain_file_line('set initscript env').with(
         :line    => /env CEPH_ARGS=\"--id test\"/,
