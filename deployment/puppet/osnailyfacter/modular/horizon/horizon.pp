@@ -46,5 +46,3 @@ class { 'openstack::horizon':
   neutron_options   => $neutron_options,
   custom_theme_path => 'static/themes/webroot'
 }
-
-include ::tweaks::apache_wrappers
