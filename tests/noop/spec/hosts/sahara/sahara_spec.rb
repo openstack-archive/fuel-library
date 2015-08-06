@@ -108,7 +108,8 @@ describe manifest do
           )
         end
 
-        it { should contain_haproxy_backend_status('keystone').that_comes_before('Haproxy_backend_status[sahara]') }
+        it { should contain_haproxy_backend_status('keystone-public').that_comes_before('Haproxy_backend_status[sahara]') }
+        it { should contain_haproxy_backend_status('keystone-admin').that_comes_before('Haproxy_backend_status[sahara]') }
         it { should contain_haproxy_backend_status('sahara').that_comes_before('Class[sahara_templates::create_templates]') }
       end
     end
