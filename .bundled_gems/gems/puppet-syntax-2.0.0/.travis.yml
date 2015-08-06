@@ -1,0 +1,15 @@
+---
+language: ruby
+script: bundle exec rake
+rvm:
+  - 1.9.3
+env:
+  - PUPPET_VERSION="~> 3.0.0"
+  - PUPPET_VERSION="~> 3.1.0"
+  - PUPPET_VERSION="~> 3.2.0"
+  - PUPPET_VERSION="~> 3.4.0"
+  - PUPPET_VERSION="~> 3.7.3"
+  - PUPPET_VERSION=">= 0"
+matrix:
+  allow_failures:
+    - env: PUPPET_VERSION=">= 0"

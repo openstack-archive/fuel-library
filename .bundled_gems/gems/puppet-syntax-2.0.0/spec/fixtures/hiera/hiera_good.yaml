@@ -1,0 +1,7 @@
+---
+:backends:
+  - yaml
+:yaml:
+  :datadir: './hieradata/good'
+:hierarchy:
+  - common

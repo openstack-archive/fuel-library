@@ -1,0 +1,17 @@
+=Introduction
+
+NetAddr arose through my need as a network engineer for a 
+back-end module that could easily handle such advanced tasks 
+as automating the subnetting/supernetting
+of IP space, performing calculations on IP CIDR blocks, and other
+various items. At that time there were no modules that could
+do any of the things that I needed, so I set out to create my own. 
+Since it has proven to be fairly useful to me, I have decided to share the
+code with the Ruby community. 
+ 
+I have added things that I find immediately useful for me. I am
+open to suggestions if there is something that I could add to make
+your life easier. 
+ 
+Dustin Spinhirne
+

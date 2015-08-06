@@ -1,0 +1,59 @@
+2015-02-25 Release 2.0.0
+- Removed support for Puppet version 2.7.x
+- New option, fail_on_deprecation_notices, which defaults to true (compatible
+with previous behaviour); thanks @pcfens
+- PuppetSyntax::Manifests#check now has two return arguments
+
+2015-01-08 Release 1.4.1
+- Support appending to config arrays, thanks @domcleal
+
+2014-12-04 Release 1.4.0
+- Rspec 3 is now supported, thanks @tuxmea
+- Build error fixed where gem_publisher was used prematurely
+- Lazy load Puppet only when it's required, thanks @logicminds
+
+2014-08-07 Release 1.3.0
+- Add the ability to pass hieradata_paths array of globs to check
+- Check hieradata in modules ('**/data/**/*.yaml') by default
+
+2014-08-05 Release 1.2.3
+- Fix puppetlabs_spec_helper warning on Ruby 1.8
+
+2014-07-31 Release 1.2.2
+- Check and document conflicts with puppetlabs_spec_helper <= 0.7.0
+
+2014-07-23 Release 1.2.1
+- Remove dependency on Puppet from Gemspec (for Puppet Entreprise users).
+
+2014-03-28 Release 1.2.0
+- Optional support for Puppet's future parser.
+
+2014-03-17 Release 1.1.1
+- Ignore exit(1) from Puppet 3.4
+- Don't use hardcoded version of parser face.
+
+2013-09-06 Release 1.1.0
+- Syntax checks for Hiera YAML files.
+- Improved documentation.
+
+2013-07-04 Release 1.0.0
+- Refactor code to make it easier to test.
+- Implement spec tests for syntax checks.
+- Pending spec tests for FileList matching.
+- Matrix tests for other Ruby/Puppet versions.
+- Improve usage example in README.
+
+2013-06-14 Release 0.0.4
+- Fix `$confdir` error for Puppet 3.x
+
+2013-06-11 Release 0.0.3
+- List rake as a dependency.
+- Output names of tasks to STDERR.
+- Match template paths correctly.
+- Add pending spec tests, not yet working.
+
+2013-06-10 Release 0.0.2
+- Fix namespacing of rake tasks.
+
+2013-06-10 Release 0.0.1
+- Initial release
