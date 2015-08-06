@@ -152,10 +152,6 @@ class openstack::network::neutron_agents (
     if $ha_agents {
       class {'cluster::neutron::dhcp':
         ha_agents         => $agents,
-        admin_password    => $admin_password,
-        admin_tenant_name => $admin_tenant_name,
-        admin_username    => $admin_username,
-        auth_url          => $auth_url,
         primary           => $ha_agents ? { 'primary' => true, default => false},
       }
     }
@@ -181,10 +177,6 @@ class openstack::network::neutron_agents (
         debug             => $debug,
         verbose           => $verbose,
         ha_agents         => $agents,
-        admin_password    => $admin_password,
-        admin_tenant_name => $admin_tenant_name,
-        admin_username    => $admin_username,
-        auth_url          => $auth_url,
         primary           => $ha_agents ? { 'primary' => true, default => false},
       }
     }
