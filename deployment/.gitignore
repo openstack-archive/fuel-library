@@ -7,3 +7,4 @@ puppet/concat
 puppet/inifile
 puppet/xinetd
 puppet/ssh
+puppet/ntp
