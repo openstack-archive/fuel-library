@@ -43,6 +43,7 @@ class openstack::horizon (
   $cache_backend           = undef,
   $cache_options           = undef,
   $log_handler             = 'file',
+  $vhost_extra_params      = {},
 ) {
 
   if $debug { #syslog and nondebug case
@@ -104,12 +105,12 @@ class openstack::horizon (
     wsgi_processes => $wsgi_processes,
     wsgi_threads   => $wsgi_threads,
     listen_ssl     => $use_ssl,
-    extra_params      => {
+    extra_params   => merge($vhost_extra_params, {
       default_vhost   => true,
       add_listen      => false,
       setenvif        => 'X-Forwarded-Proto https HTTPS=1',
       custom_fragment => template("openstack/horizon/wsgi_vhost_custom.erb"),
-    },
+    }),
   } ~>
   Service[$::apache::params::service_name]
 
