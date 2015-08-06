@@ -39,6 +39,7 @@ describe 'cinder' do
       is_expected.to contain_cinder_config('DEFAULT/default_availability_zone').with(:value => 'nova')
       is_expected.to contain_cinder_config('DEFAULT/api_paste_config').with(:value => '/etc/cinder/api-paste.ini')
       is_expected.to contain_cinder_config('DEFAULT/log_dir').with(:value => '/var/log/cinder')
+      is_expected.to contain_cinder_config('DEFAULT/lock_path').with(:value => '/var/lock/cinder')
     end
 
   end
@@ -223,6 +224,11 @@ describe 'cinder' do
   describe 'with log_dir disabled' do
     let(:params) { req_params.merge!({:log_dir => false}) }
     it { is_expected.to contain_cinder_config('DEFAULT/log_dir').with_ensure('absent') }
+  end
+
+  describe 'with different lock_path' do
+    let(:params) { req_params.merge!({:lock_path => '/var/run/cinder.locks'}) }
+    it { is_expected.to contain_cinder_config('DEFAULT/lock_path').with_value('/var/run/cinder.locks') }
   end
 
   describe 'with amqp_durable_queues disabled' do

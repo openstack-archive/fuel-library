@@ -33,6 +33,10 @@ rabbit_ha_queues = Noop.hiera('rabbit_ha_queues')
       should contain_cinder_config('keystone_authtoken/identity_uri').with(:value  => identity_uri)
   end
 
+  it 'ensures cinder_config contains correct values' do
+    should contain_cinder_config('DEFAULT/lock_path').with(:value  => '/var/lock/cinder')
+  end
+
   end # end of shared_examples
 
  test_ubuntu_and_centos manifest
