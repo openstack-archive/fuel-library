@@ -45,5 +45,3 @@ class { 'openstack::horizon':
   servername        => hiera('public_vip'),
   neutron_options   => $neutron_options,
 }
-
-include ::tweaks::apache_wrappers
