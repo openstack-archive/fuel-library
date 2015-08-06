@@ -141,6 +141,9 @@ class { 'keystone::wsgi::apache':
   workers               => min(max($::processorcount,2), 24),
   ssl                   => $ssl,
   vhost_custom_fragment => $vhost_limit_request_field_size,
+  vhost_extra_params    => {
+    options => ['FollowSymLinks','MultiViews'],
+  },
 
   wsgi_script_ensure => $::osfamily ? {
     'RedHat'       => 'link',

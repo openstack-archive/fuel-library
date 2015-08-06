@@ -267,7 +267,7 @@ class horizon(
   $tuskar_ui_deployment_mode           = 'scale',
   # DEPRECATED PARAMETERS
   $can_set_mount_point                 = undef,
-  $vhost_extra_params                  = undef,
+  $vhost_extra_params                  = {},
   $secure_cookies                      = false,
   $django_session_engine               = undef,
 ) {
