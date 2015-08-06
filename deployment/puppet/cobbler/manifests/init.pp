@@ -59,8 +59,8 @@ class cobbler(
   $cobbler_user       = 'cobbler',
   $cobbler_password   = 'cobbler',
 
-  $pxetimeout         = '0'
-
+  $pxetimeout         = '0',
+  $extra_admin_nets   = {}
   ){
 
   anchor { "cobbler-begin": }
@@ -80,11 +80,12 @@ class cobbler(
   }
   class { ::cobbler::snippets : }
   class { ::cobbler::server :
-    domain_name  => $domain_name,
-    production   => $production,
-    dns_upstream => $dns_upstream,
-    dns_domain   => $dns_domain,
-    dns_search   => $dns_search,
+    domain_name        => $domain_name,
+    production         => $production,
+    dns_upstream       => $dns_upstream,
+    dns_domain         => $dns_domain,
+    dns_search         => $dns_search,
+    extra_admin_nets   => $extra_admin_nets
   }
 
   cobbler_digest_user {$cobbler_user:
