@@ -206,6 +206,11 @@
 #   (Optional) Whether to enable the v1 API (true/false).
 #   Defaults to 'true'.
 #
+# [*lock_path*]
+#   (optional) Where to store lock files. This directory must be writeable
+#   by the user executing the agent
+#   Defaults to: /var/lock/cinder
+#
 # === Deprecated Parameters
 #
 # [*mysql_module*]
@@ -262,6 +267,7 @@ class cinder (
   $default_availability_zone   = false,
   $enable_v1_api               = true,
   $enable_v2_api               = true,
+  $lock_path                   = '/var/lock/cinder',
   # DEPRECATED PARAMETERS
   $mysql_module                = undef,
 ) {
@@ -490,6 +496,7 @@ class cinder (
   cinder_config {
     'DEFAULT/enable_v1_api':        value => $enable_v1_api;
     'DEFAULT/enable_v2_api':        value => $enable_v2_api;
+    'DEFAULT/lock_path':            value => $lock_path;
   }
 
 }
