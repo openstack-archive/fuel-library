@@ -138,6 +138,7 @@ class keystone::wsgi::apache (
   $wsgi_script_ensure    = 'file',
   $wsgi_script_source    = undef,
   $vhost_custom_fragment = undef,
+  $vhost_extra_params    = {},
 ) {
 
   include ::keystone::params
@@ -229,7 +230,7 @@ class keystone::wsgi::apache (
     $wsgi_script_aliases_main_real = $wsgi_script_aliases_main
   }
 
-  ::apache::vhost { 'keystone_wsgi_main':
+  ensure_resource('apache::vhost', 'keystone_wsgi_main', merge($vhost_extra_params, {
     ensure                      => 'present',
     servername                  => $servername,
     ip                          => $bind_host,
@@ -252,10 +253,10 @@ class keystone::wsgi::apache (
     wsgi_script_aliases         => $wsgi_script_aliases_main_real,
     custom_fragment             => $vhost_custom_fragment,
     require                     => File['keystone_wsgi_main'],
-  }
+  }))
 
   if $public_port != $admin_port {
-    ::apache::vhost { 'keystone_wsgi_admin':
+    ensure_resource('apache::vhost', 'keystone_wsgi_admin', merge($vhost_extra_params, {
       ensure                      => 'present',
       servername                  => $servername,
       ip                          => $bind_host,
@@ -278,6 +279,6 @@ class keystone::wsgi::apache (
       wsgi_script_aliases         => $wsgi_script_aliases_admin,
       custom_fragment             => $vhost_custom_fragment,
       require                     => File['keystone_wsgi_admin'],
-    }
+    }))
   }
 }
