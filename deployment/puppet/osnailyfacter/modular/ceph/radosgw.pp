@@ -39,6 +39,8 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     apache::mod {'fastcgi': }
   }
 
+  include ::tweaks::apache_wrappers
+
   include ceph::params
 
   class { 'ceph::radosgw':

@@ -9,8 +9,9 @@ class tweaks::apache_wrappers (
     default  => fail("Unsupported osfamily: ${::osfamily}"),
   }
 
-  $start_command = "service ${service_name} start || sleep ${timeout} && service ${service_name} start"
-  $stop_command  = "service ${service_name} stop || sleep ${timeout} && service ${service_name} stop"
+  $debug_args = "2>&1 | logger -t 'apacheinit'  -p 'daemon.info'"
+  $start_command = "service ${service_name} start ${debug_args}|| sleep ${timeout} && service ${service_name} start ${debug_args}"
+  $stop_command  = "service ${service_name} stop ${debug_args}|| sleep ${timeout} && service ${service_name} stop ${debug_args}"
 
   disable_garbage_collector()
 
