@@ -46,6 +46,7 @@ node default {
   $dhcp_start_address = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start']
   $dhcp_end_address   = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end']
   $dhcp_netmask       = $::fuel_settings['ADMIN_NETWORK']['netmask']
+  $extra_admin_nets   = $::fuel_settings['EXTRA_ADMIN_NETWORKS']
 
   $dhcp_gw            = $::fuel_settings['ADMIN_NETWORK']['dhcp_gateway']
   if $dhcp_gw {
@@ -96,7 +97,7 @@ node default {
     dhcp_gateway       => $dhcp_gateway,
     dhcp_interface     => $dhcp_interface,
     nailgun_api_url    => $nailgun_api_url,
-
     bootstrap_ethdevice_timeout => $bootstrap_ethdevice_timeout,
+    extra_admin_nets   => $extra_admin_nets
   }
 }
