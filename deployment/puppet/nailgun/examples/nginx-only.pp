@@ -9,6 +9,12 @@ else {
     $production = 'prod'
 }
 
+if $fuel_settings['SSL'] {
+  $force_https = $fuel_settings['SSL']['force_https']
+} else {
+  $force_https = undef
+}
+
 $env_path = "/usr"
 $staticdir = "/usr/share/nailgun/static"
 
@@ -47,5 +53,6 @@ node default {
       repo_root       => $repo_root,
       service_enabled => false,
       ssl_enabled     => true,
+      force_https     => $force_https,
   }
 }
