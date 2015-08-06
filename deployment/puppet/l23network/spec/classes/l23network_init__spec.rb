@@ -66,6 +66,48 @@ describe 'l23network', :type => :class do
 
   end
 
+  context 'when removing packages of the l23network module' do
+    let(:facts) { {
+      :osfamily => 'Debian',
+      :operatingsystem => 'Ubuntu',
+    } }
+
+    let(:params) { {
+      :ensure_package => 'absent',
+      :use_ovs => 'false',
+    } }
+
+    it 'without OVS, should not contain packages' do
+      should contain_package('bridge-utils').with(
+        :ensure => 'absent' )
+      should contain_package('ethtool').with(
+        :ensure => 'absent' )
+      should contain_package('ifenslave').with(
+        :ensure => 'absent' )
+      should contain_package('vlan').with(
+        :ensure => 'absent' )
+    end
+
+    let(:params) { {
+      :ensure_package => 'absent',
+      :use_ovs => 'true',
+    } }
+
+    it 'with OVS, should not contain packages' do
+      should contain_package('bridge-utils').with(
+        :ensure => 'absent' )
+      should contain_package('ethtool').with(
+        :ensure => 'absent' )
+      should contain_package('ifenslave').with(
+        :ensure => 'absent' )
+      should contain_package('vlan').with(
+        :ensure => 'absent' )
+      should contain_package('openvswitch-common').with(
+        :ensure => 'absent' )
+    end
+
+  end
+
 end
 
 ###
