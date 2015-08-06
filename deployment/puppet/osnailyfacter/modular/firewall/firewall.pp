@@ -1,5 +1,7 @@
 notice('MODULAR: firewall.pp')
 
+$management_network_range = hiera('management_network_range')
+
 # Workaround for fuel bug with firewall
 firewall {'003 remote rabbitmq ':
   sport   => [ 4369, 5672, 15672, 41055, 55672, 61613 ],
@@ -18,5 +20,6 @@ firewall {'004 remote puppet ':
 }
 
 class { 'openstack::firewall' :
-  nova_vnc_ip_range => hiera('management_network_range'),
+  nova_vnc_ip_range => $management_network_range,
+  libvirt_network   => $management_network_range,
 }
