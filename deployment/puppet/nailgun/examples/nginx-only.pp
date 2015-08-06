@@ -47,5 +47,6 @@ node default {
       repo_root       => $repo_root,
       service_enabled => false,
       ssl_enabled     => true,
+      force_https     => $fuel_settings['SSL']['force_https'],
   }
 }

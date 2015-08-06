@@ -1,5 +1,7 @@
 server {
+    <%- if @plain_http -%>
     listen   8000;
+    <%- end -%>
     <%- if @ssl_enabled -%>
     listen   8443 ssl;
     ssl_certificate /etc/pki/tls/nginx.crt;
