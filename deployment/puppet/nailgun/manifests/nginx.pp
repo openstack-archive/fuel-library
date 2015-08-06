@@ -16,6 +16,7 @@ class nailgun::nginx(
   $keystone_host = '127.0.0.1',
   $nailgun_host = '127.0.0.1',
   $ssl_enabled = false,
+  $force_https = undef,
   ) {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -78,6 +79,7 @@ class nailgun::nginx(
     nailgun_host  => $nailgun_host,
     notify        => Service["nginx"],
     ssl_enabled   => $ssl_enabled,
+    force_https   => $force_https,
   }
 }
 
