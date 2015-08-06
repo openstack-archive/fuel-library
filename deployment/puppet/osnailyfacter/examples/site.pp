@@ -225,6 +225,7 @@ class os_common {
   class { 'openstack::firewall':
     stage => 'openstack-firewall',
     nova_vnc_ip_range => $::fuel_settings['management_network_range'],
+    libvirt_network   => $::fuel_settings['management_network_range'],
   }
 
   $base_syslog_rserver  = {

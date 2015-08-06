@@ -22,6 +22,7 @@ class openstack::firewall (
   $nova_api_volume_port         = 8776,
   $nova_vncproxy_port           = 6080,
   $nova_vnc_ip_range            = '0.0.0.0/0',
+  $libvirt_network              = '0.0.0.0/0',
   $erlang_epmd_port             = 4369,
   $erlang_rabbitmq_port         = 5672,
   $erlang_rabbitmq_backend_port = 5673,
@@ -202,12 +203,14 @@ class openstack::firewall (
     port   => $libvirt_port,
     proto  => 'tcp',
     action => 'accept',
+    source => $libvirt_network,
   }
 
   firewall {'118 libvirt migration':
     port   => '49152-49215',
     proto  => 'tcp',
     action => 'accept',
+    source => $libvirt_network,
   }
 
   firewall {'118 vnc ports':
