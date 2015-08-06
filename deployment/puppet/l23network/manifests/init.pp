@@ -3,15 +3,22 @@
 # Module for configuring network. Contains L2 and L3 modules.
 # Requirements, packages and services.
 #
+# === Parameters
+#
+# [*ensure_package*]
+#   (optional) The state of nova packages
+#   Defaults to 'present'
+#
 class l23network (
-  $use_lnx          = true,
-  $use_ovs          = false,
-  $install_ovs      = $use_ovs,
-  $install_brtool   = $use_lnx,
-  $install_ethtool  = $use_lnx,
-  $install_bondtool = $use_lnx,
-  $install_vlantool = $use_lnx,
-  $ovs_modname      = undef,
+  $ensure_package            = 'present',
+  $use_lnx                   = true,
+  $use_ovs                   = false,
+  $install_ovs               = $use_ovs,
+  $install_brtool            = $use_lnx,
+  $install_ethtool           = $use_lnx,
+  $install_bondtool          = $use_lnx,
+  $install_vlantool          = $use_lnx,
+  $ovs_modname               = undef,
   $ovs_datapath_package_name = undef,
   $ovs_common_package_name   = undef,
 ){
@@ -20,14 +27,15 @@ class l23network (
   include ::l23network::params
 
   class { 'l23network::l2':
-    use_ovs          => $use_ovs,
-    use_lnx          => $use_lnx,
-    install_ovs      => $install_ovs,
-    install_brtool   => $install_brtool,
-    install_ethtool  => $install_ethtool,
-    install_bondtool => $install_bondtool,
-    install_vlantool => $install_vlantool,
-    ovs_modname      => $ovs_modname,
+    ensure_package            => $ensure_package,
+    use_ovs                   => $use_ovs,
+    use_lnx                   => $use_lnx,
+    install_ovs               => $install_ovs,
+    install_brtool            => $install_brtool,
+    install_ethtool           => $install_ethtool,
+    install_bondtool          => $install_bondtool,
+    install_vlantool          => $install_vlantool,
+    ovs_modname               => $ovs_modname,
     ovs_datapath_package_name => $ovs_datapath_package_name,
     ovs_common_package_name   => $ovs_common_package_name,
   }
