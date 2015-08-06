@@ -155,8 +155,6 @@ class { 'keystone::wsgi::apache':
   },
 }
 
-include ::tweaks::apache_wrappers
-
 ###############################################################################
 
 class { 'keystone::roles::admin':
