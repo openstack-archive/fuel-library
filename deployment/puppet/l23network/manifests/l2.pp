@@ -3,15 +3,22 @@
 # Module for configuring L2 network.
 # Requirements, packages and services.
 #
+# === Parameters
+#
+# [*ensure_package*]
+#   (optional) The state of nova packages
+#   Defaults to 'present'
+#
 class l23network::l2 (
-  $use_lnx          = true,
-  $use_ovs          = false,
-  $install_ovs      = $use_ovs,
-  $install_brtool   = $use_lnx,
-  $install_ethtool  = $use_lnx,
-  $install_bondtool = $use_lnx,
-  $install_vlantool = $use_lnx,
-  $ovs_modname      = $::l23network::params::ovs_kern_module_name,
+  $ensure_package            = 'present',
+  $use_lnx                   = true,
+  $use_ovs                   = false,
+  $install_ovs               = $use_ovs,
+  $install_brtool            = $use_lnx,
+  $install_ethtool           = $use_lnx,
+  $install_bondtool          = $use_lnx,
+  $install_vlantool          = $use_lnx,
+  $ovs_modname               = $::l23network::params::ovs_kern_module_name,
   $ovs_datapath_package_name = $::l23network::params::ovs_datapath_package_name,
   $ovs_common_package_name   = $::l23network::params::ovs_common_package_name,
 ){
@@ -23,13 +30,15 @@ class l23network::l2 (
     if $install_ovs {
       if $ovs_datapath_package_name {
         package { 'openvswitch-datapath':
-          name => $ovs_datapath_package_name
+          name   => $ovs_datapath_package_name,
+          ensure => $ensure_package,
         }
         Package['openvswitch-datapath'] -> Service['openvswitch-service']
       }
       if $ovs_common_package_name {
         package { 'openvswitch-common':
-          name => $ovs_common_package_name
+          name   => $ovs_common_package_name,
+          ensure => $ensure_package,
         }
         Package['openvswitch-common'] ~> Service['openvswitch-service']
       }
@@ -64,7 +73,9 @@ class l23network::l2 (
   }
 
   if $install_vlantool and $::l23network::params::lnx_vlan_tools {
-    ensure_packages($::l23network::params::lnx_vlan_tools)
+    ensure_packages($::l23network::params::lnx_vlan_tools, {
+      'ensure' => $ensure_package,
+    })
     Package[$::l23network::params::lnx_vlan_tools] -> Anchor['l23network::l2::init']
   }
   @k_mod{'8021q':
@@ -72,7 +83,9 @@ class l23network::l2 (
   }
 
   if $install_bondtool and $::l23network::params::lnx_bond_tools {
-    ensure_packages($::l23network::params::lnx_bond_tools)
+    ensure_packages($::l23network::params::lnx_bond_tools, {
+      'ensure' => $ensure_package,
+    })
     Package[$::l23network::params::lnx_bond_tools] -> Anchor['l23network::l2::init']
   }
   @k_mod{'bonding':
@@ -80,7 +93,9 @@ class l23network::l2 (
   }
 
   if $install_brtool and $::l23network::params::lnx_bridge_tools {
-    ensure_packages($::l23network::params::lnx_bridge_tools)
+    ensure_packages($::l23network::params::lnx_bridge_tools, {
+      'ensure' => $ensure_package,
+    })
     #Package[$::l23network::params::lnx_bridge_tools] -> Anchor['l23network::l2::init']
   }
   @k_mod{'bridge':
@@ -88,7 +103,9 @@ class l23network::l2 (
   }
 
   if $install_ethtool and $::l23network::params::lnx_ethernet_tools {
-    ensure_packages($::l23network::params::lnx_ethernet_tools)
+    ensure_packages($::l23network::params::lnx_ethernet_tools, {
+      'ensure' => $ensure_package,
+    })
     Package[$::l23network::params::lnx_ethernet_tools] -> Anchor['l23network::l2::init']
   }
 

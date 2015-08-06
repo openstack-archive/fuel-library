@@ -1,3 +1,26 @@
+*~
+*.swp
+*.gem
+*.rbc
+.idea
+.bundle
+.config
+*.lock
+*.diff
+coverage
+InstalledFiles
+lib/bundler/man
+pkg
+rdoc
+spec/reports
+spec/fixtures/modules/filemapper
 spec/fixtures/modules/stdlib
 spec/fixtures/modules/sysctl
-spec/fixtures/modules/filemapper
+test/tmp
+test/version_tmp
+tmp
+
+# YARD artifacts
+.yardoc
+_yardoc
+doc/
