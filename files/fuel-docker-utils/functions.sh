@@ -564,7 +564,7 @@ function backup_system_dirs {
   tar cf $backup_dir/system-dirs.tar -C / $SYSTEM_DIRS
 
   if [[ "$1" == "--full" ]]; then
-    tar rf $backup_Dir/system-dirs.tar -C / $FULL_BACKUP_DIRS
+    tar rf $backup_dir/system-dirs.tar -C / $FULL_BACKUP_DIRS
   fi
 
   echo "Unpausing containers..."
