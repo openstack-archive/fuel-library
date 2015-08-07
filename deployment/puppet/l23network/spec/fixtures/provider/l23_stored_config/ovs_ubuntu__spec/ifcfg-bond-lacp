@@ -1,0 +1,8 @@
+auto bond-lacp
+iface bond-lacp inet manual
+mtu 9000
+ovs_bonds eth2 eth3
+bond-miimon 100
+ovs_type OVSBond
+ovs_bridge br0
+ovs_options bond_mode=balance-tcp lacp=active

@@ -1,1 +1,2 @@
-spec/fixtures/*
+spec/fixtures/modules/stdlib
+spec/fixtures/modules/filemapper
