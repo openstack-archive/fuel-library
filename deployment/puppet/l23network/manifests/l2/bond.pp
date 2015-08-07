@@ -105,6 +105,7 @@ define l23network::l2::bond (
     mode             => $bond_mode,
     miimon           => $miimon,
     lacp_rate        => $lacp_rate,
+    lacp             => 'passive',
     xmit_hash_policy => $xmit_hash_policy
   }
 
@@ -163,6 +164,7 @@ define l23network::l2::bond (
       bond_master           => undef,
       bond_slaves           => $interfaces,
       bond_miimon           => $real_bond_properties[miimon],
+      bond_lacp             => $real_bond_properties[lacp],
       bond_lacp_rate        => $real_bond_properties[lacp_rate],
       bond_xmit_hash_policy => $real_bond_properties[xmit_hash_policy],
       delay_while_up        => $delay_while_up,
