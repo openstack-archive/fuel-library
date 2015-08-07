@@ -7,6 +7,7 @@ class ceph::params {
 
   case $::osfamily {
     'RedHat': {
+      $service_name                       = 'ceph'
       $service_nova_compute       = 'openstack-nova-compute'
       #RadosGW
       $service_httpd              = 'httpd'
@@ -31,6 +32,7 @@ class ceph::params {
     }
 
     'Debian': {
+      $service_name                       = 'ceph-all'
       $service_nova_compute       = 'nova-compute'
       #RadosGW
       $service_httpd              = 'apache2'
