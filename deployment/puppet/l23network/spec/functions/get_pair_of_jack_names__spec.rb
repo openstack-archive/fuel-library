@@ -1,5 +1,10 @@
 require 'spec_helper'
 
+# NOTE: In this test 'p_39a440c1-N' is a patchcord name for
+# ['br1', 'br2'] bridges. Central part of name calculated as
+# CRC32 of patchcord resource name and depends ONLY of bridge
+# names, that connected by patchcord.
+
 describe 'get_pair_of_jack_names' do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
 
@@ -23,12 +28,16 @@ describe 'get_pair_of_jack_names' do
       should run.with_params([1,2],[3,4]).and_raise_error(Puppet::ParseError)
     end
 
-    it 'should return numbered interface names' do
-      should run.with_params(['br-mgmt', 'br-ex']).and_return(["p_br-mgmt-0", "p_br-ex-1"])
+    it 'should return numbered interface names for pair of bridges' do
+      should run.with_params(['br1', 'br2']).and_return(["p_39a440c1-0", "p_39a440c1-1"])
     end
 
-    it 'should cut interface names for long interfaces' do
-      should run.with_params(['br-mmmmmmmmmmmmmmmmmmmmmmmmgmt', 'br-ex']).and_return(["p_br-mmmmmmmm-0", "p_br-ex-1"])
+    it 'should return numbered interface names for pair of bridges in reverse order' do
+      should run.with_params(['br2', 'br1']).and_return(["p_39a440c1-0", "p_39a440c1-1"])
+    end
+
+    it 'should return numbered interface names for pair of bridges with long name' do
+      should run.with_params(['br-mmmmmmmmmmmmmmmmmmmmmmmmgmt', 'br-ex']).and_return(["p_0c7224e9-0", "p_0c7224e9-1"])
     end
 
   end
