@@ -238,7 +238,7 @@ $ceilometer_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-control
 $memcache_roles = hiera('memcache_roles', ['primary-controller', 'controller'])
 
 # Define node roles, that will carry corosync/pacemaker
-$corosync_roles = hiera_array('corosync_roles', ['primary-controller', 'controller'])
+$corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller'])
 
 # Define cinder-related variables
 # todo: use special node-roles instead controllers in the future
