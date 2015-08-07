@@ -27,7 +27,8 @@ describe manifest do
     end
 
     let (:memcache_servers) do
-      memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
+      node_name = Noop.hiera 'node_name'
+      [memcache_address_map[node_name], memcache_server_port] * ':'
     end
 
     nodes = Noop.hiera 'nodes'

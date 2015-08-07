@@ -111,7 +111,7 @@ class { 'openstack::keystone':
   use_syslog               => $use_syslog,
   syslog_log_facility      => $syslog_log_facility,
   region                   => $region,
-  memcache_servers         => values($memcache_address_map),
+  memcache_servers         => any2array($memcache_address_map[$node_name]),
   memcache_server_port     => $memcache_server_port,
   memcache_pool_maxsize    => $memcache_pool_maxsize,
   max_retries              => $max_retries,
