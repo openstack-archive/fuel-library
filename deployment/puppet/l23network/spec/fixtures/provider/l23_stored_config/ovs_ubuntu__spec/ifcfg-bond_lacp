@@ -1,0 +1,6 @@
+iface bond_lacp inet manual
+  mtu 9000
+  ovs_bonds eth2 eth3
+  ovs_type OVSBond
+  ovs_bridge br0
+  ovs_options bond_mode=balance-tcp lacp=active other_config:lacp-time=fast other_config:bond-miimon-interval=50
