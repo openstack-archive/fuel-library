@@ -99,7 +99,7 @@ class ceph (
   }
 
   if hiera('role') =~ /controller|ceph/ {
-    service {'ceph':
+    service {$ceph::params::service_ceph:
       ensure  => 'running',
       enable  => true,
       require => Class['ceph::conf']
