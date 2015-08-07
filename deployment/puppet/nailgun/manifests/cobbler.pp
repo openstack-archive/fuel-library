@@ -176,7 +176,7 @@ class nailgun::cobbler(
         distro    => 'bootstrap',
         menu      => true,
         kickstart => '',
-        kopts     => "console=ttyS0,9600 console=tty0 biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts     => "intel_pstate=disable console=ttyS0,9600 console=tty0 biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['bootstrap'],
