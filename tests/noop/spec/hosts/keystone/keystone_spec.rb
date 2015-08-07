@@ -30,6 +30,11 @@ describe manifest do
       memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
     end
 
+    let (:cache_memcache_servers) do
+      node_name = Noop.hiera 'node_name'
+      [memcache_address_map[node_name], memcache_server_port] * ':'
+    end
+
     nodes = Noop.hiera 'nodes'
     internal_address = Noop.node_hash['internal_address']
     primary_controller_nodes = Noop::Utils.filter_nodes(nodes,'role','primary-controller')
@@ -65,13 +70,14 @@ describe manifest do
       should contain_keystone_config('token/caching').with(:value => 'false')
       should contain_keystone_config('cache/enabled').with(:value => 'true')
       should contain_keystone_config('cache/backend').with(:value => 'keystone.cache.memcache_pool')
-      should contain_keystone_config('cache/memcache_servers').with(:value => memcache_servers)
+      should contain_keystone_config('cache/memcache_servers').with(:value => cache_memcache_servers)
       should contain_keystone_config('cache/memcache_dead_retry').with(:value => '300')
       should contain_keystone_config('cache/memcache_socket_timeout').with(:value => '1')
       should contain_keystone_config('cache/memcache_pool_maxsize').with(:value => '1000')
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
       should contain_keystone_config('memcache/dead_retry').with(:value => '300')
       should contain_keystone_config('memcache/socket_timeout').with(:value => '1')
+      should contain_keystone_config('memcache/servers').with(:value => memcache_servers)
     end
 
     it 'should configure revoke_driver for keystone' do
