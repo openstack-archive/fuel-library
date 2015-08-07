@@ -62,6 +62,16 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     self.class.collected_properties
   end
 
+  # Some properties can be defined as repeatable key=value string part in the
+  # one option in config file these properties should be fetched by RE-scanning
+  #
+  def self.oneline_properties
+    { }
+  end
+  def oneline_properties
+    self.class.collected_properties
+  end
+
   # In the interface config files those fields should be written as boolean
   def self.boolean_properties
     [
@@ -148,6 +158,12 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
                 hash['auto'] = true
                 hash['if_provider'] ||= "lnx"
               end
+          when /(ovs_\S)/
+              hash['if_provider'] = "ovs" if ! (hash['if_provider'] =~ /ovs/)
+              hash[key] = val
+              if key == 'ovs_bonds'
+                hash['if_type'] = :bond
+              end
           when /iface/
               mm = val.split(/\s+/)
               hash['iface'] = mm[0]
@@ -174,8 +190,16 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     hash['iface'] ||= dirty_iface_name
 
     props = self.mangle_properties(hash)
-    props.merge!({:family => :inet})
 
+    # scan for one-line properties set
+    props.reject{|x| !oneline_properties.keys.include?(x)}.each do |key, line|
+      _k = Regexp.quote(oneline_properties[key][:field])
+      line =~ /#{_k}=(\S+)/
+      val = $1
+      props[key] = val
+    end
+
+    props.merge!({:family => :inet})
     # collect properties, defined as repeatable strings
     collected=[]
     lines.each do |line|
@@ -196,7 +220,6 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       props[prop_name] = rv if ! ['', 'absent'].include? rv.to_s.downcase
     end
 
-
     # The FileMapper mixin expects an array of providers, so we return the
     # single interface wrapped in an array
     rv = (self.check_if_provider(props)  ?  [props]  :  [])
@@ -210,7 +233,6 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
   def self.mangle_properties(pairs)
     props = {}
-
     # Unquote all values
     pairs.each_pair do |key, val|
       next if ! (val.is_a? String or val.is_a? Symbol)
@@ -225,7 +247,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       if (val = pairs[in_config_name])
         # We've recognized a value that maps to an actual type property, delete
         # it from the pairs and copy it as an actual property
-        pairs.delete(in_config_name)
+        #pairs.delete(in_config_name)
         mangle_method_name="mangle__#{type_name}"
         if self.respond_to?(mangle_method_name)
           rv = self.send(mangle_method_name, val)
@@ -337,7 +359,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     provider = providers[0]
     content, props = iface_file_header(provider)
 
-    property_mappings.keys.select{|v| ! properties_fake.include?(v)}.each do |type_name|
+    property_mappings.keys.select{|v| !(properties_fake.include?(v) or v.empty?)}.each do |type_name|
       next if props.has_key? type_name
       val = provider.send(type_name)
       if val and val.to_s != 'absent'
