@@ -34,8 +34,8 @@ class openstack::cinder(
   $max_retries            = '-1',
   $keystone_enabled       = true,
   $keystone_tenant        = 'services',
-  $auth_uri               = false,
-  $identity_uri           = false,
+  $keystone_auth_port     = '5000',
+  $keystone_auth_protocol = 'http',
   $keystone_user          = 'cinder',
   $ceilometer             = false,
   $vmware_host_ip         = '10.10.10.10',
@@ -126,8 +126,8 @@ class openstack::cinder(
     class { 'cinder::api':
       keystone_enabled   => $keystone_enabled,
       package_ensure     => $::openstack_version['cinder'],
-      auth_uri           => $auth_uri,
-      identity_uri       => $identity_uri,
+      auth_uri           => "${keystone_auth_protocol}://${auth_host}:${keystone_auth_port}/",
+      identity_uri       => "${keystone_auth_protocol}://${auth_host}:${keystone_auth_port}/",
       keystone_user      => $keystone_user,
       keystone_tenant    => $keystone_tenant,
       keystone_password  => $cinder_user_password,
@@ -198,13 +198,18 @@ class openstack::cinder(
 
   if $keystone_enabled {
     cinder_config {
-      'keystone_authtoken/auth_uri':          value => $auth_uri;
-      'keystone_authtoken/identity_uri':      value => $identity_uri;
+      'keystone_authtoken/auth_uri':          value => "${keystone_auth_protocol}://${auth_host}:${keystone_auth_port}/";
+      'keystone_authtoken/identity_uri':      value => "${keystone_auth_protocol}://${auth_host}:${keystone_auth_port}/";
       'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
       'keystone_authtoken/admin_user':        value => $keystone_user;
       'keystone_authtoken/admin_password':    value => $cinder_user_password;
       'keystone_authtoken/signing_dir':       value => '/tmp/keystone-signing-cinder';
       'keystone_authtoken/signing_dirname':   value => '/tmp/keystone-signing-cinder';
+    }
+    if ! defined(Cinder_config['DEFAULT/auth_strategy']){
+      cinder_config {
+        'DEFAULT/auth_strategy':                value => 'keystone';
+      }
     }
   }
 
