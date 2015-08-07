@@ -25,7 +25,7 @@ end
 
 def corosync_roles
   return $corosync_roles if $corosync_roles
-  $corosync_roles = hiera.lookup 'corosync_roles', DEFAULT_COROSYNC_ROLES, {}, nil, :array
+  $corosync_roles = hiera.lookup 'corosync_roles', DEFAULT_COROSYNC_ROLES, {}, nil, :priority
   raise 'Invalid corosync_roles!' unless $corosync_roles.is_a? Array
   $corosync_roles
 end
