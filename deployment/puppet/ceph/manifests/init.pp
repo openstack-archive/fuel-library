@@ -104,7 +104,7 @@ class ceph (
       enable  => true,
       require => Class['ceph::conf']
     }
-    Package<| title == 'ceph' |> ~> Service<| title == 'ceph' |>
+    Package<| title == 'ceph' |> ~> Service['ceph']
     if !defined(Service['ceph']) {
       notify{ "Module ${module_name} cannot notify service ceph on packages update": }
     }
