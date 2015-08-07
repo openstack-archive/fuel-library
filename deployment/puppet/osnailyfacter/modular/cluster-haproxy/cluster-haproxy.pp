@@ -7,7 +7,8 @@ $service_endpoint   = hiera('service_endpoint', '')
 $primary_controller = hiera('primary_controller')
 
 #FIXME(mattymo): Replace with only VIPs for roles assigned to this node
-$stats_ipaddresses          = delete_undef_values([$management_vip, $database_vip, $service_endpoint, '127.0.0.1'])
+$stats_ipaddresses  = delete_undef_values([$management_vip, $database_vip,
+  $service_endpoint, '127.0.0.1'])
 
 class { 'cluster::haproxy':
   haproxy_maxconn    => '16000',
@@ -16,4 +17,11 @@ class { 'cluster::haproxy':
   debug              => hiera('debug', false),
   other_networks     => direct_networks($network_scheme['endpoints']),
   stats_ipaddresses  => $stats_ipaddresses
+}
+
+file_line { 'AddUnixListenSocket':
+  path    => '/etc/rsyslog.d/haproxy.conf',
+  match   => '^\$AddUnixListenSocket /var/lib/haproxy/dev/log',
+  line    => '$AddUnixListenSocket /dev/log',
+  require => Class['cluster::haproxy'],
 }
