@@ -120,18 +120,19 @@ class ceph (
       if ($::ceph::use_rgw) {
         include ceph::radosgw
         Class['ceph::mon'] ->
-        Class['ceph::radosgw'] ~>
-        Service['ceph']
+        Class['ceph::radosgw']
         if defined(Class['::keystone']){
           Class['::keystone'] -> Class['ceph::radosgw']
         }
+        Ceph_conf <||> ~> Service['ceph']
       }
     }
 
     'ceph-osd': {
       if ! empty($osd_devices) {
         include ceph::osds
-        Class['ceph::conf'] -> Class['ceph::osds'] ~> Service['ceph']
+        Class['ceph::conf'] -> Class['ceph::osds']
+        Ceph_conf <||> ~> Service['ceph']
       }
     }
 
