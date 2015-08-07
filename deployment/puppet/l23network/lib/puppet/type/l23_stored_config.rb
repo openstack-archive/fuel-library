@@ -39,6 +39,10 @@ Puppet::Type.newtype(:l23_stored_config) do
     newvalues(:ethernet, :bridge, :bond)
   end
 
+  newproperty(:if_provider) do
+    desc "Device provider. Service property, shouldn't be setting by puppet"
+  end
+
   newproperty(:bridge, :array_matching => :all) do
     # Array_matching for this property required for very complicated cases
     # ex. patchcord for connectind two bridges or bridge and network namesspace
@@ -213,6 +217,7 @@ Puppet::Type.newtype(:l23_stored_config) do
 
   newproperty(:bond_mode)
   newproperty(:bond_miimon)
+  newproperty(:bond_lacp)
   newproperty(:bond_lacp_rate)
   newproperty(:bond_xmit_hash_policy)
 

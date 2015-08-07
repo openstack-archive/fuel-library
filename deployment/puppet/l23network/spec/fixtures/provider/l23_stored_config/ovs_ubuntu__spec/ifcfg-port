@@ -1,0 +1,5 @@
+allow-br9 ttt0
+iface ttt0 inet manual
+  mtu 6000
+  ovs_type OVSIntPort
+  ovs_bridge br9
