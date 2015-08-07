@@ -41,7 +41,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu_spec')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu__spec')
   end
 
   def fixture_file(file)
