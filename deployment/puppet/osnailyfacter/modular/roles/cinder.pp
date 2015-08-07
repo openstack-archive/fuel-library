@@ -49,6 +49,12 @@ $cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
 $service_endpoint               = hiera('service_endpoint')
 $glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
 
+$keystone_auth_protocol = 'http'
+$keystone_auth_host = $service_endpoint
+$service_port = '5000'
+$auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+$identity_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+
 # TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
 $hiera_openstack_version = hiera('openstack_version')
 $openstack_version = {
@@ -290,11 +296,14 @@ class { 'openstack::cinder':
   ceilometer           => $ceilometer_hash[enabled],
   vmware_host_ip       => $vcenter_hash['host_ip'],
   vmware_host_username => $vcenter_hash['vc_user'],
-  vmware_host_password => $vcenter_hash['vc_password']
+  vmware_host_password => $vcenter_hash['vc_password'],
+  auth_uri             => $auth_uri,
+  identity_uri         => $identity_uri,
 }
 
-cinder_config { 'DEFAULT/nova_catalog_info':
-  value => 'compute:nova:internalURL'
+cinder_config {
+  'DEFAULT/nova_catalog_info': value => 'compute:nova:internalURL';
+  'DEFAULT/auth_strategy':     value => 'keystone';
 }
 
 cinder_config { 'keymgr/fixed_key':
