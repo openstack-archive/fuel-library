@@ -14,6 +14,9 @@ class osnailyfacter::apache (
     default_vhost => false,
     purge_configs => $purge_configs,
     servername    => $::hostname,
+    server_tokens    => 'Prod',
+    server_signature => 'Off',
+    trace_enable     => 'Off',
   }
 
   apache_port { $listen_ports: }
