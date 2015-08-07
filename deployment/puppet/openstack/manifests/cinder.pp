@@ -139,6 +139,10 @@ class openstack::cinder(
       package_ensure => $::openstack_version['cinder'],
       enabled        => true,
     }
+  } else {
+    cinder_config {
+      'DEFAULT/auth_strategy': value => 'keystone';
+    }
   }
 
   if $manage_volumes {
