@@ -317,7 +317,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         end
       end
 
-      resource_properties['require'] = [previous] if previous
+      resource_properties['require'] = [previous.split('::').map{|x| x.capitalize}.join('::')] if previous
       resource_properties = L23network.correct_ethtool_set(resource_properties)
       function_create_resources([resource, {
         "#{trans[:name]}" => resource_properties
