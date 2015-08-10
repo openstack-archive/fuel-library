@@ -44,6 +44,7 @@ describe manifest do
     internal_url = "http://#{management_vip}:5000"
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
+    service_workers = Noop.hiera 'service_workers_count'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
 
     it 'should declare keystone class with admin_token' do
@@ -87,30 +88,13 @@ describe manifest do
       should contain_keystone_config('token/caching').with(:value => 'false')
     end
 
-     it 'should declare keystone::wsgi::apache class with 4 threads on 4 CPU system' do
+     it "should declare keystone::wsgi::apache class with #{service_workers} workers" do
        should contain_class('keystone::wsgi::apache').with(
-         'threads'               => '4',
+         'threads'               => service_workers,
          'workers'               => '1',
          'vhost_custom_fragment' => 'LimitRequestFieldSize 81900',
        )
      end
-
-     it 'should declare keystone::wsgi::apache class with 24 threads on 48 CPU system' do
-       facts[:processorcount] = 48
-       should contain_class('keystone::wsgi::apache').with(
-         'threads' => '24',
-         'workers' => '1',
-       )
-     end
-
-     it 'should declare keystone::wsgi::apache class with 2 threads on 1 CPU system' do
-       facts[:processorcount] = 1
-       should contain_class('keystone::wsgi::apache').with(
-         'threads' => '2',
-         'workers' => '1',
-       )
-     end
-
 
      it 'should setup keystone_wsgi_admin file properly' do
        case facts[:operatingsystem]

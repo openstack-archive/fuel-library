@@ -77,6 +77,7 @@ class openstack::keystone (
   $cache_backend               = 'keystone.cache.memcache_pool',
   $revoke_driver               = false,
   $ceilometer                  = false,
+  $service_workers             = $::physicalprocessorcount,
 ) {
 
   # Install and configure Keystone
@@ -133,6 +134,8 @@ class openstack::keystone (
       database_connection   => $database_connection,
       public_bind_host      => $public_bind_host,
       admin_bind_host       => $admin_bind_host,
+      admin_workers         => $service_workers,
+      public_workers        => $service_workers,
       package_ensure        => $package_ensure,
       use_syslog            => $use_syslog,
       database_idle_timeout => $database_idle_timeout,
