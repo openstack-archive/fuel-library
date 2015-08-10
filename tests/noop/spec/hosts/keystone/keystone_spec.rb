@@ -86,75 +86,79 @@ describe manifest do
       should contain_keystone_config('token/caching').with(:value => 'false')
     end
 
-     it 'should declare keystone::wsgi::apache class with 4 threads on 4 CPU system' do
-       should contain_class('keystone::wsgi::apache').with(
-         'threads'               => '4',
-         'workers'               => '1',
-         'vhost_custom_fragment' => 'LimitRequestFieldSize 81900',
-       )
-     end
+    it "should declare keystone::wsgi::apache class with LimitRequestFieldSize" do
+      should contain_class('keystone::wsgi::apache').with(
+        'vhost_custom_fragment' => 'LimitRequestFieldSize 81900',
+      )
+    end
 
-     it 'should declare keystone::wsgi::apache class with 24 threads on 48 CPU system' do
-       facts[:processorcount] = 48
-       should contain_class('keystone::wsgi::apache').with(
-         'threads' => '24',
-         'workers' => '1',
-       )
-     end
+    it "should declare keystone::wsgi::apache class with 4 threads" do
+      should contain_class('keystone::wsgi::apache').with(
+        'threads' => '4',
+        'workers' => '1',
+      )
+    end
 
-     it 'should declare keystone::wsgi::apache class with 2 threads on 1 CPU system' do
-       facts[:processorcount] = 1
-       should contain_class('keystone::wsgi::apache').with(
-         'threads' => '2',
-         'workers' => '1',
-       )
-     end
+    it 'should declare keystone::wsgi::apache class with 16 threads on 48 CPU system' do
+      facts[:processorcount] = 48
+      should contain_class('keystone::wsgi::apache').with(
+        'threads' => '16',
+        'workers' => '1',
+      )
+    end
 
+    it 'should declare keystone::wsgi::apache class with 2 threads on 1 CPU system' do
+      facts[:processorcount] = 1
+      should contain_class('keystone::wsgi::apache').with(
+        'threads' => '2',
+        'workers' => '1',
+      )
+    end
 
-     it 'should setup keystone_wsgi_admin file properly' do
-       case facts[:operatingsystem]
-       when 'CentOS'
-         should contain_file('keystone_wsgi_admin').with(
-           'ensure'  => 'link',
-           'path'    => "/var/www/cgi-bin/keystone/admin",
-           'target'  => '/usr/share/keystone/keystone.wsgi',
-           'owner'   => 'keystone',
-           'group'   => 'keystone',
-           'mode'    => '0644',
-         )
-       when 'Ubuntu'
-         should contain_file('keystone_wsgi_admin').with(
-           'ensure'  => 'file',
-           'path'    => "/usr/lib/cgi-bin/keystone/admin",
-           'source'  => 'puppet:///modules/keystone/httpd/keystone.py',
-           'owner'   => 'keystone',
-           'group'   => 'keystone',
-           'mode'    => '0644',
-         )
-       end
-     end
+    it 'should setup keystone_wsgi_admin file properly' do
+      case facts[:operatingsystem]
+      when 'CentOS'
+        should contain_file('keystone_wsgi_admin').with(
+          'ensure'  => 'link',
+          'path'    => "/var/www/cgi-bin/keystone/admin",
+          'target'  => '/usr/share/keystone/keystone.wsgi',
+          'owner'   => 'keystone',
+          'group'   => 'keystone',
+          'mode'    => '0644',
+        )
+      when 'Ubuntu'
+        should contain_file('keystone_wsgi_admin').with(
+          'ensure'  => 'file',
+          'path'    => "/usr/lib/cgi-bin/keystone/admin",
+          'source'  => 'puppet:///modules/keystone/httpd/keystone.py',
+          'owner'   => 'keystone',
+          'group'   => 'keystone',
+          'mode'    => '0644',
+        )
+      end
+    end
 
-     it 'should not run keystone service' do
-       should contain_service('keystone').with(
-         'ensure' => 'stopped',
-       )
-     end
-     it 'should configure apache to listen 5000 keystone port' do
-       should contain_apache__listen('5000')
-     end
-     it 'should configure apache to listen 35357 keystone port' do
-       should contain_apache__listen('35357')
-     end
+    it 'should not run keystone service' do
+      should contain_service('keystone').with(
+        'ensure' => 'stopped',
+      )
+    end
+    it 'should configure apache to listen 5000 keystone port' do
+      should contain_apache__listen('5000')
+    end
+    it 'should configure apache to listen 35357 keystone port' do
+      should contain_apache__listen('35357')
+    end
 
-     it 'should disable use_stderr for keystone' do
-       should contain_keystone_config('DEFAULT/use_stderr').with(:value => 'false')
-     end
+    it 'should disable use_stderr for keystone' do
+      should contain_keystone_config('DEFAULT/use_stderr').with(:value => 'false')
+    end
 
-     if ceilometer_hash and ceilometer_hash['enabled']
-       it 'should configure notification driver' do
-         should contain_keystone_config('DEFAULT/notification_driver').with(:value => 'messagingv2')
-       end
-     end
+    if ceilometer_hash and ceilometer_hash['enabled']
+      it 'should configure notification driver' do
+        should contain_keystone_config('DEFAULT/notification_driver').with(:value => 'messagingv2')
+      end
+    end
 
   end # end of shared_examples
 
