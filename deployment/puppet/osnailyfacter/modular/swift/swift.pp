@@ -31,6 +31,8 @@ $keystone_password       = pick($swift_hash['user_password'], 'passsword')
 $keystone_tenant         = pick($swift_hash['tenant'], 'services')
 $keystone_protocol       = pick($swift_hash['auth_protocol'], 'http')
 $region                  = hiera('region', 'RegionOne')
+$service_workers         = pick($swift_hash['workers'],
+                                min(max($::processorcount, 2), 16))
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -79,6 +81,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       master_swift_proxy_ip          => $master_swift_proxy_ip,
       master_swift_replication_ip    => $master_swift_replication_ip,
       proxy_port                     => $proxy_port,
+      proxy_workers                  => $service_workers,
       debug                          => $debug,
       verbose                        => $verbose,
       log_facility                   => 'LOG_SYSLOG',
