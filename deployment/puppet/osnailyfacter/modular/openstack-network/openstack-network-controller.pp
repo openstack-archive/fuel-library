@@ -31,6 +31,8 @@ if $use_neutron {
   $neutron_agents        = pick($neutron_config['neutron_agents'], ['metadata', 'dhcp', 'l3'])
   $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
   $conf_nova             = pick($neutron_config['conf_nova'], true)
+  $service_workers       = pick($neutron_config['workers'],
+                                min(max($::processorcount, 2), 16))
 
   # Neutron Keystone settings
   $neutron_user_password = $neutron_config['keystone']['admin_password']
@@ -250,6 +252,7 @@ class { 'openstack::network':
   bind_host             => $neutron_local_address_for_bind,
   dvr                   => $dvr,
   l2_population         => $l2_population,
+  service_workers       => $service_workers,
 
   #ovs
   mechanism_drivers    => $mechanism_drivers,
