@@ -10,10 +10,13 @@ class osnailyfacter::apache (
   }
 
   class { '::apache':
-    mpm_module    => false,
-    default_vhost => false,
-    purge_configs => $purge_configs,
-    servername    => $::hostname,
+    mpm_module       => false,
+    default_vhost    => false,
+    purge_configs    => $purge_configs,
+    servername       => $::hostname,
+    server_tokens    => 'Prod',
+    server_signature => 'Off',
+    trace_enable     => 'Off',
   }
 
   apache_port { $listen_ports: }
