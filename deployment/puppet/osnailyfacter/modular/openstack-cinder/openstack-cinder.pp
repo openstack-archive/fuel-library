@@ -24,6 +24,7 @@ $cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 $glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
+$service_workers                = hiera('service_workers_count')
 
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
@@ -88,6 +89,7 @@ class {'openstack::cinder':
   max_overflow         => $max_overflow,
   idle_timeout         => $idle_timeout,
   ceilometer           => $ceilometer_hash[enabled],
+  service_workers      => $service_workers,
 } # end class
 
 ####### Disable upstart startup on install #######
