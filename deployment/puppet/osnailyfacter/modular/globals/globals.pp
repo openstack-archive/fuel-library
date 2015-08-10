@@ -294,3 +294,5 @@ file { $globals_yaml_file :
   group   => 'root',
   content => template('osnailyfacter/globals_yaml.erb')
 }
+
+$service_workers_count = min(max($::physicalprocessorcount, 2), 16)

@@ -3,7 +3,8 @@ describe 'glance::registry' do
 
   let :facts do
     {
-      :osfamily => 'Debian'
+      :osfamily       => 'Debian',
+      :processorcount => '7',
     }
   end
 
@@ -13,6 +14,7 @@ describe 'glance::registry' do
       :debug                  => false,
       :bind_host              => '0.0.0.0',
       :bind_port              => '9191',
+      :workers                => '7',
       :log_file               => '/var/log/glance/registry.log',
       :log_dir                => '/var/log/glance',
       :database_connection    => 'sqlite:///var/lib/glance/glance.sqlite',
@@ -39,6 +41,7 @@ describe 'glance::registry' do
       :debug                  => true,
       :bind_host              => '127.0.0.1',
       :bind_port              => '9111',
+      :workers                => '5',
       :database_connection    => 'sqlite:///var/lib/glance.sqlite',
       :database_idle_timeout  => '360',
       :enabled                => false,
@@ -97,6 +100,7 @@ describe 'glance::registry' do
         [
          'verbose',
          'debug',
+         'workers',
          'bind_port',
          'bind_host',
         ].each do |config|
