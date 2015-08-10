@@ -13,6 +13,7 @@ $network_scheme                 = hiera('network_scheme', {})
 $nova_endpoint                  = hiera('nova_endpoint', $management_vip)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
+$service_workers                = hiera('service_workers_count')
 
 $floating_hash = {}
 
@@ -249,6 +250,7 @@ class { 'openstack::network':
   bind_host             => $neutron_local_address_for_bind,
   dvr                   => $dvr,
   l2_population         => $l2_population,
+  service_workers       => $service_workers,
 
   #ovs
   mechanism_drivers    => $mechanism_drivers,
