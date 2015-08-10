@@ -146,6 +146,7 @@ class openstack::keystone (
       token_caching         => $token_caching,
       cache_backend         => $cache_backend,
       revoke_driver         => $revoke_driver,
+      public_endpoint       => $public_url,
     }
 
     if $memcache_servers {
