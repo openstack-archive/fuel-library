@@ -25,6 +25,7 @@ class { 'nailgun::packages': }
 
 class { 'nailgun::host':
   production        => $production,
+  fuel_version      => $::fuel_version['VERSION']['release'],
   cobbler_host      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   nailgun_group     => $nailgun_group,
   nailgun_user      => $nailgun_user,
