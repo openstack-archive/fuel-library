@@ -2,28 +2,31 @@ notice('MODULAR: openstack-cinder.pp')
 
 #Network stuff
 prepare_network_config(hiera('network_scheme', {}))
-$internal_address               = get_network_role_property('cinder/api', 'ipaddr')
-$storage_address                = get_network_role_property('cinder/iscsi', 'ipaddr')
+$internal_address      = get_network_role_property('cinder/api', 'ipaddr')
+$storage_address       = get_network_role_property('cinder/iscsi', 'ipaddr')
 
-$cinder_hash                    = hiera_hash('cinder_hash', {})
-$management_vip                 = hiera('management_vip')
-$queue_provider                 = hiera('queue_provider', 'rabbitmq')
-$cinder_volume_group            = hiera('cinder_volume_group', 'cinder')
-$controller_nodes               = hiera('controller_nodes')
-$nodes_hash                     = hiera('nodes', {})
-$storage_hash                   = hiera_hash('storage', {})
-$ceilometer_hash                = hiera_hash('ceilometer_hash',{})
-$rabbit_hash                    = hiera_hash('rabbit_hash', {})
-$service_endpoint               = hiera('service_endpoint')
-$cinder_db_password             = $cinder_hash[db_password]
-$cinder_user_password           = $cinder_hash[user_password]
-$keystone_user                  = pick($cinder_hash['user'], 'cinder')
-$keystone_tenant                = pick($cinder_hash['tenant'], 'services')
-$db_host                        = pick($cinder_hash['db_host'], hiera('database_vip'))
-$cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
-$cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
-$roles                          = node_roles($nodes_hash, hiera('uid'))
-$glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
+$cinder_hash           = hiera_hash('cinder_hash', {})
+$management_vip        = hiera('management_vip')
+$queue_provider        = hiera('queue_provider', 'rabbitmq')
+$cinder_volume_group   = hiera('cinder_volume_group', 'cinder')
+$controller_nodes      = hiera('controller_nodes')
+$nodes_hash            = hiera('nodes', {})
+$storage_hash          = hiera_hash('storage', {})
+$ceilometer_hash       = hiera_hash('ceilometer_hash',{})
+$rabbit_hash           = hiera_hash('rabbit_hash', {})
+$service_endpoint      = hiera('service_endpoint')
+$service_workers       = pick($cinder_hash['workers'],
+                              min(max($::processorcount, 2), 16))
+
+$cinder_db_password    = $cinder_hash[db_password]
+$cinder_user_password  = $cinder_hash[user_password]
+$keystone_user         = pick($cinder_hash['user'], 'cinder')
+$keystone_tenant       = pick($cinder_hash['tenant'], 'services')
+$db_host               = pick($cinder_hash['db_host'], hiera('database_vip'))
+$cinder_db_user        = pick($cinder_hash['db_user'], 'cinder')
+$cinder_db_name        = pick($cinder_hash['db_name'], 'cinder')
+$roles                 = node_roles($nodes_hash, hiera('uid'))
+$glance_api_servers    = hiera('glance_api_servers', "${management_vip}:9292")
 
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
@@ -89,6 +92,7 @@ class {'openstack::cinder':
   max_overflow         => $max_overflow,
   idle_timeout         => $idle_timeout,
   ceilometer           => $ceilometer_hash[enabled],
+  service_workers      => $service_workers,
 } # end class
 
 ####### Disable upstart startup on install #######
