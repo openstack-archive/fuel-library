@@ -285,6 +285,8 @@ $mongo_roles = ['primary-mongo', 'mongo']
 # todo: use special node-roles instead controllers in the future
 $neutron_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
+$service_workers_count = min(max($::physicalprocessorcount, 2), 16)
+
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
 file { $globals_yaml_file :

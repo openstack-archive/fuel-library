@@ -20,6 +20,7 @@ $max_overflow          = hiera('max_overflow')
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
 $glance_endpoint       = $management_vip
+$service_workers       = hiera('service_workers_count')
 
 $db_type                        = 'mysql'
 $db_host                        = pick($glance_hash['db_host'], $database_vip)
@@ -107,6 +108,7 @@ class { 'openstack::glance':
   rabbit_virtual_host            => $rabbit_virtual_host,
   known_stores                   => $glance_known_stores,
   ceilometer                     => $ceilometer_hash[enabled],
+  service_workers                => $service_workers,
  }
 
 ####### Disable upstart startup on install #######

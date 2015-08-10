@@ -24,6 +24,7 @@ $syslog_log_facility   = hiera('syslog_log_facility_keystone')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $neutron_user_password = hiera('neutron_user_password', false)
 $workloads_hash        = hiera_hash('workloads_collector', {})
+$service_workers       = hiera('service_workers_count')
 
 $db_type     = 'mysql'
 $db_host     = pick($keystone_hash['db_host'], $database_vip)
@@ -128,6 +129,7 @@ class { 'openstack::keystone':
   admin_url                => $admin_url,
   internal_url             => $internal_url,
   ceilometer               => $ceilometer_hash['enabled'],
+  service_workers          => $service_workers,
 }
 
 ####### WSGI ###########
@@ -138,7 +140,7 @@ class { 'osnailyfacter::apache':
 
 class { 'keystone::wsgi::apache':
   priority              => '05',
-  threads               => min(max($::processorcount,2), 24),
+  threads               => $service_workers,
   workers               => 1,
   ssl                   => $ssl,
   vhost_custom_fragment => $vhost_limit_request_field_size,
