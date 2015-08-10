@@ -61,7 +61,7 @@ describe manifest do
     end
 
 
-    it 'should configure memcache_pool keystone cache backend' do
+    it 'should configure  keystone with paramters' do
       should contain_keystone_config('token/caching').with(:value => 'false')
       should contain_keystone_config('cache/enabled').with(:value => 'true')
       should contain_keystone_config('cache/backend').with(:value => 'keystone.cache.memcache_pool')
@@ -72,6 +72,7 @@ describe manifest do
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
       should contain_keystone_config('memcache/dead_retry').with(:value => '300')
       should contain_keystone_config('memcache/socket_timeout').with(:value => '1')
+      should contain_keystone_config('DEFAULT/public_endpoint').with(:value => public_url)
     end
 
     it 'should configure revoke_driver for keystone' do
