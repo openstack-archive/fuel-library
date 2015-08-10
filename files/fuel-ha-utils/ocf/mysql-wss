@@ -471,7 +471,10 @@ mysql_monitor() {
         status_loglevel="info"
     fi
 
-    update_node_gtid
+
+    if [ -f 'OCF_RESKEY_datadir/sst_in_progress' ]; then
+        ocf_log 'SST is progress'
+    fi
 
     mysql_status $status_loglevel
     rc=$?
@@ -479,6 +482,8 @@ mysql_monitor() {
     if [ $rc -ne $OCF_SUCCESS ]; then
         return $rc
     fi
+
+    update_node_gtid
 
     WSREP_CONNECTED=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
         -e "SHOW STATUS LIKE 'wsrep_connected'" | awk '{print $NF}')
