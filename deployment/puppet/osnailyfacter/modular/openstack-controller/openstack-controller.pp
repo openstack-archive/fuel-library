@@ -39,6 +39,7 @@ $keystone_user                  = pick($nova_hash['user'], 'nova')
 $keystone_tenant                = pick($nova_hash['tenant'], 'services')
 $glance_api_servers             = hiera('glance_api_servers', "$management_vip:9292")
 $region                         = hiera('region', 'RegionOne')
+$service_workers                = hiera('service_workers_count')
 
 $memcache_nodes                 = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
 $memcache_ipaddrs               = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
@@ -123,6 +124,7 @@ class { '::openstack::controller':
   neutron_metadata_proxy_secret  => $neutron_metadata_proxy_secret,
   cinder                         => true,
   ceilometer                     => $ceilometer_hash[enabled],
+  service_workers                => $service_workers,
   use_syslog                     => $use_syslog,
   syslog_log_facility_nova       => $syslog_log_facility_nova,
   nova_rate_limits               => $nova_rate_limits,

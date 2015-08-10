@@ -38,6 +38,7 @@ class openstack::cinder(
   $identity_uri           = false,
   $keystone_user          = 'cinder',
   $ceilometer             = false,
+  $service_workes         = $::physicalprocessorcount,
   $vmware_host_ip         = '10.10.10.10',
   $vmware_host_username   = 'administrator@vsphere.local',
   $vmware_host_password   = 'password',
@@ -132,7 +133,8 @@ class openstack::cinder(
       keystone_tenant    => $keystone_tenant,
       keystone_password  => $cinder_user_password,
       bind_host          => $bind_host,
-      ratelimits         => $cinder_rate_limits
+      ratelimits         => $cinder_rate_limits,
+      service_workers    => $service_workers,
     }
 
     class { 'cinder::scheduler':
