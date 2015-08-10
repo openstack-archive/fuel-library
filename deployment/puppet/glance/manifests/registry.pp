@@ -24,6 +24,11 @@
 #  [*bind_port*]
 #    (optional) The port the server should bind to. Defaults to '9191'.
 #
+#  [*workers*]
+#    (optional) The number of child process workers that will be
+#    created to service Registry requests.
+#    Defaults to: $::processorcount
+#
 #  [*log_file*]
 #    (optional) Log file for glance-registry.
 #    If set to boolean false, it will not log to any file.
@@ -129,6 +134,7 @@ class glance::registry(
   $debug                 = false,
   $bind_host             = '0.0.0.0',
   $bind_port             = '9191',
+  $workers               = $::processorcount,
   $log_file              = '/var/log/glance/registry.log',
   $log_dir               = '/var/log/glance',
   $database_connection   = 'sqlite:///var/lib/glance/glance.sqlite',
@@ -206,6 +212,7 @@ class glance::registry(
   glance_registry_config {
     'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/debug':     value => $debug;
+    'DEFAULT/workers':   value => $workers;
     'DEFAULT/bind_host': value => $bind_host;
     'DEFAULT/bind_port': value => $bind_port;
   }
