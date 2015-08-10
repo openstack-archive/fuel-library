@@ -12,11 +12,46 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
   def self.property_mappings
     rv = super
     rv.merge!({
-      :ovs_type   => 'ovs_type',
-      :ovs_bridge => 'ovs_bridge',
+      #todo(sv): :onboot         => '', # should not be used (may be if no ipaddr)
+      :ovs_type       => 'ovs_type',
+      :bridge         => 'ovs_bridge',
+      :bond_slaves    => 'ovs_bonds',
+      :bond_mode      => 'ovs_options',
+      :bond_miimon    => 'ovs_options',
+      :bond_lacp_rate => 'ovs_options',
+      :bond_lacp      => 'ovs_options',
+      :bond_xmit_hash_policy => '', # unused
     })
     return rv
   end
+
+  # Some properties can be defined as repeatable key=value string part in the
+  # one option in config file these properties should be fetched by RE-scanning
+  def self.oneline_properties
+    {
+      :bond_mode => {
+          :field    => 'bond_mode',
+          :store_to => 'ovs_options'
+      },
+      :bond_lacp => {
+          :field    => 'lacp',
+          :store_to => 'ovs_options'
+      },
+      :bond_lacp_rate  => {
+          :field    => 'other_config:lacp-time',
+          :store_to => 'ovs_options'
+      },
+      :bond_miimon  => {
+          :field    => 'other_config:bond-miimon-interval',
+          :store_to => 'ovs_options'
+      },
+
+    }
+  end
+  def oneline_properties
+    self.class.collected_properties
+  end
+
 
   def self.check_if_provider(if_data)
     if if_data[:if_provider].to_s =~ /ovs/
@@ -34,7 +69,7 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
 
 
     # Add onboot interfaces
-    if provider.onboot
+    if provider.onboot and provider.ipaddr.to_s != 'absent'
       header << "auto #{provider.name}"
     end
 
@@ -42,29 +77,20 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
     if provider.if_type.to_s == 'bridge'
       header << "allow-ovs #{provider.name}"
       props[:bridge_ports] = nil
-      props[:ovs_type] = 'OVSBridge'
-      props[:ovs_bridge] = nil
+      props[:ovs_type]     = 'OVSBridge'
+      props[:bridge]       = nil
     elsif provider.if_type.to_s == 'bond'
       props[:ovs_type] = 'OVSBond'
-      props[:ovs_bridge] = bridge
+      props[:bridge]   = bridge
     else
       header << "allow-#{bridge} #{provider.name}"
-      props[:ovs_type] = 'OVSIntPort'
-      props[:ovs_bridge] = bridge
+      props[:ovs_type]   = 'OVSIntPort'
+      props[:bridge]     = bridge
     end
     # Add iface header
     header << "iface #{provider.name} inet #{provider.method}"
 
     return header, props
-  end
-
-
-
-  def self.mangle__type(val)
-    :ethernet
-  end
-  def self.unmangle__type(val)
-    nil
   end
 
 end

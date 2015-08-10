@@ -1,0 +1,3 @@
+allow-ovs br9
+iface br9 inet manual
+  ovs_type OVSBridge
