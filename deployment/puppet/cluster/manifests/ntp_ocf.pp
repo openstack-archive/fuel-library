@@ -2,57 +2,55 @@
 #
 # Configure OCF service for NTP managed by corosync/pacemaker
 #
-class cluster::ntp_ocf ( ) {
-  include ntp::params
+class cluster::ntp_ocf inherits ntp::params {
+  $primitive_type = 'ns_ntp'
+  $complex_type   = 'clone'
 
-  $basic_service_name = $ntp::params::service_name
-  $service_name = "p_${basic_service_name}"
+  $ms_metadata = {
+    'interleave' => 'true',
+  }
 
-  cs_resource { $service_name:
-    ensure          => present,
-    primitive_class => 'ocf',
-    provided_by     => 'fuel',
-    primitive_type  => 'ns_ntp',
-    complex_type    => 'clone',
-    ms_metadata => {
-      'interleave' => 'true',
-    },
-    metadata => {
-      'migration-threshold' => '3',
-      'failure-timeout'     => '120',
-    },
-    parameters => {
-      'ns' => 'vrouter',
-    },
-    operations => {
-      'monitor' => {
-        'interval' => '20',
-        'timeout'  => '10'
-      },
-      'start' => {
-        'timeout' => '30'
-      },
-      'stop' => {
-        'timeout' => '30'
-      },
-    },
-  } ->
+  $metadata = {
+    'migration-threshold' => '3',
+    'failure-timeout'     => '120',
+  }
 
-  cs_rsc_colocation { 'ntpd-with-vrouter-ns':
-    ensure     => present,
+  $parameters = {
+    'ns' => 'vrouter',
+  }
+
+  $operations = {
+    'monitor' => {
+      'interval' => '20',
+      'timeout'  => '10'
+    },
+    'start' => {
+      'timeout' => '30'
+    },
+    'stop' => {
+      'timeout' => '30'
+    },
+  }
+
+  cs_rsc_colocation { 'ntp-with-vrouter-ns' :
+    ensure     => 'present',
     score      => 'INFINITY',
     primitives => [
-      "clone_${service_name}",
-      "clone_p_vrouter"
+      "clone_p_$service_name",
+      "clone_p_vrouter",
     ],
   }
 
-  Cs_resource[$service_name] ~> Service[$service_name]
-
-  service { $service_name:
-    name     => $service_name,
-    enable   => true,
-    ensure   => 'running',
-    provider => 'pacemaker',
+  pacemaker_wrappers::service { $service_name :
+    primitive_type => $primitive_type,
+    parameters     => $parameters,
+    metadata       => $metadata,
+    operations     => $operations,
+    ms_metadata    => $ms_metadata,
+    complex_type   => $complex_type,
+    prefix         => true,
   }
+
+  Cs_rsc_colocation['ntp-with-vrouter-ns'] -> Service['ntp']
+
 }
