@@ -347,6 +347,15 @@ if $network_provider == 'neutron' {
   else {
     $agents = [$agent]
   }
+
+  exec { 'wait-for-int-br':
+    command   => "ovs-vsctl br-exists $neutron_integration_bridge",
+    path      => [ '/sbin', '/bin', '/usr/bin', '/usr/sbin' ],
+    try_sleep => 5,
+    tries     => 10,
+  }
+
+  Class['Openstack::Network'] -> Exec['wait-for-int-br'] -> Service['nova-compute']
 }
 
 class { 'openstack::network':

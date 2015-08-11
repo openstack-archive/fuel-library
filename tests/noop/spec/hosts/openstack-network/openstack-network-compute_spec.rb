@@ -38,6 +38,14 @@ describe manifest do
     end
 
     if use_neutron
+      it 'should wait for integration bridge' do
+        should contain_exec('wait-for-int-br').with(
+          'command' => 'ovs-vsctl br-exists br-int',
+        )
+#        should contain_class('openstack::network').that_comes_before('Exec["wait-for-int-br"]')
+#        should contain_exec('wait-for-int-br').that_comes_before('Service["nova-compute"]')
+      end
+      it { should contain_exec('wait-for-int-br').that_comes_before('Service[nova-compute]') }
       it 'should remove default libvirt network' do
         should contain_exec('destroy_libvirt_default_network').with(
           'command' => 'virsh net-destroy default',
