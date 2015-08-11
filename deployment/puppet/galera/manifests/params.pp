@@ -29,8 +29,7 @@ class galera::params {
     inline_template("<%= [(${buffer_size} * 0.2 + 0).floor, 2047].min %>M")
   $wait_timeout            = '1800'
   $myisam_sort_buffer_size = '64M'
-  $key_buffer_size_mb      = '64'
-  $key_buffer_size         = "${key_buffer_size_mb}M"
+  $key_buffer_size         = '64'
   $table_open_cache        = '10000'
   $open_files_limit        = '102400'
   $innodb_flush_method     = 'O_DIRECT'
@@ -38,8 +37,8 @@ class galera::params {
   $sort_buffer_size_mb     = '0.25'
   $read_buffer_size_mb     = '0.125'
   $max_connections = inline_template(
-    "<%= [[((${::memorysize_mb} * 0.3 - ${key_buffer_size_mb}) /
-    (${sort_buffer_size_mb} + ${read_buffer_size_mb})).floor, 8192].min, 1000].max %>")
+    "<%= [[((${::memorysize_mb} * 0.3 - ${key_buffer_size}) /
+    (${sort_buffer_size_mb} + ${read_buffer_size_mb})).floor, 8192].min, 2048].max %>")
 
   if ($::galera::use_percona) {
     case $::osfamily {
