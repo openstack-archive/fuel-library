@@ -281,6 +281,7 @@ class openstack::compute (
     tweaks::ubuntu_service_override { 'nova-compute':
       package_name => "nova-compute-${libvirt_type}",
     }
+    File["create_nova-compute_override"] -> Package<| title == "nova-compute-${libvirt_type}"|>
   }
 
   class { '::nova::compute':
