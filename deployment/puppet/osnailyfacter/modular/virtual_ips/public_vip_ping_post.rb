@@ -14,7 +14,7 @@ class PublicVipPingPostTest < Test::Unit::TestCase
   def test_paceamaker_public_vips
     return unless has_public?
     assert TestCommon::Pacemaker.primitive_started?('vip__public'), 'vip__public Pacemaker service is not started!'
-    assert TestCommon::Pacemaker.primitive_started?('vip__public_vrouter'), 'vip__public_vrouter Pacemaker service is not started!'
+    assert TestCommon::Pacemaker.primitive_started?('vip__vrouter_pub'), 'vip__vrouter_pub Pacemaker service is not started!'
   end
 
 end
