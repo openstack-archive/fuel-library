@@ -134,6 +134,10 @@ describe manifest do
                      'mandatory'      => true,
                  )
         end
+
+        it { should contain_haproxy_backend_status('keystone-public').that_comes_before('Haproxy_backend_status[murano-api]') }
+        it { should contain_haproxy_backend_status('keystone-admin').that_comes_before('Haproxy_backend_status[murano-api]') }
+        it { should contain_haproxy_backend_status('murano-api').that_comes_before('Murano__application[io.murano]') }
       end
     end
   end
