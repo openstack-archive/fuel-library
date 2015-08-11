@@ -87,7 +87,7 @@ def main():
     (options, args) = parser.parse_args()
 
     nova = Client(VERSION, USERNAME, PASSWORD, PROJECT_ID, AUTH_URL,
-                  endpoint_url='internalURL')
+                  endpoint_type='internalURL')
     vcenter_settings = get_data_from_hiera('vcenter')
 
     if options.create_zones:
