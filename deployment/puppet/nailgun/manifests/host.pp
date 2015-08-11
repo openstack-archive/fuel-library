@@ -1,5 +1,6 @@
 class nailgun::host(
 $production,
+$fuel_version,
 $cobbler_host = '127.0.0.1',
 $dns_search = 'domain.tld',
 $dns_domain = 'domain.tld',
@@ -27,7 +28,8 @@ $admin_iface = 'eth0',
   }
 
   class { 'nailgun::auxiliaryrepos':
-    repo_root  => $repo_root,
+    fuel_version => $fuel_version,
+    repo_root    => $repo_root,
   }
 
   nailgun::sshkeygen { '/root/.ssh/id_rsa':

@@ -1,6 +1,7 @@
 class nailgun::auxiliaryrepos(
-  $repo_root  = '/var/www/nailgun',
-  $priority = '15',
+  $fuel_version,
+  $repo_root    = '/var/www/nailgun',
+  $priority     = '15',
   ){
 
   $centos_dir = "${repo_root}/centos/auxiliary/"
@@ -16,11 +17,11 @@ class nailgun::auxiliaryrepos(
   File[$centos_dir] ->
     Package['createrepo'] ->
       Exec["createrepo ${centos_dir}"] ->
-        Yumrepo['auxiliary']
+        Yumrepo["${fuel_version}_auxiliary"]
 
-  yumrepo { 'auxiliary':
-    name     => 'auxiliary',
-    descr    => 'auxillary',
+  yumrepo { "${fuel_version}_auxiliary":
+    name     => "${fuel_version}_auxiliary",
+    descr    => "${fuel_version}_auxiliary",
     baseurl  => "file://${centos_dir}",
     gpgcheck => '0',
     priority => $priority,
