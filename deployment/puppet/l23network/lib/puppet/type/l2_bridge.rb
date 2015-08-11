@@ -12,9 +12,22 @@ Puppet::Type.newtype(:l2_bridge) do
       desc "The bridge to configure"
       #
       validate do |val|
-        if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
+        if not val =~ /^[a-z][0-9a-z\-]*[0-9a-z]$/
           fail("Wrong bridge name: '#{val}'")
         end
+        if val.length > 15
+          fail("Bridge name too long: '#{val}'. Allowed not more 15 chars.")
+        end
+        if ! [Regexp.new(/^bond.*/),
+              Regexp.new(/^wlan.*/),
+              Regexp.new(/^lo\d*/),
+              Regexp.new(/^eth.*/),
+              Regexp.new(/^en[ospx]\h+/),
+              Regexp.new(/^em\d+/),
+              Regexp.new(/^p\d+p\d+/),
+              Regexp.new(/^ib\d*/),
+        ].select{|x| x.match(val)}.empty?
+          fail("Wrong bridge name: '#{val}'")
       end
     end
 
