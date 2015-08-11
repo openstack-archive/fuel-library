@@ -11,8 +11,23 @@ Puppet::Type.newtype(:l2_bond) do
       desc "The bond name"
       #
       validate do |val|
-        if not val =~ /^\w[\w+\-]*\w$/
-          fail("Invalid bond name: '#{val}'")
+        err = "Wrong bond name:"
+        if not val =~ /^[a-z][0-9a-z\-]*[0-9a-z]$/
+          fail("#{err} '#{val}'")
+        end
+        if val.length > 15
+          fail("#{err} Name too long: '#{val}'. Allowed not more 15 chars.")
+        end
+        if ! [Regexp.new(/^br\-?.*/),
+              Regexp.new(/^wlan.*/),
+              Regexp.new(/^lo\d*/),
+              Regexp.new(/^eth.*/),
+              Regexp.new(/^en[ospx]\h+/),
+              Regexp.new(/^em\d*/),
+              Regexp.new(/^p\d+p\d+/),
+              Regexp.new(/^ib[\h\.]+/),
+        ].select{|x| x.match(val)}.empty?
+          fail("#{err} '#{val}'")
         end
       end
     end
