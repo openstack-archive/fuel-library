@@ -38,7 +38,7 @@ define vmware::cinder::vmdk(
   $index = $availability_zone_name
   $cinder_volume_conf = "${cinder_conf_dir}/vmware-${index}.conf"
   $cinder_volume_log = "${cinder_log_dir}/vmware-${index}.log"
-  $cinder_conf = $::cinder::params::cinder_conf
+  $cinder_conf = '/etc/cinder/cinder.conf'
   $cinder_volume_vmware = "${::cinder::params::volume_service}-vmware"
 
   if ! defined(File[$cinder_conf_dir]) {
