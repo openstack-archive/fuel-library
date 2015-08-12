@@ -16,6 +16,11 @@ describe manifest do
       )
     end
 
+    it 'should configure template size and request limit' do
+      should contain_heat_config('DEFAULT/max_template_size').with_value('5440000')
+      should contain_heat_config('DEFAULT/max_resources_per_stack').with_value('20000')
+    end
+
     it 'should configure syslog rfc format for heat' do
       should contain_heat_config('DEFAULT/use_syslog_rfc_format').with(:value => use_syslog)
     end
