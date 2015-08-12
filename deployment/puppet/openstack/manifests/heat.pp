@@ -151,6 +151,7 @@ class openstack::heat (
   heat_config {
     'DEFAULT/max_template_size':       value => '1048576';
     'DEFAULT/max_resources_per_stack': value => '4000';
+    'DEFAULT/rpc_response_timeout'     value => '600';
   }
 
   heat_config {
