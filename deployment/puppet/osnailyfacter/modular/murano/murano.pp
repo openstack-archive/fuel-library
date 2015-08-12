@@ -126,6 +126,16 @@ if $murano_hash['enabled'] {
   }
 
   if ($node_role == 'primary-controller') {
+    haproxy_backend_status { 'keystone-public' :
+      name  => 'keystone-1',
+      url   => $haproxy_stats_url,
+    }
+
+    haproxy_backend_status { 'keystone-admin' :
+      name  => 'keystone-2',
+      url   => $haproxy_stats_url,
+    }
+
     murano::application { 'io.murano' :
       os_tenant_name => $tenant,
       os_username    => $murano_user,
@@ -134,6 +144,10 @@ if $murano_hash['enabled'] {
       os_region      => $region,
       mandatory      => true,
     }
+
+    Haproxy_backend_status['keystone-admin'] -> Haproxy_backend_status['murano-api']
+    Haproxy_backend_status['keystone-public'] -> Haproxy_backend_status['murano-api']
+    Haproxy_backend_status['murano-api'] -> Murano::Application['io.murano']
 
     Service['murano-api'] -> Murano::Application<| mandatory == true |>
   } else {
