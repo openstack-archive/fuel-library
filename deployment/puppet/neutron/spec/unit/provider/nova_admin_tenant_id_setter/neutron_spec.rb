@@ -54,11 +54,27 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
         }
     end
 
+    let(:resource) do
+      Puppet::Type::Nova_admin_tenant_id_setter.new(params)
+    end
+
+    let(:provider) do
+      provider = provider_class.new(resource)
+      provider.stubs(:retry_count).returns(3)
+      provider.stubs(:retry_sleep).returns(0)
+      provider
+    end
+
     it 'should have a non-nil provider' do
-        expect(provider_class).not_to be_nil
+      expect(provider_class).not_to be_nil
+    end
+
+    before(:each) do
+      puppet_debug_override
     end
 
     context 'when url is correct' do
+
         before :each do
             stub_request(:post, "http://127.0.0.1:35357/v2.0/tokens").
                 to_return(:status => 200,
@@ -72,8 +88,6 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
         end
 
         it 'should create a resource' do
-            resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
-            provider = provider_class.new(resource)
             expect(provider.exists?).to be_falsey
             expect(provider.create).to be_nil
         end
@@ -84,8 +98,6 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
                 Puppet::Util::IniConfig::File.expects(:new).returns(mock)
                 mock.expects(:read).with('/etc/neutron/neutron.conf')
 
-                resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
-                provider = provider_class.new(resource)
                 expect(provider.exists?).to be_truthy
                 expect(provider.create).to be_nil
             end
@@ -108,11 +120,14 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
             params.merge!(:tenant_name => 'bad_tenant_name')
         end
 
-        it 'should receive an api error' do
-            resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
-            provider = provider_class.new(resource)
+        it 'should receive an "Unable to find matching tenant" api error' do
             expect(provider.exists?).to be_falsey
             expect { provider.create }.to raise_error KeystoneAPIError, /Unable to find matching tenant/
+        end
+
+        it 'should retry get_tenant_id defined number of times' do
+          provider.expects(:get_tenant_id_request).times(3).raises KeystoneAPIError, 'Unable to find matching tenant'
+          expect { provider.create }.to raise_error KeystoneAPIError, /Unable to find matching tenant/
         end
     end
 
@@ -133,11 +148,14 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
             params.merge!(:tenant_name => 'multiple_matches_tenant')
         end
 
-        it 'should receive an api error' do
-            resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
-            provider = provider_class.new(resource)
+        it 'should receive an "Found multiple matches" api error' do
             expect(provider.exists?).to be_falsey
-            expect { provider.create }.to raise_error KeystoneAPIError, /Found multiple matches for domain name: 'multiple_matches_tenant'/
+            expect { provider.create }.to raise_error KeystoneAPIError, /Found multiple matches/
+        end
+
+        it 'should not retry get_tenant_id on this error' do
+          provider.expects(:get_tenant_id_request).once.raises KeystoneAPIError, 'Found multiple matches'
+          expect { provider.create }.to raise_error KeystoneAPIError, /Found multiple matches/
         end
     end
 
@@ -151,10 +169,13 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
         end
 
         it 'should receive an authentication error' do
-            resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
-            provider = provider_class.new(resource)
             expect(provider.exists?).to be_falsey
-            expect { provider.create }.to raise_error KeystoneAPIError
+            expect { provider.create }.to raise_error KeystoneAPIError, /Received error response from Keystone server/
+        end
+
+        it 'should retry get_tenant_id defined number of times' do
+          provider.expects(:get_tenant_id_request).times(3).raises KeystoneAPIError, 'Received error response from Keystone server'
+          expect { provider.create }.to raise_error KeystoneAPIError, /Received error response from Keystone server/
         end
     end
 
@@ -165,24 +186,30 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
         end
 
         it 'should receive a connection error' do
-            resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
-            provider = provider_class.new(resource)
             expect(provider.exists?).to be_falsey
-            expect { provider.create }.to raise_error KeystoneConnectionError
+            expect { provider.create }.to raise_error KeystoneConnectionError, /Connection refused/
+        end
+
+        it 'should retry get_tenant_id defined number of times' do
+          provider.expects(:get_tenant_id_request).times(3).raises KeystoneConnectionError, 'Connection refused'
+          expect { provider.create }.to raise_error KeystoneConnectionError, /Connection refused/
         end
     end
 
     # What happens if we mistype the hostname?
     context 'when keystone server is unknown' do
         before :each do
-            stub_request(:post, "http://127.0.0.1:35357/v2.0/tokens").to_raise SocketError, 'getaddrinfo: Name or service not known'
+            stub_request(:post, "http://127.0.0.1:35357/v2.0/tokens").to_raise SocketError.new 'getaddrinfo: Name or service not known'
         end
 
         it 'should receive a connection error' do
-            resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
-            provider = provider_class.new(resource)
             expect(provider.exists?).to be_falsey
-            expect { provider.create }.to raise_error KeystoneConnectionError
+            expect { provider.create }.to raise_error KeystoneConnectionError, /Name or service not known/
+        end
+
+        it 'should retry get_tenant_id defined number of times' do
+          provider.expects(:get_tenant_id_request).times(3).raises KeystoneAPIError, 'Name or service not known'
+          expect { provider.create }.to raise_error KeystoneAPIError, /Name or service not known/
         end
     end
 
@@ -201,8 +228,6 @@ describe 'Puppet::Type.type(:nova_admin_tenant_id_setter)' do
         end
 
         it 'should create a resource' do
-            resource = Puppet::Type::Nova_admin_tenant_id_setter.new(params)
-            provider = provider_class.new(resource)
             expect(provider.exists?).to be_falsey
             expect(provider.create).to be_nil
         end
