@@ -26,6 +26,10 @@ validate_string($password)
 $public_url          = "${public_protocol}://${public_address}:8080/v1/AUTH_%(tenant_id)s"
 $admin_url           = "http://${admin_address}:8080/v1/AUTH_%(tenant_id)s"
 
+# Amazon S3 endpoints
+$public_url_s3       = "${public_protocol}://${public_address}:8080"
+$admin_url_s3        = "http://${admin_address}:8080"
+
 class { '::swift::keystone::auth':
   password           => $password,
   auth_name          => $auth_name,
@@ -34,6 +38,8 @@ class { '::swift::keystone::auth':
   public_url         => $public_url,
   internal_url       => $admin_url,
   admin_url          => $admin_url,
-
+  public_url_s3      => $public_url_s3,
+  internal_url_s3    => $admin_url_s3,
+  admin_url_s3       => $admin_url_s3,
   region             => $region,
 }
