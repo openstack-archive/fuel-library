@@ -21,6 +21,10 @@ describe manifest do
       should contain_heat_config('DEFAULT/max_resources_per_stack').with_value('20000')
     end
 
+    it 'should configure heat rpc response timeout' do
+      should contain_heat_config('DEFAULT/rpc_response_timeout').with_value('600')
+    end
+
     it 'should configure syslog rfc format for heat' do
       should contain_heat_config('DEFAULT/use_syslog_rfc_format').with(:value => use_syslog)
     end

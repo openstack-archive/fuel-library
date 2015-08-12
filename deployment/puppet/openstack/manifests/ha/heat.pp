@@ -41,7 +41,8 @@ class openstack::ha::heat (
     public_ssl             => $public_ssl,
     require_service        => 'heat-api',
     haproxy_config_options => {
-        option => ['httpchk', 'httplog','httpclose'],
+        option           => ['httpchk', 'httplog','httpclose'],
+        'timeout server' => '660s',
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
