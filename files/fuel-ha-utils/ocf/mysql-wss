@@ -620,11 +620,7 @@ mysql_stop() {
     local pgrp=$(ps -o pgid= ${pid})
     ocf_log info "Sending SIGTERM to PID: ${pid}"
     /bin/kill -TERM ${pid} > /dev/null
-    rc=$?
-    if [ $rc -ne $OCF_SUCCESS ]; then
-        ocf_log err "MySQL couldn't be stopped"
-        return $OCF_ERR_GENERIC
-    fi
+
     # stop waiting
     shutdown_timeout=20
     while [ $shutdown_timeout -gt 0 ]; do
@@ -643,8 +639,8 @@ mysql_stop() {
     mysql_status info 1
     rc=$?
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log info "MySQL failed to stop using SIGTERM. Sending SIGKILL to PID: ${pid}"
-        /usr/bin/pkill -9 -g ${pgrp} > /dev/null
+        ocf_log err "MySQL couldn't be stopped"
+        return $OCF_ERR_GENERIC
     fi
 
     mysql_cleanup
