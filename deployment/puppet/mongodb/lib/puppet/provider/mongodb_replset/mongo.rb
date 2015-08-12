@@ -2,7 +2,7 @@
 # Author: François Charlier <francois.charlier@enovance.com>
 #
 
-Puppet::Type.type(:mongodb_replset).provide(:mongo) do
+Puppet::Type.type(:mongodb_replset).provide(:mongo, :parent => Puppet::Provider::Mongodb) do
 
   desc "Manage hosts members for a replicaset."
 
@@ -201,10 +201,12 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
   def primary?(hosts)
     hosts.select do |host|
       status = rs_status(host)
-      return false unless status['members']
-      primary = status['members'].each{|member|  break member.value?('PRIMARY')}
-      return true if primary
+      if status['members']
+        primary = status['members'].each{|member|  break member['stateStr'] == 'PRIMARY'}
+        return true if primary
+      end
     end
+    return false
   end
 
   def alive_hosts
@@ -231,7 +233,7 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
       return
     end
 
-    if primary?(@property_flush[:members])
+    if primary?(alive_hosts)
       # Add members to an existing replset
       alive = alive_members(@property_flush[:members])
       if master = master_host(alive)
@@ -257,9 +259,47 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
         conf = "{ _id: '#{self.name}', members: [ #{hostconf} ] }"
 
         # Set replset members with the first host as the master
-        output = rs_initiate(conf, alive[0])
+        master = alive[0]
+        output = rs_initiate(conf, master)
         if output['ok'] == 0
           raise Puppet::Error, "rs.initiate() failed for replicaset #{self.name}: #{output['errmsg']}"
+        end
+        # Wait till the end of initialization
+        retry_count = 10
+        retry_sleep = 3
+        retry_count.times do |n|
+          begin
+            state = mongo_command('rs.status()', master)['members'][0]['stateStr']
+          rescue Exception => e
+            Puppet.debug "Replica set master is #{master} and it's not started yet. Retry: #{n}"
+            sleep retry_sleep
+            next
+          end
+          if state == 'PRIMARY'
+            Puppet.debug "Replica set master is #{master} and it has successfully started"
+            return
+          end
+        end
+      end
+    end
+  end
+
+  def self.get_bind_ips
+    config = get_mongod_conf_file
+    if mongo_24?
+      split_string = /\s*=\s*/
+      bind_key = 'bind_ip'
+    else
+      split_string = /\s*:\s*/
+      bind_key = 'net.bindIp'
+    end
+    File.open(get_mongod_conf_file) do |fp|
+      fp.each do |line|
+        if !line.start_with?('#')
+          key, value = line.chomp.split(split_string)
+          if key == bind_key
+            return value.split(',')
+          end
         end
       end
     end
@@ -270,12 +310,15 @@ Puppet::Type.type(:mongodb_replset).provide(:mongo) do
   end
 
   def self.mongo_command(command, host=nil, retries=4, auth_enabled=false)
-    if auth_enabled and command.include? "rs.initiate"
-      # We can't setup replica from any hosts except localhost
-      # if authentication is enabled
-      # User can't be created before replica set initialization
-      # So we can't use user credentials for auth
-      host = '127.0.0.1'
+    if host
+      ip = host.include?(':') ?  host.split(':')[0] : host
+      if auth_enabled and get_bind_ips.include? ip
+        # We can't setup replica from any hosts except localhost
+        # if authentication is enabled and users aren't exist
+        # User can't be created before replica set initialization
+        # So we can't use user credentials for auth
+        host = '127.0.0.1'
+      end
     end
     # Allow waiting for mongod to become ready
     # Wait for 2 seconds initially and double the delay at each retry

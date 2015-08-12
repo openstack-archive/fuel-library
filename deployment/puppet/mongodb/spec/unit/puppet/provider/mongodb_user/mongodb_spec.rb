@@ -24,14 +24,16 @@ describe Puppet::Type.type(:mongodb_user).provider(:mongodb) do
   let(:provider) { resource.provider }
 
   before :each do
-     provider.class.stubs(:mongo_eval).with('rs.slaveOk(); printjson(db.system.users.find().toArray())').returns(raw_users)
-     provider.class.stubs(:mongo_version).returns('2.6.x')
+    provider.stubs(:mongo_eval).with('db.isMaster().ismaster').returns('true')
+    provider.class.stubs(:mongo_eval).with('printjson(db.system.users.find().toArray())').returns(raw_users)
+    provider.class.stubs(:mongo_version).returns('2.6.x')
   end
 
   let(:instance) { provider.class.instances.first }
 
   describe 'self.instances' do
     it 'returns an array of users' do
+      provider.class.stubs(:mongo_eval).with('db.isMaster().ismaster').returns('true')
       usernames = provider.class.instances.collect {|x| x.username }
       expect(parsed_users).to match_array(usernames)
     end
@@ -69,6 +71,7 @@ describe Puppet::Type.type(:mongodb_user).provider(:mongodb) do
 
   describe 'password_hash' do
     it 'returns a password_hash' do
+      provider.class.stubs(:mongo_eval).with('db.isMaster().ismaster').returns('true')
       instance.password_hash.should == "pass"
     end
   end
@@ -90,6 +93,7 @@ describe Puppet::Type.type(:mongodb_user).provider(:mongodb) do
 
   describe 'roles' do
     it 'returns a sorted roles' do
+      provider.class.stubs(:mongo_eval).with('db.isMaster().ismaster').returns('true')
       instance.roles.should == ['role1', 'role2']
     end
   end

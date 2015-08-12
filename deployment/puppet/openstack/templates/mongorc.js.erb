@@ -14,7 +14,7 @@ if (authRequired()) {
   try {
     var prev_db = db
     db = db.getSiblingDB('admin')
-    db.auth('<%= @admin_username %>', '<%= @admin_password %>')
+    db.auth('admin', '<%= @ceilometer_db_password %>')
     db = db.getSiblingDB(prev_db)
   }
   catch (err) {

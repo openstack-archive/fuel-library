@@ -149,6 +149,10 @@ EOT
     end
 
     it 'adds missing members to an existing replicaset' do
+      provider.class.stubs(:mongo_eval).with('db.isMaster().ismaster').returns('true')
+      tmp = Tempfile.new('test')
+      @mongodconffile = tmp.path
+      provider.class.stubs(:get_mongod_conf_file).returns(@mongodconffile)
       provider.stubs(:rs_status).returns({ "set" => "rs_test" })
       provider.expects('primary?').times(1)
       provider.members=(valid_members)
@@ -158,7 +162,7 @@ EOT
    it 'raises an error when the master host is not available' do
       provider.stubs('primary?').returns(true)
       provider.create
-      expect { provider.flush }.to raise_error(Puppet::Error, "Can't find master host for replicaset #{resource[:name]}.")
+      expect { provider.flush }.to raise_error(Puppet::Error, "Can't connect to any member of replicaset #{resource[:name]}.")
     end
 
 
@@ -166,7 +170,7 @@ EOT
       provider.stubs('primary?').returns(true)
       provider.stubs('master_host').returns(false)
       provider.members=(valid_members)
-      expect { provider.flush }.to raise_error(Puppet::Error, "Can't find master host for replicaset #{resource[:name]}.")
+      expect { provider.flush }.to raise_error(Puppet::Error, "Can't connect to any member of replicaset #{resource[:name]}.")
     end
 
     it 'raises an error when at least one member is not running with --replSet' do
