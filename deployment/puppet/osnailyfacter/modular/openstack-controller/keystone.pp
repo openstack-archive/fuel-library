@@ -39,6 +39,8 @@ class { '::nova::keystone::auth':
   password               => $password,
   auth_name              => $auth_name,
   configure_endpoint     => $configure_endpoint,
+  #TODO(mpolenchuk) Enable it back once it will be ready to use
+  configure_endpoint_v3  => false,
   configure_user         => $configure_user,
   configure_user_role    => $configure_user_role,
   service_name           => $service_name,
