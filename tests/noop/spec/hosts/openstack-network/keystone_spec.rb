@@ -27,20 +27,23 @@ describe manifest do
     public_url          = "#{public_protocol}://#{public_address}:#{port}"
     internal_url        = "#{admin_protocol}://#{admin_address}:#{port}"
     admin_url           = "#{admin_protocol}://#{admin_address}:#{port}"
+    use_neutron         = Noop.hiera('use_neutron', false)
 
-    it 'should declare neutron::keystone::auth class' do
-      should contain_class('neutron::keystone::auth').with(
-        'password'            => password,
-        'auth_name'           => auth_name,
-        'configure_endpoint'  => configure_endpoint,
-        'configure_user'      => configure_user,
-        'configure_user_role' => configure_user_role,
-        'service_name'        => service_name,
-        'public_url'          => public_url,
-        'internal_url'        => internal_url,
-        'admin_url'           => admin_url,
-        'region'              => region,
-      )
+    if use_neutron
+      it 'should declare neutron::keystone::auth class' do
+        should contain_class('neutron::keystone::auth').with(
+          'password'            => password,
+          'auth_name'           => auth_name,
+          'configure_endpoint'  => configure_endpoint,
+          'configure_user'      => configure_user,
+          'configure_user_role' => configure_user_role,
+          'service_name'        => service_name,
+          'public_url'          => public_url,
+          'internal_url'        => internal_url,
+          'admin_url'           => admin_url,
+          'region'              => region,
+        )
+      end
     end
   end
 
