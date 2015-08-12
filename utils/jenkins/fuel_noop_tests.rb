@@ -42,9 +42,6 @@ module NoopTests
       opts.on('-i', '--individually', 'Run each spec individually') do
         @options[:run_individually] = true
       end
-      opts.on('-g', '--purge_globals', 'Purge globals yaml files') do
-        @options[:purge_globals] = true
-      end
       opts.on('-a', '--astute_yaml_dir DIR', 'Path to astute_yaml folder') do |dir|
         @options[:astute_yaml_dir] = dir
         ENV['SPEC_YAML_DIR'] = dir
@@ -55,8 +52,20 @@ module NoopTests
       opts.on('-S', '--list_specs', 'List all noop spec files') do
         @options[:list_specs] = true
       end
+      opts.on('-g', '--skip_globals', "Don't run 'globals' task") do
+        @options[:skip_globals] = true
+      end
+      opts.on('-A', '--failed_log FILE', 'Log failed specs and yamls to this file') do |file|
+        @options[:failed_log] = file
+      end
       opts.separator 'Filter options:'
       opts.on('-s', '--specs SPEC1,SPEC2', Array, 'Run only these specs. Example: "hosts/hosts_spec.rb"') do |specs|
+        specs = specs.map do |spec|
+          if spec.end_with? '.pp'
+            spec.gsub! '.pp', '_spec.rb'
+          end
+          spec
+        end
         @options[:filter_specs] = specs
       end
       opts.on('-y', '--yamls YAML1,YAML2', Array, 'Run only these yamls. Example: "novanet-primary-controller.yaml"') do |yamls|
@@ -97,9 +106,6 @@ module NoopTests
       opts.on('-R', '--test_centos', 'Run tests for CentOS facts') do
         ENV['SPEC_TEST_CENTOS'] = 'YES'
       end
-      opts.on('-r', '--rspec_debug', 'Show debug messages in rspec tests') do
-        ENV['SPEC_RSPEC_DEBUG'] = 'YES'
-      end
       opts.on('-p', '--puppet_debug', 'Show Puppet debug messages') do
         ENV['SPEC_PUPPET_DEBUG'] = 'YES'
       end
@@ -113,6 +119,7 @@ module NoopTests
       opts.on('-u', '--update-librarian-puppet', 'Run librarian-puppet update in the deployment directory prior to testing') do
         @options[:update_librarian_puppet] = true
       end
+
     end
     optparse.parse!
     @options
@@ -290,7 +297,16 @@ module NoopTests
   # run the globals task for the given yaml file
   # @param [String] astute_yaml YAML file
   def self.globals(astute_yaml)
+    return if options[:skip_globals]
     globals_file = File.join astute_yaml_directory, GLOBALS_PREFIX + astute_yaml
+    if File.file? globals_file
+      begin
+        File.unlink globals_file
+        debug "Globals file  was removed: '#{globals_file}'"
+      rescue => e
+        debug "Could not remove globals file: '#{globals_file}'! (#{e.message})"
+      end
+    end
     rspec spec_path(GLOBALS_SPEC)
   end
 
@@ -431,6 +447,21 @@ module NoopTests
     end
   end
 
+  def self.save_failed_log(results)
+    return unless options[:failed_log]
+    File.open(options[:failed_log], 'w') do |file|
+      results.each do |astute_yaml, yaml_result|
+        if yaml_result[:report].is_a? Hash
+          yaml_result.fetch(:report, {}).each do |spec, spec_result|
+            file.puts "#{astute_yaml} #{spec}" unless spec_result[:success]
+          end
+        else
+          file.puts astute_yaml unless yaml_result[:success]
+        end
+      end
+    end
+  end
+
   # output the test results
   # @param [Hash]
   def self.show_results(results)
@@ -443,18 +474,6 @@ module NoopTests
           puts "  * #{spec.ljust max_spec_length} #{status_string spec_result[:success]}"
         end
       end
-    end
-  end
-
-  # remove all globals yaml files
-  def self.purge_globals
-    Dir.new(astute_yaml_directory).each do |file|
-      path = File.join astute_yaml_directory, file
-      next unless File.file? path
-      next unless file.start_with? GLOBALS_PREFIX
-      next unless file.end_with? '.yaml'
-      debug "Remove: '#{path}'"
-      File.unlink path
     end
   end
 
@@ -488,15 +507,12 @@ module NoopTests
       exit 0
     end
 
-    if options[:purge_globals]
-      purge_globals
-      exit 0
+    if options[:update_librarian_puppet]
+      prepare_library
     end
 
-    # run librarian-puppet update to prepare the library
-    if options[:update_librarian_puppet]
-        prepare_library
-    end
+    debug "Spec filter: #{options[:filter_specs]}" if options[:filter_specs]
+    debug "Yaml filter: #{options[:filter_yamls]}" if options[:filter_yamls]
 
     success, result = for_every_astute_yaml do
       if options[:run_individually]
@@ -507,6 +523,7 @@ module NoopTests
     end
 
     show_results result
+    save_failed_log result
 
     exit 1 unless success
   end
