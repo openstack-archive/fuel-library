@@ -365,7 +365,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     provider = providers[0]
     content, props = iface_file_header(provider)
 
-    property_mappings.keys.select{|v| !(properties_fake.include?(v) or v.empty?)}.each do |type_name|
+    property_mappings.reject{|k,v| (properties_fake.include?(k) or v.empty?)}.keys.each do |type_name|
       next if props.has_key? type_name
       val = provider.send(type_name)
       if val and val.to_s != 'absent'
