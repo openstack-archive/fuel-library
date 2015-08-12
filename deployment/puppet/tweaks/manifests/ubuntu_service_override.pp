@@ -23,6 +23,7 @@ define tweaks::ubuntu_service_override (
     }
 
     File[$file_name] -> Package <| name == $package_name |> -> Exec[$exec_name]
+    File[$file_name] -> Package <| title == $package_name |> -> Exec[$exec_name]
     File[$file_name] -> Exec[$exec_name]
     Exec[$exec_name] -> Service <| name == $service_name |>
     Exec[$exec_name] -> Service <| title == $service_name |>
