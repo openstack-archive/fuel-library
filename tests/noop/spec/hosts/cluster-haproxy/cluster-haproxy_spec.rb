@@ -14,6 +14,10 @@ describe manifest do
       )
     end
 
+    it "should setup rsyslog configuration for haproxy" do
+      expect(subject).to contain_file('/etc/rsyslog.d/haproxy.conf')
+    end
+
   end
   test_ubuntu_and_centos manifest
 end

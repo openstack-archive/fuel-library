@@ -2,10 +2,45 @@
 #
 # Configure HAProxy managed by corosync/pacemaker
 #
+# === Parameters
+#
+# [*haproxy_maxconn*]
+#   (optional) Max connections for haproxy
+#   Defaults to '4000'
+#
+# [*haproxy_bufsize*]
+#   (optional) Buffer size for haproxy
+#   Defaults to '16384'
+#
+# [*haproxy_maxrewrite*]
+#   (optional) Sets the reserved buffer space to this size in bytes
+#   Defaults to '1024'
+#
+# [*haproxy_log_file*]
+#   (optional) Log file location for haproxy.
+#   Defaults to '/var/log/haproxy.log'
+#
+# [*primary_controller*]
+#   (optional) Flag to indicate if this is the primary controller
+#   Defaults to false
+#
+# [*debug*]
+#   (optional)
+#   Defaults to false
+#
+# [*other_networks*]
+#   (optional)
+#   Defaults to false
+#
+# [*stats_ipaddresses*]
+#   (optional) Array of addresses to allow stats calls
+#   Defaults to ['127.0.0.1']
+#
 class cluster::haproxy (
   $haproxy_maxconn    = '4000',
   $haproxy_bufsize    = '16384',
   $haproxy_maxrewrite = '1024',
+  $haproxy_log_file   = '/var/log/haproxy.log',
   $primary_controller = false,
   $debug              = false,
   $other_networks     = false,
@@ -62,6 +97,11 @@ class cluster::haproxy (
     primary_controller => $primary_controller,
     debug              => $debug,
     other_networks     => $other_networks,
+  }
+
+  file { '/etc/rsyslog.d/haproxy.conf':
+    ensure  => present,
+    content => template("${module_name}/haproxy.conf.erb"),
   }
 
   Package['haproxy'] -> Class['haproxy::base']
