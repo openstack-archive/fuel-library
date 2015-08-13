@@ -19,6 +19,7 @@ Requires: fuel-misc
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
 %define openstack_version 2015.1.0-7.0
+%define predefined_upstream_modules  %{_sourcedir}/upstream_modules.tar.gz
 
 %description
 
@@ -31,8 +32,12 @@ This package contains deployment manifests and code to execute provisioning of m
 %setup -cq
 
 %build
-if test -x %{_builddir}/%{name}-%{version}/deployment/update_modules.sh; then
-  %{_builddir}/%{name}-%{version}/deployment/update_modules.sh
+if test -s %{predefined_upstream_modules}; then
+   tar xzvf  %{predefined_upstream_modules} -C %{_builddir}/%{name}-%{version}/deployment/puppet/
+else
+   if test -x %{_builddir}/%{name}-%{version}/deployment/update_modules.sh; then
+      bash -x %{_builddir}/%{name}-%{version}/deployment/update_modules.sh
+   fi
 fi
 
 %install
