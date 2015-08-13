@@ -82,9 +82,7 @@ if $sahara_hash['enabled'] {
     port => $api_bind_port,
   }
 
-  class { 'sahara::engine':
-    infrastructure_engine => 'heat',
-  }
+  class { 'sahara::engine': }
 
   class { 'sahara::client': }
 
