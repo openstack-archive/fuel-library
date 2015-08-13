@@ -8,5 +8,7 @@ class l23network::examples::run_network_scheme (
     $config = parseyaml($settings_yaml)
     prepare_network_config($config['network_scheme'])
     $sdn = generate_network_config()
+    #notify {'SDN': message => $sdn }
+    notice("SDN ${sdn}")
 }
 ###
