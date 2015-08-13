@@ -1,5 +1,6 @@
 notice('MODULAR: openstack-network/keystone.pp')
 
+$use_neutron         = hiera('use_neutron', false)
 $neutron_hash        = hiera_hash('quantum_settings', {})
 $public_vip          = hiera('public_vip')
 $public_ssl_hash     = hiera('public_ssl')
@@ -33,15 +34,17 @@ $admin_url           = "${admin_protocol}://${admin_address}:${port}"
 validate_string($public_address)
 validate_string($password)
 
-class { '::neutron::keystone::auth':
-  password            => $password,
-  auth_name           => $auth_name,
-  configure_endpoint  => $configure_endpoint,
-  configure_user      => $configure_user,
-  configure_user_role => $configure_user_role,
-  service_name        => $service_name,
-  public_url          => $public_url,
-  internal_url        => $internal_url,
-  admin_url           => $admin_url,
-  region              => $region,
+if $use_neutron {
+   class { '::neutron::keystone::auth':
+     password            => $password,
+     auth_name           => $auth_name,
+     configure_endpoint  => $configure_endpoint,
+     configure_user      => $configure_user,
+     configure_user_role => $configure_user_role,
+     service_name        => $service_name,
+     public_url          => $public_url,
+     internal_url        => $internal_url,
+     admin_url           => $admin_url,
+     region              => $region,
+   }
 }
