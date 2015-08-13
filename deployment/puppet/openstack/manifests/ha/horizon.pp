@@ -42,30 +42,23 @@ class openstack::ha::horizon (
     internal            => false,
   }
 
-  openstack::ha::haproxy_service { 'horizon':
-    order                  => '015',
-    listen_port            => 80,
-    define_cookies         => true,
-    haproxy_config_options => {
-      'option'  => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
-      'rspidel' => '^Set-cookie:\ IP=',
-      'balance' => 'source',
-      'mode'    => 'http',
-      'cookie'  => 'SERVERID insert indirect nocache',
-      'capture' => 'cookie vgnvisitor= len 32',
-      'timeout' => ['client 3h', 'server 3h'],
-    },
-
-    balancermember_options => 'check inter 2000 fall 3',
-  }
-
   if $use_ssl {
-    openstack::ha::haproxy_service { 'horizon-ssl':
-      order               => '017',
-      listen_port         => 443,
-      balancermember_port => 80,
-      public_ssl          => $use_ssl,
+    # http version of horizon should just redirect to https version
+    openstack::ha::haproxy_service { 'horizon':
+      order                  => '015',
+      listen_port            => 80,
+      server_names           => [],
+      ipaddresses            => [],
+      haproxy_config_options => {
+        'redirect' => 'scheme https if !{ ssl_fc }'
+      },
+    }
 
+    openstack::ha::haproxy_service { 'horizon-ssl':
+      order                  => '017',
+      listen_port            => 443,
+      balancermember_port    => 80,
+      public_ssl             => $use_ssl,
       haproxy_config_options => {
         'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
         'stick-table' => 'type ip size 200k expire 30m',
@@ -75,8 +68,24 @@ class openstack::ha::horizon (
         'mode'        => 'http',
         'reqadd'      => 'X-Forwarded-Proto:\ https',
       },
-
       balancermember_options => 'weight 1 check',
+    }
+  } else {
+    # http only
+    openstack::ha::haproxy_service { 'horizon':
+      order                  => '015',
+      listen_port            => 80,
+      define_cookies         => true,
+      haproxy_config_options => {
+        'option'  => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
+        'rspidel' => '^Set-cookie:\ IP=',
+        'balance' => 'source',
+        'mode'    => 'http',
+        'cookie'  => 'SERVERID insert indirect nocache',
+        'capture' => 'cookie vgnvisitor= len 32',
+        'timeout' => ['client 3h', 'server 3h'],
+      },
+      balancermember_options => 'check inter 2000 fall 3',
     }
   }
 }
