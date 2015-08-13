@@ -113,10 +113,12 @@ class cobbler::server (
     file { '/etc/apache2/mods-enabled/ssl.load':
       ensure => link,
       target => '/etc/apache2/mods-available/ssl.load',
-    } -> file { '/etc/apache2/mods-enabled/ssl.conf':
+    } ->
+    file { '/etc/apache2/mods-enabled/ssl.conf':
       ensure => link,
       target => '/etc/apache2/mods-available/ssl.conf',
-    } -> file { '/etc/apache2/sites-enabled/default-ssl':
+    } ->
+    file { '/etc/apache2/sites-enabled/default-ssl':
       ensure => link,
       target => '/etc/apache2/sites-available/default-ssl',
       before => Service[$cobbler_web_service],
@@ -139,6 +141,23 @@ class cobbler::server (
                 File['/etc/httpd/conf.d/']],
     notify  => Service[$cobbler_web_service],
   }
+  openssl::certificate::x509 { 'cobbler':
+    ensure       => present,
+    country      => 'US',
+    organization => 'Fuel',
+    commonname   => $::fqdn,
+    state        => 'California',
+    unit         => 'Fuel Deployment Team',
+    email        => "root@${dns_domain}",
+    days         => 3650,
+    base_dir     => '/etc/pki/tls/',
+    owner        => 'root',
+    group        => 'root',
+    force        => false,
+    cnf_tpl      => 'openssl/cert.cnf.erb',
+    notify       => Service[$cobbler_web_service],
+  }
+
   file { '/etc/httpd/conf.d/ssl.conf':
     content => template('cobbler/httpd_ssl.conf.erb'),
     owner   => 'root',
