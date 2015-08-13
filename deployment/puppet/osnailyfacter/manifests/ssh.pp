@@ -67,4 +67,11 @@ class osnailyfacter::ssh(
       'StrictModes'                     => 'yes',
     }
   }
+
+  # ensure all possible host keys have been generated LP#1484693
+  exec { 'host-ssh-keygen':
+    command => 'ssh-keygen -A',
+    path    => ['/bin', '/usr/bin'],
+    require => Class['ssh::server'],
+  }
 }
