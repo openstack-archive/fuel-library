@@ -134,6 +134,91 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       }
     end
 
+    def correct_requirement_name(name)
+      name.split('::').map{|x| x.capitalize}.join('::')
+    end
+
+    def create_l3_ifconfig_resource(endpoints, endpoint_name, previous=nil)
+        resource_properties = { }
+        create_routes = []
+
+        # create resource
+        resource = res_factory[:ifconfig]
+        debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with properties: \n#{endpoints[endpoint_name].to_yaml.gsub('!ruby/sym ','')}")
+        # collect properties for creating endpoint resource
+        endpoints[endpoint_name].each_pair do |k,v|
+          if k.to_s.downcase == 'routes'
+            # for routes we should create additional resource, not a property of ifconfig
+            next if ! v.is_a?(Array)
+            v.each do |vv|
+              create_routes << vv
+            end
+          elsif ['Hash', 'Array'].include? v.class.to_s
+            resource_properties[k.to_s] = L23network.reccursive_sanitize_hash(v)
+          else
+            resource_properties[k.to_s] = v
+          end
+        end
+        #Clear default gateway
+        #todo(sv): remove it here and include to l3_ifconfig resource
+        if resource_properties['gateway']
+          l3_resource_properties = { 'ensure' => 'absent', 'destination' => 'default', 'gateway' => resource_properties['gateway'] }
+          l3_resource_properties['metric'] = resource_properties['gateway_metric'] if resource_properties['gateway_metric']
+          gateway_name = L23network.get_route_resource_name('default', l3_resource_properties['metric'])
+          if previous
+             l3_resource_properties['require'] = [correct_requirement_name(previous)]
+          end
+          previous = "l3_clear_route[#{gateway_name}]"
+          debug("generate_network_config(): Routing-cleaner '#{gateway_name}' will be created for endpoint '#{endpoint_name}'")
+          function_create_resources(['l3_clear_route', { gateway_name => l3_resource_properties }])
+        end
+        resource_properties['require'] = [correct_requirement_name(previous)] if previous
+        # todo(sv): make ability add 'dhcp' resources through yaml network-scheme
+        # # set ipaddresses
+        # #if endpoints[endpoint_name][:IP].empty?
+        # #  p_resource.set_parameter(:ipaddr, 'none')
+        # #elsif ['none','dhcp'].index(endpoints[endpoint_name][:IP][0])
+        # #  p_resource.set_parameter(:ipaddr, endpoints[endpoint_name][:IP][0])
+        # #else
+        #   # ipaddrs = []
+        #   # endpoints[endpoint_name][:IP].each do |i|
+        #   #   if i =~ /\/\d+$/
+        #   #     ipaddrs.insert(-1, i)
+        #   #   else
+        #   #     ipaddrs.insert(-1, "#{i}#{default_netmask()}")
+        #   #   end
+        #   # end
+        #   # p_resource.set_parameter(:ipaddr, ipaddrs)
+        # #end
+        # #set another (see L23network::l3::ifconfig DOC) parametres
+        resource_properties = L23network.correct_ethtool_set(resource_properties)
+        function_create_resources([resource, {
+          "#{endpoint_name}" => resource_properties
+        }])
+        previous = "#{resource}[#{endpoint_name}]"
+
+        if ! create_routes.empty?
+          create_routes.each do |route|
+            next if !route.has_key?(:net) or !route.has_key?(:via)
+            route_properties = {
+              'destination' => route[:net],
+              'gateway'     => route[:via]
+            }
+            route_properties[:metric] = route[:metric] if route[:metric].to_i > 0
+            route_name = L23network.get_route_resource_name(route[:net], route[:metric])
+            debug("generate_network_config(): Route resource '#{route_name}' will be created for endpoint '#{endpoint_name}'")
+            function_create_resources(['l23network::l3::route', {
+                "#{route_name}" => route_properties
+            }])
+            previous = "l23network::l3::route[#{route_name}]"
+          end
+        end
+        return previous
+    end
+
+    ###
+    # start newfunction(:generate_network_config)
+
     if argv.size != 0
       raise(Puppet::ParseError, "generate_network_config(): Wrong number of arguments.")
     end
@@ -151,7 +236,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
 
     # collect interfaces and endpoints
     debug("generate_network_config(): collect interfaces")
-    ifconfig_order = []
+    ifconfig_created = []
     born_ports = []
     # collect L2::port properties from 'interfaces' section
     ports_properties = {}  # additional parameters from interfaces was stored here
@@ -232,7 +317,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         # condition. We should merge this properties into which are autocreated
         # earlier by transformation and forget this.
         #
-        # It's looks like some strange reordering
+        # It looks like some strange reordering
         tmp[i].merge! t
         debug("Auto-add 'move-properties-for-port(#{t[:name]})', because one autocreated early.")
       else
@@ -240,9 +325,10 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       end
     end
     config_hash[:transformations] = tmp
+
     debug("generate_network_config(): process transformations")
     # execute transformations
-    transformation_success = []
+    resources_created = []
     previous = nil
     config_hash[:transformations].each do |t|
       action = t[:action].strip()
@@ -256,169 +342,95 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         action = t[:action].to_sym()
       end
 
-      # add newly-created interface to ifconfig order  // move to CREATE RESOURCE LOOP
-      if [:noop, :port, :br].index(action)
-        if ! ifconfig_order.include? t[:name].to_sym()
-          ifconfig_order << t[:name].to_sym()
+      if action != :noop
+
+        #debug("TXX: '#{t[:name]}' =>  '#{t.to_yaml.gsub('!ruby/sym ','')}'.")
+        trans = L23network.sanitize_transformation(t, default_provider)
+        #debug("TTT: '#{trans[:name]}' =>  '#{trans.to_yaml.gsub('!ruby/sym ','')}'.")
+
+        if !ports_properties[trans[:name].to_sym()].nil?
+          trans.merge! ports_properties[trans[:name].to_sym()]
         end
-      end
 
-      next if action == :noop
-
-      #debug("TXX: '#{t[:name]}' =>  '#{t.to_yaml.gsub('!ruby/sym ','')}'.")
-      trans = L23network.sanitize_transformation(t, default_provider)
-      #debug("TTT: '#{trans[:name]}' =>  '#{trans.to_yaml.gsub('!ruby/sym ','')}'.")
-
-      if !ports_properties[trans[:name].to_sym()].nil?
-        trans.merge! ports_properties[trans[:name].to_sym()]
-      end
-
-      if trans.has_key?(:mtu) && !trans[:name].nil? && trans[:name] != 'unnamed'
-        # MTU should be adjust to phys_dev if it possible
-        devices = L23network.get_phys_dev_by_transformation(trans[:name], lookupvar('l3_fqdn_hostname'))
-        if !devices.nil? && devices[0] != trans[:name]
-          if trans[:mtu].nil?
-            trans[:mtu] = L23network.get_property_for_transformation('MTU', devices[0], lookupvar('l3_fqdn_hostname'))
-          end
-        end
-      end
-
-      # add default delay for bonds. 45 sec. for LACP bonds and 15 sec for another.
-      if (action == :bond) && trans[:bond_properties].is_a?(Hash) && trans[:delay_while_up].to_i == 0
-        delay_while_up = ( trans[:bond_properties][:mode]=='802.3ad'  ?  45  :  15  )
-        if ['', 'absent'].include? trans[:bridge].to_s
-          # bond not included to bridge. I.e. has IP address or subinterfaces and post-up has sense
-          trans[:delay_while_up] = delay_while_up
-        else
-          # bond included to bridge. I.e. has no IP address
-          bridge_res = findresource("L23network::L2::Bridge[#{trans[:bridge].to_s}]")
-          if !bridge_res.nil? && bridge_res[:delay_while_up].nil?
-            bridge_res[:delay_while_up] = delay_while_up
-          end
-        end
-      end
-
-      # create puppet resources for interfaces and transformations
-      resource = res_factory[action]
-      resource_properties = { }
-      debug("generate_network_config(): Transformation '#{trans[:name]}' will be produced as \n#{trans.to_yaml.gsub('!ruby/sym ','')}")
-
-      trans.select{|k,v| k != :action}.each do |k,v|
-        if ['Hash', 'Array'].include? v.class.to_s
-          resource_properties[k.to_s] = L23network.reccursive_sanitize_hash(v)
-          if action == :bond && k==:interface_properties
-            # search 'disable_offloading' flag and correct ethtool properties if required
-            resource_properties[k.to_s] = L23network.correct_ethtool_set(resource_properties[k.to_s])
-          end
-        elsif ! v.nil?
-          resource_properties[k.to_s] = v
-        else
-          #todo(sv): more powerfull handler for 'nil' properties
-        end
-      end
-
-      resource_properties['require'] = [previous.split('::').map{|x| x.capitalize}.join('::')] if previous
-      resource_properties = L23network.correct_ethtool_set(resource_properties)
-      function_create_resources([resource, {
-        "#{trans[:name]}" => resource_properties
-      }])
-      transformation_success << "#{t[:action].strip()}(#{trans[:name]})"
-      born_ports.insert(-1, trans[:name].to_sym()) if action != :patch
-      previous = "#{resource}[#{trans[:name]}]"
-    end
-
-    # check for all in endpoints are in interfaces or born by transformation
-    config_hash[:endpoints].each do |e_name, e_properties|
-      if not born_ports.index(e_name.to_sym())
-        raise(Puppet::ParseError, "generate_network_config(): Endpoint '#{e_name}' not found in interfaces or transformations result.")
-      end
-    end
-
-    # Calculate delta between all endpoints and ifconfig_order
-    ifc_delta = endpoints.keys().sort() - ifconfig_order
-    full_ifconfig_order = ifconfig_order + ifc_delta
-
-    # create resources for endpoints
-    # in order, defined by transformation
-    debug("generate_network_config(): process endpoints")
-    create_routes=[]
-    full_ifconfig_order.each do |endpoint_name|
-      if endpoints[endpoint_name]
-        resource_properties = { }
-
-        # create resource
-        resource = res_factory[:ifconfig]
-        debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with additional properties \n#{endpoints[endpoint_name].to_yaml.gsub('!ruby/sym ','')}")
-        # collect properties for creating endpoint resource
-        endpoints[endpoint_name].each_pair do |k,v|
-          if k.to_s.downcase == 'routes'
-            # for routes we should create additional resource, not a property of ifconfig
-            next if ! v.is_a?(Array)
-            v.each do |vv|
-              create_routes << vv
+        if trans.has_key?(:mtu) && !trans[:name].nil? && trans[:name] != 'unnamed'
+          # MTU should be adjusted to phys_dev if it is possible
+          devices = L23network.get_phys_dev_by_transformation(trans[:name], lookupvar('l3_fqdn_hostname'))
+          if !devices.nil? && devices[0] != trans[:name]
+            if trans[:mtu].nil?
+              trans[:mtu] = L23network.get_property_for_transformation('MTU', devices[0], lookupvar('l3_fqdn_hostname'))
             end
-          elsif ['Hash', 'Array'].include? v.class.to_s
+          end
+        end
+
+        # add default delay for bonds. 45 sec. for LACP bonds and 15 sec for another.
+        if (action == :bond) && trans[:bond_properties].is_a?(Hash) && trans[:delay_while_up].to_i == 0
+          delay_while_up = ( trans[:bond_properties][:mode]=='802.3ad'  ?  45  :  15  )
+          if ['', 'absent'].include? trans[:bridge].to_s
+            # bond not included to bridge. I.e. has IP address or subinterfaces and post-up has sense
+            trans[:delay_while_up] = delay_while_up
+          else
+            # bond included to bridge. I.e. has no IP address
+            bridge_res = findresource("L23network::L2::Bridge[#{trans[:bridge].to_s}]")
+            if !bridge_res.nil? && bridge_res[:delay_while_up].nil?
+              bridge_res[:delay_while_up] = delay_while_up
+            end
+          end
+        end
+
+        # create puppet resources for interfaces and transformations.
+        # create endpoints, which linked to interfaces or transformations
+        resource = res_factory[action]
+        resource_properties = { }
+        debug("generate_network_config(): Transformation '#{trans[:name]}' will be produced as \n#{trans.to_yaml.gsub('!ruby/sym ','')}")
+
+        trans.select{|k,v| k != :action}.each do |k,v|
+          if ['Hash', 'Array'].include? v.class.to_s
             resource_properties[k.to_s] = L23network.reccursive_sanitize_hash(v)
+            if action == :bond && k==:interface_properties
+              # search 'disable_offloading' flag and correct ethtool properties if required
+              resource_properties[k.to_s] = L23network.correct_ethtool_set(resource_properties[k.to_s])
+            end
           elsif ! v.nil?
             resource_properties[k.to_s] = v
           else
             #todo(sv): more powerfull handler for 'nil' properties
           end
         end
-        #Clear default gateway
-        if resource_properties['gateway']
-          l3_resource_properties = { 'ensure' => 'absent', 'destination' => 'default', 'gateway' => resource_properties['gateway'] }
-          l3_resource_properties['metric'] = resource_properties['gateway_metric'] if resource_properties['gateway_metric']
-          gateway_name = L23network.get_route_resource_name('default', l3_resource_properties['metric'])
-          if previous
-             l3_resource_properties['require'] = [previous]
-             previous = "l3_clear_route[#{gateway_name}]"
-          end
-          function_create_resources(['l3_clear_route', { gateway_name => l3_resource_properties }])
-        end
-        resource_properties['require'] = [previous] if previous
-        # # set ipaddresses
-        # #if endpoints[endpoint_name][:IP].empty?
-        # #  p_resource.set_parameter(:ipaddr, 'none')
-        # #elsif ['none','dhcp'].index(endpoints[endpoint_name][:IP][0])
-        # #  p_resource.set_parameter(:ipaddr, endpoints[endpoint_name][:IP][0])
-        # #else
-        #   # ipaddrs = []
-        #   # endpoints[endpoint_name][:IP].each do |i|
-        #   #   if i =~ /\/\d+$/
-        #   #     ipaddrs.insert(-1, i)
-        #   #   else
-        #   #     ipaddrs.insert(-1, "#{i}#{default_netmask()}")
-        #   #   end
-        #   # end
-        #   # p_resource.set_parameter(:ipaddr, ipaddrs)
-        # #end
-        # #set another (see L23network::l3::ifconfig DOC) parametres
+
+        resource_properties['require'] = [correct_requirement_name(previous)] if previous
         resource_properties = L23network.correct_ethtool_set(resource_properties)
         function_create_resources([resource, {
-          "#{endpoint_name}" => resource_properties
+          "#{trans[:name]}" => resource_properties
         }])
-        transformation_success <<  "endpoint(#{endpoint_name})"
-        previous = "#{resource}[#{endpoint_name}]"
+        resources_created << "#{t[:action].strip()}(#{trans[:name]})"
+        born_ports.insert(-1, trans[:name].to_sym()) if action != :patch
+        previous = "#{resource}[#{trans[:name]}]"
+      end
+
+      # try to create ifconfig for newly-created resource
+      if endpoints.has_key? trans[:name].to_sym()
+        endpoint_name = trans[:name].to_sym()
+        ifconfig_created << endpoint_name
+        previous = create_l3_ifconfig_resource(endpoints, endpoint_name, previous)
+        resources_created <<  "endpoint(#{endpoint_name})"
       end
     end
 
-    debug("generate_network_config(): process additional routes")
-    create_routes.each do |route|
-      next if !route.has_key?(:net) or !route.has_key?(:via)
-      route_properties = {
-        'destination' => route[:net],
-        'gateway'     => route[:via]
-      }
-      route_properties[:metric] = route[:metric] if route[:metric].to_i > 0
-      route_name = L23network.get_route_resource_name(route[:net], route[:metric])
-      function_create_resources(['l23network::l3::route', {
-          "#{route_name}" => route_properties
-      }])
-      transformation_success <<  "route_for(#{route[:net]})"
+    # Calculate delta between all endpoints and already created while transformation processed
+    rest_ifconfig = endpoints.keys().sort() - ifconfig_created
+
+    # create resources for rest endpoints
+    # in alphabetical order
+    debug("generate_network_config(): process endpoints")
+    rest_ifconfig.each do |endpoint_name|
+      if ! born_ports.include? endpoint_name
+        raise(Puppet::ParseError, "generate_network_config(): Endpoint '#{endpoint_name}' not found in interfaces or transformations result.")
+      end
+      previous = create_l3_ifconfig_resource(endpoints, endpoint_name, previous)
+      resources_created <<  "endpoint(#{endpoint_name})"
     end
 
     debug("generate_network_config(): done...")
-    return transformation_success.join(" -> ")
+    return resources_created.join(" -> ")
 end
 # vim: set ts=2 sw=2 et :
