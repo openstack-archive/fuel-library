@@ -387,7 +387,7 @@ check_if_galera_pc() {
             return 0
         fi
 
-        sleep 10 
+        sleep 10
         (( timeout -= 10 ))
         ocf_log info "Waiting for master. ${timeout} seconds left"
     done
@@ -608,6 +608,7 @@ mysql_cleanup() {
 
 mysql_stop() {
     local rc
+    local pids
 
     mysql_status info 1
     rc=$?
@@ -618,13 +619,12 @@ mysql_stop() {
 
     local pid=$(cat $OCF_RESKEY_pid 2>/dev/null)
     local pgrp=$(ps -o pgid= ${pid})
+    local pids="$(echo $(pgrep -g ${pgrp}))"
     ocf_log info "Sending SIGTERM to PID: ${pid}"
     /bin/kill -TERM ${pid} > /dev/null
     rc=$?
-    if [ $rc -ne $OCF_SUCCESS ]; then
-        ocf_log err "MySQL couldn't be stopped"
-        return $OCF_ERR_GENERIC
-    fi
+    [ $rc -ne 0 ] && ocf_log warn "MySQL has failed to terminate gracefully"
+
     # stop waiting
     shutdown_timeout=20
     while [ $shutdown_timeout -gt 0 ]; do
@@ -643,7 +643,7 @@ mysql_stop() {
     mysql_status info 1
     rc=$?
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log info "MySQL failed to stop using SIGTERM. Sending SIGKILL to PID: ${pid}"
+        ocf_log info "MySQL failed to stop using SIGTERM. Sending SIGKILL to PIDS: ${pids}"
         /usr/bin/pkill -9 -g ${pgrp} > /dev/null
     fi
 
