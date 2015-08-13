@@ -204,6 +204,10 @@ class openstack::logging (
     content => template("${module_name}/00-remote.conf.erb"),
     }
 
+    file { "${::rsyslog::params::rsyslog_d}01-apache2.conf":
+    content => template("${module_name}/01-apache2.conf.erb"),
+    }
+
     class { "::rsyslog::client":
       log_remote                => $log_remote,
       log_local                 => $log_local,
