@@ -129,7 +129,17 @@ class { 'heat::keystone::domain' :
   domain_password   => $heat_hash['user_password'],
 }
 
+include ::apache::params
+
+if !defined(Service['httpd']) {
+  service { 'httpd':
+    name   => $::apache::params::service_name,
+    ensure => 'running',
+  }
+}
+
 Class['heat'] ->
+Service ['httpd'] ->
 Haproxy_backend_status['keystone-admin'] ->
 Class['heat::keystone::domain'] ~>
 Service<| title == 'heat-engine' |>

@@ -30,6 +30,8 @@ describe manifest do
       )
     end
 
+    it { should contain_service('httpd').that_comes_before('Class[heat::keystone::domain]') }
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
