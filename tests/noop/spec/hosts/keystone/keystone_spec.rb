@@ -59,11 +59,11 @@ describe manifest do
       should contain_keystone_config('cache/enabled').with(:value => 'true')
       should contain_keystone_config('cache/backend').with(:value => 'keystone.cache.memcache_pool')
       should contain_keystone_config('cache/memcache_servers').with(:value => memcache_servers)
-      should contain_keystone_config('cache/memcache_dead_retry').with(:value => '300')
+      should contain_keystone_config('cache/memcache_dead_retry').with(:value => '30')
       should contain_keystone_config('cache/memcache_socket_timeout').with(:value => '1')
       should contain_keystone_config('cache/memcache_pool_maxsize').with(:value => '1000')
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
-      should contain_keystone_config('memcache/dead_retry').with(:value => '300')
+      should contain_keystone_config('memcache/dead_retry').with(:value => '30')
       should contain_keystone_config('memcache/socket_timeout').with(:value => '1')
       should contain_keystone_config('DEFAULT/public_endpoint').with(:value => public_url)
     end
