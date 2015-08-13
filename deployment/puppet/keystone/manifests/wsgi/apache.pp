@@ -251,6 +251,8 @@ class keystone::wsgi::apache (
     wsgi_process_group          => 'keystone_main',
     wsgi_script_aliases         => $wsgi_script_aliases_main_real,
     custom_fragment             => $vhost_custom_fragment,
+    error_log_pipe              => "|/usr/bin/logger -t apache2-keystone -p local6.info",
+    access_logs                 => [ { pipe => "|/usr/bin/logger -t apache2-keystone -p local6.info"} ],
     require                     => File['keystone_wsgi_main'],
   }
 
@@ -277,6 +279,8 @@ class keystone::wsgi::apache (
       wsgi_process_group          => 'keystone_admin',
       wsgi_script_aliases         => $wsgi_script_aliases_admin,
       custom_fragment             => $vhost_custom_fragment,
+      error_log_pipe              => "|/usr/bin/logger -t apache2-keystone -p local6.info",
+      access_logs                 => [ { pipe => "|/usr/bin/logger -t apache2-keystone -p local6.info"} ],
       require                     => File['keystone_wsgi_admin'],
     }
   }
