@@ -38,9 +38,7 @@ define l23network::l2::bond_interface (
       slave    => $slave
     }
   }
-  if $provider == 'ovs' {
-    # OVS can't create bond if slave port don't exists.
-    L2_port[$name] -> L2_bond[$bond]
-  }
+  L2_port[$name] -> L2_bond[$bond]
+  L23_stored_config[$name] -> L23_stored_config[$bond]
 }
 ###
