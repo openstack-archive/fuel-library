@@ -66,6 +66,9 @@ end
     it do
       should contain_L23network__L3__Ifconfig('eth2.102')
     end
+    it do
+      should contain_L23network__L3__Ifconfig('eth2.102').that_requires('L23network::L2::Port[eth2.102]')
+    end
 
     it do
       should contain_L23network__L2__Port('eth3')
@@ -80,6 +83,9 @@ end
 
     it do
       should contain_L23network__L3__Ifconfig('eth3.103')
+    end
+    it do
+      should contain_L23network__L3__Ifconfig('eth3.103').that_requires("L23network::L2::Port[eth3.103]")
     end
 
   end
@@ -140,9 +146,15 @@ end
     end
 
     it do
+      should contain_L23network__L2__Bond_interface('eth2')
+    end
+    it do
       should contain_L23network__L2__Port('eth2')
     end
 
+    it do
+      should contain_L23network__L2__Bond_interface('eth3')
+    end
     it do
       should contain_L23network__L2__Port('eth3')
     end
@@ -150,12 +162,28 @@ end
     it do
       should contain_L23network__L2__Bond('bond0')
     end
+    it do
+      should contain_L2_bond('bond0').that_requires('L2_port[eth2]')
+    end
+    it do
+      should contain_L2_bond('bond0').that_requires('L2_port[eth3]')
+    end
 
     it do
       should contain_L23network__L3__Ifconfig('bond0')
+    end
+    it do
+      should contain_L23network__L3__Ifconfig('bond0').that_requires("L23network::L2::Bond[bond0]")
+    end
+
+    it do
+      should contain_L23_stored_config('bond0').that_requires('L23_stored_config[eth2]')
+    end
+    it do
+      should contain_L23_stored_config('bond0').that_requires('L23_stored_config[eth3]')
     end
 
   end
 end
 
-###
+# vim: set ts=2 sw=2 et :
