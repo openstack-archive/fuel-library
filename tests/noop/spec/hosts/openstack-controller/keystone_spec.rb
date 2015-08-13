@@ -20,20 +20,26 @@ describe manifest do
       public_protocol = 'http'
     end
 
-    public_url   = "#{public_protocol}://#{public_address}:8774/v2/%(tenant_id)s"
-    admin_url    = "http://#{admin_address}:8774/v2/%(tenant_id)s"
+    compute_port    = '8774'
+    public_base_url = "#{public_protocol}://#{public_address}:#{compute_port}"
+    admin_base_url  = "http://#{admin_address}:#{compute_port}"
 
-    ec2_public_url   = "#{public_protocol}://#{public_address}:8773/services/Cloud"
-    ec2_internal_url = "http://#{admin_address}:8773/services/Cloud"
-    ec2_admin_url    = "http://#{admin_address}:8773/services/Admin"
+    ec2_public_url   = "#{public_base_url}/services/Cloud"
+    ec2_internal_url = "#{admin_base_url}/services/Cloud"
+    ec2_admin_url    = "#{admin_base_url}/services/Admin"
 
     it 'class nova::keystone::auth should  contain correct *_url' do
-      should contain_class('nova::keystone::auth').with('public_url' => public_url)
-      should contain_class('nova::keystone::auth').with('admin_url' => admin_url)
-      should contain_class('nova::keystone::auth').with('internal_url' => admin_url)
-      should contain_class('nova::keystone::auth').with('ec2_public_url' => ec2_public_url)
-      should contain_class('nova::keystone::auth').with('ec2_admin_url' => ec2_admin_url)
-      should contain_class('nova::keystone::auth').with('ec2_internal_url' => ec2_internal_url)
+      should contain_class('nova::keystone::auth').with(
+        'public_url'       => "#{public_base_url}/v2/%(tenant_id)s",
+        'public_url_v3'    => "#{public_base_url}/v3",
+        'admin_url'        => "#{admin_base_url}/v2/%(tenant_id)s",
+        'admin_url_v3'     => "#{admin_base_url}/v3",
+        'internal_url'     => "#{admin_base_url}/v2/%(tenant_id)s",
+        'internal_url_v3'  => "#{admin_base_url}/v3",
+        'ec2_public_url'   => ec2_public_url,
+        'ec2_admin_url'    => ec2_admin_url,
+        'ec2_internal_url' => ec2_internal_url,
+      )
     end
   end
 

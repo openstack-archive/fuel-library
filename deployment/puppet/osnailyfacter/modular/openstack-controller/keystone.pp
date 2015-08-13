@@ -23,30 +23,33 @@ $configure_user_role = pick($nova_hash['configure_user_role'], true)
 $service_name        = pick($nova_hash['service_name'], 'nova')
 $tenant              = pick($nova_hash['tenant'], 'services')
 
-$compute_port    = '8774'
-$compute_version = 'v2'
-$public_url      = "${public_protocol}://${public_address}:${compute_port}/${compute_version}/%(tenant_id)s"
-$admin_url       = "${admin_protocol}://${admin_address}:${compute_port}/${compute_version}/%(tenant_id)s"
+$compute_port     = '8774'
+$public_base_url  = "${public_protocol}://${public_address}:${compute_port}"
+$admin_base_url   = "${admin_protocol}://${admin_address}:${compute_port}"
 
-$ec2_public_url   = "${public_protocol}://${public_address}:8773/services/Cloud"
-$ec2_internal_url = "${admin_protocol}://${admin_address}:8773/services/Cloud"
-$ec2_admin_url    = "${admin_protocol}://${admin_address}:8773/services/Admin"
+$ec2_public_url   = "${public_base_url}/services/Cloud"
+$ec2_internal_url = "${admin_base_url}/services/Cloud"
+$ec2_admin_url    = "${admin_base_url}/services/Admin"
 
 validate_string($public_address)
 validate_string($password)
 
 class { '::nova::keystone::auth':
-  password               => $password,
-  auth_name              => $auth_name,
-  configure_endpoint     => $configure_endpoint,
-  configure_user         => $configure_user,
-  configure_user_role    => $configure_user_role,
-  service_name           => $service_name,
-  public_url             => $public_url,
-  internal_url           => $admin_url,
-  admin_url              => $admin_url,
-  region                 => $region,
-  ec2_public_url         => $ec2_public_url,
-  ec2_internal_url       => $ec2_internal_url,
-  ec2_admin_url          => $ec2_admin_url,
+  password              => $password,
+  auth_name             => $auth_name,
+  configure_endpoint    => $configure_endpoint,
+  configure_endpoint_v3 => $configure_endpoint,
+  configure_user        => $configure_user,
+  configure_user_role   => $configure_user_role,
+  service_name          => $service_name,
+  public_url            => "${public_base_url}/v2/%(tenant_id)s",
+  public_url_v3         => "${public_base_url}/v3",
+  internal_url          => "${admin_base_url}/v2/%(tenant_id)s",
+  internal_url_v3       => "${admin_base_url}/v3",
+  admin_url             => "${admin_base_url}/v2/%(tenant_id)s",
+  admin_url_v3          => "${admin_base_url}/v3",
+  region                => $region,
+  ec2_public_url        => $ec2_public_url,
+  ec2_internal_url      => $ec2_internal_url,
+  ec2_admin_url         => $ec2_admin_url,
 }
