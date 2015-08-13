@@ -256,7 +256,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         action = t[:action].to_sym()
       end
 
-      # add newly-created interface to ifconfig order
+      # add newly-created interface to ifconfig order  // move to CREATE RESOURCE LOOP
       if [:noop, :port, :br].index(action)
         if ! ifconfig_order.include? t[:name].to_sym()
           ifconfig_order << t[:name].to_sym()
@@ -298,7 +298,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         end
       end
 
-      # create puppet resources for transformations
+      # create puppet resources for interfaces and transformations
       resource = res_factory[action]
       resource_properties = { }
       debug("generate_network_config(): Transformation '#{trans[:name]}' will be produced as \n#{trans.to_yaml.gsub('!ruby/sym ','')}")
@@ -317,7 +317,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         end
       end
 
-      resource_properties['require'] = [previous] if previous
+      resource_properties['require'] = [previous.split('::').map{|x| x.capitalize}.join('::')] if previous
       resource_properties = L23network.correct_ethtool_set(resource_properties)
       function_create_resources([resource, {
         "#{trans[:name]}" => resource_properties
