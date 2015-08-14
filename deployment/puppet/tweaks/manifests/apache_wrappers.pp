@@ -1,6 +1,6 @@
 # Tweak Service httpd or apache2
 class tweaks::apache_wrappers (
-  $timeout = '60',
+  $timeout = '3',
 ) {
 
   $service_name = $::osfamily ? {
@@ -9,10 +9,8 @@ class tweaks::apache_wrappers (
     default  => fail("Unsupported osfamily: ${::osfamily}"),
   }
 
-  $start_command = "service ${service_name} start || sleep ${timeout} && service ${service_name} start"
-  $stop_command  = "service ${service_name} stop || sleep ${timeout} && service ${service_name} stop"
-
-  disable_garbage_collector()
+  $start_command = "sleep ${timeout}; service ${service_name} start || (sleep ${timeout}; service ${service_name} start)"
+  $stop_command  = "service ${service_name} stop || (sleep ${timeout}; service ${service_name} stop)"
 
   Service <| name == $service_name or title == $service_name |> {
     start      => $start_command,
