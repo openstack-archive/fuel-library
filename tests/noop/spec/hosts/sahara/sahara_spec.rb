@@ -80,9 +80,7 @@ describe manifest do
       end
 
       it 'should declare sahara::engine class correctly' do
-        should contain_class('sahara::engine').with(
-          'infrastructure_engine' => 'heat',
-        )
+        should contain_class('sahara::engine')
       end
 
       it 'should declare sahara::client class correctly' do
