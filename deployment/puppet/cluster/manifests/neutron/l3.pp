@@ -25,9 +25,10 @@ define cluster::neutron::l3 (
   cluster::corosync::cs_service {'l3':
     ocf_script      => 'ocf-neutron-l3-agent',
     csr_parameters  => {
-      'debug'           => $debug,
-      'syslog'          => $syslog,
-      'plugin_config'   => $plugin_config,
+      'debug'                          => $debug,
+      'syslog'                         => $syslog,
+      'plugin_config'                  => $plugin_config,
+      'remove_artifacts_on_stop_start' => true,
     },
     csr_metadata        => $csr_metadata,
     csr_complex_type    => $csr_complex_type,
