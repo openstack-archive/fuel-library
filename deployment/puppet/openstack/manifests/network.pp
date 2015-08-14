@@ -282,7 +282,6 @@ class openstack::network (
         class {'openstack::network::neutron_agents':
           agents    => $agents,
           ha_agents => $ha_agents,
-          verbose   => $verbose,
           debug     => $debug,
 
           admin_password    => $admin_password,

@@ -1,9 +1,6 @@
 # not a doc string
 
 define cluster::neutron::l3 (
-  $debug           = false,
-  $verbose         = false,
-  $syslog          = $::use_syslog,
   $plugin_config   = '/etc/neutron/l3_agent.ini',
   $primary         = false,
   $ha_agents       = ['ovs', 'metadata', 'dhcp', 'l3'],
@@ -25,9 +22,8 @@ define cluster::neutron::l3 (
   cluster::corosync::cs_service {'l3':
     ocf_script      => 'ocf-neutron-l3-agent',
     csr_parameters  => {
-      'debug'           => $debug,
-      'syslog'          => $syslog,
-      'plugin_config'   => $plugin_config,
+      'plugin_config'                  => $plugin_config,
+      'remove_artifacts_on_stop_start' => true,
     },
     csr_metadata        => $csr_metadata,
     csr_complex_type    => $csr_complex_type,
