@@ -24,7 +24,6 @@ $cinder_hash                    = hiera_hash('cinder_hash', {})
 $ceilometer_hash                = hiera_hash('ceilometer_hash',{})
 $access_hash                    = hiera('access', {})
 $network_scheme                 = hiera_hash('network_scheme')
-$controllers                    = hiera('controllers')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
@@ -122,19 +121,6 @@ if empty($node) {
   fail("Node $::hostname is not defined in the hash structure")
 }
 
-# get cidr netmasks for VIPs
-$primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-$vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
-$vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
-
-##TODO: simply parse nodes array
-$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
-$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
-$controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
-$controller_hostnames = keys($controller_internal_addresses)
-$controller_nodes = ipsort(values($controller_internal_addresses))
-$controller_node_public  = $public_vip
-$controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
@@ -242,7 +228,6 @@ if ($use_ceph and !$storage_hash['volumes_lvm']) {
     cluster_network          => $ceph_cluster_network,
     public_network           => $ceph_public_network,
     use_syslog               => $use_syslog,
-    syslog_log_level         => $syslog_log_level,
     syslog_log_facility      => $syslog_log_facility_ceph,
     rgw_keystone_admin_token => $keystone_hash['admin_token'],
     ephemeral_ceph           => $storage_hash['ephemeral_ceph']
