@@ -28,7 +28,7 @@ class {'ceph':
   primary_mon              => $primary_mon,
   mon_hosts                => keys($mon_address_map),
   mon_ip_addresses         => values($mon_address_map),
-  cluster_node_address     => $controller_node_public,
+  cluster_node_address     => $public_vip,
   osd_pool_default_size    => $storage_hash['osd_pool_size'],
   osd_pool_default_pg_num  => $storage_hash['pg_num'],
   osd_pool_default_pgp_num => $storage_hash['pg_num'],

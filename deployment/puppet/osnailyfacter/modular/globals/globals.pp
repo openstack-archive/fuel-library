@@ -22,7 +22,9 @@ if empty($node) {
 
 prepare_network_config($network_scheme)
 
-$nodes_hash                     = hiera('nodes', {})  #todo(sv): remove using NODES list!
+# DEPRICATED
+$nodes_hash                     = hiera('nodes', {})
+
 $deployment_mode                = hiera('deployment_mode', 'ha_compact')
 $roles                          = $node['node_roles']
 $storage_hash                   = hiera('storage', {})
@@ -150,30 +152,35 @@ if $use_neutron {
   $management_network_range = hiera('management_network_range')
 }
 
-$primary_controller            = $node_role ? { 'primary-controller' => true, default =>false }
+if $node_role == 'primary-controller' {
+  $primary_controller = true
+} else {
+  $primary_controller = false
+}
 
-# primary controller nodes is taken using nodes, will be deprecated in near feature, DO NOT USE IT ANYMORE !!
-$primary_controller_nodes      = filter_nodes($nodes_hash,'role','primary-controller')
-# primary_controller_node from network_metadada
-$primary_controller_node       = get_nodes_hash_by_roles($network_metadata, ['primary-controller'])
-
-$controllers                   = concat($primary_controller_nodes,
-                                        filter_nodes($nodes_hash,'role','controller')
-)
-$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
-$controller_public_addresses   = nodes_to_hash($controllers,'name','public_address')
-$controller_storage_addresses  = nodes_to_hash($controllers,'name','storage_address')
-$controller_hostnames          = keys($controller_internal_addresses)
-$controller_nodes              = ipsort(values($controller_internal_addresses))
-$controller_node_public        = $public_vip
-$controller_node_address       = $management_vip
+$controllers_hash              = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 $mountpoints                   = filter_hash($mp_hash,'point')
 
-$controllers_hash = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+## primary controller nodes is taken using nodes, will be deprecated in near feature, DO NOT USE IT ANYMORE !!
+#* $primary_controller_nodes      = filter_nodes($nodes_hash,'role','primary-controller')
+## primary_controller_node from network_metadada
+#* $primary_controller_node       = get_nodes_hash_by_roles($network_metadata, ['primary-controller'])
+#
+#* $controllers                   = concat($primary_controller_nodes,
+#                                        filter_nodes($nodes_hash,'role','controller')
+#)
+#* $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
+#* $controller_public_addresses   = nodes_to_hash($controllers,'name','public_address')
+#* $controller_storage_addresses  = nodes_to_hash($controllers,'name','storage_address')
+#* $controller_hostnames          = keys($controller_internal_addresses)
+#* $controller_nodes              = ipsort(values($controller_internal_addresses))
+#* $controller_node_public        = $public_vip
+#* $controller_node_address       = $management_vip
 
 # AMQP configuration
 $queue_provider   = hiera('queue_provider','rabbitmq')
 $rabbit_ha_queues = true
+
 if !$rabbit_hash['user'] {
   $rabbit_hash['user'] = 'nova'
 }
