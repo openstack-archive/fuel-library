@@ -47,6 +47,7 @@ class openstack::ha::cinder (
     require_service        => 'cinder-api',
     server_names           => $server_names,
     ipaddresses            => $ipaddresses,
+    define_backups         => true,
     haproxy_config_options => {
         option => ['httpchk', 'httplog','httpclose'],
     },
