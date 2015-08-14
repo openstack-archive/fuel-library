@@ -13,8 +13,8 @@ describe manifest do
       public_address  = public_vip
       public_protocol = 'http'
     end
-    admin_address       = Noop.hiera('management_vip')
-    admin_protocol      = 'http'
+    management_address  = Noop.hiera('management_vip')
+    management_protocol = 'http'
     region              = Noop.hiera_structure('quantum_settings/region', 'RegionOne')
     password            = Noop.hiera_structure('quantum_settings/keystone/admin_password')
     auth_name           = Noop.hiera_structure('quantum_settings/auth_name', 'neutron')
@@ -25,8 +25,8 @@ describe manifest do
     tenant              = Noop.hiera_structure('quantum_settings/tenant', 'services')
     port                ='9696'
     public_url          = "#{public_protocol}://#{public_address}:#{port}"
-    internal_url        = "#{admin_protocol}://#{admin_address}:#{port}"
-    admin_url           = "#{admin_protocol}://#{admin_address}:#{port}"
+    internal_url        = "#{management_protocol}://#{management_address}:#{port}"
+    admin_url           = public_url
     use_neutron         = Noop.hiera('use_neutron', false)
 
     if use_neutron

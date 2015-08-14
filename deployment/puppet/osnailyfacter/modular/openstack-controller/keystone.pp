@@ -11,8 +11,10 @@ $public_protocol     = $public_ssl_hash['services'] ? {
   true    => 'https',
   default => 'http',
 }
-$admin_protocol      = 'http'
-$admin_address       = hiera('management_vip')
+$management_protocol = 'http'
+$management_address  = hiera('management_vip')
+$admin_address       = hiera('admin_vip', $public_address)
+$admin_protocol      = hiera('admin_protocol', $public_protocol)
 $region              = pick($nova_hash['region'], 'RegionOne')
 
 $password            = $nova_hash['user_password']
@@ -23,12 +25,13 @@ $configure_user_role = pick($nova_hash['configure_user_role'], true)
 $service_name        = pick($nova_hash['service_name'], 'nova')
 $tenant              = pick($nova_hash['tenant'], 'services')
 
-$compute_port     = '8774'
-$public_base_url  = "${public_protocol}://${public_address}:${compute_port}"
-$admin_base_url   = "${admin_protocol}://${admin_address}:${compute_port}"
+$compute_port        = '8774'
+$public_base_url     = "${public_protocol}://${public_address}:${compute_port}"
+$admin_base_url      = "${admin_protocol}://${admin_address}:${compute_port}"
+$management_base_url = "${management_protocol}://${management_address}:${compute_port}"
 
 $ec2_public_url   = "${public_base_url}/services/Cloud"
-$ec2_internal_url = "${admin_base_url}/services/Cloud"
+$ec2_internal_url = "${management_base_url}/services/Cloud"
 $ec2_admin_url    = "${admin_base_url}/services/Admin"
 
 validate_string($public_address)

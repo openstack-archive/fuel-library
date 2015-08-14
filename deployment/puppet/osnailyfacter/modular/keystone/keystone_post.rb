@@ -10,12 +10,12 @@ class KeystonePostTest < Test::Unit::TestCase
   end
 
   def test_keystone_public_url_accessible
-    url = "http://#{TestCommon::Settings.public_vip}:#{PUBLIC_PORT}"
+    url = "https://#{TestCommon::Settings.public_vip}:#{PUBLIC_PORT}"
     assert TestCommon::Network.url_accessible?(url), "Public Keystone URL '#{url}' is not accessible!"
   end
 
   def test_keystone_admin_url_accessible
-    url = "http://#{TestCommon::Settings.management_vip}:#{ADMIN_PORT}"
+    url = "https://#{TestCommon::Settings.public_vip}:#{ADMIN_PORT}"
     assert TestCommon::Network.url_accessible?(url), "Admin Keystone URL '#{url}' is not accessible!"
   end
 

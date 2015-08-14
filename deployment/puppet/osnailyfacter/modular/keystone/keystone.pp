@@ -44,7 +44,6 @@ $public_address  = $public_ssl_hash['services'] ? {
   default => $public_vip,
 }
 
-$admin_address          = $service_endpoint
 $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
 $memcache_server_port  = hiera('memcache_server_port', '11211')
@@ -60,8 +59,11 @@ $public_protocol = $public_ssl_hash['services'] ? {
   default => 'http',
 }
 
+$admin_address       = hiera('admin_vip', $public_address)
+$admin_protocol      = hiera('admin_protocol', $public_protocol)
+
 $public_url   = "${public_protocol}://${public_address}:${public_port}"
-$admin_url    = "http://${admin_address}:${admin_port}"
+$admin_url    = "${admin_protocol}://${admin_address}:${admin_port}"
 $internal_url = "http://${service_endpoint}:${internal_port}"
 
 $revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'

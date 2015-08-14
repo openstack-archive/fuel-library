@@ -18,11 +18,16 @@ describe manifest do
     public_address  = public_vip
     public_protocol = 'http'
   end
-  admin_address = Noop.hiera 'management_vip'
-  public_url    = "#{public_protocol}://#{public_address}:8776/v1/%(tenant_id)s"
-  admin_url     = "http://#{admin_address}:8776/v1/%(tenant_id)s"
-  public_url_v2 = "#{public_protocol}://#{public_address}:8776/v2/%(tenant_id)s"
-  admin_url_v2  = "http://#{admin_address}:8776/v2/%(tenant_id)s"
+  management_address  = Noop.hiera('management_vip')
+  management_protocol = 'http'
+
+  public_url     = "#{public_protocol}://#{public_address}:8776/v1/%(tenant_id)s"
+  management_url = "#{management_protocol}://#{management_address}:8776/v1/%(tenant_id)s"
+  admin_url      = public_url
+
+  public_url_v2     = "#{public_protocol}://#{public_address}:8776/v2/%(tenant_id)s"
+  management_url_v2 = "#{management_protocol}://#{management_address}:8776/v2/%(tenant_id)s"
+  admin_url_v2      = public_url_v2
 
   password = Noop.hiera_structure 'cinder/user_password'
   auth_name = Noop.hiera_structure 'cinder/auth_name', 'cinder'
@@ -39,10 +44,10 @@ describe manifest do
       'configure_user'     => configure_user,
       'service_name'       => service_name,
       'public_url'         => public_url,
-      'internal_url'       => admin_url,
+      'internal_url'       => management_url,
       'admin_url'          => admin_url,
       'public_url_v2'      => public_url_v2,
-      'internal_url_v2'    => admin_url_v2,
+      'internal_url_v2'    => management_url_v2,
       'admin_url_v2'       => admin_url_v2,
       'region'             => region,
     )

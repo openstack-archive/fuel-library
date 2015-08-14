@@ -18,7 +18,9 @@ describe manifest do
         public_address = public_vip
         public_protocol = 'http'
       end
-      admin_address = Noop.hiera 'management_vip'
+
+      management_address  = Noop.hiera('management_vip')
+      management_protocol = 'http'
 
       password = Noop.hiera_structure 'ceilometer/user_password'
       auth_name = Noop.hiera_structure 'ceilometer/auth_name', 'ceilometer'
@@ -28,8 +30,9 @@ describe manifest do
       service_name = Noop.hiera_structure 'ceilometer/service_name', 'ceilometer'
       region = Noop.hiera_structure 'ceilometer/region', 'RegionOne'
 
-      public_url = "#{public_protocol}://#{public_address}:8777"
-      admin_url = "http://#{admin_address}:8777"
+      public_url   = "#{public_protocol}://#{public_address}:8777"
+      internal_url = "#{management_protocol}://#{management_address}:8777"
+      admin_url    = public_url
 
       contain_class('ceilometer::keystone::auth').with(
         'password'            => password,
@@ -39,7 +42,7 @@ describe manifest do
         'configure_user_role' => configure_user_role,
         'service_name'        => service_name,
         'public_url'          => public_url,
-        'internal_url'        => admin_url,
+        'internal_url'        => internal_url,
         'admin_url'           => admin_url,
         'region'              => region
       )

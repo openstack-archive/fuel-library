@@ -9,7 +9,7 @@ describe manifest do
     end
 
   public_vip           = Noop.hiera('public_vip')
-  admin_address        = Noop.hiera('management_vip')
+  management_address   = Noop.hiera('management_vip')
   public_ssl           = Noop.hiera_structure('public_ssl/services')
 
     if public_ssl
@@ -20,12 +20,13 @@ describe manifest do
       public_protocol = 'http'
     end
 
-    compute_port    = '8774'
-    public_base_url = "#{public_protocol}://#{public_address}:#{compute_port}"
-    admin_base_url  = "http://#{admin_address}:#{compute_port}"
+    compute_port        = '8774'
+    public_base_url     = "#{public_protocol}://#{public_address}:#{compute_port}"
+    management_base_url = "http://#{management_address}:#{compute_port}"
+    admin_base_url      = public_base_url
 
     ec2_public_url   = "#{public_base_url}/services/Cloud"
-    ec2_internal_url = "#{admin_base_url}/services/Cloud"
+    ec2_internal_url = "#{management_base_url}/services/Cloud"
     ec2_admin_url    = "#{admin_base_url}/services/Admin"
 
     it 'class nova::keystone::auth should  contain correct *_url' do

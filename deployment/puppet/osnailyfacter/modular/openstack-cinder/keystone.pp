@@ -11,8 +11,10 @@ $public_protocol     = $public_ssl_hash['services'] ? {
   true    => 'https',
   default => 'http',
 }
-$admin_protocol      = 'http'
-$admin_address       = hiera('management_vip')
+$management_protocol = 'http'
+$management_address  = hiera('management_vip')
+$admin_address       = hiera('admin_vip', $public_address)
+$admin_protocol      = hiera('admin_protocol', $public_protocol)
 $region              = pick($cinder_hash['region'], 'RegionOne')
 
 $password            = $cinder_hash['user_password']
@@ -27,9 +29,11 @@ $port = '8776'
 
 $public_url      = "${public_protocol}://${public_address}:${port}/v1/%(tenant_id)s"
 $admin_url       = "${admin_protocol}://${admin_address}:${port}/v1/%(tenant_id)s"
+$management_url  = "${management_protocol}://${management_address}:${port}/v1/%(tenant_id)s"
 
-$public_url_v2   = "${public_protocol}://${public_address}:${port}/v2/%(tenant_id)s"
-$admin_url_v2    = "${admin_protocol}://${admin_address}:${port}/v2/%(tenant_id)s"
+$public_url_v2      = "${public_protocol}://${public_address}:${port}/v2/%(tenant_id)s"
+$admin_url_v2       = "${admin_protocol}://${admin_address}:${port}/v2/%(tenant_id)s"
+$management_url_v2  = "${management_protocol}://${management_address}:${port}/v1/%(tenant_id)s"
 
 validate_string($public_address)
 validate_string($password)
@@ -42,10 +46,10 @@ class { '::cinder::keystone::auth':
   configure_user_role => $configure_user_role,
   service_name        => $service_name,
   public_url          => $public_url,
-  internal_url        => $admin_url,
+  internal_url        => $management_url,
   admin_url           => $admin_url,
   public_url_v2       => $public_url_v2,
-  internal_url_v2     => $admin_url_v2,
+  internal_url_v2     => $management_url_v2,
   admin_url_v2        => $admin_url_v2,
   region              => $region,
 }
