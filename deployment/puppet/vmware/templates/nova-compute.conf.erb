@@ -5,6 +5,8 @@ host=<%= @availability_zone_name %>-<%= @service_name %>
 
 [vmware]
 
+cache_prefix=$host
+
 cluster_name=<%= @vc_cluster %>
 host_ip=<%= @vc_host %>
 host_username=<%= @vc_user %>
