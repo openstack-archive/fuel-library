@@ -39,6 +39,12 @@ class cobbler::server (
     path => '/usr/bin:/bin:/usr/sbin:/sbin'
   }
 
+  if $production == 'docker-build' {
+    $real_fqdn = "fuel.${domain_name}"
+  else
+    $real_fdqn = $::fqdn
+  }
+
   case $::operatingsystem {
     /(?i)(centos|redhat)/ : {
       $cobbler_service     = 'cobblerd'
@@ -145,7 +151,7 @@ class cobbler::server (
     ensure       => present,
     country      => 'US',
     organization => 'Fuel',
-    commonname   => $::fqdn,
+    commonname   => $real_fqdn,
     state        => 'California',
     unit         => 'Fuel Deployment Team',
     email        => "root@${dns_domain}",
