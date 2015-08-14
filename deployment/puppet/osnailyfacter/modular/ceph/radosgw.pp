@@ -3,6 +3,7 @@ notice('MODULAR: ceph/radosgw.pp')
 $storage_hash     = hiera('storage', {})
 $use_neutron      = hiera('use_neutron')
 $public_vip       = hiera('public_vip')
+$admin_vip        = hiera('admin_vip', $public_vip)
 $keystone_hash    = hiera('keystone', {})
 $management_vip   = hiera('management_vip')
 $service_endpoint = hiera('service_endpoint')
@@ -49,7 +50,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     # Ceph
     primary_mon                      => $primary_mon,
     pub_ip                           => $public_vip,
-    adm_ip                           => $management_vip,
+    adm_ip                           => $admin_vip,
     int_ip                           => $management_vip,
 
     # RadosGW settings

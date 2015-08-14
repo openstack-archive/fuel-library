@@ -19,7 +19,7 @@ describe manifest do
     tenant          = Noop.hiera_structure('murano_hash/tenant', 'services')
     region          = Noop.hiera('region', 'RegionOne')
     public_url      = "#{public_protocol}://#{public_address}:#{api_bind_port}"
-    admin_url       = "http://#{service_endpoint}:#{api_bind_port}"
+    admin_url       = public_url
     internal_url    = "http://#{service_endpoint}:#{api_bind_port}"
 
     it 'should declare murano::keystone::auth class correctly' do

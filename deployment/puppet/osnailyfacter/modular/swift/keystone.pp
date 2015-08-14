@@ -13,7 +13,10 @@ $public_protocol  = $public_ssl_hash['services'] ? {
   true    => 'https',
   default => 'http',
 }
-
+$management_protocol = 'http'
+$management_address  = hiera('management_vip')
+$admin_address       = hiera('admin_vip', $public_address)
+$admin_protocol      = hiera('admin_protocol', $public_protocol)
 $password            = $swift_hash['user_password']
 $auth_name           = pick($swift_hash['auth_name'], 'swift')
 $configure_endpoint  = pick($swift_hash['configure_endpoint'], true)
@@ -23,8 +26,9 @@ $tenant              = pick($swift_hash['tenant'], 'services')
 validate_string($public_address)
 validate_string($password)
 
-$public_url          = "${public_protocol}://${public_address}:8080/v1/AUTH_%(tenant_id)s"
-$admin_url           = "http://${admin_address}:8080/v1/AUTH_%(tenant_id)s"
+$public_url     = "${public_protocol}://${public_address}:8080/v1/AUTH_%(tenant_id)s"
+$admin_url      = "${admin_protocol}://${admin_address}:8080/v1/AUTH_%(tenant_id)s"
+$management_url = "${management_protocol}://${management_address}:8080/v1/AUTH_%(tenant_id)s"
 
 class { '::swift::keystone::auth':
   password           => $password,
@@ -32,8 +36,7 @@ class { '::swift::keystone::auth':
   configure_endpoint => $configure_endpoint,
   service_name       => $service_name,
   public_url         => $public_url,
-  internal_url       => $admin_url,
+  internal_url       => $management_url,
   admin_url          => $admin_url,
-
   region             => $region,
 }

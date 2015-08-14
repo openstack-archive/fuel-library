@@ -12,8 +12,10 @@ $public_protocol     = $public_ssl_hash['services'] ? {
   true    => 'https',
   default => 'http',
 }
-$admin_address       = hiera('management_vip')
-$admin_protocol      = 'http'
+$management_address  = hiera('management_vip')
+$management_protocol = 'http'
+$admin_address       = hiera('admin_vip', $public_address)
+$admin_protocol      = hiera('admin_protocol', $public_protocol)
 $region              = pick($neutron_hash['region'], 'RegionOne')
 
 $password            = $neutron_hash['keystone']['admin_password']
@@ -27,7 +29,7 @@ $tenant              = pick($neutron_hash['tenant'], 'services')
 $port                = '9696'
 
 $public_url          = "${public_protocol}://${public_address}:${port}"
-$internal_url        = "${admin_protocol}://${admin_address}:${port}"
+$internal_url        = "${management_protocol}://${management_address}:${port}"
 $admin_url           = "${admin_protocol}://${admin_address}:${port}"
 
 

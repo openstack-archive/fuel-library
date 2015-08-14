@@ -1,18 +1,21 @@
 notice('MODULAR: heat/keystone.pp')
 
-$heat_hash         = hiera_hash('heat', {})
-$public_vip        = hiera('public_vip')
-$admin_address     = hiera('management_vip')
-$region            = pick($heat_hash['region'], 'RegionOne')
-$public_ssl_hash   = hiera('public_ssl')
-$public_address    = $public_ssl_hash['services'] ? {
+$heat_hash           = hiera_hash('heat', {})
+$public_vip          = hiera('public_vip')
+$management_protocol = 'http'
+$management_address  = hiera('management_vip')
+$region              = pick($heat_hash['region'], 'RegionOne')
+$public_ssl_hash     = hiera('public_ssl')
+$public_address      = $public_ssl_hash['services'] ? {
   true    => $public_ssl_hash['hostname'],
   default => $public_vip,
 }
-$public_protocol   = $public_ssl_hash['services'] ? {
+$public_protocol     = $public_ssl_hash['services'] ? {
   true    => 'https',
   default => 'http',
 }
+$admin_address       = hiera('admin_vip', $public_address)
+$admin_protocol      = hiera('admin_protocol', $public_protocol)
 
 $password            = $heat_hash['user_password']
 $auth_name           = pick($heat_hash['auth_name'], 'heat')
@@ -26,11 +29,11 @@ validate_string($public_address)
 validate_string($password)
 
 $public_url          = "${public_protocol}://${public_address}:8004/v1/%(tenant_id)s"
-$admin_url           = "http://${admin_address}:8004/v1/%(tenant_id)s"
+$admin_url           = "${admin_protocol}://${admin_address}:8004/v1/%(tenant_id)s"
+$management_url      = "${management_protocol}://${management_address}:8004/v1/%(tenant_id)s"
 $public_url_cfn      = "${public_protocol}://${public_address}:8000/v1"
-$admin_url_cfn       = "http://${admin_address}:8000/v1"
-
-
+$admin_url_cfn       = "${admin_protocol}://${admin_address}:8000/v1"
+$management_url_cfn  = "${management_protocol}://${management_address}:8000/v1"
 
 class { '::heat::keystone::auth' :
   password               => $password,
@@ -41,7 +44,7 @@ class { '::heat::keystone::auth' :
   configure_endpoint     => true,
   trusts_delegated_roles => $trusts_delegated_roles,
   public_url             => $public_url,
-  internal_url           => $admin_url,
+  internal_url           => $management_url,
   admin_url              => $admin_url,
 }
 
@@ -54,6 +57,6 @@ class { '::heat::keystone::auth_cfn' :
   email              => "${auth_name}-cfn@localhost",
   configure_endpoint => true,
   public_url         => $public_url_cfn,
-  internal_url       => $admin_url_cfn,
+  internal_url       => $management_url_cfn,
   admin_url          => $admin_url_cfn,
 }

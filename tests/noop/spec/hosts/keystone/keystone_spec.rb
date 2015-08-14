@@ -35,7 +35,7 @@ describe manifest do
     public_ssl_hash = Noop.hiera('public_ssl')
     ssl_hostname = public_ssl_hash['hostname']
     public_url = "https://#{ssl_hostname}:5000"
-    admin_url = "http://#{management_vip}:35357"
+    admin_url = "https://#{ssl_hostname}:35357"
     internal_url = "http://#{management_vip}:5000"
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'

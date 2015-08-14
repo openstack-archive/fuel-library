@@ -13,12 +13,14 @@ if $public_ssl_hash['services'] {
 } else {
   $public_protocol = 'http'
 }
+$admin_address       = hiera('admin_vip', $public_ip)
+$admin_protocol      = hiera('admin_protocol', $public_protocol)
 
 $api_bind_port  = '8082'
 
 $tenant         = pick($murano_hash['tenant'], 'services')
 $public_url     = "${public_protocol}://${public_ip}:${api_bind_port}"
-$admin_url      = "http://${service_endpoint}:${api_bind_port}"
+$admin_url      = "${admin_protocol}://${admin_address}:${api_bind_port}"
 $internal_url   = "http://${service_endpoint}:${api_bind_port}"
 
 #################################################################
