@@ -35,4 +35,7 @@ describe 'vmware::compute::ha' do
   it 'should apply configuration file before corosync resource' do
     should contain_file('/etc/nova/nova-compute.d/vmware-vCenter_prod.conf').that_comes_before('Cs_resource[p_nova_compute_vmware_vCenter-prod]')
   end
+
+  it { is_expected.to contain_nova_config('DEFAULT/host').with(:value => 'vCenter-prod') }
+  it { is_expected.to contain_nova_config('vmware/cache_prefix').with(:value => '$host') }
 end
