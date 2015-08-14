@@ -150,8 +150,6 @@ if $murano_hash['enabled'] {
     Haproxy_backend_status['murano-api'] -> Murano::Application['io.murano']
 
     Service['murano-api'] -> Murano::Application<| mandatory == true |>
-  } else {
-    notice("Node Role: ${node_role}")
   }
 
   Firewall[$firewall_rule] -> Class['murano::api']
