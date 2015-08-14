@@ -23,7 +23,6 @@
 class openstack::network::neutron_agents (
   $agents     = ['ml2-ovs'],
   $ha_agents  = false,
-  $verbose    = false,
   $debug      = false,
 
   # ovs
@@ -174,8 +173,6 @@ class openstack::network::neutron_agents (
       # Yes, l3 is supposed to be a defined resource, this will become
       # necessary when we start supporting multiple external routers.
       cluster::neutron::l3 {'default-l3':
-        debug             => $debug,
-        verbose           => $verbose,
         ha_agents         => $agents,
         primary           => $ha_agents ? { 'primary' => true, default => false},
       }
