@@ -18,10 +18,15 @@
 #   OCF_RESKEY_binary
 #   OCF_RESKEY_config
 #   OCF_RESKEY_plugin_config
+#   OCF_RESKEY_log_file
+#   OCF_RESKEY_check_state_reports
+#   OCF_RESKEY_state_reports_file
+#   OCF_RESKEY_state_reports_timeout
 #   OCF_RESKEY_user
 #   OCF_RESKEY_pid
-#   OCF_RESKEY_neutron_server_port
-#   OCF_RESKEY_additional_parameters
+#   OCF_RESKEY_external_bridge
+#   OCF_RESKEY_debug
+
 #######################################################################
 # Initialization:
 
@@ -37,14 +42,15 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 OCF_RESKEY_binary_default="neutron-l3-agent"
 OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
 OCF_RESKEY_plugin_config_default="/etc/neutron/l3_agent.ini"
-OCF_RESKEY_log_file_default="/var/log/neutron/l3-agent.log"
-OCF_RESKEY_check_state_reports_default=false
-OCF_RESKEY_state_reports_file_default="/var/lib/neutron/l3_agent_report.log"
-OCF_RESKEY_state_reports_timeout_default=60
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_external_bridge_default="br-ex"
 OCF_RESKEY_debug_default=false
+OCF_RESKEY_log_file_default="/var/log/neutron/l3-agent.log"
+OCF_RESKEY_check_state_reports_default=false
+OCF_RESKEY_state_reports_file_default="/var/lib/neutron/l3_agent_report.log"
+OCF_RESKEY_state_reports_timeout_default="60"
+OCF_RESKEY_remove_artifacts_on_stop_start_default='true'
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
@@ -57,6 +63,7 @@ OCF_RESKEY_debug_default=false
 : ${OCF_RESKEY_check_state_reports=${OCF_RESKEY_check_state_reports_default}}
 : ${OCF_RESKEY_state_reports_file=${OCF_RESKEY_state_reports_file_default}}
 : ${OCF_RESKEY_state_reports_timeout=${OCF_RESKEY_state_reports_timeout_default}}
+: ${OCF_RESKEY_remove_artifacts_on_stop_start=${OCF_RESKEY_remove_artifacts_on_stop_start_default}}
 
 #######################################################################
 
@@ -68,6 +75,7 @@ usage() {
 
         The 'start' operation starts the networking service.
         The 'stop' operation stops the networking service.
+        The 'reload' operation restarts the networking service without removing any artifacts
         The 'validate-all' operation reports whether the parameters are valid
         The 'meta-data' operation reports this RA's meta-data information
         The 'status' operation reports whether the networking service is running
@@ -90,6 +98,15 @@ creates a distributed neutron-l3-agent cluster.
 </longdesc>
 <shortdesc lang="en">Manages the OpenStack L3 Service (neutron-l3-agent)</shortdesc>
 <parameters>
+
+<parameter name="dummy" unique="1">
+<longdesc lang="en">
+This is a dummy parameter.
+Pacemaker needs it to enable reload operation for the resource
+</longdesc>
+<shortdesc lang="en">Dummy parameter</shortdesc>
+<content type="boolean" default="false" />
+</parameter>
 
 <parameter name="binary" unique="0" required="0">
 <longdesc lang="en">
@@ -166,14 +183,6 @@ If it takes more time than the specified value agent is considered to be dead.
 <content type="string" default="${OCF_RESKEY_state_reports_timeout_default}" />
 </parameter>
 
-<parameter name="neutron_server_port" unique="0" required="0">
-<longdesc lang="en">
-The listening port number of the AMQP server. Mandatory to perform a monitor check
-</longdesc>
-<shortdesc lang="en">AMQP listening port</shortdesc>
-<content type="integer" default="${OCF_RESKEY_neutron_server_port_default}" />
-</parameter>
-
 <parameter name="external_bridge" unique="0" required="0">
 <longdesc lang="en">
 External bridge for l3-agent
@@ -190,19 +199,12 @@ External bridge for l3-agent
   <content type="boolean" default="false"/>
 </parameter>
 
-<parameter name="syslog" unique="0" required="0">
-  <longdesc lang="en">
-  Enable logging to syslog
-  </longdesc>
-  <shortdesc lang="en">Enable logging to syslog</shortdesc>
-  <content type="boolean" default="false"/>
-</parameter>
-
-<parameter name="additional_parameters" unique="0" required="0">
+<parameter name="remove_artifacts_on_stop_start" unique="0" required="0">
 <longdesc lang="en">
-Additional parameters to pass on to the OpenStack L3 Service (neutron-l3-agent)
+Clean up all resources created by Neutron L3 agent, such as additional processes,
+network namespaces, created interfaces, on agent stop and start.
 </longdesc>
-<shortdesc lang="en">Additional parameters for neutron-l3-agent</shortdesc>
+<shortdesc lang="en">Clean up all resources created by L3 agent on its start and stop</shortdesc>
 <content type="string" />
 </parameter>
 
@@ -213,6 +215,7 @@ Additional parameters to pass on to the OpenStack L3 Service (neutron-l3-agent)
 <actions>
 <action name="start" timeout="20" />
 <action name="stop" timeout="20" />
+<action name="reload" timeout="30" />
 <action name="status" timeout="20" />
 <action name="monitor" timeout="30" interval="20" />
 <action name="validate-all" timeout="5" />
@@ -351,7 +354,7 @@ check_local_reports() {
 
     for SECTION in $SECTIONS ; do
         STATUS=$(get_local_reports_value $SECTION Status)
-        if [[ "$STATUS" =~ "failure" ]] ; then
+        if [[ $STATUS =~ failure ]] ; then
              SINCE=$(date --date="$(get_local_reports_value SYNC_STATE Since)" +%s)
              if [[ $(($SYSTIME-$SINCE)) -gt $OCF_RESKEY_state_reports_timeout ]] ; then
                   ocf_log err "$SECTION report is in failure status for too long"
@@ -378,6 +381,9 @@ neutron_l3_agent_monitor() {
 
 neutron_l3_agent_start() {
     local rc
+    # This variable is overridden by reload operation
+    # to perform fast resource restart
+    local remove_artifacts_on_stop_start=${1:-$OCF_RESKEY_remove_artifacts_on_stop_start}
 
     neutron_l3_agent_status
     rc=$?
@@ -386,13 +392,15 @@ neutron_l3_agent_start() {
         return $OCF_SUCCESS
     fi
 
-    neutron-netns-cleanup --agent-type=l3 --force --config-file $OCF_RESKEY_config
+    if ocf_is_true "$remove_artifacts_on_stop_start"; then
+        neutron-netns-cleanup --agent-type=l3 --force --config-file $OCF_RESKEY_config
+    fi
     rm -f $OCF_RESKEY_state_reports_file
 
     # run and detach to background agent as daemon.
     # Don't use ocf_run as we're sending the tool's output to /dev/null
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-        --config-file=$OCF_RESKEY_plugin_config --log-file=$OCF_RESKEY_log_file $OCF_RESKEY_additional_parameters \
+        --config-file=$OCF_RESKEY_plugin_config --log-file=$OCF_RESKEY_log_file \
         >> /dev/null"' 2>&1 & echo \$! > $OCF_RESKEY_pid'
     ocf_log debug "Create pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
 
@@ -416,11 +424,16 @@ neutron_l3_agent_start() {
 neutron_l3_agent_stop() {
     local rc
     local pid
+    # This variable is overridden by reload operation
+    # to perform fast resource restart
+    local remove_artifacts_on_stop_start=${1:-$OCF_RESKEY_remove_artifacts_on_stop_start}
 
     neutron_l3_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-        neutron-netns-cleanup --agent-type=l3 --force --config-file $OCF_RESKEY_config
+        if ocf_is_true "$remove_artifacts_on_stop_start"; then
+            neutron-netns-cleanup --agent-type=l3 --force --config-file $OCF_RESKEY_config
+        fi
         ocf_log info "OpenStack L3 agent ($OCF_RESKEY_binary) already stopped"
         return $OCF_SUCCESS
     fi
@@ -462,11 +475,18 @@ neutron_l3_agent_stop() {
     ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid
 
-    neutron-netns-cleanup --agent-type=l3 --force --config-file $OCF_RESKEY_config
+    if ocf_is_true "$remove_artifacts_on_stop_start"; then
+        neutron-netns-cleanup --agent-type=l3 --force --config-file $OCF_RESKEY_config
+    fi
 
     return $OCF_SUCCESS
 }
 
+neutron_l3_agent_reload() {
+    # Call stop and start without removing artifacts
+    neutron_l3_agent_stop false
+    neutron_l3_agent_start false
+}
 #######################################################################
 
 case "$1" in
@@ -484,6 +504,7 @@ umask 0022
 case "$1" in
   start)        neutron_l3_agent_start;;
   stop)         neutron_l3_agent_stop;;
+  reload)       neutron_l3_agent_reload;;
   status)       neutron_l3_agent_status;;
   monitor)      neutron_l3_agent_monitor;;
   validate-all) ;;
