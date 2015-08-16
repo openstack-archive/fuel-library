@@ -31,6 +31,7 @@ node default {
   $cobbler_password   = $::fuel_settings['cobbler']['password']
   $bootstrap_settings = pick($::fuel_settings['BOOTSTRAP'], {})
   $bootstrap_flavor   = pick($bootstrap_settings['flavor'], 'centos')
+  $bootstrap_ethdevice_timeout = pick($bootstrap_settings['ethdevice_timeout'], '120')
   $nailgun_api_url    = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api"
   if $production == "docker-build" {
     $cobbler_host     = $::ipaddress
@@ -95,5 +96,7 @@ node default {
     dhcp_gateway       => $dhcp_gateway,
     dhcp_interface     => $dhcp_interface,
     nailgun_api_url    => $nailgun_api_url,
+
+    bootstrap_ethdevice_timeout => $bootstrap_ethdevice_timeout,
   }
 }
