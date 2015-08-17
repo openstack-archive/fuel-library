@@ -2,7 +2,6 @@ notice('MODULAR: cinder.pp')
 
 # Pulling hiera
 prepare_network_config(hiera('network_scheme', {}))
-$internal_address               = get_network_role_property('cinder/api', 'ipaddr')
 $storage_address                = get_network_role_property('cinder/iscsi', 'ipaddr')
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
@@ -123,19 +122,6 @@ if empty($node) {
   fail("Node $::hostname is not defined in the hash structure")
 }
 
-# get cidr netmasks for VIPs
-$primary_controller_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-$vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
-$vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
-
-##TODO: simply parse nodes array
-$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
-$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
-$controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
-$controller_hostnames = keys($controller_internal_addresses)
-$controller_nodes = ipsort(values($controller_internal_addresses))
-$controller_node_public  = $public_vip
-$controller_node_address = $management_vip
 $roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
@@ -231,7 +217,7 @@ if ($use_ceph and !$storage_hash['volumes_lvm']) {
                                                  'controller', 'ceph-mon'], 'name'),
     mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller',
                                                  'controller', 'ceph-mon'], 'internal_address'),
-    cluster_node_address     => $controller_node_public,
+    cluster_node_address     => $public_vip,
     osd_pool_default_size    => $storage_hash['osd_pool_size'],
     osd_pool_default_pg_num  => $storage_hash['pg_num'],
     osd_pool_default_pgp_num => $storage_hash['pg_num'],
@@ -258,7 +244,7 @@ package { 'python-amqp':
   ensure => present
 }
 if member($roles, 'controller') or member($roles, 'primary-controller') {
-  $bind_host = $internal_address
+  $bind_host = get_network_role_property('cinder/api', 'ipaddr')
 } else {
   $bind_host = false
   # Configure auth_strategy on cinder node, if cinder and controller are

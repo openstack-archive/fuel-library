@@ -1,5 +1,7 @@
 notice('MODULAR: conntrackd.pp')
 
+prepare_network_config(hiera('network_scheme', {}))
+
 case $operatingsystem {
   Centos: { $conntrackd_package = "conntrack-tools" }
   Ubuntu: { $conntrackd_package = "conntrackd" }
@@ -9,7 +11,7 @@ case $operatingsystem {
 ### CONNTRACKD for CentOS 6 doesn't work under namespaces ##
 
 if $operatingsystem == 'Ubuntu' {
-  $internal_address = hiera('internal_address')
+  $bind_address = get_network_role_property('mgmt/vip', 'ipaddr')
 
   package { $conntrackd_package:
     ensure => installed,
