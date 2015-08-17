@@ -9,7 +9,6 @@ case $operatingsystem {
 ### CONNTRACKD for CentOS 6 doesn't work under namespaces ##
 
 if $operatingsystem == 'Ubuntu' {
-  $internal_address = hiera('internal_address')
 
   package { $conntrackd_package:
     ensure => installed,
