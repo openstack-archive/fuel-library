@@ -100,6 +100,8 @@ $cinder_rate_limits = hiera('cinder_rate_limits',
 
 $default_gateway = get_default_gateways()
 
+##################### DO NOT USE BELOW VARIABLES ANYMORE ############################
+#           THEY ARE DEPRECATED AND WILL BE REMOVED IN NEXT RELEASE
 $internal_int                  = get_network_role_property('management', 'interface')
 $public_int                    = get_network_role_property('ex', 'interface')
 $internal_address              = get_network_role_property('management', 'ipaddr')
@@ -108,6 +110,8 @@ $public_address                = get_network_role_property('ex', 'ipaddr')
 $public_netmask                = get_network_role_property('ex', 'netmask')
 $storage_address               = get_network_role_property('storage', 'ipaddr')
 $storage_netmask               = get_network_role_property('storage', 'netmask')
+#####################################################################################
+
 $public_vip                    = $network_metadata['vips']['public']['ipaddr']
 $management_vip                = $network_metadata['vips']['management']['ipaddr']
 $public_vrouter_vip            = $network_metadata['vips']['vrouter_pub']['ipaddr']

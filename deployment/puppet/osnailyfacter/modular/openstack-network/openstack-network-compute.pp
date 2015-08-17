@@ -1,15 +1,16 @@
 notice('MODULAR: openstack-network-compute.pp')
 
+$network_scheme                 = hiera('network_scheme', {})
+prepare_network_config($network_scheme)
 $use_neutron                    = hiera('use_neutron', false)
 $nova_hash                      = hiera_hash('nova_hash', {})
-$internal_address               = hiera('internal_address')
+$bind_address                   = get_network_role_property('nova/api', 'ipaddr')
 $management_vip                 = hiera('management_vip')
 $service_endpoint               = hiera('service_endpoint')
 $public_int                     = hiera('public_int', undef)
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $controllers                    = hiera('controllers')
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
-$network_scheme                 = hiera('network_scheme', {})
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
 
@@ -98,7 +99,7 @@ if $network_provider == 'nova' {
       admin_user           => 'nova',
       admin_password       => $nova_hash[user_password],
       enabled_apis         => $enabled_apis,
-      api_bind_address     => $internal_address,
+      api_bind_address     => $bind_address,
       ratelimits           => hiera('nova_rate_limits'),
       # NOTE(bogdando) 1 api worker for compute node is enough
       osapi_compute_workers => 1,
@@ -113,7 +114,7 @@ if $network_provider == 'nova' {
     nova_config {
       'DEFAULT/multi_host':      value => 'True';
       'DEFAULT/send_arp_for_ha': value => 'True';
-      'DEFAULT/metadata_host':   value => $internal_address;
+      'DEFAULT/metadata_host':   value => $bind_address;
     }
 
     if ! $public_interface {
@@ -287,9 +288,6 @@ if $network_provider == 'neutron' {
   } else {
     $bridge_mappings = []
   }
-
-  # Required to use get_network_role_property
-  prepare_network_config($network_scheme)
 
   if $neutron_settings['L2']['segmentation_type'] != 'vlan' {
     # tunneling_mode
