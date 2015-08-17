@@ -16,8 +16,8 @@ describe manifest do
     primary_controller   = Noop.hiera('primary_controller')
     service_endpoint     = Noop.hiera('service_endpoint')
     public_vip           = Noop.hiera('public_vip')
-    internal_address     = Noop.hiera('internal_address')
-    database_vip         = Noop.hiera('database_vip', internal_address)
+    bind_address         = Noop.hiera('internal_address') # TODO: smakar change AFTER https://bugs.launchpad.net/fuel/+bug/1486048
+    database_vip         = Noop.hiera('database_vip', bind_address)
     amqp_port            = Noop.hiera('amqp_port')
     amqp_hosts           = Noop.hiera('amqp_hosts')
     debug                = Noop.hiera('debug', false)
@@ -30,7 +30,7 @@ describe manifest do
     if sahara_enabled
       firewall_rule   = '201 sahara-api'
       api_bind_port   = '8386'
-      api_bind_host   = internal_address
+      api_bind_host   = bind_address
       sahara_plugins  = [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ]
       if public_ssl
         public_address  = Noop.hiera_structure('public_ssl/hostname')

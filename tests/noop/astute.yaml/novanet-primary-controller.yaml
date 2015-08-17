@@ -329,6 +329,7 @@ network_scheme:
   roles:
     novanetwork/fixed: eth0.103
     ex: br-ex
+    public/vip: br-ex
     neutron/floating: br-floating
     storage: br-storage
     keystone/api: br-mgmt
