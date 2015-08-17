@@ -14,6 +14,13 @@ server {
         root <%= @repo_root %>;
     }
 
+    location /mirror/archive.ubuntu.com/ubuntu/ {
+        proxy_pass <%= @ubuntu_repo %>/;
+    }
+    location /mirror/mirror.fuel-infra.org/mos-repos/ {
+        proxy_pass <%= @mos_repo %>/;
+    }
+
     location ~ /\.ht {
         deny  all;
     }
