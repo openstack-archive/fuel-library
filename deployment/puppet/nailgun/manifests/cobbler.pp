@@ -3,6 +3,8 @@ class nailgun::cobbler(
   $cobbler_user                  = 'cobbler',
   $cobbler_password              = 'cobbler',
   $bootstrap_flavor              = 'centos',
+  # network interface configuration timeout (in seconds)
+  $bootstrap_ethdevice_timeout   = '120',
   $centos_repos,
   $production,
   $gem_source,
@@ -186,7 +188,7 @@ class nailgun::cobbler(
         distro    => 'ubuntu_bootstrap',
         menu      => true,
         kickstart => '',
-        kopts     => "console=ttyS0,9600 console=tty0 panic=60 boot=live toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts     => "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['ubuntu_bootstrap'],
