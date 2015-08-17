@@ -16,6 +16,8 @@ class nailgun::nginx(
   $keystone_host = '127.0.0.1',
   $nailgun_host = '127.0.0.1',
   $ssl_enabled = false,
+  $ubuntu_repo = "http://archive.ubuntu.com/ubuntu";
+  $mos_repo    = "http://mirror.fuel-infra.org/mos-repos";
   ) {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -45,6 +47,8 @@ class nailgun::nginx(
 
   class { "nailgun::nginx-repo":
     repo_root => $repo_root,
+    ubuntu_repo => $ubuntu_repo,
+    mos_repo    => $mos_repo,
     notify => Service["nginx"],
   }
 
