@@ -98,20 +98,11 @@ $cinder_rate_limits = hiera('cinder_rate_limits',
   }
 )
 
-$default_gateway = get_default_gateways()
-
-$internal_int                  = get_network_role_property('management', 'interface')
-$public_int                    = get_network_role_property('ex', 'interface')
-$internal_address              = get_network_role_property('management', 'ipaddr')
-$internal_netmask              = get_network_role_property('management', 'netmask')
-$public_address                = get_network_role_property('ex', 'ipaddr')
-$public_netmask                = get_network_role_property('ex', 'netmask')
-$storage_address               = get_network_role_property('storage', 'ipaddr')
-$storage_netmask               = get_network_role_property('storage', 'netmask')
-$public_vip                    = $network_metadata['vips']['public']['ipaddr']
-$management_vip                = $network_metadata['vips']['management']['ipaddr']
-$public_vrouter_vip            = $network_metadata['vips']['vrouter_pub']['ipaddr']
-$management_vrouter_vip        = $network_metadata['vips']['vrouter']['ipaddr']
+$default_gateway        = get_default_gateways()
+$public_vip             = $network_metadata['vips']['public']['ipaddr']
+$management_vip         = $network_metadata['vips']['management']['ipaddr']
+$public_vrouter_vip     = $network_metadata['vips']['vrouter_pub']['ipaddr']
+$management_vrouter_vip = $network_metadata['vips']['vrouter']['ipaddr']
 
 $database_vip = is_hash($network_metadata['vips']['database']) ? {
   true    => pick($network_metadata['vips']['database']['ipaddr'], $management_vip),
@@ -284,6 +275,18 @@ $mongo_roles = ['primary-mongo', 'mongo']
 # Define neutron-related variables:
 # todo: use special node-roles instead controllers in the future
 $neutron_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+
+##################### DO NOT USE BELOW VARIABLES ANYMORE ############################
+#           THEY ARE DEPRECATED AND WILL BE REMOVED IN NEXT RELEASE
+$internal_int     = get_network_role_property('management', 'interface')
+$public_int       = get_network_role_property('ex', 'interface')
+$internal_address = get_network_role_property('management', 'ipaddr')
+$internal_netmask = get_network_role_property('management', 'netmask')
+$public_address   = get_network_role_property('ex', 'ipaddr')
+$public_netmask   = get_network_role_property('ex', 'netmask')
+$storage_address  = get_network_role_property('storage', 'ipaddr')
+$storage_netmask  = get_network_role_property('storage', 'netmask')
+############################## END DEPRECATED VARIABLES #############################
 
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
