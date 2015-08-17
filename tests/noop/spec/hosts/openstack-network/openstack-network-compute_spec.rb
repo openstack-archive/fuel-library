@@ -7,7 +7,7 @@ describe manifest do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
 
-    internal_address = Noop.node_hash['internal_address']
+    metadata_host    = Noop.node_hash['internal_address'] # TODO: smakar change AFTER https://bugs.launchpad.net/fuel/+bug/1486048
     use_neutron      = Noop.hiera 'use_neutron'
 
     it 'should declare openstack::network with use_stderr disabled' do
@@ -177,7 +177,7 @@ describe manifest do
           'value' => 'True',
         )
         should contain_nova_config('DEFAULT/metadata_host').with(
-          'value' => internal_address,
+          'value' => metadata_host,
         )
       end
       it 'should declare openstack::network with neutron disabled' do
