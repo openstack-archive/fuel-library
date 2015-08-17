@@ -5,7 +5,7 @@ manifest = 'horizon/horizon.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    internal_address = Noop.node_hash['internal_address']
+    bind_address = Noop.node_hash['internal_address'] # TODO: smakar change AFTER https://bugs.launchpad.net/fuel/+bug/1486048
     nova_quota = Noop.hiera 'nova_quota'
     management_vip = Noop.hiera('management_vip')
     keystone_url = "http://#{management_vip}:5000/v2.0"
@@ -17,7 +17,7 @@ describe manifest do
     it 'should declare openstack::horizon class' do
       should contain_class('openstack::horizon').with(
         'nova_quota'   => nova_quota,
-        'bind_address' => internal_address,
+        'bind_address' => bind_address,
       )
     end
 
