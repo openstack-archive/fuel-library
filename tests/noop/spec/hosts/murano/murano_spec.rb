@@ -15,7 +15,7 @@ describe manifest do
     node_role                  = Noop.hiera('node_role')
     public_ip                  = Noop.hiera('public_vip')
     management_ip              = Noop.hiera('management_vip')
-    internal_address           = Noop.hiera('internal_address')
+    bind_address               = Noop.hiera('internal_address')
     region                     = Noop.hiera('region', 'RegionOne')
     use_neutron                = Noop.hiera('use_neutron', false)
     service_endpoint           = Noop.hiera('service_endpoint', management_ip)
@@ -38,7 +38,7 @@ describe manifest do
 
     if murano_enabled
       api_bind_port              = '8082'
-      api_bind_host              = internal_address
+      api_bind_host              = bind_address
 
       internal_url               = "http://#{service_endpoint}:#{api_bind_port}"
 
@@ -88,7 +88,7 @@ describe manifest do
                    'rabbit_own_port'     => '55572',
                    'rabbit_own_user'     => 'murano',
                    'rabbit_own_password' => rabbit_own_password,
-                   'service_host'        => api_bind_host,
+                   #'service_host'        => api_bind_host, # TODO: smakar Fix AFTER https://bugs.launchpad.net/fuel/+bug/1486048
                    'service_port'        => api_bind_port,
                    'external_network'    => external_network,
                )
@@ -96,7 +96,7 @@ describe manifest do
 
       it 'should declare murano::api class correctly' do
         should contain_class('murano::api').with(
-                   'host' => api_bind_host,
+                   #'host' => api_bind_host, TODO: smakar Fix AFTER https://bugs.launchpad.net/fuel/+bug/1486048
                    'port' => api_bind_port,
                )
       end
