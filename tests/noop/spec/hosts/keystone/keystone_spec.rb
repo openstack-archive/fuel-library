@@ -132,6 +132,10 @@ describe manifest do
        should contain_apache__listen('35357')
      end
 
+     it 'should disable use_stderr for keystone' do
+       should contain_keystone_config('DEFAULT/use_stderr').with(:value => 'false')
+     end
+
      if ceilometer_hash and ceilometer_hash['enabled']
        it 'should configure notification driver' do
          should contain_keystone_config('DEFAULT/notification_driver').with(:value => 'messagingv2')

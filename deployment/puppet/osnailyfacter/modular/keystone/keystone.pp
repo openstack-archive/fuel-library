@@ -10,6 +10,7 @@ $verbose               = hiera('verbose', true)
 $debug                 = hiera('debug', false)
 $use_neutron           = hiera('use_neutron', false)
 $use_syslog            = hiera('use_syslog', true)
+$use_stderr            = hiera('use_stderr', false)
 $keystone_hash         = hiera_hash('keystone', {})
 $access_hash           = hiera_hash('access',{})
 $management_vip        = hiera('management_vip')
@@ -109,6 +110,7 @@ class { 'openstack::keystone':
   admin_bind_host          => $local_address_for_bind,
   enabled                  => $enabled,
   use_syslog               => $use_syslog,
+  use_stderr               => $use_stderr,
   syslog_log_facility      => $syslog_log_facility,
   region                   => $region,
   memcache_servers         => values($memcache_address_map),

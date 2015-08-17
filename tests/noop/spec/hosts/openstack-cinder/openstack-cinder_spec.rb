@@ -37,6 +37,10 @@ rabbit_ha_queues = Noop.hiera('rabbit_ha_queues')
     should contain_cinder_config('DEFAULT/lock_path').with(:value  => '/var/lock/cinder')
   end
 
+  it 'ensures cinder_config contains use_stderr set to false' do
+    should contain_cinder_config('DEFAULT/use_stderr').with(:value  => 'false')
+  end
+
   end # end of shared_examples
 
  test_ubuntu_and_centos manifest

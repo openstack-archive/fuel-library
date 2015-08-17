@@ -41,6 +41,7 @@ $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
 $use_syslog                     = hiera('use_syslog', true)
+$use_stderr                     = hiera('use_stderr', false)
 $syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
 $syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
 $syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
@@ -258,6 +259,7 @@ class { 'openstack::compute':
   migration_support           => true,
   debug                       => $debug,
   verbose                     => $verbose,
+  use_stderr                  => $use_stderr,
   cinder_volume_group         => "cinder",
   vnc_enabled                 => true,
   manage_volumes              => $manage_volumes,

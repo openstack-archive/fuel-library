@@ -22,6 +22,7 @@
 # [enabled] If the service is active (true) or passive (false).
 #   Optional. Defaults to  true
 # [use_syslog] Rather or not service should log to syslog. Optional. Default to false.
+# [use_stderr] Rather or not service should send output to stderr. Optional. Defaults to true.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [max_pool_size] SQLAlchemy backend related. Default 10.
@@ -62,6 +63,7 @@ class openstack::keystone (
   $enabled                     = true,
   $package_ensure              = present,
   $use_syslog                  = false,
+  $use_stderr                  = true,
   $syslog_log_facility         = 'LOG_LOCAL7',
   $region                      = 'RegionOne',
   $database_idle_timeout       = '200',
@@ -133,6 +135,7 @@ class openstack::keystone (
       admin_bind_host       => $admin_bind_host,
       package_ensure        => $package_ensure,
       use_syslog            => $use_syslog,
+      use_stderr            => $use_stderr,
       database_idle_timeout => $database_idle_timeout,
       rabbit_password       => $rabbit_password,
       rabbit_userid         => $rabbit_userid,

@@ -20,6 +20,10 @@
 #   Use syslog for logging.
 #   (Optional) Defaults to false.
 #
+# [*use_stderr*]
+#   (optional) Log output to standard error
+#   Defaults to true
+#
 # [*log_facility*]
 #   Syslog facility to receive log lines.
 #   (Optional) Defaults to LOG_USER.
@@ -263,6 +267,7 @@ class sahara(
   $verbose             = false,
   $debug               = false,
   $use_syslog          = false,
+  $use_stderr          = true,
   $log_facility        = 'LOG_USER',
   $log_dir             = '/var/log/sahara',
   $use_neutron         = false,
@@ -409,6 +414,7 @@ class sahara(
     'DEFAULT/use_neutron':      value => $use_neutron;
     'DEFAULT/use_floating_ips': value => $use_floating_ips;
     'DEFAULT/verbose':          value => $verbose;
+    'DEFAULT/use_stderr':       value => $use_stderr;
   }
 
   if $admin_password {

@@ -20,6 +20,10 @@
 #  (Optional) Should the service use Syslog
 #  Defaults to false
 #
+# [*use_stderr*]
+#  (Optional) Log output to standard error
+#  Defaults to true
+#
 # [*log_facility*]
 #  (Optional) Syslog facility to recieve logs
 #  Defaults to 'LOG_LOCAL0'
@@ -133,6 +137,7 @@ class murano(
   $verbose              = false,
   $debug                = false,
   $use_syslog           = false,
+  $use_stderr           = true,
   $log_facility         = 'LOG_LOCAL0',
   $log_dir              = '/var/log/murano',
   $data_dir             = '/var/cache/murano',
@@ -214,6 +219,7 @@ class murano(
   murano_config {
     'DEFAULT/verbose'                       : value => $verbose;
     'DEFAULT/debug'                         : value => $debug;
+    'DEFAULT/use_stderr'                    : value => $use_stderr;
     'DEFAULT/log_dir'                       : value => $log_dir;
     'DEFAULT/notification_driver'           : value => $notification_driver;
 
