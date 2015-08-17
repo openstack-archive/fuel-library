@@ -11,7 +11,6 @@ $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
 $database_vip                   = hiera('database_vip')
 $service_endpoint               = hiera('service_endpoint')
-$internal_address               = get_network_role_property('nova/api', 'ipaddr')
 $primary_controller             = hiera('primary_controller')
 $use_neutron                    = hiera('use_neutron', false)
 $sahara_hash                    = hiera('sahara', {})
@@ -119,16 +118,6 @@ if !$rabbit_hash['user'] {
 $floating_hash = {}
 
 ##CALCULATED PARAMETERS
-
-
-##NO NEED TO CHANGE
-
-#todo:(sv): temporary commented. Will be uncommented while
-#           'multiple-l2-network' feature re-implemented
-# if $use_neutron {
-#   $vip_mgmt_other_nets = join($network_scheme['endpoints']["$internal_int"]['other_nets'], ' ')
-# }
-
 
 ##TODO: simply parse nodes array
 $memcache_nodes   = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
@@ -240,7 +229,7 @@ class { 'openstack::compute':
   enabled                     => false,
   public_interface            => $public_int ? { undef=>'', default=>$public_int},
   private_interface           => $use_neutron ? { true=>false, default=>hiera('private_int', undef)},
-  internal_address            => $internal_address,
+  internal_address            => get_network_role_property('nova/api', 'ipaddr'),
   libvirt_type                => hiera('libvirt_type', undef),
   fixed_range                 => $use_neutron ? { true=>false, default=>hiera('fixed_network_range', undef)},
   network_manager             => hiera('network_manager', undef),
