@@ -33,6 +33,8 @@ $centos_repos =
 $ostf_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $keystone_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $nailgun_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
+$ubuntu_repo = pick($::fuel_settings['MIRROR_UBUNTU'], "http://archive.ubuntu.com/ubuntu")
+$mos_repo    = pick($::fuel_settings['MIRROR_MOS'], "http://mirror.fuel-infra.org/mos-repos")
 
 $repo_root = "/var/www/nailgun"
 
@@ -52,6 +54,8 @@ node default {
       nailgun_host    => $nailgun_host,
       repo_root       => $repo_root,
       service_enabled => false,
+      ubuntu_repo     => $ubuntu_repo,
+      mos_repo        => $mos_repo,
       ssl_enabled     => true,
       force_https     => $force_https,
   }
