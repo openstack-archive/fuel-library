@@ -1,5 +1,6 @@
 [DEFAULT]
 compute_driver=<%= @compute_driver %>
+host=vcenter
 
 [vmware]
 <% for @clustername in @vcenter_cluster.split(',')do -%>
