@@ -169,7 +169,7 @@ class openstack::ceilometer (
 
   if ($swift_rados_backend) {
     ceilometer_config {
-       'DEFAULT/swift_rados_backend'    : value => $swift_rados_backend;
+      'DEFAULT/swift_rados_backend' : value => true;
     }
   }
 
