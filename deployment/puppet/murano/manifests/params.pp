@@ -7,6 +7,9 @@ class murano::params {
   $default_external_network = 'public'
   $rabbit_service_name      = 'rabbit-server-murano'
 
+  $horizon_plugin_path      = '/usr/share/openstack-dashboard/openstack_dashboard/local/enabled/_50_murano.py'
+  $dashboard_plugin_path    = '/usr/lib/python2.7/dist-packages/muranodashboard/local/_50_murano.py'
+
   case $::osfamily {
     'RedHat': {
       # package names
