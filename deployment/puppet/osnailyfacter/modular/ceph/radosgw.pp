@@ -41,6 +41,25 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
   include ceph::params
 
+  $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+  haproxy_backend_status { 'keystone-admin' :
+    name  => 'keystone-2',
+    count => '200',
+    step  => '6',
+    url   => $haproxy_stats_url,
+  }
+
+  haproxy_backend_status { 'keystone-public' :
+    name  => 'keystone-1',
+    count => '200',
+    step  => '6',
+    url   => $haproxy_stats_url,
+  }
+
+  Haproxy_backend_status['keystone-admin']  -> Class ['ceph::keystone']
+  Haproxy_backend_status['keystone-public'] -> Class ['ceph::keystone']
+
   class { 'ceph::radosgw':
     # SSL
     use_ssl                          => false,
