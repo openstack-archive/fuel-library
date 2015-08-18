@@ -306,6 +306,15 @@ tasks:
     puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/roles/controller.pp"
     timeout: 3600
     cwd: "/"
+- priority: 3500
+  type: puppet
+  uids:
+  - '1'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/ceilometer/radosgw_user.pp"
+    timeout: 3600
+    cwd: "/"
 user_node_name: slave-01_controller
 uid: '1'
 storage:
