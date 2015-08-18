@@ -1,7 +1,7 @@
-Listen *:<%= @rgw_port %>
+Listen <%= @rgw_ip %>:<%= @rgw_port %>
 FastCgiExternalServer <%= @dir_httpd_root %>/s3gw.fcgi -socket /tmp/radosgw.sock
 
-<VirtualHost *:<%= @rgw_port %>>
+<VirtualHost <%= @rgw_ip %>:<%= @rgw_port %>>
   ServerName <%= @fqdn %>
   DocumentRoot <%= @dir_httpd_root %>
 

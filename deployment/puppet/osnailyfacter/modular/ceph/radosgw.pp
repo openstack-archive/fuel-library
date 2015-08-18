@@ -29,6 +29,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   prepare_network_config(hiera_hash('network_scheme'))
   $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
   $ceph_public_network  = get_network_role_property('ceph/public', 'network')
+  $rgw_ip_address       = get_network_role_property('ceph/radosgw', 'ipaddr')
 
   # Apache and listen ports
   class { 'osnailyfacter::apache':
@@ -54,6 +55,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
     # RadosGW settings
     rgw_host                         => $::hostname,
+    rgw_ip                           => $rgw_ip_address,
     rgw_port                         => '6780',
     swift_endpoint_port              => '8080',
     rgw_keyring_path                 => '/etc/ceph/keyring.radosgw.gateway',

@@ -16,6 +16,7 @@ class ceph::radosgw (
 
   # RadosGW settings
   $rgw_host                         = $::ceph::rgw_host,
+  $rgw_ip                           = $::ceph::rgw_ip,
   $rgw_port                         = $::ceph::rgw_port,
   $swift_endpoint_port              = $::ceph::swift_endpoint_port,
   $rgw_keyring_path                 = $::ceph::rgw_keyring_path,
