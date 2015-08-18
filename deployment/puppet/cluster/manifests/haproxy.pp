@@ -48,6 +48,7 @@ class cluster::haproxy (
 ) {
   include ::concat::setup
   include ::haproxy::params
+  include ::rsyslog::params
 
   package { 'haproxy': }
 
@@ -102,6 +103,7 @@ class cluster::haproxy (
   file { '/etc/rsyslog.d/haproxy.conf':
     ensure  => present,
     content => template("${module_name}/haproxy.conf.erb"),
+    notify  => Service[$::rsyslog::params::service_name],
   }
 
   Package['haproxy'] -> Class['haproxy::base']
