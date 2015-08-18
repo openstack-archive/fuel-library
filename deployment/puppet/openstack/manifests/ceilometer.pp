@@ -164,8 +164,10 @@ class openstack::ceilometer (
   }
 
   if ($swift_rados_backend) {
-    ceilometer_config {
-       'DEFAULT/swift_rados_backend'    : value => $swift_rados_backend;
+    class {'openstack::ceilometer::radosgw':
+      swift_rados_backend => true,
+      radosgw_user        => 'ceilometer',
+      radosgw_role        => 'admin',
     }
   }
 

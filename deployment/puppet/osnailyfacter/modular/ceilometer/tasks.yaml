@@ -2,7 +2,7 @@
   type: puppet
   groups: [primary-controller, controller]
   required_for: [openstack-controller, swift]
-  requires: [mongo, primary-mongo, openstack-haproxy]
+  requires: [mongo, primary-mongo, openstack-haproxy, ceph-radosgw]
   condition: "settings:additional_components.ceilometer.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller.pp
