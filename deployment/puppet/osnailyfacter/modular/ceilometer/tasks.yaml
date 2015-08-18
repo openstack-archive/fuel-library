@@ -1,8 +1,8 @@
 - id: ceilometer-controller
   type: puppet
   groups: [primary-controller, controller]
-  required_for: [openstack-controller, swift]
-  requires: [mongo, primary-mongo, openstack-haproxy]
+  required_for: [swift, deploy_end, controller_remaining_tasks]
+  requires: [mongo, primary-mongo, openstack-haproxy, ceph-radosgw]
   condition: "settings:additional_components.ceilometer.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller.pp
