@@ -35,6 +35,12 @@ describe manifest do
          'auth_region' => 'RegionOne',
         )
       end
+
+      it 'should declare neutron::agents::ml2::ovs with drop_flows_on_start disabled' do
+        should contain_class('neutron::agents::ml2::ovs').with(
+         'drop_flows_on_start' => 'false',
+        )
+      end
     else
       it 'should declare openstack::network with neutron_server parameter set to false' do
         should contain_class('openstack::network').with(

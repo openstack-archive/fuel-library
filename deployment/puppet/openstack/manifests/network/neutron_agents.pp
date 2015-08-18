@@ -95,6 +95,7 @@ class openstack::network::neutron_agents (
       tunnel_types               => $tunnel_types,
       enable_distributed_routing => $agent_mode ? { 'legacy' => false, default => true},
       l2_population              => $l2_population,
+      drop_flows_on_start        => false,
       manage_service             => true,
       enabled                    => true,
     }
