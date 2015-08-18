@@ -115,7 +115,7 @@ describe manifest do
 
       if neutron_config && neutron_config.has_key?('L2') && neutron_config['L2']['segmentation_type'] != 'vlan'
         tunnel_id_ranges = [neutron_config['L2']['tunnel_id_ranges']]
-        if neutron_config['L2'].has_key?('use_gre_for_tun') && neutron_config['L2']['use_gre_for_tun']
+        if neutron_config['L2']['segmentation_type'] == 'gre'
           tenant_network_types  = ['flat', 'vlan', 'gre']
           tunnel_types = ['gre']
         else

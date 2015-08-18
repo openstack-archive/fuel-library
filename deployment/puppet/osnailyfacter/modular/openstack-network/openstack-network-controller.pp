@@ -69,15 +69,16 @@ if $network_provider == 'neutron' {
   $neutron_server = true
   $neutron_local_address_for_bind = get_network_role_property('neutron/api', 'ipaddr')
   $floating_bridge = get_network_role_property('neutron/floating', 'interface')
+  $segmentation_type = $neutron_config['L2']['segmentation_type']
 
-  if $neutron_config['L2']['segmentation_type'] != 'vlan' {
+  if $segmentation_type != 'vlan' {
     # tunneling_mode
     $net_role_property = 'neutron/mesh'
     $tunneling_ip = get_network_role_property($net_role_property, 'ipaddr')
     $iface = get_network_role_property($net_role_property, 'phys_dev')
     $phys_net_mtu = get_transformation_property('mtu', $iface[0])
     $enable_tunneling = true
-    if $neutron_config['L2']['use_gre_for_tun'] {
+    if $segmentation_type =='gre' {
       $network_type = 'gre'
       $mtu_offset = 42
     } else {
