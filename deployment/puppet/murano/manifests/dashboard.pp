@@ -60,6 +60,12 @@ class murano::dashboard(
     name   => $::murano::params::dashboard_package_name,
   }
 
+  file { 'dashboard_plugin':
+    path   => $::murano::params::horizon_plugin_path,
+    ensure => link,
+    target => $::murano::params::dashboard_plugin_path,
+  }
+
   File_line {
     ensure => 'present',
   }
@@ -122,7 +128,8 @@ class murano::dashboard(
 
   Package['murano-dashboard'] ->
     Exec['clean_horizon_config'] ->
-      Service <| title == 'httpd' |>
+      File['dashboard_plugin'] ->
+        Service <| title == 'httpd' |>
 
   Package['murano-dashboard'] ->
     Exec['django_collectstatic'] ->

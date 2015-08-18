@@ -20,6 +20,8 @@ class murano::params {
       $engine_service_name       = 'murano-engine'
       # dashboard config file
       $local_settings_path       = '/etc/openstack-dashboard/local_settings'
+      $horizon_plugin_path       = '/usr/share/openstack-dashboard/openstack_dashboard/local/enabled/_50_murano.py'
+      $dashboard_plugin_path     = '/usr/lib/python2.7/site-packages/muranodashboard/local/_50_murano.py'
       # rabbitmq init params
       $init_script_file          = 'rabbitmq-init-centos.erb'
       $init_install_cmd          = "chkconfig --add '/etc/init.d/${rabbit_service_name}'"
@@ -36,6 +38,8 @@ class murano::params {
       $engine_service_name       = 'murano-engine'
       # dashboard config file
       $local_settings_path       = '/etc/openstack-dashboard/local_settings.py'
+      $horizon_plugin_path       = '/usr/share/openstack-dashboard/openstack_dashboard/local/enabled/_50_murano.py'
+      $dashboard_plugin_path     = '/usr/lib/python2.7/dist-packages/muranodashboard/local/_50_murano.py'
       # rabbitmq init params
       $init_script_file          = 'rabbitmq-init-ubuntu.erb'
       $init_install_cmd          = "update-rc.d '${rabbit_service_name}' defaults"
