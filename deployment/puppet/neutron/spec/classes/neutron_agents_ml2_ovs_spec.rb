@@ -19,7 +19,7 @@ describe 'neutron::agents::ml2::ovs' do
       :l2_population              => false,
       :arp_responder              => false,
       :enable_distributed_routing => false,
-      :drop_flows_on_start        => true,
+      :drop_flows_on_start        => false,
       :firewall_driver            => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver' }
   end
 
