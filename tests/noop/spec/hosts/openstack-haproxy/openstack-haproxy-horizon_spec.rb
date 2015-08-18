@@ -9,12 +9,13 @@ describe manifest do
       if public_ssl_horizon
         # http horizon should redirect to ssl horizon
         should contain_openstack__ha__haproxy_service('horizon').with(
-          'server_names'           => [],
-          'ipaddresses'            => [],
+          'server_names'           => nil,
+          'ipaddresses'            => nil,
           'haproxy_config_options' => {
             'redirect' => 'scheme https if !{ ssl_fc }'
           }
         )
+        should_not contain_haproxy__balancermember('horizon')
         should contain_openstack__ha__haproxy_service('horizon-ssl').with(
           'order'                  => '017',
           'listen_port'            => 443,
@@ -31,6 +32,7 @@ describe manifest do
           },
           'balancermember_options' => 'weight 1 check'
         )
+        should contain_haproxy__balancermember('horizon-ssl')
       else
         # http horizon only
         should contain_openstack__ha__haproxy_service('horizon').with(
@@ -44,7 +46,9 @@ describe manifest do
             'reqadd'      => 'X-Forwarded-Proto:\ https',
           }
         )
+        should contain_haproxy__balancermember('horizon')
         should_not contain_openstack__ha__haproxy_service('horizon-ssl')
+        should_not contain_haproxy__balancermember('horizon-ssl')
       end
     end
 

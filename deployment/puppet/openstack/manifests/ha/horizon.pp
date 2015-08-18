@@ -47,8 +47,8 @@ class openstack::ha::horizon (
     openstack::ha::haproxy_service { 'horizon':
       order                  => '015',
       listen_port            => 80,
-      server_names           => [],
-      ipaddresses            => [],
+      server_names           => undef,
+      ipaddresses            => undef,
       haproxy_config_options => {
         'redirect' => 'scheme https if !{ ssl_fc }'
       },
