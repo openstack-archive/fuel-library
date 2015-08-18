@@ -118,4 +118,10 @@ $admin_iface = 'eth0',
     mode    => '0755',
   }
 
+  # Change link to UI on upgrades from old releases
+  exec { "Change protocol and port in in issue":
+    path    => '/usr/bin:/bin:/usr/sbin:/sbin',
+    command => "sed -i -e 's|http://\(.*\):8000\(.*\)|https://\1:8443\2|g' /etc/issue",
+    onlyif  => 'grep -q 8000 /etc/issue',
+  }
 }
