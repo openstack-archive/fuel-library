@@ -59,6 +59,10 @@ describe manifest do
       )
     end
 
+    it 'should install fping for nova API extension' do
+      should contain_package('fping').with('ensure' => 'present')
+    end
+
   end
 
   test_ubuntu_and_centos manifest
