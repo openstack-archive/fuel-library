@@ -9,7 +9,8 @@ describe manifest do
 
     if (storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph'])
       it { should contain_class('ceph::radosgw').with(
-           'primary_mon'     => ceph_monitor_nodes.keys[0],
+           'primary_mon'                      => ceph_monitor_nodes.keys[0],
+           'rgw_op_thread_suicide_timeout'    => '30',
            )
          }
 
