@@ -94,6 +94,8 @@ define openstack::ha::haproxy_service (
   validate_bool($public)
   validate_bool($internal)
 
+  include openstack::ha::haproxy_restart
+
   if $public and $internal {
     if $public_ssl {
       $bind = merge({ "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/public_haproxy.pem'] },
@@ -120,6 +122,7 @@ define openstack::ha::haproxy_service (
     options     => $haproxy_config_options,
     mode        => $mode,
     use_include => true,
+    notify      => Exec['haproxy-restart'],
   }
 
   if $ipaddresses and $server_names {
@@ -133,19 +136,7 @@ define openstack::ha::haproxy_service (
       define_cookies    => $define_cookies,
       define_backups    => $define_backups,
       use_include       => true,
-      before            => Exec["haproxy restart for ${name}"],
+      notify            => Exec['haproxy-restart'],
     }
-  }
-
-  # Dirty hack, due Puppet can't send notify between stages
-  exec { "haproxy restart for ${name}":
-    command     => 'export OCF_ROOT="/usr/lib/ocf"; (ip netns list | grep haproxy) && ip netns exec haproxy /usr/lib/ocf/resource.d/fuel/ns_haproxy restart',
-    path        => '/usr/bin:/usr/sbin:/bin:/sbin',
-    logoutput   => true,
-    provider    => 'shell',
-    tries       => 10,
-    try_sleep   => 10,
-    returns     => [0, ''],
-    require     => Haproxy::Listen[$name],
   }
 }
