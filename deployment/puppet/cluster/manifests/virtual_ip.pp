@@ -20,65 +20,84 @@ define cluster::virtual_ip (
 ){
   $vip_name = "vip__${key}"
 
-  $parameters = {
-    'nic'                  => $vip['nic'],
-    'base_veth'            => $vip['base_veth'],
-    'ns_veth'              => $vip['ns_veth'],
-    'ip'                   => $vip['ip'],
-    'iflabel'              => $vip['iflabel'] ? {
-      undef   => 'ka',
-      default => $vip['iflabel']
-    },
-    'cidr_netmask'         => $vip['cidr_netmask'] ? {
-      undef   => '24',
-      default => $vip['cidr_netmask']
-    },
-    'ns'                   => $vip['namespace'] ? {
-      undef   => 'haproxy',
-      default => $vip['namespace']
-    },
-    'gateway'              => $vip['gateway'] ? {
-      undef   => '',
-      default => $vip['gateway']
-    },
-    'gateway_metric'       => $vip['gateway_metric'] ? {
-      undef   => '0',
-      default => $vip['gateway_metric']
-    },
-    'other_networks'       => $vip['other_networks'] ? {
-      undef => 'false', '' => 'false',
-      default => $vip['other_networks']
-    },
-    'bridge'              => $vip['bridge'] ? {
-      undef   => 'false',
-      ''      => 'false',
-      default => $vip['bridge']
-    },
-    'iptables_start_rules' => $vip['iptables_start_rules'] ? {
-      undef   => 'false',
-      ''      => 'false',
-      default => "'${vip['iptables_start_rules']}'",
-    },
-    'iptables_stop_rules'  => $vip['iptables_stop_rules'] ? {
-      undef   => 'false',
-      ''      => 'false',
-      default => "'${vip['iptables_stop_rules']}'",
-    },
-    'iptables_comment'     => $vip['iptables_comment'] ? {
-      undef   => 'false',
-      ''      => 'false',
-      default => "'${vip['iptables_comment']}'",
-    },
-    'ns_iptables_start_rules' => $vip['ns_iptables_start_rules'] ? {
-      undef   => 'false',
-      ''      => 'false',
-      default => "'${vip['ns_iptables_start_rules']}'",
-    },
-    'ns_iptables_stop_rules'  => $vip['ns_iptables_stop_rules'] ? {
-      undef   => 'false',
-      ''      => 'false',
-      default => "'${vip['ns_iptables_stop_rules']}'",
-    },
+  if $vip['namespace'] != undef {
+    # VIP inside his own network namespace
+    $primitive_type = 'ns_IPaddr2'
+    $primitive_provider  = 'fuel'
+
+    $parameters = {
+      'ns'                   => $vip['namespace']
+      'nic'                  => $vip['nic'],
+      'base_veth'            => $vip['base_veth'],
+      'ns_veth'              => $vip['ns_veth'],
+      'ip'                   => $vip['ip'],
+      'iflabel'              => $vip['iflabel'] ? {
+        undef   => 'ka',
+        default => $vip['iflabel']
+      },
+      'cidr_netmask'         => $vip['cidr_netmask'] ? {
+        undef   => '24',
+        default => $vip['cidr_netmask']
+      },
+      'gateway'              => $vip['gateway'] ? {
+        undef   => '',
+        default => $vip['gateway']
+      },
+      'gateway_metric'       => $vip['gateway_metric'] ? {
+        undef   => '0',
+        default => $vip['gateway_metric']
+      },
+      'other_networks'       => $vip['other_networks'] ? {
+        undef => 'false', '' => 'false',
+        default => $vip['other_networks']
+      },
+      'bridge'              => $vip['bridge'] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => $vip['bridge']
+      },
+      'iptables_start_rules' => $vip['iptables_start_rules'] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => "'${vip['iptables_start_rules']}'",
+      },
+      'iptables_stop_rules'  => $vip['iptables_stop_rules'] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => "'${vip['iptables_stop_rules']}'",
+      },
+      'iptables_comment'     => $vip['iptables_comment'] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => "'${vip['iptables_comment']}'",
+      },
+      'ns_iptables_start_rules' => $vip['ns_iptables_start_rules'] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => "'${vip['ns_iptables_start_rules']}'",
+      },
+      'ns_iptables_stop_rules'  => $vip['ns_iptables_stop_rules'] ? {
+        undef   => 'false',
+        ''      => 'false',
+        default => "'${vip['ns_iptables_stop_rules']}'",
+      },
+    }
+  } else {
+    # VIP without his own network namespace
+    $primitive_type = 'IPaddr2'
+    $primitive_provider  = 'heartbeat'
+    $parameters = {
+      'nic'     => $vip['nic'],
+      'ip'      => $vip['ip'],
+      'iflabel' => $vip['iflabel'] ? {
+        undef   => 'ka',
+        default => $vip['iflabel']
+      },
+      'cidr_netmask' => $vip['cidr_netmask'] ? {
+        undef   => '24',
+        default => $vip['cidr_netmask']
+      },
+    }
   }
 
   $metadata = {
@@ -100,19 +119,18 @@ define cluster::virtual_ip (
     },
   }
 
-  $primitive_type = 'ns_IPaddr2'
-
   service { $vip_name:
     ensure => 'running',
     enable => true,
   }
 
   pacemaker_wrappers::service { $vip_name :
-    primitive_type   => $primitive_type,
-    parameters       => $parameters,
-    metadata         => $metadata,
-    operations       => $operations,
-    prefix           => false,
+    primitive_type      => $primitive_type,
+    primitive_provider  => $primitive_provider,
+    parameters          => $parameters,
+    metadata            => $metadata,
+    operations          => $operations,
+    prefix              => false,
   }
 
   # I'am running before this other vip

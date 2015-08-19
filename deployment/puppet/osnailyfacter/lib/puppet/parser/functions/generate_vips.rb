@@ -67,7 +67,7 @@ module Puppet::Parser::Functions
       vip['gateway'] = parameters['gateway'] if parameters['gateway']
       vip['gateway_metric'] = parameters['gateway_metric'] if parameters['gateway_metric']
 
-      vip['namespace'] = parameters['namespace'] if parameters['namespace']
+      vip['namespace'] = (['','nil', 'none'].include?(parameters['namespace'].to_s.downcase)  ?  undef  :  parameters['namespace'])
       vip['colocation_before'] = parameters['colocation_before'] if parameters['colocation_before']
       vip['colocation_after'] = parameters['colocation_after'] if parameters['colocation_after']
 
