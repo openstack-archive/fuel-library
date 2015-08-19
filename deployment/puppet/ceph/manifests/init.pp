@@ -50,6 +50,7 @@ class ceph (
       $rgw_dns_name                       = "*.${::domain}",
       $rgw_print_continue                 = true,
       $rgw_nss_db_path                    = '/etc/ceph/nss',
+      $rgw_op_thread_suicide_timeout      = undef,
 
       # Keystone settings
       $rgw_pub_ip                         = $cluster_node_address,

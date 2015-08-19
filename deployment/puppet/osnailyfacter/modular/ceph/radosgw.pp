@@ -62,6 +62,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     rgw_data                         => '/var/lib/ceph/radosgw',
     rgw_dns_name                     => "*.${::domain}",
     rgw_print_continue               => true,
+    rgw_op_thread_suicide_timeout    => '30',
 
     #rgw Keystone settings
     rgw_use_pki                      => false,
