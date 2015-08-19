@@ -1,0 +1,5 @@
+auto br8
+allow-ovs br8
+iface br8 inet manual
+  ovs_type OVSBridge
+  ovs_ports ttt0 ttt1
