@@ -15,6 +15,7 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
       #todo(sv): :onboot         => '', # should not be used (may be if no ipaddr)
       :ovs_type       => 'ovs_type',
       :bridge         => 'ovs_bridge',
+      :bridge_ports   => 'ovs_ports',
       :bond_slaves    => 'ovs_bonds',
       :bond_mode      => 'ovs_options',
       :bond_miimon    => 'ovs_options',
@@ -67,25 +68,22 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
     header = []
     props  = {}
 
-
-    # Add onboot interfaces
-    if provider.onboot and provider.ipaddr.to_s != 'absent'
-      header << "auto #{provider.name}"
-    end
-
     bridge = provider.bridge[0]
     if provider.if_type.to_s == 'bridge'
+      header << "auto #{provider.name}" if provider.onboot
       header << "allow-ovs #{provider.name}"
-      props[:bridge_ports] = nil
-      props[:ovs_type]     = 'OVSBridge'
-      props[:bridge]       = nil
+      props[:ovs_type] = 'OVSBridge'
+      props[:bridge]   = nil
     elsif provider.if_type.to_s == 'bond'
+      # there are no 'auto bond-name' should be here. Because!
+      header << "allow-#{bridge} #{provider.name}"
       props[:ovs_type] = 'OVSBond'
       props[:bridge]   = bridge
     else
+      header << "auto #{provider.name}" if provider.onboot
       header << "allow-#{bridge} #{provider.name}"
-      props[:ovs_type]   = 'OVSIntPort'
-      props[:bridge]     = bridge
+      props[:ovs_type] = 'OVSIntPort'
+      props[:bridge]   = bridge
     end
     # Add iface header
     header << "iface #{provider.name} inet #{provider.method}"
