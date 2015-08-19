@@ -24,6 +24,7 @@ class ceph::radosgw (
   $rgw_data                         = $::ceph::rgw_data,
   $rgw_dns_name                     = $::ceph::rgw_dns_name,
   $rgw_print_continue               = $::ceph::rgw_print_continue,
+  $rgw_op_thread_suicide_timeout    = $::ceph::rgw_op_thread_suicide_timeout,
 
   #rgw Keystone settings
   $rgw_use_pki                      = $::ceph::rgw_use_pki,
@@ -82,13 +83,14 @@ class ceph::radosgw (
   }
 
   ceph_conf {
-    "client.${rgw_id}/host":               value => $rgw_host;
-    "client.${rgw_id}/keyring":            value => $keyring_path;
-    "client.${rgw_id}/rgw_socket_path":    value => $rgw_socket_path;
-    "client.${rgw_id}/user":               value => $rgw_user;
-    "client.${rgw_id}/rgw_data":           value => $rgw_data;
-    "client.${rgw_id}/rgw_dns_name":       value => $rgw_dns_name;
-    "client.${rgw_id}/rgw_print_continue": value => $rgw_print_continue;
+    "client.${rgw_id}/host":                          value => $rgw_host;
+    "client.${rgw_id}/keyring":                       value => $keyring_path;
+    "client.${rgw_id}/rgw_socket_path":               value => $rgw_socket_path;
+    "client.${rgw_id}/user":                          value => $rgw_user;
+    "client.${rgw_id}/rgw_data":                      value => $rgw_data;
+    "client.${rgw_id}/rgw_dns_name":                  value => $rgw_dns_name;
+    "client.${rgw_id}/rgw_print_continue":            value => $rgw_print_continue;
+    "client.${rgw_id}/rgw_op_thread_suicide_timeout": value => $rgw_op_thread_suicide_timeout;
   }
 
   if ($use_ssl) {
