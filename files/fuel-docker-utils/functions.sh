@@ -235,6 +235,10 @@ function start_container {
       ${DOCKER} start $container_name
     fi
     post_start_hooks $1
+    if [ -z "$SUPERVISOR_PROCESS_NAME" ]; then
+      #Refresh supervisor for container in case it was disabled
+      supervisorctl start docker-$container > /dev/null
+    fi
     if [ "$2" = "--attach" ]; then
       attach_container $container_name
     fi
@@ -317,14 +321,21 @@ function lxc_shell_container {
 }
 
 function stop_container {
-  if [[ "$1" == 'all' ]]; then
-    ${DOCKER} stop ${CONTAINER_NAMES[@]}
-  else
-    for container in $@; do
-      echo "Stopping $container..."
-      ${DOCKER} stop ${CONTAINER_NAMES[$container]}
+  if [ "$1" = "all" ]; then
+    for container in ${CONTAINER_NAMES[@]}; do
+      stop_container $container
     done
+    return
   fi
+  for container in $@; do
+    echo "Stopping $container..."
+    #Stop supervisor process if manually shut down by user
+    if [ -z "$SUPERVISOR_PROCESS_NAME" ]; then
+      supervisorctl stop "docker-${container}" > /dev/null
+    fi
+
+    ${DOCKER} stop ${CONTAINER_NAMES[$container]}
+  done
 }
 
 function destroy_container {
