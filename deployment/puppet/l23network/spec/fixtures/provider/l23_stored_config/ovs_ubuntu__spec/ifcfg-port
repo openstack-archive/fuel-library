@@ -1,3 +1,4 @@
+auto ttt0
 allow-br9 ttt0
 iface ttt0 inet manual
   mtu 6000
