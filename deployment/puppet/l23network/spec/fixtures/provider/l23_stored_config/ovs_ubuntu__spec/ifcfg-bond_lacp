@@ -1,3 +1,4 @@
+allow-br0 bond_lacp
 iface bond_lacp inet manual
   mtu 9000
   ovs_bonds eth2 eth3
