@@ -25,7 +25,8 @@ module L23network
 
   def self.get_patch_name(bridges)
     # bridges should be an array of two string
-    "patch__#{bridges.map{|s| s.to_s}.sort.join('--')}"
+    bridges_sorted = bridges[0..1].map{|s| s.to_s}.sort()
+    "patch__#{bridges_sorted.join('--')}"
   end
 
   def self.lnx_jack_name_len
@@ -33,7 +34,8 @@ module L23network
   end
 
   def self.get_base_name_for_jacks(bridges)
-    sprintf("p_%08x",Zlib::crc32(get_patch_name(bridges)).to_i)
+    bridges_sorted = bridges[0..1].map{|s| s.to_s}.sort()
+    sprintf("p_%08x",Zlib::crc32(get_patch_name(bridges_sorted)).to_i)
   end
 
   def self.get_jack_name(bridges, num=0)
@@ -43,14 +45,15 @@ module L23network
     elsif bridges.is_a? Array and bridges.length==1
       jj = [bridges[0],bridges[0]]
     else
-      jj = bridges[0..1]
+      jj = bridges[0..1].map{|s| s.to_s}.sort()
     end
     base_name=get_base_name_for_jacks(jj)
     return "#{base_name}-#{num}"
   end
 
   def self.get_pair_of_jack_names(bridges)
-    [get_jack_name(bridges,0), get_jack_name(bridges,1)]
+    bridges_sorted = bridges[0..1].map{|s| s.to_s}.sort()
+    [get_jack_name(bridges_sorted,0), get_jack_name(bridges_sorted,1)]
   end
 
 # def self.reccursive_merge_hash(a,b)

@@ -88,7 +88,7 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
       # creating 'cross' OVS-to-lnx patchcord
       @resource[:cross] = true
       lnx_port_br_mapping = self.class.get_lnx_port_bridges_pairs()
-      jack = L23network.get_jack_name(bridges[0],0)
+      jack = L23network.get_jack_name(bridges,0)
       @resource[:jacks] = [jack, jack]
       vsctl('--may-exist', 'add-port', bridges[0], jack, '--', 'set', 'Interface', jack, 'type=internal')
       if lnx_port_br_mapping.has_key? jack and lnx_port_br_mapping[jack][:bridge] != bridges[1]
@@ -132,7 +132,7 @@ debug(cmds)
   def destroy
     if File.directory?("/sys/class/net/#{@resource[:bridges][1]}/bridge")
       # removing 'cross' OVS-to-lnx patchcord
-      jack = L23network.get_jack_name(@resource[:bridges][0], 0)
+      jack = L23network.get_jack_name(@resource[:bridges], 0)
       if File.symlink?("/sys/class/net/#{@resource[:bridges][1]}/brif/#{jack}")
         brctl('delif', @resource[:bridges][1], jack)
       end

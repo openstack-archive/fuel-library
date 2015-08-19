@@ -87,14 +87,14 @@ describe Puppet::Type.type(:l2_patch).provider(:ovs) do
       provider_br2.class.stubs(:iproute).with().returns(true)
       provider_br2.class.stubs(:iproute).with('link', 'set', 'up', 'dev', 'br2').returns(true)
       provider_br2.class.stubs(:brctl).with('addbr', 'br2').returns(true)
-      provider_patch.class.stubs(:brctl).with('addif', 'br2', 'p_a0ad117b-0').returns(true)
+      provider_patch.class.stubs(:brctl).with('addif', 'br2', 'p_39a440c1-0').returns(true)
       provider_patch.class.stubs(:vsctl).with(
-        '--may-exist', 'add-port', 'br1', 'p_a0ad117b-0', '--', 'set', 'Interface', 'p_a0ad117b-0', 'type=internal'
+        '--may-exist', 'add-port', 'br1', 'p_39a440c1-0', '--', 'set', 'Interface', 'p_39a440c1-0', 'type=internal'
       ).returns(true)
       File.stubs(:directory?).with('/sys/class/net/br2/bridge').returns(true)
       provider_patch.class.stubs(:get_lnx_port_bridges_pairs).with().returns({})
       provider_patch.class.stubs(:get_bridges_order_for_patch).with(['br1','br2']).returns(['br1','br2'])
-      provider_patch.class.stubs(:iproute).with('link', 'set', 'up', 'dev', 'p_a0ad117b-0').returns(true)
+      provider_patch.class.stubs(:iproute).with('link', 'set', 'up', 'dev', 'p_39a440c1-0').returns(true)
     end
 
     it "Just create two bridges and connect it by patchcord" do
