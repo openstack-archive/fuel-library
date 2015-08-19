@@ -290,6 +290,9 @@ class { 'openstack::compute':
   storage_hash                => $storage_hash,
 }
 
+# Required for fping API extension, see LP#1486404
+ensure_packages('fping')
+
 $nova_config_hash = {
   'DEFAULT/resume_guests_state_on_host_boot'       => { value => hiera('resume_guests_state_on_host_boot', 'False') },
   'DEFAULT/use_cow_images'                         => { value => hiera('use_cow_images', 'True') },
