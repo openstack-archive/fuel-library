@@ -17,6 +17,8 @@ define l23network::l2::bond_interface (
   } else {
     $master = $bond
     $slave  = true
+    L2_port[$name] -> L2_bond[$bond]
+    L23_stored_config[$name] -> L23_stored_config[$bond]
   }
 
   if ! defined(L23network::L2::Port[$name]) {
@@ -38,7 +40,5 @@ define l23network::l2::bond_interface (
       slave    => $slave
     }
   }
-  L2_port[$name] -> L2_bond[$bond]
-  L23_stored_config[$name] -> L23_stored_config[$bond]
 }
 ###
