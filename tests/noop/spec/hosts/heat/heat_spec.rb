@@ -19,6 +19,7 @@ describe manifest do
     it 'should configure template size and request limit' do
       should contain_heat_config('DEFAULT/max_template_size').with_value('5440000')
       should contain_heat_config('DEFAULT/max_resources_per_stack').with_value('20000')
+      should contain_heat_config('DEFAULT/max_json_body_size').with_value('10880000')
     end
 
     it 'should configure heat rpc response timeout' do
