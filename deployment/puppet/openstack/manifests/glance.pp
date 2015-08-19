@@ -88,6 +88,7 @@ class openstack::glance (
   $rbd_store_user                 = 'images',
   $rbd_store_pool                 = 'images',
   $ceilometer                     = false,
+  $service_workers                = $::processorcount,
 ) {
   validate_string($glance_user_password)
   validate_string($glance_db_password)
@@ -117,6 +118,7 @@ class openstack::glance (
     keystone_tenant       => $glance_tenant,
     database_connection   => $sql_connection,
     enabled               => $enabled,
+    workers               => $service_workers,
     registry_host         => $registry_host,
     use_syslog            => $use_syslog,
     use_stderr            => $use_stderr,
@@ -165,6 +167,7 @@ class openstack::glance (
     use_stderr            => $use_stderr,
     log_facility          => $syslog_log_facility,
     database_idle_timeout => $idle_timeout,
+    workers               => $service_workers,
   }
 
   glance_registry_config {

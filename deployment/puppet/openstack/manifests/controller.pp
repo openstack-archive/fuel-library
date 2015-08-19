@@ -172,6 +172,7 @@ class openstack::controller (
   # General
   $verbose                        = false,
   $debug                          = false,
+  $service_workers                = $::processorcount,
   $export_resources               = true,
   # if the cinder management components should be installed
   $cinder_user_password           = 'cinder_user_pass',
@@ -314,6 +315,7 @@ class openstack::controller (
     nova_report_interval        => $nova_report_interval,
     nova_service_down_time      => $nova_service_down_time,
     cinder                      => $cinder,
+    service_workers             => $service_workers,
     # SQLAlchemy backend
     max_retries                 => $max_retries,
     max_pool_size               => $max_pool_size,

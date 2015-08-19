@@ -96,6 +96,7 @@ class openstack::nova::controller (
   $nova_service_down_time      = '60',
   $cinder                      = true,
   $ceilometer                  = false,
+  $service_workers             = $::processorcount,
   # SQLAlchemy backend
   $idle_timeout                = '3600',
   $max_pool_size               = '10',
@@ -337,7 +338,9 @@ class openstack::nova::controller (
     ratelimits                           => $nova_rate_limits_string,
     neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_shared_secret,
     require                              => Package['nova-common'],
-    osapi_compute_workers                => min($::processorcount + 0, 50 + 0),
+    osapi_compute_workers                => $service_workers,
+    ec2_workers                          => $service_workers,
+    metadata_workers                     => $service_workers,
     keystone_ec2_url                     => "http://${keystone_host}:5000/v2.0/ec2tokens",
   }
 
@@ -366,8 +369,9 @@ class openstack::nova::controller (
   }
 
   class {'::nova::conductor':
-    enabled => $enabled,
+    enabled        => $enabled,
     ensure_package => $ensure_package,
+    workers        => $service_workers,
   }
 
   if $auto_assign_floating_ip {
