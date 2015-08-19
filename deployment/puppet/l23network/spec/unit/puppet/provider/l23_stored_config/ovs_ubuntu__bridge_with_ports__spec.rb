@@ -5,11 +5,11 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
 
   let(:input_data) do
     {
-      :ttt0 => {
-        :name           => 'ttt0',
+      :br8 => {
+        :name           => 'br8',
+        :bridge_ports   => ['ttt1', 'ttt0'],
         :ensure         => 'present',
-        :bridge         => 'br9',
-        :mtu            => '6000',
+        :if_type        => 'bridge',
         :onboot         => true,
         :method         => 'manual',
         :provider       => "ovs_ubuntu",
@@ -68,27 +68,25 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
   #   end
   # end
 
-  context "one OVS port, included to the OVS bridge" do
+  context "standalone OVS bridge" do
 
     context 'format file' do
-      subject { providers[:ttt0] }
+      subject { providers[:br8] }
       let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
-      it { expect(cfg_file).to match(/auto\s+ttt0/) }
-      it { expect(cfg_file).to match(/allow-br9\s+ttt0/) }
-      it { expect(cfg_file).to match(/iface\s+ttt0\s+inet\s+manual/) }
-      it { expect(cfg_file).to match(/mtu\s+6000/) }
-      it { expect(cfg_file).to match(/ovs_type\s+OVSIntPort/) }
-      it { expect(cfg_file).to match(/ovs_bridge\s+br9/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(6) }  #  no more lines in the interface file
+      it { expect(cfg_file).to match(/auto\s+br8/) }
+      it { expect(cfg_file).to match(/allow-ovs\s+br8/) }
+      it { expect(cfg_file).to match(/iface\s+br8\s+inet\s+manual/) }
+      it { expect(cfg_file).to match(/ovs_type\s+OVSBridge/) }
+      it { expect(cfg_file).to match(/ovs_ports\s+ttt0\s+ttt1/) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }  #  no more lines in the interface file
     end
 
     context "parse data from fixture" do
-      let(:res) { subject.class.parse_file('bond_lacp', fixture_data('ifcfg-port'))[0] }
-
+      let(:res) { subject.class.parse_file('br8', fixture_data('ifcfg-bridge-with-ports'))[0] }
       it { expect(res[:method]).to eq :manual }
-      it { expect(res[:mtu]).to eq '6000' }
-      it { expect(res[:bridge]).to eq 'br9' }
-      it { expect(res[:if_type].to_s).to eq 'ethernet' }
+      it { expect(res[:name]).to eq 'br8' }
+      it { expect(res[:bridge_ports]).to eq ['ttt0', 'ttt1'] }
+      it { expect(res[:if_type].to_s).to eq 'bridge' }
       it { expect(res[:if_provider].to_s).to eq 'ovs' }
     end
 
