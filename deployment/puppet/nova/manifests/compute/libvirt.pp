@@ -23,6 +23,12 @@
 #   Defaults to 'host-model' if libvirt_virt_type is set to either
 #   kvm or qemu, otherwise defaults to 'none'.
 #
+# [*libvirt_cpu_model*]
+#   (optional) The named libvirt CPU model (see names listed in
+#   /usr/share/libvirt/cpu_map.xml). Only has effect if
+#   cpu_mode="custom" and virt_type="kvm|qemu".
+#   Defaults to undef
+#
 # [*libvirt_disk_cachemodes*]
 #   (optional) A list of cachemodes for different disk types, e.g.
 #   ["file=directsync", "block=none"]
@@ -87,6 +93,7 @@ class nova::compute::libvirt (
   $vncserver_listen                           = '127.0.0.1',
   $migration_support                          = false,
   $libvirt_cpu_mode                           = false,
+  $libvirt_cpu_model                          = undef,
   $libvirt_disk_cachemodes                    = [],
   $libvirt_inject_password                    = false,
   $libvirt_inject_key                         = false,
@@ -183,6 +190,18 @@ class nova::compute::libvirt (
     'libvirt/inject_password':  value => $libvirt_inject_password;
     'libvirt/inject_key':       value => $libvirt_inject_key;
     'libvirt/inject_partition': value => $libvirt_inject_partition;
+  }
+
+  # cpu_model param is only valid if cpu_mode=custom
+  # otherwise it should be commented out
+  if $libvirt_cpu_mode_real == 'custom' {
+    nova_config {
+      'libvirt/cpu_model': value => $libvirt_cpu_model;
+    }
+  } else {
+    nova_config {
+      'libvirt/cpu_model': ensure => absent;
+    }
   }
 
   if size($libvirt_disk_cachemodes) > 0 {

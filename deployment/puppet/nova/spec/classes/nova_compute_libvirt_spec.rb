@@ -37,6 +37,7 @@ describe 'nova::compute::libvirt' do
       it { is_expected.to contain_nova_config('DEFAULT/compute_driver').with_value('libvirt.LibvirtDriver')}
       it { is_expected.to contain_nova_config('libvirt/virt_type').with_value('kvm')}
       it { is_expected.to contain_nova_config('libvirt/cpu_mode').with_value('host-model')}
+      it { is_expected.to contain_nova_config('libvirt/cpu_model').with_ensure('absent')}
       it { is_expected.to contain_nova_config('libvirt/disk_cachemodes').with_ensure('absent')}
       it { is_expected.to contain_nova_config('libvirt/inject_password').with_value(false)}
       it { is_expected.to contain_nova_config('libvirt/inject_key').with_value(false)}
@@ -53,6 +54,7 @@ describe 'nova::compute::libvirt' do
         { :libvirt_virt_type                          => 'qemu',
           :vncserver_listen                           => '0.0.0.0',
           :libvirt_cpu_mode                           => 'host-passthrough',
+          :libvirt_cpu_model                          => 'kvm64',
           :libvirt_disk_cachemodes                    => ['file=directsync','block=none'],
           :remove_unused_base_images                  => true,
           :remove_unused_kernels                      => true,
@@ -66,6 +68,7 @@ describe 'nova::compute::libvirt' do
       it { is_expected.to contain_nova_config('DEFAULT/compute_driver').with_value('libvirt.FoobarDriver')}
       it { is_expected.to contain_nova_config('libvirt/virt_type').with_value('qemu')}
       it { is_expected.to contain_nova_config('libvirt/cpu_mode').with_value('host-passthrough')}
+      it { is_expected.to contain_nova_config('libvirt/cpu_model').with_ensure('absent')}
       it { is_expected.to contain_nova_config('libvirt/disk_cachemodes').with_value('file=directsync,block=none')}
       it { is_expected.to contain_nova_config('DEFAULT/vncserver_listen').with_value('0.0.0.0')}
       it { is_expected.to contain_nova_config('DEFAULT/remove_unused_base_images').with_value(true)}
@@ -79,6 +82,16 @@ describe 'nova::compute::libvirt' do
         :require  => 'Package[libvirt]',
         :before   => ['Service[nova-compute]']
       )}
+    end
+
+    describe 'with custom cpu_mode' do
+      let :params do
+        { :libvirt_cpu_mode  => 'custom',
+          :libvirt_cpu_model => 'kvm64' }
+      end
+
+      it { is_expected.to contain_nova_config('libvirt/cpu_mode').with_value('custom')}
+      it { is_expected.to contain_nova_config('libvirt/cpu_model').with_value('kvm64')}
     end
 
     describe 'with migration_support enabled' do
