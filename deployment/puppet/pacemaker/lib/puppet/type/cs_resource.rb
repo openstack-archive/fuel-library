@@ -79,7 +79,7 @@ module Puppet
         end
       end
       munge do |value|
-        stringify value
+        stringify(value.reject{|k,v| ['', 'nil', 'undef', 'none'].include? v.to_s.downcase})
       end
       defaultto Hash.new
     end
