@@ -14,10 +14,4 @@ $keystone_port = '5000',
     group  => 'root',
     mode   => '0755',
   }
-  file { '/etc/fuel/client/config.yaml':
-    content => template('nailgun/fuelclient.yaml.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0600',
-  }
 }
