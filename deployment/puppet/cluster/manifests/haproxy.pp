@@ -48,6 +48,7 @@ class cluster::haproxy (
 ) {
   include ::concat::setup
   include ::haproxy::params
+  include ::rsyslog::params
 
   package { 'haproxy': }
 
@@ -102,6 +103,7 @@ class cluster::haproxy (
   file { '/etc/rsyslog.d/haproxy.conf':
     ensure  => present,
     content => template("${module_name}/haproxy.conf.erb"),
+    notify  => Service[$::rsyslog::params::service_name],
   }
 
   Package['haproxy'] -> Class['haproxy::base']
@@ -109,5 +111,12 @@ class cluster::haproxy (
 
   if defined(Corosync::Service['pacemaker']) {
     Corosync::Service['pacemaker'] -> Class['cluster::haproxy_ocf']
+  }
+
+  if !defined(Service[$::rsyslog::params::service_name]) {
+    service { $::rsyslog::params::service_name:
+      ensure => running,
+      enable => true,
+    }
   }
 }
