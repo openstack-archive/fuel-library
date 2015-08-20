@@ -19,6 +19,8 @@ OCF_RESKEY_enable_forwarding_default=true
 OCF_RESKEY_other_networks_default=""
 OCF_RESKEY_bridge_default="" # can be "", or bridge name
 
+: ${HA_LOGTAG="ocf-ns_IPaddr2"}
+: ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_cidr_netmask=${OCF_RESKEY_cidr_netmask_default}}
 : ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
 : ${OCF_RESKEY_base_veth=${OCF_RESKEY_base_veth_default}}

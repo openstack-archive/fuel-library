@@ -35,6 +35,8 @@ OCF_RESKEY_binpath_default="/usr/sbin/ntpd"
 OCF_RESKEY_extraconf_default=""
 
 : ${OCF_ROOT=${OCF_ROOT_default}}
+: ${HA_LOGTAG="ocf-ns_ntp"}
+: ${HA_LOGFACILITY="daemon"}
 
 : ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
 : ${OCF_RESKEY_conffile=${OCF_RESKEY_conffile_default}}
