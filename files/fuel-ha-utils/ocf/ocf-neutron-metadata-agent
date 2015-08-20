@@ -19,6 +19,8 @@
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 #######################################################################
 
@@ -286,6 +288,10 @@ neutron_metadata_agent_start() {
 neutron_metadata_agent_stop() {
     local rc
     local pid
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
+    fi
 
     neutron_metadata_agent_status
     rc=$?
@@ -296,45 +302,12 @@ neutron_metadata_agent_stop() {
 
     # Try SIGTERM
     pid=`get_worker_pid`
-    if [ "xxx$pid" == "xxx" ] ; then
-        ocf_log warn "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) not running."
-        #return $OCF_NOT_RUNNING
-        return $OCF_SUCCESS
-    fi
-    ocf_run kill -s TERM $pid
+    proc_stop "${pid}" "${OCF_RESKEY_binary}" $shutdown_timeout
     rc=$?
-    if [ $rc -ne 0 ]; then
+    if [ "${rc}" -eq "${OCF_ERR_GENERIC}" ]; then
         ocf_log err "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) couldn't be stopped"
         exit $OCF_ERR_GENERIC
     fi
-
-    # stop waiting
-    shutdown_timeout=15
-    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
-        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
-    fi
-    count=0
-    while [ $count -lt $shutdown_timeout ]; do
-        neutron_metadata_agent_status
-        rc=$?
-        if [ $rc -eq $OCF_NOT_RUNNING ]; then
-            break
-        fi
-        count=`expr $count + 1`
-        sleep 1
-        ocf_log debug "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) still hasn't stopped yet. Waiting ..."
-    done
-
-    neutron_metadata_agent_status
-    rc=$?
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) failed to stop after ${shutdown_timeout}s \
-          using SIGTERM. Trying SIGKILL ..."
-        ocf_run kill -s KILL $pid
-    fi
-
-    ocf_log info "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) stopped"
 
     ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid

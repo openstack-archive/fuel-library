@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #
 # OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)
@@ -26,6 +26,8 @@
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 #######################################################################
 
@@ -264,56 +266,20 @@ ceilometer_alarm_evaluator_start() {
 
 ceilometer_alarm_evaluator_stop() {
     local rc
-    local pid
-
-    ceilometer_alarm_evaluator_status
-    rc=$?
-    if [ $rc -eq $OCF_NOT_RUNNING ]; then
-        ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) already stopped"
-        return $OCF_SUCCESS
-    fi
-
-    # Try SIGTERM
-    pid=`cat $OCF_RESKEY_pid`
-    ocf_run kill -s TERM $pid
-    rc=$?
-    if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) couldn't be stopped"
-        exit $OCF_ERR_GENERIC
-    fi
-
-    # stop waiting
-    shutdown_timeout=15
+    local shutdown_timeout=15
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
-        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
     fi
-    count=0
-    while [ $count -lt $shutdown_timeout ]; do
-        ceilometer_alarm_evaluator_status
-        rc=$?
-        if [ $rc -eq $OCF_NOT_RUNNING ]; then
-            break
-        fi
-        count=`expr $count + 1`
-        sleep 1
-        ocf_log debug "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) still hasn't stopped yet. Waiting ..."
-    done
 
     ceilometer_alarm_evaluator_status
-    rc=$?
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) failed to stop after ${shutdown_timeout}s \
-          using SIGTERM. Trying SIGKILL ..."
-        ocf_run kill -s KILL $pid
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
+        ocf_log info "OpenStack Ceilometer Alarm Evaluator (${OCF_RESKEY_binary}) already stopped"
+        return "${OCF_SUCCESS}"
     fi
 
-    ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) stopped"
-
-    ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
-    rm -f $OCF_RESKEY_pid
-
-    return $OCF_SUCCESS
+    proc_stop "${OCF_RESKEY_pid}" "${OCF_RESKEY_binary}" $shutdown_timeout
+    return "${?}"
 }
 
 #######################################################################
