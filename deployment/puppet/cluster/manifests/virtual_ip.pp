@@ -10,7 +10,7 @@
 # [*vip*]
 #   Specify dictionary of VIP parameters, ex:
 #   {
-#       nic    => 'eth0',
+#       bridge => 'br0',
 #       ip     => '10.1.1.253'
 #   }
 #
@@ -21,7 +21,7 @@ define cluster::virtual_ip (
   $vip_name = "vip__${key}"
 
   $parameters = {
-    'nic'                  => $vip['nic'],
+    'bridge'               => $vip['bridge'],
     'base_veth'            => $vip['base_veth'],
     'ns_veth'              => $vip['ns_veth'],
     'ip'                   => $vip['ip'],
@@ -48,11 +48,6 @@ define cluster::virtual_ip (
     'other_networks'       => $vip['other_networks'] ? {
       undef => 'false', '' => 'false',
       default => $vip['other_networks']
-    },
-    'bridge'              => $vip['bridge'] ? {
-      undef   => 'false',
-      ''      => 'false',
-      default => $vip['bridge']
     },
     'iptables_start_rules' => $vip['iptables_start_rules'] ? {
       undef   => 'false',
