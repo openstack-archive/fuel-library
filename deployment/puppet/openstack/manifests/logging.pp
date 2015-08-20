@@ -74,7 +74,6 @@ class openstack::logging (
       file_tag      => "rabbitmq",
       file_facility => "syslog",
       file_severity => $rabbit_log_level,
-      notify  => Class["::rsyslog::service"],
     }
 
     ::rsyslog::imfile { "04-rabbitmq-sasl" :
@@ -82,7 +81,6 @@ class openstack::logging (
       file_tag      => "rabbitmq-sasl",
       file_facility => "syslog",
       file_severity => $rabbit_log_level,
-      notify  => Class["::rsyslog::service"],
     }
 
     ::rsyslog::imfile { "04-rabbitmq-startup_err" :
@@ -90,7 +88,6 @@ class openstack::logging (
       file_tag      => "rabbitmq-startup_err",
       file_facility => "syslog",
       file_severity => "ERROR",
-      notify  => Class["::rsyslog::service"],
     }
 
     ::rsyslog::imfile { "04-rabbitmq-shutdown_err" :
@@ -98,7 +95,48 @@ class openstack::logging (
       file_tag      => "rabbitmq-shutdown_err",
       file_facility => "syslog",
       file_severity => "ERROR",
-      notify  => Class["::rsyslog::service"],
+    }
+
+    ::rsyslog::imfile { '05-horizon_access':
+      file_name     => '/var/log/apache2/horizon_access.log',
+      file_tag      => 'horizon_access',
+      file_facility => 'syslog',
+      file_severity => 'INFO',
+    }
+
+    ::rsyslog::imfile { '05-horizon_error':
+      file_name     => '/var/log/apache2/horizon_error.log',
+      file_tag      => 'horizon_error',
+      file_facility => 'syslog',
+      file_severity => 'ERROR',
+    }
+
+    ::rsyslog::imfile { '06-keystone_wsgi_admin_access':
+      file_name     => '/var/log/apache2/keystone_wsgi_admin_access.log',
+      file_tag      => 'keystone_wsgi_admin_access',
+      file_facility => 'syslog',
+      file_severity => 'INFO',
+    }
+
+    ::rsyslog::imfile { '06-keystone_wsgi_admin_error':
+      file_name     => '/var/log/apache2/keystone_wsgi_admin_error.log',
+      file_tag      => 'keystone_wsgi_admin_error',
+      file_facility => 'syslog',
+      file_severity => 'ERROR',
+    }
+
+    ::rsyslog::imfile { '07-keystone_wsgi_main_access':
+      file_name     => '/var/log/apache2/keystone_wsgi_main_access.log',
+      file_tag      => 'keystone_wsgi_main_access',
+      file_facility => 'syslog',
+      file_severity => 'INFO',
+    }
+
+    ::rsyslog::imfile { '07-keystone_wsgi_main_error':
+      file_name     => '/var/log/apache2/keystone_wsgi_main_error.log',
+      file_tag      => 'keystone_wsgi_main_error',
+      file_facility => 'syslog',
+      file_severity => 'ERROR',
     }
 
     # mco does not support syslog also, hence use imfile
@@ -107,7 +145,6 @@ class openstack::logging (
       file_tag      => "mcollective",
       file_facility => "daemon",
       file_severity => "DEBUG",
-      notify  => Class["::rsyslog::service"],
     }
 
     # OS syslog configs for rsyslog client
