@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Authors:  Bartosz Kupidura (Mirantis):  Rewrite RA to support mysql/galera
 #           Sergii Golovatiuk (Mirantis): Rewrite RA to support mysql/galera
 #           Alan Robertson:               DB2 Script
@@ -35,6 +35,8 @@ OCF_RESKEY_test_passwd_default=""
 OCF_RESKEY_additional_parameters_default=""
 OCF_RESKEY_master_timeout_default="300"
 
+: ${HA_LOGTAG="mysql-wss-ocf"}
+: ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 

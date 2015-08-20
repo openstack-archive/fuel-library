@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Resource script for haproxy daemon
 #
@@ -30,6 +30,8 @@ OCF_RESKEY_conffile_default="/etc/haproxy/haproxy.cfg"
 OCF_RESKEY_pidfile_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_binpath_default="/usr/sbin/haproxy"
 
+: ${HA_LOGTAG="haproxy-ocf"}
+: ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_conffile=${OCF_RESKEY_conffile_default}}
 : ${OCF_RESKEY_pidfile=${OCF_RESKEY_pidfile_default}}
 : ${OCF_RESKEY_binpath=${OCF_RESKEY_binpath_default}}
@@ -164,7 +166,7 @@ haproxy_start()
 	fi
 
         # run the haproxy binary
-	"${COMMAND}" ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" 
+	"${COMMAND}" ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}"
 	if [ $? -ne 0 ]; then
 		ocf_log err "Error. haproxy daemon returned error $?."
 		exit $OCF_ERR_GENERIC
