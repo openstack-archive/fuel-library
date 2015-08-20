@@ -11,7 +11,10 @@ describe manifest do
       it { should contain_class('ceph::radosgw').with(
            'primary_mon'     => ceph_monitor_nodes.keys[0],
            )
-         }
+        }
+
+      it { should contain_haproxy_backend_status('keystone-public').that_comes_before('Class[ceph::keystone]') }
+      it { should contain_haproxy_backend_status('keystone-admin').that_comes_before('Class[ceph::keystone]') }
 
     end
   end
