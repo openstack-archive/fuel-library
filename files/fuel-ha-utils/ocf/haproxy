@@ -30,11 +30,15 @@ OCF_RESKEY_conffile_default="/etc/haproxy/haproxy.cfg"
 OCF_RESKEY_pidfile_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_binpath_default="/usr/sbin/haproxy"
 
+: ${HA_LOGTAG="ocf-haproxy"}
+: ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_conffile=${OCF_RESKEY_conffile_default}}
 : ${OCF_RESKEY_pidfile=${OCF_RESKEY_pidfile_default}}
 : ${OCF_RESKEY_binpath=${OCF_RESKEY_binpath_default}}
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 USAGE="Usage: $0 {start|stop|status|monitor|validate-all|meta-data}";
 
@@ -164,7 +168,7 @@ haproxy_start()
 	fi
 
         # run the haproxy binary
-	"${COMMAND}" ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" 
+	"${COMMAND}" ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}"
 	if [ $? -ne 0 ]; then
 		ocf_log err "Error. haproxy daemon returned error $?."
 		exit $OCF_ERR_GENERIC
@@ -194,24 +198,23 @@ haproxy_reload()
 
 haproxy_stop()
 {
-	get_variables
-	if haproxy_status ; then
-		PID="`cat ${PIDFILE}`"
-		if [ -n "${PID}" ] ; then
-			kill "${PID}"
-			if [ $? -ne 0 ]; then
-				kill -SIGKILL "${PID}"
-				if [ $? -ne 0 ]; then
-					ocf_log err "Error. Could not stop haproxy daemon."
-					return $OCF_ERR_GENERIC
-				fi
-			fi
-                        ocf_log debug "Delete pid file: ${PIDFILE} with content ${PID}"
-			rm -f "${PIDFILE}"
-		fi
-	fi
-	ocf_log info "Stopped haproxy daemon."
-	exit $OCF_SUCCESS
+    local rc
+    local LH="${LL} haproxy_stop():"
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
+    fi
+
+    get_variables
+    haproxy_status
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
+        ocf_log info "${LH} haproxy already stopped"
+        return "${OCF_SUCCESS}"
+    fi
+
+    proc_stop "${OCF_RESKEY_pidfile}" "${OCF_RESKEY_binpath}" $shutdown_timeout
+    return "${?}"
 }
 
 haproxy_monitor()

@@ -20,6 +20,9 @@
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
+
 #######################################################################
 # Fill in some defaults if no values are specified
 OCF_RESKEY_binary_default="/usr/bin/mysqld_safe"
@@ -37,6 +40,8 @@ OCF_RESKEY_master_timeout_default="300"
 OCF_RESKEY_streamfmt_default="xbstream"
 OCF_RESKEY_transferfmt_default="socat"
 
+: ${HA_LOGTAG="ocf-mysql-wss"}
+: ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 
@@ -207,6 +212,7 @@ END
 # Convenience functions
 #######################################################################
 nodes_in_cluster_online() {
+    local LH="${LL} nodes_in_cluster_online():"
     local NODES
 
     NODES=$(crm_node --partition | sed -e '/(null)/d')
@@ -217,6 +223,7 @@ nodes_in_cluster_online() {
     fi
 }
 nodes_in_cluster() {
+    local LH="${LL} nodes_in_cluster_online():"
     local NODES
 
     #Ubuntu doesn't like \w
@@ -233,11 +240,12 @@ nodes_in_cluster() {
 #XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX:123 - standard cluster-id:commit-id
 #XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX:-1 - standard non initialized cluster, 00000000-0000-0000-0000-000000000000:-1
 validate_gtid() {
+    local LH="${LL} validate_gtid():"
     local rc
     local status_loglevel="err"
 
     if [ -z $1 ]; then
-        ocf_log $status_loglevel "No GTID provided"
+        ocf_log $status_loglevel "${LH} No GTID provided"
         return 1
     fi
 
@@ -245,16 +253,17 @@ validate_gtid() {
     rc=$?
 
     if [ $rc -ne 0 ]; then
-        ocf_log $status_loglevel "GTID have wrong format: $1"
+        ocf_log $status_loglevel "${LH} GTID have wrong format: $1"
         return 1
     else
-        ocf_log info "GTID OK: $1"
+        ocf_log info "${LH} GTID OK: $1"
         return 0
     fi
 }
 
 #Get galera GTID from local mysql instance
 update_node_gtid() {
+    local LH="${LL} update_node_gtid():"
     local status_loglevel="err"
     local GTID
     local GTID_current
@@ -292,42 +301,39 @@ update_node_gtid() {
 }
 
 get_master_timeout() {
-    local default=$OCF_RESKEY_master_timeout
-    local rc
+    local LH="${LL} get_master_timeout():"
     local timeout=$(crm_attribute --quiet --name galera_master_timeout \
-        --query -d $default -q | sed -e '/(null)/d')
-    rc=$?
+        --query --default=$OCF_RESKEY_master_timeout -q | sed -e '/(null)/d')
 
-    if [ $rc -eq 0 ]; then
-        echo $timeout
-    else
-        echo $default
-    fi
+    ocf_log info "${LH} Setting timeout $timeout"
+    echo $timeout
 }
 
 #Get gtid attribute for $1 node, "0" means no GTID set or wrong format for GTID
 get_node_gtid() {
+    local LH="${LL} get_node_gtid():"
+    local rc
     local GTID
 
     GTID=$(crm_attribute --quiet --node $1 --lifetime reboot --query \
         --name gtid 2> /dev/null | sed -e '/(null)/d')
-    rc=$?
 
-    if [ $rc -ne 0 -o -z "$GTID" ]; then
-        ocf_log info "No GTID for $1"
+    if [ -z "$GTID" ]; then
+        ocf_log info "${LH} No GTID for $1"
         echo 0
     else
         if validate_gtid "$GTID"; then
-            ocf_log info "Galera GTID: ${GTID}"
+            ocf_log info "${LH} Galera GTID: ${GTID}"
             echo $GTID
         else
-            ocf_log info "No GTID for $1"
+            ocf_log info "${LH} No GTID for $1"
             echo 0
         fi
     fi
 }
 
 check_if_reelection_needed() {
+    local LH="${LL} check_if_reelection_needed()"
     local PARTITION_WITH_QUORUM=$(crm_node -q | sed -e '/(null)/d')
     local RESOURCE_NAME=$(echo $OCF_RESOURCE_INSTANCE | cut -f1 -d":")
     local NODE_COUNT=$(nodes_in_cluster | wc -w)
@@ -338,7 +344,7 @@ check_if_reelection_needed() {
         RUNNING_INSTANCES=$(crm_resource \
             --quiet --locate --resource $RESOURCE_NAME | sed -e '/(null)/d' | wc -l 2> /dev/null)
         rc=$?
-        if [ $rc -eq $OCF_SUCCESS -a $RUNNING_INSTANCES -lt 1 ]; then
+        if [ $RUNNING_INSTANCES -lt 1 ]; then
             return 1
         fi
     fi
@@ -374,6 +380,12 @@ get_master() {
     [ "${MASTER_GTID}" ] || MASTER_GTID=$ZEROID
     ocf_log info "${LH} The most seen GTID is: ${MASTER_GTID}"
     for NODE in $NODES; do
+        NODE_SCORE=`crm_simulate -Ls |  awk "/${OCF_RESOURCE_INSTANCE}/ && /clone_color/ && !/${OCF_RESOURCE_INSTANCE}:/ && /${NODE}/"  | sed  -r -e 's/.*score on (.*)/\1/' | awk -F ':' '{print $2}' | tr -d '[:space:]'`
+        if [[ $NODE_SCORE =~ ^-?[0-9]+$ && $NODE_SCORE -le 0 || $NODE_SCORE = "-INFINITY" || -z $NODE_SCORE ]]
+        then
+            ocf_log info "${LH} Skipping node $NODE as it is not eligible for running the resource. Its score is ${NODE_SCORE:-NULL}"
+            continue
+        fi
         ocf_log info "${LH} Node's ${NODE} score: ${NODE_SCORE}, GTID/SEQNUM: ${TMP[$NODE]}"
         # Filter node names with the most seen GTID as possible masters and find the latest SEQNO
         if [ "${MASTER_GTID}" = "${TMP[$NODE]%:*}" ]; then
@@ -394,58 +406,61 @@ get_master() {
 }
 
 check_if_galera_pc() {
+    local LH="${LL} check_if_galera_pc():"
     local NODES
     local MASTER
     local timeout=$(get_master_timeout)
 
-    ocf_log info "Checking if Primary Component"
+    ocf_log info "${LH} Checking if Primary Component"
 
     while [ $timeout -gt 0 ]; do
         NODES=$(nodes_in_cluster_online)
         MASTER=$(get_master "$NODES")
         if [ "$MASTER" = "$HOSTNAME" ]; then
-            ocf_log info "I\'m Primary Component. Join me!"
+            ocf_log info "${LH} I\'m Primary Component. Join me!"
             return 1
         fi
 
         if check_if_reelection_needed; then
-            ocf_log info "My neighbour is Primary Component"
+            ocf_log info "${LH} My neighbour is Primary Component"
             return 0
         fi
 
         sleep 10
         (( timeout -= 10 ))
-        ocf_log info "Waiting for master. ${timeout} seconds left"
+        ocf_log info "${LH} Waiting for master. ${timeout} seconds left"
     done
 
-    ocf_log info "${HOSTNAME} is not Primary Component"
+    ocf_log info "${LH} ${HOSTNAME} is not Primary Component"
     return 0
 }
 # Functions invoked by resource manager actions
 
 mysql_validate() {
+    local LH="${LL} mysql_validate()"
+
     check_binary $OCF_RESKEY_binary
     check_binary $OCF_RESKEY_client_binary
 
     if [ ! -f $OCF_RESKEY_config ]; then
-        ocf_log err "Config $OCF_RESKEY_config doesn't exist";
+        ocf_log err "${LH} Config $OCF_RESKEY_config doesn't exist";
         return $OCF_ERR_INSTALLED;
     fi
 
     if [ ! -d $OCF_RESKEY_datadir ]; then
-        ocf_log err "Datadir $OCF_RESKEY_datadir doesn't exist";
+        ocf_log err "${LH} Datadir $OCF_RESKEY_datadir doesn't exist";
         return $OCF_ERR_INSTALLED;
     fi
 
     getent passwd $OCF_RESKEY_user >/dev/null 2>&1
     if [ ! $? -eq 0 ]; then
-        ocf_log err "User $OCF_RESKEY_user doesn't exit";
+        ocf_log err "${LH} User $OCF_RESKEY_user doesn't exit";
         return $OCF_ERR_INSTALLED;
     fi
 
     getent group $OCF_RESKEY_group >/dev/null 2>&1
     if [ ! $? -eq 0 ]; then
-        ocf_log err "Group $OCF_RESKEY_group doesn't exist";
+        ocf_log err "${LH} Group $OCF_RESKEY_group doesn't exist";
         return $OCF_ERR_INSTALLED;
     fi
 
@@ -489,32 +504,28 @@ mysql_status() {
             ocf_log info "${LH} MySQL PID found"
             break
         fi
+
+        count=$(( count-1 ))
+        ocf_log $loglevel "${LH} PIDFile ${OCF_RESKEY_pid} of MySQL server not found. Sleeping for $sleeptime seconds. ${count} retries left"
         sleep $sleeptime
-        (( i-- ))
-        ocf_log info "PIDFile ${OCF_RESKEY_pid} of MySQL server not found. Sleeping for $sleeptime seconds. ${i} retries left"
     done
 
-    if [ $i -eq 0 ]; then
-        ocf_log $1 "MySQL is not running"
+    if [ $count -eq 0 ]; then
+        ocf_log $loglevel "${LH} MySQL is not running"
         return $OCF_NOT_RUNNING;
     fi
 
     pid=$(cat $OCF_RESKEY_pid);
-    if [ -d /proc -a -d /proc/1 ]; then
-        [ "u$pid" != "u" -a -d /proc/$pid ]
-    else
-        kill -s 0 $pid >/dev/null 2>&1
-    fi
-
-    if [ $? -eq 0 ]; then
+    if [ "u$pid" != "u" -a -d /proc/$pid ]; then
         return $OCF_SUCCESS;
     else
-        ocf_log $1 "MySQL is not running"
-        return $OCF_ERR_GENERIC;
+        ocf_log $loglevel "${LH} MySQL is not running"
+        return $OCF_NOT_RUNNING;
     fi
 }
 
 mysql_monitor() {
+    local LH="${LL} mysql_monitor():"
     local rc
     local rc2
     local status_loglevel="err"
@@ -539,38 +550,33 @@ mysql_monitor() {
 
     WSREP_CONNECTED=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
         -e "SHOW STATUS LIKE 'wsrep_connected'" | awk '{print $NF}')
-    rc=$?
 
-    if [ $rc -ne 0 -o "$WSREP_CONNECTED" != "ON" ]; then
+    if [ "$WSREP_CONNECTED" != "ON" ]; then
         return $OCF_ERR_GENERIC
     fi
 
     WSREP_LOCAL_STATE_COMMENT=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
         -e "SHOW STATUS LIKE 'wsrep_local_state_comment'" | awk '{print $NF}')
-    rc=$?
 
-    #Synced|Donor|Desync
-    if [ $rc -eq 0 ]; then
-        if [[ "$WSREP_LOCAL_STATE_COMMENT" =~ 'Synced'|'Donor'|'Desync' ]]; then
-            WSREP_READY=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
-                -e "SHOW STATUS LIKE 'wsrep_ready'" | awk '{print $NF}')
-            rc=$?
+    if [[ "$WSREP_LOCAL_STATE_COMMENT" =~ 'Synced'|'Donor'|'Desync' ]]; then
+        WSREP_READY=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
+            -e "SHOW STATUS LIKE 'wsrep_ready'" | awk '{print $NF}')
 
-            #Synced but wsrep not ready
-            if [ $rc -ne 0 -o "$WSREP_READY" != "ON" ]; then
-                return $OCF_ERR_GENERIC
-            fi
-        elif [[ "$WSREP_LOCAL_STATE_COMMENT" == 'Initialized' ]]; then
-            ocf_log err 'MySQL lost quorum or uninitialized'
+        if [ "$WSREP_READY" != "ON" ]; then
+            ocf_log err "${LH} MySQL synced but not ready"
             return $OCF_ERR_GENERIC
         fi
+    elif [[ "$WSREP_LOCAL_STATE_COMMENT" == 'Initialized' ]]; then
+        ocf_log err "${LH} MySQL lost quorum or uninitialized"
+        return $OCF_ERR_GENERIC
     fi
 
-    ocf_log debug "MySQL monitor succeeded";
+    ocf_log debug "${LH} MySQL monitor succeeded";
     return $OCF_SUCCESS
 }
 
 mysql_start() {
+    local LH="${LL} mysql_start():"
     local NODES
     local socket_dir
     local pid_dir
@@ -579,13 +585,13 @@ mysql_start() {
     local mysql_extra_params
 
     if mysql_status info 1; then
-        ocf_log info "MySQL already running"
+        ocf_log info "${LH} MySQL already running"
         return $OCF_SUCCESS
     fi
 
     socket_dir="$( dirname ${OCF_RESKEY_socket} )"
     if [ ! -d "${socket_dir}" ] ; then
-        ocf_log info "Create socket dir: ${socket_dir} and chown to ${OCF_RESKEY_user}:${OCF_RESKEY_group}"
+        ocf_log info "${LH} Create socket dir: ${socket_dir} and chown to ${OCF_RESKEY_user}:${OCF_RESKEY_group}"
         mkdir -p "${socket_dir}"
         chown ${OCF_RESKEY_user}:${OCF_RESKEY_group} "${socket_dir}"
         chmod 755 "${socket_dir}"
@@ -594,7 +600,7 @@ mysql_start() {
     # check and make PID file dir
     pid_dir="$( dirname ${OCF_RESKEY_pid} )"
     if [ ! -d "${pid_dir}" ] ; then
-        ocf_log info "Create PID dir: ${pid_dir} and chown to ${OCF_RESKEY_user}:${OCF_RESKEY_group}"
+        ocf_log info "${LH} Create PID dir: ${pid_dir} and chown to ${OCF_RESKEY_user}:${OCF_RESKEY_group}"
         mkdir -p "${pid_dir}"
         chown -R ${OCF_RESKEY_user}:${OCF_RESKEY_group} "${pid_dir}"
         chmod 755 "${pid_dir}"
@@ -605,7 +611,7 @@ mysql_start() {
     # user
     for dir in $pid_dir $socket_dir; do
         if ! su -s /bin/sh - $OCF_RESKEY_user -c "test -w $dir"; then
-            ocf_log err "Directory $dir is not writable by $OCF_RESKEY_user"
+            ocf_log err "${LH} Directory $dir is not writable by $OCF_RESKEY_user"
             exit $OCF_ERR_PERM;
         fi
     done
@@ -629,7 +635,7 @@ mysql_start() {
         fi
     fi
 
-    ocf_log info "Starting MySQL"
+    ocf_log info "${LH} Starting MySQL"
     ${OCF_RESKEY_binary} \
         --pid-file=$OCF_RESKEY_pid \
         --socket=$OCF_RESKEY_socket \
@@ -639,7 +645,7 @@ mysql_start() {
     rc=$?
 
     if [ $rc -ne 0 ]; then
-        ocf_log err "MySQL start command failed: $rc"
+        ocf_log err "${LH} MySQL start command failed: $rc"
         return $rc
     fi
 
@@ -662,58 +668,37 @@ mysql_start() {
 }
 
 mysql_cleanup() {
-    ocf_log debug "Delete lock file: /var/lock/subsys/mysqld"
+    local LH="${LL} mysql_cleanup():"
+    ocf_log info "${LH} Cleaning up gtid attribute"
+    crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid \
+        --delete
+
+    ocf_log debug "${LH} Delete lock file: /var/lock/subsys/mysqld"
     rm -f /var/lock/subsys/mysqld
 
-    ocf_log debug "Delete sock file: ${OCF_RESKEY_socket}"
+    ocf_log debug "${LH} Delete sock file: ${OCF_RESKEY_socket}"
     rm -f $OCF_RESKEY_socket
 
-    ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
+    ocf_log debug "${LH} Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid
 
 }
 
 mysql_stop() {
-    local rc
-    local pids
+    local LH="${LL} mysql_stop():"
+    local shutdown_timeout
 
-    mysql_status info 1
-    rc=$?
-    if [ $rc -ne $OCF_SUCCESS ]; then
-        mysql_cleanup
+    if [ ! -f $OCF_RESKEY_pid ]; then
+        ocf_log info "${LH} MySQL is not running"
         return $OCF_SUCCESS
     fi
 
-    local pid=$(cat $OCF_RESKEY_pid 2>/dev/null)
-    local pgrp=$(ps -o pgid= ${pid})
-    local pids="$(echo $(pgrep -g ${pgrp}))"
-    ocf_log info "Sending SIGTERM to PID: ${pid}"
-    /bin/kill -TERM ${pid} > /dev/null
-    rc=$?
-    [ $rc -ne 0 ] && ocf_log warn "MySQL has failed to terminate gracefully"
-
-    # stop waiting
-    shutdown_timeout=20
-    while [ $shutdown_timeout -gt 0 ]; do
-        mysql_status info 1
-        rc=$?
-        if [ $rc -ne $OCF_SUCCESS ]; then
-            /usr/bin/pkill -9 -g ${pgrp} > /dev/null
-            mysql_cleanup
-            return $OCF_SUCCESS
-        fi
-        sleep 2
-        (( shutdown_timeout -= 2 ))
-        ocf_log info "MySQL still hasn't stopped yet. ${shutdown_timeout} seconds left "
-    done
-
-    mysql_status info 1
-    rc=$?
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log info "MySQL failed to stop using SIGTERM. Sending SIGKILL to PIDS: ${pids}"
-        /usr/bin/pkill -9 -g ${pgrp} > /dev/null
+    shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000)-5 ))
     fi
 
+    proc_stop "${OCF_RESKEY_pid_file}" "mysqld" SIGTERM ${shutdown_timeout}
     mysql_cleanup
     return $OCF_SUCCESS
 }
@@ -747,6 +732,8 @@ case "$1" in
     usage|help)   usage
         exit $OCF_SUCCESS;;
 esac
+
+export LL="${OCF_RESOURCE_INSTANCE}:"
 
 mysql_validate
 rc=$?
