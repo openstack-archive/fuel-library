@@ -124,9 +124,7 @@ class murano::dashboard(
     Exec['clean_horizon_config'] ->
       Service <| title == 'httpd' |>
 
-  Package['murano-dashboard'] ->
-    Exec['django_collectstatic'] ->
+  Package['murano-dashboard'] ~>
+    Exec['django_collectstatic'] ~>
       Service <| title == 'httpd' |>
-
-  Package['murano-dashboard'] ~> Service <| title == 'httpd' |>
 }
