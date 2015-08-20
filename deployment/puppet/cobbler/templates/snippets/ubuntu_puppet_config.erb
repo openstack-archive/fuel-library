@@ -2,6 +2,8 @@
 #if $str($getVar('puppet_auto_setup','')) == "1"
 in-target mkdir -p /etc/puppet /var/lib/hiera && \
 in-target touch /var/lib/hiera/common.yaml /etc/puppet/hiera.yaml && \
+in-target touch /var/log/puppet.log && \
+in-target chmod 600 /var/log/puppet.log && \
     #if $getVar('puppet_master','') != ''
 in-target $late_command.late_file("""[main]
     logdir = /var/log/puppet
