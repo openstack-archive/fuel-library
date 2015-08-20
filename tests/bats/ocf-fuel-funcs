@@ -1,0 +1,134 @@
+#!/usr/bin/env bats
+# For testing use  bats framework -
+# https://github.com/sstephenson/bats
+
+
+fms="$BATS_TEST_DIRNAME/../../files/fuel-ha-utils/ocf/ocf-fuel-funcs"
+
+load "$fms"
+
+@test "Check proc_kill params" {
+#   $1 - pid of the process to try and kill
+#   $2 - service name used for logging
+#   $3 - signal to use, defaults to SIGTERM
+#   $4 - number of retries, defaults to 5
+#   $5 - time to sleep between retries, defaults to 2
+    ocf_log(){
+      true
+    }
+    ocf_run(){
+      echo $@
+    }
+    sleep(){
+      true
+    }
+    pid=$$
+    pgrp=$(ps -o pgid= ${pid} | tr -d '[[:space:]]')
+
+    echo "When used with default params"
+    expected="pkill -SIGTERM -g $pgrp"
+    run proc_kill $pid
+    echo -e "Actual:\n${output}"
+    for l in {0..4}; do
+      echo "Expected line $l: ${expected}"
+      [ "${lines[$l]}" = "${expected}" ]
+    done
+
+    echo "When used with correct params"
+    expected="pkill -SIGSTOP -g $pgrp"
+    run proc_kill $pid foo SIGSTOP 2
+    echo "Expected line 1: ${expected}"
+    echo -e "Actual:\n${output}"
+    [ "${lines[1]}" = "${expected}" ]
+
+    echo "When misused with wrong params"
+    expected="pkill -1 -g $pgrp"
+    echo "Expected line 4: ${expected}"
+    run proc_kill $pid foo 1
+    echo "Actual: ${output}"
+    [ "${lines[4]}" = "${expected}" ]
+
+    pid="none"
+    pgrep(){
+      echo foo
+    }
+    echo "When the pid is none"
+    expected="pkill -f -SIGKILL foo"
+    echo "Expected line 0: ${expected}"
+    run proc_kill $pid foo SIGKILL 1
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected}" ]
+}
+
+@test "Check proc_stop params" {
+#   $1 - pidfile or pid
+#   $2 - service name used for logging
+#   $3 - stop process timeout (in sec), used to determine how many times we try
+#        SIGTERM and an upper limit on how long this function should try and
+#        stop the process. Defaults to 15.
+    TMPFILE=$(mktemp /tmp/tmp.XXXXXXXXXX)
+    OCF_ERR_GENERIC=1
+    OCF_SUCCESS=0
+    ocf_log(){
+      true
+    }
+    ocf_run(){
+      echo $@
+    }
+    sleep(){
+      true
+    }
+    ps(){
+      echo $@
+    }
+    pgrep(){
+      true
+    }
+    proc_kill(){
+      echo $@
+    }
+
+    echo "When defaults with a pidfile given"
+    echo "123" > $TMPFILE
+    expected="123 foo SIGTERM 5"
+    echo "Expected line 0: ${expected}"
+    run proc_stop $TMPFILE foo
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected}" ]
+
+    echo "When pidfile is Multiprocess with leading and white spaces"
+    echo "  123 321 " > $TMPFILE
+    expected0="123 foo SIGTERM 5"
+    echo "Expected line 0: ${expected0}"
+    expected1="321 foo SIGTERM 5"
+    echo "Expected line 0: ${expected1}"
+    run proc_stop $TMPFILE foo
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected0}" ]
+    [ "${lines[1]}" = "${expected1}" ]
+
+    echo "When pidfile is with leading and white spaces"
+    echo "  123 " > $TMPFILE
+    expected="123 foo SIGTERM 5"
+    echo "Expected line 0: ${expected}"
+    run proc_stop $TMPFILE foo
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected}" ]
+
+    echo "When pidfile is empty"
+    echo "" > $TMPFILE
+    expected="none foo SIGTERM 5"
+    echo "Expected line 0: ${expected}"
+    run proc_stop $TMPFILE foo
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected}" ]
+
+    echo "When no pidfile exists"
+    rm -f $TMPFILE
+    expected="none foo SIGTERM 5"
+    echo "Expected line 0: ${expected}"
+    run proc_stop $TMPFILE foo
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected}" ]
+}
+trap 'rm -rf $TMPFILE' EXIT INT HUP
