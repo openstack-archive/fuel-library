@@ -1,5 +1,6 @@
 notice('MODULAR: globals.pp')
 
+$service_token_off = false
 $globals_yaml_file = '/etc/hiera/globals.yaml'
 
 # remove cached globals values before anything else
@@ -38,12 +39,13 @@ $nova_hash                      = hiera_hash('nova', {})
 $mysql_hash                     = hiera('mysql', {})
 $rabbit_hash                    = hiera_hash('rabbit', {})
 $glance_hash                    = hiera_hash('glance', {})
-$keystone_hash                  = hiera_hash('keystone', {})
 $swift_hash                     = hiera('swift', {})
 $cinder_hash                    = hiera_hash('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera_hash('access', {})
 $mp_hash                        = hiera('mp', {})
+$keystone_hash                  = merge({'service_token_off' => $service_token_off},
+                                        hiera_hash('keystone', {}))
 
 $node_role                      = hiera('role')
 $dns_nameservers                = hiera('dns_nameservers', [])
