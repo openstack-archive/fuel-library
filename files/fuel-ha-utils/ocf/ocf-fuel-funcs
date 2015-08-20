@@ -28,7 +28,7 @@
 #   LL
 # Arguments:
 #   $1 - pid of the process to try and kill
-#   $2 - service name used for logging
+#   $2 - service name used for logging and match-based kill, if the pid is "none"
 #   $3 - signal to use, defaults to SIGTERM
 #   $4 - number of retries, defaults to 5
 #   $5 - time to sleep between retries, defaults to 2
@@ -41,41 +41,66 @@ proc_kill()
 {
     local pid="${1}"
     local service_name="${2}"
-    local signal=${3:-SIGTERM}
-    local count=${4:-5}
-    local process_sleep=${5:-2}
+    local signal="${3:-SIGTERM}"
+    local count="${4:-5}"
+    local process_sleep="${5:-2}"
     local LH="${LL} proc_kill():"
-    local pgrp=$(ps -o pgid= ${pid} | tr -d '[[:space:]]')
+    local pgrp="$(ps -o pgid= ${pid} 2>/dev/null | tr -d '[[:space:]]')"
 
-    if [ -z "${pid}" -o "${pgrp}" -eq "1" ]; then
-        ocf_log info "${LH} pid provided to kill was empty or for init"
+    if [ "${pid}" -a "${pgrp}" = "1" ] ; then
+        ocf_log err "${LH} shall not kill by the bad pid 1 (init)!"
         return 2
     fi
 
-    while [ $count -gt 0 ]; do
-        if [ -d /proc/${pid} ]; then
-            ocf_log debug "${LH} Stopping ${service_name} with ${signal}..."
-            ocf_run pkill -${signal} -g "${pgrp}"
-            if [ ! -d /proc/${pid} ] ; then
-                ocf_log debug "${LH} Stopped ${service_name} with ${signal}"
-                return 0
+    if [ "${pid}" = "none" ]; then
+        local matched
+        matched="$(pgrep -fla ${service_name})"
+        if [ -z "${matched}" ] ; then
+            ocf_log err "${LH} cannot find any processes matching the ${service_name}!"
+            return 2
+        fi
+        ocf_log debug "${LH} no pid provided, will try the ${service_name}, matched list: ${matched}"
+        while [ $count -gt 0 ]; do
+            if [ -z "${matched}" ]; then
+                break
+            else
+                matched="$(pgrep -fla ${service_name})"
+                ocf_log debug "${LH} Stopping ${service_name} with ${signal}..."
+                ocf_run pkill -f -"${signal}" "${service_name}"
             fi
+            sleep $process_sleep
+            count=$(( count-1 ))
+        done
+        pgrep -f "${service_name}" > /dev/null
+        if [ $? -ne 0 ] ; then
+            ocf_log debug "${LH} Stopped ${service_name} with ${signal}"
+            return 0
         else
+            ocf_log warn "${LH} Failed to stop ${service_name} with ${signal}"
+            return 1
+        fi
+    else
+    # pid is not none
+        while [ $count -gt 0 ]; do
+            if [ ! -d "/proc/${pid}" ]; then
+                break
+            else
+                ocf_log debug "${LH} Stopping ${service_name} with ${signal}..."
+                ocf_run pkill -"${signal}" -g "${pgrp}"
+            fi
+            sleep $process_sleep
+            count=$(( count-1 ))
+        done
+
+        # Check if the process ended after the last sleep
+        if [ ! -d "/proc/${pid}" ] ; then
             ocf_log debug "${LH} Stopped ${service_name} with ${signal}"
             return 0
         fi
-        sleep $process_sleep
-        count=$(( count-1 ))
-    done
 
-    # Check if the process ended after the last sleep
-    if [ ! -d /proc/${pid} ] ; then
-        ocf_log debug "${LH} Stopped ${service_name} with ${signal}"
-        return 0
+        ocf_log warn "${LH} Failed to stop ${service_name} with ${signal}"
+        return 1
     fi
-
-    ocf_log debug "${LH} Failed to stop ${service_name} with ${signal}"
-    return 1
 }
 
 ###########################################################
@@ -101,8 +126,9 @@ proc_stop()
 {
     local pid_param="${1}"
     local service_name="${2}"
-    local timeout=${3:-15}
+    local timeout="${3:-15}"
     local LH="${LL} proc_stop():"
+    local i
     local pid
     local pidfile
     # check if provide just a number
@@ -111,11 +137,10 @@ proc_stop()
         pid="${pid_param}"
     elif [ -e "${pid_param}" ]; then # check if passed in a pid file
         pidfile="${pid_param}"
-        pid=$(cat "${pidfile}" 2>/dev/null)
+        pid=$(cat "${pidfile}" 2>/dev/null | tr -s " " "\n" | sort -u)
     else
-        # nothing to do here...
-        ocf_log err "${LH} ERROR: pid param ${pid_param} is not a file or a number"
-        return "${OCF_ERR_GENERIC}"
+        ocf_log warn "${LH} pid param ${pid_param} is not a file or a number, try match by ${service_name}"
+        pid="none"
     fi
     # number of times to try a SIGTEM is (timeout - 5 seconds) / 2 seconds
     local stop_count=$(( ($timeout-5)/2 ))
@@ -125,19 +150,25 @@ proc_stop()
         stop_count=1
     fi
 
+    if [ -z "${pid}" ] ; then
+        ocf_log warn "${LH} unable to get PID from ${pidfile}, try match by ${service_name}"
+        pid="none"
+    fi
+
     if [ -n "${pid}" ]; then
-        ocf_log info "${LH} Stopping ${service_name}"
-        proc_kill "${pid}" "${service_name}" $stop_count
-        if [ $? -ne 0 ]; then
-            # SIGTERM failed, send a single SIGKILL
-            proc_kill "${pid}" "${service_name}" SIGKILL 1 2
+        for i in ${pid} ; do
+            [ "${i}" ] || break
+            ocf_log info "${LH} Stopping ${service_name} by PID ${i}"
+            proc_kill "${i}" "${service_name}" SIGTERM $stop_count
             if [ $? -ne 0 ]; then
-                ocf_log err "${LH} ERROR: could not stop ${service_name}"
-                return "${OCF_ERR_GENERIC}"
+                # SIGTERM failed, send a single SIGKILL
+                proc_kill "${i}" "${service_name}" SIGKILL 1 2
+                if [ $? -ne 0 ]; then
+                    ocf_log err "${LH} ERROR: could not stop ${service_name}"
+                    return "${OCF_ERR_GENERIC}"
+                fi
             fi
-        fi
-    else
-        ocf_log warn "${LH} unable to get PID from ${pidfile}"
+        done
     fi
 
     # Remove the pid file here which will remove empty pid files as well

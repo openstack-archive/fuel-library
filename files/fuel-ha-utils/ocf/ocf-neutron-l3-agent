@@ -443,7 +443,6 @@ neutron_l3_agent_stop() {
         ocf_log err "OpenStack L3 agent (${OCF_RESKEY_binary}) stop failed"
         return $OCF_ERR_GENERIC
     fi
-
     ocf_log info "OpenStack L3 agent ($OCF_RESKEY_binary) stopped"
 
     ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"

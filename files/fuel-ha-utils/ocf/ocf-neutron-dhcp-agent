@@ -447,7 +447,6 @@ neutron_dhcp_agent_stop() {
         ocf_log err "OpenStack DHCP Agent (${OCF_RESKEY_binary}) stop failed"
         return $OCF_ERR_GENERIC
     fi
-
     ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid
 
