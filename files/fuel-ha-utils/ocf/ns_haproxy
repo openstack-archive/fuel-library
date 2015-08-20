@@ -469,7 +469,7 @@ haproxy_stop()
         local LH="${LL} haproxy_stop():"
         get_variables
         local pid=$(cat $PIDFILE 2>/dev/null)
-        local pgrp=$(ps -o pgid= ${pid})
+        local pgrp=$(ps -o pgid= ${pid} | tr -d '[[:space:]]')
         if haproxy_status ; then
                 if [ -z "${pgrp}" -o "${pgrp}" -eq "1" -o ! -d /proc/${pgrp}/ ]; then
                   ocf_log err "${LH} Cannot stop haproxy (PID=${pgrp})"
