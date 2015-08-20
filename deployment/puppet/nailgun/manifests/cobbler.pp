@@ -2,9 +2,6 @@
 class nailgun::cobbler(
   $cobbler_user                  = 'cobbler',
   $cobbler_password              = 'cobbler',
-  $bootstrap_flavor              = 'centos',
-  # network interface configuration timeout (in seconds)
-  $bootstrap_ethdevice_timeout   = '120',
   $centos_repos,
   $production,
   $gem_source,
@@ -37,11 +34,7 @@ class nailgun::cobbler(
   #Set real_server so Cobbler identifies its own IP correctly in Docker
   $real_server = $next_server
 
-  $bootstrap_profile = $bootstrap_flavor ? {
-    /(?i)centos/                 => 'bootstrap',
-    /(?i)ubuntu/                 => 'ubuntu_bootstrap',
-    default                      => 'bootstrap',
-  }
+  $bootstrap_profile = 'bootstrap'
 
   class { '::cobbler':
     server             => $server,
@@ -164,16 +157,6 @@ class nailgun::cobbler(
         require   => Class['::cobbler::server'],
       }
 
-      cobbler_distro { 'ubuntu_bootstrap':
-        kernel    => "${repo_root}/bootstrap/ubuntu/linux",
-        initrd    => "${repo_root}/bootstrap/ubuntu/initramfs.img",
-        arch      => 'x86_64',
-        breed     => 'ubuntu',
-        osversion => 'trusty',
-        ksmeta    => '',
-        require   => Class['::cobbler::server'],
-      }
-
       cobbler_profile { 'bootstrap':
         distro    => 'bootstrap',
         menu      => true,
@@ -182,16 +165,6 @@ class nailgun::cobbler(
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['bootstrap'],
-      }
-
-      cobbler_profile { 'ubuntu_bootstrap':
-        distro    => 'ubuntu_bootstrap',
-        menu      => true,
-        kickstart => '',
-        kopts     => "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
-        ksmeta    => '',
-        server    => $real_server,
-        require   => Cobbler_distro['ubuntu_bootstrap'],
       }
 
       if str2bool($::is_virtual) {  class { 'cobbler::checksum_bootpc': } }
