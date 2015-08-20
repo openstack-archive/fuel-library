@@ -5,7 +5,7 @@
 # Description:  Manages dnsmasq daemon as an OCF resource in
 #               an High Availability setup inside a namespace
 #
-# HAProxy OCF script's Author: Mirantis
+# dnsmasq OCF script's Author: Mirantis
 # License: GNU General Public License (GPL)
 #
 #  usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}
@@ -46,11 +46,13 @@ OCF_RESKEY_extraconf_default=""
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
 RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
-if [[ -z $OCF_RESKEY_ns ]] ; then
+if [ -z $OCF_RESKEY_ns ] ; then
   RUN=''
 else
   RUN="$RUN_IN_NS "
@@ -138,7 +140,7 @@ exit $OCF_SUCCESS
 
 check_ns() {
   local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
-  [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
+  [ $ns != $OCF_RESKEY_ns ] && return $OCF_ERR_GENERIC
   return $OCF_SUCCESS
 }
 
@@ -199,7 +201,7 @@ dnsmasq_start()
   fi
 
   # run the dnsmasq binary
-        ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} --conf-file=${CONF_FILE} --pid-file="${PIDFILE}"
+  ocf_run_as_root ${COMMAND} ${OCF_RESKEY_extraconf} --conf-file=${CONF_FILE} --pid-file="${PIDFILE}"
   if [ $? -ne 0 ]; then
     ocf_log err "Error. dnsmasq daemon returned error $?."
     return $OCF_ERR_GENERIC
@@ -211,23 +213,23 @@ dnsmasq_start()
 
 dnsmasq_stop()
 {
-  get_variables
-  if dnsmasq_status ; then
-    PID="`${RUN} cat ${PIDFILE}`"
-    if [ -n "${PID}" ] ; then
-      kill "${PID}"
-      if [ $? -ne 0 ]; then
-        kill -SIGKILL "${PID}"
-        if [ $? -ne 0 ]; then
-          ocf_log err "Error. Could not stop dnsmasq daemon."
-          return $OCF_ERR_GENERIC
-        fi
-      fi
-      rm -f "${PIDFILE}"
+    local rc
+    local LH="${LL} dnsmasq_stop():"
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
     fi
-  fi
-  ocf_log info "Stopped dnsmasq daemon."
-  return $OCF_SUCCESS
+
+    get_variables
+    dnsmasq_status
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
+        ocf_log info "${LH} dnsmasq already stopped"
+        return "${OCF_SUCCESS}"
+    fi
+
+    proc_stop "${PIDFILE}" "${OCF_RESKEY_binpath}" $shutdown_timeout
+    return "${?}"
 }
 
 dnsmasq_monitor()
@@ -271,6 +273,8 @@ if [ $# -ne 1 ]; then
   usage
   exit $OCF_ERR_ARGS
 fi
+
+export LL="${OCF_RESOURCE_INSTANCE}:"
 
 case $1 in
   start) dnsmasq_start
