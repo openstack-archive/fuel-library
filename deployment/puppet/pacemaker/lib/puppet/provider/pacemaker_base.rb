@@ -36,7 +36,12 @@ class Puppet::Provider::Pacemaker < Puppet::Provider
       old_env = ENV.to_hash if env
       ENV.update(env)
     end
-    system(cmd)  # or `#{cmd}` to hide output
+    out = `#{cmd} 2>&1`
+    rc = $?.exitstatus
+    if ! $?.success?
+      debug("Command '#{cmd}' failed, and return RC=#{rc}, output:")
+      out.split("\n").map{|l| debug(l)}
+    end
     if ! env.nil?
       # remove all keys, existing only in "additional" env
       env.keys.each do |k|
@@ -44,7 +49,7 @@ class Puppet::Provider::Pacemaker < Puppet::Provider
       end
     end
     ENV.update(old_env) if old_env
-    $?.exitstatus
+    return rc
   end
 
   # Pacemaker takes a while to build the initial CIB configuration once the
