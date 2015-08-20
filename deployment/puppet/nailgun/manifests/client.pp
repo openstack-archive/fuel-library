@@ -8,14 +8,20 @@ $keystone_port = '5000',
 {
   include nailgun::packages
 
-  file { '/etc/fuel/client':
+  file { '/root/.config':
     ensure => directory,
     owner  => 'root',
     group  => 'root',
     mode   => '0755',
   }
-  file { '/etc/fuel/client/config.yaml':
+  file { '/root/.config/fuelclient.yaml':
     content => template('nailgun/fuelclient.yaml.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0600',
+  }
+  file { '/root/.bashrc':
+    content => template('nailgun/bashrc.erb'),
     owner   => 'root',
     group   => 'root',
     mode    => '0600',
