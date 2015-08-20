@@ -191,8 +191,8 @@ ntp_start()
   fi
 
   # run the ntp binary
-  ocf_run_as_root ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -4 -g -c "${CONF_FILE}"
-  if [ "${?}" -ne "0" ]; then
+        ocf_run_as_root ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -g -c ${CONF_FILE}
+  if [ $? -ne 0 ]; then
     ocf_log err "Error. ntp daemon returned error $?."
     return "${OCF_ERR_GENERIC}"
   fi
@@ -217,7 +217,7 @@ ntp_stop()
         return "${OCF_SUCCESS}"
     fi
 
-    proc_stop "${PIDFILE}" "ntp" $shutdown_timeout
+    proc_stop "${PIDFILE}" "${OCF_RESKEY_binpath}" $shutdown_timeout
     return "${?}"
 }
 

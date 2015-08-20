@@ -503,7 +503,7 @@ haproxy_stop()
         return "${OCF_SUCCESS}"
     fi
 
-    proc_stop "${PIDFILE}" "haproxy" $shutdown_timeout
+    proc_stop "${PIDFILE}" "${OCF_RESKEY_binpath}" $shutdown_timeout
     return "${?}"
 }
 
