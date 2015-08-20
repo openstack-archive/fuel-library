@@ -8,16 +8,38 @@ $keystone_port = '5000',
 {
   include nailgun::packages
 
-  file { '/etc/fuel/client':
+  file { '/root/.config':
     ensure => directory,
     owner  => 'root',
     group  => 'root',
     mode   => '0755',
   }
-  file { '/etc/fuel/client/config.yaml':
+  file { '/etc/skel/.config':
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+  }
+  file { '/root/.config/fuelclient.yaml':
     content => template('nailgun/fuelclient.yaml.erb'),
     owner   => 'root',
     group   => 'root',
     mode    => '0600',
+  }
+  file { '/etc/skel/.config/fuelclient.yaml':
+    content => template('nailgun/fuelclient.yaml.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0600',
+  }
+  file { '/root/.bashrc':
+    content => template('nailgun/bashrc.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0600',
+  }
+  file_line { 'fuel client config file env variable':
+    line => 'export FUELCLIENT_CUSTOM_SETTINGS="/root/.config/fuelclient.yaml"',
+    path => '/etc/skel/.bashrc',
   }
 }
