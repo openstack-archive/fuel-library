@@ -35,6 +35,8 @@ OCF_RESKEY_binpath_default="/usr/sbin/ntpd"
 OCF_RESKEY_extraconf_default=""
 
 : ${OCF_ROOT=${OCF_ROOT_default}}
+: ${HA_LOGTAG="ocf-ns_ntp"}
+: ${HA_LOGFACILITY="daemon"}
 
 : ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
 : ${OCF_RESKEY_conffile=${OCF_RESKEY_conffile_default}}
@@ -44,6 +46,8 @@ OCF_RESKEY_extraconf_default=""
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
@@ -179,7 +183,7 @@ ntp_start()
   fi
 
   # run the ntp binary
-        ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -g -c ${CONF_FILE}
+        ocf_run_as_root ${COMMAND} ${OCF_RESKEY_extraconf} -u ntp:ntp -p "${PIDFILE}" -g -c ${CONF_FILE}
   if [ $? -ne 0 ]; then
     ocf_log err "Error. ntp daemon returned error $?."
     return $OCF_ERR_GENERIC
@@ -191,23 +195,22 @@ ntp_start()
 
 ntp_stop()
 {
-  get_variables
-  if ntp_status ; then
-    PID="`${RUN} cat ${PIDFILE}`"
-    if [ -n "${PID}" ] ; then
-      kill "${PID}"
-      if [ $? -ne 0 ]; then
-        kill -SIGKILL "${PID}"
-        if [ $? -ne 0 ]; then
-          ocf_log err "Error. Could not stop ntp daemon."
-          return $OCF_ERR_GENERIC
-        fi
-      fi
-      rm -f "${PIDFILE}"
+    local rc
+    local LH="${LL} haproxy_stop():"
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
     fi
-  fi
-  ocf_log info "Stopped ntp daemon."
-  return $OCF_SUCCESS
+    get_variables
+    ntp_status
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
+        ocf_log info "${LH} ntp already stopped."
+        return "${OCF_SUCCESS}"
+    fi
+
+    proc_stop "${PIDFILE}" "${OCF_RESKEY_binpath}" $shutdown_timeout
+    return "${?}"
 }
 
 ntp_monitor()
@@ -252,6 +255,7 @@ if [ $# -ne 1 ]; then
   exit $OCF_ERR_ARGS
 fi
 
+export LL="${OCF_RESOURCE_INSTANCE}:"
 case $1 in
   start) ntp_start
   ;;
