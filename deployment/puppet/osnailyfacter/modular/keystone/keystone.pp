@@ -189,6 +189,21 @@ class { 'openstack::workloads_collector':
   workloads_create_user => $workloads_hash['create_user'],
 }
 
+# Get paste.ini source
+include keystone::params
+$keystone_paste_ini = $::keystone::params::paste_config ? {
+  undef   => '/etc/keystone/keystone-paste.ini',
+  default => $::keystone::params::paste_config,
+}
+
+# Make sure admin token auth middleware is in place
+exec { 'add_admin_token_auth_middleware':
+  path    => ['/bin', '/usr/bin'],
+  command => "sed -i 's/\( token_auth \)/\1admin_token_auth /' $keystone_paste_ini",
+  unless  => "fgrep -q ' admin_token_auth' $keystone_paste_ini",
+  require => Package['keystone'],
+}
+
 #Can't use openrc to create admin user
 exec { 'purge_openrc':
   path        => '/bin:/usr/bin:/sbin:/usr/sbin',
@@ -199,6 +214,7 @@ exec { 'purge_openrc':
 Exec <| title == 'keystone-manage db_sync' |> ~>
 Exec <| title == 'purge_openrc' |>
 
+Exec <| title == 'add_admin_token_auth_middleware' |> ->
 Exec <| title == 'keystone-manage db_sync' |> ->
 Exec <| title == 'purge_openrc' |> ->
 Class['keystone::roles::admin'] ->
