@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 #
 # OpenStack L3 Service (neutron-l3-agent)
@@ -46,6 +46,8 @@ OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_external_bridge_default="br-ex"
 OCF_RESKEY_debug_default=false
 
+: ${HA_LOGTAG="ocf-neutron-l3-agent"}
+: ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
 : ${OCF_RESKEY_plugin_config=${OCF_RESKEY_plugin_config_default}}
