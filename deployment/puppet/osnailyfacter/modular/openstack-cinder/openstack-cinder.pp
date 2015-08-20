@@ -2,9 +2,6 @@ notice('MODULAR: openstack-cinder.pp')
 
 #Network stuff
 prepare_network_config(hiera('network_scheme', {}))
-$internal_address      = get_network_role_property('cinder/api', 'ipaddr')
-$storage_address       = get_network_role_property('cinder/iscsi', 'ipaddr')
-
 $cinder_hash           = hiera_hash('cinder_hash', {})
 $management_vip        = hiera('management_vip')
 $queue_provider        = hiera('queue_provider', 'rabbitmq')
@@ -74,8 +71,8 @@ class {'openstack::cinder':
   enabled              => true,
   glance_api_servers   => $glance_api_servers,
   auth_host            => $service_endpoint,
-  bind_host            => $internal_address,
-  iscsi_bind_host      => $storage_address,
+  bind_host            => get_network_role_property('cinder/api', 'ipaddr'),
+  iscsi_bind_host      => get_network_role_property('cinder/iscsi', 'ipaddr'),
   keystone_user        => $keystone_user,
   keystone_tenant      => $keystone_tenant,
   auth_uri             => $auth_uri,

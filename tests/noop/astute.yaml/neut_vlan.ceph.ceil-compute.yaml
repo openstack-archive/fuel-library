@@ -387,6 +387,7 @@ network_scheme:
   provider: lnx
   roles:
     ex: br-ex
+    public/vip: br-ex
     neutron/floating: br-floating
     storage: br-storage
     keystone/api: br-mgmt

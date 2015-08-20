@@ -436,6 +436,7 @@ network_scheme:
     novanetwork/fixed: eth3.103
     ceilometer/api: br-mgmt
     ex: br-ex
+    public/vip: br-ex
     ceph/public: br-mgmt
     mgmt/messaging: br-mgmt
     management: br-mgmt
