@@ -24,9 +24,10 @@ describe manifest do
     public_base_url = "#{public_protocol}://#{public_address}:#{compute_port}"
     admin_base_url  = "http://#{admin_address}:#{compute_port}"
 
-    ec2_public_url   = "#{public_base_url}/services/Cloud"
-    ec2_internal_url = "#{admin_base_url}/services/Cloud"
-    ec2_admin_url    = "#{admin_base_url}/services/Admin"
+    ec2_port         = '8773'
+    ec2_public_url   = "#{public_protocol}://#{public_address}:#{ec2_port}/services/Cloud"
+    ec2_internal_url = "http://#{admin_address}:#{ec2_port}/services/Cloud"
+    ec2_admin_url    = "http://#{admin_address}:#{ec2_port}/services/Admin"
 
     it 'class nova::keystone::auth should  contain correct *_url' do
       should contain_class('nova::keystone::auth').with(

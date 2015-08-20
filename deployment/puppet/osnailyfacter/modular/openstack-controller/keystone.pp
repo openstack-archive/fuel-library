@@ -27,9 +27,10 @@ $compute_port     = '8774'
 $public_base_url  = "${public_protocol}://${public_address}:${compute_port}"
 $admin_base_url   = "${admin_protocol}://${admin_address}:${compute_port}"
 
-$ec2_public_url   = "${public_base_url}/services/Cloud"
-$ec2_internal_url = "${admin_base_url}/services/Cloud"
-$ec2_admin_url    = "${admin_base_url}/services/Admin"
+$ec2_port         = '8773'
+$ec2_public_url   = "${public_protocol}://${public_address}:${ec2_port}/services/Cloud"
+$ec2_internal_url = "${admin_protocol}://${admin_address}:${ec2_port}/services/Cloud"
+$ec2_admin_url    = "${admin_protocol}://${admin_address}:${ec2_port}/services/Admin"
 
 validate_string($public_address)
 validate_string($password)
