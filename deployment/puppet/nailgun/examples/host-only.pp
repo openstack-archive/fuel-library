@@ -16,8 +16,8 @@ $ntp_servers = delete([$::fuel_settings['NTP1'], $::fuel_settings['NTP2'],
                       $::fuel_settings['NTP3']], "")
 
 Class['nailgun::packages'] ->
-Class['nailgun::client'] ->
 Class['nailgun::host'] ->
+Class['nailgun::client'] ->
 Class['docker::dockerctl'] ->
 Class['docker'] ->
 Class['openstack::logrotate'] ->
