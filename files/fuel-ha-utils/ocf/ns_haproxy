@@ -443,13 +443,13 @@ haproxy_kill()
   local PID="$1"
   local count=5
   local LH="${LL} haproxy_kill():"
+  local pgrp=$(ps -o pgid= ${pid} | tr -d '[[:space:]]')
 
   while [ $count -gt 0 ]; do
-    if [ -d /proc/${PID}/ ] ; then
+    if [ -d /proc/${PID}/ ]; then
       ocf_log debug "${LH} Stopping haproxy daemon with SIGTERM... "
-      ocf_run pkill -g "${PID}"
-      rc=$?
-      if [ $rc -eq 0 -a ! -d /proc/${PID}/ ]; then
+      ocf_run pkill -g "${pgrp}"
+      if [ -d /proc/${PID}/ ]; then
         ocf_log debug "${LH} Stopped haproxy daemon with SIGTERM"
         return 0
       fi
@@ -469,15 +469,15 @@ haproxy_stop()
         local LH="${LL} haproxy_stop():"
         get_variables
         local pid=$(cat $PIDFILE 2>/dev/null)
-        local pgrp=$(ps -o pgid= ${pid})
+        local pgrp=$(ps -o pgid= ${pid} | tr -d '[[:space:]]')
         if haproxy_status ; then
-                if [ -z "${pgrp}" -o "${pgrp}" -eq "1" -o ! -d /proc/${pgrp}/ ]; then
-                  ocf_log err "${LH} Cannot stop haproxy (PID=${pgrp})"
+                if [ -z "${pid}" -o "${pgrp}" -eq "1" -o ! -d /proc/${pid}/ ]; then
+                  ocf_log err "${LH} Cannot stop haproxy (PID=${pid})"
                   return $OCF_ERR_GENERIC
                 fi
-                haproxy_kill "${pgrp}"
+                haproxy_kill "${pid}"
                 rc=$?
-                if [ $rc -ne 0 -a -d /proc/${pgrp}/ ]; then
+                if [ $rc -ne 0 -a -d /proc/${pid}/ ]; then
                         ocf_run pkill -SIGKILL -g "${pgrp}"
                         ocf_log err "${LH} Failed to stop haproxy daemon gracefully. Killed with SIGKILL"
                         rc=$?
