@@ -43,6 +43,8 @@ OCF_RESKEY_bridge_default=br-mgmt
 OCF_RESKEY_host_interface_default=mgmt-conntrd
 OCF_RESKEY_ns_interface_default=conntrd
 
+: ${HA_LOGTAG="ocf-ns_conntrackd"}
+: ${HA_LOGFACILITY="daemon"}
 # For users of versions prior to 1.2:
 # Map renamed parameter "conntrackd" to "binary" if in use
 : ${OCF_RESKEY_binary=${OCF_RESKEY_conntrackd-${OCF_RESKEY_binary_default}}}

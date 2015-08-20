@@ -27,6 +27,8 @@
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 #######################################################################
 
@@ -55,11 +57,8 @@ OCF_RESKEY_rescheduling_interval_default=33
 OCF_RESKEY_remove_artifacts_on_stop_start_default='true'
 OCF_RESKEY_debug_default='false'
 
-
-: ${OCF_RESKEY_os_auth_url=${OCF_RESKEY_os_auth_url_default}}
-: ${OCF_RESKEY_username=${OCF_RESKEY_username_default}}
-: ${OCF_RESKEY_password=${OCF_RESKEY_password_default}}
-: ${OCF_RESKEY_tenant=${OCF_RESKEY_tenant_default}}
+: ${HA_LOGTAG="ocf-neutron-dhcp-agent"}
+: ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
 : ${OCF_RESKEY_keystone_config=${OCF_RESKEY_keystone_config_default}}
@@ -598,6 +597,11 @@ neutron_dhcp_agent_start() {
 neutron_dhcp_agent_stop() {
     local rc
     local pid
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
+    fi
+
     # This variable is overridden by reload operation
     # to perform fast resource restart
     local remove_artifacts_on_stop_start=${1:-$OCF_RESKEY_remove_artifacts_on_stop_start}
@@ -616,58 +620,12 @@ neutron_dhcp_agent_stop() {
 
     #Try SIGTERM
     pid=`get_worker_pid`
-    # stop waiting
-    shutdown_timeout=15
-    iteration_time=3
-    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
-        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-6))
+    proc_stop "${pid}" "${OCF_RESKEY_binary}" $shutdown_timeout
+    rc=$?
+    if [ "${rc}" -eq "${OCF_ERR_GENERIC}" ]; then
+        ocf_log err "OpenStack DHCP Agent (${OCF_RESKEY_binary}) stop failed"
+        return $OCF_ERR_GENERIC
     fi
-    if ocf_is_true "$remove_artifacts_on_stop_start"; then
-        all_inside_ns_pids=`get_pid_list_for_ns_list $(get_ns_list)`
-        all_pids="$pid $all_inside_ns_pids"
-    else
-        all_pids="$pid"
-    fi
-    count=0
-    alive=1
-    while [ $alive -gt 0 ] && [ $count -lt $shutdown_timeout ]; do
-        alive=0
-        ocf_run kill -s TERM $all_pids
-        sleep $iteration_time
-        #Check if processes are alive after command kill
-        #if yes, send to them the term signal again
-        np=""
-        for pid in $all_pids ; do
-            ocf_run kill -s 0 $pid
-            if [ $? -eq 0 ]; then
-                np="$np $pid"
-                ((alive++))
-            fi
-        done
-        if [ $alive -gt 0 ] ; then
-            all_pids=$np
-        fi
-        ((count+=$iteration_time))
-        ocf_log debug "OpenStack DHCP Agent (${OCF_RESKEY_binary}) still hasn't stopped yet. Waiting ..."
-    done
-    #Send the kill signal to processes which are still alive
-    if [ $alive -gt 0 ] ; then
-        alive=0
-        ocf_run kill -s KILL $all_pids
-        sleep 1
-        for pid in $all_pids ; do
-            ocf_run kill -s 0 $pid
-            if [ $? -eq 0 ]; then
-                ((alive++))
-            fi
-        done
-        if [ $alive -gt 0 ] ; then
-            ocf_log err "OpenStack DHCP Agent (${OCF_RESKEY_binary}) stop failed"
-            return $OCF_ERR_GENERIC
-        fi
-    fi
-    ocf_log info "OpenStack DHCP Agent (${OCF_RESKEY_binary}) stopped"
-
     ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid
 

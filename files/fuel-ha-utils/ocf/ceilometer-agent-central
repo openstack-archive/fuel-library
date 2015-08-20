@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #
 # OpenStack Ceilometer Central Agent Service (ceilometer-agent-central)
@@ -27,6 +27,8 @@
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 #######################################################################
 
@@ -38,6 +40,8 @@ OCF_RESKEY_user_default="ceilometer"
 OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_amqp_server_port_default="5673"
 
+: ${HA_LOGTAG="ocf-ceilometer-agent-central"}
+: ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
@@ -275,56 +279,20 @@ ceilometer_agent_central_start() {
 
 ceilometer_agent_central_stop() {
     local rc
-    local pid
-
-    ceilometer_agent_central_status
-    rc=$?
-    if [ $rc -eq $OCF_NOT_RUNNING ]; then
-        ocf_log info "OpenStack Ceilometer Central Agent (ceilometer-agent-central) already stopped"
-        return $OCF_SUCCESS
-    fi
-
-    # Try SIGTERM
-    pid=`cat $OCF_RESKEY_pid`
-    ocf_run kill -s TERM $pid
-    rc=$?
-    if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack Ceilometer Central Agent (ceilometer-agent-central) couldn't be stopped"
-        exit $OCF_ERR_GENERIC
-    fi
-
-    # stop waiting
-    shutdown_timeout=15
+    local shutdown_timeout=15
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
-        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
     fi
-    count=0
-    while [ $count -lt $shutdown_timeout ]; do
-        ceilometer_agent_central_status
-        rc=$?
-        if [ $rc -eq $OCF_NOT_RUNNING ]; then
-            break
-        fi
-        count=`expr $count + 1`
-        sleep 1
-        ocf_log debug "OpenStack Ceilometer Central Agent (ceilometer-agent-central) still hasn't stopped yet. Waiting ..."
-    done
 
     ceilometer_agent_central_status
-    rc=$?
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack Ceilometer Central Agent (ceilometer-agent-central) failed to stop after ${shutdown_timeout}s \
-          using SIGTERM. Trying SIGKILL ..."
-        ocf_run kill -s KILL $pid
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
+       ocf_log info "OpenStack Ceilometer Central Agent (${OCF_RESKEY_binary}) already stopped"
+       return "${OCF_SUCCESS}"
     fi
 
-    ocf_log info "OpenStack Ceilometer Central Agent (ceilometer-agent-central) stopped"
-
-    ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat $OCF_RESKEY_pid)"
-    rm -f $OCF_RESKEY_pid
-
-    return $OCF_SUCCESS
+    proc_stop "${OCF_RESKEY_pid}" "${OCF_RESKEY_binary}" $shutdown_timeout
+    return "${?}"
 }
 
 #######################################################################

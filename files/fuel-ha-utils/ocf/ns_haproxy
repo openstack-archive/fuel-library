@@ -51,6 +51,8 @@ OCF_RESKEY_route_metric_default="10000"
 OCF_RESKEY_debug_default=false
 
 : ${OCF_ROOT=${OCF_ROOT_default}}
+: ${HA_LOGTAG="ocf-ns_haproxy"}
+: ${HA_LOGFACILITY="daemon"}
 
 : ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
 : ${OCF_RESKEY_conffile=${OCF_RESKEY_conffile_default}}
@@ -69,6 +71,8 @@ OCF_RESKEY_debug_default=false
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
@@ -316,7 +320,7 @@ set_ns_routing() {
   fi
 
   # up the ns part
-  ocf_log debug "Bringing up the namespace interface: ${OCF_RESKEY_namespace_interface}" 
+  ocf_log debug "Bringing up the namespace interface: ${OCF_RESKEY_namespace_interface}"
   ocf_run nsip link set "${OCF_RESKEY_namespace_interface}" up
 
   # set ns part's ip
@@ -404,7 +408,7 @@ haproxy_start()
 	fi
 
 	# run the haproxy binary
-	ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}"
+	ocf_run_as_root ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}"
 	if [ $? -ne 0 ]; then
 		ocf_log err "Error. haproxy daemon returned error $?."
 		return $OCF_ERR_GENERIC
@@ -425,7 +429,7 @@ haproxy_reload()
 		# get pid from pidfile
 		PID="`cat ${PIDFILE}`"
 		# reload haproxy binary replacing the old process
-		ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" -sf "${PID}"
+		ocf_run_as_root ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" -sf "${PID}"
 		if [ $? -ne 0 ]; then
 			ocf_log err "Error. haproxy daemon returned error $?."
 			return $OCF_ERR_GENERIC
@@ -436,60 +440,25 @@ haproxy_reload()
 	fi
 }
 
-# Try to kill (SIGTERM) specified pid 5 times by 2 sec interval
-haproxy_kill()
-{
-  local rc
-  local PID="$1"
-  local count=5
-  local LH="${LL} haproxy_kill():"
-
-  while [ $count -gt 0 ]; do
-    if [ -d /proc/${PID}/ ] ; then
-      ocf_log debug "${LH} Stopping haproxy daemon with SIGTERM... "
-      ocf_run kill "${PID}"
-      rc=$?
-      if [ $rc -eq 0 -a ! -d /proc/${PID}/ ]; then
-        ocf_log debug "${LH} Stopped haproxy daemon with SIGTERM"
-        return 0
-      fi
-    else
-      return 0
-    fi
-    sleep 2
-    count=$(( count-1 ))
-  done
-  ocf_log debug "${LH} Failed to stop haproxy daemon with SIGTERM"
-  return 1
-}
-
 haproxy_stop()
 {
-        local rc
-        local LH="${LL} haproxy_stop():"
-	get_variables
-	if haproxy_status ; then
-		PID="`${RUN} cat ${PIDFILE}`"
-                if [ -z "${PID}" -o "${PID}" -eq "1" -o ! -d /proc/${PID}/ ]; then
-                  ocf_log err "${LH} Cannot stop haproxy (PID=${PID})"
-                  return $OCF_ERR_GENERIC
-                fi
-		haproxy_kill "${PID}"
-                rc=$?
-                if [ $rc -ne 0 -a -d /proc/${PID}/ ]; then
-                        ocf_run kill -SIGKILL "${PID}"
-                        ocf_log err "${LH} Failed to stop haproxy daemon gracefully. Killed with SIGKILL"
-                        rc=$?
-                        if [ $rc -ne 0 ]; then
-                                ocf_log err "${LH} Error. Could not stop haproxy daemon."
-                                return $OCF_ERR_GENERIC
-                        fi
-                fi
-                ocf_log debug "Delete pid file: ${PIDFILE} with content ${PID}"
-                rm -f "${PIDFILE}"
-	fi
-	ocf_log info "Stopped haproxy daemon."
-	return $OCF_SUCCESS
+    local rc
+    local LH="${LL} haproxy_stop():"
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
+    fi
+
+    get_variables
+    haproxy_status
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
+        ocf_log info "${LH} haproxy already stopped."
+        return "${OCF_SUCCESS}"
+    fi
+
+    proc_stop "${PIDFILE}" "${OCF_RESKEY_binpath}" $shutdown_timeout
+    return "${?}"
 }
 
 haproxy_monitor()
