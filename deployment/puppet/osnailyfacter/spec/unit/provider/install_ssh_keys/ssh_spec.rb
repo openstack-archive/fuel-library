@@ -14,7 +14,7 @@ describe Puppet::Type.type(:install_ssh_keys).provider(:ssh) do
     @user             = 'root'
     File.open(@private_key_path, 'w') { |file| file.write("private\n") }
     File.open(@public_key_path, 'w') { |file| file.write("public\n") }
-    FileUtils.mkdir('/root')
+    #FileUtils.mkdir('/root')
     FileUtils.mkdir('/root/.ssh')
     File.open(@authorized_keys, 'w') { |file| file.write("key1\nkey2\n") }
   end
