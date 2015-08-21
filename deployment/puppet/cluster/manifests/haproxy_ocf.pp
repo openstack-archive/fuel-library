@@ -28,7 +28,7 @@ class cluster::haproxy_ocf (
       parameters      => {
         'ns'             => 'haproxy',
         'debug'          => $debug,
-        'other_networks' => "'$other_networks'",
+        'other_networks' => "${other_networks}",
       },
       operations      => {
         'monitor' => {

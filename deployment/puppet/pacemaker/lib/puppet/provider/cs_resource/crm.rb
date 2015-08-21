@@ -185,23 +185,19 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Pacem
         end
         operations << "op #{op_namerole[0]} "
         o[1].each_pair do |k,v|
-          operations << "#{k}=#{v} "
+          operations << "#{k}='#{v}' " unless v.empty?
         end
       end
     end
 
     unless @property_hash[:parameters].empty?
-      parameters = 'params '
-      @property_hash[:parameters].each_pair do |k,v|
-        parameters << "#{k}=#{v} "
-      end
+      parameters = @property_hash[:parameters].reject{|k,v| v.empty?}.map{|k,v| "#{k}='#{v}'"}.join(' ')
+      parameters = (parameters.empty?  ?  nil  :  "params #{parameters}")
     end
 
     unless @property_hash[:metadata].empty?
-      metadatas = 'meta '
-      @property_hash[:metadata].each_pair do |k,v|
-        metadatas << "#{k}=#{v} "
-      end
+      metadatas = @property_hash[:metadata].reject{|k,v| v.empty?}.map{|k,v| "#{k}='#{v}'"}.join(' ')
+      metadatas = (metadatas.empty?  ?  nil  :  "meta #{metadatas}")
     end
 
     updated = 'primitive '
@@ -219,9 +215,9 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Pacem
       updated << "\n"
       updated << " #{crm_cmd_type} #{complex_name} #{@property_hash[:name]} "
       unless @property_hash[:ms_metadata].empty?
-        updated << 'meta '
-        @property_hash[:ms_metadata].each_pair do |k,v|
-          updated << "#{k}=#{v} "
+        ms_metadatas = @property_hash[:ms_metadata].reject{|k,v| v.empty?}.map{|k,v| "#{k}='#{v}'"}.join(' ')
+        unless ms_metadatas.empty?
+          updated << "meta #{ms_metadatas}"
         end
       end
     end

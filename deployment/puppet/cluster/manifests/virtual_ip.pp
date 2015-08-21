@@ -57,27 +57,27 @@ define cluster::virtual_ip (
     'iptables_start_rules' => $vip['iptables_start_rules'] ? {
       undef   => 'false',
       ''      => 'false',
-      default => "'${vip['iptables_start_rules']}'",
+      default => "${vip['iptables_start_rules']}",
     },
     'iptables_stop_rules'  => $vip['iptables_stop_rules'] ? {
       undef   => 'false',
       ''      => 'false',
-      default => "'${vip['iptables_stop_rules']}'",
+      default => "${vip['iptables_stop_rules']}",
     },
     'iptables_comment'     => $vip['iptables_comment'] ? {
       undef   => 'false',
       ''      => 'false',
-      default => "'${vip['iptables_comment']}'",
+      default => "${vip['iptables_comment']}",
     },
     'ns_iptables_start_rules' => $vip['ns_iptables_start_rules'] ? {
       undef   => 'false',
       ''      => 'false',
-      default => "'${vip['ns_iptables_start_rules']}'",
+      default => "${vip['ns_iptables_start_rules']}",
     },
     'ns_iptables_stop_rules'  => $vip['ns_iptables_stop_rules'] ? {
       undef   => 'false',
       ''      => 'false',
-      default => "'${vip['ns_iptables_stop_rules']}'",
+      default => "${vip['ns_iptables_stop_rules']}",
     },
   }
 
