@@ -1,10 +1,10 @@
 # Not a doc string
 
 class cluster::neutron::dhcp (
-  $primary    = false,
-  $ha_agents  = ['ovs', 'metadata', 'dhcp', 'l3'],
-  $amqp_server_port  = 5673,
-  $agents_per_net    = 2,      # Value, recommended by Neutron team.
+  $primary          = false,
+  $ha_agents        = ['ovs', 'metadata', 'dhcp', 'l3'],
+  $plugin_config    = '/etc/neutron/dhcp_agent.ini',
+  $agents_per_net   = 2,      # Value, recommended by Neutron team.
 
 ) {
 
@@ -25,6 +25,10 @@ class cluster::neutron::dhcp (
   #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'dhcp':
     ocf_script      => 'ocf-neutron-dhcp-agent',
+    csr_parameters  => {
+      'plugin_config'                  => $plugin_config,
+      'remove_artifacts_on_stop_start' => true,
+    },
     csr_metadata        => $csr_metadata,
     csr_complex_type    => $csr_complex_type,
     csr_ms_metadata     => $csr_ms_metadata,
