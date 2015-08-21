@@ -42,6 +42,13 @@ describe manifest do
       end
     end
 
+    it {
+      should contain_service('httpd').with(
+           'hasrestart' => true,
+           'restart'    => 'apachectl graceful',
+      )
+    }
+
   end
   test_ubuntu_and_centos manifest
 end
