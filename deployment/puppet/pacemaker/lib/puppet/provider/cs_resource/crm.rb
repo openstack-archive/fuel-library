@@ -185,7 +185,7 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Pacem
         end
         operations << "op #{op_namerole[0]} "
         o[1].each_pair do |k,v|
-          operations << "#{k}=#{v} "
+          operations << "#{k}=#{v} " if not v.empty?
         end
       end
     end
@@ -193,14 +193,14 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Pacem
     unless @property_hash[:parameters].empty?
       parameters = 'params '
       @property_hash[:parameters].each_pair do |k,v|
-        parameters << "#{k}=#{v} "
+        parameters << "#{k}=#{v} " if not v.empty?
       end
     end
 
     unless @property_hash[:metadata].empty?
       metadatas = 'meta '
       @property_hash[:metadata].each_pair do |k,v|
-        metadatas << "#{k}=#{v} "
+        metadatas << "#{k}=#{v} " if not v.empty?
       end
     end
 
@@ -221,7 +221,7 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Pacem
       unless @property_hash[:ms_metadata].empty?
         updated << 'meta '
         @property_hash[:ms_metadata].each_pair do |k,v|
-          updated << "#{k}=#{v} "
+          updated << "#{k}=#{v} " if not v.empty?
         end
       end
     end
