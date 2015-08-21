@@ -26,7 +26,8 @@
 #
 class openstack::ha::haproxy_restart {
   exec { 'haproxy-restart':
-    command     => 'export OCF_ROOT="/usr/lib/ocf"; (ip netns list | grep haproxy) && ip netns exec haproxy /usr/lib/ocf/resource.d/fuel/ns_haproxy restart', # lint:ignore:80chars
+    command     => '/usr/lib/ocf/resource.d/fuel/ns_haproxy restart',
+    environment => ['OCF_ROOT=/usr/lib/ocf'],
     path        => '/usr/bin:/usr/sbin:/bin:/sbin',
     logoutput   => true,
     provider    => 'shell',
