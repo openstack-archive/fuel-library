@@ -162,7 +162,7 @@ class openstack::keystone (
 
       if $memcache_servers {
         keystone_config {
-          'memcache/dead_retry':     value => '300';
+          'memcache/dead_retry':     value => '60';
           'memcache/socket_timeout': value => '1';
         }
       }
@@ -170,7 +170,7 @@ class openstack::keystone (
       if $cache_memcache_servers {
         keystone_config{
           'cache/memcache_servers':             value => join($cache_memcache_servers_real, ',');
-          'cache/memcache_dead_retry':          value => '300';
+          'cache/memcache_dead_retry':          value => '60';
           'cache/memcache_socket_timeout':      value => '1';
           'cache/memcache_pool_maxsize':        value => '1000';
           'cache/memcache_pool_unused_timeout': value => '60';
