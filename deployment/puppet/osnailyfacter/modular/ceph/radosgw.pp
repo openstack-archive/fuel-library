@@ -38,7 +38,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     apache::mod {'rewrite': }
     apache::mod {'fastcgi': }
   }
-
+  include ::tweaks::apache_wrappers
   include ceph::params
 
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"

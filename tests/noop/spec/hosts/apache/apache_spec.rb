@@ -17,6 +17,14 @@ describe manifest do
       should contain_sysctl__value('net.core.somaxconn').with_value('4096')
       should contain_sysctl__value('net.ipv4.tcp_max_syn_backlog').with_value('8192')
     end
+
+    it {
+      should contain_service('httpd').with(
+           'hasrestart' => true,
+           'restart'    => 'apachectl graceful',
+      )
+    }
+
   end
   test_ubuntu_and_centos manifest
 end

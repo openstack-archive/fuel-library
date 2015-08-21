@@ -15,6 +15,12 @@ describe manifest do
 
       it { should contain_haproxy_backend_status('keystone-public').that_comes_before('Class[ceph::keystone]') }
       it { should contain_haproxy_backend_status('keystone-admin').that_comes_before('Class[ceph::keystone]') }
+      it {
+        should contain_service('httpd').with(
+             'hasrestart' => true,
+             'restart'    => 'apachectl graceful',
+        )
+      }
 
     end
   end
