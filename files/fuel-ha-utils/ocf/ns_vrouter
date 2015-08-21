@@ -40,6 +40,8 @@ OCF_RESKEY_network_mask_default="30"
 OCF_RESKEY_route_metric_default="10000"
 
 : ${OCF_ROOT=${OCF_ROOT_default}}
+: ${HA_LOGTAG="ocf-ns_vrouter"}
+: ${HA_LOGFACILITY="daemon"}
 
 : ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
 : ${OCF_RESKEY_other_networks=${OCF_RESKEY_other_networks_default}}

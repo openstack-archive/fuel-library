@@ -51,6 +51,8 @@ OCF_RESKEY_route_metric_default="10000"
 OCF_RESKEY_debug_default=false
 
 : ${OCF_ROOT=${OCF_ROOT_default}}
+: ${HA_LOGTAG="ocf-ns_haproxy"}
+: ${HA_LOGFACILITY="daemon"}
 
 : ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
 : ${OCF_RESKEY_conffile=${OCF_RESKEY_conffile_default}}
@@ -316,7 +318,7 @@ set_ns_routing() {
   fi
 
   # up the ns part
-  ocf_log debug "Bringing up the namespace interface: ${OCF_RESKEY_namespace_interface}" 
+  ocf_log debug "Bringing up the namespace interface: ${OCF_RESKEY_namespace_interface}"
   ocf_run nsip link set "${OCF_RESKEY_namespace_interface}" up
 
   # set ns part's ip
