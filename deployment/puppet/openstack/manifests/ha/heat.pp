@@ -51,6 +51,11 @@ class openstack::ha::heat (
     order                  => '160',
     listen_port            => 8004,
     require_service        => 'heat-api',
+    haproxy_config_options => {
+        option           => ['httpchk', 'httplog','httpclose'],
+        'timeout server' => '660s',
+        'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+    },
   }
 
   openstack::ha::haproxy_service { 'heat-api-cfn':
