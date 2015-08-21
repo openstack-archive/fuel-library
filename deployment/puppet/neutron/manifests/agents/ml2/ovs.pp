@@ -95,7 +95,7 @@
 # [*drop_flows_on_start*]
 #   (optional) Set to True to drop all flows during agent start for a clean
 #   flow tables resetting
-#   Defaults to true
+#   Defaults to false
 #
 class neutron::agents::ml2::ovs (
   $package_ensure             = 'present',
@@ -114,7 +114,7 @@ class neutron::agents::ml2::ovs (
   $arp_responder              = false,
   $firewall_driver            = 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
   $enable_distributed_routing = false,
-  $drop_flows_on_start        = true,
+  $drop_flows_on_start        = false,
 ) {
 
   include ::neutron::params
