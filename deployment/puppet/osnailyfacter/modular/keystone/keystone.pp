@@ -20,6 +20,8 @@ $primary_controller    = hiera('primary_controller')
 $controller_nodes      = hiera('controller_nodes')
 $neutron_user_password = hiera('neutron_user_password', false)
 $workloads_hash        = hiera('workloads_collector', {})
+$service_workers       = pick($keystone_hash['workers'],
+                              min(max($::processorcount, 2), 16))
 
 $db_type     = 'mysql'
 $db_host     = $management_vip
@@ -108,6 +110,11 @@ class { 'openstack::keystone':
   rabbit_hosts             => $rabbit_hosts,
   rabbit_virtual_host      => $rabbit_virtual_host,
   idle_timeout             => $idle_timeout,
+}
+
+keystone_config {
+  'DEFAULT/admin_workers':  value => $service_workers;
+  'DEFAULT/public_workers': value => $service_workers;
 }
 
 ####### WSGI ###########

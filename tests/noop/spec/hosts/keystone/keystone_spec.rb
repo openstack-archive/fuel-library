@@ -34,6 +34,17 @@ describe manifest do
       should contain_keystone_config('memcache/dead_retry').with(:value => '30')
     end
 
+    it 'should configure 4 keystone workers for 4 CPUs' do
+      should contain_keystone_config('DEFAULT/admin_workers').with(:value => '4')
+      should contain_keystone_config('DEFAULT/public_workers').with(:value => '4')
+    end
+
+    it 'should configure 16 keystone workers for 40 CPUs' do
+      facts[:processorcount] = '40'
+      should contain_keystone_config('DEFAULT/admin_workers').with(:value => '16')
+      should contain_keystone_config('DEFAULT/public_workers').with(:value => '16')
+    end
+
     # it 'should declare keystone::wsgi::apache class with 4 workers on 4 CPU system' do
     #   should contain_class('keystone::wsgi::apache').with(
     #     'threads' => '1',
