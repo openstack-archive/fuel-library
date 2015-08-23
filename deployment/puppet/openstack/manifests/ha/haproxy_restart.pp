@@ -26,7 +26,7 @@
 #
 class openstack::ha::haproxy_restart {
   exec { 'haproxy-restart':
-    command     => '/usr/lib/ocf/resource.d/fuel/ns_haproxy restart',
+    command     => '/usr/lib/ocf/resource.d/fuel/ns_haproxy reload',
     environment => ['OCF_ROOT=/usr/lib/ocf'],
     path        => '/usr/bin:/usr/sbin:/bin:/sbin',
     logoutput   => true,
