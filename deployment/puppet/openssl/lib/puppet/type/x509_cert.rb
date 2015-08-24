@@ -44,6 +44,12 @@ Puppet::Type.newtype(:x509_cert) do
     desc 'The optional password for the private key'
   end
 
+  newparam(:req_ext, :boolean => true) do
+    desc 'Whether adding v3 SAN from config'
+    newvalues(:true, :false)
+    defaultto false
+  end
+
   newparam(:template) do
     desc 'The template to use'
     defaultto do

@@ -18,7 +18,7 @@
 #                     Directory must exist
 #  [*owner*]          cnf, crt, csr and key owner. User must exist
 #  [*group*]          cnf, crt, csr and key group. Group must exist
-#  [*password*]       private key password. undef means no passphrase 
+#  [*password*]       private key password. undef means no passphrase
 #                     will be used to encrypt private key.
 #  [*force*]          whether to override certificate and request
 #                     if private key changes
@@ -88,6 +88,12 @@ define openssl::certificate::x509(
     "\$ensure must be either 'present' or 'absent', got '${ensure}'")
   validate_string($cnf_tpl)
 
+  if $altnames {
+    $req_ext = true
+  } else {
+    $req_ext = false
+  }
+
   file {"${base_dir}/${name}.cnf":
     ensure  => $ensure,
     owner   => $owner,
@@ -106,6 +112,7 @@ define openssl::certificate::x509(
     private_key => "${base_dir}/${name}.key",
     days        => $days,
     password    => $password,
+    req_ext     => $req_ext,
     force       => $force,
     require     => File["${base_dir}/${name}.cnf"],
   }
