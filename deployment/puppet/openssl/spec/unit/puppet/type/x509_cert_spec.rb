@@ -52,6 +52,17 @@ describe Puppet::Type.type(:x509_cert) do
     }.to raise_error(Puppet::Error, /Invalid value :foo/)
   end
 
+  it 'should accept a valid req_ext parameter' do
+    subject[:req_ext] = true
+    expect(subject[:force]).to eq(:true)
+  end
+
+  it 'should not accept a bad req_ext parameter' do
+    expect {
+      subject[:req_ext] = :foo
+    }.to raise_error(Puppet::Error, /Invalid value :foo/)
+  end
+
   it 'should accept a valid authentication' do
     subject[:authentication] = :rsa
     expect(subject[:authentication]).to eq(:rsa)
