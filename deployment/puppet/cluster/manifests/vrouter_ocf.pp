@@ -18,7 +18,7 @@ class cluster::vrouter_ocf (
   }
   $parameters = {
     'ns'             => 'vrouter',
-    'other_networks' => "'$other_networks'",
+    'other_networks' => "${other_networks}",
   }
   $operations = {
     'monitor' => {
