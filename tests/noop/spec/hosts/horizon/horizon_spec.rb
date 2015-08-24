@@ -5,51 +5,81 @@ manifest = 'horizon/horizon.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    bind_address = Noop.node_hash['internal_address'] # TODO: smakar change AFTER https://bugs.launchpad.net/fuel/+bug/1486048
-    nova_quota = Noop.hiera 'nova_quota'
-    management_vip = Noop.hiera('management_vip')
-    keystone_url = "http://#{management_vip}:5000/v2.0"
-    cache_options = nil
-    cache_options = {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1}
-    neutron_advanced_config =  Noop.hiera_structure 'neutron_advanced_configuration'
+    let(:network_scheme) do
+      Noop.hiera_hash 'network_scheme'
+    end
 
-    # Horizon
+    let(:service_endpoint) do
+      Noop.hiera 'service_endpoint'
+    end
+
+    let(:prepare) do
+      Noop.puppet_function 'prepare_network_config', network_scheme
+    end
+
+    let(:bind_address) do
+      prepare
+      Noop.puppet_function 'get_network_role_property', 'horizon', 'ipaddr'
+    end
+
+    let(:nova_quota) do
+      Noop.hiera 'nova_quota'
+    end
+
+    let(:keystone_url) do
+      "http://#{service_endpoint}:5000/v2.0"
+    end
+
+    let(:cache_options) do
+      {
+          'SOCKET_TIMEOUT' => 1,
+          'SERVER_RETRIES' => 1,
+          'DEAD_RETRY'     => 1,
+      }
+    end
+
+    ###########################################################################
+
     it 'should declare openstack::horizon class' do
       should contain_class('openstack::horizon').with(
-        'nova_quota'   => nova_quota,
-        'bind_address' => bind_address,
-      )
+                 'nova_quota' => nova_quota,
+                 'bind_address' => bind_address
+             )
     end
 
     it 'should declare openstack::horizon class with keystone_url' do
-        should contain_class('openstack::horizon').with('keystone_url' => keystone_url)
+      should contain_class('openstack::horizon').with(
+                 'keystone_url' => keystone_url
+             )
     end
 
     it 'should declare horizon class with cache_backend,cache_options,log_handler' do
-        should contain_class('horizon').with(
-            'cache_backend' => 'horizon.backends.memcached.HorizonMemcached',
-            'cache_options' => cache_options,
-            'log_handler'   => 'file',
-        )
+      should contain_class('horizon').with(
+                 'cache_backend' => 'horizon.backends.memcached.HorizonMemcached',
+                 'cache_options' => cache_options,
+                 'log_handler' => 'file'
+             )
     end
 
-    if neutron_advanced_config && neutron_advanced_config.has_key?('neutron_dvr')
-      dvr = neutron_advanced_config['neutron_dvr']
+    context 'with Neutron DVR', :if => Noop.hiera_structure('neutron_advanced_configuration/neutron_dvr') do
       it 'should configure horizon for neutron DVR' do
-         should contain_class('openstack::horizon').with(
-           'neutron_options' => {'enable_distributed_router' => dvr},
-         )
+        should contain_class('openstack::horizon').with(
+                   'neutron_options' => {
+                       'enable_distributed_router' => Noop.hiera_structure('neutron_advanced_configuration/neutron_dvr')
+                   }
+               )
       end
     end
 
     it {
       should contain_service('httpd').with(
            'hasrestart' => true,
-           'restart'    => 'apachectl graceful',
+           'restart'    => 'apachectl graceful'
       )
     }
 
   end
+
   test_ubuntu_and_centos manifest
 end
 
