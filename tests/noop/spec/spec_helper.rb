@@ -147,6 +147,8 @@ module Noop
     # return @hiera[astute_yaml_name]
     return @hiera_object if @hiera_object
     @hiera_object = Hiera.new(:config => hiera_config)
+    Hiera.logger = hiera_config[:logger]
+    @hiera_object
   end
 
   def self.hiera(key, default = nil, resolution_type = :priority)
@@ -213,9 +215,22 @@ module Noop
     Puppet::Util::Log.newdestination(:console)
   end
 
+  def self.puppet_resource_scope_override
+    Puppet::Parser::Resource.module_eval do
+      def initialize(*args)
+        raise ArgumentError, "Resources require a hash as last argument" unless args.last.is_a? Hash
+        raise ArgumentError, "Resources require a scope" unless args.last[:scope]
+        super
+        Noop.puppet_scope = scope
+        @source ||= scope.source
+      end
+    end
+  end
+
   def self.setup_overrides
     hiera_puppet_override
     puppet_debug_override if ENV['SPEC_PUPPET_DEBUG']
+    puppet_resource_scope_override
   end
 
   ## Facts ##
@@ -396,6 +411,16 @@ module Noop
     resource[parameter.to_sym]
   end
 
+  # save the current puppet scope
+  def self.puppet_scope=(value)
+    @puppet_scope = value
+  end
+
+  def self.puppet_scope
+    fail "Puppet scope is not saved in the Noop module!" unless @puppet_scope
+    @puppet_scope
+  end
+
   # load a puppet function if it's not alreay loaded
   def self.puppet_function_load(name)
     name = name.to_sym unless name.is_a? Symbol
@@ -405,10 +430,13 @@ module Noop
   # call a puppet function and return it's value
   def self.puppet_function(name, *args)
     name = name.to_sym unless name.is_a? Symbol
-    puppet_scope = PuppetlabsSpec::PuppetInternals.scope
     puppet_function_load name
     fail "Could not load Puppet function '#{name}'!" unless puppet_scope.respond_to? "function_#{name}".to_sym
     puppet_scope.send "function_#{name}".to_sym, args
+  end
+
+  def self.lookupvar(name)
+    puppet_scope.lookupvar name
   end
 
   def self.debug(msg)
