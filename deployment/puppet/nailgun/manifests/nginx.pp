@@ -55,6 +55,7 @@ class nailgun::nginx(
       country      => 'US',
       organization => 'Mirantis',
       commonname   => 'fuel.master.local',
+      altnames     => [$nailgun_host],
       state        => 'California',
       unit         => 'Fuel Deployment Team',
       email        => "root@fuel.master.local",
