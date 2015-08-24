@@ -29,21 +29,28 @@ module Puppet::Parser::Functions
     vips.each do |name, parameters|
 
       debug "Processing VIP: '#{name}' with parameters: #{parameters.inspect}"
-      network_role = parameters['network_role']
 
+      # create a hash of vip parameters
+      vip = {}
+
+      if parameters['namespace']
+        vip['namespace'] = parameters['namespace']
+      else
+        debug "Skipping vip: '#{name}' because the 'namespace' parameter is not defined! Such VIPs are not managed by Pacemaker and should be handled by plugin completely."
+        next
+      end
+
+      network_role = parameters['network_role']
       unless network_role
         debug "Skipping vip: '#{name}' because it's 'network_role' parameter is not defined!"
         next
       end
-      node_roles = parameters.fetch 'node_roles', default_node_roles
 
+      node_roles = parameters.fetch 'node_roles', default_node_roles
       unless node_roles.include? this_node_role
         debug "Skipping vip: '#{name}' because it's 'node_roles' parameter doesn't include this node's role: #{this_node_role}!"
         next
       end
-
-      # create a hash of vip parameters
-      vip = {}
 
       short_name = name[0,13]  # 13 here because max. interface name length in linus == 15 and two-letters prefix used
       base_veth = "v_#{short_name}"
@@ -62,7 +69,6 @@ module Puppet::Parser::Functions
       vip['gateway'] = parameters['gateway'] if parameters['gateway']
       vip['gateway_metric'] = parameters['gateway_metric'] if parameters['gateway_metric']
 
-      vip['namespace'] = parameters['namespace'] if parameters['namespace']
       vip['colocation_before'] = parameters['colocation_before'] if parameters['colocation_before']
       vip['colocation_after'] = parameters['colocation_after'] if parameters['colocation_after']
 
