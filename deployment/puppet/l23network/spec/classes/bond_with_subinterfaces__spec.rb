@@ -11,24 +11,24 @@ network_scheme:
     eth2: {}
     eth3: {}
   transformations:
+    - action: add-port
+      name: eth2.101
+    - action: add-port
+      name: eth3.101
     - action: add-bond
       name: bond23
       interfaces:
-        - eth2
-        - eth3
-      mtu: 4000
+        - eth2.101
+        - eth3.101
       bond_properties:
         mode: balance-rr
-      interface_properties:
-        mtu: 9000
-        vendor_specific:
-          disable_offloading: true
   emdpoints: {}
   roles: {}
 eof
 end
 
-  context 'with bond (lnx) two interfaces' do
+
+  context 'with bond (lnx) two subinterfaces' do
     let(:title) { 'empty network scheme' }
     let(:facts) {
       {
@@ -58,34 +58,21 @@ end
     it do
       should contain_l2_bond('bond23').with({
         'ensure' => 'present',
-        'slaves' => ['eth2', 'eth3'],
-        'mtu'    => 4000,
+        'slaves' => ['eth2.101', 'eth3.101'],
       })
     end
 
-    ['eth2', 'eth3'].each do |iface|
+    ['eth2.101', 'eth3.101'].each do |iface|
       it do
         should contain_l2_port(iface).with({
-          'ensure'  => 'present',
-          'mtu'     => 9000,
+          'ensure'       => 'present',
           'bond_master'  => 'bond23',
-          'ethtool' =>  {
-              'offload' => {
-                'generic-receive-offload'      => false,
-                'generic-segmentation-offload' => false
-              }
-            }
         })
+      end
+      it do
         should contain_l23_stored_config(iface).with({
-          'ensure'  => 'present',
-          'mtu'     => 9000,
+          'ensure'       => 'present',
           'bond_master'  => 'bond23',
-          'ethtool' =>  {
-              'offload' => {
-                'generic-receive-offload'      => false,
-                'generic-segmentation-offload' => false
-              }
-            }
         })
       end
     end
@@ -105,25 +92,24 @@ network_scheme:
     eth2: {}
     eth3: {}
   transformations:
+    - action: add-port
+      name: eth2.101
+    - action: add-port
+      name: eth3.101
     - action: add-bond
       name: bond23
       interfaces:
-        - eth2
-        - eth3
-      mtu: 4000
+        - eth2.101
+        - eth3.101
       bond_properties:
         mode: balance-rr
-      interface_properties:
-        mtu: 9000
-        vendor_specific:
-          disable_offloading: true
       provider: ovs
   emdpoints: {}
   roles: {}
 eof
 end
 
-  context 'with bond (ovs) two interfaces' do
+  context 'with bond (ovs) two subinterfaces' do
     let(:title) { 'empty network scheme' }
     let(:facts) {
       {
@@ -152,36 +138,23 @@ end
 
     it do
       should contain_l2_bond('bond23').with({
-        'ensure'   => 'present',
         'provider' => 'ovs',
-        'slaves'   => ['eth2', 'eth3'],
-        'mtu'      => 4000,
+        'ensure' => 'present',
+        'slaves' => ['eth2.101', 'eth3.101'],
       })
     end
 
-    ['eth2', 'eth3'].each do |iface|
+    ['eth2.101', 'eth3.101'].each do |iface|
       it do
         should contain_l2_port(iface).with({
-          'ensure'      => 'present',
-          'mtu'         => 9000,
-          'bond_master' => nil,
-          'ethtool' =>  {
-              'offload' => {
-                'generic-receive-offload'      => false,
-                'generic-segmentation-offload' => false
-              }
-            }
+          'ensure'       => 'present',
+          'bond_master'  => nil,
         })
+      end
+      it do
         should contain_l23_stored_config(iface).with({
-          'ensure'      => 'present',
-          'mtu'         => 9000,
-          'bond_master' => nil,
-          'ethtool' =>  {
-              'offload' => {
-                'generic-receive-offload'      => false,
-                'generic-segmentation-offload' => false
-              }
-            }
+          'ensure'       => 'present',
+          'bond_master'  => nil,
         })
       end
     end

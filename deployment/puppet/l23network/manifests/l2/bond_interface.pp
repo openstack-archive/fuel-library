@@ -5,21 +5,22 @@ define l23network::l2::bond_interface (
   $use_ovs                 = $::l23network::use_ovs,
   $ensure                  = present,
   $mtu                     = undef,
+  $bond_is_master          = true,
   $interface_properties    = {},
   $provider                = undef,
 ) {
   include ::l23network::params
   include ::stdlib
 
-  if $bond == 'none' {
-    $master = undef
-    $slave  = false
-  } else {
+  if $bond_is_master {
     $master = $bond
     $slave  = true
-    L2_port[$name] -> L2_bond[$bond]
-    L23_stored_config[$name] -> L23_stored_config[$bond]
+  } else {
+    $master = undef
+    $slave  = false
   }
+  # For any cases Port should be setted up before bond.
+  L2_port[$name] -> L2_bond[$bond]
 
   if ! defined(L23network::L2::Port[$name]) {
     $additional_properties = {
@@ -34,10 +35,12 @@ define l23network::l2::bond_interface (
       "${name}" => merge($interface_properties, $additional_properties)
     })
   } else {
-    L23network::L2::Port<| title == $name |> {
+    L2_port<| title == $name |> {
       use_ovs  => $use_ovs,
-      master   => $master,
-      slave    => $slave
+      bond_master   => $master,
+    }
+    L23_stored_config<| title == $name |> {
+      bond_master   => $master,
     }
   }
 }
