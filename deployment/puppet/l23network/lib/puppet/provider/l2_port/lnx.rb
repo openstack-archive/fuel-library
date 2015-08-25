@@ -73,7 +73,9 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       end
       #
       # FLUSH changed properties
-      if @property_flush.has_key? :bond_master
+      # If port is bond member and bond still doesn't exist we skip the adding to bond action
+      # Bond will do it by itself during bond creation
+      if @property_flush.has_key? :bond_master and File.exist? "/proc/net/bonding/#{@old_property_hash[:bond_master]}"
         bond = @old_property_hash[:bond_master]
         # putting interface to the down-state, because add/remove upped interface impossible. undocumented kern.behavior.
         iproute('--force', 'link', 'set', 'dev', @resource[:interface], 'down')

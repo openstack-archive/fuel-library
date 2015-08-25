@@ -5,18 +5,22 @@ define l23network::l2::bond_interface (
   $use_ovs                 = $::l23network::use_ovs,
   $ensure                  = present,
   $mtu                     = undef,
+  $bond_is_master          = true,
   $interface_properties    = {},
   $provider                = undef,
 ) {
   include ::l23network::params
   include ::stdlib
 
-  if $bond == 'none' {
-    $master = undef
-    $slave  = false
-  } else {
+  if $bond_is_master {
     $master = $bond
     $slave  = true
+    L2_port[$name] -> L2_bond[$bond]
+    L23_stored_config[$bond] -> L23_stored_config[$name]
+  } else {
+    # Ports, that members of bond, should be just a pre-configured port.
+    $master = undef
+    $slave  = false
     L2_port[$name] -> L2_bond[$bond]
     L23_stored_config[$name] -> L23_stored_config[$bond]
   }
