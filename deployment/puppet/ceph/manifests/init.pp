@@ -34,6 +34,7 @@ class ceph (
 
       # RadosGW settings
       $rgw_host                           = $::hostname,
+      $rgw_ip                             = '0.0.0.0',
       $rgw_port                           = '6780',
       $swift_endpoint_port                = '8080',
       $rgw_keyring_path                   = '/etc/ceph/keyring.radosgw.gateway',

@@ -27,6 +27,9 @@ $osd_devices = split($::osd_devices_list, ' ')
 # set use_rgw to configure RadosGW items
 $use_rgw = false
 
+# rgw_ip is IP address for binding web server to listen on it, default is 0.0.0.0
+#$rgw_ip = '10.109.10.3'
+
 # rgw_port, if you are running other services on this web server you need to
 # run rgw on an alternate port, default is 6780
 #$rgw_port = 6780
@@ -80,6 +83,7 @@ node 'default' {
 
       # RadosGW settings
       rgw_host                         => $::osfamily ? { 'Debian' => $::hostname, default => $::fqdn },
+      rgw_ip                           => $rgw_ip,
       rgw_port                         => $rgw_port,
       rgw_keyring_path                 => '/etc/ceph/keyring.radosgw.gateway',
       rgw_socket_path                  => '/tmp/radosgw.sock',
