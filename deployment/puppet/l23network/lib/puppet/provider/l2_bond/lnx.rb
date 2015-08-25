@@ -106,7 +106,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           # says, that bond interface should be downed, but it's not enouth.
           File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "-#{eth}"}
         end
-        iproute('link', 'set', 'dev', @resource[:bond], 'down')
+        iproute('link', 'set', 'down', 'dev', @resource[:bond])
         @property_flush[:bond_properties].each_pair do |prop, val|
           if self.class.lnx_bond_allowed_properties_list.include? prop.to_sym
             act_val = val.to_s
@@ -120,7 +120,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           end
         end
         # re-assemble bond after configuration
-        iproute('link', 'set', 'dev', @resource[:bond], 'up') if runtime_bond_state
+        iproute('link', 'set', 'up', 'dev', @resource[:bond]) if runtime_bond_state
         runtime_slave_ports.each do |eth|
           File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "+#{eth}"}
         end

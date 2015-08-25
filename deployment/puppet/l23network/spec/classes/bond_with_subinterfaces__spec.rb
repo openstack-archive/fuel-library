@@ -11,18 +11,17 @@ network_scheme:
     eth2: {}
     eth3: {}
   transformations:
+    - action: add-port
+      name: eth2.101
+    - action: add-port
+      name: eth3.101
     - action: add-bond
       name: bond23
       interfaces:
-        - eth2
-        - eth3
-      mtu: 4000
+        - eth2.101
+        - eth3.101
       bond_properties:
         mode: balance-rr
-      interface_properties:
-        mtu: 9000
-        vendor_specific:
-          disable_offloading: true
   emdpoints: {}
   roles: {}
 eof
@@ -45,6 +44,13 @@ end
       :settings_yaml => network_scheme,
     } end
 
+    before(:each) do
+      if ENV['SPEC_PUPPET_DEBUG']
+        Puppet::Util::Log.level = :debug
+        Puppet::Util::Log.newdestination(:console)
+      end
+    end
+
     it do
       should compile.with_all_deps
     end
@@ -52,34 +58,21 @@ end
     it do
       should contain_l2_bond('bond23').with({
         'ensure' => 'present',
-        'slaves' => ['eth2', 'eth3'],
-        'mtu'    => 4000,
+        'slaves' => ['eth2.101', 'eth3.101'],
       })
     end
 
-    ['eth2', 'eth3'].each do |iface|
+    ['eth2.101', 'eth3.101'].each do |iface|
       it do
         should contain_l2_port(iface).with({
-          'ensure'  => 'present',
-          'mtu'     => 9000,
+          'ensure'       => 'present',
           'bond_master'  => 'bond23',
-          'ethtool' =>  {
-              'offload' => {
-                'generic-receive-offload'      => false,
-                'generic-segmentation-offload' => false
-              }
-            }
         })
+      end
+      it do
         should contain_l23_stored_config(iface).with({
-          'ensure'  => 'present',
-          'mtu'     => 9000,
+          'ensure'       => 'present',
           'bond_master'  => 'bond23',
-          'ethtool' =>  {
-              'offload' => {
-                'generic-receive-offload'      => false,
-                'generic-segmentation-offload' => false
-              }
-            }
         })
       end
     end
