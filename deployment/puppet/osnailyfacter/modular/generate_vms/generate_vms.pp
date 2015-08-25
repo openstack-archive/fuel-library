@@ -37,13 +37,12 @@ file { "${template_dir}":
 }
 
 vm_config { $vms:
-  notify  => Exec['generate_vms'],
+  before  => Exec['generate_vms'],
   require => File["${template_dir}"],
 }
 
 exec { 'generate_vms':
   command     => "/usr/bin/generate_vms.sh ${libvirt_dir} ${template_dir}",
-  refreshonly => true,
   path        => ['/usr/sbin', '/usr/bin' , '/sbin', '/bin'],
   notify      => Service[$libvirt_service_name],
   require     => [File["${template_dir}"], File["${libvirt_dir}/autostart"]],
