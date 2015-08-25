@@ -14,7 +14,6 @@ describe manifest do
     it 'should exec generate_vms' do
       should contain_exec('generate_vms').with(
         'command'     => "/usr/bin/generate_vms.sh #{libvirt_dir} #{template_dir}",
-        'refreshonly' => 'true',
         'notify'      => "Service[#{libvirt_service}]",
       )
     end
@@ -22,7 +21,7 @@ describe manifest do
     vms.each do | vm |
       it "should define vm_config #{vm}" do
         should contain_vm_config(vm).with(
-          'notify' => 'Exec[generate_vms]',
+          'before' => 'Exec[generate_vms]',
         )
       end
     end
