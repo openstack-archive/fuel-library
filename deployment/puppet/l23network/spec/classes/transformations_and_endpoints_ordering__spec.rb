@@ -177,10 +177,10 @@ end
     end
 
     it do
-      should contain_L23_stored_config('bond0').that_requires('L23_stored_config[eth2]')
+      should contain_L23_stored_config('bond0').that_comes_before('L23_stored_config[eth2]')
     end
     it do
-      should contain_L23_stored_config('bond0').that_requires('L23_stored_config[eth3]')
+      should contain_L23_stored_config('bond0').that_comes_before('L23_stored_config[eth3]')
     end
 
   end

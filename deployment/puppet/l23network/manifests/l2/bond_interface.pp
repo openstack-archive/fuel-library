@@ -5,21 +5,24 @@ define l23network::l2::bond_interface (
   $use_ovs                 = $::l23network::use_ovs,
   $ensure                  = present,
   $mtu                     = undef,
+  $bond_is_master          = true,
   $interface_properties    = {},
   $provider                = undef,
 ) {
   include ::l23network::params
   include ::stdlib
 
-  if $bond == 'none' {
-    $master = undef
-    $slave  = false
-  } else {
+  if $bond_is_master {
     $master = $bond
     $slave  = true
-    L2_port[$name] -> L2_bond[$bond]
+    L23_stored_config[$bond] -> L23_stored_config[$name]
+  } else {
+    $master = undef
+    $slave  = false
     L23_stored_config[$name] -> L23_stored_config[$bond]
   }
+  # For any cases Port should be setted up before bond. But for config files another ordering.
+  L2_port[$name] -> L2_bond[$bond]
 
   if ! defined(L23network::L2::Port[$name]) {
     $additional_properties = {
