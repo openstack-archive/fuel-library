@@ -129,7 +129,8 @@ define l23network::l2::bond (
   if member($actual_monolith_bond_providers, $actual_provider_for_bond_interface) {
     # just interfaces in UP state should be presented
     l23network::l2::bond_interface{ $interfaces:
-      bond                 => 'none',
+      bond                 => $bond,
+      bond_is_master       => false,
       mtu                  => $mtu,
       interface_properties => $interface_properties,
       ensure               => $ensure,
