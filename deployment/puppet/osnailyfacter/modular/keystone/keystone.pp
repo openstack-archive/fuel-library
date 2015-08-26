@@ -137,11 +137,8 @@ class { 'openstack::keystone':
 
 ####### WSGI ###########
 
-class { 'osnailyfacter::apache':
-  listen_ports => hiera_array('apache_ports', ['80', '8888', '5000', '35357']),
-}
-
 class { 'keystone::wsgi::apache':
+  bind_host             => $local_address_for_bind,
   priority              => '05',
   threads               => 3,
   workers               => min($::processorcount, 6),
