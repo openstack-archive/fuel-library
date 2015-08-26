@@ -322,7 +322,7 @@ function lxc_shell_container {
 
 function stop_container {
   if [ "$1" = "all" ]; then
-    for container in ${CONTAINER_NAMES[@]}; do
+    for container in ${!CONTAINER_NAMES[@]}; do
       stop_container $container
     done
     return
