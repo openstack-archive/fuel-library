@@ -47,4 +47,23 @@ class { 'openstack::horizon':
   custom_theme_path => 'static/themes/webroot'
 }
 
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+haproxy_backend_status { 'keystone-admin' :
+  name  => 'keystone-2',
+  count => '30',
+  step  => '3',
+  url   => $haproxy_stats_url,
+}
+
+haproxy_backend_status { 'keystone-public' :
+  name  => 'keystone-1',
+  count => '30',
+  step  => '3',
+  url   => $haproxy_stats_url,
+}
+
+Class['openstack::horizon'] -> Haproxy_backend_status['keystone-admin']
+Class['openstack::horizon'] -> Haproxy_backend_status['keystone-public']
+
 include ::tweaks::apache_wrappers

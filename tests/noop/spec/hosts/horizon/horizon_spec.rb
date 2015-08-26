@@ -49,6 +49,18 @@ describe manifest do
       )
     }
 
+    it {
+      should contain_class('openstack::horizon').that_comes_before(
+        'Haproxy_backend_status[keystone-admin]'
+      )
+    }
+
+    it {
+      should contain_class('openstack::horizon').that_comes_before(
+        'Haproxy_backend_status[keystone-public]'
+      )
+    }
+
   end
   test_ubuntu_and_centos manifest
 end

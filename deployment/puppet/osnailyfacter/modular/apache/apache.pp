@@ -10,5 +10,4 @@ class { 'osnailyfacter::apache':
 }
 
 include ::osnailyfacter::apache_mpm
-include ::tweaks::apache_wrappers
 
