@@ -971,6 +971,7 @@ get_status() {
     rc=$?
 
     if [[ $rc != 0 ]] ; then
+        ocf_log err "get_status() failed with code ${rc}. Command output: ${body}"
         return $OCF_NOT_RUNNING
     fi
 
