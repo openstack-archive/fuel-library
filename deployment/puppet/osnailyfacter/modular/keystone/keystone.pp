@@ -142,6 +142,8 @@ class { 'osnailyfacter::apache':
 }
 
 class { 'keystone::wsgi::apache':
+  bind_host             => $local_address_for_bind,
+  apache_add_listen     => false,
   priority              => '05',
   threads               => 3,
   workers               => min($::processorcount, 6),
@@ -162,6 +164,28 @@ class { 'keystone::wsgi::apache':
 }
 
 include ::tweaks::apache_wrappers
+include ::apache
+include ::keystone::params
+
+::apache::vhost { 'disable_default_keystone_main':
+  ensure                      => 'present',
+  port                        => $internal_port,
+  priority                    => '04',
+  docroot                     => $::keystone::params::keystone_wsgi_script_path,
+  custom_fragment             => '  <Location />
+    Require all denied
+  </Location>',
+}
+
+::apache::vhost { 'disable_default_keystone_admin':
+  ensure                      => 'present',
+  port                        => $admin_port,
+  priority                    => '04',
+  docroot                     => $::keystone::params::keystone_wsgi_script_path,
+  custom_fragment             => '  <Location />
+    Require all denied
+  </Location>',
+}
 
 ###############################################################################
 
