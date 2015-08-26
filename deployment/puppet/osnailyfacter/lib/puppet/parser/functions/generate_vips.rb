@@ -1,3 +1,4 @@
+require 'yaml'
 require 'puppetx/l23_network_scheme'
 require 'puppetx/l23_hash_tools'
 
@@ -23,7 +24,7 @@ module Puppet::Parser::Functions
 
     vips = network_metadata.fetch 'vips', {}
 
-    debug "VIPS structure: #{vips.inspect}"
+    debug "VIPS structure: #{vips.to_yaml.gsub('!ruby/sym ','')}"
 
     vips.each do |name, parameters|
 
@@ -44,20 +45,14 @@ module Puppet::Parser::Functions
       # create a hash of vip parameters
       vip = {}
 
-      short_name = name
-      short_name = short_name.gsub('management', 'mgmt')
-      short_name = short_name.gsub('public', 'pub')
-      short_name = short_name.gsub('vrouter', 'vr')
-      short_name = short_name.gsub('database', 'db')
-      short_name = short_name[0,10]
-      base_veth = "#{short_name}-base"
-      ns_veth = "#{short_name}-ns"
+      short_name = name[0,13]  # 13 here because max. interface name length in linus == 15 and two-letters prefix used
+      base_veth = "v_#{short_name}"
+      ns_veth = "b_#{short_name}"
 
       interface = function_get_network_role_property [network_role, 'interface']
       netmask = function_get_network_role_property [network_role, 'netmask']
       cidr_netmask = function_netmask_to_cidr [netmask]
 
-      vip['nic'] = interface
       vip['base_veth'] = base_veth
       vip['ns_veth'] = ns_veth
       vip['ip'] = parameters['ipaddr']
@@ -75,7 +70,7 @@ module Puppet::Parser::Functions
       # gateway = function_get_network_role_property [network_role, 'gateway']
       # gateway_metric = function_get_network_role_property [network_role, 'gateway_metric']
 
-      gateway = network_scheme.fetch('endpoints', {}).fetch(vip['nic'], {}).fetch('gateway', nil) unless vip['gateway']
+      gateway = network_scheme.fetch('endpoints', {}).fetch(vip['bridge'], {}).fetch('gateway', nil) unless vip['gateway']
 
       if gateway
         if name.include? 'vrouter'
@@ -97,12 +92,12 @@ module Puppet::Parser::Functions
       vip['gateway_metric'] = gateway_metric || '0'
 
       # skip vip without mandatory data fields
-      unless vip['nic'] and vip['base_veth'] and vip['ns_veth'] and vip['ip']
-        warn "Skipping incorrect VIP '#{name}': '#{vip.inspect}'"
+      unless vip['bridge'] and vip['base_veth'] and vip['ns_veth'] and vip['ip']
+        warn "Skipping incorrect VIP '#{name}': '#{vip.to_yaml.gsub('!ruby/sym ','')}'"
         next
       end
 
-      debug "Create VIP '#{name}': '#{vip.inspect}'"
+      debug "Create VIP '#{name}': '#{vip.to_yaml.gsub('!ruby/sym ','')}'"
       function_create_resources [ 'cluster::virtual_ip', { name => { 'vip' => vip } } ]
     end
 

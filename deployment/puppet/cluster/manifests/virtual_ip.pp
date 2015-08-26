@@ -10,7 +10,7 @@
 # [*vip*]
 #   Specify dictionary of VIP parameters, ex:
 #   {
-#       nic    => 'eth0',
+#       bridge => 'br0',
 #       ip     => '10.1.1.253'
 #   }
 #
@@ -21,7 +21,7 @@ define cluster::virtual_ip (
   $vip_name = "vip__${key}"
 
   $parameters = {
-    'nic'                  => $vip['nic'],
+    'bridge'               => $vip['bridge'],
     'base_veth'            => $vip['base_veth'],
     'ns_veth'              => $vip['ns_veth'],
     'ip'                   => $vip['ip'],
@@ -38,45 +38,27 @@ define cluster::virtual_ip (
       default => $vip['namespace']
     },
     'gateway'              => $vip['gateway'] ? {
-      undef   => '',
+      undef   => undef,
       default => $vip['gateway']
     },
     'gateway_metric'       => $vip['gateway_metric'] ? {
-      undef   => '0',
+      undef   => undef,
       default => $vip['gateway_metric']
     },
     'other_networks'       => $vip['other_networks'] ? {
-      undef => 'false', '' => 'false',
+      undef => undef, false => undef,
       default => $vip['other_networks']
     },
-    'bridge'              => $vip['bridge'] ? {
-      undef   => 'false',
-      ''      => 'false',
-      default => $vip['bridge']
-    },
-    'iptables_start_rules' => $vip['iptables_start_rules'] ? {
-      undef   => 'false',
-      ''      => 'false',
-      default => "${vip['iptables_start_rules']}",
-    },
-    'iptables_stop_rules'  => $vip['iptables_stop_rules'] ? {
-      undef   => 'false',
-      ''      => 'false',
-      default => "${vip['iptables_stop_rules']}",
-    },
     'iptables_comment'     => $vip['iptables_comment'] ? {
-      undef   => 'false',
-      ''      => 'false',
+      undef   => undef, false => undef,
       default => "${vip['iptables_comment']}",
     },
     'ns_iptables_start_rules' => $vip['ns_iptables_start_rules'] ? {
-      undef   => 'false',
-      ''      => 'false',
+      undef   => undef, false => undef,
       default => "${vip['ns_iptables_start_rules']}",
     },
     'ns_iptables_stop_rules'  => $vip['ns_iptables_stop_rules'] ? {
-      undef   => 'false',
-      ''      => 'false',
+      undef   => undef, false => undef,
       default => "${vip['ns_iptables_stop_rules']}",
     },
   }
@@ -89,8 +71,8 @@ define cluster::virtual_ip (
 
   $operations = {
     'monitor' => {
-      'interval' => '3',
-      'timeout'  => '30',
+      'interval' => '5',
+      'timeout'  => '20',
     },
     'start'   => {
       'timeout' => '30',
