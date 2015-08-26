@@ -36,7 +36,7 @@ module Puppet::Parser::Functions
       if parameters['namespace']
         vip['namespace'] = parameters['namespace']
       else
-        debug "Skipping vip: '#{name}' because the 'namespace' parameter is not defined! Such VIPs are not managed by Pacemaker and should be handled by plugin completely."
+        warn "Skipping vip: '#{name}' because the 'namespace' parameter is not defined! Such VIPs are not managed by Pacemaker and should be handled by plugin completely."
         next
       end
 
