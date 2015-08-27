@@ -28,6 +28,16 @@ if ($syslog_hash['syslog_server'] != ''
 }
 
 if $use_syslog {
+  if ($::operatingsystem == 'Ubuntu') {
+    # ensure the var log folder permissions are correct even if it's a mount
+    # LP#1489347
+    file { '/var/log':
+      owner => 'root',
+      group => 'syslog',
+      mode  => '0775',
+    }
+  }
+
   class { '::openstack::logging':
     role             => 'client',
     show_timezone    => true,
