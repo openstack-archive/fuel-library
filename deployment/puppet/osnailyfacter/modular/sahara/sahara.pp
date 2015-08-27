@@ -79,6 +79,21 @@ if $sahara_hash['enabled'] {
     rabbit_hosts        => split($amqp_hosts, ',')
   }
 
+  if $public_ssl_hash['services'] {
+    file { '/etc/pki/tls/certs':
+      mode => 755,
+    }
+
+    file { '/etc/pki/tls/certs/public_haproxy.pem':
+      mode => 644,
+    }
+
+    sahara_config {
+      'object_store_access/public_identity_ca_file':     value => '/etc/pki/tls/certs/public_haproxy.pem';
+      'object_store_access/public_object_store_ca_file': value => '/etc/pki/tls/certs/public_haproxy.pem';
+    }
+  }
+
   class { 'sahara::api':
     host => $api_bind_host,
     port => $api_bind_port,
