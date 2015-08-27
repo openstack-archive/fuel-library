@@ -91,7 +91,6 @@ end
   end
 end
 
-
 describe 'l23network::examples::run_network_scheme', :type => :class do
 let(:network_scheme) do
 <<eof
@@ -176,11 +175,92 @@ end
       should contain_L23network__L3__Ifconfig('bond0').that_requires("L23network::L2::Bond[bond0]")
     end
 
+  end
+end
+
+describe 'l23network::examples::run_network_scheme', :type => :class do
+let(:network_scheme) do
+<<eof
+---
+network_scheme:
+  version: 1.1
+  provider: lnx
+  interfaces:
+    eth2: {}
+    eth3: {}
+  transformations:
+    - action: add-bond
+      name:   bond0
+      interfaces:
+        - eth2
+        - eth3
+      bond_properties:
+        mode: balance-rr
+      provider: ovs
+  endpoints:
+    bond0:
+      IP:
+        - 192.168.101.3/24
+  roles: {}
+eof
+end
+
+  context 'with transformations and endpoint for bond' do
+    let(:title) { 'empty network scheme' }
+    let(:facts) {
+      {
+        :osfamily => 'Debian',
+        :operatingsystem => 'Ubuntu',
+        :kernel => 'Linux',
+        :l23_os => 'ubuntu',
+        :l3_fqdn_hostname => 'stupid_hostname',
+      }
+    }
+
+    before(:each) do
+      if ENV['SPEC_PUPPET_DEBUG']
+        Puppet::Util::Log.level = :debug
+        Puppet::Util::Log.newdestination(:console)
+      end
+    end
+
+    let(:params) do {
+      :settings_yaml => network_scheme,
+    } end
+
     it do
-      should contain_L23_stored_config('bond0').that_requires('L23_stored_config[eth2]')
+      should compile.with_all_deps
+    end
+
+    it do
+      should contain_L23network__L2__Bond_interface('eth2')
     end
     it do
-      should contain_L23_stored_config('bond0').that_requires('L23_stored_config[eth3]')
+      should contain_L23network__L2__Port('eth2')
+    end
+
+    it do
+      should contain_L23network__L2__Bond_interface('eth3')
+    end
+    it do
+      should contain_L23network__L2__Port('eth3')
+    end
+
+    it do
+      should contain_L23network__L2__Bond('bond0')
+    end
+    it do
+      should contain_L2_bond('bond0').that_requires('L2_port[eth2]')
+    end
+    it do
+      should contain_L2_bond('bond0').that_requires('L2_port[eth3]')
+    end
+
+    it do
+      should contain_L23network__L3__Ifconfig('bond0')
+    end
+    it do
+      should contain_L23network__L3__Ifconfig('bond0').that_requires("L23network::L2::Bond[bond0]")
     end
 
   end
