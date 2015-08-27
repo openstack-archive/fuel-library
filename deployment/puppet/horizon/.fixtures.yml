@@ -1,9 +1,0 @@
-fixtures:
-  repositories:
-    'apache': 'git://github.com/puppetlabs/puppetlabs-apache.git'
-    'concat':
-      'repo': 'git://github.com/puppetlabs/puppetlabs-concat.git'
-      'ref': '1.2.1'
-    'stdlib': 'git://github.com/puppetlabs/puppetlabs-stdlib.git'
-  symlinks:
-    "horizon": "#{source_dir}"
