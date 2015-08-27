@@ -62,6 +62,12 @@ define l23network::l2::bond (
     'encap3+4'
   ]
 
+ $lacp_states = [
+  'off',
+  'passive',
+  'active'
+ ]
+
   # calculate string representation for bond_mode
   if ! $bond_properties[mode] {
     # default value by design https://www.kernel.org/doc/Documentation/networking/bonding.txt
@@ -100,12 +106,19 @@ define l23network::l2::bond (
     }
   }
 
+  if ! $bond_properties[lacp] {
+    # default value
+    $lacp = $lacp_states[0]
+  } else {
+    $lacp = $bond_properties[lacp]
+  }
+
   # default bond properties
   $default_bond_properties = {
     mode             => $bond_mode,
     miimon           => $miimon,
     lacp_rate        => $lacp_rate,
-    lacp             => 'passive',
+    lacp             => $lacp,
     xmit_hash_policy => $xmit_hash_policy
   }
 
