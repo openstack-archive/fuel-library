@@ -1,6 +1,7 @@
 # == Define: l23network::l2::bond
 #
-# Create open vSwitch port bonding and add to the OVS bridge.
+# Create linux native or Open vSwitch bond port
+#
 #
 # === Parameters
 #
@@ -8,10 +9,13 @@
 #   Bond name.
 #
 # [*bridge*]
-#   Bridge that will contain this bond.
+#   Bridge that will contain this bond. Is only required for OVS bonds
 #
 # [*interfaces*]
 #   List of interfaces in this bond.
+#
+# [*provider*]
+#  This manifest supports lnx or ovs providers
 
 define l23network::l2::bond (
   $ensure                  = present,
@@ -62,6 +66,12 @@ define l23network::l2::bond (
     'encap3+4'
   ]
 
+  $lacp_states = [
+    'off',
+    'passive',
+    'active'
+  ]
+
   # calculate string representation for bond_mode
   if ! $bond_properties[mode] {
     # default value by design https://www.kernel.org/doc/Documentation/networking/bonding.txt
@@ -100,12 +110,19 @@ define l23network::l2::bond (
     }
   }
 
+  if ! $bond_properties[lacp] {
+    # default value
+    $lacp = $lacp_states[0]
+  } else {
+    $lacp = $bond_properties[lacp]
+  }
+
   # default bond properties
   $default_bond_properties = {
     mode             => $bond_mode,
     miimon           => $miimon,
     lacp_rate        => $lacp_rate,
-    lacp             => 'passive',
+    lacp             => $lacp,
     xmit_hash_policy => $xmit_hash_policy
   }
 
@@ -117,6 +134,10 @@ define l23network::l2::bond (
 
   if $delay_while_up and ! is_numeric($delay_while_up) {
     fail("Delay for waiting after UP interface ${port} should be numeric, not an '$delay_while_up'.")
+  }
+
+  if ! $bridge and $provider == 'ovs' {
+    fail("Bridge is not defined for bond ${bond}. This is necessary for Open vSwitch bonds")
   }
 
   # Use $monolith_bond_providers list for prevent creating ports for monolith bonds
@@ -142,6 +163,13 @@ define l23network::l2::bond (
       interface_properties => $interface_properties,
       ensure               => $ensure,
       provider             => $actual_provider_for_bond_interface
+    }
+  }
+
+  if (! defined(L23network::L2::Bridge[$bridge]) and $provider == 'ovs') {
+    l23network::l2::bridge { $bridge:
+      ensure    => 'present',
+      provider  => $provider,
     }
   }
 
