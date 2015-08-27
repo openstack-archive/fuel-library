@@ -119,6 +119,9 @@ module NoopTests
       opts.on('-u', '--update-librarian-puppet', 'Run librarian-puppet update in the deployment directory prior to testing') do
         @options[:update_librarian_puppet] = true
       end
+      opts.on('-r', '--reset-librarian-puppet', 'Reset puppet modules to librarian versions in the deployment directory prior to testing') do
+        @options[:reset_librarian_puppet] = true
+      end
 
     end
     optparse.parse!
@@ -412,6 +415,9 @@ module NoopTests
     command = './update_modules.sh -v'
     # pass the bundle parameter to update_modules if specified for this script
     command = command + ' -b' if options[:bundle]
+    # pass the reset parameter to update_modules if specified for this script
+    command = command + ' -r' if options[:reset_librarian_puppet]
+
     inside_deployment_directory do
       puts "-> Starting update_modules script"
       system command

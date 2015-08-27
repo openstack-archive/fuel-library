@@ -27,6 +27,7 @@
 #
 # Parameters:
 #  -b - Use bundler to install librarian-puppet (optional)
+#  -r - Reset modules back to specific version that was checkout out (optional)
 #  -p <puppet_version> - Puppet version to use with bundler (optional)
 #  -h <bundle_dir> - Folder to be used as the home directory for bundler (optional)
 #  -g <gem_home> - Folder to be used as the gem directory (optional)
@@ -51,7 +52,7 @@ set -e
 
 usage() {
   cat <<EOF
-  Usage: $(basename $0) [-b] [-p <puppet_version>] [-h <bundle_dir>] [-g <gem_home>] [-?]
+  Usage: $(basename $0) [-b] [-r] [-p <puppet_version>] [-h <bundle_dir>] [-g <gem_home>] [-?]
 
 Options:
   -b - Use bundler instead of assuming librarian-puppet is available
@@ -65,7 +66,7 @@ EOF
   exit 1
 }
 
-while getopts ":bp:l:h:v" opt; do
+while getopts ":bp:l:h:vr" opt; do
   case $opt in
     b)
       USE_BUNDLER=true
@@ -79,6 +80,9 @@ while getopts ":bp:l:h:v" opt; do
       ;;
     g)
       GEM_HOME=$OPTARG
+      ;;
+    r)
+      RESET_HARD=true
       ;;
     v)
       set -x
@@ -110,5 +114,30 @@ if [ "$USE_BUNDLER" = true ]; then
   bundle update
 fi
 
-# run librarian-puppet install to populate the modules
+# Check to make sure if the folder already exists, it has a .git so we can
+# use git on it. If the mod folder exists, but .git doesn't then remove the mod
+# folder so it can be properly installed via librarian.
+for MOD in $(grep "^mod" Puppetfile | tr -d '[:punct:]' | awk '{ print $2 }'); do
+  MOD_DIR="${DEPLOYMENT_DIR}/puppet/${MOD}"
+  if [ -d $MOD_DIR ] && [ ! -d "${MOD_DIR}/.git" ];
+  then
+    rm -rf "${MOD_DIR}"
+  fi
+done
+
+# run librarian-puppet install to populate the modules if they do not already
+# exist
 $BUNDLER_EXEC librarian-puppet install --path=puppet
+
+# run librarian-puppet update to ensure the modules are checked out to the
+# correct version
+$BUNDLER_EXEC librarian-puppet update --path=puppet
+
+# do a hard reset on the librarian managed modules LP#1489542
+if [ "$RESET_HARD" = true ]; then
+  for MOD in $(grep "^mod " Puppetfile | tr -d '[:punct:]' | awk '{ print $2 }'); do
+    cd "${DEPLOYMENT_DIR}/puppet/${MOD}"
+    git reset --hard
+  done
+  cd $DEPLOYMENT_DIR
+fi
