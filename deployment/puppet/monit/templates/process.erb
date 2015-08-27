@@ -1,7 +1,0 @@
-<%- if @pidfile %>
-check process <%= @name %> with pidfile <%= @pidfile %>
-<%- else %>
-check process <%= @name %> matching "<%= @matching %>"
-<%- end %>
-  start program = "<%= @start_command %>" with timeout <%= @timeout %> seconds
-  stop program  = "<%= @stop_command %>"
