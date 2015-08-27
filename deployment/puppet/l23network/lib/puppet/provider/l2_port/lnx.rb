@@ -75,6 +75,10 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       # FLUSH changed properties
       if @property_flush.has_key? :bond_master
         bond = @old_property_hash[:bond_master]
+        if self.class.ipaddr_exist? @resource[:interface]
+          # remove all IP addresses from member of bond. This should be done on device in UP state
+          iproute('addr', 'flush', 'dev', @resource[:interface])
+        end
         # putting interface to the down-state, because add/remove upped interface impossible. undocumented kern.behavior.
         iproute('--force', 'link', 'set', 'down', 'dev', @resource[:interface])
         if bond and bond != :absent and File.exist?("/sys/class/net/#{@resource[:interface]}/master/bonding/slaves")
