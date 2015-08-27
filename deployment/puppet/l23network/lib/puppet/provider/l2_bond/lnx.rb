@@ -82,15 +82,15 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           rm_slave_list = runtime_slave_ports - @property_flush[:slaves]
           debug("Remove '#{rm_slave_list.join(',')}' ports from bond '#{@resource[:bond]}'")
           rm_slave_list.each do |slave|
-            iproute('link', 'set', 'dev', slave, 'down')  # need by kernel requirements by design. undocumented :(
+            iproute('link', 'set', 'down', 'dev', slave)  # need by kernel requirements by design. undocumented :(
             File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "-#{slave}"}
           end
           # add interfaces to bond
           (@property_flush[:slaves] - runtime_slave_ports).each do |slave|
-            iproute('link', 'set', 'dev', slave, 'down')  # need by kernel requirements by design. undocumented :(
+            iproute('link', 'set', 'down', 'dev', slave)  # need by kernel requirements by design. undocumented :(
             debug("Add interface '#{slave}' to bond '#{@resource[:bond]}'")
             File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "+#{slave}"}
-            iproute('link', 'set', 'dev', slave, 'up')
+            iproute('link', 'set', 'up', 'dev', slave)
           end
         end
       end
@@ -135,7 +135,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         #
         # remove interface from old bridge
         runtime_bond_state  = !self.class.get_iface_state(@resource[:bond]).nil?
-        iproute('--force', 'link', 'set', 'dev', @resource[:bond], 'down')
+        iproute('--force', 'link', 'set', 'down', 'dev', @resource[:bond])
         if ! port_bridges_hash[@resource[:bond]].nil?
           br_name = port_bridges_hash[@resource[:bond]][:bridge]
           if br_name != @resource[:bond]
@@ -163,11 +163,11 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             #pass
           end
         end
-        iproute('link', 'set', 'dev', @resource[:bond], 'up') if runtime_bond_state
+        iproute('link', 'set', 'up', 'dev', @resource[:bond]) if runtime_bond_state
         debug("Change bridge")
       end
       if @property_flush[:onboot]
-        iproute('link', 'set', 'dev', @resource[:bond], 'up')
+        iproute('link', 'set', 'up', 'dev', @resource[:bond])
       end
       if !['', 'absent'].include? @property_flush[:mtu].to_s
         self.class.set_mtu(@resource[:bond], @property_flush[:mtu])
