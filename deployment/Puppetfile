@@ -24,7 +24,7 @@
 # Pull in puppetlabs-stdlib
 mod 'stdlib',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-stdlib.git',
-    :ref => '4.6.0'
+    :ref => '4.8.0'
 
 # Pull in puppetlabs-concat
 mod 'concat',
@@ -34,7 +34,7 @@ mod 'concat',
 # Pull in puppetlabs-inifile
 mod 'inifile',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-inifile.git',
-    :ref => '1.1.3'
+    :ref => '1.4.1'
 
 # Pull in puppetlabs-xinetd
 mod 'xinetd',
@@ -49,12 +49,12 @@ mod 'ssh',
 # Pull in puppetlabs-ntp
 mod 'ntp',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-ntp.git',
-    :ref => '4.0.0'
+    :ref => '4.1.0'
 
 # Pull in puppetlabs-apache
 mod 'apache',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-apache.git',
-    :ref => '1.3.0'
+    :ref => '1.6.0'
 
 # Pull in puppetlabs-apt
 mod 'apt',
@@ -65,3 +65,116 @@ mod 'apt',
 mod 'firewall',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-firewall.git',
     :ref => '1.2.0'
+
+# Pull in openstack-cinder
+mod 'cinder',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/openstack-cinder.git',
+    :ref => 'mos-8.0'
+
+mod 'ceilometer',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-ceilometer.git',
+    :ref => 'mos-8.0'
+
+mod 'common',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-common.git',
+    :ref => 'mos-8.0'
+
+#mod 'corosync',
+#    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-corosync.git',
+#    :ref => 'mos-8.0'
+
+mod 'filemapper',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-filemapper.git',
+    :ref => 'master'
+
+mod 'glance',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-glance.git',
+    :ref => 'mos-8.0'
+
+#mod 'haproxy',
+#    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-haproxy.git',
+#    :ref => 'mos-8.0'
+
+mod 'heat',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-heat.git',
+    :ref => 'mos-8.0'
+
+mod 'horizon',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-horizon.git',
+    :ref => 'mos-8.0'
+
+mod 'keystone',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-keystone.git',
+    :ref => 'mos-8.0'
+
+mod 'memcached',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-memcached.git',
+    :ref => 'v2.8.1'
+
+mod 'mongodb',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-mongodb.git',
+    :ref => '0.10.0-mos'
+
+mod 'monit',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-monit.git',
+    :ref => 'master'
+
+mod 'murano',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-murano.git',
+    :ref => 'mos-8.0'
+
+#mod 'mysql',
+#    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-mysql.git',
+#    :ref => 'mos-8.0'
+
+mod 'neutron',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-neutron.git',
+    :ref => 'mos-8.0'
+
+mod 'nova',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-nova.git',
+    :ref => 'mos-8.0'
+
+mod 'openssl',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openssl.git',
+    :ref => '1.3.10-mos'
+
+mod 'openstacklib',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openstacklib.git',
+    :ref => 'mos-8.0'
+
+mod 'postgresql',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-postgresql.git',
+    :ref => '4.5.0'
+
+#mod 'rabbitmq',
+#    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-rabbitmq.git',
+#    :ref => 'mos-8.0'
+
+mod 'rsync',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-rsync.git',
+    :ref => '0.4.0-mos'
+
+#mod 'rsyslog',
+#    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-rsyslog.git',
+#    :ref => 'mos-8.0'
+
+mod 'sahara',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-sahara.git',
+    :ref => 'mos-8.0'
+
+mod 'staging',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-staging.git',
+    :ref => '1.0.4'
+
+mod 'swift',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-swift.git',
+    :ref => 'mos-8.0'
+
+mod 'sysctl',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-sysctl.git',
+    :ref => 'v0.0.11'
+
+mod 'vcsrepo',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-vcsrepo.git',
+    :ref => '1.3.1'

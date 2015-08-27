@@ -1,4 +1,0 @@
-*.swp
-spec/fixtures/modules/*
-pkg
-Gemfile.lock
