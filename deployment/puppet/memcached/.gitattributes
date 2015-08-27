@@ -1,2 +1,0 @@
-# Enforce Linux line-endings for template files on every operating system.
-*.erb text eol=lf
