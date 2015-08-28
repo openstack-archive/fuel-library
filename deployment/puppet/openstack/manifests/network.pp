@@ -129,6 +129,18 @@ class openstack::network (
   }
   Sysctl::Value<| name == 'net.ipv4.ip_forward' |> -> Nova_config<||>
 
+  # All nodes with network functions should have these thresholds
+  # to satisfy conntrack requirements in case of huge number of connections
+  sysctl::value { 'net.ipv4.neigh.default.gc_thresh1':
+    value => '1024'
+  }
+  sysctl::value { 'net.ipv4.neigh.default.gc_thresh2':
+    value => '2048'
+  }
+  sysctl::value { 'net.ipv4.neigh.default.gc_thresh3':
+    value => '4096'
+  }
+
   case $network_provider {
     'nova': {
       class { 'nova::network':
