@@ -52,6 +52,12 @@ describe manifest do
       should contain_glance_api_config('DEFAULT/auth_url').with_value("#{auth_uri}v2.0/")
     end
 
+    if $glance_backend == 'rbd'
+      it 'should configure rados_connect_timeout' do
+        should contain_glance_api_config('glance_store/rados_connect_timeout').with_value('30')
+      end
+    end
+
     it 'should configure glance cache config' do
       should contain_glance_cache_config('DEFAULT/use_syslog').with_value(use_syslog)
       should contain_glance_cache_config('DEFAULT/image_cache_dir').with_value('/var/lib/glance/image-cache/')

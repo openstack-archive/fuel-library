@@ -55,6 +55,8 @@ $glance_show_image_direct_url   = pick($glance_hash['show_image_direct_url'], tr
 $glance_pipeline                = pick($glance_hash['pipeline'], 'keystone')
 $glance_large_object_size       = pick($glance_hash['large_object_size'], '5120')
 
+$rados_connect_timeout          = '30'
+
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
   $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
@@ -112,6 +114,7 @@ class { 'openstack::glance':
   known_stores                   => $glance_known_stores,
   ceilometer                     => $ceilometer_hash[enabled],
   service_workers                => $service_workers,
+  rados_connect_timeout          => $rados_connect_timeout,
  }
 
 ####### Disable upstart startup on install #######
