@@ -26,6 +26,13 @@ class openstack::logrotate (
       mode    => '0644',
       content => template('openstack/10-fuel.conf.erb'),
     }
+
+    file { '/etc/logrotate.d/puppet':
+      owner  => 'root',
+      group  => 'root',
+      mode   => '0644',
+      source => 'puppet:///modules/openstack/logrotate-puppet.conf',
+    }
   }
 
   #Upstart logs are managed by fuel logrotate file
