@@ -10,6 +10,12 @@ describe manifest do
     use_neutron = Noop.hiera 'use_neutron'
     ceilometer_enabled = Noop.hiera_structure 'ceilometer/enabled'
 
+    it 'should apply kernel tweaks for connections' do
+      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh1').with_value('1024')
+      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh2').with_value('2048')
+      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh3').with_value('4096')
+    end
+
     # Network
     if use_neutron
       it 'should declare openstack::network with neutron enabled' do
