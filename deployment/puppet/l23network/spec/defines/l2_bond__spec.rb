@@ -131,7 +131,7 @@ describe 'l23network::l2::bond', :type => :define do
     it do
       should contain_l2_bond('bond0').with({
         'mtu'         => 9000,
-      }).that_requires('L23_stored_config[bond0]')
+      }).that_comes_before('L23_stored_config[bond0]')
     end
 
     ['eth3', 'eth4'].each do |slave|
