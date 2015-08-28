@@ -101,6 +101,7 @@ network_scheme:
       interfaces:
         - eth2.101
         - eth3.101
+      bridge: br-bond23
       bond_properties:
         mode: balance-rr
       provider: ovs
@@ -141,6 +142,7 @@ end
         'provider' => 'ovs',
         'ensure' => 'present',
         'slaves' => ['eth2.101', 'eth3.101'],
+        'bridge' => 'br-bond23',
       })
     end
 

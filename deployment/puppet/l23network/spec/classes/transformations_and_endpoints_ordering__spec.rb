@@ -107,6 +107,7 @@ network_scheme:
       interfaces:
         - eth2
         - eth3
+      bridge: br-bond0
       bond_properties:
         mode: balance-rr
   endpoints:
@@ -194,6 +195,7 @@ network_scheme:
       interfaces:
         - eth2
         - eth3
+      bridge: some-bridge
       bond_properties:
         mode: balance-rr
       provider: ovs

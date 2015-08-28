@@ -110,6 +110,7 @@ network_scheme:
       interfaces:
         - eth2
         - eth3
+      bridge: some-bridge
       mtu: 4000
       bond_properties:
         mode: balance-rr

@@ -250,5 +250,127 @@ describe 'l23network::l2::bond', :type => :define do
   end
 
 
+  #  Open vSwitch provider
+
+  context 'Create a ovs-bond without defined bridge' do
+    let(:params) do
+      {
+        :name            => 'bond-ovs',
+        :interfaces      => ['eth2', 'eth3'],
+        :bond_properties => {
+            'mode'             => 'balance-tlb',
+            'lacp_rate'        => 'fast',
+            'xmit_hash_policy' => 'layer2+3',
+            'miimon'           => '300',
+        },
+        :provider => 'ovs'
+      }
+    end
+
+    it do
+        should compile.and_raise_error(%r{Bridge is not defined for bond bond-ovs. This is necessary for Open vSwitch bonds})
+    end
+  end
+
+  context 'Create a ovs-bond with mode = balance-tlb, lacp_rate = fast xmit_hash_policy = layer2+3' do
+    let(:params) do
+      {
+        :name            => 'bond-ovs',
+        :interfaces      => ['eth2', 'eth3'],
+        :bridge          => 'br-bond-ovs',
+        :bond_properties => {
+            'mode'             => 'balance-tlb',
+            'lacp_rate'        => 'fast',
+            'xmit_hash_policy' => 'layer2+3',
+            'miimon'           => '300',
+        },
+        :provider => 'ovs'
+      }
+    end
+
+    it do
+        should compile
+    end
+
+    ['eth2', 'eth3'].each do |slave|
+      it do
+        should contain_l23_stored_config(slave).with({
+          'ensure'      => 'present',
+          'if_type'     => nil,
+          'bond_master' => nil,
+        })
+      end
+
+      it do
+        should contain_l2_port(slave)
+      end
+
+      it do
+        should contain_l2_port(slave).with({
+          'ensure'   => 'present',
+          'provider' => nil,
+        }).that_requires("L23_stored_config[#{slave}]")
+      end
+
+    end
+
+    it 'Contain l23_stored_config with lacp=off by default' do
+      should contain_l23_stored_config('bond-ovs').with({
+        'ensure'                => 'present',
+        'bridge'                => 'br-bond-ovs',
+        'if_type'               => 'bond',
+        'bond_lacp'             => 'off',
+        'bond_mode'             => 'balance-tlb',
+        'bond_lacp_rate'        => nil,
+        'bond_xmit_hash_policy' => 'layer2+3',
+        'bond_miimon'           => '300',
+      })
+    end
+
+    it do
+      should contain_l2_bond('bond-ovs').with({
+        'bond_properties' => {
+                             :mode             => 'balance-tlb',
+                             :lacp             => 'off',
+                             :lacp_rate        => :undef,
+                             :xmit_hash_policy => 'layer2+3',
+                             :miimon           => '300',
+                             },
+      })
+    end
+
+  end
+
+  context 'Create a ovs-bond with mode = balance-tlb, lacp = active' do
+    let(:params) do
+      {
+        :name            => 'bond-ovs2',
+        :interfaces      => ['eth23', 'eth33'],
+        :bridge          => 'br-bond-ovs2',
+        :bond_properties => {
+            'mode'             => 'balance-tlb',
+            'lacp'             => 'active',
+        },
+        :provider => 'ovs'
+      }
+    end
+
+    it do
+        should compile
+    end
+
+    it 'Contain l23_stored_config with lacp=active' do
+      should contain_l23_stored_config('bond-ovs2').with({
+        'ensure'                => 'present',
+        'bridge'                => 'br-bond-ovs2',
+        'if_type'               => 'bond',
+        'bond_lacp'             => 'active',
+        'bond_mode'             => 'balance-tlb',
+      })
+    end
+
+  end
+
+
 end
 # vim: set ts=2 sw=2 et

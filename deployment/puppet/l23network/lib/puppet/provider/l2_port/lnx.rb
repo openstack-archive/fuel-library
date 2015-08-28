@@ -73,7 +73,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       end
       #
       # FLUSH changed properties
-      if @property_flush.has_key? :bond_master
+      if @property_flush.has_key? :bond_master and @property_flush[:bond_master] != :absent
         bond = @old_property_hash[:bond_master]
         # putting interface to the down-state, because add/remove upped interface impossible. undocumented kern.behavior.
         iproute('--force', 'link', 'set', 'down', 'dev', @resource[:interface])
@@ -107,7 +107,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         #Flush ipaddr and routes for interface, thah adding to the bridge
         iproute('route', 'flush', 'dev', @resource[:interface])
         iproute('addr', 'flush', 'dev', @resource[:interface])
-        iproute('--force', 'link', 'set', 'dev', @resource[:interface], 'down')
+        iproute('--force', 'link', 'set', 'down', 'dev', @resource[:interface])
         # remove interface from old bridge
         if ! port_bridges_hash[@resource[:interface]].nil?
           br_name = port_bridges_hash[@resource[:interface]][:bridge]
@@ -142,7 +142,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             #pass
           end
         end
-        iproute('link', 'set', 'dev', @resource[:interface], 'up')
+        iproute('link', 'set', 'up', 'dev', @resource[:interface])
         debug("Change bridge")
       end
       if @property_flush.has_key? :ethtool and @property_flush[:ethtool].is_a? Hash
@@ -168,7 +168,10 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       if ! @property_flush[:onboot].nil?
         # Should be after bond, because interface may auto-upped while added to the bond
         debug("Setup UP state for interface '#{@resource[:interface]}'.")
-        iproute('link', 'set', 'dev', @resource[:interface], 'up')
+        # Up parent interface if this is vlan port
+        iproute('link', 'set', 'up', 'dev', @resource[:vlan_dev]) if @resource[:vlan_dev]
+        # Up port
+        iproute('link', 'set', 'up', 'dev', @resource[:interface])
       end
       if !['', 'absent'].include? @property_flush[:mtu].to_s
         self.class.set_mtu(@resource[:interface], @property_flush[:mtu])
