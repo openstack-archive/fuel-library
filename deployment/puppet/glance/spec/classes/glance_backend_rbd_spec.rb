@@ -18,6 +18,7 @@ describe 'glance::backend::rbd' do
     it { is_expected.to contain_glance_api_config('glance_store/rbd_store_pool').with_value('images') }
     it { is_expected.to contain_glance_api_config('glance_store/rbd_store_ceph_conf').with_value('/etc/ceph/ceph.conf') }
     it { is_expected.to contain_glance_api_config('glance_store/rbd_store_chunk_size').with_value('8') }
+    it { is_expected.to contain_glance_api_config('glance_store/rados_connect_timeout').with_value('30') }
 
     it { is_expected.to contain_package('python-ceph').with(
         :name   => 'python-ceph',

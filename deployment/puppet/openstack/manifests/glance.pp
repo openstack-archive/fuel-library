@@ -87,6 +87,7 @@ class openstack::glance (
   $known_stores                   = false,
   $rbd_store_user                 = 'images',
   $rbd_store_pool                 = 'images',
+  $rados_connect_timeout          = '30',
   $ceilometer                     = false,
   $service_workers                = $::processorcount,
 ) {
@@ -262,6 +263,7 @@ class openstack::glance (
       class { 'glance::backend::rbd':
         rbd_store_user => $rbd_store_user,
         rbd_store_pool => $rbd_store_pool,
+        rados_connect_timeout => $rados_connect_timeout,
       }
     }
     'vmware': {
