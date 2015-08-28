@@ -18,6 +18,7 @@ $cinder_db_password    = $cinder_hash[db_password]
 $cinder_user_password  = $cinder_hash[user_password]
 $keystone_user         = pick($cinder_hash['user'], 'cinder')
 $keystone_tenant       = pick($cinder_hash['tenant'], 'services')
+$region                = hiera('region', 'RegionOne')
 $db_host               = pick($cinder_hash['db_host'], hiera('database_vip'))
 $cinder_db_user        = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name        = pick($cinder_hash['db_name'], 'cinder')
@@ -75,6 +76,7 @@ class {'openstack::cinder':
   keystone_user        => $keystone_user,
   keystone_tenant      => $keystone_tenant,
   auth_uri             => $auth_uri,
+  region               => $region,
   identity_uri         => $identity_uri,
   cinder_user_password => $cinder_user_password,
   use_syslog           => hiera('use_syslog', true),

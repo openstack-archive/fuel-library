@@ -137,6 +137,7 @@ class openstack::glance (
     'DEFAULT/scrub_time':                  value => '43200';
     'DEFAULT/scrubber_datadir':            value => '/var/lib/glance/scrubber';
     'DEFAULT/auth_region':                 value => $region;
+    'DEFAULT/os_region_name':              value => $region;
     'keystone_authtoken/signing_dir':      value => '/tmp/keystone-signing-glance';
     'keystone_authtoken/token_cache_time': value => '-1';
   }

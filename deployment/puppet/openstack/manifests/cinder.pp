@@ -39,6 +39,7 @@ class openstack::cinder(
   $auth_uri               = false,
   $identity_uri           = false,
   $keystone_user          = 'cinder',
+  $region                 = 'RegionOne',
   $ceilometer             = false,
   $service_workers        = $::processorcount,
   $vmware_host_ip         = '10.10.10.10',
@@ -128,16 +129,17 @@ class openstack::cinder(
 
   if ($bind_host) {
     class { 'cinder::api':
-      keystone_enabled   => $keystone_enabled,
-      package_ensure     => $::openstack_version['cinder'],
-      auth_uri           => $auth_uri,
-      identity_uri       => $identity_uri,
-      keystone_user      => $keystone_user,
-      keystone_tenant    => $keystone_tenant,
-      keystone_password  => $cinder_user_password,
-      bind_host          => $bind_host,
-      ratelimits         => $cinder_rate_limits,
-      service_workers    => $service_workers,
+      keystone_enabled  => $keystone_enabled,
+      package_ensure    => $::openstack_version['cinder'],
+      auth_uri          => $auth_uri,
+      identity_uri      => $identity_uri,
+      keystone_user     => $keystone_user,
+      keystone_tenant   => $keystone_tenant,
+      keystone_password => $cinder_user_password,
+      os_region_name    => $region,
+      bind_host         => $bind_host,
+      ratelimits        => $cinder_rate_limits,
+      service_workers   => $service_workers,
     }
 
     class { 'cinder::scheduler':
