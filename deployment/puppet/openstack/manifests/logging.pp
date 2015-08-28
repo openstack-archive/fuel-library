@@ -97,42 +97,49 @@ class openstack::logging (
       file_severity => "ERROR",
     }
 
-    ::rsyslog::imfile { '05-horizon_access':
+    ::rsyslog::imfile { '05-apache2-error':
+      file_name     => '/var/log/apache2/error.log',
+      file_tag      => 'apache2_error',
+      file_facility => 'syslog',
+      file_severity => 'ERROR',
+    }
+
+    ::rsyslog::imfile { '11-horizon_access':
       file_name     => '/var/log/apache2/horizon_access.log',
       file_tag      => 'horizon_access',
       file_facility => 'syslog',
       file_severity => 'INFO',
     }
 
-    ::rsyslog::imfile { '05-horizon_error':
+    ::rsyslog::imfile { '11-horizon_error':
       file_name     => '/var/log/apache2/horizon_error.log',
       file_tag      => 'horizon_error',
       file_facility => 'syslog',
       file_severity => 'ERROR',
     }
 
-    ::rsyslog::imfile { '06-keystone_wsgi_admin_access':
+    ::rsyslog::imfile { '12-keystone_wsgi_admin_access':
       file_name     => '/var/log/apache2/keystone_wsgi_admin_access.log',
       file_tag      => 'keystone_wsgi_admin_access',
       file_facility => 'syslog',
       file_severity => 'INFO',
     }
 
-    ::rsyslog::imfile { '06-keystone_wsgi_admin_error':
+    ::rsyslog::imfile { '12-keystone_wsgi_admin_error':
       file_name     => '/var/log/apache2/keystone_wsgi_admin_error.log',
       file_tag      => 'keystone_wsgi_admin_error',
       file_facility => 'syslog',
       file_severity => 'ERROR',
     }
 
-    ::rsyslog::imfile { '07-keystone_wsgi_main_access':
+    ::rsyslog::imfile { '13-keystone_wsgi_main_access':
       file_name     => '/var/log/apache2/keystone_wsgi_main_access.log',
       file_tag      => 'keystone_wsgi_main_access',
       file_facility => 'syslog',
       file_severity => 'INFO',
     }
 
-    ::rsyslog::imfile { '07-keystone_wsgi_main_error':
+    ::rsyslog::imfile { '13-keystone_wsgi_main_error':
       file_name     => '/var/log/apache2/keystone_wsgi_main_error.log',
       file_tag      => 'keystone_wsgi_main_error',
       file_facility => 'syslog',
