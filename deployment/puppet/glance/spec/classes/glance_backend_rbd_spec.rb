@@ -18,6 +18,7 @@ describe 'glance::backend::rbd' do
     it { is_expected.to contain_glance_api_config('glance_store/rbd_store_pool').with_value('images') }
     it { is_expected.to contain_glance_api_config('glance_store/rbd_store_ceph_conf').with_value('/etc/ceph/ceph.conf') }
     it { is_expected.to contain_glance_api_config('glance_store/rbd_store_chunk_size').with_value('8') }
+    it { is_expected.to contain_glance_api_config('glance_store/rados_connect_timeout').with_value('0') }
 
     it { is_expected.to contain_package('python-ceph').with(
         :name   => 'python-ceph',
@@ -32,11 +33,12 @@ describe 'glance::backend::rbd' do
         :rbd_store_user        => 'user',
         :rbd_store_chunk_size  => '2',
         :package_ensure        => 'latest',
+        :rados_connect_timeout => '30',
       }
     end
     it { is_expected.to contain_glance_api_config('glance_store/rbd_store_user').with_value('user') }
     it { is_expected.to contain_glance_api_config('glance_store/rbd_store_chunk_size').with_value('2') }
-    it { is_expected.to contain_package('python-ceph').with(
+    it { is_expected.to contain_glance_api_config('glance_store/rados_connect_timeout').with_value('30') }
         :name   => 'python-ceph',
         :ensure => 'latest'
       )
