@@ -30,7 +30,7 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
     end
 
     begin
-      vsctl("add-bond", @resource[:bridge], @resource[:bond], @resource[:slaves])
+      vsctl('--may-exist', 'add-bond', @resource[:bridge], @resource[:bond], @resource[:slaves])
     rescue Puppet::ExecutionFailure => error
       raise Puppet::ExecutionFailure, "Can't add bond '#{@resource[:bond]}'\n#{error}"
     end
@@ -47,7 +47,7 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   end
 
   def destroy
-    vsctl("del-port", @resource[:bridge], @resource[:bond])
+    vsctl('del-port', @resource[:bridge], @resource[:bond])
   end
 
   def flush
@@ -85,7 +85,7 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
               # override property if it should be given as string for ovs and as integer for native linux
               val = allowed_properties[prop.to_sym][:override_integer][val.to_i] || allowed_properties[prop.to_sym][:override_integer][0]
             end
-            vsctl('--', "set", "Port", @resource[:bond], "#{allowed_properties[prop.to_sym][:property]}=#{val}") if ! val.nil?
+            vsctl('--', 'set', 'Port', @resource[:bond], "#{allowed_properties[prop.to_sym][:property]}=#{val}") if ! val.nil?
           end
         end
       end
