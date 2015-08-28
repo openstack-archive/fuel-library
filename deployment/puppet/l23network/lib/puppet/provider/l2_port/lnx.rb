@@ -94,6 +94,9 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           # port no more member of any bonds
           @property_flush[:port_type] = nil
         end
+        # Up parent interface if this is vlan port
+        iproute('link', 'set', 'up', 'dev', @resource[:vlan_dev]) if @resource[:vlan_dev]
+        # Up port
         iproute('--force', 'link', 'set', 'up', 'dev', @resource[:interface])
       end
       if @property_flush.has_key? :bridge
