@@ -1,1 +1,2 @@
+networkx>=1.8,<1.10
 fuel-tasks-validator==6.1.0
