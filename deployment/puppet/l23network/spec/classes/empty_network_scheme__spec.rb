@@ -29,7 +29,7 @@ eof
     } }
 
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it 'should not contain l3_clear_route' do
