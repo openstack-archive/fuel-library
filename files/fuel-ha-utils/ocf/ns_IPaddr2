@@ -27,6 +27,7 @@ OCF_RESKEY_other_networks_default=""  #  can be "", or list of networks in CIDR 
 FAMILY='inet'
 RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
 SH="/bin/bash"
+
 #######################################################################
 
 #######################################################################
@@ -280,24 +281,21 @@ add_to_bridge() {
   local bridge_mtu=`cat /sys/class/net/${br}/mtu`
   # check which bridge (OVS or LNX) used
   if [[ -d /sys/class/net/${br}/brif ]] ; then
-    # LNX. Setup MTU and attach jack to the bridge
+    # LNX
     if [[ ! -d /sys/class/net/${br}/brif/${veth} ]] ; then
-      ocf_run ip link set mtu $bridge_mtu dev $veth
+      # attach 1-st jack to an LNX bridge
       ocf_run brctl addif $br $veth || return $OCF_ERR_GENERIC
     fi
   else
     # OVS
-    ovs-vsctl show | grep $ns_veth
+    ovs-vsctl show | grep $veth
     if [[ $? != 0 ]] ; then
-      # create port if required
-      ocf_run ovs-vsctl add-port $br $ns_veth -- set Interface $ns_veth type=internal
-    fi
-    $RUN_IN_NS ip a | grep $ns_veth
-    if [[ $? != 0 ]] ; then
-      ocf_run ip link set $ns_veth netns $OCF_RESKEY_ns
+      # attach 1-st jack to an OVS bridge
+      ocf_run ovs-vsctl --may-exist add-port $br $veth || return $OCF_ERR_GENERIC
     fi
   fi
-  # adjust MTU into net.namespace
+  # adjust MTU
+  ocf_run            ip link set mtu $bridge_mtu dev $veth
   ocf_run $RUN_IN_NS ip link set mtu $bridge_mtu dev $ns_veth
   return $OCF_SUCCESS
 }
@@ -306,11 +304,13 @@ remove_from_bridge() {
   if [[ -d /sys/class/net/${OCF_RESKEY_bridge}/brif ]] ; then
     # native linux bridges
     if [[ -d /sys/class/net/${OCF_RESKEY_bridge}/brif/${OCF_RESKEY_base_veth} ]] ; then
-      ocf_run brctl delif $OCF_RESKEY_bridge $OCF_RESKEY_base_veth
+      ocf_run brctl delif $OCF_RESKEY_bridge $OCF_RESKEY_base_veth || return $OCF_ERR_GENERIC
+    else
+      ocf_log warn "Jack ${OCF_RESKEY_base_veth} not a member of ${OCF_RESKEY_bridge} yet."
     fi
   else
     # OVS bridge
-    ocf_run ovs-vsctl del-port $OCF_RESKEY_bridge $OCF_RESKEY_ns_veth
+    ocf_run ovs-vsctl del-port $OCF_RESKEY_bridge $OCF_RESKEY_veth || return $OCF_ERR_GENERIC
   fi
   return $OCF_SUCCESS
 }
@@ -339,22 +339,16 @@ get_or_create_veth_pair() {
   # check tail of veth-pair in base system
   ip link show $OCF_RESKEY_base_veth 2>&1 > /dev/null
   rc=$?
-
-  # 1st jack not found, need to create pair and attach 2nd jack to the net.namespace
   if [[ $rc != 0 ]] ; then
-    # check whether OVS bridge will be used
-    ovs-vsctl show | grep $OCF_RESKEY_ns_veth
-    rc1=$?
-    if [[ $rc1 != 0 ]] ; then
-      # LNX bridge used, create veth pair and put 2nd jack to the net.ns
+      # 1st jack not found, need to create pair and attach 2nd jack to the net.namespace
+      # create veth pair and put 2nd jack to the net.ns
       ocf_run ip link add $OCF_RESKEY_base_veth type veth peer name $OCF_RESKEY_ns_veth
       ocf_run ip link set dev $OCF_RESKEY_ns_veth netns $OCF_RESKEY_ns
       ocf_run            ip link set up dev $OCF_RESKEY_base_veth
       ocf_run $RUN_IN_NS ip link set up dev $OCF_RESKEY_ns_veth
       sleep 1
-    fi
-    # connect veth-pair to the bridge and adjust MTU
-    add_to_bridge $OCF_RESKEY_bridge $OCF_RESKEY_base_veth $OCF_RESKEY_ns_veth
+      # connect veth-pair to the bridge and adjust MTU
+      add_to_bridge $OCF_RESKEY_bridge $OCF_RESKEY_base_veth $OCF_RESKEY_ns_veth
   fi
   return $OCF_SUCCESS
 }
