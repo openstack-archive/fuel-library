@@ -38,7 +38,7 @@ end
     } end
 
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do

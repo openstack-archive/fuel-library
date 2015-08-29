@@ -24,7 +24,7 @@ describe Puppet::Type.type(:l2_bond).provider(:ovs) do
       provider.class.stubs(:iproute)
       provider.class.stubs(:iproute).with('addr', 'flush', 'dev', 'eth1').returns(true)
       provider.class.stubs(:iproute).with('addr', 'flush', 'dev', 'eth2').returns(true)
-      provider.class.stubs(:vsctl).with('add-bond', 'br1', 'bond1', ['eth1', 'eth2']).returns(true)
+      provider.class.stubs(:vsctl).with('--may-exist', 'add-bond', 'br1', 'bond1', ['eth1', 'eth2']).returns(true)
     end
 
     it "Just create bond, which unify two NICs" do
