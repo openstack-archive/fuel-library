@@ -85,7 +85,17 @@ Puppet::Type.type(:l3_route).provide(:lnx) do
     #todo(sv): check accessability of gateway.
     cmd = ['route', 'add', @resource[:destination], 'via', @resource[:gateway]]
     cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
-    iproute(cmd)
+    begin
+      iproute(cmd)
+    rescue Exception => e
+      if e.to_s =~ /File\s+exists/
+        notice("Route for '#{@resource[:destination]}' via #{@resource[:gateway]} already exists. Use existing...")
+      else
+        raise
+      end
+    end
+
+
     @old_property_hash = {}
     @old_property_hash.merge! @resource
   end
@@ -116,7 +126,15 @@ Puppet::Type.type(:l3_route).provide(:lnx) do
         if @old_property_hash[:gateway] != @property_flush[:gateway]
           cmd = ['route', 'change', @resource[:destination], 'via', @property_flush[:gateway]]
           cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
-          iproute(cmd)
+          begin
+            iproute(cmd)
+          rescue Exception => e
+            if e.to_s =~ /File\s+exists/
+              notice("Route for '#{@resource[:destination]}' via #{@property_flush[:gateway]} already exists. Use existing...")
+            else
+              raise
+            end
+          end
         end
       end
 

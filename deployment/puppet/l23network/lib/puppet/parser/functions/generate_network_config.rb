@@ -201,8 +201,10 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           create_routes.each do |route|
             next if !route.has_key?(:net) or !route.has_key?(:via)
             route_properties = {
-              'destination' => route[:net],
-              'gateway'     => route[:via]
+              'destination'       => route[:net],
+              'gateway'           => route[:via],
+              'by_network_scheme' => true,
+              'require'           => correct_requirement_name(previous)
             }
             route_properties[:metric] = route[:metric] if route[:metric].to_i > 0
             route_name = L23network.get_route_resource_name(route[:net], route[:metric])
