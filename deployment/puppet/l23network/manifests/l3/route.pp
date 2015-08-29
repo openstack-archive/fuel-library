@@ -1,12 +1,13 @@
 # == Define: l23network::l3::route
 
 define l23network::l3::route (
-    $destination,    # should be CIDR or 'default'
-    $gateway,        # should be IP address
-    $metric          = undef,
-    $vendor_specific = undef,
-    $provider        = undef,
-    $ensure          = present,
+    $destination,      # should be CIDR or 'default'
+    $gateway,          # should be IP address
+    $metric            = undef,
+    $vendor_specific   = undef,
+    $by_network_scheme = false,
+    $provider          = undef,
+    $ensure            = present,
 ) {
   include ::l23network::params
 
@@ -28,7 +29,9 @@ define l23network::l3::route (
       vendor_specific => $vendor_specific,
       provider        => $provider  # For L3 features provider independed from OVS
     }
-    L3_ifconfig<||> -> L3_route<||>
+    if ! $by_network_scheme {
+      L3_ifconfig<||> -> L3_route<||>
+    }
   }
   Anchor['l23network::init'] -> L3_route<||>
 
