@@ -10,7 +10,7 @@
 
 OCF_RESKEY_cidr_netmask_default="32"
 OCF_RESKEY_base_veth_default=""       # may be omited if OVS used
-OCF_RESKEY_gateway_default=""         # can be "none", "link", IPaddr
+OCF_RESKEY_gateway_default="none"     # can be "none", "link", IPaddr
 OCF_RESKEY_gateway_metric_default=0   # can be "", or metric value
 OCF_RESKEY_also_check_interfaces_default="" # can be "", or list of interfaces
 OCF_RESKEY_other_networks_default=""  #  can be "", or list of networks in CIDR format
@@ -288,7 +288,7 @@ add_to_bridge() {
     fi
   else
     # OVS
-    ovs-vsctl show | grep $veth
+    ovs-vsctl list port $veth > /dev/null 2>&1
     if [[ $? != 0 ]] ; then
       # attach 1-st jack to an OVS bridge
       ocf_run ovs-vsctl --may-exist add-port $br $veth || return $OCF_ERR_GENERIC
@@ -310,7 +310,7 @@ remove_from_bridge() {
     fi
   else
     # OVS bridge
-    ocf_run ovs-vsctl del-port $OCF_RESKEY_bridge $OCF_RESKEY_veth || return $OCF_ERR_GENERIC
+    ocf_run ovs-vsctl del-port $OCF_RESKEY_bridge $OCF_RESKEY_base_veth || return $OCF_ERR_GENERIC
   fi
   return $OCF_SUCCESS
 }
@@ -387,7 +387,7 @@ ip_prepare() {
   if [[ $OCF_RESKEY_gateway == 'link' ]] ; then
     ocf_run $RUN_IN_NS ip route replace default dev $OCF_RESKEY_ns_veth metric $OCF_RESKEY_gateway_metric
   elif  [[ $OCF_RESKEY_gateway == 'none' ]] ; then
-    echo "Do nothing"
+    echo "Setup default gateway -- do nothing."
   else
     ocf_run $RUN_IN_NS ip route replace default via $OCF_RESKEY_gateway metric $OCF_RESKEY_gateway_metric
   fi

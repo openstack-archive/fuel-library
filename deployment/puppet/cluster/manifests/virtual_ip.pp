@@ -18,6 +18,7 @@ define cluster::virtual_ip (
   $vip,
   $key = $name,
 ){
+
   $vip_name = "vip__${key}"
 
   $parameters = {
@@ -36,10 +37,6 @@ define cluster::virtual_ip (
     'ns'                   => $vip['namespace'] ? {
       undef   => 'haproxy',
       default => $vip['namespace']
-    },
-    'gateway'              => $vip['gateway'] ? {
-      undef   => undef,
-      default => $vip['gateway']
     },
     'gateway_metric'       => $vip['gateway_metric'] ? {
       undef   => undef,
@@ -61,6 +58,12 @@ define cluster::virtual_ip (
       undef   => undef, false => undef,
       default => "${vip['ns_iptables_stop_rules']}",
     },
+  }
+
+  if (is_ip_address($vip['gateway']) or ($vip['gateway'] == 'link')) {
+    $parameters['gateway'] = $vip['gateway']
+  } else {
+    $parameters['gateway'] = 'none'
   }
 
   $metadata = {
