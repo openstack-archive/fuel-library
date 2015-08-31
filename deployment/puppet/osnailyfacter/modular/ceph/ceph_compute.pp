@@ -27,7 +27,8 @@ if ($storage_hash['images_ceph']) {
 
 if ($storage_hash['volumes_ceph'] or
   $storage_hash['images_ceph'] or
-  $storage_hash['objects_ceph']
+  $storage_hash['objects_ceph'] or
+  $storage_hash['ephemeral_ceph']
 ) {
   $use_ceph = true
 } else {

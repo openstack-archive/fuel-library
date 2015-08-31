@@ -6,7 +6,11 @@ describe manifest do
   shared_examples 'catalog' do
     storage_hash = Noop.hiera 'storage'
 
-    if (storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph'])
+    if (storage_hash['volumes_ceph'] or
+        storage_hash['images_ceph'] or
+        storage_hash['objects_ceph'] or
+        storage_hash['ephemeral_ceph']
+       )
       it { should contain_class('ceph').with(
            'osd_pool_default_size'    => storage_hash['osd_pool_size'],
            'osd_pool_default_pg_num'  => storage_hash['pg_num'],
@@ -28,6 +32,8 @@ describe manifest do
         it { should contain_class('ceph::ephemeral') }
         it { should contain_class('ceph::conf').that_comes_before('Class[ceph::ephemeral]') }
       end
+    else
+      it { should_not contain_class('ceph') }
     end
 
   end
