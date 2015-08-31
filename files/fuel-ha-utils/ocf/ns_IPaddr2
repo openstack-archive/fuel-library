@@ -288,7 +288,7 @@ add_to_bridge() {
     fi
   else
     # OVS
-    ovs-vsctl show | grep $veth
+    ovs-vsctl iface-to-br $veth
     if [[ $? != 0 ]] ; then
       # attach 1-st jack to an OVS bridge
       ocf_run ovs-vsctl --may-exist add-port $br $veth || return $OCF_ERR_GENERIC
@@ -310,7 +310,7 @@ remove_from_bridge() {
     fi
   else
     # OVS bridge
-    ocf_run ovs-vsctl del-port $OCF_RESKEY_bridge $OCF_RESKEY_veth || return $OCF_ERR_GENERIC
+    ocf_run ovs-vsctl del-port $OCF_RESKEY_bridge $OCF_RESKEY_base_veth || return $OCF_ERR_GENERIC
   fi
   return $OCF_SUCCESS
 }
