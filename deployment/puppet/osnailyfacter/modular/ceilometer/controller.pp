@@ -10,8 +10,9 @@ $default_ceilometer_hash = {
   'metering_time_to_live' => '604800',
 }
 
-$verbose                  = hiera('verbose', true)
-$debug                    = hiera('debug', false)
+$ceilometer_hash          = hiera_hash('ceilometer', $default_ceilometer_hash)
+$verbose                  = pick($ceilometer_hash['verbose'], hiera('verbose', true))
+$debug                    = pick($ceilometer_hash['debug'], hiera('debug', false))
 $use_syslog               = hiera('use_syslog', true)
 $use_stderr               = hiera('use_stderr', false)
 $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
@@ -20,7 +21,6 @@ $storage_hash             = hiera('storage')
 $rabbit_hash              = hiera_hash('rabbit_hash')
 $management_vip           = hiera('management_vip')
 $region                   = hiera('region', 'RegionOne')
-$ceilometer_hash          = hiera_hash('ceilometer', $default_ceilometer_hash)
 $ceilometer_region        = pick($ceilometer_hash['region'], $region)
 $mongo_nodes              = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('mongo_roles'))
 $mongo_address_map        = get_node_to_ipaddr_map_by_network_role($mongo_nodes, 'mongo/db')

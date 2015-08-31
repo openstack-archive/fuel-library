@@ -12,6 +12,7 @@ $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
+$openstack_network_hash         = hiera_hash('openstack_network', {})
 
 $floating_hash = {}
 
@@ -381,8 +382,8 @@ class { 'openstack::network':
   tunnel_types         => $tunnel_types,
   tenant_network_types => $tenant_network_types,
 
-  verbose             => true,
-  debug               => hiera('debug', true),
+  verbose             => pick($openstack_network_hash['verbose'], true),
+  debug               => pick($openstack_network_hash['debug'], hiera('debug', true)),
   use_syslog          => hiera('use_syslog', true),
   use_stderr          => hiera('use_stderr', false),
   syslog_log_facility => hiera('syslog_log_facility_neutron', 'LOG_LOCAL4'),
