@@ -5,6 +5,7 @@ $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
 # Pulling hiera
+$compute_hash                   = hiera_hash('compute', {})
 $node_name                      = hiera('node_name')
 $public_int                     = hiera('public_int', undef)
 $public_vip                     = hiera('public_vip')
@@ -16,8 +17,8 @@ $use_neutron                    = hiera('use_neutron', false)
 $sahara_hash                    = hiera('sahara', {})
 $murano_hash                    = hiera('murano', {})
 $mp_hash                        = hiera('mp')
-$verbose                        = true
-$debug                          = hiera('debug', true)
+$verbose                        = pick($compute_hash['verbose'], true)
+$debug                          = pick($compute_hash['debug'], hiera('debug', true))
 $use_monit                      = false
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $nodes_hash                     = hiera('nodes', {})

@@ -1,7 +1,5 @@
 notice('MODULAR: ceilometer/compute.pp')
 
-$verbose                  = hiera('verbose', true)
-$debug                    = hiera('debug', false)
 $use_syslog               = hiera('use_syslog', true)
 $use_stderr               = hiera('use_stderr', false)
 $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
@@ -27,6 +25,8 @@ $amqp_password              = $rabbit_hash['password']
 $amqp_user                  = $rabbit_hash['user']
 $ceilometer_user_password   = $ceilometer_hash['user_password']
 $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
+$verbose                    = pick($ceilometer_hash['verbose'], hiera('verbose', true))
+$debug                      = pick($ceilometer_hash['debug'], hiera('debug', false))
 
 if ($ceilometer_enabled) {
   class { 'openstack::ceilometer':
