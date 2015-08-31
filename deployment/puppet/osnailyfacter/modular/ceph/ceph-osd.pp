@@ -1,15 +1,15 @@
 notice('MODULAR: ceph-osd.pp')
 
 # Pulling hiera
+$storage_hash              = hiera('storage', {})
 $public_vip                = hiera('public_vip')
 $management_vip            = hiera('management_vip')
 $use_neutron               = hiera('use_neutron', false)
 $mp_hash                   = hiera('mp')
-$verbose                   = true
-$debug                     = hiera('debug', true)
+$verbose                   = pick($storage_hash['verbose'], true)
+$debug                     = pick($storage_hash['debug'], hiera('debug', true))
 $use_monit                 = false
 $auto_assign_floating_ip   = hiera('auto_assign_floating_ip', false)
-$storage_hash              = hiera('storage', {})
 $keystone_hash             = hiera('keystone', {})
 $access_hash               = hiera('access', {})
 $network_scheme            = hiera_hash('network_scheme')

@@ -44,6 +44,7 @@ $service_workers                = pick($nova_hash['workers'],
 $memcache_nodes                 = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
 $memcache_ipaddrs               = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
 $roles                          = node_roles($nodes_hash, hiera('uid'))
+$openstack_controller_hash      = hiera_hash('openstack_controller', {})
 
 $floating_hash = {}
 
@@ -100,8 +101,8 @@ class { '::openstack::controller':
   network_size                   => hiera('network_size', undef),
   network_manager                => hiera('network_manager', undef),
   network_provider               => $network_provider,
-  verbose                        => true,
-  debug                          => hiera('debug', true),
+  verbose                        => pick($openstack_controller_hash['verbose'], true),
+  debug                          => pick($openstack_controller_hash['debug'], hiera('debug', true)),
   auto_assign_floating_ip        => hiera('auto_assign_floating_ip', false),
   glance_api_servers             => $glance_api_servers,
   primary_controller             => $primary_controller,
