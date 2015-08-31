@@ -135,6 +135,95 @@ describe 'l23network::l3::ifconfig', :type => :define do
     end
   end
 
+  context 'l3_ifconfig before port' do
+    let(:title) { 'ifconfig simple test' }
+    let(:facts) { {
+      :osfamily => 'Debian',
+      :operatingsystem => 'Ubuntu',
+      :kernel => 'Linux'
+    } }
+
+    let :pre_condition do
+      'l23network::l2::port{"port-test":}'
+    end
+
+    let(:params) { {
+      :interface => 'port-test',
+      :ipaddr  => ['10.10.10.1/24'],
+    } }
+
+    it do
+      should compile
+    end
+
+    it do
+      should contain_l3_ifconfig('port-test').that_requires('L23network::L2::Port[port-test]')
+    end
+  end
+
+  context 'l3_ifconfig before bridge' do
+    let(:title) { 'ifconfig simple test' }
+    let(:facts) { {
+      :osfamily => 'Debian',
+      :operatingsystem => 'Ubuntu',
+      :kernel => 'Linux'
+    } }
+
+    let :pre_condition do
+      'l23network::l2::bridge{"br-test":}'
+    end
+
+    let(:params) { {
+      :interface => 'br-test',
+      :ipaddr  => ['10.10.10.10/24'],
+    } }
+
+    it do
+      should compile
+    end
+
+    it do
+      should contain_l3_ifconfig('br-test').that_requires('L23network::L2::Bridge[br-test]')
+    end
+  end
+
+  context 'l3_ifconfig before bond' do
+    let(:title) { 'ifconfig simple test' }
+    let(:facts) { {
+      :osfamily => 'Debian',
+      :operatingsystem => 'Ubuntu',
+      :kernel => 'Linux',
+      :l23_os => 'ubuntu',
+      :l3_fqdn_hostname => 'stupid_hostname',
+    } }
+
+    let(:pre_condition) { [
+      "class {'l23network': }"
+    ] }
+
+    let :pre_condition do
+      'l23network::l2::bond{"bond-test":
+         interfaces      => ["eth2", "eth3"],
+         bond_properties => {
+           mode          => "802.3ad",
+         },
+         provider        => "lnx",
+       }'
+    end
+
+    let(:params) { {
+      :interface => 'bond-test',
+      :ipaddr  => ['10.10.10.11/24'],
+    } }
+
+    it do
+      should compile
+    end
+
+    it do
+      should contain_l3_ifconfig('bond-test').that_requires('L23network::L2::Bond[bond-test]')
+    end
+  end
 
 end
 
