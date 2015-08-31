@@ -865,6 +865,15 @@ tasks:
   - '125'
 - parameters:
     cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/radosgw_user.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1800
+  type: puppet
+  uids:
+  - '125'
+- parameters:
+    cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
