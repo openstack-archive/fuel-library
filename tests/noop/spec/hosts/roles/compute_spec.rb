@@ -68,6 +68,31 @@ describe manifest do
       should contain_package('fping').with('ensure' => 'present')
     end
 
+    # SSL support
+    public_ssl = Noop.hiera_structure('public_ssl/services')
+
+    if public_ssl
+      it 'should properly configure vncproxy WITH ssl' do
+        vncproxy_host = Noop.hiera_structure('public_ssl/hostname')
+        should contain_class('openstack::compute').with(
+          'vncproxy_host' => vncproxy_host
+        )
+        should contain_class('nova::compute').with(
+          'vncproxy_protocol' => 'https'
+        )
+      end
+    else
+      it 'should properly configure vncproxy WITHOUT ssl' do
+        vncproxy_host = Noop.hiera('public_vip')
+        should contain_class('openstack::compute').with(
+          'vncproxy_host' => vncproxy_host
+        )
+        should contain_class('nova::compute').with(
+          'vncproxy_protocol' => 'http'
+        )
+      end
+    end
+
   end
 
   test_ubuntu_and_centos manifest
