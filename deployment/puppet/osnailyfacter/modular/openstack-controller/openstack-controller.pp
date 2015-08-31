@@ -23,6 +23,7 @@ $mysql_hash                     = hiera_hash('mysql', {})
 $access_hash                    = hiera_hash('access', {})
 $keystone_hash                  = hiera_hash('keystone', {})
 $glance_hash                    = hiera_hash('glance', {})
+$cinder_hash                    = hiera_hash('cinder', {})
 $storage_hash                   = hiera_hash('storage', {})
 $nova_hash                      = hiera_hash('nova', {})
 $nova_config_hash               = hiera_hash('nova_config', {})
@@ -200,6 +201,14 @@ if $sahara_hash['enabled'] {
   $nova_scheduler_default_filters = [ 'DifferentHostFilter' ]
   if $storage_hash['volumes_lvm'] {
     $cinder_scheduler_filters = [ 'InstanceLocalityFilter' ]
+    cinder_config {
+      'DEFAULT/os_privileged_user_password': value => pick($cinder_hash['user_password']);
+      'DEFAULT/os_privileged_user_tenant':   value => pick($cinder_hash['tenant'], 'services');
+      'DEFAULT/os_privileged_user_auth_url': value => "http://${service_endpoint}:5000";
+      'DEFAULT/os_privileged_user_name':     value => pick($cinder_hash['user'], 'cinder');
+      'DEFAULT/nova_catalog_admin_info':     value => "compute:nova:adminURL";
+      'DEFAULT/nova_catalog_info':           value => "compute:nova:publicURL";
+    }
   } else {
     $cinder_scheduler_filters = []
   }
