@@ -38,4 +38,5 @@ prepare_network_config(hiera_hash('network_scheme'))
 class { 'openstack::firewall' :
   nova_vnc_ip_range => get_network_role_property('nova/api', 'network'),
   libvirt_network   => get_network_role_property('management', 'network'),
+  keystone_network  => get_network_role_property('keystone/api', 'network'),
 }
