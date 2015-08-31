@@ -341,19 +341,19 @@ repo_setup:
   - name: ubuntu
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty
     type: deb
   - name: ubuntu-updates
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty-updates
     type: deb
   - name: ubuntu-security
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty-security
     type: deb
   - name: mos
@@ -587,14 +587,15 @@ access:
 last_controller: node-1
 fqdn: node-2.test.domain.local
 public_ssl:
-  hostname: 10.109.6.2
+  metadata:
+    label: Public TLS
+    weight: 110
   horizon: true
   services: true
-  cert_data: ''
   cert_source: self_signed
-  metadata:
-    weight: 110
-    label: Public TLS
+  cert_data:
+    content: 'somedataaboutyourkeypair'
+  hostname: public.fuel.local
 auto_assign_floating_ip: false
 mp:
 - weight: '1'
@@ -631,4 +632,4 @@ external_ntp:
   metadata:
     weight: 100
     label: Host OS NTP Servers
-openstack_version_prev: 
+openstack_version_prev:

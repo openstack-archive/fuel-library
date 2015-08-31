@@ -63,7 +63,17 @@ external_ntp:
   metadata:
     label: Upstream NTP
     weight: 100
-  ntp_list: 0.pool.ntp.org, 1.pool.ntp.org
+ntp_list: 0.pool.ntp.org, 1.pool.ntp.org
+public_ssl:
+  metadata:
+    label: Public TLS
+    weight: 110
+  horizon: true
+  services: true
+  cert_source: self_signed
+  cert_data:
+    content: 'somedataaboutyourkeypair'
+  hostname: public.fuel.local
 fail_if_error: true
 fqdn: node-128.test.domain.local
 fuel_version: '6.1'
