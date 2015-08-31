@@ -12,6 +12,7 @@ $network_scheme                 = hiera('network_scheme', {})
 $nova_endpoint                  = hiera('nova_endpoint', $management_vip)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
+$openstack_network_hash         = hiera_hash('openstack_network', {})
 
 $floating_hash = {}
 
@@ -234,8 +235,8 @@ class { 'openstack::network':
     default => $neutron_config['ha_agents'],
     undef   => $primary_controller ? {true => 'primary', default  => 'slave'},
   },
-  verbose             => true,
-  debug               => hiera('debug', true),
+  verbose             => pick($openstack_network_hash['verbose'], true),
+  debug               => pick($openstack_network_hash['debug'], hiera('debug', true)),
   use_syslog          => hiera('use_syslog', true),
   use_stderr          => hiera('use_stderr', false),
   syslog_log_facility => hiera('syslog_log_facility_neutron', 'LOG_LOCAL4'),
