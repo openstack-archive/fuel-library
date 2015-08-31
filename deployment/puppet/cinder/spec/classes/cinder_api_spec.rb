@@ -30,6 +30,12 @@ describe 'cinder::api' do
       is_expected.to contain_cinder_config('DEFAULT/osapi_volume_workers').with(
        :value => '8'
       )
+      is_expected.to contain_cinder_config('DEFAULT/nova_catalog_info').with(
+       :value => 'compute:Compute Service:publicURL'
+      )
+      is_expected.to contain_cinder_config('DEFAULT/nova_catalog_admin_info').with(
+       :value => 'compute:Compute Service:adminURL'
+      )
       is_expected.to contain_cinder_config('DEFAULT/default_volume_type').with(
        :ensure => 'absent'
       )
@@ -69,8 +75,22 @@ describe 'cinder::api' do
       )
 
       is_expected.to_not contain_cinder_config('DEFAULT/os_region_name')
-
+      is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_name').with_ensure('absent')
+      is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_password').with_ensure('absent')
+      is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_tenant').with_ensure('absent')
+      is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_auth_url').with_ensure('absent')
     end
+  end
+
+  describe 'with a custom nova_catalog params' do
+    let :params do
+      req_params.merge({
+        'nova_catalog_admin_info' => 'compute:nova:adminURL',
+        'nova_catalog_info' => 'compute:nova:publicURL',
+      })
+    end
+    it { is_expected.to contain_cinder_config('DEFAULT/nova_catalog_admin_info').with_value('compute:nova:adminURL') }
+    it { is_expected.to contain_cinder_config('DEFAULT/nova_catalog_info').with_value('compute:nova:publicURL') }
   end
 
   describe 'with a custom region for nova' do
@@ -81,6 +101,75 @@ describe 'cinder::api' do
       is_expected.to contain_cinder_config('DEFAULT/os_region_name').with(
         :value => 'MyRegion'
       )
+    end
+  end
+
+  describe 'with an OpenStack privileged account' do
+
+    context 'with all needed params' do
+      let :params do
+        req_params.merge({
+          'privileged_user'             => 'true',
+          'os_privileged_user_name'     => 'admin',
+          'os_privileged_user_password' => 'password',
+          'os_privileged_user_tenant'   => 'admin',
+          'os_privileged_user_auth_url' => 'http://localhost:8080',
+        })
+      end
+
+      it { is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_name').with_value('admin') }
+      it { is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_password').with_value('password') }
+      it { is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_tenant').with_value('admin') }
+      it { is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_auth_url').with_value('http://localhost:8080') }
+    end
+
+    context 'without os_privileged_user_auth_url' do
+      let :params do
+        req_params.merge({
+          'privileged_user'             => 'true',
+          'os_privileged_user_name'     => 'admin',
+          'os_privileged_user_password' => 'password',
+          'os_privileged_user_tenant'   => 'admin',
+        })
+      end
+
+      it { is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_name').with_value('admin') }
+      it { is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_password').with_value('password') }
+      it { is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_tenant').with_value('admin') }
+      it { is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_auth_url').with_ensure('absent') }
+    end
+
+    context 'without os_privileged_user' do
+      let :params do
+        req_params.merge({
+          'privileged_user' => 'true',
+        })
+      end
+
+      it_raises 'a Puppet::Error', /The os_privileged_user_name parameter is required when privileged_user is set to true/
+    end
+
+    context 'without os_privileged_user_password' do
+      let :params do
+        req_params.merge({
+          'privileged_user'         => 'true',
+          'os_privileged_user_name' => 'admin',
+        })
+      end
+
+      it_raises 'a Puppet::Error', /The os_privileged_user_password parameter is required when privileged_user is set to true/
+    end
+
+    context 'without os_privileged_user_tenant' do
+      let :params do
+        req_params.merge({
+          'privileged_user'             => 'true',
+          'os_privileged_user_name'     => 'admin',
+          'os_privileged_user_password' => 'password',
+        })
+      end
+
+      it_raises 'a Puppet::Error', /The os_privileged_user_tenant parameter is required when privileged_user is set to true/
     end
   end
 
