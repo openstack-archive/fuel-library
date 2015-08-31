@@ -52,6 +52,12 @@ $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
 $glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
 
+$public_ssl_hash                = hiera('public_ssl')
+$vncproxy_host = $public_ssl_hash['services'] ? {
+  true    => $public_ssl_hash['hostname'],
+  default => $public_vip,
+}
+
 $db_host                        = pick($nova_hash['db_host'], $database_vip)
 
 $block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
@@ -242,7 +248,7 @@ class { 'openstack::compute':
   rabbit_ha_queues            => $rabbit_ha_queues,
   auto_assign_floating_ip     => $auto_assign_floating_ip,
   glance_api_servers          => $glance_api_servers,
-  vncproxy_host               => $public_vip,
+  vncproxy_host               => $vncproxy_host,
   vncserver_listen            => '0.0.0.0',
   migration_support           => true,
   debug                       => $debug,
