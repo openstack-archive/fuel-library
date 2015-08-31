@@ -5,6 +5,7 @@ define vmware::ceilometer::ha (
   $vc_user,
   $vc_password,
   $service_name,
+  $target_node,
   $datastore_regex = undef,
   $amqp_port = '5673',
   $ceilometer_config   = '/etc/ceilometer/ceilometer.conf',
