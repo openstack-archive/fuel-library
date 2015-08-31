@@ -8,7 +8,6 @@ $queue_provider = hiera('queue_provider', 'rabbitmq')
 if $queue_provider == 'rabbitmq' {
   $erlang_cookie   = hiera('erlang_cookie', 'EOKOWXQREETZSHFNTPEY')
   $version         = hiera('rabbit_version', '3.3.5')
-  $debug           = hiera('debug', false)
   $deployment_mode = hiera('deployment_mode', 'ha_compact')
   $amqp_port       = hiera('amqp_port', '5673')
   $rabbit_hash     = hiera_hash('rabbit_hash',
@@ -17,6 +16,7 @@ if $queue_provider == 'rabbitmq' {
       'password' => false,
     }
   )
+  $debug           = pick($rabbit_hash['debug'], hiera('debug', false))
   $enabled         = pick($rabbit_hash['enabled'], true)
   $use_pacemaker   = pick($rabbit_hash['pacemaker'], true)
 
