@@ -41,10 +41,11 @@ $admin_user     = $access_hash['user']
 $admin_password = $access_hash['password']
 $region         = hiera('region', 'RegionOne')
 
-$public_ssl_hash = hiera('public_ssl')
-$public_address  = $public_ssl_hash['services'] ? {
+$public_ssl_hash         = hiera('public_ssl')
+$public_service_endpoint = hiera('public_service_endpoint', $public_vip)
+$public_address          = $public_ssl_hash['services'] ? {
   true    => $public_ssl_hash['hostname'],
-  default => $public_vip,
+  default => $public_service_endpoint,
 }
 
 $admin_address          = $service_endpoint
