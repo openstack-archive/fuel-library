@@ -93,6 +93,15 @@ class {'openstack::cinder':
   service_workers      => $service_workers,
 } # end class
 
+cinder_config {
+  'DEFAULT/os_privileged_user_password': value => $cinder_user_password;
+  'DEFAULT/os_privileged_user_tenant':   value => $keystone_tenant;
+  'DEFAULT/os_privileged_user_auth_url': value => "http://${service_endpoint}:5000";
+  'DEFAULT/os_privileged_user_name':     value => $keystone_user;
+  'DEFAULT/nova_catalog_admin_info':     value => "compute:nova:adminURL";
+  'DEFAULT/nova_catalog_info':           value => "compute:nova:publicURL";
+}
+
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'cinder-api':

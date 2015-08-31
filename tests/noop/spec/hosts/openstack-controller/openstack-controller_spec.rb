@@ -7,6 +7,7 @@ describe manifest do
 
     use_neutron = Noop.hiera 'use_neutron'
     primary_controller = Noop.hiera 'primary_controller'
+
     if !use_neutron && primary_controller
       floating_ips_range = Noop.hiera 'floating_network_range'
       access_hash  = Noop.hiera_structure 'access'
