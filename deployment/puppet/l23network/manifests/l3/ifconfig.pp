@@ -195,6 +195,10 @@ define l23network::l3::ifconfig (
       L23network::L2::Port[$interface] -> L3_ifconfig[$interface]
     } elsif defined(L23network::L2::Bridge[$interface]) {
       L23network::L2::Bridge[$interface] -> L3_ifconfig[$interface]
+    } elsif defined(L23network::L2::Bond[$interface]) {
+      L23network::L2::Bond[$interface] -> L3_ifconfig[$interface]
+    } else {
+      L23network::L2::Port[$interface] -> L3_ifconfig[$interface]
     }
 
     if ! defined (L23_stored_config[$interface]) {
