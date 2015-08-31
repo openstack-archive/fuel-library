@@ -18,6 +18,8 @@ define cluster::virtual_ip (
   $vip,
   $key = $name,
 ){
+  include ::stdlib
+
   $vip_name = "vip__${key}"
 
   $parameters = {
@@ -37,9 +39,9 @@ define cluster::virtual_ip (
       undef   => 'haproxy',
       default => $vip['namespace']
     },
-    'gateway'              => $vip['gateway'] ? {
-      undef   => undef,
-      default => $vip['gateway']
+    'gateway'              => (is_ip_address($vip['gateway']) or ($vip['gateway'] == 'link')) ? {
+      true    => $vip['gateway'],
+      default => 'none'
     },
     'gateway_metric'       => $vip['gateway_metric'] ? {
       undef   => undef,
