@@ -38,6 +38,7 @@ url_available({ 'uri'   => 'http://www.google.com',
 
 EOS
 ) do |argv|
+  debug 'Call: url_available'
   url = argv[0]
   http_proxy = argv[1]
 
@@ -60,8 +61,7 @@ EOS
     elsif url.instance_of? String
       uri = url
     else
-      raise Puppet::ParseError, "Invalid url type passed to the url_available
-function. Must be of type String or Hash."
+      raise Puppet::ParseError, "Invalid url type passed to the url_available function. Must be of type String or Hash."
     end
 
     # attempt to parse the proxy if it's not nil or a blank string
@@ -72,24 +72,31 @@ function. Must be of type String or Hash."
         proxy_port = proxy.port
         proxy_user, proxy_pass = proxy.userinfo.split(/:/) if proxy.userinfo
       rescue Exception => e
-        puts "Unable to parse proxy settings from '#{http_proxy}', will ignore proxy setting. Error '#{e}'"
+        debug "Unable to parse proxy settings from: '#{http_proxy}', will ignore proxy setting. Error: '#{e}'"
       end
     end
 
-    puts "Checking #{uri}"
+    message = nil
+    retry_count = 3
     begin
-      out = Timeout::timeout(180) do
+      debug "Checking: #{uri}"
+      Timeout::timeout(180) do
         u = URI.parse(uri)
         http = Net::HTTP.new(u.host, u.port, proxy_host, proxy_port, proxy_user, proxy_pass)
         http.open_timeout = 60
         http.read_timeout = 60
         request = Net::HTTP::Get.new(u.request_uri)
-        response = http.request(request)
+        http.request(request)
       end
-    rescue OpenURI::HTTPError => error
-      raise Puppet::Error, "ERROR: Unable to fetch url '#{uri}', error '#{error.io}'. Please verify node connectivity to this URL, or remove it from the settings page if it is invalid."
     rescue Exception => e
-      raise Puppet::Error, "ERROR: Unable to fetch url '#{uri}', error '#{e}'. Please verify node connectivity to this URL, or remove it from the settings page if it is invalid."
+      message = "ERROR: Unable to fetch url: '#{uri}', error: '#{e.message}'. Please verify node connectivity to this URL, or remove it from the settings page if it is invalid."
+      retry_count -= 1
+      if retry_count >= 1
+        debug message
+        retry
+      else
+        raise Puppet::Error, message
+      end
     end
   end
 
