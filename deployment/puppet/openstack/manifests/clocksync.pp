@@ -9,6 +9,7 @@ class openstack::clocksync ($ntp_servers = undef, $config_template = undef)
   class { 'ntp':
     servers         => $ntp_servers,
     config_template => $config_template,
+    disable_monitor => true,
     iburst_enable   => true,
     udlc            => !check_ntp($one_shot_ntp_server),
     tinker          => true,
