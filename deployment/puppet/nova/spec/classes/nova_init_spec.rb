@@ -227,6 +227,7 @@ describe 'nova' do
         is_expected.to contain_nova_config('oslo_messaging_rabbit/rabbit_hosts').with_value('rabbit:5673,rabbit2:5674')
         is_expected.to contain_nova_config('oslo_messaging_rabbit/rabbit_ha_queues').with_value(true)
         is_expected.to contain_nova_config('oslo_messaging_rabbit/rabbit_use_ssl').with_value(false)
+        is_expected.to contain_nova_config('oslo_messaging_rabbit/kombu_reconnect_delay').with_value('1.0')
         is_expected.to contain_nova_config('DEFAULT/amqp_durable_queues').with_value(false)
         is_expected.to contain_nova_config('oslo_messaging_rabbit/kombu_ssl_ca_certs').with_ensure('absent')
         is_expected.to contain_nova_config('oslo_messaging_rabbit/kombu_ssl_certfile').with_ensure('absent')
@@ -246,7 +247,18 @@ describe 'nova' do
         is_expected.to contain_nova_config('oslo_messaging_rabbit/rabbit_hosts').with_value('rabbit:5673')
         is_expected.to contain_nova_config('oslo_messaging_rabbit/rabbit_ha_queues').with_value(true)
         is_expected.to contain_nova_config('oslo_messaging_rabbit/rabbit_use_ssl').with_value(false)
+        is_expected.to contain_nova_config('oslo_messaging_rabbit/kombu_reconnect_delay').with_value('1.0')
         is_expected.to contain_nova_config('DEFAULT/amqp_durable_queues').with_value(false)
+      end
+    end
+
+    context 'with kombu_reconnect_delay set to 5.0' do
+      let :params do
+        { :kombu_reconnect_delay => '5.0' }
+      end
+
+      it 'configures rabbit' do
+        is_expected.to contain_nova_config('oslo_messaging_rabbit/kombu_reconnect_delay').with_value('5.0')
       end
     end
 

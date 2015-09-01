@@ -90,6 +90,11 @@
 #   available on some distributions.
 #   Defaults to 'TLSv1'
 #
+# [*kombu_reconnect_delay*]
+#   (optional) How long to wait before reconnecting in response to an AMQP
+#   consumer cancel notification.
+#   Defaults to '1.0'
+#
 # [*amqp_durable_queues*]
 #   (optional) Define queues as "durable" to rabbitmq.
 #   Defaults to false
@@ -272,6 +277,7 @@ class nova(
   $kombu_ssl_certfile       = undef,
   $kombu_ssl_keyfile        = undef,
   $kombu_ssl_version        = 'TLSv1',
+  $kombu_reconnect_delay    = '1.0',
   $amqp_durable_queues      = false,
   $qpid_hostname            = 'localhost',
   $qpid_port                = '5672',
@@ -464,11 +470,12 @@ class nova(
   if $rpc_backend == 'nova.openstack.common.rpc.impl_kombu' or $rpc_backend == 'rabbit' {
     # I may want to support exporting and collecting these
     nova_config {
-      'oslo_messaging_rabbit/rabbit_password':     value => $rabbit_password, secret => true;
-      'oslo_messaging_rabbit/rabbit_userid':       value => $rabbit_userid;
-      'oslo_messaging_rabbit/rabbit_virtual_host': value => $rabbit_virtual_host;
-      'oslo_messaging_rabbit/rabbit_use_ssl':      value => $rabbit_use_ssl;
-      'DEFAULT/amqp_durable_queues': value => $amqp_durable_queues;
+      'oslo_messaging_rabbit/rabbit_password':       value => $rabbit_password, secret => true;
+      'oslo_messaging_rabbit/rabbit_userid':         value => $rabbit_userid;
+      'oslo_messaging_rabbit/rabbit_virtual_host':   value => $rabbit_virtual_host;
+      'oslo_messaging_rabbit/rabbit_use_ssl':        value => $rabbit_use_ssl;
+      'oslo_messaging_rabbit/kombu_reconnect_delay': value => $kombu_reconnect_delay;
+      'DEFAULT/amqp_durable_queues':                 value => $amqp_durable_queues;
     }
 
     if $rabbit_use_ssl {
