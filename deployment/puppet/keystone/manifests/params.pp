@@ -3,6 +3,7 @@
 #
 class keystone::params {
   $client_package_name = 'python-keystone'
+  $log_format          = '%h %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"'
 
   case $::osfamily {
     'Debian': {

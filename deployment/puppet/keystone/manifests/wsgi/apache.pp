@@ -251,6 +251,7 @@ class keystone::wsgi::apache (
     wsgi_process_group          => 'keystone_main',
     wsgi_script_aliases         => $wsgi_script_aliases_main_real,
     custom_fragment             => $vhost_custom_fragment,
+    access_log_format           => $::keystone::params::log_format,
     require                     => File['keystone_wsgi_main'],
   }
 
@@ -277,6 +278,7 @@ class keystone::wsgi::apache (
       wsgi_process_group          => 'keystone_admin',
       wsgi_script_aliases         => $wsgi_script_aliases_admin,
       custom_fragment             => $vhost_custom_fragment,
+      access_log_format           => $::keystone::params::log_format,
       require                     => File['keystone_wsgi_admin'],
     }
   }
