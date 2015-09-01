@@ -22,9 +22,37 @@ Puppet::Type.type(:x509_cert).provide(:openssl) do
     cert.check_private_key(priv)
   end
 
+  def self.old_cert_is_equal(resource)
+    cert = OpenSSL::X509::Certificate.new(File.read(resource[:path]))
+
+    altname = ''
+    cert.extensions.each do |ext|
+        altname = ext.value if ext.oid == 'subjectAltName'
+    end
+
+    subjectName = ''
+    cert.subject.to_s.split('/').each do |name|
+        k,v = name.split('=')
+          subjectName = v if k == 'CN'
+    end
+
+    require File.expand_path('../../../../../../inifile/lib/puppet/util/ini_file', __FILE__)
+    ini_file  = Puppet::Util::IniFile.new(resource[:template], '=')
+    ini_file.section_names.each do |section_name|
+      ini_file.get_settings(section_name).each do |setting, value|
+        return false if setting == 'subjectAltName' and value.delete(' ').gsub(/^"|"$/, '') != altname.delete(' ').gsub(/^"|"$/, '')
+        return false if setting == 'commonName' and value != subjectName
+      end
+    end
+    return true
+  end
+
   def exists?
     if Pathname.new(resource[:path]).exist?
       if resource[:force] and !self.class.check_private_key(resource)
+        return false
+      end
+      if !self.class.old_cert_is_equal(resource)
         return false
       end
       return true
