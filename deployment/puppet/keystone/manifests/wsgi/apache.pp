@@ -89,6 +89,10 @@
 #     (optional) Wsgi script source.
 #     Defaults to undef.
 #
+#   [*access_log_format*]
+#     The log format for the virtualhost.
+#     Optional. Defaults to false.
+#
 #   [*vhost_custom_fragment*]
 #     (optional) Passes a string of custom configuration
 #     directives to be placed at the end of the vhost configuration.
@@ -137,6 +141,7 @@ class keystone::wsgi::apache (
   $priority              = '10',
   $wsgi_script_ensure    = 'file',
   $wsgi_script_source    = undef,
+  $access_log_format     = false,
   $vhost_custom_fragment = undef,
 ) {
 
@@ -252,6 +257,7 @@ class keystone::wsgi::apache (
     wsgi_script_aliases         => $wsgi_script_aliases_main_real,
     custom_fragment             => $vhost_custom_fragment,
     require                     => File['keystone_wsgi_main'],
+    access_log_format           => $access_log_format,
   }
 
   if $public_port != $admin_port {
@@ -278,6 +284,7 @@ class keystone::wsgi::apache (
       wsgi_script_aliases         => $wsgi_script_aliases_admin,
       custom_fragment             => $vhost_custom_fragment,
       require                     => File['keystone_wsgi_admin'],
+      access_log_format           => $access_log_format,
     }
   }
 }
