@@ -7,14 +7,15 @@ $roles                   = node_roles($nodes_hash, hiera('uid'))
 
 if !(member($roles, 'controller') or member($roles, 'primary-controller')) {
   class { 'ntp':
-    servers        => $ntp_servers,
-    service_ensure => 'running',
-    service_enable => true,
-    iburst_enable  => true,
-    tinker         => true,
-    panic          => '0',
-    stepout        => '5',
-    minpoll        => '3',
+    servers         => $ntp_servers,
+    service_ensure  => 'running',
+    service_enable  => true,
+    disable_monitor => true,
+    iburst_enable   => true,
+    tinker          => true,
+    panic           => '0',
+    stepout         => '5',
+    minpoll         => '3',
   }
 
   include ntp::params
