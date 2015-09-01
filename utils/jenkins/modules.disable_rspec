@@ -40,3 +40,12 @@ vcsrepo
 vmware
 xinetd
 zabbix
+apache
+ceilometer
+firewall
+horizon
+memcached
+monit
+ntp
+openstack_extras
+rabbitmq

@@ -1,5 +1,35 @@
 #!/bin/bash
 
+usage="$(basename "$0") [-h] [-m MODULE] [-a] -- runs unit tests for puppet modules, by default runs tests only for changed modules.
+
+where:
+    -h                    show this help text
+    -a|--all              run unit tests for all modules
+    -m|--module MODULE    run unit tests for specified module
+"
+
+while [[ $# > 0 ]] ; do
+  key="$1"
+
+  case $key in
+  -a|--all)
+    ALL='1'
+    ;;
+  -m|--modules)
+    MODULES="$MODULES $2"
+    shift # past argument
+    ;;
+  -h|--help)
+    echo "$usage" >&2
+    exit 0
+    ;;
+    *)
+          # unknown option
+    ;;
+  esac
+  shift # past argument or value
+done
+
 # Some basic checks
 if ! [ -d "$WORKSPACE" ] ; then
   echo "ERROR: WORKSPACE not found"
@@ -45,8 +75,16 @@ function rake_spec {
 
 # Iterate over the changed modules and run unit tests for them
 failed_modules=""
-modules=$(git diff --name-only HEAD~ | grep -o 'deployment/puppet/[^/]*/' | sort -u)
-git diff --name-only HEAD~ &>/dev/null || exit 1
+if [ "$ALL" == '1' ] ; then
+  modules=`ls -d $WORKSPACE/deployment/puppet/*`
+elif ! [ -z "$MODULES" ] ; then
+  modules=$MODULES
+else
+  git diff --name-only HEAD~ &>/dev/null || exit 1
+  modules=$(git diff --name-only HEAD~ | grep -o 'deployment/puppet/[^/]*/' | sort -u)
+fi
+
+echo "Checking modules: $modules"
 
 for mod in $modules; do
   if [ -d $mod ] ; then
