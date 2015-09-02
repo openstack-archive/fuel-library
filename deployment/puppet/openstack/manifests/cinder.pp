@@ -129,17 +129,24 @@ class openstack::cinder(
 
   if ($bind_host) {
     class { 'cinder::api':
-      keystone_enabled  => $keystone_enabled,
-      package_ensure    => $::openstack_version['cinder'],
-      auth_uri          => $auth_uri,
-      identity_uri      => $identity_uri,
-      keystone_user     => $keystone_user,
-      keystone_tenant   => $keystone_tenant,
-      keystone_password => $cinder_user_password,
-      os_region_name    => $region,
-      bind_host         => $bind_host,
-      ratelimits        => $cinder_rate_limits,
-      service_workers   => $service_workers,
+      keystone_enabled             => $keystone_enabled,
+      package_ensure               => $::openstack_version['cinder'],
+      auth_uri                     => $auth_uri,
+      identity_uri                 => $identity_uri,
+      keystone_user                => $keystone_user,
+      keystone_tenant              => $keystone_tenant,
+      keystone_password            => $cinder_user_password,
+      os_region_name               => $region,
+      bind_host                    => $bind_host,
+      ratelimits                   => $cinder_rate_limits,
+      service_workers              => $service_workers,
+      privileged_user              => true,
+      os_privileged_user_password  => $cinder_user_password,
+      os_privileged_user_tenant    => $keystone_tenant,
+      os_privileged_user_auth_url  => $auth_uri,
+      os_privileged_user_name      => $keystone_user,
+      nova_catalog_admin_info      => 'compute:nova:adminURL',
+      nova_catalog_info            => 'compute:nova:internalURL',
     }
 
     class { 'cinder::scheduler':
