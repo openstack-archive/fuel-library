@@ -11,3 +11,4 @@ puppet/ntp
 puppet/apache
 puppet/apt
 puppet/firewall
+puppet/heat
