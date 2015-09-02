@@ -30,6 +30,12 @@ describe manifest do
         )
       end
 
+      it 'should declare neutron with advertise_mtu enabled' do
+        should contain_class('neutron').with(
+          'advertise_mtu' => 'true',
+        )
+      end
+
       it 'should pass auth region to openstack::network' do
         should contain_class('openstack::network').with(
          'region' => 'RegionOne',
@@ -51,6 +57,12 @@ describe manifest do
       it 'should declare neutron::agents::ml2::ovs with drop_flows_on_start disabled' do
         should contain_class('neutron::agents::ml2::ovs').with(
          'drop_flows_on_start' => 'false',
+        )
+      end
+
+      it 'should declare neutron::agents::ml2::ovs with manage_vswitch disabled' do
+        should contain_class('neutron::agents::ml2::ovs').with(
+          'manage_vswitch' => 'false',
         )
       end
     else
