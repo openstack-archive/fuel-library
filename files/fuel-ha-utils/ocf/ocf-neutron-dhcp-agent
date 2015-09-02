@@ -217,7 +217,7 @@ get_worker_pid() {
     else
       options='flo'
     fi
-    pid=`pgrep -u ${OCF_RESKEY_user} -${options} ${OCF_RESKEY_binary} | awk '/python \/usr\/bin/ {print $1}'`
+    pid=`pgrep -u ${OCF_RESKEY_user} -${options} ${OCF_RESKEY_binary} | awk '{print $1}'`
     echo $pid
 }
 
