@@ -45,6 +45,18 @@ describe manifest do
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
+    network_scheme = Noop.hiera('network_scheme', {})
+    keystone_ip_address = '*'
+
+    let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
+
+    before(:each) do
+      scope.stubs(:lookupvar).with('l3_fqdn_hostname').returns('host.foo.com')
+      Puppet::Parser::Functions.autoloader.load 'get_network_role_property'.to_sym
+      Puppet::Parser::Functions.autoloader.load 'prepare_network_config'.to_sym
+      scope.send 'function_prepare_network_config'.to_sym, [network_scheme]
+      keystone_ip_address = scope.send "function_get_network_role_property".to_sym, ['keystone/api', 'ipaddr']
+    end
 
     it 'should declare keystone class with admin_token' do
       should contain_class('keystone').with(
@@ -140,10 +152,10 @@ describe manifest do
        )
      end
      it 'should configure apache to listen 5000 keystone port' do
-       should contain_apache__listen('5000')
+       should contain_apache__listen('%s:5000' % keystone_ip_address)
      end
      it 'should configure apache to listen 35357 keystone port' do
-       should contain_apache__listen('35357')
+       should contain_apache__listen('%s:35357' % keystone_ip_address)
      end
 
      it 'should disable use_stderr for keystone' do

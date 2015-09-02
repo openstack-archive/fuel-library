@@ -94,6 +94,11 @@
 #     directives to be placed at the end of the vhost configuration.
 #     Defaults to undef.
 #
+#   [*apache_add_listen*]
+#     (optional) Add listen directive to apache
+#     configuration? (boolean)
+#     Defaults to undef (true in apache::vhost).
+#
 # == Dependencies
 #
 #   requires Class['apache'] & Class['keystone']
@@ -138,6 +143,7 @@ class keystone::wsgi::apache (
   $wsgi_script_ensure    = 'file',
   $wsgi_script_source    = undef,
   $vhost_custom_fragment = undef,
+  $apache_add_listen     = undef,
 ) {
 
   include ::keystone::params
@@ -252,6 +258,7 @@ class keystone::wsgi::apache (
     wsgi_script_aliases         => $wsgi_script_aliases_main_real,
     custom_fragment             => $vhost_custom_fragment,
     require                     => File['keystone_wsgi_main'],
+    add_listen                  => $apache_add_listen,
   }
 
   if $public_port != $admin_port {
@@ -278,6 +285,7 @@ class keystone::wsgi::apache (
       wsgi_script_aliases         => $wsgi_script_aliases_admin,
       custom_fragment             => $vhost_custom_fragment,
       require                     => File['keystone_wsgi_admin'],
+      add_listen                  => $apache_add_listen,
     }
   }
 }

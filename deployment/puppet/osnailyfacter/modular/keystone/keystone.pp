@@ -143,6 +143,7 @@ class { 'osnailyfacter::apache':
 }
 
 class { 'keystone::wsgi::apache':
+  apache_add_listen     => false,
   priority              => '05',
   threads               => 3,
   workers               => min($::processorcount, 6),
