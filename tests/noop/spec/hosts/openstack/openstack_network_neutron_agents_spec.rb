@@ -8,15 +8,15 @@ describe manifest do
     net_mtu = 9000
 
     if net_mtu
-      physnet_mtus = "physnet2:#{net_mtu}"
+      physical_network_mtus = "physnet2:#{net_mtu}"
     else
-      physnet_mtus = ""
+      physical_network_mtus = ""
     end
 
     it 'should declare neutron::plugins::ml2 class' do
       should contain_class('neutron::plugins::ml2').with(
-        'physnet_mtus' => physnet_mtus,
-        'path_mtu'     => net_mtu,
+        'physical_network_mtus' => physical_network_mtus,
+        'path_mtu'              => net_mtu,
       )
     end
 
