@@ -1,9 +1,7 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
-$fuel_version = parseyaml($fuel_version_yaml)
 
-if is_hash($::fuel_version) and $::fuel_version['VERSION'] and
-$::fuel_version['VERSION']['production'] {
-    $production = $::fuel_version['VERSION']['production']
+if $fuel_production {
+    $production = $fuel_production
 }
 else {
     $production = 'prod'
@@ -25,13 +23,13 @@ class { 'nailgun::packages': }
 
 class { 'nailgun::host':
   production        => $production,
-  fuel_version      => $::fuel_version['VERSION']['release'],
+  fuel_version      => $fuel_release,
   cobbler_host      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   nailgun_group     => $nailgun_group,
   nailgun_user      => $nailgun_user,
   dns_domain        => $::fuel_settings['DNS_DOMAIN'],
   dns_search        => $::fuel_settings['DNS_SEARCH'],
-  repo_root         => "/var/www/nailgun/${::fuel_version['VERSION']['openstack_version']}",
+  repo_root         => "/var/www/nailgun/${fuel_openstack_version}",
   monitord_user     => $::fuel_settings['keystone']['monitord_user'],
   monitord_password => $::fuel_settings['keystone']['monitord_password'],
   monitord_tenant   => 'services',
@@ -43,14 +41,14 @@ class { 'openstack::clocksync':
 }
 
 class { 'docker::dockerctl':
-  release         => $::fuel_version['VERSION']['release'],
+  release         => $fuel_release,
   production      => $production,
   admin_ipaddress => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 }
 
 class { "docker":
   docker_engine => 'native',
-  release => $::fuel_version['VERSION']['release'],
+  release => $fuel_release,
 }
 
 class { 'openstack::logrotate':
