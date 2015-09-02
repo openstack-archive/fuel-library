@@ -139,6 +139,7 @@ class openstack::heat (
     database_idle_timeout => $idle_timeout,
 
     rpc_backend           => $rpc_backend,
+    rpc_response_timeout  => '600',
     rabbit_hosts          => $amqp_hosts,
     rabbit_userid         => $amqp_user,
     rabbit_password       => $amqp_password,
@@ -156,7 +157,6 @@ class openstack::heat (
     'DEFAULT/max_template_size':       value => '5440000';
     'DEFAULT/max_json_body_size':      value => '10880000';
     'DEFAULT/max_resources_per_stack': value => '20000';
-    'DEFAULT/rpc_response_timeout':    value => '600';
   }
 
   heat_config {
