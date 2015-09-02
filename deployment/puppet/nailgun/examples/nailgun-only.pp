@@ -1,8 +1,7 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
-$fuel_version = parseyaml($fuel_version_yaml)
 
-if is_hash($::fuel_version) and $::fuel_version['VERSION'] and $::fuel_version['VERSION']['production'] {
-    $production = $::fuel_version['VERSION']['production']
+if $::fuel_settings['PRODUCTION'] {
+    $production = $::fuel_settings['PRODUCTION']
 }
 else {
     $production = 'prod'
