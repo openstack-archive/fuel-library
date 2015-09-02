@@ -65,7 +65,7 @@ class cobbler::server (
   if $production == 'docker-build' {
     $real_fqdn = "fuel.${domain_name}"
   } else {
-    $real_fdqn = $::fqdn
+    $real_fqdn = $::fqdn
   }
 
   case $::operatingsystem {
