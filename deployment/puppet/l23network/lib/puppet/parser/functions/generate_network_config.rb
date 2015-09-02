@@ -41,7 +41,7 @@ module L23network
         :name     => nil,
         :provider => nil
       }
-      when "add-br" then {
+      when 'add-br' then {
         :name                 => nil,
         :stp                  => nil,
         :bpdu_forward         => nil,
@@ -52,7 +52,7 @@ module L23network
         :vendor_specific      => nil,
         :provider             => def_provider
       }
-      when "add-port" then {
+      when 'add-port' then {
         :name                 => nil,
         :bridge               => nil,
 #       :type                 => "internal",
@@ -65,7 +65,7 @@ module L23network
         :vendor_specific      => nil,
         :provider             => def_provider
       }
-      when "add-bond" then {
+      when 'add-bond' then {
         :name                 => nil,
         :bridge               => nil,
         :mtu                  => nil,
@@ -78,7 +78,7 @@ module L23network
         :vendor_specific      => nil,
         :provider             => def_provider
       }
-      when "add-patch" then {
+      when 'add-patch' then {
         :name            => "unnamed", # calculated later
         :bridges         => [],
         :vlan_ids        => [0, 0],
@@ -96,7 +96,7 @@ module L23network
     if not rv[:name].is_a? String
       raise(Puppet::ParseError, "Unnamed transformation: '#{action}'.")
     end
-    if action == "add-patch"
+    if action == 'add-patch'
       if !rv[:bridges].is_a? Array  or  rv[:bridges].size() != 2
         raise(Puppet::ParseError, "Transformation patch have wrong 'bridges' parameter.")
       end
@@ -295,6 +295,12 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
     else
       config_hash[:endpoints] = {}
     end
+
+    # collect all bridges and put them in a front of transformation list
+    # due to l2_port autorequires bridge by design
+    debug("generate_network_config(): precheck transformations for bridges")
+    tmp_bridges = config_hash.fetch(:transformations, []).select { |transformation| transformation[:action].match(%r{add-br}) }
+    config_hash[:transformations] = tmp_bridges | config_hash[:transformations] if !tmp_bridges.empty?
 
     # pre-check and auto-add main interface for sub-interface
     # to transformation if required
