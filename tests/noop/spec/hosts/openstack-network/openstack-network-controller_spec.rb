@@ -31,6 +31,12 @@ describe manifest do
         )
       end
 
+      it 'should declare neutron with advertise_mtu enabled' do
+        should contain_class('neutron').with(
+          'advertise_mtu' => 'true',
+        )
+      end
+
       it 'should declare neutron::agents::ml2::ovs with manage_service enabled' do
         should contain_class('neutron::agents::ml2::ovs').with(
           'manage_service' => 'true',
