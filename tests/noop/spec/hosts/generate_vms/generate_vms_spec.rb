@@ -14,7 +14,6 @@ describe manifest do
     it 'should exec generate_vms' do
       should contain_exec('generate_vms').with(
         'command'     => "/usr/bin/generate_vms.sh #{libvirt_dir} #{template_dir}",
-        'notify'      => "Service[#{libvirt_service}]",
       )
     end
 
@@ -42,6 +41,7 @@ describe manifest do
     it "should start #{libvirt_service} service" do
       should contain_service(libvirt_service).with(
         'ensure' => 'running',
+        'before' => 'Exec[generate_vms]',
       )
     end
 
