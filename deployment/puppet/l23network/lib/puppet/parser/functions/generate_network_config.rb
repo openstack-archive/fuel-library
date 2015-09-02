@@ -296,6 +296,17 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       config_hash[:endpoints] = {}
     end
 
+    # collect all bridges and put them in a front of transformation list
+    # due to l2_port autoriquires bridge by design
+    debug("generate_network_config(): precheck transformations for bridges")
+    tmp_bridges = []
+    config_hash[:transformations].each do |transformation|
+      if (transformation[:action].match(/add-br/))
+        tmp_bridges << transformation
+      end
+    end
+    config_hash[:transformations] = tmp_bridges | config_hash[:transformations]
+
     # pre-check and auto-add main interface for sub-interface
     # to transformation if required
     debug("generate_network_config(): precheck transformations")
