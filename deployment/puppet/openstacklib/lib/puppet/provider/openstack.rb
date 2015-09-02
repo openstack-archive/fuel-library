@@ -10,7 +10,18 @@ end
 class Puppet::Provider::Openstack < Puppet::Provider
 
   initvars # so commands will work
-  commands :openstack => 'openstack'
+  commands :openstack_cmd => 'openstack'
+
+  def self.openstack(*args)
+    timeout_time = 10
+    begin
+      Timeout.timeout(timeout_time) do
+        openstack_cmd *args
+      end
+    rescue Timeout::Error
+      raise Puppet::ExecutionFailure, "Command: 'openstack #{args.join ' '}' have been running for more then #{timeout_time} seconds!"
+    end
+  end
 
   # Returns an array of hashes, where the keys are the downcased CSV headers
   # with underscores instead of spaces
@@ -18,7 +29,7 @@ class Puppet::Provider::Openstack < Puppet::Provider
     env = credentials ? credentials.to_env : {}
     Puppet::Util.withenv(env) do
       rv = nil
-      timeout = 10
+      timeout = 60
       end_time = Time.now.to_i + timeout
       loop do
         begin
