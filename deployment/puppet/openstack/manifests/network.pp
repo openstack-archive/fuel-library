@@ -188,6 +188,7 @@ class openstack::network (
         rabbit_password         => $amqp_password,
         kombu_reconnect_delay   => '5.0',
         network_device_mtu      => $network_device_mtu,
+        advertise_mtu           => true,
       }
 
       if $nova_neutron {
