@@ -25,6 +25,7 @@ package { $packages:
 service { $libvirt_service_name:
   ensure  => 'running',
   require => Package[$packages],
+  before  => Exec['generate_vms'],
 }
 
 file { "${libvirt_dir}/autostart":
@@ -44,6 +45,5 @@ vm_config { $vms:
 exec { 'generate_vms':
   command     => "/usr/bin/generate_vms.sh ${libvirt_dir} ${template_dir}",
   path        => ['/usr/sbin', '/usr/bin' , '/sbin', '/bin'],
-  notify      => Service[$libvirt_service_name],
   require     => [File["${template_dir}"], File["${libvirt_dir}/autostart"]],
 }

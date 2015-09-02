@@ -84,21 +84,36 @@ for TEMPLATE_XML in $TEMPLATE_DIR/**/*.xml
 do
   VM_NAME=$(basename $TEMPLATE_XML | cut -f1 -d".")
   DST_XML=${LIBVIRT_DIR}/${VM_NAME}.xml
+  TMP_FILE=$(tempfile -d /tmp)
 
   #Copy VMs xml file to libvirt and ensure autostart
   if ! [[ -h "${LIBVIRT_DIR}/autostart/$VM_NAME.xml" ]]; then
     ln -s $DST_XML ${LIBVIRT_DIR}/autostart/
   fi
-  cp -f $TEMPLATE_XML $DST_XML
 
-  #Create disks for VMs
-  create_vm_disks $VM_NAME $DST_XML
+  #Check if VM is already defined
+  DOMID=$(virsh domid $VM_NAME)
+  if [[ -z "$DOMID" ]]; then
+    cp -f $TEMPLATE_XML $TMP_FILE
 
-  #Verify cpu settings
-  verify_cpu $VM_NAME $DST_XML
+    #Create disks for VMs
+    create_vm_disks $VM_NAME $TMP_FILE
 
-  #Verify memory settings
-  verify_mem $VM_NAME $DST_XML
+    #Verify cpu settings
+    verify_cpu $VM_NAME $TMP_FILE
+
+    #Verify memory settings
+    verify_mem $VM_NAME $TMP_FILE
+
+    #Define VM
+    virsh define $TMP_FILE || exit 1
+
+    #Save VM information to file (ex. MAC)
+    virsh dumpxml $VM_NAME > $DST_XML || exit 1
+
+    #Start VM
+    virsh start $VM_NAME || exit 1
+  fi
 
 done
 
