@@ -1,5 +1,4 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
-$fuel_version = parseyaml($fuel_version_yaml)
 
 Class['docker::container'] ->
 Class['rsyslog::server'] ->
