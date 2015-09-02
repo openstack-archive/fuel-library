@@ -1,7 +1,6 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
-$fuel_version = parseyaml($fuel_version_yaml)
+$production = $::fuel_settings['PRODUCTION']
 
-$production = $::fuel_version['VERSION']['production']
 if $production {
   $env_path = "/usr"
   $staticdir = "/usr/share/nailgun/static"
