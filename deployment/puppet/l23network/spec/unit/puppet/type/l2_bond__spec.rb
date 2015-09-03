@@ -23,9 +23,26 @@ describe Puppet::Type.type(:l2_bond) do
       it "should be failed for name #{iname}" do
         expect { described_class.new({
           :name   => "#{iname}",
-        })}.to raise_error(Puppet::ResourceError, /Wrong\s+bond\s+name/)
+        })}.to raise_error(Puppet::ResourceError, %r{Wrong\s+bond\s+name})
       end
 
+
+
+
+    end
+
+    it "bond mode should be first in bond_properties" do
+      expect(described_class.new(:name  => "bond12",
+                                  :bond_properties => {
+                                    :lacp_rate=>"fast",
+                                    :mode=>"802.3ad",
+                                    :xmit_hash_policy=>"layer3+4",
+                                    :miimon=>"100",
+      })[:bond_properties]).to eq({:mode=>"802.3ad",
+                                   :lacp_rate=>"fast",
+                                   :xmit_hash_policy=>"layer3+4",
+                                   :miimon=>"100",
+                                   })
     end
   end
 end

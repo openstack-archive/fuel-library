@@ -100,29 +100,40 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         #todo(sv): inplement re-assembling only if it need
         #todo(sv): re-set only delta between reality and requested
         runtime_bond_state  = !self.class.get_iface_state(@resource[:bond]).nil?
-        runtime_slave_ports = File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "r").read.split(/\s+/)
+        runtime_slave_ports = self.class.get_sys_class("/sys/class/net/#{@resource[:bond]}/bonding/slaves", true)
         runtime_slave_ports.each do |eth|
           # for most bond options we should disassemble bond before re-configuration. In the kernel module documentation
           # says, that bond interface should be downed, but it's not enouth.
-          File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "-#{eth}"}
+          self.class.set_sys_class("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "-#{eth}")
         end
         iproute('link', 'set', 'down', 'dev', @resource[:bond])
-        @property_flush[:bond_properties].each_pair do |prop, val|
+        # setup primary bond_properties
+        primary_bond_properties = [:mode, :xmit_hash_policy]
+        curr_mode = self.class.get_sys_class("/sys/class/net/#@resource[:bond]}/bonding/mode")
+        if curr_mode != @property_flush[:bond_properties][:mode]
+          debug("Setting mode '#{@property_flush[:bond_properties][:mode]}' for bond '#{@resource[:bond]}'")
+          self.class.set_sys_class("/sys/class/net/#{@resource[:bond]}/bonding/mode", @property_flush[:bond_properties][:mode])
+          sleep(1)
+        end
+        curr_xhp = self.class.get_sys_class("/sys/class/net/#@resource[:bond]}/bonding/xmit_hash_policy")
+        if @property_flush[:bond_properties].has_key?(:xmit_hash_policy) && curr_mode != @property_flush[:bond_properties][:xmit_hash_policy]
+          debug("Setting xmit_hash_policy '#{@property_flush[:bond_properties][:xmit_hash_policy]}' for bond '#{@resource[:bond]}'")
+          self.class.set_sys_class("/sys/class/net/#{@resource[:bond]}/bonding/xmit_hash_policy", @property_flush[:bond_properties][:xmit_hash_policy])
+          sleep(1)
+        # setup another bond_properties
+        @property_flush[:bond_properties].reject{|k,v| primary_bond_properties.include? k}.each_pair do |prop, val|
           if self.class.lnx_bond_allowed_properties_list.include? prop.to_sym
             act_val = val.to_s
+            debug("Setting property '#{prop}' to '#{act_val}' for bond '#{@resource[:bond]}'")
+            self.class.set_sys_class("/sys/class/net/#{@resource[:bond]}/bonding/#{prop}", act_val)
           else
             debug("Unsupported property '#{prop}' for bond '#{@resource[:bond]}'")
-            act_val = nil
-          end
-          if act_val
-            debug("Set property '#{prop}' to '#{act_val}' for bond '#{@resource[:bond]}'")
-            File.open("/sys/class/net/#{@resource[:bond]}/bonding/#{prop}", 'a') {|f| f << "#{act_val.to_s}"}
           end
         end
         # re-assemble bond after configuration
         iproute('link', 'set', 'up', 'dev', @resource[:bond]) if runtime_bond_state
         runtime_slave_ports.each do |eth|
-          File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "+#{eth}"}
+          self.class.set_sys_class("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "+#{eth}")
         end
       end
       if @property_flush.has_key? :bridge
