@@ -23,6 +23,8 @@ Class['monit']
 
 class { 'nailgun::packages': }
 
+class { 'osnailyfacter::atop': }
+
 class { 'nailgun::host':
   production        => $production,
   fuel_version      => $::fuel_version['VERSION']['release'],
@@ -31,10 +33,12 @@ class { 'nailgun::host':
   nailgun_user      => $nailgun_user,
   dns_domain        => $::fuel_settings['DNS_DOMAIN'],
   dns_search        => $::fuel_settings['DNS_SEARCH'],
+  dns_upstream      => split($::fuel_settings['DNS_UPSTREAM'], ','),
   repo_root         => "/var/www/nailgun/${::fuel_version['VERSION']['openstack_version']}",
   monitord_user     => $::fuel_settings['keystone']['monitord_user'],
   monitord_password => $::fuel_settings['keystone']['monitord_password'],
   monitord_tenant   => 'services',
+  admin_iface       => $::fuel_settings['ADMIN_NETWORK']['interface'],
 }
 
 class { 'openstack::clocksync':
@@ -46,6 +50,7 @@ class { 'docker::dockerctl':
   release         => $::fuel_version['VERSION']['release'],
   production      => $production,
   admin_ipaddress => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+  docker_engine   => 'native',
 }
 
 class { "docker":
@@ -66,3 +71,8 @@ class { 'nailgun::client':
   keystone_user => $::fuel_settings['FUEL_ACCESS']['user'],
   keystone_pass => $::fuel_settings['FUEL_ACCESS']['password'],
 }
+
+class { 'osnailyfacter::ssh':
+  password_auth => 'yes',
+}
+
