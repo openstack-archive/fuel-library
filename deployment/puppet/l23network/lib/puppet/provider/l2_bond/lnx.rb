@@ -107,6 +107,15 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "-#{eth}"}
         end
         iproute('link', 'set', 'down', 'dev', @resource[:bond])
+
+        # Make bond mode first in bond_properties due to if it goes after
+        # lacp_rate than lacp_rate is not set correctly
+        if @property_flush[:bond_properties].has_key?(:mode)
+          property_value = @property_flush[:bond_properties][:mode].to_s
+          set_bond_property(@resource[:bond], :mode, property_value) if property_value
+          @property_flush[:bond_properties].delete(:mode)
+        end
+
         @property_flush[:bond_properties].each_pair do |prop, val|
           if self.class.lnx_bond_allowed_properties_list.include? prop.to_sym
             act_val = val.to_s
@@ -115,8 +124,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             act_val = nil
           end
           if act_val
-            debug("Set property '#{prop}' to '#{act_val}' for bond '#{@resource[:bond]}'")
-            File.open("/sys/class/net/#{@resource[:bond]}/bonding/#{prop}", 'a') {|f| f << "#{act_val.to_s}"}
+            set_bond_property(@resource[:bond], prop, act_val)
           end
         end
         # re-assemble bond after configuration
@@ -196,6 +204,17 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   end
   def interface_properties=(val)
     @property_flush[:interface_properties] = val
+  end
+
+  def set_bond_property(bond, prop, value)
+    debug("Setting property '#{prop}' to '#{value}' for bond '#{bond}'")
+    begin
+      property_file = File.open("/sys/class/net/#{bond}/bonding/#{prop}", 'a')
+      property_file.write("#{value.to_s}")
+      property_file.close
+    rescue Exception => e
+      raise(Puppet::ExecutionFailure, "Can not set property '#{prop}' to '#{value}' for bond '#{bond}'")
+    end
   end
 
 end
