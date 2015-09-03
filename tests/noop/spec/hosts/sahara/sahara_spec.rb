@@ -83,7 +83,9 @@ describe manifest do
                    'rabbit_password' => rabbit_password,
                    'rabbit_ha_queues' => rabbit_ha_queues,
                    'rabbit_port' => amqp_port,
-                   'rabbit_hosts' => amqp_hosts.split(",")
+                   'rabbit_hosts' => amqp_hosts.split(","),
+                   'host'                => api_bind_host,
+                   'port'                => api_bind_port,
                )
       end
 
@@ -101,16 +103,12 @@ describe manifest do
         it { is_expected.to contain_sahara_config('object_store_access/public_object_store_ca_file').with_value('/etc/pki/tls/certs/public_haproxy.pem') }
       end
 
-      it 'should declare sahara::api class correctly' do
-        api_bind_port = '8386'
-        should contain_class('sahara::api').with(
-                   'host' => bind_address,
-                   'port' => api_bind_port
-               )
+      it 'should declare sahara::service::api class correctly' do
+        should contain_class('sahara::service::api')
       end
 
-      it 'should declare sahara::engine class correctly' do
-        should contain_class('sahara::engine')
+      it 'should declare sahara::service::engine class correctly' do
+        should contain_class('sahara::service::engine')
       end
 
       it 'should declare sahara::client class correctly' do
