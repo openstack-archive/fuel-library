@@ -157,7 +157,12 @@ class cobbler::server (
 
   #TODO(mattymo): refactor this into cobbler module and use OS-dependent
   #directories
-  file { ['/etc/httpd', '/etc/httpd/conf/', '/etc/httpd/conf.d/']:
+  file { ['/etc/httpd',
+          '/etc/httpd/conf/',
+          '/etc/httpd/conf.d/',
+          '/var/lib/fuel/keys/master',
+          '/var/lib/fuel/keys/master/cobbler',
+         ]:
     ensure => 'directory',
   }
   file { '/etc/httpd/conf.d/nailgun.conf':
@@ -179,11 +184,12 @@ class cobbler::server (
     unit         => 'Fuel Deployment Team',
     email        => "root@${dns_domain}",
     days         => 3650,
-    base_dir     => '/etc/pki/tls/',
+    base_dir     => '/var/lib/fuel/keys/master/cobbler/',
     owner        => 'root',
     group        => 'root',
     force        => false,
     cnf_tpl      => 'openssl/cert.cnf.erb',
+    require      => File['/var/lib/fuel/keys/master/cobbler'],
     notify       => Service[$cobbler_web_service],
   }
 

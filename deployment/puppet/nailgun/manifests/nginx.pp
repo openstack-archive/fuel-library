@@ -33,6 +33,12 @@ class nailgun::nginx(
     ensure => latest,
   }
 
+  file { ['/var/lib/fuel/keys/master',
+          '/var/lib/fuel/keys/master/nginx',
+         ]:
+    ensure => 'directory',
+  }
+
   file { ["/etc/nginx/conf.d/default.conf",
           "/etc/nginx/conf.d/virtual.conf",
           "/etc/nginx/conf.d/ssl.conf"]:
@@ -60,10 +66,11 @@ class nailgun::nginx(
       unit         => 'Fuel Deployment Team',
       email        => "root@fuel.master.local",
       days         => 3650,
-      base_dir     => '/etc/pki/tls/',
+      base_dir     => '/var/lib/fuel/keys/master/nginx/',
       owner        => 'root',
       group        => 'root',
       force        => false,
+      require      => File['/var/lib/fuel/keys/master/nginx'],
       cnf_tpl      => 'openssl/cert.cnf.erb',
     }
   }
