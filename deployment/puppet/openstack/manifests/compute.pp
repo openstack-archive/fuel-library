@@ -137,6 +137,7 @@ class openstack::compute (
   $neutron_settings               = {},
   $install_bridge_utils           = false,
   $compute_driver                 = 'libvirt.LibvirtDriver',
+  $compute_drive_format           = undef,
 ) {
 
   #
