@@ -103,7 +103,7 @@ ASTUTE_VOL="--volumes-from ${CONTAINER_NAMES['astute']}"
 ###astute: mcollective
 declare -A REQS
 REQS["${HOST_VOL['astuteyaml']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
-REQS["${HOST_VOL['keys']}"]="mcollective astute ostf"
+REQS["${HOST_VOL['keys']}"]="mcollective astute ostf cobbler nginx"
 REQS["${HOST_VOL['repo']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
 REQS["${HOST_VOL['logs']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
 #Most containers work from local integrated puppet, but rsync needs to serve host puppet
