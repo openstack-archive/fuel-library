@@ -10,8 +10,8 @@ server {
     <%- end -%>
     <%- if @ssl_enabled -%>
     listen   8443 ssl;
-    ssl_certificate /etc/pki/tls/nginx.crt;
-    ssl_certificate_key /etc/pki/tls/nginx.key;
+    ssl_certificate /var/lib/fuel/keys/master/cobbler/nginx.crt;
+    ssl_certificate_key /var/lib/fuel/keys/master/cobbler/nginx.key;
     ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
     ssl_ciphers         HIGH:!aNULL:!MD5;
     <%- end -%>
