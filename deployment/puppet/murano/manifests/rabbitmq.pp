@@ -47,6 +47,16 @@ class murano::rabbitmq(
   $firewall_rule_name  = '203 murano-rabbitmq',
 ) {
 
+  include ::rabbitmq::params
+
+  ensure_packages([$rabbitmq::params::package_name],
+    {
+      ensure   => $rabbitmq::params::package_ensure,
+      provider => $rabbitmq::params::package_provider,
+      before   => File['rabbitmq_config'],
+    }
+  )
+
   file { 'rabbitmq_config' :
     path    => $rabbit_config_path,
     owner   => 'root',
