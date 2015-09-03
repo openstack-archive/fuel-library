@@ -15,6 +15,11 @@ else {
 $ntp_servers = delete([$::fuel_settings['NTP1'], $::fuel_settings['NTP2'],
                       $::fuel_settings['NTP3']], "")
 
+$admin_network = ipcalc_network_wildcard(
+  $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+  $::fuel_settings['ADMIN_NETWORK']['netmask'])
+$extra_networks = $fuel_settings['EXTRA_ADMIN_NETWORKS']
+
 Class['nailgun::packages'] ->
 Class['nailgun::client'] ->
 Class['nailgun::host'] ->
@@ -37,6 +42,8 @@ class { 'nailgun::host':
   dns_domain        => $::fuel_settings['DNS_DOMAIN'],
   dns_search        => $::fuel_settings['DNS_SEARCH'],
   dns_upstream      => split($::fuel_settings['DNS_UPSTREAM'], ','),
+  admin_network     => $admin_network,
+  extra_networks    => $extra_networks,
   repo_root         => "/var/www/nailgun/${::fuel_version['VERSION']['openstack_version']}",
   monitord_user     => $::fuel_settings['keystone']['monitord_user'],
   monitord_password => $::fuel_settings['keystone']['monitord_password'],
