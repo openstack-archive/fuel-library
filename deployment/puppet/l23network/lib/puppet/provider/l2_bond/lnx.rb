@@ -107,6 +107,12 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "-#{eth}"}
         end
         iproute('link', 'set', 'down', 'dev', @resource[:bond])
+
+        # Make bond mode first in bond_properties
+        # bond mode should be set first of all
+        tmp_prop = @property_flush[:bond_properties].select { |prop, val| prop == :mode }
+        @property_flush[:bond_properties] = tmp_prop.merge!(@property_flush[:bond_properties])
+
         @property_flush[:bond_properties].each_pair do |prop, val|
           if self.class.lnx_bond_allowed_properties_list.include? prop.to_sym
             act_val = val.to_s
