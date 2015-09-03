@@ -1,6 +1,11 @@
+fuel-library8.0 (8.0.0-1ubuntu1) mos6.1; urgency=medium
+
+  * Bump version to 8.0
+
+ -- Vladimir Kuklin <vkuklin@mirantis.com>  Thu, 03 Sep 2015 13:40:12 +0300
+
 fuel-library7.0 (7.0.0-1) trusty; urgency=low
 
   * Update version to 7.0
 
  -- Igor Shishkin <ishishkin@miirantis.com> Wed, 22 Apr 2015 14:44:00 +0300
-
