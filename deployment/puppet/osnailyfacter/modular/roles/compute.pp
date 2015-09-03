@@ -51,6 +51,7 @@ $nova_rate_limits               = hiera('nova_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
 $glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
+$config_drive_format            = 'vfat'
 
 $public_ssl_hash                = hiera('public_ssl')
 $vncproxy_host = $public_ssl_hash['services'] ? {
@@ -282,6 +283,7 @@ class { 'openstack::compute':
   state_path                  => $nova_hash[state_path],
   neutron_settings            => $neutron_config,
   storage_hash                => $storage_hash,
+  config_drive_format         => $config_drive_format,
 }
 
 # Required for fping API extension, see LP#1486404

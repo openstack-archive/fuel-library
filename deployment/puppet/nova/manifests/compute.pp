@@ -111,6 +111,10 @@
 #  "[ { 'vendor_id':'1234','product_id':'5678' },
 #     { 'vendor_id':'4321','product_id':'8765','physical_network':'default' } ] "
 #
+#  [*config_drive_format*]
+#    (optional) Config drive format. One of iso9660 (default) or vfat
+#    Defaults to undef
+#
 class nova::compute (
   $enabled                            = false,
   $manage_service                     = true,
@@ -137,6 +141,7 @@ class nova::compute (
   $internal_service_availability_zone = 'internal',
   $heal_instance_info_cache_interval  = '60',
   $pci_passthrough                    = undef,
+  $config_drive_format                = undef,
 ) {
 
   include ::nova::params
@@ -229,6 +234,12 @@ class nova::compute (
   if ($pci_passthrough) {
     nova_config {
       'DEFAULT/pci_passthrough_whitelist': value => check_array_of_hash($pci_passthrough);
+    }
+  }
+
+  if ($config_drive_format) {
+    nova_config {
+      'DEFAULT/config_drive_format': value => $config_drive_format;
     }
   }
 }

@@ -68,6 +68,12 @@ describe manifest do
       should contain_package('fping').with('ensure' => 'present')
     end
 
+    it 'nova config should have config_drive_format set to vfat' do
+      should contain_nova_config('DEFAULT/config_drive_format').with(
+        'value' => 'vfat'
+      )
+    end
+
     # SSL support
     public_ssl = Noop.hiera_structure('public_ssl/services')
 

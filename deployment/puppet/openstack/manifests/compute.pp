@@ -137,6 +137,7 @@ class openstack::compute (
   $neutron_settings               = {},
   $install_bridge_utils           = false,
   $compute_driver                 = 'libvirt.LibvirtDriver',
+  $config_drive_format            = undef,
 ) {
 
   #
@@ -303,6 +304,7 @@ class openstack::compute (
     instance_usage_audit_period   => $instance_usage_audit_period,
     default_availability_zone     => $nova_hash['default_availability_zone'],
     default_schedule_zone         => $nova_hash['default_schedule_zone'],
+    config_drive_format           => $config_drive_format,
   }
 
   nova_config {
