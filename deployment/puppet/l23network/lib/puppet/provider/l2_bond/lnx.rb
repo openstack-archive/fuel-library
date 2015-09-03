@@ -116,7 +116,9 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           end
           if act_val
             debug("Set property '#{prop}' to '#{act_val}' for bond '#{@resource[:bond]}'")
-            File.open("/sys/class/net/#{@resource[:bond]}/bonding/#{prop}", 'a') {|f| f << "#{act_val.to_s}"}
+            property_file = File.open("/sys/class/net/#{@resource[:bond]}/bonding/#{prop}", 'a')
+            property_file.write("#{act_val.to_s}")
+            property_file.close
           end
         end
         # re-assemble bond after configuration
