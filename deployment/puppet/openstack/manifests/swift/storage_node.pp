@@ -20,6 +20,8 @@ class openstack::swift::storage_node (
     'object',
     'container'],
   $sync_rings                 = true,
+  $incoming_chmod             = 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r',
+  $outgoing_chmod             = 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r',
   # if the cinder management components should be installed
   $cinder                     = true,
   $manage_volumes             = false,
@@ -103,6 +105,11 @@ class openstack::swift::storage_node (
   }
   Swift::Storage::Server <| title == '6002' |> {
     log_name => 'swift-account-server',
+  }
+
+  Swift::Storage::Server <| |> {
+    incoming_chmod => $incoming_chmod,
+    outgoing_chmod => $outgoing_chmod,
   }
 
   validate_string($master_swift_replication_ip)
