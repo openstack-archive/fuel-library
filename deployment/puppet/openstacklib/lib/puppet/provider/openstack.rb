@@ -1,5 +1,6 @@
 require 'csv'
 require 'puppet'
+require 'timeout'
 
 class Puppet::Error::OpenstackAuthInputError < Puppet::Error
 end
@@ -10,7 +11,18 @@ end
 class Puppet::Provider::Openstack < Puppet::Provider
 
   initvars # so commands will work
-  commands :openstack => 'openstack'
+  commands :openstack_cmd => 'openstack'
+
+  def self.openstack(*args)
+    timeout_time = 10
+    begin
+      Timeout.timeout(timeout_time) do
+        openstack_cmd *args
+      end
+    rescue Timeout::Error
+      raise Puppet::ExecutionFailure, "Command: 'openstack #{args.join ' '}' has been running for more then #{timeout_time} seconds!"
+    end
+  end
 
   # Returns an array of hashes, where the keys are the downcased CSV headers
   # with underscores instead of spaces
@@ -18,7 +30,7 @@ class Puppet::Provider::Openstack < Puppet::Provider
     env = credentials ? credentials.to_env : {}
     Puppet::Util.withenv(env) do
       rv = nil
-      timeout = 10
+      timeout = 60
       end_time = Time.now.to_i + timeout
       loop do
         begin
@@ -50,25 +62,15 @@ class Puppet::Provider::Openstack < Puppet::Provider
           end
           break
         rescue Puppet::ExecutionFailure => e
-          if e.message =~ /HTTP 401/
-            raise(Puppet::Error::OpenstackUnauthorizedError, 'Could not authenticate.')
-          elsif e.message =~ /Unable to establish connection/
-            current_time = Time.now.to_i
-            if current_time > end_time
-              break
-            else
-              wait = end_time - current_time
-              Puppet::debug("Non-fatal error: \"#{e.message}\"; retrying for #{wait} more seconds.")
-              if wait > timeout - 2 # Only notice the first time
-                notice("#{service} service is unavailable. Will retry for up to #{wait} seconds.")
-              end
-            end
-            sleep(2)
-          else
-            raise e
-          end
+          raise(Puppet::Error::OpenstackUnauthorizedError, 'Could not authenticate.') if e.message =~ /HTTP 401/
+          current_time = Time.now.to_i
+          raise e if current_time > end_time
+          Puppet::debug("Non-fatal error: '#{e.message}'; retrying for #{end_time - current_time} more seconds.")
+          sleep 2
+          retry
         end
       end
+      debug "OpenStack request: '#{service} #{action} #{properties}' returned: '#{rv.inspect}'"
       return rv
     end
   end
