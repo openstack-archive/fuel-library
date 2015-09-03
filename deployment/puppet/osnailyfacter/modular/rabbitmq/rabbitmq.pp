@@ -45,9 +45,7 @@ if $queue_provider == 'rabbitmq' {
 
   $cluster_partition_handling   = hiera('rabbit_cluster_partition_handling', 'autoheal')
   $mnesia_table_loading_timeout = hiera('mnesia_table_loading_timeout', '10000')
-  #todo(sv): Use specified in network role IP address as soon as OSTF will be ready
-  #$rabbitmq_bind_ip_address     = pick(get_network_role_property('mgmt/messaging', 'ipaddr'), 'UNSET')
-  $rabbitmq_bind_ip_address     = hiera('rabbitmq_bind_ip_address','UNSET')
+  $rabbitmq_bind_ip_address     = pick(get_network_role_property('mgmt/messaging', 'ipaddr'), 'UNSET')
 
   # NOTE(bogdando) not a hash. Keep an indentation as is
   $rabbit_tcp_listen_options    = hiera('rabbit_tcp_listen_options',
