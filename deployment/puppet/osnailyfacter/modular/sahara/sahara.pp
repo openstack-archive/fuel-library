@@ -58,6 +58,8 @@ if $sahara_hash['enabled'] {
   }
 
   class { 'sahara' :
+    host                => $api_bind_host,
+    port                => $api_bind_port,
     verbose             => $verbose,
     debug               => $debug,
     use_syslog          => $use_syslog,
@@ -94,12 +96,10 @@ if $sahara_hash['enabled'] {
     }
   }
 
-  class { 'sahara::api':
-    host => $api_bind_host,
-    port => $api_bind_port,
+  class { 'sahara::service::api':
   }
 
-  class { 'sahara::engine': }
+  class { 'sahara::service::engine': }
 
   class { 'sahara::client': }
 
