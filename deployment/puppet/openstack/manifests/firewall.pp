@@ -43,6 +43,7 @@ class openstack::firewall (
   $ceilometer_port              = 8777,
   $mongodb_port                 = 27017,
   $vxlan_udp_port               = 4789,
+  $keystone_network             = '0.0.0.0/0',
 ) {
 
 #  file {"iptables":
@@ -99,9 +100,11 @@ class openstack::firewall (
   }
 
   firewall {'102 keystone':
-    port   => [$keystone_public_port,$keystone_admin_port],
-    proto  => 'tcp',
-    action => 'accept',
+    port        => [$keystone_public_port,$keystone_admin_port],
+    proto       => 'tcp',
+    action      => 'accept',
+    source      => "${keystone_network}",
+    destination => "${keystone_network}",
   }
 
   firewall {'103 swift':
