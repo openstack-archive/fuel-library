@@ -25,7 +25,7 @@ Puppet::Type.newtype(:l2_bond) do
               Regexp.new(/^en[ospx]\h+/),
               Regexp.new(/^em\d*/),
               Regexp.new(/^p\d+p\d+/),
-              Regexp.new(/^ib[\h\.]+/),
+              Regexp.new(/^ib.*/),
         ].select{|x| x.match(val)}.empty?
           fail("#{err} '#{val}'")
         end
@@ -145,7 +145,10 @@ Puppet::Type.newtype(:l2_bond) do
             val.delete(k)
           end
         end
-        val
+        # Make bond mode first in bond_properties due to if it goes after
+        # lacp_rate than lacp_rate is not set correctly.
+        tmp_prop = val.select { |p, v| p == :mode }
+        val = tmp_prop.merge!(val)
       end
 
       def should_to_s(value)
