@@ -82,7 +82,7 @@ describe manifest do
                    'rabbit_os_user'      => rabbit_os_user,
                    'rabbit_os_password'  => rabbit_os_password,
                    'rabbit_os_port'      => amqp_port,
-                   'rabbit_os_host'      => amqp_hosts.split(','),
+                   'rabbit_os_hosts'     => amqp_hosts.split(','),
                    'rabbit_ha_queues'    => rabbit_ha_queues,
                    'rabbit_own_host'     => public_ip,
                    'rabbit_own_port'     => '55572',
