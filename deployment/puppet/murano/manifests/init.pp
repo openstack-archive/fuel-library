@@ -40,9 +40,9 @@
 #  (Optional) Notification driver to use
 #  Defaults to 'messagingv2'
 #
-# [*rabbit_os_host*]
-#  (Optional) Host for openstack rabbit server
-#  Defaults to '127.0.0.1'
+# [*rabbit_os_hosts*]
+#  (Optional) List of clustered rabbit servers.
+#  Defaults to '['127.0.0.1:5672']'
 #
 # [*rabbit_os_port*]
 #  (Optional) Port for openstack rabbit server
@@ -142,7 +142,7 @@ class murano(
   $log_dir              = '/var/log/murano',
   $data_dir             = '/var/cache/murano',
   $notification_driver  = 'messagingv2',
-  $rabbit_os_host       = '127.0.0.1',
+  $rabbit_os_hosts      = ['127.0.0.1:5672'],
   $rabbit_os_port       = '5672',
   $rabbit_os_user       = 'guest',
   $rabbit_os_password   = 'guest',
@@ -229,7 +229,7 @@ class murano(
 
     'oslo_messaging_rabbit/rabbit_userid'   : value => $rabbit_os_user;
     'oslo_messaging_rabbit/rabbit_password' : value => $rabbit_os_password;
-    'oslo_messaging_rabbit/rabbit_hosts'    : value => $rabbit_os_host;
+    'oslo_messaging_rabbit/rabbit_hosts'    : value => join($rabbit_os_hosts, ',');
     'oslo_messaging_rabbit/rabbit_port'     : value => $rabbit_os_port;
     'oslo_messaging_rabbit/rabbit_ha_queues': value => $rabbit_ha_queues;
 

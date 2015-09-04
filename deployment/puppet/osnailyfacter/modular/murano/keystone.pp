@@ -3,7 +3,6 @@ notice('MODULAR: murano/keystone.pp')
 $murano_hash                = hiera_hash('murano_hash', {})
 $public_ip                  = hiera('public_vip')
 $management_ip              = hiera('management_vip')
-$service_endpoint           = hiera('service_endpoint', $management_ip)
 $public_ssl                 = hiera('public_ssl')
 $region                     = hiera('region', 'RegionOne')
 
@@ -22,7 +21,7 @@ $api_bind_port  = '8082'
 
 $tenant         = pick($murano_hash['tenant'], 'services')
 $public_url     = "${public_protocol}://${public_address}:${api_bind_port}"
-$admin_url      = "http://${service_endpoint}:${api_bind_port}"
+$admin_url      = "http://${management_ip}:${api_bind_port}"
 
 #################################################################
 
