@@ -18,7 +18,6 @@ $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', true)
-$use_stderr                 = hiera('use_stderr', false)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
@@ -77,13 +76,12 @@ if $murano_hash['enabled'] {
     verbose             => $verbose,
     debug               => $debug,
     use_syslog          => $use_syslog,
-    use_stderr          => $use_stderr,
     log_facility        => $syslog_log_facility_murano,
     database_connection => $sql_connection,
-    keystone_uri        => "${public_protocol}://${public_address}:5000/v2.0/",
-    keystone_username   => $murano_user,
-    keystone_password   => $murano_hash['user_password'],
-    keystone_tenant     => $tenant,
+    auth_uri            => "${public_protocol}://${public_address}:5000/v2.0/",
+    admin_user          => $murano_user,
+    admin_password      => $murano_hash['user_password'],
+    admin_tenant_name   => $tenant,
     identity_uri        => "http://${service_endpoint}:35357/",
     use_neutron         => $use_neutron,
     rabbit_os_user      => $rabbit_hash['user'],
@@ -98,6 +96,7 @@ if $murano_hash['enabled'] {
     service_host        => $api_bind_host,
     service_port        => $api_bind_port,
     external_network    => $external_network,
+    use_trusts          => true,
   }
 
   class { 'murano::api':
