@@ -58,7 +58,8 @@ describe 'nova::compute' do
           :default_schedule_zone              => 'az2',
           :internal_service_availability_zone => 'az_int1',
           :heal_instance_info_cache_interval  => '120',
-          :pci_passthrough                    => "[{\"vendor_id\":\"8086\",\"product_id\":\"0126\"},{\"vendor_id\":\"9096\",\"product_id\":\"1520\",\"physical_network\":\"physnet1\"}]"
+          :pci_passthrough                    => "[{\"vendor_id\":\"8086\",\"product_id\":\"0126\"},{\"vendor_id\":\"9096\",\"product_id\":\"1520\",\"physical_network\":\"physnet1\"}]",
+          :config_drive_format                => 'vfat'
         }
       end
 
@@ -107,6 +108,9 @@ describe 'nova::compute' do
         is_expected.to contain_nova_config('DEFAULT/pci_passthrough_whitelist').with(
           'value' => "[{\"vendor_id\":\"8086\",\"product_id\":\"0126\"},{\"vendor_id\":\"9096\",\"product_id\":\"1520\",\"physical_network\":\"physnet1\"}]"
         )
+      end
+      it 'configures nova config_drive_format to vfat' do
+        is_expected.to contain_nova_config('DEFAULT/config_drive_format').with_value('vfat')
       end
     end
 
