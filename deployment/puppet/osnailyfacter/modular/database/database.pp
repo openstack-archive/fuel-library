@@ -19,7 +19,7 @@ $mysql_database_password   = $mysql_hash['root_password']
 $enabled                   = pick($mysql_hash['enabled'], true)
 
 $galera_node_address       = get_network_role_property('mgmt/database', 'ipaddr')
-$galera_nodes              = keys(get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database'))
+$galera_nodes              = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database'))
 $galera_primary_controller = hiera('primary_database', $primary_controller)
 $mysql_bind_address        = '0.0.0.0'
 $galera_cluster_name       = 'openstack'
