@@ -39,11 +39,13 @@ fixtures:
     'sahara':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-sahara.git'
       branch: '7.0.0-mos-rc1'
+    'murano':
+      repo: 'https://review.fuel-infra.org/puppet-modules/puppet-murano.git'
+      branch: '7.0.0-mos-rc1'
   symlinks:
     'openstack': "#{source_dir}"
     'osnailyfacter': "#{source_dir}/../osnailyfacter"
     'l23network': "#{source_dir}/../l23network"
     'rsyslog': "#{source_dir}/../rsyslog"
     'mysql': "#{source_dir}/../mysql"
-    'murano': "#{source_dir}/../murano"
     'tweaks': "#{source_dir}/../tweaks"
