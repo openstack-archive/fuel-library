@@ -291,10 +291,6 @@ class { 'openstack::cinder':
   identity_uri         => $auth_uri,
 }
 
-cinder_config { 'DEFAULT/nova_catalog_info':
-  value => 'compute:nova:internalURL'
-}
-
 cinder_config { 'keymgr/fixed_key':
   value => $cinder_hash[fixed_key];
 }
