@@ -1,4 +1,5 @@
 require 'yaml'
+require 'digest'
 require 'puppetx/l23_network_scheme'
 require 'puppetx/l23_hash_tools'
 
@@ -52,7 +53,15 @@ module Puppet::Parser::Functions
         next
       end
 
-      short_name = name[0,13]  # 13 here because max. interface name length in linus == 15 and two-letters prefix used
+      # 13 here because max. interface name length in linus == 15 and two-letters prefix used
+      if name.length > 13
+        short_name = name[0,8]
+        name_hash = Digest::MD5.hexdigest name
+        short_name += '_' + name_hash[0,4]
+      else
+        short_name = name[0,13]
+      end
+
       base_veth = "v_#{short_name}"
       ns_veth = "b_#{short_name}"
 
