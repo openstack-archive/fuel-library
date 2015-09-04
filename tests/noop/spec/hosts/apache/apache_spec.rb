@@ -25,6 +25,24 @@ describe manifest do
       )
     }
 
+    it 'should contain apache2 logrotate overrides' do
+      should contain_file('/etc/logrotate.d/apache2').with(
+        :ensure => 'file',
+        :owner  => 'root',
+        :group  => 'root',
+        :mode   => '0644').with_content(/rotate 52/)
+      should contain_file('/etc/logrotate.d/httpd-prerotate').with(
+        :ensure => 'directory',
+        :owner  => 'root',
+        :group  => 'root',
+        :mode   => '0755')
+      should contain_file('/etc/logrotate.d/httpd-prerotate/apache2').with(
+        :ensure => 'file',
+        :owner  => 'root',
+        :group  => 'root',
+        :mode   => '0755').with_content(/^sleep \d+/)
+    end
+
   end
   test_ubuntu_and_centos manifest
 end
