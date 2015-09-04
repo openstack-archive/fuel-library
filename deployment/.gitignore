@@ -34,3 +34,4 @@ puppet/monit
 puppet/filemapper
 puppet/tftp
 puppet/ironic
+puppet/murano
