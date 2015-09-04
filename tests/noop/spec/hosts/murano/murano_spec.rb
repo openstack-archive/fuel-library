@@ -80,30 +80,31 @@ describe manifest do
     context 'if murano is enabled', :if => enable do
       it 'should declare murano class correctly' do
         should contain_class('murano').with(
-                   'verbose' => verbose,
-                   'debug' => debug,
-                   'use_syslog' => use_syslog,
-                   'use_stderr' => 'false',
-                   'log_facility' => syslog_log_facility_murano,
+                   'verbose'             => verbose,
+                   'debug'               => debug,
+                   'use_syslog'          => use_syslog,
+                   'use_stderr'          => 'false',
+                   'log_facility'        => syslog_log_facility_murano,
                    'database_connection' => sql_connection,
-                   'keystone_uri'        => "#{public_protocol}://#{public_address}:5000/v2.0/",
-                   'keystone_username'   => murano_user,
-                   'keystone_password'   => murano_password,
-                   'keystone_tenant'     => tenant,
+                   'auth_uri'            => "#{public_protocol}://#{public_address}:5000/v2.0/",
+                   'admin_user'          => murano_user,
+                   'admin_password'      => murano_password,
+                   'admin_tenant_name'   => tenant,
                    'identity_uri'        => "http://#{service_endpoint}:35357/",
                    'use_neutron'         => use_neutron,
                    'rabbit_os_user'      => rabbit_os_user,
                    'rabbit_os_password'  => rabbit_os_password,
                    'rabbit_os_port'      => amqp_port,
-                   'rabbit_os_hosts'     => amqp_hosts.split(','),
+                   'rabbit_os_host'      => amqp_hosts.split(','),
                    'rabbit_ha_queues'    => rabbit_ha_queues,
                    'rabbit_own_host'     => public_ip,
-                   'rabbit_own_port'     => '55572',
+                   'rabbit_own_port'     => amqp_port,
                    'rabbit_own_user'     => 'murano',
                    'rabbit_own_password' => rabbit_own_password,
-                   'service_host' => bind_address,
-                   'service_port' => api_bind_port,
-                   'external_network' => external_network
+                   'service_host'        => bind_address,
+                   'service_port'        => api_bind_port,
+                   'external_network'    => external_network,
+                   'rabbit_own_vhost'    => 'murano',
                )
       end
 
@@ -129,25 +130,28 @@ describe manifest do
                )
       end
 
-      it 'should declare murano::rabbitmq class correctly' do
-        should contain_class('murano::rabbitmq').with(
-                   'rabbit_user' => 'murano',
-                   'rabbit_password' => rabbit_own_password,
-                   'rabbit_port' => '55572'
-               )
+      it 'should declare rabbitmq_user' do
+        should contain_rabbitmq_user('murano').with({
+          :password => rabbit_own_password,
+        })
+      end
+
+      it 'should declare rabbitmq_vhost' do
+        should contain_rabbitmq_vhost('/murano')
+      end
+
+      it 'should declare rabbitmq_user_permission' do
+        should contain_rabbitmq_user_permissions('murano@/murano').with({
+          :configure_permission => '.*',
+          :read_permission      => '.*',
+          :write_permission     => '.*',
+        })
       end
 
       enable = (Noop.hiera_structure('murano/enabled') and Noop.hiera('node_role') == 'primary-controller')
       context 'on primary controller', :if => enable do
         it 'should declare murano::application resource correctly' do
-          should contain_murano__application('io.murano').with(
-                     'os_tenant_name' => tenant,
-                     'os_username' => murano_user,
-                     'os_password' => murano_password,
-                     'os_auth_url' => "#{public_protocol}://#{public_address}:5000/v2.0/",
-                     'os_region' => region,
-                     'mandatory' => true
-                 )
+          should contain_murano__application('io.murano')
         end
 
         it {
