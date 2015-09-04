@@ -80,24 +80,26 @@ if $murano_hash['enabled'] {
     use_stderr          => $use_stderr,
     log_facility        => $syslog_log_facility_murano,
     database_connection => $sql_connection,
-    keystone_uri        => "${public_protocol}://${public_address}:5000/v2.0/",
-    keystone_username   => $murano_user,
-    keystone_password   => $murano_hash['user_password'],
-    keystone_tenant     => $tenant,
+    auth_uri            => "${public_protocol}://${public_address}:5000/v2.0/",
+    admin_user          => $murano_user,
+    admin_password      => $murano_hash['user_password'],
+    admin_tenant_name   => $tenant,
     identity_uri        => "http://${service_endpoint}:35357/",
     use_neutron         => $use_neutron,
     rabbit_os_user      => $rabbit_hash['user'],
     rabbit_os_password  => $rabbit_hash['password'],
     rabbit_os_port      => $amqp_port,
-    rabbit_os_hosts     => split($amqp_hosts, ','),
+    rabbit_os_host      => split($amqp_hosts, ','),
     rabbit_ha_queues    => $rabbit_ha_queues,
     rabbit_own_host     => $public_ip,
-    rabbit_own_port     => '55572',
+    rabbit_own_port     => $amqp_port,
     rabbit_own_user     => 'murano',
     rabbit_own_password => $heat_hash['rabbit_password'],
+    rabbit_own_vhost    => 'murano',
     service_host        => $api_bind_host,
     service_port        => $api_bind_port,
     external_network    => $external_network,
+    use_trusts          => true,
   }
 
   class { 'murano::api':
@@ -114,10 +116,16 @@ if $murano_hash['enabled'] {
     repo_url => $repository_url,
   }
 
-  class { 'murano::rabbitmq':
-    rabbit_user     => 'murano',
-    rabbit_password => $heat_hash['rabbit_password'],
-    rabbit_port     => '55572',
+  rabbitmq_user { 'murano':
+    password => $heat_hash['rabbit_password'],
+  }
+
+  rabbitmq_vhost { '/murano': }
+
+  rabbitmq_user_permissions { "murano@/murano":
+    configure_permission => '.*',
+    read_permission      => '.*',
+    write_permission     => '.*',
   }
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
@@ -138,20 +146,13 @@ if $murano_hash['enabled'] {
       url   => $haproxy_stats_url,
     }
 
-    murano::application { 'io.murano' :
-      os_tenant_name => $tenant,
-      os_username    => $murano_user,
-      os_password    => $murano_hash['user_password'],
-      os_auth_url    => "${public_protocol}://${public_address}:5000/v2.0/",
-      os_region      => $region,
-      mandatory      => true,
-    }
+    murano::application { 'io.murano' : }
 
     Haproxy_backend_status['keystone-admin'] -> Haproxy_backend_status['murano-api']
     Haproxy_backend_status['keystone-public'] -> Haproxy_backend_status['murano-api']
     Haproxy_backend_status['murano-api'] -> Murano::Application['io.murano']
 
-    Service['murano-api'] -> Murano::Application<| mandatory == true |>
+    Service['murano-api'] -> Murano::Application['io.murano']
   }
 
   Firewall[$firewall_rule] -> Class['murano::api']
