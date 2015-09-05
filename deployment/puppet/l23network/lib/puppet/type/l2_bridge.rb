@@ -26,7 +26,7 @@ Puppet::Type.newtype(:l2_bridge) do
               Regexp.new(/^en[ospx]\h+/),
               Regexp.new(/^em\d*/),
               Regexp.new(/^p\d+p\d+/),
-              Regexp.new(/^ib[\h\.]+/),
+              Regexp.new(/^ib[\h\.]*/),
         ].select{|x| x.match(val)}.empty?
           fail("#{err} '#{val}'")
         end
