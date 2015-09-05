@@ -392,9 +392,14 @@ ip_prepare() {
     ocf_run $RUN_IN_NS ip route replace default via $OCF_RESKEY_gateway metric $OCF_RESKEY_gateway_metric
   fi
 
-  # Send Gratuitous ARP to update all neighbours in a detached background process
+  # Send Gratuitous ARP REQUEST packets to update all neighbours in a detached background process
   ARGS="-U -c 32 -w 10 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
   $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
+
+  # Send Gratuitous ARP REPLY packets to update all neighbours in a detached background process
+  ARGS="-A -c 32 -w 10 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
+  $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
+
   return $OCF_SUCCESS
 }
 
