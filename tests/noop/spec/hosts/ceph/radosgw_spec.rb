@@ -18,7 +18,7 @@ describe manifest do
       it {
         should contain_service('httpd').with(
              'hasrestart' => true,
-             'restart'    => 'apachectl graceful',
+             'restart'    => 'apachectl graceful || apachectl restart',
         )
       }
 
