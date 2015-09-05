@@ -38,6 +38,10 @@ url_available({ 'uri'   => 'http://www.google.com',
 
 EOS
 ) do |argv|
+#DIRTY HACK TO WAIT FOR UBUNTU POST_UP
+#NETWORKING SCRIPTS TO FINISH
+#FIXME(aglarendil): LP1492147
+  sleep 45
   url = argv[0]
   http_proxy = argv[1]
 
