@@ -16,6 +16,14 @@ describe manifest do
       access_networks = ['localhost', '127.0.0.1', '240.0.0.0/255.255.0.0'] + other_networks.split(' ')
     end
 
+    let(:database_nodes) do
+      Noop.hiera('database_nodes')
+    end
+
+    let(:galera_nodes) do
+      (Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', database_nodes, 'mgmt/database').values
+    end
+
     it "should delcare osnailyfacter::mysql_user with correct other_networks" do
       expect(subject).to contain_class('osnailyfacter::mysql_user').with(
         'user'            => 'root',
@@ -23,7 +31,12 @@ describe manifest do
       ).that_comes_before('Exec[initial_access_config]')
     end
 
-    it { should contain_class('mysql::server').that_comes_before('Osnailyfacter::Mysql_user') }
+    it "should configure Galera to use mgmt/database network for replication" do
+      expect(subject).to contain_class('mysql::server').with(
+        'galera_nodes' => galera_nodes,
+      ).that_comes_before('Osnailyfacter::Mysql_user')
+    end
+
     it { should contain_class('osnailyfacter::mysql_access') }
     it { should contain_class('openstack::galera::status').that_comes_before('Haproxy_backend_status[mysql]') }
     it { should contain_haproxy_backend_status('mysql').that_comes_before('Class[osnailyfacter::mysql_access]') }
