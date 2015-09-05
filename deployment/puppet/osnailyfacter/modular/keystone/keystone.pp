@@ -148,6 +148,7 @@ class { 'keystone::wsgi::apache':
   workers               => min($::processorcount, 6),
   ssl                   => $ssl,
   vhost_custom_fragment => $vhost_limit_request_field_size,
+  access_log_format     => '%h %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"',
 
   wsgi_script_ensure => $::osfamily ? {
     'RedHat'       => 'link',
