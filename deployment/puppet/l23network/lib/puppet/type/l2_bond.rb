@@ -25,7 +25,7 @@ Puppet::Type.newtype(:l2_bond) do
               Regexp.new(/^en[ospx]\h+/),
               Regexp.new(/^em\d*/),
               Regexp.new(/^p\d+p\d+/),
-              Regexp.new(/^ib[\h\.]+/),
+              Regexp.new(/^ib[\h\.]*/),
         ].select{|x| x.match(val)}.empty?
           fail("#{err} '#{val}'")
         end
@@ -142,6 +142,17 @@ Puppet::Type.newtype(:l2_bond) do
             if ! val.has_key? k.to_sym
               val[k.to_sym] = val[k]
             end
+            val.delete(k)
+          end
+        end
+        #fixme(aglarendil): lp1469746/lp1492781
+        #skip undefined settings which 
+        #should not be normally set in Linux
+        #for particular bond modes.
+        #e.g. xmit_hash_policy should not be 
+        #touched at all for non-hashing bond types
+        val.keys.each do |k|
+          if ['', 'undef'].include? val[k].to_s
             val.delete(k)
           end
         end
