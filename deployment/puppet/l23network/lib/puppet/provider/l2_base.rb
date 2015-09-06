@@ -628,6 +628,28 @@ class Puppet::Provider::L2_base < Puppet::Provider
 
   # ---------------------------------------------------------------------------
 
+  def self.set_sys_class(property, value)
+    begin
+      property_file = File.open(property, 'a')
+      property_file.write("#{value.to_s}")
+      property_file.close
+    rescue Exception => e
+      debug("Non-fatal-Error: Can't set property '#{property}' to '#{value}': #{e.message}")
+    end
+  end
+
+  def self.get_sys_class(property, array=false)
+    begin
+      rv = File.open(property).read.split(/\s+/)
+    rescue Exception => e
+      debug("Non-fatal-Error: Can't get property '#{property}': #{e.message}")
+      rv = ['']
+    end
+    (array  ?  rv  :  rv[0])
+  end
+
+  # ---------------------------------------------------------------------------
+
   def self.set_mtu(iface, mtu=1500)
     if File.symlink?("/sys/class/net/#{iface}")
       debug("Set MTU to '#{mtu}' for interface '#{iface}'")
@@ -636,6 +658,5 @@ class Puppet::Provider::L2_base < Puppet::Provider
   end
 
 end
-
 
 # vim: set ts=2 sw=2 et :

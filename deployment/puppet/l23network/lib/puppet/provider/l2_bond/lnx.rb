@@ -71,6 +71,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   def flush
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
+      bond_prop_dir = "/sys/class/net/#{@resource[:bond]}"
       #
       # FLUSH changed properties
       if @property_flush.has_key? :slaves
@@ -80,17 +81,23 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           rm_slave_list = runtime_slave_ports
         else
           rm_slave_list = runtime_slave_ports - @property_flush[:slaves]
-          debug("Remove '#{rm_slave_list.join(',')}' ports from bond '#{@resource[:bond]}'")
-          rm_slave_list.each do |slave|
-            iproute('link', 'set', 'down', 'dev', slave)  # need by kernel requirements by design. undocumented :(
-            File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "-#{slave}"}
+          if !rm_slave_list.empty?
+            debug("Remove '#{rm_slave_list.join(',')}' ports from bond '#{@resource[:bond]}'")
+            rm_slave_list.each do |slave|
+              iproute('link', 'set', 'down', 'dev', slave)  # need by kernel requirements by design. undocumented :(
+              self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "-#{slave}")
+            end
           end
           # add interfaces to bond
-          (@property_flush[:slaves] - runtime_slave_ports).each do |slave|
-            iproute('link', 'set', 'down', 'dev', slave)  # need by kernel requirements by design. undocumented :(
-            debug("Add interface '#{slave}' to bond '#{@resource[:bond]}'")
-            File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "+#{slave}"}
-            iproute('link', 'set', 'up', 'dev', slave)
+          add_slave_list = @property_flush[:slaves] - runtime_slave_ports
+          if !add_slave_list.empty?
+            debug("Add '#{add_slave_list.join(',')}' ports to bond '#{@resource[:bond]}'")
+            add_slave_list.each do |slave|
+              debug("Add interface '#{slave}' to bond '#{@resource[:bond]}'")
+              iproute('link', 'set', 'down', 'dev', slave)  # need by kernel requirements by design. undocumented :(
+              self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "+#{slave}")
+              iproute('link', 'set', 'up', 'dev', slave)
+            end
           end
         end
       end
@@ -100,29 +107,59 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         #todo(sv): inplement re-assembling only if it need
         #todo(sv): re-set only delta between reality and requested
         runtime_bond_state  = !self.class.get_iface_state(@resource[:bond]).nil?
-        runtime_slave_ports = File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "r").read.split(/\s+/)
+        runtime_slave_ports = self.class.get_sys_class("#{bond_prop_dir}/bonding/slaves", true)
+        debug("Disassemble bond '#{@resource[:bond]}'")
         runtime_slave_ports.each do |eth|
+          debug("Remove interface '#{eth}' from bond '#{@resource[:bond]}'")
           # for most bond options we should disassemble bond before re-configuration. In the kernel module documentation
           # says, that bond interface should be downed, but it's not enouth.
-          File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "-#{eth}"}
+          self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "-#{eth}")
         end
         iproute('link', 'set', 'down', 'dev', @resource[:bond])
-        @property_flush[:bond_properties].each_pair do |prop, val|
-          if self.class.lnx_bond_allowed_properties_list.include? prop.to_sym
-            act_val = val.to_s
+        # setup primary bond_properties
+        primary_bond_properties = [:mode, :xmit_hash_policy]
+        debug("Set primary bond properties [#{primary_bond_properties.join(',')}] for bond '#{@resource[:bond]}'")
+        primary_bond_properties.each do |ppp|
+          pprop = ppp.to_s
+          if @property_flush[:bond_properties].has_key?(ppp)
+            curr_pprop = self.class.get_sys_class("#{bond_prop_dir}/bonding/#{pprop}")
+            should_pprop = @property_flush[:bond_properties][ppp].to_s
+            if ['', 'nil', 'undef'].include? should_pprop
+              debug("Skip undefined property '#{pprop}'='#{should_pprop}' for bond '#{@resource[:bond]}'")
+            elsif curr_pprop != should_pprop
+              debug("Setting #{pprop} '#{should_pprop}' for bond '#{@resource[:bond]}'")
+              self.class.set_sys_class("#{bond_prop_dir}/bonding/#{pprop}", should_pprop)
+              sleep(1)
+            else
+              debug("Property #{pprop} already is '#{should_pprop}' for bond '#{@resource[:bond]}'. Nothing to do.")
+            end
+          end
+        end
+        # setup another bond_properties
+        non_primary_bond_properties = @property_flush[:bond_properties].reject{|k,v| primary_bond_properties.include? k}
+        debug("Set non-primary bond properties [#{non_primary_bond_properties.keys.join(',')}] for bond '#{@resource[:bond]}'")
+        non_primary_bond_properties.each do |prop, val|
+          if ['', 'nil', 'undef'].include? val.to_s
+            debug("Skip undefined property '#{prop}'='#{val}' for bond '#{@resource[:bond]}'")
+          elsif self.class.lnx_bond_allowed_properties_list.include? prop.to_sym
+            val_should_be = val.to_s
+            val_actual = self.class.get_sys_class("#{bond_prop_dir}/bonding/#{prop}")
+            if val_actual != val_should_be
+              debug("Setting property '#{prop}' to '#{val_should_be}' for bond '#{@resource[:bond]}'")
+              self.class.set_sys_class("#{bond_prop_dir}/bonding/#{prop}", val_should_be)
+            else
+              debug("Property #{prop} already is '#{val_should_be}' for bond '#{@resource[:bond]}'. Nothing to do.")
+            end
           else
             debug("Unsupported property '#{prop}' for bond '#{@resource[:bond]}'")
-            act_val = nil
-          end
-          if act_val
-            debug("Set property '#{prop}' to '#{act_val}' for bond '#{@resource[:bond]}'")
-            File.open("/sys/class/net/#{@resource[:bond]}/bonding/#{prop}", 'a') {|f| f << "#{act_val.to_s}"}
           end
         end
         # re-assemble bond after configuration
         iproute('link', 'set', 'up', 'dev', @resource[:bond]) if runtime_bond_state
+        debug("Re-assemble bond '#{@resource[:bond]}'")
         runtime_slave_ports.each do |eth|
-          File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "a") {|f| f << "+#{eth}"}
+          debug("Add interface '#{eth}' to bond '#{@resource[:bond]}'")
+          self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "+#{eth}")
         end
       end
       if @property_flush.has_key? :bridge
