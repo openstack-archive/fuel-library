@@ -23,10 +23,11 @@ describe Puppet::Type.type(:l2_bond) do
       it "should be failed for name #{iname}" do
         expect { described_class.new({
           :name   => "#{iname}",
-        })}.to raise_error(Puppet::ResourceError, /Wrong\s+bond\s+name/)
+        })}.to raise_error(Puppet::ResourceError, %r{Wrong\s+bond\s+name})
       end
 
     end
+
   end
 end
 # vim: set ts=2 sw=2 et
