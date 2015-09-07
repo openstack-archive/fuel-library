@@ -28,6 +28,15 @@ Puppet::Type.newtype(:l3_clear_route) do
 
     end
 
+    newproperty(:interface) do
+      desc "interface of the route"
+      validate do |val|
+        if not val =~ /^[a-z_][\w\.\-]*[0-9a-z]$/
+          fail("Invalid interface name: '#{val}'")
+        end
+      end
+    end
+
     newproperty(:metric) do
       desc "Route metric"
       newvalues(/^\d+$/, :absent, :none, :undef, :nil)
