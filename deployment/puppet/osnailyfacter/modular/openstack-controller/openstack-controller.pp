@@ -40,6 +40,7 @@ $glance_api_servers             = hiera('glance_api_servers', "$management_vip:9
 $region                         = hiera('region', 'RegionOne')
 $service_workers                = pick($nova_hash['workers'],
                                         min(max($::processorcount, 2), 16))
+$ironic_hash                    = hiera_hash('ironic', {})
 
 $memcache_nodes                 = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
 $memcache_ipaddrs               = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
@@ -208,12 +209,17 @@ if $sahara_hash['enabled'] {
   $cinder_scheduler_filters = []
 }
 
+if $ironic_hash['enabled'] {
+  $scheduler_host_manager = 'nova.scheduler.ironic_host_manager.IronicHostManager'
+}
+
 class { '::nova::scheduler::filter':
   cpu_allocation_ratio       => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
   disk_allocation_ratio      => pick($nova_hash['disk_allocation_ratio'], '1.0'),
   ram_allocation_ratio       => pick($nova_hash['ram_allocation_ratio'], '1.0'),
   scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
-  scheduler_default_filters  => concat($nova_scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]))
+  scheduler_default_filters  => concat($nova_scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])),
+  scheduler_host_manager     => $scheduler_host_manager,
 }
 
 class { 'cinder::scheduler::filter':
