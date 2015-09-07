@@ -2,7 +2,7 @@
   type: puppet
   groups: [primary-controller, controller]
   required_for: [deploy_end]
-  requires: [deploy_start, openstack-haproxy-ceilometer, openstack-haproxy-cinder, openstack-haproxy-glance, openstack-haproxy-heat, openstack-haproxy-horizon, openstack-haproxy-keystone, openstack-haproxy-murano, openstack-haproxy-mysqld, openstack-haproxy-neutron, openstack-haproxy-nova, openstack-haproxy-radosgw, openstack-haproxy-sahara, openstack-haproxy-swift, openstack-haproxy-stats]
+  requires: [deploy_start, openstack-haproxy-ceilometer, openstack-haproxy-cinder, openstack-haproxy-glance, openstack-haproxy-heat, openstack-haproxy-horizon, openstack-haproxy-keystone, openstack-haproxy-murano, openstack-haproxy-mysqld, openstack-haproxy-neutron, openstack-haproxy-nova, openstack-haproxy-radosgw, openstack-haproxy-sahara, openstack-haproxy-swift, openstack-haproxy-stats, openstack-haproxy-ironic]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy.pp
     puppet_modules: /etc/puppet/modules
@@ -203,4 +203,19 @@
     timeout: 300
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-stats_post.rb
+
+- id: openstack-haproxy-ironic
+  type: puppet
+  groups: [primary-controller, controller]
+  condition: "settings:additional_components.ironic.value == true"
+  required_for: [deploy_end]
+  requires: [deploy_start, cluster-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-ironic.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-ironic_post.rb
 
