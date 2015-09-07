@@ -1,5 +1,5 @@
-%define name fuel-library7.0
-%{!?version: %define version 7.0.0}
+%define name fuel-library8.0
+%{!?version: %define version 8.0.0}
 %{!?release: %define release 1}
 
 Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack
@@ -18,7 +18,7 @@ Requires: fuel-misc
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
-%define openstack_version 2015.1.0-7.0
+%define openstack_version 2015.1.0-8.0
 %define predefined_upstream_modules  %{_sourcedir}/upstream_modules.tar.gz
 
 %description
