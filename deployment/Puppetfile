@@ -21,36 +21,6 @@
 #
 #
 
-# Pull in puppetlabs-stdlib
-mod 'stdlib',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-stdlib.git',
-    :ref => '4.6.0'
-
-# Pull in puppetlabs-concat
-mod 'concat',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-concat.git',
-    :ref => '1.2.3'
-
-# Pull in puppetlabs-inifile
-mod 'inifile',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-inifile.git',
-    :ref => '1.1.3'
-
-# Pull in puppetlabs-xinetd
-mod 'xinetd',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-xinetd.git',
-    :ref => '1.5.0'
-
-# Pull in saz-ssh
-mod 'ssh',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/saz-ssh.git',
-    :ref => 'v2.8.1'
-
-# Pull in puppetlabs-ntp
-mod 'ntp',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-ntp.git',
-    :ref => '4.0.0'
-
 # Pull in puppetlabs-apache
 mod 'apache',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-apache.git',
@@ -61,7 +31,42 @@ mod 'apt',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-apt.git',
     :ref => '1.8.0'
 
+# Pull in puppetlabs-concat
+mod 'concat',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-concat.git',
+    :ref => '1.2.3'
+
 # Pull in puppetlabs-firewall
 mod 'firewall',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-firewall.git',
     :ref => '1.2.0'
+
+# Pull in puppetlabs-inifile
+mod 'inifile',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-inifile.git',
+    :ref => '1.1.3'
+
+# Pull in puppetlabs-ntp
+mod 'ntp',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-ntp.git',
+    :ref => '4.0.0'
+
+# Pull in saz-ssh
+mod 'ssh',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/saz-ssh.git',
+    :ref => 'v2.8.1'
+
+# Pull in puppetlabs-stdlib
+mod 'stdlib',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-stdlib.git',
+    :ref => '4.6.0'
+
+# Pull in puppetlabs-tftp
+mod 'tftp',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-tftp.git',
+    :ref => '0.2.3'
+
+# Pull in puppetlabs-xinetd
+mod 'xinetd',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-xinetd.git',
+    :ref => '1.5.0'
