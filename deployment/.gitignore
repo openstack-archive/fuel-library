@@ -34,3 +34,4 @@ puppet/rsync
 puppet/monit
 puppet/filemapper
 puppet/tftp
+pupppet/ironic
