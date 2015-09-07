@@ -28,3 +28,4 @@ puppet/ceilometer
 puppet/cinder
 puppet/sahara
 puppet/tftp
+pupppet/ironic

@@ -150,3 +150,8 @@ mod 'sahara',
 mod 'tftp',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-tftp.git',
     :ref => '0.2.3'
+
+# Pull in puppet-ironic
+mod 'ironic',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-ironic.git',
+    :ref => '6.0.0'
