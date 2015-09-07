@@ -150,3 +150,8 @@ mod 'cinder',
 mod 'sahara',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-sahara.git',
     :ref => '7.0.0-mos-rc1'
+
+# Pull in puppetlabs-tftp
+mod 'tftp',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-tftp.git',
+    :ref => '0.2.3'
