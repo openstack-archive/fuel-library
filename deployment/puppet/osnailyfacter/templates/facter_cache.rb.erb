@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+require 'yaml'
+
+module FacterCache
+  CACHE_FILE="<%= @facter_cache_file %>"
+  EXCLUDE_VAR="<%= @facter_exclude_var %>"
+
+  def self.data
+    return @cache if @cache
+    begin
+      data = YAML.load_file CACHE_FILE
+      return {} unless data.is_a? Hash
+      @data = data
+    rescue
+      {}
+    end
+  end
+
+  def self.excluded_facts
+    return @excluded_facts if @excluded_facts
+    return [] unless ENV[EXCLUDE_VAR]
+    @excluded_facts = ENV[EXCLUDE_VAR].split.map { |fact| fact.downcase }
+  end
+
+  def self.fact_is_excluded?(fact_name)
+    excluded_facts.include? fact_name.to_s
+  end
+
+  def self.output
+    data.each do |name, value|
+      name = name.downcase
+      next if fact_is_excluded? name
+      puts "#{name}=#{value}"
+    end
+  end
+
+end
+
+FacterCache.output
