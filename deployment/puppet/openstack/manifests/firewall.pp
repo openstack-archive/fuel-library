@@ -103,7 +103,6 @@ class openstack::firewall (
     port        => [$keystone_public_port,$keystone_admin_port],
     proto       => 'tcp',
     action      => 'accept',
-    source      => "${keystone_network}",
     destination => "${keystone_network}",
   }
 
