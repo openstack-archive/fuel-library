@@ -11,3 +11,13 @@
     cmd: python /etc/puppet/modules/osnailyfacter/modular/hiera/hiera_pre.py
   test_post:
     cmd: python /etc/puppet/modules/osnailyfacter/modular/hiera/hiera_post.py
+
+- id: facter_save
+  type: puppet
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, zabbix-server, primary-mongo, mongo, virt]
+  requires: [deploy_start]
+  required_for: [hiera, deploy_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/facter_save.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
