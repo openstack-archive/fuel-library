@@ -37,7 +37,6 @@ describe manifest do
         'port'       => [ 5000, 35357 ],
         'proto'       => 'tcp',
         'action'      => 'accept',
-        'source'      => keystone_network,
         'destination' => keystone_network,
       )
     end
