@@ -19,3 +19,4 @@ puppet/postgresql
 puppet/openstacklib
 puppet/keystone
 puppet/tftp
+pupppet/ironic
