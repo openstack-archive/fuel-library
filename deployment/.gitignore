@@ -33,3 +33,4 @@ puppet/mongodb
 puppet/rsync
 puppet/monit
 puppet/filemapper
+puppet/tftp
