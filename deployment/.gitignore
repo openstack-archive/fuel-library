@@ -16,3 +16,4 @@ puppet/sysctl
 puppet/staging
 puppet/vcsrepo
 puppet/postgresql
+puppet/tftp
