@@ -269,6 +269,9 @@ $mongo_roles = ['primary-mongo', 'mongo']
 # todo: use special node-roles instead controllers in the future
 $neutron_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
+#Define Ironic-related variables:
+$ironic_api_nodes = $controllers_hash
+
 # Change nova_hash to add vnc port to it
 # TODO(sbog): change this when we will get rid of global hashes
 $public_ssl_hash = hiera('public_ssl')

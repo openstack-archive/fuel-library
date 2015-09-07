@@ -1,6 +1,6 @@
-# == Class: openstack::ha::swift
+# == Class: openstack::ha::ironic
 #
-# HA configuration for OpenStack Swift
+# HA configuration for OpenStack Ironic
 #
 # === Parameters
 #
@@ -21,45 +21,42 @@
 #   vip
 #
 # [*baremetal_virtual_ip*]
-#   (optional) String. This is the ipaddress to be used for the baremetal facing
+#   (required) String. This is the ipaddress to be used for the baremetal facing
 #   vip
 #
 # [*server_names*]
 #   (required) Array. This is an array of server names for the haproxy service
 #
-class openstack::ha::swift (
+class openstack::ha::ironic (
   $internal_virtual_ip,
   $ipaddresses,
   $public_virtual_ip,
   $server_names,
+  $baremetal_virtual_ip,
   $public_ssl = false,
-  $baremetal_virtual_ip = undef,
 ) {
 
   # defaults for any haproxy_service within this class
   Openstack::Ha::Haproxy_service {
-    listen_port         => 8080,
-    internal_virtual_ip => $internal_virtual_ip,
-    ipaddresses         => $ipaddresses,
-    public_virtual_ip   => $public_virtual_ip,
-    server_names        => $server_names,
+    listen_port            => 6385,
+    internal_virtual_ip    => $internal_virtual_ip,
+    ipaddresses            => $ipaddresses,
+    public_virtual_ip      => $public_virtual_ip,
+    server_names           => $server_names,
     haproxy_config_options => {
-      'option' => ['httpchk', 'httplog', 'httpclose'],
+      option => ['httpchk GET /', 'httplog','httpclose'],
     },
-    balancermember_options => 'check port 49001 inter 15s fastinter 2s downinter 8s rise 3 fall 3',
   }
 
-  openstack::ha::haproxy_service { 'swift':
-    order                  => '120',
+  openstack::ha::haproxy_service { 'ironic':
+    order                  => '180',
     public                 => true,
     public_ssl             => $public_ssl,
   }
 
-  if $baremetal_virtual_ip {
-    openstack::ha::haproxy_service { 'swift-baremetal':
-      order                  => '125',
-      public_virtual_ip      => false,
-      internal_virtual_ip    => $baremetal_virtual_ip,
-    }
+  openstack::ha::haproxy_service { 'ironic-baremetal':
+    order                  => '185',
+    public_virtual_ip      => false,
+    internal_virtual_ip    => $baremetal_virtual_ip,
   }
 }
