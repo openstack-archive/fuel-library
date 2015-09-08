@@ -108,15 +108,6 @@ tasks:
     puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute.pp"
     timeout: 3600
     cwd: "/"
-- priority: 1300
-  type: puppet
-  uids:
-  - '5'
-  parameters:
-    puppet_modules: "/etc/puppet/modules"
-    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix.pp"
-    timeout: 3600
-    cwd: "/"
 user_node_name: Untitled (2a:ee)
 uid: '5'
 resume_guests_state_on_host_boot: true

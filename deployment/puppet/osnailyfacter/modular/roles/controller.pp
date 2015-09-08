@@ -34,7 +34,6 @@ if ($::mellanox_mode == 'ethernet') {
   }
 }
 
-# TODO(bogdando) add monit zabbix services monitoring, if required
 # NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
 
 # BP https://blueprints.launchpad.net/mos/+spec/include-openstackclient

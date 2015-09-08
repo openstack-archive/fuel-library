@@ -72,15 +72,6 @@ tasks:
     puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/hosts/hosts.pp"
     timeout: 3600
     cwd: "/"
-- priority: 900
-  type: puppet
-  uids:
-  - '1'
-  parameters:
-    puppet_modules: "/etc/puppet/modules"
-    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix.pp"
-    timeout: 3600
-    cwd: "/"
 - priority: 1000
   type: puppet
   uids:
@@ -955,17 +946,6 @@ access:
 last_controller: node-3
 fqdn: node-1.test.domain.local
 auto_assign_floating_ip: false
-zabbix:
-  username: admin
-  db_password: EWqZG8w0
-  password: zabbix
-  metadata:
-    restrictions:
-    - action: hide
-      condition: not ('experimental' in version:feature_groups)
-    weight: 70
-    label: Zabbix Access
-  db_root_password: zxbaysgM
 mp:
 - weight: '1'
   point: '1'

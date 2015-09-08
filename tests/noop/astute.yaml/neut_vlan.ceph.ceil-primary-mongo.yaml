@@ -746,15 +746,6 @@ tasks:
   - '121'
 - parameters:
     cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 800
-  type: puppet
-  uids:
-  - '121'
-- parameters:
-    cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/mongo_primary.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
@@ -795,14 +786,3 @@ workloads_collector:
   password: v6vMAe7Q
   tenant: services
   username: workloads_collector
-zabbix:
-  db_password: leqcx9h8
-  db_root_password: UEzCPllm
-  metadata:
-    label: Zabbix Access
-    restrictions:
-    - action: hide
-      condition: not ('experimental' in version:feature_groups)
-    weight: 70
-  password: zabbix
-  username: admin
