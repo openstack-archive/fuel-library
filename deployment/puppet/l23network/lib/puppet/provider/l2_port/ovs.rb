@@ -2,9 +2,7 @@ require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_ba
 
 Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
   commands   :vsctl       => 'ovs-vsctl',
-             :ethtool_cmd => 'ethtool',
-             :iproute     => 'ip'
-
+             :ethtool_cmd => 'ethtool'
 
   def self.add_unremovable_flag(port_props)
     # calculate 'unremovable' flag. Should be re-defined in chield providers
