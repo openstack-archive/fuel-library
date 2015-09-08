@@ -18,6 +18,9 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
         :bond_miimon    => '50',
         :bond_lacp_rate => 'fast',
         :bond_lacp      => 'active',
+        :bond_updelay   => '111',
+        :bond_downdelay => '222',
+        :bond_ad_select => '2',   # unused for OVS
         :provider       => "ovs_ubuntu",
       },
     }
@@ -90,7 +93,8 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/ovs_options.+other_config:lacp-time=fast/) }
       it { expect(cfg_file).to match(/ovs_options.+other_config:bond-miimon-interval=50/) }
       it { expect(cfg_file).to match(/ovs_options.+lacp=active/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(7) }  #  no more lines in the interface file
+      it { expect(cfg_file).to match(/ovs_options.+lacp=active/) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(9) }  #  no more lines in the interface file
 
     end
 
