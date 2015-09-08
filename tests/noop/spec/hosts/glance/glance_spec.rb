@@ -20,12 +20,6 @@ describe manifest do
        pipeline = 'keystone'
     end
 
-    glance_user = Noop.hiera_structure('glance_hash/user', 'glance')
-    glance_user_password = Noop.hiera_structure('glance_hash/user_password')
-    glance_tenant = Noop.hiera_structure('glance_hash/tenant', 'services')
-    service_endpoint = Noop.hiera('service_endpoint')
-    auth_uri = "http://#{service_endpoint}:5000/"
-
     it 'should declare glance classes' do
       should contain_class('glance::api').with('pipeline' => pipeline)
       should contain_class('glance::registry')
@@ -43,13 +37,6 @@ describe manifest do
       should contain_glance_api_config('DEFAULT/auth_region').with_value(region)
       should contain_glance_api_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
       should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
-
-      # TODO(degorenko): closes-bug #1485639, should be removed after upstream fix
-      should contain_glance_api_config('DEFAULT/use_user_token').with_value('false')
-      should contain_glance_api_config('DEFAULT/admin_user').with_value(glance_user)
-      should contain_glance_api_config('DEFAULT/admin_password').with_value(glance_user_password)
-      should contain_glance_api_config('DEFAULT/admin_tenant_name').with_value(glance_tenant)
-      should contain_glance_api_config('DEFAULT/auth_url').with_value("#{auth_uri}v2.0/")
     end
 
     if $glance_backend == 'rbd'
