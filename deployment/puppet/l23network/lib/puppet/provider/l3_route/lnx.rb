@@ -1,20 +1,19 @@
 require 'ipaddr'
-require 'yaml'
-require 'puppetx/l23_utils'
+# require 'yaml'
+# require 'puppetx/l23_utils'
+require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/l3_base')
 
-Puppet::Type.type(:l3_route).provide(:lnx) do
+Puppet::Type.type(:l3_route).provide(:lnx, :parent => Puppet::Provider::L3_base) do
   defaultfor :osfamily => :linux
-  commands   :iproute => 'ip'
 
-
-  def self.prefetch(resources)
-    interfaces = instances
-    resources.keys.each do |name|
-      if provider = interfaces.find{ |ii| ii.name == name }
-        resources[name].provider = provider
-      end
-    end
-  end
+  # def self.prefetch(resources)
+  #   interfaces = instances
+  #   resources.keys.each do |name|
+  #     if provider = interfaces.find{ |ii| ii.name == name }
+  #       resources[name].provider = provider
+  #     end
+  #   end
+  # end
 
   def self.get_routes
     # return array of hashes -- all defined routes.
@@ -86,7 +85,7 @@ Puppet::Type.type(:l3_route).provide(:lnx) do
     cmd = ['route', 'add', @resource[:destination], 'via', @resource[:gateway]]
     cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
     begin
-      iproute(cmd)
+      self.iproute(cmd)
     rescue Exception => e
       if e.to_s =~ /File\s+exists/
         notice("Route for '#{@resource[:destination]}' via #{@resource[:gateway]} already exists. Use existing...")
@@ -104,7 +103,7 @@ Puppet::Type.type(:l3_route).provide(:lnx) do
     debug("DESTROY resource: #{@resource}")
     cmd = ['--force', 'route', 'del', @property_hash[:destination], 'via', @property_hash[:gateway]]
     cmd << ['metric', @property_hash[:metric]] if @property_hash[:metric] != :absent && @property_hash[:metric].to_i > 0
-    iproute(cmd)
+    self.iproute(cmd)
     @property_hash.clear
   end
 
@@ -127,7 +126,7 @@ Puppet::Type.type(:l3_route).provide(:lnx) do
           cmd = ['route', 'change', @resource[:destination], 'via', @property_flush[:gateway]]
           cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
           begin
-            iproute(cmd)
+            self.iproute(cmd)
           rescue Exception => e
             if e.to_s =~ /File\s+exists/
               notice("Route for '#{@resource[:destination]}' via #{@property_flush[:gateway]} already exists. Use existing...")
