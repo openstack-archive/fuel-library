@@ -143,15 +143,6 @@ class openstack::glance (
     'keystone_authtoken/token_cache_time': value => '-1';
   }
 
-  # TODO(degorenko): closes-bug #1485639, should be removed after upstream fix
-  glance_api_config {
-    'DEFAULT/use_user_token':    value => 'false';
-    'DEFAULT/admin_user':        value => $glance_user;
-    'DEFAULT/admin_password':    value => $glance_user_password;
-    'DEFAULT/admin_tenant_name': value => $glance_tenant;
-    'DEFAULT/auth_url':          value => "${auth_uri}v2.0/";
-  }
-
   glance_cache_config {
     'DEFAULT/use_syslog':                             value => $use_syslog;
     'DEFAULT/image_cache_dir':                        value => '/var/lib/glance/image-cache/';
