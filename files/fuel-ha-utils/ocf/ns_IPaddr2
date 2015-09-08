@@ -486,6 +486,10 @@ ip_monitor() {
   check_interfaces_for_up_state "$OCF_RESKEY_bridge:$OCF_RESKEY_also_check_interfaces" || return $OCF_NOT_RUNNING
   # use arping here, because no IP from VIP network allowed on host system
   ocf_run arping -c 32 -w 2 -I $OCF_RESKEY_bridge $OCF_RESKEY_ip || return $OCF_NOT_RUNNING
+
+  # Employ unsolicited arp mode to update neighbours arp caches
+  ocf_run arping -U -c 1 -w 2 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip
+
   return $OCF_SUCCESS
 }
 
