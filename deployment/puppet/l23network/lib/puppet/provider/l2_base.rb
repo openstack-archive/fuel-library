@@ -629,16 +629,22 @@ class Puppet::Provider::L2_base < Puppet::Provider
   # ---------------------------------------------------------------------------
 
   def self.set_sys_class(property, value)
+    debug("SET sys.property: #{property} << #{value}")
     begin
       property_file = File.open(property, 'a')
       property_file.write("#{value.to_s}")
       property_file.close
+      rv = true
     rescue Exception => e
       debug("Non-fatal-Error: Can't set property '#{property}' to '#{value}': #{e.message}")
+      rv = false
     end
+    return rv
   end
 
   def self.get_sys_class(property, array=false)
+    as_array = (array  ?  ' as array'  :  '')
+    debug("GET sys.property: #{property}#{as_array}.")
     begin
       rv = File.open(property).read.split(/\s+/)
     rescue Exception => e

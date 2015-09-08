@@ -56,16 +56,12 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
-    open('/sys/class/net/bonding_masters', 'a') do |f|
-      f << "+#{@resource[:name]}"
-    end
+    self.class.set_sys_class('/sys/class/net/bonding_masters', "+#{@resource[:name]}")
   end
 
   def destroy
     debug("DESTROY resource: #{@resource}")
-    open('/sys/class/net/bonding_masters', 'a') do |f|
-      f << "-#{@resource[:name]}"
-    end
+    self.class.set_sys_class('/sys/class/net/bonding_masters', "-#{@resource[:name]}")
   end
 
   def flush
@@ -75,7 +71,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       #
       # FLUSH changed properties
       if @property_flush.has_key? :slaves
-        runtime_slave_ports = File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "r").read.split(/\s+/)
+        runtime_slave_ports = self.class.get_sys_class("/sys/class/net/#{@resource[:bond]}/bonding/slaves", true)
         if @property_flush[:slaves].nil? or @property_flush[:slaves] == :absent
           debug("Remove all slave ports from bond '#{@resource[:bond]}'")
           rm_slave_list = runtime_slave_ports

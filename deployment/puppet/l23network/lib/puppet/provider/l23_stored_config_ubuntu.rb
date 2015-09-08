@@ -31,6 +31,9 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       :bond_miimon           => 'bond-miimon',
       :bond_lacp             => '', # unused for lnx
       :bond_lacp_rate        => 'bond-lacp-rate',
+      :bond_updelay          => 'bond-updelay',
+      :bond_downdelay        => 'bond-downdelay',
+      :bond_ad_select        => 'bond-ad-select',
       :bond_xmit_hash_policy => 'bond-xmit-hash-policy'
     }
   end
