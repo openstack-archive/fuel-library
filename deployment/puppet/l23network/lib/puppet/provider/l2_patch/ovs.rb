@@ -4,8 +4,7 @@ require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_ba
 Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
   commands   :vsctl       => 'ovs-vsctl',
              :ethtool_cmd => 'ethtool',
-             :brctl       => 'brctl',
-             :iproute     => 'ip'
+             :brctl       => 'brctl'
 
 
   def self.instances
@@ -107,7 +106,7 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
           end
         end
       end
-      iproute('link', 'set', 'up', 'dev', jack)
+      self.class.interface_up(jack)
     else
       # creating OVS-to-OVS patchcord
       jacks = []
