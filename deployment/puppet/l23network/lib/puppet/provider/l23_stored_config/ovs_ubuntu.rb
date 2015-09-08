@@ -22,6 +22,9 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
       :bond_lacp_rate => 'ovs_options',
       :bond_lacp      => 'ovs_options',
       :bond_xmit_hash_policy => '', # unused
+      :bond_ad_select => '',
+      :bond_updelay   => 'ovs_options',
+      :bond_downdelay => 'ovs_options',
     })
     return rv
   end
@@ -32,6 +35,14 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
     {
       :bond_mode => {
           :field    => 'bond_mode',
+          :store_to => 'ovs_options'
+      },
+      :bond_updelay => {
+          :field    => 'bond_updelay',
+          :store_to => 'ovs_options'
+      },
+      :bond_downdelay => {
+          :field    => 'bond_downdelay',
           :store_to => 'ovs_options'
       },
       :bond_lacp => {
@@ -46,7 +57,6 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
           :field    => 'other_config:bond-miimon-interval',
           :store_to => 'ovs_options'
       },
-
     }
   end
   def oneline_properties

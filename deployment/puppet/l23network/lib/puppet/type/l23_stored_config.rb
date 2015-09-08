@@ -221,6 +221,23 @@ Puppet::Type.newtype(:l23_stored_config) do
   newproperty(:bond_lacp_rate)
   newproperty(:bond_xmit_hash_policy)
 
+  newproperty(:bond_updelay) do
+    newvalues(/^\d+$/)
+  end
+
+  newproperty(:bond_downdelay) do
+    newvalues(/^\d+$/)
+  end
+
+  newproperty(:bond_ad_select) do
+    validate do |val|
+      allowed_values = ['0','1','2','stable','bandwidth','count']
+      if ! allowed_values.include? val.to_s
+        raise ArgumentError, "'#{val}' is not a valid bond_ad_select. Only #{allowed_values.join(', ')} allowed.)"
+      end
+    end
+  end
+
   # # `:options` provides an arbitrary passthrough for provider properties, so
   # # that provider specific behavior doesn't clutter up the main type but still
   # # allows for more powerful actions to be taken.
