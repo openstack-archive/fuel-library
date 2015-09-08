@@ -15,8 +15,9 @@ Facter.add(:libvirt_package_version) do
         version = out.split(/\n/).grep(/Candidate/i)[0].split(/\s+/)[2] if out
       when /(?i)(redhat)/
         pkg_grep_cmd = "yum info"
-        out = Facter::Util::Resolution.exec("#{pkg_grep_cmd} libvirt")
-        version = out.split(/\n/).grep(/Version/i)[0].split(/\s+/)[2] if out
+        out = Facter::Util::Resolution.exec("#{pkg_grep_cmd} libvirt 2>&1")
+        yum_out = out.split(/\n/).grep(/Version/i)
+        version = yum_out[0].split(/\s+/)[2] unless yum_out.empty?
     end
     version
   end
