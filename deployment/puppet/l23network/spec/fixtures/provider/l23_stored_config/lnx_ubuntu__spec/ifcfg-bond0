@@ -6,3 +6,6 @@ iface bond0 inet manual
   bond-lacp-rate fast
   bond-slaves eth2 eth3
   bond-xmit-hash-policy encap3+4
+  bond-updelay    111
+  bond-downdelay  222
+  bond-ad-select   2
