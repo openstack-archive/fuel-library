@@ -15,6 +15,14 @@ class Puppet::Provider::L2_base < Puppet::Provider
     return rv
   end
 
+  def self.iproute(*cmd)
+    actual_cmd = ['ip'] + Array(*cmd)
+    ff = IO.popen(actual_cmd.join(' '))
+    rv = ff.readlines().map{|l| l.chomp()}
+    # exception should be exception here
+    return rv
+  end
+
   def self.prefetch(resources)
     interfaces = instances
     resources.keys.each do |name|
@@ -599,7 +607,7 @@ class Puppet::Provider::L2_base < Puppet::Provider
 
   def self.ipaddr_exist?(if_name)
     rv = false
-    iproute('-o', 'addr', 'show', 'dev', if_name).split(/\n+/).map{|l| l.split(/\s+/)}.each do |line|
+    iproute(['-o', 'addr', 'show', 'dev', if_name]).map{|l| l.split(/\s+/)}.each do |line|
       if line[2].match(/^inet\d?$/)
         rv=true
         break
@@ -629,16 +637,22 @@ class Puppet::Provider::L2_base < Puppet::Provider
   # ---------------------------------------------------------------------------
 
   def self.set_sys_class(property, value)
+    debug("SET sys.property: #{property} << #{value}")
     begin
       property_file = File.open(property, 'a')
       property_file.write("#{value.to_s}")
       property_file.close
+      rv = true
     rescue Exception => e
       debug("Non-fatal-Error: Can't set property '#{property}' to '#{value}': #{e.message}")
+      rv = false
     end
+    return rv
   end
 
   def self.get_sys_class(property, array=false)
+    as_array = (array  ?  ' as array'  :  '')
+    debug("GET sys.property: #{property}#{as_array}.")
     begin
       rv = File.open(property).read.split(/\s+/)
     rescue Exception => e
@@ -649,11 +663,61 @@ class Puppet::Provider::L2_base < Puppet::Provider
   end
 
   # ---------------------------------------------------------------------------
+  def self.interface_up(iface, force=false)
+    cmd = ['link', 'set', 'up', 'dev', iface]
+    cmd.insert(0, '--force') if force
+    begin
+      iproute(cmd)
+      rv = true
+    rescue Exception => e
+      debug("Non-fatal-Error: Can't put interface '#{iface}' to UP state: #{e.message}")
+      rv = false
+    end
+    return rv
+  end
+  def self.interface_down(iface, force=false)
+    cmd = ['link', 'set', 'down', 'dev', iface]
+    cmd.insert(0, '--force') if force
+    begin
+      iproute(cmd)
+      rv = true
+    rescue Exception => e
+      debug("Non-fatal-Error: Can't put interface '#{iface}' to DOWN state: #{e.message}")
+      rv = false
+    end
+    return rv
+  end
+  # ---------------------------------------------------------------------------
+  def self.addr_flush(iface, force=false)
+    cmd = ['addr', 'flush', 'dev', iface]
+    cmd.insert(0, '--force') if force
+    begin
+      iproute(cmd)
+      rv = true
+    rescue Exception => e
+      debug("Non-fatal-Error: Can't flush addr for interface '#{iface}': #{e.message}")
+      rv = false
+    end
+    return rv
+  end
+  def self.route_flush(iface, force=false)
+    cmd = ['route', 'flush', 'dev', iface]
+    cmd.insert(0, '--force') if force
+    begin
+      iproute(cmd)
+      rv = true
+    rescue Exception => e
+      debug("Non-fatal-Error: Can't flush routes for interface '#{iface}': #{e.message}")
+      rv = false
+    end
+    return rv
+  end
+  # ---------------------------------------------------------------------------
 
   def self.set_mtu(iface, mtu=1500)
     if File.symlink?("/sys/class/net/#{iface}")
       debug("Set MTU to '#{mtu}' for interface '#{iface}'")
-      File.open("/sys/class/net/#{iface}/mtu", "a") { |f| f.write(mtu) }
+      set_sys_class("/sys/class/net/#{iface}/mtu", mtu)
     end
   end
 
