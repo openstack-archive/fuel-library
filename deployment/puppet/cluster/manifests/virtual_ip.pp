@@ -67,7 +67,7 @@ define cluster::virtual_ip (
   }
 
   $metadata = {
-    'migration-threshold' => '3',   # will be try start 3 times before migrate to another node
+    'migration-threshold' => '1',   # migrate to another node straight off
     'failure-timeout'     => '60',  # forget any fails of starts after this timeout
     'resource-stickiness' => '1'
   }
