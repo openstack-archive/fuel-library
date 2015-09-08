@@ -102,6 +102,15 @@
     timeout: 3600
     cwd: /
 
+- id: cleanup_arp_cache
+  type: shell
+  role: [primary-controller, controller]
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/cleanup_arp_cache.sh
+    timeout: 30
+
 #PRE DEPLOYMENT
 - id: upload_core_repos
   type: upload_file
