@@ -4,8 +4,6 @@ require 'puppetx/l23_utils'
 
 Puppet::Type.type(:l3_route).provide(:lnx) do
   defaultfor :osfamily => :linux
-  commands   :iproute => 'ip'
-
 
   def self.prefetch(resources)
     interfaces = instances
@@ -86,7 +84,7 @@ Puppet::Type.type(:l3_route).provide(:lnx) do
     cmd = ['route', 'add', @resource[:destination], 'via', @resource[:gateway]]
     cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
     begin
-      iproute(cmd)
+      self.class.iproute(cmd)
     rescue Exception => e
       if e.to_s =~ /File\s+exists/
         notice("Route for '#{@resource[:destination]}' via #{@resource[:gateway]} already exists. Use existing...")
@@ -104,7 +102,7 @@ Puppet::Type.type(:l3_route).provide(:lnx) do
     debug("DESTROY resource: #{@resource}")
     cmd = ['--force', 'route', 'del', @property_hash[:destination], 'via', @property_hash[:gateway]]
     cmd << ['metric', @property_hash[:metric]] if @property_hash[:metric] != :absent && @property_hash[:metric].to_i > 0
-    iproute(cmd)
+    self.class.iproute(cmd)
     @property_hash.clear
   end
 
@@ -127,7 +125,7 @@ Puppet::Type.type(:l3_route).provide(:lnx) do
           cmd = ['route', 'change', @resource[:destination], 'via', @property_flush[:gateway]]
           cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
           begin
-            iproute(cmd)
+            self.class.iproute(cmd)
           rescue Exception => e
             if e.to_s =~ /File\s+exists/
               notice("Route for '#{@resource[:destination]}' via #{@property_flush[:gateway]} already exists. Use existing...")
