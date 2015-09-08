@@ -99,15 +99,6 @@ tasks:
     puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/hosts/hosts.pp"
     timeout: 3600
     cwd: "/"
-- priority: 1200
-  type: puppet
-  uids:
-  - '1'
-  parameters:
-    puppet_modules: "/etc/puppet/modules"
-    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix.pp"
-    timeout: 3600
-    cwd: "/"
 - priority: 1300
   type: puppet
   uids:

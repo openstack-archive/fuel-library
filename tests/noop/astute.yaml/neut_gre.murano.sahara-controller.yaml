@@ -1013,15 +1013,6 @@ tasks:
   type: puppet
   uids:
   - '129'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/zabbix/zabbix.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 3600
-  type: puppet
-  uids:
-  - '129'
 test_vm_image:
   container_format: bare
   disk_format: qcow2
@@ -1047,14 +1038,3 @@ workloads_collector:
   password: 1r3ROjcQ
   tenant: services
   username: workloads_collector
-zabbix:
-  db_password: ppbPNY1E
-  db_root_password: 09DsVeL3
-  metadata:
-    label: Zabbix Access
-    restrictions:
-    - action: hide
-      condition: not ('experimental' in version:feature_groups)
-    weight: 70
-  password: zabbix
-  username: admin

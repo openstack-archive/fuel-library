@@ -227,14 +227,6 @@ class openstack::logging (
       content => template("${module_name}/62-mongod.conf.erb"),
     }
 
-    file { "${rsyslog::params::rsyslog_d}70-zabbix-server.conf":
-      content => template("openstack/70-zabbix-server.conf.erb"),
-    }
-
-    file { "${rsyslog::params::rsyslog_d}71-zabbix-agentd.conf":
-      content => template("openstack/71-zabbix-agentd.conf.erb"),
-    }
-
     file { "${rsyslog::params::rsyslog_d}80-swift.conf":
       content => template("openstack/80-swift.conf.erb"),
     }
