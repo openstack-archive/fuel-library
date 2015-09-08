@@ -305,6 +305,7 @@ rsync_data(){
 fix_config(){
     cecho "Make grub-loader and fix config files"
     # make grub loader
+    ssh "${admin_net_ip_bs}" "sed  -i 's#${src_disk}#${dst_disk}#'  ${s_base}/etc/mtab"
     ssh "${admin_net_ip_bs}" "mount -o bind /dev/ ${s_base}/dev/"
     ssh "${admin_net_ip_bs}" "mount ${dst_disk}3  ${s_base}/boot/"
     ssh "${admin_net_ip_bs}" "chroot ${s_base} grub-install --recheck ${dst_disk}"
@@ -312,6 +313,7 @@ fix_config(){
     ssh "${admin_net_ip_bs}" "sed -i '/HWADDR=/d' ${s_base}/etc/sysconfig/network-scripts/ifcfg-*"
     ssh "${admin_net_ip_bs}" "sed -i 's/${admin_net_mac}/${fvm_admin_mac}/' ${s_base}${fuel_astute}"
     ssh "${admin_net_ip_bs}" "cp  /etc/udev/rules.d/70-persistent-net.rules  ${s_base}/etc/udev/rules.d/70-persistent-net.rules"
+    ssh "${admin_net_ip_bs}" "cat /root/.ssh/authorized_keys >>${s_base}/root/.ssh/authorized_keys"
     ssh "${admin_net_ip_bs}" "umount ${s_base}/var/log ${s_base}/var/lib/docker ${s_base}/var ${s_base}/boot ${s_base}/dev ${s_base}" || true
 }
 
