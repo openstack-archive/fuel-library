@@ -12,11 +12,17 @@ Facter.add(:libvirt_package_version) do
       when /(?i)(debian)/
         pkg_grep_cmd = "apt-cache policy"
         out = Facter::Util::Resolution.exec("#{pkg_grep_cmd} libvirt-bin")
-        version = out.split(/\n/).grep(/Candidate/i)[0].split(/\s+/)[2] if out
+        out.each_line do |line|
+          version = line.scan(%r{\s+Candidate:\s+(.*)}).join() if line =~ %r{Candidate:}
+          break unless version.nil?
+        end
       when /(?i)(redhat)/
         pkg_grep_cmd = "yum info"
-        out = Facter::Util::Resolution.exec("#{pkg_grep_cmd} libvirt")
-        version = out.split(/\n/).grep(/Version/i)[0].split(/\s+/)[2] if out
+        out = Facter::Util::Resolution.exec("#{pkg_grep_cmd} libvirt 2>&1")
+        out.each_line do |line|
+          version = line.scan(%r{Version\s+:\s+(.*)\s+}).join() if line =~ %r{Version\s+:}
+          break unless version.nil?
+        end
     end
     version
   end
