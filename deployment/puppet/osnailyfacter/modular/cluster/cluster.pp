@@ -31,3 +31,17 @@ Service <| title == 'corosync' |> {
 
 Service['corosync'] -> Pcmk_nodes<||>
 Pcmk_nodes<||> -> Service<| provider == 'pacemaker' |>
+
+# Sometimes pacemaker can not connect to corosync
+# via IPC
+
+file {'/etc/corosync/uidgid.d/hacluster':
+  content =>"
+uidgid {
+   uid: hacluster
+   gid: haclient
+}
+"
+}
+
+File['/etc/corosync/corosync.conf'] -> File['/etc/corosync/uidgid.d/hacluster'] -> Service <| title == 'corosync' |>
