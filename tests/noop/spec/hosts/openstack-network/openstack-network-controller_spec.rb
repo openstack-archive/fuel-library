@@ -73,6 +73,14 @@ describe manifest do
         )
       end
 
+      it 'should configure database parameters for neutron-server' do
+        should contain_class('neutron::server').with(
+         'database_retry_interval' => 2,
+         'database_max_retries'    => -1,
+         'database_max_pool_size'  => 50,
+        )
+      end
+
       it 'should configure auth region for neutron-server-notifications' do
         should contain_class('neutron::server::notifications').with(
          'nova_region_name' => 'RegionOne',

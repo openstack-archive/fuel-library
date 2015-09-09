@@ -223,6 +223,7 @@ class openstack::network (
           database_retry_interval => 2,
           database_connection     => $neutron_db_uri,
           database_max_retries    => -1,
+          database_max_pool_size  => 50,
 
           agent_down_time => 15,
           allow_automatic_l3agent_failover => true,
