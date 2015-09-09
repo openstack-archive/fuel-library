@@ -24,7 +24,7 @@
 # Pull in puppetlabs-stdlib
 mod 'stdlib',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-stdlib.git',
-    :ref => '4.6.0'
+    :ref => '4.9.0'
 
 # Pull in puppetlabs-concat
 mod 'concat',
