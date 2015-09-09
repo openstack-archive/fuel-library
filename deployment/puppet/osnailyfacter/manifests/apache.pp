@@ -56,7 +56,7 @@ class osnailyfacter::apache (
   # This will randomly rotate the array of delays based on hostname to allow
   # for an idempotent delay to be applied. This will introduce a delay between
   # 0 and 5 minutes to the logrotate process.
-  $delay = fqdn_rotate([0,1,2,3,4,5])
+  $delay = fqdn_rotate([0,1,2,3,4,5], 'fuel-seed')
 
   # Convert delay into seconds for the prerotation script
   $apache2_logrotate_delay = $delay[0] * 60
