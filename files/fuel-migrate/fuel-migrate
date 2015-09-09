@@ -225,6 +225,7 @@ $(ifaces $other_net_bridges)
 EOF
     IFS=" "
     virsh -c "${dkvm_uri}" define /tmp/vm.xml
+    virsh -c "${dkvm_uri}" autostart ${fvm_name}
     virsh -c "${dkvm_uri}" start ${fvm_name}
     fvm_admin_mac="$(virsh -c "${dkvm_uri}"  domiflist "${fvm_name}" | awk "/vfm_${admin_net_if}/ { print \$5}")"
     #wait until vm up
