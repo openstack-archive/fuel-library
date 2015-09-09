@@ -212,7 +212,7 @@ class neutron::server (
   $database_idle_timeout            = 3600,
   $database_retry_interval          = 10,
   $database_min_pool_size           = 1,
-  $database_max_pool_size           = 10,
+  $database_max_pool_size           = 50,
   $database_max_overflow            = 20,
   $sync_db                          = false,
   $api_workers                      = $::processorcount,
