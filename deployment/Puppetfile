@@ -70,3 +70,8 @@ mod 'firewall',
 mod 'memcached',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-memcached.git',
     :ref => 'v2.5.0'
+
+# Pull in duritong-sysctl
+mod 'sysctl',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-sysctl.git',
+    :ref => 'v0.0.11'
