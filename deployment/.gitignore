@@ -12,3 +12,4 @@ puppet/apache
 puppet/apt
 puppet/firewall
 puppet/memcached
+puppet/sysctl
