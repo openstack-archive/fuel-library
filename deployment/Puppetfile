@@ -43,8 +43,8 @@ mod 'xinetd',
 
 # Pull in saz-ssh
 mod 'ssh',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/saz-ssh.git',
-    :ref => 'v2.8.1'
+    :git => 'https://github.com/SergK/puppet-ssh.git',
+    :ref => 'v2.8.2'
 
 # Pull in puppetlabs-ntp
 mod 'ntp',
