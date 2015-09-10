@@ -21,8 +21,8 @@ $admin_network = ipcalc_network_wildcard(
 $extra_networks = $fuel_settings['EXTRA_ADMIN_NETWORKS']
 
 Class['nailgun::packages'] ->
-Class['nailgun::client'] ->
 Class['nailgun::host'] ->
+Class['nailgun::client'] ->
 Class['docker::dockerctl'] ->
 Class['docker'] ->
 Class['openstack::logrotate'] ->
