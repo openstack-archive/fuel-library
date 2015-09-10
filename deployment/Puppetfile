@@ -75,3 +75,8 @@ mod 'memcached',
 mod 'sysctl',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-sysctl.git',
     :ref => 'v0.0.11'
+
+# Pull in nanliu-staging
+mod 'staging',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-staging.git',
+    :ref => '1.0.4'
