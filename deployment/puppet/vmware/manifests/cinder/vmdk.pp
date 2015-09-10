@@ -40,6 +40,20 @@ define vmware::cinder::vmdk(
   $cinder_volume_log = "${cinder_log_dir}/vmware-${index}.log"
   $cinder_conf = '/etc/cinder/cinder.conf'
   $cinder_volume_vmware = "${::cinder::params::volume_service}-vmware"
+  $storage_hash = hiera('storage', {})
+  $nodes_hash   = hiera('nodes', {})
+  $roles        = node_roles($nodes_hash, hiera('uid'))
+
+  if ($storage_hash['volumes_ceph']) and
+    !(member($roles, 'primary-controller') or
+    member($roles, 'controller')) {
+    service { 'cinder-volume':
+      enable    => false,
+      ensure    => stopped,
+      name      => $::cinder::params::volume_service,
+      hasstatus => true,
+    }
+  }
 
   if ! defined(File[$cinder_conf_dir]) {
     file { $cinder_conf_dir:
