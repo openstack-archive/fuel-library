@@ -80,3 +80,8 @@ mod 'sysctl',
 mod 'staging',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-staging.git',
     :ref => '1.0.4'
+
+# Pull in puppetlabs-vcsrepo
+mod 'vcsrepo',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-vcsrepo.git',
+    :ref => '1.3.1'
