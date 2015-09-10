@@ -1,23 +1,33 @@
+# == Class: nailgun::client
+# Configures the fuel client.
+
 class nailgun::client (
-$server = '127.0.0.1',
-$port   = '8000',
-$keystone_user = 'admin',
-$keystone_pass = 'admin',
-$keystone_port = '5000',
-)
-{
+  $server        = '127.0.0.1',
+  $port          = '8000',
+  $keystone_user = 'admin',
+  $keystone_pass = 'admin',
+  $keystone_port = '5000',
+) {
   include nailgun::packages
 
-  file { '/etc/fuel/client':
-    ensure => directory,
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
+  exec { 'fuel_client_config' :
+    command => 'fuel',
+    path    => '/usr/bin',
   }
-  file { '/etc/fuel/client/config.yaml':
-    content => template('nailgun/fuelclient.yaml.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0600',
+
+  file_line { 'replace keystone user with the actual user':
+    ensure  => present,
+    path    => '/root/.config/fuel/fuel_client.yaml',
+    line    => "KEYSTONE_USER: ${$keystone_user}",
+    match   => '^KEYSTONE_USER:',
+    require => Exec['fuel_client_config'],
+  }
+
+  file_line { 'replace keystone password with the actual password':
+    ensure  => present,
+    path    => '/root/.config/fuel/fuel_client.yaml',
+    line    => "KEYSTONE_PASS: ${$keystone_pass}",
+    match   => '^KEYSTONE_PASS:',
+    require => Exec['fuel_client_config'],
   }
 }
