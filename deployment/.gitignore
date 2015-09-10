@@ -14,3 +14,4 @@ puppet/firewall
 puppet/memcached
 puppet/sysctl
 puppet/staging
+puppet/vcsrepo

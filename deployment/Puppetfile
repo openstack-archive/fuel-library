@@ -76,7 +76,7 @@ mod 'sysctl',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-sysctl.git',
     :ref => 'v0.0.11'
 
-# Pull in nanliu-staging
+# Pull in puppetlabs-vcsrepo
 mod 'staging',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-staging.git',
-    :ref => '1.0.4'
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-vcsrepo.git',
+    :ref => '1.3.1'
