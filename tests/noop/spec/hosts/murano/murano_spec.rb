@@ -40,7 +40,7 @@ describe manifest do
       api_bind_port              = '8082'
       api_bind_host              = bind_address
 
-      internal_url               = "http://#{service_endpoint}:#{api_bind_port}"
+      internal_url               = "http://#{api_bind_host}:#{api_bind_port}"
 
       read_timeout               = '60'
       sql_connection             = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"

@@ -44,7 +44,7 @@ if $murano_hash['enabled'] {
 
   $murano_user    = pick($murano_hash['user'], 'murano')
   $tenant         = pick($murano_hash['tenant'], 'services')
-  $internal_url   = "http://${service_endpoint}:${api_bind_port}"
+  $internal_url   = "http://${api_bind_host}:${api_bind_port}"
   $db_user        = pick($murano_hash['db_user'], 'murano')
   $db_name        = pick($murano_hash['db_name'], 'murano')
   $db_password    = pick($murano_hash['db_password'])
