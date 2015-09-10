@@ -11,59 +11,58 @@ class cluster::haproxy_ocf (
 
   $service_name = 'p_haproxy'
 
-  if $primary_controller {
-    cs_resource { $service_name:
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'fuel',
-      primitive_type  => 'ns_haproxy',
-      complex_type    => 'clone',
-      ms_metadata     => {
-        'interleave' => true,
+  cs_resource { $service_name:
+    ensure          => present,
+    primitive_class => 'ocf',
+    provided_by     => 'fuel',
+    primitive_type  => 'ns_haproxy',
+    complex_type    => 'clone',
+    ms_metadata     => {
+      'interleave' => true,
+    },
+    metadata        => {
+      'migration-threshold' => '3',
+      'failure-timeout'     => '120',
+    },
+    parameters      => {
+      'ns'             => 'haproxy',
+      'debug'          => $debug,
+      'other_networks' => "${other_networks}",
+    },
+    operations      => {
+      'monitor' => {
+        'interval' => '30',
+        'timeout'  => '60'
       },
-      metadata        => {
-        'migration-threshold' => '3',
-        'failure-timeout'     => '120',
+      'start'   => {
+        'timeout' => '60'
       },
-      parameters      => {
-        'ns'             => 'haproxy',
-        'debug'          => $debug,
-        'other_networks' => "${other_networks}",
+      'stop'    => {
+        'timeout' => '60'
       },
-      operations      => {
-        'monitor' => {
-          'interval' => '30',
-          'timeout'  => '60'
-        },
-        'start'   => {
-          'timeout' => '60'
-        },
-        'stop'    => {
-          'timeout' => '60'
-        },
-      },
-    }
-
-    cs_rsc_colocation { 'vip_public-with-haproxy':
-      ensure     => present,
-      score      => 'INFINITY',
-      primitives => [
-          "vip__public",
-          "clone_${service_name}"
-      ],
-    }
-    cs_rsc_colocation { 'vip_management-with-haproxy':
-      ensure     => present,
-      score      => 'INFINITY',
-      primitives => [
-          "vip__management",
-          "clone_${service_name}"
-      ],
-    }
-
-    Cs_resource[$service_name] -> Cs_rsc_colocation['vip_public-with-haproxy'] -> Service[$service_name]
-    Cs_resource[$service_name] -> Cs_rsc_colocation['vip_management-with-haproxy'] -> Service[$service_name]
+    },
   }
+
+  cs_rsc_colocation { 'vip_public-with-haproxy':
+    ensure     => present,
+    score      => 'INFINITY',
+    primitives => [
+        "vip__public",
+        "clone_${service_name}"
+    ],
+  }
+
+  cs_rsc_colocation { 'vip_management-with-haproxy':
+    ensure     => present,
+    score      => 'INFINITY',
+    primitives => [
+        "vip__management",
+        "clone_${service_name}"
+    ],
+  }
+
+  Cs_resource[$service_name] -> Cs_rsc_colocation['vip_public-with-haproxy'] -> Service[$service_name]
+  Cs_resource[$service_name] -> Cs_rsc_colocation['vip_management-with-haproxy'] -> Service[$service_name]
 
   if ($::osfamily == 'Debian') {
     file { '/etc/default/haproxy':
@@ -83,8 +82,7 @@ class cluster::haproxy_ocf (
     ensure     => 'stopped',
     name       => 'haproxy',
     enable     => false,
-  } Service <| title == $service_name |>
-
+  } -> Service <| title == $service_name |>
 
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
     value => '1'
