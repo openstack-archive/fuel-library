@@ -1,23 +1,26 @@
-class nailgun::client (
-$server = '127.0.0.1',
-$port   = '8000',
-$keystone_user = 'admin',
-$keystone_pass = 'admin',
-$keystone_port = '5000',
-)
-{
-  include nailgun::packages
+# == Class: nailgun::client
+# Configures the fuel client.
 
-  file { '/etc/fuel/client':
-    ensure => directory,
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
+class nailgun::client (
+  $server        = '127.0.0.1',
+  $port          = '8000',
+  $keystone_user = 'admin',
+  $keystone_pass = 'admin',
+  $keystone_port = '5000',
+) {
+  include nailgun::packages
+  $config_path = '/root/.config/fuel'
+
+  exec { "mkdir -p ${config_path}":
+    path   => ['/bin', '/usr/bin'],
+    unless => "test -d ${config_path}",
   }
-  file { '/etc/fuel/client/config.yaml':
-    content => template('nailgun/fuelclient.yaml.erb'),
+
+  file { "${config_path}/fuel_client.yaml":
     owner   => 'root',
     group   => 'root',
     mode    => '0600',
+    content => template("${module_name}/fuel_client.yaml.erb"),
+    require => Exec["mkdir -p ${config_path}"],
   }
 }
