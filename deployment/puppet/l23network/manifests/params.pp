@@ -3,8 +3,8 @@
 class l23network::params {
   $monolith_bond_providers = ['ovs']
 
-  case $::osfamily {
-    /(?i)debian/: {
+  case $::l23_os {
+    /(?i)ubuntu/: {
       $interfaces_dir            = '/etc/network/interfaces.d'
       $interfaces_file           = '/etc/network/interfaces'
       $ovs_service_name          = 'openvswitch-switch'
@@ -18,12 +18,12 @@ class l23network::params {
       $ovs_kern_module_name      = 'openvswitch'
       $extra_tools               = 'iputils-arping'
     }
-    /(?i)redhat/: {
+    /(?i:redhat|centos)/: {
       $interfaces_dir            = '/etc/sysconfig/network-scripts'
       $interfaces_file           = undef
       $ovs_service_name          = 'openvswitch'
       $ovs_status_cmd            = '/etc/init.d/openvswitch status'
-      $lnx_vlan_tools            = 'vconfig'
+      $lnx_vlan_tools            = undef
       $lnx_bond_tools            = undef
       $lnx_ethernet_tools        = 'ethtool'
       $lnx_bridge_tools          = 'bridge-utils'
@@ -48,7 +48,7 @@ class l23network::params {
       $ovs_kern_module_name      = unedf
     }
     default: {
-      fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
+      fail("Unsupported OS: ${::l23_os}/${::operatingsystem}")
     }
   }
 }

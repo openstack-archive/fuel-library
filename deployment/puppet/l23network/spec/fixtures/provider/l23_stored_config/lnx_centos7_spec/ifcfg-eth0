@@ -1,0 +1,5 @@
+# Advanced Micro Devices [AMD] 79c970 [PCnet32 LANCE]
+DEVICE=eth0
+BOOTPROTO=dhcp
+HWADDR=00:50:56:B2:00:1B
+ONBOOT=yes

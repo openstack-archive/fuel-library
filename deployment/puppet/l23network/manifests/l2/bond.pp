@@ -255,7 +255,7 @@ define l23network::l2::bond (
 
   }
 
-  if $::osfamily =~ /(?i)redhat/ {
+  if $::l23_os =~ /(?i:redhat|centos)/ {
     if $delay_while_up {
       file {"${::l23network::params::interfaces_dir}/interface-up-script-${bond}":
         ensure  => present,
