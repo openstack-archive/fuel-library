@@ -57,7 +57,6 @@ class openstack::keystone (
   $admin_bind_host             = '0.0.0.0',
   $internal_address            = false,
   $admin_address               = false,
-  $cache_memcache_servers      = false,
   $memcache_servers            = false,
   $memcache_server_port        = false,
   $memcache_pool_maxsize       = false,
@@ -111,7 +110,6 @@ class openstack::keystone (
 
   if $memcache_servers {
     $memcache_servers_real = suffix($memcache_servers, inline_template(':<%= @memcache_server_port %>'))
-    $cache_memcache_servers_real = suffix($cache_memcache_servers, inline_template(':<%= @memcache_server_port %>'))
     $token_driver = 'keystone.token.persistence.backends.memcache_pool.Token'
   } else {
     $memcache_servers_real = false
@@ -154,24 +152,16 @@ class openstack::keystone (
       public_endpoint       => $public_url,
     }
 
-    if $memcache_servers or $cache_memcache_servers {
+    if $memcache_servers {
       Service<| title == 'memcached' |> -> Service<| title == 'keystone'|>
-
-      if $memcache_servers {
-        keystone_config {
-          'memcache/dead_retry':     value => '300';
-          'memcache/socket_timeout': value => '1';
-        }
-      }
-
-      if $cache_memcache_servers {
-        keystone_config{
-          'cache/memcache_servers':             value => join($cache_memcache_servers_real, ',');
-          'cache/memcache_dead_retry':          value => '300';
-          'cache/memcache_socket_timeout':      value => '1';
-          'cache/memcache_pool_maxsize':        value => '1000';
-          'cache/memcache_pool_unused_timeout': value => '60';
-        }
+      keystone_config {
+        'cache/memcache_servers':             value => join($memcache_servers_real, ',');
+        'cache/memcache_dead_retry':          value => '300';
+        'cache/memcache_socket_timeout':      value => '1';
+        'cache/memcache_pool_maxsize':        value => '1000';
+        'cache/memcache_pool_unused_timeout': value => '60';
+        'memcache/dead_retry':                value => '300';
+        'memcache/socket_timeout':            value => '1';
       }
     }
 
