@@ -252,7 +252,7 @@ class openstack::logging (
       log_remote                => $log_remote,
       log_local                 => $log_local,
       log_auth_local            => $log_auth_local,
-      escapenewline             => $escapenewline,
+      escape_control_characters => $escapenewline,
     }
 
   } else { # server
