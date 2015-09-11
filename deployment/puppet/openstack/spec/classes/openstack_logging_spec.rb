@@ -69,12 +69,22 @@ describe 'openstack::logging' do
          '00-remote',].each do |item|
            should contain_file("/etc/rsyslog.d/#{item}.conf")
         end
-        should contain_class('rsyslog::client').with(
-          :log_remote     => p[:log_remote],
-          :log_local      => p[:log_local],
-          :log_auth_local => p[:log_auth_local],
-          :escapenewline  => p[:escapenewline]
+        should contain_class('rsyslog').with(
+          :max_message_size => '32k',
+          :msg_reduction    => true,
+          :perm_dir         => '0755',
+          :perm_file        => '0640',
+          :purge_rsyslog_d  => true
         )
+
+        should contain_class('rsyslog::client').with(
+          :listen_localhost    => true,
+          :log_remote          => p[:log_remote],
+          :log_local           => p[:log_local],
+          :log_auth_local      => p[:log_auth_local],
+          :rate_limit_interval => 0
+        )
+        should contain_rsyslog__snippet('00-disable-EscapeControlCharactersOnReceive')
       end
     end
 
@@ -85,6 +95,12 @@ describe 'openstack::logging' do
 
       it 'configures server' do
         should contain_firewall("#{p[:port]} #{p[:proto]} rsyslog")
+        should contain_class('rsyslog').with(
+          :max_message_size => '32k',
+          :perm_file        => '0640',
+          :perm_dir         => '0755',
+          :purge_rsyslog_d  => true
+        )
         should contain_class('rsyslog::server').with(
           :server_dir                => '/var/log/',
           :high_precision_timestamps => p[:show_timezone],
@@ -99,6 +115,7 @@ describe 'openstack::logging' do
           :maxsize  => p[:maxsize],
           :debug    => p[:debug]
         )
+        should contain_rsyslog__snippet('00-disable-EscapeControlCharactersOnReceive')
       end
     end
     context 'with virtual = true' do
@@ -115,7 +132,9 @@ describe 'openstack::logging' do
     let :facts do
       { :osfamily => 'Debian',
         :operatingsystem => 'Debian',
-        :hostname => 'hostname.example.com', }
+        :hostname => 'hostname.example.com',
+        :rsyslog_version => '7.4.4',
+      }
     end
 
     it_configures 'logging configuration'
@@ -125,7 +144,9 @@ describe 'openstack::logging' do
     let :facts do
       { :osfamily => 'RedHat',
         :operatingsystem => 'RedHat',
-        :hostname => 'hostname.example.com', }
+        :hostname => 'hostname.example.com',
+        :rsyslog_version => '5.8.10',
+      }
     end
 
     it_configures 'logging configuration'
