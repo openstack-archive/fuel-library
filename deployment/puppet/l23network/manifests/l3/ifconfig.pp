@@ -151,26 +151,6 @@ define l23network::l3::ifconfig (
     $def_gateway = undef
   }
 
-  # todo: re-implement later
-  # if $::osfamily =~ /(?i)redhat/ and ($ipaddr_aliases or $ethtool_lines) {
-  #   Anchor['l23network::init'] ->
-  #   file {"${::l23network::params::interfaces_dir}/interface-up-script-${interface}":
-  #     ensure  => present,
-  #     owner   => 'root',
-  #     mode    => '0755',
-  #     recurse => true,
-  #     content => template("l23network/ipconfig_${::osfamily}_ifup-script.erb"),
-  #   } ->
-  #   file {"${::l23network::params::interfaces_dir}/interface-dn-script-${interface}":
-  #     ensure  => present,
-  #     owner   => 'root',
-  #     mode    => '0755',
-  #     recurse => true,
-  #     content => template("l23network/ipconfig_${::osfamily}_ifdn-script.erb"),
-  #   } ->
-  #   File <| title == $interface_file |>
-  # }
-
   if ! defined (L3_ifconfig[$interface]) {
     if $provider {
       $config_provider = "${provider}_${::l23_os}"
