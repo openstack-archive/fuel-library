@@ -23,7 +23,7 @@ class l23network::params {
       $interfaces_file           = undef
       $ovs_service_name          = 'openvswitch'
       $ovs_status_cmd            = '/etc/init.d/openvswitch status'
-      $lnx_vlan_tools            = 'vconfig'
+      $lnx_vlan_tools            = undef
       $lnx_bond_tools            = undef
       $lnx_ethernet_tools        = 'ethtool'
       $lnx_bridge_tools          = 'bridge-utils'
