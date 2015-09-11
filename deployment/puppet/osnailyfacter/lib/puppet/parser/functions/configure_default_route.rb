@@ -5,21 +5,19 @@ require 'pp'
 #require 'puppetx/l23_hash_tools'
 
 Puppet::Parser::Functions::newfunction(:configure_default_route, :type => :rvalue, :doc => <<-EOS
-This function gets hash of network endpoints configuration and compare whether master_ip is the gateway
-for fw-admin network. If yes - it removes it and set default route for management network to ip of vrouter
-, if no - it does nothing.
+This function gets hash of network endpoints configuration and check if fw-admin endpoint has gateway
+and any network includes management vrouter vip address. If yes - it removes it and set default route
+to vip of vrouter via management network, if no - it does nothing.
 EOS
 ) do |argv|
-  raise Puppet::ParseError, 'configure_default_route(): Arguments: network_scheme, master_ip, management_vrouter_vip' if argv.size != 5
+  raise Puppet::ParseError, 'configure_default_route(): Arguments: network_scheme, management_vrouter_vip, fw_admin_int, management_int' if argv.size != 4
 
   network_scheme = argv[0]
-  master_ip = argv[1]
-  management_vrouter_vip = argv[2]
-  fw_admin_int = argv[3].to_sym
-  management_int = argv[4].to_sym
+  management_vrouter_vip = argv[1]
+  fw_admin_int = argv[2].to_sym
+  management_int = argv[3].to_sym
 
   raise Puppet::ParseError, 'network_scheme is empty!' if network_scheme.nil?
-  raise Puppet::ParseError, 'master_ip is empty!' if master_ip.nil?
   raise Puppet::ParseError, 'management_vrouter_vip is empty!' if management_vrouter_vip.nil?
   raise Puppet::ParseError, 'fw_admin_int is empty!' if fw_admin_int.nil?
   raise Puppet::ParseError, 'management_int is empty!' if management_int.nil?
@@ -113,7 +111,7 @@ EOS
     function_create_resources(['l23network::l3::ifconfig', {
           "#{endpoint_name}" => resource_properties
         }])
-    previous = "l23network::l3::ifconfig[#{endpoint_name}]"
+    previous = "L23network::L3::Ifconfig[#{endpoint_name}]"
     data << "#{endpoint_name} "
   end
   data

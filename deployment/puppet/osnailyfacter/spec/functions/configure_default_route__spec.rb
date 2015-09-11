@@ -54,12 +54,12 @@ describe 'configure_default_route' do
     expect(subject).to eq 'function_configure_default_route'
   end
 
-  it 'should expect 5 arguments' do
+  it 'should expect 4 arguments' do
     expect { scope.function_configure_default_route [] }.to raise_error
   end
 
   it 'should configure default the default route if gateway ip is equal to master_ip' do
-    arguments = [network_scheme, master_ip, management_vrouter_vip, fw_admin_int, management_int]
+    arguments = [network_scheme, management_vrouter_vip, fw_admin_int, management_int]
     ifconfig = scope.function_configure_default_route arguments
     expect(ifconfig['br-mgmt']).to eq({
                                      "ipaddr"=>["192.168.0.5/24"],
@@ -76,7 +76,7 @@ describe 'configure_default_route' do
   end
 
   it 'should not configure interfaces if master_ip is not equal to the gateway' do
-    arguments = [network_scheme, '10.20.0.3', management_vrouter_vip]
+    arguments = [network_scheme, management_vrouter_vip]
     ifconfig = scope.function_configure_default_route arguments
     expect(ifconfig).to eq({})
   end
