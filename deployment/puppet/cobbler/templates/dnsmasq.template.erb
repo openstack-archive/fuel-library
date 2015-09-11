@@ -6,6 +6,7 @@ read-ethers
 log-queries
 log-facility=/var/log/dnsmasq.log
 addn-hosts = /var/lib/cobbler/cobbler_hosts
+conf-dir=/etc/dnsmasq.d
 domain=<%= @domain_name %>
 dhcp-lease-max=<%= @dhcp_lease_max %>
 <% if @domain_name != 'local' %>
