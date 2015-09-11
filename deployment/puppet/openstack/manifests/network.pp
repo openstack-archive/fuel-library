@@ -180,7 +180,7 @@ class openstack::network (
         mac_generation_retries  => 32,
         dhcp_lease_duration     => 600,
         dhcp_agents_per_network => 2,
-        report_interval         => 5,
+        report_interval         => 10,
         rabbit_user             => $amqp_user,
         rabbit_host             => $amqp_host,
         rabbit_hosts            => $amqp_hosts,
@@ -224,7 +224,7 @@ class openstack::network (
           database_connection     => $neutron_db_uri,
           database_max_retries    => -1,
 
-          agent_down_time => 15,
+          agent_down_time => 30,
           allow_automatic_l3agent_failover => true,
 
           api_workers => $service_workers,

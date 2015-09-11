@@ -36,6 +36,12 @@ describe manifest do
         )
       end
 
+      it 'should configure report_interval for neutron' do
+        should contain_class('neutron').with(
+          'report_interval' => '10',
+        )
+      end
+
       it 'should configure auth region for neutron-agents' do
         should contain_class('openstack::network::neutron_agents').with(
          'auth_region' => 'RegionOne',
