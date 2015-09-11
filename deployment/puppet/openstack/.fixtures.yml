@@ -5,11 +5,11 @@ fixtures:
     'sysctl': 'https://github.com/duritong/puppet-sysctl.git'
     'inifile':  'https://github.com/puppetlabs/puppetlabs-inifile.git'
     'firewall':  'https://github.com/puppetlabs/puppetlabs-firewall.git'
+    'rsyslog': 'https://github.com/saz/puppet-rsyslog.git'
   symlinks:
     'openstack': "#{source_dir}"
     'osnailyfacter': "#{source_dir}/../osnailyfacter"
     'l23network': "#{source_dir}/../l23network"
-    'rsyslog': "#{source_dir}/../rsyslog"
     'mysql': "#{source_dir}/../mysql"
     'ceilometer': "#{source_dir}/../ceilometer"
     'cinder': "#{source_dir}/../cinder"
