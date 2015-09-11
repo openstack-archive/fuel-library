@@ -6,6 +6,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
+      :l23_os => 'ubuntu',
       :kernel => 'Linux'
     } }
 
@@ -55,6 +56,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
+      :l23_os => 'ubuntu',
       :kernel => 'Linux'
     } }
 
@@ -103,6 +105,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
+      :l23_os => 'ubuntu',
       :kernel => 'Linux'
     } }
 
@@ -152,6 +155,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
+      :l23_os => 'ubuntu',
       :kernel => 'Linux'
     } }
 
@@ -200,6 +204,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
+      :l23_os => 'ubuntu',
       :kernel => 'Linux'
     } }
 
@@ -230,6 +235,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
+      :l23_os => 'ubuntu',
       :kernel => 'Linux'
     } }
 

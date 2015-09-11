@@ -11,8 +11,12 @@ Facter.add(:l23_os) do
         #todo: separate upstart and systemd based
         'ubuntu'
       when /(?i)redhat/
-        #todo: separate centos6 and centos7
-        'centos6'
+        case Facter.value(:operatingsystemmajrelease)
+          when /6/
+            'centos6'
+          when /7/
+            'centos7'
+        end
     end
   end
 end
