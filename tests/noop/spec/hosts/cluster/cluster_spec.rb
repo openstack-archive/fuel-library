@@ -14,6 +14,20 @@ describe manifest do
          })
     }
 
+    it do
+      if (facts[:operatingsystem] == 'Ubuntu')
+        should contain_file('/etc/corosync/uidgid.d/pacemaker').that_requires('File[/etc/corosync/corosync.conf]')
+      elsif
+        should_not contain_file('/etc/corosync/uidgid.d/pacemaker')
+      end
+    end
+
+    it do
+      if (facts[:operatingsystem] == 'Ubuntu')
+        should contain_file('/etc/corosync/uidgid.d/pacemaker').that_comes_before('Service[corosync]')
+      end
+    end
+
   end
   test_ubuntu_and_centos manifest
 end
