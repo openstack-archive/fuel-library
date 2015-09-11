@@ -16,5 +16,6 @@ puppet/sysctl
 puppet/staging
 puppet/vcsrepo
 puppet/postgresql
+puppet/rsyslog
 puppet/openstacklib
 puppet/keystone
