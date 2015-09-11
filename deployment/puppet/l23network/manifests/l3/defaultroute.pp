@@ -10,15 +10,15 @@ define l23network::l3::defaultroute (
 
   $exec_name = "Default route of ${name} metric ${metric}"
 
-  case $::osfamily {
-    /(?i)debian/: {
+  case $::l23_os {
+    /(?i)ubuntu/: {
         exec { $exec_name :
             path    => '/bin:/usr/bin:/sbin:/usr/sbin',
             command => "ip route replace default via ${gateway}",
             unless  => "netstat -r | grep -q 'default.*${gateway}'",
         }
     }
-    /(?i)redhat/: {
+    /(?i:redhat|centos)/: {
         Cfg <| name == $gateway |>
         if ! defined(Cfg[$gateway]) {
           cfg { $gateway:
@@ -36,7 +36,7 @@ define l23network::l3::defaultroute (
         }
     }
     default: {
-        fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
+        fail("Unsupported OS: ${::l23_os}/${::operatingsystem}")
     }
   }
 

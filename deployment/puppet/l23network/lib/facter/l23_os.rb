@@ -4,15 +4,24 @@
 #
 Facter.add(:l23_os) do
   setcode do
-    case Facter.value(:osfamily)
-      when /(?i)darwin/
-        'osx'
-      when /(?i)debian/
+    case Facter.value(:operatingsystem)
+      when /(?i)ubuntu/
         #todo: separate upstart and systemd based
         'ubuntu'
+      when /(?i)centos/
+        case Facter.value(:operatingsystemmajrelease)
+          when /6/
+            'centos6'
+          when /7/
+            'centos7'
+        end
       when /(?i)redhat/
-        #todo: separate centos6 and centos7
-        'centos6'
+        case Facter.value(:operatingsystemmajrelease)
+          when /7/
+            'redhat7'
+        end
+      when /(?i)darwin/
+        'osx'
     end
   end
 end

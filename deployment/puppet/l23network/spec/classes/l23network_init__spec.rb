@@ -78,6 +78,7 @@ describe 'l23network', :type => :class do
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
+      :l23_os => 'ubuntu',
     } }
 
     let(:params) { {
