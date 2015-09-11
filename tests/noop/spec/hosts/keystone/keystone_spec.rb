@@ -10,7 +10,6 @@ describe manifest do
     network_metadata     = Noop.hiera 'network_metadata'
     memcache_roles       = Noop.hiera 'memcache_roles'
     memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
-    node_name            = Noop.hiera 'node_name'
 
     let(:memcache_nodes) do
       Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
@@ -22,10 +21,6 @@ describe manifest do
 
     let (:memcache_servers) do
       memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
-    end
-
-    let (:cache_memcache_servers) do
-      "#{node_name}:#{memcache_server_port}"
     end
 
     nodes = Noop.hiera 'nodes'
@@ -59,11 +54,11 @@ describe manifest do
     end
 
 
-    it 'should configure  keystone with parameters' do
+    it 'should configure  keystone with paramters' do
       should contain_keystone_config('token/caching').with(:value => 'false')
       should contain_keystone_config('cache/enabled').with(:value => 'true')
       should contain_keystone_config('cache/backend').with(:value => 'keystone.cache.memcache_pool')
-      should contain_keystone_config('cache/memcache_servers').with(:value => cache_memcache_servers)
+      should contain_keystone_config('cache/memcache_servers').with(:value => memcache_servers)
       should contain_keystone_config('cache/memcache_dead_retry').with(:value => '60')
       should contain_keystone_config('cache/memcache_socket_timeout').with(:value => '1')
       should contain_keystone_config('cache/memcache_pool_maxsize').with(:value => '1000')
@@ -71,7 +66,6 @@ describe manifest do
       should contain_keystone_config('memcache/dead_retry').with(:value => '60')
       should contain_keystone_config('memcache/socket_timeout').with(:value => '1')
       should contain_keystone_config('DEFAULT/public_endpoint').with(:value => public_url)
-      should contain_keystone_config('memcache/servers').with(:value => memcache_servers)
     end
 
     it 'should configure revoke_driver for keystone' do
