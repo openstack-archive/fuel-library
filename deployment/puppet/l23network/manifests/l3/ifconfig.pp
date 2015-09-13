@@ -76,6 +76,7 @@ define l23network::l3::ifconfig (
     $check_by_ping_timeout = 30,
     #todo: label => "XXX", # -- "ip addr add..... label XXX"
     $vendor_specific = undef,
+    $by_network_scheme = false,
     $provider        = undef
 ) {
   include ::stdlib
@@ -229,6 +230,7 @@ define l23network::l3::ifconfig (
 #     check_by_ping         => $check_by_ping,
 #     check_by_ping_timeout => $check_by_ping_timeout,
       vendor_specific       => $vendor_specific,
+      by_network_scheme     => $by_network_scheme,
       provider              => $provider  # For L3 features provider independed from OVS
     }
 

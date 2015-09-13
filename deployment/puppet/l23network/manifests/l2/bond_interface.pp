@@ -7,6 +7,7 @@ define l23network::l2::bond_interface (
   $mtu                     = undef,
   $bond_is_master          = true,
   $interface_properties    = {},
+  $by_network_scheme       = false,
   $provider                = undef,
 ) {
   include ::l23network::params
@@ -24,11 +25,11 @@ define l23network::l2::bond_interface (
 
   if ! defined(L23network::L2::Port[$name]) {
     $additional_properties = {
-      use_ovs  => $use_ovs,
-      mtu      => is_integer($interface_properties[mtu]) ? {false=>$mtu, default=>$interface_properties[mtu]},
-      master   => $master,
-      slave    => $slave,
-      provider => $provider
+      use_ovs           => $use_ovs,
+      mtu               => is_integer($interface_properties[mtu]) ? {false=>$mtu, default=>$interface_properties[mtu]},
+      master            => $master,
+      slave             => $slave,
+      provider          => $provider
     }
 
     create_resources(l23network::l2::port, {

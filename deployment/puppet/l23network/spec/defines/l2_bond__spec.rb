@@ -29,6 +29,13 @@ describe 'l23network::l2::bond', :type => :define do
     end
 
     it do
+      should contain_l2_bond('bond0').with({
+        'ensure'            => 'present',
+        'by_network_scheme' => false,
+      })
+    end
+
+    it do
       should contain_l23_stored_config('bond0').with({
         'ensure'      => 'present',
         'if_type'     => 'bond',
@@ -53,8 +60,9 @@ describe 'l23network::l2::bond', :type => :define do
 
       it do
         should contain_l2_port(slave).with({
-          'ensure'   => 'present',
-          'provider' => 'lnx',
+          'ensure'            => 'present',
+          'provider'          => 'lnx',
+          'by_network_scheme' => false,
         }).that_requires("L23_stored_config[#{slave}]")
       end
     end

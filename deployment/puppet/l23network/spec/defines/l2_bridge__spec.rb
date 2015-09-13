@@ -37,8 +37,9 @@ describe 'l23network::l2::bridge', :type => :define do
 
     it do
       should contain_l2_bridge('br-mgmt').with({
-        'ensure'       => 'present',
-        'external_ids' => {'bridge-id'=>'br-mgmt'},
+        'ensure'            => 'present',
+        'external_ids'      => {'bridge-id'=>'br-mgmt'},
+        'by_network_scheme' => false,
       }).that_requires('L23_stored_config[br-mgmt]')
     end
   end
@@ -193,10 +194,11 @@ describe 'l23network::l2::bridge', :type => :define do
 
     it do
       should contain_l2_bridge('br-floating').only_with({
-        'ensure'       => 'present',
-        'use_ovs'      => true,
-        'external_ids' => { 'bridge-id' => 'br-floating' },
-        'provider'     => nil,
+        'ensure'            => 'present',
+        'use_ovs'           => true,
+        'external_ids'      => { 'bridge-id' => 'br-floating' },
+        'provider'          => nil,
+        'by_network_scheme' => false,
       }).that_requires('L23_stored_config[br-floating]')
     end
   end

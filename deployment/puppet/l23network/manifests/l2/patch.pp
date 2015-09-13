@@ -15,12 +15,13 @@
 #
 define l23network::l2::patch (
   $bridges,
-  $use_ovs         = $::l23network::use_ovs,
-  $ensure          = present,
-  $mtu             = undef,
-  $vlan_ids        = undef,
-  $vendor_specific = undef,
-  $provider        = undef,
+  $use_ovs           = $::l23network::use_ovs,
+  $ensure            = present,
+  $mtu               = undef,
+  $vlan_ids          = undef,
+  $vendor_specific   = undef,
+  $by_network_scheme = false,
+  $provider          = undef,
 ) {
 
   include ::stdlib
@@ -60,14 +61,15 @@ define l23network::l2::patch (
     L23_stored_config[$patch_jacks_names[0]] -> L2_patch[$patch_name]
 
     l2_patch{ $patch_name :
-      ensure          => $ensure,
-      bridges         => $bridges,
-      use_ovs         => $use_ovs,
-      jacks           => $patch_jacks_names,
-      vlan_ids        => $vlan_ids,
-      mtu             => $mtu,
-      vendor_specific => $vendor_specific,
-      provider        => $provider
+      ensure            => $ensure,
+      bridges           => $bridges,
+      use_ovs           => $use_ovs,
+      jacks             => $patch_jacks_names,
+      vlan_ids          => $vlan_ids,
+      mtu               => $mtu,
+      vendor_specific   => $vendor_specific,
+      by_network_scheme => $by_network_scheme,
+      provider          => $provider
     }
 
     Anchor['l23network::init'] -> K_mod<||> -> L2_patch<||>

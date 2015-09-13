@@ -50,6 +50,7 @@ module L23network
 #       :interface_properties => nil,
         :delay_while_up       => nil,
         :vendor_specific      => nil,
+        :by_network_scheme    => true,
         :provider             => def_provider
       }
       when "add-port" then {
@@ -63,6 +64,7 @@ module L23network
 #       :trunks               => [],
         :delay_while_up       => nil,
         :vendor_specific      => nil,
+        :by_network_scheme    => true,
         :provider             => def_provider
       }
       when "add-bond" then {
@@ -76,15 +78,17 @@ module L23network
         :bond_properties      => nil,
         :interface_properties => nil,
         :vendor_specific      => nil,
+        :by_network_scheme    => true,
         :provider             => def_provider
       }
       when "add-patch" then {
-        :name            => "unnamed", # calculated later
-        :bridges         => [],
-        :vlan_ids        => [0, 0],
-        :mtu             => nil,
-        :vendor_specific => nil,
-        :provider        => def_provider
+        :name              => "unnamed", # calculated later
+        :bridges           => [],
+        :vlan_ids          => [0, 0],
+        :mtu               => nil,
+        :vendor_specific   => nil,
+        :by_network_scheme => true,
+        :provider          => def_provider
       }
       else
         raise(Puppet::ParseError, "Unknown transformation: '#{action}'.")

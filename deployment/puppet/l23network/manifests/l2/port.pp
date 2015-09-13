@@ -44,6 +44,7 @@ define l23network::l2::port (
   $slave                 = undef,  # used for bonds automatically
 # $type                  = undef,  # was '',
   $vendor_specific       = undef,
+  $by_network_scheme     = false,
   $provider              = undef,
   # deprecated parameters, in the future ones will be moved to the vendor_specific hash
 # $skip_existing         = undef,
@@ -140,20 +141,19 @@ define l23network::l2::port (
     }
 
     l2_port { $port_name :
-      ensure          => $ensure,
-      use_ovs         => $use_ovs,
-      bridge          => $bridge,
-      vlan_id         => $port_vlan_id,
-      vlan_dev        => $port_vlan_dev,
-      vlan_mode       => $port_vlan_mode,
-      bond_master     => $master,
-      mtu             => $mtu,
-      onboot          => $onboot,
-      #type           => $type,
-      #trunks         => $trunks,
-      ethtool         => $ethtool,
-      vendor_specific => $vendor_specific,
-      provider        => $provider
+      ensure            => $ensure,
+      use_ovs           => $use_ovs,
+      bridge            => $bridge,
+      vlan_id           => $port_vlan_id,
+      vlan_dev          => $port_vlan_dev,
+      vlan_mode         => $port_vlan_mode,
+      bond_master       => $master,
+      mtu               => $mtu,
+      onboot            => $onboot,
+      ethtool           => $ethtool,
+      vendor_specific   => $vendor_specific,
+      by_network_scheme => $by_network_scheme,
+      provider          => $provider
     }
 
     # this need for creating L2_port resource by ifup, if it allowed by OS

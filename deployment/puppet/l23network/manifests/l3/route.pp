@@ -22,12 +22,13 @@ define l23network::l3::route (
 
     # There are no stored_config for this resource. Configure runtime only.
     l3_route { $r_name :
-      ensure          => $ensure,
-      destination     => $destination,
-      gateway         => $gateway,
-      metric          => $metric,
-      vendor_specific => $vendor_specific,
-      provider        => $provider  # For L3 features provider independed from OVS
+      ensure            => $ensure,
+      destination       => $destination,
+      gateway           => $gateway,
+      metric            => $metric,
+      vendor_specific   => $vendor_specific,
+      by_network_scheme => $by_network_scheme,
+      provider          => $provider  # For L3 features provider independed from OVS
     }
     if ! $by_network_scheme {
       L3_ifconfig<||> -> L3_route<||>

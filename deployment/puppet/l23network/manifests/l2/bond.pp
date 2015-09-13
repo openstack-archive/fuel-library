@@ -26,10 +26,10 @@ define l23network::l2::bond (
   $mtu                     = undef,
   $onboot                  = undef,
   $delay_while_up          = undef,
-# $ethtool                 = undef,
   $bond_properties         = undef,  # bond configuration options
   $interface_properties    = undef,  # configuration options for included interfaces (mtu, ethtool, etc...)
   $vendor_specific         = undef,
+  $by_network_scheme       = false,
   $monolith_bond_providers = undef,
   $provider                = undef,
   # deprecated parameters, in the future ones will be moved to the vendor_specific hash
@@ -133,7 +133,7 @@ define l23network::l2::bond (
   }
 
   if $delay_while_up and ! is_numeric($delay_while_up) {
-    fail("Delay for waiting after UP interface ${port} should be numeric, not an '$delay_while_up'.")
+    fail("Delay for waiting after UP interface ${port} should be numeric, not an '${delay_while_up}'.")
   }
 
   if ! $bridge and $provider == 'ovs' {
@@ -154,6 +154,7 @@ define l23network::l2::bond (
       bond_is_master       => false,
       mtu                  => $mtu,
       interface_properties => $interface_properties,
+      by_network_scheme    => $by_network_scheme,
       ensure               => $ensure,
     }
   } else {
@@ -161,6 +162,7 @@ define l23network::l2::bond (
       bond                 => $bond,
       mtu                  => $mtu,
       interface_properties => $interface_properties,
+      by_network_scheme    => $by_network_scheme,
       ensure               => $ensure,
       provider             => $actual_provider_for_bond_interface
     }
@@ -211,11 +213,14 @@ define l23network::l2::bond (
       interface_properties => $interface_properties,
       bond_properties      => $real_bond_properties,
       vendor_specific      => $vendor_specific,
+      by_network_scheme    => $by_network_scheme,
       provider             => $provider
     }
 
-    # this need for creating L2_port resource by ifup, if it allowed by OS
-    L23_stored_config[$bond] -> L2_bond[$bond]
+    if ! $by_network_scheme {
+      # this need for creating L2_port resource by ifup, if it allowed by OS
+      L23_stored_config[$bond] -> L2_bond[$bond]
+    }
 
     Anchor['l23network::init'] -> K_mod<||> -> L2_bond<||>
 

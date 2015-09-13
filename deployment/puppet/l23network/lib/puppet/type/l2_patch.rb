@@ -18,6 +18,20 @@ Puppet::Type.newtype(:l2_patch) do
       defaultto :true
     end
 
+    newproperty(:by_network_scheme) do
+      desc "Whether resource created by network scheme"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
+      defaultto :false
+
+      def insync?(value)
+        value.to_s.downcase == should.to_s.downcase
+      end
+    end
+
     newproperty(:bridges, :array_matching => :all) do
       desc "Array of bridges that will be connected"
       newvalues(/^[a-z][0-9a-z\-\_]*[0-9a-z]$/)
@@ -120,7 +134,8 @@ Puppet::Type.newtype(:l2_patch) do
     end
 
     autorequire(:l2_bridge) do
-      self[:bridges]
+      (:true == self[:by_network_scheme]  ?  []  :  self[:bridges])
     end
+
 end
 # vim: set ts=2 sw=2 et :

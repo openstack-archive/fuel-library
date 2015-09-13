@@ -38,7 +38,8 @@ describe 'l23network::l2::port', :type => :define do
 
     it do
       should contain_l2_port('eth4').with({
-        'ensure'  => 'present',
+        'ensure'            => 'present',
+        'by_network_scheme' => false,
       }).that_requires('L23_stored_config[eth4]')
     end
   end

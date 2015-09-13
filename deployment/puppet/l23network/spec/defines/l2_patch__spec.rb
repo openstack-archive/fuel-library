@@ -42,8 +42,9 @@ describe 'l23network::l2::patch', :type => :define do
 
     it do
       should contain_l2_patch('patch__br1--br2').with({
-        'ensure'  => 'present',
-        'bridges' => ['br1', 'br2'],
+        'ensure'            => 'present',
+        'bridges'           => ['br1', 'br2'],
+        'by_network_scheme' => false,
       }).that_requires('L23_stored_config[p_39a440c1-0]')
     end
   end

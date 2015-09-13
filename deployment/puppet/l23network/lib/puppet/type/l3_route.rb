@@ -70,6 +70,20 @@ Puppet::Type.newtype(:l3_route) do
       desc "The interface name"
     end
 
+    newproperty(:by_network_scheme) do
+      desc "Whether resource created by network scheme"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
+      defaultto :false
+
+      def insync?(value)
+        value.to_s.downcase == should.to_s.downcase
+      end
+    end
+
     newproperty(:vendor_specific) do
       desc "Hash of vendor specific properties"
       #defaultto {}  # no default value should be!!!

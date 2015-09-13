@@ -12,16 +12,17 @@
 #   http://openvswitch.org/cgi-bin/ovsman.cgi?page=utilities%2Fovs-vsctl.8
 #
 define l23network::l2::bridge (
-  $ensure          = present,
-  $use_ovs         = $::l23network::use_ovs,
-  $mtu             = undef,
-  $stp             = undef,
-  $bpdu_forward    = true,
-# $bridge_id       = undef,  # will be implemented later
-  $external_ids    = { 'bridge-id' => "${name}" },
-  $delay_while_up  = undef,
-  $vendor_specific = undef,
-  $provider        = undef,
+  $ensure            = present,
+  $use_ovs           = $::l23network::use_ovs,
+  $mtu               = undef,
+  $stp               = undef,
+  $bpdu_forward      = true,
+# $bridge_id         = undef,  # will be implemented later
+  $external_ids      = { 'bridge-id' => "${name}" },
+  $delay_while_up    = undef,
+  $vendor_specific   = undef,
+  $by_network_scheme = false,
+  $provider          = undef,
 ) {
   include ::stdlib
   include ::l23network::params
@@ -53,13 +54,14 @@ define l23network::l2::bridge (
     }
 
     l2_bridge {$name:
-      ensure          => $ensure,
-      use_ovs         => $use_ovs,
-      external_ids    => $external_ids,
-      stp             => $stp,
-      #bpdu_forward   => $bpdu_forward,
-      vendor_specific => $vendor_specific,
-      provider        => $provider
+      ensure            => $ensure,
+      use_ovs           => $use_ovs,
+      external_ids      => $external_ids,
+      stp               => $stp,
+      #bpdu_forward     => $bpdu_forward,
+      vendor_specific   => $vendor_specific,
+      by_network_scheme => $by_network_scheme,
+      provider          => $provider
     }
 
     # this need for creating L2_bridge resource by ifup, if it allowed by OS

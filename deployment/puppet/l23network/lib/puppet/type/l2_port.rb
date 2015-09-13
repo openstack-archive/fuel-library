@@ -62,6 +62,20 @@ Puppet::Type.newtype(:l2_port) do
       end
     end
 
+    newproperty(:by_network_scheme) do
+      desc "Whether resource created by network scheme"
+      newvalues(:true, :yes, :on, :false, :no, :off)
+      aliasvalue(:yes, :true)
+      aliasvalue(:on,  :true)
+      aliasvalue(:no,  :false)
+      aliasvalue(:off, :false)
+      defaultto :false
+
+      def insync?(value)
+        value.to_s.downcase == should.to_s.downcase
+      end
+    end
+
     newproperty(:bridge) do
       desc "What bridge to use"
       #
@@ -220,7 +234,8 @@ Puppet::Type.newtype(:l2_port) do
     end
 
     autorequire(:l2_bridge) do
-      [self[:bridge]]
+      (:true == self[:by_network_scheme]  ?  []  :  [self[:bridge]])
     end
+
 end
 # vim: set ts=2 sw=2 et :
