@@ -81,11 +81,10 @@ module Puppet::Parser::Functions
       vip['colocation_before'] = parameters['colocation_before'] if parameters['colocation_before']
       vip['colocation_after'] = parameters['colocation_after'] if parameters['colocation_after']
 
-      # TODO: get_network_role_property should support gateway and metric
-      # gateway = function_get_network_role_property [network_role, 'gateway']
-      # gateway_metric = function_get_network_role_property [network_role, 'gateway_metric']
+      gateway = function_get_network_role_property [network_role, 'gateway']
+      #gateway_metric = function_get_network_role_property [network_role, 'gateway']
 
-      gateway = network_scheme.fetch('endpoints', {}).fetch(vip['bridge'], {}).fetch('gateway', nil) unless vip['gateway']
+      # TODO: gateway_metric set in astute.yaml
 
       if gateway
         if name.include? 'vrouter'

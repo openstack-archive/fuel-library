@@ -24,6 +24,8 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
       netmask -- string, contains dotted netmask
       ipaddr_netmask_pair -- list of ipaddr and netmask
       phys_dev -- physical device name mapped to the network with the selected network_role
+      gateway -- gateway IP address mapped to the network with the selected network_role 
+      gateway_metric -- gateway metric value
 
     Returns NIL if role not found.
 
@@ -69,6 +71,8 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
   case ep[:IP].class().to_s
     when "Array"
       ipaddr_cidr = ep[:IP][0] ? ep[:IP][0] : nil
+      gateway = ep[:gateway] ? ep[:gateway] : nil
+      gateway_metric = ep[:gateway_metric] ? ep[:gateway_metric] : nil
     when "String"
       Puppet::debug("get_network_role_property(...): Can't determine dynamic or empty IP address for endpoint '#{interface}' (#{ep[:IP]}).")
       if mode != 'PHYS_DEV'
@@ -95,6 +99,10 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
       rv = (ipaddr_cidr.nil?  ?  [nil,nil]  :  [prepare_cidr(ipaddr_cidr)[0].to_s, IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s])
     when 'PHYS_DEV'
       rv = L23network.get_phys_dev_by_transformation(interface, lookupvar('l3_fqdn_hostname'))
+    when 'GATEWAY'
+      rv = gateway
+    when 'GATEWAY_METRIC'
+      rv = gateway_metric
   end
 
   rv
