@@ -6,7 +6,7 @@ require 'spec_helper'
 # names, that connected by patchcord.
 
 describe 'l23network::l2::patch', :type => :define do
-  let(:title) { 'Spec for l23network::l2::port' }
+  let(:title) { 'test_patchcord' }
   let(:facts) { {
     :osfamily => 'Debian',
     :operatingsystem => 'Ubuntu',
@@ -77,7 +77,7 @@ describe 'l23network::l2::patch', :type => :define do
     end
   end
 
-  context 'Just a patch between two OVS bridges' do
+  context 'Patch between two bridges, with explicitly defined OVS provider.' do
     let(:params) do
       {
         :bridges  => ['br1', 'br2'],
@@ -117,12 +117,18 @@ describe 'l23network::l2::patch', :type => :define do
     end
 
     it do
-      should compile
+      should compile.with_all_deps
+    end
+
+    it do
       should contain_l23_stored_config('p_39a440c1-0').with({
         'bridge'  => ['br1', 'br2'],
         'jacks'   => ['p_39a440c1-0', 'p_39a440c1-1'],
         'mtu'     => 9000,
       })
+    end
+
+    it do
       should contain_l2_patch('patch__br1--br2').with({
         'ensure'  => 'present',
         'mtu'     => 9000,
@@ -146,7 +152,10 @@ describe 'l23network::l2::patch', :type => :define do
     end
 
     it do
-      should compile
+      should compile.with_all_deps
+    end
+
+    it do
       should contain_l23_stored_config('p_39a440c1-0').with({
         'bridge'          => ['br1', 'br2'],
         'jacks'           => ['p_39a440c1-0', 'p_39a440c1-1'],
@@ -158,6 +167,9 @@ describe 'l23network::l2::patch', :type => :define do
             },
         },
       })
+    end
+
+    it do
       should contain_l2_patch('patch__br1--br2').with({
         'ensure'  => 'present',
         'bridges' => ['br1', 'br2'],
@@ -172,7 +184,7 @@ describe 'l23network::l2::patch', :type => :define do
     end
   end
 
-  context 'Tagged patchcord between OVS bridges' do
+  context 'Tagged patchcord with explicitly defined OVS provider.' do
     let(:params) do
       {
         :bridges  => ['br1', 'br2'],
@@ -200,7 +212,6 @@ describe 'l23network::l2::patch', :type => :define do
       }).that_requires('L23_stored_config[p_39a440c1-0]')
     end
   end
-
 
 end
 # vim: set ts=2 sw=2 et

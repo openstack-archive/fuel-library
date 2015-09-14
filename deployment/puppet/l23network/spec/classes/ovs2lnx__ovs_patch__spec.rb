@@ -30,7 +30,6 @@ eof
 end
 
   context 'Patch between OVS and LNX bridges.' do
-    let(:title) { 'Centos has delay for port after boot' }
     let(:facts) {
       {
         :osfamily => 'Debian',
@@ -116,7 +115,6 @@ end
         'provider'       => 'ovs_ubuntu'
       })
     end
-
   end
 
 end
