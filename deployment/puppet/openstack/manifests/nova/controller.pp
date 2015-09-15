@@ -305,7 +305,7 @@ class openstack::nova::controller (
     }
   }
 
- $default_limits = {
+  $default_limits = {
     'POST' => 10,
     'POST_SERVERS' => 50,
     'PUT' => 10,
@@ -354,7 +354,7 @@ class openstack::nova::controller (
   }
 
   if !($sql_connection) {
-     Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'connection' |>>
+    Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'connection' |>>
   }
 
   nova_config {
