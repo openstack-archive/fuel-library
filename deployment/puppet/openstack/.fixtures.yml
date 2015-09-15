@@ -1,11 +1,22 @@
 fixtures:
   repositories:
-    "apt": "git://github.com/puppetlabs/puppetlabs-apt.git"
-    "keystone": "git://github.com/puppetlabs/puppetlabs-keystone.git"
-    "mysql": "git://github.com/puppetlabs/puppetlabs-mysql.git"
-    "nova": "git://github.com/puppetlabs/puppetlabs-nova.git"
-    "stdlib": "git://github.com/puppetlabs/puppetlabs-stdlib.git"
-    "sysctl": "git://github.com/duritong/puppet-sysctl.git"
-    'inifile':  'git://github.com/cprice-puppet/puppetlabs-inifile'
+    'apt': 'https://github.com/puppetlabs/puppetlabs-apt.git'
+    'stdlib': 'https://github.com/puppetlabs/puppetlabs-stdlib.git'
+    'sysctl': 'https://github.com/duritong/puppet-sysctl.git'
+    'inifile':  'https://github.com/puppetlabs/puppetlabs-inifile.git'
+    'firewall':  'https://github.com/puppetlabs/puppetlabs-firewall.git'
   symlinks:
-    "openstack": "#{source_dir}"
+    'openstack': "#{source_dir}"
+    'osnailyfacter': "#{source_dir}/../osnailyfacter"
+    'l23network': "#{source_dir}/../l23network"
+    'rsyslog': "#{source_dir}/../rsyslog"
+    'mysql': "#{source_dir}/../mysql"
+    'ceilometer': "#{source_dir}/../ceilometer"
+    'cinder': "#{source_dir}/../cinder"
+    'glance': "#{source_dir}/../glance"
+    'heat': "#{source_dir}/../heat"
+    'keystone': "#{source_dir}/../keystone"
+    'neutron': "#{source_dir}/../neutron"
+    'nova': "#{source_dir}/../nova"
+    'sahara': "#{source_dir}/../sahara"
+    'murano': "#{source_dir}/../murano"
