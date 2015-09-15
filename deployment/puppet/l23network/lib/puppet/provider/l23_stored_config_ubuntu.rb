@@ -470,7 +470,8 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     if val.size < 1 or [:absent, :undef].include? Array(val)[0].to_sym
       nil
     else
-      val.sort.join(' ')
+      # ugly workaround for ubuntu init-scripts feature
+      ( provider.bond_mode=='802.3ad'  ?  'none'  :  val.sort.join(' ') )
     end
   end
 
