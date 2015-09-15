@@ -1,5 +1,3 @@
-require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_base')
-
 Puppet::Type.type(:k_mod).provide(:lnx) do
   defaultfor :osfamily   => :linux
   commands   :mod_load   => 'modprobe',

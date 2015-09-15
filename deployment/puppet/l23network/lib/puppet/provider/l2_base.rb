@@ -1,19 +1,7 @@
-require 'puppetx/l23_utils'
 require 'puppetx/l23_ethtool_name_commands_mapping'
-require 'yaml'
+require File.join(File.dirname(__FILE__), 'interface_toolset')
 
-class Puppet::Provider::L2_base < Puppet::Provider
-
-  def self.ovs_vsctl(*cmd)
-    actual_cmd = ['ovs-vsctl'] + Array(*cmd)
-    begin
-      ff = IO.popen(actual_cmd.join(' '))
-      rv = ff.readlines().map{|l| l.chomp()}
-    rescue
-      rv = nil
-    end
-    return rv
-  end
+class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
 
   def self.prefetch(resources)
     interfaces = instances
@@ -25,10 +13,6 @@ class Puppet::Provider::L2_base < Puppet::Provider
   end
 
   # ---------------------------------------------------------------------------
-
-  def self.iface_exist?(iface)
-    File.exist? "/sys/class/net/#{iface}"
-  end
 
   def self.get_lnx_vlan_interfaces
     # returns hash, that contains ports (interfaces) configuration.
@@ -583,31 +567,6 @@ class Puppet::Provider::L2_base < Puppet::Provider
     self.ovs_bond_allowed_properties.keys.sort
   end
 
-
-  def self.get_iface_state(iface)
-    # returns:
-    #    true  -- interface in UP state
-    #    false -- interface in UP state, but no-carrier
-    #    nil   -- interface in DOWN state
-    begin
-      1 == File.open("/sys/class/net/#{iface}/carrier").read.chomp.to_i
-    rescue
-      # if interface is down, this file can't be read
-      nil
-    end
-  end
-
-  def self.ipaddr_exist?(if_name)
-    rv = false
-    iproute('-o', 'addr', 'show', 'dev', if_name).split(/\n+/).map{|l| l.split(/\s+/)}.each do |line|
-      if line[2].match(/^inet\d?$/)
-        rv=true
-        break
-      end
-    end
-    return rv
-  end
-
   # ---------------------------------------------------------------------------
 
   def self.get_ethtool_name_commands_mapping
@@ -627,35 +586,6 @@ class Puppet::Provider::L2_base < Puppet::Provider
   end
 
   # ---------------------------------------------------------------------------
-
-  def self.set_sys_class(property, value)
-    begin
-      property_file = File.open(property, 'a')
-      property_file.write("#{value.to_s}")
-      property_file.close
-    rescue Exception => e
-      debug("Non-fatal-Error: Can't set property '#{property}' to '#{value}': #{e.message}")
-    end
-  end
-
-  def self.get_sys_class(property, array=false)
-    begin
-      rv = File.open(property).read.split(/\s+/)
-    rescue Exception => e
-      debug("Non-fatal-Error: Can't get property '#{property}': #{e.message}")
-      rv = ['']
-    end
-    (array  ?  rv  :  rv[0])
-  end
-
-  # ---------------------------------------------------------------------------
-
-  def self.set_mtu(iface, mtu=1500)
-    if File.symlink?("/sys/class/net/#{iface}")
-      debug("Set MTU to '#{mtu}' for interface '#{iface}'")
-      File.open("/sys/class/net/#{iface}/mtu", "a") { |f| f.write(mtu) }
-    end
-  end
 
 end
 

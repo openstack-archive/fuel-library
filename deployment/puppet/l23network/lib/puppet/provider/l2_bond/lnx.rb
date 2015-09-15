@@ -6,8 +6,7 @@ require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_ba
 
 Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
   defaultfor :osfamily    => :linux
-  commands   :iproute     => 'ip',
-             :ethtool_cmd => 'ethtool',
+  commands   :ethtool_cmd => 'ethtool',
              :brctl       => 'brctl'
 
 
@@ -56,16 +55,12 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
-    open('/sys/class/net/bonding_masters', 'a') do |f|
-      f << "+#{@resource[:name]}"
-    end
+    self.class.set_sys_class('/sys/class/net/bonding_masters', "+#{@resource[:name]}")
   end
 
   def destroy
     debug("DESTROY resource: #{@resource}")
-    open('/sys/class/net/bonding_masters', 'a') do |f|
-      f << "-#{@resource[:name]}"
-    end
+    self.class.set_sys_class('/sys/class/net/bonding_masters', "-#{@resource[:name]}")
   end
 
   def flush
@@ -75,7 +70,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       #
       # FLUSH changed properties
       if @property_flush.has_key? :slaves
-        runtime_slave_ports = File.open("/sys/class/net/#{@resource[:bond]}/bonding/slaves", "r").read.split(/\s+/)
+        runtime_slave_ports = self.class.get_sys_class("/sys/class/net/#{@resource[:bond]}/bonding/slaves", true)
         if @property_flush[:slaves].nil? or @property_flush[:slaves] == :absent
           debug("Remove all slave ports from bond '#{@resource[:bond]}'")
           rm_slave_list = runtime_slave_ports
@@ -84,7 +79,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           if !rm_slave_list.empty?
             debug("Remove '#{rm_slave_list.join(',')}' ports from bond '#{@resource[:bond]}'")
             rm_slave_list.each do |slave|
-              iproute('link', 'set', 'down', 'dev', slave)  # need by kernel requirements by design. undocumented :(
+              self.class.interface_down(slave)  # need by kernel requirements by design. undocumented :(
               self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "-#{slave}")
             end
           end
@@ -94,9 +89,9 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             debug("Add '#{add_slave_list.join(',')}' ports to bond '#{@resource[:bond]}'")
             add_slave_list.each do |slave|
               debug("Add interface '#{slave}' to bond '#{@resource[:bond]}'")
-              iproute('link', 'set', 'down', 'dev', slave)  # need by kernel requirements by design. undocumented :(
+              self.class.interface_down(slave)  # need by kernel requirements by design. undocumented :(
               self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "+#{slave}")
-              iproute('link', 'set', 'up', 'dev', slave)
+              self.class.interface_up(slave)
             end
           end
         end
@@ -115,7 +110,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           # says, that bond interface should be downed, but it's not enouth.
           self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "-#{eth}")
         end
-        iproute('link', 'set', 'down', 'dev', @resource[:bond])
+        self.class.interface_down(@resource[:bond])
         # setup primary bond_properties
         primary_bond_properties = [:mode, :xmit_hash_policy]
         debug("Set primary bond properties [#{primary_bond_properties.join(',')}] for bond '#{@resource[:bond]}'")
@@ -155,7 +150,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           end
         end
         # re-assemble bond after configuration
-        iproute('link', 'set', 'up', 'dev', @resource[:bond]) if runtime_bond_state
+        self.class.interface_up(@resource[:bond]) if runtime_bond_state
         debug("Re-assemble bond '#{@resource[:bond]}'")
         runtime_slave_ports.each do |eth|
           debug("Add interface '#{eth}' to bond '#{@resource[:bond]}'")
@@ -172,7 +167,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         #
         # remove interface from old bridge
         runtime_bond_state  = !self.class.get_iface_state(@resource[:bond]).nil?
-        iproute('--force', 'link', 'set', 'down', 'dev', @resource[:bond])
+        self.class.interface_down(@resource[:bond], true)
         if ! port_bridges_hash[@resource[:bond]].nil?
           br_name = port_bridges_hash[@resource[:bond]][:bridge]
           if br_name != @resource[:bond]
@@ -200,11 +195,11 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             #pass
           end
         end
-        iproute('link', 'set', 'up', 'dev', @resource[:bond]) if runtime_bond_state
+        self.class.interface_up(@resource[:bond]) if runtime_bond_state
         debug("Change bridge")
       end
       if @property_flush[:onboot]
-        iproute('link', 'set', 'up', 'dev', @resource[:bond])
+        self.class.interface_up(@resource[:bond])
       end
       if !['', 'absent'].include? @property_flush[:mtu].to_s
         self.class.set_mtu(@resource[:bond], @property_flush[:mtu])

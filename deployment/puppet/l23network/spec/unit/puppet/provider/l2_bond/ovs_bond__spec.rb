@@ -9,9 +9,10 @@ describe Puppet::Type.type(:l2_bond).provider(:ovs) do
       :bridge   => 'br1',
       :slaves   => ['eth1', 'eth2'],
       :bond_properties => {
-        'mode'             => 'balance-slb',
-        'lacp_rate'        => 'fast',
-        #'xmit_hash_policy' => 'layer2',
+        'mode'      => 'balance-slb',
+        'lacp_rate' => 'fast',
+        'updelay'   => 111,
+        'downdelay' => 222,
       },
     )
   }
@@ -35,6 +36,8 @@ describe Puppet::Type.type(:l2_bond).provider(:ovs) do
     it "Create bond and setup required properties" do
       provider.class.expects(:vsctl).with('--', 'set', 'Port', 'bond1', 'bond_mode=balance-slb').returns(true)
       provider.class.expects(:vsctl).with('--', 'set', 'Port', 'bond1', 'other_config:lacp_time=fast').returns(true)
+      provider.class.expects(:vsctl).with('--', 'set', 'Port', 'bond1', 'bond_updelay=111').returns(true)
+      provider.class.expects(:vsctl).with('--', 'set', 'Port', 'bond1', 'bond_downdelay=222').returns(true)
       provider.create
       provider.expects(:warn).with { |arg| arg =~ /OVS\s+don't\s+allow\s+change\s+bond\s+slaves/ }
       provider.flush

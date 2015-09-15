@@ -4,4 +4,4 @@ iface bond_lacp inet manual
   ovs_bonds eth2 eth3
   ovs_type OVSBond
   ovs_bridge br0
-  ovs_options bond_mode=balance-tcp lacp=active other_config:lacp-time=fast other_config:bond-miimon-interval=50
+  ovs_options bond_mode=balance-tcp bond_updelay=111 bond_downdelay=222 lacp=active other_config:lacp-time=fast other_config:bond-miimon-interval=50

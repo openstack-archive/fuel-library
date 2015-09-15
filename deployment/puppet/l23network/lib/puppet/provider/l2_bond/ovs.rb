@@ -2,8 +2,7 @@ require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_ba
 
 Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
   commands  :vsctl       => 'ovs-vsctl',
-            :ethtool_cmd => 'ethtool',
-            :iproute     => 'ip'
+            :ethtool_cmd => 'ethtool'
 
 
   # def self.add_unremovable_flag(port_props)
@@ -26,7 +25,7 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
     @property_flush = {}.merge! @resource
 
     @resource[:slaves].each do |slave|
-      iproute('addr', 'flush', 'dev', slave)
+      self.class.addr_flush(slave)
     end
 
     begin

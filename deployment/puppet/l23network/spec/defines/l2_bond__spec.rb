@@ -107,13 +107,17 @@ describe 'l23network::l2::bond', :type => :define do
   end
 
 
-  context 'Just create a lnx-bond with specific MTU' do
+  context 'Create a lnx-bond with specific parameters' do
     let(:params) do
       {
         :name            => 'bond0',
         :interfaces      => ['eth3', 'eth4'],
         :mtu             => 9000,
-        :bond_properties => {},
+        :bond_properties => {
+          'updelay'   => '111',
+          'downdelay' => '222',
+          'ad_select' => '2',
+        },
         :provider        => 'lnx'
       }
     end
@@ -124,7 +128,10 @@ describe 'l23network::l2::bond', :type => :define do
 
     it do
       should contain_l23_stored_config('bond0').with({
-        'mtu'         => 9000,
+        'mtu'            => 9000,
+        'bond_updelay'   => '111',
+        'bond_downdelay' => '222',
+        'bond_ad_select' => 'count',
       })
     end
 
@@ -211,10 +218,10 @@ describe 'l23network::l2::bond', :type => :define do
         'ensure'                => 'present',
         'if_type'               => 'bond',
         'bond_mode'             => 'active-backup',
-        'bond_lacp_rate'        => nil,
-        'bond_xmit_hash_policy' => nil,
         'bond_miimon'           => '100',
       })
+      should contain_l23_stored_config('bond0').without_bond_lacp_rate()
+      should contain_l23_stored_config('bond0').without_bond_xmit_hash_policy()
     end
   end
 
@@ -225,6 +232,7 @@ describe 'l23network::l2::bond', :type => :define do
         :interfaces      => ['eth3', 'eth4'],
         :bond_properties => {
             'mode'             => 'balance-tlb',
+            'lacp'             => 'active',
             'lacp_rate'        => 'fast',
             'xmit_hash_policy' => 'layer2+3',
             'miimon'           => '300',
@@ -242,10 +250,11 @@ describe 'l23network::l2::bond', :type => :define do
         'ensure'                => 'present',
         'if_type'               => 'bond',
         'bond_mode'             => 'balance-tlb',
-        'bond_lacp_rate'        => nil,
         'bond_xmit_hash_policy' => 'layer2+3',
         'bond_miimon'           => '300',
       })
+      should contain_l23_stored_config('bond0').without_bond_lacp() # because 'lacp' -- only OVS property
+      should contain_l23_stored_config('bond0').without_bond_lacp_rate() # because 'balance-tlb' is non-lacp mode
     end
   end
 
@@ -272,14 +281,15 @@ describe 'l23network::l2::bond', :type => :define do
     end
   end
 
-  context 'Create a ovs-bond with mode = balance-tlb, lacp_rate = fast xmit_hash_policy = layer2+3' do
+  context 'Create a ovs-bond with mode = balance-tcp, lacp_rate = fast xmit_hash_policy = layer2+3' do
     let(:params) do
       {
         :name            => 'bond-ovs',
         :interfaces      => ['eth2', 'eth3'],
         :bridge          => 'br-bond-ovs',
         :bond_properties => {
-            'mode'             => 'balance-tlb',
+            'mode'             => 'balance-tcp',
+            'lacp'             => 'active',
             'lacp_rate'        => 'fast',
             'xmit_hash_policy' => 'layer2+3',
             'miimon'           => '300',
@@ -320,22 +330,29 @@ describe 'l23network::l2::bond', :type => :define do
         'bridge'                => 'br-bond-ovs',
         'if_type'               => 'bond',
         'bond_lacp'             => 'off',
-        'bond_mode'             => 'balance-tlb',
-        'bond_lacp_rate'        => nil,
-        'bond_xmit_hash_policy' => 'layer2+3',
+        'bond_mode'             => 'balance-tcp',
+        'bond_lacp'             => 'active',
+        'bond_lacp_rate'        => 'fast',
         'bond_miimon'           => '300',
+        'bond_updelay'          => '200',
+        'bond_downdelay'        => '200',
+        'bond_ad_select'        => 'bandwidth',
       })
+      should contain_l23_stored_config('bond-ovs').without_bond_xmit_hash_policy()
     end
 
     it do
       should contain_l2_bond('bond-ovs').with({
         'bond_properties' => {
-                             :mode             => 'balance-tlb',
-                             :lacp             => 'off',
-                             :lacp_rate        => :undef,
-                             :xmit_hash_policy => 'layer2+3',
-                             :miimon           => '300',
-                             },
+          :mode             => 'balance-tcp',
+          :lacp             => 'active',
+          :lacp_rate        => 'fast',
+          :miimon           => '300',
+          :xmit_hash_policy => :undef,
+          :updelay          =>"200",
+          :downdelay        =>"200",
+          :ad_select        =>"bandwidth",
+        },
       })
     end
 

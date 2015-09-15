@@ -2,8 +2,7 @@ require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_ba
 
 Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
   defaultfor :osfamily    => :linux
-  commands   :iproute     => 'ip',
-             :ethtool_cmd => 'ethtool',
+  commands   :ethtool_cmd => 'ethtool',
              :brctl       => 'brctl',
              :pkill       => 'pkill'
 
@@ -47,7 +46,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     @property_flush = {}.merge! @resource
     # todo: divide simple creating interface and vlan
     begin
-      iproute('link', 'add', 'link', @resource[:vlan_dev], 'name', @resource[:interface], 'type', 'vlan', 'id', @resource[:vlan_id])
+      self.class.iproute(['link', 'add', 'link', @resource[:vlan_dev], 'name', @resource[:interface], 'type', 'vlan', 'id', @resource[:vlan_id]])
     rescue
       # Some time interface may be created by OS init scripts. It's a normal for Ubuntu.
       raise if ! self.class.iface_exist? @resource[:interface]
@@ -59,7 +58,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     debug("DESTROY resource: #{@resource}")
     # todo: Destroing of L2 resource -- is a putting interface to the DOWN state.
     #       Or remove, if ove a vlan interface
-    #iproute('--force', 'addr', 'flush', 'dev', @resource[:interface])
+    #iproute(['--force', 'addr', 'flush', 'dev', @resource[:interface]])
   end
 
   def flush
@@ -77,10 +76,10 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         bond = @old_property_hash[:bond_master]
         if self.class.ipaddr_exist? @resource[:interface]
           # remove all IP addresses from member of bond. This should be done on device in UP state
-          iproute('addr', 'flush', 'dev', @resource[:interface])
+          self.class.addr_flush(@resource[:interface])
         end
         # putting interface to the down-state, because add/remove upped interface impossible. undocumented kern.behavior.
-        iproute('--force', 'link', 'set', 'down', 'dev', @resource[:interface])
+        self.class.interface_down(@resource[:interface], true)
         if bond and bond != :absent and File.exist?("/sys/class/net/#{@resource[:interface]}/master/bonding/slaves")
           # remove interface from bond, if one included to it
           debug("Remove interface '#{@resource[:interface]}' from bond '#{bond}'.")
@@ -99,9 +98,9 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           @property_flush[:port_type] = nil
         end
         # Up parent interface if this is vlan port
-        iproute('link', 'set', 'up', 'dev', @resource[:vlan_dev]) if @resource[:vlan_dev]
+        self.class.interface_up(@resource[:vlan_dev]) if @resource[:vlan_dev]
         # Up port
-        iproute('link', 'set', 'up', 'dev', @resource[:interface])
+        self.class.interface_up(@resource[:interface])
       end
       if @property_flush.has_key? :bridge
         # get actual bridge-list. We should do it here,
@@ -112,9 +111,9 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         debug("Actual-port-bridge-mapping: '#{port_bridges_hash}'")       # it should removed from LNX
         #
         #Flush ipaddr and routes for interface, thah adding to the bridge
-        iproute('route', 'flush', 'dev', @resource[:interface])
-        iproute('addr', 'flush', 'dev', @resource[:interface])
-        iproute('--force', 'link', 'set', 'down', 'dev', @resource[:interface])
+        self.class.route_flush(@resource[:interface])
+        self.class.addr_flush(@resource[:interface])
+        self.class.interface_down(@resource[:interface], true)
         # remove interface from old bridge
         if ! port_bridges_hash[@resource[:interface]].nil?
           br_name = port_bridges_hash[@resource[:interface]][:bridge]
@@ -149,7 +148,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             #pass
           end
         end
-        iproute('link', 'set', 'up', 'dev', @resource[:interface])
+        self.class.interface_up(@resource[:interface])
         debug("Change bridge")
       end
       if @property_flush.has_key? :ethtool and @property_flush[:ethtool].is_a? Hash
@@ -176,9 +175,9 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         # Should be after bond, because interface may auto-upped while added to the bond
         debug("Setup UP state for interface '#{@resource[:interface]}'.")
         # Up parent interface if this is vlan port
-        iproute('link', 'set', 'up', 'dev', @resource[:vlan_dev]) if @resource[:vlan_dev]
+        self.class.interface_up(@resource[:vlan_dev]) if @resource[:vlan_dev]
         # Up port
-        iproute('link', 'set', 'up', 'dev', @resource[:interface])
+        self.class.interface_up(@resource[:interface])
       end
       if !['', 'absent'].include? @property_flush[:mtu].to_s
         self.class.set_mtu(@resource[:interface], @property_flush[:mtu])
