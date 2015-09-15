@@ -165,7 +165,7 @@ class openstack::logging (
       content => template("${module_name}/20-keystone.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}/30-cinder.conf":
+    file { "${::rsyslog::params::rsyslog_d}30-cinder.conf":
       ensure => present,
       content => template("${module_name}/30-cinder.conf.erb"),
     }
@@ -219,11 +219,11 @@ class openstack::logging (
       content => template("${module_name}/60-puppet-apply.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}/61-mco-nailgun-agent.conf":
+    file { "${::rsyslog::params::rsyslog_d}61-mco-nailgun-agent.conf":
       content => template("${module_name}/61-mco-nailgun-agent.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}/62-mongod.conf":
+    file { "${::rsyslog::params::rsyslog_d}62-mongod.conf":
       content => template("${module_name}/62-mongod.conf.erb"),
     }
 
