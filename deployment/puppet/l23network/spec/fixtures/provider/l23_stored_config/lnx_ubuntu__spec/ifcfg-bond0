@@ -1,8 +1,6 @@
 auto bond0
 iface bond0 inet manual
-  mtu 9000
-  bond-mode 802.3ad
-  bond-miimon 50
-  bond-lacp-rate fast
+  mtu 8000
+  bond-mode active-backup
+  bond-miimon 40
   bond-slaves eth2 eth3
-  bond-xmit-hash-policy encap3+4
