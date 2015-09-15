@@ -90,12 +90,12 @@ class openstack::ceilometer (
         }
       }
     } else {
-       $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
-       if $mongo_replicaset {
-         ceilometer_config {
-            'database/mongodb_replica_set' : value => $mongo_replicaset;
-          }
-       }
+      $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+      if $mongo_replicaset {
+        ceilometer_config {
+          'database/mongodb_replica_set' : value => $mongo_replicaset;
+        }
+      }
     }
 
     ceilometer_config { 'service_credentials/os_endpoint_type': value => $os_endpoint_type} ->
@@ -175,7 +175,7 @@ class openstack::ceilometer (
 
   if ($use_syslog) {
     ceilometer_config {
-       'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
     }
   }
 
