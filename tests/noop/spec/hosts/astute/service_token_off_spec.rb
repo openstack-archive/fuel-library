@@ -20,7 +20,7 @@ describe manifest do
           :ensure     => 'running',
           :name       => service_name,
           :hasrestart => 'true',
-          :restart    => 'sleep 30 && apachectl graceful || apachectl restart'
+          :restart    => 'apachectl graceful || apachectl restart'
         )
       end
 
