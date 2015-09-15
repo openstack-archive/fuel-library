@@ -108,7 +108,7 @@ class openstack::firewall (
 
   firewall {'103 swift':
     port   => [$swift_proxy_port, $swift_object_port, $swift_container_port,
-               $swift_account_port, $swift_proxy_check_port],
+                $swift_account_port, $swift_proxy_check_port],
     proto  => 'tcp',
     action => 'accept',
   }
@@ -240,14 +240,14 @@ class openstack::firewall (
     table   => 'raw',
     proto   => 'gre',
     jump  => 'NOTRACK',
- }
+  }
 
   firewall { '334 accept gre':
     chain   => 'INPUT',
     table   => 'filter',
     proto   => 'gre',
     action  => 'accept',
- }
+  }
 
   firewall {'340 vxlan_udp_port':
     port => $vxlan_udp_port,
