@@ -236,9 +236,21 @@ haproxy_backend_status { 'keystone-admin' :
   url  => $haproxy_stats_url,
 }
 
+
 Service['keystone'] -> Haproxy_backend_status<||>
-Service<| title == 'httpd' |> -> Haproxy_backend_status<||>
-Haproxy_backend_status<||> -> Class['keystone::roles::admin']
+exec {'minute_sleep':
+  path => [ '/sbin', '/bin', '/usr/bin', '/usr/sbin' ],
+  command => 'sleep 60',
+}
+Service['httpd'] -> Exec ['minute_sleep']
+Exec ['minute_sleep'] -> Haproxy_backend_status <||>
+Haproxy_backend_status<||> -> Keystone_domain <||>
+Haproxy_backend_status<||> -> Keystone_endpoint <||>
+Haproxy_backend_status<||> -> Keystone_role <||>
+Haproxy_backend_status<||> -> Keystone_service <||>
+Haproxy_backend_status<||> -> Keystone_tenant <||>
+Haproxy_backend_status<||> -> Keystone_user <||>
+Haproxy_backend_status<||> -> Keystone_user_role <||>
 
 ####### Disable upstart startup on install #######
 if ($::operatingsystem == 'Ubuntu') {
