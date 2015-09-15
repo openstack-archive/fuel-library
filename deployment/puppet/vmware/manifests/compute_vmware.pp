@@ -27,6 +27,7 @@ define vmware::compute_vmware(
   $service_name,
   $current_node,
   $target_node,
+  $vlan_interface,
   $datastore_regex    = undef,
   $api_retry_count    = 5,
   $maximum_objects    = 100,
