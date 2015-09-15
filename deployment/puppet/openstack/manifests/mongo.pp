@@ -91,10 +91,10 @@ class openstack::mongo (
     password_hash => mongodb_password('admin', $ceilometer_db_password),
     database      => 'admin',
     roles         => ['userAdmin', 'readWrite', 'dbAdmin',
-                       'dbAdminAnyDatabase', 'readAnyDatabase',
-                       'readWriteAnyDatabase', 'userAdminAnyDatabase',
-                       'clusterAdmin', 'clusterManager', 'clusterMonitor',
-                       'hostManager', 'root', 'restore'],
+                      'dbAdminAnyDatabase', 'readAnyDatabase',
+                      'readWriteAnyDatabase', 'userAdminAnyDatabase',
+                      'clusterAdmin', 'clusterManager', 'clusterMonitor',
+                      'hostManager', 'root', 'restore'],
     tries         => 10,
     tag           => 'admin'
   } ->

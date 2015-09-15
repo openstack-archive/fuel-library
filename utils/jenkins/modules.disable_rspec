@@ -26,7 +26,6 @@ neutron
 nova
 ntp
 openssl
-openstack
 openstacklib
 operatingsystem
 osnailyfacter

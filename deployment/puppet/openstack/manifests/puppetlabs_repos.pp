@@ -2,11 +2,11 @@ class openstack::puppetlabs_repos (
 ) {
   case $::osfamily {
     'Debian': {
-       apt::source { 'puppetlabs':
-         location   => 'http://apt.puppetlabs.com',
-         repos      => 'main dependencies',
-         key_source =>  'http://apt.puppetlabs.com/pubkey.gpg',
-       }
+      apt::source { 'puppetlabs':
+        location   => 'http://apt.puppetlabs.com',
+        repos      => 'main dependencies',
+        key_source =>  'http://apt.puppetlabs.com/pubkey.gpg',
+      }
 
     if !defined(Class['apt::update']) {
       class { 'apt::update': stage => $::openstack::puppetlabs_repos::stage }
