@@ -97,6 +97,7 @@ if $murano_hash['enabled'] {
     rabbit_own_password => $heat_hash['rabbit_password'],
     service_host        => $api_bind_host,
     service_port        => $api_bind_port,
+    use_trusts          => true,
     external_network    => $external_network,
   }
 
