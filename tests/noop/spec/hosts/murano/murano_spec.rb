@@ -90,6 +90,7 @@ describe manifest do
                    'rabbit_own_password' => rabbit_own_password,
                    'service_host'        => api_bind_host,
                    'service_port'        => api_bind_port,
+                   'use_trusts'          => true,
                    'external_network'    => external_network,
                )
       end

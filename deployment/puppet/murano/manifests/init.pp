@@ -84,6 +84,10 @@
 #  (Optional) Port for murano to listen on
 #  Defaults to 8082
 #
+# [*use_trusts*]
+#  (Optional) Whether to use trust token instead of user token
+#  Defaults to false
+#
 # [*database_connection*]
 #  (Optional) Database for murano
 #  Defaults to 'mysql://murano:secrete@localhost:3306/murano'
@@ -153,6 +157,7 @@ class murano(
   $rabbit_own_password  = 'guest',
   $service_host         = '127.0.0.1',
   $service_port         = '8082',
+  $use_trusts           = false,
   $database_connection  = 'mysql://murano:secrete@localhost:3306/murano',
   $keystone_username    = 'admin',
   $keystone_tenant      = 'admin',
@@ -224,6 +229,8 @@ class murano(
     'DEFAULT/notification_driver'           : value => $notification_driver;
 
     'murano/url'                            : value => "http://${service_host}:${service_port}";
+
+    'engine/use_trusts'                     : value => $use_trusts;
 
     'database/connection'                   : value => $database_connection;
 
