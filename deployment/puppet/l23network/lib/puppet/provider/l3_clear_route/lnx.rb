@@ -83,7 +83,22 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx) do
     cmd += [ 'via', @property_hash[:gateway] ]
     cmd += [ 'metric', @property_hash[:metric] ] if @property_hash[:metric]
     cmd += [ 'dev', @property_hash[:interface] ] if @property_hash[:interface]
-    ip cmd
+    # Sometimes l3_clear_route deletes old default route but at this moment
+    # ubuntu hotplug has already changed(deleted and added new correct) it
+    begin
+      ip cmd
+    rescue Exception => error
+      errmsg = nil
+      error.message.split(/\n/).each do |line|
+        if line =~ /RTNETLINK\s+answers\:\s+No\s+such\s+process/i
+          errmsg = line
+          break
+        end
+      end
+      raise if errmsg.nil?
+      metricmsg =  ( @property_hash[:metric]  ?  "metric #{@property_hash[:metric]} "  :  '' )
+      warn("The route #{@property_hash[:destination]} #{metricmsg}via #{@property_hash[:interface]} is already removed! \n#{errmsg}")
+    end
   end
 
   def destroy
