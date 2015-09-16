@@ -14,7 +14,12 @@ class Puppet::Provider::Openstack < Puppet::Provider
   commands :openstack_cmd => 'openstack'
 
   def self.openstack(*args)
-    timeout_time = 10
+    if(args[1] == 'create')
+      timeout_time = 60
+    else
+      timeout_time = 10
+    end
+
     begin
       Timeout.timeout(timeout_time) do
         openstack_cmd *args
