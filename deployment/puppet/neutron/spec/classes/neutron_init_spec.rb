@@ -17,6 +17,7 @@ describe 'neutron' do
       :kombu_reconnect_delay => '1.0',
       :log_dir               => '/var/log/neutron',
       :report_interval       => '30',
+      :rpc_response_timeout  => '60',
     }
   end
 
@@ -140,6 +141,7 @@ describe 'neutron' do
       is_expected.to contain_neutron_config('DEFAULT/control_exchange').with_value('neutron')
       is_expected.to contain_neutron_config('DEFAULT/state_path').with_value('/var/lib/neutron')
       is_expected.to contain_neutron_config('DEFAULT/lock_path').with_value('/var/lib/neutron/lock')
+      is_expected.to contain_neutron_config('DEFAULT/rpc_response_timeout').with_value( params[:rpc_response_timeout] )
       is_expected.to contain_neutron_config('agent/root_helper').with_value('sudo neutron-rootwrap /etc/neutron/rootwrap.conf')
       is_expected.to contain_neutron_config('agent/report_interval').with_value('30')
     end

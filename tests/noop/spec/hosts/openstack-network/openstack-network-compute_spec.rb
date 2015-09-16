@@ -42,6 +42,12 @@ describe manifest do
         )
       end
 
+      it 'should configure rpc_response_timeout for neutron' do
+        should contain_class('neutron').with(
+          'rpc_response_timeout' => '15',
+        )
+      end
+
       it 'should configure auth region for neutron-agents' do
         should contain_class('openstack::network::neutron_agents').with(
          'auth_region' => 'RegionOne',

@@ -119,6 +119,10 @@
 #   (optional) what rpc/queuing service to use
 #   Defaults to impl_kombu (rabbitmq)
 #
+# [*rpc_response_timeout*]
+#   (optional) Seconds to wait for a response from a call
+#   Defaults to 60
+#
 # [*rabbit_password*]
 # [*rabbit_host*]
 # [*rabbit_port*]
@@ -264,6 +268,7 @@ class neutron (
   $memcache_servers                   = false,
   $control_exchange                   = 'neutron',
   $rpc_backend                        = 'neutron.openstack.common.rpc.impl_kombu',
+  $rpc_response_timeout               = 60,
   $rabbit_password                    = false,
   $rabbit_host                        = 'localhost',
   $rabbit_hosts                       = false,
@@ -380,6 +385,7 @@ class neutron (
     'DEFAULT/api_extensions_path':     value => $api_extensions_path;
     'DEFAULT/state_path':              value => $state_path;
     'DEFAULT/lock_path':               value => $lock_path;
+    'DEFAULT/rpc_response_timeout':    value => $rpc_response_timeout;
     'agent/root_helper':               value => $root_helper;
     'agent/report_interval':           value => $report_interval;
   }

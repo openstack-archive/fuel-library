@@ -97,6 +97,12 @@ describe manifest do
         )
       end
 
+      it 'should configure rpc_response_timeout for neutron' do
+        should contain_class('neutron').with(
+          'rpc_response_timeout' => '15',
+        )
+      end
+
       it 'should configure identity uri for neutron' do
         should contain_class('openstack::network').with(
          'identity_uri' => "http://#{service_endpoint}:35357",
