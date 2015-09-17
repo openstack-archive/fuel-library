@@ -70,8 +70,9 @@ describe 'basic heat' do
         enabled             => true,
       }
       class { '::keystone::roles::admin':
-        email    => 'test@example.tld',
-        password => 'a_big_secret',
+        email       => 'test@example.tld',
+        password    => 'a_big_secret',
+        admin_roles => ['admin', '_member_', 'heat_stack_owner']
       }
       class { '::keystone::endpoint':
         public_url => "https://${::fqdn}:5000/",
@@ -92,6 +93,9 @@ describe 'basic heat' do
       }
       class { '::heat::keystone::auth':
         password => 'a_big_secret',
+      }
+      class { '::heat::keystone::domain':
+        domain_password => 'oh_my_no_secret',
       }
       class { '::heat::client': }
       class { '::heat::api': }
