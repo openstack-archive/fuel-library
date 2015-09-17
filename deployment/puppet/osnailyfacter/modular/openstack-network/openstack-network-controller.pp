@@ -151,6 +151,15 @@ if $network_provider == 'neutron' {
       tenant_name      => $keystone_admin_tenant
     }
 
+    if has_key($nets, 'baremetal') {
+      openstack::network::create_network{'baremetal':
+        netdata           => $nets['baremetal'],
+        segmentation_type => 'flat',
+      } ->
+      neutron_router_interface { "router04:baremetal__subnet":
+        ensure => present,
+      }
+    }
   }
 
   $pnets = $neutron_config['L2']['phys_nets']
@@ -174,15 +183,13 @@ if $network_provider == 'neutron' {
     $vlan_range = []
   }
 
-  if $physnet1 and $physnet2 {
-    $bridge_mappings = [$physnet1, $physnet2]
-  } elsif $physnet1 {
-    $bridge_mappings = [$physnet1]
-  } elsif $physnet2 {
-    $bridge_mappings = [$physnet2]
-  } else {
-    $bridge_mappings = []
+  if $pnets['physnet-ironic'] {
+    $physnet_ironic = "physnet-ironic:${pnets['physnet-ironic']['bridge']}"
+    notify{ "Physnet for Ironic: $physnet_ironic":}
   }
+
+  $physnets_array = [$physnet1, $physnet2, $physnet_ironic]
+  $bridge_mappings = delete_undef_values($physnets_array)
 
   if $neutron_config['L2']['mechanism_drivers'] {
       $mechanism_drivers = split($neutron_config['L2']['mechanism_drivers'], ',')
