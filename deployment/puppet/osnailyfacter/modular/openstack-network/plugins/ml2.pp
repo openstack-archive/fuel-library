@@ -45,7 +45,16 @@ if $use_neutron {
     $network_vlan_ranges = ["physnet2:${$network_vlan_ranges_physnet2}"]
     $physnet2_bridge = try_get_value($neutron_config, 'L2/phys_nets/physnet2/bridge')
     $physnet2 = "physnet2:${physnet2_bridge}"
-    $bridge_mappings = [$physnet2]
+    $physnet_ironic_bridge = try_get_value($neutron_config, 'L2/phys_nets/physnet-ironic/bridge', false)
+
+    if $physnet_ironic_bridge {
+      $physnet_ironic = "physnet-ironic:${physnet_ironic_bridge}"
+    }else {
+      $physnet_ironic = []
+    }
+
+    $physnets_array = [$physnet2, $physnet_ironic]
+    $bridge_mappings = delete_undef_values($physnets_array)
     $physical_network_mtus = ["physnet2:${physical_net_mtu}"]
     $tunnel_id_ranges = []
     $network_type = 'vlan'

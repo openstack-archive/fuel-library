@@ -86,4 +86,35 @@ if $use_neutron {
     dns_nameservers => try_get_value($nets, 'net04/L3/nameservers'),
   }
 
+  if has_key($nets, 'baremetal') {
+    $baremetal_physnet         = try_get_value($nets, 'baremetal/L2/physnet', false)
+    $baremetal_segment_id      = try_get_value($nets, 'baremetal/L2/segment_id')
+    $baremetal_router_external = try_get_value($nets, 'baremetal/L2/router_ext')
+    $baremetal_shared          = try_get_value($nets, 'baremetal/shared', false)
+
+    neutron_network { 'baremetal' :
+      ensure                    => 'present',
+      provider_physical_network => $baremetal_physnet,
+      provider_network_type     => 'flat',
+      provider_segmentation_id  => $baremetal_segment_id,
+      router_external           => $baremetal_router_external,
+      tenant_name               => $tenant_name,
+      shared                    => $baremetal_shared
+    } ->
+
+    neutron_subnet { 'baremetal__subnet' :
+      ensure          => 'present',
+      cidr            => try_get_value($nets, 'baremetal/L3/subnet'),
+      network_name    => 'baremetal',
+      tenant_name     => $tenant_name,
+      gateway_ip      => try_get_value($nets, 'baremetal/L3/gateway'),
+      enable_dhcp     => true,
+      dns_nameservers => try_get_value($nets, 'baremetal/L3/nameservers'),
+    } ->
+
+    neutron_router_interface { "router04:baremetal__subnet":
+      ensure => 'present',
+    }
+  }
+
 }
