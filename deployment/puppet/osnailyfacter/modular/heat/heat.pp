@@ -82,7 +82,7 @@ class { 'openstack::heat' :
 
 if hiera('heat_ha_engine', true){
   if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
-    include ::heat_ha::engine
+    include ::cluster_heat_ocf
   }
 }
 

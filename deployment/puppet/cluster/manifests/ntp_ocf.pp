@@ -6,7 +6,7 @@ class cluster::ntp_ocf inherits ntp::params {
   $primitive_type = 'ns_ntp'
   $complex_type   = 'clone'
 
-  $ms_metadata = {
+  $complex_metadata = {
     'interleave' => 'true',
   }
 
@@ -32,7 +32,7 @@ class cluster::ntp_ocf inherits ntp::params {
     },
   }
 
-  cs_rsc_colocation { 'ntp-with-vrouter-ns' :
+  pcmk_colocation { 'ntp-with-vrouter-ns' :
     ensure     => 'present',
     score      => 'INFINITY',
     primitives => [
@@ -41,16 +41,16 @@ class cluster::ntp_ocf inherits ntp::params {
     ],
   }
 
-  pacemaker_wrappers::service { $service_name :
-    primitive_type => $primitive_type,
-    parameters     => $parameters,
-    metadata       => $metadata,
-    operations     => $operations,
-    ms_metadata    => $ms_metadata,
-    complex_type   => $complex_type,
-    prefix         => true,
+  pacemaker::service { $service_name :
+    primitive_type      => $primitive_type,
+    parameters          => $parameters,
+    metadata            => $metadata,
+    operations          => $operations,
+    complex_metadata    => $complex_metadata,
+    complex_type        => $complex_type,
+    prefix              => true,
   }
 
-  Cs_rsc_colocation['ntp-with-vrouter-ns'] -> Service['ntp']
+  Pcmk_colocation['ntp-with-vrouter-ns'] -> Service['ntp']
 
 }
