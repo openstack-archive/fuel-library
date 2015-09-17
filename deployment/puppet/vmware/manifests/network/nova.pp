@@ -52,15 +52,15 @@ class vmware::network::nova (
   $auth_url = "http://${management_vip}:5000/v2.0"
   $region = hiera('region', 'RegionOne')
 
-  cs_resource { 'p_vcenter_nova_network':
-    ensure          => present,
-    primitive_class => 'ocf',
-    provided_by     => 'fuel',
-    primitive_type  => 'nova-network',
-    metadata        => {
+  pcmk_resource { 'p_vcenter_nova_network':
+    ensure             => 'present',
+    primitive_class    => 'ocf',
+    primitive_provider => 'fuel',
+    primitive_type     => 'nova-network',
+    metadata           => {
       resource-stickiness => '1'
     },
-    parameters      => {
+    parameters         => {
       amqp_server_port      => $amqp_port,
       user                  => $nova_user,
       password              => $nova_password,
@@ -69,7 +69,7 @@ class vmware::network::nova (
       config                => $nova_network_config,
       additional_parameters => "--config-file=${nova_network_config_ha}",
     },
-    operations      => {
+    operations         => {
       monitor => {
         interval => '20',
         timeout  => '30',
@@ -114,7 +114,7 @@ class vmware::network::nova (
   Service['nova-network']->
   File["${nova_network_config_dir}"]->
   File["${nova_network_config_ha}"]->
-  Cs_resource['p_vcenter_nova_network']->
+  Pcmk_resource['p_vcenter_nova_network']->
   Service['p_vcenter_nova_network']->
   Anchor['vcenter-nova-network-end']
 }
