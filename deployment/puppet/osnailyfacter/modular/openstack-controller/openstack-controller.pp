@@ -178,17 +178,11 @@ if $primary_controller {
   Haproxy_backend_status <| |>    -> Exec<| title == 'create-m1.micro-flavor' |>
 
   if ! $use_neutron {
-    nova_floating_range { $floating_ips_range:
-      ensure          => 'present',
+    nova_floating { $floating_ips_range:
       pool            => 'nova',
-      username        => $access_hash[user],
-      api_key         => $access_hash[password],
-      auth_method     => 'password',
-      auth_url        => "http://${service_endpoint}:5000/v2.0/",
-      authtenant_name => $access_hash[tenant],
-      api_retries     => 10,
+      #network         => $floating_ips_range,
     }
-    Haproxy_backend_status['nova-api'] -> Nova_floating_range <| |>
+    Haproxy_backend_status['nova-api'] -> Nova_floating <| |>
   }
 }
 

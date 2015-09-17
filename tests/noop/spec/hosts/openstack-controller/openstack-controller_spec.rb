@@ -9,7 +9,6 @@ describe manifest do
     primary_controller = Noop.hiera 'primary_controller'
     if !use_neutron && primary_controller
       floating_ips_range = Noop.hiera 'floating_network_range'
-      access_hash  = Noop.hiera_structure 'access'
     end
     service_endpoint = Noop.hiera 'service_endpoint'
     if service_endpoint
@@ -58,17 +57,12 @@ describe manifest do
       )
     end
 
-    if floating_ips_range && access_hash
+    if floating_ips_range
       floating_ips_range.each do |ips_range|
         it "should configure nova floating IP range for #{ips_range}" do
-          should contain_nova_floating_range(ips_range).with(
-            'ensure'      => 'present',
+          should contain_nova_floating(ips_range).with(
             'pool'        => 'nova',
-            'username'    => access_hash['user'],
-            'api_key'     => access_hash['password'],
-            'auth_method' => 'password',
-            'auth_url'    => "http://#{keystone_host}:5000/v2.0/",
-            'api_retries' => '10',
+            'network'     => ips_range,
           )
         end
       end
