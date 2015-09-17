@@ -62,24 +62,24 @@ define vmware::compute::ha(
       }
     }
 
-    cs_resource { "p_nova_compute_vmware_${availability_zone_name}-${service_name}":
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'fuel',
-      primitive_type  => 'nova-compute',
-      metadata        => {
+    pcmk_resource { "p_nova_compute_vmware_${availability_zone_name}-${service_name}":
+      ensure             => 'present',
+      primitive_class    => 'ocf',
+      primitive_provider => 'fuel',
+      primitive_type     => 'nova-compute',
+      metadata           => {
         resource-stickiness => '1'
       },
-      parameters      => {
+      parameters         => {
         amqp_server_port      => $amqp_port,
         config                => $nova_conf,
         pid                   => "/var/run/nova/nova-compute-${availability_zone_name}-${service_name}.pid",
         additional_parameters => "--config-file=${nova_compute_conf}",
       },
-      operations      => {
-        monitor  => { timeout => '10', interval => '20' },
-        start    => { timeout => '30' },
-        stop     => { timeout => '30' }
+      operations         => {
+        monitor  => { 'timeout' => '10', 'interval' => '20' },
+        start    => { 'timeout' => '30' },
+        stop     => { 'timeout' => '30' }
       }
     }
 
@@ -91,7 +91,7 @@ define vmware::compute::ha(
 
     File["${nova_conf_dir}"]->
     File["${nova_compute_conf}"]->
-    Cs_resource["p_nova_compute_vmware_${availability_zone_name}-${service_name}"]->
+    Pcmk_resource["p_nova_compute_vmware_${availability_zone_name}-${service_name}"]->
     Service["p_nova_compute_vmware_${availability_zone_name}-${service_name}"]
   }
 }

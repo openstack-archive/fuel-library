@@ -32,26 +32,26 @@ define vmware::ceilometer::ha (
     }
   }
 
-  cs_resource { "p_ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}":
-    ensure          => present,
-    primitive_class => 'ocf',
-    provided_by     => 'fuel',
-    primitive_type  => 'ceilometer-agent-compute',
-    metadata        => {
+  pcmk_resource { "p_ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}":
+    ensure             => 'present',
+    primitive_class    => 'ocf',
+    primitive_provider => 'fuel',
+    primitive_type     => 'ceilometer-agent-compute',
+    metadata           => {
       'target-role' => 'stopped',
       'resource-stickiness' => '1'
     },
-    parameters      => {
+    parameters         => {
       amqp_server_port      => $amqp_port,
       config                => $ceilometer_config,
       pid                   => "/var/run/ceilometer/ceilometer-agent-compute-${availability_zone_name}_${service_name}.pid",
       user                  => "ceilometer",
       additional_parameters => "--config-file=${ceilometer_compute_conf}",
     },
-    operations      => {
-      monitor  => { timeout => '20', interval => '30' },
-      start    => { timeout => '360' },
-      stop     => { timeout => '360' }
+    operations         => {
+      monitor  => { 'timeout' => '20', 'interval' => '30' },
+      start    => { 'timeout' => '360' },
+      stop     => { 'timeout' => '360' }
     }
   }
 
@@ -65,6 +65,6 @@ define vmware::ceilometer::ha (
 
   File["${ceilometer_conf_dir}"]->
   File["${ceilometer_compute_conf}"]->
-  Cs_resource["p_ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}"]->
+  Pcmk_resource["p_ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}"]->
   Service["p_ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}"]
 }
