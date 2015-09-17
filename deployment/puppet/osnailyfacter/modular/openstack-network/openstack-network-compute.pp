@@ -275,17 +275,14 @@ if $network_provider == 'neutron' {
     $vlan_range = []
   }
 
-  if $physnet1 and $physnet2 {
-    $bridge_mappings = [$physnet1, $physnet2]
-  } elsif $physnet1 {
-    $bridge_mappings = [$physnet1]
-  } elsif $physnet2 {
-    $bridge_mappings = [$physnet2]
-  } else {
-    $bridge_mappings = []
+  if $pnets['physnet-ironic'] {
+    $physnet_ironic = "physnet-ironic:${pnets['physnet-ironic']['bridge']}"
+    notify{ "Physnet for Ironic: $physnet_ironic":}
   }
 
   $floating_bridge = get_network_role_property('neutron/floating', 'interface')
+  $physnets_array = [$physnet1, $physnet2, $physnet_ironic]
+  $bridge_mappings = delete_undef_values($physnets_array)
   $segmentation_type = $neutron_settings['L2']['segmentation_type']
 
   if $segmentation_type != 'vlan' {
