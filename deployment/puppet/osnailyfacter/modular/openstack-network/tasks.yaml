@@ -26,6 +26,20 @@
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute_post.rb
 
+- id: ironic-openstack-network-compute
+  type: puppet
+  groups: [ironic]
+  required_for: [deploy_end]
+  requires: [ironic-compute]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute_post.rb
+
 - id: neutron-db
   type: puppet
   groups: [primary-controller]
