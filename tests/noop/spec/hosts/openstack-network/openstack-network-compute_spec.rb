@@ -236,6 +236,26 @@ describe manifest do
                  )
         end
       end
+      if Noop.hiera('use_neutron')
+        neutron_config =  Noop.hiera_structure 'quantum_settings'
+        pnets = neutron_config['L2']['phys_nets']
+        if pnets['physnet1']
+            physnet1 = "physnet1:#{pnets['physnet1']['bridge']}"
+        end
+        if pnets['physnet2']
+            physnet2 = "physnet2:#{pnets['physnet2']['bridge']}"
+        end
+        if pnets['physnet-ironic']
+           physnet_ironic = "physnet-ironic:#{pnets['physnet-ironic']['bridge']}"
+        end
+        physnets_array = [physnet1, physnet2, physnet_ironic]
+        bridge_mappings = physnets_array.compact
+          it 'should declare openstack::network with ironic bridge_mappings' do
+            should contain_class('openstack::network').with(
+                'bridge_mappings' => bridge_mappings
+            )
+          end
+        end
     end
 
     enable = Noop.hiera('use_neutron')
