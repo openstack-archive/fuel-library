@@ -117,6 +117,19 @@ describe manifest do
 
       neutron_config =  Noop.hiera_structure 'quantum_settings'
       neutron_advanced_config =  Noop.hiera_structure 'neutron_advanced_configuration'
+      nets = neutron_config['predefined_networks']
+
+      if Noop.hiera 'primary_controller' and nets.has_key?('baremetal')
+          it 'should create baremetal network' do
+              should contain_openstack__network__create_network('baremetal').with(
+                  'netdata' => nets['baremetal'],
+                  'segmentation_type' => 'flat',
+              )
+              should contain_openstack__network__create_network('baremetal').that_comes_before(
+                  'neutron_router_interface[router04:baremetal__subnet]'
+              )
+          end
+      end
 
       if neutron_advanced_config && neutron_advanced_config.has_key?('neutron_dvr')
         dvr = neutron_advanced_config['neutron_dvr']
