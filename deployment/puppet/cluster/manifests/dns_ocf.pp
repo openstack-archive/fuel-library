@@ -6,23 +6,23 @@ class cluster::dns_ocf ( $primary_controller ) {
   $service_name = 'p_dns'
 
   if $primary_controller {
-    cs_resource { $service_name:
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'fuel',
-      primitive_type  => 'ns_dns',
-      complex_type    => 'clone',
-      ms_metadata => {
+    pcmk_resource { $service_name:
+      ensure             => 'present',
+      primitive_class    => 'ocf',
+      primitive_provider => 'fuel',
+      primitive_type     => 'ns_dns',
+      complex_type       => 'clone',
+      complex_metadata   => {
         'interleave' => 'true',
       },
-      metadata => {
+      metadata           => {
         'migration-threshold' => '3',
         'failure-timeout'     => '120',
       },
-      parameters => {
+      parameters         => {
         'ns' => 'vrouter',
       },
-      operations => {
+      operations         => {
         'monitor' => {
           'interval' => '20',
           'timeout'  => '10'
@@ -36,16 +36,14 @@ class cluster::dns_ocf ( $primary_controller ) {
       },
     } ->
 
-    cs_rsc_colocation { 'dns-with-vrouter-ns':
-      ensure     => present,
+    pcmk_colocation { 'dns-with-vrouter-ns':
+      ensure     => 'present',
       score      => 'INFINITY',
-      primitives => [
-        "clone_${service_name}",
-        "clone_p_vrouter"
-      ],
+      first      => "clone_p_vrouter",
+      second     => "clone_${service_name}",
     }
 
-    Cs_resource[$service_name] ~> Service[$service_name]
+    Pcmk_resource[$service_name] ~> Service[$service_name]
   }
 
   service { $service_name:
