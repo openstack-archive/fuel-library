@@ -113,6 +113,8 @@ $admin_iface = 'eth0',
     notify => Service['monit'],
   }
 
+  package { 'fuel-createmirror': ensure => latest }
+
   file { '/etc/fuel/free_disk_check.yaml':
     content => template('nailgun/free_disk_check.yaml.erb'),
     owner   => 'root',
