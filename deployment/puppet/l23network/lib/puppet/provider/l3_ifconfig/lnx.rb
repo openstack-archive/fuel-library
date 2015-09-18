@@ -52,17 +52,21 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
   end
 
   def initialize(value={})
+    debug("INITIALIZE resource: #{value}")  # with hash: '#{m}'")
     super(value)
     @property_flush = {}
     @old_property_hash = {}
     @old_property_hash.merge! @property_hash
+    #debug("INITIALIZE old_property_hash: #{@old_property_hash}")
   end
 
   def flush
+debug("111: #{@old_property_hash}")
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       #
       # FLUSH changed properties
+debug("222: #{@old_property_hash}")
       if ! @property_flush[:ipaddr].nil?
         if @property_flush[:ipaddr].include?(:absent)
           # flush all ip addresses from interface
@@ -74,9 +78,11 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
           sleep(5)
           ifup(@resource[:interface])
         else
+debug("333: #{@old_property_hash}")
           # add-remove static IP addresses
           if !@old_property_hash.nil? and !@old_property_hash[:ipaddr].nil?
             (@old_property_hash[:ipaddr] - @property_flush[:ipaddr]).each do |ipaddr|
+              debug(['--force', 'addr', 'del', ipaddr, 'dev', @resource[:interface]])
               self.class.iproute(['--force', 'addr', 'del', ipaddr, 'dev', @resource[:interface]])
             end
             adding_addresses = @property_flush[:ipaddr] - @old_property_hash[:ipaddr]
@@ -118,6 +124,7 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
           end
         end
       end
+debug("444: #{@old_property_hash}")
 
       if !@property_flush[:gateway].nil? or !@property_flush[:gateway_metric].nil?
         # clean all default gateways for *THIS* interface (with any metrics)
