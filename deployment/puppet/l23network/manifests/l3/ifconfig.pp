@@ -65,8 +65,6 @@ define l23network::l3::ifconfig (
     $ipaddr          = undef,
     $gateway         = undef,
     $gateway_metric  = undef,
-#   $default_gateway = false,
-#   $other_nets      = undef,
     $dns_nameservers = undef,
     $dns_search      = undef,
     $dns_domain      = undef,
@@ -86,37 +84,28 @@ define l23network::l3::ifconfig (
     # getting array of IP addresses for one interface
     $method = 'static'
     check_cidrs($ipaddr)
-    $ipaddr_list = $ipaddr
-    $effective_ipaddr  = cidr_to_ipaddr($ipaddr[0])
-    $effective_netmask = cidr_to_netmask($ipaddr[0])
-    $ipaddr_aliases    = array_part($ipaddr,1,0)
+    $ipaddr_list    = $ipaddr
+    $ipaddr_aliases = array_part($ipaddr_list,1,0)
+    #$ipaddr_aliases    = split(inline_template("<%= @ipaddr_list[1..-1].join(':')%>"),':')
   } elsif is_string($ipaddr) {
     # getting single IP address for interface. It can be not address, but method.
     $ipaddr_aliases = undef
     case $ipaddr {
       'dhcp':  {
         $method = 'dhcp'
-        $effective_ipaddr  = 'dhcp'
-        $effective_netmask = undef
         $ipaddr_list = ['dhcp']
       }
       'none':  {
         $method = 'manual'
-        $effective_ipaddr  = 'none'
-        $effective_netmask = undef
         $ipaddr_list = ['none']
       }
       default: {
         $method = 'static'
         if $ipaddr =~ /\/\d{1,2}\s*$/ {
           # ipaddr can be cidr-notated
-          $effective_ipaddr = cidr_to_ipaddr($ipaddr)
-          $effective_netmask = cidr_to_netmask($ipaddr)
           $ipaddr_list = [$ipaddr]
         } else {
           # or classic pair of ipaddr+netmask
-          $effective_ipaddr = $ipaddr
-          $effective_netmask = $netmask
           $cidr_notated_effective_netmask = netmask_to_cidr($netmask)
           $ipaddr_list = ["${ipaddr}/${cidr_notated_effective_netmask}"]
         }
@@ -209,6 +198,7 @@ define l23network::l3::ifconfig (
     L23_stored_config <| title == $interface |> {
       method          => $method,
       ipaddr          => $ipaddr_list[0],
+      ipaddr_aliases  => $ipaddr_aliases,
       gateway         => $def_gateway,
       gateway_metric  => $gateway_metric,
       vendor_specific => $vendor_specific,

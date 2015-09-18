@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe 'l23network::l3::ifconfig', :type => :define do
-  context 'simple ifconfig usage' do
-    let(:title) { 'ifconfig simple test' }
+  context 'without IP address definition' do
+    let(:title) { 'without IP address definition' }
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
@@ -32,7 +32,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
         'name'           => 'eth4',
         'method'         => 'manual',
         'ipaddr'         => 'none',
-        'gateway'        => nil,
+        'ipaddr_aliases' => nil,
       })
     end
 
@@ -50,7 +50,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     end
   end
 
-  context 'Ifconfig with default gateway' do
+  context 'with IP address and default gateway' do
     let(:title) { 'ifconfig simple test' }
     let(:facts) { {
       :osfamily => 'Debian',
@@ -98,7 +98,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     end
   end
 
-  context 'Ifconfig with default gateway with metric' do
+  context 'with default gateway and metric' do
     let(:title) { 'ifconfig simple test' }
     let(:facts) { {
       :osfamily => 'Debian',
@@ -138,6 +138,54 @@ describe 'l23network::l3::ifconfig', :type => :define do
         'ipaddr'         => '10.20.30.2/24',
         'gateway'        => '10.20.30.1',
         'gateway_metric' => 321,
+      })
+    end
+
+    it do
+      should contain_l3_ifconfig('eth4').that_requires('L23_stored_config[eth4]')
+      should contain_l3_ifconfig('eth4').that_requires('L23network::L2::Port[eth4]')
+    end
+  end
+
+  context 'with multiple IP addresses' do
+    let(:title) { 'with multiple IP addresses' }
+    let(:facts) { {
+      :osfamily => 'Debian',
+      :operatingsystem => 'Ubuntu',
+      :kernel => 'Linux'
+    } }
+
+    let(:params) { {
+      :interface => 'eth4',
+      :ipaddr  => ['10.20.20.2/24', '10.30.30.3/24', '10.40.40.4/24'],
+    } }
+
+    before(:each) do
+      puppet_debug_override()
+    end
+
+    it do
+      should compile.with_all_deps
+    end
+
+    it do
+      should contain_l23_stored_config('eth4').with({
+        'ensure'         => 'present',
+        'name'           => 'eth4',
+        'method'         => 'static',
+        'ipaddr'         => '10.20.20.2/24',
+        'ipaddr_aliases' => ['10.30.30.3/24', '10.40.40.4/24'],
+        'gateway'        => nil,
+        'gateway_metric' => nil,
+      })
+    end
+
+    it do
+      should contain_l3_ifconfig('eth4').with({
+        'ensure'         => 'present',
+        'ipaddr'         => ['10.20.20.2/24', '10.30.30.3/24', '10.40.40.4/24'],
+        'gateway'        => nil,
+        'gateway_metric' => nil,
       })
     end
 
