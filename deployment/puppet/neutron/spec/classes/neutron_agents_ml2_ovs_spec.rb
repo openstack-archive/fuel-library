@@ -20,7 +20,8 @@ describe 'neutron::agents::ml2::ovs' do
       :arp_responder              => false,
       :enable_distributed_routing => false,
       :drop_flows_on_start        => false,
-      :firewall_driver            => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver' }
+      :firewall_driver            => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+      :prevent_arp_spoofing       => false }
   end
 
   let :default_facts do
@@ -44,6 +45,7 @@ describe 'neutron::agents::ml2::ovs' do
       is_expected.to contain_neutron_agent_ovs('agent/polling_interval').with_value(p[:polling_interval])
       is_expected.to contain_neutron_agent_ovs('agent/l2_population').with_value(p[:l2_population])
       is_expected.to contain_neutron_agent_ovs('agent/arp_responder').with_value(p[:arp_responder])
+      is_expected.to contain_neutron_agent_ovs('agent/prevent_arp_spoofing').with_value(p[:prevent_arp_spoofing])
       is_expected.to contain_neutron_agent_ovs('agent/drop_flows_on_start').with_value(p[:drop_flows_on_start])
       is_expected.to contain_neutron_agent_ovs('ovs/integration_bridge').with_value(p[:integration_bridge])
       is_expected.to contain_neutron_agent_ovs('securitygroup/firewall_driver').\
@@ -98,6 +100,15 @@ describe 'neutron::agents::ml2::ovs' do
       end
       it 'should enable ARP responder' do
         is_expected.to contain_neutron_agent_ovs('agent/arp_responder').with_value(true)
+      end
+    end
+
+    context 'when enabling ARP Spoofing Protection' do
+      before :each do
+        params.merge!(:prevent_arp_spoofing => true)
+      end
+      it 'should enable ARP Spoofing Protection' do
+        is_expected.to contain_neutron_agent_ovs('agent/prevent_arp_spoofing').with_value(true)
       end
     end
 
