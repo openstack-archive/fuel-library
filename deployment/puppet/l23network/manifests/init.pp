@@ -11,6 +11,7 @@ class l23network (
   $install_ethtool  = $use_lnx,
   $install_bondtool = $use_lnx,
   $install_vlantool = $use_lnx,
+  $install_arping   = true,
   $ovs_modname      = undef,
   $ovs_datapath_package_name = undef,
   $ovs_common_package_name   = undef,
@@ -58,8 +59,10 @@ class l23network (
     Anchor <| title == 'l23network::l2::centos_upndown_scripts' |> -> Anchor['l23network::init']
   }
 
-  #install extra tools
-  ensure_packages($::l23network::params::extra_tools)
+  if $install_arping and $::l23network::params::lnx_arping {
+    ensure_packages($::l23network::params::lnx_arping)
+    Package[$::l23network::params::lnx_arping] -> Anchor['l23network::init']
+  }
 
   Anchor['l23network::l2::init'] -> Anchor['l23network::init']
   anchor { 'l23network::init': }
