@@ -51,7 +51,11 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
     @property_hash.clear
   end
 
+  attr_accessor(:property_flush)
+  attr_accessor(:property_hash)
+  attr_accessor(:old_property_hash)
   def initialize(value={})
+    #debug("INITIALIZE resource: #{value}")
     super(value)
     @property_flush = {}
     @old_property_hash = {}
@@ -77,6 +81,7 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
           # add-remove static IP addresses
           if !@old_property_hash.nil? and !@old_property_hash[:ipaddr].nil?
             (@old_property_hash[:ipaddr] - @property_flush[:ipaddr]).each do |ipaddr|
+              debug(['--force', 'addr', 'del', ipaddr, 'dev', @resource[:interface]])
               self.class.iproute(['--force', 'addr', 'del', ipaddr, 'dev', @resource[:interface]])
             end
             adding_addresses = @property_flush[:ipaddr] - @old_property_hash[:ipaddr]
@@ -223,8 +228,5 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
   end
 
   #-----------------------------------------------------------------
-
-
-
 end
 # vim: set ts=2 sw=2 et :

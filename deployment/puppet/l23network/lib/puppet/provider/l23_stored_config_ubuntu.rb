@@ -55,6 +55,11 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
           :detect_re    => /(post-)?up\s+ethtool\s+(-\w+)\s+([\w\-]+)\s+(\w+)\s+(\w+)/,
           :detect_shift => 2,
       },
+      :ipaddr_aliases => {
+          # ip addr add 192.168.1.43/24 dev $IFACE
+          :detect_re    => /(post-)?up\s+ip\s+a([dr]+)?\s+add\s+(\d+\.\d+\.\d+\.\d+\/\d+)\s+dev\s+([\w\-]+)/,
+          :detect_shift => 3,
+      },
       :delay_while_up  => {
           # post-up sleep 10
           :detect_re    => /(post-)?up\s+sleep\s+(\d+)/,
@@ -322,6 +327,17 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     return rv
   end
 
+  def self.mangle__ipaddr_aliases(data)
+    # incoming data is list of 3-element lists:
+    # [network, gateway, metric]
+    # metric is optional
+    rv = []
+    data.each do |d|
+      rv << d[0]
+    end
+    return rv.sort
+  end
+
   def self.mangle__ethtool(data)
     # incoming data is list of 3-element lists:
     # [key, interface, abbrv, value]
@@ -482,6 +498,18 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     data.each_pair do |name, rou|
       mmm = (rou['metric'].nil?  ?  ''  :  "metric #{rou['metric']} ")
       rv << "post-up ip route add #{rou['destination']} via #{rou['gateway']} #{mmm} | true # #{name}"
+    end
+    rv
+  end
+
+  def self.unmangle__ipaddr_aliases(provider, data)
+    # should generate set of lines:
+    # "post-up ip addr add 192.168.1.43/24 dev $IFACE| true"
+    return [] if ['', 'absent'].include? data.to_s
+    rv = []
+    data.each do |cidr|
+      next if ['', 'absent'].include? cidr.to_s
+      rv << "post-up ip addr add #{cidr} dev #{provider.name} | true "
     end
     rv
   end
