@@ -1,6 +1,7 @@
 require 'pp'
 require 'timeout'
 require 'net/http'
+require 'open-uri'
 require 'uri'
 
 Puppet::Parser::Functions::newfunction(:url_available, :doc => <<-EOS
@@ -40,6 +41,8 @@ EOS
 ) do |argv|
   url = argv[0]
   http_proxy = argv[1]
+  threads_count = 16
+  Thread.abort_on_exception=true
 
   def fetch(url, http_proxy = nil)
     # proxy variables, set later if http_proxy is provided or there is a proxy
@@ -76,7 +79,7 @@ function. Must be of type String or Hash."
       end
     end
 
-    puts "Checking #{uri}"
+    puts "Checking #{uri}\n"
     begin
       out = Timeout::timeout(180) do
         u = URI.parse(uri)
@@ -94,9 +97,16 @@ function. Must be of type String or Hash."
   end
 
   # if passed an array, iterate through the array an check each element
+  # within a thread pool equal to threads_count
   if url.instance_of? Array
-    url.each do |u|
-      fetch(u, http_proxy)
+    url.each_slice(threads_count) do |group|
+      threads = []
+      group.each do |u|
+        threads << Thread.new do
+          fetch(u, http_proxy)
+        end
+      end
+      threads.each(&:join)
     end
   else
     fetch(url, http_proxy)
