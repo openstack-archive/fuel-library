@@ -51,4 +51,12 @@ describe 'array_part' do
     scope.function_array_part([[0,1,2,3,4,5,6,7,8,9],2,5]).should == [2,3,4,5]
   end
 
+  it 'should return from given index to end' do
+    scope.function_array_part([[0,1,2,3,4,5,6,7,8,9],2,0]).should == [2,3,4,5,6,7,8,9]
+  end
+
+  it 'should return undef if requested range out of given array' do
+    scope.function_array_part([[0,1],2,0]).should == nil
+  end
+
 end
