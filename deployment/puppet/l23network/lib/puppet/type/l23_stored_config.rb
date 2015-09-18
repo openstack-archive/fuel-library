@@ -154,6 +154,37 @@ Puppet::Type.newtype(:l23_stored_config) do
     defaultto :absent
   end
 
+  newproperty(:ipaddr_aliases, :array_matching => :all) do
+    desc "Additional IP addresses for interface"
+    newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/, :absent, :none, :undef, :nil)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :absent
+
+    def is_absent(value)
+      if value.is_a?(Hash) or value.is_a?(Array)
+        ( value.empty?  ?  nil  :  value )
+      else
+        ( ['', 'nil', 'none', 'absent'].include?(value.to_s.downcase)  ?  nil  :  value.to_s )
+      end
+    end
+
+    def should_to_s(value)
+      (is_absent(value).nil?  ?  ''  :  "#{value.join(':')}")
+    end
+
+    def is_to_s(value)
+      (is_absent(value).nil?  ?  ''  :  "#{value.join(':')}")
+    end
+
+    def insync?(value)
+      val  = (is_absent(value).nil?  ?  ''  :  should_to_s(value.sort) )
+      shou = (is_absent(value).nil?  ?  ''  :  should_to_s(should.sort) )
+      val == shou
+    end
+  end
+
   newproperty(:gateway) do
     desc "Default gateway"
     newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, :absent, :none, :undef, :nil)
