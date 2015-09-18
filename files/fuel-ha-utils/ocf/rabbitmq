@@ -1495,7 +1495,13 @@ action_notify() {
                       rc2=$?
                     else
                       ocf_log warn "${LH} We are already clustered with node ${OCF_RESKEY_CRM_meta_notify_master_uname}"
-                      rc2=$OCF_SUCCESS
+                      try_to_start_rmq_app
+                      if [ $? -eq 0 ] ; then
+                          rc2=$OCF_SUCCESS
+                      else
+                          rc2=$OCF_ERR_GENERIC
+                      fi
+                      ocf_log info "${LH} post-start end."
                     fi
                     ocf_log info "${LH} post-start end."
                     if [[ -s ${OCF_RESKEY_definitions_dump_file} ]] ; then
