@@ -67,28 +67,29 @@ class openstack::horizon (
   }
 
   class { '::horizon':
-    bind_address            => $bind_address,
-    cache_server_ip         => $cache_server_ip,
-    cache_server_port       => $cache_server_port,
-    cache_backend           => $cache_backend,
-    cache_options           => $cache_options,
-    secret_key              => $secret_key,
-    package_ensure          => $package_ensure,
-    horizon_app_links       => $horizon_app_links,
-    keystone_url            => $keystone_url,
-    keystone_default_role   => $keystone_default_role,
-    django_debug            => $django_debug,
-    api_result_limit        => $api_result_limit,
-    listen_ssl              => $use_ssl,
-    ssl_no_verify           => $ssl_no_verify,
-    log_level               => $log_level_real,
-    configure_apache        => false,
-    django_session_engine   => $django_session_engine,
-    allowed_hosts           => '*',
-    secure_cookies          => false,
-    log_handler             => $log_handler,
-    neutron_options         => $neutron_options,
-    custom_theme_path       => $custom_theme_path,
+    bind_address          => $bind_address,
+    cache_server_ip       => $cache_server_ip,
+    cache_server_port     => $cache_server_port,
+    cache_backend         => $cache_backend,
+    cache_options         => $cache_options,
+    secret_key            => $secret_key,
+    package_ensure        => $package_ensure,
+    horizon_app_links     => $horizon_app_links,
+    keystone_url          => $keystone_url,
+    keystone_default_role => $keystone_default_role,
+    django_debug          => $django_debug,
+    api_result_limit      => $api_result_limit,
+    listen_ssl            => $use_ssl,
+    ssl_no_verify         => $ssl_no_verify,
+    log_level             => $log_level_real,
+    configure_apache      => false,
+    django_session_engine => $django_session_engine,
+    allowed_hosts         => '*',
+    secure_cookies        => false,
+    log_handler           => $log_handler,
+    neutron_options       => $neutron_options,
+    custom_theme_path     => $custom_theme_path,
+    redirect_type         => 'temp', # LP#1385133
   }
 
   # Performance optimization for wsgi
@@ -106,11 +107,11 @@ class openstack::horizon (
     wsgi_processes => $wsgi_processes,
     wsgi_threads   => $wsgi_threads,
     listen_ssl     => $use_ssl,
-    extra_params      => {
+    extra_params   => {
       default_vhost   => true,
       add_listen      => false,
       setenvif        => 'X-Forwarded-Proto https HTTPS=1',
-      custom_fragment => template("openstack/horizon/wsgi_vhost_custom.erb"),
+      custom_fragment => template('openstack/horizon/wsgi_vhost_custom.erb'),
     },
   } ~>
   Service[$::apache::params::service_name]
