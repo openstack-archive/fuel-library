@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe 'l23network::l3::ifconfig', :type => :define do
-  context 'simple ifconfig usage' do
-    let(:title) { 'ifconfig simple test' }
+  context 'without IP address definition' do
+    let(:title) { 'without IP address definition' }
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
@@ -32,7 +32,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
         'name'           => 'eth4',
         'method'         => 'manual',
         'ipaddr'         => 'none',
-        'gateway'        => nil,
+        'ipaddr_aliases' => nil,
       })
     end
 
@@ -50,7 +50,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     end
   end
 
-  context 'Ifconfig with default gateway' do
+  context 'with IP address and default gateway' do
     let(:title) { 'ifconfig simple test' }
     let(:facts) { {
       :osfamily => 'Debian',
@@ -98,7 +98,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     end
   end
 
-  context 'Ifconfig with default gateway with metric' do
+  context 'with default gateway and metric' do
     let(:title) { 'ifconfig simple test' }
     let(:facts) { {
       :osfamily => 'Debian',
