@@ -3,7 +3,6 @@ require 'spec_helper'
 describe 'l23network', :type => :class do
 
   context 'default init of l23network module' do
-#    let(:title) { 'empty network scheme' }
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
@@ -19,12 +18,12 @@ describe 'l23network', :type => :class do
     it do
       should contain_package('bridge-utils').with_ensure('present')
       should contain_package('ethtool').with_ensure('present')
-      should contain_package('ifenslave').with_ensure('present')
-      should contain_package('vlan').with_ensure('present')
+      should contain_package('iputils-arping').with_ensure('present')
+      should_not contain_package('ifenslave')
+      should_not contain_package('vlan')
       should contain_anchor('l23network::l2::init').that_comes_before('Anchor[l23network::init]')
-      should contain_anchor('l23network::l2::init').that_requires('Package[vlan]')
-      should contain_anchor('l23network::l2::init').that_requires('Package[ifenslave]')
       should contain_anchor('l23network::l2::init').that_requires('Package[ethtool]')
+      should contain_anchor('l23network::init').that_requires('Package[iputils-arping]')
     end
   end
 
@@ -52,8 +51,10 @@ describe 'l23network', :type => :class do
       })
       should contain_package('bridge-utils').with_ensure('present')
       should contain_package('ethtool').with_ensure('present')
-      should contain_package('ifenslave').with_ensure('present')
-      should contain_package('vlan').with_ensure('present')
+      should contain_package('iputils-arping').with_ensure('present')
+      should_not contain_package('ifenslave')
+      should_not contain_package('vlan')
+      should contain_anchor('l23network::init').that_requires('Package[iputils-arping]')
     end
 
     it do
