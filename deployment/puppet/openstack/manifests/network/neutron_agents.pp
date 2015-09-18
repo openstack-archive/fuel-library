@@ -96,6 +96,7 @@ class openstack::network::neutron_agents (
       l2_population              => $l2_population,
       arp_responder              => $l2_population,
       manage_vswitch             => false,
+      prevent_arp_spoofing       => true,
       manage_service             => true,
       enabled                    => true,
     }
