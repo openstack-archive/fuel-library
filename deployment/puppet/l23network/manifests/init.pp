@@ -64,4 +64,25 @@ class l23network (
   Anchor['l23network::l2::init'] -> Anchor['l23network::init']
   anchor { 'l23network::init': }
 
+
+  # Disable network interface hotplug
+  # (stop executing new udev events. Incoming events will be queued)
+  exec{'disable_hotplug':
+    command => 'udevadm control --stop-exec-queue'
+  }
+
+  Exec['disable_hotplug'] -> L23_stored_config<||>
+
+  # Enable network interface hotplug
+  # (start the execution of udev queued events)
+  exec{'enable_hotplug':
+    command => 'udevadm control --start-exec-queue'
+  }
+  L2_port<||> -> Exec['enable_hotplug']
+  L2_bridge<||> ->  Exec['enable_hotplug']
+  L2_bond<||> ->  Exec['enable_hotplug']
+  L3_ifconfig<||> ->  Exec['enable_hotplug']
+  L23_stored_config<||> -> Exec['enable_hotplug']
+
+  Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
 }
