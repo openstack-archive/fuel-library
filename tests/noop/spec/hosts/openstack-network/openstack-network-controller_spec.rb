@@ -49,6 +49,12 @@ describe manifest do
         )
       end
 
+      it 'should declare neutron::agents::ml2::ovs with prevent_arp_spoofing enabled' do
+        should contain_class('neutron::agents::ml2::ovs').with(
+          'prevent_arp_spoofing' => 'true',
+        )
+      end
+
       it 'should declare neutron::agents::dhcp with isolated metadata enabled' do
         should contain_class('neutron::agents::dhcp').with(
          'enable_isolated_metadata' => 'true',
