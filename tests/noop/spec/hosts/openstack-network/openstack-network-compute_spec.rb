@@ -1,4 +1,4 @@
-require 'spec_helper'
+    require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/openstack-network-compute.pp'
 
@@ -94,6 +94,12 @@ describe manifest do
         should contain_class('openstack::network::neutron_agents').with(
                    'auth_region' => 'RegionOne'
                )
+      end
+
+      it 'should declare neutron::agents::ml2::ovs with prevent_arp_spoofing enabled' do
+        should contain_class('neutron::agents::ml2::ovs').with(
+          'prevent_arp_spoofing' => 'true',
+        )
       end
 
       it 'should wait for integration bridge' do
