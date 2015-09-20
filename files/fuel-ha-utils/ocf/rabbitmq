@@ -28,7 +28,7 @@ OCF_RESKEY_mnesia_base_default=/var/lib/rabbitmq/mnesia
 OCF_RESKEY_node_port_default=5672
 OCF_RESKEY_erlang_cookie_default=false
 OCF_RESKEY_erlang_cookie_file_default="/var/lib/rabbitmq/.erlang.cookie"
-OCF_RESKEY_max_rabbitmqctl_timeouts_default=1
+OCF_RESKEY_max_rabbitmqctl_timeouts_default=5
 
 : ${HA_LOGTAG="lrmd"}
 : ${HA_LOGFACILITY="daemon"}
