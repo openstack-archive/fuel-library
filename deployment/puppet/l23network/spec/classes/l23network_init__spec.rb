@@ -72,8 +72,16 @@ describe 'l23network', :type => :class do
       }).that_comes_before('Anchor[l23network::l2::init]')
     end
 
+    it do
+      should contain_disable_hotplug('global')
+    end
+
+    it do
+      should contain_enable_hotplug('global').that_requires('Disable_hotplug[global]')
+    end
+
   end
 
 end
 
-###
+# vim: set ts=2 sw=2 et
