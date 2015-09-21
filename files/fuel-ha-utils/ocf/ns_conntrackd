@@ -85,6 +85,34 @@ For example "/packages/conntrackd-0.9.14/etc/conntrackd/conntrackd.conf"</longde
 <shortdesc lang="en">Path to conntrackd.conf</shortdesc>
 <content type="string" default="$OCF_RESKEY_config_default"/>
 </parameter>
+
+<parameter name="ns">
+<longdesc lang="en">Network namespace in which ns_interface
+will be configured.
+</longdesc>
+<shortdesc lang="en">Network namespace.</shortdesc>
+<content type="string" default="$OCF_RESKEY_ns_default"/>
+</parameter>
+
+<parameter name="bridge">
+<longdesc lang="en">Bridge to which host_interface will be added.</longdesc>
+<shortdesc lang="en">Bridge to which host_interface will be added.</shortdesc>
+<content type="string" default="$OCF_RESKEY_bridge_default"/>
+</parameter>
+
+<parameter name="host_interface">
+<longdesc lang="en">Host interface in veth pair.</longdesc>
+<shortdesc lang="en">Host interface in veth pair.</shortdesc>
+<content type="string" default="$OCF_RESKEY_host_interface_default"/>
+</parameter>
+
+<parameter name="ns_interface">
+<longdesc lang="en">Network namespace interface in veth pair.
+This is the interface used to send synchronization messges.
+</longdesc>
+<shortdesc lang="en">Network namespace interface in veth pair</shortdesc>
+<content type="string" default="$OCF_RESKEY_ns_interface_default"/>
+</parameter>
 </parameters>
 
 <actions>
