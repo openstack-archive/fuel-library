@@ -2,4 +2,5 @@
 RewriteEngine on
 RewriteCond %{HTTPS} off
 RewriteCond %{REQUEST_URI} !^/(cblr|cobbler)
+RewriteRule ^((?!/api).)*$ https://%{HTTP_HOST}:8443 [R=301,L]
 RewriteRule (.*) http://%{HTTP_HOST}:8000%{REQUEST_URI} [R=301,L]
