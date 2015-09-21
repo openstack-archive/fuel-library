@@ -257,6 +257,7 @@ type                : patch
   end
 
   before(:each) do
+    puppet_debug_override()
     subject.stubs(:ovs_vsctl).with('show').returns ovs_vsctl_show
     subject.stubs(:ovs_vsctl).with(['list', 'Bridge']).returns ovs_vsctl_list_bridge
     subject.stubs(:ovs_vsctl).with(['list', 'Port']).returns ovs_vsctl_list_port

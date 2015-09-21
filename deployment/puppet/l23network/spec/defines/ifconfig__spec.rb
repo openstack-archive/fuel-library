@@ -18,8 +18,12 @@ describe 'l23network::l3::ifconfig', :type => :define do
       "class {'l23network': }"
     ] }
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -60,8 +64,12 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :gateway => '10.20.20.1',
     } }
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -105,8 +113,12 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :gateway_metric => 321,
     } }
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -152,8 +164,12 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :ipaddr  => ['10.10.10.1/24'],
     } }
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -178,8 +194,12 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :ipaddr  => ['10.10.10.10/24'],
     } }
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -216,8 +236,12 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :ipaddr  => ['10.10.10.11/24'],
     } }
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -226,5 +250,4 @@ describe 'l23network::l3::ifconfig', :type => :define do
   end
 
 end
-
 # vim: set ts=2 sw=2 et

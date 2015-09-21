@@ -41,10 +41,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   end
 
   before(:each) do
-    if ENV['SPEC_PUPPET_DEBUG']
-      Puppet::Util::Log.level = :debug
-      Puppet::Util::Log.newdestination(:console)
-    end
+    puppet_debug_override()
   end
 
   def fixture_path

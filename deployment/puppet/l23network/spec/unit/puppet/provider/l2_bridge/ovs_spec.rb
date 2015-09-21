@@ -180,6 +180,10 @@ describe provider_class do
       ]
   }
 
+  before(:each) do
+    puppet_debug_override()
+  end
+
   it 'should exists' do
     expect(provider).not_to be_nil
   end
