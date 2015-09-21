@@ -1,0 +1,18 @@
+Verified+2: Jenkins
+Code-Review+1: Davanum Srinivas (dims) <davanum@gmail.com>
+Code-Review+1: Matthew Mosesohn <mmosesohn@mirantis.com>
+Code-Review+1: Yaroslav Lobankov <ylobankov@mirantis.com>
+Code-Review+1: Ivan Berezovskiy <iberezovskiy@mirantis.com>
+Code-Review-1: Vladimir Kuklin <vkuklin@mirantis.com>
+Code-Review+1: Dmitry Ilyin <dilyin@mirantis.com>
+Code-Review+2: Sergii Golovatiuk <sgolovatiuk@mirantis.com>
+Workflow+1: Sergii Golovatiuk <sgolovatiuk@mirantis.com>
+Code-Review+1: Artem Silenkov <asilenkov@mirantis.com>
+Code-Review+1: Alexandr Nevenchannyy <anevenchannyy@mirantis.com>
+Code-Review+1: Alex Schultz <aschultz@mirantis.com>
+Code-Review+1: Andrew Maksimov <amaksimov@mirantis.com>
+Submitted-by: Jenkins
+Submitted-at: Mon, 21 Sep 2015 15:32:41 +0000
+Reviewed-on: https://review.openstack.org/224463
+Project: stackforge/fuel-library
+Branch: refs/heads/stable/7.0
