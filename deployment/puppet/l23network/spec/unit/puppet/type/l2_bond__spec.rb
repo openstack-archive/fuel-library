@@ -3,10 +3,7 @@ require 'spec_helper'
 describe Puppet::Type.type(:l2_bond) do
   context 'Create bond with wrong name' do
     before(:each) do
-      if ENV['SPEC_PUPPET_DEBUG']
-        Puppet::Util::Log.level = :debug
-        Puppet::Util::Log.newdestination(:console)
-      end
+      puppet_debug_override()
     end
 
     [ 'br2', 'br-2',                                   # bond is not an bridge

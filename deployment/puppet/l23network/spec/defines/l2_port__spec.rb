@@ -21,6 +21,10 @@ describe 'l23network::l2::port', :type => :define do
       }
     end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
       should compile.with_all_deps
     end
@@ -50,8 +54,12 @@ describe 'l23network::l2::port', :type => :define do
       }
     end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -87,8 +95,12 @@ describe 'l23network::l2::port', :type => :define do
       }
     end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -123,11 +135,21 @@ describe 'l23network::l2::port', :type => :define do
       }
     end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
+    end
+
+    it do
       should contain_l23_stored_config('eth2').with({
         'ensure'  => 'absent',
       })
+    end
+
+    it do
       should contain_l2_port('eth2').with({
         'ensure'  => 'absent',
       }).that_requires('L23_stored_config[eth2]')
@@ -142,14 +164,24 @@ describe 'l23network::l2::port', :type => :define do
       }
     end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
+    end
+
+    it do
       should contain_l23_stored_config('eth2').with({
         'method'  => nil,
         'ipaddr'  => nil,
         'gateway' => nil,
         'mtu'     => 9000,
       })
+    end
+
+    it do
       should contain_l2_port('eth2').with({
         'ensure'  => 'present',
         'mtu'     => 9000,
@@ -165,14 +197,24 @@ describe 'l23network::l2::port', :type => :define do
       }
     end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
+    end
+
+    it do
       should contain_l23_stored_config('eth2').with({
         'method'  => nil,
         'ipaddr'  => nil,
         'gateway' => nil,
         'bridge'  => 'br-floating',
       })
+    end
+
+    it do
       should contain_l2_port('eth2').with({
         'ensure'  => 'present',
         'bridge'  => 'br-floating',
@@ -194,8 +236,15 @@ describe 'l23network::l2::port', :type => :define do
       }
     end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
+    end
+
+    it do
       should contain_l23_stored_config('eth2').with({
         'method'  => nil,
         'ipaddr'  => nil,
@@ -208,6 +257,9 @@ describe 'l23network::l2::port', :type => :define do
             },
         },
       })
+    end
+
+    it do
       should contain_l2_port('eth2').with({
         'ensure'  => 'present',
         'vendor_specific' => {

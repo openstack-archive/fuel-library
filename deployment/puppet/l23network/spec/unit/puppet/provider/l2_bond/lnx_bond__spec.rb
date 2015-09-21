@@ -23,10 +23,7 @@ describe Puppet::Type.type(:l2_bond).provider(:lnx) do
 
   describe "lnx bond" do
     before(:each) do
-      if ENV['SPEC_PUPPET_DEBUG']
-        Puppet::Util::Log.level = :debug
-        Puppet::Util::Log.newdestination(:console)
-      end
+      puppet_debug_override()
       provider.class.stubs(:iproute).with('addr', 'flush', 'dev', 'eth1').returns(true)
       provider.class.stubs(:iproute).with('addr', 'flush', 'dev', 'eth2').returns(true)
     end

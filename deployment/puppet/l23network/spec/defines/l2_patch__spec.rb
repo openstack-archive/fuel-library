@@ -16,14 +16,15 @@ describe 'l23network::l2::patch', :type => :define do
   } }
 
   get_provider_for = {}
-  before(:each) {
+  before(:each) do
+    puppet_debug_override()
     Puppet::Parser::Functions.newfunction(:get_provider_for, :type => :rvalue) {
       |args| get_provider_for.call(args[0], args[1])
     }
 
     get_provider_for.stubs(:call).with('L2_bridge', 'br1').returns('ovs')
     get_provider_for.stubs(:call).with('L2_bridge', 'br2').returns('lnx')
-  }
+  end
 
   let(:pre_condition) { [
     "class {'l23network': }"
@@ -238,6 +239,7 @@ describe 'l23network::l2::patch', :type => :define do
 
   get_provider_for = {}
   before(:each) {
+    puppet_debug_override()
     Puppet::Parser::Functions.newfunction(:get_provider_for, :type => :rvalue) {
       |args| get_provider_for.call(args[0], args[1])
     }

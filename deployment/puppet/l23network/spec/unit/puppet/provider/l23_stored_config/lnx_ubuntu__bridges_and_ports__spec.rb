@@ -68,17 +68,14 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       }
 
       before(:each) do
+        puppet_debug_override()
         subject.resource.stubs(:catalog).returns(catalog)
       end
 
-#      it {
-#      require 'pry'
-#      binding.pry
-#      }
-       it { expect(data).to match %r(auto br-storage) }
-       it { expect(data).to match %r(iface br-storage inet manual) }
-       it { expect(data).to match %r(address 192.168.88.6/24) }
-#      it { expect(data).to match %r(bridge_ports eth1) } ##l23_stored_config does not populate bridge_ports
+      it { expect(data).to match %r(auto br-storage) }
+      it { expect(data).to match %r(iface br-storage inet manual) }
+      it { expect(data).to match %r(address 192.168.88.6/24) }
+#     it { expect(data).to match %r(bridge_ports eth1) } ##l23_stored_config does not populate bridge_ports
     end
 
   end
