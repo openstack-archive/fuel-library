@@ -288,6 +288,7 @@ if $network_provider == 'neutron' {
     $bridge_mappings = []
   }
 
+  $floating_bridge = get_network_role_property('neutron/floating', 'interface')
   $segmentation_type = $neutron_settings['L2']['segmentation_type']
 
   if $segmentation_type != 'vlan' {
@@ -386,6 +387,8 @@ class { 'openstack::network':
   use_syslog          => hiera('use_syslog', true),
   use_stderr          => hiera('use_stderr', false),
   syslog_log_facility => hiera('syslog_log_facility_neutron', 'LOG_LOCAL4'),
+
+  floating_bridge     => $floating_bridge,
 
   # queue settings
   queue_provider => hiera('queue_provider', 'rabbitmq'),
