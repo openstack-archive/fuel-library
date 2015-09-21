@@ -65,3 +65,8 @@ mod 'apt',
 mod 'firewall',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-firewall.git',
     :ref => '1.2.0'
+
+# Pull in puppet-kmod
+mod 'kmod',
+    :git => 'https://review.fuel-infra.org/puppet-modules/puppet-kmod.git',
+    :ref => '2.1.0'
