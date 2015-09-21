@@ -13,6 +13,9 @@ describe 'l23network::l2::bond', :type => :define do
     "class {'l23network': }"
   ] }
 
+  before(:each) do
+    puppet_debug_override()
+  end
 
   context 'Just create a lnx-bond with two slave interfaces' do
     let(:params) do

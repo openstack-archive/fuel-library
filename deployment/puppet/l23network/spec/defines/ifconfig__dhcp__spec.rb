@@ -18,8 +18,12 @@ describe 'l23network::l3::ifconfig', :type => :define do
       "class {'l23network': }"
     ] }
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do

@@ -18,6 +18,7 @@ describe Puppet::Type.type(:l3_ifconfig).provider(:lnx) do
 
   describe "l3_ifconfig " do
     before(:each) do
+      puppet_debug_override()
       provider.class.stubs(:arping).with(['-A', '-c 32', '-w 2', '-I', 'eth1', '10.99.1.4']).returns(true)
       provider.class.stubs(:iproute)
       provider.class.stubs(:iproute).with(['route', 'del', 'default', 'dev', 'eth1']).raises(Puppet::ExecutionFailure)

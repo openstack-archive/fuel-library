@@ -12,18 +12,12 @@ network_scheme:
   transformations:
     - action: add-port
       name:   eth2
-    - action: add-port
-      name:   eth3
   endpoints:
     eth2:
       IP:
-        - 192.168.101.3/24
-      gateway: 192.168.101.1
-    eth3:
-      IP:
-        - 172.16.55.34/24
-      gateway: 172.16.55.1
-      gateway_metric: 88
+        - 192.168.101.1/24
+        - 192.168.102.2/24
+        - 192.168.103.3/24
   roles: {}
 eof
 end
@@ -53,30 +47,18 @@ end
     end
 
     it do
-      should contain_l2_port('eth2')
+      should contain_L2_port('eth2')
     end
 
     it do
-      should contain_l3_ifconfig('eth2').with({
-        'ipaddr'  => '192.168.101.3/24',
-        'gateway' => '192.168.101.1',
+      should contain_L23network__L3__Ifconfig('eth2').with({
+        'ipaddr'  => ['192.168.101.1/24','192.168.102.2/24','192.168.103.3/24',],
+        'gateway' => nil,
       })
     end
 
     it do
-      should contain_l3_ifconfig('eth3').with({
-        'ipaddr'         => '172.16.55.34/24',
-        'gateway'        => '172.16.55.1',
-        'gateway_metric' => '88',
-      })
-    end
-
-    it do
-      should contain_l3_clear_route('default').with ({ 'ensure'  => 'absent', 'destination' => 'default' })
-    end
-
-    it do
-      should contain_l3_clear_route('default,metric:88').with ({ 'ensure'  => 'absent', 'destination' => 'default' })
+      should contain_L23network__L3__Ifconfig('eth2').that_requires("L23network::L2::Port[eth2]")
     end
 
   end

@@ -39,6 +39,10 @@ end
       :settings_yaml => network_scheme,
     } end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
       should compile.with_all_deps
     end
@@ -78,6 +82,10 @@ end
     let(:params) do {
       :settings_yaml => network_scheme,
     } end
+
+    before(:each) do
+      puppet_debug_override()
+    end
 
     it do
       should compile.with_all_deps

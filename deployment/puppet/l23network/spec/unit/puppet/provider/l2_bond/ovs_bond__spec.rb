@@ -22,6 +22,7 @@ describe Puppet::Type.type(:l2_bond).provider(:ovs) do
 
   describe "ovs bond" do
     before(:each) do
+      puppet_debug_override()
       provider.class.stubs(:iproute)
       provider.class.stubs(:iproute).with('addr', 'flush', 'dev', 'eth1').returns(true)
       provider.class.stubs(:iproute).with('addr', 'flush', 'dev', 'eth2').returns(true)

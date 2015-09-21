@@ -28,6 +28,10 @@ eof
       :settings_yaml => network_scheme
     } }
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
       should compile.with_all_deps
     end
@@ -35,9 +39,7 @@ eof
     it 'should not contain l3_clear_route' do
       should_not contain_l3_clear_route('default').with ({ 'ensure'  => 'absent' })
     end
-
   end
-
 end
 
 # vim: set ts=2 sw=2 et :

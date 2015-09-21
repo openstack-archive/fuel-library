@@ -26,13 +26,6 @@ network_scheme:
 eof
 end
 
-before(:each) do
-  if ENV['SPEC_PUPPET_DEBUG']
-    Puppet::Util::Log.level = :debug
-    Puppet::Util::Log.newdestination(:console)
-  end
-end
-
 let(:expected_routes) do
   {
       '192.168.210.0/24,metric:10' => {
@@ -66,6 +59,10 @@ end
     let(:params) do {
       :settings_yaml => network_scheme,
     } end
+
+    before(:each) do
+      puppet_debug_override()
+    end
 
     it do
       should compile.with_all_deps
@@ -152,13 +149,6 @@ network_scheme:
 eof
 end
 
-before(:each) do
-  if ENV['SPEC_PUPPET_DEBUG']
-    Puppet::Util::Log.level = :debug
-    Puppet::Util::Log.newdestination(:console)
-  end
-end
-
   context 'contains full chain of ports, interfaces, bridges and endpoint with additionat routes' do
     let(:title) { 'empty network scheme' }
     let(:facts) {
@@ -174,6 +164,10 @@ end
     let(:params) do {
       :settings_yaml => network_scheme,
     } end
+
+    before(:each) do
+      puppet_debug_override()
+    end
 
     it do
       should compile.with_all_deps
@@ -284,13 +278,6 @@ network_scheme:
 eof
 end
 
-before(:each) do
-  if ENV['SPEC_PUPPET_DEBUG']
-    Puppet::Util::Log.level = :debug
-    Puppet::Util::Log.newdestination(:console)
-  end
-end
-
   context 'contains chain of two bridges, with endpoints, contains additionat routes' do
     let(:title) { 'empty network scheme' }
     let(:facts) {
@@ -306,6 +293,10 @@ end
     let(:params) do {
       :settings_yaml => network_scheme,
     } end
+
+    before(:each) do
+      puppet_debug_override()
+    end
 
     it do
       should compile.with_all_deps
