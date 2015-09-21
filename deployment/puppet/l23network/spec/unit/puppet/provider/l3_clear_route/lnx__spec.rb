@@ -32,10 +32,7 @@ describe provider_class do
                     {:interface=>"virbr0", :destination=>"192.168.122.0/24", :metric=>0, :gateway=>nil}]
 
     before(:each) do
-      if ENV['SPEC_PUPPET_DEBUG']
-        Puppet::Util::Log.level = :debug
-        Puppet::Util::Log.newdestination(:console)
-      end
+      puppet_debug_override()
       provider.class.stubs(:get_routes).with().returns(get_routes_res)
     end
 

@@ -40,10 +40,7 @@ describe Puppet::Type.type(:l2_patch).provider(:ovs) do
 
 
     before(:each) do
-      if ENV['SPEC_PUPPET_DEBUG']
-        Puppet::Util::Log.level = :debug
-        Puppet::Util::Log.newdestination(:console)
-      end
+      puppet_debug_override()
       provider_br1.class.stubs(:iproute)
       provider_br2.class.stubs(:iproute)
       provider_br1.class.stubs(:vsctl).with('add-br', 'br1').returns(true)

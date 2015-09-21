@@ -12,6 +12,10 @@ describe 'l23network', :type => :class do
       :l3_fqdn_hostname => 'stupid_hostname',
     } }
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
       should compile.with_all_deps
     end
@@ -41,6 +45,10 @@ describe 'l23network', :type => :class do
     let(:params) { {
       :use_ovs => true
     } }
+
+    before(:each) do
+      puppet_debug_override()
+    end
 
     it do
       should compile.with_all_deps

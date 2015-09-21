@@ -55,6 +55,10 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos6) do
     providers
   end
 
+  before(:each) do
+    puppet_debug_override()
+  end
+
   def fixture_path
     File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_centos6_spec')
   end
@@ -104,6 +108,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos6) do
       let(:file) { '/etc/sysconfig/network' }
 
       before(:each) do
+        puppet_debug_override()
         subject.class.stubs(:read_file).with(file).returns content
         subject.class.stubs(:write_file).returns true
       end
@@ -133,6 +138,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos6) do
       let(:file) { '/etc/sysconfig/network-scripts/route-br-storage' }
 
       before(:each) do
+        puppet_debug_override()
         subject.class.stubs(:write_file).returns true
       end
 

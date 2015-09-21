@@ -43,10 +43,7 @@ end
 
     get_provider_for = {}
     before(:each) do
-      if ENV['SPEC_PUPPET_DEBUG']
-        Puppet::Util::Log.level = :debug
-        Puppet::Util::Log.newdestination(:console)
-      end
+      puppet_debug_override()
 
       Puppet::Parser::Functions.newfunction(:get_provider_for, :type => :rvalue) {
         |args| get_provider_for.call(args[0], args[1])
@@ -107,5 +104,4 @@ end
   end
 
 end
-
 # vim: set ts=2 sw=2 et

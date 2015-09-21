@@ -44,6 +44,10 @@ end
       :settings_yaml => network_scheme,
     } end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
       should compile.with_all_deps
     end
@@ -66,7 +70,6 @@ end
         'gateway_metric' => '88',
       })
     end
-
 
     it do
       should contain_l3_clear_route('default').with ({ 'ensure'  => 'absent', 'destination' => 'default' })

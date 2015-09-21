@@ -93,6 +93,10 @@ end
       :settings_yaml => network_scheme,
     } end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
       should compile.with_all_deps
     end
@@ -139,6 +143,10 @@ end
       :settings_yaml => network_scheme,
     } end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it 'bond should assembled without delay' do
       should contain_l23_stored_config('bond910').with({
         'delay_while_up' => nil,
@@ -157,7 +165,6 @@ end
         'delay_while_up'  => '77',
       })
     end
-
 
   end
 
