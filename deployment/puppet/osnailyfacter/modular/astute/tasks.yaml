@@ -218,3 +218,14 @@
     puppet_modules: /etc/puppet/modules
     timeout: 180
     cwd: /
+
+- id: pre_edac_module
+  type: puppet
+  role: '*'
+  requires: [pre_deployment_start]
+  required_for: [pre_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/enable_edac.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180
+    cwd: /
