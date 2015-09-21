@@ -85,6 +85,12 @@ For example "/packages/conntrackd-0.9.14/etc/conntrackd/conntrackd.conf"</longde
 <shortdesc lang="en">Path to conntrackd.conf</shortdesc>
 <content type="string" default="$OCF_RESKEY_config_default"/>
 </parameter>
+
+<parameter name="bridge">
+<shortdesc lang="en">Bridge to use for stuff</shortdesc>
+<content type="string" default="$OCF_RESKEY_bridge_default"/>
+</parameter>
+
 </parameters>
 
 <actions>
