@@ -1,0 +1,8 @@
+name 'puppet-kmod'
+version '2.1.0'
+source 'https://github.com/camptocamp/puppet-kmod.git'
+author 'Camptocamp SA'
+license 'GPL'
+summary 'manage kernel module with puppet'
+description 'manage kernel module with puppet'
+project_page 'https://github.com/camptocamp/puppet-kmod'
