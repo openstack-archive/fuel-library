@@ -252,6 +252,7 @@ module Noop
         :l3_default_route       => '172.16.1.1',
         :concat_basedir         => '/tmp/',
         :l23_os                 => 'ubuntu',
+        :augeasversion          => '1.2.0',
     }
   end
 
@@ -272,6 +273,7 @@ module Noop
         :l3_default_route       => '172.16.1.1',
         :concat_basedir         => '/tmp/',
         :l23_os                 => 'centos6',
+        :augeasversion          => '1.2.0',
     }
   end
 
