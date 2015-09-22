@@ -17,6 +17,8 @@ class nailgun::nginx(
   $nailgun_host = '127.0.0.1',
   $ssl_enabled = false,
   $force_https = undef,
+  $proxy_resolver = $::ipaddress,
+  $proxy_port = '2080',
   ) {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -26,6 +28,7 @@ class nailgun::nginx(
 
   Anchor<| title == "nginx-begin" |> ->
   Class["nailgun::nginx-repo"] ->
+  Class["nailgun::nginx-proxy"] ->
   Class["nailgun::nginx-nailgun"] ->
   Anchor<| title == "nginx-end" |>
 
@@ -55,6 +58,11 @@ class nailgun::nginx(
   class { "nailgun::nginx-repo":
     repo_root => $repo_root,
     notify => Service["nginx"],
+  }
+
+  class { 'nailgun::nginx-proxy':
+    resolver => $proxy_resolver,
+    port     => $proxy_port,
   }
 
   if $ssl_enabled {
