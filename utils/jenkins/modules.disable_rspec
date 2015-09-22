@@ -19,7 +19,6 @@ memcached
 mongodb
 monit
 mysql
-nailgun
 neutron
 nova
 ntp
