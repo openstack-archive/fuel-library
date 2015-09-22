@@ -65,3 +65,8 @@ mod 'apt',
 mod 'firewall',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-firewall.git',
     :ref => '1.2.0'
+
+# Pull in puppet-swift
+mod 'swift',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-swift.git',
+    :ref => 'mos-8.0'
