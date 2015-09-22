@@ -59,14 +59,14 @@ class nailgun::venv(
   $ntp_upstream = '0.pool.ntp.org, 1.pool.ntp.org',
   ) {
 
-  package{'nailgun':}
+  package{'fuel-nailgun':}
+
   file { "/etc/nailgun":
     ensure => directory,
     owner => 'root',
     group => 'root',
     mode => 0755,
   }
-
 
   $fuel_key = $::generate_fuel_key
 
