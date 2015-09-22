@@ -65,25 +65,27 @@ describe manifest do
         sql_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
 
         should contain_class('sahara').with(
-                   'auth_uri' => "http://#{service_endpoint}:5000/v2.0/",
-                   'identity_uri' => "http://#{service_endpoint}:35357/",
-                   'plugins' => sahara_plugins,
-                   'rpc_backend' => 'rabbit',
-                   'use_neutron' => use_neutron,
-                   'admin_user' => sahara_user,
-                   'verbose' => verbose,
-                   'debug' => debug,
-                   'use_syslog' => use_syslog,
-                   'use_stderr' => 'false',
-                   'log_facility' => log_facility_sahara,
+                   'auth_uri'            => "http://#{service_endpoint}:5000/v2.0/",
+                   'identity_uri'        => "http://#{service_endpoint}:35357/",
+                   'plugins'             => sahara_plugins,
+                   'rpc_backend'         => 'rabbit',
+                   'use_neutron'         => use_neutron,
+                   'admin_user'          => sahara_user,
+                   'verbose'             => verbose,
+                   'debug'               => debug,
+                   'use_syslog'          => use_syslog,
+                   'use_stderr'          => 'false',
+                   'log_facility'        => log_facility_sahara,
                    'database_connection' => sql_connection,
-                   'admin_password' => sahara_password,
-                   'admin_tenant_name' => tenant,
-                   'rabbit_userid' => rabbit_user,
-                   'rabbit_password' => rabbit_password,
-                   'rabbit_ha_queues' => rabbit_ha_queues,
-                   'rabbit_port' => amqp_port,
-                   'rabbit_hosts' => amqp_hosts.split(",")
+                   'admin_password'      => sahara_password,
+                   'admin_tenant_name'   => tenant,
+                   'rabbit_userid'       => rabbit_user,
+                   'rabbit_password'     => rabbit_password,
+                   'rabbit_ha_queues'    => rabbit_ha_queues,
+                   'rabbit_port'         => amqp_port,
+                   'rabbit_hosts'        => amqp_hosts.split(","),
+                   'host'                => bind_address,
+                   'port'                => '8386'
                )
       end
 
@@ -102,15 +104,11 @@ describe manifest do
       end
 
       it 'should declare sahara::api class correctly' do
-        api_bind_port = '8386'
-        should contain_class('sahara::api').with(
-                   'host' => bind_address,
-                   'port' => api_bind_port
-               )
+        should contain_class('sahara::service::api')
       end
 
       it 'should declare sahara::engine class correctly' do
-        should contain_class('sahara::engine')
+        should contain_class('sahara::service::engine')
       end
 
       it 'should declare sahara::client class correctly' do
