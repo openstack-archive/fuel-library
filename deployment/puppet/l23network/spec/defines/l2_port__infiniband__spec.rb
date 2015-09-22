@@ -21,6 +21,10 @@ describe 'l23network::l2::port', :type => :define do
       }
     end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
       should compile.with_all_deps
     end
@@ -51,8 +55,12 @@ describe 'l23network::l2::port', :type => :define do
       }
     end
 
+    before(:each) do
+      puppet_debug_override()
+    end
+
     it do
-      should compile
+      should compile.with_all_deps
     end
 
     it do
@@ -78,7 +86,5 @@ describe 'l23network::l2::port', :type => :define do
       }).that_requires("L23_stored_config[ib0.8000]")
     end
   end
-
-
 end
 # vim: set ts=2 sw=2 et

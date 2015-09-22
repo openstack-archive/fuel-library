@@ -13,6 +13,9 @@ describe 'l23network::l2::bridge', :type => :define do
     "class {'l23network': }"
   ] }
 
+  before(:each) do
+    puppet_debug_override()
+  end
 
   context 'Just a bridge, created by name' do
     let(:params) do
@@ -200,8 +203,5 @@ describe 'l23network::l2::bridge', :type => :define do
       }).that_requires('L23_stored_config[br-floating]')
     end
   end
-
-
-
 end
 # vim: set ts=2 sw=2 et
