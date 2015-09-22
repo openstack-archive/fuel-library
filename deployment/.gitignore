@@ -14,3 +14,4 @@ puppet/firewall
 puppet/neutron
 puppet/nova
 puppet/openstacklib
+puppet/keystone
