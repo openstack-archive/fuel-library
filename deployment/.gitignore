@@ -21,3 +21,4 @@ puppet/neutron
 puppet/nova
 puppet/keystone
 puppet/heat
+puppet/horizon

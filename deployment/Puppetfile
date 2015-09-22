@@ -115,3 +115,8 @@ mod 'keystone',
 mod 'heat',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-heat.git',
     :ref => '7.0.0-mos-rc1'
+
+# Pull in puppet-horizon
+mod 'horizon',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-horizon.git',
+    :ref => '7.0.0-mos-rc1'
