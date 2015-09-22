@@ -22,3 +22,4 @@ puppet/neutron
 puppet/nova
 puppet/heat
 puppet/horizon
+puppet/glance
