@@ -24,3 +24,4 @@ puppet/heat
 puppet/horizon
 puppet/glance
 puppet/swift
+puppet/ceilometer
