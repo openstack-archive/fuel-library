@@ -37,7 +37,14 @@ describe manifest do
   end
 
   it 'ensures cinder_config contains correct values' do
-    should contain_cinder_config('DEFAULT/lock_path').with(:value  => '/var/lock/cinder')
+    case facts[:operatingsystem]
+    when 'Ubuntu'
+      lock_path = '/var/lock/cinder'
+    when 'CentOS'
+      lock_path = '/var/lib/cinder/tmp'
+    end
+
+    should contain_cinder_config('DEFAULT/lock_path').with(:value  => lock_path)
   end
 
   it 'ensures cinder_config contains use_stderr set to false' do
