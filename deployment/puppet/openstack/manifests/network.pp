@@ -143,6 +143,12 @@ class openstack::network (
 
   case $network_provider {
     'nova': {
+      if is_array($nameservers) {
+        $nameservers_real = $nameservers
+      } else {
+        # Undef to use defaults
+        $nameservers_real = [undef, undef]
+      }
       class { 'nova::network':
         ensure_package    => $::openstack_version['nova'],
         private_interface => $private_interface,
@@ -154,7 +160,8 @@ class openstack::network (
         create_networks   => $create_networks,
         num_networks      => $num_networks,
         network_size      => $network_size,
-        nameservers       => $nameservers,
+        dns1              => $nameservers_real[0],
+        dns2              => $nameservers_real[1],
         enabled           => $enable_nova_net,
         install_service   => $enable_nova_net,
       }
