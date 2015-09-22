@@ -12,6 +12,7 @@ $rsyslog_port          = '514',
 $ntp_port              = '123',
 $rabbitmq_ports        = ['4369','5672','15672','61613'],
 $chain                 = 'INPUT',
+$proxy_port            = '2080',
 )
 {
   #Host services
@@ -173,6 +174,18 @@ $chain                 = 'INPUT',
     port    => $rabbitmq_ports,
     proto   => 'tcp',
     action  => 'reject',
+  }
+
+  firewall {'050 pkg_proxy_allow_admin':
+    chain   => $chain,
+    port    => $proxy_port,
+    iniface => $admin_iface,
+    action  => 'accept',
+  }
+  firewall {'051 pkg_proxy_block_all':
+    chain   => $chain,
+    port    => $proxy_port,
+    action  => 'drop',
   }
 
   firewall {'999 iptables denied':

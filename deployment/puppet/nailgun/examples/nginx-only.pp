@@ -54,5 +54,7 @@ node default {
       service_enabled => false,
       ssl_enabled     => true,
       force_https     => $force_https,
+      proxy_resolver  => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+      proxy_port      => '2080',
   }
 }
