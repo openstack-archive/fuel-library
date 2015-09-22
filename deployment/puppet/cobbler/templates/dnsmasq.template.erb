@@ -6,6 +6,7 @@ read-ethers
 log-queries
 log-facility=/var/log/dnsmasq.log
 addn-hosts = /var/lib/cobbler/cobbler_hosts
+conf-dir=/etc/dnsmasq.d
 domain=<%= @domain_name %>
 dhcp-lease-max=<%= @dhcp_lease_max %>
 <% if @domain_name != 'local' %>
@@ -33,17 +34,5 @@ dhcp-no-override
 dhcp-sequential-ip
 
 dhcp-option=6,<%= @name_server %>
-
-dhcp-range=internal,<%= @dhcp_start_address %>,<%= @dhcp_end_address %>,<%= @dhcp_netmask %>,<%= @lease_time %>
-dhcp-option=net:internal,option:router,<%= @dhcp_gateway %>
-dhcp-boot=net:internal,pxelinux.0,boothost,<%= @next_server %>
-
-<% @extra_admin_nets.keys().each do |net| %>
-#Net <%= net %> start
-dhcp-range=<%= net %>,<%= @extra_admin_nets[net]['dhcp_pool_start'] %>,<%= @extra_admin_nets[net]['dhcp_pool_end'] %>,<%= @extra_admin_nets[net]['netmask'] %>,<%= @lease_time %>
-dhcp-option=net:<%= net %>,option:router,<%= @extra_admin_nets[net]['dhcp_gateway'] %>
-dhcp-boot=net:<%= net %>,pxelinux.0,boothost,<%= @extra_admin_nets[net]['ipaddress'] %>
-#Net <%= net %> end
-<% end %>
 
 $insert_cobbler_system_definitions
