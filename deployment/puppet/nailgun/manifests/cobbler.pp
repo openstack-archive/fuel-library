@@ -39,9 +39,9 @@ class nailgun::cobbler(
   $real_server = $next_server
 
   $bootstrap_profile = $bootstrap_flavor ? {
-    /(?i)centos/                 => 'bootstrap',
-    /(?i)ubuntu/                 => 'ubuntu_bootstrap',
-    default                      => 'bootstrap',
+    /(?i)centos/                 => 'Fuel_Bootstrap',
+    /(?i)ubuntu/                 => 'Fuel_Ubuntu_Bootstrap',
+    default                      => 'Fuel_Bootstrap',
   }
 
   class { '::cobbler':
@@ -136,7 +136,7 @@ class nailgun::cobbler(
         require   => Class['::cobbler::server'],
       }
 
-      cobbler_profile { 'centos-x86_64':
+      cobbler_profile { 'DO_NOT_USE_centos-x86_64':
         kickstart => '/var/lib/cobbler/kickstarts/centos-x86_64.ks',
         kopts     => 'biosdevname=0 sshd=1 dhcptimeout=120',
         distro    => 'centos-x86_64',
@@ -146,7 +146,7 @@ class nailgun::cobbler(
         require   => Cobbler_distro['centos-x86_64'],
       }
 
-      cobbler_profile { 'ubuntu_1404_x86_64':
+      cobbler_profile { 'DO_NOT_USE_ubuntu_1404_x86_64':
         kickstart => '/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed',
         kopts     => 'net.ifnames=0 biosdevname=0 netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20',
         distro    => 'ubuntu_1404_x86_64',
@@ -176,7 +176,7 @@ class nailgun::cobbler(
         require   => Class['::cobbler::server'],
       }
 
-      cobbler_profile { 'bootstrap':
+      cobbler_profile { 'Fuel_Bootstrap':
         distro    => 'bootstrap',
         menu      => true,
         kickstart => '',
@@ -186,7 +186,7 @@ class nailgun::cobbler(
         require   => Cobbler_distro['bootstrap'],
       }
 
-      cobbler_profile { 'ubuntu_bootstrap':
+      cobbler_profile { 'Fuel_Ubuntu_Bootstrap':
         distro    => 'ubuntu_bootstrap',
         menu      => true,
         kickstart => '',
