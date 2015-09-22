@@ -120,3 +120,8 @@ mod 'heat',
 mod 'horizon',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-horizon.git',
     :ref => '7.0.0-mos-rc1'
+
+# Pull in puppet-glance
+mod 'glance',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-glance.git',
+    :ref => '7.0.0-mos-rc1'
