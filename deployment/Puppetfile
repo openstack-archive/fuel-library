@@ -69,3 +69,8 @@ mod 'firewall',
 mod 'neutron',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-neutron.git',
     :ref => 'mos-8.0'
+
+# Pull in puppet-nova
+mod 'nova',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-nova.git',
+    :ref => 'mos-8.0'
