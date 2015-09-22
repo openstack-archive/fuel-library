@@ -204,10 +204,11 @@ describe manifest do
 
     if !use_neutron
       nameservers = Noop.hiera 'dns_nameservers'
-      if nameservers
+      if nameservers and nameservers.is_a? Array
         it 'should declare nova::network with nameservers' do
           should contain_class('nova::network').with(
-            'nameservers' => nameservers,
+            'dns1' => nameservers[0],
+            'dns2' => nameservers[1],
           )
         end
       end
