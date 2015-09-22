@@ -58,6 +58,8 @@ if $sahara_hash['enabled'] {
   }
 
   class { 'sahara' :
+    host                => $api_bind_host,
+    port                => $api_bind_port,
     verbose             => $verbose,
     debug               => $debug,
     use_syslog          => $use_syslog,
@@ -94,12 +96,9 @@ if $sahara_hash['enabled'] {
     }
   }
 
-  class { 'sahara::api':
-    host => $api_bind_host,
-    port => $api_bind_port,
-  }
+  class { 'sahara::service::api': }
 
-  class { 'sahara::engine': }
+  class { 'sahara::service::engine': }
 
   class { 'sahara::client': }
 
@@ -140,7 +139,7 @@ if $sahara_hash['enabled'] {
     Haproxy_backend_status['sahara'] -> Class['sahara_templates::create_templates']
   }
 
-  Firewall[$firewall_rule] -> Class['sahara::api']
+  Firewall[$firewall_rule] -> Class['sahara::service::api']
   Service['sahara-api'] -> Haproxy_backend_status['sahara']
 }
 #########################
