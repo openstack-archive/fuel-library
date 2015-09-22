@@ -79,5 +79,16 @@ if !defined(Service['irqbalance']) {
 exec { 'wait-for-interfaces':
   path    => '/usr/bin:/bin',
   command => 'sleep 32',
-  require => Class['l23network'],
 }
+
+# check that network was configured successfully
+# and the default gateway is online
+$default_gateway = hiera('default_gateway')
+
+ping_host { $default_gateway :
+  ensure => 'up',
+}
+
+Class['l23network'] ->
+Exec['wait-for-interfaces'] ->
+Ping_host[$default_gateway]
