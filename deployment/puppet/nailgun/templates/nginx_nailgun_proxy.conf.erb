@@ -1,0 +1,18 @@
+server {
+    listen <%= @port %>;
+
+    server_name localhost;
+
+    access_log /var/log/nginx/access_proxy.log;
+    error_log /var/log/nginx/error_proxy.log debug;
+
+    location / {
+        resolver <%= @resolver %>;
+        proxy_pass http://$http_host$uri$is_args$args;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root html;
+    }
+}
