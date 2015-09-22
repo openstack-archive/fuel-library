@@ -1,8 +1,7 @@
-require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_base')
+require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/l3_base')
 
-Puppet::Type.type(:l3_clear_route).provide(:lnx) do
+Puppet::Type.type(:l3_clear_route).provide(:lnx, :parent => Puppet::Provider::L3_base) do
   defaultfor :osfamily   => :linux
-  commands   :ip         => 'ip'
 
   def self.prefetch(resources)
     instances.each do |provider|
@@ -86,7 +85,7 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx) do
     # Sometimes l3_clear_route deletes old default route but at this moment
     # ubuntu hotplug has already changed(deleted and added new correct) it
     begin
-      ip cmd
+      self.class.iproute(cmd)
     rescue Exception => error
       errmsg = nil
       error.message.split(/\n/).each do |line|
