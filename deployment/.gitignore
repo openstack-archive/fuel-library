@@ -25,3 +25,4 @@ puppet/horizon
 puppet/glance
 puppet/swift
 puppet/ceilometer
+puppet/cinder
