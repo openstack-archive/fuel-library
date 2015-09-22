@@ -16,3 +16,4 @@ puppet/nova
 puppet/openstacklib
 puppet/keystone
 puppet/heat
+puppet/glance
