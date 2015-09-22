@@ -74,3 +74,8 @@ mod 'neutron',
 mod 'nova',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-nova.git',
     :ref => 'mos-8.0'
+
+# Pull in puppet-openstacklib
+mod 'openstacklib',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openstacklib.git',
+    :ref => 'mos-8.0'
