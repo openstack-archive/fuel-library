@@ -23,3 +23,4 @@ puppet/keystone
 puppet/heat
 puppet/horizon
 puppet/glance
+puppet/swift
