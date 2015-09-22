@@ -98,6 +98,8 @@ if $enabled {
     }
   }
 
+  $management_network_range = get_routable_networks_for_network_role($network_scheme, 'mgmt/database', ' ')
+
   class { 'openstack::galera::status':
     status_user     => $status_user,
     status_password => $status_password,
