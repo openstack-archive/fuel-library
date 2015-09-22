@@ -1,7 +1,6 @@
 notice('MODULAR: database.pp')
 
 prepare_network_config(hiera('network_scheme', {}))
-$management_network_range = hiera('management_network_range')
 $use_syslog               = hiera('use_syslog', true)
 $primary_controller       = hiera('primary_controller')
 $mysql_hash               = hiera_hash('mysql', {})
@@ -98,6 +97,8 @@ if $enabled {
     }
   }
 
+  $management_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/database', ' ')
+
   class { 'openstack::galera::status':
     status_user     => $status_user,
     status_password => $status_password,
@@ -105,7 +106,7 @@ if $enabled {
     backend_host    => $galera_node_address,
     backend_port    => $backend_port,
     backend_timeout => $backend_timeout,
-    only_from       => "127.0.0.1 240.0.0.2 ${management_network_range}",
+    only_from       => "127.0.0.1 240.0.0.2 ${management_networks}",
   }
 
   haproxy_backend_status { 'mysql':
