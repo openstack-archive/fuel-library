@@ -278,18 +278,6 @@ if $public_ssl_hash['services'] {
   $nova_hash['vncproxy_protocol'] = 'http'
 }
 
-##################### DO NOT USE BELOW VARIABLES ANYMORE ############################
-#           THEY ARE DEPRECATED AND WILL BE REMOVED IN NEXT RELEASE
-$internal_int     = get_network_role_property('management', 'interface')
-$public_int       = get_network_role_property('ex', 'interface')
-$internal_address = get_network_role_property('management', 'ipaddr')
-$internal_netmask = get_network_role_property('management', 'netmask')
-$public_address   = get_network_role_property('ex', 'ipaddr')
-$public_netmask   = get_network_role_property('ex', 'netmask')
-$storage_address  = get_network_role_property('storage', 'ipaddr')
-$storage_netmask  = get_network_role_property('storage', 'netmask')
-############################## END DEPRECATED VARIABLES #############################
-
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
 file { $globals_yaml_file :
