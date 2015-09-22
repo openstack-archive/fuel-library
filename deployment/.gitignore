@@ -18,3 +18,4 @@ puppet/vcsrepo
 puppet/postgresql
 puppet/openstacklib
 puppet/neutron
+puppet/nova
