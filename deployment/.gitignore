@@ -18,3 +18,4 @@ puppet/keystone
 puppet/heat
 puppet/glance
 puppet/horizon
+puppet/cinder
