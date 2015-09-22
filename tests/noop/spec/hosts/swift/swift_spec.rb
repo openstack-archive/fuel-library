@@ -25,16 +25,12 @@ describe manifest do
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
       if role == 'primary-controller'
         ['account', 'object', 'container'].each do | ring |
-          it "should run pretend_min_part_hours_passed before rabalancing swift #{ring} ring" do
-            should contain_exec("hours_passed_#{ring}").with(
-              'command' => "swift-ring-builder /etc/swift/#{ring}.builder pretend_min_part_hours_passed",
-              'user'    => 'swift',
-            )
+          it "should run rebalancing swift #{ring} ring" do
             should contain_exec("rebalance_#{ring}").with(
               'command' => "swift-ring-builder /etc/swift/#{ring}.builder rebalance",
               'user'    => 'swift',
               'returns' => [0,1],
-            ).that_requires("Exec[hours_passed_#{ring}]")
+            )
             should contain_exec("create_#{ring}").with(
               'user'    => 'swift',
             )
@@ -59,7 +55,7 @@ describe manifest do
           'ensure' => 'directory',
           'owner'  => 'swift',
           'group'  => 'swift',
-        )
+        ).that_comes_before('Class[swift::proxy]')
       end
       it 'should declare swift::proxy::cache class with correct memcache_servers parameter' do
         should contain_class('swift::proxy::cache').with(

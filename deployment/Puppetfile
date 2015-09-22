@@ -125,3 +125,8 @@ mod 'horizon',
 mod 'glance',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-glance.git',
     :ref => '7.0.0-mos-rc1'
+
+# Pull in puppet-swift
+mod 'swift',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-swift.git',
+    :ref => '7.0.0-mos-rc2'
