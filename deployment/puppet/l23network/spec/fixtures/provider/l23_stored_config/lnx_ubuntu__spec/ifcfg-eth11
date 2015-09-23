@@ -1,0 +1,6 @@
+auto eth11
+iface eth11 inet static
+address 169.254.0.1/24
+up ip addr add 192.168.1.1/24 dev eth11
+post-up ip a add 192.168.3.3/26 dev eth11
+post-up ip addr add 192.168.2.2/25 dev eth11
