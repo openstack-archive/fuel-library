@@ -13,3 +13,4 @@ puppet/apt
 puppet/firewall
 puppet/memcached
 puppet/sysctl
+puppet/staging
