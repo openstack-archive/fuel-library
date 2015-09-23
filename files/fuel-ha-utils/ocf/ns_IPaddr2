@@ -196,22 +196,22 @@ ip_validate() {
       exit $OCF_ERR_INSTALLED
   fi
 
-  if [[ -z $OCF_RESKEY_ip ]] ; then
+  if [ -z "$OCF_RESKEY_ip" ] ; then
     ocf_log err "IP address not given"
     exit $OCF_ERR_CONFIGURED
   fi
 
-  if [[ -z $OCF_RESKEY_ns ]] ; then
+  if [ -z "$OCF_RESKEY_ns" ] ; then
     ocf_log err "Network namespace not given"
     exit $OCF_ERR_CONFIGURED
   fi
 
-  if [[ -z $OCF_RESKEY_cidr_netmask ]] ; then
+  if [ -z "$OCF_RESKEY_cidr_netmask" ] ; then
     ocf_log err "CIDR Netmask not given"
     exit $OCF_ERR_CONFIGURED
   fi
 
-  if [[ -z $OCF_RESKEY_ns_veth ]] ; then
+  if [ -z "$OCF_RESKEY_ns_veth" ] ; then
     ocf_log err "NS veth tail name not given"
     exit $OCF_ERR_CONFIGURED
   fi
@@ -233,7 +233,7 @@ ip_validate() {
 find_interface() {
     local ipaddr="$1"
     local netmask="$2"
-    [[ -z netmask ]] || ipaddr="$ipaddr/$netmask"
+    [ -z "$netmask" ] || ipaddr="$ipaddr/$netmask"
 
     #
     # List interfaces but exclude FreeS/WAN ipsecN virtual interfaces
@@ -250,7 +250,7 @@ find_interface_in_ns() {
     local ns="$1"
     local ipaddr="$2"
     local netmask="$3"
-    [[ -z netmask ]] || ipaddr="$ipaddr/$netmask"
+    [ -z "$netmask" ] || ipaddr="$ipaddr/$netmask"
 
     #
     # List interfaces but exclude FreeS/WAN ipsecN virtual interfaces
@@ -265,7 +265,7 @@ find_interface_in_ns() {
 
 setup_routes() {
   local network
-  if [[ ! -z "${OCF_RESKEY_other_networks}" ]] ; then
+  if [ ! -z "$OCF_RESKEY_other_networks" ] ; then
     for network in ${OCF_RESKEY_other_networks} ; do
       ocf_log debug "Adding route on the host system to ${network}: ${OCF_RESKEY_namespace_ip}"
       ocf_run $RUN_IN_NS ip route add ${network} dev ${OCF_RESKEY_ns_veth}
@@ -321,7 +321,7 @@ remove_from_bridge() {
 
 check_ns() {
   local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
-  [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
+  [[ "$ns" != "$OCF_RESKEY_ns" ]] && return $OCF_ERR_GENERIC
   return $OCF_SUCCESS
 }
 
@@ -384,9 +384,9 @@ ip_prepare() {
   [[ $? != 0 ]] && return $OCF_ERR_GENERIC
 
   # setup default routing in namespace if gateway given
-  if [[ $OCF_RESKEY_gateway == 'link' ]] ; then
+  if [[ "$OCF_RESKEY_gateway" == 'link' ]] ; then
     ocf_run $RUN_IN_NS ip route replace default dev $OCF_RESKEY_ns_veth metric $OCF_RESKEY_gateway_metric
-  elif  [[ $OCF_RESKEY_gateway == 'none' ]] ; then
+  elif  [[ "$OCF_RESKEY_gateway" == 'none' ]] ; then
     echo "Setup default gateway -- do nothing."
   else
     ocf_run $RUN_IN_NS ip route replace default via $OCF_RESKEY_gateway metric $OCF_RESKEY_gateway_metric
@@ -408,7 +408,7 @@ iptables_start() {
   local rule
   # setup iptables rules if given
 
-  if [[ $OCF_RESKEY_ns_iptables_start_rules != "false" ]] ; then
+  if [[ "$OCF_RESKEY_ns_iptables_start_rules" != "false" ]] ; then
     IFS=';' read -a ns_iptables_rules <<< "$OCF_RESKEY_ns_iptables_start_rules"
     for rule in "${ns_iptables_rules[@]}" ; do
       ocf_run $RUN_IN_NS $rule
@@ -451,7 +451,7 @@ ip_start() {
 ip_stop() {
   local rc
   ip_validate
-  if [[ -n $OCF_RESKEY_bridge ]] ; then
+  if [ -n "$OCF_RESKEY_bridge" ] ; then
     remove_from_bridge
   fi
   # destroy veth-pair in base system
@@ -481,7 +481,7 @@ ip_monitor() {
   check_ns || return $OCF_NOT_RUNNING
   local iface=$(find_interface_in_ns $OCF_RESKEY_ns $OCF_RESKEY_ip $OCF_RESKEY_cidr_netmask)
 
-  [[ -z $iface ]] && return $OCF_NOT_RUNNING
+  [ -z "$iface" ] && return $OCF_NOT_RUNNING
 
   check_interfaces_for_up_state "$OCF_RESKEY_bridge:$OCF_RESKEY_also_check_interfaces" || return $OCF_NOT_RUNNING
   # use arping here, because no IP from VIP network allowed on host system
