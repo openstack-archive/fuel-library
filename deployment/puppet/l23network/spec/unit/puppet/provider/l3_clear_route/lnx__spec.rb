@@ -37,12 +37,12 @@ describe provider_class do
     end
 
     it 'Delete existing default route' do
-      provider.class.stubs(:ip).with(['--force', 'route', 'delete', name, 'via', '172.18.128.1', 'dev', 'p2p22']).returns(0)
+      provider.class.stubs(:iproute).with(['--force', 'route', 'delete', name, 'via', '172.18.128.1', 'dev', 'p2p22']).returns(0)
       provider.destroy
     end
 
     it 'Route is deleted by hotplug system during destroy executing' do
-      provider.class.stubs(:ip).with(['--force', 'route', 'delete', name, 'via', '172.18.128.1', 'dev', 'p2p22']).raises('RTNETLINK answers: No such process')
+      provider.class.stubs(:iproute).with(['--force', 'route', 'delete', name, 'via', '172.18.128.1', 'dev', 'p2p22']).raises("Command 'ip --force route delete default via 172.18.128.1 dev p2p22' has been failed with exit_code=1:\nRTNETLINK answers: No such process")
       provider.destroy
     end
 
