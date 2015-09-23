@@ -72,6 +72,9 @@ SSLCryptoDevice builtin
 ##
 
 <VirtualHost _default_:443>
+# Redirect all queries to root to port where UI is located
+RewriteEngine on
+RewriteRule ^/$ https://%{HTTP_HOST}:8443/ [R=301,L]
 
 # General setup for the virtual host, inherited from global configuration
 #DocumentRoot "/var/www/html"
