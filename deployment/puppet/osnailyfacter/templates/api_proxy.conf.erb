@@ -2,6 +2,7 @@
   ProxyVia On
   AllowCONNECT 443 563 5000 8000 8003 8004 8080 8082 8386 8773 8774 8776 8777 9292 9696
   HostnameLookups off
+  LimitRequestFieldSize <%= @max_header_size %>
   <Proxy *>
     Order Deny,Allow
     <% if @master_ip.kind_of?(Array) -%>
