@@ -223,6 +223,10 @@ describe 'l23network::l2::patch', :type => :define do
         'bridges'  => ['br1', 'br2'],
       }).that_requires('L23_stored_config[p_39a440c1-0]')
     end
+    
+    it do
+      should_not contain_file('/etc/network/if-post-down.d/openvswitch')
+    end
   end
 
 end
@@ -279,6 +283,10 @@ describe 'l23network::l2::patch', :type => :define do
         'ensure'  => 'present',
         'bridges' => ['br1', 'br2'],
       })
+    end
+
+    it do
+      should contain_file('/etc/network/if-post-down.d/openvswitch')
     end
   end
 
