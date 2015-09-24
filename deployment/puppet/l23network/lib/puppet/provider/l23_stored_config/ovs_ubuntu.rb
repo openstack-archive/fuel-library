@@ -79,6 +79,12 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
       header << "allow-#{bridge} #{provider.name}"
       props[:ovs_type] = 'OVSBond'
       props[:bridge]   = bridge
+    elsif provider.if_type.to_s == 'patch'
+      header << "auto #{provider.name}" if provider.onboot
+      header << "allow-#{bridge} #{provider.name}"
+      props[:bridge]   = bridge
+      props[:ovs_type] = 'OVSPort'
+      props[:mtu]      = nil if props[:mtu]
     else
       header << "auto #{provider.name}" if provider.onboot
       header << "allow-#{bridge} #{provider.name}"
@@ -89,6 +95,27 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
     header << "iface #{provider.name} inet #{provider.method}"
 
     return header, props
+  end
+
+  def self.collected_properties
+    rv = super
+    rv.merge!({
+      :jacks  => {
+          :detect_re    => /ovs_extra\s+set\s+Interface\s+(p_.*-[0 1])\s+type=patch\s+options:peer=(p_.*-[0 1])/,
+          :detect_shift => 3,
+      },
+    })
+    return rv
+  end
+
+  def self.unmangle__jacks(provider, data)
+    return [] if ['', 'absent'].include? data.to_s
+    rv = []
+    rv << "ovs_extra set Interface #{provider.name} type=patch options:peer=#{data.join()}"
+  end
+
+  def self.mangle__jacks(data)
+    [data.join()]
   end
 
 end
