@@ -89,36 +89,6 @@ describe 'l23network::l2::patch', :type => :define do
     end
   end
 
-  context 'Patch between two bridges, with explicitly defined OVS provider.' do
-    let(:params) do
-      {
-        :bridges  => ['br1', 'br2'],
-        :provider => 'ovs'
-      }
-    end
-
-    it do
-      should compile.with_all_deps
-    end
-
-    it do
-      should contain_l23_stored_config('p_39a440c1-0').with({
-        'ipaddr'  => nil,
-        'gateway' => nil,
-        'onboot'  => true,
-        'bridge'  => ['br1', 'br2'],
-        'jacks'   => ['p_39a440c1-0', 'p_39a440c1-1']
-      })
-    end
-
-    it do
-      should contain_l2_patch('patch__br1--br2').with({
-        'ensure'  => 'present',
-        'bridges' => ['br1', 'br2'],
-        'jacks'   => ['p_39a440c1-0', 'p_39a440c1-1']
-      }).that_requires('L23_stored_config[p_39a440c1-0]')
-    end
-  end
 
   context 'Patch, which has jumbo frames' do
     let(:params) do
@@ -196,34 +166,6 @@ describe 'l23network::l2::patch', :type => :define do
     end
   end
 
-  context 'Tagged patchcord with explicitly defined OVS provider.' do
-    let(:params) do
-      {
-        :bridges  => ['br1', 'br2'],
-        :vlan_ids => ['101', '202'],
-        :provider => 'ovs'
-      }
-    end
-
-    it do
-      should compile.with_all_deps
-    end
-
-    it do
-      should contain_l23_stored_config('p_39a440c1-0').with({
-        'bridge'  => ['br1', 'br2'],
-        'jacks'   => ['p_39a440c1-0', 'p_39a440c1-1']
-      })
-    end
-
-    it do
-      should contain_l2_patch('patch__br1--br2').with({
-        'ensure'   => 'present',
-        'vlan_ids' => ['101', '202'],
-        'bridges'  => ['br1', 'br2'],
-      }).that_requires('L23_stored_config[p_39a440c1-0]')
-    end
-  end
 
 end
 
@@ -265,12 +207,22 @@ describe 'l23network::l2::patch', :type => :define do
     end
 
     it do
-      should_not contain_l23_stored_config('p_39a440c1-0').with({
+      should contain_l23_stored_config('p_39a440c1-0').with({
         'ipaddr'  => nil,
         'gateway' => nil,
         'onboot'  => true,
-        'bridge'  => ['br1', 'br2'],
-        'jacks'   => ['p_39a440c1-0', 'p_39a440c1-1']
+        'bridge'  => ['br1'],
+        'jacks'   => ['p_39a440c1-1']
+      })
+    end
+
+    it do
+      should contain_l23_stored_config('p_39a440c1-1').with({
+        'ipaddr'  => nil,
+        'gateway' => nil,
+        'onboot'  => true,
+        'bridge'  => ['br2'],
+        'jacks'   => ['p_39a440c1-0']
       })
     end
 
@@ -281,6 +233,45 @@ describe 'l23network::l2::patch', :type => :define do
       })
     end
   end
+
+  context 'Tagged patchcord with explicitly defined OVS provider.' do
+    let(:params) do
+      {
+        :bridges  => ['br1', 'br2'],
+        :vlan_ids => ['101', '202'],
+        :provider => 'ovs'
+      }
+    end
+
+    it do
+      should compile.with_all_deps
+    end
+
+    it do
+      should contain_l23_stored_config('p_39a440c1-0').with({
+        'bridge'  => ['br1'],
+        'jacks'   => ['p_39a440c1-1'],
+        'vlan_id' => '101',
+      })
+    end
+
+    it do
+      should contain_l23_stored_config('p_39a440c1-1').with({
+        'bridge'  => ['br2'],
+        'jacks'   => ['p_39a440c1-0'],
+        'vlan_id' => '202',
+      })
+    end
+
+    it do
+      should contain_l2_patch('patch__br1--br2').with({
+        'ensure'   => 'present',
+        'vlan_ids' => ['101', '202'],
+        'bridges'  => ['br1', 'br2'],
+      }).that_requires('L23_stored_config[p_39a440c1-0]')
+    end
+  end
+
 
 end
 
