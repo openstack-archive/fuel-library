@@ -20,6 +20,9 @@ network_scheme:
       bridges:
         - br-ovs2
         - br-ovs1
+      vlan_ids:
+        - 200
+        - 100
       provider: ovs
   endpoints: {}
   roles: {}
@@ -60,7 +63,7 @@ end
     it do
       should contain_l23_stored_config('br-ovs1').with({
         'ensure'   => 'present',
-        'provider' => 'ovs_ubuntu'
+        'provider' => 'ovs_ubuntu',
       })
     end
 
@@ -89,7 +92,7 @@ end
       should contain_l2_patch('patch__br-ovs1--br-ovs2').with({
         'ensure'   => 'present',
         'bridges'  => ['br-ovs1', 'br-ovs2'],
-        'vlan_ids' => ['0', '0'],
+        'vlan_ids' => ['100', '200'],
         'provider' => 'ovs'
       })
     end
@@ -99,7 +102,19 @@ end
     end
 
     it do
-      should_not contain_l23_stored_config('p_f277dc2b-0')
+      should contain_l23_stored_config('p_f277dc2b-0').with({
+        'bridge'  => 'br-ovs1',
+        'vlan_id' => '100',
+        'jacks'   => 'p_f277dc2b-1',
+      })
+    end
+
+    it do
+      should contain_l23_stored_config('p_f277dc2b-1').with({
+        'bridge'  => 'br-ovs2',
+        'vlan_id' => '200',
+        'jacks'   => 'p_f277dc2b-0',
+      })
     end
   end
 
