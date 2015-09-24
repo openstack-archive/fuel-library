@@ -88,7 +88,7 @@ end
     it do
       should contain_l2_patch('patch__br-ovs1--br-ovs2').with({
         'ensure'   => 'present',
-        'bridges'  => ['br-ovs1', 'br-ovs2'],
+        'bridges'  => ['br-ovs2', 'br-ovs1'],
         'vlan_ids' => ['0', '0'],
         'provider' => 'ovs'
       })
@@ -99,7 +99,10 @@ end
     end
 
     it do
-      should_not contain_l23_stored_config('p_f277dc2b-0')
+      should contain_l23_stored_config('p_f277dc2b-0')
+    end
+    it do
+      should contain_l23_stored_config('p_f277dc2b-1')
     end
   end
 
