@@ -52,11 +52,18 @@ define l23network::l2::patch (
       $config_provider = undef
     }
 
-    if ! $do_not_create_stored_config {
+    if $do_not_create_stored_config {
       # we do not create any configs for ovs2ovs patchcords, because
       # neither CenOS5 nor Ubuntu with OVS < 2.4 supports creating patch resources
-      # from network config files. But OVSDB stores patch configuration and this is
-      # enough to restore after reboot
+      # from network config files. But OVSDB stores patch configuration.
+      # We just remove post-down script for openVswitch due to if ovs2ovs patchcords
+      # are used they are removed by it together with bridges during shutdown.
+      if ! defined(File['/etc/network/if-post-down.d/openvswitch']) {
+        file { '/etc/network/if-post-down.d/openvswitch':
+          ensure => absent,
+        }
+      }
+    } else {
       if ! defined(L23_stored_config[$patch_jacks_names[0]]) {
         # we use only one (first) patch jack name here and later,
         # because a both jacks for patch are created by
