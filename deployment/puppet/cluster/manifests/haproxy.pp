@@ -50,7 +50,9 @@ class cluster::haproxy (
   include ::haproxy::params
   include ::rsyslog::params
 
-  package { 'haproxy': }
+  package { 'haproxy':
+    name => $::haproxy::params::package_name,
+  }
 
   #NOTE(bogdando) we want defaults w/o chroot
   #  and this override looks the only possible if
@@ -87,6 +89,8 @@ class cluster::haproxy (
     ],
   }
 
+  $service_name = 'p_haproxy'
+
   class { 'haproxy::base':
     global_options    => $global_options,
     defaults_options  => $defaults_options,
@@ -94,11 +98,36 @@ class cluster::haproxy (
     use_include       => true,
   }
 
-  class { 'cluster::haproxy_ocf':
-    primary_controller => $primary_controller,
-    debug              => $debug,
-    other_networks     => $other_networks,
+  sysctl::value { 'net.ipv4.ip_nonlocal_bind':
+    value => '1'
   }
+
+  service { 'haproxy' :
+    ensure     => 'running',
+    name       => $service_name,
+    enable     => true,
+    hasstatus  => true,
+    hasrestart => true,
+  }
+
+  tweaks::ubuntu_service_override { 'haproxy' :
+    service_name => 'haproxy',
+    package_name => $haproxy::params::package_name,
+  }
+
+  Package['haproxy'] ->
+  Class['haproxy::base']
+
+  Class['haproxy::base'] ~>
+  Service['haproxy']
+
+  Package['haproxy'] ~>
+  Service['haproxy']
+
+  Sysctl::Value['net.ipv4.ip_nonlocal_bind'] ~>
+  Service['haproxy']
+
+  # Rsyslog
 
   file { '/etc/rsyslog.d/haproxy.conf':
     ensure  => present,
@@ -106,17 +135,18 @@ class cluster::haproxy (
     notify  => Service[$::rsyslog::params::service_name],
   }
 
-  Package['haproxy'] -> Class['haproxy::base']
-  Class['haproxy::base'] -> Class['cluster::haproxy_ocf']
-
-  if defined(Corosync::Service['pacemaker']) {
-    Corosync::Service['pacemaker'] -> Class['cluster::haproxy_ocf']
-  }
-
   if !defined(Service[$::rsyslog::params::service_name]) {
     service { $::rsyslog::params::service_name:
-      ensure => running,
+      ensure => 'running',
       enable => true,
     }
   }
+
+  # Paceamker
+
+  class { 'cluster::haproxy_ocf':
+    debug              => $debug,
+    other_networks     => $other_networks,
+  }
+
 }
