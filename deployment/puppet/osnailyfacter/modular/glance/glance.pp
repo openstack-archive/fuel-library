@@ -45,12 +45,15 @@ $glance_image_cache_max_size    = $glance_hash['image_cache_max_size']
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
   $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
+  $glance_show_image_direct_url = pick($glance_hash['show_image_direct_url'], true)
 } elsif ($storage_hash['images_vcenter']) {
   $glance_backend = 'vmware'
   $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
+  $glance_show_image_direct_url = pick($glance_hash['show_image_direct_url'], true)
 } else {
   $glance_backend = 'swift'
   $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
+  $glance_show_image_direct_url = pick($glance_hash['show_image_direct_url'], false)
 }
 
 ###############################################################################
@@ -79,6 +82,7 @@ class { 'openstack::glance':
   registry_host                  => $service_endpoint,
   use_syslog                     => $use_syslog,
   use_stderr                     => $use_stderr,
+  show_image_direct_url          => $glance_show_image_direct_url,
   syslog_log_facility            => $syslog_log_facility,
   glance_image_cache_max_size    => $glance_image_cache_max_size,
   max_retries                    => $max_retries,
