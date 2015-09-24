@@ -103,7 +103,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/iface\s+p_33470efd-0\s+inet\s+manual/) }
       it { expect(cfg_file).to match(/ovs_type\s+OVSIntPort/) }
       it { expect(cfg_file).to match(/ovs_bridge\s+br-ovs/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(6) }
     end
   end
 
