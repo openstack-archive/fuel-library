@@ -280,6 +280,10 @@ describe 'l23network::l2::patch', :type => :define do
         'bridges' => ['br1', 'br2'],
       })
     end
+
+    it do
+      should contain_file('/etc/network/if-post-down.d/openvswitch')
+    end
   end
 
 end

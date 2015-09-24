@@ -74,6 +74,15 @@ define l23network::l2::patch (
         provider        => $config_provider
       }
       L23_stored_config[$patch_jacks_names[0]] -> L2_patch[$patch_name]
+    } else {
+      # we remove post-down script for openVswitch due to if ovs2ovs patchcords
+      # are used they are removed by it together with bridges during reboot
+      if ! defined(File['/etc/network/if-post-down.d/openvswitch']) {
+        file { '/etc/network/if-post-down.d/openvswitch':
+          ensure => absent,
+        }
+        L2_patch[$patch_name] -> File['/etc/network/if-post-down.d/openvswitch']
+      }
     }
 
     l2_patch{ $patch_name :
