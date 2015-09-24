@@ -92,7 +92,7 @@ end
       should contain_l2_patch('patch__br-ovs--br1').with({
         'ensure'   => 'present',
         'bridges'  => ['br-ovs', 'br1'],
-        'vlan_ids' => ['0', '0'],
+        'vlan_ids' => nil,
         'provider' => 'ovs'
       })
     end
