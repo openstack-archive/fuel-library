@@ -1,0 +1,5 @@
+auto br-ovs2
+allow-ovs br-ovs2
+iface br-ovs2 inet manual
+  ovs_type OVSBridge
+  ovs_ports p_33470efd-1

@@ -32,8 +32,13 @@ define l23network::l2::patch (
   $bridge2_provider = get_provider_for('L2_bridge', $bridges[1])
 
   if $bridge1_provider == 'ovs' and $bridge2_provider == 'ovs' {
-    $act_bridges = sort($bridges)
-    $do_not_create_stored_config = true
+    $act_bridges  = $bridges
+    $ovs2ovs = true
+    if $vlan_ids == undef {
+      $act_vlan_ids = [0,0]
+    } else {
+      $act_vlan_ids = $vlan_ids
+    }
   } elsif $bridge1_provider == 'ovs' and $bridge2_provider == 'lnx' {
     $act_bridges = [$bridges[0], $bridges[1]]
   } elsif $bridge1_provider == 'lnx' and $bridge2_provider == 'ovs' {
@@ -52,11 +57,37 @@ define l23network::l2::patch (
       $config_provider = undef
     }
 
-    if ! $do_not_create_stored_config {
-      # we do not create any configs for ovs2ovs patchcords, because
-      # neither CenOS5 nor Ubuntu with OVS < 2.4 supports creating patch resources
-      # from network config files. But OVSDB stores patch configuration and this is
-      # enough to restore after reboot
+    if $ovs2ovs {
+      if ! defined(L23_stored_config[$patch_jacks_names[0]]) {
+        l23_stored_config { $patch_jacks_names[0]: }
+      }
+      L23_stored_config <| title == $patch_jacks_names[0] |> {
+        ensure          => $ensure,
+        if_type         => 'patch',
+        bridge          => $act_bridges[0],
+        vlan_id         => $act_vlan_ids[0],
+        jacks           => $patch_jacks_names[1],
+        onboot          => true,
+        vendor_specific => $vendor_specific,
+        provider        => $config_provider
+      }
+      L23_stored_config[$patch_jacks_names[0]] -> L2_patch[$patch_name]
+
+      if ! defined(L23_stored_config[$patch_jacks_names[1]]) {
+        l23_stored_config { $patch_jacks_names[1]: }
+      }
+      L23_stored_config <| title == $patch_jacks_names[1] |> {
+        ensure          => $ensure,
+        if_type         => 'patch',
+        bridge          => $act_bridges[1],
+        vlan_id         => $act_vlan_ids[1],
+        jacks           => $patch_jacks_names[0],
+        onboot          => true,
+        vendor_specific => $vendor_specific,
+        provider        => $config_provider
+      }
+      L23_stored_config[$patch_jacks_names[1]] -> L2_patch[$patch_name]
+    } else {
       if ! defined(L23_stored_config[$patch_jacks_names[0]]) {
         # we use only one (first) patch jack name here and later,
         # because a both jacks for patch are created by
