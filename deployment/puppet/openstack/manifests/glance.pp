@@ -61,6 +61,7 @@ class openstack::glance (
   $enabled                        = true,
   $use_syslog                     = false,
   $use_stderr                     = true,
+  $show_image_direct_url          = true,
   # Facility is common for all glance services
   $syslog_log_facility            = 'LOG_LOCAL2',
   $glance_image_cache_max_size    = '10737418240',
@@ -113,7 +114,7 @@ class openstack::glance (
     use_stderr            => $use_stderr,
     log_facility          => $syslog_log_facility,
     sql_idle_timeout      => $idle_timeout,
-    show_image_direct_url => true,
+    show_image_direct_url => $show_image_direct_url,
     pipeline              => 'keystone+cachemanagement',
     known_stores          => $known_stores,
   }
