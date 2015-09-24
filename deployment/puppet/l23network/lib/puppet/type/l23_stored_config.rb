@@ -36,7 +36,7 @@ Puppet::Type.newtype(:l23_stored_config) do
 
   newproperty(:if_type) do
     desc "Device type. Service property, shouldn't be setting by puppet"
-    newvalues(:ethernet, :bridge, :bond)
+    newvalues(:ethernet, :bridge, :bond, :patch)
   end
 
   newproperty(:if_provider) do
@@ -127,14 +127,14 @@ Puppet::Type.newtype(:l23_stored_config) do
     aliasvalue(0,      :absent)
     defaultto :absent
     validate do |val|
-      min_vid = 1
+      min_vid = 0
       max_vid = 4094
       if ! (val.to_s == 'absent' or (min_vid .. max_vid).include?(val.to_i))
         raise ArgumentError, "'#{val}' is not a valid 802.1q NALN_ID (must be a integer value in range (#{min_vid} .. #{max_vid})"
       end
     end
     munge do |val|
-      ((val == :absent)  ?  :absent  :  val.to_i)
+      ((val == :absent or val.to_s == '0')  ?  :absent  :  val.to_i)
     end
   end
 

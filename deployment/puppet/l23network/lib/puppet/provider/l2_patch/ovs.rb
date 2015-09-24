@@ -81,11 +81,11 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
     bridges = self.class.get_bridges_order_for_patch(@resource[:bridges])
-    @property_flush[:bridges] = bridges
     #
-    debug("Bridges: '#{bridges.join(', ')}'.")
+    debug("Bridges: '#{@resource[:bridges].join(', ')}'.")
     if File.directory?("/sys/class/net/#{bridges[1]}/bridge")
       # creating 'cross' OVS-to-lnx patchcord
+      @property_flush[:bridges] = bridges
       @resource[:cross] = true
       lnx_port_br_mapping = self.class.get_lnx_port_bridges_pairs()
       jack = L23network.get_jack_name(bridges,0)
@@ -110,6 +110,7 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
       iproute('link', 'set', 'up', 'dev', jack)
     else
       # creating OVS-to-OVS patchcord
+      bridges = @resource[:bridges]
       jacks = []
       jacks << L23network.get_jack_name(bridges,0)
       jacks << L23network.get_jack_name(bridges,1)
