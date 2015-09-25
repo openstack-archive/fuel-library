@@ -6,7 +6,7 @@
 # === Parameters
 #
 # [*ensure_package*]
-#   (optional) The state of nova packages
+#   (optional) The state of used packages
 #   Defaults to 'present'
 #
 class l23network::l2 (
