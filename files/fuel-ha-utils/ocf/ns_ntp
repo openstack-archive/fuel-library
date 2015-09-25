@@ -46,6 +46,8 @@ OCF_RESKEY_extraconf_default=""
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
@@ -201,25 +203,17 @@ ntp_start()
 
 ntp_stop()
 {
-  get_variables
-  ntp_status
-  rc="${?}"
-  if [ "${rc}" -eq "${OCF_SUCCESS}" -o "${rc}" -eq "${OCF_ERR_GENERIC}" ]; then
-    PID="`cat ${PIDFILE}`"
-    if [ -n "${PID}" ] ; then
-      kill "${PID}"
-      if [ "${?}" -ne "0" ]; then
-        kill -SIGKILL "${PID}"
-        if [ "${?}" -ne "0" ]; then
-          ocf_log err "Error. Could not stop ntp daemon."
-          return "${OCF_ERR_GENERIC}"
-        fi
-      fi
-      rm -f "${PIDFILE}"
+    local rc
+    local LH="${LL} haproxy_stop():"
+    get_variables
+    ntp_status
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_SUCCESS}" -o "${rc}" -eq "${OCF_ERR_GENERIC}" ]; then
+        proc_stop "${PIDFILE}" "ntp"
+        return "${?}"
     fi
-  fi
-  ocf_log info "Stopped ntp daemon."
-  return "${OCF_SUCCESS}"
+    ocf_log info "${LH} Stopped ntp daemon."
+    return "${OCF_SUCCESS}"
 }
 
 ntp_monitor()
@@ -264,6 +258,7 @@ if [ $# -ne 1 ]; then
   exit "${OCF_ERR_ARGS}"
 fi
 
+export LL="${OCF_RESOURCE_INSTANCE}:"
 case $1 in
   start) ntp_start
   ;;
