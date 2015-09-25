@@ -150,3 +150,8 @@ mod 'sahara',
 mod 'openssl',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openssl.git',
     :ref => '1.3.10-mos-rc1'
+
+# Pull in puppetlabs-mongodb
+mod 'mongodb',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-mongodb.git',
+    :ref => '0.10.0-mos-rc1'
