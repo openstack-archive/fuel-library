@@ -40,6 +40,24 @@ describe manifest do
         'destination' => keystone_network,
       )
     end
+
+    it 'should create rules for heat' do
+      should contain_firewall('204 heat-api').with(
+        'port'    => [ 8004 ],
+        'proto'   => 'tcp',
+        'action'  => 'accept',
+      )
+      should contain_firewall('205 heat-api-cfn').with(
+        'port'    => [ 8000 ],
+        'proto'   => 'tcp',
+        'action'  => 'accept',
+      )
+      should contain_firewall('206 heat-api-cloudwatch').with(
+        'port'    => [ 8003 ],
+        'proto'   => 'tcp',
+        'action'  => 'accept',
+      )
+    end
   end
 
   test_ubuntu_and_centos manifest
