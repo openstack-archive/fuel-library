@@ -95,3 +95,8 @@ mod 'postgresql',
 mod 'openssl',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openssl.git',
     :ref => '1.5.0'
+
+# Pull in puppetlabs-mongodb
+mod 'mongodb',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-mongodb.git',
+    :ref => '0.10.0-mos-rc1'
