@@ -37,6 +37,8 @@ OCF_RESKEY_binpath_default="/usr/sbin/haproxy"
 : ${OCF_RESKEY_binpath=${OCF_RESKEY_binpath_default}}
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 USAGE="Usage: $0 {start|stop|status|monitor|validate-all|meta-data}";
 
@@ -196,24 +198,17 @@ haproxy_reload()
 
 haproxy_stop()
 {
-	get_variables
-	if haproxy_status ; then
-		PID="`cat ${PIDFILE}`"
-		if [ -n "${PID}" ] ; then
-			kill "${PID}"
-			if [ $? -ne 0 ]; then
-				kill -SIGKILL "${PID}"
-				if [ $? -ne 0 ]; then
-					ocf_log err "Error. Could not stop haproxy daemon."
-					return $OCF_ERR_GENERIC
-				fi
-			fi
-                        ocf_log debug "Delete pid file: ${PIDFILE} with content ${PID}"
-			rm -f "${PIDFILE}"
-		fi
-	fi
-	ocf_log info "Stopped haproxy daemon."
-	exit $OCF_SUCCESS
+    local rc
+    local LH="${LL} haproxy_stop():"
+    get_variables
+    haproxy_status
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_SUCCESS}" -o "${rc}" -eq "${OCF_ERR_GENERIC}" ]; then
+        proc_stop "${PIDFILE}" "haproxy"
+        return "${?}"
+    fi
+    ocf_log info "${LH} Stopped haproxy daemon."
+    return "${OCF_SUCCESS}"
 }
 
 haproxy_monitor()

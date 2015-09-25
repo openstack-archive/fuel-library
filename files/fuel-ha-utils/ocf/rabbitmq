@@ -7,6 +7,8 @@
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 #######################################################################
 
@@ -527,16 +529,8 @@ kill_rmq_and_remove_pid() {
     local LH="${LL} kill_rmq_and_remove_pid():"
 
     if [[ -f $OCF_RESKEY_pid_file ]] ; then
-        pid=$(cat $OCF_RESKEY_pid_file)
-        if [[ -z ${pid} ]] ; then
-            ocf_log err "${LH} pidfile is empty, cannot kill by unknown PID! Try to stop it manually!"
-        fi
-        # todo: check content for digital
-        if [[ -d /proc/${pid}/ ]] ; then
-            ocf_run kill -9 $pid
-            ocf_log warn "${LH} RMQ-runtime (beam) PID=${pid} stopped by 'kill -9', sorry..."
-        fi
-        ocf_run rm -f $OCF_RESKEY_pid_file
+        proc_stop "${OCF_RESKEY_pid_file}" "rabbitmq"
+        return "${?}"
     fi
 }
 
@@ -764,7 +758,7 @@ start_beam_process() {
             rc=$?
             if [[ $rc == $OCF_SUCCESS ]] ; then
                 ocf_log warn "${LH} found beam process with PID=${pid}, killing...'."
-                ocf_run kill -9 $pid
+                proc_kill "${pid}" "beam" SIGKILL
             else
                 ocf_log err "${LH} found unknown process with PID=${pid} from '${OCF_RESKEY_pid_file}'."
                 return $OCF_ERR_GENERIC
