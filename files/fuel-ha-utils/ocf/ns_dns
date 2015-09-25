@@ -5,7 +5,7 @@
 # Description:  Manages dnsmasq daemon as an OCF resource in
 #               an High Availability setup inside a namespace
 #
-# HAProxy OCF script's Author: Mirantis
+# dnsmasq OCF script's Author: Mirantis
 # License: GNU General Public License (GPL)
 #
 #  usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}
@@ -46,6 +46,8 @@ OCF_RESKEY_extraconf_default=""
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
@@ -211,23 +213,21 @@ dnsmasq_start()
 
 dnsmasq_stop()
 {
-  get_variables
-  if dnsmasq_status ; then
-    PID="`${RUN} cat ${PIDFILE}`"
-    if [ -n "${PID}" ] ; then
-      kill "${PID}"
-      if [ $? -ne 0 ]; then
-        kill -SIGKILL "${PID}"
-        if [ $? -ne 0 ]; then
-          ocf_log err "Error. Could not stop dnsmasq daemon."
-          return $OCF_ERR_GENERIC
-        fi
-      fi
-      rm -f "${PIDFILE}"
+    local rc
+    local LH="${LL} dnsmasq_stop():"
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
     fi
-  fi
-  ocf_log info "Stopped dnsmasq daemon."
-  return $OCF_SUCCESS
+    get_variables
+    dnsmasq_status
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_SUCCESS}" -o "${rc}" -eq "${OCF_ERR_GENERIC}" ]; then
+        proc_stop "${PIDFILE}" "dnsmasq" $shutdown_timeout
+        return "${?}"
+    fi
+    ocf_log info "${LH} Stopped dnsmasq daemon."
+    return "${OCF_SUCCESS}"
 }
 
 dnsmasq_monitor()
@@ -271,6 +271,8 @@ if [ $# -ne 1 ]; then
   usage
   exit $OCF_ERR_ARGS
 fi
+
+export LL="${OCF_RESOURCE_INSTANCE}:"
 
 case $1 in
   start) dnsmasq_start
