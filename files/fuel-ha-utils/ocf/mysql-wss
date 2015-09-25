@@ -20,6 +20,9 @@
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
+
 #######################################################################
 # Fill in some defaults if no values are specified
 OCF_RESKEY_binary_default="/usr/bin/mysqld_safe"
@@ -585,60 +588,46 @@ mysql_start() {
 }
 
 mysql_cleanup() {
-    ocf_log debug "Delete lock file: /var/lock/subsys/mysqld"
-    rm -f /var/lock/subsys/mysqld
+    local LH="${LL} mysql_cleanup():"
+    if [ -f "/var/lock/subsys/mysqld" ]; then
+        ocf_log debug "${LH} Delete lock file: /var/lock/subsys/mysqld"
+        rm -f /var/lock/subsys/mysqld
+    fi
 
-    ocf_log debug "Delete sock file: ${OCF_RESKEY_socket}"
-    rm -f $OCF_RESKEY_socket
+    if [ -f "${OFC_RESKEY_socket}" ]; then
+        ocf_log debug "${LH} Delete sock file: ${OCF_RESKEY_socket}"
+        rm -f "${OCF_RESKEY_socket}"
+    fi
 
-    ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
-    rm -f $OCF_RESKEY_pid
-
+    if [ -f "${OCF_RESKEY_pid}" ]; then
+        ocf_log debug "${LH} Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
+        rm -f "${OCF_RESKEY_pid}"
+    fi
 }
 
 mysql_stop() {
     local rc
-    local pids
+    local LH="${LL} mysql_stop():"
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
+    fi
 
     mysql_status info 1
-    rc=$?
-    if [ $rc -ne $OCF_SUCCESS ]; then
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
+        ocf_log info "${LH} mysql-wss already stopped"
         mysql_cleanup
-        return $OCF_SUCCESS
+        return "${OCF_SUCCESS}"
     fi
 
-    local pid=$(cat $OCF_RESKEY_pid 2>/dev/null)
-    local pgrp=$(ps -o pgid= ${pid})
-    local pids="$(echo $(pgrep -g ${pgrp}))"
-    ocf_log info "Sending SIGTERM to PID: ${pid}"
-    /bin/kill -TERM ${pid} > /dev/null
-    rc=$?
-    [ $rc -ne 0 ] && ocf_log warn "MySQL has failed to terminate gracefully"
-
-    # stop waiting
-    shutdown_timeout=20
-    while [ $shutdown_timeout -gt 0 ]; do
-        mysql_status info 1
-        rc=$?
-        if [ $rc -ne $OCF_SUCCESS ]; then
-            /usr/bin/pkill -9 -g ${pgrp} > /dev/null
-            mysql_cleanup
-            return $OCF_SUCCESS
-        fi
-        sleep 2
-        (( shutdown_timeout -= 2 ))
-        ocf_log info "MySQL still hasn't stopped yet. ${shutdown_timeout} seconds left "
-    done
-
-    mysql_status info 1
-    rc=$?
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log info "MySQL failed to stop using SIGTERM. Sending SIGKILL to PIDS: ${pids}"
-        /usr/bin/pkill -9 -g ${pgrp} > /dev/null
+    proc_stop "${OCF_RESKEY_pid}" "mysql-wss" $shutdown_timeout
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_SUCCESS}" ]; then
+       mysql_cleanup
     fi
 
-    mysql_cleanup
-    return $OCF_SUCCESS
+    return "${rc}"
 }
 
 ##########################################################################
@@ -668,6 +657,8 @@ case "$1" in
     usage|help)   usage
         exit $OCF_SUCCESS;;
 esac
+
+export LL="${OCF_RESOURCE_INSTANCE}:"
 
 mysql_validate
 rc=$?

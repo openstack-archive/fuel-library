@@ -32,6 +32,8 @@
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 #######################################################################
 
@@ -479,61 +481,31 @@ nova_network_start() {
 
 nova_network_stop() {
     local rc
-    local pid
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
+    fi
 
     nova_network_status
-    rc=$?
-    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
         nova_network_cleanup
         sleep 2
-        ocf_log info "OpenStack Nova Network (nova-network) already stopped"
-        return $OCF_SUCCESS
+        ocf_log info "OpenStack Nova Network (${OCF_RESKEY_binary}) already stopped"
+        return "${OCF_SUCCESS}"
     fi
 
-    # Try SIGTERM
-    pid=`cat $OCF_RESKEY_pid`
-    ocf_run kill -s TERM $pid
-    rc=$?
-    if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack Nova Network (nova-network) couldn't be stopped"
-        exit $OCF_ERR_GENERIC
+    proc_stop "${OCF_RESKEY_pid}" "${OCF_RESKEY_binary}" $shutdown_timeout
+    rc="${?}"
+    if [ "${rc}" -ne "${OCF_SUCCESS}" ]; then
+        ocf_log err "OpenStack Nova Network (${OCF_RESKEY_binary}) couldn't be stopped"
+        return "${rc}"
     fi
-
-    # stop waiting
-    shutdown_timeout=15
-    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
-        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
-    fi
-    count=0
-    while [ $count -lt $shutdown_timeout ]; do
-        nova_network_status
-        rc=$?
-        if [ $rc -eq $OCF_NOT_RUNNING ]; then
-            break
-        fi
-        count=`expr $count + 1`
-        sleep 1
-        ocf_log debug "OpenStack Nova Network (nova-network) still hasn't stopped yet. Waiting ..."
-    done
-
-    nova_network_status
-    rc=$?
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack Nova Network (nova-network) failed to stop after ${shutdown_timeout}s \
-          using SIGTERM. Trying SIGKILL ..."
-        ocf_run kill -s KILL $pid
-    fi
-
-    ocf_log info "OpenStack Nova Network (nova-network) stopped"
-
-    ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
-    rm -f $OCF_RESKEY_pid
 
     nova_network_cleanup
     sleep 2
 
-    return $OCF_SUCCESS
+    return "${OCF_SUCCESS}"
 }
 
 #######################################################################
