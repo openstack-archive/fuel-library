@@ -90,3 +90,8 @@ mod 'vcsrepo',
 mod 'postgresql',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-postgresql.git',
     :ref => '4.0.0'
+
+# Pull in puppet-openssl
+mod 'openssl',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openssl.git',
+    :ref => '1.5.0'
