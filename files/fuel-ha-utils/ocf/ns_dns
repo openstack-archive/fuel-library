@@ -46,6 +46,8 @@ OCF_RESKEY_extraconf_default=""
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
@@ -211,23 +213,17 @@ dnsmasq_start()
 
 dnsmasq_stop()
 {
+  local rc
+  local LH="dnsmasq_stop():"
   get_variables
-  if dnsmasq_status ; then
-    PID="`${RUN} cat ${PIDFILE}`"
-    if [ -n "${PID}" ] ; then
-      kill "${PID}"
-      if [ $? -ne 0 ]; then
-        kill -SIGKILL "${PID}"
-        if [ $? -ne 0 ]; then
-          ocf_log err "Error. Could not stop dnsmasq daemon."
-          return $OCF_ERR_GENERIC
-        fi
-      fi
-      rm -f "${PIDFILE}"
-    fi
+  dnsmasq_status
+  rc="${?}"
+  if [ "${rc}" -eq "${OCF_SUCCESS}" -o "${rc}" -eq "${OCF_ERR_GENERIC}" ]; then
+      proc_stop "${PIDFILE}" "dnsmasq"
+      return "${?}"
   fi
-  ocf_log info "Stopped dnsmasq daemon."
-  return $OCF_SUCCESS
+  ocf_log info "${LH} Stopped dnsmasq daemon."
+  return "${OCF_SUCCESS}"
 }
 
 dnsmasq_monitor()

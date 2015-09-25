@@ -1,0 +1,108 @@
+#!/bin/bash
+#
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+#
+# Shared resource script for common functions (ocf-fuel-funcs)
+#
+# Authors: Alex Schultz <aschultz@mirantis.com>
+#
+
+###########################################################
+# Attempts to kill a process with retries and checks procfs
+# to make sure the process is stopped.
+#
+# Globals:
+#   None
+# Arguments:
+#   $1 - pid of the process to try and kill
+#   $2 - service name used for logging
+#   $3 - signal to use, defaults to SIGTERM
+#   $4 - number of retriesa, defaults to 5
+#   $5 - time to sleep between retries, defaults to 2
+# Returns:
+#   0 - if successful
+#   1 - if process is still running according to procfs
+#   2 - if invalid parameters passed in
+###########################################################
+proc_kill()
+{
+    local pid="${1}"
+    local service_name="${2}"
+    local signal=${3:-SIGTERM}
+    local count=${4:-5}
+    local process_sleep=${5:-2}
+    local LH="proc_kill():"
+    local pgrp=$(ps -o pgid= ${pid} | tr -d '[[:space:]]')
+
+    if [ -z "${pid}" -o "${pgrp}" -eq "1" ]; then
+        ocf_log info "${LH} pid provided to kill was empty or for init"
+        return 2
+    fi
+
+    while [ $count -gt 0]; do
+        if [ -d /proc/${pid} ]; then
+            ocf_log debug "${LH} Stopping ${service_name} with ${signal}..."
+            ocf_run pkill -${signal} -g "${pgrp}"
+            if [ ! -d /proc/${pid} ] ; then
+                ocf_log debug "${LH} Stopped ${service_name} with ${signal}"
+                return 0
+            fi
+        else
+            ocf_log debug "${LH} Stopped ${service_name} with ${signal}"
+            return 0
+        fi
+        sleep $process_sleep
+        count=$(( count-1 ))
+    done
+    ocf_log debug "${LH} Failed to stop ${service_name} with ${signal}"
+    return 1
+}
+
+###########################################################
+# Attempts to kill a process with proc_kill and will retry
+# with sigkill if sigterm is unsuccessful
+#
+# Globals:
+#   OCF_ERR_GENERIC
+#   OCF_SUCCESS
+# Arguments:
+#   $1 - pid file location
+#   $2 - service name used for logging
+# Returns:
+#   OCF_SUCCESS - if successful
+#   OCF_ERR_GENERIC - if process is still running according to procfs
+###########################################################
+proc_stop()
+{
+    local pidfile="${1}"
+    local service_name="${2}"
+    local LH="proc_stop():"
+    local pid=$(cat "${pidfile}" 2>/dev/null)
+    if [ -n "${pid}" ]; then
+        ocf_log info "${LH} Stopping ${service_name}"
+        proc_kill "${pid}" "${service_name}"
+        if [ "${?}" -ne "0" ]; then
+            proc_kill "${pid}" "${service_name}" SIGKILL
+            if [ "${?}" -ne "0" ]; then
+                ocf_log err "${LH} ERROR: could not stop ${service_name}"
+                return "${OCF_ERR_GENERIC}"
+            fi
+        fi
+        rm -f "${pidfile}"
+    fi
+    ocf_log info "${LH} Stopped ${service_name}"
+    return "${OCF_SUCCESS}"
+}
