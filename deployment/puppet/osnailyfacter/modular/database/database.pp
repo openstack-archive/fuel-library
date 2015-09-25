@@ -72,6 +72,7 @@ if $enabled {
     mysql_skip_name_resolve => $mysql_skip_name_resolve,
     use_syslog              => $use_syslog,
     config_hash             => $config_hash_real,
+    ignore_db_dir           => ['lost+found'],
   }
 
   class { 'osnailyfacter::mysql_user':

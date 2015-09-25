@@ -41,6 +41,7 @@ class mysql::server (
   $bind_address            = '0.0.0.0',
   $use_syslog              = true,
   $wait_timeout            = $mysql::params::wait_timeout,
+  $ignore_db_dirs          = $mysql::params::ignore_db_dirs,
 ) inherits mysql::params {
 
   if ($config_hash['config_file']) {
