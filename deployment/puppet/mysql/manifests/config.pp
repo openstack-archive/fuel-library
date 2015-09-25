@@ -49,6 +49,7 @@ class mysql::config(
   $server_id          = $mysql::params::server_id,
   $debug              = $mysql::params::debug,
   $wait_timeout       = $mysql::params::wait_timeout,
+  $ignore_db_dir      = $mysql::params::ignore_db_dir,
 ) inherits mysql::params {
 
   $mysql_buffer_pool_size  = $::mysql::params::mysql_buffer_pool_size
