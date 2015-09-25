@@ -145,3 +145,8 @@ mod 'cinder',
 mod 'sahara',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-sahara.git',
     :ref => '7.0.0-mos-rc1'
+
+# Pull in puppet-openssl
+mod 'openssl',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openssl.git',
+    :ref => '1.3.10-mos-rc1'
