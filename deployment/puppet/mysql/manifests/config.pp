@@ -11,10 +11,11 @@
 #   [*config_file*]       - my.cnf configuration file path.
 #   [*socket*]            - mysql socket.
 #   [*datadir*]           - path to datadir.
-#   [*ssl]                - enable ssl
-#   [*ssl_ca]             - path to ssl-ca
-#   [*ssl_cert]           - path to ssl-cert
-#   [*ssl_key]            - path to ssl-key
+#   [*ssl*]               - enable ssl
+#   [*ssl_ca*]            - path to ssl-ca
+#   [*ssl_cert*]          - path to ssl-cert
+#   [*ssl_key*]           - path to ssl-key
+#   [*ignore_db_dirs*]    - array of directories to ignore in datadir.
 #
 # Actions:
 #
@@ -49,6 +50,7 @@ class mysql::config(
   $server_id          = $mysql::params::server_id,
   $debug              = $mysql::params::debug,
   $wait_timeout       = $mysql::params::wait_timeout,
+  $ignore_db_dirs     = $mysql::params::ignore_db_dirs,
 ) inherits mysql::params {
 
   $mysql_buffer_pool_size  = $::mysql::params::mysql_buffer_pool_size
@@ -58,6 +60,10 @@ class mysql::config(
   $key_buffer_size         = $::mysql::params::key_buffer_size
   $myisam_sort_buffer_size = $::mysql::params::myisam_sort_buffer_size
   $open_files_limit        = $::mysql::params::open_files_limit
+
+  if ! is_array($ignore_db_dirs) {
+    fail('The ignore_db_dirs parameter is expected to be an array')
+  }
 
   if $custom_setup_class != "pacemaker_mysql" {
     File {
