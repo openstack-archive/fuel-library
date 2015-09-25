@@ -31,6 +31,8 @@
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 #######################################################################
 
@@ -415,6 +417,10 @@ neutron_l3_agent_start() {
 neutron_l3_agent_stop() {
     local rc
     local pid
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
+    fi
     # This variable is overridden by reload operation
     # to perform fast resource restart
     local remove_artifacts_on_stop_start=${1:-$OCF_RESKEY_remove_artifacts_on_stop_start}
@@ -431,34 +437,11 @@ neutron_l3_agent_stop() {
 
     # Terminate agent daemon
     pid=`get_worker_pid`
-    shutdown_timeout=15
-    iteration_time=1
-
-    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
-        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-6))
-    fi
-
-    clock=0
-
-    # Try to terminate gracefully
-    while [ -d /proc/${pid}/ ] && [ $clock -lt $shutdown_timeout ]; do
-        ocf_log debug "Stopping L3 agent (${OCF_RESKEY_binary}) gracefully with SIGTERM"
-        ocf_run kill -s TERM ${pid}
-
-        sleep $iteration_time
-        ((clock+=$iteration_time))
-    done
-
-    # Send kill signal if process is still up
-    if [ -d /proc/${pid}/ ] ; then
-        ocf_log debug "Killing L3 agent (${OCF_RESKEY_binary}) with SIGKILL"
-        ocf_run kill -s KILL ${pid}
-
-        sleep 1
-        if [ -d /proc/${pid}/ ] ; then
-            ocf_log err "OpenStack L3 agent (${OCF_RESKEY_binary}) stop failed"
-            return $OCF_ERR_GENERIC
-        fi
+    proc_stop "${pid}" "${OCF_RESKEY_binary}" $shutdown_timeout
+    rc=$?
+    if [ "${rc}" -eq "${OCF_ERR_GENERIC}" ]; then
+        ocf_log err "OpenStack L3 agent (${OCF_RESKEY_binary}) stop failed"
+        return $OCF_ERR_GENERIC
     fi
 
     ocf_log info "OpenStack L3 agent ($OCF_RESKEY_binary) stopped"
