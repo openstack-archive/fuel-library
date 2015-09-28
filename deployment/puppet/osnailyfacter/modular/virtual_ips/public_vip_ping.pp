@@ -5,8 +5,9 @@ prepare_network_config($network_scheme)
 $run_ping_checker = hiera('run_ping_checker', true)
 $public_iface = get_network_role_property('public/vip', 'interface')
 $ping_host_list = $network_scheme['endpoints'][$public_iface]['gateway']
+$primary_controller = hiera('primary_controller', false)
 
-if $run_ping_checker {
+if $run_ping_checker and $primary_controller {
   $vip = 'vip__public'
 
   cluster::virtual_ip_ping { $vip :
@@ -14,4 +15,3 @@ if $run_ping_checker {
   }
 
 }
-

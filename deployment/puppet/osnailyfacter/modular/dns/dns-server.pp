@@ -28,3 +28,8 @@ if $network_metadata['vips']["vrouter_${vrouter_name}"]['namespace'] {
     primary_controller => $primary_controller,
   }
 }
+
+include cluster::dns_ocf
+
+Class['osnailyfacter::dnsmasq'] ->
+Class['cluster::dns_ocf']

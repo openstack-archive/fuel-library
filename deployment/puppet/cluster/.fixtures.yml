@@ -4,10 +4,12 @@ fixtures:
     corosync: "#{source_dir}/../corosync"
     openstack: "#{source_dir}/../openstack"
     stdlib: "#{source_dir}/../stdlib"
-    pacemaker: "#{source_dir}/../pacemaker"
-    pacemaker_wrappers: "#{source_dir}/../pacemaker_wrappers"
     ntp: "#{source_dir}/../ntp"
     heat: "#{source_dir}/../heat"
     openstacklib: "#{source_dir}/../openstacklib"
     inifile: "#{source_dir}/../inifile"
     mysql: "#{source_dir}/../mysql"
+  repositories:
+    pacemaker: 
+      repo: "https://review.fuel-infra.org/puppet-modules/puppet-pacemaker.git"
+      ref: "0.0.2"

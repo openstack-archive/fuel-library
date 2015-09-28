@@ -24,15 +24,16 @@ class openstack::corosync (
 
   anchor {'corosync':}
 
-  Anchor['corosync'] -> Cs_property<||>
+  Anchor['corosync'] ->
+    Pcmk_property<||>
 
-  Class['::corosync']->Cs_shadow<||>
-  Class['::corosync']->Cs_property<||>->Cs_resource<||>
-  Cs_property<||>->Cs_shadow<||>
+  Class['::corosync']->
+    Pcmk_property<||>->
+      Pcmk_resource<||>
 
-  Cs_property['no-quorum-policy']->
-    Cs_property['stonith-enabled']->
-      Cs_property['start-failure-is-fatal']
+  Pcmk_property['no-quorum-policy']->
+    Pcmk_property['stonith-enabled']->
+      Pcmk_property['start-failure-is-fatal']
 
   if $corosync_version == '2' {
     $version_real = '1'
@@ -60,24 +61,24 @@ class openstack::corosync (
     debug             => false,
   } -> Anchor['corosync-done']
 
-  Cs_property {
+  Pcmk_property {
     ensure   => present,
-    provider => 'crm',
+#    provider => 'crm',
   }
 
-  cs_property { 'no-quorum-policy':
+  pcmk_property { 'no-quorum-policy':
     value   => $quorum_policy,
   } -> Anchor['corosync-done']
 
-  cs_property { 'stonith-enabled':
+  pcmk_property { 'stonith-enabled':
     value  => $stonith,
   } -> Anchor['corosync-done']
 
-  cs_property { 'start-failure-is-fatal':
+  pcmk_property { 'start-failure-is-fatal':
     value  => false,
   } -> Anchor['corosync-done']
 
-  cs_property { 'symmetric-cluster':
+  pcmk_property { 'symmetric-cluster':
     value  => false,
   } -> Anchor['corosync-done']
 

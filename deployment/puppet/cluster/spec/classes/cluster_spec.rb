@@ -12,7 +12,6 @@ describe 'cluster' do
       default_params
     end
 
-
     context 'with valid params' do
       let :params do
         default_params.merge!({

@@ -1,8 +1,11 @@
 fixtures:
   symlinks:
     ceilometer: "#{source_dir}/../ceilometer"
-    pacemaker: "#{source_dir}/../pacemaker"
     inifile: "#{source_dir}/../inifile"
     nova: "#{source_dir}/../nova"
     stdlib: "#{source_dir}/../stdlib"
     vmware: "#{source_dir}"
+  repositories:
+    pacemaker:
+      repo: "https://review.fuel-infra.org/puppet-modules/puppet-pacemaker.git"
+      ref: "0.0.2"
