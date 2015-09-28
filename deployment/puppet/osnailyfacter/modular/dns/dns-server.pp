@@ -9,8 +9,9 @@ class { 'osnailyfacter::dnsmasq':
   external_dns           => strip(split($dns_servers['dns_list'], ',')),
   master_ip              => $master_ip,
   management_vrouter_vip => $management_vrouter_vip,
-} ->
-
-class { 'cluster::dns_ocf':
-  primary_controller => $primary_controller,
 }
+
+include cluster::dns_ocf
+
+Class['osnailyfacter::dnsmasq'] ->
+Class['cluster::dns_ocf']
