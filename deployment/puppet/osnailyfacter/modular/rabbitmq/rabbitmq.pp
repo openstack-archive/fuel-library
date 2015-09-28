@@ -26,7 +26,7 @@ if $queue_provider == 'rabbitmq' {
       $package_provider = 'yum'
     }
     'Debian': {
-      $command_timeout  = "'--signal=KILL'"
+      $command_timeout  = '--signal=KILL'
       $package_provider = 'apt'
     }
     default: {
@@ -137,7 +137,7 @@ if $queue_provider == 'rabbitmq' {
     }
 
     if ($use_pacemaker) {
-      class { 'pacemaker_wrappers::rabbitmq':
+      class { 'cluster::rabbitmq_ocf':
         command_timeout => $command_timeout,
         debug           => $debug,
         erlang_cookie   => $erlang_cookie,
