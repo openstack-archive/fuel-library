@@ -1,51 +1,51 @@
 define cluster::virtual_ip_ping (
   $host_list = '127.0.0.1',
 ) {
-  $vip_name = $title
+  $vip_name      = $name
+  $service_name  = "ping_${vip_name}"
+  $location_name = "loc_ping_${vip_name}"
 
-  cs_resource { "ping_${vip_name}":
-    ensure          => present,
-    primitive_class => 'ocf',
-    provided_by     => 'pacemaker',
-    primitive_type  => 'ping',
-    parameters      => {
-      'host_list'  => $host_list,
-      'multiplier' => '1000',
-      'dampen'     => '30s',
-      'timeout'    => '3s',
-    },
-    operations     => {
-      'monitor' => {
-        'interval' => '20',
-        'timeout'  => '30',
-      },
-    },
-    complex_type   => 'clone',
+  $primitive_class    = 'ocf'
+  $primitive_provider = 'pacemaker'
+  $primitive_type     = 'ping'
+  $parameters         = {
+    'host_list'  => $host_list,
+    'multiplier' => '1000',
+    'dampen'     => '30s',
+    'timeout'    => '3s',
   }
+  $operations         = {
+    'monitor' => {
+      'interval' => '20',
+      'timeout'  => '30',
+    },
+  }
+  $complex_type       = 'clone'
 
-  service { "${vip_name}":
+  service { $service_name :
     ensure   => 'running',
     enable   => true,
-    provider => 'pacemaker'
   }
 
-  service { "ping_${vip_name}":
-    ensure   => 'running',
-    enable   => true,
-    provider => 'pacemaker',
+  pacemaker::service { $service_name :
+    prefix             => false,
+    primitive_class    => $primitive_class,
+    primitive_provider => $primitive_provider,
+    primitive_type     => $primitive_type,
+    parameters         => $parameters,
+    operations         => $operations,
+    complex_type       => $complex_type,
   }
 
-  cs_rsc_location { "loc_ping_${vip_name}":
+  pcmk_location { $location_name :
     primitive => $vip_name,
-    cib       => "ping_${vip_name}",
     rules     => [
       {
         'score'   => '-inf',
-        'boolean' => '',
         'expressions' => [
           {
-            'attribute' => "not_defined",
-            'operation' => 'pingd',
+            'attribute' => "pingd",
+            'operation' => 'not_defined',
             'value' => 'or',
           },
           {
@@ -58,8 +58,7 @@ define cluster::virtual_ip_ping (
     ],
   }
 
-  Cs_resource["ping_${vip_name}"] ->
-  Cs_rsc_location["loc_ping_${vip_name}"] ->
-  Service["ping_${vip_name}"] ->
-  Service <| title == "${vip_name}" |>
+  Pcmk_resource[$service_name] ->
+  Pcmk_location[$location_name] ->
+  Service[$service_name]
 }

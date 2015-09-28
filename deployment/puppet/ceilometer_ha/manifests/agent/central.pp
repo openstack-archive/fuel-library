@@ -1,5 +1,5 @@
 class ceilometer_ha::agent::central inherits ceilometer::agent::central {
-  pacemaker_wrappers::service { $::ceilometer::params::agent_central_service_name :
+  pacemaker::service { $::ceilometer::params::agent_central_service_name :
     primitive_type  => 'ceilometer-agent-central',
     metadata        => { 'resource-stickiness' => '1' },
     parameters      => { 'user' => 'ceilometer' },
