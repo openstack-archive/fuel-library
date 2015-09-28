@@ -131,3 +131,14 @@ NTP1: 0.pool.ntp.org
 
 
 }
+
+@test "Check wait_connection" {
+    ssh() {
+        [[ $(date +%s) -ge ${te_time} ]]
+    }
+    te_time=$(( $(date +%s) + 5 ))
+    run wait_connection 2
+    [ $status -eq 1 ]
+    run wait_connection 6
+    [ $status -eq 0 ]
+}
