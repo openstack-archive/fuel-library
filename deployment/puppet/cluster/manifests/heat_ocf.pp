@@ -1,4 +1,4 @@
-class heat_ha::engine inherits heat::engine {
+class cluster::heat_ocf inherits heat::engine {
   include heat::params
 
   $primitive_type  = 'heat-engine'
@@ -29,17 +29,17 @@ class heat_ha::engine inherits heat::engine {
     },
   }
 
-  $ms_metadata = {
+  $complex_metadata = {
     'interleave' => true,
   }
 
-  pacemaker_wrappers::service { $::heat::params::engine_service_name :
+  pacemaker::service { $::heat::params::engine_service_name :
     primitive_type      => $primitive_type,
     metadata            => $metadata,
     complex_type        => 'clone',
-    ms_metadata         => $ms_metadata,
+    complex_metadata    => $complex_metadata,
     operations          => $operations,
-    #    ocf_script_template => $ocf_script_template,
+    # ocf_script_template => $ocf_script_template,
   }
 
 }

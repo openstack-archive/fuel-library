@@ -1,75 +1,13 @@
 notice('MODULAR: conntrackd.pp')
 
-prepare_network_config(hiera('network_scheme', {}))
+prepare_network_config(hiera('network_scheme', { }))
 $vrouter_name = hiera('vrouter_name', 'pub')
+$bind_address = get_network_role_property('mgmt/vip', 'ipaddr')
 
-case $operatingsystem {
-  Centos: { $conntrackd_package = 'conntrack-tools' }
-  Ubuntu: { $conntrackd_package = 'conntrackd' }
-}
-
-
-### CONNTRACKD for CentOS 6 doesn't work under namespaces ##
-
+# CONNTRACKD for CentOS 6 doesn't work under namespaces
 if $operatingsystem == 'Ubuntu' {
-  $bind_address = get_network_role_property('mgmt/vip', 'ipaddr')
-
-  package { $conntrackd_package:
-    ensure => installed,
-  } ->
-
-  file { '/etc/conntrackd/conntrackd.conf':
-    content => template('cluster/conntrackd.conf.erb'),
-  } ->
-
-  cs_resource {'p_conntrackd':
-    ensure          => present,
-    primitive_class => 'ocf',
-    provided_by     => 'fuel',
-    primitive_type  => 'ns_conntrackd',
-    metadata        => {
-      'migration-threshold' => 'INFINITY',
-      'failure-timeout'     => '180s'
-    },
-    complex_type => 'master',
-    ms_metadata  => {
-      'notify'          => 'true',
-      'ordered'         => 'false',
-      'interleave'      => 'true',
-      'clone-node-max'  => '1',
-      'master-max'      => '1',
-      'master-node-max' => '1',
-      'target-role'     => 'Master'
-    },
-    operations   => {
-      'monitor'  => {
-      'interval' => '30',
-      'timeout'  => '60'
-    },
-    'monitor:Master' => {
-      'role'         => 'Master',
-      'interval'     => '27',
-      'timeout'      => '60'
-      },
-    },
+  class { 'cluster::conntrackd_ocf' :
+    vrouter_name => $vrouter_name,
+    bind_address => $bind_address,
   }
-
-  cs_colocation { "conntrackd-with-${vrouter_name}-vip":
-    primitives => [ 'master_p_conntrackd:Master', "vip__vrouter_${vrouter_name}" ],
-  }
-
-  File['/etc/conntrackd/conntrackd.conf'] -> Cs_resource['p_conntrackd'] -> Service['p_conntrackd'] -> Cs_colocation["conntrackd-with-${vrouter_name}-vip"]
-
-  service { 'p_conntrackd':
-    ensure   => 'running',
-    enable   => true,
-    provider => 'pacemaker',
-  }
-
-  # Workaround to ensure log is rotated properly
-  file { '/etc/logrotate.d/conntrackd':
-    content => template('openstack/95-conntrackd.conf.erb'),
-  }
-
-  Package[$conntrackd_package] -> File['/etc/logrotate.d/conntrackd']
 }
