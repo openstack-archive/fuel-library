@@ -113,7 +113,7 @@ class mysql::server (
     $allowed_hosts = '%'
 
     create_resources( 'class', { 'mysql::config' => $config_hash })
-    Class['mysql::config'] -> Cs_resource["p_${service_name}"]
+    Class['mysql::config'] -> Pcmk_resource["p_${service_name}"]
 
     if !defined(Package['mysql-client']) {
       package { 'mysql-client':
@@ -175,22 +175,21 @@ class mysql::server (
     }
     ### end hacks
 
-    cs_resource { "p_${service_name}":
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'heartbeat',
-      primitive_type  => 'mysql',
-      cib             => 'mysql',
-      complex_type    => 'master',
-      ms_metadata     => {'notify' => "true"},
-      parameters      => {
+    pcmk_resource { "p_${service_name}":
+      ensure             => 'present',
+      primitive_class    => 'ocf',
+      primitive_provider => 'heartbeat',
+      primitive_type     => 'mysql',
+      complex_type       => 'master',
+      complex_metadata   => { 'notify' => "true" },
+      parameters         => {
         'binary' => "/usr/bin/mysqld_safe",
         'test_table'         => 'mysql.user',
         'replication_user'   => $rep_user,
         'replication_passwd' => $rep_pass,
         'additional_parameters' => '"--init-file=/tmp/repl_create.sql"',
       },
-      operations   => {
+      operations         => {
         'monitor'  => { 'interval' => '20', 'timeout'  => '30' },
         'start'    => { 'timeout' => '360' },
         'stop'     => { 'timeout' => '360' },
@@ -198,7 +197,7 @@ class mysql::server (
         'demote'   => { 'timeout' => '360' },
         'notify'   => { 'timeout' => '360' },
       }
-    }->
+    } ->
 
     service { 'mysql':
       name     => "p_${service_name}",
@@ -209,10 +208,11 @@ class mysql::server (
     }
 
     #Tie vip__management to p_mysqld
-    cs_rsc_colocation { 'mysql_to_internal-vip':
-      primitives => ['vip__management',"master_p_${service_name}:Master"],
+    pcmk_colocation { 'mysql_to_internal-vip':
+      first      => "master_p_${service_name}:Master",
+      second     => 'vip__management',
       score      => 'INFINITY',
-      require    => [Cs_resource["p_${service_name}"]],
+      require    => [Pcmk_resource["p_${service_name}"]],
     }
 
   }
@@ -259,7 +259,7 @@ class mysql::server (
     }
   }
 
-   else {
+  else {
     require($custom_setup_class)
   }
 }
