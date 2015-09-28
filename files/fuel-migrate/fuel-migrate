@@ -331,6 +331,14 @@ fix_udev_rule(){
     done
 }
 
+wait_connection(){
+    tc="$((${1:-300} / 10 ))"
+    until  ssh "${admin_net_ip_bs}" : ; do
+        sleep 10
+        [[ $((tc--)) -lt 0 ]] && return 1
+    done
+}
+
 
 set_log(){
     #  keep current console output on file descriptor &6  and redirect stderr and stdout into file
@@ -368,6 +376,7 @@ if [[ "$1" == "start" ]] && [[ -f "$fuel_migrate_vars" ]] ; then
     /etc/init.d/sshd start
     initctl start tty TTY=/dev/tty2
     cecho "You may login from tty2. Switch by Ctr-Alt-F2"
+    wait_connection 600
     time rsync_data
     fix_config
     rm -f /etc/rc3.d/S00fuel_migrate
