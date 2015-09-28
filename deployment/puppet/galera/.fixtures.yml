@@ -4,6 +4,9 @@ fixtures:
     stdlib: "puppetlabs/stdlib"
   symlinks:
     galera: "#{source_dir}"
-    pacemaker: "#{source_dir}/../pacemaker"
     tweaks: "#{source_dir}/../tweaks"
     openstack: "#{source_dir}/../openstack"
+  repositories:
+    pacemaker: 
+      repo: "https://review.fuel-infra.org/puppet-modules/puppet-pacemaker.git"
+      ref: "0.0.2"
