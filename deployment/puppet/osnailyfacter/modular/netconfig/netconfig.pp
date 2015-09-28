@@ -85,10 +85,10 @@ exec { 'wait-for-interfaces':
 # and the default gateway is online
 $default_gateway = hiera('default_gateway')
 
-ping_host { $default_gateway :
-  ensure => 'up',
-}
+#ping_host { $default_gateway :
+#  ensure => 'up',
+#}
 
 Class['l23network'] ->
-Exec['wait-for-interfaces'] ->
-Ping_host[$default_gateway]
+Exec['wait-for-interfaces'] #->
+#Ping_host[$default_gateway]
