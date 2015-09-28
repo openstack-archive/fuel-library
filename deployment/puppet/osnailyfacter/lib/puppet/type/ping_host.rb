@@ -15,7 +15,7 @@ Puppet::Type.newtype(:ping_host) do
   newparam(:count) do
     desc 'How many times try to perform check?'
     newvalues(/\d+/)
-    defaultto 10
+    defaultto 30
     munge do |n|
       n.to_i
     end

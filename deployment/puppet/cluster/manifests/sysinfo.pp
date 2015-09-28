@@ -40,31 +40,30 @@ class cluster::sysinfo (
 ) {
 
   if $primary_controller {
-    cs_resource { 'sysinfo':
-      ensure          => $monitor_ensure,
-      primitive_class => 'ocf',
-      provided_by     => 'pacemaker',
-      primitive_type  => 'SysInfo',
-      complex_type    => 'clone',
-      parameters      => {
+    pcmk_resource { 'sysinfo':
+      ensure                 => $monitor_ensure,
+      primitive_class        => 'ocf',
+      primitive_provider     => 'pacemaker',
+      primitive_type         => 'SysInfo',
+      complex_type           => 'clone',
+      parameters             => {
         'disks'         => join(any2array($disks), ' '),
         'min_disk_free' => $min_disk_free,
         'disk_unit'     => $disk_unit,
       },
-      operations      => { 'monitor' => { 'interval' => $monitor_interval } },
+      operations             => { 'monitor' => { 'interval' => $monitor_interval } },
     }
 
-    # Have service migrate if health turns red from the failed disk check
-    cs_property { 'node-health-strategy':
+  # Have service migrate if health turns red from the failed disk check
+    pcmk_property { 'node-health-strategy':
       ensure   => present,
       value    => 'migrate-on-red',
-      provider => 'crm',
     }
   }
 
-  cs_location { "clone_sysinfo-on-${::fqdn}":
+  pcmk_location { "clone_sysinfo-on-${::fqdn}":
     primitive => 'clone_sysinfo',
-    node_name => $::fqdn,
+    node      => $::fqdn,
     score     => 'INFINITY',
   }
 }

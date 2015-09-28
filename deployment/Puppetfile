@@ -26,6 +26,11 @@ mod 'stdlib',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-stdlib.git',
     :ref => '4.9.0'
 
+# Pull in puppet-pacemaker modules
+mod 'pacemaker',
+    :git => 'https://review.fuel-infra.org/puppet-modules/puppet-pacemaker.git',
+    :ref => 'stable'
+
 # Pull in puppetlabs-concat
 mod 'concat',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-concat.git',

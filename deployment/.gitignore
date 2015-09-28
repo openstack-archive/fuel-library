@@ -21,3 +21,4 @@ puppet/keystone
 puppet/neutron
 puppet/nova
 puppet/heat
+puppet/pacemaker
