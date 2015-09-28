@@ -370,7 +370,9 @@ function logs {
   ${DOCKER} logs ${CONTAINER_NAMES[$1]}
 }
 
-
+function inspect {
+  ${DOCKER} inspect ${CONTAINER_NAMES[$1]}
+}
 
 function restart_container {
   ${DOCKER} restart ${CONTAINER_NAMES[$1]}
