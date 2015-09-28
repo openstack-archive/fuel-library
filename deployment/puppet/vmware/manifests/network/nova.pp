@@ -19,31 +19,29 @@ class vmware::network::nova (
   $amqp_port = '5673',
   $nova_network_config = '/etc/nova/nova.conf',
   $nova_network_config_dir = '/etc/nova/nova-network.d'
-)
-{
+) {
   include nova::params
 
   $nova_network_config_ha = "${nova_network_config_dir}/nova-network-ha.conf"
 
   if ! defined(File[$nova_network_config_dir]) {
     file { $nova_network_config_dir:
-      ensure => directory,
-      owner  => nova,
-      group  => nova,
+      ensure => 'directory',
+      owner  => 'nova',
+      group  => 'nova',
       mode   => '0750'
     }
   }
 
   if ! defined(File[$nova_network_config_ha]) {
     file { $nova_network_config_ha:
-      ensure  => present,
+      ensure  => 'present',
       content => template('vmware/nova-network-ha.conf.erb'),
       mode    => '0600',
-      owner   => nova,
-      group   => nova,
+      owner   => 'nova',
+      group   => 'nova',
     }
   }
-
 
   $nova_user = 'nova'
   $nova_hash = hiera('nova')
@@ -52,35 +50,43 @@ class vmware::network::nova (
   $auth_url = "http://${management_vip}:5000/v2.0"
   $region = hiera('region', 'RegionOne')
 
-  cs_resource { 'p_vcenter_nova_network':
-    ensure          => present,
-    primitive_class => 'ocf',
-    provided_by     => 'fuel',
-    primitive_type  => 'nova-network',
-    metadata        => {
-      resource-stickiness => '1'
+  $service_name       = 'p_vcenter_nova_network'
+  $primitive_class    = 'ocf'
+  $primitive_provider = 'fuel'
+  $primitive_type     = 'nova-network'
+  $metadata           = {
+    'resource-stickiness' => '1'
+  }
+  $parameters         = {
+    'amqp_server_port'      => $amqp_port,
+    'user'                  => $nova_user,
+    'password'              => $nova_password,
+    'auth_url'              => $auth_url,
+    'region'                => $region,
+    'config'                => $nova_network_config,
+    'additional_parameters' => "--config-file=${nova_network_config_ha}",
+  }
+  $operations         = {
+    'monitor' => {
+      'interval' => '20',
+      'timeout'  => '30',
     },
-    parameters      => {
-      amqp_server_port      => $amqp_port,
-      user                  => $nova_user,
-      password              => $nova_password,
-      auth_url              => $auth_url,
-      region                => $region,
-      config                => $nova_network_config,
-      additional_parameters => "--config-file=${nova_network_config_ha}",
+    'start'   => {
+      'timeout' => '20',
     },
-    operations      => {
-      monitor => {
-        interval => '20',
-        timeout  => '30',
-      },
-      start   => {
-        timeout => '20',
-      },
-      stop    => {
-        timeout => '20',
-      }
+    'stop'    => {
+      'timeout' => '20',
     }
+  }
+
+  pacemaker::service { $service_name :
+    prefix             => false,
+    primitive_class    => $primitive_class,
+    primitive_provider => $primitive_provider,
+    primitive_type     => $primitive_type,
+    metadata           => $metadata,
+    parameters         => $parameters,
+    operations         => $operations,
   }
 
   if ($::operatingsystem == 'Ubuntu') {
@@ -89,15 +95,14 @@ class vmware::network::nova (
     }
   }
 
-  service { 'p_vcenter_nova_network':
-    ensure => 'running',
-    enable => true,
-    provider => 'pacemaker',
+  service { $service_name :
+    ensure   => 'running',
+    enable   => true,
   }
 
   package { 'nova-network':
+    ensure => 'present',
     name   => $::nova::params::network_package_name,
-    ensure => present
   }
 
   service { 'nova-network':
@@ -112,9 +117,9 @@ class vmware::network::nova (
   Anchor['vcenter-nova-network-start']->
   Package['nova-network']->
   Service['nova-network']->
-  File["${nova_network_config_dir}"]->
-  File["${nova_network_config_ha}"]->
-  Cs_resource['p_vcenter_nova_network']->
-  Service['p_vcenter_nova_network']->
+  File[$nova_network_config_dir]->
+  File[$nova_network_config_ha]->
+  Pcmk_resource[$service_name]->
+  Service[$service_name]->
   Anchor['vcenter-nova-network-end']
 }

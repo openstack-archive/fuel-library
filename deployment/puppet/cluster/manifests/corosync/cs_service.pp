@@ -24,16 +24,16 @@ define cluster::corosync::cs_service (
   }
 
   if $primary {
-    cs_resource { "p_${service_name}":
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'fuel',
-      primitive_type  => $ocf_script,
-      complex_type    => $csr_complex_type,
-      ms_metadata     => $csr_ms_metadata,
-      parameters      => $csr_parameters,
-      metadata        => $csr_metadata,
-      operations      => {
+    pcmk_resource { "p_${service_name}":
+      ensure               => 'present',
+      primitive_class      => 'ocf',
+      primitive_provider   => 'fuel',
+      primitive_type       => $ocf_script,
+      complex_type         => $csr_complex_type,
+      complex_metadata     => $csr_ms_metadata,
+      parameters           => $csr_parameters,
+      metadata             => $csr_metadata,
+      operations           => {
         'monitor' => {
           'interval' => $csr_mon_intr,
           'timeout'  => $csr_mon_timeout
@@ -48,7 +48,7 @@ define cluster::corosync::cs_service (
         }
       }
     }
-    Cs_resource["p_${service_name}"] -> Service[$service_true_title]
+    Pcmk_resource["p_${service_name}"] -> Service[$service_true_title]
   }
   if ! $package_name {
     warning('Cluster::corosync::cs_service: Without package definition can\'t protect service for autostart correctly.')

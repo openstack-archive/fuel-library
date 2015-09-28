@@ -33,12 +33,12 @@ class cluster::mysql (
   $service_name = 'mysqld'
 
   if $primary_controller {
-    cs_resource { "p_${service_name}":
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'fuel',
-      primitive_type  => 'mysql-wss',
-      complex_type    => 'clone',
+    pcmk_resource { "p_${service_name}":
+      ensure             => 'present',
+      primitive_class    => 'ocf',
+      primitive_provider => 'fuel',
+      primitive_type     => 'mysql-wss',
+      complex_type       => 'clone',
       parameters      => {
         'config'      => $mysql_config,
         'test_user'   => $mysql_user,
@@ -61,7 +61,7 @@ class cluster::mysql (
       },
     }
 
-    Cs_resource["p_${service_name}"] ~>
+    Pcmk_resource["p_${service_name}"] ~>
       Service[$service_name]
   }
 
