@@ -5,7 +5,7 @@ $vcenter_hash    = hiera('vcenter_hash')
 $public_vip      = hiera('public_vip')
 $use_neutron     = hiera('use_neutron', false)
 $ceilometer_hash = hiera('ceilometer',{})
-$debug           = hiera('debug', false)
+$debug           = pick($vcenter_hash['debug'], hiera('debug', false))
 
 if $use_vcenter {
   class { 'vmware':
