@@ -1,10 +1,6 @@
-# == Class: pacemaker_wrappers::rabbitmq
+# == Class: cluster::rabbitmq_ocf
 #
 # Overrides rabbitmq service provider as a pacemaker
-#
-# TODO(bogdando) that one just an example of Pacemaker service
-#   provider wrapper implementation and should be moved to openstack_extra
-#   and params should be described
 #
 # === Parameters
 #
@@ -63,7 +59,7 @@
 #   Defaults to empty string
 #
 
-class pacemaker_wrappers::rabbitmq (
+class cluster::rabbitmq_ocf (
   $primitive_type          = 'rabbitmq-server',
   $service_name            = $::rabbitmq::service_name,
   $port                    = $::rabbitmq::port,
@@ -106,7 +102,7 @@ class pacemaker_wrappers::rabbitmq (
     'resource-stickiness' => '100',
   }
 
-  $ms_metadata     = {
+  $complex_metadata     = {
     'notify'      => 'true',
     # We shouldn't enable ordered start for parallel start of RA.
     'ordered'     => 'false',
@@ -155,14 +151,14 @@ class pacemaker_wrappers::rabbitmq (
     },
   }
 
-  pacemaker_wrappers::service { $service_name :
-    primitive_type      => $primitive_type,
-    complex_type        => 'master',
-    metadata            => $metadata,
-    ms_metadata         => $ms_metadata,
-    operations          => $operations,
-    parameters          => $parameters,
-    #    ocf_script_file     => $ocf_script_file,
+  pacemaker::service { $service_name :
+    primitive_type           => $primitive_type,
+    complex_type             => 'master',
+    metadata                 => $metadata,
+    complex_metadata         => $complex_metadata,
+    operations               => $operations,
+    parameters               => $parameters,
+    # ocf_script_file          => $ocf_script_file,
   }
   Service[$service_name] -> Rabbitmq_user <||>
 }
