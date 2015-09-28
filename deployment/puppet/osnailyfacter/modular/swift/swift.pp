@@ -68,8 +68,8 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   if $deploy_swift_proxy {
     $resize_value = pick($swift_hash['resize_value'], 2)
     $ring_part_power = calc_ring_part_power($swift_nodes,$resize_value)
-    $sto_net = get_network_role_property('swift/replication', 'network')
-    $man_net = get_network_role_property('swift/api', 'network')
+    $sto_nets = get_routable_networks_for_network_role($network_scheme, 'swift/replication', ' ')
+    $man_nets = get_routable_networks_for_network_role($network_scheme, 'swift/api', ' ')
 
     class { 'openstack::swift::proxy':
       swift_user_password            => $swift_hash['user_password'],
@@ -96,7 +96,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     class { 'openstack::swift::status':
       endpoint    => "http://${swift_api_ipaddr}:${proxy_port}",
       vip         => $management_vip,
-      only_from   => "127.0.0.1 240.0.0.2 ${sto_net} ${man_net}",
+      only_from   => "127.0.0.1 240.0.0.2 ${sto_nets} ${man_nets}",
       con_timeout => 5
     }
 

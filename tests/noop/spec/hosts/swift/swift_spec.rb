@@ -12,6 +12,14 @@ describe manifest do
     controller_internal_addresses = Noop::Utils.nodes_to_hash(controllers,'name','internal_address')
     controller_nodes = Noop::Utils.ipsort(controller_internal_addresses.values)
     memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }
+    let (:sto_nets){
+        network_scheme = Noop.hiera 'network_scheme'
+        sto_nets = Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '
+    }
+    let (:man_nets){
+        network_scheme = Noop.hiera 'network_scheme'
+        man_nets = Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/api', ' '
+    }
 
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
@@ -58,6 +66,12 @@ describe manifest do
           'memcache_servers' => memcached_servers,
         )
       end
+
+      it {
+        should contain_class('openstack::swift::status').with(
+          'only_from' => "127.0.0.1 240.0.0.2 #{sto_nets} #{man_nets}",
+        )
+      }
     end
   end
   test_ubuntu_and_centos manifest
