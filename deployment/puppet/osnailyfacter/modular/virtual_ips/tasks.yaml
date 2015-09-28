@@ -19,3 +19,7 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/conntrackd.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/virtual_ips/conntrackd_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/virtual_ips/conntrackd_post.rb
