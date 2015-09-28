@@ -27,3 +27,4 @@ puppet/swift
 puppet/ceilometer
 puppet/cinder
 puppet/sahara
+puppet/pacemaker
