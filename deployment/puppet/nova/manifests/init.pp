@@ -326,25 +326,25 @@ class nova(
     }
 
     if $nova_public_key {
-      if ! $nova_public_key[key] or ! $nova_public_key[type] {
+      if ! $nova_public_key['key'] or ! $nova_public_key['type'] {
         fail('You must provide both a key type and key data.')
       }
 
       ssh_authorized_key { 'nova-migration-public-key':
         ensure  => present,
-        key     => $nova_public_key[key],
-        type    => $nova_public_key[type],
+        key     => $nova_public_key['key'],
+        type    => $nova_public_key['type'],
         user    => 'nova',
         require => File['/var/lib/nova/.ssh'],
       }
     }
 
     if $nova_private_key {
-      if ! $nova_private_key[key] or ! $nova_private_key[type] {
+      if ! $nova_private_key['key'] or ! $nova_private_key['type'] {
         fail('You must provide both a key type and key data.')
       }
 
-      $nova_private_key_file = $nova_private_key[type] ? {
+      $nova_private_key_file = $nova_private_key['type'] ? {
         'ssh-rsa'   => '/var/lib/nova/.ssh/id_rsa',
         'ssh-dsa'   => '/var/lib/nova/.ssh/id_dsa',
         'ssh-ecdsa' => '/var/lib/nova/.ssh/id_ecdsa',
@@ -356,7 +356,7 @@ class nova(
       }
 
       file { $nova_private_key_file:
-        content => $nova_private_key[key],
+        content => $nova_private_key['key'],
         mode    => '0600',
         owner   => nova,
         group   => nova,
