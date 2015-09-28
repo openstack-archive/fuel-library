@@ -140,8 +140,6 @@ class { '::openstack::controller':
   idle_timeout                   => $idle_timeout,
 }
 
-package { 'socat': ensure => present }
-
 #TODO: PUT this configuration stanza into nova class
 nova_config { 'DEFAULT/use_cow_images':                   value => hiera('use_cow_images')}
 

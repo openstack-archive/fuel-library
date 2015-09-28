@@ -53,10 +53,6 @@ if $enabled {
     $config_hash_real = { }
   }
 
-  package { 'socat':
-    ensure => 'present',
-  }
-
   class { 'mysql::server':
     bind_address            => '0.0.0.0',
     etc_root_password       => true,
@@ -118,12 +114,11 @@ if $enabled {
     db_password => $mysql_database_password,
   }
 
-  Package['socat'] ->
-    Class['mysql::server'] ->
-      Class['osnailyfacter::mysql_user'] ->
-        Exec['initial_access_config'] ->
-          Class['openstack::galera::status'] ->
-            Haproxy_backend_status['mysql'] ->
-              Class['osnailyfacter::mysql_access']
+  Class['mysql::server'] ->
+    Class['osnailyfacter::mysql_user'] ->
+      Exec['initial_access_config'] ->
+        Class['openstack::galera::status'] ->
+          Haproxy_backend_status['mysql'] ->
+            Class['osnailyfacter::mysql_access']
 
 }
