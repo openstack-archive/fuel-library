@@ -78,7 +78,7 @@ class galera (
   $wsrep_sst_password   = undef,
   $use_percona          = false,
   $use_percona_packages = false,
-  ) {
+) {
 
   include galera::params
 
@@ -86,7 +86,7 @@ class galera (
   validate_bool($use_percona)
   validate_bool($use_percona_packages)
 
-  anchor {'database-cluster': }
+  anchor { 'database-cluster': }
 
   $mysql_user              = $::galera::params::mysql_user
   $mysql_password          = $wsrep_sst_password ? {
@@ -204,18 +204,18 @@ class galera (
     $galera_socket = $::galera::params::database_socket
 
     # TODO(bogdando) move to extras as a wrapper class
-    cs_resource { "p_${service_name}":
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'fuel',
-      primitive_type  => 'mysql-wss',
-      complex_type    => 'clone',
-      parameters      => {
+    pcmk_resource { "p_${service_name}":
+      ensure             => present,
+      primitive_class    => 'ocf',
+      primitive_provider => 'fuel',
+      primitive_type     => 'mysql-wss',
+      complex_type       => 'clone',
+      parameters         => {
         'test_user'   => $mysql_user,
         'test_passwd' => $mysql_password,
         'socket'      => $galera_socket,
       },
-      operations      => {
+      operations         => {
         'monitor' => {
           'interval' => '60',
           'timeout'  => '55'
@@ -229,7 +229,7 @@ class galera (
       },
     }
     Anchor['database-cluster'] ->
-      Cs_resource["p_${service_name}"] ->
+      Pcmk_resource["p_${service_name}"] ->
         Service['mysql'] ->
           Exec['wait-for-synced-state']
   } else {
