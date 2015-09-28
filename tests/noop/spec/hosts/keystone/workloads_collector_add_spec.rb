@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'keystone/remove_workloads_collector.pp'
+manifest = 'keystone/workloads_collector_add.pp'
 
 describe manifest do
   test_ubuntu_and_centos manifest

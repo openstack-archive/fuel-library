@@ -21,3 +21,13 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
+- id: workloads_collector_add
+  type: puppet
+  groups: [primary-controller]
+  required_for: [deploy_end]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/workloads_collector_add.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
