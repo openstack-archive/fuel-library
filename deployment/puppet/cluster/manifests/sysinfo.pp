@@ -36,35 +36,43 @@ class cluster::sysinfo (
   $min_disk_free    = '100M',
   $disk_unit        = 'M',
   $monitor_interval = '15s',
-  $monitor_ensure   = present,
+  $monitor_ensure   = 'present',
 ) {
 
-  if $primary_controller {
-    cs_resource { 'sysinfo':
-      ensure          => $monitor_ensure,
-      primitive_class => 'ocf',
-      provided_by     => 'pacemaker',
-      primitive_type  => 'SysInfo',
-      complex_type    => 'clone',
-      parameters      => {
-        'disks'         => join(any2array($disks), ' '),
-        'min_disk_free' => $min_disk_free,
-        'disk_unit'     => $disk_unit,
-      },
-      operations      => { 'monitor' => { 'interval' => $monitor_interval } },
-    }
-
-    # Have service migrate if health turns red from the failed disk check
-    cs_property { 'node-health-strategy':
-      ensure   => present,
-      value    => 'migrate-on-red',
-      provider => 'crm',
+  $service_name       = 'sysinfo'
+  $primitive_class    = 'ocf'
+  $primitive_provider = 'pacemaker'
+  $primitive_type     = 'SysInfo'
+  $complex_type       = 'clone'
+  $parameters      = {
+    'disks'         => join(any2array($disks), ' '),
+    'min_disk_free' => $min_disk_free,
+    'disk_unit'     => $disk_unit,
+  }
+  $operations      = {
+    'monitor' => {
+      'interval' => $monitor_interval,
     }
   }
 
-  cs_location { "clone_sysinfo-on-${::fqdn}":
-    primitive => 'clone_sysinfo',
-    node_name => $::fqdn,
-    score     => 'INFINITY',
+  service { $service_name :
+    ensure => 'running',
+    enable => 'true',
   }
+
+  pacemaker::service { $service_name :
+    prefix             => true,
+    primitive_class    => $primitive_class,
+    primitive_provider => $primitive_provider,
+    primitive_type     => $primitive_type,
+    parameters         => $parameters,
+    operations         => $operations,
+    complex_type       => $complex_type,
+  }
+
+  pcmk_property { 'node-health-strategy':
+    ensure   => 'present',
+    value    => 'migrate-on-red',
+  }
+
 }
