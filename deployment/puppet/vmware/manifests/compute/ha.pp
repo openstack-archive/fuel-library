@@ -26,15 +26,14 @@ define vmware::compute::ha(
   $target_node,
   $datastore_regex = undef,
   $amqp_port = '5673',
-  $api_retry_count = 5,
-  $maximum_objects = 100,
+  $api_retry_count = '5',
+  $maximum_objects = '100',
   $nova_conf = '/etc/nova/nova.conf',
   $nova_conf_dir = '/etc/nova/nova-compute.d',
-  $task_poll_interval = 5.0,
+  $task_poll_interval = '5.0',
   $use_linked_clone = true,
   $wsdl_location = undef
-)
-{
+) {
   # We deploy nova-compute on controller node only if
   # $target_node contains 'controllers' otherwise
   # service will be deployed on separate node
@@ -43,56 +42,71 @@ define vmware::compute::ha(
 
     if ! defined(File[$nova_conf_dir]) {
       file { $nova_conf_dir:
-        ensure => directory,
-        owner  => nova,
-        group  => nova,
+        ensure => 'directory',
+        owner  => 'nova',
+        group  => 'nova',
         mode   => '0750'
       }
     }
 
     if ! defined(File[$nova_compute_conf]) {
-      # $cluster is used inside template
+    # $cluster is used inside template
       $cluster = $name
       file { $nova_compute_conf:
-        ensure  => present,
+        ensure  => 'present',
         content => template('vmware/nova-compute.conf.erb'),
         mode    => '0600',
-        owner   => nova,
-        group   => nova,
+        owner   => 'nova',
+        group   => 'nova',
       }
     }
 
-    cs_resource { "p_nova_compute_vmware_${availability_zone_name}-${service_name}":
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'fuel',
-      primitive_type  => 'nova-compute',
-      metadata        => {
-        resource-stickiness => '1'
+    $primitive_name = "p_nova_compute_vmware_${availability_zone_name}-${service_name}"
+
+    $primitive_class    = 'ocf'
+    $primitive_provider = 'fuel'
+    $primitive_type     = 'nova-compute'
+    $metadata           = {
+      'resource-stickiness' => '1'
+    }
+    $parameters         = {
+      'amqp_server_port'      => $amqp_port,
+      'config'                => $nova_conf,
+      'pid'                   => "/var/run/nova/nova-compute-${availability_zone_name}-${service_name}.pid",
+      'additional_parameters' => "--config-file=${nova_compute_conf}",
+    }
+    $operations         = {
+      'monitor'  => {
+        'timeout' => '10',
+        'interval' => '20',
       },
-      parameters      => {
-        amqp_server_port      => $amqp_port,
-        config                => $nova_conf,
-        pid                   => "/var/run/nova/nova-compute-${availability_zone_name}-${service_name}.pid",
-        additional_parameters => "--config-file=${nova_compute_conf}",
+      'start'    => {
+        'timeout' => '30',
       },
-      operations      => {
-        monitor  => { timeout => '10', interval => '20' },
-        start    => { timeout => '30' },
-        stop     => { timeout => '30' }
+      'stop'     => {
+        'timeout' => '30',
       }
     }
 
-    service { "p_nova_compute_vmware_${availability_zone_name}-${service_name}":
-      ensure => running,
+    pacemaker::service { $primitive_name :
+      prefix => false,
+      primitive_class => $primitive_class,
+      primitive_provider => $primitive_provider,
+      primitive_type => $primitive_type,
+      metadata => $metadata,
+      parameters => $parameters,
+      operations => $operations,
+    }
+
+    service { $primitive_name :
+      ensure => 'running',
       enable => true,
-      provider => 'pacemaker',
     }
 
     File["${nova_conf_dir}"]->
     File["${nova_compute_conf}"]->
-    Cs_resource["p_nova_compute_vmware_${availability_zone_name}-${service_name}"]->
-    Service["p_nova_compute_vmware_${availability_zone_name}-${service_name}"]
+    Pcmk_resource[$primitive_name]->
+    Service[$primitive_name]
   }
 }
 
