@@ -307,17 +307,10 @@ class cinder::api (
   else {
     $auth_uri_real = $auth_uri
   }
-  cinder_api_paste_ini { 'filter:authtoken/auth_uri': value => $auth_uri_real; }
 
   if $keystone_enabled {
     cinder_config {
       'DEFAULT/auth_strategy':     value => 'keystone' ;
-    }
-
-    cinder_api_paste_ini {
-      'filter:authtoken/admin_tenant_name': value => $keystone_tenant;
-      'filter:authtoken/admin_user':        value => $keystone_user;
-      'filter:authtoken/admin_password':    value => $keystone_password, secret => true;
     }
 
     # if both auth_uri and identity_uri are set we skip these deprecated settings entirely
@@ -394,16 +387,6 @@ class cinder::api (
         'filter:authtoken/auth_host':        ensure => absent;
         'filter:authtoken/service_protocol': ensure => absent;
         'filter:authtoken/auth_protocol':    ensure => absent;
-      }
-    }
-
-    if $identity_uri {
-      cinder_api_paste_ini {
-        'filter:authtoken/identity_uri': value => $identity_uri;
-      }
-    } else {
-      cinder_api_paste_ini {
-        'filter:authtoken/identity_uri': ensure => absent;
       }
     }
   }

@@ -60,19 +60,6 @@ describe 'cinder::api' do
       is_expected.to contain_cinder_api_paste_ini('filter:authtoken/auth_admin_prefix').with(
         :ensure => 'absent'
       )
-      is_expected.to contain_cinder_api_paste_ini('filter:authtoken/admin_tenant_name').with(
-        :value => 'services'
-      )
-      is_expected.to contain_cinder_api_paste_ini('filter:authtoken/admin_user').with(
-        :value => 'cinder'
-      )
-      is_expected.to contain_cinder_api_paste_ini('filter:authtoken/admin_password').with(
-        :value  => 'foo',
-        :secret => true
-      )
-      is_expected.to contain_cinder_api_paste_ini('filter:authtoken/auth_uri').with(
-        :value => 'http://localhost:5000/'
-      )
 
       is_expected.to_not contain_cinder_config('DEFAULT/os_region_name')
       is_expected.to contain_cinder_config('DEFAULT/os_privileged_user_name').with_ensure('absent')
@@ -180,17 +167,6 @@ describe 'cinder::api' do
     it 'should configure the default volume type for cinder' do
       is_expected.to contain_cinder_config('DEFAULT/default_volume_type').with(
         :value => 'foo'
-      )
-    end
-  end
-
-  describe 'with custom auth_uri' do
-    let :params do
-      req_params.merge({'keystone_auth_uri' => 'http://localhost:8080/v2.0/'})
-    end
-    it 'should configure cinder auth_uri correctly' do
-      is_expected.to contain_cinder_api_paste_ini('filter:authtoken/auth_uri').with(
-        :value => 'http://localhost:8080/v2.0/'
       )
     end
   end
@@ -345,8 +321,6 @@ describe 'cinder::api' do
       })
     end
     it 'configures identity_uri and auth_uri but deprecates old auth settings' do
-      is_expected.to contain_cinder_api_paste_ini('filter:authtoken/identity_uri').with_value("https://localhost:35357/");
-      is_expected.to contain_cinder_api_paste_ini('filter:authtoken/auth_uri').with_value("https://localhost:5000/v2.0/");
       is_expected.to contain_cinder_api_paste_ini('filter:authtoken/auth_admin_prefix').with(:ensure => 'absent')
       is_expected.to contain_cinder_api_paste_ini('filter:authtoken/auth_port').with(:ensure => 'absent')
       is_expected.to contain_cinder_api_paste_ini('filter:authtoken/service_port').with(:ensure => 'absent')
