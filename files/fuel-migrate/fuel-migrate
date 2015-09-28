@@ -331,6 +331,18 @@ fix_udev_rule(){
     done
 }
 
+check_ping(){
+    # Check that destination is reachable using ICMP (ping)
+    local dest="${1:-admin_net_ip_bs}"
+    local tries="${2:-30}"
+    while [[ $tries -gt 0 ]]; do
+        if ping &>/dev/null -q -c 1 -W 3 -w 3 "${dest}"; then
+            return 0
+        fi
+        ((tries--))
+    done
+    return 1
+}
 
 set_log(){
     #  keep current console output on file descriptor &6  and redirect stderr and stdout into file
@@ -368,6 +380,7 @@ if [[ "$1" == "start" ]] && [[ -f "$fuel_migrate_vars" ]] ; then
     /etc/init.d/sshd start
     initctl start tty TTY=/dev/tty2
     cecho "You may login from tty2. Switch by Ctr-Alt-F2"
+    check_ping
     time rsync_data
     fix_config
     rm -f /etc/rc3.d/S00fuel_migrate
