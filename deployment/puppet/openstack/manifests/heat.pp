@@ -106,23 +106,6 @@ class openstack::heat (
     }
   }
 
-  # Firewall rules for APIs
-  firewall { '206 heat-api-cloudwatch' :
-    dport  => [ $api_cloudwatch_bind_port ],
-    proto  => 'tcp',
-    action => 'accept',
-  } ->
-  firewall { '205 heat-api-cfn' :
-    dport  => [ $api_cfn_bind_port ],
-    proto  => 'tcp',
-    action => 'accept',
-  } ->
-  firewall { '204 heat-api' :
-    dport  => [ $api_bind_port ],
-    proto  => 'tcp',
-    action => 'accept',
-  }
-
   # Common configuration, logging and RPC
   class { '::heat':
     auth_uri              => $auth_uri,

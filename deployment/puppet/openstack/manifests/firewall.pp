@@ -41,6 +41,9 @@ class openstack::firewall (
   $libvirt_port                 = 16509,
   $nrpe_server_port             = 5666,
   $ceilometer_port              = 8777,
+  $heat_api_port                = 8004,
+  $heat_api_cfn_port            = 8000,
+  $heat_api_cloudwatch_port     = 8003,
   $mongodb_port                 = 27017,
   $vxlan_udp_port               = 4789,
   $keystone_network             = '0.0.0.0/0',
@@ -232,6 +235,24 @@ class openstack::firewall (
   firewall {'121 ceilometer':
     port => $ceilometer_port,
     proto => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'204 heat-api':
+    port  => $heat_api_port,
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'205 heat-api-cfn':
+    port  => $heat_api_cfn_port,
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'206 heat-api-cloudwatch':
+    port  => $heat_api_cloudwatch_port,
+    proto  => 'tcp',
     action => 'accept',
   }
 

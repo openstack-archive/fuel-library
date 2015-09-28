@@ -13,12 +13,6 @@ $replset_name      = 'ceilometer'
 $mongodb_port      = hiera('mongodb_port', '27017')
 
 ####################################################################
-firewall {'120 mongodb':
-  port   => $mongodb_port,
-  proto  => 'tcp',
-  action => 'accept',
-} ->
-
 class { 'openstack::mongo':
   mongodb_bind_address       => [ '127.0.0.1', $bind_address ],
   mongodb_port               => $mongodb_port,

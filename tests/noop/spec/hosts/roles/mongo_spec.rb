@@ -16,6 +16,7 @@ describe manifest do
     use_syslog = Noop.hiera 'use_syslog'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
     nodes_hash = Noop.hiera 'nodes'
+    mongodb_port = Noop.hiera('mongodb_port', '27017')
 
     it 'should configure MongoDB only with replica set' do
       should contain_class('mongodb::server').with('replset' => 'ceilometer')
@@ -57,6 +58,10 @@ describe manifest do
 
     it 'should create mongorc file' do
       should contain_file('mongorc').with('ensure' => 'present', 'path' => "#{Dir.home('root')}/.mongorc.js")
+    end
+
+    it 'should create firewall rules' do
+      should contain_firewall('120 mongodb').with('port' => mongodb_port)
     end
 
   end

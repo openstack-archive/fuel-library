@@ -63,6 +63,12 @@ class openstack::mongo (
   class {'::mongodb::client':
   } ->
 
+  firewall {'120 mongodb':
+    port   => $mongodb_port,
+    proto  => 'tcp',
+    action => 'accept',
+  } ->
+
   class {'::mongodb::server':
     package_ensure => true,
     port           => $mongodb_port,
