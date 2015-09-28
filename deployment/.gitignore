@@ -28,6 +28,7 @@ puppet/swift
 puppet/ceilometer
 puppet/cinder
 puppet/sahara
+puppet/pacemaker
 puppet/openssl
 puppet/mongodb
 puppet/rsync
