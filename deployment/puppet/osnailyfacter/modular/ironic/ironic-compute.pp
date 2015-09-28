@@ -116,23 +116,23 @@ class { 'nova::network::neutron':
   neutron_admin_auth_url => "${admin_identity_uri}/v3",
 }
 
-cs_resource { "p_nova_compute_ironic":
-  ensure          => present,
-  primitive_class => 'ocf',
-  provided_by     => 'fuel',
-  primitive_type  => 'nova-compute',
+pcmk_resource { "p_nova_compute_ironic":
+  ensure             => 'present',
+  primitive_class    => 'ocf',
+  primitive_provider => 'fuel',
+  primitive_type     => 'nova-compute',
   metadata        => {
-    resource-stickiness => '1'
+    'resource-stickiness' => '1'
   },
   parameters      => {
-    config                => "/etc/nova/nova.conf",
-    pid                   => "/var/run/nova/nova-compute-ironic.pid",
-    additional_parameters => "--config-file=/etc/nova/nova-compute.conf",
+    'config'                => "/etc/nova/nova.conf",
+    'pid'                   => "/var/run/nova/nova-compute-ironic.pid",
+    'additional_parameters' => "--config-file=/etc/nova/nova-compute.conf",
   },
   operations      => {
-    monitor  => { timeout => '30', interval => '60' },
-    start    => { timeout => '30' },
-    stop     => { timeout => '30' }
+    monitor  => { 'timeout' => '30', 'interval' => '60' },
+    start    => { 'timeout' => '30' },
+    stop     => { 'timeout' => '30' }
   }
 }
 
