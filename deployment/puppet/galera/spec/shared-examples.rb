@@ -160,9 +160,9 @@ shared_examples 'test-primary-controller' do |params|
 
   it {
     if params[:primary_controller]
-      should contain_cs_resource('p_mysql')
+      should contain_pcmk_resource('p_mysql')
     else
-      should_not contain_cs_resource('p_mysql')
+      should_not contain_pcmk_resource('p_mysql')
     end
   }
 end
