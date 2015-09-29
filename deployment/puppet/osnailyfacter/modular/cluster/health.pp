@@ -5,7 +5,7 @@ if !(hiera('role') in hiera('corosync_roles')) {
 }
 
 # load the mounted filesystems from our custom fact, remove boot
-$mount_points = delete(split($::mounts, ','), '/boot')
+$mount_points = delete($::mounts, '/boot')
 
 $primary_controller = hiera('primary_controller')
 $disks              = hiera('corosync_disks', $mount_points)
