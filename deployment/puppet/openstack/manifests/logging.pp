@@ -36,6 +36,7 @@ class openstack::logging (
     $production       = 'prod',
     $escapenewline    = false,
     $debug            = false,
+    $ironic_collector = false,
 ) {
 
   validate_re($proto, 'tcp|udp|both')
@@ -237,7 +238,19 @@ class openstack::logging (
     }
 
     file { "${::rsyslog::params::rsyslog_d}00-remote.conf":
-    content => template("${module_name}/00-remote.conf.erb"),
+       content => template("${module_name}/00-remote.conf.erb"),
+    }
+
+    if $ironic_collector {
+      ::rsyslog::snippet { '70-ironic':
+        content => template("${module_name}/70-ironic.conf.erb"),
+      }
+    }
+
+    class { '::rsyslog::client':
+      log_remote     => $log_remote,
+      log_local      => $log_local,
+      log_auth_local => $log_auth_local,
     }
 
     class { "::rsyslog::client":
