@@ -54,7 +54,7 @@ if $enabled {
     $config_hash_real = { }
   }
 
-  if '/var/lib/mysql' in split($::mounts, ',') {
+  if '/var/lib/mysql' in $::mounts {
     $ignore_db_dirs = ['lost+found']
   } else {
     $ignore_db_dirs = []
