@@ -11,6 +11,7 @@ describe manifest do
     controllers = primary_controller_nodes + Noop::Utils.filter_nodes(nodes,'role','controller')
     controller_internal_addresses = Noop::Utils.nodes_to_hash(controllers,'name','internal_address')
     controller_nodes = Noop::Utils.ipsort(controller_internal_addresses.values)
+    swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
     memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }
     let (:sto_nets){
         network_scheme = Noop.hiera 'network_scheme'
@@ -57,9 +58,16 @@ describe manifest do
           'group'  => 'swift',
         ).that_comes_before('Class[swift::proxy]')
       end
+
       it 'should declare swift::proxy::cache class with correct memcache_servers parameter' do
         should contain_class('swift::proxy::cache').with(
           'memcache_servers' => memcached_servers,
+        )
+      end
+
+      it 'should declare class swift::proxy::keystone with correct operator_roles parameter' do
+        should contain_class('swift::proxy::keystone').with(
+          'operator_roles' => swift_operator_roles,
         )
       end
 
