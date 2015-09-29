@@ -58,6 +58,50 @@ describe manifest do
         'action'  => 'accept',
       )
     end
+
+    if Noop.hiera_structure 'ironic/enabled'
+      baremetal_network = scope.send "function_get_network_role_property".to_sym, ['ironic/baremetal', 'network']
+      baremetal_ipaddr  = scope.send "function_get_network_role_property".to_sym, ['ironic/baremetal', 'ipaddr']
+      baremetal_int     = scope.send "function_get_network_role_property".to_sym, ['ironic/baremetal', 'int']
+
+      it 'should jump all traffic from baremetal network to chain' do
+        should contain_firewall('00 baremetal-filter').with(
+          'iniface' => baremetal_int,
+          'proto'   => 'all',
+          'jump'    => 'baremetal',
+        )
+      end
+
+      it 'should drop all traffic from baremetal network' do
+        should contain_firewall('999 drop all baremetal').with(
+          'chain'  => 'baremetal',
+          'proto'  => 'all',
+          'action' => 'drop',
+        )
+      end
+
+      if Noop.hiera('node_role') == 'ironic'
+        it 'should create rules for ironic on conductor' do
+          should contain_firewall('102 allow baremetal-rsyslog').with(
+            'chain'       => 'baremetal',
+            'port'        => [ 514 ],
+            'proto'       => 'udp',
+            'action'      => 'accept',
+            'source'      => baremetal_network,
+            'destination' => baremetal_ipaddr,
+          )
+          should contain_firewall('103 allow baremetal-TFTP').with(
+            'chain'       => 'baremetal',
+            'port'        => [ 69 ],
+            'proto'       => 'udp',
+            'action'      => 'accept',
+            'source'      => baremetal_network,
+            'destination' => baremetal_ipaddr,
+          )
+        end
+      end
+    end
+
   end
 
   test_ubuntu_and_centos manifest
