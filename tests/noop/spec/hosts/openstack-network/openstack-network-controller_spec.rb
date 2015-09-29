@@ -134,6 +134,9 @@ describe manifest do
            should contain_class('openstack::network').with(
              'l2_population' => l2_pop,
            )
+           should contain_class('neutron::agents::ml2::ovs').with(
+             'arp_responder' => l2_pop,
+           )
         end
       end
 

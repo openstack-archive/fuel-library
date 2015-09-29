@@ -188,6 +188,9 @@ describe manifest do
         should contain_class('openstack::network').with(
                    'l2_population' => neutron_l2_pop
                )
+        should contain_class('neutron::agents::ml2::ovs').with(
+                   'arp_responder' => neutron_l2_pop,
+               )
       end
 
       enable = Noop.hiera_structure('neutron_config/L2/segmentation_type') == 'gre'
