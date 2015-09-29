@@ -4,6 +4,8 @@ $base_syslog_hash = hiera('base_syslog_hash')
 $syslog_hash      = hiera('syslog_hash')
 $use_syslog       = hiera('use_syslog', true)
 $debug            = pick($syslog_hash['debug'], hiera('debug', false))
+$nodes_hash       = hiera('nodes', {})
+$roles            = node_roles($nodes_hash, hiera('uid'))
 
 ##################################################
 
@@ -38,6 +40,10 @@ if $use_syslog {
     }
   }
 
+  if member($roles, 'ironic') {
+    $ironic_collector = true
+  }
+
   class { '::openstack::logging':
     role             => 'client',
     show_timezone    => true,
@@ -58,5 +64,6 @@ if $use_syslog {
     # Rabbit doesn't support syslog directly
     rabbit_log_level => 'NOTICE',
     debug            => $debug,
+    ironic_collector => $ironic_collector,
   }
 }
