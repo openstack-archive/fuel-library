@@ -4,6 +4,8 @@ manifest = 'firewall/firewall.pp'
 
 network_scheme = Noop.hiera('network_scheme', {})
 keystone_network = '0.0.0.0/0'
+baremetal_network = '1.1.1.0/24'
+baremetal_ipaddr  = '1.1.1.1'
 
 describe manifest do
   shared_examples 'catalog' do
@@ -16,6 +18,10 @@ describe manifest do
       Puppet::Parser::Functions.autoloader.load 'prepare_network_config'.to_sym
       scope.send 'function_prepare_network_config'.to_sym, [network_scheme]
       keystone_network = scope.send "function_get_network_role_property".to_sym, ['keystone/api', 'network']
+      if Noop.hiera_structure 'ironic/enabled'
+        baremetal_network = scope.send "function_get_network_role_property".to_sym, ['ironic/baremetal', 'network']
+        baremetal_ipaddr  = scope.send "function_get_network_role_property".to_sym, ['ironic/baremetal', 'ipaddr']
+      end
     end
 
     it 'should properly restrict rabbitmq admin traffic' do
@@ -58,6 +64,40 @@ describe manifest do
         'action'  => 'accept',
       )
     end
+
+    if Noop.hiera_structure 'ironic/enabled'
+      if Noop.hiera('node_role') == 'controller' or Noop.hiera('node_role') == 'primary-controller'
+        it 'should drop all traffic from baremetal network' do
+          should contain_firewall('999 drop all baremetal').with(
+            'chain'  => 'baremetal',
+            'proto'  => 'all',
+            'action' => 'drop',
+          )
+        end
+      end
+
+      if Noop.hiera('node_role') == 'ironic'
+        it 'should create rules for ironic on conductor' do
+          should contain_firewall('102 allow baremetal-rsyslog').with(
+            'chain'       => 'baremetal',
+            'dport'       => [ 514 ],
+            'proto'       => 'udp',
+            'action'      => 'accept',
+            'source'      => baremetal_network,
+            'destination' => baremetal_ipaddr,
+          )
+          should contain_firewall('103 allow baremetal-TFTP').with(
+            'chain'       => 'baremetal',
+            'dport'       => [ 69 ],
+            'proto'       => 'udp',
+            'action'      => 'accept',
+            'source'      => baremetal_network,
+            'destination' => baremetal_ipaddr,
+          )
+        end
+      end
+    end
+
   end
 
   test_ubuntu_and_centos manifest
