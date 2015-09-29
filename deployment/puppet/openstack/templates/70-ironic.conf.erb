@@ -1,0 +1,38 @@
+# Load UDP module
+$ModLoad imudp
+$UDPServerRun 514
+
+$EscapeControlCharactersOnReceive off
+
+#
+# Disk-Assisted Memory Queues, async writes, no escape chars
+#
+$OMFileASyncWriting on
+$MainMsgQueueType LinkedList
+$WorkDirectory /var/spool/rsyslog/
+$MainMsgQueueFileName mainmsgqueue
+$MainMsgQueueSaveOnShutdown on
+$MainMsgQueueDequeueSlowdown 1000
+$MainMsgQueueWorkerThreads 2
+$MainMsgQueueDequeueBatchSize 128
+$ActionQueueType LinkedList
+$WorkDirectory /var/spool/rsyslog/
+$ActionQueueFileName acsdbq
+$ActionQueueMaxDiskSpace 1g
+$ActionQueueSaveOnShutdown on
+$ActionQueueLowWaterMark 2000
+$ActionQueueHighWaterMark 8000
+$ActionQueueSize 1000000       # Reserve 500Mb memory, each queue element is 512b
+$ActionQueueDiscardMark 950000 # If the queue looks like filling, start discarding to not block ssh/login/etc.
+$ActionQueueDiscardSeverity 0  # When in discarding mode discard everything.
+$ActionQueueTimeoutEnqueue 0   # When in discarding mode do not enable throttling.
+$ActionQueueDequeueSlowdown 1000
+$ActionQueueWorkerThreads 2
+$ActionQueueDequeueBatchSize 128
+$ActionResumeRetryCount -1
+$SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
+
+$template RemoteLogIronic, "<%%pri%>%timestamp% %syslogtag:R,ERE,2,FIELD:(ironic/.<200b>*/)(.*<200b>)--end% %msg:::sp-if-no-1st-sp%%msg%\n"
+$template RemoteLogFile, "/var/log/ironic/%syslogtag:R,ERE,1,DFLT:([A-Za-z][A-Za-z0-9_./-]*)--end%.log"
+
+:FROMHOST, regex, "^[1-9]" -?RemoteLogFile;RemoteLogIronic
