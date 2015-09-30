@@ -62,7 +62,7 @@ class cluster::sysinfo (
     }
   }
 
-  cs_location { "clone_sysinfo-on-${::fqdn}":
+  cs_rsc_location { "clone_sysinfo-on-${::fqdn}":
     primitive => 'clone_sysinfo',
     node_name => $::fqdn,
     score     => 'INFINITY',
