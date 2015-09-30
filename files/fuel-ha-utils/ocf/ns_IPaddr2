@@ -329,6 +329,7 @@ get_ns() {
   local rc
   check_ns || ocf_run ip netns add $OCF_RESKEY_ns
   ocf_run $RUN_IN_NS ip link set up dev lo || return $OCF_ERR_GENERIC
+  ocf_run $RUN_IN_NS /sbin/sysctl -p /etc/sysctl.conf 2>/dev/null
   return $OCF_SUCCESS
 }
 
