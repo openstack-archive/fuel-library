@@ -60,6 +60,8 @@ class cluster::sysinfo (
       value    => 'migrate-on-red',
       provider => 'crm',
     }
+
+    Cs_resource['sysinfo'] -> Cs_location["clone_sysinfo-on-${::fqdn}"]
   }
 
   cs_location { "clone_sysinfo-on-${::fqdn}":
