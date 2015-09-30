@@ -137,6 +137,7 @@ get_veth_pair() {
 
   [[ $? != 0 ]] && ip netns add $OCF_RESKEY_ns && ip netns exec $OCF_RESKEY_ns ip link set up dev lo
 
+  ocf_run ip netns exec $OCF_RESKEY_ns /sbin/sysctl -p /etc/sysctl.conf 2>/dev/null
   ocf_run ip netns exec $OCF_RESKEY_ns ip link show $OCF_RESKEY_ns_interface 2>/dev/null
   rc=$?
 
