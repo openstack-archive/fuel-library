@@ -267,6 +267,7 @@ get_ns() {
 
   ocf_run ip netns add $OCF_RESKEY_ns
   rc=$?
+  ocf_run $RUN_IN_NS /sbin/sysctl -w net.ipv4.ip_nonlocal_bind=1
   ocf_run $RUN_IN_NS ip link set up dev lo
   ocf_log debug "${LH} added netns ${OCF_RESKEY_ns} and set up lo"
 
