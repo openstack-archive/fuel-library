@@ -4,9 +4,6 @@ manifest = 'cluster/health.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    let(:primary_controller) do
-      Noop.hiera 'primary_controller'
-    end
     let(:facts) {
       Noop.ubuntu_facts.merge({
         :mounts => '/,/boot,/var/log,/var/lib/glance,/var/lib/mysql'
@@ -31,7 +28,6 @@ describe manifest do
 
     it {
       should contain_class('cluster::sysinfo').with(
-        :primary_controller => primary_controller,
         :disks              => disks,
         :min_disk_free      => min_disk_free,
         :disk_unit          => disk_unit,
