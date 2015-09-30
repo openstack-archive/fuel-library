@@ -74,6 +74,10 @@ describe manifest do
       )
     end
 
+    it 'nova config should not have database connection' do
+      should_not contain_nova_config('database/connection')
+    end
+
     # SSL support
     public_ssl = Noop.hiera_structure('public_ssl/services')
 

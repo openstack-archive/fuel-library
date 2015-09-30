@@ -26,7 +26,6 @@ $storage_hash                   = hiera_hash('storage_hash', {})
 $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera_hash('nova_hash', {})
 $nova_custom_hash               = hiera_hash('nova_custom_hash', {})
-$mysql_hash                     = hiera_hash('mysql_hash', {})
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $glance_hash                    = hiera_hash('glance_hash', {})
 $keystone_hash                  = hiera_hash('keystone_hash', {})
@@ -77,7 +76,6 @@ $openstack_version = {
 }
 
 $queue_provider = hiera('queue_provider', 'rabbitmq')
-$custom_mysql_setup_class='galera'
 
 # Do the stuff
 if $neutron_mellanox {
@@ -242,7 +240,6 @@ class { 'openstack::compute':
   network_manager             => hiera('network_manager', undef),
   network_config              => hiera('network_config', {}),
   multi_host                  => $multi_host,
-  database_connection         => "mysql://nova:${nova_hash[db_password]}@${db_host}/nova?read_timeout=60",
   queue_provider              => $queue_provider,
   amqp_hosts                  => hiera('amqp_hosts',''),
   amqp_user                   => $rabbit_hash['user'],
