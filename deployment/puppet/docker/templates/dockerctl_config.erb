@@ -9,12 +9,14 @@ SOURCE_DIR="${DOCKER_ROOT}/sources"
 #SUPERVISOR_CONF_DIR="${docker_root}/supervisor"
 #SUPERVISOR_CONF_DIR="<%= @config_dir %>/supervisor/"
 ASTUTE_YAML="<%= @astute_settings_file %>"
+VERSION_YAML="/etc/fuel/version.yaml"
 DOCKER_ENGINE="<%= @container_engine %>"
 ADMIN_IP="<%= @admin_ipaddress %>"
 LOCAL_IP="127.0.0.1"
 
 #Version of Fuel to deploy
-VERSION=$(awk '/^[[:space:]]+release/{gsub(/"/, "");print $2}' /etc/fuel/version.yaml || echo <%= @release %>)
+VERSION=$(awk '/^[[:space:]]+release/{gsub(/"/, "");ver = $2} END {if (ver) print ver; else print "<%= @release %>"}' $VERSION_YAML)
+
 IMAGE_PREFIX="fuel"
 # busybox image for storage containers
 BUSYBOX_IMAGE="busybox.tar.gz"
