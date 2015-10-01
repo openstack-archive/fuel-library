@@ -25,8 +25,9 @@ class pacemaker_wrappers::rabbitmq (
   }
 
   $metadata        = {
-    'migration-threshold' => 'INFINITY',
-    'failure-timeout'     => '360s'
+    'migration-threshold' => '10',
+    'failure-timeout'     => '30s',
+    'resource-stickiness' => '100',
   }
 
   $ms_metadata     = {
