@@ -200,6 +200,7 @@ describe 'l23network::l2::bridge', :type => :define do
         'ensure'       => 'present',
         'use_ovs'      => true,
         'external_ids' => { 'bridge-id' => 'br-floating' },
+        'stp'          => nil,
         'provider'     => nil,
       }).that_requires('L23_stored_config[br-floating]')
     end
@@ -233,6 +234,7 @@ describe 'l23network::l2::bridge', :type => :define do
         'ensure'       => 'present',
         'use_ovs'      => true,
         'external_ids' => { 'bridge-id' => 'br-floating' },
+        'stp'          => nil,
         'provider'     => nil,
       }).that_requires('L23_stored_config[br-floating]')
     end
