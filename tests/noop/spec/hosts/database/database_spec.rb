@@ -4,6 +4,12 @@ manifest = 'database/database.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+    let(:facts) {
+      Noop.ubuntu_facts.merge({
+        :mounts => '/,/boot,/var/log,/var/lib/glance,/var/lib/mysql'
+      })
+    }
+
     let(:endpoints) do
       Noop.hiera('network_scheme', {}).fetch('endpoints', {})
     end
@@ -24,7 +30,7 @@ describe manifest do
       (Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', database_nodes, 'mgmt/database').values
     end
 
-    it "should delcare osnailyfacter::mysql_user with correct other_networks" do
+    it "should declare osnailyfacter::mysql_user with correct other_networks" do
       expect(subject).to contain_class('osnailyfacter::mysql_user').with(
         'user'            => 'root',
         'access_networks' => access_networks,
@@ -34,6 +40,12 @@ describe manifest do
     it "should configure Galera to use mgmt/database network for replication" do
       expect(subject).to contain_class('mysql::server').with(
         'galera_nodes' => galera_nodes,
+      ).that_comes_before('Osnailyfacter::Mysql_user')
+    end
+
+    it "should configure mysql to ignore lost+found directory" do
+      expect(subject).to contain_class('mysql::server').with(
+        'ignore_db_dirs' => ['lost+found']
       ).that_comes_before('Osnailyfacter::Mysql_user')
     end
 

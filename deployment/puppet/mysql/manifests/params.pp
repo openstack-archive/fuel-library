@@ -32,6 +32,7 @@ class mysql::params {
   $open_files_limit        = '102400'
   $max_connections         = '3000'
   $debug                   = false
+  $ignore_db_dirs          = []
 
   case $::osfamily {
     'RedHat': {
