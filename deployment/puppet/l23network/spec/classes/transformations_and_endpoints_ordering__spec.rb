@@ -85,6 +85,14 @@ end
       should contain_L23network__L3__Ifconfig('eth3.103').that_requires("L23network::L2::Port[eth3.103]")
     end
 
+    it do
+      should contain_disable_hotplug('global')
+    end
+
+    it do
+      should contain_enable_hotplug('global').that_requires('L23_stored_config[eth3.103]')
+    end
+
   end
 end
 
