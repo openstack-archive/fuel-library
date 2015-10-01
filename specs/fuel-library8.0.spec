@@ -1,5 +1,6 @@
 %define name fuel-library8.0
 %{!?version: %define version 8.0.0}
+%{!?fuel_release: %define fuel_release 8.0}
 %{!?release: %define release 1}
 
 Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack
@@ -30,6 +31,7 @@ This package contains deployment manifests and code to execute provisioning of m
 
 %prep
 %setup -cq
+sed -i %{dockerctl_source}/dockerctl_config 's/_VERSION_/%{fuel_release}/'
 
 %build
 if test -s %{predefined_upstream_modules}; then
