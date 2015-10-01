@@ -9,6 +9,10 @@
 #   (optional) The state of used packages
 #   Defaults to 'present'
 #
+# [*disable_hotplug*]
+#   (optional) Enables to disable hotplug system temporarily during network configuration
+#   Defaults to true
+#
 class l23network (
   $ensure_package            = 'present',
   $use_lnx                   = true,
@@ -21,6 +25,7 @@ class l23network (
   $ovs_modname               = undef,
   $ovs_datapath_package_name = undef,
   $ovs_common_package_name   = undef,
+  $disable_hotplug           = true,
 ){
 
   include stdlib
@@ -72,4 +77,21 @@ class l23network (
   Anchor['l23network::l2::init'] -> Anchor['l23network::init']
   anchor { 'l23network::init': }
 
+  if $disable_hotplug {
+    disable_hotplug { 'global':
+      ensure => 'present',
+    }
+    Disable_hotplug['global'] -> Anchor['l23network::init']
+
+    enable_hotplug { 'global':
+      ensure => 'present',
+    }
+    Disable_hotplug['global'] -> Enable_hotplug['global']
+    L2_port<||>               -> Enable_hotplug['global']
+    L2_bridge<||>             -> Enable_hotplug['global']
+    L2_bond<||>               -> Enable_hotplug['global']
+    L3_ifconfig<||>           -> Enable_hotplug['global']
+    L23_stored_config<||>     -> Enable_hotplug['global']
+    L3_route<||>              -> Enable_hotplug['global']
+  }
 }
