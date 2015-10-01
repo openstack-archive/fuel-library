@@ -1,5 +1,6 @@
 %define name fuel-library8.0
 %{!?version: %define version 8.0.0}
+%{!?fuel_release: %define fuel_release 8.0}
 %{!?release: %define release 1}
 
 Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack
@@ -34,6 +35,8 @@ This package contains deployment manifests and code to execute provisioning of m
 
 %prep
 %setup -cq
+sed -i %{dockerctl_source}/dockerctl_config -e 's:_VERSION_:%{fuel_release}:'
+sed -i %{name}-%{version}/deployment/puppet/docker/templates/dockerctl_config.erb -e 's:_VERSION_:%{fuel_release}:'
 
 %build
 if test -s %{predefined_upstream_modules}; then
@@ -43,6 +46,10 @@ else
       bash -x %{_builddir}/%{name}-%{version}/deployment/update_modules.sh
    fi
 fi
+
+%check
+grep -qv "_VERSION_" {dockerctl_source}/dockerctl_config
+grep -qv "_VERSION_" %{name}-%{version}/deployment/puppet/docker/templates/dockerctl_config.erb
 
 %install
 mkdir -p %{buildroot}/etc/puppet/%{openstack_version}/modules/
