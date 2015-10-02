@@ -38,6 +38,7 @@ function show_usage {
   echo "  check: check of container is ready"
   echo "  backup: back up entire deployment (--full to include containers, puppet and repos)"
   echo "  restore: restore backed up deployment (--full includes containers)"
+  echo "  inspect: display low-level information on a container"
 }
 
 function parse_options {
@@ -370,7 +371,9 @@ function logs {
   ${DOCKER} logs ${CONTAINER_NAMES[$1]}
 }
 
-
+function inspect {
+  ${DOCKER} inspect ${CONTAINER_NAMES[$1]}
+}
 
 function restart_container {
   ${DOCKER} restart ${CONTAINER_NAMES[$1]}
