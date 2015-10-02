@@ -73,13 +73,13 @@ end
 
 shared_examples 'debug' do
   it 'shows catalog contents' do
-    Noop.show_catalog subject
+    Noop.show_catalog subject, example
   end
 end
 
 shared_examples 'generate' do
   it 'shows catalog contents' do
-    Noop.catalog_to_spec subject
+    Noop.catalog_to_spec subject, example
   end
 end
 
