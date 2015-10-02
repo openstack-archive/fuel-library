@@ -1,47 +1,118 @@
-- id: openstack-network
-  type: puppet
-  groups: [primary-controller, controller]
-  required_for: [deploy_end]
-  requires: [openstack-controller]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-controller.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-controller_pre.rb
-  test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-controller_post.rb
+#- id: openstack-network
+#  type: puppet
+#  groups: [primary-controller, controller]
+#  required_for: [deploy_end]
+#  requires: [openstack-controller]
+#  parameters:
+#    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-controller.pp
+#    puppet_modules: /etc/puppet/modules
+#    timeout: 3600
+#  test_pre:
+#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-controller_pre.rb
+#  test_post:
+#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-controller_post.rb
+#
+#- id: openstack-network-compute
+#  type: puppet
+#  groups: [compute]
+#  required_for: [deploy_end]
+#  requires: [top-role-compute]
+#  parameters:
+#    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute.pp
+#    puppet_modules: /etc/puppet/modules
+#    timeout: 3600
+#  test_pre:
+#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute_pre.rb
+#  test_post:
+#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute_post.rb
+#
+#- id: neutron-db
+#  type: puppet
+#  groups: [primary-controller]
+#  required_for: [openstack-network]
+#  requires: [database]
+#  parameters:
+#    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/db.pp
+#    puppet_modules: /etc/puppet/modules
+#    timeout: 1800
+#
+#- id: neutron-keystone
+#  type: puppet
+#  groups: [primary-controller]
+#  required_for: [openstack-network]
+#  requires: [keystone]
+#  parameters:
+#    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/keystone.pp
+#    puppet_modules: /etc/puppet/modules
+#    timeout: 1800
 
-- id: openstack-network-compute
+- id: openstack-network-common-config
   type: puppet
-  groups: [compute]
-  required_for: [deploy_end]
-  requires: [top-role-compute]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute_pre.rb
-  test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute_post.rb
-
-- id: neutron-db
-  type: puppet
-  groups: [primary-controller]
-  required_for: [openstack-network]
-  requires: [database]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/db.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 1800
-
-- id: neutron-keystone
-  type: puppet
-  groups: [primary-controller]
+  groups: [primary-controller,controller,compute]
   required_for: [openstack-network]
   requires: [keystone]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/keystone.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/common-config.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
+- id: openstack-network-server
+  type: puppet
+  groups: [primary-controller,controller]
+  required_for: [openstack-network]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/server.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-nova
+  type: puppet
+  groups: [primary-controller,controller]
+  required_for: [openstack-network]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/nova.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-agents-dhcp
+  type: puppet
+  groups: [primary-controller,controller]
+  required_for: [openstack-network]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/dhcp.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-agents-l2
+  type: puppet
+  groups: [primary-controller,controller,compute]
+  required_for: [openstack-network]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/l2.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-agents-l3
+  type: puppet
+  groups: [primary-controller,controller,compute]
+  required_for: [openstack-network]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/l3.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-agents-metadata
+  type: puppet
+  groups: [primary-controller,controller]
+  required_for: [openstack-network]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/metadata.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
