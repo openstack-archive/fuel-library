@@ -20,7 +20,7 @@ describe 'openstack::compute' do
     :vncserver_listen    => '0.0.0.0',
     :migration_support   => nil,
     :enabled             => true,
-    :multi_host          => false,
+    :use_vcenter          => false,
     :auto_assign_floating_ip => false,
     :network_config          => [],
     :public_interface        => nil,
