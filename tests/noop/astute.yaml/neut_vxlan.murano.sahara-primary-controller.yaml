@@ -575,7 +575,7 @@ quantum_settings:
   predefined_networks:
     net04:
       L2:
-        network_type: gre
+        network_type: vxlan
         physnet: null
         router_ext: false
         segment_id: null
