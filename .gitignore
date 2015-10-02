@@ -31,3 +31,5 @@ Gemfile.lock
 task_graph.png
 
 *.log
+*-catalog.log.pp
+*-spec.log.rb
