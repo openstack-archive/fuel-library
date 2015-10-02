@@ -46,8 +46,8 @@ if $use_neutron and $db_create {
   }
 
   Class['galera::client'] ->
-    Class['osnailyfacter::mysql_access'] ->
-      Class['neutron::db::mysql']
+  Class['osnailyfacter::mysql_access'] ->
+  Class['neutron::db::mysql']
 
 }
 
