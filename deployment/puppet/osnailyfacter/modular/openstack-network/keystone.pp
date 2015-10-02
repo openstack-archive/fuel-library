@@ -14,7 +14,7 @@ $public_protocol     = $public_ssl_hash['services'] ? {
 }
 $admin_address       = hiera('management_vip')
 $admin_protocol      = 'http'
-$region              = pick($neutron_hash['region'], 'RegionOne')
+$neutron_region_name              = pick($neutron_hash['region'], 'RegionOne')
 
 $password            = $neutron_hash['keystone']['admin_password']
 $auth_name           = pick($neutron_hash['auth_name'], 'neutron')
@@ -45,6 +45,6 @@ if $use_neutron {
      public_url          => $public_url,
      internal_url        => $internal_url,
      admin_url           => $admin_url,
-     region              => $region,
+     region              => $neutron_region_name,
    }
 }
