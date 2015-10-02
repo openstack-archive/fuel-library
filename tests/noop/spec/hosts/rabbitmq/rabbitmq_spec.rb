@@ -30,6 +30,14 @@ describe manifest do
       end
       should contain_class('rabbitmq').with_config_variables(/#{log_levels}/)
     end
+
+    it "should start epmd before rabbitmq plugins" do
+      should contain_exec('empd_daemon').that_comes_before('Rabbitmq_plugin[rabbitmq_management]')
+    end
+
+    it "should override service on package install" do
+      should contain_tweaks__ubuntu_service_override('rabbitmq-server')
+    end
   end
   test_ubuntu_and_centos manifest
 end
