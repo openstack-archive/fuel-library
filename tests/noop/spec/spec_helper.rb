@@ -364,15 +364,26 @@ module Noop
   ## Catalog helpers ##
   # TODO: move to Utils
 
-  def self.show_catalog(subject)
+  def self.show_catalog(subject, example)
     catalog = subject
     catalog = subject.call if subject.is_a? Proc
-    puts '===== catalog show start ====='
+    text = ''
+    text += "# ===== catalog show start =====\n"
     catalog.resources.each do |resource|
-      puts '=' * 70
-      puts resource.to_manifest
+      text += '# ' + ('=' * 60) + "\n"
+      text += resource.to_manifest + "\n"
     end
-    puts '===== catalog show end ====='
+    text += "# ===== catalog show end =====\n"
+    if self.puppet_logs_dir
+      catalog_file = File.join self.puppet_logs_dir, "#{File.basename self.astute_yaml_base}-#{File.basename self.current_spec example}-catalog.log.pp"
+      puts "Dumping catalog to: '#{catalog_file}'"
+      File.open(catalog_file, 'w') do |file|
+        file.puts text
+      end
+    else
+      puts text
+    end
+    text
   end
 
   def self.resource_test_template(binding)

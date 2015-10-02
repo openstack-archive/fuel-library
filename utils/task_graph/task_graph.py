@@ -328,14 +328,16 @@ class TaskGraph(object):
                 for require_id in node['required_for']:
                     IO.debug("Node: %s is required by node: %s" %
                              (node_id, require_id))
-                    self.data[require_id]['requires'].append(node_id)
+                    if require_id in self.data:
+                        self.data[require_id]['requires'].append(node_id)
                 node.pop('required_for')
             # resolve tasks to groups
             if 'tasks' in node:
                 for task_id in node['tasks']:
                     IO.debug("Node: %s is included to node: %s" %
                              (task_id, node_id))
-                    self.data[task_id]['groups'].append(node_id)
+                    if task_id in self.data:
+                        self.data[task_id]['groups'].append(node_id)
                 node.pop('tasks')
 
     def filter_processed_data(self, filter=None):
