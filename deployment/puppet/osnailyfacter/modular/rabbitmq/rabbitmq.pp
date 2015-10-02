@@ -146,6 +146,12 @@ if $queue_provider == 'rabbitmq' {
         before          => Class['nova::rabbitmq'],
       }
     }
+
+    include rabbitmq::params
+    tweaks::ubuntu_service_override { 'rabbitmq-server':
+      package_name => $rabbitmq::params::package_name,
+      service_name => $rabbitmq::params::service_name,
+    }
   }
 
 }
