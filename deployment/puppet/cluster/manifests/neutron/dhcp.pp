@@ -1,45 +1,70 @@
 # Not a doc string
 
 class cluster::neutron::dhcp (
-  $primary          = false,
-  $ha_agents        = ['ovs', 'metadata', 'dhcp', 'l3'],
   $plugin_config    = '/etc/neutron/dhcp_agent.ini',
-  $agents_per_net   = 2,      # Value, recommended by Neutron team.
-
+  $agents_per_net   = '2',      # Value, recommended by Neutron team.
 ) {
 
   require cluster::neutron
+  include neutron::params
 
-  Neutron_config<| name == 'DEFAULT/dhcp_agents_per_network' |> {
-    value => $agents_per_net
+  if $::neutron::params::dhcp_agent_package {
+    $package_name = $::neutron::params::dhcp_agent_package
+  } else {
+    $package_name = $::neutron::params::package_name
   }
-  $csr_metadata = undef
-  $csr_complex_type    = 'clone'
-  $csr_ms_metadata     = { 'interleave' => 'true' }
+  $service_name   = $::neutron::params::dhcp_agent_service
 
-  $dhcp_agent_package = $::neutron::params::dhcp_agent_package ? {
-    false   => $::neutron::params::package_name,
-    default => $::neutron::params::dhcp_agent_package
+  $primitive_class      = 'ocf'
+  $primitive_provider   = 'fuel'
+  $primitive_type       = 'ocf-neutron-dhcp-agent'
+
+  $complex_type         = 'clone'
+  $complex_metadata     = {
+    'interleave' => 'true',
   }
 
-  #TODO (bogdando) move to extras ha wrappers
-  cluster::corosync::cs_service {'dhcp':
-    ocf_script      => 'ocf-neutron-dhcp-agent',
-    csr_parameters  => {
-      'plugin_config'                  => $plugin_config,
-      'remove_artifacts_on_stop_start' => true,
+  $parameters  = {
+    'plugin_config'                  => $plugin_config,
+    'remove_artifacts_on_stop_start' => true,
+  }
+
+  $operations           = {
+    'monitor' => {
+      'interval' => '20',
+      'timeout'  => '10',
     },
-    csr_metadata        => $csr_metadata,
-    csr_complex_type    => $csr_complex_type,
-    csr_ms_metadata     => $csr_ms_metadata,
-    csr_mon_intr    => '20',
-    csr_mon_timeout => '10',
-    csr_timeout     => '60',
-    service_name    => $::neutron::params::dhcp_agent_service,
-    package_name    => $dhcp_agent_package,
-    service_title   => 'neutron-dhcp-service',
-    primary         => $primary,
-    hasrestart      => false,
+    'start'   => {
+      'timeout' => '60',
+    },
+    'stop'    => {
+      'timeout' => '60',
+    }
+  }
+
+  Neutron_config <| name == 'DEFAULT/dhcp_agents_per_network' |> {
+    value => $agents_per_net,
+  }
+
+  service { $service_name :
+    ensure => 'running',
+    enable => true,
+  }
+
+  pacemaker::service { $service_name :
+    prefix             => true,
+    primitive_type     => $primitive_type,
+    primitive_class    => $primitive_class,
+    primitive_provider => $primitive_provider,
+    complex_type       => $complex_type,
+    complex_metadata   => $complex_metadata,
+    parameters         => $parameters,
+    operations         => $operations,
+  }
+
+  tweaks::ubuntu_service_override { $service_name :
+    package_name => $package_name,
+    service_name => $service_name,
   }
 
 }

@@ -1,40 +1,65 @@
 # not a doc string
 
 define cluster::neutron::l3 (
-  $plugin_config   = '/etc/neutron/l3_agent.ini',
-  $primary         = false,
-  $ha_agents       = ['ovs', 'metadata', 'dhcp', 'l3'],
-
+  $plugin_config = '/etc/neutron/l3_agent.ini',
 ) {
 
   require cluster::neutron
+  include neutron::params
 
-  $csr_metadata = undef
-  $csr_complex_type    = 'clone'
-  $csr_ms_metadata     = { 'interleave' => 'true' }
-
-  $l3_agent_package = $::neutron::params::l3_agent_package ? {
-    false   => $::neutron::params::package_name,
-    default => $::neutron::params::l3_agent_package,
+  if $::neutron::params::l3_agent_package {
+    $package_name = $::neutron::params::l3_agent_package
+  } else {
+    $package_name = $::neutron::params::package_name
   }
 
-  #TODO (bogdando) move to extras ha wrappers
-  cluster::corosync::cs_service {'l3':
-    ocf_script      => 'ocf-neutron-l3-agent',
-    csr_parameters  => {
-      'plugin_config'                  => $plugin_config,
-      'remove_artifacts_on_stop_start' => true,
+  $service_name = $::neutron::params::l3_agent_service
+
+  $primitive_class      = 'ocf'
+  $primitive_provider   = 'fuel'
+  $primitive_type       = 'ocf-neutron-l3-agent'
+
+  $complex_type         = 'clone'
+  $complex_metadata     = {
+    'interleave' => 'true',
+  }
+
+  $parameters         = {
+    'plugin_config' => $plugin_config,
+  }
+
+  $operations           = {
+    'monitor' => {
+      'interval' => '20',
+      'timeout'  => '10',
     },
-    csr_metadata        => $csr_metadata,
-    csr_complex_type    => $csr_complex_type,
-    csr_ms_metadata     => $csr_ms_metadata,
-    csr_mon_intr    => '20',
-    csr_mon_timeout => '10',
-    csr_timeout     => '60',
-    service_name    => $::neutron::params::l3_agent_service,
-    package_name    => $l3_agent_package,
-    service_title   => 'neutron-l3',
-    primary         => $primary,
-    hasrestart      => false,
+    'start'   => {
+      'timeout' => '60',
+    },
+    'stop'    => {
+      'timeout' => '60',
+    }
   }
+
+  service { $service_name :
+    ensure => 'running',
+    enable => true,
+  }
+
+  pacemaker::service { $service_name :
+    prefix             => true,
+    primitive_type     => $primitive_type,
+    primitive_class    => $primitive_class,
+    primitive_provider => $primitive_provider,
+    complex_type       => $complex_type,
+    complex_metadata   => $complex_metadata,
+    parameters         => $parameters,
+    operations         => $operations,
+  }
+
+  tweaks::ubuntu_service_override { $service_name :
+    package_name => $package_name,
+    service_name => $service_name,
+  }
+
 }

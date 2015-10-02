@@ -1,29 +1,64 @@
 # not a doc string
 
 class cluster::neutron::ovs (
-  $primary        = false,
   $plugin_config  = '/etc/neutron/plugin.ini',
-  ) {
+) {
 
   require cluster::neutron
+  include neutron::params
 
-  $ovs_agent_package = $::neutron::params::ovs_agent_package ? {
-    false   => $::neutron::params::package_name,
-    default => $::neutron::params::ovs_agent_package,
+  if $::neutron::params::ovs_agent_package {
+    $package_name = $::neutron::params::ovs_agent_package
+  } else {
+    $package_name = $::neutron::params::package_name
+  }
+  $service_name       = $::neutron::params::ovs_agent_service
+
+  $primitive_class    = 'ocf'
+  $primitive_provider = 'fuel'
+  $primitive_type     = 'ocf-neutron-ovs-agent'
+
+  $complex_type       = 'clone'
+  $complex_metadata   = {
+    'interleave' => 'true',
   }
 
-  cluster::corosync::cs_service {'ovs':
-    ocf_script          => 'ocf-neutron-ovs-agent',
-    csr_complex_type    => 'clone',
-    csr_ms_metadata     => { 'interleave' => 'true' },
-    csr_parameters      => { 'plugin_config' => $plugin_config },
-    csr_mon_intr        => '20',
-    csr_mon_timeout     => '10',
-    csr_timeout         => '80',
-    service_name        => $::neutron::params::ovs_agent_service,
-    package_name        => $ovs_agent_package,
-    service_title       => 'neutron-ovs-agent-service',
-    primary             => $primary,
-    hasrestart          => false,
+  $parameters         = {
+    'plugin_config' => $plugin_config,
   }
+
+  $operations         = {
+    'monitor' => {
+      'interval' => '20',
+      'timeout'  => '10',
+    },
+    'start'   => {
+      'timeout' => '80',
+    },
+    'stop'    => {
+      'timeout' => '80',
+    }
+  }
+
+  service { $service_name :
+    ensure => 'running',
+    enable => true,
+  }
+
+  pacemaker::service { $service_name :
+    prefix             => true,
+    primitive_type     => $primitive_type,
+    primitive_class    => $primitive_class,
+    primitive_provider => $primitive_provider,
+    complex_type       => $complex_type,
+    complex_metadata   => $complex_metadata,
+    parameters         => $parameters,
+    operations         => $operations,
+  }
+
+  tweaks::ubuntu_service_override { $service_name :
+    package_name => $package_name,
+    service_name => $service_name,
+  }
+
 }
