@@ -96,7 +96,7 @@ case "$1" in
     shift
     $cmd "$@" ;;
   logs|inspect)
-    if [[ $container == 'all' ]]; then
+    if [[ $2 == 'all' ]]; then
       echo "You need to specify valid container name."
       echo "Use 'dockerctl list' to see available containers."
 
@@ -104,7 +104,8 @@ case "$1" in
     fi
 
     cmd=$1
-    $cmd $container ;;
+    shift
+    $cmd "$@" ;;
   *)
     echo 'Invalid selection.'
     show_usage

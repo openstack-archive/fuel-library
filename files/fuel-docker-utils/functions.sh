@@ -372,7 +372,21 @@ function logs {
 }
 
 function inspect {
-  ${DOCKER} inspect ${CONTAINER_NAMES[$1]}
+  for container in $@; do
+    found="$(docker ps -a -q --filter="name=${CONTAINER_NAMES[$container]}" | wc -l)"
+
+    if [[ $? -ne 0 || $found -ne 1 ]]; then
+      echo "Could not find the $container container" 1>&2
+
+      if [[ $# -le 1 ]]; then
+        docker inspect
+      else
+        continue
+      fi
+    fi
+
+    ${DOCKER} inspect ${CONTAINER_NAMES[$container]}
+  done
 }
 
 function restart_container {
