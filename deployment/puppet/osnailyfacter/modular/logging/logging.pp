@@ -19,9 +19,7 @@ $syslog_rserver = {
   'port' => $syslog_hash['syslog_port'],
 }
 
-if ($syslog_hash['syslog_server'] != ''
-    and $syslog_hash['syslog_port'] != ''
-    and $syslog_hash['syslog_transport'] != '') {
+if $syslog_hash['metadata']['enabled'] {
   $rservers = [$base_syslog_rserver, $syslog_rserver]
 } else {
   $rservers = [$base_syslog_rserver]
