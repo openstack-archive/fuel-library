@@ -88,7 +88,8 @@ $default_gateway = hiera('default_gateway')
 ping_host { $default_gateway :
   ensure => 'up',
 }
+L3_ifconfig<||> -> Ping_host[$default_gateway]
+L3_route<||> -> Ping_host[$default_gateway]
 
 Class['l23network'] ->
 Exec['wait-for-interfaces'] ->
-Ping_host[$default_gateway]
