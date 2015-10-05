@@ -179,4 +179,14 @@ class openstack::network::neutron_agents (
       }
     }
   }
+
+  if 'metering' in $agents {
+    class { '::neutron::agents::metering':
+      debug                    => $debug,
+      manage_service           => true,
+      enabled                  => true,
+      report_interval          => 60,
+      driver                   => 'neutron.services.metering.drivers.iptables.iptables_driver.IptablesMeteringDriver',
+    }
+  }
 }

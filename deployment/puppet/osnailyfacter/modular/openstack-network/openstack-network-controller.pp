@@ -7,12 +7,13 @@ $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $management_vip                 = hiera('management_vip')
 $service_endpoint               = hiera('service_endpoint')
 $nova_hash                      = hiera_hash('nova', {})
-$ceilometer_hash                = hiera('ceilometer',{})
+$ceilometer_hash                = hiera_hash('ceilometer', {'enabled' => false})
 $network_scheme                 = hiera('network_scheme', {})
 $nova_endpoint                  = hiera('nova_endpoint', $management_vip)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
 $openstack_network_hash         = hiera_hash('openstack_network', {})
+$ceilometer_enabled             = $ceilometer_hash['enabled']
 
 $floating_hash = {}
 
@@ -28,7 +29,11 @@ if $use_neutron {
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   #todo(sv): default value set to false as soon as Nailgun/UI part be ready
   $isolated_metadata     = pick($neutron_config['metadata']['isolated_metadata'], true)
-  $neutron_agents        = pick($neutron_config['neutron_agents'], ['metadata', 'dhcp', 'l3'])
+  if $ceilometer_enabled {
+    $neutron_agents = pick($neutron_config['neutron_agents'], ['metadata', 'dhcp', 'l3', 'metering'])
+  } else {
+    $neutron_agents = pick($neutron_config['neutron_agents'], ['metadata', 'dhcp', 'l3'])
+  }
   $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
   $conf_nova             = pick($neutron_config['conf_nova'], true)
   $service_workers       = pick($neutron_config['workers'],
@@ -285,7 +290,7 @@ class { 'openstack::network':
   region            => $region,
 
   # Ceilometer notifications
-  ceilometer => $ceilometer_hash['enabled'],
+  ceilometer        => $ceilometer_enabled,
 
   #metadata
   shared_secret     => $neutron_metadata_proxy_secret,

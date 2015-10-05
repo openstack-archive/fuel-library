@@ -37,6 +37,9 @@
 # [*interface_driver*]
 #   (optional) Defaults to 'neutron.agent.linux.interface.OVSInterfaceDriver'.
 #
+# [*driver*]
+#   (optional) Defaults to 'neutron.services.metering.drivers.noop.noop_driver.NoopMeteringDriver'.
+#
 # [*measure_interval*]
 #   (optional) Interval between two metering measures.
 #   Defaults to 30.
@@ -60,6 +63,7 @@ class neutron::agents::metering (
   $manage_service   = true,
   $debug            = false,
   $interface_driver = 'neutron.agent.linux.interface.OVSInterfaceDriver',
+  $driver           = 'neutron.services.metering.drivers.noop.noop_driver.NoopMeteringDriver',
   $measure_interval = '30',
   $report_interval  = '300',
   # DEPRECATED PARAMETERS
@@ -77,6 +81,7 @@ class neutron::agents::metering (
   neutron_metering_agent_config {
     'DEFAULT/debug':              value => $debug;
     'DEFAULT/interface_driver':   value => $interface_driver;
+    'DEFAULT/driver':             value => $driver;
     'DEFAULT/measure_interval':   value => $measure_interval;
     'DEFAULT/report_interval':    value => $report_interval;
   }
