@@ -3,13 +3,13 @@ $release,
 $package_ensure = "latest",
 $admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 $limit = "102400",
-$docker_package = "docker-io",
+$docker_package = "docker",
 $docker_service = "docker",
 $docker_engine = "native",
 $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   "/var/log/docker-logs/audit", "/var/log/docker-logs/cobbler",
   "/var/log/docker-logs/ConsoleKit", "/var/log/docker-logs/coredump",
-  "/var/log/docker-logs/httpd", "/var/log/docker-logs/lxc",
+  "/var/log/docker-logs/httpd",
   "/var/log/docker-logs/nailgun", "/var/log/docker-logs/naily",
   "/var/log/docker-logs/nginx", "/var/log/docker-logs/ntpstats",
   "/var/log/docker-logs/puppet", "/var/log/docker-logs/rabbitmq",
@@ -21,10 +21,6 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   "/var/lib/fuel/container_data/${release}/postgres",
   ]
 ) {
-
-  package { "lxc":
-    ensure => installed,
-  }
 
   package {$docker_package:
     ensure => $package_ensure,
@@ -40,7 +36,7 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
     content => template("docker/settings.erb"),
     owner => 'root',
     group => 'root',
-    mode => 0644,
+    mode => '0644',
     notify => Service["docker"],
   }
   file { $dependent_dirs:
