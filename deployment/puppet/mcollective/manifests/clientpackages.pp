@@ -17,9 +17,9 @@ class mcollective::clientpackages
 {
 
   case $::rubyversion {
-    '2.1.1': {
-      $mcollective_client_package = "ruby21-rubygem-mcollective-client"
-      package { 'ruby21-nailgun-mcagents': }
+    '2.+': {
+      $mcollective_client_package = "rubygem-mcollective-client"
+      package { 'nailgun-mcagents': }
     }
     '1.8.7': {
       $mcollective_client_package = "mcollective-client"

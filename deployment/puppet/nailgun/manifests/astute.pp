@@ -26,7 +26,7 @@ class nailgun::astute(
   #   logoutput => true,
   # }
 
-  package { 'ruby21-rubygem-astute': }
+  package { 'rubygem-astute': }
 
   file { '/usr/bin/astuted':
     content => template('nailgun/astuted.erb'),

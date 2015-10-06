@@ -31,8 +31,8 @@ class mcollective::server(
       case $::rubyversion {
         # ruby21-mcollective-common
         # ruby21-rubygem-stomp
-        '2.1.1': {
-          $mcollective_package = "ruby21-mcollective"
+        '2.+': {
+          $mcollective_package = "mcollective"
         }
         # mcollective-common
         # rubygems
