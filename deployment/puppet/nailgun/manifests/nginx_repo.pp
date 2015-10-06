@@ -1,4 +1,4 @@
-class nailgun::nginx-repo(
+class nailgun::nginx_repo(
   $repo_root = "/var/www/nailgun",
   ){
 
@@ -6,7 +6,7 @@ class nailgun::nginx-repo(
     content => template("nailgun/nginx_nailgun_repo.conf.erb"),
     owner => 'root',
     group => 'root',
-    mode => 0644,
+    mode => '0644',
     require => [
                 Package["nginx"],
                 ],
