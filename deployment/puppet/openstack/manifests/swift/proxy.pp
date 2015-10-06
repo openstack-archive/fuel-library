@@ -61,6 +61,15 @@ class openstack::swift::proxy (
     }
   }
 
+  file { '/etc/swift/backups':
+    ensure  => directory,
+    owner   => 'swift',
+    group   => 'swift',
+    mode    => '2770',
+    require => Package['swift'],
+    before  => Class['::swift::proxy'],
+  }
+
   # calculate log_level
   if $debug {
     $log_level = 'DEBUG'
@@ -137,6 +146,8 @@ class openstack::swift::proxy (
   if $primary_proxy {
     # we need to exec swift ringrebuilder commands under swift user
     Exec { user => 'swift' }
+    # Exit codes should be equal to 0 and 1 (bug #1402701)
+    Exec <| title == "rebalance_account" or title == "rebalance_container" or title == "rebalance_object" |> { returns => [0,1] }
 
     # collect all of the resources that are needed
     # to balance the ring
