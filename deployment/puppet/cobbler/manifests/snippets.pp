@@ -18,9 +18,9 @@ class cobbler::snippets {
   define cobbler_snippet(){
     file {"/var/lib/cobbler/snippets/${name}":
       content => template("cobbler/snippets/${name}.erb"),
-      owner => root,
-      group => root,
-      mode => 0644,
+      owner => 'root',
+      group => 'root',
+      mode => '0644',
       require => Package[$cobbler::packages::cobbler_package],
       notify => Exec["cobbler_sync"]
     }
@@ -81,29 +81,29 @@ class cobbler::snippets {
     /(?i)(debian|ubuntu)/:  {
       file { "/usr/bin/late_command.py" :
         content => template("cobbler/scripts/late_command.py"),
-        owner => root,
-        group => root,
-        mode => 0644,
+        owner => 'root',
+        group => 'root',
+        mode => '0644',
       }
       file { "/usr/bin/pmanager.py" :
         content => template("cobbler/scripts/pmanager.py"),
-        owner => root,
-        group => root,
-        mode => 0644,
+        owner => 'root',
+        group => 'root',
+        mode => '0644',
       }
     }
     /(?i)(centos|redhat)/:  {
       file { "/usr/lib/python2.6/site-packages/cobbler/late_command.py" :
         content => template("cobbler/scripts/late_command.py"),
-        owner => root,
-        group => root,
-        mode => 0644,
+        owner => 'root',
+        group => 'root',
+        mode => '0644',
       }
       file { "/usr/lib/python2.6/site-packages/cobbler/pmanager.py" :
         content => template("cobbler/scripts/pmanager.py"),
-        owner => root,
-        group => root,
-        mode => 0644,
+        owner => 'root',
+        group => 'root',
+        mode => '0644',
       }
     }
   }
