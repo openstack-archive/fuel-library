@@ -135,7 +135,7 @@ function check_ready {
   echo "checking container $1"
 
   case $1 in
-      nailgun) retry_checker "shell_container nailgun supervisorctl status nailgun | grep -q RUNNING"  ;;
+      nailgun) retry_checker "shell_container nailgun systemctl is-active nailgun"  ;;
       ostf) retry_checker "egrep -q ^[2-4][0-9]? < <(curl --connect-timeout 1 -s -w '%{http_code}' http://$ADMIN_IP:8777/ostf/not_found -o /dev/null)" ;;
       #NOTICE: Cobbler console tool does not comply unix conversation: 'cobbler profile find' always return 0 as exit code
       cobbler) retry_checker "shell_container cobbler ps waux | grep -q 'cobblerd -F' && pgrep dnsmasq"
@@ -441,7 +441,7 @@ function first_run_container {
   image="$IMAGE_PREFIX/$1_$VERSION"
   if ! is_running $container_name; then
       pre_setup_hooks $1
-      ${DOCKER} run $opts $BACKGROUND --name=$container_name $image
+      ${DOCKER} run $opts $BACKGROUND --privileged --name=$container_name $image
       post_setup_hooks $1
   else
       echo "$container_name is already running."
