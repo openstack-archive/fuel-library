@@ -18,14 +18,36 @@ $admin_network = ipcalc_network_wildcard(
   $::fuel_settings['ADMIN_NETWORK']['netmask'])
 $extra_networks = $fuel_settings['EXTRA_ADMIN_NETWORKS']
 
-Class['nailgun::packages'] ->
-Class['nailgun::host'] ->
-Class['nailgun::client'] ->
-Class['docker::dockerctl'] ->
-Class['docker'] ->
-Class['openstack::logrotate'] ->
-Class['nailgun::supervisor'] ->
-Class['monit']
+case $::osfamily {
+  'RedHat': {
+    if $::operatingsystemrelease =~ /^7.*/ {
+      $systemd = true
+    } else {
+      $systemd = false
+    }
+  }
+  default: { $systemd = false }
+}
+
+if $systemd {
+  Class['nailgun::packages'] ->
+  Class['nailgun::host'] ->
+  Class['nailgun::client'] ->
+  Class['docker::dockerctl'] ->
+  Class['docker'] ->
+  Class['openstack::logrotate'] ->
+  Class['docker::systemd'] ->
+  Class['monit']
+} else {
+  Class['nailgun::packages'] ->
+  Class['nailgun::host'] ->
+  Class['nailgun::client'] ->
+  Class['docker::dockerctl'] ->
+  Class['docker'] ->
+  Class['openstack::logrotate'] ->
+  Class['docker::supervisor'] ->
+  Class['monit']
+}
 
 class { 'nailgun::packages': }
 
@@ -80,38 +102,40 @@ class { 'nailgun::client':
   keystone_pass => $::fuel_settings['FUEL_ACCESS']['password'],
 }
 
-class { 'nailgun::supervisor':
-  nailgun_env => false,
-  ostf_env    => false,
-  require     => File['/etc/supervisord.d/current', "/etc/supervisord.d/${::fuel_release}"],
-  conf_file   => 'nailgun/supervisord.conf.base.erb',
-}
-
 class { 'osnailyfacter::ssh':
   password_auth => 'yes',
 }
 
-file { '/etc/supervisord.d':
-  ensure  => directory,
-}
-
-class { 'docker::supervisor':
-  release => $::fuel_release,
-  require => File["/etc/supervisord.d/${::fuel_release}"],
-}
-
-file { "/etc/supervisord.d/${::fuel_release}":
-  ensure  => directory,
-  require => File['/etc/supervisord.d'],
-  owner   => root,
-  group   => root,
-}
-
-file { '/etc/supervisord.d/current':
-  ensure  => link,
-  target  => "/etc/supervisord.d/${::fuel_release}",
-  require => File["/etc/supervisord.d/${::fuel_release}"],
-  replace => true,
+if $systemd {
+  class { 'docker::systemd':
+    release => $::fuel_release,
+  }
+} else {
+  class { 'nailgun::supervisor':
+    nailgun_env => false,
+    ostf_env    => false,
+    require     => File['/etc/supervisord.d/current', "/etc/supervisord.d/${::fuel_release}"],
+    conf_file   => 'nailgun/supervisord.conf.base.erb',
+  }
+  file { '/etc/supervisord.d':
+    ensure  => directory,
+  }
+  class { 'docker::supervisor':
+    release => $::fuel_release,
+    require => File["/etc/supervisord.d/${::fuel_release}"],
+  }
+  file { "/etc/supervisord.d/${::fuel_release}":
+    ensure  => directory,
+    require => File['/etc/supervisord.d'],
+    owner   => 'root',
+    group   => 'root',
+  }
+  file { '/etc/supervisord.d/current':
+    ensure  => link,
+    target  => "/etc/supervisord.d/${::fuel_release}",
+    require => File["/etc/supervisord.d/${::fuel_release}"],
+    replace => true,
+  }
 }
 
 exec {'sync_deployment_tasks':
@@ -119,5 +143,9 @@ exec {'sync_deployment_tasks':
   path      => '/usr/bin',
   tries     => 12,
   try_sleep => 10,
+  if $systemd {
+  require   => Class['docker::systemd']
+  } else {
   require   => Class['nailgun::supervisor']
+  }
 }
