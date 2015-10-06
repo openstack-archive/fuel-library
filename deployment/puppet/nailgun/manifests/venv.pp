@@ -65,7 +65,7 @@ class nailgun::venv(
     ensure => directory,
     owner => 'root',
     group => 'root',
-    mode => 0755,
+    mode => '0755',
   }
 
   $fuel_key = $::generate_fuel_key
@@ -74,7 +74,7 @@ class nailgun::venv(
     content => template("nailgun/settings.yaml.erb"),
     owner => 'root',
     group => 'root',
-    mode => 0644,
+    mode => '0644',
     require => File["/etc/nailgun"],
   }
 

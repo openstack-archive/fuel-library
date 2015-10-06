@@ -4,6 +4,8 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 [unix_http_server]
 file=/var/run/supervisor.sock
+username=supervisord
+password=supervisord
 
 [supervisord]
 logfile=/var/log/supervisor/supervisord.log
@@ -13,6 +15,8 @@ childlogdir=/var/log/supervisor
 
 [supervisorctl]
 serverurl=unix:///var/run/supervisor.sock
+username=supervisord
+password=supervisord
 
 [program:nailgun]
 #command=/usr/bin/nailgund

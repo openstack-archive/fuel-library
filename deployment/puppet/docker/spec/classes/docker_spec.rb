@@ -6,7 +6,7 @@ describe 'docker' do
     :package_ensure => 'latest',
     :admin_ipaddress => '10.20.0.2',
     :limit           => '102400',
-    :docker_package  => 'docker-io',
+    :docker_package  => 'docker',
     :docker_service  => 'docker',
     :docker_engine   => 'native',
   } }
@@ -24,7 +24,7 @@ describe 'docker' do
           :dependent_dirs => ["/var/log/docker-logs", "/var/log/docker-logs/remote",
               "/var/log/docker-logs/audit", "/var/log/docker-logs/cobbler",
               "/var/log/docker-logs/ConsoleKit", "/var/log/docker-logs/coredump",
-              "/var/log/docker-logs/httpd", "/var/log/docker-logs/lxc",
+              "/var/log/docker-logs/httpd",
               "/var/log/docker-logs/nailgun", "/var/log/docker-logs/naily",
               "/var/log/docker-logs/nginx", "/var/log/docker-logs/ntpstats",
               "/var/log/docker-logs/puppet", "/var/log/docker-logs/rabbitmq",
@@ -40,13 +40,12 @@ describe 'docker' do
 
       it 'configures with the valid params' do
         should contain_class('docker')
-        should contain_package('lxc').with_ensure('installed')
         should contain_package(params[:docker_package]).with_ensure(params[:package_ensure])
         should contain_service(params[:docker_service]).with(
           :enable => true,
           :ensure => 'running',
           :hasrestart => true,
-          :require => 'Package[docker-io]')
+          :require => 'Package[docker]')
         should contain_file('/etc/sysconfig/docker')
         params[:dependent_dirs].each do |d|
           should contain_file(d).with(
