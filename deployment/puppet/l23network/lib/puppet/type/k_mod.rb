@@ -4,8 +4,6 @@ Puppet::Type.newtype(:k_mod) do
 
     ensurable
 
-    MAX_BR_NAME_LENGTH = 15
-
     newparam(:module) do
       isnamevar
       desc "Module name"
