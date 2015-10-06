@@ -105,9 +105,9 @@ class cobbler::server(
 
   file { "/etc/init.d/dnsmasq":
     content => template("cobbler/dnsmasq.init.erb"),
-    owner => root,
-    group => root,
-    mode => 0755,
+    owner => 'root',
+    group => 'root',
+    mode => '0755',
     require => Package[$dnsmasq_package],
     notify => Service["dnsmasq"],
   }
@@ -175,9 +175,9 @@ class cobbler::server(
 
       file { "/etc/xinetd.conf":
         content => template("cobbler/xinetd.conf.erb"),
-        owner => root,
-        group => root,
-        mode => 0600,
+        owner => 'root',
+        group => 'root',
+        mode => '0600',
         require => Package[$cobbler_additional_packages],
         notify => Service["xinetd"],
       }
@@ -223,9 +223,9 @@ class cobbler::server(
 
   file { "/etc/cobbler/modules.conf":
     content => template("cobbler/modules.conf.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
+    owner => 'root',
+    group => 'root',
+    mode => '0644',
     require => [
                 Package[$cobbler_package],
                 ],
@@ -237,9 +237,9 @@ class cobbler::server(
 
   file {"/etc/cobbler/settings":
     content => template("cobbler/settings.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
+    owner => 'root',
+    group => 'root',
+    mode => '0644',
     require => Package[$cobbler_package],
     notify => [
                Service[$cobbler_service],
@@ -249,9 +249,9 @@ class cobbler::server(
 
   file {"/etc/cobbler/dnsmasq.template":
     content => template("cobbler/dnsmasq.template.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
+    owner => 'root',
+    group => 'root',
+    mode => '0644',
     require => [
                 Package[$cobbler_package],
                 Package[$dnsmasq_package],
@@ -272,9 +272,9 @@ class cobbler::server(
 
   file {"/etc/cobbler/pxe/pxedefault.template":
     content => template("cobbler/pxedefault.template.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
+    owner => 'root',
+    group => 'root',
+    mode => '0644',
     require => Package[$cobbler_package],
     notify => [
                Service[$cobbler_service],
@@ -284,9 +284,9 @@ class cobbler::server(
 
   file {"/etc/cobbler/pxe/pxelocal.template":
     content => template("cobbler/pxelocal.template.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
+    owner => 'root',
+    group => 'root',
+    mode => '0644',
     require => Package[$cobbler_package],
     notify => [
                Service[$cobbler_service],
@@ -307,9 +307,9 @@ class cobbler::server(
   define cobbler_snippet(){
     file {"/var/lib/cobbler/snippets/${name}":
       content => template("cobbler/snippets/${name}.erb"),
-      owner => root,
-      group => root,
-      mode => 0644,
+      owner => 'root',
+      group => 'root',
+      mode => '0644',
       require => Package[$cobbler::server::cobbler_package],
     }
   }
