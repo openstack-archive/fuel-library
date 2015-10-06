@@ -1,5 +1,6 @@
 user              nginx;
 worker_processes  <%= [[@processorcount.to_i, 2].min, @processorcount.to_i / 2].max %>;
+daemon            off;
 
 error_log  /var/log/nginx/error.log;
 pid        /var/run/nginx.pid;
