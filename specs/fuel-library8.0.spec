@@ -14,7 +14,7 @@ Provides: fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
 BuildRequires: ruby21-rubygem-librarian-puppet-simple
-Requires: fuel-misc
+Requires: fuel-misc python-fuelclient
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
@@ -118,6 +118,13 @@ do
   fi
   ln -s /etc/puppet/%{openstack_version}/${i} /etc/puppet/${i}
 done
+
+if [ "$1" = 2 ]; then
+  #Try to sync deployment tasks or notify user on upgrade
+  tasksdir=/etc/puppet/%{openstack_version}/
+  fuel rel --sync-deployment-tasks --dir "$taskdir" || \
+    echo "Unable to sync tasks. Run `fuel rel --sync-deployment-tasks --dir $taskdir` to finish install." 1>&2
+fi
 
 %files
 /etc/puppet/%{openstack_version}/modules/
