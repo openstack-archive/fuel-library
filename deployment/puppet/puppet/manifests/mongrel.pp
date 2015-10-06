@@ -9,7 +9,7 @@ class puppet::mongrel(
 	    content => template($puppet::params::daemon_config_template),
 	    owner => 'root',
 	    group => 'root',
-	    mode => 0644,
+	    mode => '0644',
 	    require => [
 	       Package[$puppet::params::puppet_master_packages],
 	       Exec["puppetmaster_stopped"],
