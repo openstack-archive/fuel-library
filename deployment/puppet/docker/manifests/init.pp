@@ -36,7 +36,7 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
     content => template("docker/settings.erb"),
     owner => 'root',
     group => 'root',
-    mode => 0644,
+    mode => '0644',
     notify => Service["docker"],
   }
   file { $dependent_dirs:

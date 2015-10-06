@@ -51,9 +51,9 @@ class mcollective::server(
 
   file {"/etc/mcollective/server.cfg" :
     content => template("mcollective/server.cfg.erb"),
-    owner => root,
-    group => root,
-    mode => 0600,
+    owner => 'root',
+    group => 'root',
+    mode => '0600',
     require => Package[$mcollective_package],
     notify => Service['mcollective'],
   }
