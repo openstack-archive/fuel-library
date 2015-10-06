@@ -68,9 +68,9 @@ class cobbler::profile::centos64_x86_64(
 
   file { "${ks_dir}/centos64_x86_64.ks":
     content => template("cobbler/kickstart/centos.ks.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
+    owner => 'root',
+    group => 'root',
+    mode => '0644',
   } ->
 
   cobbler_profile { "centos64_x86_64":
