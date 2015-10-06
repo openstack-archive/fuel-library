@@ -84,11 +84,6 @@ if $neutron_mellanox {
   $mellanox_mode = 'disabled'
 }
 
-
-class { 'l23network' :
-  use_ovs => $use_neutron
-}
-
 if $use_neutron {
   $novanetwork_params        = {}
   $network_provider          = 'neutron'

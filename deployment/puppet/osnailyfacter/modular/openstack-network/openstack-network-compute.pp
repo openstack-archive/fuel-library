@@ -16,10 +16,6 @@ $openstack_network_hash         = hiera_hash('openstack_network', {})
 
 $floating_hash = {}
 
-class { 'l23network' :
-  use_ovs => $use_neutron
-}
-
 if $use_neutron {
   $network_provider              = 'neutron'
   $novanetwork_params            = {}
