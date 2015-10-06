@@ -28,7 +28,7 @@ class nailgun::supervisor(
     content => template($conf_file),
     owner => 'root',
     group => 'root',
-    mode => 0644,
+    mode => '0644',
     require => Package["supervisor"],
     notify => Service["supervisord"],
   }
@@ -42,7 +42,7 @@ class nailgun::supervisor(
     hasrestart => true,
     restart => $restart_service ? {
       false   => "/bin/true",
-      default => "/usr/bin/supervisorctl stop all; /etc/init.d/supervisord restart",
+      default => "/usr/bin/supervisorctl stop all; /usr/bin/supervisorctl reload",
     },
   }
   Package<| title == 'supervisor' or title == 'nginx' or
