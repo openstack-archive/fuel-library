@@ -57,9 +57,9 @@ class cobbler::distro::centos63-x86_64(
   
   file { $iso_mnt:
     ensure => directory,
-    owner => root,
-    group => root,
-    mode => 0555,
+    owner => 'root',
+    group => 'root',
+    mode => '0555',
   }
 
   if $http_iso =~ /^http:\/\/.+/ {

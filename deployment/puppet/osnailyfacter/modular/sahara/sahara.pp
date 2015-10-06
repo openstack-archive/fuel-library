@@ -83,11 +83,11 @@ if $sahara_hash['enabled'] {
 
   if $public_ssl_hash['services'] {
     file { '/etc/pki/tls/certs':
-      mode => 755,
+      mode => '0755',
     }
 
     file { '/etc/pki/tls/certs/public_haproxy.pem':
-      mode => 644,
+      mode => '0644',
     }
 
     sahara_config {
