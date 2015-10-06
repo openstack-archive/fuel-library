@@ -109,8 +109,8 @@ class cobbler::server (
     }
 
     service { $dnsmasq_service:
-      ensure     => false,
-      enable     => false,
+      ensure     => running,
+      enable     => true,
       hasrestart => true,
       require    => Package[$cobbler::packages::dnsmasq_package],
       subscribe  => Exec['cobbler_sync'],
