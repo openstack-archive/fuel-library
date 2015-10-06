@@ -24,7 +24,7 @@ Facter.add("osd_devices_list") do
               sep = ''
             end
             device = "/dev/#{d}#{sep}"
-            parts = %x{ls /dev/#{d}?*}.gsub(device,"").split("\n")
+            parts = Dir["/dev/#{d}?*"].map{|p| p.gsub(device,"")}.sort
             parts.each { |p|
                 code = %x{sgdisk -i #{p} /dev/#{d} | grep "Partition GUID code" | awk '{print $4}'}.strip()
                 case code
