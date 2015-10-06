@@ -11,7 +11,7 @@ class puppet::master (
     content => template($puppet::params::puppet_config_template),
     owner => 'root',
     group => 'root',
-    mode => 0644,
+    mode => '0644',
     require => Package[$puppet::params::puppet_master_packages],
     notify => Service["puppetmaster"],
   }->

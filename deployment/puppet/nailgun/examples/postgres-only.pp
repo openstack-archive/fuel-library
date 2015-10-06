@@ -53,11 +53,3 @@ postgresql::server::db { $ostf_dbname:
   require => Class['::postgresql::server'],
 }
 
-Class['postgresql::server'] -> Postgres_config<||>
-Postgres_config { ensure => present }
-postgres_config {
-  log_directory     : value => "'/var/log/'";
-  log_filename      : value => "'pgsql'";
-  log_rotation_age  : value => "7d";
-}
-
