@@ -20,3 +20,4 @@ puppet/openstacklib
 puppet/keystone
 puppet/neutron
 puppet/nova
+puppet/heat
