@@ -120,7 +120,7 @@ describe manifest do
          should contain_file('keystone_wsgi_admin').with(
            'ensure'  => 'file',
            'path'    => "/usr/lib/cgi-bin/keystone/admin",
-           'source'  => 'puppet:///modules/keystone/httpd/keystone.py',
+           'source'  => '/usr/share/keystone/wsgi.py',
            'owner'   => 'keystone',
            'group'   => 'keystone',
            'mode'    => '0644',
