@@ -134,7 +134,7 @@ class nailgun::rabbitmq (
      'inet_default_connect_options' => '[{nodelay,true}]',
     },
     config_variables => {
-      'log_levels'                  => '[connection,debug,info,error]',
+      'log_levels'                  => '[{connection,debug,info,error}]',
       'default_vhost'               => '<<"">>',
       'default_permissions'         => '[<<".*">>, <<".*">>, <<".*">>]',
       'tcp_listen_options'          => $rabbit_tcp_listen_options,
