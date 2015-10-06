@@ -17,7 +17,7 @@ class puppet::nginx(
     content => template("puppet/nginx_puppet.erb"),
     owner => 'root',
     group => 'root',
-    mode => 0644,
+    mode => '0644',
     require => Package["nginx"],
   }
 
