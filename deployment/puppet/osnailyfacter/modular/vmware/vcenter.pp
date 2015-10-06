@@ -18,7 +18,7 @@ if hiera('libvirt_type') == 'vcenter' {
     vcenter_host_ip         => $vcenter_hash['host_ip'],
     vcenter_cluster         => $vcenter_hash['cluster'],
     vcenter_datastore_regex => $vcenter_hash['datastore_regex'],
-    vlan_interface          => $vcenter_hash['vlan_interface'],
+    vlan_interface          => $vcenter_hash['esxi_vlan_interface'],
     use_quantum             => $use_neutron,
     vnc_address             => $controller_node_public,
     ceilometer              => $ceilometer_hash['enabled'],
@@ -31,7 +31,7 @@ if hiera('libvirt_type') == 'vcenter' {
 if $use_vcenter {
   class { 'vmware' :
     vcenter_settings        => $vcenter_hash['computes'],
-    vlan_interface          => $vcenter_hash['vlan_interface'],
+    vlan_interface          => $vcenter_hash['esxi_vlan_interface'],
     use_quantum             => $use_neutron,
     vnc_address             => $controller_node_public,
     ceilometer              => $ceilometer_hash['enabled'],
