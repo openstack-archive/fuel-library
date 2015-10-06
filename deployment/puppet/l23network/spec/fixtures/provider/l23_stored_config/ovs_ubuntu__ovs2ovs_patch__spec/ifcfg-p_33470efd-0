@@ -1,0 +1,7 @@
+auto p_33470efd-0
+allow-br-ovs1 p_33470efd-0
+iface p_33470efd-0 inet manual
+ovs_type OVSPort
+ovs_bridge br-ovs1
+ovs_extra -- set Interface p_33470efd-0 type=patch options:peer=p_33470efd-1
+ovs_extra -- set Port p_33470efd-0 tag=100

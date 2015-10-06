@@ -404,7 +404,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     #add to content unmangled collected-properties
     collected_properties.keys.each do |type_name|
       data = provider.send(type_name)
-      if !(data.nil? or data.empty?)
+      if ((!data.nil? or !data.empty?) and data.to_s != 'absent')
         mangle_method_name="unmangle__#{type_name}"
         if self.respond_to?(mangle_method_name)
           rv = self.send(mangle_method_name, provider, data)
