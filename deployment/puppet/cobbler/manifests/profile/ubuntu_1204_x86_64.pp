@@ -50,9 +50,9 @@ class cobbler::profile::ubuntu_1204_x86_64(
 
   file { "${ks_dir}/ubuntu_1204_x86_64.preseed":
     content => template("cobbler/preseed/ubuntu-1204.preseed.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
+    owner => 'root',
+    group => 'root',
+    mode => '0644',
   } ->
 
   cobbler_profile { "ubuntu_1204_x86_64":

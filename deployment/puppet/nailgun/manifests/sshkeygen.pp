@@ -13,14 +13,14 @@ define nailgun::sshkeygen (
   }
 
   file { $homedir :
-    mode => 0755,
+    mode => '0755',
     owner => $username,
     group => $groupname,
     ensure => directory,
   }
 
   file { "${homedir}/.ssh" :
-    mode => 0700,
+    mode => '0700',
     owner => $username,
     group => $groupname,
     ensure => directory,
@@ -38,7 +38,7 @@ define nailgun::sshkeygen (
   file { "${homedir}/.ssh/id_${keytype}":
     owner => $username,
     group => $groupname,
-    mode => 0600,
+    mode => '0600',
     require => Exec["Generate ssh key for #{username}"],
   }
 
@@ -56,7 +56,7 @@ define nailgun::sshkeygen (
   file { "${homedir}/.ssh/id_${keytype}.pub":
     owner => $username,
     group => $groupname,
-    mode => 0644,
+    mode => '0644',
     require => Exec["Public ssh key for #{username}"],
   }
 
