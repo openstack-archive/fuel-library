@@ -5,6 +5,8 @@ fixtures:
     'sysctl': 'https://github.com/duritong/puppet-sysctl.git'
     'inifile':  'https://github.com/puppetlabs/puppetlabs-inifile.git'
     'firewall':  'https://github.com/puppetlabs/puppetlabs-firewall.git'
+    'openstacklib': 'https://review.fuel-infra.org/puppet-modules/puppet-openstacklib -b 7.0.0-mos-rc2'
+    'keystone': 'https://review.fuel-infra.org/puppet-modules/puppet-keystone -b 7.0.0-mos-rc2'
   symlinks:
     'openstack': "#{source_dir}"
     'osnailyfacter': "#{source_dir}/../osnailyfacter"
@@ -15,7 +17,6 @@ fixtures:
     'cinder': "#{source_dir}/../cinder"
     'glance': "#{source_dir}/../glance"
     'heat': "#{source_dir}/../heat"
-    'keystone': "#{source_dir}/../keystone"
     'neutron': "#{source_dir}/../neutron"
     'nova': "#{source_dir}/../nova"
     'sahara': "#{source_dir}/../sahara"
