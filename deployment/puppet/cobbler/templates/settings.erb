@@ -131,7 +131,11 @@ http_port: 80
 # kernel options that should be present in every cobbler installation.
 # kernel options can also be applied at the distro/profile/system
 # level.
+#
+# TODO(isuzdal) Remove dirty net.ifnames when 
+# https://review.openstack.org/#/c/243597/ will be merged
 kernel_options:
+    'net.ifnames=0': ~
     ksdevice: bootif
     lang: ' '
     text: ~
