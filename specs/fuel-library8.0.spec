@@ -13,7 +13,7 @@ Source0: %{name}-%{version}.tar.gz
 Provides: fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
-BuildRequires: ruby21-rubygem-librarian-puppet-simple
+BuildRequires: rubygem-librarian-puppet-simple
 Requires: fuel-misc
 
 %define files_source %{_builddir}/%{name}-%{version}/files
