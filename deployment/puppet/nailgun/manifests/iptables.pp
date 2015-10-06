@@ -11,6 +11,7 @@ $rsync_port            = '873',
 $rsyslog_port          = '514',
 $ntp_port              = '123',
 $rabbitmq_ports        = ['4369','5672','15672','61613'],
+$fuelweb_port          = '8443',
 $chain                 = 'INPUT',
 )
 {
@@ -171,6 +172,29 @@ $chain                 = 'INPUT',
   firewall { '042 rabbitmq_block_ext':
     chain   => $chain,
     port    => $rabbitmq_ports,
+    proto   => 'tcp',
+    action  => 'reject',
+  }
+
+  firewall { '043 fuelweb_admin':
+    chain   => $chain,
+    port    => $fuelweb_port,
+    proto   => 'tcp',
+    iniface => $admin_iface,
+    action  => 'accept',
+  }
+
+  firewall { '044 fuelweb_local':
+    chain   => $chain,
+    port    => $fuelweb_port,
+    proto   => 'tcp',
+    iniface => 'LOCAL',
+    action  => 'accept',
+  }
+
+  firewall { '045 fuelweb_block_ext':
+    chain   => $chain,
+    port    => $fuelweb_port,
     proto   => 'tcp',
     action  => 'reject',
   }

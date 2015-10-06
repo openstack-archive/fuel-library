@@ -6,7 +6,7 @@ describe 'docker' do
     :package_ensure => 'latest',
     :admin_ipaddress => '10.20.0.2',
     :limit           => '102400',
-    :docker_package  => 'docker-io',
+    :docker_package  => 'docker',
     :docker_service  => 'docker',
     :docker_engine   => 'native',
   } }
@@ -45,7 +45,7 @@ describe 'docker' do
           :enable => true,
           :ensure => 'running',
           :hasrestart => true,
-          :require => 'Package[docker-io]')
+          :require => 'Package[docker]')
         should contain_file('/etc/sysconfig/docker')
         params[:dependent_dirs].each do |d|
           should contain_file(d).with(
