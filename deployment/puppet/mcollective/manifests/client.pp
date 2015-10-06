@@ -52,17 +52,17 @@ class mcollective::client(
   ###DEPRECATED - RETAINED FROM OLD FUEL VERSIONS####
   #  file {"${mcollective_agent_path}/puppetd.ddl" :
   #  content => template("mcollective/puppetd.ddl.erb"),
-  #  owner => root,
-  #  group => root,
-  #  mode => 0600,
+  #  owner => 'root',
+  #  group => 'root',
+  #  mode => '0600',
   #  require => Package[$mcollective_client_package],
   # }
   #
   # file {"${mcollective_agent_path}/puppetd.rb" :
   #  content => template("mcollective/puppetd.rb.erb"),
-  #  owner => root,
-  #  group => root,
-  #  mode => 0600,
+  #  owner => 'root',
+  #  group => 'root',
+  #  mode => '0600',
   #  require => Package[$mcollective_client_package],
   # }
 }

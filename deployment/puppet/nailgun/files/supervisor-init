@@ -71,28 +71,17 @@ restart() {
 }
 
 supervisor_status() {
-        /usr/bin/supervisorctl status && kill -s 0 `cat /var/run/supervisord.pid` 2>/dev/null
+        /usr/bin/supervisorctl status && kill -s 0 $(cat /var/run/supervisord.pid) 2>/dev/null
         return $?
 }
+
 case "$1" in
-    start)
-        start
-        RETVAL=$?
-        ;;
-    stop)
-        stop
-        RETVAL=$?
-        ;;
-    restart|force-reload)
-        restart
-        RETVAL=$?
-        ;;
-    reload)
+    start|stop|restart|reload|force-reload)
         /usr/bin/supervisorctl $OPTIONS reload
         RETVAL=$?
         ;;
     condrestart)
-        [ -f /var/lock/subsys/supervisord ] && restart
+        [ -f /var/lock/subsys/supervisord ] && /usr/bin/supervisorctl $OPTIONS reload
         RETVAL=$?
         ;;
     status)
