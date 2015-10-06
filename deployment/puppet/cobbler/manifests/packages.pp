@@ -15,12 +15,12 @@
 
 class cobbler::packages {
 
-  case $operatingsystem {
+  case $::operatingsystem {
     /(?i)(centos|redhat)/:  {
       $cobbler_package = "cobbler"
       $cobbler_web_package = "cobbler-web"
       $dnsmasq_package = "dnsmasq"
-      $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr","fence-agents", "bind-utils"]
+      $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr","fence-agents-all", "bind-utils"]
       $django_package = "python-django"
       $openssh_package = "openssh-clients"
       $pexpect_package = "pexpect"
@@ -37,13 +37,7 @@ class cobbler::packages {
     }
   }
 
-  define cobbler_safe_package(){
-    if ! defined(Package[$name]){
-      @package { $name : }
-    }
-  }
-
-  cobbler_safe_package { $cobbler_additional_packages : }
+  cobbler::cobbler_safe_package { $cobbler_additional_packages : }
 
   package { $django_package :
         ensure => present
