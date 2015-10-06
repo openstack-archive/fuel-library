@@ -28,7 +28,7 @@ class nailgun::supervisor(
     content => template($conf_file),
     owner => 'root',
     group => 'root',
-    mode => 0644,
+    mode => '0644',
     require => Package["supervisor"],
     notify => Service["supervisord"],
   }
