@@ -49,6 +49,6 @@ class { 'nailgun::rabbitmq':
   stomp           => $stomp,
   env_config      => {
     'RABBITMQ_SERVER_ERL_ARGS' => "+K true +A${thread_pool_calc} +P 1048576",
-    'NODENAME'                 => "rabbit@${::hostname}",
+    'NODENAME'                 => "rabbit@$localhost",
   },
 }
