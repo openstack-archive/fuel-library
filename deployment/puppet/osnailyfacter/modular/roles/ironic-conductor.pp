@@ -35,10 +35,14 @@ $database_connection        = "mysql://${db_name}:${db_password}@${db_host}/${db
 
 $tftp_root                  = '/var/lib/ironic/tftpboot'
 
+package { 'ironic-fa-deploy':
+    ensure => 'present',
+}
+
 class { '::ironic':
   verbose             => $verbose,
   debug               => $debug,
-  enabled_drivers     => ['fake'],
+  enabled_drivers     => ['fuel_ssh', 'fuel_ipmitool', 'fake'],
   rabbit_hosts        => $rabbit_hosts,
   rabbit_userid       => $rabbit_hash['user'],
   rabbit_password     => $rabbit_hash['password'],
