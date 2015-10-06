@@ -9,6 +9,9 @@ describe manifest do
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
 
     if ironic_enabled
+      it 'should ensure that ironic-fa-deploy is installed' do
+          should contain_package('ironic-fa-deploy').with('ensure' => 'present')
+      end
       it 'should declare ironic class correctly' do
         should contain_class('ironic').with(
           'rabbit_userid'   => rabbit_user,
