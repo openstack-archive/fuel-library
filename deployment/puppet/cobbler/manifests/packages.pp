@@ -20,7 +20,7 @@ class cobbler::packages {
       $cobbler_package = "cobbler"
       $cobbler_web_package = "cobbler-web"
       $dnsmasq_package = "dnsmasq"
-      $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr","fence-agents", "bind-utils"]
+      $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr","fence-agents-all", "bind-utils"]
       $django_package = "python-django"
       $openssh_package = "openssh-clients"
       $pexpect_package = "pexpect"
