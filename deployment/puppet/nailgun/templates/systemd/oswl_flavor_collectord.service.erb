@@ -1,0 +1,20 @@
+[Unit]
+Name=oswl flavor collector daemon
+
+[Service]
+Restart=on-failure
+RestartSec=10s
+StartLimitBurst=10
+TimeoutStartSec=10s
+TimeoutStopSec=5s
+
+StandardInput=null
+StandardOutput=syslog
+StandardError=syslog+console
+SyslogIdentifier=oswl_flavor_collectord
+
+ExecStart=/usr/bin/oswl_collectord flavor
+
+[Install]
+WantedBy=multi-user.target
+
