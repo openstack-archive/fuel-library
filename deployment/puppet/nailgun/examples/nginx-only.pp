@@ -49,7 +49,7 @@ node default {
       keystone_host   => $keystone_host,
       nailgun_host    => $nailgun_host,
       repo_root       => $repo_root,
-      service_enabled => false,
+      service_enabled => true,
       ssl_enabled     => true,
       force_https     => $force_https,
   }
