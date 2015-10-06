@@ -69,8 +69,8 @@ class openstack::network::neutron_agents (
 
   if 'ml2-ovs' in $agents {
     if $net_mtu {
-      $bridge_vm = get_network_role_property('neutron/private', 'interface')
-      $physnet_mtus = regsubst(grep($bridge_mappings, $bridge_vm), $bridge_vm, "${net_mtu}")
+      $bridge_vm             = get_network_role_property('neutron/private', 'interface')
+      $physical_network_mtus = regsubst(grep($bridge_mappings, $bridge_vm), $bridge_vm, "${net_mtu}")
     }
 
     class { 'neutron::plugins::ml2':
@@ -82,7 +82,7 @@ class openstack::network::neutron_agents (
       tunnel_id_ranges      => $tunnel_id_ranges,
       vxlan_group           => $vxlan_group,
       vni_ranges            => $vni_ranges,
-      physnet_mtus          => $physnet_mtus,
+      physical_network_mtus => $physical_network_mtus,
       path_mtu              => $net_mtu,
     }
     class { 'neutron::agents::ml2::ovs':
@@ -95,6 +95,7 @@ class openstack::network::neutron_agents (
       enable_distributed_routing => $agent_mode ? { 'legacy' => false, default => true},
       l2_population              => $l2_population,
       arp_responder              => $l2_population,
+      manage_vswitch             => false,
       manage_service             => true,
       enabled                    => true,
     }
