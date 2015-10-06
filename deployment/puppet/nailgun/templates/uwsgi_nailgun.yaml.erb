@@ -6,7 +6,7 @@ uwsgi:
   socket: :8001
   plugin: python
   chown-socket: nginx:nginx
-  pythonpath: <%= @venv %>/lib/python2.6/site-packages/nailgun
+  pythonpath: <%= @venv %>/lib/python2.7/site-packages/nailgun
   touch-reload: /var/lib/nailgun-uwsgi
   virtualenv: <%= @venv %>
   module: nailgun.wsgi
@@ -16,4 +16,4 @@ uwsgi:
   logto: /var/log/nailgun/app.log
   mule: 1
   lazy: true
-  shared-pyimport: <%= @venv %>/lib/python2.6/site-packages/nailgun/utils/mule.py
+  shared-pyimport: <%= @venv %>/lib/python2.7/site-packages/nailgun/utils/mule.py

@@ -57,7 +57,7 @@ class { 'nailgun::rabbitmq':
   env_config      => {
     'RABBITMQ_SERVER_ERL_ARGS' => "+K true +A${thread_pool_calc} +P 1048576",
     'ERL_EPMD_ADDRESS'         => $bind_ip,
-    'NODENAME'                 => "rabbit@${::hostname}",
+    'NODENAME'                 => "rabbit@localhost",
   },
 }
 
