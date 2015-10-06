@@ -458,7 +458,8 @@ function first_run_container {
   image="$IMAGE_PREFIX/$1_$VERSION"
   if ! is_running $container_name; then
       pre_setup_hooks $1
-      ${DOCKER} run $opts $BACKGROUND --name=$container_name $image
+      ${DOCKER} run $opts $BACKGROUND --privileged --name=$container_name $image
+      ${DOCKER} exec -t $container_name sh -c "test -x /usr/local/bin/start.sh && /usr/local/bin/start.sh"
       post_setup_hooks $1
   else
       echo "$container_name is already running."
