@@ -229,3 +229,44 @@
     retries: 3
     interval: 20
     timeout: 180
+
+- id: ironic_upload_images
+  type: shell
+  role: [primary-controller]
+  required_for: [post_deployment_end]
+  requires: [ironic_copy_bootstrap]
+  parameters:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ironic/upload_images.rb
+    retries: 3
+    interval: 20
+    timeout: 180
+
+- id: ironic_copy_bootstrap
+  type: copy_files
+  role: [primary-controller]
+  required_for: [ironic_upload_images]
+  requires: [enable_quorum]
+  parameters:
+    files:
+      - src: /var/lib/astute/ironic-bootstrap/{CLUSTER_ID}/initramfs.img
+        dst: /var/lib/astute/ironic-bootstrap/initramfs.img
+      - src: /var/lib/astute/ironic-bootstrap/{CLUSTER_ID}/linux
+        dst: /var/lib/astute/ironic-bootstrap/linux
+      - src: /var/lib/astute/ironic-bootstrap/{CLUSTER_ID}/root.squashfs
+        dst: /var/lib/astute/ironic-bootstrap/root.squashfs
+    permissions: '0600'
+    dir_permissions: '0700'
+
+- id: ironic_copy_bootstrap_key
+  type: copy_files
+  role: [ironic]
+  required_for: [pre_deployment_end]
+  requires: [pre_deployment_start]
+  parameters:
+    files:
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ironic/ironic.pub
+        dst: /var/lib/astute/ironic/ironic.pub
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ironic/ironic
+        dst: /var/lib/astute/ironic/ironic
+    permissions: '0600'
+    dir_permissions: '0700'
