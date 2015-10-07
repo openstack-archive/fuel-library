@@ -5,7 +5,7 @@ manifest = 'generate_vms/generate_vms.pp'
 describe manifest do
   shared_examples 'catalog' do
     libvirt_dir = '/etc/libvirt/qemu'
-    template_dir = '/var/lib/vms'
+    template_dir = '/var/lib/nova'
     libvirt_service = 'libvirtd'
     packages = ['qemu-utils', 'qemu-kvm', 'libvirt-bin', 'xmlstarlet']
 
