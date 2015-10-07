@@ -32,8 +32,8 @@ describe manifest do
       should contain_class('osnailyfacter::atop')
       should contain_class('osnailyfacter::ssh')
       should contain_class('puppet::pull').with(
-        {'modules_source'   => puppet['modules']},
-        {'manifests_source' => puppet['manifests']}
+        'modules_source'   => puppet['modules'],
+        'manifests_source' => puppet['manifests']
       )
     end
 
@@ -51,7 +51,7 @@ describe manifest do
 
     it do
       should contain_package('cloud-init').with({
-        'ensure' => 'purged'})
+        'ensure' => 'absent'})
     end
   end
 

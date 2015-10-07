@@ -22,7 +22,15 @@ package { $tools :
 }
 
 package { 'cloud-init':
-   ensure => 'purged',
+  ensure => 'absent',
+}
+
+if $::osfamily == 'Debian' {
+  apt::conf { 'notranslations':
+    ensure        => 'present',
+    content       => 'Acquire::Languages "none";',
+    notify_update => false,
+  }
 }
 
 $puppet = hiera('puppet')
