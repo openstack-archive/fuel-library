@@ -87,7 +87,13 @@ case "$1" in
   list)
     shift
     list_containers "$@" ;;
-  restart|stop|revert|shell|destroy)
+  shell)
+    shift 2
+    shell_container $container "$@" ;;
+  copy)
+    shift 1
+    copy_files "$@" ;;
+  restart|stop|revert|destroy)
     cmd=$1
     shift 2
     ${cmd}_container $container $@ ;;
