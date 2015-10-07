@@ -155,3 +155,8 @@ mod 'openssl',
 mod 'mongodb',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-mongodb.git',
     :ref => '0.10.0-mos-rc1'
+
+# Pull in puppetlabs-rsync
+mod 'rsync',
+    :git => 'https://review.fuel-infra.org/puppet-modules/puppetlabs-rsync.git',
+    :ref => '0.4.0-mos-rc1'
