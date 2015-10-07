@@ -229,3 +229,28 @@
     retries: 3
     interval: 20
     timeout: 180
+
+- id: ironic_upload_images
+  type: shell
+  role: [primary-controller]
+  required_for: [post_deployment_end]
+  requires: [enable_quorum]
+  parameters:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ironic/upload_images.rb {CLUSTER_ID}
+    retries: 3
+    interval: 20
+    timeout: 180
+
+- id: ironic_copy_bootstrap_key
+  type: copy_files
+  role: [ironic]
+  required_for: [pre_deployment_end]
+  requires: [pre_deployment_start]
+  parameters:
+    files:
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ironic/ironic.pub
+        dst: /var/lib/astute/ironic/ironic.pub
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ironic/ironic
+        dst: /var/lib/astute/ironic/ironic
+    permissions: '0600'
+    dir_permissions: '0700'
