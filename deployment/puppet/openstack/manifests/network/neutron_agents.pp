@@ -72,6 +72,15 @@ class openstack::network::neutron_agents (
       $bridge_vm             = get_network_role_property('neutron/private', 'interface')
       $physical_network_mtus = regsubst(grep($bridge_mappings, $bridge_vm), $bridge_vm, "${net_mtu}")
     }
+    if $::osfamily == 'Debian' {
+      # Override values from params.pp file to satisfy Debian package names
+      Service<| title == 'neutron-ovs-agent-service' |> {
+        name => 'neutron-openvswitch-agent',
+      }
+      Package<| title == 'neutron-ovs-agent' |> {
+        name => 'neutron-openvswitch-agent',
+      }
+    }
 
     class { 'neutron::plugins::ml2':
       type_drivers          => $type_drivers,
@@ -105,6 +114,13 @@ class openstack::network::neutron_agents (
     Exec<| title == 'waiting-for-neutron-api' |> -> Service<| title == 'neutron-ovs-agent-service' |>
 
     if $ha_agents {
+      if $::osfamily == 'Debian' {
+        # Override values from params.pp file to satisfy Debian package names
+        Cluster::Corosync::Cs_service<| title == 'ovs' |> {
+          service_name => 'neutron-openvswitch-agent',
+          package_name => 'neutron-openvswitch-agent',
+        }
+      }
       class {'cluster::neutron::ovs':
         primary   => $ha_agents ? { 'primary' => true, default => false},
       }

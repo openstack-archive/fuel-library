@@ -115,6 +115,38 @@ describe manifest do
         )
       end
 
+      it 'should declare cluster::neutron::ovs class' do
+         if (facts[:operatingsystem] == 'Ubuntu')
+           should contain_cluster__corosync__cs_service('ovs').with(
+             'service_name' => 'neutron-openvswitch-agent',
+             'package_name' => 'neutron-openvswitch-agent',
+           )
+         else
+           should contain_cluster__corosync__cs_service('ovs').with(
+             'service_name' => 'neutron-openvswitch-agent',
+             'package_name' => 'openstack-neutron',
+          )
+         end
+      end
+
+      it 'should declare neutron-ovs-agent service and package' do
+         if (facts[:operatingsystem] == 'Ubuntu')
+           should contain_service('neutron-ovs-agent-service').with(
+             'name' => 'neutron-openvswitch-agent',
+           )
+           should contain_package('neutron-ovs-agent').with(
+             'name' => 'neutron-openvswitch-agent',
+           )
+         else
+           should contain_service('neutron-ovs-agent-service').with(
+             'name' => 'neutron-openvswitch-agent',
+           )
+           should contain_package('neutron-ovs-agent').with(
+             'name' => 'openstack-neutron-openvswitch',
+           )
+         end
+      end
+
       neutron_config =  Noop.hiera_structure 'quantum_settings'
       neutron_advanced_config =  Noop.hiera_structure 'neutron_advanced_configuration'
 
