@@ -28,7 +28,7 @@ class openstack::heat (
   $syslog_log_facility           = 'LOG_LOCAL0',
   $log_dir                       = '/var/log/heat',
 
-  $rpc_backend                   = 'heat.openstack.common.rpc.impl_kombu',
+  $rpc_backend                   = 'rabbit',
   $amqp_hosts                    = ['127.0.0.1:5672'],
   $amqp_user                     = 'heat',
   $amqp_password                 = false,

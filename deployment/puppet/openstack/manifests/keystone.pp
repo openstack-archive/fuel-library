@@ -126,46 +126,37 @@ class openstack::keystone (
 
   if $enabled {
     class { '::keystone':
-      verbose               => $verbose,
-      debug                 => $debug,
-      catalog_type          => 'sql',
-      admin_token           => $admin_token,
-      enabled               => false,
-      database_connection   => $database_connection,
-      public_bind_host      => $public_bind_host,
-      admin_bind_host       => $admin_bind_host,
-      admin_workers         => $service_workers,
-      public_workers        => $service_workers,
-      package_ensure        => $package_ensure,
-      use_syslog            => $use_syslog,
-      use_stderr            => $use_stderr,
-      database_idle_timeout => $database_idle_timeout,
-      rabbit_password       => $rabbit_password,
-      rabbit_userid         => $rabbit_userid,
-      rabbit_hosts          => $rabbit_hosts,
-      rabbit_virtual_host   => $rabbit_virtual_host,
-      memcache_servers      => $memcache_servers_real,
-      token_driver          => $token_driver,
-      token_provider        => 'keystone.token.providers.uuid.Provider',
-      notification_driver   => $notification_driver,
-      notification_topics   => $notification_topics,
-      token_caching         => $token_caching,
-      cache_backend         => $cache_backend,
-      revoke_driver         => $revoke_driver,
-      public_endpoint       => $public_url,
-    }
-
-    if $memcache_servers {
-      Service<| title == 'memcached' |> -> Service<| title == 'keystone'|>
-      keystone_config {
-        'cache/memcache_servers':             value => join($memcache_servers_real, ',');
-        'cache/memcache_dead_retry':          value => '60';
-        'cache/memcache_socket_timeout':      value => '1';
-        'cache/memcache_pool_maxsize':        value => '1000';
-        'cache/memcache_pool_unused_timeout': value => '60';
-        'memcache/dead_retry':                value => '60';
-        'memcache/socket_timeout':            value => '1';
-      }
+      verbose                      => $verbose,
+      debug                        => $debug,
+      catalog_type                 => 'sql',
+      admin_token                  => $admin_token,
+      enabled                      => false,
+      database_connection          => $database_connection,
+      public_bind_host             => $public_bind_host,
+      admin_bind_host              => $admin_bind_host,
+      admin_workers                => $service_workers,
+      public_workers               => $service_workers,
+      package_ensure               => $package_ensure,
+      use_syslog                   => $use_syslog,
+      use_stderr                   => $use_stderr,
+      database_idle_timeout        => $database_idle_timeout,
+      rabbit_password              => $rabbit_password,
+      rabbit_userid                => $rabbit_userid,
+      rabbit_hosts                 => $rabbit_hosts,
+      rabbit_virtual_host          => $rabbit_virtual_host,
+      memcache_servers             => $memcache_servers_real,
+      token_driver                 => $token_driver,
+      token_provider               => 'keystone.token.providers.uuid.Provider',
+      notification_driver          => $notification_driver,
+      notification_topics          => $notification_topics,
+      token_caching                => $token_caching,
+      cache_backend                => $cache_backend,
+      revoke_driver                => $revoke_driver,
+      public_endpoint              => $public_url,
+      memcache_dead_retry          => '60',
+      memcache_socket_timeout      => '1',
+      memcache_pool_maxsize        =>'1000',
+      memcache_pool_unused_timeout => '60',
     }
 
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
@@ -180,7 +171,6 @@ class openstack::keystone (
     }
 
     keystone_config {
-      'memcache/pool_maxsize':                           value => $memcache_pool_maxsize;
       'DATABASE/max_pool_size':                          value => $max_pool_size;
       'DATABASE/max_retries':                            value => $max_retries;
       'DATABASE/max_overflow':                           value => $max_overflow;
