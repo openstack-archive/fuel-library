@@ -53,7 +53,7 @@ end
 
 def image_create(image_hash)
   command = <<-EOF
-/usr/bin/glance image-create \
+/usr/bin/glance --os-image-api-version 1 image-create \
 --name '#{image_hash['img_name']}' \
 --is-public '#{image_hash['public']}' \
 --container-format='#{image_hash['container_format']}' \
