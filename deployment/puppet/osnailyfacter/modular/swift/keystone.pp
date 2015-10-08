@@ -3,7 +3,7 @@ notice('MODULAR: swift/keystone.pp')
 $swift_hash       = hiera_hash('swift', {})
 $public_vip       = hiera('public_vip')
 $admin_address    = hiera('management_vip')
-$region           = pick($swift_hash['region'], 'RegionOne')
+$region           = pick($swift_hash['region'], hiera('region', 'RegionOne'))
 $public_ssl_hash  = hiera('public_ssl')
 $public_address   = $public_ssl_hash['services'] ? {
   true    => $public_ssl_hash['hostname'],

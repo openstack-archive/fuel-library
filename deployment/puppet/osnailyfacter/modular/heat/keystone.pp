@@ -3,7 +3,7 @@ notice('MODULAR: heat/keystone.pp')
 $heat_hash         = hiera_hash('heat', {})
 $public_vip        = hiera('public_vip')
 $admin_address     = hiera('management_vip')
-$region            = pick($heat_hash['region'], 'RegionOne')
+$region            = pick($heat_hash['region'], hiera('region', 'RegionOne'))
 $public_ssl_hash   = hiera('public_ssl')
 $public_address    = $public_ssl_hash['services'] ? {
   true    => $public_ssl_hash['hostname'],

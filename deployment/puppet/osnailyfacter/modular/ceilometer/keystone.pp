@@ -12,7 +12,7 @@ $public_protocol     = $public_ssl_hash['services'] ? {
   default => 'http',
 }
 $admin_address       = hiera('management_vip')
-$region              = pick($ceilometer_hash['region'], 'RegionOne')
+$region              = pick($ceilometer_hash['region'], hiera('region', 'RegionOne'))
 $password            = $ceilometer_hash['user_password']
 $auth_name           = pick($ceilometer_hash['auth_name'], 'ceilometer')
 $configure_endpoint  = pick($ceilometer_hash['configure_endpoint'], true)
