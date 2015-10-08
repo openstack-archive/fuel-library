@@ -30,7 +30,7 @@ test_vm_images.each do |image|
   img_path
   img_name
   os_name
-  public
+  visibility
   container_format
   min_ram
   ).each do |f|
@@ -55,7 +55,7 @@ def image_create(image_hash)
   command = <<-EOF
 /usr/bin/glance image-create \
 --name '#{image_hash['img_name']}' \
---is-public '#{image_hash['public']}' \
+--visibility '#{image_hash['visibility']}' \
 --container-format='#{image_hash['container_format']}' \
 --disk-format='#{image_hash['disk_format']}' \
 --min-ram='#{image_hash['min_ram']}' \
