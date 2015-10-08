@@ -5,7 +5,8 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_centos6, :parent => Puppet::P
 
   include PuppetX::FileMapper
 
-  confine :l23_os => :centos6
+  confine    :l23_os => :centos6
+  defaultfor :l23_os => :centos6
 
   has_feature :provider_options
 
