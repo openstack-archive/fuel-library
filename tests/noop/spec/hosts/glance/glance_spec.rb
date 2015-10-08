@@ -35,6 +35,8 @@ describe manifest do
       should contain_glance_api_config('DEFAULT/scrub_time').with_value('43200')
       should contain_glance_api_config('DEFAULT/scrubber_datadir').with_value('/var/lib/glance/scrubber')
       should contain_glance_api_config('DEFAULT/auth_region').with_value(region)
+      should contain_glance_api_config('DEFAULT/os_region_name').with_value(region)
+      should contain_glance_api_config('glance_store/os_region_name').with_value(region)
       should contain_glance_api_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
       should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
     end
@@ -51,6 +53,7 @@ describe manifest do
       should contain_glance_cache_config('DEFAULT/log_file').with_value('/var/log/glance/image-cache.log')
       should contain_glance_cache_config('DEFAULT/image_cache_stall_time').with_value('86400')
       should contain_glance_cache_config('DEFAULT/os_region_name').with_value(region)
+      should contain_glance_cache_config('glance_store/os_region_name').with_value(region)
       if glance_config && glance_config.has_key?('image_cache_max_size')
         glance_image_cache_max_size = glance_config['image_cache_max_size']
         should contain_glance_cache_config('DEFAULT/image_cache_max_size').with_value(glance_image_cache_max_size)
@@ -62,6 +65,7 @@ describe manifest do
       should contain_glance_registry_config('database/max_pool_size').with_value(max_pool_size)
       should contain_glance_registry_config('database/max_overflow').with_value(max_overflow)
       should contain_glance_registry_config('database/max_retries').with_value(max_retries)
+      should contain_glance_registry_config('glance_store/region').with_value(region)
       should contain_glance_registry_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
     end
 
