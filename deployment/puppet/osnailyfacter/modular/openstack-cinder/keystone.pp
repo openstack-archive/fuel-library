@@ -13,7 +13,7 @@ $public_protocol     = $public_ssl_hash['services'] ? {
 }
 $admin_protocol      = 'http'
 $admin_address       = hiera('management_vip')
-$region              = pick($cinder_hash['region'], 'RegionOne')
+$region              = pick($cinder_hash['region'], hiera('region', 'RegionOne'))
 
 $password            = $cinder_hash['user_password']
 $auth_name           = pick($cinder_hash['auth_name'], 'cinder')
