@@ -128,6 +128,7 @@ class openstack::glance (
     show_image_direct_url => $show_image_direct_url,
     pipeline              => $pipeline,
     known_stores          => $known_stores,
+    os_region_name        => $region,
   }
 
   glance_api_config {
@@ -177,6 +178,7 @@ class openstack::glance (
     'database/max_retries':           value => $max_retries;
     'database/max_overflow':          value => $max_overflow;
     'keystone_authtoken/signing_dir': value => '/tmp/keystone-signing-glance';
+    'glance_store/os_region_name':    value => $region;
   }
 
   # puppet-glance assumes rabbit_hosts is an array of [node:port, node:port]
