@@ -8,6 +8,19 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     '/etc/sysconfig/network-scripts'
   end
 
+  def self.target_files(script_dir = nil)
+    provider = self.name
+    debug("Collecting target files for #{provider}")
+    entries = super
+    regoc_regex = %r{DEVICETYPE=ovs}
+    if provider =~ /ovs_/
+      entries.select! { |entry| !open(entry).grep(regoc_regex).empty? }
+    elsif provider =~ /lnx_/
+      entries.select! { |entry| open(entry).grep(regoc_regex).empty? }
+    end
+    entries
+  end
+
   def self.property_mappings
     {
       :method                => 'BOOTPROTO',
@@ -145,6 +158,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
 
     props = self.mangle_properties(hash)
     props.merge!({:family => :inet})
+    props.merge!({:provider => self.name})
 
     debug("parse_file('#{filename}'): #{props.inspect}")
     [props]

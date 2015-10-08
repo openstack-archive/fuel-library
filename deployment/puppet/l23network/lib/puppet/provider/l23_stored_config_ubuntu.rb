@@ -9,6 +9,19 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     '/etc/network/interfaces.d'
   end
 
+  def self.target_files(script_dir = nil)
+    provider = self.name
+    debug("Collecting target files for #{provider}")
+    entries = super
+    regoc_regex = %r{ovs_type}
+    if provider =~ /ovs_/
+      entries.select! { |entry| !open(entry).grep(regoc_regex).empty? }
+    elsif provider =~ /lnx_/
+      entries.select! { |entry| open(entry).grep(regoc_regex).empty? }
+    end
+    entries
+  end
+
   def self.property_mappings
     {
       :if_type               => 'if_type',       # pseudo field, not found in config, but calculated
@@ -234,6 +247,8 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       rv = (self.respond_to?(mangle_method_name)  ?  self.send(mangle_method_name, props[prop_name])  :  props[prop_name])
       props[prop_name] = rv if ! ['', 'absent'].include? rv.to_s.downcase
     end
+
+    props.merge!({:provider => self.name})
 
     # The FileMapper mixin expects an array of providers, so we return the
     # single interface wrapped in an array

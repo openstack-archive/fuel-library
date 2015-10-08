@@ -1,0 +1,5 @@
+auto br-floating
+allow-ovs br-floating
+iface br-floating inet manual
+ovs_ports p_ff798dba-0
+ovs_type OVSBridge

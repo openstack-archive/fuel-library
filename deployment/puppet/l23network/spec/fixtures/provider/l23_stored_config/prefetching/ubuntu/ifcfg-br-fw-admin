@@ -1,0 +1,4 @@
+auto br-fw-admin
+iface br-fw-admin inet static
+bridge_ports eth0 p_eeee51a2-0
+address 10.109.0.4/24
