@@ -372,17 +372,20 @@ function logs {
 }
 
 function inspect {
+  local container
+
+  if (( $# == 0 )); then
+    docker inspect
+    return 0
+  fi
+
+
   for container in $@; do
     found="$(docker ps -a -q --filter="name=${CONTAINER_NAMES[$container]}" | wc -l)"
 
     if [[ $? -ne 0 || $found -ne 1 ]]; then
       echo "Could not find the $container container" 1>&2
-
-      if [[ $# -le 1 ]]; then
-        docker inspect
-      else
-        continue
-      fi
+      continue
     fi
 
     ${DOCKER} inspect ${CONTAINER_NAMES[$container]}
