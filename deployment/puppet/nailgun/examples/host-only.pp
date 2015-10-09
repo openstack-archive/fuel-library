@@ -10,8 +10,8 @@ else {
 }
 
 #Purge empty NTP server entries
-$ntp_servers = delete([$::fuel_settings['NTP1'], $::fuel_settings['NTP2'],
-                      $::fuel_settings['NTP3']], "")
+$ntp_servers = delete(delete_undef_values([$::fuel_settings['NTP1'],
+                     $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), "")
 
 $admin_network = ipcalc_network_wildcard(
   $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
