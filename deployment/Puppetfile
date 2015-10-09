@@ -165,3 +165,8 @@ mod 'mongodb',
 mod 'rsync',
     :git => 'https://review.fuel-infra.org/puppet-modules/puppetlabs-rsync.git',
     :ref => '0.4.0-mos-rc1'
+
+# Pull in puppet-monit
+mod 'monit',
+    :git => 'https://review.fuel-infra.org/puppet-modules/puppet-monit.git',
+    :ref => 'v0.0.4-mos-rc1'

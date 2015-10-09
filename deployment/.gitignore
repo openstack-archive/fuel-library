@@ -31,3 +31,4 @@ puppet/sahara
 puppet/openssl
 puppet/mongodb
 puppet/rsync
+puppet/monit
