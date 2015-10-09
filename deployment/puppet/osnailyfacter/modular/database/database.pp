@@ -58,6 +58,12 @@ if $enabled {
     ensure => 'present',
   }
 
+  if '/var/lib/mysql' in split($::mounts, ',') {
+    $ignore_db_dirs = ['lost+found']
+  } else {
+    $ignore_db_dirs = []
+  }
+
   class { 'mysql::server':
     bind_address            => '0.0.0.0',
     etc_root_password       => true,
@@ -73,6 +79,7 @@ if $enabled {
     mysql_skip_name_resolve => $mysql_skip_name_resolve,
     use_syslog              => $use_syslog,
     config_hash             => $config_hash_real,
+    ignore_db_dirs          => $ignore_db_dirs,
   }
 
   class { 'osnailyfacter::mysql_user':

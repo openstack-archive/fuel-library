@@ -22,6 +22,11 @@ port      = <%= @port %>
 basedir   = <%= @basedir %>
 datadir   = <%= @datadir %>
 tmpdir    = /tmp
+<% if @ignore_db_dirs and (@ignore_db_dirs.length > 0) %>
+  <% @ignore_db_dirs.each do |directory| %>
+ignore-db-dir =  <%= directory %>
+  <% end %>
+<% end %>
 skip-external-locking
 bind-address    = <%= @bind_address %>
 max_allowed_packet = 256M
