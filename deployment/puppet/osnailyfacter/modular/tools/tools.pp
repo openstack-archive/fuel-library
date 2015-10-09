@@ -1,8 +1,11 @@
 notice('MODULAR: tools.pp')
 
 class { 'osnailyfacter::atop': }
-
 class { 'osnailyfacter::ssh': }
+
+if $::virtual != 'physical' {
+  class { 'osnailyfacter::acpid': }
+}
 
 $tools = [
   'screen',
