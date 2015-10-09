@@ -1,6 +1,8 @@
 #!/bin/bash
 
 set -e
+SSHO="-o PasswordAuthentication=no -o ConnectTimeout=5"
+
 config_bundle="fvm_disk_size fvm_name fvm_ram fvm_cpu migrate_log fuel_astute  dkvm_folder \
     admin_net_br admin_net_b_type other_net_bridges os_swap os_root  os_var os_varlibdocker \
     os_varlog fm_reboot del_vm max_worktime"
@@ -331,6 +333,15 @@ fix_udev_rule(){
     done
 }
 
+wait_connection(){
+    te="$(( $(date +%s) + ${1:-300}))"
+    until  ssh $SSHO "${admin_net_ip_bs}" exit 0 ; do
+        sleep 2
+        [[ "${te}" -lt "$(date +%s)" ]] && return 1
+    done
+    return 0
+}
+
 
 set_log(){
     #  keep current console output on file descriptor &6  and redirect stderr and stdout into file
@@ -368,6 +379,7 @@ if [[ "$1" == "start" ]] && [[ -f "$fuel_migrate_vars" ]] ; then
     /etc/init.d/sshd start
     initctl start tty TTY=/dev/tty2
     cecho "You may login from tty2. Switch by Ctr-Alt-F2"
+    wait_connection 600
     time rsync_data
     fix_config
     rm -f /etc/rc3.d/S00fuel_migrate
@@ -433,7 +445,7 @@ EOF
     while true ; do sleep 3600 ; done
 
 else
-    dkvm_ip="$(ssh $1 echo \$SSH_CONNECTION)"
+    dkvm_ip="$(ssh $SSHO $1 echo \$SSH_CONNECTION)"
     dkvm_ip="$(echo $dkvm_ip | awk '{print $3}')"
     shift
     for i in "$@" ; do
