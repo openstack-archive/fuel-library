@@ -87,7 +87,7 @@ if $neutron_mellanox {
 if $use_neutron {
   $novanetwork_params        = {}
   $network_provider          = 'neutron'
-  $neutron_config            = hiera('quantum_settings')
+  $neutron_config            = hiera_hash('quantum_settings')
   $neutron_db_password       = $neutron_config['database']['passwd']
   $neutron_user_password     = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
@@ -190,7 +190,7 @@ if $use_monit_real {
   $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
   case $::osfamily {
     'RedHat' : {
-       $service_path   = '/sbin/service'
+      $service_path   = '/sbin/service'
     }
     'Debian' : {
       $service_path    = '/usr/sbin/service'
@@ -248,7 +248,7 @@ class { 'openstack::compute':
   debug                       => $debug,
   verbose                     => $verbose,
   use_stderr                  => $use_stderr,
-  cinder_volume_group         => "cinder",
+  cinder_volume_group         => 'cinder',
   vnc_enabled                 => true,
   manage_volumes              => $manage_volumes,
   nova_user_password          => $nova_hash[user_password],
