@@ -13,7 +13,7 @@ $public_protocol     = $public_ssl_hash['services'] ? {
 }
 $admin_protocol      = 'http'
 $admin_address       = hiera('management_vip')
-$region              = pick($nova_hash['region'], 'RegionOne')
+$region              = pick($nova_hash['region'], hiera('region', 'RegionOne'))
 
 $password            = $nova_hash['user_password']
 $auth_name           = pick($nova_hash['auth_name'], 'nova')
