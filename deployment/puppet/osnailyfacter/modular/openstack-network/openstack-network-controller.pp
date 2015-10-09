@@ -23,12 +23,17 @@ if $use_neutron {
   $neutron_advanced_config       = hiera_hash('neutron_advanced_configuration', {})
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
   #todo(sv): default value set to false as soon as Nailgun/UI part be ready
-  $isolated_metadata     = pick($neutron_config['metadata']['isolated_metadata'], true)
-  $neutron_agents        = pick($neutron_config['neutron_agents'], ['metadata', 'dhcp', 'l3'])
-  $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
-  $conf_nova             = pick($neutron_config['conf_nova'], true)
-  $service_workers       = pick($neutron_config['workers'],
-                                min(max($::processorcount, 2), 16))
+  $isolated_metadata      = pick($neutron_config['metadata']['isolated_metadata'], true)
+  $neutron_agents         = pick($neutron_config['neutron_agents'], ['metadata', 'dhcp', 'l3'])
+  $neutron_server_enable  = pick($neutron_config['neutron_server_enable'], true)
+  $conf_nova              = pick($neutron_config['conf_nova'], true)
+  $service_workers        = pick($neutron_config['workers'],
+    min(max($::processorcount, 2), 16))
+  $neutron_private_net    = pick($neutron_config['default_private_net'],
+    'net04')
+  $neutron_floating_net   = pick($neutron_config['default_floating_net'],
+    'net04_ext')
+  $neutron_default_router = pick($neutron_config['default_router'], 'router04')
 
   # Neutron Keystone settings
   $neutron_user_password = $neutron_config['keystone']['admin_password']
@@ -120,7 +125,9 @@ if $network_provider == 'neutron' {
       name   => $::nova::params::api_service_name,
     }
 
-    nova_config { 'DEFAULT/default_floating_pool': value => 'net04_ext' }
+    nova_config {'DEFAULT/default_floating_pool':
+      value => $neturon_floating_net
+    }
     Nova_config<| |> ~> Service['nova-api']
   }
 
@@ -137,17 +144,17 @@ if $network_provider == 'neutron' {
     Service<| title == 'neutron-server' |> ->
       Openstack::Network::Create_router <||>
 
-    openstack::network::create_network{'net04':
-      netdata           => $nets['net04'],
+    openstack::network::create_network{$neutron_private_net:
+      netdata           => $nets[$neutron_private_net],
       segmentation_type => $network_type,
     } ->
-    openstack::network::create_network{'net04_ext':
-      netdata           => $nets['net04_ext'],
+    openstack::network::create_network{$neutron_floating_net:
+      netdata           => $nets[$neutron_floating_net],
       segmentation_type => 'local',
     } ->
-    openstack::network::create_router{'router04':
-      internal_network => 'net04',
-      external_network => 'net04_ext',
+    openstack::network::create_router{$neutron_default_router:
+      internal_network => $neutron_private_net,
+      external_network => $neutron_floating_net,
       tenant_name      => $keystone_admin_tenant
     }
 

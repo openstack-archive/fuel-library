@@ -214,9 +214,10 @@ Exec { logoutput => true }
 include osnailyfacter::test_compute
 
 if ($::mellanox_mode == 'ethernet') {
-  $net04_physnet = $neutron_config['predefined_networks']['net04']['L2']['physnet']
+  $neutron_private_net = pick($neutron_config['default_private_net'], 'net04')
+  $physnet = $neutron_config['predefined_networks'][$neutron_private_net]['L2']['physnet']
   class { 'mellanox_openstack::compute':
-    physnet => $net04_physnet,
+    physnet => $physnet,
     physifc => $neutron_mellanox['physical_port'],
   }
 }
