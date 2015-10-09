@@ -141,7 +141,7 @@ class nailgun::cobbler(
         kopts     => 'biosdevname=0 sshd=1 dhcptimeout=120',
         distro    => 'centos-x86_64',
         ksmeta    => '',
-        menu      => true,
+        menu      => false,
         server    => $real_server,
         require   => Cobbler_distro['centos-x86_64'],
       }
@@ -151,7 +151,7 @@ class nailgun::cobbler(
         kopts     => 'net.ifnames=0 biosdevname=0 netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20',
         distro    => 'ubuntu_1404_x86_64',
         ksmeta    => '',
-        menu      => true,
+        menu      => false,
         server    => $real_server,
         require   => Cobbler_distro['ubuntu_1404_x86_64'],
       }
