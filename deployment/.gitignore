@@ -30,3 +30,4 @@ puppet/cinder
 puppet/sahara
 puppet/openssl
 puppet/mongodb
+puppet/rsync
