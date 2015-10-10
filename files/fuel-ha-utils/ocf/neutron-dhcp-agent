@@ -50,7 +50,7 @@ OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_remove_artifacts_on_stop_start_default='true'
 
-: ${HA_LOGTAG="ocf-neutron-dhcp-agent"}
+: ${HA_LOGTAG="neutron-dhcp-agent"}
 : ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
@@ -249,7 +249,7 @@ neutron_dhcp_agent_validate() {
         return $OCF_ERR_INSTALLED
     fi
 
-    true
+    return ${OCF_SUCCESS}
 }
 
 neutron_dhcp_agent_status() {
