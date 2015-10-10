@@ -52,7 +52,7 @@ OCF_RESKEY_state_reports_file_default="/var/lib/neutron/l3_agent_report.log"
 OCF_RESKEY_state_reports_timeout_default="60"
 OCF_RESKEY_remove_artifacts_on_stop_start_default='true'
 
-: ${HA_LOGTAG="ocf-neutron-l3-agent"}
+: ${HA_LOGTAG="neutron-l3-agent"}
 : ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}

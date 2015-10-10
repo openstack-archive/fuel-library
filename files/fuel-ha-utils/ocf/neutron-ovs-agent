@@ -42,7 +42,7 @@ OCF_RESKEY_segmentation_bridge_default="br-tun"
 OCF_RESKEY_log_file_default="/var/log/neutron/openvswitch-agent.log"
 OCF_RESKEY_debug_default='false'
 
-: ${HA_LOGTAG="ocf-neutron-ovs-agent"}
+: ${HA_LOGTAG="neutron-ovs-agent"}
 : ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
