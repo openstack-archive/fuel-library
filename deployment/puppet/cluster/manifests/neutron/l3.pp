@@ -20,7 +20,7 @@ define cluster::neutron::l3 (
 
   #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'l3':
-    ocf_script      => 'ocf-neutron-l3-agent',
+    ocf_script      => 'neutron-l3-agent',
     csr_parameters  => {
       'plugin_config'                  => $plugin_config,
       'remove_artifacts_on_stop_start' => true,

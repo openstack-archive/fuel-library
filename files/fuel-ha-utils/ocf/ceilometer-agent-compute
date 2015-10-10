@@ -146,31 +146,15 @@ END
 #######################################################################
 # Functions invoked by resource manager actions
 
-ceilometer_agent_compute_check_port() {
-# This function has been taken from the squid RA and improved a bit
-# The length of the integer must be 4
-# Examples of valid port: "1080", "0080"
-# Examples of invalid port: "1080bad", "0", "0000", ""
-
-    local int
-    local cnt
-
-    int="$1"
-    cnt=${#int}
-    echo $int |egrep -qx '[0-9]+(:[0-9]+)?(,[0-9]+(:[0-9]+)?)*'
-
-    if [ $? -ne 0 ] || [ $cnt -ne 4 ]; then
-        ocf_log err "Invalid port number: $1"
-        exit $OCF_ERR_CONFIGURED
-    fi
-}
-
 ceilometer_agent_compute_validate() {
     local rc
 
     check_binary $OCF_RESKEY_binary
     check_binary netstat
-    ceilometer_agent_compute_check_port $OCF_RESKEY_amqp_server_port
+
+    if ! validate_port $OCF_RESKEY_amqp_server_port; then
+      return ${OCF_ERR_CONFIGURED}
+    fi
 
     # A config file on shared storage that is not available
     # during probes is OK.
@@ -189,7 +173,7 @@ ceilometer_agent_compute_validate() {
         return $OCF_ERR_INSTALLED
     fi
 
-    true
+    return ${OCF_SUCCESS}
 }
 
 ceilometer_agent_compute_status() {
