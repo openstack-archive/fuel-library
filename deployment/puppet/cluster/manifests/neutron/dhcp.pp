@@ -24,7 +24,7 @@ class cluster::neutron::dhcp (
 
   #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'dhcp':
-    ocf_script      => 'ocf-neutron-dhcp-agent',
+    ocf_script      => 'neutron-dhcp-agent',
     csr_parameters  => {
       'plugin_config'                  => $plugin_config,
       'remove_artifacts_on_stop_start' => true,
