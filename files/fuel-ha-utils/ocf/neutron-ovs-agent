@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 #
-# OpenStack Neutron Metadata Agent service
+# OpenStack OVS Service
 #
-# Description:  Manages an OpenStack Neutron Metadata Agent process as an HA resource
+# Description:  Manages an OpenStack OVS Service process as an HA resource
 #
 # Authors: Emilien Macchi
 # Mainly inspired by the Nova Network resource agent written by Emilien Macchi & Sebastien Han
@@ -14,6 +14,13 @@
 #
 # See usage() function below for more details ...
 #
+# OCF instance parameters:
+#   OCF_RESKEY_binary
+#   OCF_RESKEY_config
+#   OCF_RESKEY_plugin_config
+#   OCF_RESKEY_user
+#   OCF_RESKEY_pid
+#   OCF_RESKEY_additional_parameters
 #######################################################################
 # Initialization:
 
@@ -26,23 +33,23 @@
 
 # Fill in some defaults if no values are specified
 
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
-
-OCF_RESKEY_binary_default="neutron-metadata-agent"
+OCF_RESKEY_binary_default="neutron-openvswitch-agent"
 OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
-OCF_RESKEY_agent_config_default="/etc/neutron/metadata_agent.ini"
-OCF_RESKEY_log_file_default="/var/log/neutron/metadata-agent.log"
+OCF_RESKEY_plugin_config_default="/etc/neutron/plugin.ini"
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
-OCF_RESKEY_debug_default="false"
+OCF_RESKEY_segmentation_bridge_default="br-tun"
+OCF_RESKEY_log_file_default="/var/log/neutron/openvswitch-agent.log"
+OCF_RESKEY_debug_default='false'
 
-: ${HA_LOGTAG="ocf-neutron-metadata-agent"}
+: ${HA_LOGTAG="ocf-neutron-ovs-agent"}
 : ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
-: ${OCF_RESKEY_agent_config=${OCF_RESKEY_agent_config_default}}
+: ${OCF_RESKEY_plugin_config=${OCF_RESKEY_plugin_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_segmentation_bridge=${OCF_RESKEY_segmentation_bridge_default}}
 : ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 
@@ -52,7 +59,7 @@ usage() {
     cat <<UEND
         usage: $0 (start|stop|validate-all|meta-data|status|monitor)
 
-        $0 manages an OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) process as an HA resource
+        $0 manages an OpenStack OVS Service (${OCF_RESKEY_binary}) process as an HA resource
 
         The 'start' operation starts the networking service.
         The 'stop' operation stops the networking service.
@@ -68,22 +75,22 @@ meta_data() {
     cat <<END
 <?xml version="1.0"?>
 <!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
-<resource-agent name="neutron-metadata-agent">
+<resource-agent name="neutron-ovs-agent">
 <version>1.0</version>
 
 <longdesc lang="en">
-Resource agent for the OpenStack Neutron Metadata Agent
-May manage a neutron-metadata-agent instance or a clone set that
-creates a distributed neutron-metadata-agent cluster.
+Resource agent for the OpenStack Neutron OVS Service (${OCF_RESKEY_binary})
+May manage a neutron-ovs-agent instance or a clone set that
+creates a distributed neutron-ovs-agent cluster.
 </longdesc>
 <shortdesc lang="en">Manages the OpenStack OVS Service (${OCF_RESKEY_binary})</shortdesc>
 <parameters>
 
 <parameter name="binary" unique="0" required="0">
 <longdesc lang="en">
-Location of the Neutron Metadata Agent binary
+Location of the OpenStack OVS agent binary (${OCF_RESKEY_binary})
 </longdesc>
-<shortdesc lang="en">Neutron Metadata Agent binary</shortdesc>
+<shortdesc lang="en">OpenStack OVS agent  binary (${OCF_RESKEY_binary})</shortdesc>
 <content type="string" default="${OCF_RESKEY_binary_default}" />
 </parameter>
 
@@ -91,48 +98,65 @@ Location of the Neutron Metadata Agent binary
 <longdesc lang="en">
 Location of the OpenStack Neutron Service (neutron-server) configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack OVS Server (neutron-server) config file</shortdesc>
+<shortdesc lang="en">OpenStack Neutron Server (neutron-server) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_config_default}" />
 </parameter>
 
-<parameter name="agent_config" unique="0" required="0">
+<parameter name="plugin_config" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack Neutron Metadata Agent configuration file
+Location of the OpenStack OVS agent (${OCF_RESKEY_binary}) configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack Neutron Metadata Agent config file</shortdesc>
-<content type="string" default="${OCF_RESKEY_agent_config_default}" />
+<shortdesc lang="en">OpenStack OVS agent (${OCF_RESKEY_binary}) config file</shortdesc>
+<content type="string" default="${OCF_RESKEY_plugin_config_default}" />
 </parameter>
 
 <parameter name="user" unique="0" required="0">
 <longdesc lang="en">
-User running Neutron Metadata Agent service (${OCF_RESKEY_binary})
+User running OpenStack OVS Service (${OCF_RESKEY_binary})
 </longdesc>
-<shortdesc lang="en">OpenStack Neutron Metadata Agent service (${OCF_RESKEY_binary}) user</shortdesc>
+<shortdesc lang="en">OpenStack OVS Service (${OCF_RESKEY_binary}) user</shortdesc>
 <content type="string" default="${OCF_RESKEY_user_default}" />
 </parameter>
 
 <parameter name="pid" unique="0" required="0">
 <longdesc lang="en">
-The pid file to use for this Neutron Metadata Agent service (${OCF_RESKEY_binary}) instance
+The pid file to use for this OpenStack OVS Service (${OCF_RESKEY_binary}) instance
 </longdesc>
-<shortdesc lang="en">OpenStack Neutron Metadata Agent service (${OCF_RESKEY_binary}) pid file</shortdesc>
+<shortdesc lang="en">OpenStack OVS Service (${OCF_RESKEY_binary}) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+
+<parameter name="additional_parameters" unique="0" required="0">
+<longdesc lang="en">
+Additional parameters to pass on to the OpenStack OVS Service (${OCF_RESKEY_binary})
+</longdesc>
+<shortdesc lang="en">Additional parameters for neutron-ovs-agent</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="segmentation_bridge" unique="0" required="0">
+<longdesc lang="en">
+OVS integration bridge name OpenStack OVS Service (${OCF_RESKEY_binary})
+</longdesc>
+<shortdesc lang="en">Segmentation bridge name for neutron-ovs-agent</shortdesc>
+<content type="string" default="${OCF_RESKEY_segmentation_bridge_default}"/>
 </parameter>
 
 <parameter name="log_file" unique="0" required="0">
 <longdesc lang="en">
-The log file to use for this OpenStack Metadata Service (${OCF_RESKEY_binary}) instance
+The log file to use for this OpenStack OVS Service (${OCF_RESKEY_binary}) instance
 </longdesc>
-<shortdesc lang="en">OpenStack Metadata Service (${OCF_RESKEY_binary}) log file</shortdesc>
+<shortdesc lang="en">OpenStack OVS Service (${OCF_RESKEY_binary}) log file</shortdesc>
 <content type="string" default="${OCF_RESKEY_log_file_default}" />
 </parameter>
 
 <parameter name="debug" unique="0" required="0">
 <longdesc lang="en">
-The debug flag for  OpenStack Metadata Service (${OCF_RESKEY_binary}) instance
+The debug flag for  OpenStack OVS Service (${OCF_RESKEY_binary}) instance
 </longdesc>
 <shortdesc lang="en">OpenStack Metadata Service (${OCF_RESKEY_binary}) debug flag</shortdesc>
-<content type="boolean" default="${OCF_RESKEY_debug_default}" />
+<content type="string" default="${OCF_RESKEY_debug_default}" />
 </parameter>
 
 </parameters>
@@ -166,7 +190,7 @@ get_worker_pid() {
 #######################################################################
 # Functions invoked by resource manager actions
 
-neutron_metadata_agent_validate() {
+neutron_ovs_agent_validate() {
     local rc
 
     check_binary $OCF_RESKEY_binary
@@ -189,11 +213,11 @@ neutron_metadata_agent_validate() {
         return $OCF_ERR_INSTALLED
     fi
 
-    true
+    return ${OCF_SUCCESS}
 }
 
 
-neutron_metadata_agent_status() {
+neutron_ovs_agent_status() {
     local pid
     local f_pid
     local rc
@@ -212,6 +236,7 @@ neutron_metadata_agent_status() {
         ocf_log warn "OpenStack Neutron agent '$OCF_RESKEY_binary' not running."
         return $OCF_NOT_RUNNING
     fi
+    #ocf_log debug "PID='$pid'"
 
     # Check PID file and create if need
     if [ ! -f $OCF_RESKEY_pid ] ; then
@@ -243,49 +268,56 @@ neutron_metadata_agent_status() {
 }
 
 
-neutron_metadata_agent_monitor() {
-    neutron_metadata_agent_status
+neutron_ovs_agent_monitor() {
+    neutron_ovs_agent_status
     rc=$?
     return $rc
 }
 
 
-neutron_metadata_agent_start() {
+cleanup_agents_ovs_bridges() {
+    # todo: remove ports, created by agent
+    rc=0
+}
+
+
+neutron_ovs_agent_start() {
     local rc
 
-    neutron_metadata_agent_status
+    neutron_ovs_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
-        ocf_log info "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) already running"
+        ocf_log info "OpenStack OVS agent (${OCF_RESKEY_binary}) already running"
         return $OCF_SUCCESS
     fi
 
-    # run and detach to background Neutron-metadata-agent as daemon.
-    # Don't use ocf_run as we're sending the tool's output to /dev/null
+    cleanup_agents_ovs_bridges
+
+    # run and detach to background Neutron-ovs-agent as daemon.
+    # Don't use ocf_run as we're sending the tool's output
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-        --config-file=$OCF_RESKEY_agent_config --log-file=$OCF_RESKEY_log_file $OCF_RESKEY_additional_parameters \
+        --config-file=$OCF_RESKEY_plugin_config --log-file=$OCF_RESKEY_log_file $OCF_RESKEY_additional_parameters \
         >> /dev/null"' 2>&1 & echo \$! > $OCF_RESKEY_pid'
     ocf_log debug "Create pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
     while true; do
-        neutron_metadata_agent_monitor
+        neutron_ovs_agent_monitor
         rc=$?
         [ $rc -eq $OCF_SUCCESS ] && break
-        if [ $rc -ne $OCF_NOT_RUNNING ] ; then
+        if [ $rc -ne $OCF_NOT_RUNNING ]; then
             ocf_log err "OpenStack (${OCF_RESKEY_binary}) start failed"
             exit $OCF_ERR_GENERIC
         fi
         sleep 3
     done
 
-    ocf_log info "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) started"
+    ocf_log info "OpenStack OVS agent (${OCF_RESKEY_binary}) started"
     return $OCF_SUCCESS
 }
 
-
-neutron_metadata_agent_stop() {
+neutron_ovs_agent_stop() {
     local rc
     local pid
     local shutdown_timeout=15
@@ -293,21 +325,25 @@ neutron_metadata_agent_stop() {
         shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
     fi
 
-    neutron_metadata_agent_status
+    neutron_ovs_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-        ocf_log info "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) already stopped"
+        cleanup_agents_ovs_bridges
+        ocf_log info "OpenStack OVS agent (${OCF_RESKEY_binary}) already stopped"
         return $OCF_SUCCESS
     fi
 
     # Try SIGTERM
+
     pid=`get_worker_pid`
     proc_stop "${pid}" "${OCF_RESKEY_binary}" $shutdown_timeout
     rc=$?
     if [ "${rc}" -eq "${OCF_ERR_GENERIC}" ]; then
-        ocf_log err "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) couldn't be stopped"
+        ocf_log err "OpenStack OVS agent (${OCF_RESKEY_binary}) couldn't be stopped"
         exit $OCF_ERR_GENERIC
     fi
+
+    cleanup_agents_ovs_bridges
 
     ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     rm -f $OCF_RESKEY_pid
@@ -325,17 +361,16 @@ case "$1" in
 esac
 
 # Anything except meta-data and help must pass validation
-neutron_metadata_agent_validate || exit $?
+neutron_ovs_agent_validate || exit $?
 umask 0022
 
 # What kind of method was invoked?
 case "$1" in
-  start)        neutron_metadata_agent_start;;
-  stop)         neutron_metadata_agent_stop;;
-  status)       neutron_metadata_agent_status;;
-  monitor)      neutron_metadata_agent_monitor;;
-  validate)     neutron_metadata_agent_validate;;
-  validate-all) neutron_metadata_agent_validate;;
+  start)        neutron_ovs_agent_start;;
+  stop)         neutron_ovs_agent_stop;;
+  status)       neutron_ovs_agent_status;;
+  monitor)      neutron_ovs_agent_monitor;;
+  validate-all) ;;
   *)            usage
                 exit $OCF_ERR_UNIMPLEMENTED;;
 esac
