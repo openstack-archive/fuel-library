@@ -75,7 +75,7 @@ install -d -m 0755 %{buildroot}/usr/lib/ocf/resource.d/fuel
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_haproxy %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_haproxy
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/mysql-wss %{buildroot}/usr/lib/ocf/resource.d/fuel/mysql-wss
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_dns %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_dns
-install -m 0755 %{files_source}/fuel-ha-utils/ocf/heat_engine_centos %{buildroot}/usr/lib/ocf/resource.d/fuel/heat-engine
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/heat_engine %{buildroot}/usr/lib/ocf/resource.d/fuel/heat-engine
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_ntp %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_ntp
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_vrouter %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_vrouter
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-ovs-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-ovs-agent
