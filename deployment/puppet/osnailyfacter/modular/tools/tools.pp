@@ -22,7 +22,7 @@ package { $tools :
 }
 
 package { 'cloud-init':
-   ensure => 'absent',
+   ensure => 'purged',
 }
 
 $puppet = hiera('puppet')
