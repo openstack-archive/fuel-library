@@ -157,32 +157,15 @@ END
 #######################################################################
 # Functions invoked by resource manager actions
 
-nova_compute_check_port() {
-# This function has been taken from the squid RA and improved a bit
-# The length of the integer must be 4
-# Examples of valid port: "1080", "0080"
-# Examples of invalid port: "1080bad", "0", "0000", ""
-
-    local int
-    local cnt
-
-    int="$1"
-    cnt=${#int}
-    echo $int | egrep -qx '[0-9]+(:[0-9]+)?(,[0-9]+(:[0-9]+)?)*'
-
-    if [ $? -ne 0 ] || [ $cnt -ne 4 ]; then
-        ocf_log err "Invalid port number: $1"
-        exit $OCF_ERR_CONFIGURED
-    fi
-}
-
 nova_compute_validate() {
     local rc
 
     check_binary $OCF_RESKEY_binary
     check_binary netstat
 
-    nova_compute_check_port $OCF_RESKEY_amqp_server_port
+    if ! validate_port $OCF_RESKEY_amqp_server_port; then
+      return ${OCF_ERR_CONFIGURED}
+    fi
 
     # A config file on shared storage that is not available
     # during probes is OK.
@@ -201,7 +184,7 @@ nova_compute_validate() {
         return $OCF_ERR_INSTALLED
     fi
 
-    true
+    return ${OCF_SUCCESS}
 }
 
 nova_compute_status() {
@@ -270,7 +253,7 @@ nova_compute_start() {
 
     # run the actual nova-compute daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
-    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
+    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=${OCF_RESKEY_config} \
        $OCF_RESKEY_additional_parameters"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
 
     ocf_log debug "Create pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"

@@ -3,12 +3,6 @@ class heat_ha::engine inherits heat::engine {
 
   $primitive_type  = 'heat-engine'
 
-  #  if $::osfamily == 'RedHat' {
-  #  $ocf_script_template = 'heat/heat_engine_centos.ocf.erb'
-  #} else {
-  #  $ocf_script_template = 'heat/heat_engine_ubuntu.ocf.erb'
-  #}
-
   # migration-threshold is number of tries to
   # start resource on each controller node
   $metadata = {
@@ -39,7 +33,6 @@ class heat_ha::engine inherits heat::engine {
     complex_type        => 'clone',
     ms_metadata         => $ms_metadata,
     operations          => $operations,
-    #    ocf_script_template => $ocf_script_template,
   }
 
 }
