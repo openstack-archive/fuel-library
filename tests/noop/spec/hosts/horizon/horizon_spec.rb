@@ -55,7 +55,7 @@ describe manifest do
 
     it 'should declare horizon class with cache_backend,cache_options,log_handler' do
       should contain_class('horizon').with(
-                 'cache_backend' => 'horizon.backends.memcached.HorizonMemcached',
+                 'cache_backend' => 'django.core.cache.backends.memcached.MemcachedCache',
                  'cache_options' => cache_options,
                  'log_handler' => 'file'
              )
