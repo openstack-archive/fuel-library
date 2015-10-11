@@ -55,7 +55,7 @@ def image_create(image_hash)
   command = <<-EOF
 /usr/bin/glance image-create \
 --name '#{image_hash['img_name']}' \
---is-public '#{image_hash['public']}' \
+--visibility '#{image_hash['visibility']}' \
 --container-format='#{image_hash['container_format']}' \
 --disk-format='#{image_hash['disk_format']}' \
 --min-ram='#{image_hash['min_ram']}' \
@@ -87,6 +87,8 @@ def upload_image(image)
     puts "Image '#{image['img_name']}' is already present!"
     return 0
   end
+
+  image['visibility'] = image['public'].downcase == 'true' ? 'public': 'private'
 
   stdout, return_code = image_create(image)
   if return_code == 0
