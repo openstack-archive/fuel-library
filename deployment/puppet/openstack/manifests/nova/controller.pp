@@ -276,10 +276,6 @@ class openstack::nova::controller (
     'DEFAULT/fping_path': value => $fping_path,
   }
 
-  nova_config {
-    'cinder/catalog_info': value => 'volume:cinder:internalURL',
-  }
-
   class {'nova::quota':
     quota_instances                       => pick($nova_hash['quota_instances'], 100),
     quota_cores                           => pick($nova_hash['quota_cores'], 100),
@@ -343,6 +339,7 @@ class openstack::nova::controller (
     ec2_workers                          => $service_workers,
     metadata_workers                     => $service_workers,
     keystone_ec2_url                     => "http://${keystone_host}:5000/v2.0/ec2tokens",
+    cinder_catalog_info                  => 'volume:cinder:internalURL',
   }
 
   # From legacy init.pp
