@@ -43,6 +43,10 @@ if $sahara_hash['enabled'] {
   $db_name         = pick($sahara_hash['db_name'], 'sahara')
   $db_password     = pick($sahara_hash['db_password'])
   $db_host         = pick($sahara_hash['db_host'], $database_vip)
+  $max_pool_size   = min($::processorcount * 5 + 0, 30 + 0)
+  $max_overflow    = min($::processorcount * 5 + 0, 60 + 0)
+  $max_retries     = '-1'
+  $idle_timeout    = '3600'
   $read_timeout    = '60'
   $sql_connection  = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
 
@@ -67,6 +71,10 @@ if $sahara_hash['enabled'] {
     plugins             => [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ],
     log_facility        => $syslog_log_facility_sahara,
     database_connection => $sql_connection,
+    database_max_pool_size       => $max_pool_size,
+    database_max_overflow        => $max_overflow,
+    database_max_retries         => $max_retries,
+    database_idle_timeout        => $idle_timeout,
     auth_uri            => "http://${service_endpoint}:5000/v2.0/",
     identity_uri        => "http://${service_endpoint}:35357/",
     rpc_backend         => 'rabbit',
