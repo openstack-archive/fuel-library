@@ -47,7 +47,7 @@ if $use_neutron {
   $fixed_range       = hiera('fixed_network_range', undef)
   $network_manager   = hiera('network_manager', undef)
   $network_config    = hiera('network_config', { })
-  $create_networks   = true
+  $create_networks   = false  # lp/1501767
   $num_networks      = hiera('num_networks', undef)
   $network_size      = hiera('network_size', undef)
   $nameservers       = hiera('dns_nameservers', undef)
@@ -67,7 +67,24 @@ if $use_neutron {
     dns1              => $nameservers[0],
     dns2              => $nameservers[1],
     enabled           => $enable_nova_net,
-    install_service   => false, # bacause controller
+    install_service   => false, # because controller
+  }
+
+  #NOTE(degorenko): lp/1501767
+  if $create_networks {
+    if $nameservers {
+      if count($nameservers) >= 2 {
+        $dns_opts = "--dns1 ${nameservers[0]} --dns2 ${nameservers[1]}"
+      } else {
+        $dns_opts = "--dns1 ${nameservers[0]}"
+      }
+    } else {
+      $dns_opts = ""
+    }
+    exec { 'create_private_nova_network':
+      path     => '/usr/bin',
+      command  => "nova-manage network create novanetwork ${fixed_range} ${num_networks} ${network_size} ${dns_opts}",
+    }
   }
 
   # NOTE(aglarendil): lp/1381164
