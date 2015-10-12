@@ -414,7 +414,7 @@ class { 'openstack::network':
   floating_range    => $use_neutron ? { true =>$floating_hash, default  =>false},
   network_manager   => hiera('network_manager', undef),
   network_config    => hiera('network_config', {}),
-  create_networks   => $create_networks,
+  create_networks   => false,
   num_networks      => hiera('num_networks', undef),
   network_size      => hiera('network_size', undef),
   nameservers       => hiera('dns_nameservers', undef),

@@ -157,7 +157,7 @@ class openstack::network (
         floating_range    => $floating_range,
         network_manager   => $network_manager,
         config_overrides  => $network_config,  # $config_overrides,
-        create_networks   => $create_networks,
+        create_networks   => false, # lp/1501767
         num_networks      => $num_networks,
         network_size      => $network_size,
         dns1              => $nameservers_real[0],
@@ -167,6 +167,23 @@ class openstack::network (
       }
       #NOTE(aglarendil): lp/1381164
       nova_config {'DEFAULT/force_snat_range': value => '0.0.0.0/0' }
+
+      #NOTE(degorenko): lp/1501767
+      if $create_networks {
+        if $nameservers {
+          if count($nameservers) >= 2 {
+            $dns_opts = "--dns1 ${nameservers[0]} --dns2 ${nameservers[1]}"
+          } else {
+            $dns_opts = "--dns1 ${nameservers[0]}"
+          }
+        } else {
+            $dns_opts = ""
+        }
+        exec { 'create_private_nova_network':
+          path     => '/usr/bin',
+          command  => "nova-manage network create novanetwork ${fixed_range} ${num_networks} ${network_size} ${dns_opts}",
+        }
+      }
 
     } # End case nova
 
