@@ -46,6 +46,8 @@ describe manifest do
       db_name         = Noop.hiera_structure('sahara_hash/db_name', 'sahara')
       db_password     = Noop.hiera_structure('sahara_hash/db_password')
       db_host         = Noop.hiera_structure('sahara_hash/db_host', database_vip)
+      max_retries     = '-1'
+      idle_timeout    = '3600'
       read_timeout    = '60'
       sql_connection  = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
 
@@ -63,6 +65,8 @@ describe manifest do
           'use_stderr'          => 'false',
           'log_facility'        => log_facility_sahara,
           'database_connection' => sql_connection,
+          'max_retries'         => max_retries,
+          'idle_timeout'        => idle_timeout,
           'admin_password'      => sahara_password,
           'admin_tenant_name'   => tenant,
           'rabbit_userid'       => rabbit_user,
@@ -71,6 +75,14 @@ describe manifest do
           'rabbit_port'         => amqp_port,
           'rabbit_hosts'        => amqp_hosts.split(","),
         )
+      end
+
+      it 'should configure sahara db params' do
+        facts[:processorcount] = 10
+        max_pool_size          = [facts[:processorcount] * 5 + 0, 30 + 0].min
+        max_overflow           = [facts[:processorcount] * 5 + 0, 60 + 0].min
+        is_expected.to contain_sahara_config('database/max_pool_size').with_value(max_pool_size)
+        is_expected.to contain_sahara_config('database/max_overflow').with_value(max_overflow)
       end
 
       if public_ssl
