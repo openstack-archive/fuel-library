@@ -10,6 +10,10 @@ class sahara::api (
   $bind_port                   = '8386',
   $node_domain                 = 'novalocal',
   $sql_connection              = 'mysql://sahara:sahara@localhost/sahara',
+  $max_pool_size               = undef,
+  $max_overflow                = undef,
+  $max_retries                 = '10',
+  $idle_timeout                = '3600',
   $use_neutron                 = false,
   $debug                       = false,
   $verbose                     = false,
@@ -56,9 +60,30 @@ class sahara::api (
     'DEFAULT/use_neutron'                  : value => $use_neutron_value;
     'DEFAULT/node_domain'                  : value => $node_domain;
     'database/connection'                  : value => $sql_connection;
-    'database/max_retries'                 : value => '-1';
+    'database/max_retries'                 : value => $max_retries;
+    'database/idle_timeout'                : value => $idle_timeout;
     'DEFAULT/verbose'                      : value => $verbose;
     'DEFAULT/debug'                        : value => $debug;
+  }
+
+  if $max_pool_size {
+    sahara_config {
+      'database/max_pool_size'             : value => $max_pool_size;
+    }
+  } else {
+      sahara_config {
+        'database/max_pool_size'           : ensure => absent;
+      }
+  }
+
+  if $max_overflow {
+    sahara_config {
+      'database/max_overflow'              : value => $max_overflow;
+    }
+  } else {
+      sahara_config {
+        'database/max_overflow'            : ensure => absent;
+      }
   }
 
   sahara_config {
