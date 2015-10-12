@@ -54,14 +54,25 @@ describe manifest do
     elsif !Noop.hiera('use_neutron') && Noop.hiera('role') =~ /controller/
       context 'setup Nova on controller for using nova-network' do
 
-        private_interface = Noop.hiera('private_int')
-        public_interface  = Noop.hiera('public_int')
-        fixed_range       = Noop.hiera('fixed_network_range')
-        network_manager   = Noop.hiera('network_manager')
-        network_config    = Noop.hiera('network_config', {})
-        num_networks      = Noop.hiera('num_networks')
-        network_size      = Noop.hiera('network_size')
-        nameservers       = Noop.hiera_array('dns_nameservers', [])
+        private_interface  = Noop.hiera('private_int')
+        public_interface   = Noop.hiera('public_int')
+        fixed_range        = Noop.hiera('fixed_network_range')
+        network_manager    = Noop.hiera('network_manager')
+        network_config     = Noop.hiera('network_config', {})
+        num_networks       = Noop.hiera('num_networks')
+        network_size       = Noop.hiera('network_size')
+        nameservers        = Noop.hiera_array('dns_nameservers', [])
+        primary_controller = Noop.hiera('primary_controller', false)
+
+        if nameservers
+          if nameservers.size >= 2
+            dns_opts = "--dns1 #{nameservers[0]} --dns2 #{nameservers[1]}"
+          else
+            dns_opts = "--dns1 #{nameservers[0]}"
+          end
+        else
+          dns_opts = ""
+        end
 
         it { should contain_nova_config('DEFAULT/force_snat_range').with(
           'value' => '0.0.0.0/0'
@@ -73,7 +84,7 @@ describe manifest do
           'enabled' => false
         )}
         it { should contain_class('nova::network').with(
-          'create_networks' => true
+          'create_networks' => false
         )}
         it { should contain_class('nova::network').with(
           'floating_range' => false
@@ -105,6 +116,14 @@ describe manifest do
         it { should contain_class('nova::network').with(
           'dns2' => nameservers[1]
         )}
+
+        if primary_controller
+          it 'should create private nova network' do
+            should contain_exec('create_private_nova_network').with(
+              'command' => "nova-manage network create novanetwork #{fixed_range} #{num_networks} #{network_size} #{dns_opts}"
+            )
+          end
+        end
       end
     end
   end

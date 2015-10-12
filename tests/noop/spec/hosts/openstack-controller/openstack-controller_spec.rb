@@ -41,7 +41,8 @@ describe manifest do
     keystone_ec2_url = "http://#{keystone_host}:5000/v2.0/ec2tokens"
     it 'should declare class nova::api with keystone_ec2_url' do
       should contain_class('nova::api').with(
-        'keystone_ec2_url' => keystone_ec2_url,
+        'keystone_ec2_url'    => keystone_ec2_url,
+        'cinder_catalog_info' => 'volume:cinder:internalURL',
       )
     end
 
