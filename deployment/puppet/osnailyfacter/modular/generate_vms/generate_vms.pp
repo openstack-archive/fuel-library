@@ -1,7 +1,7 @@
 notice('MODULAR: generate_vms.pp')
 
 $libvirt_dir = '/etc/libvirt/qemu'
-$template_dir = '/var/lib/vms'
+$template_dir = '/var/lib/nova'
 $packages = ['qemu-utils', 'qemu-kvm', 'libvirt-bin', 'xmlstarlet']
 $libvirt_service_name = 'libvirtd'
 
@@ -11,7 +11,7 @@ define vm_config {
   $details = $name
   $id = $details['id']
 
-  file { "${template_dir}/${id}_vm.xml":
+  file { "${template_dir}/template_${id}_vm.xml":
     owner   => 'root',
     group   => 'root',
     content => template('osnailyfacter/vm_libvirt.erb'),

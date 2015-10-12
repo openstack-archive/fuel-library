@@ -81,9 +81,9 @@ if (($# < 2)); then
   usage
 fi
 
-for TEMPLATE_XML in $TEMPLATE_DIR/**/*.xml
+for TEMPLATE_XML in $TEMPLATE_DIR/**/template_*.xml
 do
-  VM_NAME=$(basename $TEMPLATE_XML | cut -f1 -d".")
+  VM_NAME=$(basename $TEMPLATE_XML | sed -e 's/template_\(.*\).xml/\1/')
   DST_XML=${LIBVIRT_DIR}/${VM_NAME}.xml
   TMP_FILE=$(mktemp /tmp/tmp.XXXXXXXXXX)
 
@@ -95,7 +95,12 @@ do
   #Check if VM is already defined
   DOMID=$(virsh domid $VM_NAME)
   if [[ -z "$DOMID" ]]; then
-    cp -f $TEMPLATE_XML $TMP_FILE
+
+    if [[ -f "${TEMPLATE_DIR}/${VM_NAME}.xml" ]]; then
+      cp -f ${TEMPLATE_DIR}/${VM_NAME}.xml $TMP_FILE
+    else
+      cp -f $TEMPLATE_XML $TMP_FILE
+    fi
 
     #Create disks for VMs
     create_vm_disks $VM_NAME $TMP_FILE
@@ -111,6 +116,9 @@ do
 
     #Start VM
     virsh start $VM_NAME || exit 1
+
+    #Copy defined XML
+    cp -r $DST_XML ${TEMPLATE_DIR}/${VM_NAME}.xml
   fi
 
 done
