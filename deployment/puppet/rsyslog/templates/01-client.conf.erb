@@ -1,0 +1,22 @@
+# file is managed by puppet
+
+<% unless scope.lookupvar('rsyslog::client::escapenewline') -%>
+$EscapeControlCharactersOnReceive off
+<% end -%>
+
+# Load UDP module, required since Openstack Juno (#1385295)
+$ModLoad imudp
+$UDPServerRun 514
+
+#
+# Disk-Assisted Memory Queues, async writes, no escape chars
+#
+$OMFileASyncWriting on
+$MainMsgQueueType LinkedList
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
+$MainMsgQueueFileName mainmsgqueue
+$MainMsgQueueSaveOnShutdown on
+$MainMsgQueueDequeueSlowdown 1000
+$MainMsgQueueWorkerThreads 2
+$MainMsgQueueDequeueBatchSize 128
+$SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
