@@ -5,7 +5,7 @@ SSHO="-o PasswordAuthentication=no -o ConnectTimeout=5"
 
 config_bundle="fvm_disk_size fvm_name fvm_ram fvm_cpu migrate_log fuel_astute  dkvm_folder \
     admin_net_br admin_net_b_type other_net_bridges os_swap os_root  os_var os_varlibdocker \
-    os_varlog fm_reboot del_vm max_worktime"
+    os_varlog fm_reboot del_vm max_worktime help"
 work_bundle="dkvm_ip admin_net_ip_bs dkvm_uri admin_net_ip admin_net_if   admin_net_nm \
     src_disk dst_disk s_base start_time fvm_admin_mac admin_net_mac"
 
@@ -37,6 +37,7 @@ descr_os_varlibdocker="Size of varlibdocker volume. By default 30% of the remain
 descr_os_varlog="Size of varlog volume. By default 100% of the remaining free space."
 descr_del_vm="Remove destination VM if it already exists? 'yes' or 'no'. Default is 'no'"
 descr_max_worktime="Timeout for entire migration process in seconds. Default is 7200"
+descr_help="Show this help message and exit"
 
 indent="\t\t\t\t"
 wtw="$(($(stty size | awk  '{print $2}') - 32 ))"
@@ -365,6 +366,8 @@ timeout(){
 [[ "${BASH_SOURCE[0]}" != "${0}" ]] && return
 # Show usage if run without parameters.
 [[ -z $1 ]] && usage
+# Show usage if help is chosen
+[[ "$1" == "--help" ]] && usage
 # Check if already running
 file_lock
 
