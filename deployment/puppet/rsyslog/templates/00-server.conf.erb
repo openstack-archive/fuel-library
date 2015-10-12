@@ -1,0 +1,96 @@
+# File is managed by puppet
+
+<% if scope.lookupvar('rsyslog::server::enable_udp') -%>
+# Load UDP module
+$ModLoad imudp
+$UDPServerRun <%= scope.lookupvar('rsyslog::server::port') %>
+<% end -%>
+
+<% if scope.lookupvar('rsyslog::server::enable_tcp') -%>
+# Load TCP module
+$ModLoad imtcp
+$InputTCPServerRun <%= scope.lookupvar('rsyslog::server::port') %>
+<% end -%>
+
+<% unless scope.lookupvar('rsyslog::server::escapenewline') -%>
+$EscapeControlCharactersOnReceive off
+<% end -%>
+
+#
+# Disk-Assisted Memory Queues, async writes, no escape chars
+#
+$OMFileASyncWriting on
+$MainMsgQueueType LinkedList
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
+$MainMsgQueueFileName mainmsgqueue
+$MainMsgQueueSaveOnShutdown on
+$MainMsgQueueDequeueSlowdown 1000
+$MainMsgQueueWorkerThreads 2
+$MainMsgQueueDequeueBatchSize 128
+$ActionQueueType LinkedList
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
+$ActionQueueFileName acsdbq
+$ActionQueueMaxDiskSpace 1g
+$ActionQueueSaveOnShutdown on
+$ActionQueueLowWaterMark 2000
+$ActionQueueHighWaterMark 8000
+$ActionQueueSize 1000000       # Reserve 500Mb memory, each queue element is 512b
+$ActionQueueDiscardMark 950000 # If the queue looks like filling, start discarding to not block ssh/login/etc.
+$ActionQueueDiscardSeverity 0  # When in discarding mode discard everything.
+$ActionQueueTimeoutEnqueue 0   # When in discarding mode do not enable throttling.
+$ActionQueueDequeueSlowdown 1000
+$ActionQueueWorkerThreads 2
+$ActionQueueDequeueBatchSize 128
+$ActionResumeRetryCount -1
+$SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
+
+<% unless scope.lookupvar('rsyslog::server::high_precision_timestamps') -%>
+#
+# Use traditional timestamp format date-rfc3164 (Dec 5 02:21:13).
+# To enable high precision timestamps date-rfc3339 (2010-12-05T02:21:41.889482+01:00), comment out the following line.
+#
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+<% end -%>
+
+# Templates
+#$Template dynAuthLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/auth.log"
+#$Template dynSyslog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/syslog"
+#$Template dynCronLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/cron.log"
+#$Template dynDaemonLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/daemon.log"
+#$Template dynKernLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/kern.log"
+#$Template dynUserLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/user.log"
+#$Template dynMailLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/mail.log"
+#$Template dynDebug,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/debug"
+#$Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/messages"
+$Template dynAuthLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>auth.log"
+$Template dynSyslog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>syslog"
+$Template dynCronLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>cron.log"
+$Template dynDaemonLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>daemon.log"
+$Template dynKernLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>kern.log"
+$Template dynUserLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>user.log"
+$Template dynMailLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>mail.log"
+$Template dynDebug,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>debug"
+$Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>messages"
+
+# Rules
+# Skip duplicates - all common debug, info, notice, warn go to
+# debug & messages files respectively; others should go to syslog
+auth,authpriv.*         ?dynAuthLog
+*.error;auth,authpriv.none,mail.none,cron.none      -?dynSyslog
+cron.*              ?dynCronLog
+daemon.*            -?dynDaemonLog
+# Do not send info to kern.log - it duplicates messages
+kern.*;kern.!=info  -?dynKernLog
+mail.*              -?dynMailLog
+user.*              -?dynUserLog
+
+#
+# Some "catch-all" log files.
+#
+*.=debug;\
+    auth,authpriv.none;\
+    news.none;mail.none      -?dynDebug
+*.=info;*.=notice;*.=warn;\
+    auth.none,authpriv.none;\
+    cron.none,daemon.none;\
+    mail.none,news.none     -?dynMessages
