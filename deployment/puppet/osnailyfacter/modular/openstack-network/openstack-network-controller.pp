@@ -1,10 +1,20 @@
 notice('MODULAR: openstack-network-controller.pp')
 
-$use_neutron                    = hiera('use_neutron', false)
-$primary_controller             = hiera('primary_controller')
-$access_hash                    = hiera('access', {})
-$rabbit_hash                    = hiera_hash('rabbit_hash', {})
-$management_vip                 = hiera('management_vip')
+$use_neutron        = hiera('use_neutron', false)
+$primary_controller = hiera('primary_controller')
+$access_hash        = hiera('access', {})
+$rabbit_hash        = hiera_hash('rabbit_hash', {})
+$management_vip     = hiera('management_vip')
+$public_vip         = hiera('public_vip')
+$public_ssl_hash    = hiera('public_ssl')
+$public_address     = $public_ssl_hash['services'] ? {
+  true    => $public_ssl_hash['hostname'],
+  default => $public_vip,
+}
+$public_protocol    = $public_ssl_hash['services'] ? {
+  true    => 'https',
+  default => 'http',
+}
 $service_endpoint               = hiera('service_endpoint')
 $nova_hash                      = hiera_hash('nova', {})
 $ceilometer_hash                = hiera('ceilometer',{})
@@ -280,7 +290,8 @@ class { 'openstack::network':
 
   # keystone
   admin_password    => $neutron_user_password,
-  auth_url          => "http://${service_endpoint}:35357/v2.0",
+  admin_auth_url    => "http://${service_endpoint}:35357/v2.0",
+  auth_uri          => "${public_protocol}://${public_address}:5000/v2.0",
   identity_uri      => "http://${service_endpoint}:35357",
   neutron_url       => "http://${neutron_endpoint}:9696",
   admin_tenant_name => $keystone_tenant,
