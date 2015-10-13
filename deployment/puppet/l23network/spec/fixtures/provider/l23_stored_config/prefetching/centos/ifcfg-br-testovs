@@ -1,0 +1,5 @@
+BOOTPROTO=none
+DEVICE=br-testovs
+ONBOOT=yes
+TYPE=OVSBridge
+DEVICETYPE=ovs

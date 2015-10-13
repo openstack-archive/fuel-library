@@ -5,6 +5,9 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
 
   include PuppetX::FileMapper
 
+  confine    :l23_os => :ubuntu
+  defaultfor :l23_os => :ubuntu
+
   has_feature :provider_options
 
   self.unlink_empty_files = true
