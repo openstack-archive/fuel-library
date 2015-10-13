@@ -63,7 +63,7 @@ class openstack::network::neutron_agents (
   $admin_password    = 'asdf123',
   $admin_tenant_name = 'services',
   $admin_username    = 'neutron',
-  $auth_url          = 'http://localhost:35357/v2.0',
+  $admin_auth_url    = 'http://localhost:35357/v2.0',
   $auth_region       = 'RegionOne',
 ) {
 
@@ -118,7 +118,7 @@ class openstack::network::neutron_agents (
     class {'::neutron::agents::metadata':
       debug          => $debug,
       auth_region    => $auth_region,
-      auth_url       => $auth_url,
+      auth_url       => $admin_auth_url,
       auth_user      => $admin_username,
       auth_tenant    => $admin_tenant_name,
       auth_password  => $admin_password,

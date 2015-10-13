@@ -9,6 +9,7 @@ describe manifest do
 
     metadata_host    = Noop.node_hash['internal_address'] # TODO: smakar change AFTER https://bugs.launchpad.net/fuel/+bug/1486048
     use_neutron      = Noop.hiera 'use_neutron'
+    service_endpoint = Noop.hiera 'service_endpoint'
 
     it 'should declare openstack::network with use_stderr disabled' do
       should contain_class('openstack::network').with(
@@ -33,6 +34,12 @@ describe manifest do
       it 'should pass auth region to openstack::network' do
         should contain_class('openstack::network').with(
          'region' => 'RegionOne',
+        )
+      end
+
+      it 'should configure identity uri for neutron' do
+        should contain_class('openstack::network').with(
+         'identity_uri' => "http://#{service_endpoint}:35357",
         )
       end
 
