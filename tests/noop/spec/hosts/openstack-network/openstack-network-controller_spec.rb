@@ -10,6 +10,16 @@ describe manifest do
     use_neutron = Noop.hiera 'use_neutron'
     ceilometer_enabled = Noop.hiera_structure 'ceilometer/enabled'
     service_endpoint   = Noop.hiera 'service_endpoint'
+    public_vip = Noop.hiera('public_vip')
+    public_ssl = Noop.hiera_structure('public_ssl/services', false)
+    if public_ssl
+      public_address  = Noop.hiera_structure('public_ssl/hostname')
+      public_protocol = 'https'
+    else
+      public_address  = public_vip
+      public_protocol = 'http'
+    end
+    public_url          = "#{public_protocol}://#{public_address}:5000"
 
     it 'should declare openstack::network with use_stderr disabled' do
       should contain_class('openstack::network').with(
@@ -112,6 +122,12 @@ describe manifest do
       it 'should configure identity uri for neutron' do
         should contain_class('openstack::network').with(
          'identity_uri' => "http://#{service_endpoint}:35357",
+        )
+      end
+
+      it 'should configure auth uri for neutron' do
+        should contain_class('openstack::network').with(
+         'auth_uri' => "#{public_url}/v2.0",
         )
       end
 
