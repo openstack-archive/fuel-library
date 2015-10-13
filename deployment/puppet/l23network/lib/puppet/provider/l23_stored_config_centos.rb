@@ -1,7 +1,7 @@
 require 'puppetx/l23_ethtool_name_commands_mapping'
 require File.join(File.dirname(__FILE__), 'l23_stored_config_base')
 
-class Puppet::Provider::L23_stored_config_centos6 < Puppet::Provider::L23_stored_config_base
+class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_config_base
 
   # @return [String] The path to network-script directory on redhat systems
   def self.script_directory

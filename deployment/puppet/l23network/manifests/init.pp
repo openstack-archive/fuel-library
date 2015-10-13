@@ -66,7 +66,7 @@ class l23network (
   Anchor['l23network::l2::init'] -> File<| title == "${::l23network::params::interfaces_file}" |>
 
   # Centos interface up-n-down scripts
-  if $::osfamily =~ /(?i)redhat/ {
+  if $::l23_os =~ /(?i:redhat|centos)/ {
     class{'::l23network::l2::centos_upndown_scripts': } -> Anchor['l23network::init']
     Anchor <| title == 'l23network::l2::centos_upndown_scripts' |> -> Anchor['l23network::init']
   }

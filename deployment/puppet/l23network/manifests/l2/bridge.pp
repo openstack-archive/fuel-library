@@ -68,7 +68,7 @@ define l23network::l2::bridge (
     Anchor['l23network::init'] -> K_mod<||> -> L2_bridge<||>
   }
 
-  if $::osfamily =~ /(?i)redhat/ {
+  if $::l23_os =~ /(?i:redhat|centos)/ {
     if $delay_while_up {
       file {"${::l23network::params::interfaces_dir}/interface-up-script-${name}":
         ensure  => present,
