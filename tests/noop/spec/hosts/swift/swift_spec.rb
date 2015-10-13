@@ -71,6 +71,10 @@ describe manifest do
         )
       end
 
+      it 'should declare swift::dispersion' do
+        should contain_class('swift::dispersion').that_requires('Class[openstack::swift::proxy]')
+      end
+
       it {
         should contain_class('openstack::swift::status').with(
           'only_from' => "127.0.0.1 240.0.0.2 #{sto_nets} #{man_nets}",
