@@ -6,6 +6,18 @@ describe manifest do
 
   shared_examples 'catalog' do
 
+    let(:public_vip) do
+      Noop.hiera 'public_vip'
+    end
+
+    let(:public_ssl) do
+      Noop.hiera_structure 'public_ssl/services'
+    end
+
+    let(:service_endpoint) do
+      Noop.hiera 'service_endpoint'
+    end
+
     let(:network_scheme) do
       Noop.hiera_hash 'network_scheme'
     end
@@ -55,6 +67,22 @@ describe manifest do
       end
     end
 
+    let(:public_address) do
+      if public_ssl
+        Noop.hiera_structure('public_ssl/hostname')
+      else
+        public_vip
+      end
+    end
+
+    let(:public_protocol) do
+      if public_ssl
+        'https'
+      else
+        'http'
+      end
+    end
+
     ############################################################################
 
     it 'should declare openstack::network with use_stderr disabled' do
@@ -100,6 +128,12 @@ describe manifest do
         should contain_class('openstack::network::neutron_agents').with(
                    'auth_region' => 'RegionOne'
                )
+      end
+
+      it 'should configure auth url for neutron' do
+        should contain_class('openstack::network').with(
+         'admin_auth_url' => "http://#{service_endpoint}:35357/v2.0",
+        )
       end
 
       it 'should declare neutron::agents::ml2::ovs with manage_vswitch disabled' do
