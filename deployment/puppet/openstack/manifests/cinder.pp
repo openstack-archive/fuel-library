@@ -164,6 +164,22 @@ class openstack::cinder(
       }
     }
 
+    if($::operatingsystem == 'Ubuntu' and $manage_volumes == 'ceph') {
+      tweaks::ubuntu_service_override { "tgtd-service":
+        package_name => "$::cinder::params::tgt_package_name",
+        service_name => "$::cinder::params::tgt_service_name",
+      }
+      package { "$::cinder::params::tgt_package_name":
+        ensure   => installed,
+        name     => $::cinder::params::tgt_package_name,
+        before   => Class['cinder::volume'],
+      }
+      service { "$::cinder::params::tgt_service_name":
+        enable => false,
+        ensure   => stopped,
+      }
+    }
+
     class { 'cinder::volume':
       package_ensure => $::openstack_version['cinder'],
       enabled        => $enable_volumes,
