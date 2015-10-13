@@ -75,8 +75,23 @@ function debug {
     echo $@
   fi
 }
+
+function lock {
+  [[ $FLOCK -eq 1 ]] && return 0
+  exec 904>/var/lock/dockerctl
+  flock -n 904 || { echo 'Failed to acquire the lock.' &>2; exit 1; }
+  FLOCK=1
+}
+
+function unlock {
+  flock -u "$FDLOCK"
+  FLOCK=0
+}
+
 function build_image {
+  lock
   ${DOCKER} build -t $2 $1
+  unlock
 }
 
 function revert_container {
@@ -163,6 +178,8 @@ function run_storage_containers {
 }
 
 function export_containers {
+  lock
+
   #--trim option removes $CNT_PREFIX from container name when exporting
   if [[ "$1" == "--trim" ]]; then
     trim=true
@@ -175,7 +192,10 @@ function export_containers {
     [ $trim ] && image=$(sed "s/${CNT_PREFIX}//" <<< "$image")
     ${DOCKER} export $1 | gzip -c > "${image}.tar.gz"
   done
+
+  unlock
 }
+
 function list_containers {
   #Usage:
   # (no option) short names
@@ -209,6 +229,7 @@ function commit_container {
   ${DOCKER} commit $container_name $image
 }
 function start_container {
+  lock
   if [ -z "$1" ]; then
     echo "Must specify a container name" 1>&2
     exit 1
@@ -246,7 +267,7 @@ function start_container {
   else
     first_run_container "$1" $2
   fi
-
+  unlock
 }
 
 function shutdown_container {
@@ -322,6 +343,7 @@ function lxc_shell_container {
 }
 
 function stop_container {
+  lock
   if [ "$1" = "all" ]; then
     for container in ${!CONTAINER_NAMES[@]}; do
       stop_container $container
@@ -337,9 +359,12 @@ function stop_container {
 
     ${DOCKER} stop ${CONTAINER_NAMES[$container]}
   done
+  unlock
 }
 
 function destroy_container {
+  lock
+
   if [[ "$1" == 'all' ]]; then
     stop_container all
     ${DOCKER} rm -f ${CONTAINER_NAMES[@]}
@@ -365,6 +390,8 @@ function destroy_container {
       fi
     done
   fi
+
+  unlock
 }
 
 function logs {
@@ -517,6 +544,7 @@ function copy_files {
 
 function backup {
   set -e
+  lock
   trap backup_fail EXIT
 
   if [ "$1" == "--full" ]; then
@@ -552,11 +580,13 @@ finish or cancel them." 1>&2
   echo "Backup complete. File is available at $backup_dir/fuel_backup${image_suffix}.tar.lrz"
   #remove trap
   trap - EXIT
+  unlock
 }
 
 function backup_fail {
   exit_code=$?
   echo "Backup failed!" 1>&2
+  unlock
   exit $exit_code
 }
 
@@ -684,11 +714,13 @@ function restore {
 #TODO(mattymo): Optionally not include system dirs during restore
 #TODO(mattymo): support remote file such as ssh://user@myhost/backup.tar.lrz
 #               or http://myhost/backup.tar.lrz
+
   if [ "$2" == "--full" ]; then
     fullrestore=1
   fi
 
   set -e
+  lock
   trap restore_fail EXIT
   if check_nailgun_tasks; then
     echo "There are currently running Fuel tasks. Please wait for them to \
@@ -736,10 +768,12 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
   echo "Restore complete."
   #remove trap
   trap - EXIT
+  unlock
 }
 
 function restore_fail {
   echo "Restore failed!" 1>&2
+  unlock
   exit 1
 }
 
