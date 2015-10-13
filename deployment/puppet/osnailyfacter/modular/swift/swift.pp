@@ -102,6 +102,13 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       con_timeout => 5
     }
 
+    class { 'swift::dispersion':
+      auth_url       => "http://$service_endpoint:5000/v2.0/",
+      auth_user      =>  $keystone_user,
+      auth_tenant    =>  $keystone_tenant,
+      auth_pass      =>  $keystone_password,
+      auth_version   =>  '2.0',
+    }
   }
 }
 
