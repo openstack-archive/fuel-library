@@ -15,6 +15,7 @@ describe manifest do
 
     let(:sahara_user) { Noop.hiera_structure('sahara_hash/user', 'sahara') }
     let(:sahara_password) { Noop.hiera_structure('sahara_hash/user_password') }
+    let(:configure_endpoint) { Noop.hiera_structure('sahara_hash/configure_endpoint') }
     let(:tenant) { Noop.hiera_structure('sahara_hash/tenant', 'services') }
     let(:region) { Noop.hiera_structure('sahara_hash/region', 'RegionOne') }
     let(:service_name) { Noop.hiera_structure('sahara_hash/service_name', 'sahara') }
@@ -23,15 +24,15 @@ describe manifest do
 
     it 'should declare sahara::keystone::auth class correctly' do
       should contain_class('sahara::keystone::auth').with(
-                 'auth_name' => sahara_user,
                  'password' => sahara_password,
-                 'service_type' => 'data_processing',
-                 'service_name' => service_name,
-                 'region' => region,
+                 'auth_name' => sahara_user,
                  'tenant' => tenant,
+                 'configure_endpoint' => configure_endpoint,
+                 'service_name' => service_name,
                  'public_url' => public_url,
                  'admin_url' => admin_url,
-                 'internal_url' => admin_url
+                 'internal_url' => admin_url,
+                 'region' => region,
              )
     end
   end

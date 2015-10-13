@@ -139,7 +139,7 @@ if $sahara_hash['enabled'] {
       auth_user     => $access_admin['user'],
       auth_password => $access_admin['password'],
       auth_tenant   => $access_admin['tenant'],
-      auth_uri      => "${public_protocol}://${public_address}:5000/v2.0/",
+      auth_uri      => "http://${service_endpoint}:5000/v2.0/",
     }
 
     Haproxy_backend_status['keystone-admin'] -> Haproxy_backend_status['sahara']
