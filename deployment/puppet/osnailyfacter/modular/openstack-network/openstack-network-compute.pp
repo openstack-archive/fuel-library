@@ -7,6 +7,16 @@ $nova_hash                      = hiera_hash('nova_hash', {})
 $bind_address                   = get_network_role_property('nova/api', 'ipaddr')
 $management_vip                 = hiera('management_vip')
 $service_endpoint               = hiera('service_endpoint')
+$public_vip                     = hiera('public_vip')
+$public_ssl_hash                = hiera('public_ssl')
+$public_address                 = $public_ssl_hash['services'] ? {
+  true    => $public_ssl_hash['hostname'],
+  default => $public_vip,
+}
+$public_protocol                = $public_ssl_hash['services'] ? {
+  true    => 'https',
+  default => 'http',
+}
 $public_int                     = get_network_role_property('ex', 'interface') # will be removed eventually with nova-network code
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
@@ -392,7 +402,7 @@ class { 'openstack::network':
 
   # keystone
   admin_password    => $neutron_user_password,
-  auth_url          => "http://${service_endpoint}:35357/v2.0",
+  admin_auth_url    => "${public_protocol}://${public_address}:5000/v2.0",
   neutron_url       => "http://${neutron_endpoint}:9696",
   admin_tenant_name => $keystone_tenant,
   admin_username    => $keystone_user,
