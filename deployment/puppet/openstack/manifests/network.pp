@@ -74,8 +74,8 @@ class openstack::network (
   $admin_password    = 'asdf123',
   $admin_tenant_name = 'services',
   $admin_username    = 'neutron',
-  $auth_url          = 'http://127.0.0.1:5000/v2.0',
   $identity_uri      = 'http://127.0.0.1:35357',
+  $auth_uri          = 'http://127.0.0.1:5000',
   $region            = 'RegionOne',
   $neutron_url       = 'http://127.0.0.1:9696',
 
@@ -196,7 +196,7 @@ class openstack::network (
           neutron_admin_tenant_name => $admin_tenant_name,
           neutron_region_name       => $region,
           neutron_admin_username    => $admin_username,
-          neutron_admin_auth_url    => $auth_url,
+          neutron_admin_auth_url    => "${identity_uri}/v2.0",
           neutron_url               => $neutron_url,
           neutron_ovs_bridge        => $integration_bridge
         }
@@ -217,7 +217,7 @@ class openstack::network (
           auth_tenant   => $admin_tenant_name,
           auth_region   => $region,
           auth_user     => $admin_username,
-          auth_uri      => $auth_url,
+          auth_uri      => $auth_uri,
           identity_uri  => $identity_uri,
 
           database_retry_interval => 2,
@@ -243,7 +243,7 @@ class openstack::network (
 
         class { 'neutron::server::notifications':
           nova_url                => $nova_url,
-          nova_admin_auth_url     => $auth_url,
+          nova_admin_auth_url     => "${identity_uri}/v2.0",
           nova_admin_username     => $nova_admin_username,
           nova_admin_tenant_name  => $nova_admin_tenant_name,
           nova_admin_password     => $nova_admin_password,
@@ -256,7 +256,7 @@ class openstack::network (
             "OS_TENANT_NAME=${admin_tenant_name}",
             "OS_USERNAME=${admin_username}",
             "OS_PASSWORD=${admin_password}",
-            "OS_AUTH_URL=${auth_url}",
+            "OS_AUTH_URL=${identity_uri}/v2.0",
             "OS_REGION_NAME=${region}",
             'OS_ENDPOINT_TYPE=internalURL',
           ],
@@ -299,7 +299,7 @@ class openstack::network (
           admin_password    => $admin_password,
           admin_tenant_name => $admin_tenant_name,
           admin_username    => $admin_username,
-          auth_url          => $auth_url,
+          admin_auth_url    => "${identity_uri}/v2.0",
           auth_region       => $region,
 
           #ovs

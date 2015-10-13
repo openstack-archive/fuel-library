@@ -109,6 +109,12 @@ describe manifest do
         )
       end
 
+      it 'should configure auth uri for neutron' do
+        should contain_class('openstack::network').with(
+         'auth_uri' => "http://#{service_endpoint}:5000",
+        )
+      end
+
       neutron_config =  Noop.hiera_structure 'quantum_settings'
       neutron_advanced_config =  Noop.hiera_structure 'neutron_advanced_configuration'
 
