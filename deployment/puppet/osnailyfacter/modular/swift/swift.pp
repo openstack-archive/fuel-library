@@ -72,6 +72,14 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     $sto_nets = get_routable_networks_for_network_role($network_scheme, 'swift/replication', ' ')
     $man_nets = get_routable_networks_for_network_role($network_scheme, 'swift/api', ' ')
 
+    class { 'swift::dispersion':
+      auth_url       => "http://$service_endpoint:5000/v2.0/",
+      auth_user      =>  $keystone_user,
+      auth_tenant    =>  $keystone_tenant,
+      auth_pass      =>  $keystone_password,
+      auth_version   =>  '2.0',
+    }
+
     class { 'openstack::swift::proxy':
       swift_user_password            => $swift_hash['user_password'],
       swift_operator_roles           => $swift_operator_roles,
