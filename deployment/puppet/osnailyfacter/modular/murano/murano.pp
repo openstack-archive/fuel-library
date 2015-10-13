@@ -80,7 +80,7 @@ if $murano_hash['enabled'] {
     use_stderr          => $use_stderr,
     log_facility        => $syslog_log_facility_murano,
     database_connection => $sql_connection,
-    keystone_uri        => "${public_protocol}://${public_address}:5000/v2.0/",
+    keystone_uri        => "http://${service_endpoint}:5000/v2.0/",
     keystone_username   => $murano_user,
     keystone_password   => $murano_hash['user_password'],
     keystone_tenant     => $tenant,
@@ -142,7 +142,7 @@ if $murano_hash['enabled'] {
       os_tenant_name => $tenant,
       os_username    => $murano_user,
       os_password    => $murano_hash['user_password'],
-      os_auth_url    => "${public_protocol}://${public_address}:5000/v2.0/",
+      os_auth_url    => "http://${service_endpoint}:5000/v2.0/",
       os_region      => $region,
       mandatory      => true,
     }

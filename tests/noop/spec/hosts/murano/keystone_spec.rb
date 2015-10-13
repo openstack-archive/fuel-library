@@ -21,6 +21,9 @@ describe manifest do
     let(:region) { Noop.hiera('region', 'RegionOne') }
     let(:tenant) { Noop.hiera_structure('murano_hash/tenant', 'services') }
 
+    let(:service_name) { Noop.hiera_structure('murano_hash/service_name', 'murano')
+    let(:auth_name) { Noop.hiera_structure('murano_hash/auth_name', 'murano')
+
     let(:murano_password) { Noop.hiera_structure('murano_hash/user_password') }
 
     ##########################################################################
@@ -28,12 +31,13 @@ describe manifest do
     it 'should declare murano::keystone::auth class correctly' do
       should contain_class('murano::keystone::auth').with(
                  'password'     => murano_password,
-                 'service_type' => 'application_catalog',
-                 'region'       => region,
+                 'auth_name'    => auth_name,
                  'tenant'       => tenant,
+                 'service_name' => auth_name,
                  'public_url'   => public_url,
                  'admin_url'    => admin_url,
-                 'internal_url' => admin_url
+                 'internal_url' => admin_url,
+                 'region'       => region,
              )
     end
 
