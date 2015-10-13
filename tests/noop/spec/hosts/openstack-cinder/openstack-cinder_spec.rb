@@ -60,6 +60,20 @@ describe manifest do
     should contain_cinder_config('DEFAULT/nova_catalog_info').with_value('compute:nova:internalURL')
   end
 
+  use_ceph = Noop.hiera_structure('storage/images_ceph')
+  ubuntu_tgt_service_name = 'tgt'
+  ubuntu_tgt_package_name = 'tgt'
+
+  it 'ensures tgt is installed and stopped om Ubuntu with ceph' do
+    if facts[:operatingsystem] == 'Ubuntu' and use_ceph
+      should contain_package(ubuntu_tgt_package_name).that_comes_before('Class[cinder::volume]')
+      should contain_service(ubuntu_tgt_service_name).with(
+        'enable' => 'false',
+        'ensure' => 'stopped',
+      )
+    end
+  end
+
   end # end of shared_examples
 
  test_ubuntu_and_centos manifest
