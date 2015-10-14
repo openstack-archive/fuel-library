@@ -70,6 +70,7 @@ install -m 0755 %{files_source}/fuel-misc/logrotate %{buildroot}/usr/bin/fuel-lo
 install -m 0755 %{files_source}/fuel-misc/centos_ifup-local  %{buildroot}/sbin/ifdown-local
 install -m 0755 %{files_source}/fuel-misc/haproxy-status.sh %{buildroot}/usr/bin/haproxy-status
 install -m 0755 %{files_source}/fuel-misc/generate_vms.sh %{buildroot}/usr/bin/generate_vms.sh
+install -m 0755 %{files_source}/fuel-misc/compute-down-services.sh %{buildroot}/usr/sbin/compute-down-services.sh
 #fuel-ha-utils
 install -d -m 0755 %{buildroot}/usr/lib/ocf/resource.d/fuel
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_haproxy %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_haproxy
