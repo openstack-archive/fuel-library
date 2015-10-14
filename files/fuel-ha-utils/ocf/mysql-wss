@@ -20,6 +20,9 @@
 
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
+
 #######################################################################
 # Fill in some defaults if no values are specified
 OCF_RESKEY_binary_default="/usr/bin/mysqld_safe"
@@ -279,9 +282,8 @@ get_master_timeout() {
     local rc
     local timeout=$(crm_attribute --quiet --name galera_master_timeout \
         --query -d $default -q | sed -e '/(null)/d')
-    rc=$?
 
-    if [ $rc -eq 0 ]; then
+    if [ -n "$timeout" ]; then
         echo $timeout
     else
         echo $default
@@ -295,9 +297,8 @@ get_node_gtid() {
 
     GTID=$(crm_attribute --quiet --node $1 --lifetime reboot --query \
         --name gtid 2> /dev/null | sed -e '/(null)/d')
-    rc=$?
 
-    if [ $rc -ne 0 -o -z "$GTID" ]; then
+    if [ -z "$GTID" ]; then
         ocf_log info "No GTID for $1"
         echo 0
     else
@@ -321,8 +322,8 @@ check_if_reelection_needed() {
     if [ $PARTITION_WITH_QUORUM -eq 1 -o $NODE_COUNT -eq 1 ]; then
         RUNNING_INSTANCES=$(crm_resource \
             --quiet --locate --resource $RESOURCE_NAME | sed -e '/(null)/d' | wc -l 2> /dev/null)
-        rc=$?
-        if [ $rc -eq $OCF_SUCCESS -a $RUNNING_INSTANCES -lt 1 ]; then
+
+        if [ $RUNNING_INSTANCES -lt 1 ]; then
             return 1
         fi
     fi
@@ -447,13 +448,7 @@ mysql_status() {
     fi
 
     pid=$(cat $OCF_RESKEY_pid);
-    if [ -d /proc -a -d /proc/1 ]; then
-        [ "u$pid" != "u" -a -d /proc/$pid ]
-    else
-        kill -s 0 $pid >/dev/null 2>&1
-    fi
-
-    if [ $? -eq 0 ]; then
+    if [ "u$pid" != "u" -a -d /proc/$pid ]; then
         return $OCF_SUCCESS;
     else
         ocf_log $1 "MySQL is not running"
@@ -490,31 +485,25 @@ mysql_monitor() {
 
     WSREP_CONNECTED=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
         -e "SHOW STATUS LIKE 'wsrep_connected'" | awk '{print $NF}')
-    rc=$?
 
-    if [ $rc -ne 0 -o "$WSREP_CONNECTED" != "ON" ]; then
+    if [ "$WSREP_CONNECTED" != "ON" ]; then
         return $OCF_ERR_GENERIC
     fi
 
     WSREP_LOCAL_STATE_COMMENT=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
         -e "SHOW STATUS LIKE 'wsrep_local_state_comment'" | awk '{print $NF}')
-    rc=$?
 
-    #Synced|Donor|Desync
-    if [ $rc -eq 0 ]; then
-        if [[ "$WSREP_LOCAL_STATE_COMMENT" =~ 'Synced'|'Donor'|'Desync' ]]; then
-            WSREP_READY=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
-                -e "SHOW STATUS LIKE 'wsrep_ready'" | awk '{print $NF}')
-            rc=$?
+    if [[ "$WSREP_LOCAL_STATE_COMMENT" =~ 'Synced'|'Donor'|'Desync' ]]; then
+        WSREP_READY=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
+            -e "SHOW STATUS LIKE 'wsrep_ready'" | awk '{print $NF}')
 
-            #Synced but wsrep not ready
-            if [ $rc -ne 0 -o "$WSREP_READY" != "ON" ]; then
-                return $OCF_ERR_GENERIC
-            fi
-        elif [[ "$WSREP_LOCAL_STATE_COMMENT" == 'Initialized' ]]; then
-            ocf_log err 'MySQL lost quorum or uninitialized'
+        #Synced but wsrep not ready
+        if [ "$WSREP_READY" != "ON" ]; then
             return $OCF_ERR_GENERIC
         fi
+    elif [[ "$WSREP_LOCAL_STATE_COMMENT" == 'Initialized' ]]; then
+        ocf_log err 'MySQL lost quorum or uninitialized'
+        return $OCF_ERR_GENERIC
     fi
 
     ocf_log debug "MySQL monitor succeeded";
@@ -603,60 +592,46 @@ mysql_start() {
 }
 
 mysql_cleanup() {
-    ocf_log debug "Delete lock file: /var/lock/subsys/mysqld"
-    rm -f /var/lock/subsys/mysqld
+    local LH="${LL} mysql_cleanup():"
+    if [ -f "/var/lock/subsys/mysqld" ]; then
+        ocf_log debug "${LH} Delete lock file: /var/lock/subsys/mysqld"
+        rm -f /var/lock/subsys/mysqld
+    fi
 
-    ocf_log debug "Delete sock file: ${OCF_RESKEY_socket}"
-    rm -f $OCF_RESKEY_socket
+    if [ -f "${OFC_RESKEY_socket}" ]; then
+        ocf_log debug "${LH} Delete sock file: ${OCF_RESKEY_socket}"
+        rm -f "${OCF_RESKEY_socket}"
+    fi
 
-    ocf_log debug "Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
-    rm -f $OCF_RESKEY_pid
-
+    if [ -f "${OCF_RESKEY_pid}" ]; then
+        ocf_log debug "${LH} Delete pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
+        rm -f "${OCF_RESKEY_pid}"
+    fi
 }
 
 mysql_stop() {
     local rc
-    local pids
+    local LH="${LL} mysql_stop():"
+    local shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
+    fi
 
     mysql_status info 1
-    rc=$?
-    if [ $rc -ne $OCF_SUCCESS ]; then
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
+        ocf_log info "${LH} mysql-wss already stopped"
         mysql_cleanup
-        return $OCF_SUCCESS
+        return "${OCF_SUCCESS}"
     fi
 
-    local pid=$(cat $OCF_RESKEY_pid 2>/dev/null)
-    local pgrp=$(ps -o pgid= ${pid})
-    local pids="$(echo $(pgrep -g ${pgrp}))"
-    ocf_log info "Sending SIGTERM to PID: ${pid}"
-    /bin/kill -TERM ${pid} > /dev/null
-    rc=$?
-    [ $rc -ne 0 ] && ocf_log warn "MySQL has failed to terminate gracefully"
-
-    # stop waiting
-    shutdown_timeout=20
-    while [ $shutdown_timeout -gt 0 ]; do
-        mysql_status info 1
-        rc=$?
-        if [ $rc -ne $OCF_SUCCESS ]; then
-            /usr/bin/pkill -9 -g ${pgrp} > /dev/null
-            mysql_cleanup
-            return $OCF_SUCCESS
-        fi
-        sleep 2
-        (( shutdown_timeout -= 2 ))
-        ocf_log info "MySQL still hasn't stopped yet. ${shutdown_timeout} seconds left "
-    done
-
-    mysql_status info 1
-    rc=$?
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log info "MySQL failed to stop using SIGTERM. Sending SIGKILL to PIDS: ${pids}"
-        /usr/bin/pkill -9 -g ${pgrp} > /dev/null
+    proc_stop "${OCF_RESKEY_pid}" "mysql-wss" $shutdown_timeout
+    rc="${?}"
+    if [ "${rc}" -eq "${OCF_SUCCESS}" ]; then
+       mysql_cleanup
     fi
 
-    mysql_cleanup
-    return $OCF_SUCCESS
+    return "${rc}"
 }
 
 ##########################################################################
@@ -686,6 +661,8 @@ case "$1" in
     usage|help)   usage
         exit $OCF_SUCCESS;;
 esac
+
+export LL="${OCF_RESOURCE_INSTANCE}:"
 
 mysql_validate
 rc=$?
