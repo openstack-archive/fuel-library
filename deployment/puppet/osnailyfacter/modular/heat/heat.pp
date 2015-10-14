@@ -61,7 +61,7 @@ class { 'openstack::heat' :
   keystone_ec2_uri         => "http://${service_endpoint}:5000/v2.0",
   region                   => $region,
   public_ssl               => $public_ssl_hash['services'],
-  rpc_backend              => 'heat.openstack.common.rpc.impl_kombu',
+  rpc_backend              => 'rabbit',
   amqp_hosts               => split(hiera('amqp_hosts',''), ','),
   amqp_user                => $rabbit_hash['user'],
   amqp_password            => $rabbit_hash['password'],

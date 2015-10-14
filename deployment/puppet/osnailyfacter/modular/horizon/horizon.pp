@@ -32,7 +32,7 @@ class { 'openstack::horizon':
   package_ensure    => hiera('horizon_package_ensure', 'installed'),
   bind_address      => $bind_address,
   cache_server_port => hiera('memcache_server_port', '11211'),
-  cache_backend     => 'horizon.backends.memcached.HorizonMemcached',
+  cache_backend     => 'django.core.cache.backends.memcached.MemcachedCache',
   cache_options     => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
   neutron           => hiera('use_neutron'),
   keystone_url      => $keystone_url,
@@ -44,7 +44,6 @@ class { 'openstack::horizon':
   nova_quota        => hiera('nova_quota'),
   servername        => hiera('public_vip'),
   neutron_options   => $neutron_options,
-  custom_theme_path => 'static/themes/webroot'
 }
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
