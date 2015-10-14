@@ -125,7 +125,7 @@ done
 
 if [ "$1" = 2 ]; then
   #Try to sync deployment tasks or notify user on upgrade
-  tasksdir=/etc/puppet/%{openstack_version}/
+  taskdir=/etc/puppet/%{openstack_version}/
   fuel rel --sync-deployment-tasks --dir "$taskdir" || \
     echo "Unable to sync tasks. Run `fuel rel --sync-deployment-tasks --dir $taskdir` to finish install." 1>&2
 fi
