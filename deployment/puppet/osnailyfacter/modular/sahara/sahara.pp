@@ -43,6 +43,10 @@ if $sahara_hash['enabled'] {
   $db_name         = pick($sahara_hash['db_name'], 'sahara')
   $db_password     = pick($sahara_hash['db_password'])
   $db_host         = pick($sahara_hash['db_host'], $database_vip)
+  $max_pool_size   = min($::processorcount * 5 + 0, 30 + 0)
+  $max_overflow    = min($::processorcount * 5 + 0, 60 + 0)
+  $max_retries     = '-1'
+  $idle_timeout    = '3600'
   $read_timeout    = '60'
   $sql_connection  = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
 
@@ -58,27 +62,31 @@ if $sahara_hash['enabled'] {
   }
 
   class { 'sahara' :
-    host                => $api_bind_host,
-    port                => $api_bind_port,
-    verbose             => $verbose,
-    debug               => $debug,
-    use_syslog          => $use_syslog,
-    use_stderr          => $use_stderr,
-    plugins             => [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ],
-    log_facility        => $syslog_log_facility_sahara,
-    database_connection => $sql_connection,
-    auth_uri            => "http://${service_endpoint}:5000/v2.0/",
-    identity_uri        => "http://${service_endpoint}:35357/",
-    rpc_backend         => 'rabbit',
-    use_neutron         => $use_neutron,
-    admin_user          => $sahara_user,
-    admin_password      => $sahara_password,
-    admin_tenant_name   => $tenant,
-    rabbit_userid       => $rabbit_hash['user'],
-    rabbit_password     => $rabbit_hash['password'],
-    rabbit_ha_queues    => $rabbit_ha_queues,
-    rabbit_port         => $amqp_port,
-    rabbit_hosts        => split($amqp_hosts, ',')
+    host                   => $api_bind_host,
+    port                   => $api_bind_port,
+    verbose                => $verbose,
+    debug                  => $debug,
+    use_syslog             => $use_syslog,
+    use_stderr             => $use_stderr,
+    plugins                => [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ],
+    log_facility           => $syslog_log_facility_sahara,
+    database_connection    => $sql_connection,
+    database_max_pool_size => $max_pool_size,
+    database_max_overflow  => $max_overflow,
+    database_max_retries   => $max_retries,
+    database_idle_timeout  => $idle_timeout,
+    auth_uri               => "http://${service_endpoint}:5000/v2.0/",
+    identity_uri           => "http://${service_endpoint}:35357/",
+    rpc_backend            => 'rabbit',
+    use_neutron            => $use_neutron,
+    admin_user             => $sahara_user,
+    admin_password         => $sahara_password,
+    admin_tenant_name      => $tenant,
+    rabbit_userid          => $rabbit_hash['user'],
+    rabbit_password        => $rabbit_hash['password'],
+    rabbit_ha_queues       => $rabbit_ha_queues,
+    rabbit_port            => $amqp_port,
+    rabbit_hosts           => split($amqp_hosts, ',')
   }
 
   if $public_ssl_hash['services'] {
