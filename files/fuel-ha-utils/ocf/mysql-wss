@@ -384,10 +384,7 @@ check_if_galera_pc() {
             return 1
         fi
 
-        check_if_reelection_needed
-        rc=$?
-
-        if [ $rc -eq 1 ]; then
+        if check_if_reelection_needed; then
             ocf_log info "My neighbour is Primary Component"
             return 0
         fi
