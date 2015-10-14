@@ -51,9 +51,10 @@ def image_list
   {:images => images, :exit_code => return_code}
 end
 
+# TODO degorenko: remove --os-image-api-version after liberty (fuel-8.0) release
 def image_create(image_hash)
   command = <<-EOF
-/usr/bin/glance image-create \
+/usr/bin/glance --os-image-api-version 1 image-create \
 --name '#{image_hash['img_name']}' \
 --is-public '#{image_hash['public']}' \
 --container-format='#{image_hash['container_format']}' \
