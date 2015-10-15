@@ -151,7 +151,23 @@ module Noop
     @hiera_object
   end
 
+  # override Hiera values for the code block
+  # passed to this fuction
+  # it 'can use overrided hiera values' do
+  #   Noop.hiera_override 'my_key' => 'my_value' do
+  #     expect(Noop.hiera 'my_key').to eq('my_value')
+  #   end
+  # end
+  # @param data [Hash] the hash with override keys and values
+  def self.hiera_override(data)
+    @hiera_override = data
+    yield
+    @hiera_override = nil
+  end
+
   def self.hiera(key, default = nil, resolution_type = :priority)
+    key = key.to_s
+    return @hiera_override[key] if @hiera_override.is_a? Hash and @hiera_override.key? key
     # def lookup(key, default, scope, order_override=nil, resolution_type=:priority)
     hiera_object.lookup key, default, {}, nil, resolution_type
   end
