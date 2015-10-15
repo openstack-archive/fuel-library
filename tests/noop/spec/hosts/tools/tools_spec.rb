@@ -51,7 +51,7 @@ describe manifest do
 
     it do
       should contain_package('cloud-init').with({
-        'ensure' => 'purged'})
+        'ensure' => 'absent'})
     end
   end
 
