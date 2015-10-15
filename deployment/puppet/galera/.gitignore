@@ -4,3 +4,4 @@ pkg/
 
 coverage/
 fixtures/modules/
+spec/fixtures
