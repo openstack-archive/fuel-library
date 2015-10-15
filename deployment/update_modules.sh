@@ -91,6 +91,7 @@ while getopts ":bp:l:h:vru" opt; do
       UPDATE=true
       ;;
     v)
+      VERBOSE='--verbose'
       set -x
       ;;
     \?)
@@ -105,6 +106,8 @@ done
 shift "$((OPTIND-1))"
 
 DEPLOYMENT_DIR=$(cd `dirname $0` && pwd -P)
+# Timeout in seconds for running puppet librarian
+TIMEOUT=600
 export PUPPET_GEM_VERSION=${PUPPET_GEM_VERSION:-'3.4.3'}
 export BUNDLE_DIR=${BUNDLE_DIR:-'/var/tmp/.bundle_home'}
 export GEM_HOME=${GEM_HOME:-'/var/tmp/.gem_home'}
@@ -120,6 +123,11 @@ if [ "$USE_BUNDLER" = true ]; then
   bundle update
 fi
 
+TIMEOUT_CMD=`which timeout`
+if [ -n "$TIMEOUT_CMD" ]; then
+    TIMEOUT_CMD="$TIMEOUT_CMD $TIMEOUT"
+fi
+
 # Check to make sure if the folder already exists, it has a .git so we can
 # use git on it. If the mod folder exists, but .git doesn't then remove the mod
 # folder so it can be properly installed via librarian.
@@ -133,12 +141,12 @@ done
 
 # run librarian-puppet install to populate the modules if they do not already
 # exist
-$BUNDLER_EXEC librarian-puppet install --path=puppet
+$TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=puppet
 
 # run librarian-puppet update to ensure the modules are checked out to the
 # correct version
 if [ "$UPDATE" = true ]; then
-  $BUNDLER_EXEC librarian-puppet update --path=puppet
+  $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet update $VERBOSE --path=puppet
 fi
 
 # do a hard reset on the librarian managed modules LP#1489542
