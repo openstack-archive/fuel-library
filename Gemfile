@@ -1,31 +1,27 @@
-source ENV['GEM_SOURCE'] || "https://rubygems.org"
+source 'https://rubygems.org'
 
 group :development, :test do
   gem 'puppetlabs_spec_helper',               :require => 'false'
+  gem 'rspec', '~>3.3',                       :require => 'false'
   gem 'rspec-puppet', '~> 2.2.0',             :require => 'false'
   gem 'metadata-json-lint',                   :require => 'false'
   gem 'puppet-lint-param-docs',               :require => 'false'
   gem 'puppet-lint-absolute_classname-check', :require => 'false'
   gem 'puppet-lint-absolute_template_path',   :require => 'false'
-  gem 'puppet-lint-trailing_newline-check',   :require => 'false'
   gem 'puppet-lint-unquoted_string-check',    :require => 'false'
   gem 'puppet-lint-leading_zero-check',       :require => 'false'
   gem 'puppet-lint-variable_contains_upcase', :require => 'false'
   gem 'puppet-lint-numericvariable',          :require => 'false'
+  gem 'puppet_facts',                         :require => 'false'
   gem 'json',                                 :require => 'false'
+  gem 'pry',                                  :require => 'false'
+  gem 'simplecov',                            :require => 'false'
   gem 'webmock',                              :require => 'false'
-end
+  gem 'fakefs',                               :require => 'false'
+  gem 'fog-google', '0.1.0',                  :require => 'false' # 0.1.1+ requires ruby 2.0
+  gem 'beaker-rspec',                         :require => 'false'
+  gem 'beaker-puppet_install_helper',         :require => 'false'
 
-group :system_tests do
-  gem 'beaker-rspec',                 :require => 'false'
-  gem 'beaker-puppet_install_helper', :require => 'false'
-  gem 'r10k',                         :require => 'false'
-end
-
-if facterversion = ENV['FACTER_GEM_VERSION']
-  gem 'facter', facterversion, :require => false
-else
-  gem 'facter', :require => false
 end
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']
@@ -33,5 +29,3 @@ if puppetversion = ENV['PUPPET_GEM_VERSION']
 else
   gem 'puppet', :require => false
 end
-
-# vim:ft=ruby
