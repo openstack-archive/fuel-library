@@ -158,8 +158,10 @@ $mountpoints                   = filter_hash($mp_hash,'point')
 $queue_provider   = hiera('queue_provider','rabbitmq')
 $rabbit_ha_queues = true
 
-if !$rabbit_hash['user'] {
-  $rabbit_hash['user'] = 'nova'
+if !has_key($rabbit_hash, 'user') {
+  $rabbit_hash_real = merge($rabbit_hash, { 'user' => 'nova' })
+} else {
+  $rabbit_hash_real = $rabbit_hash
 }
 
 $amqp_port  = hiera('amqp_ports', '5673')
@@ -249,10 +251,26 @@ $heat_roles = ['primary-controller', 'controller']
 # Define sahara-related variable
 $sahara_roles = ['primary-controller', 'controller']
 
-# Define ceilometer-releated parameters
-if !$ceilometer_hash['event_time_to_live'] { $ceilometer_hash['event_time_to_live'] = '604800'}
-if !$ceilometer_hash['metering_time_to_live'] { $ceilometer_hash['metering_time_to_live'] = '604800' }
-if !$ceilometer_hash['http_timeout'] { $ceilometer_hash['http_timeout'] = '600' }
+# Define ceilometer-related parameters
+if !has_key($ceilometer_hash, 'event_time_to_live') {
+  $ceilometer_event_time_to_live = 604800
+}
+
+if !has_key($ceilometer_hash, 'metering_time_to_live') {
+  $ceilometer_metering_time_to_live = 604800
+}
+
+if !has_key($ceilometer_hash, 'http_timeout') {
+  $ceilometer_http_timeout = 600
+}
+
+$ceilometer_hash_tmp = {
+  event_time_to_live    => $ceilometer_event_time_to_live,
+  metering_time_to_live => $ceilometer_metering_time_to_live,
+  http_timeout          => $ceilometer_http_timeout,
+}
+
+$ceilometer_hash_real = merge($ceilometer_hash_real, $ceilometer_hash_tmp)
 
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future
@@ -273,9 +291,9 @@ $neutron_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller
 # TODO(sbog): change this when we will get rid of global hashes
 $public_ssl_hash = hiera('public_ssl')
 if $public_ssl_hash['services'] {
-  $nova_hash['vncproxy_protocol'] = 'https'
+  $nova_hash_real = merge($nova_hash, { 'vncproxy_protocol' => 'https' })
 } else {
-  $nova_hash['vncproxy_protocol'] = 'http'
+  $nova_hash_real = merge($nova_hash, { 'vncproxy_protocol' => 'http' })
 }
 
 # save all these global variables into hiera yaml file for later use
