@@ -50,7 +50,7 @@ class pacemaker_wrappers::rabbitmq (
   $service_name       = $::rabbitmq::service_name,
   $port               = $::rabbitmq::port,
   $debug              = false,
-  $ocf_script_file    = 'cluster/ocf/rabbitmq',
+  $ocf_script_file    = 'cluster/rabbitmq-single.ocf.sh',
   $command_timeout    = '',
   $erlang_cookie      = 'EOKOWXQREETZSHFNTPEY',
   $admin_user         = undef,
@@ -72,32 +72,14 @@ class pacemaker_wrappers::rabbitmq (
     'resource-stickiness' => '100',
   }
 
-  $ms_metadata     = {
-    'notify'      => 'true',
-    # We shouldn't enable ordered start for parallel start of RA.
-    'ordered'     => 'false',
-    'interleave'  => 'true',
-    'master-max'  => '1',
-    'master-node-max' => '1',
-    'target-role' => 'Master'
-  }
-
   $operations      = {
     'monitor' => {
       'interval' => '30',
       'timeout'  => '180'
     },
-    'monitor:Master' => { # name:role
-      'role' => 'Master',
-      # should be non-intercectable with interval from ordinary monitor
-      'interval' => '27',
+    'monitor' => {
+      'interval' => '20',
       'timeout'  => '180'
-    },
-    'monitor:Slave'  => {
-      'role'            => 'Slave',
-      'interval'        => '103',
-      'timeout'         => '180',
-      'OCF_CHECK_LEVEL' => '30'
     },
     'start'     => {
       'timeout' => '360'
@@ -118,12 +100,10 @@ class pacemaker_wrappers::rabbitmq (
 
   pacemaker_wrappers::service { $service_name :
     primitive_type      => $primitive_type,
-    complex_type        => 'master',
     metadata            => $metadata,
-    ms_metadata         => $ms_metadata,
     operations          => $operations,
     parameters          => $parameters,
-    #    ocf_script_file     => $ocf_script_file,
+    ocf_script_file     => $ocf_script_file,
   }
   Service[$service_name] -> Rabbitmq_user <||>
 }
