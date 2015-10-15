@@ -13,6 +13,7 @@ case $operatingsystem {
 
 if $operatingsystem == 'Ubuntu' {
   $bind_address = get_network_role_property('mgmt/vip', 'ipaddr')
+  $bind_interface = get_network_role_property('mgmt/vip', 'interface')
 
   package { $conntrackd_package:
     ensure => installed,
@@ -32,6 +33,9 @@ if $operatingsystem == 'Ubuntu' {
       'failure-timeout'     => '180s'
     },
     complex_type => 'master',
+    parameters   => {
+      'bridge'   => $bind_interface,
+    },
     ms_metadata  => {
       'notify'          => 'true',
       'ordered'         => 'false',
