@@ -25,6 +25,7 @@ Vagrantfile
 # Bundle
 Gemfile.lock
 .bundled_gems
+.bundle
 
 /rdoc
 
