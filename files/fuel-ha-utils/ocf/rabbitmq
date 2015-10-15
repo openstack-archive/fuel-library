@@ -264,7 +264,7 @@ END
 # timeout command.
 su_rabbit_cmd() {
     if [[ "$1" == "-t" ]]; then
-      local timeout=$2
+      local timeout="/usr/bin/timeout ${OCF_RESKEY_command_timeout} $2"
       shift 2
     else
       local timeout=$COMMAND_TIMEOUT
@@ -279,7 +279,7 @@ su_rabbit_cmd() {
 
     ocf_log debug "${LH} invoking a command: ${cmd}"
     su $user -s /bin/sh -c "USER=${user} MAIL=${mail} PWD=${pwd} HOME=${home} LOGNAME=${user} \
-      ${COMMAND_TIMEOUT} ${cmd}"
+      ${timeout} ${cmd}"
     rc=$?
     ocf_log info "${LH} the invoked command exited ${rc}: ${cmd}"
     return $rc
