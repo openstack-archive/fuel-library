@@ -21,11 +21,19 @@ define cluster::virtual_ip (
 
   $vip_name = "vip__${key}"
 
+  if (is_ip_address($vip['gateway']) or ($vip['gateway'] == 'link')) {
+    $gateway = $vip['gateway']
+  } else {
+    $gateway = 'none'
+  }
+
+
   $parameters = {
     'bridge'               => $vip['bridge'],
     'base_veth'            => $vip['base_veth'],
     'ns_veth'              => $vip['ns_veth'],
     'ip'                   => $vip['ip'],
+    'gateway'              => $gateway,
     'iflabel'              => $vip['iflabel'] ? {
       undef   => 'ka',
       default => $vip['iflabel']
@@ -43,27 +51,25 @@ define cluster::virtual_ip (
       default => $vip['gateway_metric']
     },
     'other_networks'       => $vip['other_networks'] ? {
-      undef => undef, false => undef,
+      undef   => undef,
+      false   => undef,
       default => $vip['other_networks']
     },
     'iptables_comment'     => $vip['iptables_comment'] ? {
-      undef   => undef, false => undef,
+      undef   => undef,
+      false   => undef,
       default => "${vip['iptables_comment']}",
     },
     'ns_iptables_start_rules' => $vip['ns_iptables_start_rules'] ? {
-      undef   => undef, false => undef,
+      undef   => undef,
+      false => undef,
       default => "${vip['ns_iptables_start_rules']}",
     },
     'ns_iptables_stop_rules'  => $vip['ns_iptables_stop_rules'] ? {
-      undef   => undef, false => undef,
+      undef   => undef,
+      false   => undef,
       default => "${vip['ns_iptables_stop_rules']}",
     },
-  }
-
-  if (is_ip_address($vip['gateway']) or ($vip['gateway'] == 'link')) {
-    $parameters['gateway'] = $vip['gateway']
-  } else {
-    $parameters['gateway'] = 'none'
   }
 
   $metadata = {
