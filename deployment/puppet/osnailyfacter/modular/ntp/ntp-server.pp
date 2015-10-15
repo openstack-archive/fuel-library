@@ -3,14 +3,20 @@ notice('MODULAR: ntp-server.pp')
 $ntp_servers = hiera('external_ntp')
 
 class { 'ntp':
-  servers        => strip(split($ntp_servers['ntp_list'], ',')),
-  service_enable => true,
-  service_ensure => 'running',
-  iburst_enable  => true,
-  tinker         => true,
-  panic          => '0',
-  stepout        => '5',
-  minpoll        => '3',
+  servers         => strip(split($ntp_servers['ntp_list'], ',')),
+  service_enable  => true,
+  service_ensure  => 'running',
+  iburst_enable   => true,
+  tinker          => true,
+  panic           => '0',
+  stepout         => '5',
+  minpoll         => '3',
+  restrict        => [
+        '-4 default kod nomodify notrap nopeer noquery',
+        '-6 default kod nomodify notrap nopeer noquery',
+        '127.0.0.1',
+        '::1',
+  ],
 }
 
 class { 'cluster::ntp_ocf': }
