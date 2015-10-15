@@ -19,11 +19,12 @@ BuildRequires: ruby21-rubygem-librarian-puppet-simple
 %else
 BuildRequires: rubygem-librarian-puppet-simple
 %endif
+BuildRequires: fuel-openstack-metadata
 Requires: fuel-misc python-fuelclient
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
-%define openstack_version 2015.1.0-8.0
+%define openstack_version %(cat %{_sysconfdir}/fuel_openstack_version)
 %define predefined_upstream_modules  %{_sourcedir}/upstream_modules.tar.gz
 
 %description
