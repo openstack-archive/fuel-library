@@ -19,17 +19,18 @@ $chain = "INPUT",
 
   case $operatingsystem {
     /(?i)(debian|ubuntu)/:{
-      file { "/etc/network/if-post-down.d/iptablessave":
-        content => template("cobbler/ubuntu/iptablessave.erb"),
-        owner => root,
-        group => root,
-        mode => 0755,
+      file { '/etc/network/if-post-down.d/iptablessave':
+        content => template('cobbler/ubuntu/iptablessave.erb'),
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0755',
       }
-      file { "/etc/network/if-pre-up.d/iptablesload":
-        content => template("cobbler/ubuntu/iptablesload.erb"),
-        owner => root,
-        group => root,
-        mode => 0755,
+
+      file { '/etc/network/if-pre-up.d/iptablesload':
+        content => template('cobbler/ubuntu/iptablesload.erb'),
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0755',
       }
     }
   }

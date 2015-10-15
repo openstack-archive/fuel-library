@@ -111,10 +111,6 @@ if $primary_controller {
   }
 }
 
-if !$rabbit_hash['user'] {
-  $rabbit_hash['user'] = 'nova'
-}
-
 $floating_hash = {}
 
 ##CALCULATED PARAMETERS
@@ -238,7 +234,7 @@ class { 'openstack::compute':
   multi_host                  => $multi_host,
   queue_provider              => $queue_provider,
   amqp_hosts                  => hiera('amqp_hosts',''),
-  amqp_user                   => $rabbit_hash['user'],
+  amqp_user                   => pick($rabbit_hash['user'], 'nova'),
   amqp_password               => $rabbit_hash['password'],
   rabbit_ha_queues            => $rabbit_ha_queues,
   auto_assign_floating_ip     => $auto_assign_floating_ip,

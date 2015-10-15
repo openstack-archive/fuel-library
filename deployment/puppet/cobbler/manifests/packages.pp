@@ -37,13 +37,15 @@ class cobbler::packages {
     }
   }
 
-  define cobbler_safe_package(){
-    if ! defined(Package[$name]){
-      @package { $name : }
+  define cobbler_safe_package() {
+    if ! defined(Package[$name]) {
+      package { $name:
+        ensure => present,
+      }
     }
   }
 
-  cobbler_safe_package { $cobbler_additional_packages : }
+  ensure_resource(cobbler_safe_package, $cobbler_additional_packages)
 
   package { $django_package :
         ensure => present
