@@ -1,4 +1,4 @@
-class nailgun::nginx-service (
+class nailgun::nginx_service (
   $service_enabled = true,
 ) {
 

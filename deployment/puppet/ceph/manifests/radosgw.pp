@@ -56,17 +56,14 @@ class ceph::radosgw (
     ensure  => 'installed',
   }
 
-  if !(defined('horizon') or
-       defined($::ceph::params::package_httpd) or
-       defined($::ceph::params::service_httpd) ) {
-    package {$::ceph::params::package_httpd:
-      ensure => 'installed',
-    }
-    service { 'httpd':
-      ensure => 'running',
-      name   => $::ceph::params::service_httpd,
-      enable => true,
-    }
+  package {$::ceph::params::package_httpd:
+    ensure => 'installed',
+  } 
+
+  service { 'httpd':
+    ensure => 'running',
+    name   => $::ceph::params::service_httpd,
+    enable => true,
   }
 
   firewall {'012 RadosGW allow':
@@ -234,5 +231,5 @@ class ceph::radosgw (
   Exec["Populate ${radosgw_auth_key} keyring"] ->
   File[$keyring_path] ->
   Firewall['012 RadosGW allow'] ~>
-  Service ['httpd']
+  Service['httpd']
 }
