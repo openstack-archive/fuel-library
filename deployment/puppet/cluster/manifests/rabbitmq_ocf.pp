@@ -43,10 +43,10 @@
 #
 class cluster::rabbitmq_ocf (
   $primitive_type     = 'rabbitmq-server',
+  $primitive_provider = 'rabbitmq',
   $service_name       = $::rabbitmq::service_name,
   $port               = $::rabbitmq::port,
   $debug              = false,
-  $ocf_script_file    = 'cluster/ocf/rabbitmq',
   $command_timeout    = '',
   $erlang_cookie      = 'EOKOWXQREETZSHFNTPEY',
   $admin_user         = undef,
@@ -68,32 +68,10 @@ class cluster::rabbitmq_ocf (
     'resource-stickiness' => '100',
   }
 
-  $complex_metadata     = {
-    'notify'      => 'true',
-    # We shouldn't enable ordered start for parallel start of RA.
-    'ordered'     => 'false',
-    'interleave'  => 'true',
-    'master-max'  => '1',
-    'master-node-max' => '1',
-    'target-role' => 'Master'
-  }
-
   $operations      = {
     'monitor' => {
-      'interval' => '30',
+      'interval' => '20',
       'timeout'  => '180'
-    },
-    'monitor:Master' => { # name:role
-      'role' => 'Master',
-      # should be non-intercectable with interval from ordinary monitor
-      'interval' => '27',
-      'timeout'  => '180'
-    },
-    'monitor:Slave'  => {
-      'role'            => 'Slave',
-      'interval'        => '103',
-      'timeout'         => '180',
-      'OCF_CHECK_LEVEL' => '30'
     },
     'start'     => {
       'timeout' => '360'
@@ -101,25 +79,15 @@ class cluster::rabbitmq_ocf (
     'stop' => {
       'timeout' => '120'
     },
-    'promote' => {
-      'timeout' => '120'
-    },
-    'demote' => {
-      'timeout' => '120'
-    },
-    'notify' => {
-      'timeout' => '180'
-    },
   }
 
   pacemaker::service { $service_name :
     primitive_type           => $primitive_type,
-    complex_type             => 'master',
+    primitive_provider       => $primitive_provider,
     metadata                 => $metadata,
-    complex_metadata         => $complex_metadata,
     operations               => $operations,
     parameters               => $parameters,
-    # ocf_script_file          => $ocf_script_file,
   }
   Service[$service_name] -> Rabbitmq_user <||>
+  Class['rabbitmq::install'] -> Pcmk_resource <||>
 }

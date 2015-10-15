@@ -89,6 +89,7 @@ if $queue_provider == 'rabbitmq' {
     {
       'SERVER_ERL_ARGS'     => "\"+K true +A${thread_pool_calc} +P 1048576\"",
       'PID_FILE'            => $rabbit_pid_file,
+      'RABBITMQ_NODENAME'   => "rabbit@localhost",
     }
   )
 
