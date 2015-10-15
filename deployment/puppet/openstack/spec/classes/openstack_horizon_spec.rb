@@ -32,7 +32,7 @@ describe 'openstack::horizon' do
         if facts[:osfamily] == 'Debian'
           custom_fragment = "\n<Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>\n  Order allow,deny\n  Allow from all\n</Directory>\n\n"
         elsif facts[:osfamily] == 'RedHat'
-          custom_fragment = "\n<Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>\n  <IfModule mod_deflate.c>\n    SetOutputFilter DEFLATE\n    <IfModule mod_headers.c>\n      # Make sure proxies don’t deliver the wrong content\n      Header append Vary User-Agent env=!dont-vary\n    </IfModule>\n  </IfModule>\n\n  Order allow,deny\n  Allow from all\n</Directory>\n\n<Directory /usr/share/openstack-dashboard/static>\n  <IfModule mod_expires.c>\n    ExpiresActive On\n    ExpiresDefault \"access 6 month\"\n  </IfModule>\n  <IfModule mod_deflate.c>\n    SetOutputFilter DEFLATE\n  </IfModule>\n\n  Order allow,deny\n  Allow from all\n</Directory>\n\n"
+          custom_fragment = "\n<Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>\n  <IfModule mod_deflate.c>\n    SetOutputFilter DEFLATE\n    <IfModule mod_headers.c>\n      # Make sure proxies don't deliver the wrong content\n      Header append Vary User-Agent env=!dont-vary\n    </IfModule>\n  </IfModule>\n\n  Order allow,deny\n  Allow from all\n</Directory>\n\n<Directory /usr/share/openstack-dashboard/static>\n  <IfModule mod_expires.c>\n    ExpiresActive On\n    ExpiresDefault \"access 6 month\"\n  </IfModule>\n  <IfModule mod_deflate.c>\n    SetOutputFilter DEFLATE\n  </IfModule>\n\n  Order allow,deny\n  Allow from all\n</Directory>\n\n"
         end
 
         should contain_class('horizon::wsgi::apache').with(
