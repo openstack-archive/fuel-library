@@ -35,21 +35,22 @@ $sahara_hash                    = hiera('sahara', {})
 $murano_hash                    = hiera('murano', {})
 $heat_hash                      = hiera_hash('heat', {})
 $vcenter_hash                   = hiera('vcenter', {})
-$nova_hash                      = hiera_hash('nova', {})
 $mysql_hash                     = hiera('mysql', {})
-$rabbit_hash                    = hiera_hash('rabbit', {})
 $glance_hash                    = hiera_hash('glance', {})
 $swift_hash                     = hiera('swift', {})
 $cinder_hash                    = hiera_hash('cinder', {})
-$ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera_hash('access', {})
 $mp_hash                        = hiera('mp', {})
 $keystone_hash                  = merge({'service_token_off' => $service_token_off},
                                         hiera_hash('keystone', {}))
 
+$nova_hiera_hash                = hiera_hash('nova', {})
+$rabbit_hiera_hash              = hiera_hash('rabbit', {})
+$ceilometer_hiera_hash          = hiera('ceilometer',{})
+
 $node_role                      = hiera('role')
 $dns_nameservers                = hiera('dns_nameservers', [])
-$use_ceilometer                 = $ceilometer_hash['enabled']
+$use_ceilometer                 = $ceilometer_hiera_hash['enabled']
 $use_neutron                    = hiera('quantum', false)
 $verbose                        = true
 $debug                          = hiera('debug', false)
@@ -158,8 +159,8 @@ $mountpoints                   = filter_hash($mp_hash,'point')
 $queue_provider   = hiera('queue_provider','rabbitmq')
 $rabbit_ha_queues = true
 
-if !$rabbit_hash['user'] {
-  $rabbit_hash['user'] = 'nova'
+if !has_key($rabbit_hiera_hash, 'user') {
+  $rabbit_hash = merge($rabbit_hash, { 'user' => 'nova' })
 }
 
 $amqp_port  = hiera('amqp_ports', '5673')
@@ -181,7 +182,7 @@ $max_pool_size            = hiera('max_pool_size', min($::processorcount * 5 + 0
 $max_overflow             = hiera('max_overflow', min($::processorcount * 5 + 0, 60 + 0))
 $max_retries              = hiera('max_retries', '-1')
 $idle_timeout             = hiera('idle_timeout','3600')
-$nova_db_password         = $nova_hash['db_password']
+$nova_db_password         = $nova_hiera_hash['db_password']
 $sql_connection           = "mysql://nova:${nova_db_password}@${database_vip}/nova?read_timeout = 6 0"
 $mirror_type              = hiera('mirror_type', 'external')
 $multi_host               = hiera('multi_host', true)
@@ -249,10 +250,26 @@ $heat_roles = ['primary-controller', 'controller']
 # Define sahara-related variable
 $sahara_roles = ['primary-controller', 'controller']
 
-# Define ceilometer-releated parameters
-if !$ceilometer_hash['event_time_to_live'] { $ceilometer_hash['event_time_to_live'] = '604800'}
-if !$ceilometer_hash['metering_time_to_live'] { $ceilometer_hash['metering_time_to_live'] = '604800' }
-if !$ceilometer_hash['http_timeout'] { $ceilometer_hash['http_timeout'] = '600' }
+# Define ceilometer-related parameters
+if !has_key($ceilometer_hiera_hash, 'event_time_to_live') {
+  $ceilometer_event_time_to_live = 604800
+}
+
+if !has_key($ceilometer_hiera_hash, 'metering_time_to_live') {
+  $ceilometer_metering_time_to_live = 604800
+}
+
+if !has_key($ceilometer_hiera_hash, 'http_timeout') {
+  $ceilometer_http_timeout = 600
+}
+
+$ceilometer_hash_tmp = {
+  event_time_to_live    => $ceilometer_event_time_to_live,
+  metering_time_to_live => $ceilometer_metering_time_to_live,
+  http_timeout          => $ceilometer_http_timeout,
+}
+
+$ceilometer_hash = merge($ceilometer_hiera_hash, $ceilometer_hash_tmp)
 
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future
@@ -273,9 +290,23 @@ $neutron_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller
 # TODO(sbog): change this when we will get rid of global hashes
 $public_ssl_hash = hiera('public_ssl')
 if $public_ssl_hash['services'] {
-  $nova_hash['vncproxy_protocol'] = 'https'
+  $nova_hash = merge($nova_hiera_hash, { 'vncproxy_protocol' => 'https' })
 } else {
-  $nova_hash['vncproxy_protocol'] = 'http'
+  $nova_hash = merge($nova_hiera_hash, { 'vncproxy_protocol' => 'http' })
+}
+
+# sanity check to ensure all modifiable hashes are actually defined
+if $ceilometer_hash == undef {
+  $ceilometer_hash = $ceilometer_hiera_hash
+}
+
+if $nova_hash == undef {
+  $nova_hash = $nova_hiera_hash
+}
+
+
+if $rabbit_hash == undef {
+  $rabbit_hash = $rabbit_hiera_hash
 }
 
 # save all these global variables into hiera yaml file for later use
