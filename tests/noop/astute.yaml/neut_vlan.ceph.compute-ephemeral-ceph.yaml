@@ -121,8 +121,8 @@ syslog:
 libvirt_type: qemu
 host_uuid: '00000000-0000-0000-0000-000000000000'
 puppet:
-  modules: rsync://10.122.10.2:/puppet/2016.1.0-9.0/modules/
-  manifests: rsync://10.122.10.2:/puppet/2016.1.0-9.0/manifests/
+  modules: rsync://10.122.10.2:/puppet/liberty-9.0/modules/
+  manifests: rsync://10.122.10.2:/puppet/liberty-9.0/manifests/
 mysql:
   root_password: sx2tGnw7
   wsrep_password: qEYkmkV7
@@ -198,7 +198,7 @@ management:
   - controller
   - primary-controller
   namespace: haproxy
-openstack_version: 2016.1.0-9.0
+openstack_version: liberty-9.0
 kernel_params:
   kernel: console=ttyS0,9600 console=tty0 net.ifnames=0 biosdevname=0 rootdelay=90
     nomodeset
@@ -402,7 +402,7 @@ repo_setup:
     type: deb
   - name: mos
     section: main restricted
-    uri: http://10.122.10.2:8080/2016.1.0-9.0/ubuntu/x86_64
+    uri: http://10.122.10.2:8080/liberty-9.0/ubuntu/x86_64
     priority: 1050
     suite: mos7.0
     type: deb
@@ -426,7 +426,7 @@ repo_setup:
     type: deb
   - name: Auxiliary
     section: main restricted
-    uri: http://10.122.10.2:8080/2016.1.0-9.0/ubuntu/auxiliary
+    uri: http://10.122.10.2:8080/liberty-9.0/ubuntu/auxiliary
     priority: 1150
     suite: auxiliary
     type: deb
