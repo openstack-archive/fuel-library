@@ -7,6 +7,13 @@ require 'puppetlabs_spec_helper/module_spec_helper'
 require 'yaml'
 require 'fileutils'
 require 'find'
+require 'simplecov'
+
+SimpleCov.start do
+  SimpleCov.coverage_dir("coverage")
+  SimpleCov.use_merging
+  SimpleCov.merge_timeout(7200)
+end
 
 module Noop
   def self.module_path
@@ -504,3 +511,10 @@ RSpec.configure do |c|
 
 end
 
+at_exit {
+  puppet_coverage_report = StringIO.new
+  $stdout = puppet_coverage_report
+  RSpec::Puppet::Coverage.report!
+  File.open("coverage/#{ENV['SPEC_ASTUTE_FILE_NAME']}", 'w') { |file| file.write($stdout.string) }
+  puts $stdout.string
+}
