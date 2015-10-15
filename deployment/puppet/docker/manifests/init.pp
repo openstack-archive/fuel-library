@@ -34,10 +34,10 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   }
   file { "/etc/sysconfig/docker":
     content => template("docker/settings.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
-    notify => Service["docker"],
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    notify  => Service["docker"],
   }
   file { $dependent_dirs:
     ensure => directory,

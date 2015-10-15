@@ -88,73 +88,80 @@ define l23network::l2::bond (
     $bond_mode = $bond_properties[mode]
   }
 
-  # init default bond properties hash
-  $default_bond_properties = {
-    mode => $bond_mode,
-  }
-
   # calculate string representation for xmit_hash_policy
   if ( $bond_mode == '802.3ad' or $bond_mode == 'balance-xor' or $bond_mode == 'balance-tlb') {
     if ! $bond_properties[xmit_hash_policy] {
       # default value by design https://www.kernel.org/doc/Documentation/networking/bonding.txt
-      $default_bond_properties[xmit_hash_policy] = $xmit_hash_policies[0]
+      $xmit_hash_policy = $xmit_hash_policies[0]
     } else {
-      $default_bond_properties[xmit_hash_policy] = $bond_properties[xmit_hash_policy]
+      $xmit_hash_policy = $bond_properties[xmit_hash_policy]
     }
   } else {
     # non-lacp
-    $default_bond_properties[xmit_hash_policy] = undef
+    $xmit_hash_policy = undef
   }
 
   # calculate string representation for lacp_rate
   if $bond_mode == '802.3ad' or ($provider == 'ovs' and ( $bond_properties[lacp] == 'active' or $bond_properties[lacp] == 'passive')) {
     if is_integer($bond_properties[lacp_rate]) and $bond_properties[lacp_rate] < size($lacp_rates) {
-      $default_bond_properties[lacp_rate] = $lacp_rates[$bond_properties[lacp_rate]]
+      $lacp_rate = $lacp_rates[$bond_properties[lacp_rate]]
     } else {
       # default value by design https://www.kernel.org/doc/Documentation/networking/bonding.txt
-      $default_bond_properties[lacp_rate] = pick($bond_properties[lacp_rate], $lacp_rates[0])
+      $lacp_rate = pick($bond_properties[lacp_rate], $lacp_rates[0])
     }
     if $provider == 'ovs' {
-      $default_bond_properties[lacp] = $bond_properties[lacp]
+      $lacp = $bond_properties[lacp]
     } else {
-      $default_bond_properties[lacp] = undef
+      $lacp = undef
     }
   } else {
-    $default_bond_properties[lacp_rate] = undef
-    $default_bond_properties[lacp] = undef
+    $lacp_rate = undef
+    $lacp = undef
   }
 
   # calculate default miimon
   if is_integer($bond_properties[miimon]) and $bond_properties[miimon] >= 0 {
-    $default_bond_properties[miimon] = $bond_properties[miimon]
+    $miimon = $bond_properties[miimon]
   } else {
     # recommended default value https://www.kernel.org/doc/Documentation/networking/bonding.txt
-    $default_bond_properties[miimon] = 100
+    $miimon = 100
   }
 
   # calculate default updelay
   if is_integer($bond_properties[updelay]) and $bond_properties[updelay] >= 0 {
-    $default_bond_properties[updelay] = $bond_properties[updelay]
+    $updelay = $bond_properties[updelay]
   } else {
-    $default_bond_properties[updelay] = 200
+    $updelay = 200
   }
 
   # calculate default downdelay
   if is_integer($bond_properties[downdelay]) and $bond_properties[downdelay] >= 0 {
-    $default_bond_properties[downdelay] = $bond_properties[downdelay]
+    $downdelay = $bond_properties[downdelay]
   } else {
-    $default_bond_properties[downdelay] = 200
+    $downdelay = 200
   }
 
   # calculate default ad_select
   if $bond_properties[ad_select] {
     if is_integer($bond_properties[ad_select]) {
-      $default_bond_properties[ad_select] = $ad_select_states[$bond_properties[ad_select]]
+      $ad_select = $ad_select_states[$bond_properties[ad_select]]
     } else {
-      $default_bond_properties[ad_select] = $bond_properties[ad_select]
+      $ad_select = $bond_properties[ad_select]
     }
   } else {
-    $default_bond_properties[ad_select] = $ad_select_states[1]
+    $ad_select = $ad_select_states[1]
+  }
+
+  # build default bond properties hash
+  $default_bond_properties = {
+    mode             => $bond_mode,
+    xmit_hash_policy => $xmit_hash_policy,
+    lacp             => $lacp,
+    lacp_rate        => $lacp_rate,
+    miimon           => $miimon,
+    updelay          => $updelay,
+    downdelay        => $downdelay,
+    ad_select        => $ad_select,
   }
 
   $real_bond_properties = merge($bond_properties, $default_bond_properties)

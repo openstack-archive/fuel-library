@@ -102,10 +102,6 @@ if $primary_controller {
   }
 }
 
-if !$rabbit_hash['user'] {
-  $rabbit_hash['user'] = 'nova'
-}
-
 if ! $use_neutron {
   $floating_ips_range = hiera('floating_network_range')
 }
@@ -260,7 +256,7 @@ class { 'openstack::cinder':
   bind_host            => $bind_host,
   queue_provider       => $queue_provider,
   amqp_hosts           => hiera('amqp_hosts',''),
-  amqp_user            => $rabbit_hash['user'],
+  amqp_user            => pick($rabbit_hash['user'], 'nova'),
   amqp_password        => $rabbit_hash['password'],
   rabbit_ha_queues     => hiera('rabbit_ha_queues', false),
   volume_group         => 'cinder',

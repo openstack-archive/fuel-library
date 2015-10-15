@@ -111,10 +111,6 @@ class openstack::network::neutron_agents (
     }
   }
 
-  if 'linuxbridge' in $agents {
-    # FIXME(xarses): needs neutron-plugin-linuxbridge* packages
-  }
-
   if 'metadata' in $agents {
     class {'::neutron::agents::metadata':
       debug          => $debug,

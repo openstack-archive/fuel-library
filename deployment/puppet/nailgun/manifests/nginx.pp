@@ -25,8 +25,8 @@ class nailgun::nginx(
   anchor { "nginx-end": }
 
   Anchor<| title == "nginx-begin" |> ->
-  Class["nailgun::nginx-repo"] ->
-  Class["nailgun::nginx-nailgun"] ->
+  Class["nailgun::nginx_repo"] ->
+  Class["nailgun::nginx_nailgun"] ->
   Anchor<| title == "nginx-end" |>
 
   package { 'nginx':
@@ -47,12 +47,12 @@ class nailgun::nginx(
     ensure => "absent",
     notify => Service["nginx"],
     before => [
-               Class["nailgun::nginx-repo"],
-               Class["nailgun::nginx-nailgun"],
+               Class["nailgun::nginx_repo"],
+               Class["nailgun::nginx_nailgun"],
                ],
   }
 
-  class { "nailgun::nginx-repo":
+  class { "nailgun::nginx_repo":
     repo_root => $repo_root,
     notify => Service["nginx"],
   }
@@ -77,11 +77,11 @@ class nailgun::nginx(
     }
   }
 
-  class { "nailgun::nginx-service":
+  class { "nailgun::nginx_service":
     service_enabled => $service_enabled,
   }
 
-  class { 'nailgun::nginx-nailgun':
+  class { 'nailgun::nginx_nailgun':
     staticdir     => $staticdir,
     logdumpdir    => $logdumpdir,
     ostf_host     => $ostf_host,

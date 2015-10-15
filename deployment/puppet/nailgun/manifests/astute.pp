@@ -30,31 +30,31 @@ class nailgun::astute(
 
   file { '/usr/bin/astuted':
     content => template('nailgun/astuted.erb'),
-    owner => 'root',
-    group => 'root',
-    mode => 0755,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0755',
   }
 
-  file {"/etc/astute":
+  file { '/etc/astute':
     ensure => directory,
-    owner => 'root',
-    group => 'root',
-    mode => 0755,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
   }
 
-  file {"/etc/astute/astuted.conf":
-    content => template("nailgun/astuted.conf.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
-    require => File["/etc/astute"],
+  file { '/etc/astute/astuted.conf':
+    content => template('nailgun/astuted.conf.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    require => File['/etc/astute'],
   }
 
-  file {"/var/log/astute":
+  file { '/var/log/astute':
     ensure => directory,
-    owner => 'root',
-    group => 'root',
-    mode => 0755,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
   }
 
 }
