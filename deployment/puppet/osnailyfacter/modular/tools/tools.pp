@@ -22,7 +22,7 @@ package { $tools :
 }
 
 package { 'cloud-init':
-  ensure => 'purged',
+  ensure => 'absent',
 }
 
 if $::osfamily == 'Debian' {
