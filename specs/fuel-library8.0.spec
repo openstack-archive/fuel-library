@@ -24,7 +24,7 @@ Requires: fuel-misc python-fuelclient
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
-%define openstack_version 2015.1.0-8.0
+%define openstack_version liberty-%{fuel_release}
 %define predefined_upstream_modules  %{_sourcedir}/upstream_modules.tar.gz
 
 %description
