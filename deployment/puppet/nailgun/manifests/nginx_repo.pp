@@ -1,4 +1,4 @@
-class nailgun::nginx-repo(
+class nailgun::nginx_repo(
   $repo_root = "/var/www/nailgun",
   ){
 

@@ -109,10 +109,11 @@ class mysql::server (
     Package['mysql-server'] -> Class['mysql::config']
     Package['mysql-client'] -> Package['mysql-server']
 
-    $config_hash['custom_setup_class'] = $custom_setup_class
+    $config_hash_real = merge($config_hash,
+                              { 'custom_setup_class' => $custom_setup_class })
     $allowed_hosts = '%'
 
-    create_resources( 'class', { 'mysql::config' => $config_hash })
+    create_resources( 'class', { 'mysql::config' => $config_hash_real })
     Class['mysql::config'] -> Cs_resource["p_${service_name}"]
 
     if !defined(Package['mysql-client']) {
