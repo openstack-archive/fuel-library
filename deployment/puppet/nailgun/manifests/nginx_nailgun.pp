@@ -4,7 +4,7 @@
 # [*ssl_enabled*]
 #  (optional) enables SSL for nailgun UI part
 #
-class nailgun::nginx-nailgun(
+class nailgun::nginx_nailgun(
   $staticdir,
   $logdumpdir,
   $nailgun_host = '127.0.0.1',
