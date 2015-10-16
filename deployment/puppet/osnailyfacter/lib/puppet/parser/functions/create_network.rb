@@ -1,16 +1,15 @@
-
 Puppet::Parser::Functions::newfunction(:create_network, :doc => <<-EOS
 This function gets network name, predefined_networks hash, segmentation type and create neutron networks.
 EOS
 ) do |args|
 
+   raise ArgumentError, ("create_network(): wrong number of arguments (#{args.length}; must be 3)") if args.length < 3
+
    network_name = args[0]
    network_data = args[1]
    segmentation_type = args[2]
 
-   raise Puppet::ParseError, 'network_name is empty!' if network_name.nil?
-   raise Puppet::ParseError, 'network_data is empty!' if network_data.nil?
-   raise Puppet::ParseError, 'segmentation_type is empty!' if segmentation_type.nil?
+   raise ArgumentError, 'create_network(): network_data is not hash!' if !network_data.is_a?(Hash)
 
    tenant_name  = network_data.fetch 'tenant' , 'admin'
    fallback_segment_id = 1
@@ -52,12 +51,12 @@ EOS
     'allocation_pools' => allocation_pools,
    }
 
-   debug("Creating neutron_network #{network_name}")
+   debug("Creating neutron_network #{network_name} #{network_hash}")
    function_create_resources(['neutron_network', {
                                 network_name => network_hash
    }])
 
-   debug("Creating neutron_subnet #{network_name}__subnet")
+   debug("Creating neutron_subnet #{network_name}__subnet #{subnet_hash}")
    function_create_resources(['neutron_subnet', {
                                 "#{network_name}__subnet" => subnet_hash
    }])
