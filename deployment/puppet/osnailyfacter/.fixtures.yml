@@ -1,0 +1,5 @@
+fixtures:
+  symlinks:
+    'l23network': '../../../../l23network'
+    'neutron': '../../../../neutron'
+    'osnailyfacter': "#{source_dir}"

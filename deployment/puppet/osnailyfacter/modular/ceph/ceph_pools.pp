@@ -15,7 +15,7 @@ $glance_pool              = 'images'
 
 
 Exec { path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-       cwd     => '/root',
+  cwd     => '/root',
 }
 
 # DO NOT SPLIT ceph auth command lines! See http://tracker.ceph.com/issues/3279
