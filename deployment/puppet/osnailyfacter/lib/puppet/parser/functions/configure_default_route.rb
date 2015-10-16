@@ -1,8 +1,8 @@
 require 'ipaddr'
 require 'pp'
-#require 'puppetx/l23_utils'
-#require 'puppetx/l23_network_scheme'
-#require 'puppetx/l23_hash_tools'
+require 'puppetx/l23_utils'
+require 'puppetx/l23_network_scheme'
+require 'puppetx/l23_hash_tools'
 
 Puppet::Parser::Functions::newfunction(:configure_default_route, :type => :rvalue, :doc => <<-EOS
 This function gets hash of network endpoints configuration and check if fw-admin endpoint has gateway
@@ -80,10 +80,10 @@ EOS
 
   unless change_to_vrouter
     debug 'configure_default_route(): Will not change the default route to the vrouter IP address'
-    return nil
+    return {}
   end
 
-  data = ''
+  data = {}
   debug 'configure_default_route(): Change default route to vrouter ip address'
   interface_names = [ fw_admin_int, management_int ]
   previous = nil
@@ -112,7 +112,7 @@ EOS
           "#{endpoint_name}" => resource_properties
         }])
     previous = "L23network::L3::Ifconfig[#{endpoint_name}]"
-    data << "#{endpoint_name} "
+    data[endpoint_name.to_s] = resource_properties
   end
   data
 end

@@ -191,7 +191,7 @@ $keystone_paste_ini = $::keystone::params::paste_config ? {
 # Make sure admin token auth middleware is in place
 exec { 'add_admin_token_auth_middleware':
   path    => ['/bin', '/usr/bin'],
-  command => "sed -i 's/\( token_auth \)/\1admin_token_auth /' $keystone_paste_ini",
+  command => "sed -i 's/\\( token_auth \\)/\\1admin_token_auth /' $keystone_paste_ini",
   unless  => "fgrep -q ' admin_token_auth' $keystone_paste_ini",
   require => Package['keystone'],
 }

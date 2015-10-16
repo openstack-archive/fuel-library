@@ -20,8 +20,7 @@ $max_overflow          = hiera('max_overflow')
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
 $glance_endpoint       = $management_vip
-$service_workers       = pick($glance_hash['glance_workers'],
-                               min(max($::processorcount, 2), 16))
+$service_workers       = pick($glance_hash['glance_workers'], min(max($::processorcount, 2), 16))
 
 $db_type                        = 'mysql'
 $db_host                        = pick($glance_hash['db_host'], $database_vip)
@@ -116,7 +115,7 @@ class { 'openstack::glance':
   ceilometer                     => $ceilometer_hash[enabled],
   service_workers                => $service_workers,
   rados_connect_timeout          => $rados_connect_timeout,
- }
+}
 
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {

@@ -80,9 +80,9 @@ if $use_ceph {
   include ceph::nova_compute
 
   if ($storage_hash['ephemeral_ceph']) {
-     include ceph::ephemeral
-     Class['ceph::conf'] -> Class['ceph::ephemeral'] ~>
-     Service[$::ceph::params::service_nova_compute]
+    include ceph::ephemeral
+    Class['ceph::conf'] -> Class['ceph::ephemeral'] ~>
+    Service[$::ceph::params::service_nova_compute]
   }
 
   Class['ceph::conf'] ->
@@ -91,7 +91,7 @@ if $use_ceph {
   Service[$::ceph::params::service_nova_compute]
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-         cwd  => '/root',
+    cwd  => '/root',
   }
 
 }

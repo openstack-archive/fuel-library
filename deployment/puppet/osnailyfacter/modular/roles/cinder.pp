@@ -176,7 +176,7 @@ if $use_monit_real {
   $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
   case $::osfamily {
     'RedHat' : {
-       $service_path   = '/sbin/service'
+      $service_path   = '/sbin/service'
     }
     'Debian' : {
       $service_path    = '/usr/sbin/service'
@@ -212,10 +212,8 @@ if ($use_ceph and !$storage_hash['volumes_lvm']) {
 
   class {'ceph':
     primary_mon              => $primary_mon,
-    mon_hosts                => nodes_with_roles($nodes_hash, ['primary-controller',
-                                                 'controller', 'ceph-mon'], 'name'),
-    mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller',
-                                                 'controller', 'ceph-mon'], 'internal_address'),
+    mon_hosts                => nodes_with_roles($nodes_hash, ['primary-controller', 'controller', 'ceph-mon'], 'name'),
+    mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller', 'controller', 'ceph-mon'], 'internal_address'),
     cluster_node_address     => $public_vip,
     osd_pool_default_size    => $storage_hash['osd_pool_size'],
     osd_pool_default_pg_num  => $storage_hash['pg_num'],
