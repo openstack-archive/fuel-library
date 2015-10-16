@@ -19,8 +19,24 @@ describe 'l23network::l3::ifconfig', :type => :define do
       "class {'l23network': }"
     ] }
 
+    let(:rings) do
+      {
+        'rings' => {
+          'RX' => '4096',
+          'TX' => '4096'
+        }
+      }
+    end
+
     before(:each) do
       puppet_debug_override()
+
+      get_nic_maxrings = {}
+      Puppet::Parser::Functions.newfunction(:get_nic_maxrings, :type => :rvalue) {
+        |args| get_nic_maxrings.call(args[0])
+      }
+
+      get_nic_maxrings.stubs(:call).with('eth4').returns(rings)
     end
 
     it do
@@ -34,6 +50,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
         'method'         => 'manual',
         'ipaddr'         => 'none',
         'ipaddr_aliases' => nil,
+        'ethtool'        => rings,
       })
     end
 

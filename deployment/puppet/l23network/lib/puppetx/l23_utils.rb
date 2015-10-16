@@ -101,5 +101,17 @@ module L23network
   def self.get_route_resource_name(dest, metric=0)
     (metric.to_i > 0  ?  "#{dest},metric:#{metric}"  :  rv = "#{dest}")
   end
+
+  def self.get_ethtool_rings(iface_name, current_settings=false)
+    rings = {}
+    settings = current_settings ? 'Current hardware settings' : 'Pre-set maximums'
+    begin
+      rings_entries = %x(ethtool -g #{iface_name})
+      %w[RX TX].each { |x| rings[x] = rings_entries[/#{settings}:\n.*?#{x}:\s+(\d+)/m, 1] }
+    rescue
+      debug("Cannot get device ring settings for #{iface_name}: Operation not supported")
+    end
+    rings.delete_if { |k, v| v.nil? }
+  end
 end
 # vim: set ts=2 sw=2 et :

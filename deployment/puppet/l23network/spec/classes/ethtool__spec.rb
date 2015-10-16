@@ -10,17 +10,20 @@ network_scheme:
   interfaces:
     eth0:
       ethtool:
-       offload:
-        generic-receive-offload: true
-        generic-segmentation-offload: true
-        rx-all: true
-        rx-checksumming: true
-        rx-fcs: true
-        rx-vlan-offload: true
-        scatter-gather: true
-        tcp-segmentation-offload: true
-        tx-checksumming: true
-        tx-nocache-copy: true
+        offload:
+          generic-receive-offload: true
+          generic-segmentation-offload: true
+          rx-all: true
+          rx-checksumming: true
+          rx-fcs: true
+          rx-vlan-offload: true
+          scatter-gather: true
+          tcp-segmentation-offload: true
+          tx-checksumming: true
+          tx-nocache-copy: true
+        rings:
+          RX: 2048
+          TX: 2048
     eth1:
       vendor_specific:
         disable_offloading: true
@@ -70,8 +73,23 @@ end
       :settings_yaml => network_scheme,
     } end
 
+    let(:rings) do
+      {
+        'rings' => {
+          'RX' => '4096',
+          'TX' => '4096'
+        }
+      }
+    end
+
+    get_nic_maxrings = {}
     before(:each) do
       puppet_debug_override()
+      Puppet::Parser::Functions.newfunction(:get_nic_maxrings, :type => :rvalue) {
+        |args| get_nic_maxrings.call(args[0])
+      }
+
+      4.times { |i| get_nic_maxrings.stubs(:call).with("eth#{i}").returns(rings) }
     end
 
     it do
@@ -88,6 +106,10 @@ end
          'ensure'  => 'present',
          'bridge'  => 'br-eth0',
          'ethtool' =>  {
+              'rings' => {
+                'RX' => '2048',
+                'TX' => '2048'
+              },
               'offload' => {
                 'generic-receive-offload'      => true,
                 'generic-segmentation-offload' => true,
@@ -107,6 +129,10 @@ end
       should contain_l2_port('eth0').with({
         'bridge' => 'br-eth0',
         'ethtool' =>  {
+              'rings' => {
+                'RX' => '2048',
+                'TX' => '2048'
+              },
               'offload' => {
                 'generic-receive-offload'      => true,
                 'generic-segmentation-offload' => true,
@@ -135,7 +161,7 @@ end
               'offload' => {
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
-              }}
+              }}.merge(rings)
       })
     end
 
@@ -147,7 +173,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-        }})
+        }.merge(rings)})
     end
 
     it do
@@ -169,7 +195,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge(rings)
         })
         should contain_l23_stored_config(iface).with({
           'ensure'  => 'present',
@@ -180,7 +206,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge(rings)
         })
       end
     end
