@@ -44,8 +44,18 @@ end
       :settings_yaml => network_scheme,
     } end
 
+    let(:rings) do
+      { }
+    end
+
+    get_nic_maxrings = {}
     before(:each) do
       puppet_debug_override()
+      Puppet::Parser::Functions.newfunction(:get_nic_maxrings, :type => :rvalue) {
+        |args| get_nic_maxrings.call(args[0])
+      }
+
+      [2, 3].each { |i| get_nic_maxrings.stubs(:call).with("eth#{i}").returns(rings) }
     end
 
     it do
@@ -71,7 +81,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge(rings)
         })
         should contain_l23_stored_config(iface).with({
           'ensure'  => 'present',
@@ -82,7 +92,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge(rings)
         })
       end
     end
@@ -137,8 +147,23 @@ end
       :settings_yaml => network_scheme,
     } end
 
+    let(:rings) do
+      {
+        'rings' => {
+          'RX' => '4096',
+          'TX' => '4096'
+        }
+      }
+    end
+
+    get_nic_maxrings = {}
     before(:each) do
       puppet_debug_override()
+      Puppet::Parser::Functions.newfunction(:get_nic_maxrings, :type => :rvalue) {
+        |args| get_nic_maxrings.call(args[0])
+      }
+
+      [2, 3].each { |i| get_nic_maxrings.stubs(:call).with("eth#{i}").returns(rings) }
     end
 
     it do
@@ -165,7 +190,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge(rings)
         })
         should contain_l23_stored_config(iface).with({
           'ensure'      => 'present',
@@ -176,7 +201,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge(rings)
         })
       end
     end
