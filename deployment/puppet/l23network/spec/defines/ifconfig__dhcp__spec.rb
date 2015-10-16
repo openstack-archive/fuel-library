@@ -7,7 +7,13 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
       :l23_os => 'ubuntu',
-      :kernel => 'Linux'
+      :kernel => 'Linux',
+      :netrings => {
+        'eth4' => {
+          'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
+          'current' => {'RX'=>'256', 'TX'=>'256'}
+        },
+      }
     } }
 
     let(:params) { {
@@ -18,6 +24,12 @@ describe 'l23network::l3::ifconfig', :type => :define do
     let(:pre_condition) { [
       "class {'l23network': }"
     ] }
+
+    let(:rings) do
+      {
+        'rings' => facts[:netrings][params[:interface]]['maximums']
+      }
+    end
 
     before(:each) do
       puppet_debug_override()
@@ -35,6 +47,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
         'ipaddr'          => 'dhcp',
         'gateway'         => nil,
         'vendor_specific' => {},
+        'ethtool'         => rings,
       })
     end
 
