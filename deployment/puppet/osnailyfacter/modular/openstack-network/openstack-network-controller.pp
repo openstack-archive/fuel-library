@@ -138,24 +138,19 @@ if $network_provider == 'neutron' {
 
   if $primary_controller and $nets and !empty($nets) {
 
-    Service<| title == 'neutron-server' |> ->
-      Openstack::Network::Create_network <||>
+    Service<| title == 'neutron-server' |> -> Neutron_network <||>
 
-    Service<| title == 'neutron-server' |> ->
-      Openstack::Network::Create_router <||>
+    create_network($neutron_private_net, $nets[$neutron_private_net], $network_type)
+    create_network($neutron_floating_net, $nets[$neutron_floating_net], 'local')
 
-    openstack::network::create_network{$neutron_private_net:
-      netdata           => $nets[$neutron_private_net],
-      segmentation_type => $network_type,
-    } ->
-    openstack::network::create_network{$neutron_floating_net:
-      netdata           => $nets[$neutron_floating_net],
-      segmentation_type => 'local',
-    } ->
-    openstack::network::create_router{$neutron_default_router:
-      internal_network => $neutron_private_net,
-      external_network => $neutron_floating_net,
-      tenant_name      => $keystone_admin_tenant
+    neutron_router { $neutron_default_router:
+      ensure               => present,
+      tenant_name          => $nets[$neutron_floating_net]['tenant'],
+      gateway_network_name => $neutron_floating_net,
+    }
+
+    neutron_router_interface { "${neutron_default_router}:${neutron_private_net}__subnet":
+      ensure => present,
     }
 
   }
@@ -312,3 +307,4 @@ class { 'openstack::network':
   nova_admin_password    => $nova_hash['user_password'],
   nova_url               => "http://${nova_endpoint}:8774/v2",
 }
+
