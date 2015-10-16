@@ -129,6 +129,9 @@ define l23network::l2::port (
       $real_if_type = $if_type
     }
 
+    # Merge offloading data with rings rx/tx
+    $res_ethtool = deep_merge(get_nic_maxrings($port_name), $ethtool)
+
     L23_stored_config <| title == $port_name |> {
       ensure          => $ensure,
       if_type         => $real_if_type,
@@ -139,7 +142,7 @@ define l23network::l2::port (
       bond_master     => $master,
       mtu             => $mtu,
       onboot          => $onboot,
-      ethtool         => $ethtool,
+      ethtool         => $res_ethtool,
       delay_while_up  => $delay_while_up,
       vendor_specific => $vendor_specific,
       provider        => $config_provider
@@ -157,7 +160,7 @@ define l23network::l2::port (
       onboot          => $onboot,
       #type           => $type,
       #trunks         => $trunks,
-      ethtool         => $ethtool,
+      ethtool         => $res_ethtool,
       vendor_specific => $vendor_specific,
       provider        => $provider
     }
