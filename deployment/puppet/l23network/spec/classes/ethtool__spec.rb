@@ -10,17 +10,20 @@ network_scheme:
   interfaces:
     eth0:
       ethtool:
-       offload:
-        generic-receive-offload: true
-        generic-segmentation-offload: true
-        rx-all: true
-        rx-checksumming: true
-        rx-fcs: true
-        rx-vlan-offload: true
-        scatter-gather: true
-        tcp-segmentation-offload: true
-        tx-checksumming: true
-        tx-nocache-copy: true
+        offload:
+          generic-receive-offload: true
+          generic-segmentation-offload: true
+          rx-all: true
+          rx-checksumming: true
+          rx-fcs: true
+          rx-vlan-offload: true
+          scatter-gather: true
+          tcp-segmentation-offload: true
+          tx-checksumming: true
+          tx-nocache-copy: true
+        rings:
+          RX: 2048
+          TX: 2048
     eth1:
       vendor_specific:
         disable_offloading: true
@@ -88,6 +91,10 @@ end
          'ensure'  => 'present',
          'bridge'  => 'br-eth0',
          'ethtool' =>  {
+              'rings' => {
+                'RX' => '2048',
+                'TX' => '2048'
+              },
               'offload' => {
                 'generic-receive-offload'      => true,
                 'generic-segmentation-offload' => true,
@@ -107,6 +114,10 @@ end
       should contain_l2_port('eth0').with({
         'bridge' => 'br-eth0',
         'ethtool' =>  {
+              'rings' => {
+                'RX' => '2048',
+                'TX' => '2048'
+              },
               'offload' => {
                 'generic-receive-offload'      => true,
                 'generic-segmentation-offload' => true,

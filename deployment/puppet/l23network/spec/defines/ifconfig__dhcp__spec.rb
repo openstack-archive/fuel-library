@@ -34,6 +34,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
         'method'         => 'dhcp',
         'ipaddr'         => 'dhcp',
         'gateway'        => nil,
+        'ethtool'        => { },
       })
     end
 
