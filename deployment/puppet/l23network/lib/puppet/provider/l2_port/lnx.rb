@@ -158,7 +158,9 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           if optmaps
             pairs.each_pair do |k,v|
               if optmaps.has_key? k
-                _cmd = [optmaps['__section_key_set__'], @resource[:interface], optmaps[k], v ? 'on':'off']
+                # Get number as is otherwise check true/false
+                _value = v.is_a?(String) ? v : (v ? 'on' : 'off')
+                _cmd = [optmaps['__section_key_set__'], @resource[:interface], optmaps[k], _value]
                 begin
                   ethtool_cmd(_cmd)
                 rescue Exception => e
