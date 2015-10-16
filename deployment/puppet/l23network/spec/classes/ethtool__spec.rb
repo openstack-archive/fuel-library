@@ -10,17 +10,20 @@ network_scheme:
   interfaces:
     eth0:
       ethtool:
-       offload:
-        generic-receive-offload: true
-        generic-segmentation-offload: true
-        rx-all: true
-        rx-checksumming: true
-        rx-fcs: true
-        rx-vlan-offload: true
-        scatter-gather: true
-        tcp-segmentation-offload: true
-        tx-checksumming: true
-        tx-nocache-copy: true
+        offload:
+          generic-receive-offload: true
+          generic-segmentation-offload: true
+          rx-all: true
+          rx-checksumming: true
+          rx-fcs: true
+          rx-vlan-offload: true
+          scatter-gather: true
+          tcp-segmentation-offload: true
+          tx-checksumming: true
+          tx-nocache-copy: true
+        rings:
+          RX: 2048
+          TX: 2048
     eth1:
       vendor_specific:
         disable_offloading: true
@@ -63,12 +66,31 @@ end
         :kernel => 'Linux',
         :l23_os => 'ubuntu',
         :l3_fqdn_hostname => 'stupid_hostname',
+        :netrings => {
+          'eth2' => {
+            'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
+            'current' => {'RX'=>'256', 'TX'=>'256'}
+          },
+          'eth3' => {
+            'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
+            'current' => {'RX'=>'2048', 'TX'=>'2048'}
+          }
+        }
       }
     }
 
     let(:params) do {
       :settings_yaml => network_scheme,
     } end
+
+    let(:rings) do
+      {
+        'rings' => {
+          'RX' => '4096',
+          'TX' => '4096'
+        }
+      }
+    end
 
     before(:each) do
       puppet_debug_override()
@@ -88,6 +110,10 @@ end
          'ensure'  => 'present',
          'bridge'  => 'br-eth0',
          'ethtool' =>  {
+              'rings' => {
+                'RX' => '2048',
+                'TX' => '2048'
+              },
               'offload' => {
                 'generic-receive-offload'      => true,
                 'generic-segmentation-offload' => true,
@@ -107,6 +133,10 @@ end
       should contain_l2_port('eth0').with({
         'bridge' => 'br-eth0',
         'ethtool' =>  {
+              'rings' => {
+                'RX' => '2048',
+                'TX' => '2048'
+              },
               'offload' => {
                 'generic-receive-offload'      => true,
                 'generic-segmentation-offload' => true,
@@ -135,7 +165,7 @@ end
               'offload' => {
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
-              }}
+              }}.merge(rings)
       })
     end
 
@@ -147,7 +177,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-        }})
+        }.merge(rings)})
     end
 
     it do
@@ -169,7 +199,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge(rings)
         })
         should contain_l23_stored_config(iface).with({
           'ensure'  => 'present',
@@ -180,7 +210,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge(rings)
         })
       end
     end
