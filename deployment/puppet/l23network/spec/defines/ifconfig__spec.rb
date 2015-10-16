@@ -19,6 +19,15 @@ describe 'l23network::l3::ifconfig', :type => :define do
       "class {'l23network': }"
     ] }
 
+    let(:rings) do
+      {
+        'rings' => {
+          'RX' => '4096',
+          'TX' => '4096'
+        }
+      }
+    end
+
     before(:each) do
       puppet_debug_override()
     end
@@ -28,12 +37,14 @@ describe 'l23network::l3::ifconfig', :type => :define do
     end
 
     it do
+      PuppetlabsSpec::PuppetInternals.scope.stubs(:function_get_nic_maxrings).with('eth4').returns(rings)
       should contain_l23_stored_config('eth4').only_with({
         'ensure'         => 'present',
         'name'           => 'eth4',
         'method'         => 'manual',
         'ipaddr'         => 'none',
         'ipaddr_aliases' => nil,
+        'ethtool'        => rings,
       })
     end
 
