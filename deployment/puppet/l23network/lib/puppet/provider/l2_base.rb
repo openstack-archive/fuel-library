@@ -580,8 +580,17 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     ethtool_k.split(/\n+/).select{|l| !l.match(/(^\s+|\[fixed\]|^Features)/)}.map{|x| x.split(/[\s\:]+/)}.each do |p|
       tmp[p[0]] = (p[1] == 'on')
     end
+
+    rings = {}
+    begin
+      rings_entries = ethtool_cmd('-g', if_name)
+      %w{RX TX}.each { |x| rings[x] = rings_entries[/#{x}:\s+(\d+)/, 1] }
+    rescue
+      debug("Cannot get device ring settings for #{if_name}: Operation not supported")
+    end
+
     return {
-      'offload' => tmp || empty_return
+      'offload' => tmp || empty_return, 'rings' => rings
     }
   end
 
