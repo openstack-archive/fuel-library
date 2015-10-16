@@ -35,6 +35,12 @@ module L23network
         'tx-vlan-stag-hw-insert'       => 'tx-vlan-stag-hw-insert',
         'rx-vlan-stag-hw-parse'        => 'rx-vlan-stag-hw-parse',
         'rx-vlan-stag-filter'          => 'rx-vlan-stag-filter',
+      },
+    'rings' => {
+        '__section_key_set__'          => '-G',
+        '__section_key_get__'          => '-g',
+        'RX'                           => 'rx',
+        'TX'                           => 'tx',
       }
     }
   end
