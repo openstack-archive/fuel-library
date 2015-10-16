@@ -21,30 +21,11 @@ class mcollective::rabbitmq (
   $stomp           = false,
   $vhost           = "mcollective",) {
 
-  define access_to_rabbitmq_port ($port, $protocol = 'tcp') {
-    $rule = "-p $protocol -m state --state NEW -m $protocol --dport $port -j ACCEPT"
-
-    exec { "access_to_cobbler_${protocol}_port: $port":
-      command => "iptables -t filter -I INPUT 1 $rule; \
-          /etc/init.d/iptables save",
-      unless  => "iptables -t filter -S INPUT | grep -q \"^-A INPUT $rule\"",
-      path    => '/bin:/usr/bin:/sbin:/usr/sbin',
-    }
-  }
-
-  # unused code from fuelweb. will be deleted in next release
-  #  define mcollective_rabbitmq_safe_package(){
-  #  if ! defined(Package[$name]){
-  #    @package { $name : }
-  #  }
-  # }
-
-
   case $::osfamily {
     'Debian' : {
     }
     'RedHat' : {
-      access_to_rabbitmq_port { "${stompport}_tcp": port => $stompport }
+      mcollective::access_to_rabbitmq_port { "${stompport}_tcp": port => $stompport }
     }
     default  : {
       fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
