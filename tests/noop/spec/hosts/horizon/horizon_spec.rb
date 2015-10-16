@@ -90,6 +90,20 @@ describe manifest do
       )
     }
 
+    it 'should not enable directory indexes' do
+      should contain_apache_vhost['horizon_ssl_vhost'].with(
+        'options' => '-Indexes'
+      )
+    end
+
+    it 'should contain anti-XSS headers' do
+     should contain_apache_vhost['horizon_ssl_vhost'].with(
+        'headers' => ['set X-XSS-Protection "1; mode=block"',
+                      'set X-Content-Type-Options nosniff',
+                      'always append X-Frame-Options SAMEORIGIN']
+      )
+    end
+
   end
 
   test_ubuntu_and_centos manifest
