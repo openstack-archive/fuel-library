@@ -37,6 +37,20 @@ end
         :kernel => 'Linux',
         :l23_os => 'ubuntu',
         :l3_fqdn_hostname => 'stupid_hostname',
+        :netrings => {
+          'eth1' => {
+              'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
+              'current' => {'RX'=>'256', 'TX'=>'256'}
+          },
+          'eth2' => {
+            'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
+            'current' => {'RX'=>'256', 'TX'=>'256'}
+          },
+          'eth3' => {
+            'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
+            'current' => {'RX'=>'2048', 'TX'=>'2048'}
+          }
+        }
       }
     }
 
@@ -71,7 +85,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge({'rings' => facts[:netrings][iface]['maximums']})
         })
         should contain_l23_stored_config(iface).with({
           'ensure'  => 'present',
@@ -82,7 +96,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge({'rings' => facts[:netrings][iface]['maximums']})
         })
       end
     end
@@ -130,6 +144,7 @@ end
         :kernel => 'Linux',
         :l23_os => 'ubuntu',
         :l3_fqdn_hostname => 'stupid_hostname',
+        :netrings => {}
       }
     }
 

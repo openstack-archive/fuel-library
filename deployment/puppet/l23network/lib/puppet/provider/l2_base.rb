@@ -647,8 +647,13 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     ethtool_k.split(/\n+/).select{|l| !l.match(/(^\s+|\[fixed\]|^Features)/)}.map{|x| x.split(/[\s\:]+/)}.each do |p|
       tmp[p[0]] = (p[1] == 'on')
     end
+
+    # get current hardware settings
+    rings = Facter.value(:netrings)[if_name]['current'] rescue empty_return
+
     return {
-      'offload' => tmp || empty_return
+      'offload' => tmp || empty_return,
+      'rings'   => rings
     }
   end
 
