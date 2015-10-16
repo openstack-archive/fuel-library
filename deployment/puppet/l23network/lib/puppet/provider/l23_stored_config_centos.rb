@@ -247,7 +247,12 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
          k,v =  feature.split(' ')
          tk = Hash[L23network.ethtool_name_commands_mapping[section_name].select { |key, value| value==k }]
          next if tk == ''
-         feature_params[tk.keys.join()] = ((v=='on'  ?  true  :  false))
+         # Check on/off otherwise get value as is
+         feature_params[tk.keys.join()] = case v
+           when 'on' then true
+           when 'off' then false
+           else v
+         end
       end
       rv[section_name] = feature_params
     end
@@ -445,7 +450,13 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
       next if section_key.nil?
       features.each do | feature, value |
         next if L23network.ethtool_name_commands_mapping[section_name][feature].nil?
-        rv << " #{L23network.ethtool_name_commands_mapping[section_name][feature]} #{(value==true  ?  'on'  :  'off')} "
+        # Get number as is otherwise check true/false
+        _value = case value
+          when true then 'on'
+          when false then 'off'
+          else value
+        end
+        rv << " #{L23network.ethtool_name_commands_mapping[section_name][feature]} #{_value} "
       end
       rv = "#{section_key} #{provider.name} #{rv};"
     end
