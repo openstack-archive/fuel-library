@@ -37,13 +37,7 @@ class cobbler::packages {
     }
   }
 
-  define cobbler_safe_package(){
-    if ! defined(Package[$name]){
-      @package { $name : }
-    }
-  }
-
-  cobbler_safe_package { $cobbler_additional_packages : }
+  package { $cobbler_additional_packages: }
 
   package { $django_package :
         ensure => present
