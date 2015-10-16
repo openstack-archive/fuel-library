@@ -279,13 +279,8 @@ get_master_timeout() {
     local rc
     local timeout=$(crm_attribute --quiet --name galera_master_timeout \
         --query -d $default -q | sed -e '/(null)/d')
-    rc=$?
 
-    if [ $rc -eq 0 ]; then
-        echo $timeout
-    else
-        echo $default
-    fi
+    [ -n "$timeout" ] && echo $timeout || echo $default
 }
 
 #Get gtid attribute for $1 node, "0" means no GTID set or wrong format for GTID
@@ -295,9 +290,8 @@ get_node_gtid() {
 
     GTID=$(crm_attribute --quiet --node $1 --lifetime reboot --query \
         --name gtid 2> /dev/null | sed -e '/(null)/d')
-    rc=$?
 
-    if [ $rc -ne 0 -o -z "$GTID" ]; then
+    if [ -z "$GTID" ]; then
         ocf_log info "No GTID for $1"
         echo 0
     else
@@ -322,7 +316,7 @@ check_if_reelection_needed() {
         RUNNING_INSTANCES=$(crm_resource \
             --quiet --locate --resource $RESOURCE_NAME | sed -e '/(null)/d' | wc -l 2> /dev/null)
         rc=$?
-        if [ $rc -eq $OCF_SUCCESS -a $RUNNING_INSTANCES -lt 1 ]; then
+        if [ $RUNNING_INSTANCES -lt 1 ]; then
             return 1
         fi
     fi
@@ -447,13 +441,7 @@ mysql_status() {
     fi
 
     pid=$(cat $OCF_RESKEY_pid);
-    if [ -d /proc -a -d /proc/1 ]; then
-        [ "u$pid" != "u" -a -d /proc/$pid ]
-    else
-        kill -s 0 $pid >/dev/null 2>&1
-    fi
-
-    if [ $? -eq 0 ]; then
+    if [ "u$pid" != "u" -a -d /proc/$pid ]; then
         return $OCF_SUCCESS;
     else
         ocf_log $1 "MySQL is not running"
@@ -490,31 +478,25 @@ mysql_monitor() {
 
     WSREP_CONNECTED=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
         -e "SHOW STATUS LIKE 'wsrep_connected'" | awk '{print $NF}')
-    rc=$?
 
-    if [ $rc -ne 0 -o "$WSREP_CONNECTED" != "ON" ]; then
+    if [ "$WSREP_CONNECTED" != "ON" ]; then
         return $OCF_ERR_GENERIC
     fi
 
     WSREP_LOCAL_STATE_COMMENT=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
         -e "SHOW STATUS LIKE 'wsrep_local_state_comment'" | awk '{print $NF}')
-    rc=$?
 
-    #Synced|Donor|Desync
-    if [ $rc -eq 0 ]; then
-        if [[ "$WSREP_LOCAL_STATE_COMMENT" =~ 'Synced'|'Donor'|'Desync' ]]; then
-            WSREP_READY=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
-                -e "SHOW STATUS LIKE 'wsrep_ready'" | awk '{print $NF}')
-            rc=$?
+    if [[ "$WSREP_LOCAL_STATE_COMMENT" =~ 'Synced'|'Donor'|'Desync' ]]; then
+        WSREP_READY=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
+            -e "SHOW STATUS LIKE 'wsrep_ready'" | awk '{print $NF}')
 
-            #Synced but wsrep not ready
-            if [ $rc -ne 0 -o "$WSREP_READY" != "ON" ]; then
-                return $OCF_ERR_GENERIC
-            fi
-        elif [[ "$WSREP_LOCAL_STATE_COMMENT" == 'Initialized' ]]; then
-            ocf_log err 'MySQL lost quorum or uninitialized'
+        if [ "$WSREP_READY" != "ON" ]; then
+            ocf_log err "MySQL synced but not ready"
             return $OCF_ERR_GENERIC
         fi
+    else
+        ocf_log err 'MySQL lost quorum or uninitialized'
+        return $OCF_ERR_GENERIC
     fi
 
     ocf_log debug "MySQL monitor succeeded";
