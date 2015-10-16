@@ -10,17 +10,20 @@ network_scheme:
   interfaces:
     eth0:
       ethtool:
-       offload:
-        generic-receive-offload: true
-        generic-segmentation-offload: true
-        rx-all: true
-        rx-checksumming: true
-        rx-fcs: true
-        rx-vlan-offload: true
-        scatter-gather: true
-        tcp-segmentation-offload: true
-        tx-checksumming: true
-        tx-nocache-copy: true
+        offload:
+          generic-receive-offload: true
+          generic-segmentation-offload: true
+          rx-all: true
+          rx-checksumming: true
+          rx-fcs: true
+          rx-vlan-offload: true
+          scatter-gather: true
+          tcp-segmentation-offload: true
+          tx-checksumming: true
+          tx-nocache-copy: true
+        rings:
+          RX: 2048
+          TX: 2048
     eth1:
       vendor_specific:
         disable_offloading: true
@@ -88,6 +91,10 @@ end
          'ensure'  => 'present',
          'bridge'  => 'br-eth0',
          'ethtool' =>  {
+              'rings' => {
+                'RX' => '2048',
+                'TX' => '2048'
+              },
               'offload' => {
                 'generic-receive-offload'      => true,
                 'generic-segmentation-offload' => true,
@@ -107,6 +114,10 @@ end
       should contain_l2_port('eth0').with({
         'bridge' => 'br-eth0',
         'ethtool' =>  {
+              'rings' => {
+                'RX' => '2048',
+                'TX' => '2048'
+              },
               'offload' => {
                 'generic-receive-offload'      => true,
                 'generic-segmentation-offload' => true,
@@ -128,10 +139,17 @@ end
     end
 
     it do
+      preset_rxtx = { 'RX' => '2048', 'TX' => '2048' }
+      L23network.stubs(:get_ethtool_rings).with('eth1').returns(preset_rxtx)
+
       should contain_l23_stored_config('eth1').with({
          'ensure'  => 'present',
          'bridge'  => 'br-eth1',
          'ethtool' =>  {
+              'rings' => {
+                'RX' => '2048',
+                'TX' => '2048'
+              },
               'offload' => {
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
@@ -140,9 +158,16 @@ end
     end
 
     it do
+      preset_rxtx = { 'RX' => '2048', 'TX' => '2048' }
+      L23network.stubs(:get_ethtool_rings).with('eth1').returns(preset_rxtx)
+
       should contain_l2_port('eth1').with({
         'bridge' => 'br-eth1',
         'ethtool' =>  {
+              'rings' => {
+                'RX' => '2048',
+                'TX' => '2048'
+              },
               'offload' => {
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
