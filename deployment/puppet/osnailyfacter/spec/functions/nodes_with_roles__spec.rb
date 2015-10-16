@@ -8,8 +8,7 @@ describe 'nodes_with_roles' do
   end
 
   it 'should return array of matching nodes' do
-    scope.function_nodes_with_roles(
-      [
+    nodes = [
         {
           'uid' => 1,
           'role' => 'role1',
@@ -22,9 +21,9 @@ describe 'nodes_with_roles' do
           'uid' => 3,
           'role' => 'role3',
         }
-      ],
-      ['role1', 'role2']
-    ).should == [
+      ]
+
+    scope.function_nodes_with_roles([ nodes, ['role1', 'role2'] ]).should == [
         {
           'uid' => 1,
           'role' => 'role1',
@@ -37,8 +36,7 @@ describe 'nodes_with_roles' do
   end
 
   it 'should eliminate duplicate uids' do
-    scope.function_nodes_with_roles(
-      [
+    nodes = [
         {
           'uid' => 1,
           'role' => 'role1',
@@ -51,9 +49,7 @@ describe 'nodes_with_roles' do
           'uid' => 2,
           'role' => 'role3',
         }
-      ],
-      ['role1', 'role2'],
-      'uid'
-    ).should == [1]
+      ]
+    scope.function_nodes_with_roles([ nodes, ['role1', 'role2'], 'uid' ]).should == [1]
   end
 end
