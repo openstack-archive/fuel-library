@@ -1,9 +1,6 @@
 notice('MODULAR: openstack-network/networks.pp')
 
-$use_neutron = hiera('use_neutron', false)
-
-if $use_neutron {
-
+if hiera('use_neutron', false) {
   $access_hash           = hiera('access', { })
   $keystone_admin_tenant = $access_hash['tenant']
   $neutron_config        = hiera_hash('neutron_config')
@@ -11,8 +8,7 @@ if $use_neutron {
   $private_net           = try_get_value($neutron_config, 'default_private_net', 'net04')
   $default_router        = try_get_value($neutron_config, 'default_router', 'router04')
   $segmentation_type     = try_get_value($neutron_config, 'L2/segmentation_type')
-
-  $nets = $neutron_config['predefined_networks']
+  $nets                  = $neutron_config['predefined_networks']
 
   if $segmentation_type == 'vlan' {
     $network_type = 'vlan'
@@ -25,16 +21,14 @@ if $use_neutron {
     $segmentation_id_range = split(try_get_value($neutron_config, 'L2/tunnel_id_ranges', ''), ':')
   }
 
-  $fallback_segment_id = $segmentation_id_range[0]
+  $fallback_segment_id         = $segmentation_id_range[0]
+  $floating_net_segment_id     = try_get_value($nets, "${$floating_net}/L2/segment_id", $fallback_segment_id)
+  $private_net_segment_id      = try_get_value($nets, "${private_net}/L2/segment_id", $fallback_segment_id)
 
-  $floating_net_segment_id  = try_get_value($nets, "${$floating_net}/L2/segment_id", $fallback_segment_id)
-  $private_net_segment_id   = try_get_value($nets, "${private_net}/L2/segment_id", $fallback_segment_id)
-
-  $floating_net_floating_range = split(try_get_value($nets, "${$floating_net}/L3/floating", ''), ':')
-  $private_net_floating_range     = split(try_get_value($nets, "${private_net}/L3/floating", ''), ':')
+  $floating_net_floating_range = try_get_value($nets, "${$floating_net}/L3/floating", '')
 
   if !empty($floating_net_floating_range) {
-    $floating_net_allocation_pool = "start=${floating_net_floating_range[0]},end=${$floating_net_floating_range[1]}"
+    $floating_net_allocation_pool = format_allocation_pools($floating_net_floating_range)
   }
 
   $floating_net_physnet = try_get_value($nets, "${$floating_net}/L2/physnet", false)
@@ -55,7 +49,7 @@ if $use_neutron {
     router_external           => $floating_net_router_external,
     tenant_name               => $tenant_name,
     shared                    => $floating_net_shared
-  } ->
+  }
 
   neutron_subnet { "${floating_net}__subnet" :
     ensure           => 'present',
@@ -75,7 +69,7 @@ if $use_neutron {
     router_external           => $private_net_router_external,
     tenant_name               => $tenant_name,
     shared                    => $private_net_shared
-  } ->
+  }
 
   neutron_subnet { "${private_net}__subnet" :
     ensure          => 'present',
@@ -101,7 +95,7 @@ if $use_neutron {
       router_external           => $baremetal_router_external,
       tenant_name               => $tenant_name,
       shared                    => $baremetal_shared
-    } ->
+    }
 
     neutron_subnet { 'baremetal__subnet' :
       ensure          => 'present',
@@ -111,7 +105,7 @@ if $use_neutron {
       gateway_ip      => try_get_value($nets, 'baremetal/L3/gateway'),
       enable_dhcp     => true,
       dns_nameservers => try_get_value($nets, 'baremetal/L3/nameservers'),
-    } ->
+    }
 
     neutron_router_interface { "${default_router}:baremetal__subnet":
       ensure => 'present',
