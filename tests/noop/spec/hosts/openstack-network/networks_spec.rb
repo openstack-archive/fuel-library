@@ -28,9 +28,6 @@ describe manifest do
             'enable_dhcp'     => 'true',
             'dns_nameservers' => nets['baremetal']['L3']['nameservers'],
           )
-          should contain_neutron_subnet('baremetal__subnet').that_comes_before(
-            'neutron_router_interface[router04:baremetal__subnet]'
-          )
         end
       end
     end
