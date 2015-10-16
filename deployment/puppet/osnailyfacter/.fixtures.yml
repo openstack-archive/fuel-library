@@ -1,5 +1,8 @@
 fixtures:
-  symlinks:
-    'l23network': '../../../../l23network'
-    'neutron': '../../../../neutron'
-    'osnailyfacter': "#{source_dir}"
+    repositories:
+        'neutron':
+            repo: 'http://review.fuel-infra.org/p/puppet-modules/puppet-neutron.git'
+            ref:  '7.0.0-mos-rc2'
+    symlinks:
+        'l23network': '../../../../l23network'
+        'osnailyfacter': "#{source_dir}"
