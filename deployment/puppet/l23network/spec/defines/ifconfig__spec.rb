@@ -34,6 +34,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
         'method'         => 'manual',
         'ipaddr'         => 'none',
         'ipaddr_aliases' => nil,
+        'ethtool'        => { },
       })
     end
 
