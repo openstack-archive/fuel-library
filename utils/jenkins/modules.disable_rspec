@@ -28,7 +28,6 @@ ntp
 openssl
 openstacklib
 operatingsystem
-osnailyfacter
 pacemaker_wrappers
 package
 postgresql

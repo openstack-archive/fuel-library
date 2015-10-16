@@ -98,6 +98,6 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   }
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-         cwd  => '/root',
+    cwd  => '/root',
   }
 }

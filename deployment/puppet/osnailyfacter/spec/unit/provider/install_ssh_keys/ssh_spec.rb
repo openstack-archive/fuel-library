@@ -34,11 +34,11 @@ describe Puppet::Type.type(:install_ssh_keys).provider(:ssh) do
     File.open(@id_rsa, 'w') { |file| file.write("private\n") }
     File.open(@id_rsa_pub, 'w') { |file| file.write("public\n") }
     File.open(@authorized_keys, 'w') { |file| file.write("key1\nkey2\npublic\n") }
-    provider.exists?().should be_true
+    expect(provider.exists?).to eq true
   end
   
   it 'checks that resource does not exist' do
-    provider.exists?().should be_false
+    expect(provider.exists?).to eq false
   end
 
   it 'creates new resource' do
@@ -46,9 +46,10 @@ describe Puppet::Type.type(:install_ssh_keys).provider(:ssh) do
     File.read(@id_rsa).should == "private\n"
     File.read(@id_rsa_pub).should == "public\n"
     authkeys = File.read(@authorized_keys)
-    authkeys.grep("public\n").any?.should be_true
-    authkeys.grep("key1\n").any?.should be_true
-    authkeys.grep("key2\n").any?.should be_true
+    keys = authkeys.split("\n")
+    expect(keys).to include 'public'
+    expect(keys).to include 'key1'
+    expect(keys).to include 'key2'
   end
   
   it 'removes resource' do
@@ -56,12 +57,13 @@ describe Puppet::Type.type(:install_ssh_keys).provider(:ssh) do
     File.open(@public_key_path, 'w') { |file| file.write("public\n") }
     File.open(@public_key_path, 'w') { |file| file.write("key1\nkey2\npublic\n") }
     provider.destroy
-    File.exists?(@id_rsa).should be_false
-    File.exists?(@id_rsa_pub).should be_false
+    expect(File.exists?(@id_rsa)).to eq false
+    expect(File.exists?(@id_rsa_pub)).to eq false
     authkeys = File.read(@authorized_keys)
-    authkeys.grep("public\n").any?.should be_false
-    authkeys.grep("key1\n").any?.should be_true
-    authkeys.grep("key2\n").any?.should be_true
+    keys = authkeys.split("\n")
+    expect(keys).not_to include 'public'
+    expect(keys).to include 'key1'
+    expect(keys).to include 'key2'
   end
 
 end

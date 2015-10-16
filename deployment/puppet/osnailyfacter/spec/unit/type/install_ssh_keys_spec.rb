@@ -22,7 +22,7 @@ describe 'Puppet::Type.newtype(:install_ssh_keys)' do
   it 'should be authorized_keys or authorized_keys2' do
     expect {
       resource[:authorized_keys] = 'authorized_keys4'
-    }.to raise_error(Puppet::Error, /it should be/)
+    }.to raise_error(Puppet::Error, /failed/)
   end
 
 end
