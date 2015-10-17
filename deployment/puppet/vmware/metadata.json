@@ -4,7 +4,7 @@
   "author": "Mirantis",
   "summary": "Puppet module for nova-compute (VCDriver) support for Fuel",
   "license": "Apache License, Version 2.0",
-  "source": "https://github.com/stackforge/fuel-library/",
+  "source": "https://github.com/openstack/fuel-library/",
   "issues_url": null,
   "project_page": null,
   "operatingsystem_support": [
