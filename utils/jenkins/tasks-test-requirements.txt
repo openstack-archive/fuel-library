@@ -1,1 +1,1 @@
--e git://git.openstack.org/stackforge/fuel-tasklib#egg=fuel-tasklib
+-e git://git.openstack.org/stackforge/fuel-tasklib@9e41ce127f51361274a8d8e9af63da6f832ced71#egg=fuel-tasklib
