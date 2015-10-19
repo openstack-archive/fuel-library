@@ -40,7 +40,7 @@ class cobbler::distro::centos63-x86_64(
   # CentOS-6.3-x86_64-minimal
   $iso_name = extension_basename($http_iso, "true")
   # CentOS-6.3-x86_64-minimal.iso
-  $iso_basename = extension_basename($http_iso) 
+  $iso_basename = extension_basename($http_iso)
   # /var/www/cobbler/ks_mirror/CentOS-6.3-x86_64-minimal.iso
   $iso = "${ks_mirror}/${iso_basename}"
   # /var/www/cobbler/ks_mirror/CentOS-6.3-x86_64-minimal
