@@ -1,6 +1,6 @@
-class puppet::pull (
-  $script    = '/usr/local/bin/puppet-pull',
-  $template  = 'puppet/puppet-pull.sh.erb',
+class osnailyfacter::puppet_pull (
+  $script           = '/usr/local/bin/puppet-pull',
+  $template         = "$module_name/puppet-pull.sh.erb",
   $modules_source   = 'rsync://10.20.0.2/puppet/modules',
   $manifests_source = 'rsync://10.20.0.2/puppet/manifests',
 ) {

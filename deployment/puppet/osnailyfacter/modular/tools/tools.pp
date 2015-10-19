@@ -26,7 +26,7 @@ package { 'cloud-init':
 }
 
 $puppet = hiera('puppet')
-class { 'puppet::pull' :
+class { 'osnailyfacter::puppet_pull':
   modules_source   => $puppet['modules'],
   manifests_source => $puppet['manifests'],
 }
