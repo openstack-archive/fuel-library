@@ -2,7 +2,6 @@ apache
 anacron
 ceilometer
 cinder
-cluster
 common
 pacemaker
 docker
