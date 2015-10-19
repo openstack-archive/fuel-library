@@ -20,11 +20,10 @@ BuildRequires: ruby21-rubygem-librarian-puppet-simple
 %else
 BuildRequires: rubygem-librarian-puppet-simple
 %endif
-Requires: fuel-misc python-fuelclient
+Requires: fuel-misc, python-fuelclient, fuel-openstack-metadata = %{version}
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
-%define openstack_version 2016.1.0-9.0
 %define predefined_upstream_modules  %{_sourcedir}/upstream_modules.tar.gz
 
 %description
@@ -53,8 +52,8 @@ grep -qv "_VERSION_" %{dockerctl_source}/dockerctl_config
 grep -qv "_VERSION_" deployment/puppet/docker/templates/dockerctl_config.erb
 
 %install
-mkdir -p %{buildroot}/etc/puppet/%{openstack_version}/modules/
-mkdir -p %{buildroot}/etc/puppet/%{openstack_version}/manifests/
+mkdir -p %{buildroot}/etc/puppet/%{name}-%{version}/modules/
+mkdir -p %{buildroot}/etc/puppet/%{name}-%{version}/manifests/
 mkdir -p %{buildroot}/etc/fuel/
 mkdir -p %{buildroot}/etc/monit.d/
 mkdir -p %{buildroot}/etc/profile.d/
@@ -66,10 +65,10 @@ mkdir -p %{buildroot}/usr/lib/
 mkdir -p %{buildroot}/usr/share/dockerctl
 mkdir -p %{buildroot}/sbin/
 mkdir -p %{buildroot}/sbin/
-cp -fr %{_builddir}/%{name}-%{version}/deployment/puppet/* %{buildroot}/etc/puppet/%{openstack_version}/modules/
+cp -fr %{_builddir}/%{name}-%{version}/deployment/puppet/* %{buildroot}/etc/puppet/%{name}-%{version}/modules/
 #LP1515988
-find %{buildroot}/etc/puppet/%{openstack_version}/modules -maxdepth 2 -type d \( -name .git -or -name spec \) -exec rm -rf '{}' +
-cp -f %{_builddir}/%{name}-%{version}/deployment/Puppetfile %{buildroot}/etc/puppet/%{openstack_version}/modules/
+find %{buildroot}/etc/puppet/%{name}-%{version}/modules -maxdepth 2 -type d \( -name .git -or -name spec \) -exec rm -rf '{}' +
+cp -f %{_builddir}/%{name}-%{version}/deployment/Puppetfile %{buildroot}/etc/puppet/%{name}-%{version}/modules/
 #FUEL DOCKERCTL UTILITY
 install -m 0644 %{dockerctl_source}/dockerctl-alias.sh %{buildroot}/etc/profile.d/dockerctl.sh
 install -m 0755 %{dockerctl_source}/dockerctl %{buildroot}/usr/bin
@@ -148,6 +147,14 @@ install -m 0644 %{files_source}/fuel-umm/umm-tr.conf      %{buildroot}/etc/init/
 
 
 %post -p /bin/bash
+#Set openstack_version from /etc/fuel_openstack_version file
+openstack_version=$(cat %{_sysconfdir}/fuel_openstack_version)
+if [ -d /etc/puppet/${openstack_version} ]
+then
+   rm -r /etc/puppet/${openstack_version}
+fi
+mkdir -p /etc/puppet/${openstack_version}
+mkdir -p /etc/puppet/2015.1.0-8.0
 #Update puppet manifests symlinks to the latest version
 for i in modules manifests
 do
@@ -158,19 +165,38 @@ do
   then
      mv /etc/puppet/${i} /etc/puppet/${i}.old
   fi
-  ln -s /etc/puppet/%{openstack_version}/${i} /etc/puppet/${i}
+  #Copy manifests and modules to path where nailgun expects to find them
+  cp -pR /etc/puppet/%{name}-%{version}/${i} /etc/puppet/${openstack_version}/
+  # FIXME - this is temporary workaround to pass CI testing without changes to
+  # nailgun's openstack.yaml. Will be removed once the change to nailgun is
+  # merged
+  cp -pR /etc/puppet/%{name}-%{version}/${i} /etc/puppet/2015.1.0-8.0/
+  #Create symbolic link required for local puppet appply
+  ln -s /etc/puppet/%{name}-%{version}/${i} /etc/puppet/${i}
 done
 
 if [ "$1" = 2 ]; then
   #Try to sync deployment tasks or notify user on upgrade
-  taskdir=/etc/puppet/%{openstack_version}/
+  taskdir=/etc/puppet/${openstack_version}/
   fuel rel --sync-deployment-tasks --dir "$taskdir" || \
     echo "Unable to sync tasks. Run `fuel rel --sync-deployment-tasks --dir $taskdir` to finish install." 1>&2
 fi
 
+%posttrans -p /bin/bash
+openstack_version=$(cat %{_sysconfdir}/fuel_openstack_version)
+if [ -d /etc/puppet/${openstack_version} ]
+then
+   rm -r /etc/puppet/${openstack_version}
+fi
+mkdir -p /etc/puppet/${openstack_version}
+for i in modules manifests
+do
+  cp -pR /etc/puppet/%{name}-%{version}/${i} /etc/puppet/${openstack_version}
+done
+
 %files
-/etc/puppet/%{openstack_version}/modules/
-/etc/puppet/%{openstack_version}/manifests/
+/etc/puppet/%{name}-%{version}/modules/
+/etc/puppet/%{name}-%{version}/manifests/
 
 %package -n fuel-dockerctl
 Summary: Fuel project utilities for Docker container management tool
