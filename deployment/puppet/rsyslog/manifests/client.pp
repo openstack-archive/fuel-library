@@ -7,7 +7,7 @@ class rsyslog::client (
   $remote_type    = 'tcp',
   $log_local      = false,
   $log_auth_local = false,
-  $custom_config  = undef,
+  $custom_config  = '',
   $server         = 'log',
   $escapenewline  = false,
   ) inherits rsyslog {
