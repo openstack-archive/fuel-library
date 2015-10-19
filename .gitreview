@@ -1,4 +1,4 @@
 [gerrit]
 host=review.openstack.org
 port=29418
-project=openstack/fuel-library.git
+project=stackforge/fuel-library.git
