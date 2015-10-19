@@ -1,9 +1,0 @@
-#!/bin/sh
-local_modules="/etc/puppet/modules"
-local_manifests="/etc/puppet/manifests"
-remote_modules="<%= @modules_source %>"
-remote_manifests="<%= @manifests_source %>"
-main_manifest="/etc/puppet/manifests/site.pp"
-
-rsync -rvc --delete "${remote_modules}/" "${local_modules}/"
-rsync -rvc --delete "${remote_manifests}/" "${local_manifests}/"
