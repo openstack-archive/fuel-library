@@ -31,7 +31,7 @@ describe manifest do
     it 'should declare tools classes' do
       should contain_class('osnailyfacter::atop')
       should contain_class('osnailyfacter::ssh')
-      should contain_class('puppet::pull').with(
+      should contain_class('osnailyfacter::puppet_pull').with(
         'modules_source'   => puppet['modules'],
         'manifests_source' => puppet['manifests']
       )
