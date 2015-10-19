@@ -3,7 +3,6 @@ anacron
 ceilometer
 cinder
 cluster
-cobbler
 common
 pacemaker
 docker
