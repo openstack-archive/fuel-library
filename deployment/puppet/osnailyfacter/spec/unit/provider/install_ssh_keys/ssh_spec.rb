@@ -8,14 +8,13 @@ describe Puppet::Type.type(:install_ssh_keys).provider(:ssh) do
     @name             = 'test'
     @private_key_path = '/private_key_path' 
     @public_key_path  = '/public_key_path'
-    @id_rsa           = '/root/.ssh/id_rsa'
-    @id_rsa_pub       = '/root/.ssh/id_rsa.pub'
-    @authorized_keys  = '/root/.ssh/authorized_keys'
+    @id_rsa           = "#{Etc.getpwuid(0).dir}/.ssh/id_rsa"
+    @id_rsa_pub       = "#{Etc.getpwuid(0).dir}/.ssh/id_rsa.pub"
+    @authorized_keys  = "#{Etc.getpwuid(0).dir}/.ssh/authorized_keys"
     @user             = 'root'
+    FileUtils.mkdir_p("#{Etc.getpwuid(0).dir}/.ssh")
     File.open(@private_key_path, 'w') { |file| file.write("private\n") }
     File.open(@public_key_path, 'w') { |file| file.write("public\n") }
-    FileUtils.mkdir('/root')
-    FileUtils.mkdir('/root/.ssh')
     File.open(@authorized_keys, 'w') { |file| file.write("key1\nkey2\n") }
   end
 
