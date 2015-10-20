@@ -25,7 +25,7 @@ describe 'haproxy::balancermember' do
     it { should contain_concat__fragment('croy_balancermember_tyler').with(
       'order'   => '20-croy-01-tyler',
       'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "  server dero 1.1.1.1:18140 check\n"
+      'content' => "  server dero 1.1.1.1:18140  check\n"
     ) }
   end
 
@@ -43,7 +43,7 @@ describe 'haproxy::balancermember' do
       'order'   => '20-croy-01-tyler',
       'target'  => '/etc/haproxy/haproxy.cfg',
       'ensure'  => 'absent',
-      'content' => "  server dero 1.1.1.1:18140 \n"
+      'content' => "  server dero 1.1.1.1:18140  \n"
     ) }
   end
 
@@ -60,7 +60,7 @@ describe 'haproxy::balancermember' do
     it { should contain_concat__fragment('croy_balancermember_tyler').with(
       'order'   => '20-croy-01-tyler',
       'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "  server dero 1.1.1.1:18140 check close\n"
+      'content' => "  server dero 1.1.1.1:18140  check close\n"
     ) }
   end
 
@@ -78,7 +78,7 @@ describe 'haproxy::balancermember' do
     it { should contain_concat__fragment('croy_balancermember_tyler').with(
       'order'   => '20-croy-01-tyler',
       'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "  server dero 1.1.1.1:18140 cookie dero check close\n"
+      'content' => "  server dero 1.1.1.1:18140 cookie dero  check close\n"
     ) }
   end
   context 'with multiple servers' do
@@ -96,7 +96,7 @@ describe 'haproxy::balancermember' do
     it { should contain_concat__fragment('croy_balancermember_tyler').with(
       'order'   => '20-croy-01-tyler',
       'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "  server server01 192.168.56.200:18140 check\n  server server02 192.168.56.201:18140 check\n"
+      'content' => "  server server01 192.168.56.200:18140  check\n  server server02 192.168.56.201:18140  check\n"
     ) }
   end
   context 'with multiple servers and multiple ports' do
@@ -114,7 +114,7 @@ describe 'haproxy::balancermember' do
     it { should contain_concat__fragment('croy_balancermember_tyler').with(
       'order'   => '20-croy-01-tyler',
       'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "  server server01 192.168.56.200:18140 check\n  server server01 192.168.56.200:18150 check\n  server server02 192.168.56.201:18140 check\n  server server02 192.168.56.201:18150 check\n"
+      'content' => "  server server01 192.168.56.200:18140  check\n  server server01 192.168.56.200:18150  check\n  server server02 192.168.56.201:18140  check\n  server server02 192.168.56.201:18150  check\n"
     ) }
   end
   context 'with multiple servers and no port' do
@@ -131,7 +131,7 @@ describe 'haproxy::balancermember' do
     it { should contain_concat__fragment('croy_balancermember_tyler').with(
       'order'   => '20-croy-01-tyler',
       'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "  server server01 192.168.56.200 check\n  server server02 192.168.56.201 check\n"
+      'content' => "  server server01 192.168.56.200  check\n  server server02 192.168.56.201  check\n"
     ) }
   end
 end

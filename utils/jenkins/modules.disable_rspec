@@ -10,7 +10,6 @@ docker
 erlang
 firewall
 glance
-haproxy
 heat
 heat_ha
 horizon
