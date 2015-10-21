@@ -225,13 +225,6 @@ class openstack::firewall (
     action => 'accept',
   }
 
-  firewall {'120 vnc ports':
-    port => '5900-6100',
-    proto => 'tcp',
-    source => $nova_vnc_ip_range,
-    action => 'accept',
-  }
-
   firewall {'121 ceilometer':
     port => $ceilometer_port,
     proto => 'tcp',
@@ -281,4 +274,7 @@ class openstack::firewall (
     chain  => 'INPUT',
     action => 'drop',
   }
+
+  openstack::firewall::vnc { $nova_vnc_ip_range: }
+
 }
