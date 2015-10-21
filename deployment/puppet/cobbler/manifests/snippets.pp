@@ -55,6 +55,7 @@ class cobbler::snippets {
   cobbler_snippet {"cinder_create_lvm_group__ubuntu":}
   cobbler_snippet {"centos_authorized_keys": }
   cobbler_snippet {"centos_blacklist_i2c_piix4":}
+  cobbler_snippet {"centos_mlx4_core":}
   cobbler_snippet {"centos_static_net":}
   cobbler_snippet {"ofed_install_with_sriov":}
   cobbler_snippet {"ubuntu_authorized_keys":}
