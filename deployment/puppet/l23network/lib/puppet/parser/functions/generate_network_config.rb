@@ -296,6 +296,29 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       config_hash[:endpoints] = {}
     end
 
+    # pre-check and add bridge ports after bridges and then add ipconfig mark if endpoint exist
+    brs_and_ports = []
+    config_hash[:transformations].each do |t|
+      brs_and_ports << t
+      if t[:action].match(/add-br/)
+         br_name = t[:name]
+         config_hash[:transformations].each do |tt|
+           if (tt[:action].match(/add-(port|bond)/) && tt[:bridge] == br_name)
+             br_port_name = tt[:name]
+             brs_and_ports << tt
+           end
+         end
+        if endpoints.has_key? br_name.to_sym()
+          brs_and_ports << {
+            :action => 'add-ipconfig',
+            :name   => br_name
+          }
+        end
+      end
+    end
+    config_hash[:transformations] = brs_and_ports | config_hash[:transformations]
+
+
     # pre-check and auto-add main interface for sub-interface
     # to transformation if required
     debug("generate_network_config(): precheck transformations")
@@ -344,7 +367,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         action = t[:action].to_sym()
       end
 
-      if action != :noop
+      if (action != :noop and !action.match(/ipconfig/))
 
         #debug("TXX: '#{t[:name]}' =>  '#{t.to_yaml.gsub('!ruby/sym ','')}'.")
         trans = L23network.sanitize_transformation(t, default_provider)
@@ -410,8 +433,8 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       end
 
       # try to create ifconfig for newly-created resource
-      if endpoints.has_key? trans[:name].to_sym()
-        endpoint_name = trans[:name].to_sym()
+      if action.match(/ipconfig/)
+        endpoint_name = t[:name].to_sym()
         ifconfig_created << endpoint_name
         previous = create_l3_ifconfig_resource(endpoints, endpoint_name, previous)
         resources_created <<  "endpoint(#{endpoint_name})"
