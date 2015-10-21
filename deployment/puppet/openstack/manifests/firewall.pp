@@ -1,3 +1,12 @@
+define openstack::firewall::vnc ($extra_net = $title) {
+  firewall {"120 vnc ports $title":
+    port => '5900-6100',
+    proto => 'tcp',
+    source => $extra_net,
+    action => 'accept',
+  }
+}
+
 class openstack::firewall (
   $ssh_port                     = 22,
   $http_port                    = 80,
@@ -225,12 +234,12 @@ class openstack::firewall (
     action => 'accept',
   }
 
-  firewall {'120 vnc ports':
-    port => '5900-6100',
-    proto => 'tcp',
-    source => $nova_vnc_ip_range,
-    action => 'accept',
-  }
+#  firewall {'120 vnc ports':
+#    port => '5900-6100',
+#    proto => 'tcp',
+#    source => $nova_vnc_ip_range,
+#    action => 'accept',
+#  }
 
   firewall {'121 ceilometer':
     port => $ceilometer_port,
@@ -280,5 +289,8 @@ class openstack::firewall (
     proto  => 'all',
     chain  => 'INPUT',
     action => 'drop',
+
+  openstack::firewall::vnc { $nova_vnc_ip_range: }
+
   }
 }
