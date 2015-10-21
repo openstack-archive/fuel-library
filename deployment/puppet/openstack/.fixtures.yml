@@ -1,6 +1,10 @@
 fixtures:
   repositories:
+    'apache':
+      repo: 'https://review.fuel-infra.org/puppet-modules/puppetlabs-apache.git'
+      branch: '1.6.0'
     'apt': 'https://github.com/puppetlabs/puppetlabs-apt.git'
+    'concat': 'https://github.com/ripienaar/puppet-concat.git'
     'stdlib': 'https://github.com/puppetlabs/puppetlabs-stdlib.git'
     'sysctl': 'https://github.com/duritong/puppet-sysctl.git'
     'inifile':  'https://github.com/puppetlabs/puppetlabs-inifile.git'
@@ -8,6 +12,9 @@ fixtures:
     'openstacklib':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-openstacklib.git'
       branch: '7.0.0-mos-rc2'
+    'horizon':
+      repo: 'https://review.fuel-infra.org/puppet-modules/puppet-horizon.git'
+      branch: 'mos-8.0'
     'keystone':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-keystone.git'
       branch: '7.0.0-mos-rc2'

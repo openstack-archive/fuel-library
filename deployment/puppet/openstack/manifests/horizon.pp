@@ -44,6 +44,10 @@ class openstack::horizon (
   $cache_options           = undef,
   $log_handler             = 'file',
   $custom_theme_path       = undef,
+  $apache_options          = '-Indexes',
+  $headers                 = ['set X-XSS-Protection "1; mode=block"',
+                              'set X-Content-Type-Options nosniff',
+                              'always append X-Frame-Options SAMEORIGIN'],
 ) {
 
   if $debug { #syslog and nondebug case
@@ -108,10 +112,12 @@ class openstack::horizon (
     wsgi_threads   => $wsgi_threads,
     listen_ssl     => $use_ssl,
     extra_params   => {
-      default_vhost   => true,
       add_listen      => false,
-      setenvif        => 'X-Forwarded-Proto https HTTPS=1',
       custom_fragment => template('openstack/horizon/wsgi_vhost_custom.erb'),
+      default_vhost   => true,
+      headers         => $headers,
+      options         => $apache_options,
+      setenvif        => 'X-Forwarded-Proto https HTTPS=1',
     },
   } ~>
   Service[$::apache::params::service_name]
