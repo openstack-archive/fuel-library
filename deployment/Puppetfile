@@ -180,3 +180,8 @@ mod 'tftp',
 mod 'ironic',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-ironic.git',
     :ref => '6.0.0'
+
+# Pull in puppet-mcollective
+mod 'mcollective',
+    :git => 'https://github.com/puppet-community/puppet-mcollective.git',
+    :ref => 'v2.1.1'
