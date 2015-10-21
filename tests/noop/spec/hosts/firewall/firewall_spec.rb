@@ -2,20 +2,27 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'firewall/firewall.pp'
 
-network_scheme = Noop.hiera('network_scheme', {})
 keystone_network = '0.0.0.0/0'
 
 describe manifest do
   shared_examples 'catalog' do
 
-    let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
+    let(:network_scheme) do
+      Noop.hiera_hash 'network_scheme', {}
+    end
 
-    before(:each) do
-      scope.stubs(:lookupvar).with('l3_fqdn_hostname').returns('host.foo.com')
-      Puppet::Parser::Functions.autoloader.load 'get_network_role_property'.to_sym
-      Puppet::Parser::Functions.autoloader.load 'prepare_network_config'.to_sym
-      scope.send 'function_prepare_network_config'.to_sym, [network_scheme]
-      keystone_network = scope.send "function_get_network_role_property".to_sym, ['keystone/api', 'network']
+    let(:prepare) do
+      Noop.puppet_function 'prepare_network_config', network_scheme
+    end
+
+    let(:keystone_network) do
+      prepare
+      Noop.puppet_function 'get_network_role_property', 'keystone/api', 'network'
+    end
+
+    let(:nova_vnc_ip_range) do
+      prepare
+      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'nova/api'
     end
 
     it 'should properly restrict rabbitmq admin traffic' do
@@ -32,6 +39,7 @@ describe manifest do
         'action'  => 'drop'
       )
     end
+
     it 'should accept connections to keystone API using network with keystone/api role' do
       should contain_firewall('102 keystone').with(
         'port'       => [ 5000, 35357 ],
@@ -39,6 +47,17 @@ describe manifest do
         'action'      => 'accept',
         'destination' => keystone_network,
       )
+    end
+
+    it 'should accept connections to vnc' do
+      nova_vnc_ip_range.each do |source|
+        should contain_firewall("120 vnc ports for #{source}").with(
+          'port'   => '5900-6100',
+          'proto'  => 'tcp',
+          'source' => source,
+          'action' => 'accept',
+        )
+      end
     end
 
     it 'should create rules for heat' do
