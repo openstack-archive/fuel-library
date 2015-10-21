@@ -14,6 +14,7 @@ describe manifest do
       scope.stubs(:lookupvar).with('l3_fqdn_hostname').returns('host.foo.com')
       Puppet::Parser::Functions.autoloader.load 'get_network_role_property'.to_sym
       Puppet::Parser::Functions.autoloader.load 'prepare_network_config'.to_sym
+
       scope.send 'function_prepare_network_config'.to_sym, [network_scheme]
       keystone_network = scope.send "function_get_network_role_property".to_sym, ['keystone/api', 'network']
     end
