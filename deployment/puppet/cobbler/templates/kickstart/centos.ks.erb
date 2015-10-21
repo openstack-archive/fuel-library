@@ -158,6 +158,9 @@ yum-plugin-priorities
 # LISTS ofed prereq PACKAGES IF mlnx_plugin_mode VARIABLE IS SET TO enabled
 $SNIPPET('centos_ofed_prereq_pkgs_if_enabled')
 
+# COBBLER EMBEDDED SNIPPET: 'centos_mlx4_core.erb'
+$SNIPPET('centos_mlx4_core')
+
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')
