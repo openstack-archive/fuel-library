@@ -45,7 +45,7 @@ class nailgun::rabbitmq (
   }
 
   file { "/etc/rabbitmq/enabled_plugins":
-    content => template("mcollective/enabled_plugins.erb"),
+    content => '[amqp_client,rabbitmq_stomp,rabbitmq_management].',
     owner   => root,
     group   => root,
     mode    => 0644,
