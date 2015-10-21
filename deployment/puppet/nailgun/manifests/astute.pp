@@ -3,7 +3,6 @@ class nailgun::astute(
   $rabbitmq_host = 'localhost',
   $rabbitmq_astute_user = 'naily',
   $rabbitmq_astute_password = 'naily',
-  $version,
   $bootstrap_flavor = 'centos',
   $gem_source = "http://rubygems.org/",
   ){
@@ -13,18 +12,6 @@ class nailgun::astute(
     /(?i)ubuntu/                 => 'ubuntu_bootstrap',
     default                      => 'bootstrap',
   }
-
-  # exec { 'install-astute-gem':
-  #   command => "gem install astute --source $gem_source --version $version --no-ri --no-rdoc",
-  #   require => Exec['configure-rubygems'],
-  #   logoutput => true,
-  # }
-
-  # exec { 'configure-rubygems':
-  #   command => 'gem sources -r http://rubygems.org/',
-  #   require => Package['ruby'],
-  #   logoutput => true,
-  # }
 
   package { 'ruby21-rubygem-astute': }
 
