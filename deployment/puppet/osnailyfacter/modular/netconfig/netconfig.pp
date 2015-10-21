@@ -88,6 +88,8 @@ $default_gateway = hiera('default_gateway')
 ping_host { $default_gateway :
   ensure => 'up',
 }
+L2_port<||> -> Ping_host[$default_gateway]
+L2_bond<||> -> Ping_host[$default_gateway]
 L3_ifconfig<||> -> Ping_host[$default_gateway]
 L3_route<||> -> Ping_host[$default_gateway]
 
