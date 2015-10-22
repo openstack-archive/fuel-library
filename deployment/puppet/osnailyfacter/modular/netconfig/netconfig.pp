@@ -3,7 +3,10 @@ notice('MODULAR: netconfig.pp')
 $network_scheme = hiera('network_scheme')
 
 class { 'l23network' :
-  use_ovs => hiera('use_neutron', false)
+  use_ovs                      => hiera('use_neutron', false)
+  use_ovs_dkms_datapath_module => $::l23_os ? {
+                          /(?i:redhat7|centos7)/ => false,
+                          default                => true },
 }
 prepare_network_config($network_scheme)
 $sdn = generate_network_config()

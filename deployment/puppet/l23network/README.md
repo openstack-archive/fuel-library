@@ -29,16 +29,17 @@ Include L23network module and initialize it. It is recommended to do it on the e
 Initialization class 'l23network' has following incoming parameters and its default values:
 
     class { 'l23network':
-      use_ovs                   => false,
-      use_lnx                   => true,
-      install_ovs               => $use_ovs,
-      install_brtool            => $use_lnx,
-      install_ethtool           => $use_lnx,
-      install_bondtool          => $use_lnx,
-      install_vlantool          => $use_lnx,
-      ovs_modname               => undef,
-      ovs_datapath_package_name => undef,
-      ovs_common_package_name   => undef,
+      use_ovs                      => false,
+      use_lnx                      => true,
+      install_ovs                  => $use_ovs,
+      install_brtool               => $use_lnx,
+      install_ethtool              => $use_lnx,
+      install_bondtool             => $use_lnx,
+      install_vlantool             => $use_lnx,
+      ovs_module_name              => undef,
+      use_ovs_dkms_datapath_module => undef,
+      ovs_datapath_package_name    => undef,
+      ovs_common_package_name      => undef,
     }
 
 For highly customized configurations you can redefine each of ones. For example, if you plan to use open vSwitch you should enable it:
