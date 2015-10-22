@@ -47,6 +47,7 @@ class openstack::firewall (
   $mongodb_port                 = 27017,
   $vxlan_udp_port               = 4789,
   $keystone_network             = '0.0.0.0/0',
+  $management_network_range     = hiera('management_network_range')
 ) {
 
 #  file {"iptables":
@@ -123,10 +124,18 @@ class openstack::firewall (
   }
 
   firewall {'105 nova ':
-    port   => [$nova_api_compute_port,$nova_api_metadata_port,$nova_api_volume_port, $nova_vncproxy_port],
+    port   => [$nova_api_compute_port,$nova_api_volume_port, $nova_vncproxy_port],
     proto  => 'tcp',
     action => 'accept',
   }
+
+  firewall {'105 nova private':
+    port   => $nova_api_metadata_port,
+    proto  => 'tcp',
+    source => $management_network_range,
+    action => 'accept',
+  }
+
 
   firewall {'106 rabbitmq ':
     port   => [$erlang_epmd_port, $erlang_rabbitmq_port, $erlang_rabbitmq_backend_port, $erlang_inet_dist_port],
