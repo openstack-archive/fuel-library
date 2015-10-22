@@ -22,3 +22,9 @@ Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, python-gobject-2, python-gobject, python-dbus, python-daemon
 Description: Fuel RabbitMQ fencing utilitites
  .
+
+Package: umm
+Architecture: all
+Depends: ${misc:Depends}, ${shlibs:Depends}, upstart
+Description: Misc Fuel library scripts
+ .
