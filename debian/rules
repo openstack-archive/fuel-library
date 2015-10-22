@@ -13,4 +13,7 @@ override_dh_install:
 	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/heat_engine_ubuntu debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/heat-engine
 	mv debian/fuel-misc/usr/bin/logrotate debian/fuel-misc/usr/bin/fuel-logrotate
 	rm debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/heat_engine_centos
+	mv debian/fuel-umm/usr/lib/umm/umm_svc.u1404 debian/fuel-umm/usr/lib/umm/umm_svc.local
+
+
 
