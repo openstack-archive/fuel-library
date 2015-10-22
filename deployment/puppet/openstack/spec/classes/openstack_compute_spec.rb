@@ -101,7 +101,7 @@ describe 'openstack::compute' do
           :ensure_package    => 'present',
           :database_backend  => p[:database_backend],
           :rpc_backend       => p[:rpc_backend],
-          :rabbit_hosts      => params[:amqp_hosts],
+          :rabbit_hosts      => [ params[:amqp_hosts] ],
           :rabbit_userid     => p[:amqp_user],
           :rabbit_password   => p[:amqp_password],
           :kombu_reconnect_delay => '5.0',
