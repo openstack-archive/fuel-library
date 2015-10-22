@@ -1,3 +1,6 @@
 notice('MODULAR: umm.pp')
 
-class {'umm': }
+package { 'umm' :
+    ensure => 'installed',
+}
+
