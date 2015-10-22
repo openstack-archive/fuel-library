@@ -1,0 +1,12 @@
+files/umm/issue.mm /etc/
+files/umm/umm.conf /etc/
+files/umm/umm.sh /etc/profile.d/
+files/umm/umm /usr/bin/
+files/umm/umm_svc /usr/lib/umm/
+files/umm/umm_svc.u1404 /usr/lib/umm/umm_svc.local
+files/umm/umm_vars /usr/lib/umm/
+files/umm/umm-install.u1404 /usr/lib/umm/
+files/umm/umm-br.conf /etc/init/
+files/umm/umm-console.conf /etc/init/
+files/umm/umm-run.conf /etc/init/
+files/umm/umm-tr.conf /etc/init/
