@@ -1,0 +1,67 @@
+---
+description:
+  For Fuel team structure and contribution policy, see [1].
+
+  This is repository level MAINTAINERS file. All contributions to this
+  repository must be approved by one or more Core Reviewers [2].
+  If you are contributing to files (or create new directories) in
+  root folder of this repository, please contact Core Reviewers for
+  review and merge requests.
+
+  If you are contributing to subfolders of this repository, please
+  check 'maintainers' section of this file in order to find maintainers
+  for those specific modules.
+
+  It is mandatory to get +1 from one or more maintainers before asking
+  Core Reviewers for review/merge in order to decrease a load on Core Reviewers [3].
+  Exceptions are when maintainers are actually cores, or when maintainers
+  are not available for some reason (e.g. on vacation).
+
+  [1] http://specs.fuel-infra.org/fuel-specs-master/policy/team-structure.html
+  [2] https://review.openstack.org/#/admin/groups/659,members
+  [3] http://lists.openstack.org/pipermail/openstack-dev/2015-August/072406.html
+
+  Please keep this file in YAML format in order to allow helper scripts
+  to read this as a configuration data.
+
+maintainers:
+
+- ./:
+
+    - name:   Sergey Vasilenko
+      email:  svasilenko@mirantis.com
+      IRC:    xenolog
+
+    - name:   Matthew Mosesohn
+      email:  mmosesohn@mirantis.com
+      IRC:    mattymo
+
+    - name:   Dmitry Ilyin
+      email:  dilyin@mirantis.com
+      IRC:    dilyin
+
+    - name:   Stanislav Makar
+      email:  smakar@mirantis.com
+      IRC:    smakar
+
+    - name:   Stanislaw Bogatkin
+      email:  sbogatkin@mirantis.com
+      IRC:    sbog
+
+- files/fuel-docker-utils:
+
+    - name:   Matthew Mosesohn
+      email:  mmosesohn@mirantis.com
+      IRC:    mattymo
+
+- files/fuel-migrate:
+
+    - name:   Peter Zhurba
+      email:  pzhurba@mirantis.com
+      IRC:    pzhurba
+
+- files/fuel-ha-utils:
+
+    - name:   Sergey Vasilenko
+      email:  svasilenko@mirantis.com
+      IRC:    xenolog
