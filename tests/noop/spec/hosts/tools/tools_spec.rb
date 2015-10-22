@@ -25,9 +25,7 @@ describe manifest do
         should_not contain_exec('host-ssh-keygen')
       end
     end
-  end
 
-  shared_examples 'catalog' do
     it 'should declare tools classes' do
       should contain_class('osnailyfacter::atop')
       should contain_class('osnailyfacter::ssh')
