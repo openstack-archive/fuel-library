@@ -87,7 +87,7 @@ describe 'haproxy::frontend' do
     end
 
     it 'should raise error' do
-      expect { subject }.to raise_error Puppet::Error, /outside of range/
+      expect { catalogue }.to raise_error Puppet::Error, /outside of range/
     end
   end
   # C9946
@@ -101,7 +101,7 @@ describe 'haproxy::frontend' do
     end
 
     it 'should raise error' do
-      expect { subject }.to raise_error Puppet::Error, /outside of range/
+      expect { catalogue }.to raise_error Puppet::Error, /outside of range/
     end
   end
   # C9973
@@ -115,7 +115,7 @@ describe 'haproxy::frontend' do
     end
 
     it 'should raise error' do
-      expect { subject }.to raise_error Puppet::Error, /Invalid IP address/
+      expect { catalogue }.to raise_error Puppet::Error, /Invalid IP address/
     end
   end
   # C9949
@@ -129,7 +129,7 @@ describe 'haproxy::frontend' do
     end
 
     it 'should raise error' do
-      expect { subject }.to raise_error Puppet::Error, /mutually exclusive/
+      expect { catalogue }.to raise_error Puppet::Error, /mutually exclusive/
     end
   end
   context "when multiple IPs are provided" do
