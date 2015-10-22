@@ -116,8 +116,12 @@ end
       should run.with_params('mtu', 'eth0').and_return(2048)
     end
 
-    it 'should return NIL for "eth2" transformation' do
-      should run.with_params('mtu', 'eth2').and_return(nil)
+    it 'should return 1024 for "eth2" transformation' do
+      should run.with_params('mtu', 'eth2').and_return(1024)
+    end
+
+    it 'should return NIL for "eth3" transformation' do
+      should run.with_params('mtu', 'eth3').and_return(nil)
     end
 
   end

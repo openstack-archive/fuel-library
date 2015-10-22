@@ -90,8 +90,8 @@ describe Puppet::Parser::Functions.function(:get_network_role_property) do
     it 'should return NIL for "admin" network role' do
       should run.with_params('admin', 'ipaddr_netmask_pair').and_return(nil)
     end
-    it 'should return NIL for "admin" network role' do
-      should run.with_params('admin', 'phys_dev').and_return(nil)
+    it 'should return eth0 for "admin" network role phys_dev' do
+      should run.with_params('admin', 'phys_dev').and_return(["eth0"])
     end
   end
 
