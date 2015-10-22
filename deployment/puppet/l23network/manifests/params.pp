@@ -27,10 +27,7 @@ class l23network::params {
       $lnx_bond_tools            = undef
       $lnx_ethernet_tools        = 'ethtool'
       $lnx_bridge_tools          = 'bridge-utils'
-      $ovs_datapath_package_name = $::kernelmajversion ? {
-                                    '3.10'  => 'kmod-openvswitch-lt',
-                                    default => 'kmod-openvswitch',
-                                  }
+      $ovs_datapath_package_name = 'kmod-openvswitch'
       $ovs_common_package_name   = 'openvswitch'
       $ovs_kern_module_name      = 'openvswitch'
       $extra_tools               = 'iputils'
