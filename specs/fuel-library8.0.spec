@@ -114,6 +114,23 @@ install -m 0755 %{files_source}/fuel-notify/fuel_notify.py %{buildroot}/usr/bin/
 #fuel-migrate
 install -m 0755 %{files_source}/fuel-migrate/fuel-migrate %{buildroot}/usr/bin/fuel-migrate
 
+#UMM
+mkdir -p %{buildroot}/etc/init
+mkdir -p %{buildroot}/usr/bin
+mkdir -p %{buildroot}/var/lib/umm
+install -m 0660 %{files_source}/files/umm/issue.mm %{buildroot}/etc/issue.mm
+install -m 0660 %{files_source}/files/umm/umm.conf %{buildroot}/etc/umm.conf
+install -m 0770 %{files_source}/files/umm/umm_svc %{buildroot}/usr/lib/umm/umm_svc
+install -m 0770 %{files_source}/files/umm/umm_svc.rh6 %{buildroot}/usr/lib/umm/umm_svc.local
+install -m 0770 %{files_source}/files/ummumm_vars  %{buildroot}/files/umm//usr/lib/umm/umm_vars
+install -m 0770 %{files_source}/files/umm/umm  %{buildroot}/usr/local/bin/umm
+install -m 0770 %{files_source}/files/umm/umm.sh  %{buildroot}/etc/profile.d/umm.sh
+install -m 0660 %{files_source}/files/umm/etc/init/umm-br.conf  %{buildroot}/etc/init/umm-br.conf
+install -m 0660 %{files_source}/files/umm/umm-console.conf  %{buildroot}/etc/init/umm-console.conf
+install -m 0660 %{files_source}/files/umm/umm-run.conf  %{buildroot}/etc/init/umm-run.conf
+install -m 0660 %{files_source}/files/umm/umm-tr.conf  %{buildroot}/etc/init/umm-tr.conf
+install -m 0770 %{files_source}/files/umm/umm-install.rh6 %{buildroot}/usr/lib/umm/umm-install.rh6
+
 
 
 %post -p /bin/bash
@@ -259,6 +276,38 @@ Script for migrate Fuel master into vm
 #
 
 
+%package -n umm
+Summary: Unified maintenance mode
+Version: %{version}
+Release: %{release}
+Group: System Environment/Libraries
+License: GPLv2
+Requires: upstart
+URL: http://github.com/openstack/fuel-library
+BuildArch: noarch
+BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+
+%description -n umm
+Packet provide posibility to put operation system in the state when it has only
+critical set of working services which are needed for basic network and disk 
+operations. Also node in MM state is reachable with ssh from network.
+
+For further information go to:
+https://www.mirantis.com/products/mirantis-openstack-software/documentation/
+
+%post -n umm -p /usr/lib/umm/umm-install.rh6
+
+%files -n umm
+/etc/issue.mm
+/etc/umm.conf
+/etc/init/umm-*
+/usr/lib/umm/*
+/var/lib/umm
+
+
+
+%config(noreplace) /etc/umm.conf
+
 %package -n fuel-notify
 Summary: Fuel disk space monitor
 Version: %{version}
@@ -294,3 +343,6 @@ rm -rf ${buildroot}
 %changelog
 * Tue Jun 9 2015 Igor Shishkin <ishishkin@mirantis.com> - 7.0
 - Create spec
+
+
+
