@@ -19,7 +19,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
         subject.class.target_files(fixture_path)
      }
     it { expect(target_files.length).to eq 2 }
-    it { expect(target_files.map { |x| File.split(x)[1] } ).to eq expected_data }
+    it { expect(target_files.map { |x| File.split(x)[1] } ).to match_array(expected_data) }
   end
 
 end
@@ -41,7 +41,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
         subject.class.target_files(fixture_path)
      }
     it { expect(target_files.length).to eq 1 }
-    it { expect(target_files.map { |x| File.split(x)[1] } ).to eq expected_data }
+    it { expect(target_files.map { |x| File.split(x)[1] } ).to match_array(expected_data) }
   end
 
 end
@@ -65,7 +65,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
         subject.class.target_files(fixture_path)
      }
     it { expect(target_files.length).to eq 2 }
-    it { expect(target_files.map { |x| File.split(x)[1] } ).to eq expected_data }
+    it { expect(target_files.map { |x| File.split(x)[1] } ).to match_array(expected_data) }
   end
 
 end
@@ -87,7 +87,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
         subject.class.target_files(fixture_path)
      }
     it { expect(target_files.length).to eq 1 }
-    it { expect(target_files.map { |x| File.split(x)[1] } ).to eq expected_data }
+    it { expect(target_files.map { |x| File.split(x)[1] } ).to match_array(expected_data) }
   end
 
 end
