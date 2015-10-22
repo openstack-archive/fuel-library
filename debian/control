@@ -22,3 +22,11 @@ Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, python-gobject-2, python-gobject, python-dbus, python-daemon
 Description: Fuel RabbitMQ fencing utilitites
  .
+
+Package: fuel-umm
+Architecture: all
+Depends: ${misc:Depends}, ${shlibs:Depends}, upstart
+Description: Unified maintenance mode
+ Packet provide posibility to put operation system in the state when it has only
+ critical set of working services which are needed for basic network and disk
+ operations. Also node in MM state is reachable with ssh from network.

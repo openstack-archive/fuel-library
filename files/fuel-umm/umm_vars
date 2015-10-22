@@ -1,5 +1,4 @@
 [ -f /etc/umm.conf ] && . /etc/umm.conf
-UMM_R=<%= @release %>
 UMM=${UMM:=no}
 
 REBOOT_COUNT=${REBOOT_COUNT:=2}
