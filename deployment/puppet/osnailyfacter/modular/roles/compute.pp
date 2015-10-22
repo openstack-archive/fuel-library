@@ -50,13 +50,22 @@ $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0
 $nova_rate_limits               = hiera('nova_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
-$glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
 $config_drive_format            = 'vfat'
-
 $public_ssl_hash                = hiera('public_ssl')
-$vncproxy_host = $public_ssl_hash['services'] ? {
-  true    => $public_ssl_hash['hostname'],
-  default => $public_vip,
+$ssl_hash                       = hiera_hash('use_ssl', {})
+if try_get_value($ssl_hash, 'glance_internal', false) {
+  $glance_protocol    = 'https'
+  $glance_endpoint    = pick($ssl_hash['glance_internal_hostname'], hiera('glance_endpoint', ''), $management_vip)
+  $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
+} else {
+  $glance_api_servers = hiera('glance_api_servers', "${management_vip}:9292")
+}
+if $public_ssl_hash['services'] or try_get_value($ssl_hash, 'nova_public', false) {
+  $vncproxy_protocol = 'https'
+  $vncproxy_host     = pick($ssl_hash['nova_public_hostname'], $public_ssl_hash['services'], $public_vip)
+} else {
+  $vncproxy_protocol = pick($nova_hash['vncproxy_protocol'], 'http')
+  $vncproxy_host     = $public_vip
 }
 
 $db_host                        = pick($nova_hash['db_host'], $database_vip)
@@ -243,6 +252,7 @@ class { 'openstack::compute':
   rabbit_ha_queues            => $rabbit_ha_queues,
   auto_assign_floating_ip     => $auto_assign_floating_ip,
   glance_api_servers          => $glance_api_servers,
+  vncproxy_protocol           => $vncproxy_protocol,
   vncproxy_host               => $vncproxy_host,
   vncserver_listen            => '0.0.0.0',
   migration_support           => true,

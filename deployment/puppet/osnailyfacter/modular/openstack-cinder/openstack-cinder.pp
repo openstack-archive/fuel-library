@@ -13,7 +13,6 @@ $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $service_endpoint      = hiera('service_endpoint')
 $service_workers       = pick($cinder_hash['workers'],
                               min(max($::processorcount, 2), 16))
-
 $cinder_db_password    = $cinder_hash[db_password]
 $cinder_user_password  = $cinder_hash[user_password]
 $keystone_user         = pick($cinder_hash['user'], 'cinder')
@@ -23,7 +22,25 @@ $db_host               = pick($cinder_hash['db_host'], hiera('database_vip'))
 $cinder_db_user        = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name        = pick($cinder_hash['db_name'], 'cinder')
 $roles                 = node_roles($nodes_hash, hiera('uid'))
-$glance_api_servers    = hiera('glance_api_servers', "${management_vip}:9292")
+$ssl_hash              = hiera_hash('use_ssl', {})
+if try_get_value($ssl_hash, 'keystone_internal', false) {
+  $keystone_auth_protocol = 'https'
+  $keystone_auth_host = $ssl_hash['keystone_internal_hostname']
+} else {
+  $keystone_auth_protocol = 'http'
+  $keystone_auth_host = pick($service_endpoint, $management_vip)
+}
+if try_get_value($ssl_hash, 'glance_internal', false) {
+  $glance_protocol = 'https'
+  $glance_endpoint    = pick($ssl_hash['glance_internal_hostname'], hiera('glance_endpoint', ''), $management_vip)
+  $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
+} else {
+  $glance_api_servers    = hiera('glance_api_servers', "${management_vip}:9292")
+}
+
+$service_port = '5000'
+$auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+$identity_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
 
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
@@ -41,12 +58,6 @@ $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
 $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
 $max_retries = '-1'
 $idle_timeout = '3600'
-
-$keystone_auth_protocol = 'http'
-$keystone_auth_host = $service_endpoint
-$service_port = '5000'
-$auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
-$identity_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
 
 $openstack_version = {
   'keystone'   => 'installed',
@@ -70,7 +81,6 @@ class {'openstack::cinder':
   manage_volumes       => $manage_volumes,
   enabled              => true,
   glance_api_servers   => $glance_api_servers,
-  auth_host            => $service_endpoint,
   bind_host            => get_network_role_property('cinder/api', 'ipaddr'),
   iscsi_bind_host      => get_network_role_property('cinder/iscsi', 'ipaddr'),
   keystone_user        => $keystone_user,
