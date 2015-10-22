@@ -10,17 +10,18 @@
 #   Defaults to 'present'
 #
 class l23network::l2 (
-  $ensure_package            = 'present',
-  $use_lnx                   = true,
-  $use_ovs                   = false,
-  $install_ovs               = $use_ovs,
-  $install_brtool            = $use_lnx,
-  $install_ethtool           = $use_lnx,
-  $install_bondtool          = $use_lnx,
-  $install_vlantool          = $use_lnx,
-  $ovs_modname               = $::l23network::params::ovs_kern_module_name,
-  $ovs_datapath_package_name = $::l23network::params::ovs_datapath_package_name,
-  $ovs_common_package_name   = $::l23network::params::ovs_common_package_name,
+  $ensure_package               = 'present',
+  $use_lnx                      = true,
+  $use_ovs                      = false,
+  $install_ovs                  = $use_ovs,
+  $install_brtool               = $use_lnx,
+  $install_ethtool              = $use_lnx,
+  $install_bondtool             = $use_lnx,
+  $install_vlantool             = $use_lnx,
+  $ovs_module_name              = $::l23network::params::ovs_kern_module_name,
+  $use_ovs_dkms_datapath_module = true,
+  $ovs_datapath_package_name    = $::l23network::params::ovs_datapath_package_name,
+  $ovs_common_package_name      = $::l23network::params::ovs_common_package_name,
 ){
   include stdlib
   include ::l23network::params
@@ -28,7 +29,7 @@ class l23network::l2 (
   if $use_ovs {
     $ovs_mod_ensure = present
     if $install_ovs {
-      if $ovs_datapath_package_name {
+      if $use_ovs_dkms_datapath_module {
         package { 'openvswitch-datapath':
           name   => $ovs_datapath_package_name,
           ensure => $ensure_package,
@@ -58,7 +59,7 @@ class l23network::l2 (
     $ovs_mod_ensure = absent
   }
 
-  @k_mod{$ovs_modname:
+  @k_mod{$ovs_module_name :
     ensure => $ovs_mod_ensure
   }
 
