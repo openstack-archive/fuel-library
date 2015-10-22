@@ -5,6 +5,7 @@ $glance_hash      = hiera_hash('glance', {})
 # enabled by default
 $use_glance       = pick($glance_hash['enabled'], true)
 $public_ssl_hash  = hiera('public_ssl')
+$ssl_hash = hiera_hash('use_ssl', {})
 
 
 #todo(sv): change to 'glance' as soon as glance as node-role was ready
@@ -21,6 +22,9 @@ if ($use_glance) {
     ipaddresses         => $ipaddresses,
     public_virtual_ip   => $public_virtual_ip,
     server_names        => $server_names,
-    public_ssl          => $public_ssl_hash['services'],
+    public_ssl          => $public_ssl_hash['services'] or try_get_value($ssl_hash, 'glance_public', false),
+    public_ssl_path     => '/var/lib/astute/haproxy/public_glance.pem',
+    internal_ssl        => try_get_value($ssl_hash, 'glance_internal', false),
+    internal_ssl_path   => '/var/lib/astute/haproxy/internal_glance.pem',
   }
 }

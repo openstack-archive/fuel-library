@@ -11,15 +11,29 @@ if $use_neutron {
 
   $management_vip     = hiera('management_vip')
   $service_endpoint   = hiera('service_endpoint', $management_vip)
-  $neutron_endpoint   = hiera('neutron_endpoint', $management_vip)
   $admin_password     = try_get_value($neutron_config, 'keystone/admin_password')
   $admin_tenant_name  = try_get_value($neutron_config, 'keystone/admin_tenant', 'services')
   $admin_username     = try_get_value($neutron_config, 'keystone/admin_user', 'neutron')
   $region_name        = hiera('region', 'RegionOne')
   $auth_api_version   = 'v2.0'
-  $admin_identity_uri = "http://${service_endpoint}:35357"
+  $ssl_hash           = hiera_hash('use_ssl', {})
+  if try_get_value($ssl_hash, 'keystone_internal', false) {
+    $admin_identity_protocol = 'https'
+    $admin_identity_address  = pick($ssl_hash['keystone_internal_hostname'], $service_endpoint, $management_vip)
+  } else {
+    $admin_identity_protocol = 'http'
+    $admin_identity_address  = pick($service_endpoint, $management_vip)
+  }
+  if try_get_value($ssl_hash, 'neutron_internal', false) {
+    $neutron_internal_protocol = 'https'
+    $neutron_endpoint          = pick($ssl_hash['neutron_internal_hostname'], hiera('neutron_endpoint', $management_vip))
+  } else {
+    $neutron_internal_protocol = 'http'
+    $neutron_endpoint          = hiera('neutron_endpoint', $management_vip)
+  }
+  $admin_identity_uri = "${admin_identity_protocol}://${admin_identity_address}:35357"
   $admin_auth_url     = "${admin_identity_uri}/${auth_api_version}"
-  $neutron_url        = "http://${neutron_endpoint}:9696"
+  $neutron_url        = "${neutron_internal_protocol}://${neutron_endpoint}:9696"
 
   service { 'libvirt' :
     ensure   => 'running',

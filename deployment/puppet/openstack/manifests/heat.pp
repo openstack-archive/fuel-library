@@ -1,4 +1,15 @@
 #
+# == Class: openstack::heat
+#
+# Installs and configures Heat
+#
+# === Parameters
+#
+# [heat_protocol]
+#   Protocol to use for reach Heat-related services.
+#   Optional. Defaults to 'http'.
+#
+#
 #TODO(bogdando) sync extended qpid rpc backend configuration here as well
 # [use_stderr] Rather or not service should send output to stderr. Optional. Defaults to true.
 #
@@ -12,13 +23,13 @@ class openstack::heat (
   $keystone_port                 = '35357',
   $keystone_service_port         = '5000',
   $keystone_protocol             = 'http',
-  $public_ssl                    = false,
   $keystone_user                 = 'heat',
   $keystone_tenant               = 'services',
   $keystone_password             = false,
   $keystone_ec2_uri              = false,
   $region                        = 'RegionOne',
   $auth_uri                      = false,
+  $heat_protocol                 = 'http',
   $trusts_delegated_roles        = [],
 
   $verbose                       = false,
@@ -74,17 +85,17 @@ class openstack::heat (
   if $heat_metadata_server_url {
     $metadata_server_url      = $heat_metadata_server_url
   } else {
-    $metadata_server_url      = "http://${external_ip}:${api_cfn_bind_port}"
+    $metadata_server_url      = "${heat_protocol}://${external_ip}:${api_cfn_bind_port}"
   }
   if $heat_waitcondition_server_url {
     $waitcondition_server_url = $heat_waitcondition_server_url
   } else {
-    $waitcondition_server_url = "http://${external_ip}:${api_cfn_bind_port}/v1/waitcondition"
+    $waitcondition_server_url = "${heat_protocol}://${external_ip}:${api_cfn_bind_port}/v1/waitcondition"
   }
   if $heat_watch_server_url {
     $watch_server_url         = $heat_watch_server_url
   } else {
-    $watch_server_url         = "http://${external_ip}:${api_cloudwatch_bind_port}"
+    $watch_server_url         = "${heat_protocol}://${external_ip}:${api_cloudwatch_bind_port}"
   }
 
   # TODO(bogdando) clarify this config section (left from upstream presync state)

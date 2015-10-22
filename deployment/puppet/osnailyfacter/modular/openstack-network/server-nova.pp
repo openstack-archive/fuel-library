@@ -12,9 +12,24 @@ if $use_neutron {
   $admin_username     = try_get_value($neutron_config, 'keystone/admin_user', 'neutron')
   $region_name        = hiera('region', 'RegionOne')
   $auth_api_version   = 'v2.0'
-  $admin_identity_uri = "http://${service_endpoint}:35357"
+  $ssl_hash           = hiera_hash('use_ssl', {})
+  if try_get_value($ssl_hash, 'keystone_admin', false) {
+    $admin_auth_protocol = 'https'
+    $admin_auth_endpoint = pick($ssl_hash['keystone_admin_hostname'], $service_endpoint)
+  } else {
+    $admin_auth_protocol = 'http'
+    $admin_auth_endpoint = $service_endpoint
+  }
+  if try_get_value($ssl_hash, 'neutron_internal', false) {
+    $neutron_internal_protocol = 'https'
+    $neutron_internal_endpoint = pick($ssl_hash['neutron_internal_hostname'], $neutron_endpoint)
+  } else {
+    $neutron_internal_protocol = 'http'
+    $neutron_internal_endpoint = $neutron_endpoint
+  }
+  $admin_identity_uri = "${admin_auth_protocol}://${admin_auth_endpoint}:35357"
   $admin_auth_url     = "${admin_identity_uri}/${auth_api_version}"
-  $neutron_url        = "http://${neutron_endpoint}:9696"
+  $neutron_url        = "${neutron_internal_protocol}://${neutron_internal_endpoint}:9696"
   $neutron_ovs_bridge = 'br-int'
   $conf_nova          = pick($neutron_config['conf_nova'], true)
   $floating_net       = pick($neutron_config['default_floating_net'], 'net04_ext')

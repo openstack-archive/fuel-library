@@ -23,3 +23,14 @@
     timeout: 3600
   test_pre:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving_pre.rb
+
+- id: ssl-dns-setup
+  type: puppet
+  groups: [primary-controller, controller]
+  requires: [firewall, ssl-add-trust-chain]
+  condition: "settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true"
+  required_for: [deploy_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_dns_setup.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600

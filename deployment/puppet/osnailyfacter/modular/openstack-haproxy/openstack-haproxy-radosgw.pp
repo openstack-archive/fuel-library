@@ -3,6 +3,7 @@ notice('MODULAR: openstack-haproxy-radosgw.pp')
 $network_metadata = hiera_hash('network_metadata')
 $storage_hash     = hiera_hash('storage', {})
 $public_ssl_hash  = hiera('public_ssl')
+$ssl_hash         = hiera_hash('use_ssl', {})
 $ironic_hash      = hiera_hash('ironic', {})
 
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -33,7 +34,8 @@ if $use_radosgw {
     ipaddresses          => $ipaddresses,
     public_virtual_ip    => $public_virtual_ip,
     server_names         => $server_names,
-    public_ssl           => $public_ssl_hash['services'],
+    public_ssl           => $public_ssl_hash['services'] or try_get_value($use_ssl, 'radosgw_public', false),
+    public_ssl_path      => '/var/lib/astute/haproxy/public_radosgw.pem',
     baremetal_virtual_ip => $baremetal_virtual_ip,
   }
 }

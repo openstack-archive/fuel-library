@@ -1,9 +1,70 @@
 notice('MODULAR: swift.pp')
 
+<<<<<<< HEAD
 $network_scheme   = hiera_hash('network_scheme')
 $network_metadata = hiera_hash('network_metadata')
 prepare_network_config($network_scheme)
+||||||| parent of 68ac4bb... Rework selective SSL support
+$swift_hash                  = hiera_hash('swift_hash')
+$swift_master_role           = hiera('swift_master_role', 'primary-controller')
+$swift_nodes                 = pick(hiera('swift_nodes', undef), hiera('controllers', undef))
+$swift_proxies_cache         = pick(hiera('swift_proxies_cache', undef), hiera('controller_nodes', undef))
+$primary_swift               = pick(hiera('primary_swift', undef), hiera('primary_controller', undef))
+$proxy_port                  = hiera('proxy_port', '8080')
+$network_scheme              = hiera('network_scheme', {})
+$storage_hash                = hiera('storage_hash')
+$mp_hash                     = hiera('mp')
+$management_vip              = hiera('management_vip')
+$public_vip                  = hiera('public_vip')
+$debug                       = pick($swift_hash['debug'], hiera('debug', false))
+$verbose                     = pick($swift_hash['verbose'], hiera('verbose'))
+$storage_address             = hiera('storage_address')
+$node                        = hiera('node')
+$ring_min_part_hours         = hiera('swift_ring_min_part_hours', 1)
+$deploy_swift_storage        = hiera('deploy_swift_storage', true)
+$deploy_swift_proxy          = hiera('deploy_swift_proxy', true)
+$create_keystone_auth        = pick($swift_hash['create_keystone_auth'], true)
+$max_header_size             = hiera('max_header_size', '16384')
+$openstack_service_endpoints = hiera_hash('openstack_service_endpoints', {})
+$admin_ssl_hash              = hiera('internal_ssl')
+$keystone_user               = pick($swift_hash['user'], 'swift')
+$keystone_password           = pick($swift_hash['user_password'], 'passsword')
+$keystone_tenant             = pick($swift_hash['tenant'], 'services')
+$swift_operator_roles        = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator'])
+$region                      = hiera('region', 'RegionOne')
+$internal_ssl_hash           = hiera('internal_ssl')
+$public_ssl_hash             = hiera('public_ssl')
+=======
+$swift_hash                  = hiera_hash('swift_hash')
+$swift_master_role           = hiera('swift_master_role', 'primary-controller')
+$swift_nodes                 = pick(hiera('swift_nodes', undef), hiera('controllers', undef))
+$swift_proxies_cache         = pick(hiera('swift_proxies_cache', undef), hiera('controller_nodes', undef))
+$primary_swift               = pick(hiera('primary_swift', undef), hiera('primary_controller', undef))
+$proxy_port                  = hiera('proxy_port', '8080')
+$network_scheme              = hiera('network_scheme', {})
+$storage_hash                = hiera('storage_hash')
+$mp_hash                     = hiera('mp')
+$management_vip              = hiera('management_vip')
+$public_vip                  = hiera('public_vip')
+$debug                       = pick($swift_hash['debug'], hiera('debug', false))
+$verbose                     = pick($swift_hash['verbose'], hiera('verbose'))
+$storage_address             = hiera('storage_address')
+$node                        = hiera('node')
+$ring_min_part_hours         = hiera('swift_ring_min_part_hours', 1)
+$deploy_swift_storage        = hiera('deploy_swift_storage', true)
+$deploy_swift_proxy          = hiera('deploy_swift_proxy', true)
+$create_keystone_auth        = pick($swift_hash['create_keystone_auth'], true)
+$max_header_size             = hiera('max_header_size', '16384')
+$openstack_service_endpoints = hiera_hash('openstack_service_endpoints', {})
+$keystone_user               = pick($swift_hash['user'], 'swift')
+$keystone_password           = pick($swift_hash['user_password'], 'passsword')
+$keystone_tenant             = pick($swift_hash['tenant'], 'services')
+$swift_operator_roles        = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator'])
+$region                      = hiera('region', 'RegionOne')
+$ssl_hash                    = hiera('use_ssl', {})
+>>>>>>> 68ac4bb... Rework selective SSL support
 
+<<<<<<< HEAD
 $swift_hash              = hiera_hash('swift_hash')
 $swift_master_role       = hiera('swift_master_role', 'primary-controller')
 $swift_nodes             = hiera_hash('swift_nodes', {})
@@ -36,6 +97,41 @@ $keystone_protocol       = pick($swift_hash['auth_protocol'], 'http')
 $region                  = hiera('region', 'RegionOne')
 $service_workers         = pick($swift_hash['workers'],
                                 min(max($::processorcount, 2), 16))
+||||||| parent of 68ac4bb... Rework selective SSL support
+if $internal_ssl_hash['enable'] or use_ssl($openstack_service_endpoints, 'keystone', 'internal') {
+  $keystone_internal_protocol = 'https'
+  $keystone_protocol = 'https'
+} else {
+  $keystone_internal_protocol = 'http'
+  $keystone_protocol = 'http'
+}
+if $public_ssl_hash['enable'] or use_ssl($openstack_service_endpoints, 'keystone', 'public') {
+  $keystone_public_protocol = 'https'
+} else {
+  $keystone_public_protocol = 'http'
+}
+
+$keystone_endpoint      = pick(fqdn($openstack_service_endpoints, 'keystone', 'internal'), hiera('keystone_endpoint', ''), hiera('service_endpoint', ''), $management_vip)
+$swift_internal_address = pick(fqdn($openstack_service_endpoints, 'swift', 'internal'), $management_vip)
+$swift_public_address   = pick(fqdn($openstack_service_endpoints, 'swift', 'public'), $public_vip)
+=======
+if $ssl_hash['keystone'] and $ssl_hash['keystone_internal'] {
+  $keystone_internal_protocol = 'https'
+  $keystone_protocol = 'https'
+} else {
+  $keystone_internal_protocol = 'http'
+  $keystone_protocol = 'http'
+}
+if $ssl_hash['keystone'] and $ssl_hash['keystone_public'] {
+  $keystone_public_protocol = 'https'
+} else {
+  $keystone_public_protocol = 'http'
+}
+
+$keystone_endpoint      = pick(fqdn($openstack_service_endpoints, 'keystone', 'internal'), $ssl_hash['keystone_internal_hostname'], hiera('keystone_endpoint', ''), hiera('service_endpoint', ''), $management_vip)
+$swift_internal_address = pick($ssl_hash['swift_internal_hostname'], $management_vip)
+$swift_public_address   = pick($ssl_hash['swift_public_hostname'], $public_vip)
+>>>>>>> 68ac4bb... Rework selective SSL support
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
