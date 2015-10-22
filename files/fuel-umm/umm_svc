@@ -28,7 +28,7 @@ initctl start umm-tr || true
 
 
 if [ -f $UMM_FLAG ] ; then
-    ${0}.${UMM_R}
+    [ -x ${0}.local ] && ${0}.local
     initctl start umm-run || true
 fi
 
