@@ -23,28 +23,6 @@
 #
 # [*lease_time*]
 # (optional) Sets the default lease time for DHCP clients.
-#
-# [*extra_admin_nets*]
-# (optional) hash with additional admin networks and network settings
-#  Example:
-#  extra_net_1:
-#    dhcp_gateway: 10.30.0.2
-#    dhcp_pool_end: 10.30.0.254
-#    dhcp_pool_start: 10.30.0.100
-#    ipaddress: 10.30.0.3
-#    netmask: 255.255.255.0
-#  extra_net_2:
-#    dhcp_gateway: 10.40.0.2
-#    dhcp_pool_end: 10.40.0.254
-#    dhcp_pool_start: 10.40.0.100
-#    ipaddress: 10.40.0.3
-#    netmask: 255.255.255.0
-# dhcp_gateway - Gateway address for installed nodes
-# dhcp_pool_end - Last address of dhcp range
-# dhcp_pool_start - First address of dhcp range
-# ipaddress - IP address that will be used as PXE tftp server
-# netmask - Netmask of the network in dot-decimal notation
-
 
 class cobbler::server (
   $production     = 'prod',
@@ -54,7 +32,6 @@ class cobbler::server (
   $dns_upstream   = '8.8.8.8',
   $dhcp_lease_max = '1800',
   $lease_time     = '120m',
-  $extra_admin_nets   = {},
 ) {
   include cobbler::packages
 
