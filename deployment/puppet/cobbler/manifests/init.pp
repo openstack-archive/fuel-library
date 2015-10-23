@@ -37,28 +37,6 @@
 #
 # [pxetimeout] Pxelinux will wail this count of 1/10 seconds before
 # use default pxe item. To disable it use 0. Required.
-#
-# [extra_admin_nets]
-# (optional) hash with additional admin networks and network settings
-#  Example:
-#  extra_net_1:
-#    dhcp_gateway: 10.30.0.2
-#    dhcp_pool_end: 10.30.0.254
-#    dhcp_pool_start: 10.30.0.100
-#    ipaddress: 10.30.0.3
-#    netmask: 255.255.255.0
-#  extra_net_2:
-#    dhcp_gateway: 10.40.0.2
-#    dhcp_pool_end: 10.40.0.254
-#    dhcp_pool_start: 10.40.0.100
-#    ipaddress: 10.40.0.3
-#    netmask: 255.255.255.0
-# dhcp_gateway - Gateway address for installed nodes
-# dhcp_pool_end - Last address of dhcp range
-# dhcp_pool_start - First address of dhcp range
-# ipaddress - IP address that will be used as PXE tftp server
-# netmask - Netmask of the network in dot-decimal notation
-
 
 class cobbler(
 
@@ -81,8 +59,8 @@ class cobbler(
   $cobbler_user       = 'cobbler',
   $cobbler_password   = 'cobbler',
 
-  $pxetimeout         = '0',
-  $extra_admin_nets   = {}
+  $pxetimeout         = '0'
+
   ){
 
   anchor { "cobbler-begin": }
@@ -102,12 +80,11 @@ class cobbler(
   }
   class { ::cobbler::snippets : }
   class { ::cobbler::server :
-    domain_name        => $domain_name,
-    production         => $production,
-    dns_upstream       => $dns_upstream,
-    dns_domain         => $dns_domain,
-    dns_search         => $dns_search,
-    extra_admin_nets   => $extra_admin_nets
+    domain_name  => $domain_name,
+    production   => $production,
+    dns_upstream => $dns_upstream,
+    dns_domain   => $dns_domain,
+    dns_search   => $dns_search,
   }
 
   cobbler_digest_user {$cobbler_user:
