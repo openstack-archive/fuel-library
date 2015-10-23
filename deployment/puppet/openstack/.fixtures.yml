@@ -46,3 +46,4 @@ fixtures:
     'rsyslog': "#{source_dir}/../rsyslog"
     'mysql': "#{source_dir}/../mysql"
     'murano': "#{source_dir}/../murano"
+    'tweaks': "#{source_dir}/../tweaks"
