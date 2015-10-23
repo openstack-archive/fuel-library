@@ -19,7 +19,6 @@ describe 'cobbler' do
     :cobbler_user       => 'cobbler',
     :cobbler_password   => 'cobbler',
     :pxetimeout         => 0,
-    :extra_admin_nets   => {}
   } }
 
   shared_examples_for 'cobbler configuration' do

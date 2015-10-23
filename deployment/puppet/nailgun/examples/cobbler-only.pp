@@ -24,12 +24,12 @@ node default {
 
   $centos_repos =
   [
-    {
-      "id" => "nailgun",
-      "name" => "Nailgun",
-      "url"  => "\$tree"
-    },
-  ]
+   {
+   "id" => "nailgun",
+   "name" => "Nailgun",
+   "url"  => "\$tree"
+   },
+   ]
 
   $cobbler_url        = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/cobbler_api"
   $cobbler_user       = $::fuel_settings['cobbler']['user']
@@ -51,7 +51,6 @@ node default {
   $dhcp_start_address = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start']
   $dhcp_end_address   = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end']
   $dhcp_netmask       = $::fuel_settings['ADMIN_NETWORK']['netmask']
-  $extra_admin_nets   = $::fuel_settings['EXTRA_ADMIN_NETWORKS']
 
   $dhcp_gw            = $::fuel_settings['ADMIN_NETWORK']['dhcp_gateway']
   if $dhcp_gw {
@@ -79,30 +78,30 @@ node default {
   class { 'docker::container': }
 
   class { "nailgun::cobbler":
-    production                  => $production,
-    centos_repos                => $centos_repos,
-    gem_source                  => $gem_source,
+    production   => $production,
+    centos_repos => $centos_repos,
+    gem_source   => $gem_source,
 
-    cobbler_user                => $cobbler_user,
-    cobbler_password            => $cobbler_password,
-    bootstrap_flavor            => $bootstrap_flavor,
-    server                      => $cobbler_host,
-    name_server                 => $cobbler_host,
-    next_server                 => $cobbler_host,
+    cobbler_user       => $cobbler_user,
+    cobbler_password   => $cobbler_password,
+    bootstrap_flavor   => $bootstrap_flavor,
+    server             => $cobbler_host,
+    name_server        => $cobbler_host,
+    next_server        => $cobbler_host,
 
-    mco_user                    => $mco_user,
-    mco_pass                    => $mco_password,
+    mco_user           => $mco_user,
+    mco_pass           => $mco_password,
 
-    dns_upstream                => $dns_upstream,
-    dns_domain                  => $dns_domain,
-    dns_search                  => $dns_search,
-    dhcp_start_address          => $dhcp_start_address,
-    dhcp_end_address            => $dhcp_end_address,
-    dhcp_netmask                => $dhcp_netmask,
-    dhcp_gateway                => $dhcp_gateway,
-    dhcp_interface              => $dhcp_interface,
-    nailgun_api_url             => $nailgun_api_url,
+    dns_upstream       => $dns_upstream,
+    dns_domain         => $dns_domain,
+    dns_search         => $dns_search,
+    dhcp_start_address => $dhcp_start_address,
+    dhcp_end_address   => $dhcp_end_address,
+    dhcp_netmask       => $dhcp_netmask,
+    dhcp_gateway       => $dhcp_gateway,
+    dhcp_interface     => $dhcp_interface,
+    nailgun_api_url    => $nailgun_api_url,
+
     bootstrap_ethdevice_timeout => $bootstrap_ethdevice_timeout,
-    extra_admin_nets            => $extra_admin_nets,
   }
 }
