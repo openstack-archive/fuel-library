@@ -24,7 +24,7 @@ class cluster::rabbitmq_fence(
     }
     'Debian': {
       $packages          = [ 'python-gobject', 'python-gobject-2',
-                             'python-dbus', 'python-daemon' ]
+                            'python-dbus', 'python-daemon' ]
       $dbus_service_name = 'dbus'
       $service_name      = 'fuel-rabbit-fence'
     }
