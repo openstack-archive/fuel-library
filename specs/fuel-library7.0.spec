@@ -8,7 +8,7 @@ Version: %{version}
 Release: %{release}
 Group: System Environment/Libraries
 License: GPLv2
-URL: http://github.com/openstack/fuel-library
+URL: http://github.com/openstack/fuel-library1
 Source0: %{name}-%{version}.tar.gz
 Provides: fuel-library
 BuildArch: noarch
