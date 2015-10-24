@@ -5,7 +5,6 @@ prepare_network_config(hiera('network_scheme', {}))
 $murano_hash                = hiera_hash('murano_hash', {})
 $murano_settings_hash       = hiera_hash('murano_settings', {})
 $rabbit_hash                = hiera_hash('rabbit_hash', {})
-$heat_hash                  = hiera_hash('heat_hash', {})
 $neutron_config             = hiera_hash('neutron_config', {})
 $node_role                  = hiera('node_role')
 $public_ip                  = hiera('public_vip')
@@ -93,9 +92,9 @@ if $murano_hash['enabled'] {
     rabbit_ha_queues    => $rabbit_ha_queues,
     rabbit_own_host     => $public_ip,
     rabbit_own_port     => $amqp_port,
-    rabbit_own_user     => 'murano',
-    rabbit_own_password => $heat_hash['rabbit_password'],
     rabbit_own_vhost    => 'murano',
+    rabbit_own_user     => $rabbit_hash['user'],
+    rabbit_own_password => $rabbit_hash['password'],
     service_host        => $api_bind_host,
     service_port        => $api_bind_port,
     external_network    => $external_network,
@@ -114,18 +113,6 @@ if $murano_hash['enabled'] {
   class { 'murano::dashboard':
     api_url  => $internal_url,
     repo_url => $repository_url,
-  }
-
-  rabbitmq_user { 'murano':
-    password => $heat_hash['rabbit_password'],
-  }
-
-  rabbitmq_vhost { '/murano': }
-
-  rabbitmq_user_permissions { "murano@/murano":
-    configure_permission => '.*',
-    read_permission      => '.*',
-    write_permission     => '.*',
   }
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"

@@ -98,13 +98,13 @@ describe manifest do
                    'rabbit_os_hosts'     => amqp_hosts.split(','),
                    'rabbit_ha_queues'    => rabbit_ha_queues,
                    'rabbit_own_host'     => public_ip,
-                   'rabbit_own_port'     => '55572',
-                   'rabbit_own_user'     => 'murano',
-                   'rabbit_own_password' => rabbit_own_password,
-                   'service_host'        => bind_address,
-                   'service_port'        => api_bind_port,
-                   'external_network'    => external_network,
+                   'rabbit_own_port'     => amqp_port,
+                   'rabbit_own_user'     => rabbit_os_user,
+                   'rabbit_own_password' => rabbit_os_password,
                    'rabbit_own_vhost'    => 'murano',
+                   'service_host' => bind_address,
+                   'service_port' => api_bind_port,
+                   'external_network' => external_network
                )
       end
 
@@ -128,24 +128,6 @@ describe manifest do
                    'api_url' => internal_url,
                    'repo_url' => repository_url
                )
-      end
-
-      it 'should declare rabbitmq_user' do
-        should contain_rabbitmq_user('murano').with({
-          :password => rabbit_own_password,
-        })
-      end
-
-      it 'should declare rabbitmq_vhost' do
-        should contain_rabbitmq_vhost('/murano')
-      end
-
-      it 'should declare rabbitmq_user_permission' do
-        should contain_rabbitmq_user_permissions('murano@/murano').with({
-          :configure_permission => '.*',
-          :read_permission      => '.*',
-          :write_permission     => '.*',
-        })
       end
 
       enable = (Noop.hiera_structure('murano/enabled') and Noop.hiera('node_role') == 'primary-controller')
