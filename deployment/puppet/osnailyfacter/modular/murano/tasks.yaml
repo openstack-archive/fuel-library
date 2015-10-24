@@ -34,3 +34,14 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
+- id: murano-rabbitmq
+  type: puppet
+  groups: [primary-controller]
+  condition: "settings:additional_components.murano.value == true"
+  required_for: [murano]
+  requires: [rabbitmq]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/rabbitmq.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
