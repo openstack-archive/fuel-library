@@ -14,7 +14,7 @@ Provides: fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
 BuildRequires: ruby21-rubygem-librarian-puppet-simple
-Requires: fuel-misc python-fuelclient
+Requires: fuel-misc
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
