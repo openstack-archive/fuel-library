@@ -98,9 +98,9 @@ describe manifest do
                    'rabbit_os_hosts'     => amqp_hosts.split(','),
                    'rabbit_ha_queues'    => rabbit_ha_queues,
                    'rabbit_own_host'     => public_ip,
-                   'rabbit_own_port'     => '55572',
-                   'rabbit_own_user'     => 'murano',
-                   'rabbit_own_password' => rabbit_own_password,
+                   'rabbit_own_port'     => amqp_port,
+                   'rabbit_own_user'     => rabbit_os_user,
+                   'rabbit_own_password' => rabbit_os_password,
                    'service_host' => bind_address,
                    'service_port' => api_bind_port,
                    'external_network' => external_network
@@ -126,14 +126,6 @@ describe manifest do
         should contain_class('murano::dashboard').with(
                    'api_url' => internal_url,
                    'repo_url' => repository_url
-               )
-      end
-
-      it 'should declare murano::rabbitmq class correctly' do
-        should contain_class('murano::rabbitmq').with(
-                   'rabbit_user' => 'murano',
-                   'rabbit_password' => rabbit_own_password,
-                   'rabbit_port' => '55572'
                )
       end
 
