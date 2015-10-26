@@ -27,7 +27,7 @@ define l23network::l2::bond (
   $onboot                  = undef,
   $delay_while_up          = undef,
 # $ethtool                 = undef,
-  $bond_properties         = undef,  # bond configuration options
+  $bond_properties         = {},  # bond configuration options
   $interface_properties    = undef,  # configuration options for included interfaces (mtu, ethtool, etc...)
   $vendor_specific         = undef,
   $monolith_bond_providers = undef,

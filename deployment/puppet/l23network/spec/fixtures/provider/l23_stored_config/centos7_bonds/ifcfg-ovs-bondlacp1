@@ -1,0 +1,9 @@
+BOOTPROTO=none
+DEVICE=ovs_bond_lacp
+ONBOOT=yes
+MTU=9000
+TYPE=OVSBond
+OVS_BRIDGE=br0
+OVS_OPTIONS="bond_mode=balance-tcp other_config:bond-miimon-interval=50 lacp=active other_config:lacp-time=fast bond_updelay=111 bond_downdelay=222"
+DEVICETYPE=ovs
+BOND_IFACES="eth2 eth3"
