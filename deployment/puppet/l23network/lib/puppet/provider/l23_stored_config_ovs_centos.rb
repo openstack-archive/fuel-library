@@ -5,7 +5,10 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
   def self.property_mappings
     rv = super
     rv.merge!({
-      :devicetype => 'DEVICETYPE',
+      :devicetype   => 'DEVICETYPE',
+      :bonding_opts => 'OVS_OPTIONS',
+      :bridge       => 'OVS_BRIDGE',
+      :bond_slaves  => 'BOND_IFACES',
     })
     return rv
   end
@@ -26,21 +29,40 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
     end
   end
 
-  def self.unmangle__if_type(provider, val)
-    if val == :bridge
-      val = :OVSBridge
-    else
-      val.to_s.capitalize.intern
+  def self.format_bond_opts(props)
+    props[:devicetype] = 'ovs'
+    bond_options = "bond_mode=#{props[:bond_mode]} other_config:bond-miimon-interval=#{props[:bond_miimon]}"
+    if props.has_key?(:bond_lacp_rate)
+      bond_options = "#{bond_options} lacp_rate=#{props[:bond_lacp_rate]}"
+      props.delete(:bond_lacp_rate)
     end
+    if props.has_key?(:bond_xmit_hash_policy)
+      bond_options = "#{bond_options} xmit_hash_policy=#{props[:bond_xmit_hash_policy]}"
+      props.delete(:bond_xmit_hash_policy)
+    end
+    props[:bonding_opts]  = "\"#{bond_options}\""
+    props.delete(:bond_mode)
+    props.delete(:bond_miimon)
+    props
+  end
+
+  def self.unmangle__if_type(provider, val)
+    "OVS#{val.to_s.capitalize}".to_sym
   end
 
   def self.mangle__if_type(val)
-    if val == :OVSBridge
-      val = :bridge
-    else
-      val.to_s.downcase.intern
-    end
+    val.gsub('OVS', '').downcase.to_sym
   end
+
+  def self.unmangle__bond_slaves(provider, val)
+    val.select!{ |x| x.to_s != 'absent' }
+    "\"#{val.join(' ')}\""
+  end
+
+  def self.mangle__bond_slaves(val)
+    val.split(' ')
+  end
+
 
   #Dirty hack which deletes OVS bridges from patch OVS
   #interfaces
@@ -50,6 +72,8 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
       val.delete('br-floating') if val.include?('br-floating')
       val
     end
+    val.select!{ |x| x != :absent }
+    val.join()
   end
 
 end
