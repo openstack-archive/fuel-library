@@ -100,15 +100,19 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       vip         => $management_vip,
       only_from   => "127.0.0.1 240.0.0.2 ${sto_nets} ${man_nets}",
       con_timeout => 5
-    }
-
+    } ->
     class { 'swift::dispersion':
       auth_url       => "http://$service_endpoint:5000/v2.0/",
       auth_user      =>  $keystone_user,
       auth_tenant    =>  $keystone_tenant,
       auth_pass      =>  $keystone_password,
       auth_version   =>  '2.0',
-      require        =>  Class['openstack::swift::proxy'],
+    }
+
+    Service<| tag == 'swift-service' |> -> Class['swift::dispersion']
+
+    if defined(Class['openstack::swift::storage_node']) {
+      Class['openstack::swift::storage_node'] -> Class['swift::dispersion']
     }
   }
 }
