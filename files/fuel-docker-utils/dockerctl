@@ -14,16 +14,17 @@
 #    under the License.
 
 
-confdir="/etc/dockerctl"
-. "$confdir/config"
 . "/usr/share/dockerctl/functions"
 DEBUG=true
 
-
-#Sets var nonopts
+# Sets var nonopts
 declare -a nonopts
 parse_options "$@"
 set -- "${nonopts[@]}"
+
+# Parse config
+confdir="/etc/dockerctl"
+. "$confdir/config"
 
 if [ -z "$1" ] || [ "$1" = "help" ]; then
   echo "Please specify a command."
