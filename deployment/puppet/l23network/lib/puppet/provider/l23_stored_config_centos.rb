@@ -292,6 +292,8 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     debug("format_file('#{filename}')::properties: #{props.inspect}")
     pairs = self.unmangle_properties(provider, props)
 
+    pairs['DEVICETYPE'] = 'ovs' if self.name =~ /ovs_/
+
     if pairs.has_key?('mode')
       bond_options = "mode=#{pairs['mode']} miimon=#{pairs['miimon']}"
       if pairs.has_key?('lacp_rate')
@@ -305,10 +307,6 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
       pairs['BONDING_OPTS']  = "\"#{bond_options}\""
       pairs.delete('mode')
       pairs.delete('miimon')
-    end
-
-    if pairs['TYPE'] == :OVSBridge
-      pairs['DEVICETYPE'] = 'ovs'
     end
 
     if pairs['ROUTES']

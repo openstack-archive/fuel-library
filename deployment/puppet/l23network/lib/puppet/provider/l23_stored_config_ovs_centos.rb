@@ -27,19 +27,11 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
   end
 
   def self.unmangle__if_type(provider, val)
-    if val == :bridge
-      val = :OVSBridge
-    else
-      val.to_s.capitalize.intern
-    end
+    "OVS#{val.to_s.capitalize}".to_sym
   end
 
   def self.mangle__if_type(val)
-    if val == :OVSBridge
-      val = :bridge
-    else
-      val.to_s.downcase.intern
-    end
+    val.gsub('OVS', '').downcase.to_sym
   end
 
   #Dirty hack which deletes OVS bridges from patch OVS
