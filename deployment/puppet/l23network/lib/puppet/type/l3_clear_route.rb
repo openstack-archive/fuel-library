@@ -31,7 +31,7 @@ Puppet::Type.newtype(:l3_clear_route) do
     newproperty(:interface) do
       desc "interface of the route"
       validate do |val|
-        if not val =~ /^[a-z_][\w\.\-]*[0-9a-z]$/
+        if not val.to_s =~ /^[a-z_][\w\.\-]*[0-9a-z]$/
           fail("Invalid interface name: '#{val}'")
         end
       end
