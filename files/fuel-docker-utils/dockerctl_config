@@ -5,17 +5,14 @@
 DOCKER_ROOT="/var/www/nailgun/docker"
 IMAGE_DIR="${DOCKER_ROOT}/images"
 SOURCE_DIR="${DOCKER_ROOT}/sources"
-#SUPERVISOR_CONF_DIR="${docker_root}/supervisor.d"
-#SUPERVISOR_CONF_DIR="${docker_root}/supervisor"
-#SUPERVISOR_CONF_DIR="<%= @config_dir %>/supervisor/"
 ASTUTE_YAML="/etc/fuel/astute.yaml"
-FUEL_VERSION_FILE="/etc/fuel_release"
+FUEL_RELEASE_FILE="/etc/fuel_release"
 DOCKER_ENGINE="native"
 ADMIN_IP="10.20.0.2"
 LOCAL_IP="127.0.0.1"
 
 # Version of Fuel to deploy
-VERSION=$(cat $FUEL_VERSION_FILE)
+VERSION=${VERSION_OVERRIDE:-$(cat $FUEL_RELEASE_FILE)}
 if [ -z "$VERSION" ]; then
   VERSION="_VERSION_"
 fi
