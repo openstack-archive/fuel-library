@@ -72,7 +72,9 @@ describe manifest do
       end
 
       it 'should declare swift::dispersion' do
-        should contain_class('swift::dispersion').that_requires('Class[openstack::swift::proxy]')
+        should contain_class('swift::dispersion').with(
+          'endpoint_type'  => 'internalURL',
+        ).that_requires('Class[openstack::swift::proxy]')
       end
 
       it {

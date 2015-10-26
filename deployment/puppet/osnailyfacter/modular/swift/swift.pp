@@ -109,6 +109,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       auth_pass      =>  $keystone_password,
       auth_version   =>  '2.0',
       require        =>  Class['openstack::swift::proxy'],
+      endpoint_type  => 'internalURL',
     }
   }
 }
