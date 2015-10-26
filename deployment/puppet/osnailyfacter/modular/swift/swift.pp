@@ -21,6 +21,8 @@ $swift_api_ipaddr        = get_network_role_property('swift/api', 'ipaddr')
 $swift_storage_ipaddr    = get_network_role_property('swift/replication', 'ipaddr')
 $debug                   = pick($swift_hash['debug'], hiera('debug', false))
 $verbose                 = pick($swift_hash['verbose'], hiera('verbose', false))
+# NOTE(mattymo): Changing ring_part_power or part_hours on redeploy leads to data loss
+$ring_part_power         = $ring_part_powerpick($swift_hash['ring_part_power'], 10)
 $ring_min_part_hours     = hiera('swift_ring_min_part_hours', 1)
 $deploy_swift_storage    = hiera('deploy_swift_storage', true)
 $deploy_swift_proxy      = hiera('deploy_swift_proxy', true)
@@ -67,8 +69,6 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   }
 
   if $deploy_swift_proxy {
-    $resize_value = pick($swift_hash['resize_value'], 2)
-    $ring_part_power = calc_ring_part_power($swift_nodes,$resize_value)
     $sto_nets = get_routable_networks_for_network_role($network_scheme, 'swift/replication', ' ')
     $man_nets = get_routable_networks_for_network_role($network_scheme, 'swift/api', ' ')
 
