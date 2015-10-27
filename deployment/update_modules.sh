@@ -123,7 +123,8 @@ if [ "$USE_BUNDLER" = true ]; then
   bundle update
 fi
 
-TIMEOUT_CMD=`which timeout`
+# if no timeout command, return true so we don't fail this script (LP#1510665)
+TIMEOUT_CMD=`which timeout || true`
 if [ -n "$TIMEOUT_CMD" ]; then
     TIMEOUT_CMD="$TIMEOUT_CMD $TIMEOUT"
 fi
