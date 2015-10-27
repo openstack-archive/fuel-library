@@ -14,7 +14,7 @@
 # [keystone_db_dbname] Name of keystone DB. Optional. Defaults to  'keystone'
 # [verbose] Rather to print more verbose (INFO+) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option.
-#    Optional. Defaults to false.
+#   Optional. Defaults to false.
 # [public_bind_host] Address that keystone binds to. Optional. Defaults to  '0.0.0.0'
 # [admin_bind_host] Address that keystone binds to. Optional. Defaults to  '0.0.0.0'
 # [internal_address] Internal address for keystone. Optional. Defaults to  $public_address
@@ -24,10 +24,12 @@
 # [use_syslog] Rather or not service should log to syslog. Optional. Default to false.
 # [use_stderr] Rather or not service should send output to stderr. Optional. Defaults to true.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
-#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead.
 # [max_pool_size] SQLAlchemy backend related. Default 10.
 # [max_overflow] SQLAlchemy backend related.  Default 30.
 # [max_retries] SQLAlchemy backend related. Default -1.
+# [revoke_by_id] Revoke token by token identifier. Setting revoke_by_id to true enables various form
+#   of enumerating tokens.
 #
 # === Example
 #
@@ -64,6 +66,7 @@ class openstack::keystone (
   $package_ensure              = present,
   $use_syslog                  = false,
   $use_stderr                  = true,
+  $enable_pki_setup            = false,
   $syslog_log_facility         = 'LOG_LOCAL7',
   $region                      = 'RegionOne',
   $database_idle_timeout       = '200',
@@ -76,9 +79,13 @@ class openstack::keystone (
   $max_retries                 = '-1',
   $token_caching               = false,
   $cache_backend               = 'keystone.cache.memcache_pool',
+  $token_provider              = undef,
   $revoke_driver               = false,
+#  $revoke_by_id                = false,
   $ceilometer                  = false,
   $service_workers             = $::processorcount,
+  $fernet_src_repository       = '/tmp/keystone',
+  $fernet_key_repository       = '/etc/keystone/fernet-keys',
 ) {
 
   # Install and configure Keystone
@@ -124,6 +131,19 @@ class openstack::keystone (
     }
   }
 
+  #### Fernet Token ####
+  if $token_provider == 'keystone.token.providers.fernet.Provider' {
+    file { "$fernet_key_repository":
+      source  => $fernet_src_repository,
+      mode    => '0600',
+      owner   => 'keystone',
+      group   => 'keystone',
+      recurse => true,
+      require => Class['::keystone'],
+      notify  => Service[httpd],
+    }
+  }
+
   if $enabled {
     class { '::keystone':
       verbose                      => $verbose,
@@ -131,6 +151,7 @@ class openstack::keystone (
       catalog_type                 => 'sql',
       admin_token                  => $admin_token,
       enabled                      => false,
+      enable_pki_setup             => $enable_pki_setup,
       database_connection          => $database_connection,
       public_bind_host             => $public_bind_host,
       admin_bind_host              => $admin_bind_host,
@@ -146,12 +167,13 @@ class openstack::keystone (
       rabbit_virtual_host          => $rabbit_virtual_host,
       memcache_servers             => $memcache_servers_real,
       token_driver                 => $token_driver,
-      token_provider               => 'keystone.token.providers.uuid.Provider',
+      token_provider               => $token_provider,
       notification_driver          => $notification_driver,
       notification_topics          => $notification_topics,
       token_caching                => $token_caching,
       cache_backend                => $cache_backend,
       revoke_driver                => $revoke_driver,
+#      revoke_by_id                 => $revoke_by_id,
       public_endpoint              => $public_url,
       memcache_dead_retry          => '60',
       memcache_socket_timeout      => '1',
