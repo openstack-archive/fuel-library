@@ -75,7 +75,7 @@ OCF_RESKEY_debug_default=false
 USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
 RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
-if [[ -z $OCF_RESKEY_ns ]] ; then
+if [ -z "${OCF_RESKEY_ns}" ] ; then
 	RUN=''
 else
 	RUN="$RUN_IN_NS "
@@ -252,11 +252,42 @@ END
 exit $OCF_SUCCESS
 }
 
+# Only match TCP packets with the SYN bit set and the ACK,RST and FIN bits cleared
+# and block them. Such packets are used to request TCP connection initiation.
+# Limit the block rule scope to the haproxy namespace to no affect other connections
+block_client_access()
+{
+    # do not add temporary SYN blocking rule, if it is already exist
+    # otherwise, try to add a blocking rule with max of 5 retries
+    local tries=5
+    until $(iptables -nvL | grep -q 'temporary SYN block') || [ $tries -eq 0 ]; do
+      tries=$((tries-1))
+      ocf_run $RUN_IN_NS iptables -t mangle -I INPUT -p tcp \
+        -m comment --comment 'temporary SYN block' --syn -j DROP
+      sleep 1
+    done
+    if [ $tries -eq 0 ]; then
+        return $OCF_ERR_GENERIC
+    else
+        return $OCF_SUCCESS
+    fi
+}
+
+# Unblock the blocking rule
+unblock_client_access()
+{
+    # remove all temporary SYN blocking rules, if there are more than one exist
+    for i in $(iptables -nvL --line-numbers | awk '/temporary SYN block/ {print $1}'); do
+      ocf_run $RUN_IN_NS iptables -t mangle -D INPUT -p tcp \
+        -m comment --comment 'temporary SYN block' --syn -j DROP
+    done
+}
+
 check_ns() {
   local LH="${LL} check_ns():"
   local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
   ocf_log debug "${LH} recieved netns list: ${ns}"
-  [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
+  [ $ns != $OCF_RESKEY_ns ] && return $OCF_ERR_GENERIC
   return $OCF_SUCCESS
 }
 
@@ -348,7 +379,7 @@ set_ns_routing() {
   ocf_run $RUN_IN_NS sysctl -w net.ipv4.conf.all.rp_filter=2
   ##############################
 
-  if [[ "${OCF_RESKEY_other_networks}" != "false" ]] ; then
+  if [ "${OCF_RESKEY_other_networks}" != "false" ] ; then
     for network in ${OCF_RESKEY_other_networks}
     do
       ocf_log debug "Adding route on the host system to ${network}: ${OCF_RESKEY_namespace_ip}"
@@ -423,20 +454,34 @@ haproxy_start()
 
 haproxy_reload()
 {
-	get_variables
-	if haproxy_status; then
-		# get pid from pidfile
-		PID="`cat ${PIDFILE}`"
-		# reload haproxy binary replacing the old process
-		ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" -sf "${PID}"
-		if [ $? -ne 0 ]; then
-			ocf_log err "Error. haproxy daemon returned error $?."
-			return $OCF_ERR_GENERIC
-		fi
-	else
-		ocf_log info "Haproxy daemon is not running. Starting it."
-		haproxy_start
-	fi
+  local rc
+  get_variables
+  if haproxy_status; then
+      # get pid from pidfile
+      PID="`cat ${PIDFILE}`"
+      # Safe-unblock the rules, if there are any
+      unblock_client_access
+      # Apply the blocking rule
+      block_client_access
+      rc=$?
+      if [ $rc -eq $OCF_SUCCESS ]; then
+          ocf_log info "Blocked all SYN for the Haproxy reload operation"
+      else
+          ocf_log warn "Cannot block all SYN for the Haproxy reload operation!"
+      fi
+      # reload haproxy binary replacing the old process
+      ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" -sf "${PID}"
+      rc=$?
+      unblock_client_access
+      ocf_log info "Unblocked all SYN for the Haproxy reload operation"
+      if [ $rc -ne 0 ]; then
+          ocf_log err "Error. haproxy daemon returned error $?."
+          return $OCF_ERR_GENERIC
+      fi
+  else
+      ocf_log info "Haproxy daemon is not running. Starting it."
+      haproxy_start
+  fi
 }
 
 # Try to kill (SIGTERM) specified pid 5 times by 2 sec interval
