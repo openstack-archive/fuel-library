@@ -28,7 +28,7 @@ function generate_open_ssl_keys {
       if [ ! -f $key_path ]; then
         openssl rand -base64 741 > $key_path 2>&1
       else
-        echo 'Key $key_path already exists'
+        echo "Key $key_path already exists"
       fi
     done
 }
@@ -42,7 +42,7 @@ function generate_ssh_keys {
       if [ ! -f $key_path ]; then
         ssh-keygen -b 2048 -t rsa -N '' -f $key_path 2>&1
       else
-        echo 'Key $key_path already exists'
+        echo "Key $key_path already exists"
       fi
     done
 }
