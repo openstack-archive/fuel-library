@@ -72,6 +72,8 @@ $nova_report_interval           = hiera('nova_report_interval', 60)
 $nova_service_down_time         = hiera('nova_service_down_time', 180)
 $apache_ports                   = hiera_array('apache_ports', ['80', '8888', '5000', '35357'])
 
+$token_provider                 = hiera('token_provider','keystone.token.providers.fernet.Provider')
+
 $openstack_version = hiera('openstack_version',
   {
   'keystone'   => 'installed',

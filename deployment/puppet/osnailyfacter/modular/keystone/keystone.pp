@@ -67,6 +67,8 @@ $public_protocol = $public_ssl_hash['services'] ? {
   default => 'http',
 }
 
+$token_provider = hiera('token_provider')
+
 $public_url   = "${public_protocol}://${public_address}:${public_port}"
 $admin_url    = "http://${admin_address}:${admin_port}"
 $internal_url = "http://${service_endpoint}:${internal_port}"
@@ -136,6 +138,8 @@ class { 'openstack::keystone':
   internal_url             => $internal_url,
   ceilometer               => $ceilometer_hash['enabled'],
   service_workers          => $service_workers,
+  token_provider           => $token_provider,
+  fernet_src_repository    => '/var/lib/astute/keystone',
 }
 
 ####### WSGI ###########
