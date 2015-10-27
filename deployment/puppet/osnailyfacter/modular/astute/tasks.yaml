@@ -149,6 +149,11 @@
         dst: /var/lib/astute/mysql/mysql
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/mongodb/mongodb.key
         dst: /var/lib/astute/mongodb/mongodb.key
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/fernet-keys/0
+        dst: /var/lib/astute/keystone/0
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/fernet-keys/1
+        dst: /var/lib/astute/keystone/1
+
     permissions: '0600'
     dir_permissions: '0700'
 
@@ -158,7 +163,7 @@
   requires: [pre_deployment_start]
   required_for: [copy_keys]
   parameters:
-    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova mysql' -p /var/lib/fuel/keys/
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -p /var/lib/fuel/keys/ -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova mysql' -f '0 1'
     timeout: 180
 
 - id: generate_haproxy_keys
