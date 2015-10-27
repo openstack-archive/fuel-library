@@ -48,6 +48,8 @@ describe manifest do
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
+    token_provider = Noop.hiera('token_provider')
+
 
     it 'should declare keystone class with admin_token' do
       should contain_class('keystone').with(
@@ -148,6 +150,10 @@ describe manifest do
        should contain_apache__listen('35357')
      end
 
+    it 'should contain keystone config with fernet tokens' do
+      should contain_keystone_config('token/provider').with(:value => token_provider)
+    end
+
      it 'should disable use_stderr for keystone' do
        should contain_keystone_config('DEFAULT/use_stderr').with(:value => 'false')
      end
@@ -169,6 +175,16 @@ describe manifest do
          should contain_keystone_config('DEFAULT/notification_driver').with(:value => 'messagingv2')
        end
      end
+
+    if token_provider == 'keystone.token.providers.fernet.Provider'
+      it 'should check existence of /etc/keystone/fernet-keys directory' do
+        should contain_file('/etc/keystone/fernet-keys').with('source'  => '/var/lib/astute/keystone', 'owner' => 'keystone','group' => 'keystone','mode' => '0600')
+      end
+    else
+      it 'should check non-existence of /etc/keystone/fernet-keys directory' do
+        should_not contain_file('/etc/keystone/fernet-keys').with('source'  => '/var/lib/astute/keystone', 'owner' => 'keystone','group' => 'keystone','mode' => '0600')
+      end
+    end
 
      it {
        should contain_service('httpd').with(
