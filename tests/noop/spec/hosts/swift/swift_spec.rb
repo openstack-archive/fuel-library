@@ -6,12 +6,15 @@ describe manifest do
   shared_examples 'catalog' do
     role = Noop.hiera 'role'
     storage_hash = Noop.hiera 'storage'
+    swift_hash = Noop.hiera 'swift'
     nodes = Noop.hiera 'nodes'
     primary_controller_nodes = Noop::Utils.filter_nodes(nodes,'role','primary-controller')
     controllers = primary_controller_nodes + Noop::Utils.filter_nodes(nodes,'role','controller')
     controller_internal_addresses = Noop::Utils.nodes_to_hash(controllers,'name','internal_address')
     controller_nodes = Noop::Utils.ipsort(controller_internal_addresses.values)
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
+    ring_part_power = swift_hash.fetch('ring_part_power', 10)
+    ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
     memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }
     let (:sto_nets){
         network_scheme = Noop.hiera 'network_scheme'
@@ -33,6 +36,7 @@ describe manifest do
               'returns' => [0,1],
             )
             should contain_exec("create_#{ring}").with(
+              'command' => "swift-ring-builder /etc/swift/#{ring}.builder create #{ring_part_power} 3 #{ring_min_part_hours}",
               'user'    => 'swift',
             )
           end
