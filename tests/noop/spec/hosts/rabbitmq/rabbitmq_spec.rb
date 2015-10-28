@@ -30,6 +30,14 @@ describe manifest do
       end
       should contain_class('rabbitmq').with_config_variables(/#{log_levels}/)
     end
+
+    it "should configure rabbitmq management" do
+      debug = Noop.hiera('debug', false)
+      collect_statistics_interval = '[{collect_statistics_interval,30000}]'
+      rates_mode = '[{rates_mode, none}]'
+      should contain_class('rabbitmq').with_config_variables(/#{collect_statistics_interval}/)
+      should contain_class('rabbitmq').with_config_rabbitmq_management_variables(/#{rates_mode}/)
+    end
   end
   test_ubuntu_and_centos manifest
 end
