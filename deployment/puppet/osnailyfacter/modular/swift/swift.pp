@@ -43,8 +43,22 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   $master_swift_proxy_nodes_list = values($master_swift_proxy_nodes)
   $master_swift_proxy_ip         = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', '')
   $master_swift_replication_ip   = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', '')
+  $swift_partition               = hiera('swift_partition', '/var/lib/glance/node')
 
   if ($deploy_swift_storage){
+    if !defined(File['/var/lib/glance']) {
+      file {'/var/lib/glance':
+        group   => 'swift',
+        require => Package['swift'],
+      } -> Service <| tag == 'swift-service' |>
+    } else {
+      File['/var/lib/glance'] {
+        group   => 'swift',
+        require +> Package['swift'],
+      }
+      File['/var/lib/glance'] -> Service <| tag == 'swift-service' |>
+    }
+
     class { 'openstack::swift::storage_node':
       storage_type                => false,
       loopback_size               => '5243780',
