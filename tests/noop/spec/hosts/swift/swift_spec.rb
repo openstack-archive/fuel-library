@@ -7,10 +7,10 @@ describe manifest do
     role = Noop.hiera 'role'
     storage_hash = Noop.hiera 'storage'
     nodes = Noop.hiera 'nodes'
-    primary_controller_nodes = Noop::Utils.filter_nodes(nodes,'role','primary-controller')
-    controllers = primary_controller_nodes + Noop::Utils.filter_nodes(nodes,'role','controller')
-    controller_internal_addresses = Noop::Utils.nodes_to_hash(controllers,'name','internal_address')
-    controller_nodes = Noop::Utils.ipsort(controller_internal_addresses.values)
+    primary_controller_nodes = Noop.puppet_function('filter_nodes', nodes, 'role','primary-controller')
+    controllers = primary_controller_nodes + Noop.puppet_function('filter_nodes', nodes, 'role', 'controller')
+    controller_internal_addresses = Noop.puppet_function('nodes_to_hash', controllers,'name','internal_address')
+    controller_nodes = Noop.puppet_function('ipsort', controller_internal_addresses.values)
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
     memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }
     let (:sto_nets){

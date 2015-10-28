@@ -25,6 +25,8 @@ describe manifest do
         'max_header_size' => max_header_size,
       )
     end
+
+    #include_examples 'saved_catalog', 'service[httpd]'
   end
   test_ubuntu_and_centos manifest
 end

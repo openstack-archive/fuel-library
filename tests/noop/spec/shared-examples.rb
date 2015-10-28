@@ -4,117 +4,56 @@ shared_examples 'compile' do
   end
 end
 
-shared_examples 'should_not_install_bin_files_with_puppet' do
-  it 'should not install binary files with puppet' do
-    binary_files_regexp = %r{^/bin|^/usr/bin|^/usr/local/bin|^/usr/sbin|^/sbin|^/usr/lib|^/usr/share|^/etc/init.d|^/usr/local/sbin|^/etc/rc\S\.d}
-    binary_files = []
-    downloaded_files = []
-    file_resources.each do |resource|
-      next unless %w(present file directory).include? resource[:ensure] or not resource[:ensure]
-      file_path = resource[:path] or resource[:title]
-      file_source = resource[:source]
-      binary_files << file_path if file_path =~ binary_files_regexp
-      downloaded_files << file_path if file_source
-    end
-    error_message_template = <<-eos
-<% if binary_files.any? -%>
-You have <%= binary_files.length -%> binary files installed with puppet:
-<% binary_files.each do |file| -%>
-<%= file %>
-<% end -%>
-<% end -%>
-<% if downloaded_files.any? -%>
-You are downloading <%= downloaded_files.length -%> binary files installed with puppet:
-<% downloaded_files.each do |file| -%>
-<%= file %>
-<% end -%>
-<% end -%>
-    eos
-    fail ERB.new(error_message_template, nil, '-').result(binding) if binary_files.any? or downloaded_files.any?
-  end
-end
-
-shared_examples 'save_files_list' do
-  it 'should save the list of file resources' do
-    files={}
-    file_resources.each do |resource|
-      next unless %w(present file directory).include? resource[:ensure] or not resource[:ensure]
-      if resource[:source]
-        content = resource[:source]
-      elsif resource[:content]
-        content = 'TEMPLATE'
-      else
-        content = nil
-      end
-      next unless content
-      files[resource[:path]] = content
-      if files.any?
-        Noop.save_file_resources_list files, os_name
-      end
-    end
-  end
-end
-
-shared_examples 'save_packages_list' do
-  it 'should save the list of file resources' do
-    catalog = subject
-    catalog = subject.call if subject.is_a? Proc
-    package_resources = {}
-    catalog.resources.each do |resource|
-      next unless resource.type == 'Package'
-      next if %w(absent purged).include? resource[:ensure] or not resource[:ensure]
-      package_resources[resource[:name]] = resource[:ensure]
-    end
-    if package_resources.any?
-      Noop.save_package_resources_list package_resources, os_name
-    end
-  end
-end
-
 shared_examples 'debug' do
   it 'shows catalog contents' do
-    Noop.show_catalog subject
+    Noop.dump_catalog subject, example
   end
 end
 
 shared_examples 'generate' do
   it 'shows catalog contents' do
-    Noop.catalog_to_spec subject
+    Noop.catalog_to_spec subject, example
   end
 end
 
 shared_examples 'status' do
   it 'shows status' do
-    puts <<-eos
-      =============================================
-      OS:       #{os_name}
-      YAML:     #{Noop.astute_yaml_base}
-      Spec:     #{Noop.current_spec example}
-      Manifest: #{Noop.manifest_path}
-      Node:     #{Noop.fqdn}
-      Role:     #{Noop.hiera 'role'}
-      =============================================
-    eos
+    Noop.status_report example
+  end
+end
+
+shared_examples 'saved_catalog' do |*resources|
+  it 'saves catalog to a file' do
+    Noop.save_catalog_to_file subject, resources
+  end
+  it 'saved catalog matches the current one' do
   end
 end
 
 shared_examples 'OS' do
-  it_behaves_like 'compile'
+  include_examples 'compile'
 
-  it_behaves_like 'status' if ENV['SPEC_SHOW_STATUS']
-  it_behaves_like 'debug' if ENV['SPEC_CATALOG_DEBUG']
-  it_behaves_like 'generate' if ENV['SPEC_SPEC_GENERATE']
-  it_behaves_like 'save_files_list' if ENV['SPEC_SAVE_FILE_RESOURCES']
-  it_behaves_like 'save_packages_list'if ENV['SPEC_SAVE_PACKAGE_RESOURCES']
-  it_behaves_like 'should_not_install_bin_files_with_puppet' if ENV['SPEC_PUPPET_BINARY_FILES']
+  
+  include_examples 'status' if ENV['SPEC_SHOW_STATUS']
+  include_examples 'debug' if ENV['SPEC_CATALOG_DEBUG']
+  include_examples 'generate' if ENV['SPEC_SPEC_GENERATE']
+  include_examples 'save_files_list' if ENV['SPEC_SAVE_FILE_RESOURCES']
+  include_examples 'save_packages_list'if ENV['SPEC_SAVE_PACKAGE_RESOURCES']
+  include_examples 'should_not_install_bin_files_with_puppet' if ENV['SPEC_PUPPET_BINARY_FILES']
 
   begin
-    it_behaves_like 'catalog'
+    include_examples 'catalog'
   rescue ArgumentError
     true
   end
 
-  at_exit { RSpec::Puppet::Coverage.report! } if ENV['SPEC_COVERAGE']
+  begin
+    include_examples 'saved_catalog'
+  rescue ArgumentError
+    true
+  end
+
+  # Noop.coverage_report if ENV['SPEC_COVERAGE']
 end
 
 ###############################################################################
@@ -139,32 +78,15 @@ def test_ubuntu_and_centos(manifest_file, force_manifest = false)
     GC.disable
   end
 
-  let(:os_name) do
-    os = facts[:operatingsystem]
-    os = os.downcase if os
-    os
-  end
-
-  let(:catalog) do
-    catalog = subject
-    catalog = subject.call if subject.is_a? Proc
-    catalog
-  end
-
-  let(:file_resources) do
-   files = catalog.resources.select do |resource|
-      resource.type == 'File'
-   end
-   files
-  end
-
   if Noop.test_ubuntu?
     context 'on Ubuntu platforms' do
       before(:all) do
         Noop.setup_overrides
       end
-      let(:facts) { Noop.ubuntu_facts }
-      it_behaves_like 'OS'
+      let(:facts) do
+        Noop.ubuntu_facts
+      end
+      include_examples 'OS'
     end
   end
 
@@ -173,8 +95,10 @@ def test_ubuntu_and_centos(manifest_file, force_manifest = false)
       before(:all) do
         Noop.setup_overrides
       end
-      let(:facts) { Noop.centos_facts }
-      it_behaves_like 'OS'
+      let(:facts) do
+        Noop.centos_facts
+      end
+      include_examples 'OS'
     end
   end
 
