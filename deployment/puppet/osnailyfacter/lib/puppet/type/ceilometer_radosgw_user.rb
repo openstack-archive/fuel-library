@@ -17,5 +17,9 @@ Puppet::Type.newtype(:ceilometer_radosgw_user) do
   newparam(:caps) do
     desc "Roles for the user"
     defaultto {}
+
+    validate do |value|
+      fail 'Caps should contain hash' unless value.is_a? Hash
+    end
   end
 end
