@@ -604,6 +604,16 @@ describe 'rabbitmq' do
         end
       end
 
+      describe 'config_rabbitmq_management_variables' do
+        let(:params) {{ :config_rabbitmq_management_variables => {
+            'rates_mode'      => 'none',
+        }}}
+        it 'should set config variables' do
+          should contain_file('rabbitmq.config') \
+            .with_content(/\{rates_mode, none\}/)
+        end
+      end
+
       describe 'tcp_keepalive enabled' do
         let(:params) {{ :tcp_keepalive => true }}
         it 'should set tcp_listen_options keepalive true' do
