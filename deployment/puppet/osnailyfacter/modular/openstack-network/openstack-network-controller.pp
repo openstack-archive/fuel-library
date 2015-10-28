@@ -138,6 +138,21 @@ if $network_provider == 'neutron' {
 
   if $primary_controller and $nets and !empty($nets) {
 
+   $haproxy_stats_url = "http://${management_vip}:10000/;csv"
+
+   haproxy_backend_status { 'keystone-public' :
+      name  => 'keystone-1',
+      url   => $haproxy_stats_url,
+    }
+
+    haproxy_backend_status { 'keystone-admin' :
+      name  => 'keystone-2',
+      url   => $haproxy_stats_url,
+    }
+
+    Haproxy_backend_status['keystone-admin']  -> Exec <| title == 'waiting-for-neutron-api' |>
+    Haproxy_backend_status['keystone-public']  -> Exec <| title == 'waiting-for-neutron-api' |>
+
     Service<| title == 'neutron-server' |> ->
       Openstack::Network::Create_network <||>
 
