@@ -8,7 +8,7 @@ describe manifest do
   shared_examples 'catalog' do
     it { should contain_file '/etc/hiera/globals.yaml' }
     it 'should save the globals yaml file' do
-      globals_yaml_content = Noop.resource_parameter_value subject, 'file', '/etc/hiera/globals.yaml', 'content'
+      globals_yaml_content = Noop.resource_parameter_value self, 'file', '/etc/hiera/globals.yaml', 'content'
       globals_yaml_path = Noop.globals_yaml_path
       raise 'Could not get globals file content!' unless globals_yaml_content
       File.open(globals_yaml_path, 'w') { |file| file.write globals_yaml_content }
