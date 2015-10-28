@@ -27,6 +27,16 @@ describe manifest do
 
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
+      swift_partition = Noop.hiera 'swift_partition'
+      if !swift_partition
+        swift_partition = '/var/lib/glance/node'
+        it 'should allow swift user to write into /var/lib/glance directory' do
+          should contain_file('/var/lib/glance').with(
+            'ensure' => 'directory',
+            'group'  => 'swift',
+          ).that_requires('Package[swift]')
+        end
+      end
       if role == 'primary-controller'
         ['account', 'object', 'container'].each do | ring |
           it "should run rebalancing swift #{ring} ring" do
@@ -84,6 +94,14 @@ describe manifest do
           'only_from' => "127.0.0.1 240.0.0.2 #{sto_nets} #{man_nets}",
         ).that_requires('Class[openstack::swift::proxy]')
       }
+
+      it 'should configure swift on separate partition' do
+        should contain_file(swift_partition).with(
+          'ensure' => 'directory',
+          'owner'  => 'swift',
+          'group'  => 'swift',
+        )
+      end
     end
   end
   test_ubuntu_and_centos manifest
