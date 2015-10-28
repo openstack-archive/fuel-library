@@ -7,6 +7,10 @@ describe manifest do
     role = Noop.hiera 'role'
     storage_hash = Noop.hiera 'storage'
     nodes = Noop.hiera 'nodes'
+    swift_partition = Noop.hiera 'swift_partition'
+    if !swift_partition
+      swift_partition = '/var/lib/glance/node'
+    end
     primary_controller_nodes = Noop::Utils.filter_nodes(nodes,'role','primary-controller')
     controllers = primary_controller_nodes + Noop::Utils.filter_nodes(nodes,'role','controller')
     controller_internal_addresses = Noop::Utils.nodes_to_hash(controllers,'name','internal_address')
@@ -80,6 +84,14 @@ describe manifest do
           'only_from' => "127.0.0.1 240.0.0.2 #{sto_nets} #{man_nets}",
         ).that_requires('Class[openstack::swift::proxy]')
       }
+
+      it 'should configure swift on separate partition' do
+        should contain_file(swift_partition).with(
+          'ensure' => 'directory',
+          'owner'  => 'swift',
+          'group'  => 'swift',
+        )
+      end
     end
   end
   test_ubuntu_and_centos manifest
