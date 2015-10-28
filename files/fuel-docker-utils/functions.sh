@@ -42,10 +42,9 @@ function show_usage {
 }
 
 function parse_options {
-  opts="$@"
-  for opt in $@; do
-    case $opt in
-      -V|--version) VERSION=$2
+  while [ -n "$1" ]; do
+    case "$1" in
+      -V|--version) VERSION_OVERRIDE=$2
                     shift 2
                     ;;
       -d|--debug)   DEBUG=true
