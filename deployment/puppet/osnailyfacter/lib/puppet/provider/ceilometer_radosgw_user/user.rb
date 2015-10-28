@@ -7,6 +7,8 @@ Puppet::Type.type(:ceilometer_radosgw_user).provide(:user) do
 
   commands :rgw_adm => 'radosgw-admin'
 
+  INI_FILENAME = '/etc/ceilometer/ceilometer.conf'
+
   def exists?
     !(@property_hash[:ensure] == :absent or @property_hash.empty?)
   end
@@ -31,28 +33,34 @@ Puppet::Type.type(:ceilometer_radosgw_user).provide(:user) do
   def set_access_keys
     user_keys = get_user_keys
     keys = get_access_keys_from_config
-
-    conf = Puppet::Util::IniConfig::File.new
-    conf.read(ceilometer_config_file)
-
-    if user_keys != keys
+    if ceilometer_file and user_keys != keys
+      ceilometer_file.add_section(section, ini_filename) unless ceilometer_file.include?(section)
       user_keys.keys.each do |key|
-        conf[section][key] = user_keys[key]
+        ceilometer_file[section][key] = user_keys[key]
       end
-      conf.store
+      ceilometer_file.store
     end
   end
 
-  def ceilometer_config_file
-    '/etc/ceilometer/ceilometer.conf'
+  def ini_filename
+    INI_FILENAME
+  end
+
+  def ceilometer_file
+    return @ceilometer_file if @ceilometer_file
+    if File.exists?(ini_filename)
+      @ceilometer_file = Puppet::Util::IniConfig::File.new
+      @ceilometer_file.read(ini_filename)
+      @ceilometer_file
+    end
   end
 
   def get_access_keys_from_config
     keys = Hash.new
-    ini_file = Puppet::Util::IniConfig::File.new
-    ini_file.read(ceilometer_config_file)
-    key_settings.each do |setting|
-      keys[setting] = ini_file[section][setting]
+    if ceilometer_file
+      key_settings.each do |setting|
+        keys[setting] = ceilometer_file[section][setting] if ceilometer_file[section] && ceilometer_file[section][setting]
+      end
     end
     keys
   end
