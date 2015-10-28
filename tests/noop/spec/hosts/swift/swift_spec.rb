@@ -8,10 +8,10 @@ describe manifest do
     storage_hash = Noop.hiera 'storage'
     swift_hash = Noop.hiera 'swift'
     nodes = Noop.hiera 'nodes'
-    primary_controller_nodes = Noop::Utils.filter_nodes(nodes,'role','primary-controller')
-    controllers = primary_controller_nodes + Noop::Utils.filter_nodes(nodes,'role','controller')
-    controller_internal_addresses = Noop::Utils.nodes_to_hash(controllers,'name','internal_address')
-    controller_nodes = Noop::Utils.ipsort(controller_internal_addresses.values)
+    primary_controller_nodes = Noop.puppet_function('filter_nodes', nodes, 'role','primary-controller')
+    controllers = primary_controller_nodes + Noop.puppet_function('filter_nodes', nodes, 'role', 'controller')
+    controller_internal_addresses = Noop.puppet_function('nodes_to_hash', controllers,'name','internal_address')
+    controller_nodes = Noop.puppet_function('ipsort', controller_internal_addresses.values)
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
     ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
