@@ -34,7 +34,7 @@ all features against earlier versions.
 * rabbitmq configuration file.
 * rabbitmq service.
 
-###Beginning with rabbitmq  
+###Beginning with rabbitmq
 
 
 ```puppet
@@ -113,6 +113,17 @@ class { 'rabbitmq':
   config_kernel_variables  => {
     'inet_dist_listen_min' => 9100,
     'inet_dist_listen_max' => 9105,
+  }
+}
+```
+
+To change Management Plugin Config Variables in rabbitmq.config, use the parameters
+`config_rabbitmq_management_variables` e.g.:
+
+```puppet
+class { 'rabbitmq':
+  config_rabbitmq_management_variables  => {
+    'rates_mode' => 'basic',
   }
 }
 ```
