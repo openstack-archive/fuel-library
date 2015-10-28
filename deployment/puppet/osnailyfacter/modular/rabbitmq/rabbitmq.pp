@@ -68,6 +68,12 @@ if $queue_provider == 'rabbitmq' {
       'tcp_listen_options'         => $rabbit_tcp_listen_options,
       'cluster_partition_handling' => $cluster_partition_handling,
       'mnesia_table_loading_timeout' => $mnesia_table_loading_timeout,
+      'collect_statistics_interval' => '30000'
+    }
+  )
+  $config_rabbitmq_management_variables = hiera('rabbit_config_management_variables',
+    {
+      'rates_mode' => 'none'
     }
   )
   if $deployment_mode == 'ha_compact' {
