@@ -93,53 +93,53 @@ mod 'postgresql',
 
 # Pull in puppet-openstacklib
 mod 'openstacklib',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openstacklib.git',
-    :ref => '7.0.0-mos-rc4'
+    :git => 'https://git.openstack.org/openstack/puppet-openstacklib.git',
+    :ref => 'master'
 
 # Pull in puppet-keystone
 mod 'keystone',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-keystone.git',
-    :ref => '7.0.0-mos-rc3'
+    :git => 'https://git.openstack.org/openstack/puppet-keystone.git',
+    :ref => 'master'
 
 # Pull in puppet-neutron
 mod 'neutron',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-neutron.git',
-    :ref => '7.0.0-mos-rc5'
+    :git => 'https://git.openstack.org/openstack/puppet-neutron.git',
+    :ref => 'master'
 
 # Pull in puppet-nova
 mod 'nova',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-nova.git',
-    :ref => '7.0.0-mos-rc2'
+    :git => 'https://git.openstack.org/openstack/puppet-nova.git',
+    :ref => 'master'
 
 # Pull in puppet-heat
 mod 'heat',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-heat.git',
-    :ref => '7.0.0-mos-rc2'
+    :git => 'https://git.openstack.org/openstack/puppet-heat.git',
+    :ref => 'master'
 
 # Pull in puppet-horizon
 mod 'horizon',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-horizon.git',
-    :ref => '7.0.0-mos-rc2'
+    :git => 'https://git.openstack.org/openstack/puppet-horizon.git',
+    :ref => 'master'
 
 # Pull in puppet-glance
 mod 'glance',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-glance.git',
-    :ref => '7.0.0-mos-rc2'
+    :git => 'https://git.openstack.org/openstack/puppet-glance.git',
+    :ref => 'master'
 
 # Pull in puppet-swift
 mod 'swift',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-swift.git',
-    :ref => '7.0.0-mos-rc3'
+    :git => 'https://git.openstack.org/openstack/puppet-swift.git',
+    :ref => 'master'
 
 # Pull in puppet-ceilometer
 mod 'ceilometer',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-ceilometer.git',
-    :ref => '7.0.0-mos-rc2'
+    :git => 'https://git.openstack.org/openstack/puppet-ceilometer.git',
+    :ref => 'master'
 
 # Pull in openstack-cinder
 mod 'cinder',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/openstack-cinder.git',
-    :ref => '7.0.0-mos-rc2'
+    :git => 'https://git.openstack.org/openstack/puppet-cinder.git',
+    :ref => 'master'
 
 # Pull in puppet-sahara
 mod 'sahara',
@@ -178,10 +178,10 @@ mod 'tftp',
 
 # Pull in puppet-ironic
 mod 'ironic',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-ironic.git',
-    :ref => '6.0.0'
+    :git => 'https://git.openstack.org/openstack/puppet-ironic.git',
+    :ref => 'master'
 
 # Pull in puppet-murano
 mod 'murano',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-murano.git',
-    :ref => '7.0.0-mos-rc1'
+    :git => 'https://git.openstack.org/openstack/puppet-murano.git',
+    :ref => 'master'

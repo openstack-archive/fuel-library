@@ -109,8 +109,7 @@ class openstack::nova::controller (
   # Configure the db string
   case $db_type {
     'mysql': {
-      $nova_db = "mysql://${nova_db_user}:${nova_db_password}@${db_host}/${nova_db_dbname}\
-?read_timeout=60"
+      $nova_db = "mysql://${nova_db_user}:${nova_db_password}@${db_host}/${nova_db_dbname}"
     }
   }
 
@@ -246,6 +245,7 @@ class openstack::nova::controller (
     notify_api_faults      => $nova_hash['notify_api_faults'],
     notification_driver    => $notification_driver,
     memcached_servers      => $memcached_addresses,
+    cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL')
   }
 
   #NOTE(bogdando) exec update-kombu is always undef, so delete?
@@ -392,9 +392,11 @@ class openstack::nova::controller (
   }
 
   if $vnc_enabled {
-    # Workadroung for bug LP #1468230
-    Package<| title == 'nova-vncproxy' |> {
-      name => 'nova-consoleproxy',
+    if !$::os_package_type or $::os_package_type == "debian" {
+      # Workadroung for bug LP #1468230
+      Package<| title == 'nova-vncproxy' |> {
+        name => 'nova-consoleproxy',
+      }
     }
 
     class { 'nova::vncproxy':

@@ -48,7 +48,7 @@ if $sahara_hash['enabled'] {
   $max_retries     = '-1'
   $idle_timeout    = '3600'
   $read_timeout    = '60'
-  $sql_connection  = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
+  $sql_connection  = "mysql://${db_user}:${db_password}@${db_host}/${db_name}"
 
   ####### Disable upstart startup on install #######
   tweaks::ubuntu_service_override { 'sahara-api':
