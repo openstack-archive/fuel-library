@@ -5,6 +5,14 @@ manifest = 'roles/compute.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    let(:nova_hash) do
+      Noop.hiera_structure 'nova'
+    end
+
+    let(:rhost_mem) do
+      { 'reserved_host_memory' => [512, Float(facts[:memorysize_mb]).floor * 0.2, 1536].sort[1] }
+    end
+
     # Libvirtd.conf
     it 'should configure listen_tls, listen_tcp and auth_tcp in libvirtd.conf' do
       should contain_augeas('libvirt-conf').with(
@@ -82,25 +90,42 @@ describe manifest do
     public_ssl = Noop.hiera_structure('public_ssl/services')
 
     if public_ssl
-      it 'should properly configure vncproxy WITH ssl' do
-        vncproxy_host = Noop.hiera_structure('public_ssl/hostname')
-        should contain_class('openstack::compute').with(
-          'vncproxy_host' => vncproxy_host
-        )
-        should contain_class('nova::compute').with(
-          'vncproxy_protocol' => 'https'
-        )
-      end
+      vncproxy_protocol = 'https'
+      vncproxy_host = Noop.hiera_structure('public_ssl/hostname')
     else
-      it 'should properly configure vncproxy WITHOUT ssl' do
-        vncproxy_host = Noop.hiera('public_vip')
-        should contain_class('openstack::compute').with(
-          'vncproxy_host' => vncproxy_host
-        )
-        should contain_class('nova::compute').with(
-          'vncproxy_protocol' => 'http'
-        )
+      vncproxy_protocol = 'http'
+      vncproxy_host = Noop.hiera('public_vip')
+    end
+
+    it 'should properly configure vncproxy with (non-)ssl' do
+      should contain_class('openstack::compute').with(
+        'vncproxy_host' => vncproxy_host
+      )
+      should contain_class('nova::compute').with(
+        'vncproxy_protocol' => vncproxy_protocol
+      )
+    end
+
+    # Check out nova config params
+    it 'should properly configure nova' do
+      node_name = Noop.hiera('node_name')
+      network_metadata = Noop.hiera_structure('network_metadata')
+      roles = network_metadata['nodes'][node_name]['node_roles']
+      nova_hash.merge!({'vncproxy_protocol' => vncproxy_protocol})
+
+      if roles.include? 'ceph-osd'
+        nova_compute_rhostmem = rhost_mem['reserved_host_memory']
+      else
+        rhost_mem['reserved_host_memory'] = :undef
+        nova_compute_rhostmem = 512 # default
       end
+
+      should contain_class('openstack::compute').with(
+        'nova_hash' => rhost_mem.merge(nova_hash)
+      )
+      should contain_class('nova::compute').with(
+        'reserved_host_memory' => nova_compute_rhostmem
+      )
     end
 
   end
