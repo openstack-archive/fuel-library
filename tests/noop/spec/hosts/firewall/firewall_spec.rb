@@ -23,6 +23,11 @@ describe manifest do
       Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'nova/api'
     end
 
+    let(:nova_api_ip_range) do
+      prepare
+      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'nova/api'
+    end
+
     it 'should properly restrict rabbitmq admin traffic' do
 
       should contain_firewall('005 local rabbitmq admin').with(
@@ -44,6 +49,23 @@ describe manifest do
         'proto'       => 'tcp',
         'action'      => 'accept',
         'destination' => keystone_network,
+      )
+    end
+
+    it 'should accept connections to nova' do
+      should contain_firewall('105 nova').with(
+        'port'        => [ 8774, 8776, 6080 ],
+        'proto'       => 'tcp',
+        'action'      => 'accept',
+      )
+    end
+
+    it 'should accept connections to nova without ssl' do
+      should contain_firewall('105 nova private - no ssl').with(
+        'port'        => [ 8775 ],
+        'proto'       => 'tcp',
+        'action'      => 'accept',
+        'source'      => nova_api_ip_range,
       )
     end
 
