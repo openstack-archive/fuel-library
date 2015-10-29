@@ -169,6 +169,13 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   $use_swift = false
 }
 
+# Get reserved host memory straight value if we've ceph neighbor
+$r_hostmem_sorted = sort([512+0, floor($::memorysize_mb*20/100) , 1536+0])
+$r_hostmem = member($roles, 'ceph-osd') ? {
+               true  => $r_hostmem_sorted[1],
+               false => undef,
+             }
+
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
 #   we delegate all of the monitor functions to RA instead of monit.
 if member($roles, 'controller') or member($roles, 'primary-controller') {
@@ -253,7 +260,7 @@ class { 'openstack::compute':
   vnc_enabled                 => true,
   manage_volumes              => $manage_volumes,
   nova_user_password          => $nova_hash[user_password],
-  nova_hash                   => $nova_hash,
+  nova_hash                   => merge({'reserved_host_memory' => $r_hostmem}, $nova_hash),
   cache_server_ip             => $memcache_ipaddrs,
   service_endpoint            => $service_endpoint,
   cinder                      => true,
