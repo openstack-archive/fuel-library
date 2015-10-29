@@ -19,7 +19,12 @@ if $use_neutron {
 
   $verbose      = pick($openstack_network_hash['verbose'], hiera('verbose', true))
   $debug        = pick($openstack_network_hash['debug'], hiera('debug', true))
-  $use_syslog   = hiera('use_syslog', true)
+  # LP#1499620
+  if $::os_package_type == 'Ubuntu' {
+    $use_syslog = false
+  } else {
+    $use_syslog = hiera('use_syslog', true)
+  }
   $use_stderr   = hiera('use_stderr', false)
   $log_facility = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 
