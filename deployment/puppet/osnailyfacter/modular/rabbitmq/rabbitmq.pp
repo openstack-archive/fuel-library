@@ -137,8 +137,6 @@ if $queue_provider == 'rabbitmq' {
 
     class { 'nova::rabbitmq':
       enabled        => $enabled,
-      # Do not install rabbitmq from nova classes
-      rabbitmq_class => false,
       userid         => $rabbit_hash['user'],
       password       => $rabbit_hash['password'],
       require        => Class['::rabbitmq'],

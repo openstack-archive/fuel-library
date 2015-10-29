@@ -27,7 +27,7 @@ describe manifest do
           neutron_db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
           neutron_db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
           neutron_db_host     = neutron_config.fetch('database', {}).fetch('host', database_vip)
-          neutron_db_uri = "mysql://#{neutron_db_user}:#{neutron_db_password}@#{neutron_db_host}/#{neutron_db_name}?&read_timeout=60"
+          neutron_db_uri = "mysql://#{neutron_db_user}:#{neutron_db_password}@#{neutron_db_host}/#{neutron_db_name}"
           should contain_class('neutron::server').with(
             'sync_db'                 => 'false',
             'database_retry_interval' => '2',
