@@ -23,7 +23,7 @@ $db_host                  = pick($heat_hash['db_host'], hiera('database_vip'))
 $database_user            = pick($heat_hash['db_user'], 'heat')
 $database_name            = hiera('heat_db_name', 'heat')
 $read_timeout             = '60'
-$sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}?read_timeout=${read_timeout}"
+$sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}"
 $region                   = hiera('region', 'RegionOne')
 $public_ssl_hash          = hiera('public_ssl')
 
