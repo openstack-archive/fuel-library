@@ -66,3 +66,10 @@ Class['openstack::horizon'] -> Haproxy_backend_status['keystone-admin']
 Class['openstack::horizon'] -> Haproxy_backend_status['keystone-public']
 
 include ::tweaks::apache_wrappers
+
+# LP#1479340
+if $::os_package_type == 'ubuntu' {
+  Exec<| title == 'refresh_horizon_django_cache' |> {
+    command => '/usr/bin/true'
+  }
+}

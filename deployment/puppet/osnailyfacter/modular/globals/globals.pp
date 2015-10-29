@@ -183,7 +183,7 @@ $max_overflow             = hiera('max_overflow', min($::processorcount * 5 + 0,
 $max_retries              = hiera('max_retries', '-1')
 $idle_timeout             = hiera('idle_timeout','3600')
 $nova_db_password         = $nova_hash['db_password']
-$sql_connection           = "mysql://nova:${nova_db_password}@${database_vip}/nova?read_timeout = 6 0"
+$sql_connection           = "mysql://nova:${nova_db_password}@${database_vip}/nova"
 $mirror_type              = hiera('mirror_type', 'external')
 $multi_host               = hiera('multi_host', true)
 

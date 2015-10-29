@@ -33,6 +33,9 @@ class mysql::params {
   $max_connections         = '3000'
   $debug                   = false
   $ignore_db_dirs          = []
+  $client_package_ensure   = 'present'
+  $client_apckage_manage   = true
+  $bindings_enable         = false
 
   case $::osfamily {
     'RedHat': {
