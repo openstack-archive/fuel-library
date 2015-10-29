@@ -70,15 +70,9 @@ describe manifest do
 
     if floating_ips_range && access_hash
       floating_ips_range.each do |ips_range|
-        it "should configure nova floating IP range for #{ips_range}" do
-          should contain_nova_floating_range(ips_range).with(
-            'ensure'      => 'present',
-            'pool'        => 'nova',
-            'username'    => access_hash['user'],
-            'api_key'     => access_hash['password'],
-            'auth_method' => 'password',
-            'auth_url'    => "http://#{keystone_host}:5000/v2.0/",
-            'api_retries' => '10',
+        pending "should configure nova floating IP range for #{ips_range}" do
+          should contain_nova__manage__floating(ips_range).with(
+            'network' => ips_range
           )
         end
       end

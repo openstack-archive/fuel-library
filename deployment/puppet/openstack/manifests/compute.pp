@@ -268,6 +268,7 @@ class openstack::compute (
       service_down_time      => $nova_service_down_time,
       notify_on_state_change => $notify_on_state_change,
       memcached_servers      => $memcached_addresses,
+      cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL')
   }
 
   if str2bool($::is_virtual) {
@@ -312,10 +313,6 @@ class openstack::compute (
     'libvirt/block_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_NON_SHARED_INC';
   }
 
-  nova_config {
-    'cinder/catalog_info': value => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL')
-  }
-
   if $use_syslog {
     nova_config {
       'DEFAULT/use_syslog_rfc_format':  value => true;
@@ -345,6 +342,16 @@ class openstack::compute (
     $disk_cachemodes = ['"file=directsync,block=none"']
   }
 
+  # TODO(aschultz): fix this in puppet-nova to properly split debian/ubuntu
+  # so we can stop specifying this
+  if $::os_package_type == 'ubuntu' {
+    $libvirt_service_name = 'libvirtd-bin'
+  } else {
+    # Workaround for bug LP #1469308
+    # also service name for Ubuntu and Centos is the same.
+    $libvirt_service_name = 'libvirtd'
+  }
+
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
     libvirt_virt_type                          => $libvirt_type,
@@ -355,9 +362,7 @@ class openstack::compute (
     migration_support                          => $migration_support,
     remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
     compute_driver                             => $compute_driver,
-    # Workaround for bug LP #1469308
-    # also service name for Ubuntu and Centos is the same.
-    libvirt_service_name     => "libvirtd",
+    libvirt_service_name                       => $libvirt_service_name,
   }
 
   # From legacy libvirt.pp
