@@ -268,6 +268,7 @@ class openstack::compute (
       service_down_time      => $nova_service_down_time,
       notify_on_state_change => $notify_on_state_change,
       memcached_servers      => $memcached_addresses,
+      cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL')
   }
 
   if str2bool($::is_virtual) {
@@ -310,10 +311,6 @@ class openstack::compute (
   nova_config {
     'libvirt/live_migration_flag':  value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
     'libvirt/block_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_NON_SHARED_INC';
-  }
-
-  nova_config {
-    'cinder/catalog_info': value => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL')
   }
 
   if $use_syslog {

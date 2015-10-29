@@ -259,6 +259,7 @@ module Noop
         :l3_default_route       => '172.16.1.1',
         :concat_basedir         => '/tmp/',
         :l23_os                 => 'ubuntu',
+        :os_service_default     => '<SERVICE DEFAULT>', # openstack service default fact
     }
   end
 
@@ -279,6 +280,7 @@ module Noop
         :l3_default_route       => '172.16.1.1',
         :concat_basedir         => '/tmp/',
         :l23_os                 => 'centos6',
+        :os_service_default     => '<SERVICE DEFAULT>', # openstack service default fact
     }
   end
 
