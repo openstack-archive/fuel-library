@@ -36,7 +36,7 @@
 class nova::vncproxy(
   $enabled           = false,
   $manage_service    = true,
-  $vncproxy_protocol = 'http',
+  $vncproxy_protocol = 'https',
   $host              = '0.0.0.0',
   $port              = '6080',
   $vncproxy_path     = '/vnc_auto.html',
