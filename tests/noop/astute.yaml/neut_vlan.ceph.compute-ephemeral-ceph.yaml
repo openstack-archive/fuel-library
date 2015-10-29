@@ -314,6 +314,16 @@ nodes:
   uid: '2'
   internal_netmask: 255.255.255.0
   fqdn: node-2.domain.local
+  role: ceph-osd
+  internal_address: 10.122.12.6
+  storage_address: 10.122.14.2
+  swift_zone: '2'
+  storage_netmask: 255.255.255.0
+  name: node-2
+- user_node_name: Untitled (e5:e6)
+  uid: '2'
+  internal_netmask: 255.255.255.0
+  fqdn: node-2.domain.local
   role: compute
   internal_address: 10.122.12.6
   storage_address: 10.122.14.2
@@ -589,6 +599,7 @@ network_metadata:
       user_node_name: Untitled (e5:e6)
       node_roles:
       - compute
+      - ceph-osd
       name: node-2
   vips:
     vrouter_pub:
