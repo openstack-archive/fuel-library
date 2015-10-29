@@ -78,24 +78,16 @@ class openstack::ceilometer (
 
     if ( !$ext_mongo ) {
       if ( $db_type == 'mysql' ) {
-        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60"
+        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
       } else {
         if ( !$mongo_replicaset ) {
           $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
         } else {
           $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
-          ceilometer_config {
-            'database/mongodb_replica_set' : value => $mongo_replicaset;
-          }
         }
       }
     } else {
       $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
-      if $mongo_replicaset {
-        ceilometer_config {
-          'database/mongodb_replica_set' : value => $mongo_replicaset;
-        }
-      }
     }
 
     ceilometer_config { 'service_credentials/os_endpoint_type': value => $os_endpoint_type} ->
@@ -103,6 +95,7 @@ class openstack::ceilometer (
 
     class { '::ceilometer::db':
       database_connection => $current_database_connection,
+      mongodb_replica_set => $mongo_replicaset,
     }
 
     # Install the ceilometer-api service
