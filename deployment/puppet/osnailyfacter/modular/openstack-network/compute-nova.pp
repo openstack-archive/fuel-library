@@ -21,12 +21,18 @@ if $use_neutron {
   $admin_auth_url     = "${admin_identity_uri}/${auth_api_version}"
   $neutron_url        = "http://${neutron_endpoint}:9696"
 
+  # TODO(aschultz): use upstream for this for ubuntu vs debian split
+  if ($::os_package_type == 'ubuntu') {
+    $service_name = 'libvirt-bin'
+  } else {
+    $service_name = 'libvirtd'
+  }
   service { 'libvirt' :
     ensure   => 'running',
     enable   => true,
   # Workaround for bug LP #1469308
   # also service name for Ubuntu and Centos is the same.
-    name     => 'libvirtd',
+    name     => $service_name,
     provider => $nova::params::special_service_provider,
   }
 

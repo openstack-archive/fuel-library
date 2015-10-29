@@ -77,3 +77,10 @@ if $::osfamily == 'Debian' {
 }
 
 include ::tweaks::apache_wrappers
+
+# TODO(aschultz): LP#1479340
+if $::os_package_type == 'ubuntu' {
+  Exec<| title == 'refresh_horizon_django_cache' |> {
+    command => '/bin/true'
+  }
+}

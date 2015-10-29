@@ -3,8 +3,6 @@
 # This class creates keystone users, services, endpoints, and roles
 # for Nailgun services.
 #
-# The user is given the admin role in the services tenant.
-#
 # === Parameters
 # [*auth_user*]
 #  String. The name of the user.
@@ -45,7 +43,6 @@ class nailgun::auth(
   keystone_user { $auth_name:
     ensure   => present,
     enabled  => 'True',
-    tenant   => 'services',
     password => $password,
   }
 
