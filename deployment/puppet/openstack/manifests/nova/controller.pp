@@ -246,6 +246,7 @@ class openstack::nova::controller (
     notify_api_faults      => $nova_hash['notify_api_faults'],
     notification_driver    => $notification_driver,
     memcached_servers      => $memcached_addresses,
+    cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL')
   }
 
   #NOTE(bogdando) exec update-kombu is always undef, so delete?
@@ -274,10 +275,6 @@ class openstack::nova::controller (
 
   nova_config {
     'DEFAULT/fping_path': value => $fping_path,
-  }
-
-  nova_config {
-    'cinder/catalog_info': value => 'volume:cinder:internalURL',
   }
 
   class {'nova::quota':

@@ -9,11 +9,11 @@
 #   (required) Password.
 # [*enabled*]
 #   (optional) Is user enabled. Defaults to true.
-# [*workloads_user*]
+# [*workloads_username*]
 #   (optional) Defaults to 'fuel_stats_user'.
-# [*tenant*]
+# [*workloads_tenant*]
 #   (optional) Defaults to 'services'.
-# [*create_user*]
+# [*workloads_create_user*]
 #   (optional) Is creation of user required. Defaults to false.
 #
 class openstack::workloads_collector(
@@ -28,14 +28,14 @@ class openstack::workloads_collector(
 
     validate_string($workloads_password)
 
+    # tenant no longer supported by keystone_user, see LP#1472437
     keystone_user { $workloads_username:
-      ensure          => present,
-      password        => $workloads_password,
-      enabled         => $enabled,
-      tenant          => $workloads_tenant,
+      ensure   => present,
+      password => $workloads_password,
+      enabled  => $enabled,
     }
 
-    keystone_user_role { "$workloads_username@$workloads_tenant":
+    keystone_user_role { "${workloads_username}@${workloads_tenant}":
       ensure => present,
       roles  => ['admin'],
     }
