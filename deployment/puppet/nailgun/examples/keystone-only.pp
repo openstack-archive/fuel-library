@@ -7,10 +7,6 @@ else {
     $production = 'docker'
 }
 
-package { 'python-psycopg2':
-  ensure => installed,
-}
-
 $auth_version = "v2.0"
 
 case $production {
