@@ -7,7 +7,7 @@ if ( $::l23_os =~ /(?i:centos6)/ and $::kernelmajversion == '3.10' ) {
 }
 
 class { 'l23network' :
-  use_ovs                      => hiera('use_neutron', false),
+  use_ovs                      => hiera('use_ovs', false),
   use_ovs_dkms_datapath_module => $::l23_os ? {
                                     /(?i:redhat7|centos7)/ => false,
                                     default                => true

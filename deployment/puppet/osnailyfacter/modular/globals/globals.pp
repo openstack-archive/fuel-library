@@ -51,6 +51,7 @@ $node_role                      = hiera('role')
 $dns_nameservers                = hiera('dns_nameservers', [])
 $use_ceilometer                 = $ceilometer_hash['enabled']
 $use_neutron                    = hiera('quantum', false)
+$use_ovs                        = hiera('use_ovs', $use_neutron)
 $verbose                        = true
 $debug                          = hiera('debug', false)
 $use_monit                      = false
