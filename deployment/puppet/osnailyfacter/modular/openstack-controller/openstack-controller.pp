@@ -169,7 +169,8 @@ if $primary_controller {
       "NOVA_ENDPOINT_TYPE=internalURL",
     ],
     command   => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
-    unless    => 'bash -c "nova flavor-list | grep -q m1.micro"',
+    #FIXME(mattymo): Upstream bug PUP-2299 for retries in unless/onlyif
+    unless    => 'bash -c "for tries in {1..10}; do nova flavor-list | grep -q m1.micro && exit 1; sleep 2; done"; exit 1',
     tries     => 10,
     try_sleep => 2,
     require   => Class['nova'],
