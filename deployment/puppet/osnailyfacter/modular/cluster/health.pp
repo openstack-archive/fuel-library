@@ -8,9 +8,9 @@ if !(hiera('role') in hiera('corosync_roles')) {
 $mount_points = delete(split($::mounts, ','), '/boot')
 
 $disks              = hiera('corosync_disks', $mount_points)
-$min_disk_free      = hiera('corosync_min_disk_space', '100M')
+$min_disk_free      = hiera('corosync_min_disk_space', '512M')
 $disk_unit          = hiera('corosync_disk_unit', 'M')
-$monitor_interval   = hiera('corosync_disk_monitor_interval', '30s')
+$monitor_interval   = hiera('corosync_disk_monitor_interval', '15s')
 
 class { 'cluster::sysinfo':
   disks              => $disks,
