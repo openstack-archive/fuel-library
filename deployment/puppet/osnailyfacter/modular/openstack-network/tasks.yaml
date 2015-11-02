@@ -1,7 +1,7 @@
 - id: neutron-db
   type: puppet
   groups: [primary-controller]
-  required_for: [openstack-network]
+  required_for: [openstack-network-end]
   requires: [database]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/db.pp
@@ -11,18 +11,26 @@
 - id: neutron-keystone
   type: puppet
   groups: [primary-controller]
-  required_for: [openstack-network]
+  required_for: [openstack-network-end]
   requires: [keystone]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
+# Anchor (empty task) for another tasks, say 'tenant network FW setup starting'
+- id: openstack-network-start
+  type: skipped
+  groups: [primary-controller,controller,compute]
+  requires: [neutron-keystone, neutron-db, netconfig, openstack-controller, top-role-compute, ironic-compute]
+  required_for: [openstack-network-common-config]
+  requires: []
+
 - id: openstack-network-common-config
   type: puppet
   groups: [primary-controller,controller,compute,ironic]
-  required_for: [openstack-network]
-  requires: [neutron-keystone, neutron-db, netconfig, openstack-controller, top-role-compute, ironic-compute]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-start]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/common-config.pp
     puppet_modules: /etc/puppet/modules
@@ -31,7 +39,7 @@
 - id: openstack-network-server-config
   type: puppet
   groups: [primary-controller,controller]
-  required_for: [openstack-network]
+  required_for: [openstack-network-end]
   requires: [openstack-network-common-config]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/server-config.pp
@@ -41,7 +49,7 @@
 - id: openstack-network-plugins-l2
   type: puppet
   groups: [primary-controller,controller,compute,ironic]
-  required_for: [openstack-network]
+  required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-server-config,netconfig]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/plugins/ml2.pp
@@ -51,7 +59,7 @@
 - id: openstack-network-networks
   type: puppet
   groups: [primary-controller]
-  required_for: [openstack-network]
+  required_for: [openstack-network-end]
   requires: [openstack-network-server-config,openstack-network-plugins-l2]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/networks.pp
@@ -61,7 +69,7 @@
 - id: openstack-network-routers
   type: puppet
   groups: [primary-controller]
-  required_for: [openstack-network]
+  required_for: [openstack-network-end]
   requires: [openstack-network-plugins-l2,openstack-network-networks]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/routers.pp
@@ -71,8 +79,8 @@
 - id: openstack-network-agents-l3
   type: puppet
   groups: [primary-controller,controller,compute]
-  required_for: [openstack-network]
-  requires: [openstack-network-routers,openstack-network-plugins-l2,netconfig]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-routers,openstack-network-plugins-l2]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/l3.pp
     puppet_modules: /etc/puppet/modules
@@ -81,7 +89,7 @@
 - id: openstack-network-server-nova
   type: puppet
   groups: [primary-controller,controller]
-  required_for: [openstack-network]
+  required_for: [openstack-network-end]
   requires: [openstack-network-agents-l3]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/server-nova.pp
@@ -91,8 +99,8 @@
 - id: openstack-network-agents-dhcp
   type: puppet
   groups: [primary-controller,controller]
-  required_for: [openstack-network]
-  requires: [openstack-network-common-config,openstack-network-server-nova,netconfig,openstack-network-agents-l3]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/dhcp.pp
     puppet_modules: /etc/puppet/modules
@@ -101,8 +109,8 @@
 - id: openstack-network-agents-metadata
   type: puppet
   groups: [primary-controller,controller]
-  required_for: [openstack-network]
-  requires: [openstack-network-common-config,openstack-network-server-nova,netconfig,openstack-network-agents-l3,openstack-network-agents-dhcp]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3,openstack-network-agents-dhcp]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/metadata.pp
     puppet_modules: /etc/puppet/modules
@@ -111,7 +119,7 @@
 - id: openstack-network-compute-nova
   type: puppet
   groups: [compute]
-  required_for: [openstack-network]
+  required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-agents-l3]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/compute-nova.pp
@@ -119,12 +127,8 @@
     timeout: 1800
 
 # Anchor (empty task) for another tasks, say 'tenant network FW setup done'
-- id: openstack-network
-  type: puppet
+- id: openstack-network-end
+  type: skipped
   groups: [primary-controller,controller,compute]
   required_for: [deploy_end]
   requires: []
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 1800
