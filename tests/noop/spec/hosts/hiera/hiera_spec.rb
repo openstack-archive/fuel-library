@@ -13,8 +13,20 @@ describe manifest do
         'ensure' => 'present',
         'path'   => '/etc/hiera.yaml'
       )
+
       # ensure deeper merge_behavior is being set
-      should contain_file('hiera_config').with_content(/deeper/)
+      should contain_hiera_config('/etc/hiera.yaml').with(
+        'merge_behavior' => 'deeper',
+      )
+
+      # ensure hiera_config is taking plugin overrides from the astute.yaml
+      should contain_hiera_config('/etc/hiera.yaml').with(
+                 'ensure' => 'present',
+                 'metadata_yaml_file' => '/etc/astute.yaml',
+                 'override_dir' => 'plugins',
+                 'data_dir' => '/etc/hiera',
+             )
+
       # check symlinks
       should contain_file('hiera_data_astute').with(
         'ensure' => 'symlink',
