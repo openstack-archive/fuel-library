@@ -24,4 +24,3 @@ class osnailyfacter::acpid (
     enable => $service_enabled,
   }
 }
-
