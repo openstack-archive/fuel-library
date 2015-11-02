@@ -120,11 +120,7 @@
 
 # Anchor (empty task) for another tasks, say 'tenant network FW setup done'
 - id: openstack-network
-  type: puppet
+  type: skipped
   groups: [primary-controller,controller,compute]
   required_for: [deploy_end]
   requires: []
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 1800
