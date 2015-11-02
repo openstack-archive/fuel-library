@@ -9,14 +9,14 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
   end
 
   def self.target_files(script_dir = nil)
-    provider = self.name
+    provider = self.name.to_s
     debug("Collecting target files for #{provider}")
     entries = super
-    regoc_regex = %r{DEVICETYPE=ovs}
+    regoc_regex = %r{TYPE=OVS}
     if provider =~ /ovs_/
-      entries.select! { |entry| !open(entry).grep(regoc_regex).empty? }
+      entries = entries.reject { |entry| open(entry).grep(regoc_regex).empty? }
     elsif provider =~ /lnx_/
-      entries.select! { |entry| open(entry).grep(regoc_regex).empty? }
+      entries = entries.select { |entry| open(entry).grep(regoc_regex).empty? }
     end
     entries
   end
@@ -42,7 +42,10 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
       :bond_miimon           => 'miimon',
       :bonding_opts          => 'BONDING_OPTS',
       :bond_lacp_rate        => 'lacp_rate',
+      :bond_ad_select        => 'ad_select',
       :bond_xmit_hash_policy => 'xmit_hash_policy',
+      :bond_updelay          => 'updelay',
+      :bond_downdelay        => 'downdelay',
       :ethtool               => 'ETHTOOL_OPTS',
       :routes                => 'ROUTES',
     }
@@ -76,24 +79,6 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
   def properties_fake
     self.class.properties_fake
   end
-
-  # This is a hook method that will be called by PuppetX::Filemapper
-  #
-  # @param [String] filename The path of the interfaces file being parsed
-  # @param [String] contents The contents of the given file
-  #
-  # @return [Array<Hash<Symbol, String>>] A single element array containing
-  #   the key/value pairs of properties parsed from the file.
-  #
-  # @example
-  #   RedhatProvider.parse_file('/etc/sysconfig/network-scripts/ifcfg-eth0', #<String:0xdeadbeef>)
-  #   # => [
-  #   #   {
-  #   #     :name      => 'eth0',
-  #   #     :ipaddress => '169.254.0.1',
-  #   #     :netmask   => '255.255.0.0',
-  #   #   },
-  #   # ]
 
   def self.parse_file(filename, contents)
     # WARNING!!!
@@ -144,17 +129,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
       hash.delete('PREFIX')
     end
 
-    if hash.has_key?('BONDING_OPTS')
-      bonding_opts_line = hash['BONDING_OPTS'].scan(/"([^"]*)"/).to_s.split
-      bonding_opts_line.each do | bond_opt |
-        if (bom = bond_opt.match(pair_regex))
-          hash[bom[1].strip] = bom[2].strip
-        else
-          raise Puppet::Error, %{#{filename} is malformed; "#{line}" did not match "#{pair_regex.to_s}"}
-        end
-      end
-      hash.delete('BONDING_OPTS')
-    end
+    hash = self.parse_bond_opts(hash) if ( hash.has_key?('TYPE') and hash['TYPE'] =~ %r{Bond} )
 
     props = self.mangle_properties(hash)
     props.merge!({:family => :inet})
@@ -166,6 +141,22 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
 
   def self.check_if_provider(if_data)
     raise Puppet::Error, "self.check_if_provider(if_data) Should be implemented in more specific class."
+  end
+
+  def self.parse_bond_opts(hash)
+    if hash.has_key?('BONDING_OPTS')
+      bonding_opts_line = hash['BONDING_OPTS'].gsub('"', '').split(' ')
+      pair_regex = %r/^\s*(.+?)\s*=\s*(.*)\s*$/
+      bonding_opts_line.each do | bond_opt |
+        if (bom = bond_opt.match(pair_regex))
+          hash[bom[1].strip] = bom[2].strip
+        else
+          raise Puppet::Error, %{#{filename} is malformed; "#{line}" did not match "#{pair_regex.to_s}"}
+        end
+      end
+      hash.delete('BONDING_OPTS')
+    end
+    hash
   end
 
   def self.mangle_properties(pairs)
@@ -261,7 +252,6 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
 
   ###
   # Hash to file
-
   def self.format_file(filename, providers)
     if providers.length == 0
       return ""
@@ -277,6 +267,10 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
 
     property_mappings.keys.select{|v| ! properties_fake.include?(v)}.each do |type_name|
       val = provider.send(type_name)
+      if val.is_a?(Array)
+        val.select { |x| x.to_s != 'absent' or x.to_s != '' }
+        val = false if val.empty?
+      end
       if val and val.to_s != 'absent'
         props[type_name] = val
       end
@@ -289,23 +283,10 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
        props[:slave] = 'yes'
     end
 
+    props = self.format_bond_opts(props) if props.has_key?(:bond_mode)
+
     debug("format_file('#{filename}')::properties: #{props.inspect}")
     pairs = self.unmangle_properties(provider, props)
-
-    if pairs.has_key?('mode')
-      bond_options = "mode=#{pairs['mode']} miimon=#{pairs['miimon']}"
-      if pairs.has_key?('lacp_rate')
-        bond_options = "#{bond_options} lacp_rate=#{pairs['lacp_rate']}"
-        pairs.delete('lacp_rate')
-      end
-      if pairs.has_key?('xmit_hash_policy')
-        bond_options = "#{bond_options} xmit_hash_policy=#{pairs['xmit_hash_policy']}"
-        pairs.delete('xmit_hash_policy')
-      end
-      pairs['BONDING_OPTS']  = "\"#{bond_options}\""
-      pairs.delete('mode')
-      pairs.delete('miimon')
-    end
 
     if pairs['TYPE'] == :OVSBridge
       pairs['DEVICETYPE'] = 'ovs'
@@ -350,9 +331,21 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     self.write_file file, content
   end
 
+  def self.format_bond_opts(props)
+    bond_options = []
+    bond_properties = property_mappings.select { |k, v|  k.to_s =~ %r{bond_.*} and !([:bond_master].include?(k)) }
+    bond_properties.each do |param, transform |
+      if props.has_key?(param)
+        bond_options << "#{transform}=#{props[param]}"
+        props.delete(param)
+      end
+    end
+    props[:bonding_opts]  = "\"#{bond_options.join(' ')}\""
+    props
+  end
+
   def self.unmangle_properties(provider, props)
     pairs = {}
-
     boolean_properties.each do |bool_property|
       if ! props[bool_property].nil?
         props[bool_property] = (props[bool_property].to_s.downcase == 'true' || props[bool_property].integer?) ? 'yes' : 'no'
@@ -376,7 +369,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
   end
 
   def self.unmangle__bridge(provider, val)
-    (['', 'absent'] & Array(val).map{|a| a.to_s.downcase}.uniq).any?  ?  nil  :  val.to_s
+    val.join()
   end
 
   def self.unmangle__if_type(provider, val)
