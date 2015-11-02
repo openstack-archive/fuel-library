@@ -1,5 +1,5 @@
 [program:docker-<%= @title %>]
-command=docker start -a fuel-core-<%= @release %>-<%= @title %>
+command=dockerctl -V <%= @release %> start <%= @title %> --attach
 numprocs=1
 numprocs_start=0
 priority=30
