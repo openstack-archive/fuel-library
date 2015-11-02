@@ -22,7 +22,6 @@ class nailgun::cobbler(
   $dhcp_netmask,
   $dhcp_gateway                  = $ipaddress,
   $dhcp_interface,
-  $extra_admin_nets              = {},
   $nailgun_api_url               = "http://${::ipaddress}:8000/api",
   # default password is 'r00tme'
   $ks_encrypted_root_password    = '\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61',
@@ -60,8 +59,7 @@ class nailgun::cobbler(
     dhcp_interface     => $dhcp_interface,
     cobbler_user       => $cobbler_user,
     cobbler_password   => $cobbler_password,
-    pxetimeout         => '50',
-    extra_admin_nets   => $extra_admin_nets
+    pxetimeout         => '50'
   }
 
   # ADDING send2syslog.py SCRIPT AND CORRESPONDING SNIPPET
