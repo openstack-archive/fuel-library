@@ -13,8 +13,12 @@ describe manifest do
         'ensure' => 'present',
         'path'   => '/etc/hiera.yaml'
       )
+
       # ensure deeper merge_behavior is being set
-      should contain_file('hiera_config').with_content(/deeper/)
+      should contain_hiera_config('/etc/hiera.yaml').with(
+        'merge_behavior' => 'deeper',
+      )
+
       # check symlinks
       should contain_file('hiera_data_astute').with(
         'ensure' => 'symlink',

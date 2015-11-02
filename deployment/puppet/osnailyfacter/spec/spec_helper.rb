@@ -16,7 +16,7 @@ end
 RSpec.configure do |c|
   c.module_path = File.join(fixture_path, 'modules')
   c.manifest_dir = File.join(fixture_path, 'manifests')
-  c.mock_with(:mocha)
+  c.mock_with(:rspec)
 end
 
 def puppet_debug_override
