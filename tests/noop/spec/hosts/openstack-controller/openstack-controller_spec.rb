@@ -58,6 +58,16 @@ describe manifest do
       )
     end
 
+    #PUP-2299
+    if primary_controller
+      it 'should retry unless when creating m1.micro flavor' do
+        should contain_exec('create-m1.micro-flavor').with(
+           'command' => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
+           'unless'  => 'bash -c "for tries in {1..10}; do nova flavor-list | grep -q m1.micro && exit 0; sleep 2; done"; exit 1',
+        )
+      end
+    end
+
     if floating_ips_range && access_hash
       floating_ips_range.each do |ips_range|
         it "should configure nova floating IP range for #{ips_range}" do
