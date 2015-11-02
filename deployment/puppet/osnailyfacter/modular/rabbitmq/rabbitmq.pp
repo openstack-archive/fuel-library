@@ -75,6 +75,12 @@ if $queue_provider == 'rabbitmq' {
       'tcp_listen_options'         => $rabbit_tcp_listen_options,
       'cluster_partition_handling' => $cluster_partition_handling,
       'mnesia_table_loading_timeout' => $mnesia_table_loading_timeout,
+      'collect_statistics_interval' => '30000'
+    }
+  )
+  $config_rabbitmq_management_variables = hiera('rabbit_config_management_variables',
+    {
+      'rates_mode' => 'none'
     }
   )
 
@@ -94,29 +100,30 @@ if $queue_provider == 'rabbitmq' {
 
   if ($enabled) {
     class { '::rabbitmq':
-      admin_enable               => true,
-      repos_ensure               => false,
-      package_provider           => $package_provider,
-      package_source             => undef,
-      service_ensure             => 'running',
-      service_manage             => true,
-      port                       => $amqp_port,
-      delete_guest_user          => true,
-      default_user               => $rabbit_hash['user'],
-      default_pass               => $rabbit_hash['password'],
+      admin_enable                         => true,
+      repos_ensure                         => false,
+      package_provider                     => $package_provider,
+      package_source                       => undef,
+      service_ensure                       => 'running',
+      service_manage                       => true,
+      port                                 => $amqp_port,
+      delete_guest_user                    => true,
+      default_user                         => $rabbit_hash['user'],
+      default_pass                         => $rabbit_hash['password'],
       # NOTE(bogdando) set to true and uncomment the lines below, if puppet should create a cluster
       # We don't want it as far as OCF script creates the cluster
-      config_cluster             => false,
-      #erlang_cookie              => $erlang_cookie,
-      #wipe_db_on_cookie_change   => true,
-      #cluster_nodes              => $rabbitmq_cluster_nodes,
-      #cluster_node_type          => 'disc',
-      #cluster_partition_handling => $cluster_partition_handling,
-      version                    => $version,
-      node_ip_address            => $rabbitmq_bind_ip_address,
-      config_kernel_variables    => $config_kernel_variables,
-      config_variables           => $config_variables,
-      environment_variables      => $environment_variables,
+      config_cluster                       => false,
+      #erlang_cookie                       => $erlang_cookie,
+      #wipe_db_on_cookie_change            => true,
+      #cluster_nodes                       => $rabbitmq_cluster_nodes,
+      #cluster_node_type                   => 'disc',
+      #cluster_partition_handling          => $cluster_partition_handling,
+      version                              => $version,
+      node_ip_address                      => $rabbitmq_bind_ip_address,
+      config_kernel_variables              => $config_kernel_variables,
+      config_rabbitmq_management_variables => $config_rabbitmq_management_variables,
+      config_variables                     => $config_variables,
+      environment_variables                => $environment_variables,
     }
 
     if ($use_pacemaker) {
