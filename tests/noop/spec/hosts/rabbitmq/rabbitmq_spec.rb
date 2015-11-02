@@ -39,6 +39,12 @@ describe manifest do
       should contain_class('rabbitmq').with_config_rabbitmq_management_variables(/#{rates_mode}/)
     end
 
+    # Partial LP#1493520
+    it "should configure rabbitmq disk_free_limit" do
+      disk_free_limit = '[{disk_free_limit,5000000}]'
+      should contain_class('rabbitmq').with_config_variables(/#{disk_free_limit}/)
+    end
+
     it "should start epmd before rabbitmq plugins" do
       should contain_exec('epmd_daemon').that_comes_before('Rabbitmq_plugin[rabbitmq_management]')
     end
