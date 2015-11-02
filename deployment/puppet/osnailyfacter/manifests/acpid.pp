@@ -25,3 +25,4 @@ class osnailyfacter::acpid (
   }
 }
 
+# hiera_array(wat_roles)
