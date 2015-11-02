@@ -7,6 +7,9 @@ if $use_neutron {
   $access_hash           = hiera('access', { })
   $keystone_admin_tenant = $access_hash['tenant']
   $neutron_config        = hiera_hash('neutron_config')
+  $floating_net          = pick($neutron_config['default_floating_net'], 'net04_ext')
+  $private_net           = pick($neutron_config['default_private_net'], 'net04')
+  $default_router        = pick($neutron_config['default_router'], 'router04')
   $segmentation_type     = try_get_value($neutron_config, 'L2/segmentation_type')
 
   $nets = $neutron_config['predefined_networks']
@@ -24,66 +27,64 @@ if $use_neutron {
 
   $fallback_segment_id = $segmentation_id_range[0]
 
-  $net04_ext_segment_id  = try_get_value($nets, 'net04_ext/L2/segment_id', $fallback_segment_id)
-  $net04_segment_id      = try_get_value($nets, 'net04/L2/segment_id', $fallback_segment_id)
+  $floating_net_segment_id  = try_get_value($nets, "${$floating_net}/L2/segment_id", $fallback_segment_id)
+  $private_net_segment_id   = try_get_value($nets, "${private_net}/L2/segment_id", $fallback_segment_id)
 
-  $net04_ext_floating_range = split(try_get_value($nets, 'net04_ext/L3/floating', ''), ':')
-  $net04_floating_range     = split(try_get_value($nets, 'net04/L3/floating', ''), ':')
+  $floating_net_floating_range = split(try_get_value($nets, "${$floating_net}/L3/floating", ''), ':')
+  $private_net_floating_range     = split(try_get_value($nets, "${private_net}/L3/floating", ''), ':')
 
-  if !empty($net04_ext_floating_range) {
-    $net04_ext_floating_range_start = $net04_ext_floating_range[0]
-    $net04_ext_floating_range_end   = $net04_ext_floating_range[1]
-    $net04_ext_allocation_pool = "start=${net04_ext_floating_range_start},end=${net04_ext_floating_range_end}"
+  if !empty($floating_net_floating_range) {
+    $floating_net_allocation_pool = "start=${floating_net_floating_range[0]},end=${$floating_net_floating_range}"
   }
 
-  $net04_ext_physnet     = try_get_value($nets, 'net04_ext/L2/physnet', false)
-  $net04_physnet         = try_get_value($nets, 'net04/L2/physnet', false)
+  $floating_net_physnet = try_get_value($nets, "${$floating_net}/L2/physnet", false)
+  $private_net_physnet  = try_get_value($nets, "${private_net}/L2/physnet", false)
 
-  $net04_ext_router_external = try_get_value($nets, 'net04_ext/L2/router_ext')
-  $net04_router_external     = false
+  $floating_net_router_external = try_get_value($nets, "${$floating_net}/L2/router_ext")
+  $private_net_router_external  = false
 
-  $net04_ext_shared      = try_get_value($nets, 'net04_ext/shared', false)
-  $net04_shared          = false
+  $floating_net_shared = try_get_value($nets, "${$floating_net}/shared", false)
+  $private_net_shared  = false
 
-  $tenant_name           = try_get_value($access_hash, 'tenant', 'admin')
+  $tenant_name         = try_get_value($access_hash, 'tenant', 'admin')
 
-  neutron_network { 'net04_ext' :
+  neutron_network { $floating_net :
     ensure                    => 'present',
-    provider_physical_network => $net04_ext_physnet,
+    provider_physical_network => $floating_net_physnet,
     provider_network_type     => 'local',
-    router_external           => $net04_ext_router_external,
+    router_external           => $floating_net_router_external,
     tenant_name               => $tenant_name,
-    shared                    => $net04_ext_shared
+    shared                    => $floating_net_shared
   } ->
 
-  neutron_subnet { 'net04_ext__subnet' :
+  neutron_subnet { "${floating_net}__subnet" :
     ensure           => 'present',
-    cidr             => try_get_value($nets, 'net04_ext/L3/subnet'),
-    network_name     => 'net04_ext',
+    cidr             => try_get_value($nets, "${$floating_net}/L3/subnet"),
+    network_name     => $floating_net,
     tenant_name      => $tenant_name,
-    gateway_ip       => try_get_value($nets, 'net04_ext/L3/gateway'),
+    gateway_ip       => try_get_value($nets, "${$floating_net}/L3/gateway"),
     enable_dhcp      => false,
-    allocation_pools => $net04_ext_allocation_pool,
+    allocation_pools => $floating_net_allocation_pool,
   }
 
-  neutron_network { 'net04' :
+  neutron_network { $private_net :
     ensure                    => 'present',
-    provider_physical_network => $net04_physnet,
+    provider_physical_network => $private_net_physnet,
     provider_network_type     => $network_type,
-    provider_segmentation_id  => $net04_segment_id,
-    router_external           => $net04_router_external,
+    provider_segmentation_id  => $private_net_segment_id,
+    router_external           => $private_net_router_external,
     tenant_name               => $tenant_name,
-    shared                    => $net04_shared
+    shared                    => $private_net_shared
   } ->
 
-  neutron_subnet { 'net04__subnet' :
+  neutron_subnet { "${private_net}__subnet" :
     ensure          => 'present',
-    cidr            => try_get_value($nets, 'net04/L3/subnet'),
-    network_name    => 'net04',
+    cidr            => try_get_value($nets, "${private_net}/L3/subnet"),
+    network_name    => $private_net,
     tenant_name     => $tenant_name,
-    gateway_ip      => try_get_value($nets, 'net04/L3/gateway'),
+    gateway_ip      => try_get_value($nets, "${private_net}/L3/gateway"),
     enable_dhcp     => true,
-    dns_nameservers => try_get_value($nets, 'net04/L3/nameservers'),
+    dns_nameservers => try_get_value($nets, "${private_net}/L3/nameservers"),
   }
 
   if has_key($nets, 'baremetal') {
@@ -112,7 +113,7 @@ if $use_neutron {
       dns_nameservers => try_get_value($nets, 'baremetal/L3/nameservers'),
     } ->
 
-    neutron_router_interface { "router04:baremetal__subnet":
+    neutron_router_interface { "${default_router}:baremetal__subnet":
       ensure => 'present',
     }
   }
