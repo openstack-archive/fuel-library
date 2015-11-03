@@ -1,6 +1,7 @@
 - id: sahara
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [sahara/api]
   condition: "settings:additional_components.sahara.value == true"
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-network-end, horizon]

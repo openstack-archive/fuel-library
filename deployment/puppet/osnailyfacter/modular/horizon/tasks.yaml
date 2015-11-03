@@ -1,6 +1,7 @@
 - id: horizon
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [horizon, mgmt/memcache]
   required_for: [deploy_end]
   requires: [openstack-controller]
   parameters:
