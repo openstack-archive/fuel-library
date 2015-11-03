@@ -48,6 +48,13 @@ $rabbitmq_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $rabbitmq_astute_user = $::fuel_settings['astute']['user']
 $rabbitmq_astute_password = $::fuel_settings['astute']['password']
 
+$debug = pick($::fuel_settings['DEBUG'],false)
+if $debug {
+    $nailgun_log_level = "DEBUG"
+} else {
+    $nailgun_log_level = "WARNING"
+}
+
 $cobbler_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $cobbler_url = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:80/cobbler_api"
 $cobbler_user = $::fuel_settings['cobbler']['user']
