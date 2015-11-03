@@ -48,6 +48,13 @@ $rabbitmq_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $rabbitmq_astute_user = $::fuel_settings['astute']['user']
 $rabbitmq_astute_password = $::fuel_settings['astute']['password']
 
+$debug = pick($::fuel_settings['DEBUG'],false)
+if $debug {
+    $nailgun_log_level = "DEBUG"
+} else {
+    $nailgun_log_level = "INFO"
+}
+
 $cobbler_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $cobbler_url = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:80/cobbler_api"
 $cobbler_user = $::fuel_settings['cobbler']['user']
@@ -98,6 +105,8 @@ class { "nailgun::venv":
   rabbitmq_host => $rabbitmq_host,
   rabbitmq_astute_user => $rabbitmq_astute_user,
   rabbitmq_astute_password => $rabbitmq_astute_password,
+
+  nailgun_log_level => $nailgun_log_level,
 
   admin_network         => ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'], $::fuel_settings['ADMIN_NETWORK']['netmask']),
   admin_network_cidr    => ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask']),
