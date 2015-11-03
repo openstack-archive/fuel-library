@@ -85,6 +85,7 @@ class cobbler(
     dns_upstream => $dns_upstream,
     dns_domain   => $dns_domain,
     dns_search   => $dns_search,
+    dhcp_gateway => $dhcp_gateway,
   }
 
   cobbler_digest_user {$cobbler_user:

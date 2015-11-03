@@ -44,6 +44,7 @@ describe 'cobbler' do
           :dns_upstream     => params[:dns_upstream],
           :dns_domain       => params[:dns_domain],
           :dns_search       => params[:dns_search],
+          :dhcp_gateway     => params[:dhcp_gateway],
           :extra_admins_net => params[:extra_admins_nets])
         should contain_cobbler_digest_user(params[:cobbler_user]).with(
           :password => params[:cobbler_password])
@@ -69,6 +70,7 @@ describe 'cobbler' do
           :dns_upstream     => params[:dns_upstream],
           :dns_domain       => params[:dns_domain],
           :dns_search       => params[:dns_search],
+          :dhcp_gateway     => params[:dhcp_gateway],
           :extra_admins_net => params[:extra_admins_nets])
         should contain_cobbler_digest_user(params[:cobbler_user]).with(
           :password => params[:cobbler_password])
