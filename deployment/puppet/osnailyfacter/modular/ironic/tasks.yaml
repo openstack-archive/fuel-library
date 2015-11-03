@@ -1,6 +1,7 @@
 - id: ironic-api
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [ironic/api]
   condition: "settings:additional_components.ironic.value == true"
   required_for: [openstack-controller]
   requires: [openstack-haproxy, ironic-db, ironic-keystone]

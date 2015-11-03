@@ -28,14 +28,6 @@ describe manifest do
       Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'nova/api'
     end
 
-    let(:baremetal_network) do
-      Noop.puppet_function 'get_network_role_property', 'ironic/baremetal', 'network'
-    end
-
-    let(:baremetal_ipaddr) do
-      Noop.puppet_function 'get_network_role_property', 'ironic/baremetal', 'ipaddr'
-    end
-
     it 'should properly restrict rabbitmq admin traffic' do
       should contain_firewall('005 local rabbitmq admin').with(
         'sport'   => [ 15672 ],
@@ -103,46 +95,6 @@ describe manifest do
         'proto'   => 'tcp',
         'action'  => 'accept',
       )
-    end
-
-    if Noop.hiera_structure 'ironic/enabled'
-      if Noop.hiera('node_role') == 'controller' or Noop.hiera('node_role') == 'primary-controller'
-        it 'should drop all traffic from baremetal network' do
-          should contain_firewall('999 drop all baremetal').with(
-            'chain'  => 'baremetal',
-            'proto'  => 'all',
-            'action' => 'drop',
-          )
-        end
-        it 'should enable 6385 ironic-api port' do
-            should contain_firewall('207 ironic-api').with(
-              'dport'   => '6385',
-              'proto'   => 'tcp',
-              'action'  => 'accept'
-            )
-        end
-      end
-
-      if Noop.hiera('node_role') == 'ironic'
-        it 'should create rules for ironic on conductor' do
-          should contain_firewall('102 allow baremetal-rsyslog').with(
-            'chain'       => 'baremetal',
-            'dport'       => [ 514 ],
-            'proto'       => 'udp',
-            'action'      => 'accept',
-            'source'      => baremetal_network,
-            'destination' => baremetal_ipaddr,
-          )
-          should contain_firewall('103 allow baremetal-TFTP').with(
-            'chain'       => 'baremetal',
-            'dport'       => [ 69 ],
-            'proto'       => 'udp',
-            'action'      => 'accept',
-            'source'      => baremetal_network,
-            'destination' => baremetal_ipaddr,
-          )
-        end
-      end
     end
 
   end

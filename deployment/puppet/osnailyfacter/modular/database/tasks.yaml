@@ -1,6 +1,7 @@
 - id: database
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [mgmt/database]
   required_for: [openstack-controller]
   requires: [deploy_start, openstack-haproxy]
   parameters:

@@ -1,6 +1,7 @@
 - id: firewall
   type: puppet
   groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
+  network_roles: [management, keystone/api, nova/api]
   required_for: [deploy_end]
   requires: [netconfig]
   parameters:
@@ -11,3 +12,15 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/firewall/firewall_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/firewall/firewall_post.rb
+
+- id: firewall_baremetal
+  type: puppet
+  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
+  condition: "settings:additional_components.ironic.value == true"
+  network_roles: [ironic/baremetal]
+  required_for: [deploy_end]
+  requires: [firewall]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall/firewall_baremetal.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
