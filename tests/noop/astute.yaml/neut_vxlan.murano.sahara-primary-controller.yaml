@@ -559,6 +559,9 @@ puppet:
 puppet_debug: true
 quantum: true
 quantum_settings:
+  default_floating_net: net04custom_ext
+  default_private_net:  net04custom
+  default_router: router04custom
   L2:
     base_mac: fa:16:3e:00:00:00
     phys_nets: {}
@@ -573,7 +576,7 @@ quantum_settings:
   metadata:
     metadata_proxy_shared_secret: fp618p5V
   predefined_networks:
-    net04:
+    net04custom:
       L2:
         network_type: vxlan
         physnet: null
@@ -589,7 +592,7 @@ quantum_settings:
         subnet: 192.168.111.0/24
       shared: false
       tenant: admin
-    net04_ext:
+    net04custom_ext:
       L2:
         network_type: local
         physnet: null

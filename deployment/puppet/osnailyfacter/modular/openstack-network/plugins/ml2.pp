@@ -42,7 +42,7 @@ if $use_neutron {
     $overlay_net_mtu      = $physical_net_mtu
     $enable_tunneling = false
     $network_vlan_ranges_physnet2 = try_get_value($neutron_config, 'L2/phys_nets/physnet2/vlan_range')
-    $network_vlan_ranges = ["physnet2:${$network_vlan_ranges_physnet2}"]
+    $network_vlan_ranges = ["physnet2:${network_vlan_ranges_physnet2}"]
     $physnet2_bridge = try_get_value($neutron_config, 'L2/phys_nets/physnet2/bridge')
     $physnet2 = "physnet2:${physnet2_bridge}"
     $physnet_ironic_bridge = try_get_value($neutron_config, 'L2/phys_nets/physnet-ironic/bridge', false)

@@ -21,24 +21,19 @@ if hiera('use_neutron', false) {
     $segmentation_id_range = split(try_get_value($neutron_config, 'L2/tunnel_id_ranges', ''), ':')
   }
 
-  $fallback_segment_id         = $segmentation_id_range[0]
-  $floating_net_segment_id     = try_get_value($nets, "${$floating_net}/L2/segment_id", $fallback_segment_id)
-  $private_net_segment_id      = try_get_value($nets, "${private_net}/L2/segment_id", $fallback_segment_id)
-
-  $floating_net_floating_range = try_get_value($nets, "${$floating_net}/L3/floating", '')
+  $fallback_segment_id          = $segmentation_id_range[0]
+  $private_net_segment_id       = try_get_value($nets, "${private_net}/L2/segment_id", $fallback_segment_id)
+  $private_net_physnet          = try_get_value($nets, "${private_net}/L2/physnet", false)
+  $private_net_shared           = try_get_value($nets, "${private_net}/shared", false)
+  $private_net_router_external  = false
+  $floating_net_physnet         = try_get_value($nets, "${floating_net}/L2/physnet", false)
+  $floating_net_router_external = try_get_value($nets, "${floating_net}/L2/router_ext")
+  $floating_net_floating_range  = try_get_value($nets, "${floating_net}/L3/floating", '')
+  $floating_net_shared          = try_get_value($nets, "${floating_net}/shared", false)
 
   if !empty($floating_net_floating_range) {
     $floating_net_allocation_pool = format_allocation_pools($floating_net_floating_range)
   }
-
-  $floating_net_physnet = try_get_value($nets, "${$floating_net}/L2/physnet", false)
-  $private_net_physnet  = try_get_value($nets, "${private_net}/L2/physnet", false)
-
-  $floating_net_router_external = try_get_value($nets, "${$floating_net}/L2/router_ext")
-  $private_net_router_external  = false
-
-  $floating_net_shared = try_get_value($nets, "${$floating_net}/shared", false)
-  $private_net_shared  = false
 
   $tenant_name         = try_get_value($access_hash, 'tenant', 'admin')
 
@@ -53,10 +48,10 @@ if hiera('use_neutron', false) {
 
   neutron_subnet { "${floating_net}__subnet" :
     ensure           => 'present',
-    cidr             => try_get_value($nets, "${$floating_net}/L3/subnet"),
+    cidr             => try_get_value($nets, "${floating_net}/L3/subnet"),
     network_name     => $floating_net,
     tenant_name      => $tenant_name,
-    gateway_ip       => try_get_value($nets, "${$floating_net}/L3/gateway"),
+    gateway_ip       => try_get_value($nets, "${floating_net}/L3/gateway"),
     enable_dhcp      => false,
     allocation_pools => $floating_net_allocation_pool,
   }
