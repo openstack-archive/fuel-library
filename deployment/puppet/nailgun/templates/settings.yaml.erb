@@ -61,6 +61,9 @@ RABBITMQ:
 APP_LOG: "/var/log/nailgun/app.log"
 API_LOG: "/var/log/nailgun/api.log"
 
+# possible values: "CRITICAL", "ERROR", "WARNING", "INFO" and "DEBUG"
+APP_LOGLEVEL: "<%= @nailgun_log_level %>"
+
 PATH_TO_SSH_KEY: "/root/.ssh/id_rsa"
 PATH_TO_BOOTSTRAP_SSH_KEY: "/root/.ssh/bootstrap.rsa"
 AUTHORIZED_KEYS:
