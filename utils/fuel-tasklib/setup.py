@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env python
 
 #    Copyright 2015 Mirantis, Inc.
 #
@@ -14,12 +14,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-set -eu
+import setuptools
 
-ROOT=$(dirname $(readlink -f $0))
-WORK_DIR="${ROOT}/../../deployment"
-UTILS_DIR="${ROOT}"
-TOX_CONF="${ROOT}/tox.ini"
-TOX_PYENVS=${TOX_PYENVS:-"tasks"}
-echo "Starting tasks-validator..."
-tox -e $TOX_PYENVS -c $TOX_CONF
+
+# In python < 2.7.4, a lazy loading of package `pbr` will break
+# setuptools if some other modules registered functions in `atexit`.
+# solution from: http://bugs.python.org/issue15881#msg170215
+try:
+    import multiprocessing  # noqa
+except ImportError:
+    pass
+
+setuptools.setup(
+    setup_requires=['pbr'],
+    pbr=True)
