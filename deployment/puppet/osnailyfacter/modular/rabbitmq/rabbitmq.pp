@@ -69,13 +69,14 @@ if $queue_provider == 'rabbitmq' {
   )
   $config_variables = hiera('rabbit_config_variables',
     {
-      'log_levels'                 => $rabbit_levels,
-      'default_vhost'              => "<<\"/\">>",
-      'default_permissions'        => '[<<".*">>, <<".*">>, <<".*">>]',
-      'tcp_listen_options'         => $rabbit_tcp_listen_options,
-      'cluster_partition_handling' => $cluster_partition_handling,
+      'log_levels'                   => $rabbit_levels,
+      'default_vhost'                => "<<\"/\">>",
+      'default_permissions'          => '[<<".*">>, <<".*">>, <<".*">>]',
+      'tcp_listen_options'           => $rabbit_tcp_listen_options,
+      'cluster_partition_handling'   => $cluster_partition_handling,
       'mnesia_table_loading_timeout' => $mnesia_table_loading_timeout,
-      'collect_statistics_interval' => '30000'
+      'collect_statistics_interval'  => '30000',
+      'disk_free_limit'              => '5000000', # Corosync checks for disk space, reduce rabbitmq check to 5M see LP#1493520 comment #15
     }
   )
   $config_rabbitmq_management_variables = hiera('rabbit_config_management_variables',

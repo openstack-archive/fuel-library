@@ -15,7 +15,7 @@ describe manifest do
     end
 
     let(:min_disk_free) do
-      Noop.hiera 'corosync_min_disk_space', '100M'
+      Noop.hiera 'corosync_min_disk_space', '512M'
     end
 
     let(:disk_unit) do
@@ -23,7 +23,7 @@ describe manifest do
     end
 
     let(:monitor_interval) do
-      Noop.hiera 'corosync_monitor_interval', '30s'
+      Noop.hiera 'corosync_monitor_interval', '15s'
     end
 
     it {
