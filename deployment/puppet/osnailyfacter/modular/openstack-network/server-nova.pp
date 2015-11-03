@@ -17,6 +17,7 @@ if $use_neutron {
   $neutron_url        = "http://${neutron_endpoint}:9696"
   $neutron_ovs_bridge = 'br-int'
   $conf_nova          = pick($neutron_config['conf_nova'], true)
+  $floating_net       = pick($neutron_config['default_floating_net'], 'net04_ext')
 
   class { 'nova::network::neutron' :
     neutron_admin_password    => $admin_password,
@@ -35,7 +36,7 @@ if $use_neutron {
       name   => $nova::params::api_service_name,
     }
 
-    nova_config { 'DEFAULT/default_floating_pool': value => 'net04_ext' }
+    nova_config { 'DEFAULT/default_floating_pool': value => $floating_net }
     Nova_config<| |> ~> Service['nova-api']
   }
 
