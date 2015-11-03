@@ -23,6 +23,8 @@ class nailgun::venv(
   $rabbitmq_astute_user,
   $rabbitmq_astute_password,
 
+  $nailgun_log_level = "WARNING",
+
   $admin_network,
   $admin_network_cidr,
   $admin_network_size,
