@@ -79,12 +79,12 @@ if $use_neutron {
   }
 
   class { 'neutron::server::notifications':
-    nova_url                => $nova_url,
-    nova_admin_auth_url     => $nova_admin_auth_url,
-    nova_admin_username     => $nova_auth_user,
-    nova_admin_tenant_name  => $nova_auth_tenant,
-    nova_admin_password     => $nova_auth_password,
-    nova_region_name        => $nova_auth_region,
+    nova_url     => $nova_url,
+    auth_url     => $nova_admin_auth_url,
+    username     => $nova_auth_user,
+    tenant_name  => $nova_auth_tenant,
+    password     => $nova_auth_password,
+    region_name  => $nova_auth_region,
   }
 
   # Stub for Nuetron package
