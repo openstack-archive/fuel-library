@@ -75,12 +75,12 @@ describe manifest do
           nova_url            = "http://#{nova_endpoint}:8774/v2"
           nova_hash           = Noop.hiera_hash('nova', {})
           should contain_class('neutron::server::notifications').with(
-            'nova_url'               => nova_url,
-            'nova_admin_auth_url'    => nova_admin_auth_url,
-            'nova_region_name'       => Noop.hiera('region', 'RegionOne'),
-            'nova_admin_username'    => nova_hash.fetch('user', 'nova'),
-            'nova_admin_tenant_name' => nova_hash.fetch('tenant', 'services'),
-            'nova_admin_password'    => nova_hash.fetch('user_password'),
+            'nova_url'    => nova_url,
+            'auth_url'    => nova_admin_auth_url,
+            'region_name' => Noop.hiera('region', 'RegionOne'),
+            'username'    => nova_hash.fetch('user', 'nova'),
+            'tenant_name' => nova_hash.fetch('tenant', 'services'),
+            'password'    => nova_hash.fetch('user_password'),
           )
         end
 
