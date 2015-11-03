@@ -56,7 +56,16 @@ class TasksSchema61(BaseTasksSchema):
              'type': 'string'}
 
 
+class TasksSchema70(BaseTasksSchema):
+
+    types = {'enum': ['puppet', 'shell', 'sync', 'upload_file', 'group',
+                      'stage', 'skipped', 'reboot',  'copy_files'],
+             'type': 'string'}
+
+
 VERSIONS_SCHEMAS_MAP = {
     "6.1": TasksSchema61,
-    "last": TasksSchema61,
+    "7.0": TasksSchema70,
+    "8.0": TasksSchema70,
+    "last": TasksSchema70,
 }
