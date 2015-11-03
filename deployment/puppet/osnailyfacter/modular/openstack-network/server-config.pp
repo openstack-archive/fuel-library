@@ -40,10 +40,9 @@ if $use_neutron {
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
   $dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
-  $nova_auth_user          = $nova_hash['user']
+  $nova_auth_user          = pick($nova_hash['user'], 'nova')
   $nova_auth_password      = $nova_hash['user_password']
-  $nova_auth_tenant        = $nova_hash['tenant']
-  $nova_auth_region        = hiera('region', 'RegionOne')
+  $nova_auth_tenant        = pick($nova_hash['tenant'], 'services')
 
   class { 'neutron::server':
     sync_db                          =>  false,
@@ -79,12 +78,12 @@ if $use_neutron {
   }
 
   class { 'neutron::server::notifications':
-    nova_url                => $nova_url,
-    nova_admin_auth_url     => $nova_admin_auth_url,
-    nova_admin_username     => $nova_auth_user,
-    nova_admin_tenant_name  => $nova_auth_tenant,
-    nova_admin_password     => $nova_auth_password,
-    nova_region_name        => $nova_auth_region,
+    nova_url     => $nova_url,
+    auth_url     => $nova_admin_auth_url,
+    username     => $nova_auth_user,
+    tenant_name  => $nova_auth_tenant,
+    password     => $nova_auth_password,
+    region_name  => $auth_region,
   }
 
   # Stub for Nuetron package
