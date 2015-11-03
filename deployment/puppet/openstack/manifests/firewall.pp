@@ -22,6 +22,7 @@ class openstack::firewall (
   $nova_api_volume_port         = 8776,
   $nova_vncproxy_port           = 6080,
   $nova_vnc_ip_range            = '0.0.0.0/0',
+  $nova_api_ip_range            = '0.0.0.0/0',
   $libvirt_network              = '0.0.0.0/0',
   $erlang_epmd_port             = 4369,
   $erlang_rabbitmq_port         = 5672,
@@ -122,9 +123,16 @@ class openstack::firewall (
     action => 'accept',
   }
 
-  firewall {'105 nova ':
-    port   => [$nova_api_compute_port,$nova_api_metadata_port,$nova_api_volume_port, $nova_vncproxy_port],
+  firewall {'105 nova':
+    port   => [$nova_api_compute_port,$nova_api_volume_port, $nova_vncproxy_port],
     proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'105 nova private - no ssl':
+    port   => $nova_api_metadata_port,
+    proto  => 'tcp',
+    source => $nova_api_ip_range,
     action => 'accept',
   }
 
