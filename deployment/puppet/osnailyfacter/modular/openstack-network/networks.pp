@@ -27,7 +27,6 @@ if $use_neutron {
 
   $fallback_segment_id = $segmentation_id_range[0]
 
-  $floating_net_segment_id  = try_get_value($nets, "${$floating_net}/L2/segment_id", $fallback_segment_id)
   $private_net_segment_id   = try_get_value($nets, "${private_net}/L2/segment_id", $fallback_segment_id)
 
   $floating_net_floating_range = split(try_get_value($nets, "${$floating_net}/L3/floating", ''), ':')
