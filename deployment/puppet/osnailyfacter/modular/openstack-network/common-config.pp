@@ -43,7 +43,6 @@ if $use_neutron {
     $overlay_net_mtu      = $mtu_for_virt_network
   } else {
     $net_role_property = 'neutron/mesh'
-    $tunneling_ip      = get_network_role_property($net_role_property, 'ipaddr')
     $iface             = get_network_role_property($net_role_property, 'phys_dev')
     $physical_net_mtu  = pick(get_transformation_property('mtu', $iface[0]), '1500')
 
