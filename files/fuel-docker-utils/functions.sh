@@ -287,11 +287,7 @@ function attach_container {
 }
 
 function shell_container {
-  case $EXEC_DRIVER in
-    lxc)  lxc_shell_container "$@"
-          ;;
-    *)    exec_shell_container "$@"
-  esac
+  exec_shell_container "$@"
 }
 
 function exec_shell_container {
@@ -324,21 +320,6 @@ function exec_shell_container {
     command=("$@")
   fi
   docker exec $exec_opts $id $prefix "${command[@]}"
-}
-
-function lxc_shell_container {
-  id=$(get_container_id "$1")
-  if [ $? -ne 0 ]; then
-    echo "Could not get docker ID for $container. Is it running?" 1>&2
-    return 1
-  fi
-  if [ -z "$2" ]; then
-    command="/bin/bash"
-  else
-    shift
-    command=("$@")
-  fi
-  lxc-attach --name "$id" -- "${command[@]}"
 }
 
 function stop_container {
