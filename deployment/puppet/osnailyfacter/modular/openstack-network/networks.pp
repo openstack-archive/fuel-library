@@ -106,10 +106,6 @@ if hiera('use_neutron', false) {
       enable_dhcp     => true,
       dns_nameservers => try_get_value($nets, 'baremetal/L3/nameservers'),
     }
-
-    neutron_router_interface { "${default_router}:baremetal__subnet":
-      ensure => 'present',
-    }
   }
 
 }
