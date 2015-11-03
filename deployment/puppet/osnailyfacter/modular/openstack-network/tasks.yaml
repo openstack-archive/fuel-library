@@ -28,6 +28,7 @@
 - id: openstack-network-common-config
   type: puppet
   groups: [primary-controller,controller,compute,ironic]
+  network_roles: [neutron/api]
   required_for: [openstack-network-end]
   requires: [openstack-network-start]
   parameters:
@@ -118,6 +119,7 @@
 - id: openstack-network-compute-nova
   type: puppet
   groups: [compute]
+  network_roles: [nova/api, public/vip]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-agents-l3]
   parameters:

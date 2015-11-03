@@ -1,6 +1,7 @@
 - id: swift
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [swift/api, swift/replication, management]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
   parameters:

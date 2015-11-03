@@ -1,6 +1,7 @@
 - id: openstack-cinder
   type: puppet
   groups: [primary-controller, controller, cinder-vmware]
+  network_roles: [cinder/api, cinder/iscsi]
   required_for: [deploy_end, openstack-controller]
   requires: [rabbitmq, keystone, hosts, firewall]
   parameters:

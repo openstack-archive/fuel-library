@@ -1,6 +1,7 @@
 - id: cluster
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [mgmt/corosync]
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
   parameters:

@@ -10,6 +10,7 @@
 - id: top-role-compute
   type: puppet
   groups: [compute]
+  network_roles: [mgmt/memcache]
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
@@ -20,6 +21,7 @@
 - id: top-role-cinder
   type: puppet
   groups: [cinder]
+  network_roles: [cinder/iscsi, ceph/replication, ceph/public, cinder/api]
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
@@ -30,6 +32,7 @@
 - id: top-role-primary-mongo
   type: puppet
   groups: [primary-mongo]
+  network_roles: [mongo/db]
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
@@ -50,6 +53,7 @@
 - id: ironic-conductor
   type: puppet
   groups: [ironic]
+  network_roles: [ironic/baremetal]
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
@@ -60,6 +64,7 @@
 - id: ironic-compute
   type: puppet
   groups: [ironic]
+  network_roles: [nova/api, cinder/iscsi, mgmt/memcache]
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:

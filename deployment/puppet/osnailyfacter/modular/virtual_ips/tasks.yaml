@@ -1,6 +1,7 @@
 - id: virtual_ips
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [public/vip]
   required_for: [deploy_end]
   requires: [cluster]
   parameters:
@@ -13,6 +14,7 @@
 - id: conntrackd
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [mgmt/vip]
   required_for: [deploy_end]
   requires: [virtual_ips]
   parameters:

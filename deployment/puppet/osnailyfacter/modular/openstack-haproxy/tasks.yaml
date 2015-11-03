@@ -13,6 +13,7 @@
 - id: openstack-haproxy-horizon
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [horizon]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -27,6 +28,7 @@
 - id: openstack-haproxy-keystone
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [keystone/api]
   required_for: [deploy_end]
   requires: [cluster-haproxy]
   parameters:
@@ -41,6 +43,7 @@
 - id: openstack-haproxy-nova
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [nova/api]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -55,6 +58,7 @@
 - id: openstack-haproxy-heat
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [heat/api]
   required_for: [deploy_end]
   requires: [cluster-haproxy]
   parameters:
@@ -69,6 +73,7 @@
 - id: openstack-haproxy-glance
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [glance/api]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -83,6 +88,7 @@
 - id: openstack-haproxy-cinder
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [cinder/api]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -97,6 +103,7 @@
 - id: openstack-haproxy-neutron
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [neutron/api]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -111,6 +118,7 @@
 - id: openstack-haproxy-mysqld
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [mgmt/database]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -125,6 +133,7 @@
 - id: openstack-haproxy-swift
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [swift/api]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -139,6 +148,7 @@
 - id: openstack-haproxy-radosgw
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [ceph/radosgw]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -153,6 +163,7 @@
 - id: openstack-haproxy-ceilometer
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [ceilometer/api]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -167,6 +178,7 @@
 - id: openstack-haproxy-sahara
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [sahara/api]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -181,6 +193,7 @@
 - id: openstack-haproxy-murano
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [murano/api]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
   parameters:
@@ -207,6 +220,7 @@
 - id: openstack-haproxy-ironic
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [ironic/api]
   condition: "settings:additional_components.ironic.value == true"
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]

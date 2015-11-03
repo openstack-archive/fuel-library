@@ -32,6 +32,7 @@
 - id: top-role-ceph-osd
   type: puppet
   groups: [ceph-osd]
+  network_roles: [ceph/replication, ceph/public]
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
@@ -42,6 +43,7 @@
 - id: ceph-radosgw
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [ceph/replication, ceph/public, ceph/radosgw]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache, ceph-mon]
   parameters:
@@ -56,6 +58,7 @@
 - id: ceph-mon
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [ceph/replication, ceph/public]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
   parameters:
@@ -70,6 +73,7 @@
 - id: ceph-compute
   type: puppet
   role: [compute]
+  network_roles: [ceph/replication, ceph/public]
   requires: [ceph_create_pools]
   required_for: [post_deployment_end]
   condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"

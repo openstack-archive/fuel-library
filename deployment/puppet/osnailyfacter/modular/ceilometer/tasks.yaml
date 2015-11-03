@@ -1,6 +1,7 @@
 - id: ceilometer-controller
   type: puppet
   groups: [primary-controller, controller]
+  network_roles: [ceilometer/api, mongo/db]
   required_for: [openstack-controller, swift]
   requires: [mongo, primary-mongo, openstack-haproxy]
   condition: "settings:additional_components.ceilometer.value == true"
