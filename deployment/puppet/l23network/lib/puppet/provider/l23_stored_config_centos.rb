@@ -129,6 +129,10 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
       hash.delete('PREFIX')
     end
 
+    hash.delete('DEVICETYPE') if hash['DEVICETYPE']
+
+    hash = self.parse_patch_bridges(hash) if ( hash.has_key?('BRIDGE') and hash.has_key?('OVS_BRIDGE') )
+
     hash = self.parse_bond_opts(hash) if ( hash.has_key?('TYPE') and hash['TYPE'] =~ %r{Bond} )
 
     props = self.mangle_properties(hash)
@@ -141,6 +145,10 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
 
   def self.check_if_provider(if_data)
     raise Puppet::Error, "self.check_if_provider(if_data) Should be implemented in more specific class."
+  end
+
+  def self.parse_patch_bridges(hash)
+    hash
   end
 
   def self.parse_bond_opts(hash)
@@ -207,7 +215,8 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
   end
 
   def self.mangle__method(val)
-    (['manual', 'static'].include? val.to_s.downcase)  ?  :none  :  val.to_sym
+    val = 'manual' if val.to_s == 'none'
+    val.to_s.downcase
   end
 
   def self.mangle__ethtool(val)
@@ -268,8 +277,8 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     property_mappings.keys.select{|v| ! properties_fake.include?(v)}.each do |type_name|
       val = provider.send(type_name)
       if val.is_a?(Array)
-        val.select { |x| x.to_s != 'absent' or x.to_s != '' }
-        val = false if val.empty?
+        val = val.reject { |x| x.to_s == 'absent' or x.to_s == '' }
+        next if val.empty?
       end
       if val and val.to_s != 'absent'
         props[type_name] = val
@@ -283,14 +292,14 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
        props[:slave] = 'yes'
     end
 
+    props = self.format_patch_bridges(props) if ( props[:if_type].to_s == 'patch' and props[:bridge].size > 1 )
+
     props = self.format_bond_opts(props) if props.has_key?(:bond_mode)
 
     debug("format_file('#{filename}')::properties: #{props.inspect}")
     pairs = self.unmangle_properties(provider, props)
 
-    if pairs['TYPE'] == :OVSBridge
-      pairs['DEVICETYPE'] = 'ovs'
-    end
+    pairs['DEVICETYPE'] = 'ovs' if pairs['TYPE'].to_s =~ /OVS/
 
     if pairs['ROUTES']
       route_filename = "#{self.script_directory}/route-#{provider.name}"
@@ -329,6 +338,10 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
   def self.remove_line_from_file(file, remove)
     content = self.read_file(file).split("\n").reject { |line| remove === line }.join("\n") + "\n"
     self.write_file file, content
+  end
+
+  def self.format_patch_bridges(props)
+    props
   end
 
   def self.format_bond_opts(props)

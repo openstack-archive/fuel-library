@@ -74,7 +74,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
   context "the method property" do
     context 'when dhcp' do
       let(:data) { subject.class.parse_file('eth0', fixture_data('ifcfg-eth0'))[0] }
-      it { expect(data[:method]).to eq :dhcp }
+      it { expect(data[:method]).to eq 'dhcp' }
     end
   end
 
