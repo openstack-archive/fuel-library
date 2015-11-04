@@ -1,0 +1,6 @@
+BOOTPROTO=none
+DEVICE=ovs-bridge
+ONBOOT=yes
+MTU=9000
+TYPE=OVSBridge
+DEVICETYPE=ovs
