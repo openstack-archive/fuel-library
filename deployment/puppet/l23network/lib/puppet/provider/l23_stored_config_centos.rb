@@ -268,8 +268,8 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     property_mappings.keys.select{|v| ! properties_fake.include?(v)}.each do |type_name|
       val = provider.send(type_name)
       if val.is_a?(Array)
-        val.select { |x| x.to_s != 'absent' or x.to_s != '' }
-        val = false if val.empty?
+        val = val.reject { |x| x.to_s == 'absent' or x.to_s == '' }
+        next if val.empty?
       end
       if val and val.to_s != 'absent'
         props[type_name] = val

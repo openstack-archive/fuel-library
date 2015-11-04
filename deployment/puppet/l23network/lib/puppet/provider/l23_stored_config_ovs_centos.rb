@@ -68,6 +68,7 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
   end
 
   def self.unmangle__if_type(provider, val)
+    val = 'Port' if val.to_s == 'ethernet'
     "OVS#{val.to_s.capitalize}".to_sym
   end
 
