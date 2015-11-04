@@ -1,0 +1,7 @@
+BOOTPROTO=none
+DEVICE=ovs2lnx-patch
+ONBOOT=yes
+TYPE=OVSIntPort
+OVS_BRIDGE=ovs-br
+BRIDGE=lnx-br
+DEVICETYPE=ovs
