@@ -1,4 +1,4 @@
-notice('MODULAR: astute/ceph_compute.pp')
+notice('MODULAR: ceph/ceph_compute.pp')
 
 $mon_address_map          = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 $storage_hash             = hiera_hash('storage_hash', {})
