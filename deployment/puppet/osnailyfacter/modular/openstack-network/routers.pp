@@ -1,6 +1,9 @@
 notice('MODULAR: openstack-network/routers.pp')
 
-$use_neutron    = hiera('use_neutron', false)
+$use_neutron             = hiera('use_neutron', false)
+$neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
+$l3_ha                   = pick($neutron_advanced_config['neutron_l3_ha'], false)
+$controllers_num         = size(get_nodes_hash_by_roles(hiera('network_metadata'), ["controller","primary-controller"]))
 
 if $use_neutron {
 
@@ -12,21 +15,25 @@ if $use_neutron {
   $default_router        = try_get_value($neutron_config, 'default_router', 'router04')
   $nets                  = $neutron_config['predefined_networks']
 
-  neutron_router { $default_router:
-    ensure               => 'present',
-    gateway_network_name => $floating_net,
-    name                 => $default_router,
-    tenant_name          => $keystone_admin_tenant,
-  } ->
+  if ($l3_ha) and ($controllers_num < 2) {
+    warning ("Not enough controllers to create an HA router")
+  } else {
+    neutron_router { $default_router:
+      ensure               => 'present',
+      gateway_network_name => $floating_net,
+      name                 => $default_router,
+      tenant_name          => $keystone_admin_tenant,
+    } ->
 
-  neutron_router_interface { "${default_router}:${private_net}__subnet":
-    ensure => 'present',
-  }
+    neutron_router_interface { "${default_router}:${private_net}__subnet":
+      ensure => 'present',
+    }
 
-  if has_key($nets, 'baremetal') {
-    neutron_router_interface { "${default_router}:baremetal__subnet":
-        ensure  => 'present',
-        require => Neutron_router[$default_router]
+    if has_key($nets, 'baremetal') {
+      neutron_router_interface { "${default_router}:baremetal__subnet":
+          ensure  => 'present',
+          require => Neutron_router[$default_router]
+      }
     }
   }
 }
