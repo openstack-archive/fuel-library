@@ -29,9 +29,10 @@ describe manifest do
       end
 
       context 'with Neutron-server' do
-        neutron_config = Noop.hiera_hash('neutron_config')
-        management_vip = Noop.hiera('management_vip')
+        neutron_config   = Noop.hiera_hash('neutron_config')
+        management_vip   = Noop.hiera('management_vip')
         service_endpoint = Noop.hiera('service_endpoint', management_vip)
+        l3_ha            = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
 
         it 'database options' do
           database_vip        = Noop.hiera('database_vip')
@@ -64,11 +65,28 @@ describe manifest do
         it { should contain_class('neutron::server').with('manage_service' => 'true')}
         it { should contain_class('neutron::server').with('enabled' => 'false')} # bacause server should be started after plugin configured
         it { should contain_class('neutron::server').with('agent_down_time' => '30')}
-        it { should contain_class('neutron::server').with('allow_automatic_l3agent_failover' => 'true')}
 
         it 'dvr' do
           dvr = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_dvr', false)
           should contain_class('neutron::server').with('router_distributed' => dvr)
+        end
+
+        if l3_ha
+          it 'l3_ha_enabled' do
+            should contain_class('neutron::server').with(
+              'l3_ha'                            => true,
+              'allow_automatic_l3agent_failover' => false,
+              'min_l3_agents_per_router'         => 2,
+              'max_l3_agents_per_router'         => 0,
+            )
+          end
+        else
+          it 'l3_ha_disabled' do
+            should contain_class('neutron::server').with(
+              'l3_ha'                            => false,
+              'allow_automatic_l3agent_failover' => true,
+            )
+          end
         end
 
         it 'worker count' do

@@ -9,36 +9,55 @@ describe manifest do
         neutron_config = Noop.hiera('neutron_config')
         nets = neutron_config['predefined_networks']
 
-        floating_net   = (neutron_config['default_floating_net'] or 'net04_ext')
-        private_net    = (neutron_config['default_private_net'] or 'net04')
-        default_router = (neutron_config['default_router'] or 'router04')
+        floating_net             = (neutron_config['default_floating_net'] or 'net04_ext')
+        private_net              = (neutron_config['default_private_net'] or 'net04')
+        default_router           = (neutron_config['default_router'] or 'router04')
+        l3_ha                    = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
+        network_metadata         = Noop.hiera('network_metadata')
+        neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
+        neutron_controller_nodes = Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, neutron_controller_roles
+        neutron_controllers_num  = neutron_controller_nodes.size
 
-        context 'Default router serves tenant networks' do
-          it 'should be created and serve gateway' do
-            should contain_neutron_router(default_router).with(
-              'ensure'               => 'present',
-              'gateway_network_name' => floating_net,
-              'name'                 => default_router,
-            )
+        if (neutron_controllers_num < 2 and l3_ha)
+          context 'With L3 HA and not enough number of controllers' do
+            it 'should not create a default router' do
+              should_not contain_neutron_router(default_router)
+            end
+            it 'should not serve private network' do
+              should_not contain_neutron_router_interface("#{default_router}:#{private_net}__subnet")
+            end
+            it 'should not serve baremetal network' do
+              should_not contain_neutron_router_interface("#{default_router}:baremetal__subnet")
+            end
           end
-          it 'should serve private network' do
-            should contain_neutron_router_interface("#{default_router}:#{private_net}__subnet").with(
-              'ensure' => 'present',
-             )
-            should contain_neutron_router(default_router).that_comes_before(
-              "Neutron_router_interface[#{default_router}:#{private_net}__subnet]"
-            )
+        else
+          context 'Default router serves tenant networks' do
+            it 'should be created and serve gateway' do
+              should contain_neutron_router(default_router).with(
+                'ensure'               => 'present',
+                'gateway_network_name' => floating_net,
+                'name'                 => default_router,
+              )
+            end
+            it 'should serve private network' do
+              should contain_neutron_router_interface("#{default_router}:#{private_net}__subnet").with(
+                'ensure' => 'present',
+               )
+              should contain_neutron_router(default_router).that_comes_before(
+                "Neutron_router_interface[#{default_router}:#{private_net}__subnet]"
+              )
+            end
           end
-        end
 
-        context 'Default router serves Ironic baremetal network', :if => nets.has_key?('baremetal') do
-          it 'should serve baremetal network' do
-            should contain_neutron_router_interface("#{default_router}:baremetal__subnet").with(
-              'ensure' => 'present',
-            )
-            should contain_neutron_router(default_router).that_comes_before(
-              "Neutron_router_interface[#{default_router}:baremetal__subnet]"
-            )
+          context 'Default router serves Ironic baremetal network', :if => nets.has_key?('baremetal') do
+            it 'should serve baremetal network' do
+              should contain_neutron_router_interface("#{default_router}:baremetal__subnet").with(
+                'ensure' => 'present',
+              )
+              should contain_neutron_router(default_router).that_comes_before(
+                "Neutron_router_interface[#{default_router}:baremetal__subnet]"
+              )
+            end
           end
         end
       end

@@ -68,12 +68,27 @@
 - id: openstack-network-routers
   type: puppet
   groups: [primary-controller]
+  condition: "settings:neutron_advanced_configuration.neutron_l3_ha.value == false"
   required_for: [openstack-network-end]
   requires: [openstack-network-networks]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/routers.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
+# Additional task for routers when L3 HA is enabled
+# HA routers must be created on post-deployment step when all L3 agents are available
+- id: openstack-network-routers-ha
+  type: puppet
+  role: [primary-controller]
+  condition: "settings:neutron_advanced_configuration.neutron_l3_ha.value == true"
+  required_for: [post_deployment_end]
+  requires: [post_deployment_start]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/routers.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+    cwd: /
 
 - id: openstack-network-agents-l3
   type: puppet
