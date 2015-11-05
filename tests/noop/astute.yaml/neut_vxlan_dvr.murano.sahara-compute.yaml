@@ -342,10 +342,18 @@ network_scheme:
     br-fw-admin:
       IP:
       - 10.108.0.4/24
+    br-ex:
+      IP:
+      - 172.16.0.5/24
+      gateway: 172.16.0.1
+      vendor_specific:
+        phy_interfaces:
+        - eth1
+    br-floating:
+      IP: none
     br-mgmt:
       IP:
       - 192.168.0.5/24
-      gateway: 192.168.0.7
       vendor_specific:
         phy_interfaces:
         - eth0
@@ -380,8 +388,8 @@ network_scheme:
         driver: e1000
   provider: lnx
   roles:
-    ex:
-    public/vip:
+    ex: br-ex
+    public/vip: br-ex
     neutron/floating: br-floating
     storage: br-storage
     keystone/api: br-mgmt
@@ -420,6 +428,16 @@ network_scheme:
     name: br-mgmt
   - action: add-br
     name: br-storage
+  - action: add-br
+    name: br-ex
+  - action: add-br
+    name: br-floating
+    provider: ovs
+  - action: add-patch
+    bridges:
+    - br-floating
+    - br-ex
+    provider: ovs
   - action: add-port
     bridge: br-fw-admin
     name: eth0
@@ -429,6 +447,9 @@ network_scheme:
   - action: add-port
     bridge: br-mgmt
     name: eth0.101
+  - action: add-port
+    bridge: br-ex
+    name: eth1
   version: '1.1'
 neutron_mellanox:
   metadata:
@@ -538,6 +559,9 @@ puppet:
 puppet_debug: true
 quantum: true
 quantum_settings:
+  default_floating_net: net04custom_ext
+  default_private_net:  net04custom
+  default_router: router04custom
   L2:
     base_mac: fa:16:3e:00:00:00
     phys_nets: {}
@@ -552,7 +576,7 @@ quantum_settings:
   metadata:
     metadata_proxy_shared_secret: fp618p5V
   predefined_networks:
-    net04:
+    net04custom:
       L2:
         network_type: gre
         physnet: null
@@ -568,7 +592,7 @@ quantum_settings:
         subnet: 192.168.111.0/24
       shared: false
       tenant: admin
-    net04_ext:
+    net04custom_ext:
       L2:
         network_type: local
         physnet: null
