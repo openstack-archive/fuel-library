@@ -67,8 +67,8 @@ public_ssl:
   cert_data:
     content: 'somedataaboutyourkeypair'
   hostname: public.fuel.local
-fail_if_error: true
-fqdn: node-121.test.domain.local
+fail_if_error: false
+fqdn: node-127.test.domain.local
 fuel_version: '6.1'
 glance:
   db_password: 385SUUrC
@@ -341,10 +341,10 @@ network_scheme:
   endpoints:
     br-fw-admin:
       IP:
-      - 10.108.0.4/24
+      - 10.108.0.6/24
     br-mgmt:
       IP:
-      - 192.168.0.1/24
+      - 192.168.0.5/24
       gateway: 192.168.0.7
       vendor_specific:
         phy_interfaces:
@@ -358,7 +358,7 @@ network_scheme:
         vlans: 1000:1030
     br-storage:
       IP:
-      - 192.168.1.1/24
+      - 192.168.1.5/24
       vendor_specific:
         phy_interfaces:
         - eth0
@@ -419,7 +419,6 @@ network_scheme:
     cinder/iscsi: br-storage
     ceph/replication: br-storage
     neutron/mesh: br-mgmt
-
   transformations:
   - action: add-br
     name: br-fw-admin
@@ -514,7 +513,7 @@ nova_quota: false
 online: true
 openstack_version: 2014.2-6.1
 openstack_version_prev: null
-priority: 100
+priority: 300
 provision:
   codename: trusty
   image_data:
@@ -541,6 +540,7 @@ public_network_assignment:
 neutron_advanced_configuration:
   neutron_dvr: false
   neutron_l2_pop: false
+  neutron_l3_ha: true
 public_vip: 172.16.0.3
 public_vrouter_vip: 172.16.0.4
 puppet:
@@ -651,7 +651,7 @@ repo_setup:
     type: deb
     uri: http://mirror.fuel-infra.org/mos/ubuntu/
 resume_guests_state_on_host_boot: true
-role: primary-mongo
+role: compute
 sahara:
   db_password: R68HpdNS
   enabled: false
@@ -689,7 +689,7 @@ tasks:
   priority: 100
   type: puppet
   uids:
-  - '121'
+  - '127'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/globals/globals.pp
@@ -698,7 +698,7 @@ tasks:
   priority: 200
   type: puppet
   uids:
-  - '121'
+  - '127'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/logging/logging.pp
@@ -707,7 +707,7 @@ tasks:
   priority: 300
   type: puppet
   uids:
-  - '121'
+  - '127'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/tools/tools.pp
@@ -716,7 +716,7 @@ tasks:
   priority: 400
   type: puppet
   uids:
-  - '121'
+  - '127'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
@@ -725,7 +725,7 @@ tasks:
   priority: 500
   type: puppet
   uids:
-  - '121'
+  - '127'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall/firewall.pp
@@ -734,7 +734,7 @@ tasks:
   priority: 600
   type: puppet
   uids:
-  - '121'
+  - '127'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hosts/hosts.pp
@@ -743,25 +743,43 @@ tasks:
   priority: 700
   type: puppet
   uids:
-  - '121'
+  - '127'
 - parameters:
     cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/mongo_primary.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/compute.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   priority: 900
   type: puppet
   uids:
-  - '121'
+  - '127'
 - parameters:
     cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-client.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   priority: 1000
   type: puppet
   uids:
-  - '121'
+  - '127'
+- parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-client.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1100
+  type: puppet
+  uids:
+  - '127'
+- parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1200
+  type: puppet
+  uids:
+  - '127'
 test_vm_image:
   container_format: bare
   disk_format: qcow2
@@ -771,10 +789,10 @@ test_vm_image:
   min_ram: 64
   os_name: cirros
   public: 'true'
-uid: '121'
+uid: '127'
 use_cow_images: true
 use_vcenter: false
-user_node_name: Untitled (18:c9)
+user_node_name: Untitled (74:27)
 workloads_collector:
   enabled: true
   metadata:
