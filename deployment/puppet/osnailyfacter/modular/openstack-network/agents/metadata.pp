@@ -38,7 +38,6 @@ if $use_neutron {
     metadata_ip    => $nova_endpoint,
     manage_service => true,
     enabled        => true,
-
   }
 
   if $ha_agent {
@@ -48,7 +47,7 @@ if $use_neutron {
     }
   }
 
-  #========================
+  # stub package for 'neutron::agents::metadata' class
   package { 'neutron':
     name   => 'binutils',
     ensure => 'installed',

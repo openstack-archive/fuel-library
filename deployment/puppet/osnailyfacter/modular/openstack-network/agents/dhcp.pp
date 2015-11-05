@@ -30,7 +30,7 @@ if $use_neutron {
     }
   }
 
-  #========================
+  # stub package for 'neutron::agents::dhcp' class
   package { 'neutron':
     name   => 'binutils',
     ensure => 'installed',
