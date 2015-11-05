@@ -43,6 +43,12 @@ describe manifest do
         )
       end
 
+      it 'should configure auth url for neutron' do
+        should contain_class('openstack::network').with(
+         'auth_url' => "http://#{service_endpoint}:5000",
+        )
+      end
+
       it 'should configure report_interval for neutron' do
         should contain_class('neutron').with(
           'report_interval' => '10',
