@@ -38,7 +38,9 @@ if $use_neutron {
   $service_workers = pick($neutron_config['workers'], min(max($::processorcount, 2), 16))
 
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
-  $dvr = pick($neutron_advanced_config['neutron_dvr'], false)
+  $dvr                     = pick($neutron_advanced_config['neutron_dvr'], false)
+  $l3_ha                   = pick($neutron_advanced_config['neutron_l3_ha'], false)
+  $l3agent_failover        = $l3_ha ? { true => false, default => true}
 
   $nova_auth_user          = pick($nova_hash['user'], 'nova')
   $nova_auth_password      = $nova_hash['user_password']
@@ -59,7 +61,10 @@ if $use_neutron {
     database_max_retries             => '-1',
 
     agent_down_time                  => '30',
-    allow_automatic_l3agent_failover => true,
+    allow_automatic_l3agent_failover => $l3agent_failover,
+    l3_ha                            => $l3_ha,
+    min_l3_agents_per_router         => 2,
+    max_l3_agents_per_router         => 3,
 
     api_workers                      => $service_workers,
     rpc_workers                      => $service_workers,

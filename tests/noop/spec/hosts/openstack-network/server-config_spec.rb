@@ -59,6 +59,16 @@ describe manifest do
           should contain_class('neutron::server').with('router_distributed' => dvr)
         end
 
+        it 'l3_ha' do
+          l3_ha = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
+          should contain_class('neutron::server').with(
+            'l3_ha'                            => l3_ha,
+            'allow_automatic_l3agent_failover' => false ? l3_ha : true,
+            'min_l3_agents_per_router'         => 2,
+            'max_l3_agents_per_router'         => 3,
+          )
+        end
+
         it 'worker count' do
           fallback_workers = [[processorcount, 2].max, 16].min
           workers = neutron_config.fetch('workers', fallback_workers)
