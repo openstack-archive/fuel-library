@@ -50,7 +50,7 @@ if $use_neutron and ($controller or ($dvr and $compute)) {
     }
   }
 
-  #========================
+  # stub package for 'neutron::agents::l3' class
   package { 'neutron':
     name   => 'binutils',
     ensure => 'installed',
