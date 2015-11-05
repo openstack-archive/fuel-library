@@ -49,7 +49,7 @@ if $use_neutron {
 
     if $physnet_ironic_bridge {
       $physnet_ironic = "physnet-ironic:${physnet_ironic_bridge}"
-    }else {
+    } else {
       $physnet_ironic = []
     }
 
@@ -58,6 +58,7 @@ if $use_neutron {
     $physical_network_mtus = ["physnet2:${physical_net_mtu}"]
     $tunnel_id_ranges = []
     $network_type = 'vlan'
+    $tunnel_types = []
   } else {
     $net_role_property = 'neutron/mesh'
     $tunneling_ip      = get_network_role_property($net_role_property, 'ipaddr')
@@ -75,6 +76,7 @@ if $use_neutron {
       $mtu_offset = '50'
       $network_type = 'vxlan'
     }
+    $tunnel_types = [$network_type]
 
     if $physical_net_mtu {
       $overlay_net_mtu = $physical_net_mtu - $mtu_offset
@@ -83,7 +85,6 @@ if $use_neutron {
     }
 
     $enable_tunneling = true
-    $tunnel_types = [$network_type]
   }
 
   $type_drivers = ['local', 'flat', 'vlan', 'gre', 'vxlan']
