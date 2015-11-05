@@ -84,6 +84,11 @@ describe manifest do
           )
         end
 
+        it { should contain_service('neutron-server').with(
+          'ensure' => 'stopped',
+          'enable' => 'false',
+        )}
+
       end
     end
   end
