@@ -111,7 +111,7 @@ describe manifest do
 
       it 'should configure auth uri for neutron' do
         should contain_class('openstack::network').with(
-         'auth_uri' => "http://#{service_endpoint}:5000",
+         'auth_url' => "http://#{service_endpoint}:5000",
         )
       end
 

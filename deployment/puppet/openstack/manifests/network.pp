@@ -75,7 +75,7 @@ class openstack::network (
   $admin_tenant_name = 'services',
   $admin_username    = 'neutron',
   $identity_uri      = 'http://127.0.0.1:35357',
-  $auth_uri          = 'http://127.0.0.1:5000',
+  $auth_url          = 'http://127.0.0.1:5000',
   $region            = 'RegionOne',
   $neutron_url       = 'http://127.0.0.1:9696',
 
@@ -217,7 +217,7 @@ class openstack::network (
           auth_tenant   => $admin_tenant_name,
           auth_region   => $region,
           auth_user     => $admin_username,
-          auth_uri      => $auth_uri,
+          auth_uri      => $auth_url,
           identity_uri  => $identity_uri,
 
           database_retry_interval => 2,
