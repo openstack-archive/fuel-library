@@ -25,7 +25,7 @@ module NoopTests
   BUNDLE_DIR = '.bundled_gems'
   BUNDLE_VAR = 'GEM_HOME'
   GLOBALS_PREFIX = 'globals_yaml_for_'
-  PUPPET_GEM_VERSION = '~> 3.4.0'
+  PUPPET_GEM_VERSION = '~> 3.8.0'
   TEST_LIBRARY_DIR = 'spec/hosts'
 
   def self.options
