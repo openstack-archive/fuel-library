@@ -24,7 +24,7 @@ module NoopTests
   ASTUTE_YAML_VAR = 'SPEC_ASTUTE_FILE_NAME'
   BUNDLE_DIR = '.bundled_gems'
   BUNDLE_VAR = 'GEM_HOME'
-  PUPPET_GEM_VERSION = '~> 3.4.0'
+  PUPPET_GEM_VERSION = '~> 3.8.0'
   TEST_LIBRARY_DIR = 'spec/hosts'
   GLOBALS_YAML_FOLDER = 'globals'
 
