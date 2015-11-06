@@ -31,6 +31,7 @@ class openstack::firewall (
   $memcached_port               = 11211,
   $rsync_port                   = 873,
   $iscsi_port                   = 3260,
+  $iscsi_ip                     = '0.0.0.0',
   $neutron_api_port             = 9696,
   $dns_server_port              = 53,
   $dhcp_server_port             = 67,
@@ -161,9 +162,10 @@ class openstack::firewall (
   }
 
   firewall {'109 iscsi ':
-    port   => $iscsi_port,
-    proto  => 'tcp',
-    action => 'accept',
+    port        => $iscsi_port,
+    proto       => 'tcp',
+    destination => $iscsi_ip,
+    action      => 'accept',
   }
 
   firewall {'110 neutron ':
