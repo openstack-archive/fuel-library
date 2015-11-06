@@ -632,4 +632,16 @@ external_ntp:
   metadata:
     weight: 100
     label: Host OS NTP Servers
+configuration:
+  keystone_config:
+    DEFAULT/default_publisher_id:
+      ensure: absent
+    DEFAULT/crypt_strength:
+      value: 6000
+    trust/allow_redelegation:
+      value: true
+    ec2/driver:
+      value: keystone.contrib.ec2.backends.kvs.Ec2
+    policy/driver:
+      ensure: absent
 openstack_version_prev:

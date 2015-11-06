@@ -40,6 +40,7 @@ describe manifest do
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
+    config = Noop.hiera_structure 'configuration'
 
     it 'should declare keystone class with admin_token' do
       should contain_class('keystone').with(
@@ -142,6 +143,10 @@ describe manifest do
 
      it 'should disable use_stderr for keystone' do
        should contain_keystone_config('DEFAULT/use_stderr').with(:value => 'false')
+     end
+
+     it 'should create/update params with override_resources' do
+       should contain_override_resources('keystone_config').with(:data => config['keystone_config'])
      end
 
      if ceilometer_hash and ceilometer_hash['enabled']
