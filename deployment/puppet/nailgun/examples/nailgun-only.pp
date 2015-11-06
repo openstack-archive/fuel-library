@@ -85,6 +85,7 @@ class { "nailgun::venv":
   production => $production,
   nailgun_user => $nailgun_user,
   nailgun_group => $nailgun_group,
+  feature_groups => $::fuel_settings['FEATURE_GROUPS'],
 
   database_name => $::fuel_settings['postgres']['nailgun_dbname'],
   database_engine => "postgresql",

@@ -9,6 +9,8 @@ class nailgun::venv(
   $nailgun_user,
   $nailgun_group,
 
+  $feature_groups,
+
   $database_name,
   $database_engine,
   $database_host,
