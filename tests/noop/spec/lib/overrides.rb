@@ -115,7 +115,26 @@ class Noop
       end
     end
 
+    # These settings are pullled from the Puppet TestHelper
+    # (See Puppet::Test::TestHelper.initialize_settings_before_each)
+    # These items used to be setup in puppet 3.4 but were moved to before tests
+    # which breaks our testing framework because we attempt to call
+    # PuppetlabsSpec::PuppetInternals.scope and
+    # Puppet::Parser::Function.autoload.load prior to the testing being run.
+    # This results in an rspec failure so we need to initialize the basic
+    # settings up front to prevent issues with test framework
+    def puppet_default_settings
+        Puppet.settings.initialize_app_defaults({
+          :logdir       => '/dev/null',
+          :confdir      => '/dev/null',
+          :vardir       => '/dev/null',
+          :rundir       => '/dev/null',
+          :hiera_config => '/dev/null',
+        })
+    end
+
     def setup_overrides
+      puppet_default_settings
       hiera_puppet_override
       puppet_debug_override if ENV['SPEC_PUPPET_DEBUG']
       puppet_resource_scope_override
