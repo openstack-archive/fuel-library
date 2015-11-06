@@ -78,12 +78,13 @@ function debug {
 function lock {
   [[ $FLOCK -eq 1 ]] && return 0
   exec 904>/var/lock/dockerctl
-  flock -n 904 || { echo 'Failed to acquire the lock.' &>2; exit 1; }
+  flock -n 904 || { echo 'Failed to acquire the lock.' 1>2; exit 1; }
   FLOCK=1
 }
 
 function unlock {
-  flock -u "$FDLOCK"
+  flock -u 904
+  rm -f /var/lock/dockerctl
   FLOCK=0
 }
 
@@ -261,6 +262,7 @@ function start_container {
       supervisorctl start docker-$container > /dev/null
     fi
     if [ "$2" = "--attach" ]; then
+      unlock
       attach_container $container_name
     fi
   else
