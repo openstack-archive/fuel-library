@@ -7,6 +7,13 @@ else {
     $production = 'docker'
 }
 
+if $::fuel_settings['FEATURE_GROUPS'] {
+  $feature_groups = $::fuel_settings['FEATURE_GROUPS']
+}
+else {
+  $feature_groups = []
+}
+
 $env_path = "/usr"
 $staticdir = "/usr/share/nailgun/static"
 
@@ -92,6 +99,7 @@ class { "nailgun::venv":
   production => $production,
   nailgun_user => $nailgun_user,
   nailgun_group => $nailgun_group,
+  feature_groups => $feature_groups,
 
   database_name => $::fuel_settings['postgres']['nailgun_dbname'],
   database_engine => "postgresql",
