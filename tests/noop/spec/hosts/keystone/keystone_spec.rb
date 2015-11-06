@@ -144,6 +144,14 @@ describe manifest do
        should contain_keystone_config('DEFAULT/use_stderr').with(:value => 'false')
      end
 
+     it 'should create/update params with override_resources' do
+       should contain_keystone_config('trust/allow_redelegation').with(:value => 'true')
+       should contain_keystone_config('ec2/driver').with('keystone.contrib.ec2.backends.kvs.Ec2')
+       should contain_keystone_config('DEFAULT/crypt_strength').with(:value => '6000')
+       should contain_keystone_config('DEFAULT/default_publisher_id').with_ensure('absent')
+       should contain_keystone_config('policy/driver').with_ensure('absent')
+     end
+
      if ceilometer_hash and ceilometer_hash['enabled']
        it 'should configure notification driver' do
          should contain_keystone_config('DEFAULT/notification_driver').with(:value => 'messagingv2')
