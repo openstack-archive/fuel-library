@@ -83,7 +83,8 @@ function lock {
 }
 
 function unlock {
-  flock -u "$FDLOCK"
+  flock -u 904
+  rm -f /var/lock/dockerctl
   FLOCK=0
 }
 
@@ -261,6 +262,7 @@ function start_container {
       supervisorctl start docker-$container > /dev/null
     fi
     if [ "$2" = "--attach" ]; then
+      unlock
       attach_container $container_name
     fi
   else
