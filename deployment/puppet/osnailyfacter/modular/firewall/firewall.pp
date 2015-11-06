@@ -37,6 +37,13 @@ firewall {'006 reject non-local rabbitmq admin':
   require => Class['openstack::firewall'],
 }
 
+# allow connections from haproxy namespace
+firewall {'030 allow connections from haproxy namespace':
+  source => '240.0.0.2',
+  action => 'accept',
+  require => Class['openstack::firewall'],
+}
+
 prepare_network_config(hiera_hash('network_scheme'))
 class { 'openstack::firewall' :
   nova_vnc_ip_range => get_routable_networks_for_network_role($network_scheme, 'nova/api'),
