@@ -102,9 +102,9 @@ sysctl::value { 'net.ipv4.ip_forward': value => '1' }
 
 # All nodes with network functions should have these thresholds
 # to avoid "Neighbour table overflow" problem
-sysctl::value { 'net.ipv4.neigh.default.gc_thresh1': value => '1024' }
-sysctl::value { 'net.ipv4.neigh.default.gc_thresh2': value => '2048' }
-sysctl::value { 'net.ipv4.neigh.default.gc_thresh3': value => '4096' }
+sysctl::value { 'net.ipv4.neigh.default.gc_thresh1': value => '4096' }
+sysctl::value { 'net.ipv4.neigh.default.gc_thresh2': value => '8192' }
+sysctl::value { 'net.ipv4.neigh.default.gc_thresh3': value => '16384' }
 
 Sysctl::Value <| |> -> Nova_config <||>
 Sysctl::Value <| |> -> Neutron_config <||>

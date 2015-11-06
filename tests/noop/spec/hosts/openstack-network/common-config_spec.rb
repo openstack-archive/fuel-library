@@ -74,9 +74,9 @@ describe manifest do
 
     # equal for Nova-network and Neutron
     it 'should apply kernel tweaks for connections' do
-      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh1').with_value('1024')
-      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh2').with_value('2048')
-      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh3').with_value('4096')
+      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh1').with_value('4096')
+      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh2').with_value('8192')
+      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh3').with_value('16384')
       should contain_sysctl__value('net.ipv4.ip_forward').with_value('1')
     end
 
