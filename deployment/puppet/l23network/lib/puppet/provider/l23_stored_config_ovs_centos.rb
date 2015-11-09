@@ -6,6 +6,8 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
     rv = super
     rv.merge!({
       :devicetype     => 'DEVICETYPE',
+      :vlan_id        => 'OVS_OPTIONS',
+      :jacks          => 'OVS_PATCH_PEER',
       :bridge         => 'OVS_BRIDGE',
       :lnx_bridge     => 'BRIDGE',
       :bond_slaves    => 'BOND_IFACES',
@@ -19,6 +21,12 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
     })
     #delete non-OVS params
     [:bond_ad_select, :bond_xmit_hash_policy, :bond_master].each { |p| rv.delete(p) }
+    return rv
+  end
+
+  def self.boolean_properties
+    rv = super
+    rv.delete(:vlan_id)
     return rv
   end
 
@@ -119,13 +127,25 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
   def self.unmangle__if_type(provider, val)
     val = "OVS#{val.to_s.capitalize}".to_sym
     val = 'OVSIntPort' if val.to_s == 'OVSVport'
+    val = 'OVSPort' if val.to_s == 'OVSEthernet'
+    val = 'OVSPatchPort' if val.to_s == 'OVSPatch'
     val
   end
 
   def self.mangle__if_type(val)
     val = val.gsub('OVS', '').downcase.to_sym
     val = :vport if val.to_s == 'intport'
+    val = :ethernet if val.to_s == 'port'
+    val = :patch if val.to_s == 'patchport'
     val
+  end
+
+  def self.unmangle__jacks(provider, val)
+    val.join()
+  end
+
+  def self.mangle__jacks(val)
+    val.split(' ')
   end
 
   def self.unmangle__bond_slaves(provider, val)
@@ -148,7 +168,14 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
     val.split(' ')
   end
 
+  def self.unmangle__vlan_id(provider, val)
+    "\"tag=#{val}\""
+  end
 
+  def self.mangle__vlan_id(val)
+    val =  val.gsub('"', '').split('=')[1]
+    val
+  end
 
 end
 
