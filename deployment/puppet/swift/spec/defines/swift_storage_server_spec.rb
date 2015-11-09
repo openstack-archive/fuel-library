@@ -17,10 +17,14 @@ describe 'swift::storage::server' do
      class { 'swift::storage': storage_local_net_ip => '10.0.0.1' }"
   end
   let :default_params do
-    {:devices => '/srv/node',
-     :owner => 'swift',
-     :group  => 'swift',
-     :max_connections => '25'}
+    {
+      :devices         => '/srv/node',
+      :owner           => 'swift',
+      :group           => 'swift',
+      :incoming_chmod  => '0644',
+      :outgoing_chmod  => '0644',
+      :max_connections => '25'
+    }
   end
 
   describe 'with an invalid title' do
@@ -131,6 +135,8 @@ describe 'swift::storage::server' do
           :lock_file       => "/var/lock/#{t}.lock",
           :uid             => 'swift',
           :gid             => 'swift',
+          :incoming_chmod  => '0644',
+          :outgoing_chmod  => '0644',
           :max_connections => 25,
           :read_only       => false
         )}
