@@ -2,11 +2,17 @@ notice('MODULAR: swift/keystone.pp')
 
 $swift_hash       = hiera_hash('swift', {})
 $public_vip       = hiera('public_vip')
-$admin_address    = hiera('management_vip')
+# Allow a plugin to override the admin address using custom variable:
+# swift_proxy_management_vip
+$admin_address    = pick(hiera('swift_proxy_management_vip', undef),
+                         hiera('management_vip'))
 $region           = pick($swift_hash['region'], hiera('region', 'RegionOne'))
 $public_ssl_hash  = hiera('public_ssl')
 $public_address   = $public_ssl_hash['services'] ? {
-  true    => $public_ssl_hash['hostname'],
+  # Allow a plugin to override the public address using custum variable:
+  # swift_proxy_public_vip
+  true    => pick(hiera('swift_proxy_public_vip', undef),
+                  $public_ssl_hash['hostname']),
   default => $public_vip,
 }
 $public_protocol  = $public_ssl_hash['services'] ? {
