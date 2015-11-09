@@ -8,15 +8,25 @@ describe manifest do
       contain_class('swift::keystone::auth')
     end
 
-    public_vip           = Noop.hiera('public_vip')
-    admin_address        = Noop.hiera('management_vip')
+    swift                = Noop.hiera_structure('swift')
     public_ssl           = Noop.hiera_structure('public_ssl/services')
+    public_address       = false
+
+    if swift['management_vip']
+      admin_address      = swift['management_vip']
+    else
+      admin_address      = Noop.hiera('management_vip')
+    end
+
+    if swift['public_vip']
+      public_address     = swift['public_vip']
+    end
 
     if public_ssl
-      public_address  = Noop.hiera_structure('public_ssl/hostname')
+      public_address  = public_address || Noop.hiera_structure('public_ssl/hostname')
       public_protocol = 'https'
     else
-      public_address  = public_vip
+      public_address  = Noop.hiera('public_vip')
       public_protocol = 'http'
     end
 
