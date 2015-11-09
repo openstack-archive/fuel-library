@@ -32,7 +32,7 @@
   "description": "Installs and configures OpenStack Neutron (Networking).",
   "dependencies": [
     { "name": "puppetlabs/inifile", "version_requirement": ">=1.0.0 <2.0.0" },
-    { "name": "openstack/keystone", "version_requirement": ">=6.0.0 <7.0.0" },
+    { "name": "openstack/keystone", "version_requirement": ">=6.0.0 <=6.1.0" },
     { "name": "openstack/nova", "version_requirement": ">=6.0.0 <7.0.0" },
     { "name": "puppetlabs/stdlib", "version_requirement": ">=4.0.0 <5.0.0" },
     { "name": "openstack/vswitch", "version_requirement": ">=2.0.0 <3.0.0" },
