@@ -211,6 +211,7 @@ class { 'openstack::auth_file':
   auth_url            => $auth_url,
   murano_repo_url     => $murano_repo_url,
   murano_glare_plugin => $murano_glare_plugin,
+  cacert              => $public_cert
 }
 
 # Get paste.ini source
