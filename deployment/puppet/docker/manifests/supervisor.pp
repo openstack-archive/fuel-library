@@ -9,8 +9,8 @@ class docker::supervisor (
   define docker::supervisor::config( $release) {
     file { "/etc/supervisord.d/${release}/${title}.conf":
       content => template('docker/supervisor/base.conf.erb'),
-      owner   => 'root',
-      group   => 'root',
+      owner   => 'fueladmin',
+      group   => 'fueladmin',
       mode    => '0644',
     }
   }

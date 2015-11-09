@@ -8,8 +8,8 @@ class nailgun::auxiliaryrepos(
 
   file { $centos_dir:
     ensure  => directory,
-    owner   => 'root',
-    group   => 'root',
+    owner   => 'fueladmin',
+    group   => 'fueladmin',
     mode    => '0755',
   }
 
@@ -31,9 +31,10 @@ class nailgun::auxiliaryrepos(
   }
 
   exec { "createrepo ${centos_dir}":
-    path     => '/bin:/sbin:/usr/bin:/usr/sbin',
-    cwd      => $centos_dir,
-    creates  => "${centos_dir}/repodata/repomd.xml",
+    path    => '/bin:/sbin:/usr/bin:/usr/sbin',
+    cwd     => $centos_dir,
+    creates => "${centos_dir}/repodata/repomd.xml",
+    user    => "fueladmin",
   }
 
   $release_files = [
@@ -51,6 +52,7 @@ class nailgun::auxiliaryrepos(
     unless => "test -d ${ubuntu_dir}/pool && \
       test -d ${ubuntu_dir}/dists/auxiliary/main/binary-amd64 && \
       test -d ${ubuntu_dir}/dists/auxiliary/restricted/binary-amd64",
+    user => "fueladmin",
   }
 
   exec { 'create_ubuntu_repo_Packages':
@@ -58,6 +60,7 @@ class nailgun::auxiliaryrepos(
     command => "bash -c \"touch ${ubuntu_dir}/dists/auxiliary/{main,restricted}/binary-amd64/Packages\"",
     unless  => "test -f ${ubuntu_dir}/dists/auxiliary/main/binary-amd64/Packages && \
       test -f ${ubuntu_dir}/dists/auxiliary/restricted/binary-amd64/Packages",
+    user => "fueladmin",
   }
 
   file { $release_files:
@@ -65,7 +68,7 @@ class nailgun::auxiliaryrepos(
     replace => false,
     source  => 'puppet:///modules/nailgun/Release-auxiliary',
     mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
+    owner   => 'fueladmin',
+    group   => 'fueladmin',
   }
 }

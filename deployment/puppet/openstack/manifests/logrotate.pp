@@ -18,6 +18,12 @@ class openstack::logrotate (
       mode    => '0644',
       content => template('openstack/10-fuel-docker.conf.erb'),
     }
+
+    cron { 'fuel-logrotate':
+      command => '/usr/bin/fuel-logrotate',
+      user    => 'fueladmin',
+      minute  => '*/30',
+    }
   } else {
     # Configure log rotation for other nodes
     file { $logrotatefile:
@@ -25,6 +31,12 @@ class openstack::logrotate (
       group   => 'root',
       mode    => '0644',
       content => template('openstack/10-fuel.conf.erb'),
+    }
+
+    cron { 'fuel-logrotate':
+      command => '/usr/bin/fuel-logrotate',
+      user    => 'root',
+      minute  => '*/30',
     }
   }
 
@@ -65,11 +77,5 @@ class openstack::logrotate (
     line   => "maxsize ${maxsize}",
     match  => '^maxsize',
     after => '^minsize',
-  }
-
-  cron { 'fuel-logrotate':
-    command => '/usr/bin/fuel-logrotate',
-    user    => 'root',
-    minute  => '*/30',
   }
 }

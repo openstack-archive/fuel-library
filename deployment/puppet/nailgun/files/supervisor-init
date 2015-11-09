@@ -71,7 +71,7 @@ restart() {
 }
 
 supervisor_status() {
-        /usr/bin/supervisorctl status && kill -s 0 `cat /var/run/supervisord.pid` 2>/dev/null
+        /usr/bin/supervisorctl status && kill -s 0 `cat /var/run/supervisor/supervisord.pid` 2>/dev/null
         return $?
 }
 case "$1" in
