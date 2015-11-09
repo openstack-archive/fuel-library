@@ -1,0 +1,7 @@
+BOOTPROTO=none
+DEVICE=ovs2ovs-patch2
+ONBOOT=yes
+TYPE=OVSPatchPort
+OVS_BRIDGE=ovs-br2
+OVS_PATCH_PEER=ovs2ovs-patch1
+DEVICETYPE=ovs
