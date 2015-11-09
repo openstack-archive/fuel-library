@@ -1,0 +1,5 @@
+allow-br-ovs1 p2p1
+iface p2p1 inet manual
+ovs_type OVSPort
+ovs_bridge br-ovs1
+ovs_extra -- set Port p2p1 tag=100
