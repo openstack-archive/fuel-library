@@ -96,7 +96,7 @@ define l23network::l2::port (
   }
 
   if $delay_while_up and ! is_numeric($delay_while_up) {
-    fail("Delay for waiting after UP interface ${port} should be numeric, not an '$delay_while_up'.")
+    fail("Delay for waiting after UP interface ${port} should be numeric, not an '${delay_while_up}'.")
   }
 
   # # implicitly create bridge, if it given and not exists
@@ -125,7 +125,9 @@ define l23network::l2::port (
 
     L23_stored_config <| title == $port_name |> {
       ensure          => $ensure,
-      if_type         => $if_type,
+      if_type         => $config_provider ? {
+                                              "ovs_${::l23_os}" => 'ethernet',
+                                              default           => $if_type, },
       bridge          => $bridge,
       vlan_id         => $port_vlan_id,
       vlan_dev        => $port_vlan_dev,
@@ -168,7 +170,7 @@ define l23network::l2::port (
         ensure  => present,
         owner   => 'root',
         mode    => '0755',
-        content => template("l23network/centos_post_up.erb"),
+        content => template('l23network/centos_post_up.erb'),
       } -> L23_stored_config <| title == $port_name |>
     } else {
       file {"${::l23network::params::interfaces_dir}/interface-up-script-${port_name}":
