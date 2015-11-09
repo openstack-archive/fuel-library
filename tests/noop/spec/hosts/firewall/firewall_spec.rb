@@ -145,6 +145,13 @@ describe manifest do
       end
     end
 
+    it 'should accept connections from 240.0.0.2' do
+      should contain_firewall('030 allow connections from haproxy namespace').with(
+        'source'      => '240.0.0.2',
+        'action'      => 'accept',
+      )
+    end
+
   end
 
   test_ubuntu_and_centos manifest
