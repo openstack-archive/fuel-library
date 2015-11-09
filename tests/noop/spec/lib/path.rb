@@ -17,42 +17,40 @@ class Noop
       @hiera_data_path = File.expand_path(File.join(spec_dir, '..', '..', 'astute.yaml'))
     end
 
-    # def fixtures_path
-    #   return @fixtures_path if @fixtures_path
-    #   @fixtures_path = File.expand_path(File.join(spec_dir, '..', 'fixtures'))
-    # end
-    #
-    # def hosts_path
-    #   return @hosts_path if @hosts_path
-    #   @hosts_path = File.expand_path(File.join(spec_dir, 'hosts'))
-    # end
+    def hiera_override_folder
+      'override'
+    end
+
+    def hiera_override_path
+       File.expand_path(File.join(hiera_data_path, hiera_override_folder))
+    end
+
+    def hiera_task_override_file
+      return nil unless manifest
+      manifest.gsub('/', '-').gsub('.pp', '')
+    end
+
+    def hiera_task_override
+      override_file = hiera_task_override_file
+      return nil unless override_file
+      File.join hiera_override_folder, override_file
+    end
 
     def astute_yaml_name
       return ENV['SPEC_ASTUTE_FILE_NAME'] if ENV['SPEC_ASTUTE_FILE_NAME']
       'novanet-primary-controller.yaml'
     end
 
-    # def puppet_logs_dir
-    #   return ENV['SPEC_LOG_DIR'] if ENV['SPEC_PUPPET_LOGS_DIR']
-    #   return @puppet_logs_dir if @puppet_logs_dir
-    #   @puppet_logs_dir = File.expand_path(File.join(spec_dir, '..', '..', 'logs'))
-    # end
-
-    # def puppet_log_file
-    #   name = manifest.gsub(/\s+|\//, '_').gsub(/\(|\)/, '') + '.log'
-    #   File.join puppet_logs_dir, name
-    # end
-
     def astute_yaml_base
-      File.basename(self.astute_yaml_name).gsub(/.yaml$/, '')
+      File.basename(astute_yaml_name).gsub(/.yaml$/, '')
     end
 
     def astute_yaml_path
-      File.expand_path(File.join(self.hiera_data_path, self.astute_yaml_name))
+      File.expand_path(File.join(hiera_data_path, astute_yaml_name))
     end
 
     def globals_yaml_path
-      File.expand_path(File.join(self.hiera_data_path, self.globlas_prefix + self.astute_yaml_name))
+      File.expand_path(File.join(hiera_data_path, globlas_prefix + astute_yaml_name))
     end
 
     def globlas_prefix
@@ -60,11 +58,11 @@ class Noop
     end
 
     def hiera_data_astute
-      self.astute_yaml_base
+      astute_yaml_base
     end
 
     def hiera_data_globals
-      self.globlas_prefix + self.hiera_data_astute
+      globlas_prefix + hiera_data_astute
     end
 
     def modular_manifests_node_dir
@@ -72,7 +70,7 @@ class Noop
     end
 
     def modular_manifests_local_dir
-      File.join self.module_path, 'osnailyfacter/modular'
+      File.join module_path, 'osnailyfacter/modular'
     end
 
   end

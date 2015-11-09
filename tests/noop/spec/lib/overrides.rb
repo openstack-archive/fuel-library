@@ -16,6 +16,7 @@ class Noop
           :hierarchy => [
               hiera_data_globals,
               hiera_data_astute,
+              hiera_task_override,
           ],
           :logger => logger,
           :merge_behavior => :deeper,
@@ -23,35 +24,14 @@ class Noop
     end
 
     def hiera_object
-      # @hiera = {} unless @hiera
-      # if @hiera[astute_yaml_name]
-      #   return @hiera[astute_yaml_name]
-      # end
-      # @hiera[astute_yaml_name] = Hiera.new(:config => hiera_config)
-      # return @hiera[astute_yaml_name]
       return @hiera_object if @hiera_object
       @hiera_object = Hiera.new(:config => hiera_config)
       Hiera.logger = hiera_config[:logger]
       @hiera_object
     end
 
-    # override Hiera values for the code block
-    # passed to this fuction
-    # it 'can use overrided hiera values' do
-    #   Noop.hiera_override 'my_key' => 'my_value' do
-    #     expect(Noop.hiera 'my_key').to eq('my_value')
-    #   end
-    # end
-    # @param data [Hash] the hash with override keys and values
-    def hiera_override(data)
-      @hiera_override = data
-      yield
-      @hiera_override = nil
-    end
-
     def hiera(key, default = nil, resolution_type = :priority)
       key = key.to_s
-      return @hiera_override[key] if @hiera_override.is_a? Hash and @hiera_override.key? key
       # def lookup(key, default, scope, order_override=nil, resolution_type=:priority)
       hiera_object.lookup key, default, {}, nil, resolution_type
     end
