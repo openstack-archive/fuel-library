@@ -1,0 +1,5 @@
+BOOTPROTO=none
+DEVICE=lnx-port
+ONBOOT=yes
+MTU=9000
+TYPE=Ethernet
