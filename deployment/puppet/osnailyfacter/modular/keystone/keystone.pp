@@ -234,3 +234,9 @@ if ($::operatingsystem == 'Ubuntu') {
     package_name => 'keystone',
   }
 }
+
+# Override confguration options
+$override_configuration = hiera_hash('configuration', {})
+override_resources { 'keystone_config':
+  data => $override_configuration['keystone_config']
+}
