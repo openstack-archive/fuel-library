@@ -28,6 +28,10 @@ describe manifest do
       Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'nova/api'
     end
 
+    let(:iscsi_ip) do
+      Noop.puppet_function 'get_network_role_property', 'cinder/iscsi', 'ipaddr'
+    end
+
     let(:baremetal_network) do
       Noop.puppet_function 'get_network_role_property', 'ironic/baremetal', 'network'
     end
@@ -85,6 +89,15 @@ describe manifest do
           'action' => 'accept',
         )
       end
+    end
+
+    it 'should accept connections to iscsi' do
+       should contain_firewall('109 iscsi ').with(
+        'port'        => [ 3260 ],
+        'proto'       => 'tcp',
+        'destination' => iscsi_ip,
+        'action'      => 'accept',
+      )
     end
 
     it 'should create rules for heat' do
