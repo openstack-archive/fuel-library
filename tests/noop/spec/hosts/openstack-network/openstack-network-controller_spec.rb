@@ -7,9 +7,10 @@ describe manifest do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
 
-    use_neutron = Noop.hiera 'use_neutron'
+    use_neutron        = Noop.hiera 'use_neutron'
     ceilometer_enabled = Noop.hiera_structure 'ceilometer/enabled'
     service_endpoint   = Noop.hiera 'service_endpoint'
+    management_vip     = Noop.hiera 'management_vip'
 
     it 'should declare openstack::network with use_stderr disabled' do
       should contain_class('openstack::network').with(
@@ -79,9 +80,19 @@ describe manifest do
         )
       end
 
-      it 'should configure auth region for neutron-server-notifications' do
+      it 'should declare neutron::server::notifications class' do
+        nova_admin_auth_url = "http://#{service_endpoint}:35357/v2.0"
+        nova_endpoint       = Noop.hiera('nova_endpoint', management_vip)
+        nova_url            = "http://#{nova_endpoint}:8774/v2"
+        nova_hash           = Noop.hiera_hash('nova', {})
         should contain_class('neutron::server::notifications').with(
-         'nova_region_name' => 'RegionOne',
+          'nova_url'    => nova_url,
+          'auth_plugin' => 'v2password',
+          'auth_url'    => nova_admin_auth_url,
+          'username'    => nova_hash.fetch('user', 'nova'),
+          'tenant_name' => nova_hash.fetch('tenant', 'services'),
+          'password'    => nova_hash.fetch('user_password'),
+          'region_name' => 'RegionOne',
         )
       end
 

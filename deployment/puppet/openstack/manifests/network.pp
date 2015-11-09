@@ -242,12 +242,13 @@ class openstack::network (
         }
 
         class { 'neutron::server::notifications':
-          nova_url                => $nova_url,
-          nova_admin_auth_url     => "${identity_uri}/v2.0",
-          nova_admin_username     => $nova_admin_username,
-          nova_admin_tenant_name  => $nova_admin_tenant_name,
-          nova_admin_password     => $nova_admin_password,
-          nova_region_name        => $region,
+          nova_url    => $nova_url,
+          auth_plugin => 'v2password',
+          auth_url    => "${identity_uri}/v2.0",
+          username    => $nova_admin_username,
+          tenant_name => $nova_admin_tenant_name,
+          password    => $nova_admin_password,
+          region_name => $region,
         }
 
         # In Juno Neutron API ready for answer not yet when server starts.
