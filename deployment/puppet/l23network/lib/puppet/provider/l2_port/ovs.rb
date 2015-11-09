@@ -22,7 +22,7 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
     #
-    cmd = ["add-port", @resource[:bridge], @resource[:interface]]
+    cmd = ['--may-exist', 'add-port', @resource[:bridge], @resource[:interface]]
     # # tag and trunks for port
     # port_properties = @resource[:port_properties]
     # if ![nil, :absent].include? @resource[:vlan_id] and @resource[:vlan_id] > 0
