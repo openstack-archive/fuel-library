@@ -22,4 +22,12 @@ RSpec.configure do |c|
   c.mock_with(:mocha)
 end
 
+
+def puppet_debug_override
+  if ENV['SPEC_PUPPET_DEBUG']
+    Puppet::Util::Log.level = :debug
+    Puppet::Util::Log.newdestination(:console)
+  end
+end
+
 ###
