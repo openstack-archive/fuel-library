@@ -34,6 +34,8 @@ if $use_neutron {
   $l2_population     = try_get_value($neutron_advanced_config, 'neutron_l2_pop', false)
   $dvr               = try_get_value($neutron_advanced_config, 'neutron_dvr', false)
   $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
+  $physnet1_bridge   = try_get_value($neutron_config, 'L2/phys_nets/physnet1/bridge', 'br-floating')
+  $physnet1          = "physnet1:${physnet1_bridge}"
 
   if $segmentation_type == 'vlan' {
     $net_role_property    = 'neutron/private'
@@ -48,9 +50,9 @@ if $use_neutron {
     $physnet_ironic_bridge = try_get_value($neutron_config, 'L2/phys_nets/physnet-ironic/bridge', false)
 
     if $physnet_ironic_bridge {
-      $bridge_mappings = [$physnet2, "physnet-ironic:${physnet_ironic_bridge}"]
+      $bridge_mappings = [$physnet1, $physnet2, "physnet-ironic:${physnet_ironic_bridge}"]
     } else {
-      $bridge_mappings = [$physnet2]
+      $bridge_mappings = [$physnet1, $physnet2]
     }
 
     $physical_network_mtus = ["physnet2:${physical_net_mtu}"]
@@ -83,6 +85,13 @@ if $use_neutron {
     }
 
     $enable_tunneling = true
+    $bridge_mappings = [$physnet1]
+  }
+
+  if ($compute) and ! ($dvr) {
+    $bridge_mappings_final = delete($bridge_mappings, $physnet1)
+  } else {
+    $bridge_mappings_final = $bridge_mappings
   }
 
   $type_drivers = ['local', 'flat', 'vlan', 'gre', 'vxlan']
@@ -105,7 +114,7 @@ if $use_neutron {
   }
 
   class { 'neutron::agents::ml2::ovs':
-    bridge_mappings            => $bridge_mappings,
+    bridge_mappings            => $bridge_mappings_final,
     enable_tunneling           => $enable_tunneling,
     local_ip                   => $tunneling_ip,
     tunnel_types               => $tunnel_types,
