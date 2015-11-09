@@ -358,7 +358,8 @@ get_ns_list() {
 get_pid_list_for_ns_list() {
     # Parameters contain namespace names for searching pids
     local ns_list="$@"
-    local pids=`for netns in $ns_list ; do ip netns exec $netns lsof -n -i -t ; done`
+    local proc=$(find /proc/*/ns/net -exec stat -L -c%n:%i {} \; 2>/dev/null)
+    local pids=$(for netns in $ns_list ; do echo "$proc" | grep `stat -L -c%i /var/run/netns/$netns` | sed -e 's/\/proc\///' -e 's/\/ns\/net.*$//' ; done)
     echo $pids
 }
 
