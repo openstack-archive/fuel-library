@@ -1,0 +1,4 @@
+BOOTPROTO=none
+DEVICE=lnx-port2
+ONBOOT=yes
+MTU=9000

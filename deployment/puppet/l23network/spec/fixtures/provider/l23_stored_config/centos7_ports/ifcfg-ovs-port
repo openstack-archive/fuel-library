@@ -1,0 +1,6 @@
+BOOTPROTO=none
+DEVICE=ovs-port
+ONBOOT=yes
+MTU=9000
+TYPE=OVSPort
+DEVICETYPE=ovs
