@@ -4,19 +4,20 @@ class nailgun::supervisor(
   $ostf_env,
   $conf_file = "nailgun/supervisord.conf.erb",
   $restart_service = true,
+  $run_as_user = "root",
   ) {
 
   file { "/etc/sysconfig/supervisord":
     source => 'puppet:///modules/nailgun/supervisor-sysconfig',
-    owner => 'root',
-    group => 'root',
+    owner => $run_as_user,
+    group => $run_as_user,
     mode => '0644',
   }
 
   file { "/etc/rc.d/init.d/supervisord":
     source => 'puppet:///modules/nailgun/supervisor-init',
-    owner => 'root',
-    group => 'root',
+    owner => $run_as_user,
+    group => $run_as_user,
     mode => '0755',
     require => [Package["supervisor"],
                 File["/etc/sysconfig/supervisord"]],
@@ -26,12 +27,24 @@ class nailgun::supervisor(
 
   file { "/etc/supervisord.conf":
     content => template($conf_file),
-    owner => 'root',
-    group => 'root',
+    owner => $run_as_user,
+    group => $run_as_user,
     mode => 0644,
     require => Package["supervisor"],
     notify => Service["supervisord"],
   }
+
+  file { "/var/log/supervisor":
+    ensure => directory,
+    owner  => $run_as_user,
+    group  => $run_as_user,
+  } ->
+
+  file { "/var/run/supervisor":
+    ensure => directory,
+    owner  => $run_as_user,
+    group  => $run_as_user,
+  } ->
 
   service { "supervisord":
     ensure => $service_enabled,

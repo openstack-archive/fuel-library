@@ -13,6 +13,7 @@ Source0: %{name}-%{version}.tar.gz
 Provides: fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+Requires: fuel-admin-user
 Requires: fuel-misc
 
 %define files_source %{_builddir}/%{name}-%{version}/files
@@ -115,6 +116,7 @@ Provides: fuel-docker-utils
 URL: http://github.com/stackforge/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+Requires: fuel-admin-user
 
 %description -n fuel-dockerctl
 This package contains a set of helpers to manage docker containers
@@ -137,6 +139,7 @@ License: Apache 2.0
 URL: http://github.com/stackforge/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+Requires: fuel-admin-user
 
 %description -n fuel-misc
 A set of scripts for Fuel deployment utility
@@ -145,7 +148,7 @@ For further information go to http://wiki.openstack.org/Fuel
 %files -n fuel-misc
 
 #fuel-misc
-%defattr(-,root,root)
+%defattr(-,fueladmin,fueladmin)
 /sbin/ifup-local
 /sbin/ifdown-local
 /usr/bin/haproxy-status
@@ -168,7 +171,7 @@ A set of scripts for Fuel deployment utility HA deployment
 For further information go to http://wiki.openstack.org/Fuel
 
 %files -n fuel-ha-utils
-%defattr(-,root,root)
+%defattr(-,fueladmin,fueladmin)
 /usr/lib/ocf/resource.d/fuel
 /usr/bin/q-agent-cleanup.py
 /usr/bin/clustercheck
@@ -189,6 +192,7 @@ Requires: dbus
 Requires: dbus-python
 Requires: pygobject2
 Requires: python-daemon
+Requires: fuel-admin-user
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
 
 %description -n fuel-rabbit-fence
@@ -196,7 +200,7 @@ A set of scripts for Fuel deployment utility HA RabbitMQ deployment
 For further information go to http://wiki.openstack.org/Fuel
 
 %files -n fuel-rabbit-fence
-%defattr(-,root,root)
+%defattr(-,fueladmin,fueladmin)
 /usr/bin/rabbit-fence.py
 /etc/init.d/rabbit-fence
 #
@@ -212,6 +216,7 @@ Requires: monit
 Requires: python-six
 Requires: PyYAML
 Requires: python-fuelclient
+Requires: fuel-admin-user
 URL: http://github.com/stackforge/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
@@ -225,7 +230,7 @@ For further information go to http://wiki.openstack.org/Fuel
 %files -n fuel-notify
 
 #fuel-misc
-%defattr(-,root,root)
+%defattr(-,fueladmin,fueladmin)
 /usr/bin/fuel_notify.py
 %config(noreplace) /etc/fuel/free_disk_space_check.yaml
 %config(noreplace) /etc/monit.d/monit-free-space.conf

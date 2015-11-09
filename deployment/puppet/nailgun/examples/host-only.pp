@@ -78,6 +78,7 @@ class { 'nailgun::supervisor':
   ostf_env    => false,
   require     => File['/etc/supervisord.d/current', "/etc/supervisord.d/${::fuel_version['VERSION']['release']}"],
   conf_file   => 'nailgun/supervisord.conf.base.erb',
+  run_as_user => 'fueladmin',
 }
 
 class { 'osnailyfacter::ssh':
@@ -85,7 +86,9 @@ class { 'osnailyfacter::ssh':
 }
 
 file { '/etc/supervisord.d':
-  ensure  => directory,
+  ensure => directory,
+  owner  => 'fueladmin',
+  group  => 'fueladmin',
 }
 
 class { 'docker::supervisor':
@@ -96,8 +99,8 @@ class { 'docker::supervisor':
 file { "/etc/supervisord.d/${::fuel_version['VERSION']['release']}":
   ensure  => directory,
   require => File['/etc/supervisord.d'],
-  owner   => root,
-  group   => root,
+  owner   => 'fueladmin',
+  group   => 'fueladmin',
 }
 
 file { '/etc/supervisord.d/current':
@@ -112,5 +115,6 @@ exec {'sync_deployment_tasks':
   path      => '/usr/bin',
   tries     => 12,
   try_sleep => 10,
-  require   => Class['nailgun::supervisor']
+  require   => Class['nailgun::supervisor'],
+  user      => 'fueladmin',
 }

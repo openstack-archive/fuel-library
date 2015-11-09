@@ -29,51 +29,56 @@ $admin_iface = 'eth0',
     repo_root  => $repo_root,
   }
 
-  nailgun::sshkeygen { '/root/.ssh/id_rsa':
-    homedir   => '/root',
-    username  => 'root',
-    groupname => 'root',
+  nailgun::sshkeygen { '/home/fueladmin/.ssh/id_rsa':
+    homedir   => '/home/fueladmin',
+    username  => 'fueladmin',
+    groupname => 'fueladmin',
     keytype   => 'rsa',
-  }
+  } ->
 
-  file { '/root/.ssh/config':
+  file { '/home/fueladmin/.ssh/config':
     content => template('nailgun/root_ssh_config.erb'),
-    owner   => 'root',
-    group   => 'root',
+    owner   => 'fueladmin',
+    group   => 'fueladmin',
     mode    => '0600',
+  } ->
+
+  # TODO: dnikishov: delete this once we move away from root access completely
+  exec {'copy and set permissions for root key':
+    command   => 'cp -vr /home/fueladmin/.ssh /root/; chown -R root:root /root/.ssh/',
   }
 
   file { '/var/log/remote':
     ensure => directory,
-    owner  => 'root',
-    group  => 'root',
+    owner  => 'fueladmin',
+    group  => 'fueladmin',
     mode   => '0750',
   }
   file { '/var/www/nailgun/dump':
     ensure => directory,
-    owner  => 'root',
-    group  => 'root',
+    owner  => 'fueladmin',
+    group  => 'fueladmin',
     mode   => '0755',
   }
 
   file { '/etc/dhcp/dhcp-enter-hooks':
     content => template('nailgun/dhcp-enter-hooks.erb'),
-    owner   => 'root',
-    group   => 'root',
+    owner   => 'fueladmin',
+    group   => 'fueladmin',
     mode    => '0755',
   }
 
   file { '/etc/resolv.conf':
     content => template('nailgun/resolv.conf.erb'),
-    owner   => 'root',
-    group   => 'root',
+    owner   => 'fueladmin',
+    group   => 'fueladmin',
     mode    => '0644',
   }
 
   file { '/etc/dhcp/dhclient.conf':
     content => template('nailgun/dhclient.conf.erb'),
-    owner   => 'root',
-    group   => 'root',
+    owner   => 'fueladmin',
+    group   => 'fueladmin',
     mode    => '0644',
   }
 
@@ -110,8 +115,8 @@ $admin_iface = 'eth0',
 
   file { '/etc/fuel/free_disk_check.yaml':
     content => template('nailgun/free_disk_check.yaml.erb'),
-    owner   => 'root',
-    group   => 'root',
+    owner   => 'fueladmin',
+    group   => 'fueladmin',
     mode    => '0755',
   }
 
