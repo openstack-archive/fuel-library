@@ -33,8 +33,27 @@ class Noop
       puppet_scope.send "function_#{name}".to_sym, args
     end
 
+    # take a variable value from the saved puppet scope
     def lookupvar(name)
       puppet_scope.lookupvar name
+    end
+
+    # convert resource catalog to a RAL catalog
+    # and run "generate" hook for all resources
+    def create_ral_catalog(context)
+      catalog = context.subject
+      catalog = catalog.call if catalog.is_a? Proc
+      ral_catalog = catalog.to_ral
+      ral_catalog.resources.each do |resource|
+        next unless resource.respond_to? :generate
+        generated = resource.generate
+        next unless generated.is_a? Array
+        generated.each do |generated_resource|
+          next unless generated_resource.is_a? Puppet::Type
+          ral_catalog.add_resource generated_resource
+        end
+      end
+      lambda { ral_catalog }
     end
 
   end
