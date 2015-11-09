@@ -23,6 +23,14 @@ describe manifest do
       memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
     end
 
+    let(:configuration_override) do
+      Noop.hiera_structure 'configuration'
+    end
+
+    let(:keystone_config_override) do
+      configuration_override.fetch('keystone_config', {})
+    end
+
     nodes = Noop.hiera 'nodes'
     internal_address = Noop.node_hash['internal_address']
     primary_controller_nodes = Noop.puppet_function('filter_nodes', nodes, 'role', 'primary-controller')
@@ -54,7 +62,7 @@ describe manifest do
     end
 
 
-    it 'should configure  keystone with paramters' do
+    it 'should configure keystone with paramters' do
       should contain_keystone_config('token/caching').with(:value => 'false')
       should contain_keystone_config('cache/enabled').with(:value => 'true')
       should contain_keystone_config('cache/backend').with(:value => 'keystone.cache.memcache_pool')
@@ -143,6 +151,18 @@ describe manifest do
      it 'should disable use_stderr for keystone' do
        should contain_keystone_config('DEFAULT/use_stderr').with(:value => 'false')
      end
+
+     it 'should create/update params with override_resources' do
+       is_expected.to contain_override_resources('keystone_config').with(:data => keystone_config_override)
+     end
+
+    it 'should use "override_resources" to update the catalog' do
+      ral_catalog = Noop.create_ral_catalog self
+      keystone_config_override.each do |title, params|
+        params['value'] = 'True' if params['value'].is_a? TrueClass
+        expect(ral_catalog).to contain_keystone_config(title).with(params)
+      end
+    end
 
      if ceilometer_hash and ceilometer_hash['enabled']
        it 'should configure notification driver' do
