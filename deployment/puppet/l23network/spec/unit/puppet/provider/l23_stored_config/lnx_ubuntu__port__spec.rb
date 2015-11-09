@@ -1,16 +1,14 @@
 require 'spec_helper'
 
 resources_map =     {
-      :'p2p1' => {
-                 :name     => 'p2p1',
+      :'p2p2' => {
+                 :name     => 'p2p2',
                  :if_type  => 'ethernet',
-                 :bridge   => 'br-ovs1',
-                 :vlan_id  => '100',
-                 :provider => 'ovs_ubuntu',
+                 :provider => 'lnx_ubuntu',
                },
 }
 
-describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
 
   let(:input_data) { resources_map}
 
@@ -57,28 +55,24 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
 
   context "formating config files" do
 
-    context 'OVS port p2p1 ' do
-      subject { providers[:'p2p1'] }
+    context 'OVS port p2p2 ' do
+      subject { providers[:'p2p2'] }
       let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
-      it { expect(cfg_file).to match(/allow-br-ovs1\s+p2p1/) }
-      it { expect(cfg_file).to match(/iface\s+p2p1\s+inet\s+manual/) }
-      it { expect(cfg_file).to match(/ovs_type\s+OVSPort/) }
-      it { expect(cfg_file).to match(/ovs_bridge\s+br-ovs1/) }
-      it { expect(cfg_file).to match(/ovs_extra\s+--\s+set\s+Port\s+p2p1\st+ag=100/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }
+      it { expect(cfg_file).to match(/auto\s+p2p2/) }
+      it { expect(cfg_file).to match(/iface\s+p2p2\s+inet\s+manual/) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(2) }
     end
 
   end
 
   context "parsing config files" do
 
-    context 'OVS port p2p1' do
-      let(:res) { subject.class.parse_file('p2p1', fixture_data('ifcfg-p2p1'))[0] }
+    context 'OVS port p2p2' do
+      let(:res) { subject.class.parse_file('p2p2', fixture_data('ifcfg-p2p2'))[0] }
       it { expect(res[:method]).to eq :manual }
-      it { expect(res[:name]).to eq 'p2p1' }
-      it { expect(res[:bridge]).to eq "br-ovs1" }
-      it { expect(res[:vlan_id]).to eq '100' }
-      it { expect(res[:if_provider].to_s).to eq 'ovs' }
+      it { expect(res[:onboot]).to eq true }
+      it { expect(res[:name]).to eq 'p2p2' }
+      it { expect(res[:if_provider].to_s).to eq 'lnx' }
     end
 
   end
