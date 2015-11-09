@@ -74,8 +74,7 @@ if $use_neutron {
   # NOTE(aglarendil): lp/1381164
   nova_config { 'DEFAULT/force_snat_range' : value => '0.0.0.0/0' }
 
-# =========================================================================
-
+  # stub resource for 'nova::network' class
   file { '/etc/nova/nova.conf' : ensure => 'present' }
 
 }
