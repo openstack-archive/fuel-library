@@ -66,6 +66,11 @@ $admin_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol
 $admin_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 $admin_port     = '35357'
 
+$public_cert             = $public_ssl_hash['services']? {
+  true    => '/etc/pki/tls/certs/public_haproxy.pem',
+  default => undef,
+}
+
 $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
 $memcache_server_port   = hiera('memcache_server_port', '11211')
@@ -211,6 +216,7 @@ class { 'openstack::auth_file':
   auth_url            => $auth_url,
   murano_repo_url     => $murano_repo_url,
   murano_glare_plugin => $murano_glare_plugin,
+  cacert              => $public_cert
 }
 
 # Get paste.ini source
