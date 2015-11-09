@@ -26,7 +26,7 @@ if hiera('use_neutron', false) {
   $private_net_physnet          = try_get_value($nets, "${private_net}/L2/physnet", false)
   $private_net_shared           = try_get_value($nets, "${private_net}/shared", false)
   $private_net_router_external  = false
-  $floating_net_physnet         = try_get_value($nets, "${floating_net}/L2/physnet", false)
+  $floating_net_physnet         = try_get_value($nets, "${floating_net}/L2/physnet", 'br-floating')
   $floating_net_router_external = try_get_value($nets, "${floating_net}/L2/router_ext")
   $floating_net_floating_range  = try_get_value($nets, "${floating_net}/L3/floating", '')
   $floating_net_shared          = try_get_value($nets, "${floating_net}/shared", false)
@@ -40,7 +40,7 @@ if hiera('use_neutron', false) {
   neutron_network { $floating_net :
     ensure                    => 'present',
     provider_physical_network => $floating_net_physnet,
-    provider_network_type     => 'local',
+    provider_network_type     => 'flat',
     router_external           => $floating_net_router_external,
     tenant_name               => $tenant_name,
     shared                    => $floating_net_shared
