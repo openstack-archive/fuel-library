@@ -50,6 +50,7 @@ $admin_password = $access_hash['password']
 $region         = hiera('region', 'RegionOne')
 
 $public_ssl_hash         = hiera('public_ssl')
+<<<<<<< HEAD
 $ssl_hash                = hiera_hash('use_ssl', {})
 
 $public_cert             = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'path', [''])
@@ -65,6 +66,15 @@ $internal_port     = '5000'
 $admin_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
 $admin_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 $admin_port     = '35357'
+$public_service_endpoint = hiera('public_service_endpoint', $public_vip)
+$public_address          = $public_ssl_hash['services'] ? {
+  true    => $public_ssl_hash['hostname'],
+  default => $public_service_endpoint,
+}
+$public_cert             = $public_ssl_hash['services']? {
+  true    => '/etc/pki/tls/certs/public_haproxy.pem',
+  default => undef,
+}
 
 $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
@@ -211,6 +221,13 @@ class { 'openstack::auth_file':
   auth_url            => $auth_url,
   murano_repo_url     => $murano_repo_url,
   murano_glare_plugin => $murano_glare_plugin,
+  admin_user          => $admin_user,
+  admin_password      => $admin_password,
+  admin_tenant        => $admin_tenant,
+  region_name         => $region,
+  controller_node     => $service_endpoint,
+  murano_repo_url     => $murano_repo_url,
+  cacert              => $public_cert
 }
 
 # Get paste.ini source
