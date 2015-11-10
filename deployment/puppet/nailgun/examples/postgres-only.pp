@@ -8,6 +8,7 @@ class { 'postgresql::globals':
   bindir              => "/usr/pgsql-${postgres_default_version}/bin",
   server_package_name => "postgresql-server",
   client_package_name => "postgresql",
+  encoding            => 'UTF8',
 }
 class { 'postgresql::server':
   listen_addresses        => '0.0.0.0',
