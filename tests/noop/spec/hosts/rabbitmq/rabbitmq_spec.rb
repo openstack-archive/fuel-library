@@ -10,6 +10,12 @@ describe manifest do
       expect(environment_variables['SERVER_ERL_ARGS']).to eq '"+K true +A48 +P 1048576"'
     end
 
+    it 'has correct ERL_EPMD_ADDRESS in environment_variables' do
+      environment_variables = Noop.resource_parameter_value self, 'class', 'rabbitmq', 'environment_variables'
+      node_ip_address = Noop.puppet_function 'get_network_role_property', 'mgmt/messaging', 'ipaddr'
+      expect(environment_variables['ERL_EPMD_ADDRESS']).to eq node_ip_address
+    end
+
     # LP#1477595
     it "should contain rabbitmq correct log levels" do
       debug = Noop.hiera('debug', false)
@@ -28,8 +34,11 @@ describe manifest do
       debug = Noop.hiera('debug', false)
       collect_statistics_interval = '[{collect_statistics_interval,30000}]'
       rates_mode = '[{rates_mode, none}]'
+      node_ip_address = Noop.puppet_function 'get_network_role_property', 'mgmt/messaging', 'ipaddr'
+      listener = "[{port, 15672}, {ip,\"#{node_ip_address}\"}]"
       should contain_class('rabbitmq').with_config_variables(/#{collect_statistics_interval}/)
       should contain_class('rabbitmq').with_config_rabbitmq_management_variables(/#{rates_mode}/)
+      should contain_class('rabbitmq').with_config_rabbitmq_management_variables(/#{listener}/)
     end
 
     # Partial LP#1493520
