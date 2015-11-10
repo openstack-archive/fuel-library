@@ -41,6 +41,7 @@ class cluster::haproxy (
   $haproxy_bufsize    = '16384',
   $haproxy_maxrewrite = '1024',
   $haproxy_log_file   = '/var/log/haproxy.log',
+  $haproxy_ssl_default_dh_param = '2048',
   $primary_controller = false,
   $debug              = false,
   $other_networks     = false,
@@ -67,6 +68,7 @@ class cluster::haproxy (
     'stats'           => 'socket /var/lib/haproxy/stats',
     'tune.bufsize'    => $haproxy_bufsize,
     'tune.maxrewrite' => $haproxy_maxrewrite,
+    'tune.ssl.default-dh-param' => $haproxy_ssl_default_dh_param
   }
 
   $defaults_options = {
