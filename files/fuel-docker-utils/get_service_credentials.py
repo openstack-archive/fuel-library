@@ -1,4 +1,4 @@
-#!/usr/bin/python 
+#!/usr/bin/python
 #    Copyright 2014 Mirantis, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,16 +13,27 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
 import sys
 import yaml
 
-astuteyaml=sys.argv[1]
-data=yaml.load(open(astuteyaml))
-for outerkey in data.keys():
-  if isinstance(data[outerkey], dict):
-      for innerkey in data[outerkey].keys():
-          print("%s_%s=\'%s\'" % (outerkey, innerkey, data[outerkey][innerkey]))
-  else:
-      print("%s=\'%s\'" % (outerkey, data[outerkey]))
+astuteyaml = sys.argv[1]
+data = yaml.load(open(astuteyaml))
 
+
+def traverse(data, head=''):
+    if isinstance(data, dict):
+        for key, value in data.iteritems():
+            # print "DICT: %s" % data
+            new_head = "{head}_{tail}".format(head=head, tail=key).lstrip('_')
+            traverse(value, new_head)
+    elif isinstance(data, (unicode, str)):
+        # print "STR:  %s" % data
+        print("{head}='{value}'".format(head=head, value=data))
+    elif isinstance(data, list):
+        # print "LIST: %s" % data
+        for i, item in enumerate(data):
+            new_head = "{head}_{tail}".format(head=head, tail=i).lstrip('_')
+            traverse(item, new_head)
+    return data
+
+traverse(data)
