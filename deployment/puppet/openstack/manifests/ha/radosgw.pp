@@ -29,6 +29,7 @@ class openstack::ha::radosgw (
   $public_virtual_ip,
   $server_names,
   $public_ssl = false,
+  $baremetal_virtual_ip = undef,
 ) {
 
   # defaults for any haproxy_service within this class
@@ -48,5 +49,13 @@ class openstack::ha::radosgw (
     haproxy_config_options => {
       'option' => ['httplog', 'httpchk GET /'],
     },
+  }
+
+  if $baremetal_virtual_ip {
+    openstack::ha::haproxy_service { 'radosgw-baremetal':
+      order                  => '135',
+      public_virtual_ip      => false,
+      internal_virtual_ip    => $baremetal_virtual_ip,
+    }
   }
 }
