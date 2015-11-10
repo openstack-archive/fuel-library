@@ -257,3 +257,11 @@
         dst: /var/lib/astute/ironic/ironic
     permissions: '0600'
     dir_permissions: '0700'
+
+- id: delete_all_keys
+  type: shell
+  role: master
+  required_for: [generate_keys, generate_haproxy_keys]
+  requires: [pre_deployment_start]
+  parameters:
+    cmd: rm -rf /var/lib/fuel/keys/{CLUSTER_ID}
