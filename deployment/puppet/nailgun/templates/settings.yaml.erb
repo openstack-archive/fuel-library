@@ -15,6 +15,15 @@ AUTH:
   admin_password: "<%= @keystone_nailgun_pass %>"
   admin_tenant_name: "services"
 
+<% if @feature_groups.empty? -%>
+FEATURE_GROUPS: []
+<% else -%>
+FEATURE_GROUPS:
+  <% @feature_groups.each do |fgrp| -%>
+  - <%= fgrp %>
+  <% end -%>
+<% end -%>
+
 DATABASE:
   engine: "<%= @database_engine %>"
   name: "<%= @database_name %>"
