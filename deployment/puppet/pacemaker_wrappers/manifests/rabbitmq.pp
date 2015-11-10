@@ -20,6 +20,11 @@
 #   Integer. The port for rabbitmq to listen on.
 #   Defaults to $::rabbitmq::port
 #
+# [*host_ip*]
+#   String. A string used for OCF script to collect
+#   RabbitMQ statistics
+#   Defaults to '127.0.0.1'
+#
 # [*debug*]
 #   Boolean. Flag to enable or disable debug logging.
 #   Defaults to false;
@@ -49,6 +54,7 @@ class pacemaker_wrappers::rabbitmq (
   $primitive_type     = 'rabbitmq-server',
   $service_name       = $::rabbitmq::service_name,
   $port               = $::rabbitmq::port,
+  $host_ip            = '127.0.0.1',
   $debug              = false,
   $ocf_script_file    = 'cluster/ocf/rabbitmq',
   $command_timeout    = '',
@@ -57,7 +63,14 @@ class pacemaker_wrappers::rabbitmq (
   $admin_pass         = undef,
 ) inherits ::rabbitmq::service {
 
+  if $host_ip == 'UNSET' or $host_ip == '0.0.0.0' {
+    $real_host_ip = '127.0.0.1'
+  } else {
+    $real_host_ip = $host_ip
+  }
+
   $parameters      = {
+    'host_ip'         => $real_host_ip,
     'node_port'       => $port,
     'debug'           => $debug,
     'command_timeout' => $command_timeout,
