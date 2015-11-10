@@ -17,6 +17,8 @@ $mco_password = $::fuel_settings['mcollective']['password']
 $mco_vhost = "mcollective"
 $stomp = false
 
+$bind_ip = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
+
 $thread_pool_calc = min(100,max(12*$physicalprocessorcount,30))
 
 class {'docker::container': }
@@ -43,12 +45,15 @@ class { 'nailgun::rabbitmq':
   production      => $production,
   astute_user     => $rabbitmq_astute_user,
   astute_password => $rabbitmq_astute_password,
+  bind_ip         => $bind_ip,
   mco_user        => $mco_user,
   mco_password    => $mco_password,
   mco_vhost       => $mco_vhost,
   stomp           => $stomp,
   env_config      => {
     'RABBITMQ_SERVER_ERL_ARGS' => "+K true +A${thread_pool_calc} +P 1048576",
+    'ERL_EPMD_ADDRESS'         => $bind_ip,
     'NODENAME'                 => "rabbit@${::hostname}",
   },
 }
+
