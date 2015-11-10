@@ -2,13 +2,13 @@ class nailgun::rabbitmq (
   $production      = 'prod',
   $astute_password = 'astute',
   $astute_user     = 'astute',
+  $bind_ip       = '127.0.0.1',
   $mco_user        = 'mcollective',
   $mco_password    = 'marionette',
   $mco_vhost       = 'mcollective',
   $stomp           = false,
   $management_port = '15672',
   $stompport       = '61613',
-  $rabbitmq_host   = 'localhost',
   $env_config      = {},
 ) {
 
@@ -79,7 +79,7 @@ class nailgun::rabbitmq (
 
     command   => "curl -L -i -u ${mco_user}:${mco_password} -H   \"content-type:application/json\" -XPUT \
       -d'{\"type\":\"direct\",\"durable\":true}'\
-      http://localhost:${management_port}/api/exchanges/${actual_vhost}/mcollective_directed",
+      http://${bind_ip}:${management_port}/api/exchanges/${actual_vhost}/mcollective_directed",
     logoutput => true,
     require   => [
                  Service['rabbitmq-server'],
@@ -93,7 +93,7 @@ class nailgun::rabbitmq (
   exec { 'create-mcollective-broadcast-exchange':
     command   => "curl -L -i -u ${mco_user}:${mco_password} -H \"content-type:application/json\" -XPUT \
       -d'{\"type\":\"topic\",\"durable\":true}'\
-      http://localhost:${management_port}/api/exchanges/${actual_vhost}/mcollective_broadcast",
+      http://${bind_ip}:${management_port}/api/exchanges/${actual_vhost}/mcollective_broadcast",
     logoutput => true,
     require   => [Service['rabbitmq-server'],
   Rabbitmq_user_permissions["${mco_user}@${actual_vhost}"]],
@@ -114,6 +114,8 @@ class nailgun::rabbitmq (
       {keepalive, true}
     ]'
 
+  $rabbitmq_management_variables = {'listener' => "[{port, 15672}, {ip, \"${bind_ip}\"}]"}
+
   # NOTE(bogdando) requires rabbitmq module >=4.0
   class { '::rabbitmq':
     repos_ensure            => false,
@@ -127,7 +129,7 @@ class nailgun::rabbitmq (
     config_stomp            => true,
     stomp_port              => $stompport,
     ssl                     => false,
-    node_ip_address         => 'UNSET',
+    node_ip_address         => $bind_ip,
     config_kernel_variables => {
      'inet_dist_listen_min'         => '41055',
      'inet_dist_listen_max'         => '41055',
@@ -139,6 +141,8 @@ class nailgun::rabbitmq (
       'default_permissions'         => '[<<".*">>, <<".*">>, <<".*">>]',
       'tcp_listen_options'          => $rabbit_tcp_listen_options,
     },
+
+    config_rabbitmq_management_variables => $rabbitmq_management_variables,
   }
 
   Anchor['nailgun::rabbitmq start'] ->
@@ -146,3 +150,4 @@ class nailgun::rabbitmq (
   Anchor['nailgun::rabbitmq end']
 
 }
+

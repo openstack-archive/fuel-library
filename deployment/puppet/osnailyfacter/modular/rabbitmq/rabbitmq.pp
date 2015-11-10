@@ -47,6 +47,13 @@ if $queue_provider == 'rabbitmq' {
   $mnesia_table_loading_timeout = hiera('mnesia_table_loading_timeout', '10000')
   $rabbitmq_bind_ip_address     = pick(get_network_role_property('mgmt/messaging', 'ipaddr'), 'UNSET')
 
+  # NOTE(mattymo) UNSET is a puppet ref, but would break if we insert directly into configs
+  if $rabbitmq_bind_address != 'UNSET' {
+    $real_service_bind_address = '0.0.0.0'
+  } else {
+    $real_service_bind_address = $rabbitmq_bind_ip_address
+  }
+
   # NOTE(bogdando) not a hash. Keep an indentation as is
   $rabbit_tcp_listen_options    = hiera('rabbit_tcp_listen_options',
     '[
@@ -81,7 +88,8 @@ if $queue_provider == 'rabbitmq' {
   )
   $config_rabbitmq_management_variables = hiera('rabbit_config_management_variables',
     {
-      'rates_mode' => 'none'
+      'rates_mode' => 'none',
+      'listener'   => {'listener' => "[{port, 15672}, {ip,\"$real_service_bind_address\"}]"},
     }
   )
 
@@ -95,6 +103,7 @@ if $queue_provider == 'rabbitmq' {
   $environment_variables = hiera('rabbit_environment_variables',
     {
       'SERVER_ERL_ARGS'     => "\"+K true +A${thread_pool_calc} +P 1048576\"",
+      'ERL_EPMD_ADDRESS'    => $real_service_bind_address,
       'PID_FILE'            => $rabbit_pid_file,
     }
   )
@@ -151,6 +160,7 @@ if $queue_provider == 'rabbitmq' {
         erlang_cookie   => $erlang_cookie,
         admin_user      => $rabbit_hash['user'],
         admin_pass      => $rabbit_hash['password'],
+        host_ip         => $rabbitmq_bind_ip_address,
         before          => Class['nova::rabbitmq'],
       }
     }
