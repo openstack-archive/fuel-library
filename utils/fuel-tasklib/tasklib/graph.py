@@ -29,21 +29,24 @@ class DeploymentGraph(object):
         """
         graph = nx.DiGraph()
         for task in self.tasks:
-            task_id = task['id']
-            graph.add_node(task_id, **task)
-            if 'required_for' in task:
-                for req in task['required_for']:
-                    graph.add_edge(task_id, req)
-            if 'requires' in task:
-                for req in task['requires']:
-                    graph.add_edge(req, task_id)
+            if 'detached' in task and task['detached']:
+                continue
+            else:
+                task_id = task['id']
+                graph.add_node(task_id, **task)
+                if 'required_for' in task:
+                    for req in task['required_for']:
+                        graph.add_edge(task_id, req)
+                if 'requires' in task:
+                    for req in task['requires']:
+                        graph.add_edge(req, task_id)
 
-            if 'groups' in task:
-                for req in task['groups']:
-                    graph.add_edge(task_id, req)
-            if 'tasks' in task:
-                for req in task['tasks']:
-                    graph.add_edge(req, task_id)
+                if 'groups' in task:
+                    for req in task['groups']:
+                        graph.add_edge(task_id, req)
+                if 'tasks' in task:
+                    for req in task['tasks']:
+                        graph.add_edge(req, task_id)
 
         return graph
 
