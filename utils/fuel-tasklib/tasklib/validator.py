@@ -67,10 +67,6 @@ class TasksValidator(object):
         if len(cycles):
             msgs.append('Graph is not acyclic. Cycles: {0}'.format(cycles))
 
-        # graph should be connected to execute all tasks
-        if not self.graph.is_connected():
-            msgs.append('Graph is not connected.')
-
         # deployment graph should have filled all nodes
         empty_nodes = self.graph.find_empty_nodes()
         if len(empty_nodes):
