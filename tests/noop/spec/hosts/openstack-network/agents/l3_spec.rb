@@ -50,6 +50,7 @@ describe manifest do
             it { should contain_class('neutron::agents::l3').with(
               'router_delete_namespaces' => true
             )}
+            it { should_not contain_cluster__neutron__l3('default-l3') }
           else
             it { should_not contain_class('neutron::agents::l3') }
           end

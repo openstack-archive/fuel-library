@@ -107,9 +107,9 @@
 
 - id: openstack-network-agents-metadata
   type: puppet
-  groups: [primary-controller,controller]
+  groups: [primary-controller,controller,compute]
   required_for: [openstack-network-end]
-  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3,openstack-network-agents-dhcp]
+  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/metadata.pp
     puppet_modules: /etc/puppet/modules
@@ -119,7 +119,7 @@
   type: puppet
   groups: [compute]
   required_for: [openstack-network-end]
-  requires: [openstack-network-common-config,openstack-network-agents-l3]
+  requires: [openstack-network-common-config,openstack-network-agents-l3,openstack-network-agents-metadata]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/compute-nova.pp
     puppet_modules: /etc/puppet/modules
