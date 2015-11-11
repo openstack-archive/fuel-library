@@ -1,3 +1,4 @@
+
 # Install and configures cobbler
 class nailgun::cobbler(
   $cobbler_user                  = 'cobbler',
@@ -25,6 +26,7 @@ class nailgun::cobbler(
   $nailgun_api_url               = "http://${::ipaddress}:8000/api",
   # default password is 'r00tme'
   $ks_encrypted_root_password    = '\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61',
+  $bootstrap_path                = '/var/www/nailgun/bootstraps/active_bootstrap',
 ){
 
   anchor { 'nailgun-cobbler-begin': }
@@ -94,6 +96,13 @@ class nailgun::cobbler(
 
   # THIS VARIABLE IS NEEDED FOR TEMPLATING centos-x86_64.ks
   $ks_repo = $centos_repos
+  # THIS VARIABLE IS NEEDED FOR ubuntu_bootstrap profile
+  $meta_path = "${bootstrap_path}/metadata.yaml"
+  if is_file_exist($meta_path) {
+    $metadata = loadyaml($meta_path)
+  } else {
+    $metadata = {}
+  }
 
   case $production {
     'prod', 'docker': {
@@ -165,8 +174,8 @@ class nailgun::cobbler(
       }
 
       cobbler_distro { 'ubuntu_bootstrap':
-        kernel    => "${repo_root}/bootstrap/ubuntu/linux",
-        initrd    => "${repo_root}/bootstrap/ubuntu/initramfs.img",
+        kernel    => "$bootstrap_path/vmlinuz",
+        initrd    => "$bootstrap_path/initrd.img",
         arch      => 'x86_64',
         breed     => 'ubuntu',
         osversion => 'trusty',
@@ -188,7 +197,7 @@ class nailgun::cobbler(
         distro    => 'ubuntu_bootstrap',
         menu      => true,
         kickstart => '',
-        kopts     => "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts     => extend_kopts($metadata['extend_kopts'], "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstraps/active_bootstrap/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}"),
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['ubuntu_bootstrap'],
