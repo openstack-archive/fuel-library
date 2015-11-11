@@ -1,8 +1,11 @@
+
 # Install and configures cobbler
 class nailgun::cobbler(
   $cobbler_user                  = 'cobbler',
   $cobbler_password              = 'cobbler',
   $bootstrap_flavor              = 'centos',
+  $bootstrap_path,
+  $bootstrap_meta,
   # network interface configuration timeout (in seconds)
   $bootstrap_ethdevice_timeout   = '120',
   $centos_repos,
@@ -165,8 +168,8 @@ class nailgun::cobbler(
       }
 
       cobbler_distro { 'ubuntu_bootstrap':
-        kernel    => "${repo_root}/bootstrap/ubuntu/linux",
-        initrd    => "${repo_root}/bootstrap/ubuntu/initramfs.img",
+        kernel    => "${bootstrap_path}/vmlinuz",
+        initrd    => "${bootstrap_path}/initrd.img",
         arch      => 'x86_64',
         breed     => 'ubuntu',
         osversion => 'trusty',
@@ -188,7 +191,7 @@ class nailgun::cobbler(
         distro    => 'ubuntu_bootstrap',
         menu      => true,
         kickstart => '',
-        kopts     => "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts     => extend_kopts($bootstrap_meta['extend_kopts'], "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstraps/active_bootstrap/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}"),
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['ubuntu_bootstrap'],
