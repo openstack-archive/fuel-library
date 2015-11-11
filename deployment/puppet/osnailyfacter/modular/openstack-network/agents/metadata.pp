@@ -1,13 +1,19 @@
 notice('MODULAR: openstack-network/agents/metadata.pp')
 
-$use_neutron = hiera('use_neutron', false)
+$use_neutron              = hiera('use_neutron', false)
+$role                     = hiera('role')
+$neutron_controller_roles = hiera('neutron_controller_roles', ['controller', 'primary-controller'])
+$neutron_compute_roles    = hiera('neutron_compute_nodes', ['compute'])
+$controller               = $role in $neutron_controller_roles
+$compute                  = $role in $neutron_compute_roles
+$neutron_advanced_config  = hiera_hash('neutron_advanced_configuration', { })
+$dvr                      = pick($neutron_advanced_config['neutron_dvr'], false)
 
 class neutron {}
 class { 'neutron' :}
 
-if $use_neutron {
+if $use_neutron and ($controller or ($dvr and $compute)) {
   $debug                   = hiera('debug', true)
-  $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
   $ha_agent                = try_get_value($neutron_advanced_config, 'metadata_agent_ha', true)
 
   $auth_region             = hiera('region', 'RegionOne')
@@ -40,7 +46,7 @@ if $use_neutron {
     enabled        => true,
   }
 
-  if $ha_agent {
+  if ($ha_agent) and !($compute) {
     $primary_controller = hiera('primary_controller')
     class { 'cluster::neutron::metadata' :
       primary => $primary_controller,
