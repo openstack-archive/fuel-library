@@ -9,10 +9,11 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
         :name           => 'ttt0',
         :ensure         => 'present',
         :bridge         => 'br9',
+        :if_type        => 'vport',
         :mtu            => '6000',
         :onboot         => true,
         :method         => 'manual',
-        :provider       => "ovs_ubuntu",
+        :provider       => 'ovs_ubuntu',
       },
     }
   end
@@ -85,7 +86,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(res[:method]).to eq :manual }
       it { expect(res[:mtu]).to eq '6000' }
       it { expect(res[:bridge]).to eq 'br9' }
-      it { expect(res[:if_type].to_s).to eq 'ethernet' }
+      it { expect(res[:if_type].to_s).to eq 'vport' }
       it { expect(res[:if_provider].to_s).to eq 'ovs' }
     end
 

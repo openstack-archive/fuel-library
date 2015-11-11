@@ -19,7 +19,7 @@ resources_map =     {
                },
       :'p_33470efd-0' => {
                  :name     => "p_33470efd-0",
-                 :if_type  => "ethernet",
+                 :if_type  => 'vport',
                  :bridge   => ["br-ovs", "br1"],
                  :jacks    => ['p_33470efd-0', 'p_33470efd-1'],
                  :provider => "ovs_ubuntu",
@@ -133,7 +133,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(res[:onboot]).to eq true }
       it { expect(res[:name]).to eq 'p_33470efd-0' }
       it { expect(res[:bridge]).to eq "br-ovs" }
-      it { expect(res[:if_type].to_s).to eq 'ethernet' }
+      it { expect(res[:if_type].to_s).to eq 'vport' }
       it { expect(res[:if_provider].to_s).to eq 'ovs' }
     end
   end
