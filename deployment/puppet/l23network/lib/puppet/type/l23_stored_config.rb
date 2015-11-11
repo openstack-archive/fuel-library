@@ -36,7 +36,7 @@ Puppet::Type.newtype(:l23_stored_config) do
 
   newproperty(:if_type) do
     desc "Device type. Service property, shouldn't be setting by puppet"
-    newvalues(:ethernet, :bridge, :bond, :patch)
+    newvalues(:ethernet, :bridge, :bond, :patch, :vport)
   end
 
   newproperty(:if_provider) do

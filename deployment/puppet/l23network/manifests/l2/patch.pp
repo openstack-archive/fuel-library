@@ -100,7 +100,7 @@ define l23network::l2::patch (
       }
       L23_stored_config <| title == $patch_jacks_names[0] |> {
         ensure          => $ensure,
-        if_type         => 'ethernet',
+        if_type         => 'vport',
         bridge          => $act_bridges,
         jacks           => $patch_jacks_names,
         mtu             => $mtu,

@@ -106,7 +106,7 @@ end
     it do
       should contain_l23_stored_config('p_33470efd-0').with({
         'ensure'         => 'present',
-        'if_type'        => 'ethernet',
+        'if_type'        => 'vport',
         'bridge'         => ["br-ovs", "br1"],
         'jacks'          => ['p_33470efd-0', 'p_33470efd-1'],
         'provider'       => 'ovs_ubuntu'

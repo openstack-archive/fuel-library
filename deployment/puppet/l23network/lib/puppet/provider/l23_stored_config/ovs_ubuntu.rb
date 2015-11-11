@@ -16,7 +16,7 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
     rv = super
     rv.merge!({
       #todo(sv): :onboot         => '', # should not be used (may be if no ipaddr)
-      :ovs_type       => 'ovs_type',
+      :if_type        => 'ovs_type',
       :bridge         => 'ovs_bridge',
       :bridge_ports   => 'ovs_ports',
       :bond_slaves    => 'ovs_bonds',
@@ -85,30 +85,42 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
     if provider.if_type.to_s == 'bridge'
       header << "auto #{provider.name}" if provider.onboot
       header << "allow-ovs #{provider.name}"
-      props[:ovs_type] = 'OVSBridge'
       props[:bridge]   = nil
     elsif provider.if_type.to_s == 'bond'
       # there are no 'auto bond-name' should be here. Because!
       header << "allow-#{bridge} #{provider.name}"
-      props[:ovs_type] = 'OVSBond'
       props[:bridge]   = bridge
     elsif provider.if_type.to_s == 'patch'
       header << "auto #{provider.name}" if provider.onboot
       header << "allow-#{bridge} #{provider.name}"
       props[:bridge]   = bridge
-      props[:ovs_type] = 'OVSPort'
       provider.mtu     = nil
-    else
+    elsif provider.if_type.to_s == 'vport'
       header << "auto #{provider.name}" if provider.onboot
       header << "allow-#{bridge} #{provider.name}"
-      props[:ovs_type] = 'OVSIntPort'
       props[:bridge]   = bridge
       provider.jacks   = nil
+    else
+      header << "auto #{provider.name}" if provider.onboot
     end
     # Add iface header
     header << "iface #{provider.name} inet #{provider.method}"
 
     return header, props
+  end
+
+  def self.unmangle__if_type(provider, val)
+    val = "OVS#{val.to_s.capitalize}".to_sym
+    val = 'OVSPort' if val.to_s == 'OVSPatch'
+    val = 'OVSIntPort' if val.to_s == 'OVSVport'
+    val
+  end
+
+  def self.mangle__if_type(val)
+    val = val.gsub('OVS', '').downcase.to_sym
+    val = :patch if val.to_s == 'port'
+    val = :vport if val.to_s == 'intport'
+    val
   end
 
   def self.collected_properties
