@@ -25,6 +25,7 @@ class nailgun::cobbler(
   $nailgun_api_url               = "http://${::ipaddress}:8000/api",
   # default password is 'r00tme'
   $ks_encrypted_root_password    = '\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61',
+  $bootstrap_path                = '/var/www/nailgun/bootstraps/active_bootstrap',
 ){
 
   anchor { 'nailgun-cobbler-begin': }
@@ -165,8 +166,8 @@ class nailgun::cobbler(
       }
 
       cobbler_distro { 'ubuntu_bootstrap':
-        kernel    => "${repo_root}/bootstrap/ubuntu/linux",
-        initrd    => "${repo_root}/bootstrap/ubuntu/initramfs.img",
+        kernel    => "$bootstrap_path/linux",
+        initrd    => "$bootstrap_path/initramfs.img",
         arch      => 'x86_64',
         breed     => 'ubuntu',
         osversion => 'trusty',
@@ -188,7 +189,7 @@ class nailgun::cobbler(
         distro    => 'ubuntu_bootstrap',
         menu      => true,
         kickstart => '',
-        kopts     => "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts     => extend_kopts("$bootstrap_path/metadata.yaml", "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstraps/active_bootstrap/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}"),
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['ubuntu_bootstrap'],
