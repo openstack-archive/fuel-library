@@ -1,0 +1,4 @@
+BOOTPROTO=none
+DEVICE=lnx-bridge
+ONBOOT=yes
+TYPE=Bridge

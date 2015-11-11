@@ -402,7 +402,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     property_mappings.reject{|k,v| (properties_fake.include?(k) or v.empty?)}.keys.each do |type_name|
       next if props.has_key? type_name
       val = provider.send(type_name)
-      val = false if ( val.is_a?(Array) and val.reject{ |x| x.to_s == 'absent' }.empty? )
+      next if ( val.is_a?(Array) and val.reject{ |x| x.to_s == 'absent' }.empty? )
       if val and val.to_s != 'absent'
         props[type_name] = val
       end
