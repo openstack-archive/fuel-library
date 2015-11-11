@@ -43,7 +43,7 @@ if $use_neutron and ($controller or ($dvr and $compute)) {
     agent_mode               => $agent_mode,
   }
 
-  if $ha_agent {
+  if ($ha_agent) and !($compute) {
     $primary_controller = hiera('primary_controller')
     cluster::neutron::l3 { 'default-l3' :
       primary => $primary_controller,
