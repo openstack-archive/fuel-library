@@ -5,7 +5,34 @@ manifest = 'heat/heat.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    let(:network_scheme) do
+      Noop.hiera_hash 'network_scheme'
+    end
+
+    let(:prepare) do
+      Noop.puppet_function 'prepare_network_config', network_scheme
+    end
+
+    let(:public_ip) do
+      Noop.hiera 'public_vip'
+    end
+
+    let(:service_endpoint) { Noop.hiera('service_endpoint') }
+    let(:public_ssl) { Noop.hiera_structure('public_ssl/services') }
+    let(:public_ssl_hostname) do
+      Noop.hiera_structure('public_ssl/hostname')
+    end
+    let(:public_protocol) { public_ssl ? 'https' : 'http' }
+    let(:public_address) { public_ssl ? public_ssl_hostname : public_ip }
+
     use_syslog = Noop.hiera 'use_syslog'
+
+    it 'should use auth_uri and identity_uri' do
+      should contain_class('openstack::heat').with(
+        'auth_uri'      => "#{public_protocol}://#{public_address}:5000/v2.0/",
+        'identity_uri'  => "http://#{service_endpoint}:35357/"
+      )
+    end
 
     it 'should set empty trusts_delegated_roles for heat engine' do
       should contain_class('heat::engine').with(
