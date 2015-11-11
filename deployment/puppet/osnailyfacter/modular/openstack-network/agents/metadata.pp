@@ -1,6 +1,8 @@
 notice('MODULAR: openstack-network/agents/metadata.pp')
 
 $use_neutron = hiera('use_neutron', false)
+$role = hiera('role')
+$compute = $role in ['compute']
 
 class neutron {}
 class { 'neutron' :}
@@ -40,7 +42,7 @@ if $use_neutron {
     enabled        => true,
   }
 
-  if $ha_agent {
+  if ($ha_agent) and !($compute) {
     $primary_controller = hiera('primary_controller')
     class { 'cluster::neutron::metadata' :
       primary => $primary_controller,
