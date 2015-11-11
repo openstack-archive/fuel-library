@@ -26,6 +26,18 @@ $read_timeout             = '60'
 $sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}?read_timeout=${read_timeout}"
 $region                   = hiera('region', 'RegionOne')
 $public_ssl_hash          = hiera('public_ssl')
+$public_ip                = hiera('public_vip')
+$public_protocol = pick($public_ssl_hash['services'], false) ? {
+  true    => 'https',
+  default => 'http',
+}
+
+$public_address = pick($public_ssl_hash['services'], false) ? {
+  true    => pick($public_ssl_hash['hostname']),
+  default => $public_ip,
+}
+$auth_uri = "${public_protocol}://${public_address}:5000/v2.0/"
+$identity_uri = "http://${service_endpoint}:35357/"
 
 ####### Disable upstart startup on install #######
 if $::operatingsystem == 'Ubuntu' {
@@ -54,7 +66,8 @@ class { 'openstack::heat' :
   api_bind_host            => $bind_address,
   api_cfn_bind_host        => $bind_address,
   api_cloudwatch_bind_host => $bind_address,
-  keystone_host            => $service_endpoint,
+  auth_uri                 => $auth_uri,
+  identity_uri             => $identity_uri,
   keystone_user            => $keystone_user,
   keystone_password        => $heat_hash['user_password'],
   keystone_tenant          => $keystone_tenant,

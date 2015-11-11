@@ -2,13 +2,27 @@
 #TODO(bogdando) sync extended qpid rpc backend configuration here as well
 # [use_stderr] Rather or not service should send output to stderr. Optional. Defaults to true.
 #
-
+# [*auth_uri*]
+#  (optional) The public auth identity uri for the heat service
+#  Should be used instead of keystone_{host,port,protocol}
+#  Defaults to false
+#
+# [*identity_uri*]
+#  (optional) The admin identity url for the heat service
+#  Should be used instead of keystone_{host,port,protocol}
+#  Defaults to false
+#
+# === Deprecated
+# [*keystone_host*]
+#  (optional) Old keystone host used to construct urls. Use auth_uri and
+#  identity_uri instead.
+#
 class openstack::heat (
   $external_ip                   = '127.0.0.1',
   $enabled                       = true,
 
   $keystone_auth                 = true,
-  $keystone_host                 = '127.0.0.1',
+  $keystone_host                 = false,
   $keystone_port                 = '35357',
   $keystone_service_port         = '5000',
   $keystone_protocol             = 'http',
@@ -19,6 +33,7 @@ class openstack::heat (
   $keystone_ec2_uri              = false,
   $region                        = 'RegionOne',
   $auth_uri                      = false,
+  $identity_uri                  = false,
   $trusts_delegated_roles        = [],
 
   $verbose                       = false,
@@ -109,6 +124,7 @@ class openstack::heat (
   # Common configuration, logging and RPC
   class { '::heat':
     auth_uri              => $auth_uri,
+    identity_uri          => $identity_uri,
     keystone_ec2_uri      => $keystone_ec2_uri_real,
     keystone_host         => $keystone_host,
     keystone_port         => $keystone_port,
