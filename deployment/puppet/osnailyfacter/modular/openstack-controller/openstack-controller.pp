@@ -170,7 +170,16 @@ if $primary_controller {
     ],
     command   => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
     #FIXME(mattymo): Upstream bug PUP-2299 for retries in unless/onlyif
-    unless    => 'bash -c "for tries in {1..10}; do nova flavor-list | grep -q m1.micro && exit 0; sleep 2; done"; exit 1',
+    # Retry nova-flavor list until it exits 0, then exit with grep status,
+    # finally exit 1 if tries exceeded
+    # lint:ignore:single_quote_string_with_variables
+    unless    => 'bash -c \'for tries in {1..10}; do
+                    nova flavor-list | grep m1.micro;
+                    status=("${PIPESTATUS[@]}");
+                    (( ! status[0] )) && exit "${status[1]}";
+                    sleep 2;
+                  done; exit 1\'',
+    # lint:endignore
     tries     => 10,
     try_sleep => 2,
     require   => Class['nova'],
