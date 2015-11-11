@@ -94,6 +94,8 @@ class nailgun::cobbler(
 
   # THIS VARIABLE IS NEEDED FOR TEMPLATING centos-x86_64.ks
   $ks_repo = $centos_repos
+  # THIS VARIABLE IS NEEDED FOR ubuntu_bootstrap
+  $bootstrap_meta = '/var/www/nailgun/bootstraps/active_bootstrap/metadata.yaml'
 
   case $production {
     'prod', 'docker': {
@@ -188,7 +190,7 @@ class nailgun::cobbler(
         distro    => 'ubuntu_bootstrap',
         menu      => true,
         kickstart => '',
-        kopts     => "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts     => extend_kopts($bootstrap_meta, "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}"),
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['ubuntu_bootstrap'],
