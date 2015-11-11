@@ -257,7 +257,7 @@ function start_container {
       ${DOCKER} start $container_name
     fi
     post_start_hooks $1
-    if [ -z "$SUPERVISOR_PROCESS_NAME" ]; then
+    if [ -z "$SUPERVISOR_PROCESS_NAME" -a -n "$(get_supervisor_pid)" ]; then
       #Refresh supervisor for container in case it was disabled
       supervisorctl start docker-$container > /dev/null
     fi
@@ -335,7 +335,7 @@ function stop_container {
   for container in $@; do
     echo "Stopping $container..."
     #Stop supervisor process if manually shut down by user
-    if [ -z "$SUPERVISOR_PROCESS_NAME" ]; then
+    if [ -z "$SUPERVISOR_PROCESS_NAME" -a -n "$(get_supervisor_pid)" ]; then
       supervisorctl stop "docker-${container}" > /dev/null
     fi
 
@@ -797,13 +797,38 @@ function restore_systemdirs {
   tar xf $restoredir/system-dirs.tar -C /
 }
 
+function get_supervisor_pid {
+  # use the supervisorctl pid command to see if supervisord is currently
+  # running and return the pid
+  SUPERVISOR_PID=`supervisorctl pid | tr -dc '0-9'`
+  return "${SUPERVISOR_PID}"
+}
+
 function disable_supervisor {
+  SUPERVISOR_PID=$(get_supervisor_pid)
+  if [ -z "${SUPERVISOR_PID}" ]; then
+    # not running, so return
+    return
+  fi
+
   supervisorctl shutdown
+
+  # Supervisord recommends waiting about 60 seconds as the children processes
+  # may take a while to stop. So we check every 3 seconds to see if the pid is
+  # gone before we continue.
+  for I in {1..20}; do
+    if [ -d "/proc/${SUPERVISOR_PID}/fd" ]; then
+      sleep 3
+    else
+      break
+    fi
+  done
 }
 
 function enable_supervisor {
   service supervisord start
 }
+
 function verify_disk_space {
   if [ -z "$1" ]; then
     echo "Backup or restore operation not specified." 1>&2
