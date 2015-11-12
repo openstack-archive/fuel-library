@@ -32,7 +32,7 @@
 
 # Fill in some defaults if no values are specified
 
-OCF_RESKEY_binary_default="ceilometer-agent-central"
+OCF_RESKEY_binary_default="ceilometer-polling"
 OCF_RESKEY_config_default="/etc/ceilometer/ceilometer.conf"
 OCF_RESKEY_user_default="ceilometer"
 OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
@@ -255,7 +255,7 @@ ceilometer_agent_central_start() {
 
     # run the actual ceilometer-agent-central daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
-    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
+    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --polling-namespaces central --config-file=$OCF_RESKEY_config \
        $OCF_RESKEY_additional_parameters"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
 
     ocf_log debug "Create pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
