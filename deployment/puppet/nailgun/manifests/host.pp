@@ -127,7 +127,9 @@ $admin_iface = 'eth0',
     onlyif  => 'grep -q 8000 /etc/issue',
   }
 
-  if $::acpi_event == 'true' and $::virtual != 'physical' {
+  if ($::osfamily == 'RedHat' and $::operatingsystemmajrelease == '6' and
+      $::acpi_event == 'true' and $::virtual != 'physical') or
+      $::virtual != 'physical' {
     service { 'acpid':
       ensure => 'running',
       enable => true,
