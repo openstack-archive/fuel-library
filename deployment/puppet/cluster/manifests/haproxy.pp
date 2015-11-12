@@ -20,6 +20,10 @@
 #   (optional) Log file location for haproxy.
 #   Defaults to '/var/log/haproxy.log'
 #
+# [*haproxy_ssl_default_dh_param*]
+#   (optional) Sets the maximum size of the Diffie-Hellman parameter.
+#   Defaults to '2048'
+#
 # [*primary_controller*]
 #   (optional) Flag to indicate if this is the primary controller
 #   Defaults to false
@@ -37,14 +41,15 @@
 #   Defaults to ['127.0.0.1']
 #
 class cluster::haproxy (
-  $haproxy_maxconn    = '4000',
-  $haproxy_bufsize    = '16384',
-  $haproxy_maxrewrite = '1024',
-  $haproxy_log_file   = '/var/log/haproxy.log',
-  $primary_controller = false,
-  $debug              = false,
-  $other_networks     = false,
-  $stats_ipaddresses  = ['127.0.0.1']
+  $haproxy_maxconn              = '4000',
+  $haproxy_bufsize              = '16384',
+  $haproxy_maxrewrite           = '1024',
+  $haproxy_log_file             = '/var/log/haproxy.log',
+  $haproxy_ssl_default_dh_param = '2048',
+  $primary_controller           = false,
+  $debug                        = false,
+  $other_networks               = false,
+  $stats_ipaddresses            = ['127.0.0.1']
 ) {
   include ::concat::setup
   include ::haproxy::params
@@ -58,15 +63,16 @@ class cluster::haproxy (
   #  and this override looks the only possible if
   #  upstream manifests must be kept intact
   $global_options   = {
-    'log'             => '/dev/log local0',
-    'pidfile'         => '/var/run/haproxy.pid',
-    'maxconn'         => $haproxy_maxconn,
-    'user'            => 'haproxy',
-    'group'           => 'haproxy',
-    'daemon'          => '',
-    'stats'           => 'socket /var/lib/haproxy/stats',
-    'tune.bufsize'    => $haproxy_bufsize,
-    'tune.maxrewrite' => $haproxy_maxrewrite,
+    'log'                       => '/dev/log local0',
+    'pidfile'                   => '/var/run/haproxy.pid',
+    'maxconn'                   => $haproxy_maxconn,
+    'user'                      => 'haproxy',
+    'group'                     => 'haproxy',
+    'daemon'                    => '',
+    'stats'                     => 'socket /var/lib/haproxy/stats',
+    'tune.bufsize'              => $haproxy_bufsize,
+    'tune.maxrewrite'           => $haproxy_maxrewrite,
+    'tune.ssl.default-dh-param' => $haproxy_ssl_default_dh_param
   }
 
   $defaults_options = {
