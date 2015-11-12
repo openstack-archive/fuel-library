@@ -60,6 +60,7 @@ mkdir -p %{buildroot}/etc/profile.d/
 mkdir -p %{buildroot}/etc/init.d/
 mkdir -p %{buildroot}/etc/dockerctl
 mkdir -p %{buildroot}/usr/bin/
+mkdir -p %{buildroot}/usr/sbin/
 mkdir -p %{buildroot}/usr/lib/
 mkdir -p %{buildroot}/usr/share/dockerctl
 mkdir -p %{buildroot}/sbin/
@@ -99,6 +100,7 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-compute %{bui
 install -m 0755 %{files_source}/fuel-ha-utils/tools/galeracheck %{buildroot}/usr/bin/galeracheck
 install -m 0755 %{files_source}/fuel-ha-utils/tools/swiftcheck %{buildroot}/usr/bin/swiftcheck
 install -m 0644 %{files_source}/fuel-ha-utils/tools/wsrepclustercheckrc %{buildroot}/etc/wsrepclustercheckrc
+install -m 0755 %{files_source}/fuel-ha-utils/tools/rabbitmq-dump-clean.py %{buildroot}/usr/sbin/rabbitmq-dump-clean.py
 install -m 0755 %{files_source}/rabbit-fence/rabbit-fence.py %{buildroot}/usr/bin/rabbit-fence.py
 install -m 0755 %{files_source}/rabbit-fence/rabbit-fence.init %{buildroot}/etc/init.d/rabbit-fence
 #FIXME - may be we need to put this also into packages
@@ -210,6 +212,7 @@ For further information go to http://wiki.openstack.org/Fuel
 /usr/lib/ocf/resource.d/fuel
 /usr/bin/galeracheck
 /usr/bin/swiftcheck
+/usr/sbin/rabbitmq-dump-clean.py
 %config(noreplace) /etc/wsrepclustercheckrc
 #
 
