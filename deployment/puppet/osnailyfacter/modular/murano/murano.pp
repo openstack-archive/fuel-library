@@ -22,6 +22,7 @@ $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
 $public_ssl                 = hiera_hash('public_ssl', {})
+$external_dns               = hiera_hash('external_dns', {})
 
 #################################################################
 
@@ -95,6 +96,7 @@ if $murano_hash['enabled'] {
     rabbit_own_vhost    => '/murano',
     rabbit_own_user     => $rabbit_hash['user'],
     rabbit_own_password => $rabbit_hash['password'],
+    default_nameservers => pick($external_dns['dns_list'], '8.8.8.8'),
     service_host        => $api_bind_host,
     service_port        => $api_bind_port,
     external_network    => $external_network,
