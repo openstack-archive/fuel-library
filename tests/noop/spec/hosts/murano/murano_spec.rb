@@ -54,8 +54,7 @@ describe manifest do
     let(:internal_url) { "http://#{bind_address}:#{api_bind_port}" }
 
     let(:sql_connection) do
-      read_timeout = '60'
-      "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
+      "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}"
     end
 
     let(:public_ssl_hostname) do

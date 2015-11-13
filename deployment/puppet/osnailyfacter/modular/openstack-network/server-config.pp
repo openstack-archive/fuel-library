@@ -21,7 +21,7 @@ if $use_neutron {
   $neutron_db_name     = try_get_value($neutron_config, 'database/name', 'neutron')
   $neutron_db_host     = try_get_value($neutron_config, 'database/host', $database_vip)
 
-  $neutron_db_uri = "mysql://${neutron_db_user}:${neutron_db_password}@${neutron_db_host}/${neutron_db_name}?&read_timeout=60"
+  $neutron_db_uri = "mysql://${neutron_db_user}:${neutron_db_password}@${neutron_db_host}/${neutron_db_name}"
 
   $auth_password      = $neutron_config['keystone']['admin_password']
   $auth_user          = pick($neutron_config['keystone']['admin_user'], 'neutron')
