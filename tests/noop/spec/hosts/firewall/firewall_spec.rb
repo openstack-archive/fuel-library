@@ -18,19 +18,14 @@ describe manifest do
       Noop.puppet_function 'get_network_role_property', 'keystone/api', 'network'
     end
 
-    let(:nova_vnc_ip_range) do
+    let(:private_nets) do
       prepare
-      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'nova/api'
-    end
-
-    let(:nova_api_ip_range) do
+      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'management'
+    done
+    let(:storage_nets) do
       prepare
-      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'nova/api'
-    end
-
-    let(:iscsi_ip) do
-      Noop.puppet_function 'get_network_role_property', 'cinder/iscsi', 'ipaddr'
-    end
+      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'storage'
+    done
 
     let(:baremetal_network) do
       Noop.puppet_function 'get_network_role_property', 'ironic/baremetal', 'network'
@@ -72,32 +67,25 @@ describe manifest do
     end
 
     it 'should accept connections to nova without ssl' do
-      should contain_firewall('105 nova private - no ssl').with(
-        'port'        => [ 8775 ],
-        'proto'       => 'tcp',
-        'action'      => 'accept',
-        'source'      => nova_api_ip_range,
-      )
-    end
-
-    it 'should accept connections to vnc' do
-      nova_vnc_ip_range.each do |source|
-        should contain_firewall("120 vnc ports for #{source}").with(
-          'port'   => '5900-6100',
-          'proto'  => 'tcp',
-          'source' => source,
-          'action' => 'accept',
+      private_nets.each do |source|
+        should contain_firewall("105 nova private - no ssl from #{source}").with(
+          'port'        => [ 8775, '5900-6100' ],
+          'proto'       => 'tcp',
+          'action'      => 'accept',
+          'source'      => source,
         )
       end
     end
 
     it 'should accept connections to iscsi' do
-       should contain_firewall('109 iscsi ').with(
-        'port'        => [ 3260 ],
-        'proto'       => 'tcp',
-        'destination' => iscsi_ip,
-        'action'      => 'accept',
-      )
+      storage_nets.each do |source|
+        should contain_firewall("109 iscsi from #{source}").with(
+          'port'        => [ 3260 ],
+          'proto'       => 'tcp',
+          'action'      => 'accept',
+          'source'      => source,
+        )
+      end
     end
 
     it 'should create rules for heat' do
