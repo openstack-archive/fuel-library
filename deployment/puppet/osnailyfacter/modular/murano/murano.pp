@@ -91,7 +91,7 @@ if $murano_hash['enabled'] {
     rabbit_os_port      => $amqp_port,
     rabbit_os_host      => split($amqp_hosts, ','),
     rabbit_ha_queues    => $rabbit_ha_queues,
-    rabbit_own_host     => $public_ip,
+    rabbit_own_host     => $management_ip,
     rabbit_own_port     => $amqp_port,
     rabbit_own_vhost    => 'murano',
     rabbit_own_user     => $rabbit_hash['user'],

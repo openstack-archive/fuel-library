@@ -23,6 +23,10 @@ describe manifest do
       Noop.hiera 'public_vip'
     end
 
+    let(:management_ip) do
+      Noop.hiera 'management_vip'
+    end
+
     let(:bind_address) do
       prepare
       Noop.puppet_function 'get_network_role_property', 'murano/api', 'ipaddr'
@@ -98,7 +102,7 @@ describe manifest do
                    'rabbit_os_port'      => amqp_port,
                    'rabbit_os_host'      => amqp_hosts.split(','),
                    'rabbit_ha_queues'    => rabbit_ha_queues,
-                   'rabbit_own_host'     => public_ip,
+                   'rabbit_own_host'     => management_ip,
                    'rabbit_own_port'     => amqp_port,
                    'rabbit_own_user'     => rabbit_os_user,
                    'rabbit_own_password' => rabbit_os_password,
