@@ -1,4 +1,7 @@
 class openstack::firewall (
+  $public_nets                  = ['0.0.0.0/0'],
+  $private_nets                 = ['0.0.0.0/0'],
+  $storage_nets                 = ['0.0.0.0/0'],
   $ssh_port                     = 22,
   $http_port                    = 80,
   $https_port                   = 443,
@@ -20,10 +23,10 @@ class openstack::firewall (
   $nova_api_compute_port        = 8774,
   $nova_api_metadata_port       = 8775,
   $nova_api_volume_port         = 8776,
+  $nova_api_vnc_ports           = '5900-6100',
   $nova_vncproxy_port           = 6080,
   $nova_vnc_ip_range            = '0.0.0.0/0',
   $nova_api_ip_range            = '0.0.0.0/0',
-  $libvirt_network              = '0.0.0.0/0',
   $erlang_epmd_port             = 4369,
   $erlang_rabbitmq_port         = 5672,
   $erlang_rabbitmq_backend_port = 5673,
@@ -41,6 +44,7 @@ class openstack::firewall (
   $pcsd_port                    = 2224,
   $openvswitch_db_port          = 58882,
   $libvirt_port                 = 16509,
+  $libvirt_migration_ports      = '49152-49215',
   $nrpe_server_port             = 5666,
   $ceilometer_port              = 8777,
   $heat_api_port                = 8004,
@@ -51,25 +55,9 @@ class openstack::firewall (
   $keystone_network             = '0.0.0.0/0',
 ) {
 
-#  file {"iptables":
-#    path     => $operatingsystem ? {
-#      /(Debian|Ubuntu)/ => '/etc/network/rules.v4',
-#      /(RedHat|CentOS)/ => '/etc/sysconfig/iptables',
-#      },
-#    source => "puppet:///modules/openstack/iptables"
-#  }->
-#
-#  exec { 'startup-firewall':
-#    command     => $operatingsystem ? {
-#      /(Debian|Ubuntu)/ => '/sbin/iptables-restore  /etc/network/rules.v4',
-#      /(RedHat|CentOS)/ => '/sbin/iptables-restore  /etc/sysconfig/iptables',
-#      }
-#    }
-#  }
-
   class {'::firewall':}
 
-  firewall { "000 accept all icmp requests":
+  firewall { '000 accept all icmp requests':
     proto  => 'icmp',
     action => 'accept',
   }->
@@ -81,34 +69,37 @@ class openstack::firewall (
   }->
 
   firewall { '002 accept related established rules':
-    proto   => 'all',
-    state   => ['RELATED', 'ESTABLISHED'],
-    action  => 'accept',
-  }
-
-  firewall {'020 ssh':
-    port   => $ssh_port,
-    proto  => 'tcp',
+    proto  => 'all',
+    state  => ['RELATED', 'ESTABLISHED'],
     action => 'accept',
   }
 
+  openstack::firewall::multi_net {'020 ssh':
+    port        => $ssh_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $private_nets,
+  }
+  
   firewall { '100 http':
     port   => [$http_port, $https_port],
     proto  => 'tcp',
     action => 'accept',
   }
 
-  firewall {'101 mysql':
-    port   => [$mysql_port, $mysql_backend_port, $mysql_gcomm_port, $galera_ist_port, $galera_clustercheck_port],
-    proto  => 'tcp',
-    action => 'accept',
+  openstack::firewall::multi_net {'101 mysql':
+    port        => [$mysql_port, $mysql_backend_port, $mysql_gcomm_port,
+      $galera_ist_port, $galera_clustercheck_port],
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
   firewall {'102 keystone':
     port        => [$keystone_public_port,$keystone_admin_port],
     proto       => 'tcp',
     action      => 'accept',
-    destination => "${keystone_network}",
+    destination => $keystone_network,
   }
 
   firewall {'103 swift':
@@ -125,47 +116,53 @@ class openstack::firewall (
   }
 
   firewall {'105 nova':
-    port   => [$nova_api_compute_port,$nova_api_volume_port, $nova_vncproxy_port],
+    port   => [$nova_api_compute_port,$nova_api_volume_port,
+      $nova_vncproxy_port],
     proto  => 'tcp',
     action => 'accept',
   }
 
-  firewall {'105 nova private - no ssl':
-    port   => $nova_api_metadata_port,
-    proto  => 'tcp',
-    source => $nova_api_ip_range,
-    action => 'accept',
+  openstack::firewall::multi_net {'105 nova private - no ssl':
+    port        => [$nova_api_metadata_port, $nova_api_vnc_ports],
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'106 rabbitmq ':
-    port   => [$erlang_epmd_port, $erlang_rabbitmq_port, $erlang_rabbitmq_backend_port, $erlang_inet_dist_port],
-    proto  => 'tcp',
-    action => 'accept',
+  openstack::firewall::multi_net {'106 rabbitmq ':
+    port        => [$erlang_epmd_port, $erlang_rabbitmq_port,
+                    $erlang_rabbitmq_backend_port, $erlang_inet_dist_port],
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'107 memcached tcp':
-    port   => $memcached_port,
-    proto  => 'tcp',
-    action => 'accept',
+  openstack::firewall::multi_net {'107 memcache tcp ':
+    port        => $memcached_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'107 memcached udp':
-    port   => $memcached_port,
-    proto  => 'udp',
-    action => 'accept',
+  openstack::firewall::multi_net {'107 memcache udp ':
+    port        => $memcached_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'108 rsync':
-    port   => $rsync_port,
-    proto  => 'tcp',
-    action => 'accept',
+  openstack::firewall::multi_net {'108 rsync':
+    port        => $rsync_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'109 iscsi ':
+  openstack::firewall::multi_net {'109 iscsi ':
     port        => $iscsi_port,
     proto       => 'tcp',
-    destination => $iscsi_ip,
     action      => 'accept',
+    source_nets => $private_nets,
   }
 
   firewall {'110 neutron ':
@@ -174,108 +171,130 @@ class openstack::firewall (
     action => 'accept',
   }
 
+  openstack::firewall::multi_net {'111 dns-server ':
+    port        => $dns_server_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $private_nets,
+  }
+
   firewall {'111 dns-server':
     port   => $dns_server_port,
     proto  => 'udp',
     action => 'accept',
   }
 
+  openstack::firewall::multi_net {'111 dns-server ':
+    port        => $dns_server_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $private_nets,
+  }
+
+  #FIXME(mattymo): Maybe we don't need this rule
   firewall {'111 dhcp-server':
     port   => $dhcp_server_port,
     proto  => 'udp',
     action => 'accept',
   }
 
-  firewall {'112 ntp-server':
-    port   => $ntp_server_port,
-    proto  => 'udp',
-    action => 'accept',
+  openstack::firewall::multi_net {'112 ntp-server ':
+    port        => $ntp_server_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'113 corosync-input':
-    port   => $corosync_input_port,
-    proto  => 'udp',
-    action => 'accept',
+  openstack::firewall::multi_net {'113 corosync-input':
+    port        => $corosync_input_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'114 corosync-output':
-    port   => $corosync_output_port,
-    proto  => 'udp',
-    action => 'accept',
+  openstack::firewall::multi_net {'114 corosync-output':
+    port        => $corosync_output_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'115 pcsd-server':
-    port   => $pcsd_port,
-    proto  => 'tcp',
-    action => 'accept',
+  openstack::firewall::multi_net {'115 pcsd-server':
+    port        => $pcsd_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'116 openvswitch db':
-    port   => $openvswitch_db_port,
-    proto  => 'udp',
-    action => 'accept',
+  openstack::firewall::multi_net {'116 openvswitch db':
+    port        => $openvswitch_db_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'117 nrpe-server':
-    port   => $nrpe_server_port,
-    proto  => 'tcp',
-    action => 'accept',
+  openstack::firewall::multi_net {'117 nrpe-server':
+    port        => $nrpe_server_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'118 libvirt':
-    port   => $libvirt_port,
-    proto  => 'tcp',
-    action => 'accept',
-    source => "${libvirt_network}",
+  openstack::firewall::multi_net {'118 libvirt':
+    port        => $libvirt_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
-  firewall {'119 libvirt migration':
-    port   => '49152-49215',
-    proto  => 'tcp',
-    action => 'accept',
+  openstack::firewall::multi_net {'119 libvirt migration':
+    port        => $libvirt_migration_ports,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $private_nets,
   }
 
   firewall {'121 ceilometer':
-    port => $ceilometer_port,
-    proto => 'tcp',
+    port   => $ceilometer_port,
+    proto  => 'tcp',
     action => 'accept',
   }
 
   firewall {'204 heat-api':
-    port  => $heat_api_port,
+    port   => $heat_api_port,
     proto  => 'tcp',
     action => 'accept',
   }
 
   firewall {'205 heat-api-cfn':
-    port  => $heat_api_cfn_port,
+    port   => $heat_api_cfn_port,
     proto  => 'tcp',
     action => 'accept',
   }
 
   firewall {'206 heat-api-cloudwatch':
-    port  => $heat_api_cloudwatch_port,
+    port   => $heat_api_cloudwatch_port,
     proto  => 'tcp',
     action => 'accept',
   }
 
   firewall { '333 notrack gre':
-    chain   => 'PREROUTING',
-    table   => 'raw',
-    proto   => 'gre',
+    chain => 'PREROUTING',
+    table => 'raw',
+    proto => 'gre',
     jump  => 'NOTRACK',
   }
 
   firewall { '334 accept gre':
-    chain   => 'INPUT',
-    table   => 'filter',
-    proto   => 'gre',
-    action  => 'accept',
+    chain  => 'INPUT',
+    table  => 'filter',
+    proto  => 'gre',
+    action => 'accept',
   }
 
   firewall {'340 vxlan_udp_port':
-    port => $vxlan_udp_port,
-    proto => 'udp',
+    port   => $vxlan_udp_port,
+    proto  => 'udp',
     action => 'accept',
   }
 
@@ -285,6 +304,5 @@ class openstack::firewall (
     action => 'drop',
   }
 
-  openstack::firewall::vnc { $nova_vnc_ip_range: }
 
 }
