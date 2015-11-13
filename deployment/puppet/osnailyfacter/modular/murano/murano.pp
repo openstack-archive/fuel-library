@@ -49,7 +49,7 @@ if $murano_hash['enabled'] {
   $db_password    = pick($murano_hash['db_password'])
   $db_host        = pick($murano_hash['db_host'], $database_ip)
   $read_timeout   = '60'
-  $sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
+  $sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}"
 
   $external_network = $use_neutron ? {
     true    => get_ext_net_name($neutron_config['predefined_networks']),

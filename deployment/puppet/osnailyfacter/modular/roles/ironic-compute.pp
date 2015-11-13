@@ -33,7 +33,7 @@ $db_host                        = pick($nova_hash['db_host'], $database_vip)
 $db_user                        = pick($nova_hash['db_user'], 'nova')
 $db_name                        = pick($nova_hash['db_name'], 'nova')
 $db_password                    = pick($nova_hash['db_password'], 'nova')
-$database_connection            = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?read_timeout=60"
+$database_connection            = "mysql://${db_name}:${db_password}@${db_host}/${db_name}"
 
 $memcache_nodes                 = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
 $cache_server_ip                = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
