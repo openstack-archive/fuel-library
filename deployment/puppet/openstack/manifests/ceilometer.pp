@@ -87,7 +87,7 @@ class openstack::ceilometer (
 
     if ( !$ext_mongo ) {
       if ( $db_type == 'mysql' ) {
-        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60"
+        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
       } else {
         if ( !$mongo_replicaset ) {
           $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"

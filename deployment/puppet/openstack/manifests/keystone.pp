@@ -87,7 +87,7 @@ class openstack::keystone (
 
   # Install and configure Keystone
   if $db_type == 'mysql' {
-    $database_connection = "mysql://${$db_user}:${db_password}@${db_host}/${db_name}?read_timeout=60"
+    $database_connection = "mysql://${$db_user}:${db_password}@${db_host}/${db_name}"
   } else {
     fail("db_type ${db_type} is not supported")
   }

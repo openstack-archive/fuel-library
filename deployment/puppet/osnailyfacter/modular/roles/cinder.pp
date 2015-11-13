@@ -273,7 +273,7 @@ if member($roles, 'controller') or member($roles, 'primary-controller') {
 #   after the deployment is done.
 class { 'openstack::cinder':
   enable_volumes       => false,
-  sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
+  sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}",
   glance_api_servers   => $glance_api_servers,
   bind_host            => $bind_host,
   queue_provider       => $queue_provider,

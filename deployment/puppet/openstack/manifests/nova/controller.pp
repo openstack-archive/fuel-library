@@ -110,8 +110,7 @@ class openstack::nova::controller (
   # Configure the db string
   case $db_type {
     'mysql': {
-      $nova_db = "mysql://${nova_db_user}:${nova_db_password}@${db_host}/${nova_db_dbname}\
-?read_timeout=60"
+      $nova_db = "mysql://${nova_db_user}:${nova_db_password}@${db_host}/${nova_db_dbname}"
     }
   }
 
@@ -400,9 +399,13 @@ class openstack::nova::controller (
   }
 
   if $vnc_enabled {
-    # Workadroung for bug LP #1468230
-    Package<| title == 'nova-vncproxy' |> {
-      name => 'nova-consoleproxy',
+    # TODO(aschultz): was fixed in https://review.openstack.org/#/c/241741/
+    # Remove this when that patch lands in fuel-library puppet-nova version
+    if !$::os_package_type or $::os_package_type == 'debian' {
+      # Workadroung for bug LP #1468230
+      Package<| title == 'nova-vncproxy' |> {
+        name => 'nova-consoleproxy',
+      }
     }
 
     class { 'nova::vncproxy':

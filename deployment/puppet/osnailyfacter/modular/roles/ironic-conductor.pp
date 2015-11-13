@@ -32,7 +32,7 @@ $db_host                    = pick($ironic_hash['db_host'], $database_vip)
 $db_user                    = pick($ironic_hash['db_user'], 'ironic')
 $db_name                    = pick($ironic_hash['db_name'], 'ironic')
 $db_password                = pick($ironic_hash['db_password'], 'ironic')
-$database_connection        = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?charset=utf8&read_timeout=60"
+$database_connection        = "mysql://${db_name}:${db_password}@${db_host}/${db_name}"
 
 $tftp_root                  = '/var/lib/ironic/tftpboot'
 

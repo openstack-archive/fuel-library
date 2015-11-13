@@ -44,7 +44,7 @@ $db_host                  = pick($heat_hash['db_host'], hiera('database_vip'))
 $database_user            = pick($heat_hash['db_user'], 'heat')
 $database_name            = hiera('heat_db_name', 'heat')
 $read_timeout             = '60'
-$sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}?read_timeout=${read_timeout}"
+$sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}"
 $region                   = hiera('region', 'RegionOne')
 
 ####### Disable upstart startup on install #######
@@ -126,14 +126,16 @@ class heat::docker_resource (
   }
 }
 
-if $::osfamily == 'RedHat' {
-  $docker_resource_package_name = 'openstack-heat-docker'
-} elsif $::osfamily == 'Debian' {
-  $docker_resource_package_name = 'heat-docker'
-}
+if !$::os_package_type or $::os_package_type != 'ubuntu' {
+  if $::osfamily == 'RedHat' {
+    $docker_resource_package_name = 'openstack-heat-docker'
+  } elsif $::osfamily == 'Debian' {
+    $docker_resource_package_name = 'heat-docker'
+  }
 
-class { 'heat::docker_resource' :
-  package_name => $docker_resource_package_name,
+  class { 'heat::docker_resource' :
+    package_name => $docker_resource_package_name,
+  }
 }
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
