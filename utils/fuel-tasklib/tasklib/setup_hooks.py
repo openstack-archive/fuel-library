@@ -1,4 +1,4 @@
-#!/bin/bash
+# -*- coding: utf-8 -*-
 
 #    Copyright 2015 Mirantis, Inc.
 #
@@ -14,12 +14,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-set -eu
 
-ROOT=$(dirname $(readlink -f $0))
-WORK_DIR="${ROOT}/../../deployment"
-UTILS_DIR="${ROOT}"
-TOX_CONF="${ROOT}/tox.ini"
-TOX_PYENVS=${TOX_PYENVS:-"tasks"}
-echo "Starting tasks-validator..."
-tox -e $TOX_PYENVS -c $TOX_CONF
+def fix_version(config):
+    """Monkeypatch for PBR to do not add commit id to package version."""
+    import pbr
+    import pbr.packaging
+
+    pbr.packaging._get_version_from_git = lambda pre_version: pre_version
