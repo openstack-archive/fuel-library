@@ -1,5 +1,5 @@
 #
-# array_or_string_to_array.rb
+# nodes_to_hosts.rb
 #
 
 module Puppet::Parser::Functions
@@ -8,13 +8,21 @@ module Puppet::Parser::Functions
               hash for puppet `host` create_resources call
     EOS
   ) do |args|
-    hosts=Hash.new
-    nodes=args[0]
+
+    hosts = {}
+    return hosts if args.empty?
+
+    nodes = args[0]
+    raise(Puppet::ParseError, 'nodes_to_hosts(): Requires an array to work with') unless nodes.is_a?(Array)
+
     nodes.each do |node|
-      hosts[node['fqdn']]={:ip=>node['internal_address'],:host_aliases=>[node['name']]}
+      hosts[node['fqdn']] = (node['role'] == '__VOID__') ?
+        { :ensure => 'absent' } :
+        { :ip => node['internal_address'], :host_aliases => [node['name']] }
+
       notice("Generating host entry #{node['name']} #{node['internal_address']} #{node['fqdn']}")
     end
-    return hosts
+    hosts
   end
 end
 
