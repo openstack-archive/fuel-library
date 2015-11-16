@@ -127,10 +127,13 @@ $admin_iface = 'eth0',
     onlyif  => 'grep -q 8000 /etc/issue',
   }
 
-  if $::acpi_event == 'true' and $::virtual != 'physical' {
-    service { 'acpid':
-      ensure => 'running',
-      enable => true,
+  if $::virtual != 'physical' {
+    if ($::acpi_event == true and $::acpid_version == '1') or
+        $::acpid_version == '2' {
+      service { 'acpid':
+        ensure => 'running',
+        enable => true,
+      }
     }
   }
 }
