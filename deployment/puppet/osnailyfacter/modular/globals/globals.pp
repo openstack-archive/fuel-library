@@ -232,12 +232,22 @@ $cinder_nodes           = get_nodes_hash_by_roles($network_metadata, ['primary-c
 # todo: use special node-roles instead controllers in the future
 $horizon_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
 
+# Add this comment to force rebuild
 # Define swift-related variables
-# todo(sv): use special node-roles instead controllers in the future
-$swift_master_role   = 'primary-controller'
-$swift_nodes         = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-$swift_proxies       = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-$swift_proxy_caches  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']) # memcache for swift
+$swift_master_role   = hiera('swift_master_role', 'primary-controller')
+
+# Plugins may define custom role names before this 'globals' task.
+# If no custom role are defined, the default one are used.
+$swift_object_role = hiera('swift_object_roles', ['primary-controller', 'controller'])
+$swift_nodes = get_nodes_hash_by_roles($network_metadata, $swift_object_role)
+
+# Plugins may define custom role names before this 'globals' task.
+# If no custom role are defined, the default one are used.
+$swift_proxy_role = hiera('swift_proxy_roles', ['primary-controller', 'controller'])
+$swift_proxies = get_nodes_hash_by_roles($network_metadata, $swift_proxy_role)
+
+$swift_proxy_caches  = $swift_proxies  # memcache for swift
+#is_primary_swift_proxy should be override by plugin
 $is_primary_swift_proxy = $primary_controller
 
 # Define murano-related variables
