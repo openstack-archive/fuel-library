@@ -1,7 +1,6 @@
 fixtures:
   symlinks:
-    "nailgun": "#{source_dir}"
-    "mcollective": "#{source_dir}/../mcollective"
+    "mcollective": "#{source_dir}"
     "rabbitmq": "#{source_dir}/../rabbitmq"
   repositories:
     "stdlib": "git://github.com/puppetlabs/puppetlabs-stdlib.git"
