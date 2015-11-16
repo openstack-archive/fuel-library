@@ -801,7 +801,7 @@ function get_supervisor_pid {
   # use the supervisorctl pid command to see if supervisord is currently
   # running and return the pid
   SUPERVISOR_PID=`supervisorctl pid | tr -dc '0-9'`
-  return "${SUPERVISOR_PID}"
+  echo "${SUPERVISOR_PID}"
 }
 
 function disable_supervisor {
