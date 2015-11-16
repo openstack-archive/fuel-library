@@ -149,6 +149,8 @@ quantum_settings:
     use_namespaces: true
   L2:
     phys_nets:
+      physnet1:
+        bridge: br-floating
       physnet2:
         bridge: br-prv
         vlan_range: 1000:1030
@@ -158,10 +160,10 @@ quantum_settings:
     net04_ext:
       shared: false
       L2:
-        network_type: local
+        network_type: flat
+        physnet: physnet1
         router_ext: true
-        physnet: 
-        segment_id: 
+        segment_id:
       L3:
         nameservers: []
         subnet: 10.122.11.0/24
@@ -175,13 +177,13 @@ quantum_settings:
         network_type: vlan
         router_ext: false
         physnet: physnet2
-        segment_id: 
+        segment_id:
       L3:
         nameservers:
         - 8.8.4.4
         - 8.8.8.8
         subnet: 10.122.13.0/24
-        floating: 
+        floating:
         gateway: 10.122.13.1
         enable_dhcp: true
       tenant: admin
@@ -372,19 +374,19 @@ repo_setup:
   - name: ubuntu
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty
     type: deb
   - name: ubuntu-updates
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty-updates
     type: deb
   - name: ubuntu-security
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty-security
     type: deb
   - name: mos
@@ -459,8 +461,8 @@ network_metadata:
         swift/replication: 10.122.14.3
         admin/pxe: 10.122.10.4
         mongo/db: 10.122.12.5
-        neutron/private: 
-        neutron/floating: 
+        neutron/private:
+        neutron/floating:
         fw-admin: 10.122.10.4
         glance/api: 10.122.12.5
         heat/api: 10.122.12.5
@@ -499,8 +501,8 @@ network_metadata:
         ceph/radosgw: 10.122.11.4
         admin/pxe: 10.122.10.6
         mongo/db: 10.122.12.3
-        neutron/private: 
-        neutron/floating: 
+        neutron/private:
+        neutron/floating:
         fw-admin: 10.122.10.6
         glance/api: 10.122.12.3
         mgmt/vip: 10.122.12.3
@@ -537,8 +539,8 @@ network_metadata:
         swift/replication: 10.122.14.4
         admin/pxe: 10.122.10.3
         mongo/db: 10.122.12.4
-        neutron/private: 
-        neutron/floating: 
+        neutron/private:
+        neutron/floating:
         fw-admin: 10.122.10.3
         glance/api: 10.122.12.4
         heat/api: 10.122.12.4
@@ -574,8 +576,8 @@ network_metadata:
         swift/replication: 10.122.14.2
         admin/pxe: 10.122.10.7
         mongo/db: 10.122.12.6
-        neutron/private: 
-        neutron/floating: 
+        neutron/private:
+        neutron/floating:
         fw-admin: 10.122.10.7
         glance/api: 10.122.12.6
         heat/api: 10.122.12.6
@@ -822,4 +824,4 @@ external_ntp:
   metadata:
     weight: 100
     label: Host OS NTP Servers
-openstack_version_prev: 
+openstack_version_prev:

@@ -572,6 +572,8 @@ quantum_settings:
   L2:
     base_mac: fa:16:3e:00:00:00
     phys_nets:
+      physnet1:
+        bridge: br-floating
       physnet2:
         bridge: br-prv
         vlan_range: 1000:1030
@@ -603,8 +605,8 @@ quantum_settings:
       tenant: admin
     net04_ext:
       L2:
-        network_type: local
-        physnet: null
+        network_type: flat
+        physnet: physnet1
         router_ext: true
         segment_id: null
       L3:
