@@ -564,7 +564,9 @@ quantum_settings:
   default_router: router04custom
   L2:
     base_mac: fa:16:3e:00:00:00
-    phys_nets: {}
+    phys_nets:
+      physnet1:
+        bridge: br-floating
     segmentation_type: tun
     tunnel_id_ranges: 2:65535
   L3:
@@ -594,8 +596,8 @@ quantum_settings:
       tenant: admin
     net04custom_ext:
       L2:
-        network_type: local
-        physnet: null
+        network_type: flat
+        physnet: physnet1
         router_ext: true
         segment_id: null
       L3:

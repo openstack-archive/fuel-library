@@ -45,7 +45,7 @@ describe manifest do
               'debug' => Noop.hiera('debug', true)
             )}
             it { should contain_class('neutron::agents::l3').with(
-              'external_network_bridge' => br_floating
+              'external_network_bridge' => '' # should be present and empty
             )}
             it { should contain_class('neutron::agents::l3').with(
               'router_delete_namespaces' => true
