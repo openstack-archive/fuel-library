@@ -40,7 +40,7 @@ if hiera('use_neutron', false) {
   neutron_network { $floating_net :
     ensure                    => 'present',
     provider_physical_network => $floating_net_physnet,
-    provider_network_type     => 'local',
+    provider_network_type     => 'flat',
     router_external           => $floating_net_router_external,
     tenant_name               => $tenant_name,
     shared                    => $floating_net_shared
