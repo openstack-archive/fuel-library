@@ -102,7 +102,7 @@ if $use_neutron {
   # Neutron L2 agent.
   # The reason is described here https://bugs.launchpad.net/fuel/+bug/1477475
   exec { 'wait-for-int-br':
-    command   => "ovs-vsctl br-exists $neutron_integration_bridge",
+    command   => "ovs-vsctl br-exists ${neutron_integration_bridge}",
     path      => [ '/sbin', '/bin', '/usr/bin', '/usr/sbin' ],
     try_sleep => 6,
     tries     => 10,
