@@ -150,6 +150,8 @@ quantum_settings:
     use_namespaces: true
   L2:
     phys_nets:
+      physnet1:
+        bridge: br-floating
       physnet2:
         bridge: br-prv
         vlan_range: 1000:1030
@@ -162,9 +164,9 @@ quantum_settings:
     net04_ext:
       shared: false
       L2:
-        network_type: local
+        network_type: flat
+        physnet: physnet1
         router_ext: true
-        physnet:
         segment_id:
       L3:
         nameservers: []
