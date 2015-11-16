@@ -28,18 +28,18 @@ describe manifest do
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
 
         if segmentation_type == 'vlan'
-          physnets_array = ["physnet2:#{pnets['physnet2']['bridge']}"]
+          physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}", "physnet2:#{pnets['physnet2']['bridge']}"]
           network_type   = 'vlan'
           network_vlan_ranges_physnet2 = pnets.fetch('physnet2',{}).fetch('vlan_range')
-          network_vlan_ranges = ["physnet2:#{network_vlan_ranges_physnet2}"]
+          network_vlan_ranges = ["physnet1", "physnet2:#{network_vlan_ranges_physnet2}"]
           tunnel_id_ranges  = []
           physical_network_mtus = ["physnet2:1500"]
           overlay_net_mtu = '1500'
           tunnel_types = []
         else
-          physnets_array = []
+          physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}"]
           network_type   = 'vxlan'
-          network_vlan_ranges = []
+          network_vlan_ranges = ["physnet1"]
           tunnel_id_ranges  = [neutron_config.fetch('L2',{}).fetch('tunnel_id_ranges')]
           physical_network_mtus = []
           overlay_net_mtu = '1450'
@@ -121,9 +121,6 @@ describe manifest do
         )}
         it { should contain_class('neutron::agents::ml2::ovs').with(
           'enable_tunneling' => (segmentation_type != 'vlan')
-        )}
-        it { should contain_class('neutron::agents::ml2::ovs').with(
-          'bridge_mappings' => bridge_mappings
         )}
 
         # check whether Neutron server started only on controllers
