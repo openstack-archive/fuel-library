@@ -236,9 +236,27 @@ $horizon_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller
 # Define swift-related variables
 # todo(sv): use special node-roles instead controllers in the future
 $swift_master_role   = 'primary-controller'
-$swift_nodes         = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-$swift_proxies       = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-$swift_proxy_caches  = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']) # memcache for swift
+
+# Plugins may define custom role names.
+# If no custom role are defined, the default one are used.
+$swift_object_role = ['standalone-swift-object']
+$swift_standalone_object = get_nodes_hash_by_roles($network_metadata, $swift_object_role)
+$swift_nodes = empty($swift_standalone_proxy) ? {
+  true => get_nodes_hash_by_roles( $network_metadata, ['primary-controller', 'controller']),
+  false => $swift_standalone_object,
+}
+
+# Plugins may define custom role names.
+# If no custom role are defined, the default one are used.
+$swift_proxy_role = ['primary-standalone-swift-proxy', 'standalone-swift-proxy']
+$swift_standalone_proxy = get_nodes_hash_by_roles($network_metadata, $swift_proxy_role)
+$swift_proxies = empty($swift_standalone_proxy) ? {
+  true => get_nodes_hash_by_roles( $network_metadata, ['primary-controller', 'controller']),
+  false => $swift_standalone_proxy,
+}
+
+$swift_proxy_caches  = $swift_proxies  # memcache for swift
+#is_primary_swift_proxy should be override by plugin
 $is_primary_swift_proxy = $primary_controller
 
 # Define murano-related variables
