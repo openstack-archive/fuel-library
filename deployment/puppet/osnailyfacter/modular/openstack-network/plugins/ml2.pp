@@ -35,23 +35,37 @@ if $use_neutron {
   $dvr               = try_get_value($neutron_advanced_config, 'neutron_dvr', false)
   $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
 
+  # $physnet1_bridge = try_get_value($neutron_config, 'L2/phys_nets/physnet1/bridge', 'br-floating')  ###
+  # $physnet1 = "physnet1:${physnet1_bridge}" ###
+
+  $bridge_mappings = generate_bridge_mappings(neutron_config, network_scheme, {
+    'do_floating' => true,
+    'do_tenant' => true,
+    'do_provider' => false
+  })
+  $network_vlan_ranges = generate_physnet_vlan_ranges(neutron_config, network_scheme, {
+    'do_floating' => true,
+    'do_tenant' => true,
+    'do_provider' => false
+  })
+
   if $segmentation_type == 'vlan' {
     $net_role_property    = 'neutron/private'
     $iface                = get_network_role_property($net_role_property, 'phys_dev')
     $physical_net_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
     $overlay_net_mtu      = $physical_net_mtu
     $enable_tunneling = false
-    $network_vlan_ranges_physnet2 = try_get_value($neutron_config, 'L2/phys_nets/physnet2/vlan_range')
-    $network_vlan_ranges = ["physnet2:${network_vlan_ranges_physnet2}"]
+    # $network_vlan_ranges_physnet2 = try_get_value($neutron_config, 'L2/phys_nets/physnet2/vlan_range')
+    # $network_vlan_ranges = ["physnet1", "physnet2:${network_vlan_ranges_physnet2}"] ###
     $physnet2_bridge = try_get_value($neutron_config, 'L2/phys_nets/physnet2/bridge')
     $physnet2 = "physnet2:${physnet2_bridge}"
-    $physnet_ironic_bridge = try_get_value($neutron_config, 'L2/phys_nets/physnet-ironic/bridge', false)
+    $physnet_ironic_bridge = try_get_value($neutron_config, 'L2/phys_nets/physnet-ironic/bridge', false) ###
 
-    if $physnet_ironic_bridge {
-      $bridge_mappings = [$physnet2, "physnet-ironic:${physnet_ironic_bridge}"]
-    } else {
-      $bridge_mappings = [$physnet2]
-    }
+    # if $physnet_ironic_bridge {
+    #   $bridge_mappings = [$physnet1, $physnet2, "physnet-ironic:${physnet_ironic_bridge}"]
+    # } else {
+    #   $bridge_mappings = [$physnet1, $physnet2]
+    # }
 
     $physical_network_mtus = ["physnet2:${physical_net_mtu}"]
     $tunnel_id_ranges = []
@@ -63,7 +77,8 @@ if $use_neutron {
     $iface             = get_network_role_property($net_role_property, 'phys_dev')
     $physical_net_mtu  = pick(get_transformation_property('mtu', $iface[0]), '1500')
     $tunnel_id_ranges  = [try_get_value($neutron_config, 'L2/tunnel_id_ranges')]
-    $network_vlan_ranges   = []
+    # $network_vlan_ranges   = ['physnet1']
+    # $bridge_mappings       = [$physnet1]
     $physical_network_mtus = []
 
     if $segmentation_type == 'gre' {
