@@ -12,7 +12,6 @@ heat
 heat_ha
 horizon
 inifile
-mcollective
 mellanox_openstack
 memcached
 mongodb
