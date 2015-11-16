@@ -50,7 +50,7 @@ describe manifest do
             should contain_neutron_network(floating_net).with(
               'ensure'                    => 'present',
               'provider_physical_network' => (nets[floating_net]['L2']['physnet'] or false),
-              'provider_network_type'     => 'local',
+              'provider_network_type'     => 'flat',
               'router_external'           => nets[floating_net]['L2']['router_ext'],
               'shared'                    => nets[floating_net]['shared'],
             )
