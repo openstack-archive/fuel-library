@@ -424,11 +424,23 @@ class openstack::compute (
 on packages update": }
   }
 
-  file_line { 'no_qemu_selinux':
+  file_line { 'qemu_apparmor':
     path    => '/etc/libvirt/qemu.conf',
-    line    => 'security_driver = "none"',
+    line    => 'security_driver = "apparmor"',
     require => Package[$::nova::params::libvirt_package_name],
     notify  => Service['libvirt']
+  }
+
+  file_line {'apparmor_libvirtd':
+    path  => '/etc/apparmor.d/usr.sbin.libvirtd',
+    line  => "#  unix, # shouldn't be used for libvirt/qemu",
+    match => '^[#[:space:]]*unix',
+  }
+
+  Exec {'refresh_apparmor':
+    refreshonly => true,
+    command     => '/sbin/apparmor_parser -r /etc/apparmor.d/usr.sbin.libvirtd',
+    subscribe   => File_line['apparmor_libvirtd'],
   }
 
   nova_config {
