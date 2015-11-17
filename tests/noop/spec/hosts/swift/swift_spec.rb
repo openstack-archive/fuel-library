@@ -85,15 +85,43 @@ describe manifest do
         )
       end
 
-      it 'should declare swift::dispersion' do
-        should contain_class('swift::dispersion').that_requires('Class[openstack::swift::status]')
-      end
+      if Noop.hiera('use_ssl', false)
+        context 'with enabled internal TLS for keystone' do
+          keystone_endpoint = Noop.hiera_structure 'use_ssl/keystone_internal_hostname'
+          it 'should declare swift::dispersion' do
+            should contain_class('swift::dispersion').with(
+              'auth_url' => "https://#{keystone_endpoint}:5000/v2.0/"
+            ).that_requires('Class[openstack::swift::status]')
+          end
+        end
 
-      it {
-        should contain_class('openstack::swift::status').with(
-          'only_from' => "127.0.0.1 240.0.0.2 #{sto_nets} #{man_nets}",
-        ).that_requires('Class[openstack::swift::proxy]')
-      }
+        context 'with enabled internal TLS for swift' do
+          swift_endpoint = Noop.hiera_structure 'use_ssl/swift_internal_hostname'
+          it {
+            should contain_class('openstack::swift::status').with(
+              'endpoint'  => "https://#{swift_endpoint}:8080",
+              'only_from' => "127.0.0.1 240.0.0.2 #{sto_nets} #{man_nets}",
+            ).that_requires('Class[openstack::swift::proxy]')
+          }
+        end
+      else
+        keystone_endpoint = Noop.hiera 'service_endpoint'
+        context 'with disabled internal TLS for keystone' do
+          it 'should declare swift::dispersion' do
+            should contain_class('swift::dispersion').with(
+              'auth_url' => "http://#{keystone_endpoint}:5000/v2.0/"
+            ).that_requires('Class[openstack::swift::status]')
+          end
+        end
+
+        context 'with disabled internal TLS for swift' do
+          it {
+            should contain_class('openstack::swift::status').with(
+              'only_from' => "127.0.0.1 240.0.0.2 #{sto_nets} #{man_nets}",
+            ).that_requires('Class[openstack::swift::proxy]')
+          }
+        end
+      end
 
       it 'should configure swift on separate partition' do
         should contain_file(swift_partition).with(

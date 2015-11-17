@@ -16,6 +16,10 @@
 #   (optional) Boolean. If true, enables SSL for $public_virtual_ip
 #   Defaults to false.
 #
+# [*public_ssl_path*]
+#   (optional) String. Path to public SSL certificate
+#   Defaults to undef.
+#
 # [*public_virtual_ip*]
 #   (required) String. This is the ipaddress to be used for the external facing
 #   vip
@@ -34,6 +38,7 @@ class openstack::ha::ironic (
   $server_names,
   $baremetal_virtual_ip,
   $public_ssl = false,
+  $public_ssl_path = undef,
 ) {
 
   # defaults for any haproxy_service within this class
@@ -53,6 +58,7 @@ class openstack::ha::ironic (
     order                  => '180',
     public                 => true,
     public_ssl             => $public_ssl,
+    public_ssl_path        => $public_ssl_path,
   }
 
   openstack::ha::haproxy_service { 'ironic-baremetal':

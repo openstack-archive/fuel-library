@@ -3,17 +3,19 @@ notice('MODULAR: openstack-network/keystone.pp')
 $use_neutron         = hiera('use_neutron', false)
 $neutron_hash        = hiera_hash('quantum_settings', {})
 $public_vip          = hiera('public_vip')
+$management_vip      = hiera('management_vip')
 $public_ssl_hash     = hiera('public_ssl')
-$public_address      = $public_ssl_hash['services'] ? {
-  true    => $public_ssl_hash['hostname'],
-  default => $public_vip,
-}
-$public_protocol     = $public_ssl_hash['services'] ? {
-  true    => 'https',
-  default => 'http',
-}
-$admin_address       = hiera('management_vip')
-$admin_protocol      = 'http'
+$ssl_hash            = hiera_hash('use_ssl', {})
+
+$public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'neutron', 'public', 'protocol', 'http')
+$public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'neutron', 'public', 'hostname', [$public_vip])
+
+$internal_protocol   = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
+$internal_address    = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', [$management_vip])
+
+$admin_protocol      = get_ssl_property($ssl_hash, {}, 'neutron', 'admin', 'protocol', 'http')
+$admin_address       = get_ssl_property($ssl_hash, {}, 'neutron', 'admin', 'hostname', [$management_vip])
+
 $region              = pick($neutron_hash['region'], hiera('region', 'RegionOne'))
 
 $password            = $neutron_hash['keystone']['admin_password']
@@ -27,11 +29,12 @@ $tenant              = pick($neutron_hash['tenant'], 'services')
 $port                = '9696'
 
 $public_url          = "${public_protocol}://${public_address}:${port}"
-$internal_url        = "${admin_protocol}://${admin_address}:${port}"
+$internal_url        = "${internal_protocol}://${internal_address}:${port}"
 $admin_url           = "${admin_protocol}://${admin_address}:${port}"
 
 
 validate_string($public_address)
+validate_string($internal_address)
 validate_string($password)
 
 if $use_neutron {
