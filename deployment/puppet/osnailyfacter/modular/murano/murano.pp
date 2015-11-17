@@ -21,30 +21,45 @@ $use_stderr                 = hiera('use_stderr', false)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
-$public_ssl                 = hiera_hash('public_ssl', {})
 $external_dns               = hiera_hash('external_dns', {})
+$public_ssl                 = hiera_hash('public_ssl', {})
+$ssl_hash                   = hiera_hash('use_ssl', {})
+if $public_ssl['services'] or try_get_value($ssl_hash, 'keystone_public', false) {
+  $public_auth_protocol = 'https'
+  $public_auth_address  = pick(try_get_value($ssl_hash, 'keystone_public_hostname', ''), $public_ssl['hostname'], $public_ip)
+} else {
+  $public_auth_protocol = 'http'
+  $public_auth_address  = $public_ip
+}
+if try_get_value($ssl_hash, 'keystone_internal', false) {
+  $internal_auth_protocol = 'https'
+  $internal_auth_address  = pick(try_get_value($ssl_hash, 'keystone_internal_hostname', ''), $service_endpoint, $management_ip)
+} else {
+  $internal_auth_protocol = 'http'
+  $internal_auth_address  = pick($service_endpoint, $management_ip)
+}
+if try_get_value($ssl_hash, 'keystone_admin', false) {
+  $admin_auth_protocol = 'https'
+  $admin_auth_address  = pick(try_get_value($ssl_hash, 'keystone_admin_hostname', ''), $service_endpoint, $management_ip)
+} else {
+  $admin_auth_protocol = 'http'
+  $admin_auth_address  = pick($service_endpoint, $management_ip)
+}
+
+$internal_api_protocol = 'http'
+$api_bind_host  = get_network_role_property('murano/api', 'ipaddr')
 
 #################################################################
 
 if $murano_hash['enabled'] {
-  $public_protocol = pick($public_ssl['services'], false) ? {
-    true    => 'https',
-    default => 'http',
-  }
-
-  $public_address = pick($public_ssl['services'], false) ? {
-    true    => pick($public_ssl['hostname']),
-    default => $public_ip,
-  }
 
   $firewall_rule  = '202 murano-api'
 
   $api_bind_port  = '8082'
-  $api_bind_host  = get_network_role_property('murano/api', 'ipaddr')
 
   $murano_user    = pick($murano_hash['user'], 'murano')
   $tenant         = pick($murano_hash['tenant'], 'services')
-  $internal_url   = "http://${api_bind_host}:${api_bind_port}"
+  $internal_url   = "${internal_api_protocol}://${api_bind_host}:${api_bind_port}"
   $db_user        = pick($murano_hash['db_user'], 'murano')
   $db_name        = pick($murano_hash['db_name'], 'murano')
   $db_password    = pick($murano_hash['db_password'])
@@ -80,11 +95,11 @@ if $murano_hash['enabled'] {
     use_stderr          => $use_stderr,
     log_facility        => $syslog_log_facility_murano,
     database_connection => $sql_connection,
-    auth_uri            => "${public_protocol}://${public_address}:5000/v2.0/",
+    auth_uri            => "${public_auth_protocol}://${public_auth_address}:5000/v2.0/",
     admin_user          => $murano_user,
     admin_password      => $murano_hash['user_password'],
     admin_tenant_name   => $tenant,
-    identity_uri        => "http://${service_endpoint}:35357/",
+    identity_uri        => "${admin_auth_protocol}://${admin_auth_address}:35357/",
     use_neutron         => $use_neutron,
     rabbit_os_user      => $rabbit_hash['user'],
     rabbit_os_password  => $rabbit_hash['password'],

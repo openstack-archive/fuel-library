@@ -5,20 +5,29 @@ manifest = 'ceilometer/keystone.pp'
 describe manifest do
   shared_examples 'catalog' do
     it 'should set empty trusts_delegated_roles for ceilometer auth' do
-      contain_class('ceilometer::keystone::auth')
+      should contain_class('ceilometer::keystone::auth')
     end
     it 'should use either public_vip or management_vip' do
-      public_vip     = Noop.hiera('public_vip')
-      public_ssl     = Noop.hiera_structure('public_ssl/services')
 
-      if public_ssl
+      internal_protocol = 'http'
+      internal_address  = Noop.hiera('management_vip')
+      admin_protocol    = 'http'
+      admin_address     = internal_address
+
+      if Noop.hiera_structure('use_ssl', false)
+        public_protocol = 'https'
+        public_address = Noop.hiera_structure('use_ssl/ceilometer_public_hostname')
+        internal_protocol = 'https'
+        internal_address = Noop.hiera_structure('use_ssl/ceilometer_internal_hostname')
+        admin_protocol = 'https'
+        admin_address = Noop.hiera_structure('use_ssl/ceilometer_admin_hostname')
+      elsif Noop.hiera_structure('public_ssl/services')
         public_address  = Noop.hiera_structure('public_ssl/hostname')
         public_protocol = 'https'
       else
-        public_address = public_vip
+        public_address = Noop.hiera('public_vip')
         public_protocol = 'http'
       end
-      admin_address = Noop.hiera 'management_vip'
 
       password = Noop.hiera_structure 'ceilometer/user_password'
       auth_name = Noop.hiera_structure 'ceilometer/auth_name', 'ceilometer'
@@ -29,9 +38,10 @@ describe manifest do
       region = Noop.hiera_structure 'ceilometer/region', 'RegionOne'
 
       public_url = "#{public_protocol}://#{public_address}:8777"
-      admin_url = "http://#{admin_address}:8777"
+      internal_url = "#{internal_protocol}://#{internal_address}:8777"
+      admin_url = "#{admin_protocol}://#{admin_address}:8777"
 
-      contain_class('ceilometer::keystone::auth').with(
+      should contain_class('ceilometer::keystone::auth').with(
         'password'            => password,
         'auth_name'           => auth_name,
         'configure_endpoint'  => configure_endpoint,
@@ -39,7 +49,7 @@ describe manifest do
         'configure_user_role' => configure_user_role,
         'service_name'        => service_name,
         'public_url'          => public_url,
-        'internal_url'        => admin_url,
+        'internal_url'        => internal_url,
         'admin_url'           => admin_url,
         'region'              => region
       )

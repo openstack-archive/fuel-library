@@ -55,9 +55,18 @@ $amqp_user                  = $rabbit_hash['user']
 $rabbit_ha_queues           = true
 $service_endpoint           = hiera('service_endpoint')
 $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
+$ssl_hash                   = hiera_hash('use_ssl', {})
 
 prepare_network_config(hiera('network_scheme', {}))
 $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
+
+if try_get_value($ssl_hash, 'keystone_internal', false) {
+  $keystone_protocol = 'https'
+  $keystone_endpoint  = pick($ssl_hash['keystone_internal_hostname'], hiera('keystone_endpoint', ''), hiera('service_endpoint', ''), $management_vip)
+} else {
+  $keystone_protocol = 'http'
+  $keystone_endpoint = $service_endpoint
+}
 
 if $ceilometer_hash['enabled'] {
   if $external_mongo {
@@ -94,7 +103,8 @@ if ($ceilometer_enabled) {
     amqp_user             => $amqp_user,
     amqp_password         => $amqp_password,
     rabbit_ha_queues      => $rabbit_ha_queues,
-    keystone_host         => $service_endpoint,
+    keystone_protocol     => $keystone_protocol,
+    keystone_host         => $keystone_endpoint,
     keystone_password     => $ceilometer_user_password,
     keystone_user         => $ceilometer_hash['user'],
     keystone_tenant       => $ceilometer_hash['tenant'],
