@@ -82,10 +82,13 @@ define openstack::ha::haproxy_service (
                               'balance' => 'roundrobin' },
   $internal               = true,
   $public                 = false,
-  $public_ssl             = false,
   $ipaddresses            = undef,
   $server_names           = undef,
   $mode                   = undef,
+  $public_ssl             = false,
+  $public_ssl_path        = undef,
+  $internal_ssl           = false,
+  $internal_ssl_path      = undef,
   $require_service        = undef,
 ) {
 
@@ -96,29 +99,39 @@ define openstack::ha::haproxy_service (
 
   include openstack::ha::haproxy_restart
 
-  if $public and $internal {
+  if $public_ssl and !$public_ssl_path {
+    fail("You must set up path to public ssl keypair if you want to use public ssl")
+  }
+  if $internal_ssl and !$internal_ssl_path {
+    fail("You must set up path to internal ssl keypair if you want to use internal ssl")
+  }
+  if !($internal or $public) {
+    fail('At least one of $public or $internal must be set to true')
+  }
+
+  if $public {
     if $public_ssl {
-      $bind = merge({ "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/public_haproxy.pem'] },
-              array_to_hash(suffix(flatten([$internal_virtual_ip]), ":${listen_port}"), ""))
+      $public_bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', $public_ssl_path] }
     } else {
-      $bind = array_to_hash(suffix(flatten([$internal_virtual_ip, $public_virtual_ip]), ":${listen_port}"), "")
-    }
-  } elsif $internal {
-    $bind = array_to_hash(suffix(flatten([$internal_virtual_ip]), ":${listen_port}"), "")
-  } elsif $public {
-    if $public_ssl {
-      $bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', '/var/lib/astute/haproxy/public_haproxy.pem'] }
-    } else {
-      $bind = array_to_hash(suffix(flatten([$public_virtual_ip]), ":${listen_port}"), "")
+      $public_bind = { "$public_virtual_ip:$listen_port" => "" }
     }
   } else {
-    fail('At least one of $public or $internal must be set to true')
+    $public_bind = {}
+  }
+  if $internal {
+    if $internal_ssl {
+      $internal_bind = { "$internal_virtual_ip:$listen_port" => ['ssl', 'crt', $internal_ssl_path] }
+    } else {
+      $internal_bind = { "$internal_virtual_ip:$listen_port" => "" }
+    }
+  } else {
+    $internal_bind = {}
   }
 
   # Configure HAProxy to listen
   haproxy::listen { $name:
     order       => $order,
-    bind        => $bind,
+    bind        => merge($public_bind, $internal_bind),
     options     => $haproxy_config_options,
     mode        => $mode,
     use_include => true,
