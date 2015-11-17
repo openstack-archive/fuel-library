@@ -41,14 +41,33 @@ describe manifest do
           'neutron_admin_username' => admin_username
         )}
         it { should contain_class('nova::network::neutron').with(
-          'neutron_admin_auth_url' => admin_auth_url
-        )}
-        it { should contain_class('nova::network::neutron').with(
-          'neutron_url' => neutron_url
-        )}
-        it { should contain_class('nova::network::neutron').with(
           'neutron_ovs_bridge' => 'br-int'
         )}
+
+        if Noop.hiera_structure('use_ssl', false)
+          context 'with overridden TLS' do
+            admin_auth_protocol = 'https'
+            admin_auth_endpoint = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
+            it { should contain_class('nova::network::neutron').with(
+              'neutron_admin_auth_url' => "#{admin_auth_protocol}://#{admin_auth_endpoint}:35357/#{auth_api_version}"
+            )}
+
+            neutron_internal_protocol = 'https'
+            neutron_internal_endpoint = Noop.hiera_structure('use_ssl/neutron_internal_hostname')
+            it { should contain_class('nova::network::neutron').with(
+              'neutron_url' => "#{neutron_internal_protocol}://#{neutron_internal_endpoint}:9696"
+            )}
+          end
+        else
+          context 'without overridden TLS' do
+            it { should contain_class('nova::network::neutron').with(
+              'neutron_admin_auth_url' => admin_auth_url
+            )}
+            it { should contain_class('nova::network::neutron').with(
+              'neutron_url' => neutron_url
+            )}
+          end
+        end
       end
 
     elsif !Noop.hiera('use_neutron') && Noop.hiera('role') =~ /controller/

@@ -2,17 +2,29 @@ notice('MODULAR: openstack-controller/keystone.pp')
 
 $nova_hash           = hiera_hash('nova', {})
 $public_vip          = hiera('public_vip')
+$management_vip      = hiera('management_vip')
 $public_ssl_hash     = hiera('public_ssl')
-$public_address      = $public_ssl_hash['services'] ? {
-  true    => $public_ssl_hash['hostname'],
-  default => $public_vip,
-}
-$public_protocol     = $public_ssl_hash['services'] ? {
-  true    => 'https',
-  default => 'http',
-}
-$admin_protocol      = 'http'
-$admin_address       = hiera('management_vip')
+$ssl_hash            = hiera_hash('use_ssl', {})
+
+$public_protocol     = ssl($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', 'http')
+$public_address      = ssl($ssl_hash, $public_ssl_hash, 'nova', 'public', 'hostname', [$public_vip])
+
+$internal_protocol   = ssl($ssl_hash, {}, 'nova', 'internal', 'protocol', 'http')
+$internal_address    = ssl($ssl_hash, {}, 'nova', 'internal', 'hostname', [$management_vip])
+
+$admin_protocol      = ssl($ssl_hash, {}, 'nova', 'admin', 'protocol', 'http')
+$admin_address       = ssl($ssl_hash, {}, 'nova', 'admin', 'hostname', [$management_vip])
+
+$compute_port      = '8774'
+$public_base_url   = "${public_protocol}://${public_address}:${compute_port}"
+$internal_base_url = "${internal_protocol}://${internal_address}:${compute_port}"
+$admin_base_url    = "${admin_protocol}://${admin_address}:${compute_port}"
+
+$ec2_port         = '8773'
+$ec2_public_url   = "${public_protocol}://${public_address}:${ec2_port}/services/Cloud"
+$ec2_internal_url = "${internal_protocol}://${internal_address}:${ec2_port}/services/Cloud"
+$ec2_admin_url    = "${admin_protocol}://${admin_address}:${ec2_port}/services/Admin"
+
 $region              = pick($nova_hash['region'], hiera('region', 'RegionOne'))
 
 $password            = $nova_hash['user_password']
@@ -22,15 +34,6 @@ $configure_user      = pick($nova_hash['configure_user'], true)
 $configure_user_role = pick($nova_hash['configure_user_role'], true)
 $service_name        = pick($nova_hash['service_name'], 'nova')
 $tenant              = pick($nova_hash['tenant'], 'services')
-
-$compute_port     = '8774'
-$public_base_url  = "${public_protocol}://${public_address}:${compute_port}"
-$admin_base_url   = "${admin_protocol}://${admin_address}:${compute_port}"
-
-$ec2_port         = '8773'
-$ec2_public_url   = "${public_protocol}://${public_address}:${ec2_port}/services/Cloud"
-$ec2_internal_url = "${admin_protocol}://${admin_address}:${ec2_port}/services/Cloud"
-$ec2_admin_url    = "${admin_protocol}://${admin_address}:${ec2_port}/services/Admin"
 
 validate_string($public_address)
 validate_string($password)
@@ -45,8 +48,8 @@ class { '::nova::keystone::auth':
   service_name          => $service_name,
   public_url            => "${public_base_url}/v2/%(tenant_id)s",
   public_url_v3         => "${public_base_url}/v3",
-  internal_url          => "${admin_base_url}/v2/%(tenant_id)s",
-  internal_url_v3       => "${admin_base_url}/v3",
+  internal_url          => "${internal_base_url}/v2/%(tenant_id)s",
+  internal_url_v3       => "${internal_base_url}/v3",
   admin_url             => "${admin_base_url}/v2/%(tenant_id)s",
   admin_url_v3          => "${admin_base_url}/v3",
   region                => $region,
