@@ -18,7 +18,13 @@ describe manifest do
       keystone_host = Noop.hiera 'management_vip'
     end
 
+    default_log_levels = Noop.hiera_structure 'default_log_levels_hash'
+
     # TODO All this stuff should be moved to shared examples controller* tests.
+
+    it 'should configure default log levels' do
+      should contain_class('nova::logging').with('default_log_levels' => default_log_levels)
+    end
 
     # Nova config options
     it 'nova config should have use_stderr set to false' do

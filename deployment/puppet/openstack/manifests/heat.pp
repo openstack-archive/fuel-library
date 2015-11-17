@@ -23,6 +23,7 @@ class openstack::heat (
 
   $verbose                       = false,
   $debug                         = false,
+  $default_log_levels            = undef,
   $use_syslog                    = false,
   $use_stderr                    = true,
   $syslog_log_facility           = 'LOG_LOCAL0',
@@ -134,6 +135,10 @@ class openstack::heat (
     use_syslog            => $use_syslog,
     use_stderr            => $use_stderr,
     log_facility          => $syslog_log_facility,
+  }
+
+  class { '::heat::logging':
+    default_log_levels => $default_log_levels,
   }
 
   heat_config {

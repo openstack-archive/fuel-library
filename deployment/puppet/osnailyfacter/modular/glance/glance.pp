@@ -22,6 +22,8 @@ $region                = hiera('region','RegionOne')
 $glance_endpoint       = $management_vip
 $service_workers       = pick($glance_hash['glance_workers'], min(max($::processorcount, 2), 16))
 
+$default_log_levels_hash        = hiera_hash('default_log_levels_hash')
+
 $db_type                        = 'mysql'
 $db_host                        = pick($glance_hash['db_host'], $database_vip)
 $api_bind_address               = get_network_role_property('glance/api', 'ipaddr')
@@ -74,6 +76,7 @@ if ($storage_hash['images_ceph']) {
 class { 'openstack::glance':
   verbose                        => $verbose,
   debug                          => $debug,
+  default_log_levels             => $default_log_levels_hash,
   db_type                        => $db_type,
   db_host                        => $db_host,
   glance_db_user                 => $glance_db_user,

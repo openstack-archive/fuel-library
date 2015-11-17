@@ -61,6 +61,7 @@ class openstack::glance (
   $glance_vcenter_api_retry_count = undef,
   $verbose                        = false,
   $debug                          = false,
+  $default_log_levels             = undef,
   $enabled                        = true,
   $use_syslog                     = false,
   $use_stderr                     = true,
@@ -131,6 +132,28 @@ class openstack::glance (
     os_region_name        => $region,
   }
 
+  # TODO (iberezovskiy): Switch on glance::api/registry::logging class after sync with upstream
+  # https://github.com/openstack/puppet-glance/blob/master/manifests/api/logging.pp#L196-L206
+  # https://github.com/openstack/puppet-glance/blob/master/manifests/registry/logging.pp#L196-L206
+  if $default_log_levels {
+    glance_api_config {
+      'DEFAULT/default_log_levels' :
+        value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
+    }
+    glance_registry_config {
+      'DEFAULT/default_log_levels' :
+        value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
+    }
+  } else {
+    glance_api_config {
+      'DEFAULT/default_log_levels' : ensure => absent;
+    }
+    glance_registry_config {
+      'DEFAULT/default_log_levels' : ensure => absent;
+    }
+  }
+  #
+
   glance_api_config {
     'database/max_pool_size':              value => $max_pool_size;
     'database/max_retries':                value => $max_retries;
@@ -171,6 +194,10 @@ class openstack::glance (
     log_facility          => $syslog_log_facility,
     database_idle_timeout => $idle_timeout,
     workers               => $service_workers,
+  }
+
+  class { 'glance::registry::logging':
+    default_log_levels => $default_log_levels,
   }
 
   glance_registry_config {
