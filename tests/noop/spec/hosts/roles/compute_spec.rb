@@ -99,17 +99,43 @@ describe manifest do
     end
 
     # SSL support
-    public_ssl = Noop.hiera_structure('public_ssl/services')
-
-    if public_ssl
-      it 'should properly configure vncproxy WITH ssl' do
-        vncproxy_host = Noop.hiera_structure('public_ssl/hostname')
-        should contain_class('openstack::compute').with(
-          'vncproxy_host' => vncproxy_host
-        )
-        should contain_class('nova::compute').with(
-          'vncproxy_protocol' => 'https'
-        )
+    if Noop.hiera_structure('use_ssl')
+      context 'with enabled and overridden TLS' do
+        it 'should properly configure vncproxy WITH ssl' do
+          vncproxy_host = Noop.hiera_structure('use_ssl/nova_public_hostname')
+          should contain_class('openstack::compute').with(
+            'vncproxy_host' => vncproxy_host
+          )
+          should contain_class('nova::compute').with(
+            'vncproxy_protocol' => 'https'
+          )
+        end
+        it 'should properly configure glance api servers WITH ssl' do
+          glance_protocol = 'https'
+          glance_endpoint = Noop.hiera_structure('use_ssl/glance_internal_hostname')
+          glance_api_servers = "#{glance_protocol}://#{glance_endpoint}:9292"
+          should contain_class('openstack::compute').with(
+            'glance_api_servers' => glance_api_servers
+          )
+        end
+      end
+    elsif Noop.hiera_structure('public_ssl/services')
+      context 'with enabled and not overridden TLS' do
+        it 'should properly configure vncproxy WITH ssl' do
+          vncproxy_host = Noop.hiera_structure('public_ssl/hostname')
+          should contain_class('openstack::compute').with(
+            'vncproxy_host' => vncproxy_host
+          )
+          should contain_class('nova::compute').with(
+            'vncproxy_protocol' => 'https'
+          )
+        end
+        it 'should properly configure glance api servers WITHOUT ssl' do
+          management_vip = Noop.hiera('management_vip')
+          should contain_class('openstack::compute').with(
+            'glance_api_servers' => "#{management_vip}:9292"
+          )
+        end
       end
     else
       it 'should properly configure vncproxy WITHOUT ssl' do
@@ -119,6 +145,12 @@ describe manifest do
         )
         should contain_class('nova::compute').with(
           'vncproxy_protocol' => 'http'
+        )
+      end
+      it 'should properly configure glance api servers WITHOUT ssl' do
+        management_vip = Noop.hiera('management_vip')
+        should contain_class('openstack::compute').with(
+          'glance_api_servers' => "#{management_vip}:9292"
         )
       end
     end

@@ -28,6 +28,7 @@ class openstack::ceilometer (
   $amqp_user             = 'guest',
   $amqp_password         = 'rabbit_pw',
   $rabbit_ha_queues      = false,
+  $keystone_protocol     = 'http',
   $keystone_host         = '127.0.0.1',
   $host                  = '0.0.0.0',
   $port                  = '8777',
@@ -63,7 +64,7 @@ class openstack::ceilometer (
 
   # Configure authentication for agents
   class { '::ceilometer::agent::auth':
-    auth_url         => "http://${keystone_host}:5000/v2.0",
+    auth_url         => "${keystone_protocol}://${keystone_host}:5000/v2.0",
     auth_password    => $keystone_password,
     auth_region      => $keystone_region,
     auth_tenant_name => $keystone_tenant,
@@ -108,6 +109,7 @@ class openstack::ceilometer (
     # Install the ceilometer-api service
     # The keystone_password parameter is mandatory
     class { '::ceilometer::api':
+      keystone_protocol    => $keystone_protocol,
       keystone_host        => $keystone_host,
       keystone_user        => $keystone_user,
       keystone_password    => $keystone_password,
