@@ -16,6 +16,20 @@
 #   (optional) Boolean. If true, enables SSL for $public_virtual_ip
 #   Defaults to false.
 #
+# [*public_ssl_path*]
+#   (optional) String. Filesystem path to the file with public certificate
+#   content
+#   Defaults to undef
+#
+# [*internal_ssl*]
+#   (optional) Boolean. If true, enables SSL for $internal_virtual_ip
+#   Defaults to false.
+#
+# [*internal_ssl_path*]
+#   (optional) String. Filesystem path to the file with internal certificate
+#   content
+#   Defaults to undef
+#
 # [*public_virtual_ip*]
 #   (required) String. This is the ipaddress to be used for the external facing
 #   vip
@@ -28,7 +42,10 @@ class openstack::ha::nova (
   $ipaddresses,
   $public_virtual_ip,
   $server_names,
-  $public_ssl = false,
+  $public_ssl        = false,
+  $public_ssl_path   = undef,
+  $internal_ssl      = false,
+  $internal_ssl_path = undef,
 ) {
 
   # defaults for any haproxy_service within this class
@@ -44,6 +61,9 @@ class openstack::ha::nova (
     listen_port            => 8773,
     public                 => true,
     public_ssl             => $public_ssl,
+    public_ssl_path        => $public_ssl_path,
+    internal_ssl           => $internal_ssl,
+    internal_ssl_path      => $internal_ssl_path,
     require_service        => 'nova-api',
     haproxy_config_options => {
       'timeout server' => '600s',
@@ -56,6 +76,9 @@ class openstack::ha::nova (
     listen_port            => 8774,
     public                 => true,
     public_ssl             => $public_ssl,
+    public_ssl_path        => $public_ssl_path,
+    internal_ssl           => $internal_ssl,
+    internal_ssl_path      => $internal_ssl_path,
     require_service        => 'nova-api',
     haproxy_config_options => {
       option           => ['httpchk', 'httplog', 'httpclose'],
@@ -68,6 +91,9 @@ class openstack::ha::nova (
   openstack::ha::haproxy_service { 'nova-metadata-api':
     order                  => '060',
     listen_port            => 8775,
+    internal_ssl           => $internal_ssl,
+    internal_ssl_path      => $internal_ssl_path,
+    require_service        => 'nova-api',
     haproxy_config_options => {
       option => ['httpchk', 'httplog', 'httpclose'],
     },
@@ -79,6 +105,7 @@ class openstack::ha::nova (
     listen_port     => 6080,
     public          => true,
     public_ssl      => $public_ssl,
+    public_ssl_path => $public_ssl_path,
     internal        => false,
     require_service => 'nova-vncproxy',
     haproxy_config_options => {
