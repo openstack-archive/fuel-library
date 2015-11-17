@@ -19,7 +19,6 @@ $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
-$glance_endpoint       = $management_vip
 $service_workers       = pick($glance_hash['glance_workers'], min(max($::processorcount, 2), 16))
 
 $db_type                        = 'mysql'
@@ -28,7 +27,6 @@ $api_bind_address               = get_network_role_property('glance/api', 'ipadd
 $enabled                        = true
 $max_retries                    = '-1'
 $idle_timeout                   = '3600'
-$auth_uri                       = "http://${service_endpoint}:5000/"
 
 $rabbit_password                = $rabbit_hash['password']
 $rabbit_user                    = $rabbit_hash['user']
@@ -51,6 +49,20 @@ $glance_vcenter_api_retry_count = '20'
 $glance_image_cache_max_size    = $glance_hash['image_cache_max_size']
 $glance_pipeline                = pick($glance_hash['pipeline'], 'keystone')
 $glance_large_object_size       = pick($glance_hash['large_object_size'], '5120')
+
+$ssl_hash                       = hiera_hash('use_ssl', {})
+if try_get_value($ssl_hash, 'keystone_internal', false) {
+  $keystone_protocol = 'https'
+  $internal_ssl = true
+  $keystone_endpoint = pick($ssl_hash['keystone_internal_hostname'], hiera('keystone_endpoint', ''), hiera('service_endpoint', ''), $management_vip)
+  $glance_endpoint   = pick($ssl_hash['glance_internal_hostname'], $management_vip)
+} else {
+  $keystone_protocol = 'http'
+  $internal_ssl = false
+  $keystone_endpoint = $service_endpoint
+  $glance_endpoint   = $management_vip
+}
+$auth_uri          = "${keystone_protocol}://${keystone_endpoint}:5000/"
 
 $rados_connect_timeout          = '30'
 
@@ -90,7 +102,9 @@ class { 'openstack::glance':
   glance_vcenter_image_dir       => $glance_vcenter_image_dir,
   glance_vcenter_api_retry_count => $glance_vcenter_api_retry_count,
   auth_uri                       => $auth_uri,
-  keystone_host                  => $service_endpoint,
+  keystone_host                  => $keystone_endpoint,
+  internal_ssl                   => $internal_ssl,
+  glance_protocol                => 'http',
   region                         => $region,
   bind_host                      => $api_bind_address,
   enabled                        => $enabled,

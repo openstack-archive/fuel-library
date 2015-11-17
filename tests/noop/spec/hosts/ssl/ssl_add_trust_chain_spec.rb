@@ -3,6 +3,13 @@ require 'shared-examples'
 manifest = 'ssl/ssl_add_trust_chain.pp'
 
 describe manifest do
+  shared_examples 'catalog' do
+    it 'should add certificates to trust chain' do
+      should contain_exec('add_trust').with(
+        'command' => 'update-ca-certificates',
+      )
+    end
+  end
   test_ubuntu_and_centos manifest
 end
 
