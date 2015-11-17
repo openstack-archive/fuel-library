@@ -12,6 +12,11 @@ describe manifest do
   cinder_user = Noop.hiera_structure('cinder/user', "cinder")
   cinder_user_password = Noop.hiera_structure('cinder/user_password')
   cinder_tenant = Noop.hiera_structure('cinder/tenant', "services")
+  default_log_levels = Noop.hiera_structure 'default_log_levels_hash'
+
+  it 'should configure default log levels' do
+    should contain_class('cinder::logging').with('default_log_levels' => default_log_levels)
+  end
 
   it 'ensures cinder_config contains "oslo_messaging_rabbit/rabbit_ha_queues" ' do
     should contain_cinder_config('oslo_messaging_rabbit/rabbit_ha_queues').with(

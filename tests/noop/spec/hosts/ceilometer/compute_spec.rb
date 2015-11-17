@@ -5,6 +5,8 @@ manifest = 'ceilometer/compute.pp'
 describe manifest do
   shared_examples 'catalog' do
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
+    default_log_levels = Noop.hiera_structure 'default_log_levels_hash'
+
     if ceilometer_hash['enabled']
       it 'should configure OS ENDPOINT TYPE for ceilometer' do
         should contain_ceilometer_config('service_credentials/os_endpoint_type').with(:value => 'internalURL')
@@ -21,6 +23,9 @@ describe manifest do
       end
       it 'should disable use_stderr option' do
         should contain_ceilometer_config('DEFAULT/use_stderr').with(:value => 'false')
+      end
+      it 'should configure default log levels' do
+        should contain_class('ceilometer::logging').with('default_log_levels' => default_log_levels)
       end
     end
   end # end of shared_examples
