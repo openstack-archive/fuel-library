@@ -98,6 +98,11 @@ describe manifest do
                )
       end
 
+      default_log_levels = Noop.hiera_structure 'default_log_levels_hash'
+      it 'should configure default log levels' do
+        should contain_class('sahara::logging').with('default_log_levels' => default_log_levels)
+      end
+
       enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera_structure('public_ssl/services'))
       context 'with public_ssl enabled', :if => enable do
         it { should contain_file('/etc/pki/tls/certs').with(

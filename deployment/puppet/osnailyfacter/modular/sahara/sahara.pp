@@ -16,6 +16,7 @@ $service_endpoint           = hiera('service_endpoint')
 $syslog_log_facility_sahara = hiera('syslog_log_facility_sahara')
 $debug                      = pick($sahara_hash['debug'], hiera('debug', false))
 $verbose                    = pick($sahara_hash['verbose'], hiera('verbose', true))
+$default_log_levels_hash    = hiera_hash('default_log_levels_hash')
 $use_syslog                 = hiera('use_syslog', true)
 $use_stderr                 = hiera('use_stderr', false)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
@@ -87,6 +88,20 @@ if $sahara_hash['enabled'] {
     rabbit_ha_queues       => $rabbit_ha_queues,
     rabbit_port            => $amqp_port,
     rabbit_hosts           => split($amqp_hosts, ',')
+  }
+
+  # Sahara::logging class can't be used because of https://github.com/openstack/puppet-sahara/blob/master/manifests/init.pp#L371
+  if $default_log_levels_hash {
+    if !defined(Sahara_config['DEFAULT/default_log_levels']) {
+      sahara_config {
+        'DEFAULT/default_log_levels':
+          value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
+      }
+    } else {
+      Sahara_config['DEFAULT/default_log_levels'] {
+        value => join(sort(join_keys_to_values($default_log_levels, '=')), ',')
+      }
+    }
   }
 
   if $public_ssl_hash['services'] {

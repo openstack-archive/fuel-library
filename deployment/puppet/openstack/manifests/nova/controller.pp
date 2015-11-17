@@ -81,6 +81,7 @@ class openstack::nova::controller (
   $cache_server_port           = '11211',
   $verbose                     = false,
   $debug                       = false,
+  $default_log_levels          = undef,
   $enabled                     = true,
   $exported_resources          = true,
   $nameservers                 = undef,
@@ -246,6 +247,10 @@ class openstack::nova::controller (
     notify_api_faults      => $nova_hash['notify_api_faults'],
     notification_driver    => $notification_driver,
     memcached_servers      => $memcached_addresses,
+  }
+
+  class { '::nova::logging':
+    default_log_levels => $default_log_levels,
   }
 
   #NOTE(bogdando) exec update-kombu is always undef, so delete?

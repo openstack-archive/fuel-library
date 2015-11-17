@@ -104,6 +104,7 @@ class { '::openstack::controller':
   network_provider               => $network_provider,
   verbose                        => pick($openstack_controller_hash['verbose'], true),
   debug                          => pick($openstack_controller_hash['debug'], hiera('debug', true)),
+  default_log_levels             => hiera_hash('default_log_levels_hash'),
   auto_assign_floating_ip        => hiera('auto_assign_floating_ip', false),
   glance_api_servers             => $glance_api_servers,
   primary_controller             => $primary_controller,

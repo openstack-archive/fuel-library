@@ -16,6 +16,7 @@ class openstack::ceilometer (
   $use_syslog            =  false,
   $use_stderr            =  true,
   $syslog_log_facility   = 'LOG_LOCAL0',
+  $default_log_levels    = undef,
   $debug                 =  false,
   $db_type               = 'mysql',
   $db_host               = 'localhost',
@@ -59,6 +60,10 @@ class openstack::ceilometer (
     use_syslog            => $use_syslog,
     use_stderr            => $use_stderr,
     log_facility          => $syslog_log_facility,
+  }
+
+  class { '::ceilometer::logging':
+    default_log_levels => $default_log_levels,
   }
 
   # Configure authentication for agents
