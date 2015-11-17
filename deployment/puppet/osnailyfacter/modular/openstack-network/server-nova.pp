@@ -3,21 +3,29 @@ notice('MODULAR: openstack-network/server-nova.pp')
 $use_neutron = hiera('use_neutron', false)
 
 if $use_neutron {
-  $neutron_config     = hiera_hash('neutron_config')
-  $management_vip     = hiera('management_vip')
-  $service_endpoint   = hiera('service_endpoint', $management_vip)
-  $neutron_endpoint   = hiera('neutron_endpoint', $management_vip)
-  $admin_password     = try_get_value($neutron_config, 'keystone/admin_password')
-  $admin_tenant_name  = try_get_value($neutron_config, 'keystone/admin_tenant', 'services')
-  $admin_username     = try_get_value($neutron_config, 'keystone/admin_user', 'neutron')
-  $region_name        = hiera('region', 'RegionOne')
-  $auth_api_version   = 'v2.0'
-  $admin_identity_uri = "http://${service_endpoint}:35357"
-  $admin_auth_url     = "${admin_identity_uri}/${auth_api_version}"
-  $neutron_url        = "http://${neutron_endpoint}:9696"
-  $neutron_ovs_bridge = 'br-int'
-  $conf_nova          = pick($neutron_config['conf_nova'], true)
-  $floating_net       = pick($neutron_config['default_floating_net'], 'net04_ext')
+  $neutron_config            = hiera_hash('neutron_config')
+  $management_vip            = hiera('management_vip')
+  $service_endpoint          = hiera('service_endpoint', $management_vip)
+  $neutron_endpoint          = hiera('neutron_endpoint', $management_vip)
+  $admin_password            = try_get_value($neutron_config, 'keystone/admin_password')
+  $admin_tenant_name         = try_get_value($neutron_config, 'keystone/admin_tenant', 'services')
+  $admin_username            = try_get_value($neutron_config, 'keystone/admin_user', 'neutron')
+  $region_name               = hiera('region', 'RegionOne')
+  $auth_api_version          = 'v2.0'
+  $ssl_hash                  = hiera_hash('use_ssl', {})
+
+  $admin_auth_protocol       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+  $admin_auth_endpoint       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+
+  $neutron_internal_protocol = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
+  $neutron_internal_endpoint = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', [$neutron_endpoint])
+
+  $admin_identity_uri        = "${admin_auth_protocol}://${admin_auth_endpoint}:35357"
+  $admin_auth_url            = "${admin_identity_uri}/${auth_api_version}"
+  $neutron_url               = "${neutron_internal_protocol}://${neutron_internal_endpoint}:9696"
+  $neutron_ovs_bridge        = 'br-int'
+  $conf_nova                 = pick($neutron_config['conf_nova'], true)
+  $floating_net              = pick($neutron_config['default_floating_net'], 'net04_ext')
 
   class { 'nova::network::neutron' :
     neutron_admin_password    => $admin_password,

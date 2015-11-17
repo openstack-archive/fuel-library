@@ -6,6 +6,7 @@ require 'spec_helper'
                     :public_virtual_ip   => '192.168.0.1',
                     :server_names        => ['node-1', 'node-2'],
                     :public_ssl          => true,
+                    :public_ssl_path     => '/var/lib/fuel/haproxy/public_murano.pem',
                  } }
     let(:facts) { {:kernel => 'Linux',
                    :concat_basedir => '/var/lib/puppet/concat',
@@ -18,6 +19,7 @@ require 'spec_helper'
         'listen_port'            => 8082,
         'public'                 => true,
         'public_ssl'             => true,
+        'public_ssl_path'        => '/var/lib/fuel/haproxy/public_murano.pem',
         'require_service'        => 'murano_api',
         'haproxy_config_options' => {
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',

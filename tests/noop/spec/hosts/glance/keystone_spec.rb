@@ -4,15 +4,24 @@ manifest = 'glance/keystone.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    public_vip    = Noop.hiera('public_vip')
-    admin_address = Noop.hiera('management_vip')
-    public_ssl    = Noop.hiera_structure('public_ssl/services')
 
-    if public_ssl
+    internal_protocol = 'http'
+    internal_address = Noop.hiera('management_vip')
+    admin_protocol = 'http'
+    admin_address = internal_address
+
+    if Noop.hiera_structure('use_ssl', false)
+      public_protocol   = 'https'
+      public_address    = Noop.hiera_structure('use_ssl/glance_public_hostname')
+      internal_protocol = 'https'
+      internal_address  = Noop.hiera_structure('use_ssl/glance_internal_hostname')
+      admin_protocol    = 'https'
+      admin_address     = Noop.hiera_structure('use_ssl/glance_admin_hostname')
+    elsif Noop.hiera_structure('public_ssl/services')
       public_address  = Noop.hiera_structure('public_ssl/hostname')
       public_protocol = 'https'
     else
-      public_address  = public_vip
+      public_address  = Noop.hiera('public_vip')
       public_protocol = 'http'
     end
 
@@ -24,7 +33,8 @@ describe manifest do
     region              = Noop.hiera_structure('glance/region', 'RegionOne')
     service_name        = Noop.hiera_structure('glance/service_name', 'glance')
     public_url          = "#{public_protocol}://#{public_address}:9292"
-    admin_url           = "http://#{admin_address}:9292"
+    internal_url        = "#{internal_protocol}://#{internal_address}:9292"
+    admin_url           = "#{admin_protocol}://#{admin_address}:9292"
 
     it 'should declare glance::keystone::auth class correctly' do
       should contain_class('glance::keystone::auth').with(
@@ -35,8 +45,8 @@ describe manifest do
         'configure_user_role' => configure_user_role,
         'service_name'        => service_name,
         'public_url'          => public_url,
+        'internal_url'        => internal_url,
         'admin_url'           => admin_url,
-        'internal_url'        => admin_url,
         'region'              => region,
       )
     end

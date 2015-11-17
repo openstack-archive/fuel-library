@@ -1,4 +1,6 @@
 fixtures:
-    symlinks:
-        'osnailyfacter': "#{source_dir}"
-        'l23network': "#{source_dir}/../l23network"
+  repositories:
+    'stdlib': 'git://github.com/puppetlabs/puppetlabs-stdlib.git'
+  symlinks:
+    'osnailyfacter': "#{source_dir}"
+    'l23network': "#{source_dir}/../l23network"

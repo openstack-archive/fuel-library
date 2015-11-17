@@ -24,12 +24,17 @@
 #   port for the horizon vip
 #   Defaults to false
 #
+# [*public_ssl_path*]
+#   (optional) String. Filesystem path to the file with certificate content
+#   Defaults to undef
+#
 class openstack::ha::horizon (
   $internal_virtual_ip,
   $ipaddresses,
   $public_virtual_ip,
   $server_names,
   $use_ssl = false,
+  $public_ssl_path = undef,
 ) {
 
   # defaults for any haproxy_service within this class
@@ -59,6 +64,7 @@ class openstack::ha::horizon (
       listen_port            => 443,
       balancermember_port    => 80,
       public_ssl             => $use_ssl,
+      public_ssl_path        => $public_ssl_path,
       haproxy_config_options => {
         'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
         'stick-table' => 'type ip size 200k expire 30m',
