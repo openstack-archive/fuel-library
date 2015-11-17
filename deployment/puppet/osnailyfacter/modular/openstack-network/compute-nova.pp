@@ -55,12 +55,6 @@ if $use_neutron {
     notify  => Service['libvirt']
   }
 
-  file_line { 'no_qemu_selinux':
-    path    => '/etc/libvirt/qemu.conf',
-    line    => 'security_driver = "none"',
-    notify  => Service['libvirt']
-  }
-
   class { 'nova::compute::neutron':
     libvirt_vif_driver => $libvirt_vif_driver,
   }

@@ -17,6 +17,26 @@ describe manifest do
       )
     end
 
+    # libvirt/qemu with(out) selinux/apparmor
+    it 'libvirt/qemu config should have proper security_driver and apparmor configuration' do
+      if facts[:osfamily] == 'RedHat'
+        should contain_file_line('no_qemu_selinux').with(
+          'path' => '/etc/libvirt/qemu.conf',
+          'line' => 'security_driver = "none"',
+        ).that_notifies('Service[libvirt]')
+      elsif facts[:osfamily] == 'Debian'
+        should contain_file_line('qemu_apparmor').with(
+          'path' => '/etc/libvirt/qemu.conf',
+          'line' => 'security_driver = "apparmor"',
+        ).that_notifies('Service[libvirt]')
+        should contain_file_line('apparmor_libvirtd').with(
+          'path' => '/etc/apparmor.d/usr.sbin.libvirtd',
+          'line' => "#  unix, # shouldn't be used for libvirt/qemu",
+        )
+        should contain_exec('refresh_apparmor').that_subscribes_to('File_line[apparmor_libvirtd]')
+      end
+    end
+
     # Nova.config options
     it 'nova config should have proper live_migration_flag' do
       should contain_nova_config('libvirt/live_migration_flag').with(
