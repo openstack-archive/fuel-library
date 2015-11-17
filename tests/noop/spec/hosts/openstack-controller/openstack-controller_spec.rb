@@ -18,7 +18,14 @@ describe manifest do
       keystone_host = Noop.hiera 'management_vip'
     end
 
+    default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
+    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+
     # TODO All this stuff should be moved to shared examples controller* tests.
+
+    it 'should configure default_log_levels' do
+      should contain_nova_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+    end
 
     # Nova config options
     it 'nova config should have use_stderr set to false' do

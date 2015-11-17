@@ -14,6 +14,8 @@ describe manifest do
     use_syslog = Noop.hiera('use_syslog', 'true')
     use_stderr = Noop.hiera('use_stderr', 'false')
     region = Noop.hiera('region', 'RegionOne')
+    default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
+    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
     if glance_config && glance_config.has_key?('pipeline')
        pipeline = glance_config['pipeline']
     else
@@ -75,6 +77,11 @@ describe manifest do
         should contain_glance_cache_config('DEFAULT/use_syslog_rfc_format').with_value('true')
         should contain_glance_registry_config('DEFAULT/use_syslog_rfc_format').with_value('true')
       end
+    end
+
+    it 'should configure default_log_levels' do
+      should contain_glance_api_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+      should contain_glance_registry_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
 
     if storage_config && storage_config.has_key?('images_ceph') && storage_config['images_ceph']
