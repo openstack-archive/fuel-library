@@ -19,6 +19,7 @@ describe manifest do
     else
        pipeline = 'keystone'
     end
+    default_log_levels = Noop.hiera_structure 'default_log_levels_hash'
 
     it 'should declare glance classes' do
       should contain_class('glance::api').with('pipeline' => pipeline)
@@ -76,6 +77,12 @@ describe manifest do
         should contain_glance_registry_config('DEFAULT/use_syslog_rfc_format').with_value('true')
       end
     end
+
+    # TODO (iberezovskiy): uncomment after new sync of glance module with upstream
+    #it 'should configure default log levels' do
+    #  should contain_class('glance::api::logging').with('default_log_levels' => default_log_levels)
+    #  should contain_class('glance::registry::logging').with('default_log_levels' => default_log_levels)
+    #end
 
     if storage_config && storage_config.has_key?('images_ceph') && storage_config['images_ceph']
       if glance_config && glance_config.has_key?('show_image_direct_url')

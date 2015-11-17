@@ -172,6 +172,7 @@ class openstack::controller (
   # General
   $verbose                        = false,
   $debug                          = false,
+  $default_log_levels             = undef,
   $service_workers                = $::processorcount,
   $export_resources               = true,
   # if the cinder management components should be installed
@@ -302,6 +303,7 @@ class openstack::controller (
     verbose                     => $verbose,
     primary_controller          => $primary_controller,
     debug                       => $debug,
+    default_log_levels          => $default_log_levels,
     enabled                     => $enabled,
     exported_resources          => $export_resources,
     enabled_apis                => $enabled_apis,

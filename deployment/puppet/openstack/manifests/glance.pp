@@ -61,6 +61,7 @@ class openstack::glance (
   $glance_vcenter_api_retry_count = undef,
   $verbose                        = false,
   $debug                          = false,
+  $default_log_levels             = undef,
   $enabled                        = true,
   $use_syslog                     = false,
   $use_stderr                     = true,
@@ -130,6 +131,29 @@ class openstack::glance (
     known_stores          => $known_stores,
     os_region_name        => $region,
   }
+
+  # TODO (iberezovskiy): Move to globals (as it is done for sahara)
+  # after new sync with upstream because of
+  # https://github.com/openstack/puppet-glance/blob/master/manifests/api.pp#L237
+  # https://github.com/openstack/puppet-glance/blob/master/manifests/registry.pp#L166
+  if $default_log_levels {
+    glance_api_config {
+      'DEFAULT/default_log_levels' :
+        value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
+    }
+    glance_registry_config {
+      'DEFAULT/default_log_levels' :
+        value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
+    }
+  } else {
+    glance_api_config {
+      'DEFAULT/default_log_levels' : ensure => absent;
+    }
+    glance_registry_config {
+      'DEFAULT/default_log_levels' : ensure => absent;
+    }
+  }
+  #
 
   glance_api_config {
     'database/max_pool_size':              value => $max_pool_size;

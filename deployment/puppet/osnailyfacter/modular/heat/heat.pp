@@ -11,6 +11,7 @@ $idle_timeout             = hiera('idle_timeout')
 $service_endpoint         = hiera('service_endpoint')
 $debug                    = pick($heat_hash['debug'], hiera('debug', false))
 $verbose                  = pick($heat_hash['verbose'], hiera('verbose', true))
+$default_log_levels_hash  = hiera_hash('default_log_levels_hash')
 $use_stderr               = hiera('use_stderr', false)
 $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
@@ -87,6 +88,7 @@ class { 'openstack::heat' :
   idle_timeout             => $idle_timeout,
   debug                    => $debug,
   verbose                  => $verbose,
+  default_log_levels       => $default_log_levels_hash,
   use_syslog               => $use_syslog,
   use_stderr               => $use_stderr,
   syslog_log_facility      => $syslog_log_facility_heat,

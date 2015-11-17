@@ -11,6 +11,7 @@ describe manifest do
     rabbit_password = Noop.hiera_structure 'rabbit/password'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
     rabbit_ha_queues = 'true'
+    default_log_levels = Noop.hiera_structure 'default_log_levels_hash'
 
     # Ceilometer
     if ceilometer_hash['enabled']
@@ -35,6 +36,10 @@ describe manifest do
       end
       it 'should configure timeout for HTTP requests' do
         should contain_ceilometer_config('DEFAULT/http_timeout').with(:value => http_timeout)
+      end
+
+      it 'should configure default log levels' do
+        should contain_class('ceilometer::logging').with('default_log_levels' => default_log_levels)
       end
     end
 

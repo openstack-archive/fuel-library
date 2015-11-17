@@ -16,6 +16,7 @@ $service_endpoint           = hiera('service_endpoint')
 $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $debug                      = pick($murano_hash['debug'], hiera('debug', false))
 $verbose                    = pick($murano_hash['verbose'], hiera('verbose', true))
+$default_log_levels         = hiera_hash('default_log_levels_hash')
 $use_syslog                 = hiera('use_syslog', true)
 $use_stderr                 = hiera('use_stderr', false)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
@@ -100,6 +101,21 @@ if $murano_hash['enabled'] {
     external_network    => $external_network,
     use_trusts          => true,
   }
+
+  # TODO (iberezovskiy): Move to globals (as it is done for sahara)
+  # after new sync with upstream because of
+  # https://github.com/openstack/puppet-murano/blob/master/manifests/init.pp#L237
+  if $default_log_levels {
+    murano_config {
+      'DEFAULT/default_log_levels':
+        value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
+    }
+  } else {
+    murano_config {
+      'DEFAULT/default_log_levels': ensure => absent;
+    }
+  }
+
 
   class { 'murano::api':
     host => $api_bind_host,
