@@ -72,6 +72,50 @@ $nova_report_interval           = hiera('nova_report_interval', 60)
 $nova_service_down_time         = hiera('nova_service_down_time', 180)
 $apache_ports                   = hiera_array('apache_ports', ['80', '8888', '5000', '35357'])
 
+if $debug {
+  $default_log_levels = {
+    'amqp'                                     => 'WARN',
+    'amqplib'                                  => 'WARN',
+    'boto'                                     => 'WARN',
+    'qpid'                                     => 'WARN',
+    'sqlalchemy'                               => 'WARN',
+    'suds'                                     => 'INFO',
+    'oslo_messaging'                           => 'DEBUG',
+    'oslo.messaging'                           => 'DEBUG',
+    'iso8601'                                  => 'WARN',
+    'requests.packages.urllib3.connectionpool' => 'WARN',
+    'urllib3.connectionpool'                   => 'WARN',
+    'websocket'                                => 'WARN',
+    'requests.packages.urllib3.util.retry'     => 'WARN',
+    'urllib3.util.retry'                       => 'WARN',
+    'keystonemiddleware'                       => 'WARN',
+    'routes.middleware'                        => 'WARN',
+    'stevedore'                                => 'WARN',
+    'taskflow'                                 => 'WARN'
+  }
+} else {
+  $default_log_levels = {
+    'amqp'                                     => 'WARN',
+    'amqplib'                                  => 'WARN',
+    'boto'                                     => 'WARN',
+    'qpid'                                     => 'WARN',
+    'sqlalchemy'                               => 'WARN',
+    'suds'                                     => 'INFO',
+    'oslo_messaging'                           => 'INFO',
+    'oslo.messaging'                           => 'INFO',
+    'iso8601'                                  => 'WARN',
+    'requests.packages.urllib3.connectionpool' => 'WARN',
+    'urllib3.connectionpool'                   => 'WARN',
+    'websocket'                                => 'WARN',
+    'requests.packages.urllib3.util.retry'     => 'WARN',
+    'urllib3.util.retry'                       => 'WARN',
+    'keystonemiddleware'                       => 'WARN',
+    'routes.middleware'                        => 'WARN',
+    'stevedore'                                => 'WARN',
+    'taskflow'                                 => 'WARN'
+  }
+}
+
 $openstack_version = hiera('openstack_version',
   {
   'keystone'   => 'installed',

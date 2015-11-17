@@ -48,6 +48,12 @@ describe manifest do
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
+    default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
+    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+
+    it 'should configure default_log_levels' do
+      should contain_keystone_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+    end
 
     it 'should declare keystone class with admin_token' do
       should contain_class('keystone').with(

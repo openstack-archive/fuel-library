@@ -26,6 +26,7 @@ $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $neutron_user_password = hiera('neutron_user_password', false)
 $service_workers       = pick($keystone_hash['workers'],
                               min(max($::processorcount, 2), 16))
+$default_log_levels    = hiera_hash('default_log_levels')
 
 $db_type     = 'mysql'
 $db_host     = pick($keystone_hash['db_host'], $database_vip)
@@ -101,6 +102,7 @@ if has_key($murano_settings_hash, 'murano_repo_url') {
 class { 'openstack::keystone':
   verbose                  => $verbose,
   debug                    => $debug,
+  default_log_levels       => $default_log_levels,
   db_type                  => $db_type,
   db_host                  => $db_host,
   db_password              => $db_password,

@@ -12,6 +12,7 @@ $neutron_endpoint           = hiera('neutron_endpoint', $management_vip)
 $glance_api_servers         = hiera('glance_api_servers', "${management_vip}:9292")
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
+$default_log_levels         = hiera_hash('default_log_levels')
 $use_syslog                 = hiera('use_syslog', true)
 $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
 $rabbit_hash                = hiera_hash('rabbit_hash', {})
@@ -48,6 +49,21 @@ class { 'ironic':
   database_connection => $database_connection,
   glance_api_servers  => $glance_api_servers,
 }
+
+# TODO (iberezovskiy): Move to globals (as it is done for sahara)
+# after new sync with upstream because of
+# https://github.com/openstack/puppet-ironic/blob/master/manifests/init.pp#L261
+if $default_log_levels {
+  ironic_config {
+    'DEFAULT/default_log_levels' :
+      value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
+  }
+} else {
+  ironic_config {
+    'DEFAULT/default_log_levels' : ensure => absent;
+  }
+}
+#
 
 class { 'ironic::client': }
 

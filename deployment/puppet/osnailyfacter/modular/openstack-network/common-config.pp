@@ -61,6 +61,8 @@ if $use_neutron {
 
   }
 
+  $default_log_levels  = hiera_hash('default_log_levels')
+
   class { 'neutron' :
     verbose                 => $verbose,
     debug                   => $debug,
@@ -82,6 +84,15 @@ if $use_neutron {
     kombu_reconnect_delay   => '5.0',
     network_device_mtu      => $overlay_net_mtu,
     advertise_mtu           => true,
+  }
+
+  if $default_log_levels {
+    neutron_config {
+      'DEFAULT/default_log_levels' :
+        value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
+    }
+  } else {
+    neutron_config { 'DEFAULT/default_log_levels' : ensure => absent; }
   }
 
   if $use_syslog {

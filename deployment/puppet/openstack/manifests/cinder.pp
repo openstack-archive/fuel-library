@@ -30,6 +30,7 @@ class openstack::cinder(
   $cinder_rate_limits     = undef,
   $verbose                = false,
   $debug                  = false,
+  $default_log_levels     = undef,
   $idle_timeout           = '3600',
   $max_pool_size          = '10',
   $max_overflow           = '30',
@@ -112,6 +113,13 @@ class openstack::cinder(
         database_max_retries   => $max_retries,
         database_max_overflow  => $max_overflow,
         control_exchange       => 'cinder',
+      }
+
+      # TODO (iberezovskiy): Move to globals (as it is done for sahara)
+      # after new sync with upstream because of
+      # https://github.com/openstack/puppet-cinder/blob/master/manifests/init.pp#L299
+      class { '::cinder::logging':
+        default_log_levels => $default_log_levels,
       }
       cinder_config {
         'DEFAULT/kombu_reconnect_delay': value => '5.0';
