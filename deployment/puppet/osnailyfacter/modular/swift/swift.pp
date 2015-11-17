@@ -36,6 +36,21 @@ $keystone_protocol       = pick($swift_hash['auth_protocol'], 'http')
 $region                  = hiera('region', 'RegionOne')
 $service_workers         = pick($swift_hash['workers'],
                                 min(max($::processorcount, 2), 16))
+$ssl_hash                    = hiera('use_ssl', {})
+if try_get_value($ssl_hash, 'keystone_internal', false) {
+  $keystone_internal_protocol = 'https'
+  $keystone_endpoint          = pick($ssl_hash['keystone_internal_hostname'], hiera('keystone_endpoint', ''), hiera('service_endpoint', ''), $management_vip)
+} else {
+  $keystone_internal_protocol = 'http'
+  $keystone_endpoint          = pick(hiera('keystone_endpoint', ''), hiera('service_endpoint', ''), $management_vip)
+}
+if try_get_value($ssl_hash, 'swift_internal', false) {
+  $swift_internal_protocol = 'https'
+  $swift_internal_endpoint = pick($ssl_hash['swift_internal_hostname'], $swift_api_ipaddr, $management_vip)
+} else {
+  $swift_internal_protocol = 'http'
+  $swift_internal_endpoint = $swift_api_ipaddr
+}
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -112,13 +127,13 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       auth_protocol                  => $keystone_protocol,
     } ->
     class { 'openstack::swift::status':
-      endpoint    => "http://${swift_api_ipaddr}:${proxy_port}",
+      endpoint    => "${swift_internal_protocol}://${swift_internal_endpoint}:${proxy_port}",
       vip         => $management_vip,
       only_from   => "127.0.0.1 240.0.0.2 ${sto_nets} ${man_nets}",
       con_timeout => 5
     } ->
     class { 'swift::dispersion':
-      auth_url       => "http://$service_endpoint:5000/v2.0/",
+      auth_url       => "${keystone_internal_protocol}://${keystone_endpoint}:5000/v2.0/",
       auth_user      =>  $keystone_user,
       auth_tenant    =>  $keystone_tenant,
       auth_pass      =>  $keystone_password,

@@ -33,10 +33,27 @@ $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash                 = hiera_hash('workloads_collector', {})
 $service_endpoint               = hiera('service_endpoint')
 $db_host                        = pick($nova_hash['db_host'], hiera('database_vip'))
+$ssl_hash                       = hiera_hash('use_ssl', {})
+
+if try_get_value($ssl_hash, 'keystone_internal', false) {
+  $internal_auth_protocol = 'https'
+  $internal_auth_address  = $ssl_hash['keystone_internal_hostname']
+} else {
+  $internal_auth_protocol = 'http'
+  $internal_auth_address  = pick($service_endpoint, $management_vip)
+}
+if try_get_value($ssl_hash, 'glance_internal', false) {
+  $glance_protocol    = 'https'
+  $glance_endpoint    = pick($ssl_hash['glance_internal_hostname'], hiera('glance_endpoint', ''), $management_vip)
+  $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
+} else {
+  $glance_protocol    = 'http'
+  $glance_api_servers = hiera('glance_api_servers', "$management_vip:9292")
+}
+
 $nova_db_user                   = pick($nova_hash['db_user'], 'nova')
 $keystone_user                  = pick($nova_hash['user'], 'nova')
 $keystone_tenant                = pick($nova_hash['tenant'], 'services')
-$glance_api_servers             = hiera('glance_api_servers', "$management_vip:9292")
 $region                         = hiera('region', 'RegionOne')
 $service_workers                = pick($nova_hash['workers'],
                                         min(max($::processorcount, 2), 16))
@@ -163,7 +180,7 @@ if $primary_controller {
       "OS_TENANT_NAME=${keystone_tenant}",
       "OS_USERNAME=${keystone_user}",
       "OS_PASSWORD=${nova_hash['user_password']}",
-      "OS_AUTH_URL=http://${service_endpoint}:5000/v2.0/",
+      "OS_AUTH_URL=${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
       'OS_ENDPOINT_TYPE=internalURL',
       "OS_REGION_NAME=${region}",
       "NOVA_ENDPOINT_TYPE=internalURL",
@@ -194,7 +211,7 @@ if $primary_controller {
       username        => $access_hash[user],
       api_key         => $access_hash[password],
       auth_method     => 'password',
-      auth_url        => "http://${service_endpoint}:5000/v2.0/",
+      auth_url        => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
       authtenant_name => $access_hash[tenant],
       api_retries     => 10,
     }

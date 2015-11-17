@@ -13,8 +13,12 @@
 # [db_host] Host where DB resides. Required.
 # [glance_user_password] Password for glance auth user. Required.
 # [glance_db_password] Password for glance DB. Required.
+# [glance_protocol] Protocol glance used to speak with registry.
+#   Optional. Defaults to 'http'
 # [keystone_host] Host whre keystone is running. Optional. Defaults to '127.0.0.1'
 # [auth_uri] URI used for auth. Optional. Defaults to "http://${keystone_host}:5000/"
+# [internal_ssl] Whether to use SSL for auth on internal networks.
+#   Optional. Defaults to false
 # [db_type] Type of sql databse to use. Optional. Defaults to 'mysql'
 # [glance_db_user] Name of glance DB user. Optional. Defaults to 'glance'
 # [glance_db_dbname] Name of glance DB. Optional. Defaults to 'glance'
@@ -48,6 +52,8 @@ class openstack::glance (
   $registry_host                  = '127.0.0.1',
   $auth_uri                       = 'http://127.0.0.1:5000/',
   $region                         = 'RegionOne',
+  $internal_ssl                   = false,
+  $glance_protocol                = 'http',
   $db_type                        = 'mysql',
   $glance_db_user                 = 'glance',
   $glance_db_dbname               = 'glance',
@@ -105,6 +111,12 @@ class openstack::glance (
     }
   }
 
+  if $internal_ssl {
+    $auth_protocol = 'https'
+  } else {
+    $auth_protocol = 'http'
+  }
+
   # Install and configure glance-api
   class { 'glance::api':
     verbose               => $verbose,
@@ -114,6 +126,7 @@ class openstack::glance (
     auth_port             => '35357',
     auth_host             => $keystone_host,
     auth_url              => $auth_uri,
+    auth_protocol         => $auth_protocol,
     keystone_user         => $glance_user,
     keystone_password     => $glance_user_password,
     keystone_tenant       => $glance_tenant,
@@ -161,6 +174,7 @@ class openstack::glance (
     auth_host             => $keystone_host,
     auth_port             => '35357',
     auth_type             => 'keystone',
+    auth_protocol         => $auth_protocol,
     keystone_user         => $glance_user,
     keystone_password     => $glance_user_password,
     keystone_tenant       => $glance_tenant,
@@ -248,7 +262,7 @@ class openstack::glance (
         swift_store_key                     => $glance_user_password,
         swift_store_create_container_on_put => 'True',
         swift_store_large_object_size       => $swift_store_large_object_size,
-        swift_store_auth_address            => "http://${keystone_host}:5000/v2.0/",
+        swift_store_auth_address            => "${auth_protocol}://${keystone_host}:5000/v2.0/",
         swift_store_region                  => $region,
       }
     }
