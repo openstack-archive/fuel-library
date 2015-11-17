@@ -46,6 +46,10 @@ $public_address          = $public_ssl_hash['services'] ? {
   true    => $public_ssl_hash['hostname'],
   default => $public_service_endpoint,
 }
+$public_cert             = $public_ssl_hash['services']? {
+  true    => '/etc/pki/tls/certs/public_haproxy.pem',
+  default => undef,
+}
 
 $admin_address          = $service_endpoint
 $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
@@ -179,6 +183,7 @@ class { 'openstack::auth_file':
   region_name     => $region,
   controller_node => $service_endpoint,
   murano_repo_url => $murano_repo_url,
+  cacert          => $public_cert
 }
 
 # Get paste.ini source
