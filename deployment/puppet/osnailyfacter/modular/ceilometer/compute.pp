@@ -28,6 +28,10 @@ $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
 $verbose                    = pick($ceilometer_hash['verbose'], hiera('verbose', true))
 $debug                      = pick($ceilometer_hash['debug'], hiera('debug', false))
 $default_log_levels         = hiera_hash('default_log_levels')
+$ssl_hash                   = hiera_hash('use_ssl', {})
+
+$keystone_protocol          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$keystone_endpoint          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
 
 if ($ceilometer_enabled) {
   class { 'openstack::ceilometer':
@@ -43,7 +47,8 @@ if ($ceilometer_enabled) {
     keystone_user         => $ceilometer_hash['user'],
     keystone_tenant       => $ceilometer_hash['tenant'],
     keystone_region       => $ceilometer_region,
-    keystone_host         => $service_endpoint,
+    keystone_protocol     => $keystone_protocol,
+    keystone_host         => $keystone_endpoint,
     keystone_password     => $ceilometer_user_password,
     on_compute            => true,
     metering_secret       => $ceilometer_metering_secret,

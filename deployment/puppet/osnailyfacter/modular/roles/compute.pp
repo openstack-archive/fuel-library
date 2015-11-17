@@ -51,16 +51,23 @@ $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0
 $nova_rate_limits               = hiera('nova_rate_limits')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
-$glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
 $config_drive_format            = 'vfat'
-
 $public_ssl_hash                = hiera('public_ssl')
-$vncproxy_host = $public_ssl_hash['services'] ? {
-  true    => $public_ssl_hash['hostname'],
-  default => $public_vip,
+$ssl_hash                       = hiera_hash('use_ssl', {})
+
+$glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
+$glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', $management_vip)])
+$glance_internal_ssl            = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+if $glance_internal_ssl {
+  $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
+} else {
+  $glance_api_servers = hiera('glance_api_servers', "${management_vip}:9292")
 }
 
-$db_host                        = pick($nova_hash['db_host'], $database_vip)
+$vncproxy_protocol                      = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', [$nova_hash['vncproxy_protocol'], 'http'])
+$vncproxy_host                          = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'hostname', [$public_vip])
+
+$db_host                                = pick($nova_hash['db_host'], $database_vip)
 
 $block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
 $block_device_allocate_retries_interval = hiera('block_device_allocate_retries_interval', 3)
@@ -246,6 +253,7 @@ class { 'openstack::compute':
   rabbit_ha_queues            => $rabbit_ha_queues,
   auto_assign_floating_ip     => $auto_assign_floating_ip,
   glance_api_servers          => $glance_api_servers,
+  vncproxy_protocol           => $vncproxy_protocol,
   vncproxy_host               => $vncproxy_host,
   vncserver_listen            => '0.0.0.0',
   migration_support           => true,

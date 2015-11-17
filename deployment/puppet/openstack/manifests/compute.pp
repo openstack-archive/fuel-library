@@ -32,6 +32,8 @@
 #    Optional. Defaults to false,
 #  [libvirt_type] Underlying libvirt supported hypervisor.
 #    Optional. Defaults to 'kvm',
+#  [vncproxy_protocol] Protocol to use for access vnc proxy. Optional.
+#    Defaults to 'http'.
 #  [vncproxy_host] Host that serves as vnc proxy. Optional.
 #    Defaults to false. False indicates that a vnc proxy should not be configured.
 #  [vnc_enabled] Rather vnc console should be enabled.
@@ -82,6 +84,7 @@ class openstack::compute (
   $host_uuid                      = undef,
   # VNC
   $vnc_enabled                    = true,
+  $vncproxy_protocol              = 'http',
   $vncproxy_host                  = undef,
   $vncserver_listen               = '0.0.0.0',
   $migration_support              = false,
@@ -290,8 +293,8 @@ class openstack::compute (
     enabled                       => $enabled,
     vnc_enabled                   => $vnc_enabled,
     vncserver_proxyclient_address => $internal_address,
+    vncproxy_protocol             => $vncproxy_protocol,
     vncproxy_host                 => $vncproxy_host,
-    vncproxy_protocol             => $nova_hash['vncproxy_protocol'],
     vncproxy_port                 => $nova_hash['vncproxy_port'],
     force_config_drive            => $nova_hash['force_config_drive'],
     #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
