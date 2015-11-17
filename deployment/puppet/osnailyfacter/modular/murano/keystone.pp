@@ -1,27 +1,26 @@
 notice('MODULAR: murano/keystone.pp')
 
-$murano_hash                = hiera_hash('murano_hash', {})
-$public_ip                  = hiera('public_vip')
-$management_ip              = hiera('management_vip')
-$public_ssl                 = hiera('public_ssl')
-$region                     = hiera('region', 'RegionOne')
+$murano_hash       = hiera_hash('murano_hash', {})
+$public_ip         = hiera('public_vip')
+$management_ip     = hiera('management_vip')
+$region            = hiera('region', 'RegionOne')
+$public_ssl_hash   = hiera('public_ssl')
+$ssl_hash          = hiera_hash('use_ssl', {})
 
+$public_protocol   = ssl($ssl_hash, $public_ssl_hash, 'murano', 'public', 'protocol', 'http')
+$public_address    = ssl($ssl_hash, $public_ssl_hash, 'murano', 'public', 'hostname', [$public_ip])
 
-$public_protocol = $public_ssl['services'] ? {
-  true    => 'https',
-  default => 'http',
-}
+$internal_protocol = ssl($ssl_hash, {}, 'murano', 'internal', 'protocol', 'http')
+$internal_address  = ssl($ssl_hash, {}, 'murano', 'internal', 'hostname', [$management_ip])
 
-$public_address = $public_ssl['services'] ? {
-  true    => $public_ssl['hostname'],
-  default => $public_ip,
-}
+$admin_protocol    = ssl($ssl_hash, {}, 'murano', 'admin', 'protocol', 'http')
+$admin_address     = ssl($ssl_hash, {}, 'murano', 'admin', 'hostname', [$management_ip])
 
-$api_bind_port  = '8082'
-
-$tenant         = pick($murano_hash['tenant'], 'services')
-$public_url     = "${public_protocol}://${public_address}:${api_bind_port}"
-$admin_url      = "http://${management_ip}:${api_bind_port}"
+$api_bind_port     = '8082'
+$tenant            = pick($murano_hash['tenant'], 'services')
+$public_url        = "${public_protocol}://${public_address}:${api_bind_port}"
+$internal_url      = "${internal_protocol}://${internal_address}:${api_bind_port}"
+$admin_url         = "${admin_protocol}://${admin_address}:${api_bind_port}"
 
 #################################################################
 
@@ -31,6 +30,6 @@ class { 'murano::keystone::auth':
   region       => $region,
   tenant       => $tenant,
   public_url   => $public_url,
+  internal_url => $internal_url,
   admin_url    => $admin_url,
-  internal_url => $admin_url,
 }

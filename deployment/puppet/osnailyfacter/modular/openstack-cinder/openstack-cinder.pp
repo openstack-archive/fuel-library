@@ -2,28 +2,42 @@ notice('MODULAR: openstack-cinder.pp')
 
 #Network stuff
 prepare_network_config(hiera('network_scheme', {}))
-$cinder_hash           = hiera_hash('cinder_hash', {})
-$management_vip        = hiera('management_vip')
-$queue_provider        = hiera('queue_provider', 'rabbitmq')
-$cinder_volume_group   = hiera('cinder_volume_group', 'cinder')
-$nodes_hash            = hiera('nodes', {})
-$storage_hash          = hiera_hash('storage', {})
-$ceilometer_hash       = hiera_hash('ceilometer_hash',{})
-$rabbit_hash           = hiera_hash('rabbit_hash', {})
-$service_endpoint      = hiera('service_endpoint')
-$service_workers       = pick($cinder_hash['workers'],
-                              min(max($::processorcount, 2), 16))
+$cinder_hash            = hiera_hash('cinder_hash', {})
+$management_vip         = hiera('management_vip')
+$queue_provider         = hiera('queue_provider', 'rabbitmq')
+$cinder_volume_group    = hiera('cinder_volume_group', 'cinder')
+$nodes_hash             = hiera('nodes', {})
+$storage_hash           = hiera_hash('storage', {})
+$ceilometer_hash        = hiera_hash('ceilometer_hash',{})
+$rabbit_hash            = hiera_hash('rabbit_hash', {})
+$service_endpoint       = hiera('service_endpoint')
+$service_workers        = pick($cinder_hash['workers'], min(max($::processorcount, 2), 16))
+$cinder_db_password     = $cinder_hash[db_password]
+$cinder_user_password   = $cinder_hash[user_password]
+$keystone_user          = pick($cinder_hash['user'], 'cinder')
+$keystone_tenant        = pick($cinder_hash['tenant'], 'services')
+$region                 = hiera('region', 'RegionOne')
+$db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
+$cinder_db_user         = pick($cinder_hash['db_user'], 'cinder')
+$cinder_db_name         = pick($cinder_hash['db_name'], 'cinder')
+$roles                  = node_roles($nodes_hash, hiera('uid'))
+$ssl_hash               = hiera_hash('use_ssl', {})
 
-$cinder_db_password    = $cinder_hash[db_password]
-$cinder_user_password  = $cinder_hash[user_password]
-$keystone_user         = pick($cinder_hash['user'], 'cinder')
-$keystone_tenant       = pick($cinder_hash['tenant'], 'services')
-$region                = hiera('region', 'RegionOne')
-$db_host               = pick($cinder_hash['db_host'], hiera('database_vip'))
-$cinder_db_user        = pick($cinder_hash['db_user'], 'cinder')
-$cinder_db_name        = pick($cinder_hash['db_name'], 'cinder')
-$roles                 = node_roles($nodes_hash, hiera('uid'))
-$glance_api_servers    = hiera('glance_api_servers', "${management_vip}:9292")
+$keystone_auth_protocol = ssl($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$keystone_auth_host     = ssl($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+
+$glance_protocol        = ssl($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
+$glance_endpoint        = ssl($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
+$glance_ssl_usage       = ssl($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+if $glance_ssl_usage {
+  $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
+} else {
+  $glance_api_servers    = hiera('glance_api_servers', "${management_vip}:9292")
+}
+
+$service_port = '5000'
+$auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+$identity_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
 
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
@@ -41,12 +55,6 @@ $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
 $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
 $max_retries = '-1'
 $idle_timeout = '3600'
-
-$keystone_auth_protocol = 'http'
-$keystone_auth_host = $service_endpoint
-$service_port = '5000'
-$auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
-$identity_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
 
 $openstack_version = {
   'keystone'   => 'installed',
@@ -70,7 +78,6 @@ class {'openstack::cinder':
   manage_volumes       => $manage_volumes,
   enabled              => true,
   glance_api_servers   => $glance_api_servers,
-  auth_host            => $service_endpoint,
   bind_host            => get_network_role_property('cinder/api', 'ipaddr'),
   iscsi_bind_host      => get_network_role_property('cinder/iscsi', 'ipaddr'),
   keystone_user        => $keystone_user,
