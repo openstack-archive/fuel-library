@@ -61,6 +61,7 @@ class openstack::glance (
   $glance_vcenter_api_retry_count = undef,
   $verbose                        = false,
   $debug                          = false,
+  $default_log_levels             = undef,
   $enabled                        = true,
   $use_syslog                     = false,
   $use_stderr                     = true,
@@ -131,6 +132,10 @@ class openstack::glance (
     os_region_name        => $region,
   }
 
+  class { 'glance::api::logging':
+    default_log_levels => $default_log_levels,
+  }
+
   glance_api_config {
     'database/max_pool_size':              value => $max_pool_size;
     'database/max_retries':                value => $max_retries;
@@ -171,6 +176,10 @@ class openstack::glance (
     log_facility          => $syslog_log_facility,
     database_idle_timeout => $idle_timeout,
     workers               => $service_workers,
+  }
+
+  class { 'glance::registry::logging':
+    default_log_levels => $default_log_levels,
   }
 
   glance_registry_config {

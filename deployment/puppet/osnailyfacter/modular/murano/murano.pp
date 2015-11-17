@@ -16,6 +16,7 @@ $service_endpoint           = hiera('service_endpoint')
 $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
 $debug                      = pick($murano_hash['debug'], hiera('debug', false))
 $verbose                    = pick($murano_hash['verbose'], hiera('verbose', true))
+$default_log_levels_hash    = hiera_hash('default_log_levels_hash')
 $use_syslog                 = hiera('use_syslog', true)
 $use_stderr                 = hiera('use_stderr', false)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
@@ -99,6 +100,10 @@ if $murano_hash['enabled'] {
     service_port        => $api_bind_port,
     external_network    => $external_network,
     use_trusts          => true,
+  }
+
+  class { 'murano::logging':
+    default_log_levels => $default_log_levels_hash,
   }
 
   class { 'murano::api':

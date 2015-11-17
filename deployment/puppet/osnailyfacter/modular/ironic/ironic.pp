@@ -12,6 +12,7 @@ $neutron_endpoint           = hiera('neutron_endpoint', $management_vip)
 $glance_api_servers         = hiera('glance_api_servers', "${management_vip}:9292")
 $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
+$default_log_levels_hash    = hiera_hash('default_log_levels_hash')
 $use_syslog                 = hiera('use_syslog', true)
 $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
 $rabbit_hash                = hiera_hash('rabbit_hash', {})
@@ -47,6 +48,10 @@ class { 'ironic':
   log_facility        => $syslog_log_facility_ironic,
   database_connection => $database_connection,
   glance_api_servers  => $glance_api_servers,
+}
+
+class { 'ironic::logging':
+  default_log_levels => $default_log_levels_hash,
 }
 
 class { 'ironic::client': }

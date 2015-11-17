@@ -6,6 +6,11 @@ describe manifest do
   shared_examples 'catalog' do
 
     use_syslog = Noop.hiera 'use_syslog'
+    default_log_levels = Noop.hiera_structure 'default_log_levels_hash'
+
+    it 'should configure default log levels' do
+      should contain_class('heat::logging').with('default_log_levels' => default_log_levels)
+    end
 
     it 'should set empty trusts_delegated_roles for heat engine' do
       should contain_class('heat::engine').with(
