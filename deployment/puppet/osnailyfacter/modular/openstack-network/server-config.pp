@@ -1,41 +1,51 @@
 notice('MODULAR: openstack-network/server-config.pp')
 
-$use_neutron           = hiera('use_neutron', false)
+$use_neutron = hiera('use_neutron', false)
 
 class neutron { }
 class { 'neutron' : }
 
 if $use_neutron {
 
-  $neutron_config        = hiera_hash('neutron_config')
-  $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
-  $database_vip          = hiera('database_vip')
-  $management_vip        = hiera('management_vip')
-  $service_endpoint      = hiera('service_endpoint', $management_vip)
-  $nova_endpoint         = hiera('nova_endpoint', $management_vip)
-  $nova_hash             = hiera_hash('nova', { })
-  $primary_controller    = hiera('primary_controller', false)
+  $neutron_config          = hiera_hash('neutron_config')
+  $neutron_server_enable   = pick($neutron_config['neutron_server_enable'], true)
+  $database_vip            = hiera('database_vip')
+  $management_vip          = hiera('management_vip')
+  $service_endpoint        = hiera('service_endpoint', $management_vip)
+  $nova_endpoint           = hiera('nova_endpoint', $management_vip)
+  $nova_hash               = hiera_hash('nova', { })
+  $primary_controller      = hiera('primary_controller', false)
 
-  $neutron_db_password = $neutron_config['database']['passwd']
-  $neutron_db_user     = try_get_value($neutron_config, 'database/user', 'neutron')
-  $neutron_db_name     = try_get_value($neutron_config, 'database/name', 'neutron')
-  $neutron_db_host     = try_get_value($neutron_config, 'database/host', $database_vip)
+  $neutron_db_password     = $neutron_config['database']['passwd']
+  $neutron_db_user         = try_get_value($neutron_config, 'database/user', 'neutron')
+  $neutron_db_name         = try_get_value($neutron_config, 'database/name', 'neutron')
+  $neutron_db_host         = try_get_value($neutron_config, 'database/host', $database_vip)
 
-  $neutron_db_uri = "mysql://${neutron_db_user}:${neutron_db_password}@${neutron_db_host}/${neutron_db_name}?&read_timeout=60"
+  $neutron_db_uri          = "mysql://${neutron_db_user}:${neutron_db_password}@${neutron_db_host}/${neutron_db_name}?&read_timeout=60"
 
-  $auth_password      = $neutron_config['keystone']['admin_password']
-  $auth_user          = pick($neutron_config['keystone']['admin_user'], 'neutron')
-  $auth_tenant        = pick($neutron_config['keystone']['admin_tenant'], 'services')
-  $auth_region        = hiera('region', 'RegionOne')
-  $auth_endpoint_type = 'internalURL'
+  $auth_password           = $neutron_config['keystone']['admin_password']
+  $auth_user               = pick($neutron_config['keystone']['admin_user'], 'neutron')
+  $auth_tenant             = pick($neutron_config['keystone']['admin_tenant'], 'services')
+  $auth_region             = hiera('region', 'RegionOne')
+  $auth_endpoint_type      = 'internalURL'
 
-  $auth_api_version    = 'v2.0'
-  $identity_uri        = "http://${service_endpoint}:5000/"
-  #$auth_url           = "${identity_uri}${auth_api_version}"
-  $nova_admin_auth_url = "http://${service_endpoint}:35357/"
-  $nova_url            = "http://${nova_endpoint}:8774/v2"
+  $ssl_hash                = hiera_hash('use_ssl', {})
 
-  $service_workers = pick($neutron_config['workers'], min(max($::processorcount, 2), 16))
+  $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+  $internal_auth_endpoint  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+
+  $admin_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+  $admin_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+
+  $nova_internal_protocol  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'protocol', 'http')
+  $nova_internal_endpoint  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
+
+  $auth_api_version        = 'v2.0'
+  $identity_uri            = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
+  $nova_admin_auth_url     = "${admin_auth_protocol}://${admin_auth_endpoint}:35357/"
+  $nova_url                = "${nova_internal_protocol}://${nova_internal_endpoint}:8774/v2"
+
+  $service_workers         = pick($neutron_config['workers'], min(max($::processorcount, 2), 16))
 
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
   $dvr                     = pick($neutron_advanced_config['neutron_dvr'], false)
