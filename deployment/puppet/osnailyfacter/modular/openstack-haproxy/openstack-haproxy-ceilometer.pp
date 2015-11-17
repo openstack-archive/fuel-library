@@ -4,7 +4,26 @@ $ceilometer_hash         = hiera_hash('ceilometer',{})
 # NOT enabled by default
 $use_ceilometer          = pick($ceilometer_hash['enabled'], false)
 $public_ssl_hash         = hiera('public_ssl')
+$ssl_hash                = hiera_hash('use_ssl', {})
 $ceilometer_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceilometer_nodes'), 'ceilometer/api')
+if try_get_value($ssl_hash, 'ceilometer_public', false) {
+  $public_ssl = true
+  $public_ssl_path = '/var/lib/astute/haproxy/public_ceilometer.pem'
+} elsif $public_ssl_hash['services'] {
+  $public_ssl = true
+  $public_ssl_path = '/var/lib/astute/haproxy/public_haproxy.pem'
+} else {
+  $public_ssl = false
+  $public_ssl_path = ''
+}
+
+if try_get_value($ssl_hash, 'ceilometer_internal', false) {
+  $internal_ssl = true
+  $internal_ssl_path = '/var/lib/astute/haproxy/internal_ceilometer.pem'
+} else {
+  $internal_ssl = false
+  $internal_ssl_path = ''
+}
 
 if ($use_ceilometer) {
   $server_names        = hiera_array('ceilometer_names', keys($ceilometer_address_map))
@@ -18,6 +37,9 @@ if ($use_ceilometer) {
     ipaddresses         => $ipaddresses,
     public_virtual_ip   => $public_virtual_ip,
     server_names        => $server_names,
-    public_ssl          => $public_ssl_hash['services'],
+    public_ssl          => $public_ssl,
+    public_ssl_path     => $public_ssl_path,
+    internal_ssl        => $internal_ssl,
+    internal_ssl_path   => $internal_ssl_path,
   }
 }
