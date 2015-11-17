@@ -1,4 +1,5 @@
 fixtures:
     symlinks:
         'osnailyfacter': "#{source_dir}"
+        'stdlib': "#{source_dir}/../stdlib"
         'l23network': "#{source_dir}/../l23network"
