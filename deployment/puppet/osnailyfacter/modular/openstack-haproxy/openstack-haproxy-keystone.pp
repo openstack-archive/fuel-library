@@ -5,6 +5,33 @@ $keystone_hash    = hiera_hash('keystone', {})
 # enabled by default
 $use_keystone = pick($keystone_hash['enabled'], true)
 $public_ssl_hash = hiera('public_ssl')
+$ssl_hash = hiera_hash('use_ssl', {})
+if try_get_value($ssl_hash, 'keystone_public', false) {
+  $public_ssl = true
+  $public_ssl_path = '/var/lib/astute/haproxy/public_keystone.pem'
+} elsif $public_ssl_hash['services'] {
+  $public_ssl = true
+  $public_ssl_path = '/var/lib/astute/haproxy/public_haproxy.pem'
+} else {
+  $public_ssl = false
+  $public_ssl_path = ''
+}
+
+if try_get_value($ssl_hash, 'keystone_internal', false) {
+  $internal_ssl = true
+  $internal_ssl_path = '/var/lib/astute/haproxy/internal_keystone.pem'
+} else {
+  $internal_ssl = false
+  $internal_ssl_path = ''
+}
+
+if try_get_value($ssl_hash, 'keystone_admin', false) {
+  $admin_ssl = true
+  $admin_ssl_path = '/var/lib/astute/haproxy/admin_keystone.pem'
+} else {
+  $admin_ssl = false
+  $admin_ssl_path = ''
+}
 
 #todo(sv): change to 'keystone' as soon as keystone as node-role was ready
 $keystones_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']), 'keystone/api')
@@ -24,6 +51,11 @@ if ($use_keystone) {
     ipaddresses         => $ipaddresses,
     public_virtual_ip   => $public_virtual_ip,
     server_names        => $server_names,
-    public_ssl          => $public_ssl_hash['services'],
+    public_ssl          => $public_ssl,
+    public_ssl_path     => $public_ssl_path,
+    internal_ssl        => $internal_ssl,
+    internal_ssl_path   => $internal_ssl_path,
+    admin_ssl           => $admin_ssl,
+    admin_ssl_path      => $admin_ssl_path,
   }
 }
