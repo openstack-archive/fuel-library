@@ -142,7 +142,8 @@ describe 'openstack::compute' do
           :compute_driver       => p[:compute_driver],
           :libvirt_service_name => 'libvirtd'
         )
-        should contain_file_line('no_qemu_selinux')
+        should contain_file_line('qemu_apparmor')
+        should contain_file_line('apparmor_libvirtd')
         should contain_class('nova::client')
         should contain_install_ssh_keys('nova_ssh_key_for_migration')
         should contain_file('/var/lib/nova/.ssh/config')
