@@ -46,11 +46,21 @@ $db_host                        = pick($cinder_hash['db_host'], hiera('database_
 $cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
 
+$ssl_hash                       = hiera_hash('use_ssl', {})
 $service_endpoint               = hiera('service_endpoint')
-$glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
 
-$keystone_auth_protocol = 'http'
-$keystone_auth_host = $service_endpoint
+$keystone_auth_protocol         = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$keystone_auth_host             = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+
+$glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
+$glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
+$glance_internal_ssl            = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+if $glance_internal_ssl {
+  $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
+} else {
+  $glance_api_servers = hiera('glance_api_servers', "http://${management_vip}:9292")
+}
+
 $service_port = '5000'
 $auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
 
@@ -275,7 +285,6 @@ class { 'openstack::cinder':
   manage_volumes       => $manage_volumes,
   iser                 => $storage_hash['iser'],
   enabled              => true,
-  auth_host            => $service_endpoint,
   iscsi_bind_host      => $storage_address,
   keystone_user        => $keystone_user,
   keystone_tenant      => $keystone_tenant,

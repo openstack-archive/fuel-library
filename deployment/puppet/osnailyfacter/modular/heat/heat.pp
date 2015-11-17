@@ -9,6 +9,26 @@ $max_pool_size            = hiera('max_pool_size')
 $max_overflow             = hiera('max_overflow')
 $idle_timeout             = hiera('idle_timeout')
 $service_endpoint         = hiera('service_endpoint')
+$public_ssl_hash          = hiera('public_ssl')
+$ssl_hash                 = hiera_hash('use_ssl', {})
+$public_vip               = hiera('public_vip')
+
+$public_auth_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
+$public_auth_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
+$internal_auth_protocol   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_address    = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$admin_auth_protocol      = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_auth_address       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+
+$heat_protocol            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'protocol', 'http')
+$heat_endpoint            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
+$internal_ssl             = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'usage', false)
+
+$public_ssl               = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'usage', false)
+
+$auth_uri = "${public_auth_protocol}://${public_auth_address}:5000/v2.0/"
+$identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+
 $debug                    = pick($heat_hash['debug'], hiera('debug', false))
 $verbose                  = pick($heat_hash['verbose'], hiera('verbose', true))
 $default_log_levels       = hiera_hash('default_log_levels')
@@ -26,19 +46,6 @@ $database_name            = hiera('heat_db_name', 'heat')
 $read_timeout             = '60'
 $sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}?read_timeout=${read_timeout}"
 $region                   = hiera('region', 'RegionOne')
-$public_ssl_hash          = hiera('public_ssl')
-$public_ip                = hiera('public_vip')
-$public_protocol = pick($public_ssl_hash['services'], false) ? {
-  true    => 'https',
-  default => 'http',
-}
-
-$public_address = pick($public_ssl_hash['services'], false) ? {
-  true    => pick($public_ssl_hash['hostname']),
-  default => $public_ip,
-}
-$auth_uri = "${public_protocol}://${public_address}:5000/v2.0/"
-$identity_uri = "http://${service_endpoint}:35357/"
 
 ####### Disable upstart startup on install #######
 if $::operatingsystem == 'Ubuntu' {
@@ -69,14 +76,16 @@ class { 'openstack::heat' :
   api_cloudwatch_bind_host => $bind_address,
   auth_uri                 => $auth_uri,
   identity_uri             => $identity_uri,
+  keystone_protocol        => $keystone_protocol,
+  keystone_host            => $service_endpoint,
   keystone_user            => $keystone_user,
   keystone_password        => $heat_hash['user_password'],
   keystone_tenant          => $keystone_tenant,
-  keystone_ec2_uri         => "http://${service_endpoint}:5000/v2.0",
+  keystone_ec2_uri         => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0",
   region                   => $region,
-  public_ssl               => $public_ssl_hash['services'],
   rpc_backend              => 'rabbit',
   amqp_hosts               => split(hiera('amqp_hosts',''), ','),
+  heat_protocol            => $heat_protocol,
   amqp_user                => $rabbit_hash['user'],
   amqp_password            => $rabbit_hash['password'],
   sql_connection           => $sql_connection,
@@ -137,7 +146,7 @@ haproxy_backend_status { 'keystone-admin' :
 }
 
 class { 'heat::keystone::domain' :
-  auth_url          => "http://${service_endpoint}:35357/v2.0",
+  auth_url          => "${internal_auth_protocol}://${admin_auth_address}:35357/v2.0",
   keystone_admin    => $keystone_user,
   keystone_password => $heat_hash['user_password'],
   keystone_tenant   => $keystone_tenant,

@@ -118,6 +118,12 @@ describe manifest do
     end
 
     if floating_ips_range && access_hash
+      if Noop.hiera_structure('use_ssl', false)
+        internal_auth_protocol = 'https'
+        keystone_host = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
+      else
+        internal_auth_protocol = 'http'
+      end
       floating_ips_range.each do |ips_range|
         it "should configure nova floating IP range for #{ips_range}" do
           should contain_nova_floating_range(ips_range).with(
@@ -126,7 +132,7 @@ describe manifest do
             'username'    => access_hash['user'],
             'api_key'     => access_hash['password'],
             'auth_method' => 'password',
-            'auth_url'    => "http://#{keystone_host}:5000/v2.0/",
+            'auth_url'    => "#{internal_auth_protocol}://#{keystone_host}:5000/v2.0/",
             'api_retries' => '10',
           )
         end
