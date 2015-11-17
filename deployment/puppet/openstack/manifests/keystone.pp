@@ -53,6 +53,7 @@ class openstack::keystone (
   $db_name                     = 'keystone',
   $verbose                     = false,
   $debug                       = false,
+  $default_log_levels          = undef,
   $public_bind_host            = '0.0.0.0',
   $admin_bind_host             = '0.0.0.0',
   $internal_address            = false,
@@ -173,6 +174,13 @@ class openstack::keystone (
       memcache_socket_timeout      => '1',
       memcache_pool_maxsize        =>'1000',
       memcache_pool_unused_timeout => '60',
+    }
+
+    # TODO (iberezovskiy): Move to globals (as it is done for sahara)
+    # after new sync with upstream because of
+    # https://github.com/openstack/puppet-keystone/blob/master/manifests/init.pp#L564
+    class { '::keystone::logging':
+      default_log_levels => $default_log_levels,
     }
 
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>

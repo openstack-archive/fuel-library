@@ -50,6 +50,12 @@ describe manifest do
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
     token_provider = Noop.hiera('token_provider')
 
+    default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
+    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+
+    it 'should configure default_log_levels' do
+      should contain_keystone_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+    end
 
     it 'should declare keystone class with admin_token' do
       should contain_class('keystone').with(

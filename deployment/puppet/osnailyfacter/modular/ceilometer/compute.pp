@@ -27,11 +27,13 @@ $ceilometer_user_password   = $ceilometer_hash['user_password']
 $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
 $verbose                    = pick($ceilometer_hash['verbose'], hiera('verbose', true))
 $debug                      = pick($ceilometer_hash['debug'], hiera('debug', false))
+$default_log_levels         = hiera_hash('default_log_levels')
 
 if ($ceilometer_enabled) {
   class { 'openstack::ceilometer':
     verbose               => $verbose,
     debug                 => $debug,
+    default_log_levels    => $default_log_levels,
     use_syslog            => $use_syslog,
     use_stderr            => $use_stderr,
     syslog_log_facility   => $syslog_log_facility,

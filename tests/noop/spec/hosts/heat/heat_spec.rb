@@ -26,6 +26,12 @@ describe manifest do
     let(:public_address) { public_ssl ? public_ssl_hostname : public_ip }
 
     use_syslog = Noop.hiera 'use_syslog'
+    default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
+    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+
+    it 'should configure default_log_levels' do
+      should contain_heat_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+    end
 
     it 'should use auth_uri and identity_uri' do
       should contain_class('openstack::heat').with(
