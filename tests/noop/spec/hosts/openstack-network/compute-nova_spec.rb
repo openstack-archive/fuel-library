@@ -107,11 +107,17 @@ describe manifest do
         )}
         it { expect(subject).to contain_file_line('clear_emulator_capabilities').that_notifies('Service[libvirt]') }
         #
-        it { expect(subject).to contain_file_line('no_qemu_selinux').with(
+        it { expect(subject).to contain_file_line('qemu_apparmor').with(
           :path    => '/etc/libvirt/qemu.conf',
-          :line    => 'security_driver = "none"',
+          :line    => 'security_driver = "apparmor"',
         )}
-        it { expect(subject).to contain_file_line('no_qemu_selinux').that_notifies('Service[libvirt]') }
+        it { expect(subject).to contain_file_line('qemu_apparmor').that_notifies('Service[libvirt]') }
+        #
+        it { expect(subject).to contain_file_line('apparmor_libvirtd').with(
+          :path    => '/etc/apparmor.d/usr.sbin.libvirtd',
+          :line    => "#  unix, # shouldn't be used for libvirt/qemu",
+        )}
+        it { expect(subject).to contain_exec('refresh_apparmor').that_subscribes_to('File_line[apparmor_libvirtd]') }
         #
         it { expect(subject).to contain_class('nova::compute::neutron').with(
           :libvirt_vif_driver => libvirt_vif_driver,
