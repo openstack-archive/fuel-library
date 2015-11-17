@@ -83,6 +83,7 @@ class {'openstack::cinder':
   use_stderr           => hiera('use_stderr', false),
   verbose              => pick($cinder_hash['verbose'], hiera('verbose', true)),
   debug                => pick($cinder_hash['debug'], hiera('debug', true)),
+  default_log_levels   => hiera_hash('default_log_levels_hash'),
   syslog_log_facility  => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
   cinder_rate_limits   => hiera('cinder_rate_limits'),
   max_retries          => $max_retries,
