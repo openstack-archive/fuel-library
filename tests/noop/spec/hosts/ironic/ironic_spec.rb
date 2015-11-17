@@ -9,6 +9,7 @@ if ironic_enabled
     shared_examples 'catalog' do
       rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
       rabbit_password = Noop.hiera_structure 'rabbit/password'
+      default_log_levels = Noop.hiera_structure 'default_log_levels_hash'
 
       it 'should declare ironic class correctly' do
         should contain_class('ironic').with(
@@ -16,6 +17,11 @@ if ironic_enabled
           'rabbit_password' => rabbit_password,
         )
       end
+
+      # TODO (iberezovskiy): uncomment this test after ironic module update
+      #it 'should configure default log levels' do
+      #  should contain_class('ironic::logging').with('default_log_levels' => default_log_levels)
+      #end
     end
     test_ubuntu_and_centos manifest
   end

@@ -76,6 +76,8 @@ describe manifest do
     #############################################################################
 
     enable = Noop.hiera_structure('murano/enabled')
+    default_log_levels = Noop.hiera_structure 'default_log_levels_hash'
+
     context 'if murano is enabled', :if => enable do
       it 'should declare murano class correctly' do
         should contain_class('murano').with(
@@ -106,6 +108,11 @@ describe manifest do
                    'external_network'    => external_network,
                )
       end
+
+      # TODO (iberezovskiy): uncomment after murano module sync with upstream
+      #it 'should configure default log levels' do
+      #  should contain_class('murano::logging').with('default_log_levels' => default_log_levels)
+      #end
 
       it 'should declare murano::api class correctly' do
         should contain_class('murano::api').with(
