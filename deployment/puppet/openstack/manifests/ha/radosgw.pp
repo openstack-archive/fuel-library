@@ -16,6 +16,11 @@
 #   (optional) Boolean. If true, enables SSL for $public_virtual_ip
 #   Defaults to false.
 #
+# [*public_ssl_path*]
+#   (optional) String. Filesystem path to the file with public certificate
+#   content
+#   Defaults to undef
+#
 # [*public_virtual_ip*]
 #   (required) String. This is the ipaddress to be used for the external facing
 #   vip
@@ -28,7 +33,8 @@ class openstack::ha::radosgw (
   $ipaddresses,
   $public_virtual_ip,
   $server_names,
-  $public_ssl = false,
+  $public_ssl           = false,
+  $public_ssl_path      = undef,
   $baremetal_virtual_ip = undef,
 ) {
 
@@ -50,6 +56,7 @@ class openstack::ha::radosgw (
     order                  => '130',
     public                 => true,
     public_ssl             => $public_ssl,
+    public_ssl_path        => $public_ssl_path,
   }
 
   if $baremetal_virtual_ip {
