@@ -131,10 +131,21 @@ describe manifest do
           :neutron_admin_tenant_name => admin_tenant_name,
           :neutron_region_name       => region_name,
           :neutron_admin_username    => admin_username,
-          :neutron_admin_auth_url    => admin_auth_url,
-          :neutron_url               => neutron_url,
           :neutron_ovs_bridge        => neutron_integration_bridge,
         )}
+        if Noop.hiera_structure('use_ssl', false)
+          admin_identity_address = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
+          neutron_internal_address = Noop.hiera_structure('use_ssl/neutron_internal_hostname')
+          it { expect(subject).to contain_class('nova::network::neutron').with(
+            :neutron_admin_auth_url    => "https://#{admin_identity_address}:35357/v2.0",
+            :neutron_url               => "https://#{neutron_internal_address}:9696",
+          )}
+        else
+          it { expect(subject).to contain_class('nova::network::neutron').with(
+            :neutron_admin_auth_url    => admin_auth_url,
+            :neutron_url               => neutron_url,
+          )}
+        end
         #
         it { expect(subject).to contain_augeas('sysctl-net.bridge.bridge-nf-call-arptables').with(
           :context => '/files/etc/sysctl.conf',
