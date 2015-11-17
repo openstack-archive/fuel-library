@@ -4,17 +4,22 @@ manifest = 'openstack-network/keystone.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    public_vip = Noop.hiera('public_vip')
-    public_ssl = Noop.hiera_structure('public_ssl/services', false)
-    if public_ssl
+    internal_protocol = 'http'
+    internal_address  = Noop.hiera('management_vip')
+    if Noop.hiera_structure('use_ssl', false)
+      public_protocol = 'https'
+      public_address  = Noop.hiera_structure('use_ssl/neutron_public_hostname')
+      internal_protocol = 'https'
+      internal_address  = Noop.hiera_structure('use_ssl/neutron_internal_hostname')
+      admin_protocol = 'https'
+      admin_address  = Noop.hiera_structure('use_ssl/neutron_admin_hostname')
+    elsif Noop.hiera_structure('public_ssl/services', false)
       public_address  = Noop.hiera_structure('public_ssl/hostname')
       public_protocol = 'https'
     else
-      public_address  = public_vip
       public_protocol = 'http'
+      public_address  = Noop.hiera('public_vip')
     end
-    admin_address       = Noop.hiera('management_vip')
-    admin_protocol      = 'http'
     region              = Noop.hiera_structure('quantum_settings/region', 'RegionOne')
     password            = Noop.hiera_structure('quantum_settings/keystone/admin_password')
     auth_name           = Noop.hiera_structure('quantum_settings/auth_name', 'neutron')
@@ -25,7 +30,7 @@ describe manifest do
     tenant              = Noop.hiera_structure('quantum_settings/tenant', 'services')
     port                ='9696'
     public_url          = "#{public_protocol}://#{public_address}:#{port}"
-    internal_url        = "#{admin_protocol}://#{admin_address}:#{port}"
+    internal_url        = "#{internal_protocol}://#{internal_address}:#{port}"
     admin_url           = "#{admin_protocol}://#{admin_address}:#{port}"
     use_neutron         = Noop.hiera('use_neutron', false)
 
