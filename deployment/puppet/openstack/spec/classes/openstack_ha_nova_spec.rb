@@ -6,6 +6,7 @@ require 'spec_helper'
                     :public_virtual_ip   => '192.168.0.1',
                     :server_names        => ['node-1', 'node-2'],
                     :public_ssl          => true,
+                    :public_ssl_path     => '/var/lib/fuel/haproxy/public_nova.pem',
                  } }
     let(:facts) { {:kernel => 'Linux',
                    :concat_basedir => '/var/lib/puppet/concat',
@@ -18,6 +19,7 @@ require 'spec_helper'
         'listen_port'            => 8773,
         'public'                 => true,
         'public_ssl'             => true,
+        'public_ssl_path'        => '/var/lib/fuel/haproxy/public_nova.pem',
         'require_service'        => 'nova-api',
         'haproxy_config_options' => {
           'timeout server' => '600s',
@@ -31,6 +33,7 @@ require 'spec_helper'
         'listen_port'            => 8774,
         'public'                 => true,
         'public_ssl'             => true,
+        'public_ssl_path'        => '/var/lib/fuel/haproxy/public_nova.pem',
         'require_service'        => 'nova-api',
         'haproxy_config_options' => {
           'option'         => ['httpchk', 'httplog', 'httpclose'],
@@ -56,6 +59,7 @@ require 'spec_helper'
         'listen_port'            => 6080,
         'public'                 => true,
         'public_ssl'             => true,
+        'public_ssl_path'        => '/var/lib/fuel/haproxy/public_nova.pem',
         'internal'               => false,
         'require_service'        => 'nova-vncproxy',
         'haproxy_config_options' => {

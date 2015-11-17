@@ -21,7 +21,6 @@ class openstack::cinder(
   $enabled                = true,
   $enable_volumes         = true,
   $purge_cinder_config    = true,
-  $auth_host              = '127.0.0.1',
   $bind_host              = '0.0.0.0',
   $iscsi_bind_host        = '0.0.0.0',
   $use_syslog             = false,
