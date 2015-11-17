@@ -3,21 +3,23 @@ notice('MODULAR: swift/keystone.pp')
 $swift_hash       = hiera_hash('swift', {})
 $public_vip       = hiera('public_vip')
 # Allow a plugin to override the admin address using swift_hash:
-$admin_address    = pick($swift_hash['management_vip'], hiera('management_vip'))
+$management_vip   = pick($swift_hash['management_vip'], hiera('management_vip'))
 $region           = pick($swift_hash['region'], hiera('region', 'RegionOne'))
 $public_ssl_hash  = hiera('public_ssl')
-$public_address   = $public_ssl_hash['services'] ? {
-  # Allow a plugin to override the public address using swift_hash:
-  # TODO(sbog): with this approach you must use IP address in SAN field of
-  # certificate on external swift. Change this in next iterations of TLS
-  # implementation.
-  true    => pick($swift_hash['public_vip'],
-                  $public_ssl_hash['hostname']),
-  default => $public_vip,
+$ssl_hash         = hiera_hash('use_ssl', {})
+if $public_ssl_hash['services'] or try_get_value($ssl_hash, 'swift_public', false) {
+  $public_address = pick(try_get_value($ssl_hash, 'swift_public_hostname', ''), $swift_hash['public_vip'],  $public_ssl_hash['hostname'], $public_vip)
+  $public_protocol = 'https'
+} else {
+  $public_address = $public_vip
+  $public_protocol = 'http'
 }
-$public_protocol  = $public_ssl_hash['services'] ? {
-  true    => 'https',
-  default => 'http',
+if try_get_value($ssl_hash, 'swift_internal', false) {
+  $internal_protocol = 'https'
+  $internal_address  = pick($ssl_hash['swift_internal_hostname'], $management_vip)
+} else {
+  $internal_protocol = 'http'
+  $internal_address  = $management_vip
 }
 
 $password            = $swift_hash['user_password']
@@ -30,11 +32,11 @@ validate_string($public_address)
 validate_string($password)
 
 $public_url          = "${public_protocol}://${public_address}:8080/v1/AUTH_%(tenant_id)s"
-$admin_url           = "http://${admin_address}:8080/v1/AUTH_%(tenant_id)s"
+$admin_url           = "${internal_protocol}://${internal_address}:8080/v1/AUTH_%(tenant_id)s"
 
 # Amazon S3 endpoints
 $public_url_s3       = "${public_protocol}://${public_address}:8080"
-$admin_url_s3        = "http://${admin_address}:8080"
+$admin_url_s3        = "${internal_protocol}://${internal_address}:8080"
 
 class { '::swift::keystone::auth':
   password           => $password,

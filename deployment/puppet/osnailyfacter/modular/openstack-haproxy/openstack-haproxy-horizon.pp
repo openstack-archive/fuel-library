@@ -5,6 +5,7 @@ $horizon_hash = hiera_hash('horizon', {})
 # enabled by default
 $use_horizon = pick($horizon_hash['enabled'], true)
 $public_ssl_hash = hiera('public_ssl')
+$ssl_hash = hiera_hash('use_ssl', {})
 
 $horizon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('horizon_nodes'), 'horizon')
 if ($use_horizon) {
@@ -19,6 +20,7 @@ if ($use_horizon) {
     ipaddresses         => $ipaddresses,
     public_virtual_ip   => $public_virtual_ip,
     server_names        => $server_names,
-    use_ssl             => $public_ssl_hash['horizon'],
+    use_ssl             => pick($ssl_hash['horizon'], $public_ssl_hash['horizon']),
+    public_ssl_path     => "/var/lib/astute/haproxy/public_horizon.pem",
   }
 }

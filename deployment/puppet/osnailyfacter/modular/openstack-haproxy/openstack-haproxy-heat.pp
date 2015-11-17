@@ -4,6 +4,7 @@ $heat_hash        = hiera_hash('heat', {})
 # enabled by default
 $use_heat         = pick($heat_hash['enabled'], true)
 $public_ssl_hash  = hiera('public_ssl')
+$ssl_hash         = hiera('use_ssl', {})
 $network_metadata = hiera_hash('network_metadata')
 $heat_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, hiera('heat_roles')), 'heat/api')
 
@@ -19,6 +20,9 @@ if ($use_heat) {
     ipaddresses         => $ipaddresses,
     public_virtual_ip   => $public_virtual_ip,
     server_names        => $server_names,
-    public_ssl          => $public_ssl_hash['services'],
+    public_ssl          => $public_ssl_hash['services'] or try_get_value($ssl_hash, 'heat_public', false),
+    public_ssl_path     => '/var/lib/astute/haproxy/public_heat.pem',
+    internal_ssl        => try_get_value($ssl_hash, 'heat_internal', false),
+    internal_ssl_path   => '/var/lib/astute/haproxy/internal_heat.pem',
   }
 }
