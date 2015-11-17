@@ -62,12 +62,20 @@ describe manifest do
       "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
     end
 
-    let(:public_ssl_hostname) do
-      Noop.hiera_structure('public_ssl/hostname')
+    admin_auth_protocol = 'http'
+    admin_auth_address = Noop.hiera('service_endpoint')
+    if Noop.hiera_structure('use_ssl', false)
+      public_auth_protocol = 'https'
+      public_auth_address = Noop.hiera_structure('use_ssl/keystone_public_hostname')
+      admin_auth_protocol = 'https'
+      admin_auth_address = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
+    elsif Noop.hiera_structure('public_ssl/services', false)
+      public_auth_protocol = 'https'
+      public_auth_address = Noop.hiera_structure('public_ssl/hostname')
+    else
+      public_auth_protocol = 'http'
+      public_auth_address = Noop.hiera('public_vip')
     end
-
-    let(:public_protocol) { public_ssl ? 'https' : 'http' }
-    let(:public_address) { public_ssl ? public_ssl_hostname : public_ip }
 
     let(:external_network) do
       if use_neutron
@@ -89,11 +97,11 @@ describe manifest do
                    'use_stderr'          => 'false',
                    'log_facility'        => syslog_log_facility_murano,
                    'database_connection' => sql_connection,
-                   'auth_uri'            => "#{public_protocol}://#{public_address}:5000/v2.0/",
+                   'auth_uri'            => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
                    'admin_user'          => murano_user,
                    'admin_password'      => murano_password,
                    'admin_tenant_name'   => tenant,
-                   'identity_uri'        => "http://#{service_endpoint}:35357/",
+                   'identity_uri'        => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
                    'use_neutron'         => use_neutron,
                    'rabbit_os_user'      => rabbit_os_user,
                    'rabbit_os_password'  => rabbit_os_password,

@@ -29,11 +29,33 @@ if $use_neutron {
   $auth_region        = hiera('region', 'RegionOne')
   $auth_endpoint_type = 'internalURL'
 
+  $ssl_hash            = hiera_hash('use_ssl', {})
+  if try_get_value($ssl_hash, 'keystone_internal', false) {
+    $internal_auth_protocol = 'https'
+    $internal_auth_endpoint = pick($ssl_hash['keystone_internal_hostname'], $service_endpoint, $management_vip)
+  } else {
+    $internal_auth_protocol = 'http'
+    $internal_auth_endpoint = pick($service_endpoint, $management_vip)
+  }
+  if try_get_value($ssl_hash, 'keystone_admin', false) {
+    $admin_auth_protocol = 'https'
+    $admin_auth_endpoint = pick($ssl_hash['keystone_admin_hostname'], $service_endpoint, $management_vip)
+  } else {
+    $admin_auth_protocol = 'http'
+    $admin_auth_endpoint = pick($service_endpoint, $management_vip)
+  }
+  if try_get_value($ssl_hash, 'nova_internal', false) {
+    $nova_internal_protocol = 'https'
+    $nova_internal_endpoint = pick($ssl_hash['nova_admin_hostname'], $nova_endpoint)
+  } else {
+    $nova_internal_protocol = 'http'
+    $nova_internal_endpoint = $nova_endpoint
+  }
+
   $auth_api_version    = 'v2.0'
-  $identity_uri        = "http://${service_endpoint}:5000/"
-  #$auth_url           = "${identity_uri}${auth_api_version}"
-  $nova_admin_auth_url = "http://${service_endpoint}:35357/"
-  $nova_url            = "http://${nova_endpoint}:8774/v2"
+  $identity_uri        = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
+  $nova_admin_auth_url = "${admin_auth_protocol}://${admin_auth_endpoint}:35357/"
+  $nova_url            = "${nova_internal_protocol}://${nova_internal_endpoint}:8774/v2"
 
   $service_workers = pick($neutron_config['workers'], min(max($::processorcount, 2), 16))
 
