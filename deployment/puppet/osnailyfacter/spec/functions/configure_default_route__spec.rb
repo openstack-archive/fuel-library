@@ -47,8 +47,8 @@ describe 'configure_default_route' do
 
   let(:management_vrouter_vip) { '192.168.0.2' }
 
-  let(:management_int) { 'br-mgmt' }
-  let(:fw_admin_int) { 'br-fw-admin' }
+  let(:management_int) { 'management' }
+  let(:fw_admin_int) { 'fw-admin' }
 
   before(:each) do
     puppet_debug_override()
@@ -62,24 +62,11 @@ describe 'configure_default_route' do
     expect { scope.function_configure_default_route [] }.to raise_error
   end
 
-  it 'should configure default the default route if gateway ip is equal to master_ip' do
+  it 'should configure default gateway to vrouter ip' do
     arguments = [network_scheme, management_vrouter_vip, fw_admin_int, management_int]
-    scope.stubs(:function_create_resources).returns(true)
     ifconfig = scope.function_configure_default_route arguments
-    expect(ifconfig['br-mgmt']).to eq({
-                                     "ipaddr"=>["192.168.0.5/24"],
-                                       "vendor_specific"=>{
-                                           "vlans"=>"101",
-                                           "phy_interfaces"=>["eth0"]
-                                       },
-                                       "gateway"=>"192.168.0.2",
-                                       "require"=>"L23network::L3::Ifconfig[br-fw-admin]",
-                                   })
-    expect(ifconfig['br-fw-admin']).to eq({
-                                         "ipaddr"=>["10.20.0.6/24"],
-                                         "gateway"=>:absent,
-                                       })
-
+     expect(ifconfig[:endpoints][:'br-mgmt'][:gateway]).to eq(management_vrouter_vip)
+     expect(ifconfig[:endpoints][:'br-fw-admin'][:gateway]).to eq(nil)
   end
 
   let(:network_scheme_n) do
@@ -119,11 +106,37 @@ describe 'configure_default_route' do
   end
 
 
-  it 'should not configure interfaces if master_ip is not equal to the gateway' do
-    arguments = [network_scheme_n, management_vrouter_vip, 'br-fw-admin', 'br-mgmt']
-    scope.stubs(:function_create_resources).returns(true)
+  it 'should not reconfigure default gateway' do
+    arguments = [network_scheme_n, management_vrouter_vip, 'fw-admin', 'management']
     ifconfig = scope.function_configure_default_route arguments
     expect(ifconfig).to eq({})
+  end
+
+  let(:network_scheme_one_interface) do
+    {:provider => "lnx",
+     :transformations =>
+         [{:action => "add-br", :name => "br-fw-admin"},
+          {:action => "add-port", :bridge => "br-fw-admin", :name => "eth0"},
+         ],
+     :roles =>
+         {:management => "br-fw-admin",
+          :"fw-admin" => "br-fw-admin",
+          :"neutron/private" => "br-prv"},
+     :endpoints =>
+         {:"br-fw-admin" => {:IP => ["10.20.0.6/24"], :gateway => "10.20.0.2",},},
+     :version => "1.1",
+     :interfaces =>
+         {:eth0 => {:vendor_specific => {:driver => "e1000", :bus_info => "0000:00:03.0"}},}}
+  end
+
+  let(:management_vrouter_vip_oi) { '10.20.0.3' }
+  let(:management_int_oi) { 'management' }
+  let(:fw_admin_int_oi) { 'fw-admin' }
+
+  it 'should configure default gateway to vrouter ip (one interface)' do
+    arguments = [network_scheme_one_interface, management_vrouter_vip_oi, fw_admin_int_oi, management_int_oi]
+    ifconfig = scope.function_configure_default_route arguments
+    expect(ifconfig[:endpoints][:'br-fw-admin'][:gateway]).to eq(management_vrouter_vip_oi)
   end
 
 end
