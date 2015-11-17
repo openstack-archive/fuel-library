@@ -3,7 +3,7 @@ notice('MODULAR: glance/keystone.pp')
 $glance_hash         = hiera_hash('glance', {})
 $public_vip          = hiera('public_vip')
 $public_ssl_hash     = hiera('public_ssl')
-$admin_address       = hiera('management_vip')
+$management_vip      = hiera('management_vip')
 $region              = pick($glance_hash['region'], hiera('region', 'RegionOne'))
 $password            = $glance_hash['user_password']
 $auth_name           = pick($glance_hash['auth_name'], 'glance')
@@ -12,18 +12,18 @@ $configure_user      = pick($glance_hash['configure_user'], true)
 $configure_user_role = pick($glance_hash['configure_user_role'], true)
 $service_name        = pick($glance_hash['service_name'], 'glance')
 $tenant              = pick($glance_hash['tenant'], 'services')
+$ssl_hash            = hiera_hash('use_ssl', {})
 
-$public_address = $public_ssl_hash['services'] ? {
-  true    => $public_ssl_hash['hostname'],
-  default => $public_vip,
-}
-$public_protocol = $public_ssl_hash['services'] ? {
-  true    => 'https',
-  default => 'http',
-}
+$public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'glance', 'public', 'protocol', 'http')
+$public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'glance', 'public', 'hostname', [$public_vip])
+$internal_protocol   = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
+$internal_address    = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
+$admin_protocol      = get_ssl_property($ssl_hash, {}, 'glance', 'admin', 'protocol', 'http')
+$admin_address       = get_ssl_property($ssl_hash, {}, 'glance', 'admin', 'hostname', [$management_vip])
 
 $public_url = "${public_protocol}://${public_address}:9292"
-$admin_url  = "http://${admin_address}:9292"
+$internal_url = "${internal_protocol}://${internal_address}:9292"
+$admin_url  = "${admin_protocol}://${admin_address}:9292"
 
 validate_string($public_address)
 validate_string($password)
@@ -36,7 +36,7 @@ class { '::glance::keystone::auth':
   configure_user_role => $configure_user_role,
   service_name        => $service_name,
   public_url          => $public_url,
+  internal_url        => $internal_url,
   admin_url           => $admin_url,
-  internal_url        => $admin_url,
   region              => $region,
 }

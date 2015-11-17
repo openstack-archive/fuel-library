@@ -6,6 +6,7 @@ require 'spec_helper'
                     :public_virtual_ip   => '192.168.0.1',
                     :server_names        => ['node-1', 'node-2'],
                     :public_ssl          => true,
+                    :public_ssl_path     => '/var/lib/fuel/haproxy/public_keystone.pem',
                  } }
     let(:facts) { {:kernel => 'Linux',
                    :concat_basedir => '/var/lib/puppet/concat',
@@ -18,6 +19,7 @@ require 'spec_helper'
         'listen_port'            => 5000,
         'public'                 => true,
         'public_ssl'             => true,
+        'public_ssl_path'        => '/var/lib/fuel/haproxy/public_keystone.pem',
         'haproxy_config_options' => {
           'option'       => ['httpchk', 'httplog','httpclose'],
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
