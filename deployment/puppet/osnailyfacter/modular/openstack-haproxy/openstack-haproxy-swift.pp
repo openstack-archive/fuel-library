@@ -1,10 +1,18 @@
 notice('MODULAR: openstack-haproxy-swift.pp')
 
-$network_metadata = hiera_hash('network_metadata')
-$storage_hash     = hiera_hash('storage', {})
-$swift_proxies    = hiera_hash('swift_proxies', undef)
-$public_ssl_hash  = hiera('public_ssl')
-$ironic_hash      = hiera_hash('ironic', {})
+$network_metadata  = hiera_hash('network_metadata')
+$storage_hash      = hiera_hash('storage', {})
+$swift_proxies     = hiera_hash('swift_proxies', undef)
+$public_ssl_hash   = hiera('public_ssl')
+$ssl_hash          = hiera_hash('use_ssl', {})
+
+$public_ssl        = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'usage', false)
+$public_ssl_path   = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'path', [''])
+
+$internal_ssl      = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'usage', false)
+$internal_ssl_path = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'path', [''])
+
+$ironic_hash       = hiera_hash('ironic', {})
 
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
   $use_swift = true
@@ -31,7 +39,10 @@ if ($use_swift) {
     ipaddresses          => $ipaddresses,
     public_virtual_ip    => $public_virtual_ip,
     server_names         => $server_names,
-    public_ssl           => $public_ssl_hash['services'],
+    public_ssl           => $public_ssl,
+    public_ssl_path      => $public_ssl_path,
+    internal_ssl         => $internal_ssl,
+    internal_ssl_path    => $internal_ssl_path,
     baremetal_virtual_ip => $baremetal_virtual_ip,
   }
 }
