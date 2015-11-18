@@ -7,6 +7,7 @@ describe manifest do
     rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
     rabbit_password = Noop.hiera_structure 'rabbit/password'
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
+    storage_config = Noop.hiera_structure 'storage'
 
     if ironic_enabled
       it 'should ensure that ironic-fa-deploy is installed' do
@@ -26,10 +27,12 @@ describe manifest do
       neutron_endpoint = Noop.hiera 'neutron_endpoint', service_endpoint
       neutron_url = "http://#{neutron_endpoint}:9696"
       ironic_user = Noop.hiera_structure 'ironic/user', 'ironic'
+      temp_url_endpoint_type = (storage_config['images_ceph']) ? 'radosgw' : 'swift'
       it 'ironic config should have propper config options' do
         should contain_ironic_config('pxe/tftp_root').with('value' => '/var/lib/ironic/tftpboot')
         should contain_ironic_config('neutron/url').with('value' => neutron_url)
         should contain_ironic_config('keystone_authtoken/admin_user').with('value' => ironic_user)
+        should contain_ironic_config('glance/temp_url_endpoint_type').with('value' => temp_url_endpoint_type)
       end
 
       tftp_root = '/var/lib/ironic/tftpboot'
