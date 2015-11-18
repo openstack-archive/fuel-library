@@ -47,6 +47,8 @@ if $queue_provider == 'rabbitmq' {
   $mnesia_table_loading_timeout = hiera('mnesia_table_loading_timeout', '10000')
   $rabbitmq_bind_ip_address     = pick(get_network_role_property('mgmt/messaging', 'ipaddr'), 'UNSET')
   $management_bind_ip_address   = hiera('management_bind_ip_address', '127.0.0.1')
+  $enable_rpc_ha                = hiera('enable_rpc_ha', 'true')
+  $enable_notifications_ha      = hiera('enable_notifications_ha', 'true')
 
   # NOTE(mattymo) UNSET is a puppet ref, but would break real configs
   if $rabbitmq_bind_ip_address == 'UNSET' {
@@ -154,13 +156,15 @@ if $queue_provider == 'rabbitmq' {
 
     if ($use_pacemaker) {
       class { 'pacemaker_wrappers::rabbitmq':
-        command_timeout => $command_timeout,
-        debug           => $debug,
-        erlang_cookie   => $erlang_cookie,
-        admin_user      => $rabbit_hash['user'],
-        admin_pass      => $rabbit_hash['password'],
-        host_ip         => $rabbitmq_bind_ip_address,
-        before          => Class['nova::rabbitmq'],
+        command_timeout         => $command_timeout,
+        debug                   => $debug,
+        erlang_cookie           => $erlang_cookie,
+        admin_user              => $rabbit_hash['user'],
+        admin_pass              => $rabbit_hash['password'],
+        host_ip                 => $rabbitmq_bind_ip_address,
+        before                  => Class['nova::rabbitmq'],
+        enable_rpc_ha           => $enable_rpc_ha,
+        enable_notifications_ha => $enable_notifications_ha,
       }
     }
 
