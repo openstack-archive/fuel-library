@@ -16,14 +16,26 @@
 class mcollective::clientpackages
 {
 
-  case $::rubyversion {
-    '2.1.1': {
-      $mcollective_client_package = "ruby21-rubygem-mcollective-client"
-      package { 'ruby21-nailgun-mcagents': }
-    }
-    '1.8.7': {
-      $mcollective_client_package = "mcollective-client"
-      package { 'nailgun-mcagents': }
+  case $::operatingsystem {
+    /(?i)(centos|redhat)/: {
+      case $::operatingsystemrelease {
+        /6.+/: {
+          case $::rubyversion {
+            '2.1.1': {
+              $mcollective_client_package = "ruby21-rubygem-mcollective-client"
+              package { 'ruby21-nailgun-mcagents': }
+            }
+            '1.8.7': {
+              $mcollective_client_package = "mcollective-client"
+              package { 'nailgun-mcagents': }
+            }
+          }
+          /7.+/: {
+              $mcollective_client_package = "mcollective-client"
+              package { 'nailgun-mcagents': }
+          }
+        }
+      }
     }
   }
 

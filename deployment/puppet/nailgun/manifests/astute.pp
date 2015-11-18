@@ -26,7 +26,18 @@ class nailgun::astute(
   #   logoutput => true,
   # }
 
-  package { 'ruby21-rubygem-astute': }
+  case $::operatingsystem {
+    /(?i)(centos|redhat)/ {
+      case $::operatingsystemrelease {
+        /6.+/: {
+          package { 'ruby21-rubygem-astute': }
+        }
+        /7.+/: {
+          package { 'rubygem-astute': }
+        }
+      }
+    }
+  }
 
   file { '/usr/bin/astuted':
     content => template('nailgun/astuted.erb'),
