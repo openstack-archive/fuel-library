@@ -60,7 +60,7 @@ if $::osfamily == 'RedHat' {
                        'ruby21-nailgun-mcagents']
     }
     '7': {
-      $mco_packages = ['mcollective-client', 'nailgun-mcagents']
+      $mco_packages = ['rubygem-mcollective-client', 'nailgun-mcagents']
     }
     default: {
       fail("Unsupported ${::osfamily} release: ${::operatingsystemmajrelease}")
