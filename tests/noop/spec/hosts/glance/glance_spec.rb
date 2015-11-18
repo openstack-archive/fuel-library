@@ -14,6 +14,7 @@ describe manifest do
     use_syslog = Noop.hiera('use_syslog', 'true')
     use_stderr = Noop.hiera('use_stderr', 'false')
     region = Noop.hiera('region', 'RegionOne')
+    ironic_enabled = Noop.hiera_structure('ironic/enabled', false)
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
     if glance_config && glance_config.has_key?('pipeline')
@@ -89,6 +90,11 @@ describe manifest do
         show_image_direct_url = glance_config['show_image_direct_url']
       else
         show_image_direct_url = true
+      end
+      if ironic_enabled
+        it 'should declare swift backend' do
+          should contain_class('glance::backend::swift')
+        end
       end
       let :params do { :glance_backend => 'ceph', } end
       it 'should declare ceph backend' do
