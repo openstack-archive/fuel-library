@@ -21,6 +21,7 @@ $ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
 $glance_endpoint       = $management_vip
 $service_workers       = pick($glance_hash['glance_workers'], min(max($::processorcount, 2), 16))
+$ironic_hash           = hiera_hash('ironic', {})
 
 $db_type                        = 'mysql'
 $db_host                        = pick($glance_hash['db_host'], $database_vip)
@@ -54,7 +55,7 @@ $glance_large_object_size       = pick($glance_hash['large_object_size'], '5120'
 
 $rados_connect_timeout          = '30'
 
-if ($storage_hash['images_ceph']) {
+if ($storage_hash['images_ceph'] and !$ironic_hash['enabled']) {
   $glance_backend = 'ceph'
   $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
   $glance_show_image_direct_url = pick($glance_hash['show_image_direct_url'], true)
