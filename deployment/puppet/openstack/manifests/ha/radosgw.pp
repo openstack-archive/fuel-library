@@ -36,19 +36,19 @@ class openstack::ha::radosgw (
   Openstack::Ha::Haproxy_service {
     internal_virtual_ip => $internal_virtual_ip,
     ipaddresses         => $ipaddresses,
+    listen_port         => 8080,
+    balancermember_port => 6780,
     public_virtual_ip   => $public_virtual_ip,
     server_names        => $server_names,
+    haproxy_config_options => {
+      'option' => ['httplog', 'httpchk GET /'],
+    },
   }
 
   openstack::ha::haproxy_service { 'radosgw':
     order                  => '130',
-    listen_port            => 8080,
-    balancermember_port    => 6780,
     public                 => true,
     public_ssl             => $public_ssl,
-    haproxy_config_options => {
-      'option' => ['httplog', 'httpchk GET /'],
-    },
   }
 
   if $baremetal_virtual_ip {
