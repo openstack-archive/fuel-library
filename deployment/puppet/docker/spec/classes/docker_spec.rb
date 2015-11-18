@@ -6,7 +6,7 @@ describe 'docker' do
     :package_ensure => 'latest',
     :admin_ipaddress => '10.20.0.2',
     :limit           => '102400',
-    :docker_package  => 'docker-io',
+    :docker_package  => 'docker',
     :docker_service  => 'docker',
     :docker_engine   => 'native',
   } }
@@ -40,12 +40,19 @@ describe 'docker' do
 
       it 'configures with the valid params' do
         should contain_class('docker')
-        should contain_package(params[:docker_package]).with_ensure(params[:package_ensure])
+        if facts[:osfamily] == 'Redhat'
+          if facts[:operatingsystemmajrelease] == 6
+            should contain_package('docker-io').with_ensure(params[:package_ensure])
+          elsif facts[:operatingsystemmajrelease] >= 7
+            should contain_package(params[:docker_package]).with_ensure(params[:package_ensure])
+          end
+        end
+
         should contain_service(params[:docker_service]).with(
           :enable => true,
           :ensure => 'running',
           :hasrestart => true,
-          :require => 'Package[docker-io]')
+          :require => 'Package[docker]')
         should contain_file('/etc/sysconfig/docker')
         params[:dependent_dirs].each do |d|
           should contain_file(d).with(
