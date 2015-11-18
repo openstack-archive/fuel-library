@@ -116,7 +116,8 @@ if $use_neutron {
 
 } else {
 
-  $network_scheme          = hiera('network_scheme', { })
+  #NOTE(mattymo): empty scheme should never exist, but needed for noop
+  $network_scheme          = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
 
   $nova_hash               = hiera_hash('nova_hash', { })
@@ -128,14 +129,13 @@ if $use_neutron {
   $nova_rate_limits        = hiera('nova_rate_limits')
   $network_size            = hiera('network_size', undef)
   $network_manager         = hiera('network_manager', undef)
-  $network_config          = hiera('network_config', { })
+  $network_config          = hiera_hash('network_config', {})
   $create_networks         = true
   $num_networks            = hiera('num_networks', '1')
-  $novanetwork_params      = hiera('novanetwork_parameters')
   $fixed_range             = hiera('fixed_network_range')
   $use_vcenter             = hiera('use_vcenter', false)
   $enabled_apis            = 'metadata'
-  $dns_nameservers         = hiera_array('dns_nameservers', [])
+  $dns_nameservers         = hiera('dns_nameservers', [])
 
   if ! $fixed_range {
     fail('Must specify the fixed range when using nova-networks')

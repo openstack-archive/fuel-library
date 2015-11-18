@@ -15,7 +15,7 @@ $compute = $role in ['compute']
 if $use_neutron and ($controller or ($dvr and $compute)) {
   $debug                   = hiera('debug', true)
   $metadata_port           = '8775'
-  $network_scheme          = hiera('network_scheme', {})
+  $network_scheme          = hiera_hash('network_scheme', {})
 
   if $controller {
     if $dvr {
@@ -24,7 +24,7 @@ if $use_neutron and ($controller or ($dvr and $compute)) {
       $agent_mode = 'legacy'
     }
   } else {
-    # works on copute nodes only if dvr is enabled
+    # works on compute nodes only if dvr is enabled
     $agent_mode = 'dvr'
   }
 
