@@ -16,9 +16,22 @@ class nailgun::packages(
   nailgun_safe_package { "postgresql-libs": }
   nailgun_safe_package { "rsyslog": }
   nailgun_safe_package { "rsync": }
-  nailgun_safe_package { "fence-agents": }
   nailgun_safe_package { "python-fuelclient": }
   nailgun_safe_package { "screen": }
   nailgun_safe_package { "fuel-migrate": }
   nailgun_safe_package { "acpid": }
+
+  if $::osfamily == 'RedHat' {
+    case $::operatingsystemmajrelease {
+      '6': {
+        nailgun_safe_package { "fence-agents": }
+      }
+      '7': {
+        nailgun_safe_package { "fence-agents-all": }
+      }
+      default: {
+        fail("Unsupported ${::osfamily} release: ${::operatingsystemmajrelease}")
+      }
+    }
+  }
 }
