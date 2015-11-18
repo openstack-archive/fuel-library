@@ -288,16 +288,25 @@ module NoopTests
   end
 
   # run all specs together using pattern
+  # @param [Boolean] is_fuel Is it Fuel master or not
   # return: [ success, report ]
   # @return [Array<TrueClass,FalseClass,NilClass>] success and empty report array
-  def self.run_all_specs
+  def self.run_all_specs(is_fuel=false)
     include_prefix = '--pattern'
     exclude_prefix = '--exclude-pattern'
-    exclude_pattern = "#{exclude_prefix} #{spec_path GLOBALS_SPEC}"
+    if is_fuel
+      exclude_pattern = "#{exclude_prefix} #{spec_path GLOBALS_SPEC}"
+    else
+      exclude_pattern = "#{exclude_prefix} #{spec_path GLOBALS_SPEC} #{exclude_prefix} 'spec/hosts/master-node/*_spec.rb'"
+    end
     if options[:filter_specs]
       include_pattern = "#{include_prefix} #{options[:filter_specs].map { |s| spec_path s }.join ','}"
     else
-      include_pattern = "#{include_prefix} #{spec_path '**/*_spec.rb'}"
+      if is_fuel
+        include_pattern = "#{include_prefix} 'spec/hosts/master-node/*_spec.rb'"
+      else
+        include_pattern = "#{include_prefix} #{spec_path '**/*_spec.rb'}"
+      end
     end
 
     rspec "#{exclude_pattern} #{include_pattern}"
@@ -342,6 +351,13 @@ module NoopTests
     options[:filter_yamls].map { |y| y.gsub('.yaml', '') }.include? yaml.gsub('.yaml', '')
   end
 
+  # check if it's an astute.yaml file for fuel master node
+  # @param [String] astute_yaml Astute.yaml file
+  # @return [TrueClass,FalseClass]
+  def self.is_fuel_master(astute_yaml)
+    astute_yaml.start_with?('fuel.')
+  end
+
   # run the code block for every astute yaml file
   # return [ global success, Hash of reports for every yaml ]
   # @return [Array<TrueClass,FalseClass,Hash>]
@@ -353,8 +369,8 @@ module NoopTests
       next unless filter_yamls astute_yaml
       ENV[ASTUTE_YAML_VAR] = astute_yaml
       debug "=== YAML: '#{astute_yaml}' ==="
-      globals astute_yaml
-      success, report = yield
+      globals astute_yaml unless is_fuel_master astute_yaml
+      success, report = yield(is_fuel_master astute_yaml)
       errors += 1 unless success
       results[astute_yaml] = {
           :success => success,
@@ -391,7 +407,7 @@ module NoopTests
   # @return [Array] success and results array
   def self.run_yaml_and_spec_pair(yaml, spec=nil)
     ENV[ASTUTE_YAML_VAR] = yaml
-    globals yaml
+    globals yaml unless is_fuel_master yaml
     rspec spec_path(spec)
   end
 
@@ -571,11 +587,11 @@ module NoopTests
     debug "Spec filter: #{options[:filter_specs]}" if options[:filter_specs]
     debug "Yaml filter: #{options[:filter_yamls]}" if options[:filter_yamls]
 
-    success, result = for_every_astute_yaml do
+    success, result = for_every_astute_yaml do |my_yaml|
       if options[:run_individually]
-        run_all_specs_individually
+        run_all_specs_individually(my_yaml)
       else
-        run_all_specs
+        run_all_specs(my_yaml)
       end
     end
 
