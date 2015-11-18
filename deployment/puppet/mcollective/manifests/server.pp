@@ -27,18 +27,25 @@ class mcollective::server(
 
   case $operatingsystem {
     /(?i)(centos|redhat)/:  {
-      # THIS PACKAGE ALSO INSTALLS REQUIREMENTS
-      case $::rubyversion {
-        # ruby21-mcollective-common
-        # ruby21-rubygem-stomp
-        '2.1.1': {
-          $mcollective_package = "ruby21-mcollective"
+      case $::operatingsystemrelease {
+        /6.+/: {
+          # THIS PACKAGE ALSO INSTALLS REQUIREMENTS
+          case $::rubyversion {
+            # ruby21-mcollective-common
+            # ruby21-rubygem-stomp
+            '2.1.1': {
+              $mcollective_package = "ruby21-mcollective"
+            }
+            # mcollective-common
+            # rubygems
+            # rubygem-stomp
+            '1.8.7': {
+              $mcollective_package = "mcollective"
+            }
+          }
         }
-        # mcollective-common
-        # rubygems
-        # rubygem-stomp
-        '1.8.7': {
-          $mcollective_package = "mcollective"
+        /7.+/: {
+            $mcollective_package = "mcollective"
         }
       }
     }
