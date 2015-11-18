@@ -1,11 +1,7 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
 
-$postgres_default_version = '9.3'
-
 # install and configure postgresql server
 class { 'postgresql::globals':
-  version             => $postgres_default_version,
-  bindir              => "/usr/pgsql-${postgres_default_version}/bin",
   server_package_name => "postgresql-server",
   client_package_name => "postgresql",
   encoding            => 'UTF8',
@@ -54,11 +50,17 @@ postgresql::server::db { $ostf_dbname:
   require => Class['::postgresql::server'],
 }
 
-Class['postgresql::server'] -> Postgres_config<||>
-Postgres_config { ensure => present }
-postgres_config {
-  log_directory     : value => "'/var/log/'";
-  log_filename      : value => "'pgsql'";
-  log_rotation_age  : value => "7d";
+if $::osfamily == 'RedHat' {
+  case $operatingsystemmajrelease {
+    '6': {
+      Class['postgresql::server'] -> Postgres_config<||>
+      Postgres_config { ensure => present }
+      postgres_config {
+        log_directory     : value => "'/var/log/'";
+        log_filename      : value => "'pgsql'";
+        log_rotation_age  : value => "7d";
+      }
+    }
+  }
 }
 
