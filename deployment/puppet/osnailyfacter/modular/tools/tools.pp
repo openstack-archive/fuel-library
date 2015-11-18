@@ -7,10 +7,20 @@ if $::virtual != 'physical' {
   class { 'osnailyfacter::acpid': }
 }
 
+case $::osfamily {
+  'RedHat': {
+    $man_package = 'man-db'
+  }
+  'Debian': {
+    $man_package = 'man'
+  }
+  default: { fail("Unsupported osfamily: ${::osfamily}") }
+}
+
 $tools = [
   'screen',
   'tmux',
-  'man',
+  $man_package,
   'htop',
   'tcpdump',
   'strace',
