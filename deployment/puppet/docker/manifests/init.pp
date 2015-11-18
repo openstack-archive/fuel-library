@@ -3,7 +3,6 @@ $release,
 $package_ensure = "latest",
 $admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 $limit = "102400",
-$docker_package = "docker-io",
 $docker_service = "docker",
 $docker_engine = "native",
 $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
@@ -21,6 +20,20 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   "/var/lib/fuel/container_data/${release}/postgres",
   ]
 ) {
+
+if $::osfamily == 'RedHat' {
+  case $operatingsystemmajrelease {
+    '6': {
+      $docker_package = 'docker-io',
+    }
+    '7': {
+      $docker_package = 'docker',
+    }
+    default: {
+      $docker_package = 'docker',
+    }
+  }
+}
 
   package {$docker_package:
     ensure => $package_ensure,
