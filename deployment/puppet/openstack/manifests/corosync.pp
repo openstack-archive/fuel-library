@@ -1,13 +1,14 @@
 class openstack::corosync (
-  $bind_address          = '127.0.0.1',
-  $multicast_address     = '239.1.1.2',
-  $secauth               = false,
-  $stonith               = false,
-  $quorum_policy         = 'ignore',
-  $expected_quorum_votes = '2',
-  $corosync_nodes        = undef,
-  $corosync_version      = '1',
-  $packages              = ['corosync', 'pacemaker'],
+  $bind_address             = '127.0.0.1',
+  $multicast_address        = '239.1.1.2',
+  $secauth                  = false,
+  $stonith                  = false,
+  $quorum_policy            = 'ignore',
+  $expected_quorum_votes    = '2',
+  $corosync_nodes           = undef,
+  $corosync_version         = '1',
+  $packages                 = ['corosync', 'pacemaker'],
+  $cluster_recheck_interval = '190s',
 ) {
 
   file { 'limitsconf':
@@ -78,6 +79,10 @@ class openstack::corosync (
 
   cs_property { 'symmetric-cluster':
     value  => false,
+  } -> Anchor['corosync-done']
+
+  cs_property { 'cluster-recheck-interval':
+    value    => $cluster_recheck_interval,
   } -> Anchor['corosync-done']
 
   anchor {'corosync-done':}
