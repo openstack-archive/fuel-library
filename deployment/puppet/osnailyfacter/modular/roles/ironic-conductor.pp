@@ -21,6 +21,7 @@ $use_syslog                 = hiera('use_syslog', true)
 $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
 $rabbit_hash                = hiera_hash('rabbit_hash')
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
+$storage_hash               = hiera('storage')
 
 $ironic_tenant              = pick($ironic_hash['tenant'],'services')
 $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
@@ -34,6 +35,11 @@ $db_password                = pick($ironic_hash['db_password'], 'ironic')
 $database_connection        = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?charset=utf8&read_timeout=60"
 
 $tftp_root                  = '/var/lib/ironic/tftpboot'
+
+$temp_url_endpoint_type = $storage_hash['images_ceph'] ? {
+  true    => 'radosgw',
+  default => 'swift'
+}
 
 package { 'ironic-fa-deploy':
   ensure => 'present',
@@ -72,6 +78,7 @@ ironic_config {
   'keystone_authtoken/admin_password':    value => $ironic_user_password, secret => true;
   'glance/swift_temp_url_key':            value => $ironic_swift_tempurl_key;
   'glance/swift_endpoint_url':            value => "http://${baremetal_vip}:8080";
+  'glance/temp_url_endpoint_type':        value => $temp_url_endpoint_type;
   'conductor/api_url':                    value => "http://${baremetal_vip}:6385";
 }
 
