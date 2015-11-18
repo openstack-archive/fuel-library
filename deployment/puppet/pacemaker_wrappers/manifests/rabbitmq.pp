@@ -50,6 +50,11 @@
 #   definitions from a backup as part of a recovery action.
 #   Defaults to undef
 #
+# [*enable_rpc_ha*]
+#   Boolean. Set ha-mode=all policy for RPC queues. Note that
+#   Ceilometer queues are not affected by this flag and are always
+#   assigned ha-mode=all policy.
+#
 class pacemaker_wrappers::rabbitmq (
   $primitive_type     = 'rabbitmq-server',
   $service_name       = $::rabbitmq::service_name,
@@ -61,6 +66,7 @@ class pacemaker_wrappers::rabbitmq (
   $erlang_cookie      = 'EOKOWXQREETZSHFNTPEY',
   $admin_user         = undef,
   $admin_pass         = undef,
+  $enable_rpc_ha      = true,
 ) inherits ::rabbitmq::service {
 
   if $host_ip == 'UNSET' or $host_ip == '0.0.0.0' {
@@ -77,6 +83,7 @@ class pacemaker_wrappers::rabbitmq (
     'erlang_cookie'   => $erlang_cookie,
     'admin_user'      => $admin_user,
     'admin_password'  => $admin_pass,
+    'enable_rpc_ha'   => $enable_rpc_ha,
   }
 
   $metadata        = {
