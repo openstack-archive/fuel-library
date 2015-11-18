@@ -42,7 +42,7 @@ class nailgun::supervisor(
     hasrestart => true,
     restart => $restart_service ? {
       false   => "/bin/true",
-      default => "/usr/bin/supervisorctl stop all; /etc/init.d/supervisord restart",
+      default => "/usr/bin/supervisorctl stop all; /usr/bin/supervisorctl reload",
     },
   }
   Package<| title == 'supervisor' or title == 'nginx' or
