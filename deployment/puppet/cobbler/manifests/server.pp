@@ -42,8 +42,12 @@ class cobbler::server (
 
   if $production == 'docker-build' {
     $real_fqdn = "fuel.${domain_name}"
+    $dnsmasq_enable = false
+    $dnsmasq_ensure = false
   } else {
     $real_fqdn = $::fqdn
+    $dnsmasq_enable = true
+    $dnsmasq_ensure = running
   }
 
   case $::operatingsystem {
@@ -94,8 +98,8 @@ class cobbler::server (
     }
 
     service { $dnsmasq_service:
-      ensure     => running,
-      enable     => true,
+      ensure     => $dnsmasq_ensure,
+      enable     => $dnsmasq_enable,
       hasrestart => true,
       require    => Package[$cobbler::packages::dnsmasq_package],
       subscribe  => Exec['cobbler_sync'],
@@ -109,8 +113,8 @@ class cobbler::server (
     }
 
     service { $dnsmasq_service:
-      ensure     => false,
-      enable     => false,
+      ensure     => running,
+      enable     => true,
       hasrestart => true,
       require    => Package[$cobbler::packages::dnsmasq_package],
       subscribe  => Exec['cobbler_sync'],
