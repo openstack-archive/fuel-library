@@ -13,10 +13,12 @@ $corosync_nodes = corosync_nodes(
     ),
     'mgmt/corosync'
 )
+$cluster_recheck_interval = hiera('cluster_recheck_interval', '190s')
 
 class { 'cluster':
-  internal_address => get_network_role_property('mgmt/corosync', 'ipaddr'),
-  corosync_nodes   => $corosync_nodes,
+  internal_address         => get_network_role_property('mgmt/corosync', 'ipaddr'),
+  corosync_nodes           => $corosync_nodes,
+  cluster_recheck_interval => $cluster_recheck_interval,
 }
 
 pcmk_nodes { 'pacemaker' :

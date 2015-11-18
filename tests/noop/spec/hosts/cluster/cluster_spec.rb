@@ -5,7 +5,12 @@ manifest = 'cluster/cluster.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    it { should contain_class('cluster') }
+    cluster_recheck_interval = Noop.hiera('cluster_recheck_interval', '190s')
+
+    it { should contain_class('cluster').with({
+      'cluster_recheck_interval' => cluster_recheck_interval,
+      })
+    }
     it { should contain_pcmk_nodes('pacemaker') }
     it { should contain_service('corosync').that_comes_before('Pcmk_nodes[pacemaker]') }
     it { should contain_service('corosync').with({
