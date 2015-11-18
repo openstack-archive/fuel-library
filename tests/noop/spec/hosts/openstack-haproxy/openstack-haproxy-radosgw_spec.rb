@@ -19,6 +19,8 @@ describe manifest do
         it 'should declare openstack::ha::haproxy_service with name radosgw-baremetal' do
             should contain_openstack__ha__haproxy_service('radosgw-baremetal').with(
               'order'               => '135',
+              'listen_port'         => 8080,
+              'balancermember_port' => 6780,
               'public_virtual_ip'   => false,
               'internal_virtual_ip' => baremetal_virtual_ip
             )
