@@ -2,6 +2,7 @@
 %{!?version: %define version 8.0.0}
 %{!?fuel_release: %define fuel_release 8.0}
 %{!?release: %define release 1}
+%{!?rhel: %define rhel 7}
 
 Summary: Fuel-Library: a set of deployment manifests of Fuel for OpenStack
 Name: %{name}
@@ -14,7 +15,7 @@ Source0: %{name}-%{version}.tar.gz
 Provides: fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
-%if 0%{?rhel} < 7
+%if 0%{rhel} < 7
 BuildRequires: ruby21-rubygem-librarian-puppet-simple
 %else
 BuildRequires: rubygem-librarian-puppet-simple
