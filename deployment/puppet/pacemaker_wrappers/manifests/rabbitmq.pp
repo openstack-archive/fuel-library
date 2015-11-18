@@ -50,17 +50,27 @@
 #   definitions from a backup as part of a recovery action.
 #   Defaults to undef
 #
+# [*enable_rpc_ha*]
+#   Boolean. Set ha-mode=all policy for RPC queues. Note that
+#   Ceilometer queues are not affected by this flag.
+#
+# [*enable_notifications_ha*]
+#   Boolean. Set ha-mode=all policy for Ceilometer queues. Note
+#   that RPC queues are not affected by this flag.
+#
 class pacemaker_wrappers::rabbitmq (
-  $primitive_type     = 'rabbitmq-server',
-  $service_name       = $::rabbitmq::service_name,
-  $port               = $::rabbitmq::port,
-  $host_ip            = '127.0.0.1',
-  $debug              = false,
-  $ocf_script_file    = 'cluster/ocf/rabbitmq',
-  $command_timeout    = '',
-  $erlang_cookie      = 'EOKOWXQREETZSHFNTPEY',
-  $admin_user         = undef,
-  $admin_pass         = undef,
+  $primitive_type          = 'rabbitmq-server',
+  $service_name            = $::rabbitmq::service_name,
+  $port                    = $::rabbitmq::port,
+  $host_ip                 = '127.0.0.1',
+  $debug                   = false,
+  $ocf_script_file         = 'cluster/ocf/rabbitmq',
+  $command_timeout         = '',
+  $erlang_cookie           = 'EOKOWXQREETZSHFNTPEY',
+  $admin_user              = undef,
+  $admin_pass              = undef,
+  $enable_rpc_ha           = true,
+  $enable_notifications_ha = true,
 ) inherits ::rabbitmq::service {
 
   if $host_ip == 'UNSET' or $host_ip == '0.0.0.0' {
@@ -70,13 +80,15 @@ class pacemaker_wrappers::rabbitmq (
   }
 
   $parameters      = {
-    'host_ip'         => $real_host_ip,
-    'node_port'       => $port,
-    'debug'           => $debug,
-    'command_timeout' => $command_timeout,
-    'erlang_cookie'   => $erlang_cookie,
-    'admin_user'      => $admin_user,
-    'admin_password'  => $admin_pass,
+    'host_ip'                 => $real_host_ip,
+    'node_port'               => $port,
+    'debug'                   => $debug,
+    'command_timeout'         => $command_timeout,
+    'erlang_cookie'           => $erlang_cookie,
+    'admin_user'              => $admin_user,
+    'admin_password'          => $admin_pass,
+    'enable_rpc_ha'           => $enable_rpc_ha,
+    'enable_notifications_ha' => $enable_notifications_ha,
   }
 
   $metadata        = {
