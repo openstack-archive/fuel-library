@@ -1,6 +1,6 @@
 notice('MODULAR: configure_default_route.pp')
 
-$network_scheme = hiera('network_scheme')
+$network_scheme = hiera_hash('network_scheme')
 $management_vrouter_vip = hiera('management_vrouter_vip')
 
 prepare_network_config($network_scheme)
