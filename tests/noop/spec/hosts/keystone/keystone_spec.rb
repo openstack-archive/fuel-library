@@ -24,7 +24,7 @@ describe manifest do
     end
 
     let(:configuration_override) do
-      Noop.hiera_structure 'configuration'
+      Noop.hiera_structure 'configuration', {}
     end
 
     let(:keystone_config_override) do
