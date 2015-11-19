@@ -19,6 +19,18 @@ describe manifest do
         Noop.puppet_function('get_network_role_property', 'neutron/mesh', 'ipaddr')
       end
 
+      let(:configuration_override) do
+        Noop.hiera_structure 'configuration'
+      end
+
+      let(:neutron_plugin_ml2_override_resources) do
+        configuration_override.fetch('neutron_plugin_ml2', {})
+      end
+
+      let(:neutron_agent_ovs_override_resources) do
+        configuration_override.fetch('neutron_agent_ovs', {})
+      end
+
       context 'with Neutron-ml2-plugin' do
 
         role = Noop.hiera('role')
@@ -125,6 +137,26 @@ describe manifest do
         it { should contain_class('neutron::agents::ml2::ovs').with(
           'bridge_mappings' => bridge_mappings
         )}
+
+        it 'neutron plugin ml2 should be modified by override_resources' do
+          is_expected.to contain_override_resources('neutron_plugin_ml2').with(:data => neutron_plugin_ml2_override_resources)
+        end
+
+        it 'neutron agent ovs should be modified by override_resources' do
+          is_expected.to contain_override_resources('neutron_agent_ovs').with(:data => neutron_agent_ovs_override_resources)
+        end
+
+        it 'should use "override_resources" to update the catalog' do
+          ral_catalog = Noop.create_ral_catalog self
+          neutron_plugin_ml2_override_resources.each do |title, params|
+            params['value'] = 'True' if params['value'].is_a? TrueClass
+            expect(ral_catalog).to contain_neutron_plugin_ml2(title).with(params)
+          end
+          neutron_agent_ovs_override_resources.each do |title, params|
+            params['value'] = 'True' if params['value'].is_a? TrueClass
+            expect(ral_catalog).to contain_neutron_agent_ovs(title).with(params)
+          end
+        end
 
         # check whether Neutron server started only on controllers
         if role =~ /controller/
