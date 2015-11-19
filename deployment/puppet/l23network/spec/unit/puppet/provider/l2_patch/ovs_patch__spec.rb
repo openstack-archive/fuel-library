@@ -92,6 +92,7 @@ describe Puppet::Type.type(:l2_patch).provider(:ovs) do
       provider_patch.class.stubs(:get_lnx_port_bridges_pairs).with().returns({})
       provider_patch.class.stubs(:get_bridges_order_for_patch).with(['br1','br2']).returns(['br1','br2'])
       provider_patch.class.stubs(:iproute).with('link', 'set', 'up', 'dev', 'p_39a440c1-0').returns(true)
+
     end
 
     it "Just create two bridges and connect it by patchcord" do
