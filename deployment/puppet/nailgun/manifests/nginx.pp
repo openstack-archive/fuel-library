@@ -61,7 +61,7 @@ class nailgun::nginx(
     openssl::certificate::x509 { 'nginx':
       ensure       => present,
       country      => 'US',
-      organization => 'Mirantis',
+      organization => 'Fuel',
       commonname   => 'fuel.master.local',
       altnames     => [$nailgun_host],
       state        => 'California',

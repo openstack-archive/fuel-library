@@ -9,8 +9,8 @@ req_extensions = v3_req
 CN = US
 ST = California
 L = Mountain View
-O = Mirantis
-OU = Mirantis Deploy Team
+O = Fuel
+OU = Fuel Deploy Team
 
 [ v3_req ]
 basicConstraints = CA:FALSE
