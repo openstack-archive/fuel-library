@@ -51,6 +51,10 @@ class cobbler::server (
       $cobbler_service     = 'cobblerd'
       $cobbler_web_service = 'httpd'
       $dnsmasq_service     = 'dnsmasq'
+      $httpd_version = $::operatingsystemrelease ? {
+        /^7.*/  => '2.4',
+        default => '2.2'
+      }
 
       service { 'xinetd':
         ensure     => running,
@@ -74,6 +78,7 @@ class cobbler::server (
       $cobbler_web_service = 'apache2'
       $dnsmasq_service     = 'dnsmasq'
       $apache_ssl_module   = 'ssl'
+      $httpd_version       = '2.2'
 
     }
     default : {
@@ -174,7 +179,7 @@ class cobbler::server (
   }
 
   file { '/etc/httpd/conf.d/ssl.conf':
-    content => template('cobbler/httpd_ssl.conf.erb'),
+    content => template("cobbler/httpd_ssl_${httpd_version}.conf.erb"),
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
@@ -184,7 +189,7 @@ class cobbler::server (
     notify  => Service[$cobbler_web_service],
   }
   file { '/etc/httpd/conf/httpd.conf':
-    content => template('cobbler/httpd.conf.erb'),
+    content => template("cobbler/httpd_${httpd_version}.conf.erb"),
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
