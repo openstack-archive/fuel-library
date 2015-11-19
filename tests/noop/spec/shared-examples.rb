@@ -1,3 +1,5 @@
+require 'pry'
+
 shared_examples 'compile' do
   it do
     expect(subject).to compile
@@ -46,6 +48,7 @@ shared_examples 'save_files_list' do
 end
 
 shared_examples 'OS' do
+
   include_examples 'compile'
 
   include_examples 'status' if ENV['SPEC_SHOW_STATUS']
@@ -72,9 +75,29 @@ end
 ###############################################################################
 
 def test_ubuntu_and_centos(manifest_file, force_manifest = false)
+  run_test(manifest_file, :force_manifest => force_manifest)
+end
+
+def test_ubuntu(manifest_file, force_manifest = false)
+  run_test(manifest_file, :force_manifest => force_manifest, :run_ubuntu => true, :run_centos => false)
+end
+
+def test_centos(manifest_file, force_manifest = false)
+  run_test(manifest_file, :force_manifest => force_manifest, :run_ubuntu => false, :run_centos => true)
+end
+
+def run_test(manifest_file, options)
+
+  default_options = {
+      :force_manifest => false,
+      :run_ubuntu => true,
+      :run_centos => true,
+  }
+
+  options = default_options.merge options
 
   # check if task is present in the task list
-  unless force_manifest or Noop.manifest_present? manifest_file
+  unless options[:force_manifest] or Noop.manifest_present? manifest_file
     Noop.debug "Manifest '#{manifest_file}' is not enabled on the node '#{Noop.hostname}'. Skipping tests."
     return
   end
@@ -91,8 +114,11 @@ def test_ubuntu_and_centos(manifest_file, force_manifest = false)
     GC.disable
   end
 
-  if Noop.test_ubuntu?
+  if Noop.test_ubuntu? and options[:run_ubuntu]
     context 'on Ubuntu platforms' do
+      let(:os) do
+        'ubuntu'
+      end
       before(:all) do
         Noop.setup_overrides
       end
@@ -104,8 +130,11 @@ def test_ubuntu_and_centos(manifest_file, force_manifest = false)
     end
   end
 
-  if Noop.test_centos?
+  if Noop.test_centos? and options[:run_centos]
     context 'on CentOS platforms' do
+      let(:os) do
+        'centos'
+      end
       before(:all) do
         Noop.setup_overrides
       end

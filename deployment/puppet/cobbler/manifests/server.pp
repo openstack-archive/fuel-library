@@ -51,35 +51,34 @@ class cobbler::server (
       $cobbler_service     = 'cobblerd'
       $cobbler_web_service = 'httpd'
       $dnsmasq_service     = 'dnsmasq'
-
-      service { 'xinetd':
-        ensure     => running,
-        enable     => true,
-        hasrestart => true,
-        require    => Package[$cobbler::packages::cobbler_additional_packages],
-      }
-
-      file { '/etc/xinetd.conf':
-        content => template('cobbler/xinetd.conf.erb'),
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0600',
-        require => Package[$cobbler::packages::cobbler_additional_packages],
-        notify  => Service['xinetd'],
-      }
-
     }
     /(?i)(debian|ubuntu)/ : {
       $cobbler_service     = 'cobbler'
       $cobbler_web_service = 'apache2'
       $dnsmasq_service     = 'dnsmasq'
       $apache_ssl_module   = 'ssl'
-
     }
     default : {
       fail('Unsupported OS')
     }
   }
+
+  service { 'xinetd':
+    ensure     => running,
+    enable     => true,
+    hasrestart => true,
+    require    => Package[$cobbler::packages::cobbler_additional_packages],
+  }
+
+  file { '/etc/xinetd.conf':
+    content => template('cobbler/xinetd.conf.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0600',
+    require => Package[$cobbler::packages::cobbler_additional_packages],
+    notify  => Service['xinetd'],
+  }
+
   File['/etc/cobbler/modules.conf'] -> File['/etc/cobbler/settings'] ->
   Service[$cobbler_service] ->
     Exec['cobbler_sync'] ->

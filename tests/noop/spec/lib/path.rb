@@ -21,19 +21,48 @@ class Noop
       'override'
     end
 
-    def hiera_override_path
-       File.expand_path(File.join(hiera_data_path, hiera_override_folder))
+    def hiera_globals_folder
+      'globals'
     end
 
-    def hiera_task_override_file
+    def hiera_substitute_folder
+      'substitute'
+    end
+
+    def hiera_facts_folder
+      'facts'
+    end
+
+    def hiera_task_additional_yaml_file
       return nil unless manifest
       manifest.gsub('/', '-').gsub('.pp', '')
     end
 
     def hiera_task_override
-      override_file = hiera_task_override_file
+      override_file = hiera_task_additional_yaml_file
       return nil unless override_file
       File.join hiera_override_folder, override_file
+    end
+
+    def hiera_task_substitute
+      substitute_file = hiera_task_additional_yaml_file
+      return nil unless substitute_file
+      File.join hiera_substitute_folder, substitute_file
+    end
+
+    def hiera_task_substitute_present?
+      return unless substitute_yaml_path
+      File.exists? substitute_yaml_path
+    end
+
+    def hiera_task_override_present?
+      return unless override_yaml_path
+      File.exists? override_yaml_path
+    end
+
+    def hiera_facts_override_present?
+      return unless facts_yaml_path
+      File.exists? facts_yaml_path
     end
 
     def astute_yaml_name
@@ -46,15 +75,42 @@ class Noop
     end
 
     def astute_yaml_path
-      File.expand_path(File.join(hiera_data_path, astute_yaml_name))
+      File.expand_path File.join hiera_data_path, astute_yaml_name
     end
 
     def globals_yaml_path
-      File.expand_path(File.join(hiera_data_path, globlas_prefix + astute_yaml_name))
+      File.expand_path File.join hiera_globals_folder_path, astute_yaml_name
     end
 
-    def globlas_prefix
-      'globals_yaml_for_'
+    def substitute_yaml_path
+      return unless hiera_task_additional_yaml_file
+      File.expand_path File.join hiera_substitute_folder_path, hiera_task_additional_yaml_file + '.yaml'
+    end
+
+    def override_yaml_path
+      return unless hiera_task_additional_yaml_file
+      File.expand_path File.join hiera_override_folder_path, hiera_task_additional_yaml_file + '.yaml'
+    end
+
+    def facts_yaml_path
+      return unless hiera_task_additional_yaml_file
+      File.expand_path File.join hiera_facts_folder_path, hiera_task_additional_yaml_file + '.yaml'
+    end
+
+    def hiera_override_folder_path
+      File.expand_path File.join hiera_data_path, hiera_override_folder
+    end
+
+    def hiera_substitute_folder_path
+      File.expand_path File.join hiera_data_path, hiera_substitute_folder
+    end
+
+    def hiera_facts_folder_path
+      File.expand_path File.join hiera_data_path, hiera_facts_folder
+    end
+
+    def hiera_globals_folder_path
+      File.expand_path File.join hiera_data_path, hiera_globals_folder
     end
 
     def hiera_data_astute
@@ -62,7 +118,7 @@ class Noop
     end
 
     def hiera_data_globals
-      globlas_prefix + hiera_data_astute
+      File.join hiera_globals_folder, hiera_data_astute
     end
 
     def modular_manifests_node_dir
