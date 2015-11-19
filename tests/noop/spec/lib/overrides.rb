@@ -13,18 +13,23 @@ class Noop
           :yaml => {
               :datadir => hiera_data_path,
           },
-          :hierarchy => [
-              hiera_data_globals,
-              hiera_data_astute,
-              hiera_task_override,
-          ],
+          :hierarchy => hiera_config_hierarhy,
           :logger => logger,
           :merge_behavior => :deeper,
       }
     end
 
+    def hiera_config_hierarhy
+      elements = []
+      elements << hiera_task_override if hiera_task_override_present?
+      elements << hiera_data_globals
+      elements << hiera_data_astute
+      elements
+    end
+
     def hiera_object
-      return @hiera_object if @hiera_object
+      # hiera may be unstable with mnemoization object
+      # return @hiera_object if @hiera_object
       @hiera_object = Hiera.new(:config => hiera_config)
       Hiera.logger = hiera_config[:logger]
       @hiera_object

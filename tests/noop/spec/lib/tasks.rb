@@ -15,7 +15,23 @@ class Noop
       @manifest
     end
 
+    def hiera_test_tasks
+      return @hiera_test_tasks if @hiera_test_tasks
+      test_tasks = hiera 'test_tasks'
+      return unless test_tasks.is_a? Array
+      @hiera_test_tasks = test_tasks.map do |manifest|
+        manifest.gsub! '_spec.rb', '' if manifest.end_with? '_spec.rb'
+        manifest += '.pp' unless manifest.end_with? '.pp'
+        manifest
+      end
+    end
+
+    def test_tasks_present?
+      hiera_test_tasks.is_a? Array
+    end
+
     def manifest_present?(manifest)
+      return hiera_test_tasks.include? manifest if test_tasks_present?
       manifest_path = File.join self.modular_manifests_node_dir, manifest
       tasks.each do |task|
         next unless task['type'] == 'puppet'
@@ -59,7 +75,7 @@ class Noop
     end
 
     def current_os(context)
-      context.facts.fetch(:operatingsystem, '').downcase
+      context.os
     end
 
     def test_ubuntu?
