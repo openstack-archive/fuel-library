@@ -13,8 +13,8 @@ if ($use_horizon) {
   $public_virtual_ip   = hiera('public_vip')
   $internal_virtual_ip = hiera('management_vip')
 
-  # configure horizon ha proxy
-  class { '::openstack::ha::horizon':
+  # configure webservice ha proxy for horizon
+  class { '::openstack::ha::webservice':
     internal_virtual_ip => $internal_virtual_ip,
     ipaddresses         => $ipaddresses,
     public_virtual_ip   => $public_virtual_ip,

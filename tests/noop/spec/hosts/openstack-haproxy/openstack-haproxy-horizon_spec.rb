@@ -8,15 +8,15 @@ describe manifest do
       public_ssl_horizon = Noop.hiera_structure('public_ssl/horizon', false)
       if public_ssl_horizon
         # http horizon should redirect to ssl horizon
-        should contain_openstack__ha__haproxy_service('horizon').with(
+        should contain_openstack__ha__haproxy_service('webservice').with(
           'server_names'           => nil,
           'ipaddresses'            => nil,
           'haproxy_config_options' => {
             'redirect' => 'scheme https if !{ ssl_fc }'
           }
         )
-        should_not contain_haproxy__balancermember('horizon')
-        should contain_openstack__ha__haproxy_service('horizon-ssl').with(
+        should_not contain_haproxy__balancermember('webservice')
+        should contain_openstack__ha__haproxy_service('webservice-ssl').with(
           'order'                  => '017',
           'listen_port'            => 443,
           'balancermember_port'    => 80,
@@ -32,10 +32,10 @@ describe manifest do
           },
           'balancermember_options' => 'weight 1 check'
         )
-        should contain_haproxy__balancermember('horizon-ssl')
+        should contain_haproxy__balancermember('webservice-ssl')
       else
         # http horizon only
-        should contain_openstack__ha__haproxy_service('horizon').with(
+        should contain_openstack__ha__haproxy_service('webservice').with(
           'haproxy_config_options' => {
             'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
             'stick-table' => 'type ip size 200k expire 30m',
@@ -46,9 +46,9 @@ describe manifest do
             'reqadd'      => 'X-Forwarded-Proto:\ https',
           }
         )
-        should contain_haproxy__balancermember('horizon')
-        should_not contain_openstack__ha__haproxy_service('horizon-ssl')
-        should_not contain_haproxy__balancermember('horizon-ssl')
+        should contain_haproxy__balancermember('webservice')
+        should_not contain_openstack__ha__haproxy_service('webservice-ssl')
+        should_not contain_haproxy__balancermember('webservice-ssl')
       end
     end
 

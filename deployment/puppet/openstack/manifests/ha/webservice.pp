@@ -1,6 +1,6 @@
-# == Class: openstack::ha::horizon
+# == Class: openstack::ha::webservice
 #
-# HA configuration for OpenStack Horizon
+# HA configuration for common OpenStack Web services
 #
 # === Parameters
 #
@@ -21,10 +21,10 @@
 #
 # [*use_ssl*]
 #   (optional) Boolean. This flag indicates if we should also configure the ssl
-#   port for the horizon vip
+#   port for the webservice vip
 #   Defaults to false
 #
-class openstack::ha::horizon (
+class openstack::ha::webservice (
   $internal_virtual_ip,
   $ipaddresses,
   $public_virtual_ip,
@@ -43,8 +43,8 @@ class openstack::ha::horizon (
   }
 
   if $use_ssl {
-    # http version of horizon should just redirect to https version
-    openstack::ha::haproxy_service { 'horizon':
+    # http version of webservice should just redirect to https version
+    openstack::ha::haproxy_service { 'webservice':
       order                  => '015',
       listen_port            => 80,
       server_names           => undef,
@@ -54,7 +54,7 @@ class openstack::ha::horizon (
       },
     }
 
-    openstack::ha::haproxy_service { 'horizon-ssl':
+    openstack::ha::haproxy_service { 'webservice-ssl':
       order                  => '017',
       listen_port            => 443,
       balancermember_port    => 80,
@@ -72,7 +72,7 @@ class openstack::ha::horizon (
     }
   } else {
     # http only
-    openstack::ha::haproxy_service { 'horizon':
+    openstack::ha::haproxy_service { 'webservice':
       order                  => '015',
       listen_port            => 80,
       define_cookies         => true,
