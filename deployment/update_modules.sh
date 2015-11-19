@@ -69,6 +69,19 @@ EOF
   exit 1
 }
 
+_which() {
+    local file_name=$1
+    IFS=:
+    for path in ${PATH}; do
+        if [[ -x "" ]]; then
+            echo "${path}/${file_name}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+
 while getopts ":bp:l:h:vru" opt; do
   case $opt in
     b)
@@ -124,7 +137,7 @@ if [ "$USE_BUNDLER" = true ]; then
 fi
 
 # if no timeout command, return true so we don't fail this script (LP#1510665)
-TIMEOUT_CMD=`which timeout || true`
+TIMEOUT_CMD=$(_which timeout || true)
 if [ -n "$TIMEOUT_CMD" ]; then
     TIMEOUT_CMD="$TIMEOUT_CMD $TIMEOUT"
 fi
