@@ -14,7 +14,7 @@ It configures the ml2 to work with Mellanox plugin, and installs and configures 
 
 ### Setup Requirements
 
-The module is designed to be used by Fuel (an openstack installer by Mirantis).
+The module is designed to be used by Fuel (an openstack installer).
 
 
 ## Release Notes/Contributors/Etc

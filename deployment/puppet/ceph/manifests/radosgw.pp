@@ -100,7 +100,7 @@ class ceph::radosgw (
                   ssh ${primary_mon} '/etc/init.d/radosgw restart'",
     }
     exec {"generate SSL certificate on ${name}":
-      command => "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ${httpd_ssl}apache.key -out ${httpd_ssl}apache.crt -subj '/C=RU/ST=Russia/L=Saratov/O=Mirantis/OU=CA/CN=localhost'",
+      command => "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ${httpd_ssl}apache.key -out ${httpd_ssl}apache.crt -subj '/C=RU/ST=Russia/L=Saratov/O=Fuel/OU=CA/CN=localhost'",
       returns => [0,1],
     }
   }
