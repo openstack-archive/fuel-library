@@ -54,7 +54,7 @@ class Noop
           # escapes single quote characters and wrap into them
           "'#{value.gsub "'", '\\\\\''}'"
         end
-        else value.inspect
+        else value.to_s
       end
     end
 

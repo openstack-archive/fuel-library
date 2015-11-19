@@ -1,5 +1,22 @@
+require 'yaml'
+
 class Noop
   module Facts
+
+    def override_facts
+      facts = {}
+      return facts unless hiera_facts_override_present?
+      begin
+        override_facts = YAML.load_file facts_yaml_path
+        return {} unless facts.is_a? Hash
+        override_facts.each do |fact, value|
+          facts[fact.to_sym] = value
+        end
+        facts
+      rescue
+        return {}
+      end
+    end
 
     def ubuntu_facts
       {
@@ -18,7 +35,7 @@ class Noop
           :l3_default_route => '172.16.1.1',
           :concat_basedir => '/tmp/',
           :l23_os => 'ubuntu',
-      }
+      }.merge override_facts
     end
 
     def centos_facts
@@ -38,7 +55,7 @@ class Noop
           :l3_default_route => '172.16.1.1',
           :concat_basedir => '/tmp/',
           :l23_os => 'centos6',
-      }
+      }.merge override_facts
     end
 
   end
