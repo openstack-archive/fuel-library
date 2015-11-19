@@ -5,6 +5,18 @@ manifest = 'openstack-controller/openstack-controller.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    let(:configuration_override) do
+      Noop.hiera_structure 'configuration'
+    end
+
+    let(:nova_config_override_resources) do
+      configuration_override.fetch('nova_config', {})
+    end
+
+    let(:nova_paste_api_ini_override_resources) do
+      configuration_override.fetch('nova_paste_api_ini', {})
+    end
+
     use_neutron = Noop.hiera 'use_neutron'
     primary_controller = Noop.hiera 'primary_controller'
     if !use_neutron && primary_controller
@@ -57,6 +69,30 @@ describe manifest do
       should contain_nova_config('DEFAULT/quota_injected_file_path_length').with(
         'value' => '4096',
       )
+    end
+
+    it 'nova config should be modified by override_resources' do
+       is_expected.to contain_override_resources('nova_config').with(:data => nova_config_override_resources)
+    end
+
+    it 'should use "override_resources" to update the catalog' do
+      ral_catalog = Noop.create_ral_catalog self
+      nova_config_override_resources.each do |title, params|
+        params['value'] = 'True' if params['value'].is_a? TrueClass
+        expect(ral_catalog).to contain_nova_config(title).with(params)
+      end
+    end
+
+    it 'nova_paste_api_ini should be modified by override_resources' do
+      is_expected.to contain_override_resources('nova_paste_api_ini').with(:data => nova_paste_api_ini_override_resources)
+    end
+
+    it 'should use override_resources to update nova_paste_api_ini' do
+      ral_catalog = Noop.create_ral_catalog self
+      nova_paste_api_ini_override_resources.each do |title, params|
+       params['value'] = 'True' if params['value'].is_a? TrueClass
+       expect(ral_catalog).to contain_nova_paste_api_ini(title).with(params)
+      end
     end
 
     #PUP-2299
