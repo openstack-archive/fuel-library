@@ -3,7 +3,6 @@ require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_ba
 Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
   defaultfor :osfamily    => :linux
   commands   :ethtool_cmd => 'ethtool',
-             :brctl       => 'brctl',
              :pkill       => 'pkill'
 
 
@@ -124,7 +123,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             when :ovs
               self.class.ovs_vsctl(['del-port', br_name, @resource[:interface]])
             when :lnx
-              brctl('delif', br_name, @resource[:interface])
+              self.class.brctl(['delif', br_name, @resource[:interface]])
             else
               #pass
             end
@@ -137,7 +136,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             self.class.ovs_vsctl(['add-port', @property_flush[:bridge], @resource[:interface]])
           when :lnx
             begin
-              brctl('addif', @property_flush[:bridge], @resource[:interface])
+              self.class.brctl(['addif', @property_flush[:bridge], @resource[:interface]])
             rescue
               # Sometimes interface may be automatically added to bridge if config file exists before interface creation,
               # especially vlan interfaces. It appears on CentOS.

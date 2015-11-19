@@ -8,8 +8,7 @@ require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_ba
 
 Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
   defaultfor :osfamily    => :linux
-  commands   :brctl       => 'brctl',
-             :ethtool_cmd => 'ethtool'
+  commands   :ethtool_cmd => 'ethtool'
 
   def self.instances
     rv = []
@@ -37,7 +36,7 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
     begin
-      brctl('addbr', @resource[:bridge])
+      self.class.brctl(['addbr', @resource[:bridge]])
     rescue
       # Some time interface may be created by OS init scripts. It's a normal for Ubuntu.
       raise if ! self.class.iface_exist? @resource[:bridge]
@@ -48,7 +47,7 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
 
   def destroy
     self.class.interface_down(@resource[:bridge])
-    brctl('delbr', @resource[:bridge])
+    self.class.brctl(['delbr', @resource[:bridge]])
   end
 
   def flush

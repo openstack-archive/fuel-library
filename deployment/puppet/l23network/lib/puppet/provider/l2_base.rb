@@ -56,15 +56,21 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     interfaces.each do |if_dir|
       if_name = if_dir.split('/')[-1]
       port[if_name] = {
-        :name      => if_name,
-        :port_type => [],
-        :onboot    => self.get_iface_state(if_name),
-        :ethtool   => nil,
-        :mtu       => File.open("#{if_dir}/mtu").read.chomp.to_i,
-        :provider  => (if_name == 'ovs-system')  ?  'ovs'  :  'lnx' ,
+        :name         => if_name,
+        :port_type    => [],
+        :onboot       => self.get_iface_state(if_name),
+        :ethtool      => nil,
+        :peer_ifindex => nil,
+        :ifindex      => File.open("#{if_dir}/ifindex").read.chomp.to_i,
+        :mtu          => File.open("#{if_dir}/mtu").read.chomp.to_i,
+        :provider     => (if_name == 'ovs-system')  ?  'ovs'  :  'lnx' ,
       }
       # determine port_type for this iface
-      if File.directory? "#{if_dir}/bonding"
+      peer_ifindex = self.get_iface_peer_index(if_name)
+      if !peer_ifindex.nil?
+        port[if_name][:port_type] << 'jack' << 'unremovable'
+        port[if_name][:peer_ifindex] = peer_ifindex
+      elsif File.directory? "#{if_dir}/bonding"
         # This interface is a baster of bond, get bonding properties
         port[if_name][:slaves] = File.open("#{if_dir}/bonding/slaves").read.chomp.strip.split(/\s+/).sort
         port[if_name][:port_type] << 'bond' << 'unremovable'
@@ -365,7 +371,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     re_c = /([\w\-]+)\s+\d+/
     begin
       # todo(sv): using port_list instead fork subprocess
-      brctl('show').split(/\n+/).select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
+      self.brctl(['show']).select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
         br_name.strip!
         bridges[br_name] = {
           :stp     => (File.open("/sys/class/net/#{br_name}/bridge/stp_state").read.strip.to_i == 1),
@@ -421,7 +427,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     # (lnx and ovs (with type internal)) included to the lnx bridge
     #
     begin
-      brctl_show = brctl('show').split(/\n+/).select{|l| l.match(/^[\w\-]+\s+\d+/) or l.match(/^\s+[\w\.\-]+/)}
+      brctl_show = self.brctl(['show']).split(/\n+/).select{|l| l.match(/^[\w\-]+\s+\d+/) or l.match(/^\s+[\w\.\-]+/)}
     rescue
       debug("No LNX bridges found, because error while 'brctl show' execution")
       return {}
