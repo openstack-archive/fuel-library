@@ -35,16 +35,16 @@ $internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'inter
 $admin_auth_protocol        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
 $admin_auth_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
-$internal_api_protocol      = 'http'
-$api_bind_host              = get_network_role_property('murano/api', 'ipaddr')
-
 #################################################################
 
 if $murano_hash['enabled'] {
 
   $firewall_rule  = '202 murano-api'
 
-  $api_bind_port  = '8082'
+  $api_bind_port         = '8082'
+  $api_bind_host         = get_network_role_property('murano/api', 'ipaddr')
+  $internal_api_protocol = 'http'
+  $rabbit_host           = get_network_role_property('public/vip', 'ipaddr')
 
   $murano_user    = pick($murano_hash['user'], 'murano')
   $tenant         = pick($murano_hash['tenant'], 'services')
@@ -95,7 +95,7 @@ if $murano_hash['enabled'] {
     rabbit_os_port      => $amqp_port,
     rabbit_os_host      => split($amqp_hosts, ','),
     rabbit_ha_queues    => $rabbit_ha_queues,
-    rabbit_own_host     => $management_ip,
+    rabbit_own_host     => $rabbit_host,
     rabbit_own_port     => $amqp_port,
     rabbit_own_vhost    => '/murano',
     rabbit_own_user     => $rabbit_hash['user'],
