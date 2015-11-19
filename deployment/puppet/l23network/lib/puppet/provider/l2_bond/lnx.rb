@@ -98,19 +98,20 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       end
       if @property_flush.has_key? :bond_properties
         # change bond_properties
-        need_reassemble = [:mode, :lacp_rate]
-        #todo(sv): inplement re-assembling only if it need
-        #todo(sv): re-set only delta between reality and requested
         runtime_bond_state  = !self.class.get_iface_state(@resource[:bond]).nil?
-        runtime_slave_ports = self.class.get_sys_class("#{bond_prop_dir}/bonding/slaves", true)
-        debug("Disassemble bond '#{@resource[:bond]}'")
-        runtime_slave_ports.each do |eth|
-          debug("Remove interface '#{eth}' from bond '#{@resource[:bond]}'")
-          # for most bond options we should disassemble bond before re-configuration. In the kernel module documentation
-          # says, that bond interface should be downed, but it's not enouth.
-          self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "-#{eth}")
-        end
         self.class.interface_down(@resource[:bond])
+        # Re-assemble bond if we change bond mode
+        need_reassembling = true if self.class.get_sys_class("#{bond_prop_dir}/bonding/#{'mode'}") != @property_flush[:bond_properties][:mode]
+        if need_reassembling
+          runtime_slave_ports = self.class.get_sys_class("#{bond_prop_dir}/bonding/slaves", true)
+          debug("Disassemble bond '#{@resource[:bond]}'")
+          runtime_slave_ports.each do |eth|
+            debug("Remove interface '#{eth}' from bond '#{@resource[:bond]}'")
+            # for most bond options we should disassemble bond before re-configuration. In the kernel module documentation
+            # says, that bond interface should be downed, but it's not enouth.
+            self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "-#{eth}")
+          end
+        end
         # setup primary bond_properties
         primary_bond_properties = [:mode, :xmit_hash_policy]
         debug("Set primary bond properties [#{primary_bond_properties.join(',')}] for bond '#{@resource[:bond]}'")
@@ -149,13 +150,15 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             debug("Unsupported property '#{prop}' for bond '#{@resource[:bond]}'")
           end
         end
-        # re-assemble bond after configuration
-        self.class.interface_up(@resource[:bond]) if runtime_bond_state
-        debug("Re-assemble bond '#{@resource[:bond]}'")
-        runtime_slave_ports.each do |eth|
-          debug("Add interface '#{eth}' to bond '#{@resource[:bond]}'")
-          self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "+#{eth}")
+        if need_reassembling
+          # re-assemble bond after configuration
+          debug("Re-assemble bond '#{@resource[:bond]}'")
+          runtime_slave_ports.each do |eth|
+            debug("Add interface '#{eth}' to bond '#{@resource[:bond]}'")
+            self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "+#{eth}")
+          end
         end
+        self.class.interface_up(@resource[:bond]) if runtime_bond_state
       end
       if @property_flush.has_key? :bridge
         # get actual bridge-list. We should do it here,
