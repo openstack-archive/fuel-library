@@ -1,6 +1,7 @@
 notice('MODULAR: compute.pp')
 
 $network_scheme = hiera_hash('network_scheme', {})
+$override_configuration = hiera_hash('configuration', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
@@ -333,6 +334,10 @@ if $use_monit_real {
   }
 }
 
+# override nova options
+override_resources { 'nova_config':
+  data => $override_configuration['nova_config']
+}
 ########################################################################
 
 
