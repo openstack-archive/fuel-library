@@ -57,7 +57,7 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
         peer = found_peer[0]
         _bridges  = [jack[:bridge], peer[:bridge]].sort
         _tails    = ([jack[:bridge], peer[:bridge]] == _bridges  ?  [jack[:name], peer[:name]]  :  [peer[:name], jack[:name]])
-        _vlan_ids = [(jack[:vlan_id].to_i or 0), (peer[:vlan_id].to_i or 0)]
+        _vlan_ids = [jack[:vlan_id].to_i, peer[:vlan_id].to_i]
       end
       props = {
         :ensure   => :present,
@@ -205,6 +205,13 @@ debug(cmds)
   end
   def vlan_ids=(val)
     @property_flush[:vlan_ids] = val
+  end
+
+  def mtu
+    'absent'
+  end
+  def mtu=(val)
+    @property_flush[:mtu] = val
   end
 
   def jacks
