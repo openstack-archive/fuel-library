@@ -22,11 +22,6 @@ $mirror_type="external"
 
 stage { 'puppetlabs-repo': before => Stage['main'] }
 class { '::openstack::puppetlabs_repos': stage => 'puppetlabs-repo'}
-class { '::openstack::mirantis_repos':
-  stage => 'puppetlabs-repo',
-  type=>$mirror_type,
-  disable_puppet_labs_repos => false,
-}
 
 node /fuel-mcollective.localdomain/ {
 

@@ -893,7 +893,7 @@ repo_setup:
     type: deb
   - name: ironic
     section: main
-    uri: http://perestroika-repo-tst.infra.mirantis.net/review/CR-9495/mos-repos/ubuntu/
+    uri: http://perestroika-repo-tst.infra.net/review/CR-9495/mos-repos/ubuntu/
     priority: 1200
     suite: mos7.0
     type: deb
