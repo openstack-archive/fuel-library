@@ -1,5 +1,3 @@
-class { 'openstack::mirantis_repos': }
-
 class { 'mysql::server':
   config_hash => {
     'root_password' => 'password',
@@ -44,7 +42,6 @@ database_user{ 'dan@%':
   require       => Class['mysql::server'],
 }
 
-Class['openstack::mirantis_repos'] -> Class['mysql::server']
 Class['mysql::server'] -> Database <| |>
 Class['mysql::server'] -> Database_grant <| |>
 Class['mysql::server'] -> Database_user <| |>

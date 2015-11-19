@@ -1,11 +1,11 @@
-Mirantis Puppet module for Ceph
+Fuel Puppet module for Ceph
 ===============================
 
 About
 -----
 
 This is a Puppet module to install a Ceph cluster inside of OpenStack. This
-module has been developed specifically to work with Mirantis Fuel for
+module has been developed specifically to work with Fuel for
 OpenStack.
 
 * Puppet: http://www.puppetlabs.com/

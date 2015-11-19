@@ -2,8 +2,6 @@
 
 class cluster::neutron () {
 
-  Package['pacemaker'] ->
-  File<| title == 'ocf-mirantis-path' |> ->
   Package['neutron']  ->
 
   file {'/var/cache/neutron':

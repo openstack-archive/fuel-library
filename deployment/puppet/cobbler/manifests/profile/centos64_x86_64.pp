@@ -42,11 +42,11 @@ class cobbler::profile::centos64_x86_64(
 #              "url"  => "http://archive.kernel.org/centos/6.4/os/x86_64",
 #              },
               {
-              "name" => "Mirantis-CentOS",
+              "name" => "Fuel-CentOS",
               "url"  => "http://download.mirantis.com/centos-6.4",
               },
               {
-              "name" => "Mirantis-epel-fuel-install",
+              "name" => "epel-fuel-install",
               "url"  => "http://download.mirantis.com/epel-fuel-grizzly-3.1",
               }
               ],

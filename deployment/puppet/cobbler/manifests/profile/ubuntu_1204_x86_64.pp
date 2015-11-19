@@ -26,9 +26,9 @@ class cobbler::profile::ubuntu_1204_x86_64(
   $distro  = "ubuntu_1204_x86_64",
   $ks_repo = [
     {
-      "name" => "Mirantis",
+      "name" => "Fuel",
       "url"  => "http://download.mirantis.com/precise-grizzly-fuel-3.2/",
-      "key"  => "http://download.mirantis.com/precise-grizzly-fuel-3.2/Mirantis.key",
+      "key"  => "http://download.mirantis.com/precise-grizzly-fuel-3.2/Fuel.key",
       "release" => "precise",
       "repos" => "main",
     },
