@@ -1,0 +1,4 @@
+auto br2
+iface br2 inet static
+  bridge_ports p_33470efd-1
+  address 192.168.99.2/24

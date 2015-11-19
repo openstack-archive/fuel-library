@@ -78,6 +78,11 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
           :detect_re    => /(post-)?up\s+sleep\s+(\d+)/,
           :detect_shift => 2,
       },
+      :jacks  => {
+          # pre-up ip link add p_33470efd-0 type veth peer name p_33470efd-1
+          :detect_re    => /pre-up\s+ip\s+link\s+add\s+([\w\-]+)\s+type\s+veth\s+peer\s+name\s+([\w\-]+)/,
+          :detect_shift => 1,
+      },
     }
   end
   def collected_properties
@@ -200,14 +205,17 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
               #   # todo(sv): Make more powerful methodology for recognizind Bridges.
               #   hash['if_type'] = :bridge
               # end
-          when /bridge-ports/
+          when /bridge[-_]ports/
               hash['if_type'] = :bridge
               hash[key] = val
-          when /bond-(slaves|mode)/
+          when /bond[-_](slaves|mode)/
               hash['if_type'] = :bond
               hash[key] = val
           else
               hash[key] = val
+        end
+        if val =~ /\s+type\s+veth\s+/
+              hash['if_type'] = :patch
         end
       else
         raise Puppet::Error, %{#{filename} is malformed; "#{line}" did not match "#{pair_regex.to_s}"}
@@ -382,6 +390,10 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     return rv
   end
 
+  def self.mangle__jacks(data)
+    [data[0][0], data[0][1]]
+  end
+
   ###
   # Hash to file
 
@@ -420,7 +432,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
     #add to content unmangled collected-properties
     collected_properties.keys.each do |type_name|
       data = provider.send(type_name)
-      if ((!data.nil? or !data.empty?) and data.to_s != 'absent')
+      if ! ['', 'absent'].include? data.to_s
         mangle_method_name="unmangle__#{type_name}"
         if self.respond_to?(mangle_method_name)
           rv = self.send(mangle_method_name, provider, data)
@@ -554,6 +566,13 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       end
     end
     return rv
+  end
+
+  def self.unmangle__jacks(provider, data)
+    rv = []
+    rv << "pre-up ip link add #{data[0]} type veth peer name #{data[1]}"
+    rv << "post-up ip link set up dev #{data[1]}"
+    rv << "post-down ip link del #{data[0]}"
   end
 
 end
