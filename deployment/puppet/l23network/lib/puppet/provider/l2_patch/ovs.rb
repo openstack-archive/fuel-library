@@ -3,8 +3,7 @@ require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_ba
 
 Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
   commands   :vsctl       => 'ovs-vsctl',
-             :ethtool_cmd => 'ethtool',
-             :brctl       => 'brctl'
+             :ethtool_cmd => 'ethtool'
 
   def self.get_instances(big_hash)
     big_hash.fetch(:port, {})
@@ -57,7 +56,7 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
         peer = found_peer[0]
         _bridges  = [jack[:bridge], peer[:bridge]].sort
         _tails    = ([jack[:bridge], peer[:bridge]] == _bridges  ?  [jack[:name], peer[:name]]  :  [peer[:name], jack[:name]])
-        _vlan_ids = [(jack[:vlan_id].to_i or 0), (peer[:vlan_id].to_i or 0)]
+        _vlan_ids = [jack[:vlan_id].to_i, peer[:vlan_id].to_i]
       end
       props = {
         :ensure   => :present,
@@ -95,12 +94,12 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
       vsctl('--may-exist', 'add-port', bridges[0], jack, '--', 'set', 'Interface', jack, 'type=internal')
       if lnx_port_br_mapping.has_key? jack and lnx_port_br_mapping[jack][:bridge] != bridges[1]
         # eject lnx-side jack from bridge, if jack aldeady a member
-        brctl('delif', lnx_port_br_mapping[jack][:bridge], jack)
+        self.brctl(['delif', lnx_port_br_mapping[jack][:bridge], jack])
         lnx_port_br_mapping.delete(jack)
       end
       if !lnx_port_br_mapping.has_key? jack
         begin
-          brctl('addif', bridges[1], jack)
+          self.class.brctl(['addif', bridges[1], jack])
         rescue Exception => e
           if e.to_s =~ /device\s+#{jack}\s+is\s+already\s+a\s+member\s+of\s+a\s+bridge/
             notice("'#{jack}' already addeded to '#{bridges[1]}' by ghost event.")
@@ -138,7 +137,7 @@ debug(cmds)
       jack = L23network.get_jack_name(@resource[:bridges], 0)
       # we don't normalize bridge ordering, because OVS bridge always first. by design.
       if File.symlink?("/sys/class/net/#{@resource[:bridges][1]}/brif/#{jack}")
-        brctl('delif', @resource[:bridges][1], jack)
+        self.class.brctl(['delif', @resource[:bridges][1], jack])
       end
       vsctl('del-port', @resource[:bridges][0], jack)
     else
@@ -205,6 +204,13 @@ debug(cmds)
   end
   def vlan_ids=(val)
     @property_flush[:vlan_ids] = val
+  end
+
+  def mtu
+    'absent'
+  end
+  def mtu=(val)
+    @property_flush[:mtu] = val
   end
 
   def jacks
