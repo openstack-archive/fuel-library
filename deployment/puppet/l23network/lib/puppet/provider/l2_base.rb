@@ -56,15 +56,21 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     interfaces.each do |if_dir|
       if_name = if_dir.split('/')[-1]
       port[if_name] = {
-        :name      => if_name,
-        :port_type => [],
-        :onboot    => self.get_iface_state(if_name),
-        :ethtool   => nil,
-        :mtu       => File.open("#{if_dir}/mtu").read.chomp.to_i,
-        :provider  => (if_name == 'ovs-system')  ?  'ovs'  :  'lnx' ,
+        :name         => if_name,
+        :port_type    => [],
+        :onboot       => self.get_iface_state(if_name),
+        :ethtool      => nil,
+        :peer_ifindex => nil,
+        :ifindex      => File.open("#{if_dir}/ifindex").read.chomp.to_i,
+        :mtu          => File.open("#{if_dir}/mtu").read.chomp.to_i,
+        :provider     => (if_name == 'ovs-system')  ?  'ovs'  :  'lnx' ,
       }
       # determine port_type for this iface
-      if File.directory? "#{if_dir}/bonding"
+      peer_ifindex = self.get_iface_peer_index(if_name)
+      if !peer_ifindex.nil?
+        port[if_name][:port_type] << 'jack' << 'unremovable'
+        port[if_name][:peer_ifindex] = peer_ifindex
+      elsif File.directory? "#{if_dir}/bonding"
         # This interface is a baster of bond, get bonding properties
         port[if_name][:slaves] = File.open("#{if_dir}/bonding/slaves").read.chomp.strip.split(/\s+/).sort
         port[if_name][:port_type] << 'bond' << 'unremovable'

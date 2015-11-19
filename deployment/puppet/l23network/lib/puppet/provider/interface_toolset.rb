@@ -29,6 +29,20 @@ class Puppet::Provider::InterfaceToolset < Puppet::Provider
     return rv
   end
 
+  def self.ethtool(*cmd)
+    actual_cmd = ['ethtool'] + Array(*cmd)
+    rv = []
+    debug(actual_cmd.join(' ') + ' 2>&1')
+    IO.popen(actual_cmd.join(' ') + ' 2>&1') do |ff|
+      rv = ff.readlines().map{|l| l.chomp()}
+      ff.close
+      if 0 != $?.exitstatus and 94 != $?.exitstatus  # 94 is a 'no stats available'. it's a not error.
+        rv = nil
+      end
+    end
+    return rv
+  end
+
   # ---------------------------------------------------------------------------
 
   def self.iface_exist?(iface)
@@ -71,6 +85,21 @@ class Puppet::Provider::InterfaceToolset < Puppet::Provider
   end
 
   # ---------------------------------------------------------------------------
+  def self.get_iface_peer_index(iface)
+    # returns:
+    #     N  -- ifindex of peer interface
+    #    nil -- interface in not an veth pair jack
+    cmd = ['-S', iface]
+    begin
+      rv = ethtool(cmd)
+    rescue Exception => e
+      debug("Non-fatal-Error: Can't run ethtool for interface '#{iface}': #{e.message}")
+      return nil
+    end
+    rv = rv.select{|l| l =~ /\s*peer_ifindex\:\s+\d+/}[0]
+    (rv.nil?  ?  nil  :  rv.split(':')[-1].strip.to_i)
+  end
+
   def self.get_iface_state(iface)
     # returns:
     #    true  -- interface in UP state

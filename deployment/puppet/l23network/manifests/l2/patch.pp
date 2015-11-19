@@ -92,6 +92,7 @@ define l23network::l2::patch (
       }
       L23_stored_config[$patch_jacks_names[1]] -> L2_patch[$patch_name]
     } else {
+      # ovs2lnx or lnx2lnx patch
       if ! defined(L23_stored_config[$patch_jacks_names[0]]) {
         # we use only one (first) patch jack name here and later,
         # because a both jacks for patch are created by
