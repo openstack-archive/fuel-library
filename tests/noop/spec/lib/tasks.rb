@@ -1,3 +1,5 @@
+require 'set'
+
 class Noop
   module Tasks
 
@@ -32,6 +34,14 @@ class Noop
       false
     end
 
+    def manifest_already_run?
+      return unless manifest
+      @manifests_already_run = Set.new unless @manifests_already_run
+      return true if @manifests_already_run.include? manifest
+      @manifests_already_run.add manifest
+      false
+    end
+
     def tasks
       return @tasks if @tasks
       @tasks = []
@@ -59,7 +69,7 @@ class Noop
     end
 
     def current_os(context)
-      context.facts.fetch(:operatingsystem, '').downcase
+      context.os
     end
 
     def test_ubuntu?

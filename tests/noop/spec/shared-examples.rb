@@ -1,3 +1,5 @@
+require 'pry'
+
 shared_examples 'compile' do
   it do
     expect(subject).to compile
@@ -46,6 +48,7 @@ shared_examples 'save_files_list' do
 end
 
 shared_examples 'OS' do
+
   include_examples 'compile'
 
   include_examples 'status' if ENV['SPEC_SHOW_STATUS']
@@ -79,6 +82,12 @@ def test_ubuntu_and_centos(manifest_file, force_manifest = false)
     return
   end
 
+  Noop.manifest = manifest_file
+
+  if Noop.hiera_task_substitute_present?
+    return if Noop.manifest_already_run?
+  end
+
   # set manifest file
   before(:all) do
     GC.disable
@@ -93,6 +102,9 @@ def test_ubuntu_and_centos(manifest_file, force_manifest = false)
 
   if Noop.test_ubuntu?
     context 'on Ubuntu platforms' do
+      let(:os) do
+        'ubuntu'
+      end
       before(:all) do
         Noop.setup_overrides
       end
@@ -106,6 +118,9 @@ def test_ubuntu_and_centos(manifest_file, force_manifest = false)
 
   if Noop.test_centos?
     context 'on CentOS platforms' do
+      let(:os) do
+        'centos'
+      end
       before(:all) do
         Noop.setup_overrides
       end
