@@ -11,7 +11,6 @@ if $use_neutron {
   $role = hiera('role')
   $controller         = $role in ['controller', 'primary-controller']
   $primary_controller = $role in ['primary-controller']
-  $compute            = $role in ['compute']
 
   $neutron_config = hiera_hash('neutron_config')
   $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
@@ -122,7 +121,7 @@ if $use_neutron {
     include ::neutron::db::sync
   }
 
-  if ! $compute {
+  if $controller {
     if $neutron_server_enable {
       $service_ensure = 'running'
     } else {
