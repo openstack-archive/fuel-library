@@ -31,14 +31,30 @@ $mco_connector = "rabbitmq"
 $rabbitmq_astute_user = $::fuel_settings['astute']['user']
 $rabbitmq_astute_password = $::fuel_settings['astute']['password']
 
+case $::osfamily {
+  'RedHat': {
+    if $::operatingsystemrelease =~ /^7.*/ {
+      $systemd = true
+    } else {
+      $systemd = false
+    }
+  }
+  default: { $systemd = false }
+}
 
 node default {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
-  Class['docker::container'] ->
-  Class['nailgun::astute'] ->
-  Class['nailgun::supervisor']
+  if $systemd {
+    Class['docker::container'] ->
+    Class['nailgun::astute'] ->
+    Class['nailgun::systemd']
+  } else {
+    Class['docker::container'] ->
+    Class['nailgun::astute'] ->
+    Class['nailgun::supervisor']
+  }
 
   class {'docker::container': }
 
@@ -50,12 +66,20 @@ node default {
     version                  => '0.1.0',
     bootstrap_flavor         => $bootstrap_flavor,
   }
-  package { "supervisor": } ->
-  class { "nailgun::supervisor":
-    nailgun_env     => $env_path,
-    ostf_env        => $env_path,
-    conf_file       => "nailgun/supervisord.conf.astute.erb",
+
+  if $systemd {
+    class { "nailgun::systemd":
+      services => ['astute']
+    }
+  } else {
+    package { "supervisor": } ->
+    class { "nailgun::supervisor":
+      nailgun_env     => $env_path,
+      ostf_env        => $env_path,
+      conf_file       => "nailgun/supervisord.conf.astute.erb",
+    }
   }
+
   class { "mcollective::client":
     pskey    => $::mco_pskey,
     vhost    => $::mco_vhost,

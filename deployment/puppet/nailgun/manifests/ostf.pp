@@ -1,6 +1,7 @@
 class nailgun::ostf(
   $pip_opts,
   $production,
+  $systemd              = false,
   $venv                 = '/opt/fuel_plugins/ostf',
   $dbuser               = 'ostf',
   $dbpass               = 'ostf',
@@ -39,20 +40,29 @@ class nailgun::ostf(
         tries     => 50,
         try_sleep => 5,
       }
-      Postgresql::Server::Db<| title == $dbname|> ->
-      Exec['ostf-init'] -> Class['nailgun::supervisor']
-      Package["fuel-ostf"] -> Exec['ostf-init']
-      File["/etc/ostf/ostf.conf"] -> Exec['ostf-init']
+      if $systemd {
+        Postgresql::Server::Db<| title == $dbname|> ->
+        Exec['ostf-init'] -> Class['nailgun::systemd']
+        Package["fuel-ostf"] -> Exec['ostf-init']
+        File["/etc/ostf/ostf.conf"] -> Exec['ostf-init']
+      } else {
+        Postgresql::Server::Db<| title == $dbname|> ->
+        Exec['ostf-init'] -> Class['nailgun::supervisor']
+        Package["fuel-ostf"] -> Exec['ostf-init']
+        File["/etc/ostf/ostf.conf"] -> Exec['ostf-init']
+      }
     }
     'docker-build': {
       package{'fuel-ostf':}
     }
   }
-  file { '/etc/supervisord.d/ostf.conf':
-    owner   => 'root',
-    group   => 'root',
-    content => template('nailgun/supervisor/ostf.conf.erb'),
-    require => Package['supervisor'],
+  if ! $systemd {
+    file { '/etc/supervisord.d/ostf.conf':
+      owner   => 'root',
+      group   => 'root',
+      content => template('nailgun/supervisor/ostf.conf.erb'),
+      require => Package['supervisor'],
+    }
   }
   file { '/etc/ostf/':
     ensure => directory,
