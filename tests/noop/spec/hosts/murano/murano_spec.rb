@@ -32,6 +32,11 @@ describe manifest do
       Noop.puppet_function 'get_network_role_property', 'murano/api', 'ipaddr'
     end
 
+    let(:rabbit_host) do
+      prepare
+      Noop.puppet_function 'get_network_role_property', 'public/vip', 'ipaddr'
+    end
+
     let(:region) { Noop.hiera('region', 'RegionOne') }
     let(:use_neutron) { Noop.hiera('use_neutron', false) }
     let(:service_endpoint) { Noop.hiera('service_endpoint') }
@@ -105,7 +110,7 @@ describe manifest do
                    'rabbit_os_port'      => amqp_port,
                    'rabbit_os_host'      => amqp_hosts.split(','),
                    'rabbit_ha_queues'    => rabbit_ha_queues,
-                   'rabbit_own_host'     => management_ip,
+                   'rabbit_own_host'     => rabbit_host,
                    'rabbit_own_port'     => amqp_port,
                    'rabbit_own_user'     => rabbit_os_user,
                    'rabbit_own_password' => rabbit_os_password,
