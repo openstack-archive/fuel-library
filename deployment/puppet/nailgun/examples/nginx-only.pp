@@ -34,6 +34,17 @@ $nailgun_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 
 $repo_root = "/var/www/nailgun"
 
+case $::osfamily {
+  'RedHat': {
+    if ($production == 'docker') and ($::operatingsystemrelease =~ /^7.*/) {
+      $service_enabled = true
+    } else {
+      $service_enabled = false
+    }
+  }
+  default: { $service_enabled = false }
+}
+
 node default {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -49,7 +60,7 @@ node default {
       keystone_host   => $keystone_host,
       nailgun_host    => $nailgun_host,
       repo_root       => $repo_root,
-      service_enabled => false,
+      service_enabled => $service_enabled,
       ssl_enabled     => true,
       force_https     => $force_https,
   }
