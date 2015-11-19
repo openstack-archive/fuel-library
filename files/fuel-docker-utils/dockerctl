@@ -68,6 +68,8 @@ case "$1" in
     else
       check_ready $container
     fi ;;
+  create)
+    create_container $container;;
   start)
     if [[ "$container" == 'all' ]]; then
       for service in $container_seq; do
