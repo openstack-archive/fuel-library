@@ -6,13 +6,16 @@ Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base
              :ethtool_cmd => 'ethtool',
              :brctl       => 'brctl'
 
+  def self.get_instances(big_hash)
+    big_hash.fetch(:port, {})
+  end
 
   def self.instances
     vsctl_show = ovs_vsctl_show()
     lnx_port_br_mapping = get_lnx_port_bridges_pairs()
     jacks = []
     # didn't use .select{...} here for backward compatibility with ruby 1.8
-    vsctl_show[:port].reject{|k,v| !(v[:port_type] & ['jack','internal']).any?}.each_pair do |p_name, p_props|
+    vsctl_show.fetch(:port,{}).reject{|k,v| !(v[:port_type] & ['jack','internal']).any?}.each_pair do |p_name, p_props|
       props = {
         :name => p_name,
       }
