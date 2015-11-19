@@ -59,7 +59,7 @@ class Noop
     end
 
     def current_os(context)
-      context.facts.fetch(:operatingsystem, '').downcase
+      context.os
     end
 
     def test_ubuntu?

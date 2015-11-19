@@ -24,9 +24,9 @@ module NoopTests
   ASTUTE_YAML_VAR = 'SPEC_ASTUTE_FILE_NAME'
   BUNDLE_DIR = '.bundled_gems'
   BUNDLE_VAR = 'GEM_HOME'
-  GLOBALS_PREFIX = 'globals_yaml_for_'
   PUPPET_GEM_VERSION = '~> 3.4.0'
   TEST_LIBRARY_DIR = 'spec/hosts'
+  GLOBALS_YAML_FOLDER = 'globals'
 
   def self.options
     return @options if @options
@@ -64,9 +64,9 @@ module NoopTests
       opts.separator 'Filter options:'
       opts.on('-s', '--specs SPEC1,SPEC2', Array, 'Run only these specs. Example: "hosts/hosts_spec.rb"') do |specs|
         specs = specs.map do |spec|
-          if spec.end_with? '.pp'
-            spec.gsub! '.pp', '_spec.rb'
-          end
+          spec.strip!
+          spec.gsub! '.pp', '' if spec.end_with? '.pp'
+          spec += '_spec.rb' unless spec.end_with? '_spec.rb'
           spec
         end
         @options[:filter_specs] = specs
@@ -203,8 +203,8 @@ module NoopTests
   # @return [Array<String>]
   def self.astute_yaml_files
     files = []
-    Dir.new(astute_yaml_directory).each do |file|
-      next if file.start_with? GLOBALS_PREFIX
+    Dir.entries(astute_yaml_directory).each do |file|
+      next unless File.file? File.join astute_yaml_directory, file
       next unless file.end_with? '.yaml'
       files << file
     end
@@ -307,11 +307,11 @@ module NoopTests
   # @param [String] astute_yaml YAML file
   def self.globals(astute_yaml)
     return if options[:skip_globals]
-    globals_file = File.join astute_yaml_directory, GLOBALS_PREFIX + astute_yaml
+    globals_file = File.join astute_yaml_directory, GLOBALS_YAML_FOLDER, astute_yaml
     if File.file? globals_file
       begin
         File.unlink globals_file
-        debug "Globals file  was removed: '#{globals_file}'"
+        debug "Globals file was removed: '#{globals_file}'"
       rescue => e
         debug "Could not remove globals file: '#{globals_file}'! (#{e.message})"
       end
