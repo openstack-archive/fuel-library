@@ -23,6 +23,26 @@ describe manifest do
         Noop.puppet_function('get_network_role_property', 'neutron/floating', 'interface')
       end
 
+      let(:configuration_override) do
+        Noop.hiera_structure 'configuration'
+      end
+
+      let(:neutron_l3_agent_config_override_resources) do
+        configuration_override.fetch('neutron_l3_agent_config', {})
+      end
+
+      it 'neutron l3 agent config should be modified by override_resources' do
+        is_expected.to contain_override_resources('neutron_l3_agent_config').with(:data => neutron_l3_agent_config_override_resources)
+      end
+
+      it 'should use "override_resources" to update the catalog' do
+        ral_catalog = Noop.create_ral_catalog self
+        neutron_l3_agent_config_override_resources.each do |title, params|
+          params['value'] = 'True' if params['value'].is_a? TrueClass
+          expect(ral_catalog).to contain_neutron_l3_agent_config(title).with(params)
+        end
+      end
+
       if Noop.hiera('role') == 'compute'
         context 'neutron-l3-agent on compute' do
           na_config = Noop.hiera_hash('neutron_advanced_configuration')

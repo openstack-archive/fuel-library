@@ -1,0 +1,23 @@
+---
+configuration:
+  neutron_plugin_ml2:
+    test/polling_interval:
+      value: 10
+  neutron_agent_ovs:
+    agent/polling_interval:
+      value: 15
+  neutron_config:
+    DEFAULT/debug:
+      value: True
+  neutron_api_config:
+    test/test:
+      value: 20
+  neutron_dhcp_agent_config:
+    DEFAULT/resync_interval:
+      value: 25
+  neutron_l3_agent_config:
+    DEFAULT/send_arp_for_ha:
+      value: 5
+  neutron_metadata_agent_config:
+    DEFAULT/debug:
+      value: True

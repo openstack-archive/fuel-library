@@ -166,5 +166,14 @@ if $use_neutron {
     name   => 'binutils',
     ensure => 'installed',
   }
+  
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  override_resources { 'neutron_plugin_ml2':
+    data => $override_configuration['neutron_plugin_ml2']
+  }
+  override_resources { 'neutron_agent_ovs':
+    data => $override_configuration['neutron_agent_ovs']
+  }
 
 }

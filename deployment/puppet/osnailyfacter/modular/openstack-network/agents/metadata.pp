@@ -53,4 +53,10 @@ if $use_neutron {
     ensure => 'installed',
   }
 
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  override_resources { 'neutron_metadata_agent_config':
+    data => $override_configuration['neutron_metadata_agent_config']
+  }
+
 }
