@@ -1,0 +1,21 @@
+[Unit]
+Name=Astute daemon
+ConditionPathExists=/etc/astute/astuted.conf
+
+[Service]
+Restart=on-failure
+RestartSec=10s
+StartLimitBurst=10
+TimeoutStartSec=10s
+TimeoutStopSec=5s
+
+StandardInput=null
+StandardOutput=syslog
+StandardError=syslog+console
+SyslogIdentifier=astute
+
+ExecStart=/usr/bin/astuted -c /etc/astute/astuted.conf -l /var/log/astute/astute.log -w 7
+
+[Install]
+WantedBy=multi-user.target
+
