@@ -11,19 +11,28 @@ $rsync_port            = '873',
 $rsyslog_port          = '514',
 $ntp_port              = '123',
 $rabbitmq_ports        = ['4369','5672','15672','61613'],
+$fuelweb_port          = '8443',
+$keystone_port         = '5000',
 $chain                 = 'INPUT',
 )
 {
   #Host services
   $network_address = ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'],$::fuel_settings['ADMIN_NETWORK']['netmask'])
   $network_cidr = ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask'])
-  firewall { '004 forward_admin_net':
+  firewall { '003 nat_admin_net':
     chain      => 'POSTROUTING',
     table      => 'nat',
     proto      => 'all',
     source     => "${network_address}/${network_cidr}",
-    outiface   => 'eth+',
+    outiface   => 'e+',
     jump       => 'MASQUERADE',
+  }
+  firewall { '004 forward_admin_net':
+    chain    => $chain,
+    iniface  => $admin_iface,
+    source   => "${network_address}/${network_cidr}",
+    state    => ['NEW', 'ESTABLISHED', 'RELATED'],
+    action   => 'accept'
   }
   sysctl::value{'net.ipv4.ip_forward': value=>'1'}
 
@@ -169,10 +178,63 @@ $chain                 = 'INPUT',
   }
 
   firewall { '042 rabbitmq_block_ext':
-    chain   => $chain,
-    port    => $rabbitmq_ports,
-    proto   => 'tcp',
-    action  => 'reject',
+    chain    => $chain,
+    port     => $rabbitmq_ports,
+    proto    => 'tcp',
+    action   => 'reject',
+  }
+
+  firewall { '043 fuelweb_admin':
+    chain    => $chain,
+    port     => $fuelweb_port,
+    proto    => 'tcp',
+    iniface  => $admin_iface,
+    action   => 'accept',
+  }
+
+  firewall { '044 fuelweb_local':
+    chain    => $chain,
+    port     => $fuelweb_port,
+    proto    => 'tcp',
+    src_type => 'LOCAL',
+    action   => 'accept',
+  }
+
+  firewall { '045 fuelweb_block_ext':
+    chain    => $chain,
+    port     => $fuelweb_port,
+    proto    => 'tcp',
+    action   => 'reject',
+  }
+
+  firewall { '046 keystone_admin':
+    chain    => $chain,
+    port     => $keystone_port,
+    proto    => 'tcp',
+    iniface  => $admin_iface,
+    action   => 'accept'
+  }
+
+  firewall { '047 keystone_local':
+    chain    => $chain,
+    port     => $keystone_port,
+    proto    => 'tcp',
+    src_type => 'LOCAL',
+    action   => 'accept'
+  }
+
+  firewall { '048 keystone_block_ext':
+    chain    => $chain,
+    port     => $keystone_port,
+    proto    => 'tcp',
+    action   => 'reject'
+  }
+
+  firewall { '049 nailgun_repo_admin':
+    chain    => $chain,
+    port     => $nailgun_repo_port,
+    proto    => 'tcp',
+    action   => 'accept'
   }
 
   firewall {'999 iptables denied':
