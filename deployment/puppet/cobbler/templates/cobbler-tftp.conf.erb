@@ -1,0 +1,8 @@
+Alias /cobbler/boot /var/lib/tftpboot
+
+<Directory /var/lib/tftpboot>
+  Options +Indexes +FollowSymLinks
+  AllowOverride None
+  Order allow,deny
+  Allow from all
+</Directory>
