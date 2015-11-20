@@ -103,16 +103,31 @@
     cwd: /
 
 #PRE DEPLOYMENT
-- id: upload_core_repos
-  type: upload_file
+- id: parse_repositories
+  type: puppet
   role: '*'
-  requires: [pre_deployment_start]
+  requires: [pre_deployment_end]
+  required_for: [deploy_start]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/parse_repositories.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
+    cwd: /
+
+- id: setup_repositories
+  type: puppet
+  role: '*'
+  requires: [parse_repositories]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/setup_repositories.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
+    cwd: /
 
 - id: rsync_core_puppet
   type: sync
   role: '*'
   required_for: [pre_deployment_end]
-  requires: [upload_core_repos]
   parameters:
     src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/modules/
     dst: /etc/puppet/modules
