@@ -36,6 +36,7 @@ class Noop
           :l3_default_route => '172.16.1.1',
           :concat_basedir => '/tmp/',
           :l23_os => 'ubuntu',
+          :lsbdistcodename => 'trusty',
       }.merge override_facts
     end
 
