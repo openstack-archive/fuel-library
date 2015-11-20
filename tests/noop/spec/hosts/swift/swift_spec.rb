@@ -16,6 +16,13 @@ describe manifest do
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
     ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
     memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }
+    ceilometer        = Noop.hiera_structure('ceilometer/enabled')
+    rabbit_port       = Noop.hiera('amqp_port')
+    rabbit_user       = Noop.hiera_structure('rabbit/user', 'nova')
+    rabbit_password   = Noop.hiera_structure('rabbit/password')
+    let (:rabbit_ip_address) {
+        rabbit_ip_address = Noop.puppet_function('get_network_role_property', 'mgmt/messaging', 'ipaddr')
+    }
     let (:sto_nets){
         network_scheme = Noop.hiera 'network_scheme'
         sto_nets = Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '
@@ -100,6 +107,16 @@ describe manifest do
           'ensure' => 'directory',
           'owner'  => 'swift',
           'group'  => 'swift',
+        )
+      end
+    end
+    if ceilometer
+      it 'should contain rabbit params' do
+        should contain_class('openstack::swift::proxy').with(
+          :rabbit_user     => rabbit_user,
+          :rabbit_password => rabbit_password,
+          :rabbit_host     => rabbit_ip_address,
+          :rabbit_port     => rabbit_port,
         )
       end
     end
