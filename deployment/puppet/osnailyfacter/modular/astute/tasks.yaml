@@ -103,16 +103,11 @@
     cwd: /
 
 #PRE DEPLOYMENT
-- id: upload_core_repos
-  type: upload_file
-  role: '*'
-  requires: [pre_deployment_start]
-
 - id: rsync_core_puppet
   type: sync
   role: '*'
+  requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
-  requires: [upload_core_repos]
   parameters:
     src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/modules/
     dst: /etc/puppet/modules
@@ -261,3 +256,26 @@
         dst: /var/lib/astute/ironic/ironic
     permissions: '0600'
     dir_permissions: '0700'
+
+# DEPLOYMENT TASKS
+- id: parse_repositories
+  type: puppet
+  role: '*'
+  requires: [deploy_start]
+  required_for: [setup_repositories]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/parse_repositories.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
+    cwd: /
+
+- id: setup_repositories
+  type: puppet
+  role: '*'
+  requires: [parse_repositories]
+  required_for: [fuel_pkgs]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/setup_repositories.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
+    cwd: /
