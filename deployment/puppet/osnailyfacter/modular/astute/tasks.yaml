@@ -125,18 +125,12 @@
     cwd: /
 
 #PRE DEPLOYMENT
-- id: upload_core_repos
-  type: upload_file
-  version: 2.0.0
-  role: '*'
-  requires: [pre_deployment_start]
-
 - id: rsync_core_puppet
   type: sync
   version: 2.0.0
   role: '*'
+  requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
-  requires: [upload_core_repos]
   parameters:
     src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/modules/
     dst: /etc/puppet/modules
