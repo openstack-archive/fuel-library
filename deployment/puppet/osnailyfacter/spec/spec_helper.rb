@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'puppetlabs_spec_helper/module_spec_helper'
+require 'facter/util/resolution'
 
 fixture_path = File.expand_path(File.join(__FILE__, '..', 'fixtures'))
 
@@ -17,6 +18,7 @@ RSpec.configure do |c|
   c.module_path = File.join(fixture_path, 'modules')
   c.manifest_dir = File.join(fixture_path, 'manifests')
   c.mock_with(:mocha)
+  c.expect_with(:rspec) { |s| s.syntax = :should }
 end
 
 def puppet_debug_override
