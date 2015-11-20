@@ -5,6 +5,7 @@ manifest = 'openstack-haproxy/openstack-haproxy-swift.pp'
 describe manifest do
   shared_examples 'catalog' do
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
+    ceilometer_enabled = Noop.hiera_structure 'ceilometer/enabled'
 
     # Determine if swift is used
     images_ceph = Noop.hiera_structure('storage/images_ceph', false)
@@ -56,6 +57,30 @@ describe manifest do
             },
             'balancermember_options' => 'check port 49001 inter 15s fastinter 2s downinter 8s rise 3 fall 3',
           )
+        end
+      end
+      if ceilometer_enabled
+        it 'should declare ::openstack::ha::swift class with amqp_swift_proxy_enabled enabled' do
+          should contain_class('openstack::ha::swift').with(
+            'amqp_swift_proxy_enabled' => true,
+          )
+        end
+
+        it 'should declare openstack::ha::haproxy_service with name swift_proxy_rabbitmq' do
+            should contain_openstack__ha__haproxy_service('swift_proxy_rabbitmq').with(
+              'order'                  => '121',
+              'listen_port'            => 5673,
+              'define_backups'         => true,
+              'internal'               => true,
+              'haproxy_config_options' => {
+                'option'         => ['tcpka'],
+                'timeout client' => '48h',
+                'timeout server' => '48h',
+                'balance'        => 'roundrobin',
+                'mode'           => 'tcp'
+              },
+              'balancermember_options' => 'check inter 5000 rise 2 fall 3',
+            )
         end
       end
     end
