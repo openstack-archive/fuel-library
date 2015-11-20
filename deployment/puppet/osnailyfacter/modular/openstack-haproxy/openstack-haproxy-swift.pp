@@ -20,6 +20,7 @@ if ($use_swift) {
   $ipaddresses         = hiera_array('swift_ipaddresses', values($swift_proxies_address_map))
   $public_virtual_ip   = hiera('public_vip')
   $internal_virtual_ip = hiera('management_vip')
+  $ceilometer_enabled  = hiera('use_ceilometer',false)
 
   if $ironic_hash['enabled'] {
     $baremetal_virtual_ip = $network_metadata['vips']['baremetal']['ipaddr']
@@ -27,11 +28,12 @@ if ($use_swift) {
 
   # configure swift ha proxy
   class { '::openstack::ha::swift':
-    internal_virtual_ip  => $internal_virtual_ip,
-    ipaddresses          => $ipaddresses,
-    public_virtual_ip    => $public_virtual_ip,
-    server_names         => $server_names,
-    public_ssl           => $public_ssl_hash['services'],
-    baremetal_virtual_ip => $baremetal_virtual_ip,
+    internal_virtual_ip      => $internal_virtual_ip,
+    ipaddresses              => $ipaddresses,
+    public_virtual_ip        => $public_virtual_ip,
+    server_names             => $server_names,
+    public_ssl               => $public_ssl_hash['services'],
+    baremetal_virtual_ip     => $baremetal_virtual_ip,
+    amqp_swift_proxy_enabled => $ceilometer_enabled,
   }
 }

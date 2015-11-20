@@ -110,6 +110,10 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       admin_password                 => $keystone_password,
       auth_host                      => $service_endpoint,
       auth_protocol                  => $keystone_protocol,
+      rabbit_user                    => $rabbit_hash['user'],
+      rabbit_password                => $rabbit_hash['password'],
+      rabbit_host                    => $management_vip,
+      rabbit_port                    => hiera('amqp_port', 5673),
     } ->
     class { 'openstack::swift::status':
       endpoint    => "http://${swift_api_ipaddr}:${proxy_port}",
