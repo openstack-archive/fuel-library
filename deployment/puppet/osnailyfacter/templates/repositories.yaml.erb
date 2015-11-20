@@ -1,0 +1,11 @@
+<% require "yaml"
+repositories = {}
+@repos.each do |repo|
+  repositories.store repo['name'], {
+    'repos'    => repo['section'],
+    'release'  => repo['suite'],
+    'location' => repo['uri'],
+    'pin'      => repo ['priority'],
+  }
+end -%>
+<%= YAML.dump repositories %>
