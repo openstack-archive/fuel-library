@@ -36,6 +36,7 @@ class Noop
           :l3_default_route => '172.16.1.1',
           :concat_basedir => '/tmp/',
           :l23_os => 'ubuntu',
+          :uuid_dmi => '00000000-0000-0000-0000-000000000000',
       }.merge override_facts
     end
 
@@ -57,6 +58,7 @@ class Noop
           :l3_default_route => '172.16.1.1',
           :concat_basedir => '/tmp/',
           :l23_os => 'centos6',
+          :uuid_dmi => '00000000-0000-0000-0000-000000000000',
       }.merge override_facts
     end
 
