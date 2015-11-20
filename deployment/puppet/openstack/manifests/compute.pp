@@ -232,7 +232,7 @@ class openstack::compute (
     notify  => Service['libvirt'],
   }
 
-  $host_uuid=generate('/bin/sh', '-c', "uuidgen")
+  $host_uuid=downcase($::uuid_dmi)
 
   augeas { 'libvirt-conf-uuid':
     context => '/files/etc/libvirt/libvirtd.conf',
