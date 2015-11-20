@@ -14,6 +14,7 @@ $memcaches_addr_list     = values(get_node_to_ipaddr_map_by_network_role(hiera_h
 $is_primary_swift_proxy  = hiera('is_primary_swift_proxy', false)
 $proxy_port              = hiera('proxy_port', '8080')
 $storage_hash            = hiera_hash('storage_hash')
+$rabbit_hash             = hiera_hash('rabbit_hash')
 $mp_hash                 = hiera('mp')
 $management_vip          = hiera('management_vip')
 $public_vip              = hiera('public_vip')
@@ -110,6 +111,10 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       admin_password                 => $keystone_password,
       auth_host                      => $service_endpoint,
       auth_protocol                  => $keystone_protocol,
+      rabbit_user                    => $rabbit_hash['user'],
+      rabbit_password                => $rabbit_hash['password'],
+      rabbit_host                    => $management_vip,
+      rabbit_port                    => hiera('amqp_port', 5673),
     } ->
     class { 'openstack::swift::status':
       endpoint    => "http://${swift_api_ipaddr}:${proxy_port}",
