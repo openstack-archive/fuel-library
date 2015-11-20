@@ -34,6 +34,7 @@ class openstack::ha::swift (
   $server_names,
   $public_ssl = false,
   $baremetal_virtual_ip = undef,
+  $amqp_swift_proxy_enabled = false,
 ) {
 
   # defaults for any haproxy_service within this class
@@ -61,6 +62,23 @@ class openstack::ha::swift (
       order                  => '125',
       public_virtual_ip      => false,
       internal_virtual_ip    => $baremetal_virtual_ip,
+    }
+  }
+
+  if $amqp_swift_proxy_enabled {
+    openstack::ha::haproxy_service { 'swift_proxy_rabbitmq':
+      order                  => '121',
+      listen_port            => 5673,
+      define_backups         => true,
+      internal               => true,
+      haproxy_config_options => {
+        'option'         => ['tcpka'],
+        'timeout client' => '48h',
+        'timeout server' => '48h',
+        'balance'        => 'roundrobin',
+        'mode'           => 'tcp'
+      },
+      balancermember_options => 'check inter 5000 rise 2 fall 3',
     }
   }
 }
