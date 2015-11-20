@@ -59,7 +59,7 @@ mod 'apache',
 # Pull in puppetlabs-apt
 mod 'apt',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-apt.git',
-    :ref => '2.2.0'
+    :ref => '2.2.0-mos'
 
 # Pull in puppetlabs-firewall
 mod 'firewall',
