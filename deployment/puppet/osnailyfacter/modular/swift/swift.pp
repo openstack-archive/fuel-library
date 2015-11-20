@@ -36,6 +36,9 @@ $keystone_protocol       = pick($swift_hash['auth_protocol'], 'http')
 $region                  = hiera('region', 'RegionOne')
 $service_workers         = pick($swift_hash['workers'],
                                 min(max($::processorcount, 2), 16))
+$rabbit_hash             = hiera_hash('rabbit_hash')
+$rabbit_bind_ip_address  = get_network_role_property('mgmt/messaging', 'ipaddr')
+$rabbit_bind_port        = hiera('amqp_port')
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -110,6 +113,10 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       admin_password                 => $keystone_password,
       auth_host                      => $service_endpoint,
       auth_protocol                  => $keystone_protocol,
+      rabbit_user                    => $rabbit_hash['user'],
+      rabbit_password                => $rabbit_hash['password'],
+      rabbit_host                    => $rabbit_bind_ip_address,
+      rabbit_port                    => $rabbit_bind_port,
     } ->
     class { 'openstack::swift::status':
       endpoint    => "http://${swift_api_ipaddr}:${proxy_port}",
