@@ -107,12 +107,6 @@ describe manifest do
         )}
         it { expect(subject).to contain_file_line('clear_emulator_capabilities').that_notifies('Service[libvirt]') }
         #
-        it { expect(subject).to contain_file_line('no_qemu_selinux').with(
-          :path    => '/etc/libvirt/qemu.conf',
-          :line    => 'security_driver = "none"',
-        )}
-        it { expect(subject).to contain_file_line('no_qemu_selinux').that_notifies('Service[libvirt]') }
-        #
         it { expect(subject).to contain_class('nova::compute::neutron').with(
           :libvirt_vif_driver => libvirt_vif_driver,
         )}
