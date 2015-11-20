@@ -1,10 +1,5 @@
 notice('MODULAR: hiera.pp')
 
-$deep_merge_package_name = $::osfamily ? {
-  /RedHat/ => 'rubygem-deep_merge',
-  /Debian/ => 'ruby-deep-merge',
-}
-
 $data_dir            = '/etc/hiera'
 $override_dir        = 'plugins'
 $override_dir_path   = "${data_dir}/${override_dir}"
@@ -73,8 +68,3 @@ file { 'hiera_puppet_config' :
   target => $hiera_main_config,
 }
 
-# needed to support the 'deeper' merge_behavior setting for hiera
-package { 'rubygem-deep_merge':
-  ensure => present,
-  name   => $deep_merge_package_name,
-}
