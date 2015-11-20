@@ -34,6 +34,7 @@ if $use_neutron {
   $l2_population     = try_get_value($neutron_advanced_config, 'neutron_l2_pop', false)
   $dvr               = try_get_value($neutron_advanced_config, 'neutron_dvr', false)
   $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
+  $extension_drivers = ['port_security']
 
   if $compute and ! $dvr {
     $do_floating = false
@@ -108,6 +109,7 @@ if $use_neutron {
     vni_ranges            => $tunnel_id_ranges,
     physical_network_mtus => $physical_network_mtus,
     path_mtu              => $overlay_net_mtu,
+    extension_drivers     => $extension_drivers,
   }
 
   class { 'neutron::agents::ml2::ovs':
