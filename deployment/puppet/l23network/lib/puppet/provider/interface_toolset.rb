@@ -85,6 +85,7 @@ class Puppet::Provider::InterfaceToolset < Puppet::Provider
   end
 
   def self.interface_up(iface, force=false)
+    debug("Setting #{iface} up")
     cmd = ['link', 'set', 'up', 'dev', iface]
     cmd.insert(0, '--force') if force
     begin
@@ -98,6 +99,7 @@ class Puppet::Provider::InterfaceToolset < Puppet::Provider
   end
 
   def self.interface_down(iface, force=false)
+    debug("Setting #{iface} down")
     cmd = ['link', 'set', 'down', 'dev', iface]
     cmd.insert(0, '--force') if force
     begin
