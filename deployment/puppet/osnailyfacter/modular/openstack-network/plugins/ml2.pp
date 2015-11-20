@@ -102,6 +102,7 @@ if $use_neutron {
     vni_ranges            => $tunnel_id_ranges,
     physical_network_mtus => $physical_network_mtus,
     path_mtu              => $overlay_net_mtu,
+    extension_drivers     => ['port_security'],
   }
 
   class { 'neutron::agents::ml2::ovs':

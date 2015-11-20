@@ -87,6 +87,9 @@ describe manifest do
         it { should contain_class('neutron::plugins::ml2').with(
           'path_mtu' => overlay_net_mtu,
         )}
+        it { should contain_class('neutron::plugins::ml2').with(
+          'extension_drivers' => ['port_security'],
+        )}
 
         it { should contain_class('neutron::agents::ml2::ovs').with(
           'enabled' => true,
