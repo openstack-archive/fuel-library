@@ -39,6 +39,7 @@ describe manifest do
         dvr = adv_neutron_config.fetch('neutron_dvr', false)
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
+        extension_drivers = ['port_security']
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
@@ -110,7 +111,9 @@ describe manifest do
         it { should contain_class('neutron::plugins::ml2').with(
           'path_mtu' => overlay_net_mtu,
         )}
-
+        it { should contain_class('neutron::plugins::ml2').with(
+          'extension_drivers' => extension_drivers,
+        )}
         it { should contain_class('neutron::agents::ml2::ovs').with(
           'enabled' => true,
         )}
