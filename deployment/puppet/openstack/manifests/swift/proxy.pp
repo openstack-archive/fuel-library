@@ -53,6 +53,9 @@ class openstack::swift::proxy (
   $auth_host                         = '10.0.0.1',
   $auth_protocol                     = 'http',
   $swift_operator_roles              = ['admin', 'SwiftOperator'],
+  $rabbit_user                       = 'guest',
+  $rabbit_password                   = 'password',
+  $rabbit_hosts                      = '127.0.0.1:5672',
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -88,7 +91,11 @@ class openstack::swift::proxy (
       "<%=
           @proxy_pipeline.insert(-2, 'ceilometer').join(',')
        %>"), ',')
-    class { '::swift::proxy::ceilometer': }
+    class { '::swift::proxy::ceilometer':
+      rabbit_user     => $rabbit_user,
+      rabbit_password => $rabbit_password,
+      rabbit_hosts    => $rabbit_hosts,
+    }
   }
   else {
     $new_proxy_pipeline = $proxy_pipeline
