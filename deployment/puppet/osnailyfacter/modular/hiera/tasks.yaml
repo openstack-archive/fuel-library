@@ -3,7 +3,7 @@
   version: 2.0.0
   groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   requires: [deploy_start]
-  required_for: [deploy_end]
+  required_for: [setup_repositories]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
     puppet_modules: /etc/puppet/modules
