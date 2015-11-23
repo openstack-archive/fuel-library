@@ -63,6 +63,10 @@ class nailgun::venv(
   $ntp_upstream = '0.pool.ntp.org, 1.pool.ntp.org',
   ) {
 
+  anchor {'venv-begin': } ->
+  File['/etc/nailgun/settings.yaml'] ->
+  anchor {'venv-end': }
+
   package{'fuel-nailgun':}
 
   file { "/etc/nailgun":
@@ -119,7 +123,6 @@ class nailgun::venv(
 
     }
   }
-  package {'cronie-anacron': }
   file {"/etc/cron.daily/capacity":
     content => template("nailgun/cron_daily_capacity.erb"),
     owner => 'root',
