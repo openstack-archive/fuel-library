@@ -5,6 +5,7 @@ class docker::dockerctl (
   $profile_dir     = '/etc/profile.d',
   $admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   $docker_engine   = 'native',
+  $systemd         = false,
   $release,
   $production,
 ) {
