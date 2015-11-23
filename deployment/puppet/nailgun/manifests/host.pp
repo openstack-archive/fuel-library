@@ -1,24 +1,28 @@
 class nailgun::host(
-$production,
-$fuel_version,
-$cobbler_host = '127.0.0.1',
-$dns_search = 'domain.tld',
-$dns_domain = 'domain.tld',
-$dns_upstream = [],
-$admin_network = '10.20.0.*',
-$extra_networks = undef,
-$nailgun_group = 'nailgun',
-$nailgun_user = 'nailgun',
-$gem_source = 'http://localhost/gems/',
-$repo_root = '/var/www/nailgun',
-$monitord_user = 'monitd',
-$monitord_password = 'monitd',
-$monitord_tenant = 'services',
-$admin_iface = 'eth0',
-) {
+  $production,
+  $fuel_version,
+  $cobbler_host = '127.0.0.1',
+  $dns_search = 'domain.tld',
+  $dns_domain = 'domain.tld',
+  $dns_upstream = [],
+  $admin_network = '10.20.0.*',
+  $extra_networks = undef,
+  $nailgun_group = $::nailgun::params::nailgun_group,
+  $nailgun_user = $::nailgun::params::nailgun_user,
+  $gem_source = 'http://localhost/gems/',
+  $repo_root = '/var/www/nailgun',
+  $monitord_user = 'monitd',
+  $monitord_password = 'monitd',
+  $monitord_tenant = 'services',
+  $admin_iface = 'eth0',
+  ) inherits nailgun::params {
   #Enable cobbler's iptables rules even if Cobbler not called
   include cobbler::iptables
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+
+  anchor { "host-begin": } ->
+  Nailgun::sshkeygen['/root/.ssh/id_rsa'] ->
+  anchor { "host-end": }
 
   firewall { '002 accept related established rules':
     proto  => 'all',

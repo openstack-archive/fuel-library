@@ -15,9 +15,9 @@
 #  Optional. Defaults to 'ostf'.
 #
 class nailgun::ostf::auth(
-  $auth_name        = 'ostf',
-  $password         = 'ostf',
-  $address          = '127.0.0.1',
+  $auth_name        = $::nailgun::params::keystone_ostf_user,
+  $password         = $::nailgun::params::keystone_ostf_password,
+  $address          = $::nailgun::params::keystone_address,
   $internal_address = undef,
   $admin_address    = undef,
   $public_address   = undef,
