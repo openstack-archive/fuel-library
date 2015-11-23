@@ -32,3 +32,6 @@ if @osfamily == 'Debian' %>
   Allow from all
 </Directory>
 <% end %>
+<% if @file_upload_max_size != '0' %>
+LimitRequestBody <%= @file_upload_max_size %>
+<% end %>
