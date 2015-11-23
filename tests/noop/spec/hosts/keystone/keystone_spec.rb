@@ -9,19 +9,7 @@ describe manifest do
 
     network_metadata     = Noop.hiera 'network_metadata'
     memcache_roles       = Noop.hiera 'memcache_roles'
-    memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
-
-    let(:memcache_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
-    end
-
-    let(:memcache_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
-    end
-
-    let (:memcache_servers) do
-      memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
-    end
+    memcache_server_port = Noop.hiera 'memcache_server_port', '22122'
 
     let(:configuration_override) do
       Noop.hiera_structure 'configuration'
@@ -70,11 +58,11 @@ describe manifest do
     end
 
 
-    it 'should configure keystone with paramters' do
+    it 'should configure keystone with parameters' do
       should contain_keystone_config('token/caching').with(:value => 'false')
       should contain_keystone_config('cache/enabled').with(:value => 'true')
       should contain_keystone_config('cache/backend').with(:value => 'keystone.cache.memcache_pool')
-      should contain_keystone_config('memcache/servers').with(:value => memcache_servers)
+      should contain_keystone_config('memcache/servers').with(:value => "127.0.0.1:#{memcache_server_port}")
       should contain_keystone_config('cache/memcache_dead_retry').with(:value => '60')
       should contain_keystone_config('cache/memcache_socket_timeout').with(:value => '1')
       should contain_keystone_config('cache/memcache_pool_maxsize').with(:value => '1000')
