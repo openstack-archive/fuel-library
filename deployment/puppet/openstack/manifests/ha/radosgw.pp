@@ -34,14 +34,15 @@ class openstack::ha::radosgw (
 
   # defaults for any haproxy_service within this class
   Openstack::Ha::Haproxy_service {
-    internal_virtual_ip => $internal_virtual_ip,
-    ipaddresses         => $ipaddresses,
-    listen_port         => 8080,
-    balancermember_port => 6780,
-    public_virtual_ip   => $public_virtual_ip,
-    server_names        => $server_names,
+    internal_virtual_ip    => $internal_virtual_ip,
+    ipaddresses            => $ipaddresses,
+    listen_port            => 8080,
+    balancermember_port    => 6780,
+    public_virtual_ip      => $public_virtual_ip,
+    server_names           => $server_names,
     haproxy_config_options => {
-      'option' => ['httplog', 'httpchk GET /'],
+      'option'       => ['httplog', 'httpchk GET /'],
+      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
   }
 
