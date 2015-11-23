@@ -1,0 +1,8 @@
+  <%- if @clients_array -%>
+    <%- @clients_array.each do |member| -%>
+    - <%= member %>
+    <%- end -%>
+  <% else %>
+    - <%= @client_address %>:<%= @client_port %>:<%= @client_weight %>
+  <%- end -%>
+
