@@ -26,6 +26,13 @@ class nailgun::astute(
     }
   }
 
+  file { '/etc/sysconfig/astute':
+    content => template('nailgun/astute.sysconfig.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644'
+  }
+
   file { '/usr/bin/astuted':
     content => template('nailgun/astuted.erb'),
     owner => 'root',
