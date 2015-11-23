@@ -1,0 +1,6 @@
+fixtures:
+  repositories:
+    'stdlib': 'https://github.com/puppetlabs/puppetlabs-stdlib.git'
+    'concat': 'https://github.com/ripienaar/puppet-concat.git'
+  symlinks:
+    'twemproxy': "#{source_dir}"
