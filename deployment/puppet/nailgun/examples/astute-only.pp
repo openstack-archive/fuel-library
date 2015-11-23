@@ -58,9 +58,11 @@ if $::osfamily == 'RedHat' {
     '6': {
       $mco_packages = ['ruby21-rubygem-mcollective-client',
                        'ruby21-nailgun-mcagents']
+      $use_systemd  = false
     }
     '7': {
       $mco_packages = ['rubygem-mcollective-client', 'nailgun-mcagents']
+      $use_systemd  = true
     }
     default: {
       fail("Unsupported ${::osfamily} release: ${::operatingsystemmajrelease}")
@@ -71,8 +73,7 @@ if $::osfamily == 'RedHat' {
 ensure_packages($mco_packages)
 
 Class['docker::container'] ->
-Class['nailgun::astute'] ->
-Class['nailgun::supervisor']
+Class['nailgun::astute']
 
 class { 'docker::container': }
 
@@ -84,11 +85,22 @@ class { 'nailgun::astute':
   bootstrap_flavor         => $bootstrap_flavor,
 }
 
-package { 'supervisor': } ->
-class { 'nailgun::supervisor':
-  nailgun_env => $env_path,
-  ostf_env    => $env_path,
-  conf_file   => 'nailgun/supervisord.conf.astute.erb',
+if $use_systemd {
+  class { 'nailgun::systemd':
+    services    => ['astute'],
+    production  => $production
+  }
+  Class['nailgun::astute'] ->
+  Class['nailgun::systemd']
+} else {
+  package { 'supervisor': } ->
+  class { 'nailgun::supervisor':
+    nailgun_env     => $env_path,
+    ostf_env        => $env_path,
+    conf_file       => 'nailgun/supervisord.conf.astute.erb',
+  }
+  Class['nailgun::astute'] ->
+  Class['nailgun::supervisor']
 }
 
 class { '::mcollective':
