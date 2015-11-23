@@ -16,13 +16,34 @@ describe manifest do
             'baremetal_virtual_ip' => baremetal_virtual_ip,
           )
         end
+
+        it "should properly configure radosgw haproxy based on ssl" do
+          public_ssl_radosgw = Noop.hiera_structure('public_ssl/services', false)
+          should contain_openstack__ha__haproxy_service('radosgw').with(
+            'order'                  => '130',
+            'listen_port'            => 8080,
+            'balancermember_port'    => 6780,
+            'public'                 => true,
+            'public_ssl'             => public_ssl_radosgw,
+            'require_service'        => 'radosgw-api',
+            'haproxy_config_options' => {
+              'option'       => ['httplog', 'httpchk GET /'],
+              'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+            },
+          )
+        end
+
         it 'should declare openstack::ha::haproxy_service with name radosgw-baremetal' do
             should contain_openstack__ha__haproxy_service('radosgw-baremetal').with(
-              'order'               => '135',
-              'listen_port'         => 8080,
-              'balancermember_port' => 6780,
-              'public_virtual_ip'   => false,
-              'internal_virtual_ip' => baremetal_virtual_ip
+              'order'                  => '135',
+              'listen_port'            => 8080,
+              'balancermember_port'    => 6780,
+              'public_virtual_ip'      => false,
+              'internal_virtual_ip'    => baremetal_virtual_ip,
+              'haproxy_config_options' => {
+                'option'       => ['httplog', 'httpchk GET /'],
+                'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+              },
             )
         end
       end

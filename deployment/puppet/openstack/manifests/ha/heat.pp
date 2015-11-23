@@ -41,8 +41,9 @@ class openstack::ha::heat (
     public_ssl             => $public_ssl,
     require_service        => 'heat-api',
     haproxy_config_options => {
-        option           => ['httpchk', 'httplog','httpclose'],
+        option           => ['httpchk', 'httplog', 'httpclose'],
         'timeout server' => '660s',
+        'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
@@ -52,7 +53,7 @@ class openstack::ha::heat (
     listen_port            => 8004,
     require_service        => 'heat-api',
     haproxy_config_options => {
-        option           => ['httpchk', 'httplog','httpclose'],
+        option           => ['httpchk', 'httplog', 'httpclose'],
         'timeout server' => '660s',
         'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
