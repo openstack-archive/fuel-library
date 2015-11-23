@@ -121,8 +121,6 @@ $floating_hash = {}
 ##CALCULATED PARAMETERS
 
 ##TODO: simply parse nodes array
-$memcache_nodes   = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
-$memcache_ipaddrs = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
 $roles            = $network_metadata['nodes'][$node_name]['node_roles']
 $mountpoints      = filter_hash($mp_hash,'point')
 
@@ -257,7 +255,8 @@ class { 'openstack::compute':
   manage_volumes              => $manage_volumes,
   nova_user_password          => $nova_hash[user_password],
   nova_hash                   => $nova_hash,
-  cache_server_ip             => $memcache_ipaddrs,
+  cache_server_ip             => ['127.0.0.1'],
+  cache_server_port           => hiera('memcache_server_port', '22122'),
   service_endpoint            => $service_endpoint,
   cinder                      => true,
   cinder_iscsi_bind_addr      => get_network_role_property('cinder/iscsi', 'ipaddr'),
