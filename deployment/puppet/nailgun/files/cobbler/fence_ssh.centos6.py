@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
-import sys, re, pexpect, exceptions
+import exceptions
+import expect
+import sys
 sys.path.append("/usr/share/fence")
 from fencing import *
 
@@ -15,9 +17,10 @@ def get_power_status(conn, options):
     try:
         conn.sendline("/bin/echo 1")
         conn.log_expect(options, options["-c"], int(options["-Y"]))
-    except:
+    except Exception:
         return "off"
     return "on"
+
 
 def set_power_status(conn, options):
     if options["-o"] == "off":
@@ -25,16 +28,17 @@ def set_power_status(conn, options):
             conn.sendline("/sbin/reboot")
             conn.log_expect(options, options["-c"], int(options["-g"]))
             time.sleep(2)
-        except:
+        except Exception:
             pass
 
+
 def main():
-    device_opt = [  "help", "version", "agent", "quiet", "verbose", "debug",
-                    "action", "ipaddr", "login", "passwd", "passwd_script",
-                    "secure", "identity_file", "test", "port", "separator",
-                    "inet4_only", "inet6_only", "ipport",
-                    "power_timeout", "shell_timeout",
-                    "login_timeout", "power_wait" ]
+    device_opt = ["help", "version", "agent", "quiet", "verbose", "debug",
+                  "action", "ipaddr", "login", "passwd", "passwd_script",
+                  "secure", "identity_file", "test", "port", "separator",
+                  "inet4_only", "inet6_only", "ipport",
+                  "power_timeout", "shell_timeout",
+                  "login_timeout", "power_wait"]
 
     atexit.register(atexit_handler)
 
@@ -53,10 +57,14 @@ def main():
     options["-c"] = "\[EXPECT\]#\ "
 
     # this string will be appended to the end of ssh command
-    options["ssh_options"] = "-t -o 'StrictHostKeyChecking=no' '/bin/bash -c \"PS1=%s  /bin/bash --noprofile --norc\"'" % options["-c"]
-    options["-X"] = "-t -o 'StrictHostKeyChecking=no' '/bin/bash -c \"PS1=%s  /bin/bash --noprofile --norc\"'" % options["-c"]
+    strict = "-t -o 'StrictHostKeyChecking=no'"
+    bash = "/bin/bash --noprofile --norc"
+    options["ssh_options"] = "%s '/bin/bash -c \"PS1=%s  %s\"'" % \
+                             (strict, options["-c"], bash)
+    options["-X"] = "%s '/bin/bash -c \"PS1=%s  %s\"'" % \
+                    (strict, options["-c"], bash)
 
-    docs = { }
+    docs = {}
     docs["shortdesc"] = "Fence agent that can just reboot node via ssh"
     docs["longdesc"] = "fence_ssh is an I/O Fencing agent \
 which can be used to reboot nodes via ssh."
