@@ -33,11 +33,7 @@ class nailgun::nginx(
     ensure => latest,
   }
 
-  file { ['/var/lib/fuel',
-          '/var/lib/fuel/keys',
-          '/var/lib/fuel/keys/master',
-          '/var/lib/fuel/keys/master/nginx',
-         ]:
+  file { ['/var/lib/fuel/keys/master/nginx']:
     ensure => 'directory',
   }
 
@@ -92,4 +88,3 @@ class nailgun::nginx(
     force_https   => $force_https,
   }
 }
-

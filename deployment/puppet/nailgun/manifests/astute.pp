@@ -1,11 +1,11 @@
 class nailgun::astute(
-  $production = 'prod',
-  $rabbitmq_host = 'localhost',
-  $rabbitmq_astute_user = 'naily',
-  $rabbitmq_astute_password = 'naily',
-  $bootstrap_flavor = 'centos',
-  $gem_source = "http://rubygems.org/",
-  ){
+  $production               = $::nailgun::params::production,
+  $rabbitmq_host            = $::nailgun::params::rabbitmq_host,
+  $rabbitmq_astute_user     = $::nailgun::params::rabbitmq_astute_user,
+  $rabbitmq_astute_password = $::nailgun::params::rabbitmq_astute_password,
+  $bootstrap_flavor         = $::nailgun::params::bootstrap_flavor,
+  $gem_source               = $::nailgun::params::gem_source,
+  ) inherits nailgun::params {
 
   $bootstrap_profile = $bootstrap_flavor ? {
     /(?i)centos/                 => 'bootstrap',
