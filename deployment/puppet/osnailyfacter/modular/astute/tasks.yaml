@@ -223,7 +223,7 @@
   type: shell
   role: [primary-controller]
   condition: "settings:additional_components.ironic.value == true"
-  requires: [enable_quorum]
+  requires: [enable_quorum, enable_rados]
   required_for: [post_deployment_end]
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/ironic_post_swift_key.rb
