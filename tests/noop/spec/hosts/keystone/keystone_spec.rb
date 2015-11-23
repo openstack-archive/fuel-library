@@ -177,6 +177,11 @@ describe manifest do
        )
      }
 
+     # LP#1508489: Breaks internal-only API
+     it {
+       should_not contain_keystone_config('DEFAULT/public_endpoint')
+     }
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
