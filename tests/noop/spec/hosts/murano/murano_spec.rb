@@ -77,6 +77,8 @@ describe manifest do
       end
     end
 
+    let(:default_dns) { Noop.hiera_structure('external_dns/dns_list') }
+
     #############################################################################
 
     enable = Noop.hiera_structure('murano/enabled')
@@ -105,6 +107,7 @@ describe manifest do
                    'rabbit_own_user'     => rabbit_os_user,
                    'rabbit_own_password' => rabbit_os_password,
                    'rabbit_own_vhost'    => '/murano',
+                   'default_nameservers' => default_dns,
                    'service_host'        => bind_address,
                    'service_port'        => api_bind_port,
                    'external_network'    => external_network,
