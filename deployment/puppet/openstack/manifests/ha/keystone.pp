@@ -38,7 +38,8 @@ class openstack::ha::keystone (
     public_virtual_ip      => $public_virtual_ip,
     server_names           => $server_names,
     haproxy_config_options => {
-      option => ['httpchk', 'httplog','httpclose'],
+      option         => ['httpchk', 'httplog', 'httpclose'],
+      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
   }
