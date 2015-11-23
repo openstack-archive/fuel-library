@@ -26,6 +26,21 @@ $keystone_url = "${keystone_scheme}://${keystone_host}:${keystone_port}/${keysto
 
 $neutron_options                = {'enable_distributed_router' => $neutron_dvr}
 
+$temp_root_default = '/var/lib/horizon'
+$temp_root_is_dir = inline_template('<%= File.directory?(@temp_root_default) %>')
+
+if $temp_root_is_dir == 'false' {
+  $temp_root_prefix = ''
+}
+else {
+  $temp_root_prefix = $temp_root_default
+}
+
+$file_upload_temp_dir = pick($horizon_hash['upload_dir'], "${temp_root_prefix}/tmp")
+
+# 10G by default
+$file_upload_max_size = pick($horizon_hash['upload_max_size'], 10737418235)
+
 class { 'openstack::horizon':
   secret_key        => $secret_key,
   cache_server_ip   => ipsort(values($memcache_address_map)),
@@ -45,6 +60,8 @@ class { 'openstack::horizon':
   servername        => hiera('public_vip'),
   neutron_options   => $neutron_options,
   custom_theme_path => 'static/themes/webroot'
+  file_upload_temp_dir => $file_upload_temp_dir,
+  file_upload_max_size => $file_upload_max_size,
 }
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
