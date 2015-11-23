@@ -46,6 +46,20 @@ class nailgun::cobbler(
     default                      => 'bootstrap',
   }
 
+  if $::osfamily == 'RedHat' {
+    case $operatingsystemmajrelease {
+      '6': {
+        $fence_ssh_script = 'nailgun/cobbler/fence_ssh.centos6.erb'
+      }
+      '7': {
+        $fence_ssh_script = 'nailgun/cobbler/fence_ssh.centos7.erb'
+      }
+      default: {
+        $fence_ssh_script = 'nailgun/cobbler/fence_ssh.centos6.erb'
+      }
+    }
+  }
+
   class { '::cobbler':
     server             => $server,
     production         => $production,
@@ -88,7 +102,7 @@ class nailgun::cobbler(
   }
 
   file { '/usr/sbin/fence_ssh':
-    content => template('nailgun/cobbler/fence_ssh.erb'),
+    content => template($fence_ssh_script),
     owner   => 'root',
     group   => 'root',
     mode    => '0755',
