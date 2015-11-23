@@ -17,11 +17,21 @@ else {
 $env_path = "/usr"
 $staticdir = "/usr/share/nailgun/static"
 
+case $::osfamily {
+  'RedHat': {
+    if $::operatingsystemmajrelease >= '7' {
+      $use_systemd = true
+    } else {
+      $use_systemd = false
+    }
+  }
+  default: { $use_systemd = false }
+}
+
 Class["docker::container"] ->
 Class["nailgun::user"] ->
 Class["nailgun::packages"] ->
-Class["nailgun::venv"] ->
-Class["nailgun::supervisor"]
+Class["nailgun::venv"]
 
 Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
@@ -156,11 +166,34 @@ class { "nailgun::client":
   keystone_user => $::fuel_settings['FUEL_ACCESS']['user'],
   keystone_pass => $::fuel_settings['FUEL_ACCESS']['password'],
 }
-class { "nailgun::supervisor":
-  service_enabled => false,
-  nailgun_env     => $env_path,
-  ostf_env        => $env_path,
-  conf_file       => "nailgun/supervisord.conf.nailgun.erb",
+
+if $use_systemd {
+  $services = [ 'assassind',
+                'nailgun',
+                'oswl_flavor_collectord',
+                'oswl_image_collectord',
+                'oswl_keystone_user_collectord',
+                'oswl_tenant_collectord',
+                'oswl_vm_collectord',
+                'oswl_volume_collectord',
+                'receiverd',
+                'statsenderd' ]
+  class { 'nailgun::systemd':
+    tag => 'nailgun',
+    services => $services
+  }
+  File["/etc/nailgun/settings.yaml"] ~> Service <| tag == 'nailgun' |>
+  Class['nailgun::venv'] ->
+  Class['nailgun::systemd']
+} else {
+  class { 'nailgun::supervisor':
+    service_enabled => false,
+    nailgun_env     => $env_path,
+    ostf_env        => $env_path,
+    conf_file       => 'nailgun/supervisord.conf.nailgun.erb',
+  }
+  Class['nailgun::venv'] ->
+  Class['nailgun::supervisor']
 }
 
 package { 'crontabs':
