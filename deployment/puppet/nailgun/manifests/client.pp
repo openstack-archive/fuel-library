@@ -8,7 +8,6 @@ class nailgun::client (
   $keystone_pass = 'admin',
   $keystone_port = '5000',
 ) {
-  include nailgun::packages
   $config_path = '/root/.config/fuel'
 
   exec { "mkdir -p ${config_path}":

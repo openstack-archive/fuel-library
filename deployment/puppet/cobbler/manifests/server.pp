@@ -138,9 +138,6 @@ class cobbler::server (
   file { ['/etc/httpd',
           '/etc/httpd/conf/',
           '/etc/httpd/conf.d/',
-          '/var/lib/fuel',
-          '/var/lib/fuel/keys',
-          '/var/lib/fuel/keys/master',
           '/var/lib/fuel/keys/master/cobbler',
          ]:
     ensure => 'directory',
