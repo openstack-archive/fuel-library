@@ -208,14 +208,18 @@ nova_config {
 
 if $sahara_hash['enabled'] {
   $nova_scheduler_default_filters = [ 'DifferentHostFilter' ]
-  if $storage_hash['volumes_lvm'] {
+  if $storage_hash['volumes_lvm'] or $storage_hash['volumes_block_device'] {
     $cinder_scheduler_filters = [ 'InstanceLocalityFilter' ]
   } else {
     $cinder_scheduler_filters = []
   }
 } else {
   $nova_scheduler_default_filters = []
-  $cinder_scheduler_filters = []
+  if $storage_hash['volumes_block_device'] {
+    $cinder_scheduler_filters = [ 'InstanceLocalityFilter' ]
+  } else {
+    $cinder_scheduler_filters = []
+  }
 }
 
 if $ironic_hash['enabled'] {

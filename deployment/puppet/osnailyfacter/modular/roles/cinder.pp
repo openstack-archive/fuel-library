@@ -14,6 +14,7 @@ $debug                          = pick($cinder_hash['debug'], hiera('debug', tru
 $use_monit                      = false
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $nodes_hash                     = hiera('nodes', {})
+$node_volumes                   = hiera('node_volumes', [])
 $storage_hash                   = hiera_hash('storage_hash', {})
 $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera_hash('nova_hash', {})
@@ -134,11 +135,18 @@ $idle_timeout = '3600'
 
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
+  $physical_volumes = false
 } elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
   $manage_volumes = 'vmdk'
+  $physical_volumes = false
 } elsif ($storage_hash['volumes_ceph']) {
   $manage_volumes = 'ceph'
+  $physical_volumes = false
+} elsif (member($roles, 'cinder-block-device') and $storage_hash['volumes_block_device']) {
+  $manage_volumes = 'fake'
+  $physical_volumes = get_disks_list_by_role($node_volumes_hash, 'cinder-block-device')
 } else {
+  $physical_volumes = false
   $manage_volumes = false
 }
 
@@ -273,6 +281,7 @@ class { 'openstack::cinder':
   keystone_tenant      => $keystone_tenant,
   cinder_user_password => $cinder_hash[user_password],
   syslog_log_facility  => $syslog_log_facility_cinder,
+  physical_volume      => $physical_volumes,
   debug                => $debug,
   verbose              => $verbose,
   use_stderr           => $use_stderr,
