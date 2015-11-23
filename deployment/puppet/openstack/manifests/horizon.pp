@@ -49,6 +49,8 @@ class openstack::horizon (
                               'always append X-Frame-Options SAMEORIGIN'],
   $hypervisor_options      = {},
   $overview_days_range     = undef,
+  $file_upload_temp_dir    = '/tmp',
+  $file_upload_max_size    = '0',
 ) {
 
   if $debug { #syslog and nondebug case
@@ -97,6 +99,7 @@ class openstack::horizon (
     redirect_type         => 'temp', # LP#1385133
     hypervisor_options    => $hypervisor_options,
     overview_days_range   => $overview_days_range,
+    file_upload_temp_dir  => $file_upload_temp_dir,
   }
 
   # Performance optimization for wsgi
