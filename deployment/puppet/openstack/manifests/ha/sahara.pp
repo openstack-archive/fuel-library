@@ -45,5 +45,9 @@ class openstack::ha::sahara (
     public          => true,
     public_ssl      => $public_ssl,
     require_service => 'sahara-api',
+    haproxy_config_options => {
+        'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+    },
+
   }
 }

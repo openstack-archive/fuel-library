@@ -73,7 +73,6 @@ describe manifest do
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
       should contain_keystone_config('memcache/dead_retry').with(:value => '60')
       should contain_keystone_config('memcache/socket_timeout').with(:value => '1')
-      should contain_keystone_config('DEFAULT/public_endpoint').with(:value => public_url)
     end
 
     it 'should configure revoke_driver for keystone' do
@@ -175,6 +174,11 @@ describe manifest do
             'hasrestart' => true,
             'restart'    => 'sleep 30 && apachectl graceful || apachectl restart'
        )
+     }
+
+     # LP#1508489: Breaks internal-only API
+     it 'should not contain DEFAULT/public_endpoint'  {
+       should_not contain_keystone_config('DEFAULT/public_endpoint')
      }
 
   end # end of shared_examples
