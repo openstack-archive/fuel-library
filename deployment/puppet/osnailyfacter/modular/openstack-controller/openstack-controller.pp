@@ -42,8 +42,6 @@ $service_workers                = pick($nova_hash['workers'],
                                         min(max($::processorcount, 2), 16))
 $ironic_hash                    = hiera_hash('ironic', {})
 
-$memcache_nodes                 = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
-$memcache_ipaddrs               = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 $openstack_controller_hash      = hiera_hash('openstack_controller', {})
 
@@ -119,7 +117,8 @@ class { '::openstack::controller':
   amqp_user                      => $rabbit_hash['user'],
   amqp_password                  => $rabbit_hash['password'],
   rabbit_ha_queues               => true,
-  cache_server_ip                => $memcache_ipaddrs,
+  cache_server_ip                => '127.0.0.1',
+  cache_server_port              => hiera('memcache_server_port', '22122'),
   api_bind_address               => $api_bind_address,
   db_host                        => $db_host,
   service_endpoint               => $service_endpoint,

@@ -1,0 +1,14 @@
+{
+  "name": "sbog-twemproxy",
+  "version": "0.1.0",
+  "author": "Stanislaw Bogatkin",
+  "summary": "It install and configure twemproxy.",
+  "license": "Apache-2.0",
+  "source": "https://github.com/sorrowless/puppet-twemproxy",
+  "project_page": "https://github.com/sorrowless/puppet-twemproxy",
+  "issues_url": "https://github.com/sorrowless/puppet-twemproxy/issues",
+  "dependencies": [
+    {"name":"puppetlabs-stdlib","version_requirement":">= 1.0.0"}
+  ]
+}
+
