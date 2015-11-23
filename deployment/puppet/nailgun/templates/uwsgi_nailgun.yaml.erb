@@ -12,7 +12,7 @@ uwsgi:
   module: nailgun.wsgi
   buffer-size: 49180
   listen: <%= @somaxconn %>
-  pidfile: /tmp/nailgun.pid
+  pidfile: /var/run/nailgun.pid
   logto: /var/log/nailgun/app.log
   mule: 1
   lazy: true
