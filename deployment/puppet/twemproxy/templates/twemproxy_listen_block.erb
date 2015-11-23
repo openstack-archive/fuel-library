@@ -1,0 +1,41 @@
+<%= @name %>:
+  listen: <%= @listen_address -%>:<%= @listen_port %>
+  <%- if @connections.to_i != 0 -%>
+  client_connections: <%= @connections %>
+  <%- end -%>
+  hash: <%= @hash %>
+  <%- if @hash_tag -%>
+  hash_tag: <%= @hash_tag %>
+  <%- end -%>
+  distribution: <%= @distribution %>
+  <%- if @timeout -%>
+  timeout: <%= @timeout %>
+  <%- end -%>
+  <%- if @backlog -%>
+  backlog: <%= @backlog %>
+  <%- end -%>
+  <%- if @preconnect -%>
+  preconnect: <%= @preconnect %>
+  <%- end -%>
+  <%- if @redis -%>
+  redis: <%= @redis %>
+  <%- end -%>
+  <%- if @redis_auth -%>
+  redis_auth: <%= @hash_tag %>
+  <%- end -%>
+  <%- if @redis_db -%>
+  redis_db: <% @redis_db %>
+  <%- end -%>
+  <%- if @server_connections -%>
+  server_connections: <%= @server_connections %>
+  <%- end -%>
+  <%- if @auto_eject_hosts -%>
+  auto_eject_hosts: <%= @auto_eject_hosts %>
+  <%- end -%>
+  <%- if @server_retry_timeout -%>
+  server_retry_timeout: <%= @server_retry_timeout %>
+  <%- end -%>
+  <%- if @server_failure_limit -%>
+  server_failure_limit: <%= @server_failure_limit %>
+  <%- end -%>
+  servers:

@@ -3,8 +3,6 @@ notice('MODULAR: horizon.pp')
 prepare_network_config(hiera('network_scheme', {}))
 $horizon_hash            = hiera_hash('horizon', {})
 $service_endpoint        = hiera('service_endpoint')
-$memcache_nodes          = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
-$memcache_address_map    = get_node_to_ipaddr_map_by_network_role($memcache_nodes, 'mgmt/memcache')
 $bind_address            = get_network_role_property('horizon', 'ipaddr')
 $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
 $public_ssl              = hiera('public_ssl')
@@ -28,10 +26,10 @@ $neutron_options                = {'enable_distributed_router' => $neutron_dvr}
 
 class { 'openstack::horizon':
   secret_key        => $secret_key,
-  cache_server_ip   => ipsort(values($memcache_address_map)),
+  cache_server_ip   => ['127.0.0.1'],
   package_ensure    => hiera('horizon_package_ensure', 'installed'),
   bind_address      => $bind_address,
-  cache_server_port => hiera('memcache_server_port', '11211'),
+  cache_server_port => hiera('memcache_server_port', '22122'),
   cache_backend     => 'django.core.cache.backends.memcached.MemcachedCache',
   cache_options     => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
   neutron           => hiera('use_neutron'),

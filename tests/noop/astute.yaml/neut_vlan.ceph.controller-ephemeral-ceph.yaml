@@ -369,6 +369,15 @@ tasks:
     puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/api-proxy/api-proxy.pp"
     timeout: 3600
     cwd: "/"
+- priority: 4200
+  type: puppet
+  uids:
+  - '1'
+  parameters:
+    puppet_modules: "/etc/puppet/modules"
+    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/twemproxy/twemproxy.pp"
+    timeout: 3600
+    cwd: "/"
 - priority: 4300
   type: puppet
   uids:
