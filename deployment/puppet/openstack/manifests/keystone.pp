@@ -117,12 +117,7 @@ class openstack::keystone (
     $token_driver = 'keystone.token.backends.sql.Token'
   }
 
-  if $public_ssl {
-    $public_endpoint = $public_hostname ? {
-      false => false,
-      default => "https://${public_hostname}:5000",
-    }
-  }
+  $public_endpoint = false
 
   if $enabled {
     class { '::keystone':
