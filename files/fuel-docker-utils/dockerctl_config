@@ -17,6 +17,8 @@ if [ -z "$VERSION" ]; then
   VERSION="_VERSION_"
 fi
 
+SYSTEMD="false"
+
 IMAGE_PREFIX="fuel"
 # busybox image for storage containers
 BUSYBOX_IMAGE="busybox.tar.gz"
