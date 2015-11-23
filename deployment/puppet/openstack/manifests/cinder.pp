@@ -217,6 +217,21 @@ class openstack::cinder(
           backup_ceph_pool => 'backups',
         }
       }
+      'fake': {
+        class { 'cinder::config':
+          cinder_config => {
+            'DEFAULT/iscsi_ip_address'    => { value => $iscsi_bind_host },
+            'DEFAULT/iscsi_helper'        => { value => 'fake' },
+            'DEFAULT/iscsi_protocol'      => { value => 'iscsi' },
+            'DEFAULT/volume_backend_name' => { value => 'DEFAULT' },
+            'DEFAULT/volume_driver'       => { value => 'cinder.volume.drivers.block_device.BlockDeviceDriver' },
+            'DEFAULT/volume_group'        => { value => 'cinder' },
+            'DEFAULT/volume_dir'          => { value => '/var/lib/cinder/volumes' },
+            'DEFAULT/volume_clear'        => { value => 'zero' },
+            'DEFAULT/available_devices'   => { value => $physical_volume },
+          }
+        }
+      }
     }
   }
 
