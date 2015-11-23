@@ -48,12 +48,6 @@ class nailgun::ostf(
       package{'fuel-ostf':}
     }
   }
-  file { '/etc/supervisord.d/ostf.conf':
-    owner   => 'root',
-    group   => 'root',
-    content => template('nailgun/supervisor/ostf.conf.erb'),
-    require => Package['supervisor'],
-  }
   file { '/etc/ostf/':
     ensure => directory,
     owner  => 'root',

@@ -1,34 +1,34 @@
 
 # Install and configures cobbler
 class nailgun::cobbler(
-  $cobbler_user                  = 'cobbler',
-  $cobbler_password              = 'cobbler',
-  $bootstrap_flavor              = 'centos',
+  $cobbler_user                  = $::nailgun::params::cobbler_user,
+  $cobbler_password              = $::nailgun::params::cobbler_password,
+  $bootstrap_flavor              = $::nailgun::params::bootstrap_flavor,
   $bootstrap_path,
   $bootstrap_meta,
   # network interface configuration timeout (in seconds)
-  $bootstrap_ethdevice_timeout   = '120',
-  $centos_repos,
-  $production,
-  $gem_source,
-  $ks_system_timezone            = 'Etc/UTC',
-  $server                        = $::ipaddress,
-  $name_server                   = $::ipaddress,
-  $next_server                   = $::ipaddress,
-  $dns_upstream                  = '8.8.8.8',
-  $dns_domain                    = 'domain.tld',
-  $dns_search                    = 'domain.tld',
-  $mco_user                      = 'mcollective',
-  $mco_pass                      = 'marionette',
+  $bootstrap_ethdevice_timeout   = $::nailgun::params::bootstrap_ethdevice_timeout,
+  $centos_repos                  = $::nailgun::params::centos_repos,
+  $production                    = $::nailgun::params::production,
+  $gem_source                    = $::nailgun::params::gem_source,
+  $ks_system_timezone            = $::nailgun::params::ks_system_timezone,
+  $server                        = $::nailgun::params::cobbler_host,
+  $name_server                   = $::nailgun::params::cobbler_host,
+  $next_server                   = $::nailgun::params::cobbler_host,
+  $dns_upstream                  = $::nailgun::params::dns_upstream,
+  $dns_domain                    = $::nailgun::params::dhs_domain,
+  $dns_search                    = $::nailgun::params::dns_search,
+
+  $mco_user                      = $::nailgun::params::mco_user,
+  $mco_pass                      = $::nailgun::params::mco_pass,
   $dhcp_start_address,
   $dhcp_end_address,
   $dhcp_netmask,
-  $dhcp_gateway                  = $ipaddress,
+  $dhcp_gateway                  = $::ipaddress,
   $dhcp_interface,
-  $nailgun_api_url               = "http://${::ipaddress}:8000/api",
-  # default password is 'r00tme'
-  $ks_encrypted_root_password    = '\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61',
-){
+  $nailgun_api_url               = $::nailgun::params::nailgun_api_url,
+  $ks_encrypted_root_password    = $::nailgun::params::ks_encrypted_root_password,
+  ) inherits nailgun::params {
 
   anchor { 'nailgun-cobbler-begin': }
   anchor { 'nailgun-cobbler-end': }
