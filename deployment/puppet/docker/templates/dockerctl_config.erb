@@ -16,6 +16,8 @@ if [ -z "$VERSION" ]; then
   VERSION="_VERSION_"
 fi
 
+SYSTEMD="<%= @use_systemd.to_s %>"
+
 IMAGE_PREFIX="fuel"
 # busybox image for storage containers
 BUSYBOX_IMAGE="busybox.tar.gz"
