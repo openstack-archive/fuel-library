@@ -15,9 +15,9 @@
 #  Optional. Defaults to 'nailgun'.
 #
 class nailgun::auth(
-  $auth_name        = 'nailgun',
-  $password         = 'nailgun',
-  $address          = '127.0.0.1',
+  $auth_name        = $::nailgun::params::keystone_nailgun_user,
+  $password         = $::nailgun::params::keystone_nailgun_password,
+  $address          = $::nailgun::params::keystone_address,
   $internal_address = undef,
   $admin_address    = undef,
   $public_address   = undef,
