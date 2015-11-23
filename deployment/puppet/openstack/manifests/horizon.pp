@@ -44,6 +44,8 @@ class openstack::horizon (
   $cache_options           = undef,
   $log_handler             = 'file',
   $custom_theme_path       = undef,
+  $file_upload_temp_dir    = '/tmp',
+  $file_upload_max_size    = '0',
 ) {
 
   if $debug { #syslog and nondebug case
@@ -89,6 +91,7 @@ class openstack::horizon (
     log_handler             => $log_handler,
     neutron_options         => $neutron_options,
     custom_theme_path       => $custom_theme_path,
+    file_upload_temp_dir  => $file_upload_temp_dir,
   }
 
   # Performance optimization for wsgi
