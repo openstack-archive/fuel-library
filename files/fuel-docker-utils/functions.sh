@@ -26,6 +26,7 @@ function show_usage {
   echo "Available commands:"
   echo "  help: show this message"
   echo "  build: create all Docker containers"
+  echo "  create: create container without running (or starting) it"
   echo "  list: list container short names (-l for more output)"
   echo "  start: start all Docker containers"
   echo "  restart: restart one or more Docker containers"
@@ -57,7 +58,7 @@ function parse_options {
                     nonopts+=("$@")
                     return
                     ;;
-      help|build|start|check|list|copy|restart|stop|revert|shell|upgrade|restore|backup|destroy|logs|post_start_hooks)
+      help|build|create|start|check|list|copy|restart|stop|revert|shell|upgrade|restore|backup|destroy|logs|post_start_hooks)
                     nonopts+=("$@")
                     return
                     ;;
@@ -135,7 +136,12 @@ function check_ready {
   echo "checking container $1"
 
   case $1 in
-      nailgun) retry_checker "shell_container nailgun supervisorctl status nailgun | grep -q RUNNING"  ;;
+      nailgun)  if [ "${SYSTEMD:-false}" == "true" ]; then
+                  retry_checker "shell_container nailgun systemctl is-active nailgun"
+                else
+                  retry_checker "shell_container nailgun supervisorctl status nailgun | grep -q RUNNING"
+                fi
+      ;;
       ostf) retry_checker "egrep -q ^[2-4][0-9]? < <(curl --connect-timeout 1 -s -w '%{http_code}' http://$ADMIN_IP:8777/ostf/not_found -o /dev/null)" ;;
       #NOTICE: Cobbler console tool does not comply unix conversation: 'cobbler profile find' always return 0 as exit code
       cobbler) retry_checker "shell_container cobbler ps waux | grep -q 'cobblerd -F' && pgrep dnsmasq"
@@ -228,6 +234,30 @@ function commit_container {
   image="$IMAGE_PREFIX/$1_$VERSION"
   ${DOCKER} commit $container_name $image
 }
+
+function create_container() {
+  # wrapper for systemd unit
+  if [ -z "$1" ]; then
+    echo "Must specify a container name" 1>&2
+    exit 1
+  fi
+  if [ "$1" = "all" ]; then
+    for container in $CONTAINER_SEQUENCE; do
+      create_container $container
+    done
+    return
+  fi
+  opts="${CONTAINER_OPTIONS[$1]} ${CONTAINER_VOLUMES[$1]}"
+  container_name="${CONTAINER_NAMES[$1]}"
+  image="$IMAGE_PREFIX/$1_$VERSION"
+  if ! container_created $container_name; then
+    pre_setup_hooks $1
+    ${DOCKER} create $opts --privileged --name=$container_name $image
+    post_setup_hooks $1
+  fi
+  return 0
+}
+
 function start_container {
   lock
   if [ -z "$1" ]; then
