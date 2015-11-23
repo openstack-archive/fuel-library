@@ -70,9 +70,26 @@ if $::osfamily == 'RedHat' {
 
 ensure_packages($mco_packages)
 
-Class['docker::container'] ->
-Class['nailgun::astute'] ->
-Class['nailgun::supervisor']
+case $::osfamily {
+  'RedHat': {
+    if $::operatingsystemrelease =~ /^7.*/ {
+      $systemd = true
+    } else {
+      $systemd = false
+    }
+  }
+  default: { $systemd = false }
+}
+
+if $systemd {
+  Class['docker::container'] ->
+  Class['nailgun::astute'] ->
+  Class['nailgun::systemd']
+} else {
+  Class['docker::container'] ->
+  Class['nailgun::astute'] ->
+  Class['nailgun::supervisor']
+}
 
 class { 'docker::container': }
 
@@ -84,11 +101,17 @@ class { 'nailgun::astute':
   bootstrap_flavor         => $bootstrap_flavor,
 }
 
-package { 'supervisor': } ->
-class { 'nailgun::supervisor':
-  nailgun_env => $env_path,
-  ostf_env    => $env_path,
-  conf_file   => 'nailgun/supervisord.conf.astute.erb',
+if $systemd {
+  class { "nailgun::systemd":
+    services => ['astute']
+  }
+} else {
+  package { "supervisor": } ->
+  class { "nailgun::supervisor":
+    nailgun_env     => $env_path,
+    ostf_env        => $env_path,
+    conf_file       => "nailgun/supervisord.conf.astute.erb",
+  }
 }
 
 class { '::mcollective':
