@@ -2,7 +2,6 @@ class nailgun::supervisor(
   $service_enabled = true,
   $nailgun_env,
   $ostf_env,
-  $conf_file = "nailgun/supervisord.conf.erb",
   $restart_service = true,
   ) {
 
@@ -23,13 +22,43 @@ class nailgun::supervisor(
     notify => Service["supervisord"],
   }
 
-
   file { "/etc/supervisord.conf":
-    content => template($conf_file),
+    content => template('nailgun/supervisord.conf.base.erb'),
     owner => 'root',
     group => 'root',
     mode => 0644,
     require => Package["supervisor"],
+    notify => Service["supervisord"],
+  }
+
+  file { '/etc/supervisord.d':
+    ensure  => directory,
+  }
+
+  file { "/etc/supervisord.d/astute.conf":
+    content => template('nailgun/supervisord.conf.astute.erb'),
+    owner => 'root',
+    group => 'root',
+    mode => 0644,
+    require => File['/etc/supervisord.d'],
+    notify => Service["supervisord"],
+  }
+
+  file { "/etc/supervisord.d/nailgun.conf":
+    content => template('nailgun/supervisord.conf.nailgun.erb'),
+    owner => 'root',
+    group => 'root',
+    mode => 0644,
+    require => File['/etc/supervisord.d'],
+    notify => Service["supervisord"],
+  }
+
+  file { '/etc/supervisord.d/ostf.conf':
+    owner   => 'root',
+    group   => 'root',
+    mode => 0644,
+    content => template('nailgun/supervisor/ostf.conf.erb'),
+    require => File['/etc/supervisord.d'],
     notify => Service["supervisord"],
   }
 

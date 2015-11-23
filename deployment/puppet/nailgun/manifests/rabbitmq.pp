@@ -1,16 +1,16 @@
 class nailgun::rabbitmq (
   $production      = 'prod',
-  $astute_password = 'astute',
-  $astute_user     = 'astute',
+  $astute_password = $::nailgun::params::rabbitmq_astute_password,
+  $astute_user     = $::nailgun::params::rabbitmq_astute_user,
   $bind_ip         = '127.0.0.1',
-  $mco_user        = 'mcollective',
-  $mco_password    = 'marionette',
-  $mco_vhost       = 'mcollective',
+  $mco_user        = $::nailgun::params::mco_user,
+  $mco_password    = $::nailgun::params::mco_password,
+  $mco_vhost       = $::nailgun::params::mco_vhost,
   $stomp           = false,
   $management_port = '15672',
   $stompport       = '61613',
   $env_config      = {},
-) {
+) inherits nailgun::params {
 
   include stdlib
   anchor { 'nailgun::rabbitmq start' :}
@@ -23,6 +23,24 @@ class nailgun::rabbitmq (
       require => Package['rabbitmq-server'],
       before  => Service['rabbitmq-server'],
     }
+  }
+
+  user { "rabbitmq":
+    ensure => present,
+    managehome => true,
+    uid        => 495,
+    shell      => '/bin/bash',
+    home       => '/var/lib/rabbitmq',
+    comment    => 'RabbitMQ messaging server',
+  }
+
+  file { "/var/log/rabbitmq":
+    ensure  => directory,
+    owner   => 'rabbitmq',
+    group   => 'rabbitmq',
+    mode    => 0755,
+    require => User['rabbitmq'],
+    before  => Service["rabbitmq-server"],
   }
 
   rabbitmq_user { $astute_user:
@@ -150,4 +168,3 @@ class nailgun::rabbitmq (
   Anchor['nailgun::rabbitmq end']
 
 }
-
