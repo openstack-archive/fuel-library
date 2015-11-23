@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import atexit
 import sys, re, pexpect, exceptions
 sys.path.append("/usr/share/fence")
 from fencing import *
@@ -20,18 +21,18 @@ def get_power_status(conn, options):
     return "on"
 
 def set_power_status(conn, options):
-    if options["-o"] == "off":
-        try:
-            conn.sendline("/sbin/reboot")
-            conn.log_expect(options, options["-c"], int(options["-g"]))
-            time.sleep(2)
-        except:
-            pass
+    if options["--action"] != "off":
+      try:
+          conn.sendline("/sbin/reboot")
+          conn.log_expect(options, options["-c"], int(options["-g"]))
+          time.sleep(2)
+      except:
+          pass
 
 def main():
-    device_opt = [  "help", "version", "agent", "quiet", "verbose", "debug",
+    device_opt = [  "help", "version", "agent", "verbose", "debug",
                     "action", "ipaddr", "login", "passwd", "passwd_script",
-                    "secure", "identity_file", "test", "port", "separator",
+                    "secure", "identity_file", "port", "separator",
                     "inet4_only", "inet6_only", "ipport",
                     "power_timeout", "shell_timeout",
                     "login_timeout", "power_wait" ]
@@ -43,11 +44,13 @@ def main():
     pinput = process_input(device_opt)
 
     # use ssh to manipulate node
-    pinput["-x"] = 1
+    pinput["--ssh"] = 1
+    pinput["--command-prompt"] = "bootstrap"
+    pinput["--identity-file"] = "/root/.ssh/bootstrap.rsa"
 
     options = check_input(device_opt, pinput)
 
-    if options["-o"] != "off":
+    if options["--action"] != "off":
         sys.exit(0)
 
     options["-c"] = "\[EXPECT\]#\ "
