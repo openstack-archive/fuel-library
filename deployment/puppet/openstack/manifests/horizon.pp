@@ -48,6 +48,7 @@ class openstack::horizon (
   $headers                 = ['set X-XSS-Protection "1; mode=block"',
                               'set X-Content-Type-Options nosniff',
                               'always append X-Frame-Options SAMEORIGIN'],
+  $file_upload_temp_dir    = '/tmp',
 ) {
 
   if $debug { #syslog and nondebug case
@@ -94,6 +95,7 @@ class openstack::horizon (
     neutron_options       => $neutron_options,
     custom_theme_path     => $custom_theme_path,
     redirect_type         => 'temp', # LP#1385133
+    file_upload_temp_dir  => $file_upload_temp_dir,
   }
 
   # Performance optimization for wsgi
