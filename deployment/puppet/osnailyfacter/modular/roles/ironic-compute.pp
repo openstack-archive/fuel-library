@@ -35,9 +35,8 @@ $db_name                        = pick($nova_hash['db_name'], 'nova')
 $db_password                    = pick($nova_hash['db_password'], 'nova')
 $database_connection            = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?read_timeout=60"
 
-$memcache_nodes                 = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
-$cache_server_ip                = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
-$memcached_addresses            = suffix($cache_server_ip, inline_template(":<%= @cache_server_port %>"))
+$cache_server_port              = hiera('memcache_server_port', '22122')
+$memcached_addresses            = "127.0.0.1:${cache_server_port}"
 $notify_on_state_change         = 'vm_and_task_state'
 
 
@@ -60,7 +59,7 @@ class { '::nova':
     report_interval        => $nova_report_interval,
     service_down_time      => $nova_service_down_time,
     notify_on_state_change => $notify_on_state_change,
-    memcached_servers      => $memcached_addresses,
+    memcached_servers      => [$memcached_addresses],
 }
 
 
