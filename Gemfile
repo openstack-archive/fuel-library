@@ -5,6 +5,7 @@ group :development, :test do
   gem 'rspec', '~>3.3',                       :require => 'false'
   gem 'rspec-puppet', '~> 2.2.0',             :require => 'false'
   gem 'metadata-json-lint',                   :require => 'false'
+  gem 'mime-types', '2.6.2',                  :require => 'false' # 3.0+ requires ruby 2.0
   gem 'puppet-lint-param-docs',               :require => 'false'
   gem 'puppet-lint-absolute_classname-check', :require => 'false'
   gem 'puppet-lint-absolute_template_path',   :require => 'false'
