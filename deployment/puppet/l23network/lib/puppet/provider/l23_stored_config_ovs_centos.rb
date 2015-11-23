@@ -62,9 +62,9 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
     ovs_bridge = []
     bridges.each do |bridge|
       bridge_provider = provider_of(bridge)
-      if bridge_provider.to_s =~ /lnx_centos/
+      if bridge_provider.to_s =~ /lnx_/
         lnx_bridge << bridge
-      elsif bridge_provider.to_s =~ /ovs_centos/
+      elsif bridge_provider.to_s =~ /ovs_/
         ovs_bridge << bridge
       else
         raise  Puppet::Error, %{Patch #{props[:name]}: the bridge #{bridge} provider #{bridge_provider} is not supported!}
