@@ -26,7 +26,6 @@ define l23network::l2::bond (
   $mtu                     = undef,
   $onboot                  = undef,
   $delay_while_up          = undef,
-# $ethtool                 = undef,
   $bond_properties         = {},  # bond configuration options
   $interface_properties    = undef,  # configuration options for included interfaces (mtu, ethtool, etc...)
   $vendor_specific         = undef,
@@ -211,6 +210,11 @@ define l23network::l2::bond (
       $config_provider = undef
     }
 
+    # get ethtool properties
+    if is_hash($interface_properties) {
+      $ethtool = $interface_properties['ethtool']
+    }
+
     if ! defined(L23_stored_config[$bond]) {
       l23_stored_config { $bond: }
     }
@@ -232,6 +236,7 @@ define l23network::l2::bond (
       bond_ad_select        => $real_bond_properties[ad_select],
       delay_while_up        => $delay_while_up,
       vendor_specific       => $vendor_specific,
+      ethtool               => $ethtool,
       provider              => $config_provider
     }
 
