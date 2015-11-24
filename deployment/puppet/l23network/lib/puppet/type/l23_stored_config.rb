@@ -365,7 +365,7 @@ Puppet::Type.newtype(:l23_stored_config) do
 
   def generate
     # if_type = :ethernet is the same as if_type = nil
-    if (!([:absent, :none, :nil, :undef] & self[:bridge]).any? and ([:ethernet, :bond].include? self[:if_type] or self[:if_type].nil?))
+    if (!([:absent, :none, :nil, :undef] & self[:bridge]).any? and ([:ethernet, :bond, :vport, :patch].include? self[:if_type] or self[:if_type].nil?))
       self[:bridge].each do |bridge|
         br = self.catalog.resource('L23_stored_config', bridge)
         fail("Stored_config resource for bridge '#{bridge}' not found for port '#{self[:name]}'!") if ! br
