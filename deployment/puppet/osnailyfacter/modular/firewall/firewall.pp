@@ -3,6 +3,12 @@ notice('MODULAR: firewall.pp')
 $network_scheme = hiera_hash('network_scheme')
 $ironic_hash = hiera_hash('ironic', {})
 
+$admin_nets   = get_routable_networks_for_network_role($network_scheme, 'admin/pxe')
+$public_nets  = get_routable_networks_for_network_role($network_scheme, 'ex')
+$management_nets = get_routable_networks_for_network_role($network_scheme, 'management')
+$storage_nets = get_routable_networks_for_network_role($network_scheme, 'storage')
+
+
 # Workaround for fuel bug with firewall
 firewall {'003 remote rabbitmq ':
   sport   => [ 4369, 5672, 41055, 55672, 61613 ],
@@ -46,11 +52,11 @@ firewall {'030 allow connections from haproxy namespace':
 
 prepare_network_config(hiera_hash('network_scheme'))
 class { 'openstack::firewall' :
-  nova_vnc_ip_range => get_routable_networks_for_network_role($network_scheme, 'nova/api'),
-  nova_api_ip_range => get_network_role_property('nova/api', 'network'),
-  libvirt_network   => get_network_role_property('management', 'network'),
+  admin_nets        => $admin_nets,
+  public_nets       => $public_nets,
+  management_nets   => $management_nets,
+  storage_nets      => $storage_nets,
   keystone_network  => get_network_role_property('keystone/api', 'network'),
-  iscsi_ip          => get_network_role_property('cinder/iscsi', 'ipaddr'),
 }
 
 if $ironic_hash['enabled'] {
