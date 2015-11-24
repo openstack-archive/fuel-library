@@ -99,6 +99,10 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
       header << "allow-#{bridge} #{provider.name}"
       props[:bridge]   = bridge
       provider.jacks   = nil
+    elsif provider.if_type.to_s == 'ethernet'
+      header << "allow-#{bridge} #{provider.name}"
+      props[:bridge]   = bridge
+      provider.jacks   = nil
     else
       header << "auto #{provider.name}" if provider.onboot
     end
@@ -110,14 +114,16 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
 
   def self.unmangle__if_type(provider, val)
     val = "OVS#{val.to_s.capitalize}".to_sym
-    val = 'OVSPort' if val.to_s == 'OVSPatch'
+    val = 'OVSPort' if val.to_s == 'OVSEthernet'
+    val = 'OVSPort' if val.to_s == 'OVSPatch' # this is hack due to ovs 2.3 scripts do not support OVSPatchPort
     val = 'OVSIntPort' if val.to_s == 'OVSVport'
     val
   end
 
   def self.mangle__if_type(val)
     val = val.gsub('OVS', '').downcase.to_sym
-    val = :patch if val.to_s == 'port'
+    val = :ethernet if val.to_s == 'port'
+    val = :patch if val.to_s == 'port' # this is hack due to ovs 2.3 scripts do not support OVSPatchPort
     val = :vport if val.to_s == 'intport'
     val
   end
@@ -130,7 +136,7 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
           :detect_shift => 3,
       },
       :vlan_id  => {
-          :detect_re    => /(ovs_)?extra\s+--\s+set\s+Port\s+(p_.*-[0 1])\s+tag=(\d+)/,
+          :detect_re    => /(ovs_)?extra\s+--\s+set\s+Port\s+(.*[\d+])\s+tag=(\d+)/,
           :detect_shift => 3,
       },
     })
