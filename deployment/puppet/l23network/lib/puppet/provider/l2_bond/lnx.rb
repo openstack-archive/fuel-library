@@ -169,6 +169,35 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         end
         self.class.interface_up(@resource[:bond]) if !bond_is_up
       end
+      # Parse interface properties
+      if @property_flush.has_key? :interface_properties
+        debug("Parsing interface properties ...")
+        ethtool_props = @property_flush[:interface_properties].fetch('ethtool', {})
+        ethtool_props.each do |section, pairs|
+          debug("Setup '#{section}' by ethtool for '#{@resource[:bond]}'")
+          optmaps = self.class.get_ethtool_name_commands_mapping[section]
+          if optmaps
+            pairs.each do |opt, setting|
+              if optmaps.has_key? opt
+                # Get number as is otherwise check true/false
+                _value = case setting
+                  when true then 'on'
+                  when false then 'off'
+                  else setting
+                end
+                _cmd = [optmaps['__section_key_set__'], @resource[:bond], optmaps[opt], _value]
+                begin
+                  ethtool_cmd(_cmd)
+                rescue Exception => e
+                  warn("Non-fatal error: #{e.to_s}")
+                end
+              end
+            end
+          else
+            warn("No mapping for ethtool section '#{section}' for '#{@resource[:bond]}'")
+          end
+        end
+      end
       if @property_flush.has_key? :bridge
         # get actual bridge-list. We should do it here,
         # because bridge may be not existing at prefetch stage.
