@@ -232,6 +232,7 @@ define l23network::l2::bond (
       bond_ad_select        => $real_bond_properties[ad_select],
       delay_while_up        => $delay_while_up,
       vendor_specific       => $vendor_specific,
+      ethtool               => pick_default($interface_properties['ethtool'], undef),
       provider              => $config_provider
     }
 
