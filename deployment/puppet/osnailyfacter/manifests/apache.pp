@@ -24,11 +24,6 @@ class osnailyfacter::apache (
   $logrotate_rotate = '52',
 ) {
 
-  define apache_port {
-    apache::listen { $name: }
-    apache::namevirtualhost { "*:${name}": }
-  }
-
   class { '::apache':
     mpm_module       => false,
     default_vhost    => false,
@@ -39,7 +34,7 @@ class osnailyfacter::apache (
     trace_enable     => 'Off',
   }
 
-  apache_port { $listen_ports: }
+  apache::listen { $name: }
 
   # we need to override the logrotate file provided by apache to work around
   # wsgi issues on the restart caused by logrotate.
