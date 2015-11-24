@@ -391,6 +391,44 @@ describe 'l23network::l2::bond', :type => :define do
 
   end
 
+  context 'Create a lnx-bond with offloading properties' do
+    let(:params) do
+      {
+        :name                 => 'bond1',
+        :interfaces           => ['eth0', 'eth1'],
+        :provider             => 'lnx',
+        :bond_properties      => {},
+        :interface_properties => {
+          'ethtool' => {
+            'offload' => {
+              'generic-receive-offload'      => false,
+              'generic-segmentation-offload' => false,
+            }
+          }
+        },
+      }
+    end
+
+    it do
+      should compile
+    end
+
+    it do
+      should contain_l23_stored_config('bond1').with({
+        'ensure'      => 'present',
+        'if_type'     => 'bond',
+        'bond_mode'   => 'balance-rr',
+        'bond_slaves' => ['eth0', 'eth1'],
+        'bond_miimon' => '100',
+        'ethtool'     => {
+          'offload' => {
+            'generic-receive-offload'      => false,
+            'generic-segmentation-offload' => false,
+          }
+        },
+      })
+    end
+  end
 
 end
 # vim: set ts=2 sw=2 et
