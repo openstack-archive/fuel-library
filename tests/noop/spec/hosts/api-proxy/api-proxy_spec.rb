@@ -27,6 +27,27 @@ describe manifest do
       )
     end
 
+    master_ip = Noop.hiera 'master_ip'
+    it 'should contain 25-apache_api_proxy.conf with correct statements' do
+        should contain_file('/tmp//25-apache_api_proxy.conf/fragments/270_apache_api_proxy-custom_fragment').with(
+         'ensure' => 'file',
+         'content' => "
+  ## Custom fragment
+  ProxyRequests on
+  ProxyVia On
+  AllowCONNECT 443 563 5000 6385 8000 8003 8004 8080 8082 8386 8773 8774 8776 8777 9292 9696
+  HostnameLookups off
+  LimitRequestFieldSize 81900
+  <Proxy *>
+    Order Deny,Allow
+        Allow from #{master_ip}
+        Deny from all
+  </Proxy>
+
+"
+        )
+    end
+
   end
 
   test_ubuntu_and_centos manifest
