@@ -3,6 +3,7 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [openstack-haproxy]
+  refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/openstack-controller.pp
     puppet_modules: /etc/puppet/modules
