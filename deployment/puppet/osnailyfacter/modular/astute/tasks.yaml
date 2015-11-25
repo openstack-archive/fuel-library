@@ -52,6 +52,7 @@
   role: [compute]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
+  refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/enable_compute.pp
     puppet_modules: /etc/puppet/modules

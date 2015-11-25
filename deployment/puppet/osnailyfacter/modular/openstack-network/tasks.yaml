@@ -40,6 +40,7 @@
   groups: [primary-controller,controller]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config]
+  refresh_on: [neutron_config, neutron_api_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/server-config.pp
     puppet_modules: /etc/puppet/modules
@@ -50,6 +51,7 @@
   groups: [primary-controller,controller,compute,ironic]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config, openstack-network-server-config]
+  refresh_on: [neutron_plugin_ml2, neutron_agent_ovs, neutron_config, neutron_api_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/plugins/ml2.pp
     puppet_modules: /etc/puppet/modules
@@ -95,6 +97,7 @@
   groups: [primary-controller,controller,compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-networks, openstack-network-routers, openstack-network-plugins-l2]
+  refresh_on: [neutron_l3_agent_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/l3.pp
     puppet_modules: /etc/puppet/modules
@@ -115,6 +118,7 @@
   groups: [primary-controller,controller]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
+  refresh_on: [neutron_dhcp_agent_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/dhcp.pp
     puppet_modules: /etc/puppet/modules
@@ -125,6 +129,7 @@
   groups: [primary-controller,controller,compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
+  refresh_on: [neutron_metadata_agent_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/metadata.pp
     puppet_modules: /etc/puppet/modules
