@@ -52,11 +52,31 @@ describe manifest do
       )
     end
 
-    it 'should configure nova quota for injected file path length' do
-      should contain_class('nova::quota').with('quota_injected_file_path_length' => '4096')
-      should contain_nova_config('DEFAULT/quota_injected_file_path_length').with(
-        'value' => '4096',
-      )
+    context 'when nova quota is disabled' do
+      let(:nova_quota) do
+        false
+      end
+
+      it 'should configure nova quota with noop driver' do
+        should contain_class('nova::quota').with('nova_quota_driver' => 'nova.quota.NoopQuotaDriver')
+      end
+    end
+
+    context 'when nova quota is enabled' do
+      let(:nova_quota) do
+        true
+      end
+
+      it 'should configure nova quota with db driver' do
+        should contain_class('nova::quota').with('nova_quota_driver' => 'nova.quota.DbQuotaDriver')
+      end
+
+      it 'should configure nova quota for injected file path length' do
+        should contain_class('nova::quota').with('quota_injected_file_path_length' => '4096')
+        should contain_nova_config('DEFAULT/quota_injected_file_path_length').with(
+          'value' => '4096',
+        )
+      end
     end
 
     #PUP-2299
