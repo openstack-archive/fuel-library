@@ -1,4 +1,4 @@
-name 'mirantis-galera'
+name 'fuel-galera'
 version '0.0.1'
 source 'none'
 author ''
