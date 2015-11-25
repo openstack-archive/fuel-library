@@ -34,10 +34,14 @@ node default {
   $cobbler_url        = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/cobbler_api"
   $cobbler_user       = $::fuel_settings['cobbler']['user']
   $cobbler_password   = $::fuel_settings['cobbler']['password']
-  $bootstrap_settings = pick($::fuel_settings['BOOTSTRAP'], {})
-  $bootstrap_flavor   = pick($bootstrap_settings['flavor'], 'centos')
-  $bootstrap_ethdevice_timeout = pick($bootstrap_settings['ethdevice_timeout'], '120')
   $nailgun_api_url    = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api"
+
+  $bootstrap_settings          = pick($::fuel_settings['BOOTSTRAP'], {})
+  $bootstrap_flavor            = pick($bootstrap_settings['flavor'], 'centos')
+  $bootstrap_path              = pick($bootstrap_settings['path'], '/var/www/nailgun/bootstraps/active_bootstrap')
+  $bootstrap_meta              = pick(loadyaml("${bootstrap_path}/metadata.yaml"), {})
+  $bootstrap_ethdevice_timeout = pick($bootstrap_settings['ethdevice_timeout'], '120')
+
   if $production == "docker-build" {
     $cobbler_host     = $::ipaddress
     $dhcp_interface     = "eth0"
@@ -85,6 +89,8 @@ node default {
     cobbler_user       => $cobbler_user,
     cobbler_password   => $cobbler_password,
     bootstrap_flavor   => $bootstrap_flavor,
+    bootstrap_path     => $bootstrap_path,
+    bootstrap_meta     => $bootstrap_meta,
     server             => $cobbler_host,
     name_server        => $cobbler_host,
     next_server        => $cobbler_host,
