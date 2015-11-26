@@ -4,9 +4,9 @@ $use_neutron = hiera('use_neutron', false)
 
 if $use_neutron {
   include nova::params
-  $neutron_config = hiera_hash('neutron_config')
+  $neutron_config = hiera_hash('neutron_config', {})
   $neutron_integration_bridge = 'br-int'
-  $nova_hash = hiera_hash('nova')
+  $nova_hash = hiera_hash('nova', {})
   $libvirt_vif_driver = pick($nova_hash['libvirt_vif_driver'], 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver')
 
   $management_vip     = hiera('management_vip')
@@ -115,11 +115,10 @@ if $use_neutron {
   }
 
 } else {
-
-  $network_scheme          = hiera('network_scheme', { })
+  $network_scheme          = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
 
-  $nova_hash               = hiera_hash('nova_hash', { })
+  $nova_hash               = hiera_hash('nova', { })
   $bind_address            = get_network_role_property('nova/api', 'ipaddr')
   $public_int              = get_network_role_property('public/vip', 'interface')
   $private_interface       = get_network_role_property('nova/private', 'interface')
@@ -128,14 +127,13 @@ if $use_neutron {
   $nova_rate_limits        = hiera('nova_rate_limits')
   $network_size            = hiera('network_size', undef)
   $network_manager         = hiera('network_manager', undef)
-  $network_config          = hiera('network_config', { })
+  $network_config          = hiera('network_config', {})
   $create_networks         = true
   $num_networks            = hiera('num_networks', '1')
-  $novanetwork_params      = hiera('novanetwork_parameters')
   $fixed_range             = hiera('fixed_network_range')
   $use_vcenter             = hiera('use_vcenter', false)
   $enabled_apis            = 'metadata'
-  $dns_nameservers         = hiera_array('dns_nameservers', [])
+  $dns_nameservers         = hiera('dns_nameservers', [])
 
   if ! $fixed_range {
     fail('Must specify the fixed range when using nova-networks')
