@@ -1,0 +1,2 @@
+<% sample_settings = YAML.load_file(@sample_config_path) rescue {} %>
+<%= YAML.dump(sample_settings.merge(@settings)) %>
