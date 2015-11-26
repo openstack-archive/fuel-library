@@ -26,6 +26,12 @@
   parameters:
     path: /etc/hiera/nodes.yaml
 
+- id: upload_override_configuration
+  type: upload_file
+  role: '*'
+  requires: [override_configuration]
+  required_for: [pre_deployment_end]
+
 - id: update_hosts
   type: puppet
   role: '*'
@@ -208,6 +214,17 @@
   required_for: [pre_deployment_end]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
+
+- id: override_configuration
+  type: puppet
+  role: '*'
+  requires: [pre_hiera_config]
+  required_for: [pre_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/override_configuration.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
