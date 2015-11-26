@@ -4,7 +4,7 @@ manifest = 'openstack-network/plugins/ml2.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') and Noop.hiera('role') =~ /controller|compute|ironic/)
+    if (Noop.hiera('use_neutron') and Noop.hiera('role') =~ /controller|compute/)
 
       let(:network_scheme) do
         Noop.hiera_hash('network_scheme', {})
@@ -182,8 +182,6 @@ describe manifest do
             )}
           end
         elsif role == 'compute'
-          it { should_not contain_service('neutron-server') }
-        elsif role == 'ironic'
           it { should_not contain_service('neutron-server') }
         end
       end
