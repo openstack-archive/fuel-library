@@ -14,7 +14,7 @@
 
 # vmware::controller deploys nova-compute service and configures it for use
 # with vmwareapi.VCDriver (vCenter server as hypervisor) on OpenStack controller
-# nodes.  Nova-compute is configured to work under Pacemaker supervision.
+# nodes. Nova-compute is configured to work under Pacemaker supervision.
 #
 # Variables:
 # vcenter_settings       -
@@ -23,23 +23,31 @@
 # vcenter_password       - password for $vcenter_user
 # vlan_interface         - VLAN interface on which networks will be provisioned
 #                          if VLANManager is used for nova-network
-# vnc_address            - IP address on which VNC server will be listening on
+# vncproxy_host          - IP address on which VNC server will be listening on
+# vncproxy_protocol      - the protocol to communicate with the VNC proxy server
+# vncproxy_port          - the port to communicate with the VNC proxy server
+# vncproxy_path          - the path at the end of the uri for communication
+#                          with the VNC proxy server
 # use_quantum            - shows if neutron is enabled
 
 # modules needed: nova
 # limitations:
 # - only one vcenter supported
 class vmware::controller (
-  $vcenter_settings = undef,
-  $vcenter_host_ip  = '10.10.10.10',
-  $vcenter_user     = 'user',
-  $vcenter_password = 'password',
-  $vlan_interface   = undef,
-  $vnc_address      = '0.0.0.0',
-  $use_quantum      = false,
+  $vcenter_settings  = undef,
+  $vcenter_host_ip   = '10.10.10.10',
+  $vcenter_user      = 'user',
+  $vcenter_password  = 'password',
+  $vlan_interface    = undef,
+  $vncproxy_host     = false,
+  $vncproxy_protocol = 'http',
+  $vncproxy_port     = '6080',
+  $vncproxy_path     = '/vnc_auto.html',
+  $use_quantum       = false,
 )
 {
   include nova::params
+  $vncproxy_base_url = "${vncproxy_protocol}://${vncproxy_host}:${vncproxy_port}${vncproxy_path}"
 
   # Stubs from nova class in order to not include whole class
   if ! defined(Class['nova']) {
@@ -88,7 +96,7 @@ class vmware::controller (
   # Set correct parameter for vnc access
   nova_config {
     'DEFAULT/enabled_apis':        value => 'ec2,osapi_compute,metadata';
-    'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html";
+    'DEFAULT/novncproxy_base_url': value => $vncproxy_base_url;
   } -> Service['nova-compute']
 
   # install cirros vmdk package
