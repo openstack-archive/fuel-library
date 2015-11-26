@@ -70,6 +70,7 @@ describe manifest do
             it { should contain_class('neutron::agents::l3').with(
               'router_delete_namespaces' => true
             )}
+            it { should_not contain_cluster__neutron__l3('default-l3') }
           else
             it { should_not contain_class('neutron::agents::l3') }
           end
@@ -79,7 +80,7 @@ describe manifest do
         context 'with Neutron-l3-agent on controller' do
           na_config = Noop.hiera_hash('neutron_advanced_configuration')
           dvr = na_config.fetch('neutron_dvr', false)
-          agent_mode = (dvr  ?  'dvr-snat'  :  'legacy')
+          agent_mode = (dvr  ?  'dvr_snat'  :  'legacy')
           ha_agent   = na_config.fetch('l3_agent_ha', true)
 
           l2pop = na_config.fetch('neutron_l2_pop', false)
