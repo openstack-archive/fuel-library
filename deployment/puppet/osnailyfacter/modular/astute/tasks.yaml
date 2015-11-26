@@ -26,6 +26,12 @@
   parameters:
     path: /etc/hiera/nodes.yaml
 
+- id: upload_override_configuration
+  type: upload_file
+  role: '*'
+  requires: [override_configuration]
+  required_for: [deploy_end]
+
 - id: update_hosts
   type: puppet
   role: '*'
