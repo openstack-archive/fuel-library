@@ -7,16 +7,23 @@ module Puppet::Parser::Functions
   newfunction(:generate_vips) do |args|
     debug 'Call: generate_vips'
 
-    network_metadata = function_hiera_hash ['network_metadata']
+    #network_metadata = function_hiera_hash ['network_metadata']
+    network_metadata = args[0]
     raise Puppet::ParseError, 'Missing or incorrect network_metadata in Hiera!' unless network_metadata.is_a? Hash
 
-    this_node_role = function_hiera ['role']
+    #this_node_role = function_hiera ['role']
+    this_node_role = args[1]
     raise Puppet::ParseError, "Could not get this node's role from Hiera!" if this_node_role.empty?
 
-    network_scheme   = function_hiera_hash ['network_scheme']
+    #network_scheme   = function_hiera_hash ['network_scheme']
+    network_scheme = args[2]
     raise Puppet::ParseError, 'Missing or incorrect network_scheme in Hiera!' unless network_scheme.is_a? Hash
 
     default_node_roles = %w(controller primary-controller)
+
+    default_vips_iptables_rules = args[3]
+
+    p "DDDEBUGGGG #{default_vips_iptables_rules}"
 
     unless L23network::Scheme.has_config?
       debug 'Running "prepare_network_config"'
@@ -41,6 +48,23 @@ module Puppet::Parser::Functions
         next
       end
 
+#### DEBUG_START
+#      if name.length > 13
+#        short_name = name[0,8]
+#        name_hash = Digest::MD5.hexdigest name
+#        short_name += '_' + name_hash[0,4]
+#      else
+#        short_name = name[0,13]
+#      end
+#      ns_veth = "b_#{short_name}"
+#      iptables_rules = parameters['iptables_rules'] if parameters['iptables_rules']
+#      iptables_rules = default_vips_iptables_rules[name]['iptables_rules'] if (default_vips_iptables_rules.has_key?(name) and default_vips_iptables_rules[name].has_key?('iptables_rules'))
+#      if iptables_rules
+#         vip['ns_iptables_start_rules'] = iptables_rules['start'].join('; ').gsub('NS_VETH', ns_veth)
+#         vip['ns_iptables_stop_rules'] = iptables_rules['start'].join('; ').gsub('NS_VETH', ns_veth)
+#      end
+#      p "HHHHERERER start #{vip['ns_iptables_start_rules']} , stop #{vip['ns_iptables_stop_rules']} "
+#### DEBUG_END
       network_role = parameters['network_role']
       unless network_role
         debug "Skipping vip: '#{name}' because it's 'network_role' parameter is not defined!"
@@ -96,12 +120,22 @@ module Puppet::Parser::Functions
       end
 
       # TODO: this should go from parameters instead of hardcoding
-      if name.include? 'vrouter_pub'
-        vip['ns_iptables_start_rules'] = "iptables -t nat -A POSTROUTING -o #{ns_veth} -j MASQUERADE"
-        vip['ns_iptables_stop_rules'] = "iptables -t nat -D POSTROUTING -o #{ns_veth} -j MASQUERADE"
-        # i'm running before the vip named 'vrouter' because vip 'vrouter' depends on me
-        vip['colocation_before'] = 'vrouter' if vips.keys.include? 'vrouter'
+
+      iptables_rules = parameters['iptables_rules'] if parameters['iptables_rules']
+      iptables_rules = default_vips_iptables_rules[name]['iptables_rules'] if (default_vips_iptables_rules.has_key?(name) and default_vips_iptables_rules[name].has_key?('iptables_rules'))
+
+      if iptables_rules
+         vip['ns_iptables_start_rules'] = iptables_rules['start'].join('; ').gsub('NS_VETH', ns_veth)
+         vip['ns_iptables_stop_rules'] = iptables_rules['start'].join('; ').gsub('NS_VETH', ns_veth)
       end
+
+      #if name.include? 'vrouter_pub'
+ #       vip['ns_iptables_start_rules'] = "iptables -t nat -A POSTROUTING -o #{ns_veth} -j MASQUERADE"
+ #       vip['ns_iptables_stop_rules'] = "iptables -t nat -D POSTROUTING -o #{ns_veth} -j MASQUERADE"
+        # i'm running before the vip named 'vrouter' because vip 'vrouter' depends on me
+        #vip['colocation_before'] = 'vrouter' if vips.keys.include? 'vrouter'
+#      end
+      vip['colocation_before'] = 'vrouter' if vips.keys.include? 'vrouter'
 
       vip['gateway'] = gateway || 'none'
       vip['gateway_metric'] = gateway_metric || '0'
