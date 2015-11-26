@@ -25,7 +25,8 @@ Class['docker::dockerctl'] ->
 Class['docker'] ->
 Class['openstack::logrotate'] ->
 Class['nailgun::supervisor'] ->
-Class['monit']
+Class['monit'] ->
+Class['nailgun::bootstrap_cli']
 
 class { 'nailgun::packages': }
 
@@ -85,6 +86,14 @@ class { 'nailgun::supervisor':
   ostf_env    => false,
   require     => File['/etc/supervisord.d/current', "/etc/supervisord.d/${::fuel_release}"],
   conf_file   => 'nailgun/supervisord.conf.base.erb',
+}
+
+class { 'nailgun::bootstrap_cli':
+  settings              => $::fuel_settings['BOOTSTRAP'],
+  direct_repo_addresses => [ $::fuel_settings['ADMIN_NETWORK']['ipaddress'] ],
+  bootstrap_cli_package => 'fuel-bootstrap-cli',
+  config_path           => '/etc/fuel-bootstrap-cli/fuel_bootstrap_cli.yaml',
+  sample_config_path    => '/etc/fuel-bootstrap-cli/fuel_bootstrap_cli.yaml',
 }
 
 class { 'osnailyfacter::ssh':
