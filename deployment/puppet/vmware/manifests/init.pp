@@ -34,19 +34,22 @@ class vmware (
   $vcenter_cluster  = 'cluster',
   $vlan_interface   = undef,
   $use_quantum      = false,
-  $vnc_address      = '0.0.0.0',
+  $nova_hash        = {},
+  $vncproxy_host    = undef,
   $ceilometer       = false,
   $debug            = false,
 )
 {
   class { 'vmware::controller':
-    vcenter_settings => $vcenter_settings,
-    vcenter_user     => $vcenter_user,
-    vcenter_password => $vcenter_password,
-    vcenter_host_ip  => $vcenter_host_ip,
-    vlan_interface   => $vlan_interface,
-    use_quantum      => $use_quantum,
-    vnc_address      => $vnc_address,
+    vcenter_settings  => $vcenter_settings,
+    vcenter_user      => $vcenter_user,
+    vcenter_password  => $vcenter_password,
+    vcenter_host_ip   => $vcenter_host_ip,
+    vlan_interface    => $vlan_interface,
+    use_quantum       => $use_quantum,
+    vncproxy_host     => $vncproxy_host,
+    vncproxy_protocol => $nova_hash['vncproxy_protocol'],
+    vncproxy_port     => $nova_hash['vncproxy_port'],
   }
 
   if $ceilometer {
