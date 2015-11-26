@@ -9,12 +9,12 @@ if $use_neutron {
   include ::neutron::params
 
   $role = hiera('role')
-  $node_name = hiera('node_name')
+  $controller         = $role in ['controller', 'primary-controller']
   $primary_controller = $role in ['primary-controller']
+  $compute            = $role in ['compute']
 
   $neutron_config = hiera_hash('neutron_config')
   $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
-  $neutron_nodes = hiera_hash('neutron_nodes')
 
   $management_vip     = hiera('management_vip')
   $service_endpoint   = hiera('service_endpoint', $management_vip)
@@ -128,7 +128,7 @@ if $use_neutron {
     include ::neutron::db::sync
   }
 
-  if $node_name in keys($neutron_nodes) {
+  if ! $compute {
     if $neutron_server_enable {
       $service_ensure = 'running'
     } else {
