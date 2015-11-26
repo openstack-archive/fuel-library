@@ -68,7 +68,7 @@ public_ssl:
     content: 'somedataaboutyourkeypair'
   hostname: public.fuel.local
 fail_if_error: true
-fqdn: node-125.test.domain.local
+fqdn: node-124.test.domain.local
 fuel_version: '6.1'
 glance:
   db_password: 385SUUrC
@@ -120,7 +120,7 @@ murano_settings:
   murano_repo_url: http://catalog.openstack.org/
 mysql:
   root_password: 5eqwkxY3
-  wsrep_password: sFMiVJ7R
+  wsrep_password: sFMiVJ7I
 network_metadata:
   nodes:
     node-121:
@@ -339,21 +339,13 @@ network_metadata:
       ipaddr: 172.16.0.3
 network_scheme:
   endpoints:
-    br-ex:
-      IP:
-      - 172.16.0.2/24
-      gateway: 172.16.0.1
-      vendor_specific:
-        phy_interfaces:
-        - eth1
-    br-floating:
-      IP: none
     br-fw-admin:
       IP:
-      - 10.108.0.8/24
+      - 10.108.0.3/24
     br-mgmt:
       IP:
-      - 192.168.0.3/24
+      - 192.168.0.2/24
+      gateway: 192.168.0.7
       vendor_specific:
         phy_interfaces:
         - eth0
@@ -366,7 +358,7 @@ network_scheme:
         vlans: 1000:1030
     br-storage:
       IP:
-      - 192.168.1.3/24
+      - 192.168.1.2/24
       vendor_specific:
         phy_interfaces:
         - eth0
@@ -435,16 +427,6 @@ network_scheme:
   - action: add-br
     name: br-storage
   - action: add-br
-    name: br-ex
-  - action: add-br
-    name: br-floating
-    provider: ovs
-  - action: add-patch
-    bridges:
-    - br-floating
-    - br-ex
-    provider: ovs
-  - action: add-br
     name: br-prv
     provider: ovs
   - action: add-patch
@@ -461,9 +443,6 @@ network_scheme:
   - action: add-port
     bridge: br-mgmt
     name: eth0.101
-  - action: add-port
-    bridge: br-ex
-    name: eth1
   version: '1.1'
 neutron_mellanox:
   metadata:
@@ -534,7 +513,7 @@ nova_quota: false
 online: true
 openstack_version: 2014.2-6.1
 openstack_version_prev: null
-priority: 200
+priority: 300
 provision:
   codename: trusty
   image_data:
@@ -561,6 +540,7 @@ public_network_assignment:
 neutron_advanced_configuration:
   neutron_dvr: false
   neutron_l2_pop: false
+  neutron_l3_ha: true
 public_vip: 172.16.0.3
 public_vrouter_vip: 172.16.0.4
 puppet:
@@ -673,7 +653,7 @@ repo_setup:
     type: deb
     uri: http://mirror.fuel-infra.org/mos/ubuntu/
 resume_guests_state_on_host_boot: true
-role: primary-controller
+role: ceph-osd
 sahara:
   db_password: R68HpdNS
   enabled: false
@@ -711,7 +691,7 @@ tasks:
   priority: 100
   type: puppet
   uids:
-  - '125'
+  - '124'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/globals/globals.pp
@@ -720,7 +700,7 @@ tasks:
   priority: 200
   type: puppet
   uids:
-  - '125'
+  - '124'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/logging/logging.pp
@@ -729,7 +709,7 @@ tasks:
   priority: 300
   type: puppet
   uids:
-  - '125'
+  - '124'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/tools/tools.pp
@@ -738,25 +718,25 @@ tasks:
   priority: 400
   type: puppet
   uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/umm/umm.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 500
-  type: puppet
-  uids:
-  - '125'
+  - '124'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+  priority: 500
+  type: puppet
+  uids:
+  - '124'
+- parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall/firewall.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
   priority: 600
   type: puppet
   uids:
-  - '125'
+  - '124'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hosts/hosts.pp
@@ -765,268 +745,25 @@ tasks:
   priority: 700
   type: puppet
   uids:
-  - '125'
+  - '124'
 - parameters:
     cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall/firewall.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 800
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/ceph-osd.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   priority: 900
   type: puppet
   uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/virtual_ips.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 1000
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/conntrackd.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 1100
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 1200
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 1300
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-server.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 1400
-  type: puppet
-  uids:
-  - '125'
+  - '124'
 - parameters:
     cwd: /
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-client.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
-  priority: 1500
+  priority: 1000
   type: puppet
   uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-server.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 1600
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 1700
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 1800
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/radosgw_user.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 1800
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 1900
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/memcached/memcached.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 2000
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/keystone.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 2100
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/openstack-cinder.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 1200
-  priority: 2200
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/glance/glance.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 2300
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/openstack-controller.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 2400
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-controller.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 2500
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/heat/heat.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 2600
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/horizon/horizon.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 2700
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/murano.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 2800
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/sahara/sahara.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 2900
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/api-proxy/api-proxy.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 3000
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 3100
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 3200
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 3300
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/controller.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 3400
-  type: puppet
-  uids:
-  - '125'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/rebalance_cronjob.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 300
-  priority: 3500
-  type: puppet
-  uids:
-  - '125'
+  - '124'
 test_vm_image:
   container_format: bare
   disk_format: qcow2
@@ -1036,10 +773,10 @@ test_vm_image:
   min_ram: 64
   os_name: cirros
   public: 'true'
-uid: '125'
+uid: '124'
 use_cow_images: true
 use_vcenter: false
-user_node_name: Untitled (34:45)
+user_node_name: Untitled (6f:9d)
 workloads_collector:
   enabled: true
   metadata:
