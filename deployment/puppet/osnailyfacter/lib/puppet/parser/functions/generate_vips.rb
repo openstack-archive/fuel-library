@@ -7,14 +7,14 @@ module Puppet::Parser::Functions
   newfunction(:generate_vips) do |args|
     debug 'Call: generate_vips'
 
-    network_metadata = function_hiera_hash ['network_metadata']
-    raise Puppet::ParseError, 'Missing or incorrect network_metadata in Hiera!' unless network_metadata.is_a? Hash
+    network_metadata = args[0]
+    raise Puppet::ParseError, 'generate_vips(): Missing or incorrect network_metadata in Hiera!' unless network_metadata.is_a? Hash
 
-    this_node_role = function_hiera ['role']
-    raise Puppet::ParseError, "Could not get this node's role from Hiera!" if this_node_role.empty?
+    network_scheme = args[1]
+    raise Puppet::ParseError, 'generate_vips(): Missing or incorrect network_scheme in Hiera!' unless network_scheme.is_a? Hash
 
-    network_scheme   = function_hiera_hash ['network_scheme']
-    raise Puppet::ParseError, 'Missing or incorrect network_scheme in Hiera!' unless network_scheme.is_a? Hash
+    this_node_role = args[2]
+    raise Puppet::ParseError, "generate_vips(): Could not get this node's role from Hiera!" if this_node_role.empty?
 
     default_node_roles = %w(controller primary-controller)
 
@@ -95,14 +95,19 @@ module Puppet::Parser::Functions
         end
       end
 
-      # TODO: this should go from parameters instead of hardcoding
-      if name.include? 'vrouter_pub'
-        vip['ns_iptables_start_rules'] = "iptables -t nat -A POSTROUTING -o #{ns_veth} -j MASQUERADE"
-        vip['ns_iptables_stop_rules'] = "iptables -t nat -D POSTROUTING -o #{ns_veth} -j MASQUERADE"
-        # i'm running before the vip named 'vrouter' because vip 'vrouter' depends on me
-        vip['colocation_before'] = 'vrouter' if vips.keys.include? 'vrouter'
+      iptables_rules = parameters['vendor_specific']['iptables_rules'] if parameters['vendor_specific'] and parameters['vendor_specific']['iptables_rules']
+      if iptables_rules
+         iptables_substitute_hash = {:INT => ns_veth,
+                                     :IP => parameters['ipaddr'],
+                                     :CIDR => "#{parameters['ipaddr']}/#{cidr_netmask}" }
+
+         vip['ns_iptables_start_rules'] = iptables_rules['ns_start'].join('; ')
+         vip['ns_iptables_stop_rules'] = iptables_rules['ns_stop'].join('; ')
+         iptables_substitute_hash.each_pair { |k, v| vip['ns_iptables_start_rules'] = vip['ns_iptables_start_rules'].gsub("<%#{k.to_s}%>", v) }
+         iptables_substitute_hash.each_pair { |k, v| vip['ns_iptables_stop_rules'] = vip['ns_iptables_stop_rules'].gsub("<%#{k.to_s}%>", v) }
       end
 
+      vip['colocation_before'] = 'vrouter' if name.include? 'vrouter_pub' and vips.keys.include? 'vrouter'
       vip['gateway'] = gateway || 'none'
       vip['gateway_metric'] = gateway_metric || '0'
 
