@@ -157,45 +157,45 @@ class nailgun::cobbler(
         require   => Cobbler_distro['ubuntu_1404_x86_64'],
       }
 
-      cobbler_distro { 'bootstrap':
-        kernel    => "${repo_root}/bootstrap/linux",
-        initrd    => "${repo_root}/bootstrap/initramfs.img",
+      case $bootstrap_profile {
+        'bootstrap': {
+          $kernel = "${repo_root}/bootstrap/linux"
+          $initrd = "${repo_root}/bootstrap/initramfs.img"
+          $breed = 'redhat'
+          $os_version = 'rhel6'
+          $default_kopts = "intel_pstate=disable console=ttyS0,9600 console=tty0 biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}"
+          $custom_kopts  = ''
+        }
+        'ubuntu_bootstrap': {
+          $kernel = "${bootstrap_path}/vmlinuz"
+          $initrd = "${bootstrap_path}/initrd.img"
+          $breed = 'ubuntu'
+          $os_version = 'trusty'
+          $default_kopts = "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstraps/active_bootstrap/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}" 
+          $custom_kopts  = $bootstrap_meta['extend_kopts']
+        }
+      }
+
+      cobbler_distro { $bootstrap_profile:
+        kernel    => $kernel,
+        initrd    => $initrd,
         arch      => 'x86_64',
-        breed     => 'redhat',
-        osversion => 'rhel6',
+        breed     => $breed,
+        osversion => $os_version,
         ksmeta    => '',
         require   => Class['::cobbler::server'],
       }
 
-      cobbler_distro { 'ubuntu_bootstrap':
-        kernel    => "${bootstrap_path}/vmlinuz",
-        initrd    => "${bootstrap_path}/initrd.img",
-        arch      => 'x86_64',
-        breed     => 'ubuntu',
-        osversion => 'trusty',
-        ksmeta    => '',
-        require   => Class['::cobbler::server'],
-      }
-
-      cobbler_profile { 'bootstrap':
-        distro    => 'bootstrap',
+      cobbler_profile { $bootstrap_profile:
+        distro    => $bootstrap_profile,
         menu      => true,
         kickstart => '',
-        kopts     => "intel_pstate=disable console=ttyS0,9600 console=tty0 biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts     => extend_kopts($default_kopts, $custom_kopts),
         ksmeta    => '',
         server    => $real_server,
-        require   => Cobbler_distro['bootstrap'],
+        require   => Cobbler_distro[$bootstrap_profile],
       }
 
-      cobbler_profile { 'ubuntu_bootstrap':
-        distro    => 'ubuntu_bootstrap',
-        menu      => true,
-        kickstart => '',
-        kopts     => extend_kopts($bootstrap_meta['extend_kopts'], "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstraps/active_bootstrap/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}"),
-        ksmeta    => '',
-        server    => $real_server,
-        require   => Cobbler_distro['ubuntu_bootstrap'],
-      }
 
       if str2bool($::is_virtual) {  class { 'cobbler::checksum_bootpc': } }
 
