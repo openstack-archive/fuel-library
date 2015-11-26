@@ -68,6 +68,12 @@ describe manifest do
           should contain_class('neutron').with('rabbit_hosts' => Noop.hiera('amqp_hosts', '').split(','))
         end
 
+        default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
+        default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+        it 'should configure default_log_levels' do
+          should contain_neutron_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+        end
+
       end
 
     end

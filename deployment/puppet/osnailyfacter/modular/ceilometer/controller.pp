@@ -13,6 +13,7 @@ $default_ceilometer_hash = {
 $ceilometer_hash          = hiera_hash('ceilometer', $default_ceilometer_hash)
 $verbose                  = pick($ceilometer_hash['verbose'], hiera('verbose', true))
 $debug                    = pick($ceilometer_hash['debug'], hiera('debug', false))
+$default_log_levels       = hiera_hash('default_log_levels')
 $use_syslog               = hiera('use_syslog', true)
 $use_stderr               = hiera('use_stderr', false)
 $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
@@ -83,6 +84,7 @@ if ($ceilometer_enabled) {
     use_syslog            => $use_syslog,
     use_stderr            => $use_stderr,
     syslog_log_facility   => $syslog_log_facility,
+    default_log_levels    => $default_log_levels,
     db_type               => $ceilometer_db_type,
     db_host               => $mongo_hosts,
     db_user               => $ceilometer_db_user,
