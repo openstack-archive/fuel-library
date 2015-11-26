@@ -41,14 +41,17 @@ class openstack::ha::murano (
   }
 
   openstack::ha::haproxy_service { 'murano-api':
-    order           => '180',
-    listen_port     => 8082,
-    public_ssl      => $public_ssl,
-    require_service => 'murano_api',
+    order                  => '190',
+    listen_port            => 8082,
+    public_ssl             => $public_ssl,
+    require_service        => 'murano_api',
+    haproxy_config_options => {
+      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+    },
   }
 
   openstack::ha::haproxy_service { 'murano_rabbitmq':
-    order                  => '190',
+    order                  => '191',
     listen_port            => 55572,
     define_backups         => true,
     internal               => false,

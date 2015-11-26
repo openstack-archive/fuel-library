@@ -40,10 +40,13 @@ class openstack::ha::ceilometer (
   }
 
   openstack::ha::haproxy_service { 'ceilometer':
-    order           => '140',
-    listen_port     => 8777,
-    public          => true,
-    public_ssl      => $public_ssl,
-    require_service => 'ceilometer-api',
+    order                  => '140',
+    listen_port            => 8777,
+    public                 => true,
+    public_ssl             => $public_ssl,
+    require_service        => 'ceilometer-api',
+    haproxy_config_options => {
+        'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+    },
   }
 }
