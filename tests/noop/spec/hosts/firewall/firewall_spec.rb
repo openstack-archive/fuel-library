@@ -13,25 +13,25 @@ describe manifest do
       Noop.puppet_function 'prepare_network_config', network_scheme
     end
 
-    let(:keystone_network) do
-      prepare
-      Noop.puppet_function 'get_network_role_property', 'keystone/api', 'network'
-    end
-
     let(:management_nets) do
-      prepare
       Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'management'
     end
+
     let(:storage_nets) do
-      prepare
       Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'storage'
     end
 
+    let(:keystone_network) do
+      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'keystone/api'
+    end
+
     let(:baremetal_network) do
+      prepare
       Noop.puppet_function 'get_network_role_property', 'ironic/baremetal', 'network'
     end
 
     let(:baremetal_ipaddr) do
+      prepare
       Noop.puppet_function 'get_network_role_property', 'ironic/baremetal', 'ipaddr'
     end
 
