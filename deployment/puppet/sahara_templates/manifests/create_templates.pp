@@ -40,7 +40,7 @@ class sahara_templates::create_templates (
         "oozie",
         "historyserver"
     ],
-    hadoop_version => '2.6.0',
+    hadoop_version => '2.7.1',
     auto_security_group => true,
   }
 
@@ -49,7 +49,7 @@ class sahara_templates::create_templates (
     plugin_name => 'vanilla',
     flavor_id => 'm1.medium',
     node_processes => ['datanode', 'nodemanager'],
-    hadoop_version => '2.6.0',
+    hadoop_version => '2.7.1',
     auto_security_group => true,
   }
 
@@ -60,7 +60,7 @@ class sahara_templates::create_templates (
       {'name' => 'vanilla-2-master', 'count' => 1},
       {'name' => 'vanilla-2-worker', 'count' => 3}
     ],
-    hadoop_version => '2.6.0',
+    hadoop_version => '2.7.1',
   }
 
   sahara_node_group_template { 'cdh-5-master' :
