@@ -9,13 +9,20 @@
 
 - id: top-role-compute
   type: puppet
+  version: 2
   groups: [compute]
   required_for: [deploy_end]
   requires: [hosts, firewall]
+  cross-depends:
+      - name: openstack-controller
+        role: .*controller
+        policy: any
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/compute.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+  strategy:
+    type: parallel
 
 - id: top-role-cinder
   type: puppet
