@@ -14,8 +14,8 @@ Puppet::Type.newtype(:override_resources) do
 
   def update_resource(type, title, parameters = {})
     fail 'First argument should be the type of the resource!' unless type and not type.empty?
-    fail 'First argument should be the type of the resource!' unless title and not title.empty?
-    fail 'Second arguments should contain resource parameters hash!' unless parameters.is_a? Hash
+    fail 'Second argument should be the title of the resource!' unless title and not title.empty?
+    fail 'Third argument should contain resource parameters hash!' unless parameters.is_a? Hash
     resource = catalog.resource type, title
     unless resource
       debug "#{type}[#{title}]: was not found in the catalog!"
