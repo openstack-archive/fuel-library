@@ -4,7 +4,7 @@ manifest = 'openstack-network/plugins/ml2.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') and Noop.hiera('role') =~ /controller|compute/)
+    if (Noop.hiera('use_neutron') and Noop.hiera('role') =~ /controller|compute|ironic/)
 
       let(:network_scheme) do
         Noop.hiera_hash('network_scheme', {})
@@ -43,12 +43,12 @@ describe manifest do
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
           network_vlan_ranges_physnet2 = pnets.fetch('physnet2',{}).fetch('vlan_range')
-          if role == 'compute' and !dvr
-            physnets_array = ["physnet2:#{pnets['physnet2']['bridge']}"]
-            network_vlan_ranges = ["physnet2:#{network_vlan_ranges_physnet2}"]
-          else
+          if role =~ /controller/ and !dvr
             physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}", "physnet2:#{pnets['physnet2']['bridge']}"]
             network_vlan_ranges = ["physnet1", "physnet2:#{network_vlan_ranges_physnet2}"]
+          else
+            physnets_array = ["physnet2:#{pnets['physnet2']['bridge']}"]
+            network_vlan_ranges = ["physnet2:#{network_vlan_ranges_physnet2}"]
           end
           tunnel_id_ranges  = []
           physical_network_mtus = ["physnet2:1500"]
@@ -182,6 +182,8 @@ describe manifest do
             )}
           end
         elsif role == 'compute'
+          it { should_not contain_service('neutron-server') }
+        elsif role == 'ironic'
           it { should_not contain_service('neutron-server') }
         end
       end
