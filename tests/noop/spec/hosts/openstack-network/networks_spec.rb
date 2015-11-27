@@ -84,12 +84,13 @@ describe manifest do
           end
           it 'should create baremetal network_subnet' do
             should contain_neutron_subnet('baremetal__subnet').with(
-              'ensure'          => 'present',
-              'cidr'            => nets['baremetal']['L3']['subnet'],
-              'network_name'    => 'baremetal',
-              'gateway_ip'      => nets['baremetal']['L3']['gateway'],
-              'enable_dhcp'     => 'true',
-              'dns_nameservers' => nets['baremetal']['L3']['nameservers'],
+              'ensure'           => 'present',
+              'cidr'             => nets['baremetal']['L3']['subnet'],
+              'network_name'     => 'baremetal',
+              'gateway_ip'       => nets['baremetal']['L3']['gateway'],
+              'enable_dhcp'      => 'true',
+              'dns_nameservers'  => nets['baremetal']['L3']['nameservers'],
+              'allocation_pools' => nets['baremetal']['L3']['floating'].split(':'),
             )
           end
         end
