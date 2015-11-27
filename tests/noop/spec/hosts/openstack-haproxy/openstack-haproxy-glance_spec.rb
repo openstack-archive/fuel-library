@@ -26,7 +26,7 @@ describe manifest do
     internal_virtual_ip = Noop.hiera('management_vip')
     public_ssl = Noop.hiera_structure('public_ssl/services')
 
-    it 'should configure glance haproxy' do
+    it 'should configure heat haproxy' do
       should contain_openstack__ha__haproxy_service('glance-api').with(
         'order'                  => '080',
         'listen_port'            => 9292,
@@ -41,8 +41,7 @@ describe manifest do
         'public_ssl'             => public_ssl,
         'require_service'        => 'glance-api',
         'haproxy_config_options' => {
-          'option'         => ['httpchk /versions', 'httplog', 'httpclose'],
-          'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+          'option'         => ['httpchk /versions', 'httplog','httpclose'],
           'timeout server' => '11m',
          },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3'

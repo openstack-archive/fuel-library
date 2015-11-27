@@ -59,7 +59,7 @@ describe manifest do
 
     it 'should declare keystone class with admin_token' do
       should contain_class('keystone').with(
-        'admin_token' => admin_token
+        'admin_token' => admin_token,
       )
     end
 
@@ -81,6 +81,7 @@ describe manifest do
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
       should contain_keystone_config('memcache/dead_retry').with(:value => '60')
       should contain_keystone_config('memcache/socket_timeout').with(:value => '1')
+      should contain_keystone_config('DEFAULT/public_endpoint').with(:value => public_url)
     end
 
     it 'should configure revoke_driver for keystone' do
@@ -100,7 +101,7 @@ describe manifest do
        should contain_class('keystone::wsgi::apache').with(
          'threads'               => '3',
          'workers'               => '4',
-         'vhost_custom_fragment' => 'LimitRequestFieldSize 81900'
+         'vhost_custom_fragment' => 'LimitRequestFieldSize 81900',
        )
      end
 
@@ -108,7 +109,7 @@ describe manifest do
        facts[:processorcount] = 48
        should contain_class('keystone::wsgi::apache').with(
          'threads' => '3',
-         'workers' => '6'
+         'workers' => '6',
        )
      end
 
@@ -116,7 +117,7 @@ describe manifest do
        facts[:processorcount] = 1
        should contain_class('keystone::wsgi::apache').with(
          'threads' => '3',
-         'workers' => '1'
+         'workers' => '1',
        )
      end
 
@@ -129,7 +130,7 @@ describe manifest do
            'target'  => '/usr/share/keystone/keystone.wsgi',
            'owner'   => 'keystone',
            'group'   => 'keystone',
-           'mode'    => '0644'
+           'mode'    => '0644',
          )
        when 'Ubuntu'
          should contain_file('keystone_wsgi_admin').with(
@@ -138,14 +139,14 @@ describe manifest do
            'source'  => '/usr/share/keystone/wsgi.py',
            'owner'   => 'keystone',
            'group'   => 'keystone',
-           'mode'    => '0644'
+           'mode'    => '0644',
          )
        end
      end
 
      it 'should not run keystone service' do
        should contain_service('keystone').with(
-         'ensure' => 'stopped'
+         'ensure' => 'stopped',
        )
      end
      it 'should configure apache to listen 5000 keystone port' do
@@ -197,11 +198,6 @@ describe manifest do
             'restart'    => 'sleep 30 && apachectl graceful || apachectl restart'
        )
      }
-
-     # LP#1508489: Breaks internal-only API
-     it 'should have undefined DEFAULT/public_endpoint' do
-       should contain_keystone_config('DEFAULT/public_endpoint').with(:value => nil)
-     end
 
   end # end of shared_examples
 

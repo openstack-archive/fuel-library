@@ -121,7 +121,12 @@ class openstack::keystone (
     $token_driver = 'keystone.token.backends.sql.Token'
   }
 
-  $public_endpoint = false
+  if $public_ssl {
+    $public_endpoint = $public_hostname ? {
+      false => false,
+      default => "https://${public_hostname}:5000",
+    }
+  }
 
   #### Fernet Token ####
   if $token_provider == 'keystone.token.providers.fernet.Provider' {
@@ -164,7 +169,7 @@ class openstack::keystone (
       token_caching                => $token_caching,
       cache_backend                => $cache_backend,
       revoke_driver                => $revoke_driver,
-      public_endpoint              => $public_endpoint,
+      public_endpoint              => $public_url,
       memcache_dead_retry          => '60',
       memcache_socket_timeout      => '1',
       memcache_pool_maxsize        =>'1000',

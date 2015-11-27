@@ -51,4 +51,3 @@ fixtures:
     'tweaks': "#{source_dir}/../tweaks"
     'corosync': "#{source_dir}/../corosync"
     'pacemaker': "#{source_dir}/../pacemaker"
-    'haproxy': "#{source_dir}/../haproxy"

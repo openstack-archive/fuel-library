@@ -49,8 +49,7 @@ class openstack::ha::cinder (
     ipaddresses            => $ipaddresses,
     define_backups         => true,
     haproxy_config_options => {
-        option         => ['httpchk', 'httplog', 'httpclose'],
-        'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+        option => ['httpchk', 'httplog','httpclose'],
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }

@@ -47,8 +47,7 @@ class openstack::ha::glance (
     public_ssl             => $public_ssl,
     require_service        => 'glance-api',
     haproxy_config_options => {
-        'option'         => ['httpchk /versions', 'httplog', 'httpclose'],
-        'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+        'option'         => ['httpchk /versions', 'httplog','httpclose'],
         'timeout server' => '11m',
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',

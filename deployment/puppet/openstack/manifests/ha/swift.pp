@@ -38,14 +38,13 @@ class openstack::ha::swift (
 
   # defaults for any haproxy_service within this class
   Openstack::Ha::Haproxy_service {
-    listen_port            => 8080,
-    internal_virtual_ip    => $internal_virtual_ip,
-    ipaddresses            => $ipaddresses,
-    public_virtual_ip      => $public_virtual_ip,
-    server_names           => $server_names,
+    listen_port         => 8080,
+    internal_virtual_ip => $internal_virtual_ip,
+    ipaddresses         => $ipaddresses,
+    public_virtual_ip   => $public_virtual_ip,
+    server_names        => $server_names,
     haproxy_config_options => {
-      'option'       => ['httpchk', 'httplog', 'httpclose'],
-      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      'option' => ['httpchk', 'httplog', 'httpclose'],
     },
     balancermember_options => 'check port 49001 inter 15s fastinter 2s downinter 8s rise 3 fall 3',
   }
