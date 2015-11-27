@@ -14,7 +14,7 @@ fixtures:
       branch: '7.0.0-mos-rc4'
     'horizon':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-horizon.git'
-      branch: 'mos-8.0'
+      branch: '7.0.0-mos-rc3'
     'keystone':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-keystone.git'
       branch: '7.0.0-mos-rc3'
