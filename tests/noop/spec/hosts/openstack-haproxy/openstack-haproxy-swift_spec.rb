@@ -16,17 +16,15 @@ describe manifest do
     else
       use_swift = true
     end
-    use_swift = Noop.hiera_structure('swift/enabled', false)
 
     if use_swift
       it "should properly configure swift haproxy based on ssl" do
         public_ssl_swift = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('swift').with(
           'order'                  => '120',
-          'listen_port'            => 8777,
+          'listen_port'            => 8080,
           'public'                 => true,
           'public_ssl'             => public_ssl_swift,
-          'require_service'        => 'swift-api',
           'haproxy_config_options' => {
             'option'       => ['httpchk', 'httplog', 'httpclose'],
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
@@ -47,7 +45,7 @@ describe manifest do
         it 'should declare openstack::ha::haproxy_service with name swift-baremetal' do
           should contain_openstack__ha__haproxy_service('swift-baremetal').with(
             'order'                  => '125',
-            'listen_port'            => 8777,
+            'listen_port'            => 8080,
             'public_virtual_ip'      => false,
             'internal_virtual_ip'    => baremetal_virtual_ip,
             'haproxy_config_options' => {
