@@ -82,14 +82,18 @@ describe manifest do
               'shared'                    => nets['baremetal']['shared'],
             )
           end
+          let(:baremetal_allocation_pools) do
+            Noop.puppet_function 'format_allocation_pools', nets['baremetal']['L3']['floating']
+          end
           it 'should create baremetal network_subnet' do
             should contain_neutron_subnet('baremetal__subnet').with(
-              'ensure'          => 'present',
-              'cidr'            => nets['baremetal']['L3']['subnet'],
-              'network_name'    => 'baremetal',
-              'gateway_ip'      => nets['baremetal']['L3']['gateway'],
-              'enable_dhcp'     => 'true',
-              'dns_nameservers' => nets['baremetal']['L3']['nameservers'],
+              'ensure'           => 'present',
+              'cidr'             => nets['baremetal']['L3']['subnet'],
+              'network_name'     => 'baremetal',
+              'gateway_ip'       => nets['baremetal']['L3']['gateway'],
+              'enable_dhcp'      => 'true',
+              'dns_nameservers'  => nets['baremetal']['L3']['nameservers'],
+              'allocation_pools' => baremetal_allocation_pools,
             )
           end
         end
