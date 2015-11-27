@@ -42,7 +42,7 @@ describe manifest do
 
     it 'should declare openstack::horizon class' do
       should contain_class('openstack::horizon').with(
-                 'nova_quota' => nova_quota,
+                 'hypervisor_options' => {'enable_quotas' => nova_quota},
                  'bind_address' => bind_address
              )
     end
