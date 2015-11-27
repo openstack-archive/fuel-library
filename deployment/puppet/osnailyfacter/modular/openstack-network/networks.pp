@@ -97,13 +97,14 @@ if hiera('use_neutron', false) {
     }
 
     neutron_subnet { 'baremetal__subnet' :
-      ensure          => 'present',
-      cidr            => try_get_value($nets, 'baremetal/L3/subnet'),
-      network_name    => 'baremetal',
-      tenant_name     => $tenant_name,
-      gateway_ip      => try_get_value($nets, 'baremetal/L3/gateway'),
-      enable_dhcp     => true,
-      dns_nameservers => try_get_value($nets, 'baremetal/L3/nameservers'),
+      ensure           => 'present',
+      cidr             => try_get_value($nets, 'baremetal/L3/subnet'),
+      network_name     => 'baremetal',
+      tenant_name      => $tenant_name,
+      gateway_ip       => try_get_value($nets, 'baremetal/L3/gateway'),
+      enable_dhcp      => true,
+      dns_nameservers  => try_get_value($nets, 'baremetal/L3/nameservers'),
+      allocation_pools => format_allocation_pools(try_get_value($nets, 'baremetal/L3/floating')),
     }
   }
 
