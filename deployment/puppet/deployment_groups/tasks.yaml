@@ -52,6 +52,15 @@
     strategy:
       type: parallel
 
+- id: cinder-block-device
+  type: group
+  role: [cinder-block-device]
+  requires: [controller]
+  required_for: [deploy_end]
+  parameters:
+    strategy:
+      type: parallel
+
 - id: cinder-vmware
   type: group
   role: [cinder-vmware]
