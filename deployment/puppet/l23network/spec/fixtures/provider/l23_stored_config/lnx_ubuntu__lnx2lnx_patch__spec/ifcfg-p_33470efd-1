@@ -1,0 +1,5 @@
+auto p_33470efd-1
+iface p_33470efd-1 inet manual
+  pre-up ip link add p_33470efd-0 type veth peer name p_33470efd-1
+  post-up ip link set up dev p_33470efd-1
+  post-down ip link del p_33470efd-0
