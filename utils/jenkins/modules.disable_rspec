@@ -36,7 +36,6 @@ rsyslog
 ssh
 stdlib
 sysctl
-tweaks
 vcsrepo
 vmware
 xinetd
