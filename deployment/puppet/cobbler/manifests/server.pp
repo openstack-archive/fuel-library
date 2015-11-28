@@ -90,7 +90,7 @@ class cobbler::server (
     Exec['cobbler_sync'] ->
       Service[$dnsmasq_service]
 
-  if $production !~ /docker/ {
+  if $production != 'docker-build' {
     service { $cobbler_service:
       ensure     => running,
       enable     => true,
