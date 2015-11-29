@@ -230,6 +230,21 @@ $chain                 = 'INPUT',
     action   => 'accept'
   }
 
+  firewall { "050 forward admin_net":
+    chain    => 'FORWARD',
+    proto    => 'all',
+    source   => "${network_address}/${network_cidr}",
+    iniface  => $admin_iface,
+    action   => 'accept',
+  }
+
+  firewall { "051 forward admin_net conntrack":
+    chain    => 'FORWARD',
+    proto    => 'all',
+    ctstate  => ['ESTABLISHED', 'RELATED'],
+    action   => 'accept'
+  }
+
   firewall {'999 iptables denied':
     chain      => 'INPUT',
     limit      => '5/min',
