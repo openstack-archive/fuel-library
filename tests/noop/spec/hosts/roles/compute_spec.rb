@@ -5,6 +5,8 @@ manifest = 'roles/compute.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    host_uuid = Noop.hiera 'host_uuid'
+
     # Libvirtd.conf
     it 'should configure listen_tls, listen_tcp and auth_tcp in libvirtd.conf' do
       should contain_augeas('libvirt-conf').with(
@@ -15,6 +17,13 @@ describe manifest do
           'set auth_tcp none',
         ],
       )
+    end
+
+    it 'should configure libvirt host_uuid' do
+      should contain_augeas('libvirt-conf-uuid').with(
+        :context => '/files/etc/libvirt/libvirtd.conf',
+        :changes => "set host_uuid #{host_uuid}"
+      ).that_notifies('Service[libvirt]')
     end
 
     # libvirt/qemu with(out) selinux/apparmor

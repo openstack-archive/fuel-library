@@ -97,6 +97,7 @@ keystone:
   db_password: MnrQiwLn
 last_controller: node-137
 libvirt_type: qemu
+host_uuid: '00000000-0000-0000-0000-000000000000'
 management_network_range: 192.168.0.0/24
 management_vip: 192.168.0.5
 management_vrouter_vip: 192.168.0.6

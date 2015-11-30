@@ -78,6 +78,8 @@ class openstack::compute (
   $glance_api_servers             = undef,
   # Virtualization
   $libvirt_type                   = 'kvm',
+  # FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
+  $host_uuid                      = undef,
   # VNC
   $vnc_enabled                    = true,
   $vncproxy_host                  = undef,
@@ -228,8 +230,6 @@ class openstack::compute (
     ],
     notify  => Service['libvirt'],
   }
-
-  $host_uuid=generate('/bin/sh', '-c', "uuidgen")
 
   augeas { 'libvirt-conf-uuid':
     context => '/files/etc/libvirt/libvirtd.conf',

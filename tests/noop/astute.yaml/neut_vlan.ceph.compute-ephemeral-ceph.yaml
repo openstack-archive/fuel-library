@@ -119,6 +119,7 @@ syslog:
     weight: 50
     label: Syslog
 libvirt_type: qemu
+host_uuid: '00000000-0000-0000-0000-000000000000'
 puppet:
   modules: rsync://10.122.10.2:/puppet/2015.1.0-8.0/modules/
   manifests: rsync://10.122.10.2:/puppet/2015.1.0-8.0/manifests/
