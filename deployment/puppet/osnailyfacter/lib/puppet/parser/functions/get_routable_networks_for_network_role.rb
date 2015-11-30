@@ -16,7 +16,7 @@ EOS
     e_point_name = net_scheme['roles'][net_role]
     return [] if e_point_name.nil?
     e_point = net_scheme['endpoints'][e_point_name]
-    return [] if e_point.nil? or !e_point.is_a?(Hash)
+    return [] if e_point.nil? or !e_point.is_a?(Hash) or e_point['IP'] == 'none'
     #collect subnets for aliases
     e_point['IP'].each do |cidr|
       masklen = cidr.split('/')[-1]
