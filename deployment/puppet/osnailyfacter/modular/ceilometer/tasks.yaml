@@ -15,7 +15,7 @@
 
 - id: ceilometer-compute
   type: puppet
-  groups: [compute]
+  groups: [compute, compute-vmware]
   required_for: [deploy_end]
   requires: [ceilometer-controller, top-role-compute]
   condition: "settings:additional_components.ceilometer.value == true"
