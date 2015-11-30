@@ -13,7 +13,13 @@ if $use_vcenter {
     vlan_interface   => $vcenter_hash['esxi_vlan_interface'],
     use_quantum      => $use_neutron,
     vnc_address      => $public_vip,
-    ceilometer       => $ceilometer_hash['enabled'],
+  }
+}
+
+$ceilometer_enabled = $ceilometer_hash['enabled']
+if $ceilometer_enabled {
+  class { 'vmware::ceilometer':
+    vcenter_settings => $vcenter_hash['computes'],
     debug            => $debug,
   }
 }
