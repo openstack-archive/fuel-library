@@ -57,6 +57,18 @@ class Noop
         task = YAML.load_file(file)
         @tasks += task if task.is_a? Array
       end
+      @tasks.each do |group|
+        next unless group['type'] == 'group'
+        group_tasks = group.fetch 'tasks', []
+        group_tasks.each do |group_task|
+          @tasks.each do |task|
+            next unless task['id'] == group_task
+            next unless task['groups'].is_a? Array
+            next if task['groups'].include? group
+            task['groups'] << group['id']
+          end
+        end
+      end
       @tasks
     end
 
