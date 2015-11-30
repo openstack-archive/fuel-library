@@ -124,7 +124,7 @@ if [ "$USE_BUNDLER" = true ]; then
 fi
 
 # if no timeout command, return true so we don't fail this script (LP#1510665)
-TIMEOUT_CMD=`which timeout || true`
+TIMEOUT_CMD=`type -P timeout || true`
 if [ -n "$TIMEOUT_CMD" ]; then
     TIMEOUT_CMD="$TIMEOUT_CMD $TIMEOUT"
 fi
