@@ -53,6 +53,11 @@ describe manifest do
         'value' => '180',
       )
     end
+    it 'nova config should have use_stderr set to false' do
+      should contain_nova_config('DEFAULT/use_stderr').with(
+        'value' => 'false',
+      )
+    end
 
   end
 

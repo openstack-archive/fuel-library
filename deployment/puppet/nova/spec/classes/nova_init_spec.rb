@@ -90,6 +90,7 @@ describe 'nova' do
       it 'configures various things' do
         should contain_nova_config('DEFAULT/verbose').with_value(false)
         should contain_nova_config('DEFAULT/debug').with_value(false)
+        should contain_nova_config('DEFAULT/use_stderr').with_value(true)
         should contain_nova_config('DEFAULT/log_dir').with_value('/var/log/nova')
         should contain_nova_config('DEFAULT/state_path').with_value('/var/lib/nova')
         should contain_nova_config('DEFAULT/lock_path').with_value(platform_params[:lock_path])
