@@ -18,12 +18,10 @@ class vmware::ceilometer (
     $default_log_levels = 'amqp=WARN,amqplib=WARN,boto=WARN,qpid=WARN,sqlalchemy=WARN,suds=INFO,iso8601=WARN,requests.packages.urllib3.connectionpool=WARN,oslo.vmware=WARN'
   }
 
-  $vsphere_clusters = vmware_index($vcenter_cluster)
-
   include ceilometer::params
 
   package { 'ceilometer-agent-compute':
-    name   => $ceilometer::params::agent_compute_package_name,
+    name   => $::ceilometer::params::agent_compute_package_name,
     ensure => present
   }
 
