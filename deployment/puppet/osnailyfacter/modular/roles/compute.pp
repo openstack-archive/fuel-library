@@ -171,9 +171,8 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 }
 
 # Get reserved host memory straight value if we've ceph neighbor
-$r_hostmem_sorted = sort([512+0, floor($::memorysize_mb*0.2) , 1536+0])
 $r_hostmem = member($roles, 'ceph-osd') ? {
-  true  => $r_hostmem_sorted[1],
+  true  => min(max(floor($::memorysize_mb*0.2), 512), 1536),
   false => undef,
 }
 
