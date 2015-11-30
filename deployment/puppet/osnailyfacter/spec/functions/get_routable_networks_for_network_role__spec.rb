@@ -170,3 +170,65 @@ end
   end
 
 end
+
+describe 'get_routable_networks_for_network_role for network_scheme without public IP' do
+
+let(:network_scheme) do
+"""
+---
+  version: '1.1'
+  provider: lnx
+  transformations:
+  - action: add-br
+    name: section_not_used_in_this_trst
+  roles:
+    management: br-mgmt
+    mgmt/database: br-mgmt
+    neutron/mesh: br-mesh
+    storage: br-storage
+    ex: br-ex
+    neutron/floating: br-floating
+    fw-admin: br-fw-admin
+  interfaces:
+    eth1: {}
+  endpoints:
+    br-fw-admin:
+      IP:
+      - 10.144.0.13/24
+    br-mesh:
+      IP:
+      - 10.144.4.2/24
+    br-floating:
+      IP: none
+    br-storage:
+      IP:
+      - 10.144.3.2/24
+    br-mgmt:
+      IP:
+      - 10.144.2.4/24
+    br-ex:
+      IP: none
+"""
+end
+
+  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
+
+  before(:each) do
+    puppet_debug_override()
+  end
+
+  subject do
+    function_name = Puppet::Parser::Functions.function('get_routable_networks_for_network_role')
+    scope.method(function_name)
+  end
+
+  it 'should exist' do
+    expect(subject).to eq scope.method('function_get_routable_networks_for_network_role')
+  end
+
+  it 'should return empty list for public network' do
+    expect(scope.function_get_routable_networks_for_network_role([YAML.load(network_scheme), 'ex'])).to eq []
+  end
+
+end
+
