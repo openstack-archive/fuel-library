@@ -21,6 +21,16 @@ describe manifest do
       end
     end
 
+    ceilometer_enabled = Noop.hiera_structure('ceilometer/enabled')
+
+    if ceilometer_enabled == 'true'
+      it 'should have /etc/ceilometer/ceilometer.conf' do
+        should contain_file('/etc/ceilometer/ceilometer.conf').with_content(
+          %r{\n\s*hypervisor_inspector=vsphere\n}
+        )
+      end
+    end
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
