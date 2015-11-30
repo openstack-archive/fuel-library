@@ -150,19 +150,13 @@ $cinder_rate_limits = hiera('cinder_rate_limits',
 )
 
 $default_gateway        = get_default_gateways()
-$public_vip             = $network_metadata['vips']['public']['ipaddr']
-$management_vip         = $network_metadata['vips']['management']['ipaddr']
-$public_vrouter_vip     = $network_metadata['vips']['vrouter_pub']['ipaddr']
-$management_vrouter_vip = $network_metadata['vips']['vrouter']['ipaddr']
+$public_vip             = try_get_value($network_metadata, 'vips/public/ipaddr')
+$management_vip         = try_get_value($network_metadata, 'vips/management/ipaddr')
+$public_vrouter_vip     = try_get_value($network_metadata, 'vips/vrouter_pub/ipaddr')
+$management_vrouter_vip = try_get_value($network_metadata, 'vips/vrouter/ipaddr')
 
-$database_vip = is_hash($network_metadata['vips']['database']) ? {
-  true    => pick($network_metadata['vips']['database']['ipaddr'], $management_vip),
-  default => $management_vip
-}
-$service_endpoint = is_hash($network_metadata['vips']['service_endpoint']) ? {
-  true    => pick($network_metadata['vips']['service_endpoint']['ipaddr'], $management_vip),
-  default => $management_vip
-}
+$database_vip = try_get_value($network_metadata, 'vips/database/ipaddr', $management_vip)
+$service_endpoint = try_get_value($network_metadata, 'vips/service_endpoint/ipaddr', $management_vip)
 
 if $use_neutron {
   $novanetwork_params            = {}
