@@ -233,6 +233,8 @@ class { 'openstack::compute':
   private_interface           => $use_neutron ? { true=>false, default=>hiera('private_int', undef)},
   internal_address            => get_network_role_property('nova/api', 'ipaddr'),
   libvirt_type                => hiera('libvirt_type', undef),
+  # FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
+  host_uuid                   => hiera('host_uuid', generate('/bin/sh', '-c', 'uuidgen')),
   fixed_range                 => $use_neutron ? { true=>false, default=>hiera('fixed_network_range', undef)},
   network_manager             => hiera('network_manager', undef),
   network_config              => hiera('network_config', {}),
