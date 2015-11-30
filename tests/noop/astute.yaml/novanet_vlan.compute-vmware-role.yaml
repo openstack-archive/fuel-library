@@ -121,6 +121,7 @@ storage:
   metadata:
     weight: 60
     label: Storage
+host_uuid: '00000000-0000-0000-0000-000000000000'
 resume_guests_state_on_host_boot: true
 public_vip: 10.109.6.2
 syslog:
