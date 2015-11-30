@@ -118,6 +118,7 @@ libvirt_type: qemu
 puppet:
   modules: rsync://10.109.5.2:/puppet/2015.1.0-8.0/modules/
   manifests: rsync://10.109.5.2:/puppet/2015.1.0-8.0/manifests/
+host_uuid: '00000000-0000-0000-0000-000000000000'
 mysql:
   root_password: 9aXGuMEH
   wsrep_password: O9DMNRw7
@@ -219,10 +220,14 @@ network_metadata:
       - compute-vmware
       name: node-2
   vips:
-    public_vrouter_vip: 10.109.6.3
-    management_vip: 10.109.7.2
-    public_vip: 10.109.6.2
-    management_vrouter_vip: 10.109.7.3
+    vrouter_pub:
+      ipaddr: 10.109.6.3
+    management:
+      ipaddr: 10.109.7.2
+    public:
+      ipaddr: 10.109.6.2
+    vrouter:
+      ipaddr: 10.109.7.3
 openstack_version: 2015.1.0-8.0
 public_vrouter_vip: 10.109.6.3
 kernel_params:
