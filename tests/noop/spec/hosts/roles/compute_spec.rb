@@ -10,7 +10,7 @@ describe manifest do
     end
 
     let(:rhost_mem) do
-      { 'reserved_host_memory' => [512, Float(facts[:memorysize_mb]).floor * 0.2, 1536].sort[1] }
+      { 'reserved_host_memory' => [[Float(facts[:memorysize_mb]).floor * 0.2, 512].max, 1536].min }
     end
 
     # Libvirtd.conf
