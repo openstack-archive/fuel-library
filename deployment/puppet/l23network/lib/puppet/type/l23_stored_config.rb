@@ -192,6 +192,9 @@ Puppet::Type.newtype(:l23_stored_config) do
     aliasvalue(:undef, :absent)
     aliasvalue(:nil,   :absent)
     defaultto :absent
+    munge do |val|
+      ([:none, :undef, :nil].include?(val.to_sym) ? :absent : val)
+    end
   end
 
   newproperty(:gateway_metric) do
