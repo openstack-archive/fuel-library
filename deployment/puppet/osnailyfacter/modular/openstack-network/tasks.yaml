@@ -3,6 +3,8 @@
   groups: [primary-controller]
   required_for: [openstack-network-end]
   requires: [database]
+  cross-depends:
+    - name: (primary-)?database
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/db.pp
     puppet_modules: /etc/puppet/modules
@@ -13,6 +15,8 @@
   groups: [primary-controller]
   required_for: [openstack-network-end]
   requires: [keystone]
+  cross-depends:
+    - name: keystone
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/keystone.pp
     puppet_modules: /etc/puppet/modules

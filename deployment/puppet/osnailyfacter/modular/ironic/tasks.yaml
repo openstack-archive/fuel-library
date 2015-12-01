@@ -12,6 +12,8 @@
 - id: ironic-db
   type: puppet
   groups: [primary-controller]
+  cross-depends:
+    - name: (primary-)?database
   condition: "settings:additional_components.ironic.value == true"
   required_for: [ironic-api]
   requires: [database]
