@@ -16,6 +16,9 @@
   type: puppet
   role: [primary-mongo, mongo, compute, ceph-osd, cinder, cinder-vmware]
   requires: [dns-client]
+  cross-depends:
+    - name: ntp-server
+      policy: any
   required_for: [post_deployment_end]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-client.pp

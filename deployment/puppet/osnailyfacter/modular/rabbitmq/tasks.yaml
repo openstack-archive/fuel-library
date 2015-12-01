@@ -1,6 +1,19 @@
 - id: rabbitmq
   type: puppet
-  groups: [primary-controller, controller]
+  groups: [controller]
+  cross-depends:
+    - name: primary-rabbitmq
+  required_for: [deploy_end, openstack-controller, glance]
+  requires: [openstack-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_post.rb
+- id: primary-rabbitmq
+  type: puppet
+  groups: [primary-controller]
   required_for: [deploy_end, openstack-controller, glance]
   requires: [openstack-haproxy]
   parameters:
