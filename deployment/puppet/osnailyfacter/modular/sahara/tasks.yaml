@@ -16,9 +16,11 @@
 - id: sahara-db
   type: puppet
   groups: [primary-controller]
+  cross-depends:
+    - name: (primary-)?database
   required_for: [sahara]
   condition: "settings:additional_components.sahara.value == true"
-  requires: [database]
+  requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/sahara/db.pp
     puppet_modules: /etc/puppet/modules
@@ -29,6 +31,8 @@
   groups: [primary-controller]
   required_for: [sahara]
   requires: [keystone]
+  cross-depends:
+    - name: keystone
   condition: "settings:additional_components.sahara.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/sahara/keystone.pp
