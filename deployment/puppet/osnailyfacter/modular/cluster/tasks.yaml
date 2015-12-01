@@ -1,6 +1,20 @@
 - id: cluster
   type: puppet
-  groups: [primary-controller, controller]
+  groups: [controller]
+  cross-depends:
+    - name: primary-cluster
+  required_for: [deploy_end]
+  requires: [hosts, firewall, deploy_start]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster/cluster_post.rb
+
+- id: primary-cluster
+  type: puppet
+  groups: [primary-controller]
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
   parameters:
@@ -15,6 +29,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [cluster]
+  cross-depends:
+    - name: /cluster/
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/health.pp
     puppet_modules: /etc/puppet/modules

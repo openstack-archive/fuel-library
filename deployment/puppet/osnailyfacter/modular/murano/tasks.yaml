@@ -16,6 +16,8 @@
 - id: murano-db
   type: puppet
   groups: [primary-controller]
+  cross-depends:
+    - name: (primary-)?database
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
   requires: [database]
@@ -40,6 +42,8 @@
   groups: [primary-controller]
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
+  cross-depends:
+    - name: primary-rabbitmq
   requires: [rabbitmq]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/rabbitmq.pp

@@ -3,6 +3,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [cluster]
+  cross-depends:
+    - name: (primary-)?cluster
+    role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/virtual_ips.pp
     puppet_modules: /etc/puppet/modules
@@ -14,7 +17,10 @@
   type: puppet
   groups: [primary-controller, controller]
   required_for: [deploy_end]
-  requires: [virtual_ips]
+  requires: [virtual_ips,cluster]
+  cross-depends:
+    - name: (primary-)?cluster
+    role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/conntrackd.pp
     puppet_modules: /etc/puppet/modules

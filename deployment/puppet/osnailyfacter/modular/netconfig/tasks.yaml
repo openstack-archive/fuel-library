@@ -1,7 +1,7 @@
 - id: netconfig
   type: puppet
   groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
-  required_for: [deploy_end]
+  required_for: [deploy_end, fuel_pkgs]
   requires: [tools]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
