@@ -63,13 +63,13 @@ Puppet::Type.newtype(:l3_ifconfig) do
 
     newproperty(:gateway) do
       desc "Default gateway"
-      newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, :absent, :none, :undef, :nil)
+      newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, :absent, :none, :undef, :nil, '')
       aliasvalue(:none,  :absent)
       aliasvalue(:undef, :absent)
       aliasvalue(:nil,   :absent)
       defaultto :absent
       validate do |val|
-        if val != :absent
+        if !(val == :absent or val.to_s == '')
           val.strip!
           raise ArgumentError, "Invalid gateway: '#{val}'" if \
              not val.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/) \
@@ -78,6 +78,9 @@ Puppet::Type.newtype(:l3_ifconfig) do
              or not ($3.to_i >= 0  and  $3.to_i <= 255) \
              or not ($4.to_i >= 0  and  $4.to_i <= 255)
         end
+      end
+      munge do |val|
+        ((val == :absent or val.to_s == '')  ?  :absent  :  val)
       end
     end
     newproperty(:gateway_metric) do

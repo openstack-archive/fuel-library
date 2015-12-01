@@ -161,7 +161,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         end
         #Clear default gateway
         #todo(sv): remove it here and include to l3_ifconfig resource
-        if resource_properties['gateway']
+        if resource_properties['gateway'] and ![nil, 'none', ''].include?(resource_properties['gateway'].to_s)
           l3_resource_properties = { 'ensure' => 'absent', 'destination' => 'default', 'gateway' => resource_properties['gateway'], 'interface' => endpoint_name }
           l3_resource_properties['metric'] = resource_properties['gateway_metric'] if resource_properties['gateway_metric']
           gateway_name = L23network.get_route_resource_name('default', l3_resource_properties['metric'])
