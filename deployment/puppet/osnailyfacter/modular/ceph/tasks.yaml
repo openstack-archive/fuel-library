@@ -70,6 +70,8 @@
 - id: ceph-compute
   type: puppet
   role: [compute]
+  cross-depends:
+    - name: ceph_create_pools
   requires: [ceph_create_pools]
   required_for: [post_deployment_end]
   condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
