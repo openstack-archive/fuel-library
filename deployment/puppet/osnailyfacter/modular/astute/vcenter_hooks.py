@@ -15,6 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from itertools import ifilter
 from novaclient.client import Client
 from optparse import OptionParser
 import subprocess
@@ -22,10 +23,10 @@ import sys
 import yaml
 
 
-def get_data_from_hiera(key):
+def get_data_from_hiera(key, resolution_type=':priority'):
     cmd = 'ruby -r hiera -r yaml -e \'hiera = Hiera.new(:config => \
           "/etc/puppet/hiera.yaml"); data = hiera.lookup "'+key+'", \
-          [], {};  puts YAML.dump data\''
+          [], {}, nil, '+resolution_type+';  puts YAML.dump data\''
     try:
         cmd_data = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as err:
@@ -72,13 +73,16 @@ def check_host_in_zone(nova_client, compute):
 
 
 def main():
-    credentials = get_data_from_hiera('access')
+    credentials = get_data_from_hiera('access', ':hash')
     USERNAME = credentials['user']
     PASSWORD = credentials['password']
     PROJECT_ID = credentials['tenant']
     VERSION = 2
-    IP = get_data_from_hiera('management_vip')
-    AUTH_URL = "http://" + IP + ":5000/v2.0/"
+    IP = []
+    IP.append(get_data_from_hiera('keystone_vip'))
+    IP.append(get_data_from_hiera('senvice_endpoint'))
+    IP.append(get_data_from_hiera('management_vip'))
+    AUTH_URL = "http://" + ifilter(None, IP).next() + ":5000/v2.0/"
 
     parser = OptionParser()
     parser.add_option("--create_zones", action="store_true", help="Create \
