@@ -6,6 +6,9 @@
   role: '*'
   required_for: [pre_deployment_end]
   requires: [generate_keys_ceph]
+  cross-depends:
+      - name: generate_keys_ceph
+        role: master
   parameters:
     files:
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph.pub
@@ -34,6 +37,9 @@
   groups: [ceph-osd]
   required_for: [deploy_end]
   requires: [hosts, firewall]
+  cross-depends:
+    - name: ceph-mon
+    - name: ceph-radosgw
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph-osd.pp
     puppet_modules: /etc/puppet/modules
@@ -43,7 +49,7 @@
   type: puppet
   groups: [primary-controller, controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [apache, ceph-mon]
+  requires: [apache, ceph-mon, primary-ceph-mon]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
     puppet_modules: /etc/puppet/modules
@@ -53,11 +59,23 @@
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
 
-- id: ceph-mon
+- id: primary-ceph-mon
   type: puppet
-  groups: [primary-controller, controller]
+  groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: ceph-mon
+  type: puppet
+  groups: [controller]
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [openstack-controller]
+  cross-depends:
+    - name: primary-ceph-mon
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
@@ -70,6 +88,8 @@
 - id: ceph-compute
   type: puppet
   role: [compute]
+  cross-depends:
+    - name: ceph_create_pools
   requires: [ceph_create_pools]
   required_for: [post_deployment_end]
   condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
@@ -86,6 +106,8 @@
   role: [primary-controller, controller]
   requires: [post_deployment_start]
   required_for: [ceph_ready_check]
+  cross-depended-by:
+    - name: ceph_ready_check
   condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_pools.pp
@@ -109,6 +131,8 @@
   condition: "settings:storage.objects_ceph.value == true"
   requires: [post_deployment_start]
   required_for: [upload_cirros, post_deployment_end]
+  cross-depended-by:
+    - name: upload_cirros
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/enable_rados.pp
     puppet_modules: /etc/puppet/modules

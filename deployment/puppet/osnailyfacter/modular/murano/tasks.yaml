@@ -16,9 +16,11 @@
 - id: murano-db
   type: puppet
   groups: [primary-controller]
+  cross-depends:
+    - name: (primary-)?database
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
-  requires: [database]
+  requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/db.pp
     puppet_modules: /etc/puppet/modules
@@ -40,30 +42,11 @@
   groups: [primary-controller]
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
-  requires: [rabbitmq]
+  cross-depends:
+    - name: (primary-)?rabbitmq
+      role: self
+  requires: [rabbitmq, primary-rabbitmq]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
-
-- id: murano-cfapi
-  type: puppet
-  groups: [primary-controller, controller]
-  condition: "settings:additional_components.murano-cfapi.value == true"
-  requires: [murano]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/cfapi.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 1800
-
-- id: murano-cfapi-keystone
-  type: puppet
-  groups: [primary-controller]
-  condition: "settings:additional_components.murano-cfapi.value == true"
-  required_for: [murano-cfapi]
-  requires: [keystone]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/keystone_cfapi.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 1800
-
