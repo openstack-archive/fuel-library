@@ -188,10 +188,10 @@ Puppet::Type.newtype(:l23_stored_config) do
   newproperty(:gateway) do
     desc "Default gateway"
     newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, :absent, :none, :undef, :nil)
-    aliasvalue(:none,  :absent)
-    aliasvalue(:undef, :absent)
-    aliasvalue(:nil,   :absent)
     defaultto :absent
+    munge do |val|
+      ([:none, :undef, :nil].include?(val.to_sym) ? :absent : val)
+    end
   end
 
   newproperty(:gateway_metric) do
