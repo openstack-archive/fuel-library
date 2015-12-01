@@ -214,19 +214,8 @@ exec { 'add_admin_token_auth_middleware':
   require => Package['keystone'],
 }
 
-#Can't use openrc to create admin user
-exec { 'purge_openrc':
-  path        => '/bin:/usr/bin:/sbin:/usr/sbin',
-  command     => 'rm -f /root/openrc',
-  onlyif      => 'test -f /root/openrc',
-}
-
-Exec <| title == 'keystone-manage db_sync' |> ~>
-Exec <| title == 'purge_openrc' |>
-
-Exec <| title == 'add_admin_token_auth_middleware' |> ->
+Exec['add_admin_token_auth_middleware'] ->
 Exec <| title == 'keystone-manage db_sync' |> ->
-Exec <| title == 'purge_openrc' |> ->
 Class['keystone::roles::admin'] ->
 Class['openstack::auth_file']
 
