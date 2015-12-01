@@ -1,5 +1,7 @@
 - id: ceilometer-controller
   type: puppet
+  cross-depends:
+    - name: ceilometer-keystone
   groups: [primary-controller, controller]
   required_for: [openstack-controller, swift]
   requires: [mongo, primary-mongo, openstack-haproxy]
@@ -18,6 +20,8 @@
   groups: [compute]
   required_for: [deploy_end]
   requires: [ceilometer-controller, top-role-compute]
+  cross-depends:
+    - name: ceilometer-controller
   condition: "settings:additional_components.ceilometer.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute.pp

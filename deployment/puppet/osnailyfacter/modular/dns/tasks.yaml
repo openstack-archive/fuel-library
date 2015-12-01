@@ -1,8 +1,20 @@
-- id: dns-server
+- id: primary-dns-server
   type: puppet
-  groups: [primary-controller, controller]
+  groups: [primary-controller]
   required_for: [deploy_end]
   requires: [openstack-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-server.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: dns-server
+  type: puppet
+  groups: [controller]
+  required_for: [deploy_end]
+  requires: [openstack-haproxy]
+  cross-depends:
+    - name: primary-dns-server
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-server.pp
     puppet_modules: /etc/puppet/modules

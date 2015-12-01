@@ -15,6 +15,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-horizon.pp
     puppet_modules: /etc/puppet/modules
@@ -29,6 +32,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -43,6 +49,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-nova.pp
     puppet_modules: /etc/puppet/modules
@@ -56,7 +65,10 @@
   type: puppet
   groups: [primary-controller, controller]
   required_for: [deploy_end]
-  requires: [cluster-haproxy]
+  requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-heat.pp
     puppet_modules: /etc/puppet/modules
@@ -71,6 +83,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-glance.pp
     puppet_modules: /etc/puppet/modules
@@ -85,6 +100,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-cinder.pp
     puppet_modules: /etc/puppet/modules
@@ -99,6 +117,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-neutron.pp
     puppet_modules: /etc/puppet/modules
@@ -113,6 +134,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-mysqld.pp
     puppet_modules: /etc/puppet/modules
@@ -127,6 +151,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-swift.pp
     puppet_modules: /etc/puppet/modules
@@ -141,6 +168,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-radosgw.pp
     puppet_modules: /etc/puppet/modules
@@ -155,6 +185,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-ceilometer.pp
     puppet_modules: /etc/puppet/modules
@@ -169,6 +202,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-sahara.pp
     puppet_modules: /etc/puppet/modules
@@ -183,6 +219,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-murano.pp
     puppet_modules: /etc/puppet/modules
@@ -197,6 +236,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-stats.pp
     puppet_modules: /etc/puppet/modules
@@ -210,6 +252,9 @@
   condition: "settings:additional_components.ironic.value == true"
   required_for: [deploy_end]
   requires: [deploy_start, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-ironic.pp
     puppet_modules: /etc/puppet/modules
