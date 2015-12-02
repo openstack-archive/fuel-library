@@ -13,6 +13,7 @@ $ntp_port              = '123',
 $rabbitmq_ports        = ['4369','5672','15672','61613'],
 $fuelweb_port          = '8443',
 $keystone_port         = '5000',
+$keystone_admin_port   = '35357',
 $chain                 = 'INPUT',
 )
 {
@@ -204,23 +205,15 @@ $chain                 = 'INPUT',
     chain    => $chain,
     port     => $keystone_port,
     proto    => 'tcp',
+    action   => 'accept'
+  }
+
+  firewall { '047 keystone_admin_port admin_net':
+    chain    => $chain,
+    port     => $keystone_admin_port,
+    proto    => 'tcp',
     iniface  => $admin_iface,
-    action   => 'accept'
-  }
-
-  firewall { '047 keystone_local':
-    chain    => $chain,
-    port     => $keystone_port,
-    proto    => 'tcp',
-    src_type => 'LOCAL',
-    action   => 'accept'
-  }
-
-  firewall { '048 keystone_block_ext':
-    chain    => $chain,
-    port     => $keystone_port,
-    proto    => 'tcp',
-    action   => 'reject'
+    action   => 'accept',
   }
 
   firewall { '049 nailgun_repo_admin':
