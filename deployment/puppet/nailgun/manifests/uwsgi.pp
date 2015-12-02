@@ -6,7 +6,19 @@
 #
 class nailgun::uwsgi(
   $production,
+  $venv = '/usr',
 ) {
+
+  if $::osfamily == 'RedHat' {
+    case $operatingsystemmajrelease {
+      '6': {
+        $site_packages_path = inline_template("<%= @venv %>/lib/python2.6/site-packages")
+      }
+      '7': {
+        $site_packages_path = inline_template("<%= @venv %>/lib/python2.7/site-packages")
+      }
+    }
+  }
 
   if $::physicalprocessorcount > 4  {
     $physicalprocessorcount = 8
