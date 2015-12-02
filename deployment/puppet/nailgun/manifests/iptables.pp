@@ -204,23 +204,7 @@ $chain                 = 'INPUT',
     chain    => $chain,
     port     => $keystone_port,
     proto    => 'tcp',
-    iniface  => $admin_iface,
     action   => 'accept'
-  }
-
-  firewall { '047 keystone_local':
-    chain    => $chain,
-    port     => $keystone_port,
-    proto    => 'tcp',
-    src_type => 'LOCAL',
-    action   => 'accept'
-  }
-
-  firewall { '048 keystone_block_ext':
-    chain    => $chain,
-    port     => $keystone_port,
-    proto    => 'tcp',
-    action   => 'reject'
   }
 
   firewall { '049 nailgun_repo_admin':
