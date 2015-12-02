@@ -44,8 +44,6 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
 } elsif ($storage_hash['volumes_ceph']) {
   $manage_volumes = 'ceph'
-} elsif member($roles, 'cinder-vmware') {
-  $manage_volumes = 'vmdk'
 } else {
   $manage_volumes = false
 }
