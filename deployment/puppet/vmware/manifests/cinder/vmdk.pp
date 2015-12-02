@@ -33,27 +33,10 @@ define vmware::cinder::vmdk(
   $debug                          = false,
 )
 {
-
   include cinder::params
   $index = $availability_zone_name
-  $cinder_volume_conf = "${cinder_conf_dir}/vmware-${index}.conf"
-  $cinder_volume_log = "${cinder_log_dir}/vmware-${index}.log"
-  $cinder_conf = '/etc/cinder/cinder.conf'
+  $cinder_volume_conf   = "${cinder_conf_dir}/vmware-${index}.conf"
   $cinder_volume_vmware = "${::cinder::params::volume_service}-vmware"
-  $storage_hash = hiera('storage', {})
-  $nodes_hash   = hiera('nodes', {})
-  $roles        = node_roles($nodes_hash, hiera('uid'))
-
-  if ($storage_hash['volumes_ceph']) and
-    !(member($roles, 'primary-controller') or
-    member($roles, 'controller')) {
-    service { 'cinder-volume':
-      enable    => false,
-      ensure    => stopped,
-      name      => $::cinder::params::volume_service,
-      hasstatus => true,
-    }
-  }
 
   if ! defined(File[$cinder_conf_dir]) {
     file { $cinder_conf_dir:
@@ -76,6 +59,15 @@ define vmware::cinder::vmdk(
 
   File[$cinder_conf_dir]->File[$cinder_volume_conf]
 
+  if ! defined(Service["cinder_volume_vmware"]) {
+    service { "cinder_volume_vmware":
+      enable    => false,
+      ensure    => stopped,
+      name      => "${cinder_volume_vmware}",
+      hasstatus => true,
+    }
+  }
+
   if ! defined(Service["cinder_volume_vmware_${index}"]) {
     service { "cinder_volume_vmware_${index}":
       ensure => running,
@@ -88,6 +80,7 @@ define vmware::cinder::vmdk(
     'RedHat': {
       $src_init = $cinder_volume_vmware
       $dst_init = '/etc/init.d'
+      $file_perm = '755'
       $cinder_volume_vmware_init = "${dst_init}/${cinder_volume_vmware}"
       $init_link = "${cinder_volume_vmware_init}-${index}"
       if ! defined(File[$init_link]) {
@@ -101,26 +94,26 @@ define vmware::cinder::vmdk(
       if ! defined(File[$cinder_volume_default]){
         file { $cinder_volume_default:
           ensure  => present,
-          content => "OPTIONS='--config-file=${cinder_conf} \
-          --config-file=${cinder_volume_conf}'",
+          content => "OPTIONS='--config-file=${cinder_volume_conf}'",
         }
       }
       File[$cinder_volume_default]~>
-      Service["cinder_volume_vmware_${index}"]
+      Service["cinder_volume_vmware_${index}"]->
+      Service["cinder_volume_vmware"]
     }
     'Debian': {
       $cinder_volume_default = "/etc/default/${cinder_volume_vmware}-${index}"
       $src_init = "${cinder_volume_vmware}.conf"
       $dst_init = '/etc/init'
+      $file_perm = '644'
 
       ensure_packages($::cinder::params::volume_package)
-      Package[$::cinder::params::volume_package] -> Exec[$src_init]
+      Package[$::cinder::params::volume_package] -> File[$src_init]
 
       if ! defined(File[$cinder_volume_default]) {
         file { $cinder_volume_default:
           ensure  => present,
-          content => "CINDER_VOLUME_OPTS='--config-file=${cinder_conf} \
-          --config-file=${cinder_volume_conf} --log-file=${cinder_volume_log}'",
+          content => "CINDER_VOLUME_OPTS='--config-file=${cinder_volume_conf}'",
         }
       }
 
@@ -144,23 +137,25 @@ define vmware::cinder::vmdk(
 
       File[$cinder_volume_default]~>
       Exec[$init_reload]->
-      Service["cinder_volume_vmware_${index}"]
+      Service["cinder_volume_vmware_${index}"]->
+      Service["cinder_volume_vmware"]
     }
     default: {
       fail { "Unsupported OS family (${::osfamily})": }
     }
   }
 
-  $cmd = "cp /usr/share/cinder/${src_init} ${dst_init}"
-  if ! defined(Exec[$src_init]) {
-    exec {$src_init:
-      command => $cmd,
-      path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ]
+  if ! defined(File[$src_init]) {
+    file { $src_init:
+       source => "puppet:///modules/vmware/${src_init}",
+       path   => "${dst_init}/${src_init}",
+       owner  => 'root',
+       group  => 'root',
+       mode   => $file_perm,
     }
   }
 
-  Exec[$src_init]->
+  File[$src_init]->
   File[$init_link]->
   File[$cinder_volume_default]
-
 }
