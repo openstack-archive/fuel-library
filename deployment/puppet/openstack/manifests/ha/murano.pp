@@ -37,6 +37,10 @@
 # [*server_names*]
 #   (required) Array. This is an array of server names for the haproxy service
 #
+# [*murano_cfapi*]
+#   (optional) Boolean. Whether enabled or not Murano service broker for Cloud Foundry
+#   default to false.
+#
 class openstack::ha::murano (
   $internal_virtual_ip,
   $ipaddresses,
@@ -46,6 +50,7 @@ class openstack::ha::murano (
   $public_ssl_path   = undef,
   $internal_ssl      = false,
   $internal_ssl_path = undef,
+  $murano_cfapi      = false,
 ) {
 
   # defaults for any haproxy_service within this class
@@ -83,5 +88,20 @@ class openstack::ha::murano (
       'mode'           => 'tcp'
     },
     balancermember_options => 'check inter 5000 rise 2 fall 3',
+  }
+
+  if $murano_cfapi {
+    openstack::ha::haproxy_service { 'murano-cfapi':
+      order                  => '192',
+      listen_port            => 8083,
+      public_ssl             => $public_ssl,
+      public_ssl_path        => $public_ssl_path,
+      internal_ssl           => $internal_ssl,
+      internal_ssl_path      => $internal_ssl_path,
+      require_service        => 'murano-cfapi',
+      haproxy_config_options => {
+        'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      },
+    }
   }
 }

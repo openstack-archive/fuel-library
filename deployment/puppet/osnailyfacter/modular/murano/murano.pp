@@ -2,7 +2,9 @@ notice('MODULAR: murano.pp')
 
 prepare_network_config(hiera('network_scheme', {}))
 
+$access_admin               = hiera_hash('access_hash', {})
 $murano_hash                = hiera_hash('murano_hash', {})
+$murano_cfapi               = hiera_hash('murano-cfapi', {})
 $murano_settings_hash       = hiera_hash('murano_settings', {})
 $rabbit_hash                = hiera_hash('rabbit_hash', {})
 $neutron_config             = hiera_hash('neutron_config', {})
@@ -35,8 +37,8 @@ $internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'inter
 $admin_auth_protocol        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
 $admin_auth_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
-$internal_api_protocol = 'http'
-$api_bind_host  = get_network_role_property('murano/api', 'ipaddr')
+$internal_api_protocol      = 'http'
+$api_bind_host              = get_network_role_property('murano/api', 'ipaddr')
 
 #################################################################
 
@@ -55,6 +57,7 @@ if $murano_hash['enabled'] {
   $db_host        = pick($murano_hash['db_host'], $database_ip)
   $read_timeout   = '60'
   $sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
+  $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
   $external_network = $use_neutron ? {
     true    => get_ext_net_name($neutron_config['predefined_networks']),
@@ -121,10 +124,41 @@ if $murano_hash['enabled'] {
     }
   }
 
-
   class { 'murano::api':
     host => $api_bind_host,
     port => $api_bind_port,
+  }
+
+  if $murano_cfapi['enabled'] {
+    $cfapi_firewall_rule  = '203 murano-cfapi'
+    $cfapi_bind_port = '8083'
+    $cfapi_bind_host = get_network_role_property('murano/cfapi', 'ipaddr')
+
+    ####### Disable upstart startup on install #######
+    tweaks::ubuntu_service_override { ['murano-cfapi']:
+      package_name => 'murano-cfapi',
+    }
+
+    firewall { $cfapi_firewall_rule :
+      dport  => $cfapi_bind_port,
+      proto  => 'tcp',
+      action => 'accept',
+    }
+
+    class { 'murano::cfapi':
+      tenant   => $access_admin['tenant'],
+      host     => $cfapi_bind_host,
+      port     => $cfapi_bind_port,
+      auth_url => "${public_auth_protocol}://${public_auth_address}:5000/v2.0/",
+    }
+
+    haproxy_backend_status { 'murano-cfapi':
+      name => 'murano-cfapi',
+      url  => $haproxy_stats_url,
+    }
+
+    Firewall[$cfapi_firewall_rule] -> Class['murano::cfapi']
+    Service['murano-cfapi'] -> Haproxy_backend_status['murano-cfapi']
   }
 
   class { 'murano::engine': }
@@ -135,8 +169,6 @@ if $murano_hash['enabled'] {
     api_url  => $internal_url,
     repo_url => $repository_url,
   }
-
-  $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
   haproxy_backend_status { 'murano-api' :
     name => 'murano-api',
