@@ -1,13 +1,13 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'murano/keystone.pp'
+manifest = 'murano/keystone_cfapi.pp'
 
 describe manifest do
   shared_examples 'catalog' do
 
     let(:service_endpoint) { Noop.hiera 'service_endpoint' }
     let(:network_scheme) { Noop.hiera_hash 'network_scheme' }
-    api_bind_port = '8082'
+    api_bind_port = '8083'
 
     internal_protocol = 'http'
     internal_address = Noop.hiera('service_endpoint')
@@ -17,7 +17,7 @@ describe manifest do
     if Noop.hiera_structure('use_ssl', false)
       public_protocol = 'https'
       public_address = Noop.hiera_structure('use_ssl/murano_public_hostname')
-      internal_protocol = 'http'
+      internal_protocol = 'https'
       internal_address = Noop.hiera_structure('use_ssl/murano_internal_hostname')
       admin_protocol = 'https'
       admin_address = Noop.hiera_structure('use_ssl/murano_admin_hostname')
@@ -40,10 +40,10 @@ describe manifest do
 
     ##########################################################################
 
-    it 'should declare murano::keystone::auth class correctly' do
-      should contain_class('murano::keystone::auth').with(
+    it 'should declare murano::keystone::cfapi_auth class correctly' do
+      should contain_class('murano::keystone::cfapi_auth').with(
                  'password'     => murano_password,
-                 'service_type' => 'application_catalog',
+                 'service_type' => 'service_broker',
                  'region'       => region,
                  'tenant'       => tenant,
                  'public_url'   => public_url,
