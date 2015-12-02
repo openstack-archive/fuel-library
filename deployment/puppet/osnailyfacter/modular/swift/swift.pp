@@ -1,41 +1,48 @@
 notice('MODULAR: swift.pp')
 
-$network_scheme   = hiera_hash('network_scheme')
-$network_metadata = hiera_hash('network_metadata')
+$network_scheme             = hiera_hash('network_scheme')
+$network_metadata           = hiera_hash('network_metadata')
 prepare_network_config($network_scheme)
 
-$swift_hash              = hiera_hash('swift_hash')
-$swift_master_role       = hiera('swift_master_role', 'primary-controller')
-$swift_nodes             = hiera_hash('swift_nodes', {})
-$swift_operator_roles    = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator'])
-$swift_proxies_addr_list = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('swift_proxies', {}), 'swift/api'))
+$swift_hash                 = hiera_hash('swift_hash')
+$swift_master_role          = hiera('swift_master_role', 'primary-controller')
+$swift_nodes                = hiera_hash('swift_nodes', {})
+$swift_operator_roles       = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator'])
+$swift_proxies_addr_list    = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('swift_proxies', {}), 'swift/api'))
 # todo(sv) replace 'management' to mgmt/memcache
-$memcaches_addr_list     = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('swift_proxy_caches', {}), 'management'))
-$is_primary_swift_proxy  = hiera('is_primary_swift_proxy', false)
-$proxy_port              = hiera('proxy_port', '8080')
-$storage_hash            = hiera_hash('storage_hash')
-$mp_hash                 = hiera('mp')
-$management_vip          = hiera('management_vip')
-$public_vip              = hiera('public_vip')
-$swift_api_ipaddr        = get_network_role_property('swift/api', 'ipaddr')
-$swift_storage_ipaddr    = get_network_role_property('swift/replication', 'ipaddr')
-$debug                   = pick($swift_hash['debug'], hiera('debug', false))
-$verbose                 = pick($swift_hash['verbose'], hiera('verbose', false))
+$memcaches_addr_list        = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('swift_proxy_caches', {}), 'management'))
+$is_primary_swift_proxy     = hiera('is_primary_swift_proxy', false)
+$proxy_port                 = hiera('proxy_port', '8080')
+$storage_hash               = hiera_hash('storage_hash')
+$mp_hash                    = hiera('mp')
+$management_vip             = hiera('management_vip')
+$public_vip                 = hiera('public_vip')
+$swift_api_ipaddr           = get_network_role_property('swift/api', 'ipaddr')
+$swift_storage_ipaddr       = get_network_role_property('swift/replication', 'ipaddr')
+$debug                      = pick($swift_hash['debug'], hiera('debug', false))
+$verbose                    = pick($swift_hash['verbose'], hiera('verbose', false))
 # NOTE(mattymo): Changing ring_part_power or part_hours on redeploy leads to data loss
-$ring_part_power         = pick($swift_hash['ring_part_power'], 10)
-$ring_min_part_hours     = hiera('swift_ring_min_part_hours', 1)
-$deploy_swift_storage    = hiera('deploy_swift_storage', true)
-$deploy_swift_proxy      = hiera('deploy_swift_proxy', true)
-$create_keystone_auth    = pick($swift_hash['create_keystone_auth'], true)
+$ring_part_power            = pick($swift_hash['ring_part_power'], 10)
+$ring_min_part_hours        = hiera('swift_ring_min_part_hours', 1)
+$deploy_swift_storage       = hiera('deploy_swift_storage', true)
+$deploy_swift_proxy         = hiera('deploy_swift_proxy', true)
+$create_keystone_auth       = pick($swift_hash['create_keystone_auth'], true)
 #Keystone settings
-$service_endpoint        = hiera('service_endpoint')
-$keystone_user           = pick($swift_hash['user'], 'swift')
-$keystone_password       = pick($swift_hash['user_password'], 'passsword')
-$keystone_tenant         = pick($swift_hash['tenant'], 'services')
-$keystone_protocol       = pick($swift_hash['auth_protocol'], 'http')
-$region                  = hiera('region', 'RegionOne')
-$service_workers         = pick($swift_hash['workers'],
+$service_endpoint           = hiera('service_endpoint')
+$keystone_user              = pick($swift_hash['user'], 'swift')
+$keystone_password          = pick($swift_hash['user_password'], 'passsword')
+$keystone_tenant            = pick($swift_hash['tenant'], 'services')
+$keystone_protocol          = pick($swift_hash['auth_protocol'], 'http')
+$region                     = hiera('region', 'RegionOne')
+$service_workers            = pick($swift_hash['workers'],
                                 min(max($::processorcount, 2), 16))
+$ssl_hash                   = hiera_hash('use_ssl', {})
+
+$keystone_internal_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$keystone_endpoint          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+
+$swift_internal_protocol    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
+$swift_internal_endpoint    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$swift_api_ipaddr, $management_vip])
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -112,13 +119,13 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       auth_protocol                  => $keystone_protocol,
     } ->
     class { 'openstack::swift::status':
-      endpoint    => "http://${swift_api_ipaddr}:${proxy_port}",
+      endpoint    => "${swift_internal_protocol}://${swift_internal_endpoint}:${proxy_port}",
       vip         => $management_vip,
       only_from   => "127.0.0.1 240.0.0.2 ${sto_nets} ${man_nets}",
       con_timeout => 5
     } ->
     class { 'swift::dispersion':
-      auth_url       => "http://$service_endpoint:5000/v2.0/",
+      auth_url       => "${keystone_internal_protocol}://${keystone_endpoint}:5000/v2.0/",
       auth_user      =>  $keystone_user,
       auth_tenant    =>  $keystone_tenant,
       auth_pass      =>  $keystone_password,
