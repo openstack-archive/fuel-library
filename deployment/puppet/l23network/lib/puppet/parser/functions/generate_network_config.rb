@@ -266,6 +266,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         endpoints[e_name] = create_endpoint()
         if ! (e_properties.nil? or e_properties.empty?)
           e_properties.each do |k,v|
+            next if k == :gateway and v.to_s.empty?
             k = k.to_s.tr('-','_').to_sym
             if k == :IP
               if !(v.is_a?(Array) || ['none','dhcp',nil].include?(v))
