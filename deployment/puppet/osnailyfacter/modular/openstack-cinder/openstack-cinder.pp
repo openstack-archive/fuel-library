@@ -30,20 +30,18 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
 } elsif ($storage_hash['volumes_ceph']) {
   $manage_volumes = 'ceph'
-} elsif member($roles, 'cinder-vmware') {
-  $manage_volumes = 'vmdk'
 } else {
   $manage_volumes = false
 }
 
 # SQLAlchemy backend configuration
 $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
+$max_overflow  = min($::processorcount * 5 + 0, 60 + 0)
+$max_retries   = '-1'
+$idle_timeout  = '3600'
 
 $keystone_auth_protocol = 'http'
-$keystone_auth_host = $service_endpoint
+$keystone_auth_host     = $service_endpoint
 $service_port = '5000'
 $auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
 $identity_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
@@ -60,6 +58,8 @@ $openstack_version = {
 ######### Cinder Controller Services ########
 class {'openstack::cinder':
   sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
+  cinder_user_password => $cinder_user_password,
+  glance_api_servers   => $glance_api_servers,
   queue_provider       => $queue_provider,
   amqp_hosts           => hiera('amqp_hosts',''),
   amqp_user            => $rabbit_hash['user'],
@@ -69,27 +69,25 @@ class {'openstack::cinder':
   physical_volume      => undef,
   manage_volumes       => $manage_volumes,
   enabled              => true,
-  glance_api_servers   => $glance_api_servers,
   auth_host            => $service_endpoint,
   bind_host            => get_network_role_property('cinder/api', 'ipaddr'),
   iscsi_bind_host      => get_network_role_property('cinder/iscsi', 'ipaddr'),
-  keystone_user        => $keystone_user,
-  keystone_tenant      => $keystone_tenant,
-  auth_uri             => $auth_uri,
-  region               => $region,
-  identity_uri         => $identity_uri,
-  cinder_user_password => $cinder_user_password,
   use_syslog           => hiera('use_syslog', true),
   use_stderr           => hiera('use_stderr', false),
+  syslog_log_facility  => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
+  cinder_rate_limits   => hiera('cinder_rate_limits'),
   verbose              => pick($cinder_hash['verbose'], hiera('verbose', true)),
   debug                => pick($cinder_hash['debug'], hiera('debug', true)),
   default_log_levels   => hiera_hash('default_log_levels'),
-  syslog_log_facility  => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
-  cinder_rate_limits   => hiera('cinder_rate_limits'),
-  max_retries          => $max_retries,
+  idle_timeout         => $idle_timeout,
   max_pool_size        => $max_pool_size,
   max_overflow         => $max_overflow,
-  idle_timeout         => $idle_timeout,
+  max_retries          => $max_retries,
+  keystone_tenant      => $keystone_tenant,
+  auth_uri             => $auth_uri,
+  identity_uri         => $identity_uri,
+  keystone_user        => $keystone_user,
+  region               => $region,
   ceilometer           => $ceilometer_hash[enabled],
   service_workers      => $service_workers,
 } # end class

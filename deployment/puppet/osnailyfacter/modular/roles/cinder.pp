@@ -127,16 +127,15 @@ $mountpoints = filter_hash($mp_hash,'point')
 
 # SQLAlchemy backend configuration
 $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
+$max_overflow  = min($::processorcount * 5 + 0, 60 + 0)
+$max_retries   = '-1'
+$idle_timeout  = '3600'
 
 # Determine who should get the volume service
-
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
   $physical_volumes = false
-} elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
+} elsif member($roles, 'cinder-vmware') {
   $manage_volumes = 'vmdk'
   $physical_volumes = false
 } elsif ($storage_hash['volumes_ceph']) {
@@ -151,7 +150,6 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
 }
 
 #Determine who should be the default backend
-
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
   $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
@@ -262,40 +260,40 @@ if member($roles, 'controller') or member($roles, 'primary-controller') {
 #   service #LP1398817. The orchestration will start and enable it back
 #   after the deployment is done.
 class { 'openstack::cinder':
-  enable_volumes       => false,
   sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
+  cinder_user_password => $cinder_hash[user_password],
   glance_api_servers   => $glance_api_servers,
-  bind_host            => $bind_host,
   queue_provider       => $queue_provider,
   amqp_hosts           => hiera('amqp_hosts',''),
   amqp_user            => $rabbit_hash['user'],
   amqp_password        => $rabbit_hash['password'],
   rabbit_ha_queues     => hiera('rabbit_ha_queues', false),
   volume_group         => 'cinder',
+  physical_volume      => $physical_volumes,
   manage_volumes       => $manage_volumes,
   iser                 => $storage_hash['iser'],
   enabled              => true,
+  enable_volumes       => false,
   auth_host            => $service_endpoint,
+  bind_host            => $bind_host,
   iscsi_bind_host      => $storage_address,
-  keystone_user        => $keystone_user,
-  keystone_tenant      => $keystone_tenant,
-  cinder_user_password => $cinder_hash[user_password],
-  syslog_log_facility  => $syslog_log_facility_cinder,
-  physical_volume      => $physical_volumes,
-  debug                => $debug,
-  verbose              => $verbose,
-  use_stderr           => $use_stderr,
   use_syslog           => $use_syslog,
-  max_retries          => $max_retries,
+  use_stderr           => $use_stderr,
+  syslog_log_facility  => $syslog_log_facility_cinder,
+  verbose              => $verbose,
+  debug                => $debug,
+  idle_timeout         => $idle_timeout,
   max_pool_size        => $max_pool_size,
   max_overflow         => $max_overflow,
-  idle_timeout         => $idle_timeout,
+  max_retries          => $max_retries,
+  keystone_tenant      => $keystone_tenant,
+  auth_uri             => $auth_uri,
+  identity_uri         => $auth_uri,
+  keystone_user        => $keystone_user,
   ceilometer           => $ceilometer_hash[enabled],
   vmware_host_ip       => $vcenter_hash['host_ip'],
   vmware_host_username => $vcenter_hash['vc_user'],
   vmware_host_password => $vcenter_hash['vc_password'],
-  auth_uri             => $auth_uri,
-  identity_uri         => $auth_uri,
 }
 
 cinder_config { 'keymgr/fixed_key':
