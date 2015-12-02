@@ -254,6 +254,8 @@ murano:
   enabled: true
   rabbit_password: ZNdTAgF3
   user_password: xP8WtHQw
+murano-cfapi:
+  enabled: true
 murano_settings:
   metadata:
     label: Murano Settings
@@ -299,6 +301,7 @@ network_metadata:
         glance/api: 192.168.0.1
         mgmt/vip: 192.168.0.1
         murano/api: 192.168.0.1
+        murano/cfapi: 192.168.0.1
         nova/api: 192.168.0.1
         horizon: 192.168.0.1
         mgmt/memcache: 192.168.0.1
@@ -340,6 +343,7 @@ network_metadata:
         glance/api: 192.168.0.2
         mgmt/vip: 192.168.0.2
         murano/api: 192.168.0.2
+        murano/cfapi: 192.168.0.2
         nova/api: 192.168.0.2
         horizon: 192.168.0.2
         mgmt/memcache: 192.168.0.2
@@ -381,6 +385,7 @@ network_metadata:
         glance/api: 192.168.0.3
         mgmt/vip: 192.168.0.3
         murano/api: 192.168.0.3
+        murano/cfapi: 192.168.0.3
         nova/api: 192.168.0.3
         horizon: 192.168.0.3
         mgmt/memcache: 192.168.0.3
@@ -422,6 +427,7 @@ network_metadata:
         glance/api: 192.168.0.4
         mgmt/vip: 192.168.0.4
         murano/api: 192.168.0.4
+        murano/cfapi: 192.168.0.4
         nova/api: 192.168.0.4
         horizon: 192.168.0.4
         mgmt/memcache: 192.168.0.4
@@ -463,6 +469,7 @@ network_metadata:
         glance/api: 192.168.0.5
         mgmt/vip: 192.168.0.5
         murano/api: 192.168.0.5
+        murano/cfapi: 192.168.0.5
         nova/api: 192.168.0.5
         horizon: 192.168.0.5
         mgmt/memcache: 192.168.0.5
@@ -559,6 +566,7 @@ network_scheme:
     glance/api: br-mgmt
     heat/api: br-mgmt
     murano/api: br-mgmt
+    murano/cfapi: br-mgmt
     nova/api: br-mgmt
     horizon: br-mgmt
     mgmt/memcache: br-mgmt
