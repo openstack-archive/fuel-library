@@ -150,7 +150,6 @@ then
    rm -r /etc/puppet/${openstack_version}
 fi
 mkdir -p /etc/puppet/${openstack_version}
-mkdir -p /etc/puppet/2015.1.0-8.0
 #Update puppet manifests symlinks to the latest version
 for i in modules manifests
 do
@@ -163,10 +162,6 @@ do
   fi
   #Copy manifests and modules to path where nailgun expects to find them
   cp -pR /etc/puppet/%{name}-%{version}/${i} /etc/puppet/${openstack_version}/
-  # FIXME - this is temporary workaround to pass CI testing without changes to
-  # nailgun's openstack.yaml. Will be removed once the change to nailgun is
-  # merged
-  cp -pR /etc/puppet/%{name}-%{version}/${i} /etc/puppet/2015.1.0-8.0/
   #Create symbolic link required for local puppet appply
   ln -s /etc/puppet/%{name}-%{version}/${i} /etc/puppet/${i}
 done
@@ -178,17 +173,6 @@ if [ "$1" = 2 ]; then
     echo "Unable to sync tasks. Run `fuel rel --sync-deployment-tasks --dir $taskdir` to finish install." 1>&2
 fi
 
-%posttrans -p /bin/bash
-openstack_version=$(cat %{_sysconfdir}/fuel_openstack_version)
-if [ -d /etc/puppet/${openstack_version} ]
-then
-   rm -r /etc/puppet/${openstack_version}
-fi
-mkdir -p /etc/puppet/${openstack_version}
-for i in modules manifests
-do
-  cp -pR /etc/puppet/%{name}-%{version}/${i} /etc/puppet/${openstack_version}
-done
 
 %files
 /etc/puppet/%{name}-%{version}/modules/
