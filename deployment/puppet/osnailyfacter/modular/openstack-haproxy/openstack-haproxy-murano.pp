@@ -1,8 +1,10 @@
 notice('MODULAR: openstack-haproxy-murano.pp')
 
 $murano_hash        = hiera_hash('murano_hash',{})
+$murano_cfapi_hash  = hiera_hash('murano-cfapi',{})
 # NOT enabled by default
 $use_murano         = pick($murano_hash['enabled'], false)
+$use_murano_cfapi   = pick($murano_cfapi_hash['enabled'], false)
 $public_ssl_hash    = hiera('public_ssl')
 $ssl_hash           = hiera_hash('use_ssl', {})
 $public_ssl         = get_ssl_property($ssl_hash, $public_ssl_hash, 'murano', 'public', 'usage', false)
@@ -29,5 +31,6 @@ if ($use_murano) {
     public_ssl_path     => $public_ssl_path,
     internal_ssl        => $internal_ssl,
     internal_ssl_path   => $internal_ssl_path,
+    murano_cfapi        => $use_murano_cfapi,
   }
 }
