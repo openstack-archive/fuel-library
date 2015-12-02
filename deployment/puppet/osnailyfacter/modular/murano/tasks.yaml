@@ -45,3 +45,25 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
+- id: murano-cfapi
+  type: puppet
+  groups: [primary-controller]
+  condition: "settings:additional_components.murano-cfapi.value == true"
+  requires: [murano]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/cfapi.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: murano-cfapi-keystone
+  type: puppet
+  groups: [primary-controller]
+  condition: "settings:additional_components.murano-cfapi.value == true"
+  required_for: [murano-cfapi]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/keystone_cfapi.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
