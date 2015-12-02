@@ -32,6 +32,11 @@ describe manifest do
       Noop.puppet_function 'get_network_role_property', 'murano/api', 'ipaddr'
     end
 
+    let(:cf_bind_address) do
+      prepare
+      Noop.puppet_function 'get_network_role_property', 'murano/cfapi', 'ipaddr'
+    end
+
     let(:region) { Noop.hiera('region', 'RegionOne') }
     let(:use_neutron) { Noop.hiera('use_neutron', false) }
     let(:service_endpoint) { Noop.hiera('service_endpoint') }
@@ -55,6 +60,7 @@ describe manifest do
     let(:repository_url) { Noop.hiera_structure('murano_settings/murano_repo_url', default_repository_url) }
 
     let(:api_bind_port) { '8082' }
+    let(:cfapi_bind_port) { '8083' }
     let(:internal_url) { "http://#{bind_address}:#{api_bind_port}" }
 
     let(:sql_connection) do
@@ -125,6 +131,13 @@ describe manifest do
         should contain_class('murano::api').with(
                    'host' => bind_address,
                    'port' => api_bind_port
+               )
+      end
+
+      it 'should declare murano::cfapi class correctly' do
+        should contain_class('murano::cfapi').with(
+                   'host' => cf_bind_address,
+                   'port' => cfapi_bind_port
                )
       end
 
