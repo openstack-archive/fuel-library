@@ -146,7 +146,7 @@ $idle_timeout = '3600'
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
   $physical_volumes = false
-} elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
+} elsif member($roles, 'cinder-vmware') {
   $manage_volumes = 'vmdk'
   $physical_volumes = false
 } elsif ($storage_hash['volumes_ceph']) {
