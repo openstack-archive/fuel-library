@@ -46,6 +46,9 @@ if $murano_hash['enabled'] {
 
   $api_bind_port  = '8082'
 
+  $cfapi_bind_port = '8083'
+  $cfapi_bind_host  = get_network_role_property('murano/cfapi', 'ipaddr')
+
   $murano_user    = pick($murano_hash['user'], 'murano')
   $tenant         = pick($murano_hash['tenant'], 'services')
   $internal_url   = "${internal_api_protocol}://${api_bind_host}:${api_bind_port}"
@@ -125,6 +128,11 @@ if $murano_hash['enabled'] {
   class { 'murano::api':
     host => $api_bind_host,
     port => $api_bind_port,
+  }
+
+  class { 'murano::cfapi':
+    host => $cfapi_bind_host,
+    port => $cfapi_bind_port,
   }
 
   class { 'murano::engine': }
