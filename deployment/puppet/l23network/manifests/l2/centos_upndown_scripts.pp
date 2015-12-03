@@ -12,5 +12,11 @@ class l23network::l2::centos_upndown_scripts {
     mode    => '0755',
     content => template('l23network/centos_ifdown-local.erb'),
   } ->
+  file {'/sbin/ifup-pre-local':
+    ensure  => present,
+    owner   => 'root',
+    mode    => '0755',
+    source  => 'puppet:///modules/l23network/centos_ifup-pre-local',
+  } ->
   anchor { 'l23network::l2::centos_upndown_scripts': }
 }

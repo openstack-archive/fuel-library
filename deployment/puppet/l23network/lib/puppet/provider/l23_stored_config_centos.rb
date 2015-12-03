@@ -48,6 +48,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
       :bond_downdelay        => 'downdelay',
       :ethtool               => 'ETHTOOL_OPTS',
       :routes                => 'ROUTES',
+      :jacks                 => 'JACKS',
     }
   end
   def property_mappings
@@ -127,6 +128,12 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     if hash.has_key?('IPADDR')
       hash['IPADDR'] = "#{hash['IPADDR']}/#{hash['PREFIX']}"
       hash.delete('PREFIX')
+    end
+
+    # reading preup file for patch if it exists
+    if preup_content = self.read_file("#{self.script_directory}/pre-up-ifcfg-#{dirty_iface_name}") and !preup_content.empty?
+      hash['JACKS'] = preup_content
+      hash['TYPE'] = 'Patch'
     end
 
     hash.delete('DEVICETYPE') if hash['DEVICETYPE']
@@ -261,6 +268,18 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     return rv
   end
 
+  def self.mangle__jacks(data)
+   #data should be
+   #ip link add p_3911f6cc-0 type veth peer name p_3911f6cc-1\nip link set up dev p_3911f6cc-1
+   rv = []
+   p "parse jacks #{data}"
+   data.split("\n").each do | line |
+     jacks = line.scan(/ip\s+link\s+add\s+([\w\-]+)\s+type\s+veth\s+peer\s+name\s+([\w\-]+)/).flatten
+     rv = jacks if !jacks.empty?
+   end
+   return rv
+  end
+
   ###
   # Hash to file
   def self.format_file(filename, providers)
@@ -316,6 +335,14 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
       self.remove_line_from_file('/etc/sysconfig/network', /GATEWAY.*/)
     end
 
+    #writing the pre-up file for patch
+    if pairs['TYPE'].to_s == 'Patch' and pairs['JACKS']
+      patch_pre_up_filename = "#{self.script_directory}/pre-up-ifcfg-#{provider.name}"
+      self.write_file(patch_pre_up_filename, pairs['JACKS'])
+      pairs.delete('TYPE')
+      pairs.delete('JACKS')
+    end
+
     pairs.each_pair do |key, val|
       content << "#{key}=#{val}" if ! val.nil?
     end
@@ -326,12 +353,19 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
   end
 
   def self.read_file(file)
-    File.read file
+    content = ''
+    content = File.read(file) if File.exist?(file)
+    return content
   end
 
   def self.write_file(file, content)
-    File.open(file, 'w') do |fp|
-      fp.write content
+    debug("write_file(): writing the file #{file} \nwith content:\n#{content}")
+    begin
+      File.open(file, 'w') do |writing_file|
+        writing_file.write content.to_s
+      end
+    rescue
+      raise Puppet::Error, "write_file(): file #{file} can not be written!"
     end
   end
 
@@ -424,6 +458,14 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     end
     return rv
   end
+
+  def self.unmangle__jacks(provider, data)
+    rv = []
+    rv << "ip link add #{data[0]} type veth peer name #{data[1]}"
+    rv << "ip link set up dev #{data[1]}"
+    rv.join("\n")
+  end
+
 
 end
 # vim: set ts=2 sw=2 et :
