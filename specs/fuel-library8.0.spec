@@ -15,12 +15,9 @@ Source0: %{name}-%{version}.tar.gz
 Provides: fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
-%if 0%{rhel} < 7
-BuildRequires: ruby21-rubygem-librarian-puppet-simple
-%else
-BuildRequires: rubygem-librarian-puppet-simple
-%endif
 Requires: fuel-misc python-fuelclient
+BuildRequires: ruby21
+BuildRequires: git
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
@@ -36,6 +33,8 @@ This package contains deployment manifests and code to execute provisioning of m
 
 %prep
 %setup -cq
+gem install git
+gem install librarian-puppet-simple
 sed -i %{dockerctl_source}/dockerctl_config -e 's:_VERSION_:%{fuel_release}:'
 sed -i deployment/puppet/docker/templates/dockerctl_config.erb -e 's:_VERSION_:%{fuel_release}:'
 
