@@ -29,7 +29,7 @@ Puppet::Type.newtype(:sahara_cluster_template) do
 
   newproperty(:neutron_management_network) do
     desc 'The id of private neutron network'
-    defaultto { 'net04' }
+    defaultto { 'admin_internal_net' }
   end
 
   #########################################
