@@ -65,7 +65,7 @@ describe Puppet::Type.type(:sahara_cluster_template).provider(:ruby) do
 
   let(:list_networks) do
     [
-      OpenStruct.new(:id => '89980ffb-fac3-4b1b-8416-b655fba5095b', :name => 'net04'),
+      OpenStruct.new(:id => '89980ffb-fac3-4b1b-8416-b655fba5095b', :name => 'admin_internal_net'),
     ]
   end
 
@@ -94,7 +94,7 @@ describe Puppet::Type.type(:sahara_cluster_template).provider(:ruby) do
       :plugin_name => "hdp",
       :description => "hdp-2",
       :name => "hdp-2",
-      :neutron_management_network => "net04",
+      :neutron_management_network => "admin_internal_net",
     }
   end
 
@@ -139,7 +139,7 @@ describe Puppet::Type.type(:sahara_cluster_template).provider(:ruby) do
     it 'returns nothing for management_network if Nova-Network' do
       resource[:neutron] = false
       provider.exists?
-      expect(resource[:neutron_management_network]).to eq 'net04'
+      expect(resource[:neutron_management_network]).to eq 'admin_internal_net'
     end
 
     it 'can set node group id fro node_groups' do

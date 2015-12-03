@@ -13,6 +13,7 @@ describe manifest do
     let(:auth_tenant) { Noop.hiera_structure 'access/tenant' }
     let(:service_endpoint) { Noop.hiera('service_endpoint') }
     let(:public_vip) { Noop.hiera('public_vip') }
+    let(:neutron_config) { Noop.hiera_structure('neutron_config') }
 
     let(:network_scheme) do
       Noop.hiera_hash 'network_scheme'
@@ -148,7 +149,8 @@ describe manifest do
                      'auth_uri' => "#{public_protocol}://#{public_address}:5000/v2.0/",
                      'auth_password' => auth_password,
                      'auth_user' => auth_user,
-                     'auth_tenant' => auth_tenant
+                     'auth_tenant' => auth_tenant,
+                     'internal_net' => neutron_config['default_private_net'],
                  )
         end
 
