@@ -27,6 +27,17 @@ describe manifest do
       )
     end
 
+    it 'should declare apache::vhost apache_api_proxy' do
+      should contain_apache__vhost('apache_api_proxy').with(
+        'docroot'          => '/var/www/html',
+        'port'             => '8888',
+        'add_listen'       => true,
+        'error_log_syslog' => 'syslog:local0',
+        'log_level'        => 'notice',
+        'ip_based'         => true,
+      )
+    end
+
     master_ip = Noop.hiera 'master_ip'
     it 'should contain 25-apache_api_proxy.conf with correct statements' do
         should contain_file('/tmp//25-apache_api_proxy.conf/fragments/270_apache_api_proxy-custom_fragment').with(

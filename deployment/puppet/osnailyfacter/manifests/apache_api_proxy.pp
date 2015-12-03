@@ -33,5 +33,6 @@ class osnailyfacter::apache_api_proxy(
     add_listen       => true,
     error_log_syslog => 'syslog:local0',
     log_level        => 'notice',
+    ip_based         => true, # Do not setup outdated 'NameVirtualHost' option
   }
 }
