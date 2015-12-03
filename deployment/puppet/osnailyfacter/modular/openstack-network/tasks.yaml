@@ -94,7 +94,7 @@
 
 - id: openstack-network-agents-l3
   type: puppet
-  groups: [primary-controller,controller,compute]
+  groups: [primary-controller,controller,compute,ironic]
   required_for: [openstack-network-end]
   requires: [openstack-network-networks, openstack-network-routers, openstack-network-plugins-l2]
   refresh_on: [neutron_l3_agent_config]
@@ -126,7 +126,7 @@
 
 - id: openstack-network-agents-metadata
   type: puppet
-  groups: [primary-controller,controller,compute]
+  groups: [primary-controller,controller,compute,ironic]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
   refresh_on: [neutron_metadata_agent_config]
