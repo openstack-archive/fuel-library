@@ -37,7 +37,6 @@ class openstack::horizon (
   $ssl_no_verify           = false,
   $use_syslog              = false,
   $log_level               = 'WARNING',
-  $nova_quota              = false,
   $django_session_engine   = 'django.contrib.sessions.backends.cache',
   $servername              = $::hostname,
   $cache_backend           = undef,
@@ -48,6 +47,7 @@ class openstack::horizon (
   $headers                 = ['set X-XSS-Protection "1; mode=block"',
                               'set X-Content-Type-Options nosniff',
                               'always append X-Frame-Options SAMEORIGIN'],
+  $hypervisor_options      = {},
 ) {
 
   if $debug { #syslog and nondebug case
@@ -94,6 +94,7 @@ class openstack::horizon (
     neutron_options       => $neutron_options,
     custom_theme_path     => $custom_theme_path,
     redirect_type         => 'temp', # LP#1385133
+    hypervisor_options    => $hypervisor_options,
   }
 
   # Performance optimization for wsgi
