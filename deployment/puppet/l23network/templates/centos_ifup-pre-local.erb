@@ -1,0 +1,5 @@
+#!/bin/sh
+SCRIPT="/etc/sysconfig/network-scripts/pre-up-$1"
+if [[ -x $SCRIPT ]] ; then
+. $SCRIPT
+fi
