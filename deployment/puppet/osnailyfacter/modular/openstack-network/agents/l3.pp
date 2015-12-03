@@ -10,7 +10,7 @@ $dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
 $role = hiera('role')
 $controller = $role in ['controller', 'primary-controller']
-$compute = $role in ['compute']
+$compute = $role in ['compute', 'ironic']
 
 if $use_neutron and ($controller or ($dvr and $compute)) {
   $debug                   = hiera('debug', true)

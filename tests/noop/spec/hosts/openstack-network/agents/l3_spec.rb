@@ -23,7 +23,7 @@ describe manifest do
         Noop.puppet_function('get_network_role_property', 'neutron/floating', 'interface')
       end
 
-      if Noop.hiera('role') == 'compute'
+      if Noop.hiera('role') == 'compute' or Noop.hiera('role') == 'ironic'
         context 'neutron-l3-agent on compute' do
           na_config = Noop.hiera_hash('neutron_advanced_configuration')
           dvr = na_config.fetch('neutron_dvr', false)

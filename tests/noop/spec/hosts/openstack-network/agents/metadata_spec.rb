@@ -17,7 +17,7 @@ describe manifest do
       na_config                = Noop.hiera_hash('neutron_advanced_configuration')
       neutron_config           = Noop.hiera_hash('neutron_config')
       neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
-      neutron_compute_roles    = Noop.hiera('neutron_compute_nodes', ['compute'])
+      neutron_compute_roles    = Noop.hiera('neutron_compute_nodes', ['compute', 'ironic'])
       isolated_metadata        = neutron_config.fetch('metadata',{}).fetch('isolated_metadata', true)
       ha_agent                 = na_config.fetch('dhcp_agent_ha', true)
 
