@@ -29,7 +29,7 @@ Puppet::Type.type(:l2_patch).provide(:lnx, :parent => Puppet::Provider::Lnx_base
       found_peer = jacks.select{|j| j[:ifindex]==jack[:peer_ifindex]}
       next if found_peer.empty?
       peer = found_peer[0]
-      _bridges  = [jack[:bridge], peer[:bridge]].sort
+      _bridges  = [jack[:bridge], peer[:bridge]]
       _tails    = ([jack[:bridge], peer[:bridge]] == _bridges  ?  [jack[:name], peer[:name]]  :  [peer[:name], jack[:name]])
       if _bridges.include? nil
         _name = "patch__raw__#{_tails[0]}--#{_tails[1]}"
@@ -70,7 +70,7 @@ Puppet::Type.type(:l2_patch).provide(:lnx, :parent => Puppet::Provider::Lnx_base
       _br = _bridges.fetch(br_name, {})
       #todo: sv: re-design for call method from bridge provider
       if _br[:br_type].to_s == 'lnx'
-        self.class.iproute(['link', 'set', 'dev', @resource[:jacks][i], 'master', br_name ])
+        self.class.brctl(['addif', br_name, @resource[:jacks][i]])
       elsif _br[:br_type].to_s == 'ovs'
         fail("lnx2ovs patchcord '#{patch_name}' is not implemented yet, use ovs2lnx for this purpose!")
         #self.class.ovs_vsctl(['--may-exist', 'add-port', br_name, @resource[:jacks][i]])
@@ -92,9 +92,7 @@ Puppet::Type.type(:l2_patch).provide(:lnx, :parent => Puppet::Provider::Lnx_base
       debug("FLUSH properties: #{@property_flush}")
       if !['', 'absent'].include? @property_flush[:mtu].to_s
         # 'absent' is a synonym 'do-not-touch' for MTU
-        @property_hash[:jacks].uniq.each do |iface|
-          self.class.set_mtu(iface, @property_flush[:mtu])
-        end
+        @property_hash[:jacks].each { |iface| self.class.set_mtu(iface, @property_flush[:mtu]) } if @property_hash[:jacks]
       end
       #todo: /sv: make ability of change bridges for RAW patchcords
       @property_hash = resource.to_hash
