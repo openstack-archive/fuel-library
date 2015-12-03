@@ -1,4 +1,5 @@
 require 'rspec-puppet'
+require 'fakefs/spec_helpers'
 
 fixture_path = File.expand_path(File.join(__FILE__, '..', 'fixtures'))
 
