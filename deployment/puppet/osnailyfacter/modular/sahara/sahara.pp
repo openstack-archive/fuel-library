@@ -11,6 +11,7 @@ $primary_controller         = hiera('primary_controller')
 $public_vip                 = hiera('public_vip')
 $database_vip               = hiera('database_vip', undef)
 $management_vip             = hiera('management_vip')
+$neutron_config             = hiera_hash('neutron_config')
 $use_neutron                = hiera('use_neutron', false)
 $service_endpoint           = hiera('service_endpoint')
 $syslog_log_facility_sahara = hiera('syslog_log_facility_sahara')
@@ -141,6 +142,7 @@ if $sahara_hash['enabled'] {
       auth_password => $access_admin['password'],
       auth_tenant   => $access_admin['tenant'],
       auth_uri      => "${public_protocol}://${public_address}:5000/v2.0/",
+      internal_net  => try_get_value($neutron_config, 'default_private_net', 'admin_internal_net'),
     }
 
     Haproxy_backend_status['keystone-admin'] -> Haproxy_backend_status['sahara']

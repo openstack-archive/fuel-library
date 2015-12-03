@@ -4,6 +4,7 @@ class sahara_templates::create_templates (
   $auth_tenant      = 'services',
   $auth_password    = 'sahara',
   $use_neutron      = false,
+  $internal_net     = 'admin_internal_net',
 ) inherits sahara::params {
 
   Sahara_node_group_template {
@@ -24,6 +25,7 @@ class sahara_templates::create_templates (
     auth_password => $auth_password,
     auth_tenant_name => $auth_tenant,
     neutron => $use_neutron,
+    neutron_management_network => $internal_net,
     debug => true,
     require => Service['sahara-api'],
   }
