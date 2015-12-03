@@ -1,0 +1,4 @@
+BOOTPROTO=none
+DEVICE=p_33470efd-0
+ONBOOT=yes
+BRIDGE=br1
