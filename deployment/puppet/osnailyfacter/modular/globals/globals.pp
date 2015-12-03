@@ -3,6 +3,9 @@ notice('MODULAR: globals.pp')
 $service_token_off = false
 $globals_yaml_file = '/etc/hiera/globals.yaml'
 
+$facter_os_package_type_dir = '/etc/facter/facts.d'
+$facter_os_package_type_file = "${facter_os_package_type_dir}/os_package_type.txt"
+
 # remove cached globals values before anything else
 remove_file($globals_yaml_file)
 
@@ -25,6 +28,25 @@ prepare_network_config($network_scheme)
 
 # DEPRICATED
 $nodes_hash                     = hiera('nodes', {})
+
+# MOS Ubuntu image uses Debian style packages. Since the introduction
+# of `$::os_package_type' fact avilable to use in project manifests,
+# we need to provide a manual override for Fuel Ubuntu images.
+if ($::osfamily == 'Debian'){
+  $os_package_type              = hiera('os_package_type', 'debian')
+  if (!empty($os_package_type)) {
+    exec { mkdir_p:
+      command => "/bin/mkdir -p $facter_os_package_type_dir",
+    }
+    file { $facter_os_package_type_file :
+      ensure  => 'present',
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => "os_package_type=$os_package_type\n"
+    }
+  }
+}
 
 $deployment_mode                = hiera('deployment_mode', 'ha_compact')
 $roles                          = $node['node_roles']
