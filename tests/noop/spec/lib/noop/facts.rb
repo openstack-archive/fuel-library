@@ -5,9 +5,9 @@ class Noop
 
     def override_facts
       facts = {}
-      return facts unless hiera_facts_override_present?
+      return facts unless facts_override_present?
       begin
-        override_facts = YAML.load_file facts_yaml_path
+        override_facts = YAML.load_file facts_override_path
         return {} unless facts.is_a? Hash
         override_facts.each do |fact, value|
           facts[fact.to_sym] = value

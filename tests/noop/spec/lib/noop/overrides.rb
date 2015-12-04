@@ -11,7 +11,7 @@ class Noop
               'yaml',
           ],
           :yaml => {
-              :datadir => hiera_data_path,
+              :datadir => astute_yaml_directory_path,
           },
           :hierarchy => hiera_config_hierarhy,
           :logger => logger,
@@ -21,7 +21,7 @@ class Noop
 
     def hiera_config_hierarhy
       elements = []
-      elements << hiera_task_override if hiera_task_override_present?
+      elements << hiera_data_task_override if yaml_override_present?
       elements << hiera_data_globals
       elements << hiera_data_astute
       elements

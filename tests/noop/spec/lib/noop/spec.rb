@@ -29,7 +29,7 @@ class Noop
 
     def generated_spec_base_dir
       return @generated_spec_base_dir if @generated_spec_base_dir
-      @generated_spec_base_dir = File.expand_path File.join(spec_dir, '..', '..', 'generated_spec')
+      @generated_spec_base_dir = File.expand_path File.join(spec_path, '..', '..', 'generated_spec')
     end
 
     def generated_spec_path(context)

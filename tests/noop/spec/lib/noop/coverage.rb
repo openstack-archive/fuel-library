@@ -3,7 +3,7 @@ class Noop
 
     def coverage_base_dir
       return @coverage_base_dir if @coverage_base_dir
-      @coverage_base_dir = File.expand_path File.join(spec_dir, '..', '..', 'coverage')
+      @coverage_base_dir = File.expand_path File.join(spec_path, '..', '..', 'coverage')
     end
 
     def coverage_prepare

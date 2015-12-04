@@ -7,7 +7,7 @@ class Noop
 
     def hiera_data_yaml_files
       hiera_config.fetch(:hierarchy, []).map do |element|
-        File.join hiera_data_path, "#{element}.yaml"
+        File.join astute_yaml_directory_path, "#{element}.yaml"
       end
     end
 

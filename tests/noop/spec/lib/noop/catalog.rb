@@ -115,13 +115,13 @@ class Noop
     # @return [String]
     def catalogs_dir
       return @catalogs_dir if @catalogs_dir
-      @catalogs_dir = File.expand_path File.join(spec_dir, '..', '..', 'catalogs')
+      @catalogs_dir = File.expand_path File.join(spec_path, '..', '..', 'catalogs')
     end
 
     # base directory of the catalog dump file for this yaml
     # @return [String]
     def catalog_manifest_base_dir
-      File.join catalogs_dir, astute_yaml_base
+      File.join catalogs_dir, astute_yaml_file_base
     end
 
     # full path to the catalog dump file

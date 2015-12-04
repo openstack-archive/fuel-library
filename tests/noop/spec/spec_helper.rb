@@ -8,14 +8,11 @@ require 'yaml'
 require 'fileutils'
 require 'find'
 
-class Noop
-  lib_dir = File.expand_path File.absolute_path File.join File.dirname(__FILE__), 'lib'
-  submodules = %w(catalog coverage debug facts files helpers overrides path spec tasks)
+lib_dir = File.join File.dirname(__FILE__), '..', 'spec', 'lib'
+lib_dir = File.absolute_path File.expand_path lib_dir
+$LOAD_PATH << lib_dir
 
-  submodules.each do |submodule|
-    require File.join lib_dir, submodule
-  end
-end
+require 'noop'
 
 Noop.setup_overrides
 

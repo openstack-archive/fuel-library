@@ -2,7 +2,7 @@ class Noop
   module Files
 
     def file_resources_lists_dir
-      File.expand_path File.join ENV['SPEC_SAVE_FILE_RESOURCES'], astute_yaml_base
+      File.expand_path File.join ENV['SPEC_SAVE_FILE_RESOURCES'], astute_yaml_file_base
     end
 
     def file_resources_list_file(context)

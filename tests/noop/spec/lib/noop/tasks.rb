@@ -2,8 +2,8 @@ class Noop
   module Tasks
 
     def manifest=(manifest)
-      debug "Set manifest to: #{manifest} -> #{File.join self.modular_manifests_local_dir, manifest}"
-      RSpec.configuration.manifest = File.join self.modular_manifests_local_dir, manifest
+      debug "Set manifest to: #{manifest} -> #{File.join self.local_modular_manifests_path, manifest}"
+      RSpec.configuration.manifest = File.join self.local_modular_manifests_path, manifest
       @manifest = manifest
     end
 
@@ -32,8 +32,8 @@ class Noop
 
     def manifest_present?(manifest)
       return hiera_test_tasks.include? manifest if test_tasks_present?
-      manifest_path = File.join self.modular_manifests_node_dir, manifest
-      tasks.each do |task|
+      manifest_path = File.join self.node_modular_manifests_path, manifest
+      tasks_yaml_data.each do |task|
         next unless task['type'] == 'puppet'
         next unless task['parameters']['puppet_manifest'] == manifest_path
         if task['role']
@@ -48,12 +48,10 @@ class Noop
       false
     end
 
-    def tasks
+    def tasks_yaml_data
       return @tasks if @tasks
       @tasks = []
-      Find.find(module_path) do |file|
-        next unless File.file? file
-        next unless file.end_with? 'tasks.yaml'
+      task_yaml_files.each do |file|
         task = YAML.load_file(file)
         @tasks += task if task.is_a? Array
       end
