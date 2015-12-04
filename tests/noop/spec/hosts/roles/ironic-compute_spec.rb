@@ -16,6 +16,10 @@ describe manifest do
       it 'nova config should have reserved_host_memory_mb set to 0' do
         should contain_nova_config('DEFAULT/reserved_host_memory_mb').with(:value => '0')
       end
+
+      it 'nova-compute.conf should have host set to "ironic-compute"' do
+        should contain_file('/etc/nova/nova-compute.conf').with('content'  => "[DEFAULT]\nhost=ironic-compute")
+      end
     end
   end
 
