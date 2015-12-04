@@ -48,6 +48,9 @@ describe manifest do
     let(:public_protocol) { public_ssl ? 'https' : 'http' }
     let(:public_address) { public_ssl ? public_ssl_hostname : public_ip }
 
+    let(:neutron_config) { Noop.hiera_structure('quantum_settings') }
+    let(:neutron_management_network) { neutron_config['default_private_net'] }
+
     ############################################################################
 
     enable = Noop.hiera_structure('sahara/enabled')
@@ -148,7 +151,8 @@ describe manifest do
                      'auth_uri' => "#{public_protocol}://#{public_address}:5000/v2.0/",
                      'auth_password' => auth_password,
                      'auth_user' => auth_user,
-                     'auth_tenant' => auth_tenant
+                     'auth_tenant' => auth_tenant,
+                     'neutron_management_network' => neutron_management_network
                  )
         end
 

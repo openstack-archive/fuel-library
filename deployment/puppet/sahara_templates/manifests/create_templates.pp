@@ -1,9 +1,10 @@
 class sahara_templates::create_templates (
-  $auth_uri         = 'http://127.0.0.1:5000/v2.0/',
-  $auth_user        = 'sahara',
-  $auth_tenant      = 'services',
-  $auth_password    = 'sahara',
-  $use_neutron      = false,
+  $auth_uri                   = 'http://127.0.0.1:5000/v2.0/',
+  $auth_user                  = 'sahara',
+  $auth_tenant                = 'services',
+  $auth_password              = 'sahara',
+  $use_neutron                = false,
+  $neutron_management_network = 'net04',
 ) inherits sahara::params {
 
   Sahara_node_group_template {
@@ -26,6 +27,7 @@ class sahara_templates::create_templates (
     neutron => $use_neutron,
     debug => true,
     require => Service['sahara-api'],
+    neutron_management_network => $neutron_management_network,
   }
 
   Sahara_node_group_template<||> -> Sahara_cluster_template<||>

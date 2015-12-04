@@ -22,6 +22,8 @@ $use_stderr                 = hiera('use_stderr', false)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
+$neutron_config             = hiera_hash('quantum_settings')
+$neutron_management_network = $neutron_config['default_private_net']
 
 #################################################################
 
@@ -136,11 +138,12 @@ if $sahara_hash['enabled'] {
     }
 
     class { 'sahara_templates::create_templates' :
-      use_neutron   => $use_neutron,
-      auth_user     => $access_admin['user'],
-      auth_password => $access_admin['password'],
-      auth_tenant   => $access_admin['tenant'],
-      auth_uri      => "${public_protocol}://${public_address}:5000/v2.0/",
+      use_neutron                => $use_neutron,
+      auth_user                  => $access_admin['user'],
+      auth_password              => $access_admin['password'],
+      auth_tenant                => $access_admin['tenant'],
+      auth_uri                   => "${public_protocol}://${public_address}:5000/v2.0/",
+      neutron_management_network => $neutron_management_network,
     }
 
     Haproxy_backend_status['keystone-admin'] -> Haproxy_backend_status['sahara']
