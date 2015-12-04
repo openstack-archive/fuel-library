@@ -33,19 +33,10 @@ class Noop
     def manifest_present?(manifest)
       return hiera_test_tasks.include? manifest if test_tasks_present?
       manifest_path = File.join self.modular_manifests_node_dir, manifest
-      tasks.each do |task|
-        next unless task['type'] == 'puppet'
-        next unless task['parameters']['puppet_manifest'] == manifest_path
-        if task['role']
-          return true if task['role'] == '*'
-          return true if task['role'].include?(role)
-        end
-        if task['groups']
-          return true if task['groups'] == '*'
-          return true if task['groups'].include?(role)
-        end
+      tasks.any? do |task|
+        task['type'] == 'puppet' and
+            task['parameters']['puppet_manifest'] == manifest_path
       end
-      false
     end
 
     def tasks
