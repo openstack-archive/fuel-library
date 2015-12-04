@@ -8,9 +8,10 @@
 3. [Granular Deployment - What is the granular deployment for Fuel?](#granular-deployment)
 4. [Upstream Modules - How to work with librarian.](#upstream-modules)
 5. [Testing - How to run fuel-library tests.](#testing)
-6. [Development](#development)
-7. [Core Reviers](#core-reviewers)
-8. [Contributors](#contributors)
+6. [Building docs - How to build docs.](#build-docs)
+7. [Development](#development)
+8. [Core Reviers](#core-reviewers)
+9. [Contributors](#contributors)
 
 ## Overview
 -----------
@@ -30,6 +31,7 @@ fuel-library
 ├── README.md
 ├── debian
 ├── deployment
+├── doc
 ├── files
 ├── specs
 ├── tests
@@ -47,6 +49,11 @@ This folder contains the required information to create fuel-library debian pack
 ### deployment/
 
 This folder contains the fuel-library Puppet code, the Puppetfile for upstream modules, and scripts to manage modules with [librarian-puppet-simple](https://github.com/bodepd/librarian-puppet-simple).
+
+### doc/
+
+This folder contains RST docs. Currently there is only docs for Noop testing
+framework.
 
 ### files/
 
@@ -78,6 +85,32 @@ In order to be able to pull in upstream modules for use by the fuel-library, the
 ----------
 
 Testing is important for the fuel-library to ensure changes do what they are supposed to do, regressions are not introduced and all code is of the highest quality. The fuel-library leverages existing Puppet module rspec tests, [bats](https://github.com/sstephenson/bats) tests for bash scripts and noop tests for testing the module deployment tasks in fuel-library.
+
+## Building docs
+----------------
+
+You can use tox to prepare virtual environment and build
+all RST based guides:
+
+    tox -e docs
+
+You can also build a specific guide. For example, to build *Noop Tests
+How-to Guide*, use the following command:
+
+    tox -e build -- noop-guide
+
+You can find the root of the generated HTML documentation at:
+
+    ./doc/noop-guide/build/html/index.html
+
+You can also run docs tests with `tox`.
+If you like to run individual tests, run:
+
+> -   `tox -e checkniceness` - to run the niceness tests
+> -   `tox -e checksyntax` - to run syntax checks
+
+tox will use the openstack-doc-tools package for execution of these
+tests.
 
 ### Puppet module tests
 

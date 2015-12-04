@@ -1,41 +1,3 @@
-Noop Tests and Manuals
-++++++++++++++++++++++
-
-This contains the Fuel Library Noop testing framework and its documentaion.
-
-RST guides
-==========
-
-Then, you can see some guides written in the RST format, so we can't use mvn command.
-You can use tox to prepare virtual environment and build all RST based guides::
-
-    tox -e docs
-
-You can also build a specific guide.
-For example, to build *Noop tests setup guide*, use the following command::
-
-    tox -e build -- setup-guide
-
-You can find the root of the generated HTML documentation at::
-
-    ./doc/setup-guide/build/html/index.html
-
-
-Testing of changes and building of the manual
-=============================================
-
-Install the python tox package and run ``tox`` from the top-level
-directory to use the same tests that are done as part of our Jenkins
-gating jobs.
-
-If you like to run individual tests, run:
-
- * ``tox -e checkniceness`` - to run the niceness tests
- * ``tox -e checksyntax`` - to run syntax checks
-
-tox will use the openstack-doc-tools package for execution of these
-tests.
-
 Fuel noop rspec tests
 =====================
 
@@ -92,11 +54,14 @@ Initial data templates generation (preparing the committed state)
 -----------------------------------------------------------------
 
 Generate *all* data templates of all specs of all deployment scenarios
-making a reset & update of librarian puppet before
+making a reset [#]_ & update of librarian puppet before
 
 ::
 
   ./utils/jenkins/fuel_noop_tests.rb -Q -b -r -u
+
+.. [#] Use `./deployment/remove_modules.sh` to forcibly remove external
+  modules in order to re-fetch them by the `-r` parameter.
 
 the same but only for a particular ap-proxi spec
 (use -S to get the full list)
