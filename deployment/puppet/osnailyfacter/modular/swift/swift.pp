@@ -37,6 +37,8 @@ $region                     = hiera('region', 'RegionOne')
 $service_workers            = pick($swift_hash['workers'],
                                 min(max($::processorcount, 2), 16))
 $ssl_hash                   = hiera_hash('use_ssl', {})
+$rabbit_hash                = hiera_hash('rabbit_hash')
+$rabbit_hosts               = hiera('amqp_hosts')
 
 $keystone_internal_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $keystone_endpoint          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
@@ -117,6 +119,9 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       admin_password                 => $keystone_password,
       auth_host                      => $service_endpoint,
       auth_protocol                  => $keystone_protocol,
+      rabbit_user                    => $rabbit_hash['user'],
+      rabbit_password                => $rabbit_hash['password'],
+      rabbit_hosts                   => split($rabbit_hosts, ', '),
     } ->
     class { 'openstack::swift::status':
       endpoint    => "${swift_internal_protocol}://${swift_internal_endpoint}:${proxy_port}",
