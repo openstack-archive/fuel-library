@@ -43,6 +43,10 @@ describe manifest do
           'value' => memcache_servers,
         )
       end
+
+      it 'nova-compute.conf should have host set to "ironic-compute"' do
+        should contain_file('/etc/nova/nova-compute.conf').with('content'  => "[DEFAULT]\nhost=ironic-compute")
+      end
     end
   end
 
