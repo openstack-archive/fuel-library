@@ -92,7 +92,7 @@ class { 'nova::network::neutron':
 }
 
 file { '/etc/nova/nova-compute.conf':
-  ensure  => absent,
+  content => "[DEFAULT]\nhost=ironic-compute",
   require => Package['nova-compute'],
 } ~> Service['nova-compute']
 
