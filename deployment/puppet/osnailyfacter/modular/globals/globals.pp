@@ -306,6 +306,7 @@ $heat_roles = ['primary-controller', 'controller']
 $sahara_roles = ['primary-controller', 'controller']
 
 # Define ceilometer-releated parameters
+if !$ceilometer_hash['alarm_history_time_to_live'] { $ceilometer_hash['alarm_history_time_to_live'] = '604800'}
 if !$ceilometer_hash['event_time_to_live'] { $ceilometer_hash['event_time_to_live'] = '604800'}
 if !$ceilometer_hash['metering_time_to_live'] { $ceilometer_hash['metering_time_to_live'] = '604800' }
 if !$ceilometer_hash['http_timeout'] { $ceilometer_hash['http_timeout'] = '600' }
