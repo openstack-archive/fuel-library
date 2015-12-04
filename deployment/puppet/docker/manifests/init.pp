@@ -5,6 +5,7 @@ $admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 $limit = "102400",
 $docker_service = "docker",
 $docker_engine = "native",
+$docker_volume_group = "docker",
 $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   "/var/log/docker-logs/audit", "/var/log/docker-logs/cobbler",
   "/var/log/docker-logs/ConsoleKit", "/var/log/docker-logs/coredump",
@@ -39,8 +40,8 @@ if $::osfamily == 'RedHat' {
     hasrestart => true,
     require => Package[$docker_package],
   }
-  file { "/etc/sysconfig/docker":
-    content => template("docker/settings.erb"),
+  file { "/etc/sysconfig/docker-storage-setup":
+    content => template("docker/storage-setup.erb"),
     owner => 'root',
     group => 'root',
     mode => 0644,
