@@ -91,6 +91,10 @@ class { 'nova::network::neutron':
   neutron_admin_auth_url => "http://${service_endpoint}:35357/v2.0",
 }
 
+nova_config {
+  'DEFAULT/host': value => 'ironic-compute';
+}
+
 file { '/etc/nova/nova-compute.conf':
   ensure  => absent,
   require => Package['nova-compute'],
