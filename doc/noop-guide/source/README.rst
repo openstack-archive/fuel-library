@@ -54,11 +54,14 @@ Initial data templates generation (preparing the committed state)
 -----------------------------------------------------------------
 
 Generate *all* data templates of all specs of all deployment scenarios
-making a reset & update of librarian puppet before
+making a reset [#]_ & update of librarian puppet before
 
 ::
 
   ./utils/jenkins/fuel_noop_tests.rb -Q -b -r -u
+
+.. [#] Use `./deployment/remove_modules.sh` to forcibly remove external
+  modules in order to re-fetch them by the `-r` parameter.
 
 the same but only for a particular ap-proxi spec
 (use -S to get the full list)
