@@ -42,6 +42,9 @@ module NoopTests
       opts.on('-i', '--individually', 'Run each spec individually') do
         @options[:run_individually] = true
       end
+      opts.on('-j', '--jobs JOBS', 'Parallel run rapec jobs') do |jobs|
+        @options[:parallel_run] = jobs.to_i
+      end
       opts.on('-a', '--astute_yaml_dir DIR', 'Path to astute_yaml folder') do |dir|
         @options[:astute_yaml_dir] = dir
         ENV['SPEC_YAML_DIR'] = dir
