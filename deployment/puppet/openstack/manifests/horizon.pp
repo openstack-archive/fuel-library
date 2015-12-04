@@ -48,6 +48,7 @@ class openstack::horizon (
                               'set X-Content-Type-Options nosniff',
                               'always append X-Frame-Options SAMEORIGIN'],
   $hypervisor_options      = {},
+  $overview_days_range     = undef,
 ) {
 
   if $debug { #syslog and nondebug case
@@ -95,6 +96,7 @@ class openstack::horizon (
     custom_theme_path     => $custom_theme_path,
     redirect_type         => 'temp', # LP#1385133
     hypervisor_options    => $hypervisor_options,
+    overview_days_range   => $overview_days_range,
   }
 
   # Performance optimization for wsgi
