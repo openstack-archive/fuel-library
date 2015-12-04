@@ -17,6 +17,9 @@
 require 'rubygems'
 require 'find'
 require 'optparse'
+require 'parallel'
+require 'open3'
+
 
 module NoopTests
   GLOBALS_SPEC = 'globals/globals_spec.rb'
@@ -41,6 +44,9 @@ module NoopTests
       end
       opts.on('-i', '--individually', 'Run each spec individually') do
         @options[:run_individually] = true
+      end
+      opts.on('-j', '--jobs JOBS', 'Parallel run rapec jobs') do |jobs|
+        @options[:parallel_run] = jobs.to_i
       end
       opts.on('-a', '--astute_yaml_dir DIR', 'Path to astute_yaml folder') do |dir|
         @options[:astute_yaml_dir] = dir
@@ -271,7 +277,11 @@ module NoopTests
   # @return [Array<TrueClass,FalseClass,NilClass>] success and empty report array
   def self.rspec(spec)
     inside_noop_tests_directory do
-      command = "rspec #{RSPEC_OPTIONS} #{spec}"
+      if parallel?
+        command = "rspec #{spec}"
+      else
+        command = "rspec #{RSPEC_OPTIONS} #{spec}"
+      end
       command = 'bundle exec ' + command if options[:bundle]
       if options[:filter_examples]
         options[:filter_examples].each do |example|
@@ -281,9 +291,10 @@ module NoopTests
       if options[:puppet_logs_dir]
         command = command + " --deprecation-out #{File.join options[:puppet_logs_dir], 'deprecations.log'}"
       end
-      debug "RUN: #{command}"
-      system command
-      [ $?.exitstatus == 0, nil ]
+      debug "Run: #{command} YAML: #{ENV[ASTUTE_YAML_VAR]}"
+      exit_code = run command
+      debug "Finish: #{command} YAML: #{ENV[ASTUTE_YAML_VAR]} code: #{exit_code}"
+      [ exit_code == 0, nil ]
     end
   end
 
@@ -342,24 +353,51 @@ module NoopTests
     options[:filter_yamls].map { |y| y.gsub('.yaml', '') }.include? yaml.gsub('.yaml', '')
   end
 
+  def self.parallel?
+    options[:parallel_run] and options[:parallel_run] > 0
+  end
+
+  def self.run(*args)
+    if parallel?
+      *out = Open3.capture2e *args
+      out.last.exitstatus
+    else
+      system *args
+      $?.exitstatus
+    end
+  end
+
+  def self.proctitle=(value)
+    return unless parallel?
+    $0 = value
+  end
+
   # run the code block for every astute yaml file
   # return [ global success, Hash of reports for every yaml ]
   # @return [Array<TrueClass,FalseClass,Hash>]
   def self.for_every_astute_yaml
     prepare_bundle if options[:bundle]
-    results = {}
-    errors = 0
-    astute_yaml_files.each do |astute_yaml|
+    self.proctitle = 'Noop tests Master'
+    debug "Running Master process with pid: #{Process.pid}" if parallel?
+    parallel_results = Parallel.map(astute_yaml_files, :in_processes => options[:parallel_run]) do |astute_yaml|
       next unless filter_yamls astute_yaml
       ENV[ASTUTE_YAML_VAR] = astute_yaml
-      debug "=== YAML: '#{astute_yaml}' ==="
+      debug "Start processing YAML: '#{astute_yaml}'"
+      self.proctitle = "Noop tests for YAML: '#{astute_yaml}'"
       globals astute_yaml
       success, report = yield
-      errors += 1 unless success
-      results[astute_yaml] = {
+      results = {
           :success => success,
           :report => report,
       }
+      [astute_yaml, results]
+    end
+    results = {}
+    errors = 0
+    parallel_results.each do |astute_yaml, report|
+      next unless astute_yaml and report
+      results[astute_yaml] = report
+      errors += 1 unless report[:success]
     end
     [ errors == 0, results ]
   end
@@ -371,10 +409,10 @@ module NoopTests
   def self.run_all_specs_individually
     results = {}
     errors = 0
-    noop_spec_files.each do |spec|
+    Parallel.each noop_spec_files, :in_threads => options[:parallel_run] do |spec|
       next if spec == GLOBALS_SPEC
       next unless filter_specs spec
-      debug "--- SPEC: '#{spec}' ---"
+      debug "Processing SPEC: '#{spec}'"
       success, report = rspec spec_path(spec)
       errors += 1 unless success
       results[spec] = {
@@ -401,7 +439,7 @@ module NoopTests
     inside_noop_tests_directory do
       `bundle --version`
       raise 'Bundle is not installed!' if $?.exitstatus != 0
-      ENV[BUNDLE_VAR] = File.join workspace, BUNDLE_DIR
+      ENV[BUNDLE_VAR] = File.join workspace, BUNDLE_DIR unless ENV[BUNDLE_VAR]
       system 'bundle install'
       system 'bundle update'
       raise 'Could not prepare bundle environment!' if $?.exitstatus != 0
@@ -485,8 +523,8 @@ module NoopTests
       yaml = line_array[0]
       spec = line_array[1]
       next unless yaml
-      debug "=== YAML: '#{yaml}' ==="
-      debug "--- SPEC: '#{spec}' ---" if spec
+      debug "Replay YAML: '#{yaml}'"
+      debug "Replay SPEC: '#{spec}'" if spec
       unless results[yaml]
          results[yaml] = {
              :success => true,
