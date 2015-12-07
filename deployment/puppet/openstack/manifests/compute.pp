@@ -302,6 +302,7 @@ class openstack::compute (
     install_bridge_utils          => $install_bridge_utils,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
+    reserved_host_memory          => $nova_hash['reserved_host_memory'],
     default_availability_zone     => $nova_hash['default_availability_zone'],
     default_schedule_zone         => $nova_hash['default_schedule_zone'],
     config_drive_format           => $config_drive_format,

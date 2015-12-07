@@ -7,6 +7,14 @@ describe manifest do
 
     host_uuid = Noop.hiera 'host_uuid'
 
+    let(:nova_hash) do
+      Noop.hiera_structure 'nova'
+    end
+
+    let(:rhost_mem) do
+      { 'reserved_host_memory' => [512, Float(facts[:memorysize_mb]).floor * 0.2, 1536].sort[1] }
+    end
+
     # Libvirtd.conf
     it 'should configure listen_tls, listen_tcp and auth_tcp in libvirtd.conf' do
       should contain_augeas('libvirt-conf').with(
@@ -145,62 +153,58 @@ describe manifest do
 
 
     # SSL support
+    management_vip = Noop.hiera('management_vip')
+    glance_api_servers = "#{management_vip}:9292"
+    vncproxy_protocol = 'https'
+
     if Noop.hiera_structure('use_ssl')
-      context 'with enabled and overridden TLS' do
-        it 'should properly configure vncproxy WITH ssl' do
-          vncproxy_host = Noop.hiera_structure('use_ssl/nova_public_hostname')
-          should contain_class('openstack::compute').with(
-            'vncproxy_host' => vncproxy_host
-          )
-          should contain_class('nova::compute').with(
-            'vncproxy_protocol' => 'https'
-          )
-        end
-        it 'should properly configure glance api servers WITH ssl' do
-          glance_protocol = 'https'
-          glance_endpoint = Noop.hiera_structure('use_ssl/glance_internal_hostname')
-          glance_api_servers = "#{glance_protocol}://#{glance_endpoint}:9292"
-          should contain_class('openstack::compute').with(
-            'glance_api_servers' => glance_api_servers
-          )
-        end
-      end
+      vncproxy_host = Noop.hiera_structure('use_ssl/nova_public_hostname')
+      glance_protocol = 'https'
+      glance_endpoint = Noop.hiera_structure('use_ssl/glance_internal_hostname')
+      glance_api_servers = "#{glance_protocol}://#{glance_endpoint}:9292"
     elsif Noop.hiera_structure('public_ssl/services')
-      context 'with enabled and not overridden TLS' do
-        it 'should properly configure vncproxy WITH ssl' do
-          vncproxy_host = Noop.hiera_structure('public_ssl/hostname')
-          should contain_class('openstack::compute').with(
-            'vncproxy_host' => vncproxy_host
-          )
-          should contain_class('nova::compute').with(
-            'vncproxy_protocol' => 'https'
-          )
-        end
-        it 'should properly configure glance api servers WITHOUT ssl' do
-          management_vip = Noop.hiera('management_vip')
-          should contain_class('openstack::compute').with(
-            'glance_api_servers' => "#{management_vip}:9292"
-          )
-        end
-      end
+      vncproxy_host = Noop.hiera_structure('public_ssl/hostname')
     else
-      it 'should properly configure vncproxy WITHOUT ssl' do
-        vncproxy_host = Noop.hiera('public_vip')
-        should contain_class('openstack::compute').with(
-          'vncproxy_host' => vncproxy_host
-        )
-        should contain_class('nova::compute').with(
-          'vncproxy_protocol' => 'http'
-        )
-      end
-      it 'should properly configure glance api servers WITHOUT ssl' do
-        management_vip = Noop.hiera('management_vip')
-        should contain_class('openstack::compute').with(
-          'glance_api_servers' => "#{management_vip}:9292"
-        )
-      end
+      vncproxy_host = Noop.hiera('public_vip')
+      vncproxy_protocol = 'http'
     end
 
+    it 'should properly configure vncproxy with (non-)ssl' do
+      should contain_class('openstack::compute').with(
+        'vncproxy_host' => vncproxy_host
+      )
+      should contain_class('nova::compute').with(
+        'vncproxy_protocol' => vncproxy_protocol
+      )
+    end
+
+    it 'should properly configure glance api servers with (non-)ssl' do
+      should contain_class('openstack::compute').with(
+        'glance_api_servers' => glance_api_servers
+      )
+    end
+
+    # Check out nova config params
+    it 'should properly configure nova' do
+      node_name = Noop.hiera('node_name')
+      network_metadata = Noop.hiera_structure('network_metadata')
+      roles = network_metadata['nodes'][node_name]['node_roles']
+      nova_hash.merge!({'vncproxy_protocol' => vncproxy_protocol})
+
+      if roles.include? 'ceph-osd'
+        nova_compute_rhostmem = rhost_mem['reserved_host_memory']
+      else
+        rhost_mem['reserved_host_memory'] = :undef
+        nova_compute_rhostmem = 512 # default
+      end
+
+      should contain_class('openstack::compute').with(
+        'nova_hash' => rhost_mem.merge(nova_hash)
+      )
+      should contain_class('nova::compute').with(
+        'reserved_host_memory' => nova_compute_rhostmem
+      )
+    end
   end
 
   test_ubuntu_and_centos manifest
