@@ -11,7 +11,7 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
   end
 
   def self.get_instances(big_hash)
-    big_hash[:bridge]
+    big_hash.fetch(:bridge, {})
   end
 
   # def self.instances

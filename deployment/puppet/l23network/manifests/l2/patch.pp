@@ -48,6 +48,7 @@ define l23network::l2::patch (
     $act_bridges  = [$bridges[1], $bridges[0]]
     $act_vlan_ids = undef
   } else {
+    $lnx2lnx = true
     $act_bridges = $bridges
   }
 
@@ -91,7 +92,36 @@ define l23network::l2::patch (
         provider        => $config_provider
       }
       L23_stored_config[$patch_jacks_names[1]] -> L2_patch[$patch_name]
+    } elsif $lnx2lnx {
+      if ! defined(L23_stored_config[$patch_jacks_names[0]]) {
+        l23_stored_config { $patch_jacks_names[0]: }
+      }
+      L23_stored_config <| title == $patch_jacks_names[0] |> {
+        ensure          => $ensure,
+        if_type         => 'patch',
+        bridge          => $act_bridges[0],
+        jacks           => $patch_jacks_names,
+        onboot          => true,
+        vendor_specific => $vendor_specific,
+        provider        => $config_provider
+      }
+      L23_stored_config[$patch_jacks_names[0]] -> L2_patch[$patch_name]
+
+      if ! defined(L23_stored_config[$patch_jacks_names[1]]) {
+        l23_stored_config { $patch_jacks_names[1]: }
+      }
+      L23_stored_config <| title == $patch_jacks_names[1] |> {
+        ensure          => $ensure,
+        if_type         => 'patch',
+        bridge          => $act_bridges[1],
+        jacks           => $patch_jacks_names,
+        onboot          => true,
+        vendor_specific => $vendor_specific,
+        provider        => $config_provider
+      }
+      L23_stored_config[$patch_jacks_names[1]] -> L2_patch[$patch_name]
     } else {
+      # ovs2lnx patch
       if ! defined(L23_stored_config[$patch_jacks_names[0]]) {
         # we use only one (first) patch jack name here and later,
         # because a both jacks for patch are created by
