@@ -6,6 +6,9 @@
   role: '*'
   required_for: [pre_deployment_end]
   requires: [generate_keys_ceph]
+  cross-depends:
+      - name: generate_keys_ceph
+        role: master
   parameters:
     files:
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph.pub
