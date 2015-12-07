@@ -142,6 +142,9 @@
   role: '*'
   required_for: [pre_deployment_end]
   requires: [generate_keys]
+  cross-depends:
+      - name: generate_keys
+        role: master
   parameters:
     files:
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/neutron/neutron.pub
@@ -189,6 +192,9 @@
   role: '*'
   required_for: [pre_deployment_end]
   requires: [generate_haproxy_keys]
+  cross-depends:
+      - name: generate_haproxy_keys
+        role: master
   condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'self_signed'"
   parameters:
     files:
