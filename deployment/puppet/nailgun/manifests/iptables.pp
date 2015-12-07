@@ -178,27 +178,11 @@ $chain                 = 'INPUT',
     action   => 'reject',
   }
 
-  firewall { '043 fuelweb_admin':
+  firewall {'043 fuelweb_port':
     chain    => $chain,
     port     => $fuelweb_port,
     proto    => 'tcp',
-    iniface  => $admin_iface,
     action   => 'accept',
-  }
-
-  firewall { '044 fuelweb_local':
-    chain    => $chain,
-    port     => $fuelweb_port,
-    proto    => 'tcp',
-    src_type => 'LOCAL',
-    action   => 'accept',
-  }
-
-  firewall { '045 fuelweb_block_ext':
-    chain    => $chain,
-    port     => $fuelweb_port,
-    proto    => 'tcp',
-    action   => 'reject',
   }
 
   firewall { '046 keystone_admin':
