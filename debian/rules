@@ -14,3 +14,5 @@ override_dh_install:
 	mv debian/fuel-misc/usr/bin/logrotate debian/fuel-misc/usr/bin/fuel-logrotate
 	rm debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/heat_engine_centos
 
+override_dh_installinit:
+	dh_installinit -n
