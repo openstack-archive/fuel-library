@@ -215,5 +215,6 @@ class swift::proxy(
     provider  => $::swift::params::service_provider,
     hasstatus => true,
     subscribe => Concat['/etc/swift/proxy-server.conf'],
+    tag       => 'swift-service',
   }
 }

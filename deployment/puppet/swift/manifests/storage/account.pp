@@ -44,6 +44,7 @@ class swift::storage::account(
     enable   => $enabled,
     provider => $::swift::params::service_provider,
     require  => Package['swift-account'],
+    tag      => 'swift-service',
   }
 
   service { 'swift-account-auditor':
@@ -52,5 +53,6 @@ class swift::storage::account(
     enable   => $enabled,
     provider => $::swift::params::service_provider,
     require  => Package['swift-account'],
+    tag      => 'swift-service',
   }
 }

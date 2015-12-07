@@ -72,6 +72,7 @@ define swift::storage::generic(
     hasstatus => true,
     provider  => $service_provider,
     subscribe => Package["swift-${name}"],
+    tag       => 'swift-service',
   }
 
   service { "swift-${name}-replicator":
@@ -81,6 +82,7 @@ define swift::storage::generic(
     hasstatus => true,
     provider  => $service_provider,
     subscribe => Package["swift-${name}"],
+    tag       => 'swift-service',
   }
 
 }
