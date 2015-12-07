@@ -182,7 +182,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
               ovs_vsctl(['del-port', br_name, @resource[:bond]])
               # todo catch exception
             when :lnx
-              brctl('delif', br_name, @resource[:bond])
+              self.class.brctl(['delif', br_name, @resource[:bond]])
               # todo catch exception
             else
               #pass
@@ -195,7 +195,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           when :ovs
             ovs_vsctl(['add-port', @property_flush[:bridge], @resource[:bond]])
           when :lnx
-            brctl('addif', @property_flush[:bridge], @resource[:bond])
+            self.class.brctl(['addif', @property_flush[:bridge], @resource[:bond]])
           else
             #pass
           end
