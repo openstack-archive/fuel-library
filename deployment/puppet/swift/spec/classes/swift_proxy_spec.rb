@@ -42,7 +42,8 @@ describe 'swift::proxy' do
          :provider  => 'upstart',
          :enable    => true,
          :hasstatus => true,
-         :subscribe => 'Concat[/etc/swift/proxy-server.conf]'
+         :subscribe => 'Concat[/etc/swift/proxy-server.conf]',
+         :tag       => 'swift-service',
         }
       )}
       it { is_expected.to contain_file('/etc/swift/proxy-server.conf').with(
