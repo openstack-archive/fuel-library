@@ -9,7 +9,7 @@
 # === Parameters
 #
 # [*enabled*]
-#    (Optional) Ensures state for the rabbit-fence daemon.
+#    (Optional) Ensures state for the fuel-rabbit-fence daemon.
 #    Defaults to 'false'
 #
 class cluster::rabbitmq_fence(
@@ -48,20 +48,20 @@ class cluster::rabbitmq_fence(
   package { $packages: } ->
 
   service { $dbus_service_name:
-    ensure     => running,
-    enable     => true,
+    ensure => running,
+    enable => true,
   } ->
 
   service { 'corosync-notifyd':
-    ensure     => running,
-    enable     => true,
+    ensure => running,
+    enable => true,
   } ->
 
   package { 'fuel-rabbit-fence': } ->
-  service { 'rabbit-fence':
+  service { 'fuel-rabbit-fence':
+    ensure  => $enabled ? { true => running, false => stopped },
     name    => $service_name,
     enable  => $enabled,
-    ensure  => $enabled ? { true => running, false => stopped },
     require => Package['rabbitmq-server'],
   }
 
