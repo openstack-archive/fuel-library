@@ -66,11 +66,6 @@ class openstack::horizon (
     $log_level_real = $log_level
   }
 
-  # Apache and listen ports
-  class { 'osnailyfacter::apache':
-    listen_ports => hiera_array('apache_ports', ['80', '8888']),
-  }
-
   class { '::horizon':
     bind_address          => $bind_address,
     cache_server_ip       => $cache_server_ip,
@@ -115,7 +110,8 @@ class openstack::horizon (
     wsgi_threads   => $wsgi_threads,
     listen_ssl     => $use_ssl,
     extra_params   => {
-      add_listen      => false,
+      add_listen      => true,
+      ip_based        => true, # Do not setup outdated 'NameVirtualHost' option
       custom_fragment => template('openstack/horizon/wsgi_vhost_custom.erb'),
       default_vhost   => true,
       headers         => $headers,

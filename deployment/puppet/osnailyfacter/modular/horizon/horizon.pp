@@ -28,6 +28,11 @@ $keystone_url = "${keystone_scheme}://${keystone_host}:${keystone_port}/${keysto
 $neutron_options    = {'enable_distributed_router' => $neutron_dvr}
 $hypervisor_options = {'enable_quotas' => hiera('nova_quota')}
 
+# Listen directives with host required for ip_based vhosts
+class { 'osnailyfacter::apache':
+  listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888']),
+}
+
 class { 'openstack::horizon':
   secret_key          => $secret_key,
   cache_server_ip     => ipsort(values($memcache_address_map)),

@@ -146,8 +146,9 @@ class { 'openstack::keystone':
 
 ####### WSGI ###########
 
+# Listen directives with host required for ip_based vhosts
 class { 'osnailyfacter::apache':
-  listen_ports => hiera_array('apache_ports', ['80', '8888', '5000', '35357']),
+  listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357']),
 }
 
 class { 'keystone::wsgi::apache':
@@ -157,6 +158,11 @@ class { 'keystone::wsgi::apache':
   ssl                   => $ssl,
   vhost_custom_fragment => $vhost_limit_request_field_size,
   access_log_format     => '%h %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"',
+
+  # ports and host should be set for ip_based vhost
+  public_port           => $public_port,
+  admin_port            => $admin_port,
+  bind_host             => $local_address_for_bind,
 
   wsgi_script_ensure => $::osfamily ? {
     'RedHat'       => 'link',
