@@ -1,4 +1,4 @@
-define nailgun::systemd::config {
+define nailgun::systemd::config ($real_exec) {
   file { "/etc/systemd/system/${title}.service.d/":
     ensure => directory
   }

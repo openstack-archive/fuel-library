@@ -10,3 +10,10 @@ StandardOutput=syslog
 StandardError=syslog+console
 SyslogIdentifier=<%= @title %>
 
+ExecStartPre=/usr/bin/mkdir -p /var/log/<%= @title %>
+ExecStart=
+<% if @real_exec[@title] -%>
+ExecStart=/bin/bash -c "<%= @real_exec[@title] %> 2>&1 >> /var/log/<%= @title %>/<%= @title %>.log"
+<% else -%>
+ExecStart=/bin/bash -c "/usr/bin/<%= @title %> 2>&1 >> /var/log/<%= @title %>/<%= @title %>.log"
+<% end -%>
