@@ -54,6 +54,7 @@ server {
     }
 
     location / {
+        expires -1;
         root <%= @staticdir %>;
     }
 
