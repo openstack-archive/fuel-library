@@ -11,6 +11,7 @@ if ironic_enabled
       rabbit_password = Noop.hiera_structure 'rabbit/password'
       default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
       default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+      primary_controller = Noop.hiera 'primary_controller'
 
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -20,6 +21,7 @@ if ironic_enabled
         should contain_class('ironic').with(
           'rabbit_userid'   => rabbit_user,
           'rabbit_password' => rabbit_password,
+          'sync_db'         => primary_controller,
         )
       end
 

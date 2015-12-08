@@ -27,6 +27,7 @@ class openstack::cinder(
   $use_stderr             = true,
   $syslog_log_facility    = 'LOG_LOCAL3',
   $cinder_rate_limits     = undef,
+  $primary_controller     = false,
   $verbose                = false,
   $debug                  = false,
   $default_log_levels     = undef,
@@ -154,6 +155,7 @@ class openstack::cinder(
       os_privileged_user_name      => $keystone_user,
       nova_catalog_admin_info      => 'compute:nova:adminURL',
       nova_catalog_info            => 'compute:nova:internalURL',
+      sync_db                      => $primary_controller,
     }
 
     class { 'cinder::scheduler':

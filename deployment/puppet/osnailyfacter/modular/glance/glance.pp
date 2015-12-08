@@ -21,6 +21,7 @@ $ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
 $service_workers       = pick($glance_hash['glance_workers'], min(max($::processorcount, 2), 16))
 $ironic_hash           = hiera_hash('ironic', {})
+$primary_controller    = hiera('primary_controller')
 
 $default_log_levels             = hiera_hash('default_log_levels')
 
@@ -105,6 +106,7 @@ class { 'openstack::glance':
   glance_protocol                => 'http',
   region                         => $region,
   bind_host                      => $api_bind_address,
+  primary_controller             => $primary_controller,
   enabled                        => $enabled,
   glance_backend                 => $glance_backend,
   registry_host                  => $glance_endpoint,

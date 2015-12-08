@@ -49,6 +49,7 @@ class openstack::heat (
   $heat_protocol                 = 'http',
   $trusts_delegated_roles        = [],
 
+  $primary_controller            = false,
   $verbose                       = false,
   $debug                         = false,
   $default_log_levels            = undef,
@@ -150,6 +151,7 @@ class openstack::heat (
 
     sql_connection        => $sql_connection,
     database_idle_timeout => $idle_timeout,
+    sync_db               => $primary_controller,
 
     rpc_backend           => $rpc_backend,
     rpc_response_timeout  => '600',

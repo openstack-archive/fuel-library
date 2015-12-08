@@ -65,6 +65,7 @@ class openstack::glance (
   $glance_vcenter_datastore       = undef,
   $glance_vcenter_image_dir       = undef,
   $glance_vcenter_api_retry_count = undef,
+  $primary_controller             = false,
   $verbose                        = false,
   $debug                          = false,
   $default_log_levels             = undef,
@@ -209,6 +210,7 @@ class openstack::glance (
     log_facility          => $syslog_log_facility,
     database_idle_timeout => $idle_timeout,
     workers               => $service_workers,
+    sync_db               => $primary_controller,
   }
 
   glance_registry_config {

@@ -77,6 +77,7 @@ if $sahara_hash['enabled'] {
     database_max_overflow  => $max_overflow,
     database_max_retries   => $max_retries,
     database_idle_timeout  => $idle_timeout,
+    sync_db                => $primary_controller,
     auth_uri               => "http://${service_endpoint}:5000/v2.0/",
     identity_uri           => "http://${service_endpoint}:35357/",
     rpc_backend            => 'rabbit',
