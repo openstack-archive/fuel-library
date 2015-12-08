@@ -24,7 +24,7 @@ $rabbit_hash              = hiera_hash('rabbit_hash')
 $management_vip           = hiera('management_vip')
 $region                   = hiera('region', 'RegionOne')
 $ceilometer_region        = pick($ceilometer_hash['region'], $region)
-$mongo_nodes              = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('mongo_roles'))
+$mongo_nodes              = get_nodes_hash_by_roles(hiera_hash('network_metadata'), hiera('mongo_roles'))
 $mongo_address_map        = get_node_to_ipaddr_map_by_network_role($mongo_nodes, 'mongo/db')
 
 $default_mongo_hash = {
