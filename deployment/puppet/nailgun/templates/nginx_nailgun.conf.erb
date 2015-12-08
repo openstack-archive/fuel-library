@@ -31,7 +31,7 @@ server {
 
     gzip on;
     gzip_min_length 1000;
-    gzip_types text/plain application/json;
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript;
 
     location /static {
         autoindex on;
