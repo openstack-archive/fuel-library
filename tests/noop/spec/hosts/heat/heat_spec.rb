@@ -31,6 +31,7 @@ describe manifest do
     use_syslog = Noop.hiera 'use_syslog'
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    primary_controller = Noop.hiera 'primary_controller'
 
     it 'should configure default_log_levels' do
       should contain_heat_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -38,8 +39,9 @@ describe manifest do
 
     it 'should use auth_uri and identity_uri' do
       should contain_class('openstack::heat').with(
-        'auth_uri'      => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
-        'identity_uri'  => "#{admin_auth_protocol}://#{admin_auth_address}:35357/"
+        'auth_uri'           => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
+        'identity_uri'       => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
+        'primary_controller' => primary_controller,
       )
     end
 

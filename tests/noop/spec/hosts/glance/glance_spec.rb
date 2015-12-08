@@ -17,6 +17,7 @@ describe manifest do
     ironic_enabled = Noop.hiera_structure('ironic/enabled', false)
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    primary_controller = Noop.hiera 'primary_controller'
     if glance_config && glance_config.has_key?('pipeline')
        pipeline = glance_config['pipeline']
     else
@@ -25,7 +26,7 @@ describe manifest do
 
     it 'should declare glance classes' do
       should contain_class('glance::api').with('pipeline' => pipeline)
-      should contain_class('glance::registry')
+      should contain_class('glance::registry').with('sync_db' => primary_controller)
       should contain_class('glance::notify::rabbitmq')
     end
 

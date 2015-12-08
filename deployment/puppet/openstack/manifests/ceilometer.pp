@@ -33,6 +33,7 @@ class openstack::ceilometer (
   $keystone_host              = '127.0.0.1',
   $host                       = '0.0.0.0',
   $port                       = '8777',
+  $primary_controller         = false
   $on_controller              = false,
   $on_compute                 = false,
   $ha_mode                    = false,
@@ -114,6 +115,7 @@ class openstack::ceilometer (
 
     class { '::ceilometer::db':
       database_connection => $current_database_connection,
+      sync_db             => $primary_controller,
     }
 
     # Install the ceilometer-api service
