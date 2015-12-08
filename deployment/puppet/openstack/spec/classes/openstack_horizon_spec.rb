@@ -37,12 +37,14 @@ describe 'openstack::horizon' do
 
         should contain_class('horizon::wsgi::apache').with(
           :extra_params => {
-          'add_listen' => false,
-          'custom_fragment' => custom_fragment,
-          'default_vhost' => true,
-          'headers' => ["set X-XSS-Protection \"1; mode=block\"", "set X-Content-Type-Options nosniff", "always append X-Frame-Options SAMEORIGIN"],
-          'options'  => '-Indexes',
-          'setenvif' => 'X-Forwarded-Proto https HTTPS=1' }
+            'add_listen'      => true,
+            'ip_based'        => true,
+            'custom_fragment' => custom_fragment,
+            'default_vhost'   => true,
+            'headers'         => ["set X-XSS-Protection \"1; mode=block\"", "set X-Content-Type-Options nosniff", "always append X-Frame-Options SAMEORIGIN"],
+            'options'         => '-Indexes',
+            'setenvif'        => 'X-Forwarded-Proto https HTTPS=1'
+          }
         )
       end
     end
@@ -81,4 +83,3 @@ describe 'openstack::horizon' do
   end
 
 end
-

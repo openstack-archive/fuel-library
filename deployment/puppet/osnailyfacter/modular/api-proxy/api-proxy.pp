@@ -2,9 +2,9 @@ notice('MODULAR: api-proxy.pp')
 
 $max_header_size = hiera('max_header_size', '81900')
 
-# Apache and listen ports
+# Listen directives with host required for ip_based vhosts
 class { 'osnailyfacter::apache':
-  listen_ports => hiera_array('apache_ports', ['80', '8888']),
+  listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888']),
 }
 
 # API proxy vhost
