@@ -13,16 +13,18 @@ describe manifest do
     rabbit_ha_queues = 'true'
     default_log_levels_hash = Noop.hiera_structure 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    primary_controller = Noop.hiera 'primary_controller'
 
     # Ceilometer
     if ceilometer_hash['enabled']
       it 'should declare openstack::ceilometer class with correct parameters' do
         should contain_class('openstack::ceilometer').with(
-          'amqp_user'        => rabbit_user,
-          'amqp_password'    => rabbit_password,
-          'rabbit_ha_queues' => rabbit_ha_queues,
-          'on_controller'    => 'true',
-          'use_stderr'       => 'false',
+          'amqp_user'          => rabbit_user,
+          'amqp_password'      => rabbit_password,
+          'rabbit_ha_queues'   => rabbit_ha_queues,
+          'on_controller'      => 'true',
+          'use_stderr'         => 'false',
+          'primary_controller' => primary_controller,
         )
       end
       it 'should configure OS ENDPOINT TYPE for ceilometer' do

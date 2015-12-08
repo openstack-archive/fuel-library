@@ -27,6 +27,7 @@ $neutron_user_password = hiera('neutron_user_password', false)
 $service_workers       = pick($keystone_hash['workers'],
                               min(max($::processorcount, 2), 16))
 $default_log_levels    = hiera_hash('default_log_levels')
+$primary_controller    = hiera('primary_controller')
 
 $db_type     = 'mysql'
 $db_host     = pick($keystone_hash['db_host'], $database_vip)
@@ -118,6 +119,7 @@ class { 'openstack::keystone':
   admin_address            => $admin_address,
   public_bind_host         => $local_address_for_bind,
   admin_bind_host          => $local_address_for_bind,
+  primary_controller       => $primary_controller,
   enabled                  => $enabled,
   use_syslog               => $use_syslog,
   use_stderr               => $use_stderr,

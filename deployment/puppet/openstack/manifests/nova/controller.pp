@@ -348,6 +348,7 @@ class openstack::nova::controller (
     metadata_workers                     => $service_workers,
     keystone_ec2_url                     => "http://${keystone_host}:5000/v2.0/ec2tokens",
     cinder_catalog_info                  => 'volume:cinder:internalURL',
+    sync_db                              => $primary_controller,
   }
 
   # From legacy init.pp

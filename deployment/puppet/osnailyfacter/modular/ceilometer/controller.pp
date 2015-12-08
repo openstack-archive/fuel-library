@@ -26,6 +26,7 @@ $region                   = hiera('region', 'RegionOne')
 $ceilometer_region        = pick($ceilometer_hash['region'], $region)
 $mongo_nodes              = get_nodes_hash_by_roles(hiera_hash('network_metadata'), hiera('mongo_roles'))
 $mongo_address_map        = get_node_to_ipaddr_map_by_network_role($mongo_nodes, 'mongo/db')
+$primary_controller       = hiera('primary_controller')
 
 $default_mongo_hash = {
   'enabled'         => false,
@@ -109,6 +110,7 @@ if ($ceilometer_enabled) {
     keystone_region            => $ceilometer_region,
     host                       => $api_bind_address,
     ha_mode                    => $ha_mode,
+    primary_controller         => $primary_controller,
     on_controller              => true,
     ext_mongo                  => $external_mongo,
     mongo_replicaset           => $mongo_replicaset,
