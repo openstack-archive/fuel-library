@@ -27,6 +27,13 @@ class osnailyfacter::apache_mpm {
     $mpm_module = 'worker'
   }
 
+  tidy { "remove-distro-mpm-modules":
+    path    => $::apache::params::mod_enable_dir,
+    recurse => true,
+    matches => [ '*mpm*' ],
+    rmdirs  => false,
+  }
+
   class { "::apache::mod::$mpm_module":
     startservers        => $startservers,
     maxclients          => $maxclients,
