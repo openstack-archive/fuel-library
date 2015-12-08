@@ -215,7 +215,7 @@ Exec { logoutput => true }
 #################################################################
 # we need to evaluate ceph here, because ceph notifies/requires
 # other services that are declared in openstack manifests
-if ($use_ceph and !$storage_hash['volumes_lvm']) {
+if ($use_ceph and !$storage_hash['volumes_lvm'] and !member($roles, 'cinder-vmware')) {
   $primary_mons   = $controllers
   $primary_mon    = $controllers[0]['name']
 
