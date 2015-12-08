@@ -1,7 +1,10 @@
 <% require 'ipaddr' -%>
 <%- if @bind -%>
-<%- @bind.sort.map do |address_port, bind_params| -%>
-  bind <%= address_port -%> <%= Array(bind_params).join(" ") %>
+<%- @bind.sort.map do |addresses, port_and_bind_params| -%>
+  <%- port, *bind_params = port_and_bind_params -%>
+  <%- Array(addresses).each do |address| -%>
+  bind <%= address -%>:<%= port -%> <%= Array(bind_params).join(" ") %>
+  <%- end -%>
 <%- end -%>
 <%- else -%>
 <%-

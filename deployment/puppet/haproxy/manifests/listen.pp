@@ -33,7 +33,7 @@
 #
 # [*bind*]
 #   Set of ip addresses, port and bind options
-#   $bind = { '10.0.0.1:80' => ['ssl', 'crt', '/path/to/my/crt.pem'] }
+#   $bind = ['10.0.0.1', [80, 'ssl', 'crt', '/path/to/my/crt.pem']]
 #
 # [*mode*]
 #   The mode of operation for the listening service. Valid values are undef,
@@ -104,7 +104,7 @@ define haproxy::listen (
     warning('The $bind_options parameter is deprecated; please use $bind instead')
   }
   if $bind {
-    validate_hash($bind)
+    validate_array($bind)
   }
 
   if defined(Haproxy::Backend[$name]) {

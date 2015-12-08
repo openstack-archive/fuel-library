@@ -111,18 +111,18 @@ define openstack::ha::haproxy_service (
 
   if $public {
     if $public_ssl {
-      $public_bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', $public_ssl_path] }
+      $public_bind = {"public" => [$public_virtual_ip, [$listen_port, 'ssl', 'crt', $public_ssl_path]]}
     } else {
-      $public_bind = { "$public_virtual_ip:$listen_port" => "" }
+      $public_bind = {"public" => [$public_virtual_ip, [$listen_port]]}
     }
   } else {
     $public_bind = {}
   }
   if $internal {
     if $internal_ssl {
-      $internal_bind = { "$internal_virtual_ip:$listen_port" => ['ssl', 'crt', $internal_ssl_path] }
+      $internal_bind = {"internal" => [$internal_virtual_ip, [$listen_port, 'ssl', 'crt', $internal_ssl_path]]}
     } else {
-      $internal_bind = { "$internal_virtual_ip:$listen_port" => "" }
+      $internal_bind = {"internal" => [$internal_virtual_ip, [$listen_port]]}
     }
   } else {
     $internal_bind = {}
@@ -131,7 +131,7 @@ define openstack::ha::haproxy_service (
   # Configure HAProxy to listen
   haproxy::listen { $name:
     order       => $order,
-    bind        => merge($public_bind, $internal_bind),
+    bind        => values(merge($public_bind, $internal_bind)),
     options     => $haproxy_config_options,
     mode        => $mode,
     use_include => true,
