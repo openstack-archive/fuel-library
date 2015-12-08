@@ -26,10 +26,13 @@ class osnailyfacter::apache_api_proxy(
   class {"::apache::mod::proxy_connect": }
   class {"::apache::mod::proxy_http": }
 
+  $apache_api_proxy_address = hiera('apache_api_proxy_address', '0.0.0.0')
+
   apache::vhost { 'apache_api_proxy':
     docroot          => '/var/www/html',
     custom_fragment  => template('osnailyfacter/api_proxy.conf.erb'),
     port             => '8888',
+    ip               => $apache_api_proxy_address,
     add_listen       => true,
     error_log_syslog => 'syslog:local0',
     log_level        => 'notice',
