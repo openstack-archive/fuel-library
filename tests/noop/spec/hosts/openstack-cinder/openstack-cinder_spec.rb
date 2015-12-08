@@ -14,6 +14,7 @@ describe manifest do
   cinder_tenant = Noop.hiera_structure('cinder/tenant', "services")
   default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
   default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+  primary_controller = Noop.hiera 'primary_controller'
 
   it 'should configure default_log_levels' do
     should contain_cinder_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -22,6 +23,12 @@ describe manifest do
   it 'ensures cinder_config contains "oslo_messaging_rabbit/rabbit_ha_queues" ' do
     should contain_cinder_config('oslo_messaging_rabbit/rabbit_ha_queues').with(
       'value' => rabbit_ha_queues,
+    )
+  end
+
+  it 'should run db_sync only on primary controller' do
+    should contain_class('cinder::api').with(
+      'sync_db' => primary_controller,
     )
   end
 

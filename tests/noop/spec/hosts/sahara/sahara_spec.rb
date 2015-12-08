@@ -57,6 +57,7 @@ describe manifest do
         sahara_plugins = %w(ambari cdh mapr spark vanilla)
         sahara_user = Noop.hiera_structure('sahara_hash/user', 'sahara')
         sahara_password = Noop.hiera_structure('sahara_hash/user_password')
+        primary_controller = Noop.hiera 'primary_controller'
         tenant = Noop.hiera_structure('sahara_hash/tenant', 'services')
         db_user = Noop.hiera_structure('sahara_hash/db_user', 'sahara')
         db_name = Noop.hiera_structure('sahara_hash/db_name', 'sahara')
@@ -86,6 +87,7 @@ describe manifest do
                    'database_max_overflow'  => max_overflow,
                    'database_max_retries'   => max_retries,
                    'database_idle_timeout'  => idle_timeout,
+                   'sync_db'                => primary_controller,
                    'admin_password'         => sahara_password,
                    'admin_tenant_name'      => tenant,
                    'rabbit_userid'          => rabbit_user,

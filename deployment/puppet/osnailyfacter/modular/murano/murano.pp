@@ -25,6 +25,7 @@ $amqp_hosts                 = hiera('amqp_hosts')
 $external_dns               = hiera_hash('external_dns', {})
 $public_ssl_hash            = hiera_hash('public_ssl', {})
 $ssl_hash                   = hiera_hash('use_ssl', {})
+$primary_controller         = hiera('primary_controller')
 
 $public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
 $public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
@@ -84,6 +85,7 @@ if $murano_hash['enabled'] {
     use_stderr          => $use_stderr,
     log_facility        => $syslog_log_facility_murano,
     database_connection => $sql_connection,
+    sync_db             => $primary_controller,
     auth_uri            => "${public_auth_protocol}://${public_auth_address}:5000/v2.0/",
     admin_user          => $murano_user,
     admin_password      => $murano_hash['user_password'],
@@ -123,11 +125,14 @@ if $murano_hash['enabled'] {
 
 
   class { 'murano::api':
-    host => $api_bind_host,
-    port => $api_bind_port,
+    host    => $api_bind_host,
+    port    => $api_bind_port,
+    sync_db => false,
   }
 
-  class { 'murano::engine': }
+  class { 'murano::engine':
+    sync_db => false,
+  }
 
   class { 'murano::client': }
 

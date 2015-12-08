@@ -64,6 +64,7 @@ describe manifest do
 
     admin_auth_protocol = 'http'
     admin_auth_address = Noop.hiera('service_endpoint')
+    primary_controller = Noop.hiera 'primary_controller'
     if Noop.hiera_structure('use_ssl', false)
       public_auth_protocol = 'https'
       public_auth_address = Noop.hiera_structure('use_ssl/keystone_public_hostname')
@@ -102,6 +103,7 @@ describe manifest do
                    'use_stderr'          => 'false',
                    'log_facility'        => syslog_log_facility_murano,
                    'database_connection' => sql_connection,
+                   'sync_db'             => primary_controller,
                    'auth_uri'            => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
                    'admin_user'          => murano_user,
                    'admin_password'      => murano_password,

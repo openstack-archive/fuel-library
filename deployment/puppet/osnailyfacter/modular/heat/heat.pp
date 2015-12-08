@@ -12,6 +12,7 @@ $service_endpoint         = hiera('service_endpoint')
 $public_ssl_hash          = hiera('public_ssl')
 $ssl_hash                 = hiera_hash('use_ssl', {})
 $public_vip               = hiera('public_vip')
+$primary_controller       = hiera('primary_controller')
 
 $public_auth_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
 $public_auth_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
@@ -95,6 +96,7 @@ class { 'openstack::heat' :
   max_pool_size            => $max_pool_size,
   max_overflow             => $max_overflow,
   idle_timeout             => $idle_timeout,
+  primary_controller       => $primary_controller,
   debug                    => $debug,
   verbose                  => $verbose,
   default_log_levels       => $default_log_levels,
