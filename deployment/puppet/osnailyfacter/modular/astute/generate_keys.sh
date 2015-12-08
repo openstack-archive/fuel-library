@@ -16,6 +16,7 @@ while getopts ":i:o:s:f:p:" opt; do
 done
 
 [ -z ${keys_path} ] && keys_path="/var/lib/fuel/keys"
+declare -x RANDFILE=/root/.rnd
 
 BASE_PATH=$keys_path/$cluster_id/
 
