@@ -12,7 +12,7 @@
 #
 # [*listen_ports*]
 #  (optional) The ports to listen on for apache
-#  Defaults to '80'
+#  Defaults to ['0.0.0.0:80']
 #
 # [*logrotate_rotate*]
 #  (optional) The number of times to be rotated before being removed.
@@ -20,7 +20,8 @@
 #
 class osnailyfacter::apache (
   $purge_configs    = false,
-  $listen_ports     = '80',
+  # Listen directives with host required for ip_based vhosts
+  $listen_ports     = ['0.0.0.0:80'],
   $logrotate_rotate = '52',
 ) {
 

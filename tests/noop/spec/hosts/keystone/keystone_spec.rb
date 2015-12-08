@@ -148,11 +148,16 @@ describe manifest do
          'ensure' => 'stopped'
        )
      end
-     it 'should configure apache to listen 5000 keystone port' do
-       should contain_apache__listen('5000')
+
+     let (:keystone_api_address) do
+       keystone_api_address = Noop.puppet_function('get_network_role_property', 'keystone/api', 'ipaddr')
      end
-     it 'should configure apache to listen 35357 keystone port' do
-       should contain_apache__listen('35357')
+
+     it 'should configure apache to listen 5000 keystone port on correct IP address' do
+       should contain_apache__listen("#{keystone_api_address}:5000")
+     end
+     it 'should configure apache to listen 35357 keystone port on correct IP address' do
+       should contain_apache__listen("#{keystone_api_address}:35357")
      end
 
     it 'should contain keystone config with fernet tokens' do

@@ -27,9 +27,14 @@ describe manifest do
       )
     end
 
+    let (:apache_api_proxy_address) do
+      apache_api_proxy_address = Noop.puppet_function('get_network_role_property', 'admin/pxe', 'ipaddr')
+    end
+
     it 'should declare apache::vhost apache_api_proxy' do
       should contain_apache__vhost('apache_api_proxy').with(
         'docroot'          => '/var/www/html',
+        'ip'               => apache_api_proxy_address,
         'port'             => '8888',
         'add_listen'       => true,
         'error_log_syslog' => 'syslog:local0',

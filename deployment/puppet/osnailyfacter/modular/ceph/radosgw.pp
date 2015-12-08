@@ -28,15 +28,17 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   $ceph_public_network  = get_network_role_property('ceph/public', 'network')
   $rgw_ip_address       = get_network_role_property('ceph/radosgw', 'ipaddr')
 
-  # Apache and listen ports
+  # Listen directives with host required for ip_based vhosts
   class { 'osnailyfacter::apache':
-    listen_ports => hiera_array('apache_ports', ['80', '8888']),
+    listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888']),
   }
+
   if ($::osfamily == 'Debian'){
     apache::mod {'rewrite': }
     apache::mod {'fastcgi': }
   }
   include ::tweaks::apache_wrappers
+
   include ceph::params
 
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
