@@ -128,7 +128,7 @@ $floating_hash = {}
 ##CALCULATED PARAMETERS
 
 ##TODO: simply parse nodes array
-$memcache_nodes   = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
+$memcache_nodes   = get_nodes_hash_by_roles(hiera_hash('network_metadata'), hiera('memcache_roles'))
 $memcache_ipaddrs = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
 $roles            = $network_metadata['nodes'][$node_name]['node_roles']
 $mountpoints      = filter_hash($mp_hash,'point')

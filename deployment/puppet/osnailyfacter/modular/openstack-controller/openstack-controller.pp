@@ -56,7 +56,7 @@ $service_workers                = pick($nova_hash['workers'],
                                         min(max($::processorcount, 2), 16))
 $ironic_hash                    = hiera_hash('ironic', {})
 
-$memcache_nodes                 = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
+$memcache_nodes                 = get_nodes_hash_by_roles(hiera_hash('network_metadata'), hiera('memcache_roles'))
 $memcache_ipaddrs               = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
 $roles                          = node_roles($nodes_hash, hiera('uid'))
 $openstack_controller_hash      = hiera_hash('openstack_controller', {})
