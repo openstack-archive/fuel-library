@@ -187,7 +187,7 @@ describe manifest do
     # Check out nova config params
     it 'should properly configure nova' do
       node_name = Noop.hiera('node_name')
-      network_metadata = Noop.hiera_structure('network_metadata')
+      network_metadata = Noop.hiera_hash('network_metadata')
       roles = network_metadata['nodes'][node_name]['node_roles']
       nova_hash.merge!({'vncproxy_protocol' => vncproxy_protocol})
 
