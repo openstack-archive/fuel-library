@@ -55,10 +55,9 @@ $public_cert             = $public_ssl_hash['services']? {
 $admin_address          = $service_endpoint
 $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
-$memcache_server_port  = hiera('memcache_server_port', '11211')
+$memcache_server_port   = hiera('memcache_server_port', '11211')
 $memcache_pool_maxsize = '100'
-$memcache_nodes        = get_nodes_hash_by_roles(hiera_hash('network_metadata'), hiera('memcache_roles'))
-$memcache_address_map  = get_node_to_ipaddr_map_by_network_role($memcache_nodes, 'mgmt/memcache')
+$memcached_server       = hiera('memcached_addresses')
 
 $public_port     = '5000'
 $admin_port      = '35357'
@@ -123,7 +122,7 @@ class { 'openstack::keystone':
   use_stderr               => $use_stderr,
   syslog_log_facility      => $syslog_log_facility,
   region                   => $region,
-  memcache_servers         => values($memcache_address_map),
+  memcache_servers         => $memcached_server,
   memcache_server_port     => $memcache_server_port,
   memcache_pool_maxsize    => $memcache_pool_maxsize,
   max_retries              => $max_retries,
