@@ -1,7 +1,13 @@
 <% require 'ipaddr' -%>
 <%- if @bind -%>
-<%- @bind.sort.map do |address_port, bind_params| -%>
-  bind <%= address_port -%> <%= Array(bind_params).join(" ") %>
+<%- @bind.sort.map do |address_port, bind_params|
+  addresses, ports = /^(.*?)((?::\d+)(?:[,-]:\d+)*)$/.match(address_port).to_a.slice(1..-1)
+  addresses ||= address_port
+  addresses = addresses.split(',')
+  addresses.push('') if addresses.empty?
+  addresses.product([[ports, *bind_params]])
+end.flatten(1).each do |address, (ports, *bind_params)| -%>
+  bind <%= address -%><%= ports -%> <%= Array(bind_params).join(" ") %>
 <%- end -%>
 <%- else -%>
 <%-
