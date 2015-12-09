@@ -1,8 +1,11 @@
 <% require 'ipaddr' -%>
 <%- if @bind -%>
-<%- @bind.sort.map do |address_port, bind_params| -%>
-  bind <%= address_port -%> <%= Array(bind_params).join(" ") %>
-<%- end -%>
+<%- @bind.sort.map do |address_port, bind_params|
+  addresses, _, port = address_port.rpartition(':')
+  addresses.split(',').each do |address| -%>
+  bind <%= address -%>:<%= port -%> <%= Array(bind_params).join(" ") %>
+<%- end
+end -%>
 <%- else -%>
 <%-
   Array(@ipaddress).uniq.each do |virtual_ip| (@ports.is_a?(Array) ? @ports : Array(@ports.split(","))).each do |port|
