@@ -542,18 +542,28 @@ function copy_files {
   fi
   container=$(echo $remote | cut -d':' -f1)
   remotepath=$(echo $remote | cut -d':' -f2-)
-  if [[ ${CONTAINER_NAMES[@]} =~ .*${container}.* ]]; then
-    cont_root=$(container_root $container)
-    if [ $? -ne 0 ];then return 1; fi
-  else
-    echo "Unable to locate container to copy to/from."
+  if [[ ! ${CONTAINER_NAMES[@]} =~ .*${container}.* ]]; then
+    echo "Unable to locate container named '${container}' to copy to/from."
     return 2
   fi
-  remote="${cont_root}/${remotepath}"
-  if [ "$method" = "push" ]; then
-    cp -R $local $remote
+
+  docker_version=$(get_docker_version)
+  if versioncmp_gte $docker_version '1.8'; then
+    remote="${CONTAINER_NAMES[$container]}:${remotepath}"
+    if [ "$method" = "push" ]; then
+      ${DOCKER} cp $local $remote
+    else
+      ${DOCKER} cp $remote $local
+    fi
   else
-    cp -R $remote $local
+    cont_root=$(container_root $container)
+    if [ $? -ne 0 ];then return 1; fi
+    remote="${cont_root}/${remotepath}"
+    if [ "$method" = "push" ]; then
+      cp -R $local $remote
+    else
+      cp -R $remote $local
+    fi
   fi
 }
 
@@ -879,4 +889,22 @@ function verify_disk_space {
     echo "$spaceerror" 1>&2
     exit 1
   fi
+}
+
+# This function returns the version of docker using the docker -v command.
+# docker -v returns 'Docker version <version>, build <hash>/<version>' so we
+# pull the version off the end with awk
+function get_docker_version {
+  echo $(${DOCKER} -v | awk '{ print $3 }' | sed -e 's/,//g')
+}
+
+# This function is used to check that a version is greater than or equal to a
+# specific version.
+# Usage:
+#   versioncmp_gte <version> <version to compare to>
+# Example
+#   versioncmp_gte 2.3.1 2.2.2 -> returns 0
+#   versioncmp_gte 2.1.1 2.2.2 -> returns 1
+function versioncmp_gte {
+  [ "$1" = "$(echo -e "$1\n$2" | sort -V -r | head -n1)" ]
 }
