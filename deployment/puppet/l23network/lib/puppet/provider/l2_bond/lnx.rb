@@ -8,7 +8,8 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
   defaultfor :osfamily    => :linux
   commands   :iproute     => 'ip',
              :ethtool_cmd => 'ethtool',
-             :brctl       => 'brctl'
+             :brctl       => 'brctl',
+             :ovs_vsctl   => 'ovs-vsctl'
 
 
   def self.prefetch(resources)
