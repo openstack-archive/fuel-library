@@ -3,8 +3,7 @@ notice('MODULAR: horizon.pp')
 prepare_network_config(hiera('network_scheme', {}))
 $horizon_hash            = hiera_hash('horizon', {})
 $service_endpoint        = hiera('service_endpoint')
-$memcache_nodes          = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
-$memcache_address_map    = get_node_to_ipaddr_map_by_network_role($memcache_nodes, 'mgmt/memcache')
+$memcached_server        = hiera('memcached_addresses')
 $bind_address            = get_network_role_property('horizon', 'ipaddr')
 $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
 $public_ssl              = hiera('public_ssl')
@@ -30,7 +29,7 @@ $hypervisor_options = {'enable_quotas' => hiera('nova_quota')}
 
 class { 'openstack::horizon':
   secret_key          => $secret_key,
-  cache_server_ip     => ipsort(values($memcache_address_map)),
+  cache_server_ip     => $memcached_server,
   package_ensure      => hiera('horizon_package_ensure', 'installed'),
   bind_address        => $bind_address,
   cache_server_port   => hiera('memcache_server_port', '11211'),

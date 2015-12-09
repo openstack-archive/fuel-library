@@ -5,61 +5,61 @@ $override_configuration = hiera_hash('configuration', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
-$nova_rate_limits               = hiera('nova_rate_limits')
-$primary_controller             = hiera('primary_controller')
-$use_neutron                    = hiera('use_neutron', false)
-$nova_report_interval           = hiera('nova_report_interval')
-$nova_service_down_time         = hiera('nova_service_down_time')
-$use_syslog                     = hiera('use_syslog', true)
-$use_stderr                     = hiera('use_stderr', false)
-$syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
-$syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
-$syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
-$syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
-$management_vip                 = hiera('management_vip')
-$public_vip                     = hiera('public_vip')
-$sahara_hash                    = hiera_hash('sahara', {})
-$nodes_hash                     = hiera('nodes', {})
-$mysql_hash                     = hiera_hash('mysql', {})
-$access_hash                    = hiera_hash('access', {})
-$keystone_hash                  = hiera_hash('keystone', {})
-$glance_hash                    = hiera_hash('glance', {})
-$storage_hash                   = hiera_hash('storage', {})
-$nova_hash                      = hiera_hash('nova', {})
-$nova_config_hash               = hiera_hash('nova_config', {})
-$api_bind_address               = get_network_role_property('nova/api', 'ipaddr')
-$rabbit_hash                    = hiera_hash('rabbit_hash', {})
-$ceilometer_hash                = hiera_hash('ceilometer',{})
-$syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
-$workloads_hash                 = hiera_hash('workloads_collector', {})
-$service_endpoint               = hiera('service_endpoint')
-$db_host                        = pick($nova_hash['db_host'], hiera('database_vip'))
-$ssl_hash                       = hiera_hash('use_ssl', {})
+$nova_rate_limits             = hiera('nova_rate_limits')
+$primary_controller           = hiera('primary_controller')
+$use_neutron                  = hiera('use_neutron', false)
+$nova_report_interval         = hiera('nova_report_interval')
+$nova_service_down_time       = hiera('nova_service_down_time')
+$use_syslog                   = hiera('use_syslog', true)
+$use_stderr                   = hiera('use_stderr', false)
+$syslog_log_facility_glance   = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
+$syslog_log_facility_neutron  = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
+$syslog_log_facility_nova     = hiera('syslog_log_facility_nova','LOG_LOCAL6')
+$syslog_log_facility_keystone = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
+$management_vip               = hiera('management_vip')
+$public_vip                   = hiera('public_vip')
+$sahara_hash                  = hiera_hash('sahara', {})
+$nodes_hash                   = hiera('nodes', {})
+$mysql_hash                   = hiera_hash('mysql', {})
+$access_hash                  = hiera_hash('access', {})
+$keystone_hash                = hiera_hash('keystone', {})
+$glance_hash                  = hiera_hash('glance', {})
+$storage_hash                 = hiera_hash('storage', {})
+$nova_hash                    = hiera_hash('nova', {})
+$nova_config_hash             = hiera_hash('nova_config', {})
+$api_bind_address             = get_network_role_property('nova/api', 'ipaddr')
+$rabbit_hash                  = hiera_hash('rabbit_hash', {})
+$ceilometer_hash              = hiera_hash('ceilometer',{})
+$syslog_log_facility_ceph     = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
+$workloads_hash               = hiera_hash('workloads_collector', {})
+$service_endpoint             = hiera('service_endpoint')
+$db_host                      = pick($nova_hash['db_host'], hiera('database_vip'))
+$ssl_hash                     = hiera_hash('use_ssl', {})
 
-$internal_auth_protocol         = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$internal_auth_address          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$internal_auth_protocol       = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_address        = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
 
-$glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
-$glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
-$glance_ssl                     = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+$glance_protocol              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
+$glance_endpoint              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
+$glance_ssl                   = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
 if $glance_ssl {
   $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
 } else {
   $glance_api_servers = hiera('glance_api_servers', "${management_vip}:9292")
 }
 
-$nova_db_user                   = pick($nova_hash['db_user'], 'nova')
-$keystone_user                  = pick($nova_hash['user'], 'nova')
-$keystone_tenant                = pick($nova_hash['tenant'], 'services')
-$region                         = hiera('region', 'RegionOne')
-$service_workers                = pick($nova_hash['workers'],
-                                        min(max($::processorcount, 2), 16))
-$ironic_hash                    = hiera_hash('ironic', {})
+$nova_db_user                 = pick($nova_hash['db_user'], 'nova')
+$keystone_user                = pick($nova_hash['user'], 'nova')
+$keystone_tenant              = pick($nova_hash['tenant'], 'services')
+$region                       = hiera('region', 'RegionOne')
+$service_workers              = pick($nova_hash['workers'],
+                                      min(max($::processorcount, 2), 16))
+$ironic_hash                  = hiera_hash('ironic', {})
 
-$memcache_nodes                 = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
-$memcache_ipaddrs               = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
-$roles                          = node_roles($nodes_hash, hiera('uid'))
-$openstack_controller_hash      = hiera_hash('openstack_controller', {})
+$memcached_server             = hiera('memcached_addresses')
+$memcached_port               = hiera('memcache_server_port', '11211')
+$roles                        = node_roles($nodes_hash, hiera('uid'))
+$openstack_controller_hash    = hiera_hash('openstack_controller', {})
 
 $floating_hash = {}
 
@@ -134,7 +134,8 @@ class { '::openstack::controller':
   amqp_user                      => $rabbit_hash['user'],
   amqp_password                  => $rabbit_hash['password'],
   rabbit_ha_queues               => true,
-  cache_server_ip                => $memcache_ipaddrs,
+  cache_server_ip                => $memcached_server,
+  cache_server_port              => $memcached_port,
   api_bind_address               => $api_bind_address,
   db_host                        => $db_host,
   service_endpoint               => $service_endpoint,

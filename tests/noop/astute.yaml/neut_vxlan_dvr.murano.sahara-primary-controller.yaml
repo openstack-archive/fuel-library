@@ -694,6 +694,8 @@ storage:
 storage_network_range: 192.168.1.0/24
 swift:
   user_password: BP92J6tg
+memcached_addresses: [10.20.30.40, 10.20.30.41]
+memcache_server_port: 11212
 syslog:
   metadata:
     label: Syslog
