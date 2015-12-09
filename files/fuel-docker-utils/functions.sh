@@ -501,17 +501,6 @@ function post_start_hooks {
   esac
 }
 
-function container_root {
-  id=$(${DOCKER} inspect -f='{{if .ID}}{{.ID}}{{else}}{{.Id}}{{end}}' ${CONTAINER_NAMES[$1]})
-  if [ -n "$id" ]; then
-    echo "/var/lib/docker/devicemapper/mnt/${id}/rootfs"
-    return 0
-  else
-    echo "Unable to get root for container ${1}." 1>&2
-    return 1
-  fi
-}
-
 function copy_files {
   #Overview:
   # Works similar to rsync:
@@ -542,18 +531,15 @@ function copy_files {
   fi
   container=$(echo $remote | cut -d':' -f1)
   remotepath=$(echo $remote | cut -d':' -f2-)
-  if [[ ${CONTAINER_NAMES[@]} =~ .*${container}.* ]]; then
-    cont_root=$(container_root $container)
-    if [ $? -ne 0 ];then return 1; fi
-  else
-    echo "Unable to locate container to copy to/from."
+  if [[ ! ${CONTAINER_NAMES[@]} =~ .*${container}.* ]]; then
+    echo "Unable to locate container named '${container}' to copy to/from."
     return 2
   fi
-  remote="${cont_root}/${remotepath}"
+  remote="${CONTAINER_NAMES[$container]}:${remotepath}"
   if [ "$method" = "push" ]; then
-    cp -R $local $remote
+    ${DOCKER} cp $local $remote
   else
-    cp -R $remote $local
+    ${DOCKER} cp $remote $local
   fi
 }
 
