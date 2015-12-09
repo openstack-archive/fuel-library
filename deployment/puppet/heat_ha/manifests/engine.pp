@@ -4,9 +4,9 @@ class heat_ha::engine inherits heat::engine {
   $primitive_type  = 'heat-engine'
 
   #  if $::osfamily == 'RedHat' {
-  #  $ocf_script_template = 'heat/heat_engine_centos.ocf.erb'
+  #  $ocf_script_template = 'heat/heat_engine.ocf.erb'
   #} else {
-  #  $ocf_script_template = 'heat/heat_engine_ubuntu.ocf.erb'
+  #  $ocf_script_template = 'heat/heat_engine.ocf.erb'
   #}
 
   # migration-threshold is number of tries to
