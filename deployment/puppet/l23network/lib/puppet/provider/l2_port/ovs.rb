@@ -43,6 +43,8 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
       tt = "type=" + @resource[:type].to_s
     elsif File.exist? "/sys/class/net/#{@resource[:interface]}"
       tt = nil
+      # Flush all routes for this interface
+      self.class.addr_flush(@resource[:interface])
     else
       tt = "type=internal"
     end
