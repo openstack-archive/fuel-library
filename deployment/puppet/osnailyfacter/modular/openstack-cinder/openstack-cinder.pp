@@ -35,9 +35,11 @@ if $glance_ssl_usage {
   $glance_api_servers    = hiera('glance_api_servers', "${management_vip}:9292")
 }
 
-$service_port = '5000'
-$auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
-$identity_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+$service_port        = '5000'
+$auth_uri            = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+$identity_uri        = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+# TODO(degorenko): it should be fixed in upstream
+$privileged_auth_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/v2.0/"
 
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
@@ -81,6 +83,7 @@ class {'openstack::cinder':
   keystone_user        => $keystone_user,
   keystone_tenant      => $keystone_tenant,
   auth_uri             => $auth_uri,
+  privileged_auth_uri  => $privileged_auth_uri,
   region               => $region,
   identity_uri         => $identity_uri,
   cinder_user_password => $cinder_user_password,
