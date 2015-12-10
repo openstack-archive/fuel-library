@@ -39,7 +39,7 @@
 
 - id: murano-rabbitmq
   type: puppet
-  groups: [primary-controller]
+  groups: [primary-controller, controller]
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
   cross-depends:
