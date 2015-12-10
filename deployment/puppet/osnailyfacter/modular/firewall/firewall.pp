@@ -105,11 +105,11 @@ openstack::firewall::multi_net {'101 mysql':
   source_nets => get_routable_networks_for_network_role($network_scheme, 'mgmt/database'),
 }
 
-firewall {'102 keystone':
+openstack::firewall::multi_net {'102 keystone':
   port        => [$keystone_public_port, $keystone_admin_port],
   proto       => 'tcp',
   action      => 'accept',
-  destination => get_routable_networks_for_network_role($network_scheme, 'keystone/api'),
+  source_nets => get_routable_networks_for_network_role($network_scheme, 'keystone/api'),
 }
 
 firewall {'103 swift':
