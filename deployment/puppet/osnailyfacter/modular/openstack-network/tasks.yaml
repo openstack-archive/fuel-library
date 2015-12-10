@@ -21,13 +21,13 @@
 # Anchor (empty task) for another tasks, say 'tenant network FW setup starting'
 - id: openstack-network-start
   type: skipped
-  groups: [primary-controller,controller,compute,ironic]
-  requires: [neutron-keystone, neutron-db, netconfig, openstack-controller, top-role-compute, ironic-compute]
+  groups: [primary-controller,controller,compute]
+  requires: [neutron-keystone, neutron-db, netconfig, openstack-controller, top-role-compute]
   required_for: [openstack-network-common-config]
 
 - id: openstack-network-common-config
   type: puppet
-  groups: [primary-controller,controller,compute,ironic]
+  groups: [primary-controller,controller,compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-start]
   parameters:
@@ -48,7 +48,7 @@
 
 - id: openstack-network-plugins-l2
   type: puppet
-  groups: [primary-controller,controller,compute,ironic]
+  groups: [primary-controller,controller,compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config, openstack-network-server-config]
   refresh_on: [neutron_plugin_ml2, neutron_agent_ovs, neutron_config, neutron_api_config]
@@ -148,6 +148,6 @@
 # Anchor (empty task) for another tasks, say 'tenant network FW setup done'
 - id: openstack-network-end
   type: skipped
-  groups: [primary-controller,controller,compute,ironic]
+  groups: [primary-controller,controller,compute]
   required_for: [deploy_end]
   requires: []
