@@ -6,7 +6,6 @@ $murano_hash                = hiera_hash('murano_hash', {})
 $murano_settings_hash       = hiera_hash('murano_settings', {})
 $rabbit_hash                = hiera_hash('rabbit_hash', {})
 $neutron_config             = hiera_hash('neutron_config', {})
-$node_role                  = hiera('node_role')
 $public_ip                  = hiera('public_vip')
 $database_ip                = hiera('database_vip')
 $management_ip              = hiera('management_vip')
@@ -143,7 +142,7 @@ if $murano_hash['enabled'] {
     url  => $haproxy_stats_url,
   }
 
-  if ($node_role == 'primary-controller') {
+  if roles_include('primary-controller') {
     haproxy_backend_status { 'keystone-public' :
       name  => 'keystone-1',
       url   => $haproxy_stats_url,
