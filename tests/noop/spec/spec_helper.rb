@@ -46,3 +46,14 @@ RSpec.configure do |c|
 end
 
 Noop.coverage_simplecov if ENV['SPEC_COVERAGE']
+
+at_exit {
+  Noop.coverage_rspec ENV['SPEC_ASTUTE_FILE_NAME'] if ENV['SPEC_COVERAGE']
+#  if ENV['SPEC_COVERAGE']
+#    puppet_coverage_report = StringIO.new
+#    $stdout = puppet_coverage_report
+#    RSpec::Puppet::Coverage.report!
+#    File.open("coverage/#{ENV['SPEC_ASTUTE_FILE_NAME']}", 'w') { |file| file.write($stdout.string) }
+#    puts $stdout.string
+#  end
+}
