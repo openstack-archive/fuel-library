@@ -11,6 +11,9 @@ describe manifest do
     let(:rabbit_os_user) { Noop.hiera_structure('rabbit/user', 'nova') }
     let(:rabbit_os_password) { Noop.hiera_structure('rabbit/password') }
 
+    let(:rabbit_own_vhost) { '/' }
+    let(:rabbit_own_port) { '55572' }
+
     let(:network_scheme) do
       Noop.hiera_hash 'network_scheme'
     end
@@ -115,11 +118,11 @@ describe manifest do
                    'rabbit_os_port'      => amqp_port,
                    'rabbit_os_host'      => amqp_hosts.split(','),
                    'rabbit_ha_queues'    => rabbit_ha_queues,
-                   'rabbit_own_host'     => management_ip,
-                   'rabbit_own_port'     => amqp_port,
+                   'rabbit_own_host'     => public_ip,
+                   'rabbit_own_port'     => rabbit_own_port,
                    'rabbit_own_user'     => rabbit_os_user,
                    'rabbit_own_password' => rabbit_os_password,
-                   'rabbit_own_vhost'    => '/murano',
+                   'rabbit_own_vhost'    => rabbit_own_vhost,
                    'default_nameservers' => default_dns,
                    'service_host'        => bind_address,
                    'service_port'        => api_bind_port,
