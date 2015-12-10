@@ -41,6 +41,10 @@
 # [*server_names*]
 #   (required) Array. This is an array of server names for the haproxy service
 #
+# [*bind_to_one*]
+#   (optional) Boolean. If true, uses custom script checker w/ additional tests
+#   Defaults to false.
+#
 class openstack::ha::swift (
   $internal_virtual_ip,
   $ipaddresses,
@@ -51,7 +55,18 @@ class openstack::ha::swift (
   $internal_ssl         = false,
   $internal_ssl_path    = undef,
   $baremetal_virtual_ip = undef,
+  $bind_to_one          = false,
 ) {
+
+  $bm_opt_tail = 'inter 15s fastinter 2s downinter 8s rise 3 fall 3'
+
+  if $bind_to_one {
+    $http_check = 'httpchk'
+    $balancermember_options = "check port 49001 ${bm_opt_tail}"
+  } else {
+    $http_check = 'httpchk HEAD /healthcheck HTTP/1.0'
+    $balancermember_options = "check ${bm_opt_tail}"
+  }
 
   # defaults for any haproxy_service within this class
   Openstack::Ha::Haproxy_service {
@@ -61,10 +76,16 @@ class openstack::ha::swift (
     public_virtual_ip      => $public_virtual_ip,
     server_names           => $server_names,
     haproxy_config_options => {
-      'option'       => ['httpchk', 'httplog', 'httpclose'],
+      'option'       => [
+        $http_check,
+        'httplog',
+        'httpclose',
+        'tcp-smart-accept',
+        'tcp-smart-connect',
+      ],
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
-    balancermember_options => 'check port 49001 inter 15s fastinter 2s downinter 8s rise 3 fall 3',
+    balancermember_options => $balancermember_options,
   }
 
   openstack::ha::haproxy_service { 'swift':
