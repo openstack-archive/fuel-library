@@ -1,0 +1,2 @@
+ip link add p_33470efd-0 type veth peer name p_33470efd-1
+ip link set up dev p_33470efd-1
