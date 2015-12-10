@@ -13,6 +13,8 @@ iso/build
 
 # Doc
 _build
+doc/*/build/
+publish-docs/
 
 # Editors
 *.swp
