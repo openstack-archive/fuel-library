@@ -7,7 +7,7 @@ describe manifest do
 
   storage_hash = Noop.hiera 'storage_hash'
 
-  if Noop.hiera 'use_ceph' and !(storage_hash['volumes_lvm'])
+  if Noop.hiera 'use_ceph' and !(storage_hash['volumes_lvm']) and !(member($roles, 'cinder-vmware'))
       it { should contain_class('ceph') }
   end
 
