@@ -1,5 +1,3 @@
-#!/bin/sh
+#!/bin/bash
 SCRIPT="/etc/sysconfig/network-scripts/interface-up-script-$1"
-if [[ -x $SCRIPT ]] ; then
-. $SCRIPT
-fi
+[ -x $SCRIPT ] && . $SCRIPT
