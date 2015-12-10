@@ -50,11 +50,11 @@ describe manifest do
     end
 
     it 'should accept connections to keystone API using network with keystone/api role' do
-      should contain_firewall('102 keystone').with(
+      should contain_openstack__firewall__multi_net('102 keystone').with(
         'port'        => [ 5000, 35357 ],
         'proto'       => 'tcp',
         'action'      => 'accept',
-        'destination' => keystone_network,
+        'source_nets' => keystone_network,
       )
     end
 
