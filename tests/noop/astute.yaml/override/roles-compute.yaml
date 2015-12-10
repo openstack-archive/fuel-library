@@ -10,3 +10,7 @@ configuration:
   nova_paste_api_ini:
     DEFAULT/test:
       value: True
+network_metadata:
+  vips:
+    management:
+      namespace: 'haproxy'
