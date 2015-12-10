@@ -334,6 +334,10 @@ choose_master() {
     done
 
     MASTER=$(printf -- '%s\n' "${!TMP[@]}" | sort | head -1)
+    if [ -z $MASTER ]
+    then
+        ocf_log error "No master picked."
+    fi
     ocf_log info "Choosed master: ${TMP[$MASTER]}"
     echo ${TMP[$MASTER]}
 }
@@ -351,8 +355,13 @@ get_possible_masters() {
     done
 
     MASTER_GTID=$(printf -- '%s\n' "${TMP[@]}" | sort -r | head -1)
-
     for NODE in $NODES; do
+         NODE_SCORE=`crm_simulate -Ls | grep ${OCF_RESOURCE_INSTANCE} | grep clone_color  | grep -v "${OCF_RESOURCE_INSTANCE}:" | grep $NODE | sed  -r -e 's/.*score on (.*)/\1/' | awk -F ':' '{print $2}' | tr -d '[:space:]'`
+        if [[ $NODE_SCORE =~ ^-?[0-9]+$ && $NODE_SCORE -le 0 || $NODE_SCORE = "-INFINITY" || -z $NODE_SCORE ]]
+        then
+            ocf_log info "Skipping node $NODE as it is not eligible for running the resource. Its score is ${NODE_SCORE:-NULL}"
+            continue
+        fi
         if [ $MASTER_GTID -eq ${TMP[$NODE]} ]; then
             POSSIBLE_MASTERS="$POSSIBLE_MASTERS $NODE"
         fi
@@ -581,6 +590,7 @@ mysql_start() {
     done
 
     ocf_log info "MySQL started"
+    update_node_gtid
     return $OCF_SUCCESS
 }
 
