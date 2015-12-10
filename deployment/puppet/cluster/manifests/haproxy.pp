@@ -49,7 +49,8 @@ class cluster::haproxy (
   $primary_controller           = false,
   $debug                        = false,
   $other_networks               = false,
-  $stats_ipaddresses            = ['127.0.0.1']
+  $stats_ipaddresses            = ['127.0.0.1'],
+  $spread_checks                = '3',
 ) {
   include ::concat::setup
   include ::haproxy::params
@@ -70,6 +71,7 @@ class cluster::haproxy (
     'group'                     => 'haproxy',
     'daemon'                    => '',
     'stats'                     => 'socket /var/lib/haproxy/stats',
+    'spread-checks'             => $spread_checks,
     'tune.bufsize'              => $haproxy_bufsize,
     'tune.maxrewrite'           => $haproxy_maxrewrite,
     'tune.ssl.default-dh-param' => $haproxy_ssl_default_dh_param
@@ -84,6 +86,7 @@ class cluster::haproxy (
       'redispatch',
       'http-server-close',
       'splice-auto',
+      'dontlognull',
     ],
     'timeout' => [
       'http-request 20s',
