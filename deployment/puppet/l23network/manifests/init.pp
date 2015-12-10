@@ -63,7 +63,7 @@ class l23network (
     if ! defined(File["${::l23network::params::interfaces_file}"]) {
       file {"${::l23network::params::interfaces_file}":
         ensure  => present,
-        content => template('l23network/interfaces.erb'),
+        source  => 'puppet:///modules/l23network/interfaces',
       }
     }
     File<| title == "${::l23network::params::interfaces_file}" |> -> File<| title == "${::l23network::params::interfaces_dir}" |>
