@@ -17,7 +17,35 @@ describe manifest do
       use_swift = true
     end
 
+    let (:bind_to_one) {
+      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
+      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
+      api_ip == storage_ip
+    }
+
+    let (:bm_options) {
+      bm_opt_tail = 'inter 15s fastinter 2s downinter 8s rise 3 fall 3'
+      bind_to_one ? "check port 49001 #{bm_opt_tail}" : "check #{bm_opt_tail}"
+    }
+
+    let (:http_check) {
+      bind_to_one ? 'httpchk' : 'httpchk HEAD /healthcheck HTTP/1.0'
+    }
+
+    let(:haproxy_config_opts) do
+      {
+        'option'       => [http_check, 'httplog', 'httpclose', 'tcp-smart-accept', 'tcp-smart-connect'],
+        'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      }
+    end
+
     if use_swift
+      it "should declare openstack::ha:swift class with valid params" do
+        should contain_class('openstack::ha::swift').with(
+          'bind_to_one' => bind_to_one,
+        )
+      end
+
       it "should properly configure swift haproxy based on ssl" do
         public_ssl_swift = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('swift').with(
@@ -25,11 +53,8 @@ describe manifest do
           'listen_port'            => 8080,
           'public'                 => true,
           'public_ssl'             => public_ssl_swift,
-          'haproxy_config_options' => {
-            'option'       => ['httpchk', 'httplog', 'httpclose'],
-            'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-          },
-          'balancermember_options' => 'check port 49001 inter 15s fastinter 2s downinter 8s rise 3 fall 3',
+          'haproxy_config_options' => haproxy_config_opts,
+          'balancermember_options' => bm_options,
         )
       end
 
@@ -48,11 +73,8 @@ describe manifest do
             'listen_port'            => 8080,
             'public_virtual_ip'      => false,
             'internal_virtual_ip'    => baremetal_virtual_ip,
-            'haproxy_config_options' => {
-             'option'        => ['httpchk', 'httplog', 'httpclose'],
-              'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-            },
-            'balancermember_options' => 'check port 49001 inter 15s fastinter 2s downinter 8s rise 3 fall 3',
+            'haproxy_config_options' => haproxy_config_opts,
+            'balancermember_options' => bm_options,
           )
         end
       end

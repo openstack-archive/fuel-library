@@ -94,9 +94,6 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
   }
 
   if $deploy_swift_proxy {
-    $sto_nets = get_routable_networks_for_network_role($network_scheme, 'swift/replication', ' ')
-    $man_nets = get_routable_networks_for_network_role($network_scheme, 'swift/api', ' ')
-
     class { 'openstack::swift::proxy':
       swift_user_password            => $swift_hash['user_password'],
       swift_operator_roles           => $swift_operator_roles,
@@ -122,13 +119,22 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       rabbit_user                    => $rabbit_hash['user'],
       rabbit_password                => $rabbit_hash['password'],
       rabbit_hosts                   => split($rabbit_hosts, ', '),
-    } ->
-    class { 'openstack::swift::status':
-      endpoint    => "${swift_internal_protocol}://${swift_internal_endpoint}:${proxy_port}",
-      vip         => $management_vip,
-      only_from   => "127.0.0.1 240.0.0.2 ${sto_nets} ${man_nets}",
-      con_timeout => 5
-    } ->
+    }
+
+    if $swift_api_ipaddr == $swift_storage_ipaddr {
+      $storage_nets = get_routable_networks_for_network_role($network_scheme, 'swift/replication', ' ')
+      $mgmt_nets = get_routable_networks_for_network_role($network_scheme, 'swift/api', ' ')
+
+      class { 'openstack::swift::status':
+        endpoint    => "${swift_internal_protocol}://${swift_internal_endpoint}:${proxy_port}",
+        scan_target => "${service_endpoint}:5000",
+        only_from   => "127.0.0.1 240.0.0.2 ${storage_nets} ${mgmt_nets}",
+        con_timeout => 5
+      }
+
+      Class['openstack::swift::status'] -> Class['swift::dispersion']
+    }
+
     class { 'swift::dispersion':
       auth_url       => "${keystone_internal_protocol}://${keystone_endpoint}:5000/v2.0/",
       auth_user      =>  $keystone_user,
@@ -137,6 +143,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       auth_version   =>  '2.0',
     }
 
+    Class['openstack::swift::proxy'] -> Class['swift::dispersion']
     Service<| tag == 'swift-service' |> -> Class['swift::dispersion']
 
     if defined(Class['openstack::swift::storage_node']) {

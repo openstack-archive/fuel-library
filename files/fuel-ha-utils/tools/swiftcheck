@@ -1,36 +1,42 @@
 #!/bin/bash
 #
 # Script to make a HAProxy capable of monitoring the Swift proxy backends status.
-# This script checks the given management VIP via ICMP and also performs a Swift
+# This script checks the given scan target(auth endpoint) and also performs a Swift
 # healthcheck via the given Swift endpoint with the given connect timeout.
 # Reports an HTTP 200 OK, if all of the results are OK.
-# If the healthcheck result was not OK or the Swift endpoint/VIP was not reachable,
+# If the healthcheck result was not OK or the Swift/Auth endpoint was not reachable,
 # it would report an HTTP 503 Error.
 #
 # Author: Bogdan Dobrelya <bdobrelia@mirantis.com>
 #
 
 if [[ $1 == '-h' || $1 == '--help' || "$#" -ne 3 ]];then
-    echo "Usage: $0 <local_swift_endpoint> <management_vip> <connect_timeout>"
+    echo "Usage: $0 <local_swift_endpoint> <scan_target> <connect_timeout>"
     exit
 fi
 
-# Remove trailing slash
-url=`echo $1 | sed 's#/*$##'`
+# Set options
+url=${1%/} # remove trailing slash
+scan_target=${2/:/ } # convert to netcat format
+connect_timeout=$3
+ncat=$(type -P nc)
+curl=$(type -P curl)
+waiting_time=3
+pause=1
+result='UNDEFINED'
 
-# Check for the management VIP avail.
-ping -c3 $2 2>&1 >/dev/null
-rc=$?
-rc2=1
-result="ERROR"
+# Scan for the target availability
+while !($ncat -z ${scan_target}) && [ $waiting_time -gt 0 ]; do
+    sleep $pause
+    (( waiting_time -= pause ))
+done
 
-# Also check for the swift healthcheck report via given endpoint url
-if [[ $rc == 0 ]]; then
-    result=`/usr/bin/curl --connect-timeout ${3} -XGET ${url}/healthcheck 2>/dev/null`
-    rc2=$?
+# Check for the swift healthcheck report via given endpoint url
+if [[ $waiting_time -gt 0 ]]; then
+    result=$($curl --silent --connect-timeout ${connect_timeout} --retry 1 -XGET ${url}/healthcheck)
 fi
 
-if [[ $result == "OK" && $rc2 == 0 ]] ; then
+if [[ $result == 'OK' ]]; then
     # Swift healthcheck is OK and endpoint is reachable
     # return HTTP 200. Shell return-code is 0
     echo -en "HTTP/1.1 200 OK\r\n"
