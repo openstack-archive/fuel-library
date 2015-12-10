@@ -192,7 +192,7 @@ if $use_neutron {
   $management_network_range = hiera('management_network_range')
 }
 
-if $node_role == 'primary-controller' {
+if member($roles,'primary-controller') {
   $primary_controller = true
 } else {
   $primary_controller = false
