@@ -20,9 +20,29 @@ class Noop
       end
 
       SimpleCov.at_exit do
+        puts "-"*80
+        puts "SimpleCov Coverage Report"
         SimpleCov.result.format!
         puts "Total coverage percent: #{SimpleCov.result.covered_percent.round 2}"
+        puts "-"*80
       end
+    end
+
+    def coverage_rspec(file_name)
+      coverage_prepare
+      # capture the rspec coverage report
+      puppet_coverage_report = capture_stdout do
+        RSpec::Puppet::Coverage.report!
+      end
+      # write the rspec coverage report out to a file
+      File.open("#{coverage_base_dir}/#{file_name}", "w") { |file|
+        file.write(puppet_coverage_report.string)
+      }
+      # also print it out to the console
+      puts "-"*80
+      puts "RSpec Coverage Report for #{file_name}"
+      puts puppet_coverage_report.string
+      puts "-"*80
     end
 
   end

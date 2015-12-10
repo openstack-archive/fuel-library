@@ -46,3 +46,7 @@ RSpec.configure do |c|
 end
 
 Noop.coverage_simplecov if ENV['SPEC_COVERAGE']
+
+at_exit {
+  Noop.coverage_rspec ENV['SPEC_ASTUTE_FILE_NAME'] if ENV['SPEC_COVERAGE']
+}
