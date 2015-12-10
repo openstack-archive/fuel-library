@@ -273,7 +273,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
    #ip link add p_3911f6cc-0 type veth peer name p_3911f6cc-1\nip link set up dev p_3911f6cc-1
    rv = []
    p "parse jacks #{data}"
-   data.split("\n").each do | line |
+   data.each_line do | line |
      jacks = line.scan(/ip\s+link\s+add\s+([\w\-]+)\s+type\s+veth\s+peer\s+name\s+([\w\-]+)/).flatten
      rv = jacks if !jacks.empty?
    end
@@ -367,6 +367,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     rescue
       raise Puppet::Error, "write_file(): file #{file} can not be written!"
     end
+    File.chmod(0744, file)
   end
 
   def self.remove_line_from_file(file, remove)
