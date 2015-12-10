@@ -13,8 +13,8 @@ module Puppet::Parser::Functions
     network_scheme = args[1]
     raise Puppet::ParseError, 'generate_vips(): Missing or incorrect network_scheme in Hiera!' unless network_scheme.is_a? Hash
 
-    this_node_role = args[2]
-    raise Puppet::ParseError, "generate_vips(): Could not get this node's role from Hiera!" if this_node_role.empty?
+    this_node_roles = args[2]
+    raise Puppet::ParseError, "generate_vips(): Could not get this node's role from Hiera!" if this_node_roles.empty?
 
     default_node_roles = %w(controller primary-controller)
 
@@ -48,8 +48,9 @@ module Puppet::Parser::Functions
       end
 
       node_roles = parameters.fetch 'node_roles', default_node_roles
-      unless node_roles.include? this_node_role
-        debug "Skipping vip: '#{name}' because it's 'node_roles' parameter doesn't include this node's role: #{this_node_role}!"
+      roles_intersection = node_roles & this_node_roles
+      if roles_intersection.empty?
+        debug "Skipping vip: '#{name}' because it's 'node_roles' parameter doesn't include this node's roles: #{this_node_roles}!"
         next
       end
 

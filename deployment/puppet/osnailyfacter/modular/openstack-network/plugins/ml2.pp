@@ -8,9 +8,9 @@ class { 'neutron' :}
 if $use_neutron {
   include ::neutron::params
 
-  $role = hiera('role')
+  $roles = hiera('roles')
   $node_name = hiera('node_name')
-  $primary_controller = $role in ['primary-controller']
+  $primary_controller = member($roles,'primary-controller')
 
   $neutron_config = hiera_hash('neutron_config')
   $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
