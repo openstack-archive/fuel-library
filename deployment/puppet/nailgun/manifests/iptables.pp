@@ -31,9 +31,9 @@ $chain                 = 'INPUT',
   sysctl::value{'net.ipv4.ip_forward': value=>'1'}
 
   firewall { '005 ssh':
-    port   => $ssh_port,
-    proto  => 'tcp',
-    action => 'accept',
+    port    => $ssh_port,
+    proto   => 'tcp',
+    action  => 'accept',
   }
 
   firewall { '006 ntp':

@@ -100,7 +100,8 @@ class { 'nailgun::bootstrap_cli':
 }
 
 class { 'osnailyfacter::ssh':
-  password_auth => 'yes',
+  password_auth  => 'yes',
+  listen_address => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 }
 
 if $use_systemd {
