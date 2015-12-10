@@ -8,9 +8,8 @@ class { 'neutron' :}
 $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
 $dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
-$role = hiera('role')
-$controller = $role in ['controller', 'primary-controller']
-$compute = $role in ['compute']
+$controller = roles_include(['controller', 'primary-controller'])
+$compute = roles_include('compute')
 
 if $use_neutron and ($controller or ($dvr and $compute)) {
   $debug                   = hiera('debug', true)

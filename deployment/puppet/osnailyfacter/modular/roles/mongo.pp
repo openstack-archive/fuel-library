@@ -25,7 +25,7 @@ class { 'openstack::mongo':
   debug                      => $debug,
 }
 
-if !(member($roles, 'controller') or member($roles, 'primary-controller')) {
+if ! roles_include(['controller', 'primary-controller']) {
   sysctl::value { 'net.ipv4.tcp_keepalive_time':
     value => '300',
   }
