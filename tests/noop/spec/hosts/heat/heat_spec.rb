@@ -32,6 +32,13 @@ describe manifest do
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
+    it 'should install heat-docker package only after heat-engine' do
+      should contain_package('heat-docker').with(
+        'ensure'  => 'installed',
+        'require' => 'Package[heat-engine]',
+    )
+    end
+
     it 'should configure default_log_levels' do
       should contain_heat_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
