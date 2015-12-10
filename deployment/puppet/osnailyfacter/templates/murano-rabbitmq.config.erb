@@ -1,0 +1,7 @@
+[
+{rabbit, [{tcp_listeners, [<%= @rabbit_port %>]}]},
+{kernel,[
+  {inet_dist_listen_min, <%= @rabbit_cluster_port %>},
+  {inet_dist_listen_max, <%= @rabbit_cluster_port %>}
+]}
+].
