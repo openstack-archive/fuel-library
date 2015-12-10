@@ -1,11 +1,10 @@
 notice('MODULAR: openstack-network/agents/metadata.pp')
 
 $use_neutron              = hiera('use_neutron', false)
-$role                     = hiera('role')
 $neutron_controller_roles = hiera('neutron_controller_roles', ['controller', 'primary-controller'])
 $neutron_compute_roles    = hiera('neutron_compute_nodes', ['compute'])
-$controller               = $role in $neutron_controller_roles
-$compute                  = $role in $neutron_compute_roles
+$controller               = roles_include($neutron_controller_roles)
+$compute                  = roles_include($neutron_compute_roles)
 $neutron_advanced_config  = hiera_hash('neutron_advanced_configuration', { })
 $dvr                      = pick($neutron_advanced_config['neutron_dvr'], false)
 
