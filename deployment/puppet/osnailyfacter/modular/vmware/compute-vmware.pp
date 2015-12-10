@@ -1,7 +1,5 @@
 notice('MODULAR: vmware/compute-vmware.pp')
 
-$role = hiera('role')
-
 $debug = hiera('debug', true)
 $ceilometer_hash = hiera('ceilometer',{})
 
