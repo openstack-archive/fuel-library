@@ -52,3 +52,4 @@ fixtures:
     'corosync': "#{source_dir}/../corosync"
     'pacemaker': "#{source_dir}/../pacemaker"
     'haproxy': "#{source_dir}/../haproxy"
+    'xinetd': "#{source_dir}/../xinetd"
