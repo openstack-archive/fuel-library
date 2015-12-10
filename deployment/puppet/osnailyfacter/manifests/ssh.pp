@@ -23,14 +23,17 @@
 # [*password_auth*]
 #   Use password authentication. Defaults to no
 #
+# [*listen_address*]
+#   Array of the local addresses sshd should listen on.
 
 class osnailyfacter::ssh(
-  $ciphers = 'aes256-ctr,aes192-ctr,aes128-ctr,arcfour256,arcfour128',
-  $macs = 'hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,hmac-sha1',
-  $protocol_ver = '2',
-  $ports = '22',
-  $log_lvl = 'VERBOSE',
-  $password_auth = 'no'
+  $ciphers        = 'aes256-ctr,aes192-ctr,aes128-ctr,arcfour256,arcfour128',
+  $macs           = 'hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,hmac-sha1',
+  $protocol_ver   = '2',
+  $ports          = '22',
+  $log_lvl        = 'VERBOSE',
+  $password_auth  = 'no',
+  $listen_address = [],
 ){
 
   case $::osfamily {
@@ -55,6 +58,7 @@ class osnailyfacter::ssh(
       'LogLevel'                        => $log_lvl,
       'Subsystem'                       => $subsystem,
       'PasswordAuthentication'          => $password_auth,
+      'ListenAddress'                   => $listen_address,
       'AllowTcpForwarding'              => 'yes',
       'X11Forwarding'                   => 'no',
       'UsePAM'                          => 'yes',
