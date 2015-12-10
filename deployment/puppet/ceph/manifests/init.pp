@@ -91,7 +91,9 @@ class ceph (
          cwd  => '/root',
   }
 
-  if hiera('role') =~ /controller|ceph|compute|cinder/ {
+  $node_roles=hiera('node_roles')
+
+  if member($node_roles, 'primary-controller') or member($node_roles, 'controller') or member($node_roles,'ceph-mon') or  member($node_roles,'ceph-osd') or member($node_roles, 'compute') or member($node_roles, 'cinder'){
     # the regex above includes all roles that require ceph.conf
     include ceph::ssh
     include ceph::params
@@ -99,7 +101,7 @@ class ceph (
     Class[['ceph::ssh', 'ceph::params']] -> Class['ceph::conf']
   }
 
-  if hiera('role') =~ /controller|ceph/ {
+  if member($node_roles, 'primary-controller') or member($node_roles, 'controller') or member($node_roles,'ceph-mon') or  member($node_roles,'ceph-osd'){
     service {'ceph':
       name    => $ceph::params::service_name,
       ensure  => 'running',
@@ -112,8 +114,7 @@ class ceph (
     }
   }
 
-  case hiera('role') {
-    'primary-controller', 'controller', 'ceph-mon': {
+  if member($node_roles, 'primary-controller') or member($node_roles, 'controller') or member($node_roles,'ceph-mon') {
       include ceph::mon
 
       Class['ceph::conf'] -> Class['ceph::mon'] ->
@@ -129,8 +130,8 @@ class ceph (
         Ceph_conf <||> ~> Service['ceph']
       }
     }
-
-    'ceph-osd': {
+  if member($node_roles, 'ceph-osd')
+  {
       if ! empty($osd_devices) {
         include ceph::osds
         Class['ceph::conf'] -> Class['ceph::osds']
@@ -138,6 +139,4 @@ class ceph (
       }
     }
 
-    default: {}
-  }
 }
