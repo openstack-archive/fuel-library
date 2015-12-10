@@ -108,7 +108,6 @@ end
         'ensure'         => 'present',
         'if_type'        => 'vport',
         'bridge'         => ["br-ovs", "br1"],
-        'jacks'          => ['p_33470efd-0', 'p_33470efd-1'],
         'provider'       => 'ovs_ubuntu'
       })
     end

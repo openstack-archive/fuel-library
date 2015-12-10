@@ -48,7 +48,6 @@ describe 'l23network::l2::patch', :type => :define do
         'gateway' => nil,
         'onboot'  => true,
         'bridge'  => ['br1', 'br2'],
-        'jacks'   => ['p_39a440c1-0', 'p_39a440c1-1']
       })
     end
 
@@ -77,7 +76,6 @@ describe 'l23network::l2::patch', :type => :define do
         'gateway' => nil,
         'onboot'  => true,
         'bridge'  => ['br1', 'br2'],
-        'jacks'   => ['p_39a440c1-0', 'p_39a440c1-1']
       })
     end
 
@@ -105,7 +103,6 @@ describe 'l23network::l2::patch', :type => :define do
     it do
       should contain_l23_stored_config('p_39a440c1-0').with({
         'bridge'  => ['br1', 'br2'],
-        'jacks'   => ['p_39a440c1-0', 'p_39a440c1-1'],
         'mtu'     => 9000,
       })
     end
@@ -140,7 +137,6 @@ describe 'l23network::l2::patch', :type => :define do
     it do
       should contain_l23_stored_config('p_39a440c1-0').with({
         'bridge'          => ['br1', 'br2'],
-        'jacks'           => ['p_39a440c1-0', 'p_39a440c1-1'],
         'vendor_specific' => {
             'aaa' => '111',
             'bbb' => {
