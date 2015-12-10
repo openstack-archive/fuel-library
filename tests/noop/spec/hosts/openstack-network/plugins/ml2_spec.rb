@@ -31,6 +31,10 @@ describe manifest do
         configuration_override.fetch('neutron_agent_ovs', {})
       end
 
+      let(:phys_net_mtu) do
+        Noop.puppet_function('generate_physnet_mtus', Noop.hiera_hash('neutron_config'), network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false })
+      end
+
       context 'with Neutron-ml2-plugin' do
 
         role = Noop.hiera('role')
@@ -52,7 +56,6 @@ describe manifest do
             network_vlan_ranges = ["physnet2:#{network_vlan_ranges_physnet2}"]
           end
           tunnel_id_ranges  = []
-          physical_network_mtus = ["physnet2:1500"]
           overlay_net_mtu = '1500'
           tunnel_types = []
           if pnets['physnet-ironic']
@@ -68,7 +71,6 @@ describe manifest do
           network_type   = 'vxlan'
           network_vlan_ranges = ["physnet1"]
           tunnel_id_ranges  = [neutron_config.fetch('L2',{}).fetch('tunnel_id_ranges')]
-          physical_network_mtus = []
           overlay_net_mtu = '1450'
           tunnel_types    = [network_type]
         end
@@ -105,7 +107,13 @@ describe manifest do
         it { should contain_class('neutron::plugins::ml2').with(
           'vxlan_group' => '224.0.0.1',
         )}
-        it { should contain_class('neutron::plugins::ml2').with(
+        it {
+          if segmentation_type == 'vlan'
+            physical_network_mtus = phys_net_mtu
+          else
+            physical_network_mtus = []
+          end
+          should contain_class('neutron::plugins::ml2').with(
           'physical_network_mtus' => physical_network_mtus,
         )}
         it { should contain_class('neutron::plugins::ml2').with(
