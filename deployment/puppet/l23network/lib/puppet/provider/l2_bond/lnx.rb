@@ -188,7 +188,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             # do not remove bridge-based interface from his bridge
             case port_bridges_hash[@resource[:bond]][:br_type]
             when :ovs
-              ovs_vsctl(['del-port', br_name, @resource[:bond]])
+              self.class.ovs_vsctl(['del-port', br_name, @resource[:bond]])
               # todo catch exception
             when :lnx
               self.class.brctl(['delif', br_name, @resource[:bond]])
@@ -202,7 +202,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         if !@property_flush[:bridge].nil? and @property_flush[:bridge].to_sym != :absent
           case @bridges[@property_flush[:bridge]][:br_type]
           when :ovs
-            ovs_vsctl(['add-port', @property_flush[:bridge], @resource[:bond]])
+            self.class.ovs_vsctl(['add-port', @property_flush[:bridge], @resource[:bond]])
           when :lnx
             self.class.brctl(['addif', @property_flush[:bridge], @resource[:bond]])
           else

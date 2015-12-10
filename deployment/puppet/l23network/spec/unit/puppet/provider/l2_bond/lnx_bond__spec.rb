@@ -185,3 +185,67 @@ describe Puppet::Type.type(:l2_bond).provider(:lnx) do
     end
   end
 end
+
+describe Puppet::Type.type(:l2_bond).provider(:lnx) do
+
+  let(:resource) {
+    Puppet::Type.type(:l2_bond).new(
+      :provider => :lnx,
+      :name     => 'bond12',
+      :bridge   => 'br-ovs',
+      :slaves   => ['eth1', 'eth2'],
+      :bond_properties => {
+        'mode'             => '802.3ad',
+        'lacp_rate'        => 'fast',
+        'xmit_hash_policy' => 'layer2+3',
+        'updelay'          => '111',
+        'downdelay'        => '222',
+        'ad_select'        => '2',
+      },
+    )
+  }
+
+  let(:provider) { resource.provider }
+  let(:instance) { provider.class.instances }
+
+  describe "lnx bond in ovs bridge" do
+    before(:each) do
+      puppet_debug_override()
+      provider.class.stubs(:iproute).with('addr', 'flush', 'dev', 'eth1').returns(true)
+      provider.class.stubs(:iproute).with('addr', 'flush', 'dev', 'eth2').returns(true)
+    end
+
+    it "Create lnx bond and put into ovs bridge" do
+      provider.class.stubs(:set_sys_class).with('/sys/class/net/bonding_masters', '+bond12').returns(true)
+      provider.class.stubs(:get_sys_class).with("/sys/class/net/bond12/bonding/slaves", true).returns([])
+      provider.class.stubs(:set_sys_class).with('/sys/class/net/bond12/bonding/slaves', '+eth1').returns(true)
+      provider.class.stubs(:set_sys_class).with('/sys/class/net/bond12/bonding/slaves', '+eth2').returns(true)
+      provider.class.stubs(:interface_down).with('bond12').returns(true)
+      provider.class.stubs(:interface_down).with('bond12', true).returns(true)
+      provider.class.stubs(:interface_down).with('eth1').returns(true)
+      provider.class.stubs(:interface_down).with('eth2').returns(true)
+      provider.class.stubs(:get_sys_class).with('/sys/class/net/bond12/bonding/mode').returns('balance-rr')
+      provider.class.stubs(:set_sys_class).with('/sys/class/net/bond12/bonding/mode', '802.3ad').returns(true)
+      provider.class.stubs(:get_sys_class).with('/sys/class/net/bond12/bonding/xmit_hash_policy').returns('layer2')
+      provider.class.stubs(:set_sys_class).with('/sys/class/net/bond12/bonding/xmit_hash_policy', 'layer2+3').returns(true)
+      provider.class.stubs(:get_sys_class).with('/sys/class/net/bond12/bonding/lacp_rate').returns('slow')
+      provider.class.stubs(:set_sys_class).with('/sys/class/net/bond12/bonding/lacp_rate', 'fast').returns(true)
+      provider.class.stubs(:get_sys_class).with('/sys/class/net/bond12/bonding/ad_select').returns('stable')
+      provider.class.stubs(:set_sys_class).with('/sys/class/net/bond12/bonding/ad_select', '2').returns(true)
+      provider.class.stubs(:get_sys_class).with('/sys/class/net/bond12/bonding/updelay').returns('0')
+      provider.class.stubs(:set_sys_class).with('/sys/class/net/bond12/bonding/updelay', '111').returns(true)
+      provider.class.stubs(:get_sys_class).with('/sys/class/net/bond12/bonding/downdelay').returns('0')
+      provider.class.stubs(:set_sys_class).with('/sys/class/net/bond12/bonding/downdelay', '222').returns(true)
+      provider.class.stubs(:get_bridge_list).returns({'br-ovs'=>{:br_type=>:ovs},})
+      provider.class.stubs(:get_port_bridges_pairs).returns({"br-storage"=>{:bridge=>"br-storage", :br_type=>:ovs}})
+      provider.class.stubs(:ovs_vsctl).with(['add-port', 'br-ovs', 'bond12']).once
+      provider.class.stubs(:interface_up).with('bond12').returns(true)
+      provider.class.stubs(:interface_up).with('eth1').returns(true)
+      provider.class.stubs(:interface_up).with('eth2').returns(true)
+      provider.create
+      provider.flush
+    end
+
+  end
+
+end
