@@ -42,16 +42,33 @@
   requires: [hosts, firewall]
   cross-depends:
     - name: ceph-mon
-    - name: ceph-radosgw
+    - name: /(primary-)?ceph-radosgw/
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph-osd.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
+- id: primary-ceph-radosgw
+  version: 2.0.0
+  type: puppet
+  groups: [primary-controller]
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [apache, ceph-mon, primary-ceph-mon]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
+
 - id: ceph-radosgw
   type: puppet
   version: 2.0.0
-  groups: [primary-controller, controller]
+  groups: [controller]
+  cross-depends:
+    - name: primary-ceph-radosgw
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache, ceph-mon, primary-ceph-mon]
   parameters:
