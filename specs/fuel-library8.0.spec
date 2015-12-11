@@ -287,7 +287,6 @@ Version: %{version}
 Release: %{release}
 Group: System Environment/Libraries
 License: Apache 2.0
-Requires: upstart
 URL: http://github.com/openstack/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
