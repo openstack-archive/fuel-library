@@ -1,6 +1,6 @@
-- id: keystone
+- id: primary-keystone
   type: puppet
-  groups: [primary-controller, controller]
+  groups: [primary-controller]
   required_for: [openstack-controller]
   requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
   refresh_on: [keystone_config]
@@ -16,10 +16,29 @@
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_post.rb
 
+- id: keystone
+  type: puppet
+  groups: [controller]
+  required_for: [openstack-controller]
+  requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
+  refresh_on: [keystone_config]
+  cross-depends:
+    - name: /(primary-)?rabbitmq/
+    - name: keystone-db
+    - name: primary-keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_post.rb
+
 - id: keystone-db
   type: puppet
   groups: [primary-controller]
-  required_for: [keystone]
+  required_for: [keystone, primary-keystone]
   requires: [primary-database, database]
   cross-depends:
     - name: /(primary-)?database/
@@ -33,7 +52,7 @@
   type: puppet
   groups: [primary-controller]
   required_for: [deploy_end]
-  requires: [keystone]
+  requires: [keystone, primary-keystone]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/workloads_collector_add.pp
     puppet_modules: /etc/puppet/modules

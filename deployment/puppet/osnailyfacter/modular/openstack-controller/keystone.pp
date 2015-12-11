@@ -35,9 +35,17 @@ $configure_user_role = pick($nova_hash['configure_user_role'], true)
 $service_name        = pick($nova_hash['service_name'], 'nova')
 $tenant              = pick($nova_hash['tenant'], 'services')
 
+$backends_to_wait    = pick(hiera('backends_to_wait',['keystone-1','keystone-2']))
+$service_endpoint    = hiera('service_endpoint')
 validate_string($public_address)
 validate_string($password)
 
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_backend':
+  backends_list => $backends_to_wait,
+  url           => $haproxy_stats_url
+}->
 class { '::nova::keystone::auth':
   password              => $password,
   auth_name             => $auth_name,

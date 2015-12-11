@@ -5,6 +5,8 @@
   requires: [openstack-haproxy]
   cross-depends:
     - name: /(primary-)?rabbitmq/
+    - name: nova-db
+    - name: nova-keystone
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/openstack-controller.pp
@@ -27,7 +29,7 @@
   type: puppet
   groups: [primary-controller]
   required_for: [openstack-controller]
-  requires: [keystone]
+  requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
   parameters:

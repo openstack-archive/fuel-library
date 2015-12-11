@@ -21,6 +21,7 @@
   requires: [openstack-controller]
   cross-depends:
     - name: /(primary-)?rabbitmq/
+    - name: swift-keystone
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
     puppet_modules: /etc/puppet/modules
@@ -53,7 +54,7 @@
   required_for: [swift]
   cross-depends:
     - name: keystone
-  requires: [keystone]
+  requires: [primary-keystone, keystone]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/keystone.pp
     puppet_modules: /etc/puppet/modules

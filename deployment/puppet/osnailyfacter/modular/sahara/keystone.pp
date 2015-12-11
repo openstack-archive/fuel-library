@@ -20,7 +20,15 @@ $public_protocol = $public_ssl_hash['services'] ? {
 }
 $public_url      = "${public_protocol}://${public_address}:${api_bind_port}/v1.1/%(tenant_id)s"
 $admin_url       = "http://${admin_address}:${api_bind_port}/v1.1/%(tenant_id)s"
+$backends_to_wait    = pick(hiera('backends_to_wait',['keystone-1','keystone-2']))
+$service_endpoint    = hiera('service_endpoint')
 
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_backend':
+  backends_list => $backends_to_wait,
+  url           => $haproxy_stats_url
+}->
 class { 'sahara::keystone::auth':
   auth_name    => $sahara_user,
   password     => $sahara_password,

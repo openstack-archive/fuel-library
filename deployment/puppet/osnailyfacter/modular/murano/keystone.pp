@@ -21,9 +21,17 @@ $tenant            = pick($murano_hash['tenant'], 'services')
 $public_url        = "${public_protocol}://${public_address}:${api_bind_port}"
 $internal_url      = "${internal_protocol}://${internal_address}:${api_bind_port}"
 $admin_url         = "${admin_protocol}://${admin_address}:${api_bind_port}"
+$backends_to_wait    = pick(hiera('backends_to_wait',['keystone-1','keystone-2']))
+$service_endpoint    = hiera('service_endpoint')
 
 #################################################################
 
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_backend':
+  backends_list => $backends_to_wait,
+  url           => $haproxy_stats_url
+}->
 class { 'murano::keystone::auth':
   password     => $murano_hash['user_password'],
   service_type => 'application_catalog',

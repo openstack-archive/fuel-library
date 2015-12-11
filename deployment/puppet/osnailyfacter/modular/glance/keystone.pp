@@ -20,6 +20,8 @@ $internal_protocol   = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'pr
 $internal_address    = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
 $admin_protocol      = get_ssl_property($ssl_hash, {}, 'glance', 'admin', 'protocol', 'http')
 $admin_address       = get_ssl_property($ssl_hash, {}, 'glance', 'admin', 'hostname', [$management_vip])
+$backends_to_wait    = pick(hiera('backends_to_wait',['keystone-1','keystone-2']))
+$service_endpoint    = hiera('service_endpoint')
 
 $public_url = "${public_protocol}://${public_address}:9292"
 $internal_url = "${internal_protocol}://${internal_address}:9292"
@@ -28,6 +30,12 @@ $admin_url  = "${admin_protocol}://${admin_address}:9292"
 validate_string($public_address)
 validate_string($password)
 
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_backend':
+  backends_list => $backends_to_wait,
+  url           => $haproxy_stats_url
+} ->
 class { '::glance::keystone::auth':
   password            => $password,
   auth_name           => $auth_name,

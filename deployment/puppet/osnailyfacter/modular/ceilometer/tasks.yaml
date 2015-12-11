@@ -2,6 +2,7 @@
   type: puppet
   cross-depends:
     - name: ceilometer-keystone
+    - name: /(primary-)?mongo/
   groups: [primary-controller, controller]
   required_for: [openstack-controller, swift]
   requires: [mongo, primary-mongo, openstack-haproxy]
@@ -37,7 +38,9 @@
   groups: [primary-controller]
   required_for: [ceilometer-controller]
   condition: "settings:additional_components.ceilometer.value == true"
-  requires: [keystone]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/keystone.pp
     puppet_modules: /etc/puppet/modules
