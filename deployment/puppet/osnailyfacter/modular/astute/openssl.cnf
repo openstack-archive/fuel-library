@@ -6,7 +6,7 @@ prompt = no
 req_extensions = v3_req
 
 [ req_distinguished_name ]
-CN = US
+C = US
 ST = California
 L = Mountain View
 O = Fuel
