@@ -21,6 +21,7 @@ $amqp_hosts                 = hiera('amqp_hosts')
 $amqp_port                  = hiera('amqp_port', '5673')
 $rabbit_hosts               = split($amqp_hosts, ',')
 $neutron_config             = hiera_hash('quantum_settings')
+$primary_controller         = hiera('primary_controller')
 
 $db_host                    = pick($ironic_hash['db_host'], $database_vip)
 $db_user                    = pick($ironic_hash['db_user'], 'ironic')
@@ -48,6 +49,7 @@ class { 'ironic':
   log_facility        => $syslog_log_facility_ironic,
   database_connection => $database_connection,
   glance_api_servers  => $glance_api_servers,
+  sync_db             => $primary_controller,
 }
 
 # TODO (iberezovskiy): Move to globals (as it is done for sahara)

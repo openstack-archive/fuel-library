@@ -49,6 +49,7 @@ describe manifest do
     database_idle_timeout = '3600'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
     token_provider = Noop.hiera('token_provider')
+    primary_controller = Noop.hiera 'primary_controller'
 
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
@@ -69,6 +70,9 @@ describe manifest do
         should contain_class('openstack::keystone').with('internal_url' => internal_url)
     end
 
+    it 'should declare openstack::keystone class with parameter primary controller' do
+        should contain_class('openstack::keystone').with('primary_controller' => primary_controller)
+    end
 
     it 'should configure keystone with paramters' do
       should contain_keystone_config('token/caching').with(:value => 'false')

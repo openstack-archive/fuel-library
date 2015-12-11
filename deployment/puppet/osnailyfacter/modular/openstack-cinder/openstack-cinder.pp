@@ -22,6 +22,7 @@ $cinder_db_user         = pick($cinder_hash['db_user'], 'cinder')
 $cinder_db_name         = pick($cinder_hash['db_name'], 'cinder')
 $roles                  = node_roles($nodes_hash, hiera('uid'))
 $ssl_hash               = hiera_hash('use_ssl', {})
+$primary_controller      = hiera('primary_controller')
 
 $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
@@ -86,6 +87,7 @@ class {'openstack::cinder':
   cinder_user_password => $cinder_user_password,
   use_syslog           => hiera('use_syslog', true),
   use_stderr           => hiera('use_stderr', false),
+  primary_controller   => $primary_controller,
   verbose              => pick($cinder_hash['verbose'], hiera('verbose', true)),
   debug                => pick($cinder_hash['debug'], hiera('debug', true)),
   default_log_levels   => hiera_hash('default_log_levels'),
