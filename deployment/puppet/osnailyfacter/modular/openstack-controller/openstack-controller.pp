@@ -223,18 +223,8 @@ nova_config {
 
 if $sahara_hash['enabled'] {
   $nova_scheduler_default_filters = [ 'DifferentHostFilter' ]
-  if $storage_hash['volumes_lvm'] or $storage_hash['volumes_block_device'] {
-    $cinder_scheduler_filters = [ 'InstanceLocalityFilter' ]
-  } else {
-    $cinder_scheduler_filters = []
-  }
 } else {
   $nova_scheduler_default_filters = []
-  if $storage_hash['volumes_block_device'] {
-    $cinder_scheduler_filters = [ 'InstanceLocalityFilter' ]
-  } else {
-    $cinder_scheduler_filters = []
-  }
 }
 
 if $ironic_hash['enabled'] {
@@ -248,10 +238,6 @@ class { '::nova::scheduler::filter':
   scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
   scheduler_default_filters  => concat($nova_scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])),
   scheduler_host_manager     => $scheduler_host_manager,
-}
-
-class { 'cinder::scheduler::filter':
-  scheduler_default_filters => concat($cinder_scheduler_filters, [ 'AvailabilityZoneFilter', 'CapacityFilter', 'CapabilitiesFilter' ])
 }
 
 # From logasy filter.pp

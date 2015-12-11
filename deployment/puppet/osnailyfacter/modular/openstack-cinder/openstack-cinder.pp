@@ -9,6 +9,7 @@ $cinder_volume_group    = hiera('cinder_volume_group', 'cinder')
 $nodes_hash             = hiera('nodes', {})
 $storage_hash           = hiera_hash('storage', {})
 $ceilometer_hash        = hiera_hash('ceilometer_hash',{})
+$sahara_hash            = hiera_hash('sahara_hash',{})
 $rabbit_hash            = hiera_hash('rabbit_hash', {})
 $service_endpoint       = hiera('service_endpoint')
 $service_workers        = pick($cinder_hash['workers'], min(max($::processorcount, 2), 16))
@@ -54,7 +55,6 @@ $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
 $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
 $max_retries = '-1'
 $idle_timeout = '3600'
-
 $openstack_version = {
   'keystone'   => 'installed',
   'glance'     => 'installed',
@@ -100,6 +100,16 @@ class {'openstack::cinder':
   ceilometer           => $ceilometer_hash[enabled],
   service_workers      => $service_workers,
 } # end class
+
+if $storage_hash['volumes_block_device'] or ($sahara_hash['enabled'] and $storage_hash['volumes_lvm']) {
+    $cinder_scheduler_filters = [ 'InstanceLocalityFilter' ]
+} else {
+    $cinder_scheduler_filters = []
+}
+
+class { 'cinder::scheduler::filter':
+  scheduler_default_filters => concat($cinder_scheduler_filters, [ 'AvailabilityZoneFilter', 'CapacityFilter', 'CapabilitiesFilter' ])
+}
 
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {
