@@ -3,7 +3,7 @@
   groups: [primary-controller, controller]
   condition: "settings:additional_components.murano.value == true"
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [heat, horizon, rabbitmq]
+  requires: [heat, horizon, primary-rabbitmq, rabbitmq]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/murano.pp
     puppet_modules: /etc/puppet/modules
@@ -16,9 +16,11 @@
 - id: murano-db
   type: puppet
   groups: [primary-controller]
+  cross-depends:
+    - name: /(primary-)?database/
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
-  requires: [database]
+  requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/db.pp
     puppet_modules: /etc/puppet/modules
@@ -40,7 +42,10 @@
   groups: [primary-controller]
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
-  requires: [rabbitmq]
+  cross-depends:
+    - name: /(primary-)?rabbitmq/
+      role: self
+  requires: [rabbitmq, primary-rabbitmq]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/rabbitmq.pp
     puppet_modules: /etc/puppet/modules

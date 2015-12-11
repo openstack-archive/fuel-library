@@ -2,8 +2,11 @@
   type: puppet
   groups: [primary-controller, controller]
   required_for: [openstack-controller]
-  requires: [openstack-haproxy, database, rabbitmq]
+  requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
   refresh_on: [keystone_config]
+  cross-depends:
+    - name: /(primary-)?rabbitmq/
+    - name: keystone-db
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -17,7 +20,10 @@
   type: puppet
   groups: [primary-controller]
   required_for: [keystone]
-  requires: [database]
+  requires: [primary-database, database]
+  cross-depends:
+    - name: /(primary-)?database/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/db.pp
     puppet_modules: /etc/puppet/modules
