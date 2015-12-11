@@ -23,13 +23,21 @@ $configure_user      = pick($ceilometer_hash['configure_user'], true)
 $configure_user_role = pick($ceilometer_hash['configure_user_role'], true)
 $service_name        = pick($ceilometer_hash['service_name'], 'ceilometer')
 $tenant              = pick($ceilometer_hash['tenant'], 'services')
-
+$backends_to_wait    = pick(hiera('backends_to_wait',['keystone-1','keystone-2']))
+$service_endpoint    = hiera('service_endpoint')
 validate_string($public_address)
 validate_string($password)
 
 $public_url          = "${public_protocol}://${public_address}:8777"
 $internal_url        = "${internal_protocol}://${internal_address}:8777"
 $admin_url           = "${admin_protocol}://${admin_address}:8777"
+
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_backend':
+  backends_list => $backends_to_wait,
+  url           => $haproxy_stats_url
+} ->
 
 class { '::ceilometer::keystone::auth':
   password            => $password,
@@ -44,3 +52,4 @@ class { '::ceilometer::keystone::auth':
   region              => $region,
   tenant              => $tenant,
 }
+
