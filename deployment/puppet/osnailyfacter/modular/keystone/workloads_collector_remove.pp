@@ -3,7 +3,7 @@ notice('MODULAR: keystone/workloads_collector_remove.pp')
 $workloads_username = $workloads_hash['username']
 $workloads_tenant   = $workloads_hash['tenant']
 
-class {'::osnailyfacter::wait_for_keystone_backends':} 
+class {'::osnailyfacter::wait_for_keystone_backends':}
 
 Class['::osnailyfacter::wait_for_keystone_backends'] -> Keystone_user_role <||>
 Class['::osnailyfacter::wait_for_keystone_backends'] -> Keystone_user <||>

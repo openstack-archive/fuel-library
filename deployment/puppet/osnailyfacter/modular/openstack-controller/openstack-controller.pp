@@ -239,7 +239,7 @@ if $primary_controller {
     try_sleep => 2,
     require   => Class['nova'],
   }
- 
+
 
   if ! $use_neutron {
     nova_floating_range { $floating_ips_range:

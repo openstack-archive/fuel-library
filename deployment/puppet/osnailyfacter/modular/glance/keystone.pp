@@ -34,7 +34,7 @@ validate_string($password)
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
 class {'::osnailyfacter::wait_for_keystone_backends':
-} 
+}
 
 class { '::glance::keystone::auth':
   password            => $password,

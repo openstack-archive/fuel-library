@@ -34,7 +34,7 @@ $internal_url        = "${internal_protocol}://${internal_address}:8777"
 $admin_url           = "${admin_protocol}://${admin_address}:8777"
 
 class {'::osnailyfacter::wait_for_keystone_backends':
-} 
+}
 
 class { '::ceilometer::keystone::auth':
   password            => $password,
