@@ -287,7 +287,7 @@ Version: %{version}
 Release: %{release}
 Group: System Environment/Libraries
 License: Apache 2.0
-Requires: upstart
+# Requires: upstart
 URL: http://github.com/openstack/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
@@ -300,10 +300,10 @@ operations. Also node in MM state is reachable with ssh from network.
 For further information go to:
 https://www.mirantis.com/products/mirantis-openstack-software/documentation/
 
-%post -n fuel-umm
-/usr/lib/umm/umm-install.rh6 add
-%preun -n fuel-umm
-/usr/lib/umm/umm-install.rh6 del
+# %post -n fuel-umm
+# /usr/lib/umm/umm-install.rh6 add
+# %preun -n fuel-umm
+# /usr/lib/umm/umm-install.rh6 del
 
 %files -n fuel-umm
 /etc/issue.mm
