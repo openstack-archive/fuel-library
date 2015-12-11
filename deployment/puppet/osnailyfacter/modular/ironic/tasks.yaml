@@ -2,6 +2,9 @@
   type: puppet
   groups: [primary-controller, controller]
   condition: "settings:additional_components.ironic.value == true"
+  cross-depends:
+    - name: ironic-db
+    - name: ironic-keystone
   required_for: [openstack-controller]
   requires: [openstack-haproxy, ironic-db, ironic-keystone]
   parameters:
