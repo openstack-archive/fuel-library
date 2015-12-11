@@ -3,7 +3,7 @@ require File.join File.dirname(__FILE__), '../test_common.rb'
 PORT = 8777
 
 PROCESSES = %w(
-ceilometer-agent-compute
+ceilometer-polling
 )
 
 class CeilometerComputePostTest < Test::Unit::TestCase
