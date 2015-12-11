@@ -94,6 +94,18 @@ describe manifest do
     end
   end
 
+  sahara  = Noop.hiera_structure 'sahara_hash/enabled'
+  storage = Noop.hiera_hash 'storage_hash'
+  if (sahara and storage['volumes_lvm']) or storage['volumes_block_device']
+    filters = [ 'InstanceLocalityFilter', 'AvailabilityZoneFilter', 'CapacityFilter', 'CapabilitiesFilter' ]
+  else
+    filters = [ 'AvailabilityZoneFilter', 'CapacityFilter', 'CapabilitiesFilter' ]
+  end
+
+  it 'configures cinder scheduler filters' do
+    should contain_class('cinder::scheduler::filter').with( :scheduler_default_filters => filters )
+  end
+
   end # end of shared_examples
 
  test_ubuntu_and_centos manifest
