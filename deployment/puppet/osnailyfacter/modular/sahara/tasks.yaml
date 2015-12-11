@@ -5,6 +5,9 @@
   condition: "settings:additional_components.sahara.value == true"
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-network-end, horizon]
+  cross-depends:
+    - name: sahara-db
+    - name: sahara-keystone
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/sahara/sahara.pp
     puppet_modules: /etc/puppet/modules
@@ -33,7 +36,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [sahara]
-  requires: [keystone]
+  requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
   condition: "settings:additional_components.sahara.value == true"
