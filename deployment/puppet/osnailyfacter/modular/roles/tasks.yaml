@@ -18,6 +18,7 @@
     - name: keystone
     - name: openstack-controller
     - name: /(primary-)?rabbitmq/
+    - name: memcached
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/compute.pp
@@ -52,6 +53,8 @@
   type: puppet
   version: 2.0.0
   groups: [mongo]
+  cross-depends:
+    - name: primary-mongo
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
@@ -68,6 +71,7 @@
   cross-depends:
     - name: ironic
     - name: /(primary-)?database/
+    - name: /(primary-)?rabbitmq/
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/ironic-conductor.pp
     puppet_modules: /etc/puppet/modules
