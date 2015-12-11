@@ -73,7 +73,6 @@ $mp_hash                        = hiera('mp', {})
 $keystone_hash                  = merge({'service_token_off' => $service_token_off},
                                         hiera_hash('keystone', {}))
 
-$node_role                      = hiera('role')
 $dns_nameservers                = hiera('dns_nameservers', [])
 $use_ceilometer                 = $ceilometer_hash['enabled']
 $use_neutron                    = hiera('quantum', false)
@@ -230,7 +229,7 @@ if $use_neutron {
   $management_network_range = hiera('management_network_range')
 }
 
-if $node_role == 'primary-controller' {
+if roles_include('primary-controller') {
   $primary_controller = true
 } else {
   $primary_controller = false
