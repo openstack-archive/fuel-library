@@ -33,7 +33,15 @@ $admin_url           = "${admin_protocol}://${admin_address}:8004/v1/%(tenant_id
 $public_url_cfn      = "${public_protocol}://${public_address}:8000/v1"
 $internal_url_cfn    = "${internal_protocol}://${internal_address}:8000/v1"
 $admin_url_cfn       = "${admin_protocol}://${admin_address}:8000/v1"
+$backends_to_wait    = pick(hiera('backends_to_wait',['keystone-1','keystone-2']))
+$service_endpoint    = hiera('service_endpoint')
 
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_backend':
+  backends_list => $backends_to_wait,
+  url           => $haproxy_stats_url
+}
 
 class { '::heat::keystone::auth' :
   password               => $password,
@@ -60,3 +68,7 @@ class { '::heat::keystone::auth_cfn' :
   internal_url       => $internal_url_cfn,
   admin_url          => $admin_url_cfn,
 }
+
+Class['::osnailyfacter::wait_for_backend'] -> Class['::heat::keystone::auth']
+Class['::osnailyfacter::wait_for_backend'] ->
+Class['::heat::keystone::auth_cfn']

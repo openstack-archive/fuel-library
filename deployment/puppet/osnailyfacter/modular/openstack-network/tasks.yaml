@@ -16,7 +16,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [keystone]
+  requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
   parameters:
