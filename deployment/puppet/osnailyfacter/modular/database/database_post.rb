@@ -74,7 +74,7 @@ class DatabaseInstallPostTest < Test::Unit::TestCase
 
   def test_mysql_status_check_ok
     check_port = 49000
-    url = "http://#{TestCommon::Settings.internal_address}:#{check_port}"
+    url = "http://#{TestCommon::Settings.fqdn}:#{check_port}"
     assert TestCommon::Network.url_accessible?(url), 'Cannot connect to the MySQL Checker URL!'
   end
 

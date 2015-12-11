@@ -13,7 +13,7 @@ class GlancePostTest < Test::Unit::TestCase
   end
 
   def test_glance_public_url_accessible
-    url = "http://#{TestCommon::Settings.public_vip}:#{PORT}"
+    url = "https://#{TestCommon::Settings.public_vip}:#{PORT}"
     assert TestCommon::Network.url_accessible?(url), "Public Glance URL '#{url}' is not accessible!"
   end
 
