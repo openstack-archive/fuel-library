@@ -4,6 +4,9 @@
   condition: "settings:additional_components.murano.value == true"
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [heat, horizon, primary-rabbitmq, rabbitmq]
+  cross-depends:
+    - name: murano-db
+    - name: murano-keystone
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/murano.pp
     puppet_modules: /etc/puppet/modules
