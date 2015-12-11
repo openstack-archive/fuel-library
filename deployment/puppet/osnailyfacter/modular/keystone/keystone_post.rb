@@ -6,7 +6,7 @@ ADMIN_PORT = 35357
 class KeystonePostTest < Test::Unit::TestCase
 
   def test_keystone_is_running
-    assert TestCommon::Process.running?('/usr/bin/keystone-all'), 'Keystone is not running!'
+    assert TestCommon::Process.running?('/usr/sbin/apache2'), 'Keystone is not running!'
   end
 
   def test_keystone_public_url_accessible

@@ -14,8 +14,8 @@ heat-api-cloudwatch
 )
 
 HOSTS = {
-  'public' => TestCommon::Settings.public_vip,
-  'management' => TestCommon::Settings.management_vip,
+  'https' => TestCommon::Settings.public_vip,
+  'http' => TestCommon::Settings.management_vip,
 }
 
 PORTS = {
@@ -44,7 +44,7 @@ class HeatPostTest < Test::Unit::TestCase
       PORTS.each do |port_type, port|
         method_name = "test_#{host_type}_heat_#{port_type}_accessible"
         define_method method_name do
-          url = "http://#{ip}:#{port}"
+          url = "#{host_type}://#{ip}:#{port}"
           assert TestCommon::Network.url_accessible?(url), "URL '#{url}' is unaccessible?"
         end
       end
