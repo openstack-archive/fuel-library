@@ -9,6 +9,7 @@ describe manifest do
 
     network_metadata     = Noop.hiera 'network_metadata'
     memcache_roles       = Noop.hiera 'memcache_roles'
+    memcache_addresses   = Noop.hiera 'memcached_addresses', false
     memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
 
     let(:memcache_nodes) do
@@ -20,7 +21,11 @@ describe manifest do
     end
 
     let (:memcache_servers) do
-      memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
+      if not memcache_addresses
+        memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
+      else
+        memcache_addresses.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
+      end
     end
 
     let(:configuration_override) do

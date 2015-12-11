@@ -405,6 +405,8 @@ metadata:
 status: discover
 swift:
   user_password: zr0zBVgi
+memcached_addresses: [10.20.30.40, 10.20.30.41]
+memcache_server_port: 11212
 repo_setup:
   installer_kernel:
     local: "/var/www/nailgun/ubuntu/x86_64/images/linux"
