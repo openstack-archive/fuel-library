@@ -4,6 +4,9 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end, openstack-controller]
   requires: [primary-rabbitmq, rabbitmq, keystone, hosts, firewall]
+  cross-depends:
+    - name: cinder-db
+    - name: cinder-keystone
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/openstack-cinder.pp
     puppet_modules: /etc/puppet/modules
@@ -29,7 +32,7 @@
   required_for: [openstack-cinder]
   cross-depends:
     - name: keystone
-  requires: [keystone]
+  requires: [primary-keystone, keystone]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/keystone.pp
     puppet_modules: /etc/puppet/modules/
