@@ -132,7 +132,6 @@ define l23network::l2::patch (
         ensure          => $ensure,
         if_type         => 'vport',
         bridge          => $act_bridges,
-        jacks           => $patch_jacks_names,
         mtu             => $mtu,
         onboot          => true,
         vendor_specific => $vendor_specific,
