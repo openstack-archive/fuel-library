@@ -14,7 +14,7 @@
   type: puppet
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [keystone]
+  requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
   parameters:

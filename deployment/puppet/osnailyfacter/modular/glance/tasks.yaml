@@ -3,6 +3,9 @@
   groups: [primary-controller, controller]
   required_for: [openstack-controller]
   requires: [openstack-haproxy, primary-database, database]
+  cross-depends:
+    - name: glance-db
+    - name: glance-keystone
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/glance/glance.pp
     puppet_modules: /etc/puppet/modules
@@ -28,7 +31,7 @@
   type: puppet
   groups: [primary-controller]
   required_for: [glance]
-  requires: [keystone]
+  requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
   parameters:

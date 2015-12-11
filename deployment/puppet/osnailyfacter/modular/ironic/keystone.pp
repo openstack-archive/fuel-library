@@ -11,7 +11,8 @@ $configure_endpoint         = pick($ironic_hash['configure_endpoint'], true)
 $configure_user             = pick($ironic_hash['configure_user'], true)
 $configure_user_role        = pick($ironic_hash['configure_user_role'], true)
 $service_name               = pick($ironic_hash['service_name'], 'ironic')
-
+$backends_to_wait    = pick(hiera('backends_to_wait',['keystone-1','keystone-2']))
+$service_endpoint    = hiera('service_endpoint')
 $public_address = $public_ssl_hash['services'] ? {
   true    => $public_ssl_hash['hostname'],
   default => $public_vip,
@@ -27,6 +28,12 @@ $public_url                 = "${public_protocol}://${public_address}:6385"
 $admin_url                  = "http://${management_vip}:6385"
 $internal_url               = "http://${management_vip}:6385"
 
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_backend':
+  backends_list => $backends_to_wait,
+  url           => $haproxy_stats_url
+} ->
 class { 'ironic::keystone::auth':
   password            => $ironic_user_password,
   region              => $region,
