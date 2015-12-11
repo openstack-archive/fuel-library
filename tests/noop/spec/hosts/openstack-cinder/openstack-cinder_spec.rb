@@ -47,8 +47,9 @@ describe manifest do
     internal_auth_protocol = 'http'
     keystone_auth_host = Noop.hiera 'service_endpoint'
   end
-    auth_uri           = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
-    identity_uri       = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
+    auth_uri            = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
+    identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
+    privileged_auth_uri = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v2.0/"
 
   it 'ensures cinder_config contains auth_uri and identity_uri ' do
       should contain_cinder_config('keystone_authtoken/auth_uri').with(:value  => auth_uri)
@@ -73,7 +74,7 @@ describe manifest do
   it "should contain cinder config with privileged user settings" do
     should contain_cinder_config('DEFAULT/os_privileged_user_password').with_value(cinder_user_password)
     should contain_cinder_config('DEFAULT/os_privileged_user_tenant').with_value(cinder_tenant)
-    should contain_cinder_config('DEFAULT/os_privileged_user_auth_url').with_value("#{internal_auth_protocol}://#{keystone_auth_host}:5000/")
+    should contain_cinder_config('DEFAULT/os_privileged_user_auth_url').with_value(privileged_auth_uri)
     should contain_cinder_config('DEFAULT/os_privileged_user_name').with_value(cinder_user)
     should contain_cinder_config('DEFAULT/nova_catalog_admin_info').with_value('compute:nova:adminURL')
     should contain_cinder_config('DEFAULT/nova_catalog_info').with_value('compute:nova:internalURL')
