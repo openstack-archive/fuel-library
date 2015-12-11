@@ -4,7 +4,7 @@ PORT = 8777
 
 PROCESSES = %w(
 ceilometer-collector
-ceilometer-agent-central
+ceilometer-polling
 ceilometer-agent-notification
 ceilometer-alarm-notifier
 ceilometer-alarm-evaluator
