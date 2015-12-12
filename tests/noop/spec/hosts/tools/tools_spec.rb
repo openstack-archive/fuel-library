@@ -47,12 +47,10 @@ describe manifest do
     end
 
     it 'should install man package' do
-      if facts[:osfamily] == 'Redhat'
-        if facts[:operatingsystemmajrelease] >= 7
-          should contain_package('man-db').with({'ensure' => 'present'})
-        else
-          should contain_package('man').with({'ensure' => 'present'})
-        end
+      if facts[:osfamily] == 'RedHat' and facts[:operatingsystemmajrelease] == 6 
+        should contain_package('man').with({'ensure' => 'present'})
+      else
+        should contain_package('man-db').with({'ensure' => 'present'})
       end
     end
 
