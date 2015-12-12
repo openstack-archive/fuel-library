@@ -8,7 +8,8 @@ tools = [
   'htop',
   'tcpdump',
   'strace',
-  'fuel-misc'
+  'fuel-misc',
+  'man-db',
 ]
 
 puppet = Noop.hiera('puppet')
@@ -43,16 +44,6 @@ describe manifest do
       it do
         should contain_package(i).with({
           'ensure' => 'present'})
-      end
-    end
-
-    it 'should install man package' do
-      if facts[:osfamily] == 'Redhat'
-        if facts[:operatingsystemmajrelease] >= 7
-          should contain_package('man-db').with({'ensure' => 'present'})
-        else
-          should contain_package('man').with({'ensure' => 'present'})
-        end
       end
     end
 
