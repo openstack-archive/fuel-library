@@ -47,6 +47,12 @@ Puppet::Type.newtype(:haproxy_backend_status) do
     end
   end
 
+  newparam(:ssl_verify_none, :boolean => true) do
+    desc 'Whether to disable HTTPS SSL verification. Defaults to `false`.'
+    newvalues(:true, :false)
+    defaultto false
+  end
+
   def validate
     unless self[:socket].nil? ^ self[:url].nil?
       raise 'You should give either url or socket to get HAProxy status and not both!'
