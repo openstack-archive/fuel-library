@@ -111,6 +111,35 @@ $apache_ports                   = hiera_array('apache_ports', unique([
 
 $token_provider                 = hiera('token_provider','keystone.token.providers.fernet.Provider')
 
+if ($storage_hash['volumes_ceph'] or $storage_hash['images_ceph'] or $storage_hash['objects_ceph']) {
+  # Ceph is enabled
+  # Define Ceph tuning settings
+  if !$storage_hash['tuning_setting'] {
+    $storage_hash['tuning_setting'] = {}
+  }
+  $ceph_tuning_settings = {
+    'max_open_files'                       => pick($storage_hash['tuning_setting']['max_open_files'], '131072'),
+    'osd_mkfs_type'                        => pick($storage_hash['tuning_setting']['osd_mkfs_type'], 'xfs'),
+    'osd_mount_options_xfs'                => pick($storage_hash['tuning_setting']['osd_mount_options_xfs'],
+                                                   'rw,relatime,inode64,logbsize=256k,delaylog,allocsize=4M'),
+    'osd_op_threads'                       => pick($storage_hash['tuning_setting']['osd_op_threads'], '20'),
+    'filestore_queue_max_ops'              => pick($storage_hash['tuning_setting']['filestore_queue_max_ops'], '500'),
+    'filestore_queue_committing_max_ops'   => pick($storage_hash['tuning_setting']['filestore_queue_committing_max_ops'], '5000'),
+    'journal_max_write_entries'            => pick($storage_hash['tuning_setting']['journal_max_write_entries'], '1000'),
+    'journal_queue_max_ops'                => pick($storage_hash['tuning_setting']['journal_queue_max_ops'], '3000'),
+    'objecter_inflight_ops'                => pick($storage_hash['tuning_setting']['objecter_inflight_ops'], '10240'),
+    'filestore_queue_max_bytes'            => pick($storage_hash['tuning_setting']['filestore_queue_max_bytes'], '1048576000'),
+    'filestore_queue_committing_max_bytes' => pick($storage_hash['tuning_setting']['filestore_queue_committing_max_bytes'], 1048576000),
+    'journal_max_write_bytes'              => pick($storage_hash['tuning_setting']['journal_max_write_bytes'], 1048576000),
+    'journal_queue_max_bytes'              => pick($storage_hash['tuning_setting']['journal_queue_max_bytes'], '1048576000'),
+    'ms_dispatch_throttle_bytes'           => pick($storage_hash['tuning_setting']['ms_dispatch_throttle_bytes'], '1048576000'),
+    'objecter_infilght_op_bytes'           => pick($storage_hash['tuning_setting']['objecter_infilght_op_bytes'], '1048576000'),
+    'filestore_max_sync_interval'          => pick($storage_hash['tuning_setting']['filestore_max_sync_interval'], '10'),
+  }
+} else {
+  $ceph_tuning_settings = {}
+}
+
 if $debug {
   $default_log_levels = {
     'amqp'                                     => 'WARN',
