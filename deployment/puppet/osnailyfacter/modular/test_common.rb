@@ -548,7 +548,7 @@ module TestCommon
     # @param url [String] the url to check
     # @return [true,false]
     def self.url_accessible?(url)
-      out = TestCommon::Cmd.run "curl --fail '#{url}' 1>/dev/null 2>/dev/null"
+      out = TestCommon::Cmd.run "curl --fail --insecure '#{url}' 1>/dev/null 2>/dev/null"
       out.last == 0
     end
 
