@@ -4,6 +4,20 @@ manifest = 'apache/apache.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+    let :log_formats do
+      {
+        'forwarded' => '%{X-Forwarded-For}i %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-agent}i\"'
+      }
+    end
+
+    it 'should have osnailyfacter::apache class' do
+      should contain_class('osnailyfacter::apache').with(
+        :purge_configs => true,
+        :listen_ports  => Noop.hiera_array('apache_ports', ['0.0.0.0:80']),
+        :log_formats   => log_formats,
+      )
+    end
+
     it 'should execute apache class with given parameters' do
       should contain_class('apache').with(
         'mpm_module'       => 'false',
