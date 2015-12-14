@@ -18,10 +18,15 @@
 #  (optional) The number of times to be rotated before being removed.
 #  Defaults to '52'
 #
+# [*log_formats*]
+#  (optional) Hash w/ additional `LogFormat` directives.
+#  Defaults to {}
+#
 class osnailyfacter::apache (
   $purge_configs    = false,
   $listen_ports     = '80',
   $logrotate_rotate = '52',
+  $log_formats      = {},
 ) {
 
   class { '::apache':
@@ -32,6 +37,7 @@ class osnailyfacter::apache (
     server_tokens    => 'Prod',
     server_signature => 'Off',
     trace_enable     => 'Off',
+    log_formats      => $log_formats,
   }
 
   apache::listen { $listen_ports: }
