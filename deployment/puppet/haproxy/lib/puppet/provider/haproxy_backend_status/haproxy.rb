@@ -7,17 +7,20 @@ require 'uri'
 Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
   desc 'Wait for HAProxy backend to become online'
 
+  defaultfor :osfamily => :linux
+  attr_reader :resource
+  
   # get the raw csv value using one of the methods
   # retry if operations fails
   # @return [String]
   def csv
-    @resource[:count].times do |retry_number|
+    resource[:count].times do |retry_number|
       csv = get_csv
       return csv if csv
       debug "Could not get CSV. Retry: '#{retry_number}'"
-      sleep @resource[:step]
+      sleep resource[:step]
     end
-    fail "Could not get CSV after #{@resource[:count] * @resource[:step]} seconds!"
+    fail "Could not get CSV after #{resource[:count] * resource[:step]} seconds!"
   end
 
   # return the parsed stats structure
@@ -57,32 +60,32 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
   # @param value [:up, :down]
   def ensure=(value)
     debug "Call: ensure=(#{value})"
-    debug "Waiting for HAProxy backend: '#{@resource[:name]}' to change its status to: '#{value}'"
-    @resource[:count].times do
+    debug "Waiting for HAProxy backend: '#{resource[:name]}' to change its status to: '#{value}'"
+    resource[:count].times do
       stats_reset
       if self.status == value
         debug get_haproxy_debug_report
         return true
       end
-      sleep @resource[:step]
+      sleep resource[:step]
     end
     debug get_haproxy_debug_report
-    fail "Timeout waiting for HAProxy backend: '#{@resource[:name]}' status to become: '#{value}' after #{@resource[:count] * @resource[:step]} seconds!"
+    fail "Timeout waiting for HAProxy backend: '#{resource[:name]}' status to become: '#{value}' after #{resource[:count] * resource[:step]} seconds!"
   end
 
   # check if backend exists
   # @return [TrueClass, FalseClass]
   def exists?
-    stats.key? @resource[:name]
+    stats.key? resource[:name]
   end
 
   # get backend status from stats structure
   # @return [:up, :down, :present, :absent]
   def status
-    status = stats.fetch @resource[:name], nil
+    status = stats.fetch resource[:name], nil
     debug "Got status: '#{status}'"
     return :absent unless status
-    return :present if [:present, :absent].include? @resource[:ensure]
+    return :present if [:present, :absent].include? resource[:ensure]
     return :up if status == 'UP'
     return :down if status == 'DOWN'
     :present
@@ -92,8 +95,8 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
   # @return [String, NilClass]
   def get_csv
     begin
-      csv = Timeout::timeout(@resource[:timeout]) do
-        if @resource[:socket]
+      csv = Timeout::timeout(resource[:timeout]) do
+        if resource[:socket]
           csv_from_socket
         else
           csv_from_url
@@ -109,10 +112,10 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
   # get csv from HAProxy socket
   # @return [String, NilClass]
   def csv_from_socket
-    debug "Get CSV from socket: '#{@resource[:socket]}'"
+    debug "Get CSV from socket: '#{resource[:socket]}'"
     begin
       csv = ''
-      UNIXSocket.open(@resource[:socket]) do |opened_socket|
+      UNIXSocket.open(resource[:socket]) do |opened_socket|
         opened_socket.puts 'show stat'
         loop do
           line = opened_socket.gets
@@ -131,11 +134,22 @@ Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
   # download csv from url
   # @return [String, NilClass]
   def csv_from_url
-    debug "Get CSV from url: '#{@resource[:url]}'"
+    debug "Get CSV from url: '#{resource[:url]}'"
     begin
-      csv = Net::HTTP.get URI.parse @resource[:url]
-      return unless csv
-      return if csv.empty?
+      uri = URI.parse resource[:url]
+      http = Net::HTTP.new(uri.host, uri.port)
+      if uri.scheme == 'https'
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        http.use_ssl = true
+      end
+      request = Net::HTTP::Get.new(uri.request_uri)
+      response = http.request(request)
+      unless response.kind_of? Net::HTTPSuccess
+        debug "GET HTTP request to: #{uri} have failed! (#{uri.code} #{uri.message})"
+        return
+      end
+      csv = response.body
+      return if not csv or csv.empty?
       csv
     rescue
       nil
