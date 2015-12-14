@@ -18,11 +18,23 @@
 #  (optional) The number of times to be rotated before being removed.
 #  Defaults to '52'
 #
+# [*log_formats*]
+#  (optional) Hash w/ additional `LogFormat` directives.
+#  Defaults to {}
+#
 class osnailyfacter::apache (
   $purge_configs    = false,
   $listen_ports     = '80',
   $logrotate_rotate = '52',
+  $log_formats      = {},
 ) {
+
+  # define forwarded log format
+  $log_format_forwarded = {
+    'forwarded' => '%{X-Forwarded-For}i %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-agent}i\"'
+  }
+
+  $log_formats_mixed = merge($log_format_forwarded, $log_formats)
 
   class { '::apache':
     mpm_module       => false,
@@ -32,17 +44,21 @@ class osnailyfacter::apache (
     server_tokens    => 'Prod',
     server_signature => 'Off',
     trace_enable     => 'Off',
+    log_formats      => $log_formats_mixed,
   }
 
   apache::listen { $listen_ports: }
+
+  File {
+    ensure  => 'file',
+    owner   => 'root',
+    group   => 'root',
+  }
 
   # we need to override the logrotate file provided by apache to work around
   # wsgi issues on the restart caused by logrotate.
   # LP#1491576 and https://github.com/GrahamDumpleton/mod_wsgi/issues/81
   file { '/etc/logrotate.d/apache2':
-    ensure  => 'file',
-    owner   => 'root',
-    group   => 'root',
     mode    => '0644',
     content => template('osnailyfacter/apache2.logrotate.erb'),
     require => Package['httpd']
@@ -58,15 +74,10 @@ class osnailyfacter::apache (
 
   file { '/etc/logrotate.d/httpd-prerotate':
     ensure => 'directory',
-    owner  => 'root',
-    group  => 'root',
     mode   => '0755',
   }
 
   file { '/etc/logrotate.d/httpd-prerotate/apache2':
-    ensure  => 'file',
-    owner   => 'root',
-    group   => 'root',
     mode    => '0755',
     content => template('osnailyfacter/apache2.prerotate.erb'),
   }

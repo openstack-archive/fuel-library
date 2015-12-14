@@ -19,6 +19,10 @@ FastCgiExternalServer <%= @dir_httpd_root %>/s3gw.fcgi -socket /tmp/radosgw.sock
     </Directory>
   </IfModule>
 
+  ## Logging
+  ErrorLog "<%= @dir_httpd_log %>radosgw_error.log"
+  CustomLog "<%= @dir_httpd_log %>radosgw_access.log" forwarded
+
   AllowEncodedSlashes On
   ServerSignature Off
 </VirtualHost>
