@@ -7,6 +7,8 @@ require 'uri'
 Puppet::Type.type(:haproxy_backend_status).provide(:haproxy) do
   desc 'Wait for HAProxy backend to become online'
 
+  defaultfor :osfamily => :linux
+
   # get the raw csv value using one of the methods
   # retry if operations fails
   # @return [String]
