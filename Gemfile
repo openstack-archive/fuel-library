@@ -22,7 +22,7 @@ group :development, :test do
   gem 'fog-google', '0.1.0',                  :require => 'false' # 0.1.1+ requires ruby 2.0
   gem 'beaker-rspec',                         :require => 'false'
   gem 'beaker-puppet_install_helper',         :require => 'false'
-
+  gem 'psych',                                :require => 'false'
 end
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']
