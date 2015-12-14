@@ -44,6 +44,7 @@ class swift::storage::object(
     enable   => $enabled,
     provider => $::swift::params::service_provider,
     require  => Package['swift-object'],
+    tag      => 'swift-service',
   }
 
   service { 'swift-object-auditor':
@@ -52,5 +53,6 @@ class swift::storage::object(
     enable   => $enabled,
     provider => $::swift::params::service_provider,
     require  => Package['swift-object'],
+    tag      => 'swift-service',
   }
 }

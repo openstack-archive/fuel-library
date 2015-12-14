@@ -38,7 +38,8 @@ describe 'swift::storage::container' do
             is_expected.to contain_service(service_alias).with(
               :name    => service_name,
               :ensure  => (param_hash[:manage_service] && param_hash[:enabled]) ? 'running' : 'stopped',
-              :enable  => param_hash[:enabled]
+              :enable  => param_hash[:enabled],
+              :tag     => 'swift-service',
             )
           end
         end
@@ -57,7 +58,8 @@ describe 'swift::storage::container' do
           is_expected.to contain_service(service_alias).with(
             :ensure    => nil,
             :name      => service_name,
-            :enable    => false
+            :enable    => false,
+            :tag       => 'swift-service',
           )
         end
       end

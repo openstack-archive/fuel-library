@@ -49,6 +49,7 @@ class swift::storage::container(
     enable   => $enabled,
     provider => $::swift::params::service_provider,
     require  => Package['swift-container'],
+    tag      => 'swift-service',
   }
 
   service { 'swift-container-auditor':
@@ -57,6 +58,7 @@ class swift::storage::container(
     enable   => $enabled,
     provider => $::swift::params::service_provider,
     require  => Package['swift-container'],
+    tag      => 'swift-service',
   }
 
   if $::operatingsystem == 'Ubuntu' {
