@@ -110,6 +110,8 @@ murano:
   enabled: true
   rabbit_password: ZNdTAgF3
   user_password: xP8WtHQw
+murano_glance_artifacts_plugin:
+  enabled: true
 murano_settings:
   metadata:
     label: Murano Settings
