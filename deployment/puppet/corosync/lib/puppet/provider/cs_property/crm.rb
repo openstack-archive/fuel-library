@@ -1,5 +1,6 @@
 require 'pathname' # JJM WORK_AROUND #14073
 require Pathname.new(__FILE__).dirname.dirname.expand_path + 'crmsh'
+require 'builder'
 
 Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Crmsh) do
   desc 'Specific provider for a rather specific type since I currently have no plan to
@@ -82,7 +83,34 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Crmsh
       # clear this on properties, in case it's set from a previous
       # run of a different corosync type
       ENV['CIB_shadow'] = nil
-      crm('configure', 'property', '$id="cib-bootstrap-options"', "#{@property_hash[:name]}=#{@property_hash[:value]}")
+      begin
+        crm('configure', 'property', '$id="cib-bootstrap-options"', "#{@property_hash[:name]}=#{@property_hash[:value]}")
+      rescue
+        xml = Builder::XmlMarkup.new( :indent => 2 )
+        xml.diff do |d|
+          d.diff_removed do |d|
+            d.cib do |c|
+              c.configuration do |c|
+                c.crm_config do |c|
+                  c.nvpair :value => @property_hash[:value], :id => @property_hash[:name]
+                end
+              end
+            end
+          end
+          d.diff_added do |d|
+            d.cib do |c|
+              c.configuration do |c|
+                c.crm_config do |c|
+                  c.cluster_property_set(:id => "cib-bootstrap-options") do |c|
+                    c.nvpair :value => "stop", :id => "cib-bootstrap-options-no-quorum-policy"
+                  end
+                end
+              end
+            end
+          end
+        end
+        cibadmin("--patch", "--sync-call", "--xml-text", xml.target!)
+      end
     end
   end
 end
