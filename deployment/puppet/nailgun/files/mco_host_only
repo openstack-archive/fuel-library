@@ -1,0 +1,4 @@
+#!/bin/bash
+# This file is managed by Puppet
+set -o errexit
+dockerctl shell astute mco "$@"

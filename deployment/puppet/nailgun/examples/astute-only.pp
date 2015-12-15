@@ -61,7 +61,9 @@ if $::osfamily == 'RedHat' {
       $use_systemd  = false
     }
     '7': {
-      $mco_packages = ['rubygem-mcollective-client', 'nailgun-mcagents']
+      $mco_packages = ['mcollective-client',
+                       'rubygem-mcollective-client',
+                       'nailgun-mcagents']
       $use_systemd  = true
     }
     default: {
