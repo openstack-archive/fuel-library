@@ -44,6 +44,9 @@ class openstack::ceilometer (
   $event_time_to_live         = '604800',
   $metering_time_to_live      = '604800',
   $http_timeout               = '600',
+  $api_workers                = '1',
+  $collector_workers          = '1',
+  $notification_workers       = '1',
 ) {
 
   # Add the base ceilometer class & parameters
@@ -128,6 +131,7 @@ class openstack::ceilometer (
       keystone_tenant      => $keystone_tenant,
       host                 => $host,
       port                 => $port,
+      api_workers          => $api_workers,
     }
 
     # Clean up expired data once a week
@@ -139,7 +143,9 @@ class openstack::ceilometer (
       weekday      => '0',
     }
 
-    class { '::ceilometer::collector': }
+    class { '::ceilometer::collector':
+      collector_workers => $collector_workers,
+    }
 
     class { '::ceilometer::agent::central': }
 
@@ -150,7 +156,8 @@ class openstack::ceilometer (
     class { '::ceilometer::alarm::notifier': }
 
     class { '::ceilometer::agent::notification':
-      store_events => true,
+      notification_workers => $notification_workers,
+      store_events         => true,
     }
 
     if $ha_mode {
