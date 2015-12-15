@@ -78,6 +78,7 @@ class osnailyfacter::ssh(
       command => 'ssh-keygen -A',
       path    => ['/bin', '/usr/bin'],
       require => Class['ssh::server'],
+      creates => '/etc/ssh/ssh_host_ed25519_key',
     }
   }
 }
