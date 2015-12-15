@@ -67,6 +67,9 @@ mkdir -p %{buildroot}/usr/share/dockerctl
 mkdir -p %{buildroot}/sbin/
 mkdir -p %{buildroot}/sbin/
 cp -fr %{_builddir}/%{name}-%{version}/deployment/puppet/* %{buildroot}/etc/puppet/%{openstack_version}/modules/
+#LP1515988
+find %{buildroot}/etc/puppet/%{openstack_version}/modules -type d -name .git -name spec -exec rm -rf {} +
+cp -f %{_builddir}/%{name}-%{version}/deployment/Puppetfile %{buildroot}/etc/puppet/%{openstack_version}/modules/
 #FUEL DOCKERCTL UTILITY
 install -m 0644 %{dockerctl_source}/dockerctl-alias.sh %{buildroot}/etc/profile.d/dockerctl.sh
 install -m 0755 %{dockerctl_source}/dockerctl %{buildroot}/usr/bin
