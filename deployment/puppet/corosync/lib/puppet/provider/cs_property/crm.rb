@@ -1,5 +1,6 @@
 require 'pathname' # JJM WORK_AROUND #14073
 require Pathname.new(__FILE__).dirname.dirname.expand_path + 'crmsh'
+require File.expand_path(File.join(File.dirname(__FILE__), '../../../../../pacemaker/lib/puppet/provider/pacemaker_common.rb'))
 
 Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Crmsh) do
   desc 'Specific provider for a rather specific type since I currently have no plan to
@@ -82,7 +83,9 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Crmsh
       # clear this on properties, in case it's set from a previous
       # run of a different corosync type
       ENV['CIB_shadow'] = nil
-      crm('configure', 'property', '$id="cib-bootstrap-options"', "#{@property_hash[:name]}=#{@property_hash[:value]}")
+      retry_command {
+        crm('configure', 'property', '$id="cib-bootstrap-options"', "#{@property_hash[:name]}=#{@property_hash[:value]}")
+      }
     end
   end
 end
