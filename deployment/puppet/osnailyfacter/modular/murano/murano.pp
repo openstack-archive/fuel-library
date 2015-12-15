@@ -38,6 +38,8 @@ $admin_auth_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin
 $internal_api_protocol      = 'http'
 $api_bind_host              = get_network_role_property('murano/api', 'ipaddr')
 
+$murano_plugins             = pick($murano_hash['plugins'], {})
+
 #################################################################
 
 if $murano_hash['enabled'] {
@@ -137,6 +139,18 @@ if $murano_hash['enabled'] {
 
   class { 'murano::dashboard':
     repo_url => $repository_url,
+  }
+
+  if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_plugins['glance_artifacts_plugin']['enabled'] {
+    murano_config {
+      'packages_opts/packages_service': value => 'glance',
+    }
+
+    concat::fragment { 'enable_glare':
+      target  => $::murano::params::local_settings_path,
+      content => 'MURANO_USE_GLARE = True',
+      order   => 3,
+    }
   }
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"

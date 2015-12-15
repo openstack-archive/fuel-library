@@ -58,8 +58,10 @@ $storage_hash                   = hiera('storage', {})
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
 $sahara_hash                    = hiera('sahara', {})
-$murano_hash                    = merge({'rabbit' => {'vhost' => '/', 'port' => '55572'}},
+$murano                         = merge({'rabbit' => {'vhost' => '/', 'port' => '55572'}},
                                         hiera('murano', {}))
+$murano_glance_artifacts_plugin = hiera('murano_glance_artifacts_plugin', {})
+$murano_hash                    = merge($murano, { 'plugins' => {'glance_artifacts_plugin' => $murano_glance_artifacts_plugin } })
 $heat_hash                      = hiera_hash('heat', {})
 $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera_hash('nova', {})
