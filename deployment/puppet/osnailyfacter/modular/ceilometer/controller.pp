@@ -59,6 +59,7 @@ $rabbit_ha_queues           = true
 $service_endpoint           = hiera('service_endpoint')
 $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
 $ssl_hash                   = hiera_hash('use_ssl', {})
+$service_workers            = pick($ceilometer_hash['workers'], min(max($::processorcount, 2), 16))
 
 prepare_network_config(hiera('network_scheme', {}))
 $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
@@ -118,5 +119,8 @@ if ($ceilometer_enabled) {
     event_time_to_live         => $ceilometer_hash['event_time_to_live'],
     metering_time_to_live      => $ceilometer_hash['metering_time_to_live'],
     http_timeout               => $ceilometer_hash['http_timeout'],
+    api_workers                => $service_workers,
+    collector_workers          => $service_workers,
+    notification_workers       => $service_workers,
   }
 }
