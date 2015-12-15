@@ -136,7 +136,6 @@ if $murano_hash['enabled'] {
   class { 'murano::client': }
 
   class { 'murano::dashboard':
-    api_url  => $internal_url,
     repo_url => $repository_url,
   }
 
