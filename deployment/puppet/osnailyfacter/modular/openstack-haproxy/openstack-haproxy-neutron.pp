@@ -2,7 +2,7 @@ notice('MODULAR: openstack-haproxy-neutron.pp')
 
 # NOT enabled by default
 $use_neutron         = hiera('use_neutron', false)
-$public_ssl_hash     = hiera('public_ssl')
+$public_ssl_hash     = hiera_hash('public_ssl')
 $ssl_hash            = hiera_hash('use_ssl', {})
 
 $public_ssl          = get_ssl_property($ssl_hash, $public_ssl_hash, 'neutron', 'public', 'usage', false)
@@ -12,6 +12,7 @@ $internal_ssl        = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'u
 $internal_ssl_path   = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'path', [''])
 
 $neutron_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('neutron_nodes'), 'neutron/api')
+
 if ($use_neutron) {
   $server_names        = hiera_array('neutron_names', keys($neutron_address_map))
   $ipaddresses         = hiera_array('neutron_ipaddresses', values($neutron_address_map))
