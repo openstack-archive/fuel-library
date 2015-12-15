@@ -3,6 +3,7 @@ notice('MODULAR: firewall.pp')
 $network_scheme   = hiera_hash('network_scheme')
 $network_metadata = hiera_hash('network_metadata')
 $ironic_hash      = hiera_hash('ironic', {})
+$roles            = hiera('roles')
 
 $ceilometer_port              = 8777
 $corosync_input_port          = 5404
@@ -53,6 +54,14 @@ $swift_proxy_check_port       = 49001
 $swift_proxy_port             = 8080
 $vxlan_udp_port               = 4789
 
+$corosync_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/corosync')
+$memcache_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/memcache')
+$database_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/database')
+$keystone_networks = get_routable_networks_for_network_role($network_scheme, 'keystone/api')
+$nova_networks     = get_routable_networks_for_network_role($network_scheme, 'nova/api')
+$rabbitmq_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/messaging')
+$neutron_networks  = get_routable_networks_for_network_role($network_scheme, 'neutron/api')
+
 $admin_nets = get_routable_networks_for_network_role($network_scheme, 'admin/pxe')
 $management_nets = get_routable_networks_for_network_role($network_scheme, 'mgmt/vip')
 $storage_nets = unique(
@@ -60,7 +69,6 @@ $storage_nets = unique(
   get_routable_networks_for_network_role($network_scheme, 'ceph/replication')
 )
 
-prepare_network_config(hiera_hash('network_scheme'))
 
 # Ordering
 Class['firewall'] -> Firewall<||>
@@ -69,6 +77,12 @@ Class['firewall'] -> Firewallchain<||>
 
 class {'::firewall':}
 
+# Default rule for INPUT is DROP
+firewallchain { 'INPUT:filter:IPv4':
+  policy => 'drop',
+}
+
+# Common rules
 firewall { '000 accept all icmp requests':
   proto  => 'icmp',
   action => 'accept',
@@ -93,79 +107,6 @@ openstack::firewall::multi_net {'020 ssh':
   source_nets => concat($admin_nets, $management_nets, $storage_nets),
 }
 
-firewall { '100 http':
-  port   => [$http_port, $https_port],
-  proto  => 'tcp',
-  action => 'accept',
-}
-
-openstack::firewall::multi_net {'101 mysql':
-  port        => [$mysql_port, $mysql_backend_port, $mysql_gcomm_port, $galera_ist_port, $galera_clustercheck_port],
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => get_routable_networks_for_network_role($network_scheme, 'mgmt/database'),
-}
-
-openstack::firewall::multi_net {'102 keystone':
-  port        => [$keystone_public_port, $keystone_admin_port],
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => get_routable_networks_for_network_role($network_scheme, 'keystone/api'),
-}
-
-firewall {'103 swift':
-  port   => [$swift_proxy_port, $swift_object_port, $swift_container_port, $swift_account_port, $swift_proxy_check_port],
-  proto  => 'tcp',
-  action => 'accept',
-}
-
-firewall {'104 glance':
-  port   => [$glance_api_port, $glance_reg_port, $glance_nova_api_ec2_port,],
-  proto  => 'tcp',
-  action => 'accept',
-}
-
-firewall {'105 nova':
-  port   => [$nova_api_compute_port, $nova_api_volume_port, $nova_vncproxy_port],
-  proto  => 'tcp',
-  action => 'accept',
-}
-
-openstack::firewall::multi_net {'105 nova internal - no ssl':
-  port        => [$nova_api_metadata_port, $nova_api_vnc_ports],
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => get_routable_networks_for_network_role($network_scheme, 'nova/api'),
-}
-
-openstack::firewall::multi_net {'106 rabbitmq':
-  port        => [$erlang_epmd_port, $erlang_rabbitmq_port, $erlang_rabbitmq_backend_port, $erlang_inet_dist_port],
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => get_routable_networks_for_network_role($network_scheme, 'mgmt/messaging'),
-}
-
-openstack::firewall::multi_net {'107 memcache tcp':
-  port        => $memcached_port,
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => get_routable_networks_for_network_role($network_scheme, 'mgmt/memcache'),
-}
-
-openstack::firewall::multi_net {'107 memcache udp':
-  port        => $memcached_port,
-  proto       => 'udp',
-  action      => 'accept',
-  source_nets => get_routable_networks_for_network_role($network_scheme, 'mgmt/memcache'),
-}
-
-openstack::firewall::multi_net {'108 rsync':
-  port        => $rsync_port,
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => concat($management_nets, $storage_nets),
-}
-
 openstack::firewall::multi_net {'109 iscsi':
   port        => $iscsi_port,
   proto       => 'tcp',
@@ -173,117 +114,11 @@ openstack::firewall::multi_net {'109 iscsi':
   source_nets => get_routable_networks_for_network_role($network_scheme, 'cinder/iscsi'),
 }
 
-openstack::firewall::multi_net {'110 neutron':
-  port        => $neutron_api_port,
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => get_routable_networks_for_network_role($network_scheme, 'neutron/api'),
-}
-
-openstack::firewall::multi_net {'111 dns-server udp':
-  port        => $dns_server_port,
-  proto       => 'udp',
-  action      => 'accept',
-  source_nets => $management_nets,
-}
-
-openstack::firewall::multi_net {'111 dns-server tcp':
-  port        => $dns_server_port,
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => $management_nets,
-}
-
-firewall {'111 dhcp-server':
-  port   => $dhcp_server_port,
-  proto  => 'udp',
-  action => 'accept',
-}
-
 openstack::firewall::multi_net {'112 ntp-server':
   port        => $ntp_server_port,
   proto       => 'udp',
   action      => 'accept',
   source_nets => $management_nets,
-}
-
-openstack::firewall::multi_net {'113 corosync-input':
-  port        => $corosync_input_port,
-  proto       => 'udp',
-  action      => 'accept',
-  source_nets => get_routable_networks_for_network_role($network_scheme, 'mgmt/corosync'),
-}
-
-openstack::firewall::multi_net {'114 corosync-output':
-  port        => $corosync_output_port,
-  proto       => 'udp',
-  action      => 'accept',
-  source_nets => get_routable_networks_for_network_role($network_scheme, 'mgmt/corosync'),
-}
-
-openstack::firewall::multi_net {'115 pcsd-server':
-  port        => $pcsd_port,
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => get_routable_networks_for_network_role($network_scheme, 'mgmt/corosync'),
-}
-
-openstack::firewall::multi_net {'116 openvswitch db':
-  port        => $openvswitch_db_port,
-  proto       => 'udp',
-  action      => 'accept',
-  source_nets => $management_nets,
-}
-
-openstack::firewall::multi_net {'117 nrpe-server':
-  port        => $nrpe_server_port,
-  proto       => 'udp',
-  action      => 'accept',
-  source_nets => concat($admin_nets, $management_nets),
-}
-
-openstack::firewall::multi_net {'118 libvirt':
-  port        => $libvirt_port,
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => $management_nets,
-}
-
-openstack::firewall::multi_net {'119 libvirt-migration':
-  port        => $libvirt_migration_ports,
-  proto       => 'tcp',
-  action      => 'accept',
-  source_nets => $management_nets,
-}
-
-firewall {'121 ceilometer':
-  port   => $ceilometer_port,
-  proto  => 'tcp',
-  action => 'accept',
-}
-
-firewall { '203 murano-rabbitmq' :
-  dport  => $murano_rabbitmq_port,
-  proto  => 'tcp',
-  action => 'accept',
-}
-
-firewall {'204 heat-api':
-  port   => $heat_api_port,
-  proto  => 'tcp',
-  action => 'accept',
-}
-
-firewall {'205 heat-api-cfn':
-  port   => $heat_api_cfn_port,
-  proto  => 'tcp',
-  action => 'accept',
-}
-
-firewall {'206 heat-api-cloudwatch':
-  port   => $heat_api_cloudwatch_port,
-  proto  => 'tcp',
-  action => 'accept',
 }
 
 firewall { '333 notrack gre':
@@ -306,51 +141,224 @@ firewall {'340 vxlan_udp_port':
   action => 'accept',
 }
 
-firewall { '999 drop all other requests':
-  proto  => 'all',
-  chain  => 'INPUT',
-  action => 'drop',
+# Role-related rules
+if member($roles, 'primary-controller') or member($roles, 'controller') {
+
+  # Workaround for fuel bug with firewall
+  firewall {'003 remote rabbitmq ':
+    sport   => [ 4369, 5672, 41055, 55672, 61613 ],
+    source  => hiera('master_ip'),
+    proto   => 'tcp',
+    action  => 'accept',
+  }
+
+  firewall {'004 remote puppet ':
+    sport   => [ 8140 ],
+    source  => hiera('master_ip'),
+    proto   => 'tcp',
+    action  => 'accept',
+  }
+
+  # allow local rabbitmq admin traffic for LP#1383258
+  firewall {'005 local rabbitmq admin':
+    sport   => [ 15672 ],
+    iniface => 'lo',
+    proto   => 'tcp',
+    action  => 'accept',
+  }
+
+  # reject all non-local rabbitmq admin traffic for LP#1450443
+  firewall {'006 reject non-local rabbitmq admin':
+    sport   => [ 15672 ],
+    proto   => 'tcp',
+    action  => 'drop',
+  }
+
+  # allow connections from haproxy namespace
+  firewall {'030 allow connections from haproxy namespace':
+    source  => '240.0.0.2',
+    action  => 'accept',
+  }
+
+  firewall { '100 http':
+    port   => [$http_port, $https_port],
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  openstack::firewall::multi_net {'101 mysql':
+    port        => [$mysql_port, $mysql_backend_port, $mysql_gcomm_port, $galera_ist_port, $galera_clustercheck_port],
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $database_networks,
+  }
+
+  openstack::firewall::multi_net {'102 keystone':
+    port        => [$keystone_public_port, $keystone_admin_port],
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $keystone_networks,
+  }
+
+  firewall {'103 swift':
+    port   => [$swift_proxy_port, $swift_object_port, $swift_container_port, $swift_account_port, $swift_proxy_check_port],
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'104 glance':
+    port   => [$glance_api_port, $glance_reg_port, $glance_nova_api_ec2_port,],
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'105 nova':
+    port   => [$nova_api_compute_port, $nova_api_volume_port, $nova_vncproxy_port],
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  openstack::firewall::multi_net {'105 nova internal - no ssl':
+    port        => [$nova_api_metadata_port, $nova_api_vnc_ports],
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $nova_networks,
+  }
+
+  openstack::firewall::multi_net {'106 rabbitmq':
+    port        => [$erlang_epmd_port, $erlang_rabbitmq_port, $erlang_rabbitmq_backend_port, $erlang_inet_dist_port],
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $rabbitmq_networks,
+  }
+
+  openstack::firewall::multi_net {'107 memcache tcp':
+    port        => $memcached_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $memcache_networks,
+  }
+
+  openstack::firewall::multi_net {'107 memcache udp':
+    port        => $memcached_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $memcache_networks,
+  }
+
+  openstack::firewall::multi_net {'108 rsync':
+    port        => $rsync_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => concat($management_nets, $storage_nets),
+  }
+
+  openstack::firewall::multi_net {'110 neutron':
+    port        => $neutron_api_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $neutron_networks,
+  }
+
+  openstack::firewall::multi_net {'111 dns-server udp':
+    port        => $dns_server_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $management_nets,
+  }
+
+  openstack::firewall::multi_net {'111 dns-server tcp':
+    port        => $dns_server_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $management_nets,
+  }
+
+  firewall {'111 dhcp-server':
+    port   => $dhcp_server_port,
+    proto  => 'udp',
+    action => 'accept',
+  }
+
+  openstack::firewall::multi_net {'113 corosync-input':
+    port        => $corosync_input_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $corosync_networks,
+  }
+
+  openstack::firewall::multi_net {'114 corosync-output':
+    port        => $corosync_output_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $corosync_networks,
+  }
+
+  openstack::firewall::multi_net {'115 pcsd-server':
+    port        => $pcsd_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $corosync_networks,
+  }
+
+  openstack::firewall::multi_net {'116 openvswitch db':
+    port        => $openvswitch_db_port,
+    proto       => 'udp',
+    action      => 'accept',
+    source_nets => $management_nets,
+  }
+
+  firewall {'121 ceilometer':
+    port   => $ceilometer_port,
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall { '203 murano-rabbitmq' :
+    dport  => $murano_rabbitmq_port,
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'204 heat-api':
+    port   => $heat_api_port,
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'205 heat-api-cfn':
+    port   => $heat_api_cfn_port,
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'206 heat-api-cloudwatch':
+    port   => $heat_api_cloudwatch_port,
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
 }
 
-# Workaround for fuel bug with firewall
-firewall {'003 remote rabbitmq ':
-  sport   => [ 4369, 5672, 41055, 55672, 61613 ],
-  source  => hiera('master_ip'),
-  proto   => 'tcp',
-  action  => 'accept',
-}
+if member($roles, 'compute') {
 
-firewall {'004 remote puppet ':
-  sport   => [ 8140 ],
-  source  => hiera('master_ip'),
-  proto   => 'tcp',
-  action  => 'accept',
-}
+  openstack::firewall::multi_net {'118 libvirt':
+    port        => $libvirt_port,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $management_nets,
+  }
 
-# allow local rabbitmq admin traffic for LP#1383258
-firewall {'005 local rabbitmq admin':
-  sport   => [ 15672 ],
-  iniface => 'lo',
-  proto   => 'tcp',
-  action  => 'accept',
-}
-
-# reject all non-local rabbitmq admin traffic for LP#1450443
-firewall {'006 reject non-local rabbitmq admin':
-  sport   => [ 15672 ],
-  proto   => 'tcp',
-  action  => 'drop',
-}
-
-# allow connections from haproxy namespace
-firewall {'030 allow connections from haproxy namespace':
-  source  => '240.0.0.2',
-  action  => 'accept',
+  openstack::firewall::multi_net {'119 libvirt-migration':
+    port        => $libvirt_migration_ports,
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $management_nets,
+  }
 }
 
 if $ironic_hash['enabled'] {
-  $nodes_hash        = hiera('nodes', {})
-  $roles             = node_roles($nodes_hash, hiera('uid'))
+  prepare_network_config(hiera_hash('network_scheme'))
   $baremetal_int     = get_network_role_property('ironic/baremetal', 'interface')
   $baremetal_vip     = $network_metadata['vips']['baremetal']['ipaddr']
   $baremetal_ipaddr  = get_network_role_property('ironic/baremetal', 'ipaddr')
