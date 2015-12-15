@@ -56,6 +56,15 @@ class Noop
       lambda { ral_catalog }
     end
 
+    def capture_stdout
+      output = StringIO.new
+      $stdout = output
+      yield
+      return output
+    ensure
+      $stdout = STDOUT
+    end
+
   end
   extend Helpers
 end
