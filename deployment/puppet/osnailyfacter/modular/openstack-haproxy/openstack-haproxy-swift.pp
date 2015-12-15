@@ -1,9 +1,8 @@
 notice('MODULAR: openstack-haproxy-swift.pp')
 
-$network_metadata  = hiera_hash('network_metadata')
 $storage_hash      = hiera_hash('storage', {})
 $swift_proxies     = hiera_hash('swift_proxies', undef)
-$public_ssl_hash   = hiera('public_ssl')
+$public_ssl_hash   = hiera_hash('public_ssl')
 $ssl_hash          = hiera_hash('use_ssl', {})
 
 $public_ssl        = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'usage', false)
@@ -11,8 +10,6 @@ $public_ssl_path   = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'pub
 
 $internal_ssl      = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'usage', false)
 $internal_ssl_path = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'path', [''])
-
-$ironic_hash       = hiera_hash('ironic', {})
 
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
   $use_swift = true
@@ -23,13 +20,15 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 $swift_proxies_address_map = get_node_to_ipaddr_map_by_network_role($swift_proxies, 'swift/api')
 
 if ($use_swift) {
-
   $server_names        = hiera_array('swift_server_names', keys($swift_proxies_address_map))
   $ipaddresses         = hiera_array('swift_ipaddresses', values($swift_proxies_address_map))
   $public_virtual_ip   = hiera('public_vip')
   $internal_virtual_ip = hiera('management_vip')
 
+  $ironic_hash         = hiera_hash('ironic', {})
+
   if $ironic_hash['enabled'] {
+    $network_metadata  = hiera_hash('network_metadata')
     $baremetal_virtual_ip = $network_metadata['vips']['baremetal']['ipaddr']
   }
 
