@@ -19,6 +19,15 @@ describe 'default' do
       "cluster_id"=>2,
       "cidr"=>"10.144.0.0/24",
       "gateway"=>"10.144.0.5",
+      "ip_ranges"=>[["10.144.0.10", "10.144.0.254"]]},
+    # Network with parameters shared with id=2
+    {"id"=>3,
+      "node_group_name"=>"default3",
+      "node_group_id"=>23,
+      "cluster_name"=>"default3",
+      "cluster_id"=>3,
+      "cidr"=>"10.144.0.0/24",
+      "gateway"=>"10.144.0.5",
       "ip_ranges"=>[["10.144.0.10", "10.144.0.254"]]}
   ]
   admin_network  = {"interface"=>"eth0",
@@ -30,6 +39,7 @@ describe 'default' do
     "dhcp_pool_end"=>"10.145.0.254",
     "mac"=>"64:42:d3:10:64:68",
     "dhcp_gateway"=>"10.145.0.1"}
+
   admin_nets.each do |net|
     net['ip_ranges'].each do |ip_range|
       netmask = IPAddr.new('255.255.255.255').mask(net['cidr'].split('/')[1]).to_s

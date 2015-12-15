@@ -15,7 +15,17 @@ node 'default' {
       "cluster_id"=>2,
       "cidr"=>"10.144.0.0/24",
       "gateway"=>"10.144.0.5",
+      "ip_ranges"=>[["10.144.0.10", "10.144.0.254"]]},
+    # Network id=3 has parameters shared with network id=2
+    {"id"=>3,
+      "node_group_name"=>"default3",
+      "node_group_id"=>23,
+      "cluster_name"=>"default3",
+      "cluster_id"=>3,
+      "cidr"=>"10.144.0.0/24",
+      "gateway"=>"10.144.0.5",
       "ip_ranges"=>[["10.144.0.10", "10.144.0.254"]]}]
+
   $admin_network  = {"interface"=>"eth0",
     "ipaddress"=>"10.145.0.2",
     "netmask"=>"255.255.255.0",
