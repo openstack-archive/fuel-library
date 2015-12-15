@@ -1,9 +1,9 @@
 notice('MODULAR: openstack-haproxy-nova.pp')
 
-$nova_hash            = hiera_hash('nova', {})
+$nova_hash            = hiera_hash('nova_hash', {})
 # enabled by default
 $use_nova             = pick($nova_hash['enabled'], true)
-$public_ssl_hash      = hiera('public_ssl')
+$public_ssl_hash      = hiera_hash('public_ssl')
 $ssl_hash             = hiera_hash('use_ssl', {})
 
 $public_ssl           = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'usage', false)
@@ -19,7 +19,6 @@ if ($use_nova) {
   $ipaddresses         = hiera_array('nova_ipaddresses', values($nova_api_address_map))
   $public_virtual_ip   = hiera('public_vip')
   $internal_virtual_ip = hiera('management_vip')
-
 
   # configure nova ha proxy
   class { '::openstack::ha::nova':
