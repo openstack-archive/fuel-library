@@ -4,6 +4,13 @@ manifest = 'openstack-haproxy/openstack-haproxy-keystone.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+
+    keystone_nodes = Noop.hiera('keystone_nodes')
+
+    let(:keystone_address_map) do
+      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', keystone_nodes, 'keystone/api'
+    end
+
     use_keystone = Noop.hiera_structure('keystone/enabled', true)
 
     if use_keystone

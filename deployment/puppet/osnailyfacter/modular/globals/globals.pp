@@ -28,7 +28,8 @@ if empty($node) {
 prepare_network_config($network_scheme)
 
 # DEPRICATED
-$nodes_hash                     = hiera('nodes', {})
+# BTW it is not a hash, nodes_hash is actually an array
+$nodes_hash = hiera('nodes', [])
 
 # MOS Ubuntu image uses Debian style packages. Since the introduction
 # of `$::os_package_type' fact avilable to use in project manifests,
@@ -54,23 +55,24 @@ if ($::osfamily == 'Debian'){
 
 $deployment_mode                = hiera('deployment_mode', 'ha_compact')
 $roles                          = $node['node_roles']
-$storage_hash                   = hiera('storage', {})
-$syslog_hash                    = hiera('syslog', {})
-$base_syslog_hash               = hiera('base_syslog', {})
-$sahara_hash                    = hiera('sahara', {})
+$storage_hash                   = hiera_hash('storage', {})
+$syslog_hash                    = hiera_hash('syslog', {})
+$base_syslog_hash               = hiera_hash('base_syslog', {})
+$sahara_hash                    = hiera_hash('sahara', {})
 $murano_hash                    = merge({'rabbit' => {'vhost' => '/', 'port' => '55572'}},
-                                        hiera('murano', {}))
+                                        hiera_hash('murano', {}))
 $heat_hash                      = hiera_hash('heat', {})
-$vcenter_hash                   = hiera('vcenter', {})
+$vcenter_hash                   = hiera_hash('vcenter', {})
 $nova_hash                      = hiera_hash('nova', {})
-$mysql_hash                     = hiera('mysql', {})
+$mysql_hash                     = hiera_hash('mysql', {})
 $rabbit_hash                    = hiera_hash('rabbit', {})
 $glance_hash                    = hiera_hash('glance', {})
-$swift_hash                     = hiera('swift', {})
+$swift_hash                     = hiera_hash('swift', {})
 $cinder_hash                    = hiera_hash('cinder', {})
-$ceilometer_hash                = hiera('ceilometer',{})
+$ceilometer_hash                = hiera_hash('ceilometer',{})
 $access_hash                    = hiera_hash('access', {})
-$mp_hash                        = hiera('mp', {})
+# BTW it is not a hash, mp_hash is actually an array
+$mp_hash                        = hiera('mp', [])
 $keystone_hash                  = merge({'service_token_off' => $service_token_off},
                                         hiera_hash('keystone', {}))
 
@@ -262,8 +264,8 @@ if roles_include('primary-controller') {
   $primary_controller = false
 }
 
-$controllers_hash              = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-$mountpoints                   = filter_hash($mp_hash,'point')
+$controllers_hash = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$mountpoints      = filter_hash($mp_hash,'point')
 
 # AMQP configuration
 $queue_provider   = hiera('queue_provider','rabbitmq')
@@ -310,8 +312,11 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
 
 # Define ceph-related variables
 $ceph_primary_monitor_node = get_nodes_hash_by_roles($network_metadata, ['primary-controller'])
-$ceph_monitor_nodes        = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-$ceph_rgw_nodes            = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$ceph_monitor_nodes        = $controllers_hash
+$ceph_rgw_nodes            = $controllers_hash
+
+# Define glance-related variables:
+$glance_nodes = $controllers_hash
 
 #Determine who should be the default backend
 if ($storage_hash['images_ceph']) {
@@ -325,10 +330,6 @@ if ($storage_hash['images_ceph']) {
   $glance_known_stores = false
 }
 
-# Define ceilometer-related variables:
-# todo: use special node-roles instead controllers in the future
-$ceilometer_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-
 # Define memcached-related variables:
 $memcache_roles = hiera('memcache_roles', ['primary-controller', 'controller'])
 
@@ -337,11 +338,14 @@ $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller'])
 
 # Define cinder-related variables
 # todo: use special node-roles instead controllers in the future
-$cinder_nodes           = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$cinder_nodes = $controllers_hash
 
 # Define horizon-related variables:
 # todo: use special node-roles instead controllers in the future
-$horizon_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$horizon_nodes = $controllers_hash
+
+# Define keystone-related variables:
+$keystone_nodes = $controllers_hash
 
 # Define swift-related variables
 $swift_master_role   = hiera('swift_master_role', 'primary-controller')
@@ -361,15 +365,19 @@ $swift_proxy_caches  = $swift_proxies  # memcache for swift
 $is_primary_swift_proxy = $primary_controller
 
 # Define murano-related variables
-$murano_roles = ['primary-controller', 'controller']
+$murano_nodes = $controllers_hash
 
 # Define heat-related variables:
-$heat_roles = ['primary-controller', 'controller']
+$heat_nodes = $controllers_hash
 
 # Define sahara-related variable
-$sahara_roles = ['primary-controller', 'controller']
+$sahara_nodes = $controllers_hash
 
-# Define ceilometer-releated parameters
+# Define ceilometer-related variables:
+# todo: use special node-roles instead controllers in the future
+$ceilometer_nodes = $controllers_hash
+
+# Define ceilometer-related parameters
 if !$ceilometer_hash['alarm_history_time_to_live'] { $ceilometer_hash['alarm_history_time_to_live'] = '604800'}
 if !$ceilometer_hash['event_time_to_live'] { $ceilometer_hash['event_time_to_live'] = '604800'}
 if !$ceilometer_hash['metering_time_to_live'] { $ceilometer_hash['metering_time_to_live'] = '604800' }
@@ -377,25 +385,25 @@ if !$ceilometer_hash['http_timeout'] { $ceilometer_hash['http_timeout'] = '600' 
 
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future
-$database_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$database_nodes = $controllers_hash
 
 # Define Nova-API variables:
 # todo: use special node-roles instead controllers in the future
-$nova_api_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$nova_api_nodes = $controllers_hash
 
 # Define mongo-related variables
 $mongo_roles = ['primary-mongo', 'mongo']
 
 # Define neutron-related variables:
 # todo: use special node-roles instead controllers in the future
-$neutron_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$neutron_nodes = $controllers_hash
 
 #Define Ironic-related variables:
 $ironic_api_nodes = $controllers_hash
 
 # Change nova_hash to add vnc port to it
 # TODO(sbog): change this when we will get rid of global hashes
-$public_ssl_hash = hiera('public_ssl')
+$public_ssl_hash = hiera_hash('public_ssl')
 if $public_ssl_hash['services'] {
   $nova_hash['vncproxy_protocol'] = 'https'
 } else {
