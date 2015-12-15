@@ -64,4 +64,6 @@ if $use_syslog {
     debug            => $debug,
     ironic_collector => $ironic_collector,
   }
+
+  class { '::cluster::haproxy::rsyslog': }
 }
