@@ -112,6 +112,8 @@ murano:
   user_password: xP8WtHQw
 murano-cfapi:
   enabled: true
+murano_glance_artifacts_plugin:
+  enabled: true
 murano_settings:
   metadata:
     label: Murano Settings
