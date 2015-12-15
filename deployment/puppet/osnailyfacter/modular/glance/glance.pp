@@ -59,6 +59,7 @@ $keystone_protocol              = get_ssl_property($ssl_hash, {}, 'keystone', 'i
 $internal_ssl                   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'usage', false)
 $keystone_endpoint              = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
 $glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
+$murano_glance_artifacts_plugin = hiera('murano_glance_artifacts_plugin', {})
 
 $auth_uri          = "${keystone_protocol}://${keystone_endpoint}:5000/"
 
@@ -129,6 +130,15 @@ class { 'openstack::glance':
   ceilometer                     => $ceilometer_hash[enabled],
   service_workers                => $service_workers,
   rados_connect_timeout          => $rados_connect_timeout,
+}
+
+if $murano_glance_artifacts_plugin and $murano_glance_artifacts_plugin['enabled'] {
+  package {'murano-glance-artifacts-plugin':
+    ensure  => installed,
+  }
+  glance_api_config {
+   'DEFAULT/enable_v3_api': value => true,
+  }
 }
 
 ####### Disable upstart startup on install #######
