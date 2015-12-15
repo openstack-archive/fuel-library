@@ -149,10 +149,13 @@ describe manifest do
 
       it 'should declare murano::dashboard class correctly' do
         should contain_class('murano::dashboard').with(
-                   'api_url' => internal_url,
+                   'api_url' => nil,
                    'repo_url' => repository_url
                )
       end
+
+      it { should_not contain_concat__fragment('murano_dashboard_section').with_content(/MURANO_API_URL = /)}
+      it { should contain_concat__fragment('murano_dashboard_section').with_content(/METADATA_CACHE_DIR = '\/var\/cache\/murano-dashboard'/)}
 
       enable = (Noop.hiera_structure('murano/enabled') and Noop.hiera('node_role') == 'primary-controller')
       context 'on primary controller', :if => enable do
