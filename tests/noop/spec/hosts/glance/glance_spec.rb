@@ -23,6 +23,7 @@ describe manifest do
     else
        pipeline = 'keystone'
     end
+    murano_glance_artifacts_plugin = Noop.hiera('murano_glance_artifacts_plugin', {})
 
     it 'should declare glance classes' do
       should contain_class('glance::api').with('pipeline' => pipeline)
@@ -84,6 +85,12 @@ describe manifest do
     it 'should configure default_log_levels' do
       should contain_glance_api_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       should contain_glance_registry_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+    end
+
+    if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled']
+      it 'should install murano-glance-artifacts-plugin package' do
+        should contain_package('murano-glance-artifacts-plugin').with(:ensure  => 'installed')
+      end
     end
 
     if storage_config && storage_config.has_key?('images_ceph') && storage_config['images_ceph']
