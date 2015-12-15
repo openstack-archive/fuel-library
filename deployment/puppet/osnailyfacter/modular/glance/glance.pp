@@ -131,6 +131,10 @@ class { 'openstack::glance':
   rados_connect_timeout          => $rados_connect_timeout,
 }
 
+package {'murano-glance-artifacts-plugin':
+  ensure  => installed,
+}
+
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'glance-api':

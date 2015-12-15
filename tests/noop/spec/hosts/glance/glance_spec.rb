@@ -86,6 +86,10 @@ describe manifest do
       should contain_glance_registry_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
 
+    it 'should install murano-glance-artifacts-plugin package' do
+      should contain_package('murano-glance-artifacts-plugin').with(:ensure  => 'installed')
+    end
+
     if storage_config && storage_config.has_key?('images_ceph') && storage_config['images_ceph']
       if glance_config && glance_config.has_key?('show_image_direct_url')
         show_image_direct_url = glance_config['show_image_direct_url']
