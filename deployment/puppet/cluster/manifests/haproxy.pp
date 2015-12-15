@@ -121,6 +121,10 @@ class cluster::haproxy (
     package_name => $haproxy::params::package_name,
   }
 
+  class { 'cluster::haproxy::rsyslog':
+    log_file => $haproxy_log_file,
+  }
+
   Package['haproxy'] ->
   Class['haproxy::base']
 
@@ -133,23 +137,7 @@ class cluster::haproxy (
   Sysctl::Value['net.ipv4.ip_nonlocal_bind'] ~>
   Service['haproxy']
 
-  # Rsyslog
-
-  file { '/etc/rsyslog.d/haproxy.conf':
-    ensure  => present,
-    content => template("${module_name}/haproxy.conf.erb"),
-    notify  => Service[$::rsyslog::params::service_name],
-  }
-
-  if !defined(Service[$::rsyslog::params::service_name]) {
-    service { $::rsyslog::params::service_name:
-      ensure => 'running',
-      enable => true,
-    }
-  }
-
-  # Paceamker
-
+  # Pacemaker
   class { 'cluster::haproxy_ocf':
     debug              => $debug,
     other_networks     => $other_networks,
