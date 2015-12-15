@@ -36,7 +36,8 @@ Class['docker::dockerctl'] ->
 Class['docker'] ->
 Class['openstack::logrotate'] ->
 Class['monit'] ->
-Class['nailgun::bootstrap_cli']
+Class['nailgun::bootstrap_cli'] ->
+File['/usr/sbin/mco']
 
 class { 'nailgun::packages': }
 
@@ -97,6 +98,13 @@ class { 'nailgun::bootstrap_cli':
   direct_repo_addresses => [ $::fuel_settings['ADMIN_NETWORK']['ipaddress'] ],
   bootstrap_cli_package => 'fuel-bootstrap-cli',
   config_path           => '/etc/fuel-bootstrap-cli/fuel_bootstrap_cli.yaml',
+}
+
+file { "/usr/sbin/mco":
+  source  => 'puppet:///modules/nailgun/mco_host_only',
+  mode    => '0755',
+  owner   => 'root',
+  group   => 'root',
 }
 
 class { 'osnailyfacter::ssh':
