@@ -2,41 +2,43 @@ notice('MODULAR: murano.pp')
 
 prepare_network_config(hiera('network_scheme', {}))
 
-$murano_hash                = hiera_hash('murano_hash', {})
-$murano_settings_hash       = hiera_hash('murano_settings', {})
-$rabbit_hash                = hiera_hash('rabbit_hash', {})
-$neutron_config             = hiera_hash('neutron_config', {})
-$public_ip                  = hiera('public_vip')
-$database_ip                = hiera('database_vip')
-$management_ip              = hiera('management_vip')
-$region                     = hiera('region', 'RegionOne')
-$use_neutron                = hiera('use_neutron', false)
-$service_endpoint           = hiera('service_endpoint')
-$syslog_log_facility_murano = hiera('syslog_log_facility_murano')
-$debug                      = pick($murano_hash['debug'], hiera('debug', false))
-$verbose                    = pick($murano_hash['verbose'], hiera('verbose', true))
-$default_log_levels         = hiera_hash('default_log_levels')
-$use_syslog                 = hiera('use_syslog', true)
-$use_stderr                 = hiera('use_stderr', false)
-$rabbit_ha_queues           = hiera('rabbit_ha_queues')
-$amqp_port                  = hiera('amqp_port')
-$amqp_hosts                 = hiera('amqp_hosts')
-$external_dns               = hiera_hash('external_dns', {})
-$public_ssl_hash            = hiera_hash('public_ssl', {})
-$ssl_hash                   = hiera_hash('use_ssl', {})
-$primary_controller         = hiera('primary_controller')
+$murano_hash                    = hiera_hash('murano_hash', {})
+$murano_settings_hash           = hiera_hash('murano_settings', {})
+$rabbit_hash                    = hiera_hash('rabbit_hash', {})
+$neutron_config                 = hiera_hash('neutron_config', {})
+$public_ip                      = hiera('public_vip')
+$database_ip                    = hiera('database_vip')
+$management_ip                  = hiera('management_vip')
+$region                         = hiera('region', 'RegionOne')
+$use_neutron                    = hiera('use_neutron', false)
+$service_endpoint               = hiera('service_endpoint')
+$syslog_log_facility_murano     = hiera('syslog_log_facility_murano')
+$debug                          = pick($murano_hash['debug'], hiera('debug', false))
+$verbose                        = pick($murano_hash['verbose'], hiera('verbose', true))
+$default_log_levels             = hiera_hash('default_log_levels')
+$use_syslog                     = hiera('use_syslog', true)
+$use_stderr                     = hiera('use_stderr', false)
+$rabbit_ha_queues               = hiera('rabbit_ha_queues')
+$amqp_port                      = hiera('amqp_port')
+$amqp_hosts                     = hiera('amqp_hosts')
+$external_dns                   = hiera_hash('external_dns', {})
+$public_ssl_hash                = hiera_hash('public_ssl', {})
+$ssl_hash                       = hiera_hash('use_ssl', {})
+$primary_controller             = hiera('primary_controller')
 
-$public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
-$public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
+$public_auth_protocol           = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
+$public_auth_address            = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
 
-$internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+$internal_auth_protocol         = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_address          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
-$admin_auth_protocol        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-$admin_auth_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+$admin_auth_protocol            = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_auth_address             = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
-$internal_api_protocol      = 'http'
-$api_bind_host              = get_network_role_property('murano/api', 'ipaddr')
+$internal_api_protocol          = 'http'
+$api_bind_host                  = get_network_role_property('murano/api', 'ipaddr')
+
+$murano_glance_artifacts_plugin = hiera('murano_glance_artifacts_plugin', {})
 
 #################################################################
 
@@ -138,6 +140,19 @@ if $murano_hash['enabled'] {
   class { 'murano::dashboard':
     repo_url => $repository_url,
   }
+
+  
+  if $murano_glance_artifacts_plugin and $murano_glance_artifacts_plugin['enabled'] {
+    murano_config {
+      'packages_opts/packages_service': value => 'glance',
+    }
+
+    concat::fragment { 'enable_glare':
+      target  => $::murano::params::local_settings_path,
+      content => 'MURANO_USE_GLARE = True',
+      order   => 3,
+    }
+  }  
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
