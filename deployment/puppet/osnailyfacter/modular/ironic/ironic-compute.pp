@@ -40,6 +40,10 @@ $memcached_port                 = hiera('memcache_server_port', '11211')
 $memcached_addresses            = suffix($memcached_servers, ":${memcached_port}")
 $notify_on_state_change         = 'vm_and_task_state'
 
+####### Disable upstart startup on install #######
+tweaks::ubuntu_service_override { 'nova-compute':
+  package_name => "nova-compute",
+}
 
 class { '::nova':
     install_utilities      => false,
@@ -66,7 +70,7 @@ class { '::nova':
 
 class { '::nova::compute':
   ensure_package            => installed,
-  enabled                   => true,
+  enabled                   => false,
   vnc_enabled               => false,
   force_config_drive        => $nova_hash['force_config_drive'],
   #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
@@ -74,6 +78,7 @@ class { '::nova::compute':
   default_availability_zone => $nova_hash['default_availability_zone'],
   default_schedule_zone     => $nova_hash['default_schedule_zone'],
   reserved_host_memory      => '0',
+  compute_manager           => 'ironic.nova.compute.manager.ClusteredComputeManager',
 }
 
 
@@ -91,8 +96,33 @@ class { 'nova::network::neutron':
   neutron_admin_auth_url => "http://${service_endpoint}:35357/v2.0",
 }
 
+cs_resource { "p_nova_compute_ironic":
+  ensure          => present,
+  primitive_class => 'ocf',
+  provided_by     => 'fuel',
+  primitive_type  => 'nova-compute',
+  metadata        => {
+    resource-stickiness => '1'
+  },
+  parameters      => {
+    config                => "/etc/nova/nova.conf",
+    pid                   => "/var/run/nova/nova-compute-ironic.pid",
+    additional_parameters => "--config-file=/etc/nova/nova-compute.conf",
+  },
+  operations      => {
+    monitor  => { timeout => '10', interval => '20' },
+    start    => { timeout => '30' },
+    stop     => { timeout => '30' }
+  }
+}
+
+service { "p_nova_compute_ironic":
+  ensure   => running,
+  enable   => true,
+  provider => 'pacemaker',
+}
+
 file { '/etc/nova/nova-compute.conf':
   content => "[DEFAULT]\nhost=ironic-compute",
   require => Package['nova-compute'],
-} ~> Service['nova-compute']
-
+} ~> Service['p_nova_compute_ironic']
