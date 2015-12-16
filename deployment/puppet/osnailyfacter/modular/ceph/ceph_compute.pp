@@ -15,7 +15,17 @@ $glance_pool              = 'images'
 #Nova Compute settings
 $compute_user             = 'compute'
 $compute_pool             = 'compute'
+$libvirt_images_type      = 'rbd'
+$secret                   = hiera('mon_key')
 
+case $::osfamily {
+  'RedHat': {
+    $service_nova_compute = 'openstack-nova-compute'
+  }
+  'Debian': {
+    $service_nova_compute = 'nova-compute'
+  }
+}
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -46,54 +56,56 @@ if $use_ceph {
 
   $per_pool_pg_nums = $storage_hash['per_pool_pg_nums']
 
-  class {'ceph':
-    primary_mon              => $primary_mon,
-    mon_hosts                => keys($mon_address_map),
-    mon_ip_addresses         => values($mon_address_map),
-    cluster_node_address     => $public_vip,
-    osd_pool_default_size    => $storage_hash['osd_pool_size'],
+  class { 'ceph':
+    fsid                     => hiera('fsid'),
+    osd_journal_size         => $osd_journal_size,
     osd_pool_default_pg_num  => $storage_hash['pg_num'],
     osd_pool_default_pgp_num => $storage_hash['pg_num'],
-    use_rgw                  => false,
-    glance_backend           => $glance_backend,
-    rgw_pub_ip               => $public_vip,
-    rgw_adm_ip               => $management_vip,
-    rgw_int_ip               => $management_vip,
+    osd_pool_default_size    => $storage_hash['osd_pool_size'],
+    mon_initial_members      => values($mon_address_map),
+    mon_host                 => keys($mon_address_map),
     cluster_network          => $ceph_cluster_network,
     public_network           => $ceph_public_network,
-    use_syslog               => $use_syslog,
-    syslog_log_level         => hiera('syslog_log_level_ceph', 'info'),
-    syslog_log_facility      => $syslog_log_facility_ceph,
-    rgw_keystone_admin_token => $keystone_hash['admin_token'],
-    ephemeral_ceph           => $storage_hash['ephemeral_ceph']
   }
 
+  service { $service_nova_compute :}
 
-  service { $::ceph::params::service_nova_compute :}
-
-  ceph::pool {$compute_pool:
-    user          => $compute_user,
-    acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}'",
-    keyring_owner => 'nova',
+  ceph::pool { $compute_pool:
     pg_num        => pick($per_pool_pg_nums[$compute_pool], '1024'),
     pgp_num       => pick($per_pool_pg_nums[$compute_pool], '1024'),
   }
 
-  include ceph::nova_compute
-
-  if ($storage_hash['ephemeral_ceph']) {
-    include ceph::ephemeral
-    Class['ceph::conf'] -> Class['ceph::ephemeral'] ~>
-    Service[$::ceph::params::service_nova_compute]
+  ceph::key { "client.${compute_user}":
+    secret  => $secret,
+    cap_mon => 'allow r',
+    cap_osd => "allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}",
+    inject  => true,
   }
 
-  Class['ceph::conf'] ->
+  include osnailyfacter::ceph_nova_compute
+
+  if ($storage_hash['ephemeral_ceph']) {
+
+    Class['ceph'] ->
+
+    nova_config {
+      'libvirt/images_type':      value => $libvirt_images_type;
+      'libvirt/inject_key':       value => false;
+      'libvirt/inject_partition': value => '-2';
+      'libvirt/images_rbd_pool':  value => $compute_pool;
+    } ~>
+
+    Service[$service_nova_compute]
+  }
+
+  Class['ceph'] ->
   Ceph::Pool[$compute_pool] ->
-  Class['ceph::nova_compute'] ~>
-  Service[$::ceph::params::service_nova_compute]
+  Class['osnailyfacter::ceph_nova_compute'] ~>
+  Service[$service_nova_compute]
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
     cwd  => '/root',
   }
 
 }
+
