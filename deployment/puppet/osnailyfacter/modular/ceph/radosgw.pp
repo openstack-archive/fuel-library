@@ -1,110 +1,128 @@
+##############################################
+#
+# Need to be fixed, as master has major change
+#
+##############################################
+
 notice('MODULAR: ceph/radosgw.pp')
 
-$storage_hash     = hiera('storage', {})
-$use_neutron      = hiera('use_neutron')
-$public_vip       = hiera('public_vip')
-$keystone_hash    = hiera('keystone', {})
-$management_vip   = hiera('management_vip')
-$service_endpoint = hiera('service_endpoint')
-$public_ssl_hash  = hiera('public_ssl')
-$radosgw_large_pool_name = ".rgw"
+file { '/var/lib/ceph/radosgw/ceph-radosgw.gateway':
+  ensure => directory,
+}
+
+ceph::key { 'client.radosgw.gateway':
+  keyring_path => '/etc/ceph/client.radosgw.gateway',
+  secret  => hiera('admin_key'),
+  cap_mon => 'allow rw',
+  cap_osd => 'allow rwx',
+  inject => true,
+}
+
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 
-if ($storage_hash['volumes_ceph'] or
-  $storage_hash['images_ceph'] or
-  $storage_hash['objects_ceph']
-) {
-  $use_ceph = true
-} else {
-  $use_ceph = false
+package{'ceph':
+  ensure => installed
 }
 
-if $use_ceph and $storage_hash['objects_ceph'] {
-  $ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')
-  $primary_mons              = keys($ceph_primary_monitor_node)
-  $primary_mon               = $ceph_primary_monitor_node[$primary_mons[0]]['name']
+include ::tweaks::apache_wrappers
+include ::ceph::params
 
-  prepare_network_config(hiera_hash('network_scheme'))
-  $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
-  $ceph_public_network  = get_network_role_property('ceph/public', 'network')
-  $rgw_ip_address       = get_network_role_property('ceph/radosgw', 'ipaddr')
+$service_endpoint = hiera('service_endpoint')
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
-  # Listen directives with host required for ip_based vhosts
+haproxy_backend_status { 'keystone-admin' :
+  name  => 'keystone-2',
+  count => '200',
+  step  => '6',
+  url   => $haproxy_stats_url,
+}
+
+haproxy_backend_status { 'keystone-public' :
+  name  => 'keystone-1',
+  count => '200',
+  step  => '6',
+  url   => $haproxy_stats_url,
+}
+
+Haproxy_backend_status['keystone-admin']  -> Ceph::Rgw::Keystone['radosgw.gateway']
+Haproxy_backend_status['keystone-public'] -> Ceph::Rgw::Keystone['radosgw.gateway']
+
+ceph::rgw { 'radosgw.gateway':
+  rgw_print_continue               => true,
+  keyring_path                     => '/etc/ceph/client.radosgw.gateway',
+  log_file                         => '/var/log/ceph/radosgw.log',
+  rgw_data                         => '/var/lib/ceph/radosgw-test',
+  rgw_dns_name                     => "*.${::domain}",
+}
+
+$keystone_hash    = hiera('keystone', {})
+
+ceph::rgw::keystone {'radosgw.gateway':
+  rgw_keystone_url                 => "${service_endpoint}:35357",
+  rgw_keystone_admin_token         => $keystone_hash['admin_token'],
+  rgw_keystone_token_cache_size    => '10',
+  rgw_keystone_accepted_roles      => '_member_, Member, admin, swiftoperator',
+  rgw_keystone_revocation_interval => '1000000',
+}  
+
+Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
+  cwd  => '/root',
+}
+
+###########################################################
+# THIS SHOULD BE FIXED
+# we cannot reuse this class, because it breaks our apache
+###########################################################
+
+#ceph::rgw::apache {'radosgw':
+#  admin_email => 'root@localhost',
+#  docroot => '/var/www/radosgw',
+#  fcgi_file => '/var/www/radosgw/s3gw.fcgi',
+#  rgw_dns_name => $::fqdn,
+#  rgw_port => 6780,
+#  rgw_socket_path => '/tmp/radosgw.sock',
+#  syslog => true,
+#  ceph_apache_repo => false,
+#}
+
   class { 'osnailyfacter::apache':
-    listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888']),
+    purge_configs => false,
+    listen_ports  => hiera_array('apache_ports', ['0.0.0.0:80']),
   }
 
-  if ($::osfamily == 'Debian'){
-    apache::mod {'rewrite': }
-    apache::mod {'proxy_fcgi': }
-  }
-  include ::tweaks::apache_wrappers
+  include ::osnailyfacter::apache_mpm
 
-  include ceph::params
+  $admin_email     = 'root@localhost'
+  $docroot         = '/var/www/radosgw'
+  $fcgi_file       = '/var/www/radosgw/s3gw.fcgi'
+  $rgw_dns_name    = $::fqdn
+  $rgw_socket_path = '/tmp/radosgw.sock'
+  $syslog          = true
 
-  $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
-  haproxy_backend_status { 'keystone-admin' :
-    name  => 'keystone-2',
-    count => '200',
-    step  => '6',
-    url   => $haproxy_stats_url,
-  }
 
-  haproxy_backend_status { 'keystone-public' :
-    name  => 'keystone-1',
-    count => '200',
-    step  => '6',
-    url   => $haproxy_stats_url,
-  }
-
-  Haproxy_backend_status['keystone-admin']  -> Class ['ceph::keystone']
-  Haproxy_backend_status['keystone-public'] -> Class ['ceph::keystone']
-
-  class { 'ceph::radosgw':
-    # SSL
-    use_ssl                          => false,
-    public_ssl                       => $public_ssl_hash['services'],
-
-    # Ceph
-    primary_mon                      => $primary_mon,
-    pub_ip                           => $public_vip,
-    adm_ip                           => $management_vip,
-    int_ip                           => $management_vip,
-
-    # RadosGW settings
-    rgw_host                         => $::hostname,
-    rgw_ip                           => $rgw_ip_address,
-    rgw_port                         => '6780',
-    swift_endpoint_port              => '8080',
-    rgw_keyring_path                 => '/etc/ceph/keyring.radosgw.gateway',
-    rgw_socket_path                  => '/tmp/radosgw.sock',
-    rgw_frontends                    => 'fastcgi socket_port=9000 socket_host=127.0.0.1',
-    rgw_log_file                     => '/var/log/ceph/radosgw.log',
-    rgw_data                         => '/var/lib/ceph/radosgw',
-    rgw_dns_name                     => "*.${::domain}",
-    rgw_print_continue               => true,
-
-    #rgw Keystone settings
-    rgw_use_pki                      => false,
-    rgw_use_keystone                 => true,
-    rgw_keystone_url                 => "${service_endpoint}:35357",
-    rgw_keystone_admin_token         => $keystone_hash['admin_token'],
-    rgw_keystone_token_cache_size    => '10',
-    rgw_keystone_accepted_roles      => '_member_, Member, admin, swiftoperator',
-    rgw_keystone_revocation_interval => '1000000',
-    rgw_nss_db_path                  => '/etc/ceph/nss',
-    rgw_s3_auth_use_keystone         => hiera('rgw_s3_auth_use_keystone', true),
-    rgw_large_pool_name              => $radosgw_large_pool_name,
-    rgw_large_pool_pg_nums           => pick($storage_hash['per_pool_pg_nums'][$radosgw_large_pool_name], '512'),
-
-    #rgw Log settings
-    use_syslog                       => hiera('use_syslog', true),
-    syslog_facility                  => hiera('syslog_log_facility_ceph', 'LOG_LOCAL0'),
-    syslog_level                     => hiera('syslog_log_level_ceph', 'info'),
+  apache::vhost { "${rgw_dns_name}-radosgw":
+    servername     => $rgw_dns_name,
+    serveradmin    => $admin_email,
+    port           => $rgw_port,
+    docroot        => $docroot,
+    rewrite_rule   => '^/([a-zA-Z0-9-_.]*)([/]?.*) /s3gw.fcgi?page=$1&params=$2&%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]',
+    access_log     => $syslog,
+    error_log      => $syslog,
+    fastcgi_server => $fcgi_file,
+    fastcgi_socket => $rgw_socket_path,
+    fastcgi_dir    => $docroot,
   }
 
-  Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-    cwd  => '/root',
+  # radosgw fast-cgi script
+  file { $fcgi_file:
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0750',
+    content => "#!/bin/sh
+exec /usr/bin/radosgw -c /etc/ceph/ceph.conf -n ${name}",
   }
-}
+
+  File[$fcgi_file]
+  ~> Service['httpd']
