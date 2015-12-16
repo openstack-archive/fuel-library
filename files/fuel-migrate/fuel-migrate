@@ -46,7 +46,7 @@ fd=200
 banner_file="c-msg.sh"
 prog_name="fuel-migrate"
 fuel_migrate_vars=/root/fuel-migrate.var
-
+udev_rule=/etc/udev/rules.d/70-persistent-net.rules
 
 file_lock() {
     # create lock file
@@ -60,7 +60,6 @@ file_lock() {
         echo "Only one instance of $prog_name can run at a time."
         return 1
     fi
-
 }
 
 
@@ -179,7 +178,6 @@ create_vm(){
     # create disk
     ssh "${dkvm_ip}" qemu-img create -f raw "${dkvm_folder}/${fvm_name}.img" "${fvm_disk_size}"
     # make template for virsh
-    IFS=","
     cat >/tmp/vm.xml <<EOF
 <domain type='kvm'>
   <name>${fvm_name}</name>
@@ -215,7 +213,11 @@ create_vm(){
       ${admin_net_b_type}
       <model type='virtio'/>
     </interface>
-$(ifaces $other_net_bridges)
+EOF
+    IFS=","
+    ifaces ${other_net_bridges} >>/tmp/vm.xml
+    IFS=" "
+    cat >>/tmp/vm.xml <<EOF
     <input type='mouse' bus='ps2'/>
     <graphics type='vnc' autoport='yes' listen='0.0.0.0'/>
     <video>
@@ -226,7 +228,6 @@ $(ifaces $other_net_bridges)
   </devices>
 </domain>
 EOF
-    IFS=" "
     virsh -c "${dkvm_uri}" define /tmp/vm.xml
     virsh -c "${dkvm_uri}" autostart ${fvm_name}
     virsh -c "${dkvm_uri}" start ${fvm_name}
@@ -269,20 +270,15 @@ mark_dst_disk(){
 
 
 mk_lvs_fs(){
-
 # to-do get current fuel data
     cecho "Create lvm volumes and file-systems"
-
-    ssh "${admin_net_ip_bs}" vgcreate os ${dst_disk}4
+    ssh "${admin_net_ip_bs}" vgcreate os ${dst_disk}5
     ssh "${admin_net_ip_bs}" lvcreate os -n root -L ${os_root}
     ssh "${admin_net_ip_bs}" lvcreate os -n swap -L ${os_swap}
     ssh "${admin_net_ip_bs}" lvcreate os -n var -l${os_var}free
-    ssh "${admin_net_ip_bs}" lvcreate os -n varlibdocker -l${os_varlibdocker}free
     ssh "${admin_net_ip_bs}" lvcreate os -n varlog -l${os_varlog}free
-    ssh "${admin_net_ip_bs}"  "mkfs.ext4 /dev/os/root; mkfs.ext4 /dev/os/var; mkfs.ext4  /dev/os/varlog; mkfs.ext4  /dev/os/varlibdocker; mkswap /dev/os/swap"
-
+    ssh "${admin_net_ip_bs}"  "mkfs.ext4 /dev/os/root; mkfs.ext4 /dev/os/var; mkfs.ext4  /dev/os/varlog; mkswap /dev/os/swap"
 }
-
 
 rsync_vol(){
     cecho "Start syncing $2"
@@ -292,42 +288,52 @@ rsync_vol(){
     time rsync -z -axAHS --numeric-ids ${1}/ $admin_net_ip_bs:${s_base}${1}/
 }
 
-
 rsync_data(){
+    ddopt="bs=1048576"
     # use dd to create small 1:1 partitions to avoid FS issues
-    dd if="${src_disk}1" | ssh "${admin_net_ip_bs}" "dd of=${dst_disk}1"
-    dd if="${src_disk}2" | ssh "${admin_net_ip_bs}" "dd of=${dst_disk}2"
-    dd if="${src_disk}3" | ssh "${admin_net_ip_bs}" "dd of=${dst_disk}3"
+    dd if="${src_disk}1" ${ddopt} | ssh "${admin_net_ip_bs}" "dd of=${dst_disk}1 ${ddopt}"
+    dd if="${src_disk}2" ${ddopt} | ssh "${admin_net_ip_bs}" "dd of=${dst_disk}2 ${ddopt}"
+    dd if="${src_disk}3" ${ddopt} | ssh "${admin_net_ip_bs}" "dd of=${dst_disk}3 ${ddopt}"
+    dd if="${src_disk}4" ${ddopt} | ssh "${admin_net_ip_bs}" "dd of=${dst_disk}4 ${ddopt}"
 
     rsync_vol / /dev/os/root
     rsync_vol /var /dev/os/var
-    rsync_vol /var/lib/docker /dev/os/varlibdocker
     rsync_vol /var/log /dev/os/varlog
 }
-
 
 fix_config(){
     cecho "Make grub-loader and fix config files"
     # make grub loader
     ssh "${admin_net_ip_bs}" "sed  -i 's#${src_disk}#${dst_disk}#'  ${s_base}/etc/mtab"
     ssh "${admin_net_ip_bs}" "mount -o bind /dev/ ${s_base}/dev/"
+    ssh "${admin_net_ip_bs}" "mount -o bind /proc/ ${s_base}/proc/"
     ssh "${admin_net_ip_bs}" "mount ${dst_disk}3  ${s_base}/boot/"
-    ssh "${admin_net_ip_bs}" "chroot ${s_base} grub-install --recheck ${dst_disk}"
+    ssh "${admin_net_ip_bs}" "chroot ${s_base} grub2-install ${dst_disk}"
     # fix configs
+    ssh "${admin_net_ip_bs}" "ln -fs /proc/self/mounts ${s_base}/etc/mtab"
     ssh "${admin_net_ip_bs}" "sed -i '/HWADDR=/d' ${s_base}/etc/sysconfig/network-scripts/ifcfg-*"
     ssh "${admin_net_ip_bs}" "sed -i 's/${admin_net_mac}/${fvm_admin_mac}/' ${s_base}${fuel_astute}"
-    ssh "${admin_net_ip_bs}" "cp  /etc/udev/rules.d/70-persistent-net.rules  ${s_base}/etc/udev/rules.d/70-persistent-net.rules"
     ssh "${admin_net_ip_bs}" "cat /root/.ssh/authorized_keys >>${s_base}/root/.ssh/authorized_keys"
-    ssh "${admin_net_ip_bs}" "umount ${s_base}/var/log ${s_base}/var/lib/docker ${s_base}/var ${s_base}/boot ${s_base}/dev ${s_base}" || true
+    ssh "${admin_net_ip_bs}" "echo 'Not ready'>${s_base}/notready"
+    ssh "${admin_net_ip_bs}" "umount ${s_base}/var/log ${s_base}/var ${s_base}/boot ${s_base}/dev ${s_base}/proc ${s_base}" || true
 }
 
-fix_udev_rule(){
+new_udev_line(){
+    echo 'SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="'${1}'", ATTR{type}=="1", KERNEL=="eth*", NAME="'${2}'"'
+}
+
+get_if_list(){
+    virsh -c "${dkvm_uri}" domiflist "${fvm_name}"
+}
+
+new_udev_rule(){
     # make udev on destination vm use the same network interface name as on source
-    fvm_admin_mac=$(virsh -c "${dkvm_uri}"  domiflist "${fvm_name}" | awk "/vfm_${admin_net_if}/ { print \$5}")
-    ssh "${admin_net_ip_bs}" "sed -i -e 's/\(${fvm_admin_mac}.* NAME=\"\)[^\"]*\(\".*\)/\1${admin_net_if}\2/' /etc/udev/rules.d/70-persistent-net.rules"
+    fvm_mac=$(get_if_list | awk -F " " "/vfm_${admin_net_if}/ { print \$5}")
+    echo "# Generated by fuel-migrate"
+    new_udev_line "${fvm_mac}" "${admin_net_if}"
     until [[ -z $1 ]] ; do
-        vfm_mac=$(virsh -c "${dkvm_uri}"  domiflist "${fvm_name}" | awk "/vfm_$1/ { print \$5}")
-        ssh "${admin_net_ip_bs}" "sed -i -e 's/\(${vfm_mac}.* NAME=\"\)[^\"]*\(\".*\)/\1${1}\2/' /etc/udev/rules.d/70-persistent-net.rules"
+        vfm_mac=$(get_if_list | awk -F " " "/vfm_${1}/ {print \$5}")
+        new_udev_line "${vfm_mac}" ${1}
         shift || true
         shift || true
         shift || true
@@ -336,13 +342,12 @@ fix_udev_rule(){
 
 wait_connection(){
     te="$(( $(date +%s) + ${1:-300}))"
-    until  ssh $SSHO "${admin_net_ip_bs}" exit 0 ; do
+    until  ssh $SSHO "${2:-${admin_net_ip_bs}}" exit 0 ; do
         sleep 2
         [[ "${te}" -lt "$(date +%s)" ]] && return 1
     done
     return 0
 }
-
 
 set_log(){
     #  keep current console output on file descriptor &6  and redirect stderr and stdout into file
@@ -362,8 +367,17 @@ timeout(){
     return 0
 }
 
+# Stub for required umm functionality
+umm(){
+    if [[ "$1" == "on" ]] ; then
+        /usr/bin/systemctl set-default umm-mg.target
+        reboot
+    fi
+}
+
 # Stop script execution if script is sourced
 [[ "${BASH_SOURCE[0]}" != "${0}" ]] && return
+
 # Show usage if run without parameters.
 [[ -z $1 ]] && usage
 # Show usage if help is chosen
@@ -377,28 +391,13 @@ if [[ "$1" == "start" ]] && [[ -f "$fuel_migrate_vars" ]] ; then
     set_log
     cecho "Start data sync phase"
     mv -f "$fuel_migrate_vars" "${fuel_migrate_vars}.old"
-    ifup "$admin_net_if"
-    /etc/init.d/network start
-    /etc/init.d/sshd start
-    initctl start tty TTY=/dev/tty2
-    cecho "You may login from tty2. Switch by Ctr-Alt-F2"
     wait_connection 600
+    wait_connection 60 "${dkvm_ip}"
     time rsync_data
-    fix_config
-    rm -f /etc/rc3.d/S00fuel_migrate
-    cecho "Reboot destination VM"
-    ssh -tt "${admin_net_ip_bs}" "reboot"
-    cecho "Stop network and up with new settings"
-    /etc/init.d/network stop
-    cecho "Source fuelmaster can be obtained by ssh ${admin_net_ip_bs}"
-    ifconfig "$admin_net_if" "${admin_net_ip_bs}" netmask "$admin_net_nm"
-
-    until ssh -tt ${admin_net_ip} ls ; do
-        timeout  || reboot
-        sleep 20
-    done
-
-
+    fvm_admin_mac=$(get_if_list | awk "/vfm_${admin_net_if}/ { print \$5}")
+    IFS=","
+    new_udev_rule ${other_net_bridges} |  ssh "${admin_net_ip_bs}" "cat >${s_base}${udev_rule}"
+    IFS=" "
     cat >/tmp/${banner_file} <<EOF
 #!/bin/bash
 echo "
@@ -429,7 +428,7 @@ you may do so by running the following:
     If the new Fuel master is not functioning correctly, you may return the
 source Fuel master back into an operational state by running:
 
-# ssh ${admin_net_ip_bs} reboot && ssh -tt ${dkvm_ip} virsh destroy ${fvm_name}
+# ssh ${admin_net_ip_bs} reboot ; ssh -tt ${dkvm_ip} virsh destroy ${fvm_name}
 
     This command will reboot the source Fuel master and remove the new
 Fuel master clone. To prevent IP conflict, this command should be as indicated.
@@ -439,12 +438,36 @@ need to reestablish your ssh connection.
 
 "
 EOF
-
     chmod +x /tmp/${banner_file}
-    rsync /tmp/${banner_file} ${admin_net_ip}:/etc/profile.d/${banner_file}
+    rsync /tmp/${banner_file} ${admin_net_ip_bs}:${s_base}/etc/profile.d/${banner_file}
+    fix_config
+
+    cecho "Reboot destination VM"
+    ssh -tt "${admin_net_ip_bs}" "reboot"
+    cecho "Stop network and up with new settings"
+    service network stop
+    cecho "Source fuelmaster can be obtained by ssh ${admin_net_ip_bs}"
+
+    # remove restriction provided by  https://review.openstack.org/#/c/255734/
+    /usr/bin/systemctl set-environment OPTIONS="-f /tmp/mg-ss"
+    /usr/bin/sed -i /ListenAddress/d /etc/ssh/sshd_config >/tmp/mg-ss
+    /usr/bin/systemctl restart sshd.service
+
+    ifconfig "$admin_net_if" "${admin_net_ip_bs}" netmask "$admin_net_nm"
+
+    until ssh -tt ${admin_net_ip} fuel node; do
+        timeout  || reboot
+        sleep 20
+    done
+
+    # Fix nailgun MAC updating bug
+    ssh "${admin_net_ip}" dockerctl stop nailgun
+    ssh "${admin_net_ip}" dockerctl start nailgun
+    until ssh -tt ${admin_net_ip} fuel node ; do sleep 10; done
+
     # refresh log on destination node
     rsync ${migrate_log} ${admin_net_ip}:${migrate_log}
-
+    ssh "${admin_net_ip}" rm /notready
     while true ; do sleep 3600 ; done
 
 else
@@ -508,21 +531,16 @@ else
     del_vm=${del_vm:-no}
 
     create_vm
-    IFS=","
-    # no ""
-    fix_udev_rule $other_net_bridges
-    IFS=" "
     mark_dst_disk
     mk_lvs_fs
     save_vars $config_bundle $work_bundle
-    # create fake service for rsyncing
-    ln -fsv "$(readlink -e $0)" /etc/rc3.d/S00fuel_migrate
     flock -u $fd
     if [[ "$fm_reboot" == "yes" ]] ; then
         cecho "Rebooting to begin the data sync process"
-        reboot
+        umm on -c $0 start
     else
-        cecho "Destination VM has been created. Please reboot node to begin data sync process."
+        /usr/bin/systemctl set-default umm-mg.target
+        cecho "   Destination VM has been created. Please perform reboot to begin data sync process."
     fi
     trap - EXIT
 fi
