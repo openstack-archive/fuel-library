@@ -53,7 +53,7 @@
   type: puppet
   version: 2.0.0
   role: [primary-controller, controller]
-  requires: [post_deployment_start, enable_rados]
+  requires: [post_deployment_start, ceph-radosgw]
   required_for: [post_deployment_end]
   condition: "settings:ceilometer.enabled == true and settings:storage.objects_ceph == true"
   parameters:
