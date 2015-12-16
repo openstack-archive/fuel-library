@@ -44,6 +44,7 @@ class ceph::radosgw (
   $use_syslog                       = $::ceph::use_syslog,
   $syslog_facility                  = $::ceph::syslog_log_facility,
   $syslog_level                     = $::ceph::syslog_log_level,
+  $create_endpoints                 = true
 ) {
 
   $keyring_path     = "/etc/ceph/keyring.${rgw_id}"
@@ -137,18 +138,18 @@ class ceph::radosgw (
       Exec['create nss db signing certs']
 
     } #END rgw_use_pki
-
-  class {'ceph::keystone':
-    pub_ip              => $pub_ip,
-    pub_protocol        => $public_ssl ? {
-      true    => 'https',
-      default => 'http',
-    },
-    adm_ip              => $adm_ip,
-    int_ip              => $int_ip,
-    swift_endpoint_port => $swift_endpoint_port,
+  if $create_endpoints {
+    class {'ceph::keystone':
+      pub_ip              => $pub_ip,
+      pub_protocol        => $public_ssl ? {
+        true    => 'https',
+        default => 'http',
+      },
+      adm_ip              => $adm_ip,
+      int_ip              => $int_ip,
+      swift_endpoint_port => $swift_endpoint_port,
+    }
   }
-
   } #END rgw_use_keystone
 
   if ($::osfamily == 'Debian'){

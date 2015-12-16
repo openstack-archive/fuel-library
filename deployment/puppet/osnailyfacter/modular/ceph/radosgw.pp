@@ -9,6 +9,7 @@ $service_endpoint = hiera('service_endpoint')
 $public_ssl_hash  = hiera('public_ssl')
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 
+
 if ($storage_hash['volumes_ceph'] or
   $storage_hash['images_ceph'] or
   $storage_hash['objects_ceph']
@@ -60,6 +61,12 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   Haproxy_backend_status['keystone-admin']  -> Class ['ceph::keystone']
   Haproxy_backend_status['keystone-public'] -> Class ['ceph::keystone']
 
+  if $node_name == $ceph_primary_monitor_node {
+    $is_primary_node = true
+  }
+  else {
+    $is_primary_node = false
+  }
   class { 'ceph::radosgw':
     # SSL
     use_ssl                          => false,
@@ -95,9 +102,10 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     rgw_s3_auth_use_keystone         => hiera('rgw_s3_auth_use_keystone', true),
 
     #rgw Log settings
-    use_syslog                       => hiera('use_syslog', true),
-    syslog_facility                  => hiera('syslog_log_facility_ceph', 'LOG_LOCAL0'),
-    syslog_level                     => hiera('syslog_log_level_ceph', 'info'),
+    use_syslog       => hiera('use_syslog', true),
+    syslog_facility  => hiera('syslog_log_facility_ceph', 'LOG_LOCAL0'),
+    syslog_level     => hiera('syslog_log_level_ceph', 'info'),
+    create_endpoints => $is_primary_node
   }
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
