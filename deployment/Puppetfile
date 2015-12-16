@@ -164,3 +164,13 @@ mod 'mysql',
 mod 'galera',
     :git => 'https://github.com/fuel-infra/puppet-galera.git',
     :ref => '0.0.3-rc1'
+
+# Pull in puppet-aodh
+mod 'aodh',
+    :git => 'https://github.com/fuel-infra/puppet-aodh.git',
+    :ref => 'master'
+
+# Pull in puppet-ceph
+mod 'ceph',
+    :git => 'https://github.com/fuel-infra/puppet-ceph.git',
+    :ref => 'mos-9.0'

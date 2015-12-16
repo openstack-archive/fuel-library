@@ -6,6 +6,7 @@ class osnailyfacter::firewall::firewall {
   $network_metadata = hiera_hash('network_metadata')
   $ironic_hash      = hiera_hash('ironic', {})
   $roles            = hiera('roles')
+  $storage_hash     = hiera('storage', {})
 
   $aodh_port                    = 8042
   $ceilometer_port              = 8777
@@ -57,6 +58,9 @@ class osnailyfacter::firewall::firewall {
   $swift_proxy_check_port       = 49001
   $swift_proxy_port             = 8080
   $vxlan_udp_port               = 4789
+  $ceph_mon_port                = 6789
+  $ceph_osd_port                = '6800-7100'
+  $radosgw_port                 = '6780'
 
   $corosync_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/corosync')
   $memcache_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/memcache')
@@ -453,6 +457,41 @@ class osnailyfacter::firewall::firewall {
       file_line {'nf_conntrack_tftp_on_boot':
         path => '/etc/modules',
         line => 'nf_conntrack_tftp',
+      }
+    }
+  }
+
+  if ($storage_hash['volumes_ceph'] or
+      $storage_hash['images_ceph'] or
+      $storage_hash['objects_ceph'] or
+      $storage_hash['ephemeral_ceph']
+  ) {
+    if member($roles, 'primary-controller') or member($roles, 'controller') {
+      firewall {'010 ceph-mon allow':
+        chain  => 'INPUT',
+        dport  => $ceph_mon_port,
+        proto  => 'tcp',
+        action => accept,
+      }
+    }
+
+    if member($roles, 'ceph-osd') {
+      firewall { '011 ceph-osd allow':
+        chain  => 'INPUT',
+        dport  => $ceph_osd_port,
+        proto  => 'tcp',
+        action => accept,
+      }
+    }
+
+    if $storage_hash['objects_ceph'] {
+      if member($roles, 'primary-controller') or member($roles, 'controller') {
+        firewall {'012 RadosGW allow':
+          chain   => 'INPUT',
+          dport   => [ $radosgw_port, $swift_proxy_port ],
+          proto   => 'tcp',
+          action  => accept,
+        }
       }
     }
   }
