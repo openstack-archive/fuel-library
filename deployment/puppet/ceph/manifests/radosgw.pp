@@ -57,12 +57,15 @@ class ceph::radosgw (
     ensure  => 'installed',
   }
 
-  if !(defined('horizon') or
-       defined($::ceph::params::package_httpd) or
-       defined($::ceph::params::service_httpd) ) {
-    package {$::ceph::params::package_httpd:
+  # check out httpd package/service is defined
+  if !defined(Package['httpd']) {
+    package { 'httpd':
+      name   => $::ceph::params::package_httpd,
       ensure => 'installed',
     }
+  }
+
+  if !defined(Service['httpd']) {
     service { 'httpd':
       ensure => 'running',
       name   => $::ceph::params::service_httpd,
@@ -156,13 +159,12 @@ class ceph::radosgw (
     file {'/etc/apache2/sites-enabled/rgw.conf':
       ensure => link,
       target => "${::ceph::params::dir_httpd_sites}/rgw.conf",
-      notify => Service['httpd'],
     }
 
     Package[$::ceph::params::package_fastcgi] ->
     File["${::ceph::params::dir_httpd_sites}/rgw.conf"] ->
     File['/etc/apache2/sites-enabled/rgw.conf'] ~>
-    Service['httpd']
+    Service<| title == 'httpd' |>
 
   } #END osfamily Debian
 
@@ -219,7 +221,7 @@ class ceph::radosgw (
   file { $keyring_path: mode => '0640', }
 
   Ceph_conf <||> ->
-  Package[$::ceph::params::package_httpd] ->
+  Package<| title == 'httpd' |> ->
   Package[[$::ceph::params::package_radosgw,
            $::ceph::params::package_fastcgi,
            $::ceph::params::package_libnss,]] ->
@@ -236,5 +238,5 @@ class ceph::radosgw (
   Exec["Populate ${radosgw_auth_key} keyring"] ->
   File[$keyring_path] ->
   Firewall['012 RadosGW allow'] ~>
-  Service ['httpd']
+  Service <| title == 'httpd' |>
 }
