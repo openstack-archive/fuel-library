@@ -19,6 +19,7 @@ class ceph::radosgw (
   $swift_endpoint_port              = $::ceph::swift_endpoint_port,
   $rgw_keyring_path                 = $::ceph::rgw_keyring_path,
   $rgw_socket_path                  = $::ceph::rgw_socket_path,
+  $rgw_frontends                    = $::ceph::rgw_frontends,
   $rgw_log_file                     = $::ceph::rgw_log_file,
   $rgw_data                         = $::ceph::rgw_data,
   $rgw_dns_name                     = $::ceph::rgw_dns_name,
@@ -84,6 +85,7 @@ class ceph::radosgw (
     "client.${rgw_id}/host":               value => $rgw_host;
     "client.${rgw_id}/keyring":            value => $keyring_path;
     "client.${rgw_id}/rgw_socket_path":    value => $rgw_socket_path;
+    "client.${rgw_id}/rgw_frontends":      value => $rgw_frontends;
     "client.${rgw_id}/user":               value => $rgw_user;
     "client.${rgw_id}/rgw_data":           value => $rgw_data;
     "client.${rgw_id}/rgw_dns_name":       value => $rgw_dns_name;
