@@ -42,18 +42,17 @@
   requires: [hosts, firewall]
   cross-depends:
     - name: ceph-mon
-    - name: /(primary-)?ceph-radosgw/
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph-osd.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
-- id: primary-ceph-radosgw
+- id: ceph-radosgw
   version: 2.1.0
   type: puppet
-  groups: [primary-controller]
-  required_for: [deploy_end, controller_remaining_tasks]
-  requires: [apache, ceph-mon, primary-ceph-mon]
+  role: [primary-controller, controller]
+  required_for: [upload_cirros, post_deployment_end]
+  requires: [post_deployment_start]
   condition:
     yaql_exp: &ceph_radosgw >
       changedAny($.storage, $.keystone, $.network_metadata.vips,
@@ -73,31 +72,12 @@
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
 
-- id: ceph-radosgw
-  type: puppet
-  version: 2.1.0
-  groups: [controller]
-  cross-depends:
-    - name: primary-ceph-radosgw
-  required_for: [deploy_end, controller_remaining_tasks]
-  requires: [apache, ceph-mon, primary-ceph-mon]
-  condition:
-    yaql_exp: *ceph_radosgw
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_pre.rb
-  test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
-
 - id: radosgw-keystone
   type: puppet
   version: 2.1.0
-  groups: [primary-controller]
-  required_for: [primary-ceph-radosgw, ceph-radosgw]
-  requires: [primary-keystone, keystone]
+  role: [primary-controller]
+  required_for: [ceph-radosgw]
+  requires: [post_deployment_start]
   condition:
     yaql_exp: >
       changedAny($.storage, $.network_metadata.vips,
@@ -140,6 +120,19 @@
     - name: primary-ceph-mon
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: primary-mon-update
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller]
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [primary-ceph-mon]
+  cross-depends:
+    - name: ceph-mon
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/primary_mon_update.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -199,26 +192,10 @@
   condition:
     yaql_exp: *ceph_changed
   requires: [post_deployment_start]
-  required_for: [enable_rados, upload_cirros]
+  required_for: [ceph-radosgw, upload_cirros]
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_ready_check.rb
     timeout: 1800
-
-- id: enable_rados
-  type: puppet
-  version: 2.1.0
-  role: [primary-controller, controller]
-  condition:
-    yaql_exp: '$.storage.objects_ceph and changed($.storage.objects_ceph)'
-  requires: [post_deployment_start]
-  required_for: [upload_cirros, post_deployment_end]
-  cross-depended-by:
-    - name: upload_cirros
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/enable_rados.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 180
-    cwd: /
 
 - id: updatedb
   type: puppet
