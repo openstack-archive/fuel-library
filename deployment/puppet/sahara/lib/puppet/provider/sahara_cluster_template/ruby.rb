@@ -50,9 +50,13 @@ Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
   def set_node_group_templates_ids
     @resource[:node_groups].each do |node_group|
       node_group_template_id = get_node_group_template_id node_group['name'], @resource[:plugin_name]
-      fail "Could not get the node_group_template_id of the group '#{node_group['name']}'!" unless node_group_template_id
-      debug "Set node_group_template_id of group #{node_group['name']} to: #{node_group_template_id}"
-      node_group["node_group_template_id"] = node_group_template_id
+      unless node_group_template_id
+        warning "Could not get the node_group_template_id of the group '#{node_group['name']}'!"
+        node_group["node_group_template_id"] = ''
+      else
+        debug "Set node_group_template_id of group #{node_group['name']} to: #{node_group_template_id}"
+        node_group["node_group_template_id"] = node_group_template_id
+      end
     end
   end
 
@@ -61,6 +65,9 @@ Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
     if neutron_private_net_id
       debug "Set neutron_management_network to: #{neutron_private_net_id}"
       @resource[:neutron_management_network] = neutron_private_net_id
+    else
+      warning "Neutron management network is not found"
+      @resource[:neutron_management_network] = ''
     end
   end
 
@@ -168,6 +175,7 @@ Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
 
   def flush
     debug 'Call: flush'
+    skip_creating = false
     options = @property_hash.reject do |property, value|
       next true if [:id, :ensure].include? property
       if property == :neutron_management_network
@@ -177,8 +185,9 @@ Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
     end
     options[:node_groups].each do |node_group|
       node_group['count'] = node_group['count'].to_i if node_group['count']
+      skip_creating = true if node_group["node_group_template_id"].empty?
     end
-    if present?
+    if present? && ! skip_creating && ! @property_hash["neutron_management_network"].empty?
       connection.create_cluster_template options unless @property_hash[:id]
     end
   end
