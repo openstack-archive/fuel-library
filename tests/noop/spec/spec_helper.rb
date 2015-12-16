@@ -7,6 +7,7 @@ require 'puppetlabs_spec_helper/module_spec_helper'
 require 'yaml'
 require 'fileutils'
 require 'find'
+require 'parallel_tests'
 
 class Noop
   lib_dir = File.expand_path File.absolute_path File.join File.dirname(__FILE__), 'lib'
@@ -48,5 +49,12 @@ end
 Noop.coverage_simplecov if ENV['SPEC_COVERAGE']
 
 at_exit {
-  Noop.coverage_rspec ENV['SPEC_ASTUTE_FILE_NAME'] if ENV['SPEC_COVERAGE']
+  if ENV['PARALLEL']
+    if ParallelTests.first_process?
+      ParallelTests.wait_for_other_processes_to_finish
+      Noop.coverage_rspec ENV['SPEC_ASTUTE_FILE_NAME'] if ENV['SPEC_COVERAGE']
+    end
+  else
+    Noop.coverage_rspec ENV['SPEC_ASTUTE_FILE_NAME'] if ENV['SPEC_COVERAGE']
+  end
 }
