@@ -95,3 +95,8 @@ mod 'sahara',
 mod 'swift',
     :git => 'https://github.com/fuel-infra/puppet-swift.git',
     :ref => 'master'
+
+# Pull in puppet-ceph
+mod 'ceph',
+    :git => 'https://github.com/fuel-infra/puppet-ceph.git',
+    :ref => 'master'
