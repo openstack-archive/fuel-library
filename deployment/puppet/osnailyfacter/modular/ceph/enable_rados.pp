@@ -9,7 +9,7 @@ service { $radosgw_service:
 }
 
 # The Ubuntu upstart script is incompatible with the upstart provider
-#  This will force the service to fall back to the debian init script
+# This will force the service to fall back to the debian init script
 if ($::operatingsystem == 'Ubuntu') {
   Service['radosgw'] {
     provider => 'debian'

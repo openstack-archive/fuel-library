@@ -1,80 +1,76 @@
 notice('MODULAR: ceph/ceph_pools')
 
-$storage_hash             = hiera('storage', {})
-$osd_pool_default_pg_num  = $storage_hash['pg_num']
-$osd_pool_default_pgp_num = $storage_hash['pg_num']
-# Cinder settings
-$cinder_user              = 'volumes'
-$cinder_pool              = 'volumes'
-# Cinder Backup settings
-$cinder_backup_user       = 'backups'
-$cinder_backup_pool       = 'backups'
-# Glance settings
-$glance_user              = 'images'
-$glance_pool              = 'images'
+$storage_hash     = hiera('storage', {})
+$per_pool_pg_nums = $storage_hash['per_pool_pg_nums']
 
 
 Exec { path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
   cwd     => '/root',
 }
 
-# DO NOT SPLIT ceph auth command lines! See http://tracker.ceph.com/issues/3279
-ceph::pool {$glance_pool:
-  user          => $glance_user,
-  acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${glance_pool}'",
-  keyring_owner => 'glance',
-  pg_num        => $osd_pool_default_pg_num,
-  pgp_num       => $osd_pool_default_pg_num,
-}
-
-ceph::pool {$cinder_pool:
-  user          => $cinder_user,
-  acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}'",
-  keyring_owner => 'cinder',
-  pg_num        => $osd_pool_default_pg_num,
-  pgp_num       => $osd_pool_default_pg_num,
-}
-
-ceph::pool {$cinder_backup_pool:
-  user          => $cinder_backup_user,
-  acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_backup_pool}, allow rx pool=${cinder_pool}'",
-  keyring_owner => 'cinder',
-  pg_num        => $osd_pool_default_pg_num,
-  pgp_num       => $osd_pool_default_pg_num,
-}
-
-Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] -> Ceph::Pool[$cinder_backup_pool]
-
 if ($storage_hash['volumes_ceph']) {
   include ::cinder::params
-  service { 'cinder-volume':
+
+  # Cinder settings
+  $cinder_user = 'volumes'
+  $cinder_pool = 'volumes'
+
+  # DO NOT SPLIT ceph auth command lines! See http://tracker.ceph.com/issues/3279
+  ceph::key {"client.${cinder_user}":
+    cap_mon => "allow r",
+    cap_osd => "allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}"
+    user    => "cinder"
+  } -> 
+  ceph::pool {$cinder_pool:
+    pg_num  => $per_pool_pg_nums[$cinder_pool],
+    pgp_num => $per_pool_pg_nums[$cinder_pool],
+  } ~>
+  service { $::cinder::params::volume_service:
     ensure     => 'running',
-    name       => $::cinder::params::volume_service,
+    hasstatus  => true,
+    hasrestart => true,
+  }  
+
+  # Cinder Backup settings
+  $cinder_backup_user = 'backups'
+  $cinder_backup_pool = 'backups'
+
+  ceph::key {"client.${cinder_backup_user}":
+    cap_mon => "allow r",
+    cap_osd => "allow class-read object_prefix rbd_children, allow rwx pool=${cinder_backup_pool}, allow rx pool=${cinder_pool}"
+    user    => "cinder"
+  } ->
+  ceph::pool {$cinder_backup_pool:
+    pg_num  => $per_pool_pg_nums[$cinder_backup_pool],
+    pgp_num => $per_pool_pg_nums[$cinder_backup_pool],
+  } ~>
+  service { $::cinder::params::backup_service:
+    ensure     => 'running',
     hasstatus  => true,
     hasrestart => true,
   }
-
-  Ceph::Pool[$cinder_pool] ~> Service['cinder-volume']
-
-  service { 'cinder-backup':
-    ensure     => 'running',
-    name       => $::cinder::params::backup_service,
-    hasstatus  => true,
-    hasrestart => true,
-  }
-
-  Ceph::Pool[$cinder_backup_pool] ~> Service['cinder-backup']
 }
 
 if ($storage_hash['images_ceph']) {
   include ::glance::params
-  service { 'glance-api':
+
+  # Glance settings
+  $glance_user = 'images'
+  $glance_pool = 'images'
+
+  ceph::key {"client.${glance_user}":
+    cap_mon => "allow r",
+    cap_osd => "allow class-read object_prefix rbd_children, allow rwx pool=${glance_pool}"
+    user => "glance"
+  } ->
+  ceph::pool {$glance_pool:
+    pg_num  => $per_pool_pg_nums[$glance_pool],
+    pgp_num => $per_pool_pg_nums[$glance_pool],
+  } ~>
+  service { $::glance::params::api_service_name:
     ensure     => 'running',
-    name       => $::glance::params::api_service_name,
     hasstatus  => true,
     hasrestart => true,
   }
-
-  Ceph::Pool[$glance_pool] ~> Service['glance-api']
 }
 
