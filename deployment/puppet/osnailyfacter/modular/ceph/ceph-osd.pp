@@ -1,56 +1,80 @@
+# TODO(bogdando) add monit ceph-osd services monitoring, if required
 notice('MODULAR: ceph-osd.pp')
 
-# Pulling hiera
 $storage_hash              = hiera('storage', {})
-$public_vip                = hiera('public_vip')
-$management_vip            = hiera('management_vip')
-$service_endpoint          = hiera('service_endpoint')
-$use_neutron               = hiera('use_neutron', false)
-$mp_hash                   = hiera('mp')
-$verbose                   = pick($storage_hash['verbose'], true)
-$debug                     = pick($storage_hash['debug'], hiera('debug', true))
-$use_monit                 = false
-$auto_assign_floating_ip   = hiera('auto_assign_floating_ip', false)
-$keystone_hash             = hiera('keystone', {})
-$access_hash               = hiera('access', {})
-$network_scheme            = hiera_hash('network_scheme')
-$neutron_mellanox          = hiera('neutron_mellanox', false)
-$syslog_hash               = hiera('syslog', {})
-$use_syslog                = hiera('use_syslog', true)
-$mon_address_map           = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
-$ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')
-$primary_mons              = keys($ceph_primary_monitor_node)
-$primary_mon               = $ceph_primary_monitor_node[$primary_mons[0]]['name']
-prepare_network_config($network_scheme)
-$ceph_cluster_network      = get_network_role_property('ceph/replication', 'network')
-$ceph_public_network       = get_network_role_property('ceph/public', 'network')
+$admin_key                 = pick($storage_hash['admin_key'], 'AQCTg71RsNIHORAAW+O6FCMZWBjmVfMIPk3MhQ==')
+$bootstrap_osd_key         = pick($storage_hash['bootstrap_osd_key'], 'AQABsWZSgEDmJhAAkAGSOOAJwrMHrM5Pz5On1A==')
+$fsid                      = pick($storage_hash['fsid'], '066F558C-6789-4A93-AAF1-5AF1BA01A3AD')
+$osd_pool_default_size     = $storage_hash['osd_pool_size']
+$osd_pool_default_pg_num   = $storage_hash['pg_num']
+$osd_pool_default_pgp_num  = $storage_hash['pg_num']
+$osd_pool_default_min_size = '1'
+$osd_journal_size          = 2048
 $ceph_tuning_settings      = hiera('ceph_tuning_settings', {})
 
-class {'ceph':
-  primary_mon              => $primary_mon,
-  mon_hosts                => keys($mon_address_map),
-  mon_ip_addresses         => values($mon_address_map),
-  cluster_node_address     => $public_vip,
-  osd_pool_default_size    => $storage_hash['osd_pool_size'],
-  osd_pool_default_pg_num  => $storage_hash['pg_num'],
-  osd_pool_default_pgp_num => $storage_hash['pg_num'],
-  use_rgw                  => $storage_hash['objects_ceph'],
-  rgw_keystone_url         => "${service_endpoint}:35357",
-  glance_backend           => $glance_backend,
-  rgw_pub_ip               => $public_vip,
-  rgw_adm_ip               => $management_vip,
-  rgw_int_ip               => $management_vip,
-  cluster_network          => $ceph_cluster_network,
-  public_network           => $ceph_public_network,
-  use_syslog               => $use_syslog,
-  syslog_log_level         => hiera('syslog_log_level_ceph', 'info'),
-  syslog_log_facility      => hiera('syslog_log_facility_ceph','LOG_LOCAL0'),
-  rgw_keystone_admin_token => $keystone_hash['admin_token'],
-  ephemeral_ceph           => $storage_hash['ephemeral_ceph'],
+prepare_network_config(hiera_hash('network_scheme'))
+$ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
+$ceph_public_network  = get_network_role_property('ceph/public', 'network')
+
+$mon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
+
+firewall { '011 ceph-osd allow':
+  chain  => 'INPUT',
+  dport  => '6800-7100',
+  proto  => 'tcp',
+  action => accept,
+}
+
+class { 'ceph':
+  fsid                      => $fsid,
+  mon_initial_members       => $mon_initial_members,
+  mon_host                  => $mon_host,
+  cluster_network           => $ceph_cluster_network,
+  public_network            => $ceph_public_network,
+  osd_pool_default_size     => $osd_pool_default_size,
+  osd_pool_default_pg_num   => $osd_pool_default_pg_num,
+  osd_pool_default_pgp_num  => $osd_pool_default_pgp_num,
+  osd_pool_default_min_size => $osd_pool_default_min_size,
+  osd_journal_size          => $osd_journal_size,
+}
+
+ceph_config {
+  'globals/osd_mkfs_type'                     : value => 'xfs';
+  'global/filestore_xattr_use_omap'           : value => true;
+  'global/osd_recovery_max_active'            : value => '1';
+  'global/osd_max_backfills'                  : value => '1';
+  'global/max_open_files'                     : value => '1';
+  'client/rbd_cache_writethrough_until_flush' : value => true;
+  'client/rbd_cache'                          : value => true;
+  'global/log_to_syslog'                      : value => true;
+  'global/log_to_syslog_level'                : value => 'info';
+  'global/log_to_syslog_facility'             : value => 'LOG_LOCAL0';
+}
+
+Ceph::Key {
+  inject => false,
+}
+
+ceph::key { 'client.admin':
+  secret  => $admin_key,
+  cap_mon => 'allow *',
+  cap_osd => 'allow *',
+  cap_mds => 'allow',
+}
+
+ceph::key {'client.bootstrap-osd':
+   keyring_path => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
+   secret       => $bootstrap_osd_key,
+}
+
+$osd_devices_hash = osd_devices_hash($::osd_devices_list)
+
+class {'ceph::osds':
+ args => $osd_devices_hash,
 }
 
 if $ceph_tuning_settings != {} {
-  ceph_conf {
+  ceph_config {
     'global/debug_default'                    : value => $debug;
     'global/max_open_files'                   : value => $ceph_tuning_settings['max_open_files'];
     'osd/osd_mkfs_type'                       : value => $ceph_tuning_settings['osd_mkfs_type'];
@@ -69,16 +93,5 @@ if $ceph_tuning_settings != {} {
     'osd/objecter_infilght_op_bytes'          : value => $ceph_tuning_settings['objecter_infilght_op_bytes'];
     'osd/filestore_max_sync_interval'         : value => $ceph_tuning_settings['filestore_max_sync_interval'];
   }
-  # File /root/ceph.conf is symlink which is created after /etc/ceph/ceph.conf in ceph::conf class
-  File<| title == '/root/ceph.conf' |> -> Ceph_conf <||>
 }
 
-$osd_devices = split($::osd_devices_list, ' ')
-#Class Ceph is already defined so it will do it's thing.
-notify {"ceph_osd: ${osd_devices}": }
-notify {"osd_devices:  ${::osd_devices_list}": }
-# TODO(bogdando) add monit ceph-osd services monitoring, if required
-
-#################################################################
-
-# vim: set ts=2 sw=2 et :
