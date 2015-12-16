@@ -287,6 +287,30 @@ module NoopTests
     end
   end
 
+  # run the rspec commands with some options with parallel_tests
+  # return: [ success, report ]
+  # @param [String] spec Spec file or pattern
+  # @return [Array<TrueClass,FalseClass,NilClass>] success and empty report array
+  def self.parallel_rspec(spec)
+    inside_noop_tests_directory do
+      opts = []
+      if options[:filter_examples]
+        options[:filter_examples].each do |example|
+          opts << "-e #{example}"
+        end
+      end
+      if options[:puppet_logs_dir]
+        opts << "--deprecation-out #{File.join options[:puppet_logs_dir], 'deprecations.log'}"
+      end
+      command = "parallel_test --exec 'rspec #{RSPEC_OPTIONS} #{spec} #{opts.join(' ')}'"
+      command = 'bundle exec ' + command if options[:bundle]
+      debug "RUN: #{command}"
+      system command
+      [ $?.exitstatus == 0, nil ]
+    end
+  end
+
+
   # run all specs together using pattern
   # return: [ success, report ]
   # @return [Array<TrueClass,FalseClass,NilClass>] success and empty report array
@@ -300,7 +324,7 @@ module NoopTests
       include_pattern = "#{include_prefix} #{spec_path '**/*_spec.rb'}"
     end
 
-    rspec "#{exclude_pattern} #{include_pattern}"
+    parallel_rspec "#{exclude_pattern} #{include_pattern}"
   end
 
   # run the globals task for the given yaml file
