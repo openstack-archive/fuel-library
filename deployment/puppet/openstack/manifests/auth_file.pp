@@ -39,7 +39,8 @@
 #   (optional) Certificate to verify the TLS server certificate.
 #   Defaults to undef.
 #
-class openstack::auth_file(
+define openstack::auth_file(
+  $path                     = $title,
   $admin_password,
   $controller_node          = '127.0.0.1',
   $auth_url                 = 'http://127.0.0.1:5000/v2.0',
@@ -55,11 +56,13 @@ class openstack::auth_file(
   $neutron_endpoint_type    = 'internalURL',
   $os_endpoint_type         = 'internalURL',
   $cacert                   = undef,
+  $owner                    = 'root',
+  $group                    = 'root',
 ) {
 
-  file { '/root/openrc':
-    owner   => 'root',
-    group   => 'root',
+  file { "${path}":
+    owner   => $owner,
+    group   => $group,
     mode    => '0700',
     content => template("${module_name}/openrc.erb")
   }
