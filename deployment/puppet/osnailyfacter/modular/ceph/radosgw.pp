@@ -36,7 +36,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   }
   if ($::osfamily == 'Debian'){
     apache::mod {'rewrite': }
-    apache::mod {'fastcgi': }
+    apache::mod {'proxy_fcgi': }
   }
 
   include ceph::params
@@ -56,7 +56,8 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     rgw_port                         => '6780',
     swift_endpoint_port              => '8080',
     rgw_keyring_path                 => '/etc/ceph/keyring.radosgw.gateway',
-    rgw_socket_path                  => '/tmp/radosgw.sock',
+    rgw_socket_path                  => undef,
+    rgw_frontends                    => 'fastcgi socket_port=9000 socket_host=127.0.0.1',
     rgw_log_file                     => '/var/log/ceph/radosgw.log',
     rgw_data                         => '/var/lib/ceph/radosgw',
     rgw_dns_name                     => "*.${::domain}",
