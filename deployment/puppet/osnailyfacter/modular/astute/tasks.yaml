@@ -279,7 +279,7 @@
   role: [primary-controller]
   condition: "settings:ironic.enabled == true"
   required_for: [post_deployment_end]
-  requires: [enable_quorum, enable_rados]
+  requires: [enable_quorum, ceph-radosgw]
   parameters:
     cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ironic/upload_images.rb {CLUSTER_ID}
     retries: 3
