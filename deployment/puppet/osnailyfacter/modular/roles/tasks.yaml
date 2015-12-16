@@ -66,17 +66,3 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/ironic-conductor.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
-
-- id: ironic-compute
-  type: puppet
-  groups: [ironic]
-  required_for: [deploy_end]
-  requires: [hosts, firewall, ironic-conductor]
-  cross-depends:
-    - name: /(primary-)?rabbitmq/
-    - name: ironic-conductor
-      role: self
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/ironic-compute.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
