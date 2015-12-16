@@ -76,6 +76,19 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
       let(:data) { subject.class.parse_file('eth0', fixture_data('ifcfg-eth0'))[0] }
       it { expect(data[:method]).to eq 'dhcp' }
     end
+
+    context 'no DEVICE' do
+      let(:data) { subject.class.parse_file('ifcfg-eth31', fixture_data('ifcfg-eth31'))[0] }
+      it { expect(data[:name]).to eq 'eth31' }
+      it { expect(data[:method]).to eq 'dhcp' }
+    end
+
+    context 'no DEVICE and no NAME' do
+      let(:data) { subject.class.parse_file('ifcfg-eth32', fixture_data('ifcfg-eth32'))[0] }
+      it { expect(data[:name]).to eq 'eth32' }
+      it { expect(data[:method]).to eq 'dhcp' }
+    end
+
   end
 
   context "when formatting resources" do
