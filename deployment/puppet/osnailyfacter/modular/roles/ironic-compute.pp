@@ -74,6 +74,7 @@ class { '::nova::compute':
   default_availability_zone => $nova_hash['default_availability_zone'],
   default_schedule_zone     => $nova_hash['default_schedule_zone'],
   reserved_host_memory      => '0',
+  compute_manager           => 'ironic.nova.compute.manager.ClusteredComputeManager',
 }
 
 

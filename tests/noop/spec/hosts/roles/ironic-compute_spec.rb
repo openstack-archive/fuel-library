@@ -38,6 +38,10 @@ describe manifest do
         should contain_nova_config('DEFAULT/reserved_host_memory_mb').with(:value => '0')
       end
 
+      it 'nova config should have compute_manager set to ClusteredComputeManager' do
+        should contain_nova_config('DEFAULT/compute_manager').with(:value => 'ironic.nova.compute.manager.ClusteredComputeManager')
+      end
+
       it 'nova config should contain right memcached servers list' do
         should contain_nova_config('DEFAULT/memcached_servers').with(
           'value' => memcache_servers,
