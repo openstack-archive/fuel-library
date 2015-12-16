@@ -44,8 +44,9 @@
 #   (optional) Murano Glance Artifacts Plugin.
 #   Defaults to undef.
 #
-class openstack::auth_file(
+define openstack::auth_file(
   $admin_password,
+  $path                     = $title,
   $controller_node          = '127.0.0.1',
   $auth_url                 = 'http://127.0.0.1:5000/v2.0',
   $keystone_admin_token     = undef,
@@ -62,11 +63,13 @@ class openstack::auth_file(
   $murano_repo_url          = undef,
   $cacert                   = undef,
   $murano_glare_plugin      = undef,
+  $owner                    = 'root',
+  $group                    = 'root',
 ) {
 
-  file { '/root/openrc':
-    owner   => 'root',
-    group   => 'root',
+  file { "${path}":
+    owner   => $owner,
+    group   => $group,
     mode    => '0700',
     content => template("${module_name}/openrc.erb")
   }
