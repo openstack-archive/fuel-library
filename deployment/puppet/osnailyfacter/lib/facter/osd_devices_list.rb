@@ -40,12 +40,10 @@ Facter.add("osd_devices_list") do
           when "45B0969E-9B03-4F30-B4C6-B4B80CEFF106"
             if Facter::Util::Resolution.exec(%Q{grep -c /dev/#{p} /proc/mounts}).to_i == 0
               journals << "/dev/#{p}"
-
             end
           end
         }
       }
-
         if journals.length > 0
           osds.each { |osd|
             journal = journals.shift
@@ -63,3 +61,5 @@ Facter.add("osd_devices_list") do
         output.join(" ")
     end
 end
+
+
