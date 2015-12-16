@@ -98,6 +98,9 @@ if has_key($murano_settings_hash, 'murano_repo_url') {
   $murano_repo_url = 'http://storage.apps.openstack.org'
 }
 
+os_user_name    = hiera('os_user_name')
+os_user_homedir = hiera('os_user_homedir')
+
 ###############################################################################
 
 ####### KEYSTONE ###########
@@ -189,7 +192,7 @@ class { 'keystone::roles::admin':
   admin_tenant => $admin_tenant,
 }
 
-class { 'openstack::auth_file':
+openstack::auth_file { "root-openrc":
   admin_user      => $admin_user,
   admin_password  => $admin_password,
   admin_tenant    => $admin_tenant,
@@ -197,6 +200,19 @@ class { 'openstack::auth_file':
   controller_node => $service_endpoint,
   murano_repo_url => $murano_repo_url,
   cacert          => $public_cert
+}
+
+openstack::auth_file { "${os_user_name}-openrc":
+  admin_user      => $admin_user,
+  admin_password  => $admin_password,
+  admin_tenant    => $admin_tenant,
+  region_name     => $region,
+  controller_node => $service_endpoint,
+  murano_repo_url => $murano_repo_url,
+  cacert          => $public_certi,
+  owner           => $os_user_name,
+  group           => $os_user_name,
+  path            => $os_user_homedir,
 }
 
 # Get paste.ini source

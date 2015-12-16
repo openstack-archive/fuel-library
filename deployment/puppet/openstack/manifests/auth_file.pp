@@ -41,7 +41,7 @@
 #   (optional) Certificate to verify the TLS server certificate.
 #   Defaults to undef.
 #
-class openstack::auth_file(
+define openstack::auth_file(
   $admin_password,
   $controller_node          = '127.0.0.1',
   $keystone_admin_token     = undef,
@@ -57,11 +57,14 @@ class openstack::auth_file(
   $os_endpoint_type         = 'internalURL',
   $murano_repo_url          = undef,
   $cacert                   = undef,
+  $owner                    = 'root',
+  $group                    = 'root',
+  $path                     = '/root',
 ) {
 
-  file { '/root/openrc':
-    owner   => 'root',
-    group   => 'root',
+  file { "${path}/openrc":
+    owner   => $owner,
+    group   => $group,
     mode    => '0700',
     content => template("${module_name}/openrc.erb")
   }
