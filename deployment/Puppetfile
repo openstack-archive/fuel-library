@@ -195,3 +195,8 @@ mod 'datacat',
 mod 'mcollective',
     :git => 'https://github.com/fuel-infra/puppet-mcollective.git',
     :ref => 'v2.1.1'
+
+mod 'ceph',
+    :git => 'https://github.com/openstack/puppet-ceph.git',
+    :ref => 'master'
+
