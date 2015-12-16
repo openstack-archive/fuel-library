@@ -119,6 +119,11 @@ $murano_glare_plugin = pick($murano_plugins['glance_artifacts_plugin']['enabled'
 
 $external_lb = hiera('external_lb', false)
 
+$os_user_name     = hiera('os_user_name', 'fueladmin')
+$os_user_homedir  = hiera('os_user_homedir', '/home/fueladmin')
+$svc_user_name    = hiera('svc_user_name', 'fuel')
+$svc_user_homedir = hiera('svc_user_homedir', '/var/lib/fuel')
+
 ###############################################################################
 
 ####### KEYSTONE ###########
@@ -206,7 +211,7 @@ class { 'keystone::roles::admin':
   admin_tenant => $admin_tenant,
 }
 
-class { 'openstack::auth_file':
+openstack::auth_file { "root-openrc":
   admin_user          => $admin_user,
   admin_password      => $admin_password,
   admin_tenant        => $admin_tenant,
@@ -214,6 +219,32 @@ class { 'openstack::auth_file':
   auth_url            => $auth_url,
   murano_repo_url     => $murano_repo_url,
   murano_glare_plugin => $murano_glare_plugin,
+}
+
+openstack::auth_file { "${os_user_name}-openrc":
+  admin_user          => $admin_user,
+  admin_password      => $admin_password,
+  admin_tenant        => $admin_tenant,
+  region_name         => $region,
+  auth_url            => $auth_url,
+  murano_repo_url     => $murano_repo_url,
+  murano_glare_plugin => $murano_glare_plugin,
+  owner               => $os_user_name,
+  group               => $os_user_name,
+  path                => $os_user_homedir,
+}
+
+openstack::auth_file { "${svc_user_name}-openrc":
+  admin_user          => $admin_user,
+  admin_password      => $admin_password,
+  admin_tenant        => $admin_tenant,
+  region_name         => $region,
+  auth_url            => $auth_url,
+  murano_repo_url     => $murano_repo_url,
+  murano_glare_plugin => $murano_glare_plugin,
+  owner               => $svc_user_name,
+  group               => $svc_user_name,
+  path                => $svc_user_homedir,
 }
 
 # Get paste.ini source
@@ -234,7 +265,7 @@ exec { 'add_admin_token_auth_middleware':
 Exec['add_admin_token_auth_middleware'] ->
 Exec <| title == 'keystone-manage db_sync' |> ->
 Class['keystone::roles::admin'] ->
-Class['openstack::auth_file']
+Openstack::Auth_file <||>
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
