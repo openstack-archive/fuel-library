@@ -36,6 +36,7 @@ class ceph (
       $swift_endpoint_port                = '8080',
       $rgw_keyring_path                   = '/etc/ceph/keyring.radosgw.gateway',
       $rgw_socket_path                    = '/tmp/radosgw.sock',
+      $rgw_frontends                      = 'fastcgi socket_port=9000 socket_host=127.0.0.1',
       $rgw_log_file                       = '/var/log/ceph/radosgw.log',
       $rgw_use_keystone                   = true,
       $rgw_use_pki                        = false,
