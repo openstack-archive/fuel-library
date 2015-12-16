@@ -86,6 +86,11 @@ describe manifest do
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
+    operator_user_name = Noop.hiera 'operator_user_name', 'fueladmin'
+    operator_user_homedir = Noop.hiera 'operator_user_homedir', '/home/fueladmin'
+    service_user_name = Noop.hiera 'service_user_name', 'fuel'
+    service_user_homedir = Noop.hiera 'service_user_homedir', '/var/lib/fuel'
+
     it 'should configure default_log_levels' do
       should contain_keystone_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
@@ -116,9 +121,25 @@ describe manifest do
       )
     end
 
-    it 'should declare openstack::auth_file class with proper authentication URL' do
-      should contain_class('openstack::auth_file').with(
+    it 'should create openstack::auth_file for root user with proper authentication URL' do
+      should contain_openstack__auth_file('/root/openrc').with(
         'auth_url'        => "#{internal_url}#{auth_suffix}",
+      )
+    end
+
+    it 'should create openstack::auth_file for operator user with proper authentication URL, owner, group and path' do
+      should contain_openstack__auth_file("#{operator_user_homedir}/openrc").with(
+        'auth_url'        => "#{internal_url}#{auth_suffix}",
+        'owner'           => "#{operator_user_name}",
+        'group'           => "#{operator_user_name}",
+      )
+    end
+
+    it 'should create openstack::auth_file for service user with proper authentication URL, owner, group and path' do
+      should contain_openstack__auth_file("#{service_user_homedir}/openrc").with(
+        'auth_url'        => "#{internal_url}#{auth_suffix}",
+        'owner'           => "#{service_user_name}",
+        'group'           => "#{service_user_name}",
       )
     end
 
