@@ -2,6 +2,7 @@ anacron
 apache
 apt
 ceilometer
+ceph
 cinder
 common
 concat

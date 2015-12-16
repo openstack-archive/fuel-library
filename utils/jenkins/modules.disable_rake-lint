@@ -3,6 +3,7 @@
 apache
 apt
 ceilometer
+ceph
 cinder
 concat
 datacat
