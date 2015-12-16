@@ -1,23 +1,14 @@
 Listen <%= @rgw_ip %>:<%= @rgw_port %>
-FastCgiExternalServer <%= @dir_httpd_root %>/s3gw.fcgi -socket /tmp/radosgw.sock
 
 <VirtualHost <%= @rgw_ip %>:<%= @rgw_port %>>
   ServerName <%= @fqdn %>
   DocumentRoot <%= @dir_httpd_root %>
 
   RewriteEngine On
-  RewriteRule ^/([a-zA-Z0-9-_.]*)([/]?.*) /s3gw.fcgi?page=$1&params=$2&%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
 
-  <IfModule mod_fastcgi.c>
-    <Directory <%= @dir_httpd_root %>>
-      Options +ExecCGI
-      AllowOverride All
-      SetHandler fastcgi-script
-      Order allow,deny
-      Allow from all
-      AuthBasicAuthoritative Off
-    </Directory>
-  </IfModule>
+  SetEnv proxy-nokeepalive 1
+  ProxyPass / fcgi://127.0.0.1:9000/
 
   AllowEncodedSlashes On
   ServerSignature Off
