@@ -71,6 +71,9 @@ Puppet::Type.type(:sahara_node_group_template).provide(:ruby) do
     if external_network_id
       debug "Set floating_ip_pool to: #{external_network_id}"
       @resource[:floating_ip_pool] = external_network_id
+    else
+      warning "Floating ip pool is not found"
+      @resource[:floating_ip_pool] = ''
     end
   end
 
@@ -208,7 +211,7 @@ Puppet::Type.type(:sahara_node_group_template).provide(:ruby) do
   def flush
     debug 'Call: flush'
     options = @property_hash.reject { |k, v| [:id, :ensure].include? k }
-    if present?
+    if present? && ! @property_hash[:floating_ip_pool].empty?
       connection.create_node_group_template options unless @property_hash[:id]
     end
   end

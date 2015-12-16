@@ -61,6 +61,9 @@ Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
     if neutron_private_net_id
       debug "Set neutron_management_network to: #{neutron_private_net_id}"
       @resource[:neutron_management_network] = neutron_private_net_id
+    else
+      warning "Neutron management network is not found"
+      @resource[:neutron_management_network] = ''
     end
   end
 
@@ -101,7 +104,7 @@ Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
   def exists?
     debug 'Call: exists?'
     set_private_network_id if present? and neutron?
-    set_node_group_templates_ids if present?
+    set_node_group_templates_ids if present? and ! @resource[:neutron_management_network].empty?
     extract unless @property_hash.any?
     result = @property_hash[:ensure] == :present
     debug "Result: #{result}"
@@ -178,7 +181,7 @@ Puppet::Type.type(:sahara_cluster_template).provide(:ruby) do
     options[:node_groups].each do |node_group|
       node_group['count'] = node_group['count'].to_i if node_group['count']
     end
-    if present?
+    if present? && ! @property_hash[:neutron_management_network].empty?
       connection.create_cluster_template options unless @property_hash[:id]
     end
   end
