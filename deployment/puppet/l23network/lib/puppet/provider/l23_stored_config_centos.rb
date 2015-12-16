@@ -137,6 +137,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     end
 
     hash.delete('DEVICETYPE') if hash['DEVICETYPE']
+    hash['DEVICE'] = hash['NAME'] if (!hash['DEVICE'] and hash['NAME'])
 
     # Do extra actions if ovs2lnx patch cord
     hash = self.parse_patch_bridges(hash) if ( hash.has_key?('BRIDGE') and hash.has_key?('OVS_BRIDGE') )
@@ -144,6 +145,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     hash = self.parse_bond_opts(hash) if ( hash.has_key?('TYPE') and hash['TYPE'] =~ %r{Bond} )
 
     props = self.mangle_properties(hash)
+    props.merge!({:name => dirty_iface_name}) unless props.has_key?(:name)
     props.merge!({:family => :inet})
     props.merge!({:provider => self.name})
 
