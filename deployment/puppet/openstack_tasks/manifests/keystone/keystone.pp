@@ -263,6 +263,7 @@ class openstack_tasks::keystone::keystone {
       token_caching                => $token_caching,
       cache_backend                => $cache_backend,
       revoke_driver                => $revoke_driver,
+      enable_pki_setup             => true,
       admin_endpoint               => $admin_url,
       memcache_dead_retry          => '60',
       memcache_socket_timeout      => '1',

@@ -248,7 +248,7 @@
   version: 2.0.0
   role: [primary-controller]
   condition: "settings:additional_components.ironic.value == true"
-  requires: [enable_quorum, enable_rados]
+  requires: [enable_quorum, ceph-radosgw]
   required_for: [post_deployment_end]
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/ironic_post_swift_key.rb
@@ -262,7 +262,7 @@
   role: [primary-controller]
   condition: "settings:additional_components.ironic.value == true"
   required_for: [post_deployment_end]
-  requires: [enable_quorum, enable_rados]
+  requires: [enable_quorum, ceph-radosgw]
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ironic/upload_images.rb {CLUSTER_ID}
     retries: 3

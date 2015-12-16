@@ -6,7 +6,10 @@ describe manifest do
   shared_examples 'catalog' do
     storage_hash = Noop.hiera_hash 'storage'
 
-    if (storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph'])
+if (storage_hash['volumes_ceph'] or
+    storage_hash['images_ceph'] or
+    storage_hash['objects_ceph'] or
+    storage_hash['ephemeral_ceph'])
       it { should contain_exec('Ensure /var/lib/ceph in the updatedb PRUNEPATH').with(
         :path    => [ '/usr/bin', '/bin' ],
         :command => "sed -i -Ee 's|(PRUNEPATHS *= *\"[^\"]*)|\\1 /var/lib/ceph|' /etc/updatedb.conf",
