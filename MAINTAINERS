@@ -48,6 +48,32 @@ maintainers:
       email:  sbogatkin@mirantis.com
       IRC:    sbog
 
+- debian/: &MOS_packaging_team
+
+    - name:   Mikhail Ivanov
+      email:  mivanov@mirantis.com
+      IRC:    mivanov
+
+    - name:   Artem Silenkov
+      email:  asilenkov@mirantis.com
+      IRC:    asilenkov
+
+    - name:   Alexander Tsamutali
+      email:  atsamutali@mirantis.com
+      IRC:    astsmtl
+
+    - name:   Daniil Trishkin
+      email:  dtrishkin@mirantis.com
+      IRC:    dtrishkin
+
+    - name:   Ivan Udovichenko
+      email:  iudovichenko@mirantis.com
+      IRC:    tlbr
+
+    - name:   Igor Yozhikov
+      email:  iyozhikov@mirantis.com
+      IRC:    IgorYozhikov
+
 - files/fuel-docker-utils:
 
     - name:   Matthew Mosesohn
@@ -65,6 +91,8 @@ maintainers:
     - name:   Sergey Vasilenko
       email:  svasilenko@mirantis.com
       IRC:    xenolog
+
+- specs/: *MOS_packaging_team
 
 - tests/bats:
 
