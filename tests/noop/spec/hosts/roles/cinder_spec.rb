@@ -7,6 +7,20 @@ describe manifest do
 
   storage_hash = Noop.hiera 'storage_hash'
 
+  database_vip = Noop.hiera('database_vip')
+  cinder_hash = Noop.hiera('cinder')
+
+  it 'should configure the database connection string' do
+    if facts[:os_package_type] == 'debian'
+      extra_params = '?charset=utf8&read_timeout=60'
+    else
+      extra_params = ''
+    end
+    should contain_class('openstack::cinder').with(
+      :db_connection => "mysql://#{cinder_hash[:db_user]}:#{cinder_hash[:db_password]}@#{database_vip}/#{cinder_hash[:db_name]}#{extra_params}"
+    )
+  end
+
   if Noop.hiera 'use_ceph' and !(storage_hash['volumes_lvm']) and !(member($roles, 'cinder-vmware'))
       it { should contain_class('ceph') }
   end
