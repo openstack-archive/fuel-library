@@ -25,8 +25,20 @@ $primary_controller    = hiera('primary_controller')
 
 $default_log_levels             = hiera_hash('default_log_levels')
 
-$db_type                        = 'mysql'
-$db_host                        = pick($glance_hash['db_host'], $database_vip)
+$db_type      = 'mysql'
+$db_host      = pick($glance_hash['db_host'], $database_vip)
+$db_user      = pick($glance_hash['db_user'], 'glance')
+$db_password  = $glance_hash['db_password']
+$db_name      = pick($glance_hash['db_name'], 'glance')
+# LP#1526938 - python-mysqldb supports this, python-pymysql does not
+if $::os_package_type == 'debian' {
+  $extra_params = 'read_timeout=60'
+} else {
+  $extra_params = ''
+}
+$db_connection = db_connection_string($db_host, $db_user, $db_password,
+                                      $db_name, $db_type, $extra_params)
+
 $api_bind_address               = get_network_role_property('glance/api', 'ipaddr')
 $enabled                        = true
 $max_retries                    = '-1'
@@ -37,9 +49,6 @@ $rabbit_user                    = $rabbit_hash['user']
 $rabbit_hosts                   = split(hiera('amqp_hosts',''), ',')
 $rabbit_virtual_host            = '/'
 
-$glance_db_user                 = pick($glance_hash['db_user'], 'glance')
-$glance_db_dbname               = pick($glance_hash['db_name'], 'glance')
-$glance_db_password             = $glance_hash['db_password']
 $glance_user                    = pick($glance_hash['user'],'glance')
 $glance_user_password           = $glance_hash['user_password']
 $glance_tenant                  = pick($glance_hash['tenant'],'services')
@@ -85,11 +94,7 @@ class { 'openstack::glance':
   verbose                        => $verbose,
   debug                          => $debug,
   default_log_levels             => $default_log_levels,
-  db_type                        => $db_type,
-  db_host                        => $db_host,
-  glance_db_user                 => $glance_db_user,
-  glance_db_dbname               => $glance_db_dbname,
-  glance_db_password             => $glance_db_password,
+  db_connection                  => $db_connection,
   glance_user                    => $glance_user,
   glance_user_password           => $glance_user_password,
   glance_tenant                  => $glance_tenant,
