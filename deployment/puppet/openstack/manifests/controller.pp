@@ -255,6 +255,7 @@ class openstack::controller (
   class { 'openstack::nova::controller':
     # Database
     db_host                     => $db_host,
+    db_connection               => $db_connection,
     # Network
     nameservers                 => $nameservers,
     network_manager             => $network_manager,
