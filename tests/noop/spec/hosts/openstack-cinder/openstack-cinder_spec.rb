@@ -16,8 +16,24 @@ describe manifest do
   default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
   primary_controller = Noop.hiera 'primary_controller'
 
+  database_vip = Noop.hiera('database_vip')
+  cinder_db_password = Noop.hiera_structure 'cinder/db_password', 'cinder'
+  cinder_db_user = Noop.hiera_structure 'cinder/db_user', 'cinder'
+  cinder_db_name = Noop.hiera_structure 'cinder/db_name', 'cinder'
+
   it 'should configure default_log_levels' do
     should contain_cinder_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+  end
+
+  it 'should configure the database connection string' do
+    if facts[:os_package_type] == 'debian'
+      extra_params = '?charset=utf8&read_timeout=60'
+    else
+      extra_params = ''
+    end
+    should contain_class('cinder').with(
+      :database_connection => "mysql://#{cinder_db_user}:#{cinder_db_password}@#{database_vip}/#{cinder_db_name}#{extra_params}"
+    )
   end
 
   it 'ensures cinder_config contains "oslo_messaging_rabbit/rabbit_ha_queues" ' do
