@@ -722,7 +722,7 @@ else:
       value = value.to_s
       value.capitalize! if %w(true false).include? value
       data = ini_file file
-      data[key] == value
+      data[key].to_s == value
     end
 
     # check if this file contains either a string or a regexp
