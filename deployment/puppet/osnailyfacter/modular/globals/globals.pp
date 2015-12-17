@@ -293,7 +293,17 @@ $max_overflow             = hiera('max_overflow', min($::processorcount * 5 + 0,
 $max_retries              = hiera('max_retries', '-1')
 $idle_timeout             = hiera('idle_timeout','3600')
 $nova_db_password         = $nova_hash['db_password']
-$sql_connection           = "mysql://nova:${nova_db_password}@${database_vip}/nova?read_timeout = 6 0"
+# LP#1526938 - python-mysqldb supports this, python-pymysql does not
+if $::os_package_type == 'debian' {
+  $extra_params = 'charset=utf8&read_timeout=60'
+} else {
+  $extra_params = ''
+}
+# TODO(aschultz): I don't think this is used so it should probably be
+# deprecated and removed.
+$sql_connection = db_connection_string($database_vip, 'nova', $nova_db_password,
+                                        'nova', 'mysql', $extra_params)
+
 $mirror_type              = hiera('mirror_type', 'external')
 $multi_host               = hiera('multi_host', true)
 
