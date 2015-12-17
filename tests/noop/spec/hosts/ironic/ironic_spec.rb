@@ -13,6 +13,11 @@ if ironic_enabled
       default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
       primary_controller = Noop.hiera 'primary_controller'
 
+      database_vip = Noop.hiera('database_vip')
+      ironic_db_password = Noop.hiera_structure 'ironic/db_password', 'ironic'
+      ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
+      ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
+
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       end
@@ -22,6 +27,17 @@ if ironic_enabled
           'rabbit_userid'   => rabbit_user,
           'rabbit_password' => rabbit_password,
           'sync_db'         => primary_controller,
+        )
+      end
+
+      it 'should configure the database connection string' do
+        if facts[:os_package_type] == 'debian'
+          extra_params = '?charset=utf8&read_timeout=60'
+        else
+          extra_params = ''
+        end
+        should contain_class('ironic').with(
+          :database_connection => "mysql://#{ironic_db_user}:#{ironic_db_password}@#{database_vip}/#{ironic_db_name}#{extra_params}"
         )
       end
 

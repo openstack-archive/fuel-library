@@ -1,4 +1,5 @@
 test_tasks:
+ - globals/globals
  - roles/cinder
 
 user_node_name: Untitled (79:d2)
