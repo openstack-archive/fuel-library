@@ -34,6 +34,21 @@ $db_host     = pick($keystone_hash['db_host'], $database_vip)
 $db_password = $keystone_hash['db_password']
 $db_name     = pick($keystone_hash['db_name'], 'keystone')
 $db_user     = pick($keystone_hash['db_user'], 'keystone')
+# LP#1526938 - python-mysqldb supports this, python-pymysql does not
+if $::os_package_type == 'debian' {
+  $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
+} else {
+  $extra_params = { 'charset' => 'utf8' }
+}
+$db_connection = os_database_connection({
+  'dialect'  => $db_type,
+  'host'     => $db_host,
+  'database' => $db_name,
+  'username' => $db_user,
+  'password' => $db_password,
+  'extra'    => $extra_params
+})
+
 
 $admin_token    = $keystone_hash['admin_token']
 $admin_tenant   = $access_hash['tenant']
@@ -101,48 +116,44 @@ if has_key($murano_settings_hash, 'murano_repo_url') {
 ###############################################################################
 
 ####### KEYSTONE ###########
-class { 'openstack::keystone':
-  verbose                  => $verbose,
-  debug                    => $debug,
-  default_log_levels       => $default_log_levels,
-  db_type                  => $db_type,
-  db_host                  => $db_host,
-  db_password              => $db_password,
-  db_name                  => $db_name,
-  db_user                  => $db_user,
-  admin_token              => $admin_token,
-  public_address           => $public_address,
-  public_ssl               => $public_ssl_hash['services'],
-  public_hostname          => $public_ssl_hash['hostname'],
-  internal_address         => $service_endpoint,
-  admin_address            => $admin_address,
-  public_bind_host         => $local_address_for_bind,
-  admin_bind_host          => $local_address_for_bind,
-  primary_controller       => $primary_controller,
-  enabled                  => $enabled,
-  use_syslog               => $use_syslog,
-  use_stderr               => $use_stderr,
-  syslog_log_facility      => $syslog_log_facility,
-  region                   => $region,
-  memcache_servers         => $memcached_server,
-  memcache_server_port     => $memcache_server_port,
-  memcache_pool_maxsize    => $memcache_pool_maxsize,
-  max_retries              => $max_retries,
-  max_pool_size            => $max_pool_size,
-  max_overflow             => $max_overflow,
-  rabbit_password          => $rabbit_password,
-  rabbit_userid            => $rabbit_user,
-  rabbit_hosts             => $rabbit_hosts,
-  rabbit_virtual_host      => $rabbit_virtual_host,
-  database_idle_timeout    => $database_idle_timeout,
-  revoke_driver            => $revoke_driver,
-  public_url               => $public_url,
-  admin_url                => $admin_url,
-  internal_url             => $internal_url,
-  ceilometer               => $ceilometer_hash['enabled'],
-  service_workers          => $service_workers,
-  token_provider           => $token_provider,
-  fernet_src_repository    => '/var/lib/astute/keystone',
+class { '::openstack::keystone':
+  verbose               => $verbose,
+  debug                 => $debug,
+  default_log_levels    => $default_log_levels,
+  db_connection         => $db_connection,
+  admin_token           => $admin_token,
+  public_address        => $public_address,
+  public_ssl            => $public_ssl_hash['services'],
+  public_hostname       => $public_ssl_hash['hostname'],
+  internal_address      => $service_endpoint,
+  admin_address         => $admin_address,
+  public_bind_host      => $local_address_for_bind,
+  admin_bind_host       => $local_address_for_bind,
+  primary_controller    => $primary_controller,
+  enabled               => $enabled,
+  use_syslog            => $use_syslog,
+  use_stderr            => $use_stderr,
+  syslog_log_facility   => $syslog_log_facility,
+  region                => $region,
+  memcache_servers      => $memcached_server,
+  memcache_server_port  => $memcache_server_port,
+  memcache_pool_maxsize => $memcache_pool_maxsize,
+  max_retries           => $max_retries,
+  max_pool_size         => $max_pool_size,
+  max_overflow          => $max_overflow,
+  rabbit_password       => $rabbit_password,
+  rabbit_userid         => $rabbit_user,
+  rabbit_hosts          => $rabbit_hosts,
+  rabbit_virtual_host   => $rabbit_virtual_host,
+  database_idle_timeout => $database_idle_timeout,
+  revoke_driver         => $revoke_driver,
+  public_url            => $public_url,
+  admin_url             => $admin_url,
+  internal_url          => $internal_url,
+  ceilometer            => $ceilometer_hash['enabled'],
+  service_workers       => $service_workers,
+  token_provider        => $token_provider,
+  fernet_src_repository => '/var/lib/astute/keystone',
 }
 
 ####### WSGI ###########
