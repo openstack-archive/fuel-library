@@ -75,15 +75,21 @@ describe manifest do
 
         it 'database options' do
           database_vip        = Noop.hiera('database_vip')
-          neutron_db_password = neutron_config.fetch('database', {}).fetch('passwd')
-          neutron_db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
-          neutron_db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
-          neutron_db_host     = neutron_config.fetch('database', {}).fetch('host', database_vip)
-          neutron_db_uri = "mysql://#{neutron_db_user}:#{neutron_db_password}@#{neutron_db_host}/#{neutron_db_name}?&read_timeout=60"
+          db_password = neutron_config.fetch('database', {}).fetch('passwd')
+          db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
+          db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
+          db_host     = neutron_config.fetch('database', {}).fetch('host', database_vip)
+          if facts[:os_package_type] == 'debian'
+            extra_params = '?charset=utf8&read_timeout=60'
+          else
+            extra_params = '?charset=utf8'
+          end
+          db_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
+
           should contain_class('neutron::server').with(
             'sync_db'                 => 'false',
             'database_retry_interval' => '2',
-            'database_connection'     => neutron_db_uri,
+            'database_connection'     => db_connection,
             'database_max_retries'    => '-1',
           )
         end

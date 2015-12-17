@@ -60,8 +60,12 @@ describe manifest do
     let(:api_bind_port) { '8082' }
 
     let(:sql_connection) do
-      read_timeout = '60'
-      "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
+      if facts[:os_package_type] == 'debian'
+        extra_params = '?charset=utf8&read_timeout=60'
+      else
+        extra_params = '?charset=utf8'
+      end
+      "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
     end
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
