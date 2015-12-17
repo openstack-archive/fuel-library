@@ -110,10 +110,25 @@ class openstack::nova::controller (
   # Configure the db string
   case $db_type {
     'mysql': {
-      $nova_db = "mysql://${nova_db_user}:${nova_db_password}@${db_host}/${nova_db_dbname}\
-?read_timeout=60"
+      # TODO(aschultz): update this class to accept a connection string rather
+      # than use host/user/pass/dbname/type
+      # LP#1526938 - python-mysqldb supports this, python-pymysql does not
+      if $::os_package_type == 'debian' {
+        $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
+      } else {
+        $extra_params = { 'charset' => 'utf8' }
+      }
+      $db_connection = os_database_connection({
+        'dialect'  => $db_type,
+        'host'     => $db_host,
+        'database' => $nova_db_dbname,
+        'username' => $nova_db_user,
+        'password' => $nova_db_password,
+        'extra'    => $extra_params
+      })
     }
   }
+
 
   if ($glance_api_servers == undef) {
     $real_glance_api_servers = "${public_address}:9292"
@@ -121,7 +136,7 @@ class openstack::nova::controller (
     $real_glance_api_servers = $glance_api_servers
   }
 
-  $sql_connection    = $nova_db
+  $sql_connection    = $db_connection
   $glance_connection = $real_glance_api_servers
 
   if ($debug) {
