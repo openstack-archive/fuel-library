@@ -10,18 +10,17 @@
 #
 # === Parameters
 #
-# [db_host] Host where DB resides. Required.
+# [*db_connection*]
+#   Database connection for glance
+#   Defaults to 'mysql://glance:glance@localhost/glance'
+#
 # [glance_user_password] Password for glance auth user. Required.
-# [glance_db_password] Password for glance DB. Required.
 # [glance_protocol] Protocol glance used to speak with registry.
 #   Optional. Defaults to 'http'
 # [keystone_host] Host whre keystone is running. Optional. Defaults to '127.0.0.1'
 # [auth_uri] URI used for auth. Optional. Defaults to "http://${keystone_host}:5000/"
 # [internal_ssl] Whether to use SSL for auth on internal networks.
 #   Optional. Defaults to false
-# [db_type] Type of sql databse to use. Optional. Defaults to 'mysql'
-# [glance_db_user] Name of glance DB user. Optional. Defaults to 'glance'
-# [glance_db_dbname] Name of glance DB. Optional. Defaults to 'glance'
 # [verbose] Rather to print more verbose (INFO+) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option.
 #   Optional. Defaults to false.
@@ -37,13 +36,10 @@
 #
 # class { 'openstack::glance':
 #   glance_user_password => 'changeme',
-#   db_password          => 'changeme',
-#   db_host              => '127.0.0.1',
 # }
 
 class openstack::glance (
-  $db_host                        = 'localhost',
-  $glance_db_password             = false,
+  $db_connection                  = 'mysql://glance:glance@localhost/glance',
   $glance_user                    = 'glance',
   $glance_user_password           = false,
   $glance_tenant                  = 'services',
@@ -54,9 +50,6 @@ class openstack::glance (
   $region                         = 'RegionOne',
   $internal_ssl                   = false,
   $glance_protocol                = 'http',
-  $db_type                        = 'mysql',
-  $glance_db_user                 = 'glance',
-  $glance_db_dbname               = 'glance',
   $glance_backend                 = 'file',
   $glance_vcenter_host            = undef,
   $glance_vcenter_user            = undef,
@@ -100,18 +93,7 @@ class openstack::glance (
   $service_workers                = $::processorcount,
 ) {
   validate_string($glance_user_password)
-  validate_string($glance_db_password)
   validate_string($rabbit_password)
-
-  # Configure the db string
-  case $db_type {
-    'mysql': {
-      $sql_connection = "mysql://${glance_db_user}:${glance_db_password}@${db_host}/${glance_db_dbname}?read_timeout=60"
-    }
-    default: {
-      fail("Wrong db_type: ${db_type}")
-    }
-  }
 
   if $internal_ssl {
     $auth_protocol = 'https'
@@ -132,7 +114,7 @@ class openstack::glance (
     keystone_user         => $glance_user,
     keystone_password     => $glance_user_password,
     keystone_tenant       => $glance_tenant,
-    database_connection   => $sql_connection,
+    database_connection   => $db_connection,
     enabled               => $enabled,
     workers               => $service_workers,
     registry_host         => $registry_host,
@@ -203,7 +185,7 @@ class openstack::glance (
     keystone_user         => $glance_user,
     keystone_password     => $glance_user_password,
     keystone_tenant       => $glance_tenant,
-    database_connection   => $sql_connection,
+    database_connection   => $db_connection,
     enabled               => $enabled,
     use_syslog            => $use_syslog,
     use_stderr            => $use_stderr,
