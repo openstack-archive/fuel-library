@@ -46,7 +46,7 @@ describe manifest do
     # Ceilometer
     if ceilometer_hash['enabled']
       it 'should configure connection string with read reference set to primaryPreferred' do
-        should contain_ceilometer_config('database/connection').with(:value => "mongodb://#{ceilometer_db_user}:#{ceilometer_db_password}@#{db_hosts}/#{ceilometer_db_dbname}?readpreference=primaryPreferred")
+        should contain_ceilometer_config('database/connection').with(:value => "mongodb://#{ceilometer_db_user}:#{ceilometer_db_password}@#{db_hosts}/#{ceilometer_db_dbname}?readPreference=primaryPreferred")
       end
 
       if mongo_replicaset and mongo_replicaset != ''
