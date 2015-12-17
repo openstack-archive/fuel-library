@@ -13,17 +13,28 @@ $sahara_hash            = hiera_hash('sahara_hash',{})
 $rabbit_hash            = hiera_hash('rabbit_hash', {})
 $service_endpoint       = hiera('service_endpoint')
 $service_workers        = pick($cinder_hash['workers'], min(max($::processorcount, 2), 16))
-$cinder_db_password     = $cinder_hash[db_password]
 $cinder_user_password   = $cinder_hash[user_password]
 $keystone_user          = pick($cinder_hash['user'], 'cinder')
 $keystone_tenant        = pick($cinder_hash['tenant'], 'services')
 $region                 = hiera('region', 'RegionOne')
-$db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
-$cinder_db_user         = pick($cinder_hash['db_user'], 'cinder')
-$cinder_db_name         = pick($cinder_hash['db_name'], 'cinder')
 $roles                  = node_roles($nodes_hash, hiera('uid'))
 $ssl_hash               = hiera_hash('use_ssl', {})
-$primary_controller      = hiera('primary_controller')
+$primary_controller     = hiera('primary_controller')
+
+$db_type                = 'mysql'
+$db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
+$db_user                = pick($cinder_hash['db_user'], 'cinder')
+$db_password            = $cinder_hash[db_password]
+$db_name                = pick($cinder_hash['db_name'], 'cinder')
+# LP#1526938 - python-mysqldb supports this, python-pymysql does not
+if $::os_package_type == 'debian' {
+  $extra_params = 'charset=utf8&read_timeout=60'
+} else {
+  $extra_params = ''
+}
+$db_connection = db_connection_string($db_host, $db_user, $db_password,
+                                      $db_name, $db_type, $extra_params)
+
 
 $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
@@ -68,7 +79,7 @@ $openstack_version = {
 
 ######### Cinder Controller Services ########
 class {'openstack::cinder':
-  sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
+  sql_connection       => $db_connection,
   queue_provider       => $queue_provider,
   amqp_hosts           => hiera('amqp_hosts',''),
   amqp_user            => $rabbit_hash['user'],
