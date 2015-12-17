@@ -11,7 +11,7 @@ fixtures:
     'firewall':  'https://github.com/puppetlabs/puppetlabs-firewall.git'
     'openstacklib':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-openstacklib.git'
-      branch: '7.0.0-mos-rc4'
+      branch: 'mos-8.0'
     'horizon':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-horizon.git'
       branch: '7.0.0-mos-rc3'
