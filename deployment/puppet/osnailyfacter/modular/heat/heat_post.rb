@@ -56,7 +56,9 @@ class HeatPostTest < Test::Unit::TestCase
 
     def test_heat_trusts_present
       assert TestCommon::Config.value?('/etc/heat/heat.conf', 'deferred_auth_method', 'trusts'), 'deferred_auth_method is not found in heat.conf'
-      assert TestCommon::Config.value?('/etc/heat/heat.conf', 'trusts_delegated_roles', ''), 'trusts_delegated_roles is not found in heat.conf'
+      unless TestCommon::Config.value?('/etc/heat/heat.conf', 'trusts_delegated_roles', '')
+        assert_not_equal TestCommon::Config.has_line?('/etc/heat/heat.conf', /^trusts_delegated_roles.*/), true, 'trusts_delegated_roles found in heat.conf'
+      end
     end
 
     def test_heat_domain_present
