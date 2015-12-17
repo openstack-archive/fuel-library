@@ -539,6 +539,7 @@ default via 172.16.0.1 dev br-ex
 a=1
 [sec1]
 b=2
+c=
 [default]
 c=3
 #d=4
@@ -547,7 +548,7 @@ c=3
     end
 
     let :ini_data do
-      {"default/a"=>"1", "sec1/b"=>"2", "default/c"=>"3"}
+      {"default/a"=>"1", "sec1/b"=>"2", "default/c"=>"3", "sec1/c" => ''}
     end
 
     before :each do
@@ -560,11 +561,16 @@ c=3
 
     it 'can check if a value is present in an ini config' do
       expect(subject.value? 'myfile', 'default/a', '1').to eq true
+      expect(subject.value? 'myfile', 'default/a', '2').to eq false
       expect(subject.value? 'myfile', 'DEFAULT/a', '1').to eq true
       expect(subject.value? 'myfile', 'sec1/b', '2').to eq true
       expect(subject.value? 'myfile', 'sec1/b', 2).to eq true
       expect(subject.value? 'myfile', 'default/d', '4').to eq false
       expect(subject.value? 'myfile', 'sec1/missing', '?').to eq false
+      expect(subject.value? 'myfile', 'sec1/c', '').to eq true
+      expect(subject.value? 'myfile', 'sec1/missing', '').to eq false
+      expect(subject.value? 'myfile', 'sec1/missing', nil).to eq true
+      expect(subject.value? 'myfile', 'default/a', nil).to eq false
     end
 
     it 'can check if a string is present in a file' do
