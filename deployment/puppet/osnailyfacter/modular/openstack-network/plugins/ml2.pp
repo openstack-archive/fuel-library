@@ -55,12 +55,13 @@ if $use_neutron {
   if $segmentation_type == 'vlan' {
     $net_role_property    = 'neutron/private'
     $iface                = get_network_role_property($net_role_property, 'phys_dev')
-    $physical_net_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
-    $overlay_net_mtu      = $physical_net_mtu
+    $overlay_net_mtu      =  pick(get_transformation_property('mtu', $iface[0]), '1500')
     $enable_tunneling = false
-    $physnet2_bridge = try_get_value($neutron_config, 'L2/phys_nets/physnet2/bridge')
-    $physnet2 = "physnet2:${physnet2_bridge}"
-    $physical_network_mtus = ["physnet2:${physical_net_mtu}"]
+    $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
+      'do_floating' => $do_floating,
+      'do_tenant'   => true,
+      'do_provider' => false
+    })
     $tunnel_id_ranges = []
     $network_type = 'vlan'
     $tunnel_types = []
