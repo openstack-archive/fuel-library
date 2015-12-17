@@ -7,7 +7,6 @@ describe 'openstack::glance' do
         :auth_uri => 'https://192.168.10.1:5000/',
         :identity_uri => 'https://192.168.10.1:35357/',
         :glance_user_password => "glance_password",
-        :glance_db_password => "db_password",
         :rabbit_password => "rabbit_password",
         :rabbit_hosts => "10.0.0.1, 10.0.0.2",
     }
@@ -20,6 +19,9 @@ describe 'openstack::glance' do
     end
 
     it 'configures with the default params' do
+      should contain_class('glance::api').with(
+        :database_connection => 'mysql://glance:glance@localhost/glance'
+      )
     end
 
     context 'with keystone configured' do
