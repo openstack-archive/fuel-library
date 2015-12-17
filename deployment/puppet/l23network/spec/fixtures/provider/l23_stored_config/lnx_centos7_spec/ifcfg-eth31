@@ -1,0 +1,4 @@
+# Advanced Micro Devices [AMD] 79c970 [PCnet32 LANCE]
+NAME=eth31
+BOOTPROTO=dhcp
+ONBOOT=yes
