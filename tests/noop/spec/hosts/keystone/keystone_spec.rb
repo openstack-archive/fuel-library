@@ -56,11 +56,25 @@ describe manifest do
     token_provider = Noop.hiera('token_provider')
     primary_controller = Noop.hiera 'primary_controller'
 
+    database_vip = Noop.hiera('database_vip')
+    keystone_hash = Noop.hiera('keystone')
+
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
     it 'should configure default_log_levels' do
       should contain_keystone_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+    end
+
+    it 'should configure the database connection string' do
+        if facts[:os_package_type] == 'debian'
+            extra_params = '?read_timeout=60'
+        else
+            extra_params = ''
+        end
+        should contain_class('openstack::keystone').with(
+            :db_connection => "mysql://#{keystone_hash[:db_user]}:#{keystone_hash[:db_password]}@#{database_vip}/#{keystone_hash[:db_name]}#{extra_params}"
+        )
     end
 
     it 'should declare keystone class with admin_token' do
