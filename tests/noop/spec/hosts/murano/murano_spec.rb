@@ -61,8 +61,12 @@ describe manifest do
     let(:internal_url) { "http://#{bind_address}:#{api_bind_port}" }
 
     let(:sql_connection) do
-      read_timeout = '60'
-      "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
+      if facts[:os_package_type] == 'debian'
+        extra_params = '?read_timeout=60'
+      else
+        extra_params = ''
+      end
+      "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
     end
 
     admin_auth_protocol = 'http'
