@@ -33,11 +33,27 @@ describe manifest do
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
     primary_controller = Noop.hiera 'primary_controller'
 
+    database_vip = Noop.hiera('database_vip')
+    heat_db_password = Noop.hiera_structure 'heat/db_password', 'heat'
+    heat_db_user = Noop.hiera_structure 'heat/db_user', 'heat'
+    heat_db_name = Noop.hiera('heat_db_name', 'heat')
+
     it 'should install heat-docker package only after heat-engine' do
       should contain_package('heat-docker').with(
         'ensure'  => 'installed',
         'require' => 'Package[heat-engine]',
     )
+    end
+
+    it 'should configure the database connection string' do
+      if facts[:os_package_type] == 'debian'
+        extra_params = '?charset=utf8&read_timeout=60'
+      else
+        extra_params = '?charset=utf8'
+      end
+      should contain_class('openstack::heat').with(
+        :sql_connection => "mysql://#{heat_db_user}:#{heat_db_password}@#{database_vip}/#{heat_db_name}#{extra_params}"
+      )
     end
 
     it 'should configure default_log_levels' do
