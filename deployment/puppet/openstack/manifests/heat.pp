@@ -23,6 +23,10 @@
 #  Should be used instead of keystone_{host,port,protocol}
 #  Defaults to false
 #
+# [*sql_connection*]
+#  (optional) Connection string for database backend.
+#  Defaults to 'mysql://heat:heat@localhost/heat'
+#
 # === Deprecated
 #
 # [*keystone_host*]
@@ -70,11 +74,7 @@ class openstack::heat (
   $heat_watch_server_url         = false,
   $auth_encryption_key           = '%ENCRYPTION_KEY%',
 
-  $sql_connection                = false,
-  $db_user                       = 'heat',
-  $db_password                   = false,
-  $db_host                       = '127.0.0.1',
-  $db_name                       = 'heat',
+  $sql_connection                = 'mysql://heat:heat@localhost/heat',
   $db_allowed_hosts              = ['localhost','%'],
   $idle_timeout                  = '3600',
   $max_pool_size                 = '10',
