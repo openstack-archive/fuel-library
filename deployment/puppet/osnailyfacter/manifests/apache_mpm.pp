@@ -25,13 +25,16 @@ class osnailyfacter::apache_mpm {
     $mpm_module = 'event'
   } else {
     $mpm_module = 'worker'
-  }
 
-  tidy { "remove-distro-mpm-modules":
-    path    => $::apache::params::mod_enable_dir,
-    recurse => true,
-    matches => [ '*mpm*' ],
-    rmdirs  => false,
+    file { [
+      "$::apache::params::mod_enable_dir/mpm_event.load",
+      "$::apache::params::mod_enable_dir/mpm_event.conf"
+    ]:
+      ensure => 'absent',
+      require => Package['httpd'],
+      notify  => Service['httpd'],
+    }
+
   }
 
   class { "::apache::mod::$mpm_module":
