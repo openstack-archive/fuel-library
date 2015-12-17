@@ -9,6 +9,11 @@ describe manifest do
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
     storage_config = Noop.hiera_structure 'storage'
 
+    database_vip = Noop.hiera('database_vip')
+    ironic_db_password = Noop.hiera_structure 'ironic/db_password', 'ironic'
+    ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
+    ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
+
     if ironic_enabled
       it 'should ensure that ironic-fa-deploy is installed' do
           should contain_package('ironic-fa-deploy').with('ensure' => 'present')
@@ -19,6 +24,17 @@ describe manifest do
           'rabbit_userid'   => rabbit_user,
           'rabbit_password' => rabbit_password,
           'enabled_drivers' => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
+        )
+      end
+
+      it 'should configure the database connection string' do
+        if facts[:os_package_type] == 'debian'
+          extra_params = '?charset=utf8&read_timeout=60'
+        else
+          extra_params = ''
+        end
+        should contain_class('ironic').with(
+          :database_connection => "mysql://#{ironic_db_user}:#{ironic_db_password}@#{database_vip}/#{ironic_db_name}#{extra_params}"
         )
       end
 

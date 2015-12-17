@@ -29,11 +29,25 @@ $ironic_tenant                  = pick($ironic_hash['tenant'],'services')
 $ironic_user                    = pick($ironic_hash['auth_name'],'ironic')
 $ironic_user_password           = pick($ironic_hash['user_password'],'ironic')
 
+$db_type                        = 'mysql'
 $db_host                        = pick($nova_hash['db_host'], $database_vip)
 $db_user                        = pick($nova_hash['db_user'], 'nova')
 $db_name                        = pick($nova_hash['db_name'], 'nova')
 $db_password                    = pick($nova_hash['db_password'], 'nova')
-$database_connection            = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?read_timeout=60"
+# LP#1526938 - python-mysqldb supports this, python-pymysql does not
+if $::os_package_type == 'debian' {
+  $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
+} else {
+  $extra_params = { 'charset' => 'utf8' }
+}
+$db_connection = os_database_connection({
+  'dialect'  => $db_type,
+  'host'     => $db_host,
+  'database' => $db_name,
+  'username' => $db_user,
+  'password' => $db_password,
+  'extra'    => $extra_params
+})
 
 $memcached_servers              = hiera('memcached_addresses')
 $memcached_port                 = hiera('memcache_server_port', '11211')
@@ -44,7 +58,7 @@ $notify_on_state_change         = 'vm_and_task_state'
 class { '::nova':
     install_utilities      => false,
     ensure_package         => installed,
-    database_connection    => $database_connection,
+    database_connection    => $db_connection,
     rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
     rabbit_hosts           => split($amqp_hosts, ','),
