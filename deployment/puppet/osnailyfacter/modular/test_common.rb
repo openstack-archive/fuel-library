@@ -548,7 +548,7 @@ module TestCommon
     # @param url [String] the url to check
     # @return [true,false]
     def self.url_accessible?(url)
-      out = TestCommon::Cmd.run "curl --fail --insecure '#{url}' 1>/dev/null 2>/dev/null"
+      out = TestCommon::Cmd.run "curl --fail '#{url}' 1>/dev/null 2>/dev/null"
       out.last == 0
     end
 
@@ -720,9 +720,10 @@ else:
     def self.value?(file, key, value)
       key = key.downcase
       key = 'default/' + key unless key.include? '/'
+      data = ini_file file
+      return !data.key?(key) if value.nil?
       value = value.to_s
       value.capitalize! if %w(true false).include? value
-      data = ini_file file
       data[key] == value
     end
 
