@@ -23,6 +23,10 @@ describe manifest do
     else
        pipeline = 'keystone'
     end
+    database_vip = Noop.hiera('database_vip')
+    glance_db_password = Noop.hiera_structure 'glance/db_password', 'glance'
+    glance_db_user = Noop.hiera_structure 'glance/db_user', 'glance'
+    glance_db_name = Noop.hiera_structure 'glance/db_name', 'glance'
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
 
@@ -49,6 +53,17 @@ describe manifest do
       should contain_class('glance::api').with('pipeline' => pipeline)
       should contain_class('glance::registry').with('sync_db' => primary_controller)
       should contain_class('glance::notify::rabbitmq')
+    end
+
+    it 'should configure the database connection string' do
+        if facts[:os_package_type] == 'debian'
+            extra_params = '?charset=utf8&read_timeout=60'
+        else
+            extra_params = '?charset=utf8'
+        end
+        should contain_class('openstack::glance').with(
+            :db_connection => "mysql://#{glance_db_user}:#{glance_db_password}@#{database_vip}/#{glance_db_name}#{extra_params}"
+        )
     end
 
     it 'should configure glance api config' do
