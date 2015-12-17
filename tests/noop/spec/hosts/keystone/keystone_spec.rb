@@ -67,14 +67,14 @@ describe manifest do
     end
 
     it 'should configure the database connection string' do
-        if facts[:os_package_type] == 'debian'
-            extra_params = '?read_timeout=60'
-        else
-            extra_params = ''
-        end
-        should contain_class('openstack::keystone').with(
-            :db_connection => "mysql://#{keystone_hash[:db_user]}:#{keystone_hash[:db_password]}@#{database_vip}/#{keystone_hash[:db_name]}#{extra_params}"
-        )
+      if facts[:os_package_type] == 'debian'
+        extra_params = '?read_timeout=60'
+      else
+        extra_params = ''
+      end
+      should contain_class('openstack::keystone').with(
+        :db_connection => "mysql://#{keystone_hash[:db_user]}:#{keystone_hash[:db_password]}@#{database_vip}/#{keystone_hash[:db_name]}#{extra_params}"
+      )
     end
 
     it 'should declare keystone class with admin_token' do
