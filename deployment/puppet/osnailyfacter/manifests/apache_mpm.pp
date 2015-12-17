@@ -32,8 +32,7 @@ class osnailyfacter::apache_mpm {
     recurse => true,
     matches => [ '*mpm*' ],
     rmdirs  => false,
-  }
-
+  } ->
   class { "::apache::mod::$mpm_module":
     startservers        => $startservers,
     maxclients          => $maxclients,
@@ -43,4 +42,7 @@ class osnailyfacter::apache_mpm {
     maxrequestsperchild => $maxrequestsperchild,
     serverlimit         => $serverlimit,
   }
+
+  Class['osnailyfacter::apache'] -> Class['osnailyfacter::apache_mpm'] ~> Service<| title == 'httpd' |>
+
 }
