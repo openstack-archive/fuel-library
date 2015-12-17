@@ -67,6 +67,8 @@ if $ceph_tuning_settings != {} {
     'osd/objecter_infilght_op_bytes'          : value => $ceph_tuning_settings['objecter_infilght_op_bytes'];
     'osd/filestore_max_sync_interval'         : value => $ceph_tuning_settings['filestore_max_sync_interval'];
   }
+  # File /root/ceph.conf is symlink which is created after /etc/ceph/ceph.conf in ceph::conf class
+  File<| title == '/root/ceph.conf' |> -> Ceph_conf <||>
 }
 
 $osd_devices = split($::osd_devices_list, ' ')
