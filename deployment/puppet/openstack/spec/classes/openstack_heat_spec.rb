@@ -1,33 +1,22 @@
 require 'spec_helper'
 
-describe 'openstack::keystone' do
+describe 'openstack::heat' do
 
   let :params do
     {
-      :admin_url => 'https://192.168.10.1:35357/',
-      :internal_url => "http://10.0.0.1/5000/",
-      :public_url => "http://10.0.0.1/5000/",
-      :public_address => "10.0.0.1",
-      :admin_token => "$token",
+        :amqp_password => "rabbit_password",
     }
   end
 
-  shared_examples_for 'keystone configuration' do
+  shared_examples_for 'heat configuration' do
 
-    it 'contains openstack::keystone' do
-      should contain_class('openstack::keystone')
+    it 'contains openstack::heat' do
+      should contain_class('openstack::heat')
     end
 
     it 'configures with the default params' do
-      should contain_class('keystone').with(
-        :database_connection => 'mysql://keystone:keystone@localhost/keystone'
-      )
-    end
-
-
-    it 'points to valid admin endpoint' do
-      should contain_class('keystone').with(
-        :admin_endpoint => params[:admin_url],
+      should contain_class('heat').with(
+        :database_connection => 'mysql://heat:heat@localhost/heat'
       )
     end
 
@@ -44,7 +33,7 @@ describe 'openstack::keystone' do
       }
     end
 
-    it_configures 'keystone configuration'
+    it_configures 'heat configuration'
   end
 
   context 'on RedHat platforms' do
@@ -60,7 +49,7 @@ describe 'openstack::keystone' do
       }
     end
 
-    it_configures 'keystone configuration'
+    it_configures 'heat configuration'
   end
 
 end
