@@ -40,16 +40,30 @@ $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
 $bind_address             = get_network_role_property('heat/api', 'ipaddr')
 $memcache_address         = get_network_role_property('mgmt/memcache', 'ipaddr')
-$database_password        = $heat_hash['db_password']
 $keystone_user            = pick($heat_hash['user'], 'heat')
 $keystone_tenant          = pick($heat_hash['tenant'], 'services')
-$db_host                  = pick($heat_hash['db_host'], hiera('database_vip'))
-$database_user            = pick($heat_hash['db_user'], 'heat')
-$database_name            = hiera('heat_db_name', 'heat')
-$read_timeout             = '60'
-$sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}?read_timeout=${read_timeout}"
 $region                   = hiera('region', 'RegionOne')
 $external_lb              = hiera('external_lb', false)
+
+$db_type     = 'mysql'
+$db_host     = pick($heat_hash['db_host'], hiera('database_vip'))
+$db_user     = pick($heat_hash['db_user'], 'heat')
+$db_password = $heat_hash['db_password']
+$db_name     = hiera('heat_db_name', 'heat')
+# LP#1526938 - python-mysqldb supports this, python-pymysql does not
+if $::os_package_type == 'debian' {
+  $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
+} else {
+  $extra_params = { 'charset' => 'utf8' }
+}
+$db_connection = os_database_connection({
+  'dialect'  => $db_type,
+  'host'     => $db_host,
+  'database' => $db_name,
+  'username' => $db_user,
+  'password' => $db_password,
+  'extra'    => $extra_params
+})
 
 ####### Disable upstart startup on install #######
 if $::operatingsystem == 'Ubuntu' {
@@ -92,9 +106,7 @@ class { 'openstack::heat' :
   heat_protocol            => $heat_protocol,
   amqp_user                => $rabbit_hash['user'],
   amqp_password            => $rabbit_hash['password'],
-  sql_connection           => $sql_connection,
-  db_host                  => $db_host,
-  db_password              => $database_password,
+  db_connection            => $db_connection,
   max_retries              => $max_retries,
   max_pool_size            => $max_pool_size,
   max_overflow             => $max_overflow,

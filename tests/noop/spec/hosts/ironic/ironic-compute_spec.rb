@@ -12,6 +12,11 @@ describe manifest do
     memcache_addresses   = Noop.hiera 'memcached_addresses', false
     memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
 
+    database_vip = Noop.hiera('database_vip')
+    nova_db_password = Noop.hiera_structure 'nova/db_password', 'nova'
+    nova_db_user = Noop.hiera_structure 'nova/db_user', 'nova'
+    nova_db_name = Noop.hiera_structure 'nova/db_name', 'nova'
+
     let(:memcache_nodes) do
       Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
     end
@@ -81,6 +86,17 @@ describe manifest do
                              :ensure   => "stopped",
                              :enable   => false,
                              )
+      end
+
+      it 'should configure the database connection string' do
+        if facts[:os_package_type] == 'debian'
+          extra_params = '?charset=utf8&read_timeout=60'
+        else
+          extra_params = '?charset=utf8'
+        end
+        should contain_class('nova').with(
+          :database_connection => "mysql://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}"
+        )
       end
     end
   end
