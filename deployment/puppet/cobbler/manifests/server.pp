@@ -147,7 +147,7 @@ class cobbler::server (
           '/var/lib/fuel/keys',
           '/var/lib/fuel/keys/master',
           '/var/lib/fuel/keys/master/cobbler',
-          ]:
+         ]:
     ensure => 'directory',
   }
   file { '/etc/httpd/conf.d/nailgun.conf':
@@ -196,15 +196,6 @@ class cobbler::server (
     require => [File['/etc/httpd'],
                 File['/etc/httpd/conf/'],
                 File['/etc/httpd/conf.d/']],
-    notify  => Service[$cobbler_web_service],
-  }
-
-  file { '/etc/httpd/conf.d/cobbler-tftp.conf':
-    content => template('cobbler/cobbler-tftp.conf.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => File['/etc/httpd/conf.d/'],
     notify  => Service[$cobbler_web_service],
   }
 
