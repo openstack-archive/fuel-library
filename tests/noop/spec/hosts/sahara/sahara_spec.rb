@@ -95,7 +95,12 @@ describe manifest do
         max_retries  = '-1'
         idle_timeout = '3600'
         read_timeout = '60'
-        sql_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
+        if facts[:os_package_type] == 'debian'
+          extra_params = '?charset=utf8&read_timeout=60'
+        else
+          extra_params = '?charset=utf8'
+        end
+        sql_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
 
         should contain_class('sahara').with(
                    'auth_uri'               => auth_url,

@@ -9,9 +9,11 @@
 # [keystone_db_password] Password for keystone DB. Required.
 # [keystone_admin_token]. Auth token for keystone admin. Required.
 # [public_address] Public address where keystone can be accessed. Required.
-# [db_type] Type of DB used. Currently only supports mysql. Optional. Defaults to  'mysql'
-# [keystone_db_user] Name of keystone db user. Optional. Defaults to  'keystone'
-# [keystone_db_dbname] Name of keystone DB. Optional. Defaults to  'keystone'
+#
+# [*db_connection*]
+#   Database connection string.
+#   Defaults to 'mysql://keystone:keystone@localhost/keystone'
+#
 # [verbose] Rather to print more verbose (INFO+) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option.
 #     Optional. Defaults to false.
@@ -32,25 +34,19 @@
 # === Example
 #
 # class { 'openstack::keystone':
-#   db_host               => '127.0.0.1',
-#   keystone_db_password  => 'changeme',
 #   admin_password        => 'changeme',
 #   public_address        => '192.168.1.1',
 #  }
-
+#
 class openstack::keystone (
   $public_url,
   $admin_url,
   $internal_url,
-  $db_host,
-  $db_password,
   $admin_token,
   $public_address,
   $public_ssl                  = false,
   $public_hostname             = false,
-  $db_type                     = 'mysql',
-  $db_user                     = 'keystone',
-  $db_name                     = 'keystone',
+  $db_connection               = 'mysql://keystone:keystone@localhost/keystone',
   $verbose                     = false,
   $debug                       = false,
   $default_log_levels          = undef,
@@ -85,13 +81,6 @@ class openstack::keystone (
   $fernet_src_repository       = undef,
   $fernet_key_repository       = '/etc/keystone/fernet-keys',
 ) {
-
-  # Install and configure Keystone
-  if $db_type == 'mysql' {
-    $database_connection = "mysql://${$db_user}:${db_password}@${db_host}/${db_name}?read_timeout=60"
-  } else {
-    fail("db_type ${db_type} is not supported")
-  }
 
   # I have to do all of this crazy munging b/c parameters are not
   # set procedurally in Pupet
@@ -136,7 +125,7 @@ class openstack::keystone (
       catalog_type                 => 'sql',
       admin_token                  => $admin_token,
       enabled                      => false,
-      database_connection          => $database_connection,
+      database_connection          => $db_connection,
       public_bind_host             => $public_bind_host,
       admin_bind_host              => $admin_bind_host,
       admin_workers                => $service_workers,

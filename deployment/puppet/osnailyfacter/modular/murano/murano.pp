@@ -51,12 +51,26 @@ if $murano_hash['enabled'] {
 
   $murano_user    = pick($murano_hash['user'], 'murano')
   $tenant         = pick($murano_hash['tenant'], 'services')
+
+  $db_type        = 'mysql'
   $db_user        = pick($murano_hash['db_user'], 'murano')
   $db_name        = pick($murano_hash['db_name'], 'murano')
   $db_password    = pick($murano_hash['db_password'])
   $db_host        = pick($murano_hash['db_host'], $database_ip)
-  $read_timeout   = '60'
-  $sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
+  # LP#1526938 - python-mysqldb supports this, python-pymysql does not
+  if $::os_package_type == 'debian' {
+    $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
+  } else {
+    $extra_params = { 'charset' => 'utf8' }
+  }
+  $db_connection = os_database_connection({
+    'dialect'  => $db_type,
+    'host'     => $db_host,
+    'database' => $db_name,
+    'username' => $db_user,
+    'password' => $db_password,
+    'extra'    => $extra_params
+  })
 
   $external_network = $use_neutron ? {
     true    => get_ext_net_name($neutron_config['predefined_networks']),
@@ -85,7 +99,7 @@ if $murano_hash['enabled'] {
     use_syslog          => $use_syslog,
     use_stderr          => $use_stderr,
     log_facility        => $syslog_log_facility_murano,
-    database_connection => $sql_connection,
+    database_connection => $db_connection,
     sync_db             => $primary_controller,
     auth_uri            => "${public_auth_protocol}://${public_auth_address}:5000/v2.0/",
     admin_user          => $murano_user,
