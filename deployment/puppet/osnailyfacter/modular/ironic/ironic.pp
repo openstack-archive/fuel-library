@@ -23,11 +23,20 @@ $rabbit_hosts               = split($amqp_hosts, ',')
 $neutron_config             = hiera_hash('quantum_settings')
 $primary_controller         = hiera('primary_controller')
 
+$db_type                    = 'mysql'
 $db_host                    = pick($ironic_hash['db_host'], $database_vip)
 $db_user                    = pick($ironic_hash['db_user'], 'ironic')
 $db_name                    = pick($ironic_hash['db_name'], 'ironic')
 $db_password                = pick($ironic_hash['db_password'], 'ironic')
-$database_connection        = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?charset=utf8&read_timeout=60"
+# LP#1526938 - python-mysqldb supports this, python-pymysql does not
+if $::os_package_type == 'debian' {
+  $extra_params = 'charset=utf8&read_timeout=60'
+} else {
+  $extra_params = ''
+}
+$db_connection = db_connection_string($db_host, $db_user, $db_password,
+                                      $db_name, $db_type, $extra_params)
+
 
 $ironic_tenant              = pick($ironic_hash['tenant'],'services')
 $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
@@ -47,7 +56,7 @@ class { 'ironic':
   amqp_durable_queues => $rabbit_ha_queues,
   use_syslog          => $use_syslog,
   log_facility        => $syslog_log_facility_ironic,
-  database_connection => $database_connection,
+  database_connection => $db_connection,
   glance_api_servers  => $glance_api_servers,
   sync_db             => $primary_controller,
 }
