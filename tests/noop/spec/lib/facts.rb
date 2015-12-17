@@ -37,6 +37,7 @@ class Noop
           :concat_basedir => '/tmp/',
           :l23_os => 'ubuntu',
           :lsbdistcodename => 'trusty',
+          :os_package_type => 'debian',
       }.merge override_facts
     end
 
@@ -58,6 +59,7 @@ class Noop
           :l3_default_route => '172.16.1.1',
           :concat_basedir => '/tmp/',
           :l23_os => 'centos6',
+          :os_package_type => 'rpm',
       }.merge override_facts
     end
 

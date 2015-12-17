@@ -16,12 +16,25 @@ if $use_neutron {
   $nova_hash               = hiera_hash('nova', { })
   $primary_controller      = hiera('primary_controller', false)
 
-  $neutron_db_password     = $neutron_config['database']['passwd']
-  $neutron_db_user         = try_get_value($neutron_config, 'database/user', 'neutron')
-  $neutron_db_name         = try_get_value($neutron_config, 'database/name', 'neutron')
-  $neutron_db_host         = try_get_value($neutron_config, 'database/host', $database_vip)
-
-  $neutron_db_uri          = "mysql://${neutron_db_user}:${neutron_db_password}@${neutron_db_host}/${neutron_db_name}?&read_timeout=60"
+  $db_type     = 'mysql'
+  $db_password = $neutron_config['database']['passwd']
+  $db_user     = try_get_value($neutron_config, 'database/user', 'neutron')
+  $db_name     = try_get_value($neutron_config, 'database/name', 'neutron')
+  $db_host     = try_get_value($neutron_config, 'database/host', $database_vip)
+  # LP#1526938 - python-mysqldb supports this, python-pymysql does not
+  if $::os_package_type == 'debian' {
+    $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
+  } else {
+    $extra_params = { 'charset' => 'utf8' }
+  }
+  $db_connection = os_database_connection({
+    'dialect'  => $db_type,
+    'host'     => $db_host,
+    'database' => $db_name,
+    'username' => $db_user,
+    'password' => $db_password,
+    'extra'    => $extra_params
+  })
 
   $auth_password           = $neutron_config['keystone']['admin_password']
   $auth_user               = pick($neutron_config['keystone']['admin_user'], 'neutron')
@@ -148,7 +161,7 @@ if $use_neutron {
     auth_uri                         => $identity_uri,
 
     database_retry_interval          => '2',
-    database_connection              => $neutron_db_uri,
+    database_connection              => $db_connection,
     database_max_retries             => '-1',
 
     agent_down_time                  => '30',

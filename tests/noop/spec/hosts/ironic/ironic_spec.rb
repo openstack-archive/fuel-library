@@ -14,6 +14,11 @@ if ironic_enabled
       primary_controller = Noop.hiera 'primary_controller'
       amqp_durable_queues = Noop.hiera_structure 'ironic/amqp_durable_queues', 'false'
 
+      database_vip = Noop.hiera('database_vip')
+      ironic_db_password = Noop.hiera_structure 'ironic/db_password', 'ironic'
+      ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
+      ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
+
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       end
@@ -25,6 +30,17 @@ if ironic_enabled
           'sync_db'             => primary_controller,
           'control_exchange'    => 'ironic',
           'amqp_durable_queues' => amqp_durable_queues,
+        )
+      end
+
+      it 'should configure the database connection string' do
+        if facts[:os_package_type] == 'debian'
+          extra_params = '?charset=utf8&read_timeout=60'
+        else
+          extra_params = '?charset=utf8'
+        end
+        should contain_class('ironic').with(
+          :database_connection => "mysql://#{ironic_db_user}:#{ironic_db_password}@#{database_vip}/#{ironic_db_name}#{extra_params}"
         )
       end
 
