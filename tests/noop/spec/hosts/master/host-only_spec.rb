@@ -11,7 +11,7 @@ describe manifest do
 
     bootstrap_hash = {
       'MIRROR_DISTRO'   => "http://archive.ubuntu.com/ubuntu",
-      'MIRROR_MOS'      => "http://mirror.fuel-infra.org/mos-repos/ubuntu/8.0",
+      'MIRROR_MOS'      => "http://mirror.fuel-infra.org/mos-repos/ubuntu/9.0",
       'HTTP_PROXY'      => "",
       'EXTRA_APT_REPOS' => "",
       'flavor'          => "centos"

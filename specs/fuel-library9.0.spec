@@ -1,6 +1,6 @@
-%define name fuel-library8.0
-%{!?version: %define version 8.0.0}
-%{!?fuel_release: %define fuel_release 8.0}
+%define name fuel-library9.0
+%{!?version: %define version 9.0.0}
+%{!?fuel_release: %define fuel_release 9.0}
 %{!?release: %define release 1}
 %{!?rhel: %define rhel 7}
 
@@ -24,7 +24,7 @@ Requires: fuel-misc python-fuelclient
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
-%define openstack_version 2015.1.0-8.0
+%define openstack_version 2016.1.0-9.0
 %define predefined_upstream_modules  %{_sourcedir}/upstream_modules.tar.gz
 
 %description
