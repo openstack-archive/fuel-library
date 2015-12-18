@@ -20,7 +20,7 @@ describe 'docker' do
     context 'with valid params' do
       let :params do
         default_params.merge!({
-          :release => '8.0',
+          :release => '9.0',
           :dependent_dirs => ["/var/log/docker-logs", "/var/log/docker-logs/remote",
               "/var/log/docker-logs/audit", "/var/log/docker-logs/cobbler",
               "/var/log/docker-logs/ConsoleKit", "/var/log/docker-logs/coredump",
