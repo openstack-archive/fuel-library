@@ -122,8 +122,8 @@ syslog:
     label: Syslog
 libvirt_type: qemu
 puppet:
-  modules: rsync://10.109.37.2:/puppet/2015.1.0-8.0/modules/
-  manifests: rsync://10.109.37.2:/puppet/2015.1.0-8.0/manifests/
+  modules: rsync://10.109.37.2:/puppet/2015.1.0-9.0/modules/
+  manifests: rsync://10.109.37.2:/puppet/2015.1.0-9.0/manifests/
 mysql:
   root_password: POvhJ6iQOcf9d4TCsul2ZRQI
   wsrep_password: XV0HBh9vJSqHOp8782RZRBgU
@@ -210,7 +210,7 @@ quantum_settings:
   metadata:
     metadata_proxy_shared_secret: IFcIv8CuNbllNccJs2bvcrkH
 use_vcenter: false
-openstack_version: 2015.1.0-8.0
+openstack_version: 2015.1.0-9.0
 kernel_params:
   kernel: console=tty0 net.ifnames=0 biosdevname=0 rootdelay=90 nomodeset
   metadata:
@@ -368,31 +368,31 @@ repo_setup:
     type: deb
   - name: mos
     section: main restricted
-    uri: http://10.109.37.2:8080/2015.1.0-8.0/ubuntu/x86_64
+    uri: http://10.109.37.2:8080/2015.1.0-9.0/ubuntu/x86_64
     priority: 1050
-    suite: mos8.0
+    suite: mos9.0
     type: deb
   - name: mos-updates
     section: main restricted
-    uri: http://mirror.fuel-infra.org/mos-repos/ubuntu/8.0/
+    uri: http://mirror.fuel-infra.org/mos-repos/ubuntu/9.0/
     priority: 1050
-    suite: mos8.0-updates
+    suite: mos9.0-updates
     type: deb
   - name: mos-security
     section: main restricted
-    uri: http://mirror.fuel-infra.org/mos-repos/ubuntu/8.0/
+    uri: http://mirror.fuel-infra.org/mos-repos/ubuntu/9.0/
     priority: 1050
-    suite: mos8.0-security
+    suite: mos9.0-security
     type: deb
   - name: mos-holdback
     section: main restricted
-    uri: http://mirror.fuel-infra.org/mos-repos/ubuntu/8.0/
+    uri: http://mirror.fuel-infra.org/mos-repos/ubuntu/9.0/
     priority: 1100
-    suite: mos8.0-holdback
+    suite: mos9.0-holdback
     type: deb
   - name: Auxiliary
     section: main restricted
-    uri: http://10.109.37.2:8080/2015.1.0-8.0/ubuntu/auxiliary
+    uri: http://10.109.37.2:8080/2015.1.0-9.0/ubuntu/auxiliary
     priority: 1150
     suite: auxiliary
     type: deb
@@ -653,7 +653,7 @@ heat:
   auth_encryption_key: ce489de3a39996b694db7c8d4804a93d
   rabbit_password: hN4hSVxhTei1ViFOfS5sbPv8
 storage_network_range: 192.168.1.0/24
-fuel_version: '8.0'
+fuel_version: '9.0'
 rabbit:
   password: OLCrvt99FgutnBs63PeFJchF
 public_network_assignment:
