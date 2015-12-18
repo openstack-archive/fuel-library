@@ -43,11 +43,6 @@ describe manifest do
         :mode   => '0755').with_content(/^sleep \d+/)
     end
 
-    it 'should not purge config files' do
-      should contain_class('apache').with(
-        'purge_configs' => 'false',
-      )
-    end
   end
   test_ubuntu_and_centos manifest
 end
