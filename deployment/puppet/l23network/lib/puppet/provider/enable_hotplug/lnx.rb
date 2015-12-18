@@ -1,5 +1,5 @@
 Puppet::Type.type(:enable_hotplug).provide(:lnx) do
-  defaultfor :osfamily => :linux
+  defaultfor :kernel => :linux
   commands   :udevadm  => 'udevadm'
 
   def self.prefetch(resources)

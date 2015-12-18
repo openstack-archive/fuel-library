@@ -1,5 +1,5 @@
 Puppet::Type.type(:k_mod).provide(:lnx) do
-  defaultfor :osfamily   => :linux
+  defaultfor :kernel   => :linux
   commands   :mod_load   => 'modprobe',
              :ls_mod     => 'lsmod',
              :mod_unload => 'rmmod'

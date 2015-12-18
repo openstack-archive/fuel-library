@@ -5,7 +5,7 @@
 require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_base')
 
 Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
-  defaultfor :osfamily    => :linux
+  defaultfor :kernel    => :linux
   commands   :ethtool_cmd => 'ethtool'
 
 

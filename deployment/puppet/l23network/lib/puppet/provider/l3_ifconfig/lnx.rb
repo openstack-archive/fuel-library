@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/l3_base')
 
 Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_base) do
-  defaultfor :osfamily => :linux
+  defaultfor :kernel => :linux
   commands   :ifup    => 'ifup',
              :ifdown  => 'ifdown',
              :arping  => 'arping'
