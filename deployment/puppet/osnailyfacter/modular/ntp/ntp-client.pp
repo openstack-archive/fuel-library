@@ -18,9 +18,19 @@ if !(member($roles, 'controller') or member($roles, 'primary-controller')) {
     minpoll         => '3',
   }
 
-  include ntp::params
-  tweaks::ubuntu_service_override { 'ntpd':
-    package_name => $ntp::params::package_name,
-    service_name => $ntp::params::service_name,
+  if $::operatingsystem == 'Ubuntu' {
+    include ntp::params
+
+    # puppetlabs/ntp uses one element array as package_name default value
+    if is_array($ntp::params::package_name) {
+      $package_name = $ntp::params::package_name[0]
+    } else {
+      $package_name = $ntp::params::package_name
+    }
+
+    tweaks::ubuntu_service_override { 'ntpd':
+      package_name => $package_name,
+      service_name => $ntp::params::service_name,
+    }
   }
 }
