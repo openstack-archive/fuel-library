@@ -598,7 +598,7 @@ module TestCommon
     # @return [Array<String>] the list of addresses
     def self.ips
       return @ips if @ips
-      ip_out, code = TestCommon::Cmd.run 'ip addr'
+      ip_out, code = TestCommon::Cmd.run 'ip -4 -o a'
       return unless code == 0
       ips = []
       ip_out.split("\n").each do |line|
