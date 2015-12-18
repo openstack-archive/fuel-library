@@ -1,21 +1,27 @@
 require File.join File.dirname(__FILE__), '../test_common.rb'
 
 class NetconfigPostTest < Test::Unit::TestCase
+  def node
+    TestCommon::Settings.nodes.each do |node|
+      next unless node['fqdn'] == TestCommon::Settings.fqdn
+      return node
+    end
+  end
 
   def test_management_ip_present
-    ip = TestCommon::Settings.internal_address
+    ip = node['internal_address']
     assert TestCommon::Network.ips.include?(ip), 'Management address is not set!'
   end
 
   def test_public_ip_present
     if %w(controller primary-controller).include? TestCommon::Settings.role
-      ip = TestCommon::Settings.public_address
+      ip = node['public_address']
       assert TestCommon::Network.ips.include?(ip), 'Public address is not set!'
     end
   end
 
   def test_storage_ip_present
-    ip = TestCommon::Settings.storage_address
+    ip = node['storage_address']
     assert TestCommon::Network.ips.include?(ip), 'Storage address is not set!'
   end
 
