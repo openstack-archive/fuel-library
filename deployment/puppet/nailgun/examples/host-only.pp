@@ -104,6 +104,13 @@ class { 'osnailyfacter::ssh':
   listen_address => [$::fuel_settings['ADMIN_NETWORK']['ipaddress']],
 }
 
+file { '/usr/local/bin/mco':
+  source  => 'puppet:///modules/nailgun/mco_host_only',
+  mode    => '0755',
+  owner   => 'root',
+  group   => 'root',
+}
+
 if $use_systemd {
   class { 'docker::systemd':
     release => $::fuel_release,
