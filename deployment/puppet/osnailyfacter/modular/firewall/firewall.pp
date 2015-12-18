@@ -30,6 +30,7 @@ $libvirt_migration_ports      = '49152-49215'
 $libvirt_port                 = 16509
 $memcached_port               = 11211
 $mongodb_port                 = 27017
+$murano_rabbitmq_port         = 55572
 $mysql_backend_port           = 3307
 $mysql_gcomm_port             = 4567
 $mysql_port                   = 3306
@@ -257,6 +258,12 @@ openstack::firewall::multi_net {'119 libvirt-migration':
 
 firewall {'121 ceilometer':
   port   => $ceilometer_port,
+  proto  => 'tcp',
+  action => 'accept',
+}
+
+firewall { '203 murano-rabbitmq' :
+  dport  => $murano_rabbitmq_port,
   proto  => 'tcp',
   action => 'accept',
 }
