@@ -7,7 +7,8 @@ class HealthPostTest < Test::Unit::TestCase
 
   def test_sysinfo_resource_started
     return unless ubuntu?
-    assert TestCommon::Pacemaker.primitive_present?('sysinfo'), 'sysinfo is not created!'
+    fqdn = TestCommon::Settings.fqdn
+    assert TestCommon::Pacemaker.primitive_present?("sysinfo_#{fqdn}"), 'sysinfo is not created!'
   end
 end
 
