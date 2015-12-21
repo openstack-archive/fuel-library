@@ -69,7 +69,6 @@ $rabbit_hash                    = hiera_hash('rabbit', {})
 $glance_hash                    = hiera_hash('glance', {})
 $swift_hash                     = hiera('swift', {})
 $cinder_hash                    = hiera_hash('cinder', {})
-$ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera_hash('access', {})
 # mp_hash is actually an array, not a hash
 $mp_hash                        = hiera('mp', [])
@@ -77,7 +76,6 @@ $keystone_hash                  = merge({'service_token_off' => $service_token_o
                                         hiera_hash('keystone', {}))
 
 $dns_nameservers                = hiera('dns_nameservers', [])
-$use_ceilometer                 = $ceilometer_hash['enabled']
 $use_neutron                    = hiera('quantum', false)
 $use_ovs                        = hiera('use_ovs', $use_neutron)
 $verbose                        = true
@@ -384,13 +382,18 @@ $sahara_roles = hiera('sahara_roles', ['primary-controller', 'controller'])
 $sahara_nodes = get_nodes_hash_by_roles($network_metadata, $sahara_roles)
 
 # Define ceilometer-releated parameters
-$default_ceilometer_hash = {
+$ceilometer = hiera('ceilometer', {})
+$use_ceilometer  = $ceilometer['enabled']
+
+$ceilometer_defaults = {
   'alarm_history_time_to_live' => '604800',
   'event_time_to_live'         => '604800',
   'metering_time_to_live'      => '604800',
-  'http_timeout'               => '600'
+  'http_timeout'               => '600',
+  'notification_driver'        => $use_ceilometer ? { true => 'messagingv2', default => $::os_service_default },
 }
-$real_ceilometer_hash = merge($ceilometer_hash, $default_ceilometer_hash)
+
+$real_ceilometer_hash = merge($ceilometer_defaults, $ceilometer)
 
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future
