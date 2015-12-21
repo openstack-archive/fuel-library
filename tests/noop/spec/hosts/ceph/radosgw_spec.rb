@@ -42,6 +42,20 @@ describe manifest do
          )
       }
 
+      if Noop.hiera('external_lb', false)
+        url = 'http://' + Noop.hiera('service_endpoint').to_s + ':5000'
+        provider = 'http'
+      else
+        url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+        provider = nil
+      end
+
+      it {
+        should contain_haproxy_backend_status('keystone-public').with(
+          :url      => url,
+          :provider => provider
+        )
+      }
     end
   end
 

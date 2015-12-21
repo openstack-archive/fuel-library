@@ -15,13 +15,16 @@ $ipaddresses          = hiera_array('ironic_ipaddresses', values($ironic_address
 $public_virtual_ip    = hiera('public_vip')
 $internal_virtual_ip  = hiera('management_vip')
 $baremetal_virtual_ip = $network_metadata['vips']['baremetal']['ipaddr']
+$external_lb          = hiera('external_lb', false)
 
-class { '::openstack::ha::ironic':
-  internal_virtual_ip  => $internal_virtual_ip,
-  ipaddresses          => $ipaddresses,
-  public_virtual_ip    => $public_virtual_ip,
-  server_names         => $server_names,
-  public_ssl           => $public_ssl,
-  public_ssl_path      => $public_ssl_path,
-  baremetal_virtual_ip => $baremetal_virtual_ip,
+if !$external_lb {
+  class { '::openstack::ha::ironic':
+    internal_virtual_ip  => $internal_virtual_ip,
+    ipaddresses          => $ipaddresses,
+    public_virtual_ip    => $public_virtual_ip,
+    server_names         => $server_names,
+    public_ssl           => $public_ssl,
+    public_ssl_path      => $public_ssl_path,
+    baremetal_virtual_ip => $baremetal_virtual_ip,
+  }
 }
