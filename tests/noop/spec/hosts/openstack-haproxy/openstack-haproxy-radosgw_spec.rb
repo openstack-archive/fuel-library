@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
     images_ceph = Noop.hiera_structure 'storage/images_ceph'
     objects_ceph = Noop.hiera_structure 'storage/objects_ceph'
-    if images_ceph and objects_ceph
+    if images_ceph and objects_ceph and !Noop.hiera('external_lb', false)
       ironic_enabled = Noop.hiera_structure 'ironic/enabled'
       if ironic_enabled
         baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'

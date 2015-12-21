@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
     use_nova = Noop.hiera_structure('nova/enabled', true)
 
-    if use_nova
+    if use_nova and !Noop.hiera('external_lb', false)
       it "should properly configure nova haproxy based on ssl" do
         public_ssl_nova = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('nova-api-1').with(
