@@ -1,5 +1,6 @@
 - id: swift
   type: puppet
+  version: 2.0.0
   groups: [controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
@@ -16,6 +17,7 @@
 
 - id: primary-swift
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
@@ -32,6 +34,7 @@
 
 - id: swift-rebalance-cron
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [swift]
@@ -49,6 +52,7 @@
 
 - id: swift-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [swift]
   cross-depends:

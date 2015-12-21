@@ -1,5 +1,6 @@
 - id: openstack-controller
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [openstack-haproxy]
@@ -13,6 +14,7 @@
 
 - id: nova-db
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-controller]
   requires: [primary-database, database]
@@ -25,6 +27,7 @@
 
 - id: nova-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-controller]
   requires: [keystone]
