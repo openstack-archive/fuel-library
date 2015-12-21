@@ -11,7 +11,9 @@ $public_ssl          = get_ssl_property($ssl_hash, $public_ssl_hash, 'horizon', 
 $public_ssl_path     = get_ssl_property($ssl_hash, $public_ssl_hash, 'horizon', 'public', 'path', [''])
 
 $horizon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('horizon_nodes'), 'horizon')
-if ($use_horizon) {
+$external_lb = hiera('external_lb', false)
+
+if ($use_horizon and !$external_lb) {
   $server_names        = hiera_array('horizon_names', keys($horizon_address_map))
   $ipaddresses         = hiera_array('horizon_ipaddresses', values($horizon_address_map))
   $public_virtual_ip   = hiera('public_vip')

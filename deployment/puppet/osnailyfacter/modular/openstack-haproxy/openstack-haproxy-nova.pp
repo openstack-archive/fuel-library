@@ -14,7 +14,9 @@ $internal_ssl_path    = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'pat
 
 $nova_api_address_map = get_node_to_ipaddr_map_by_network_role(hiera('nova_api_nodes'), 'nova/api')
 
-if ($use_nova) {
+$external_lb          = hiera('external_lb', false)
+
+if ($use_nova and !$external_lb) {
   $server_names        = hiera_array('nova_names', keys($nova_api_address_map))
   $ipaddresses         = hiera_array('nova_ipaddresses', values($nova_api_address_map))
   $public_virtual_ip   = hiera('public_vip')

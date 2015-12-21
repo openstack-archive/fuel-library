@@ -13,7 +13,9 @@ $public_ssl_path         = get_ssl_property($ssl_hash, $public_ssl_hash, 'ceilom
 $internal_ssl            = get_ssl_property($ssl_hash, {}, 'ceilometer', 'internal', 'usage', false)
 $internal_ssl_path       = get_ssl_property($ssl_hash, {}, 'ceilometer', 'internal', 'path', [''])
 
-if ($use_ceilometer) {
+$external_lb             = hiera('external_lb', false)
+
+if ($use_ceilometer and !$external_lb) {
   $server_names        = hiera_array('ceilometer_names', keys($ceilometer_address_map))
   $ipaddresses         = hiera_array('ceilometer_ipaddresses', values($ceilometer_address_map))
   $public_virtual_ip   = hiera('public_vip')
