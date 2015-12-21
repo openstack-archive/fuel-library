@@ -17,7 +17,7 @@ describe manifest do
       use_swift = true
     end
 
-    if use_swift
+    if use_swift and !Noop.hiera('external_lb', false)
       it "should properly configure swift haproxy based on ssl" do
         public_ssl_swift = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('swift').with(
@@ -33,10 +33,9 @@ describe manifest do
         )
       end
 
-
       if ironic_enabled
         baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
-  
+
         it 'should declare ::openstack::ha::swift class with baremetal_virtual_ip' do
           should contain_class('openstack::ha::swift').with(
             'baremetal_virtual_ip' => baremetal_virtual_ip,

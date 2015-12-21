@@ -9,6 +9,8 @@ $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
 $public_ssl              = hiera('public_ssl')
 $ssl_no_verify           = $public_ssl['horizon']
 $overview_days_range     = pick($horizon_hash['overview_days_range'], 1)
+$ssl_hash                = hiera_hash('use_ssl', {})
+$external_lb             = hiera('external_lb', false)
 
 if $horizon_hash['secret_key'] {
   $secret_key = $horizon_hash['secret_key']
@@ -50,18 +52,32 @@ class { 'openstack::horizon':
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
-haproxy_backend_status { 'keystone-admin' :
-  name  => 'keystone-2',
-  count => '30',
-  step  => '3',
-  url   => $haproxy_stats_url,
+if $external_lb {
+  Haproxy_backend_status<||> {
+    provider => 'http',
+  }
 }
-
+$admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_identity_uri      = "${admin_identity_protocol}://${admin_identity_address}:35357"
 haproxy_backend_status { 'keystone-public' :
   name  => 'keystone-1',
   count => '30',
   step  => '3',
-  url   => $haproxy_stats_url,
+  url   => $external_lb ? {
+    default => $haproxy_stats_url,
+    true    => $keystone_url,
+  },
+}
+
+haproxy_backend_status { 'keystone-admin' :
+  name  => 'keystone-2',
+  count => '30',
+  step  => '3',
+  url   => $external_lb ? {
+    default => $haproxy_stats_url,
+    true    => $admin_identity_uri,
+  },
 }
 
 Class['openstack::horizon'] -> Haproxy_backend_status['keystone-admin']

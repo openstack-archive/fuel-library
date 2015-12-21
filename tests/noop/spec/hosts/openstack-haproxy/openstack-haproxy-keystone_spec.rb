@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
     use_keystone = Noop.hiera_structure('keystone/enabled', true)
 
-    if use_keystone
+    if use_keystone and !Noop.hiera('external_lb', false)
       it "should properly configure keystone haproxy based on ssl" do
         public_ssl_keystone = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('keystone-1').with(

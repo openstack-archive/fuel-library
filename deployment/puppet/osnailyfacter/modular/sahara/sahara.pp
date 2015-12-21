@@ -23,6 +23,8 @@ $use_stderr                 = hiera('use_stderr', false)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
+$external_lb                = hiera('external_lb', false)
+$ssl_hash                   = hiera_hash('use_ssl', {})
 
 #################################################################
 
@@ -121,20 +123,44 @@ if $sahara_hash['enabled'] {
 
   $haproxy_stats_url = "http://${management_vip}:10000/;csv"
 
+  if $external_lb {
+    Haproxy_backend_status<||> {
+      provider => 'http',
+    }
+  }
+
   haproxy_backend_status { 'sahara' :
     name => 'sahara',
-    url  => $haproxy_stats_url,
+    url   => $external_lb ? {
+      default => $haproxy_stats_url,
+      true    => "http://${service_endpoint}:${api_bind_port}",
+    },
   }
 
   if $primary_controller {
+
+    $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+    $internal_auth_address   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+    $internal_auth_uri       = "${internal_auth_protocol}://${internal_auth_address}:5000"
+
+    $admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+    $admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+    $admin_identity_uri      = "${admin_identity_protocol}://${admin_identity_address}:35357"
+
     haproxy_backend_status { 'keystone-public' :
       name  => 'keystone-1',
-      url   => $haproxy_stats_url,
+      url   => $external_lb ? {
+        default => $haproxy_stats_url,
+        true    => $internal_auth_uri,
+      },
     }
 
     haproxy_backend_status { 'keystone-admin' :
       name  => 'keystone-2',
-      url   => $haproxy_stats_url,
+      url   => $external_lb ? {
+        default => $haproxy_stats_url,
+        true    => $admin_identity_uri,
+      },
     }
 
     class { 'sahara_templates::create_templates' :

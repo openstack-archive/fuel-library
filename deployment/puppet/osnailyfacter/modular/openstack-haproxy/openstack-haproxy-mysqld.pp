@@ -10,8 +10,10 @@ $public_ssl_hash = hiera('public_ssl')
 
 $database_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database')
 
+$external_lb = hiera('external_lb', false)
+
 # only do this if mysql is enabled and we are using one of the galera/percona classes
-if $use_mysql and ($custom_mysql_setup_class in ['galera', 'percona', 'percona_packages']) {
+if !$external_lb and $use_mysql and ($custom_mysql_setup_class in ['galera', 'percona', 'percona_packages']) {
   $server_names        = hiera_array('mysqld_names', keys($database_address_map))
   $ipaddresses         = hiera_array('mysqld_ipaddresses', values($database_address_map))
   $public_virtual_ip   = hiera('public_vip')
