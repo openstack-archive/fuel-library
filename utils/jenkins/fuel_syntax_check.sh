@@ -1,5 +1,4 @@
 #!/bin/bash
-
 usage="$(basename "$0") [-h] [-m MODULE] [-a] -- runs syntax check for puppet modules, by default runs tests only for changed modules.
 
 where:
@@ -88,7 +87,7 @@ function check_lint {
 # Function that checks syntax
 function check_syntax {
   exit_code=0
-  all_files=`find . -name "*.pp" -o -name "*.erb" -o -name "*.sh" -o -path "*/files/ocf/*"`
+  all_files=`find . -name "*.pp" -o -name "*.erb" -o -name "*.sh" -o -name '*.yaml' -o -name '*.yml' -o -path "*/files/ocf/*"`
   for x in $all_files; do
     case $x in
       *.pp )
@@ -99,6 +98,12 @@ function check_syntax {
         ;;
       *.sh )
         bash -n $x
+        ;;
+      *.yaml | *.yml )
+        ruby -ryaml -e "
+        puts 'Checking YAML file: ${x}'
+        YAML.load_file('${x}')
+        exit(0)"
         ;;
       *files/ocf/* )
         case $(file --mime --brief $x) in
