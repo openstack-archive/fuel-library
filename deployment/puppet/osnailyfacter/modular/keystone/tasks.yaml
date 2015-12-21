@@ -1,5 +1,6 @@
 - id: keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [openstack-controller]
   requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
@@ -18,6 +19,7 @@
 
 - id: keystone-db
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [keystone]
   requires: [primary-database, database]
@@ -31,6 +33,7 @@
 
 - id: workloads_collector_add
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [keystone]

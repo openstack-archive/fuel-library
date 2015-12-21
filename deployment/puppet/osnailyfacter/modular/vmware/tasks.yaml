@@ -1,5 +1,6 @@
 - id: vmware-vcenter
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [controller_remaining_tasks]
@@ -11,6 +12,7 @@
 
 - id: top-role-cinder-vmware
   type: puppet
+  version: 2.0.0
   groups: [cinder-vmware]
   required_for: [deploy_end]
   requires: [top-role-cinder]
@@ -26,6 +28,7 @@
 
 - id: top-role-compute-vmware
   type: puppet
+  version: 2.0.0
   groups: [compute-vmware]
   required_for: [deploy_end]
   requires: [top-role-compute, ceilometer-compute, ceilometer-keystone]

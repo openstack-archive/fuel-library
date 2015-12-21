@@ -3,6 +3,7 @@
 
 - id: copy_keys_ceph
   type: copy_files
+  version: 2.0.0
   role: '*'
   required_for: [pre_deployment_end]
   requires: [generate_keys_ceph]
@@ -20,6 +21,7 @@
 
 - id: generate_keys_ceph
   type: shell
+  version: 2.0.0
   role: master
   requires: [pre_deployment_start]
   required_for: [copy_keys_ceph]
@@ -34,6 +36,7 @@
 
 - id: top-role-ceph-osd
   type: puppet
+  version: 2.0.0
   groups: [ceph-osd]
   required_for: [deploy_end]
   requires: [hosts, firewall]
@@ -47,6 +50,7 @@
 
 - id: ceph-radosgw
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache, ceph-mon, primary-ceph-mon]
@@ -61,6 +65,7 @@
 
 - id: primary-ceph-mon
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
@@ -71,6 +76,7 @@
 
 - id: ceph-mon
   type: puppet
+  version: 2.0.0
   groups: [controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
@@ -87,6 +93,7 @@
 
 - id: ceph-compute
   type: puppet
+  version: 2.0.0
   role: [compute]
   cross-depends:
     - name: ceph_create_pools
@@ -103,6 +110,7 @@
 
 - id: ceph_create_pools
   type: puppet
+  version: 2.0.0
   role: [primary-controller, controller]
   requires: [post_deployment_start]
   required_for: [ceph_ready_check]
@@ -117,6 +125,7 @@
 
 - id: ceph_ready_check
   type: shell
+  version: 2.0.0
   role: [primary-controller]
   condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
   requires: [post_deployment_start]
@@ -127,6 +136,7 @@
 
 - id: enable_rados
   type: puppet
+  version: 2.0.0
   role: [primary-controller, controller]
   condition: "settings:storage.objects_ceph.value == true"
   requires: [post_deployment_start]
@@ -141,6 +151,7 @@
 
 - id: updatedb
   type: puppet
+  version: 2.0.0
   role: [primary-controller, controller, ceph-osd]
   condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
   requires: [post_deployment_start]
