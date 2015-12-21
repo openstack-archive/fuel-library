@@ -19,7 +19,9 @@ $admin_ssl_path        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'p
 #todo(sv): change to 'keystone' as soon as keystone as node-role was ready
 $keystones_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']), 'keystone/api')
 
-if ($use_keystone) {
+$external_lb = hiera('external_lb', false)
+
+if ($use_keystone and !$external_lb) {
   $server_names        = pick(hiera_array('keystone_names', undef),
                               keys($keystones_address_map))
   $ipaddresses         = pick(hiera_array('keystone_ipaddresses', undef),

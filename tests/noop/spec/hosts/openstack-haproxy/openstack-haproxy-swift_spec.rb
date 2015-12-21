@@ -39,7 +39,7 @@ describe manifest do
       }
     end
 
-    if use_swift
+    if use_swift and !Noop.hiera('external_lb', false)
       it "should declare openstack::ha:swift class with valid params" do
         should contain_class('openstack::ha::swift').with(
           'bind_to_one' => bind_to_one,
@@ -58,10 +58,9 @@ describe manifest do
         )
       end
 
-
       if ironic_enabled
         baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
-  
+
         it 'should declare ::openstack::ha::swift class with baremetal_virtual_ip' do
           should contain_class('openstack::ha::swift').with(
             'baremetal_virtual_ip' => baremetal_virtual_ip,

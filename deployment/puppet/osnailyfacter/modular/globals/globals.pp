@@ -218,6 +218,7 @@ $public_vip             = $network_metadata['vips']['public']['ipaddr']
 $management_vip         = $network_metadata['vips']['management']['ipaddr']
 $public_vrouter_vip     = $network_metadata['vips']['vrouter_pub']['ipaddr']
 $management_vrouter_vip = $network_metadata['vips']['vrouter']['ipaddr']
+$vips                   = $network_metadata['vips']
 
 $database_vip = is_hash($network_metadata['vips']['database']) ? {
   true    => pick($network_metadata['vips']['database']['ipaddr'], $management_vip),

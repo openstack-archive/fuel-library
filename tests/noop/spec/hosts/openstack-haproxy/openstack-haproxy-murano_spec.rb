@@ -7,7 +7,7 @@ describe manifest do
     use_murano = Noop.hiera_structure('murano/enabled', false)
     use_cfapi_murano = Noop.hiera_structure('murano-cfapi/enabled', false)
 
-    if use_murano
+    if use_murano and !Noop.hiera('external_lb', false)
       it "should properly configure murano haproxy based on ssl" do
         public_ssl_murano = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('murano-api').with(
