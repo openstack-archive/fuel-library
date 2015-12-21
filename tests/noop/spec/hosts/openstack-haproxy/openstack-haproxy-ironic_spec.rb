@@ -10,7 +10,7 @@ if ironic_enabled
       baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
       public_ssl_ironic = Noop.hiera_structure('public_ssl/services', false)
 
-      if use_ironic
+      if use_ironic and !Noop.hiera('external_lb', false)
         it "should properly configure ironic haproxy based on ssl" do
           should contain_openstack__ha__haproxy_service('ironic').with(
             'order'                  => '180',
