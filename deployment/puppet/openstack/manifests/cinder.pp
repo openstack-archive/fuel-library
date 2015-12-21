@@ -253,11 +253,6 @@ class openstack::cinder(
 
   if $keystone_enabled {
     cinder_config {
-      'keystone_authtoken/auth_uri':          value => $auth_uri;
-      'keystone_authtoken/identity_uri':      value => $identity_uri;
-      'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
-      'keystone_authtoken/admin_user':        value => $keystone_user;
-      'keystone_authtoken/admin_password':    value => $cinder_user_password;
       'keystone_authtoken/signing_dir':       value => '/tmp/keystone-signing-cinder';
       'keystone_authtoken/signing_dirname':   value => '/tmp/keystone-signing-cinder';
     }
