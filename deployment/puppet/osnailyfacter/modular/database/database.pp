@@ -35,6 +35,8 @@ $status_password          = $mysql_hash['wsrep_password']
 $backend_port             = '3307'
 $backend_timeout          = '10'
 
+$external_lb = hiera('external_lb', false)
+
 #############################################################################
 validate_string($status_password)
 validate_string($mysql_database_password)
@@ -113,9 +115,20 @@ if $enabled {
     only_from       => "127.0.0.1 240.0.0.2 ${management_networks}",
   }
 
+  if $external_lb {
+    Haproxy_backend_status<||> {
+      provider => 'http',
+    }
+  }
+
   haproxy_backend_status { 'mysql':
     name => 'mysqld',
-    url  => $haproxy_stats_url,
+    url  => $external_lb ? {
+      default => $haproxy_stats_url,
+      # You should setup HTTP frontend for mysqld-status on yout external LB.
+      # Otherwise it's impossible to wait for mysql cluster to sync.
+      true    => "http://${database_vip}:49000",
+    },
   }
 
   class { 'osnailyfacter::mysql_access':
