@@ -58,21 +58,45 @@ describe manifest do
     let(:repository_url) { Noop.hiera_structure('murano_settings/murano_repo_url', default_repository_url) }
 
     let(:api_bind_port) { '8082' }
-    let(:internal_url) { "http://#{bind_address}:#{api_bind_port}" }
 
     let(:sql_connection) do
       read_timeout = '60'
       "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
     end
 
-    admin_auth_protocol = 'http'
-    admin_auth_address = Noop.hiera('service_endpoint')
+    let(:ssl_hash) { Noop.hiera_structure 'use_ssl', {} }
+
+    let(:admin_auth_protocol) {
+      Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin',
+        'protocol','http'
+    }
+
+    let(:admin_auth_address) {
+      Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin',
+        'hostname',[Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')]
+    }
+
+    let(:admin_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
+
+    let (:murano_protocol){
+      Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'murano',
+        'internal', 'protocol', 'http'
+    }
+
+    let (:murano_address){
+      Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'murano',
+        'internal', 'hostname',
+        [Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')]
+    }
+
+    let (:murano_url){
+      "#{murano_protocol}://#{murano_address}:#{api_bind_port}"
+    }
+
     primary_controller = Noop.hiera 'primary_controller'
     if Noop.hiera_structure('use_ssl', false)
       public_auth_protocol = 'https'
       public_auth_address = Noop.hiera_structure('use_ssl/keystone_public_hostname')
-      admin_auth_protocol = 'https'
-      admin_auth_address = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
     elsif Noop.hiera_structure('public_ssl/services', false)
       public_auth_protocol = 'https'
       public_auth_address = Noop.hiera_structure('public_ssl/hostname')
@@ -177,9 +201,36 @@ describe manifest do
         it {
           should contain_haproxy_backend_status('murano-api').that_comes_before('Murano::Application[io.murano]')
         }
+        # Test for non-haproxy backend
+        it {
+          if Noop.hiera('external_lb', false)
+            url = admin_url
+            provider = 'http'
+          else
+            url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+            provider = nil
+          end
+          should contain_haproxy_backend_status('keystone-admin').with(
+            :url      => url,
+            :provider => provider
+          )
+        }
       end
-    end
 
+      it {
+        if Noop.hiera('external_lb', false)
+          url = murano_url
+          provider = 'http'
+        else
+          url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+          provider = nil
+        end
+        should contain_haproxy_backend_status('murano-api').with(
+          :url      => url,
+          :provider => provider
+        )
+      }
+    end
   end
 
   test_ubuntu_and_centos manifest
