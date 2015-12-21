@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 describe Puppet::Type.type(:hiera_config).provider(:ruby) do
   let(:params) do
     {
@@ -64,18 +66,17 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
     {
         'plugin1' => {
             'metadata' => {
-                'plugin_id' => '1',
             },
         },
         'plugin2' => {
             'metadata' => {
-                'plugin_id' => '2',
             },
         },
         'a' => 'b',
         'c' => {
             'metadata' => 'd'
         },
+        'plugins' => %w(plugin1 plugin2),
     }
   end
 
@@ -114,7 +115,7 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
       expect(provider.override_directory_entries).to eq hierarchy_override
     end
 
-    it 'can get the list of elements fro mthe metadata file' do
+    it 'can get the list of elements from the metadata file' do
       resource[:metadata_yaml_file] = '/etc/astute.yaml'
       expect(provider.metadata_plugin_entries).to eq metadata_plugins_list
     end
