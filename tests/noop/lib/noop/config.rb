@@ -1,0 +1,7 @@
+require_relative 'config/base'
+require_relative 'config/hiera'
+require_relative 'config/misc'
+require_relative 'config/override/facts'
+require_relative 'config/override/hiera'
+require_relative 'config/options'
+require_relative 'config/globals'
