@@ -54,6 +54,13 @@ describe manifest do
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
+    nova_internal_protocol = Noop.puppet_function 'get_ssl_property',
+      Noop.hiera('use_ssl', {}), {}, 'nova', 'internal', 'protocol', 'http'
+    nova_endpoint = Noop.hiera('nova_endpoint', Noop.hiera('management_vip'))
+    nova_internal_endpoint = Noop.puppet_function 'get_ssl_property',
+      Noop.hiera('use_ssl', {}), {}, 'nova', 'internal', 'hostname', [nova_endpoint]
+
+
     # TODO All this stuff should be moved to shared examples controller* tests.
 
     it 'should configure default_log_levels' do
@@ -176,6 +183,20 @@ describe manifest do
       end
     end
 
+    if Noop.hiera('external_lb', false)
+      url = "#{nova_internal_protocol}://#{nova_internal_endpoint}:8774"
+      provider = 'http'
+    else
+      url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+      provider = nil
+    end
+
+    it {
+      should contain_haproxy_backend_status('nova-api').with(
+        :url      => url,
+        :provider => provider
+      )
+    }
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest

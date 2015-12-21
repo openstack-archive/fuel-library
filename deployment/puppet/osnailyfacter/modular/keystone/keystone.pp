@@ -98,6 +98,8 @@ if has_key($murano_settings_hash, 'murano_repo_url') {
   $murano_repo_url = 'http://storage.apps.openstack.org'
 }
 
+$external_lb = hiera('external_lb', false)
+
 ###############################################################################
 
 ####### KEYSTONE ###########
@@ -221,14 +223,26 @@ Class['openstack::auth_file']
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
+if $external_lb {
+  Haproxy_backend_status<||> {
+    provider => 'http',
+  }
+}
+
 haproxy_backend_status { 'keystone-public' :
   name => 'keystone-1',
-  url  => $haproxy_stats_url,
+  url  => $external_lb ? {
+    default => $haproxy_stats_url,
+    true    => $internal_url,
+  },
 }
 
 haproxy_backend_status { 'keystone-admin' :
   name => 'keystone-2',
-  url  => $haproxy_stats_url,
+  url  => $external_lb ? {
+    default => $haproxy_stats_url,
+    true    => $admin_url,
+  },
 }
 
 Service['keystone'] -> Haproxy_backend_status<||>
