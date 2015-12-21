@@ -47,6 +47,15 @@ Puppet::Type.newtype(:haproxy_backend_status) do
     end
   end
 
+  newparam(:ssl_verify_mode) do
+    desc 'HTTPS SSL verify mode. Defaults to `default` which means built-in default.'
+    newvalues('none', 'peer', 'default')
+    defaultto 'default'
+    munge do |value|
+      value.to_s
+    end
+  end
+
   def validate
     unless self[:socket].nil? ^ self[:url].nil?
       raise 'You should give either url or socket to get HAProxy status and not both!'
