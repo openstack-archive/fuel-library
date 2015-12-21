@@ -32,7 +32,7 @@ fixtures:
       branch: '7.0.0-mos-rc2'
     'ceilometer':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-ceilometer.git'
-      branch: '7.0.0-mos-rc2'
+      branch: '7.0.0-rc3'
     'cinder':
       repo: 'https://review.fuel-infra.org/puppet-modules/openstack-cinder.git'
       branch: '7.0.0-mos-rc2'
@@ -55,3 +55,5 @@ fixtures:
     'corosync': "#{source_dir}/../corosync"
     'pacemaker': "#{source_dir}/../pacemaker"
     'haproxy': "#{source_dir}/../haproxy"
+    'ceilometer_ha': "#{source_dir}/../ceilometer_ha"
+    'pacemaker_wrappers': "#{source_dir}/../pacemaker_wrappers"

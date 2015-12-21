@@ -80,7 +80,7 @@ class openstack::keystone (
   $cache_backend               = 'keystone.cache.memcache_pool',
   $token_provider              = undef,
   $revoke_driver               = false,
-  $ceilometer                  = false,
+  $notification_driver         = undef,
   $service_workers             = $::processorcount,
   $fernet_src_repository       = undef,
   $fernet_key_repository       = '/etc/keystone/fernet-keys',
@@ -104,14 +104,6 @@ class openstack::keystone (
     $admin_real = $admin_address
   } else {
     $admin_real = $internal_real
-  }
-
-  if $ceilometer {
-    $notification_driver = 'messagingv2'
-    $notification_topics = 'notifications'
-  } else {
-    $notification_driver = false
-    $notification_topics = false
   }
 
   if $memcache_servers {
@@ -162,7 +154,6 @@ class openstack::keystone (
       token_driver                 => $token_driver,
       token_provider               => $token_provider,
       notification_driver          => $notification_driver,
-      notification_topics          => $notification_topics,
       token_caching                => $token_caching,
       cache_backend                => $cache_backend,
       revoke_driver                => $revoke_driver,

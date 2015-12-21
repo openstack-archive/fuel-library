@@ -63,6 +63,16 @@ describe manifest do
     end
   end
 
+  let :ceilometer_hash do
+    Noop.hiera 'ceilometer_hash', { 'enabled' => false }
+  end
+
+  if ceilometer_hash['enabled']
+    it 'should contain notification_driver option' do
+      should contain_cinder_config('DEFAULT/notification_driver').with(:value => ceilometer_hash['notification_driver'])
+    end
+  end
+
   end
   test_ubuntu_and_centos manifest
 end

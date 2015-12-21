@@ -278,7 +278,7 @@ class { 'openstack::compute':
   cinder_iscsi_bind_addr      => get_network_role_property('cinder/iscsi', 'ipaddr'),
   cinder_user_password        => $cinder_hash[user_password],
   cinder_db_password          => $cinder_hash[db_password],
-  ceilometer                  => $ceilometer_hash[enabled],
+  notification_driver         => $ceilometer_hash['notification_driver'],
   ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
   ceilometer_user_password    => $ceilometer_hash[user_password],
   db_host                     => $db_host,
