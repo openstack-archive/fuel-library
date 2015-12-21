@@ -6,7 +6,7 @@ describe manifest do
   use_cinder = Noop.hiera_structure('cinder/enabled', true)
 
   shared_examples 'catalog' do
-    if use_cinder
+    if use_cinder and !Noop.hiera('external_lb', false)
       it "should properly configure cinder haproxy based on ssl" do
         public_ssl_cinder = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('cinder-api').with(

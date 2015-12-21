@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
     use_neutron = Noop.hiera('use_neutron', false)
 
-    if use_neutron
+    if use_neutron and !Noop.hiera('external_lb', false)
       it "should properly configure neutron haproxy based on ssl" do
         public_ssl_neutron = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('neutron').with(
