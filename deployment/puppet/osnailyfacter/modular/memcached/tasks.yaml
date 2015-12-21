@@ -1,5 +1,6 @@
 - id: memcached
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end, keystone]
   requires: [openstack-haproxy]

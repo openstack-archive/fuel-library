@@ -1,5 +1,6 @@
 - id: ironic-api
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   condition: "settings:additional_components.ironic.value == true"
   required_for: [openstack-controller]
@@ -11,6 +12,7 @@
 
 - id: ironic-db
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
@@ -24,6 +26,7 @@
 
 - id: ironic-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   condition: "settings:additional_components.ironic.value == true"
   required_for: [ironic-api]

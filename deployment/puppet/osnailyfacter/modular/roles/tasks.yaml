@@ -1,5 +1,6 @@
 - id: controller_remaining_tasks
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   parameters:
@@ -9,6 +10,7 @@
 
 - id: top-role-compute
   type: puppet
+  version: 2.0.0
   groups: [compute]
   required_for: [deploy_end]
   requires: [hosts, firewall]
@@ -24,6 +26,7 @@
 
 - id: top-role-cinder
   type: puppet
+  version: 2.0.0
   groups: [cinder, cinder-block-device, cinder-vmware]
   required_for: [deploy_end]
   requires: [hosts, firewall]
@@ -36,6 +39,7 @@
 
 - id: top-role-primary-mongo
   type: puppet
+  version: 2.0.0
   groups: [primary-mongo]
   required_for: [deploy_end]
   requires: [hosts, firewall]
@@ -46,6 +50,7 @@
 
 - id: top-role-mongo
   type: puppet
+  version: 2.0.0
   groups: [mongo]
   required_for: [deploy_end]
   requires: [hosts, firewall]
@@ -56,6 +61,7 @@
 
 - id: ironic-conductor
   type: puppet
+  version: 2.0.0
   groups: [ironic]
   required_for: [deploy_end]
   requires: [hosts, firewall]
@@ -69,6 +75,7 @@
 
 - id: ironic-compute
   type: puppet
+  version: 2.0.0
   groups: [ironic]
   required_for: [deploy_end]
   requires: [hosts, firewall, ironic-conductor]

@@ -1,5 +1,6 @@
 - id: generate_vms
   type: puppet
+  version: 2.0.0
   groups: [virt]
   requires: [netconfig]
   required_for: [deploy_end]
