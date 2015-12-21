@@ -89,7 +89,7 @@ class openstack::ceilometer (
 
   if ($on_controller) {
     # Configure the ceilometer database
-    # Only needed if ceilometer::agent::central or ceilometer::api are declared
+    # Only needed if ceilometer::agent::polling or ceilometer::api are declared
 
     if ( !$ext_mongo ) {
       if ( $db_type == 'mysql' ) {
@@ -114,7 +114,7 @@ class openstack::ceilometer (
     }
 
     ceilometer_config { 'service_credentials/os_endpoint_type': value => $os_endpoint_type} ->
-    Service<| title == 'ceilometer-agent-central'|>
+    Service<| title == 'ceilometer-polling'|>
 
     class { '::ceilometer::db':
       database_connection => $current_database_connection,
@@ -147,8 +147,6 @@ class openstack::ceilometer (
       collector_workers => $collector_workers,
     }
 
-    class { '::ceilometer::agent::central': }
-
     class { '::ceilometer::alarm::evaluator':
       evaluation_interval => 60,
     }
@@ -162,13 +160,13 @@ class openstack::ceilometer (
 
     if $ha_mode {
       include ceilometer_ha::agent::central
-
-      Package[$::ceilometer::params::common_package_name] -> Class['::ceilometer_ha::agent::central']
-      Package[$::ceilometer::params::agent_central_package_name] -> Class['::ceilometer_ha::agent::central']
+      Service['ceilometer-polling'] -> Class['::ceilometer_ha::agent::central']
     }
-    else {
-      Package[$::ceilometer::params::common_package_name] -> Service[$::ceilometer::params::agent_central_service_name]
-      Package[$::ceilometer::params::agent_central_package_name] -> Service[$::ceilometer::params::agent_central_service_name]
+
+    class { '::ceilometer::agent::polling':
+      enabled           => !$ha_mode,
+      compute_namespace => false,
+      ipmi_namespace    => false
     }
   }
 
@@ -217,11 +215,13 @@ class openstack::ceilometer (
         }
       }
     }
-    # Install compute agent
-    class { 'ceilometer::agent::compute':
-      enabled => true,
+    # Install polling agent
+    class { '::ceilometer::agent::polling':
+      central_namespace => false,
+      ipmi_namespace    => false
     }
+
     ceilometer_config { 'service_credentials/os_endpoint_type': value => $os_endpoint_type} ->
-    Service<| title == 'ceilometer-agent-compute'|>
+    Service<| title == 'ceilometer-polling'|>
   }
 }
