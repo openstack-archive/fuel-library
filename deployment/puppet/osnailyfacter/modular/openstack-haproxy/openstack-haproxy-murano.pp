@@ -14,8 +14,9 @@ $internal_ssl_path  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'pat
 
 $network_metadata   = hiera_hash('network_metadata')
 $murano_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, hiera('murano_roles')), 'murano/api')
+$external_lb        = hiera('external_lb', false)
 
-if ($use_murano) {
+if ($use_murano and !$external_lb) {
   $server_names        = hiera_array('murano_names',keys($murano_address_map))
   $ipaddresses         = hiera_array('murano_ipaddresses', values($murano_address_map))
   $public_virtual_ip   = hiera('public_vip')

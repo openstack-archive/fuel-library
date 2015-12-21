@@ -8,6 +8,7 @@ $management_vip   = hiera('management_vip')
 $service_endpoint = hiera('service_endpoint')
 $public_ssl_hash  = hiera('public_ssl')
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
+$external_lb      = hiera('external_lb', false)
 
 if ($storage_hash['volumes_ceph'] or
   $storage_hash['images_ceph'] or
@@ -43,18 +44,30 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
+  if $external_lb {
+    Haproxy_backend_status<||> {
+      provider => 'http',
+    }
+  }
+
   haproxy_backend_status { 'keystone-admin' :
     name  => 'keystone-2',
     count => '200',
     step  => '6',
-    url   => $haproxy_stats_url,
+    url   => $external_lb ? {
+      default => $haproxy_stats_url,
+      true    => "http://${service_endpoint}:35357",
+    },
   }
 
   haproxy_backend_status { 'keystone-public' :
     name  => 'keystone-1',
     count => '200',
     step  => '6',
-    url   => $haproxy_stats_url,
+    url   => $external_lb ? {
+      default => $haproxy_stats_url,
+      true    => "http://${service_endpoint}:5000",
+    },
   }
 
   Haproxy_backend_status['keystone-admin']  -> Class ['ceph::keystone']

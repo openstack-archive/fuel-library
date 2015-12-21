@@ -16,7 +16,9 @@ $internal_ssl_path = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'path
 #todo(sv): change to 'glance' as soon as glance as node-role was ready
 $glances_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller']), 'glance/api')
 
-if ($use_glance) {
+$external_lb = hiera('external_lb', false)
+
+if ($use_glance and !$external_lb) {
   $server_names        = hiera_array('glance_names', keys($glances_address_map))
   $ipaddresses         = hiera_array('glance_ipaddresses', values($glances_address_map))
   $public_virtual_ip   = hiera('public_vip')

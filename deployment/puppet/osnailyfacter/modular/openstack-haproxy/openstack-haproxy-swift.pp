@@ -14,6 +14,8 @@ $internal_ssl_path = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'path'
 
 $ironic_hash       = hiera_hash('ironic', {})
 
+$external_lb       = hiera('external_lb', false)
+
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
   $use_swift = true
 } else {
@@ -22,7 +24,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 
 $swift_proxies_address_map = get_node_to_ipaddr_map_by_network_role($swift_proxies, 'swift/api')
 
-if ($use_swift) {
+if ($use_swift and !$external_lb) {
 
   $server_names        = hiera_array('swift_server_names', keys($swift_proxies_address_map))
   $ipaddresses         = hiera_array('swift_ipaddresses', values($swift_proxies_address_map))

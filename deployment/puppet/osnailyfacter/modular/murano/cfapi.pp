@@ -15,6 +15,9 @@ $public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'key
 $internal_api_protocol      = 'http'
 $cfapi_bind_host            = get_network_role_property('murano/cfapi', 'ipaddr')
 
+$service_endpoint           = hiera('service_endpoint')
+$external_lb                = hiera('external_lb', false)
+
 #################################################################
 
 if $murano_cfapi_hash['enabled'] {
@@ -43,9 +46,18 @@ if $murano_cfapi_hash['enabled'] {
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
+  if $external_lb {
+    Haproxy_backend_status<||> {
+      provider => 'http',
+    }
+  }
+
   haproxy_backend_status { 'murano-cfapi' :
     name => 'murano-cfapi',
-    url  => $haproxy_stats_url,
+    url  => $external_lb ? {
+      default => $haproxy_stats_url,
+      true    => "http://${service_endpoint}:${cfapi_bind_port}",
+    },
   }
 
   Firewall[$firewall_rule] -> Class['murano::cfapi']

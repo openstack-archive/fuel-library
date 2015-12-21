@@ -47,6 +47,7 @@ $database_name            = hiera('heat_db_name', 'heat')
 $read_timeout             = '60'
 $sql_connection           = "mysql://${database_user}:${database_password}@${db_host}/${database_name}?read_timeout=${read_timeout}"
 $region                   = hiera('region', 'RegionOne')
+$external_lb              = hiera('external_lb', false)
 
 ####### Disable upstart startup on install #######
 if $::operatingsystem == 'Ubuntu' {
@@ -141,11 +142,20 @@ class { 'heat::docker_resource' :
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
+if $external_lb {
+  Haproxy_backend_status<||> {
+    provider => 'http',
+  }
+}
+
 haproxy_backend_status { 'keystone-admin' :
   name  => 'keystone-2',
   count => '200',
   step  => '6',
-  url   => $haproxy_stats_url,
+  url   => $external_lb ? {
+    default => $haproxy_stats_url,
+    true    => $identity_uri,
+  },
 }
 
 class { 'heat::keystone::domain' :
