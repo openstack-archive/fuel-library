@@ -26,35 +26,37 @@ describe manifest do
     internal_virtual_ip = Noop.hiera('management_vip')
     public_ssl = Noop.hiera_structure('public_ssl/services')
 
-    it 'should configure glance haproxy' do
-      should contain_openstack__ha__haproxy_service('glance-api').with(
-        'order'                  => '080',
-        'listen_port'            => 9292,
-        'require_service'        => 'glance-api',
+    unless Noop.hiera('external_lb', false)
+      it 'should configure glance haproxy' do
+        should contain_openstack__ha__haproxy_service('glance-api').with(
+          'order'                  => '080',
+          'listen_port'            => 9292,
+          'require_service'        => 'glance-api',
 
-        # common parameters
-        'internal_virtual_ip'    => internal_virtual_ip,
-        'ipaddresses'            => ipaddresses,
-        'public_virtual_ip'      => public_virtual_ip,
-        'server_names'           => server_names,
-        'public'                 => 'true',
-        'public_ssl'             => public_ssl,
-        'require_service'        => 'glance-api',
-        'haproxy_config_options' => {
-          'option'         => ['httpchk /versions', 'httplog', 'httpclose'],
-          'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-          'timeout server' => '11m',
-         },
-        'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3'
-      )
+          # common parameters
+          'internal_virtual_ip'    => internal_virtual_ip,
+          'ipaddresses'            => ipaddresses,
+          'public_virtual_ip'      => public_virtual_ip,
+          'server_names'           => server_names,
+          'public'                 => 'true',
+          'public_ssl'             => public_ssl,
+          'require_service'        => 'glance-api',
+          'haproxy_config_options' => {
+            'option'         => ['httpchk /versions', 'httplog', 'httpclose'],
+            'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+            'timeout server' => '11m',
+           },
+          'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3'
+        )
 
-      should contain_openstack__ha__haproxy_service('glance-registry').with(
-        'order'           => '090',
-        'listen_port'     => 9191,
-        'haproxy_config_options' => {
-          'timeout server' => '11m',
-         },
-      )
+        should contain_openstack__ha__haproxy_service('glance-registry').with(
+          'order'           => '090',
+          'listen_port'     => 9191,
+          'haproxy_config_options' => {
+            'timeout server' => '11m',
+           },
+        )
+      end
     end
   end
   test_ubuntu_and_centos manifest
