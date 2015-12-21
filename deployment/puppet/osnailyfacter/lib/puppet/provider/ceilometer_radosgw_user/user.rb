@@ -10,7 +10,7 @@ Puppet::Type.type(:ceilometer_radosgw_user).provide(:user) do
   INI_FILENAME = '/etc/ceilometer/ceilometer.conf'
 
   def exists?
-    !(@property_hash[:ensure] == :absent or @property_hash.empty?)
+    get_user_keys == get_access_keys_from_config
   end
 
   def create
@@ -32,6 +32,8 @@ Puppet::Type.type(:ceilometer_radosgw_user).provide(:user) do
 
   def set_access_keys
     user_keys = get_user_keys
+    user_keys = create_radosgw_user if user_keys.empty?
+
     keys = get_access_keys_from_config
     if ceilometer_file and user_keys != keys
       ceilometer_file.add_section(section, ini_filename) unless ceilometer_file.include?(section)
@@ -68,25 +70,15 @@ Puppet::Type.type(:ceilometer_radosgw_user).provide(:user) do
   def get_user_keys
     cmd = ['user', 'info', "--uid=#{@resource[:name]}"]
     begin
-      hash_as_string = rgw_adm(cmd)
+      rgw_output = rgw_adm(cmd)
     rescue Exception => e
       if e.message =~ /could not fetch user info: no user info saved/
-        hash_as_string = create_radosgw_user
+        return {}
       else
         raise e
       end
     end
-
-    hash = JSON.parse hash_as_string.to_s.gsub('=>', ':')
-    keys = {}
-    hash['keys'].each do |key|
-      if key['user'] == "#{@resource[:name]}"
-        keys['access_key'] = key['access_key']
-        keys['secret_key'] = key['secret_key']
-      end
-    end
-
-    keys
+    parse_radosgw_output(rgw_output)
   end
 
   def create_radosgw_user
@@ -97,6 +89,19 @@ Puppet::Type.type(:ceilometer_radosgw_user).provide(:user) do
       rgw_adm(cmd)
     end
     cmd = ['user', 'info', "--uid=#{@resource[:name]}"]
-    return rgw_adm(cmd)
+    parse_radosgw_output(rgw_adm(cmd))
   end
+
+  def parse_radosgw_output(rgw_output)
+    hash = JSON.parse rgw_output.to_s.gsub('=>', ':')
+    keys = {}
+    hash['keys'].each do |key|
+      if key['user'] == "#{@resource[:name]}"
+        keys['access_key'] = key['access_key']
+        keys['secret_key'] = key['secret_key']
+      end
+    end
+    keys
+  end
+
 end

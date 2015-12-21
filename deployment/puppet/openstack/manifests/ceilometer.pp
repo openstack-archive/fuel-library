@@ -147,8 +147,6 @@ class openstack::ceilometer (
       collector_workers => $collector_workers,
     }
 
-    class { '::ceilometer::agent::central': }
-
     class { '::ceilometer::alarm::evaluator':
       evaluation_interval => 60,
     }
@@ -163,12 +161,21 @@ class openstack::ceilometer (
     if $ha_mode {
       include ceilometer_ha::agent::central
 
-      Package[$::ceilometer::params::common_package_name] -> Class['::ceilometer_ha::agent::central']
-      Package[$::ceilometer::params::agent_central_package_name] -> Class['::ceilometer_ha::agent::central']
+      # Disable base service
+      $manage_service = false
+      $enabled        = false
+
+      Service['ceilometer-polling'] -> Class['::ceilometer_ha::agent::central']
+    } else {
+      $manage_service = true
+      $enabled        = true
     }
-    else {
-      Package[$::ceilometer::params::common_package_name] -> Service[$::ceilometer::params::agent_central_service_name]
-      Package[$::ceilometer::params::agent_central_package_name] -> Service[$::ceilometer::params::agent_central_service_name]
+
+    class { '::ceilometer::agent::polling':
+      manage_service    => $manage_service,
+      enabled           => $enabled,
+      compute_namespace => false,
+      ipmi_namespace    => false
     }
   }
 
@@ -217,10 +224,12 @@ class openstack::ceilometer (
         }
       }
     }
-    # Install compute agent
-    class { 'ceilometer::agent::compute':
-      enabled => true,
+    # Install polling agent
+    class { '::ceilometer::agent::polling':
+      central_namespace => false,
+      ipmi_namespace    => false
     }
+
     ceilometer_config { 'service_credentials/os_endpoint_type': value => $os_endpoint_type} ->
     Service<| title == 'ceilometer-agent-compute'|>
   }
