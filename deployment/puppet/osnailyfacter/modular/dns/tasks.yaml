@@ -1,5 +1,6 @@
 - id: primary-dns-server
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [openstack-haproxy]
@@ -10,6 +11,7 @@
 
 - id: dns-server
   type: puppet
+  version: 2.0.0
   groups: [controller]
   required_for: [deploy_end]
   requires: [openstack-haproxy]
@@ -22,6 +24,7 @@
 
 - id: dns-client
   type: puppet
+  version: 2.0.0
   role: [primary-mongo, mongo, primary-controller, controller, compute, ceph-osd, cinder, cinder-vmware]
   requires: [post_deployment_start]
   required_for: [ntp-client]

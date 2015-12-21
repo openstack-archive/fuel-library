@@ -1,5 +1,6 @@
 - id: virtual_ips
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-cluster,cluster]
@@ -15,6 +16,7 @@
 
 - id: conntrackd
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [virtual_ips,cluster,primary-cluster]

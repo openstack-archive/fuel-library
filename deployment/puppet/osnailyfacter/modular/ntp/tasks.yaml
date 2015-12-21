@@ -1,5 +1,6 @@
 - id: ntp-server
   type: puppet
+  version: 2.0.0
   role: [primary-controller, controller]
   required_for: [ntp-client]
   requires: [dns-client]
@@ -14,6 +15,7 @@
 
 - id: ntp-client
   type: puppet
+  version: 2.0.0
   role: [primary-mongo, mongo, compute, ceph-osd, cinder, cinder-vmware]
   requires: [dns-client]
   cross-depends:
@@ -30,6 +32,7 @@
 
 - id: ntp-check
   type: puppet
+  version: 2.0.0
   role: [primary-controller, controller]
   required_for: [ntp-server]
   requires: [dns-client]

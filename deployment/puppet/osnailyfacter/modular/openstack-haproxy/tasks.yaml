@@ -1,5 +1,6 @@
 - id: openstack-haproxy
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, openstack-haproxy-ceilometer, openstack-haproxy-cinder, openstack-haproxy-glance, openstack-haproxy-heat, openstack-haproxy-horizon, openstack-haproxy-keystone, openstack-haproxy-murano, openstack-haproxy-mysqld, openstack-haproxy-neutron, openstack-haproxy-nova, openstack-haproxy-radosgw, openstack-haproxy-sahara, openstack-haproxy-swift, openstack-haproxy-stats, openstack-haproxy-ironic]
@@ -12,6 +13,7 @@
 
 - id: openstack-haproxy-horizon
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -29,6 +31,7 @@
 
 - id: openstack-haproxy-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-cluster-haproxy, cluster-haproxy]
@@ -46,6 +49,7 @@
 
 - id: openstack-haproxy-nova
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -63,6 +67,7 @@
 
 - id: openstack-haproxy-heat
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -80,6 +85,7 @@
 
 - id: openstack-haproxy-glance
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -97,6 +103,7 @@
 
 - id: openstack-haproxy-cinder
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -114,6 +121,7 @@
 
 - id: openstack-haproxy-neutron
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -131,6 +139,7 @@
 
 - id: openstack-haproxy-mysqld
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -148,6 +157,7 @@
 
 - id: openstack-haproxy-swift
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -165,6 +175,7 @@
 
 - id: openstack-haproxy-radosgw
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -182,6 +193,7 @@
 
 - id: openstack-haproxy-ceilometer
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -199,6 +211,7 @@
 
 - id: openstack-haproxy-sahara
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -216,6 +229,7 @@
 
 - id: openstack-haproxy-murano
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -233,6 +247,7 @@
 
 - id: openstack-haproxy-stats
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
@@ -248,6 +263,7 @@
 
 - id: openstack-haproxy-ironic
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   condition: "settings:additional_components.ironic.value == true"
   required_for: [deploy_end]
