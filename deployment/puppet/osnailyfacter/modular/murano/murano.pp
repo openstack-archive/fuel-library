@@ -38,6 +38,8 @@ $admin_auth_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin
 $internal_api_protocol      = 'http'
 $api_bind_host              = get_network_role_property('murano/api', 'ipaddr')
 
+$external_lb                = hiera('external_lb', false)
+
 #################################################################
 
 if $murano_hash['enabled'] {
@@ -141,20 +143,39 @@ if $murano_hash['enabled'] {
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
+  if $external_lb {
+    Haproxy_backend_status<||> {
+      provider => 'http',
+    }
+  }
+
   haproxy_backend_status { 'murano-api' :
     name => 'murano-api',
-    url  => $haproxy_stats_url,
+    url  => $external_lb ? {
+      default => $haproxy_stats_url,
+      true    => "http://${service_endpoint}:${api_bind_port}",
+    },
   }
 
   if roles_include('primary-controller') {
+
+    $internal_auth_url  = "${internal_auth_protocol}://${internal_auth_address}:5000"
+    $admin_identity_url = "${admin_auth_protocol}://${admin_auth_address}:35357"
+
     haproxy_backend_status { 'keystone-public' :
       name  => 'keystone-1',
-      url   => $haproxy_stats_url,
+      url   => $external_lb ? {
+        default => $haproxy_stats_url,
+        true    => $internal_auth_url,
+      },
     }
 
     haproxy_backend_status { 'keystone-admin' :
       name  => 'keystone-2',
-      url   => $haproxy_stats_url,
+      url   => $external_lb ? {
+        default => $haproxy_stats_url,
+        true    => $admin_identity_url,
+      },
     }
 
     murano::application { 'io.murano' : }
