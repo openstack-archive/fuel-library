@@ -49,4 +49,5 @@ class { '::cinder::keystone::auth':
   internal_url_v2     => "${internal_base_url}/v2/%(tenant_id)s",
   admin_url_v2        => "${admin_base_url}/v2/%(tenant_id)s",
   region              => $region,
+  tenant              => $tenant,
 }

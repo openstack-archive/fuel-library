@@ -41,6 +41,7 @@ describe manifest do
     configure_user = Noop.hiera_structure 'cinder/configure_user_role', true
     service_name = Noop.hiera_structure 'cinder/service_name', 'cinder'
     region = Noop.hiera_structure 'cinder/region', 'RegionOne'
+    tenant = Noop.hiera_structure 'cinder/tenant', 'services'
 
     it 'should declare cinder::keystone::auth class with propper parameters' do
       should contain_class('cinder::keystone::auth').with(
@@ -56,6 +57,7 @@ describe manifest do
         'internal_url_v2'    => internal_url_v2,
         'admin_url_v2'       => admin_url_v2,
         'region'             => region,
+        'tenant'             => tenant,
       )
     end
 

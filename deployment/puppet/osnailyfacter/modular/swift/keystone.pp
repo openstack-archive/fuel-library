@@ -42,4 +42,5 @@ class { '::swift::keystone::auth':
   internal_url_s3    => $admin_url_s3,
   admin_url_s3       => $admin_url_s3,
   region             => $region,
+  tenant             => $tenant,
 }
