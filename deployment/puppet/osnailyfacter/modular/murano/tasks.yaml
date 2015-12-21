@@ -1,5 +1,6 @@
 - id: murano
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   condition: "settings:additional_components.murano.value == true"
   required_for: [deploy_end, controller_remaining_tasks]
@@ -15,6 +16,7 @@
 
 - id: murano-db
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
@@ -28,6 +30,7 @@
 
 - id: murano-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
@@ -39,6 +42,7 @@
 
 - id: murano-rabbitmq
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   condition: "settings:additional_components.murano.value == true"
   required_for: [murano]
@@ -53,6 +57,7 @@
 
 - id: murano-cfapi
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   condition: "settings:additional_components.murano-cfapi.value == true"
   requires: [murano]
@@ -63,6 +68,7 @@
 
 - id: murano-cfapi-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   condition: "settings:additional_components.murano-cfapi.value == true"
   required_for: [murano-cfapi]

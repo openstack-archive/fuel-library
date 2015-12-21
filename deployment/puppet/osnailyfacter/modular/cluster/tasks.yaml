@@ -1,5 +1,6 @@
 - id: cluster
   type: puppet
+  version: 2.0.0
   groups: [controller]
   cross-depends:
     - name: primary-cluster
@@ -14,6 +15,7 @@
 
 - id: primary-cluster
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
@@ -26,6 +28,7 @@
 
 - id: cluster_health
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-cluster, cluster]
