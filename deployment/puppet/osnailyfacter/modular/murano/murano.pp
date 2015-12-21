@@ -35,8 +35,9 @@ $internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'inter
 $admin_auth_protocol        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
 $admin_auth_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
-$internal_api_protocol      = 'http'
 $api_bind_host              = get_network_role_property('murano/api', 'ipaddr')
+
+$external_lb                = hiera('external_lb', false)
 
 #################################################################
 
@@ -48,7 +49,6 @@ if $murano_hash['enabled'] {
 
   $murano_user    = pick($murano_hash['user'], 'murano')
   $tenant         = pick($murano_hash['tenant'], 'services')
-  $internal_url   = "${internal_api_protocol}://${api_bind_host}:${api_bind_port}"
   $db_user        = pick($murano_hash['db_user'], 'murano')
   $db_name        = pick($murano_hash['db_name'], 'murano')
   $db_password    = pick($murano_hash['db_password'])
@@ -141,20 +141,42 @@ if $murano_hash['enabled'] {
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
+  if $external_lb {
+    Haproxy_backend_status<||> {
+      provider => 'http',
+    }
+    $murano_protocol = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'protocol', 'http')
+    $murano_address  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'hostname', [$service_endpoint, $management_vip])
+    $murano_url      = "${murano_protocol}://${murano_address}:${api_bind_port}"
+  }
+
   haproxy_backend_status { 'murano-api' :
     name => 'murano-api',
-    url  => $haproxy_stats_url,
+    url  => $external_lb ? {
+      default => $haproxy_stats_url,
+      true    => $murano_url,
+    },
   }
 
   if roles_include('primary-controller') {
+
+    $internal_auth_url  = "${internal_auth_protocol}://${internal_auth_address}:5000"
+    $admin_identity_url = "${admin_auth_protocol}://${admin_auth_address}:35357"
+
     haproxy_backend_status { 'keystone-public' :
       name  => 'keystone-1',
-      url   => $haproxy_stats_url,
+      url   => $external_lb ? {
+        default => $haproxy_stats_url,
+        true    => $internal_auth_url,
+      },
     }
 
     haproxy_backend_status { 'keystone-admin' :
       name  => 'keystone-2',
-      url   => $haproxy_stats_url,
+      url   => $external_lb ? {
+        default => $haproxy_stats_url,
+        true    => $admin_identity_url,
+      },
     }
 
     murano::application { 'io.murano' : }
