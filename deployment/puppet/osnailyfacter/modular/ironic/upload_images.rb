@@ -24,7 +24,7 @@ ENV['OS_REGION_NAME']="#{region_name}"
 
 ironic_images = [
 {"os_name"=>"ironic-deploy-linux",
- "img_location"=>"http://#{master_ip}:8080/bootstrap/ironic/#{cid}/linux",
+ "img_location"=>"http://#{master_ip}:8080/bootstrap/ironic/#{cid}/vmlinuz",
  "container_format"=>"aki",
  "min_ram"=>2048,
  "disk_format"=>"aki",
@@ -34,7 +34,7 @@ ironic_images = [
  "protected"=>"true",
 },
 {"os_name"=>"ironic-deploy-initramfs",
- "img_location"=>"http://#{master_ip}:8080/bootstrap/ironic/#{cid}/initramfs.img",
+ "img_location"=>"http://#{master_ip}:8080/bootstrap/ironic/#{cid}/initrd.img",
  "container_format"=>"ari",
  "min_ram"=>2048,
  "disk_format"=>"ari",
