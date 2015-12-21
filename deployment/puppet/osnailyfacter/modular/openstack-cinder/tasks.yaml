@@ -1,5 +1,6 @@
 - id: openstack-cinder
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end, openstack-controller]
   requires: [primary-rabbitmq, rabbitmq, keystone, hosts, firewall]
@@ -10,6 +11,7 @@
 
 - id: cinder-db
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-cinder]
   requires: [primary-database, database]
@@ -22,6 +24,7 @@
 
 - id: cinder-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-cinder]
   cross-depends:

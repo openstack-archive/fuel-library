@@ -1,5 +1,6 @@
 - id: database
   type: puppet
+  version: 2.0.0
   groups: [controller]
   required_for: [openstack-controller]
   requires: [deploy_start, openstack-haproxy]
@@ -16,6 +17,7 @@
 
 - id: primary-database
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-controller]
   requires: [deploy_start, openstack-haproxy]
