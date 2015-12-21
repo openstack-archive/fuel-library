@@ -32,6 +32,23 @@ describe manifest do
 
     let(:bind_port) { '8083' }
 
+    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+
+    let (:murano_cfapi_protocol){
+      Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'murano',
+        'internal', 'protocol', 'http'
+    }
+
+    let (:murano_cfapi_address){
+      Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'murano',
+        'internal', 'hostname',
+        [Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')]
+    }
+
+    let (:murano_cfapi_url){
+      "#{murano_cfapi_protocol}://#{murano_cfapi_address}:#{bind_port}"
+    }
+
     if Noop.hiera_structure('use_ssl', false)
       public_auth_protocol = 'https'
       public_auth_address = Noop.hiera_structure('use_ssl/keystone_public_hostname')
@@ -58,7 +75,17 @@ describe manifest do
       end
 
       it {
-        should contain_haproxy_backend_status('murano-cfapi')
+        if Noop.hiera('external_lb', false)
+          url = murano_cfapi_url
+          provider = 'http'
+        else
+          url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+          provider = nil
+        end
+        should contain_haproxy_backend_status('murano-cfapi').with(
+          :url      => url,
+          :provider => provider
+        )
       }
     end
 

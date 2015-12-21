@@ -230,22 +230,37 @@ describe manifest do
       end
     end
 
-     it {
-       should contain_service('httpd').with(
-            'hasrestart' => true,
-            'restart'    => 'sleep 30 && apachectl graceful || apachectl restart'
-       )
-     }
+    it {
+      should contain_service('httpd').with(
+           'hasrestart' => true,
+           'restart'    => 'sleep 30 && apachectl graceful || apachectl restart'
+      )
+    }
 
-     # LP#1508489: Breaks internal-only API
-     it 'should have undefined DEFAULT/public_endpoint' do
-       should contain_keystone_config('DEFAULT/public_endpoint').with(:value => nil)
-     end
+    # LP#1508489: Breaks internal-only API
+    it 'should have undefined DEFAULT/public_endpoint' do
+      should contain_keystone_config('DEFAULT/public_endpoint').with(:value => nil)
+    end
 
-     # FIXME(mattymo): Remove this after LP#1528258 is fixed.
-     it 'should have configured DEFAULT/secure_proxy_ssl_header' do
-       should contain_keystone_config('DEFAULT/secure_proxy_ssl_header').with(:value => 'HTTP_X_FORWARDED_PROTO')
-     end
+    # FIXME(mattymo): Remove this after LP#1528258 is fixed.
+    it 'should have configured DEFAULT/secure_proxy_ssl_header' do
+      should contain_keystone_config('DEFAULT/secure_proxy_ssl_header').with(:value => 'HTTP_X_FORWARDED_PROTO')
+    end
+
+    it {
+      if Noop.hiera('external_lb', false)
+        url = internal_url
+        provider = 'http'
+      else
+        url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+        provider = nil
+      end
+      should contain_haproxy_backend_status('keystone-public').with(
+        :url      => url,
+        :provider => provider
+      )
+    }
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest

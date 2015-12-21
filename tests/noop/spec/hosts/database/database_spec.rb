@@ -53,6 +53,21 @@ describe manifest do
     it { should contain_class('openstack::galera::status').that_comes_before('Haproxy_backend_status[mysql]') }
     it { should contain_haproxy_backend_status('mysql').that_comes_before('Class[osnailyfacter::mysql_access]') }
 
+    if Noop.hiera('external_lb', false)
+      database_vip = Noop.hiera('database_vip', Noop.hiera('management_vip'))
+      url = "http://#{database_vip}:49000"
+      provider = 'http'
+    else
+      url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+      provider = nil
+    end
+
+    it {
+      should contain_haproxy_backend_status('mysql').with(
+        :url      => url,
+        :provider => provider
+      )
+    }
   end
   test_ubuntu_and_centos manifest
 end
