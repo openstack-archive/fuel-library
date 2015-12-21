@@ -52,7 +52,7 @@ describe manifest do
     internal_url = "http://#{management_vip}:5000"
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
-    ceilometer_hash = Noop.hiera_structure 'ceilometer'
+    ceilometer_hash = Noop.hiera 'ceilometer_hash', { 'enabled' => false }
     token_provider = Noop.hiera('token_provider')
     primary_controller = Noop.hiera 'primary_controller'
 
@@ -189,11 +189,11 @@ describe manifest do
       end
     end
 
-     if ceilometer_hash and ceilometer_hash['enabled']
-       it 'should configure notification driver' do
-         should contain_keystone_config('DEFAULT/notification_driver').with(:value => 'messagingv2')
-       end
-     end
+    if ceilometer_hash['enabled']
+      it 'should configure notification driver' do
+        should contain_keystone_config('DEFAULT/notification_driver').with(:value => ceilometer_hash['notification_driver'])
+      end
+    end
 
     if token_provider == 'keystone.token.providers.fernet.Provider'
       it 'should check existence of /etc/keystone/fernet-keys directory' do

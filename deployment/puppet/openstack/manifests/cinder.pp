@@ -3,7 +3,7 @@
 
 # [*syslog_log_facility*] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [*ceilometer*] true if we use ceilometer
+# [*notification_driver*] The driver(s) name to handle notifications. Defaults to undef.
 
 class openstack::cinder(
   $sql_connection,
@@ -42,7 +42,7 @@ class openstack::cinder(
   $identity_uri           = false,
   $keystone_user          = 'cinder',
   $region                 = 'RegionOne',
-  $ceilometer             = false,
+  $notification_driver    = undef,
   $service_workers        = $::processorcount,
   $vmware_host_ip         = '10.10.10.10',
   $vmware_host_username   = 'administrator@vsphere.local',
@@ -266,9 +266,9 @@ class openstack::cinder(
     }
   }
 
-  if $ceilometer {
+  if $notification_driver {
     class { 'cinder::ceilometer':
-      notification_driver => 'messagingv2'
+      notification_driver => $notification_driver
     }
   }
 }

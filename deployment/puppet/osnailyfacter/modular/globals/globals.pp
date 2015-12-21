@@ -68,14 +68,12 @@ $rabbit_hash                    = hiera_hash('rabbit', {})
 $glance_hash                    = hiera_hash('glance', {})
 $swift_hash                     = hiera('swift', {})
 $cinder_hash                    = hiera_hash('cinder', {})
-$ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera_hash('access', {})
 $mp_hash                        = hiera('mp', {})
 $keystone_hash                  = merge({'service_token_off' => $service_token_off},
                                         hiera_hash('keystone', {}))
 
 $dns_nameservers                = hiera('dns_nameservers', [])
-$use_ceilometer                 = $ceilometer_hash['enabled']
 $use_neutron                    = hiera('quantum', false)
 $use_ovs                        = hiera('use_ovs', $use_neutron)
 $verbose                        = true
@@ -370,10 +368,18 @@ $heat_roles = ['primary-controller', 'controller']
 $sahara_roles = ['primary-controller', 'controller']
 
 # Define ceilometer-releated parameters
-if !$ceilometer_hash['alarm_history_time_to_live'] { $ceilometer_hash['alarm_history_time_to_live'] = '604800'}
-if !$ceilometer_hash['event_time_to_live'] { $ceilometer_hash['event_time_to_live'] = '604800'}
-if !$ceilometer_hash['metering_time_to_live'] { $ceilometer_hash['metering_time_to_live'] = '604800' }
-if !$ceilometer_hash['http_timeout'] { $ceilometer_hash['http_timeout'] = '600' }
+$ceilometer = hiera('ceilometer', {})
+$use_ceilometer  = $ceilometer['enabled']
+
+$ceilometer_defaults = {
+  'alarm_history_time_to_live' => '604800',
+  'event_time_to_live'         => '604800',
+  'metering_time_to_live'      => '604800',
+  'http_timeout'               => '600',
+  'notification_driver'        => $use_ceilometer ? { true => 'messagingv2', default => $::os_service_default },
+}
+
+$ceilometer_hash = merge($ceilometer_defaults, $ceilometer)
 
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future

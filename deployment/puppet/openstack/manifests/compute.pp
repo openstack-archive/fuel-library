@@ -135,7 +135,7 @@ class openstack::compute (
   $cinder_rate_limits             = undef,
   $create_networks                = false,
   $state_path                     = '/var/lib/nova',
-  $ceilometer                     = false,
+  $notification_driver            = 'noop',
   $ceilometer_metering_secret     = 'ceilometer',
   $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
   $storage_hash                   = {},
@@ -267,6 +267,7 @@ class openstack::compute (
       report_interval        => $nova_report_interval,
       service_down_time      => $nova_service_down_time,
       notify_on_state_change => $notify_on_state_change,
+      notification_driver    => $notification_driver,
       memcached_servers      => $memcached_addresses,
   }
 
@@ -311,10 +312,8 @@ class openstack::compute (
   nova_config {
     'libvirt/live_migration_flag':  value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
     'libvirt/block_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_NON_SHARED_INC';
-  }
-
-  nova_config {
-    'cinder/catalog_info': value => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL')
+    'cinder/catalog_info':          value => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL');
+    'DEFAULT/connection_type':      value => 'libvirt';
   }
 
   if $use_syslog {
@@ -454,10 +453,6 @@ on packages update": }
         subscribe   => File_line['apparmor_libvirtd'],
       }
     }
-  }
-
-  nova_config {
-    'DEFAULT/connection_type':  value => 'libvirt';
   }
 
   Package<| title == 'nova-compute'|> ~> Service<| title == 'nova-compute'|>

@@ -17,7 +17,7 @@ $syslog_log_facility   = hiera('syslog_log_facility_glance')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
-$ceilometer_hash       = hiera_hash('ceilometer', {})
+$ceilometer_hash       = hiera_hash('ceilometer_hash', {})
 $region                = hiera('region','RegionOne')
 $service_workers       = pick($glance_hash['glance_workers'], min(max($::processorcount, 2), 16))
 $ironic_hash           = hiera_hash('ironic', {})
@@ -126,7 +126,7 @@ class { 'openstack::glance':
   rabbit_hosts                   => $rabbit_hosts,
   rabbit_virtual_host            => $rabbit_virtual_host,
   known_stores                   => $glance_known_stores,
-  ceilometer                     => $ceilometer_hash[enabled],
+  notification_driver            => $ceilometer_hash['notification_driver'],
   service_workers                => $service_workers,
   rados_connect_timeout          => $rados_connect_timeout,
 }
