@@ -67,6 +67,8 @@ $memcached_port               = hiera('memcache_server_port', '11211')
 $roles                        = node_roles($nodes_hash, hiera('uid'))
 $openstack_controller_hash    = hiera_hash('openstack_controller', {})
 
+$external_lb                  = hiera('external_lb', false)
+
 $floating_hash = {}
 
 if $use_neutron {
@@ -173,9 +175,23 @@ if $primary_controller {
 
   $haproxy_stats_url = "http://${management_vip}:10000/;csv"
 
+  $nova_endpoint           = hiera('nova_endpoint', $management_vip)
+  $nova_internal_protocol  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'protocol', 'http')
+  $nova_internal_endpoint  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
+  $nova_url                = "${nova_internal_protocol}://${nova_internal_endpoint}:8774"
+
+  if $external_lb {
+    Haproxy_backend_status<||> {
+      provider => 'http',
+    }
+  }
+
   haproxy_backend_status { 'nova-api' :
     name    => 'nova-api-2',
-    url     => $haproxy_stats_url,
+    url     => $external_lb ? {
+      default => $haproxy_stats_url,
+      true    => $nova_url,
+    },
   }
 
   Openstack::Ha::Haproxy_service <| |> -> Haproxy_backend_status <| |>

@@ -49,6 +49,25 @@ describe manifest do
     let(:public_protocol) { public_ssl ? 'https' : 'http' }
     let(:public_address) { public_ssl ? public_ssl_hostname : public_ip }
 
+    let(:api_bind_port) { '8386' }
+
+    let(:ssl_hash) { Noop.hiera_structure 'use_ssl', {} }
+
+    let (:sahara_protocol){
+      Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'sahara',
+        'internal', 'protocol', 'http'
+    }
+
+    let (:sahara_address){
+      Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'sahara',
+        'internal', 'hostname',
+        [Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')]
+    }
+
+    let (:sahara_url){
+      "#{sahara_protocol}://#{sahara_address}:#{api_bind_port}"
+    }
+
     ############################################################################
 
     enable = Noop.hiera_structure('sahara/enabled')
@@ -168,6 +187,20 @@ describe manifest do
           should contain_haproxy_backend_status('sahara').that_comes_before('Class[sahara_templates::create_templates]')
         }
       end
+
+      it {
+        if Noop.hiera('external_lb', false)
+          url = sahara_url
+          provider = 'http'
+        else
+          url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+          provider = nil
+        end
+        should contain_haproxy_backend_status('sahara').with(
+          :url      => url,
+          :provider => provider
+        )
+      }
     end
 
   end
