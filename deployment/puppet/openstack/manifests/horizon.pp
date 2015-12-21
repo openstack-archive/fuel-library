@@ -115,13 +115,14 @@ class openstack::horizon (
     wsgi_threads   => $wsgi_threads,
     listen_ssl     => $use_ssl,
     extra_params   => {
-      add_listen      => false,
-      ip_based        => true, # Do not setup outdated 'NameVirtualHost' option
-      custom_fragment => template('openstack/horizon/wsgi_vhost_custom.erb'),
-      default_vhost   => true,
-      headers         => $headers,
-      options         => $apache_options,
-      setenvif        => 'X-Forwarded-Proto https HTTPS=1',
+      add_listen        => false,
+      ip_based          => true, # Do not setup outdated 'NameVirtualHost' option
+      custom_fragment   => template('openstack/horizon/wsgi_vhost_custom.erb'),
+      default_vhost     => true,
+      headers           => $headers,
+      options           => $apache_options,
+      setenvif          => 'X-Forwarded-Proto https HTTPS=1',
+      access_log_format => '%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"',
     },
   } ~>
   Service[$::apache::params::service_name]
