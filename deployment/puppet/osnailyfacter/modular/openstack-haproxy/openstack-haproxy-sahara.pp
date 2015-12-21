@@ -14,8 +14,9 @@ $internal_ssl_path  = get_ssl_property($ssl_hash, {}, 'sahara', 'internal', 'pat
 
 $network_metadata   = hiera_hash('network_metadata')
 $sahara_address_map = get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, hiera('sahara_roles')), 'sahara/api')
+$external_lb        = hiera('external_lb', false)
 
-if ($use_sahara) {
+if ($use_sahara and !$external_lb) {
   $server_names        = hiera_array('sahara_names',keys($sahara_address_map))
   $ipaddresses         = hiera_array('sahara_ipaddresses', values($sahara_address_map))
   $public_virtual_ip   = hiera('public_vip')

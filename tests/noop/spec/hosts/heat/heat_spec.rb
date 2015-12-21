@@ -96,6 +96,21 @@ describe manifest do
       )
     end
 
+    if Noop.hiera('external_lb', false)
+      url = "#{admin_auth_protocol}://#{admin_auth_address}:35357/"
+      provider = 'http'
+    else
+      url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+      provider = nil
+    end
+
+    it {
+      should contain_haproxy_backend_status('keystone-admin').with(
+        :url      => url,
+        :provider => provider
+      )
+    }
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
