@@ -1,0 +1,6 @@
+require_relative 'config'
+require_relative 'task/base'
+require_relative 'task/facts'
+require_relative 'task/globals'
+require_relative 'task/hiera'
+require_relative 'task/spec'
