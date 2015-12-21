@@ -1,5 +1,6 @@
 - id: neutron-db
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
   requires: [primary-database, database]
@@ -12,6 +13,7 @@
 
 - id: neutron-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
   requires: [keystone]
@@ -25,6 +27,7 @@
 # Anchor (empty task) for another tasks, say 'tenant network FW setup starting'
 - id: openstack-network-start
   type: skipped
+  version: 2.0.0
   groups: [primary-controller,controller,compute]
   requires: [neutron-keystone, neutron-db, netconfig, openstack-controller, top-role-compute]
   required_for: [openstack-network-common-config]
@@ -35,6 +38,7 @@
 
 - id: openstack-network-common-config
   type: puppet
+  version: 2.0.0
   groups: [primary-controller,controller,compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-start]
@@ -45,6 +49,7 @@
 
 - id: openstack-network-server-config
   type: puppet
+  version: 2.0.0
   groups: [primary-controller,controller]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config]
@@ -56,6 +61,7 @@
 
 - id: primary-openstack-network-plugins-l2
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config, openstack-network-server-config]
@@ -68,6 +74,7 @@
 
 - id: openstack-network-plugins-l2
   type: puppet
+  version: 2.0.0
   groups: [controller,compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config, openstack-network-server-config]
@@ -81,6 +88,7 @@
 
 - id: openstack-network-networks
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
   requires: [primary-openstack-network-plugins-l2]
@@ -91,6 +99,7 @@
 
 - id: openstack-network-routers
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   condition: "settings:neutron_advanced_configuration.neutron_l3_ha.value == false"
   required_for: [openstack-network-end]
@@ -104,6 +113,7 @@
 # HA routers must be created on post-deployment step when all L3 agents are available
 - id: openstack-network-routers-ha
   type: puppet
+  version: 2.0.0
   role: [primary-controller]
   condition: "settings:neutron_advanced_configuration.neutron_l3_ha.value == true"
   required_for: [post_deployment_end]
@@ -116,6 +126,7 @@
 
 - id: primary-openstack-network-agents-l3
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
   requires: [openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
@@ -128,6 +139,7 @@
 
 - id: openstack-network-agents-l3
   type: puppet
+  version: 2.0.0
   groups: [controller,compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
@@ -142,6 +154,7 @@
 
 - id: openstack-network-server-nova
   type: puppet
+  version: 2.0.0
   groups: [primary-controller,controller]
   required_for: [openstack-network-end]
   requires: [openstack-network-agents-l3]
@@ -155,6 +168,7 @@
 
 - id: primary-openstack-network-agents-dhcp
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
@@ -169,6 +183,7 @@
 
 - id: openstack-network-agents-dhcp
   type: puppet
+  version: 2.0.0
   groups: [controller]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
@@ -183,6 +198,7 @@
 
 - id: primary-openstack-network-agents-metadata
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
@@ -198,6 +214,7 @@
 
 - id: openstack-network-agents-metadata
   type: puppet
+  version: 2.0.0
   groups: [controller,compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
@@ -212,6 +229,7 @@
 
 - id: openstack-network-compute-nova
   type: puppet
+  version: 2.0.0
   groups: [compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-common-config,openstack-network-agents-l3,openstack-network-agents-metadata]
@@ -225,6 +243,7 @@
 # Anchor (empty task) for another tasks, say 'tenant network FW setup done'
 - id: openstack-network-end
   type: skipped
+  version: 2.0.0
   groups: [primary-controller,controller,compute]
   required_for: [deploy_end]
   requires: []

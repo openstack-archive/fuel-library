@@ -1,5 +1,6 @@
 - id: glance
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [openstack-controller]
   requires: [openstack-haproxy, primary-database, database]
@@ -14,6 +15,7 @@
 
 - id: glance-db
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [glance]
   requires: [primary-database, database]
@@ -26,6 +28,7 @@
 
 - id: glance-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [glance]
   requires: [keystone]

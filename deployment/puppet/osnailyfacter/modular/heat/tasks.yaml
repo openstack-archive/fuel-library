@@ -1,5 +1,6 @@
 - id: heat
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [openstack-controller]
@@ -14,6 +15,7 @@
 
 - id: heat-db
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [heat]
   requires: [primary-database, database]
@@ -26,6 +28,7 @@
 
 - id: heat-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [heat]
   requires: [keystone]
