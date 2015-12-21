@@ -22,6 +22,7 @@ $public_protocol = $public_ssl_hash['services'] ? {
 }
 
 $region                     = hiera('region', 'RegionOne')
+$tenant                     = pick($ironic_hash['tenant'], 'services')
 $public_url                 = "${public_protocol}://${public_address}:6385"
 $admin_url                  = "http://${management_vip}:6385"
 $internal_url               = "http://${management_vip}:6385"
@@ -29,6 +30,7 @@ $internal_url               = "http://${management_vip}:6385"
 class { 'ironic::keystone::auth':
   password            => $ironic_user_password,
   region              => $region,
+  tenant              => $tenant,
   public_url          => $public_url,
   internal_url        => $internal_url,
   admin_url           => $admin_url,

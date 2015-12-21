@@ -36,6 +36,7 @@ describe manifest do
       configure_user_role = Noop.hiera_structure 'ceilometer/configure_user_role', true
       service_name = Noop.hiera_structure 'ceilometer/service_name', 'ceilometer'
       region = Noop.hiera_structure 'ceilometer/region', 'RegionOne'
+      tenant = Noop.hiera_structure 'ceilometer/tenant', 'services'
 
       public_url = "#{public_protocol}://#{public_address}:8777"
       internal_url = "#{internal_protocol}://#{internal_address}:8777"
@@ -51,7 +52,8 @@ describe manifest do
         'public_url'          => public_url,
         'internal_url'        => internal_url,
         'admin_url'           => admin_url,
-        'region'              => region
+        'region'              => region,
+        'tenant'              => tenant,
       )
     end
   end

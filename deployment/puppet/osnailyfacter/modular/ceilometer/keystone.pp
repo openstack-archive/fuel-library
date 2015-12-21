@@ -42,4 +42,5 @@ class { '::ceilometer::keystone::auth':
   internal_url        => $internal_url,
   admin_url           => $admin_url,
   region              => $region,
+  tenant              => $tenant,
 }

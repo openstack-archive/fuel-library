@@ -53,6 +53,7 @@ class { '::nova::keystone::auth':
   admin_url             => "${admin_base_url}/v2/%(tenant_id)s",
   admin_url_v3          => "${admin_base_url}/v3",
   region                => $region,
+  tenant                => $tenant,
   ec2_public_url        => $ec2_public_url,
   ec2_internal_url      => $ec2_internal_url,
   ec2_admin_url         => $ec2_admin_url,
