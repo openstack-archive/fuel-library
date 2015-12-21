@@ -69,6 +69,13 @@ class openstack::cinder(
     glance_api_version => '2',
   }
 
+  #NOTE(mattymo): Remove keymgr_encryption_auth_url after LP#1516085 is fixed
+  if $identity_uri {
+    $keymgr_encryption_auth_url = "${identity_uri}/v3"
+  } else {
+    $keymgr_encryption_auth_url = $::os_service_default
+  }
+
   if $queue_provider == 'rabbitmq' and $rabbit_ha_queues {
     Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
     Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
@@ -154,6 +161,7 @@ class openstack::cinder(
       os_privileged_user_tenant    => $keystone_tenant,
       os_privileged_user_auth_url  => $privileged_auth_uri,
       os_privileged_user_name      => $keystone_user,
+      keymgr_encryption_auth_url   => $keymgr_encryption_auth_url,
       nova_catalog_admin_info      => 'compute:nova:adminURL',
       nova_catalog_info            => 'compute:nova:internalURL',
       sync_db                      => $primary_controller,
