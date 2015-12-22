@@ -26,8 +26,6 @@ describe 'sysfs::install' do
             :ensure => 'present',
             :source => 'puppet:///modules/sysfs/centos-sysfsutils.init.sh')
         end
-        should contain_tweaks__ubuntu_service_override('sysfsutils').with(
-          :package_name => 'sysfsutils')
       end
     end
 
