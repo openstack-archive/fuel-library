@@ -25,14 +25,11 @@ class sysfs::install inherits sysfs::params {
     name   => $package,
   }
 
-  tweaks::ubuntu_service_override { 'sysfsutils' :
-    package_name => $package,
-  }
-
   file { 'sysfs.d' :
     ensure => 'directory',
     name   => $config_dir,
   }
 
   Class['sysfs::install'] -> Sysfs_config_value <||>
+  Class['sysfs::install'] ~> Service['sysfsutils']
 }
