@@ -13,6 +13,11 @@ if ironic_enabled
       default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
       primary_controller = Noop.hiera 'primary_controller'
 
+      let(:max_pool_size) { Noop.hiera('max_pool_size') }
+      let(:max_overflow) { Noop.hiera('max_overflow') }
+      let(:max_retries) { Noop.hiera('max_retries') }
+      let(:idle_timeout) { Noop.hiera('idle_timeout') }
+
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       end
@@ -23,6 +28,15 @@ if ironic_enabled
           'rabbit_password' => rabbit_password,
           'sync_db'         => primary_controller,
         )
+      end
+
+      it 'should configure database config' do
+        should contain_class('ironic').with(
+          # TODO(aschultz): fix when supported by ironic module
+          #'database_max_pool_size' => max_pool_size,
+          #'database_max_overflow' => max_overflow,
+          'database_max_retries' => max_retries,
+          'database_idle_timeout' => idle_timeout)
       end
 
       # TODO (iberezovskiy): uncomment this test after ironic module update

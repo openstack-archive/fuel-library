@@ -5,9 +5,10 @@ manifest = 'openstack-cinder/openstack-cinder.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-  max_pool_size = 20
-  max_retries = '-1'
-  max_overflow = 20
+  let(:max_pool_size) { Noop.hiera('max_pool_size') }
+  let(:max_overflow) { Noop.hiera('max_overflow') }
+  let(:max_retries) { Noop.hiera('max_retries') }
+  let(:idle_timeout) { Noop.hiera('idle_timeout') }
   rabbit_ha_queues = Noop.hiera('rabbit_ha_queues')
   cinder_user = Noop.hiera_structure('cinder/user', "cinder")
   cinder_user_password = Noop.hiera_structure('cinder/user_password')
@@ -32,11 +33,12 @@ describe manifest do
     )
   end
 
-  it 'should declare ::cinder class with correct database_max_* parameters' do
+  it 'should declare ::cinder class with correct database_* parameters' do
     should contain_class('cinder').with(
       'database_max_pool_size' => max_pool_size,
       'database_max_retries'   => max_retries,
       'database_max_overflow'  => max_overflow,
+      'database_idle_timeout'  => idle_timeout,
     )
   end
 

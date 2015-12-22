@@ -9,6 +9,11 @@ describe manifest do
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
     storage_config = Noop.hiera_structure 'storage'
 
+    let(:max_pool_size) { Noop.hiera('max_pool_size') }
+    let(:max_overflow) { Noop.hiera('max_overflow') }
+    let(:max_retries) { Noop.hiera('max_retries') }
+    let(:idle_timeout) { Noop.hiera('idle_timeout') }
+
     if ironic_enabled
       it 'should ensure that ironic-fa-deploy is installed' do
           should contain_package('ironic-fa-deploy').with('ensure' => 'present')
@@ -44,6 +49,14 @@ describe manifest do
         ).that_requires('Package[syslinux]')
       end
 
+      it 'should configure database connections for ironic' do
+        should contain_class('ironic').with(
+          # TODO(aschultz): fix when ironic module supports this option
+          #'database_max_pool_size' => max_pool_size,
+          #'database_max_overflow' => max_overflow,
+          'database_max_retries' => max_retries,
+          'database_idle_timeout' => idle_timeout)
+      end
     end #end of ironic_enabled
   end #end of catalog
 
