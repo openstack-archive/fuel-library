@@ -1,6 +1,6 @@
 <% if @file_header %><%= @file_header %><% end %>
 dhcp-range=<%= @range_name %>,<%= @dhcp_start_address %>,<%= @dhcp_end_address %>,<%= @dhcp_netmask %>,<%= @lease_time %>
 dhcp-option=net:<%= @range_name %>,option:router,<%= @dhcp_gateway %>
-dhcp-boot=net:<%= @range_name %>,pxelinux.0,boothost,<%= @next_server %>
-dhcp-match=ipxe,175
-dhcp-option-force=net:ipxe,210,http://<%= @next_server %>/cobbler/boot/
+dhcp-match=set:ipxe,175
+dhcp-boot=tag:!ipxe,net:<%= @range_name %>,pxelinux.0,boothost,<%= @next_server %>
+dhcp-option-force=tag:ipxe,210,http://<%= @next_server %>/cobbler/boot/
