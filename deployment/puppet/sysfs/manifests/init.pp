@@ -5,8 +5,6 @@
 #
 
 class sysfs {
-  class { 'sysfs::install' :}
+  class { 'sysfs::install' :}->
   class { 'sysfs::service' :}
-
-  Class['sysfs::install'] ~> Class['sysfs::service']
 }
