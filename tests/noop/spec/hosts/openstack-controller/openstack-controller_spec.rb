@@ -9,6 +9,12 @@ describe manifest do
       Noop.hiera_structure 'configuration'
     end
 
+
+    let(:max_pool_size) { Noop.hiera('max_pool_size') }
+    let(:max_overflow) { Noop.hiera('max_overflow') }
+    let(:max_retries) { Noop.hiera('max_retries') }
+    let(:idle_timeout) { Noop.hiera('idle_timeout') }
+
     let(:nova_config_override_resources) do
       configuration_override.fetch('nova_config', {})
     end
@@ -175,6 +181,16 @@ describe manifest do
         )
       end
     end
+
+
+    it 'should configure database connections for controller' do
+      should contain_class('openstack::controller').with(
+        'max_pool_size' => max_pool_size,
+        'max_overflow' => max_overflow,
+        'max_retries' => max_retries,
+        'idle_timeout' => idle_timeout)
+    end
+
 
   end # end of shared_examples
 

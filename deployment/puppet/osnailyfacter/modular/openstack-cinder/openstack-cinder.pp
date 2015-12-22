@@ -53,10 +53,11 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
 }
 
 # SQLAlchemy backend configuration
-$max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
+$max_pool_size = pick($cinder_hash['database_max_pool_size'], hiera('max_pool_size'))
+$max_overflow  = pick($cinder_hash['database_max_overflow'], hiera('max_overflow'))
+$max_retries   = pick($cinder_hash['database_max_retries'], hiera('max_retries'))
+$idle_timeout  = pick($cinder_hash['database_idle_timeout'], hiera('idle_timeout'))
+
 $openstack_version = {
   'keystone'   => 'installed',
   'glance'     => 'installed',

@@ -15,6 +15,11 @@ describe manifest do
     let(:public_vip) { Noop.hiera('public_vip') }
     let(:internal_net) { Noop.hiera_structure('neutron_config/default_private_net', 'admin_internal_net') }
 
+    let(:max_pool_size) { Noop.hiera('max_pool_size') }
+    let(:max_overflow) { Noop.hiera('max_overflow') }
+    let(:max_retries) { Noop.hiera('max_retries') }
+    let(:idle_timeout) { Noop.hiera('idle_timeout') }
+
     let(:network_scheme) do
       Noop.hiera_hash 'network_scheme'
     end
@@ -64,10 +69,6 @@ describe manifest do
         db_name = Noop.hiera_structure('sahara_hash/db_name', 'sahara')
         db_password = Noop.hiera_structure('sahara_hash/db_password')
         db_host = Noop.hiera_structure('sahara_hash/db_host', database_vip)
-        max_pool_size =[facts[:processorcount] * 5 + 0, 30 + 0].min
-        max_overflow = [facts[:processorcount] * 5 + 0, 60 + 0].min
-        max_retries  = '-1'
-        idle_timeout = '3600'
         read_timeout = '60'
         sql_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
 
