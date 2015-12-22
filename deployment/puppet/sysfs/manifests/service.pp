@@ -11,5 +11,9 @@ class sysfs::service inherits sysfs::params {
     hasrestart => true,
   }
 
+  tweaks::ubuntu_service_override { 'sysfsutils' :
+    package_name => $package,
+  }
+
   Sysfs_config_value <||> ~> Service['sysfsutils']
 }
