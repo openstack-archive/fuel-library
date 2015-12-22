@@ -133,12 +133,6 @@ $memcached_port   = hiera('memcache_server_port', '11211')
 $roles            = $network_metadata['nodes'][$node_name]['node_roles']
 $mountpoints      = filter_hash($mp_hash,'point')
 
-# SQLAlchemy backend configuration
-$max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
-
 if ($storage_hash['volumes_lvm']) {
   nova_config { 'keymgr/fixed_key':
     value => $cinder_hash[fixed_key];

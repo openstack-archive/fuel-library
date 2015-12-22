@@ -86,10 +86,10 @@ $rabbit_user         = $rabbit_hash['user']
 $rabbit_hosts        = split(hiera('amqp_hosts',''), ',')
 $rabbit_virtual_host = '/'
 
-$max_pool_size = hiera('max_pool_size')
-$max_overflow  = hiera('max_overflow')
-$max_retries   = '-1'
-$database_idle_timeout  = '3600'
+$max_pool_size = pick($keystone_hash['database_max_pool_size'], hiera('max_pool_size'))
+$max_overflow  = pick($keystone_hash['database_max_overflow'], hiera('max_overflow'))
+$max_retries   = pick($keystone_hash['database_max_retries'], hiera('max_retries'))
+$idle_timeout  = pick($keystone_hash['database_idle_timeout'], hiera('idle_timeout'))
 
 $murano_settings_hash = hiera('murano_settings', {})
 if has_key($murano_settings_hash, 'murano_repo_url') {
@@ -134,7 +134,7 @@ class { 'openstack::keystone':
   rabbit_userid            => $rabbit_user,
   rabbit_hosts             => $rabbit_hosts,
   rabbit_virtual_host      => $rabbit_virtual_host,
-  database_idle_timeout    => $database_idle_timeout,
+  database_idle_timeout    => $idle_timeout,
   revoke_driver            => $revoke_driver,
   public_url               => $public_url,
   admin_url                => $admin_url,
