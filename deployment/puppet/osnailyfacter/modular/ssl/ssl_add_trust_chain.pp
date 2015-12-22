@@ -18,6 +18,18 @@ define file_link {
       source => "/etc/pki/tls/certs/public_${service}.pem",
     }
   }
+
+  if !empty(file("/etc/pki/tls/certs/internal_${service}.pem",'/dev/null')) {
+    file { "/usr/local/share/ca-certificates/${service}_internal_haproxy.crt":
+      source => "/etc/pki/tls/certs/internal_${service}.pem",
+    }
+  }
+
+  if !empty(file("/etc/pki/tls/certs/admin_${service}.pem",'/dev/null')) {
+    file { "/usr/local/share/ca-certificates/${service}_admin_haproxy.crt":
+      source => "/etc/pki/tls/certs/admin_${service}.pem",
+    }
+  }
 }
 
 if !empty($ssl_hash) {
