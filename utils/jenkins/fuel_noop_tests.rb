@@ -265,6 +265,19 @@ module NoopTests
     "'#{File.join TEST_LIBRARY_DIR, spec}'"
   end
 
+  # run the rake spec_prep to get fixtures
+  # return: success
+  # @return success
+  def self.rake_prep
+    inside_noop_tests_directory do
+      command_prep = "rake spec_prep"
+      command_prep = 'bundle exec ' + command_prep if options[:bundle]
+      debug " RUN: #{command_prep}"
+      system command_prep
+      $?.exitstatus == 0
+    end
+  end
+
   # run the rspec commands with some options
   # return: [ success, report ]
   # @param [String] spec Spec file or pattern
@@ -532,6 +545,9 @@ module NoopTests
       self.pry
       exit 0
     end
+
+    # ensure fixtures
+    rake_prep
 
     if options[:missing_specs]
       missing_specs = puppet_tasks_without_specs

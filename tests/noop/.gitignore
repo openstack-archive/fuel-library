@@ -1,3 +1,4 @@
 deprecations.log
 Gemfile.lock
 coverage
+spec/fixtures
