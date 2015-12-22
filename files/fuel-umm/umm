@@ -37,7 +37,7 @@ else
             if [ -f $UMM_FLAG ] ; then
                 cat $UMM_FLAG
             else
-                echo runlevel $(runlevel)
+                echo runlevel $(/sbin/runlevel)
             fi
             ;;
         "on" )
