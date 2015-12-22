@@ -94,7 +94,8 @@ if $use_neutron {
 
   $type_drivers = ['local', 'flat', 'vlan', 'gre', 'vxlan']
   $tenant_network_types  = ['flat', $network_type]
-  $mechanism_drivers = split(try_get_value($neutron_config, 'L2/mechanism_drivers', 'openvswitch,l2population'), ',')
+  $default_mechanism_drivers = $l2_population ? { true => 'openvswitch,l2population', default => 'openvswitch'}
+  $mechanism_drivers = split(try_get_value($neutron_config, 'L2/mechanism_drivers', $default_mechanism_drivers), ',')
   $flat_networks = ['*']
   $vxlan_group = '224.0.0.1'
 

@@ -44,6 +44,13 @@ describe manifest do
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         extension_drivers = ['port_security']
+        l2_population = adv_neutron_config.fetch('neutron_l2_pop', false)
+
+        if l2_population
+          default_mechanism_drivers = 'openvswitch,l2population'
+        else
+          default_mechanism_drivers = 'openvswitch'
+        end
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
@@ -93,7 +100,7 @@ describe manifest do
           'tenant_network_types' => ['flat', network_type],
         )}
         it { should contain_class('neutron::plugins::ml2').with(
-          'mechanism_drivers' => neutron_config.fetch('L2', {}).fetch('mechanism_drivers', 'openvswitch,l2population').split(',')
+          'mechanism_drivers' => neutron_config.fetch('L2', {}).fetch('mechanism_drivers', default_mechanism_drivers).split(',')
         )}
         it { should contain_class('neutron::plugins::ml2').with(
           'network_vlan_ranges' => network_vlan_ranges,
@@ -132,7 +139,7 @@ describe manifest do
           'manage_vswitch' => false,
         )}
         it { should contain_class('neutron::agents::ml2::ovs').with(
-          'l2_population' => adv_neutron_config.fetch('neutron_l2_pop', false)
+          'l2_population' => l2_population
         )}
         it { should contain_class('neutron::agents::ml2::ovs').with(
           'arp_responder' => adv_neutron_config.fetch('neutron_l2_pop', false)
