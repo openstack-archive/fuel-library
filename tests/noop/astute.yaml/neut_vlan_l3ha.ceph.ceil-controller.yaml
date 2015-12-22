@@ -294,7 +294,7 @@ network_metadata:
       network_roles:
         keystone/api: 192.168.0.5
         neutron/api: 192.168.0.5
-        mgmt/database: 192.168.0.5
+        mgmt/database: 192.168.0.9
         sahara/api: 192.168.0.5
         heat/api: 192.168.0.5
         ceilometer/api: 192.168.0.5

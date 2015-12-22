@@ -5,11 +5,15 @@ manifest = 'openstack-haproxy/openstack-haproxy-stats.pp'
 describe manifest do
   shared_examples 'catalog' do
     management_vip = Noop.hiera 'management_vip'
+    database_vip = Noop.hiera 'database_vip'
+    database_vip ||= management_vip
 
-    it "should contain stats fragment and listen only #{management_vip}" do
-      should contain_concat__fragment('stats_listen_block').with_content(
-        %r{\n\s*bind\s+#{management_vip}:10000\s*$\n}
-      )
+    it "should contain stats fragment and listen #{[management_vip, database_vip].uniq.inspect}" do
+      [management_vip, database_vip].each do |ip|
+        should contain_concat__fragment('stats_listen_block').with_content(
+          %r{\n\s*bind\s+#{ip}:10000\s*$\n}
+        )
+      end
     end
   end
   test_ubuntu_and_centos manifest

@@ -110,19 +110,21 @@ define openstack::ha::haproxy_service (
   }
 
   if $public {
+    $public_bind_address = suffix(any2array($public_virtual_ip), ":${listen_port}")
     if $public_ssl {
-      $public_bind = { "$public_virtual_ip:$listen_port" => ['ssl', 'crt', $public_ssl_path] }
+      $public_bind = array_to_hash($public_bind_address, ['ssl', 'crt', $public_ssl_path])
     } else {
-      $public_bind = { "$public_virtual_ip:$listen_port" => "" }
+      $public_bind = array_to_hash($public_bind_address, "")
     }
   } else {
     $public_bind = {}
   }
   if $internal {
+    $internal_bind_address = suffix(any2array($internal_virtual_ip), ":$listen_port")
     if $internal_ssl {
-      $internal_bind = { "$internal_virtual_ip:$listen_port" => ['ssl', 'crt', $internal_ssl_path] }
+      $internal_bind = array_to_hash($internal_bind_address, ['ssl', 'crt', $internal_ssl_path])
     } else {
-      $internal_bind = { "$internal_virtual_ip:$listen_port" => "" }
+      $internal_bind = array_to_hash($internal_bind_address, "")
     }
   } else {
     $internal_bind = {}
