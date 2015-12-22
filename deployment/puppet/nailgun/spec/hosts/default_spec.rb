@@ -48,6 +48,12 @@ describe 'default' do
       it { should contain_file("/etc/dnsmasq.d/#{resource_name}.conf") \
            .with_content(/^dhcp-range=#{resource_name}.*#{netmask},120m\n|,boothost,#{admin_network['ipaddress']}\n/)
       }
+      it { should contain_file("/etc/dnsmasq.d/#{resource_name}.conf") \
+           .with_content(/^dhcp-match=set:ipxe,175$/)
+      }
+      it { should contain_file("/etc/dnsmasq.d/#{resource_name}.conf") \
+           .with_content(/^dhcp-option-force=tag:ipxe,210,http:/)
+      }
     end
   end
 
