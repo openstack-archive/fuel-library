@@ -91,8 +91,8 @@ class ceph::conf (
     }
 
     Exec['ceph-deploy config pull'] ->
-      Ceph_conf[['global/cluster_network', 'global/public_network']] ->
-        File['/root/ceph.conf'] ->
+      File['/root/ceph.conf'] ->
+        Ceph_conf[['global/cluster_network', 'global/public_network']] ->
           Exec['ceph-deploy gatherkeys remote'] ->
             File['/etc/ceph/ceph.client.admin.keyring'] ->
               Exec['ceph-deploy init config']
