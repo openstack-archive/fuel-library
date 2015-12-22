@@ -35,6 +35,11 @@ $db_name                        = pick($nova_hash['db_name'], 'nova')
 $db_password                    = pick($nova_hash['db_password'], 'nova')
 $database_connection            = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?read_timeout=60"
 
+$max_pool_size = pick($nova_hash['database_max_pool_size'], hiera('max_pool_size'))
+$max_overflow  = pick($nova_hash['database_max_overflow'], hiera('max_overflow'))
+$max_retries   = pick($nova_hash['database_max_retries'], hiera('max_retries'))
+$idle_timeout  = pick($nova_hash['database_idle_timeout'], hiera('idle_timeout'))
+
 $memcached_servers              = hiera('memcached_addresses')
 $memcached_port                 = hiera('memcache_server_port', '11211')
 $memcached_addresses            = suffix($memcached_servers, ":${memcached_port}")
@@ -45,6 +50,10 @@ class { '::nova':
     install_utilities      => false,
     ensure_package         => installed,
     database_connection    => $database_connection,
+    database_max_pool_size => $max_pool_size,
+    database_max_overflow  => $max_overflow,
+    database_max_retries   => $max_retries,
+    database_idle_timeout  => $idle_timeout,
     rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
     rabbit_hosts           => split($amqp_hosts, ','),

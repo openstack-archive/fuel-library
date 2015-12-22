@@ -51,7 +51,10 @@ describe manifest do
     admin_url = "http://#{management_vip}:35357"
     internal_url = "http://#{management_vip}:5000"
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
-    database_idle_timeout = '3600'
+    let(:max_pool_size) { Noop.hiera('max_pool_size') }
+    let(:max_overflow) { Noop.hiera('max_overflow') }
+    let(:max_retries) { Noop.hiera('max_retries') }
+    let(:idle_timeout) { Noop.hiera('idle_timeout') }
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
     token_provider = Noop.hiera('token_provider')
     primary_controller = Noop.hiera 'primary_controller'
@@ -96,8 +99,12 @@ describe manifest do
       should contain_keystone_config('revoke/driver').with(:value => revoke_driver)
     end
 
-    it 'should configure database_idle_timeout for keystone' do
-      should contain_keystone_config('database/idle_timeout').with(:value => database_idle_timeout)
+    it 'should configure database connections for keystone' do
+      should contain_class('openstack::keystone').with(
+        'max_pool_size' => max_pool_size,
+        'max_overflow' => max_overflow,
+        'max_retries' => max_retries,
+        'database_idle_timeout' => idle_timeout)
     end
 
     it 'should contain token_caching parameter for keystone set to false' do

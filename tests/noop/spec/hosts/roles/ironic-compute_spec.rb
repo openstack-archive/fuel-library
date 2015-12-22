@@ -7,6 +7,11 @@ describe manifest do
     ironic_user_password = Noop.hiera_structure 'ironic/user_password'
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
 
+    let(:max_pool_size) { Noop.hiera('max_pool_size') }
+    let(:max_overflow) { Noop.hiera('max_overflow') }
+    let(:max_retries) { Noop.hiera('max_retries') }
+    let(:idle_timeout) { Noop.hiera('idle_timeout') }
+
     network_metadata     = Noop.hiera 'network_metadata'
     memcache_roles       = Noop.hiera 'memcache_roles'
     memcache_addresses   = Noop.hiera 'memcached_addresses', false
@@ -46,6 +51,15 @@ describe manifest do
 
       it 'nova-compute.conf should have host set to "ironic-compute"' do
         should contain_file('/etc/nova/nova-compute.conf').with('content'  => "[DEFAULT]\nhost=ironic-compute")
+      end
+
+
+      it 'should configure database connections for nova' do
+        should contain_class('nova').with(
+          'database_max_pool_size' => max_pool_size,
+          'database_max_overflow' => max_overflow,
+          'database_max_retries' => max_retries,
+          'database_idle_timeout' => idle_timeout)
       end
     end
   end

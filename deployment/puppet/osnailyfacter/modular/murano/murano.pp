@@ -53,6 +53,12 @@ if $murano_hash['enabled'] {
   $db_name        = pick($murano_hash['db_name'], 'murano')
   $db_password    = pick($murano_hash['db_password'])
   $db_host        = pick($murano_hash['db_host'], $database_ip)
+
+  $max_pool_size  = pick($murano_hash['database_max_pool_size'], hiera('max_pool_size'))
+  $max_overflow   = pick($murano_hash['database_max_overflow'], hiera('max_overflow'))
+  $max_retries    = pick($murano_hash['database_max_retries'], hiera('max_retries'))
+  $idle_timeout   = pick($murano_hash['database_idle_timeout'], hiera('idle_timeout'))
+
   $read_timeout   = '60'
   $sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
 
@@ -78,34 +84,38 @@ if $murano_hash['enabled'] {
   }
 
   class { 'murano' :
-    verbose             => $verbose,
-    debug               => $debug,
-    use_syslog          => $use_syslog,
-    use_stderr          => $use_stderr,
-    log_facility        => $syslog_log_facility_murano,
-    database_connection => $sql_connection,
-    sync_db             => $primary_controller,
-    auth_uri            => "${public_auth_protocol}://${public_auth_address}:5000/v2.0/",
-    admin_user          => $murano_user,
-    admin_password      => $murano_hash['user_password'],
-    admin_tenant_name   => $tenant,
-    identity_uri        => "${admin_auth_protocol}://${admin_auth_address}:35357/",
-    use_neutron         => $use_neutron,
-    rabbit_os_user      => $rabbit_hash['user'],
-    rabbit_os_password  => $rabbit_hash['password'],
-    rabbit_os_port      => $amqp_port,
-    rabbit_os_host      => split($amqp_hosts, ','),
-    rabbit_ha_queues    => $rabbit_ha_queues,
-    rabbit_own_host     => $public_ip,
-    rabbit_own_port     => $murano_hash['rabbit']['port'],
-    rabbit_own_vhost    => $murano_hash['rabbit']['vhost'],
-    rabbit_own_user     => $rabbit_hash['user'],
-    rabbit_own_password => $rabbit_hash['password'],
-    default_nameservers => pick($external_dns['dns_list'], '8.8.8.8'),
-    service_host        => $api_bind_host,
-    service_port        => $api_bind_port,
-    external_network    => $external_network,
-    use_trusts          => true,
+    verbose                => $verbose,
+    debug                  => $debug,
+    use_syslog             => $use_syslog,
+    use_stderr             => $use_stderr,
+    log_facility           => $syslog_log_facility_murano,
+    database_connection    => $sql_connection,
+    database_max_pool_size => $max_pool_size,
+    database_max_overflow  => $max_overflow,
+    database_max_retries   => $max_retries,
+    database_idle_timeout  => $idle_timeout,
+    sync_db                => $primary_controller,
+    auth_uri               => "${public_auth_protocol}://${public_auth_address}:5000/v2.0/",
+    admin_user             => $murano_user,
+    admin_password         => $murano_hash['user_password'],
+    admin_tenant_name      => $tenant,
+    identity_uri           => "${admin_auth_protocol}://${admin_auth_address}:35357/",
+    use_neutron            => $use_neutron,
+    rabbit_os_user         => $rabbit_hash['user'],
+    rabbit_os_password     => $rabbit_hash['password'],
+    rabbit_os_port         => $amqp_port,
+    rabbit_os_host         => split($amqp_hosts, ','),
+    rabbit_ha_queues       => $rabbit_ha_queues,
+    rabbit_own_host        => $public_ip,
+    rabbit_own_port        => $murano_hash['rabbit']['port'],
+    rabbit_own_vhost       => $murano_hash['rabbit']['vhost'],
+    rabbit_own_user        => $rabbit_hash['user'],
+    rabbit_own_password    => $rabbit_hash['password'],
+    default_nameservers    => pick($external_dns['dns_list'], '8.8.8.8'),
+    service_host           => $api_bind_host,
+    service_port           => $api_bind_port,
+    external_network       => $external_network,
+    use_trusts             => true,
   }
 
   # TODO (iberezovskiy): Move to globals (as it is done for sahara)

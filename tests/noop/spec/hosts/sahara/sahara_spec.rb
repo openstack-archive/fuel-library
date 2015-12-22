@@ -15,6 +15,11 @@ describe manifest do
     let(:public_vip) { Noop.hiera('public_vip') }
     let(:internal_net) { Noop.hiera_structure('neutron_config/default_private_net', 'admin_internal_net') }
 
+    let(:max_pool_size) { Noop.hiera('max_pool_size') }
+    let(:max_overflow) { Noop.hiera('max_overflow') }
+    let(:max_retries) { Noop.hiera('max_retries') }
+    let(:idle_timeout) { Noop.hiera('idle_timeout') }
+
     let(:network_scheme) do
       Noop.hiera_hash 'network_scheme'
     end
@@ -167,6 +172,14 @@ describe manifest do
         it {
           should contain_haproxy_backend_status('sahara').that_comes_before('Class[sahara_templates::create_templates]')
         }
+      end
+
+      it 'should configure database connections for sahara' do
+        should contain_class('sahara').with(
+          'database_max_pool_size' => max_pool_size,
+          'database_max_overflow' => max_overflow,
+          'database_max_retries' => max_retries,
+          'database_idle_timeout' => idle_timeout)
       end
     end
 
