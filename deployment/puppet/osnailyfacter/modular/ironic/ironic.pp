@@ -29,6 +29,11 @@ $db_name                    = pick($ironic_hash['db_name'], 'ironic')
 $db_password                = pick($ironic_hash['db_password'], 'ironic')
 $database_connection        = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?charset=utf8&read_timeout=60"
 
+$max_pool_size = pick($ironic_hash['database_max_pool_size'], hiera('max_pool_size'))
+$max_overflow  = pick($ironic_hash['database_max_overflow'], hiera('max_overflow'))
+$max_retries   = pick($ironic_hash['database_max_retries'], hiera('max_retries'))
+$idle_timeout  = pick($ironic_hash['database_idle_timeout'], hiera('idle_timeout'))
+
 $ironic_tenant              = pick($ironic_hash['tenant'],'services')
 $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
 $ironic_user_password       = pick($ironic_hash['user_password'],'ironic')
@@ -38,18 +43,23 @@ prepare_network_config(hiera('network_scheme', {}))
 $baremetal_vip = $network_metadata['vips']['baremetal']['ipaddr']
 
 class { 'ironic':
-  verbose             => $verbose,
-  debug               => $debug,
-  rabbit_hosts        => $rabbit_hosts,
-  rabbit_port         => $amqp_port,
-  rabbit_userid       => $rabbit_hash['user'],
-  rabbit_password     => $rabbit_hash['password'],
-  amqp_durable_queues => $rabbit_ha_queues,
-  use_syslog          => $use_syslog,
-  log_facility        => $syslog_log_facility_ironic,
-  database_connection => $database_connection,
-  glance_api_servers  => $glance_api_servers,
-  sync_db             => $primary_controller,
+  verbose                => $verbose,
+  debug                  => $debug,
+  rabbit_hosts           => $rabbit_hosts,
+  rabbit_port            => $amqp_port,
+  rabbit_userid          => $rabbit_hash['user'],
+  rabbit_password        => $rabbit_hash['password'],
+  amqp_durable_queues    => $rabbit_ha_queues,
+  use_syslog             => $use_syslog,
+  log_facility           => $syslog_log_facility_ironic,
+  database_connection    => $database_connection,
+  # TODO(aschultz): enable when the version of the ironic module supports this
+  #database_max_pool_size => $max_pool_size,
+  #database_max_overflow  => $max_overflow,
+  database_max_retries   => $max_retries,
+  database_idle_timeout  => $idle_timeout,
+  glance_api_servers     => $glance_api_servers,
+  sync_db                => $primary_controller,
 }
 
 # TODO (iberezovskiy): Move to globals (as it is done for sahara)

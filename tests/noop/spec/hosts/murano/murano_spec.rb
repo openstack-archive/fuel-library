@@ -52,6 +52,12 @@ describe manifest do
     let(:db_host) { Noop.hiera_structure('murano/db_host', service_endpoint) }
     let(:db_password) { Noop.hiera_structure('murano/db_password') }
 
+
+    let(:max_pool_size) { Noop.hiera('max_pool_size') }
+    let(:max_overflow) { Noop.hiera('max_overflow') }
+    let(:max_retries) { Noop.hiera('max_retries') }
+    let(:idle_timeout) { Noop.hiera('idle_timeout') }
+
     let(:predefined_networks) { Noop.hiera_structure('neutron_config/predefined_networks') }
 
     let(:default_repository_url) { 'http://storage.apps.openstack.org' }
@@ -106,6 +112,10 @@ describe manifest do
                    'use_stderr'          => 'false',
                    'log_facility'        => syslog_log_facility_murano,
                    'database_connection' => sql_connection,
+                   'database_max_pool_size' => max_pool_size,
+                   'database_max_overflow'  => max_overflow,
+                   'database_max_retries'   => max_retries,
+                   'database_idle_timeout'  => idle_timeout,
                    'sync_db'             => primary_controller,
                    'auth_uri'            => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
                    'admin_user'          => murano_user,

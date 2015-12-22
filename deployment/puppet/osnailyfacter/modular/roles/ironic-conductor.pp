@@ -34,6 +34,11 @@ $db_name                    = pick($ironic_hash['db_name'], 'ironic')
 $db_password                = pick($ironic_hash['db_password'], 'ironic')
 $database_connection        = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?charset=utf8&read_timeout=60"
 
+$max_pool_size = pick($ironic_hash['database_max_pool_size'], hiera('max_pool_size'))
+$max_overflow  = pick($ironic_hash['database_max_overflow'], hiera('max_overflow'))
+$max_retries   = pick($ironic_hash['database_max_retries'], hiera('max_retries'))
+$idle_timeout  = pick($ironic_hash['database_idle_timeout'], hiera('idle_timeout'))
+
 $tftp_root                  = '/var/lib/ironic/tftpboot'
 
 $temp_url_endpoint_type = $storage_hash['images_ceph'] ? {
@@ -46,17 +51,23 @@ package { 'ironic-fa-deploy':
 }
 
 class { '::ironic':
-  verbose             => $verbose,
-  debug               => $debug,
-  enabled_drivers     => ['fuel_ssh', 'fuel_ipmitool', 'fake'],
-  rabbit_hosts        => $rabbit_hosts,
-  rabbit_userid       => $rabbit_hash['user'],
-  rabbit_password     => $rabbit_hash['password'],
-  amqp_durable_queues => $rabbit_ha_queues,
-  use_syslog          => $use_syslog,
-  log_facility        => $syslog_log_facility_ironic,
-  database_connection => $database_connection,
-  glance_api_servers  => $glance_api_servers,
+  verbose                => $verbose,
+  debug                  => $debug,
+  enabled_drivers        => ['fuel_ssh', 'fuel_ipmitool', 'fake'],
+  rabbit_hosts           => $rabbit_hosts,
+  rabbit_userid          => $rabbit_hash['user'],
+  rabbit_password        => $rabbit_hash['password'],
+  amqp_durable_queues    => $rabbit_ha_queues,
+  use_syslog             => $use_syslog,
+  log_facility           => $syslog_log_facility_ironic,
+  database_connection    => $database_connection,
+  # TODO(aschultz): enable these when the ironic module is updated to a version
+  # that supports these options
+  #database_max_pool_size => $max_pool_size,
+  database_max_overflow  => $max_overflow,
+  database_max_retries   => $max_retries,
+  database_idle_timeout  => $idle_timeout,
+  glance_api_servers     => $glance_api_servers,
 }
 
 class { '::ironic::client': }
