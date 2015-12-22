@@ -866,145 +866,177 @@ use_ssl:
   horizon_public: true
   horizon_public_hostname: 'horizon.public.fuel.local'
   horizon_public_usercert: true
-  horizon_public_certdata: 'somethinglikeacertificateforhorizon'
+  horizon_public_certdata:
+    content: 'somethinglikeacertificateforhorizon'
   keystone: true
   keystone_public: true
   keystone_public_ip: '10.10.10.10'
   keystone_public_hostname: 'keystone.public.fuel.local'
   keystone_public_usercert: true
-  keystone_public_certdata: 'somethinglikeacertificateforkeystone'
+  keystone_public_certdata:
+    content: 'somethinglikeacertificateforkeystone'
   keystone_internal: true
   keystone_internal_ip: '20.20.20.20'
   keystone_internal_hostname: 'keystone.internal.fuel.local'
   keystone_internal_usercert: true
-  keystone_internal_certdata: 'somethinglikeacertificateforkeystone'
+  keystone_internal_certdata:
+    content: 'somethinglikeacertificateforkeystone'
   keystone_admin: true
   keystone_admin_ip: '30.30.30.30'
   keystone_admin_hostname: 'keystone.admin.fuel.local'
   keystone_admin_usercert: true
-  keystone_admin_certdata: 'somethinglikeacertificateforkeystone'
+  keystone_admin_certdata:
+    content: 'somethinglikeacertificateforkeystone'
   nova: true
   nova_public: true
   nova_public_hostname: 'nova.public.fuel.local'
   nova_public_usercert: true
-  nova_public_certdata: 'somethinglikeacertificatefornova'
+  nova_public_certdata:
+    content: 'somethinglikeacertificatefornova'
   nova_internal: true
   nova_internal_hostname: 'nova.internal.fuel.local'
   nova_internal_usercert: true
-  nova_internal_certdata: 'somethinglikeacertificatefornova'
+  nova_internal_certdata:
+    content: 'somethinglikeacertificatefornova'
   nova_admin: true
   nova_admin_hostname: 'nova.admin.fuel.local'
   nova_admin_usercert: true
-  nova_admin_certdata: 'somethinglikeacertificatefornova'
+  nova_admin_certdata:
+    content: 'somethinglikeacertificatefornova'
   heat: true
   heat_public: true
   heat_public_hostname: 'heat.public.fuel.local'
   heat_public_usercert: true
-  heat_public_certdata: 'somethinglikeacertificateforheat'
+  heat_public_certdata:
+    content: 'somethinglikeacertificateforheat'
   heat_internal: true
   heat_internal_hostname: 'heat.internal.fuel.local'
   heat_internal_usercert: true
-  heat_internal_certdata: 'somethinglikeacertificateforheat'
+  heat_internal_certdata:
+    content: 'somethinglikeacertificateforheat'
   heat_admin: true
   heat_admin_hostname: 'heat.admin.fuel.local'
   heat_admin_usercert: true
-  heat_admin_certdata: 'somethinglikeacertificateforheat'
+  heat_admin_certdata:
+    content: 'somethinglikeacertificateforheat'
   glance: true
   glance_public: true
   glance_public_hostname: 'glance.public.fuel.local'
   glance_public_usercert: true
-  glance_public_certdata: 'somethinglikeacertificateforglance'
+  glance_public_certdata:
+    content: 'somethinglikeacertificateforglance'
   glance_internal: true
   glance_internal_hostname: 'glance.internal.fuel.local'
   glance_internal_usercert: true
-  glance_internal_certdata: 'somethinglikeacertificateforglance'
+  glance_internal_certdata:
+    content: 'somethinglikeacertificateforglance'
   glance_admin: true
   glance_admin_hostname: 'glance.admin.fuel.local'
   glance_admin_usercert: true
-  glance_admin_certdata: 'somethinglikeacertificateforglance'
+  glance_admin_certdata:
+    content: 'somethinglikeacertificateforglance'
   cinder: true
   cinder_public: true
   cinder_public_hostname: 'cinder.public.fuel.local'
   cinder_public_usercert: true
-  cinder_public_certdata: 'somethinglikeacertificateforcinder'
+  cinder_public_certdata:
+    content: 'somethinglikeacertificateforcinder'
   cinder_internal: true
   cinder_internal_hostname: 'cinder.internal.fuel.local'
   cinder_internal_usercert: true
-  cinder_internal_certdata: 'somethinglikeacertificateforcinder'
+  cinder_internal_certdata:
+    content: 'somethinglikeacertificateforcinder'
   cinder_admin: true
   cinder_admin_hostname: 'cinder.admin.fuel.local'
   cinder_admin_usercert: true
-  cinder_admin_certdata: 'somethinglikeacertificateforcinder'
+  cinder_admin_certdata:
+    content: 'somethinglikeacertificateforcinder'
   neutron: true
   neutron_public: true
   neutron_public_hostname: 'neutron.public.fuel.local'
   neutron_public_usercert: true
-  neutron_public_certdata: 'somethinglikeacertificateforneutron'
+  neutron_public_certdata:
+    content: 'somethinglikeacertificateforneutron'
   neutron_internal: true
   neutron_internal_hostname: 'neutron.internal.fuel.local'
   neutron_internal_usercert: true
-  neutron_internal_certdata: 'somethinglikeacertificateforneutron'
+  neutron_internal_certdata:
+    content: 'somethinglikeacertificateforneutron'
   neutron_admin: true
   neutron_admin_hostname: 'neutron.admin.fuel.local'
   neutron_admin_usercert: true
-  neutron_admin_certdata: 'somethinglikeacertificateforneutron'
+  neutron_admin_certdata:
+    content: 'somethinglikeacertificateforneutron'
   swift: true
   swift_public: true
   swift_public_hostname: 'swift.public.fuel.local'
   swift_public_usercert: true
-  swift_public_certdata: 'somethinglikeacertificateforswift'
+  swift_public_certdata:
+    content: 'somethinglikeacertificateforswift'
   swift_internal: true
   swift_internal_hostname: 'swift.internal.fuel.local'
   swift_internal_usercert: true
-  swift_internal_certdata: 'somethinglikeacertificateforswift'
+  swift_internal_certdata:
+    content: 'somethinglikeacertificateforswift'
   swift_admin: true
   swift_admin_hostname: 'swift.admin.fuel.local'
   swift_admin_usercert: true
-  swift_admin_certdata: 'somethinglikeacertificateforswift'
+  swift_admin_certdata:
+    content: 'somethinglikeacertificateforswift'
   sahara: true
   sahara_public: true
   sahara_public_hostname: 'sahara.public.fuel.local'
   sahara_public_usercert: true
-  sahara_public_certdata: 'somethinglikeacertificateforsahara'
+  sahara_public_certdata:
+    content: 'somethinglikeacertificateforsahara'
   sahara_internal: true
   sahara_internal_hostname: 'sahara.internal.fuel.local'
   sahara_internal_usercert: true
-  sahara_internal_certdata: 'somethinglikeacertificateforsahara'
+  sahara_internal_certdata:
+    content: 'somethinglikeacertificateforsahara'
   sahara_admin: true
   sahara_admin_hostname: 'sahara.admin.fuel.local'
   sahara_admin_usercert: true
-  sahara_admin_certdata: 'somethinglikeacertificateforsahara'
+  sahara_admin_certdata:
+    content: 'somethinglikeacertificateforsahara'
   murano: true
   murano_public: true
   murano_public_hostname: 'murano.public.fuel.local'
   murano_public_usercert: true
-  murano_public_certdata: 'somethinglikeacertificateformurano'
+  murano_public_certdata:
+    content: 'somethinglikeacertificateformurano'
   murano_internal: true
   murano_internal_hostname: 'murano.internal.fuel.local'
   murano_internal_usercert: true
-  murano_internal_certdata: 'somethinglikeacertificateformurano'
+  murano_internal_certdata:
+    content: 'somethinglikeacertificateformurano'
   murano_admin: true
   murano_admin_hostname: 'murano.admin.fuel.local'
   murano_admin_usercert: true
-  murano_admin_certdata: 'somethinglikeacertificateformurano'
+  murano_admin_certdata:
+    content: 'somethinglikeacertificateformurano'
   ceilometer: true
   ceilometer_public: true
   ceilometer_public_hostname: 'ceilometer.public.fuel.local'
   ceilometer_public_usercert: true
-  ceilometer_public_certdata: 'somethinglikeacertificateforceilometer'
+  ceilometer_public_certdata:
+    content: 'somethinglikeacertificateforceilometer'
   ceilometer_internal: true
   ceilometer_internal_hostname: 'ceilometer.internal.fuel.local'
   ceilometer_internal_usercert: true
-  ceilometer_internal_certdata: 'somethinglikeacertificateforceilometer'
+  ceilometer_internal_certdata:
+    content: 'somethinglikeacertificateforceilometer'
   ceilometer_admin: true
   ceilometer_admin_hostname: 'ceilometer.admin.fuel.local'
   ceilometer_admin_usercert: true
-  ceilometer_admin_certdata: 'somethinglikeacertificateforceilometer'
+  ceilometer_admin_certdata:
+    content: 'somethinglikeacertificateforceilometer'
   radosgw: true
   radosgw_public: true
   radosgw_public_hostname: 'radosgw.public.fuel.local'
   radosgw_public_usercert: true
-  radosgw_public_certdata: 'somethinglikeacertificateforradosgw'
+  radosgw_public_certdata:
+    content: 'somethinglikeacertificateforradosgw'
 public_ssl:
   hostname: public.fuel.local
   horizon: true
