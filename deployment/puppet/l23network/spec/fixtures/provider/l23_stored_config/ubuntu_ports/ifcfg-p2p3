@@ -1,0 +1,4 @@
+auto p2p3
+iface p2p3 inet manual
+post-up ethtool -K p2p3 gro off | true  # generic-receive-offload
+post-up ethtool -K p2p3 gso off | true  # generic-segmentation-offload
