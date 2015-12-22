@@ -22,6 +22,8 @@ describe 'sysfs::service' do
           :enable     => true,
           :hasstatus  => false,
           :hasrestart => true)
+        should contain_tweaks__ubuntu_service_override('sysfsutils').with(
+          :package_name => 'sysfsutils')
       end
     end
 
