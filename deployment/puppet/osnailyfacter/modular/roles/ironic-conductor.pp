@@ -48,7 +48,7 @@ package { 'ironic-fa-deploy':
 class { '::ironic':
   verbose             => $verbose,
   debug               => $debug,
-  enabled_drivers     => ['fuel_ssh', 'fuel_ipmitool', 'fake'],
+  enabled_drivers     => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
   rabbit_hosts        => $rabbit_hosts,
   rabbit_userid       => $rabbit_hash['user'],
   rabbit_password     => $rabbit_hash['password'],
