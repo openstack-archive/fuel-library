@@ -10,7 +10,7 @@ describe manifest do
         types = [ 'public', 'internal', 'admin' ]
         services.each do |service|
           types.each do |type|
-            certdata = Noop.hiera_structure "use_ssl/#{service}_#{type}_certdata"
+            certdata = Noop.hiera_structure "use_ssl/#{service}_#{type}_certdata/content"
             it "should create certificate file with all data for #{type} #{service} in /etc/" do
               should contain_file("/etc/pki/tls/certs/#{type}_#{service}.pem").with(
                 'ensure'  => 'present',
@@ -31,7 +31,7 @@ describe manifest do
       context 'for public-only services' do
         services = [ 'horizon', 'radosgw' ]
         services.each do |service|
-          certdata = Noop.hiera_structure "use_ssl/#{service}_public_certdata"
+          certdata = Noop.hiera_structure "use_ssl/#{service}_public_certdata/content"
           it "should create certificate file with all data for public #{service} in /etc/" do
             should contain_file("/etc/pki/tls/certs/public_#{service}.pem").with(
               'ensure'  => 'present',
