@@ -30,6 +30,17 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
         :method         => 'manual',
         :provider       => 'lnx_centos7',
       },
+      :lnx_port_ethtool => {
+        :name           => 'lnx-port3',
+        :ensure         => 'present',
+        :onboot         => true,
+        :method         => 'manual',
+        :ethtool        =>  {
+           'offload' => {
+              'generic-receive-offload'      => false,
+              'generic-segmentation-offload' => false }},
+        :provider       => 'lnx_centos7',
+      },
 
     }
   end
@@ -98,6 +109,15 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
       it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }  #  no more lines in the interface file
     end
 
+    context 'format file for lnx-port3 ethtool' do
+      subject { providers[:lnx_port_ethtool] }
+      let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
+      it { expect(cfg_file).to match(%r{DEVICE=lnx-port3}) }
+      it { expect(cfg_file).to match(%r{BOOTPROTO=none}) }
+      it { expect(cfg_file).to match(%r{ONBOOT=yes}) }
+      it { expect(cfg_file).to match(%r{ETHTOOL_OPTS="-K\s+lnx-port3\s+gro\s+off\s+gso\s+off\s+;"}) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }  #  no more lines in the interface file
+    end
 
     context "parse port lnx-port data from fixture" do
       let(:res) { subject.class.parse_file('lnx-port', fixture_data('ifcfg-lnx-port'))[0] }
@@ -117,6 +137,16 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
       it { expect(res[:onboot]).to eq true }
       it { expect(res[:provider]).to eq :lnx_centos7 }
     end
+
+    context "parse port lnx-port3 data from fixture" do
+      let(:res) { subject.class.parse_file('lnx-port3', fixture_data('ifcfg-lnx-port3'))[0] }
+      it { expect(res[:name]).to eq 'lnx-port3' }
+      it { expect(res[:method].to_s).to eq 'manual' }
+      it { expect(res[:onboot]).to eq true }
+      it { expect(res[:ethtool]).to eq 'offload' => { 'generic-receive-offload'=>false, 'generic-segmentation-offload'=>false } }
+      it { expect(res[:provider]).to eq :lnx_centos7 }
+    end
+
 
   end
 

@@ -246,7 +246,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
          k,v =  feature.split(' ')
          tk = Hash[L23network.ethtool_name_commands_mapping[section_name].select { |key, value| value==k }]
          next if tk == ''
-         feature_params[tk.keys.to_s] = ((v=='on'  ?  true  :  false))
+         feature_params[tk.keys.join()] = ((v=='on'  ?  true  :  false))
       end
       rv[section_name] = feature_params
     end

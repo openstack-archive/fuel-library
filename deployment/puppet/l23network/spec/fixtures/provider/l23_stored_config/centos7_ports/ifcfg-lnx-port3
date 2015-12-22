@@ -1,0 +1,4 @@
+BOOTPROTO=none
+DEVICE=lnx-port3
+ONBOOT=yes
+ETHTOOL_OPTS="-K lnx-port3  gro off  gso off ;"

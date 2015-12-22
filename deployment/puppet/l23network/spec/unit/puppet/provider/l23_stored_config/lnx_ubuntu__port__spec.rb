@@ -6,6 +6,15 @@ resources_map =     {
                  :if_type  => 'ethernet',
                  :provider => 'lnx_ubuntu',
                },
+      :'p2p3' => {
+                 :name     => 'p2p3',
+                :ethtool        =>  {
+                  'offload' => {
+                    'generic-receive-offload'      => false,
+                    'generic-segmentation-offload' => false }},
+                 :provider => 'lnx_ubuntu',
+               },
+
 }
 
 describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
@@ -63,6 +72,16 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(2) }
     end
 
+    context 'Phys port p2p3 with ethtool' do
+      subject { providers[:'p2p3'] }
+      let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
+      it { expect(cfg_file).to match(/auto\s+p2p3/) }
+      it { expect(cfg_file).to match(/iface\s+p2p3\s+inet\s+manual/) }
+      it { expect(cfg_file).to match(%r{post-up\s+ethtool\s+-K\s+p2p3\s+gro\s+off\s+|\s+true\s+#\s+generic-receive-offload}) }
+      it { expect(cfg_file).to match(%r{post-up\s+ethtool\s+-K\s+p2p3\s+gso\s+off\s+|\s+true\s+#\s+generic-segmentation-offload}) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }
+    end
+
   end
 
   context "parsing config files" do
@@ -74,6 +93,16 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       it { expect(res[:name]).to eq 'p2p2' }
       it { expect(res[:if_provider].to_s).to eq 'lnx' }
     end
+
+    context 'Phys port p2p3 with ethtool' do
+      let(:res) { subject.class.parse_file('p2p3', fixture_data('ifcfg-p2p3'))[0] }
+      it { expect(res[:method]).to eq :manual }
+      it { expect(res[:onboot]).to eq true }
+      it { expect(res[:name]).to eq 'p2p3' }
+      it { expect(res[:ethtool]).to eq 'offload' => { 'generic-receive-offload'=>false, 'generic-segmentation-offload'=>false } }
+      it { expect(res[:if_provider].to_s).to eq 'lnx' }
+    end
+
 
   end
 
