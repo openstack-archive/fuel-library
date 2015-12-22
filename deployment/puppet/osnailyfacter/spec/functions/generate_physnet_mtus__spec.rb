@@ -108,6 +108,7 @@ describe 'function for formating allocation pools for neutron subnet resource' d
     "provider"=>"ovs",
     },
    {"action"=>"add-port", "bridge"=>"br-fw-admin", "name"=>"eth0"},
+   {"action"=>"add-port", "name"=>"eth0.55"},
    {"action"=>"add-port", "bridge"=>"br-ex", "name"=>"eth1", "mtu"=>1340 },
    {"bridge"=>"br-aux",
     "mtu" => 35000,

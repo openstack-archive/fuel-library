@@ -40,22 +40,22 @@ EOS
       else
         br = br['name']
         bridge_including_flow.each do |x , v|
-          bridge_incleded = network_scheme['transformations'].select { |a| a['action'] == x.to_s and (a[v] == br or a[v].include?(br)) }
-          if bridge_incleded.empty?
+          bridge_included = network_scheme['transformations'].select { |a| a['action'] == x.to_s and a.has_key?(v) and (a[v] == br or a[v].include?(br)) }
+          if bridge_included.empty?
             next
-          elsif bridge_incleded.size >2
-            raise("bridge #{br} can not be included into more then one element, elements: #{bridge_incleded}")
+          elsif bridge_included.size >2
+            raise("bridge #{br} can not be included into more then one element, elements: #{bridge_included}")
           else
-            bridge_incleded = bridge_incleded[0]
-            debug("Transformation #{bridge_incleded} has bridge #{br}")
+            bridge_included = bridge_included[0]
+            debug("Transformation #{bridge_included} has bridge #{br}")
           end
-          if bridge_incleded['action'] == 'add-patch'
-            debug("Bridge #{br} is in a patch #{bridge_incleded}!")
-            br = bridge_incleded['bridges'].select{ |x| x!=br }[0]
+          if bridge_included['action'] == 'add-patch'
+            debug("Bridge #{br} is in a patch #{bridge_included}!")
+            br = bridge_included['bridges'].select{ |x| x!=br }[0]
             debug("Looking mtu for bridge #{br}")
 	    next
-          elsif bridge_incleded['mtu']
-            mtu = bridge_incleded['mtu']
+          elsif bridge_included['mtu']
+            mtu = bridge_included['mtu']
             debug("And has mtu: #{mtu}")
             break
           end
