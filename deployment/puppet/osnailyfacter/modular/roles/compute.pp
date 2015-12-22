@@ -134,10 +134,10 @@ $roles            = $network_metadata['nodes'][$node_name]['node_roles']
 $mountpoints      = filter_hash($mp_hash,'point')
 
 # SQLAlchemy backend configuration
-$max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-$max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-$max_retries = '-1'
-$idle_timeout = '3600'
+$max_pool_size = pick($nova_hash['database_max_pool_size'], hiera('max_pool_size'))
+$max_overflow  = pick($nova_hash['database_max_overflow'], hiera('max_overflow'))
+$max_retries   = pick($nova_hash['database_max_retries'], hiera('max_retries'))
+$idle_timeout  = pick($nova_hash['database_idle_timeout'], hiera('idle_timeout'))
 
 if ($storage_hash['volumes_lvm']) {
   nova_config { 'keymgr/fixed_key':

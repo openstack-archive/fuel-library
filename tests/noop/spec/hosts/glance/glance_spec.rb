@@ -10,7 +10,8 @@ describe manifest do
     storage_config = Noop.hiera_structure 'storage'
     max_pool_size = Noop.hiera('max_pool_size')
     max_overflow = Noop.hiera('max_overflow')
-    max_retries = '-1'
+    max_retries = Noop.hiera('max_retries')
+    idle_timeout = Noop.hiera('idle_timeout')
     use_syslog = Noop.hiera('use_syslog', 'true')
     use_stderr = Noop.hiera('use_stderr', 'false')
     region = Noop.hiera('region', 'RegionOne')
@@ -35,6 +36,7 @@ describe manifest do
       should contain_glance_api_config('DEFAULT/use_stderr').with_value(use_stderr)
       should contain_glance_api_config('database/max_overflow').with_value(max_overflow)
       should contain_glance_api_config('database/max_retries').with_value(max_retries)
+      should contain_glance_api_config('database/idle_timeout').with_value(idle_timeout)
       should contain_glance_api_config('DEFAULT/delayed_delete').with_value('False')
       should contain_glance_api_config('DEFAULT/scrub_time').with_value('43200')
       should contain_glance_api_config('DEFAULT/scrubber_datadir').with_value('/var/lib/glance/scrubber')

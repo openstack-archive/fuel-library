@@ -45,10 +45,10 @@ if $sahara_hash['enabled'] {
   $db_name         = pick($sahara_hash['db_name'], 'sahara')
   $db_password     = pick($sahara_hash['db_password'])
   $db_host         = pick($sahara_hash['db_host'], $database_vip)
-  $max_pool_size   = min($::processorcount * 5 + 0, 30 + 0)
-  $max_overflow    = min($::processorcount * 5 + 0, 60 + 0)
-  $max_retries     = '-1'
-  $idle_timeout    = '3600'
+  $max_pool_size   = pick($sahara_hash['database_max_pool_size'], hiera('max_pool_size'))
+  $max_overflow    = pick($sahara_hash['database_max_overflow'], hiera('max_overflow'))
+  $max_retries     = pick($sahara_hash['database_max_retries'], hiera('max_retries'))
+  $idle_timeout    = pick($sahara_hash['database_idle_timeout'], hiera('idle_timeout'))
   $read_timeout    = '60'
   $sql_connection  = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
 

@@ -15,8 +15,6 @@ $use_syslog            = hiera('use_syslog', true)
 $use_stderr            = hiera('use_stderr', false)
 $syslog_log_facility   = hiera('syslog_log_facility_glance')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
-$max_pool_size         = hiera('max_pool_size')
-$max_overflow          = hiera('max_overflow')
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
 $service_workers       = pick($glance_hash['glance_workers'], min(max($::processorcount, 2), 16))
@@ -29,8 +27,11 @@ $db_type                        = 'mysql'
 $db_host                        = pick($glance_hash['db_host'], $database_vip)
 $api_bind_address               = get_network_role_property('glance/api', 'ipaddr')
 $enabled                        = true
-$max_retries                    = '-1'
-$idle_timeout                   = '3600'
+
+$max_pool_size  = pick($glance_hash['database_max_pool_size'], hiera('max_pool_size'))
+$max_overflow   = pick($glance_hash['database_max_overflow'], hiera('max_overflow'))
+$max_retries    = pick($glance_hash['database_max_retries'], hiera('max_retries'))
+$idle_timeout   = pick($glance_hash['database_idle_timeout'], hiera('idle_timeout'))
 
 $rabbit_password                = $rabbit_hash['password']
 $rabbit_user                    = $rabbit_hash['user']
