@@ -122,7 +122,11 @@ install -m 0644 %{files_source}/fuel-notify/monit-free-space.conf %{buildroot}/e
 install -m 0644 %{files_source}/fuel-notify/free_disk_space_check.yaml %{buildroot}/etc/fuel/free_disk_space_check.yaml
 install -m 0755 %{files_source}/fuel-notify/fuel_notify.py %{buildroot}/usr/bin/fuel_notify.py
 #fuel-migrate
+mkdir -p %{buildroot}/etc/systemd/system
+mkdir -p %{buildroot}/usr/bin
 install -m 0755 %{files_source}/fuel-migrate/fuel-migrate %{buildroot}/usr/bin/fuel-migrate
+install -m 0644 %{files_source}/fuel-migrate/umm-mg.service %{buildroot}/etc/systemd/system/umm-mg.service
+install -m 0644 %{files_source}/fuel-migrate/umm-mg.target %{buildroot}/etc/systemd/system/umm-mg.target
 #UMM
 mkdir -p %{buildroot}/etc/init
 mkdir -p %{buildroot}/etc/profile.d/
@@ -284,6 +288,8 @@ Script for migrate Fuel master into vm
 %files -n fuel-migrate
 %defattr(-,root,root)
 /usr/bin/fuel-migrate
+/etc/systemd/system/umm-mg.service
+/etc/systemd/system/umm-mg.target
 #
 
 
