@@ -65,6 +65,10 @@ if $::osfamily == 'RedHat' {
     path      => '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin',
     timeout   => 7200,
     logoutput => true,
+    loglevel  => hiera('debug') ? {
+      false   => 'notice',
+      default => 'debug'
+    },
     require   => [
                   File[$dependent_dirs],
                   Service[$docker_service],
