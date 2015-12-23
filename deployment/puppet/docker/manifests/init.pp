@@ -61,7 +61,7 @@ if $::osfamily == 'RedHat' {
     require   => Service[$docker_service],
   }
   exec {'build docker containers':
-    command   => 'dockerctl build all',
+    command   => 'dockerctl --debug build all',
     path      => '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin',
     timeout   => 7200,
     logoutput => true,
@@ -72,4 +72,13 @@ if $::osfamily == 'RedHat' {
                   ],
     unless    => 'docker ps -a | grep -q fuel',
   }
+
+  # WARNING: please don't remove this! notice used as an anchor in the external
+  #          log parsers, for example in the VirtualBox scripts.
+  notify { 'build docker containers notice':
+    message  => 'build docker containers finished.',
+    withpath => true,
+  }
+  Exec['build docker containers'] -> Notify['build docker containers notice']
+
 }
