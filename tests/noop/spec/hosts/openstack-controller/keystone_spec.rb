@@ -14,7 +14,6 @@ describe manifest do
     admin_protocol       = 'http'
     admin_address        = internal_address
     public_ssl           = Noop.hiera_structure('public_ssl/services')
-    tenant               = Noop.hiera_structure('nova/tenant', 'services')
 
     if Noop.hiera_structure('use_ssl')
       public_protocol   = 'https'
@@ -52,7 +51,6 @@ describe manifest do
         'ec2_public_url'   => ec2_public_url,
         'ec2_admin_url'    => ec2_admin_url,
         'ec2_internal_url' => ec2_internal_url,
-        'tenant'           => tenant,
       )
     end
   end

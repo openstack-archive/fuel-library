@@ -159,11 +159,11 @@ describe manifest do
         )}
 
         it 'neutron config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_config').with(:data => neutron_config_override_resources)
+          is_expected.to contain_override_resources('neutron_config').with(:@task_graph_metadata => neutron_config_override_resources)
         end
 
         it 'neutron api config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_api_config').with(:data => neutron_api_config_override_resources)
+          is_expected.to contain_override_resources('neutron_api_config').with(:@task_graph_metadata => neutron_api_config_override_resources)
         end
 
         it 'should use "override_resources" to update the catalog' do

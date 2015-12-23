@@ -2,15 +2,12 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'apache/apache.pp'
 
+# hiera: controller, compute
+# facts: ubuntu, Centos
+# run: controller, Master
+
 describe manifest do
   shared_examples 'catalog' do
-    it 'should have osnailyfacter::apache class' do
-      should contain_class('osnailyfacter::apache').with(
-        :purge_configs => false,
-        :listen_ports  => Noop.hiera_array('apache_ports', ['0.0.0.0:80']),
-      )
-    end
-
     it 'should execute apache class with given parameters' do
       should contain_class('apache').with(
         'mpm_module'       => 'false',

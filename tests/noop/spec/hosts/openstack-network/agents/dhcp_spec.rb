@@ -44,7 +44,7 @@ describe manifest do
         )}
 
         it 'neutron dhcp agent config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_dhcp_agent_config').with(:data => neutron_dhcp_agent_config_override_resources)
+          is_expected.to contain_override_resources('neutron_dhcp_agent_config').with(:@task_graph_metadata => neutron_dhcp_agent_config_override_resources)
         end
 
         it 'should use "override_resources" to update the catalog' do

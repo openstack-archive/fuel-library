@@ -44,13 +44,6 @@ describe manifest do
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         extension_drivers = ['port_security']
-        l2_population = adv_neutron_config.fetch('neutron_l2_pop', false)
-
-        if l2_population
-          default_mechanism_drivers = 'openvswitch,l2population'
-        else
-          default_mechanism_drivers = 'openvswitch'
-        end
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
@@ -100,7 +93,7 @@ describe manifest do
           'tenant_network_types' => ['flat', network_type],
         )}
         it { should contain_class('neutron::plugins::ml2').with(
-          'mechanism_drivers' => neutron_config.fetch('L2', {}).fetch('mechanism_drivers', default_mechanism_drivers).split(',')
+          'mechanism_drivers' => neutron_config.fetch('L2', {}).fetch('mechanism_drivers', 'openvswitch,l2population').split(',')
         )}
         it { should contain_class('neutron::plugins::ml2').with(
           'network_vlan_ranges' => network_vlan_ranges,
@@ -139,7 +132,7 @@ describe manifest do
           'manage_vswitch' => false,
         )}
         it { should contain_class('neutron::agents::ml2::ovs').with(
-          'l2_population' => l2_population
+          'l2_population' => adv_neutron_config.fetch('neutron_l2_pop', false)
         )}
         it { should contain_class('neutron::agents::ml2::ovs').with(
           'arp_responder' => adv_neutron_config.fetch('neutron_l2_pop', false)
@@ -165,11 +158,11 @@ describe manifest do
         )}
 
         it 'neutron plugin ml2 should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_plugin_ml2').with(:data => neutron_plugin_ml2_override_resources)
+          is_expected.to contain_override_resources('neutron_plugin_ml2').with(:@task_graph_metadata => neutron_plugin_ml2_override_resources)
         end
 
         it 'neutron agent ovs should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_agent_ovs').with(:data => neutron_agent_ovs_override_resources)
+          is_expected.to contain_override_resources('neutron_agent_ovs').with(:@task_graph_metadata => neutron_agent_ovs_override_resources)
         end
 
         it 'should use "override_resources" to update the catalog' do

@@ -107,7 +107,7 @@ describe manifest do
     end
 
     it 'nova config should be modified by override_resources' do
-       is_expected.to contain_override_resources('nova_config').with(:data => nova_config_override_resources)
+       is_expected.to contain_override_resources('nova_config').with(:@task_graph_metadata => nova_config_override_resources)
     end
 
     it 'should use "override_resources" to update the catalog' do
@@ -119,7 +119,7 @@ describe manifest do
     end
 
     it 'nova_paste_api_ini should be modified by override_resources' do
-      is_expected.to contain_override_resources('nova_paste_api_ini').with(:data => nova_paste_api_ini_override_resources)
+      is_expected.to contain_override_resources('nova_paste_api_ini').with(:@task_graph_metadata => nova_paste_api_ini_override_resources)
     end
 
     it 'should use override_resources to update nova_paste_api_ini' do

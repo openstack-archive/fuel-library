@@ -47,8 +47,6 @@ describe manifest do
     public_url_s3       = "#{public_protocol}://#{public_address}:8080"
     admin_url_s3        = "#{internal_protocol}://#{internal_address}:8080"
 
-    tenant              = Noop.hiera_structure('swift/tenant', 'services')
-
     it 'class swift::keystone::auth should contain correct *_url' do
       should contain_class('swift::keystone::auth').with('public_url' => public_url)
       should contain_class('swift::keystone::auth').with('admin_url' => admin_url)
@@ -60,11 +58,6 @@ describe manifest do
       should contain_class('swift::keystone::auth').with('admin_url_s3' => admin_url_s3)
       should contain_class('swift::keystone::auth').with('internal_url_s3' => admin_url_s3)
     end
-
-    it 'class swift::keystone::auth should contain tenant' do
-      should contain_class('swift::keystone::auth').with('tenant' => tenant)
-    end
-
   end
 
   test_ubuntu_and_centos manifest

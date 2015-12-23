@@ -25,7 +25,6 @@ describe manifest do
       configure_user      = Noop.hiera_structure('ironic/configure_user', true)
       configure_user_role = Noop.hiera_structure('ironic/configure_user_role', true)
       region              = Noop.hiera_structure('ironic/region', 'RegionOne')
-      tenant              = Noop.hiera_structure('ironic/tenant', 'services')
       service_name        = Noop.hiera_structure('ironic/service_name', 'ironic')
       public_url          = "#{public_protocol}://#{public_address}:6385"
       admin_url           = "http://#{admin_address}:6385"
@@ -42,7 +41,6 @@ describe manifest do
           'admin_url'           => admin_url,
           'internal_url'        => admin_url,
           'region'              => region,
-          'tenant'              => tenant,
         )
       end
     end

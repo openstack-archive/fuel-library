@@ -49,7 +49,6 @@ describe manifest do
           'internal_url'        => internal_url,
           'admin_url'           => admin_url,
           'region'              => region,
-          'tenant'              => tenant,
         )
       end
     end

@@ -20,20 +20,13 @@ describe manifest do
     rabbit_hosts       = Noop.hiera('amqp_hosts')
     rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
     rabbit_password    = Noop.hiera_structure('rabbit/password')
-    network_scheme     = Noop.hiera 'network_scheme'
-
-    let (:storage_nets){
-        Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '
+    let (:sto_nets){
+        network_scheme = Noop.hiera 'network_scheme'
+        sto_nets = Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '
     }
-
-    let (:mgmt_nets){
-        Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/api', ' '
-    }
-
-    let (:bind_to_one) {
-      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
-      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
-      api_ip == storage_ip
+    let (:man_nets){
+        network_scheme = Noop.hiera 'network_scheme'
+        man_nets = Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/api', ' '
     }
 
     # Swift
@@ -100,56 +93,36 @@ describe manifest do
         context 'with enabled internal TLS for keystone' do
           keystone_endpoint = Noop.hiera_structure 'use_ssl/keystone_internal_hostname'
           it 'should declare swift::dispersion' do
-            if bind_to_one
-              should contain_class('swift::dispersion').with(
-                'auth_url' => "https://#{keystone_endpoint}:5000/v2.0/"
-              ).that_requires('Class[openstack::swift::status]')
-            else
-              should contain_class('swift::dispersion').with(
-                'auth_url' => "https://#{keystone_endpoint}:5000/v2.0/"
-              ).that_requires('Class[openstack::swift::proxy]')
-            end
+            should contain_class('swift::dispersion').with(
+              'auth_url' => "https://#{keystone_endpoint}:5000/v2.0/"
+            ).that_requires('Class[openstack::swift::status]')
           end
         end
 
         context 'with enabled internal TLS for swift' do
           swift_endpoint = Noop.hiera_structure 'use_ssl/swift_internal_hostname'
-            it {
-              if bind_to_one
-                should contain_class('openstack::swift::status').with(
-                  'endpoint'  => "https://#{swift_endpoint}:8080",
-                  'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
-                ).that_comes_before('Class[swift::dispersion]')
-              else
-                should_not contain_class('openstack::swift::status')
-              end
-            }
+          it {
+            should contain_class('openstack::swift::status').with(
+              'endpoint'  => "https://#{swift_endpoint}:8080",
+              'only_from' => "127.0.0.1 240.0.0.2 #{sto_nets} #{man_nets}",
+            ).that_requires('Class[openstack::swift::proxy]')
+          }
         end
       else
         keystone_endpoint = Noop.hiera 'service_endpoint'
         context 'with disabled internal TLS for keystone' do
           it 'should declare swift::dispersion' do
-            if bind_to_one
             should contain_class('swift::dispersion').with(
               'auth_url' => "http://#{keystone_endpoint}:5000/v2.0/"
             ).that_requires('Class[openstack::swift::status]')
-            else
-            should contain_class('swift::dispersion').with(
-              'auth_url' => "http://#{keystone_endpoint}:5000/v2.0/"
-            ).that_requires('Class[openstack::swift::proxy]')
-            end
           end
         end
 
         context 'with disabled internal TLS for swift' do
           it {
-            if bind_to_one
             should contain_class('openstack::swift::status').with(
-              'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
-            ).that_comes_before('Class[swift::dispersion]')
-            else
-              should_not contain_class('openstack::swift::status')
-            end
+              'only_from' => "127.0.0.1 240.0.0.2 #{sto_nets} #{man_nets}",
+            ).that_requires('Class[openstack::swift::proxy]')
           }
         end
       end
