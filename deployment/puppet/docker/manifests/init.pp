@@ -19,7 +19,8 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
   "/var/lib/fuel/container_data/${release}",
   "/var/lib/fuel/container_data/${release}/cobbler",
   "/var/lib/fuel/container_data/${release}/postgres",
-  ]
+  ],
+$config_dir = '/etc/dockerctl',
 ) {
 
 if $::osfamily == 'RedHat' {
@@ -40,6 +41,7 @@ if $::osfamily == 'RedHat' {
     hasrestart => true,
     require => Package[$docker_package],
   }
+
   file { "/etc/sysconfig/docker-storage-setup":
     content => template("docker/storage-setup.erb"),
     owner => 'root',
@@ -47,12 +49,14 @@ if $::osfamily == 'RedHat' {
     mode => 0644,
     notify => Service["docker"],
   }
+
   file { $dependent_dirs:
     ensure => directory,
     owner => 'root',
     group => 'root',
     mode => '0755',
   }
+
   exec {'wait for docker-to-become-ready':
     tries     => 10,
     try_sleep => 3,
@@ -60,16 +64,44 @@ if $::osfamily == 'RedHat' {
     path      => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin",
     require   => Service[$docker_service],
   }
-  exec {'build docker containers':
-    command   => 'dockerctl build all',
-    path      => '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin',
-    timeout   => 7200,
-    logoutput => true,
-    require   => [
-                  File[$dependent_dirs],
-                  Service[$docker_service],
-                  Exec['wait for docker-to-become-ready'],
-                  ],
-    unless    => 'docker ps -a | grep -q fuel',
+
+  $dockerct_config = file("${config_dir}/config")
+  $containers_key  = 'CONTAINER_SEQUENCE'
+  $containers_line = grep(split($dockerct_config, '\n'), $containers_key)
+  $containers      = split(regsubst($containers_line[0], "^${containers_key}=\"(.*)\"", '\1'), '\s')
+
+  define docker_build($container = $title) {
+    $cnt_index = inline_template('<%= @containers.index(@container) %>')
+    $cnt_last  = inline_template('<%= @containers[-1]%>')
+    exec { "container${cnt_index}":
+      command   => "dockerctl --debug build ${container}",
+      path      => '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin',
+      timeout   => 7200,
+      logoutput => true,
+      require   => [
+                    Service[$docker_service],
+                    Exec['wait for docker-to-become-ready'],
+                    ],
+      unless    => 'docker ps -a | grep -q fuel',
+    }
+    if $cnt_index != 0 {
+      $cnt_before = inline_template('<%= @containers.index(@name)-1 %>')
+      Exec["container${cnt_before}"] -> Exec["container${cnt_index}"]
+    } else {
+      File[$dependent_dirs] -> Exec["container${cnt_index}"]
+    }
+    if $container == $cnt_last {
+      Exec["container${cnt_index}"] -> Notify['build docker containers notice']
+    }
   }
+
+  docker_build { $containers: }
+
+  # WARNING: please don't remove this! notice used as an anchor in the external
+  #          log parsers, for example in the VirtualBox scripts.
+  notify { 'build docker containers notice':
+    message  => 'build docker containers finished.',
+    withpath => true,
+  }
+
 }
