@@ -191,6 +191,12 @@ class openstack::keystone (
       }
     }
 
+    # FIXME(mattymo): After LP#1528258 is closed, this can be removed. It will
+    # become a default option.
+    keystone_config {
+      'DEFAULT/secure_proxy_ssl_header': value => 'HTTP_X_FORWARDED_PROTO';
+    }
+
     keystone_config {
       'DATABASE/max_pool_size':                          value => $max_pool_size;
       'DATABASE/max_retries':                            value => $max_retries;
