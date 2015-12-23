@@ -1,10 +1,13 @@
 class nailgun::mcollective
 {
   include stdlib
-
-  ensure_packages('fuel-agent')
-  ensure_packages('fuel-provisioning-scripts')
-  ensure_packages('shotgun')
-  ensure_packages('ironic-fa-bootstrap-configs')
-  ensure_packages('fuel-bootstrap-image-builder')
+  $packages = [
+    'fuel-agent',
+    'fuel-provisioning-scripts',
+    'shotgun',
+    'ironic-fa-bootstrap-configs',
+    'fuel-bootstrap-image-builder',
+    'fuel-bootstrap-cli'
+  ]
+  ensure_packages($packages)
 }
