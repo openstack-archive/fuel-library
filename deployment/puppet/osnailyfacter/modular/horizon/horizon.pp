@@ -27,25 +27,42 @@ $keystone_url = "${keystone_scheme}://${keystone_host}:${keystone_port}/${keysto
 $neutron_options    = {'enable_distributed_router' => $neutron_dvr}
 $hypervisor_options = {'enable_quotas' => hiera('nova_quota')}
 
+$temp_root_default = '/var/lib/horizon'
+$temp_root_is_dir = inline_template('<%= File.directory?(@temp_root_default) %>')
+
+if $temp_root_is_dir == 'false' {
+  $temp_root_prefix = ''
+}
+else {
+  $temp_root_prefix = $temp_root_default
+}
+
+$file_upload_temp_dir = pick($horizon_hash['upload_dir'], "${temp_root_prefix}/tmp")
+
+# 10G by default
+$file_upload_max_size = pick($horizon_hash['upload_max_size'], 10737418235)
+
 class { 'openstack::horizon':
-  secret_key          => $secret_key,
-  cache_server_ip     => $memcached_server,
-  package_ensure      => hiera('horizon_package_ensure', 'installed'),
-  bind_address        => $bind_address,
-  cache_server_port   => hiera('memcache_server_port', '11211'),
-  cache_backend       => 'django.core.cache.backends.memcached.MemcachedCache',
-  cache_options       => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
-  neutron             => hiera('use_neutron'),
-  keystone_url        => $keystone_url,
-  use_ssl             => hiera('horizon_use_ssl', false),
-  ssl_no_verify       => $ssl_no_verify,
-  verbose             => pick($horizon_hash['verbose'], hiera('verbose', true)),
-  debug               => pick($horizon_hash['debug'], hiera('debug')),
-  use_syslog          => hiera('use_syslog', true),
-  hypervisor_options  => $hypervisor_options,
-  servername          => hiera('public_vip'),
-  neutron_options     => $neutron_options,
-  overview_days_range => $overview_days_range,
+  secret_key           => $secret_key,
+  cache_server_ip      => $memcached_server,
+  package_ensure       => hiera('horizon_package_ensure', 'installed'),
+  bind_address         => $bind_address,
+  cache_server_port    => hiera('memcache_server_port', '11211'),
+  cache_backend        => 'django.core.cache.backends.memcached.MemcachedCache',
+  cache_options        => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
+  neutron              => hiera('use_neutron'),
+  keystone_url         => $keystone_url,
+  use_ssl              => hiera('horizon_use_ssl', false),
+  ssl_no_verify        => $ssl_no_verify,
+  verbose              => pick($horizon_hash['verbose'], hiera('verbose', true)),
+  debug                => pick($horizon_hash['debug'], hiera('debug')),
+  use_syslog           => hiera('use_syslog', true),
+  hypervisor_options   => $hypervisor_options,
+  servername           => hiera('public_vip'),
+  neutron_options      => $neutron_options,
+  overview_days_range  => $overview_days_range,
+  file_upload_temp_dir => $file_upload_temp_dir,
+  file_upload_max_size => $file_upload_max_size,
 }
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
