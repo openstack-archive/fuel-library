@@ -71,7 +71,11 @@ if $use_neutron {
     $iface             = get_network_role_property($net_role_property, 'phys_dev')
     $physical_net_mtu  = pick(get_transformation_property('mtu', $iface[0]), '1500')
     $tunnel_id_ranges  = [try_get_value($neutron_config, 'L2/tunnel_id_ranges')]
-    $physical_network_mtus = []
+    $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
+      'do_floating' => $do_floating,
+      'do_tenant'   => false,
+      'do_provider' => false
+    })
 
     if $segmentation_type == 'gre' {
       $mtu_offset = '42'
