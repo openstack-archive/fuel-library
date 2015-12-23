@@ -7,4 +7,5 @@ class nailgun::mcollective
   ensure_packages('shotgun')
   ensure_packages('ironic-fa-bootstrap-configs')
   ensure_packages('fuel-bootstrap-image-builder')
+  ensure_packages('fuel-bootstrap-cli')
 }
