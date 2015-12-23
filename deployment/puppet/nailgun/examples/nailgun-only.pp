@@ -183,9 +183,6 @@ if $use_systemd {
     services   => $services,
     require    => Class['nailgun::venv']
   }
-
-  File['/etc/nailgun/settings.yaml'] ~> Service[$services]
-
 } else {
   class { 'nailgun::supervisor':
     service_enabled => false,
