@@ -4,7 +4,19 @@ require 'yaml'
 manifest = 'master/host-only.pp'
 
 describe manifest do
+
+  before(:each) do
+    Noop.puppet_function_load :file
+    MockFunction.new(:file) do |function|
+      allow(function).to receive(:call).with(['/etc/dockerctl/config']).and_return('dockerctl_config')
+    end
+  end
+
   shared_examples 'catalog' do
+
+    it "should contain the defined containers exec chain that requires the docker service" do
+      should contain_exec('container0build').that_requires('Service[docker]')
+    end
 
     config_path = '/etc/fuel-bootstrap-cli/fuel_bootstrap_cli.yaml'
     bootstrap_cli_package = 'fuel-bootstrap-cli'
