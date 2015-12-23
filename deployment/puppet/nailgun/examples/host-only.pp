@@ -154,4 +154,5 @@ exec {'sync_deployment_tasks':
   path      => '/usr/bin',
   tries     => 12,
   try_sleep => 10,
+  require   => Class['nailgun::client'],
 }
