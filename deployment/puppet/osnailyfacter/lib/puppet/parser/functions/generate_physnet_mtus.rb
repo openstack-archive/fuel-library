@@ -26,9 +26,18 @@ EOS
     unless flags['do_floating']
       debug("Perform floating networks")
       physnet_bridge_map.each do | net, br |
-        physnet_bridge_map.delete(net) if !neutron_config['predefined_networks'].select{ |pnet, value| value['L2']['physnet'] == net and value['L2']['router_ext'] }.empty?
+        physnet_bridge_map.delete(net) unless neutron_config['predefined_networks'].select{ |pnet, value| value['L2']['physnet'] == net and value['L2']['router_ext'] }.empty?
       end
     end
+
+    unless flags['do_tenant']
+      debug("Perform tenant networks")
+      physnet_bridge_map.each do | net, br |
+        physnet_bridge_map.delete(net) unless neutron_config['predefined_networks'].select{ |pnet, value| value['L2']['physnet'] == net and !value['L2']['router_ext'] }.empty?
+      end
+    end
+
+    return [] if physnet_bridge_map.empty?
 
     # Looking for MTUs
     bridge_including_flow = { :'add-patch' => 'bridges',  :'add-port' => 'bridge' , :'add-bond' => 'bridge', :'add-port' => 'bridge' }

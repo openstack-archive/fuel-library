@@ -188,7 +188,7 @@ describe 'function for formating allocation pools for neutron subnet resource' d
                "shared"=>false,
                "L2"=>{"network_type"=>"vlan",
                       "router_ext"=>false,
-                      "physnet"=>"physnet2",
+                      "physnet"=>"physnet1",
                       "segment_id"=>nil},
                "L3"=>{"nameservers"=>["8.8.4.4", "8.8.8.8"],
                       "subnet"=>"192.168.111.0/24",
@@ -213,12 +213,21 @@ describe 'function for formating allocation pools for neutron subnet resource' d
     end
 
 
-    it 'should be able to return floating nets to mtu map' do
+    it 'should be able to return floating and tenant nets to mtu map' do
       expect(@scope.function_generate_physnet_mtus([neutron_config, network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false }])).to eq(["physnet1:1500", "physnet2:35000"])
     end
 
-    it 'should be able to return without floating nets to mtu map' do
+    it 'should be able to return only tenant nets to mtu map' do
       expect(@scope.function_generate_physnet_mtus([neutron_config, network_scheme, { 'do_floating' => false, 'do_tenant' => true, 'do_provider' => false }])).to eq(["physnet1:1500"])
+    end
+
+
+    it 'should be able to return only floating nets to mtu map' do
+      expect(@scope.function_generate_physnet_mtus([neutron_config, network_scheme, { 'do_floating' => true, 'do_tenant' => false, 'do_provider' => false }])).to eq(["physnet2:35000"])
+    end
+
+    it 'should be able to return nothing' do
+      expect(@scope.function_generate_physnet_mtus([neutron_config, network_scheme, { 'do_floating' => false, 'do_tenant' => false, 'do_provider' => false }])).to eq([])
     end
 
     it 'should be able to return with floating nets to mtu map (bond)' do
@@ -233,8 +242,12 @@ describe 'function for formating allocation pools for neutron subnet resource' d
       expect(@scope.function_generate_physnet_mtus([neutron_config, network_scheme_mtu_on_port, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false }])).to eq(["physnet1:1800", "physnet2:35000"])
     end
 
-    it 'should be able to return without floating nets to mtu map (port)' do
+    it 'should be able to return only tenant nets to mtu map (port)' do
       expect(@scope.function_generate_physnet_mtus([neutron_config, network_scheme_mtu_on_port, { 'do_floating' => false, 'do_tenant' => true, 'do_provider' => false }])).to eq(["physnet1:1800"])
+    end
+
+    it 'should be able to return only floating nets to mtu map (port)' do
+      expect(@scope.function_generate_physnet_mtus([neutron_config, network_scheme_mtu_on_port, { 'do_floating' => true, 'do_tenant' => false, 'do_provider' => false }])).to eq(["physnet2:35000"])
     end
 
     it 'should be able to return with floating nets to mtu map (just OVS port)' do
