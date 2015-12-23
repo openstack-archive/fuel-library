@@ -42,6 +42,9 @@ fixtures:
     'murano':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-murano.git'
       branch: '7.0.0-mos-rc1'
+    'xinetd':
+      repo: 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-xinetd.git'
+      branch: '1.5.0'
   symlinks:
     'openstack': "#{source_dir}"
     'osnailyfacter': "#{source_dir}/../osnailyfacter"

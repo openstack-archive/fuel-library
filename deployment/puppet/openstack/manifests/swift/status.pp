@@ -21,9 +21,9 @@
 #  (optional) The Swift endpoint host for swift healthcheck
 #  Defaults to http://127.0.0.1:8080
 #
-# [*vip*]
-#  (optional) The VIP address for the ICMP connectivity check
-#  Defaults to 127.0.0.1
+# [*scan_target*]
+#  (optional) Specifies that netcat should scan for listening target
+#  Defaults to 127.0.0.1:5000
 #
 # [*con_timeout*]
 #  (optional) The timeout for Swift endpoint connection for swift healthcheck
@@ -35,7 +35,7 @@ class openstack::swift::status (
   $only_from   = '127.0.0.1',
   $port        = '49001',
   $endpoint    = 'http://127.0.0.1:8080',
-  $vip         = '127.0.0.1',
+  $scan_target = '127.0.0.1:5000',
   $con_timeout = '5',
 ) {
 
@@ -50,8 +50,8 @@ class openstack::swift::status (
   }
 
   $group = $::osfamily ? {
-    'redhat' => 'nobody',
-    'debian' => 'nogroup',
+    'RedHat' => 'nobody',
+    'Debian' => 'nogroup',
     default  => 'nobody',
   }
 
@@ -63,7 +63,7 @@ class openstack::swift::status (
     cps         => '512 10',
     per_source  => 'UNLIMITED',
     server      => '/usr/bin/swiftcheck',
-    server_args => "${endpoint} ${vip} ${con_timeout}",
+    server_args => "${endpoint} ${scan_target} ${con_timeout}",
     user        => 'nobody',
     group       => $group,
     flags       => 'IPv4',

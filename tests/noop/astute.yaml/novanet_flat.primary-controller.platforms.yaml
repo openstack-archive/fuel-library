@@ -567,7 +567,7 @@ network_metadata:
         ceph/public: 10.108.2.4
         ceph/radosgw: 10.108.1.4
         management: 10.108.2.4
-        swift/api: 10.108.2.4
+        swift/api: 10.108.4.2
         mgmt/api: 10.108.2.4
         storage: 10.108.4.2
         mgmt/corosync: 10.108.2.4
@@ -608,7 +608,7 @@ network_metadata:
         ceph/public: 10.108.2.5
         ceph/radosgw: 10.108.1.5
         management: 10.108.2.5
-        swift/api: 10.108.2.5
+        swift/api: 10.108.4.3
         mgmt/api: 10.108.2.5
         storage: 10.108.4.3
         mgmt/corosync: 10.108.2.5
@@ -649,7 +649,7 @@ network_metadata:
         ceph/public: 10.108.2.6
         ceph/radosgw: 10.108.1.6
         management: 10.108.2.6
-        swift/api: 10.108.2.6
+        swift/api: 10.108.4.4
         mgmt/api: 10.108.2.6
         storage: 10.108.4.4
         mgmt/corosync: 10.108.2.6
@@ -690,7 +690,7 @@ network_metadata:
         ceph/public: 10.108.2.7
         ceph/radosgw: 10.108.1.7
         management: 10.108.2.7
-        swift/api: 10.108.2.7
+        swift/api: 10.108.4.5
         mgmt/api: 10.108.2.7
         storage: 10.108.4.5
         mgmt/corosync: 10.108.2.7
@@ -731,7 +731,7 @@ network_metadata:
         ceph/public: 10.108.2.8
         ceph/radosgw: 10.108.1.8
         management: 10.108.2.8
-        swift/api: 10.108.2.8
+        swift/api: 10.108.4.6
         mgmt/api: 10.108.2.8
         storage: 10.108.4.6
         mgmt/corosync: 10.108.2.8
@@ -772,7 +772,7 @@ network_metadata:
         ceph/public: 10.108.2.9
         ceph/radosgw: 10.108.1.9
         management: 10.108.2.9
-        swift/api: 10.108.2.9
+        swift/api: 10.108.4.7
         mgmt/api: 10.108.2.9
         storage: 10.108.4.7
         mgmt/corosync: 10.108.2.9
@@ -846,7 +846,7 @@ network_scheme:
     ceph/public: br-mgmt
     mgmt/messaging: br-mgmt
     management: br-mgmt
-    swift/api: br-mgmt
+    swift/api: br-storage
     mgmt/api: br-mgmt
     storage: br-storage
     mgmt/corosync: br-mgmt

@@ -33,6 +33,13 @@ if ($use_swift) {
     $baremetal_virtual_ip = $network_metadata['vips']['baremetal']['ipaddr']
   }
 
+  prepare_network_config(hiera_hash('network_scheme'))
+
+  # Check proxy and storage daemons binds on the same ip address
+  $swift_api_ipaddr     = get_network_role_property('swift/api', 'ipaddr')
+  $swift_storage_ipaddr = get_network_role_property('swift/replication', 'ipaddr')
+  $bind_to_one          = ($swift_api_ipaddr == $swift_storage_ipaddr)
+
   # configure swift ha proxy
   class { '::openstack::ha::swift':
     internal_virtual_ip  => $internal_virtual_ip,
@@ -44,5 +51,6 @@ if ($use_swift) {
     internal_ssl         => $internal_ssl,
     internal_ssl_path    => $internal_ssl_path,
     baremetal_virtual_ip => $baremetal_virtual_ip,
+    bind_to_one          => $bind_to_one,
   }
 }
