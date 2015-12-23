@@ -16,6 +16,8 @@ if $use_neutron {
   $nova_hash               = hiera_hash('nova', { })
   $primary_controller      = hiera('primary_controller', false)
 
+  $neutron_agent_down_time = hiera('neutron_agent_down_time')
+
   $neutron_db_password     = $neutron_config['database']['passwd']
   $neutron_db_user         = try_get_value($neutron_config, 'database/user', 'neutron')
   $neutron_db_name         = try_get_value($neutron_config, 'database/name', 'neutron')
@@ -151,7 +153,7 @@ if $use_neutron {
     database_connection              => $neutron_db_uri,
     database_max_retries             => '-1',
 
-    agent_down_time                  => '30',
+    agent_down_time                  => $neutron_agent_down_time,
     allow_automatic_l3agent_failover => $l3agent_failover,
     l3_ha                            => $l3_ha,
     min_l3_agents_per_router         => 2,

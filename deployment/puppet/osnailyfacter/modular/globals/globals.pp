@@ -98,6 +98,10 @@ $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 
 $nova_report_interval           = hiera('nova_report_interval', 60)
 $nova_service_down_time         = hiera('nova_service_down_time', 180)
+$cinder_report_interval         = hiera('cinder_report_interval', 60)
+$cinder_service_down_time       = hiera('cinder_service_down_time', 10)
+$neutron_report_interval        = hiera('neutron_report_interval', 10)
+$neutron_agent_down_time        = hiera('neutron_agent_down_time', 30)
 
 $horizon_address                = pick(get_network_role_property('horizon', 'ipaddr'), '127.0.0.1')
 $apache_api_proxy_address       = get_network_role_property('admin/pxe', 'ipaddr')
