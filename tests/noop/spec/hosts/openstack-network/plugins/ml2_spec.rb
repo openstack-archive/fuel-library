@@ -31,10 +31,6 @@ describe manifest do
         configuration_override.fetch('neutron_agent_ovs', {})
       end
 
-      let(:phys_net_mtus) do
-        Noop.puppet_function('generate_physnet_mtus', Noop.hiera_hash('neutron_config'), network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false })
-      end
-
       context 'with Neutron-ml2-plugin' do
 
         role = Noop.hiera('role')
@@ -116,9 +112,9 @@ describe manifest do
         )}
         it {
           if segmentation_type == 'vlan'
-            physical_network_mtus = phys_net_mtus
+            physical_network_mtus = Noop.puppet_function('generate_physnet_mtus', Noop.hiera_hash('neutron_config'), network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false })
           else
-            physical_network_mtus = []
+            physical_network_mtus = Noop.puppet_function('generate_physnet_mtus', Noop.hiera_hash('neutron_config'), network_scheme, { 'do_floating' => true, 'do_tenant' => false, 'do_provider' => false })
           end
           should contain_class('neutron::plugins::ml2').with(
           'physical_network_mtus' => physical_network_mtus,
