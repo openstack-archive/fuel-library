@@ -32,7 +32,6 @@ def get_data_from_hiera(key, resolution_type=':priority'):
     except subprocess.CalledProcessError as err:
         print("Error code", err.returncode, err.output)
         sys.exit(1)
-
     data = yaml.load(cmd_data.stdout.read())
     return data
 
@@ -53,13 +52,10 @@ def check_availability_zones(nova_client, compute):
 
 
 def check_host_in_zone(nova_client, compute):
-    nova_zones = nova_client.availability_zones.list()
     nova_aggregates = nova_client.aggregates.list()
     compute_zone = compute['availability_zone_name']
     compute_host = compute_zone + "-" + compute['service_name']
-
-    present = filter(lambda item: compute_host in item.to_dict()['hosts'] and
-                     item.to_dict()['zoneName'] == compute_zone, nova_zones)
+    present = filter(lambda aggr: compute_host in aggr.hosts, nova_aggregates)
 
     if present:
         print("Compute service {0} already in {1}  zone.".
