@@ -56,9 +56,21 @@ class Noop
         next unless file.end_with? 'tasks.yaml'
         task = YAML.load_file(file)
         @tasks += task if task.is_a? Array
-      end
-      @tasks
     end
+    @tasks.each do |group|
+      next unless group['type'] == 'group'
+      group_tasks = group.fetch 'tasks', []
+      group_tasks.each do |group_task|
+        @tasks.each do |task|
+          next unless task['id'] == group_task
+          next unless task['groups'].is_a? Array
+          next if task['groups'].include? group
+          task['groups'] << group['id']
+        end
+      end
+    end
+    @tasks
+  end
 
     # this functions returns the name of the currently running spec
     # @return [String]

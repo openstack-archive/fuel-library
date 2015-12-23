@@ -28,7 +28,7 @@
   type: puppet
   groups: [compute-vmware]
   required_for: [deploy_end]
-  requires: [top-role-compute]
+  requires: [top-role-compute, ceilometer-compute, ceilometer-keystone]
   condition: "settings:common.use_vcenter.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/compute-vmware.pp

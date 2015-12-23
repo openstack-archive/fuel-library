@@ -11,6 +11,7 @@ class vmware::ceilometer (
   $debug                = false,
 ) {
 
+  # $default_log_levels gets used in template file. Do not remove.
   if $debug {
     # Enable debug for rabbit and vmware only
     $default_log_levels = 'amqp=DEBUG,amqplib=DEBUG,boto=WARN,qpid=WARN,sqlalchemy=WARN,suds=INFO,iso8601=WARN,requests.packages.urllib3.connectionpool=WARN,oslo.vmware=DEBUG'
@@ -23,8 +24,8 @@ class vmware::ceilometer (
   include ceilometer::params
 
   package { 'ceilometer-agent-compute':
-    name   => $ceilometer::params::agent_compute_package_name,
-    ensure => present
+    ensure => present,
+    name   => $::ceilometer::params::agent_compute_package_name,
   }
 
   create_resources(vmware::ceilometer::ha, parse_vcenter_settings($vcenter_settings))
