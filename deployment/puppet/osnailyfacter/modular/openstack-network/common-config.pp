@@ -17,6 +17,8 @@ if $use_neutron {
   $ceilometer_hash  = hiera_hash('ceilometer', { })
   $network_scheme   = hiera_hash('network_scheme')
 
+  $neutron_report_interval   = hiera('neutron_report_interval')
+
   $verbose      = pick($openstack_network_hash['verbose'], hiera('verbose', true))
   $debug        = pick($openstack_network_hash['debug'], hiera('debug', true))
   $use_syslog   = hiera('use_syslog', true)
@@ -77,7 +79,7 @@ if $use_neutron {
     mac_generation_retries  => '32',
     dhcp_lease_duration     => '600',
     dhcp_agents_per_network => '2',
-    report_interval         => '10',
+    report_interval         => $neutron_report_interval,
     rabbit_user             => $amqp_user,
     rabbit_hosts            => $amqp_hosts,
     rabbit_password         => $amqp_password,

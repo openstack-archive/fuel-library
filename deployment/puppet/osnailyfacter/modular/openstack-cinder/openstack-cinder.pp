@@ -2,39 +2,41 @@ notice('MODULAR: openstack-cinder.pp')
 
 #Network stuff
 prepare_network_config(hiera('network_scheme', {}))
-$cinder_hash            = hiera_hash('cinder_hash', {})
-$management_vip         = hiera('management_vip')
-$queue_provider         = hiera('queue_provider', 'rabbitmq')
-$cinder_volume_group    = hiera('cinder_volume_group', 'cinder')
-$nodes_hash             = hiera('nodes', {})
-$storage_hash           = hiera_hash('storage', {})
-$ceilometer_hash        = hiera_hash('ceilometer_hash',{})
-$sahara_hash            = hiera_hash('sahara_hash',{})
-$rabbit_hash            = hiera_hash('rabbit_hash', {})
-$service_endpoint       = hiera('service_endpoint')
-$service_workers        = pick($cinder_hash['workers'], min(max($::processorcount, 2), 16))
-$cinder_db_password     = $cinder_hash[db_password]
-$cinder_user_password   = $cinder_hash[user_password]
-$keystone_user          = pick($cinder_hash['user'], 'cinder')
-$keystone_tenant        = pick($cinder_hash['tenant'], 'services')
-$region                 = hiera('region', 'RegionOne')
-$db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
-$cinder_db_user         = pick($cinder_hash['db_user'], 'cinder')
-$cinder_db_name         = pick($cinder_hash['db_name'], 'cinder')
-$roles                  = node_roles($nodes_hash, hiera('uid'))
-$ssl_hash               = hiera_hash('use_ssl', {})
-$primary_controller      = hiera('primary_controller')
+$cinder_hash              = hiera_hash('cinder_hash', {})
+$management_vip           = hiera('management_vip')
+$queue_provider           = hiera('queue_provider', 'rabbitmq')
+$cinder_volume_group      = hiera('cinder_volume_group', 'cinder')
+$nodes_hash               = hiera('nodes', {})
+$storage_hash             = hiera_hash('storage', {})
+$ceilometer_hash          = hiera_hash('ceilometer_hash',{})
+$sahara_hash              = hiera_hash('sahara_hash',{})
+$rabbit_hash              = hiera_hash('rabbit_hash', {})
+$service_endpoint         = hiera('service_endpoint')
+$service_workers          = pick($cinder_hash['workers'], min(max($::processorcount, 2), 16))
+$cinder_db_password       = $cinder_hash[db_password]
+$cinder_user_password     = $cinder_hash[user_password]
+$keystone_user            = pick($cinder_hash['user'], 'cinder')
+$keystone_tenant          = pick($cinder_hash['tenant'], 'services')
+$region                   = hiera('region', 'RegionOne')
+$db_host                  = pick($cinder_hash['db_host'], hiera('database_vip'))
+$cinder_db_user           = pick($cinder_hash['db_user'], 'cinder')
+$cinder_db_name           = pick($cinder_hash['db_name'], 'cinder')
+$roles                    = node_roles($nodes_hash, hiera('uid'))
+$ssl_hash                 = hiera_hash('use_ssl', {})
+$primary_controller       = hiera('primary_controller')
+$cinder_report_interval   = hiera('cinder_report_interval')
+$cinder_service_down_time = hiera('cinder_service_down_time')
 
-$keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+$keystone_auth_protocol   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$keystone_auth_host       = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
-$glance_protocol        = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
-$glance_endpoint        = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
-$glance_ssl_usage       = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+$glance_protocol          = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
+$glance_endpoint          = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
+$glance_ssl_usage         = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
 if $glance_ssl_usage {
   $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
 } else {
-  $glance_api_servers    = hiera('glance_api_servers', "${management_vip}:9292")
+  $glance_api_servers     = hiera('glance_api_servers', "${management_vip}:9292")
 }
 
 $service_port        = '5000'
@@ -68,40 +70,43 @@ $openstack_version = {
 
 ######### Cinder Controller Services ########
 class {'openstack::cinder':
-  sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
-  queue_provider       => $queue_provider,
-  amqp_hosts           => hiera('amqp_hosts',''),
-  amqp_user            => $rabbit_hash['user'],
-  amqp_password        => $rabbit_hash['password'],
-  rabbit_ha_queues     => true,
-  volume_group         => $cinder_volume_group,
-  physical_volume      => undef,
-  manage_volumes       => $manage_volumes,
-  enabled              => true,
-  glance_api_servers   => $glance_api_servers,
-  bind_host            => get_network_role_property('cinder/api', 'ipaddr'),
-  iscsi_bind_host      => get_network_role_property('cinder/iscsi', 'ipaddr'),
-  keystone_user        => $keystone_user,
-  keystone_tenant      => $keystone_tenant,
-  auth_uri             => $auth_uri,
-  privileged_auth_uri  => $privileged_auth_uri,
-  region               => $region,
-  identity_uri         => $identity_uri,
-  cinder_user_password => $cinder_user_password,
-  use_syslog           => hiera('use_syslog', true),
-  use_stderr           => hiera('use_stderr', false),
-  primary_controller   => $primary_controller,
-  verbose              => pick($cinder_hash['verbose'], hiera('verbose', true)),
-  debug                => pick($cinder_hash['debug'], hiera('debug', true)),
-  default_log_levels   => hiera_hash('default_log_levels'),
-  syslog_log_facility  => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
-  cinder_rate_limits   => hiera('cinder_rate_limits'),
-  max_retries          => $max_retries,
-  max_pool_size        => $max_pool_size,
-  max_overflow         => $max_overflow,
-  idle_timeout         => $idle_timeout,
-  ceilometer           => $ceilometer_hash[enabled],
-  service_workers      => $service_workers,
+  sql_connection           => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
+  queue_provider           => $queue_provider,
+  amqp_hosts               => hiera('amqp_hosts',''),
+  amqp_user                => $rabbit_hash['user'],
+  amqp_password            => $rabbit_hash['password'],
+  rabbit_ha_queues         => true,
+  volume_group             => $cinder_volume_group,
+  physical_volume          => undef,
+  manage_volumes           => $manage_volumes,
+  enabled                  => true,
+  glance_api_servers       => $glance_api_servers,
+  bind_host                => get_network_role_property('cinder/api', 'ipaddr'),
+  iscsi_bind_host          => get_network_role_property('cinder/iscsi', 'ipaddr'),
+  keystone_user            => $keystone_user,
+  keystone_tenant          => $keystone_tenant,
+  auth_uri                 => $auth_uri,
+  privileged_auth_uri      => $privileged_auth_uri,
+  region                   => $region,
+  identity_uri             => $identity_uri,
+  cinder_user_password     => $cinder_user_password,
+  use_syslog               => hiera('use_syslog', true),
+  use_stderr               => hiera('use_stderr', false),
+  primary_controller       => $primary_controller,
+  verbose                  => pick($cinder_hash['verbose'], hiera('verbose', true)),
+  debug                    => pick($cinder_hash['debug'], hiera('debug', true)),
+  default_log_levels       => hiera_hash('default_log_levels'),
+  syslog_log_facility      => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
+  cinder_rate_limits       => hiera('cinder_rate_limits'),
+  max_retries              => $max_retries,
+  max_pool_size            => $max_pool_size,
+  max_overflow             => $max_overflow,
+  idle_timeout             => $idle_timeout,
+  ceilometer               => $ceilometer_hash[enabled],
+  service_workers          => $service_workers,
+  cinder_report_interval   => $cinder_report_interval,
+  cinder_service_down_time => $nova_service_down_time,
+
 } # end class
 
 if $storage_hash['volumes_block_device'] or ($sahara_hash['enabled'] and $storage_hash['volumes_lvm']) {
