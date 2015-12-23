@@ -20,7 +20,7 @@ class docker::dockerctl (
   #  mode    => 0755,
   #  content => template("docker/dockerctl.erb");
   #}
-  
+
   # file { "$profile_dir/dockerctl.sh":
   #  content => template("docker/dockerctl-alias.sh.erb"),
   #  owner   => 'root',
@@ -35,8 +35,8 @@ class docker::dockerctl (
   #  mode    => 0644,
   #  content => template("docker/functions.sh.erb")
   #}
-  file { "$config_dir/config":
-    mode    => 0644,
-    content => template("docker/dockerctl_config.erb")
+  file { "${config_dir}/config":
+    mode    => '0644',
+    content => template('docker/dockerctl_config.erb')
   }
 }
