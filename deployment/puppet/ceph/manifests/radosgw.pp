@@ -1,10 +1,3 @@
-# enable an Apache module
-define apache::loadmodule () {
-  exec { "/usr/sbin/a2enmod ${name}" :
-    unless => "/bin/readlink -e /etc/apache2/mods-enabled/${name}.load",
-    notify => Service['httpd']
-  }
-}
 
 # deploys Ceph radosgw as an Apache FastCGI application
 class ceph::radosgw (
@@ -49,6 +42,7 @@ class ceph::radosgw (
   $keyring_path     = "/etc/ceph/keyring.${rgw_id}"
   $radosgw_auth_key = "client.${rgw_id}"
   $dir_httpd_root   = '/var/www/radosgw'
+  $dir_httpd_log    = $::ceph::params::dir_httpd_log
 
   package { [$::ceph::params::package_radosgw,
              $::ceph::params::package_fastcgi,

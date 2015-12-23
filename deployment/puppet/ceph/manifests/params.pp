@@ -21,6 +21,7 @@ class ceph::params {
       $dir_httpd_conf             = '/etc/httpd/conf/'
       $dir_httpd_sites            = '/etc/httpd/conf.d/'
       $dir_httpd_ssl              = '/etc/httpd/ssl/'
+      $dir_httpd_log              = '/var/log/httpd/'
 
       package { ['ceph', 'redhat-lsb-core','ceph-deploy',]:
         ensure => installed,
@@ -46,6 +47,7 @@ class ceph::params {
       $dir_httpd_conf             = '/etc/httpd/conf/'
       $dir_httpd_sites            = '/etc/apache2/sites-available/'
       $dir_httpd_ssl              = '/etc/apache2/ssl/'
+      $dir_httpd_log              = '/var/log/apache2/'
 
       package { ['ceph','ceph-deploy', ]:
         ensure => installed,

@@ -47,7 +47,7 @@ class openstack::ha::radosgw (
     public_virtual_ip      => $public_virtual_ip,
     server_names           => $server_names,
     haproxy_config_options => {
-      'option'       => ['httplog', 'httpchk GET /'],
+      'option'       => ['httplog', 'httpchk HEAD /', 'http-server-close', 'forwardfor'],
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
   }
