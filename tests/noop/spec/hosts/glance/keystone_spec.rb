@@ -31,6 +31,7 @@ describe manifest do
     configure_user      = Noop.hiera_structure('glance/configure_user', true)
     configure_user_role = Noop.hiera_structure('glance/configure_user_role', true)
     region              = Noop.hiera_structure('glance/region', 'RegionOne')
+    tenant              = Noop.hiera_structure('glance/tenant', 'services') 
     service_name        = Noop.hiera_structure('glance/service_name', 'glance')
     public_url          = "#{public_protocol}://#{public_address}:9292"
     internal_url        = "#{internal_protocol}://#{internal_address}:9292"
@@ -48,6 +49,7 @@ describe manifest do
         'internal_url'        => internal_url,
         'admin_url'           => admin_url,
         'region'              => region,
+        'tenant'              => tenant,
       )
     end
   end

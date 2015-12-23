@@ -36,6 +36,7 @@ describe manifest do
     public_url_cfn      = "#{public_protocol}://#{public_address}:8000/v1"
     internal_url_cfn    = "#{internal_protocol}://#{internal_address}:8000/v1"
     admin_url_cfn       = "#{admin_protocol}://#{admin_address}:8000/v1"
+    tenant              = Noop.hiera_structure 'heat/tenant', 'services'
 
     it 'class heat::keystone::auth should contain correct *_url' do
       should contain_class('heat::keystone::auth').with('public_url' => public_url)
@@ -47,6 +48,10 @@ describe manifest do
       should contain_class('heat::keystone::auth_cfn').with('public_url' => public_url_cfn)
       should contain_class('heat::keystone::auth_cfn').with('internal_url' => internal_url_cfn)
       should contain_class('heat::keystone::auth_cfn').with('admin_url' => admin_url_cfn)
+    end
+
+    it 'class heat::keystone::auth should contain tenant' do
+      should contain_class('heat::keystone::auth').with('tenant' => tenant)
     end
 
   end
