@@ -92,7 +92,6 @@ describe manifest do
             :ensure    => 'running',
             :enable    => 'true',
           })
-          should contain_file('/etc/nailgun/settings.yaml').that_notifies("Service[#{service}]")
         end
       end
     end # context
