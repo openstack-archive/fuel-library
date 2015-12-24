@@ -276,7 +276,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
    rv = []
    p "parse jacks #{data}"
    data.each_line do | line |
-     jacks = line.scan(/ip\s+link\s+add\s+([\w\-]+)\s+type\s+veth\s+peer\s+name\s+([\w\-]+)/).flatten
+     jacks = line.scan(/ip\s+link\s+add\s+([\w\-]+)\s+mtu\s+\d+\s+type\s+veth\s+peer\s+name\s+([\w\-]+)\s+mtu\s+\d+/).flatten
      rv = jacks if !jacks.empty?
    end
    return rv
@@ -464,7 +464,9 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
 
   def self.unmangle__jacks(provider, data)
     rv = []
-    rv << "ip link add #{data[0]} type veth peer name #{data[1]}"
+    pre_up = "ip link add #{data[0]} mtu 1500 type veth peer name #{data[1]} mtu 1500"
+    pre_up = "ip link add #{data[0]} mtu #{provider.send(:mtu)} type veth peer name #{data[1]} mtu #{provider.send(:mtu)}" unless ['', 'absent'].include?(provider.send(:mtu).to_s)
+    rv << pre_up
     rv << "ip link set up dev #{data[1]}"
     rv.join("\n")
   end
