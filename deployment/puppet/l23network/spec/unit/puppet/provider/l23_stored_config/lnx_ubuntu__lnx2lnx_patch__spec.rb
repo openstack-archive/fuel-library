@@ -33,6 +33,14 @@ resources_map =     {
         :jacks    => ['p_33470efd-0', 'p_33470efd-1'],
         :provider => "lnx_ubuntu",
       },
+      :'p_33470efd-1_mtu' => {
+        :name     => "p_33470efd-1",
+        :if_type  => 'patch',
+        :mtu      => 1700,
+        :bridge   => ["br2"],
+        :jacks    => ['p_33470efd-0', 'p_33470efd-1'],
+        :provider => "lnx_ubuntu",
+      },
 
 }
 
@@ -109,7 +117,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
       it { expect(cfg_file).to match(/auto\s+p_33470efd-0/) }
       it { expect(cfg_file).to match(/iface\s+p_33470efd-0\s+inet\s+manual/) }
-      it { expect(cfg_file).to match(/pre-up\s+ip\s+link\s+add\s+p_33470efd-0\s+type\s+veth\s+peer\s+name\s+p_33470efd-1/) }
+      it { expect(cfg_file).to match(/pre-up\s+ip\s+link\s+add\s+p_33470efd-0\s+mtu\s+1500\s+type\s+veth\s+peer\s+name\s+p_33470efd-1\s+mtu\s+1500/) }
       it { expect(cfg_file).to match(/post-up\s+ip\s+link\s+set\s+up\s+dev\s+p_33470efd-1/) }
       it { expect(cfg_file).to match(/post-down\s+ip\s+link\s+del\s+p_33470efd-0/) }
       it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }
@@ -120,11 +128,24 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
       it { expect(cfg_file).to match(/auto\s+p_33470efd-1/) }
       it { expect(cfg_file).to match(/iface\s+p_33470efd-1\s+inet\s+manual/) }
-      it { expect(cfg_file).to match(/pre-up\s+ip\s+link\s+add\s+p_33470efd-0\s+type\s+veth\s+peer\s+name\s+p_33470efd-1/) }
+      it { expect(cfg_file).to match(/pre-up\s+ip\s+link\s+add\s+p_33470efd-0\s+mtu\s+1500\s+type\s+veth\s+peer\s+name\s+p_33470efd-1\s+mtu\s+1500/) }
       it { expect(cfg_file).to match(/post-up\s+ip\s+link\s+set\s+up\s+dev\s+p_33470efd-1/) }
       it { expect(cfg_file).to match(/post-down\s+ip\s+link\s+del\s+p_33470efd-0/) }
       it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }
     end
+
+    context 'for lnx2lnx patchcord p_33470efd-1 mtu 1700' do
+      subject { providers[:'p_33470efd-1_mtu'] }
+      let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
+      it { expect(cfg_file).to match(/auto\s+p_33470efd-1/) }
+      it { expect(cfg_file).to match(/iface\s+p_33470efd-1\s+inet\s+manual/) }
+      it { expect(cfg_file).to match(/mtu\s+1700/) }
+      it { expect(cfg_file).to match(/pre-up\s+ip\s+link\s+add\s+p_33470efd-0\s+mtu\s+1700\s+type\s+veth\s+peer\s+name\s+p_33470efd-1\s+mtu\s+1700/) }
+      it { expect(cfg_file).to match(/post-up\s+ip\s+link\s+set\s+up\s+dev\s+p_33470efd-1/) }
+      it { expect(cfg_file).to match(/post-down\s+ip\s+link\s+del\s+p_33470efd-0/) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(6) }
+    end
+
 
   end
 

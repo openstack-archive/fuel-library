@@ -80,7 +80,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       },
       :jacks  => {
           # pre-up ip link add p_33470efd-0 type veth peer name p_33470efd-1
-          :detect_re    => /pre-up\s+ip\s+link\s+add\s+([\w\-]+)\s+type\s+veth\s+peer\s+name\s+([\w\-]+)/,
+          :detect_re    => /pre-up\s+ip\s+link\s+add\s+([\w\-]+)\s+mtu\s+(\d+)\s+type\s+veth\s+peer\s+name\s+([\w\-]+)+mtu\s+(\d+)/,
           :detect_shift => 1,
       },
     }
@@ -570,7 +570,9 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
 
   def self.unmangle__jacks(provider, data)
     rv = []
-    rv << "pre-up ip link add #{data[0]} type veth peer name #{data[1]}"
+    pre_up = "pre-up ip link add #{data[0]} mtu 1500 type veth peer name #{data[1]} mtu 1500"
+    pre_up = "pre-up ip link add #{data[0]} mtu #{provider.send(:mtu)} type veth peer name #{data[1]} mtu #{provider.send(:mtu)}" unless ['', 'absent'].include?(provider.send(:mtu).to_s)
+    rv << pre_up
     rv << "post-up ip link set up dev #{data[1]}"
     rv << "post-down ip link del #{data[0]}"
   end

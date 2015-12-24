@@ -90,9 +90,9 @@ Puppet::Type.type(:l2_patch).provide(:lnx, :parent => Puppet::Provider::Lnx_base
   def flush
     if !@property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
-      if !['', 'absent'].include? @property_flush[:mtu].to_s
+      unless ['', 'absent'].include? @property_flush[:mtu].to_s
         # 'absent' is a synonym 'do-not-touch' for MTU
-        @property_hash[:jacks].each { |iface| self.class.set_mtu(iface, @property_flush[:mtu]) } if @property_hash[:jacks]
+        @property_flush[:jacks].each { |iface| self.class.set_mtu(iface, @property_flush[:mtu]) } if @property_flush[:jacks]
       end
       #todo: /sv: make ability of change bridges for RAW patchcords
       @property_hash = resource.to_hash
