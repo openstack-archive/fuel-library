@@ -28,6 +28,8 @@ if $use_neutron {
   $admin_auth_url             = "${admin_identity_uri}/${auth_api_version}"
   $neutron_url                = "${neutron_internal_protocol}://${neutron_endpoint}:9696"
 
+  $nova_migration_ip          =  get_network_role_property('nova/migration', 'ipaddr')
+
   service { 'libvirt' :
     ensure   => 'running',
     enable   => true,
@@ -67,9 +69,10 @@ if $use_neutron {
   }
 
   nova_config {
-    'DEFAULT/linuxnet_interface_driver': value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
+    'DEFAULT/linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
     'DEFAULT/linuxnet_ovs_integration_bridge': value => $neutron_integration_bridge;
-    'DEFAULT/network_device_mtu': value => '65000';
+    'DEFAULT/network_device_mtu':              value => '65000';
+    'DEFAULT/my_ip':                           value => $nova_migration_ip;
   }
 
   class { 'nova::network::neutron' :

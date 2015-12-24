@@ -25,6 +25,10 @@ describe manifest do
       Noop.puppet_function 'get_network_role_property', 'nova/api', 'ipaddr'
     end
 
+    let(:nova_migration_ip) do
+      Noop.puppet_function 'get_network_role_property', 'nova/migration', 'ipaddr'
+    end
+
     let(:nova_rate_limits) do
       Noop.hiera_hash 'nova_rate_limits'
     end
@@ -109,6 +113,10 @@ describe manifest do
         #
         it { expect(subject).to contain_class('nova::compute::neutron').with(
           :libvirt_vif_driver => libvirt_vif_driver,
+        )}
+        #
+        it { expect(subject).to contain_nova_config('DEFAULT/my_ip').with(
+          :value => nova_migration_ip,
         )}
         #
         it { expect(subject).to contain_nova_config('DEFAULT/linuxnet_interface_driver').with(
