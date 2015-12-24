@@ -31,7 +31,14 @@ resources_map =     {
         :jacks    => ['p_33470efd-0', 'p_33470efd-1'],
         :provider => "lnx_centos7",
       },
-
+      :'p_33470efd-1_mtu' => {
+        :name     => "p_33470efd-1",
+        :if_type  => 'patch',
+        :mtu      => 1800,
+        :bridge   => ["br2"],
+        :jacks    => ['p_33470efd-0', 'p_33470efd-1'],
+        :provider => "lnx_centos7",
+      },
 }
 
 describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
@@ -66,9 +73,6 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
   before(:each) do
     puppet_debug_override()
     subject.class.stubs(:script_directory).returns(fixture_path)
-    file_handle = mock
-    file_handle.stubs(:write).returns true
-    File.stubs(:open).yields(file_handle).returns(true)
   end
 
   def fixture_path
@@ -112,22 +116,52 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
     context 'for lnx2lnx patchcord p_33470efd-0' do
       subject { providers[:'p_33470efd-0'] }
       let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
-      it { expect(cfg_file).to match(/BOOTPROTO=none/) }
-      it { expect(cfg_file).to match(/DEVICE=p_33470efd-0/) }
-      it { expect(cfg_file).to match(/BRIDGE=br1/) }
-      it { expect(cfg_file).to match(/ONBOOT=yes/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }
+      it do
+        file_handle = mock
+        file_handle.stubs(:write).with("ip link add p_33470efd-0 mtu 1500 type veth peer name p_33470efd-1 mtu 1500\n"\
+                                       "ip link set up dev p_33470efd-1").returns true
+        File.stubs(:open).yields(file_handle).returns(true)
+        expect(cfg_file).to match(/BOOTPROTO=none/)
+        expect(cfg_file).to match(/DEVICE=p_33470efd-0/)
+        expect(cfg_file).to match(/BRIDGE=br1/)
+        expect(cfg_file).to match(/ONBOOT=yes/)
+        expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4)
+      end
     end
 
     context 'for lnx2lnx patchcord p_33470efd-1' do
       subject { providers[:'p_33470efd-1'] }
       let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
-      it { expect(cfg_file).to match(/BOOTPROTO=none/) }
-      it { expect(cfg_file).to match(/DEVICE=p_33470efd-1/) }
-      it { expect(cfg_file).to match(/BRIDGE=br2/) }
-      it { expect(cfg_file).to match(/ONBOOT=yes/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }
+      it do
+        file_handle = mock
+        file_handle.stubs(:write).with("ip link add p_33470efd-0 mtu 1500 type veth peer name p_33470efd-1 mtu 1500\n"\
+                                       "ip link set up dev p_33470efd-1").returns true
+        File.stubs(:open).yields(file_handle).returns(true)
+        expect(cfg_file).to match(/BOOTPROTO=none/)
+        expect(cfg_file).to match(/DEVICE=p_33470efd-1/)
+        expect(cfg_file).to match(/BRIDGE=br2/)
+        expect(cfg_file).to match(/ONBOOT=yes/)
+        expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4)
+      end
     end
+
+    context 'for lnx2lnx patchcord p_33470efd-1 with mtu' do
+      subject { providers[:'p_33470efd-1_mtu'] }
+      let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
+      it do
+        file_handle = mock
+        file_handle.stubs(:write).with("ip link add p_33470efd-0 mtu 1800 type veth peer name p_33470efd-1 mtu 1800\n"\
+                                       "ip link set up dev p_33470efd-1").returns true
+        File.stubs(:open).yields(file_handle).returns(true)
+        expect(cfg_file).to match(/BOOTPROTO=none/)
+        expect(cfg_file).to match(/DEVICE=p_33470efd-1/)
+        expect(cfg_file).to match(/BRIDGE=br2/)
+        expect(cfg_file).to match(/MTU=1800/)
+        expect(cfg_file).to match(/ONBOOT=yes/)
+        expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5)
+      end
+    end
+
 
     context 'file writing error for lnx2lnx patchcord p_33470efd-1' do
       subject { providers[:'p_33470efd-1'] }
@@ -163,19 +197,21 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
 
     context 'for lnx2lnx patchcord p_33470efd-0' do
       let(:res) { subject.class.parse_file('ifcfg-p_33470efd-0', fixture_data('ifcfg-p_33470efd-0'))[0] }
-      it { expect(res[:method]).to eq 'manual' }
-      it { expect(res[:onboot]).to eq true }
       it { expect(res[:name]).to eq 'p_33470efd-0' }
       it { expect(res[:if_type].to_s).to eq 'patch' }
+      it { expect(res[:jacks]).to eq ['p_33470efd-0', 'p_33470efd-1'] }
+      it { expect(res[:method]).to eq 'manual' }
+      it { expect(res[:onboot]).to eq true }
       it { expect(res[:provider].to_s).to eq 'lnx_centos7' }
     end
 
     context 'for lnx2lnx patchcord p_33470efd-1' do
       let(:res) { subject.class.parse_file('ifcfg-p_33470efd-1', fixture_data('ifcfg-p_33470efd-1'))[0] }
-      it { expect(res[:method]).to eq 'manual' }
-      it { expect(res[:onboot]).to eq true }
       it { expect(res[:name]).to eq 'p_33470efd-1' }
       it { expect(res[:if_type].to_s).to eq 'patch' }
+      it { expect(res[:jacks]).to eq ['p_33470efd-0', 'p_33470efd-1'] }
+      it { expect(res[:method]).to eq 'manual' }
+      it { expect(res[:onboot]).to eq true }
       it { expect(res[:provider].to_s).to eq 'lnx_centos7' }
     end
 
