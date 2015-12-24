@@ -183,6 +183,10 @@ if $use_systemd {
     services   => $services,
     require    => Class['nailgun::venv']
   }
+  if ($production == 'prod') or ($production == 'docker') {
+    File['/etc/nailgun/settings.yaml'] ~> Service[$services]
+  }
+
 } else {
   class { 'nailgun::supervisor':
     service_enabled => false,
