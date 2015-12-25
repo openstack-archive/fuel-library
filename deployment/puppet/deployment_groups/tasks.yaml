@@ -55,7 +55,7 @@
 - id: cinder-block-device
   type: group
   role: [cinder-block-device]
-  requires: [controller]
+  requires: [compute]
   required_for: [deploy_end]
   parameters:
     strategy:
