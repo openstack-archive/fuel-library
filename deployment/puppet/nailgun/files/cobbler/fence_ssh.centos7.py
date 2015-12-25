@@ -35,7 +35,7 @@ def get_power_status(conn, options):
 def set_power_status(conn, options):
     if options["--action"] == "off":
         try:
-            conn.sendline("/sbin/reboot")
+            conn.sendline("sh -c '(sleep 1;/sbin/reboot -f)' &>/dev/null &")
             conn.log_expect(options, options["--command-prompt"],
                             int(options["--power-timeout"]))
             time.sleep(2)
@@ -69,12 +69,15 @@ def main():
     options["-c"] = "\[EXPECT\]#\ "
 
     # this string will be appended to the end of ssh command
-    options["ssh_options"] = "-t -o 'StrictHostKeyChecking=no' " \
-                             "'/bin/bash -c \"PS1=%s  /bin/bash " \
-                             "--noprofile --norc\"'" % options["-c"]
-    options["-X"] = "-t -o 'StrictHostKeyChecking=no' " \
-                    "'/bin/bash -c \"PS1=%s  /bin/bash " \
-                    "--noprofile --norc\"'" % options["-c"]
+    strict = "-t -o 'StrictHostKeyChecking=no'"
+    serveralive = "-o 'ServerAliveInterval 2'"
+    no_stdin = "-n"
+    options["ssh_options"] = "{0} {1} {2} '/bin/bash -c \"PS1={3} /bin/bash " \
+                             "--noprofile --norc\"'".format(
+                             strict, serveralive, no_stdin, options["-c"])
+    options["-X"] = "{0} {1} {2} '/bin/bash -c \"PS1={3}  /bin/bash " \
+                    "--noprofile --norc\"'".format(
+                    strict, serveralive, no_stdin, options["-c"])
 
     docs = {}
     docs["shortdesc"] = "Fence agent that can just reboot node via ssh"
