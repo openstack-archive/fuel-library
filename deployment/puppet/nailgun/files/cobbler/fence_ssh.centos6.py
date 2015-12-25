@@ -34,7 +34,7 @@ def get_power_status(conn, options):
 def set_power_status(conn, options):
     if options["-o"] == "off":
         try:
-            conn.sendline("/sbin/reboot")
+            conn.sendline("/sbin/reboot &")
             conn.log_expect(options, options["-c"], int(options["-g"]))
             time.sleep(2)
         except Exception:
@@ -67,11 +67,12 @@ def main():
 
     # this string will be appended to the end of ssh command
     strict = "-t -o 'StrictHostKeyChecking=no'"
+    serveralive = "-o 'ServerAliveInterval 2'"
     bash = "/bin/bash --noprofile --norc"
-    options["ssh_options"] = "%s '/bin/bash -c \"PS1=%s  %s\"'" % \
-                             (strict, options["-c"], bash)
-    options["-X"] = "%s '/bin/bash -c \"PS1=%s  %s\"'" % \
-                    (strict, options["-c"], bash)
+    options["ssh_options"] = "{0} {1} '/bin/bash -c \"PS1={2} {3}\"'".format(
+                             strict, serveralive, options["-c"], bash)
+    options["-X"] = "{0} {1} '/bin/bash -c \"PS1={2}  {3}\"'".format(strict,
+                    serveralive, options["-c"], bash)
 
     docs = {}
     docs["shortdesc"] = "Fence agent that can just reboot node via ssh"
