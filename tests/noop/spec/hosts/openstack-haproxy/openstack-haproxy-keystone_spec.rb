@@ -33,6 +33,8 @@ describe manifest do
           'public_ssl'             => public_ssl_keystone,
           'haproxy_config_options' => {
             'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
+            'stick'          => ['on src'],
+            'stick-table'    => ['type ip size 200k expire 2m'],
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           },
         )
@@ -47,6 +49,8 @@ describe manifest do
           'public'                 => false,
           'haproxy_config_options' => {
             'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
+            'stick'          => ['on src'],
+            'stick-table'    => ['type ip size 200k expire 2m'],
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           },
         )
