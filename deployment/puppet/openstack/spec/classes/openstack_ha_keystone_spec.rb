@@ -22,6 +22,8 @@ require 'spec_helper'
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_keystone.pem',
         'haproxy_config_options' => {
           'option'       => ['httpchk', 'httplog','httpclose', 'forwardfor'],
+          'stick'          => ['on src'],
+          'stick-table'    => ['type ip size 200k expire 2m'],
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
@@ -35,6 +37,8 @@ require 'spec_helper'
         'public'                 => false,
         'haproxy_config_options' => {
           'option'       => ['httpchk', 'httplog','httpclose', 'forwardfor'],
+          'stick'          => ['on src'],
+          'stick-table'    => ['type ip size 200k expire 2m'],
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
