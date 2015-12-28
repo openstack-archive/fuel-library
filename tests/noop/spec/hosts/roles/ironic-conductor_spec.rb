@@ -18,7 +18,7 @@ describe manifest do
         should contain_class('ironic').with(
           'rabbit_userid'   => rabbit_user,
           'rabbit_password' => rabbit_password,
-          'enabled_drivers' => ['fuel_ssh', 'fuel_ipmitool', 'fake'],
+          'enabled_drivers' => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
         )
       end
 
