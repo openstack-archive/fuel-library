@@ -1,0 +1,50 @@
+#!/usr/bin/env bats
+# For testing use  bats framework -
+# https://github.com/sstephenson/bats
+
+
+fms="$BATS_TEST_DIRNAME/../../files/fuel-ha-utils/ocf/ocf-fuel-funcs"
+
+load "$fms"
+
+@test "Check proc_kill params" {
+#   $1 - pid of the process to try and kill
+#   $2 - service name used for logging
+#   $3 - signal to use, defaults to SIGTERM
+#   $4 - number of retries, defaults to 5
+#   $5 - time to sleep between retries, defaults to 2
+    ocf_log(){
+      true
+    }
+    ocf_run(){
+      echo $@
+    }
+    sleep(){
+      true
+    }
+    pid=$$
+    pgrp=$(ps -o pgid= ${pid} | tr -d '[[:space:]]')
+
+    echo "When used with default params"
+    expected="pkill -SIGTERM -g $pgrp"
+    run proc_kill $pid
+    echo -e "Actual:\n${output}"
+    for l in {0..4}; do
+      echo "Expected line $l: ${expected}"
+      [ "${lines[$l]}" = "${expected}" ]
+    done
+
+    echo "When used with correct params"
+    expected="pkill -SIGSTOP -g $pgrp"
+    run proc_kill $pid foo SIGSTOP 2
+    echo "Expected line 1: ${expected}"
+    echo -e "Actual:\n${output}"
+    [ "${lines[1]}" = "${expected}" ]
+
+    echo "When misused with wrong params"
+    expected="pkill -1 -g $pgrp"
+    echo "Expected line 4: ${expected}"
+    run proc_kill $pid foo 1
+    echo "Actual: ${output}"
+    [ "${lines[4]}" = "${expected}" ]
+}
