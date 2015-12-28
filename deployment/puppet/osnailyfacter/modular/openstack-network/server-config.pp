@@ -56,6 +56,86 @@ if $use_neutron {
   $nova_auth_password      = $nova_hash['user_password']
   $nova_auth_tenant        = pick($nova_hash['tenant'], 'services')
 
+  $type_drivers = ['local', 'flat', 'vlan', 'gre', 'vxlan']
+  $default_mechanism_drivers = $l2_population ? { true => 'openvswitch,l2population', default => 'openvswitch'}
+  $mechanism_drivers = split(try_get_value($neutron_config, 'L2/mechanism_drivers', $default_mechanism_drivers), ',')
+  $flat_networks = ['*']
+  $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
+
+  $network_scheme = hiera_hash('network_scheme')
+  prepare_network_config($network_scheme)
+
+  if $segmentation_type == 'vlan' {
+    $net_role_property    = 'neutron/private'
+    $iface                = get_network_role_property($net_role_property, 'phys_dev')
+    $overlay_net_mtu      =  pick(get_transformation_property('mtu', $iface[0]), '1500')
+    $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
+      'do_floating' => $do_floating,
+      'do_tenant'   => true,
+      'do_provider' => false
+    })
+    $tunnel_id_ranges = []
+    $network_type = 'vlan'
+    $tunnel_types = []
+  } else {
+    $net_role_property = 'neutron/mesh'
+    $tunneling_ip      = get_network_role_property($net_role_property, 'ipaddr')
+    $iface             = get_network_role_property($net_role_property, 'phys_dev')
+    $physical_net_mtu  = pick(get_transformation_property('mtu', $iface[0]), '1500')
+    $tunnel_id_ranges  = [try_get_value($neutron_config, 'L2/tunnel_id_ranges')]
+    $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
+      'do_floating' => $do_floating,
+      'do_tenant'   => false,
+      'do_provider' => false
+    })
+
+    if $segmentation_type == 'gre' {
+      $mtu_offset = '42'
+      $network_type = 'gre'
+    } else {
+      # vxlan is the default segmentation type for non-vlan cases
+      $mtu_offset = '50'
+      $network_type = 'vxlan'
+    }
+    $tunnel_types = [$network_type]
+
+    if $physical_net_mtu {
+      $overlay_net_mtu = $physical_net_mtu - $mtu_offset
+    } else {
+      $overlay_net_mtu = '1500' - $mtu_offset
+    }
+  }
+
+  if $compute and ! $dvr {
+    $do_floating = false
+  } else {
+    $do_floating = true
+  }
+
+  $vxlan_group = '224.0.0.1'
+  $extension_drivers = ['port_security']
+  $tenant_network_types  = ['flat', $network_type]
+
+  $network_vlan_ranges = generate_physnet_vlan_ranges($neutron_config, $network_scheme, {
+    'do_floating' => $do_floating,
+    'do_tenant'   => true,
+    'do_provider' => false
+  })
+
+  class { 'neutron::plugins::ml2':
+    type_drivers          => $type_drivers,
+    tenant_network_types  => $tenant_network_types,
+    mechanism_drivers     => $mechanism_drivers,
+    flat_networks         => $flat_networks,
+    network_vlan_ranges   => $network_vlan_ranges,
+    tunnel_id_ranges      => $tunnel_id_ranges,
+    vxlan_group           => $vxlan_group,
+    vni_ranges            => $tunnel_id_ranges,
+    physical_network_mtus => $physical_network_mtus,
+    path_mtu              => $overlay_net_mtu,
+    extension_drivers     => $extension_drivers,
+  }
+  
   class { 'neutron::server':
     sync_db                          =>  false,
 
@@ -80,7 +160,7 @@ if $use_neutron {
     rpc_workers                      => $service_workers,
 
     router_distributed               => $dvr,
-    enabled                          => false, #$neutron_server_enable,
+    enabled                          => true,
     manage_service                   => true,
   }
 
