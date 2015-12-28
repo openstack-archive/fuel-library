@@ -589,6 +589,7 @@ module TestCommon
         line =~ %r(--comment\s+"(.*?)")
         next unless $1
         comment = $1.chomp.strip.gsub /^\d+\s+/, ''
+        comment.gsub! /\sfrom\s\d+\.\d+\.\d+\.\d+\/\d+/, ''
         comments << comment
       end
       @iptables_rules = comments
