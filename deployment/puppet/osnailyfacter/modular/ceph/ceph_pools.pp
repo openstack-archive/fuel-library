@@ -37,7 +37,7 @@ ceph::pool {$cinder_pool:
 
 ceph::pool {$cinder_backup_pool:
   user          => $cinder_backup_user,
-  acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_backup_pool}, allow rx pool=${cinder_pool}'",
+  acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_backup_pool}, allow rwx pool=${cinder_pool}'",
   keyring_owner => 'cinder',
   pg_num        => $osd_pool_default_pg_num,
   pgp_num       => $osd_pool_default_pg_num,
