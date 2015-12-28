@@ -97,12 +97,13 @@ NTP1: 0.pool.ntp.org
     dst_bs="1024"
     pcount="1"
     param="   1              34           49152   24.0 MiB    EF02  primary"
-    run  clone_part_str $param
+    set -- $param
+    run clone_part_str $*
     [ "${lines[0]}" = " -n1:17: -t 1:EF02 -c 1:primary" ]
     pcount="2"
-    run  clone_part_str $param
+    run clone_part_str $*
+    echo "$lines"
     [ "${lines[0]}" = " -n1:17:24576 -t 1:EF02 -c 1:primary" ]
-
 }
 
 @test "Check timeout" {
