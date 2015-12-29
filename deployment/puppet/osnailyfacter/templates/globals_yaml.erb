@@ -123,5 +123,6 @@ if @vips.select{|key, hash| hash['namespace'] == 'haproxy' }.length == 0
 else
   globals.store "external_lb", false
 end -%>
+<% globals.store "node_name_prefix_for_messaging", @node_name_prefix_for_messaging -%>
 
 <%= YAML.dump globals %>

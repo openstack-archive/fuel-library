@@ -58,6 +58,11 @@
 #   Boolean. Set ha-mode=all policy for Ceilometer queues. Note
 #   that RPC queues are not affected by this flag.
 #
+# [*fqdn_prefix*]
+#   String. Optional FQDN prefix for node names.
+#   Defaults to empty string
+#
+
 class pacemaker_wrappers::rabbitmq (
   $primitive_type          = 'rabbitmq-server',
   $service_name            = $::rabbitmq::service_name,
@@ -71,6 +76,7 @@ class pacemaker_wrappers::rabbitmq (
   $admin_pass              = undef,
   $enable_rpc_ha           = true,
   $enable_notifications_ha = true,
+  $fqdn_prefix             = '',
 ) inherits ::rabbitmq::service {
 
   if $host_ip == 'UNSET' or $host_ip == '0.0.0.0' {
@@ -89,6 +95,7 @@ class pacemaker_wrappers::rabbitmq (
     'admin_password'          => $admin_pass,
     'enable_rpc_ha'           => $enable_rpc_ha,
     'enable_notifications_ha' => $enable_notifications_ha,
+    'fqdn_prefix'             => $fqdn_prefix,
   }
 
   $metadata        = {
