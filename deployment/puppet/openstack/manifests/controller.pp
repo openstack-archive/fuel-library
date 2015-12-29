@@ -144,6 +144,9 @@ class openstack::controller (
   $keystone_db_user               = 'keystone',
   $keystone_db_dbname             = 'keystone',
   $keystone_admin_tenant          = 'admin',
+  $keystone_auth_uri              = 'http://127.0.0.1:5000/',
+  $keystone_identity_uri          = 'http://127.0.0.1:35357/',
+  $keystone_ec2_url               = 'http://127.0.0.1:5000/v2.0/ec2tokens',
   # Glance
   $glance_db_user                 = 'glance',
   $glance_db_dbname               = 'glance',
@@ -271,7 +274,9 @@ class openstack::controller (
     network_size                => $network_size,
     multi_host                  => $multi_host,
     network_config              => $network_config,
-    keystone_host               => $service_endpoint,
+    keystone_auth_uri           => $keystone_auth_uri,
+    keystone_identity_uri       => $keystone_identity_uri,
+    keystone_ec2_url            => $keystone_ec2_url,
     service_endpoint            => $service_endpoint,
     # Neutron
     neutron                     => $network_provider ? {'nova' => false, 'neutron' => true},
