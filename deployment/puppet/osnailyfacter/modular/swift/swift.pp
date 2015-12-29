@@ -28,11 +28,9 @@ $deploy_swift_storage       = hiera('deploy_swift_storage', true)
 $deploy_swift_proxy         = hiera('deploy_swift_proxy', true)
 $create_keystone_auth       = pick($swift_hash['create_keystone_auth'], true)
 #Keystone settings
-$service_endpoint           = hiera('service_endpoint')
 $keystone_user              = pick($swift_hash['user'], 'swift')
 $keystone_password          = pick($swift_hash['user_password'], 'passsword')
 $keystone_tenant            = pick($swift_hash['tenant'], 'services')
-$keystone_protocol          = pick($swift_hash['auth_protocol'], 'http')
 $region                     = hiera('region', 'RegionOne')
 $service_workers            = pick($swift_hash['workers'],
                                 min(max($::processorcount, 2), 16))
@@ -40,11 +38,16 @@ $ssl_hash                   = hiera_hash('use_ssl', {})
 $rabbit_hash                = hiera_hash('rabbit_hash')
 $rabbit_hosts               = hiera('amqp_hosts')
 
-$keystone_internal_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$keystone_endpoint          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+$internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [pick($swift_hash['auth_protocol'], 'http')])
+$internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+$admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', [pick($swift_hash['auth_protocol'], 'http')])
+$admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+
+$auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
+$identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
 
 $swift_internal_protocol    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
-$swift_internal_endpoint    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$swift_api_ipaddr, $management_vip])
+$swift_internal_address    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$swift_api_ipaddr, $management_vip])
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
@@ -114,8 +117,10 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       admin_user                     => $keystone_user,
       admin_tenant_name              => $keystone_tenant,
       admin_password                 => $keystone_password,
-      auth_host                      => $service_endpoint,
-      auth_protocol                  => $keystone_protocol,
+      auth_host                      => $internal_auth_address,
+      auth_protocol                  => $internal_auth_protocol,
+      auth_uri                       => $auth_uri,
+      identity_uri                   => $identity_uri,
       rabbit_user                    => $rabbit_hash['user'],
       rabbit_password                => $rabbit_hash['password'],
       rabbit_hosts                   => split($rabbit_hosts, ', '),
@@ -126,8 +131,8 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       $mgmt_nets = get_routable_networks_for_network_role($network_scheme, 'swift/api', ' ')
 
       class { 'openstack::swift::status':
-        endpoint    => "${swift_internal_protocol}://${swift_internal_endpoint}:${proxy_port}",
-        scan_target => "${service_endpoint}:5000",
+        endpoint    => "${swift_internal_protocol}://${swift_internal_address}:${proxy_port}",
+        scan_target => "${internal_auth_protocol}://${internal_auth_address}:5000",
         only_from   => "127.0.0.1 240.0.0.2 ${storage_nets} ${mgmt_nets}",
         con_timeout => 5
       }
@@ -136,7 +141,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     }
 
     class { 'swift::dispersion':
-      auth_url       => "${keystone_internal_protocol}://${keystone_endpoint}:5000/v2.0/",
+      auth_url       => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
       auth_user      =>  $keystone_user,
       auth_tenant    =>  $keystone_tenant,
       auth_pass      =>  $keystone_password,

@@ -46,10 +46,27 @@ describe manifest do
     public_vip = Noop.hiera('public_vip')
     management_vip= Noop.hiera('management_vip')
     public_ssl_hash = Noop.hiera('public_ssl')
-    ssl_hostname = public_ssl_hash['hostname']
-    public_url = "https://#{ssl_hostname}:5000"
-    admin_url = "http://#{management_vip}:35357"
-    internal_url = "http://#{management_vip}:5000"
+
+    let(:ssl_hash) { Noop.hiera_structure 'use_ssl', {} }
+
+    let(:public_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'keystone','public','protocol','http' }
+
+    let(:public_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','public','hostname',[public_vip] }
+
+    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+
+    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
+
+    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
+
+    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
+
+    let(:public_url) { "#{public_auth_protocol}://#{public_auth_address}:5000" }
+
+    let(:internal_url) { "#{internal_auth_protocol}://#{internal_auth_address}:5000" }
+
+    let(:admin_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
+
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
@@ -70,9 +87,17 @@ describe manifest do
     end
 
     it 'should declare openstack::keystone class with public_url,admin_url,internal_url' do
-        should contain_class('openstack::keystone').with('public_url' => public_url)
-        should contain_class('openstack::keystone').with('admin_url' => admin_url)
-        should contain_class('openstack::keystone').with('internal_url' => internal_url)
+      should contain_class('openstack::keystone').with(
+        'public_url'   => public_url,
+        'admin_url'    => admin_url,
+        'internal_url' => internal_url,
+      )
+    end
+
+    it 'should declare openstack::auth_file class with right controller node parameter' do
+      should contain_class('openstack::auth_file').with(
+        'controller_node' => internal_auth_address,
+      )
     end
 
     it 'should declare openstack::keystone class with parameter primary controller' do

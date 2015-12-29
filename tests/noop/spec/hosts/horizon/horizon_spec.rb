@@ -26,8 +26,18 @@ describe manifest do
       Noop.hiera 'nova_quota'
     end
 
+    let(:management_vip) do
+      Noop.hiera 'management_vip'
+    end
+
+    let(:ssl_hash) { Noop.hiera 'use_ssl', {} }
+
+    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+
+    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
+
     let(:keystone_url) do
-      "http://#{service_endpoint}:5000/v2.0"
+      "#{internal_auth_protocol}://#{internal_auth_address}:5000/v2.0"
     end
 
     let(:cache_options) do

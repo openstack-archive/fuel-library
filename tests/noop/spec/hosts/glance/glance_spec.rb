@@ -24,6 +24,27 @@ describe manifest do
        pipeline = 'keystone'
     end
 
+    let(:ssl_hash) { Noop.hiera 'use_ssl', {} }
+
+    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+
+    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')] }
+
+    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
+
+    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')] }
+
+    let(:auth_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/" }
+
+    let(:identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
+
+    it 'should select right protocols and addresses for auth' do
+      should contain_class('glance::api').with(
+        'auth_uri'     => auth_uri,
+        'identity_uri' => identity_uri,
+      )
+    end
+
     it 'should declare glance classes' do
       should contain_class('glance::api').with('pipeline' => pipeline)
       should contain_class('glance::registry').with('sync_db' => primary_controller)
