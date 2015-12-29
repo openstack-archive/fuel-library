@@ -52,6 +52,8 @@ class openstack::swift::proxy (
   $admin_password                    = 'password',
   $auth_host                         = '10.0.0.1',
   $auth_protocol                     = 'http',
+  $auth_uri                          = 'http://127.0.0.1:5000',
+  $identity_uri                      = 'http://127.0.0.1:35357',
   $swift_operator_roles              = ['admin', 'SwiftOperator'],
   $rabbit_user                       = 'guest',
   $rabbit_password                   = 'password',
@@ -147,8 +149,8 @@ class openstack::swift::proxy (
     admin_user        => $admin_user,
     admin_tenant_name => $admin_tenant_name,
     admin_password    => $admin_password,
-    auth_host         => $auth_host,
-    auth_protocol     => $auth_protocol,
+    auth_uri          => $auth_uri,
+    identity_uri      => $identity_uri,
   }
 
   if $primary_proxy {
