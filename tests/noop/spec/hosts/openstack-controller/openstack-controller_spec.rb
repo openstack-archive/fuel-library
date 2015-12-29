@@ -45,11 +45,23 @@ describe manifest do
       access_hash  = Noop.hiera_structure 'access'
     end
     service_endpoint = Noop.hiera 'service_endpoint'
-    if service_endpoint
-      keystone_host = service_endpoint
-    else
-      keystone_host = Noop.hiera 'management_vip'
-    end
+    management_vip = Noop.hiera 'management_vip'
+
+    let(:nova_hash) { Noop.hiera_hash 'nova_hash' }
+
+    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+
+    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol',[nova_hash['auth_protocol'],'http'] }
+
+    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
+
+    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol',[nova_hash['auth_protocol'],'http'] }
+
+    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[service_endpoint, management_vip] }
+
+    let(:keystone_auth_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/" }
+    let(:keystone_identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
+    let(:keystone_ec2_url) { "#{keystone_auth_uri}v2.0/ec2tokens" }
 
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
@@ -85,9 +97,10 @@ describe manifest do
       )
     end
 
-    keystone_ec2_url = "http://#{keystone_host}:5000/v2.0/ec2tokens"
     it 'should declare class nova::api with keystone_ec2_url' do
       should contain_class('nova::api').with(
+        'identity_uri'        => keystone_identity_uri,
+        'auth_uri'            => keystone_auth_uri,
         'keystone_ec2_url'    => keystone_ec2_url,
         'cinder_catalog_info' => 'volume:cinder:internalURL',
       )
@@ -146,12 +159,6 @@ describe manifest do
     end
 
     if floating_ips_range && access_hash
-      if Noop.hiera_structure('use_ssl', false)
-        internal_auth_protocol = 'https'
-        keystone_host = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
-      else
-        internal_auth_protocol = 'http'
-      end
       floating_ips_range.each do |ips_range|
         it "should configure nova floating IP range for #{ips_range}" do
           should contain_nova_floating_range(ips_range).with(
@@ -160,7 +167,7 @@ describe manifest do
             'username'    => access_hash['user'],
             'api_key'     => access_hash['password'],
             'auth_method' => 'password',
-            'auth_url'    => "#{internal_auth_protocol}://#{keystone_host}:5000/v2.0/",
+            'auth_url'    => "#{internal_auth_protocol}://#{internal_auth_address}:5000/v2.0/",
             'api_retries' => '10',
           )
         end
