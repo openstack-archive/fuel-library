@@ -160,7 +160,7 @@ describe manifest do
       it { should_not contain_concat__fragment('murano_dashboard_section').with_content(/MURANO_API_URL = /)}
       it { should contain_concat__fragment('murano_dashboard_section').with_content(/METADATA_CACHE_DIR = '\/var\/cache\/murano-dashboard'/)}
 
-      enable = (Noop.hiera_structure('murano/enabled') and Noop.hiera('node_role') == 'primary-controller')
+      enable = (Noop.hiera_structure('murano/enabled') and Noop.hiera('role') == 'primary-controller')
       context 'on primary controller', :if => enable do
         it 'should declare murano::application resource correctly' do
           should contain_murano__application('io.murano')

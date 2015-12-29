@@ -150,7 +150,7 @@ describe manifest do
     end
 
     if Noop.hiera_structure 'ironic/enabled'
-      if Noop.hiera('node_role') == 'controller' or Noop.hiera('node_role') == 'primary-controller'
+      if Noop.hiera('role') == 'controller' or Noop.hiera('role') == 'primary-controller'
         it 'should drop all traffic from baremetal network' do
           should contain_firewall('999 drop all baremetal').with(
             'chain'  => 'baremetal',
@@ -167,7 +167,7 @@ describe manifest do
         end
       end
 
-      if Noop.hiera('node_role') == 'ironic'
+      if Noop.hiera('role') == 'ironic'
         it 'should create rules for ironic on conductor' do
           should contain_firewall('102 allow baremetal-rsyslog').with(
             'chain'       => 'baremetal',
