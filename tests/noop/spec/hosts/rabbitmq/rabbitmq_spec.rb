@@ -16,6 +16,13 @@ describe manifest do
       expect(environment_variables['ERL_EPMD_ADDRESS']).to eq node_ip_address
     end
 
+    it "should contain nodename" do
+      fqdn_prefix = Noop.hiera('node_name_prefix_for_messaging', 'messaging-')
+      node_name = "rabbit@#{fqdn_prefix}#{facts[:hostname]}"
+      environment_variables = Noop.resource_parameter_value self, 'class', 'rabbitmq', 'environment_variables'
+      expect(environment_variables['NODENAME']).to eq node_name
+    end
+
     # LP#1477595
     it "should contain rabbitmq correct log levels" do
       debug = Noop.hiera('debug', false)
@@ -54,6 +61,7 @@ describe manifest do
     it "should override service on package install" do
       should contain_tweaks__ubuntu_service_override('rabbitmq-server')
     end
+
   end
   test_ubuntu_and_centos manifest
 end
