@@ -1,7 +1,7 @@
 - id: globals
   type: puppet
   groups: [primary-controller, controller,
-           cinder, cinder-vmware, compute, ceph-osd,
+           cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
            primary-mongo, mongo, virt, ironic]
   required_for: [deploy_end]
   requires: [hiera]
