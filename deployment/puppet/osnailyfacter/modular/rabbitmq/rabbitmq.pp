@@ -46,6 +46,7 @@ if $queue_provider == 'rabbitmq' {
   $cluster_partition_handling   = hiera('rabbit_cluster_partition_handling', 'autoheal')
   $mnesia_table_loading_timeout = hiera('mnesia_table_loading_timeout', '10000')
   $rabbitmq_bind_ip_address     = pick(get_network_role_property('mgmt/messaging', 'ipaddr'), 'UNSET')
+  $vip_ip_adress                = pick(get_network_role_property('mgmt/vip', 'ipaddr'), 'UNSET')
   $management_bind_ip_address   = hiera('management_bind_ip_address', '127.0.0.1')
   $enable_rpc_ha                = hiera('enable_rpc_ha', 'true')
   $enable_notifications_ha      = hiera('enable_notifications_ha', 'true')
@@ -103,13 +104,22 @@ if $queue_provider == 'rabbitmq' {
     } else {
     $rabbit_pid_file                   = '/var/run/rabbitmq/pid'
   }
-  $environment_variables = hiera('rabbit_environment_variables',
+  $environment_variables_init = hiera('rabbit_environment_variables',
     {
       'SERVER_ERL_ARGS'     => "\"+K true +A${thread_pool_calc} +P 1048576\"",
       'ERL_EPMD_ADDRESS'    => $epmd_bind_ip_address,
       'PID_FILE'            => $rabbit_pid_file,
     }
   )
+
+  if($vip_ip_adress != $rabbitmq_bind_ip_address) {
+    $fqdn_prefix           = hiera('node_name_prefix_for_messaging', 'messaging-')
+    $environment_variables = merge($environment_variables_init,{'NODENAME' => "rabbit@${fqdn_prefix}${hostname}"})
+  }
+  else {
+    $fqdn_prefix           = ''
+    $environment_variables = $environment_variables_init
+  }
 
   if ($enabled) {
     class { '::rabbitmq':
@@ -165,6 +175,7 @@ if $queue_provider == 'rabbitmq' {
         before                  => Class['nova::rabbitmq'],
         enable_rpc_ha           => $enable_rpc_ha,
         enable_notifications_ha => $enable_notifications_ha,
+        fqdn_prefix             => $fqdn_prefix,
       }
     }
 
