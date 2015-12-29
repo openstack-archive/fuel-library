@@ -6,6 +6,9 @@ OCF_RESKEY_enable_rpc_ha_default=true
 OCF_RESKEY_enable_notifications_ha_default=true
 : ${OCF_RESKEY_enable_notifications_ha=${OCF_RESKEY_enable_notifications_ha_default}}
 
+OCF_RESKEY_fqdn_prefix_default=""
+: ${OCF_RESKEY_fqdn_prefix=${OCF_RESKEY_fqdn_prefix_default}}
+
 read -d '' EXTENDED_OCF_PARAMS << EOF
 <parameter name="enable_rpc_ha" unique="0" required="0">
 <longdesc lang="en">
@@ -24,7 +27,40 @@ affected by this flag.
 <shortdesc lang="en">Set ha-mode=all policy for Ceilometer queues</shortdesc>
 <content type="boolean" default="${OCF_RESKEY_enable_notifications_ha_default}" />
 </parameter>
+
+<parameter name="fqdn_prefix" unique="0" required="0">
+<longdesc lang="en">
+Optional FQDN prefix for cluster maintenance operations
+</longdesc>
+<shortdesc lang="en">FQDN prefix</shortdesc>
+<content type="string" default="${OCF_RESKEY_fqdn_prefix_default}" />
+</parameter>
 EOF
+
+# Add prefix to node names
+add_prefix() {
+    hosts=$1
+    new_hosts=""
+    if [ -n "${hosts}" ]; then
+        for host in $hosts; do
+            new_hosts="${new_hosts} ${OCF_RESKEY_fqdn_prefix}${host}"
+        done
+        echo "${new_hosts:1}"
+    fi
+}
+
+if [ -n "${OCF_RESKEY_fqdn_prefix}" ]; then
+    OCF_RESKEY_CRM_meta_notify_start_uname=$(add_prefix $OCF_RESKEY_CRM_meta_notify_start_uname)
+    OCF_RESKEY_CRM_meta_notify_stop_uname=$(add_prefix $OCF_RESKEY_CRM_meta_notify_stop_uname)
+    OCF_RESKEY_CRM_meta_notify_active_uname=$(add_prefix $OCF_RESKEY_CRM_meta_notify_active_uname)
+    OCF_RESKEY_CRM_meta_notify_master_uname=$(add_prefix $OCF_RESKEY_CRM_meta_notify_master_uname)
+    OCF_RESKEY_CRM_meta_notify_demote_uname=$(add_prefix $OCF_RESKEY_CRM_meta_notify_demote_uname)
+    OCF_RESKEY_CRM_meta_notify_slave_uname=$(add_prefix $OCF_RESKEY_CRM_meta_notify_slave_uname)
+    OCF_RESKEY_CRM_meta_notify_promote_uname=$(add_prefix $OCF_RESKEY_CRM_meta_notify_promote_uname)
+
+    OCF_RESKEY_dns_alias="${OCF_RESKEY_fqdn_prefix}$(hostname -f)"
+fi
+
 
 # That is 'rabbitmq' file in the current directory, but it is renamed to
 # rabbitmq-server-upstream during packaging

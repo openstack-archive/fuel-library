@@ -45,6 +45,7 @@ OCF_RESKEY_erlang_cookie_default=false
 OCF_RESKEY_erlang_cookie_file_default="/var/lib/rabbitmq/.erlang.cookie"
 OCF_RESKEY_use_fqdn_default=false
 OCF_RESKEY_max_rabbitmqctl_timeouts_default=1
+OCF_RESKEY_dns_alias_default=''
 
 : ${HA_LOGTAG="lrmd"}
 : ${HA_LOGFACILITY="daemon"}
@@ -64,6 +65,7 @@ OCF_RESKEY_max_rabbitmqctl_timeouts_default=1
 : ${OCF_RESKEY_erlang_cookie_file=${OCF_RESKEY_erlang_cookie_file_default}}
 : ${OCF_RESKEY_use_fqdn=${OCF_RESKEY_use_fqdn_default}}
 : ${OCF_RESKEY_max_rabbitmqctl_timeouts=${OCF_RESKEY_max_rabbitmqctl_timeouts_default}}
+: ${OCF_RESKEY_dns_alias=${OCF_RESKEY_dns_alias_default}}
 
 #######################################################################
 
@@ -274,6 +276,14 @@ If too many timeouts happen in a raw, the monitor call will return with error.
 </longdesc>
 <shortdesc lang="en">Fail only if that many rabbitmqctl timeouts in a row occurred</shortdesc>
 <content type="string" default="${OCF_RESKEY_max_rabbitmqctl_timeouts_default}" />
+</parameter>
+
+<parameter name="dns_alias" unique="0" required="0">
+<longdesc lang="en">
+Overrides local node hostname
+</longdesc>
+<shortdesc lang="en">FQDN prefix</shortdesc>
+<content type="string" default="${OCF_RESKEY_dns_alias_default}" />
 </parameter>
 
 $EXTENDED_OCF_PARAMS
@@ -505,10 +515,14 @@ master_score() {
 
 # Return either FQDN or shortname, depends on the OCF_RESKEY_use_fqdn.
 get_hostname() {
-    if [ "${OCF_RESKEY_use_fqdn}" = 'false' ] ; then
-        echo "$(hostname -s)"
+    if [ -z "${OCF_RESKEY_dns_alias}" ] ; then
+        if [ "${OCF_RESKEY_use_fqdn}" = 'false' ] ; then
+            echo "$(hostname -s)"
+         else
+            echo "$(hostname -f)"
+        fi
     else
-        echo "$(hostname -f)"
+        echo "$(process_fqdn $OCF_RESKEY_dns_alias)"
     fi
 }
 
