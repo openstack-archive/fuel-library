@@ -20,7 +20,7 @@ $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', true)
 $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
 $rabbit_hash                = hiera_hash('rabbit_hash')
-$rabbit_ha_queues           = hiera('rabbit_ha_queues')
+$amqp_durable_queues        = pick($ironic_hash['amqp_durable_queues'], false)
 $storage_hash               = hiera('storage')
 
 $ironic_tenant              = pick($ironic_hash['tenant'],'services')
@@ -52,7 +52,8 @@ class { '::ironic':
   rabbit_hosts        => $rabbit_hosts,
   rabbit_userid       => $rabbit_hash['user'],
   rabbit_password     => $rabbit_hash['password'],
-  amqp_durable_queues => $rabbit_ha_queues,
+  amqp_durable_queues => $amqp_durable_queues,
+  control_exchange    => 'ironic',
   use_syslog          => $use_syslog,
   log_facility        => $syslog_log_facility_ironic,
   database_connection => $database_connection,
