@@ -52,7 +52,6 @@ class { '::ironic':
   rabbit_hosts        => $rabbit_hosts,
   rabbit_userid       => $rabbit_hash['user'],
   rabbit_password     => $rabbit_hash['password'],
-  amqp_durable_queues => $rabbit_ha_queues,
   use_syslog          => $use_syslog,
   log_facility        => $syslog_log_facility_ironic,
   database_connection => $database_connection,
