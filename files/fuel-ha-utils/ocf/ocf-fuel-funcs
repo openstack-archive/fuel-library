@@ -127,7 +127,7 @@ proc_stop()
 
     if [ -n "${pid}" ]; then
         ocf_log info "${LH} Stopping ${service_name}"
-        proc_kill "${pid}" "${service_name}" $stop_count
+        proc_kill "${pid}" "${service_name}" SIGTERM $stop_count
         if [ $? -ne 0 ]; then
             # SIGTERM failed, send a single SIGKILL
             proc_kill "${pid}" "${service_name}" SIGKILL 1 2
