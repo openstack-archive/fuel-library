@@ -49,6 +49,7 @@ if $queue_provider == 'rabbitmq' {
   $management_bind_ip_address   = hiera('management_bind_ip_address', '127.0.0.1')
   $enable_rpc_ha                = hiera('enable_rpc_ha', 'true')
   $enable_notifications_ha      = hiera('enable_notifications_ha', 'true')
+  $fqdn_prefix                  = hiera('node_name_prefix_for_messaging', 'messaging-')
 
   # NOTE(mattymo) UNSET is a puppet ref, but would break real configs
   if $rabbitmq_bind_ip_address == 'UNSET' {
@@ -103,13 +104,14 @@ if $queue_provider == 'rabbitmq' {
     } else {
     $rabbit_pid_file                   = '/var/run/rabbitmq/pid'
   }
-  $environment_variables = hiera('rabbit_environment_variables',
+  $environment_variables_init = hiera('rabbit_environment_variables',
     {
       'SERVER_ERL_ARGS'     => "\"+K true +A${thread_pool_calc} +P 1048576\"",
       'ERL_EPMD_ADDRESS'    => $epmd_bind_ip_address,
       'PID_FILE'            => $rabbit_pid_file,
     }
   )
+  $environment_variables = merge($environment_variables_init,{'NODENAME' => "rabbit@${hostname}"})
 
   if ($enabled) {
     class { '::rabbitmq':
@@ -165,6 +167,7 @@ if $queue_provider == 'rabbitmq' {
         before                  => Class['nova::rabbitmq'],
         enable_rpc_ha           => $enable_rpc_ha,
         enable_notifications_ha => $enable_notifications_ha,
+        fqdn_prefix             => $fqdn_prefix,
       }
     }
 
