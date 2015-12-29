@@ -54,13 +54,15 @@ $glance_image_cache_max_size    = $glance_hash['image_cache_max_size']
 $glance_pipeline                = pick($glance_hash['pipeline'], 'keystone')
 $glance_large_object_size       = pick($glance_hash['large_object_size'], '5120')
 
-$ssl_hash                       = hiera_hash('use_ssl', {})
-$keystone_protocol              = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$internal_ssl                   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'usage', false)
-$keystone_endpoint              = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
-$glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
+$ssl_hash               = hiera_hash('use_ssl', {})
+$internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+$admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+$glance_endpoint        = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
 
-$auth_uri          = "${keystone_protocol}://${keystone_endpoint}:5000/"
+$auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
+$identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
 
 $rados_connect_timeout          = '30'
 
@@ -101,8 +103,7 @@ class { 'openstack::glance':
   glance_vcenter_image_dir       => $glance_vcenter_image_dir,
   glance_vcenter_api_retry_count => $glance_vcenter_api_retry_count,
   auth_uri                       => $auth_uri,
-  keystone_host                  => $keystone_endpoint,
-  internal_ssl                   => $internal_ssl,
+  identity_uri                   => $identity_uri,
   glance_protocol                => 'http',
   region                         => $region,
   bind_host                      => $api_bind_address,
