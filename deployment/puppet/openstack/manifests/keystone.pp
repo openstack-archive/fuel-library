@@ -167,6 +167,7 @@ class openstack::keystone (
       cache_backend                => $cache_backend,
       revoke_driver                => $revoke_driver,
       public_endpoint              => $public_endpoint,
+      admin_endpoint               => $admin_url,
       memcache_dead_retry          => '60',
       memcache_socket_timeout      => '1',
       memcache_pool_maxsize        =>'1000',

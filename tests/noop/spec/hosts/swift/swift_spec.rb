@@ -36,6 +36,20 @@ describe manifest do
       api_ip == storage_ip
     }
 
+    let(:ssl_hash) { Noop.hiera_structure 'use_ssl' }
+
+    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+
+    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
+
+    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
+
+    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
+
+    let(:auth_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/" }
+
+    let(:identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
+
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
       swift_partition = Noop.hiera 'swift_partition'
@@ -168,6 +182,13 @@ describe manifest do
           :rabbit_user     => rabbit_user,
           :rabbit_password => rabbit_password,
           :rabbit_hosts    => rabbit_hosts.split(', '),
+        )
+      end
+
+      it 'should contain valid auth uris' do
+        should contain_class('swift::proxy::authtoken').with(
+          'auth_uri'     => auth_uri,
+          'identity_uri' => identity_uri,
         )
       end
     end

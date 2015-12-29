@@ -36,8 +36,14 @@ $service_endpoint             = hiera('service_endpoint')
 $db_host                      = pick($nova_hash['db_host'], hiera('database_vip'))
 $ssl_hash                     = hiera_hash('use_ssl', {})
 
-$internal_auth_protocol       = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$internal_auth_address        = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
+$internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', [$nova_hash['auth_protocol'], 'http'])
+$admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+
+$keystone_auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
+$keystone_identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+$keystone_ec2_url      = "${keystone_auth_uri}v2.0/ec2tokens"
 
 $glance_protocol              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
 $glance_endpoint              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
@@ -150,6 +156,9 @@ class { '::openstack::controller':
   nova_report_interval           => $nova_report_interval,
   nova_service_down_time         => $nova_service_down_time,
   ha_mode                        => true,
+  keystone_auth_uri              => $keystone_auth_uri,
+  keystone_identity_uri          => $keystone_identity_uri,
+  keystone_ec2_url               => $keystone_ec2_url,
   # SQLALchemy backend
   max_retries                    => $max_retries,
   max_pool_size                  => $max_pool_size,
@@ -177,6 +186,7 @@ if $primary_controller {
     path        => '/sbin:/usr/sbin:/bin:/usr/bin',
     environment => [
       "OS_TENANT_NAME=${keystone_tenant}",
+      "OS_PROJECT_NAME=${keystone_tenant}",
       "OS_USERNAME=${keystone_user}",
       "OS_PASSWORD=${nova_hash['user_password']}",
       "OS_AUTH_URL=${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
