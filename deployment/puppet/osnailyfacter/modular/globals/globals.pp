@@ -286,6 +286,8 @@ if hiera('amqp_hosts', false) {
   $amqp_hosts = amqp_hosts($amqp_nodes, $amqp_port, get_network_role_property('mgmt/messaging', 'ipaddr'))
 }
 
+$node_name_prefix_for_messaging = hiera('node_name_prefix_for_messaging', 'messaging-')
+
 # MySQL and SQLAlchemy backend configuration
 $custom_mysql_setup_class = hiera('custom_mysql_setup_class', 'galera')
 $max_pool_size            = hiera('max_pool_size', min($::processorcount * 5 + 0, 30 + 0))
