@@ -76,7 +76,9 @@ class openstack::nova::controller (
   # VNC
   $vnc_enabled                 = true,
   # General
-  $keystone_host               = '127.0.0.1',
+  $keystone_auth_uri           = 'http://127.0.0.1:5000/',
+  $keystone_identity_uri       = 'http://127.0.0.1:35357/',
+  $keystone_ec2_url            = 'http://127.0.0.1:5000/v2.0/ec2tokens',
   $cache_server_ip             = ['127.0.0.1'],
   $cache_server_port           = '11211',
   $verbose                     = false,
@@ -335,8 +337,8 @@ class openstack::nova::controller (
     admin_user                           => $nova_user,
     admin_password                       => $nova_user_password,
     admin_tenant_name                    => pick($nova_hash['admin_tenant_name'], $nova_user_tenant),
-    auth_host                            => $keystone_host,
-    auth_protocol                        => pick($nova_hash['auth_protocol'], 'http'),
+    identity_uri                         => $keystone_identity_uri,
+    auth_uri                             => $keystone_auth_uri,
     auth_version                         => pick($nova_hash['auth_version'], false),
     enabled_apis                         => $_enabled_apis,
     ensure_package                       => $ensure_package,
@@ -346,7 +348,7 @@ class openstack::nova::controller (
     osapi_compute_workers                => $service_workers,
     ec2_workers                          => $service_workers,
     metadata_workers                     => $service_workers,
-    keystone_ec2_url                     => "http://${keystone_host}:5000/v2.0/ec2tokens",
+    keystone_ec2_url                     => $keystone_ec2_url,
     cinder_catalog_info                  => 'volume:cinder:internalURL',
     sync_db                              => $primary_controller,
   }
