@@ -44,6 +44,7 @@ OCF_RESKEY_node_port_default=5672
 OCF_RESKEY_erlang_cookie_default=false
 OCF_RESKEY_erlang_cookie_file_default="/var/lib/rabbitmq/.erlang.cookie"
 OCF_RESKEY_use_fqdn_default=false
+OCF_RESKEY_fqdn_prefix_default=""
 OCF_RESKEY_max_rabbitmqctl_timeouts_default=1
 
 : ${HA_LOGTAG="lrmd"}
@@ -63,6 +64,7 @@ OCF_RESKEY_max_rabbitmqctl_timeouts_default=1
 : ${OCF_RESKEY_erlang_cookie=${OCF_RESKEY_erlang_cookie_default}}
 : ${OCF_RESKEY_erlang_cookie_file=${OCF_RESKEY_erlang_cookie_file_default}}
 : ${OCF_RESKEY_use_fqdn=${OCF_RESKEY_use_fqdn_default}}
+: ${OCF_RESKEY_fqdn_prefix=${OCF_RESKEY_fqdn_prefix_default}}
 : ${OCF_RESKEY_max_rabbitmqctl_timeouts=${OCF_RESKEY_max_rabbitmqctl_timeouts_default}}
 
 #######################################################################
@@ -266,6 +268,14 @@ Either to use FQDN or a shortname for the rabbitmq node
 <content type="boolean" default="${OCF_RESKEY_use_fqdn_default}" />
 </parameter>
 
+<parameter name="fqdn_prefix" unique="0" required="0">
+<longdesc lang="en">
+Optional FQDN prefix for cluster maintenance operations
+</longdesc>
+<shortdesc lang="en">FQDN prefix</shortdesc>
+<content type="boolean" default="${OCF_RESKEY_fqdn_prefix_default}" />
+</parameter>
+
 <parameter name="max_rabbitmqctl_timeouts" unique="0" required="0">
 <longdesc lang="en">
 If during monitor call rabbitmqctl times out, the timeout is ignored
@@ -339,21 +349,16 @@ master_score() {
     return $OCF_SUCCESS
 }
 
-# Return either FQDN or shortname, depends on the OCF_RESKEY_use_fqdn.
 get_hostname() {
-    if [ "${OCF_RESKEY_use_fqdn}" = 'false' ] ; then
-        echo "$(hostname -s)"
-    else
-        echo "$(hostname -f)"
-    fi
+    echo $(hostname -f)
 }
 
 # Strip the FQDN to the shortname, if OCF_RESKEY_use_fqdn was set
 process_fqdn() {
     if [ "${OCF_RESKEY_use_fqdn}" = 'false' ] ; then
-        echo "$1" | awk -F. '{print $1}'
+        echo "${OCF_RESKEY_fqdn_prefix}$1" | awk -F. '{print $1}'
     else
-        echo "$1"
+        echo "${OCF_RESKEY_fqdn_prefix}$1"
     fi
 }
 
@@ -366,7 +371,7 @@ my_host() {
     local rc=10
     local LH="${LL} my_host():"
 
-    hostname=$(get_hostname)
+    hostname=$(process_fqdn $(get_hostname))
     ocf_log info "${LH} hostlist is: $hostlist"
     for host in $hostlist ; do
         hn=$(process_fqdn "${host}")
@@ -401,7 +406,7 @@ rabbit_node_name() {
 rmq_setup_env() {
     local H
     local dir
-    H="$(get_hostname)"
+    H="$(process_fqdn $(get_hostname))"
     export RABBITMQ_NODENAME=$(rabbit_node_name $H)
     export RABBITMQ_NODE_PORT=$OCF_RESKEY_node_port
     export RABBITMQ_PID_FILE=$OCF_RESKEY_pid_file
