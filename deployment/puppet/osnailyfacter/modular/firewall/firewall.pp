@@ -342,6 +342,13 @@ if member($roles, 'primary-controller') or member($roles, 'controller') {
 
 if member($roles, 'compute') {
 
+  openstack::firewall::multi_net {'105 nova vnc':
+    port        => $nova_api_vnc_ports
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $nova_networks,
+  }
+
   openstack::firewall::multi_net {'118 libvirt':
     port        => $libvirt_port,
     proto       => 'tcp',
