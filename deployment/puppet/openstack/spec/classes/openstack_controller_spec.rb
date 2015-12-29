@@ -34,6 +34,28 @@ describe 'openstack::controller' do
       it 'configures with the default params' do
       end
     end
+
+    context 'with keystone configured' do
+      let :params do {
+        :public_address => '10.0.0.1',
+        :public_interface => 'eth0',
+        :private_interface => 'eth1',
+        :internal_address => '127.0.0.1',
+        :admin_address => '127.0.0.1',
+        :keystone_auth_uri => 'https://192.168.10.1:5000/',
+        :keystone_identity_uri => 'https://192.168.10.1:35357/',
+        :keystone_ec2_url => 'https://192.168.10.1:5000/v2.0/ec2tokens',
+        }
+      end
+
+      it 'contains keystone config' do
+        should contain_class('nova::api').with(
+          :auth_uri     => params[:keystone_auth_uri],
+          :identity_uri => params[:keystone_identity_uri],
+          :keystone_ec2_url => params[:keystone_ec2_url],
+        )
+      end
+    end
   end
 
   context 'on Debian platforms' do

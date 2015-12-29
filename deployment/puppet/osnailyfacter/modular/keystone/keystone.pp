@@ -43,36 +43,34 @@ $admin_password = $access_hash['password']
 $region         = hiera('region', 'RegionOne')
 
 $public_ssl_hash         = hiera('public_ssl')
-$public_service_endpoint = hiera('public_service_endpoint', $public_vip)
-$public_address          = $public_ssl_hash['services'] ? {
-  true    => $public_ssl_hash['hostname'],
-  default => $public_service_endpoint,
-}
-$public_cert             = $public_ssl_hash['services']? {
-  true    => '/etc/pki/tls/certs/public_haproxy.pem',
-  default => undef,
-}
+$ssl_hash                = hiera_hash('use_ssl', {})
 
-$admin_address          = $service_endpoint
+$public_cert             = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'path', [''])
+
+$public_protocol = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
+$public_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'public', 'hostname', [$public_vip])
+$public_port     = '5000'
+
+$internal_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$internal_port     = '5000'
+
+$admin_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_port     = '35357'
+
 $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
 $memcache_server_port   = hiera('memcache_server_port', '11211')
 $memcache_pool_maxsize = '100'
 $memcached_server       = hiera('memcached_addresses')
 
-$public_port     = '5000'
-$admin_port      = '35357'
-$internal_port   = '5000'
-$public_protocol = $public_ssl_hash['services'] ? {
-  true    => 'https',
-  default => 'http',
-}
 
 $token_provider = hiera('token_provider')
 
 $public_url   = "${public_protocol}://${public_address}:${public_port}"
-$admin_url    = "http://${admin_address}:${admin_port}"
-$internal_url = "http://${service_endpoint}:${internal_port}"
+$admin_url    = "${admin_protocol}://${admin_address}:${admin_port}"
+$internal_url = "${internal_protocol}://${internal_address}:${internal_port}"
 
 $revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
 
@@ -194,9 +192,8 @@ class { 'openstack::auth_file':
   admin_password  => $admin_password,
   admin_tenant    => $admin_tenant,
   region_name     => $region,
-  controller_node => $service_endpoint,
+  controller_node => $internal_address,
   murano_repo_url => $murano_repo_url,
-  cacert          => $public_cert
 }
 
 # Get paste.ini source
