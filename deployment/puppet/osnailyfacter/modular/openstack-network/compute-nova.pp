@@ -1,5 +1,8 @@
 notice('MODULAR: openstack-network/compute-nova.pp')
 
+$network_scheme = hiera_hash('network_scheme', {})
+prepare_network_config($network_scheme)
+
 $use_neutron = hiera('use_neutron', false)
 
 if $use_neutron {
@@ -27,6 +30,8 @@ if $use_neutron {
   $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
   $admin_auth_url             = "${admin_identity_uri}/${auth_api_version}"
   $neutron_url                = "${neutron_internal_protocol}://${neutron_endpoint}:9696"
+
+  $nova_migration_ip          =  get_network_role_property('nova/migration', 'ipaddr')
 
   service { 'libvirt' :
     ensure   => 'running',
@@ -67,9 +72,10 @@ if $use_neutron {
   }
 
   nova_config {
-    'DEFAULT/linuxnet_interface_driver': value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
+    'DEFAULT/linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
     'DEFAULT/linuxnet_ovs_integration_bridge': value => $neutron_integration_bridge;
-    'DEFAULT/network_device_mtu': value => '65000';
+    'DEFAULT/network_device_mtu':              value => '65000';
+    'DEFAULT/my_ip':                           value => $nova_migration_ip;
   }
 
   class { 'nova::network::neutron' :
@@ -122,9 +128,6 @@ if $use_neutron {
   }
 
 } else {
-  $network_scheme          = hiera_hash('network_scheme', {})
-  prepare_network_config($network_scheme)
-
   $nova_hash               = hiera_hash('nova', { })
   $bind_address            = get_network_role_property('nova/api', 'ipaddr')
   $public_int              = get_network_role_property('public/vip', 'interface')
