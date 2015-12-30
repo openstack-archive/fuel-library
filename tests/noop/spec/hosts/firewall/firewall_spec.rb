@@ -126,6 +126,17 @@ describe manifest do
         )
       end
     elsif Noop.puppet_function 'member', roles, 'compute'
+      it 'should accept connections to nova without ssl' do
+        management_nets.each do |source|
+          should contain_firewall("105 nova vnc from #{source}").with(
+            'port'        => [ '5900-6100' ],
+            'proto'       => 'tcp',
+            'action'      => 'accept',
+            'source'      => source,
+          )
+        end
+      end
+
       it 'should accept connections to libvirt' do
         management_nets.each do |source|
           should contain_firewall("118 libvirt from #{source}").with(
