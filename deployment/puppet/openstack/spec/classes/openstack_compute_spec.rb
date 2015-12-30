@@ -145,7 +145,7 @@ describe 'openstack::compute' do
         )
         should contain_augeas('libvirt-conf-uuid').with(
           :context => '/files/etc/libvirt/libvirtd.conf',
-          :changes => "set host_uuid #{p[:host_uuid]}"
+          :changes => ["set host_uuid #{p[:host_uuid]}"],
         ).that_notifies('Service[libvirt]')
         if facts[:osfamily] == 'RedHat'
           should contain_file_line('no_qemu_selinux')
