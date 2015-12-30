@@ -158,7 +158,7 @@ See also the [bats how-to](https://blog.engineyard.com/2014/bats-test-command-li
 ### fuel-library noop
 
 The Noop testing framework is used for testing of the known deploy paths
-with existing modular tasks. For details, see the [README](tests/noop/README.rst)
+with existing modular tasks. For details, see the [README](doc/noop-guide/source/README.rst)
 
 ## Development
 --------------
