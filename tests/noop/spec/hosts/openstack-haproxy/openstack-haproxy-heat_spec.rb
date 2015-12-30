@@ -4,12 +4,8 @@ manifest = 'openstack-haproxy/openstack-haproxy-heat.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    network_metadata = Noop.hiera('network_metadata')
-    heat_roles = Noop.hiera('heat_roles')
 
-    let(:heat_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, heat_roles
-    end
+    heat_nodes = Noop.hiera('heat_nodes')
 
     let(:heat_address_map) do
       Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', heat_nodes, 'heat/api'
@@ -26,6 +22,7 @@ describe manifest do
     public_virtual_ip = Noop.hiera('public_vip')
     internal_virtual_ip = Noop.hiera('management_vip')
     public_ssl = Noop.hiera_structure('public_ssl/services')
+
     it 'should configure heat haproxy' do
       should contain_openstack__ha__haproxy_service('heat-api').with(
         'order'                  => '160',
