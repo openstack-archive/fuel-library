@@ -32,6 +32,7 @@ describe manifest do
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
     primary_controller = Noop.hiera 'primary_controller'
+    sahara = Noop.hiera_structure('sahara/enabled')
 
     it 'should install heat-docker package only after heat-engine' do
       should contain_package('heat-docker').with(
@@ -42,6 +43,12 @@ describe manifest do
 
     it 'should configure default_log_levels' do
       should contain_heat_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+    end
+
+    if sahara
+      it 'should configure ' do
+        should contain_heat_config('DEFAULT/reuthentication_auth_method').with_value('trusts')
+      end
     end
 
     it 'should use auth_uri and identity_uri' do
