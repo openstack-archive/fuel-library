@@ -54,6 +54,8 @@ describe 'openstack::controller' do
     let :facts do
       { :osfamily => 'RedHat',
         :operatingsystem => 'RedHat',
+        :operatingsystemrelease => '7.1',
+        :operatingsystemmajrelease => '7',
         :hostname => 'hostname.example.com',
         :physicalprocessorcount => 2,
         :memorysize_mb => 1024,
