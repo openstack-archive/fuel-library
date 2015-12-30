@@ -142,7 +142,7 @@ describe manifest do
         end
       end
 
-      enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera('node_role') == 'primary-controller')
+      enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera('role') == 'primary-controller')
       context 'on primary-controller', :if => enable do
 
         it 'should declare sahara_templates class correctly' do
