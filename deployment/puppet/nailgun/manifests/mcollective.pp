@@ -6,7 +6,6 @@ class nailgun::mcollective
     'fuel-provisioning-scripts',
     'shotgun',
     'ironic-fa-bootstrap-configs',
-    'fuel-bootstrap-image-builder',
     'fuel-bootstrap-cli'
   ]
   ensure_packages($packages)
