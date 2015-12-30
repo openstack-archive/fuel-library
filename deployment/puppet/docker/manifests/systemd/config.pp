@@ -29,7 +29,7 @@ define docker::systemd::config( $release, $depends, $timeout ) {
   # We use ensure => undef to prevent unnecessary start service
   # because at first boot time, the container is launched by dockerctl
   service { "docker-${title}":
-    enable => true,
     ensure => undef,
+    enable => true,
   }
 }
