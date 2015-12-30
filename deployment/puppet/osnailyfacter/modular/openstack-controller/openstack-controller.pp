@@ -255,3 +255,9 @@ override_resources { 'nova_config':
 override_resources { 'nova_paste_api_ini':
   data => $override_configuration['nova_paste_api_ini']
 }
+
+if $storage_hash['volumes_ceph'] {
+  package { 'open-iscsi':
+    ensure => present,
+  }
+}
