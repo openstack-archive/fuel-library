@@ -3,7 +3,7 @@ notice('MODULAR: openstack-haproxy-swift.pp')
 $network_metadata  = hiera_hash('network_metadata')
 $storage_hash      = hiera_hash('storage', {})
 $swift_proxies     = hiera_hash('swift_proxies', undef)
-$public_ssl_hash   = hiera('public_ssl')
+$public_ssl_hash   = hiera_hash('public_ssl')
 $ssl_hash          = hiera_hash('use_ssl', {})
 
 $public_ssl        = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'usage', false)

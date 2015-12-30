@@ -2,7 +2,7 @@ notice('MODULAR: openstack-haproxy-radosgw.pp')
 
 $network_metadata = hiera_hash('network_metadata')
 $storage_hash     = hiera_hash('storage', {})
-$public_ssl_hash  = hiera('public_ssl')
+$public_ssl_hash  = hiera_hash('public_ssl')
 $ssl_hash         = hiera_hash('use_ssl', {})
 
 $public_ssl       = get_ssl_property($ssl_hash, $public_ssl_hash, 'radosgw', 'public', 'usage', false)
@@ -22,6 +22,7 @@ if !($use_swift) and ($storage_hash['objects_ceph']) {
 
 if $use_radosgw {
   $rgw_address_map     = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_rgw_nodes'), 'ceph/radosgw')
+
   $server_names        = hiera_array('radosgw_server_names', keys($rgw_address_map))
   $ipaddresses         = hiera_array('radosgw_ipaddresses', values($rgw_address_map))
   $public_virtual_ip   = hiera('public_vip')
