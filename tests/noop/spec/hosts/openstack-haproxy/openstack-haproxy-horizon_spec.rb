@@ -4,6 +4,21 @@ manifest = 'openstack-haproxy/openstack-haproxy-horizon.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+
+    horizon_nodes = Noop.hiera('horizon_nodes')
+
+    let(:horizon_address_map) do
+      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', horizon_nodes, 'heat/api'
+    end
+
+    let(:ipaddresses) do
+      horizon_address_map.values
+    end
+
+    let(:server_names) do
+      horizon_address_map.keys
+    end
+
     it "should properly configure horizon haproxy based on ssl" do
       public_ssl_horizon = Noop.hiera_structure('public_ssl/horizon', false)
       if public_ssl_horizon

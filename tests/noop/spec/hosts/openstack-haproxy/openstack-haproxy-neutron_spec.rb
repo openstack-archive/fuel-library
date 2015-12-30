@@ -4,6 +4,21 @@ manifest = 'openstack-haproxy/openstack-haproxy-neutron.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+
+    neutron_nodes = Noop.hiera('neutron_nodes')
+
+    let(:neutron_address_map) do
+      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', neutron_nodes, 'heat/api'
+    end
+
+    let(:ipaddresses) do
+      neutron_address_map.values
+    end
+
+    let(:server_names) do
+      neutron_address_map.keys
+    end
+
     use_neutron = Noop.hiera('use_neutron', false)
 
     if use_neutron

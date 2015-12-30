@@ -7,6 +7,21 @@ describe manifest do
     images_ceph = Noop.hiera_structure 'storage/images_ceph'
     objects_ceph = Noop.hiera_structure 'storage/objects_ceph'
     if images_ceph and objects_ceph
+
+      rgw_nodes = Noop.hiera('ceph_rgw_nodes')
+
+      let(:rgw_address_map) do
+        Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', rgw_nodes, 'heat/api'
+      end
+
+      let(:ipaddresses) do
+        rgw_address_map.values
+      end
+
+      let(:server_names) do
+        rgw_address_map.keys
+      end
+
       ironic_enabled = Noop.hiera_structure 'ironic/enabled'
       if ironic_enabled
         baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'

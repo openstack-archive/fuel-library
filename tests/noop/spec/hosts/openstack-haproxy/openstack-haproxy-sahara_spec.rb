@@ -4,6 +4,21 @@ manifest = 'openstack-haproxy/openstack-haproxy-sahara.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+
+    sahara_nodes = Noop.hiera('sahara_nodes')
+
+    let(:sahara_address_map) do
+      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', sahara_nodes, 'heat/api'
+    end
+
+    let(:ipaddresses) do
+      sahara_address_map.values
+    end
+
+    let(:server_names) do
+      sahara_address_map.keys
+    end
+
     use_sahara = Noop.hiera_structure('sahara/enabled', false)
 
     if use_sahara

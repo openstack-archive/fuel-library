@@ -4,6 +4,21 @@ manifest = 'openstack-haproxy/openstack-haproxy-nova.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+
+    nova_api_nodes = Noop.hiera('nova_api_nodes')
+
+    let(:nova_api_address_map) do
+      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', nova_api_nodes, 'heat/api'
+    end
+
+    let(:ipaddresses) do
+      nova_api_address_map.values
+    end
+
+    let(:server_names) do
+      nova_api_address_map.keys
+    end
+
     use_nova = Noop.hiera_structure('nova/enabled', true)
 
     if use_nova

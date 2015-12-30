@@ -4,6 +4,21 @@ manifest = 'openstack-haproxy/openstack-haproxy-murano.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+
+    murano_nodes = Noop.hiera('murano_nodes')
+
+    let(:murano_address_map) do
+      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', murano_nodes, 'heat/api'
+    end
+
+    let(:ipaddresses) do
+      murano_address_map.values
+    end
+
+    let(:server_names) do
+      murano_address_map.keys
+    end
+
     use_murano = Noop.hiera_structure('murano/enabled', false)
     use_cfapi_murano = Noop.hiera_structure('murano-cfapi/enabled', false)
 

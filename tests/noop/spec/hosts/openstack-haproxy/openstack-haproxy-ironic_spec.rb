@@ -6,6 +6,21 @@ ironic_enabled = Noop.hiera_structure 'ironic/enabled'
 if ironic_enabled
   describe manifest do
     shared_examples 'catalog' do
+
+      ironic_nodes = Noop.hiera('ironic_nodes')
+
+      let(:ironic_address_map) do
+        Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', ironic_api_nodes, 'heat/api'
+      end
+
+      let(:ipaddresses) do
+        ironic_address_map.values
+      end
+
+      let(:server_names) do
+        ironic_address_map.keys
+      end
+
       use_ironic = Noop.hiera_structure('ironic/enabled', true)
       baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
       public_ssl_ironic = Noop.hiera_structure('public_ssl/services', false)
