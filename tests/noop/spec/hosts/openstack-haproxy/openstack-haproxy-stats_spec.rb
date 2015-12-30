@@ -4,6 +4,7 @@ manifest = 'openstack-haproxy/openstack-haproxy-stats.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+
     management_vip = Noop.hiera 'management_vip'
     database_vip = Noop.hiera 'database_vip'
     database_vip ||= management_vip
@@ -15,6 +16,8 @@ describe manifest do
         )
       end
     end
+
   end
+
   test_ubuntu_and_centos manifest
 end
