@@ -1,10 +1,9 @@
 notice('MODULAR: openstack-haproxy-cinder.pp')
 
-$network_metadata   = hiera_hash('network_metadata')
 $cinder_hash        = hiera_hash('cinder_hash', {})
 # enabled by default
 $use_cinder         = pick($cinder_hash['enabled'], true)
-$public_ssl_hash    = hiera('public_ssl')
+$public_ssl_hash    = hiera_hash('public_ssl')
 $ssl_hash           = hiera_hash('use_ssl', {})
 
 $public_ssl         = get_ssl_property($ssl_hash, $public_ssl_hash, 'cinder', 'public', 'usage', false)
@@ -14,6 +13,7 @@ $internal_ssl       = get_ssl_property($ssl_hash, {}, 'cinder', 'internal', 'usa
 $internal_ssl_path  = get_ssl_property($ssl_hash, {}, 'cinder', 'internal', 'path', [''])
 
 $cinder_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('cinder_nodes'), 'cinder/api')
+
 if ($use_cinder) {
   $server_names        = hiera_array('cinder_names', keys($cinder_address_map))
   $ipaddresses         = hiera_array('cinder_ipaddresses', values($cinder_address_map))
