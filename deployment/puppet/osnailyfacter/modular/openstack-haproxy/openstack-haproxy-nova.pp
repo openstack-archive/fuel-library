@@ -3,7 +3,7 @@ notice('MODULAR: openstack-haproxy-nova.pp')
 $nova_hash            = hiera_hash('nova', {})
 # enabled by default
 $use_nova             = pick($nova_hash['enabled'], true)
-$public_ssl_hash      = hiera('public_ssl')
+$public_ssl_hash      = hiera_hash('public_ssl')
 $ssl_hash             = hiera_hash('use_ssl', {})
 
 $public_ssl           = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'usage', false)

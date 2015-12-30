@@ -4,11 +4,8 @@ manifest = 'openstack-haproxy/openstack-haproxy-glance.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    network_metadata = Noop.hiera('network_metadata')
 
-    let(:glance_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller']
-    end
+    glance_nodes = Noop.hiera_hash('glance_nodes')
 
     let(:glance_address_map) do
       Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', glance_nodes, 'glance/api'

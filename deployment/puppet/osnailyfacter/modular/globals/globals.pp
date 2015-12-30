@@ -28,7 +28,8 @@ if empty($node) {
 prepare_network_config($network_scheme)
 
 # DEPRICATED
-$nodes_hash                     = hiera('nodes', {})
+# nodes_hash is actually an array, not a hash
+$nodes_hash = hiera('nodes', [])
 
 # MOS Ubuntu image uses Debian style packages. Since the introduction
 # of `$::os_package_type' fact avilable to use in project manifests,
@@ -70,7 +71,8 @@ $swift_hash                     = hiera('swift', {})
 $cinder_hash                    = hiera_hash('cinder', {})
 $ceilometer_hash                = hiera('ceilometer',{})
 $access_hash                    = hiera_hash('access', {})
-$mp_hash                        = hiera('mp', {})
+# mp_hash is actually an array, not a hash
+$mp_hash                        = hiera('mp', [])
 $keystone_hash                  = merge({'service_token_off' => $service_token_off},
                                         hiera_hash('keystone', {}))
 
@@ -262,8 +264,8 @@ if roles_include('primary-controller') {
   $primary_controller = false
 }
 
-$controllers_hash              = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-$mountpoints                   = filter_hash($mp_hash,'point')
+$controller_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$mountpoints      = filter_hash($mp_hash, 'point')
 
 # AMQP configuration
 $queue_provider   = hiera('queue_provider','rabbitmq')
@@ -280,7 +282,7 @@ if hiera('amqp_hosts', false) {
 } else {
   # using RabbitMQ servers on controllers
   # todo(sv): switch from 'controller' nodes to 'rmq' nodes as soon as it was implemented as additional node-role
-  $controllers_with_amqp_server = get_node_to_ipaddr_map_by_network_role($controllers_hash, 'mgmt/messaging')
+  $controllers_with_amqp_server = get_node_to_ipaddr_map_by_network_role($controller_nodes, 'mgmt/messaging')
   $amqp_nodes = ipsort(values($controllers_with_amqp_server))
   # amqp_hosts() randomize order of RMQ endpoints and put local one first
   $amqp_hosts = amqp_hosts($amqp_nodes, $amqp_port, get_network_role_property('mgmt/messaging', 'ipaddr'))
@@ -310,8 +312,8 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
 
 # Define ceph-related variables
 $ceph_primary_monitor_node = get_nodes_hash_by_roles($network_metadata, ['primary-controller'])
-$ceph_monitor_nodes        = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-$ceph_rgw_nodes            = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$ceph_monitor_nodes        = $controller_nodes
+$ceph_rgw_nodes            = $controller_nodes
 
 #Determine who should be the default backend
 if ($storage_hash['images_ceph']) {
@@ -325,9 +327,15 @@ if ($storage_hash['images_ceph']) {
   $glance_known_stores = false
 }
 
+# Define keystone-related variables:
+$keystone_nodes = $controller_nodes
+
+# Define glance-related variables:
+$glance_nodes = $controller_nodes
+
 # Define ceilometer-related variables:
 # todo: use special node-roles instead controllers in the future
-$ceilometer_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$ceilometer_nodes = $controller_nodes
 
 # Define memcached-related variables:
 $memcache_roles = hiera('memcache_roles', ['primary-controller', 'controller'])
@@ -337,14 +345,14 @@ $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller'])
 
 # Define cinder-related variables
 # todo: use special node-roles instead controllers in the future
-$cinder_nodes           = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$cinder_nodes = $controller_nodes
 
 # Define horizon-related variables:
 # todo: use special node-roles instead controllers in the future
-$horizon_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$horizon_nodes = $controller_nodes
 
 # Define swift-related variables
-$swift_master_role   = hiera('swift_master_role', 'primary-controller')
+$swift_master_role = hiera('swift_master_role', 'primary-controller')
 
 # Plugins may define custom role names before this 'globals' task.
 # If no custom role are defined, the default one are used.
@@ -361,13 +369,16 @@ $swift_proxy_caches  = $swift_proxies  # memcache for swift
 $is_primary_swift_proxy = $primary_controller
 
 # Define murano-related variables
-$murano_roles = ['primary-controller', 'controller']
+$murano_roles = hiera('murano_roles', ['primary-controller', 'controller'])
+$murano_nodes = get_nodes_hash_by_roles($network_metadata, $murano_roles)
 
 # Define heat-related variables:
-$heat_roles = ['primary-controller', 'controller']
+$heat_roles = hiera('heat_roles', ['primary-controller', 'controller'])
+$heat_nodes = get_nodes_hash_by_roles($network_metadata, $heat_roles)
 
 # Define sahara-related variable
-$sahara_roles = ['primary-controller', 'controller']
+$sahara_roles = hiera('sahara_roles', ['primary-controller', 'controller'])
+$sahara_nodes = get_nodes_hash_by_roles($network_metadata, $sahara_roles)
 
 # Define ceilometer-releated parameters
 if !$ceilometer_hash['alarm_history_time_to_live'] { $ceilometer_hash['alarm_history_time_to_live'] = '604800'}
@@ -377,21 +388,21 @@ if !$ceilometer_hash['http_timeout'] { $ceilometer_hash['http_timeout'] = '600' 
 
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future
-$database_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$database_nodes = $controller_nodes
 
 # Define Nova-API variables:
 # todo: use special node-roles instead controllers in the future
-$nova_api_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$nova_api_nodes = $controller_nodes
 
 # Define mongo-related variables
 $mongo_roles = ['primary-mongo', 'mongo']
 
 # Define neutron-related variables:
 # todo: use special node-roles instead controllers in the future
-$neutron_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
+$neutron_nodes = $controller_nodes
 
 #Define Ironic-related variables:
-$ironic_api_nodes = $controllers_hash
+$ironic_api_nodes = $controller_nodes
 
 # Change nova_hash to add vnc port to it
 # TODO(sbog): change this when we will get rid of global hashes
