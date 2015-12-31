@@ -18,11 +18,12 @@ if $horizon_hash['secret_key'] {
 
 $neutron_dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
-$keystone_scheme = 'http'
-$keystone_host = $service_endpoint
-$keystone_port = '5000'
-$keystone_api = 'v2.0'
-$keystone_url = "${keystone_scheme}://${keystone_host}:${keystone_port}/${keystone_api}"
+$ssl_hash               = hiera_hash('use_ssl', {})
+$internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$internal_auth_port     = '5000'
+$keystone_api           = 'v2.0'
+$keystone_url           = "${internal_auth_protocol}://${internal_auth_address}:${internal_auth_port}/${keystone_api}"
 
 $neutron_options    = {'enable_distributed_router' => $neutron_dvr}
 $hypervisor_options = {'enable_quotas' => hiera('nova_quota')}

@@ -15,10 +15,14 @@ if $use_neutron {
   $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
   $neutron_nodes = hiera_hash('neutron_nodes')
 
-  $management_vip     = hiera('management_vip')
-  $service_endpoint   = hiera('service_endpoint', $management_vip)
+  $management_vip         = hiera('management_vip')
+  $service_endpoint       = hiera('service_endpoint', $management_vip)
+  $ssl_hash               = hiera_hash('use_ssl', {})
+  $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+  $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint])
+
   $auth_api_version   = 'v2.0'
-  $identity_uri       = "http://${service_endpoint}:5000"
+  $identity_uri       = "${internal_auth_protocol}://${internal_auth_address}:5000"
   $auth_url           = "${identity_uri}/${auth_api_version}"
   $auth_password      = $neutron_config['keystone']['admin_password']
   $auth_user          = pick($neutron_config['keystone']['admin_user'], 'neutron')
