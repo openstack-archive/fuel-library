@@ -69,7 +69,7 @@
 
 - id: enable_cinder_volume_service
   type: puppet
-  role: [cinder]
+  role: [cinder, cinder-block-device]
   requires: [cinder, post_deployment_start]
   required_for: [post_deployment_end]
   parameters:
