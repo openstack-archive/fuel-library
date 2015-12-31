@@ -137,6 +137,7 @@ if $murano_hash['enabled'] {
 
   class { 'murano::dashboard':
     repo_url => $repository_url,
+    sync_db  => false,
   }
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"

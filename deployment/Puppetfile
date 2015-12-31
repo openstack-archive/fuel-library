@@ -184,7 +184,7 @@ mod 'ironic',
 # Pull in puppet-murano
 mod 'murano',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-murano.git',
-    :ref => '7.0.0-rc4'
+    :ref => 'mos-8.0'
 
 # Pull in richardc-datacat
 mod 'datacat',
