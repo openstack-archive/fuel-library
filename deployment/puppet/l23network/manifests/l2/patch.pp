@@ -7,7 +7,7 @@
 #   Bridges that will be connected.
 #
 # [*mtu*]
-#   Specify MTU value for patchcord.
+#   Specify MTU value for patchcord. Default value is 65000
 #
 # [*vlan_ids*]
 #   Specify 802.1q tag for each end of patchcord. Must be array of 2 integers.
@@ -17,7 +17,7 @@ define l23network::l2::patch (
   $bridges,
   $use_ovs         = $::l23network::use_ovs,
   $ensure          = present,
-  $mtu             = undef,
+  $mtu             = 65000,
   $vlan_ids        = undef,
   $vendor_specific = undef,
   $provider        = undef,
