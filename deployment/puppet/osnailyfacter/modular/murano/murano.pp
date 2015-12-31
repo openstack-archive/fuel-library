@@ -139,6 +139,7 @@ if $murano_hash['enabled'] {
 
   class { 'murano::dashboard':
     repo_url => $repository_url,
+    sync_db  => false,
   }
 
   if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_plugins['glance_artifacts_plugin']['enabled'] {
