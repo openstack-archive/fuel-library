@@ -18,7 +18,7 @@ class cluster::neutron::ovs (
     csr_ms_metadata     => { 'interleave' => 'true' },
     csr_parameters      => { 'plugin_config' => $plugin_config },
     csr_mon_intr        => '20',
-    csr_mon_timeout     => '10',
+    csr_mon_timeout     => '30',
     csr_timeout         => '80',
     service_name        => $::neutron::params::ovs_agent_service,
     package_name        => $ovs_agent_package,
