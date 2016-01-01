@@ -12,17 +12,17 @@ remove_file($globals_yaml_file)
 
 $network_scheme = hiera_hash('network_scheme', {})
 if empty($network_scheme) {
-  fail("Network_scheme not given in the astute.yaml")
+  fail('Network_scheme not given in the astute.yaml')
 }
 $network_metadata = hiera_hash('network_metadata', {})
 if empty($network_metadata) {
-  fail("Network_metadata not given in the astute.yaml")
+  fail('Network_metadata not given in the astute.yaml')
 }
 
 $node_name = regsubst(hiera('fqdn', $::hostname), '\..*$', '')
 $node = $network_metadata['nodes'][$node_name]
 if empty($node) {
-  fail("Node hostname is not defined in the astute.yaml")
+  fail('Node hostname is not defined in the astute.yaml')
 }
 
 prepare_network_config($network_scheme)
@@ -34,20 +34,20 @@ $nodes_hash                     = hiera('nodes', {})
 # of `$::os_package_type' fact avilable to use in project manifests,
 # we need to provide a manual override for Fuel Ubuntu images.
 if ($::osfamily == 'Debian'){
-  $os_package_type_override     = hiera('os_package_type', 'debian')
+  $os_package_type_override = hiera('os_package_type', 'debian')
   if (!empty($os_package_type_override)) {
     File {
-      owner   => 'root',
-      group   => 'root'
+      owner => 'root',
+      group => 'root'
     }
     file { [$base_facter_dir, $facter_os_package_type_dir]:
-      ensure  => 'directory',
-      mode    => '0755',
+      ensure => 'directory',
+      mode   => '0755',
     }
     file { $facter_os_package_type_file :
       ensure  => 'present',
       mode    => '0644',
-      content => "os_package_type=$os_package_type_override\n"
+      content => "os_package_type=${os_package_type_override}\n"
     }
   }
 }
@@ -270,7 +270,9 @@ $queue_provider   = hiera('queue_provider','rabbitmq')
 $rabbit_ha_queues = true
 
 if !$rabbit_hash['user'] {
-  $rabbit_hash['user'] = 'nova'
+  $real_rabbit_hash = merge($rabbit_hash, { 'user' => 'nova' })
+} else {
+  $real_rabbit_hash = $rabbit_hash
 }
 
 $amqp_port  = hiera('amqp_ports', '5673')
@@ -370,10 +372,16 @@ $heat_roles = ['primary-controller', 'controller']
 $sahara_roles = ['primary-controller', 'controller']
 
 # Define ceilometer-releated parameters
-if !$ceilometer_hash['alarm_history_time_to_live'] { $ceilometer_hash['alarm_history_time_to_live'] = '604800'}
-if !$ceilometer_hash['event_time_to_live'] { $ceilometer_hash['event_time_to_live'] = '604800'}
-if !$ceilometer_hash['metering_time_to_live'] { $ceilometer_hash['metering_time_to_live'] = '604800' }
-if !$ceilometer_hash['http_timeout'] { $ceilometer_hash['http_timeout'] = '600' }
+$default_ceilometer_hash = {
+  'alarm_history_time_to_live' => '604800',
+  'event_time_to_live'         => '604800',
+  'metering_time_to_live'      => '604800',
+  'http_timeout'               => '600'
+}
+
+if !$ceilometer_hash['alarm_history_time_to_live'] {
+  $real_ceilometer_hash = merge($ceilometer_hash, $default_ceilometer_hash)
+}
 
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future
@@ -397,9 +405,9 @@ $ironic_api_nodes = $controllers_hash
 # TODO(sbog): change this when we will get rid of global hashes
 $public_ssl_hash = hiera('public_ssl')
 if $public_ssl_hash['services'] {
-  $nova_hash['vncproxy_protocol'] = 'https'
+  $real_nova_hash = merge($nova_hash, { 'vncproxy_protocol' => 'https' })
 } else {
-  $nova_hash['vncproxy_protocol'] = 'http'
+  $real_nova_hash = merge($nova_hash, { 'vncproxy_protocol' => 'http' })
 }
 
 # Define how we should get memcache addresses
