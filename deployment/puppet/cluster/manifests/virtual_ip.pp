@@ -4,7 +4,7 @@
 #
 # === Parameters
 #
-# [*name*]
+# [*key*]
 #   Name of virtual IP resource
 #
 # [*vip*]
@@ -21,7 +21,7 @@ define cluster::virtual_ip (
 
   $vip_name = "vip__${key}"
 
-  $parameters = {
+  $default_parameters = {
     'bridge'               => $vip['bridge'],
     'base_veth'            => $vip['base_veth'],
     'ns_veth'              => $vip['ns_veth'],
@@ -61,9 +61,9 @@ define cluster::virtual_ip (
   }
 
   if (is_ip_address($vip['gateway']) or ($vip['gateway'] == 'link')) {
-    $parameters['gateway'] = $vip['gateway']
+    $parameters = merge($default_parameters, { 'gateway' => $vip['gateway'] })
   } else {
-    $parameters['gateway'] = 'none'
+    $parameters = merge($default_parameters, { 'gateway' => 'none' })
   }
 
   $metadata = {
@@ -93,11 +93,11 @@ define cluster::virtual_ip (
   }
 
   pacemaker_wrappers::service { $vip_name :
-    primitive_type   => $primitive_type,
-    parameters       => $parameters,
-    metadata         => $metadata,
-    operations       => $operations,
-    prefix           => false,
+    primitive_type => $primitive_type,
+    parameters     => $parameters,
+    metadata       => $metadata,
+    operations     => $operations,
+    prefix         => false,
   }
 
   # I'am running before this other vip
