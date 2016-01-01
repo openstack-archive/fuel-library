@@ -4,7 +4,7 @@
 #
 # === Parameters
 #
-# [*name*]
+# [*key*]
 #   Name of virtual IP resource
 #
 # [*vip*]
@@ -21,7 +21,14 @@ define cluster::virtual_ip (
 
   $vip_name = "vip__${key}"
 
-  $parameters = {
+  if (is_ip_address($vip['gateway']) or ($vip['gateway'] == 'link')) {
+    $gateway = $vip['gateway']
+  } else {
+    $gateway' => 'none'
+  }
+
+  $default_parameters = {
+    'gateway'              => $gateway,
     'bridge'               => $vip['bridge'],
     'base_veth'            => $vip['base_veth'],
     'ns_veth'              => $vip['ns_veth'],
@@ -60,12 +67,6 @@ define cluster::virtual_ip (
     },
   }
 
-  if (is_ip_address($vip['gateway']) or ($vip['gateway'] == 'link')) {
-    $parameters['gateway'] = $vip['gateway']
-  } else {
-    $parameters['gateway'] = 'none'
-  }
-
   $metadata = {
     'migration-threshold' => '3',   # will be try start 3 times before migrate to another node
     'failure-timeout'     => '60',  # forget any fails of starts after this timeout
@@ -93,11 +94,11 @@ define cluster::virtual_ip (
   }
 
   pacemaker_wrappers::service { $vip_name :
-    primitive_type   => $primitive_type,
-    parameters       => $parameters,
-    metadata         => $metadata,
-    operations       => $operations,
-    prefix           => false,
+    primitive_type => $primitive_type,
+    parameters     => $parameters,
+    metadata       => $metadata,
+    operations     => $operations,
+    prefix         => false,
   }
 
   # I'am running before this other vip
