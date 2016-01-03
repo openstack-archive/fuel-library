@@ -11,7 +11,7 @@ else {
 
 #Purge empty NTP server entries
 $ntp_servers = delete(delete_undef_values([$::fuel_settings['NTP1'],
-                     $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), "")
+  $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), '')
 
 $admin_network = ipcalc_network_wildcard(
   $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
@@ -73,9 +73,9 @@ class { 'docker::dockerctl':
   docker_engine   => 'native',
 }
 
-class { "docker":
+class { 'docker':
   docker_engine => 'native',
-  release => $::fuel_release,
+  release       => $::fuel_release,
 }
 
 class { 'openstack::logrotate':
@@ -105,10 +105,10 @@ class { 'osnailyfacter::ssh':
 }
 
 file { '/usr/local/bin/mco':
-  source  => 'puppet:///modules/nailgun/mco_host_only',
-  mode    => '0755',
-  owner   => 'root',
-  group   => 'root',
+  source => 'puppet:///modules/nailgun/mco_host_only',
+  mode   => '0755',
+  owner  => 'root',
+  group  => 'root',
 }
 
 if $use_systemd {
@@ -155,4 +155,31 @@ exec {'sync_deployment_tasks':
   tries     => 12,
   try_sleep => 10,
   require   => Class['nailgun::client'],
+}
+
+augeas { 'Aging and Length settings':
+  lens    => 'login_defs.lns',
+  incl    => '/etc/login.defs',
+  changes => [
+    'set PASS_MAX_DAYS 365',
+    'set PASS_MIN_DAYS 2',
+    'set PASS_MIN_LEN 8',
+    'set PASS_WARN_AGE 30'
+  ],
+}
+
+augeas { 'Password complexity':
+  lens    => 'pam.lns',
+  incl    => '/etc/pam.d/system-auth',
+  changes => [
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/control requisite",
+    "rm *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[1] try_first_pass",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[2] retry=3",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[3] dcredit=-1",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[4] ucredit=-1",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[5] ocredit=-1",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[6] lcredit=-1",
+  ],
+  onlyif  => "match *[type='password'][control='requisite'][module='pam_pwquality.so' or module='pam_cracklib.so'] size > 0",
 }
