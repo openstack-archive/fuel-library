@@ -11,7 +11,7 @@ else {
 
 #Purge empty NTP server entries
 $ntp_servers = delete(delete_undef_values([$::fuel_settings['NTP1'],
-                     $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), "")
+  $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), '')
 
 $admin_network = ipcalc_network_wildcard(
   $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
@@ -73,9 +73,9 @@ class { 'docker::dockerctl':
   docker_engine   => 'native',
 }
 
-class { "docker":
+class { 'docker':
   docker_engine => 'native',
-  release => $::fuel_release,
+  release       => $::fuel_release,
 }
 
 class { 'openstack::logrotate':
@@ -105,10 +105,10 @@ class { 'osnailyfacter::ssh':
 }
 
 file { '/usr/local/bin/mco':
-  source  => 'puppet:///modules/nailgun/mco_host_only',
-  mode    => '0755',
-  owner   => 'root',
-  group   => 'root',
+  source => 'puppet:///modules/nailgun/mco_host_only',
+  mode   => '0755',
+  owner  => 'root',
+  group  => 'root',
 }
 
 if $use_systemd {
@@ -155,4 +155,38 @@ exec {'sync_deployment_tasks':
   tries     => 12,
   try_sleep => 10,
   require   => Class['nailgun::client'],
+}
+
+# /etc/login.defs: Aging and Length settings
+$login_defs_vars = [
+  { 'param' => 'PASS_MAX_DAYS', 'value' => '365'},
+  { 'param' => 'PASS_MIN_DAYS', 'value' => '2'},
+  { 'param' => 'PASS_MIN_LEN',  'value' => '8'},
+  { 'param' => 'PASS_WARN_AGE', 'value' => '30'}
+]
+
+file { '/etc/login.defs':
+  ensure => present,
+} ->
+nailgun::config_login_defs{ $login_defs_vars: }
+
+# parameters for a password complexity
+$password_requisite_vars = 'retry=3 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1'
+
+# comment out /etc/pam.d/system-auth before add changes
+exec { 'comment out password requisite line':
+  command => '/usr/bin/sed -ir "/^\s*password\s*requisite\s*pam_\(cracklib\|pwquality\).so/s/^/#/" /etc/pam.d/system-auth',
+  onlyif  => '/usr/bin/egrep -q "^\s*password\s+requisite\s+pam_(cracklib|pwquality).so" /etc/pam.d/system-auth',
+} ->
+
+# add parameters only if pam_cracklib used
+exec { 'add pam_cracklib password requisite vars':
+  command => "/usr/bin/sed -ir \"/^#\s*password\s*requisite\s*pam_cracklib.so/apassword requisite pam_cracklib.so ${password_requisite_vars}\" /etc/pam.d/system-auth",
+  onlyif  => '/usr/bin/egrep -q "^#\s*password\s+requisite\s+pam_cracklib.so" /etc/pam.d/system-auth',
+} ->
+
+# add parameters only if pam_pwquality used
+exec { 'add pam_pwquality password requisite vars':
+  command => "/usr/bin/sed -ir \"/^#\s*password\s*requisite\s*pam_pwquality.so/apassword requisite pam_pwquality.so ${password_requisite_vars}\" /etc/pam.d/system-auth",
+  onlyif  => '/usr/bin/egrep -q "^#\s*password\s+requisite\s+pam_pwquality.so" /etc/pam.d/system-auth',
 }
