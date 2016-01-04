@@ -403,11 +403,6 @@ class openstack::nova::controller (
   }
 
   if $vnc_enabled {
-    # Workadroung for bug LP #1468230
-    Package<| title == 'nova-vncproxy' |> {
-      name => 'nova-consoleproxy',
-    }
-
     class { 'nova::vncproxy':
       host           => $novnc_address,
       enabled        => $enabled,
