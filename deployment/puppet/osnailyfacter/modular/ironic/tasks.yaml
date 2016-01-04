@@ -35,3 +35,19 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
+- id: ironic-compute
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [openstack-controller, ironic-api]
+  refresh_on: [nova_config, nova_paste_api_ini]
+  cross-depends:
+   - name: /(primary-)?rabbitmq/
+   - name: openstack-controller
+   - name: ironic-api
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/ironic-compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
