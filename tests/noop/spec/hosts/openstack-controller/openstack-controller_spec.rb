@@ -66,6 +66,8 @@ describe manifest do
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
+    storage_hash = Noop.hiera_structure 'storage'
+
     # TODO All this stuff should be moved to shared examples controller* tests.
 
     it 'should configure default_log_levels' do
@@ -183,6 +185,11 @@ describe manifest do
       end
     end
 
+    if storage_hash['volumes_ceph']
+      it 'should install open-iscsi if ceph is used as cinder backend' do
+        should contain_package('open-iscsi').with('ensure' => 'present')
+      end
+    end
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
