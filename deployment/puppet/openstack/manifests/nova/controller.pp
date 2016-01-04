@@ -403,11 +403,14 @@ class openstack::nova::controller (
   }
 
   if $vnc_enabled {
-    # Workadroung for bug LP #1468230
-    Package<| title == 'nova-vncproxy' |> {
-      name => 'nova-consoleproxy',
+    # TODO(aschultz): when the openstacklib & nova modules have been updated
+    # with a version that supports os_package_type, remove this block
+    # See LP#1530912
+    if !$::os_package_type or $::os_package_type == 'debian' {
+      Package<| title == 'nova-vncproxy' |> {
+        name => 'nova-consoleproxy'
+      }
     }
-
     class { 'nova::vncproxy':
       host           => $novnc_address,
       enabled        => $enabled,
