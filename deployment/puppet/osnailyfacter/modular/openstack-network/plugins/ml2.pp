@@ -46,11 +46,6 @@ if $use_neutron {
     'do_tenant'   => true,
     'do_provider' => false
   })
-  $network_vlan_ranges = generate_physnet_vlan_ranges($neutron_config, $network_scheme, {
-    'do_floating' => $do_floating,
-    'do_tenant'   => true,
-    'do_provider' => false
-  })
 
   if $segmentation_type == 'vlan' {
     $net_role_property    = 'neutron/private'
@@ -58,6 +53,11 @@ if $use_neutron {
     $overlay_net_mtu      =  pick(get_transformation_property('mtu', $iface[0]), '1500')
     $enable_tunneling = false
     $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
+      'do_floating' => $do_floating,
+      'do_tenant'   => true,
+      'do_provider' => false
+    })
+    $network_vlan_ranges = generate_physnet_vlan_ranges($neutron_config, $network_scheme, {
       'do_floating' => $do_floating,
       'do_tenant'   => true,
       'do_provider' => false
@@ -76,6 +76,7 @@ if $use_neutron {
       'do_tenant'   => false,
       'do_provider' => false
     })
+    $network_vlan_ranges = []
 
     if $segmentation_type == 'gre' {
       $mtu_offset = '42'
