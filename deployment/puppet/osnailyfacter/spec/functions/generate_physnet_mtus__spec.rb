@@ -168,8 +168,8 @@ describe 'function for formating allocation pools for neutron subnet resource' d
          "default_private_net"=>"admin_internal_net",
          "keystone"=>{"admin_password"=>"EanTYjYlXqzATHAriBPkllal"},
          "L3"=>{"use_namespaces"=>true},
-         "L2"=>{"phys_nets"=>{"physnet1"=>{"bridge"=>"br-floating", "vlan_range"=>"1000:1030"},
-                              "physnet2"=>{"bridge"=>"br-prv", "vlan_range"=>nil}},
+         "L2"=>{"phys_nets"=>{"physnet1"=>{"bridge"=>"br-prv", "vlan_range"=>"1000:1030"},
+                              "physnet2"=>{"bridge"=>"br-floating", "vlan_range"=>nil}},
                 "base_mac"=>"fa:16:3e:00:00:00",
                 "segmentation_type"=>"vlan"},
          "predefined_networks"=>{
