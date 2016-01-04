@@ -314,3 +314,15 @@
         dst: /var/lib/astute/ironic/ironic
     permissions: '0600'
     dir_permissions: '0700'
+
+- id: setup_puppet
+  type: puppet
+  version: 2.0.0
+  role: '*'
+  requires: [pre_deployment_start]
+  required_for: [pre_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/setup_puppet.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
