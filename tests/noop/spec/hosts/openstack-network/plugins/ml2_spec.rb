@@ -72,7 +72,7 @@ describe manifest do
             physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}"]
           end
           network_type   = 'vxlan'
-          network_vlan_ranges = ["physnet1"]
+          network_vlan_ranges = []
           tunnel_id_ranges  = [neutron_config.fetch('L2',{}).fetch('tunnel_id_ranges')]
           overlay_net_mtu = '1450'
           tunnel_types    = [network_type]

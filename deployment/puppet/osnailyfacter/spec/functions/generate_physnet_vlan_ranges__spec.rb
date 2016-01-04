@@ -112,8 +112,8 @@ describe 'function for formating allocation pools for neutron subnet resource' d
          "default_private_net"=>"admin_internal_net",
          "keystone"=>{"admin_password"=>"EanTYjYlXqzATHAriBPkllal"},
          "L3"=>{"use_namespaces"=>true},
-         "L2"=>{"phys_nets"=>{"physnet1"=>{"bridge"=>"br-floating", "vlan_range"=>"1000:1030"},
-                              "physnet2"=>{"bridge"=>"br-prv", "vlan_range"=>nil}},
+         "L2"=>{"phys_nets"=>{"physnet1"=>{"bridge"=>"br-prv", "vlan_range"=>"1000:1030"},
+                              "physnet2"=>{"bridge"=>"br-floating", "vlan_range"=>nil}},
                 "base_mac"=>"fa:16:3e:00:00:00",
                 "segmentation_type"=>"vlan"},
          "predefined_networks"=>{
@@ -133,7 +133,7 @@ describe 'function for formating allocation pools for neutron subnet resource' d
                "shared"=>false,
                "L2"=>{"network_type"=>"vlan",
                       "router_ext"=>false,
-                      "physnet"=>"physnet2",
+                      "physnet"=>"physnet1",
                       "segment_id"=>nil},
                "L3"=>{"nameservers"=>["8.8.4.4", "8.8.8.8"],
                       "subnet"=>"192.168.111.0/24",
@@ -158,11 +158,16 @@ describe 'function for formating allocation pools for neutron subnet resource' d
     end
 
 
-    it 'should be able to return floating nets to bridge map' do
+    it 'should be able to return floating and tenant nets to bridge map' do
       expect(@scope.function_generate_physnet_vlan_ranges([neutron_config, network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false }])).to eq(["physnet1:1000:1030", "physnet2"])
     end
 
-    it 'should be able to return without floating nets to bridge map' do
+
+    it 'should be able to return only floating nets to bridge map' do
+      expect(@scope.function_generate_physnet_vlan_ranges([neutron_config, network_scheme, { 'do_floating' => true, 'do_tenant' => false, 'do_provider' => false }])).to eq(["physnet2"])
+    end
+
+    it 'should be able to return only tenant nets to bridge map' do
       expect(@scope.function_generate_physnet_vlan_ranges([neutron_config, network_scheme, { 'do_floating' => false, 'do_tenant' => true, 'do_provider' => false }])).to eq(["physnet1:1000:1030"])
     end
 

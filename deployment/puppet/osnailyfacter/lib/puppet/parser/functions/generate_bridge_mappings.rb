@@ -6,7 +6,7 @@ EOS
    raise ArgumentError, ("generate_bridge_mappings(): wrong number of arguments (#{args.length}; must be 3)") if args.length < 3
    raise ArgumentError, ("generate_bridge_mappings(): wrong number of arguments (#{args.length}; must be 3)") if args.length > 3
    args.each do | arg |
-     raise ArgumentError, "generate_bridge_mappings(): #{arg} is not hash!" if !arg.is_a?(Hash)
+     raise ArgumentError, "generate_bridge_mappings(): #{arg} is not hash!" unless arg.is_a?(Hash)
    end
 
    neutron_config = args[0]
@@ -17,15 +17,22 @@ EOS
    debug "Collecting phys_nets and bridges"
    physnet_bridge_map = {}
     neutron_config['L2']['phys_nets'].each do |k,v|
-      next if !v['bridge']
+      next unless v['bridge']
       bridge = v['bridge']
-      physnet_bridge_map[k] = bridge if !network_scheme['transformations'].select{ |x| x['name'] == bridge }.empty?
+      physnet_bridge_map[k] = bridge unless network_scheme['transformations'].select{ |x| x['name'] == bridge }.empty?
     end
 
-    if !flags['do_floating']
+    unless flags['do_floating']
       debug("Perform floating networks")
       physnet_bridge_map.each do | net, br |
-        physnet_bridge_map.delete(net) if !neutron_config['predefined_networks'].select{ |pnet, value| value['L2']['physnet'] == net and value['L2']['router_ext'] }.empty?
+        physnet_bridge_map.delete(net) unless neutron_config['predefined_networks'].select{ |pnet, value| value['L2']['physnet'] == net and value['L2']['router_ext'] }.empty?
+      end
+    end
+
+    unless flags['do_tenant']
+      debug("Perform tenant networks")
+      physnet_bridge_map.each do | net, br |
+        physnet_bridge_map.delete(net) unless neutron_config['predefined_networks'].select{ |pnet, value| value['L2']['physnet'] == net and !value['L2']['router_ext'] }.empty?
       end
     end
 
