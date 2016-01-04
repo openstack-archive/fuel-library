@@ -33,7 +33,7 @@ class cluster::neutron::dhcp (
     csr_complex_type    => $csr_complex_type,
     csr_ms_metadata     => $csr_ms_metadata,
     csr_mon_intr    => '20',
-    csr_mon_timeout => '10',
+    csr_mon_timeout => '30',
     csr_timeout     => '60',
     service_name    => $::neutron::params::dhcp_agent_service,
     package_name    => $dhcp_agent_package,

@@ -17,7 +17,7 @@ class cluster::neutron::metadata (
     csr_complex_type    => 'clone',
     csr_ms_metadata     => { 'interleave' => 'true' },
     csr_mon_intr        => '60',
-    csr_mon_timeout     => '10',
+    csr_mon_timeout     => '30',
     csr_timeout         => '30',
     service_name        => $::neutron::params::metadata_agent_service,
     package_name        => $metadata_agent_package,
