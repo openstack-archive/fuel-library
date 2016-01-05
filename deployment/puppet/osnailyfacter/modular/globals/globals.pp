@@ -27,9 +27,6 @@ if empty($node) {
 
 prepare_network_config($network_scheme)
 
-# DEPRICATED
-$nodes_hash                     = hiera('nodes', {})
-
 # MOS Ubuntu image uses Debian style packages. Since the introduction
 # of `$::os_package_type' fact avilable to use in project manifests,
 # we need to provide a manual override for Fuel Ubuntu images.
