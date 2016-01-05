@@ -4,19 +4,16 @@ module Puppet::Parser::Functions
       :type => :rvalue,
       :arity => 1,
       :doc => <<-EOS
-Check if this node's roles include this role
+Check if this node's roles include these roles.
 EOS
-  ) do |arguments|
-    raise Puppet::ParseError, 'No roles provided!' if arguments.size < 1
-    intended_roles = arguments.first
+  ) do |args|
+    raise Puppet::ParseError, 'Only one argument with role or array of roles should be provided!' if args.size != 1
+    intended_roles = args.first
     intended_roles = [intended_roles] unless intended_roles.is_a? Array
-    nodes = function_hiera ['nodes']
-    uid = function_hiera ['uid']
+    network_metadata = function_hiera_hash ['network_metadata']
+    node_name = function_get_node_key_name []
+    node_roles = network_metadata.fetch('nodes', {}).fetch(node_name, {}).fetch('node_roles', [])
 
-    nodes.any? do |node|
-      next unless node['uid'] == uid
-      next unless node['role']
-      intended_roles.include? node['role']
-    end
+    (node_roles & intended_roles).any?
   end
 end
