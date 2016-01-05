@@ -100,7 +100,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
       it { expect(cfg_file).to match(%r{OVS_BRIDGE=ovs-br1}) }
       it { expect(cfg_file).to match(%r{OVS_PATCH_PEER=ovs2ovs-patch2}) }
       it { expect(cfg_file).to match(%r{DEVICETYPE=ovs}) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(7) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }  #  no more lines in the interface file
     end
 
     context 'format ovs2ovs-patch2 file' do
@@ -113,7 +113,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
       it { expect(cfg_file).to match(%r{OVS_BRIDGE=ovs-br2}) }
       it { expect(cfg_file).to match(%r{OVS_PATCH_PEER=ovs2ovs-patch1}) }
       it { expect(cfg_file).to match(%r{DEVICETYPE=ovs}) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(7) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }  #  no more lines in the interface file
     end
 
     context 'format ovs2ovs-patch with tag file' do
@@ -127,7 +127,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
       it { expect(cfg_file).to match(%r{OVS_PATCH_PEER=ovs2ovs-patcht1}) }
       it { expect(cfg_file).to match(%r{OVS_OPTIONS="tag=3"}) }
       it { expect(cfg_file).to match(%r{DEVICETYPE=ovs}) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(8) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(8) }  #  no more lines in the interface file
     end
 
     context "parse ovs2ovs-patch1 data from fixture" do

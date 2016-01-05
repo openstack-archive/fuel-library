@@ -102,7 +102,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_redhat7) do
       it { expect(cfg_file).to match(%r{BRIDGE=lnx-br}) }
       it { expect(cfg_file).to match(%r{OVS_BRIDGE=ovs-br}) }
       it { expect(cfg_file).to match(%r{DEVICETYPE=ovs}) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(7) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }  #  no more lines in the interface file
 
     end
 
