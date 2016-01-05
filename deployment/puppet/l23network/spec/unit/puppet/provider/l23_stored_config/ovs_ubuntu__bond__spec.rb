@@ -92,7 +92,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/ovs_options.+bond_updelay=111/) }
       it { expect(cfg_file).to match(/ovs_options.+bond_downdelay=222/) }
       it { expect(cfg_file).to match(/ovs_options.+lacp=active/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(7) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }  #  no more lines in the interface file
 
     end
 

@@ -99,7 +99,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       it { expect(cfg_file).to match(/iface\s+br1\s+inet\s+static/) }
       it { expect(cfg_file).to match(/bridge_ports\s+p_33470efd-0/) }
       it { expect(cfg_file).to match(/address\s+192.168.88.2\/24/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(4) }
     end
 
     context 'for LNX bridge br2' do
@@ -109,7 +109,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       it { expect(cfg_file).to match(/iface\s+br2\s+inet\s+static/) }
       it { expect(cfg_file).to match(/bridge_ports\s+p_33470efd-1/) }
       it { expect(cfg_file).to match(/address\s+192.168.99.2\/24/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(4) }
     end
 
     context 'for lnx2lnx patchcord p_33470efd-0' do
@@ -120,7 +120,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       it { expect(cfg_file).to match(/pre-up\s+ip\s+link\s+add\s+p_33470efd-0\s+mtu\s+1500\s+type\s+veth\s+peer\s+name\s+p_33470efd-1\s+mtu\s+1500/) }
       it { expect(cfg_file).to match(/post-up\s+ip\s+link\s+set\s+up\s+dev\s+p_33470efd-1/) }
       it { expect(cfg_file).to match(/post-down\s+ip\s+link\s+del\s+p_33470efd-0/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5) }
     end
 
     context 'for lnx2lnx patchcord p_33470efd-1' do
@@ -131,7 +131,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       it { expect(cfg_file).to match(/pre-up\s+ip\s+link\s+add\s+p_33470efd-0\s+mtu\s+1500\s+type\s+veth\s+peer\s+name\s+p_33470efd-1\s+mtu\s+1500/) }
       it { expect(cfg_file).to match(/post-up\s+ip\s+link\s+set\s+up\s+dev\s+p_33470efd-1/) }
       it { expect(cfg_file).to match(/post-down\s+ip\s+link\s+del\s+p_33470efd-0/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5) }
     end
 
     context 'for lnx2lnx patchcord p_33470efd-1 mtu 1700' do
@@ -143,7 +143,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       it { expect(cfg_file).to match(/pre-up\s+ip\s+link\s+add\s+p_33470efd-0\s+mtu\s+1700\s+type\s+veth\s+peer\s+name\s+p_33470efd-1\s+mtu\s+1700/) }
       it { expect(cfg_file).to match(/post-up\s+ip\s+link\s+set\s+up\s+dev\s+p_33470efd-1/) }
       it { expect(cfg_file).to match(/post-down\s+ip\s+link\s+del\s+p_33470efd-0/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(6) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(6) }
     end
 
 
