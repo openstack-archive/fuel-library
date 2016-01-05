@@ -62,5 +62,15 @@ class Puppet::Provider::L23_stored_config_base < Puppet::Provider
     File.chmod(0644, filename) if File.exist? filename
   end
 
+  def self.puppet_header
+    str = "# *********************************************************************\n"\
+          "# This file is being managed by Puppet. Changes to interfaces\n"\
+          "# that are not being managed by Puppet will persist;\n"\
+          "# however changes to interfaces that are being managed by Puppet will\n"\
+          "# be overwritten.\n"\
+          "# *********************************************************************"
+    str
+  end
+
 end
 # vim: set ts=2 sw=2 et :

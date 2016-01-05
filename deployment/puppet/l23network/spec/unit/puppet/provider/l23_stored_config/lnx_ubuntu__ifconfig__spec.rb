@@ -65,7 +65,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       it { expect(data).to match(/iface\s+eth1\s+inet\s+static/) }
       it { expect(data).to match(/address\s+169\.254\.0\.1\/24/) }
       it { expect(data).to match(/post-up\s+sleep\s+25/) }
-      it { expect(data.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }  #  no more lines in the interface file
+      it { expect(data.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(4) }  #  no more lines in the interface file
     end
 
     context "parse data from fixture" do
@@ -128,7 +128,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { p data ; expect(data).to match(/auto\s+eth1/) }
       it { expect(data).to match(/iface\s+eth1\s+inet\s+static/) }
       it { expect(data).to match(/address\s+169\.254\.0\.1\/24/) }
-      it { expect(data.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(3) }  #  no more lines in the interface file
+      it { expect(data.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(3) }  #  no more lines in the interface file
     end
   end
 end
@@ -200,7 +200,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       it { expect(data).to match(/post-up\s+ip\s+addr\s+add\s+192.168.1.1\/24\s+dev\s+eth11/) }
       it { expect(data).to match(/post-up\s+ip\s+addr\s+add\s+192.168.2.2\/25\s+dev\s+eth11/) }
       it { expect(data).to match(/post-up\s+ip\s+addr\s+add\s+192.168.3.3\/26\s+dev\s+eth11/) }
-      it { expect(data.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(6) }  #  no more lines in the interface file
+      it { expect(data.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(6) }  #  no more lines in the interface file
     end
 
     context "parse data from fixture" do

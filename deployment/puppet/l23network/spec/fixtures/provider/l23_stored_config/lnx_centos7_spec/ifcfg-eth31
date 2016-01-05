@@ -1,3 +1,9 @@
+# *********************************************************************
+# This file is being managed by Puppet. Changes to interfaces
+# that are not being managed by Puppet will persist;
+# however changes to interfaces that are being managed by Puppet will
+# be overwritten.
+# *********************************************************************
 # Advanced Micro Devices [AMD] 79c970 [PCnet32 LANCE]
 NAME=eth31
 BOOTPROTO=dhcp
