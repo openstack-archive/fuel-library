@@ -156,9 +156,10 @@ class Noop
       self.fqdn.split('.').first
     end
 
-    def node_hash
-      hiera('nodes').find { |node| node['fqdn'] == fqdn } || {}
-    end
+    # remove unused code, related to nodes list
+    # def node_hash
+    #   hiera('nodes').find { |node| node['fqdn'] == fqdn } || {}
+    # end
 
   end
   extend Overrides
