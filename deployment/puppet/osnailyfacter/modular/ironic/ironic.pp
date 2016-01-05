@@ -16,12 +16,12 @@ $default_log_levels         = hiera_hash('default_log_levels')
 $use_syslog                 = hiera('use_syslog', true)
 $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
 $rabbit_hash                = hiera_hash('rabbit_hash', {})
-$rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_hosts                 = hiera('amqp_hosts')
 $amqp_port                  = hiera('amqp_port', '5673')
 $rabbit_hosts               = split($amqp_hosts, ',')
 $neutron_config             = hiera_hash('quantum_settings')
 $primary_controller         = hiera('primary_controller')
+$amqp_durable_queues        = pick($ironic_hash['amqp_durable_queues'], false)
 
 $db_host                    = pick($ironic_hash['db_host'], $database_vip)
 $db_user                    = pick($ironic_hash['db_user'], 'ironic')
@@ -44,7 +44,8 @@ class { 'ironic':
   rabbit_port         => $amqp_port,
   rabbit_userid       => $rabbit_hash['user'],
   rabbit_password     => $rabbit_hash['password'],
-  amqp_durable_queues => $rabbit_ha_queues,
+  amqp_durable_queues => $amqp_durable_queues,
+  control_exchange    => 'ironic',
   use_syslog          => $use_syslog,
   log_facility        => $syslog_log_facility_ironic,
   database_connection => $database_connection,

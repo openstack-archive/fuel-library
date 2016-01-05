@@ -8,6 +8,7 @@ describe manifest do
     rabbit_password = Noop.hiera_structure 'rabbit/password'
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
     storage_config = Noop.hiera_structure 'storage'
+    amqp_durable_queues = Noop.hiera_structure 'ironic/amqp_durable_queues', 'false'
 
     if ironic_enabled
       it 'should ensure that ironic-fa-deploy is installed' do
@@ -16,9 +17,11 @@ describe manifest do
 
       it 'should declare ironic class correctly' do
         should contain_class('ironic').with(
-          'rabbit_userid'   => rabbit_user,
-          'rabbit_password' => rabbit_password,
-          'enabled_drivers' => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
+          'rabbit_userid'       => rabbit_user,
+          'rabbit_password'     => rabbit_password,
+          'enabled_drivers'     => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
+          'control_exchange'    => 'ironic',
+          'amqp_durable_queues' => amqp_durable_queues,
         )
       end
 
