@@ -15,7 +15,6 @@ describe manifest do
     debug = Noop.hiera 'debug'
     use_syslog = Noop.hiera 'use_syslog'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
-    nodes_hash = Noop.hiera 'nodes'
     mongodb_port = Noop.hiera('mongodb_port', '27017')
 
     it 'should configure MongoDB only with replica set' do
