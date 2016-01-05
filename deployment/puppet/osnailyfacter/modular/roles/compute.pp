@@ -22,7 +22,6 @@ $verbose                        = pick($compute_hash['verbose'], true)
 $debug                          = pick($compute_hash['debug'], hiera('debug', true))
 $use_monit                      = false
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
-$nodes_hash                     = hiera('nodes', {})
 $storage_hash                   = hiera_hash('storage_hash', {})
 $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera_hash('nova_hash', {})

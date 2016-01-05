@@ -2,8 +2,9 @@ notice('MODULAR: ntp-client.pp')
 
 $management_vrouter_vip  = hiera('management_vrouter_vip')
 $ntp_servers             = hiera_array('ntp_servers', [$management_vrouter_vip])
-$nodes_hash              = hiera('nodes', {})
-$roles                   = node_roles($nodes_hash, hiera('uid'))
+$node_name               = hiera('node_name')
+$network_metadata        = hiera_hash('network_metadata')
+$roles                   = $network_metadata['nodes'][$node_name]['node_roles']
 
 if !(member($roles, 'controller') or member($roles, 'primary-controller')) {
   class { 'ntp':
