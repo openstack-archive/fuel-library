@@ -4,8 +4,6 @@ $network_scheme = hiera_hash('network_scheme', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
-$node_name = hiera('node_name')
-
 $keystone_hash         = hiera_hash('keystone', {})
 $verbose               = pick($keystone_hash['verbose'], hiera('verbose', true))
 $debug                 = pick($keystone_hash['debug'], hiera('debug', false))

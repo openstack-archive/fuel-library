@@ -7,7 +7,6 @@ prepare_network_config($network_scheme)
 
 # Pulling hiera
 $compute_hash                   = hiera_hash('compute', {})
-$node_name                      = hiera('node_name')
 $public_int                     = hiera('public_int', undef)
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
@@ -22,7 +21,6 @@ $verbose                        = pick($compute_hash['verbose'], true)
 $debug                          = pick($compute_hash['debug'], hiera('debug', true))
 $use_monit                      = false
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
-$nodes_hash                     = hiera('nodes', {})
 $storage_hash                   = hiera_hash('storage_hash', {})
 $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera_hash('nova_hash', {})
@@ -125,8 +123,6 @@ $floating_hash = {}
 
 $memcached_server = hiera('memcached_addresses')
 $memcached_port   = hiera('memcache_server_port', '11211')
-##TODO: simply parse nodes array
-$roles            = $network_metadata['nodes'][$node_name]['node_roles']
 $mountpoints      = filter_hash($mp_hash,'point')
 
 # SQLAlchemy backend configuration
@@ -143,9 +139,9 @@ if ($storage_hash['volumes_lvm']) {
 
 # Determine who should get the volume service
 
-if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
+if (roles_include(['cinder']) and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
-} elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
+} elsif (roles_include(['cinder']) and $storage_hash['volumes_vmdk']) {
   $manage_volumes = 'vmdk'
 } elsif ($storage_hash['volumes_ceph']) {
   $manage_volumes = 'ceph'
@@ -174,14 +170,14 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 }
 
 # Get reserved host memory straight value if we've ceph neighbor
-$r_hostmem = member($roles, 'ceph-osd') ? {
+$r_hostmem = roles_include(['ceph-osd']) ? {
   true  => min(max(floor($::memorysize_mb*0.2), 512), 1536),
   false => undef,
 }
 
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
 #   we delegate all of the monitor functions to RA instead of monit.
-if member($roles, 'controller') or member($roles, 'primary-controller') {
+if roles_include(['controller', 'primary-controller']) {
   $use_monit_real = false
 } else {
   $use_monit_real = $use_monit
