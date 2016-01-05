@@ -1,9 +1,11 @@
 notice('MODULAR: cinder.pp')
 
 # Pulling hiera
-$network_scheme = hiera_hash('network_scheme', {})
+$network_scheme   = hiera_hash('network_scheme', {})
+$network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
+$node_name                      = hiera('node_name')
 $cinder_hash                    = hiera_hash('cinder_hash', {})
 $storage_address                = get_network_role_property('cinder/iscsi', 'ipaddr')
 $public_vip                     = hiera('public_vip')
@@ -15,7 +17,6 @@ $verbose                        = pick($cinder_hash['verbose'], true)
 $debug                          = pick($cinder_hash['debug'], hiera('debug', true))
 $use_monit                      = false
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
-$nodes_hash                     = hiera('nodes', {})
 $node_volumes                   = hiera('node_volumes', [])
 $storage_hash                   = hiera_hash('storage_hash', {})
 $vcenter_hash                   = hiera('vcenter', {})
@@ -102,7 +103,7 @@ if $neutron_mellanox {
   $mellanox_mode = 'disabled'
 }
 
-if (!empty(filter_nodes(hiera('nodes'), 'role', 'ceph-osd')) or
+if (!empty(get_nodes_hash_by_roles($network_metadata, ['ceph-osd'])) or
   $storage_hash['volumes_ceph'] or
   $storage_hash['images_ceph'] or
   $storage_hash['objects_ceph']
@@ -140,12 +141,6 @@ $floating_hash = {}
 
 ##NO NEED TO CHANGE
 
-$node = filter_nodes($nodes_hash, 'name', $::hostname)
-if empty($node) {
-  fail("Node ${::hostname} is not defined in the hash structure")
-}
-
-$roles = node_roles($nodes_hash, hiera('uid'))
 $mountpoints = filter_hash($mp_hash,'point')
 
 # SQLAlchemy backend configuration
@@ -156,16 +151,16 @@ $idle_timeout = '3600'
 
 # Determine who should get the volume service
 
-if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
+if (roles_include(['cinder']) and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
   $physical_volumes = false
-} elsif member($roles, 'cinder-vmware') {
+} elsif roles_include(['cinder-vmware']) {
   $manage_volumes = 'vmdk'
   $physical_volumes = false
 } elsif ($storage_hash['volumes_ceph']) {
   $manage_volumes = 'ceph'
   $physical_volumes = false
-} elsif (member($roles, 'cinder-block-device') and $storage_hash['volumes_block_device']) {
+} elsif (roles_include(['cinder-block-device']) and $storage_hash['volumes_block_device']) {
   $manage_volumes = 'fake'
   $physical_volumes = join(get_disks_list_by_role($node_volumes, 'cinder-block-device'), ',')
 } else {
@@ -188,7 +183,7 @@ if ($storage_hash['images_ceph']) {
 
 # NOTE(bogdando) for controller nodes running Corosync with Pacemaker
 #   we delegate all of the monitor functions to RA instead of monit.
-if member($roles, 'controller') or member($roles, 'primary-controller') {
+if roles_include(['controller', 'primary-controller']) {
   $use_monit_real = false
 } else {
   $use_monit_real = $use_monit
@@ -228,7 +223,7 @@ Exec { logoutput => true }
 #################################################################
 # we need to evaluate ceph here, because ceph notifies/requires
 # other services that are declared in openstack manifests
-if ($use_ceph and !$storage_hash['volumes_lvm'] and !member($roles, 'cinder-vmware')) {
+if ($use_ceph and !$storage_hash['volumes_lvm'] and !roles_include(['cinder-vmware'])) {
   $primary_mons   = $controllers
   $primary_mon    = $controllers[0]['name']
 
@@ -243,8 +238,8 @@ if ($use_ceph and !$storage_hash['volumes_lvm'] and !member($roles, 'cinder-vmwa
 
   class {'::ceph':
     primary_mon              => $primary_mon,
-    mon_hosts                => nodes_with_roles($nodes_hash, ['primary-controller', 'controller', 'ceph-mon'], 'name'),
-    mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller', 'controller', 'ceph-mon'], 'internal_address'),
+    mon_hosts                => nodes_with_roles(['primary-controller', 'controller', 'ceph-mon'], 'name'),
+    mon_ip_addresses         => get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller', 'ceph-mon']), 'mgmt/vip'),
     cluster_node_address     => $public_vip,
     osd_pool_default_size    => $storage_hash['osd_pool_size'],
     osd_pool_default_pg_num  => $storage_hash['pg_num'],
@@ -272,7 +267,7 @@ package { 'python-amqp':
   ensure => present
 }
 
-if member($roles, 'controller') or member($roles, 'primary-controller') {
+if roles_include(['controller', 'primary-controller']) {
   $bind_host = get_network_role_property('cinder/api', 'ipaddr')
 } else {
   $bind_host = false
