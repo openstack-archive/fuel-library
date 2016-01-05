@@ -1,9 +1,11 @@
 notice('MODULAR: cinder.pp')
 
 # Pulling hiera
-$network_scheme = hiera_hash('network_scheme', {})
+$network_scheme   = hiera_hash('network_scheme', {})
+$network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
+$node_name                      = hiera('node_name')
 $cinder_hash                    = hiera_hash('cinder_hash', {})
 $storage_address                = get_network_role_property('cinder/iscsi', 'ipaddr')
 $public_vip                     = hiera('public_vip')
@@ -15,7 +17,6 @@ $verbose                        = pick($cinder_hash['verbose'], true)
 $debug                          = pick($cinder_hash['debug'], hiera('debug', true))
 $use_monit                      = false
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
-$nodes_hash                     = hiera('nodes', {})
 $node_volumes                   = hiera('node_volumes', [])
 $storage_hash                   = hiera_hash('storage_hash', {})
 $vcenter_hash                   = hiera('vcenter', {})
@@ -124,12 +125,11 @@ $floating_hash = {}
 
 ##NO NEED TO CHANGE
 
-$node = filter_nodes($nodes_hash, 'name', $::hostname)
-if empty($node) {
-  fail("Node ${::hostname} is not defined in the hash structure")
+if empty($network_metadata['nodes'][$node_name]) {
+  fail("Node ${node_name} is not defined in the network_metadata hash structure")
 }
 
-$roles = node_roles($nodes_hash, hiera('uid'))
+$roles = $network_metadata['nodes'][$node_name]['node_roles']
 $mountpoints = filter_hash($mp_hash,'point')
 
 # SQLAlchemy backend configuration
@@ -227,8 +227,8 @@ if ($use_ceph and !$storage_hash['volumes_lvm'] and !member($roles, 'cinder-vmwa
 
   class {'::ceph':
     primary_mon              => $primary_mon,
-    mon_hosts                => nodes_with_roles($nodes_hash, ['primary-controller', 'controller', 'ceph-mon'], 'name'),
-    mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller', 'controller', 'ceph-mon'], 'internal_address'),
+    mon_hosts                => nodes_with_roles($network_metadata, ['primary-controller', 'controller', 'ceph-mon'], 'name'),
+    mon_ip_addresses         => get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller', 'ceph-mon']), 'mgmt/vip'),
     cluster_node_address     => $public_vip,
     osd_pool_default_size    => $storage_hash['osd_pool_size'],
     osd_pool_default_pg_num  => $storage_hash['pg_num'],
