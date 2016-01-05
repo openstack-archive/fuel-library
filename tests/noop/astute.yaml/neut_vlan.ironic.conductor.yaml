@@ -298,29 +298,6 @@ online: true
 keystone:
   db_password: xl0tg0dvg80jNMGvBfb83YSn
   admin_token: fEba1VO69rCHVWjM61sZ4Q5x
-nodes:
-- user_node_name: Untitled (cc:a5)
-  uid: '1'
-  public_address: 172.16.51.117
-  internal_netmask: 255.255.255.0
-  fqdn: node-1.test.domain.local
-  role: primary-controller
-  public_netmask: 255.255.255.240
-  internal_address: 192.168.0.3
-  storage_address: 192.168.1.2
-  swift_zone: '1'
-  storage_netmask: 255.255.255.0
-  name: node-1
-- user_node_name: Untitled (6c:19)
-  uid: '2'
-  internal_netmask: 255.255.255.0
-  fqdn: node-2.test.domain.local
-  role: ironic
-  internal_address: 192.168.0.4
-  storage_address: 192.168.1.1
-  swift_zone: '2'
-  storage_netmask: 255.255.255.0
-  name: node-2
 nova_quota: false
 ceilometer:
   db_password: KEOghUJZJKLV5LdUnxjQqu1V
