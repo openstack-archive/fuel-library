@@ -90,7 +90,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
       it { expect(cfg_file).to match(/bond-downdelay\s+222/) }
       it { expect(cfg_file).to match(/bond-ad-select\s+2/) }
       it { expect(cfg_file).to match(/bond-xmit-hash-policy\s+encap3\+4/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(11) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(11) }  #  no more lines in the interface file
     end
 
     context "parse data from fixture" do

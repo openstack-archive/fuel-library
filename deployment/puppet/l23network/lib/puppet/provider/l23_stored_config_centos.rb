@@ -292,6 +292,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     end
 
     content = []
+    content << self.puppet_header
     provider = providers[0]
 
     # Map everything to a flat hash

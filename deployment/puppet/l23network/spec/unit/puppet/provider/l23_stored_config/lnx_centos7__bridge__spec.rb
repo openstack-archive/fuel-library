@@ -74,7 +74,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
       it { expect(cfg_file).to match(%r{BOOTPROTO=none}) }
       it { expect(cfg_file).to match(%r{ONBOOT=yes}) }
       it { expect(cfg_file).to match(%r{TYPE=Bridge}) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(4) }  #  no more lines in the interface file
 
     end
 

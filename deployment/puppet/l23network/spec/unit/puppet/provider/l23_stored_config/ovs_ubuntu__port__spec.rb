@@ -65,7 +65,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/ovs_type\s+OVSPort/) }
       it { expect(cfg_file).to match(/ovs_bridge\s+br-ovs1/) }
       it { expect(cfg_file).to match(/ovs_extra\s+--\s+set\s+Port\s+p2p1\st+ag=100/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5) }
     end
 
   end
