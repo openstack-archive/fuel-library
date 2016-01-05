@@ -75,7 +75,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/iface\s+br8\s+inet\s+manual/) }
       it { expect(cfg_file).to match(/ovs_type\s+OVSBridge/) }
       it { expect(cfg_file).to match(/ovs_ports\s+ttt0\s+ttt1/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5) }  #  no more lines in the interface file
     end
 
     context "parse data from fixture" do

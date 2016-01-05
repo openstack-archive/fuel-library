@@ -80,6 +80,7 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
     header = []
     props  = {}
 
+    header << self.puppet_header
     bridge = provider.bridge[0]
     if provider.if_type.to_s == 'bridge'
       header << "auto #{provider.name}" if provider.onboot

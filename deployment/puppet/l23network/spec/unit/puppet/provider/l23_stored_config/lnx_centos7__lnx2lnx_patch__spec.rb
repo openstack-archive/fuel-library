@@ -98,7 +98,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
       it { expect(cfg_file).to match(/ONBOOT=yes/) }
       it { expect(cfg_file).to match(/TYPE=Bridge/) }
       it { expect(cfg_file).to match(/PREFIX=24/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(6) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(6) }
     end
 
     context 'for LNX bridge br2' do
@@ -110,7 +110,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
       it { expect(cfg_file).to match(/ONBOOT=yes/) }
       it { expect(cfg_file).to match(/TYPE=Bridge/) }
       it { expect(cfg_file).to match(/PREFIX=24/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(6) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(6) }
     end
 
     context 'for lnx2lnx patchcord p_33470efd-0' do
@@ -125,7 +125,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
         expect(cfg_file).to match(/DEVICE=p_33470efd-0/)
         expect(cfg_file).to match(/BRIDGE=br1/)
         expect(cfg_file).to match(/ONBOOT=yes/)
-        expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4)
+        expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(4)
       end
     end
 
@@ -141,7 +141,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
         expect(cfg_file).to match(/DEVICE=p_33470efd-1/)
         expect(cfg_file).to match(/BRIDGE=br2/)
         expect(cfg_file).to match(/ONBOOT=yes/)
-        expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4)
+        expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(4)
       end
     end
 
@@ -158,7 +158,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
         expect(cfg_file).to match(/BRIDGE=br2/)
         expect(cfg_file).to match(/MTU=1800/)
         expect(cfg_file).to match(/ONBOOT=yes/)
-        expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5)
+        expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5)
       end
     end
 
