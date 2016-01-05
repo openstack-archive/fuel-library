@@ -4,13 +4,11 @@ Return a list of nodes that have one of the given roles. If attr is defined,
 return just that attribute for each node instead of the whole node hash.
 EOS
   ) do |args|
-    nodes, roles, attr = args
-    nodes.select {|node|
-      roles.include? node['role']
-    }.uniq {|node|
-      node['uid']
-    }.map {|node|
-      attr ? node[attr] : node
+    n_metadata, roles, attr = args
+    n_metadata['nodes'].select {|k,v|
+      (roles & v['node_roles']).any?
+    }.map {|k,v|
+      attr ? v[attr] : v
     }
   end
 end

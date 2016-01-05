@@ -19,17 +19,14 @@ if empty($network_metadata) {
   fail('Network_metadata not given in the astute.yaml')
 }
 
-$node_name = regsubst(hiera('fqdn', $::hostname), '\..*$', '')
+$fqdn = hiera('fqdn', $::hostname)
+$node_name = regsubst($fqdn, '\..*$', '')
 $node = $network_metadata['nodes'][$node_name]
 if empty($node) {
   fail('Node hostname is not defined in the astute.yaml')
 }
 
 prepare_network_config($network_scheme)
-
-# DEPRICATED
-# nodes_hash is actually an array, not a hash
-$nodes_hash = hiera('nodes', {})
 
 # MOS Ubuntu image uses Debian style packages. Since the introduction
 # of `$::os_package_type' fact avilable to use in project manifests,
