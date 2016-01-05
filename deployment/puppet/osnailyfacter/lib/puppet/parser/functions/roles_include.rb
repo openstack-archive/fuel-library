@@ -10,13 +10,10 @@ EOS
     raise Puppet::ParseError, 'No roles provided!' if arguments.size < 1
     intended_roles = arguments.first
     intended_roles = [intended_roles] unless intended_roles.is_a? Array
-    nodes = function_hiera ['nodes']
-    uid = function_hiera ['uid']
+    network_metadata = function_hiera_hash ['network_metadata']
+    node_name = function_get_node_name []
+    node_roles = network_metadata.fetch('nodes', {}).fetch(node_name, {}).fetch('node_roles', [])
 
-    nodes.any? do |node|
-      next unless node['uid'] == uid
-      next unless node['role']
-      intended_roles.include? node['role']
-    end
+    (node_roles & intended_roles).any?
   end
 end

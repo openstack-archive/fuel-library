@@ -2,6 +2,7 @@ notice('MODULAR: database.pp')
 
 $network_scheme = hiera_hash('network_scheme', {})
 prepare_network_config($network_scheme)
+$network_metadata = hiera_hash('network_metadata', {})
 $use_syslog               = hiera('use_syslog', true)
 $primary_controller       = hiera('primary_controller')
 $mysql_hash               = hiera_hash('mysql', {})
@@ -28,7 +29,7 @@ $mysql_skip_name_resolve  = true
 $custom_setup_class       = hiera('mysql_custom_setup_class', 'galera')
 
 # Get galera gcache factor based on cluster node's count
-$galera_gcache_factor     = count(unique(filter_hash(hiera('nodes', []), 'uid')))
+$galera_gcache_factor     = count(keys($network_metadata['nodes']))
 
 $status_user              = 'clustercheck'
 $status_password          = $mysql_hash['wsrep_password']
