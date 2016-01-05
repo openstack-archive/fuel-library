@@ -1,7 +1,8 @@
 notice('MODULAR: cinder-vmware.pp')
 
-$nodes_hash   = hiera('nodes', {})
-$roles        = node_roles($nodes_hash, hiera('uid'))
+$node_name               = hiera('node_name')
+$network_metadata        = hiera_hash('network_metadata')
+$roles                   = $network_metadata['nodes'][$node_name]['node_roles']
 $cinder_hash  = hiera_hash('cinder_hash', {})
 
 if (member($roles, 'cinder-vmware')) {
