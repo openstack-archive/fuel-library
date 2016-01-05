@@ -90,7 +90,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
 other_config:lacp-time=fast bond_updelay=111 bond_downdelay=222 lacp=active"}) }
       it { expect(cfg_file).to match(%r{BOND_IFACES="eth2 eth3"}) }
       it { expect(cfg_file).to match(%r{DEVICETYPE=ovs}) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(9) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(9) }  #  no more lines in the interface file
 
     end
 
