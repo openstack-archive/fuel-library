@@ -7,15 +7,17 @@ describe manifest do
     role = Noop.hiera 'role'
     storage_hash = Noop.hiera 'storage'
     swift_hash = Noop.hiera 'swift'
-    nodes = Noop.hiera 'nodes'
-    primary_controller_nodes = Noop.puppet_function('filter_nodes', nodes, 'role','primary-controller')
-    controllers = primary_controller_nodes + Noop.puppet_function('filter_nodes', nodes, 'role', 'controller')
-    controller_internal_addresses = Noop.puppet_function('nodes_to_hash', controllers,'name','internal_address')
-    controller_nodes = Noop.puppet_function('ipsort', controller_internal_addresses.values)
+    network_scheme     = Noop.hiera_hash 'network_scheme'
+    network_metadata     = Noop.hiera_hash 'network_metadata'
+
+    memcached_nodes = Noop.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
+    memcached_addresses = Noop.puppet_function('get_node_to_ipaddr_map_by_network_role', memcached_nodes, 'mgmt/memcache').values
+    memcached_servers = memcached_addresses.sort.map{ |n| n = n + ':11211' }
+
+
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
     ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
-    memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }
     deploy_swift_proxy = Noop.hiera('deploy_swift_proxy')
     rabbit_hosts       = Noop.hiera('amqp_hosts')
     rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')

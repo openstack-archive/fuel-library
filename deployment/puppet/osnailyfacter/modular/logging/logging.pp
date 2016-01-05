@@ -4,8 +4,6 @@ $base_syslog_hash = hiera('base_syslog_hash')
 $syslog_hash      = hiera('syslog_hash')
 $use_syslog       = hiera('use_syslog', true)
 $debug            = pick($syslog_hash['debug'], hiera('debug', false))
-$nodes_hash       = hiera('nodes', {})
-$roles            = node_roles($nodes_hash, hiera('uid'))
 
 ##################################################
 
@@ -38,7 +36,7 @@ if $use_syslog {
     }
   }
 
-  if member($roles, 'ironic') {
+  if roles_include(['ironic']) {
     $ironic_collector = true
   }
 

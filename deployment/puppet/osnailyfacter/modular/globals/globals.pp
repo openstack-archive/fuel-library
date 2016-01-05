@@ -19,17 +19,19 @@ if empty($network_metadata) {
   fail('Network_metadata not given in the astute.yaml')
 }
 
-$node_name = regsubst(hiera('fqdn', $::hostname), '\..*$', '')
-$node = $network_metadata['nodes'][$node_name]
-if empty($node) {
-  fail('Node hostname is not defined in the astute.yaml')
+$node_key_name = get_node_key_name()
+$node_hash = $network_metadata['nodes'][$node_key_name]
+if empty($node_hash) {
+  fail("Node ${node_key_name} is not defined in the network_metadata hash structure")
 }
+if empty($node_hash['fqdn']) {
+  fail("Node ${node_key_name} has undefined fqdn name.")
+}
+# node_name is a short name from fqdn of node_hash. It may be changed while LCM
+# and not the same, than immutable $node_key_name
+$node_name = regsubst($node_hash['fqdn'], '\..*$', '')
 
 prepare_network_config($network_scheme)
-
-# DEPRICATED
-# nodes_hash is actually an array, not a hash
-$nodes_hash = hiera('nodes', {})
 
 # MOS Ubuntu image uses Debian style packages. Since the introduction
 # of `$::os_package_type' fact avilable to use in project manifests,
@@ -54,7 +56,7 @@ if ($::osfamily == 'Debian'){
 }
 
 $deployment_mode                = hiera('deployment_mode', 'ha_compact')
-$roles                          = $node['node_roles']
+$roles                          = $node_hash['node_roles']
 $storage_hash                   = hiera('storage', {})
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
