@@ -46,7 +46,7 @@ quantum_settings:
     phys_nets:
       physnet1:
         bridge: br-floating
-        vlan_range: 
+        vlan_range:
     base_mac: fa:16:3e:00:00:00
     segmentation_type: tun
     tunnel_id_ranges: 2:65535
@@ -57,7 +57,7 @@ quantum_settings:
         network_type: flat
         router_ext: true
         physnet: physnet1
-        segment_id: 
+        segment_id:
       L3:
         nameservers: []
         subnet: 172.18.79.128/25
@@ -71,14 +71,14 @@ quantum_settings:
       L2:
         network_type: tun
         router_ext: false
-        physnet: 
-        segment_id: 
+        physnet:
+        segment_id:
       L3:
         nameservers:
         - 8.8.4.4
         - 8.8.8.8
         subnet: 192.168.111.0/24
-        floating: 
+        floating:
         gateway: 192.168.111.1
         enable_dhcp: true
       tenant: admin
@@ -184,91 +184,6 @@ online: true
 keystone:
   db_password: sXRhztIaxf8nc8D4qusUXNPn
   admin_token: q8syV6A6XabiEytUWTBQJYmV
-nodes:
-- user_node_name: Untitled (34:24)
-  uid: '1'
-  public_address: 172.18.79.164
-  internal_netmask: 255.255.255.0
-  fqdn: node-1.domain.tld
-  role: primary-controller
-  public_netmask: 255.255.255.128
-  internal_address: 192.168.0.3
-  storage_address: 192.168.1.1
-  swift_zone: '1'
-  storage_netmask: 255.255.255.0
-  name: node-1
-- user_node_name: Untitled (79:d2)
-  uid: '2'
-  internal_netmask: 255.255.255.0
-  fqdn: node-2.domain.tld
-  role: cinder-block-device
-  internal_address: 192.168.0.7
-  storage_address: 192.168.1.3
-  swift_zone: '2'
-  storage_netmask: 255.255.255.0
-  name: node-2
-- user_node_name: Untitled (79:d2)
-  uid: '2'
-  internal_netmask: 255.255.255.0
-  fqdn: node-2.domain.tld
-  role: compute
-  internal_address: 192.168.0.7
-  storage_address: 192.168.1.3
-  swift_zone: '2'
-  storage_netmask: 255.255.255.0
-  name: node-2
-- user_node_name: Untitled (93:70)
-  uid: '3'
-  public_address: 172.18.79.163
-  internal_netmask: 255.255.255.0
-  fqdn: node-3.domain.tld
-  role: controller
-  public_netmask: 255.255.255.128
-  internal_address: 192.168.0.6
-  storage_address: 192.168.1.5
-  swift_zone: '3'
-  storage_netmask: 255.255.255.0
-  name: node-3
-- user_node_name: Untitled (4b:d2)
-  uid: '8'
-  internal_netmask: 255.255.255.0
-  fqdn: node-8.domain.tld
-  role: cinder-block-device
-  internal_address: 192.168.0.5
-  storage_address: 192.168.1.4
-  swift_zone: '8'
-  storage_netmask: 255.255.255.0
-  name: node-8
-- user_node_name: Untitled (4b:d2)
-  uid: '8'
-  internal_netmask: 255.255.255.0
-  fqdn: node-8.domain.tld
-  role: compute
-  internal_address: 192.168.0.5
-  storage_address: 192.168.1.4
-  swift_zone: '8'
-  storage_netmask: 255.255.255.0
-  name: node-8
-- user_node_name: Untitled (3c:7b)
-  uid: '9'
-  internal_netmask: 255.255.255.0
-  fqdn: node-9.domain.tld
-  role: cinder-block-device
-  internal_address: 192.168.0.4
-  storage_address: 192.168.1.2
-  swift_zone: '9'
-  storage_netmask: 255.255.255.0
-  name: node-9
-- user_node_name: Untitled (3c:7b)
-  uid: '9'
-  internal_netmask: 255.255.255.0
-  fqdn: node-9.domain.tld
-  role: compute
-  internal_address: 192.168.0.4
-  storage_address: 192.168.1.2
-  swift_zone: '9'
-  storage_netmask: 255.255.255.0
-  name: node-9
 nova_quota: false
 ceilometer:
   db_password: 5dmTkWROJj6xYxhn3UMCyZad
@@ -305,19 +220,19 @@ repo_setup:
   - name: ubuntu
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty
     type: deb
   - name: ubuntu-updates
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty-updates
     type: deb
   - name: ubuntu-security
     section: main universe multiverse
     uri: http://archive.ubuntu.com/ubuntu/
-    priority: 
+    priority:
     suite: trusty-security
     type: deb
   - name: mos
@@ -387,8 +302,8 @@ network_metadata:
         neutron/mesh: 192.168.2.4
         admin/pxe: 10.20.0.9
         mongo/db: 192.168.0.4
-        neutron/private: 
-        neutron/floating: 
+        neutron/private:
+        neutron/floating:
         fw-admin: 10.20.0.9
         glance/api: 192.168.0.4
         heat/api: 192.168.0.4
@@ -429,8 +344,8 @@ network_metadata:
         neutron/mesh: 192.168.2.5
         admin/pxe: 10.20.0.4
         mongo/db: 192.168.0.3
-        neutron/private: 
-        neutron/floating: 
+        neutron/private:
+        neutron/floating:
         fw-admin: 10.20.0.4
         glance/api: 192.168.0.3
         heat/api: 192.168.0.3
@@ -467,8 +382,8 @@ network_metadata:
         neutron/mesh: 192.168.2.2
         admin/pxe: 10.20.0.8
         mongo/db: 192.168.0.5
-        neutron/private: 
-        neutron/floating: 
+        neutron/private:
+        neutron/floating:
         fw-admin: 10.20.0.8
         glance/api: 192.168.0.5
         heat/api: 192.168.0.5
@@ -509,8 +424,8 @@ network_metadata:
         neutron/mesh: 192.168.2.1
         admin/pxe: 10.20.0.7
         mongo/db: 192.168.0.6
-        neutron/private: 
-        neutron/floating: 
+        neutron/private:
+        neutron/floating:
         fw-admin: 10.20.0.7
         glance/api: 192.168.0.6
         heat/api: 192.168.0.6
@@ -547,8 +462,8 @@ network_metadata:
         neutron/mesh: 192.168.2.3
         admin/pxe: 10.20.0.10
         mongo/db: 192.168.0.7
-        neutron/private: 
-        neutron/floating: 
+        neutron/private:
+        neutron/floating:
         fw-admin: 10.20.0.10
         glance/api: 192.168.0.7
         heat/api: 192.168.0.7
@@ -866,6 +781,6 @@ kernel_params:
     group: general
     weight: 40
     label: Kernel parameters
-openstack_version_prev: 
+openstack_version_prev:
 quantum: true
 use_neutron: true
