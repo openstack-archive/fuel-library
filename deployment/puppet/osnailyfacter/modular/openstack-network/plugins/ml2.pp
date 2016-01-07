@@ -37,7 +37,6 @@ if $use_neutron {
   $l2_population     = try_get_value($neutron_advanced_config, 'neutron_l2_pop', false)
   $dvr               = try_get_value($neutron_advanced_config, 'neutron_dvr', false)
   $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
-  $extension_drivers = ['port_security']
 
   if $compute and ! $dvr {
     $do_floating = false
@@ -54,19 +53,7 @@ if $use_neutron {
   if $segmentation_type == 'vlan' {
     $net_role_property    = 'neutron/private'
     $iface                = get_network_role_property($net_role_property, 'phys_dev')
-    $overlay_net_mtu      =  pick(get_transformation_property('mtu', $iface[0]), '1500')
     $enable_tunneling = false
-    $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
-      'do_floating' => $do_floating,
-      'do_tenant'   => true,
-      'do_provider' => false
-    })
-    $network_vlan_ranges = generate_physnet_vlan_ranges($neutron_config, $network_scheme, {
-      'do_floating' => $do_floating,
-      'do_tenant'   => true,
-      'do_provider' => false
-    })
-    $tunnel_id_ranges = []
     $network_type = 'vlan'
     $tunnel_types = []
   } else {
@@ -74,13 +61,6 @@ if $use_neutron {
     $tunneling_ip      = get_network_role_property($net_role_property, 'ipaddr')
     $iface             = get_network_role_property($net_role_property, 'phys_dev')
     $physical_net_mtu  = pick(get_transformation_property('mtu', $iface[0]), '1500')
-    $tunnel_id_ranges  = [try_get_value($neutron_config, 'L2/tunnel_id_ranges')]
-    $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
-      'do_floating' => $do_floating,
-      'do_tenant'   => false,
-      'do_provider' => false
-    })
-    $network_vlan_ranges = []
 
     if $segmentation_type == 'gre' {
       $mtu_offset = '42'
@@ -92,34 +72,7 @@ if $use_neutron {
     }
     $tunnel_types = [$network_type]
 
-    if $physical_net_mtu {
-      $overlay_net_mtu = $physical_net_mtu - $mtu_offset
-    } else {
-      $overlay_net_mtu = '1500' - $mtu_offset
-    }
-
     $enable_tunneling = true
-  }
-
-  $type_drivers = ['local', 'flat', 'vlan', 'gre', 'vxlan']
-  $tenant_network_types  = ['flat', $network_type]
-  $default_mechanism_drivers = $l2_population ? { true => 'openvswitch,l2population', default => 'openvswitch'}
-  $mechanism_drivers = split(try_get_value($neutron_config, 'L2/mechanism_drivers', $default_mechanism_drivers), ',')
-  $flat_networks = ['*']
-  $vxlan_group = '224.0.0.1'
-
-  class { 'neutron::plugins::ml2':
-    type_drivers          => $type_drivers,
-    tenant_network_types  => $tenant_network_types,
-    mechanism_drivers     => $mechanism_drivers,
-    flat_networks         => $flat_networks,
-    network_vlan_ranges   => $network_vlan_ranges,
-    tunnel_id_ranges      => $tunnel_id_ranges,
-    vxlan_group           => $vxlan_group,
-    vni_ranges            => $tunnel_id_ranges,
-    physical_network_mtus => $physical_network_mtus,
-    path_mtu              => $overlay_net_mtu,
-    extension_drivers     => $extension_drivers,
   }
 
   class { 'neutron::agents::ml2::ovs':
