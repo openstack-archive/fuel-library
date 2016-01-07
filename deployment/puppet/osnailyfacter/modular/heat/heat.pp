@@ -3,6 +3,7 @@ notice('MODULAR: heat.pp')
 prepare_network_config(hiera('network_scheme', {}))
 $management_vip           = hiera('management_vip')
 $heat_hash                = hiera_hash('heat', {})
+$sahara_hash              = hiera_hash('sahara_hash', {})
 $rabbit_hash              = hiera_hash('rabbit_hash', {})
 $max_retries              = hiera('max_retries')
 $max_pool_size            = hiera('max_pool_size')
@@ -109,6 +110,12 @@ class { 'openstack::heat' :
 if hiera('heat_ha_engine', true){
   if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
     include ::heat_ha::engine
+  }
+}
+
+if $sahara_hash['enabled'] {
+  heat_config {
+    'DEFAULT/reauthentication_auth_method': value => 'trusts';
   }
 }
 
