@@ -1,13 +1,12 @@
 notice('MODULAR: openstack-haproxy-radosgw.pp')
 
-$network_metadata = hiera_hash('network_metadata')
 $storage_hash     = hiera_hash('storage', {})
-$public_ssl_hash  = hiera('public_ssl')
+$public_ssl_hash  = hiera_hash('public_ssl', {})
 $ssl_hash         = hiera_hash('use_ssl', {})
 
 $public_ssl       = get_ssl_property($ssl_hash, $public_ssl_hash, 'radosgw', 'public', 'usage', false)
 $public_ssl_path  = get_ssl_property($ssl_hash, $public_ssl_hash, 'radosgw', 'public', 'path', [''])
-$ironic_hash      = hiera_hash('ironic', {})
+
 $external_lb      = hiera('external_lb', false)
 
 if !$external_lb {
@@ -29,7 +28,10 @@ if !$external_lb {
     $public_virtual_ip   = hiera('public_vip')
     $internal_virtual_ip = hiera('management_vip')
 
+    $ironic_hash         = hiera_hash('ironic', {})
+
     if $ironic_hash['enabled'] {
+      $network_metadata     = hiera_hash('network_metadata')
       $baremetal_virtual_ip = $network_metadata['vips']['baremetal']['ipaddr']
     }
 
