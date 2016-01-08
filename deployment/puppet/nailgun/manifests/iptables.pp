@@ -15,11 +15,10 @@ $fuelweb_port          = '8443',
 $keystone_port         = '5000',
 $keystone_admin_port   = '35357',
 $chain                 = 'INPUT',
+$network_address,
+$network_cidr,
 )
 {
-  #Host services
-  $network_address = ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'],$::fuel_settings['ADMIN_NETWORK']['netmask'])
-  $network_cidr = ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask'])
   firewall { '004 forward_admin_net':
     chain      => 'POSTROUTING',
     table      => 'nat',
@@ -36,27 +35,21 @@ $chain                 = 'INPUT',
     action  => 'accept',
   }
 
-  firewall { '006 ntp':
+  firewall { '006 ntp tcp':
     port    => $ntp_port,
-    proto   => 'tcp',
+    proto   => 'all',
+    source  => "${network_address}/${network_cidr}",
     iniface => $admin_iface,
     action  => 'accept',
   }
-
-  firewall { '007 ntp_udp':
-    port    => $ntp_port,
-    proto   => 'udp',
-    iniface => $admin_iface,
-    action  => 'accept',
-  }
-
-  firewall { '008 snmp':
-    port   => '162',
-    proto  => 'udp',
-    action => 'accept',
-  }
-
-  #Containerized services
+  #  firewall { '006 ntp udp':
+  #    port    => $ntp_port,
+  #    proto   => 'udp',
+  #    source  => "${network_address}/${network_cidr}",
+  #    iniface => $admin_iface,
+  #    action  => 'accept',
+  #  }
+ #Containerized services
   firewall { '009 nailgun_web':
     chain  => $chain,
     port   => $nailgun_web_port,

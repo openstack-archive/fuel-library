@@ -16,8 +16,15 @@ $monitord_password = 'monitd',
 $monitord_tenant = 'services',
 $admin_iface = 'eth0',
 ) {
+  #Host services
+  $network_address = ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'],$::fuel_settings['ADMIN_NETWORK']['netmask'])
+  $network_cidr = ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask'])
   #Enable cobbler's iptables rules even if Cobbler not called
-  include cobbler::iptables
+  class { 'cobbler::iptables':
+    interface => $admin_iface,
+    source    => "${network_address}/${network_cidr}",
+  }
+
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
   firewall { '002 accept related established rules':
@@ -26,7 +33,9 @@ $admin_iface = 'eth0',
     action => 'accept',
   } ->
   class { 'nailgun::iptables':
-    admin_iface => $admin_iface,
+    network_address => $network_address,
+    network_cidr    => $network_cidr,
+    admin_iface     => $admin_iface,
   }
 
   class { 'nailgun::auxiliaryrepos':

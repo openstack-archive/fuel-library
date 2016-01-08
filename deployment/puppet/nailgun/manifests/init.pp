@@ -79,10 +79,11 @@ class nailgun(
   Anchor<| title == "nailgun-end" |>
 
   class { 'nailgun::host':
-    production => $production,
-    cobbler_host => $cobbler_host,
-    nailgun_group => $nailgun_group,
-    nailgun_user => $nailgun_user,
+    production      => $production,
+    cobbler_host    => $cobbler_host,
+    nailgun_group   => $nailgun_group,
+    nailgun_user    => $nailgun_user,
+    admin_iface     => $dhcp_interface,
   }
 
   class { "nailgun::packages":

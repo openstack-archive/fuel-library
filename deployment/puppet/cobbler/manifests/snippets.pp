@@ -18,11 +18,11 @@ class cobbler::snippets {
   define cobbler_snippet(){
     file {"/var/lib/cobbler/snippets/${name}":
       content => template("cobbler/snippets/${name}.erb"),
-      owner => root,
-      group => root,
-      mode => 0644,
+      owner   => root,
+      group   => root,
+      mode    => '0644',
       require => Package[$cobbler::packages::cobbler_package],
-      notify => Exec["cobbler_sync"]
+      notify  => Exec['cobbler_sync']
     }
   }
   cobbler_snippet {"send2syslog": }
@@ -77,7 +77,7 @@ class cobbler::snippets {
   cobbler_snippet {'centos_pkg_kernel_lt_if_enabled':}
   cobbler_snippet {'centos_ofed_prereq_pkgs_if_enabled':}
 
-  case $operatingsystem {
+  case $::operatingsystem {
     /(?i)(debian|ubuntu)/:  {
       file { "/usr/bin/late_command.py" :
         content => template("cobbler/scripts/late_command.py"),
