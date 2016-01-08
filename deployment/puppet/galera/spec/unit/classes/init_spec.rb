@@ -34,7 +34,6 @@ describe 'galera', :type => :class do
     # the package installation on Ubuntu
     let(:params) { p }
     it {
-      should contain_exec('rm-policy-rc.d')
       should contain_exec('rm-99tmp')
     }
   end
@@ -59,7 +58,6 @@ describe 'galera', :type => :class do
     # the package installation on Ubuntu
     let(:params) { p }
     it {
-      should contain_exec('rm-policy-rc.d')
       should contain_exec('rm-99tmp')
     }
   end
