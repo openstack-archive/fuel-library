@@ -22,13 +22,19 @@ describe 'tweaks::ubuntu_service_override' do
       it 'configures with the default params' do
         should contain_tweaks__ubuntu_service_override(title)
         if facts[:operatingsystem] == 'Ubuntu'
-          should contain_file("create_#{params[:service_name]}_override").with(
-            :path => "/etc/init/#{title}.override")
-          should contain_exec("remove_#{params[:service_name]}_override")
+          should contain_file('create-policy-rc.d').with(
+            :ensure  => 'present',
+            :path    => '/usr/sbin/policy-rc.d',
+            :content => "#!/bin/bash\nexit101",
+            :mode    => '0755',
+            :owner   => 'root',
+            :group   => 'root')
+          should contain_exec('remove-policy-rc.d').with(
+            :command => 'rm -f /usr/sbin/policy-rc.d',
+            :onlyif  => 'test -f /usr/sbin/policy-rc.d')
         else
-          should_not contain_file("create_#{params[:service_name]}_override").with(
-            :path => "/etc/init.d/#{title}.override")
-          should_not contain_exec("remove_#{params[:service_name]}_override")
+          should_not contain_file('create-policy-rc.d')
+          should_not contain_exec('remove-policy-rc.d')
         end
       end
     end
