@@ -11,7 +11,7 @@ else {
 
 #Purge empty NTP server entries
 $ntp_servers = delete(delete_undef_values([$::fuel_settings['NTP1'],
-                     $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), "")
+  $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), '')
 
 $admin_network = ipcalc_network_wildcard(
   $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
@@ -73,9 +73,9 @@ class { 'docker::dockerctl':
   docker_engine   => 'native',
 }
 
-class { "docker":
+class { 'docker':
   docker_engine => 'native',
-  release => $::fuel_release,
+  release       => $::fuel_release,
 }
 
 class { 'openstack::logrotate':
@@ -105,10 +105,10 @@ class { 'osnailyfacter::ssh':
 }
 
 file { '/usr/local/bin/mco':
-  source  => 'puppet:///modules/nailgun/mco_host_only',
-  mode    => '0755',
-  owner   => 'root',
-  group   => 'root',
+  source => 'puppet:///modules/nailgun/mco_host_only',
+  mode   => '0755',
+  owner  => 'root',
+  group  => 'root',
 }
 
 if $use_systemd {
@@ -122,7 +122,10 @@ if $use_systemd {
   class { 'nailgun::supervisor':
     nailgun_env => false,
     ostf_env    => false,
-    require     => File['/etc/supervisord.d/current', "/etc/supervisord.d/${::fuel_release}"],
+    require     => File[
+      '/etc/supervisord.d/current',
+      "/etc/supervisord.d/${::fuel_release}"
+    ],
     conf_file   => 'nailgun/supervisord.conf.base.erb',
   }
   file { '/etc/supervisord.d':
@@ -155,4 +158,13 @@ exec {'sync_deployment_tasks':
   tries     => 12,
   try_sleep => 10,
   require   => Class['nailgun::client'],
+}
+
+augeas { 'Remove ssh_config SendEnv defaults':
+  lens    => 'ssh.lns',
+  incl    => '/etc/ssh/ssh_config',
+  changes => [
+    'rm */SendEnv',
+    'rm SendEnv',
+  ],
 }

@@ -120,6 +120,17 @@ describe manifest do
         end
       end #it do
     end #context
+
+    it 'should remove ssh_config sendenv defaults' do
+      should contain_augeas('Remove ssh_config SendEnv defaults').with(
+        :lens    => 'ssh.lns',
+        :incl    => '/etc/ssh/ssh_config',
+        :changes => [ "rm */SendEnv",
+                      "rm SendEnv",
+                    ],
+      )
+    end
+
   end #shared_examples
 
   test_centos manifest
