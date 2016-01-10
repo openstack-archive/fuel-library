@@ -156,3 +156,12 @@ exec {'sync_deployment_tasks':
   try_sleep => 10,
   require   => Class['nailgun::client'],
 }
+
+augeas { 'Remove ssh_config SendEnv defaults':
+  lens    => "ssh.lns",
+  incl    => "/etc/ssh/ssh_config",
+  changes => [
+    "rm */SendEnv",
+    "rm SendEnv",
+  ],
+}
