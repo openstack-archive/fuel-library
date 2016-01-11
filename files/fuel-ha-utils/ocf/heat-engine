@@ -294,7 +294,7 @@ service_stop() {
         return "${OCF_SUCCESS}"
     fi
 
-    proc_stop "${OCF_RESKEY_pid}" "${SERVICE_NAME}" $shutdown_timeout
+    proc_stop "${OCF_RESKEY_pid}" "${OCF_RESKEY_binary}" $shutdown_timeout
     return "${?}"
 }
 
