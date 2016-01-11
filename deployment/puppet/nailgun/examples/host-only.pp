@@ -168,3 +168,31 @@ augeas { 'Remove ssh_config SendEnv defaults':
     'rm SendEnv',
   ],
 }
+
+augeas { 'Password aging and length settings':
+  lens    => 'login_defs.lns',
+  incl    => '/etc/login.defs',
+  changes => [
+    'set PASS_MAX_DAYS 365',
+    'set PASS_MIN_DAYS 2',
+    'set PASS_MIN_LEN 8',
+    'set PASS_WARN_AGE 30'
+  ],
+}
+
+augeas { 'Password complexity':
+  lens    => 'pam.lns',
+  incl    => '/etc/pam.d/system-auth',
+  changes => [
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/control requisite",
+    "rm *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[1] try_first_pass",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[2] retry=3",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[3] dcredit=-1",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[4] ucredit=-1",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[5] ocredit=-1",
+    "set *[type='password'][module='pam_pwquality.so' or module='pam_cracklib.so']/argument[6] lcredit=-1",
+  ],
+  onlyif  => "match *[type='password'][control='requisite'][module='pam_pwquality.so' or module='pam_cracklib.so'] size > 0",
+}
+
