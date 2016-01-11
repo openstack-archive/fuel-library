@@ -1,0 +1,14 @@
+umm-run(){
+    /sbin/initctl start ssh || true
+    cp /etc/issue.mm /dev/console
+    /sbin/initctl start umm-console
+}
+
+umm-off(){
+    systemctl isolate default.target
+    /sbin/emit umm
+}
+
+umm-skip(){
+    return 0
+}
