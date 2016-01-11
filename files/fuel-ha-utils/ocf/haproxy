@@ -213,7 +213,7 @@ haproxy_stop()
         return "${OCF_SUCCESS}"
     fi
 
-    proc_stop "${OCF_RESKEY_pidfile}" "haproxy" $shutdown_timeout
+    proc_stop "${OCF_RESKEY_pidfile}" "${OCF_RESKEY_binpath}" $shutdown_timeout
     return "${?}"
 }
 
