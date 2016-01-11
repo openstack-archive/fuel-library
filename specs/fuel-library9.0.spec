@@ -128,23 +128,10 @@ install -m 0755 %{files_source}/fuel-migrate/fuel-migrate %{buildroot}/usr/bin/f
 install -m 0644 %{files_source}/fuel-migrate/umm-mg.service %{buildroot}/etc/systemd/system/umm-mg.service
 install -m 0644 %{files_source}/fuel-migrate/umm-mg.target %{buildroot}/etc/systemd/system/umm-mg.target
 #UMM
-mkdir -p %{buildroot}/etc/init
-mkdir -p %{buildroot}/etc/profile.d/
-mkdir -p %{buildroot}/usr/bin
-mkdir -p %{buildroot}/usr/lib/umm
-mkdir -p %{buildroot}/var/lib/umm
-install -m 0644 %{files_source}/fuel-umm/issue.mm         %{buildroot}/etc/issue.mm
-install -m 0644 %{files_source}/fuel-umm/umm.conf         %{buildroot}/etc/umm.conf
-install -m 0755 %{files_source}/fuel-umm/umm.sh           %{buildroot}/etc/profile.d/umm.sh
-install -m 0755 %{files_source}/fuel-umm/umm              %{buildroot}/usr/bin/umm
-install -m 0755 %{files_source}/fuel-umm/umm_svc          %{buildroot}/usr/lib/umm/umm_svc
-install -m 0755 %{files_source}/fuel-umm/umm_svc.rh6      %{buildroot}/usr/lib/umm/umm_svc.local
-install -m 0755 %{files_source}/fuel-umm/umm_vars         %{buildroot}/usr/lib/umm/umm_vars
-install -m 0755 %{files_source}/fuel-umm/umm-install.rh6  %{buildroot}/usr/lib/umm/umm-install.rh6
-install -m 0644 %{files_source}/fuel-umm/umm-br.conf      %{buildroot}/etc/init/umm-br.conf
-install -m 0644 %{files_source}/fuel-umm/umm-console.conf %{buildroot}/etc/init/umm-console.conf
-install -m 0644 %{files_source}/fuel-umm/umm-run.conf     %{buildroot}/etc/init/umm-run.conf
-install -m 0644 %{files_source}/fuel-umm/umm-tr.conf      %{buildroot}/etc/init/umm-tr.conf
+mkdir -p %{buildroot}/usr/lib/systemd/system/
+cp -r %{files_source}/fuel-umm/root/* %{buildroot}/
+cp -r %{files_source}/fuel-umm/systemd/* %{buildroot}/usr/lib/systemd/system/
+cp -r %{files_source}/fuel-umm/rh7/* %{buildroot}/usr/lib/umm/
 
 
 %post -p /bin/bash
@@ -312,18 +299,19 @@ operations. Also node in MM state is reachable with ssh from network.
 For further information go to:
 https://www.mirantis.com/products/mirantis-openstack-software/documentation/
 
-# %post -n fuel-umm
-# /usr/lib/umm/umm-install.rh6 add
-# %preun -n fuel-umm
-# /usr/lib/umm/umm-install.rh6 del
+%post -n fuel-umm
+/usr/lib/umm/umm-install add
+%preun -n fuel-umm
+/usr/lib/umm/umm-install del
 
 %files -n fuel-umm
 /etc/issue.mm
 /etc/profile.d/umm.sh
-/etc/init/umm-*
+#/etc/init/umm-*
+/usr/lib/systemd/system/umm*
 /usr/lib/umm/*
 /usr/bin/umm
-%dir /var/lib/umm
+/var/lib/umm/.gitkeep
 %config(noreplace) /etc/umm.conf
 
 %package -n fuel-notify

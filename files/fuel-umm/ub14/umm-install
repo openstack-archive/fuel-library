@@ -20,7 +20,7 @@ start on (filesystem and static-network-up) or failsafe-boot
 emits umm
 
 script
-[ -f /usr/lib/umm/umm_svc ] && /usr/lib/umm/umm_svc
+[ -f /usr/lib/umm/umm_svc ] && /usr/lib/umm/umm_svc wait
 initctl emit umm
 end script
 EOF
