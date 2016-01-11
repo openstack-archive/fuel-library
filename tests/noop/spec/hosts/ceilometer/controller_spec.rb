@@ -6,15 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
-    let(:facts) {
-      Noop.ubuntu_facts.merge({
-        :processorcount => '6'
-      })
-    }
-    let(:processorcount) do
-      6
-    end
-
+    workers_max = Noop.hiera 'workers_max'
     rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
     rabbit_password = Noop.hiera_structure 'rabbit/password'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
@@ -56,7 +48,7 @@ describe manifest do
       end
 
       it 'should configure workers for API, Collector and Agent Notification services' do
-        fallback_workers = [[processorcount, 2].max, 16].min
+        fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
         service_workers = Noop.puppet_function 'pick', ceilometer_hash['workers'], fallback_workers
 
         should contain_ceilometer_config('DEFAULT/api_workers').with(:value => service_workers)
