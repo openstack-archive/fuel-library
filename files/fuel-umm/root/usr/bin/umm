@@ -1,6 +1,7 @@
 #!/bin/bash
 
 . /usr/lib/umm/umm_vars
+. /usr/lib/umm/umm_svc.local
 
 Usage(){
     echo "Usage
@@ -37,7 +38,7 @@ else
             if [ -f $UMM_FLAG ] ; then
                 cat $UMM_FLAG
             else
-                echo runlevel $(/sbin/runlevel)
+                echo runlevel $(runlevel)
             fi
             ;;
         "on" )
@@ -63,6 +64,8 @@ else
                         rm $UMM_DATA/UMM_DRC.var
                         sleep 1
                         reboot
+                    else
+                        umm-off
                     fi
                 fi
             else
