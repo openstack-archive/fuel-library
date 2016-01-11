@@ -1,6 +1,8 @@
 notice('MODULAR: rabbitmq.pp')
 
 $network_scheme = hiera_hash('network_scheme', {})
+$workers_max = hiera('workers_max', 50)
+
 prepare_network_config($network_scheme)
 
 $queue_provider = hiera('queue_provider', 'rabbitmq')
@@ -96,8 +98,8 @@ if $queue_provider == 'rabbitmq' {
       'listener'   => "[{port, 15672}, {ip,\"${management_bind_ip_address}\"}]",
     }
   )
-
-  $thread_pool_calc = min(100,max(12*$physicalprocessorcount,30))
+  # NOTE(bogdando) to get the limit for threads, the max amount of worker processess will be doubled
+  $thread_pool_calc = min($workers_max*2,max(12*$physicalprocessorcount,30))
 
   if $deployment_mode == 'ha_compact' {
     $rabbit_pid_file                   = '/var/run/rabbitmq/p_pid'
