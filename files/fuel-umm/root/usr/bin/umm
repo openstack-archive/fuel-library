@@ -1,6 +1,7 @@
 #!/bin/bash
 
 . /usr/lib/umm/umm_vars
+. /usr/lib/umm/umm_svc.local
 
 Usage(){
     echo "Usage
@@ -63,6 +64,8 @@ else
                         rm $UMM_DATA/UMM_DRC.var
                         sleep 1
                         reboot
+                    else
+                        umm-off
                     fi
                 fi
             else
