@@ -6,7 +6,8 @@ describe manifest do
   shared_examples 'catalog' do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
-
+    keystone_hash        = Noop.hiera_structure 'keystone'
+    workers_max          = Noop.hiera 'workers_max'
     network_metadata     = Noop.hiera 'network_metadata'
     memcache_roles       = Noop.hiera 'memcache_roles'
     memcache_addresses   = Noop.hiera 'memcached_addresses', false
@@ -147,6 +148,13 @@ describe manifest do
       should contain_class('keystone').with('token_caching' => 'false')
       should contain_keystone_config('token/caching').with(:value => 'false')
     end
+
+      it 'should configure admin and public workers' do
+        fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+        service_workers = keystone_hash.fetch('workers' fallback_workers)
+        should contain_keystone_config('eventlet_server/public_workers').with(:value => service_workers)
+        should contain_keystone_config('eventlet_server/admin_workers').with(:value => service_workers)
+     end
 
      it 'should declare keystone::wsgi::apache class with 4 processess and 3 threads on 4 CPU system' do
        should contain_class('keystone::wsgi::apache').with(

@@ -9,16 +9,6 @@ describe manifest do
         Noop.hiera_hash('network_scheme', {})
       end
 
-      let(:facts) {
-        Noop.ubuntu_facts.merge({
-          :processorcount => '6'
-        })
-      }
-
-      let(:processorcount) do
-        6
-      end
-
       let(:configuration_override) do
         Noop.hiera_structure 'configuration'
       end
@@ -32,6 +22,7 @@ describe manifest do
       end
 
       context 'with Neutron-server' do
+        workers_max      = Noop.hiera 'workers_max'
         neutron_config   = Noop.hiera_hash('neutron_config')
         management_vip   = Noop.hiera('management_vip')
         service_endpoint = Noop.hiera('service_endpoint', management_vip)
@@ -188,8 +179,15 @@ describe manifest do
           end
         end
 
+        it 'should declare neutron::server class with 4 processess on 4 CPU & 32G system' do
+          should contain_class('neutron::server').with(
+            'api_workers' => '4',
+            'rpc_workers' => '4',
+          )
+        end
+
         it 'worker count' do
-          fallback_workers = [[processorcount, 2].max, 16].min
+          fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
           workers = neutron_config.fetch('workers', fallback_workers)
           should contain_class('neutron::server').with(
             'api_workers' => workers,
