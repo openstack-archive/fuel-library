@@ -47,6 +47,14 @@ describe manifest do
       radosgw_auth_key = "client.#{rgw_id}"
       rgw_s3_auth_use_keystone = Noop.hiera 'rgw_s3_auth_use_keystone', true
 
+      if facts[:osfamily] == 'Debian'
+        it 'should configure apache mods' do
+          should contain_apache__mod('rewrite')
+          should contain_apache__mod('proxy')
+          should contain_apache__mod('proxy_fcgi')
+        end
+      end
+
       it { should contain_class('ceph::radosgw').with(
            'primary_mon'   => ceph_monitor_nodes.keys[0],
            'rgw_frontends' => 'fastcgi socket_port=9000 socket_host=127.0.0.1',
