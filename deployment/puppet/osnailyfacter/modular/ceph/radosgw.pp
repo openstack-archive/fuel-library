@@ -36,6 +36,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   }
   if ($::osfamily == 'Debian'){
     apache::mod {'rewrite': }
+    apache::mod {'proxy': }
     apache::mod {'proxy_fcgi': }
   }
 
