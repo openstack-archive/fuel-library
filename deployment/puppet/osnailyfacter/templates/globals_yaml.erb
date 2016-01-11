@@ -117,6 +117,7 @@
 <% globals.store "is_primary_swift_proxy", @is_primary_swift_proxy -%>
 <% globals.store "nova_api_nodes", @nova_api_nodes -%>
 <% globals.store "ironic_api_nodes", @ironic_api_nodes -%>
+<% globals.store "workers_max", @workers_max -%>
 <% # If we have no VIPs with 'haproxy' namespace, then we're using external LB
 if @vips.select{|key, hash| hash['namespace'] == 'haproxy' }.length == 0
   globals.store "external_lb", true
