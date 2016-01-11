@@ -5,9 +5,16 @@ manifest = 'rabbitmq/rabbitmq.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    workers_max = Noop.hiera 'workers_max'
+    threads_max = 2*workers_max.to_i
     it 'has correct SERVER_ERL_ARGS in environment_variables' do
       environment_variables = Noop.resource_parameter_value self, 'class', 'rabbitmq', 'environment_variables'
-      expect(environment_variables['SERVER_ERL_ARGS']).to eq '"+K true +A48 +P 1048576"'
+      expect(environment_variables['SERVER_ERL_ARGS']).to eq "\"+K true +A#{threads_max} +P 1048576\""
+    end
+
+    it 'has correct SERVER_ERL_ARGS in environment_variables on 4 CPU & 32G system' do
+      environment_variables = Noop.resource_parameter_value self, 'class', 'rabbitmq', 'environment_variables'
+      expect(environment_variables['SERVER_ERL_ARGS']).to eq "\"+K true +A34 +P 1048576\""
     end
 
     it 'has correct ERL_EPMD_ADDRESS in environment_variables' do

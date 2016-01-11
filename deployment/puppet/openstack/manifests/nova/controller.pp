@@ -156,40 +156,6 @@ class openstack::nova::controller (
     $rabbit_pid_file                   = '/var/run/rabbitmq/pid'
   }
 
-  # TODO(bogdando) move rabbit class to a granular deploy step
-  # NOTE(bogdando) indentation is important
-  $rabbit_tcp_listen_options =
-    '[
-      binary,
-      {packet, raw},
-      {reuseaddr, true},
-      {backlog, 128},
-      {nodelay, true},
-      {exit_on_close, false},
-      {keepalive, true}
-    ]'
-  $config_kernel_variables     = {
-    'inet_dist_listen_min'         => '41055',
-    'inet_dist_listen_max'         => '41055',
-    'inet_default_connect_options' => '[{nodelay,true}]',
-  }
-  $config_variables            = {
-    'log_levels'                   => $rabbit_levels,
-    'default_vhost'                => "<<\"/\">>",
-    'default_permissions'          => '[<<".*">>, <<".*">>, <<".*">>]',
-    'tcp_listen_options'           => $rabbit_tcp_listen_options,
-    # NOTE(bogdando) we want the cluster to be configured by OCF on a fly,
-    #   we have to define autoheal as a config_variables instead of a parameter.
-    'cluster_partition_handling'   => $cluster_partition_handling,
-  }
-
-  $thread_pool_calc = min(100,max(12*$physicalprocessorcount,30))
-
-  $environment_variables       = {
-    'SERVER_ERL_ARGS'       => "\"+K true +A${thread_pool_calc} +P 1048576\"",
-    'PID_FILE'              => $rabbit_pid_file,
-  }
-
   # Install / configure queue provider
   case $queue_provider {
     'rabbitmq': {
