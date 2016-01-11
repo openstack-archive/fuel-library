@@ -24,8 +24,9 @@ $ceilometer_hash       = hiera_hash('ceilometer', {})
 $syslog_log_facility   = hiera('syslog_log_facility_keystone')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $neutron_user_password = hiera('neutron_user_password', false)
+$workers_max           = hiera('workers_max', 16)
 $service_workers       = pick($keystone_hash['workers'],
-                              min(max($::processorcount, 2), 16))
+                              min(max($::processorcount, 2), $workers_max))
 $default_log_levels    = hiera_hash('default_log_levels')
 $primary_controller    = hiera('primary_controller')
 
