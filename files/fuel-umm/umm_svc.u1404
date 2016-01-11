@@ -1,3 +1,0 @@
-/sbin/initctl start ssh || true
-cp /etc/issue.mm /dev/console
-/sbin/initctl start umm-console

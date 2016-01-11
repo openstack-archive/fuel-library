@@ -2,26 +2,8 @@ Source: fuel-library9.0
 Section: admin
 Priority: optional
 Maintainer: Mirantis Product <product@mirantis.com>
-Build-Depends: debhelper (>= 7), python-all
+Build-Depends: debhelper (>= 7)
 Standards-Version: 3.9.2
-
-Package: fuel-ha-utils
-Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, python-keystoneclient, python-neutronclient
-Description: Fuel Library HA utils
- .
-
-Package: fuel-misc
-Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, socat
-Description: Misc Fuel library scripts
- .
-
-Package: fuel-rabbit-fence
-Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, python-gobject-2, python-gobject, python-dbus, python-daemon, rabbitmq-server
-Description: Fuel RabbitMQ fencing utilitites
- .
 
 Package: fuel-umm
 Architecture: all
