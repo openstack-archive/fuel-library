@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
     use_sahara = Noop.hiera_structure('sahara/enabled', false)
 
-    if use_sahara
+    if use_sahara and !Noop.hiera('external_lb', false)
       it "should properly configure sahara haproxy based on ssl" do
         public_ssl_sahara = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('sahara').with(
