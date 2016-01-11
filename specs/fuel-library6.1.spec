@@ -8,7 +8,7 @@ Version: %{version}
 Release: %{release}
 Group: System Environment/Libraries
 License: GPLv2
-URL: http://github.com/stackforge/fuel-library
+URL: http://github.com/openstack/fuel-library
 Source0: %{name}-%{version}.tar.gz
 Provides: fuel-library
 BuildArch: noarch
@@ -112,7 +112,7 @@ Release: %{release}
 Group: System Environment/Libraries
 License: GPLv2
 Provides: fuel-docker-utils
-URL: http://github.com/stackforge/fuel-library
+URL: http://github.com/openstack/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
 
@@ -134,7 +134,7 @@ Version: %{version}
 Release: %{release}
 Group: System Environment/Libraries
 License: Apache 2.0
-URL: http://github.com/stackforge/fuel-library
+URL: http://github.com/openstack/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
 
@@ -159,7 +159,7 @@ Group: System Environment/Libraries
 License: GPLv2
 Requires: python-keystoneclient
 Requires: python-neutronclient
-URL: http://github.com/stackforge/fuel-library
+URL: http://github.com/openstack/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
 
@@ -183,7 +183,7 @@ Release: %{release}
 Group: System Environment/Libraries
 # FIXME(aglarendil): mixed license actually - need to figure out the best option
 License: Apache 2.0
-URL: http://github.com/stackforge/fuel-library
+URL: http://github.com/openstack/fuel-library
 BuildArch: noarch
 Requires: dbus
 Requires: dbus-python
@@ -212,7 +212,7 @@ Requires: monit
 Requires: python-six
 Requires: PyYAML
 Requires: python-fuelclient
-URL: http://github.com/stackforge/fuel-library
+URL: http://github.com/openstack/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
 
