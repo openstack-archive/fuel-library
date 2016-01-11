@@ -58,8 +58,9 @@ $nova_db_user                 = pick($nova_hash['db_user'], 'nova')
 $keystone_user                = pick($nova_hash['user'], 'nova')
 $keystone_tenant              = pick($nova_hash['tenant'], 'services')
 $region                       = hiera('region', 'RegionOne')
+$workers_max                  = hiera('workers_max', 16)
 $service_workers              = pick($nova_hash['workers'],
-                                      min(max($::processorcount, 2), 16))
+                                      min(max($::processorcount, 2), $workers_max))
 $ironic_hash                  = hiera_hash('ironic', {})
 
 $memcached_server             = hiera('memcached_addresses')
