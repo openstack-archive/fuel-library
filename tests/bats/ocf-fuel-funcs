@@ -47,4 +47,80 @@ load "$fms"
     run proc_kill $pid foo 1
     echo "Actual: ${output}"
     [ "${lines[4]}" = "${expected}" ]
+
+    pid="none"
+    pgrep(){
+      true
+    }
+    echo "When an empty pid given"
+    expected="pkill -f -SIGKILL foo"
+    echo "Expected line 4: ${expected}"
+    run proc_kill $pid foo SIGKILL 1
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected}" ]
 }
+
+@test "Check proc_stop params" {
+#   $1 - pidfile or pid
+#   $2 - service name used for logging
+#   $3 - stop process timeout (in sec), used to determine how many times we try
+#        SIGTERM and an upper limit on how long this function should try and
+#        stop the process. Defaults to 15.
+    TMPFILE=$(mktemp /tmp/tmp.XXXXXXXXXX)
+    OCF_ERR_GENERIC=1
+    OCF_SUCCESS=0
+    ocf_log(){
+      true
+    }
+    ocf_run(){
+      echo $@
+    }
+    sleep(){
+      true
+    }
+    ps(){
+      echo $@
+    }
+    pgrep(){
+      true
+    }
+    proc_kill(){
+      echo $@
+    }
+
+    echo "When defaults with a pidfile given"
+    echo "123" > $TMPFILE
+    expected="123 foo SIGTERM 5"
+    echo "Expected line 0: ${expected}"
+    run proc_stop $TMPFILE foo
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected}" ]
+
+    echo "When pidfile is Multiprocess with leading and white spaces"
+    echo "  123 321 " > $TMPFILE
+    expected0="123 foo SIGTERM 5"
+    echo "Expected line 0: ${expected0}"
+    expected1="321 foo SIGTERM 5"
+    echo "Expected line 0: ${expected1}"
+    run proc_stop $TMPFILE foo
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected0}" ]
+    [ "${lines[1]}" = "${expected1}" ]
+
+    echo "When pidfile is with leading and white spaces"
+    echo "  123 " > $TMPFILE
+    expected="123 foo SIGTERM 5"
+    echo "Expected line 0: ${expected}"
+    run proc_stop $TMPFILE foo
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected}" ]
+
+    echo "When pidfile is empty"
+    echo "" > $TMPFILE
+    expected="none foo SIGTERM 5"
+    echo "Expected line 0: ${expected}"
+    run proc_stop $TMPFILE foo
+    echo "Actual: ${output}"
+    [ "${lines[0]}" = "${expected}" ]
+}
+trap 'rm -rf $TMPFILE' EXIT INT HUP
