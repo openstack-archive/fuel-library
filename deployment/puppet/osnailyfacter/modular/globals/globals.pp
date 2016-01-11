@@ -291,6 +291,14 @@ if hiera('amqp_hosts', false) {
   $amqp_hosts = amqp_hosts($amqp_nodes, $amqp_port, get_network_role_property('mgmt/messaging', 'ipaddr'))
 }
 
+# Generic workers limits by RAM
+# Defines the total RAM every single worker of all service types may consume.
+# More services share the same node, more RAM ratio should be given to the workers.
+# The default value assumes there are 20 different types of workers limited by 100Mb each.
+$workers_ratio = hiera('workers_ratio', 2000) + 0
+# Defines the maximum allowed number of workers for each service by RAM limits. Cannot exceed the value of 30.
+$workers_max = inline_template("<%= [(${::memorysize_mb} / $workers_ratio + 0).floor + 1, 30].min %>")
+
 $node_name_prefix_for_messaging = hiera('node_name_prefix_for_messaging', 'messaging-')
 
 # MySQL and SQLAlchemy backend configuration
