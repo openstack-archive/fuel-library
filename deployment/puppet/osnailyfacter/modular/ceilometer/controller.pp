@@ -59,7 +59,9 @@ $rabbit_ha_queues           = true
 $service_endpoint           = hiera('service_endpoint')
 $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
 $ssl_hash                   = hiera_hash('use_ssl', {})
-$service_workers            = pick($ceilometer_hash['workers'], min(max($::processorcount, 2), 16))
+$workers_max                = hiera('workers_max', 16)
+$service_workers            = pick($ceilometer_hash['workers'],
+                                   min(max($::processorcount, 2), $workers_max))
 
 prepare_network_config(hiera('network_scheme', {}))
 $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')

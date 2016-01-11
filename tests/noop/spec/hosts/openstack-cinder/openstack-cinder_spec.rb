@@ -8,6 +8,8 @@ describe manifest do
   max_pool_size = 20
   max_retries = '-1'
   max_overflow = 20
+  cinder_hash = Noop.hiera_structure 'cinder'
+  workers_max = Noop.hiera 'workers_max'
   rabbit_ha_queues = Noop.hiera('rabbit_ha_queues')
   cinder_user = Noop.hiera_structure('cinder/user', "cinder")
   cinder_user_password = Noop.hiera_structure('cinder/user_password')
@@ -47,9 +49,15 @@ describe manifest do
     internal_auth_protocol = 'http'
     keystone_auth_host = Noop.hiera 'service_endpoint'
   end
-    auth_uri            = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
-    identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
-    privileged_auth_uri = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v2.0/"
+  auth_uri            = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
+  identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
+  privileged_auth_uri = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v2.0/"
+
+  it 'should configure workers for API service' do
+    fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+    service_workers = Noop.puppet_function 'pick', cinder_hash['workers'], fallback_workers
+    should contain_cinder_config('DEFAULT/osapi_volume_workers').with(:value => service_workers)
+  end
 
   it 'ensures cinder_config contains auth_uri and identity_uri ' do
       should contain_cinder_config('keystone_authtoken/auth_uri').with(:value  => auth_uri)

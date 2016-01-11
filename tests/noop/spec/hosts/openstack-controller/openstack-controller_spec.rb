@@ -17,6 +17,7 @@ describe manifest do
       configuration_override.fetch('nova_paste_api_ini', {})
     end
 
+    workers_max          = Noop.hiera 'workers_max'
     network_metadata     = Noop.hiera 'network_metadata'
     memcache_roles       = Noop.hiera 'memcache_roles'
     memcache_addresses   = Noop.hiera 'memcached_addresses', false
@@ -76,6 +77,15 @@ describe manifest do
       [nova_endpoint]
 
     # TODO All this stuff should be moved to shared examples controller* tests.
+
+    it 'should configure workers for nova API, conductor services' do
+      fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+      service_workers = Noop.puppet_function 'pick', nova_hash['workers'], fallback_workers
+      should contain_nova_config('DEFAULT/osapi_compute_workers').with(:value => service_workers)
+      should contain_nova_config('DEFAULT/ec2_workers').with(:value => service_workers)
+      should contain_nova_config('DEFAULT/metadata_workers').with(:value => service_workers)
+      should contain_nova_config('conductor/workers').with(:value => service_workers)
+    end
 
     it 'should configure default_log_levels' do
       should contain_nova_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
