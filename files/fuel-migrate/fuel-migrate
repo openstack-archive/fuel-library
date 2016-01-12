@@ -187,6 +187,7 @@ create_vm(){
     <type arch='x86_64' >hvm</type>
     <boot dev='hd'/>
     <boot dev='network'/>
+    <bootmenu enable='yes' timeout='30000'/>
  </os>
   <features>
     <acpi/>
