@@ -96,6 +96,10 @@ class { 'nova::network::neutron':
   neutron_admin_auth_url => "http://${service_endpoint}:35357/v2.0",
 }
 
+ensure_packages('python-ironic',
+  { tag => ['openstack', 'nova-package'] }
+)
+
 cs_resource { "p_nova_compute_ironic":
   ensure          => present,
   primitive_class => 'ocf',

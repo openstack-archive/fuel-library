@@ -49,6 +49,13 @@ describe manifest do
         should contain_file('/etc/nova/nova-compute.conf').with('content'  => "[DEFAULT]\nhost=ironic-compute")
       end
 
+      it 'should install python-ironic package' do
+        expect(subject).to contain_package('python-ironic').with(
+          'ensure' => 'present',
+          'tag'    => ['openstack', 'nova-package'],
+        )
+      end
+
       it 'nova-compute should manages by pacemaker, and should be disabled as system service' do
         expect(subject).to contain_cs_resource('p_nova_compute_ironic').with(
                              :name            => "p_nova_compute_ironic",
