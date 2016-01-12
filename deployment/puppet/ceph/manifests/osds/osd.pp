@@ -1,3 +1,7 @@
+# == Define: ceph::osds::osd
+#
+# Prepare and activate OSD nodes on the node
+#
 define ceph::osds::osd () {
 
   # ${name} format is DISK[:JOURNAL]
@@ -18,8 +22,8 @@ define ceph::osds::osd () {
     tries     => 2, # This is necessary because of race for mon creating keys
     try_sleep => 1,
     logoutput => true,
-    unless    => "grep -q ${data_device_name} /proc/mounts",
-  } ->
+    unless    => "ceph-disk list | fgrep -q -e '${data_device_name} ceph data, active' -e '${data_device_name} ceph data, prepared'",
+  } -> Exec["ceph-deploy osd activate ${deploy_device_name}"]
 
   exec { "ceph-deploy osd activate ${deploy_device_name}":
     command   => "ceph-deploy osd activate ${deploy_device_name}",
@@ -27,7 +31,7 @@ define ceph::osds::osd () {
     tries     => 3,
     logoutput => true,
     timeout   => 0,
-    unless    => "ceph osd dump | grep -q \"osd.$(sed -nEe 's|${data_device_name}\\ .*ceph-([0-9]+).*$|\\1|p' /proc/mounts)\\ up\\ .*\\ in\\ \"",
+    onlyif    => "ceph-disk list | fgrep -q -e '${data_device_name} ceph data, prepared'",
   }
 
 }
