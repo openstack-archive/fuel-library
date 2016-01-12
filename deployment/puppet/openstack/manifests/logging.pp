@@ -166,6 +166,11 @@ class openstack::logging (
       content => template("${module_name}/20-keystone.conf.erb"),
     }
 
+    file { "${::rsyslog::params::rsyslog_d}21-keystone-common-wsgi.conf":
+      ensure => present,
+      content => template("${module_name}/21-keystone-common-wsgi.conf..erb"),
+    }
+
     file { "${::rsyslog::params::rsyslog_d}30-cinder.conf":
       ensure => present,
       content => template("${module_name}/30-cinder.conf.erb"),
