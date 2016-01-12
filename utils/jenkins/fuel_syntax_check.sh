@@ -69,12 +69,12 @@ function check_lint {
       puppet-lint \
           --no-80chars-check \
           --no-autoloader_layout-check \
-          --no-nested_classes_or_defines-check \
           --no-only_variable_string-check \
           --no-2sp_soft_tabs-check \
           --no-trailing_whitespace-check \
           --no-hard_tabs-check \
           --no-class_inherits_from_params_class-check \
+          --fail-on-warnings \
           --with-filename $x || let exit_code=1
     done
     if [ "${exit_code}" -eq "1" ]; then
