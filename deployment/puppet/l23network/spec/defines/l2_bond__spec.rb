@@ -339,7 +339,6 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_miimon'           => '300',
         'bond_updelay'          => '200',
         'bond_downdelay'        => '200',
-        'bond_ad_select'        => 'bandwidth',
       })
       should contain_l23_stored_config('bond-ovs').without_bond_xmit_hash_policy()
     end
@@ -351,10 +350,8 @@ describe 'l23network::l2::bond', :type => :define do
           :lacp             => 'active',
           :lacp_rate        => 'fast',
           :miimon           => '300',
-          :xmit_hash_policy => :undef,
           :updelay          =>"200",
           :downdelay        =>"200",
-          :ad_select        =>"bandwidth",
         },
       })
     end
