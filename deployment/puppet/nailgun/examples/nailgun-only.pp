@@ -87,6 +87,11 @@ $mco_connector = "rabbitmq"
 $ntp_server_list = delete(delete_undef_values([$::fuel_settings['NTP1'],
   $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), '')
 $ntp_servers = join($ntp_server_list, ', ')
+if empty($ntp_servers) {
+  $ntp_servers_real = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
+} else {
+  $ntp_servers_real = $ntp_servers
+}
 
 $dns_upstream = regsubst($::fuel_settings['DNS_UPSTREAM'], ' ', ', ', 'G')
 
@@ -156,7 +161,7 @@ class { "nailgun::venv":
 
   dns_domain   => $::fuel_settings['DNS_DOMAIN'],
   dns_upstream => $dns_upstream,
-  ntp_upstream => $ntp_servers,
+  ntp_upstream => $ntp_servers_real,
 }
 class { 'nailgun::uwsgi':
   production => $production,
