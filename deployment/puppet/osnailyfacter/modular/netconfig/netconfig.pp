@@ -22,10 +22,6 @@ notify {'SDN': message => $sdn }
 sysctl::value { 'net.ipv4.conf.all.arp_accept':   value => '1'  }
 sysctl::value { 'net.ipv4.conf.default.arp_accept':   value => '1'  }
 
-# setting kernel reserved ports
-# defaults are 49000,49001,35357,41055,41056,58882
-class { 'openstack::reserved_ports': }
-
 ### TCP connections keepalives and failover related parameters ###
 # configure TCP keepalive for host OS.
 # Send 3 probes each 8 seconds, if the connection was idle
