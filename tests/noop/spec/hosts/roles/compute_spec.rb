@@ -58,9 +58,9 @@ describe manifest do
     # libvirt/qemu with(out) selinux/apparmor
     it 'libvirt/qemu config should have proper security_driver and apparmor configuration' do
       if facts[:osfamily] == 'RedHat'
-        should contain_file_line('no_qemu_selinux').with(
+        should contain_file_line('qemu_selinux').with(
           'path' => '/etc/libvirt/qemu.conf',
-          'line' => 'security_driver = "none"',
+          'line' => 'security_driver = "selinux"',
         ).that_notifies('Service[libvirt]')
       elsif facts[:osfamily] == 'Debian'
         should contain_file_line('qemu_apparmor').with(
