@@ -112,7 +112,6 @@ namespace :lint do
     # lint checks to skip if no Gemfile or Rakefile
     skip_checks = [ "--no-80chars-check",
         "--no-autoloader_layout-check",
-        "--no-nested_classes_or_defines-check",
         "--no-only_variable_string-check",
         "--no-2sp_soft_tabs-check",
         "--no-trailing_whitespace-check",
