@@ -36,7 +36,8 @@ if hiera('use_neutron', false) {
   $floating_net_shared          = try_get_value($nets, "${floating_net}/shared", false)
 
   if !empty($floating_net_floating_range) {
-    $floating_net_allocation_pool = format_allocation_pools($floating_net_floating_range)
+    $floating_cidr = try_get_value($nets, "${floating_net}/L3/subnet")
+    $floating_net_allocation_pool = format_allocation_pools($floating_net_floating_range, $floating_cidr)
   }
 
   $tenant_name         = try_get_value($access_hash, 'tenant', 'admin')
