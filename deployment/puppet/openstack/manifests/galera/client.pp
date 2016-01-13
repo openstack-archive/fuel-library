@@ -22,7 +22,7 @@
 # [*custom_setup_class*]
 #  Custom mysql and galera setup class.
 #
-class galera::client (
+class openstack::galera::client (
   $custom_setup_class = 'galera',
 ) {
 
@@ -71,7 +71,7 @@ class galera::client (
     }
   }
 
-  package { 'mysql-client':
-    name => $mysql_client_name,
+  class { 'mysql::client':
+    package_name => $mysql_client_name,
   }
 }
