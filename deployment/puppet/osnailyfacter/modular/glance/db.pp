@@ -25,7 +25,7 @@ validate_string($database_vip)
 
 
 if $db_create {
-  class { 'galera::client':
+  class { '::openstack::galera::client':
     custom_setup_class => hiera('mysql_custom_setup_class', 'galera'),
   }
 
@@ -42,7 +42,7 @@ if $db_create {
     db_password => $db_root_password,
   }
 
-  Class['galera::client'] ->
+  Class['::openstack::galera::client'] ->
     Class['osnailyfacter::mysql_access'] ->
       Class['glance::db::mysql']
 }
