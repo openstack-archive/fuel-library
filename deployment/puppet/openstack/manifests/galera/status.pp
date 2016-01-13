@@ -29,10 +29,6 @@
 # (optional) Port for cluster check service
 # Defaults to 49000
 #
-# [*mysql_module*]
-#  (optional) The puppet-mysql module version to work with
-#  Defaults to 0.9
-#
 # [*backend_host*]
 #  (optional) The MySQL backend host for cluster check
 #  Defaults to 127.0.0.1
@@ -53,7 +49,6 @@ class openstack::galera::status (
   $status_password = false,
   $status_allow    = '%',
   $port            = '49000',
-  $mysql_module    = '0.9',
   $backend_host    = '127.0.0.1',
   $backend_port    = '3306',
   $backend_timeout = '10',
@@ -61,29 +56,16 @@ class openstack::galera::status (
 
   validate_string($status_user, $status_password)
 
-  if ($mysql_module >= 2.2) {
-    mysql_user { "${status_user}@${status_allow}":
-      ensure        => 'present',
-      password_hash => mysql_password($status_password),
-      require       => Class['mysql::server'],
-    } ->
-    mysql_grant { "${status_user}@${status_allow}/*.*":
-      ensure     => 'present',
-      option     => [ 'GRANT' ],
-      privileges => [ 'STATUS' ],
-      table      => '*.*',
-      user       => "${status_user}@${status_allow}",
-    }
-  } else {
-    database_user { "${status_user}@${status_allow}":
-      ensure        => 'present',
-      password_hash => mysql_password($status_password),
-      provider      => 'mysql',
-      require       => Class['mysql::server'],
-    } ->
-    database_grant { "${status_user}@${status_allow}/*.*":
-      privileges => [ 'Status_priv' ],
-    }
+  mysql_user { "${status_user}@${status_allow}":
+    ensure        => 'present',
+    password_hash => mysql_password($status_password),
+  } ->
+  mysql_grant { "${status_user}@${status_allow}/*.*":
+    ensure     => 'present',
+    options    => [ 'GRANT' ],
+    privileges => [ 'STATUS' ],
+    table      => '*.*',
+    user       => "${status_user}@${status_allow}",
   }
 
   file { '/etc/wsrepclustercheckrc':
