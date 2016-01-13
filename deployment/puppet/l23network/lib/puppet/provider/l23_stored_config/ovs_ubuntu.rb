@@ -85,12 +85,16 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
       props[:bridge]   = bridge
       props[:ovs_type] = 'OVSPort'
       provider.mtu     = nil
-    else
+    elsif provider.if_type.to_s == 'veth'
       header << "auto #{provider.name}" if provider.onboot
       header << "allow-#{bridge} #{provider.name}"
       props[:ovs_type] = 'OVSIntPort'
       props[:bridge]   = bridge
       provider.jacks   = nil
+    else
+      header << "allow-#{bridge} #{provider.name}"
+      props[:ovs_type] = 'OVSPort'
+      props[:bridge]   = bridge
     end
     # Add iface header
     header << "iface #{provider.name} inet #{provider.method}"
