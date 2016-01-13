@@ -33,11 +33,13 @@ describe 'l23network::l2::bond', :type => :define do
 
     it do
       should contain_l23_stored_config('bond0').with({
-        'ensure'      => 'present',
-        'if_type'     => 'bond',
-        'bond_mode'   => 'balance-rr',
-        'bond_slaves' => ['eth3', 'eth4'],
-        'bond_miimon' => '100',
+        'ensure'         => 'present',
+        'if_type'        => 'bond',
+        'bond_mode'      => 'balance-rr',
+        'bond_slaves'    => ['eth3', 'eth4'],
+        'bond_miimon'    => '100',
+        'bond_updelay'   => '200',
+        'bond_downdelay' => '200',
       })
     end
 
@@ -58,6 +60,53 @@ describe 'l23network::l2::bond', :type => :define do
         should contain_l2_port(slave).with({
           'ensure'   => 'present',
           'provider' => 'lnx',
+        }).that_requires("L23_stored_config[#{slave}]")
+      end
+    end
+  end
+
+  context 'Just create a ovs-bond with two slave interfaces' do
+    let(:params) do
+      {
+        :name            => 'ovs-bond0',
+        :bridge          => 'br-ovs-bond0',
+        :interfaces      => ['eth31', 'eth41'],
+        :bond_properties => {},
+        :provider        => 'ovs'
+      }
+    end
+
+    it do
+      should compile.with_all_deps
+    end
+
+    it do
+      should contain_l23_stored_config('ovs-bond0').with({
+        'ensure'         => 'present',
+        'if_type'        => 'bond',
+        'bond_mode'      => 'active-backup',
+        'bond_slaves'    => ['eth31', 'eth41'],
+        'bond_miimon'    => '100',
+        'bond_updelay'   => '200',
+        'bond_downdelay' => '200',
+      })
+    end
+
+    ['eth31', 'eth41'].each do |slave|
+      it do
+        should contain_l23_stored_config(slave).with({
+          'ensure'      => 'present',
+          'if_type'     => nil,
+        })
+      end
+
+      it do
+        should contain_l2_port(slave)
+      end
+
+      it do
+        should contain_l2_port(slave).with({
+          'ensure'   => 'present',
         }).that_requires("L23_stored_config[#{slave}]")
       end
     end
@@ -339,7 +388,6 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_miimon'           => '300',
         'bond_updelay'          => '200',
         'bond_downdelay'        => '200',
-        'bond_ad_select'        => 'bandwidth',
       })
       should contain_l23_stored_config('bond-ovs').without_bond_xmit_hash_policy()
     end
@@ -351,10 +399,8 @@ describe 'l23network::l2::bond', :type => :define do
           :lacp             => 'active',
           :lacp_rate        => 'fast',
           :miimon           => '300',
-          :xmit_hash_policy => :undef,
           :updelay          =>"200",
           :downdelay        =>"200",
-          :ad_select        =>"bandwidth",
         },
       })
     end
