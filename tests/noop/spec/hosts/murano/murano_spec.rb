@@ -115,6 +115,8 @@ describe manifest do
 
     let(:default_dns) { Noop.hiera_structure('external_dns/dns_list') }
 
+    murano_glance_artifacts_plugin = Noop.hiera('murano_glance_artifacts_plugin', {})
+
     #############################################################################
 
     enable = Noop.hiera_structure('murano/enabled')
@@ -185,6 +187,14 @@ describe manifest do
       it { should contain_concat__fragment('murano_dashboard_section').with_content(/METADATA_CACHE_DIR = '\/var\/cache\/murano-dashboard'/)}
 
       enable = (Noop.hiera_structure('murano/enabled') and Noop.hiera('node_role') == 'primary-controller')
+
+      if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled']
+        it 'should configure murano to use GLAR' do
+          should contain_murano_config('packages_opts/packages_service').with_value('glance')
+        end
+        it { should contain_concat__fragment('enable_glare').with_content(/MURANO_USE_GLARE = True/)}
+      end
+
       context 'on primary controller', :if => enable do
         it 'should declare murano::application resource correctly' do
           should contain_murano__application('io.murano')
