@@ -18,8 +18,8 @@ describe manifest do
         elsif facts[:osfamily] == 'Debian'
           pkg_name = 'mysql-client-5.6'
         end
-        should contain_package('mysql-client').with(
-          'name' => pkg_name,
+        should contain_class('mysql::client').with(
+          'package_name' => pkg_name,
         )
       end
       it 'should declare ironic::db::mysql class with user,password,dbname' do
