@@ -117,11 +117,6 @@ class openstack::heat (
     $watch_server_url         = "${heat_protocol}://${external_ip}:${api_cloudwatch_bind_port}"
   }
 
-  # TODO(bogdando) clarify this config section (left from upstream presync state)
-  heat_config {
-    'DEFAULT/instance_connection_https_validate_certificates' : value => $ic_https_validate_certs;
-    'DEFAULT/instance_connection_is_secure'                   : value => $ic_is_secure;
-  }
   Package<| title == 'heat-api-cfn' or title == 'heat-api-cloudwatch' |>
   Heat_config <|
     title == 'DEFAULT/instance_connection_https_validate_certificates' or
@@ -166,26 +161,14 @@ class openstack::heat (
     use_syslog            => $use_syslog,
     use_stderr            => $use_stderr,
     log_facility          => $syslog_log_facility,
-  }
 
-  # TODO (iberezovskiy): Move to globals (as it is done for sahara)
-  # after new sync with upstream because of
-  # https://github.com/openstack/puppet-heat/blob/master/manifests/init.pp#L305
-  class { '::heat::logging':
-    default_log_levels => $default_log_levels,
-  }
+    max_template_size     => '5440000',
+    max_json_body_size    => '10880000',
+    notification_driver   => 'heat.openstack.common.notifier.rpc_notifier',
 
-  heat_config {
-    'DEFAULT/max_template_size':       value => '5440000';
-    'DEFAULT/max_json_body_size':      value => '10880000';
-    'DEFAULT/max_resources_per_stack': value => '20000';
-  }
-
-  heat_config {
-    'DEFAULT/notification_driver': value => 'heat.openstack.common.notifier.rpc_notifier';
-    'DATABASE/max_pool_size':      value => $max_pool_size;
-    'DATABASE/max_overflow':       value => $max_overflow;
-    'DATABASE/max_retries':        value => $max_retries;
+    database_max_pool_size => $max_pool_size,
+    database_max_overflow  => $max_overflow,
+    database_max_retries   => $max_retries,
   }
 
   # Engine
@@ -196,6 +179,9 @@ class openstack::heat (
     heat_waitcondition_server_url => $waitcondition_server_url,
     heat_watch_server_url         => $watch_server_url,
     trusts_delegated_roles        => $trusts_delegated_roles,
+    max_resources_per_stack       => '20000',
+    instance_connection_https_validate_certificates => $ic_https_validate_certs,
+    instance_connection_is_secure => $ic_is_secure,
   }
 
   # Install the heat APIs
