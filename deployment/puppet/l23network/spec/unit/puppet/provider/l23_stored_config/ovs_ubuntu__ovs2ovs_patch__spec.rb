@@ -92,7 +92,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/iface\s+br-ovs1\s+inet\s+manual/) }
       it { expect(cfg_file).to match(/ovs_type\s+OVSBridge/) }
       it { expect(cfg_file).to match(/ovs_ports\s+p_33470efd-0/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5) }
     end
 
     context 'for OVS bridge br-ovs2' do
@@ -102,7 +102,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/iface\s+br-ovs2\s+inet\s+static/) }
       it { expect(cfg_file).to match(/bridge_ports\s+p_33470efd-0/) }
       it { expect(cfg_file).to match(/address\s+192.168.88.2\/24/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(4) }
     end
 
     context 'for ovs2ovs patchcord p_33470efd-0' do
@@ -115,7 +115,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/ovs_bridge\s+br-ovs1/) }
       it { expect(cfg_file).to match(/ovs_extra\s+--\s+set\s+Interface\s+p_33470efd-0\s+type=patch\s+options:peer=p_33470efd-1/) }
       it { expect(cfg_file).to match(/ovs_extra\s+--\s+set\s+Port\s+p_33470efd-0\s+tag=100/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(7) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }
     end
 
     context 'for ovs2ovs patchcord p_33470efd-1' do
@@ -128,7 +128,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/ovs_bridge\s+br-ovs2/) }
       it { expect(cfg_file).to match(/ovs_extra\s+--\s+set\s+Interface\s+p_33470efd-1\s+type=patch\s+options:peer=p_33470efd-0/) }
       it { expect(cfg_file).to match(/ovs_extra\s+--\s+set\s+Port\s+p_33470efd-1\s+tag=200/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(7) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }
     end
 
   end

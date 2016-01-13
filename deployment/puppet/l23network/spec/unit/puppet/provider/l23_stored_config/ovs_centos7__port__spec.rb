@@ -77,7 +77,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
       it { expect(cfg_file).to match(%r{TYPE=OVSPort}) }
       it { expect(cfg_file).to match(%r{MTU=9000}) }
       it { expect(cfg_file).to match(%r{DEVICETYPE=ovs}) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(6) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(6) }  #  no more lines in the interface file
 
     end
 

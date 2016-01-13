@@ -82,7 +82,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/iface\s+br-ovs\s+inet\s+manual/) }
       it { expect(cfg_file).to match(/ovs_type\s+OVSBridge/) }
       it { expect(cfg_file).to match(/ovs_ports\s+p_33470efd-0/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5) }
     end
 
     context 'for LNX bridge br1' do
@@ -92,7 +92,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/iface\s+br1\s+inet\s+static/) }
       it { expect(cfg_file).to match(/bridge_ports\s+p_33470efd-0/) }
       it { expect(cfg_file).to match(/address\s+192.168.88.2\/24/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(4) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(4) }
     end
 
     context 'for ovs2lnx patchcord p_33470efd-0' do
@@ -104,7 +104,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/ovs_type\s+OVSIntPort/) }
       it { expect(cfg_file).to match(/ovs_bridge\s+br-ovs/) }
       it { expect(cfg_file).not_to match(/ovs_extra/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5) }
     end
   end
 

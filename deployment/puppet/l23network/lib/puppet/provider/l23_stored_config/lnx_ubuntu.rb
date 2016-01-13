@@ -26,6 +26,8 @@ Puppet::Type.type(:l23_stored_config).provide(:lnx_ubuntu, :parent => Puppet::Pr
   def self.iface_file_header(provider)
     rv = []
 
+    rv << self.puppet_header
+
     # Add onboot interfaces
     if provider.onboot
       rv << "auto #{provider.name}"
