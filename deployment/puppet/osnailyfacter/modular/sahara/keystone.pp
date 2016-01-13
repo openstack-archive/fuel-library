@@ -24,7 +24,7 @@ $admin_url       = "http://${admin_address}:${api_bind_port}/v1.1/%(tenant_id)s"
 class { 'sahara::keystone::auth':
   auth_name    => $sahara_user,
   password     => $sahara_password,
-  service_type => 'data_processing',
+  service_type => 'data-processing',
   service_name => $service_name,
   region       => $region,
   tenant       => $tenant,
