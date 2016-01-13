@@ -8,6 +8,7 @@ concat
 datacat
 filemapper
 firewall
+galera
 glance
 heat
 horizon
@@ -19,6 +20,7 @@ memcached
 mongodb
 monit
 murano
+mysql
 neutron
 nova
 ntp

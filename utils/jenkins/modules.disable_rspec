@@ -10,6 +10,7 @@ docker
 erlang
 filemapper
 firewall
+galera
 glance
 heat
 heat_ha

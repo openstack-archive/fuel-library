@@ -21,6 +21,10 @@ describe manifest do
       Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'storage'
     end
 
+    let(:database_network) do
+      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'mgmt/database'
+    end
+
     let(:keystone_network) do
       Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'keystone/api'
     end
@@ -51,6 +55,15 @@ describe manifest do
           'sport'   => [ 15672 ],
           'proto'   => 'tcp',
           'action'  => 'drop'
+        )
+      end
+
+      it 'should accept connections to mysql using network with mgmt/database role' do
+        should contain_openstack__firewall__multi_net('101 mysql').with(
+          'port'        => [ 3306, 3307, 4567, 4568, 4444, 49000 ],
+          'proto'       => 'tcp',
+          'action'      => 'accept',
+          'source_nets' => database_network,
         )
       end
 
