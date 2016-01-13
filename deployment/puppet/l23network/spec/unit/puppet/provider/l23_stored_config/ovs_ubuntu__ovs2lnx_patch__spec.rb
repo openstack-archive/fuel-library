@@ -19,7 +19,7 @@ resources_map =     {
                },
       :'p_33470efd-0' => {
                  :name     => "p_33470efd-0",
-                 :if_type  => "ethernet",
+                 :if_type  => "veth",
                  :bridge   => ["br-ovs", "br1"],
                  :jacks    => ['p_33470efd-0', 'p_33470efd-1'],
                  :provider => "ovs_ubuntu",
