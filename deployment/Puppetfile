@@ -94,7 +94,7 @@ mod 'postgresql',
 # Pull in puppet-openstacklib
 mod 'openstacklib',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openstacklib.git',
-    :ref => '7.0.0-rc6'
+    :ref => 'master'
 
 # Pull in puppet-keystone
 mod 'keystone',
@@ -195,3 +195,13 @@ mod 'datacat',
 mod 'mcollective',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-mcollective.git',
     :ref => 'v2.1.1'
+
+# Pull in puppetlabs-mysql
+mod 'mysql',
+    :git => 'https://github.com/puppetlabs/puppetlabs-mysql.git',
+    :ref => '3.6.2'
+
+# Pull in michaeltchapman-galera
+mod 'galera',
+    :git => 'https://github.com/mwhahaha/puppet-galera.git',
+    :ref => 'debian-fixes'
