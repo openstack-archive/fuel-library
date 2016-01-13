@@ -25,7 +25,7 @@ describe manifest do
       should contain_class('sahara::keystone::auth').with(
                  'auth_name' => sahara_user,
                  'password' => sahara_password,
-                 'service_type' => 'data_processing',
+                 'service_type' => 'data-processing',
                  'service_name' => service_name,
                  'region' => region,
                  'tenant' => tenant,
