@@ -1,6 +1,7 @@
 fixtures:
   repositories:
     'stdlib': 'https://github.com/puppetlabs/puppetlabs-stdlib.git'
+    'mysql': 'https://github.com/puppetlabs/puppetlabs-mysql.git'
   symlinks:
     'cluster': "#{source_dir}"
     'corosync': "#{source_dir}/../corosync"
