@@ -17,7 +17,7 @@ fixtures:
       branch: '7.0.0-mos-rc3'
     'keystone':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-keystone.git'
-      branch: '7.0.0-mos-rc3'
+      branch: 'mos-9.0'
     'neutron':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-neutron.git'
       branch: '7.0.0-mos-rc4'
