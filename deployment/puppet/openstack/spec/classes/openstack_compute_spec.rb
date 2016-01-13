@@ -148,7 +148,7 @@ describe 'openstack::compute' do
           :changes => ["set host_uuid #{p[:host_uuid]}"],
         ).that_notifies('Service[libvirt]')
         if facts[:osfamily] == 'RedHat'
-          should contain_file_line('no_qemu_selinux')
+          should contain_file_line('qemu_selinux')
         elsif facts[:osfamily] == 'Debian'
           should contain_file_line('qemu_apparmor')
           should contain_file_line('apparmor_libvirtd')
