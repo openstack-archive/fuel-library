@@ -9,6 +9,7 @@ fixtures:
     'sysctl': 'https://github.com/duritong/puppet-sysctl.git'
     'inifile':  'https://github.com/puppetlabs/puppetlabs-inifile.git'
     'firewall':  'https://github.com/puppetlabs/puppetlabs-firewall.git'
+    'mysql':  'https://github.com/puppetlabs/puppetlabs-mysql.git'
     'openstacklib':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-openstacklib.git'
       branch: '7.0.0-rc6'
@@ -50,7 +51,6 @@ fixtures:
     'osnailyfacter': "#{source_dir}/../osnailyfacter"
     'l23network': "#{source_dir}/../l23network"
     'rsyslog': "#{source_dir}/../rsyslog"
-    'mysql': "#{source_dir}/../mysql"
     'tweaks': "#{source_dir}/../tweaks"
     'corosync': "#{source_dir}/../corosync"
     'pacemaker': "#{source_dir}/../pacemaker"
