@@ -427,9 +427,9 @@ on packages update": }
 
   case $::osfamily {
     'RedHat': {
-      file_line { 'no_qemu_selinux':
+      file_line { 'qemu_selinux':
         path    => '/etc/libvirt/qemu.conf',
-        line    => 'security_driver = "none"',
+        line    => 'security_driver = "selinux"',
         require => Package[$::nova::params::libvirt_package_name],
         notify  => Service['libvirt']
       }
