@@ -8,6 +8,7 @@ concat
 datacat
 filemapper
 firewall
+galera
 glance
 heat
 horizon
