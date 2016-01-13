@@ -94,7 +94,7 @@ mod 'postgresql',
 # Pull in puppet-openstacklib
 mod 'openstacklib',
     :git => 'https://github.com/fuel-infra/puppet-openstacklib.git',
-    :ref => '7.0.0-rc6'
+    :ref => '8.0.0-rc1'
 
 # Pull in puppet-keystone
 mod 'keystone',
