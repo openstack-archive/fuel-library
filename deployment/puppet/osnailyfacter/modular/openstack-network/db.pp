@@ -28,7 +28,7 @@ validate_string($mysql_root_user)
 
 if $use_neutron and $db_create {
 
-  class { 'galera::client':
+  class { '::openstack::galera::client':
     custom_setup_class => hiera('mysql_custom_setup_class', 'galera'),
   }
 
@@ -45,7 +45,7 @@ if $use_neutron and $db_create {
     db_password => $db_root_password,
   }
 
-  Class['galera::client'] ->
+  Class['::openstack::galera::client'] ->
   Class['osnailyfacter::mysql_access'] ->
   Class['neutron::db::mysql']
 
