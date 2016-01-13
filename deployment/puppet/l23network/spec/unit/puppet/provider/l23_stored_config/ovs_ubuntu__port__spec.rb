@@ -73,13 +73,12 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
     context 'format file' do
       subject { providers[:ttt0] }
       let(:cfg_file) { subject.class.format_file('filepath', [subject]) }
-      it { expect(cfg_file).to match(/auto\s+ttt0/) }
       it { expect(cfg_file).to match(/allow-br9\s+ttt0/) }
       it { expect(cfg_file).to match(/iface\s+ttt0\s+inet\s+manual/) }
       it { expect(cfg_file).to match(/mtu\s+6000/) }
-      it { expect(cfg_file).to match(/ovs_type\s+OVSIntPort/) }
+      it { expect(cfg_file).to match(/ovs_type\s+OVSPort/) }
       it { expect(cfg_file).to match(/ovs_bridge\s+br9/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(6) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/^\s*$/}.length). to eq(5) }  #  no more lines in the interface file
     end
 
     context "parse data from fixture" do
