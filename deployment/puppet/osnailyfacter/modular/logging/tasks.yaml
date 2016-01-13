@@ -1,6 +1,6 @@
 - id: logging
   type: puppet
-  groups: [primary-controller, controller, cinder, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
+  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [deploy_end]
   requires: [globals]
   parameters:
