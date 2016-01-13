@@ -32,7 +32,6 @@ class openstack::workloads_collector(
       ensure          => present,
       password        => $workloads_password,
       enabled         => $enabled,
-      tenant          => $workloads_tenant,
     }
 
     keystone_user_role { "$workloads_username@$workloads_tenant":

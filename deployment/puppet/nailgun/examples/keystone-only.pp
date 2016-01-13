@@ -7,10 +7,6 @@ else {
     $production = 'docker'
 }
 
-package { 'python-psycopg2':
-  ensure => installed,
-}
-
 $auth_version = "v2.0"
 
 case $production {
@@ -53,7 +49,6 @@ case $production {
       ensure          => present,
       password        => $::fuel_settings['FUEL_ACCESS']['password'],
       enabled         => 'True',
-      tenant          => 'admin',
       replace_password => false,
     }
 
@@ -72,7 +67,6 @@ case $production {
       password => $::fuel_settings['keystone']['monitord_password'],
       enabled  => 'True',
       email    => 'monitord@localhost',
-      tenant   => 'services',
     }
 
     keystone_user_role { 'monitord@services':

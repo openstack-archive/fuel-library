@@ -239,7 +239,7 @@ describe manifest do
 
     # LP#1508489: Breaks internal-only API
     it 'should have undefined DEFAULT/public_endpoint' do
-      should contain_keystone_config('DEFAULT/public_endpoint').with(:value => nil)
+      should contain_keystone_config('DEFAULT/public_endpoint').with(:value => false)
     end
 
     # FIXME(mattymo): Remove this after LP#1528258 is fixed.
