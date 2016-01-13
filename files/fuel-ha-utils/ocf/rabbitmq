@@ -1486,6 +1486,7 @@ get_monitor() {
     timeout_alive=$?
 
     if [ $timeout_alive -eq 2 ]; then
+        master_score 0
         return $OCF_ERR_GENERIC
     elif [ $timeout_alive -eq 0 ]; then
         if [ $rc_alive -ne 0 ]; then
@@ -1508,6 +1509,7 @@ get_monitor() {
     timeout_alarms=$?
 
     if [ $timeout_alarms -eq 2 ]; then
+        master_score 0
         return $OCF_ERR_GENERIC
 
     elif [ $timeout_alarms -eq 0 ]; then
@@ -1539,6 +1541,7 @@ get_monitor() {
     timeout_queues=$?
 
     if [ $timeout_queues -eq 2 ]; then
+        master_score 0
         return $OCF_ERR_GENERIC
 
     elif [ $timeout_queues -eq 0 ]; then
