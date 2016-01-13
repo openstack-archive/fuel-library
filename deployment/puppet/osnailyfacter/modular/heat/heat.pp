@@ -178,13 +178,11 @@ haproxy_backend_status { 'keystone-admin' :
 }
 
 class { 'heat::keystone::domain' :
-  auth_url          => "${internal_auth_protocol}://${admin_auth_address}:35357/v2.0",
-  keystone_admin    => $keystone_user,
-  keystone_password => $heat_hash['user_password'],
-  keystone_tenant   => $keystone_tenant,
-  domain_name       => 'heat',
-  domain_admin      => 'heat_admin',
-  domain_password   => $heat_hash['user_password'],
+  domain_name        => 'heat',
+  domain_admin       => 'heat_admin',
+  domain_password    => $heat_hash['user_password'],
+  domain_admin_email => 'heat_admin@localhost',
+  manage_domain      => true,
 }
 
 Class['heat'] ->
