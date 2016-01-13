@@ -4,6 +4,7 @@ notice('MODULAR: ceph-osd.pp')
 $storage_hash              = hiera('storage', {})
 $public_vip                = hiera('public_vip')
 $management_vip            = hiera('management_vip')
+$service_endpoint          = hiera('service_endpoint')
 $use_neutron               = hiera('use_neutron', false)
 $mp_hash                   = hiera('mp')
 $verbose                   = pick($storage_hash['verbose'], true)
@@ -34,6 +35,7 @@ class {'ceph':
   osd_pool_default_pg_num  => $storage_hash['pg_num'],
   osd_pool_default_pgp_num => $storage_hash['pg_num'],
   use_rgw                  => $storage_hash['objects_ceph'],
+  rgw_keystone_url         => "${service_endpoint}:35357",
   glance_backend           => $glance_backend,
   rgw_pub_ip               => $public_vip,
   rgw_adm_ip               => $management_vip,
