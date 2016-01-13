@@ -22,6 +22,7 @@ require 'spec_helper'
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_ceilometer.pem',
         'require_service'        => 'ceilometer-api',
         'haproxy_config_options' => {
+          'option'       => ['httplog', 'forceclose'],
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
       )
