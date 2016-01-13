@@ -65,7 +65,7 @@ class openstack::galera::status (
     mysql_user { "${status_user}@${status_allow}":
       ensure        => 'present',
       password_hash => mysql_password($status_password),
-      require       => Class['mysql::server'],
+      #require       => Class['mysql::server'],
     } ->
     mysql_grant { "${status_user}@${status_allow}/*.*":
       ensure     => 'present',
@@ -79,7 +79,7 @@ class openstack::galera::status (
       ensure        => 'present',
       password_hash => mysql_password($status_password),
       provider      => 'mysql',
-      require       => Class['mysql::server'],
+      #require       => Class['mysql::server'],
     } ->
     database_grant { "${status_user}@${status_allow}/*.*":
       privileges => [ 'Status_priv' ],
