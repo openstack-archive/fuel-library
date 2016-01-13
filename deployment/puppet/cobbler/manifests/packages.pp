@@ -44,6 +44,7 @@ class cobbler::packages {
     }
   }
 
+  # This should fail CI because of nested define
   define cobbler_safe_package(){
     if ! defined(Package[$name]){
       @package { $name : }
