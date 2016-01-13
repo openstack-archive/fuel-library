@@ -4,10 +4,9 @@ describe 'openstack::galera::status' do
 
   shared_examples_for 'galera configuration' do
 
-    context 'with mysql module with version < 2.2' do
+    context 'with valid parameters' do
       let :params do
         {
-          :mysql_module => 2.1,
           :status_user     => 'user',
           :status_password => 'password',
         }
@@ -15,7 +14,8 @@ describe 'openstack::galera::status' do
 
       it 'should create grant with right privileges' do
         should contain_database_grant("user@%/*.*").with(
-          :privileges => [ 'select_priv' ]
+          :options    => [ 'GRANT' ],
+          :privileges => [ 'USAGE' ]
         )
       end
     end
