@@ -38,6 +38,7 @@ class Noop
           :l23_os => 'ubuntu',
           :lsbdistcodename => 'trusty',
           :os_package_type => 'debian',
+          :os_service_default => '<SERVICE DEFAULT>',
       }.merge override_facts
     end
 
@@ -60,6 +61,7 @@ class Noop
           :concat_basedir => '/tmp/',
           :l23_os => 'centos6',
           :os_package_type => 'rpm',
+          :os_service_default => '<SERVICE DEFAULT>',
       }.merge override_facts
     end
 
