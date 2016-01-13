@@ -38,14 +38,14 @@ describe manifest do
     end
 
     it "should configure Galera to use mgmt/database network for replication" do
-      expect(subject).to contain_class('mysql::server').with(
-        'galera_nodes' => galera_nodes,
+      expect(subject).to contain_class('galera').with(
+        'galera_servers' => galera_nodes,
       ).that_comes_before('Osnailyfacter::Mysql_user')
     end
 
     it "should configure mysql to ignore lost+found directory" do
-      expect(subject).to contain_class('mysql::server').with(
-        'ignore_db_dirs' => ['lost+found']
+      expect(subject).to contain_class('galera').with_override_options(
+          /"ignore-db-dirs"=>"lost\+found"/
       ).that_comes_before('Osnailyfacter::Mysql_user')
     end
 
