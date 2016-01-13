@@ -30,6 +30,7 @@ describe 'openstack::heat' do
         :physicalprocessorcount => 2,
         :memorysize_mb => 1024,
         :openstack_version => {'nova' => 'present' },
+        :os_service_default => '<SERVICE DEFAULT>',
       }
     end
 
@@ -46,6 +47,7 @@ describe 'openstack::heat' do
         :physicalprocessorcount => 2,
         :memorysize_mb => 1024,
         :openstack_version => {'nova' => 'present' },
+        :os_service_default => '<SERVICE DEFAULT>',
       }
     end
 
