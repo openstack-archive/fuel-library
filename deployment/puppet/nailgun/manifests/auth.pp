@@ -45,7 +45,6 @@ class nailgun::auth(
   keystone_user { $auth_name:
     ensure   => present,
     enabled  => 'True',
-    tenant   => 'services',
     password => $password,
   }
 
