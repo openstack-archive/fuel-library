@@ -10,6 +10,7 @@ puppet/concat
 puppet/datacat
 puppet/filemapper
 puppet/firewall
+puppet/galera
 puppet/glance
 puppet/heat
 puppet/horizon
@@ -21,6 +22,7 @@ puppet/memcached
 puppet/mongodb
 puppet/monit
 puppet/murano
+puppet/mysql
 puppet/neutron
 puppet/nova
 puppet/ntp
