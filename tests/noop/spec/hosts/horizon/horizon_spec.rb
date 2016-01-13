@@ -85,8 +85,14 @@ describe manifest do
     end
 
     it 'should declare horizon class with correct values' do
+      if !facts.has_key?(:os_package_type) or facts[:os_package_type] == 'debian'
+          cache_backend = 'horizon.backends.memcached.HorizonMemcached'
+      else
+          cache_backend = 'django.core.cache.backends.memcached.MemcachedCache'
+      end
+
       should contain_class('horizon').with(
-                 'cache_backend'       => 'horizon.backends.memcached.HorizonMemcached',
+                 'cache_backend'       => cache_backend,
                  'cache_options'       => cache_options,
                  'log_handler'         => 'file',
                  'overview_days_range' => 1,

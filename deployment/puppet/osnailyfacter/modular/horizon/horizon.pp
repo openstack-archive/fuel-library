@@ -17,6 +17,15 @@ if $horizon_hash['secret_key'] {
   $secret_key = 'dummy_secret_key'
 }
 
+# TODO(aschultz): the horizon.backends.memcached.HorizonMemcached is only part
+# of the MOS package set. This should be contributed upstream and then we can
+# use this as the default.
+if !$::os_package_type or $::os_package_type == 'debian' {
+  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'horizon.backends.memcached.HorizonMemcached')
+} else {
+  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
+}
+
 $neutron_dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
 $ssl_hash               = hiera_hash('use_ssl', {})
@@ -50,7 +59,7 @@ class { 'openstack::horizon':
   package_ensure       => hiera('horizon_package_ensure', 'installed'),
   bind_address         => $bind_address,
   cache_server_port    => hiera('memcache_server_port', '11211'),
-  cache_backend        => 'horizon.backends.memcached.HorizonMemcached',
+  cache_backend        => $horizon_cache_backend,
   cache_options        => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
   neutron              => hiera('use_neutron'),
   keystone_url         => $keystone_url,
