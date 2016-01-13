@@ -103,8 +103,6 @@ class openstack::keystone (
     $token_driver = 'keystone.token.backends.sql.Token'
   }
 
-  $public_endpoint = false
-
   #### Fernet Token ####
   if $token_provider == 'keystone.token.providers.fernet.Provider' {
     file { "$fernet_key_repository":
@@ -146,19 +144,12 @@ class openstack::keystone (
       token_caching                => $token_caching,
       cache_backend                => $cache_backend,
       revoke_driver                => $revoke_driver,
-      public_endpoint              => $public_endpoint,
       admin_endpoint               => $admin_url,
       memcache_dead_retry          => '60',
       memcache_socket_timeout      => '1',
       memcache_pool_maxsize        =>'1000',
       memcache_pool_unused_timeout => '60',
-    }
-
-    # TODO (iberezovskiy): Move to globals (as it is done for sahara)
-    # after new sync with upstream because of
-    # https://github.com/openstack/puppet-keystone/blob/master/manifests/init.pp#L564
-    class { '::keystone::logging':
-      default_log_levels => $default_log_levels,
+      policy_driver                => 'keystone.policy.backends.sql.Policy',
     }
 
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
@@ -183,7 +174,6 @@ class openstack::keystone (
       'DATABASE/max_retries':                            value => $max_retries;
       'DATABASE/max_overflow':                           value => $max_overflow;
       'identity/driver':                                 value =>'keystone.identity.backends.sql.Identity';
-      'policy/driver':                                   value =>'keystone.policy.backends.sql.Policy';
       'ec2/driver':                                      value =>'keystone.contrib.ec2.backends.sql.Ec2';
       'filter:debug/paste.filter_factory':               value =>'keystone.common.wsgi:Debug.factory';
       'filter:token_auth/paste.filter_factory':          value =>'keystone.middleware:TokenAuthMiddleware.factory';
