@@ -93,6 +93,8 @@ class openstack::swift::storage_node (
     storage_local_net_ip => $swift_local_net_ip,
     devices              => $storage_mnt_base_dir,
     log_facility         => $log_facility,
+    # We use directory for swift
+    mount_check          => false,
   }
   # override log_name defaults for Swift::Storage::Server
   # TODO (adidenko) move this into Hiera when it's ready
