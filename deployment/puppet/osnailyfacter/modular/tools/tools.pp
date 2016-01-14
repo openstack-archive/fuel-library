@@ -1,6 +1,10 @@
 notice('MODULAR: tools.pp')
 
-class { 'osnailyfacter::atop': }
+$custom_acct_file = hiera('custom_accounting_file', undef)
+class { 'osnailyfacter::atop':
+  custom_acct_file => $custom_acct_file,
+}
+
 class { 'osnailyfacter::ssh': }
 
 if $::virtual != 'physical' {
