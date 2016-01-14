@@ -63,6 +63,18 @@
 #  system at install time. NOTE: use_percona must be set to true for this to
 #  be used.
 #
+# [*binary_logs_enabled*]
+#  Boolean. Set this value to true for enabling binary logging.
+#
+# [*binary_logs_period*]
+#  Integer. Set binary logrotation period in days (Default 1 day).
+#
+# [*binary_logs_maxsize*]
+#  If a write to the binary log causes the current log file size to exceed the
+#  value of this variable, the server rotates the binary logs (closes the
+#  current file and opens the next one). The minimum value is 4096 bytes.
+#  The maximum and default value is 512M.
+
 class galera (
   $cluster_name         = 'openstack',
   $primary_controller   = false,
@@ -78,6 +90,9 @@ class galera (
   $wsrep_sst_password   = undef,
   $use_percona          = false,
   $use_percona_packages = false,
+  $binary_logs_enabled  = true,
+  $binary_logs_period   = 1,
+  $binary_logs_maxsize  = '512M',
   ) {
 
   include galera::params
