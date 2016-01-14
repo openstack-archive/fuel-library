@@ -17,8 +17,12 @@ if $use_neutron and ($controller or ($dvr and $compute)) {
 
   $auth_region             = hiera('region', 'RegionOne')
   $service_endpoint        = hiera('service_endpoint')
+  $management_vip          = hiera('management_vip')
   $auth_api_version        = 'v2.0'
-  $admin_identity_uri      = "http://${service_endpoint}:35357"
+  $ssl_hash                = hiera_hash('use_ssl', {})
+  $admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+  $admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+  $admin_identity_uri      = "${admin_identity_protocol}://${admin_identity_address}:35357"
   $admin_auth_url          = "${admin_identity_uri}/${auth_api_version}"
 
   $neutron_config          = hiera_hash('neutron_config')
@@ -29,7 +33,6 @@ if $use_neutron and ($controller or ($dvr and $compute)) {
 
   $shared_secret           = try_get_value($neutron_config, 'metadata/metadata_proxy_shared_secret')
 
-  $management_vip          = hiera('management_vip')
   $nova_endpoint           = hiera('nova_endpoint', $management_vip)
 
   class { 'neutron::agents::metadata':

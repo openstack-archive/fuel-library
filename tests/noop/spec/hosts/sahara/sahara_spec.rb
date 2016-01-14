@@ -49,6 +49,7 @@ describe manifest do
     let(:public_protocol) { public_ssl ? 'https' : 'http' }
     let(:public_address) { public_ssl ? public_ssl_hostname : public_ip }
 
+
     let(:api_bind_port) { '8386' }
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
@@ -67,6 +68,13 @@ describe manifest do
     let (:sahara_url){
       "#{sahara_protocol}://#{sahara_address}:#{api_bind_port}"
     }
+
+    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
+    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
+    let(:admin_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
+    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')] }
+    let(:auth_url) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/v2.0/" }
 
     ############################################################################
 
@@ -91,8 +99,8 @@ describe manifest do
         sql_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}?read_timeout=#{read_timeout}"
 
         should contain_class('sahara').with(
-                   'auth_uri'               => "http://#{service_endpoint}:5000/v2.0/",
-                   'identity_uri'           => "http://#{service_endpoint}:35357/",
+                   'auth_uri'               => auth_url,
+                   'identity_uri'           => admin_uri,
                    'plugins'                => sahara_plugins,
                    'rpc_backend'            => 'rabbit',
                    'use_neutron'            => use_neutron,
