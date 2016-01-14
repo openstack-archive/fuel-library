@@ -18,6 +18,25 @@ describe manifest do
     rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
     rabbit_password = Noop.hiera_structure 'rabbit/password'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
+    mongo_hash = Noop.hiera_structure('mongo', { 'enabled' => false })
+    network_metadata = Noop.hiera_structure 'network_metadata'
+    mongo_roles = Noop.hiera 'mongo_roles'
+    mongo_nodes = Noop.puppet_function 'get_nodes_hash_by_roles',network_metadata,mongo_roles
+    mongo_address_map = Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role',mongo_nodes,'mongo/db'
+    if mongo_hash['enabled'] and ceilometer_hash['enabled']
+      exteranl_mongo_hash    = Noop.hiera_structure 'external_mongo'
+      ceilometer_db_user     = exteranl_mongo_hash['mongo_user']
+      ceilometer_db_password = exteranl_mongo_hash['mongo_password']
+      ceilometer_db_dbname   = exteranl_mongo_hash['mongo_db_name']
+      db_hosts               = exteranl_mongo_hash['hosts_ip']
+    else
+      ceilometer_db_user     = 'ceilometer'
+      ceilometer_db_password = ceilometer_hash['db_password']
+      ceilometer_db_dbname   = 'ceilometer'
+      addresses =  Noop.puppet_function 'values',mongo_address_map
+      db_hosts = Noop.puppet_function 'join',addresses,','
+    end
+
     rabbit_ha_queues = 'true'
     default_log_levels_hash = Noop.hiera_structure 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
@@ -25,6 +44,10 @@ describe manifest do
 
     # Ceilometer
     if ceilometer_hash['enabled']
+      it 'should configure connection string with read reference set to primaryPreferred' do
+        should contain_ceilometer_config('database/connection').with(:value => "mongodb://#{ceilometer_db_user}:#{ceilometer_db_password}@#{db_hosts}/#{ceilometer_db_dbname}?readpreference=primaryPreferred")
+      end
+
       it 'should declare openstack::ceilometer class with correct parameters' do
         should contain_class('openstack::ceilometer').with(
           'amqp_user'          => rabbit_user,

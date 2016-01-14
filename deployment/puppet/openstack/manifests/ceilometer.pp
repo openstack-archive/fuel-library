@@ -96,16 +96,16 @@ class openstack::ceilometer (
         $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60"
       } else {
         if ( !$mongo_replicaset ) {
-          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?readpreference=primaryPreferred"
         } else {
-          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?readpreference=primaryPreferred"
           ceilometer_config {
             'database/mongodb_replica_set' : value => $mongo_replicaset;
           }
         }
       }
     } else {
-      $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+      $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?readpreference=primaryPreferred"
       if $mongo_replicaset {
         ceilometer_config {
           'database/mongodb_replica_set' : value => $mongo_replicaset;
