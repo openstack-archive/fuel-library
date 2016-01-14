@@ -129,7 +129,7 @@ mod 'glance',
 # Pull in puppet-swift
 mod 'swift',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-swift.git',
-    :ref => '7.0.0-rc5'
+    :ref => 'mos-9.0'
 
 # Pull in puppet-ceilometer
 mod 'ceilometer',

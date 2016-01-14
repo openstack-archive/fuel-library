@@ -39,6 +39,9 @@ fixtures:
     'sahara':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-sahara.git'
       branch: '7.0.0-mos-rc2'
+    'swift':
+      repo: 'https://review.fuel-infra.org/puppet-modules/puppet-swift.git'
+      branch: 'mos-9.0'
     'murano':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-murano.git'
       branch: '7.0.0-mos-rc1'

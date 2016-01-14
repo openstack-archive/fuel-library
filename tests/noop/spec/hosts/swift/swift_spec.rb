@@ -77,8 +77,8 @@ describe manifest do
           end
         end
         ['account', 'object', 'container'].each do | ring |
-          it "should define swift::ringbuilder::rebalance[#{ring}] before Service[swift-proxy]" do
-            should contain_swift__ringbuilder__rebalance(ring).that_comes_before('Service[swift-proxy]')
+          it "should define swift::ringbuilder::rebalance[#{ring}] before swift proxy service" do
+            should contain_swift__ringbuilder__rebalance(ring).that_comes_before('Service[swift-proxy-server]')
           end
         end
         ['account', 'object', 'container'].each do | ring |
