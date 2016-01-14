@@ -29,7 +29,7 @@ fixtures:
       branch: '7.0.0-mos-rc2'
     'glance':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-glance.git'
-      branch: '7.0.0-mos-rc2'
+      branch: 'mos-9.0'
     'ceilometer':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-ceilometer.git'
       branch: '7.0.0-rc3'
