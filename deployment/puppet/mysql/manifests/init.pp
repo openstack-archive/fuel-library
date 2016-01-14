@@ -18,7 +18,7 @@ class mysql (
 
   package { 'mysql-client':
     name    => $package_name,
-   #ensure  => $package_ensure,
+    #ensure => $package_ensure,
   }
 
 }
