@@ -26,7 +26,9 @@ Class['monit']
 
 class { 'nailgun::packages': }
 
-class { 'osnailyfacter::atop': }
+class { 'osnailyfacter::atop':
+  custom_acct_file => false
+}
 
 class { 'nailgun::host':
   production        => $production,

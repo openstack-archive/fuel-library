@@ -20,46 +20,95 @@
 # [*rotate*]
 #   How many days keep binary logs.
 #   Default is 7.
+#
+# [*custom_acct_file*]
+#   Location of the custom accounting file. (e.g. '/tmp/atop.d/atop.acct')
+#   Set 'undef' to disable accounting, 'false' to use atop default settings.
+#   Default is undef.
+#
 class osnailyfacter::atop (
-  $service_enabled = true,
-  $service_state   = 'running',
-  $interval        = '20',
-  $logpath         = '/var/log/atop',
-  $rotate          = '7',
-  ) {
-  $conf_file = $::osfamily ? {
-    'Debian' => '/etc/default/atop',
-    'RedHat' => '/etc/sysconfig/atop',
-    default  => fail('Unsupported Operating System.'),
+  $service_enabled  = true,
+  $service_state    = 'running',
+  $interval         = '20',
+  $logpath          = '/var/log/atop',
+  $rotate           = '7',
+  $custom_acct_file = undef,
+) {
+
+  case $::osfamily {
+    'Debian': {
+      $conf_file    = '/etc/default/atop'
+      $acct_package = 'acct'
+    }
+    'RedHat': {
+      $conf_file    = '/etc/sysconfig/atop'
+      $acct_package = 'psacct'
+    }
+    default: {
+      fail("Unsupported platform: ${::osfamily}/${::operatingsystem}")
+    }
   }
 
-  package { 'atop':
+  $atop_retention = '/etc/cron.daily/atop_retention'
+
+  File {
+    ensure => file,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0600'
+  }
+
+  if $custom_acct_file {
+    validate_absolute_path($custom_acct_file)
+    $acct_file_dir = dirname($custom_acct_file)
+
+    # Manage the parent directory
+    file { $acct_file_dir:
+      ensure => directory,
+    } ->
+
+    file { $custom_acct_file:
+    } ~>
+
+    exec { 'turns process accounting on':
+      path        => ['/sbin', '/usr/sbin'],
+      command     => "accton ${custom_acct_file}",
+      refreshonly => true,
+    }
+
+    Package[$acct_package] -> Exec['turns process accounting on'] -> Service['atop']
+  }
+
+  package { ['atop', $acct_package]:
     ensure => 'installed',
   } ->
 
+  # Template uses:
+  # - $interval
+  # - $logpath
+  # - $custom_acct_file
   file { $conf_file:
-    ensure  => present,
+    mode   => '0644',
     content => template('osnailyfacter/atop.erb'),
   } ~>
 
   service { 'atop':
     ensure => $service_state,
     enable => $service_enabled,
-  } ~>
-
-  exec { "ln -s ${logpath}/atop_current":
-    command => "ln -s ${logpath}/atop_$(date +%Y%m%d) ${logpath}/atop_current",
-    path    => ['/bin', '/usr/bin'],
-    unless  => "test -L ${logpath}/atop_current",
-    require => Service['atop'];
-  }
+  } ->
 
   # This file is used for atop binary log rotations by (ana)cron
-  file { '/etc/cron.daily/atop_retention':
-    owner   => 'root',
-    group   => 'root',
+  # Template uses:
+  # - $rotate
+  # - $logpath
+  file { $atop_retention:
     mode    => '0755',
     content => template('osnailyfacter/atop_retention.erb'),
+  } ~>
+
+  exec { 'initialize atop_current':
+    command     => "${atop_retention}",
+    refreshonly => true,
   }
 
 }
