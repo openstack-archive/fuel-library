@@ -52,7 +52,6 @@ class cobbler::server (
   $dns_search     = 'local',
   $dns_domain     = 'local',
   $dns_upstream   = '8.8.8.8',
-  $dhcp_gateway   = unset,
   $dhcp_lease_max = '1800',
   $lease_time     = '120m',
   $extra_admin_nets   = {},

@@ -107,8 +107,7 @@ class cobbler(
     dns_upstream       => $dns_upstream,
     dns_domain         => $dns_domain,
     dns_search         => $dns_search,
-    extra_admin_nets   => $extra_admin_nets,
-    dhcp_gateway       => $dhcp_gateway,
+    extra_admin_nets   => $extra_admin_nets
   }
 
   cobbler_digest_user {$cobbler_user:
