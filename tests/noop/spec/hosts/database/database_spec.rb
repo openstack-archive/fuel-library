@@ -63,6 +63,12 @@ describe manifest do
     end
 
     it {
+      should contain_file('/etc/mysql/conf.d/wsrep.cnf').without(
+        :content => /.*log_bin=mysql-bin.*/,
+      )
+    }
+
+    it {
       should contain_haproxy_backend_status('mysql').with(
         :url      => url,
         :provider => provider
