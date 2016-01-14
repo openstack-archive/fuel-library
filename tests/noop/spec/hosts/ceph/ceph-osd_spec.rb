@@ -14,6 +14,12 @@ describe manifest do
     end
     ceph_tuning_settings = Noop.hiera 'ceph_tuning_settings'
 
+    public_ssl_hash = Noop.hiera('public_ssl')
+    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
+    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
+    let(:admin_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
+
     if (storage_hash['images_ceph'] or storage_hash['objects_ceph'])
       it { should contain_class('ceph').with(
            'mon_hosts'                => ceph_monitor_nodes.keys,
@@ -21,7 +27,7 @@ describe manifest do
            'osd_pool_default_pg_num'  => storage_hash['pg_num'],
            'osd_pool_default_pgp_num' => storage_hash['pg_num'],
            'ephemeral_ceph'           => storage_hash['ephemeral_ceph'],
-           'rgw_keystone_url'         => "#{service_endpoint}:35357"
+           'rgw_keystone_url'         => admin_uri,
            )
          }
 
