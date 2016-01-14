@@ -48,6 +48,20 @@
 #  (optional) The method for state snapshot transfer between nodes
 #  Defaults to xtrabackup-v2
 #  xtrabackup, xtrabackup-v2, mysqldump are supported
+#
+# [*binary_logs_enabled*]
+#  Set this value to true for enabling MySQL binary logging.
+#  Defaults to false
+#
+# [*binary_logs_period*]
+#  (optional) Set binary logrotation period in days.
+#  Defaults to 1
+#
+# [*binary_logs_maxsize*]
+# (optional) If a write to the binary log causes the current log file
+# size to exceed the value of this variable, the server rotates the
+# binary logs (closes the current file and opens the next one). The
+# minimum value is 4096 bytes. The maximum and default value is 512MB.
 
 class galera (
   $cluster_name         = 'openstack',
@@ -61,6 +75,9 @@ class galera (
   $status_check         = true,
   $wsrep_sst_method     = 'xtrabackup-v2',
   $wsrep_sst_password   = undef,
+  $binary_logs_enabled  = false,
+  $binary_logs_period   = 1,
+  $binary_logs_maxsize  = '512M',
   ) {
 
   include galera::params
