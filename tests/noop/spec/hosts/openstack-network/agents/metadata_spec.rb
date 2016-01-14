@@ -33,8 +33,10 @@ describe manifest do
       auth_region        = Noop.hiera('region', 'RegionOne')
       service_endpoint   = Noop.hiera('service_endpoint')
       auth_api_version   = 'v2.0'
-      admin_identity_uri = "http://#{service_endpoint}:35357"
-      admin_auth_url     = "#{admin_identity_uri}/#{auth_api_version}"
+      let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+      let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
+      let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
+      let(:admin_auth_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/#{auth_api_version}" }
 
       if neutron_compute_roles.include?(Noop.hiera('role'))
         context 'neutron-metadata-agent on compute' do

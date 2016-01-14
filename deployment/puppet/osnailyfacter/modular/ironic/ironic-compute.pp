@@ -40,6 +40,12 @@ $memcached_port                 = hiera('memcache_server_port', '11211')
 $memcached_addresses            = suffix($memcached_servers, ":${memcached_port}")
 $notify_on_state_change         = 'vm_and_task_state'
 
+$ssl_hash                       = hiera_hash('use_ssl', {})
+$admin_identity_protocol        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_identity_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_identity_uri             = "${admin_identity_protocol}://${admin_identity_address}:35357"
+
+
 ####### Disable upstart startup on install #######
 tweaks::ubuntu_service_override { 'nova-compute':
   package_name => "nova-compute",
@@ -83,7 +89,7 @@ class { '::nova::compute':
 
 
 class { 'nova::compute::ironic':
-  admin_url         => "http://${service_endpoint}:35357/v2.0",
+  admin_url         => "${admin_identity_uri}/v2.0",
   admin_user        => $ironic_user,
   admin_tenant_name => $ironic_tenant,
   admin_passwd      => $ironic_user_password,
@@ -93,7 +99,7 @@ class { 'nova::compute::ironic':
 class { 'nova::network::neutron':
   neutron_admin_password => $neutron_config['keystone']['admin_password'],
   neutron_url            => "http://${neutron_endpoint}:9696",
-  neutron_admin_auth_url => "http://${service_endpoint}:35357/v2.0",
+  neutron_admin_auth_url => "${admin_identity_uri}/v2.0",
 }
 
 cs_resource { "p_nova_compute_ironic":

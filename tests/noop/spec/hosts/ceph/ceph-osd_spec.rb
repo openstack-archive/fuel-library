@@ -14,6 +14,22 @@ describe manifest do
     end
     ceph_tuning_settings = Noop.hiera 'ceph_tuning_settings'
 
+    admin_auth_protocol = 'http'
+    admin_auth_address = Noop.hiera('service_endpoint')
+    if Noop.hiera_structure('use_ssl', false)
+      public_auth_protocol = 'https'
+      public_auth_address = Noop.hiera_structure('use_ssl/keystone_public_hostname')
+      admin_auth_protocol = 'https'
+      admin_auth_address = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
+    elsif Noop.hiera_structure('public_ssl/services')
+      public_auth_protocol = 'https'
+      public_auth_address = Noop.hiera_structure('public_ssl/hostname')
+    else
+      public_auth_protocol = 'http'
+      public_auth_address = Noop.hiera('public_vip')
+    end
+
+
     if (storage_hash['images_ceph'] or storage_hash['objects_ceph'])
       it { should contain_class('ceph').with(
            'mon_hosts'                => ceph_monitor_nodes.keys,
@@ -21,7 +37,7 @@ describe manifest do
            'osd_pool_default_pg_num'  => storage_hash['pg_num'],
            'osd_pool_default_pgp_num' => storage_hash['pg_num'],
            'ephemeral_ceph'           => storage_hash['ephemeral_ceph'],
-           'rgw_keystone_url'         => "#{service_endpoint}:35357"
+           'rgw_keystone_url'         => "#{admin_auth_protocol}://#{admin_auth_address}:35357"
            )
          }
 
