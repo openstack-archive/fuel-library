@@ -72,7 +72,7 @@ class openstack::ha::keystone (
     internal_ssl           => $internal_ssl,
     internal_ssl_path      => $internal_ssl_path,
     haproxy_config_options => {
-      option         => ['httpchk', 'httplog', 'httpclose', 'forwardfor'],
+      option         => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
