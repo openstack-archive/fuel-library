@@ -10,6 +10,9 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Crmsh
   commands :crm           => 'crm'
   commands :cibadmin      => 'cibadmin'
 
+  RETRY_COUNT = 100
+  RETRY_STEP = 6
+
   def self.instances
 
     block_until_ready
@@ -71,6 +74,25 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Crmsh
     @property_hash[:value] = should
   end
 
+  # retry the given command until it runs without errors
+  # or for RETRY_COUNT times with RETRY_STEP sec step
+  # print cluster status report on fail
+  # returns normal command output on success
+  # @return [String]
+  def retry_command
+    (0..RETRY_COUNT).each do
+      begin
+        out = yield
+      rescue Puppet::ExecutionFailure => e
+        Puppet.debug "Command failed: #{e.message}"
+        sleep RETRY_STEP
+      else
+        return out
+      end
+    end
+    fail "Execution timeout after #{RETRY_COUNT * RETRY_STEP} seconds!"
+  end
+
   # Flush is triggered on anything that has been detected as being
   # modified in the property_hash.  It generates a temporary file with
   # the updates that need to be made.  The temporary file is then used
@@ -82,7 +104,9 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Crmsh
       # clear this on properties, in case it's set from a previous
       # run of a different corosync type
       ENV['CIB_shadow'] = nil
-      crm('configure', 'property', '$id="cib-bootstrap-options"', "#{@property_hash[:name]}=#{@property_hash[:value]}")
+      retry_command {
+        crm('configure', 'property', '$id="cib-bootstrap-options"', "#{@property_hash[:name]}=#{@property_hash[:value]}")
+      }
     end
   end
 end
