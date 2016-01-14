@@ -14,7 +14,6 @@ describe manifest do
     it { should contain_class('l23network').with('use_ovs' => use_neutron) }
     it { should contain_sysctl__value('net.ipv4.conf.all.arp_accept').with('value' => '1') }
     it { should contain_sysctl__value('net.ipv4.conf.default.arp_accept').with('value' => '1') }
-    it { should contain_class('openstack::reserved_ports') }
     it { should contain_class('openstack::keepalive').with(
        'tcpka_time'   => '30',
        'tcpka_probes' => '8',
