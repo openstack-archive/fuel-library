@@ -94,101 +94,78 @@ class openstack::glance (
 
   # Install and configure glance-api
   class { 'glance::api':
-    verbose               => $verbose,
-    debug                 => $debug,
-    bind_host             => $bind_host,
-    auth_type             => 'keystone',
-    auth_uri              => $auth_uri,
-    identity_uri          => $identity_uri,
-    keystone_user         => $glance_user,
-    keystone_password     => $glance_user_password,
-    keystone_tenant       => $glance_tenant,
-    database_connection   => $db_connection,
-    enabled               => $enabled,
-    workers               => $service_workers,
-    registry_host         => $registry_host,
-    use_syslog            => $use_syslog,
-    use_stderr            => $use_stderr,
-    log_facility          => $syslog_log_facility,
-    database_idle_timeout => $idle_timeout,
-    show_image_direct_url => $show_image_direct_url,
-    pipeline              => $pipeline,
-    known_stores          => $known_stores,
-    os_region_name        => $region,
+    verbose                => $verbose,
+    debug                  => $debug,
+    bind_host              => $bind_host,
+    auth_type              => 'keystone',
+    auth_uri               => $auth_uri,
+    identity_uri           => $identity_uri,
+    keystone_user          => $glance_user,
+    keystone_password      => $glance_user_password,
+    keystone_tenant        => $glance_tenant,
+    database_connection    => $db_connection,
+    enabled                => $enabled,
+    workers                => $service_workers,
+    registry_host          => $registry_host,
+    use_syslog             => $use_syslog,
+    use_stderr             => $use_stderr,
+    log_facility           => $syslog_log_facility,
+    database_idle_timeout  => $idle_timeout,
+    database_max_pool_size => $max_pool_size,
+    database_max_retries   => $max_retries,
+    database_max_overflow  => $max_overflow,
+    show_image_direct_url  => $show_image_direct_url,
+    pipeline               => $pipeline,
+    known_stores           => $known_stores,
+    os_region_name         => $region,
+    delayed_delete         => false,
+    scrub_time             => '43200',
+    auth_region            => $region,
+    signing_dir            => '/tmp/keystone-signing-glance',
+    token_cache_time       => '-1',
+    image_cache_stall_time => '86400',
+    image_cache_max_size   => $glance_image_cache_max_size,
   }
-
-  # TODO (iberezovskiy): Move to globals (as it is done for sahara)
-  # after new sync with upstream because of
-  # https://github.com/openstack/puppet-glance/blob/master/manifests/api.pp#L237
-  # https://github.com/openstack/puppet-glance/blob/master/manifests/registry.pp#L166
-  if $default_log_levels {
-    glance_api_config {
-      'DEFAULT/default_log_levels' :
-        value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
-    }
-    glance_registry_config {
-      'DEFAULT/default_log_levels' :
-        value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
-    }
-  } else {
-    glance_api_config {
-      'DEFAULT/default_log_levels' : ensure => absent;
-    }
-    glance_registry_config {
-      'DEFAULT/default_log_levels' : ensure => absent;
-    }
-  }
-  #
 
   glance_api_config {
-    'database/max_pool_size':              value => $max_pool_size;
-    'database/max_retries':                value => $max_retries;
-    'database/max_overflow':               value => $max_overflow;
-    'DEFAULT/delayed_delete':              value => 'False';
-    'DEFAULT/scrub_time':                  value => '43200';
-    'DEFAULT/scrubber_datadir':            value => '/var/lib/glance/scrubber';
-    'DEFAULT/auth_region':                 value => $region;
-    'DEFAULT/os_region_name':              value => $region;
-    'keystone_authtoken/signing_dir':      value => '/tmp/keystone-signing-glance';
-    'keystone_authtoken/token_cache_time': value => '-1';
+    'DEFAULT/scrubber_datadir': value => '/var/lib/glance/scrubber';
   }
 
+
+  # TODO (iberezovskiy): use glance::cache::logging class to setup
+  # these parameters after new sync for glance module
+  # (https://review.openstack.org/#/c/238096/)
   glance_cache_config {
-    'DEFAULT/use_syslog':                             value => $use_syslog;
-    'DEFAULT/image_cache_dir':                        value => '/var/lib/glance/image-cache/';
-    'DEFAULT/log_file':                               value => '/var/log/glance/image-cache.log';
-    'DEFAULT/image_cache_stall_time':                 value => '86400';
-    'DEFAULT/image_cache_max_size':                   value => $glance_image_cache_max_size;
-    'DEFAULT/os_region_name':                         value => $region;
+    'DEFAULT/use_syslog':       value => $use_syslog;
+    'DEFAULT/image_cache_dir':  value => '/var/lib/glance/image-cache/';
+    'DEFAULT/log_file':         value => '/var/log/glance/image-cache.log';
+    'DEFAULT/os_region_name':   value => $region;
   }
 
   # Install and configure glance-registry
   class { 'glance::registry':
-    verbose               => $verbose,
-    debug                 => $debug,
-    bind_host             => $bind_host,
-    auth_uri              => $auth_uri,
-    identity_uri          => $identity_uri,
-    auth_type             => 'keystone',
-    keystone_user         => $glance_user,
-    keystone_password     => $glance_user_password,
-    keystone_tenant       => $glance_tenant,
-    database_connection   => $db_connection,
-    enabled               => $enabled,
-    use_syslog            => $use_syslog,
-    use_stderr            => $use_stderr,
-    log_facility          => $syslog_log_facility,
-    database_idle_timeout => $idle_timeout,
-    workers               => $service_workers,
-    sync_db               => $primary_controller,
-  }
-
-  glance_registry_config {
-    'database/max_pool_size':         value => $max_pool_size;
-    'database/max_retries':           value => $max_retries;
-    'database/max_overflow':          value => $max_overflow;
-    'keystone_authtoken/signing_dir': value => '/tmp/keystone-signing-glance';
-    'glance_store/os_region_name':    value => $region;
+    verbose                => $verbose,
+    debug                  => $debug,
+    bind_host              => $bind_host,
+    auth_uri               => $auth_uri,
+    identity_uri           => $identity_uri,
+    auth_type              => 'keystone',
+    keystone_user          => $glance_user,
+    keystone_password      => $glance_user_password,
+    keystone_tenant        => $glance_tenant,
+    database_connection    => $db_connection,
+    database_max_pool_size => $max_pool_size,
+    database_max_retries   => $max_retries,
+    database_max_overflow  => $max_overflow,
+    enabled                => $enabled,
+    use_syslog             => $use_syslog,
+    use_stderr             => $use_stderr,
+    log_facility           => $syslog_log_facility,
+    database_idle_timeout  => $idle_timeout,
+    workers                => $service_workers,
+    sync_db                => $primary_controller,
+    signing_dir            => '/tmp/keystone-signing-glance',
+    os_region_name         => $region,
   }
 
   # puppet-glance assumes rabbit_hosts is an array of [node:port, node:port]
