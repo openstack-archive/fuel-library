@@ -11,20 +11,13 @@
 #   IP address for interface. Can contain IP address, 'dhcp'
 #   or 'none' (with no IP address).
 #   Can be an array of CIDR IP addresses ['192.168.1.3/24','10.0.0.4/16']
-#   for multiple IPs on an interface. In this case netmask parameter is ignored.
-#
-# [*netmask*]
-#   Specify network mask. Default is '255.255.255.0'.
+#   for multiple IPs on an interface.
 #
 # [*gateway*]
 #   Specify default gateway if need.
 #   You can specify IP address, or 'save' for save default route
 #   if it lies through this interface now.
 #
-## [*default_gateway*]
-##   Specify if this nic and gateway should become the default route.
-##   requires that gateway is also set.
-##
 ## [*other_nets*]
 ##   Optional. Defines additional networks that this inteface can reach in CIDR
 ##   format.
@@ -69,7 +62,6 @@ define l23network::l3::ifconfig (
     $dns_search      = undef,
     $dns_domain      = undef,
     $dhcp_hostname   = undef,
-#   $dhcp_nowait     = false,
     $check_by_ping   = 'gateway',
     $check_by_ping_timeout = 30,
     #todo: label => "XXX", # -- "ip addr add..... label XXX"
@@ -92,23 +84,16 @@ define l23network::l3::ifconfig (
     $ipaddr_aliases = undef
     case $ipaddr {
       'dhcp':  {
-        $method = 'dhcp'
+        $method      = 'dhcp'
         $ipaddr_list = ['dhcp']
       }
       'none':  {
-        $method = 'manual'
+        $method      = 'manual'
         $ipaddr_list = ['none']
       }
       default: {
-        $method = 'static'
-        if $ipaddr =~ /\/\d{1,2}\s*$/ {
-          # ipaddr can be cidr-notated
-          $ipaddr_list = [$ipaddr]
-        } else {
-          # or classic pair of ipaddr+netmask
-          $cidr_notated_effective_netmask = netmask_to_cidr($netmask)
-          $ipaddr_list = ["${ipaddr}/${cidr_notated_effective_netmask}"]
-        }
+        $method      = 'static'
+        $ipaddr_list = [$ipaddr]
       }
     }
   } else {

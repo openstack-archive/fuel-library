@@ -26,7 +26,11 @@
 #     downdelay
 #
 # [*provider*]
-#  This manifest supports lnx or ovs providers.
+#   This manifest supports lnx or ovs providers.
+#
+# [*interface_properties*]
+#   Configuration options for included interfaces (mtu, ethtool, etc...)
+#
 
 define l23network::l2::bond (
   $ensure                  = present,
@@ -38,7 +42,7 @@ define l23network::l2::bond (
   $onboot                  = undef,
   $delay_while_up          = undef,
   $bond_properties         = {},
-  $interface_properties    = undef,  # configuration options for included interfaces (mtu, ethtool, etc...)
+  $interface_properties    = undef,
   $vendor_specific         = undef,
   $monolith_bond_providers = undef,
   $provider                = undef,
@@ -167,7 +171,7 @@ define l23network::l2::bond (
   }
 
   if $delay_while_up and ! is_numeric($delay_while_up) {
-    fail("Delay for waiting after UP interface ${port} should be numeric, not an ${delay_while_up}.")
+    fail("Delay for waiting after UP interface ${bond} should be numeric, not an ${delay_while_up}.")
   }
 
   if ! $bridge and $provider == 'ovs' {
@@ -202,8 +206,8 @@ define l23network::l2::bond (
 
   if (! defined(L23network::L2::Bridge[$bridge]) and $provider == 'ovs') {
     l23network::l2::bridge { $bridge:
-      ensure    => 'present',
-      provider  => $provider,
+      ensure   => 'present',
+      provider => $provider,
     }
   }
 
