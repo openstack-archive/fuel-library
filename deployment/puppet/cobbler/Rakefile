@@ -18,7 +18,6 @@ PuppetLint::RakeTask.new :lint do |config|
       "class_parameter_defaults",
       "only_variable_string",
       "autoloader_layout", # TODO(aschultz): this is from included defines in classes, should be fixed and this should be removed.
-      "nested_classes_or_defines",
       "only_variable_string",
       "2sp_soft_tabs",
       "hard_tabs",
