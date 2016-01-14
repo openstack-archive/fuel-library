@@ -25,6 +25,10 @@ prepare_network_config($network_scheme)
 $ceph_cluster_network      = get_network_role_property('ceph/replication', 'network')
 $ceph_public_network       = get_network_role_property('ceph/public', 'network')
 $ceph_tuning_settings      = hiera('ceph_tuning_settings', {})
+$ssl_hash                  = hiera_hash('use_ssl', {})
+$admin_auth_protocol       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_auth_address        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_identity_url        = "${admin_auth_protocol}://${admin_auth_address}:35357"
 
 class {'ceph':
   primary_mon              => $primary_mon,
@@ -35,7 +39,7 @@ class {'ceph':
   osd_pool_default_pg_num  => $storage_hash['pg_num'],
   osd_pool_default_pgp_num => $storage_hash['pg_num'],
   use_rgw                  => $storage_hash['objects_ceph'],
-  rgw_keystone_url         => "${service_endpoint}:35357",
+  rgw_keystone_url         => $admin_identity_url,
   glance_backend           => $glance_backend,
   rgw_pub_ip               => $public_vip,
   rgw_adm_ip               => $management_vip,
