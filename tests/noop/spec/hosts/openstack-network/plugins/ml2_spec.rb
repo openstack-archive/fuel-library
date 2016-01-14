@@ -39,31 +39,19 @@ describe manifest do
         dvr = adv_neutron_config.fetch('neutron_dvr', false)
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
-        extension_drivers = ['port_security']
         l2_population = adv_neutron_config.fetch('neutron_l2_pop', false)
-
-        if l2_population
-          default_mechanism_drivers = 'openvswitch,l2population'
-        else
-          default_mechanism_drivers = 'openvswitch'
-        end
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
-          network_vlan_ranges_physnet2 = pnets.fetch('physnet2',{}).fetch('vlan_range')
           if role =~ /controller/ and !dvr
             physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}", "physnet2:#{pnets['physnet2']['bridge']}"]
-            network_vlan_ranges = ["physnet1", "physnet2:#{network_vlan_ranges_physnet2}"]
           else
             physnets_array = ["physnet2:#{pnets['physnet2']['bridge']}"]
-            network_vlan_ranges = ["physnet2:#{network_vlan_ranges_physnet2}"]
           end
           tunnel_id_ranges  = []
-          overlay_net_mtu = '1500'
           tunnel_types = []
           if pnets['physnet-ironic']
             physnets_array << "physnet-ironic:#{pnets['physnet-ironic']['bridge']}"
-            network_vlan_ranges << 'physnet-ironic'
           end
         else
           if role == 'compute' and !dvr
@@ -72,9 +60,6 @@ describe manifest do
             physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}"]
           end
           network_type   = 'vxlan'
-          network_vlan_ranges = ["physnet1"]
-          tunnel_id_ranges  = [neutron_config.fetch('L2',{}).fetch('tunnel_id_ranges')]
-          overlay_net_mtu = '1450'
           tunnel_types    = [network_type]
         end
 
@@ -83,48 +68,6 @@ describe manifest do
           'bridge_mappings' => bridge_mappings
         )}
 
-        it { should contain_class('neutron::plugins::ml2').with(
-          'enable_security_group' => 'true',
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
-          'flat_networks' => '*',
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
-          'type_drivers' => ['local', 'flat', 'vlan', 'gre', 'vxlan'],
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
-          'tenant_network_types' => ['flat', network_type],
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
-          'mechanism_drivers' => neutron_config.fetch('L2', {}).fetch('mechanism_drivers', default_mechanism_drivers).split(',')
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
-          'network_vlan_ranges' => network_vlan_ranges,
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
-          'tunnel_id_ranges' => tunnel_id_ranges,
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
-          'vni_ranges' => tunnel_id_ranges,
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
-          'vxlan_group' => '224.0.0.1',
-        )}
-        it {
-          if segmentation_type == 'vlan'
-            physical_network_mtus = Noop.puppet_function('generate_physnet_mtus', Noop.hiera_hash('neutron_config'), network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false })
-          else
-            physical_network_mtus = Noop.puppet_function('generate_physnet_mtus', Noop.hiera_hash('neutron_config'), network_scheme, { 'do_floating' => true, 'do_tenant' => false, 'do_provider' => false })
-          end
-          should contain_class('neutron::plugins::ml2').with(
-          'physical_network_mtus' => physical_network_mtus,
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
-          'path_mtu' => overlay_net_mtu,
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
-          'extension_drivers' => extension_drivers,
-        )}
         it { should contain_class('neutron::agents::ml2::ovs').with(
           'enabled' => true,
         )}
