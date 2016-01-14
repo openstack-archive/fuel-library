@@ -65,7 +65,7 @@ class mysql::config(
     fail('The ignore_db_dirs parameter is expected to be an array')
   }
 
-  if $custom_setup_class != "pacemaker_mysql" {
+  if $custom_setup_class != 'pacemaker_mysql' {
     File {
       owner  => 'root',
       group  => $root_group,
@@ -119,9 +119,9 @@ class mysql::config(
       # delete MySQL ib_logfiles, if log file size does not match the one
       # from params
       exec { 'delete_logfiles':
-        command     => "rm -f ${datadir}/ib_logfile* || true",
-        path        => [ '/sbin/', '/usr/sbin/', '/usr/bin/' ,'/bin/' ],
-        before      => File[$config_file],
+        command => "rm -f ${datadir}/ib_logfile* || true",
+        path    => [ '/sbin/', '/usr/sbin/', '/usr/bin/' ,'/bin/' ],
+        before  => File[$config_file],
       }
       # use predefined value for log file size
       $innodb_log_file_size_real = $mysql_log_file_size
