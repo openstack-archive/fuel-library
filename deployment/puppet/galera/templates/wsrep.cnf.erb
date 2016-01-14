@@ -5,12 +5,15 @@ port=3307
 max_connections=<%= @max_connections %>
 default-storage-engine=innodb
 binlog_format=ROW
-log_bin=mysql-bin
 collation-server=utf8_general_ci
 init-connect='SET NAMES utf8'
 character-set-server=utf8
 default-storage-engine=innodb
-expire_logs_days=10
+<% if @binary_logs_enabled -%>
+log_bin=mysql-bin
+expire_logs_days=<%= @binary_logs_period %>
+max_binlog_size=<%= @binary_logs_maxsize %>
+<% end -%>
 
 skip-external-locking
 <% if @skip_name_resolve -%>
