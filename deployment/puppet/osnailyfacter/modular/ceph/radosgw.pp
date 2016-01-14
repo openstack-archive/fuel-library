@@ -11,6 +11,9 @@ $radosgw_large_pool_name = ".rgw"
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 $external_lb      = hiera('external_lb', false)
 $ssl_hash         = hiera_hash('use_ssl', {})
+$admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_identity_url      = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
 if ($storage_hash['volumes_ceph'] or
   $storage_hash['images_ceph'] or
@@ -54,9 +57,6 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
     $internal_auth_address   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
     $internal_auth_url       = "${internal_auth_protocol}://${internal_auth_address}:5000"
-    $admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-    $admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
-    $admin_identity_url      = "${admin_identity_protocol}://${admin_identity_address}:35357"
   }
 
   haproxy_backend_status { 'keystone-admin' :
@@ -109,7 +109,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     #rgw Keystone settings
     rgw_use_pki                      => false,
     rgw_use_keystone                 => true,
-    rgw_keystone_url                 => "${service_endpoint}:35357",
+    rgw_keystone_url                 => $admin_identity_url,
     rgw_keystone_admin_token         => $keystone_hash['admin_token'],
     rgw_keystone_token_cache_size    => '10',
     rgw_keystone_accepted_roles      => '_member_, Member, admin, swiftoperator',

@@ -25,6 +25,12 @@ $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
 $external_lb                = hiera('external_lb', false)
 $ssl_hash                   = hiera_hash('use_ssl', {})
+$internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$internal_auth_url          = "${internal_auth_protocol}://${internal_auth_address}:5000"
+$admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
 #################################################################
 
@@ -80,8 +86,8 @@ if $sahara_hash['enabled'] {
     database_max_retries   => $max_retries,
     database_idle_timeout  => $idle_timeout,
     sync_db                => $primary_controller,
-    auth_uri               => "http://${service_endpoint}:5000/v2.0/",
-    identity_uri           => "http://${service_endpoint}:35357/",
+    auth_uri               => "${internal_auth_url}/v2.0/",
+    identity_uri           => $admin_identity_uri,
     rpc_backend            => 'rabbit',
     use_neutron            => $use_neutron,
     admin_user             => $sahara_user,
@@ -142,14 +148,6 @@ if $sahara_hash['enabled'] {
 
   if $primary_controller {
 
-    $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-    $internal_auth_address   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
-    $internal_auth_url       = "${internal_auth_protocol}://${internal_auth_address}:5000"
-
-    $admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-    $admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
-    $admin_identity_url      = "${admin_identity_protocol}://${admin_identity_address}:35357"
-
     haproxy_backend_status { 'keystone-public' :
       name  => 'keystone-1',
       url   => $external_lb ? {
@@ -162,7 +160,7 @@ if $sahara_hash['enabled'] {
       name  => 'keystone-2',
       url   => $external_lb ? {
         default => $haproxy_stats_url,
-        true    => $admin_identity_url,
+        true    => $admin_identity_uri,
       },
     }
 

@@ -28,11 +28,19 @@ describe manifest do
       end
     end
 
+    public_ssl_hash = Noop.hiera('public_ssl')
+    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
+    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
+    let(:admin_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
+
     if ironic_enabled
       it 'nova config should have correct ironic settings' do
         should contain_nova_config('ironic/admin_password').with(:value => ironic_user_password)
         should contain_nova_config('DEFAULT/compute_driver').with(:value => 'ironic.IronicDriver')
         should contain_nova_config('DEFAULT/compute_manager').with(:value => 'ironic.nova.compute.manager.ClusteredComputeManager')
+        should contain_nova_config('ironic/admin_url').with(:value => "#{admin_uri}/v2.0")
+        should contain_nova_config('neutron/admin_auth_url')..with(:value => "#{admin_uri}/v2.0")
       end
 
       it 'nova config should have reserved_host_memory_mb set to 0' do
