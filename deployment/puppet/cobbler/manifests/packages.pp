@@ -15,42 +15,36 @@
 
 class cobbler::packages {
 
-  case $operatingsystem {
+  case $::operatingsystem {
     /(?i)(centos|redhat)/:  {
-      $cobbler_package = "cobbler"
-      $cobbler_web_package = "cobbler-web"
-      $dnsmasq_package = "dnsmasq"
-      $django_package = "python-django"
-      $openssh_package = "openssh-clients"
-      $pexpect_package = "pexpect"
+      $cobbler_package     = 'cobbler'
+      $cobbler_web_package = 'cobbler-web'
+      $dnsmasq_package     = 'dnsmasq'
+      $django_package      = 'python-django'
+      $openssh_package     = 'openssh-clients'
+      $pexpect_package     = 'pexpect'
       case $::operatingsystemrelease {
         /6.+/: {
-          $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr","fence-agents", "bind-utils"]
+          $cobbler_additional_packages = ['xinetd', 'tftp-server', 'syslinux', 'wget', 'python-ipaddr','fence-agents', 'bind-utils']
         }
         /7.+/: {
-          $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr","fence-agents-all", "bind-utils"]
+          $cobbler_additional_packages = ['xinetd', 'tftp-server', 'syslinux', 'wget', 'python-ipaddr','fence-agents-all', 'bind-utils']
         }
       }
     }
     /(?i)(debian|ubuntu)/:  {
-      $cobbler_package = "cobbler"
-      $cobbler_web_package = "cobbler-web"
-      $dnsmasq_package = "dnsmasq"
-      $cobbler_additional_packages = ["tftpd-hpa", "syslinux", "wget","python-ipaddr", "fence-agents",  "dnsutils", "bind9-host"]
-      $django_package = "python-django"
-      $django_version = "1.3.1-4ubuntu1"
-      $openssh_package = "openssh-client"
-      $pexpect_package = "python-pexpect"
+      $cobbler_package             = 'cobbler'
+      $cobbler_web_package         = 'cobbler-web'
+      $dnsmasq_package             = 'dnsmasq'
+      $cobbler_additional_packages = ['tftpd-hpa', 'syslinux', 'wget','python-ipaddr', 'fence-agents',  'dnsutils', 'bind9-host']
+      $django_package              = 'python-django'
+      $django_version              = '1.3.1-4ubuntu1'
+      $openssh_package             = 'openssh-client'
+      $pexpect_package             = 'python-pexpect'
     }
   }
 
-  define cobbler_safe_package(){
-    if ! defined(Package[$name]){
-      @package { $name : }
-    }
-  }
-
-  cobbler_safe_package { $cobbler_additional_packages : }
+  ensure_packages($cobbler_additional_packages)
 
   package { $django_package :
         ensure => present

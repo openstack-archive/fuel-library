@@ -45,7 +45,7 @@ class cobbler::distro::centos64_x86_64(
   }
 
   # CentOS-6.4-x86_64-minimal
-  $iso_name = extension_basename($http_iso, 'true')
+  $iso_name = extension_basename($http_iso, true)
   # CentOS-6.4-x86_64-minimal.iso
   $iso_basename = extension_basename($http_iso)
   # /var/www/cobbler/ks_mirror/CentOS-6.4-x86_64-minimal.iso

@@ -63,23 +63,23 @@ class cobbler(
 
   ){
 
-  anchor { "cobbler-begin": }
-  anchor { "cobbler-end": }
+  anchor { 'cobbler-begin': }
+  anchor { 'cobbler-end': }
 
-  Anchor<| title == "cobbler-begin" |> ->
-  Class["::cobbler::packages"] ->
-  Class["::cobbler::selinux"] ->
-  Class["::cobbler::snippets"] ->
-  Class["::cobbler::server"] ->
-  Anchor<| title == "cobbler-end" |>
+  Anchor<| title == 'cobbler-begin' |> ->
+  Class['::cobbler::packages'] ->
+  Class['::cobbler::selinux'] ->
+  Class['::cobbler::snippets'] ->
+  Class['::cobbler::server'] ->
+  Anchor<| title == 'cobbler-end' |>
 
-  class { ::cobbler::packages : }
-  class { ::cobbler::selinux : }
+  class { '::cobbler::packages': }
+  class { '::cobbler::selinux': }
   if $production !~ /docker/ {
     include ::cobbler::iptables
   }
-  class { ::cobbler::snippets : }
-  class { ::cobbler::server :
+  class { '::cobbler::snippets': }
+  class { '::cobbler::server':
     domain_name  => $domain_name,
     production   => $production,
     dns_upstream => $dns_upstream,
@@ -88,10 +88,10 @@ class cobbler(
     dhcp_gateway => $dhcp_gateway,
   }
 
-  cobbler_digest_user {$cobbler_user:
+  cobbler_digest_user { $cobbler_user:
     password => $cobbler_password,
-    require => Package[$cobbler::packages::cobbler_package],
-    notify => Service[$cobbler::server::cobbler_service],
+    require  => Package[$::cobbler::packages::cobbler_package],
+    notify   => Service[$::cobbler::server::cobbler_service],
   }
 
 }

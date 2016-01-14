@@ -30,7 +30,7 @@ class cobbler::distro::ubuntu_1204_x86_64(
   }
 
   # mini
-  $iso_name = extension_basename($http_iso, 'true')
+  $iso_name = extension_basename($http_iso, true)
   # mini.iso
   $iso_basename = extension_basename($http_iso)
   # /var/www/cobbler/ks_mirror/ubuntu-12.04-x86_64-mini.iso
@@ -41,12 +41,12 @@ class cobbler::distro::ubuntu_1204_x86_64(
   $iso_link = "/var/www/cobbler/links/${iso_name}"
 
   if $ks_url == 'cobbler' {
-    $tree_host = "@@server@@"
-    $tree_url = "/cblr/links/${iso_name}"
+    $tree_host = '@@server@@'
+    $tree_url  = "/cblr/links/${iso_name}"
   }
   else {
     $tree_host = inline_template("<%= @ks_url.split('http://')[1].split('/')[0] %>")
-    $tree_url = inline_template("/<%= @ks_url.split('http://')[1].split('/')[1 .. -1].join('/') %>")
+    $tree_url  = inline_template("/<%= @ks_url.split('http://')[1].split('/')[1 .. -1].join('/') %>")
   }
 
   file { $iso_mnt:
@@ -83,7 +83,7 @@ class cobbler::distro::ubuntu_1204_x86_64(
     target => $iso_mnt,
   }
 
-  cobbler_distro { "ubuntu_1204_x86_64":
+  cobbler_distro { 'ubuntu_1204_x86_64':
     kernel    => "${iso_mnt}/linux",
     initrd    => "${iso_mnt}/initrd.gz",
     arch      => 'x86_64',
@@ -93,5 +93,4 @@ class cobbler::distro::ubuntu_1204_x86_64(
     require   => Mount[$iso_mnt],
   }
 
-
-  }
+}
