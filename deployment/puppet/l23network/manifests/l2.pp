@@ -23,7 +23,8 @@ class l23network::l2 (
   $ovs_datapath_package_name    = $::l23network::params::ovs_datapath_package_name,
   $ovs_common_package_name      = $::l23network::params::ovs_common_package_name,
 ){
-  include stdlib
+
+  include ::stdlib
   include ::l23network::params
 
   if $use_ovs {
@@ -31,15 +32,15 @@ class l23network::l2 (
     if $install_ovs {
       if $use_ovs_dkms_datapath_module {
         package { 'openvswitch-datapath':
-          name   => $ovs_datapath_package_name,
           ensure => $ensure_package,
+          name   => $ovs_datapath_package_name,
         }
         Package['openvswitch-datapath'] -> Service['openvswitch-service']
       }
       if $ovs_common_package_name {
         package { 'openvswitch-common':
-          name   => $ovs_common_package_name,
           ensure => $ensure_package,
+          name   => $ovs_common_package_name,
         }
         Package['openvswitch-common'] ~> Service['openvswitch-service']
       }
