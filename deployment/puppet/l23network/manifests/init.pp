@@ -41,10 +41,10 @@ class l23network (
   $disable_hotplug              = true,
 ){
 
-  include stdlib
+  include ::stdlib
   include ::l23network::params
 
-  class { 'l23network::l2':
+  class { '::l23network::l2':
     ensure_package               => $ensure_package,
     use_ovs                      => $use_ovs,
     use_lnx                      => $use_lnx,
@@ -60,24 +60,24 @@ class l23network (
   }
 
   if $::l23network::params::interfaces_file {
-    if ! defined(File["${::l23network::params::interfaces_file}"]) {
-      file {"${::l23network::params::interfaces_file}":
-        ensure  => present,
-        source  => 'puppet:///modules/l23network/interfaces',
+    if ! defined(File[$::l23network::params::interfaces_file]) {
+      file { $::l23network::params::interfaces_file:
+        ensure => present,
+        source => 'puppet:///modules/l23network/interfaces',
       }
     }
-    File<| title == "${::l23network::params::interfaces_file}" |> -> File<| title == "${::l23network::params::interfaces_dir}" |>
+    File<| title == $::l23network::params::interfaces_file |> -> File<| title == $::l23network::params::interfaces_dir |>
   }
 
-  if ! defined(File["${::l23network::params::interfaces_dir}"]) {
-    file {"${::l23network::params::interfaces_dir}":
+  if ! defined(File[$::l23network::params::interfaces_dir]) {
+    file { $::l23network::params::interfaces_dir:
       ensure => directory,
       owner  => 'root',
       mode   => '0755',
     } -> Anchor['l23network::init']
   }
-  Anchor['l23network::l2::init'] -> File<| title == "${::l23network::params::interfaces_dir}" |>
-  Anchor['l23network::l2::init'] -> File<| title == "${::l23network::params::interfaces_file}" |>
+  Anchor['l23network::l2::init'] -> File<| title == $::l23network::params::interfaces_dir |>
+  Anchor['l23network::l2::init'] -> File<| title == $::l23network::params::interfaces_file |>
 
   # Centos interface up-n-down scripts
   if $::l23_os =~ /(?i:redhat|centos)/ {
