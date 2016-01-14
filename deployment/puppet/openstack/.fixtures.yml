@@ -20,7 +20,7 @@ fixtures:
       branch: '7.0.0-rc4'
     'neutron':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-neutron.git'
-      branch: '7.0.0-mos-rc4'
+      branch: 'mos-9.0'
     'nova':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-nova.git'
       branch: '7.0.0-mos-rc2'
