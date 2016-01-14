@@ -18,7 +18,7 @@ define l23network::l2::bridge (
   $stp             = undef,
   $bpdu_forward    = true,
 # $bridge_id       = undef,  # will be implemented later
-  $external_ids    = { 'bridge-id' => "${name}" },
+  $external_ids    = { 'bridge-id' => $name },
   $delay_while_up  = undef,
   $vendor_specific = undef,
   $provider        = undef,
@@ -34,7 +34,7 @@ define l23network::l2::bridge (
     }
 
     if $delay_while_up and ! is_numeric($delay_while_up) {
-      fail("Delay for waiting after UP bridge ${name} should be numeric, not an '$delay_while_up'.")
+      fail("Delay for waiting after UP bridge ${name} should be numeric, not an '${delay_while_up}'.")
     }
 
     if ! defined (L23_stored_config[$name]) {
@@ -74,7 +74,7 @@ define l23network::l2::bridge (
         ensure  => present,
         owner   => 'root',
         mode    => '0755',
-        content => template("l23network/centos_post_up.erb"),
+        content => template('l23network/centos_post_up.erb'),
       } -> L23_stored_config <| title == $name |>
     } else {
       file {"${::l23network::params::interfaces_dir}/interface-up-script-${name}":

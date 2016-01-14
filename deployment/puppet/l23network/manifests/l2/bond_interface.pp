@@ -44,4 +44,3 @@ define l23network::l2::bond_interface (
     }
   }
 }
-###
