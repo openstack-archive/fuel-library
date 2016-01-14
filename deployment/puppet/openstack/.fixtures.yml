@@ -26,7 +26,7 @@ fixtures:
       branch: 'mos-9.0'
     'heat':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-heat.git'
-      branch: '7.0.0-mos-rc2'
+      branch: 'mos-9.0'
     'glance':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-glance.git'
       branch: 'mos-9.0'
