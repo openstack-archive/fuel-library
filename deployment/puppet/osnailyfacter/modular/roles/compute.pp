@@ -27,7 +27,7 @@ $storage_hash                   = hiera_hash('storage_hash', {})
 $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera_hash('nova_hash', {})
 $nova_custom_hash               = hiera_hash('nova_custom_hash', {})
-$rabbit_hash                    = hiera_hash('rabbit_hash', {})
+$hiera_rabbit_hash              = hiera_hash('rabbit_hash', {})
 $glance_hash                    = hiera_hash('glance_hash', {})
 $keystone_hash                  = hiera_hash('keystone_hash', {})
 $swift_hash                     = hiera_hash('swift_hash', {})
@@ -119,8 +119,10 @@ if $primary_controller {
   }
 }
 
-if !$rabbit_hash['user'] {
-  $rabbit_hash['user'] = 'nova'
+if !$hiera_rabbit_hash['user'] {
+  $rabbit_hash = merge($hiera_rabbit_hash, { user => 'nova' })
+} else {
+  $rabbit_hash = $hiera_rabbit_hash
 }
 
 $floating_hash = {}
@@ -194,9 +196,9 @@ if member($roles, 'controller') or member($roles, 'primary-controller') {
 if $use_monit_real {
   # Configure service names for monit watchdogs and 'service' system path
   # FIXME(bogdando) replace service_path to systemd, once supported
-  include nova::params
-  include cinder::params
-  include neutron::params
+  include ::nova::params
+  include ::cinder::params
+  include ::neutron::params
   $nova_compute_name   = $::nova::params::compute_service_name
   $nova_api_name       = $::nova::params::api_service_name
   $nova_network_name   = $::nova::params::network_service_name
@@ -225,30 +227,52 @@ if hiera('use_vcenter', false) {
 $mirror_type = 'external'
 Exec { logoutput => true }
 
-include osnailyfacter::test_compute
+include ::osnailyfacter::test_compute
 
 if ($::mellanox_mode == 'ethernet') {
   $neutron_private_net = pick($neutron_config['default_private_net'], 'net04')
   $physnet = $neutron_config['predefined_networks'][$neutron_private_net]['L2']['physnet']
-  class { 'mellanox_openstack::compute':
+  class { '::mellanox_openstack::compute':
     physnet => $physnet,
     physifc => $neutron_mellanox['physical_port'],
   }
 }
 
+$oc_public_interface = $public_int ? {
+  undef   => '',
+  default => $public_int
+}
+
+$oc_private_interface = $use_neutron ? {
+  true    => false,
+  default => hiera('private_int', undef)
+}
+
+$oc_fixed_range = $use_neutron ? {
+  true    => false,
+  default => hiera('fixed_network_range', undef)
+}
+
+$oc_neutron_user_password = $use_neutron ? {
+  true    => $neutron_config['keystone']['admin_password'],
+  default => undef
+}
+
+$oc_nova_hash = merge({ 'reserved_host_memory' => $r_hostmem }, $nova_hash)
+
 # NOTE(bogdando) deploy compute node with disabled nova-compute
 #   service #LP1398817. The orchestration will start and enable it back
 #   after the deployment is done.
 # FIXME(bogdando) This should be changed once the host aggregates implemented, bp disable-new-computes
-class { 'openstack::compute':
+class { '::openstack::compute':
   enabled                     => false,
-  public_interface            => $public_int ? { undef=>'', default=>$public_int},
-  private_interface           => $use_neutron ? { true=>false, default=>hiera('private_int', undef)},
+  public_interface            => $oc_public_interface,
+  private_interface           => $oc_private_interface,
   internal_address            => get_network_role_property('nova/api', 'ipaddr'),
   libvirt_type                => hiera('libvirt_type', undef),
   # FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
   host_uuid                   => hiera('host_uuid', generate('/bin/sh', '-c', 'uuidgen')),
-  fixed_range                 => $use_neutron ? { true=>false, default=>hiera('fixed_network_range', undef)},
+  fixed_range                 => $oc_fixed_range,
   network_manager             => hiera('network_manager', undef),
   network_config              => hiera('network_config', {}),
   multi_host                  => $multi_host,
@@ -270,7 +294,7 @@ class { 'openstack::compute':
   vnc_enabled                 => true,
   manage_volumes              => $manage_volumes,
   nova_user_password          => $nova_hash[user_password],
-  nova_hash                   => merge({'reserved_host_memory' => $r_hostmem}, $nova_hash),
+  nova_hash                   => $oc_nova_hash,
   cache_server_ip             => $memcached_server,
   cache_server_port           => $memcached_port,
   service_endpoint            => $service_endpoint,
@@ -283,7 +307,7 @@ class { 'openstack::compute':
   ceilometer_user_password    => $ceilometer_hash[user_password],
   db_host                     => $db_host,
   network_provider            => $network_provider,
-  neutron_user_password       => $use_neutron ? { true=>$neutron_config['keystone']['admin_password'], default=>undef},
+  neutron_user_password       => $oc_neutron_user_password,
   base_mac                    => $base_mac,
 
   use_syslog                  => $use_syslog,
@@ -306,13 +330,13 @@ $nova_config_hash = {
   'DEFAULT/use_cow_images'                         => { value => hiera('use_cow_images', 'True') },
   'DEFAULT/block_device_allocate_retries'          => { value => $block_device_allocate_retries },
   'DEFAULT/block_device_allocate_retries_interval' => { value => $block_device_allocate_retries_interval },
-  'libvirt/libvirt_inject_key'                     => { value => 'true' },
-  'libvirt/libvirt_inject_password'                => { value => 'true' },
+  'libvirt/libvirt_inject_key'                     => { value => true },
+  'libvirt/libvirt_inject_password'                => { value => true },
 }
 
 $nova_complete_hash = merge($nova_config_hash, $nova_custom_hash)
 
-class {'nova::config':
+class {'::nova::config':
   nova_config => $nova_complete_hash,
 }
 
