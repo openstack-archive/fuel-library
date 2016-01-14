@@ -1,5 +1,6 @@
 - id: rabbitmq
   type: puppet
+  version: 2.0.0
   groups: [controller]
   cross-depends:
     - name: primary-rabbitmq
@@ -13,6 +14,7 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_post.rb
 - id: primary-rabbitmq
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end, openstack-controller, glance]
   requires: [openstack-haproxy]

@@ -1,5 +1,6 @@
 - id: sahara
   type: puppet
+  version: 2.0.0
   groups: [primary-controller, controller]
   condition: "settings:additional_components.sahara.value == true"
   required_for: [deploy_end, controller_remaining_tasks]
@@ -15,6 +16,7 @@
 
 - id: sahara-db
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
@@ -28,6 +30,7 @@
 
 - id: sahara-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [sahara]
   requires: [keystone]

@@ -1,5 +1,6 @@
 - id: ceilometer-controller
   type: puppet
+  version: 2.0.0
   cross-depends:
     - name: ceilometer-keystone
   groups: [primary-controller, controller]
@@ -17,6 +18,7 @@
 
 - id: ceilometer-compute
   type: puppet
+  version: 2.0.0
   groups: [compute, compute-vmware]
   required_for: [deploy_end]
   requires: [ceilometer-controller, top-role-compute]
@@ -34,6 +36,7 @@
 
 - id: ceilometer-keystone
   type: puppet
+  version: 2.0.0
   groups: [primary-controller]
   required_for: [ceilometer-controller]
   condition: "settings:additional_components.ceilometer.value == true"
@@ -45,6 +48,7 @@
 
 - id: ceilometer-radosgw-user
   type: puppet
+  version: 2.0.0
   role: [primary-controller, controller]
   requires: [post_deployment_start, enable_rados]
   required_for: [post_deployment_end]
