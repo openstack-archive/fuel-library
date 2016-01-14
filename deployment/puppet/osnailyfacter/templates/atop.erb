@@ -17,3 +17,7 @@ INTERVAL=<%= @interval %>
 LOGPATH="<%= @logpath %>"
 OUTFILE="$LOGPATH/daily.log"
 <% end -%>
+<% if @custom_acct_file or @custom_acct_file.nil? -%>
+# Could be empty to disable accounting
+ATOPACCT=<%= @custom_acct_file %>
+<% end -%>
