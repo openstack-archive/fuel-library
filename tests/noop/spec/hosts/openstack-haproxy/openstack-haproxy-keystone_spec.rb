@@ -32,7 +32,7 @@ describe manifest do
           'public'                 => true,
           'public_ssl'             => public_ssl_keystone,
           'haproxy_config_options' => {
-            'option'       => ['httpchk', 'httplog', 'httpclose', 'forwardfor'],
+            'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           },
         )
@@ -46,7 +46,7 @@ describe manifest do
           'listen_port'            => 35357,
           'public'                 => false,
           'haproxy_config_options' => {
-            'option'       => ['httpchk', 'httplog', 'httpclose', 'forwardfor'],
+            'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           },
         )
