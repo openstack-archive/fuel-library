@@ -14,7 +14,7 @@ if $use_neutron {
   ]
 
   $rabbit_hash      = hiera_hash('rabbit_hash', { })
-  $ceilometer_hash  = hiera_hash('ceilometer', { })
+  $ceilometer_hash  = hiera_hash('ceilometer_hash', { })
   $network_scheme   = hiera_hash('network_scheme')
 
   $verbose      = pick($openstack_network_hash['verbose'], hiera('verbose', true))
@@ -27,7 +27,6 @@ if $use_neutron {
   $bind_host = get_network_role_property('neutron/api', 'ipaddr')
 
   $base_mac       = $neutron_config['L2']['base_mac']
-  $use_ceilometer = $ceilometer_hash['enabled']
   $amqp_hosts     = split(hiera('amqp_hosts', ''), ',')
   $amqp_user      = $rabbit_hash['user']
   $amqp_password  = $rabbit_hash['password']
@@ -99,8 +98,8 @@ if $use_neutron {
     neutron_config { 'DEFAULT/use_syslog_rfc_format': value => true; }
   }
 
-  if $use_ceilometer {
-    neutron_config { 'DEFAULT/notification_driver': value => 'messaging' }
+  neutron_config {
+    'DEFAULT/notification_driver': value => $ceilometer_hash['notification_driver'];
   }
 
 }

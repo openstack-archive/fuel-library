@@ -20,7 +20,7 @@ $service_endpoint      = hiera('service_endpoint')
 $glance_hash           = hiera_hash('glance', {})
 $nova_hash             = hiera_hash('nova', {})
 $cinder_hash           = hiera_hash('cinder', {})
-$ceilometer_hash       = hiera_hash('ceilometer', {})
+$ceilometer_hash       = hiera_hash('ceilometer_hash', {})
 $syslog_log_facility   = hiera('syslog_log_facility_keystone')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $neutron_user_password = hiera('neutron_user_password', false)
@@ -139,7 +139,7 @@ class { 'openstack::keystone':
   public_url               => $public_url,
   admin_url                => $admin_url,
   internal_url             => $internal_url,
-  ceilometer               => $ceilometer_hash['enabled'],
+  notification_driver      => $ceilometer_hash['notification_driver'],
   service_workers          => $service_workers,
   token_provider           => $token_provider,
   fernet_src_repository    => '/var/lib/astute/keystone',

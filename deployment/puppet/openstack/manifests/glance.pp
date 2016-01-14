@@ -93,7 +93,7 @@ class openstack::glance (
   $rbd_store_user                 = 'images',
   $rbd_store_pool                 = 'images',
   $rados_connect_timeout          = '0',
-  $ceilometer                     = false,
+  $notification_driver            = undef,
   $service_workers                = $::processorcount,
 ) {
   validate_string($glance_user_password)
@@ -218,14 +218,6 @@ class openstack::glance (
     }
   } else {
     $rabbit_hosts_real = $rabbit_hosts
-  }
-
-  # Configure rabbitmq notifications
-  # TODO(bogdando) sync qpid support from upstream
-  if $ceilometer {
-    $notification_driver = 'messaging'
-  } else {
-    $notification_driver = 'noop'
   }
 
   class { 'glance::notify::rabbitmq':

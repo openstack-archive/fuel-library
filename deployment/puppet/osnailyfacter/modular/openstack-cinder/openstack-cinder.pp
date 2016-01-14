@@ -100,7 +100,7 @@ class {'openstack::cinder':
   max_pool_size        => $max_pool_size,
   max_overflow         => $max_overflow,
   idle_timeout         => $idle_timeout,
-  ceilometer           => $ceilometer_hash[enabled],
+  notification_driver  => $ceilometer_hash['notification_driver'],
   service_workers      => $service_workers,
 } # end class
 

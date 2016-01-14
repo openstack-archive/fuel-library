@@ -29,7 +29,7 @@ $nova_hash                    = hiera_hash('nova', {})
 $nova_config_hash             = hiera_hash('nova_config', {})
 $api_bind_address             = get_network_role_property('nova/api', 'ipaddr')
 $rabbit_hash                  = hiera_hash('rabbit_hash', {})
-$ceilometer_hash              = hiera_hash('ceilometer',{})
+$ceilometer_hash              = hiera_hash('ceilometer_hash',{})
 $syslog_log_facility_ceph     = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash               = hiera_hash('workloads_collector', {})
 $service_endpoint             = hiera('service_endpoint')
@@ -149,7 +149,7 @@ class { '::openstack::controller':
   service_endpoint               => $service_endpoint,
   neutron_metadata_proxy_secret  => $neutron_metadata_proxy_secret,
   cinder                         => true,
-  ceilometer                     => $ceilometer_hash[enabled],
+  ceilometer_notification_driver => $ceilometer_hash['notification_driver'],
   service_workers                => $service_workers,
   use_syslog                     => $use_syslog,
   use_stderr                     => $use_stderr,

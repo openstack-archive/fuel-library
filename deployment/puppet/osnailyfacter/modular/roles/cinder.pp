@@ -299,7 +299,7 @@ class { 'openstack::cinder':
   max_pool_size        => $max_pool_size,
   max_overflow         => $max_overflow,
   idle_timeout         => $idle_timeout,
-  ceilometer           => $ceilometer_hash[enabled],
+  notification_driver  => $ceilometer_hash['notification_driver'],
   vmware_host_ip       => $vcenter_hash['host_ip'],
   vmware_host_username => $vcenter_hash['vc_user'],
   vmware_host_password => $vcenter_hash['vc_password'],
