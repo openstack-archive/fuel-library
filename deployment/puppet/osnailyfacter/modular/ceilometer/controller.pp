@@ -28,26 +28,6 @@ $mongo_nodes              = get_nodes_hash_by_roles(hiera_hash('network_metadata
 $mongo_address_map        = get_node_to_ipaddr_map_by_network_role($mongo_nodes, 'mongo/db')
 $primary_controller       = hiera('primary_controller')
 
-$default_mongo_hash = {
-  'enabled'         => false,
-}
-
-$mongo_hash               = hiera_hash('mongo', $default_mongo_hash)
-
-if $mongo_hash['enabled'] and $ceilometer_hash['enabled'] {
-  $exteranl_mongo_hash    = hiera_hash('external_mongo')
-  $ceilometer_db_user     = $exteranl_mongo_hash['mongo_user']
-  $ceilometer_db_password = $exteranl_mongo_hash['mongo_password']
-  $ceilometer_db_dbname   = $exteranl_mongo_hash['mongo_db_name']
-  $external_mongo         = true
-} else {
-  $ceilometer_db_user     = 'ceilometer'
-  $ceilometer_db_password = $ceilometer_hash['db_password']
-  $ceilometer_db_dbname   = 'ceilometer'
-  $external_mongo         = false
-  $exteranl_mongo_hash    = {}
-}
-
 $ceilometer_enabled         = $ceilometer_hash['enabled']
 $ceilometer_user_password   = $ceilometer_hash['user_password']
 $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
@@ -67,20 +47,35 @@ $api_bind_address           = get_network_role_property('ceilometer/api', 'ipadd
 $keystone_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $keystone_endpoint = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
 
-if $ceilometer_hash['enabled'] {
-  if $external_mongo {
-    $mongo_hosts = $exteranl_mongo_hash['hosts_ip']
-    if $exteranl_mongo_hash['mongo_replset'] {
-      $mongo_replicaset = $exteranl_mongo_hash['mongo_replset']
-    } else {
-      $mongo_replicaset = undef
-    }
-  } else {
-    $mongo_hosts = join(values($mongo_address_map), ',')
-    # MongoDB is alsways configured with replica set
-    $mongo_replicaset = 'ceilometer'
-  }
+# Database related items
+$default_mongo_hash = {
+  'enabled' => false,
 }
+
+$mongo_hash = hiera_hash('mongo', $default_mongo_hash)
+$db_type    = 'mongodb'
+
+if $mongo_hash['enabled'] and $ceilometer_hash['enabled'] {
+  $external_mongo_hash = hiera_hash('external_mongo')
+  $db_user             = $external_mongo_hash['mongo_user']
+  $db_password         = $external_mongo_hash['mongo_password']
+  $db_name             = $external_mongo_hash['mongo_db_name']
+  $db_host             = $external_mongo_hash['hosts_ip']
+  if $external_mongo_hash['mongo_replset'] {
+    $mongo_replicaset  = $external_mongo_hash['mongo_replset']
+  } else {
+    $mongo_replicaset  = undef
+  }
+} else {
+  $db_user             = 'ceilometer'
+  $db_password         = $ceilometer_hash['db_password']
+  $db_name             = 'ceilometer'
+  $db_host             = join(values($mongo_address_map), ',')
+  # MongoDB is alsways configured with replica set
+  $mongo_replicaset    = 'ceilometer'
+}
+
+$db_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_name}?readpreference=primaryPreferred"
 
 ###############################################################################
 
@@ -92,11 +87,7 @@ if ($ceilometer_enabled) {
     use_stderr                 => $use_stderr,
     syslog_log_facility        => $syslog_log_facility,
     default_log_levels         => $default_log_levels,
-    db_type                    => $ceilometer_db_type,
-    db_host                    => $mongo_hosts,
-    db_user                    => $ceilometer_db_user,
-    db_password                => $ceilometer_db_password,
-    db_dbname                  => $ceilometer_db_dbname,
+    db_connection              => $db_connection,
     swift_rados_backend        => $swift_rados_backend,
     metering_secret            => $ceilometer_metering_secret,
     amqp_hosts                 => hiera('amqp_hosts',''),
@@ -113,7 +104,6 @@ if ($ceilometer_enabled) {
     ha_mode                    => $ha_mode,
     primary_controller         => $primary_controller,
     on_controller              => true,
-    ext_mongo                  => $external_mongo,
     mongo_replicaset           => $mongo_replicaset,
     alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
     event_time_to_live         => $ceilometer_hash['event_time_to_live'],

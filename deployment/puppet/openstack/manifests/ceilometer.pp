@@ -5,6 +5,10 @@
 #
 # [use_stderr] Rather or not service should send output to stderr. Optional. Defaults to true.
 #
+# [*db_connection*]
+#   Connection string to use for ceilometer
+#   Defaults to 'mysql://ceilometer:ceilometer_pass@localhost/ceilometer'
+#
 
 class openstack::ceilometer (
   $keystone_password          = 'ceilometer_pass',
@@ -17,12 +21,8 @@ class openstack::ceilometer (
   $use_stderr                 =  true,
   $syslog_log_facility        = 'LOG_LOCAL0',
   $default_log_levels         = undef,
+  $db_connection              = 'mysql://ceilometer:ceilometer_pass@localhost/ceilometer',
   $debug                      = false,
-  $db_type                    = 'mysql',
-  $db_host                    = 'localhost',
-  $db_user                    = 'ceilometer',
-  $db_password                = 'ceilometer_pass',
-  $db_dbname                  = 'ceilometer',
   $swift_rados_backend        = false,
   $mongo_replicaset           = undef,
   $amqp_hosts                 = '127.0.0.1',
@@ -37,7 +37,6 @@ class openstack::ceilometer (
   $on_controller              = false,
   $on_compute                 = false,
   $ha_mode                    = false,
-  $ext_mongo                  = false,
   # ttl is 1 week (3600*24*7)
   $os_endpoint_type           = 'internalURL',
   $alarm_history_time_to_live = '604800',
@@ -89,27 +88,13 @@ class openstack::ceilometer (
 
   if ($on_controller) {
     # Configure the ceilometer database
-    # Only needed if ceilometer::agent::central or ceilometer::api are declared
-
-    if ( !$ext_mongo ) {
-      if ( $db_type == 'mysql' ) {
-        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60"
-      } else {
-        if ( !$mongo_replicaset ) {
-          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
-        } else {
-          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
-          ceilometer_config {
-            'database/mongodb_replica_set' : value => $mongo_replicaset;
-          }
-        }
+    if $mongo_replicaset {
+      ceilometer_config {
+        'database/mongodb_replica_set' : value => $mongo_replicaset;
       }
     } else {
-      $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
-      if $mongo_replicaset {
-        ceilometer_config {
-          'database/mongodb_replica_set' : value => $mongo_replicaset;
-        }
+      ceilometer_config {
+        'database/mongodb_replica_set' : ensure => absent;
       }
     }
 
@@ -117,7 +102,7 @@ class openstack::ceilometer (
     Service<| title == 'ceilometer-agent-central'|>
 
     class { '::ceilometer::db':
-      database_connection => $current_database_connection,
+      database_connection => $db_connection,
       sync_db             => $primary_controller,
     }
 
