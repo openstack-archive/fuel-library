@@ -19,6 +19,15 @@ server=/<%= @dns_domain %>/<%= dns %>
 resolv-file=/etc/dnsmasq.upstream
 interface=<%= @dhcp_interface %>
 
+# On systems which support it, dnsmasq binds the wildcard address,
+# even when it is listening on only some interfaces. It then discards
+# requests that it shouldn't reply to. This has the advantage of
+# working even when interfaces come and go and change address. If you
+# don't want dnsmasq to really bind only the interfaces it is listening on,
+# comment this option. About the only time you may need this is when
+# running another nameserver on the same machine.
+bind-interfaces
+
 cache-size=1024
 
 # This is one of the key options. dnsmasq tries to move out servername
