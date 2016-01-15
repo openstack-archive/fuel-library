@@ -37,6 +37,7 @@ class Noop
           :concat_basedir => '/tmp/',
           :l23_os => 'ubuntu',
           :lsbdistcodename => 'trusty',
+          :os_package_type => 'debian',
       }.merge override_facts
     end
 
