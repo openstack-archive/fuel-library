@@ -142,6 +142,10 @@ class openstack::horizon (
     provider    => 'shell',
   }
 
-  Exec['refresh_horizon_django_cache'] ~> Exec['chown_dashboard']
+  # Refresh cache should be executed only for rpm packages.
+  # See I813b5f6067bb6ecce279cab7278d9227c4d31d28 for details.
+  if $::os_package_type == 'rpm' {
+    Exec['refresh_horizon_django_cache'] ~> Exec['chown_dashboard']
+  }
 }
 
