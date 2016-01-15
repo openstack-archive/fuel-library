@@ -204,7 +204,7 @@ License: Apache 2.0
 URL: http://github.com/openstack/fuel-library
 BuildArch: noarch
 BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
-Requires: socat
+Requires: socat xmlstarlet
 
 %description -n fuel-misc
 A set of scripts for Fuel deployment utility
