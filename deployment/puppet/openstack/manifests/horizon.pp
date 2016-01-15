@@ -133,19 +133,4 @@ class openstack::horizon (
     },
   } ~>
   Service[$::apache::params::service_name]
-
-  # Chown dashboard dir
-  $dashboard_directory = '/usr/share/openstack-dashboard/'
-  $wsgi_user = $::horizon::params::apache_user
-  $wsgi_group = $::horizon::params::apache_group
-
-  exec { 'chown_dashboard' :
-    command     => "chown -R ${wsgi_user}:${wsgi_group} ${dashboard_directory}",
-    path        => [ '/usr/sbin', '/usr/bin', '/sbin', '/bin' ],
-    refreshonly => true,
-    provider    => 'shell',
-  }
-
-  Exec['refresh_horizon_django_cache'] ~> Exec['chown_dashboard']
 }
-
