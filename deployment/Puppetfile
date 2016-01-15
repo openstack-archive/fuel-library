@@ -109,7 +109,7 @@ mod 'neutron',
 # Pull in puppet-nova
 mod 'nova',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-nova.git',
-    :ref => '7.0.0-mos-rc2'
+    :ref => 'mos-9.0'
 
 # Pull in puppet-heat
 mod 'heat',
