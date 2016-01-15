@@ -87,7 +87,7 @@ class vmware::controller (
   # Enable metadata service on Controller node
   # Set correct parameter for vnc access
   nova_config {
-    'DEFAULT/enabled_apis':        value => 'ec2,osapi_compute,metadata';
+    'DEFAULT/enabled_apis':        value => 'osapi_compute,metadata';
     'DEFAULT/novncproxy_base_url': value => "http://${vnc_address}:6080/vnc_auto.html";
   } -> Service['nova-compute']
 

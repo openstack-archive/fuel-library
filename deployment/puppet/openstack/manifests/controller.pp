@@ -146,7 +146,6 @@ class openstack::controller (
   $keystone_admin_tenant          = 'admin',
   $keystone_auth_uri              = 'http://127.0.0.1:5000/',
   $keystone_identity_uri          = 'http://127.0.0.1:35357/',
-  $keystone_ec2_url               = 'http://127.0.0.1:5000/v2.0/ec2tokens',
   # Glance
   $glance_db_user                 = 'glance',
   $glance_db_dbname               = 'glance',
@@ -243,10 +242,10 @@ class openstack::controller (
     }
   }
   if ($cinder) {
-    $enabled_apis = 'ec2,osapi_compute'
+    $enabled_apis = 'osapi_compute'
   }
   else {
-    $enabled_apis = 'ec2,osapi_compute,osapi_volume'
+    $enabled_apis = 'osapi_compute,osapi_volume'
   }
 
   if hiera('nova_quota') {
@@ -276,7 +275,6 @@ class openstack::controller (
     network_config                       => $network_config,
     keystone_auth_uri                    => $keystone_auth_uri,
     keystone_identity_uri                => $keystone_identity_uri,
-    keystone_ec2_url                     => $keystone_ec2_url,
     service_endpoint                     => $service_endpoint,
     # Neutron
     neutron                              => $network_provider ? {'nova' => false, 'neutron' => true},
@@ -336,7 +334,6 @@ class openstack::controller (
 
   $nova_config_hash = {
     'DEFAULT/force_raw_images' => { value => $nova_hash['force_raw_images'] },
-    'conductor/use_local'      => { value => $nova_hash['use_local'] },
   }
 
   class {'nova::config':

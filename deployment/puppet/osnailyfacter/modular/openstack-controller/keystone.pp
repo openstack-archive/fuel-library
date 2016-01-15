@@ -20,11 +20,6 @@ $public_base_url   = "${public_protocol}://${public_address}:${compute_port}"
 $internal_base_url = "${internal_protocol}://${internal_address}:${compute_port}"
 $admin_base_url    = "${admin_protocol}://${admin_address}:${compute_port}"
 
-$ec2_port         = '8773'
-$ec2_public_url   = "${public_protocol}://${public_address}:${ec2_port}/services/Cloud"
-$ec2_internal_url = "${internal_protocol}://${internal_address}:${ec2_port}/services/Cloud"
-$ec2_admin_url    = "${admin_protocol}://${admin_address}:${ec2_port}/services/Admin"
-
 $region              = pick($nova_hash['region'], hiera('region', 'RegionOne'))
 
 $password            = $nova_hash['user_password']
@@ -54,7 +49,4 @@ class { '::nova::keystone::auth':
   admin_url_v3          => "${admin_base_url}/v3",
   region                => $region,
   tenant                => $tenant,
-  ec2_public_url        => $ec2_public_url,
-  ec2_internal_url      => $ec2_internal_url,
-  ec2_admin_url         => $ec2_admin_url,
 }

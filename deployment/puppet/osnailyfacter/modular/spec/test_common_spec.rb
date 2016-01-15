@@ -16,7 +16,6 @@ describe TestCommon do
 | b2ea93c019704ed4bbc0c4da8fff425b | keystone |    identity    |    OpenStack Identity Service    |
 | f8daa037416549b0a7bbdff67b0501b3 | neutron  |    network     |    Neutron Networking Service    |
 | d20f6c9b482642c8b3c92ea5c115f100 |   nova   |    compute     |    Openstack Compute Service     |
-| d8882e01181740e1b96b34dbf9b4dd77 | nova_ec2 |      ec2       |           EC2 Service            |
 | c9291f7d537141ffb6a560dd42e7d159 |  swift   |  object-store  |  Openstack Object-Store Service  |
 | b622a097b88e460ebea284bf04f65be5 | swift_s3 |       s3       |       Openstack S3 Service       |
 +----------------------------------+----------+----------------+----------------------------------+
@@ -33,7 +32,6 @@ describe TestCommon do
           {"id"=>"b2ea93c019704ed4bbc0c4da8fff425b", "name"=>"keystone", "type"=>"identity"},
           {"id"=>"f8daa037416549b0a7bbdff67b0501b3", "name"=>"neutron", "type"=>"network"},
           {"id"=>"d20f6c9b482642c8b3c92ea5c115f100", "name"=>"nova", "type"=>"compute"},
-          {"id"=>"d8882e01181740e1b96b34dbf9b4dd77", "name"=>"nova_ec2", "type"=>"ec2"},
           {"id"=>"c9291f7d537141ffb6a560dd42e7d159", "name"=>"swift", "type"=>"object-store"},
           {"id"=>"b622a097b88e460ebea284bf04f65be5", "name"=>"swift_s3", "type"=>"s3"},
       ]

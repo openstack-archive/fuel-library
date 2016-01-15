@@ -43,7 +43,6 @@ $admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', '
 
 $keystone_auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
 $keystone_identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
-$keystone_ec2_url      = "${keystone_auth_uri}v2.0/ec2tokens"
 
 $glance_protocol              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
 $glance_endpoint              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
@@ -160,7 +159,6 @@ class { '::openstack::controller':
   ha_mode                        => true,
   keystone_auth_uri              => $keystone_auth_uri,
   keystone_identity_uri          => $keystone_identity_uri,
-  keystone_ec2_url               => $keystone_ec2_url,
   # SQLALchemy backend
   max_retries                    => $max_retries,
   max_pool_size                  => $max_pool_size,
@@ -187,7 +185,7 @@ if $primary_controller {
   }
 
   haproxy_backend_status { 'nova-api' :
-    name    => 'nova-api-2',
+    name    => 'nova-api',
     url     => $external_lb ? {
       default => $haproxy_stats_url,
       true    => $nova_url,
@@ -230,17 +228,11 @@ if $primary_controller {
   Haproxy_backend_status <| |>    -> Exec<| title == 'create-m1.micro-flavor' |>
 
   if ! $use_neutron {
-    nova_floating_range { $floating_ips_range:
+    nova_floating { $floating_ips_range:
       ensure          => 'present',
       pool            => 'nova',
-      username        => $access_hash[user],
-      api_key         => $access_hash[password],
-      auth_method     => 'password',
-      auth_url        => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
-      authtenant_name => $access_hash[tenant],
-      api_retries     => 10,
     }
-    Haproxy_backend_status['nova-api'] -> Nova_floating_range <| |>
+    Haproxy_backend_status['nova-api'] -> Nova_floating <| |>
   }
 }
 

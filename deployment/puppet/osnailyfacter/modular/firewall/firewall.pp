@@ -17,7 +17,6 @@ $erlang_rabbitmq_port         = 5672
 $galera_clustercheck_port     = 49000
 $galera_ist_port              = 4568
 $glance_api_port              = 9292
-$glance_nova_api_ec2_port     = 8773
 $glance_reg_port              = 9191
 $heat_api_cfn_port            = 8000
 $heat_api_cloudwatch_port     = 8003
@@ -207,7 +206,7 @@ if member($roles, 'primary-controller') or member($roles, 'controller') {
   }
 
   firewall {'104 glance':
-    port   => [$glance_api_port, $glance_reg_port, $glance_nova_api_ec2_port,],
+    port   => [$glance_api_port, $glance_reg_port],
     proto  => 'tcp',
     action => 'accept',
   }
