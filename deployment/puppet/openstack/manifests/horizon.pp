@@ -55,6 +55,8 @@ class openstack::horizon (
   $api_versions            = {'identity' => 3},
 ) {
 
+  include ::horizon::params
+
   if $debug { #syslog and nondebug case
     #We don't realy want django debug, it is too verbose.
     $django_debug   = false
@@ -106,6 +108,9 @@ class openstack::horizon (
     api_versions          => $api_versions,
   }
 
+  # Always run collectstatic&compress for MOS/UCA packages
+  Concat[$::horizon::params::config_file] ~> Exec['refresh_horizon_django_cache']
+
   # Performance optimization for wsgi
   if ($::memorysize_mb < 1200 or $::processorcount <= 3) {
     $wsgi_processes = 2
@@ -146,6 +151,9 @@ class openstack::horizon (
     provider    => 'shell',
   }
 
-  Exec['refresh_horizon_django_cache'] ~> Exec['chown_dashboard']
+  # Refresh cache should be executed only for rpm packages.
+  # See I813b5f6067bb6ecce279cab7278d9227c4d31d28 for details.
+  if $::os_package_type == 'rpm' {
+    Exec['refresh_horizon_django_cache'] ~> Exec['chown_dashboard']
+  }
 }
-

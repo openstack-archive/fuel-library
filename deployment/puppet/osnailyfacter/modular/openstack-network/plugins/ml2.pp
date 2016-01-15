@@ -84,21 +84,6 @@ if $use_neutron {
     $enable_tunneling = true
   }
 
-  # TODO(skolekonov) Fuel uses debian naming scheme for packages, however
-  # Neutron packages still use Ubuntu maning scheme.
-  # Remove after transition to Mitaka
-  Service<| title == 'neutron-ovs-agent-service' |> {
-    name => 'neutron-plugin-openvswitch-agent',
-  }
-  Package<| title == 'neutron-ovs-agent' |> {
-    name => 'neutron-plugin-openvswitch-agent',
-  }
-  Cluster::Corosync::Cs_service<| title == 'ovs' |> {
-    service_name        => 'neutron-plugin-openvswitch-agent',
-    package_name        => 'neutron-plugin-openvswitch-agent',
-  }
-
-
   class { 'neutron::agents::ml2::ovs':
     bridge_mappings            => $bridge_mappings,
     enable_tunneling           => $enable_tunneling,
