@@ -74,7 +74,9 @@ class cluster::haproxy (
     'spread-checks'             => $spread_checks,
     'tune.bufsize'              => $haproxy_bufsize,
     'tune.maxrewrite'           => $haproxy_maxrewrite,
-    'tune.ssl.default-dh-param' => $haproxy_ssl_default_dh_param
+    'tune.ssl.default-dh-param' => $haproxy_ssl_default_dh_param,
+    'ssl-default-bind-options'  => 'no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets force-tlsv12',
+    'ssl-default-bind-ciphers'  => 'AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH:!SSLv3'
   }
 
   $defaults_options = {
