@@ -33,7 +33,6 @@ describe Puppet::Type.type(:l3_ifconfig).provider(:lnx) do
     provider_class.stubs(:get_if_addr_mappings).with().returns({'eth1' => {:ipaddr =>[]}})
     #provider.class.instances
     provider.create
-    #
     provider_class.expects(:arping).with(['-D', '-f', '-c 32', '-w 2', '-I', 'eth1', '192.168.1.1']).returns(true)
     provider_class.expects(:iproute).with(['addr', 'add', '192.168.1.1/24', 'dev', 'eth1'])
     provider_class.expects(:arping).with(['-A', '-c 32', '-w 2', '-I', 'eth1', '192.168.1.1']).returns(true)
@@ -67,6 +66,24 @@ describe Puppet::Type.type(:l3_ifconfig).provider(:lnx) do
     provider_class.expects(:iproute).with(['addr', 'add', '192.168.3.3/26', 'dev', 'eth1'])
     provider_class.expects(:arping).with(['-A', '-c 32', '-w 2', '-I', 'eth1', '192.168.3.3']).returns(true)
     #
+    provider.flush
+  end
+
+  it "Change netmask(increase and decrese) of two IPs and add one IP on the same NIC" do
+    provider_class.stubs(:get_if_defroutes_mappings).with().returns({})
+    provider_class.stubs(:get_if_addr_mappings).with().returns({'eth1' => {:ipaddr =>['192.168.2.2/26', '2.2.2.2/25', '192.168.1.1/23']}})
+    provider.ipaddr = provider.resource[:ipaddr]  # emulate puppet work
+    # not needed IP address should be removed
+    provider_class.expects(:iproute).with(['--force', 'addr', 'del', '2.2.2.2/25', 'dev', 'eth1']).returns(true)
+    # Change netmask for two IP address
+    provider_class.expects(:iproute).with(['addr', 'add', '192.168.1.1/24', 'dev', 'eth1']).returns(true)
+    provider_class.expects(:iproute).with(['--force', 'addr', 'del', '192.168.1.1/23', 'dev', 'eth1']).returns(true)
+    provider_class.expects(:iproute).with(['addr', 'add', '192.168.2.2/25', 'dev', 'eth1']).returns(true)
+    provider_class.expects(:iproute).with(['--force', 'addr', 'del', '192.168.2.2/26', 'dev', 'eth1']).returns(true)
+    # required IP address should be added
+    provider_class.expects(:arping).with(['-D', '-f', '-c 32', '-w 2', '-I', 'eth1', '192.168.3.3']).returns(true)
+    provider_class.expects(:iproute).with(['addr', 'add', '192.168.3.3/26', 'dev', 'eth1'])
+    provider_class.expects(:arping).with(['-A', '-c 32', '-w 2', '-I', 'eth1', '192.168.3.3']).returns(true)
     provider.flush
   end
 
