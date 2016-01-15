@@ -54,6 +54,10 @@ describe manifest do
   AllowCONNECT 443 563 5000 6385 8000 8003 8004 8080 8082 8386 8773 8774 8776 8777 9292 9696
   HostnameLookups off
   LimitRequestFieldSize 81900
+  SetEnv force-proxy-request-1.0 1
+  SetEnv proxy-nokeepalive 1
+  RequestHeader unset Expect early
+  RequestReadTimeout header=0,MinRate=500 body=0,MinRate=500
   <Proxy *>
     Order Deny,Allow
         Allow from #{master_ip}
@@ -64,6 +68,9 @@ describe manifest do
         )
     end
 
+    it 'should declare apache::mod::headers' do
+      should contain_class('apache::mod::headers')
+    end
   end
 
   test_ubuntu_and_centos manifest
