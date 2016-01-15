@@ -186,7 +186,7 @@ if $primary_controller {
   }
 
   haproxy_backend_status { 'nova-api' :
-    name    => 'nova-api-2',
+    name    => 'nova-api',
     url     => $external_lb ? {
       default => $haproxy_stats_url,
       true    => $nova_url,
@@ -229,17 +229,11 @@ if $primary_controller {
   Haproxy_backend_status <| |>    -> Exec<| title == 'create-m1.micro-flavor' |>
 
   if ! $use_neutron {
-    nova_floating_range { $floating_ips_range:
+    nova_floating { $floating_ips_range:
       ensure          => 'present',
       pool            => 'nova',
-      username        => $access_hash[user],
-      api_key         => $access_hash[password],
-      auth_method     => 'password',
-      auth_url        => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
-      authtenant_name => $access_hash[tenant],
-      api_retries     => 10,
     }
-    Haproxy_backend_status['nova-api'] -> Nova_floating_range <| |>
+    Haproxy_backend_status['nova-api'] -> Nova_floating <| |>
   }
 }
 
