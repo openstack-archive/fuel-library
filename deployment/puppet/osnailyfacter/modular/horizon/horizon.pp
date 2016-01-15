@@ -96,15 +96,4 @@ class { 'openstack::horizon':
 class {'::osnailyfacter::wait_for_keystone_backends':}
 Class['openstack::horizon'] -> Class['::osnailyfacter::wait_for_keystone_backends']
 
-# TODO(aschultz): remove this if openstack-dashboard stops installing
-# openstack-dashboard-apache
-if $::osfamily == 'Debian' {
-  # LP#1513252 - remove this package if it's installed by the
-  # openstack-dashboard package installation.
-  package { 'openstack-dashboard-apache':
-    ensure  => 'absent',
-    require => Package['openstack-dashboard']
-  } ~> Service[$::apache::params::service_name]
-}
-
 include ::tweaks::apache_wrappers
