@@ -5,7 +5,6 @@ describe 'openstack::compute' do
   let(:default_params) { {
     :internal_address   => nil,
     :nova_user_password => nil,
-    :database_connection => false,
     :purge_nova_config   => false,
     :queue_proider       => 'rabbitmq',
     :rpc_backend         => 'nova.openstack.common.rpc.impl_kombu',
@@ -100,7 +99,6 @@ describe 'openstack::compute' do
         should contain_class('nova').with(
           :install_utilities => false,
           :ensure_package    => 'present',
-          :database_backend  => p[:database_backend],
           :rpc_backend       => p[:rpc_backend],
           :rabbit_hosts      => [ params[:amqp_hosts] ],
           :rabbit_userid     => p[:amqp_user],
@@ -165,7 +163,8 @@ describe 'openstack::compute' do
       { :osfamily => 'Debian',
         :operatingsystem => 'Debian',
         :hostname => 'hostname.example.com',
-        :openstack_version => {'nova' => 'present' }
+        :openstack_version => {'nova' => 'present' },
+        :os_service_default => '<SERVICE DEFAULT>',
       }
     end
 
@@ -176,7 +175,8 @@ describe 'openstack::compute' do
     let :facts do
       { :osfamily => 'RedHat',
         :hostname => 'hostname.example.com',
-        :openstack_version => {'nova' => 'present' }
+        :openstack_version => {'nova' => 'present' },
+        :os_service_default => '<SERVICE DEFAULT>',
       }
     end
 
