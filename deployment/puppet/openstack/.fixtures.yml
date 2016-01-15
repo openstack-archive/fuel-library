@@ -35,7 +35,7 @@ fixtures:
       branch: '7.0.0-rc3'
     'cinder':
       repo: 'https://review.fuel-infra.org/puppet-modules/openstack-cinder.git'
-      branch: '7.0.0-rc3'
+      branch: 'mos-9.0'
     'sahara':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-sahara.git'
       branch: '7.0.0-mos-rc2'
