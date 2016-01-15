@@ -13,23 +13,9 @@ require 'spec_helper'
                    :fqdn           => 'some.host.tld'
                 } }
 
-    it "should properly configure nova EC2 API haproxy based on ssl" do
-      should contain_openstack__ha__haproxy_service('nova-api-1').with(
-        'order'                  => '040',
-        'listen_port'            => 8773,
-        'public'                 => true,
-        'public_ssl'             => true,
-        'public_ssl_path'        => '/var/lib/fuel/haproxy/public_nova.pem',
-        'require_service'        => 'nova-api',
-        'haproxy_config_options' => {
-          'timeout server' => '600s',
-          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-        },
-      )
-    end
     it "should properly configure nova compute API haproxy based on ssl" do
-      should contain_openstack__ha__haproxy_service('nova-api-2').with(
-        'order'                  => '050',
+      should contain_openstack__ha__haproxy_service('nova-api').with(
+        'order'                  => '040',
         'listen_port'            => 8774,
         'public'                 => true,
         'public_ssl'             => true,
@@ -45,7 +31,7 @@ require 'spec_helper'
     end
     it "should properly configure nova metadata API haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('nova-metadata-api').with(
-        'order'                  => '060',
+        'order'                  => '050',
         'listen_port'            => 8775,
         'haproxy_config_options' => {
           'option'         => ['httpchk', 'httplog', 'httpclose'],

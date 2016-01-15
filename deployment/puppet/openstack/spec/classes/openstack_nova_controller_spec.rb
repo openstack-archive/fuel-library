@@ -6,7 +6,6 @@ describe 'openstack::nova::controller' do
     {
       :keystone_identity_uri => 'https://192.168.10.1:35357/',
       :keystone_auth_uri => 'https://192.168.10.1:5000/',
-      :keystone_ec2_url => 'https://192.168.10.1:5000/v2.0/ec2tokens',
       :admin_address => '192.168.10.0',
       :db_host => '192.168.10.0',
       :internal_address => '192.168.10.0',
@@ -33,7 +32,6 @@ describe 'openstack::nova::controller' do
       should contain_class('nova::api').with(
         :identity_uri => params[:keystone_identity_uri],
         :auth_uri => params[:keystone_auth_uri],
-        :keystone_ec2_url => params[:keystone_ec2_url],
       )
     end
 
@@ -47,6 +45,7 @@ describe 'openstack::nova::controller' do
         :physicalprocessorcount => 2,
         :memorysize_mb => 1024,
         :openstack_version => {'nova' => 'present' },
+        :os_service_default => '<SERVICE DEFAULT>',
       }
     end
 
@@ -63,6 +62,7 @@ describe 'openstack::nova::controller' do
         :physicalprocessorcount => 2,
         :memorysize_mb => 1024,
         :openstack_version => {'nova' => 'present' },
+        :os_service_default => '<SERVICE DEFAULT>',
       }
     end
 

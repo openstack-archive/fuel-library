@@ -106,19 +106,16 @@ describe manifest do
       )
     end
 
-    it 'should declare class nova::api with keystone_ec2_url' do
+    it 'should declare class nova::api with identity_uri and auth_uri' do
       should contain_class('nova::api').with(
         'identity_uri'        => keystone_identity_uri,
         'auth_uri'            => keystone_auth_uri,
-        'keystone_ec2_url'    => keystone_ec2_url,
-        'cinder_catalog_info' => 'volume:cinder:internalURL',
       )
     end
 
-    it 'should configure keystone_ec2_url for nova api service' do
-      should contain_nova_config('DEFAULT/keystone_ec2_url').with(
-        'value' => keystone_ec2_url,
-      )
+    it 'should configure cinder_catalog_info for nova' do
+      cinder_catalog_info = Noop.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volume:cinder:internalURL'
+      should contain_nova_config('cinder/catalog_info').with(:value => cinder_catalog_info)
     end
 
     it 'should configure nova quota for injected file path length' do
@@ -170,14 +167,9 @@ describe manifest do
     if floating_ips_range && access_hash
       floating_ips_range.each do |ips_range|
         it "should configure nova floating IP range for #{ips_range}" do
-          should contain_nova_floating_range(ips_range).with(
+          should contain_nova_floating(ips_range).with(
             'ensure'      => 'present',
             'pool'        => 'nova',
-            'username'    => access_hash['user'],
-            'api_key'     => access_hash['password'],
-            'auth_method' => 'password',
-            'auth_url'    => "#{internal_auth_protocol}://#{internal_auth_address}:5000/v2.0/",
-            'api_retries' => '10',
           )
         end
       end
