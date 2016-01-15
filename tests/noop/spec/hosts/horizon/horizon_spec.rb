@@ -128,11 +128,13 @@ describe manifest do
       )
     }
 
-    it "should handle openstack-dashboard-apache package based on osfamily" do
-      if facts[:osfamily] == 'Debian'
-        should contain_package('openstack-dashboard-apache').with_ensure('absent')
+    it "should handle openstack-dashboard-apache package based on os_package_type" do
+      if facts[:os_package_type] == 'debian'
+        should contain_package('horizon').with(:ensure => 'absent', :name => 'openstack-dashboard-apache')
+        should contain_package('openstack-dashboard').with_ensure('present')
       else
         should_not contain_package('openstack-dashboard-apache')
+        should_not contain_package('horizon').with(:name => 'openstack-dashboard-apache')
       end
     end
   end
