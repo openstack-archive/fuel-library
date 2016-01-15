@@ -23,7 +23,7 @@ fixtures:
       branch: '7.0.0-mos-rc4'
     'nova':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-nova.git'
-      branch: '7.0.0-mos-rc2'
+      branch: 'mos-9.0'
     'heat':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-heat.git'
       branch: '7.0.0-mos-rc2'
