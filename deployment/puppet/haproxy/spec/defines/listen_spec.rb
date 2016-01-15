@@ -22,7 +22,7 @@ describe 'haproxy::listen' do
     it { should contain_concat__fragment('croy_listen_block').with(
       'order'   => '20-croy-00',
       'target'  => '/etc/haproxy/haproxy.conf',
-      'content' => "\nlisten croy\n  bind 1.1.1.1:18140 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten croy\n  bind 1.1.1.1:18140 \n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
     ) }
   end
   # C9940
@@ -41,7 +41,7 @@ describe 'haproxy::listen' do
     it { should contain_concat__fragment('apache_listen_block').with(
       'order'   => '20-apache-00',
       'target'  => '/etc/haproxy/haproxy.conf',
-      'content' => "\nlisten apache\n  bind 23.23.23.23:80 \n  bind 23.23.23.23:443 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten apache\n  bind 23.23.23.23:80 \n  bind 23.23.23.23:443 \n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
     ) }
   end
   # C9940
@@ -57,7 +57,7 @@ describe 'haproxy::listen' do
     it { should contain_concat__fragment('apache_listen_block').with(
       'order'   => '20-apache-00',
       'target'  => '/etc/haproxy/haproxy.conf',
-      'content' => "\nlisten apache\n  bind 23.23.23.23:80 \n  bind 23.23.23.23:443 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten apache\n  bind 23.23.23.23:80 \n  bind 23.23.23.23:443 \n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
     ) }
   end
   # C9962
@@ -73,7 +73,7 @@ describe 'haproxy::listen' do
     it { should contain_concat__fragment('apache_listen_block').with(
       'order'   => '20-apache-00',
       'target'  => '/etc/haproxy/haproxy.conf',
-      'content' => "\nlisten apache\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten apache\n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
     ) }
   end
   # C9963
@@ -117,7 +117,7 @@ describe 'haproxy::listen' do
     it { should contain_concat__fragment('apache_listen_block').with(
       'order'   => '20-apache-00',
       'target'  => '/etc/haproxy/haproxy.conf',
-      'content' => "\nlisten apache\n  bind some-hostname:80 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten apache\n  bind some-hostname:80 \n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
     ) }
   end
   context "when a * is passed for ip address" do
@@ -132,7 +132,7 @@ describe 'haproxy::listen' do
     it { should contain_concat__fragment('apache_listen_block').with(
       'order'   => '20-apache-00',
       'target'  => '/etc/haproxy/haproxy.conf',
-      'content' => "\nlisten apache\n  bind *:80 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten apache\n  bind *:80 \n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
     ) }
   end
   context "when a bind parameter hash is passed" do
@@ -147,7 +147,7 @@ describe 'haproxy::listen' do
     it { should contain_concat__fragment('apache_listen_block').with(
       'order'   => '20-apache-00',
       'target'  => '/etc/haproxy/haproxy.conf',
-      'content' => "\nlisten apache\n  bind 10.0.0.1:333 ssl crt public.puppetlabs.com\n  bind 192.168.122.1:8082 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten apache\n  bind 10.0.0.1:333 ssl crt public.puppetlabs.com\n  bind 192.168.122.1:8082 \n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
     ) }
   end
   context "when a ports parameter and a bind parameter are passed" do
@@ -204,7 +204,7 @@ describe 'haproxy::listen' do
     it { should contain_concat__fragment('apache_listen_block').with(
       'order'   => '20-apache-00',
       'target'  => '/etc/haproxy/haproxy.conf',
-      'content' => "\nlisten apache\n  bind 1.1.1.1:80 the options go here\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten apache\n  bind 1.1.1.1:80 the options go here\n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
     ) }
   end
   context "when bind parameter is used without ipaddress parameter" do
@@ -218,7 +218,7 @@ describe 'haproxy::listen' do
     it { should contain_concat__fragment('apache_listen_block').with(
       'order'   => '20-apache-00',
       'target'  => '/etc/haproxy/haproxy.conf',
-      'content' => "\nlisten apache\n  bind 1.1.1.1:80 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten apache\n  bind 1.1.1.1:80 \n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
     ) }
   end
 
@@ -238,7 +238,7 @@ describe 'haproxy::listen' do
     it { should contain_concat__fragment('apache_listen_block').with(
       'order'   => '20-apache-00',
       'target'  => '/etc/haproxy/haproxy.conf',
-      'content' => "\nlisten apache\n  bind /var/run/ssl-frontend.sock user root mode 600 accept-proxy\n  bind 1.1.1.1:80 \n  bind 2.2.2.2:8000-8010 ssl crt public.puppetlabs.com\n  bind :443,:8443 ssl crt public.puppetlabs.com no-sslv3\n  bind fd@${FD_APP1} \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten apache\n  bind /var/run/ssl-frontend.sock user root mode 600 accept-proxy\n  bind 1.1.1.1:80 \n  bind 2.2.2.2:8000-8010 ssl crt public.puppetlabs.com\n  bind :443,:8443 ssl crt public.puppetlabs.com no-sslv3\n  bind fd@${FD_APP1} \n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
     ) }
   end
 

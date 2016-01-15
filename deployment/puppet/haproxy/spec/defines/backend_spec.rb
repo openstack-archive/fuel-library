@@ -16,7 +16,23 @@ describe 'haproxy::backend' do
     it { should contain_concat__fragment('bar_backend_block').with(
       'order'   => '20-bar-00',
       'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "\nbackend bar\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nbackend bar\n  balance roundrobin\n  option tcplog\n  option ssl-hello-chk\n"
+    ) }
+  end
+
+  context "when configurung custom options for stick-tables" do
+    let(:title) { 'baz' }
+    let(:buzz) { 'type ip size 20k peers mypeers' }
+    let(:params) do
+      { :options => [
+          { 'stick-table' => buzz },
+          { 'stick' => 'on src' }]}
+    end
+
+    it { should contain_concat__fragment('baz_backend_block').with(
+      'order'   => '20-baz-00',
+      'target'  => '/etc/haproxy/haproxy.cfg',
+      'content' => "\nbackend baz\n  stick-table #{buzz}\n  stick on src\n"
     ) }
   end
 

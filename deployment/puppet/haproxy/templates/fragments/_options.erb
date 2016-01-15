@@ -1,5 +1,19 @@
+<% if @options.is_a?(Hash) -%>
 <% @options.sort.each do |key, val| -%>
 <% Array(val).each do |item| -%>
-  <%= key %>  <%= item %>
+  <%= key %> <%= item %>
+<% end -%>
+<% end -%>
+<% elsif @options.is_a?(Array) -%>
+<%# Iterate over array elements; each element is a hash (containing key-value -%>
+<%# pairs); in case a hash contains more than one key-value pair the hash is -%>
+<%# sorted by key name before outputting the key name (= option name) and its -%>
+<%# value (or values, one per line) -%>
+<% @options.each do |option| -%>
+<% option.sort.map do |key, val| -%>
+<% Array(val).each do |item| -%>
+  <%= key %> <%= item %>
+<% end -%>
+<% end -%>
 <% end -%>
 <% end -%>
