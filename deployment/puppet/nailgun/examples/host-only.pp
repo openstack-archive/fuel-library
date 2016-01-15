@@ -94,7 +94,7 @@ class { 'nailgun::client':
 
 class { 'nailgun::bootstrap_cli':
   settings              => $::fuel_settings['BOOTSTRAP'],
-  direct_repo_addresses => [ $::fuel_settings['ADMIN_NETWORK']['ipaddress'] ],
+  direct_repo_addresses => [ $::fuel_settings['ADMIN_NETWORK']['ipaddress'], '127.0.0.1' ],
   bootstrap_cli_package => 'fuel-bootstrap-cli',
   config_path           => '/etc/fuel-bootstrap-cli/fuel_bootstrap_cli.yaml',
 }
