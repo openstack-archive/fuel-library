@@ -56,23 +56,8 @@ class openstack::ha::nova (
     server_names        => $server_names,
   }
 
-  openstack::ha::haproxy_service { 'nova-api-1':
+  openstack::ha::haproxy_service { 'nova-api':
     order                  => '040',
-    listen_port            => 8773,
-    public                 => true,
-    public_ssl             => $public_ssl,
-    public_ssl_path        => $public_ssl_path,
-    internal_ssl           => $internal_ssl,
-    internal_ssl_path      => $internal_ssl_path,
-    require_service        => 'nova-api',
-    haproxy_config_options => {
-      'timeout server' => '600s',
-      'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-    },
-  }
-
-  openstack::ha::haproxy_service { 'nova-api-2':
-    order                  => '050',
     listen_port            => 8774,
     public                 => true,
     public_ssl             => $public_ssl,
@@ -89,7 +74,7 @@ class openstack::ha::nova (
   }
 
   openstack::ha::haproxy_service { 'nova-metadata-api':
-    order                  => '060',
+    order                  => '050',
     listen_port            => 8775,
     internal_ssl           => $internal_ssl,
     internal_ssl_path      => $internal_ssl_path,

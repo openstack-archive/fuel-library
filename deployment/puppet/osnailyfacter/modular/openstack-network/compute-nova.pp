@@ -200,7 +200,6 @@ if $use_neutron {
     }
 
     nova_config {
-      'DEFAULT/multi_host'      : value => 'True';
       'DEFAULT/send_arp_for_ha' : value => 'True';
       'DEFAULT/metadata_host'   : value => $bind_address;
     }
@@ -262,6 +261,7 @@ if $use_neutron {
     dns2              => $dns_nameservers[1],
     enabled           => $enable_nova_net,
     install_service   => $enable_nova_net,
+    multi_host        => true,
   }
 #NOTE(aglarendil): lp/1381164
   nova_config { 'DEFAULT/force_snat_range': value => '0.0.0.0/0' }
