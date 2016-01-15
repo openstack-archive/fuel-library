@@ -90,20 +90,20 @@ describe manifest do
              )
     end
 
-    it 'should specify default custom theme for horizon' do
-      if facts[:os_package_type] == 'debian'
-          custom_theme_path = 'themes/vendor'
-      else
-          custom_theme_path = 'undef'
-      end
-    end
+    #it 'should specify default custom theme for horizon' do
+    #  if facts[:os_package_type] == 'debian'
+    #      custom_theme_path = 'themes/vendor'
+    #  else
+    #      custom_theme_path = 'undef'
+    #  end
+    #end
 
     it 'should declare horizon class with correct values' do
-      if !facts.has_key?(:os_package_type) or facts[:os_package_type] == 'debian'
-          cache_backend = 'horizon.backends.memcached.HorizonMemcached'
-      else
-          cache_backend = 'django.core.cache.backends.memcached.MemcachedCache'
-      end
+      #if !facts.has_key?(:os_package_type) or facts[:os_package_type] == 'debian'
+      #    cache_backend = 'horizon.backends.memcached.HorizonMemcached'
+      #else
+      cache_backend = 'django.core.cache.backends.memcached.MemcachedCache'
+      #end
 
       should contain_class('horizon').with(
                  'cache_backend'       => cache_backend,
@@ -137,11 +137,13 @@ describe manifest do
       )
     }
 
-    it "should handle openstack-dashboard-apache package based on osfamily" do
-      if facts[:osfamily] == 'Debian'
-        should contain_package('openstack-dashboard-apache').with_ensure('absent')
+    it 'should handle openstack-dashboard-apache package based on os_package_type' do
+      if facts[:os_package_type] == 'debian'
+        should contain_package('horizon').with(:ensure => 'absent', :name => 'openstack-dashboard-apache')
+        should contain_package('openstack-dashboard').with_ensure('present')
       else
         should_not contain_package('openstack-dashboard-apache')
+        should_not contain_package('horizon').with(:name => 'openstack-dashboard-apache')
       end
     end
   end
