@@ -65,7 +65,6 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
   def flush
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
-      #
       # FLUSH changed properties
       if ! @property_flush[:ipaddr].nil?
         if @property_flush[:ipaddr].include?(:absent)
@@ -80,11 +79,9 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
         else
           # add-remove static IP addresses
           if !@old_property_hash.nil? and !@old_property_hash[:ipaddr].nil?
-            (@old_property_hash[:ipaddr] - @property_flush[:ipaddr]).each do |ipaddr|
-              debug(['--force', 'addr', 'del', ipaddr, 'dev', @resource[:interface]])
-              self.class.iproute(['--force', 'addr', 'del', ipaddr, 'dev', @resource[:interface]])
-            end
             adding_addresses = @property_flush[:ipaddr] - @old_property_hash[:ipaddr]
+            old_addresses = @old_property_hash[:ipaddr] - @property_flush[:ipaddr]
+            already_removed = false
           else
             adding_addresses = @property_flush[:ipaddr]
           end
@@ -93,32 +90,61 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
           elsif adding_addresses.include? :dhcp
             debug("!!! DHCP runtime configuration not implemented now !!!")
           else
-            # add IP addresses
+            # change IP addresses completely or just prefix
             adding_addresses.each do |ipaddr|
-              # Check whether IP address is already used
-              begin
-                arping(['-D', '-f', '-c 32', '-w 2', '-I', @resource[:interface], ipaddr.split('/')[0]])
-              rescue Exception => e
-                _errmsg = nil
-                e.message.split(/\n/).each do |line|
-                  line =~ /reply\s+from\s+(\d+\.\d+\.\d+\.\d+)/i
-                  if $1
-                    _errmsg = line
-                    break
-                  end
+              # Check whether IP address or just prefix is being changed
+              set_ipaddr, set_prefix = ipaddr.split('/')
+              get_ip_addr = self.class.iproute(['-f', 'inet', 'addr', 'show', 'to', ipaddr]).join()
+              get_prefix = get_prefix.captures[0] if get_prefix = /.*\s+inet\s+#{set_ipaddr}\/(\d{1,2})\ .*/.match(get_ip_addr)
+              if ( get_prefix and set_prefix != get_prefix )
+                # Just prefix is being changed
+                debug("Just prefix is being changed from #{get_prefix} to #{set_prefix}!")
+                # Set IP address with new prefix
+                begin
+                  self.class.iproute(['addr', 'add', ipaddr, 'dev', @resource[:interface]])
+                rescue
+                  rv = self.class.iproute(['-o', 'addr', 'show', 'dev', @resource[:interface], 'to', "#{ipaddr.split('/')[0]}/32"])
+                  raise unless rv.join("\n").include? "inet #{set_ipaddr}/#{set_prefix}"
                 end
-                raise if _errmsg.nil?
-                warn("There is IP duplication for IP address #{ipaddr} on interface #{@resource[:interface]}!!!\n#{_errmsg}")
+                # Remove IP address with old prefix
+                debug(['--force', 'addr', 'del', "#{set_ipaddr}/#{get_prefix}", 'dev', @resource[:interface]])
+                self.class.iproute(['--force', 'addr', 'del', "#{set_ipaddr}/#{get_prefix}", 'dev', @resource[:interface]])
+              else
+                # IP address is being changed completely
+                debug("Adding or changing IP address completely !")
+                # Remove old IP addresses if exist
+                if old_addresses and !already_removed
+                  old_addresses.each do |old_ipaddr|
+                    debug(['--force', 'addr', 'del', old_ipaddr, 'dev', @resource[:interface]])
+                    self.class.iproute(['--force', 'addr', 'del', old_ipaddr, 'dev', @resource[:interface]])
+                  end
+                  already_removed = true
+                end
+                # Check whether IP address is already used
+                begin
+                  arping(['-D', '-f', '-c 32', '-w 2', '-I', @resource[:interface], ipaddr.split('/')[0]])
+                rescue Exception => e
+                  _errmsg = nil
+                  e.message.split(/\n/).each do |line|
+                    line =~ /reply\s+from\s+(\d+\.\d+\.\d+\.\d+)/i
+                    if $1
+                      _errmsg = line
+                      break
+                    end
+                  end
+                  raise if _errmsg.nil?
+                  warn("There is IP duplication for IP address #{ipaddr} on interface #{@resource[:interface]}!!!\n#{_errmsg}")
+                end
+                # Set IP address
+                begin
+                  self.class.iproute(['addr', 'add', ipaddr, 'dev', @resource[:interface]])
+                rescue
+                  rv = self.class.iproute(['-o', 'addr', 'show', 'dev', @resource[:interface], 'to', "#{ipaddr.split('/')[0]}/32"])
+                  raise unless rv.join("\n").include? "inet #{ipaddr}"
+                end
+                # Send Gratuitous ARP to update all neighbours
+                arping(['-A', '-c 32', '-w 2', '-I', @resource[:interface], ipaddr.split('/')[0]])
               end
-              # Set IP address
-              begin
-                self.class.iproute(['addr', 'add', ipaddr, 'dev', @resource[:interface]])
-              rescue
-                rv = self.class.iproute(['-o', 'addr', 'show', 'dev', @resource[:interface], 'to', "#{ipaddr.split('/')[0]}/32"])
-                raise if ! rv.join("\n").include? "inet #{ipaddr}"
-              end
-              # Send Gratuitous ARP to update all neighbours
-              arping(['-A', '-c 32', '-w 2', '-I', @resource[:interface], ipaddr.split('/')[0]])
             end
           end
         end
