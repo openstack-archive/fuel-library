@@ -12,8 +12,14 @@ server {
     listen   8443 ssl;
     ssl_certificate /var/lib/fuel/keys/master/nginx/nginx.crt;
     ssl_certificate_key /var/lib/fuel/keys/master/nginx/nginx.key;
-    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_prefer_server_ciphers on;
+    # NOTE: today we have to use SHA here cause there are no supported
+    # protocols below TLS1.2 which can use SHA256 at least.
+    # TODO(sbog): add !SHA here as soon as all our clients will support TLS1.2
+    ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+    ssl_session_cache shared:SSL:10m;
+    ssl_dhparam /etc/pki/tls/dhparam.pem;
     <%- end -%>
 
     server_name localhost;
