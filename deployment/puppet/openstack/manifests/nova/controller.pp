@@ -249,13 +249,7 @@ class openstack::nova::controller (
     notify_api_faults      => $nova_hash['notify_api_faults'],
     notification_driver    => $notification_driver,
     memcached_servers      => $memcached_addresses,
-  }
-
-  # TODO (iberezovskiy): Move to globals (as it is done for sahara)
-  # after new sync with upstream because of
-  # https://github.com/openstack/puppet-nova/blob/master/manifests/init.pp#L412
-  class { '::nova::logging':
-    default_log_levels => $default_log_levels,
+    cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL'),
   }
 
   #NOTE(bogdando) exec update-kombu is always undef, so delete?
@@ -280,10 +274,6 @@ class openstack::nova::controller (
     'Debian' => '/usr/bin/fping',
     'RedHat' => '/usr/sbin/fping',
     default => fail('Unsupported Operating System.'),
-  }
-
-  nova_config {
-    'DEFAULT/fping_path': value => $fping_path,
   }
 
   class {'nova::quota':
@@ -346,11 +336,10 @@ class openstack::nova::controller (
     neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_shared_secret,
     require                              => Package['nova-common'],
     osapi_compute_workers                => $service_workers,
-    ec2_workers                          => $service_workers,
     metadata_workers                     => $service_workers,
-    keystone_ec2_url                     => $keystone_ec2_url,
-    cinder_catalog_info                  => 'volume:cinder:internalURL',
     sync_db                              => $primary_controller,
+    fping_path                           => $fping_path,
+    api_paste_config                     => '/etc/nova/api-paste.ini';
   }
 
   # From legacy init.pp
@@ -367,7 +356,6 @@ class openstack::nova::controller (
 
   nova_config {
     'DEFAULT/allow_resize_to_same_host':  value => pick($nova_hash['allow_resize_to_same_host'], true);
-    'DEFAULT/api_paste_config':           value => '/etc/nova/api-paste.ini';
     'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-nova';
     'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-nova';
   }
@@ -381,6 +369,7 @@ class openstack::nova::controller (
     enabled        => $enabled,
     ensure_package => $ensure_package,
     workers        => $service_workers,
+    use_local      => $nova_hash['use_local'],
   }
 
   if $auto_assign_floating_ip {
