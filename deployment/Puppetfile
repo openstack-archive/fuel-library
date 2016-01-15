@@ -139,7 +139,7 @@ mod 'ceilometer',
 # Pull in openstack-cinder
 mod 'cinder',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/openstack-cinder.git',
-    :ref => '7.0.0-rc3'
+    :ref => 'mos-9.0'
 
 # Pull in puppet-sahara
 mod 'sahara',
