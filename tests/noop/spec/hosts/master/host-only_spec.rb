@@ -26,7 +26,7 @@ describe manifest do
     }
 
     additional_settings_hash =  {
-      'direct_repo_addresses' => ['10.109.0.2']
+      'direct_repo_addresses' => ['10.109.0.2', '127.0.0.1']
     }
 
     it 'should declare nailgun::bootstrap_cli class with proper arguments' do
