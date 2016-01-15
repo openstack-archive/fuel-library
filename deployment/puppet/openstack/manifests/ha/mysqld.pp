@@ -50,8 +50,9 @@ class openstack::ha::mysqld (
     balancermember_port    => 3307,
     define_backups         => true,
     haproxy_config_options => {
+      'options'        => [ { 'hash-type' => 'consistent' } ],
       'option'         => ['httpchk', 'tcplog','clitcpka','srvtcpka'],
-      'balance'        => 'leastconn',
+      'balance'        => 'source',
       'mode'           => 'tcp',
       'timeout server' => '28801s',
       'timeout client' => '28801s'
