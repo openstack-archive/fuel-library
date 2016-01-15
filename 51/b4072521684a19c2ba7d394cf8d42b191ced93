@@ -1,0 +1,9 @@
+Code-Review+1: Dmitry Mescheryakov (dmitryme) <dmescheryakov@mirantis.com>
+Code-Review+2: Sergii Golovatiuk <sgolovatiuk@mirantis.com>
+Workflow+1: Bogdan Dobrelya <bdobrelia@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 15 Jan 2016 09:53:17 +0000
+Reviewed-on: https://review.openstack.org/267507
+Project: openstack/fuel-library
+Branch: refs/heads/stable/8.0
