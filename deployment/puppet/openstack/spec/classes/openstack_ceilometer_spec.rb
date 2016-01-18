@@ -30,16 +30,16 @@ describe 'openstack::ceilometer' do
     context "on conroller node" do
       let :params do
         {
-          :on_controller     => true,
-          :keystone_password => 'cEilomEtEr_pAss',
-          :keystone_user     => 'ceilometer',
-          :keystone_tenant   => 'services',
-          :keystone_region   => 'Region007',
-          :keystone_protocol => 'http',
-          :keystone_host     => '127.0.0.1',
-          :api_workers       => facts[:processorcount],
-          :host              => '10.254.0.9',
-          :port              => '8777',
+          :on_controller         => true,
+          :keystone_password     => 'cEilomEtEr_pAss',
+          :keystone_user         => 'ceilometer',
+          :keystone_tenant       => 'services',
+          :keystone_region       => 'Region007',
+          :api_workers           => facts[:processorcount],
+          :host                  => '10.254.0.9',
+          :port                  => '8777',
+          :keystone_auth_uri     => 'http://127.0.0.1:5000/',
+          :keystone_identity_uri => 'http://127.0.0.1:35357/'
         }
       end
 
@@ -62,14 +62,14 @@ describe 'openstack::ceilometer' do
       ) }
 
       it { is_expected.to contain_class('ceilometer::api').with(
-          :keystone_protocol => params[:keystone_protocol],
-          :keystone_host     => params[:keystone_host],
-          :keystone_user     => params[:keystone_user],
-          :keystone_password => params[:keystone_password],
-          :keystone_tenant   => params[:keystone_tenant],
-          :host              => params[:host],
-          :port              => params[:port],
-          :api_workers       => params[:api_workers],
+          :keystone_auth_uri     => params[:keystone_auth_uri],
+          :keystone_identity_uri => params[:keystone_identity_uri],
+          :keystone_user         => params[:keystone_user],
+          :keystone_password     => params[:keystone_password],
+          :keystone_tenant       => params[:keystone_tenant],
+          :host                  => params[:host],
+          :port                  => params[:port],
+          :api_workers           => params[:api_workers],
       ) }
     end
 
@@ -97,6 +97,7 @@ describe 'openstack::ceilometer' do
         :operatingsystem => 'Debian',
         :processorcount  => 2,
         :memorysize_mb   => 4096,
+        :os_service_default => '<SERVICE DEFAULT>',
       }
     end
 
@@ -110,6 +111,7 @@ describe 'openstack::ceilometer' do
         :operatingsystem => 'RedHat',
         :processorcount  => 2,
         :memorysize_mb   => 4096,
+        :os_service_default => '<SERVICE DEFAULT>',
       }
     end
 
