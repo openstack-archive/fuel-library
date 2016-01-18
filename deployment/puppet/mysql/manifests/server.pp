@@ -32,7 +32,7 @@ class mysql::server (
   $server_id               = $mysql::params::server_id,
   $rep_user                = 'replicator',
   $rep_pass                = 'replicant666',
-  $replication_roles       = "SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD",
+  $replication_roles       = 'SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD',
   $use_syslog              = false,
   $initscript_file         = 'puppet:///modules/mysql/mysql-single.init',
   $root_password           = 'UNSET',
@@ -50,14 +50,14 @@ class mysql::server (
     $config_file_real = $mysql::params::config_file
   }
 
-  class { 'mysql::password' :
+  class { '::mysql::password' :
     root_password     => $root_password,
     old_root_password => $old_root_password,
     etc_root_password => $etc_root_password,
     config_file       => $config_file_real,
   }
 
-  class { 'mysql::config' :
+  class { '::mysql::config' :
     bind_address       => $bind_address,
     use_syslog         => $use_syslog,
     custom_setup_class => $custom_setup_class,
@@ -67,7 +67,7 @@ class mysql::server (
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
   if ($custom_setup_class == undef) {
-    class { 'mysql':
+    class { '::mysql':
       package_name => $client_package_name,
     }
 
@@ -83,36 +83,41 @@ class mysql::server (
       name   => $package_name,
     }
     if $::operatingsystem == 'RedHat' {
-      file { "/etc/init.d/mysqld":
-        ensure  => present,
-        source  => $initscript_file,
-        mode    => '0755',
-        owner   => 'root',
+      file { '/etc/init.d/mysqld':
+        ensure => present,
+        source => $initscript_file,
+        mode   => '0755',
+        owner  => 'root',
       }
       File['/etc/init.d/mysqld'] -> Service['mysql']
     }
     Package['mysql-client'] -> Package['mysql-server']
 
+    $service_ensure = $enabled ? {
+      true    => 'running',
+      default => 'stopped'
+    }
+
     service { 'mysql':
+      ensure   => $service_ensure,
       name     => $service_name,
-      ensure   => $enabled ? { true => 'running', default => 'stopped' },
       enable   => $enabled,
       require  => Package['mysql-server'],
       provider => $service_provider,
     }
   }
   elsif ($custom_setup_class == 'pacemaker_mysql')  {
-    class { 'mysql':
+    class { '::mysql':
       package_name => $client_package_name,
     }
 
     Package['mysql-server'] -> Class['mysql::config']
     Package['mysql-client'] -> Package['mysql-server']
 
-    $config_hash['custom_setup_class'] = $custom_setup_class
+    $mysql_config = merge($config_hash, { custom_setup_class => $custom_setup_class })
     $allowed_hosts = '%'
 
-    create_resources( 'class', { 'mysql::config' => $config_hash })
+    create_resources( 'class', { 'mysql::config' => $mysql_config })
     Class['mysql::config'] -> Cs_resource["p_${service_name}"]
 
     if !defined(Package['mysql-client']) {
@@ -124,18 +129,18 @@ class mysql::server (
     package { 'mysql-server':
       name   => $package_name,
     } ->
-    exec { "create-mysql-table-if-missing":
-      command => "/usr/bin/mysql_install_db --datadir=$mysql::params::datadir --user=mysql && chown -R mysql:mysql $mysql::params::datadir",
-      path => '/bin:/usr/bin:/sbin:/usr/sbin',
-      unless => "test -d $mysql::params::datadir/mysql",
+    exec { 'create-mysql-table-if-missing':
+      command => "/usr/bin/mysql_install_db --datadir=${mysql::params::datadir} --user=mysql && chown -R mysql:mysql ${mysql::params::datadir}",
+      path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+      unless  => "test -d ${mysql::params::datadir}/mysql",
     }
 
     file { '/tmp/repl_create.sql' :
       ensure  => present,
       content => template('mysql/repl_create.sql.erb'),
-      owner => 'root',
-      group => 'root',
-      mode  => '0644',
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0644',
     }
 
     ### Start hacks
@@ -144,7 +149,7 @@ class mysql::server (
       source  => 'puppet:///modules/mysql/ocf/ocf-mysql',
       owner   => 'root',
       group   => 'root',
-      mode    => 0755,
+      mode    => '0755',
       require => File['/tmp/repl_create.sql'],
     } ->
     install_ssh_keys {'root_ssh_key_for_mysql':
@@ -159,18 +164,17 @@ class mysql::server (
     if ( $::hostname == $galera_nodes[2] ) or ( $galera_node_address == $galera_nodes[2] ) {
       $existing_slave = $galera_nodes[1]
       exec { 'stop_mysql_slave_on_second_controller':
-         command => "ssh -i /root/.ssh/id_rsa_mysql -o StrictHostKeyChecking=no root@${existing_slave} 'mysql -NBe \"stop slave;\"'",
-         require => Install_ssh_keys['root_ssh_key_for_mysql'],
-         unless  => "mysql -NBe 'show slave status;' | grep -q ${rep_user}",
+        command => "ssh -i /root/.ssh/id_rsa_mysql -o StrictHostKeyChecking=no root@${existing_slave} 'mysql -NBe \"stop slave;\"'",
+        require => Install_ssh_keys['root_ssh_key_for_mysql'],
+        unless  => "mysql -NBe 'show slave status;' | grep -q ${rep_user}",
       } ->
       exec { 'copy_mysql_data_dir':
-         command => "rsync -e 'ssh -i /root/.ssh/id_rsa_mysql -o StrictHostKeyChecking=no' -vaz root@${existing_slave}:/var/lib/mysql/. /var/lib/mysql/.",
-         unless  => "mysql -NBe 'show slave status;' | grep -q ${rep_user}",
+        command => "rsync -e 'ssh -i /root/.ssh/id_rsa_mysql -o StrictHostKeyChecking=no' -vaz root@${existing_slave}:/var/lib/mysql/. /var/lib/mysql/.",
+        unless  => "mysql -NBe 'show slave status;' | grep -q ${rep_user}",
       } ->
       exec { 'start_mysql_slave_on_second_controller':
-         command => "ssh -i /root/.ssh/id_rsa_mysql -o StrictHostKeyChecking=no root@${existing_slave} 'mysql -NBe \"start slave;\"'",
-         unless  => "mysql -NBe 'show slave status;' | grep -q ${rep_user}",
-
+        command => "ssh -i /root/.ssh/id_rsa_mysql -o StrictHostKeyChecking=no root@${existing_slave} 'mysql -NBe \"start slave;\"'",
+        unless  => "mysql -NBe 'show slave status;' | grep -q ${rep_user}",
       }
     }
     ### end hacks
@@ -182,27 +186,42 @@ class mysql::server (
       primitive_type  => 'mysql',
       cib             => 'mysql',
       complex_type    => 'master',
-      ms_metadata     => {'notify' => "true"},
+      ms_metadata     => {
+        'notify' => true
+      },
       parameters      => {
-        'binary' => "/usr/bin/mysqld_safe",
-        'test_table'         => 'mysql.user',
-        'replication_user'   => $rep_user,
-        'replication_passwd' => $rep_pass,
+        'binary'                => '/usr/bin/mysqld_safe',
+        'test_table'            => 'mysql.user',
+        'replication_user'      => $rep_user,
+        'replication_passwd'    => $rep_pass,
         'additional_parameters' => '"--init-file=/tmp/repl_create.sql"',
       },
-      operations   => {
-        'monitor'  => { 'interval' => '20', 'timeout'  => '30' },
-        'start'    => { 'timeout' => '360' },
-        'stop'     => { 'timeout' => '360' },
-        'promote'  => { 'timeout' => '360' },
-        'demote'   => { 'timeout' => '360' },
-        'notify'   => { 'timeout' => '360' },
+      operations      => {
+        'monitor' => {
+          'interval' => '20',
+          'timeout'  => '30'
+        },
+        'start'   => {
+          'timeout' => '360'
+        },
+        'stop'    => {
+          'timeout' => '360'
+        },
+        'promote' => {
+          'timeout' => '360'
+        },
+        'demote'  => {
+          'timeout' => '360'
+        },
+        'notify'  => {
+          'timeout' => '360'
+        },
       }
     }->
 
     service { 'mysql':
-      name     => "p_${service_name}",
       ensure   => 'running',
+      name     => "p_${service_name}",
       enable   => true,
       require  => [Package['mysql-server']],
       provider => 'pacemaker',
@@ -218,7 +237,7 @@ class mysql::server (
   }
   elsif ($custom_setup_class == 'galera')  {
     Class['galera'] -> Class['mysql::server']
-    class { 'galera':
+    class { '::galera':
       cluster_name       => $galera_cluster_name,
       primary_controller => $primary_controller,
       node_address       => $galera_node_address,
@@ -232,7 +251,7 @@ class mysql::server (
   }
   elsif ($custom_setup_class == 'percona') {
     Class['galera'] -> Class['mysql::server']
-    class { 'galera':
+    class { '::galera':
       cluster_name       => $galera_cluster_name,
       primary_controller => $primary_controller,
       node_address       => $galera_node_address,
@@ -245,7 +264,7 @@ class mysql::server (
     }
   } elsif ($custom_setup_class == 'percona_packages') {
     Class['galera'] -> Class['mysql::server']
-    class { 'galera':
+    class { '::galera':
       cluster_name         => $galera_cluster_name,
       primary_controller   => $primary_controller,
       node_address         => $galera_node_address,
@@ -257,10 +276,7 @@ class mysql::server (
       use_percona          => true,
       use_percona_packages => true
     }
-  }
-
-   else {
+  } else {
     require($custom_setup_class)
   }
 }
-
