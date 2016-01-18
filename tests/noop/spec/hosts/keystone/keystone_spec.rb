@@ -71,6 +71,10 @@ describe manifest do
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
+    murano_hash = Noop.hiera 'murano_hash', { 'enabled' => false }
+    murano_hash['plugins'] = { 'glance_artifacts_plugin' => { 'enabled' => false } }
+    murano_plugins = murano_hash['plugins']
+    murano_glare_plugin = murano_plugins['glance_artifacts_plugin']
     token_provider = Noop.hiera('token_provider')
     primary_controller = Noop.hiera 'primary_controller'
 
@@ -228,6 +232,14 @@ describe manifest do
          should contain_keystone_config('DEFAULT/notification_driver').with(:value => 'messagingv2')
        end
      end
+
+    if murano_glare_plugin['enabled']
+      it 'should configure glance_murano_plugin' do
+        should contain_class('openstack::auth_file').with(
+          :murano_glare_plugin => murano_glare_plugin['enabled']
+        )
+      end
+    end
 
     if token_provider == 'keystone.token.providers.fernet.Provider'
       it 'should check existence of /etc/keystone/fernet-keys directory' do
