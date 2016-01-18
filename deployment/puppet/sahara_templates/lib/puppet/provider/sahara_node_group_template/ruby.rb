@@ -14,7 +14,7 @@ Puppet::Type.type(:sahara_node_group_template).provide(:ruby) do
                                                    :auth_method => 'password',
                                                    :auth_url => @resource[:auth_url],
                                                    :authtenant_name => @resource[:auth_tenant_name],
-                                                   :service_type => 'data_processing',
+                                                   :service_type => 'data-processing',
                                                    :is_debug => @resource[:debug],
                                                })
   end
