@@ -47,18 +47,19 @@ package { 'ironic-fa-deploy':
 }
 
 class { '::ironic':
-  verbose             => $verbose,
-  debug               => $debug,
-  enabled_drivers     => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
-  rabbit_hosts        => $rabbit_hosts,
-  rabbit_userid       => $rabbit_hash['user'],
-  rabbit_password     => $rabbit_hash['password'],
-  amqp_durable_queues => $amqp_durable_queues,
-  control_exchange    => 'ironic',
-  use_syslog          => $use_syslog,
-  log_facility        => $syslog_log_facility_ironic,
-  database_connection => $database_connection,
-  glance_api_servers  => $glance_api_servers,
+  verbose              => $verbose,
+  debug                => $debug,
+  enabled_drivers      => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
+  rabbit_hosts         => $rabbit_hosts,
+  rabbit_userid        => $rabbit_hash['user'],
+  rabbit_password      => $rabbit_hash['password'],
+  amqp_durable_queues  => $amqp_durable_queues,
+  control_exchange     => 'ironic',
+  use_syslog           => $use_syslog,
+  log_facility         => $syslog_log_facility_ironic,
+  database_connection  => $database_connection,
+  database_max_retries => '-1',
+  glance_api_servers   => $glance_api_servers,
 }
 
 class { '::ironic::client': }
