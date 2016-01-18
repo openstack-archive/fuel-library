@@ -113,10 +113,6 @@ if $primary_controller {
   }
 }
 
-if !$rabbit_hash['user'] {
-  $rabbit_hash['user'] = 'nova'
-}
-
 if ! $use_neutron {
   $floating_ips_range = hiera('floating_network_range')
 }
@@ -129,7 +125,7 @@ $floating_hash = {}
 
 $node = filter_nodes($nodes_hash, 'name', $::hostname)
 if empty($node) {
-  fail("Node $::hostname is not defined in the hash structure")
+  fail("Node ${::hostname} is not defined in the hash structure")
 }
 
 $roles = node_roles($nodes_hash, hiera('uid'))
@@ -184,9 +180,9 @@ if member($roles, 'controller') or member($roles, 'primary-controller') {
 if $use_monit_real {
   # Configure service names for monit watchdogs and 'service' system path
   # FIXME(bogdando) replace service_path to systemd, once supported
-  include nova::params
-  include cinder::params
-  include neutron::params
+  include ::nova::params
+  include ::cinder::params
+  include ::neutron::params
   $nova_compute_name   = $::nova::params::compute_service_name
   $nova_api_name       = $::nova::params::api_service_name
   $nova_network_name   = $::nova::params::network_service_name
@@ -228,7 +224,7 @@ if ($use_ceph and !$storage_hash['volumes_lvm'] and !member($roles, 'cinder-vmwa
     $ceph_public_network = hiera('management_network_range')
   }
 
-  class {'ceph':
+  class {'::ceph':
     primary_mon              => $primary_mon,
     mon_hosts                => nodes_with_roles($nodes_hash, ['primary-controller', 'controller', 'ceph-mon'], 'name'),
     mon_ip_addresses         => nodes_with_roles($nodes_hash, ['primary-controller', 'controller', 'ceph-mon'], 'internal_address'),
@@ -252,11 +248,13 @@ if ($use_ceph and !$storage_hash['volumes_lvm'] and !member($roles, 'cinder-vmwa
 
 #################################################################
 
-include keystone::python
+include ::keystone::python
+
 #FIXME(bogdando) notify services on python-amqp update, if needed
 package { 'python-amqp':
   ensure => present
 }
+
 if member($roles, 'controller') or member($roles, 'primary-controller') {
   $bind_host = get_network_role_property('cinder/api', 'ipaddr')
 } else {
@@ -271,14 +269,14 @@ if member($roles, 'controller') or member($roles, 'primary-controller') {
 # NOTE(bogdando) deploy cinder volume node with disabled cinder-volume
 #   service #LP1398817. The orchestration will start and enable it back
 #   after the deployment is done.
-class { 'openstack::cinder':
+class { '::openstack::cinder':
   enable_volumes       => false,
   sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
   glance_api_servers   => $glance_api_servers,
   bind_host            => $bind_host,
   queue_provider       => $queue_provider,
   amqp_hosts           => hiera('amqp_hosts',''),
-  amqp_user            => $rabbit_hash['user'],
+  amqp_user            => pick($rabbit_hash['user'], 'nova'),
   amqp_password        => $rabbit_hash['password'],
   rabbit_ha_queues     => hiera('rabbit_ha_queues', false),
   volume_group         => 'cinder',
