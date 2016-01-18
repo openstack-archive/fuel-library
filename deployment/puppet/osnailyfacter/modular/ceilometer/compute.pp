@@ -5,7 +5,7 @@ $use_stderr               = hiera('use_stderr', false)
 $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
 $rabbit_hash              = hiera_hash('rabbit_hash')
 $management_vip           = hiera('management_vip')
-$service_endpoint         = hiera('service_endpoint')
+$service_endpoint         = hiera('service_endpoint', $management_vip)
 
 $default_ceilometer_hash = {
   'enabled'                    => false,
@@ -31,9 +31,6 @@ $debug                      = pick($ceilometer_hash['debug'], hiera('debug', fal
 $default_log_levels         = hiera_hash('default_log_levels')
 $ssl_hash                   = hiera_hash('use_ssl', {})
 
-$keystone_protocol          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$keystone_endpoint          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
-
 if ($ceilometer_enabled) {
   class { 'openstack::ceilometer':
     verbose                    => $verbose,
@@ -48,8 +45,6 @@ if ($ceilometer_enabled) {
     keystone_user              => $ceilometer_hash['user'],
     keystone_tenant            => $ceilometer_hash['tenant'],
     keystone_region            => $ceilometer_region,
-    keystone_protocol          => $keystone_protocol,
-    keystone_host              => $keystone_endpoint,
     keystone_password          => $ceilometer_user_password,
     on_compute                 => true,
     metering_secret            => $ceilometer_metering_secret,
