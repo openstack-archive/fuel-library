@@ -21,46 +21,42 @@
 # [ks_system_timezone] System timezone on installed system.
 #
 # [ks_encrypted_root_password] Hash of the root password on installed system.
+#  default password is 'r00tme'
+#
 
 class cobbler::profile::ubuntu_1404_x86_64(
-  $distro  = "ubuntu_1404_x86_64",
-  $ks_repo = [
+
+  $distro                     = 'ubuntu_1404_x86_64',
+  $ks_repo                    = [
     {
-      "name" => "Fuel",
-      "url"  => "http://download.mirantis.com/precise-grizzly-fuel-3.2/",
-      "key"  => "http://download.mirantis.com/precise-grizzly-fuel-3.2/Fuel.key",
-      "release" => "trusty",
-      "repos" => "main",
+      'name'    => 'Fuel',
+      'url'     => 'http://download.mirantis.com/precise-grizzly-fuel-3.2/',
+      'key'     => 'http://download.mirantis.com/precise-grizzly-fuel-3.2/Fuel.key',
+      'release' => 'trusty',
+      'repos'   => 'main',
     },
   ],
+  $ks_system_timezone         = 'America/Los_Angeles',
+  $ks_encrypted_root_password = '\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61',
+  $kopts                      = 'auto=true priority=critical locale=en_US net.ifnames=0 biosdevname=0 netcfg/choose_interface=auto netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20',
 
-  $ks_system_timezone = "America/Los_Angeles",
+){
 
-  # default password is 'r00tme'
-  $ks_encrypted_root_password = "\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61",
-
-  $kopts = "auto=true priority=critical locale=en_US net.ifnames=0 biosdevname=0 netcfg/choose_interface=auto netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20",
-  ){
-
-  case $operatingsystem {
-    /(?i)(ubuntu|debian|centos|redhat)$/:  {
-      $ks_dir = "/var/lib/cobbler/kickstarts"
-    }
-  }
+  $ks_dir = '/var/lib/cobbler/kickstarts'
 
   file { "${ks_dir}/ubuntu_1404_x86_64.preseed":
-    content => template("cobbler/preseed/ubuntu-1404.preseed.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
+    content => template('cobbler/preseed/ubuntu-1404.preseed.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
   } ->
 
-  cobbler_profile { "ubuntu_1404_x86_64":
+  cobbler_profile { 'ubuntu_1404_x86_64':
     kickstart => "${ks_dir}/ubuntu_1404_x86_64.preseed",
-    kopts => $kopts,
-    distro => $distro,
-    ksmeta => "",
-    menu => true,
+    kopts     => $kopts,
+    distro    => $distro,
+    ksmeta    => '',
+    menu      => true,
   }
 
-  }
+}

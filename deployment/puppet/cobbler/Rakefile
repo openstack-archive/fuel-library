@@ -17,8 +17,6 @@ PuppetLint::RakeTask.new :lint do |config|
       "class_inherits_from_params_class",
       "class_parameter_defaults",
       "only_variable_string",
-      "autoloader_layout", # TODO(aschultz): this is from included defines in classes, should be fixed and this should be removed.
-      "only_variable_string",
       "2sp_soft_tabs",
       "hard_tabs",
       "tailing_whitespace",
@@ -27,6 +25,6 @@ PuppetLint::RakeTask.new :lint do |config|
       "arrow_alignment",
       "documentation",
       "leading_zero",
-
+      "case_without_default",
    ]
 end

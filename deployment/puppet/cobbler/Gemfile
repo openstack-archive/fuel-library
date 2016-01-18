@@ -6,13 +6,13 @@ group :development, :test do
   gem 'metadata-json-lint',                   :require => 'false'
   # TODO(aschultz): fix linting and enable these
   #gem 'puppet-lint-param-docs',               :require => 'false'
-  #gem 'puppet-lint-absolute_classname-check', :require => 'false'
-  #gem 'puppet-lint-absolute_template_path',   :require => 'false'
-  #gem 'puppet-lint-trailing_newline-check',   :require => 'false'
-  #gem 'puppet-lint-unquoted_string-check',    :require => 'false'
-  #gem 'puppet-lint-leading_zero-check',       :require => 'false'
-  #gem 'puppet-lint-variable_contains_upcase', :require => 'false'
-  #gem 'puppet-lint-numericvariable',          :require => 'false'
+  gem 'puppet-lint-absolute_classname-check', :require => 'false'
+  gem 'puppet-lint-absolute_template_path',   :require => 'false'
+  gem 'puppet-lint-trailing_newline-check',   :require => 'false'
+  gem 'puppet-lint-unquoted_string-check',    :require => 'false'
+  gem 'puppet-lint-leading_zero-check',       :require => 'false'
+  gem 'puppet-lint-variable_contains_upcase', :require => 'false'
+  gem 'puppet-lint-numericvariable',          :require => 'false'
   gem 'json',                                 :require => 'false'
 end
 

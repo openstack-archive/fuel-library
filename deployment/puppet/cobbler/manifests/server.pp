@@ -34,7 +34,7 @@ class cobbler::server (
   $dhcp_lease_max = '1800',
   $lease_time     = '120m',
 ) {
-  include cobbler::packages
+  include ::cobbler::packages
 
   Exec {
     path => '/usr/bin:/bin:/usr/sbin:/sbin'
