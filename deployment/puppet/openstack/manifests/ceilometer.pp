@@ -9,6 +9,14 @@
 #   Connection string to use for ceilometer
 #   Defaults to 'mysql://ceilometer:ceilometer_pass@localhost/ceilometer'
 #
+# [*keystone_auth_uri*]
+#   (Optional) Public Identity API endpoint.
+#   Defaults to 'http://127.0.0.1:5000/'.
+#
+# [*keystone_identity_uri*]
+#   (Optional) Complete admin Identity API endpoint.
+#   Defaults to 'http://127.0.0.1:35357/'.
+#
 
 class openstack::ceilometer (
   $keystone_password          = 'ceilometer_pass',
@@ -29,8 +37,8 @@ class openstack::ceilometer (
   $amqp_user                  = 'guest',
   $amqp_password              = 'rabbit_pw',
   $rabbit_ha_queues           = false,
-  $keystone_protocol          = 'http',
-  $keystone_host              = '127.0.0.1',
+  $keystone_auth_uri          = 'http://127.0.0.1:5000/',
+  $keystone_identity_uri      = 'http://127.0.0.1:35357/',
   $host                       = '0.0.0.0',
   $port                       = '8777',
   $primary_controller         = false,
@@ -68,20 +76,13 @@ class openstack::ceilometer (
     log_facility               => $syslog_log_facility,
   }
 
-  # TODO (iberezovskiy): Move to globals (as it is done for sahara)
-  # after new sync with upstream because of
-  # https://github.com/openstack/puppet-ceilometer/blob/master/manifests/init.pp#L160
-  class { '::ceilometer::logging':
-    default_log_levels => $default_log_levels,
-  }
-
   # Configure authentication for agents
   class { '::ceilometer::agent::auth':
     auth_url         => "${keystone_protocol}://${keystone_host}:5000/v2.0",
     auth_password    => $keystone_password,
     auth_region      => $keystone_region,
     auth_tenant_name => $keystone_tenant,
-    auth_user        => $keystone_user,
+    auth_user             => $keystone_user,
   }
 
   class { '::ceilometer::client': }
@@ -109,14 +110,14 @@ class openstack::ceilometer (
     # Install the ceilometer-api service
     # The keystone_password parameter is mandatory
     class { '::ceilometer::api':
-      keystone_protocol    => $keystone_protocol,
-      keystone_host        => $keystone_host,
-      keystone_user        => $keystone_user,
-      keystone_password    => $keystone_password,
-      keystone_tenant      => $keystone_tenant,
-      host                 => $host,
-      port                 => $port,
-      api_workers          => $api_workers,
+      keystone_auth_uri     => $keystone_auth_uri,
+      keystone_identity_uri => $keystone_identity_uri,
+      keystone_user         => $keystone_user,
+      keystone_password     => $keystone_password,
+      keystone_tenant       => $keystone_tenant,
+      host                  => $host,
+      port                  => $port,
+      api_workers           => $api_workers,
     }
 
     # Clean up expired data once a week
