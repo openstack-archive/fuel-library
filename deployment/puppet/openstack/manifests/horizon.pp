@@ -26,6 +26,7 @@ class openstack::horizon (
   $cache_server_port       = '11211',
   $neutron                 = false,
   $neutron_options         = {},
+  $cinder_options          = {},
   $horizon_app_links       = undef,
   $keystone_url            = 'http://127.0.0.1:5000/v2.0/',
   $keystone_default_role   = '_member_',
@@ -94,6 +95,7 @@ class openstack::horizon (
     allowed_hosts         => '*',
     secure_cookies        => false,
     log_handler           => $log_handler,
+    cinder_options        => $cinder_options,
     neutron_options       => $neutron_options,
     custom_theme_path     => $custom_theme_path,
     redirect_type         => 'temp', # LP#1385133

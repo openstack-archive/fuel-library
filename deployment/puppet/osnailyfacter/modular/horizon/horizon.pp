@@ -5,6 +5,7 @@ $horizon_hash            = hiera_hash('horizon', {})
 $service_endpoint        = hiera('service_endpoint')
 $memcached_server        = hiera('memcached_addresses')
 $bind_address            = get_network_role_property('horizon', 'ipaddr')
+$storage_hash            = hiera_hash('storage_hash', {})
 $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
 $public_ssl              = hiera('public_ssl')
 $ssl_no_verify           = $public_ssl['horizon']
@@ -35,6 +36,7 @@ $internal_auth_port     = '5000'
 $keystone_api           = 'v2.0'
 $keystone_url           = "${internal_auth_protocol}://${internal_auth_address}:${internal_auth_port}/${keystone_api}"
 
+$cinder_options     = {'enable_backup' => pick($storage_hash['volumes_ceph'], false)}
 $neutron_options    = {'enable_distributed_router' => $neutron_dvr}
 $hypervisor_options = {'enable_quotas' => hiera('nova_quota')}
 
@@ -70,6 +72,7 @@ class { 'openstack::horizon':
   use_syslog           => hiera('use_syslog', true),
   hypervisor_options   => $hypervisor_options,
   servername           => hiera('public_vip'),
+  cinder_options       => $cinder_options,
   neutron_options      => $neutron_options,
   overview_days_range  => $overview_days_range,
   file_upload_temp_dir => $file_upload_temp_dir,
