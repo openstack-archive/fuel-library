@@ -189,7 +189,7 @@ module OpenStack
           OpenStack::Image::Connection.new(connection)
         when 'network'
           OpenStack::Network::Connection.new(connection)
-        when 'data_processing'
+        when 'data-processing'
           OpenStack::Sahara::Connection.new(connection)
         else
           raise Exception::InvalidArgument, "Invalid :service_type parameter: #{@service_type}"
