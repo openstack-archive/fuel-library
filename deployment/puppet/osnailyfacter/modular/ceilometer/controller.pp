@@ -35,16 +35,17 @@ $swift_rados_backend        = $storage_hash['objects_ceph']
 $amqp_password              = $rabbit_hash['password']
 $amqp_user                  = $rabbit_hash['user']
 $rabbit_ha_queues           = true
-$service_endpoint           = hiera('service_endpoint')
+$service_endpoint           = hiera('service_endpoint', $management_vip)
 $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
 $ssl_hash                   = hiera_hash('use_ssl', {})
 $service_workers            = pick($ceilometer_hash['workers'], min(max($::processorcount, 2), 16))
+$internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$keystone_identity_uri      = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
+$keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
 prepare_network_config(hiera_hash('network_scheme', {}))
 $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
-
-$keystone_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$keystone_endpoint = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
 
 # Database related items
 $default_mongo_hash = {
@@ -126,8 +127,8 @@ if ($ceilometer_enabled) {
     amqp_user                  => $amqp_user,
     amqp_password              => $amqp_password,
     rabbit_ha_queues           => $rabbit_ha_queues,
-    keystone_protocol          => $keystone_protocol,
-    keystone_host              => $keystone_endpoint,
+    keystone_auth_uri          => $keystone_auth_uri,
+    keystone_identity_uri      => $keystone_identity_uri,
     keystone_password          => $ceilometer_user_password,
     keystone_user              => $ceilometer_hash['user'],
     keystone_tenant            => $ceilometer_hash['tenant'],
