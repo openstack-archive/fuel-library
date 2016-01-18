@@ -35,10 +35,21 @@ describe manifest do
     sahara = Noop.hiera_structure('sahara/enabled')
 
     it 'should install heat-docker package only after heat-engine' do
-      should contain_package('heat-docker').with(
-        'ensure'  => 'installed',
-        'require' => 'Package[heat-engine]',
-    )
+      if !facts.has_key?(:os_package_type) or facts[:os_package_type] != 'ubuntu'
+        if facts[:osfamily] == 'RedHat'
+          heat_docker_package_name = 'openstack-heat-docker'
+        elsif facts[:osfamily] == 'Debian'
+          heat_docker_package_name = 'heat-docker'
+        end
+        should contain_package('heat-docker').with(
+          'ensure'  => 'installed',
+          'name'    => heat_docker_package_name,
+          'require' => 'Package[heat-engine]')
+      else
+        should_not contain_package('heat-docker').with(
+          'ensure'  => 'installed',
+          'require' => 'Package[heat-engine]')
+      end
     end
 
     it 'should configure default_log_levels' do

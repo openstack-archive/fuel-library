@@ -137,14 +137,17 @@ class heat::docker_resource (
   }
 }
 
-if $::osfamily == 'RedHat' {
-  $docker_resource_package_name = 'openstack-heat-docker'
-} elsif $::osfamily == 'Debian' {
-  $docker_resource_package_name = 'heat-docker'
-}
+# TODO(aschultz): ubuntu does not have a heat docker package
+if !$::os_package_type or $::os_package_type != 'ubuntu' {
+  if $::osfamily == 'RedHat' {
+    $docker_resource_package_name = 'openstack-heat-docker'
+  } elsif $::osfamily == 'Debian' {
+    $docker_resource_package_name = 'heat-docker'
+  }
 
-class { 'heat::docker_resource' :
-  package_name => $docker_resource_package_name,
+  class { 'heat::docker_resource' :
+    package_name => $docker_resource_package_name,
+  }
 }
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
