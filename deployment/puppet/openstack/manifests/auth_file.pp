@@ -40,6 +40,9 @@
 # [*cacert*]
 #   (optional) Certificate to verify the TLS server certificate.
 #   Defaults to undef.
+# [*murano_glar_plugin*]
+#   (optional) Murano Glance Artifacts Plugin.
+#   Defaults to undef.
 #
 class openstack::auth_file(
   $admin_password,
@@ -57,6 +60,7 @@ class openstack::auth_file(
   $os_endpoint_type         = 'internalURL',
   $murano_repo_url          = undef,
   $cacert                   = undef,
+  $murano_glar_plugin       = undef,
 ) {
 
   file { '/root/openrc':
