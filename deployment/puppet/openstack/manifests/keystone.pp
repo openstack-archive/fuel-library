@@ -114,8 +114,6 @@ class openstack::keystone (
     $token_driver = 'keystone.token.backends.sql.Token'
   }
 
-  $public_endpoint = false
-
   #### Fernet Token ####
   if $token_provider == 'keystone.token.providers.fernet.Provider' {
     file { "$fernet_key_repository":
@@ -157,7 +155,6 @@ class openstack::keystone (
       token_caching                => $token_caching,
       cache_backend                => $cache_backend,
       revoke_driver                => $revoke_driver,
-      public_endpoint              => $public_endpoint,
       admin_endpoint               => $admin_url,
       memcache_dead_retry          => '60',
       memcache_socket_timeout      => '1',
