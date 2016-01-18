@@ -920,3 +920,4 @@ workloads_collector:
   password: MhdNr1K7
   tenant: services
   username: workloads_collector
+node_name_prefix_for_messaging: rabbitmq
