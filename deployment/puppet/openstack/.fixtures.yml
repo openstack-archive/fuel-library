@@ -32,7 +32,7 @@ fixtures:
       branch: 'mos-9.0'
     'ceilometer':
       repo: 'https://review.fuel-infra.org/puppet-modules/puppet-ceilometer.git'
-      branch: '7.0.0-rc3'
+      branch: 'mos-9.0'
     'cinder':
       repo: 'https://review.fuel-infra.org/puppet-modules/openstack-cinder.git'
       branch: 'mos-9.0'

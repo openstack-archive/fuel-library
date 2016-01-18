@@ -43,6 +43,15 @@ describe manifest do
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
     primary_controller = Noop.hiera 'primary_controller'
 
+
+    management_vip         = Noop.hiera 'management_vip'
+    service_endpoint       = Noop.hiera 'service_endpoint', management_vip
+    ssl_hash               = Noop.hiera_structure('use_ssl', {})
+    internal_auth_protocol = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http'
+    internal_auth_endpoint = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip]
+    keystone_identity_uri  = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
+    keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
+
     # Ceilometer
     if ceilometer_hash['enabled']
       it 'should configure connection string with read reference set to primaryPreferred' do
@@ -57,14 +66,22 @@ describe manifest do
 
       it 'should declare openstack::ceilometer class with correct parameters' do
         should contain_class('openstack::ceilometer').with(
-          'amqp_user'          => rabbit_user,
-          'amqp_password'      => rabbit_password,
-          'rabbit_ha_queues'   => rabbit_ha_queues,
-          'on_controller'      => 'true',
-          'use_stderr'         => 'false',
-          'primary_controller' => primary_controller,
+          'amqp_user'             => rabbit_user,
+          'amqp_password'         => rabbit_password,
+          'rabbit_ha_queues'      => rabbit_ha_queues,
+          'on_controller'         => 'true',
+          'use_stderr'            => 'false',
+          'primary_controller'    => primary_controller,
+          'keystone_auth_uri'     => keystone_auth_uri,
+          'keystone_identity_uri' => keystone_identity_uri,
         )
       end
+
+      it 'should configure auth and identity uri' do
+        should contain_ceilometer_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
+        should contain_ceilometer_config('keystone_authtoken/identity_uri').with(:value => keystone_identity_uri)
+      end
+
       it 'should configure OS ENDPOINT TYPE for ceilometer' do
         should contain_ceilometer_config('service_credentials/os_endpoint_type').with(:value => 'internalURL')
       end
