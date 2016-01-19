@@ -11,7 +11,7 @@ describe manifest do
     }
 
     let(:endpoints) do
-      Noop.hiera('network_scheme', {}).fetch('endpoints', {})
+      Noop.hiera_hash('network_scheme', {}).fetch('endpoints', {})
     end
 
     let(:other_networks) do

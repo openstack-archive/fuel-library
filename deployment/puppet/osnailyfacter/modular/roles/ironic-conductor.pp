@@ -1,7 +1,8 @@
 notice('MODULAR: ironic/ironic-conductor.pp')
 
-$network_scheme             = hiera('network_scheme', {})
+$network_scheme = hiera_hash('network_scheme', {})
 prepare_network_config($network_scheme)
+
 $baremetal_address          = get_network_role_property('ironic/baremetal', 'ipaddr')
 $ironic_hash                = hiera_hash('ironic', {})
 $management_vip             = hiera('management_vip')

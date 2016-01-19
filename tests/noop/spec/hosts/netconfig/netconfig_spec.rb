@@ -4,8 +4,8 @@ manifest = 'netconfig/netconfig.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    network_metadata = Noop.hiera 'network_metadata'
-    network_scheme   = Noop.hiera 'network_scheme'
+    network_metadata = Noop.hiera_hash 'network_metadata'
+    network_scheme   = Noop.hiera_hash 'network_scheme'
     use_neutron      = Noop.hiera 'use_neutron'
     default_gateway  = Noop.hiera 'default_gateway'
     set_xps          = Noop.hiera 'set_xps', true

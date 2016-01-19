@@ -6,7 +6,7 @@ describe manifest do
 
   shared_examples 'catalog' do
     let(:endpoints) do
-      Noop.hiera('network_scheme', {}).fetch('endpoints', {})
+      Noop.hiera_hash('network_scheme', {}).fetch('endpoints', {})
     end
 
     it "should delcare cluster::vrouter_ocf with correct other_networks" do

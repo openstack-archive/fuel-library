@@ -20,7 +20,7 @@ describe manifest do
     rabbit_hosts       = Noop.hiera('amqp_hosts')
     rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
     rabbit_password    = Noop.hiera_structure('rabbit/password')
-    network_scheme     = Noop.hiera 'network_scheme'
+    network_scheme     = Noop.hiera_hash 'network_scheme'
 
     let (:storage_nets){
         Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '

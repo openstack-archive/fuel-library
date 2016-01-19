@@ -1,7 +1,9 @@
 notice('MODULAR: cinder.pp')
 
 # Pulling hiera
-prepare_network_config(hiera('network_scheme', {}))
+$network_scheme = hiera_hash('network_scheme', {})
+prepare_network_config($network_scheme)
+
 $cinder_hash                    = hiera_hash('cinder_hash', {})
 $storage_address                = get_network_role_property('cinder/iscsi', 'ipaddr')
 $public_vip                     = hiera('public_vip')
@@ -24,7 +26,6 @@ $glance_hash                    = hiera_hash('glance_hash', {})
 $keystone_hash                  = hiera_hash('keystone_hash', {})
 $ceilometer_hash                = hiera_hash('ceilometer_hash',{})
 $access_hash                    = hiera('access', {})
-$network_scheme                 = hiera_hash('network_scheme')
 $neutron_mellanox               = hiera('neutron_mellanox', false)
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
@@ -216,7 +217,7 @@ if ($use_ceph and !$storage_hash['volumes_lvm'] and !member($roles, 'cinder-vmwa
   $primary_mon    = $controllers[0]['name']
 
   if ($use_neutron) {
-    prepare_network_config(hiera_hash('network_scheme'))
+    prepare_network_config(hiera_hash('network_scheme', {}))
     $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
     $ceph_public_network  = get_network_role_property('ceph/public', 'network')
   } else {

@@ -30,7 +30,7 @@ if $use_neutron {
   $auth_region        = hiera('region', 'RegionOne')
   $auth_endpoint_type = 'internalURL'
 
-  $network_scheme = hiera_hash('network_scheme')
+  $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
 
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })

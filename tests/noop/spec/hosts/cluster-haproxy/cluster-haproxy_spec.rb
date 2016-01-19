@@ -5,7 +5,7 @@ manifest = 'cluster-haproxy/cluster-haproxy.pp'
 describe manifest do
   shared_examples 'catalog' do
     let(:endpoints) do
-      Noop.hiera('network_scheme', {}).fetch('endpoints', {})
+      Noop.hiera_hash('network_scheme', {}).fetch('endpoints', {})
     end
 
     unless Noop.hiera('external_lb', false)
