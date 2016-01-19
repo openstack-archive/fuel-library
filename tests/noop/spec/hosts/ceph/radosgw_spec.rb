@@ -68,6 +68,7 @@ describe manifest do
       it 'should configure s3 keystone authentication for RadosGW' do
         should contain_class('ceph::radosgw').with(
           :rgw_use_keystone => true,
+          :rgw_keystone_url => admin_url,
         )
         should contain_ceph_conf("client.#{rgw_id}/rgw_s3_auth_use_keystone").with(
           :value => rgw_s3_auth_use_keystone,
