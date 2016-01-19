@@ -21,6 +21,7 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
       :bond_slaves    => 'ovs_bonds',
       :bond_mode      => 'ovs_options',
       :bond_miimon    => 'ovs_options',
+      :bond_use_carrier => 'ovs_options',
       :bond_lacp_rate => 'ovs_options',
       :bond_lacp      => 'ovs_options',
       :bond_xmit_hash_policy => '', # unused
@@ -57,6 +58,10 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
       },
       :bond_miimon  => {
           :field    => 'other_config:bond-miimon-interval',
+          :store_to => 'ovs_options'
+      },
+      :bond_use_carrier  => {
+          :field    => 'other_config:bond-detect-mode',
           :store_to => 'ovs_options'
       },
     }
@@ -152,6 +157,12 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
   def self.unmangle__vlan_id(provider, data)
     rv = []
     rv << "ovs_extra -- set Port #{provider.name} tag=#{provider.vlan_id}"
+  end
+
+  def self.unmangle__bond_use_carrier(provider, data)
+    values = [ 'miimon', 'carrier' ]
+    rv = values[data.to_i] if data.to_i <= values.size
+    rv ||= nil
   end
 
   def self.mangle__jacks(data)

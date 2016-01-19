@@ -42,6 +42,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       :bond_slaves           => 'bond-slaves',
       :bond_mode             => 'bond-mode',
       :bond_miimon           => 'bond-miimon',
+      :bond_use_carrier      => 'bond-use-carrier',
       :bond_lacp             => '', # unused for lnx
       :bond_lacp_rate        => 'bond-lacp-rate',
       :bond_updelay          => 'bond-updelay',

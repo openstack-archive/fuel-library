@@ -6,22 +6,23 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
   let(:input_data) do
     {
       :bond_lacp => {
-        :name           => 'bond_lacp',
-        :ensure         => 'present',
-        :if_type        => 'bond',
-        :bridge         => 'br0',
-        :mtu            => '9000',
-        :onboot         => true,
-        :method         => 'manual',
-        :bond_mode      => 'balance-tcp',
-        :bond_slaves    => ['eth2', 'eth3'],
-        :bond_miimon    => '50',
-        :bond_lacp_rate => 'fast',
-        :bond_lacp      => 'active',
-        :bond_updelay   => '111',
-        :bond_downdelay => '222',
-        :bond_ad_select => '2',   # unused for OVS
-        :provider       => "ovs_ubuntu",
+        :name             => 'bond_lacp',
+        :ensure           => 'present',
+        :if_type          => 'bond',
+        :bridge           => 'br0',
+        :mtu              => '9000',
+        :onboot           => true,
+        :method           => 'manual',
+        :bond_mode        => 'balance-tcp',
+        :bond_slaves      => ['eth2', 'eth3'],
+        :bond_miimon      => '50',
+        :bond_use_carrier => '0',
+        :bond_lacp_rate   => 'fast',
+        :bond_lacp        => 'active',
+        :bond_updelay     => '111',
+        :bond_downdelay   => '222',
+        :bond_ad_select   => '2',   # unused for OVS
+        :provider         => "ovs_ubuntu",
       },
     }
   end
@@ -87,6 +88,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/ovs_type\s+OVSBond/) }
       it { expect(cfg_file).to match(/ovs_bridge\s+br0/) }
       it { expect(cfg_file).to match(/ovs_options.+bond_mode=balance-tcp/) }
+      it { expect(cfg_file).to match(/ovs_options.+other_config:bond-detect-mode=miimon/) }
       it { expect(cfg_file).to match(/ovs_options.+other_config:lacp-time=fast/) }
       it { expect(cfg_file).to match(/ovs_options.+other_config:bond-miimon-interval=50/) }
       it { expect(cfg_file).to match(/ovs_options.+bond_updelay=111/) }
