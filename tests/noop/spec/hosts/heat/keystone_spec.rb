@@ -9,11 +9,14 @@ describe manifest do
         'trusts_delegated_roles' => [],
       )
     end
-
+    heat = Noop.hiera_hash('heat')
     internal_protocol = 'http'
     internal_address = Noop.hiera('management_vip')
     admin_protocol = 'http'
     admin_address  = internal_address
+
+    configure_user = heat.fetch('configure_user', true)
+    configure_user_role = heat.fetch('configure_user_role', true)
 
     if Noop.hiera_structure('use_ssl', false)
       public_protocol = 'https'
@@ -63,6 +66,16 @@ describe manifest do
 
     it 'class heat::keystone::auth should contain tenant' do
       should contain_class('heat::keystone::auth').with('tenant' => tenant)
+    end
+
+    it 'class heat::keystone::auth_cfn should contain configure_user parameters' do
+      should contain_class('heat::keystone::auth_cfn').with('configure_user' => configure_user)
+      should contain_class('heat::keystone::auth_cfn').with('configure_user_role' => configure_user_role)
+    end
+
+    it 'class heat::keystone::auth should contain configure_user parameters' do
+      should contain_class('heat::keystone::auth').with('configure_user' => configure_user)
+      should contain_class('heat::keystone::auth').with('configure_user_role' => configure_user_role)
     end
 
   end
