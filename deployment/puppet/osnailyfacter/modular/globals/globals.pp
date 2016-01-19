@@ -37,7 +37,8 @@ prepare_network_config($network_scheme)
 # of `$::os_package_type' fact avilable to use in project manifests,
 # we need to provide a manual override for Fuel Ubuntu images.
 if ($::osfamily == 'Debian'){
-  $os_package_type_override = hiera('os_package_type', 'debian')
+  #FIXME(mattymo): This is to test mitaka support using UCA
+  $os_package_type_override = hiera('os_package_type', 'ubuntu')
   if (!empty($os_package_type_override)) {
     File {
       owner => 'root',
