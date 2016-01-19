@@ -49,17 +49,18 @@ class osnailyfacter::apache (
 
   apache::listen { $listen_ports: }
 
-  File {
-    ensure  => 'file',
-    owner   => 'root',
-    group   => 'root',
-  }
+  # TODO (vvalyavskiy) Currently, it's not possible to specify owning parameters for File resource,
+  # cause it breaks apache logging process. Optimization can be returned as soon as pull request
+  # will be merged - https://github.com/puppetlabs/puppetlabs-apache/pull/1340
 
   # we need to override the logrotate file provided by apache to work around
   # wsgi issues on the restart caused by logrotate.
   # LP#1491576 and https://github.com/GrahamDumpleton/mod_wsgi/issues/81
   file { '/etc/logrotate.d/apache2':
+    owner   => 'root',
+    group   => 'root',
     mode    => '0644',
+    ensure  => 'file',
     content => template('osnailyfacter/apache2.logrotate.erb'),
     require => Package['httpd']
   }
@@ -73,12 +74,17 @@ class osnailyfacter::apache (
   $apache2_logrotate_delay = $delay[0] * 60
 
   file { '/etc/logrotate.d/httpd-prerotate':
-    ensure => 'directory',
-    mode   => '0755',
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0755',
+    ensure  => 'directory',
   }
 
   file { '/etc/logrotate.d/httpd-prerotate/apache2':
+    owner   => 'root',
+    group   => 'root',
     mode    => '0755',
+    ensure  => 'file',
     content => template('osnailyfacter/apache2.prerotate.erb'),
   }
 }
