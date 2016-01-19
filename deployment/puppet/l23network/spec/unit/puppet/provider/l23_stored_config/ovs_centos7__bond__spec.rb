@@ -14,22 +14,23 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
   let(:input_data) do
     {
       :ovs_bondlacp1 => {
-        :name           => 'ovs-bondlacp1',
-        :ensure         => 'present',
-        :if_type        => 'bond',
-        :bridge         => 'br0',
-        :mtu            => '9000',
-        :onboot         => true,
-        :method         => 'manual',
-        :bond_mode      => 'balance-tcp',
-        :bond_slaves    => ['eth2', 'eth3'],
-        :bond_miimon    => '50',
-        :bond_lacp_rate => 'fast',
-        :bond_lacp      => 'active',
-        :bond_updelay   => '111',
-        :bond_downdelay => '222',
-        :bond_ad_select => '2',   # unused for OVS
-        :provider       => "ovs_centos7",
+        :name             => 'ovs-bondlacp1',
+        :ensure           => 'present',
+        :if_type          => 'bond',
+        :bridge           => 'br0',
+        :mtu              => '9000',
+        :onboot           => true,
+        :method           => 'manual',
+        :bond_mode        => 'balance-tcp',
+        :bond_slaves      => ['eth2', 'eth3'],
+        :bond_miimon      => '50',
+        :bond_use_carrier => '0',
+        :bond_lacp_rate   => 'fast',
+        :bond_lacp        => 'active',
+        :bond_updelay     => '111',
+        :bond_downdelay   => '222',
+        :bond_ad_select   => '2',   # unused for OVS
+        :provider         => "ovs_centos7",
       },
     }
   end
@@ -87,7 +88,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
       it { expect(cfg_file).to match(%r{OVS_BRIDGE=br0}) }
       it { expect(cfg_file).to match(%r{MTU=9000}) }
       it { expect(cfg_file).to match(%r{OVS_OPTIONS="bond_mode=balance-tcp other_config:bond-miimon-interval=50 \
-other_config:lacp-time=fast bond_updelay=111 bond_downdelay=222 lacp=active"}) }
+other_config:bond-detect-mode=miimon other_config:lacp-time=fast bond_updelay=111 bond_downdelay=222 lacp=active"}) }
       it { expect(cfg_file).to match(%r{BOND_IFACES="eth2 eth3"}) }
       it { expect(cfg_file).to match(%r{DEVICETYPE=ovs}) }
       it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(9) }  #  no more lines in the interface file
@@ -101,6 +102,7 @@ other_config:lacp-time=fast bond_updelay=111 bond_downdelay=222 lacp=active"}) }
       it { expect(res[:if_type].to_s).to eq 'bond' }
       it { expect(res[:bond_mode]).to eq 'balance-tcp' }
       it { expect(res[:bond_miimon]).to eq '50' }
+      it { expect(res[:bond_use_carrier].to_s).to eq '0' }
       it { expect(res[:bond_lacp_rate]).to eq 'fast' }
       it { expect(res[:bond_lacp]).to eq 'active' }
       it { expect(res[:bond_updelay]).to eq '111' }

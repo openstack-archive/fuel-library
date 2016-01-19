@@ -22,14 +22,16 @@
 #     lacp - ovs provider only
 #     lacp_rate
 #     ad_select - lnx provider only
+#     use_carrier - for lnx provider - as is, for ovs - bond-detect-mode: 1 - carrier,  0 - miimon
 #     updelay
 #     downdelay
+#
+# [*interface_properties*]
+#   Configuration options for included interfaces (mtu, ethtool, etc...)
 #
 # [*provider*]
 #   This manifest supports lnx or ovs providers.
 #
-# [*interface_properties*]
-#   Configuration options for included interfaces (mtu, ethtool, etc...)
 #
 
 define l23network::l2::bond (
@@ -88,8 +90,8 @@ define l23network::l2::bond (
     /ovs/: {
       # default values by design http://openvswitch.org/support/dist-docs/ovs-vswitchd.conf.db.5.txt
       $default_bond_properties = {
-        'mode' => 'active-backup',
-        'lacp' => 'off',
+        'mode'      => 'active-backup',
+        'lacp'      => 'off',
         'lacp_rate' => 'slow',
       }
 
@@ -105,19 +107,18 @@ define l23network::l2::bond (
       }
 
       $calculated_bond_properties = {
-        mode => pick($bond_properties[mode], $default_bond_properties[mode]),
-        lacp => $lacp,
+        mode      => pick($bond_properties[mode], $default_bond_properties[mode]),
+        lacp      => $lacp,
         lacp_rate => $lacp_rate,
       }
-
     }
     default: {
       # default values by design https://www.kernel.org/doc/Documentation/networking/bonding.txt
       $default_bond_properties = {
-        'mode' => 'balance-rr',
-        'lacp_rate' => 'slow',
+        'mode'             => 'balance-rr',
+        'lacp_rate'        => 'slow',
         'xmit_hash_policy' => 'layer2',
-        'ad_select' => 'bandwidth',
+        'ad_select'        => 'bandwidth',
       }
 
       # calculate mode
@@ -143,28 +144,29 @@ define l23network::l2::bond (
         } else {
           $lacp_rate = pick($bond_properties[lacp_rate], $default_bond_properties[lacp_rate])
         }
-      }
 
-      # calculate ad_select
-      if is_integer($bond_properties[ad_select]) {
-        $ad_select = $ad_select_states[$bond_properties[ad_select]]
-      } else {
-        $ad_select = pick($bond_properties[ad_select], $default_bond_properties[ad_select])
+        # calculate ad_select
+        if is_integer($bond_properties[ad_select]) {
+          $ad_select = $ad_select_states[$bond_properties[ad_select]]
+        } else {
+          $ad_select = pick($bond_properties[ad_select], $default_bond_properties[ad_select])
+        }
       }
 
       $calculated_bond_properties = {
-        mode => $bond_mode,
+        mode             => $bond_mode,
         xmit_hash_policy => $xmit_hash_policy,
-        lacp_rate => $lacp_rate,
-        ad_select => $ad_select,
+        lacp_rate        => $lacp_rate,
+        ad_select        => $ad_select,
       }
-
     }
   }
 
-  $real_bond_properties = merge($calculated_bond_properties, { miimon    => pick($bond_properties[miimon], 100 ),
-                                                              updelay   => pick($bond_properties[updelay], 200 ),
-                                                              downdelay => pick($bond_properties[downdelay], 200 )})
+  $miimon               = pick($bond_properties[miimon], 100 )
+  $real_bond_properties = merge($calculated_bond_properties, { miimon     => $miimon,
+                                                              use_carrier => pick($bond_properties[use_carrier], 1),
+                                                              updelay     => pick($bond_properties[updelay], 2*$miimon),
+                                                              downdelay   => pick($bond_properties[downdelay], 2*$miimon), })
 
   if $interfaces {
     validate_array($interfaces)
@@ -231,6 +233,7 @@ define l23network::l2::bond (
       bond_master           => undef,
       bond_slaves           => $interfaces,
       bond_miimon           => $real_bond_properties[miimon],
+      bond_use_carrier      => $real_bond_properties[use_carrier],
       bond_lacp             => $real_bond_properties[lacp],
       bond_lacp_rate        => $real_bond_properties[lacp_rate],
       bond_xmit_hash_policy => $real_bond_properties[xmit_hash_policy],
