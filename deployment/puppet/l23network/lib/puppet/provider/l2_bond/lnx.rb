@@ -66,7 +66,6 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       bond_prop_dir = "/sys/class/net/#{@resource[:bond]}"
-      #
       # FLUSH changed properties
       if @property_flush.has_key? :slaves
         runtime_slave_ports = self.class.get_sys_class("/sys/class/net/#{@resource[:bond]}/bonding/slaves", true)
@@ -96,10 +95,16 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         end
       end
       if @property_flush.has_key? :bond_properties
+        bond_properties_to_change = @property_flush[:bond_properties]
+        if @old_property_hash[:bond_properties] and !@old_property_hash[:bond_properties].empty?
+          bond_properties_to_change = @property_flush[:bond_properties].to_a - @old_property_hash[:bond_properties].to_a
+          bond_properties_to_change = Hash[*bond_properties_to_change.flatten]
+        end
+        debug("Bond properties which are going to be changed #{bond_properties_to_change}")
         # change bond_properties
         bond_is_up  = !self.class.get_iface_state(@resource[:bond]).nil?
         # Reassemble bond if we change bond mode
-        need_reassembling = true if self.class.get_sys_class("#{bond_prop_dir}/bonding/#{'mode'}") != @property_flush[:bond_properties][:mode]
+        need_reassembling = true if bond_properties_to_change[:mode] and self.class.get_sys_class("#{bond_prop_dir}/bonding/#{'mode'}") != bond_properties_to_change[:mode]
         if need_reassembling
           self.class.interface_down(@resource[:bond])
           bond_is_up = false
@@ -117,9 +122,9 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         debug("Set primary bond properties [#{primary_bond_properties.join(',')}] for bond '#{@resource[:bond]}'")
         primary_bond_properties.each do |ppp|
           pprop = ppp.to_s
-          if @property_flush[:bond_properties].has_key?(ppp)
+          if bond_properties_to_change.has_key?(ppp)
             curr_pprop = self.class.get_sys_class("#{bond_prop_dir}/bonding/#{pprop}")
-            should_pprop = @property_flush[:bond_properties][ppp].to_s
+            should_pprop = bond_properties_to_change[ppp].to_s
             if ['', 'nil', 'undef'].include? should_pprop
               debug("Skip undefined property '#{pprop}'='#{should_pprop}' for bond '#{@resource[:bond]}'")
             elsif curr_pprop != should_pprop
@@ -136,7 +141,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           end
         end
         # setup another bond_properties
-        non_primary_bond_properties = @property_flush[:bond_properties].reject{|k,v| primary_bond_properties.include? k}
+        non_primary_bond_properties = bond_properties_to_change.reject{|k,v| primary_bond_properties.include? k}
         debug("Set non-primary bond properties [#{non_primary_bond_properties.keys.join(',')}] for bond '#{@resource[:bond]}'")
         non_primary_bond_properties.each do |prop, val|
           if ['', 'nil', 'undef'].include? val.to_s

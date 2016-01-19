@@ -507,6 +507,9 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
         :bond_properties => {
           :mode             => mode,
           :miimon           => File.open("/sys/class/net/#{bond_name}/bonding/miimon").read.chomp,
+          :ad_select        => File.open("/sys/class/net/#{bond_name}/bonding/ad_select").read.split(/\s+/)[0],
+          :updelay          => File.open("/sys/class/net/#{bond_name}/bonding/updelay").read.chomp,
+          :downdelay        => File.open("/sys/class/net/#{bond_name}/bonding/downdelay").read.chomp,
         }
       }
       if ['802.3ad', 'balance-xor', 'balance-tlb', 'balance-alb'].include? mode
