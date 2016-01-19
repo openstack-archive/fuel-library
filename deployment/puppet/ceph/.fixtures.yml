@@ -2,3 +2,4 @@ fixtures:
   symlinks:
     ceph: "#{source_dir}"
     firewall: "#{source_dir}/../firewall"
+    stdlib: "#{source_dir}/../stdlib"
