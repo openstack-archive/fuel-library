@@ -10,4 +10,4 @@ ONBOOT=yes
 MTU=9000
 TYPE=Bond
 BRIDGE=lnx-br0
-BONDING_OPTS="mode=balance-tcp miimon=60 lacp_rate=fast ad_select=2 updelay=123 downdelay=155"
+BONDING_OPTS="mode=balance-tcp miimon=60 use_carrier=0 lacp_rate=fast ad_select=2 updelay=123 downdelay=155"

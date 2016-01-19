@@ -131,7 +131,7 @@ Puppet::Type.newtype(:l2_bond) do
       # provider-specific hash, validating only by type.
       validate do |val|
         if ! val.is_a? Hash
-          fail("Interface_properties should be a hash!")
+          fail("bond_properties should be a hash!")
         end
       end
 
@@ -139,8 +139,8 @@ Puppet::Type.newtype(:l2_bond) do
         # it's a workaround, because puppet double some values inside his internal logic
         val.keys.each do |k|
           if k.is_a? String
-            if ! val.has_key? k.to_sym
-              val[k.to_sym] = val[k]
+            unless val.has_key? k.to_sym
+              val[k.to_sym] = val[k] unless [:undef, :absent, ''].include?(val[k])
             end
             val.delete(k)
           end
