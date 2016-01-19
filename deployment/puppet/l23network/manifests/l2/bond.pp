@@ -22,14 +22,18 @@
 #     lacp - ovs provider only
 #     lacp_rate
 #     ad_select - lnx provider only
+#     use_carrier - for lnx provider - as is, for ovs is not used - but
+#                   if miimon is given - it automatically sets
+#                   bond-detect-mode to miimon
 #     updelay
 #     downdelay
+#
+# [*interface_properties*]
+#   Configuration options for included interfaces (mtu, ethtool, etc...)
 #
 # [*provider*]
 #   This manifest supports lnx or ovs providers.
 #
-# [*interface_properties*]
-#   Configuration options for included interfaces (mtu, ethtool, etc...)
 #
 
 define l23network::l2::bond (
@@ -91,6 +95,7 @@ define l23network::l2::bond (
         'mode' => 'active-backup',
         'lacp' => 'off',
         'lacp_rate' => 'slow',
+        'miimon'    => 0,
       }
 
       # calculate lacp and lacp_rate
@@ -104,12 +109,25 @@ define l23network::l2::bond (
         }
       }
 
+      $miimon = pick($bond_properties[miimon], $default_bond_properties[miimon] )
+
       $calculated_bond_properties = {
-        mode => pick($bond_properties[mode], $default_bond_properties[mode]),
-        lacp => $lacp,
+        mode      => pick($bond_properties[mode], $default_bond_properties[mode]),
+        lacp      => $lacp,
         lacp_rate => $lacp_rate,
+        miimon    => $miimon,
+        updelay   => pick($bond_properties[updelay], 0),
+        downdelay => pick($bond_properties[downdelay], 0)
       }
 
+      # By default OVS bonds use *carrier* to determine the link status.
+      # If miimon value exists we start using MII monitor and disable *carrier*.
+      # http://openvswitch.org/support/dist-docs/ovs-vswitchd.conf.db.5.txt
+      if $miimon > 0 {
+        $real_bond_properties = merge($calculated_bond_properties, { use_carrier => 0, })
+      } else {
+        $real_bond_properties = merge($calculated_bond_properties, { use_carrier => 1, })
+      }
     }
     default: {
       # default values by design https://www.kernel.org/doc/Documentation/networking/bonding.txt
@@ -118,6 +136,8 @@ define l23network::l2::bond (
         'lacp_rate' => 'slow',
         'xmit_hash_policy' => 'layer2',
         'ad_select' => 'bandwidth',
+        'miimon'    => 100,
+        'use_carrier' => 1,
       }
 
       # calculate mode
@@ -143,28 +163,30 @@ define l23network::l2::bond (
         } else {
           $lacp_rate = pick($bond_properties[lacp_rate], $default_bond_properties[lacp_rate])
         }
+
+        # calculate ad_select
+        if is_integer($bond_properties[ad_select]) {
+          $ad_select = $ad_select_states[$bond_properties[ad_select]]
+        } else {
+          $ad_select = pick($bond_properties[ad_select], $default_bond_properties[ad_select])
+        }
       }
 
-      # calculate ad_select
-      if is_integer($bond_properties[ad_select]) {
-        $ad_select = $ad_select_states[$bond_properties[ad_select]]
-      } else {
-        $ad_select = pick($bond_properties[ad_select], $default_bond_properties[ad_select])
-      }
+      $miimon = pick($bond_properties[miimon], $default_bond_properties[miimon] )
 
-      $calculated_bond_properties = {
+      $real_bond_properties = {
         mode => $bond_mode,
         xmit_hash_policy => $xmit_hash_policy,
         lacp_rate => $lacp_rate,
         ad_select => $ad_select,
+        miimon    => $miimon,
+        use_carrier => pick($bond_properties[use_carrier], $default_bond_properties[use_carrier]),
+        updelay     => pick($bond_properties[updelay], 2*$miimon),
+        downdelay   => pick($bond_properties[downdelay], 2*$miimon),
       }
-
     }
   }
 
-  $real_bond_properties = merge($calculated_bond_properties, { miimon    => pick($bond_properties[miimon], 100 ),
-                                                              updelay   => pick($bond_properties[updelay], 200 ),
-                                                              downdelay => pick($bond_properties[downdelay], 200 )})
 
   if $interfaces {
     validate_array($interfaces)
@@ -231,6 +253,7 @@ define l23network::l2::bond (
       bond_master           => undef,
       bond_slaves           => $interfaces,
       bond_miimon           => $real_bond_properties[miimon],
+      bond_use_carrier      => $real_bond_properties[use_carrier],
       bond_lacp             => $real_bond_properties[lacp],
       bond_lacp_rate        => $real_bond_properties[lacp_rate],
       bond_xmit_hash_policy => $real_bond_properties[xmit_hash_policy],
