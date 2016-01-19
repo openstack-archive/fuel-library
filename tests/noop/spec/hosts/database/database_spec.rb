@@ -53,6 +53,12 @@ describe manifest do
     it { should contain_class('openstack::galera::status').that_comes_before('Haproxy_backend_status[mysql]') }
     it { should contain_haproxy_backend_status('mysql').that_comes_before('Class[osnailyfacter::mysql_access]') }
 
+    it 'should create grant with right privileges' do
+      should contain_database_grant("user@%/*.*").with(
+        :privileges => [ 'select_priv' ]
+      )
+    end
+
     if Noop.hiera('external_lb', false)
       database_vip = Noop.hiera('database_vip', Noop.hiera('management_vip'))
       url = "http://#{database_vip}:49000"
