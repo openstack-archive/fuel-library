@@ -1,4 +1,5 @@
 import os
+import subprocess
 extensions = []
 source_suffix = '.rst'
 master_doc = 'index'
@@ -8,8 +9,9 @@ copyright = u'2015, Fuel for Fuel for OpenStack contributors'
 version = '1.0.0'
 release = '1.0.0'
 giturl = u'http://git.openstack.org/cgit/openstack/fuel-library/tree/doc/noop-guide/source'
-git_cmd = "/usr/bin/git log | head -n1 | cut -f2 -d' '"
-gitsha = os.popen(git_cmd).read().strip('\n')
+git_cmd = ["/usr/bin/git", "rev-parse", "HEAD"] 
+gitsha = subprocess.Popen(
+    git_cmd, stdout=subprocess.PIPE).communicate()[0].strip('\n')
 html_context = {"gitsha": gitsha, "bug_tag": bug_tag,
                 "giturl": giturl}
 pygments_style = 'sphinx'
