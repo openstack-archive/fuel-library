@@ -32,7 +32,7 @@ if $use_ceph {
   $primary_mons              = keys($ceph_primary_monitor_node)
   $primary_mon               = $ceph_primary_monitor_node[$primary_mons[0]]['name']
 
-  prepare_network_config(hiera_hash('network_scheme'))
+  prepare_network_config(hiera_hash('network_scheme',{}))
   $ceph_cluster_network    = get_network_role_property('ceph/replication', 'network')
   $ceph_public_network     = get_network_role_property('ceph/public', 'network')
   $mon_addr                = get_network_role_property('ceph/public', 'ipaddr')

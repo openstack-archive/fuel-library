@@ -1,6 +1,6 @@
 notice('MODULAR: cluster-haproxy.pp')
 
-$network_scheme     = hiera('network_scheme', {})
+$network_scheme     = hiera_hash('network_scheme', {})
 $management_vip     = hiera('management_vip')
 $database_vip       = hiera('database_vip', '')
 $service_endpoint   = hiera('service_endpoint', '')

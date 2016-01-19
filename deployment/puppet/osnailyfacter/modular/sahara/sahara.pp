@@ -1,6 +1,6 @@
 notice('MODULAR: sahara.pp')
 
-prepare_network_config(hiera('network_scheme', {}))
+prepare_network_config(hiera_hash('network_scheme', {}))
 
 $access_admin               = hiera_hash('access_hash', {})
 $sahara_hash                = hiera_hash('sahara_hash', {})

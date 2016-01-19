@@ -1,7 +1,7 @@
 notice('MODULAR: configure_default_route.pp')
 
 
-$network_scheme         = hiera_hash('network_scheme')
+$network_scheme         = hiera_hash('network_scheme', {})
 $management_vrouter_vip = hiera('management_vrouter_vip')
 $management_role        = 'management'
 $fw_admin_role          = 'fw-admin'
