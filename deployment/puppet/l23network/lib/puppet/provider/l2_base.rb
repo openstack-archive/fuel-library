@@ -507,6 +507,8 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
         :bond_properties => {
           :mode             => mode,
           :miimon           => File.open("/sys/class/net/#{bond_name}/bonding/miimon").read.chomp,
+          :updelay          => File.open("/sys/class/net/#{bond_name}/bonding/updelay").read.chomp,
+          :downdelay        => File.open("/sys/class/net/#{bond_name}/bonding/downdelay").read.chomp,
         }
       }
       if ['802.3ad', 'balance-xor', 'balance-tlb', 'balance-alb'].include? mode
@@ -515,7 +517,9 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
       end
       if mode=='802.3ad'
         lacp_rate = File.open("/sys/class/net/#{bond_name}/bonding/lacp_rate").read.split(/\s+/)[0]
+        ad_select = File.open("/sys/class/net/#{bond_name}/bonding/ad_select").read.split(/\s+/)[0],
         bond[bond_name][:bond_properties][:lacp_rate] = lacp_rate
+        bond[bond_name][:bond_properties][:ad_select] = ad_select
       end
       bond[bond_name][:onboot] = !self.get_iface_state(bond_name).nil?
     end
