@@ -26,6 +26,10 @@ describe manifest do
       Noop.hiera('database_nodes')
     end
 
+    let(:galera_node_address) do
+      Noop.puppet_function 'get_network_role_property', 'mgmt/database', 'ipaddr'
+    end
+
     let(:galera_nodes) do
       (Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', database_nodes, 'mgmt/database').values
     end
@@ -52,6 +56,12 @@ describe manifest do
     it { should contain_class('osnailyfacter::mysql_access') }
     it { should contain_class('openstack::galera::status').that_comes_before('Haproxy_backend_status[mysql]') }
     it { should contain_haproxy_backend_status('mysql').that_comes_before('Class[osnailyfacter::mysql_access]') }
+
+    it 'should create grant with right privileges' do
+      should contain_database_grant("clustercheck@#{galera_node_address}/*.*").with(
+        :privileges => [ 'select_priv' ]
+      )
+    end
 
     if Noop.hiera('external_lb', false)
       database_vip = Noop.hiera('database_vip', Noop.hiera('management_vip'))
