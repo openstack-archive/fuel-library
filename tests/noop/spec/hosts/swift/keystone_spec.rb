@@ -9,6 +9,8 @@ describe manifest do
     end
 
     swift = Noop.hiera_hash('swift')
+    configure_user = swift.fetch('configure_user', true)
+    configure_user_role = swift.fetch('configure_user_role', true)
 
     if swift['management_vip']
       management_vip = swift['management_vip']
@@ -83,6 +85,11 @@ describe manifest do
 
     it 'class swift::keystone::auth should contain tenant' do
       should contain_class('swift::keystone::auth').with('tenant' => tenant)
+    end
+
+    it 'class swift::keystone::auth should contain configure_user parameters' do
+      should contain_class('swift::keystone::auth').with('configure_user' => configure_user)
+      should contain_class('swift::keystone::auth').with('configure_user_role' => configure_user_role)
     end
 
   end
