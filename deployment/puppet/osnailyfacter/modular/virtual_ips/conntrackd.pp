@@ -1,7 +1,7 @@
 notice('MODULAR: conntrackd.pp')
 
 $network_metadata = hiera_hash('network_metadata', {})
-prepare_network_config(hiera('network_scheme', {}))
+prepare_network_config(hiera_hash('network_scheme', {}))
 $vrouter_name = hiera('vrouter_name', 'pub')
 
 case $operatingsystem {
