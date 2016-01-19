@@ -20,7 +20,7 @@
 #    :tarbal => 'https://forgeapi.puppetlabs.com/v3/files/puppetlabs-stdlib-4.6.0.tar.gz'
 #
 #
-
+#
 # Pull in puppetlabs-stdlib
 mod 'stdlib',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-stdlib.git',
