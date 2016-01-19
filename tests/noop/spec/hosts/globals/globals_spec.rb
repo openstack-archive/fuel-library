@@ -16,6 +16,16 @@ describe manifest do
       File.open(globals_yaml_path, 'w') { |file| file.write globals_yaml_content }
       puts "Globals yaml saved to: '#{globals_yaml_path}'" if ENV['SPEC_PUPPET_DEBUG']
     end
+
+    it 'should configure os_package_type fact' do
+      if facts[:osfamily] == 'Debian'
+        should contain_file('/etc/facter/facts.d/os_package_type.txt').with(
+          :content => 'os_package_type=ubuntu\n'
+        )
+      else
+        should_not contain_file('/etc/facter/facts.d/os_package_type.txt')
+      end
+    end
   end
 
   test_ubuntu_and_centos manifest
