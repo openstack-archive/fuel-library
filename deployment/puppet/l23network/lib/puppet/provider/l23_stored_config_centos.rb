@@ -40,6 +40,7 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
       :slave                 => 'SLAVE',
       :bond_mode             => 'mode',
       :bond_miimon           => 'miimon',
+      :bond_use_carrier      => 'use_carrier',
       :bonding_opts          => 'BONDING_OPTS',
       :bond_lacp_rate        => 'lacp_rate',
       :bond_ad_select        => 'ad_select',
@@ -316,10 +317,10 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     # Do extra actions if ovs2lnx patch cord
     props = self.format_patch_bridges(props) if ( props[:if_type].to_s == 'vport' and props[:bridge].size > 1 )
 
-    props = self.format_bond_opts(props) if props.has_key?(:bond_mode)
-
     debug("format_file('#{filename}')::properties: #{props.inspect}")
     pairs = self.unmangle_properties(provider, props)
+
+    pairs = self.format_bond_opts(pairs) if pairs.has_key?('mode') or pairs.has_key?('bond_mode')
 
     pairs['DEVICETYPE'] = 'ovs' if pairs['TYPE'].to_s =~ /OVS/
 
@@ -387,12 +388,12 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
     bond_options = []
     bond_properties = property_mappings.select { |k, v|  k.to_s =~ %r{bond_.*} and !([:bond_master].include?(k)) }
     bond_properties.each do |param, transform |
-      if props.has_key?(param)
-        bond_options << "#{transform}=#{props[param]}"
-        props.delete(param)
+      if props.has_key?(transform)
+        bond_options << "#{transform}=#{props[transform]}"
+        props.delete(transform)
       end
     end
-    props[:bonding_opts]  = "\"#{bond_options.join(' ')}\""
+    props['BONDING_OPTS']  = "\"#{bond_options.join(' ')}\""
     props
   end
 
