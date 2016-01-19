@@ -6,22 +6,22 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   let(:input_data) do
     {
       :bond0 => {
-        :name           => 'bond0',
-        :ensure         => 'present',
-        :if_type        => 'bond',
-        :mtu            => '9000',
-        :onboot         => true,
-        :method         => 'manual',
-        :bond_mode      => '802.3ad',
+        :name                  => 'bond0',
+        :ensure                => 'present',
+        :if_type               => 'bond',
+        :mtu                   => '9000',
+        :onboot                => true,
+        :method                => 'manual',
+        :bond_mode             => '802.3ad',
         :bond_xmit_hash_policy => 'encap3+4',
-        :bond_slaves    => ['eth2', 'eth3'],
-        :bond_miimon    => '50',
-        :bond_lacp_rate => 'fast',
-        :bond_lacp      => 'passive',  # used only for OVS bonds. Should do nothing for lnx.
-        :bond_updelay   => '111',
-        :bond_downdelay => '222',
-        :bond_ad_select => '2',
-        :provider       => "lnx_ubuntu",
+        :bond_slaves           => ['eth2', 'eth3'],
+        :bond_miimon           => '50',
+        :bond_lacp_rate        => 'fast',
+        :bond_lacp             => 'passive',  # used only for OVS bonds. Should do nothing for lnx.
+        :bond_updelay          => '111',
+        :bond_downdelay        => '222',
+        :bond_ad_select        => '2',
+        :provider              => "lnx_ubuntu",
       },
     }
   end

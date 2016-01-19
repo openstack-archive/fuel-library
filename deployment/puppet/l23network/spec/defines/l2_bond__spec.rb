@@ -43,6 +43,17 @@ describe 'l23network::l2::bond', :type => :define do
       })
     end
 
+    it do
+      should contain_l2_bond('bond0').with({
+        'slaves'          => ['eth3', 'eth4'],
+        'bond_properties' => {:mode=>"balance-rr",
+                              :miimon=>"100",
+                              :use_carrier=>"1",
+                              :updelay=>"200",
+                              :downdelay=>"200"},
+      })
+    end
+
     ['eth3', 'eth4'].each do |slave|
       it do
         should contain_l23_stored_config(slave).with({
@@ -92,6 +103,19 @@ describe 'l23network::l2::bond', :type => :define do
       })
     end
 
+    it do
+      should contain_l2_bond('ovs-bond0').with({
+        'slaves'          => ['eth31', 'eth41'],
+        'bridge'          => 'br-ovs-bond0',
+        'bond_properties' => {:mode=>"active-backup",
+                              :miimon=>"100",
+                              :use_carrier=>"1",
+                              :lacp=>"off",
+                              :updelay=>"200",
+                              :downdelay=>"200"},
+      })
+    end
+
     ['eth31', 'eth41'].each do |slave|
       it do
         should contain_l23_stored_config(slave).with({
@@ -135,6 +159,19 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_miimon' => '100',
       })
     end
+
+    it do
+      should contain_l2_bond('bond0').with({
+        'slaves'          => ['eth3.101', 'eth4.102'],
+        'bond_properties' => {:mode=>'balance-rr',
+                              :miimon=>'100',
+                              :use_carrier=>'1',
+                              :updelay=>'200',
+                              :downdelay=>'200'},
+      })
+    end
+
+
 
     ['eth3.101', 'eth4.102'].each do |slave|
       it do
@@ -183,9 +220,21 @@ describe 'l23network::l2::bond', :type => :define do
         'mtu'            => 9000,
         'bond_updelay'   => '111',
         'bond_downdelay' => '222',
-        'bond_ad_select' => 'count',
+        'bond_ad_select' => nil,
       })
     end
+
+    it do
+      should contain_l2_bond('bond0').with({
+        'slaves'          => ['eth3', 'eth4'],
+        'bond_properties' => {:mode=>'balance-rr',
+                              :miimon=>'100',
+                              :use_carrier=>'1',
+                              :updelay=>'111',
+                              :downdelay=>'222'},
+      })
+    end
+
 
     it do
       should contain_l2_bond('bond0').with({
@@ -234,16 +283,20 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_xmit_hash_policy' => 'layer2',
       })
     end
-    # it do
-    #   should contain_l2_bond('bond0').with_ensure('present')
-    #   should contain_l2_bond('bond0').with_bond_properties({
-    #       :mode             => '802.3ad',
-    #       :lacp_rate        => 'slow',
-    #       :miimon           => '100',
-    #       :xmit_hash_policy => 'layer2'
-    #   })
-    # end
 
+    it do
+      should contain_l2_bond('bond0').with({
+        'slaves'          => ['eth3', 'eth4'],
+        'bond_properties' => {:mode=>'802.3ad',
+                              :xmit_hash_policy=>'layer2',
+                              :lacp_rate=>'slow',
+                              :ad_select=>'bandwidth',
+                              :miimon=>'100',
+                              :use_carrier=>'1',
+                              :updelay=>'200',
+                              :downdelay=>'200'},
+      })
+    end
     # we shouldn't test bond slaves here, because it equalent to previous tests
   end
 
@@ -275,6 +328,18 @@ describe 'l23network::l2::bond', :type => :define do
       should contain_l23_stored_config('bond0').without_bond_lacp_rate()
       should contain_l23_stored_config('bond0').without_bond_xmit_hash_policy()
     end
+
+    it do
+      should contain_l2_bond('bond0').with({
+        'slaves'          => ['eth3', 'eth4'],
+        'bond_properties' => {:mode=>'active-backup',
+                              :miimon=>'100',
+                              :use_carrier=>'1',
+                              :updelay=>'200',
+                              :downdelay=>'200'},
+      })
+    end
+
   end
 
   context 'Create a lnx-bond with mode = balance-tlb, lacp_rate = fast xmit_hash_policy = layer2+3' do
@@ -386,8 +451,8 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_lacp'             => 'active',
         'bond_lacp_rate'        => 'fast',
         'bond_miimon'           => '300',
-        'bond_updelay'          => '200',
-        'bond_downdelay'        => '200',
+        'bond_updelay'          => '600',
+        'bond_downdelay'        => '600',
       })
       should contain_l23_stored_config('bond-ovs').without_bond_xmit_hash_policy()
     end
@@ -398,9 +463,10 @@ describe 'l23network::l2::bond', :type => :define do
           :mode             => 'balance-tcp',
           :lacp             => 'active',
           :lacp_rate        => 'fast',
+          :use_carrier      => '1',
           :miimon           => '300',
-          :updelay          =>"200",
-          :downdelay        =>"200",
+          :updelay          => '600',
+          :downdelay        => '600',
         },
       })
     end
