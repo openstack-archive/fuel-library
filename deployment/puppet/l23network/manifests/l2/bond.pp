@@ -143,13 +143,13 @@ define l23network::l2::bond (
         } else {
           $lacp_rate = pick($bond_properties[lacp_rate], $default_bond_properties[lacp_rate])
         }
-      }
 
-      # calculate ad_select
-      if is_integer($bond_properties[ad_select]) {
-        $ad_select = $ad_select_states[$bond_properties[ad_select]]
-      } else {
-        $ad_select = pick($bond_properties[ad_select], $default_bond_properties[ad_select])
+        # calculate ad_select
+        if is_integer($bond_properties[ad_select]) {
+          $ad_select = $ad_select_states[$bond_properties[ad_select]]
+        } else {
+          $ad_select = pick($bond_properties[ad_select], $default_bond_properties[ad_select])
+        }
       }
 
       $calculated_bond_properties = {
@@ -162,9 +162,23 @@ define l23network::l2::bond (
     }
   }
 
-  $real_bond_properties = merge($calculated_bond_properties, { miimon    => pick($bond_properties[miimon], 100 ),
-                                                              updelay   => pick($bond_properties[updelay], 200 ),
-                                                              downdelay => pick($bond_properties[downdelay], 200 )})
+  # By default lnx and ovs bonds uses *carrier* to determine the link status.
+  # If miimon value exists we start using MII monitor and disable *carrier*.
+  # https://www.kernel.org/doc/Documentation/networking/bonding.txt
+  # http://openvswitch.org/support/dist-docs/ovs-vswitchd.conf.db.5.txt
+  if $bond_properties[miimon] and $bond_properties[miimon] > 0 {
+    $miimon = $bond_properties[miimon]
+    $real_bond_properties = merge($calculated_bond_properties, { miimon    => $miimon,
+                                                               use_carrier => 0,
+                                                               updelay     => pick($bond_properties[updelay], 2*$miimon),
+                                                               downdelay   => pick($bond_properties[downdelay], 2*$miimon) })
+
+  } else {
+    $real_bond_properties = merge($calculated_bond_properties, { miimon    => 0,
+                                                               use_carrier => 1,
+                                                               updelay     => 0,
+                                                               downdelay   => 0 })
+  }
 
   if $interfaces {
     validate_array($interfaces)
