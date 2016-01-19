@@ -2,3 +2,7 @@ fixtures:
   symlinks:
     ceph: "#{source_dir}"
     firewall: "#{source_dir}/../firewall"
+    stdlib: "#{source_dir}/../stdlib"
+    nova: "#{source_dir}/../nova"
+    openstacklib: "#{source_dir}/../openstacklib"
+    inifile: "#{source_dir}/../inifile"
