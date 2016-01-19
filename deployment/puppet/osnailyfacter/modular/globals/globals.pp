@@ -419,12 +419,10 @@ $ironic_api_nodes = $controller_nodes
 
 # Change nova_hash to add vnc port to it
 # TODO(sbog): change this when we will get rid of global hashes
+$ssl_hash = hiera_hash('use_ssl', {})
 $public_ssl_hash = hiera('public_ssl')
-if $public_ssl_hash['services'] {
-  $real_nova_hash = merge($nova_hash, { 'vncproxy_protocol' => 'https' })
-} else {
-  $real_nova_hash = merge($nova_hash, { 'vncproxy_protocol' => 'http' })
-}
+$public_vnc_protocol = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', 'http')
+$real_nova_hash = merge($nova_hash, { 'vncproxy_protocol' => $public_vnc_protocol })
 
 # Define how we should get memcache addresses
 if hiera('memcached_addresses', false) {
