@@ -1,8 +1,6 @@
 notice('MODULAR: swift/rebalance_cronjob.pp')
 
 $network_metadata = hiera_hash('network_metadata')
-# $network_scheme   = hiera_hash('network_scheme')
-# prepare_network_config($network_scheme)
 
 $storage_hash        = hiera('storage_hash')
 $swift_master_role   = hiera('swift_master_role', 'primary-controller')

@@ -1,6 +1,6 @@
 notice('MODULAR: horizon.pp')
 
-prepare_network_config(hiera('network_scheme', {}))
+prepare_network_config(hiera_hash('network_scheme', {}))
 $horizon_hash            = hiera_hash('horizon', {})
 $service_endpoint        = hiera('service_endpoint')
 $memcached_server        = hiera('memcached_addresses')

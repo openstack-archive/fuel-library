@@ -1,7 +1,7 @@
 notice('MODULAR: swift.pp')
 
-$network_scheme             = hiera_hash('network_scheme')
-$network_metadata           = hiera_hash('network_metadata')
+$network_scheme             = hiera_hash('network_scheme', {})
+$network_metadata           = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
 $swift_hash                 = hiera_hash('swift_hash')

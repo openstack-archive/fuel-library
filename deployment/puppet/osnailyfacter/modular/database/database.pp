@@ -1,13 +1,13 @@
 notice('MODULAR: database.pp')
 
-prepare_network_config(hiera('network_scheme', {}))
+$network_scheme = hiera_hash('network_scheme', {})
+prepare_network_config($network_scheme)
 $use_syslog               = hiera('use_syslog', true)
 $primary_controller       = hiera('primary_controller')
 $mysql_hash               = hiera_hash('mysql', {})
 $management_vip           = hiera('management_vip')
 $database_vip             = hiera('database_vip', $management_vip)
 
-$network_scheme  = hiera('network_scheme', {})
 $mgmt_iface = get_network_role_property('mgmt/database', 'interface')
 $direct_networks = split(direct_networks($network_scheme['endpoints'], $mgmt_iface, 'netmask'), ' ')
 $access_networks = flatten(['localhost', '127.0.0.1', '240.0.0.0/255.255.0.0', $direct_networks])

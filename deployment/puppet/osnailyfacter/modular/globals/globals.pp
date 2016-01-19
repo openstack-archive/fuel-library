@@ -431,7 +431,7 @@ if hiera('memcached_addresses', false) {
   # need this to successful lookup from template
   $memcached_addresses = hiera('memcached_addresses')
 } else {
-  $memcache_nodes = get_nodes_hash_by_roles(hiera_hash('network_metadata'), $memcache_roles)
+  $memcache_nodes = get_nodes_hash_by_roles($network_metadata, $memcache_roles)
   $memcached_addresses = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes, 'mgmt/memcache')))
 }
 

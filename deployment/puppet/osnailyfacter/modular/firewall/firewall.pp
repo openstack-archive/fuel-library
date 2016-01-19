@@ -1,6 +1,6 @@
 notice('MODULAR: firewall.pp')
 
-$network_scheme   = hiera_hash('network_scheme')
+$network_scheme   = hiera_hash('network_scheme', {})
 $network_metadata = hiera_hash('network_metadata')
 $ironic_hash      = hiera_hash('ironic', {})
 $roles            = hiera('roles')
@@ -365,7 +365,7 @@ if member($roles, 'compute') {
 }
 
 if $ironic_hash['enabled'] {
-  prepare_network_config(hiera_hash('network_scheme'))
+  prepare_network_config($network_scheme)
   $baremetal_int     = get_network_role_property('ironic/baremetal', 'interface')
   $baremetal_vip     = $network_metadata['vips']['baremetal']['ipaddr']
   $baremetal_ipaddr  = get_network_role_property('ironic/baremetal', 'ipaddr')

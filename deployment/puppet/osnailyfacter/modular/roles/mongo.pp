@@ -1,6 +1,6 @@
 notice('MODULAR: mongo.pp')
 
-prepare_network_config(hiera('network_scheme', {}))
+prepare_network_config(hiera_hash('network_scheme', {}))
 $mongo_hash        = hiera_hash('mongo', {})
 $mongo_nodes       = get_nodes_hash_by_roles(hiera_hash('network_metadata'), hiera('mongo_roles'))
 $mongo_address_map = get_node_to_ipaddr_map_by_network_role($mongo_nodes, 'mongo/db')
