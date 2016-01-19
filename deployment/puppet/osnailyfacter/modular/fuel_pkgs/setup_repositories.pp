@@ -23,5 +23,19 @@ if $::osfamily == 'Debian' {
     notify_update => false,
   }
 
+  # TODO(aschultz): we need the mos fork haproxy when using UCA
+  apt::pin { 'haproxy-mos':
+    packages => 'haproxy',
+    version  => '1.5.3-*',
+    priority => '2000',
+  }
+
+  # TODO(mattymo): we need the mos fork haproxy when using UCA
+  apt::pin { 'ceph-mos':
+    packages => 'ceph',
+    version  => '0.94.5-*',
+    priority => '2000',
+  }
+
   Apt::Source<||> ~> Exec<| title == 'apt_update' |>
 }
