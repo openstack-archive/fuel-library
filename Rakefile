@@ -35,8 +35,14 @@ PuppetSyntax.exclude_paths << "**/vendor/**/*"
 
 
 # Main task list
-task :spec => ["spec:gemfile"]
+task :default => ["common:help"]
+desc "Pull down module dependencies, run tests and cleanup"
+task :spec => ["spec:prep", "spec:gemfile", "spec:clean"]
+task :spec_prep => ["spec:prep"]
+task :spec_clean => ["spec:clean"]
+task :spec_standalone => ["spec:gemfile"]
 # TODO(aschultz): Use puppet-lint for the lint tasks
+desc "Run lint tasks"
 task :lint => ["lint:manual"]
 task :syntax => ["syntax:manifests", "syntax:hiera", "syntax:files", "syntax:templates"]
 
@@ -66,11 +72,30 @@ namespace :common do
       $module_directories << mod
     end
   end
+
+  desc "Display the list of available rake tasks"
+  task :help do
+        system("rake -T")
+  end
 end
 
 
 # our spec task to loop through the modules and run the tests
 namespace :spec do
+
+  desc 'Run prep to install gems and pull down module dependencies'
+  task :prep do |t|
+    library_dir = Dir.pwd
+    ENV['GEM_HOME']="#{library_dir}/.bundled_gems"
+    system("gem install bundler --no-rdoc --no-ri --verbose")
+    system("./deployment/update_modules.sh")
+  end
+
+  desc 'Remove module dependencies'
+  task :clean do |t|
+    system("./deployment/remove_modules.sh")
+  end
+
   desc 'Run spec tasks via module bundler with Gemfile'
   task :gemfile do |t|
     Rake::Task["common:modulelist"].invoke('./utils/jenkins/modules.disable_rspec')
@@ -78,7 +103,6 @@ namespace :spec do
     status = true
 
     ENV['GEM_HOME']="#{library_dir}/.bundled_gems"
-    system("gem install bundler --no-rdoc --no-ri --verbose")
 
     $module_directories.each do |mod|
       next unless File.exists?("#{mod}/Gemfile")

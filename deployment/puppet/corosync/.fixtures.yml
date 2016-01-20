@@ -1,5 +1,4 @@
 fixtures:
-  repositories:
-    stdlib: "git://github.com/puppetlabs/puppetlabs-stdlib.git"
   symlinks:
     corosync: "#{source_dir}"
+    stdlib: "#{source_dir}/../stdlib"
