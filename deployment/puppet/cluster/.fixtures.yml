@@ -1,9 +1,8 @@
 fixtures:
-  repositories:
-    'stdlib': 'https://github.com/puppetlabs/puppetlabs-stdlib.git'
   symlinks:
-    'cluster': "#{source_dir}"
-    'corosync': "#{source_dir}/../corosync"
-    'openstack': "#{source_dir}/../openstack"
-    'pacemaker': "#{source_dir}/../pacemaker"
-    'pacemaker_wrappers': "#{source_dir}/../pacemaker_wrappers"
+    cluster: "#{source_dir}"
+    corosync: "#{source_dir}/../corosync"
+    openstack: "#{source_dir}/../openstack"
+    stdlib: "#{source_dir}/../stdlib"
+    pacemaker: "#{source_dir}/../pacemaker"
+    pacemaker_wrappers: "#{source_dir}/../pacemaker_wrappers"

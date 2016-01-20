@@ -4,6 +4,7 @@ group :development, :test do
   gem 'puppetlabs_spec_helper',               :require => 'false'
   gem 'rspec', '~>3.3',                       :require => 'false'
   gem 'rspec-puppet', '~> 2.2.0',             :require => 'false'
+  gem 'librarian-puppet-simple',              :require => 'false'
   gem 'metadata-json-lint',                   :require => 'false'
   gem 'mime-types', '2.6.2',                  :require => 'false' # 3.0+ requires ruby 2.0
   gem 'puppet-lint-param-docs',               :require => 'false'
