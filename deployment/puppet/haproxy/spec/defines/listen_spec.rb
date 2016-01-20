@@ -139,7 +139,6 @@ describe 'haproxy::listen' do
     let(:params) do
       {
         :name      => 'apache',
-        :ipaddress => '',
         :bind      => {'10.0.0.1:333' => ['ssl', 'crt', 'public.puppetlabs.com'], '192.168.122.1:8082' => []},
       }
     end
