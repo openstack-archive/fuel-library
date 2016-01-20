@@ -1,6 +1,7 @@
 notice('MODULAR: openstack-network/server-config.pp')
 
 $use_neutron = hiera('use_neutron', false)
+$compute     = roles_include('compute')
 
 class neutron { }
 class { 'neutron' : }
@@ -14,7 +15,6 @@ if $use_neutron {
   $service_endpoint        = hiera('service_endpoint', $management_vip)
   $nova_endpoint           = hiera('nova_endpoint', $management_vip)
   $nova_hash               = hiera_hash('nova', { })
-  $primary_controller      = hiera('primary_controller', false)
 
   $neutron_db_password     = $neutron_config['database']['passwd']
   $neutron_db_user         = try_get_value($neutron_config, 'database/user', 'neutron')
