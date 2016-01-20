@@ -19,7 +19,12 @@ if $use_neutron {
 
   $verbose      = pick($openstack_network_hash['verbose'], hiera('verbose', true))
   $debug        = pick($openstack_network_hash['debug'], hiera('debug', true))
-  $use_syslog   = hiera('use_syslog', true)
+  # TODO(aschultz): LP#1499620 - neutron in UCA liberty fails to start with
+  # syslog enabled.
+  $use_syslog = $::os_package_type ? {
+    'ubuntu' => false,
+    default  => hiera('use_syslog', true)
+  }
   $use_stderr   = hiera('use_stderr', false)
   $log_facility = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 
