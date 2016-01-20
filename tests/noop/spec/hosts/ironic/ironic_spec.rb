@@ -20,11 +20,12 @@ if ironic_enabled
 
       it 'should declare ironic class correctly' do
         should contain_class('ironic').with(
-          'rabbit_userid'       => rabbit_user,
-          'rabbit_password'     => rabbit_password,
-          'sync_db'             => primary_controller,
-          'control_exchange'    => 'ironic',
-          'amqp_durable_queues' => amqp_durable_queues,
+          'rabbit_userid'        => rabbit_user,
+          'rabbit_password'      => rabbit_password,
+          'sync_db'              => primary_controller,
+          'control_exchange'     => 'ironic',
+          'amqp_durable_queues'  => amqp_durable_queues,
+          'database_max_retries' => '-1',
         )
       end
 
