@@ -42,7 +42,7 @@ module PuppetfileValidator
           end
         else
           @valid = false
-          puts "ERROR: module '#{name}' doesn't reference a fuel-infra.org repo"
+          puts "ERROR: module '#{name}' doesn't reference a valid repo"
         end
       else
         @valid = false
@@ -55,7 +55,7 @@ module PuppetfileValidator
     # @returns [Boolean]
     def validate_repo(repo)
       repo_valid = true
-      if /review\.fuel-infra\.org/.match(repo).nil?
+      if /review\.fuel-infra\.org/.match(repo).nil? and /github\.com\/fuel-infra/.match(repo).nil?
         repo_valid = false
       end
       repo_valid

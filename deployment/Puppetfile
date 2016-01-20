@@ -23,175 +23,175 @@
 
 # Pull in puppetlabs-stdlib
 mod 'stdlib',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-stdlib.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-stdlib.git',
     :ref => '4.9.0'
 
 # Pull in puppetlabs-concat
 mod 'concat',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-concat.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-concat.git',
     :ref => '1.2.3'
 
 # Pull in puppetlabs-inifile
 mod 'inifile',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-inifile.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-inifile.git',
     :ref => '1.4.2'
 
 # Pull in puppetlabs-xinetd
 mod 'xinetd',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-xinetd.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-xinetd.git',
     :ref => '1.5.0'
 
 # Pull in saz-ssh
 mod 'ssh',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/saz-ssh.git',
+    :git => 'https://github.com/fuel-infra/saz-ssh.git',
     :ref => 'v2.8.1'
 
 # Pull in puppetlabs-ntp
 mod 'ntp',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-ntp.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-ntp.git',
     :ref => '4.0.0'
 
 # Pull in puppetlabs-apache
 mod 'apache',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-apache.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-apache.git',
     :ref => '1.6.0'
 
 # Pull in puppetlabs-apt
 mod 'apt',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-apt.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-apt.git',
     :ref => '2.2.0'
 
 # Pull in puppetlabs-firewall
 mod 'firewall',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-firewall.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-firewall.git',
     :ref => '1.2.0'
 
 # Pull in saz-memcached
 mod 'memcached',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-memcached.git',
+    :git => 'https://github.com/fuel-infra/puppet-memcached.git',
     :ref => 'v2.5.0'
 
 # Pull in duritong-sysctl
 mod 'sysctl',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-sysctl.git',
+    :git => 'https://github.com/fuel-infra/puppet-sysctl.git',
     :ref => 'v0.0.11'
 
 # Pull in nanliu-staging
 mod 'staging',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-staging.git',
+    :git => 'https://github.com/fuel-infra/puppet-staging.git',
     :ref => '1.0.4'
 
 # Pull in puppetlabs-vcsrepo
 mod 'vcsrepo',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-vcsrepo.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-vcsrepo.git',
     :ref => '1.3.1'
 
 # Pull in puppetlabs-postgresql
 mod 'postgresql',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-postgresql.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-postgresql.git',
     :ref => '4.0.0'
 
 # Pull in puppet-openstacklib
 mod 'openstacklib',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openstacklib.git',
+    :git => 'https://github.com/fuel-infra/puppet-openstacklib.git',
     :ref => '7.0.0-rc6'
 
 # Pull in puppet-keystone
 mod 'keystone',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-keystone.git',
+    :git => 'https://github.com/fuel-infra/puppet-keystone.git',
     :ref => '7.0.0-rc4'
 
 # Pull in puppet-neutron
 mod 'neutron',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-neutron.git',
+    :git => 'https://github.com/fuel-infra/puppet-neutron.git',
     :ref => '7.0.0-rc7'
 
 # Pull in puppet-nova
 mod 'nova',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-nova.git',
+    :git => 'https://github.com/fuel-infra/puppet-nova.git',
     :ref => '7.0.0-mos-rc2'
 
 # Pull in puppet-heat
 mod 'heat',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-heat.git',
+    :git => 'https://github.com/fuel-infra/puppet-heat.git',
     :ref => '7.0.0-mos-rc2'
 
 # Pull in puppet-horizon
 mod 'horizon',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-horizon.git',
+    :git => 'https://github.com/fuel-infra/puppet-horizon.git',
     :ref => '7.0.0-mos-rc3'
 
 # Pull in puppet-glance
 mod 'glance',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-glance.git',
+    :git => 'https://github.com/fuel-infra/puppet-glance.git',
     :ref => '7.0.0-rc3'
 
 # Pull in puppet-swift
 mod 'swift',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-swift.git',
+    :git => 'https://github.com/fuel-infra/puppet-swift.git',
     :ref => '7.0.0-rc5'
 
 # Pull in puppet-ceilometer
 mod 'ceilometer',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-ceilometer.git',
+    :git => 'https://github.com/fuel-infra/puppet-ceilometer.git',
     :ref => '7.0.0-rc3'
 
 # Pull in openstack-cinder
 mod 'cinder',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/openstack-cinder.git',
+    :git => 'https://github.com/fuel-infra/openstack-cinder.git',
     :ref => '7.0.0-rc3'
 
 # Pull in puppet-sahara
 mod 'sahara',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-sahara.git',
+    :git => 'https://github.com/fuel-infra/puppet-sahara.git',
     :ref => '7.0.0-mos-rc2'
 
 # Pull in puppet-openssl
 mod 'openssl',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openssl.git',
+    :git => 'https://github.com/fuel-infra/puppet-openssl.git',
     :ref => '1.3.10-mos-rc2'
 
 # Pull in puppetlabs-mongodb
 mod 'mongodb',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-mongodb.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-mongodb.git',
     :ref => '0.10.0-mos-rc1'
 
 # Pull in puppetlabs-rsync
 mod 'rsync',
-    :git => 'https://review.fuel-infra.org/puppet-modules/puppetlabs-rsync.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-rsync.git',
     :ref => '0.4.0-mos-rc1'
 
 # Pull in puppet-monit
 mod 'monit',
-    :git => 'https://review.fuel-infra.org/puppet-modules/puppet-monit.git',
+    :git => 'https://github.com/fuel-infra/puppet-monit.git',
     :ref => 'v0.0.4-mos-rc1'
 
 # Pull in puppet-filemapper
 mod 'filemapper',
-    :git => 'https://review.fuel-infra.org/puppet-modules/puppet-filemapper.git',
+    :git => 'https://github.com/fuel-infra/puppet-filemapper.git',
     :ref => '1.1.3-mos-rc1'
 
 # Pull in puppetlabs-tftp
 mod 'tftp',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-tftp.git',
+    :git => 'https://github.com/fuel-infra/puppetlabs-tftp.git',
     :ref => '0.2.3'
 
 # Pull in puppet-ironic
 mod 'ironic',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-ironic.git',
+    :git => 'https://github.com/fuel-infra/puppet-ironic.git',
     :ref => '7.0.0-rc2'
 
 # Pull in puppet-murano
 mod 'murano',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-murano.git',
+    :git => 'https://github.com/fuel-infra/puppet-murano.git',
     :ref => '7.0.0-rc5'
 
 # Pull in richardc-datacat
 mod 'datacat',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/richardc-datacat.git',
+    :git => 'https://github.com/fuel-infra/richardc-datacat.git',
     :ref => '0.5.0'
 
 # Pull in puppet-mcollective
 mod 'mcollective',
-    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-mcollective.git',
+    :git => 'https://github.com/fuel-infra/puppet-mcollective.git',
     :ref => 'v2.1.1'
