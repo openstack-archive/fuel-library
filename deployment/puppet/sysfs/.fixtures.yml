@@ -1,6 +1,5 @@
 fixtures:
-  repositories:
-    'stdlib': 'https://github.com/puppetlabs/puppetlabs-stdlib.git'
   symlinks:
-    'sysfs': "#{source_dir}"
-    'tweaks': "#{source_dir}/../tweaks"
+    sysfs: "#{source_dir}"
+    tweaks: "#{source_dir}/../tweaks"
+    stdlib: "#{source_dir}/../stdlib"

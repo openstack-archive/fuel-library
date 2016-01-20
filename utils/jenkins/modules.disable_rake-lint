@@ -1,6 +1,37 @@
 # List of modules with disabled 'rake lint' check.
 # Such modules will be checked with 'puppet-lint' command.
 apache
+apt
+ceilometer
+cinder
+concat
+datacat
+filemapper
+firewall
+glance
+heat
+horizon
+inifile
+ironic
+keystone
+mcollective
+memcached
+mongodb
+monit
+murano
+neutron
+nova
 ntp
+openssl
+openstacklib
 postgresql
+rsync
+sahara
+ssh
 staging
+stdlib
+swift
+sysctl
+tftp
+vcsrepo
+xinetd
