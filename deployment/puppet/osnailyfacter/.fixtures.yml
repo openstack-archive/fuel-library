@@ -8,5 +8,8 @@ fixtures:
       repo: 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-concat.git'
       branch: '1.2.3'
   symlinks:
-    'osnailyfacter': "#{source_dir}"
-    'l23network': "#{source_dir}/../l23network"
+    osnailyfacter: "#{source_dir}"
+    l23network: "#{source_dir}/../l23network"
+    stdlib: "#{source_dir}/../stdlib"
+    apache: "#{source_dir}/../apache"
+    concat: "#{source_dir}/../concat"
