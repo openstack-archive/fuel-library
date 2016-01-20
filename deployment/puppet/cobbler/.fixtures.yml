@@ -1,7 +1,7 @@
 fixtures:
-  repositories:
-    'stdlib': 'https://github.com/puppetlabs/puppetlabs-stdlib.git'
-    'openssl': 'https://review.fuel-infra.org/puppet-modules/puppet-openssl.git'
-    'firewall': 'https://review.fuel-infra.org/puppet-modules/puppetlabs-firewall.git'
   symlinks:
-    'cobbler': "#{source_dir}"
+    cobbler: "#{source_dir}"
+    openssl: "#{source_dir}/../openssl"
+    inifile: "#{source_dir}/../inifile"
+    firewall: "#{source_dir}/../firewall"
+    stdlib: "#{source_dir}/../stdlib"

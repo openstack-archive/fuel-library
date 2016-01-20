@@ -48,6 +48,14 @@ test -f $WORKSPACE/utils/jenkins/modules.disable_rspec || exit 1
 
 export GEM_HOME=$WORKSPACE/.bundled_gems
 
+function get_module_deps {
+  current_dir=`pwd`
+  cd $WORKSPACE/deployment
+  bundle update
+  ./update_modules.sh
+  cd $current_dir
+}
+
 # Function that runs rake spec using bundle
 function rake_spec {
   MODULE=`basename $(pwd)`
@@ -83,6 +91,10 @@ else
   git diff --name-only HEAD~ &>/dev/null || exit 1
   modules=$(git diff --name-only HEAD~ | grep -o 'deployment/puppet/[^/]*/' | sort -u)
 fi
+
+echo "Pulling module dependencies"
+
+get_module_deps
 
 echo "Checking modules: $modules"
 

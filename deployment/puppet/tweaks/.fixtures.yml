@@ -1,5 +1,4 @@
 fixtures:
-  forge_modules:
-    stdlib: "puppetlabs/stdlib"
   symlinks:
     tweaks: "#{source_dir}"
+    stdlib: "#{source_dir}/../stdlib"
