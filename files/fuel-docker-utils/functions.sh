@@ -735,6 +735,28 @@ function check_nailgun_tasks {
   return $?
 }
 
+function update_ssh_keys {
+# Copy masternode's .ssh/id*.pub to all bootstrap images
+  cat /root/.ssh/id*.pub > /tmp/authorized_keys
+  SQ_MOUNT_POINT=$(mktemp -d)
+  find /var/www/nailgun/bootstraps -name root.squashfs | while read sqfs; do
+    b=${sqfs#/var/www/nailgun/bootstraps/}
+    mount -o loop,ro $sqfs $SQ_MOUNT_POINT
+    mount -t tmpfs tmpfs $SQ_MOUNT_POINT/mnt
+    mkdir $SQ_MOUNT_POINT/mnt/{bootstraps,src}
+    mount --bind /var/www/nailgun/bootstraps $SQ_MOUNT_POINT/mnt/bootstraps
+    mount --bind $SQ_MOUNT_POINT $SQ_MOUNT_POINT/mnt/src
+    COMP=$(chroot $SQ_MOUNT_POINT unsquashfs -s /mnt/bootstraps/$b | awk '/Compression/ { print $2 }')
+    mount --bind /tmp/authorized_keys $SQ_MOUNT_POINT/root/.ssh/authorized_keys
+    chroot $SQ_MOUNT_POINT mksquashfs /mnt/src/ /mnt/bootstraps/$b~ -comp $COMP -no-progress -noappend
+    umount $SQ_MOUNT_POINT/root/.ssh/authorized_keys
+    umount $SQ_MOUNT_POINT/mnt/{bootstraps,src,}
+    umount $SQ_MOUNT_POINT
+    mv $sqfs~ $sqfs
+  done
+  rmdir $SQ_MOUNT_POINT
+}
+
 function restore {
 #TODO(mattymo): Optionally not include system dirs during restore
 #TODO(mattymo): support remote file such as ssh://user@myhost/backup.tar.lrz
@@ -782,6 +804,7 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
   unpack_archive "$backupfile" "$restoredir"
   [ "$fullrestore" == "1" ] && restore_images "$restoredir"
   [ "$fullrestore" == "1" ] && rename_images "$timestamp"
+  [ "$fullrestore" == "1" ] || update_ssh_keys
   restore_systemdirs "$restoredir"
   set +e
   echo "Starting containers..."
