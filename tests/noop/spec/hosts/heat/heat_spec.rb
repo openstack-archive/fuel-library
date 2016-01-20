@@ -13,6 +13,11 @@ describe manifest do
       Noop.puppet_function 'prepare_network_config', network_scheme
     end
 
+    let(:memcache_address) do
+      prepare
+      Noop.puppet_function 'get_network_role_property', 'mgmt/memcache', 'ipaddr'
+    end
+
     admin_auth_protocol = 'http'
     admin_auth_address = Noop.hiera('service_endpoint')
     if Noop.hiera_structure('use_ssl', false)
@@ -83,6 +88,12 @@ describe manifest do
       should contain_heat_config('DEFAULT/max_template_size').with_value('5440000')
       should contain_heat_config('DEFAULT/max_resources_per_stack').with_value('20000')
       should contain_heat_config('DEFAULT/max_json_body_size').with_value('10880000')
+    end
+
+    it 'should configure caching for validation process' do
+      should contain_heat_config('cache/enabled').with_value('true')
+      should contain_heat_config('cache/backend').with_value('oslo_cache.memcache_pool')
+      should contain_heat_config('cache/memcache_servers').with_value("#{memcache_address}:11211")
     end
 
     it 'should configure heat rpc response timeout' do
