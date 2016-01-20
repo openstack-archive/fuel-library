@@ -31,7 +31,6 @@ $primary_controller       = hiera('primary_controller')
 $ceilometer_enabled         = $ceilometer_hash['enabled']
 $ceilometer_user_password   = $ceilometer_hash['user_password']
 $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
-$ceilometer_db_type         = 'mongodb'
 $swift_rados_backend        = $storage_hash['objects_ceph']
 $amqp_password              = $rabbit_hash['password']
 $amqp_user                  = $rabbit_hash['user']
@@ -51,7 +50,6 @@ $keystone_endpoint = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'ho
 $default_mongo_hash = {
   'enabled' => false,
 }
-
 $mongo_hash = hiera_hash('mongo', $default_mongo_hash)
 $db_type    = 'mongodb'
 
@@ -75,7 +73,41 @@ if $mongo_hash['enabled'] and $ceilometer_hash['enabled'] {
   $mongo_replicaset    = 'ceilometer'
 }
 
-$db_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_name}?readpreference=primaryPreferred"
+# TODO(aschultz): currently mysql is not supported for ceilometer, but this
+# should be configurable some day
+if ($dbtype == 'mysql') {
+  # LP#1526938 - python-mysqldb supports this, python-pymysql does not
+  if ($::os_package_type == 'debian') {
+    $extra_params = { 'charset' =>  'utf8', 'read_timeout' => 60 }
+  } else {
+    $extra_params = { 'charset' =>  'utf8'}
+  }
+  $db_connection = os_database_connection({
+    'dialect'  => $db_type,
+    'host'     => $db_host,
+    'database' => $db_name,
+    'username' => $db_user,
+    'password' => $db_password,
+    'extra'    => $extra_params
+  })
+} else {
+  $mongo_default_params = {
+    'readPreference' => 'primaryPreferred',
+  }
+  if $mongo_replicaset {
+    $replica_params = {
+      'replicaSet' => $mongo_replicaset
+    }
+  } else {
+    $replica_params = { }
+  }
+  $extra_params = merge($mongo_default_params, $replica_params)
+
+  $params = inline_template("?<%= @extra_params.map{ |k,v| \"#{k}=#{v}\" }.join('&') %>")
+  # NOTE(aschultz): os_database_connection does not currently support the
+  # mongodb syntax for mongodb://user:pass@host,host,host/dbname
+  $db_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_name}${params}"
+}
 
 ###############################################################################
 

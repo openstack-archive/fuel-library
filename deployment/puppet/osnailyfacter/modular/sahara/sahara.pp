@@ -49,16 +49,30 @@ if $sahara_hash['enabled'] {
   $sahara_user     = pick($sahara_hash['user'], 'sahara')
   $sahara_password = pick($sahara_hash['user_password'])
   $tenant          = pick($sahara_hash['tenant'], 'services')
-  $db_user         = pick($sahara_hash['db_user'], 'sahara')
-  $db_name         = pick($sahara_hash['db_name'], 'sahara')
-  $db_password     = pick($sahara_hash['db_password'])
-  $db_host         = pick($sahara_hash['db_host'], $database_vip)
   $max_pool_size   = min($::processorcount * 5 + 0, 30 + 0)
   $max_overflow    = min($::processorcount * 5 + 0, 60 + 0)
   $max_retries     = '-1'
   $idle_timeout    = '3600'
-  $read_timeout    = '60'
-  $sql_connection  = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=${read_timeout}"
+
+  $db_type         = 'mysql'
+  $db_user         = pick($sahara_hash['db_user'], 'sahara')
+  $db_name         = pick($sahara_hash['db_name'], 'sahara')
+  $db_password     = pick($sahara_hash['db_password'])
+  $db_host         = pick($sahara_hash['db_host'], $database_vip)
+  # LP#1526938 - python-mysqldb supports this, python-pymysql does not
+  if $::os_package_type == 'debian' {
+    $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
+  } else {
+    $extra_params = { 'charset' => 'utf8' }
+  }
+  $db_connection = os_database_connection({
+    'dialect'  => $db_type,
+    'host'     => $db_host,
+    'database' => $db_name,
+    'username' => $db_user,
+    'password' => $db_password,
+    'extra'    => $extra_params
+  })
 
   ####### Disable upstart startup on install #######
   tweaks::ubuntu_service_override { 'sahara-api':
@@ -80,7 +94,7 @@ if $sahara_hash['enabled'] {
     use_stderr             => $use_stderr,
     plugins                => [ 'ambari', 'cdh', 'mapr', 'spark', 'vanilla' ],
     log_facility           => $syslog_log_facility_sahara,
-    database_connection    => $sql_connection,
+    database_connection    => $db_connection,
     database_max_pool_size => $max_pool_size,
     database_max_overflow  => $max_overflow,
     database_max_retries   => $max_retries,

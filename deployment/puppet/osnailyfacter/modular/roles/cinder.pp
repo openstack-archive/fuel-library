@@ -40,12 +40,28 @@ $syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 
-$cinder_db_password             = $cinder_hash[db_password]
 $keystone_user                  = pick($cinder_hash['user'], 'cinder')
 $keystone_tenant                = pick($cinder_hash['tenant'], 'services')
-$db_host                        = pick($cinder_hash['db_host'], hiera('database_vip'))
-$cinder_db_user                 = pick($cinder_hash['db_user'], 'cinder')
-$cinder_db_name                 = pick($cinder_hash['db_name'], 'cinder')
+
+$db_type      = 'mysql'
+$db_host      = pick($cinder_hash['db_host'], hiera('database_vip'))
+$db_user      = pick($cinder_hash['db_user'], 'cinder')
+$db_password  = $cinder_hash[db_password]
+$db_name      = pick($cinder_hash['db_name'], 'cinder')
+# LP#1526938 - python-mysqldb supports this, python-pymysql does not
+if $::os_package_type == 'debian' {
+  $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
+} else {
+  $extra_params = { 'charset' => 'utf8' }
+}
+$db_connection = os_database_connection({
+  'dialect'  => $db_type,
+  'host'     => $db_host,
+  'database' => $db_name,
+  'username' => $db_user,
+  'password' => $db_password,
+  'extra'    => $extra_params
+})
 
 $ssl_hash                       = hiera_hash('use_ssl', {})
 $service_endpoint               = hiera('service_endpoint')
@@ -272,7 +288,7 @@ if member($roles, 'controller') or member($roles, 'primary-controller') {
 #   after the deployment is done.
 class { '::openstack::cinder':
   enable_volumes       => false,
-  sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}?charset=utf8&read_timeout=60",
+  sql_connection       => $db_connection,
   glance_api_servers   => $glance_api_servers,
   bind_host            => $bind_host,
   queue_provider       => $queue_provider,
