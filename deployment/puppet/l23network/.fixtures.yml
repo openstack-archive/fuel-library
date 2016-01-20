@@ -1,7 +1,6 @@
 fixtures:
-  repositories:
-    'stdlib': 'git://github.com/puppetlabs/puppetlabs-stdlib.git'
-    'filemapper': 'git://github.com/adrienthebo/puppet-filemapper.git'
-    'sysctl': 'git://github.com/duritong/puppet-sysctl.git'
   symlinks:
-    'l23network': "#{source_dir}"
+    l23network: "#{source_dir}"
+    stdlib: "#{source_dir}/../stdlib"
+    sysctl: "#{source_dir}/../sysctl"
+    filemapper: "#{source_dir}/../filemapper"
