@@ -1,6 +1,6 @@
 notice('MODULAR: murano.pp')
 
-prepare_network_config(hiera('network_scheme', {}))
+prepare_network_config(hiera_hash('network_scheme', {}))
 
 $murano_hash                = hiera_hash('murano_hash', {})
 $murano_settings_hash       = hiera_hash('murano_settings', {})

@@ -1,6 +1,6 @@
 notice('MODULAR: netconfig.pp')
 
-$network_scheme = hiera_hash('network_scheme')
+$network_scheme = hiera_hash('network_scheme', {})
 
 if ( $::l23_os =~ /(?i:centos6)/ and $::kernelmajversion == '3.10' ) {
   $ovs_datapath_package_name = 'kmod-openvswitch-lt'

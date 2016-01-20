@@ -1,7 +1,7 @@
 notice('MODULAR: openstack-cinder.pp')
 
 #Network stuff
-prepare_network_config(hiera('network_scheme', {}))
+prepare_network_config(hiera_hash('network_scheme', {}))
 $cinder_hash            = hiera_hash('cinder_hash', {})
 $management_vip         = hiera('management_vip')
 $queue_provider         = hiera('queue_provider', 'rabbitmq')

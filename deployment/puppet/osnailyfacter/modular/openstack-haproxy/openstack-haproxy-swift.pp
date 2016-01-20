@@ -35,7 +35,7 @@ if ($use_swift and !$external_lb) {
     $baremetal_virtual_ip = $network_metadata['vips']['baremetal']['ipaddr']
   }
 
-  prepare_network_config(hiera_hash('network_scheme'))
+  prepare_network_config(hiera_hash('network_scheme', {}))
 
   # Check proxy and storage daemons binds on the same ip address
   $swift_api_ipaddr     = get_network_role_property('swift/api', 'ipaddr')

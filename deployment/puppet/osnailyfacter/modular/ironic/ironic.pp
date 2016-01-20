@@ -33,7 +33,7 @@ $ironic_tenant              = pick($ironic_hash['tenant'],'services')
 $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
 $ironic_user_password       = pick($ironic_hash['user_password'],'ironic')
 
-prepare_network_config(hiera('network_scheme', {}))
+prepare_network_config(hiera_hash('network_scheme', {}))
 
 $baremetal_vip = $network_metadata['vips']['baremetal']['ipaddr']
 

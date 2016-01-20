@@ -1,6 +1,6 @@
 notice('MODULAR: heat.pp')
 
-prepare_network_config(hiera('network_scheme', {}))
+prepare_network_config(hiera_hash('network_scheme', {}))
 $management_vip           = hiera('management_vip')
 $heat_hash                = hiera_hash('heat', {})
 $sahara_hash              = hiera_hash('sahara_hash', {})
