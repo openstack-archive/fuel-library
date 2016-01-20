@@ -338,7 +338,7 @@ class galera (
     Service['mysql'] ->
       Exec['wait-initial-sync'] ->
         Exec['wait-for-synced-state'] ->
-          Exec ['rm-init-file']
+          Exec['rm-init-file']
   Package['MySQL-server'] ~> Exec['wait-initial-sync']
 
   anchor {'database-cluster-done': }

@@ -79,8 +79,8 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     },
   }
 
-  Haproxy_backend_status['keystone-admin']  -> Class ['ceph::keystone']
-  Haproxy_backend_status['keystone-public'] -> Class ['ceph::keystone']
+  Haproxy_backend_status['keystone-admin']  -> Class['ceph::keystone']
+  Haproxy_backend_status['keystone-public'] -> Class['ceph::keystone']
 
   class { 'ceph::radosgw':
     # SSL
