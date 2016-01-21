@@ -148,3 +148,19 @@ proc_stop()
     ocf_log info "${LH} Stopped ${service_name}"
     return "${OCF_SUCCESS}"
 }
+
+###########################################################
+# Runs a process as root via su to get the whole PAM stack
+# executed.
+#
+# Globals:
+#   none
+# Arguments:
+#   $* - ocf_run arguments
+# Returns:
+#   Return code of the ocf_run invocation.
+###########################################################
+ocf_run_as_root()
+{
+    ocf_run su - root -c "$(printf '%q ' "$@")"
+}
