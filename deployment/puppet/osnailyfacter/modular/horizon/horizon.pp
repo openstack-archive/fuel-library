@@ -67,39 +67,9 @@ class { 'openstack::horizon':
   file_upload_max_size => $file_upload_max_size,
 }
 
-$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
-if $external_lb {
-  Haproxy_backend_status<||> {
-    provider => 'http',
-  }
-  $admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-  $admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
-  $admin_identity_url      = "${admin_identity_protocol}://${admin_identity_address}:35357"
-}
-
-haproxy_backend_status { 'keystone-public' :
-  name  => 'keystone-1',
-  count => '30',
-  step  => '3',
-  url   => $external_lb ? {
-    default => $haproxy_stats_url,
-    true    => $keystone_url,
-  },
-}
-
-haproxy_backend_status { 'keystone-admin' :
-  name  => 'keystone-2',
-  count => '30',
-  step  => '3',
-  url   => $external_lb ? {
-    default => $haproxy_stats_url,
-    true    => $admin_identity_url,
-  },
-}
-
-Class['openstack::horizon'] -> Haproxy_backend_status['keystone-admin']
-Class['openstack::horizon'] -> Haproxy_backend_status['keystone-public']
+class {'::osnailyfacter::wait_for_keystone_backends':}
+Class['openstack::horizon'] -> Class['::osnailyfacter::wait_for_keystone_backends']
 
 # TODO(aschultz): remove this if openstack-dashboard stops installing
 # openstack-dashboard-apache

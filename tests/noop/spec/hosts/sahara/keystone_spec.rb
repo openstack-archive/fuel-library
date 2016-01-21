@@ -21,6 +21,13 @@ describe manifest do
     let(:public_url) { "#{public_protocol}://#{public_address}:#{api_bind_port}/v1.1/%(tenant_id)s" }
     let(:admin_url) { "http://#{admin_address}:#{api_bind_port}/v1.1/%(tenant_id)s" }
 
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[sahara::keystone::auth]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[sahara::keystone::auth]")
+    end
+
     it 'should declare sahara::keystone::auth class correctly' do
       should contain_class('sahara::keystone::auth').with(
                  'auth_name' => sahara_user,
