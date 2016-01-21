@@ -3,8 +3,8 @@
 
 class ceph (
       # General settings
-      $mon_hosts,
-      $mon_ip_addresses,
+      $mon_hosts                          = undef,
+      $mon_ip_addresses                   = undef,
       $cluster_node_address               = $::ipaddress, #This should be the cluster service address
       $primary_mon                        = $::hostname, #This should be the first controller
       $osd_devices                        = split($::osd_devices_list, ' '),
@@ -91,8 +91,12 @@ class ceph (
   # Re-enable ceph::yum if not using a Fuel iso with Ceph packages
   #include ceph::yum
 
+  # the regex includes all roles that require ceph.conf
   if hiera('role') =~ /controller|ceph|compute|cinder/ {
-    # the regex above includes all roles that require ceph.conf
+
+    validate_array($mon_hosts)
+    validate_array($mon_ip_addresses)
+
     include ceph::ssh
     include ceph::params
     include ceph::conf
@@ -153,6 +157,13 @@ class ceph (
       if ! empty($osd_devices) {
         include ceph::osds
         Class['ceph::conf'] -> Class['ceph::osds'] ~> Service['ceph']
+
+        # set the recommended value according: http://tracker.ceph.com/issues/10988
+        sysctl::value { 'kernel.pid_max':
+          value  => '4194303',
+        }
+
+        Sysctl::Value <| |> -> Service['ceph']
       }
     }
 

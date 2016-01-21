@@ -54,11 +54,11 @@ class ceph::radosgw (
     ensure  => 'installed',
   }
 
-  if !(defined('horizon') or
-       defined($::ceph::params::package_httpd) or
-       defined($::ceph::params::service_httpd) ) {
-    package {$::ceph::params::package_httpd:
+  # check out httpd package/service is defined
+  if !defined(Package['httpd']) {
+    package { 'httpd':
       ensure => 'installed',
+      name   => $::ceph::params::package_httpd,
     }
     service { 'httpd':
       ensure => 'running',
