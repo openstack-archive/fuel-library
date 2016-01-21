@@ -11,8 +11,8 @@ class ceph::nova_compute (
 
   if !defined(Service['libvirt'] ) {
     service { 'libvirt':
-      name   => $::ceph::params::libvirt_service_name,
       ensure => 'running',
+      name   => $::ceph::params::libvirt_service_name,
     }
   }
 
