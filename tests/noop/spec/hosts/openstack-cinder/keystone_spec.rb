@@ -43,6 +43,13 @@ describe manifest do
     region = Noop.hiera_structure 'cinder/region', 'RegionOne'
     tenant = Noop.hiera_structure 'cinder/tenant', 'services'
 
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[cinder::keystone::auth]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[cinder::keystone::auth]")
+    end
+
     it 'should declare cinder::keystone::auth class with propper parameters' do
       should contain_class('cinder::keystone::auth').with(
         'password'           => password,

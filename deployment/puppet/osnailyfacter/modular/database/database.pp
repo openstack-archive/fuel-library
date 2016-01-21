@@ -116,20 +116,24 @@ if $enabled {
     only_from       => "127.0.0.1 240.0.0.2 ${management_networks}",
   }
 
+  $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
+
   if $external_lb {
-    Haproxy_backend_status<||> {
-      provider => 'http',
+    $lb_backend_provider = 'http'
+    $lb_url = "http://${database_vip}:49000"
+  }
+
+  $lb_hash = {
+    mysql      => {
+      name     => 'mysqld',
+      provider => $lb_backend_provider,
+      url      => $lb_url
     }
   }
 
-  haproxy_backend_status { 'mysql':
-    name => 'mysqld',
-    url  => $external_lb ? {
-      default => $haproxy_stats_url,
-      # You should setup HTTP frontend for mysqld-status on yout external LB.
-      # Otherwise it's impossible to wait for mysql cluster to sync.
-      true    => "http://${database_vip}:49000",
-    },
+  ::osnailyfacter::wait_for_backend {'mysql':
+    lb_hash     => $lb_hash,
+    lb_defaults => $lb_defaults
   }
 
   class { 'osnailyfacter::mysql_access':
@@ -140,7 +144,7 @@ if $enabled {
     Class['osnailyfacter::mysql_user'] ->
       Exec['initial_access_config'] ->
         Class['openstack::galera::status'] ->
-          Haproxy_backend_status['mysql'] ->
+          ::Osnailyfacter::Wait_for_backend['mysql'] ->
             Class['osnailyfacter::mysql_access']
 
 }

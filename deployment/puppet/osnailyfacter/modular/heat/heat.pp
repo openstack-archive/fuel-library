@@ -172,21 +172,7 @@ if !$::os_package_type or $::os_package_type != 'ubuntu' {
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
-if $external_lb {
-  Haproxy_backend_status<||> {
-    provider => 'http',
-  }
-}
-
-haproxy_backend_status { 'keystone-admin' :
-  name  => 'keystone-2',
-  count => '200',
-  step  => '6',
-  url   => $external_lb ? {
-    default => $haproxy_stats_url,
-    true    => $identity_uri,
-  },
-}
+class {'::osnailyfacter::wait_for_keystone_backends':}
 
 class { 'heat::keystone::domain' :
   domain_name        => 'heat',
@@ -197,14 +183,14 @@ class { 'heat::keystone::domain' :
 }
 
 Class['heat'] ->
-Haproxy_backend_status['keystone-admin'] ->
-Class['heat::keystone::domain'] ~>
-Service<| title == 'heat-engine' |>
+  Class['::osnailyfacter::wait_for_keystone_backends'] ->
+    Class['heat::keystone::domain'] ~>
+      Service<| title == 'heat-engine' |>
 
 ######################
 
 exec { 'wait_for_heat_config' :
-  command => 'sync && sleep 3',
+  command  => 'sync && sleep 3',
   provider => 'shell',
 }
 
