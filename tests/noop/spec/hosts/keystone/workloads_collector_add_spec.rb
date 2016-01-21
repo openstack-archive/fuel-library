@@ -20,13 +20,19 @@ describe manifest do
 
     let(:admin_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
 
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[openstack::workloads_collector]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[openstack::workloads_collector]")
+    end
     it {
       if Noop.hiera('external_lb', false)
         url = admin_url
         provider = 'http'
       else
         url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-        provider = nil
+        provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
       end
       should contain_haproxy_backend_status('keystone-admin').with(
         :url      => url,

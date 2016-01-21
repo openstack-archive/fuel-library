@@ -30,6 +30,13 @@ describe manifest do
       public_url          = "#{public_protocol}://#{public_address}:6385"
       admin_url           = "http://#{admin_address}:6385"
 
+      it 'should have explicit ordering between LB classes and particular actions' do
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[ironic::keystone::auth]")
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[ironic::keystone::auth]")
+      end
+
       it 'should declare ironic::keystone::auth class correctly' do
         should contain_class('ironic::keystone::auth').with(
           'auth_name'           => auth_name,

@@ -175,17 +175,14 @@ describe manifest do
                  )
         end
 
-        it {
-          should contain_haproxy_backend_status('keystone-public').that_comes_before('Haproxy_backend_status[sahara]')
-        }
-
-        it {
-          should contain_haproxy_backend_status('keystone-admin').that_comes_before('Haproxy_backend_status[sahara]')
-        }
-
-        it {
-          should contain_haproxy_backend_status('sahara').that_comes_before('Class[sahara_templates::create_templates]')
-        }
+        it 'should have explicit ordering between LB classes and particular actions' do
+          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Haproxy_backend_status[sahara]")
+          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Haproxy_backend_status[sahara]")
+          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[sahara]",
+                                                      "Class[sahara_templates::create_templates]")
+        end
       end
 
       it {
@@ -194,7 +191,7 @@ describe manifest do
           provider = 'http'
         else
           url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-          provider = nil
+          provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
         end
         should contain_haproxy_backend_status('sahara').with(
           :url      => url,
