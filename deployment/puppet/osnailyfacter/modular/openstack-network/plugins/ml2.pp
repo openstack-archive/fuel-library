@@ -1,6 +1,7 @@
 notice('MODULAR: openstack-network/plugins/ml2.pp')
 
 $use_neutron = hiera('use_neutron', false)
+$compute     = roles_include('compute')
 
 class neutron {}
 class { 'neutron' :}
