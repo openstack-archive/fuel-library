@@ -135,14 +135,6 @@ class galera (
   }
 
   if ($use_percona and $::operatingsystem == 'Ubuntu') {
-    # Disable service autostart
-    file { '/usr/sbin/policy-rc.d':
-      ensure  => present,
-      content => inline_template("#!/bin/sh\nexit 101\n"),
-      mode    => '0755',
-      before  => Package['MySQL-server']
-    }
-
     #FIXME:
     #Remove this after https://bugs.launchpad.net/bugs/1461304 will be fixed
     file {'/etc/apt/apt.conf.d/99tmp':
@@ -322,14 +314,9 @@ class galera (
 
   if ($use_percona and $::operatingsystem == 'Ubuntu') {
     #Clean tmp files:
-    exec { 'rm-policy-rc.d':
-      command => '/bin/rm /usr/sbin/policy-rc.d',
-    }
     exec {'rm-99tmp':
       command => '/bin/rm /etc/apt/apt.conf.d/99tmp',
     }
-    Exec['wait-for-synced-state'] ->
-      Exec['rm-policy-rc.d']
     Exec['wait-for-synced-state'] ->
       Exec['rm-99tmp']
   }

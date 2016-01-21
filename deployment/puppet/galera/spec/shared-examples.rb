@@ -41,7 +41,6 @@ shared_examples 'test-files' do |params|
     should contain_file('/etc/mysql/conf.d/wsrep.cnf')
     should contain_file('/tmp/wsrep-init-file')
     if params[:use_percona_packages] and facts[:operatingsystem] == 'Ubuntu'
-      should contain_file('/usr/sbin/policy-rc.d')
       should contain_file('/etc/apt/apt.conf.d/99tmp')
     end
   }
