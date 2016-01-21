@@ -115,22 +115,17 @@ describe manifest do
       end
     end
 
+
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitional_dependency("Class[openstack::horizon]", "Haproxy_backend_status[keystone-public]")
+      expect(graph).to ensure_transitional_dependency("Class[openstack::horizon]", "Haproxy_backend_status[keystone-admin]")
+    end
+    
+
     it {
       should contain_service('httpd').with(
            'hasrestart' => true,
            'restart'    => 'sleep 30 && apachectl graceful || apachectl restart'
-      )
-    }
-
-    it {
-      should contain_class('openstack::horizon').that_comes_before(
-        'Haproxy_backend_status[keystone-admin]'
-      )
-    }
-
-    it {
-      should contain_class('openstack::horizon').that_comes_before(
-        'Haproxy_backend_status[keystone-public]'
       )
     }
 

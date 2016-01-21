@@ -37,6 +37,13 @@ describe manifest do
     use_neutron         = Noop.hiera('use_neutron', false)
 
     if use_neutron
+
+      it 'should have explicit ordering between LB classes and particular actions' do
+        expect(graph).to ensure_transitional_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[neutron::keystone::auth]")
+        expect(graph).to ensure_transitional_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[neutron::keystone::auth]")
+      end
       it 'should declare neutron::keystone::auth class' do
         should contain_class('neutron::keystone::auth').with(
           'password'            => password,
