@@ -170,14 +170,30 @@ if $murano_hash['enabled'] {
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
+  $murano_protocol = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'protocol', 'http')
+  $murano_address  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $murano_url      = "${murano_protocol}://${murano_address}:${api_bind_port}"
+
+  $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
+
   if $external_lb {
-    Haproxy_backend_status<||> {
-      provider => 'http',
-    }
-    $murano_protocol = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'protocol', 'http')
-    $murano_address  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'hostname', [$service_endpoint, $management_vip])
-    $murano_url      = "${murano_protocol}://${murano_address}:${api_bind_port}"
+    $lb_backend_provider = 'http'
+    $lb_url = $murano_url
   }
+
+  $lb_hash = {
+    'murano-api'      => {
+      name     => 'murano-api',
+      provider => $lb_backend_provider,
+      url      => $lb_url
+    }
+  }
+
+  ::osnailyfacter::wait_for_backend {'murano-api':
+    lb_hash     => $lb_hash,
+    lb_defaults => $lb_defaults
+  }
+
 
   haproxy_backend_status { 'murano-api' :
     name => 'murano-api',
@@ -192,22 +208,7 @@ if $murano_hash['enabled'] {
     $internal_auth_url  = "${internal_auth_protocol}://${internal_auth_address}:5000"
     $admin_identity_url = "${admin_auth_protocol}://${admin_auth_address}:35357"
 
-    haproxy_backend_status { 'keystone-public' :
-      name  => 'keystone-1',
-      url   => $external_lb ? {
-        default => $haproxy_stats_url,
-        true    => $internal_auth_url,
-      },
-    }
-
-    haproxy_backend_status { 'keystone-admin' :
-      name  => 'keystone-2',
-      url   => $external_lb ? {
-        default => $haproxy_stats_url,
-        true    => $admin_identity_url,
-      },
-    }
-
+    class {'::osnailyfacter::wait_for_keystone_backends':}
     murano::application { 'io.murano' : }
 
     Haproxy_backend_status['keystone-admin'] -> Haproxy_backend_status['murano-api']

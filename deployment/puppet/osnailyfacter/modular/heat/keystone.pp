@@ -34,6 +34,12 @@ $public_url_cfn      = "${public_protocol}://${public_address}:8000/v1"
 $internal_url_cfn    = "${internal_protocol}://${internal_address}:8000/v1"
 $admin_url_cfn       = "${admin_protocol}://${admin_address}:8000/v1"
 
+$service_endpoint    = hiera('service_endpoint')
+
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_keystone_backends':
+}
 
 class { '::heat::keystone::auth' :
   password               => $password,
@@ -60,3 +66,7 @@ class { '::heat::keystone::auth_cfn' :
   internal_url       => $internal_url_cfn,
   admin_url          => $admin_url_cfn,
 }
+
+Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::heat::keystone::auth']
+Class['::osnailyfacter::wait_for_keystone_backends'] ->
+Class['::heat::keystone::auth_cfn']

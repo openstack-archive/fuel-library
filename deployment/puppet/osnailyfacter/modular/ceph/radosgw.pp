@@ -50,37 +50,17 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
-  if $external_lb {
-    Haproxy_backend_status<||> {
-      provider => 'http',
-    }
-    $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-    $internal_auth_address   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
-    $internal_auth_url       = "${internal_auth_protocol}://${internal_auth_address}:5000"
+  $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+  $internal_auth_address   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $internal_auth_url       = "${internal_auth_protocol}://${internal_auth_address}:5000"
+
+  class { '::osnailyfacter::wait_for_keystone_backends':
+    lb_hash     => $lb_hash,
+    lb_defaults => $lb_defaults
   }
 
-  haproxy_backend_status { 'keystone-admin' :
-    name  => 'keystone-2',
-    count => '200',
-    step  => '6',
-    url   => $external_lb ? {
-      default => $haproxy_stats_url,
-      true    => $admin_identity_url,
-    },
-  }
 
-  haproxy_backend_status { 'keystone-public' :
-    name  => 'keystone-1',
-    count => '200',
-    step  => '6',
-    url   => $external_lb ? {
-      default => $haproxy_stats_url,
-      true    => $internal_auth_url,
-    },
-  }
-
-  Haproxy_backend_status['keystone-admin']  -> Class['ceph::keystone']
-  Haproxy_backend_status['keystone-public'] -> Class['ceph::keystone']
+  Class[::Osnailyfacter::Wait_for_keystone_backends]  -> Class['ceph::keystone']
 
   class { 'ceph::radosgw':
     # SSL

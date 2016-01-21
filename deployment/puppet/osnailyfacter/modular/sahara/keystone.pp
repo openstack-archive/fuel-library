@@ -20,7 +20,9 @@ $public_protocol = $public_ssl_hash['services'] ? {
 }
 $public_url      = "${public_protocol}://${public_address}:${api_bind_port}/v1.1/%(tenant_id)s"
 $admin_url       = "http://${admin_address}:${api_bind_port}/v1.1/%(tenant_id)s"
+$service_endpoint    = hiera('service_endpoint')
 
+class {'::osnailyfacter::wait_for_keystone_backends':}->
 class { 'sahara::keystone::auth':
   auth_name    => $sahara_user,
   password     => $sahara_password,
