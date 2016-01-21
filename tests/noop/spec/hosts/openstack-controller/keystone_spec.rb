@@ -41,6 +41,13 @@ describe manifest do
     ec2_internal_url = "#{internal_protocol}://#{internal_address}:#{ec2_port}/services/Cloud"
     ec2_admin_url    = "#{admin_protocol}://#{admin_address}:#{ec2_port}/services/Admin"
 
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[nova::keystone::auth]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[nova::keystone::auth]")
+    end
+
     it 'class nova::keystone::auth should  contain correct *_url' do
       should contain_class('nova::keystone::auth').with(
         'public_url'       => "#{public_base_url}/v2/%(tenant_id)s",
