@@ -25,6 +25,7 @@ class osnailyfacter::apache_api_proxy(
   class {"::apache::mod::proxy": }
   class {"::apache::mod::proxy_connect": }
   class {"::apache::mod::proxy_http": }
+  class {"::apache::mod::headers": }
 
   $apache_api_proxy_address = hiera('apache_api_proxy_address', '0.0.0.0')
 
