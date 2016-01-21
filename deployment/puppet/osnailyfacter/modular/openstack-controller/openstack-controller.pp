@@ -179,24 +179,37 @@ if $primary_controller {
   $nova_internal_endpoint  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
   $nova_url                = "${nova_internal_protocol}://${nova_internal_endpoint}:8774"
 
+  $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
+
   if $external_lb {
-    Haproxy_backend_status<||> {
-      provider => 'http',
+    $lb_backend_provider = 'http'
+    $lb_url = $nova_url
+  }
+
+  $lb_hash = {
+    'nova-api' => {
+      name     => 'nova-api-2',
+      provider => $lb_backend_provider,
+      url      => $lb_url
     }
   }
 
-  haproxy_backend_status { 'nova-api' :
-    name    => 'nova-api',
-    url     => $external_lb ? {
-      default => $haproxy_stats_url,
-      true    => $nova_url,
-    },
+  ::osnailyfacter::wait_for_backend {'nova-api':
+    lb_hash     => $lb_hash,
+    lb_defaults => $lb_defaults
   }
+
 
   Openstack::Ha::Haproxy_service <| |> -> Haproxy_backend_status <| |>
 
-  Class['nova::api'] -> Haproxy_backend_status['nova-api']
+  Class['nova::api'] -> ::Osnailyfacter::Wait_for_backend['nova-api']
+  ::Osnailyfacter::Wait_for_backend['nova-api'] -> Exec<| title == 'create-m1.micro-flavor' |>
+  ::Osnailyfacter::Wait_for_backend['nova-api'] -> Nova_floating <| |>
 
+  Class['::osnailyfacter::wait_for_keystone_backends'] ->  Exec<| title == 'create-m1.micro-flavor' |>
+  Class['::osnailyfacter::wait_for_keystone_backends'] ->  Nova_floating <| |>
+
+  class {"::osnailyfacter::wait_for_keystone_backends":}
   exec { 'create-m1.micro-flavor' :
     path        => '/sbin:/usr/sbin:/bin:/usr/bin',
     environment => [
@@ -226,14 +239,18 @@ if $primary_controller {
     require   => Class['nova'],
   }
 
-  Haproxy_backend_status <| |>    -> Exec<| title == 'create-m1.micro-flavor' |>
 
   if ! $use_neutron {
     nova_floating { $floating_ips_range:
       ensure          => 'present',
       pool            => 'nova',
+      username        => $access_hash[user],
+      api_key         => $access_hash[password],
+      auth_method     => 'password',
+      auth_url        => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
+      authtenant_name => $access_hash[tenant],
+      api_retries     => 10,
     }
-    Haproxy_backend_status['nova-api'] -> Nova_floating <| |>
   }
 }
 

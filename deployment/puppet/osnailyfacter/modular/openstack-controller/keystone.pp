@@ -38,6 +38,7 @@ $tenant              = pick($nova_hash['tenant'], 'services')
 validate_string($public_address)
 validate_string($password)
 
+class {'::osnailyfacter::wait_for_keystone_backends':}->
 class { '::nova::keystone::auth':
   password              => $password,
   auth_name             => $auth_name,
