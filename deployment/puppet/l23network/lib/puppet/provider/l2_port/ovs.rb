@@ -24,7 +24,7 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
     #
-    cmd = ["add-port", @resource[:bridge], @resource[:interface]]
+    cmd = ['--may-exist', 'add-port', @resource[:bridge], @resource[:interface]]
     # # tag and trunks for port
     # port_properties = @resource[:port_properties]
     # if ![nil, :absent].include? @resource[:vlan_id] and @resource[:vlan_id] > 0
@@ -45,6 +45,9 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
       tt = "type=" + @resource[:type].to_s
     elsif File.exist? "/sys/class/net/#{@resource[:interface]}"
       tt = nil
+      # Flush ipaddr and routes for interface, then adding to the bridge
+      iproute('route', 'flush', 'dev', @resource[:interface])
+      iproute('addr', 'flush', 'dev', @resource[:interface])
     else
       tt = "type=internal"
     end
