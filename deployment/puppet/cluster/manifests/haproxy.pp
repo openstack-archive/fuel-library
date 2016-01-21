@@ -74,7 +74,7 @@ class cluster::haproxy (
     'spread-checks'             => $spread_checks,
     'tune.bufsize'              => $haproxy_bufsize,
     'tune.maxrewrite'           => $haproxy_maxrewrite,
-    'tune.ssl.default-dh-param' => $haproxy_ssl_default_dh_param,
+    'tune.ssl.default-dh-param' => $haproxy_ssl_default_dh_param
   }
 
   $defaults_options = {

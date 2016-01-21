@@ -112,8 +112,7 @@ define openstack::ha::haproxy_service (
   if $public {
     $public_bind_address = suffix(any2array($public_virtual_ip), ":${listen_port}")
     if $public_ssl {
-      # TODO(sbog): add !SHA here as soon as all our clients will support TLS1.2
-      $public_bind = array_to_hash($public_bind_address, ['ssl', 'crt', $public_ssl_path, 'no-sslv3', 'no-tls-tickets', 'ciphers AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH'])
+      $public_bind = array_to_hash($public_bind_address, ['ssl', 'crt', $public_ssl_path])
     } else {
       $public_bind = array_to_hash($public_bind_address, "")
     }
@@ -123,8 +122,7 @@ define openstack::ha::haproxy_service (
   if $internal {
     $internal_bind_address = suffix(any2array($internal_virtual_ip), ":$listen_port")
     if $internal_ssl {
-      # TODO(sbog): add !SHA here too as soon as all our clients will support TLS1.2
-      $internal_bind = array_to_hash($internal_bind_address, ['ssl', 'crt', $internal_ssl_path, 'no-sslv3', 'no-tls-tickets', 'ciphers AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH'])
+      $internal_bind = array_to_hash($internal_bind_address, ['ssl', 'crt', $internal_ssl_path])
     } else {
       $internal_bind = array_to_hash($internal_bind_address, "")
     }

@@ -20,16 +20,6 @@ class nailgun::nginx_nailgun(
     $plain_http = true
   }
 
-  if $ssl_enabled {
-    $dhparam = '/etc/pki/tls/dhparam.pem'
-
-    exec { 'create new dhparam file':
-      path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-      command => "openssl dhparam -out ${dhparam} 4096",
-      creates => $dhparam,
-    }
-  }
-
   file { '/etc/nginx/conf.d/nailgun.conf':
     content => template('nailgun/nginx_nailgun.conf.erb'),
     owner   => 'root',
