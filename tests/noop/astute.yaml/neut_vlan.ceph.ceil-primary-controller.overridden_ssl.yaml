@@ -507,12 +507,41 @@ network_metadata:
   vips:
     vrouter:
       ipaddr: 192.168.0.6
+      network_role: mgmt/vip
+      vendor_specific:
+      namespace: vrouter
+      node_roles:
+      - controller
+      - primary-controller
     management:
       ipaddr: 192.168.0.7
+      network_role: mgmt/vip
+      vendor_specific:
+      namespace: haproxy
+      node_roles:
+      - controller
+      - primary-controller
     public:
       ipaddr: 172.16.0.3
+      network_role: public/vip
+      vendor_specific:
+      namespace: haproxy
+      node_roles:
+      - controller
+      - primary-controller
     vrouter_pub:
       ipaddr: 172.16.0.3
+      network_role: public/vip
+      vendor_specific:
+        iptables_rules:
+          ns_start:
+          - iptables -t nat -A POSTROUTING -o <%INT%> -j MASQUERADE
+          ns_stop:
+          - iptables -t nat -D POSTROUTING -o <%INT%> -j MASQUERADE
+      namespace: vrouter
+      node_roles:
+      - controller
+      - primary-controller
 network_scheme:
   endpoints:
     br-ex:
