@@ -32,6 +32,12 @@ describe manifest do
     internal_url = "#{internal_protocol}://#{internal_address}:#{api_bind_port}"
     admin_url = "#{admin_protocol}://#{admin_address}:#{api_bind_port}"
 
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[murano::keystone::cfapi_auth]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[murano::keystone::cfapi_auth]")
+    end
 
     let(:region) { Noop.hiera('region', 'RegionOne') }
     let(:tenant) { Noop.hiera_structure('murano_hash/tenant', 'services') }

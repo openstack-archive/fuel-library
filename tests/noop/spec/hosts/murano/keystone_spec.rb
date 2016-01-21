@@ -40,6 +40,13 @@ describe manifest do
 
     ##########################################################################
 
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[murano::keystone::auth]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[murano::keystone::auth]")
+    end
+
     it 'should declare murano::keystone::auth class correctly' do
       should contain_class('murano::keystone::auth').with(
                  'password'     => murano_password,

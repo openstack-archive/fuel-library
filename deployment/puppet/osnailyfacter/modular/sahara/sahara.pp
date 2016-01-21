@@ -142,42 +142,34 @@ if $sahara_hash['enabled'] {
   }
 
   $haproxy_stats_url = "http://${management_vip}:10000/;csv"
+  $sahara_protocol = get_ssl_property($ssl_hash, {}, 'sahara', 'internal', 'protocol', 'http')
+  $sahara_address  = get_ssl_property($ssl_hash, {}, 'sahara', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $sahara_url      = "${sahara_protocol}://${sahara_address}:${api_bind_port}"
+
+  $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
 
   if $external_lb {
-    Haproxy_backend_status<||> {
-      provider => 'http',
-    }
-    $sahara_protocol = get_ssl_property($ssl_hash, {}, 'sahara', 'internal', 'protocol', 'http')
-    $sahara_address  = get_ssl_property($ssl_hash, {}, 'sahara', 'internal', 'hostname', [$service_endpoint, $management_vip])
-    $sahara_url      = "${sahara_protocol}://${sahara_address}:${api_bind_port}"
+    $lb_backend_provider = 'http'
+    $lb_url = $sahara_url
   }
 
-  haproxy_backend_status { 'sahara' :
-    name => 'sahara',
-    url   => $external_lb ? {
-      default => $haproxy_stats_url,
-      true    => $sahara_url,
-    },
+  $lb_hash = {
+    sahara      => {
+      name     => 'sahara',
+      provider => $lb_backend_provider,
+      url      => $lb_url
+    }
   }
+
+  ::osnailyfacter::wait_for_backend {'sahara':
+    lb_hash     => $lb_hash,
+    lb_defaults => $lb_defaults
+  }
+
 
   if $primary_controller {
 
-    haproxy_backend_status { 'keystone-public' :
-      name  => 'keystone-1',
-      url   => $external_lb ? {
-        default => $haproxy_stats_url,
-        true    => $internal_auth_url,
-      },
-    }
-
-    haproxy_backend_status { 'keystone-admin' :
-      name  => 'keystone-2',
-      url   => $external_lb ? {
-        default => $haproxy_stats_url,
-        true    => $admin_identity_uri,
-      },
-    }
-
+    class {'::osnailyfacter::wait_for_keystone_backends':} ->
     class { 'sahara_templates::create_templates' :
       use_neutron   => $use_neutron,
       auth_user     => $access_admin['user'],
@@ -187,13 +179,12 @@ if $sahara_hash['enabled'] {
       internal_net  => try_get_value($neutron_config, 'default_private_net', 'admin_internal_net'),
     }
 
-    Haproxy_backend_status['keystone-admin'] -> Haproxy_backend_status['sahara']
-    Haproxy_backend_status['keystone-public'] -> Haproxy_backend_status['sahara']
-    Haproxy_backend_status['sahara'] -> Class['sahara_templates::create_templates']
+    Class['::osnailyfacter::wait_for_keystone_backends'] -> ::Osnailyfacter::Wait_for_backend['sahara']
+    ::Osnailyfacter::Wait_for_backend['sahara'] -> Class['sahara_templates::create_templates']
   }
 
   Firewall[$firewall_rule] -> Class['sahara::service::api']
-  Service['sahara-api'] -> Haproxy_backend_status['sahara']
+  Service['sahara-api'] -> ::Osnailyfacter::Wait_for_backend['sahara']
 }
 #########################
 

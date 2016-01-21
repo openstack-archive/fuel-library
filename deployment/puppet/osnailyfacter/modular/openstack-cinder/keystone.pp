@@ -6,6 +6,8 @@ $ssl_hash            = hiera_hash('use_ssl', {})
 $public_vip          = hiera('public_vip')
 $management_vip      = hiera('management_vip')
 
+Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::cinder::keystone::auth']
+
 $public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'cinder', 'public', 'protocol', 'http')
 $public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'cinder', 'public', 'hostname', [$public_vip])
 
@@ -35,6 +37,7 @@ validate_string($internal_address)
 validate_string($admin_address)
 validate_string($password)
 
+class {'::osnailyfacter::wait_for_keystone_backends':}
 class { '::cinder::keystone::auth':
   password            => $password,
   auth_name           => $auth_name,
