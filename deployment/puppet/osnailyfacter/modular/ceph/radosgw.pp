@@ -7,9 +7,13 @@ $keystone_hash    = hiera('keystone', {})
 $management_vip   = hiera('management_vip')
 $service_endpoint = hiera('service_endpoint')
 $public_ssl_hash  = hiera('public_ssl')
+$radosgw_large_pool_name = ".rgw"
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 $external_lb      = hiera('external_lb', false)
 $ssl_hash         = hiera_hash('use_ssl', {})
+$admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_identity_url      = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
 if ($storage_hash['volumes_ceph'] or
   $storage_hash['images_ceph'] or
@@ -46,40 +50,14 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
-  if $external_lb {
-    Haproxy_backend_status<||> {
-      provider => 'http',
-    }
-    $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-    $internal_auth_address   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
-    $internal_auth_url       = "${internal_auth_protocol}://${internal_auth_address}:5000"
-    $admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-    $admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
-    $admin_identity_url      = "${admin_identity_protocol}://${admin_identity_address}:35357"
-  }
+  $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+  $internal_auth_address   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $internal_auth_url       = "${internal_auth_protocol}://${internal_auth_address}:5000"
 
-  haproxy_backend_status { 'keystone-admin' :
-    name  => 'keystone-2',
-    count => '200',
-    step  => '6',
-    url   => $external_lb ? {
-      default => $haproxy_stats_url,
-      true    => $admin_identity_url,
-    },
-  }
+  class { '::osnailyfacter::wait_for_keystone_backends': }
 
-  haproxy_backend_status { 'keystone-public' :
-    name  => 'keystone-1',
-    count => '200',
-    step  => '6',
-    url   => $external_lb ? {
-      default => $haproxy_stats_url,
-      true    => $internal_auth_url,
-    },
-  }
 
-  Haproxy_backend_status['keystone-admin']  -> Class ['ceph::keystone']
-  Haproxy_backend_status['keystone-public'] -> Class ['ceph::keystone']
+  Class[::Osnailyfacter::Wait_for_keystone_backends]  -> Class['ceph::keystone']
 
   class { 'ceph::radosgw':
     # SSL
@@ -115,6 +93,8 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     rgw_keystone_revocation_interval => '1000000',
     rgw_nss_db_path                  => '/etc/ceph/nss',
     rgw_s3_auth_use_keystone         => hiera('rgw_s3_auth_use_keystone', true),
+    rgw_large_pool_name              => $radosgw_large_pool_name,
+    rgw_large_pool_pg_nums           => pick($storage_hash['per_pool_pg_nums'][$radosgw_large_pool_name], '512'),
 
     #rgw Log settings
     use_syslog                       => hiera('use_syslog', true),
