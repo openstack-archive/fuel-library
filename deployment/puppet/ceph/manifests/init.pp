@@ -3,8 +3,8 @@
 
 class ceph (
       # General settings
-      $mon_hosts,
-      $mon_ip_addresses,
+      $mon_hosts                          = undef,
+      $mon_ip_addresses                   = undef,
       $cluster_node_address               = $::ipaddress, # This should be the cluster service address
       $primary_mon                        = $::hostname,  # This should be the first controller
       $mon_addr                           = $::ipaddress, # This needs to be replaced with the address we want to bind the mon to (if this is a mon)
@@ -91,8 +91,12 @@ class ceph (
          cwd  => '/root',
   }
 
+  # the regex includes all roles that require ceph.conf
   if hiera('role') =~ /controller|ceph|compute|cinder/ {
-    # the regex above includes all roles that require ceph.conf
+
+    validate_array($mon_hosts)
+    validate_array($mon_ip_addresses)
+
     include ceph::ssh
     include ceph::params
     include ceph::conf
@@ -101,8 +105,8 @@ class ceph (
 
   if hiera('role') =~ /controller|ceph/ {
     service {'ceph':
-      name    => $ceph::params::service_name,
       ensure  => 'running',
+      name    => $ceph::params::service_name,
       enable  => true,
       require => Class['ceph::conf']
     }
@@ -135,6 +139,13 @@ class ceph (
         include ceph::osds
         Class['ceph::conf'] -> Class['ceph::osds']
         Ceph_conf <||> ~> Service['ceph']
+
+        # set the recommended value according: http://tracker.ceph.com/issues/10988
+        sysctl::value { 'kernel.pid_max':
+          value  => '4194303',
+        }
+
+        Sysctl::Value <| |> -> Service['ceph']
       }
     }
 
