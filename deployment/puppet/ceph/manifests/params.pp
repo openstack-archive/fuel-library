@@ -40,7 +40,6 @@ class ceph::params {
       $package_httpd              = 'apache2'
       $user_httpd                 = 'www-data'
       $package_libnss             = 'libnss3-tools'
-      $service_radosgw            = 'radosgw'
       $package_radosgw            = 'radosgw'
       $package_fastcgi            = 'libapache2-mod-fastcgi'
       $package_modssl             = undef
@@ -48,6 +47,11 @@ class ceph::params {
       $dir_httpd_sites            = '/etc/apache2/sites-available/'
       $dir_httpd_ssl              = '/etc/apache2/ssl/'
       $dir_httpd_log              = '/var/log/apache2/'
+
+      $service_radosgw = $::operatingsystem ? {
+        'Ubuntu' => 'radosgw-all',
+        default  => 'radosgw',
+      }
 
       package { ['ceph','ceph-deploy', ]:
         ensure => installed,

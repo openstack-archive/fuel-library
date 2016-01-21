@@ -42,6 +42,8 @@ class ceph::radosgw (
   $syslog_level                     = $::ceph::syslog_log_level,
 ) {
 
+  include ceph::params
+
   $keyring_path     = "/etc/ceph/keyring.${rgw_id}"
   $radosgw_auth_key = "client.${rgw_id}"
   $dir_httpd_root   = '/var/www/radosgw'
@@ -222,6 +224,20 @@ class ceph::radosgw (
   }
 
   file { $keyring_path: mode => '0640', }
+
+  file { 'config_done':
+    name    => "/var/lib/ceph/radosgw/ceph-${rgw_id}/done"
+    require => Exec["Populate ${radosgw_auth_key} keyring"]
+  }
+
+  service { 'radosgw':
+    ensure     => 'running',
+    name       => $::ceph::params::service_radosgw,
+    enable     => true,
+    hasrestart => true,
+    require    => File['config_done'],
+    tag        => 'ceph-service',
+  }
 
   Ceph_conf <||> ->
   Package<| title == 'httpd' |> ->
