@@ -24,9 +24,10 @@ class nailgun::nginx_nailgun(
     $dhparam = '/etc/pki/tls/dhparam.pem'
 
     exec { 'create new dhparam file':
-      path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-      command => "openssl dhparam -out ${dhparam} 4096",
-      creates => $dhparam,
+      environment => 'RANDFILE=/root/.rnd',
+      path        => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
+      command     => "openssl dhparam -out ${dhparam} 2048",
+      creates     => $dhparam,
     }
   }
 
