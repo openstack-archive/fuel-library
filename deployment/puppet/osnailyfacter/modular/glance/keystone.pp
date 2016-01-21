@@ -14,12 +14,15 @@ $service_name        = pick($glance_hash['service_name'], 'glance')
 $tenant              = pick($glance_hash['tenant'], 'services')
 $ssl_hash            = hiera_hash('use_ssl', {})
 
+Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::glance::keystone::auth']
+
 $public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'glance', 'public', 'protocol', 'http')
 $public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'glance', 'public', 'hostname', [$public_vip])
 $internal_protocol   = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
 $internal_address    = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
 $admin_protocol      = get_ssl_property($ssl_hash, {}, 'glance', 'admin', 'protocol', 'http')
 $admin_address       = get_ssl_property($ssl_hash, {}, 'glance', 'admin', 'hostname', [$management_vip])
+$service_endpoint    = hiera('service_endpoint')
 
 $public_url = "${public_protocol}://${public_address}:9292"
 $internal_url = "${internal_protocol}://${internal_address}:9292"
@@ -27,6 +30,11 @@ $admin_url  = "${admin_protocol}://${admin_address}:9292"
 
 validate_string($public_address)
 validate_string($password)
+
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_keystone_backends':
+} 
 
 class { '::glance::keystone::auth':
   password            => $password,

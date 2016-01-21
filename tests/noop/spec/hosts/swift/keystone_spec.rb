@@ -68,6 +68,13 @@ describe manifest do
       should contain_class('swift::keystone::auth').with('internal_url' => internal_url)
     end
 
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitional_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[swift::keystone::auth]")
+      expect(graph).to ensure_transitional_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[swift::keystone::auth]")
+    end
+
     it 'class swift::keystone::auth should contain correct S3 endpoints' do
       should contain_class('swift::keystone::auth').with('public_url_s3' => public_url_s3)
       should contain_class('swift::keystone::auth').with('admin_url_s3' => admin_url_s3)

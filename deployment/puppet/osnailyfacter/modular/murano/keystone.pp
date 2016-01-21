@@ -7,6 +7,8 @@ $region            = hiera('region', 'RegionOne')
 $public_ssl_hash   = hiera('public_ssl')
 $ssl_hash          = hiera_hash('use_ssl', {})
 
+Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['murano::keystone::auth']
+
 $public_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'murano', 'public', 'protocol', 'http')
 $public_address    = get_ssl_property($ssl_hash, $public_ssl_hash, 'murano', 'public', 'hostname', [$public_ip])
 
@@ -21,9 +23,13 @@ $tenant            = pick($murano_hash['tenant'], 'services')
 $public_url        = "${public_protocol}://${public_address}:${api_bind_port}"
 $internal_url      = "${internal_protocol}://${internal_address}:${api_bind_port}"
 $admin_url         = "${admin_protocol}://${admin_address}:${api_bind_port}"
+$service_endpoint  = hiera('service_endpoint')
 
 #################################################################
 
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_keystone_backends':}
 class { 'murano::keystone::auth':
   password     => $murano_hash['user_password'],
   service_type => 'application_catalog',
