@@ -12,7 +12,8 @@ describe 'openstack::horizon' do
   let(:params) { {
     :secret_key => 'very_secret_key',
     :file_upload_max_size => '10737418235',
-    :file_upload_temp_dir => upload_dir
+    :file_upload_temp_dir => upload_dir,
+    :cinder_options       => { 'enable_backup' => false },
   } }
 
   let :facts do
@@ -33,6 +34,12 @@ describe 'openstack::horizon' do
        # .with(
        #   :file_upload_temp_dir => '/var/lib/horizon/tmp'
        # )
+      end
+
+      it 'contains horizon' do
+        should contain_class('horizon').with(
+          :cinder_options => p[:cinder_options]
+        )
       end
 
       it 'contains horizon::wsgi::apache' do

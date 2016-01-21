@@ -67,12 +67,18 @@ describe manifest do
       end
     end
 
+    storage_hash = Noop.hiera 'storage_hash'
+    let(:cinder_options) do
+      { 'enable_backup' => storage_hash.fetch('volumes_ceph', false) }
+    end
+
     ###########################################################################
 
     it 'should declare openstack::horizon class' do
       should contain_class('openstack::horizon').with(
+                 'cinder_options'     => cinder_options,
                  'hypervisor_options' => {'enable_quotas' => nova_quota},
-                 'bind_address' => bind_address
+                 'bind_address'       => bind_address
              )
     end
 
