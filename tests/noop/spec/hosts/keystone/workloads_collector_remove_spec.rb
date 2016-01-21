@@ -22,11 +22,11 @@ describe manifest do
 
     it {
       if Noop.hiera('external_lb', false)
-        url = admin_url
+        url = "#{admin_url}/v3"
         provider = 'http'
       else
         url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-        provider = nil
+        provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
       end
       should contain_haproxy_backend_status('keystone-admin').with(
         :url      => url,

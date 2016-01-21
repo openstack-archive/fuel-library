@@ -50,6 +50,17 @@ describe manifest do
       should contain_class('heat::keystone::auth_cfn').with('admin_url' => admin_url_cfn)
     end
 
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[heat::keystone::auth]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[heat::keystone::auth]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[heat::keystone::auth_cfn]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[heat::keystone::auth_cfn]")
+    end
+
     it 'class heat::keystone::auth should contain tenant' do
       should contain_class('heat::keystone::auth').with('tenant' => tenant)
     end
