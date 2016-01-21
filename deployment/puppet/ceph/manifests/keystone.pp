@@ -13,7 +13,7 @@ class ceph::keystone (
     description => 'Openstack Object-Store Service',
   }
 
-  keystone_endpoint {"$region/swift":
+  keystone_endpoint {"${region}/swift":
     ensure       => present,
     public_url   => "${pub_protocol}://${pub_ip}:${swift_endpoint_port}/swift/v1",
     admin_url    => "http://${adm_ip}:${swift_endpoint_port}/swift/v1",
