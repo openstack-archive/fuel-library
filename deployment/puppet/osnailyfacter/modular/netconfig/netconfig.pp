@@ -86,17 +86,21 @@ exec { 'wait-for-interfaces':
   command => 'sleep 32',
 }
 
-# check that network was configured successfully
-# and the default gateway is online
-$default_gateway = hiera('default_gateway')
+$run_ping_checker = hiera('run_ping_checker', true)
 
-ping_host { $default_gateway :
-  ensure => 'up',
+if $run_ping_checker {
+    # check that network was configured successfully
+    # and the default gateway is online
+    $default_gateway = hiera('default_gateway')
+
+    ping_host { $default_gateway :
+        ensure => 'up',
+    }
+    L2_port<||> -> Ping_host[$default_gateway]
+    L2_bond<||> -> Ping_host[$default_gateway]
+    L3_ifconfig<||> -> Ping_host[$default_gateway]
+    L3_route<||> -> Ping_host[$default_gateway]
 }
-L2_port<||> -> Ping_host[$default_gateway]
-L2_bond<||> -> Ping_host[$default_gateway]
-L3_ifconfig<||> -> Ping_host[$default_gateway]
-L3_route<||> -> Ping_host[$default_gateway]
 
 Class['l23network'] ->
 Exec['wait-for-interfaces']
