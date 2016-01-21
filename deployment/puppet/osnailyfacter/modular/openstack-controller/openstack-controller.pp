@@ -180,19 +180,26 @@ if $primary_controller {
   $nova_internal_endpoint  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
   $nova_url                = "${nova_internal_protocol}://${nova_internal_endpoint}:8774"
 
+  $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
+
   if $external_lb {
-    Haproxy_backend_status<||> {
-      provider => 'http',
+    $lb_backend_provider = 'http'
+    $lb_url = $nova_url
+  }
+
+  $lb_hash = {
+    'nova-api' => {
+      name     => 'nova-api-2',
+      provider => $lb_backend_provider,
+      url      => $lb_url
     }
   }
 
-  haproxy_backend_status { 'nova-api' :
-    name    => 'nova-api-2',
-    url     => $external_lb ? {
-      default => $haproxy_stats_url,
-      true    => $nova_url,
-    },
+  ::osnailyfacter::wait_for_backend {'nova-api':
+    lb_hash     => $lb_hash,
+    lb_defaults => $lb_defaults
   }
+
 
   Openstack::Ha::Haproxy_service <| |> -> Haproxy_backend_status <| |>
 
