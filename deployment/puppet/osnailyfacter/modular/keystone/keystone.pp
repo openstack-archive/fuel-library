@@ -231,31 +231,12 @@ Class['openstack::auth_file']
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
-if $external_lb {
-  Haproxy_backend_status<||> {
-    provider => 'http',
-  }
-}
-
-haproxy_backend_status { 'keystone-public' :
-  name => 'keystone-1',
-  url  => $external_lb ? {
-    default => $haproxy_stats_url,
-    true    => $internal_url,
-  },
-}
-
-haproxy_backend_status { 'keystone-admin' :
-  name => 'keystone-2',
-  url  => $external_lb ? {
-    default => $haproxy_stats_url,
-    true    => $admin_url,
-  },
-}
+class {'::osnailyfacter::wait_for_keystone_backends':}
 
 Service['keystone'] -> Haproxy_backend_status<||>
 Service<| title == 'httpd' |> -> Haproxy_backend_status<||>
 Haproxy_backend_status<||> -> Class['keystone::roles::admin']
+Haproxy_backend_status<||> -> Class['keystone::endpoint']
 
 ####### Disable upstart startup on install #######
 if ($::operatingsystem == 'Ubuntu') {

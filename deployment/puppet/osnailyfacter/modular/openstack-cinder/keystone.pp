@@ -29,12 +29,16 @@ $configure_user      = pick($cinder_hash['configure_user'], true)
 $configure_user_role = pick($cinder_hash['configure_user_role'], true)
 $service_name        = pick($cinder_hash['service_name'], 'cinder')
 $tenant              = pick($cinder_hash['tenant'], 'services')
+$service_endpoint    = hiera('service_endpoint')
 
 validate_string($public_address)
 validate_string($internal_address)
 validate_string($admin_address)
 validate_string($password)
 
+$haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
+
+class {'::osnailyfacter::wait_for_keystone_backends':} ->
 class { '::cinder::keystone::auth':
   password            => $password,
   auth_name           => $auth_name,
