@@ -32,12 +32,15 @@ $public_url          = "${public_protocol}://${public_address}:${port}"
 $internal_url        = "${internal_protocol}://${internal_address}:${port}"
 $admin_url           = "${admin_protocol}://${admin_address}:${port}"
 
+$service_endpoint    = hiera('service_endpoint')
 
 validate_string($public_address)
 validate_string($internal_address)
 validate_string($password)
 
 if $use_neutron {
+
+  class {'::osnailyfacter::wait_for_keystone_backends':}->
   class { '::neutron::keystone::auth':
     password            => $password,
     auth_name           => $auth_name,

@@ -46,21 +46,28 @@ if $murano_cfapi_hash['enabled'] {
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
+  $murano_cfapi_protocol = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'protocol', 'http')
+  $murano_cfapi_address  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $murano_cfapi_url      = "${murano_cfapi_protocol}://${murano_cfapi_address}:${cfapi_bind_port}"
+
+  $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
+
   if $external_lb {
-    Haproxy_backend_status<||> {
-      provider => 'http',
-    }
-    $murano_cfapi_protocol = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'protocol', 'http')
-    $murano_cfapi_address  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'hostname', [$service_endpoint, $management_vip])
-    $murano_cfapi_url      = "${murano_cfapi_protocol}://${murano_cfapi_address}:${cfapi_bind_port}"
+    $lb_backend_provider = 'http'
+    $lb_url = $murano_cfapi_url
   }
 
-  haproxy_backend_status { 'murano-cfapi' :
-    name => 'murano-cfapi',
-    url  => $external_lb ? {
-      default => $haproxy_stats_url,
-      true    => $murano_cfapi_url,
-    },
+  $lb_hash = {
+    'murano-cfapi'      => {
+      name     => 'murano-cfapi',
+      provider => $lb_backend_provider,
+      url      => $lb_url
+    }
+  }
+
+  ::osnailyfacter::wait_for_backend {'murano-cfapi':
+    lb_hash     => $lb_hash,
+    lb_defaults => $lb_defaults
   }
 
   Firewall[$firewall_rule] -> Class['murano::cfapi']
