@@ -71,12 +71,16 @@ describe manifest do
         )
       end
 
-      it { should contain_haproxy_backend_status('keystone-public').that_comes_before('Class[ceph::keystone]') }
-      it { should contain_haproxy_backend_status('keystone-admin').that_comes_before('Class[ceph::keystone]') }
+      it 'should have explicit ordering between LB classes and particular actions' do
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]", "Class[ceph::keystone]")
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]", "Class[ceph::keystone]")
+      end
+
       it {
         should contain_service('httpd').with(
              'hasrestart' => true,
              'restart'    => 'sleep 30 && apachectl graceful || apachectl restart',
+
         )
       }
 
@@ -86,7 +90,7 @@ describe manifest do
           provider = 'http'
         else
           url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-          provider = nil
+          provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name 
         end
         should contain_haproxy_backend_status('keystone-public').with(
           :url      => url,
@@ -100,7 +104,7 @@ describe manifest do
           provider = 'http'
         else
           url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-          provider = nil
+          provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
         end
         should contain_haproxy_backend_status('keystone-admin').with(
           :url      => url,
