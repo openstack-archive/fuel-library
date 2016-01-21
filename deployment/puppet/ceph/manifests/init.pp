@@ -107,10 +107,11 @@ class ceph (
 
   if roles_include(['primary-controller', 'controller', 'ceph-mon', 'ceph-osd']) {
     service { 'ceph':
-      name    => $ceph::params::service_name,
-      ensure  => 'running',
-      enable  => true,
-      require => Class['ceph::conf']
+      ensure     => 'running',
+      name       => $::ceph::params::service_name,
+      enable     => true,
+      hasrestart => true,
+      require    => Class['ceph::conf']
     }
     Package<| title == 'ceph' |> ~> Service['ceph']
     if !defined(Service['ceph']) {
