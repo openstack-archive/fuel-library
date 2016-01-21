@@ -57,8 +57,8 @@ class ceph::radosgw (
   # check out httpd package/service is defined
   if !defined(Package['httpd']) {
     package { 'httpd':
-      name   => $::ceph::params::package_httpd,
       ensure => 'installed',
+      name   => $::ceph::params::package_httpd,
     }
   }
 
