@@ -3,8 +3,8 @@
 
 class ceph (
 # General settings
-  $mon_hosts,
-  $mon_ip_addresses,
+  $mon_hosts                          = undef,
+  $mon_ip_addresses                   = undef,
   $cluster_node_address               = $::ipaddress, # This should be the cluster service address
   $primary_mon                        = $::hostname,  # This should be the first controller
   $mon_addr                           = $::ipaddress, # This needs to be replaced with the address we want to bind the mon to (if this is a mon)
@@ -107,8 +107,8 @@ class ceph (
 
   if roles_include(['primary-controller', 'controller', 'ceph-mon', 'ceph-osd']) {
     service { 'ceph':
-      name    => $ceph::params::service_name,
       ensure  => 'running',
+      name    => $ceph::params::service_name,
       enable  => true,
       require => Class['ceph::conf']
     }
@@ -140,6 +140,12 @@ class ceph (
       include ceph::osds
       Class['ceph::conf'] -> Class['ceph::osds']
       Ceph_conf <||> ~> Service['ceph']
+
+      sysctl::value { 'kernel.pid_max':
+        value  => '4194303',
+      }
+
+      Sysctl::Value <| |> -> Service['ceph']
     }
   }
 
