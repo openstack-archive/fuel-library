@@ -204,7 +204,7 @@ describe manifest do
         provider = 'http'
       else
         url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-        provider = nil
+        provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
       end
 
       it {
