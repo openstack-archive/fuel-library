@@ -1,0 +1,10 @@
+Code-Review+1: Stanislav Makar <smakar@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+2: Alex Schultz <aschultz@mirantis.com>
+Workflow+1: Vitaly Sedelnik <vsedelnik@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Thu, 21 Jan 2016 09:37:43 +0000
+Reviewed-on: https://review.openstack.org/270123
+Project: openstack/fuel-library
+Branch: refs/heads/stable/7.0
